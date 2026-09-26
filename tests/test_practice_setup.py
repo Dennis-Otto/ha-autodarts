@@ -364,7 +364,11 @@ async def test_party_games_rules_and_the_bull_off_in_home_assistant(
     assert remaining.attributes["points"] == 0
 
     registry = er.async_get(hass)
-    for key in ("practice_double_in", "practice_bull_off"):
+    for key in (
+        "practice_double_in",
+        "practice_bull_off",
+        "practice_bull_off_distance",
+    ):
         rule = registry.async_get(entity_id(hass, "switch", key))
         assert rule.entity_category == er.EntityCategory.CONFIG
         assert state(hass, "switch", key) == "off"
@@ -375,7 +379,9 @@ async def test_party_games_rules_and_the_bull_off_in_home_assistant(
     await throw(hass, coordinator, OUTER_BULL)
     await throw(hass, coordinator, BULL)
     won = [attributes for kind, attributes in events if kind == "bull_off_won"]
-    assert won and won[0]["player"] == 2 and won[0]["distance"] == 0.0
+    # The bullseye beats the outer bull; the board reported no positions.
+    assert won and won[0]["player"] == 2 and won[0]["hit"] == "BULL"
+    assert won[0]["distance"] is None
     remaining = hass.states.get(entity_id(hass, "sensor", "practice_remaining"))
     assert remaining.attributes["bull_off"] is None
     assert remaining.attributes["player"] == 2

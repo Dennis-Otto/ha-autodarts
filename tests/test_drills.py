@@ -9,6 +9,7 @@ from custom_components.autodarts.checkout import checkout
 from custom_components.autodarts.drills import (
     BOBS_START,
     CHECKOUT_SCORES,
+    CHECKOUT_VISITS,
     TARGETS,
     BobsDrill,
     CheckoutDrill,
@@ -61,6 +62,13 @@ def test_around_the_clock_ends_on_the_bull_and_restarts_with_the_next_dart():
     assert snapshot["best"] == 21 and len(snapshot["results"]) == 1
     drill.track([dart("S1")])
     assert drill.snapshot()["target"] == "2"
+
+
+def test_around_the_clock_ends_on_the_25_where_both_bull_beds_count():
+    drill = TargetDrill("around_the_clock")
+    drill.index = len(TARGETS) - 1
+    assert drill.snapshot()["target"] == "25"
+    assert throw(drill, "BULL")[0][0] == "drill_finished"
 
 
 def test_doubles_training_needs_the_double_ring_and_the_bullseye():
@@ -121,14 +129,21 @@ def test_checkout_training_shows_the_route_for_the_rest_of_the_visit():
     snapshot = drill.snapshot()
     assert snapshot["won"] and snapshot["remaining"] == 0
     assert snapshot["checkout"] is None
-    # A bust and a full visit both show the route for the next visit.
+    # A bust ends the attempt: no route, the next target follows.
     drill.track([dart("T20")])
     snapshot = drill.snapshot()
     assert snapshot["bust"] and snapshot["remaining"] == 40
-    assert snapshot["checkout"] == "D20"
+    assert snapshot["checkout"] is None
+    # A full visit shows the route for the next one, unless it was the last.
     drill.track([dart("S10"), dart("S10"), dart("S10")])
     snapshot = drill.snapshot()
     assert snapshot["remaining"] == 10 and snapshot["checkout"] == "D5"
+    drill.visits = CHECKOUT_VISITS - 1
+    assert drill.snapshot()["checkout"] is None
+    # A fourth dart before the takeout does not count.
+    drill.visits = 0
+    drill.track([dart("S10"), dart("S10"), dart("S10"), dart("D5")])
+    assert drill.snapshot()["remaining"] == 10
 
 
 def test_restored_progress_past_the_bull_finishes_the_game():
@@ -173,6 +188,14 @@ def test_bobs_27_adds_hits_and_takes_the_value_of_a_miss():
         )
     ]
     assert drill.snapshot()["finished"] and drill.snapshot()["target"] is None
+
+
+def test_bobs_27_is_lost_when_the_score_reaches_zero():
+    drill = BobsDrill()
+    drill.score = 2
+    events = throw(drill, "MISS")
+    assert events[0][1]["score"] == 0 and events[0][1]["completed"] is False
+    assert drill.finished
 
 
 def test_bobs_27_is_completed_on_the_bull():

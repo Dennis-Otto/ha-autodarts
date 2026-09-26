@@ -42,8 +42,8 @@ def test_hit_rates_the_favourite_and_the_preferred_order():
 
 
 def test_preferred_doubles_rank_first_among_equal_routes():
-    assert checkout(70, 2) == ("T10", "D20")
-    assert checkout(70, 2, True, ("D8",)) == ("T18", "D8")
+    assert checkout(70) == ("T18", "D8")
+    assert checkout(70, 3, True, ("D20",)) == ("T10", "D20")
     # Fewer darts still come first.
     assert checkout(40, 3, True, ("D8",)) == ("D20",)
 
@@ -76,17 +76,17 @@ def test_personal_routes_follow_the_strongest_doubles_of_the_player():
     practice.set_name(0, "Alex")
     practice.play(501)
     practice.players[0].remaining = 70
-    assert practice.snapshot()["checkout"] == "T10 D20"
+    assert practice.snapshot()["checkout"] == "T18 D8"
     practice.personal_routes = True
     # Without enough darts at a double, the usual route stays.
-    assert practice.snapshot()["checkout"] == "T10 D20"
-    practice.profiles.doubles("Alex", [("D8", True)] * MIN_ATTEMPTS)
     assert practice.snapshot()["checkout"] == "T18 D8"
+    practice.profiles.doubles("Alex", [("D20", True)] * MIN_ATTEMPTS)
+    assert practice.snapshot()["checkout"] == "T10 D20"
     # Nobody's profile knows the doubles: everybody's darts decide.
     practice.set_name(0, "")
-    assert practice.snapshot()["checkout"] == "T10 D20"
-    practice.doubles.record([("D8", True)] * MIN_ATTEMPTS)
     assert practice.snapshot()["checkout"] == "T18 D8"
+    practice.doubles.record([("D20", True)] * MIN_ATTEMPTS)
+    assert practice.snapshot()["checkout"] == "T10 D20"
     restored = PracticeGame()
     restored.restore(practice.stored())
     assert (

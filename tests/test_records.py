@@ -24,7 +24,14 @@ def darts(records: PersonalRecords, count: int, when: datetime = MONDAY) -> list
 
 def test_the_first_value_sets_a_record_quietly_and_beating_it_announces_it():
     records = PersonalRecords()
-    leg = {"game": 501, "player": 1, "name": "Alex", "darts": 24, "checkout": 40}
+    leg = {
+        "game": 501,
+        "player": 1,
+        "name": "Alex",
+        "darts": 24,
+        "checkout": 40,
+        "double_out": True,
+    }
     assert records.observe("leg_won", leg, MONDAY) == []
     assert records.snapshot(MONDAY.date())["bests"] == {
         "highest_checkout": 40,
@@ -107,13 +114,35 @@ def test_merged_visits_lost_games_and_short_sessions_set_no_record():
         ("visit_completed", {"score": 180, "darts": 6}),
         ("drill_finished", {"drill": "bobs_27", "score": 300, "completed": False}),
         ("session_ended", {"darts": SESSION_DARTS - 1, "average": 99.0}),
-        ("leg_won", {"game": 401, "darts": 9, "checkout": 170}),
-        ("leg_won", {"game": 501, "darts": "x", "checkout": -5}),
+        ("leg_won", {"game": 401, "darts": 9, "checkout": 170, "double_out": True}),
+        ("leg_won", {"game": 501, "darts": "x", "checkout": -5, "double_out": True}),
+        # Without double out, a leg finishes more easily: no record.
+        ("leg_won", {"game": 501, "darts": 9, "checkout": 180, "double_out": False}),
+        ("leg_won", {"game": 301, "darts": 6, "checkout": 141}),
         ("visit_completed", {"score": 0, "darts": 3}),
         ("dart_corrected", {"score": 60}),
     ):
         assert records.observe(kind, attributes, MONDAY) == []
     assert records.snapshot(MONDAY.date())["bests"] == {}
+
+
+def test_a_deleted_player_leaves_the_records_without_a_name():
+    records = PersonalRecords()
+    leg = {"game": 501, "name": "Alex", "darts": 24, "checkout": 40, "double_out": True}
+    records.observe("leg_won", leg, MONDAY)
+    records.observe("leg_won", {**leg, "darts": 18}, MONDAY)
+    records.observe("leg_won", {**leg, "name": "Sam", "checkout": 60}, MONDAY)
+    records.forget(" alex ")
+    bests = records.stored()["bests"]
+    assert bests["fewest_darts_501"]["name"] is None
+    assert bests["fewest_darts_501"]["value"] == 18
+    assert bests["highest_checkout"]["name"] == "Sam"
+    assert records.stored()["latest"]["name"] == "Sam"
+    records.forget("Sam")
+    assert records.stored()["latest"]["name"] is None
+    records.latest = None
+    records.forget("Nobody")
+    assert records.stored()["latest"] is None
 
 
 def test_darts_count_per_day_and_the_goal_is_announced_once():

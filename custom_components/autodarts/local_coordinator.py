@@ -695,14 +695,18 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self._async_training([])
 
     async def async_delete_player(self, name: str) -> bool:
-        """Forget a player profile; False when there is none by that name."""
+        """Forget a player profile, and the name in the records and the player
+        slots; False when there is no profile by that name."""
         deleted = self.practice.profiles.delete(name)
         if deleted:
+            self.practice.forget(name)
+            self.records.forget(name)
             await self._async_training([])
         return deleted
 
     async def async_set_practice_option(self, option: str, enabled: bool) -> None:
-        """Double out and routes apply at once; double in and the bull-off start anew."""
+        """Double out, routes and the bull-off rule apply at once; double in and
+        the bull-off start anew."""
         setattr(self.practice, option, enabled)
         if option in ("double_in", "bull_off"):
             self.practice.new_match()
@@ -736,6 +740,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         double_out: bool | None = None,
         double_in: bool | None = None,
         bull_off: bool | None = None,
+        bull_off_distance: bool | None = None,
     ) -> None:
         """Set up a practice game in one step; unset values stay as they are."""
         practice = self.practice
@@ -743,6 +748,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ("double_out", double_out),
             ("double_in", double_in),
             ("bull_off", bull_off),
+            ("bull_off_distance", bull_off_distance),
         ):
             if value is not None:
                 setattr(practice, option, value)

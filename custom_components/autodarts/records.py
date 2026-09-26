@@ -179,6 +179,9 @@ class PersonalRecords:
         if kind == "leg_won" and value("game") == "cricket":
             return [("best_cricket_mpr", _value(value("mpr")), name)]
         if kind == "leg_won" and value("game") in GAMES:
+            # Legs without double out finish more easily; they set no record.
+            if value("double_out") is not True:
+                return []
             return [
                 ("highest_checkout", _value(value("checkout")), name),
                 (f"fewest_darts_{value('game')}", _value(value("darts")), name),
@@ -214,6 +217,13 @@ class PersonalRecords:
         details = {"record": record, "value": value, "previous": previous, "name": name}
         self.latest = {**details, "date": now.isoformat()}
         return "personal_best", details
+
+    def forget(self, name: str) -> None:
+        """Remove a player's name from the records; the values stay."""
+        key = name.strip().casefold()
+        for best in [*self.bests.values(), *([self.latest] if self.latest else [])]:
+            if (best.get("name") or "").strip().casefold() == key:
+                best["name"] = None
 
     # -- state -----------------------------------------------------------------
 

@@ -353,6 +353,9 @@
       "practice_bull_off": {
         "name": "Practice bull-off"
       },
+      "practice_bull_off_distance": {
+        "name": "Practice bull-off by distance"
+      },
       "practice_personal_routes": {
         "name": "Practice personal checkout routes"
       }
@@ -507,6 +510,12 @@
     "several_boards": {
       "message": "Several Autodarts boards are set up. Choose the board."
     },
+    "duplicate_player": {
+      "message": "{name} is on the list of players more than once. Every player needs a name of their own."
+    },
+    "killer_players": {
+      "message": "Killer needs at least two players."
+    },
     "unknown_player": {
       "message": "There is no player profile named {name}."
     }
@@ -572,12 +581,16 @@
         "bull_off": {
           "name": "Bull-off",
           "description": "Players throw at the bull first; the closest starts the match."
+        },
+        "bull_off_distance": {
+          "name": "Bull-off by distance",
+          "description": "Two darts in the same bull ring are decided by the distance the board measured instead of a rethrow."
         }
       }
     },
     "delete_player": {
       "name": "Delete player profile",
-      "description": "Forgets a player's statistics, personal bests and head-to-head records. The match history keeps the name.",
+      "description": "Forgets a player's statistics, personal bests and head-to-head records. The name also disappears from the personal bests of the board and the practice player names; the match history keeps it.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

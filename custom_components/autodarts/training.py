@@ -53,6 +53,9 @@ def segments(state: dict[str, Any]) -> list[dict[str, Any]] | None:
             return None
         if number not in (*range(21), 25) or multiplier not in range(4):
             return None
+        # Only a miss has no number; the bull has no treble.
+        if (number == 0 and multiplier) or (number == 25 and multiplier == 3):
+            return None
         name = segment.get("name")
         result.append(
             {

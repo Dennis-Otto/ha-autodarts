@@ -11,6 +11,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .entity import AutodartsLocalEntity
 from .local_api import CONFIG_SWITCHES
 from .local_coordinator import AutodartsLocalCoordinator
+from .practice import OPTIONS as PRACTICE_OPTIONS
 from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 1
@@ -111,10 +112,6 @@ class AutodartsTrainingSwitch(AutodartsLocalEntity, SwitchEntity):
             await self.coordinator.async_end_session()
         else:
             await self.coordinator.async_set_auto_start(False)
-
-
-# Rules of the practice game: finish on a double, start on a double, bull-off.
-PRACTICE_OPTIONS = ("double_out", "double_in", "bull_off", "personal_routes")
 
 
 class AutodartsPracticeSwitch(AutodartsLocalEntity, SwitchEntity):

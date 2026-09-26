@@ -12,59 +12,96 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
-from .scoring import BULL, score
+from .scoring import score
+from .training import hit_key
 
 PARTY_GAMES = ("shanghai", "halve_it", "killer")
 SHANGHAI_ROUNDS = 7
-# Halve-It: a number, any double (D), any treble (T) or the bull per round.
-HALVE_IT_TARGETS = ("15", "16", "D", "17", "18", "T", "19", "20", "BULL")
+# Halve-It: a number, any double (D), any treble (T) or the bull (25) per round.
+HALVE_IT_TARGETS = ("15", "16", "D", "17", "18", "T", "19", "20", "25")
 HALVE_IT_START = 40
 KILLER_LIVES = 3
 # Board Manager positions are relative to the outer edge of the double ring.
 BOARD_RADIUS_MM = 170
-# Without a position, the bed tells how close a dart came to the centre.
-BED_DISTANCE_MM = {50: 0.0, 25: 11.0}
+# The bullseye beats the outer bull, which beats every other bed.
+BULL_BEDS = {"BULL": 2, "25": 1}
 
 
-def distance_mm(dart: dict[str, Any], position: tuple[float, float] | None) -> float:
+def distance_mm(position: tuple[float, float] | None) -> float | None:
     """How far a dart landed from the centre of the board, in millimetres."""
-    if position is not None:
-        return round(math.hypot(*position) * BOARD_RADIUS_MM, 1)
-    return BED_DISTANCE_MM.get(score(dart), float(BOARD_RADIUS_MM))
+    if position is None:
+        return None
+    return round(math.hypot(*position) * BOARD_RADIUS_MM, 1)
 
 
 class BullOff:
     """Every player throws one dart at the bull; the closest starts the match.
 
-    Players whose darts land equally close throw again among themselves.
+    As the WDF and PDC rules want, the bullseye beats the outer bull, which
+    beats every other bed, and two darts in the same bull bed throw again, in
+    reverse order. Outside the bull, the measured distance decides; so it does
+    inside, if players want. Darts the board did not measure cannot be told
+    apart, so their players throw again as well.
     """
 
     def __init__(self, order: list[int]) -> None:
         self.order = list(order)
         self.index = 0
-        self.distances: dict[int, float] = {}
+        # The bed each player hit, as BULL, 25 or S20, and how far from the
+        # centre, where the board measured it.
+        self.hits: dict[int, str] = {}
+        self.distances: dict[int, float | None] = {}
+        self.rethrow = False
 
     @property
     def thrower(self) -> int:
         return self.order[self.index]
 
     def book(
-        self, dart: dict[str, Any], position: tuple[float, float] | None
+        self,
+        dart: dict[str, Any],
+        position: tuple[float, float] | None,
+        by_distance: bool = False,
     ) -> int | None:
         """The first dart of the visit counts; the winner once everybody threw."""
-        self.distances[self.thrower] = distance_mm(dart, position)
+        self.hits[self.thrower] = hit_key(dart)
+        self.distances[self.thrower] = distance_mm(position)
         self.index += 1
         if self.index < len(self.order):
             return None
-        best = min(self.distances.values())
-        closest = [player for player in self.order if self.distances[player] == best]
+        closest = self._closest(by_distance)
         if len(closest) == 1:
             return closest[0]
-        self.order, self.index, self.distances = closest, 0, {}
+        # A tie throws again among the tied players, the last one first.
+        self.order, self.index = closest[::-1], 0
+        self.hits, self.distances, self.rethrow = {}, {}, True
         return None
 
+    def _closest(self, by_distance: bool) -> list[int]:
+        """The players whose darts nothing beats."""
+        beds = {player: BULL_BEDS.get(self.hits[player], 0) for player in self.order}
+        best = max(beds.values())
+        closest = [player for player in self.order if beds[player] == best]
+        if len(closest) == 1 or (best and not by_distance):
+            return closest
+        measured = [
+            distance
+            for player in closest
+            if (distance := self.distances[player]) is not None
+        ]
+        if len(measured) < len(closest):
+            return closest
+        nearest = min(measured)
+        return [player for player in closest if self.distances[player] == nearest]
+
     def stored(self) -> dict[str, Any]:
-        return {"order": self.order, "index": self.index, "distances": self.distances}
+        return {
+            "order": self.order,
+            "index": self.index,
+            "hits": self.hits,
+            "distances": self.distances,
+            "rethrow": self.rethrow,
+        }
 
     @classmethod
     def restored(cls, saved: object, players: int) -> BullOff | None:
@@ -81,16 +118,23 @@ class BullOff:
         ):
             return None
         bull_off = cls(order)
+        bull_off.rethrow = saved.get("rethrow") is True
         index = saved.get("index")
         bull_off.index = index if type(index) is int and 0 <= index < len(order) else 0
-        distances = saved.get("distances")
-        if isinstance(distances, dict):
-            for key, value in distances.items():
-                player = int(key) if str(key).isdigit() else -1
-                if player in order[: bull_off.index] and isinstance(value, int | float):
-                    bull_off.distances[player] = float(value)
-        if len(bull_off.distances) != bull_off.index:
-            bull_off.index, bull_off.distances = 0, {}
+        thrown = order[: bull_off.index]
+        hits, distances = saved.get("hits"), saved.get("distances")
+        for key, value in (hits if isinstance(hits, dict) else {}).items():
+            player = int(key) if str(key).isdigit() else -1
+            if player in thrown and isinstance(value, str):
+                bull_off.hits[player] = value
+        for key, value in (distances if isinstance(distances, dict) else {}).items():
+            player = int(key) if str(key).isdigit() else -1
+            number = isinstance(value, int | float) and not isinstance(value, bool)
+            if player in thrown and (number or value is None):
+                bull_off.distances[player] = None if value is None else float(value)
+        # Up to version 1.5, only distances were kept: that round starts again.
+        if not len(bull_off.hits) == len(bull_off.distances) == bull_off.index:
+            bull_off.index, bull_off.hits, bull_off.distances = 0, {}, {}
         return bull_off
 
 
@@ -104,6 +148,8 @@ class Visit:
     killers: list[bool] = field(default_factory=list)
     numbers: list[int | None] = field(default_factory=list)
     hits: int = 0
+    # Darts that count: all of the visit, or up to the dart that won the leg.
+    darts: int = 0
 
 
 class PartyGame(ABC):
@@ -210,11 +256,17 @@ class Shanghai(PartyGame):
 
     def visit(self, player: int, darts: list[dict[str, Any]]) -> Visit:
         number = min(self.round, SHANGHAI_ROUNDS)
-        on_target = [dart for dart in darts if dart["number"] == number]
         points = list(self.points)
-        points[player] += sum(score(dart) for dart in on_target)
-        shanghai = {dart["multiplier"] for dart in on_target} >= {1, 2, 3}
-        return Visit(points, player if shanghai else None, hits=len(on_target))
+        hits: list[int] = []
+        for count, dart in enumerate(darts, 1):
+            # A miss next to the number is no hit.
+            if dart["number"] != number or dart["multiplier"] == 0:
+                continue
+            points[player] += score(dart)
+            hits.append(dart["multiplier"])
+            if set(hits) >= {1, 2, 3}:
+                return Visit(points, player, hits=len(hits), darts=count)
+        return Visit(points, hits=len(hits), darts=len(darts))
 
     def _decided(self) -> int | None:
         return self._best() if self.turns >= SHANGHAI_ROUNDS * self.players else None
@@ -231,6 +283,8 @@ class HalveIt(PartyGame):
 
     @staticmethod
     def hit(dart: dict[str, Any], target: str) -> bool:
+        """Any bed of the number counts; D and T mean any double or treble,
+        the bullseye included, and 25 the outer bull or the bullseye."""
         number, multiplier = dart["number"], dart["multiplier"]
         if number == 0 or multiplier == 0:
             return False
@@ -238,8 +292,6 @@ class HalveIt(PartyGame):
             return bool(multiplier == 2)
         if target == "T":
             return bool(multiplier == 3)
-        if target == "BULL":
-            return bool(number == BULL)
         return bool(number == int(target))
 
     def visit(self, player: int, darts: list[dict[str, Any]]) -> Visit:
@@ -248,14 +300,18 @@ class HalveIt(PartyGame):
         points = list(self.points)
         points[player] += sum(score(dart) for dart in hits)
         if not hits and len(darts) >= 3:
+            # Halving rounds down.
             points[player] //= 2
-        return Visit(points, hits=len(hits))
+        return Visit(points, hits=len(hits), darts=len(darts))
 
     def book(self, player: int, darts: list[dict[str, Any]]) -> Visit:
         # A visit ends with fewer than three darts when darts miss the board.
+        thrown = len(darts)
         if not any(self.hit(dart, self.target(player) or "") for dart in darts):
             darts = [*darts, *[{"number": 0, "multiplier": 0}] * 3][:3]
-        return super().book(player, darts)
+        result = super().book(player, darts)
+        result.darts = thrown
+        return result
 
     def _decided(self) -> int | None:
         done = self.turns >= len(HALVE_IT_TARGETS) * self.players
@@ -292,13 +348,23 @@ class Killer(PartyGame):
             list(self.killers),
         )
         if self.choosing:
-            # One dart picks a number that nobody has yet.
+            # One dart in any bed of a number that nobody has yet picks it.
             dart = darts[0] if darts else None
-            if dart and 1 <= dart["number"] <= 20 and dart["number"] not in numbers:
+            if (
+                dart
+                and dart["multiplier"] > 0
+                and 1 <= dart["number"] <= 20
+                and dart["number"] not in numbers
+            ):
                 numbers[player] = dart["number"]
-            return Visit(list(self.points), None, lives, killers, numbers)
-        won = None
-        for dart in darts:
+            return Visit(
+                list(self.points), None, lives, killers, numbers, darts=len(darts)
+            )
+        won, counted = None, len(darts)
+        for count, dart in enumerate(darts, 1):
+            if lives[player] == 0:
+                # Out of the game: the rest of the visit does nothing.
+                break
             if dart["multiplier"] != 2 or dart["number"] not in numbers:
                 continue
             owner = numbers.index(dart["number"])
@@ -311,9 +377,9 @@ class Killer(PartyGame):
                     killers[player] = False
             alive = [index for index, left in enumerate(lives) if left > 0]
             if len(alive) == 1:
-                won = alive[0]
+                won, counted = alive[0], count
                 break
-        return Visit(list(self.points), won, lives, killers, numbers)
+        return Visit(list(self.points), won, lives, killers, numbers, darts=counted)
 
     def book(self, player: int, darts: list[dict[str, Any]]) -> Visit:
         # Only a dart decides a Killer leg, never the end of a round.

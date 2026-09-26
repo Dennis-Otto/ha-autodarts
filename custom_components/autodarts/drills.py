@@ -16,7 +16,7 @@ from homeassistant.util import dt as dt_util
 from .checkout import checkout
 from .doubles import double_of
 from .doubles import hits as hits_double
-from .scoring import BULL, evaluate_visit, is_double
+from .scoring import BULL, VISIT_DARTS, evaluate_visit, is_double
 from .training import hit_key
 
 DRILLS = ("around_the_clock", "doubles", "checkout", "bobs_27")
@@ -65,7 +65,7 @@ class Drill(ABC):
         self._announced = False
 
     def _thrown(self) -> list[dict[str, Any]]:
-        return self._visit[self._skip :]
+        return self._visit[self._skip : VISIT_DARTS]
 
     def _record(self, result: dict[str, Any]) -> None:
         self.results.insert(0, {**result, "ended": dt_util.utcnow().isoformat()})
@@ -111,7 +111,12 @@ class Drill(ABC):
 
 
 class TargetDrill(Drill):
-    """Hit 1 to 20 and the bull in order: any bed, or only the doubles."""
+    """Hit 1 to 20 and the bull in order: any bed, or only the doubles.
+
+    Around the Clock names its targets by number, 1 to 20 and 25 for the bull,
+    where the outer bull and the bullseye both count; the doubles training
+    names the double, D1 to D20 and BULL for the bullseye.
+    """
 
     def __init__(self, kind: str) -> None:
         self.kind = kind
@@ -202,9 +207,7 @@ class TargetDrill(Drill):
         hits = self.hits + index - self.index
         name = None
         if target is not None:
-            name = (
-                "BULL" if target == BULL else f"{'D' if self.doubles else ''}{target}"
-            )
+            name = double_of(target) if self.doubles else str(target)
         finished = [result["darts"] for result in self.results]
         return {
             **super().snapshot(),
@@ -219,7 +222,10 @@ class TargetDrill(Drill):
 
 
 class BobsDrill(Drill):
-    """Bob's 27: one visit at each double; a visit without a hit costs its value."""
+    """Bob's 27: one visit at each double; a visit without a hit costs its value.
+
+    The game is lost as soon as the score drops to zero or below.
+    """
 
     kind = "bobs_27"
 
@@ -254,7 +260,7 @@ class BobsDrill(Drill):
         self.score += hits * self._value() if hits else -self._value()
         self.hits += hits
         self.darts += len(self._thrown())
-        lost = self.score < 0
+        lost = self.score <= 0
         if not lost and self.index < len(TARGETS) - 1:
             self.index += 1
             return []
@@ -390,12 +396,15 @@ class CheckoutDrill(Drill):
     def snapshot(self) -> dict[str, Any]:
         remaining, outcome, _ = evaluate_visit(self.start, self._thrown(), True)
         thrown = len(self._thrown())
-        if outcome == "won":
+        last = self.visits + 1 >= CHECKOUT_VISITS
+        if outcome is not None or (thrown >= VISIT_DARTS and last):
+            # A finish, a bust or the last visit ends the attempt: the next
+            # target follows when the darts are pulled.
             route: tuple[str, ...] = ()
-        elif outcome == "bust" or thrown >= 3:
-            route = checkout(remaining, 3)
+        elif thrown >= VISIT_DARTS:
+            route = checkout(remaining, VISIT_DARTS)
         else:
-            route = checkout(remaining, 3 - thrown)
+            route = checkout(remaining, VISIT_DARTS - thrown)
         return {
             **super().snapshot(),
             "target": str(self.target),

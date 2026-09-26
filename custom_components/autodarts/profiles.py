@@ -2,7 +2,8 @@
 
 Profiles exist for named players only; a name is the same player regardless of
 upper and lower case. Legs count in every game; X01 legs add the averages and
-the checkout rate, Cricket legs the marks per round.
+the checkout rate, Cricket legs the marks per round. The highest checkout and
+the fewest darts come from X01 legs with double out only.
 """
 
 from __future__ import annotations
@@ -129,7 +130,7 @@ class Profiles:
     # -- recording -------------------------------------------------------------
 
     def visit(self, name: str | None, points: int) -> None:
-        """An X01 visit of up to three darts."""
+        """The score of an X01 visit: nothing for a bust or before double in."""
         if profile := self._profile(name):
             profile.highest_visit = max(profile.highest_visit, points)
 
@@ -159,9 +160,10 @@ class Profiles:
                 profile.first9_points += _count(entry.get("first9_points"))
                 profile.first9_darts += _count(entry.get("first9_darts"))
                 profile.at_double += _count(entry.get("at_double"))
-                if won and entry.get("double_out") is True:
+                double_out = entry.get("double_out") is True
+                if won and double_out:
                     profile.checkouts += 1
-                if won and darts:
+                if won and darts and double_out:
                     best = profile.fewest_darts.get(str(game))
                     profile.fewest_darts[str(game)] = min(best or darts, darts)
                     checkout = _count(entry.get("checkout"))
