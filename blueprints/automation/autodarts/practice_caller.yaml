@@ -2,14 +2,17 @@ blueprint:
   name: "Autodarts: practice caller"
   description: >-
     Calls the practice game on your speakers like a caller on stage: what a
-    player requires when a checkout is possible, "No score" after a bust, and
-    the game shot of a leg or the match.
+    player requires when a checkout is possible, "No score" after a bust, the
+    game shot of a leg or the match, and optionally the bull-off.
 
 
-    The messages are templates. They can use `who` (the player's name, "Player
-    2" in a match without names, empty when you play alone), `remaining`,
-    `checkout` (for example `T20 T20 BULL`), `darts`, `average` and, in
-    Cricket, `points`. An empty message stays silent.
+    The messages are templates. They can use `who` (the player's name,
+    "Player 2" in a match without names, empty when you play alone),
+    `remaining`, `checkout` (the route when a checkout is possible, for example
+    `T20 T20 BULL`; the score checked out when a leg is won), `darts`,
+    `average`, `points` (Cricket and party games), `target` (the next target of
+    a party game, for example `20` or `D16`) and `distance` (millimetres from
+    the centre, when the bull-off is won). An empty message stays silent.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/practice_caller.yaml
@@ -34,17 +37,35 @@ blueprint:
       input:
         tts_engine:
           name: Text-to-speech engine
+          description: The engine that speaks, for example Home Assistant Cloud or Piper.
           selector:
             entity:
               filter:
                 - domain: tts
         speakers:
           name: Speakers
+          description: The media players that play the calls.
           selector:
             entity:
               multiple: true
               filter:
                 - domain: media_player
+        language:
+          name: Language
+          description: >-
+            Optional. The language of the voice, for example `en-GB` or
+            `de-DE`. Empty uses the language of the engine.
+          default: ""
+          selector:
+            text: {}
+        tts_options:
+          name: Voice options
+          description: >-
+            Optional. Options of the engine, for example `voice: ...` for
+            another voice. See the documentation of your engine.
+          default: {}
+          selector:
+            object: {}
     messages:
       name: Messages
       icon: mdi:message-text
@@ -52,7 +73,9 @@ blueprint:
       input:
         checkout_message:
           name: Checkout possible
-          description: Said when the next visit can finish the leg.
+          description: >-
+            Said when the next visit can finish the leg, with `remaining` and
+            the route in `checkout`.
           default: "{{ who ~ ', you' if who else 'You' }} require {{ remaining }}"
           selector:
             text: {}
@@ -60,27 +83,52 @@ blueprint:
           name: Next player
           description: >-
             Said when the next visit cannot finish the leg, for example
-            `{{ who }}` in a match. Empty stays silent.
+            `{{ who }}` in a match or `{{ who }}, {{ target }}` in a party
+            game. Empty stays silent.
           default: ""
           selector:
             text: {}
         bust_message:
           name: Bust
+          description: Said when a dart busts the visit.
           default: "No score"
           selector:
             text: {}
         leg_message:
           name: Leg won
+          description: >-
+            Said when a dart wins a leg that does not decide the match, with
+            `checkout`, `darts` and `average` of the leg.
           default: "Game shot, and the leg{{ ', ' ~ who if who }}!"
           selector:
             text: {}
         match_message:
           name: Match won
+          description: Said when a dart decides the match.
           default: "Game shot, and the match, {{ who }}!"
+          selector:
+            text: {}
+        bull_off_turn_message:
+          name: Bull-off throw
+          description: >-
+            Said when the next player throws for the bull, for example
+            `{{ who }}, throw for the bull`. The first player of the bull-off
+            is not called. Empty uses the "Next player" message.
+          default: ""
+          selector:
+            text: {}
+        bull_off_message:
+          name: Bull-off won
+          description: >-
+            Said when the bull-off decides who starts, together with the
+            first call of the match, for example
+            `{{ who }} to throw first. Game on!`. Empty stays silent.
+          default: ""
           selector:
             text: {}
         player_label:
           name: Word for a player without a name
+          description: For example `Player` makes "Player 2".
           default: "Player"
           selector:
             text: {}
@@ -99,10 +147,13 @@ triggers:
         - bust
         - leg_won
         - match_won
+        - bull_off_won
 
 variables:
   # Read from the triggering state: the next event may already have replaced it.
   kind: "{{ trigger.to_state.attributes.get('event_type', '') }}"
+  # The event before; a won bull-off is called together with the first turn.
+  previous: "{{ trigger.from_state.attributes.get('event_type', '') }}"
   player: "{{ trigger.to_state.attributes.get('player') | int(1) }}"
   players: "{{ trigger.to_state.attributes.get('players') | int(1) }}"
   name: "{{ trigger.to_state.attributes.get('name') or '' }}"
@@ -113,28 +164,45 @@ variables:
   darts: "{{ trigger.to_state.attributes.get('darts') | int(0) }}"
   average: "{{ trigger.to_state.attributes.get('average') }}"
   points: "{{ trigger.to_state.attributes.get('points') | int(0) }}"
+  target: "{{ trigger.to_state.attributes.get('target') or '' }}"
+  bull_off: "{{ trigger.to_state.attributes.get('bull_off', false) }}"
+  distance: >-
+    {{ trigger.from_state.attributes.get('distance') if previous == 'bull_off_won'
+       else trigger.to_state.attributes.get('distance') }}
   deciding: "{{ trigger.to_state.attributes.get('match', false) }}"
   checkout_text: !input checkout_message
   turn_text: !input turn_message
   bust_text: !input bust_message
   leg_text: !input leg_message
   match_text: !input match_message
+  bull_off_turn_text: !input bull_off_turn_message
+  bull_off_text: !input bull_off_message
   message: >-
-    {% if kind == 'turn_changed' %}{{ checkout_text if checkout else turn_text }}
+    {% if kind == 'turn_changed' and bull_off %}{{ bull_off_turn_text or turn_text }}
+    {%- elif kind == 'turn_changed' %}
+    {%- set call = checkout_text if checkout else turn_text %}
+    {%- if previous == 'bull_off_won' %}{{ (bull_off_text | string ~ ' ' ~ call | string) | trim }}
+    {%- else %}{{ call }}{% endif %}
     {%- elif kind == 'bust' %}{{ bust_text }}
     {%- elif kind == 'leg_won' %}{{ '' if deciding else leg_text }}
-    {%- else %}{{ match_text }}{% endif %}
+    {%- elif kind == 'match_won' %}{{ match_text }}
+    {%- endif %}
+  speakers: !input speakers
+  language: !input language
+  tts_options: !input tts_options
+  speech: >-
+    {% set data = {'media_player_entity_id': speakers, 'cache': true, 'message': message | string} %}
+    {%- if language %}{% set data = dict(data, language=language) %}{% endif %}
+    {%- if tts_options %}{% set data = dict(data, options=tts_options) %}{% endif %}
+    {{- data }}
 
 conditions:
   - alias: An empty message stays silent
     condition: template
-    value_template: "{{ message | trim | length > 0 }}"
+    value_template: "{{ message | string | trim | length > 0 }}"
 
 actions:
   - action: tts.speak
     target:
       entity_id: !input tts_engine
-    data:
-      media_player_entity_id: !input speakers
-      cache: true
-      message: "{{ message }}"
+    data: "{{ speech }}"

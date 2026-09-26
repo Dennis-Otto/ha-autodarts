@@ -43,7 +43,7 @@
   - player profiles with statistics and personal bests per name, a match history and head-to-head records;
   - a doubles analysis with the hit rate of every double and checkout routes over your strongest doubles.
 - **Practice games and matches.** Play X01 (101 to 1001, with double in and a bull-off if you like), Cricket or the party games Shanghai, Halve-It and Killer on the local board, alone or as a match of up to four players with legs and sets. The remaining score counts down, busts are recognised, and the live card shows the checkout route, the bed to aim at and a scoreboard, in Cricket a chalkboard with marks, points and marks per round. Four training games train the basics: Around the Clock, doubles training, checkout training and Bob's 27. First-9 average, checkout rate, doubles rate and legs per day show your progress.
-- **Automations that feel like a stage.** Board events for every dart, correction, takeout, completed visit and training session, plus nine ready-made blueprints: 180 celebrations, a dart caller, takeout lights, automatic detection, alerts, daily reports, a training session routine, a practice caller and a highlight photo.
+- **Automations that feel like a stage.** Board events for every dart, correction, takeout, completed visit and training session, plus ten ready-made blueprints: 180 celebrations, a dart caller, takeout lights, automatic detection, alerts, daily reports, a training session routine, a practice caller, a highlight photo and a light show.
 - **Full control.**
   - Start, stop and reset detection; calibrate the board or single cameras; restart Board Manager.
   - Board settings, camera standby and Board Manager updates.
@@ -132,7 +132,7 @@ The [installation guide](docs/installation.md) covers requirements, manual insta
 | Area | Entities and features | Board Manager 1 | Board Manager 2 |
 | --- | --- | :---: | :---: |
 | Live visit | Detection status, last dart, darts in visit, visit score with dart positions | ✓ | ✓ |
-| Board events | Dart detected and corrected, takeout started and finished, visit completed, status changed, session started and ended, bust, leg won, match won, turn changed, training game finished, checkout attempt | ✓ | ✓ |
+| Board events | Dart detected and corrected, takeout started and finished, visit thrown and completed, status changed, session started and ended, bust, leg won, match won, turn changed, bull-off won, training game finished, checkout attempt, personal best, daily goal reached | ✓ | ✓ |
 | Training | Training sessions with automatic start and end and the last 20 sessions; darts, points, 3-dart average, visits, highest visit, 100+/140+/180, triples, doubles, bulls, misses, hits per bed | ✓ | ✓ |
 | Practice game | X01 from 101 to 1001 with double in and bull-off, Cricket, Shanghai, Halve-It and Killer for 1–4 players, double out, legs and sets, player names, remaining score, busts, checkout routes and the last 10 legs; training games Around the Clock, doubles, checkout training and Bob's 27 | ✓ | ✓ |
 | Actions | `autodarts.start_game`: start X01 or a training game with players, names and format in one call, also by voice | ✓ | ✓ |
@@ -176,7 +176,7 @@ Import a blueprint with one click, choose your board and you're done:
 
 | Blueprint | Import |
 | --- | --- |
-| **Celebrate a visit score.** Your actions for every 180, every ton, or any score you choose. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
+| **Celebrate a visit score.** Your actions for every 180, every ton, or any score you choose, the moment the third dart lands. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
 | **Dart caller.** Every visit is announced on your speakers, with a special call for 180. Every dart can be called too. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml) |
 | **Takeout actions.** Light up the board while you pull your darts. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftakeout.yaml) |
 | **Start and stop detection automatically**, based on presence in the darts room. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fauto_detection.yaml) |
@@ -185,6 +185,7 @@ Import a blueprint with one click, choose your board and you're done:
 | **Training session routine.** Light, detection and calibration follow your training sessions. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
 | **Practice caller.** Who needs what, busts and game shots of the practice game on your speakers. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
 | **Highlight photo.** A picture of the board on your phone after a 180 or a checkout. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
+| **Light show.** Your WLED presets or room lights for a 180, a high finish, a bust, a won leg or match, a personal best and more, and back to your normal light afterwards. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
 Prefer writing your own? The [automation guide](docs/automations.md) explains the board events and has ready-to-use examples.
 

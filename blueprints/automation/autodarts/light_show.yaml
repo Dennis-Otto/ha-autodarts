@@ -1,0 +1,357 @@
+blueprint:
+  name: "Autodarts: light show"
+  description: >-
+    Plays your light effects at the big moments of the game: a 180, a high
+    finish, a bust, a won leg or match, a personal best, the daily goal and a
+    won bull-off, and optionally while you pull the darts. Every moment has
+    its own actions, for example a WLED preset or a flash of your room
+    lights; a moment without actions stays dark.
+
+
+    Optionally the lights return to how they were after an effect, and the
+    detection pauses while an effect plays, so flashing lights next to the
+    board cannot disturb the cameras. Choose the moments whose actions start
+    an effect under "After the effect".
+
+
+    Your actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`,
+    `match`, `personal_best`, `daily_goal`, `bull_off`, `takeout` or
+    `board_clear`), `who` (the player's name, or "Player 2"), `player`
+    (1 to 4), `score` (of a 180), `checkout` (of a won leg) and
+    `trigger.to_state.attributes` (every detail of the board event).
+  domain: automation
+  author: Dennis Otto
+  source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/light_show.yaml
+  homeassistant:
+    min_version: "2026.8.0"
+  input:
+    board:
+      name: Board
+      icon: mdi:bullseye-arrow
+      input:
+        board_events:
+          name: Board events
+          description: The "Board events" entity of your Autodarts board.
+          selector:
+            entity:
+              filter:
+                - integration: autodarts
+                  domain: event
+    maximum:
+      name: "180"
+      icon: mdi:fire
+      collapsed: true
+      input:
+        maximum_actions:
+          name: Actions for a 180
+          description: Run the moment the third dart of a 180 lands.
+          default: []
+          selector:
+            action: {}
+    high_finish:
+      name: High finish
+      icon: mdi:trophy
+      collapsed: true
+      input:
+        high_finish_minimum:
+          name: High finish from
+          description: A practice leg won with a checkout of at least this score is a high finish.
+          default: 100
+          selector:
+            number:
+              min: 2
+              max: 170
+              step: 1
+              mode: box
+              unit_of_measurement: points
+        high_finish_actions:
+          name: Actions for a high finish
+          description: Run instead of the actions for a won leg.
+          default: []
+          selector:
+            action: {}
+    bust:
+      name: Bust
+      icon: mdi:close-octagon
+      collapsed: true
+      input:
+        bust_actions:
+          name: Actions for a bust
+          description: Run when a dart of the practice game busts the visit.
+          default: []
+          selector:
+            action: {}
+    leg:
+      name: Leg won
+      icon: mdi:flag-checkered
+      collapsed: true
+      input:
+        leg_actions:
+          name: Actions for a won leg
+          description: >-
+            Run when a dart wins a leg of the practice game. The leg that
+            decides a match plays the actions for the match instead.
+          default: []
+          selector:
+            action: {}
+    match:
+      name: Match won
+      icon: mdi:trophy-variant
+      collapsed: true
+      input:
+        match_actions:
+          name: Actions for a won match
+          description: Run when a dart decides a practice match.
+          default: []
+          selector:
+            action: {}
+    personal_best:
+      name: Personal best
+      icon: mdi:medal
+      collapsed: true
+      input:
+        personal_best_actions:
+          name: Actions for a personal best
+          description: Run when a value beats your personal best.
+          default: []
+          selector:
+            action: {}
+    daily_goal:
+      name: Daily goal
+      icon: mdi:calendar-check
+      collapsed: true
+      input:
+        daily_goal_actions:
+          name: Actions for the daily goal
+          description: Run when today's darts reach the daily goal.
+          default: []
+          selector:
+            action: {}
+    bull_off:
+      name: Bull-off won
+      icon: mdi:bullseye
+      collapsed: true
+      input:
+        bull_off_actions:
+          name: Actions for a won bull-off
+          description: Run when the bull-off decides who starts the match.
+          default: []
+          selector:
+            action: {}
+    takeout:
+      name: Takeout
+      icon: mdi:hand-back-left
+      collapsed: true
+      input:
+        takeout_actions:
+          name: When the takeout starts
+          description: >-
+            Optional. Run when a hand reaches the board to pull the darts, for
+            example a bright board light. Not restored afterwards.
+          default: []
+          selector:
+            action: {}
+        board_clear_actions:
+          name: When the board is clear
+          description: >-
+            Optional. Run when all darts are out of the board, for example your
+            normal light. Not restored afterwards.
+          default: []
+          selector:
+            action: {}
+    effect:
+      name: After the effect
+      icon: mdi:timer-sand
+      input:
+        effect_moments:
+          name: Moments with an effect
+          description: >-
+            The moments whose actions start an effect: only for them are the
+            lights restored and the detection paused. Leave out moments
+            without actions.
+          default: []
+          selector:
+            select:
+              multiple: true
+              options:
+                - label: "180"
+                  value: maximum
+                - label: High finish
+                  value: high_finish
+                - label: Bust
+                  value: bust
+                - label: Leg won
+                  value: leg
+                - label: Match won
+                  value: match
+                - label: Personal best
+                  value: personal_best
+                - label: Daily goal
+                  value: daily_goal
+                - label: Bull-off won
+                  value: bull_off
+        restore_lights:
+          name: Restore these lights
+          description: >-
+            Optional. Their state is saved before an effect and restored after
+            it, for example your WLED light and the room lights.
+          default: []
+          selector:
+            entity:
+              multiple: true
+              filter:
+                - domain:
+                    - light
+                    - switch
+        effect_duration:
+          name: Effect duration
+          description: >-
+            How long an effect plays after your actions started it, before the
+            lights are restored and the detection starts again.
+          default:
+            seconds: 10
+          selector:
+            duration: {}
+        pause_detection:
+          name: Pause the detection during effects
+          description: >-
+            Turns the detection off while an effect plays and on again after
+            it, if it was on. Use it when the effect disturbs the cameras; the
+            visit on the board counts as finished when the detection stops.
+          default: false
+          selector:
+            boolean: {}
+        detection:
+          name: Detection switch
+          description: The "Detection" switch of the board, for pausing it.
+          default: []
+          selector:
+            entity:
+              filter:
+                - integration: autodarts
+                  domain: switch
+
+# Queued: moments play one after the other, and each effect restores the
+# lights it found. A restarted run would leave the effect on and save it as the
+# state to restore; parallel runs would mix effects on the same lights.
+mode: queued
+max: 3
+max_exceeded: silent
+
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: !input board_events
+    options:
+      event_type:
+        - visit_thrown
+        - visit_completed
+        - bust
+        - leg_won
+        - match_won
+        - personal_best
+        - daily_goal_reached
+        - bull_off_won
+        - takeout_started
+        - takeout_finished
+
+variables:
+  high_finish_minimum: !input high_finish_minimum
+  # Read from the triggering state: the next event may already have replaced it.
+  kind: "{{ trigger.to_state.attributes.get('event_type', '') }}"
+  score: "{{ trigger.to_state.attributes.get('score') | int(0) }}"
+  checkout: "{{ trigger.to_state.attributes.get('checkout') | int(0) }}"
+  player: "{{ trigger.to_state.attributes.get('player') | int(0) }}"
+  who: >-
+    {{ trigger.to_state.attributes.get('name')
+       or ('Player ' ~ player if trigger.to_state.attributes.get('players', 1) > 1 else '') }}
+  moment: >-
+    {% set event = trigger.to_state.attributes %}
+    {%- if kind == 'visit_thrown'
+       or kind == 'visit_completed' and not event.get('thrown', false) %}
+    {{- 'maximum' if score == 180 and event.get('darts') == 3 else '' }}
+    {%- elif kind == 'leg_won' and event.get('match') %}
+    {#- The match_won event follows and plays the match. #}
+    {%- elif kind == 'leg_won' %}{{ 'high_finish' if checkout >= high_finish_minimum else 'leg' }}
+    {%- else %}
+    {{- {'bust': 'bust', 'match_won': 'match', 'personal_best': 'personal_best',
+         'daily_goal_reached': 'daily_goal', 'bull_off_won': 'bull_off',
+         'takeout_started': 'takeout', 'takeout_finished': 'board_clear'}.get(kind, '') }}
+    {%- endif %}
+  effect_moments: !input effect_moments
+  restore_lights: !input restore_lights
+  pause_detection: !input pause_detection
+  detection: !input detection
+  # Effects are undone; takeout and board clear set a look of their own.
+  effect: "{{ moment in effect_moments }}"
+  snapshot: "scene.autodarts_light_show_{{ this.entity_id.split('.')[1] }}"
+
+conditions:
+  - alias: A moment of the game
+    condition: template
+    value_template: "{{ moment | length > 0 }}"
+
+actions:
+  - variables:
+      restoring: "{{ effect and restore_lights | length > 0 }}"
+      pausing: "{{ effect and pause_detection and detection | length > 0 and is_state(detection, 'on') }}"
+  - if:
+      - condition: template
+        value_template: "{{ restoring }}"
+    then:
+      - action: scene.create
+        data:
+          scene_id: "{{ snapshot.split('.')[1] }}"
+          snapshot_entities: "{{ restore_lights }}"
+  - if:
+      - condition: template
+        value_template: "{{ pausing }}"
+    then:
+      - action: switch.turn_off
+        continue_on_error: true
+        target:
+          entity_id: "{{ detection }}"
+  # A failing light never keeps the lights from being restored.
+  - continue_on_error: true
+    choose:
+      - conditions: "{{ moment == 'maximum' }}"
+        sequence: !input maximum_actions
+      - conditions: "{{ moment == 'high_finish' }}"
+        sequence: !input high_finish_actions
+      - conditions: "{{ moment == 'bust' }}"
+        sequence: !input bust_actions
+      - conditions: "{{ moment == 'leg' }}"
+        sequence: !input leg_actions
+      - conditions: "{{ moment == 'match' }}"
+        sequence: !input match_actions
+      - conditions: "{{ moment == 'personal_best' }}"
+        sequence: !input personal_best_actions
+      - conditions: "{{ moment == 'daily_goal' }}"
+        sequence: !input daily_goal_actions
+      - conditions: "{{ moment == 'bull_off' }}"
+        sequence: !input bull_off_actions
+      - conditions: "{{ moment == 'takeout' }}"
+        sequence: !input takeout_actions
+      - conditions: "{{ moment == 'board_clear' }}"
+        sequence: !input board_clear_actions
+  - if:
+      - condition: template
+        value_template: "{{ restoring or pausing }}"
+    then:
+      - delay: !input effect_duration
+  - if:
+      - condition: template
+        value_template: "{{ restoring }}"
+    then:
+      - action: scene.turn_on
+        continue_on_error: true
+        target:
+          entity_id: "{{ snapshot }}"
+  - if:
+      - condition: template
+        value_template: "{{ pausing and is_state(detection, 'off') }}"
+    then:
+      - action: switch.turn_on
+        continue_on_error: true
+        target:
+          entity_id: "{{ detection }}"

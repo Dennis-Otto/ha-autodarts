@@ -33,8 +33,8 @@
   - Doppelanalyse mit der Quote jedes Doubles und Checkout-Wegen über deine stärksten Doubles.
 - **Übungsspiele und Matches.** Spiele X01 (101 bis 1001, auf Wunsch mit Double-In und Ausbullen), Cricket oder die Partyspiele Shanghai, Halve-It und Killer am lokalen Board, allein oder als Match mit bis zu vier Spielern, Legs und Sätzen. Die Restpunkte zählen herunter, Überwerfen wird erkannt, und die Live-Karte zeigt Checkout-Weg, nächstes Zielfeld und eine Anzeigetafel, bei Cricket eine Kreidetafel mit Treffern, Punkten und Treffern pro Runde. Vier Trainingsspiele üben die Grundlagen: Around the Clock, Doppeltraining, Checkout-Training und Bob's 27. First-9-Average, Checkout-Quote, Doppelquote und Legs pro Tag zeigen deine Entwicklung.
 - **Automationen mit Bühnenatmosphäre.**
-  - Board-Ereignisse für jeden Dart, jede Korrektur, jede Entnahme, jede abgeschlossene Aufnahme und jede Trainingssession.
-  - Neun fertige Blueprints: 180-Feier, Dart-Caller, Licht bei der Entnahme, automatische Erkennung, Warnungen, tägliche Berichte, eine Routine für Trainingssessions, ein Übungs-Caller und ein Highlight-Foto.
+  - Board-Ereignisse für jeden Dart, jede Korrektur, jede Entnahme, jede geworfene und abgeschlossene Aufnahme und jede Trainingssession.
+  - Zehn fertige Blueprints: 180-Feier, Dart-Caller, Licht bei der Entnahme, automatische Erkennung, Warnungen, tägliche Berichte, eine Routine für Trainingssessions, ein Übungs-Caller, ein Highlight-Foto und eine Lichtshow.
 - **Volle Kontrolle.**
   - Erkennung starten, stoppen und zurücksetzen.
   - Kalibrierung für das Board oder einzelne Kameras; Board Manager neu starten.

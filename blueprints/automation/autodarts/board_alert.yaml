@@ -50,12 +50,16 @@ blueprint:
       input:
         alert_actions:
           name: Alert actions
-          description: For example a notification to your phone.
+          description: >-
+            For example a notification to your phone. `problem` is `offline`
+            or `cameras`.
           selector:
             action: {}
         recovery_actions:
           name: Recovery actions
-          description: Optional actions when the problem is gone.
+          description: >-
+            Optional actions when a problem you were alerted about is gone,
+            for example an all-clear.
           default: []
           selector:
             action: {}
@@ -65,18 +69,20 @@ max: 5
 max_exceeded: silent
 
 triggers:
+  # A problem that starts while the sensor is unavailable, such as a camera
+  # that fails while the board restarts, is a problem, too.
   - trigger: state
     id: offline
     entity_id: !input connection
-    from: "on"
     to: "off"
     for: !input grace_period
   - trigger: state
     id: cameras
     entity_id: !input camera_problem
-    from: "off"
     to: "on"
     for: !input grace_period
+  # A problem that ends while the board is offline is not reported as solved:
+  # only a sensor that goes straight back shows how long the problem lasted.
   - trigger: state
     id: offline_recovered
     entity_id: !input connection

@@ -1,13 +1,16 @@
 blueprint:
   name: "Autodarts: celebrate a visit score"
   description: >-
-    Runs your actions when a completed visit reaches a minimum score, for
-    example a light show for every 180 or a sound for each ton.
+    Runs your actions the moment a visit reaches a minimum score, for example
+    a light show for every 180 or a sound for each ton. A visit of three darts
+    counts when its third dart lands, while the darts are still in the board.
+    A shorter visit counts when the darts are pulled.
 
 
     Your actions can use the variables `score` (points of the visit),
-    `darts` (number of darts) and `segments` (for example
-    `["T20", "T20", "T20"]`).
+    `darts` (number of darts), `segments` (for example
+    `["T20", "T20", "T20"]`) and `game` (the practice game being played, such
+    as `501`, or empty).
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/visit_score.yaml
@@ -35,7 +38,7 @@ blueprint:
           unit_of_measurement: points
     celebration:
       name: Actions
-      description: What happens after such a visit.
+      description: What happens after such a visit, for example a light effect or a sound.
       selector:
         action: {}
 
@@ -49,17 +52,25 @@ triggers:
       entity_id: !input board_events
     options:
       event_type:
+        - visit_thrown
         - visit_completed
 
 variables:
   minimum_score: !input minimum_score
   # Read from the triggering state: the next event may already have replaced it.
+  kind: "{{ trigger.to_state.attributes.get('event_type', '') }}"
   score: "{{ trigger.to_state.attributes.get('score') | int(0) }}"
   darts: "{{ trigger.to_state.attributes.get('darts') | int(0) }}"
   segments: "{{ trigger.to_state.attributes.get('segments') | default([], true) }}"
+  game: "{{ trigger.to_state.attributes.get('game') }}"
 
 conditions:
-  - condition: template
+  - alias: A visit celebrated with its third dart is not celebrated again
+    condition: template
+    value_template: >-
+      {{ kind == 'visit_thrown' or not trigger.to_state.attributes.get('thrown', false) }}
+  - alias: The visit reaches the minimum score
+    condition: template
     value_template: "{{ score >= minimum_score }}"
 
 actions: !input celebration

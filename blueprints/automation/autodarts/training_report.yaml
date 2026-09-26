@@ -3,13 +3,14 @@ blueprint:
   description: >-
     Sends a summary of your training session at a fixed time, for example
     a notification with your 3-dart average every evening. Days without
-    darts are skipped.
+    darts are skipped: the report checks the "Darts today" sensor of the
+    same board, so a finished session is not reported again the next day.
 
 
     Your actions can use the variables `darts`, `average`, `highest`,
-    `scores_180` and `summary` (a ready-made sentence). To start a new
-    session every day, add "Reset training statistics" of your board as
-    the last action.
+    `scores_180`, `darts_today` and `summary` (a ready-made sentence). To
+    start a new session every day, add "New training session" of your board
+    as the last action.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/training_report.yaml
@@ -22,50 +23,62 @@ blueprint:
       input:
         report_time:
           name: Time
+          description: >-
+            When the report is sent. Choose a time late in the day: darts
+            count for the day on which they are thrown.
           default: "21:00:00"
           selector:
             time: {}
         minimum_darts:
           name: Minimum darts
-          description: Skip the report when fewer darts were thrown.
+          description: Skip the report when fewer darts were thrown today.
           default: 1
           selector:
             number:
               min: 1
               max: 1000
               mode: box
+              unit_of_measurement: darts
     statistics:
       name: Statistics
       icon: mdi:chart-box-outline
       input:
         darts_sensor:
           name: Training darts
+          description: The "Training darts" sensor of your board.
           selector:
             entity:
               filter:
                 - integration: autodarts
                   domain: sensor
+                  unit_of_measurement: darts
         average_sensor:
           name: Training 3-dart average
+          description: The "Training 3-dart average" sensor of your board.
           selector:
             entity:
               filter:
                 - integration: autodarts
                   domain: sensor
+                  unit_of_measurement: points
         highest_sensor:
           name: Training highest visit
+          description: The "Training highest visit" sensor of your board.
           selector:
             entity:
               filter:
                 - integration: autodarts
                   domain: sensor
+                  unit_of_measurement: points
         maximum_sensor:
           name: Training 180s
+          description: The "Training 180s" sensor of your board.
           selector:
             entity:
               filter:
                 - integration: autodarts
                   domain: sensor
+                  unit_of_measurement: visits
     report:
       name: Report
       icon: mdi:message-text
@@ -93,12 +106,26 @@ variables:
   average: "{{ states(average_sensor) | float(0) | round(1) }}"
   highest: "{{ states(highest_sensor) | int(0) }}"
   scores_180: "{{ states(maximum_sensor) | int(0) }}"
+  # The "Darts today" sensor of the same board: the one with a daily goal.
+  darts_today: >-
+    {% set ns = namespace(darts=none) %}
+    {%- for entity in device_entities(device_id(darts_sensor) or '') %}
+    {%- if entity.startswith('sensor.') and state_attr(entity, 'goal_reached') is not none %}
+    {%- set ns.darts = states(entity) | int(0) %}
+    {%- endif %}
+    {%- endfor %}
+    {{- ns.darts }}
   summary: >-
     {{ darts }} darts, 3-dart average {{ average }}, highest visit {{ highest }}{{
     (', ' ~ scores_180 ~ ' × 180') if scores_180 > 0 else '' }}.
 
 conditions:
-  - condition: template
-    value_template: "{{ darts >= minimum_darts }}"
+  - alias: The session has darts to report
+    condition: template
+    value_template: "{{ darts > 0 }}"
+  - alias: Enough darts today, or in the session if the board has no darts today
+    condition: template
+    value_template: >-
+      {{ (darts_today if darts_today is not none else darts) >= minimum_darts }}
 
 actions: !input report_actions

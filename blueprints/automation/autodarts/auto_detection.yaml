@@ -7,7 +7,9 @@ blueprint:
 
 
     Use any on/off entity as presence, such as an occupancy sensor in the
-    darts room, the room light or an input boolean.
+    darts room, the room light or an input boolean. Don't combine this with a
+    detection switch in the training session routine: both would switch the
+    detection.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/auto_detection.yaml
