@@ -13,6 +13,7 @@
 | Message | Cause and solution |
 | --- | --- |
 | *Cannot reach the local Board Manager or its response is invalid* | Wrong address or port, the Board Manager is not running, or something else answers on that port. Enter the IP address only, without `http://` and without a port. |
+| *The board refused access (HTTP 401 or 403)* | The Board Manager itself needs no login, so something in front of port 3180 blocks Home Assistant, for example a reverse proxy, a firewall or a login page. Let Home Assistant reach the board directly, or enter the board's own address. |
 | *No board ID is configured in Board Manager* | The board has not been set up with Autodarts yet. Finish the setup in the Board Manager, then try again. |
 | *No new boards were found automatically* | The search only finds boards that registered from your internet connection and that are not set up yet. Enter the address instead. |
 | *The board search is unavailable right now* | The Autodarts discovery service is unreachable. Enter the address instead. |
@@ -29,26 +30,38 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | **Autodarts board address points to a different board** | The configured address answers with a different board ID, for example because IP addresses were swapped. The entities stay unavailable so that they never show another board's data. Open the integration, choose **Reconfigure** and select the correct board. The notice disappears by itself. |
 | **Calibrate the Autodarts board** | At least 20 % of the last darts needed a correction by the board, see *Detection correction rate*. Remove all darts, open the notice and confirm: the integration calibrates all cameras and counts again from zero. The notice also disappears once the rate falls below 10 %. |
 | **Update the board to the new Autodarts Board Manager** | The board still runs the classic Board Manager 1, which Autodarts will switch off. Install Board Manager 2 on the board PC. The integration switches over by itself and the notice disappears. |
+| **Autodarts board found at a new address** | The board has not answered at its address for five minutes, but the Autodarts cloud reports another address where it answers with its board ID, for example after a DHCP change. Open the notice and confirm: the integration checks the address once more, switches to it and reloads. Entities, training and settings are kept. Only entries linked to the Autodarts cloud get this notice; Board Manager 2 announces a new address itself, see [address changes](how-it-works.md#address-changes). |
+| **Autodarts board refuses access** | The board answers with HTTP 401 or 403. The Board Manager needs no login, so a reverse proxy, a firewall or a login in front of port 3180 blocks Home Assistant. Let Home Assistant reach the board; the notice disappears with the next successful read. |
+| **Autodarts board answers in an unknown format** | A required read (state, settings or `/api/system`) answered three times in a row in a format this version does not understand, typically after a Board Manager update. Update the integration. If the notice stays, [report it](#report-a-bug) with the diagnostics; the log names the affected reads. |
 
 ## Operation
 
 ### Entities are unavailable
 
-- **All local entities unavailable:** the Board Manager does not answer. The entities recover by themselves within seconds after the board is back. The training entities stay available.
+- **All board entities unavailable:** the Board Manager has not answered three reads in a row; one or two missed reads, a few seconds, keep the last values. The entities recover by themselves within seconds after the board is back. Training, practice game, personal bests and the board events stay available, also when the board is switched off while Home Assistant starts.
 - **Settings and camera entities unavailable, the rest works:** the board has not reported its configuration yet. This resolves with the next read, at the latest after 30 seconds.
 - **Unavailable after a Board Manager update:** the integration reloads itself when the generation changes. Wait a few seconds.
+
+### An action fails
+
+| Message | Cause and solution |
+| --- | --- |
+| *The board did not accept the action* | The board rejected the command or did not answer. Check the connection and try again. |
+| *This board does not support the action* | The Board Manager has no such command, for example the camera streams on Board Manager 1. |
+| *Board Manager refused access* | See **Autodarts board refuses access** under [repairs](#repairs). |
 
 ### No realtime updates
 
 *Realtime connection* is off, and changes appear with a delay of about 2 seconds:
 
-- A proxy or firewall between Home Assistant and the board may block WebSocket connections to port 3180.
-- After a restart of the Board Manager, the integration reconnects within 60 seconds at most.
+- A proxy or firewall between Home Assistant and the board may block WebSocket connections to port 3180. If the board answers reads but its realtime events stay away for about half a minute, the log shows one warning.
+- After a restart of the Board Manager, the integration reconnects as soon as a read finds the board back, otherwise within 60 seconds at most.
 
 ### Darts are counted wrongly in the training session
 
 - Darts on the board while Home Assistant starts are deliberately ignored.
 - If a takeout is not detected and new darts follow, the previous visit is closed and the new darts are counted.
+- If the connection is interrupted during a visit, the visit continues when the board still shows its darts afterwards. If the darts were pulled meanwhile, the visit is completed with the darts known before the interruption; darts thrown after that during the interruption are not counted.
 - The training session counts what the board detects. If the board detects a wrong segment and you correct it in Autodarts, the session follows the correction only if the board reports it.
 
 To start over, press **New training session** or *New session* on the training card. To stop counting, turn off the **Training session** switch and *Start sessions automatically*.
@@ -67,7 +80,7 @@ To start over, press **New training session** or *New session* on the training c
 
 ### Download diagnostics
 
-**Settings → Devices & services → Autodarts →** the board's menu (⋮) → **Download diagnostics**. The file contains the board state, the settings summary, the Board Manager generation, connection states and the poll interval. The board ID, addresses and tokens are redacted.
+**Settings → Devices & services → Autodarts →** the board's menu (⋮) → **Download diagnostics**. The file contains the board state, the settings summary, the Board Manager generation, connection states and the poll interval. Under `connection`, it also shows the connection history: failed reads in a row, the kind of the last error, the last successful read, how long the board has been away, the duration of the last read, reads answered in an unknown format and, for the realtime connection, connects, failed attempts, the current back-off, why it last ended and how many frames were skipped. The board ID, addresses, tokens and player names are redacted; error messages are not included.
 
 ### Enable debug logging
 

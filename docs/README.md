@@ -8,7 +8,7 @@
 | [Entities and events](entities.md) | Every entity, board event, state and attribute, and which Board Manager generation provides it |
 | [Dashboard cards](cards.md) | The live card, the training card, the board status card, the scoreboard, the players card and the doubles card, with all options |
 | [Automations](automations.md) | Ten blueprints, board events and ready-to-use examples |
-| [How it works](how-it-works.md) | Architecture, update intervals, Board Manager generations, training rules, privacy and security |
+| [How it works](how-it-works.md) | Architecture, update intervals, connection behavior, Board Manager generations, address changes, training rules, privacy and security |
 | [Troubleshooting](troubleshooting.md) | Setup messages, repairs, unavailable entities, diagnostics and logs |
 | [Security design](security.md) | What is protected, trust boundaries, threats and countermeasures |
 | [Roadmap](roadmap.md) | Released versions and what comes next |

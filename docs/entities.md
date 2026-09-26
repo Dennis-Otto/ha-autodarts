@@ -29,7 +29,7 @@ The visit score is the plain sum of the darts, without game rules such as busts.
 
 ## Board events
 
-The **Board events** entity (`event.*_board_events`) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, or `training` for session events.
+The **Board events** entity (`event.*_board_events`) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, or `training` for session events. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
 
 | `event_type` | When | Attributes |
 | --- | --- | --- |
@@ -243,8 +243,8 @@ A change is written to the Board Manager configuration; only the changed setting
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Board Manager connection | Binary sensor, *Diagnostic* | Home Assistant reaches the Board Manager. |
-| Realtime connection | Binary sensor, *Diagnostic* | Realtime events arrive. Without them, the integration reads every 2 seconds. |
+| Board Manager connection | Binary sensor, *Diagnostic* | Home Assistant reaches the Board Manager. One or two missed reads, a few seconds, keep it on. |
+| Realtime connection | Binary sensor, *Diagnostic* | The connection for realtime events is open. Until events arrive over it, the integration reads every 2 seconds. |
 | Autodarts cloud connection | Binary sensor, **BM 2**, *Diagnostic* | The board's connection to Autodarts. |
 | Cameras active | Binary sensor | The cameras are running. |
 | Calibration in progress | Binary sensor | A calibration is running. |
