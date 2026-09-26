@@ -513,3 +513,76 @@ def test_malformed_session_storage_is_sanitized():
             "segments": ["T20"],
         }
     ]
+
+
+def dart(name, number, multiplier):
+    return {"number": number, "multiplier": multiplier, "name": name}
+
+
+def test_gap_continues_a_visit_whose_darts_are_still_on_the_board():
+    session = TrainingSession()
+    session.observe(board())
+    session.observe(board(T20))
+    session.suspend()
+    events = session.observe(board(T20, S20))
+    assert [kind for kind, _ in events] == ["dart_detected"]
+    assert events[0][1]["dart_index"] == 2
+    assert session.visit() == [dart(*T20), dart(*S20)]
+    assert session.observe(board()) == [
+        (
+            "visit_completed",
+            {"score": 80, "darts": 2, "segments": ["T20", "S20"], "thrown": False},
+        )
+    ]
+
+
+def test_gap_completes_a_visit_that_was_pulled_meanwhile():
+    session = TrainingSession()
+    session.observe(board())
+    session.observe(board(T20, T20))
+    session.suspend()
+    # Pulled and thrown again while the board was out of sight.
+    assert session.observe(board(S20)) == [
+        (
+            "visit_completed",
+            {"score": 120, "darts": 2, "segments": ["T20", "T20"], "thrown": False},
+        )
+    ]
+    assert session.visit() == []
+    assert session.snapshot()["darts"] == 2
+    events = session.observe(board(S20, BULL))
+    assert [(kind, details["dart_index"]) for kind, details in events] == [
+        ("dart_detected", 2)
+    ]
+
+
+def test_gap_waits_for_a_valid_state():
+    session = TrainingSession()
+    session.observe(board())
+    session.observe(board(T20))
+    session.suspend()
+    assert session.observe({"running": True, "numThrows": "?"}) == []
+    assert session.observe(board()) == [
+        (
+            "visit_completed",
+            {"score": 60, "darts": 1, "segments": ["T20"], "thrown": False},
+        )
+    ]
+
+
+def test_gap_before_the_first_state_or_with_a_stopped_board():
+    session = TrainingSession()
+    session.suspend()
+    # Darts found at the start are never counted.
+    assert session.observe(board(T20)) == []
+    assert [kind for kind, _ in session.observe(board(T20, S20))] == ["dart_detected"]
+    session.suspend()
+    events = session.observe(board(T20, S20, running=False))
+    assert events == [
+        (
+            "visit_completed",
+            {"score": 20, "darts": 1, "segments": ["S20"], "thrown": False},
+        )
+    ]
+    # The stop settled the visit; the same darts after a restart count nothing.
+    assert session.observe(board(T20, S20)) == []

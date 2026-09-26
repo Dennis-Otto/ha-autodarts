@@ -1,6 +1,7 @@
 """Exercise local entities, services and cloud independence in real HA setup."""
 
 from copy import deepcopy
+from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
@@ -8,6 +9,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.api import API_BASE, REFRESH_URL
@@ -218,6 +220,11 @@ async def test_disconnect_and_recovery_updates_entities(hass, aioclient_mock):
     with patch.object(
         coordinator.client, "get_state", side_effect=AutodartsConnectionError
     ):
+        # Two missed polls, a few seconds, are a hiccup rather than an outage.
+        for _ in range(2):
+            await coordinator.async_refresh()
+            assert state(hass, "binary_sensor", "local_connected") == "on"
+            assert state(hass, "switch", "detection") == "off"
         await coordinator.async_refresh()
     assert state(hass, "binary_sensor", "local_connected") == "off"
     assert state(hass, "button", "calibrate") == "unavailable"
@@ -273,7 +280,9 @@ async def test_cloud_works_when_local_temporarily_unavailable(hass, aioclient_mo
     assert state(hass, "switch", "detection") == "unavailable"
 
 
-async def test_optional_endpoints_and_delayed_camera_discovery(hass, aioclient_mock):
+async def test_optional_endpoints_and_delayed_camera_discovery(
+    hass, aioclient_mock, freezer
+):
     entry = await setup_local(hass, aioclient_mock, config_status=404)
     assert state(hass, "switch", "detection") == "off"
     assert state(hass, "switch", "auto_calibrate") == "unavailable"
@@ -282,10 +291,18 @@ async def test_optional_endpoints_and_delayed_camera_discovery(hass, aioclient_m
         registry.async_get_entity_id("camera", "autodarts", "board-1_camera_0") is None
     )
     coordinator = entry.runtime_data.local
-    coordinator._metadata_updated = 0
     with patch.object(
         coordinator.client, "get_config", return_value={"camera_count": 2}
     ):
+        # The settings of Board Manager 1 are read again after 30 seconds.
+        freezer.tick(timedelta(seconds=29))
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+        assert (
+            registry.async_get_entity_id("camera", "autodarts", "board-1_camera_1")
+            is None
+        )
+        freezer.tick(timedelta(seconds=1))
         await coordinator.async_refresh()
     await hass.async_block_till_done()
     assert entity_id(hass, "camera", "camera_1")
@@ -326,8 +343,17 @@ async def test_wrong_board_at_configured_address_cannot_be_controlled(
     mock_board(aioclient_mock, config=config)
     entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
-    assert not await hass.config_entries.async_setup(entry.entry_id)
-    assert entry.state == ConfigEntryState.SETUP_RETRY
+    # The entry loads for training and games; the board stays out of reach.
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert state(hass, "binary_sensor", "local_connected") == "off"
+    assert state(hass, "switch", "detection") == "unavailable"
+    assert state(hass, "button", "calibrate") == "unavailable"
+    assert state(hass, "switch", "training_session") == "on"
+    issue = ir.async_get(hass).async_get_issue(
+        "autodarts", f"wrong_board_{entry.entry_id}"
+    )
+    assert issue.translation_placeholders == {"address": BASE}
 
 
 async def test_discovered_host_saved_and_later_cloud_auth_failure_is_isolated(

@@ -1,6 +1,7 @@
 """Live camera streams: relayed from Board Manager 2, snapshots everywhere else."""
 
-from unittest.mock import patch
+import asyncio
+from unittest.mock import AsyncMock, Mock, patch
 
 import aiohttp
 import pytest
@@ -85,3 +86,38 @@ async def test_board_manager_1_sends_snapshots_without_asking(hass, aioclient_mo
         await camera.handle_async_mjpeg_stream(object())
     snapshots.assert_called_once()
     assert not aioclient_mock.mock_calls
+
+
+async def test_live_viewers_per_camera_are_capped(hass, aioclient_mock):
+    """A third viewer gets snapshots, which spares the board PC."""
+    entry = await setup_v2(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    camera = AutodartsCamera(coordinator, 0)
+    release = asyncio.Event()
+
+    async def relay(hass, request, stream, content_type):
+        await release.wait()
+        return "live"
+
+    stream = Mock(headers={"Content-Type": MJPEG})
+    with (
+        patch.object(
+            coordinator.client, "open_camera_stream", AsyncMock(return_value=stream)
+        ) as opened,
+        patch("custom_components.autodarts.camera.async_aiohttp_proxy_stream", relay),
+        patch(SNAPSHOTS, return_value="snapshots") as snapshots,
+    ):
+        viewers = [
+            hass.async_create_task(camera.handle_async_mjpeg_stream(object()))
+            for _ in range(2)
+        ]
+        for _ in range(5):
+            await asyncio.sleep(0)
+        assert await camera.handle_async_mjpeg_stream(object()) == "snapshots"
+        release.set()
+        assert await asyncio.gather(*viewers) == ["live", "live"]
+        # Viewers that left free their places.
+        assert await camera.handle_async_mjpeg_stream(object()) == "live"
+    assert opened.call_count == 3
+    assert snapshots.call_count == 1
+    assert stream.close.call_count == 3

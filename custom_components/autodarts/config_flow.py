@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Mapping
-from ipaddress import ip_address
+from ipaddress import IPv4Address, ip_address
 from typing import Any
 
 import voluptuous as vol
@@ -39,7 +39,7 @@ from .const import (
 )
 from .discovery import async_discover_boards
 from .errors import AutodartsApiError
-from .local_api import AutodartsLocalClient, board_generation
+from .local_api import AutodartsLocalAuthError, AutodartsLocalClient, board_generation
 
 
 def _valid_host(host: str) -> bool:
@@ -51,6 +51,41 @@ def _valid_host(host: str) -> bool:
         except ValueError:
             return False
     return True
+
+
+def _announced_host(discovery_info: ZeroconfServiceInfo) -> str | None:
+    """The board's address; its own "ip" property only if it is the sender's.
+
+    Any device can announce the service, so an address outside the
+    announcement never makes Home Assistant contact another host.
+    """
+    usable = [
+        address
+        for address in discovery_info.ip_addresses
+        if not (
+            address.is_loopback
+            or address.is_unspecified
+            or address.is_multicast
+            or address.is_link_local
+        )
+    ]
+    advertised = discovery_info.properties.get("ip")
+    for address in usable:
+        if str(address) == advertised:
+            return str(address)
+    # Prefer IPv4, which works without a zone or router advertisements.
+    usable.sort(key=lambda address: not isinstance(address, IPv4Address))
+    return str(usable[0]) if usable else None
+
+
+def _announced_port(discovery_info: ZeroconfServiceInfo) -> int:
+    """Board Manager 2 may announce its HTTPS port; the plain HTTP one is used."""
+    for value in (discovery_info.properties.get("insecurePort"), discovery_info.port):
+        if isinstance(value, str) and value.isdigit():
+            value = int(value)
+        if type(value) is int and 0 < value < 65536:
+            return value
+    return DEFAULT_PORT
 
 
 def _menu_options() -> list[str]:
@@ -94,6 +129,22 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
     async def _async_identify(self, host: str, port: int) -> dict[str, Any]:
         client = AutodartsLocalClient(host, port, async_get_clientsession(self.hass))
         return await client.identify()
+
+    async def _async_still_answers(self, board_id: str, host: str, port: int) -> bool:
+        """Whether a configured board still answers at its address, not this one."""
+        entry = self.hass.config_entries.async_entry_for_domain_unique_id(
+            DOMAIN, board_id
+        )
+        if entry is None or not entry.data.get(CONF_HOST):
+            return False
+        configured = (entry.data[CONF_HOST], entry.data.get(CONF_PORT, DEFAULT_PORT))
+        if configured == (host, port):
+            return False
+        try:
+            identity = await self._async_identify(*configured)
+        except (AutodartsApiError, ValueError):
+            return False
+        return bool(identity["board_id"] == board_id)
 
     def _local_entry(
         self, host: str, port: int, identity: dict[str, Any]
@@ -153,17 +204,22 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         self, discovery_info: ZeroconfServiceInfo
     ) -> ConfigFlowResult:
         """Board Manager 2 announces itself as _autodarts-board._tcp."""
-        advertised = discovery_info.properties.get("ip")
-        host = advertised if isinstance(advertised, str) and advertised else None
-        host = host or discovery_info.host
-        port = discovery_info.port or DEFAULT_PORT
+        host = _announced_host(discovery_info)
+        if host is None:
+            return self.async_abort(reason="cannot_connect_local")
+        port = _announced_port(discovery_info)
         try:
             identity = await self._async_identify(host, port)
         except (AutodartsApiError, ValueError):
             return self.async_abort(reason="cannot_connect_local")
-        if not identity["board_id"]:
+        board_id = identity["board_id"]
+        if not board_id:
             return self.async_abort(reason="board_not_configured")
-        await self.async_set_unique_id(identity["board_id"])
+        await self.async_set_unique_id(board_id)
+        if await self._async_still_answers(board_id, host, port):
+            # Only a board that left its address moves: another device echoing
+            # the board ID never takes over a working entry.
+            return self.async_abort(reason="already_configured")
         # A known board that moved to a new address is updated and reloaded.
         self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
         self._async_abort_entries_match({CONF_BOARD_ID: identity["board_id"]})
@@ -216,6 +272,8 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 try:
                     identity = await self._async_identify(host, port)
+                except AutodartsLocalAuthError:
+                    errors["base"] = "board_access_denied"
                 except (AutodartsApiError, ValueError):
                     errors["base"] = "cannot_connect_local"
                 else:

@@ -5,9 +5,10 @@ from __future__ import annotations
 import asyncio
 import math
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import quote
 
 import aiohttp
 
@@ -91,6 +92,13 @@ async def _auth_request(
         ) from err
 
 
+def _segment(value: str) -> str:
+    """One path segment; an identifier can never reach another route."""
+    if not isinstance(value, str) or not value:
+        raise AutodartsConnectionError("Invalid identifier")
+    return quote(value, safe="")
+
+
 def normalize_token(body: dict[str, Any]) -> dict[str, Any]:
     """Require both tokens: the new service rotates refresh tokens on every use."""
     return {
@@ -118,7 +126,10 @@ async def request_device_code(
 
 
 async def wait_for_device_token(
-    session: aiohttp.ClientSession, client_id: str, device: DeviceAuthorization
+    session: aiohttp.ClientSession,
+    client_id: str,
+    device: DeviceAuthorization,
+    sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
 ) -> dict[str, Any]:
     """Poll until approval, cancellation or expiry, respecting RFC 8628 backoff."""
     interval = device.interval
@@ -128,7 +139,7 @@ async def wait_for_device_token(
     try:
         async with asyncio.timeout(remaining):
             while True:
-                await asyncio.sleep(interval)
+                await sleep(interval)
                 try:
                     body = await _auth_request(
                         session,
@@ -246,12 +257,12 @@ class AutodartsCloudClient:
 
     async def get_board(self, board_id: str) -> dict[str, Any]:
         """Fetch a board's connection and match status."""
-        return await self._get_object(f"/bs/v0/boards/{board_id}")
+        return await self._get_object(f"/bs/v0/boards/{_segment(board_id)}")
 
     async def get_match(self, match_id: str) -> dict[str, Any]:
         """Fetch match metadata."""
-        return await self._get_object(f"/gs/v0/matches/{match_id}")
+        return await self._get_object(f"/gs/v0/matches/{_segment(match_id)}")
 
     async def get_match_state(self, match_id: str) -> dict[str, Any]:
         """Fetch live game state."""
-        return await self._get_object(f"/gs/v0/matches/{match_id}/state")
+        return await self._get_object(f"/gs/v0/matches/{_segment(match_id)}/state")

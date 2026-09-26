@@ -102,7 +102,8 @@
       "cannot_connect_local": "Cannot reach the local Board Manager or its response is invalid.",
       "board_not_configured": "No board ID is configured in Board Manager. Complete board setup there first.",
       "no_boards_found": "No new boards were found automatically. Enter the board address instead.",
-      "discovery_failed": "The board search is unavailable right now. Enter the board address instead."
+      "discovery_failed": "The board search is unavailable right now. Enter the board address instead.",
+      "board_access_denied": "The board refused access (HTTP 401 or 403). Board Manager needs no login; check proxies and firewalls between Home Assistant and the board."
     },
     "abort": {
       "already_configured": "This Autodarts board is already configured.",
@@ -518,6 +519,15 @@
     },
     "unknown_player": {
       "message": "There is no player profile named {name}."
+    },
+    "board_access_denied": {
+      "message": "Board Manager refused access. It normally needs no login; check proxies and firewalls between Home Assistant and the board."
+    },
+    "unsupported_response": {
+      "message": "Board Manager answers in a format this version of the integration does not understand."
+    },
+    "not_supported": {
+      "message": "This board does not support the action."
     }
   },
   "issues": {
@@ -541,6 +551,29 @@
         "abort": {
           "calibration_failed": "The board did not accept the calibration. Try again, or calibrate from the board status card.",
           "board_unavailable": "The board is not loaded. Check the connection and try again."
+        }
+      }
+    },
+    "board_access_denied": {
+      "title": "Autodarts board refuses access",
+      "description": "The board at {address} answers with HTTP 401 or 403. Board Manager itself needs no login, so something between Home Assistant and the board blocks the requests, for example a reverse proxy, a firewall or a login in front of port 3180. Let Home Assistant reach the board; the notice disappears by itself."
+    },
+    "unsupported_response": {
+      "title": "Autodarts board answers in an unknown format",
+      "description": "The board answers {reads} in a format this version of the integration does not understand, for example after a Board Manager update. Values from these reads are not updated. Update the Autodarts integration; if the notice stays, report it together with the diagnostics."
+    },
+    "board_moved": {
+      "title": "Autodarts board found at a new address",
+      "description": "The board no longer answers at {old}. The Autodarts cloud reports it at {new}, where it answers with its board ID. Open this notice to switch to the new address.",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Use the new address",
+            "description": "Connect the board at {new}? The integration reloads; entities, training and settings are kept."
+          }
+        },
+        "abort": {
+          "board_unavailable": "The board no longer answers at the new address. Wait for the next notice, or open the integration and choose **Reconfigure**."
         }
       }
     }

@@ -1,12 +1,18 @@
 """Board Manager 2: one system read, its own entities and generation changes."""
 
+from collections import Counter
 from copy import deepcopy
+from datetime import timedelta
+from unittest.mock import patch
 
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.local_api import board_generation
+from custom_components.autodarts.local_api import (
+    AutodartsEndpointMissing,
+    board_generation,
+)
 
 from .local_helpers import (
     BASE,
@@ -59,8 +65,8 @@ async def test_board_manager_2_entities_and_one_system_read(hass, aioclient_mock
     aioclient_mock.clear_requests()
     mock_board_v2(aioclient_mock)
     await entry.runtime_data.local.async_refresh()
-    paths = {call[1].path for call in aioclient_mock.mock_calls}
-    assert paths == {"/api/state", "/api/system"}
+    paths = Counter(call[1].path for call in aioclient_mock.mock_calls)
+    assert paths == {"/api/state": 1, "/api/system": 1}
 
 
 async def test_board_manager_2_secrets_never_leave_the_client(hass, aioclient_mock):
@@ -90,14 +96,17 @@ async def test_failed_system_read_keeps_values(hass, aioclient_mock):
     assert state(hass, "binary_sensor", "cloud_link") == "on"
 
 
-async def test_upgrade_to_board_manager_2_rebuilds_entities(hass, aioclient_mock):
+async def test_upgrade_to_board_manager_2_rebuilds_entities(
+    hass, aioclient_mock, freezer
+):
     entry = await setup_local(hass, aioclient_mock)
     assert entry.data["api_generation"] == 1
     assert "board-1_upstream" in unique_ids(hass, entry)
     aioclient_mock.clear_requests()
     mock_board_v2(aioclient_mock)
     coordinator = entry.runtime_data.local
-    coordinator._metadata_updated = 0
+    # Board Manager 1 reports its version every 30 seconds.
+    freezer.tick(timedelta(seconds=30))
     await coordinator.async_refresh()
     await hass.async_block_till_done()
     assert entry.data["api_generation"] == 2
@@ -119,6 +128,103 @@ async def test_board_without_system_endpoint_returns_to_classic(hass, aioclient_
     ids = unique_ids(hass, entry)
     assert "board-1_upstream" in ids
     assert not {"board-1_cloud_link", "board-1_board_software"} & ids
+
+
+async def test_version_2_board_without_system_endpoint_settles_as_classic(
+    hass, aioclient_mock
+):
+    """Such a board is switched over once and stays so, instead of reloading."""
+    mock_board(aioclient_mock, version="2.0.0")
+    aioclient_mock.get(BASE + "/api/system", status=404)
+    aioclient_mock.get(BASE + "/api/host", status=404)
+    data = {**local_entry_data(), "api_generation": 2}
+    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data.local
+    # A board that is still starting may miss the route for a moment.
+    assert entry.data["api_generation"] == 2
+    assert "board-1_cpu_usage" in unique_ids(hass, entry)
+    with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+        for _ in range(2):
+            await coordinator.async_refresh()
+    reload.assert_called_once_with(entry.entry_id)
+    assert entry.data["api_generation"] == 1
+    assert entry.data["no_system_api"] == "2.0.0"
+
+    # The next start, like the reload, keeps the classic protocol for good.
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data.local
+    aioclient_mock.clear_requests()
+    mock_board(aioclient_mock, version="2.0.0")
+    with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+        for _ in range(5):
+            await coordinator.async_refresh()
+    reload.assert_not_called()
+    assert coordinator.generation == 1
+    assert "/api/system" not in {call[1].path for call in aioclient_mock.mock_calls}
+    ids = unique_ids(hass, entry)
+    assert "board-1_upstream" in ids
+    # Every entity of Board Manager 2 is removed, the board PC details, too.
+    assert (
+        not {
+            "board-1_cloud_link",
+            "board-1_board_software",
+            "board-1_cpu_usage",
+            "board-1_host_os",
+            "board-1_host_processor",
+            "board-1_vision_version",
+        }
+        & ids
+    )
+
+
+async def test_system_endpoint_missing_for_a_moment_changes_nothing(
+    hass, aioclient_mock
+):
+    entry = await setup_v2(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    missing = AutodartsEndpointMissing("starting")
+    for _ in range(2):
+        with patch.object(coordinator.client, "get_system", side_effect=missing):
+            await coordinator.async_refresh()
+            await coordinator.async_refresh()
+        await coordinator.async_refresh()
+    assert entry.data["api_generation"] == 2
+    assert "no_system_api" not in entry.data
+    assert state(hass, "sensor", "cpu_usage") == "12.5"
+
+
+async def test_new_board_manager_version_asks_for_the_system_endpoint_again(
+    hass, aioclient_mock
+):
+    aioclient_mock.get(BASE + "/api/version", text="2.1.0")
+    mock_board_v2(aioclient_mock, system={**deepcopy(SYSTEM), "version": "2.1.0"})
+    data = {**local_entry_data(), "api_generation": 1, "no_system_api": "2.0.0"}
+    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert "no_system_api" not in entry.data
+    assert entry.data["api_generation"] == 2
+    await entry.runtime_data.local.async_refresh()
+    assert state(hass, "sensor", "cpu_usage") == "12.5"
+
+
+async def test_board_without_system_endpoint_of_unknown_version_stays_classic(
+    hass, aioclient_mock
+):
+    mock_board(aioclient_mock, version="2.0.0")
+    data = {**local_entry_data(), "api_generation": 1, "no_system_api": ""}
+    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.data["api_generation"] == 1
+    assert entry.data["no_system_api"] == ""
+    assert "board-1_upstream" in unique_ids(hass, entry)
 
 
 def test_board_generation_from_version():
@@ -210,3 +316,25 @@ async def test_cameras_are_read_right_after_the_detection_starts(hass, aioclient
         coordinator.async_receive("state", {**board, "status": status})
     await hass.async_block_till_done()
     assert not aioclient_mock.mock_calls
+
+
+async def test_board_pc_details_are_read_again_every_hour(
+    hass, aioclient_mock, freezer
+):
+    entry = await setup_v2(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+
+    async def host_reads():
+        await coordinator.async_refresh()
+        paths = [call[1].path for call in aioclient_mock.mock_calls]
+        aioclient_mock.clear_requests()
+        mock_board_v2(aioclient_mock)
+        return paths.count("/api/host")
+
+    aioclient_mock.clear_requests()
+    mock_board_v2(aioclient_mock)
+    freezer.tick(timedelta(minutes=59))
+    assert await host_reads() == 0
+    freezer.tick(timedelta(minutes=1))
+    assert await host_reads() == 1
+    assert await host_reads() == 0

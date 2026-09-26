@@ -8,8 +8,9 @@ from homeassistant.core import HomeAssistant
 from .const import CONF_LOCAL_ONLY
 from .runtime import AutodartsConfigEntry
 
-# Identifiers, addresses and credentials that must never leave a bug report.
-TO_REDACT = {"board_id", "client_id", "host", "token", "ip"}
+# Identifiers, addresses, credentials and player names that must never leave a
+# bug report; segment names of darts are redacted with the player names.
+TO_REDACT = {"board_id", "client_id", "host", "token", "ip", "name"}
 
 
 async def async_get_config_entry_diagnostics(
@@ -71,4 +72,6 @@ async def async_get_config_entry_diagnostics(
             if local and local.update_interval
             else None
         ),
+        # Counts, kinds of errors and durations only; no addresses or messages.
+        "connection": local.diagnostics() if local else None,
     }

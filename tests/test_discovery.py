@@ -1,7 +1,9 @@
 """Finding boards: mDNS announcements, the Autodarts lookup and manual fallback."""
 
 from ipaddress import ip_address
+from unittest.mock import patch
 
+import pytest
 from homeassistant.config_entries import (
     SOURCE_RECONFIGURE,
     SOURCE_USER,
@@ -32,13 +34,18 @@ LISTED = [
 ]
 
 
-def zeroconf(host: str = "192.0.2.10", properties: dict | None = None):
+def zeroconf(
+    host: str = "192.0.2.10",
+    properties: dict | None = None,
+    addresses: list[str] | None = None,
+    port: int | None = 3180,
+):
     return ZeroconfServiceInfo(
         ip_address=ip_address(host),
-        ip_addresses=[ip_address(host)],
+        ip_addresses=[ip_address(address) for address in addresses or [host]],
         hostname="autodarts.local.",
         name="autodarts-board._autodarts-board._tcp.local.",
-        port=3180,
+        port=port,
         type="_autodarts-board._tcp.local.",
         properties={"id": "25648ad55ac6060d", "cams": "3"}
         if properties is None
@@ -74,19 +81,110 @@ async def test_announced_board_is_added_with_one_click(hass, aioclient_mock):
 
 async def test_announced_address_property_is_preferred(hass, aioclient_mock):
     mock_board_v2(aioclient_mock)
-    info = zeroconf("fe80::1", {"ip": "192.0.2.10", "cams": "3"})
+    info = zeroconf(
+        "fe80::1",
+        {"ip": "192.0.2.10", "cams": "3"},
+        ["fe80::1", "192.0.2.99", "192.0.2.10"],
+    )
     result = await hass.config_entries.flow.async_init(
         "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
     )
     assert result["description_placeholders"]["host"] == "192.0.2.10"
 
 
-async def test_announced_known_board_updates_its_address(hass, aioclient_mock):
-    aioclient_mock.get(OTHER + "/api/state", json={"running": False})
-    aioclient_mock.get(
-        OTHER + "/api/config", json={"auth": {"board_id": "board-1"}, "cam": {}}
+@pytest.mark.parametrize(
+    "addresses,advertised",
+    [
+        # Any device can put any address into its announcement.
+        (["2001:db8::5", "192.0.2.10"], "198.51.100.66"),
+        (["fe80::1", "192.0.2.10"], "127.0.0.1"),
+        (["192.0.2.10"], None),
+    ],
+)
+async def test_announced_address_must_be_the_senders(
+    hass, aioclient_mock, addresses, advertised
+):
+    mock_board_v2(aioclient_mock)
+    properties = {"cams": "3"} if advertised is None else {"ip": advertised}
+    info = zeroconf("fe80::1", properties, addresses)
+    result = await hass.config_entries.flow.async_init(
+        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
     )
-    aioclient_mock.get(OTHER + "/api/version", text="2.0.0")
+    # IPv4 of the sender first; no other host is ever contacted.
+    assert result["description_placeholders"]["host"] == "192.0.2.10"
+    assert {call[1].host for call in aioclient_mock.mock_calls} == {"192.0.2.10"}
+
+
+async def test_announced_ipv6_board_is_reached_over_ipv6(hass, aioclient_mock):
+    mock_board_v2(aioclient_mock, base="http://[2001:db8::10]:3180")
+    info = zeroconf("2001:db8::10", {"ip": "2001:db8::10"})
+    result = await hass.config_entries.flow.async_init(
+        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
+    )
+    assert result["description_placeholders"]["host"] == "2001:db8::10"
+
+
+async def test_announcement_without_usable_address_is_ignored(hass, aioclient_mock):
+    info = zeroconf("127.0.0.1", {"ip": "127.0.0.1"}, ["127.0.0.1", "fe80::1"])
+    result = await hass.config_entries.flow.async_init(
+        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "cannot_connect_local"
+    assert not aioclient_mock.mock_calls
+
+
+@pytest.mark.parametrize(
+    "properties,port,expected",
+    [
+        ({"insecurePort": "3181"}, 443, 3181),
+        ({"insecurePort": "none"}, 3182, 3182),
+        ({"insecurePort": "70000"}, None, 3180),
+        ({}, 3183, 3183),
+    ],
+)
+async def test_announced_plain_http_port_is_used(
+    hass, aioclient_mock, properties, port, expected
+):
+    mock_board_v2(aioclient_mock, base=f"http://192.0.2.10:{expected}")
+    info = zeroconf(properties=properties, port=port)
+    result = await hass.config_entries.flow.async_init(
+        "autodarts", context={"source": SOURCE_ZEROCONF}, data=info
+    )
+    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+        await hass.async_block_till_done()
+    assert result["data"]["port"] == expected
+    assert {call[1].port for call in aioclient_mock.mock_calls} == {expected}
+
+
+async def test_announced_known_board_updates_its_address(hass, aioclient_mock):
+    aioclient_mock.get(BASE + "/api/state", status=503)
+    mock_board_v2(aioclient_mock, base=OTHER)
+    entry = MockConfigEntry(
+        domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
+    )
+    entry.add_to_hass(hass)
+    # The board moved while it was off: the entry loads without it.
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert not entry.runtime_data.local.last_update_success
+    result = await hass.config_entries.flow.async_init(
+        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf("192.0.2.20")
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+    assert entry.data["host"] == "192.0.2.20"
+    # The update reloads the entry at the new address.
+    await hass.async_block_till_done()
+    assert entry.runtime_data.local.client.base_url == OTHER
+    assert entry.runtime_data.local.last_update_success
+
+
+async def test_board_that_still_answers_is_never_moved(hass, aioclient_mock):
+    """Another device that echoes the board ID cannot take over the entry."""
+    mock_board(aioclient_mock)
+    mock_board_v2(aioclient_mock, base=OTHER)
     entry = MockConfigEntry(
         domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
     )
@@ -94,9 +192,41 @@ async def test_announced_known_board_updates_its_address(hass, aioclient_mock):
     result = await hass.config_entries.flow.async_init(
         "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf("192.0.2.20")
     )
-    assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "already_configured"
-    assert entry.data["host"] == "192.0.2.20"
+    assert entry.data["host"] == "192.0.2.10"
+
+
+async def test_known_board_at_its_address_is_identified_once(hass, aioclient_mock):
+    mock_board_v2(aioclient_mock)
+    entry = MockConfigEntry(
+        domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
+    )
+    entry.add_to_hass(hass)
+    result = await hass.config_entries.flow.async_init(
+        "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
+    )
+    assert result["reason"] == "already_configured"
+    paths = [call[1].path for call in aioclient_mock.mock_calls]
+    assert paths.count("/api/state") == 1
+
+
+async def test_known_board_without_address_takes_the_announced_one(
+    hass, aioclient_mock
+):
+    mock_board_v2(aioclient_mock)
+    entry = MockConfigEntry(
+        domain="autodarts",
+        version=2,
+        unique_id="board-1",
+        data={"board_id": "board-1", "local_only": False},
+    )
+    entry.add_to_hass(hass)
+    with patch.object(hass.config_entries, "async_schedule_reload"):
+        result = await hass.config_entries.flow.async_init(
+            "autodarts", context={"source": SOURCE_ZEROCONF}, data=zeroconf()
+        )
+    assert result["reason"] == "already_configured"
+    assert entry.data["host"] == "192.0.2.10"
 
 
 async def test_announced_board_that_does_not_answer_is_ignored(hass, aioclient_mock):
@@ -159,12 +289,7 @@ async def test_unavailable_search_falls_back_to_address(hass, aioclient_mock):
 async def test_reconfigure_by_search_updates_the_address(hass, aioclient_mock):
     listed = [{**LISTED[0], "ip": "192.0.2.20"}]
     aioclient_mock.get(DISCOVERY_URL, json=listed)
-    aioclient_mock.get(OTHER + "/api/state", json={"running": False})
-    aioclient_mock.get(
-        OTHER + "/api/config", json={"auth": {"board_id": "board-1"}, "cam": {}}
-    )
-    aioclient_mock.get(OTHER + "/api/version", text="2.0.0")
-    mock_board_v2(aioclient_mock)
+    mock_board_v2(aioclient_mock, base=OTHER)
     entry = MockConfigEntry(
         domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
     )
@@ -180,3 +305,5 @@ async def test_reconfigure_by_search_updates_the_address(hass, aioclient_mock):
     )
     assert result["reason"] == "reconfigure_successful"
     assert entry.data["host"] == "192.0.2.20"
+    await hass.async_block_till_done()
+    assert entry.runtime_data.local.client.base_url == OTHER

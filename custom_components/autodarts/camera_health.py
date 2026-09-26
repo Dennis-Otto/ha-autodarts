@@ -3,6 +3,8 @@
 import math
 from typing import Any
 
+from .const import LIFECYCLE_STATUSES
+
 CAMERA_FAILURE_SECONDS = 15
 
 
@@ -18,12 +20,8 @@ class CameraHealth:
         expected = (
             state.get("running") is True and camera_state.get("isRunning") is True
         )
-        expected = expected and str(state.get("status", "")).lower() not in (
-            "starting",
-            "stopping",
-            "stopped",
-            "calibrating",
-            "error",
+        expected = (
+            expected and str(state.get("status", "")).lower() not in LIFECYCLE_STATUSES
         )
         result: list[bool | None] = []
         for index in range(count):

@@ -8,6 +8,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import LIFECYCLE_STATUSES
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
@@ -112,9 +113,10 @@ class AutodartsLocalState(AutodartsLocalEntity, BinarySensorEntity):
         data = self.coordinator.data or {}
         state = data.get("local", {})
         if self._key in MOTION_SENSORS:
-            if state.get("running") is False or str(
-                state.get("status", "")
-            ).lower() in ("starting", "stopping", "stopped", "calibrating", "error"):
+            if (
+                state.get("running") is False
+                or str(state.get("status", "")).lower() in LIFECYCLE_STATUSES
+            ):
                 return False
             motion = data.get("motion", {}).get(MOTION_SENSORS[self._key])
             return motion if isinstance(motion, bool) else None

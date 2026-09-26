@@ -52,11 +52,18 @@ async def test_bad_host_has_useful_validation(hass, host):
 
 @pytest.mark.parametrize(
     "failure,error",
-    [("offline", "cannot_connect_local"), ("no_board", "board_not_configured")],
+    [
+        ("offline", "cannot_connect_local"),
+        ("refused", "board_access_denied"),
+        ("no_board", "board_not_configured"),
+    ],
 )
 async def test_local_setup_errors(hass, aioclient_mock, failure, error):
     if failure == "offline":
         aioclient_mock.get(BASE + "/api/state", status=503)
+    elif failure == "refused":
+        # Something in front of the board asks for a login it never needs.
+        aioclient_mock.get(BASE + "/api/state", status=401)
     else:
         config = deepcopy(CONFIG)
         config["auth"].pop("board_id")

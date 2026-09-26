@@ -66,21 +66,17 @@ async def test_unregistered_client(hass, aioclient_mock, code):
 
 
 async def test_pending_and_slow_down(hass):
-    with (
-        patch(
-            "custom_components.autodarts.api._auth_request", new_callable=AsyncMock
-        ) as request,
-        patch(
-            "custom_components.autodarts.api.asyncio.sleep", new_callable=AsyncMock
-        ) as sleep,
-    ):
+    sleep = AsyncMock()
+    with patch(
+        "custom_components.autodarts.api._auth_request", new_callable=AsyncMock
+    ) as request:
         request.side_effect = [
             AutodartsAuthError("authorization_pending"),
             AutodartsAuthError("slow_down"),
             TOKEN,
         ]
         token = await wait_for_device_token(
-            async_get_clientsession(hass), CLIENT_ID, grant()
+            async_get_clientsession(hass), CLIENT_ID, grant(), sleep
         )
     assert [c.args[0] for c in sleep.call_args_list] == [5, 5, 10]
     assert token["refresh_token"] == TOKEN["refresh_token"]
@@ -94,16 +90,13 @@ async def test_pending_and_slow_down(hass):
 
 @pytest.mark.parametrize("code", ["access_denied", "expired_token", "invalid_client"])
 async def test_terminal_device_errors(hass, code):
-    with (
-        patch(
-            "custom_components.autodarts.api._auth_request",
-            side_effect=AutodartsAuthError(code),
-        ) as request,
-        patch("custom_components.autodarts.api.asyncio.sleep", new_callable=AsyncMock),
-    ):
+    with patch(
+        "custom_components.autodarts.api._auth_request",
+        side_effect=AutodartsAuthError(code),
+    ) as request:
         with pytest.raises(AutodartsAuthError, match=code):
             await wait_for_device_token(
-                async_get_clientsession(hass), CLIENT_ID, grant()
+                async_get_clientsession(hass), CLIENT_ID, grant(), AsyncMock()
             )
     assert request.call_count == 1
 
@@ -120,16 +113,14 @@ async def test_expired_code_never_polled(hass):
 
 
 async def test_outage_backs_off_and_recovers(hass):
-    with (
-        patch(
-            "custom_components.autodarts.api._auth_request",
-            side_effect=[AutodartsConnectionError(), TOKEN],
-        ),
-        patch(
-            "custom_components.autodarts.api.asyncio.sleep", new_callable=AsyncMock
-        ) as sleep,
+    sleep = AsyncMock()
+    with patch(
+        "custom_components.autodarts.api._auth_request",
+        side_effect=[AutodartsConnectionError(), TOKEN],
     ):
-        await wait_for_device_token(async_get_clientsession(hass), CLIENT_ID, grant())
+        await wait_for_device_token(
+            async_get_clientsession(hass), CLIENT_ID, grant(), sleep
+        )
     assert [c.args[0] for c in sleep.call_args_list] == [5, 10]
 
 
@@ -402,3 +393,26 @@ async def test_cloud_objects_must_be_objects(method):
     cloud = AutodartsCloudClient(session, fresh, CLIENT_ID)
     with pytest.raises(AutodartsConnectionError):
         await getattr(cloud, method)("id-1")
+
+
+@pytest.mark.parametrize(
+    "method,identifier,path",
+    [
+        ("get_board", "../../users/me", "/bs/v0/boards/..%2F..%2Fusers%2Fme"),
+        ("get_match", "m 1?x", "/gs/v0/matches/m%201%3Fx"),
+        ("get_match_state", "m#1", "/gs/v0/matches/m%231/state"),
+    ],
+)
+async def test_identifiers_stay_one_path_segment(
+    hass, aioclient_mock, method, identifier, path
+):
+    aioclient_mock.get(f"{API_BASE}{path}", json={"id": "x"})
+    assert await getattr(fresh_client(hass), method)(identifier) == {"id": "x"}
+    assert aioclient_mock.mock_calls[0][1].raw_path == path
+
+
+@pytest.mark.parametrize("identifier", ["", None, 7])
+async def test_missing_identifiers_send_nothing(hass, aioclient_mock, identifier):
+    with pytest.raises(AutodartsConnectionError, match="Invalid identifier"):
+        await fresh_client(hass).get_match(identifier)
+    assert not aioclient_mock.mock_calls

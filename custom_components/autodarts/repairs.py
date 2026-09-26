@@ -1,14 +1,18 @@
-"""Repairs that the integration can fix itself: calibrate a board on request."""
+"""Repairs the integration can fix itself: calibrate, or follow a moved board."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from homeassistant import data_entry_flow
-from homeassistant.components.repairs import RepairsFlow
+from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+
+from .const import CONF_BOARD_ID, CONF_HOST, CONF_PORT
+from .errors import AutodartsApiError
+from .local_api import AutodartsLocalClient
 
 
 class CalibrationFlow(RepairsFlow):
@@ -19,12 +23,12 @@ class CalibrationFlow(RepairsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         return await self.async_step_confirm()
 
     async def async_step_confirm(
         self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> RepairsFlowResult:
         if user_input is None:
             return self.async_show_form(step_id="confirm")
         entry = self.hass.config_entries.async_get_entry(self._entry_id)
@@ -39,7 +43,48 @@ class CalibrationFlow(RepairsFlow):
         return self.async_create_entry(data={})
 
 
+class BoardMovedFlow(RepairsFlow):
+    """The board answers at another address: switch to it once confirmed."""
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self._data = data
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> RepairsFlowResult:
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> RepairsFlowResult:
+        entry = self.hass.config_entries.async_get_entry(
+            str(self._data.get("entry_id", ""))
+        )
+        host, port = self._data.get("host"), self._data.get("port")
+        if entry is None or not isinstance(host, str) or type(port) is not int:
+            return self.async_abort(reason="board_unavailable")
+        client = AutodartsLocalClient(host, port, async_get_clientsession(self.hass))
+        if user_input is None:
+            return self.async_show_form(
+                step_id="confirm", description_placeholders={"new": client.base_url}
+            )
+        # The board may have moved again since the notice appeared.
+        try:
+            identity = await client.identify()
+        except AutodartsApiError:
+            return self.async_abort(reason="board_unavailable")
+        if identity["board_id"] != entry.data[CONF_BOARD_ID]:
+            return self.async_abort(reason="board_unavailable")
+        self.hass.config_entries.async_update_entry(
+            entry, data={**entry.data, CONF_HOST: host, CONF_PORT: port}
+        )
+        self.hass.config_entries.async_schedule_reload(entry.entry_id)
+        return self.async_create_entry(data={})
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None
 ) -> RepairsFlow:
+    if issue_id.startswith("board_moved_"):
+        return BoardMovedFlow(data or {})
     return CalibrationFlow(str((data or {}).get("entry_id", "")))

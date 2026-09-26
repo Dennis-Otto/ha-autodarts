@@ -2,7 +2,6 @@
 
 import asyncio
 from datetime import timedelta
-from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -214,10 +213,10 @@ async def test_entry_of_a_newer_minor_version_still_loads(hass, aioclient_mock):
     assert (entry.version, entry.minor_version) == (2, 2)
 
 
-async def test_failed_reads_keep_settings_and_motion(hass, aioclient_mock):
+async def test_failed_reads_keep_settings_and_motion(hass, aioclient_mock, freezer):
     entry = await setup_local(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
-    coordinator._metadata_updated = 0
+    freezer.tick(timedelta(seconds=30))
     with (
         patch.object(
             coordinator.client, "get_config", side_effect=AutodartsConnectionError
@@ -249,33 +248,47 @@ async def test_missed_poll_during_realtime_stream_is_no_outage(hass, aioclient_m
 async def test_stream_survives_unexpected_errors_and_polls_slowly_meanwhile(
     hass, aioclient_mock
 ):
-    release = asyncio.Event()
+    release, handshake, live, fail, reconnected = (asyncio.Event() for _ in range(5))
     calls = 0
+    waits = []
 
     async def stream(self):
         nonlocal calls
         calls += 1
         yield "connected", {}
         if calls == 1:
+            handshake.set()
             await release.wait()
+            yield "state", {**STATE}
+            live.set()
+            await fail.wait()
             raise RuntimeError("unexpected board message")
+        reconnected.set()
         await asyncio.Event().wait()
 
-    with patch.object(AutodartsLocalClient, "events", stream):
+    async def wait(self, delay):
+        waits.append(delay)
+        return False
+
+    with (
+        patch.object(AutodartsLocalClient, "events", stream),
+        patch.object(AutodartsLocalCoordinator, "_wait_before_reconnect", wait),
+    ):
         entry = await setup_local(hass, aioclient_mock)
         coordinator = entry.runtime_data.local
-        async with asyncio.timeout(3):
-            while not coordinator.stream_connected:
-                await asyncio.sleep(0.01)
-        assert coordinator.update_interval == timedelta(seconds=30)
+        await handshake.wait()
+        # An open socket alone does not prove that notifications arrive.
+        assert coordinator.update_interval == timedelta(seconds=2)
         release.set()
-        # The first reconnect waits one second.
-        async with asyncio.timeout(5):
-            while calls < 2:
-                await asyncio.sleep(0.01)
+        await live.wait()
+        assert coordinator.update_interval == timedelta(seconds=30)
+        fail.set()
+        await reconnected.wait()
         assert state(hass, "binary_sensor", "realtime_connected") == "on"
         assert await hass.config_entries.async_unload(entry.entry_id)
     assert coordinator.update_interval == timedelta(seconds=2)
+    # The connection delivered notifications, so the back-off starts at 1 second.
+    assert 0.8 <= waits[0] <= 1
 
 
 async def test_connected_stream_without_any_board_answer_is_still_an_outage(
@@ -311,46 +324,42 @@ async def test_connected_stream_without_any_board_answer_is_still_an_outage(
         assert await hass.config_entries.async_unload(entry.entry_id)
 
 
-async def test_lasting_connection_resets_the_reconnect_delay(hass, aioclient_mock):
-    real_sleep = asyncio.sleep
+async def test_reconnect_back_off_doubles_to_a_minute_and_starts_over(
+    hass, aioclient_mock, freezer
+):
+    """Failures wait 1, 2, 4 ... 60 seconds, less up to a fifth of jitter."""
     waits = []
-    now = [1000.0]
     calls = 0
+    done = asyncio.Event()
 
-    async def wait(delay):
+    async def wait(self, delay):
         waits.append(delay)
-        await real_sleep(0)
+        return False
 
     async def stream(self):
         nonlocal calls
         calls += 1
-        if calls == 1:
+        if calls == 10:
+            # Half a minute of connection starts the back-off over.
+            yield "connected", {}
+            freezer.tick(timedelta(seconds=30))
+        if calls < 12:
             raise AutodartsConnectionError()
-        yield "connected", {}
-        if calls == 2:
-            now[0] += 30
-        if calls < 4:
-            raise AutodartsConnectionError()
+        done.set()
         await asyncio.Event().wait()
 
     with (
         patch.object(AutodartsLocalClient, "events", stream),
-        patch(
-            "custom_components.autodarts.local_coordinator.asyncio",
-            SimpleNamespace(**{**vars(asyncio), "sleep": wait}),
-        ),
-        patch(
-            "custom_components.autodarts.local_coordinator.time",
-            SimpleNamespace(monotonic=lambda: now[0]),
-        ),
+        patch.object(AutodartsLocalCoordinator, "_wait_before_reconnect", wait),
     ):
         entry = await setup_local(hass, aioclient_mock)
-        async with asyncio.timeout(3):
-            while calls < 4:
-                await real_sleep(0.01)
-        # Failures double the wait; half a minute of connection starts over.
-        assert waits == [1, 1, 2]
+        await done.wait()
         assert await hass.config_entries.async_unload(entry.entry_id)
+    bases = [1, 2, 4, 8, 16, 32, 60, 60, 60, 1, 2]
+    assert len(waits) == len(bases)
+    assert all(0.8 * base <= delay <= base for delay, base in zip(waits, bases))
+    # The jitter spreads the waits instead of repeating exact values.
+    assert len({round(delay / base, 6) for delay, base in zip(waits, bases)}) > 1
 
 
 async def test_starting_twice_keeps_one_event_stream_and_one_day_timer(
@@ -377,7 +386,7 @@ async def test_starting_twice_keeps_one_event_stream_and_one_day_timer(
 
 
 async def test_board_update_after_the_device_was_deleted_adds_no_device(
-    hass, aioclient_mock
+    hass, aioclient_mock, freezer
 ):
     entry = await setup_local(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
@@ -386,7 +395,7 @@ async def test_board_update_after_the_device_was_deleted_adds_no_device(
     registry.async_remove_device(
         registry.async_get_device_by_identifier(board, entry.entry_id).id
     )
-    coordinator._metadata_updated = 0
+    freezer.tick(timedelta(seconds=30))
     with patch.object(coordinator.client, "get_version", return_value="1.0.8"):
         await coordinator.async_refresh()
     assert coordinator.last_update_success
@@ -400,7 +409,7 @@ async def test_non_numeric_board_values_read_as_unknown(hass, aioclient_mock):
     assert state(hass, "binary_sensor", "local_connected") == "on"
 
 
-async def test_board_manager_update_shows_on_the_device(hass, aioclient_mock):
+async def test_board_manager_update_shows_on_the_device(hass, aioclient_mock, freezer):
     entry = await setup_local(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
     registry = dr.async_get(hass)
@@ -408,10 +417,10 @@ async def test_board_manager_update_shows_on_the_device(hass, aioclient_mock):
         ("autodarts", "board-1"), entry.entry_id
     )
     assert device.sw_version == "1.0.7"
-    coordinator._metadata_updated = 0
-    with patch.object(coordinator.client, "get_version", return_value="2.0.0"):
+    freezer.tick(timedelta(seconds=30))
+    with patch.object(coordinator.client, "get_version", return_value="1.0.8"):
         await coordinator.async_refresh()
-    assert registry.async_get(device.id).sw_version == "2.0.0"
+    assert registry.async_get(device.id).sw_version == "1.0.8"
 
 
 async def test_version_1_cloud_entry_without_board_address_asks_for_the_address(hass):
