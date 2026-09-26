@@ -71,8 +71,8 @@ The practice game follows the darts of the current visit, including corrections,
   2. No double to set up, and a double before the bullseye to finish.
   3. With three darts in hand, a first treble that still leaves a two-dart finish when it lands in its single: 129 starts on T19, because a single 20 would leave 109.
   4. The biggest first treble, usually T20.
-  5. Setup darts on the treble 20 or 19, or singles, towards a good double: D20, D16, D8, D18, D12, and on the treble 20 or 19 also D10 and D4. With two darts left, the treble 20 or 19 is fine for any double when its single still leaves a one-dart finish: 70 with two darts is T20 D5, with the bull behind a single 20.
-  6. Then any setup towards a good double, then everything else; fewer trebles, bigger trebles, and the finishing double in the order D20, D16, D8, D18, D12, D10, D4, D14, D6, D2 and the odd doubles.
+  5. Setup darts on the treble 20 or 19 or on a single towards D20, D16, D8, D18, D12, D10 or D4. With two darts left, the treble 20 or 19 is fine for any double when its single still leaves a one-dart finish: 70 with two darts is T20 D5, with the bull behind a single 20.
+  6. Then any setup towards the good doubles D20, D16, D8, D18 or D12, then everything else; fewer trebles, bigger trebles, and the finishing double in the order D20, D16, D8, D18, D12, D10, D4, D14, D6, D2 and the odd doubles.
 
   So 144 is T20 T20 D12, 136 T20 T20 D8, 130 T20 T20 D5, 127 T20 T17 D8, 73 T19 D8 and 64 T16 D8. The scores 159, 162, 163, 165, 166, 168, 169 and everything above 170 have no route with double out. Without double out, the biggest bed finishes: a single before a double or a treble.
 - **Personal routes:** with *Practice personal checkout routes*, the doubles of the player at the board with at least 10 darts each, best hit rate first, win over the usual route whenever a route with the same number of darts reaches them without a double to set up; among routes to the same double, the principles above decide.

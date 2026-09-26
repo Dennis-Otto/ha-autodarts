@@ -193,7 +193,7 @@ The practice caller's messages are templates with these variables:
 | `darts`, `average` | Darts and 3-dart average of the leg, in *Leg won* |
 | `points` | Points in Cricket and party games |
 | `target` | The next target of a party game, for example `20`, `D` or `D16` |
-| `distance` | How far the winning bull-off dart landed from the centre, in millimetres, in *Bull-off won* |
+| `distance` | How far the winning bull-off dart landed from the centre, in millimetres, in *Bull-off won*; `None` when the board reported no position for it |
 
 For example:
 

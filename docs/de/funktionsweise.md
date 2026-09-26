@@ -71,8 +71,8 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
   2. Kein Double als Stellwurf, und ein Double statt des Bullseyes zum Checkout.
   3. Mit drei Darts in der Hand ein erstes Triple, dessen Single noch einen Checkout mit zwei Darts lässt: 129 beginnt mit T19, weil eine Single 20 den Rest 109 ließe.
   4. Das größte erste Triple, meist T20.
-  5. Stellwürfe auf Triple 20 oder 19 oder Singles zu einem guten Double: D20, D16, D8, D18, D12, und auf Triple 20 oder 19 auch D10 und D4. Mit zwei Darts übrig passt Triple 20 oder 19 zu jedem Double, wenn ihr Single noch einen Checkout mit einem Dart lässt: 70 mit zwei Darts ist T20 D5, mit dem Bull hinter einer Single 20.
-  6. Dann jeder Stellwurf zu einem guten Double, dann alles andere; weniger Triples, größere Triples und das Checkout-Double in der Reihenfolge D20, D16, D8, D18, D12, D10, D4, D14, D6, D2 und die ungeraden Doubles.
+  5. Stellwürfe auf Triple 20 oder 19 oder auf ein Single zu D20, D16, D8, D18, D12, D10 oder D4. Mit zwei Darts übrig passt Triple 20 oder 19 zu jedem Double, wenn ihr Single noch einen Checkout mit einem Dart lässt: 70 mit zwei Darts ist T20 D5, mit dem Bull hinter einer Single 20.
+  6. Dann jeder Stellwurf zu den guten Doubles D20, D16, D8, D18 oder D12, dann alles andere; weniger Triples, größere Triples und das Checkout-Double in der Reihenfolge D20, D16, D8, D18, D12, D10, D4, D14, D6, D2 und die ungeraden Doubles.
 
   So wird 144 zu T20 T20 D12, 136 zu T20 T20 D8, 130 zu T20 T20 D5, 127 zu T20 T17 D8, 73 zu T19 D8 und 64 zu T16 D8. Für 159, 162, 163, 165, 166, 168, 169 und alles über 170 gibt es mit Double-Out keinen Weg. Ohne Double-Out checkt das größte Feld: ein Single vor einem Double oder Triple.
 - **Persönliche Wege:** Mit *Übungsspiel persönliche Checkout-Wege* gewinnen die Doubles des Spielers am Board mit je mindestens 10 Darts, die beste Quote zuerst, gegen den üblichen Weg, sobald ein Weg mit gleich vielen Darts sie ohne Double als Stellwurf erreicht; zwischen Wegen zum selben Double entscheiden die Grundsätze oben.

@@ -3,10 +3,11 @@
 With double out, a route follows the principles of the professional checkout
 charts, in this order: the fewest darts; no double to set up; a double before
 the bullseye; a first treble that still leaves a two-dart finish when it lands
-in its single; the biggest first treble; a setup on the treble 20 or 19 or a
-single towards a good double (and on 20 or 19 with two darts left, also any
-double whose single still leaves one dart at a finish); a good double; fewer
-trebles; bigger trebles; and the finishing double in the order below.
+in its single; the biggest first treble; a setup on the treble 20 or 19 or on
+a single towards one of the first seven doubles below (with two darts left,
+on 20 or 19 also any double whose single still leaves a one-dart finish);
+then any setup towards one of the first five; fewer trebles; bigger trebles;
+and the finishing double in the order below.
 """
 
 from __future__ import annotations

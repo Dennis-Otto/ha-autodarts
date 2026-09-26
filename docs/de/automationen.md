@@ -193,7 +193,7 @@ Die Texte des Übungs-Callers sind Vorlagen mit diesen Variablen:
 | `darts`, `average` | Darts und 3-Dart-Average des Legs, bei *Leg won* |
 | `points` | Punkte bei Cricket und Partyspielen |
 | `target` | Das nächste Ziel eines Partyspiels, etwa `20`, `D` oder `D16` |
-| `distance` | Wie weit der siegreiche Dart beim Ausbullen von der Mitte entfernt landete, in Millimetern, bei *Bull-off won* |
+| `distance` | Wie weit der siegreiche Dart beim Ausbullen von der Mitte entfernt landete, in Millimetern, bei *Bull-off won*; `None`, wenn das Board für ihn keine Position gemeldet hat |
 
 Zum Beispiel:
 
