@@ -53,6 +53,7 @@ Training sessions are computed in Home Assistant from what the board detects. Th
 - **Darts count once.** Repeated messages, camera jitter of the position and reconnects never count a dart twice.
 - **Corrections revise.** If the board corrects a dart in the current visit, the totals follow the correction, for example when a 180 turns into a 140.
 - **Takeouts end a visit.** Removing darts ends the visit; the removed darts keep their score. The same happens when new darts appear without an empty board in between (a missed takeout), and when the detection stops.
+- **The third dart completes the visit early.** When the third announced dart of a visit lands, `visit_thrown` announces the visit at once, while the darts are still in the board. It comes once per visit, also after corrections; `visit_completed` follows when the visit ends, with the final score and `thrown: true`.
 - **Startup darts are ignored.** Darts that are already on the board when Home Assistant or the connection starts are not counted.
 - **Withdrawn detections.** If the board withdraws a detection outside a takeout, the dart is removed from the totals again.
 - **Visit buckets.** 100+ counts visits with 100–139 points, 140+ with 140–179, and 180 with exactly three triple 20s. Merged visits with more than three darts (after a missed takeout) are not bucketed.

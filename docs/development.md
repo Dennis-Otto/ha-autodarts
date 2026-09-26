@@ -42,7 +42,7 @@ The test suite covers:
 - realtime and poll reconciliation, both Board Manager generations and failure recovery;
 - the training rules and every platform;
 - repairs, diagnostics and the dashboard card registration;
-- every blueprint, run by Home Assistant's automation engine;
+- every blueprint, run by Home Assistant's automation engine, also on the real board events of a practice match, with checks that every event type and attribute a blueprint reads exists and that every import link opens the right file;
 - every dashboard card, card editor and the dashboard strategy, rendered in a [happy-dom](https://github.com/capricorn86/happy-dom) browser DOM against a simulated Home Assistant: every game, every option, both languages, controls with their confirmation, the caller and escaping of player names.
 
 The card logic is also fuzzed with [fast-check](https://fast-check.dev/): thousands of random and hostile inputs per run check that escaping, bed geometry, the heatmap and the history parser never break.

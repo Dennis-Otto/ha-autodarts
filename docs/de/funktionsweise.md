@@ -53,6 +53,7 @@ Trainingssessions berechnet Home Assistant aus dem, was das Board erkennt. Sie f
 - **Jeder Dart zählt einmal.** Wiederholte Nachrichten, Kamerazittern und Neuverbindungen zählen keinen Dart doppelt.
 - **Korrekturen überarbeiten.** Korrigiert das Board einen Dart der aktuellen Aufnahme, folgen die Summen der Korrektur, etwa wenn aus einer 180 eine 140 wird.
 - **Die Entnahme beendet die Aufnahme.** Die entfernten Darts behalten ihre Punkte. Dasselbe gilt, wenn neue Darts ohne leeres Board dazwischen erscheinen (verpasste Entnahme) und wenn die Erkennung stoppt.
+- **Der dritte Dart meldet die Aufnahme früh.** Landet der dritte gemeldete Dart einer Aufnahme, meldet `visit_thrown` die Aufnahme sofort, solange die Darts noch im Board stecken. Das geschieht einmal pro Aufnahme, auch nach Korrekturen; `visit_completed` folgt, wenn die Aufnahme endet, mit den endgültigen Punkten und `thrown: true`.
 - **Darts beim Start zählen nicht.** Darts, die beim Start von Home Assistant oder der Verbindung schon im Board stecken, werden nicht mitgezählt.
 - **Zurückgezogene Erkennungen.** Nimmt das Board außerhalb einer Entnahme eine Erkennung zurück, verschwindet der Dart wieder aus den Summen.
 - **Punktstufen.** 100+ zählt Aufnahmen mit 100–139 Punkten, 140+ mit 140–179, 180 genau drei Triple 20. Zusammengelegte Aufnahmen mit mehr als drei Darts (nach verpasster Entnahme) zählen in keine Stufe.

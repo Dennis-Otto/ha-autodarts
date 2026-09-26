@@ -3,7 +3,7 @@ blueprint:
   description: >-
     Runs actions when you start pulling the darts from the board and when
     the board is clear again, for example to light up the board or to pause
-    music while you walk to it.
+    music while you walk to it. Fill in at least one of the two.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/takeout.yaml
@@ -20,11 +20,17 @@ blueprint:
               domain: event
     takeout_started:
       name: When the takeout starts
+      description: >-
+        Runs when a hand reaches the board to pull the darts, for example to
+        brighten the board light.
       default: []
       selector:
         action: {}
     takeout_finished:
       name: When the board is clear
+      description: >-
+        Runs when all darts are out of the board, for example to dim the
+        board light again.
       default: []
       selector:
         action: {}

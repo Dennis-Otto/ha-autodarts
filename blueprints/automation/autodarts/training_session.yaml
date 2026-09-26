@@ -6,67 +6,97 @@ blueprint:
     actions, for example to switch the board light on and off. Start sessions
     with the "Training session" switch or from the training card, and turn off
     "Start sessions automatically" if you only want to train on purpose.
+
+
+    "New training session" ends a session and starts the next one at once;
+    the board keeps running then, unless you choose otherwise. Don't combine
+    this routine with the blueprint that starts and stops the detection
+    automatically: both would switch the detection.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/training_session.yaml
   homeassistant:
     min_version: "2026.8.0"
   input:
-    board_events:
-      name: Board events
-      description: The "Board events" entity of your Autodarts board.
-      selector:
-        entity:
-          filter:
-            - integration: autodarts
-              domain: event
-    detection:
-      name: Detection switch
-      description: >-
-        Optional. The "Detection" switch of the board. It is turned on when a
-        session starts and off when it ends.
-      default: []
-      selector:
-        entity:
-          filter:
-            - integration: autodarts
-              domain: switch
-    calibration:
-      name: Calibration button
-      description: >-
-        Optional. The "Start automatic calibration" button of the board. It is
-        pressed after the detection has started. Remove the darts first. When
-        the first dart started the session, it stays in the board, so the
-        calibration is skipped.
-      default: []
-      selector:
-        entity:
-          filter:
-            - integration: autodarts
-              domain: button
-    calibration_delay:
-      name: Wait before calibrating
-      description: Gives the cameras time to open after the detection starts.
-      default: 5
-      selector:
-        number:
-          min: 0
-          max: 60
-          unit_of_measurement: s
-    session_started:
-      name: When a session starts
-      description: Runs first, for example to switch on the board light.
-      default: []
-      selector:
-        action: {}
-    session_ended:
-      name: When a session ends
-      description: >-
-        Runs after the detection has stopped. The variables reason, darts,
-        average and duration_minutes describe the session.
-      default: []
-      selector:
-        action: {}
+    board:
+      name: Board
+      icon: mdi:bullseye-arrow
+      input:
+        board_events:
+          name: Board events
+          description: The "Board events" entity of your Autodarts board.
+          selector:
+            entity:
+              filter:
+                - integration: autodarts
+                  domain: event
+        detection:
+          name: Detection switch
+          description: >-
+            Optional. The "Detection" switch of the board. It is turned on when
+            a session starts and off when it ends.
+          default: []
+          selector:
+            entity:
+              filter:
+                - integration: autodarts
+                  domain: switch
+        calibration:
+          name: Calibration button
+          description: >-
+            Optional. The "Start automatic calibration" button of the board. It
+            is pressed after the detection has started; remove the darts first.
+            When the first dart started the session, it stays in the board, so
+            the calibration is skipped. Leave this empty when the board's
+            "Calibrate on start" setting is on: the board calibrates by itself.
+          default: []
+          selector:
+            entity:
+              filter:
+                - integration: autodarts
+                  domain: button
+        calibration_delay:
+          name: Wait before calibrating
+          description: Gives the cameras time to open after the detection starts.
+          default:
+            seconds: 5
+          selector:
+            duration: {}
+    your_actions:
+      name: Your actions
+      icon: mdi:script-text
+      input:
+        session_started:
+          name: When a session starts
+          description: >-
+            Runs first, for example to switch on the board light. The board is
+            prepared even if one of these actions fails.
+          default: []
+          selector:
+            action: {}
+        session_ended:
+          name: When a session ends
+          description: >-
+            Runs after the detection has stopped. The variables `reason`,
+            `darts`, `average` and `duration_minutes` describe the session.
+          default: []
+          selector:
+            action: {}
+    options:
+      name: Options
+      icon: mdi:tune
+      collapsed: true
+      input:
+        run_for_new_session:
+          name: Run for a new training session
+          description: >-
+            "New training session", for example pressed every morning by an
+            automation, ends a session and starts the next one at once. Turn
+            this on to run the whole routine then, too: detection off and on,
+            calibration and your actions.
+          default: false
+          selector:
+            boolean: {}
 
 mode: queued
 max: 5
@@ -75,6 +105,11 @@ max_exceeded: silent
 variables:
   detection: !input detection
   calibration: !input calibration
+  run_for_new_session: !input run_for_new_session
+  reason: "{{ trigger.to_state.attributes.get('reason') or '' }}"
+  darts: "{{ trigger.to_state.attributes.get('darts') | int(0) }}"
+  average: "{{ trigger.to_state.attributes.get('average') }}"
+  duration_minutes: "{{ trigger.to_state.attributes.get('duration_minutes') | float(0) }}"
 
 triggers:
   - trigger: event.received
@@ -92,32 +127,34 @@ triggers:
       event_type:
         - session_ended
 
+conditions:
+  - alias: A new training session keeps the board running, unless wanted
+    condition: template
+    value_template: "{{ reason != 'new_session' or run_for_new_session }}"
+
 actions:
-  - variables:
-      reason: "{{ trigger.to_state.attributes.reason | default('') }}"
-      darts: "{{ trigger.to_state.attributes.darts | default(0) }}"
-      average: "{{ trigger.to_state.attributes.average | default(none) }}"
-      duration_minutes: "{{ trigger.to_state.attributes.duration_minutes | default(0) }}"
   - choose:
       - conditions:
           - condition: trigger
             id: started
         sequence:
           - sequence: !input session_started
+            continue_on_error: true
           - if:
               - condition: template
                 value_template: "{{ detection | length > 0 }}"
             then:
               - action: switch.turn_on
+                continue_on_error: true
                 target:
                   entity_id: !input detection
           - if:
               - condition: template
                 value_template: "{{ calibration | length > 0 and reason != 'first_dart' }}"
             then:
-              - delay:
-                  seconds: !input calibration_delay
+              - delay: !input calibration_delay
               - action: button.press
+                continue_on_error: true
                 target:
                   entity_id: !input calibration
       - conditions:
@@ -129,6 +166,7 @@ actions:
                 value_template: "{{ detection | length > 0 }}"
             then:
               - action: switch.turn_off
+                continue_on_error: true
                 target:
                   entity_id: !input detection
           - sequence: !input session_ended

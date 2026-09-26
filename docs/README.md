@@ -7,7 +7,7 @@
 | [Installation and setup](installation.md) | Requirements, HACS and manual installation, the three ways to add a board, the optional cloud link, reconfiguration, updating and removal |
 | [Entities and events](entities.md) | Every entity, board event, state and attribute, and which Board Manager generation provides it |
 | [Dashboard cards](cards.md) | The live card, the training card, the board status card, the scoreboard, the players card and the doubles card, with all options |
-| [Automations](automations.md) | Six blueprints, board events and ready-to-use examples |
+| [Automations](automations.md) | Ten blueprints, board events and ready-to-use examples |
 | [How it works](how-it-works.md) | Architecture, update intervals, Board Manager generations, training rules, privacy and security |
 | [Troubleshooting](troubleshooting.md) | Setup messages, repairs, unavailable entities, diagnostics and logs |
 | [Security design](security.md) | What is protected, trust boundaries, threats and countermeasures |

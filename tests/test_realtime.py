@@ -10,6 +10,7 @@ import pytest
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
 from custom_components.autodarts.errors import AutodartsConnectionError
@@ -128,17 +129,49 @@ async def test_socket_handshake_failure_is_recoverable(hass):
             await anext(REAL_EVENTS(client))
 
 
+def entity_events(hass, event_id: str, sensor_id: str) -> list[tuple[dict, str]]:
+    """Every event of the entity, with the sensor state its consumers see."""
+    fired: list[tuple[dict, str]] = []
+
+    @callback
+    def changed(event) -> None:
+        fired.append(
+            (dict(event.data["new_state"].attributes), hass.states.get(sensor_id).state)
+        )
+
+    async_track_state_change_event(hass, event_id, changed)
+    return fired
+
+
 async def test_push_updates_entities_and_emits_one_event_per_dart(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     event_id = entity_id(hass, "event", "board_events")
+    fired = entity_events(
+        hass, event_id, entity_id(hass, "sensor", "local_visit_score")
+    )
     for count in range(1, 4):
         coordinator.async_receive("state", board(*([T20] * count)))
         await hass.async_block_till_done()
-        event = hass.states.get(event_id)
-        assert event.attributes["event_type"] == "dart_detected"
-        assert event.attributes["dart_index"] == count
-        assert event.attributes["source"] == "websocket"
+        dart, visit_score = fired[count - 1]
+        assert dart["event_type"] == "dart_detected"
+        assert dart["dart_index"] == count
+        assert dart["source"] == "websocket"
+        assert dart["game"] is None
+        # The sensor already shows the dart when the event arrives.
+        assert visit_score == str(60 * count)
+    # The third dart completes the visit while the darts are in the board.
+    thrown, visit_score = fired[-1]
+    assert len(fired) == 4
+    assert thrown["event_type"] == "visit_thrown"
+    assert {key: thrown[key] for key in ("score", "darts", "segments", "game")} == {
+        "score": 180,
+        "darts": 3,
+        "segments": ["T20", "T20", "T20"],
+        "game": None,
+    }
+    assert visit_score == "180"
+    assert hass.states.get(event_id).attributes["event_type"] == "visit_thrown"
     assert state(hass, "sensor", "training_darts") == "3"
     assert state(hass, "sensor", "training_scores_180") == "1"
     assert state(hass, "sensor", "training_average") == "180.0"

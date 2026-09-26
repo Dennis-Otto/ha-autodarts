@@ -1,13 +1,20 @@
 blueprint:
   name: "Autodarts: dart caller"
   description: >-
-    Announces every completed visit on your speakers, like a caller on
-    stage, and optionally every single dart.
+    Announces every visit on your speakers, like a caller on stage, and
+    optionally every single dart. A visit of three darts is called when its
+    third dart lands; a shorter visit when the darts are pulled.
 
 
     The messages are templates. Visit messages can use `score`, `darts` and
-    `segments`; dart messages can use `segment` (for example `T20`) and
-    `dart_score`.
+    `segments`; dart messages can use `dart_name` (for example `Treble 20`,
+    `Bull` or `Miss`), `segment` (for example `T20`), `dart_score` and
+    `dart_index`. An empty message stays silent.
+
+
+    While a practice game of the integration is played, the practice caller
+    has the floor and this caller stays silent, unless you turn that off. The
+    caller of the scoreboard card announces visits and the game in one voice.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/dart_caller.yaml
@@ -32,17 +39,56 @@ blueprint:
       input:
         tts_engine:
           name: Text-to-speech engine
+          description: The engine that speaks, for example Home Assistant Cloud or Piper.
           selector:
             entity:
               filter:
                 - domain: tts
         speakers:
           name: Speakers
+          description: The media players that play the calls.
           selector:
             entity:
               multiple: true
               filter:
                 - domain: media_player
+        language:
+          name: Language
+          description: >-
+            Optional. The language of the voice, for example `en-GB` or
+            `de-DE`. Empty uses the language of the engine.
+          default: ""
+          selector:
+            text: {}
+        tts_options:
+          name: Voice options
+          description: >-
+            Optional. Options of the engine, for example `voice: ...` for
+            another voice. See the documentation of your engine.
+          default: {}
+          selector:
+            object: {}
+    calls:
+      name: Calls
+      icon: mdi:bullhorn
+      input:
+        call_each_dart:
+          name: Call every dart
+          description: >-
+            Also announce each dart when it lands. The third dart is not
+            called on its own: the visit follows right away.
+          default: false
+          selector:
+            boolean: {}
+        silent_in_practice_games:
+          name: Stay silent in practice games
+          description: >-
+            While an X01, Cricket or party game of the integration is played,
+            leave the calls to the practice caller, so the two never talk over
+            each other. Turn this off if you don't use the practice caller.
+          default: true
+          selector:
+            boolean: {}
     messages:
       name: Messages
       icon: mdi:message-text
@@ -50,23 +96,22 @@ blueprint:
       input:
         visit_message:
           name: Visit message
+          description: Said after a visit, for example `{{ score }}` or `{{ score }} points`.
           default: "{{ score }}"
           selector:
             text: {}
         maximum_message:
           name: Message for 180
+          description: Said instead of the visit message after a 180.
           default: "One hundred and eighty!"
           selector:
             text: {}
-        call_each_dart:
-          name: Call every dart
-          description: Also announce each dart when it lands.
-          default: false
-          selector:
-            boolean: {}
         dart_message:
           name: Dart message
-          default: "{{ segment }}"
+          description: >-
+            Said for each dart when "Call every dart" is on, for example
+            `{{ dart_name }}` or `{{ dart_score }}`.
+          default: "{{ dart_name }}"
           selector:
             text: {}
 
@@ -81,6 +126,7 @@ triggers:
       entity_id: !input board_events
     options:
       event_type:
+        - visit_thrown
         - visit_completed
   - trigger: event.received
     id: dart
@@ -93,21 +139,55 @@ triggers:
 
 variables:
   # Read from the triggering state: the next event may already have replaced it.
+  kind: "{{ trigger.to_state.attributes.get('event_type', '') }}"
   score: "{{ trigger.to_state.attributes.get('score') | int(0) }}"
   darts: "{{ trigger.to_state.attributes.get('darts') | int(0) }}"
   segments: "{{ trigger.to_state.attributes.get('segments') | default([], true) }}"
   segment: "{{ trigger.to_state.attributes.get('segment') | default('', true) }}"
   dart_score: "{{ trigger.to_state.attributes.get('score') | int(0) }}"
+  dart_index: "{{ trigger.to_state.attributes.get('dart_index') | int(0) }}"
+  game: "{{ trigger.to_state.attributes.get('game') }}"
+  # How a caller says a bed: T20 is "Treble 20", S5 is "5", M is "Miss".
+  dart_name: >-
+    {% set bed = segment | string %}
+    {%- if dart_score == 0 %}Miss
+    {%- elif bed | upper == 'BULL' %}Bull
+    {%- elif bed[:1] == 'T' %}Treble {{ bed[1:] }}
+    {%- elif bed[:1] == 'D' %}Double {{ bed[1:] }}
+    {%- elif bed[:1] == 'S' %}{{ bed[1:] }}
+    {%- else %}{{ bed }}{% endif %}
+  silent_in_practice_games: !input silent_in_practice_games
   visit_text: !input visit_message
   maximum_text: !input maximum_message
   dart_text: !input dart_message
+  message: >-
+    {% if trigger.id == 'dart' %}{{ dart_text }}{% elif score == 180 %}{{ maximum_text }}{% else %}{{ visit_text }}{% endif %}
+  speakers: !input speakers
+  language: !input language
+  tts_options: !input tts_options
+  speech: >-
+    {% set data = {'media_player_entity_id': speakers, 'cache': true, 'message': message | string} %}
+    {%- if language %}{% set data = dict(data, language=language) %}{% endif %}
+    {%- if tts_options %}{% set data = dict(data, options=tts_options) %}{% endif %}
+    {{- data }}
+
+conditions:
+  - alias: The practice caller has the floor during a practice game
+    condition: template
+    value_template: "{{ not (silent_in_practice_games and game) }}"
+  - alias: A visit called with its third dart is not called again
+    condition: template
+    value_template: >-
+      {{ kind != 'visit_completed' or not trigger.to_state.attributes.get('thrown', false) }}
+  - alias: The third dart is called with its visit
+    condition: template
+    value_template: "{{ trigger.id != 'dart' or dart_index < 3 }}"
+  - alias: An empty message stays silent
+    condition: template
+    value_template: "{{ message | string | trim | length > 0 }}"
 
 actions:
   - action: tts.speak
     target:
       entity_id: !input tts_engine
-    data:
-      media_player_entity_id: !input speakers
-      cache: true
-      message: >-
-        {% if trigger.id == 'dart' %}{{ dart_text }}{% elif score == 180 %}{{ maximum_text }}{% else %}{{ visit_text }}{% endif %}
+    data: "{{ speech }}"

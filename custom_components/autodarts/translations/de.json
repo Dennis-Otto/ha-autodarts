@@ -450,6 +450,7 @@
               "takeout_started": "Entnahme begonnen",
               "takeout_finished": "Entnahme abgeschlossen",
               "status_changed": "Status geändert",
+              "visit_thrown": "Aufnahme geworfen",
               "visit_completed": "Aufnahme abgeschlossen",
               "session_started": "Session gestartet",
               "session_ended": "Session beendet",

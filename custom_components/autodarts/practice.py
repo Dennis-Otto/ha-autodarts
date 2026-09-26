@@ -311,6 +311,11 @@ class PracticeGame:
     def _playing(self) -> bool:
         return bool(self.game or self.cricket or self.party)
 
+    @property
+    def kind(self) -> int | str | None:
+        """The X01, Cricket or party game being played; None otherwise."""
+        return self._kind() if self._playing() else None
+
     def _who(self, index: int) -> dict[str, Any]:
         return {
             "game": self._kind(),

@@ -6,9 +6,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from .local_helpers import local_entry_data, mock_board
 from .test_local_setup import entity_id, setup_local, state
 from .test_sessions import record, switch
-from .test_training import BULL, OUTER_BULL, T20, board
+from .test_training import BULL, OUTER_BULL, S20, T20, board
 
 D18 = ("D18", 18, 2)
+D20 = ("D20", 20, 2)
+S1 = ("S1", 1, 1)
 
 
 async def select_game(hass, option: str) -> None:
@@ -86,6 +88,44 @@ async def test_practice_game_counts_down_busts_and_wins(
     assert saved["legs"][0]["checkout"] == 121
     await select_game(hass, "off")
     assert state(hass, "sensor", "practice_remaining") == "unknown"
+
+
+async def test_visits_name_the_game_and_come_before_their_result(hass, aioclient_mock):
+    """Callers hear the visit with its third dart, then the bust or the win."""
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    events = record(hass, coordinator)
+    await select_game(hass, "101")
+    # 101 - 60 - 20 leaves 21, and the third dart busts.
+    await throw(hass, coordinator, T20, S20, T20)
+    await throw(hass, coordinator, T20, S1, D20)
+    assert [kind for kind, _ in events] == [
+        *["dart_detected"] * 3,
+        "visit_thrown",
+        "bust",
+        "visit_completed",
+        "turn_changed",
+        *["dart_detected"] * 3,
+        "visit_thrown",
+        "leg_won",
+        "visit_completed",
+        "turn_changed",
+    ]
+    visits = [
+        attributes
+        for kind, attributes in events
+        if kind in ("dart_detected", "visit_thrown", "visit_completed")
+    ]
+    assert all(attributes["game"] == 101 for attributes in visits)
+    assert events[3][1]["score"] == 140
+    assert events[5][1]["thrown"] is True
+    # Training games and free play leave the game empty.
+    await select_game(hass, "around_the_clock")
+    await throw(hass, coordinator, S1)
+    await select_game(hass, "off")
+    await throw(hass, coordinator, S20)
+    darts = [attributes for kind, attributes in events if kind == "dart_detected"]
+    assert [dart["game"] for dart in darts[-2:]] == [None, None]
 
 
 async def test_practice_game_survives_a_restart(hass, aioclient_mock, hass_storage):

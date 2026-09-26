@@ -3,6 +3,8 @@ blueprint:
   description: >-
     Sends a photo of the board after a big visit or a checkout of the practice
     game, from one of the board cameras while the darts are still in the board.
+    A visit counts when its third dart lands. When the same dart also wins a
+    leg, you get one photo with the checkout message.
 
 
     Your actions can use `image` (the camera picture, for example
@@ -19,17 +21,9 @@ blueprint:
       name: Board
       icon: mdi:bullseye-arrow
       input:
-        visit_score:
-          name: Detected visit score
-          description: The "Detected visit score" sensor of your Autodarts board.
-          selector:
-            entity:
-              filter:
-                - integration: autodarts
-                  domain: sensor
         board_events:
           name: Board events
-          description: The "Board events" entity, for checkouts.
+          description: The "Board events" entity of your Autodarts board.
           selector:
             entity:
               filter:
@@ -53,12 +47,14 @@ blueprint:
           default: 180
           selector:
             number:
-              min: 60
+              min: 1
               max: 180
               step: 1
+              mode: box
+              unit_of_measurement: points
         checkouts:
           name: Checkouts
-          description: Also a photo when a practice leg is won.
+          description: Also a photo when a practice leg is won with a checkout.
           default: true
           selector:
             boolean: {}
@@ -71,32 +67,34 @@ blueprint:
           description: >-
             For example a notification with `image: "{{ image }}"` and
             `message: "{{ message }}"`.
-          default: []
           selector:
             action: {}
         score_message:
           name: Message for a visit
+          description: The `message` of a visit photo, with `score`.
           default: "{{ score }}!"
           selector:
             text: {}
         checkout_message:
           name: Message for a checkout
+          description: The `message` of a checkout photo, with `checkout` and `who`.
           default: "Checkout {{ checkout }}{{ ' by ' ~ who if who }}!"
           selector:
             text: {}
 
-# One photo at a time; a second highlight within the run is skipped.
-mode: single
+# A leg won by the third dart follows its visit within milliseconds: the short
+# pause lets the checkout replace the visit, so the leg gets one photo.
+mode: restart
 max_exceeded: silent
 
-trigger_variables:
-  visit_sensor: !input visit_score
-  minimum: !input minimum_score
-
 triggers:
-  - trigger: template
+  - trigger: event.received
     id: visit
-    value_template: "{{ states(visit_sensor) | int(0) >= minimum }}"
+    target:
+      entity_id: !input board_events
+    options:
+      event_type:
+        - visit_thrown
   - trigger: event.received
     id: checkout
     enabled: !input checkouts
@@ -107,9 +105,10 @@ triggers:
         - leg_won
 
 variables:
+  minimum_score: !input minimum_score
   camera_entity: !input camera
   image: "/api/camera_proxy/{{ camera_entity }}"
-  score: "{{ states(visit_sensor) | int(0) }}"
+  score: "{{ trigger.to_state.attributes.get('score') | int(0) if trigger.id == 'visit' else 0 }}"
   checkout: >-
     {{ trigger.to_state.attributes.get('checkout') | int(0) if trigger.id == 'checkout' else 0 }}
   who: >-
@@ -119,9 +118,12 @@ variables:
   message: "{{ checkout_text if trigger.id == 'checkout' else score_text }}"
 
 conditions:
-  - alias: A Cricket leg has no checkout to show
+  - alias: The visit reaches the score, or the leg has a checkout to show
     condition: template
-    value_template: "{{ trigger.id != 'checkout' or checkout > 0 }}"
+    value_template: >-
+      {{ score >= minimum_score if trigger.id == 'visit' else checkout > 0 }}
 
 actions:
+  - delay:
+      milliseconds: 500
   - sequence: !input photo_actions

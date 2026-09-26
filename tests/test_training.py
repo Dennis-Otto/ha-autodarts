@@ -33,7 +33,7 @@ def test_visits_duplicates_coordinates_and_bulls():
     events = []
     for i in range(1, 4):
         events.extend(session.observe(board(*([T20] * i))))
-    assert [event[0] for event in events] == ["dart_detected"] * 3
+    assert [event[0] for event in events] == [*["dart_detected"] * 3, "visit_thrown"]
     repeated = board(T20, T20, T20)
     repeated["throws"][0]["coords"] = {"x": 0.1, "y": 0.2}
     assert session.observe(repeated) == []
@@ -124,9 +124,14 @@ def test_missed_empty_board_between_visits_keeps_counting():
     events += session.observe(board(S20, BULL, OUTER_BULL))
     assert events[0] == (
         "visit_completed",
-        {"score": 180, "darts": 3, "segments": ["T20", "T20", "T20"]},
+        {"score": 180, "darts": 3, "segments": ["T20", "T20", "T20"], "thrown": True},
     )
-    assert [event[1]["segment"] for event in events[1:]] == ["S20", "Bull", "25"]
+    assert [event[1]["segment"] for event in events[1:-1]] == ["S20", "Bull", "25"]
+    # The next visit is complete with its third dart, before the takeout.
+    assert events[-1] == (
+        "visit_thrown",
+        {"score": 95, "darts": 3, "segments": ["S20", "Bull", "25"]},
+    )
     snapshot = session.snapshot()
     assert {key: snapshot[key] for key in ("darts", "bulls", "points")} == {
         "darts": 6,
@@ -253,13 +258,89 @@ def test_completed_visits_are_announced_once():
     session.observe(board(T20))
     session.observe(board(T20, S20))
     assert session.observe(board(T20, **TAKEOUT)) == [
-        ("visit_completed", {"score": 80, "darts": 2, "segments": ["T20", "S20"]})
+        (
+            "visit_completed",
+            {"score": 80, "darts": 2, "segments": ["T20", "S20"], "thrown": False},
+        )
     ]
     assert session.observe(board()) == []
     session.observe(board(BULL))
     # Stopping the detection also ends the visit.
     assert session.observe(board(BULL, status="Stopped", running=False)) == [
-        ("visit_completed", {"score": 50, "darts": 1, "segments": ["Bull"]})
+        (
+            "visit_completed",
+            {"score": 50, "darts": 1, "segments": ["Bull"], "thrown": False},
+        )
+    ]
+
+
+def test_the_third_dart_announces_the_visit_once():
+    session = TrainingSession()
+    session.observe(board())
+    session.observe(board(T20, T20))
+    assert session.observe(board(T20, T20, S20)) == [
+        ("dart_detected", {"dart_index": 3, "segment": "S20", "score": 20}),
+        (
+            "visit_thrown",
+            {"score": 140, "darts": 3, "segments": ["T20", "T20", "S20"]},
+        ),
+    ]
+    # Neither a correction nor a withdrawn and detected dart announce it again.
+    assert session.observe(board(T20, T20, T20)) == [
+        ("dart_corrected", {"dart_index": 3, "segment": "T20", "score": 60})
+    ]
+    assert session.observe(board(T20, T20)) == []
+    assert [kind for kind, _ in session.observe(board(T20, T20, T20))] == [
+        "dart_detected"
+    ]
+    # The takeout completes it with the final score, marked as already thrown.
+    assert session.observe(board(T20, **TAKEOUT)) == [
+        (
+            "visit_completed",
+            {"score": 180, "darts": 3, "segments": ["T20"] * 3, "thrown": True},
+        )
+    ]
+    # The next visit is announced again.
+    session.observe(board())
+    session.observe(board(BULL, BULL))
+    assert session.observe(board(BULL, BULL, BULL))[-1] == (
+        "visit_thrown",
+        {"score": 150, "darts": 3, "segments": ["Bull"] * 3},
+    )
+
+
+def test_a_visit_without_three_announced_darts_is_not_thrown():
+    session = TrainingSession()
+    # A dart already in the board when Home Assistant starts is not announced.
+    session.observe(board(T20))
+    events = session.observe(board(T20, T20)) + session.observe(board(T20, T20, T20))
+    assert [kind for kind, _ in events] == ["dart_detected", "dart_detected"]
+    assert session.observe(board()) == [
+        (
+            "visit_completed",
+            {"score": 120, "darts": 2, "segments": ["T20", "T20"], "thrown": False},
+        )
+    ]
+    # A detection withdrawn after the third dart leaves a thrown visit.
+    session.observe(board(T20, T20, S20))
+    session.observe(board(T20, T20))
+    assert session.observe(board()) == [
+        (
+            "visit_completed",
+            {"score": 120, "darts": 2, "segments": ["T20", "T20"], "thrown": True},
+        )
+    ]
+
+
+def test_a_dart_without_a_name_is_named_by_its_bed():
+    session = TrainingSession()
+    session.observe(board())
+    unnamed = board(T20, MISS)
+    for dart in unnamed["throws"]:
+        del dart["segment"]["name"]
+    assert session.observe(unnamed) == [
+        ("dart_detected", {"dart_index": 1, "segment": "T20", "score": 60}),
+        ("dart_detected", {"dart_index": 2, "segment": "MISS", "score": 0}),
     ]
 
 
@@ -303,7 +384,10 @@ def test_darts_without_a_session_are_announced_but_not_counted():
         "dart_detected",
     ]
     assert session.observe(board()) == [
-        ("visit_completed", {"score": 80, "darts": 2, "segments": ["T20", "S20"]})
+        (
+            "visit_completed",
+            {"score": 80, "darts": 2, "segments": ["T20", "S20"], "thrown": False},
+        )
     ]
     assert session.snapshot() == before
     assert session.recent_visits[0]["score"] == 80
@@ -331,7 +415,10 @@ def test_a_session_ignores_darts_already_on_the_board_but_announces_the_visit():
     session.observe(board(T20, T20, T20))
     assert session.snapshot()["darts"] == 1
     assert session.observe(board()) == [
-        ("visit_completed", {"score": 180, "darts": 3, "segments": ["T20"] * 3})
+        (
+            "visit_completed",
+            {"score": 180, "darts": 3, "segments": ["T20"] * 3, "thrown": True},
+        )
     ]
     assert session.snapshot()["scores_180"] == 0
 

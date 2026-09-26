@@ -71,7 +71,11 @@ async def test_switch_ends_and_starts_sessions_with_events_and_history(
     coordinator.async_receive("state", board(T20, T20, S20))
     coordinator.async_receive("state", board())
     await hass.async_block_till_done()
-    assert [kind for kind, _ in events[-2:]] == ["dart_detected", "visit_completed"]
+    assert [kind for kind, _ in events[-3:]] == [
+        "dart_detected",
+        "visit_thrown",
+        "visit_completed",
+    ]
     assert state(hass, "sensor", "training_darts") == "2"
     visit = hass.states.get(entity_id(hass, "sensor", "local_visit_score"))
     assert visit.attributes["recent_visits"][0]["score"] == 140
