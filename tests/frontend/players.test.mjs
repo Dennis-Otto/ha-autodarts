@@ -22,6 +22,7 @@ const profiles = {
         first_9_average: 70.1,
         checkout_rate: 31.3,
         mpr: 2.4,
+        best_mpr: 3.1,
         highest_visit: 140,
         highest_checkout: 121,
         fewest_darts: { 501: 18, 301: 12, x: 3 },
@@ -48,8 +49,9 @@ const lastMatch = {
   },
 };
 const ui = {
-  t: (key) => key,
+  t: (key) => ({ best_leg: "Best {game}", unit_darts: "{value} darts" })[key] ?? key,
   format: (value, digits) => value.toFixed(digits),
+  percent: (value, digits) => (value === null ? "–" : `${value.toFixed(digits)}%`),
   date: () => "26.09., 22:00",
 };
 
@@ -81,11 +83,12 @@ test("the players card shows statistics, the balance and who won", () => {
   const html = playersHtml(playersView(profiles, lastMatch), ui);
   assert.match(html.players, /<div class="profile-name">Alex<\/div><div class="muted">profile_legs 12\/20 · profile_matches 3\/5<\/div>/);
   assert.match(html.players, /<dt>average<\/dt><dd>61\.3<\/dd>/);
-  assert.match(html.players, /<dt>checkout_short<\/dt><dd>31\.3 %<\/dd>/);
-  assert.match(html.players, /<dt>MPR<\/dt><dd>2\.40<\/dd>/);
-  assert.match(html.players, /<dt>best_leg 301<\/dt><dd>12 leg_darts<\/dd><dt>best_leg 501<\/dt>/);
-  // Lea never played Cricket: no MPR row, and missing numbers read as dashes.
-  assert.doesNotMatch(html.players.split("Lea")[1], /MPR/);
+  assert.match(html.players, /<dt>checkout_short<\/dt><dd>31\.3%<\/dd>/);
+  assert.match(html.players, /<dt>cricket_mpr<\/dt><dd>2\.40<\/dd><dt>best_mpr<\/dt><dd>3\.10<\/dd>/);
+  assert.match(html.players, /<dt>Best 301<\/dt><dd>12 darts<\/dd><dt>Best 501<\/dt>/);
+  // Lea never played Cricket: no MPR rows, and missing numbers read as dashes.
+  assert.doesNotMatch(html.players.split("Lea")[1], /mpr/);
+  assert.match(html.players.split("Lea")[1], /<dt>checkout_short<\/dt><dd>–<\/dd>/);
   assert.match(html.players.split("Lea")[1], /<dt>average<\/dt><dd>–<\/dd>/);
   assert.match(html.headToHead, /<span class="tally">3 : 1<\/span>.*<i style="width:75%">/);
   assert.match(html.matches, /<span class="game">party_killer<\/span><span><span>Alex 0<\/span> · <b>score_player 2 1<\/b><\/span>/);
@@ -96,7 +99,7 @@ test("the dashboard gets a players view once profiles exist", () => {
   const hass = (items) => ({
     locale: { language: "en" },
     entities: Object.fromEntries(items.map((item) => [item.entity_id, item])),
-    devices: {},
+    devices: { dev1: { id: "dev1" } },
     states: {},
   });
   const without = dashboardStrategy(hass([entity("sensor.b_darts", "training_darts")]));

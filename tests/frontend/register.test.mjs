@@ -13,37 +13,34 @@ import {
   register,
 } from "../../custom_components/autodarts/frontend/autodarts-card.js";
 
-const DOCS = "https://github.com/Dennis-Otto/ha-autodarts#dashboard-cards";
+const DOCS = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs";
 const CARDS = [
-  ["autodarts-card", "Autodarts"],
-  ["autodarts-training-card", "Autodarts training"],
-  ["autodarts-status-card", "Autodarts board status"],
-  ["autodarts-scoreboard-card", "Autodarts scoreboard"],
-  ["autodarts-players-card", "Autodarts players"],
-  ["autodarts-doubles-card", "Autodarts doubles"],
+  ["autodarts-card", "Autodarts", "cards.md#live-card"],
+  ["autodarts-training-card", "Autodarts training", "cards.md#training-card"],
+  ["autodarts-status-card", "Autodarts board status", "cards.md#board-status-card"],
+  ["autodarts-scoreboard-card", "Autodarts scoreboard", "cards.md#scoreboard-card"],
+  ["autodarts-players-card", "Autodarts players", "cards.md#players-card"],
+  ["autodarts-doubles-card", "Autodarts doubles", "cards.md#doubles-card"],
 ];
 const ELEMENTS = [
   "ll-strategy-dashboard-autodarts",
+  "autodarts-strategy-editor",
   "autodarts-card",
-  "autodarts-card-editor",
   "autodarts-training-card",
-  "autodarts-training-card-editor",
   "autodarts-status-card",
-  "autodarts-status-card-editor",
   "autodarts-scoreboard-card",
-  "autodarts-scoreboard-card-editor",
   "autodarts-players-card",
-  "autodarts-players-card-editor",
   "autodarts-doubles-card",
-  "autodarts-doubles-card-editor",
 ];
 const STRATEGY = {
   type: "autodarts",
   strategyType: "dashboard",
   name: "Autodarts",
-  description: "Live board, training analytics and board status for every Autodarts board.",
-  documentationURL: DOCS,
+  description: "Live, scoreboard, training, players and board views for every Autodarts board, built automatically.",
+  documentationURL: `${DOCS}/cards.md#automatic-dashboard`,
 };
+// Entries as Home Assistant reads them when it opens a picker.
+const read = (entries) => entries.map((entry) => ({ ...entry }));
 
 test("the cards wait for Home Assistant's app element before they register", async () => {
   await new Promise((resolve) => setTimeout(resolve, 120));
@@ -54,11 +51,27 @@ test("the cards wait for Home Assistant's app element before they register", asy
   await customElements.whenDefined("autodarts-card");
   for (const type of ELEMENTS) assert.equal(typeof customElements.get(type), "function", type);
   assert.deepEqual(
-    page.customCards.map(({ type, name, preview, documentationURL }) => [type, name, preview, documentationURL]),
-    CARDS.map(([type, name]) => [type, name, true, DOCS])
+    read(page.customCards).map(({ type, name, preview, documentationURL }) => [type, name, preview, documentationURL]),
+    CARDS.map(([type, name, anchor]) => [type, name, true, `${DOCS}/${anchor}`])
   );
   for (const card of page.customCards) assert.ok(card.description.length > 40, card.type);
-  assert.deepEqual(page.customStrategies, [STRATEGY]);
+  assert.match(page.customCards[3].description, /Cricket, party and training games/);
+  assert.deepEqual(read(page.customStrategies), [STRATEGY]);
+});
+
+test("the card picker speaks the language Home Assistant has when it opens", () => {
+  page.document.documentElement.lang = "de";
+  const [live, training, , scoreboard, , doubles] = read(page.customCards);
+  assert.deepEqual(
+    [live.name, training.name, scoreboard.name, doubles.name],
+    ["Autodarts", "Autodarts Training", "Autodarts Anzeigetafel", "Autodarts Doubles"]
+  );
+  assert.equal(training.documentationURL, `${DOCS}/de/karten.md#trainingskarte`);
+  assert.match(scoreboard.description, /^Eine große Anzeigetafel/);
+  const [strategy] = read(page.customStrategies);
+  assert.equal(strategy.documentationURL, `${DOCS}/de/karten.md#automatisches-dashboard`);
+  assert.match(strategy.description, /^Live-, Anzeigetafel-, Trainings-, Spieler- und Board-Ansicht/);
+  page.document.documentElement.lang = "en";
 });
 
 test("registering again adds no duplicate cards, strategies or elements", () => {
@@ -66,7 +79,7 @@ test("registering again adds no duplicate cards, strategies or elements", () => 
   const live = customElements.get("autodarts-card");
   register();
   assert.deepEqual(page.customCards, cards);
-  assert.deepEqual(page.customStrategies, [STRATEGY]);
+  assert.deepEqual(read(page.customStrategies), [STRATEGY]);
   assert.equal(customElements.get("autodarts-card"), live);
 });
 
@@ -86,14 +99,15 @@ test("elements and entries the page already knows are kept", (t) => {
   assert.equal(typeof other.customElements.get("autodarts-training-card"), "function");
   assert.deepEqual(
     other.customCards.map((card) => [card.type, card.name]),
-    [["autodarts-card", "Mine"], ...CARDS.slice(1)]
+    [["autodarts-card", "Mine"], ...CARDS.slice(1).map(([type, name]) => [type, name])]
   );
   assert.deepEqual(other.customStrategies, [{ type: "autodarts", name: "Mine" }]);
 });
 
 test("other hosts get the cards after thirty seconds", async (t) => {
   t.mock.timers.enable({ apis: ["setTimeout"] });
-  globalThis.window = { customElements: { get: () => undefined } };
+  // A host without Home Assistant's app element, and one without whenDefined at all.
+  globalThis.window = { customElements: { get: () => undefined, whenDefined: () => new Promise(() => {}) } };
   t.after(() => (globalThis.window = page));
   let ready = false;
   const waiting = frontendReady().then(() => (ready = true));
@@ -105,6 +119,25 @@ test("other hosts get the cards after thirty seconds", async (t) => {
   t.mock.timers.tick(50);
   await waiting;
   assert.equal(ready, true);
+  globalThis.window = { customElements: { get: () => undefined } };
+  const plain = frontendReady(100);
+  t.mock.timers.tick(100);
+  await plain;
+});
+
+test("the cards register as soon as Home Assistant's app element exists", async () => {
+  let define;
+  globalThis.window = {
+    customElements: { get: () => undefined, whenDefined: () => new Promise((resolve) => (define = resolve)) },
+  };
+  try {
+    const waiting = frontendReady();
+    define();
+    // No thirty-second timer is left behind.
+    await waiting;
+  } finally {
+    globalThis.window = page;
+  }
 });
 
 test("the element factory builds every card, editor and the strategy on the given base class", () => {

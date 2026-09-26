@@ -43,7 +43,7 @@ const list = (card) =>
 test("the doubles card colours every double on the board by its hit rate", () => {
   const { card } = setup({ ...EVERYBODY, ...PROFILES });
   assert.equal(text(card, ".title"), "Doubles");
-  assert.equal(text(card, ".meta"), "120 darts at a double · 35.0 %");
+  assert.equal(text(card, ".meta"), "120 darts at a double · 35.0%");
   assert.equal($(card, ".empty").hidden, true);
   assert.equal($(card, ".doubles-body").hidden, false);
   assert.equal($(card, "svg").getAttribute("aria-label"), "Doubles");
@@ -61,9 +61,9 @@ test("the doubles card colours every double on the board by its hit rate", () =>
 test("the list ranks the doubles by hit rate and marks the favourite", () => {
   const { hass, card } = setup(EVERYBODY);
   assert.deepEqual(list(card), [
-    ["double favourite", "D16", "50%", "20/40", "50 %"],
-    ["double", "Bull", "33.3%", "10/30", "33 %"],
-    ["double", "D20", "24%", "12/50", "24 %"],
+    ["double favourite", "D16", "50%", "20/40", "50%"],
+    ["double", "Bull", "33.3%", "10/30", "33%"],
+    ["double", "D20", "24%", "12/50", "24%"],
   ]);
   // The same rate ranks the double with more darts first.
   const tied = [
@@ -80,11 +80,18 @@ test("the list ranks the doubles by hit rate and marks the favourite", () => {
 test("one player's doubles come from the profiles", () => {
   const { card } = setup({ ...EVERYBODY, ...PROFILES }, { player: " lea " });
   assert.equal(text(card, ".title"), "Doubles · Lea");
-  assert.equal(text(card, ".meta"), "12 darts at a double · 25.0 %");
-  assert.deepEqual(list(card), [["double", "D8", "25%", "3/12", "25 %"]]);
+  assert.equal(text(card, ".meta"), "12 darts at a double · 25.0%");
+  assert.deepEqual(list(card), [["double", "D8", "25%", "3/12", "25%"]]);
   const unknown = setup({ ...EVERYBODY, ...PROFILES }, { player: "Kim" }).card;
   assert.equal(text(unknown, ".title"), "Doubles · Kim");
   assert.equal($(unknown, ".empty").hidden, false);
+  // A name without a profile is most likely mistyped.
+  assert.equal(
+    text(unknown, ".empty"),
+    "No doubles of Kim yet. Check the name in the card settings, or throw at doubles in a practice game as Kim."
+  );
+  const german = setup(PROFILES, { player: "Kim" }, { language: "de" }).card;
+  assert.match(text(german, ".empty"), /^Noch keine Doubles von Kim\./);
 });
 
 test("without darts at a double the card explains how to get a hit rate", () => {
@@ -104,11 +111,7 @@ test("without darts at a double the card explains how to get a hit rate", () => 
 test("the doubles card has a configurable title and speaks German", () => {
   assert.equal(text(setup(EVERYBODY, { title: "Finishing" }).card, ".title"), "Finishing");
   const { card } = setup(EVERYBODY, {}, { language: "de" });
-  assert.equal(text(card, ".title"), "Doppel");
+  assert.equal(text(card, ".title"), "Doubles");
   assert.equal(text(card, ".meta"), "120 Darts aufs Double · 35,0 %");
   assert.equal(text(card, ".muted:not(.meta)"), "Persönliche Checkout-Wege nutzen Doubles mit mindestens 10 Darts.");
-  assert.equal(
-    customElements.get("autodarts-doubles-card").getConfigElement().localName,
-    "autodarts-doubles-card-editor"
-  );
 });

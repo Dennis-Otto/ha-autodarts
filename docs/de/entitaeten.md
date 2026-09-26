@@ -180,7 +180,7 @@ Home Assistant zählt jeden Dart, der auf ein Double geworfen wurde, und ob er t
 | Lieblingsdouble | Sensor | Das Double mit der besten Quote unter denen mit mindestens 10 Darts, etwa `D16`; vorher *unbekannt*. Attribute: `attempts`, `hits`, `rate` (Prozent) und `doubles` mit `double`, `attempts`, `hits` und `rate` jedes geworfenen Doubles. Der Recorder speichert die Liste nicht. |
 | Übungsspiel persönliche Checkout-Wege | Schalter, *Konfiguration* | Checkout-Wege bevorzugen die stärksten Doubles des Spielers am Board (sein Profil, sonst die Darts aller). Unter Wegen mit gleich vielen Darts und Triples kommt ein Double mit besserer Quote zuerst; es zählen nur Doubles mit mindestens 10 Darts. Standardmäßig aus. |
 
-Die [Doppelkarte](karten.md#doppelkarte) zeichnet die Quote jedes Doubles auf die Scheibe.
+Die [Doubles-Karte](karten.md#doubles-karte) zeichnet die Quote jedes Doubles auf die Scheibe.
 
 ## Partyspiele
 

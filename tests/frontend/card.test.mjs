@@ -110,9 +110,13 @@ test("text inserted into the card is escaped", () => {
 
 test("colour options reach the style only as valid colours", (t) => {
   // Without a CSS object model nothing is trusted.
-  assert.equal(cssColor("red", "fallback"), "fallback");
+  assert.equal(cssColor("#00e5ff", "fallback"), "fallback");
+  // Colour names of Home Assistant's picker follow the theme, also without CSS.supports.
+  assert.equal(cssColor("primary", "fallback"), "var(--primary-color)");
+  assert.equal(cssColor("red", "fallback"), "var(--red-color)");
+  assert.equal(cssColor("deep-orange", "fallback"), "var(--deep-orange-color)");
   // Node has none; mimic the browser for a few known values.
-  const valid = new Set(["#ff0000", "red", "rgb(1, 2, 3)", "var(--primary-color)"]);
+  const valid = new Set(["#ff0000", "rgb(1, 2, 3)", "var(--primary-color)", "crimson"]);
   globalThis.CSS = { supports: (property, value) => property === "color" && valid.has(value) };
   t.after(() => delete globalThis.CSS);
   for (const value of valid) assert.equal(cssColor(value, "fallback"), value);

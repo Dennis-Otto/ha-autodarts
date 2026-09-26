@@ -38,7 +38,8 @@ test("the status card shows the board state, its detection and its version", () 
   assert.equal(text(card, ".title"), "Dartboard");
   assert.equal(text(card, ".pill"), "Ready – throw!");
   assert.equal(text(card, ".detection .state"), "Ready – throw!");
-  assert.equal(card.style.getPropertyValue("--ad-status"), "#43a047");
+  // Status colours come from the theme.
+  assert.equal(card.style.getPropertyValue("--ad-status"), "var(--success-color, #43a047)");
   assert.equal(card.style.getPropertyValue("--ad-accent"), "var(--primary-color)");
   assert.equal($(card, ".toggle").getAttribute("aria-checked"), "true");
   assert.equal($(card, ".toggle").disabled, false);
@@ -84,16 +85,23 @@ test("the detection switch stops and starts detection", () => {
   ]);
 });
 
-test("without a detection switch the start button is pressed; offline or in the preview nothing is", () => {
+test("without a detection switch the buttons follow the board status; offline or in the preview nothing happens", () => {
+  // The board detects darts, so the switch is on and a tap stops detection.
   const hass = makeHass({ states: without("switch.detection") });
   const card = mount("autodarts-status-card", hass);
+  assert.equal($(card, ".toggle").getAttribute("aria-checked"), "true");
   $(card, ".toggle").click();
-  assert.deepEqual(hass.calls, [["button", "press", { entity_id: "button.dartboard_start" }]]);
+  assert.deepEqual(hass.calls, [["button", "press", { entity_id: "button.dartboard_stop" }]]);
+  // Stopped, a tap starts it again.
+  card.hass = update(hass, { "sensor.local_status": "Stopped" });
+  assert.equal($(card, ".toggle").getAttribute("aria-checked"), "false");
+  $(card, ".toggle").click();
+  assert.deepEqual(hass.calls.at(-1), ["button", "press", { entity_id: "button.dartboard_start" }]);
 
   const offline = setup({ "binary_sensor.local_connected": "off" }).card;
   assert.equal(text(offline, ".pill"), "Board unreachable");
   assert.equal($(offline, ".toggle").disabled, true);
-  const lean = mount("autodarts-status-card", makeHass({ states: without("switch.detection", "button.start") }));
+  const lean = mount("autodarts-status-card", makeHass({ states: without("switch.detection", "button.stop") }));
   assert.equal($(lean, ".toggle").disabled, true);
 
   const preview = setup();
@@ -143,10 +151,15 @@ test("the board PC tile shows load, memory, detection rate and the system", () =
       metric.dataset.entity,
     ]),
     [
-      ["12 %", "CPU", "sensor.dartboard_cpu_usage"],
-      ["45 %", "Memory", "sensor.dartboard_memory_usage"],
+      ["12%", "CPU", "sensor.dartboard_cpu_usage"],
+      ["45%", "Memory", "sensor.dartboard_memory_usage"],
       ["24.5 fps", "Detection", "sensor.dartboard_detection_fps"],
     ]
+  );
+  // The metrics are buttons, so the keyboard reaches their details too.
+  assert.deepEqual(
+    $$(card, ".metric").map((metric) => metric.localName),
+    ["button", "button", "button"]
   );
   assert.equal($(card, ".system-info").hidden, false);
   assert.equal(text(card, ".system-info"), "Ubuntu 22.04.4 LTS · Intel Core i3-9100T · Detection 0.9.1");
@@ -322,7 +335,49 @@ test("the status card speaks German", () => {
   assert.equal(text(card, ".update-badge"), "Update to 1.5.0");
 });
 
-test("the status card offers its editor", () => {
-  const Card = customElements.get("autodarts-status-card");
-  assert.equal(Card.getConfigElement().localName, "autodarts-status-card-editor");
+test("a card removed before it was drawn has nothing to redraw", () => {
+  const card = document.createElement("autodarts-status-card");
+  document.body.append(card);
+  card.remove();
+  assert.equal(card.shadowRoot.innerHTML, "");
+});
+
+test("the share of corrected darts shows how well detection works", () => {
+  const { card } = setup({ "sensor.correction_rate": { state: "3.25", attributes: { unit_of_measurement: "%" } } });
+  assert.deepEqual(
+    [$$(card, ".metric .value").at(-1).textContent, $$(card, ".metric .name").at(-1).textContent],
+    ["3.3%", "Corrected"]
+  );
+  const german = setup({ "sensor.correction_rate": "3.25" }, {}, { language: "de" }).card;
+  assert.equal($$(german, ".metric .value").at(-1).textContent, "3,3 %");
+  assert.equal($$(german, ".metric .name").at(-1).textContent, "Korrigiert");
+});
+
+test("an empty board PC tile stays hidden, since hidden beats every display rule", () => {
+  const card = mount("autodarts-status-card", makeHass({ states: without("sensor.cpu_usage", "sensor.memory_usage", "sensor.detection_fps", "sensor.host_os", "sensor.host_processor", "sensor.vision_version") }));
+  assert.equal($(card, ".system-tile").hidden, true);
+  assert.match($(card, "style").textContent, /\[hidden\] \{ display: none !important; \}/);
+});
+
+test("the keyboard focus stays on a calibration button while it asks for confirmation", (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const { hass, card } = setup();
+  const button = () => $$(card, "[data-calibrate]")[1];
+  button().focus();
+  assert.equal(card.shadowRoot.activeElement, button());
+  button().click();
+  // The confirmation redraws the cameras; the new button has the focus again.
+  assert.equal(button().textContent, "Confirm?");
+  assert.equal(card.shadowRoot.activeElement, button());
+  t.mock.timers.tick(4000);
+  assert.equal(button().textContent, "Calibrate");
+  assert.equal(card.shadowRoot.activeElement, button());
+  // Other redraws keep the focus too, also on a camera's name and a chip.
+  $$(card, ".camera-name")[0].focus();
+  card.hass = update(hass, { "sensor.dartboard_camera_2_camera_fps": { state: "12", attributes: { camera: 2 } } });
+  assert.equal(card.shadowRoot.activeElement, $$(card, ".camera-name")[0]);
+  $$(card, ".chip")[1].focus();
+  card.hass = update(hass, { "binary_sensor.realtime_connected": "off" });
+  assert.equal(card.shadowRoot.activeElement, $$(card, ".chip")[1]);
+  assert.equal($$(card, ".chip")[1].className, "chip off");
 });

@@ -33,11 +33,19 @@ test("the practice view reads the remaining score sensor", () => {
       legsToWin: 1,
       setsToWin: 1,
       opened: true,
+      doubleOut: true,
+      visit: [],
       scores: [],
     }
   );
-  const bust = practiceView({ state: "32", attributes: { checkout: "<b> D16", bust: true, darts: "x" } });
-  assert.deepEqual([bust.route, bust.bust, bust.darts, bust.average, bust.game], [["D16"], true, 0, null, null]);
+  const bust = practiceView({
+    state: "32",
+    attributes: { checkout: "<b> D16", bust: true, darts: "x", double_out: false, visit: ["T20", 5, null, "S1"] },
+  });
+  assert.deepEqual(
+    [bust.route, bust.bust, bust.darts, bust.average, bust.game, bust.doubleOut, bust.visit],
+    [["D16"], true, 0, null, null, false, ["T20", "S1"]]
+  );
   assert.deepEqual(practiceView({ state: "0", attributes: { won: true, checkout: null } }).route, []);
 });
 
@@ -103,7 +111,7 @@ test("the live view offers the practice controls and player names", () => {
   const hass = {
     locale: { language: "de" },
     entities: Object.fromEntries(entities.map((item) => [item.entity_id, item])),
-    devices: {},
+    devices: { dev: { id: "dev" } },
     states: {},
   };
   const [live] = dashboardStrategy(hass).views;
@@ -163,7 +171,7 @@ test("the training view charts practice legs per day and the practice trend", ()
   const hass = {
     locale: { language: "en" },
     entities: Object.fromEntries(entities.map((item) => [item.entity_id, item])),
-    devices: {},
+    devices: { dev: { id: "dev" } },
     states: {},
   };
   const training = dashboardStrategy(hass).views.find((view) => view.path === "training");
@@ -175,6 +183,12 @@ test("the training view charts practice legs per day and the practice trend", ()
     ["change"],
   ]);
   assert.deepEqual(trend.entities, ["sensor.board_first_nine", "sensor.board_checkout_rate"]);
+  // The doubles rate joins the trend once the integration has it.
+  entities.push(entity("sensor.board_doubles_rate", "practice_doubles_rate"));
+  hass.entities = Object.fromEntries(entities.map((item) => [item.entity_id, item]));
+  const next = dashboardStrategy(hass).views.find((view) => view.path === "training").sections[1].cards[2];
+  assert.equal(next.title, "First 9, checkout and doubles rate");
+  assert.deepEqual(next.entities, ["sensor.board_first_nine", "sensor.board_checkout_rate", "sensor.board_doubles_rate"]);
 });
 
 test("cricket shows every player's marks, the points and the bed to aim at", async () => {

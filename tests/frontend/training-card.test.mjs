@@ -48,7 +48,7 @@ const history = (rows) => async (message) => {
 test("the training card shows the session average, darts and visits", () => {
   const { card } = setup();
   assert.equal(text(card, ".title"), "Training · Dartboard");
-  assert.match(text(card, ".since"), /^since 09\/26, 02:30\sPM$/);
+  assert.match(text(card, ".since"), /^since 09\/26, 2:30\sPM$/);
   assert.equal(text(card, ".average"), "55.8");
   assert.equal(text(card, ".average-label"), "3-dart average");
   assert.equal(text(card, '[data-total="darts"]'), "24");
@@ -64,7 +64,7 @@ test("older integrations without average and daily darts still show the session"
   const card = mount("autodarts-training-card", hass);
   assert.equal(text(card, ".average"), "55.8");
   assert.deepEqual([$(card, ".daily").hidden, $(card, ".goal").hidden], [false, true]);
-  assert.equal(text(card, ".streak"), "3 days in a row");
+  assert.equal(text(card, ".streak"), "🔥 3 days in a row");
   card.hass = update(hass, { "sensor.training_darts": "0" });
   assert.equal(text(card, ".average"), "–");
 });
@@ -87,7 +87,7 @@ test("tiles show the session records and open the darts' more-info", () => {
       ["scores_100", "3"],
       ["scores_140", "1"],
       ["max", "0"],
-      ["triple_rate", "12.5 %"],
+      ["triple_rate", "12.5%"],
       ["doubles", "1"],
       ["bulls", "1"],
       ["misses", "5"],
@@ -107,13 +107,13 @@ test("the heatmap colours every hit bed from blue to red with its share", () => 
   assert.equal(beds.length, 10);
   const byTitle = Object.fromEntries(beds.map((bed) => [bed.querySelector("title").textContent, bed]));
   assert.deepEqual(Object.keys(byTitle).sort(), [
-    "25: 2 hits · 8.3 %",
-    "Bull: 1 hits · 4.2 %",
-    "D16: 1 hits · 4.2 %",
-    "S1: 4 hits · 16.7 %",
-    "S20: 6 hits · 25.0 %",
-    "S5: 2 hits · 8.3 %",
-    "T20: 3 hits · 12.5 %",
+    "25: 2 hits · 8.3%",
+    "Bull: 1 hits · 4.2%",
+    "D16: 1 hits · 4.2%",
+    "S1: 4 hits · 16.7%",
+    "S20: 6 hits · 25.0%",
+    "S5: 2 hits · 8.3%",
+    "T20: 3 hits · 12.5%",
   ]);
   const hottest = beds.find((bed) => bed.getAttribute("d") === bedPath("SI20"));
   assert.deepEqual(
@@ -132,8 +132,8 @@ test("in numbers mode the heatmap sums every bed of a number", () => {
   const { card } = setup({}, { mode: "numbers" });
   const titles = $$(card, ".heat-bed title").map((title) => title.textContent);
   assert.equal(titles.length, 18);
-  assert.equal(titles.filter((title) => title === "20: 9 hits · 37.5 %").length, 4);
-  assert.equal(titles.filter((title) => title === "Bull: 3 hits · 12.5 %").length, 2);
+  assert.equal(titles.filter((title) => title === "20: 9 hits · 37.5%").length, 4);
+  assert.equal(titles.filter((title) => title === "Bull: 3 hits · 12.5%").length, 2);
   assert.equal(text(card, ".legend-max"), "9");
 });
 
@@ -153,11 +153,11 @@ test("the most hit beds are ranked with their share of all darts", () => {
       row.querySelector(".count").textContent,
     ]),
     [
-      ["S20", "100%", "6× · 25 %"],
-      ["S1", "66.67%", "4× · 17 %"],
-      ["T20", "50%", "3× · 13 %"],
-      ["25", "33.33%", "2× · 8 %"],
-      ["S5", "33.33%", "2× · 8 %"],
+      ["S20", "100%", "6× · 25%"],
+      ["S1", "66.67%", "4× · 17%"],
+      ["T20", "50%", "3× · 13%"],
+      ["25", "33.33%", "2× · 8%"],
+      ["S5", "33.33%", "2× · 8%"],
     ]
   );
   card.hass = update(hass, { "sensor.training_darts": { state: "0", attributes: { hits: { BULL: 2 } } } });
@@ -171,7 +171,7 @@ test("the streak and today's darts count towards the daily goal", () => {
   const { hass, card } = setup();
   assert.equal($(card, ".daily").hidden, false);
   assert.equal($(card, ".streak").hidden, false);
-  assert.equal(text(card, ".streak"), "3 days in a row");
+  assert.equal(text(card, ".streak"), "🔥 3 days in a row");
   assert.equal($(card, ".goal-bar").hidden, false);
   assert.equal($(card, ".goal-bar span").style.width, "50%");
   assert.equal($(card, ".goal").classList.contains("reached"), false);
@@ -181,7 +181,7 @@ test("the streak and today's darts count towards the daily goal", () => {
     "sensor.training_streak": "1",
     "sensor.darts_today": { state: "150", attributes: { goal: 120, goal_reached: true } },
   });
-  assert.equal(text(card, ".streak"), "1 day in a row");
+  assert.equal(text(card, ".streak"), "🔥 1 day in a row");
   assert.equal($(card, ".goal-bar span").style.width, "100%");
   assert.equal($(card, ".goal").classList.contains("reached"), true);
 
@@ -330,9 +330,9 @@ test("past sessions list when they ended, how long they took and how they went",
     [...row.children].map((cell) => cell.textContent.replace(/\s/g, " "))
   );
   assert.deepEqual(rows, [
-    ["09/25, 08:00 PM", "42 min", "150", "48.2", "100"],
-    ["09/24, 07:00 PM", "<1 min", "9", "30.0", "45"],
-    ["09/23, 06:00 PM", "–", "3", "–", "–"],
+    ["09/25, 8:00 PM", "42 min", "150", "48.2", "100"],
+    ["09/24, 7:00 PM", "<1 min", "9", "30.0", "45"],
+    ["09/23, 6:00 PM", "–", "3", "–", "–"],
   ]);
   card.hass = update(hass, { "sensor.training_last_session": { state: "unknown", attributes: { sessions: [] } } });
   assert.equal($(card, ".sessions").hidden, true);
@@ -342,7 +342,7 @@ test("the session state tells whether a session runs or when it ended", () => {
   const { hass, card } = setup();
   assert.equal(text(card, ".session-state"), "Session running");
   card.hass = update(hass, { "switch.training_session": { state: "off", last_changed: "2026-09-26T15:10:00+00:00" } });
-  assert.match(text(card, ".session-state"), /^Session ended 09\/26, 03:10\sPM$/);
+  assert.match(text(card, ".session-state"), /^Session ended 09\/26, 3:10\sPM$/);
   card.hass = update(hass, { "switch.training_session": "off" });
   assert.equal(text(card, ".session-state"), "No session running");
   const { "switch.training_session": _, ...states } = SESSION;
@@ -434,7 +434,7 @@ test("the training card speaks German", () => {
   assert.equal(text(card, ".average"), "55,8");
   assert.equal(text(card, ".average-label"), "3-Dart-Average");
   assert.equal(text(card, '[data-tile="triple_rate"] .value'), "12,5 %");
-  assert.equal(text(card, ".streak"), "3 Tage in Folge");
+  assert.equal(text(card, ".streak"), "🔥 3 Tage in Folge");
   assert.equal(text(card, ".goal-text"), "60 / 120 Darts heute");
   assert.equal(text(card, ".session-state"), "Session läuft");
   assert.equal(text(card, '[data-action="session"]'), "Session beenden");
@@ -451,7 +451,107 @@ test("the training card speaks German", () => {
   assert.equal(text(legacy, ".session-state"), "Session beendet 26.09., 15:10");
 });
 
-test("the training card offers its editor", () => {
-  const Card = customElements.get("autodarts-training-card");
-  assert.equal(Card.getConfigElement().localName, "autodarts-training-card-editor");
+const BESTS = {
+  "sensor.personal_best": {
+    state: "2026-09-20T18:00:00+00:00",
+    attributes: {
+      record: "highest_checkout",
+      value: 121,
+      previous: 100,
+      name: "Alex",
+      highest_visit: 140,
+      highest_checkout: 121,
+      fewest_darts_501: 18,
+      fewest_darts_301: 12,
+      fewest_darts_x: 3,
+      best_cricket_mpr: 3.125,
+      best_session_average: 58.44,
+      around_the_clock: 38,
+      doubles: 0,
+      bobs_27: 412,
+    },
+  },
+  "sensor.training_streak": { state: "3", attributes: { best_streak: 12 } },
+};
+const bests = (card) => $$(card, ".bests dl > div").map((row) => [row.firstChild.textContent, row.lastChild.textContent]);
+
+test("personal bests list every record with a value and the longest streak", () => {
+  const { hass, card } = setup(BESTS);
+  assert.equal($(card, ".bests").hidden, false);
+  assert.equal(text(card, ".bests .section-label"), "Personal bests");
+  assert.deepEqual(bests(card), [
+    ["Highest visit", "140"],
+    ["Highest checkout", "121"],
+    ["Best 301", "12 darts"],
+    ["Best 501", "18 darts"],
+    ["Best Cricket MPR", "3.13"],
+    ["Best session average", "58.4"],
+    ["Around the Clock", "38 darts"],
+    ["Bob's 27", "412 points"],
+    ["Longest streak", "12 days"],
+  ]);
+  card.hass = update(hass, { "sensor.training_streak": { state: "1", attributes: { best_streak: 1 } } });
+  assert.deepEqual(bests(card).at(-1), ["Longest streak", "1 day"]);
+  // Without records the section waits for the first one.
+  card.hass = update(hass, { "sensor.personal_best": "unknown", "sensor.training_streak": "0" });
+  assert.equal($(card, ".bests").hidden, true);
+  assert.equal($(setup(BESTS, { show_bests: false }).card, ".bests"), null);
+  const german = setup(BESTS, {}, { language: "de" }).card;
+  assert.equal(text(german, ".bests .section-label"), "Bestleistungen");
+  assert.deepEqual(bests(german).slice(2, 5), [
+    ["Bestes 301-Leg", "12 Darts"],
+    ["Bestes 501-Leg", "18 Darts"],
+    ["Beste MPR im Cricket", "3,13"],
+  ]);
+  assert.deepEqual(bests(german).at(-1), ["Längste Serie", "12 Tage"]);
+});
+
+test("the statistics tiles are a button for the keyboard too", () => {
+  const { card } = setup();
+  const tiles = $(card, ".tiles");
+  assert.deepEqual(
+    [tiles.getAttribute("role"), tiles.getAttribute("tabindex"), tiles.getAttribute("aria-label")],
+    ["button", "0", "Training statistics, open the details"]
+  );
+  const opened = moreInfo(card);
+  for (const key of ["Enter", " ", "Tab"]) {
+    tiles.dispatchEvent(new window.KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
+  }
+  assert.deepEqual(opened, ["sensor.dartboard_training_darts", "sensor.dartboard_training_darts"]);
+  // The fire emoji is decoration only.
+  assert.equal($(card, ".streak [aria-hidden]").textContent, "🔥");
+});
+
+test("board events other than visits and session starts leave the card alone", () => {
+  const { hass, card } = setup();
+  $(card, ".title").textContent = "stale";
+  const event = (type) => ({ state: new Date().toISOString(), attributes: { event_type: type } });
+  let next = update(hass, { "event.board_events": event("takeout_finished") });
+  card.hass = next;
+  assert.equal(text(card, ".title"), "stale");
+  next = update(next, { "event.board_events": { ...event("visit_completed"), attributes: { event_type: "visit_completed", score: 60, darts: 3, segments: ["S20", "S20", "S20"] } } });
+  card.hass = next;
+  assert.equal(text(card, ".title"), "Training · Dartboard");
+});
+
+test("numbers, times and time zones follow the user profile", () => {
+  const ended = { ...SESSION, "switch.training_session": { state: "off", last_changed: "2026-09-26T15:10:00+00:00" } };
+  const profile = (locale, config) => {
+    const hass = makeHass({ states: ended });
+    return mount("autodarts-training-card", { ...hass, locale: { ...hass.locale, ...locale }, config });
+  };
+  // English words with German numbers and a 24-hour clock in the server's time zone.
+  const card = profile(
+    { number_format: "decimal_comma", time_format: "24", time_zone: "server" },
+    { time_zone: "Europe/Berlin" }
+  );
+  assert.equal(text(card, ".average"), "55,8");
+  assert.equal(text(card, ".session-state"), "Session ended 09/26, 17:10");
+  // The browser's time zone, a 12-hour clock and no grouping.
+  const local = profile({ number_format: "none", time_format: "12", time_zone: "local" }, { time_zone: "Europe/Berlin" });
+  assert.match(text(local, ".session-state"), /^Session ended 09\/26, 3:10\sPM$/);
+  assert.equal(text(profile({ number_format: "space_comma" }), ".average"), "55,8");
+  const system = new Intl.NumberFormat(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(55.75);
+  assert.equal(text(profile({ number_format: "system", time_format: "system" }), ".average"), system);
+  assert.equal(text(profile({ number_format: "quote_decimal" }), ".average"), "55.8");
 });

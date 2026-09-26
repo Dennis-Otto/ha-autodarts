@@ -41,6 +41,7 @@ STATUS_CARDS = find("autodarts-status-card")
 SCOREBOARD_CARDS = find("autodarts-scoreboard-card")
 PLAYERS_CARDS = find("autodarts-players-card")
 DOUBLES_CARDS = find("autodarts-doubles-card")
+FORM_EDITORS = find("hui-form-editor")
 SCOREBOARD_STATE = f"""
 () => {{
   const root = ({SCOREBOARD_CARDS})()[0].shadowRoot;
@@ -91,7 +92,7 @@ PRACTICE_STATE = f"""
     hidden: root.querySelector('.practice').hidden,
     title: root.querySelector('.practice-title').textContent,
     remaining: root.querySelector('.practice-remaining').textContent,
-    route: [...root.querySelectorAll('.route-bed')].map((el) => el.textContent),
+    route: [...root.querySelectorAll('.practice-route .bed')].map((el) => el.textContent),
     aim: root.querySelectorAll('.aim path').length,
     meta: root.querySelector('.practice-meta').textContent,
     scores: [...root.querySelectorAll('.player-score')].map((el) => [
@@ -99,7 +100,7 @@ PRACTICE_STATE = f"""
       el.querySelector('.rest').textContent,
       el.classList.contains('active'),
     ]),
-    grid: [...root.querySelectorAll('.cricket-grid tr')].map((row) =>
+    grid: [...root.querySelectorAll('.practice .cricket tr')].map((row) =>
       [...row.children].map((cell) => cell.textContent)
     ),
   }};
@@ -437,7 +438,7 @@ def practice(browser: Browser) -> None:
     )
     state = page.evaluate(PRACTICE_STATE)
     check(
-        state["aim"] == 4 and state["meta"].startswith("1 darts"),
+        state["aim"] == 4 and " · 1 darts · " in state["meta"],
         f"Around the Clock state {state}",
     )
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
@@ -632,8 +633,9 @@ def caller(browser: Browser) -> None:
     page.wait_for_function(
         f"() => {toggle}.getAttribute('aria-pressed') === 'true'", timeout=5000
     )
+    # The label stays "Caller"; the pressed state tells that it is on.
     text = page.evaluate(f"() => {toggle}.textContent")
-    check(text == "Caller on", f"Caller after the tap: {text}")
+    check(text == "🔊Caller", f"Caller after the tap: {text}")
     errors = page_errors(page, problems)
     check(not errors, f"Console problems: {errors}")
     page.close()
@@ -665,9 +667,9 @@ def editor(
     view: str = "board",
     cards: str = CARDS,
     ready: str = ".board svg",
-    tag: str = "autodarts-card-editor",
-    rows: int = 5,
+    rows: int = 6,
 ) -> None:
+    """Home Assistant builds the card's form from getConfigForm."""
     page, problems = open_view(browser, view, cards, ready)
     page.goto(f"{HA}/autodarts-demo/{view}?edit=1")
     page.wait_for_function(
@@ -678,12 +680,36 @@ def editor(
         f"() => ({cards})()[0].dispatchEvent(new CustomEvent('ll-edit-card',"
         " {bubbles: true, composed: true, detail: {path: [0, 0, 0]}}))"
     )
-    form = page.locator(f"{tag} > ha-form")
-    form.wait_for(timeout=15000)
-    fields = form.evaluate("(element) => element.schema.length")
-    check(fields == rows, f"{tag} schema has {fields} rows")
+    page.locator("hui-form-editor ha-form").first.wait_for(timeout=15000)
+    fields = page.evaluate(f"() => ({FORM_EDITORS})()[0].schema.length")
+    check(fields == rows, f"{view} form has {fields} rows")
+    # The labels are the card's own, not generic names.
+    label = page.evaluate(
+        f"() => ({FORM_EDITORS})()[0].computeLabel({{name: 'device_id'}})"
+    )
+    check(label == "Board", f"{view} form labels the board {label!r}")
     page.keyboard.press("Escape")
     errors = page_errors(page, problems)
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+
+def strategy_editor(browser: Browser) -> None:
+    """Editing the generated dashboard opens the strategy's own editor."""
+    page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 900})
+    page.add_init_script(CAPTURE_ERRORS)
+    page.goto(f"{HA}/autodarts-auto/live")
+    page.wait_for_function(
+        f"() => ({CARDS})().some((card) => card.shadowRoot?.querySelector('.board svg'))",
+        timeout=30000,
+    )
+    page.evaluate(f"() => ({find('hui-root')})()[0]._enableEditMode()")
+    form = page.locator("autodarts-strategy-editor > ha-form")
+    form.wait_for(timeout=15000)
+    fields = form.evaluate("(element) => element.schema.map((field) => field.name)")
+    check(fields == ["device_id", "title"], f"Strategy editor fields {fields}")
+    page.keyboard.press("Escape")
+    errors = page_errors(page, [])
     check(not errors, f"Console problems: {errors}")
     page.close()
 
@@ -726,59 +752,25 @@ def main() -> None:
             ("live card editor", lambda: editor(browser)),
             (
                 "training card editor",
-                lambda: editor(
-                    browser,
-                    "training",
-                    TRAINING_CARDS,
-                    ".heat-layer",
-                    "autodarts-training-card-editor",
-                    5,
-                ),
+                lambda: editor(browser, "training", TRAINING_CARDS, ".heat-layer", 6),
             ),
             (
                 "status card editor",
-                lambda: editor(
-                    browser,
-                    "status",
-                    STATUS_CARDS,
-                    ".toggle",
-                    "autodarts-status-card-editor",
-                    3,
-                ),
+                lambda: editor(browser, "status", STATUS_CARDS, ".toggle", 4),
             ),
             (
                 "doubles editor",
-                lambda: editor(
-                    browser,
-                    "doubles",
-                    DOUBLES_CARDS,
-                    ".doubles-card",
-                    "autodarts-doubles-card-editor",
-                    3,
-                ),
+                lambda: editor(browser, "doubles", DOUBLES_CARDS, ".doubles-card", 4),
             ),
             (
                 "players editor",
-                lambda: editor(
-                    browser,
-                    "players",
-                    PLAYERS_CARDS,
-                    ".players-card",
-                    "autodarts-players-card-editor",
-                    3,
-                ),
+                lambda: editor(browser, "players", PLAYERS_CARDS, ".players-card", 4),
             ),
             (
                 "scoreboard editor",
-                lambda: editor(
-                    browser,
-                    "scoreboard",
-                    SCOREBOARD_CARDS,
-                    ".main",
-                    "autodarts-scoreboard-card-editor",
-                    4,
-                ),
+                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 5),
             ),
+            ("dashboard strategy editor", lambda: strategy_editor(browser)),
             ("light theme", lambda: light_theme(browser)),
         ]
         for name, step in steps:
@@ -797,7 +789,7 @@ def main() -> None:
         "training heatmap, "
         "history and "
         "sessions, board status, the scoreboard and its caller, "
-        "the generated dashboard, all six editors and light theme."
+        "the generated dashboard, all six card forms, the strategy editor and light theme."
     )
 
 
