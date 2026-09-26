@@ -21,6 +21,10 @@ The scenario uses only Home Assistant's public REST and WebSocket APIs and verif
   requests they send
 - realtime darts, corrections and takeouts over the Board Manager WebSocket with
   polling disabled, including training counters and their persistence
+- faults injected into the Board Manager double: a socket that drops in the middle
+  of a visit, an outage while darts are pulled and thrown again, failing and slow
+  reads, malformed frames and a restart; visits, practice scores and entities
+  must come through them
 - diagnostics without the board ID or API key, and logs without errors, tracebacks
   or secrets
 - removal of the entry, its entities, the realtime connection and the stored
