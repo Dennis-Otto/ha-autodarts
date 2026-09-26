@@ -274,7 +274,7 @@ def checkout_animation(page: Page) -> None:
     recorder = Recorder(page)
     recorder.blink(1, hold=1400)
     thrown: list[dict] = []
-    for name, remaining in (("T20", "81"), ("T15", "36"), ("D18", "0")):
+    for name, remaining in (("T20", "81"), ("T19", "24"), ("D12", "0")):
         thrown.append(at(name))
         control({"event": "Throw detected", "throws": thrown})
         wait_card(page, big(remaining))
@@ -396,7 +396,7 @@ def scoreboard_animation(page: Page) -> None:
         board.wait_for_timeout(300)
         recorder.shot(1000)
     thrown: list[dict] = []
-    for name in ("T20", "T15", "D18"):
+    for name in ("T20", "T19", "D12"):
         thrown.append(at(name))
         control({"event": "Throw detected", "throws": thrown})
         wait_card(
