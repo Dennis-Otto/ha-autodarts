@@ -564,12 +564,11 @@
     },
     "board_moved": {
       "title": "Autodarts board found at a new address",
-      "description": "The board no longer answers at {old}. The Autodarts cloud reports it at {new}, where it answers with its board ID. Open this notice to switch to the new address.",
       "fix_flow": {
         "step": {
           "confirm": {
             "title": "Use the new address",
-            "description": "Connect the board at {new}? The integration reloads; entities, training and settings are kept."
+            "description": "The board no longer answers at its old address. The Autodarts cloud reports it at {new}, where it answers with its board ID.\n\nConnect the board there? The integration reloads; entities, training and settings are kept."
           }
         },
         "abort": {

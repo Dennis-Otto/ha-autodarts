@@ -564,12 +564,11 @@
     },
     "board_moved": {
       "title": "Autodarts-Board unter neuer Adresse gefunden",
-      "description": "Das Board antwortet nicht mehr unter {old}. Die Autodarts-Cloud meldet es unter {new}, wo es mit seiner Board-ID antwortet. Öffne diesen Hinweis, um zur neuen Adresse zu wechseln.",
       "fix_flow": {
         "step": {
           "confirm": {
             "title": "Neue Adresse verwenden",
-            "description": "Das Board unter {new} verbinden? Die Integration wird neu geladen; Entitäten, Training und Einstellungen bleiben erhalten."
+            "description": "Das Board antwortet nicht mehr unter seiner alten Adresse. Die Autodarts-Cloud meldet es unter {new}, wo es mit seiner Board-ID antwortet.\n\nDas Board dort verbinden? Die Integration wird neu geladen; Entitäten, Training und Einstellungen bleiben erhalten."
           }
         },
         "abort": {
