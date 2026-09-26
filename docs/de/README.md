@@ -18,11 +18,11 @@
 - **Beide Board-Manager-Generationen.** Unterstützt den klassischen Board Manager 1 und den Headless Board Manager 2. Nach einem Update stellt sich die Integration selbst um.
 - **Sechs Dashboard-Karten**, die automatisch geladen werden:
   - Live-Dartscheibe mit blinkenden Treffern und Dart-Positionen;
-  - Trainingskarte mit Trefferbild und Aufnahmeverlauf;
+  - Trainingskarte mit Trefferbild, Bestleistungen und Aufnahmeverlauf;
   - Board-Status mit Erkennung, Verbindungen und Kameras;
   - Anzeigetafel für ein Tablet oder einen Fernseher am Board, lesbar vom Abwurf aus, mit einem Caller, der das Spiel auf Wunsch ansagt;
   - Spielerkarte mit Profilen, direkten Vergleichen und letzten Matches;
-  - Doppelkarte mit der Quote jedes Doubles auf der Scheibe;
+  - Doubles-Karte mit der Quote jedes Doubles auf der Scheibe;
   - dazu ein automatisches Dashboard, das alles pro Board mit einem Klick anordnet.
 - **Trainingsanalyse:**
   - Trainingssessions, die mit dem ersten Dart oder bewusst beginnen, nach einer Pause enden und die letzten 20 Sessions behalten;
@@ -90,7 +90,7 @@
 | --- | --- |
 | [Installation und Einrichtung](installation.md) | Voraussetzungen, HACS, manuelle Installation, Einrichtung, Cloud-Verknüpfung, Updates, Entfernen |
 | [Entitäten und Ereignisse](entitaeten.md) | Alle Entitäten, Board-Ereignisse, Zustände und Attribute |
-| [Dashboard-Karten](karten.md) | Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Spieler- und Doppelkarte mit allen Optionen |
+| [Dashboard-Karten](karten.md) | Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Spieler- und Doubles-Karte mit allen Optionen |
 | [Automationen](automationen.md) | Blueprints, Board-Ereignisse und fertige Beispiele |
 | [Funktionsweise](funktionsweise.md) | Architektur, Aktualisierung, Trainingsregeln, Datenschutz |
 | [Fehlerbehebung](fehlerbehebung.md) | Meldungen, Reparaturen, Diagnose und Logs |

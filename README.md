@@ -29,7 +29,7 @@
 - **Both Board Manager generations.** Works with the classic Board Manager 1 and the headless Board Manager 2. It detects the generation and switches over by itself when you update the board.
 - **Six dashboard cards** are included and load automatically:
   - a live dartboard with blinking hit beds and dart positions;
-  - a training card with a hit heatmap and visit history;
+  - a training card with a hit heatmap, personal bests and visit history;
   - a board status card for detection, connections and cameras;
   - a scoreboard for a tablet or TV at the board, readable from the oche, with an optional caller that announces the game;
   - a players card with profiles, head-to-head records and recent matches;
