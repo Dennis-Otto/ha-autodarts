@@ -915,13 +915,14 @@ function formatPercent(hass, value, digits = 0) {
 
 // The 12- or 24-hour clock of the user profile; by default, that of the language.
 const clocks = new Map();
-function amPm(locale) {
+function amPm(locale, language) {
   const format = locale.time_format ?? "language";
-  const key = `${format}|${locale.language}`;
+  const key = `${format}|${language}`;
   if (!clocks.has(key)) {
     let twelve = format === "12";
     if (format === "language" || format === "system") {
-      const lang = format === "language" ? locale.language : undefined;
+      // Only "system" follows the browser; never fall back to it for the language.
+      const lang = format === "language" ? language || "en" : undefined;
       twelve = new Date("January 1, 2023 22:00:00").toLocaleString(lang).includes("10");
     }
     clocks.set(key, twelve);
@@ -934,9 +935,10 @@ function formatDateTime(hass, time) {
   const moment = new Date(time);
   if (Number.isNaN(moment.getTime())) return "";
   const locale = hass?.locale || {};
-  const twelve = amPm(locale);
+  const language = locale.language || hass?.language;
+  const twelve = amPm(locale, language);
   const server = hass?.config?.time_zone;
-  return formatter("date", locale.language || hass?.language, {
+  return formatter("date", language, {
     day: "2-digit",
     month: "2-digit",
     hour: twelve ? "numeric" : "2-digit",
