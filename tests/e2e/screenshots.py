@@ -294,10 +294,10 @@ def cricket_animation(page: Page) -> None:
     players(page, 2)
     game(page, "cricket")
     cell = (
-        "r.querySelectorAll('.cricket-grid tbody tr')[{row}]"
+        "r.querySelectorAll('.practice .cricket tbody tr')[{row}]"
         "?.children[{column}]?.textContent === '{mark}'"
     )
-    wait_card(page, "!!r.querySelector('.cricket-grid')")
+    wait_card(page, "!!r.querySelector('.practice .cricket')")
     recorder = Recorder(page)
     recorder.blink(1, hold=1200)
     # Each dart with what the card shows once it counted.
@@ -580,7 +580,7 @@ def practice_card(page: Page) -> None:
     control({"event": "Throw detected", "throws": [at("T16")]})
     page.wait_for_function(
         f"() => ({FIND_CARDS})().some((c) => c.shadowRoot"
-        ".querySelectorAll('.cricket-grid tbody tr')[4]?.children[1]?.textContent === 'Ⓧ')",
+        ".querySelectorAll('.practice .cricket tbody tr')[4]?.children[1]?.textContent === 'Ⓧ')",
         timeout=15000,
     )
     scoreboard.wait_for_function(
@@ -687,10 +687,25 @@ def editor(page: Page) -> None:
     page.goto(f"{HA}/autodarts-demo/board?edit=1")
     page.wait_for_timeout(2500)
     page.evaluate(EDIT_CARD)
-    page.locator("autodarts-card-editor").wait_for(timeout=15000)
+    # Home Assistant builds the form of the card from getConfigForm.
+    page.locator("hui-form-editor ha-form").first.wait_for(timeout=15000)
     page.wait_for_timeout(2000)
     peak(page)
     page_shot(page, "card-editor")
+    page.keyboard.press("Escape")
+
+
+def strategy_editor(page: Page) -> None:
+    """The editor of the generated dashboard: the board and the title."""
+    page.goto(f"{HA}/autodarts-auto/live")
+    page.wait_for_function(
+        f"() => ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
+        timeout=60000,
+    )
+    page.evaluate(f"() => ({find('hui-root')})()[0]._enableEditMode()")
+    page.locator("autodarts-strategy-editor > ha-form").wait_for(timeout=15000)
+    page.wait_for_timeout(2000)
+    page_shot(page, "strategy-editor")
     page.keyboard.press("Escape")
 
 
@@ -718,6 +733,7 @@ def main() -> None:
                 card_shot(page, "card-autodarts-style", 0)
                 card_shot(page, "card-board-only", 1)
                 editor(page)
+                strategy_editor(page)
                 strategy_dashboard(page)
                 config_flow(page)
                 device_page(page)

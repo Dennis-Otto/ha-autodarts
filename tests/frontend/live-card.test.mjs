@@ -54,6 +54,10 @@ test("the card waits for both its configuration and Home Assistant", () => {
 test("without an Autodarts board the card asks for a device, in English and German", () => {
   const card = mount("autodarts-card", makeHass());
   assert.equal(text(card, ".message"), "No Autodarts board found. Select a device in the card settings.");
+  // Further updates of Home Assistant leave the message alone.
+  const message = $(card, ".message");
+  card.hass = makeHass();
+  assert.equal($(card, ".message"), message);
   card.hass = withLanguage(makeHass(), "de");
   assert.equal(text(card, ".message"), "Kein Autodarts-Board gefunden. Wähle ein Gerät in den Karteneinstellungen.");
   // Once a board appears, the card is built.
@@ -83,19 +87,20 @@ test("the title is the configured title, the user's board name or the device nam
 test("the status pill and colour follow the board", () => {
   const { hass, card } = setup();
   assert.equal(text(card, ".pill"), "Ready – throw!");
-  assert.equal(card.style.getPropertyValue("--ad-status"), "#43a047");
+  // The theme's colours, with the card's own as fallback.
+  assert.equal(card.style.getPropertyValue("--ad-status"), "var(--success-color, #43a047)");
   card.hass = update(hass, { "binary_sensor.local_connected": "off" });
   assert.equal(text(card, ".pill"), "Board unreachable");
-  assert.equal(card.style.getPropertyValue("--ad-status"), "#e53935");
+  assert.equal(card.style.getPropertyValue("--ad-status"), "var(--error-color, #e53935)");
   card.hass = update(hass, { "sensor.num_throws": "3" });
   assert.equal(text(card, ".pill"), "Remove your darts");
-  assert.equal(card.style.getPropertyValue("--ad-status"), "#fbc02d");
+  assert.equal(card.style.getPropertyValue("--ad-status"), "var(--amber-color, #fbc02d)");
   const pills = [
-    [{ "binary_sensor.calibrating": "on" }, "Calibrating", "#8e24aa"],
-    [{ "sensor.local_status": "Starting" }, "Starting detection", "#fb8c00"],
-    [{ "sensor.local_status": "Stopping" }, "Stopping detection", "#fb8c00"],
-    [{ "binary_sensor.takeout_partial": "on" }, "Removing darts", "#fbc02d"],
-    [{ "binary_sensor.hand_detected": "on" }, "Hand at the board", "#fbc02d"],
+    [{ "binary_sensor.calibrating": "on" }, "Calibrating", "var(--purple-color, #8e24aa)"],
+    [{ "sensor.local_status": "Starting" }, "Starting detection", "var(--warning-color, #fb8c00)"],
+    [{ "sensor.local_status": "Stopping" }, "Stopping detection", "var(--warning-color, #fb8c00)"],
+    [{ "binary_sensor.takeout_partial": "on" }, "Removing darts", "var(--amber-color, #fbc02d)"],
+    [{ "binary_sensor.hand_detected": "on" }, "Hand at the board", "var(--amber-color, #fbc02d)"],
   ];
   for (const [states, pill, color] of pills) {
     card.hass = update(hass, states);
@@ -249,7 +254,7 @@ test("session statistics show the training totals and when the session started",
       ["max", "0"],
     ]
   );
-  assert.match(text(card, ".since"), /^since 09\/26, 02:30\sPM$/);
+  assert.match(text(card, ".since"), /^since 09\/26, 2:30\sPM$/);
 });
 
 test("without an average sensor the average is computed from points and darts", () => {
@@ -326,14 +331,20 @@ test("the detection button stops and starts detection with the switch", () => {
   ]);
 });
 
-test("without a detection switch the start button is pressed", () => {
+test("without a detection switch the button follows the board status, so detection also stops", () => {
   const { "switch.detection": _, ...states } = READY;
   const hass = makeHass({ states });
   const card = mount("autodarts-card", hass);
   const toggle = $(card, '[data-action="toggle"]');
-  assert.equal(toggle.textContent, "Start detection");
+  // The board detects darts: the button stops detection.
+  assert.deepEqual([toggle.textContent, toggle.classList.contains("stop")], ["Stop detection", true]);
   toggle.click();
-  assert.deepEqual(hass.calls, [["button", "press", { entity_id: "button.dartboard_start" }]]);
+  assert.deepEqual(hass.calls, [["button", "press", { entity_id: "button.dartboard_stop" }]]);
+  // Stopped, it starts it again.
+  card.hass = update(hass, { "sensor.local_status": "Stopped" });
+  assert.deepEqual([toggle.textContent, toggle.classList.contains("stop")], ["Start detection", false]);
+  toggle.click();
+  assert.deepEqual(hass.calls.at(-1), ["button", "press", { entity_id: "button.dartboard_start" }]);
 });
 
 test("controls are disabled while the board is offline or lacks the entity", () => {
@@ -346,7 +357,7 @@ test("controls are disabled while the board is offline or lacks the entity", () 
   assert.deepEqual(
     $$(lean, ".controls button").map((button) => [button.textContent, button.disabled]),
     [
-      ["Start detection", true],
+      ["Stop detection", true],
       ["Reset detection", true],
       ["Calibrate", true],
     ]
@@ -405,6 +416,11 @@ test("removing the card forgets a pending confirmation", (t) => {
   $(card, '[data-action="reset"]').click();
   card.remove();
   document.body.append(card);
+  // The button no longer asks for a confirmation that would not come.
+  assert.deepEqual(
+    [text(card, '[data-action="reset"]'), $(card, '[data-action="reset"]').classList.contains("confirm")],
+    ["Reset detection", false]
+  );
   $(card, '[data-action="reset"]').click();
   assert.deepEqual(hass.calls, []);
   assert.equal(text(card, '[data-action="reset"]'), "Confirm?");
@@ -515,10 +531,10 @@ test("an X01 leg alone shows the darts, the average and the checkout route", () 
   );
   assert.equal($(card, ".practice").hidden, false);
   assert.equal(text(card, ".practice-title"), "Practice 501");
-  assert.equal(text(card, ".practice-meta"), "9 darts · 3-dart avg. 153.7");
+  assert.equal(text(card, ".practice-meta"), "9 darts · Ø 153.7");
   assert.equal(text(card, ".practice-remaining"), "40");
   assert.deepEqual(
-    $$(card, ".route-bed").map((bed) => bed.textContent),
+    $$(card, ".practice-route .bed").map((bed) => bed.textContent),
     ["D20"]
   );
   assert.equal($(card, ".practice-route").title, "Checkout: D20");
@@ -557,7 +573,7 @@ test("an X01 match shows every player with legs, sets and averages", () => {
     ["player-score active", "Player 2", "Legs 1 · Sets 0 · Ø 60.0", "140"],
   ]);
   assert.deepEqual(
-    $$(card, ".route-bed").map((bed) => bed.textContent),
+    $$(card, ".practice-route .bed").map((bed) => bed.textContent),
     ["T20", "T20", "D10"]
   );
   assert.deepEqual(paths(card, "aim"), [bedPath("T20")]);
@@ -589,7 +605,7 @@ test("a won match names the winner and nobody aims any more", () => {
     practice("0", { game: 301, player: 1, won: true, winner: 1, legs_to_win: 3, scores: scoresOf("Alex") })
   );
   assert.equal(text(card, ".practice-meta"), "");
-  assert.equal(text(card, ".practice-note.won"), "Alex wins the match!");
+  assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match!");
   assert.deepEqual(scores(card), [
     ["player-score winner", "Alex", "Legs 3", "0"],
     ["player-score", "Sam", "Legs 1", "60"],
@@ -599,21 +615,20 @@ test("a won match names the winner and nobody aims any more", () => {
     hass,
     practice("0", { game: 301, player: 1, won: true, winner: 1, legs_to_win: 3, scores: scoresOf(null) })
   );
-  assert.equal(text(card, ".practice-note.won"), "Player 1 wins the match!");
+  assert.equal(text(card, ".practice-route .note.won"), "Player 1 wins the match!");
 });
 
 test("a leg shot, a bust, double in and a dead end each explain the route", () => {
   const leg = (state, attributes) => practice(state, { game: 501, player: 1, scores: [], ...attributes });
   const { hass, card } = setup(leg("0", { won: true }));
-  assert.equal(text(card, ".practice-note.won"), "Game shot!");
+  assert.equal(text(card, ".practice-route .note.won"), "Game shot!");
   assert.deepEqual(paths(card, "aim"), []);
 
+  // A bust ends the visit; the route of the next one follows after the takeout.
   card.hass = update(hass, leg("100", { bust: true, checkout: "T20 D20" }));
-  assert.equal(text(card, ".practice-note.bust"), "Bust – the score stays");
-  assert.deepEqual(
-    $$(card, ".route-bed").map((bed) => bed.textContent),
-    ["T20", "D20"]
-  );
+  assert.equal(text(card, ".practice-route .note.bust"), "Bust – the score stays");
+  assert.deepEqual($$(card, ".practice-route .bed"), []);
+  assert.deepEqual(paths(card, "aim"), [bedPath("T20")]);
 
   card.hass = update(hass, leg("501", { opened: false }));
   assert.equal(text(card, ".practice-route"), "Start with a double");
@@ -624,6 +639,11 @@ test("a leg shot, a bust, double in and a dead end each explain the route", () =
   assert.equal(text(card, ".practice-route"), "No checkout possible");
   assert.deepEqual(paths(card, "aim"), []);
 
+  // Without double out, three darts finish up to 180; above, nobody expects a checkout.
+  card.hass = update(hass, leg("175", { double_out: false }));
+  assert.equal(text(card, ".practice-route"), "No checkout possible");
+  card.hass = update(hass, leg("171", {}));
+  assert.equal(text(card, ".practice-route"), "");
   card.hass = update(hass, leg("301", {}));
   assert.equal(text(card, ".practice-route"), "");
 });
@@ -635,20 +655,20 @@ test("Around the Clock shows the next number and aims at all of its beds", () =>
     ...practice("501", { game: 501, scores: [] }),
   });
   assert.equal(text(card, ".practice-title"), "Around the Clock");
-  assert.equal(text(card, ".practice-meta"), "12 darts · 50 % hits");
+  assert.equal(text(card, ".practice-meta"), "6 / 21 · 12 darts · 50% hits");
   assert.equal(text(card, ".practice-remaining"), "7");
-  assert.equal(text(card, ".practice-route"), "6 / 21");
+  assert.equal(text(card, ".practice-route"), "");
   assert.equal($(card, ".scoreboard").hidden, true);
   assert.deepEqual(paths(card, "aim"), ["SI7", "SO7", "T7", "D7"].map(bedPath));
 
   card.hass = update(hass, drill("BULL", { drill: "around_the_clock", progress: 20, darts: 0 }));
   assert.equal(text(card, ".practice-remaining"), "Bull");
-  assert.equal(text(card, ".practice-meta"), "");
+  assert.equal(text(card, ".practice-meta"), "20 / 21 · 0 darts · – hits");
   assert.deepEqual(paths(card, "aim"), [bedPath("Bull"), bedPath("25")]);
 
   card.hass = update(hass, drill("unknown", { drill: "around_the_clock", finished: true, progress: 21, darts: 30 }));
   assert.equal(text(card, ".practice-remaining"), "✓");
-  assert.equal(text(card, ".practice-note.won"), "Done in 30 darts");
+  assert.equal(text(card, ".practice-route .note.won"), "Done in 30 darts");
   assert.deepEqual(paths(card, "aim"), []);
 });
 
@@ -656,7 +676,7 @@ test("the doubles training aims at the double to hit", () => {
   const { card } = setup(drill("D16", { drill: "doubles", progress: 15, darts: 40, hit_rate: 37.5 }));
   assert.equal(text(card, ".practice-title"), "Doubles training");
   assert.equal(text(card, ".practice-remaining"), "D16");
-  assert.equal(text(card, ".practice-meta"), "40 darts · 38 % hits");
+  assert.equal(text(card, ".practice-meta"), "15 / 21 · 40 darts · 38% hits");
   assert.deepEqual(paths(card, "aim"), [bedPath("D16")]);
 });
 
@@ -666,21 +686,21 @@ test("the checkout training shows the finish, the route and the attempts", () =>
   const { hass, card } = setup(finish({ attempt_visit: 2, attempt_visits: 3, rate: 25 }));
   assert.equal(text(card, ".practice-title"), "Checkout training");
   assert.equal(text(card, ".practice-remaining"), "81");
-  assert.equal(text(card, ".practice-meta"), "Visit 2/3 · 1/4 checked out (25 %)");
+  assert.equal(text(card, ".practice-meta"), "Visit 2 / 3 · 1 / 4 checked out · 25%");
   assert.deepEqual(
-    $$(card, ".route-bed").map((bed) => bed.textContent),
+    $$(card, ".practice-route .bed").map((bed) => bed.textContent),
     ["T15", "D18"]
   );
   assert.deepEqual(paths(card, "aim"), [bedPath("T15")]);
 
   card.hass = update(hass, finish({ bust: true, rate: null }));
-  assert.equal(text(card, ".practice-meta"), "Visit 1/3 · 1/4 checked out");
-  assert.equal(text(card, ".practice-note.bust"), "Bust – the score stays");
-  assert.equal($$(card, ".route-bed").length, 2);
+  assert.equal(text(card, ".practice-meta"), "Visit 1 / 3 · 1 / 4 checked out");
+  assert.equal(text(card, ".practice-route .note.bust"), "Bust – the score stays");
+  assert.equal($$(card, ".practice-route .bed").length, 0);
 
   card.hass = update(hass, finish({ won: true, remaining: 0, checkout: null }));
   assert.equal(text(card, ".practice-remaining"), "0");
-  assert.equal(text(card, ".practice-note.won"), "Game shot!");
+  assert.equal(text(card, ".practice-route .note.won"), "Game shot!");
 
   card.hass = update(hass, drill("unknown", { drill: "checkout" }));
   assert.equal(text(card, ".practice-remaining"), "–");
@@ -689,18 +709,18 @@ test("the checkout training shows the finish, the route and the attempts", () =>
 test("Bob's 27 shows the score and the round, and how it ended", () => {
   const { hass, card } = setup(drill("D3", { drill: "bobs_27", score: 27, progress: 2, targets: 21, darts: 6 }));
   assert.equal(text(card, ".practice-title"), "Bob's 27");
-  assert.equal(text(card, ".practice-meta"), "27 points · Round 3/21");
+  assert.equal(text(card, ".practice-meta"), "27 points · Round 3 / 21");
   assert.equal(text(card, ".practice-remaining"), "D3");
   assert.deepEqual(paths(card, "aim"), [bedPath("D3")]);
 
   const finished = { drill: "bobs_27", finished: true, progress: 21, targets: 21, darts: 63 };
   card.hass = update(hass, drill("unknown", { ...finished, score: 150, results: [{ completed: true, score: 150 }] }));
-  assert.equal(text(card, ".practice-meta"), "150 points · Round 21/21");
-  assert.equal(text(card, ".practice-note.won"), "Done with 150 points");
+  assert.equal(text(card, ".practice-meta"), "150 points · Round 21 / 21");
+  assert.equal(text(card, ".practice-route .note.won"), "Done with 150 points");
   card.hass = update(hass, drill("unknown", { ...finished, score: -3, results: [{ completed: false }] }));
-  assert.equal(text(card, ".practice-note.bust"), "Below zero – the next dart starts again");
+  assert.equal(text(card, ".practice-route .note.bust"), "Below zero – the next dart starts again");
   card.hass = update(hass, drill("unknown", { drill: "bobs_27", progress: 0 }));
-  assert.equal(text(card, ".practice-meta"), "– points · Round 1/21");
+  assert.equal(text(card, ".practice-meta"), "– points · Round 1 / 21");
 });
 
 test("Cricket alone counts the closed numbers and shows the marks", () => {
@@ -719,11 +739,11 @@ test("Cricket alone counts the closed numbers and shows the marks", () => {
   assert.equal(text(card, ".practice-title"), "Cricket");
   assert.equal(text(card, ".practice-meta"), "12 darts · MPR 1.50");
   assert.equal(text(card, ".practice-remaining"), "3/7");
-  assert.equal(text(card, ".route-bed"), "T17");
+  assert.equal(text(card, ".practice-route .bed"), "T17");
   assert.equal($(card, ".scoreboard").hidden, false);
-  assert.equal($(card, ".cricket-grid thead"), null);
+  assert.equal($(card, ".practice .cricket thead"), null);
   assert.deepEqual(
-    $$(card, ".cricket-grid tr").map((row) => [row.className, row.textContent]),
+    $$(card, ".practice .cricket tr").map((row) => [row.className, row.textContent]),
     [
       ["closed", "20Ⓧ"],
       ["closed", "19Ⓧ"],
@@ -732,13 +752,19 @@ test("Cricket alone counts the closed numbers and shows the marks", () => {
       ["", "16"],
       ["", "15"],
       ["", "Bull"],
+      ["detail", "MPR1.50"],
     ]
+  );
+  // Screen readers hear the marks, not the chalk signs.
+  assert.deepEqual(
+    $$(card, ".practice .cricket td span").slice(0, 4).map((mark) => mark.getAttribute("aria-label")),
+    ["Closed", "Closed", "Closed", "1 mark"]
   );
   assert.deepEqual(paths(card, "aim"), [bedPath("T17")]);
 
   card.hass = update(hass, cricket({ mpr: null, darts: 3, won: true }));
   assert.equal(text(card, ".practice-meta"), "3 darts");
-  assert.equal(text(card, ".practice-note.won"), "Game shot!");
+  assert.equal(text(card, ".practice-route .note.won"), "Game shot!");
   assert.deepEqual(paths(card, "aim"), []);
   card.hass = update(hass, cricket({ darts: 0, target: "BULL", scores: [] }));
   assert.equal(text(card, ".practice-meta"), "");
@@ -768,14 +794,14 @@ test("a Cricket match shows the points, the player at the board and the winner",
   assert.equal(text(card, ".practice-meta"), "Sam to throw");
   assert.equal(text(card, ".practice-remaining"), "20");
   assert.deepEqual(
-    $$(card, ".cricket-grid thead th").map((cell) => [cell.className, cell.textContent]),
+    $$(card, ".practice .cricket thead th").map((cell) => [cell.className, cell.textContent]),
     [
-      ["", ""],
+      ["aim", ""],
       ["", "Alex"],
       ["active", "Sam"],
     ]
   );
-  const rows = $$(card, ".cricket-grid tbody tr").map((row) => [row.className, row.textContent]);
+  const rows = $$(card, ".practice .cricket tbody tr").map((row) => [row.className, row.textContent]);
   assert.deepEqual(rows.slice(0, 2), [
     ["closed", "20ⓍⓍ"],
     ["target", "19ⓍX"],
@@ -789,12 +815,18 @@ test("a Cricket match shows the points, the player at the board and the winner",
 
   card.hass = update(hass, cricket({ winner: 1, won: true, target: null }));
   assert.equal(text(card, ".practice-meta"), "");
-  assert.equal(text(card, ".practice-note.won"), "Alex wins the match!");
-  assert.equal($(card, ".cricket-grid thead th.winner").textContent, "Alex");
+  assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match!");
+  assert.equal($(card, ".practice .cricket thead th.winner").textContent, "Alex");
   assert.deepEqual(paths(card, "aim"), []);
   card.hass = update(hass, cricket({ winner: 1, legs_to_win: 1, sets_to_win: 1, scores: players(null) }));
-  assert.equal(text(card, ".practice-note.won"), "Player 1 wins the match!");
-  assert.equal($$(card, ".cricket-grid tbody tr").length, 9);
+  assert.equal(text(card, ".practice-route .note.won"), "Player 1 wins the match!");
+  assert.equal($$(card, ".practice .cricket tbody tr").length, 9);
+  // Between two numbers, before the next target is known, nothing is outlined.
+  card.hass = update(hass, cricket({ target: null }));
+  assert.equal(text(card, ".practice-route"), "");
+  // A winner the scores do not list is named by number.
+  card.hass = update(hass, cricket({ winner: 3 }));
+  assert.equal(text(card, ".practice-route .note.won"), "Player 3 wins the match!");
 });
 
 test("the bull-off shows who throws and how close each dart landed", () => {
@@ -845,7 +877,7 @@ test("Shanghai shows the round, the points and the number to hit", () => {
   assert.equal(text(card, ".practice-title"), "Shanghai");
   assert.equal(text(card, ".practice-meta"), "Round 3/7 · Alex to throw");
   assert.equal(text(card, ".practice-remaining"), "45");
-  assert.equal(text(card, ".route-bed"), "3");
+  assert.equal(text(card, ".practice-route .bed"), "3");
   assert.deepEqual(scores(card), [
     ["player-score active", "Alex", "Legs 1 · Sets 0", "45"],
     ["player-score", "Sam", "Legs 0 · Sets 0", "30"],
@@ -856,12 +888,12 @@ test("Shanghai shows the round, the points and the number to hit", () => {
   assert.equal(text(card, ".practice-meta"), "");
   assert.equal($(card, ".scoreboard").hidden, true);
   card.hass = update(hass, shanghai(both, { winner: 2, won: true }));
-  assert.equal(text(card, ".practice-note.won"), "Sam wins the match!");
+  assert.equal(text(card, ".practice-route .note.won"), "Sam wins the match!");
   assert.equal(scores(card)[1][0], "player-score winner");
   card.hass = update(hass, shanghai([{ player: 1, points: 45 }, { player: 2, points: 30 }], { winner: 2 }));
-  assert.equal(text(card, ".practice-note.won"), "Player 2 wins the match!");
+  assert.equal(text(card, ".practice-route .note.won"), "Player 2 wins the match!");
   card.hass = update(hass, shanghai(both, { won: true }));
-  assert.equal(text(card, ".practice-note.won"), "Game shot!");
+  assert.equal(text(card, ".practice-route .note.won"), "Game shot!");
 });
 
 test("Halve-It names any double, any treble or the bull as the target", () => {
@@ -869,13 +901,13 @@ test("Halve-It names any double, any treble or the bull as the target", () => {
     practice("unknown", { game: "halve_it", round: 2, rounds: 9, target, points: 40, player: 1, scores: [] });
   const { hass, card } = setup(halveIt("D"));
   assert.equal(text(card, ".practice-title"), "Halve-It");
-  assert.equal(text(card, ".route-bed"), "Any double");
+  assert.equal(text(card, ".practice-route .bed"), "Any double");
   assert.equal(paths(card, "aim").length, 21);
   card.hass = update(hass, halveIt("T"));
-  assert.equal(text(card, ".route-bed"), "Any treble");
+  assert.equal(text(card, ".practice-route .bed"), "Any treble");
   assert.equal(paths(card, "aim").length, 20);
   card.hass = update(hass, halveIt("BULL"));
-  assert.equal(text(card, ".route-bed"), "Bull");
+  assert.equal(text(card, ".practice-route .bed"), "Bull");
   assert.deepEqual(paths(card, "aim"), [bedPath("Bull"), bedPath("25")]);
   card.hass = update(hass, halveIt(null));
   assert.equal(text(card, ".practice-route"), "");
@@ -903,12 +935,12 @@ test("Killer shows the phases, the lives and the doubles a killer hunts", () => 
   assert.deepEqual(scores(card), [
     ["player-score active", "Alex", "7 · Killer", "♥♥♥"],
     ["player-score", "Sam", "12", "♥♥"],
-    ["player-score out", "Player 3", "5", "✕"],
+    ["player-score out", "Player 3", "5 · out", "✕"],
   ]);
 
   card.hass = update(hass, killer({ player: 2, name: "Sam", target: "D12" }));
   assert.equal(text(card, ".practice-remaining"), "12");
-  assert.equal(text(card, ".route-bed"), "D12");
+  assert.equal(text(card, ".practice-route .bed"), "D12");
   assert.deepEqual(paths(card, "aim"), [bedPath("D12")]);
 
   card.hass = update(hass, killer({ player: 4, name: null }));
@@ -926,7 +958,6 @@ test("the practice game can be hidden", () => {
 
 test("the live card offers its editor, a stub configuration and a grid size", () => {
   const Card = customElements.get("autodarts-card");
-  assert.equal(Card.getConfigElement().localName, "autodarts-card-editor");
   assert.deepEqual(Card.getStubConfig(makeHass({ states: READY })), { device_id: DEVICE });
   assert.deepEqual(Card.getStubConfig(makeHass()), {});
   assert.deepEqual(Card.getStubConfig({}), {});

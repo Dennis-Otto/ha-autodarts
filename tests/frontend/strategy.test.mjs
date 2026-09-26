@@ -21,7 +21,9 @@ function board(device, prefix) {
   ];
 }
 
-const hass = (entities, devices = {}) => ({
+// Every board of the entities is in the device registry unless the test says otherwise.
+const registered = (entities) => Object.fromEntries(entities.map((item) => [item.device_id, { id: item.device_id }]));
+const hass = (entities, devices = registered(entities)) => ({
   locale: { language: "en" },
   entities: Object.fromEntries(entities.map((item) => [item.entity_id, item])),
   devices,
@@ -88,7 +90,56 @@ test("a chosen board and title are respected, and missing entities are left out"
 
 test("without boards the dashboard explains what to do", () => {
   const config = dashboardStrategy({ locale: { language: "de" }, entities: {} });
-  assert.match(config.views[0].cards[0].content, /Kein Autodarts-Board/);
+  assert.match(config.views[0].cards[0].content, /^Kein Autodarts-Board gefunden\. Richte die Autodarts-Integration ein/);
+});
+
+test("a board that no longer exists gets no empty views, but its own message", () => {
+  const entities = [...board("dev1", "a"), ...board("gone", "b")];
+  // A board the device registry no longer knows is skipped.
+  const config = dashboardStrategy(hass(entities, { dev1: { name: "Garage" } }));
+  assert.deepEqual(
+    config.views.map((view) => view.path),
+    ["live", "scoreboard", "training", "board"]
+  );
+  const stale = dashboardStrategy(hass(entities, { dev1: { name: "Garage" } }), { device_id: "gone", title: "Darts" });
+  assert.equal(stale.title, "Darts");
+  assert.deepEqual(stale.views, [
+    {
+      title: "Autodarts",
+      cards: [
+        {
+          type: "markdown",
+          content:
+            "The board of this dashboard no longer exists. Edit the dashboard and choose another board, or clear the board to show every board.",
+        },
+      ],
+    },
+  ]);
+  // Without a device registry, a chosen board is trusted.
+  const trusted = dashboardStrategy({ ...hass(entities), devices: undefined }, { device_id: "dev1" });
+  assert.equal(trusted.views[0].sections[0].cards[0].device_id, "dev1");
+});
+
+test("the training view adds the training settings, the board view the detection quality", () => {
+  const config = dashboardStrategy(
+    hass([
+      ...board("dev1", "b"),
+      entity("switch.b_auto_start", "training_auto_start", "dev1"),
+      entity("number.b_idle", "training_idle_timeout", "dev1"),
+      entity("sensor.b_corrected", "correction_rate", "dev1"),
+    ])
+  );
+  const training = config.views.find((view) => view.path === "training");
+  assert.deepEqual(training.sections[1].cards.at(-1), {
+    type: "entities",
+    title: "Training settings",
+    entities: ["switch.b_auto_start", "number.b_idle"],
+  });
+  const maintenance = config.views.find((view) => view.path === "board").sections[1].cards;
+  assert.deepEqual(maintenance.slice(-2), [
+    { type: "tile", entity: "update.b_software" },
+    { type: "tile", entity: "sensor.b_corrected" },
+  ]);
 });
 
 test("the training view offers the daily goal, the streak and personal bests", () => {

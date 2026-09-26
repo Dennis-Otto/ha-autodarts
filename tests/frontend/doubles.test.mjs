@@ -33,8 +33,8 @@ const profiles = {
 
 test("without sensors nobody has doubles yet", () => {
   const empty = { attempts: 0, hits: 0, rate: null, favourite: null, doubles: [] };
-  assert.deepEqual(doublesView(undefined, undefined), { player: null, ...empty });
-  assert.deepEqual(doublesView(undefined, { state: "0", attributes: {} }, "Lea"), { player: "Lea", ...empty });
+  assert.deepEqual(doublesView(undefined, undefined), { player: null, known: true, ...empty });
+  assert.deepEqual(doublesView(undefined, { state: "0", attributes: {} }, "Lea"), { player: "Lea", known: false, ...empty });
 });
 
 test("everybody's doubles or one player's", () => {
@@ -49,9 +49,9 @@ test("everybody's doubles or one player's", () => {
     ]
   );
   const alex = doublesView(doubles, profiles, " alex ");
-  assert.deepEqual([alex.player, alex.attempts, alex.doubles[0].double], ["Alex", 10, "D8"]);
+  assert.deepEqual([alex.player, alex.known, alex.attempts, alex.doubles[0].double], ["Alex", true, 10, "D8"]);
   const nobody = doublesView(doubles, profiles, "Kim");
-  assert.deepEqual([nobody.player, nobody.doubles], ["Kim", []]);
+  assert.deepEqual([nobody.player, nobody.known, nobody.doubles], ["Kim", false, []]);
   assert.equal(doublesView({ state: "unknown", attributes: {} }).favourite, null);
 });
 
@@ -61,6 +61,7 @@ test("colours run from red to green and the list starts with the best double", (
   assert.equal(doubleColor(90), "hsl(130 70% 46%)");
   const html = doublesHtml(doublesView(doubles, profiles), {
     format: (value, digits) => value.toFixed(digits),
+    percent: (value, digits) => `${value.toFixed(digits)} %`,
     label: (key) => (key === "BULL" ? "Bull" : key),
   });
   assert.match(html.list, /^<div class="double"><span class="bed"[^>]*>Bull<\/span>/);
@@ -79,7 +80,7 @@ test("the training view shows the doubles card once the sensor exists", () => {
         item,
       ])
     ),
-    devices: {},
+    devices: { dev1: { id: "dev1" } },
     states: {},
   });
   const training = config.views.find((view) => view.path === "training");

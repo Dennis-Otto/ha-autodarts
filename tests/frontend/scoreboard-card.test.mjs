@@ -128,7 +128,7 @@ test("between games the scoreboard shows the visit and the session", () => {
   ]);
   assert.equal($(card, ".visit .sum"), null);
   assert.equal(text(card, ".pill"), "Ready – throw!");
-  assert.equal(card.style.getPropertyValue("--ad-status"), "#43a047");
+  assert.equal(card.style.getPropertyValue("--ad-status"), "var(--success-color, #43a047)");
 });
 
 test("between games the facts leave out what is unknown", () => {
@@ -214,10 +214,9 @@ test("status, visit and full height follow the options", () => {
   assert.equal($(full, ".scoreboard").getAttribute("class"), "scoreboard full");
   assert.equal(full.getCardSize(), 8);
   assert.deepEqual(full.getGridOptions(), { columns: "full", min_columns: 6 });
-  assert.equal(
-    customElements.get("autodarts-scoreboard-card").getConfigElement().localName,
-    "autodarts-scoreboard-card-editor"
-  );
+  // A phone's browser bar must not cut off the bottom of a full-height scoreboard.
+  const style = $(full, "style").textContent;
+  assert.ok(style.indexOf("min-height: calc(100vh") < style.indexOf("min-height: calc(100dvh"));
 });
 
 test("the scoreboard speaks German", () => {
@@ -332,6 +331,9 @@ test("the checkout training shows a dash without a target, and the game shot", (
 
 // Sound is unlocked once per page, so the caller tests build on each other in order.
 
+// An X01 visit as the practice sensor counts it: the remaining score after the darts it counted.
+const x01 = (remaining, keys = [], attributes = {}) => game({ remaining, visit: keys, ...attributes });
+
 test("the caller is off by default and says nothing", () => {
   const { hass, card } = setup(game({ remaining: 501 }));
   assert.equal($(card, ".caller-toggle"), null);
@@ -340,33 +342,36 @@ test("the caller is off by default and says nothing", () => {
 });
 
 test("a tap switches the caller on, even without Web Audio, and a second tap mutes it", () => {
-  const { hass, card } = setup(game({ remaining: 501 }), { caller: true });
+  const { hass, card } = setup(x01(501), { caller: true });
   const button = $(card, ".caller-toggle");
-  assert.deepEqual([button.getAttribute("aria-pressed"), button.textContent], ["false", "Tap to switch the caller on"]);
-  card.hass = update(hass, visit(T20, T20, T20));
+  // The label stays; the pressed state and the speaker tell whether the caller is on.
+  const state = () => [button.getAttribute("aria-pressed"), button.textContent, button.title];
+  assert.deepEqual(state(), ["false", "🔇Caller", "Tap to switch the caller on or off"]);
+  assert.equal(button.querySelector(".caller-icon").getAttribute("aria-hidden"), "true");
+  card.hass = update(hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
   assert.deepEqual(spoken, []);
 
   tap(card);
   assert.deepEqual(spoken.splice(0), [["Caller on", "en"]]);
-  assert.deepEqual([button.getAttribute("aria-pressed"), button.textContent], ["true", "Caller on"]);
+  assert.deepEqual(state(), ["true", "🔊Caller", "Tap to switch the caller on or off"]);
   card.hass = update(hass, visit());
-  card.hass = update(hass, visit(T20, T20, T20));
+  card.hass = update(hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
   // Without an audio context the fanfare stays silent.
   assert.deepEqual(said(), ["180"]);
   assert.equal(contexts.length, 0);
 
   tap(card);
   assert.deepEqual(spoken.splice(0), [["cancel"]]);
-  assert.deepEqual([button.getAttribute("aria-pressed"), button.textContent], ["false", "Tap to switch the caller on"]);
+  assert.deepEqual(state(), ["false", "🔇Caller", "Tap to switch the caller on or off"]);
 });
 
 test("the caller unlocks the prefixed audio context of Safari and plays a fanfare for 180", () => {
   window.webkitAudioContext = FakeAudioContext;
-  const { hass, card } = setup(game({ remaining: 501 }), { caller: true });
+  const { hass, card } = setup(x01(501), { caller: true });
   tap(card);
   assert.equal(contexts.length, 1);
   assert.equal(contexts[0].resumed, 1);
-  card.hass = update(hass, visit(T20, T20, T20));
+  card.hass = update(hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
   assert.deepEqual(said(), ["Caller on", "180"]);
   const tones = contexts[0].tones;
   assert.deepEqual(
@@ -389,7 +394,7 @@ test("the caller unlocks the prefixed audio context of Safari and plays a fanfar
   said();
 });
 
-test("later taps resume the one shared audio context", () => {
+test("later taps resume the one shared audio context, and the voice speaks the card's language", () => {
   window.AudioContext = FakeAudioContext;
   const { hass, card } = setup({}, { caller: true });
   // Without a locale the caller speaks Home Assistant's language, or English.
@@ -405,33 +410,82 @@ test("later taps resume the one shared audio context", () => {
   assert.deepEqual(spoken.splice(0), [["Caller on", "en"]]);
   tap(card);
   said();
+  // A regional variant keeps its voice; French gets the English words, so an English voice.
+  for (const [lang, voice] of [
+    ["en-GB", "en-GB"],
+    ["de-CH", "de-CH"],
+    ["fr", "en"],
+  ]) {
+    card.hass = { ...hass, locale: { language: lang }, language: lang };
+    tap(card);
+    assert.equal(spoken.splice(0)[0][1], voice, lang);
+    tap(card);
+    said();
+  }
 });
 
-test("the caller calls scores, what a player requires, busts and the match", () => {
-  const { hass, card } = setup(game({ remaining: 501 }), { caller: true });
+test("the caller calls what counts: a visit's score, what a player requires, busts and the match", () => {
+  const { hass, card } = setup(x01(501), { caller: true });
   tap(card);
   said();
-  let next = update(hass, visit(T20, dart(5, 1), dart(1, 1)));
+  let next = update(hass, { ...visit(T20, dart(5, 1), dart(1, 1)), ...x01(435, ["T20", "S5", "S1"]) });
   card.hass = next;
   assert.deepEqual(said(), ["66"]);
 
-  next = update(next, { ...visit(), ...game({ player: 2, name: "Sam", remaining: 40, checkout: "D20" }) });
+  next = update(next, { ...visit(), ...x01(40, [], { player: 2, name: "Sam", checkout: "D20" }) });
   card.hass = next;
   assert.deepEqual(said(), ["Sam, you require 40"]);
 
+  // A bust is "No score", without the sum of its darts before it.
   next = update(next, {
     ...visit(dart(20, 1), dart(20, 1), dart(5, 1)),
-    ...game({ player: 2, name: "Sam", remaining: 40, checkout: "D20", bust: true }),
+    ...x01(40, ["S20", "S20", "S5"], { player: 2, name: "Sam", checkout: "D20", bust: true }),
   });
   card.hass = next;
-  assert.deepEqual(said(), ["45", "No score"]);
+  assert.deepEqual(said(), ["No score"]);
 
+  next = update(next, { ...visit(), ...x01(40, [], { player: 2, name: "Sam", checkout: "D20" }) });
+  card.hass = next;
+  assert.deepEqual(said(), ["Sam, you require 40"]);
   next = update(next, {
     ...visit(dart(20, 2)),
-    ...game({ player: 2, name: "Sam", remaining: 0, won: true, winner: 2 }),
+    ...x01(0, ["D20"], { player: 2, name: "Sam", won: true, winner: 2 }),
   });
   card.hass = next;
   assert.deepEqual(said(), ["Game shot, and the match, Sam!"]);
+  tap(card);
+  said();
+});
+
+test("before the opening double a visit is no score, and without double out 180 can be required", () => {
+  const { hass, card } = setup(x01(501, [], { opened: false }), { caller: true });
+  tap(card);
+  said();
+  let next = update(hass, {
+    ...visit(T20, T20, T20),
+    ...x01(501, ["T20", "T20", "T20"], { opened: false }),
+  });
+  card.hass = next;
+  // No fanfare for darts that did not count.
+  assert.deepEqual(said(), ["No score"]);
+  next = update(next, { ...visit(), ...x01(180, [], { player: 2, name: "Sam", checkout: "T20 T20 T20" }) });
+  card.hass = next;
+  assert.deepEqual(said(), ["Sam, you require 180"]);
+  tap(card);
+  said();
+});
+
+test("Cricket calls the marks of a visit, not points", () => {
+  const players = [
+    { player: 1, name: "Alex", marks: [0, 0, 0, 0, 0, 0, 0], points: 0 },
+    { player: 2, name: "Sam", marks: [0, 0, 0, 0, 0, 0, 0], points: 0 },
+  ];
+  const cricket = (keys) => game({ game: "cricket", target: "T20", scores: players, visit: keys });
+  const { hass, card } = setup(cricket([]), { caller: true });
+  tap(card);
+  said();
+  card.hass = update(hass, { ...visit(T20, dart(19, 1), dart(3, 1)), ...cricket(["T20", "S19", "S3"]) });
+  assert.deepEqual(said(), ["4 marks"]);
   tap(card);
   said();
 });
@@ -444,7 +498,7 @@ test("alone, the caller calls the requirement without a name and the leg", () =>
   let next = update(hass, alone({ remaining: 40, checkout: "D20" }));
   card.hass = next;
   assert.deepEqual(said(), ["Du brauchst 40"]);
-  next = update(next, { ...visit(dart(20, 2)), ...alone({ remaining: 0, won: true }) });
+  next = update(next, { ...visit(dart(20, 2)), ...alone({ remaining: 0, won: true, visit: ["D20"] }) });
   card.hass = next;
   assert.deepEqual(said(), ["Game shot, und das Leg!"]);
   tap(card);
@@ -453,19 +507,19 @@ test("alone, the caller calls the requirement without a name and the leg", () =>
 
 test("each kind of call can be switched off", () => {
   const options = { caller: true, call_scores: false, call_checkouts: false, call_results: false, call_sounds: false };
-  const { hass, card } = setup(game({ remaining: 100 }), options);
+  const { hass, card } = setup(x01(100), options);
   tap(card);
   said();
-  let next = update(hass, { ...visit(T20, T20, T20), ...game({ remaining: 100, bust: true }) });
+  let next = update(hass, { ...visit(T20, T20, T20), ...x01(100, ["T20", "T20", "T20"], { bust: true }) });
   card.hass = next;
-  next = update(next, { ...visit(), ...game({ player: 2, remaining: 40, checkout: "D20" }) });
+  next = update(next, { ...visit(), ...x01(40, [], { player: 2, checkout: "D20" }) });
   card.hass = next;
-  card.hass = update(next, game({ player: 2, remaining: 0, won: true, winner: 2 }));
+  card.hass = update(next, x01(0, ["D20"], { player: 2, won: true, winner: 2 }));
   assert.deepEqual(said(), []);
 
-  const sounds = setup(game({ remaining: 501 }), { caller: true, call_sounds: false });
+  const sounds = setup(x01(501), { caller: true, call_sounds: false });
   const before = contexts[0].tones.length;
-  sounds.card.hass = update(sounds.hass, visit(T20, T20, T20));
+  sounds.card.hass = update(sounds.hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
   assert.deepEqual(said(), ["180"]);
   assert.equal(contexts[0].tones.length, before);
   tap(sounds.card);
@@ -473,7 +527,7 @@ test("each kind of call can be switched off", () => {
 });
 
 test("the preview neither unlocks nor speaks", () => {
-  const { hass, card } = setup(game({ remaining: 501 }), { caller: true });
+  const { hass, card } = setup(x01(501), { caller: true });
   card.preview = true;
   tap(card);
   assert.equal($(card, ".caller-toggle").getAttribute("aria-pressed"), "false");
@@ -483,7 +537,7 @@ test("the preview neither unlocks nor speaks", () => {
   const live = setup({}, { caller: true }).card;
   tap(live);
   said();
-  card.hass = update(hass, visit(T20, T20, T20));
+  card.hass = update(hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
   assert.deepEqual(spoken, []);
   tap(live);
   said();
@@ -496,7 +550,7 @@ test("without speech synthesis the caller stays silent", (t) => {
     globalThis.SpeechSynthesisUtterance = Utterance;
     window.speechSynthesis = speech;
   });
-  const { hass, card } = setup(game({ remaining: 501 }), { caller: true });
+  const { hass, card } = setup({}, { caller: true });
   tap(card);
   card.hass = update(hass, visit(dart(20, 1), dart(20, 1), dart(20, 1)));
   assert.equal($(card, ".caller-toggle").getAttribute("aria-pressed"), "true");

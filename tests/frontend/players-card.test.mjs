@@ -18,6 +18,7 @@ const ALEX = {
   mpr: 2.4,
   highest_visit: 140,
   highest_checkout: 121,
+  best_mpr: 3.1,
   fewest_darts: { 501: 18, 301: 12 },
 };
 const LEA = { name: "Lea", legs_played: 8, legs_won: 3, matches_played: 2, matches_won: 1 };
@@ -62,8 +63,9 @@ test("the players card shows every profile with its statistics and bests", () =>
   assert.deepEqual(rows(alex), [
     ["3-dart avg.", "61.3"],
     ["First 9", "70.1"],
-    ["Checkout", "31.3 %"],
+    ["Checkout", "31.3%"],
     ["MPR", "2.40"],
+    ["Best MPR", "3.10"],
     ["Highest visit", "140"],
     ["Highest checkout", "121"],
     ["Best 301", "12 darts"],
@@ -104,10 +106,10 @@ test("recent matches show when they ended, the game and the winner in bold", () 
   assert.deepEqual(
     matches.map((match) => [...match.children].map((part) => part.textContent.replace(/\s/g, " "))),
     [
-      ["09/26, 08:00 PM", "Killer", "Alex 0 · Player 2 1"],
+      ["09/26, 8:00 PM", "Killer", "Alex 0 · Player 2 1"],
       ["", "501", "Lea 1"],
-      ["09/25, 07:00 PM", "Cricket", "Alex 0"],
-      ["09/24, 07:00 PM", "", ""],
+      ["09/25, 7:00 PM", "Cricket", "Alex 0"],
+      ["09/24, 7:00 PM", "", ""],
     ]
   );
   assert.deepEqual(
@@ -166,13 +168,17 @@ test("the players card speaks German, also without a locale", () => {
   assert.equal(text(card, ".title"), "Spieler");
   assert.equal($(card, ".profile .muted").textContent, "Legs 12/20 · Matches 3/5");
   assert.deepEqual(rows($(card, ".profile")).slice(0, 3), [
-    ["3-Dart-Schnitt", "61,3"],
+    ["3-Dart-Average", "61,3"],
     ["First 9", "70,1"],
     ["Checkout", "31,3 %"],
   ]);
+  assert.deepEqual(rows($(card, ".profile")).slice(3, 5), [
+    ["MPR", "2,40"],
+    ["Beste MPR", "3,10"],
+  ]);
+  assert.deepEqual(rows($(card, ".profile")).slice(-2), [
+    ["Bestes 301-Leg", "12 Darts"],
+    ["Bestes 501-Leg", "18 Darts"],
+  ]);
   assert.equal(text(card, ".match .muted"), "26.09., 20:00");
-  assert.equal(
-    customElements.get("autodarts-players-card").getConfigElement().localName,
-    "autodarts-players-card-editor"
-  );
 });

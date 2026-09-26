@@ -2,25 +2,26 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { scoreboardHtml, scoreboardView } from "../../custom_components/autodarts/frontend/autodarts-card.js";
+import { scoreboardHtml, gameView } from "../../custom_components/autodarts/frontend/autodarts-card.js";
 
 const ui = {
   t: (key) => key,
   format: (value, digits) => (Number.isFinite(value) ? value.toFixed(digits) : "–"),
+  percent: (value, digits) => (Number.isFinite(value) ? `${value.toFixed(digits)} %` : "–"),
   label: (key) => (key === "BULL" ? "Bull" : key),
   name: "Dartboard",
   stats: { visit: "60", darts: 123, average: 45.6, highest: 140, max: 1 },
 };
-const board = (states) => scoreboardHtml(scoreboardView((name) => states[name]), ui);
+const board = (states) => scoreboardHtml(gameView((name) => states[name]), ui);
 
 test("the scoreboard shows the game that runs, a training game first", () => {
   const off = { state: "unknown", attributes: { game: null } };
-  assert.equal(scoreboardView(() => undefined).mode, "idle");
-  assert.equal(scoreboardView((name) => ({ practice: off })[name]).mode, "idle");
-  assert.equal(scoreboardView(() => ({ state: "501", attributes: { game: 501 } })).mode, "x01");
-  assert.equal(scoreboardView(() => ({ state: "unknown", attributes: { game: "cricket" } })).mode, "cricket");
+  assert.equal(gameView(() => undefined).mode, "idle");
+  assert.equal(gameView((name) => ({ practice: off })[name]).mode, "idle");
+  assert.equal(gameView(() => ({ state: "501", attributes: { game: 501 } })).mode, "x01");
+  assert.equal(gameView(() => ({ state: "unknown", attributes: { game: "cricket" } })).mode, "cricket");
   const drill = { state: "7", attributes: { drill: "around_the_clock" } };
-  assert.equal(scoreboardView((name) => ({ practice: off, drill })[name]).mode, "drill");
+  assert.equal(gameView((name) => ({ practice: off, drill })[name]).mode, "drill");
 });
 
 test("an X01 match shows every player, the player at the board and the route", () => {
@@ -106,8 +107,15 @@ test("cricket shows the chalkboard, the points and the next number", () => {
     cricket.main,
     /<thead><tr><th class="aim"><span class="bed">T19<\/span><\/th><th class="active">Alex<\/th><th class="">Sam<\/th><\/tr><\/thead>/
   );
-  assert.match(cricket.main, /<tr class="closed"><th>20<\/th><td class="active">Ⓧ<\/td><td class="">Ⓧ<\/td><\/tr>/);
-  assert.match(cricket.main, /<tr class="target"><th>19<\/th><td class="active">\/<\/td><td class=""><\/td><\/tr>/);
+  // Every mark has a name for screen readers.
+  const closed = '<span role="img" aria-label="mark_3">Ⓧ</span>';
+  assert.ok(cricket.main.includes(`<tr class="closed"><th>20</th><td class="active">${closed}</td><td class="">${closed}</td></tr>`));
+  assert.ok(
+    cricket.main.includes(
+      '<tr class="target"><th>19</th><td class="active"><span role="img" aria-label="mark_1">/</span></td>' +
+        '<td class=""><span role="img" aria-label="mark_0"></span></td></tr>'
+    )
+  );
   assert.match(cricket.main, /<tr class="total"><th>cricket_points<\/th><td class="active">60<\/td><td class="">0<\/td><\/tr>/);
   assert.match(cricket.main, /<tr class="detail"><th>cricket_mpr<\/th><td class="active">3\.50<\/td>/);
 
@@ -144,8 +152,8 @@ test("training games show their target, between games the visit and the session"
       attributes: { drill: "bobs_27", finished: true, score: 77, progress: 21, targets: 21, results: [{ completed: true }] },
     },
   });
-  assert.match(bobs.main, /<div class="big">✓<\/div><div class="route"><span class="note won">drill_bobs_done 77 drill_points/);
-  assert.match(bobs.main, /<b>77<\/b> drill_points<\/span><span><b>21 \/ 21<\/b> drill_round/);
+  assert.match(bobs.main, /<div class="big">✓<\/div><div class="route"><span class="note won">drill_bobs_done<\/span>/);
+  assert.match(bobs.main, /<b>77<\/b> drill_points<\/span><span>drill_round <b>21 \/ 21<\/b>/);
   const lost = board({ drill: { state: "unknown", attributes: { drill: "bobs_27", finished: true, score: -3 } } });
   assert.match(lost.main, /<span class="note bust">drill_bobs_lost<\/span>/);
 
@@ -165,7 +173,7 @@ test("training games show their target, between games the visit and the session"
     },
   });
   assert.match(checkout.main, /<div class="big">81<\/div><div class="route"><span class="bed">T15<\/span><span class="bed">D18<\/span>/);
-  assert.match(checkout.main, /<b>2 \/ 3<\/b> drill_visit.*<b>1 \/ 4<\/b> drill_checked.*<b>25 %<\/b>/);
+  assert.match(checkout.main, /drill_visit <b>2 \/ 3<\/b>.*<b>1 \/ 4<\/b> drill_checked.*<b>25 %<\/b>/);
   const bust = board({ drill: { state: "81", attributes: { drill: "checkout", remaining: 81, bust: true } } });
   assert.match(bust.main, /<span class="note bust">bust<\/span>/);
 
