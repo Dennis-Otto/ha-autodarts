@@ -29,7 +29,7 @@ Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwer
 
 ## Board-Ereignisse
 
-Die Entität **Board-Ereignisse** (`event.*_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP und `training` für Session-Ereignisse.
+Die Entität **Board-Ereignisse** (`event.*_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP und `training` für Session-Ereignisse. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
@@ -243,8 +243,8 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Board-Manager-Verbindung | Binärsensor, *Diagnose* | Home Assistant erreicht den Board Manager. |
-| Echtzeitverbindung | Binärsensor, *Diagnose* | Echtzeitereignisse kommen an. Ohne sie liest die Integration alle 2 Sekunden. |
+| Board-Manager-Verbindung | Binärsensor, *Diagnose* | Home Assistant erreicht den Board Manager. Ein oder zwei verpasste Lesevorgänge, also wenige Sekunden, lassen ihn an. |
+| Echtzeitverbindung | Binärsensor, *Diagnose* | Die Verbindung für Echtzeitereignisse steht. Bis darüber Ereignisse ankommen, liest die Integration alle 2 Sekunden. |
 | Autodarts-Cloud-Verbindung | Binärsensor, **BM 2**, *Diagnose* | Die Verbindung des Boards zu Autodarts. |
 | Kameras aktiv | Binärsensor | Die Kameras laufen. |
 | Kalibrierung läuft | Binärsensor | Eine Kalibrierung läuft. |

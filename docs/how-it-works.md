@@ -19,18 +19,25 @@ A board is one config entry with up to two independent connections:
 | Source | How | Interval |
 | --- | --- | --- |
 | Board state, dart positions, motion, cameras, frame rates | WebSocket `/api/events` of the Board Manager | Immediately |
-| Reconciliation while realtime events arrive | HTTP read | Every 30 seconds |
-| Fallback without realtime events | HTTP read | Every 2 seconds |
+| Reconciliation while realtime events arrive | HTTP read | Every 30 seconds; every 10 seconds with Board Manager 2, which announces no camera changes |
+| Fallback without realtime events | HTTP read | Every 2 seconds; every 15 seconds once the board has been away for about half a minute |
 | Board Manager 2 | One combined read of `/api/system` per interval | As above |
 | Board PC details, Board Manager 2 | HTTP read of `/api/host`; only the system, processor and software versions are kept | At start, every hour and after a Board Manager update |
 | Board Manager 1 settings and version | HTTP read | Every 30 seconds, and after every action |
 | Cloud match data | Autodarts API | Every 5 seconds during a match, otherwise every minute |
 
-Further details:
+## Connection behavior
 
-- **Reconnects.** If the realtime connection drops, the integration switches to fast polling at once. It then reconnects with a back-off of 1 to 60 seconds.
-- **No stale overwrites.** A slow HTTP read never overwrites a newer realtime message.
-- **Short hiccups.** A single missed read while realtime events still arrive is not treated as an outage.
+- **Realtime first.** Polling slows down once the first valid notification arrives, not merely when the socket opens, so a socket that stays silent keeps the fast polling.
+- **Reconnects.** If the realtime connection drops, the integration switches to fast polling at once. It reconnects after 1, 2, 4 … up to 60 seconds, each wait shortened by a random amount of up to a fifth. A connection that lasted 30 seconds starts over at 1 second, and when a read finds the board back after an outage, the integration reconnects right away.
+- **Short hiccups.** Two missed reads in a row, a few seconds, keep the last values; the third makes the board entities unavailable. While realtime events arrive, a missed read is no outage at all.
+- **A board that stays away**, for example while its PC is off, is asked every 15 seconds after about ten missed reads. Fast polling resumes with the first answer.
+- **Board off at the start.** The integration loads anyway. Training, practice games, personal bests, their entities and the board events work without the board; the board entities follow as soon as it answers.
+- **Visits across interruptions.** While the board is out of sight, the visit in progress is kept. If the board still shows its darts first afterwards, the visit continues and new darts are detected. Otherwise, the darts were pulled meanwhile: the visit is completed with `visit_completed`, and the practice game books it. Darts thrown after that during the interruption are not counted, because they cannot be told apart from corrected darts. A status change during the interruption is announced with the first state afterwards.
+- **One read at a time.** Reads never overlap, so an older answer never replaces a newer one, and a slow HTTP read never overwrites a newer realtime message.
+- **High-rate values.** Frame rates and detection statistics only update their data and the camera alarm; they never recompute the training or the practice game.
+- **Faults stay contained.** An error in the training or a game rule is logged once and never cuts the connection to the board.
+- **Unexpected answers.** An answer in an unknown format is logged once per read. If a required read (state, settings or `/api/system`) answers like that three times in a row, a repair notice asks to update the integration. A board that answers with HTTP 401 or 403 gets a notice of its own; the Board Manager needs no login.
 - **After an action.** The integration reads the board immediately after every action, so a switch reflects the new state within about a second.
 
 ## Board Manager generations
@@ -41,7 +48,15 @@ Further details:
 | Reads | Separate reads for state, statistics, cameras, motion, settings and version | One combined `/api/system` read |
 | Extras | Board cloud link switch | Cloud connection, CPU, memory, update notice, mDNS discovery |
 
-The generation is detected on every read. When you update the board, the integration reloads itself and adds or removes the generation-specific entities; nothing else changes. While a board still runs Board Manager 1, a repair notice recommends the update.
+The generation is detected on every read. When you update the board, the integration reloads itself and adds or removes the generation-specific entities; nothing else changes. While a board still runs Board Manager 1, a repair notice recommends the update. While the generation is still unknown, for example when the board is off at the first start, no entities are removed.
+
+A board that reports version 2 but has no `/api/system` counts as Board Manager 1 after three answers without it. The integration remembers this for that Board Manager version, so a restart does not switch back and forth; another version is checked again.
+
+## Address changes
+
+- **Board Manager 2** announces itself in the network (mDNS). When it announces a new address, Home Assistant follows it and reloads the integration. Only the addresses the announcement was sent from are used, and a board that still answers at its configured address is never moved.
+- **Entries linked to the Autodarts cloud** use the address the cloud reports when the configured one does not answer at the start. If the board has been away for five minutes at runtime and answers with its board ID at an address the cloud reports, a repair notice offers to switch to it. The cloud addresses are checked at most every 30 minutes.
+- **Otherwise**, open the integration and choose **Reconfigure**, then search for the board or enter its address. The integration never contacts the Autodarts discovery service on its own.
 
 ## Training session
 
@@ -54,7 +69,8 @@ Training sessions are computed in Home Assistant from what the board detects. Th
 - **Corrections revise.** If the board corrects a dart in the current visit, the totals follow the correction, for example when a 180 turns into a 140.
 - **Takeouts end a visit.** Removing darts ends the visit; the removed darts keep their score. The same happens when new darts appear without an empty board in between (a missed takeout), and when the detection stops.
 - **The third dart completes the visit early.** When the third announced dart of a visit lands, `visit_thrown` announces the visit at once, while the darts are still in the board. It comes once per visit, also after corrections; `visit_completed` follows when the visit ends, with the final score and `thrown: true`.
-- **Startup darts are ignored.** Darts that are already on the board when Home Assistant or the connection starts are not counted.
+- **Startup darts are ignored.** Darts that are already on the board when Home Assistant starts are not counted.
+- **Interruptions keep the visit.** After the connection was interrupted, the visit goes on if the board still shows its darts; otherwise it is completed, see [connection behavior](#connection-behavior).
 - **Withdrawn detections.** If the board withdraws a detection outside a takeout, the dart is removed from the totals again.
 - **Visit buckets.** 100+ counts visits with 100–139 points, 140+ with 140–179, and 180 with exactly three triple 20s. Merged visits with more than three darts (after a missed takeout) are not bucketed.
 - **Storage.** The session, its settings, the last 20 sessions and the last 10 visits are saved in Home Assistant's `.storage` folder at most every five seconds, at once when a session starts or ends, and on shutdown. They are deleted together with the integration.
@@ -152,7 +168,9 @@ The practice game follows the darts of the current visit, including corrections,
 
 ## Camera health
 
-A camera counts as failed when it delivers no frames for **15 seconds** while the detection runs. Stopped detection, calibration and camera standby are not failures. The combined *Camera problem* sensor is on when any camera has failed.
+A camera counts as failed when it delivers no frames for **15 seconds** while the detection runs. Stopped detection, calibration and camera standby are not failures. The combined *Camera problem* sensor is on when any camera has failed. With realtime events, the alarm appears as soon as the frame rates show it.
+
+The camera entities relay the live stream of Board Manager 2 to at most two viewers per camera; further viewers get snapshots, which spares the board PC that also runs the detection.
 
 ## Privacy
 
@@ -160,7 +178,7 @@ A camera counts as failed when it delivers no frames for **15 seconds** while th
 - **Search for boards** asks `discover.autodarts.com`, the public Autodarts discovery service, once when you use it. The service sees your public IP address and returns the boards registered from it.
 - **The optional cloud link** uses the Autodarts device login. Home Assistant stores OAuth tokens, never your password.
 - **Board secrets** are dropped as soon as they are read and are never stored, logged or shown: the board API key, TLS keys, camera device paths and similar configuration.
-- **Diagnostics** redact the board ID, host, client ID and tokens.
+- **Diagnostics** redact the board ID, host, client ID, tokens and player names. The connection history in them holds counts, kinds of errors and durations, but no addresses or error messages.
 
 ## Security
 

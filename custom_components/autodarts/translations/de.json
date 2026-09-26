@@ -102,7 +102,8 @@
       "cannot_connect_local": "Der lokale Board Manager ist nicht erreichbar oder liefert keine gültigen Daten.",
       "board_not_configured": "Im Board Manager ist noch keine Board-ID hinterlegt. Bitte dort zuerst das Board einrichten.",
       "no_boards_found": "Es wurden keine neuen Boards automatisch gefunden. Gib stattdessen die Board-Adresse ein.",
-      "discovery_failed": "Die Board-Suche ist gerade nicht erreichbar. Gib stattdessen die Board-Adresse ein."
+      "discovery_failed": "Die Board-Suche ist gerade nicht erreichbar. Gib stattdessen die Board-Adresse ein.",
+      "board_access_denied": "Das Board verweigert den Zugriff (HTTP 401 oder 403). Der Board Manager braucht keine Anmeldung; prüfe Proxys und Firewalls zwischen Home Assistant und dem Board."
     },
     "abort": {
       "already_configured": "Dieses Autodarts-Board ist bereits eingerichtet.",
@@ -518,6 +519,15 @@
     },
     "unknown_player": {
       "message": "Es gibt kein Spielerprofil mit dem Namen {name}."
+    },
+    "board_access_denied": {
+      "message": "Der Board Manager verweigert den Zugriff. Er braucht normalerweise keine Anmeldung; prüfe Proxys und Firewalls zwischen Home Assistant und dem Board."
+    },
+    "unsupported_response": {
+      "message": "Der Board Manager antwortet in einem Format, das diese Version der Integration nicht versteht."
+    },
+    "not_supported": {
+      "message": "Dieses Board unterstützt die Aktion nicht."
     }
   },
   "issues": {
@@ -541,6 +551,28 @@
         "abort": {
           "calibration_failed": "Das Board hat die Kalibrierung nicht angenommen. Versuch es erneut oder kalibriere über die Board-Status-Karte.",
           "board_unavailable": "Das Board ist nicht geladen. Prüfe die Verbindung und versuch es erneut."
+        }
+      }
+    },
+    "board_access_denied": {
+      "title": "Autodarts-Board verweigert den Zugriff",
+      "description": "Das Board unter {address} antwortet mit HTTP 401 oder 403. Der Board Manager selbst braucht keine Anmeldung, also blockiert etwas zwischen Home Assistant und dem Board die Anfragen, zum Beispiel ein Reverse Proxy, eine Firewall oder eine Anmeldung vor Port 3180. Lass Home Assistant auf das Board zugreifen; der Hinweis verschwindet dann von selbst."
+    },
+    "unsupported_response": {
+      "title": "Autodarts-Board antwortet in einem unbekannten Format",
+      "description": "Das Board beantwortet {reads} in einem Format, das diese Version der Integration nicht versteht, zum Beispiel nach einem Update des Board Managers. Werte aus diesen Abfragen werden nicht aktualisiert. Aktualisiere die Autodarts-Integration; bleibt der Hinweis, melde ihn zusammen mit den Diagnosedaten."
+    },
+    "board_moved": {
+      "title": "Autodarts-Board unter neuer Adresse gefunden",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Neue Adresse verwenden",
+            "description": "Das Board antwortet nicht mehr unter seiner alten Adresse. Die Autodarts-Cloud meldet es unter {new}, wo es mit seiner Board-ID antwortet.\n\nDas Board dort verbinden? Die Integration wird neu geladen; Entitäten, Training und Einstellungen bleiben erhalten."
+          }
+        },
+        "abort": {
+          "board_unavailable": "Das Board antwortet unter der neuen Adresse nicht mehr. Warte auf den nächsten Hinweis oder öffne die Integration und wähle **Neu konfigurieren**."
         }
       }
     }

@@ -19,18 +19,25 @@ Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen
 | Quelle | Wie | Intervall |
 | --- | --- | --- |
 | Board-Zustand, Dart-Positionen, Bewegung, Kameras, Bildraten | WebSocket `/api/events` des Board Managers | Sofort |
-| Abgleich, solange Echtzeitereignisse ankommen | HTTP-Lesen | Alle 30 Sekunden |
-| Ersatz ohne Echtzeitereignisse | HTTP-Lesen | Alle 2 Sekunden |
+| Abgleich, solange Echtzeitereignisse ankommen | HTTP-Lesen | Alle 30 Sekunden; alle 10 Sekunden bei Board Manager 2, der Kameraänderungen nicht meldet |
+| Ersatz ohne Echtzeitereignisse | HTTP-Lesen | Alle 2 Sekunden; alle 15 Sekunden, wenn das Board seit etwa einer halben Minute fehlt |
 | Board Manager 2 | Ein gemeinsamer Aufruf von `/api/system` pro Intervall | Wie oben |
 | Board-PC-Details bei Board Manager 2 | HTTP-Lesen von `/api/host`; übernommen werden nur System, Prozessor und Softwareversionen | Beim Start, stündlich und nach einem Board-Manager-Update |
 | Einstellungen und Version bei Board Manager 1 | HTTP-Lesen | Alle 30 Sekunden und nach jeder Aktion |
 | Cloud-Spieldaten | Autodarts-API | Während eines Matches alle 5 Sekunden, sonst jede Minute |
 
-Weitere Details:
+## Verbindungsverhalten
 
-- **Wiederverbinden.** Bricht die Echtzeitverbindung ab, wechselt die Integration sofort auf schnelles Lesen. Danach verbindet sie sich mit wachsendem Abstand von 1 bis 60 Sekunden neu.
-- **Keine veralteten Werte.** Ein langsames HTTP-Lesen überschreibt nie eine neuere Echtzeitnachricht.
-- **Kurze Aussetzer.** Ein einzelner verpasster Lesevorgang zählt nicht als Ausfall, solange Echtzeitereignisse ankommen.
+- **Echtzeit zuerst.** Das Lesen wird erst langsamer, wenn die erste gültige Nachricht ankommt, nicht schon, wenn die Verbindung steht. Eine Verbindung, über die nichts kommt, behält also das schnelle Lesen.
+- **Wiederverbinden.** Bricht die Echtzeitverbindung ab, wechselt die Integration sofort auf schnelles Lesen. Sie verbindet sich nach 1, 2, 4 … bis 60 Sekunden neu; jede Wartezeit wird zufällig um bis zu ein Fünftel verkürzt. Eine Verbindung, die 30 Sekunden gehalten hat, beginnt wieder bei 1 Sekunde, und findet ein Lesevorgang das Board nach einem Ausfall wieder, verbindet sich die Integration sofort.
+- **Kurze Aussetzer.** Zwei verpasste Lesevorgänge in Folge, also wenige Sekunden, behalten die letzten Werte; erst der dritte macht die Board-Entitäten nicht verfügbar. Solange Echtzeitereignisse ankommen, ist ein verpasster Lesevorgang gar kein Ausfall.
+- **Ein Board, das länger fehlt**, etwa weil sein PC aus ist, wird nach etwa zehn verpassten Lesevorgängen alle 15 Sekunden gefragt. Mit der ersten Antwort geht es wieder schnell weiter.
+- **Board beim Start aus.** Die Integration lädt trotzdem. Training, Übungsspiele, persönliche Bestleistungen, ihre Entitäten und die Board-Ereignisse funktionieren ohne das Board; die Board-Entitäten folgen, sobald es antwortet.
+- **Aufnahmen über Unterbrechungen.** Solange das Board nicht erreichbar ist, bleibt die laufende Aufnahme erhalten. Zeigt das Board danach zuerst noch ihre Darts, geht die Aufnahme weiter, und neue Darts werden erkannt. Sonst wurden die Darts inzwischen gezogen: Die Aufnahme wird mit `visit_completed` abgeschlossen, und das Übungsspiel verbucht sie. Darts, die danach noch während der Unterbrechung geworfen wurden, zählen nicht, weil sie sich nicht von korrigierten Darts unterscheiden lassen. Eine Statusänderung während der Unterbrechung wird mit dem ersten Zustand danach gemeldet.
+- **Ein Lesevorgang nach dem anderen.** Lesevorgänge überschneiden sich nie, eine ältere Antwort ersetzt also nie eine neuere, und ein langsames HTTP-Lesen überschreibt nie eine neuere Echtzeitnachricht.
+- **Schnell wechselnde Werte.** Bildraten und Erkennungsstatistik aktualisieren nur ihre Daten und den Kameraalarm; Training und Übungsspiel werden dafür nie neu berechnet.
+- **Fehler bleiben begrenzt.** Ein Fehler im Training oder in einer Spielregel wird einmal protokolliert und trennt nie die Verbindung zum Board.
+- **Unerwartete Antworten.** Eine Antwort in unbekanntem Format wird pro Abfrage einmal protokolliert. Antwortet eine nötige Abfrage (Zustand, Einstellungen oder `/api/system`) dreimal hintereinander so, bittet ein Reparaturhinweis um ein Update der Integration. Ein Board, das mit HTTP 401 oder 403 antwortet, bekommt einen eigenen Hinweis; der Board Manager braucht keine Anmeldung.
 - **Nach einer Aktion.** Die Integration liest das Board direkt nach jeder Aktion; ein Schalter zeigt den neuen Zustand also nach etwa einer Sekunde.
 
 ## Board-Manager-Generationen
@@ -41,7 +48,15 @@ Weitere Details:
 | Lesen | Einzelne Aufrufe für Zustand, Statistik, Kameras, Bewegung, Einstellungen und Version | Ein gemeinsamer Aufruf von `/api/system` |
 | Extras | Schalter für die Board-Cloud-Verbindung | Cloud-Verbindung, CPU, Speicher, Update-Hinweis, mDNS-Erkennung |
 
-Die Generation wird bei jedem Lesen geprüft. Nach einem Update des Boards lädt sich die Integration neu und ergänzt oder entfernt die generationsspezifischen Entitäten; sonst ändert sich nichts. Solange ein Board noch Board Manager 1 nutzt, empfiehlt ein Reparaturhinweis das Update.
+Die Generation wird bei jedem Lesen geprüft. Nach einem Update des Boards lädt sich die Integration neu und ergänzt oder entfernt die generationsspezifischen Entitäten; sonst ändert sich nichts. Solange ein Board noch Board Manager 1 nutzt, empfiehlt ein Reparaturhinweis das Update. Solange die Generation noch unbekannt ist, etwa weil das Board beim ersten Start aus ist, werden keine Entitäten entfernt.
+
+Ein Board, das Version 2 meldet, aber kein `/api/system` hat, gilt nach drei Antworten ohne diese Abfrage als Board Manager 1. Die Integration merkt sich das für diese Board-Manager-Version, damit ein Neustart nicht hin und her wechselt; eine andere Version wird erneut geprüft.
+
+## Adresswechsel
+
+- **Board Manager 2** meldet sich im Netzwerk (mDNS). Meldet er eine neue Adresse, übernimmt Home Assistant sie und lädt die Integration neu. Genutzt werden nur die Adressen, von denen die Meldung kommt, und ein Board, das unter seiner eingerichteten Adresse noch antwortet, wird nie umgezogen.
+- **Einträge mit Autodarts-Cloud-Verknüpfung** nutzen beim Start die Adresse, die die Cloud meldet, wenn die eingerichtete nicht antwortet. Fehlt das Board im Betrieb fünf Minuten und antwortet es unter einer Adresse, die die Cloud meldet, mit seiner Board-ID, bietet ein Reparaturhinweis den Wechsel an. Die Cloud-Adressen werden höchstens alle 30 Minuten geprüft.
+- **Sonst** öffnest du die Integration, wählst **Neu konfigurieren** und suchst das Board oder gibst seine Adresse ein. Den Suchdienst von Autodarts fragt die Integration nie von sich aus.
 
 ## Trainingssession
 
@@ -54,7 +69,8 @@ Trainingssessions berechnet Home Assistant aus dem, was das Board erkennt. Sie f
 - **Korrekturen überarbeiten.** Korrigiert das Board einen Dart der aktuellen Aufnahme, folgen die Summen der Korrektur, etwa wenn aus einer 180 eine 140 wird.
 - **Die Entnahme beendet die Aufnahme.** Die entfernten Darts behalten ihre Punkte. Dasselbe gilt, wenn neue Darts ohne leeres Board dazwischen erscheinen (verpasste Entnahme) und wenn die Erkennung stoppt.
 - **Der dritte Dart meldet die Aufnahme früh.** Landet der dritte gemeldete Dart einer Aufnahme, meldet `visit_thrown` die Aufnahme sofort, solange die Darts noch im Board stecken. Das geschieht einmal pro Aufnahme, auch nach Korrekturen; `visit_completed` folgt, wenn die Aufnahme endet, mit den endgültigen Punkten und `thrown: true`.
-- **Darts beim Start zählen nicht.** Darts, die beim Start von Home Assistant oder der Verbindung schon im Board stecken, werden nicht mitgezählt.
+- **Darts beim Start zählen nicht.** Darts, die beim Start von Home Assistant schon im Board stecken, werden nicht mitgezählt.
+- **Unterbrechungen behalten die Aufnahme.** Nach einer Unterbrechung der Verbindung geht die Aufnahme weiter, wenn das Board noch ihre Darts zeigt; sonst wird sie abgeschlossen, siehe [Verbindungsverhalten](#verbindungsverhalten).
 - **Zurückgezogene Erkennungen.** Nimmt das Board außerhalb einer Entnahme eine Erkennung zurück, verschwindet der Dart wieder aus den Summen.
 - **Punktstufen.** 100+ zählt Aufnahmen mit 100–139 Punkten, 140+ mit 140–179, 180 genau drei Triple 20. Zusammengelegte Aufnahmen mit mehr als drei Darts (nach verpasster Entnahme) zählen in keine Stufe.
 - **Speicherung.** Session, Einstellungen, die letzten 20 Sessions und die letzten 10 Aufnahmen liegen im Ordner `.storage` von Home Assistant. Sie werden höchstens alle fünf Sekunden gespeichert, sofort beim Start oder Ende einer Session und beim Beenden von Home Assistant, und zusammen mit der Integration gelöscht.
@@ -152,7 +168,9 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 
 ## Kamerazustand
 
-Eine Kamera gilt als gestört, wenn sie bei laufender Erkennung **15 Sekunden** lang keine Bilder liefert. Gestoppte Erkennung, Kalibrierung und Kamera-Standby sind keine Störung. Der gemeinsame Sensor *Kamerastörung* ist an, sobald eine Kamera gestört ist.
+Eine Kamera gilt als gestört, wenn sie bei laufender Erkennung **15 Sekunden** lang keine Bilder liefert. Gestoppte Erkennung, Kalibrierung und Kamera-Standby sind keine Störung. Der gemeinsame Sensor *Kamerastörung* ist an, sobald eine Kamera gestört ist. Mit Echtzeitereignissen erscheint der Alarm, sobald die Bildraten ihn zeigen.
+
+Die Kamera-Entitäten geben den Livestream von Board Manager 2 an höchstens zwei Zuschauer pro Kamera weiter; weitere Zuschauer bekommen Standbilder. Das schont den Board-PC, auf dem auch die Erkennung läuft.
 
 ## Datenschutz
 
@@ -160,7 +178,7 @@ Eine Kamera gilt als gestört, wenn sie bei laufender Erkennung **15 Sekunden** 
 - **Boards im Netzwerk suchen:** Fragt einmalig bei Benutzung `discover.autodarts.com`, den öffentlichen Suchdienst von Autodarts. Er sieht deine öffentliche IP-Adresse und liefert die von dort registrierten Boards.
 - **Die optionale Cloud-Verknüpfung** nutzt die Geräteanmeldung von Autodarts. Home Assistant speichert OAuth-Token, nie dein Passwort.
 - **Board-Geheimnisse** wie der API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade und ähnliche Konfiguration werden direkt beim Lesen verworfen. Sie werden nie gespeichert, protokolliert oder angezeigt.
-- **Diagnosedaten** schwärzen Board-ID, Adresse, Client-ID und Token.
+- **Diagnosedaten** schwärzen Board-ID, Adresse, Client-ID, Token und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
 
 ## Sicherheit
 

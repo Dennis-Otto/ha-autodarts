@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from typing import Any
-from urllib.parse import urlparse
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -36,10 +35,12 @@ from .const import (
     PLATFORMS,
 )
 from .coordinator import AutodartsDataUpdateCoordinator
+from .discovery import cloud_addresses
 from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
-from .local_coordinator import AutodartsLocalCoordinator
+from .local_coordinator import ISSUES, AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry, AutodartsRuntimeData
+from .sensor import SYSTEM_SENSORS
 from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,8 +51,7 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 V1_ONLY = (("switch", "upstream"), ("button", "connect"), ("button", "disconnect"))
 V2_ONLY = (
     ("binary_sensor", "cloud_link"),
-    ("sensor", "cpu_usage"),
-    ("sensor", "memory_usage"),
+    *(("sensor", description.key) for description in SYSTEM_SENSORS),
     ("update", "board_software"),
 )
 
@@ -67,7 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
     """Local controls remain usable even if cloud authentication fails."""
     session = async_get_clientsession(hass)
     runtime = AutodartsRuntimeData()
-    local_error: Exception | None = None
+    local_failed = False
 
     def local_coordinator(host: str, port: int) -> AutodartsLocalCoordinator:
         return AutodartsLocalCoordinator(
@@ -77,22 +77,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
             entry,
         )
 
-    async def discover_local(addresses: object) -> bool:
+    async def discover_local(addresses: object) -> None:
         """Adopt the first address reported by the cloud that answers as this board."""
-        for address in addresses.split(",") if isinstance(addresses, str) else []:
-            try:
-                parsed = urlparse(address.strip())
-                port = parsed.port or DEFAULT_PORT
-            except ValueError:
-                continue
-            if parsed.scheme != "http" or not parsed.hostname:
-                continue
-            if (parsed.hostname, port) == (
+        for host, port in cloud_addresses(addresses):
+            if (host, port) == (
                 entry.data.get(CONF_HOST),
                 entry.data.get(CONF_PORT, DEFAULT_PORT),
             ):
                 continue
-            candidate = local_coordinator(parsed.hostname, port)
+            candidate = local_coordinator(host, port)
             try:
                 await candidate.async_config_entry_first_refresh()
             except ConfigEntryNotReady:
@@ -103,19 +96,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
                 await runtime.local.async_shutdown()
             runtime.local = candidate
             hass.config_entries.async_update_entry(
-                entry,
-                data={**entry.data, CONF_HOST: parsed.hostname, CONF_PORT: port},
+                entry, data={**entry.data, CONF_HOST: host, CONF_PORT: port}
             )
-            return True
-        return False
+            return
 
     if host := entry.data.get(CONF_HOST):
         runtime.local = local_coordinator(host, entry.data.get(CONF_PORT, DEFAULT_PORT))
         try:
             await runtime.local.async_config_entry_first_refresh()
-        except ConfigEntryNotReady as err:
+        except ConfigEntryNotReady:
             # Entities stay and recover when the board answers again.
-            local_error = err
+            local_failed = True
 
     # Without an obtainable client ID, a relink could never be completed.
     if not entry.data.get(CONF_LOCAL_ONLY, False) and (
@@ -150,24 +141,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
             # A configured board keeps working locally while the login is renewed.
             entry.async_start_reauth(hass)
         except ConfigEntryNotReady:
-            if runtime.local is None or local_error is not None:
+            # A configured board works locally while the cloud is away.
+            if runtime.local is None:
                 raise
 
         # The cloud knows the board's current address: use it when none is set or
         # the stored one no longer answers, e.g. after a DHCP change.
-        if (runtime.local is None or local_error is not None) and (
+        if (runtime.local is None or local_failed) and (
             runtime.cloud and runtime.cloud.data
         ):
-            if await discover_local(runtime.cloud.data.get("board", {}).get("ip")):
-                local_error = None
+            await discover_local(runtime.cloud.data.get("board", {}).get("ip"))
     elif runtime.local is None:
         # Retrying cannot help: the user has to enter the address first.
         raise ConfigEntryError(
             translation_domain=DOMAIN, translation_key="no_local_address"
         )
-    elif local_error is not None:
-        raise local_error
-
+    # A board that is switched off does not stop the setup: the entities of
+    # training and games work without it, and the others recover with the board.
     entry.runtime_data = runtime
     if runtime.local:
         device = next(
@@ -186,7 +176,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
         )
     if runtime.local:
         runtime.local.setup_generation = runtime.local.generation or 1
-        _remove_other_generation(hass, entry, runtime.local.board_manager_2)
+        # An unknown generation keeps the entities and their customizations.
+        if runtime.local.generation is not None:
+            _remove_other_generation(hass, entry, runtime.local.board_manager_2)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     if runtime.local:
         runtime.local.async_start()
@@ -247,5 +239,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -
 async def async_remove_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> None:
     """Deleting the integration also deletes its local training session."""
     await Store(hass, 1, f"{DOMAIN}.{entry.entry_id}.training").async_remove()
-    for issue in ("wrong_board", "board_manager_1"):
+    for issue in ISSUES:
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")

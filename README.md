@@ -196,7 +196,7 @@ Prefer writing your own? The [automation guide](docs/automations.md) explains th
   <img src="docs/images/en/architecture-light.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which reads and controls the board over HTTP, keeps the training session locally and provides entities, board events, cards and automations; the Autodarts cloud optionally adds match data." width="560">
 </picture>
 
-- The integration listens to the Board Manager's realtime events and reconciles them with an HTTP read every 30 seconds. Without realtime events, it reads every 2 seconds instead.
+- The integration listens to the Board Manager's realtime events and reconciles them with an HTTP read every 10 to 30 seconds. Without realtime events, it reads every 2 seconds instead. Short interruptions keep the values and the visit in progress.
 - Actions are sent once, and failures are reported instead of retried.
 - The training session is computed from what the board detects and stored in Home Assistant.
 

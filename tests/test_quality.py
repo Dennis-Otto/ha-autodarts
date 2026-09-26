@@ -2,6 +2,7 @@
 
 import logging
 from copy import deepcopy
+from datetime import timedelta
 from unittest.mock import AsyncMock
 
 import pytest
@@ -9,11 +10,13 @@ from homeassistant.components.button import ButtonDeviceClass
 from homeassistant.const import EntityCategory
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.coordinator import AutodartsDataUpdateCoordinator
 from custom_components.autodarts.errors import AutodartsConnectionError
+from custom_components.autodarts.local_coordinator import ISSUES
 
-from .local_helpers import CONFIG, STATE, mock_board
+from .local_helpers import CONFIG, STATE, local_entry_data, mock_board
 from .test_board_manager_2 import setup_v2
 from .test_local_setup import entity_id, setup_local, state
 
@@ -32,19 +35,38 @@ async def test_classic_board_manager_asks_to_update(hass, aioclient_mock):
     assert issue(hass, "board_manager_1", entry) is None
 
 
+async def test_update_notice_appears_for_a_known_classic_board(hass, aioclient_mock):
+    """Entries created by the setup store the generation, which never changes."""
+    mock_board(aioclient_mock)
+    data = {**local_entry_data(), "api_generation": 1}
+    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert issue(hass, "board_manager_1", entry) is not None
+    # Issues are not kept across restarts, so every start reports it again.
+    ir.async_delete_issue(hass, "autodarts", f"board_manager_1_{entry.entry_id}")
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert issue(hass, "board_manager_1", entry) is not None
+
+
 async def test_board_manager_2_has_no_update_notice(hass, aioclient_mock):
     entry = await setup_v2(hass, aioclient_mock)
     assert issue(hass, "board_manager_1", entry) is None
 
 
-async def test_wrong_board_raises_and_clears_a_repair_issue(hass, aioclient_mock):
+async def test_wrong_board_raises_and_clears_a_repair_issue(
+    hass, aioclient_mock, freezer
+):
     entry = await setup_local(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
     other = deepcopy(CONFIG)
     other["auth"]["board_id"] = "another-board"
     aioclient_mock.clear_requests()
     mock_board(aioclient_mock, config=other)
-    coordinator._metadata_updated = 0
+    # Board Manager 1 reports its board ID with the settings, every 30 seconds.
+    freezer.tick(timedelta(seconds=30))
     await coordinator.async_refresh()
     found = issue(hass, "wrong_board", entry)
     assert found.severity == ir.IssueSeverity.ERROR
@@ -53,10 +75,25 @@ async def test_wrong_board_raises_and_clears_a_repair_issue(hass, aioclient_mock
 
     aioclient_mock.clear_requests()
     mock_board(aioclient_mock)
-    coordinator._metadata_updated = 0
+    freezer.tick(timedelta(seconds=30))
     await coordinator.async_refresh()
     assert issue(hass, "wrong_board", entry) is None
     assert state(hass, "switch", "detection") == "off"
+
+
+async def test_removing_the_entry_removes_every_repair_issue(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock)
+    for name in ISSUES:
+        ir.async_create_issue(
+            hass,
+            "autodarts",
+            f"{name}_{entry.entry_id}",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=name,
+        )
+    assert await hass.config_entries.async_remove(entry.entry_id)
+    assert all(issue(hass, name, entry) is None for name in ISSUES)
 
 
 @pytest.mark.parametrize(
@@ -119,6 +156,15 @@ async def test_failed_match_reads_are_logged_once(hass, caplog):
     with caplog.at_level(logging.WARNING):
         await coordinator._async_update_data()
     assert "Could not fetch the current match" in caplog.text
+
+
+@pytest.mark.parametrize("match_id", [42, {"id": "match-1"}, ["match-1"]])
+async def test_match_id_that_is_no_text_means_no_match(hass, match_id):
+    cloud = AsyncMock()
+    cloud.get_board.return_value = {"id": "board-1", "matchId": match_id}
+    coordinator = AutodartsDataUpdateCoordinator(hass, cloud, "board-1")
+    assert (await coordinator._async_update_data())["match"] is None
+    cloud.get_match.assert_not_called()
 
 
 def test_cloud_match_values():

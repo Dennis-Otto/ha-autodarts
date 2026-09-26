@@ -3,7 +3,8 @@
 import asyncio
 import json
 from copy import deepcopy
-from unittest.mock import AsyncMock, patch
+from datetime import timedelta
+from unittest.mock import AsyncMock, Mock, patch
 
 import aiohttp
 import pytest
@@ -14,7 +15,11 @@ from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.storage import Store
 
 from custom_components.autodarts.errors import AutodartsConnectionError
-from custom_components.autodarts.local_api import AutodartsLocalClient
+from custom_components.autodarts.local_api import (
+    AutodartsLocalAuthError,
+    AutodartsLocalClient,
+)
+from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
 
 from .local_helpers import BASE, STATE
 from .test_local_setup import entity_id, setup_local, state
@@ -24,9 +29,10 @@ REAL_EVENTS = AutodartsLocalClient.events
 
 
 class Socket:
-    def __init__(self, frames):
+    def __init__(self, frames, close_code=None):
         self.frames = frames
         self.closed = False
+        self.close_code = close_code
 
     async def __aenter__(self):
         return self
@@ -53,18 +59,22 @@ async def test_socket_frames_are_filtered_and_closed(hass):
             '{"type":"state","data":null}',
             json.dumps({"type": "state", "data": STATE}),
             '{"type":"cam_stats","data":{"id":0,"fps":30}}',
+            # Not JSON by the standard, but accepted by Python's parser.
+            '{"type":"stats","data":{"fps":NaN}}',
         ]
     )
     with patch.object(
         session, "ws_connect", new=AsyncMock(return_value=socket)
     ) as connect:
         frames = [frame async for frame in REAL_EVENTS(client)]
-    assert frames == [
+    assert frames[:3] == [
         ("connected", {}),
         ("state", STATE),
         ("cam_stats", {"id": 0, "fps": 30}),
     ]
+    assert frames[4] == ("closed", {"code": None})
     assert socket.closed
+    assert client.ignored_frames == 4
     assert connect.call_args.args == (BASE + "/api/events",)
 
 
@@ -85,7 +95,48 @@ async def test_socket_skips_binary_frames_and_reports_errors(hass):
             async for frame in REAL_EVENTS(client):
                 frames.append(frame)
     assert frames == [("connected", {}), ("state", STATE)]
+    assert client.ignored_frames == 1
     assert socket.closed
+
+
+@pytest.mark.parametrize(
+    "kind",
+    [aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING, aiohttp.WSMsgType.CLOSED],
+)
+async def test_socket_closed_by_the_board_ends_with_its_close_code(hass, kind):
+    session = async_get_clientsession(hass)
+    client = AutodartsLocalClient("192.0.2.10", 3180, session)
+    socket = Socket(
+        [
+            json.dumps({"type": "state", "data": STATE}),
+            aiohttp.WSMessage(kind, 1001, "going away"),
+            json.dumps({"type": "stats", "data": {"fps": 30}}),
+        ],
+        close_code=1001,
+    )
+    with patch.object(session, "ws_connect", new=AsyncMock(return_value=socket)):
+        frames = [frame async for frame in REAL_EVENTS(client)]
+    assert frames == [("connected", {}), ("state", STATE), ("closed", {"code": 1001})]
+    assert socket.closed
+
+
+@pytest.mark.parametrize("status", [401, 403])
+async def test_socket_refused_by_the_board_is_an_access_error(hass, status):
+    session = async_get_clientsession(hass)
+    client = AutodartsLocalClient("192.0.2.10", 3180, session)
+    refused = aiohttp.WSServerHandshakeError(Mock(), (), status=status)
+    with patch.object(session, "ws_connect", side_effect=refused):
+        with pytest.raises(AutodartsLocalAuthError, match=f"HTTP {status}"):
+            await anext(REAL_EVENTS(client))
+
+
+async def test_socket_handshake_rejected_otherwise_is_a_connection_error(hass):
+    session = async_get_clientsession(hass)
+    client = AutodartsLocalClient("192.0.2.10", 3180, session)
+    refused = aiohttp.WSServerHandshakeError(Mock(), (), status=400)
+    with patch.object(session, "ws_connect", side_effect=refused):
+        with pytest.raises(AutodartsConnectionError, match="refused"):
+            await anext(REAL_EVENTS(client))
 
 
 async def test_malformed_and_unknown_push_messages_change_nothing(hass, aioclient_mock):
@@ -369,11 +420,11 @@ async def test_removing_integration_deletes_saved_session(
 
 
 async def test_wrong_board_mutes_push_and_keeps_controls_unavailable(
-    hass, aioclient_mock
+    hass, aioclient_mock, freezer
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    coordinator._metadata_updated = 0
+    freezer.tick(timedelta(seconds=30))
     with patch.object(
         coordinator.client, "get_config", return_value={"board_id": "other"}
     ):
@@ -390,21 +441,25 @@ async def test_wrong_board_mutes_push_and_keeps_controls_unavailable(
 
 
 async def test_camera_stats_push_merges_individual_camera_and_raises_alarm(
-    hass, aioclient_mock
+    hass, aioclient_mock, freezer
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
+    updates = []
+    unsubscribe = coordinator.async_add_listener(lambda: updates.append(True))
     coordinator.async_receive("cam_state", {"isRunning": True, "isOpened": True})
-    with patch(
-        "custom_components.autodarts.local_coordinator.time.monotonic", return_value=100
-    ):
-        coordinator.async_receive("cam_stats", {"id": 1, "fps": 0})
+    updates.clear()
+    coordinator.async_receive("cam_stats", {"id": 1, "fps": 0})
     assert coordinator.data["camera_stats"]["fps"] == [29.9, 0, 29.8]
-    with patch(
-        "custom_components.autodarts.local_coordinator.time.monotonic", return_value=115
-    ):
-        coordinator.async_receive("cam_stats", {"id": 1, "fps": 0})
-    coordinator.async_update_listeners()
+    freezer.tick(timedelta(seconds=14))
+    coordinator.async_receive("cam_stats", {"id": 1, "fps": 0})
+    assert not updates
+    assert state(hass, "binary_sensor", "camera_problem") == "off"
+    # The alarm itself is published at once, not with the next poll.
+    freezer.tick(timedelta(seconds=1))
+    coordinator.async_receive("cam_stats", {"id": 1, "fps": 0})
+    assert updates == [True]
+    unsubscribe()
     assert state(hass, "binary_sensor", "camera_problem") == "on"
     assert state(hass, "binary_sensor", "camera_1_problem") == "on"
     assert state(hass, "binary_sensor", "camera_0_problem") == "off"
@@ -417,6 +472,8 @@ async def test_stream_reconnects_polling_continues_and_unload_cancels(
 ):
     messages = asyncio.Queue()
     closed = asyncio.Event()
+    retry = asyncio.Event()
+    connected = asyncio.Event()
     calls = 0
 
     async def stream(self):
@@ -426,19 +483,26 @@ async def test_stream_reconnects_polling_continues_and_unload_cancels(
             raise AutodartsConnectionError()
         try:
             yield "connected", {}
+            connected.set()
             while True:
                 yield await messages.get()
         finally:
             closed.set()
 
-    with patch.object(AutodartsLocalClient, "events", stream):
+    async def wait(self, delay):
+        await retry.wait()
+        return False
+
+    with (
+        patch.object(AutodartsLocalClient, "events", stream),
+        patch.object(AutodartsLocalCoordinator, "_wait_before_reconnect", wait),
+    ):
         entry = await setup_local(hass, aioclient_mock, state=board())
         assert state(hass, "binary_sensor", "realtime_connected") == "off"
         await entry.runtime_data.local.async_refresh()
         assert state(hass, "binary_sensor", "local_connected") == "on"
-        async with asyncio.timeout(3):
-            while calls < 2:
-                await asyncio.sleep(0.05)
+        retry.set()
+        await connected.wait()
         assert state(hass, "binary_sensor", "realtime_connected") == "on"
         await messages.put(("state", board(T20)))
         await hass.async_block_till_done()

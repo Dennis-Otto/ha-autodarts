@@ -66,6 +66,8 @@ class AutodartsDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # 2. Cloud: if a match is active, fetch match data + live state
         match_id = board.get("matchId")
+        if not isinstance(match_id, str):
+            match_id = None
         # Poll quickly only during a match, to go easy on the cloud API.
         self.update_interval = timedelta(
             seconds=DEFAULT_SCAN_INTERVAL if match_id else IDLE_SCAN_INTERVAL

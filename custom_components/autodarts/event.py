@@ -29,6 +29,11 @@ class AutodartsBoardEvent(AutodartsLocalEntity, EventEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "board_events")
 
+    @property
+    def available(self) -> bool:
+        # Sessions, personal bests and daily goals are announced without the board.
+        return True
+
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
         self.async_on_remove(

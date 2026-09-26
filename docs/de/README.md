@@ -92,7 +92,7 @@
 | [Entitäten und Ereignisse](entitaeten.md) | Alle Entitäten, Board-Ereignisse, Zustände und Attribute |
 | [Dashboard-Karten](karten.md) | Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Spieler- und Doubles-Karte mit allen Optionen |
 | [Automationen](automationen.md) | Blueprints, Board-Ereignisse und fertige Beispiele |
-| [Funktionsweise](funktionsweise.md) | Architektur, Aktualisierung, Trainingsregeln, Datenschutz |
+| [Funktionsweise](funktionsweise.md) | Architektur, Aktualisierung, Verbindungsverhalten, Adresswechsel, Trainingsregeln, Datenschutz |
 | [Fehlerbehebung](fehlerbehebung.md) | Meldungen, Reparaturen, Diagnose und Logs |
 | [Sicherheit](sicherheit.md) | Schutzgüter, Vertrauensgrenzen, Bedrohungen und Gegenmaßnahmen |
 | [Roadmap](roadmap.md) | Erschienene Versionen und was als Nächstes kommt |

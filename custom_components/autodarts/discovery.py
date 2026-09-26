@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from ipaddress import ip_address
 from typing import Any
+from urllib.parse import urlparse
 
 import aiohttp
 
@@ -15,6 +16,20 @@ from .errors import AutodartsConnectionError
 def _port(value: Any) -> int:
     port = int(value) if isinstance(value, (int, str)) and str(value).isdigit() else 0
     return port if 0 < port < 65536 else DEFAULT_PORT
+
+
+def cloud_addresses(value: object) -> list[tuple[str, int]]:
+    """Plain HTTP addresses of a board, as the Autodarts cloud lists them."""
+    addresses = []
+    for address in value.split(",") if isinstance(value, str) else []:
+        try:
+            parsed = urlparse(address.strip())
+            port = parsed.port or DEFAULT_PORT
+        except ValueError:
+            continue
+        if parsed.scheme == "http" and parsed.hostname:
+            addresses.append((parsed.hostname, port))
+    return addresses
 
 
 async def async_discover_boards(session: aiohttp.ClientSession) -> list[dict[str, Any]]:

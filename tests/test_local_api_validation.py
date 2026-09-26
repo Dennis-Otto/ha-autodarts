@@ -1,7 +1,9 @@
 """Reject malformed Board Manager answers instead of passing them to entities."""
 
 from copy import deepcopy
+from unittest.mock import Mock
 
+import aiohttp
 import pytest
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -9,6 +11,7 @@ from custom_components.autodarts.errors import AutodartsConnectionError
 from custom_components.autodarts.local_api import (
     AutodartsEndpointMissing,
     AutodartsLocalClient,
+    AutodartsProtocolError,
 )
 
 from .local_helpers import BASE, CONFIG, STATE, SYSTEM
@@ -95,3 +98,62 @@ async def test_connection_check(client, aioclient_mock):
     aioclient_mock.clear_requests()
     aioclient_mock.get(f"{BASE}/api/state", status=500)
     assert await client.test_connection() is False
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        {"text": "<html>maintenance</html>"},
+        {"exc": aiohttp.ContentTypeError(Mock(), ())},
+    ],
+)
+async def test_answers_that_are_no_json_are_protocol_errors(
+    client, aioclient_mock, answer
+):
+    aioclient_mock.get(f"{BASE}/api/state", **answer)
+    with pytest.raises(AutodartsProtocolError) as error:
+        await client.get_state()
+    assert error.value.path == "/api/state"
+
+
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        ("2.0.0\n", "2.0.0"),
+        ("v1.0.7", "v1.0.7"),
+        ("2.1.0-beta.1", "2.1.0-beta.1"),
+        ("<html>Board Manager</html>", None),
+        ("1." * 200, None),
+    ],
+)
+async def test_versions_must_look_like_versions(client, aioclient_mock, text, expected):
+    aioclient_mock.get(f"{BASE}/api/version", text=text)
+    assert await client.get_version() == expected
+
+
+async def test_texts_of_the_board_are_checked(client, aioclient_mock):
+    system = {
+        **deepcopy(SYSTEM),
+        "version": "<script>",
+        "updateAvailable": "latest and greatest",
+        "link": "c" * 256,
+        "stats": {"fps": True, "cpuPercent": "12", "memoryBytes": 5},
+        "camState": {"isRunning": True, "device": "/dev/video0"},
+    }
+    aioclient_mock.get(f"{BASE}/api/system", json=system)
+    aioclient_mock.get(
+        f"{BASE}/api/host", json={"os": "x" * 256, "visionVersion": "vision 2"}
+    )
+    result = await client.get_system()
+    assert result["version"] is None
+    assert result["stats"] == {"fps": None}
+    assert result["camera_state"] == {"isRunning": True}
+    assert result["system"] == {
+        "cpu_percent": None,
+        "memory_bytes": 5,
+        "update_available": None,
+        "cloud_link": None,
+    }
+    host = await client.get_host()
+    assert host["os"] is None
+    assert host["vision_version"] is None

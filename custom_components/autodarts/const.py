@@ -22,6 +22,11 @@ CONF_HOST: Final = "host"
 CONF_PORT: Final = "port"
 # Major Board Manager version the entities were built for (1 classic, 2 headless).
 CONF_API_GENERATION: Final = "api_generation"
+# Board Manager version found without /api/system; it runs as Board Manager 1.
+CONF_NO_SYSTEM_API: Final = "no_system_api"
+
+# Detection states around a start or stop; the cameras open or close meanwhile.
+LIFECYCLE_STATUSES: Final = ("starting", "stopping", "stopped", "calibrating", "error")
 
 # Autodarts' guide to the headless Board Manager 2, which replaces the app.
 BOARD_MANAGER_2_URL: Final = (

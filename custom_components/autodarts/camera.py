@@ -16,6 +16,9 @@ from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 0
+# Live streams relayed per camera; more viewers get snapshots, which spares the
+# board PC, whose detection runs on the same processor.
+MAX_LIVE_VIEWERS = 2
 
 
 async def async_setup_entry(
@@ -52,6 +55,7 @@ class AutodartsCamera(AutodartsLocalEntity, Camera):
         self._attr_translation_placeholders = {"number": str(index + 1)}
         self._attr_extra_state_attributes = {"camera": index + 1}
         self._index = index
+        self._live_viewers = 0
 
     @property
     def available(self) -> bool:
@@ -70,19 +74,24 @@ class AutodartsCamera(AutodartsLocalEntity, Camera):
         self, request: web.Request
     ) -> web.StreamResponse | None:
         """Relay the live stream of Board Manager 2; fall back to snapshots."""
-        if self.coordinator.board_manager_2:
+        if self.coordinator.board_manager_2 and self._live_viewers < MAX_LIVE_VIEWERS:
+            self._live_viewers += 1
             try:
-                stream = await self.coordinator.client.open_camera_stream(self._index)
+                return await self._relay(request)
             except AutodartsApiError:
                 pass
-            else:
-                try:
-                    return await async_aiohttp_proxy_stream(
-                        self.hass,
-                        request,
-                        stream.content,
-                        stream.headers.get(hdrs.CONTENT_TYPE),
-                    )
-                finally:
-                    stream.close()
+            finally:
+                self._live_viewers -= 1
         return await super().handle_async_mjpeg_stream(request)
+
+    async def _relay(self, request: web.Request) -> web.StreamResponse | None:
+        stream = await self.coordinator.client.open_camera_stream(self._index)
+        try:
+            return await async_aiohttp_proxy_stream(
+                self.hass,
+                request,
+                stream.content,
+                stream.headers.get(hdrs.CONTENT_TYPE),
+            )
+        finally:
+            stream.close()

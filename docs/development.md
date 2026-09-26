@@ -49,7 +49,7 @@ The card logic is also fuzzed with [fast-check](https://fast-check.dev/): thousa
 
 ## Docker end-to-end test
 
-The [end-to-end test](../tests/e2e/README.md) starts a real Home Assistant container with this integration and a simulated Board Manager. It runs onboarding, setup, all controls, realtime darts, persistence, diagnostics and removal:
+The [end-to-end test](../tests/e2e/README.md) starts a real Home Assistant container with this integration and a simulated Board Manager. It runs onboarding, setup, all controls, realtime darts, persistence, diagnostics and removal. The simulated Board Manager also injects faults on request (`POST /control/fault`): dropped or refused sockets, failing or slow reads, malformed frames and a restart; the test checks that visits and entities come through them:
 
 ```sh
 BOARD_MANAGER=1 bash tests/e2e/run.sh

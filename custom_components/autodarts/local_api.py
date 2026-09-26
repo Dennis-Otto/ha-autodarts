@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import math
+import re
 from collections.abc import AsyncIterator
 from typing import Any, cast
 
@@ -13,6 +15,16 @@ from .errors import AutodartsApiError, AutodartsConnectionError
 
 CONFIG_SWITCHES = ("auto_calibrate_on_start", "auto_calibrate", "auto_distortion")
 STANDBY_MINUTES = (5, 10, 15, 30, 60)
+# Version numbers such as 1.0.7, v2.0.0 or 2.1.0-beta.1; anything else is dropped.
+VERSION_PATTERN = re.compile(r"v?\d{1,4}(?:\.\d{1,6}){0,3}(?:[-+][0-9A-Za-z.-]{1,32})?")
+# More cameras than any board has; longer lists are cut.
+MAX_CAMERAS = 8
+# The socket ended without an error.
+CLOSING = (aiohttp.WSMsgType.CLOSE, aiohttp.WSMsgType.CLOSING, aiohttp.WSMsgType.CLOSED)
+# Home Assistant stores states of at most 255 characters.
+MAX_TEXT = 255
+# Notifications the integration follows; the board may send others.
+EVENT_KINDS = ("state", "motion_state", "cam_state", "stats", "cam_stats")
 COMMANDS = {
     "start": ("PUT", "/api/start"),
     "stop": ("PUT", "/api/stop"),
@@ -34,6 +46,18 @@ class AutodartsEndpointMissing(AutodartsLocalCommandError):
     """This firmware does not implement the requested route."""
 
 
+class AutodartsLocalAuthError(AutodartsLocalCommandError):
+    """The board refused access (HTTP 401 or 403); it normally needs no login."""
+
+
+class AutodartsProtocolError(AutodartsConnectionError):
+    """The board answered, but not in a format this integration understands."""
+
+    def __init__(self, path: str) -> None:
+        self.path = path
+        super().__init__(f"Unexpected answer to {path}")
+
+
 def _dropped_after_sending(error: BaseException | None) -> bool:
     """The connection closed after the request, not while connecting."""
     return isinstance(error, aiohttp.ServerDisconnectedError) or (
@@ -50,13 +74,49 @@ def board_generation(version: object) -> int | None:
     return int(major) if major.isdigit() and int(major) > 0 else None
 
 
-def _config_summary(raw: Any) -> dict[str, Any]:
+def version_text(value: object) -> str | None:
+    """A version number the board reports; free text never reaches an entity."""
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text if VERSION_PATTERN.fullmatch(text) else None
+
+
+def number(value: object) -> int | float | None:
+    """A finite number; booleans, NaN and infinity read as unknown."""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    return value if math.isfinite(value) else None
+
+
+def stats_summary(raw: object) -> dict[str, Any]:
+    """The detection frame rate, the only statistic entities show."""
+    return {"fps": number(_dict(raw).get("fps"))}
+
+
+def camera_stats_summary(fps: object) -> dict[str, Any]:
+    """Frame rates in camera order; values that are no number read as unknown."""
+    values = fps if isinstance(fps, list) else []
+    return {"fps": [number(value) for value in values[:MAX_CAMERAS]]}
+
+
+def camera_state_summary(raw: object) -> dict[str, bool]:
+    """Whether the cameras are opened and running; nothing else is kept."""
+    state = _dict(raw)
+    return {
+        key: state[key]
+        for key in ("isOpened", "isRunning")
+        if isinstance(state.get(key), bool)
+    }
+
+
+def _config_summary(raw: Any, path: str) -> dict[str, Any]:
     """Only identity and supported controls; never auth, TLS or camera secrets."""
     if not isinstance(raw, dict):
-        raise AutodartsConnectionError("Invalid Board Manager configuration")
+        raise AutodartsProtocolError(path)
     auth, cam, motion = (raw.get(key) or {} for key in ("auth", "cam", "motion"))
     if not all(isinstance(section, dict) for section in (auth, cam, motion)):
-        raise AutodartsConnectionError("Invalid Board Manager configuration")
+        raise AutodartsProtocolError(path)
     result = {
         key: cam[key] for key in CONFIG_SWITCHES if isinstance(cam.get(key), bool)
     }
@@ -74,7 +134,8 @@ def _dict(value: Any) -> dict[str, Any]:
 
 
 def _text(value: Any) -> str | None:
-    return value if isinstance(value, str) and value else None
+    """Text short enough for an entity state; anything else reads as unknown."""
+    return value if isinstance(value, str) and 0 < len(value) <= MAX_TEXT else None
 
 
 class AutodartsLocalClient:
@@ -84,6 +145,8 @@ class AutodartsLocalClient:
         self._session = session
         self.base_url = str(URL.build(scheme="http", host=host, port=port))
         self._command_lock = asyncio.Lock()
+        # Socket frames that were no known notification, for diagnostics.
+        self.ignored_frames = 0
 
     async def _request(
         self,
@@ -103,6 +166,10 @@ class AutodartsLocalClient:
                         raise AutodartsEndpointMissing(
                             "Endpoint not supported by this board"
                         )
+                    if response.status in (401, 403):
+                        raise AutodartsLocalAuthError(
+                            f"Board refused access (HTTP {response.status})"
+                        )
                     if response.status >= 400 and method != "GET":
                         raise AutodartsLocalCommandError(
                             f"Board rejected command (HTTP {response.status})"
@@ -121,21 +188,35 @@ class AutodartsLocalClient:
                             raise AutodartsConnectionError("No camera image available")
                         return await response.read()
                     return await response.json()
-        except (TimeoutError, aiohttp.ClientError, ValueError) as err:
+        except aiohttp.ContentTypeError as err:
+            # Something answers, but not like a Board Manager, e.g. a web page.
+            raise AutodartsProtocolError(path) from err
+        except (TimeoutError, aiohttp.ClientError) as err:
             # Never log response bodies, which can include the board API key.
             raise AutodartsConnectionError(
                 "Unable to communicate with local board"
             ) from err
+        except ValueError as err:
+            # Invalid JSON or text.
+            raise AutodartsProtocolError(path) from err
+
+    async def _object(self, path: str) -> dict[str, Any]:
+        """A JSON object; any other answer is a protocol error."""
+        result = await self._request("GET", path)
+        if not isinstance(result, dict):
+            raise AutodartsProtocolError(path)
+        return result
 
     async def get_state(self) -> dict[str, Any]:
-        state = await self._request("GET", "/api/state")
-        if not isinstance(state, dict) or not isinstance(state.get("running"), bool):
-            raise AutodartsConnectionError("Invalid Board Manager state")
+        state = await self._object("/api/state")
+        if not isinstance(state.get("running"), bool):
+            raise AutodartsProtocolError("/api/state")
         return state
 
     async def get_config(self) -> dict[str, Any]:
         """Return only identity and supported controls, never auth/camera secrets."""
-        return _config_summary(await self._request("GET", "/api/config"))
+        path = "/api/config"
+        return _config_summary(await self._request("GET", path), path)
 
     async def get_system(self) -> dict[str, Any]:
         """Board Manager 2: status, cameras, motion and metadata in one read.
@@ -143,24 +224,24 @@ class AutodartsLocalClient:
         The raw answer also carries the board API key and TLS key; only the
         fields below ever leave this client.
         """
-        raw = await self._request("GET", "/api/system")
-        if not isinstance(raw, dict):
-            raise AutodartsConnectionError("Invalid Board Manager system state")
+        raw = await self._object("/api/system")
         stats = _dict(raw.get("stats"))
         cameras = raw.get("camStats")
         if not isinstance(cameras, list):
             cameras = []
         return {
-            "config": _config_summary(raw.get("config") or {}),
-            "stats": {"fps": stats.get("fps")},
-            "camera_stats": {"fps": [_dict(camera).get("fps") for camera in cameras]},
+            "config": _config_summary(raw.get("config") or {}, "/api/system"),
+            "stats": stats_summary(stats),
+            "camera_stats": camera_stats_summary(
+                [_dict(camera).get("fps") for camera in cameras]
+            ),
             "motion": _dict(raw.get("motion")),
-            "camera_state": _dict(raw.get("camState")),
-            "version": _text(raw.get("version")),
+            "camera_state": camera_state_summary(raw.get("camState")),
+            "version": version_text(raw.get("version")),
             "system": {
-                "cpu_percent": stats.get("cpuPercent"),
-                "memory_bytes": stats.get("memoryBytes"),
-                "update_available": _text(raw.get("updateAvailable")),
+                "cpu_percent": number(stats.get("cpuPercent")),
+                "memory_bytes": number(stats.get("memoryBytes")),
+                "update_available": version_text(raw.get("updateAvailable")),
                 "cloud_link": _text(raw.get("link")),
             },
         }
@@ -171,9 +252,7 @@ class AutodartsLocalClient:
         Only these fields leave this client; the host name, addresses and
         camera identifiers of the board PC are dropped.
         """
-        raw = await self._request("GET", "/api/host")
-        if not isinstance(raw, dict):
-            raise AutodartsConnectionError("Invalid host information")
+        raw = await self._object("/api/host")
         cpu = _dict(raw.get("cpu"))
         cores = cpu.get("cores")
         return {
@@ -184,8 +263,8 @@ class AutodartsLocalClient:
             "architecture": _text(raw.get("kernelArch")),
             "cpu_model": _text(cpu.get("model")),
             "cpu_cores": cores if type(cores) is int and cores > 0 else None,
-            "vision_version": _text(raw.get("visionVersion")),
-            "opencv_version": _text(raw.get("openCVVersion")),
+            "vision_version": version_text(raw.get("visionVersion")),
+            "opencv_version": version_text(raw.get("openCVVersion")),
         }
 
     async def identify(self) -> dict[str, Any]:
@@ -198,39 +277,34 @@ class AutodartsLocalClient:
             version = None
         return {
             "board_id": config.get("board_id"),
-            "version": _text(version),
+            "version": version,
             "camera_count": config.get("camera_count"),
         }
 
-    async def get_version(self) -> str:
-        return str(await self._request("GET", "/api/version", response_type="text"))
+    async def get_version(self) -> str | None:
+        """The Board Manager version; an answer that is no version reads as None."""
+        return version_text(
+            await self._request("GET", "/api/version", response_type="text")
+        )
 
     async def get_stats(self) -> dict[str, Any]:
-        result = await self._request("GET", "/api/state/stats")
-        if not isinstance(result, dict):
-            raise AutodartsConnectionError("Invalid detection statistics")
-        return result
+        return stats_summary(await self._object("/api/state/stats"))
 
     async def get_camera_stats(self) -> dict[str, Any]:
-        result = await self._request("GET", "/api/cams/stats")
-        if not isinstance(result, dict):
-            raise AutodartsConnectionError("Invalid camera statistics")
-        return result
+        return camera_stats_summary((await self._object("/api/cams/stats")).get("fps"))
 
     async def get_motion_state(self) -> dict[str, Any]:
-        result = await self._request("GET", "/api/state/motion")
-        if not isinstance(result, dict):
-            raise AutodartsConnectionError("Invalid motion state")
-        return result
+        return await self._object("/api/state/motion")
 
     async def get_camera_state(self) -> dict[str, Any]:
-        result = await self._request("GET", "/api/cams/state")
-        if not isinstance(result, dict):
-            raise AutodartsConnectionError("Invalid camera state")
-        return result
+        return camera_state_summary(await self._object("/api/cams/state"))
 
     async def events(self) -> AsyncIterator[tuple[str, dict[str, Any]]]:
-        """Receive local notifications; no subscription or control writes needed."""
+        """Receive local notifications; no subscription or control writes needed.
+
+        Yields ("connected", {}) once the socket is open and ("closed", {"code": ...})
+        when the board closes it; a broken connection raises instead.
+        """
         try:
             async with asyncio.timeout(10):
                 socket = await self._session.ws_connect(
@@ -244,27 +318,40 @@ class AutodartsLocalClient:
                 async for message in socket:
                     if message.type == aiohttp.WSMsgType.ERROR:
                         raise AutodartsConnectionError("Local event connection failed")
-                    if message.type != aiohttp.WSMsgType.TEXT:
-                        continue
-                    try:
-                        envelope = message.json()
-                    except (ValueError, TypeError):
-                        continue
-                    if not isinstance(envelope, dict):
-                        continue
-                    kind, data = envelope.get("type"), envelope.get("data")
-                    if kind in (
-                        "state",
-                        "motion_state",
-                        "cam_state",
-                        "stats",
-                        "cam_stats",
-                    ) and isinstance(data, dict):
-                        yield kind, data
+                    if message.type in CLOSING:
+                        break
+                    if (event := self._event(message)) is not None:
+                        yield event
+                code = socket.close_code
+            yield "closed", {"code": code if type(code) is int else None}
+        except aiohttp.WSServerHandshakeError as err:
+            if err.status in (401, 403):
+                raise AutodartsLocalAuthError(
+                    f"Board refused access (HTTP {err.status})"
+                ) from err
+            raise AutodartsConnectionError("Local event connection refused") from err
         except (aiohttp.ClientError, TimeoutError) as err:
             raise AutodartsConnectionError(
                 "Local event connection unavailable"
             ) from err
+
+    def _event(self, message: aiohttp.WSMessage) -> tuple[str, dict[str, Any]] | None:
+        """A known notification; other frames are counted and skipped."""
+        envelope = None
+        if message.type == aiohttp.WSMsgType.TEXT:
+            try:
+                envelope = message.json()
+            except (ValueError, TypeError):
+                envelope = None
+        kind, data = (
+            (envelope.get("type"), envelope.get("data"))
+            if isinstance(envelope, dict)
+            else (None, None)
+        )
+        if kind in EVENT_KINDS and isinstance(data, dict):
+            return kind, data
+        self.ignored_frames += 1
+        return None
 
     async def calibrate_camera(self, index: int) -> None:
         if type(index) is not int or index < 0:

@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import re
 import socket
 import time
 from pathlib import Path
@@ -35,6 +36,12 @@ BULL = {
     "segment": {"name": "Bull", "number": 25, "multiplier": 2, "bed": "Double"},
     "coords": {"x": 0.004, "y": -0.011},
 }
+# Logged while the fault injection makes the board unavailable.
+EXPECTED_LOGS = (
+    "Board Manager does not answer",
+    "realtime events at",
+)
+EXPECTED_TRACEBACK = "[custom_components.autodarts.local_coordinator] Full error:"
 MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
 CARD = MANIFEST.parent / "frontend" / "autodarts-card.js"
 
@@ -542,27 +549,29 @@ class Scenario:
         hits = (await self.state("training_darts"))["attributes"]["hits"]
         check(hits == {"BULL": 1, "S20": 1}, f"Unexpected hits for the heatmap: {hits}")
 
-        fired = []
-        while not self.events.empty():
-            event = self.events.get_nowait()["data"]
-            if event["entity_id"] == self.entity("board_events") and event["new_state"]:
-                fired.append(event["new_state"]["attributes"])
+        fired = self.fired_board_events()
         board_events = [
-            (item["event_type"], item.get("segment"), item.get("score"))
+            (
+                item["event_type"],
+                item.get("segment"),
+                item.get("score"),
+                item.get("status"),
+            )
             for item in fired
-            if item["event_type"] != "status_changed"
         ]
         check(
             board_events
             == [
-                ("dart_detected", "T20", 60),
-                ("dart_detected", "Bull", 50),
-                ("dart_corrected", "S20", 20),
-                ("takeout_started", None, None),
-                ("visit_completed", None, 70),
+                ("dart_detected", "T20", 60, None),
+                ("dart_detected", "Bull", 50, None),
+                ("dart_corrected", "S20", 20, None),
+                ("status_changed", None, None, "Takeout in progress"),
+                ("takeout_started", None, None, None),
+                ("visit_completed", None, 70, None),
                 # The practice game announces the next visit.
-                ("turn_changed", None, None),
-                ("takeout_finished", None, None),
+                ("turn_changed", None, None, None),
+                ("status_changed", None, None, "Throw"),
+                ("takeout_finished", None, None, None),
             ],
             f"Unexpected board events: {fired}",
         )
@@ -579,6 +588,141 @@ class Scenario:
             return json.loads(store.read_text())["data"]["darts"] == 2
 
         await wait_for(persisted, "the persisted training session", timeout=20)
+
+    def fired_board_events(self) -> list[dict]:
+        """Attributes of the board events since the last call, in order."""
+        fired = []
+        while not self.events.empty():
+            event = self.events.get_nowait()["data"]
+            if event["entity_id"] == self.entity("board_events") and event["new_state"]:
+                fired.append(event["new_state"]["attributes"])
+        return fired
+
+    def state_changes(self, key: str) -> list[str]:
+        """States an entity passed through since the events were last read."""
+        changes = []
+        while not self.events.empty():
+            data = self.events.get_nowait()["data"]
+            if data["entity_id"] == self.entity(key) and data["new_state"]:
+                changes.append(data["new_state"]["state"])
+        return changes
+
+    async def fault(self, **fault) -> None:
+        await self.board("POST", "/control/fault", json=fault)
+
+    async def resilience(self, entry_id: str) -> None:
+        """Faults of a real network and board: visits and entities survive them."""
+        # Polling is back, as it notices a board that is away.
+        await self.ws(
+            "config_entries/update", entry_id=entry_id, pref_disable_polling=False
+        )
+        await wait_for(lambda: self.entry_is("loaded"), "the entry with polling")
+        await self.expect_states({"realtime_connected": "on", "local_connected": "on"})
+        self.fired_board_events()
+
+        # 1. The socket drops mid-visit; polling finds the second dart meanwhile.
+        await self.board("POST", "/control/state", json={"throws": [T20]})
+        await self.expect_states({"last_throw": "T20"})
+        await self.fault(drop_sockets=True, refuse_sockets=True)
+        await self.expect_states({"realtime_connected": "off"})
+        await self.board("POST", "/control/state", json={"throws": [T20, T20]})
+        await self.expect_states({"num_throws": "2", "local_visit_score": "120"})
+        await self.fault(refuse_sockets=False)
+        await self.expect_states({"realtime_connected": "on"}, timeout=90)
+        await self.board("POST", "/control/state", json={"throws": []})
+        await self.expect_states({"practice_remaining": "111", "training_darts": "4"})
+        visit = [
+            (item["event_type"], item.get("dart_index"), item["source"])
+            for item in self.fired_board_events()
+            if item["event_type"] in ("dart_detected", "visit_completed")
+        ]
+        check(
+            [item[:2] for item in visit]
+            == [("dart_detected", 1), ("dart_detected", 2), ("visit_completed", None)]
+            and visit[1][2] == "poll",
+            f"The visit did not survive the dropped socket: {visit}",
+        )
+
+        # 2. The board is away while its darts are pulled and one is thrown again.
+        await self.board("POST", "/control/state", json={"throws": [S20]})
+        await self.expect_states({"last_throw": "S20"})
+        await self.fault(drop_sockets=True, refuse_sockets=True, http_status=503)
+        # Two missed polls are a hiccup; the third makes the board unavailable.
+        await self.expect_states(
+            {"local_connected": "off", "detection": "unavailable"}, timeout=40
+        )
+        # The board events stay available for the events of Home Assistant itself.
+        events = await self.state("board_events")
+        check(events["state"] != "unavailable", f"Board events: {events}")
+        await self.board("POST", "/control/state", json={"throws": []})
+        await self.board("POST", "/control/state", json={"throws": [BULL]})
+        await self.fault(clear=True)
+        # The visit ended during the outage; the dart after it is not counted.
+        await self.expect_states(
+            {
+                "local_connected": "on",
+                "last_throw": "Bull",
+                "practice_remaining": "91",
+                "training_darts": "5",
+            },
+            timeout=40,
+        )
+        await self.expect_states({"realtime_connected": "on"}, timeout=90)
+        completed = [
+            item
+            for item in self.fired_board_events()
+            if item["event_type"] == "visit_completed"
+        ]
+        check(
+            [(item["score"], item["segments"]) for item in completed]
+            == [(20, ["S20"])],
+            f"The visit of the outage was not completed once: {completed}",
+        )
+        await self.board("POST", "/control/state", json={"throws": []})
+        await self.expect_states({"num_throws": "0", "training_darts": "5"})
+
+        # 3. Failing and slow reads for a few seconds are no outage.
+        await self.fault(drop_sockets=True, refuse_sockets=True)
+        await self.expect_states({"realtime_connected": "off"})
+        self.fired_board_events()
+        await self.fault(http_status=503, paths=["/api/state"], count=2)
+        await asyncio.sleep(8)
+        # Longer than the ten seconds a read may take.
+        await self.fault(delay=11, paths=["/api/state"], count=1)
+        await asyncio.sleep(14)
+        check(
+            "off" not in self.state_changes("local_connected"),
+            "A few failed reads made the board unavailable",
+        )
+        await self.expect_states({"local_connected": "on"})
+        await self.fault(clear=True)
+        await self.expect_states({"realtime_connected": "on"}, timeout=90)
+
+        # 4. Malformed frames are skipped; the next notification works.
+        for frame in (
+            "not json",
+            '{"type":"state","data":{"running":"yes","throws":[]}}',
+            '{"type":"cam_stats","data":{"id":9,"fps":NaN}}',
+        ):
+            await self.fault(frame=frame)
+        await self.fault(binary=True)
+        await self.board("POST", "/control/state", json={"throws": [T20]})
+        await self.expect_states({"last_throw": "T20", "practice_remaining": "31"})
+        await self.board("POST", "/control/state", json={"throws": []})
+        await self.expect_states({"training_darts": "6"})
+
+        # 5. The Board Manager restarts: away for a few seconds, then back.
+        await self.fault(restart=3)
+        await self.expect_states({"realtime_connected": "off"})
+        await self.expect_states(
+            {"realtime_connected": "on", "local_connected": "on"}, timeout=90
+        )
+        report = await self.api("GET", f"/api/diagnostics/config_entry/{entry_id}")
+        realtime = report["data"]["connection"]["realtime"]
+        check(
+            realtime["ignored_frames"] >= 2 and realtime["connects"] >= 4,
+            f"Diagnostics do not show the faults: {realtime}",
+        )
 
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
@@ -622,14 +766,27 @@ class Scenario:
         problems = [
             item
             for item in await self.ws("system_log/list")
-            if item["level"] in ("ERROR", "CRITICAL")
-            or item["name"].startswith("custom_components.autodarts")
+            if (
+                item["level"] in ("ERROR", "CRITICAL")
+                or item["name"].startswith("custom_components.autodarts")
+            )
+            and not any(
+                expected in " ".join(item["message"]) for expected in EXPECTED_LOGS
+            )
         ]
         check(not problems, f"Home Assistant logged problems: {problems}")
         log = LOG.read_text() if LOG.exists() else ""
         check(API_KEY not in log, "Home Assistant log contains the board API key")
         check(TLS_KEY not in log, "Home Assistant log contains the TLS key")
-        check("Traceback" not in log, "Home Assistant log contains a traceback")
+        # Records start with a timestamp; the outage of the fault injection logs
+        # its cause at debug level, every other traceback is a problem.
+        records = re.split(r"\n(?=\d{4}-\d{2}-\d{2} )", log)
+        tracebacks = [
+            record
+            for record in records
+            if "Traceback" in record and EXPECTED_TRACEBACK not in record
+        ]
+        check(not tracebacks, f"Home Assistant log contains tracebacks: {tracebacks}")
 
         board = await self.board("GET", "/control/requests")
         check(
@@ -667,6 +824,7 @@ async def main() -> None:
         await scenario.initial_state()
         await scenario.controls()
         await scenario.realtime(entry_id)
+        await scenario.resilience(entry_id)
         await scenario.card()
         await scenario.diagnostics(entry_id)
         await scenario.logs()
@@ -677,7 +835,9 @@ async def main() -> None:
         + ("mDNS discovery, " if GENERATION >= 2 else "")
         + "local config flow and validation, registries, "
         "controls, realtime darts/corrections/takeouts with positions, persistence, "
-        "dashboard card, private diagnostics, clean logs and removal."
+        "dropped sockets mid-visit, outages, failing and slow reads, malformed "
+        "frames, a restart, dashboard card, private diagnostics, clean logs and "
+        "removal."
     )
 
 

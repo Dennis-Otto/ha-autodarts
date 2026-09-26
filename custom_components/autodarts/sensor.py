@@ -107,11 +107,16 @@ def _get_board_status(data: dict[str, Any]) -> str:
     return "disconnected"
 
 
+def _text(value: Any) -> str | None:
+    """Board text short enough for a state; Home Assistant stores 255 characters."""
+    return value if isinstance(value, str) and 0 < len(value) <= 255 else None
+
+
 def _get_board_event(data: dict[str, Any]) -> str | None:
     """Last board event from local detection or cloud."""
     local = _local(data)
     if local:
-        return local.get("event") or local.get("status")
+        return _text(local.get("event")) or _text(local.get("status"))
     board = _board(data)
     state = board.get("state") or {}
     return state.get("event") or board.get("status")
@@ -613,7 +618,10 @@ class AutodartsVisitSensor(AutodartsLocalSensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         return {
             "throws": self._throws,
-            "recent_visits": self.coordinator.training.stored()["recent_visits"],
+            # Copies: a stored state must not change with the next visit.
+            "recent_visits": [
+                dict(visit) for visit in self.coordinator.training.recent_visits
+            ],
         }
 
 
@@ -688,7 +696,7 @@ class AutodartsLastSessionSensor(AutodartsLocalEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        history = self.coordinator.training.stored()["history"]
+        history = [dict(summary) for summary in self.coordinator.training.history]
         last = history[0] if history else {}
         return {
             **{key: value for key, value in last.items() if key != "average"},
@@ -710,16 +718,21 @@ class AutodartsPracticeSensor(AutodartsLocalEntity, SensorEntity):
     def available(self) -> bool:
         return True
 
+    def _game(self) -> dict[str, Any]:
+        """The snapshot the coordinator published; computed only before the first."""
+        game = (self.coordinator.data or {}).get("practice")
+        return game if isinstance(game, dict) else self.coordinator.practice.snapshot()
+
     @property
     def native_value(self) -> int | str | None:
-        game = self.coordinator.practice.snapshot()
+        game = self._game()
         if self._key == "target":
             return (game["drill"] or {}).get("target") or game.get("target")
         return game.get(self._key)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
-        game = self.coordinator.practice.snapshot()
+        game = self._game()
         if self._key == "target":
             drill = game["drill"] or {}
             return {key: value for key, value in drill.items() if key != "target"}

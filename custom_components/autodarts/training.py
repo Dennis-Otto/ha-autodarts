@@ -8,6 +8,8 @@ from typing import Any
 
 from homeassistant.util import dt as dt_util
 
+from .const import LIFECYCLE_STATUSES
+
 # Finished sessions and completed visits kept for the cards.
 HISTORY_SIZE = 20
 RECENT_VISITS = 10
@@ -199,6 +201,8 @@ class TrainingSession:
         self._removing = False
         # The current visit has announced its third dart.
         self._full = False
+        # The board was out of sight; the next state shows whether the visit went on.
+        self._resuming = False
 
     def restore(self, saved: dict[str, Any] | None) -> None:
         if not isinstance(saved, dict):
@@ -337,6 +341,15 @@ class TrainingSession:
         self._initialized = observed is not None
         self._rest(observed or [])
         self._removing = False
+        self._resuming = False
+
+    def suspend(self) -> None:
+        """The board is out of sight for a while; keep the visit in progress.
+
+        The next state continues the visit if the board still shows its darts
+        first; otherwise the visit ended meanwhile and is completed.
+        """
+        self._resuming = self._initialized
 
     def _start(self, reason: str) -> tuple[str, dict[str, Any]]:
         now = dt_util.utcnow().isoformat()
@@ -403,10 +416,18 @@ class TrainingSession:
         if (
             not self._initialized
             or state.get("running") is not True
-            or status in ("starting", "stopping", "stopped", "calibrating", "error")
+            or status in LIFECYCLE_STATUSES
         ):
             self.baseline(state, announce=self._initialized)
             return []
+        if self._resuming:
+            self._resuming = False
+            if observed[: len(self._active)] != self._active:
+                # Darts were pulled or replaced while the board was out of sight.
+                self._commit(announce=True)
+                self._rest(observed)
+                self._removing = False
+                return []
         if len(observed) < len(self._active):
             if not observed or _takeout(state):
                 # Removing darts preserves their score, unlike a segment correction.

@@ -4,15 +4,20 @@ Serves the local HTTP and WebSocket protocol used by the integration, records ev
 write command and rejects routes the integration is not expected to call.
 BOARD_MANAGER=2 switches to the headless Board Manager 2: /api/system, no
 upstream routes, and an mDNS announcement like the real board.
+
+POST /control/fault injects the faults of a real network and board: dropped or
+refused sockets, failing or slow reads, malformed frames and restarts.
 """
 
 from __future__ import annotations
 
+import asyncio
 import copy
 import os
 import socket
+import time
 
-from aiohttp import WSMsgType, web
+from aiohttp import WSCloseCode, WSMsgType, web
 
 BOARD_ID = "e2e-board"
 # Synthetic secret: it must never reach Home Assistant state, diagnostics or logs.
@@ -63,6 +68,39 @@ class Board:
         self.commands: list[dict] = []
         self.unexpected: list[str] = []
         self.sockets: set[web.WebSocketResponse] = set()
+        self.clear_faults()
+
+    def clear_faults(self) -> None:
+        # Refused sockets, failing or slow reads and a restart in progress.
+        self.refuse_sockets = False
+        self.http_status: int | None = None
+        self.delay = 0.0
+        self.fault_paths: list[str] | None = None
+        self.fault_count: int | None = None
+        self.down_until = 0.0
+
+    def read_fault(self, path: str) -> tuple[int | None, float]:
+        """The status and delay a read gets; a counted fault is used up."""
+        if time.monotonic() < self.down_until:
+            return 503, 0.0
+        if self.fault_paths is not None and path not in self.fault_paths:
+            return None, 0.0
+        if self.fault_count is not None:
+            if self.fault_count <= 0:
+                return None, 0.0
+            self.fault_count -= 1
+        return self.http_status, self.delay
+
+    async def drop_sockets(self) -> None:
+        for client in list(self.sockets):
+            await client.close(code=WSCloseCode.GOING_AWAY)
+
+    async def send_raw(self, frame: str | bytes) -> None:
+        for client in list(self.sockets):
+            if isinstance(frame, bytes):
+                await client.send_bytes(frame)
+            else:
+                await client.send_str(frame)
 
     async def record(self, request: web.Request) -> None:
         body = await request.json() if request.can_read_body else None
@@ -198,6 +236,8 @@ def routes(board: Board) -> web.RouteTableDef:
 
     @api.get("/api/events")
     async def events(request):
+        if board.refuse_sockets or time.monotonic() < board.down_until:
+            raise web.HTTPServiceUnavailable
         websocket = web.WebSocketResponse()
         await websocket.prepare(request)
         board.sockets.add(websocket)
@@ -214,6 +254,29 @@ def routes(board: Board) -> web.RouteTableDef:
         await board.publish(await request.json())
         return web.json_response(board.state)
 
+    @api.post("/control/fault")
+    async def control_fault(request):
+        fault = await request.json()
+        if fault.get("clear"):
+            board.clear_faults()
+        if "refuse_sockets" in fault:
+            board.refuse_sockets = fault["refuse_sockets"]
+        if "http_status" in fault or "delay" in fault:
+            board.http_status = fault.get("http_status")
+            board.delay = fault.get("delay", 0.0)
+            board.fault_paths = fault.get("paths")
+            board.fault_count = fault.get("count")
+        if restart := fault.get("restart"):
+            # Down for a few seconds, like the Board Manager after a restart.
+            board.down_until = time.monotonic() + restart
+        if fault.get("drop_sockets") or fault.get("restart"):
+            await board.drop_sockets()
+        if "frame" in fault:
+            await board.send_raw(fault["frame"])
+        if fault.get("binary"):
+            await board.send_raw(b"\x00\x01")
+        return web.json_response({"sockets": len(board.sockets)})
+
     @api.get("/control/requests")
     async def control_requests(request):
         return web.json_response(
@@ -227,9 +290,30 @@ def routes(board: Board) -> web.RouteTableDef:
     return api
 
 
+def fault_injection(board: Board):
+    """Reads of the Board Manager API fail or answer slowly while a fault is set."""
+
+    @web.middleware
+    async def middleware(request, handler):
+        # The socket has faults of its own: dropped or refused connections.
+        if (
+            request.method == "GET"
+            and request.path.startswith("/api/")
+            and request.path != "/api/events"
+        ):
+            status, delay = board.read_fault(request.path)
+            if delay:
+                await asyncio.sleep(delay)
+            if status:
+                return web.Response(status=status, text="injected fault")
+        return await handler(request)
+
+    return middleware
+
+
 def create_app() -> web.Application:
     board = Board()
-    app = web.Application()
+    app = web.Application(middlewares=[fault_injection(board)])
     app.add_routes(routes(board))
 
     for (method, path), changes in COMMANDS.items():
