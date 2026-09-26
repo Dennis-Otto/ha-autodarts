@@ -74,6 +74,15 @@ def hit_key(dart: dict[str, Any]) -> str:
     return f"{'SDT'[multiplier - 1]}{number}"
 
 
+def _visit_details(darts: list[dict[str, Any]]) -> dict[str, Any]:
+    """Score, darts and segments of a visit, as its events announce them."""
+    return {
+        "score": sum(d["number"] * d["multiplier"] for d in darts),
+        "darts": len(darts),
+        "segments": [d["name"] or hit_key(d) for d in darts],
+    }
+
+
 def _visit_summary(darts: list[dict[str, Any]]) -> dict[str, int]:
     points = sum(d["number"] * d["multiplier"] for d in darts)
     # A visit has three darts; a missed takeout can merge more, which never scores.
@@ -185,6 +194,8 @@ class TrainingSession:
         self._counting: list[bool] = []
         self._initialized = False
         self._removing = False
+        # The current visit has announced its third dart.
+        self._full = False
 
     def restore(self, saved: dict[str, Any] | None) -> None:
         if not isinstance(saved, dict):
@@ -289,12 +300,9 @@ class TrainingSession:
         announced = self.visit()
         self._fold()
         if announce and announced:
-            visit = {
-                "score": sum(d["number"] * d["multiplier"] for d in announced),
-                "darts": len(announced),
-                "segments": [d["name"] or hit_key(d) for d in announced],
-            }
-            self._completed.append(("visit_completed", visit))
+            visit = _visit_details(announced)
+            # Automations that announced the visit with its third dart skip it now.
+            self._completed.append(("visit_completed", {**visit, "thrown": self._full}))
             self.recent_visits.insert(
                 0, {"time": dt_util.utcnow().isoformat(), **visit}
             )
@@ -306,6 +314,7 @@ class TrainingSession:
         self._active = list(observed)
         self._tracked = [False] * len(observed)
         self._counting = [False] * len(observed)
+        self._full = False
 
     def _withdraw(self, observed: list[dict[str, Any]]) -> None:
         """Drop darts the board no longer reports, keeping the others' flags."""
@@ -363,13 +372,25 @@ class TrainingSession:
         return [*([ended] if ended else []), self._start("new_session")]
 
     def observe(self, state: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
-        """Return dart events, preceded by a visit that ended with this state."""
+        """Return dart events, preceded by a visit that ended with this state.
+
+        The third dart of a visit is followed by visit_thrown, while the darts
+        are still in the board; visit_completed follows when they are pulled.
+        """
         self._completed = []
         events = self._observe(state)
-        result = [*self._completed, *events]
+        result = [*self._completed, *events, *self._thrown()]
         if result:
             self.last_activity = dt_util.utcnow().isoformat()
         return result
+
+    def _thrown(self) -> list[tuple[str, dict[str, Any]]]:
+        """The visit once its third dart has landed, announced once per visit."""
+        announced = self.visit()
+        if self._full or len(announced) < 3:
+            return []
+        self._full = True
+        return [("visit_thrown", _visit_details(announced[:3]))]
 
     def _observe(self, state: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]:
         observed = segments(state)
@@ -422,7 +443,8 @@ class TrainingSession:
                         kind,
                         {
                             "dart_index": index + 1,
-                            "segment": dart["name"],
+                            # Like the visit's segments, when the board names none.
+                            "segment": dart["name"] or hit_key(dart),
                             "score": dart["number"] * dart["multiplier"],
                         },
                     )

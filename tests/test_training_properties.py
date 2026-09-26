@@ -80,13 +80,37 @@ def test_any_history_keeps_the_session_consistent(history):
     session = TrainingSession()
     for state in history:
         for kind, attributes in session.observe(state):
-            assert kind in {"dart_detected", "dart_corrected", "visit_completed"}
-            if kind == "visit_completed":
+            assert kind in {
+                "dart_detected",
+                "dart_corrected",
+                "visit_thrown",
+                "visit_completed",
+            }
+            if kind in ("visit_thrown", "visit_completed"):
                 assert 1 <= attributes["darts"] <= 3
                 assert 0 <= attributes["score"] <= 180
             else:
                 assert 1 <= attributes["dart_index"] <= state["numThrows"]
         check_consistent(session.snapshot())
+
+
+@PROPERTIES
+@given(histories)
+def test_every_visit_is_announced_once_as_early_as_possible(history):
+    """A full visit is thrown once, before it completes; nothing is announced twice."""
+    session = TrainingSession()
+    thrown = False
+    for state in history:
+        for kind, attributes in session.observe(state):
+            if kind == "visit_thrown":
+                assert not thrown
+                assert attributes["darts"] == 3
+                thrown = True
+            elif kind == "visit_completed":
+                assert attributes["thrown"] is thrown
+                # A visit that was not thrown never had three announced darts.
+                assert thrown or attributes["darts"] < 3
+                thrown = False
 
 
 @PROPERTIES

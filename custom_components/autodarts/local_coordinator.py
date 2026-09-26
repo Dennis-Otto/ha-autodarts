@@ -60,6 +60,7 @@ EVENT_TYPES = [
     "takeout_started",
     "takeout_finished",
     "status_changed",
+    "visit_thrown",
     "visit_completed",
     "session_started",
     "session_ended",
@@ -73,6 +74,9 @@ EVENT_TYPES = [
     "daily_goal_reached",
     "bull_off_won",
 ]
+# Dart and visit events name the practice game being played, so that callers
+# can leave the game to the practice caller.
+PLAY_EVENTS = ("dart_detected", "dart_corrected", "visit_thrown", "visit_completed")
 
 
 def _positions(state: dict[str, Any], count: int) -> list[tuple[float, float] | None]:
@@ -313,6 +317,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             previous = self._observed_state
             for kind, attributes in self._recorded(self.training.observe(state)):
                 self.quality.record(kind, attributes)
+                if kind in PLAY_EVENTS:
+                    attributes = {**attributes, "game": self.practice.kind}
                 self._emit(kind, attributes, source)
                 if kind == "visit_completed":
                     for turn, details in self._recorded(self.practice.finish_visit()):

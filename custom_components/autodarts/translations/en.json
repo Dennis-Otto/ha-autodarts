@@ -450,6 +450,7 @@
               "takeout_started": "Takeout started",
               "takeout_finished": "Takeout finished",
               "status_changed": "Status changed",
+              "visit_thrown": "Visit thrown",
               "visit_completed": "Visit completed",
               "session_started": "Session started",
               "session_ended": "Session ended",

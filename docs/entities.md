@@ -33,11 +33,12 @@ The **Board events** entity (`event.*_board_events`) fires native Home Assistant
 
 | `event_type` | When | Attributes |
 | --- | --- | --- |
-| `dart_detected` | A new dart lands | `dart_index` (1–3), `segment`, `score` |
-| `dart_corrected` | The board corrects a detected dart | `dart_index`, `segment`, `score` |
+| `dart_detected` | A new dart lands | `dart_index` (1–3), `segment` (for example `T20`, `S5`, `Bull`, `25` or `M` for a miss), `score`, `game` |
+| `dart_corrected` | The board corrects a detected dart | `dart_index`, `segment`, `score`, `game` |
 | `takeout_started` | You start pulling the darts | none |
 | `takeout_finished` | The board is clear again | none |
-| `visit_completed` | A visit ends: on takeout, when new darts follow a missed takeout, or when detection stops | `score`, `darts`, `segments` (for example `["T20", "T20", "S20"]`) |
+| `visit_thrown` | The third dart of a visit lands, while the darts are still in the board; once per visit | `score`, `darts` (3), `segments` (for example `["T20", "T20", "S20"]`), `game` |
+| `visit_completed` | A visit ends: on takeout, when new darts follow a missed takeout, or when detection stops | `score`, `darts`, `segments`, `game`, `thrown` (`true` when `visit_thrown` already announced the visit) |
 | `status_changed` | The detection status changes | `status` |
 | `session_started` | A training session starts: with the *Training session* switch, the *New training session* button, or the first dart when *Start sessions automatically* is on | `started` and `reason` (`manual`, `new_session` or `first_dart`) |
 | `session_ended` | A training session ends: with the switch, the button, or after the pause set in *End session after a pause of* | `reason` (`manual`, `new_session` or `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` and the other training totals |
@@ -50,6 +51,8 @@ The **Board events** entity (`event.*_board_events`) fires native Home Assistant
 | `bull_off_won` | The [bull-off](#practice-game) decides who starts the match | `game`, `player`, `name`, `players`, `distance` (millimetres from the centre) |
 | `personal_best` | A value beats your [personal best](#personal-bests-streak-and-daily-goal) | `record`, `value`, `previous`, `name` (the player, if known) |
 | `daily_goal_reached` | Today's darts reach the [daily goal](#personal-bests-streak-and-daily-goal), once per day | `goal`, `darts`, `streak` |
+
+`game` is the [practice game](#practice-game) being played while the dart lands, such as `501`, `cricket` or `shanghai`, and empty without one and in [training games](#training-games). A visit of three darts is announced twice: with `visit_thrown` the moment its third dart lands, for 180 celebrations and callers, and with `visit_completed` when it ends, with the final score after corrections. To react to every visit exactly once and as early as possible, use `visit_thrown` and `visit_completed` whose `thrown` is `false`; the [blueprints](automations.md#blueprints) do that.
 
 Events are never replayed after a restart or reconnection. See [automations](automations.md) for examples.
 
