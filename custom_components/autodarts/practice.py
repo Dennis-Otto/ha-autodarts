@@ -26,8 +26,8 @@ from .party import (
     make_party,
 )
 from .profiles import Profiles
+from .scoring import VISIT_DARTS, evaluate_visit, is_double, rate, score
 from .scoring import average as _average
-from .scoring import evaluate_visit, is_double, rate, score
 from .training import hit_key
 
 GAMES = (101, 301, 501, 701, 901, 1001)
@@ -40,6 +40,14 @@ MAX_PLAYERS = 4
 MAX_LEGS = 11
 MAX_SETS = 7
 NAME_LENGTH = 20
+# The rules of the practice game that players switch on and off.
+OPTIONS = (
+    "double_out",
+    "double_in",
+    "bull_off",
+    "bull_off_distance",
+    "personal_routes",
+)
 
 
 def _count(value: object, low: int, high: int, default: int) -> int:
@@ -53,8 +61,10 @@ class Player:
     remaining: int = 0
     darts: int = 0
     points: int = 0
+    # Legs won in the current set, or in the final set of a finished match.
     legs: int = 0
     sets: int = 0
+    match_legs: int = 0
     match_darts: int = 0
     match_points: int = 0
     # Points of the first nine darts and darts thrown at a double, per leg.
@@ -113,6 +123,9 @@ class PracticeGame:
         self.double_out = True
         self.double_in = False
         self.bull_off = False
+        # Two darts in the same bull bed: the measured distance decides instead
+        # of a rethrow, as the official rules want.
+        self.bull_off_distance = False
         # Checkout routes over the strongest doubles of the player at the board.
         self.personal_routes = False
         # The bull-off before a match of several players, while it runs.
@@ -122,7 +135,10 @@ class PracticeGame:
         self.names = [""] * MAX_PLAYERS
         self.players = [Player()]
         self.current = 0
+        # Who throws first in the current leg, and in the current set: the
+        # throw passes on every leg within a set and every set within the match.
         self.starter = 0
+        self.set_starter = 0
         self.winner: int | None = None
         self.legs: list[dict[str, Any]] = []
         self.leg_stats: list[dict[str, int]] = []
@@ -147,7 +163,7 @@ class PracticeGame:
         if saved.get("game") in GAMES:
             self.game = saved["game"]
         self.cricket = saved.get("game") == CRICKET
-        for option in ("double_out", "double_in", "bull_off", "personal_routes"):
+        for option in OPTIONS:
             if isinstance(saved.get(option), bool):
                 setattr(self, option, saved[option])
         self.legs_to_win = _count(saved.get("legs_to_win"), 1, MAX_LEGS, 1)
@@ -172,6 +188,15 @@ class PracticeGame:
         last = len(self.players) - 1
         self.current = _count(saved.get("current"), 0, last, 0)
         self.starter = _count(saved.get("starter"), 0, last, 0)
+        # Up to version 1.5, the starter passed on every leg; the legs of the
+        # current set tell who started it.
+        played = sum(player.legs for player in self.players)
+        self.set_starter = _count(
+            saved.get("set_starter"),
+            0,
+            last,
+            (self.starter - played) % len(self.players),
+        )
         winner = saved.get("winner")
         self.winner = winner if type(winner) is int and 0 <= winner <= last else None
         for index, player in enumerate(self.players):
@@ -222,6 +247,7 @@ class PracticeGame:
             "double_out": self.double_out,
             "double_in": self.double_in,
             "bull_off": self.bull_off,
+            "bull_off_distance": self.bull_off_distance,
             "personal_routes": self.personal_routes,
             "doubles": self.doubles.stored(),
             "party": self.party.stored() if self.party else None,
@@ -232,6 +258,7 @@ class PracticeGame:
             "players": [asdict(player) for player in self.players],
             "current": self.current,
             "starter": self.starter,
+            "set_starter": self.set_starter,
             "winner": self.winner,
             "legs": [dict(leg) for leg in self.legs],
             "leg_stats": [dict(record) for record in self.leg_stats],
@@ -273,11 +300,16 @@ class PracticeGame:
         if 0 <= index < MAX_PLAYERS:
             self.names[index] = name.strip()[:NAME_LENGTH]
 
+    def forget(self, name: str) -> None:
+        """Clear the player slots with this name, in any upper and lower case."""
+        key = name.strip().casefold()
+        self.names = ["" if slot.casefold() == key else slot for slot in self.names]
+
     def new_match(self) -> None:
         """Everybody starts from zero legs and sets; player 1 throws first,
         unless a bull-off decides it."""
         self.players = [Player() for _ in self.players]
-        self.starter, self.winner = 0, None
+        self.starter, self.set_starter, self.winner = 0, 0, None
         self.bulling = (
             BullOff(list(range(len(self.players))))
             if self.bull_off and len(self.players) > 1 and self._playing()
@@ -325,7 +357,7 @@ class PracticeGame:
         }
 
     def _thrown(self) -> list[dict[str, Any]]:
-        return self._visit[self._skip :]
+        return self._visit[self._skip : VISIT_DARTS]
 
     def _opening(self) -> int:
         """Darts of the visit before the double that opens the leg with double in."""
@@ -366,14 +398,27 @@ class PracticeGame:
         return self._positions[index] if index < len(self._positions) else None
 
     def _result(self, index: int) -> tuple[int, int, bool]:
-        """Legs, sets and the match decision after the player wins this leg."""
+        """Legs in the set, sets and the match decision after the player wins
+        this leg; a won set keeps its legs until the next set starts."""
         player = self.players[index]
         legs, sets = player.legs + 1, player.sets
         if len(self.players) == 1:
             return legs, sets, False
         if legs >= self.legs_to_win:
-            legs, sets = 0, sets + 1
+            sets += 1
         return legs, sets, sets >= self.sets_to_win
+
+    def _final(self, winner: int, legs: int, sets: int) -> list[dict[str, Any]]:
+        """Legs and sets of everybody once this leg decides the match."""
+        return [
+            {
+                "player": index + 1,
+                "name": self._name(index),
+                "legs": legs if index == winner else player.legs,
+                "sets": sets if index == winner else player.sets,
+            }
+            for index, player in enumerate(self.players)
+        ]
 
     def track(
         self,
@@ -419,6 +464,8 @@ class PracticeGame:
                     "darts": leg_darts,
                     "average": _average(self.game, leg_darts),
                     "checkout": player.remaining,
+                    "double_out": self.double_out,
+                    "double_in": self.double_in,
                     "legs": legs,
                     "sets": sets,
                     "match": match,
@@ -431,7 +478,9 @@ class PracticeGame:
                     "match_won",
                     {
                         **self._who(self.current),
+                        "legs": legs,
                         "sets": sets,
+                        "scores": self._final(self.current, legs, sets),
                         "average": _average(
                             player.match_points + player.remaining,
                             player.match_darts + darts,
@@ -512,34 +561,43 @@ class PracticeGame:
         """The first dart of the visit counts; the closest dart starts the match."""
         bulling = self.bulling
         assert bulling is not None
-        winner = bulling.book(self._thrown()[0], self._position(0))
+        winner = bulling.book(
+            self._thrown()[0], self._position(0), self.bull_off_distance
+        )
         if winner is None:
             return [self._turn()]
-        distance = bulling.distances[winner]
+        won = {"distance": bulling.distances[winner], "hit": bulling.hits[winner]}
         self.bulling = None
-        self.starter = winner
+        self.starter = self.set_starter = winner
         self.new_leg()
-        return [
-            ("bull_off_won", {**self._who(winner), "distance": distance}),
-            self._turn(),
-        ]
+        return [("bull_off_won", {**self._who(winner), **won}), self._turn()]
 
     def _bull_off_snapshot(self) -> dict[str, Any] | None:
         bulling = self.bulling
         if bulling is None:
             return None
         thrown = self._thrown()
-        live = round(distance_mm(thrown[0], self._position(0)), 1) if thrown else None
+        live = {
+            "distance": distance_mm(self._position(0)) if thrown else None,
+            "hit": hit_key(thrown[0]) if thrown else None,
+        }
         return {
             "player": bulling.thrower + 1,
             "name": self._name(bulling.thrower),
+            "rethrow": bulling.rethrow,
+            "by_distance": self.bull_off_distance,
             "throws": [
                 {
                     "player": index + 1,
                     "name": self._name(index),
-                    "distance": live
-                    if index == bulling.thrower
-                    else bulling.distances.get(index),
+                    **(
+                        live
+                        if index == bulling.thrower
+                        else {
+                            "distance": bulling.distances.get(index),
+                            "hit": bulling.hits.get(index),
+                        }
+                    ),
                 }
                 for index in bulling.order
             ],
@@ -581,7 +639,6 @@ class PracticeGame:
             },
         )
         del self.leg_stats[STATS_LEGS:]
-        self.legs_total += 1
         for player in self.players:
             player.first9_points, player.first9_darts, player.at_double = 0, 0, 0
 
@@ -656,7 +713,9 @@ class PracticeGame:
                     "match_won",
                     {
                         **self._who(self.current),
+                        "legs": legs,
                         "sets": sets,
+                        "scores": self._final(self.current, legs, sets),
                         "mpr": marks_per_round(
                             player.match_marks + counted, player.match_darts + darts
                         ),
@@ -708,6 +767,7 @@ class PracticeGame:
                     "points": points if index == self.current else item.points,
                     "legs": item.legs,
                     "sets": item.sets,
+                    "match_legs": item.match_legs,
                     "mpr": marks_per_round(
                         item.match_marks + (counted if index == self.current else 0),
                         item.match_darts + (darts if index == self.current else 0),
@@ -743,7 +803,17 @@ class PracticeGame:
             )
         ]
         if match:
-            events.append(("match_won", {**self._who(winner), "sets": sets}))
+            events.append(
+                (
+                    "match_won",
+                    {
+                        **self._who(winner),
+                        "legs": legs,
+                        "sets": sets,
+                        "scores": self._final(winner, legs, sets),
+                    },
+                )
+            )
         return events
 
     def _party_visit(self) -> Visit:
@@ -762,7 +832,7 @@ class PracticeGame:
         self._announced = outcome
         if won is None:
             return []
-        darts = len(self._thrown()) if won == self.current else 0
+        darts = result.darts if won == self.current else 0
         return self._party_won(won, darts, result.points[won])
 
     def _book_party(self) -> list[tuple[str, dict[str, Any]]]:
@@ -775,11 +845,12 @@ class PracticeGame:
         events: list[tuple[str, dict[str, Any]]] = []
         if result.won is not None and result.won >= 0 and not announced:
             # A win at the end of the last round is known only now.
-            darts = len(thrown) if result.won == self.current else 0
+            darts = result.darts if result.won == self.current else 0
             events = self._party_won(result.won, darts, result.points[result.won])
+        # Darts after the one that decided the leg do not count.
         player = self.players[self.current]
-        player.darts += len(thrown)
-        player.match_darts += len(thrown)
+        player.darts += result.darts
+        player.match_darts += result.darts
         if result.won is not None and result.won >= 0:
             self.current = result.won
             self._book_leg()
@@ -832,7 +903,7 @@ class PracticeGame:
             "bust": False,
             "won": won,
             "visit": [hit_key(dart) for dart in self._thrown()],
-            "darts": player.darts + len(self._thrown()),
+            "darts": player.darts + (result.darts if result else 0),
             "average": None,
             "points": points[self.current],
             "round": min(party.round, rounds[party.kind])
@@ -848,6 +919,7 @@ class PracticeGame:
                     "points": points[index],
                     "legs": item.legs,
                     "sets": item.sets,
+                    "match_legs": item.match_legs,
                     **details[index],
                 }
                 for index, item in enumerate(self.players)
@@ -872,6 +944,7 @@ class PracticeGame:
                     first9_darts=player.first9_darts,
                     at_double=player.at_double,
                     double_out=self.double_out,
+                    double_in=self.double_in,
                     checkout=player.remaining if index == self.current else 0,
                 )
             entries.append(entry)
@@ -885,6 +958,7 @@ class PracticeGame:
                 "name": self._name(index),
                 "legs": player.legs,
                 "sets": player.sets,
+                "match_legs": player.match_legs,
             }
             if self.cricket:
                 entry["mpr"] = marks_per_round(player.match_marks, player.match_darts)
@@ -912,6 +986,8 @@ class PracticeGame:
                 "darts": winner.darts,
                 "average": _average(self.game, winner.darts),
                 "checkout": winner.remaining,
+                "double_out": self.double_out,
+                "double_in": self.double_in,
             }
         self.legs.insert(
             0,
@@ -922,8 +998,13 @@ class PracticeGame:
             },
         )
         del self.legs[LEG_HISTORY:]
-        winner.legs, winner.sets, match = self._result(self.current)
+        self.legs_total += 1
+        legs, sets, match = self._result(self.current)
+        set_won = sets > winner.sets
+        winner.legs, winner.sets = legs, sets
+        winner.match_legs += 1
         if match:
+            # The result stays: the winner keeps the legs of the deciding set.
             winner.remaining = 0
             self.winner = self.current
             self.profiles.match(
@@ -934,11 +1015,16 @@ class PracticeGame:
                 self.sets_to_win,
             )
             return
-        if winner.legs == 0:
-            # A won set starts the next one from zero legs for everybody.
+        players = len(self.players)
+        if set_won:
+            # A won set starts the next one from zero legs for everybody, and
+            # the next player in turn throws first in the new set.
             for player in self.players:
                 player.legs = 0
-        self.starter = (self.starter + 1) % len(self.players)
+            self.set_starter = (self.set_starter + 1) % players
+            self.starter = self.set_starter
+        else:
+            self.starter = (self.starter + 1) % players
         self.new_leg()
 
     # -- state -----------------------------------------------------------------
@@ -963,7 +1049,12 @@ class PracticeGame:
         remaining, outcome, darts = self._evaluate()
         thrown = len(self._thrown())
         player = self.players[self.current]
-        opened = not self.double_in or player.opened or self._opening() < thrown
+        # A bust takes an opening double of the visit back.
+        opened = (
+            not self.double_in
+            or player.opened
+            or (self._opening() < thrown and outcome != "bust")
+        )
         if outcome == "won" or self.winner is not None or not opened:
             route: tuple[str, ...] = ()
         elif outcome == "bust" or thrown >= 3:
@@ -997,6 +1088,7 @@ class PracticeGame:
                     else item.opened or not self.double_in,
                     "legs": item.legs,
                     "sets": item.sets,
+                    "match_legs": item.match_legs,
                     "average": _average(
                         item.match_points + (scored if index == self.current else 0),
                         item.match_darts + (darts if index == self.current else 0),

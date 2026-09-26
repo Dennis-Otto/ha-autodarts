@@ -33,6 +33,7 @@ START_GAME_SCHEMA = vol.Schema(
         vol.Optional("double_out"): cv.boolean,
         vol.Optional("double_in"): cv.boolean,
         vol.Optional("bull_off"): cv.boolean,
+        vol.Optional("bull_off_distance"): cv.boolean,
     }
 )
 
@@ -74,19 +75,41 @@ def _coordinator(
     return boards[0]
 
 
+def _check_players(game: str, names: list[str] | None, players: int) -> None:
+    """Every player needs a name of their own, and Killer two players."""
+    seen: set[str] = set()
+    for name in names or []:
+        key = name.strip().casefold()
+        if key in seen:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="duplicate_player",
+                translation_placeholders={"name": name.strip()},
+            )
+        if key:
+            seen.add(key)
+    if game == "killer" and (len(names) if names else players) < 2:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN, translation_key="killer_players"
+        )
+
+
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     async def start_game(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         game: str = call.data["game"]
+        names: list[str] | None = call.data.get("players")
+        _check_players(game, names, len(coordinator.practice.players))
         await coordinator.async_start_game(
             int(game) if game.isdigit() else game,
-            names=call.data.get("players"),
+            names=names,
             legs=call.data.get("legs"),
             sets=call.data.get("sets"),
             double_out=call.data.get("double_out"),
             double_in=call.data.get("double_in"),
             bull_off=call.data.get("bull_off"),
+            bull_off_distance=call.data.get("bull_off_distance"),
         )
 
     async def delete_player(call: ServiceCall) -> None:

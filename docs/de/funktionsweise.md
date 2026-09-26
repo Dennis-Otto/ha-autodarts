@@ -63,20 +63,92 @@ Spieler und Spiele kennen die Sessions nicht. Eine laufende Session zählt jeden
 
 ## Übungsspiel
 
-Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme, einschließlich Korrekturen. Wenn du die Darts ziehst, wird die Aufnahme verbucht.
+Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme, einschließlich Korrekturen. Wenn du die Darts ziehst, wird die Aufnahme verbucht. Wie jedes Spiel zählt, steht unten bei den [Regeln](#regeln).
 
-- **Herunterzählen:** Der Rest beginnt bei 301, 501 oder 701, und jeder Dart zieht seine Punkte ab.
+- **Aufnahmen:** Eine Aufnahme hat drei Darts. Ein vierter Dart vor dem Ziehen zählt nicht. Darts, die das Board nicht erkennt, etwa Abpraller oder Darts auf dem Boden, zählen nicht; eine Aufnahme mit weniger Darts zählt nur die erkannten.
+- **Checkout-Weg:** Die Integration probiert jede Kombination für die restlichen Darts der Aufnahme und wählt den Weg, den die Checkout-Tabellen der Profis wählen, nach diesen Grundsätzen in dieser Reihenfolge:
+  1. Die wenigsten Darts, also das Bullseye bei 50 auch mit drei Darts in der Hand.
+  2. Kein Double als Stellwurf, und ein Double statt des Bullseyes zum Checkout.
+  3. Mit drei Darts in der Hand ein erstes Triple, dessen Single noch einen Checkout mit zwei Darts lässt: 129 beginnt mit T19, weil eine Single 20 den Rest 109 ließe.
+  4. Das größte erste Triple, meist T20.
+  5. Stellwürfe auf Triple 20 oder 19 oder auf ein Single zu D20, D16, D8, D18, D12, D10 oder D4. Mit zwei Darts übrig passt Triple 20 oder 19 zu jedem Double, wenn ihr Single noch einen Checkout mit einem Dart lässt: 70 mit zwei Darts ist T20 D5, mit dem Bull hinter einer Single 20.
+  6. Dann jeder Stellwurf zu den guten Doubles D20, D16, D8, D18 oder D12, dann alles andere; weniger Triples, größere Triples und das Checkout-Double in der Reihenfolge D20, D16, D8, D18, D12, D10, D4, D14, D6, D2 und die ungeraden Doubles.
+
+  So wird 144 zu T20 T20 D12, 136 zu T20 T20 D8, 130 zu T20 T20 D5, 127 zu T20 T17 D8, 73 zu T19 D8 und 64 zu T16 D8. Für 159, 162, 163, 165, 166, 168, 169 und alles über 170 gibt es mit Double-Out keinen Weg. Ohne Double-Out checkt das größte Feld: ein Single vor einem Double oder Triple.
+- **Persönliche Wege:** Mit *Übungsspiel persönliche Checkout-Wege* gewinnen die Doubles des Spielers am Board mit je mindestens 10 Darts, die beste Quote zuerst, gegen den üblichen Weg, sobald ein Weg mit gleich vielen Darts sie ohne Double als Stellwurf erreicht; zwischen Wegen zum selben Double entscheiden die Grundsätze oben.
+- **Statistik:** Jedes beendete X01-Leg ergibt einen Eintrag für alle am Board: Punkte und Darts der ersten neun Darts, Darts aufs Double und den Checkout. Überworfene Aufnahmen zählen keine Punkte, auch nicht in den ersten neun. Die Statistik-Sensoren nutzen die letzten 10 Einträge, ihr Verlauf zeigt deine Entwicklung. *Übungsspiel gespielte Legs* zählt jedes beendete Leg von X01, Cricket und den Partyspielen.
+- **Speicher:** Spiel, Regeln, Spieler mit ihren Ständen und Treffern, Matchformat und die letzten 10 Legs werden zusammen mit der Trainingssession gespeichert.
+
+## Regeln
+
+### X01
+
+- **Herunterzählen:** Der Rest beginnt bei 101, 301, 501, 701, 901 oder 1001, und jeder Dart zieht seine Punkte ab.
+- **Double-Out** (standardmäßig an): Der letzte Dart eines Legs muss ein Double oder das Bullseye treffen. Ohne Double-Out checkt jedes Feld.
+- **Double-In** (standardmäßig aus): Die Zählung eines Spielers beginnt mit dem ersten Double oder Bullseye des Legs; Darts davor zählen nichts. Ein Überwerfen nimmt das öffnende Double zurück.
 - **Überwerfen:** Ein Dart, der unter null geht, mit Double-Out 1 übrig lässt oder 0 ohne Double erreicht, überwirft die Aufnahme. Der Rest springt auf den Beginn der Aufnahme zurück. Der überwerfende Dart zählt als geworfen, spätere Darts der Aufnahme nicht.
-- **Checkout:** Ein Dart, der genau 0 erreicht, mit Double-Out auf einem Double oder dem Bullseye, gewinnt das Leg. `leg_won` wird sofort gemeldet. Verbucht wird das Leg beim Ziehen der Darts, eine Korrektur davor zählt also noch. Die nächste Aufnahme beginnt ein neues Leg.
+- **Checkout:** Ein Dart, der genau 0 erreicht, gewinnt das Leg. `leg_won` wird sofort gemeldet, mit den Regeln des Legs (`double_out`, `double_in`). Verbucht wird das Leg beim Ziehen der Darts, eine Korrektur davor zählt also noch. Darts nach dem Siegdart zählen nicht. Die nächste Aufnahme beginnt ein neues Leg.
 - **Average:** erzielte Punkte pro drei Darts des Legs. Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
-- **Persönliche Wege:** Mit *Übungsspiel persönliche Checkout-Wege* rücken die Doubles mit der besten Quote des Spielers am Board (je mindestens 10 Darts) an den Anfang dieser Reihenfolge; die übrigen Regeln bleiben.
-- **Checkout-Weg:** Die Integration probiert jede Kombination für die restlichen Darts der Aufnahme. Sie bevorzugt weniger Darts, Stellwürfe ohne Double, ein Double statt des Bullseyes zum Checkout, weniger Triples, dann das Checkout-Double in der Reihenfolge D20, D16, D8, D18, D12, D10, D4, D14, D6, D2 und die ungeraden Doubles, zuletzt den größeren Dart zuerst. Für 159, 162, 163, 165, 166, 168, 169 und alles über 170 gibt es mit Double-Out keinen Weg.
-- **Statistik:** Jedes beendete Leg ergibt einen Eintrag für alle am Board: Punkte und Darts der ersten neun Darts, Darts aufs Double und den Checkout. Überworfene Aufnahmen zählen keine Punkte, auch nicht in den ersten neun. Die Statistik-Sensoren nutzen die letzten 10 Einträge, ihr Verlauf zeigt deine Entwicklung.
-- **Matches:** Mit mehreren Spielern wechselt der Wurf beim Ziehen der Darts, auch nach dem Überwerfen. Wer das Leg beginnt, wechselt jedes Leg. Wer *Legs pro Satz* Legs gewinnt, holt den Satz, und die Legs aller beginnen wieder bei null; wer *Sätze zum Sieg* Sätze holt, gewinnt das Match. Der Average jedes Spielers gilt für das ganze Match.
-- **Cricket:** Ein Dart setzt seine Treffer auf seine Zahl, bis drei sie schließen; weitere Treffer bringen den Wert der Zahl, solange ein anderer Spieler sie offen hat. Der Sieg wird nach jedem Dart geprüft: Ein schließender Dart gewinnt sofort, wenn die Punkte reichen, und spätere Darts der Aufnahme zählen nicht. Treffer pro Runde zählen die Treffer, die eine Zahl geschlossen oder gepunktet haben, pro drei Darts.
-- **Partyspiele:** Shanghai und Killer entscheidet der Dart, der den Shanghai vollendet oder das letzte Leben nimmt; der Sieg wird sofort gemeldet. Das Ende der letzten Runde bei Shanghai und Halve-It wird beim Ziehen der Darts entschieden. Halve-It halbiert eine Aufnahme ohne Treffer auf das Ziel auch, wenn weniger als drei Darts geworfen wurden.
-- **Ausbullen:** Nur der erste Dart jeder Aufnahme zählt. Sein Abstand ergibt sich aus der Position, die das Board meldet, bezogen auf den äußeren Rand des Doppelrings (170 mm).
-- **Speicher:** Spiel, Spieler mit ihren Ständen und Treffern, Matchformat und die letzten 10 Legs werden zusammen mit der Trainingssession gespeichert.
+
+### Matches, Legs und Sätze
+
+- **Wechsel:** Mit zwei bis vier Spielern wechselt der Wurf beim Ziehen der Darts, auch nach dem Überwerfen.
+- **Legs und Sätze:** Wer zuerst *Legs pro Satz* Legs gewinnt, holt den Satz; es gibt keinen Tie-Break und keine zwei Legs Vorsprung. Wer zuerst *Sätze zum Sieg* Sätze holt, gewinnt das Match. Mit einem Satz zum Sieg gewinnt einfach, wer zuerst so viele Legs holt. Mit einem Spieler zählen die Legs nur hoch.
+- **Anwurf:** Wie bei den Sätzen der PDC wechselt der Anwurf innerhalb eines Satzes jedes Leg zum nächsten Spieler, und jeder neue Satz beginnt mit dem Spieler nach dem, der den vorigen Satz begonnen hat. Bei zwei Spielern beginnt Spieler 1 die Sätze 1, 3 und 5 und Spieler 2 die Sätze 2 und 4. Das erste Leg eines Matches beginnt Spieler 1 oder wer das Ausbullen gewinnt.
+- **Ergebnis:** Das Ergebnis bleibt stehen, bis der nächste Dart ein neues Match beginnt. Der Sieger behält die Legs des entscheidenden Satzes, ein Match auf drei Legs endet also 3:2 auf der Anzeigetafel. `match_won`, der Verlauf von *Letztes Match* und die Spielerprofile behalten Legs und Sätze aller Spieler; `match_legs` zählt die Legs des ganzen Matches.
+- **Averages:** Average und Treffer pro Runde jedes Spielers gelten für das ganze Match.
+
+### Ausbullen
+
+- Mit *Übungsspiel Ausbullen* und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull, in der Reihenfolge der Plätze. Nur der erste Dart jeder Aufnahme zählt.
+- Wie es die Regeln von WDF und PDC wollen, schlägt das Bullseye das Single-Bull und dieses jedes andere Feld. Zwei oder mehr Darts im selben Bull-Feld sind gleichauf: Diese Spieler werfen noch einmal, der letzte von ihnen zuerst.
+- Außerhalb des Bulls gewinnt der Dart, der der Mitte näher ist. Der Abstand ergibt sich aus der Position, die das Board meldet, bezogen auf den äußeren Rand des Doppelrings (170 mm).
+- Mit *Übungsspiel Ausbullen nach Abstand* entscheidet der gemessene Abstand auch zwischen zwei Darts im selben Bull-Feld; Darts mit gleichem Abstand auf 0,1 mm werfen noch einmal.
+- Ein Dart ohne Position lässt sich nicht messen und schlägt deshalb nie einen gemessenen Dart: Braucht die Entscheidung einen Abstand, den das Board nicht gemeldet hat, werfen diese Spieler noch einmal.
+- Das Ausbullen entscheidet nur, wer beginnt. Bei drei oder vier Spielern folgen die anderen in der Reihenfolge der Plätze.
+
+### Cricket
+
+- **Treffer:** Nur 20 bis 15 und das Bull zählen. Ein Single ist ein Treffer, ein Double zwei, ein Triple drei; das Single-Bull ist ein Treffer, das Bullseye zwei. Drei Treffer schließen eine Zahl.
+- **Punkte:** Weitere Treffer bringen den Wert der Zahl (25 fürs Bull), solange ein anderer Spieler sie offen hat.
+- **Sieg:** Schließe alle Zahlen mit mindestens so vielen Punkten wie alle anderen. Der Sieg wird nach jedem Dart geprüft: Ein schließender Dart gewinnt sofort, wenn die Punkte reichen, und spätere Darts der Aufnahme zählen nicht. Allein gewinnt, wer alle Zahlen schließt.
+- **Treffer pro Runde:** die Treffer, die eine Zahl geschlossen oder gepunktet haben, pro drei tatsächlich geworfene Darts.
+
+### Shanghai
+
+- Sieben Runden auf die Zahlen 1 bis 7; das klassische Kneipenspiel geht über 1 bis 20 oder neun Runden.
+- Jeder Dart in einem Feld der Rundenzahl bringt seinen Wert. Ein Fehlwurf neben der Zahl zählt nichts.
+- Single, Double und Triple der Zahl in einer Aufnahme, ein *Shanghai*, gewinnen das Leg sofort; spätere Darts der Aufnahme zählen nicht.
+- Nach sieben Runden gewinnen die meisten Punkte. Bei gleichen Punkten gewinnt, wer öfter getroffen hat; bei gleich vielen Treffern wird das Leg neu gespielt, und der nächste Spieler beginnt es.
+
+### Halve-It
+
+- Alle beginnen mit 40 Punkten. Die neun Runden zielen auf 15, 16, ein beliebiges Double, 17, 18, ein beliebiges Triple, 19, 20 und das Bull, angezeigt als 25.
+- Treffer bringen ihre Punkte. *Beliebiges Double* schließt das Bullseye ein. In der Bull-Runde bringt das Single-Bull 25 und das Bullseye 50.
+- Eine Aufnahme ohne Treffer aufs Ziel halbiert die Punkte, abgerundet, auch wenn weniger als drei Darts geworfen wurden.
+- Die meisten Punkte nach neun Runden gewinnen; Gleichstände werden wie bei Shanghai entschieden.
+
+### Killer
+
+- Zwei bis vier Spieler mit je 3 Leben.
+- Zuerst wirft jeder einen Dart für seine eigene Zahl: ein beliebiges Feld von 1 bis 20, das noch niemand hat. Ein Fehlwurf, das Bull oder eine vergebene Zahl heißen: noch einmal werfen.
+- Danach zählen nur Doubles. Wer das Double der eigenen Zahl trifft, ist für den Rest des Legs Killer. Vorher bewirken die Doubles der anderen nichts.
+- Ein Killer nimmt mit jedem Treffer auf das Double eines anderen ein Leben und verliert mit jedem Treffer auf das eigene eines, auch mit einem zweiten eigenen Double in der Aufnahme, die ihn zum Killer gemacht hat.
+- Wer keine Leben mehr hat, ist raus: Der Rest der Aufnahme bewirkt nichts, und der Wurf überspringt ihn von da an.
+- Wer als Letzter noch ein Leben hat, gewinnt sofort; spätere Darts der Aufnahme zählen nicht.
+
+### Trainingsspiele
+
+- **Around the Clock:** 1 bis 20, dann das Bull, der Reihe nach, mit jedem Feld der Zahl. Das Bull-Ziel heißt `25`: Single-Bull und Bullseye zählen beide.
+- **Doppeltraining:** D1 bis D20, dann das Bullseye (`BULL`); nur Doppelring und Bullseye zählen.
+- **Checkout-Training:** ein zufälliger Rest von 2 bis 170, der mit drei Darts checkbar ist, auf einem Double in höchstens drei Aufnahmen ausgecheckt. Überwerfen oder eine dritte Aufnahme ohne Checkout beenden den Versuch; der Weg steht nur, solange der Versuch läuft.
+- **Bob's 27:** Start mit 27 Punkten, je eine Aufnahme auf jedes Double von D1 bis D20 und dann aufs Bullseye. Jeder Treffer bringt den Wert des Doubles; eine Aufnahme ohne Treffer zieht ihn ab. Das Spiel ist verloren, sobald die Punkte null oder weniger erreichen, und geschafft nach dem Bullseye.
+
+### Bestleistungen und Statistik
+
+- **Höchste Aufnahme:** Der Sensor *Training: Höchste Aufnahme* und die Bestleistung `highest_visit` nehmen die Punkte der Darts im Board in einer Aufnahme mit bis zu drei Darts, egal in welchem Spiel: Eine überworfene Aufnahme oder eine Cricket-Aufnahme zählt mit ihren Board-Punkten, wie bei den Stufen 100+, 140+ und 180. Die `highest_visit` eines [Spielerprofils](entitaeten.md#spielerprofile) ist dagegen die höchste X01-Aufnahme dieses Spielers: Überwerfen zählt nichts, und mit Double-In auch keine Darts vor dem öffnenden Double.
+- **Höchster Checkout und wenigste Darts:** Die Bestleistungen `highest_checkout` und `fewest_darts_*` und dieselben Werte der Spielerprofile kommen nur aus gewonnenen X01-Legs mit Double-Out, mit oder ohne Double-In. Ein Leg ohne Double-Out ist leichter zu beenden und setzt keine Bestleistung; Double-In macht ein Leg nur schwerer.
+- **Darts aufs Double:** Mit Double-Out zählt ein Dart als Wurf aufs Double, wenn ein Double den Rest checken könnte: 2 bis 40 bei geraden Zahlen oder 50. Bei 50 zählt also jeder Dart als Versuch aufs Bullseye, auch wenn ein Spieler stattdessen mit einer Single 10 stellt.
 
 ## Kamerazustand
 

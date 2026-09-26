@@ -71,3 +71,7 @@ start_game:
       required: false
       selector:
         boolean: {}
+    bull_off_distance:
+      required: false
+      selector:
+        boolean: {}

@@ -179,6 +179,39 @@ async def test_start_game_names_the_board_problem(hass, aioclient_mock):
     assert error.value.translation_key == "no_board"
 
 
+async def test_start_game_needs_two_players_for_killer_and_names_of_their_own(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    practice = entry.runtime_data.local.practice
+    for data, key in (
+        # One player is at the board, and no names change that.
+        ({"game": "killer"}, "killer_players"),
+        ({"game": "killer", "players": ["Alex"]}, "killer_players"),
+        ({"game": "501", "players": ["Alex", "Sam", " alex "]}, "duplicate_player"),
+    ):
+        with pytest.raises(ServiceValidationError) as error:
+            await hass.services.async_call(DOMAIN, "start_game", data, blocking=True)
+        assert error.value.translation_key == key
+    assert error.value.translation_placeholders == {"name": "alex"}
+    assert practice.game == 0 and practice.party is None
+    # Players without a name may share it; the bull-off rule is a field, too.
+    await hass.services.async_call(
+        DOMAIN,
+        "start_game",
+        {"game": "killer", "players": ["", "", "Kim"], "bull_off_distance": True},
+        blocking=True,
+    )
+    assert practice.party.kind == "killer" and practice.bull_off_distance
+    assert practice.names[:3] == ["", "", "Kim"]
+    # With the players at the board, Killer starts without names.
+    await hass.services.async_call(DOMAIN, "start_game", {"game": "501"}, blocking=True)
+    await hass.services.async_call(
+        DOMAIN, "start_game", {"game": "killer"}, blocking=True
+    )
+    assert practice.party.kind == "killer"
+
+
 async def test_many_corrections_suggest_a_calibration_that_the_repair_runs(
     hass, aioclient_mock
 ):

@@ -115,11 +115,15 @@ def test_the_last_mark_wins_the_leg_and_the_match():
     assert won["leg_won"]["darts"] == 22 and won["leg_won"]["points"] == 45
     assert won["leg_won"]["mpr"] == round(21 * 3 / 22, 2)
     assert won["leg_won"]["match"] is True and won["match_won"]["sets"] == 1
+    assert won["match_won"]["legs"] == 1 and won["match_won"]["scores"] == [
+        {"player": 1, "name": None, "legs": 1, "sets": 1},
+        {"player": 2, "name": None, "legs": 0, "sets": 0},
+    ]
     snapshot = game.snapshot()
     assert snapshot["winner"] == 1 and snapshot["target"] is None
     assert game.legs[0]["game"] == "cricket" and game.legs[0]["points"] == 45
-    # Cricket legs leave the X01 statistics alone.
-    assert game.legs_total == 0
+    # Cricket legs count as legs played, but leave the X01 statistics alone.
+    assert game.legs_total == 1 and game.leg_stats == []
     # The next dart starts a new match.
     game.track(darts("S20"))
     assert game.snapshot()["winner"] is None

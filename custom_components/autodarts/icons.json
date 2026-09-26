@@ -300,6 +300,9 @@
       "practice_bull_off": {
         "default": "mdi:bullseye"
       },
+      "practice_bull_off_distance": {
+        "default": "mdi:ruler"
+      },
       "practice_personal_routes": {
         "default": "mdi:routes"
       }

@@ -1,10 +1,12 @@
 """Home Assistant fixtures for Autodarts."""
 
 import asyncio
+import os
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from hypothesis import settings
 
 import custom_components
 
@@ -12,6 +14,12 @@ import custom_components
 custom_components.__path__.insert(
     0, str(Path(__file__).parents[1] / "custom_components")
 )
+
+# Property tests never fail on a slow machine; in CI they replay the same
+# examples on every run, so a failure shows up again on a retry.
+settings.register_profile("local", deadline=None)
+settings.register_profile("ci", deadline=None, derandomize=True, print_blob=True)
+settings.load_profile("ci" if os.environ.get("CI") else "local")
 
 
 @pytest.fixture(autouse=True)

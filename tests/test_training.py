@@ -41,7 +41,8 @@ def test_visits_duplicates_coordinates_and_bulls():
     assert session.snapshot()["scores_180"] == 1
     assert session.snapshot()["triples"] == 3
     session.observe(board())
-    session.observe(board(BULL, OUTER_BULL, MISS))
+    # A miss next to a number keeps its number: it is still a miss.
+    session.observe(board(BULL, OUTER_BULL, ("M7", 7, 0)))
     assert {key: session.snapshot()[key] for key in COUNTERS} == {
         "darts": 6,
         "points": 255,
@@ -213,6 +214,9 @@ def test_inactive_states_do_not_create_training_darts(status):
         {"numThrows": 1, "throws": [{"segment": "T20"}]},
         {"numThrows": 1, "throws": [{"segment": {"number": 21, "multiplier": 1}}]},
         {"numThrows": 1, "throws": [{"segment": {"number": 20, "multiplier": 4}}]},
+        # The bull has no treble, and only a miss has no number.
+        {"numThrows": 1, "throws": [{"segment": {"number": 25, "multiplier": 3}}]},
+        {"numThrows": 1, "throws": [{"segment": {"number": 0, "multiplier": 1}}]},
     ],
 )
 def test_incomplete_or_malformed_snapshot_does_not_reset_visit(invalid):

@@ -353,6 +353,9 @@
       "practice_bull_off": {
         "name": "Übungsspiel Ausbullen"
       },
+      "practice_bull_off_distance": {
+        "name": "Übungsspiel Ausbullen nach Abstand"
+      },
       "practice_personal_routes": {
         "name": "Übungsspiel persönliche Checkout-Wege"
       }
@@ -507,6 +510,12 @@
     "several_boards": {
       "message": "Es sind mehrere Autodarts-Boards eingerichtet. Wähle das Board."
     },
+    "duplicate_player": {
+      "message": "{name} steht mehrfach in der Spielerliste. Jeder Spieler braucht einen eigenen Namen."
+    },
+    "killer_players": {
+      "message": "Killer braucht mindestens zwei Spieler."
+    },
     "unknown_player": {
       "message": "Es gibt kein Spielerprofil mit dem Namen {name}."
     }
@@ -572,12 +581,16 @@
         "bull_off": {
           "name": "Ausbullen",
           "description": "Die Spieler werfen zuerst aufs Bull; wer am nächsten liegt, beginnt das Match."
+        },
+        "bull_off_distance": {
+          "name": "Ausbullen nach Abstand",
+          "description": "Zwei Darts im selben Bull-Ring entscheidet der Abstand, den das Board gemessen hat, statt eines neuen Wurfs."
         }
       }
     },
     "delete_player": {
       "name": "Spielerprofil löschen",
-      "description": "Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers. Der Match-Verlauf behält den Namen.",
+      "description": "Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers. Auch aus den Bestleistungen des Boards und den Spielernamen des Übungsspiels verschwindet der Name; der Match-Verlauf behält ihn.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

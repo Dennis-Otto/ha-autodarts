@@ -58,8 +58,24 @@ async def test_profiles_the_last_match_and_deleting_a_player(hass, aioclient_moc
     )
     await hass.async_block_till_done()
     assert state(hass, "sensor", "player_profiles") == "1"
+    # The name leaves the player slots, so the next leg creates no profile again.
+    assert coordinator.practice.names[:2] == ["Alex", ""]
     with pytest.raises(ServiceValidationError) as error:
         await hass.services.async_call(
             DOMAIN, "delete_player", {"name": "Nobody"}, blocking=True
         )
     assert error.value.translation_key == "unknown_player"
+
+    # The board's personal bests keep their values, without the name.
+    assert coordinator.records.bests["highest_checkout"]["name"] == "Alex"
+    await hass.services.async_call(
+        DOMAIN, "delete_player", {"name": "ALEX"}, blocking=True
+    )
+    await hass.async_block_till_done()
+    assert state(hass, "sensor", "player_profiles") == "0"
+    assert coordinator.practice.names[:2] == ["", ""]
+    best = coordinator.records.bests["highest_checkout"]
+    assert best["name"] is None and best["value"] == 40
+    # The match history keeps the names.
+    last = hass.states.get(entity_id(hass, "sensor", "last_match"))
+    assert last.attributes["winner"] == "Alex"

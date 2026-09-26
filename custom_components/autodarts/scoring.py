@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 BULL = 25
+# A visit has three darts; darts beyond them, before a takeout, do not count.
+VISIT_DARTS = 3
 
 
 def score(dart: dict[str, Any]) -> int:
