@@ -94,6 +94,20 @@ async def test_a_correction_changes_the_game_and_the_training(hass, aioclient_mo
     assert state(hass, "sensor", "training_points") == "125"
 
 
+async def test_the_bulls_have_the_names_players_use(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    await start(hass)
+    events = record(hass, coordinator)
+    receive(coordinator, board(T20), board(T20, S20))
+    await hass.async_block_till_done()
+    await act(hass, "correct_dart", dart=1, segment="d25")
+    assert (events[-1][1]["segment"], events[-1][1]["score"]) == ("BULL", 50)
+    await act(hass, "correct_dart", dart=2, segment="SB")
+    assert (events[-1][1]["segment"], events[-1][1]["score"]) == ("25", 25)
+    assert state(hass, "sensor", "practice_remaining") == "226"
+
+
 async def test_corrections_that_cannot_be_made(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
@@ -103,11 +117,13 @@ async def test_corrections_that_cannot_be_made(hass, aioclient_mock):
         await act(hass, "correct_dart", dart=2, segment="S20")
     assert error.value.translation_key == "no_dart"
     assert error.value.translation_placeholders == {"dart": "2"}
-    for wrong in ("T21", "D25", "20", ""):
-        with pytest.raises(vol.Invalid):
+    for wrong in ("T21", "20", "S0"):
+        with pytest.raises(ServiceValidationError) as error:
             await act(hass, "correct_dart", dart=1, segment=wrong)
-    with pytest.raises(vol.Invalid):
-        await act(hass, "correct_dart", dart=4, segment="S20")
+        assert error.value.translation_key == "invalid_segment"
+    for wrong in ({"dart": 1, "segment": ""}, {"dart": 4, "segment": "S20"}):
+        with pytest.raises(vol.Invalid):
+            await act(hass, "correct_dart", **wrong)
     # Correcting to what the board reads changes nothing.
     events = record(hass, coordinator)
     await act(hass, "correct_dart", dart=1, segment="T20")

@@ -60,9 +60,10 @@ ONLINE_EVENT_TYPES = [
     "online_match_left",
 ]
 
-# Tools for Autodarts sends one call per moment; more than this in a second is
-# no game, so a leaked address cannot flood the automations.
-RATE_LIMIT = 20
+# Tools for Autodarts sends a few calls per visit; more than this in a second,
+# or in a minute, is no game, so a leaked address cannot flood the recorder or
+# keep the automations busy.
+RATE_LIMITS = ((1.0, 20), (60.0, 120))
 MAX_QUERY = 1024
 MAX_BODY = 1024
 MAX_TRIGGER = 64
@@ -285,6 +286,7 @@ class OnlineBridge:
         self._webhook_id: str = entry.options[CONF_WEBHOOK_ID]
         self.remote = bool(entry.options.get(CONF_ONLINE_REMOTE, False))
         self.signal = f"{DOMAIN}_{entry.entry_id}_online"
+        # When the calls of the last minute came.
         self._calls: deque[float] = deque()
         self._unknown_logged = False
         self.last_event: datetime | None = None
@@ -320,10 +322,13 @@ class OnlineBridge:
             self.last_event_type = event_type if isinstance(event_type, str) else None
 
     def _limited(self, now: float) -> bool:
-        while self._calls and now - self._calls[0] >= 1:
+        """Whether a call exceeds a limit; refused calls use up none of them."""
+        longest = max(window for window, _ in RATE_LIMITS)
+        while self._calls and now - self._calls[0] >= longest:
             self._calls.popleft()
-        if len(self._calls) >= RATE_LIMIT:
-            return True
+        for window, limit in RATE_LIMITS:
+            if sum(now - call < window for call in self._calls) >= limit:
+                return True
         self._calls.append(now)
         return False
 

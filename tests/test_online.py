@@ -28,13 +28,14 @@ from syrupy.assertion import SnapshotAssertion
 from syrupy.filters import props
 
 from custom_components.autodarts import online
+from custom_components.autodarts.config_flow import AutodartsConfigFlow
 from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
 from custom_components.autodarts.online import (
     EFFECT_TRIGGERS,
     MOMENTS,
     ONLINE_EVENT_TYPES,
-    RATE_LIMIT,
+    RATE_LIMITS,
     parse,
 )
 
@@ -311,6 +312,41 @@ async def test_options_switch_the_bridge_on_and_show_the_address(hass, aioclient
     )
 
 
+async def test_a_new_address_replaces_the_old_one_when_switching_off(
+    hass, aioclient_mock
+):
+    """Whoever knows a leaked address can never use it again."""
+    entry = await setup_bridge(hass, aioclient_mock)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {
+            "online_bridge": False,
+            "online_bridge_remote": False,
+            "online_bridge_new_address": True,
+        },
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    new_id = entry.options["online_bridge_webhook_id"]
+    assert re.fullmatch("[0-9a-f]{64}", new_id) and new_id != WEBHOOK_ID
+    assert entry.options["online_bridge"] is False
+
+
+async def test_only_an_entry_with_a_local_board_has_options(hass, aioclient_mock):
+    """The bridge delivers moments as events of the local board."""
+    local = await setup_bridge(hass, aioclient_mock, options={})
+    cloud = MockConfigEntry(
+        domain="autodarts",
+        version=2,
+        data={"board_id": "board-2", "local_only": False},
+    )
+    cloud.add_to_hass(hass)
+    assert AutodartsConfigFlow.async_supports_options_flow(local)
+    assert not AutodartsConfigFlow.async_supports_options_flow(cloud)
+    assert local.supports_options and not cloud.supports_options
+
+
 async def test_address_without_the_configured_urls(hass):
     # Remote calls without an external https address use the home network.
     with patch.object(
@@ -536,8 +572,9 @@ async def test_calls_beyond_the_rate_limit_are_refused(
     entry = await setup_bridge(hass, aioclient_mock)
     events = record_events(hass)
     client = await hass_client_no_auth()
+    per_second = RATE_LIMITS[0][1]
     with patch.object(online, "monotonic", return_value=100.0):
-        for _ in range(RATE_LIMIT):
+        for _ in range(per_second):
             assert await call(client, query="?event=t20") == (HTTPStatus.OK, "ok")
         assert await call(client, query="?event=t20") == (
             HTTPStatus.TOO_MANY_REQUESTS,
@@ -547,7 +584,36 @@ async def test_calls_beyond_the_rate_limit_are_refused(
     with patch.object(online, "monotonic", return_value=101.0):
         assert await call(client, query="?event=t20") == (HTTPStatus.OK, "ok")
     await hass.async_block_till_done()
-    assert len(events) == RATE_LIMIT + 1
+    assert len(events) == per_second + 1
+    assert entry.runtime_data.bridge.counts["limited"] == 1
+
+
+async def test_a_minute_of_calls_is_limited_too(
+    hass, aioclient_mock, hass_client_no_auth
+):
+    """A leaked address cannot keep the recorder and the lights busy for long."""
+    entry = await setup_bridge(hass, aioclient_mock)
+    events = record_events(hass)
+    client = await hass_client_no_auth()
+    (_, per_second), (minute, per_minute) = RATE_LIMITS
+    # Always fewer calls than the limit per second, until the minute is full.
+    spacing = 1.0 / (per_second - 1)
+    moments = [100.0 + index * spacing for index in range(per_minute)]
+    for moment in moments:
+        with patch.object(online, "monotonic", return_value=moment):
+            assert await call(client, query="?event=t20") == (HTTPStatus.OK, "ok")
+    later = moments[-1] + 1.0
+    assert later - moments[0] < minute
+    with patch.object(online, "monotonic", return_value=later):
+        assert await call(client, query="?event=t20") == (
+            HTTPStatus.TOO_MANY_REQUESTS,
+            "too many calls",
+        )
+    # Once the first call is a minute old, the next one is welcome.
+    with patch.object(online, "monotonic", return_value=moments[0] + minute):
+        assert await call(client, query="?event=t20") == (HTTPStatus.OK, "ok")
+    await hass.async_block_till_done()
+    assert len(events) == per_minute + 1
     assert entry.runtime_data.bridge.counts["limited"] == 1
 
 

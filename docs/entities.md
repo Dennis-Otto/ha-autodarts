@@ -340,7 +340,7 @@ Named players unlock achievements, most of them in tiers: bronze, silver, gold a
 | Entity | Type | Description |
 | --- | --- | --- |
 | Achievements | Sensor, badges | The tiers unlocked by all players together. Attributes: `latest` with `name`, `achievement`, `tier` and `date` of the last unlock; `catalogue` with the `id`, the `tiers` and `lower` (true when fewer is better) of every achievement; `players` with every player's `name`, `unlocked` (tiers), `badges` (achievement → `tier` and the `dates` its tiers were unlocked) and `progress` (achievement → the value that measures it). The recorder does not store the catalogue and the players. |
-| Achievements | Switch, *Configuration* | Unlock achievements and fire `achievement_unlocked`. On by default. While it is off, nothing unlocks and nothing is announced, but progress keeps counting; turned on again, what was reached meanwhile unlocks quietly. |
+| Unlock achievements | Switch, *Configuration* | Unlock achievements and fire `achievement_unlocked`. On by default. While it is off, nothing unlocks and nothing is announced, but progress keeps counting; turned on again, what was reached meanwhile unlocks quietly. |
 
 ## Doubles analysis
 
@@ -414,7 +414,7 @@ A tournament for three to eight named players at one board: a **round robin**, i
   ```
 
 - **Matches:** the tournament sets the practice game up for every match: the game, the two players with their start scores, the legs and sets, double out, double in and the bull-off. The first named player throws first, unless a bull-off decides; the schedule gives every player the first throw about equally often.
-- **Between matches:** the result counts when the darts of the winning visit are pulled. First the [summary](cards.md#match-summary) of the match shows for *Tournament summary*, 8 seconds by default; then *Tournament pause* begins, 10 seconds by default, in which the scoreboard shows the table or the bracket with the next match. So the next match starts 18 seconds after the end of the last one, but never while darts are on the board: then it starts as soon as they are pulled. With a pause of 0, it waits for *Next tournament match*. Darts thrown during the pause count for no match; the training session counts them as always.
+- **Between matches:** the result counts when the darts of the winning visit are pulled. First the [summary](cards.md#match-summary) of the match shows for *Tournament summary duration*, 8 seconds by default; then *Tournament pause* begins, 10 seconds by default, in which the scoreboard shows the table or the bracket with the next match. So the next match starts 18 seconds after the end of the last one, but never while darts are on the board: then it starts as soon as they are pulled. With a pause of 0, it waits for *Next tournament match*. Darts thrown during the pause count for no match; the training session counts them as always.
 - **Other games:** a game chosen during a tournament is played as usual and does not count for the tournament. After the pause, the next match waits until that game is decided or ended; *Next tournament match* starts it at once, and during a match of the tournament sets that match up again. *Stop tournament* ends the tournament; the match being played goes on as a practice match.
 - **Restarts:** the tournament, its results and its pause survive a restart of Home Assistant. When the pause ended meanwhile, the next match starts right away.
 
@@ -425,7 +425,7 @@ A tournament for three to eight named players at one board: a **round robin**, i
 | Tournament game | Select, *Configuration* | `101` to `1001`, `cricket`, `cut_throat` or `tactics`; `501` by default. |
 | Tournament players | Text, *Configuration* | Three to eight names, separated by commas, for example `Dennis, Lea, Max`. |
 | Tournament pause | Number, seconds, *Configuration* | 0–600 seconds between two matches after the summary, 10 by default; 0 waits for *Next tournament match*. A change applies at once. |
-| Tournament summary | Number, seconds, *Configuration* | 0–60 seconds the summary of a match shows before the pause begins, 8 by default. A change applies at once. |
+| Tournament summary duration | Number, seconds, *Configuration* | 0–60 seconds the summary of a match shows before the pause begins, 8 by default. A change applies at once. |
 | Tournament third-place match | Switch, *Configuration* | In a knockout of four players or more, the losers of the semi-finals play for third place. Off by default. |
 | Tournament random draw | Switch, *Configuration* | Draws the order of the players at random instead of taking the order of the names. Off by default. |
 | Start tournament | Button | Starts a tournament with these settings and the legs per set, sets to win and rules of the [practice game](#practice-game). |
@@ -472,7 +472,7 @@ A change is written to the Board Manager configuration; only the changed setting
 | --- | --- | --- |
 | Local connection | Binary sensor, *Diagnostic* | Home Assistant reaches the Board Manager. One or two missed reads, a few seconds, keep it on. |
 | Realtime connection | Binary sensor, *Diagnostic* | The connection for realtime events is open. Until events arrive over it, the integration reads every 2 seconds. |
-| Autodarts cloud connection | Binary sensor, **BM 2**, *Diagnostic* | The board's connection to Autodarts. |
+| Cloud link | Binary sensor, **BM 2**, *Diagnostic* | The board's connection to Autodarts. |
 | Cameras active | Binary sensor | The cameras are running. |
 | Calibration in progress | Binary sensor | A calibration is running. |
 | Camera problem | Binary sensor, *Diagnostic* | On when any camera delivers no frames for 15 seconds during active detection. Normal stops, calibration and standby are ignored. |
@@ -524,6 +524,8 @@ Without a local board, *Last event*, *Last dart* and *Darts in visit* come from 
 
 ## Actions
 
+Every logged-in user can play with the actions. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player` and `autodarts.export` change or write out the players' data and are for administrators: a user who is no administrator, such as the user of a wall tablet, gets an error. Automations run them, and so do scripts that an administrator or an automation starts.
+
 ### Start a practice game: `autodarts.start_game`
 
 Sets up and starts a game in one call, for automations, scripts, dashboard buttons and voice control. Values you leave out stay as they are.
@@ -539,7 +541,7 @@ Sets up and starts a game in one call, for automations, scripts, dashboard butto
 | `bull_off` | `true`, `false` | A bull-off decides who starts a match of several players |
 | `bull_off_distance` | `true`, `false` | Two darts in the same bull bed are decided by the measured distance instead of a rethrow |
 | `teams` | `true`, `false` | Four players of X01 or a Cricket game play as two teams: players 1 and 3 against 2 and 4 |
-| `start_scores` | up to 4 numbers, `0` or 2–1001 | X01 start scores of the players in throwing order, for a handicap; `0` or a missing score plays the game's start score |
+| `start_scores` | up to 4 numbers, `0` or 2–1001 | X01 start scores in throwing order, for a handicap: one per player, and one for the bot's seat after them. Teams play from the start scores of players 1 and 2, so give at most two. `0` or a missing score plays the game's start score. With double in and double out, a start score of 3 cannot be won and is refused. |
 | `holes` | `9`, `18` | Holes of Golf |
 | `rounds` | 1–20 | Rounds of Count-Up |
 | `bot_level` | `0` or 20–120 | Play against the [bot](#bot) in X01 and the Cricket games, at this 3-dart average; `0` plays without it |
@@ -583,7 +585,7 @@ data:
   start_scores: [501, 301]
 ```
 
-The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when a name appears twice among the players, when Killer would have fewer than two players, when `teams` asks for teams without four players or in a game other than X01 and the Cricket games, or when four players leave no seat for the bot. Values beyond the limits above are rejected before anything changes.
+The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when a name appears twice among the players or contains curly brackets, a percent sign, a number sign or control characters, when Killer would have fewer than two players, when `teams` asks for teams without four players or in a game other than X01 and the Cricket games, when four players leave no seat for the bot, when a start score is not `0` or 2–1001, when there are more start scores than seats or, for teams, more than two, when a start score of 3 meets double in and double out, or when the bot level is 1–19 or above 120. Values beyond the limits above are rejected before anything changes.
 
 ### Correct a dart: `autodarts.correct_dart`
 
@@ -592,7 +594,7 @@ Puts a dart of the current visit into another bed, for the practice game and the
 | Field | Values | Description |
 | --- | --- | --- |
 | `dart` | 1–3 | The dart of the current visit; required |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (outer bull), `BULL`, `MISS` | The bed, in any upper and lower case; required |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (outer bull, also `S25`, `SB` or `OB`), `BULL` (bullseye, also `D25`, `DB` or `50`), `MISS` | The bed, in any upper and lower case; required |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml
@@ -602,7 +604,7 @@ data:
   segment: T20
 ```
 
-The action fails with a clear message when the visit has no such dart or the dart is the bot's.
+The action fails with a clear message, which names the accepted beds, when the bed is unknown, and when the visit has no such dart or the dart is the bot's.
 
 ### Enter a dart: `autodarts.throw_dart`
 
@@ -610,7 +612,7 @@ Adds a dart to the current visit as if the board had detected it, marked `manual
 
 | Field | Values | Description |
 | --- | --- | --- |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` | The bed; required |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` and the other names of the bulls, as for `autodarts.correct_dart` | The bed; required |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml
@@ -619,7 +621,7 @@ data:
   segment: D16
 ```
 
-The action fails with a clear message when manual entry is off, when the visit already has three darts, or while the bot is at the board.
+The action fails with a clear message when the bed is unknown, when manual entry is off, when the visit already has three darts, or while the bot is at the board.
 
 ### Pass the turn: `autodarts.next_player`
 
@@ -643,24 +645,24 @@ Takes `config_entry_id` when there is more than one board.
 
 ### Delete a player profile: `autodarts.delete_player`
 
-Forgets a player's statistics, personal bests, head-to-head records, progress and badges, and the link to a person. The name also disappears from the board's [personal bests](#personal-bests-streak-and-daily-goal), whose values stay, and from the practice player names, so the next leg does not create the profile again. The match history keeps the name.
+Forgets a player's statistics, personal bests, head-to-head records, progress and badges, and the link to a person. The name also disappears from the board's [personal bests](#personal-bests-streak-and-daily-goal), whose values stay, and from the practice player names, so the next leg does not create the profile again. The match history keeps the name. For administrators.
 
 | Field | Values | Description |
 | --- | --- | --- |
 | `name` | text | The player name, in any upper and lower case; required |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
-The action fails with a clear message when there is no profile by that name.
+The action fails with a clear message when there is no profile by that name, and while the player plays in the tournament being played: stop the tournament first. The player also leaves the players of the next tournament.
 
 ### Export training data: `autodarts.export`
 
-Writes your training sessions, practice matches or player profiles to a file below the configuration folder and returns where it is, for spreadsheets, backups or your own analysis.
+Writes your training sessions, practice matches or player profiles to a file and returns where it is, for spreadsheets, backups or your own analysis. For administrators; automations can use it, too.
 
 | Field | Values | Description |
 | --- | --- | --- |
 | `format` | `csv` (default), `json` | CSV for spreadsheets, in UTF-8 with a byte order mark; with `what: all`, a ZIP file with `sessions.csv`, `matches.csv` and `profiles.csv`. JSON is one file with a list per table. |
 | `what` | `sessions`, `matches`, `profiles`, `all` (default) | The sessions and matches of the last 365 days (those of the [training calendar](#training-calendar)), the [player profiles](#player-profiles), or everything |
-| `folder` | folder | A folder inside the configuration folder; `www/autodarts` by default. Folders outside it, also through `..` or a symbolic link, and hidden folders such as `.storage` are refused. |
+| `folder` | folder | A folder where Home Assistant allows writing: `www`, a media folder or a folder of [`allowlist_external_dirs`](https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs), relative to the configuration folder or as an absolute path. Without it, `autodarts/exports` in the media folder, `/media/autodarts/exports` on Home Assistant OS. Hidden folders such as `.storage`, control characters and folders that `..` or a symbolic link lead elsewhere are refused. |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml
@@ -671,7 +673,7 @@ data:
 response_variable: export
 ```
 
-The response has `path` (the file), `url` (its `/local/` address when the folder is inside `www`, otherwise `null`), `download` (an address below `/api/` from which logged-in users download the file until Home Assistant restarts), `format`, `what` and `rows` with the rows of every table. Every export is a new file, named like `autodarts-all-20260927-201500-<random>.zip`. Home Assistant serves `www` at `/local/` only if the folder existed when Home Assistant started: after the first export into a new `www` folder, `url` works after the next restart, `download` at once.
+The response has `path` (the file), `url` (its `/local/` address when the folder is inside `www`, otherwise `null`), `download` (an address below `/api/` from which administrators download the file until Home Assistant restarts), `format`, `what` and `rows` with the rows of every table. Every export is a new file, named like `autodarts-all-20260927-201500-<random>.zip`. Home Assistant serves `www` at `/local/` only if the folder existed when Home Assistant started: after the first export into a new `www` folder, `url` works after the next restart, `download` at once. At most 20 exports are written in an hour.
 
 | Table | Columns |
 | --- | --- |
@@ -679,13 +681,13 @@ The response has `path` (the file), `url` (its `/local/` address when the folder
 | Matches | `started` (the first dart, if known), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (player number), `winner_name` and every player's `name`, `legs` (won in the deciding set), `sets`, `match_legs` (won in the whole match; empty for matches before version 1.6) and `average`, `mpr` or `points`; in CSV as `player_1_name` to `player_4_points` |
 | Profiles | The values of *Player profiles*; in CSV every plain value is a column, and the fewest darts per start score are `fewest_darts_101` to `fewest_darts_1001` |
 
-> **Privacy:** exports contain player names. Files in `www` are served at `/local/` **without a login** to anyone who can reach Home Assistant and knows the file name. The random part of the name keeps it from being guessed; delete exports you no longer need, or export to a folder outside `www`, which gives no download link.
+> **Privacy:** exports contain player names. The media folder, where they go by default, needs a login. Files in `www` are served at `/local/` **without a login** to anyone who can reach Home Assistant and knows the file name; the random part of the name keeps it from being guessed. Export to `www` only on purpose, and delete exports there that you no longer need.
 
-The action fails with a clear message when the folder is not allowed or the file cannot be written.
+The action fails with a clear message when the folder is not allowed, when 20 exports were written in the last hour, or when the file cannot be written.
 
 ### Link a player to a person: `autodarts.link_player`
 
-Makes a player a person of Home Assistant. The [scoreboard](cards.md#scoreboard-card), the [players card](cards.md#players-card) and the [new game screen](cards.md#new-game-screen) show the person's picture, and the new game screen lists the players who are at home first. A player without a profile gets one. A person is one player: linking the person to another player moves the link.
+Makes a player a person of Home Assistant. The [scoreboard](cards.md#scoreboard-card), the [players card](cards.md#players-card) and the [new game screen](cards.md#new-game-screen) show the person's picture, and the new game screen lists the players who are at home first. A player without a profile gets one. A person is one player: linking the person to another player moves the link. For administrators.
 
 | Field | Values | Description |
 | --- | --- | --- |
@@ -700,11 +702,11 @@ data:
   person: person.dennis
 ```
 
-The action fails with a clear message when Home Assistant has no such person.
+The action fails with a clear message when Home Assistant has no such person, or when the player name contains curly brackets, a percent sign, a number sign or control characters.
 
 ### Unlink a player: `autodarts.unlink_player`
 
-Forgets which person a player is. The player's statistics stay.
+Forgets which person a player is. The player's statistics stay. For administrators.
 
 | Field | Values | Description |
 | --- | --- | --- |
@@ -721,7 +723,7 @@ Draws a [tournament](#tournaments) and starts its first match. Values you leave 
 | --- | --- | --- |
 | `players` | 3–8 names | The players, in the order of the draw |
 | `format` | `round_robin`, `knockout` | Everyone against everyone, or a bracket up to the final |
-| `start_scores` | 0 or 2–1001 per player | X01 start scores of the players in the order of `players`, for a handicap; 0 or a missing score plays the game's start score |
+| `start_scores` | 0 or 2–1001 per player | X01 start scores of the players in the order of `players`, for a handicap, at most one per player; 0 or a missing score plays the game's start score. With double in and double out, a start score of 3 cannot be won and is refused. |
 | `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics` | The game of every match |
 | `legs` | 1–11 | Legs that win a set |
 | `sets` | 1–7 | Sets that win a match |
@@ -746,7 +748,7 @@ data:
   pause: 30
 ```
 
-A tournament started while another one runs replaces it. The action fails with a clear message when fewer than three or more than eight players are named, or a name appears twice.
+A tournament being played has to be stopped before the next one starts; a finished one is replaced. The action fails with a clear message while a tournament is being played, when fewer than three or more than eight players are named, when a name appears twice or contains curly brackets, a percent sign, a number sign or control characters, or when the start scores are wrong as above.
 
 ### Start the next tournament match: `autodarts.next_tournament_match`
 

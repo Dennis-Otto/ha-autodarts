@@ -15,12 +15,15 @@ from homeassistant.core import (
 )
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.service import async_get_config_entry
+from homeassistant.helpers.service import (
+    async_get_config_entry,
+    async_register_admin_service,
+)
 
 from .bot import valid_level
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES
-from .export import DEFAULT_FOLDER, EXPORT_CONTENTS, EXPORT_FORMATS, async_export
+from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
 from .local_coordinator import AutodartsLocalCoordinator
 from .manual import parse_bed
 from .party import GOLF_HOLES, MAX_ROUNDS
@@ -30,6 +33,8 @@ from .practice import (
     MAX_PLAYERS,
     MAX_SETS,
     TEAM_PLAYERS,
+    PracticeGame,
+    valid_name,
     valid_start,
 )
 from .profiles import NAME_LENGTH
@@ -56,28 +61,15 @@ SERVICE_NEXT_PLAYER = "next_player"
 SERVICE_UNDO_VISIT = "undo_visit"
 
 
-def _start_score(value: object) -> int:
-    """0 for the game's start score, or a start score of 2 to 1001."""
-    start = vol.Coerce(int)(value)
-    if not valid_start(start):
-        raise vol.Invalid("a start score is 0 or 2 to 1001")
-    return int(start)
-
-
-def _bot_level(value: object) -> int:
-    """0 without the bot, or its 3-dart average of 20 to 120."""
-    level = vol.Coerce(int)(value)
-    if not valid_level(level):
-        raise vol.Invalid("a bot level is 0 or 20 to 120")
-    return int(level)
-
-
-def _bed(value: object) -> dict[str, object]:
-    """S1 to S20, D1 to D20, T1 to T20, 25, BULL or MISS, in any case."""
-    dart = parse_bed(cv.string(value))
-    if dart is None:
-        raise vol.Invalid("a bed is S1 to T20, 25, BULL or MISS, for example T20")
-    return dart
+# A start score that no dart can win with double in and double out: the only
+# opening double, D1, leaves 1.
+UNWINNABLE_START = 3
+# The longest bed name an error message repeats.
+BED_ECHO = 20
+# Numbers and beds are checked in the handlers, which explain a wrong value in
+# the language of the user; the schemas only make them numbers and texts.
+START_SCORES = vol.All(cv.ensure_list, [vol.Coerce(int)])
+BED = vol.All(cv.string, vol.Length(min=1, max=255))
 
 
 START_GAME_SCHEMA = vol.Schema(
@@ -96,14 +88,12 @@ START_GAME_SCHEMA = vol.Schema(
         vol.Optional("bull_off"): cv.boolean,
         vol.Optional("bull_off_distance"): cv.boolean,
         vol.Optional("teams"): cv.boolean,
-        vol.Optional("start_scores"): vol.All(
-            cv.ensure_list, [_start_score], vol.Length(max=MAX_PLAYERS)
-        ),
+        vol.Optional("start_scores"): START_SCORES,
         vol.Optional("holes"): vol.All(vol.Coerce(int), vol.In(GOLF_HOLES)),
         vol.Optional("rounds"): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=MAX_ROUNDS)
         ),
-        vol.Optional("bot_level"): _bot_level,
+        vol.Optional("bot_level"): vol.Coerce(int),
     }
 )
 
@@ -111,13 +101,13 @@ CORRECT_DART_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
         vol.Required("dart"): vol.All(vol.Coerce(int), vol.Range(min=1, max=3)),
-        vol.Required("segment"): _bed,
+        vol.Required("segment"): BED,
     }
 )
 THROW_DART_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
-        vol.Required("segment"): _bed,
+        vol.Required("segment"): BED,
     }
 )
 
@@ -130,9 +120,7 @@ START_TOURNAMENT_SCHEMA = vol.Schema(
             [vol.All(cv.string, vol.Length(max=NAME_LENGTH))],
             vol.Length(min=MIN_ENTRANTS, max=MAX_ENTRANTS),
         ),
-        vol.Optional("start_scores"): vol.All(
-            cv.ensure_list, [_start_score], vol.Length(max=MAX_ENTRANTS)
-        ),
+        vol.Optional("start_scores"): START_SCORES,
         vol.Optional("format"): vol.All(cv.string, vol.In(FORMATS)),
         vol.Optional("game"): vol.All(cv.string, vol.In(TOURNAMENT_GAMES)),
         vol.Optional("legs"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_LEGS)),
@@ -185,9 +173,8 @@ EXPORT_SCHEMA = vol.Schema(
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
         vol.Optional("format", default="csv"): vol.In(EXPORT_FORMATS),
         vol.Optional("what", default="all"): vol.In(EXPORT_CONTENTS),
-        vol.Optional("folder", default=DEFAULT_FOLDER): vol.All(
-            cv.string, vol.Length(min=1, max=255)
-        ),
+        # Without a folder, the export goes to autodarts/exports of the media folder.
+        vol.Optional("folder"): vol.All(cv.string, vol.Length(min=1, max=255)),
     }
 )
 
@@ -218,6 +205,63 @@ def _coordinator(
             translation_domain=DOMAIN, translation_key="several_boards"
         )
     return boards[0]
+
+
+def _invalid(key: str, **placeholders: str) -> ServiceValidationError:
+    return ServiceValidationError(
+        translation_domain=DOMAIN,
+        translation_key=key,
+        translation_placeholders=placeholders or None,
+    )
+
+
+def _bed(value: str) -> dict[str, object]:
+    """The dart in the named bed, or a translated error naming the bed."""
+    dart = parse_bed(value)
+    if dart is None:
+        shown = "".join(
+            char if char.isprintable() else "?" for char in value.strip()[:BED_ECHO]
+        )
+        raise _invalid("invalid_segment", segment=shown)
+    return dart
+
+
+def _check_names(names: list[str] | None) -> None:
+    """Names without the characters no player name contains, such as { } % #,
+    which templates of automations would run."""
+    if not all(valid_name(name) for name in names or []):
+        raise _invalid("invalid_player_name")
+
+
+def _check_level(level: int) -> None:
+    if not valid_level(level):
+        raise _invalid("invalid_bot_level")
+
+
+def _check_starts(
+    starts: list[int] | None,
+    seats: int,
+    teams: bool = False,
+    x01: bool = False,
+    doubles: bool = False,
+    current: list[int] | None = None,
+) -> None:
+    """Start scores of 0 or 2 to 1001, one per seat or, for teams, one per team;
+    a start score of 3 cannot be won with double in and double out."""
+    for start in starts or []:
+        if not valid_start(start):
+            raise _invalid("invalid_start_score")
+    if starts is not None and teams and len(starts) > TEAM_PLAYERS // 2:
+        raise _invalid("team_start_scores")
+    if starts is not None and len(starts) > seats:
+        raise _invalid(
+            "too_many_start_scores", scores=str(len(starts)), players=str(seats)
+        )
+    # Unset start scores stay as they are; a team plays from its first player's.
+    playing = (current or []) if starts is None else starts
+    used = playing[: TEAM_PLAYERS // 2 if teams else seats]
+    if x01 and doubles and UNWINNABLE_START in used:
+        raise _invalid("unwinnable_start")
 
 
 def _check_players(
@@ -261,6 +305,15 @@ def _check_players(
         )
 
 
+def _doubles(call: ServiceCall, practice: PracticeGame) -> bool:
+    """Whether double in and double out both apply, as the call sets them or
+    as they are."""
+    return all(
+        call.data.get(rule, getattr(practice, rule))
+        for rule in ("double_in", "double_out")
+    )
+
+
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
     async def start_game(call: ServiceCall) -> None:
@@ -269,12 +322,23 @@ def async_setup_services(hass: HomeAssistant) -> None:
         names: list[str] | None = call.data.get("players")
         practice = coordinator.practice
         level: int = call.data.get("bot_level", practice.bot_level)
+        _check_names(names)
+        _check_level(level)
         _check_players(
-            game,
-            names,
-            practice.humans,
-            call.data.get("teams") is True,
-            level > 0,
+            game, names, practice.humans, call.data.get("teams") is True, level > 0
+        )
+        paired = game.isdigit() or game in CRICKET_GAMES
+        # The bot's seat, after the players, has a start score, too.
+        seats = (len(names) if names else practice.humans) + int(level > 0 and paired)
+        _check_starts(
+            call.data.get("start_scores"),
+            seats,
+            teams=paired
+            and seats == TEAM_PLAYERS
+            and bool(call.data.get("teams", practice.teams)),
+            x01=game.isdigit(),
+            current=list(practice.starts),
+            doubles=_doubles(call, practice),
         )
         await coordinator.async_start_game(
             int(game) if game.isdigit() else game,
@@ -312,13 +376,16 @@ def async_setup_services(hass: HomeAssistant) -> None:
             coordinator,
             call.data["format"],
             call.data["what"],
-            call.data["folder"],
+            call.data.get("folder"),
         )
 
-    hass.services.async_register(
-        DOMAIN, SERVICE_DELETE_PLAYER, delete_player, schema=DELETE_PLAYER_SCHEMA
+    # Actions that forget or write out the players' data are for administrators;
+    # automations and scripts, which run without a user, still use them.
+    async_register_admin_service(
+        hass, DOMAIN, SERVICE_DELETE_PLAYER, delete_player, schema=DELETE_PLAYER_SCHEMA
     )
-    hass.services.async_register(
+    async_register_admin_service(
+        hass,
         DOMAIN,
         SERVICE_EXPORT,
         export,
@@ -329,6 +396,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def link_player(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         person: str = call.data["person"]
+        _check_names([call.data["player"]])
         if hass.states.get(person) is None:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -346,15 +414,23 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 translation_placeholders={"name": call.data["player"]},
             )
 
-    hass.services.async_register(
-        DOMAIN, SERVICE_LINK_PLAYER, link_player, schema=LINK_PLAYER_SCHEMA
+    async_register_admin_service(
+        hass, DOMAIN, SERVICE_LINK_PLAYER, link_player, schema=LINK_PLAYER_SCHEMA
     )
-    hass.services.async_register(
-        DOMAIN, SERVICE_UNLINK_PLAYER, unlink_player, schema=UNLINK_PLAYER_SCHEMA
+    async_register_admin_service(
+        hass, DOMAIN, SERVICE_UNLINK_PLAYER, unlink_player, schema=UNLINK_PLAYER_SCHEMA
     )
 
     async def start_tournament(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        setup = coordinator.tournament.setup
+        _check_names(call.data.get("players"))
+        _check_starts(
+            call.data.get("start_scores"),
+            len(call.data.get("players", setup.players)),
+            x01=str(call.data.get("game", setup.game)).isdigit(),
+            doubles=_doubles(call, coordinator.practice),
+        )
         options = {
             key: value
             for key, value in call.data.items()
@@ -389,11 +465,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def correct_dart(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        await coordinator.async_correct_dart(call.data["dart"], call.data["segment"])
+        dart = _bed(call.data["segment"])
+        await coordinator.async_correct_dart(call.data["dart"], dart)
 
     async def throw_dart(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        await coordinator.async_throw_dart(call.data["segment"])
+        await coordinator.async_throw_dart(_bed(call.data["segment"]))
 
     async def next_player(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
