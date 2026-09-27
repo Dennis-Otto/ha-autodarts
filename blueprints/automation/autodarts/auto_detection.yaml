@@ -2,8 +2,9 @@ blueprint:
   name: "Autodarts: start and stop detection automatically"
   description: >-
     Starts the dart detection when someone is at the board and stops it
-    after the board has been unused for a while. The cameras and the board
-    PC rest in between.
+    after the presence has been off for a while. The cameras and the board PC
+    rest in between. A detection you start by hand while the presence is off
+    keeps running.
 
 
     Use any on/off entity as presence, such as an occupancy sensor in the
@@ -36,14 +37,13 @@ blueprint:
               domain: switch
     stop_after:
       name: Stop after
-      description: How long the board has to be unused before the detection stops.
+      description: How long the presence has to be off before the detection stops.
       default:
         minutes: 10
       selector:
         duration: {}
 
 mode: restart
-max_exceeded: silent
 
 triggers:
   - trigger: state

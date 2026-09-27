@@ -3,6 +3,8 @@
 import asyncio
 import itertools
 import json
+import logging
+import random
 import re
 import shutil
 from collections import defaultdict
@@ -12,13 +14,16 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, quote, urlsplit
 
 import pytest
+import voluptuous as vol
 from homeassistant.components.blueprint import models
 from homeassistant.components.blueprint.schemas import BLUEPRINT_SCHEMA
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.template import Template
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 from homeassistant.util.yaml import load_yaml
@@ -28,7 +33,9 @@ from pytest_homeassistant_custom_component.common import (
     async_mock_service,
     get_scheduled_timer_handles,
 )
+from yaml import safe_load
 
+from custom_components.autodarts.bot import Bot
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
 
 from .local_helpers import BULL, S20, T20, board, entity_id, setup_bridge
@@ -124,6 +131,19 @@ async def pass_time(hass, freezer, seconds: float) -> None:
     await hass.async_block_till_done()
 
 
+async def settle(hass) -> None:
+    """Let triggered runs start, or join the queue behind a run that waits."""
+    for _ in range(20):
+        await asyncio.sleep(0)
+
+
+async def photo_taken(hass, freezer) -> None:
+    """The highlight photo waits half a second for a leg won by the same dart."""
+    await until_waiting(hass, 0.5)
+    await settle(hass)
+    await pass_time(hass, freezer, 0.5)
+
+
 def walk(node):
     if isinstance(node, dict):
         yield node
@@ -204,6 +224,25 @@ def test_documents_import_every_blueprint(document):
     assert imported == {path.name for path in PATHS}
 
 
+@pytest.mark.parametrize("document", ["docs/automations.md", "docs/de/automationen.md"])
+def test_the_documentation_lists_every_setting(document):
+    """Each input of each blueprint has a row in the tables of the settings."""
+    text = (ROOT / document).read_text(encoding="utf-8")
+    rows: set[str] = set()
+    for cell in re.findall(r"^\| ([^|]+?) \|", text, re.MULTILINE):
+        # Settings shared with another blueprint share a row.
+        rows.update({cell, *cell.split(", ")})
+    missing = [
+        f"{path.stem}: {entry['name']}"
+        for path in PATHS
+        for entry in models.Blueprint(
+            load_yaml(path), expected_domain="automation", schema=BLUEPRINT_SCHEMA
+        ).inputs.values()
+        if entry["name"] not in rows
+    ]
+    assert not missing, missing
+
+
 def photo_name(call) -> str:
     """The file a snapshot saves, without the folder and the moment it was taken."""
     folder, _, name = str(call.data["filename"]).rpartition("/")
@@ -223,6 +262,28 @@ PHOTO = {
         }
     ],
 }
+# The photo as the actions get it: the saved file, its address and the camera.
+SAVED = {
+    **PHOTO,
+    "photo_actions": [
+        {
+            "action": "test.photo",
+            "data": {
+                "image": "{{ image }}",
+                "message": "{{ message }}",
+                "photo": "{{ photo }}",
+                "photo_url": "{{ photo_url }}",
+            },
+        }
+    ],
+}
+
+
+class Steady(random.Random):
+    """A hand without scatter: every dart of the bot lands where it aims."""
+
+    def gauss(self, mu: float = 0.0, sigma: float = 1.0) -> float:
+        return mu
 
 
 # -- the real board events -------------------------------------------------------
@@ -238,6 +299,13 @@ async def visit(hass, coordinator, *darts) -> None:
     await hass.async_block_till_done()
 
 
+async def bot_visit(hass) -> None:
+    """The bot throws its darts, each after its delay, and ends its visit."""
+    for _ in range(4):
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=10))
+        await hass.async_block_till_done()
+
+
 async def test_blueprints_follow_the_real_board_events(
     hass, aioclient_mock, hass_client_no_auth
 ):
@@ -247,11 +315,14 @@ async def test_blueprints_follow_the_real_board_events(
     events = entity_id(hass, "event", "board_events")
     payloads: dict[str, set[str]] = defaultdict(set)
 
+    setups: set[str] = set()
+
     @callback
     def collect(event) -> None:
         attributes = event.data["new_state"].attributes
         if kind := attributes.get("event_type"):
             payloads[kind].update(attributes)
+            setups.update(attributes.get("setup") or {})
 
     async def unchanged_board() -> dict:
         # A reconciliation read while the scenario waits finds the same board.
@@ -441,6 +512,32 @@ async def test_blueprints_follow_the_real_board_events(
         {"moment": "tournament", "who": "Dennis"},
     )
 
+    # Against a bot whose darts land where it aims: 180, 180 and 141. Its
+    # darts are not in the board, so only the callers name it. Dennis starts
+    # at 169, which leaves no checkout, and the turn names a setup instead.
+    coordinator.bot = Bot(Steady())
+    heard, shown = len(speak), (len(light), len(celebrate), len(snapshots))
+    with patch.object(coordinator.client, "get_state", side_effect=unchanged_board):
+        await coordinator.async_start_game(
+            501,
+            names=["Dennis"],
+            legs=1,
+            sets=1,
+            double_out=True,
+            bull_off=False,
+            teams=False,
+            start_scores=[169],
+            bot_level=120,
+        )
+        for _ in range(3):
+            await visit(hass, coordinator, S1, S1, S1)
+            await bot_visit(hass)
+    assert spoken(speak)[heard:] == [
+        "Bot, you require 141",
+        "Game shot, and the match, Bot!",
+    ]
+    assert (len(light), len(celebrate), len(snapshots)) == shown
+
     # Whatever a blueprint reads is in the events it listens to.
     for path in PATHS:
         kinds = listened(path)
@@ -449,6 +546,8 @@ async def test_blueprints_follow_the_real_board_events(
         assert kinds <= payloads.keys(), path.stem
         available = set().union(*(payloads[kind] for kind in kinds))
         assert read_attributes(path) <= available, path.stem
+    # The practice caller reads the score to leave and the darts of a setup.
+    assert {"leave", "route"} <= setups
 
 
 # -- celebrate a visit score -------------------------------------------------------
@@ -491,6 +590,41 @@ async def test_visit_score_runs_actions_for_high_visits_once(hass):
     )
     assert [call.data["score"] for call in calls] == [140, 120, 100]
     assert calls[0].data["segments"] == ["T20", "T20", "S20"]
+
+
+async def test_visit_score_leaves_the_bot_out_unless_asked(hass):
+    mine = async_mock_service(hass, "test", "celebrate")
+    every = async_mock_service(hass, "test", "every")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            (
+                "visit_score",
+                {
+                    "board_events": EVENTS,
+                    "minimum_score": 100,
+                    "celebration": [
+                        {"action": f"test.{action}", "data": {"score": "{{ score }}"}}
+                    ],
+                    "include_bot": action == "every",
+                },
+            )
+            for action in ("celebrate", "every")
+        ],
+    )
+    bot = {"game": 501, "name": None, "bot": True}
+    await fire_all(
+        hass,
+        [
+            ("visit_thrown", {"score": 180, "darts": 3, **bot}),
+            ("visit_thrown", {"score": 140, "darts": 3, "game": 501, "name": "Lea"}),
+            ("visit_completed", {"score": 100, "darts": 2, "thrown": False, **bot}),
+        ],
+    )
+    # The bot's darts are not in the board.
+    assert [call.data["score"] for call in mine] == [140]
+    assert [call.data["score"] for call in every] == [180, 140, 100]
 
 
 # -- dart caller ---------------------------------------------------------------------
@@ -785,6 +919,45 @@ async def test_practice_caller_calls_the_bull_off(hass):
         "Lea wins the bull with S20, 12.5 mm",
         "Lea wins the bull with 25",
     ]
+
+
+async def test_practice_caller_names_the_bot_like_the_scoreboard(hass):
+    calls = async_mock_service(hass, "tts", "speak")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            ("practice_caller", VOICE),
+            (
+                "practice_caller",
+                {**VOICE, "speakers": ["media_player.kitchen"], "bot_label": "Robo"},
+            ),
+        ],
+    )
+    bot = {"game": 501, "players": 2, "player": 2, "name": None, "bot": True}
+    await fire_all(
+        hass,
+        [
+            ("turn_changed", {**bot, "remaining": 40, "checkout": "D20"}),
+            ("bust", {**bot, "remaining": 40}),
+            ("match_won", bot),
+        ],
+    )
+    by_speaker = defaultdict(list)
+    for call in calls:
+        by_speaker[call.data["media_player_entity_id"][0]].append(call.data["message"])
+    assert by_speaker == {
+        "media_player.dartroom": [
+            "Bot, you require 40",
+            "No score",
+            "Game shot, and the match, Bot!",
+        ],
+        "media_player.kitchen": [
+            "Robo, you require 40",
+            "No score",
+            "Game shot, and the match, Robo!",
+        ],
+    }
 
 
 # -- takeout, detection, alerts ----------------------------------------------------
@@ -1153,7 +1326,7 @@ async def test_training_session_prepares_the_board_despite_a_failing_action(hass
 # -- highlight photo ---------------------------------------------------------------------
 
 
-async def test_highlight_photo_for_a_180_and_a_checkout(hass):
+async def test_highlight_photo_for_a_180_and_a_checkout(hass, freezer):
     photos = async_mock_service(hass, "test", "photo")
     snapshots = async_mock_service(hass, "camera", "snapshot")
     hass.states.async_set(EVENTS, "unknown")
@@ -1161,7 +1334,7 @@ async def test_highlight_photo_for_a_180_and_a_checkout(hass):
     fire(hass, "visit_thrown", score=140, darts=3)
     fire(hass, "visit_thrown", score=180, darts=3, name="Alex/Bee_2")
     # The photo waits a moment for a leg won by the same dart.
-    await hass.async_block_till_done()
+    await photo_taken(hass, freezer)
     assert [call.data for call in photos] == [
         {
             "image": "/api/camera_proxy/camera.autodarts_board_camera_1",
@@ -1169,7 +1342,7 @@ async def test_highlight_photo_for_a_180_and_a_checkout(hass):
         }
     ]
     fire(hass, "leg_won", game=501, players=2, player=2, name="Sam", checkout=121)
-    await hass.async_block_till_done()
+    await photo_taken(hass, freezer)
     assert photos[-1].data["message"] == "Checkout 121 by Sam!"
     # A Cricket leg has no checkout to show.
     fire(hass, "leg_won", game="cricket", players=2, player=1, name="Lea", mpr=2.4)
@@ -1187,7 +1360,7 @@ async def test_highlight_photo_for_a_180_and_a_checkout(hass):
     ]
 
 
-async def test_highlight_photo_of_a_checkout_by_the_third_dart(hass):
+async def test_highlight_photo_of_a_checkout_by_the_third_dart(hass, freezer):
     """The visit and the leg arrive together; the leg gets one photo."""
     photos = async_mock_service(hass, "test", "photo")
     snapshots = async_mock_service(hass, "camera", "snapshot")
@@ -1195,12 +1368,12 @@ async def test_highlight_photo_of_a_checkout_by_the_third_dart(hass):
     await automate(hass, "highlight_photo", {**PHOTO, "minimum_score": 100})
     fire(hass, "visit_thrown", score=170, darts=3)
     fire(hass, "leg_won", game=501, players=1, player=1, name=None, checkout=170)
-    await hass.async_block_till_done()
+    await photo_taken(hass, freezer)
     assert [call.data["message"] for call in photos] == ["Checkout 170!"]
     assert [photo_name(call) for call in snapshots] == ["checkout-170.jpg"]
 
 
-async def test_highlight_photo_can_skip_checkouts_and_lower_the_score(hass):
+async def test_highlight_photo_can_skip_checkouts_and_lower_the_score(hass, freezer):
     photos = async_mock_service(hass, "test", "photo")
     async_mock_service(hass, "camera", "snapshot")
     hass.states.async_set(EVENTS, "unknown")
@@ -1216,13 +1389,13 @@ async def test_highlight_photo_can_skip_checkouts_and_lower_the_score(hass):
         },
     )
     fire(hass, "visit_thrown", score=140, darts=3)
-    await hass.async_block_till_done()
+    await photo_taken(hass, freezer)
     fire(hass, "leg_won", game=501, players=1, player=1, name=None, checkout=40)
     await hass.async_block_till_done()
     assert [call.data["message"] for call in photos] == ["140!"]
 
 
-async def test_highlight_photo_gallery_folder_and_saving_can_change(hass):
+async def test_highlight_photo_gallery_folder_and_saving_can_change(hass, freezer):
     photos = async_mock_service(hass, "test", "photo")
     snapshots = async_mock_service(hass, "camera", "snapshot")
     hass.states.async_set(EVENTS, "unknown")
@@ -1250,7 +1423,7 @@ async def test_highlight_photo_gallery_folder_and_saving_can_change(hass):
         ],
     )
     fire(hass, "visit_thrown", score=180, darts=3, name="Lea")
-    await hass.async_block_till_done()
+    await photo_taken(hass, freezer)
     folders = sorted(
         (str(call.data["filename"]).rsplit("/", 1)[0], call.data["entity_id"])
         for call in snapshots
@@ -1265,7 +1438,7 @@ async def test_highlight_photo_gallery_folder_and_saving_can_change(hass):
     assert len(photos) == 2
 
 
-async def test_a_photo_that_cannot_be_saved_is_still_sent(hass):
+async def test_a_photo_that_cannot_be_saved_is_still_sent(hass, freezer):
     photos = async_mock_service(hass, "test", "photo")
 
     async def refuse(call) -> None:
@@ -1273,10 +1446,131 @@ async def test_a_photo_that_cannot_be_saved_is_still_sent(hass):
 
     hass.services.async_register("camera", "snapshot", refuse)
     hass.states.async_set(EVENTS, "unknown")
-    await automate(hass, "highlight_photo", PHOTO)
+    await automate(hass, "highlight_photo", SAVED)
     fire(hass, "visit_thrown", score=180, darts=3)
-    await hass.async_block_till_done()
-    assert [call.data["message"] for call in photos] == ["180!"]
+    await photo_taken(hass, freezer)
+    # The live picture instead of a file that was never written.
+    assert [call.data for call in photos] == [
+        {
+            "image": "/api/camera_proxy/camera.autodarts_board_camera_1",
+            "message": "180!",
+            "photo": "",
+            "photo_url": "",
+        }
+    ]
+
+
+async def test_highlight_photo_hands_the_saved_file_to_the_actions(hass, freezer):
+    """The app loads the saved photo instead of the camera seconds later."""
+    photos = async_mock_service(hass, "test", "photo")
+    async_mock_service(hass, "camera", "snapshot")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            (
+                "highlight_photo",
+                {
+                    **SAVED,
+                    "camera": f"camera.autodarts_board_camera_{number}",
+                    "gallery_folder": folder,
+                    "save_photo": save,
+                },
+            )
+            for number, folder, save in (
+                (1, "/media/autodarts/highlights", True),
+                (2, "/config/media/darts", True),
+                (3, "/share/darts", True),
+                (4, "/media/autodarts/highlights", False),
+            )
+        ],
+    )
+    fire(hass, "visit_thrown", score=180, darts=3, name="Alex Bee")
+    await photo_taken(hass, freezer)
+    sent = {call.data["image"][-1]: call.data for call in photos}
+    file = sent["1"]["photo"].rsplit("/", 1)[1]
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_Alex Bee_180\.jpg", file)
+    assert "Alex%20Bee" in quote(file)
+    assert [
+        (sent[camera]["photo"], sent[camera]["photo_url"]) for camera in "1234"
+    ] == [
+        (
+            f"/media/autodarts/highlights/{file}",
+            f"/media/local/autodarts/highlights/{quote(file)}",
+        ),
+        (f"/config/media/darts/{file}", f"/media/local/darts/{quote(file)}"),
+        # Outside the media folder, Home Assistant has no address for the file.
+        (f"/share/darts/{file}", ""),
+        # Nothing saved, nothing to load: the actions fall back to `image`.
+        ("", ""),
+    ]
+
+
+async def test_names_never_become_templates(hass, freezer, caplog):
+    """A name is text, also in the fields Home Assistant renders once more."""
+    hass.states.async_set("sensor.secret", "s3cr3t")
+    files, messages = [], []
+
+    async def snapshot(call) -> None:
+        files.append(call.data["filename"].async_render(parse_result=False))
+
+    async def notify(call) -> None:
+        messages.append(call.data["message"].async_render(parse_result=False))
+
+    # Like camera.snapshot and the notify services, which take templates.
+    hass.services.async_register(
+        "camera",
+        "snapshot",
+        snapshot,
+        schema=cv.make_entity_service_schema({vol.Required("filename"): cv.template}),
+    )
+    hass.services.async_register(
+        "test",
+        "notify",
+        notify,
+        schema=vol.Schema({vol.Required("message"): cv.template}),
+    )
+    speak = async_mock_service(hass, "tts", "speak")
+    hass.states.async_set(EVENTS, "unknown")
+    tell = [{"action": "test.notify", "data": {"message": "{{ message }}"}}]
+    await automate_all(
+        hass,
+        [
+            ("highlight_photo", {**PHOTO, "photo_actions": tell}),
+            (
+                "light_show",
+                {
+                    "board_events": EVENTS,
+                    "leg_actions": [
+                        {"action": "test.notify", "data": {"message": "{{ who }}"}}
+                    ],
+                },
+            ),
+            ("practice_caller", VOICE),
+        ],
+    )
+    names = {
+        "{{ 6*7 }}": "6*7",
+        "Kim {% if": "Kim  if",
+        "{{ states('sensor.secret') }}": "states('sensor.secret')",
+        "{# note #}Lea": "note Lea",
+    }
+    for name in names:
+        fire(hass, "leg_won", game=501, players=2, player=1, name=name, checkout=40)
+        await photo_taken(hass, freezer)
+    shown = list(names.values())
+    assert [message for message in messages if not message.startswith("C")] == shown
+    assert [message for message in messages if message.startswith("C")] == [
+        f"Checkout 40 by {who}!" for who in shown
+    ]
+    assert spoken(speak) == [f"Game shot, and the leg, {who}!" for who in shown]
+    assert [file.split("_", 2)[2] for file in files] == [
+        "6 7_checkout-40.jpg",
+        "Kim  if_checkout-40.jpg",
+        "states('sensor.secret')_checkout-40.jpg",
+        "note Lea_checkout-40.jpg",
+    ]
+    assert not [record for record in caplog.records if record.levelno >= logging.ERROR]
 
 
 # -- light show ------------------------------------------------------------------------
@@ -1305,7 +1599,12 @@ async def test_light_show_moments(hass):
     await automate(
         hass,
         "light_show",
-        {"board_events": EVENTS, **moment_actions(), "high_finish_minimum": 100},
+        {
+            "board_events": EVENTS,
+            **moment_actions(),
+            "high_finish_minimum": 100,
+            "takeout_moments": True,
+        },
     )
     x01 = {"game": 501, "players": 2}
     await fire_all(
@@ -1385,6 +1684,7 @@ async def test_light_show_restores_the_lights_and_pauses_the_detection(hass, fre
             "effect_duration": {"seconds": 8},
             "pause_detection": True,
             "detection": detection,
+            "takeout_moments": True,
         },
     )
     fire(hass, "visit_thrown", score=180, darts=3)
@@ -1505,6 +1805,163 @@ async def test_light_show_reacts_to_online_matches_when_asked(hass):
     ]
 
 
+async def test_light_show_keeps_the_moments_that_wait_for_an_effect(hass, freezer):
+    """The final of a tournament brings personal bests and achievements while
+    its effect plays; the takeouts of the next visits never take their place."""
+    light = async_mock_service(hass, "test", "light")
+    async_mock_service(hass, "scene", "create")
+    restore = async_mock_service(hass, "scene", "turn_on")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "light_show",
+        {
+            "board_events": EVENTS,
+            **moment_actions(),
+            "effect_moments": ["match"],
+            "restore_lights": ["light.wled"],
+            "effect_duration": {"seconds": 10},
+        },
+    )
+    fire(hass, "match_won", game=501, players=2, player=1, name="Lea")
+    await until_waiting(hass, 10)
+    lea = {"player": 1, "name": "Lea", "tier": 1}
+    for kind, attributes in [
+        ("takeout_started", {}),
+        ("personal_best", {"record": "highest_checkout", "value": 121}),
+        ("personal_best", {"record": "fewest_darts_501", "value": 15}),
+        ("takeout_finished", {}),
+        *[
+            ("achievement_unlocked", {**lea, "achievement": achievement})
+            for achievement in ("match", "leg", "high_finish", "short_leg")
+        ],
+        *[
+            (kind, {})
+            for _ in range(5)
+            for kind in ("takeout_started", "takeout_finished")
+        ],
+        ("tournament_finished", {"winner": "Lea", "runner_up": "Kim"}),
+    ]:
+        fire(hass, kind, **attributes)
+        await settle(hass)
+    await pass_time(hass, freezer, 10)
+    assert [call.data["moment"] for call in light] == [
+        "match",
+        "personal_best",
+        "personal_best",
+        *["achievement"] * 4,
+        "tournament",
+    ]
+    assert len(restore) == 1
+
+
+async def test_light_show_never_pauses_the_detection_in_the_middle_of_a_visit(
+    hass, freezer
+):
+    light = async_mock_service(hass, "test", "light")
+    snapshot = async_mock_service(hass, "scene", "create")
+    restore = async_mock_service(hass, "scene", "turn_on")
+    turn_off = async_mock_service(hass, "switch", "turn_off")
+    detection = "switch.autodarts_board_detection"
+    hass.states.async_set(EVENTS, "unknown")
+    hass.states.async_set(detection, "on")
+    await automate(
+        hass,
+        "light_show",
+        {
+            "board_events": EVENTS,
+            **moment_actions(),
+            "effect_moments": ["daily_goal", "maximum"],
+            "restore_lights": ["light.wled"],
+            "effect_duration": {"seconds": 5},
+            "pause_detection": True,
+            "detection": detection,
+        },
+    )
+    # The dart that reaches the daily goal may be the first of a visit: the
+    # effect plays, and the detection keeps counting the visit.
+    fire(hass, "daily_goal_reached", goal=100, darts=100, streak=1)
+    await until_waiting(hass, 5)
+    assert len(light) == len(snapshot) == 1 and not turn_off
+    await pass_time(hass, freezer, 5)
+    assert len(restore) == 1
+    # The third dart of a 180 ends its visit: the detection pauses.
+    fire(hass, "visit_thrown", score=180, darts=3)
+    await until_waiting(hass, 5)
+    assert [call.data["entity_id"] for call in turn_off] == [[detection]]
+    await pass_time(hass, freezer, 5)
+    assert len(light) == len(restore) == 2
+
+
+async def test_light_show_leaves_the_bot_out_unless_asked(hass):
+    light = async_mock_service(hass, "test", "light")
+    everyone = async_mock_service(hass, "test", "everyone")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            ("light_show", {"board_events": EVENTS, **moment_actions()}),
+            (
+                "light_show",
+                {
+                    "board_events": EVENTS,
+                    **moment_actions("test.everyone"),
+                    "include_bot": True,
+                    "bot_label": "Robo",
+                },
+            ),
+        ],
+    )
+    bot = {"game": 501, "players": 2, "player": 2, "name": None, "bot": True}
+    # In a team match, the bot's partner at the board wins with it.
+    team = {**bot, "players": 4, "player": 4, "team": 2, "team_name": None}
+    await fire_all(
+        hass,
+        [
+            ("bull_off_won", {**bot, "hit": "BULL", "distance": 3.0}),
+            ("visit_thrown", {"score": 180, "darts": 3, **bot}),
+            ("bust", {**bot, "remaining": 32}),
+            ("leg_won", {**bot, "checkout": 40, "match": False}),
+            ("match_won", bot),
+            ("bust", {**team, "remaining": 32}),
+            ("leg_won", {**team, "checkout": 121, "match": False}),
+            ("match_won", team),
+        ],
+    )
+    assert [(call.data["moment"], call.data["who"]) for call in light] == [
+        ("high_finish", "Bot"),
+        ("match", "Bot"),
+    ]
+    assert [(call.data["moment"], call.data["who"]) for call in everyone] == [
+        ("bull_off", "Robo"),
+        ("maximum", "Robo"),
+        ("bust", "Robo"),
+        ("leg", "Robo"),
+        ("match", "Robo"),
+        ("bust", "Robo"),
+        ("high_finish", "Robo"),
+        ("match", "Robo"),
+    ]
+
+
+async def test_light_show_names_unnamed_players_in_its_language(hass):
+    light = async_mock_service(hass, "test", "light")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "light_show",
+        {"board_events": EVENTS, **moment_actions(), "player_label": "Spieler"},
+    )
+    await fire_all(
+        hass,
+        [
+            ("bust", {"game": 501, "players": 3, "player": 3, "name": None}),
+            ("bust", {"game": 501, "players": 1, "player": 1, "name": None}),
+        ],
+    )
+    assert [call.data["who"] for call in light] == ["Spieler 3", ""]
+
+
 async def test_practice_caller_names_the_score_to_leave_without_a_checkout(hass):
     calls = async_mock_service(hass, "tts", "speak")
     hass.states.async_set(EVENTS, "unknown")
@@ -1539,3 +1996,36 @@ async def test_practice_caller_names_the_score_to_leave_without_a_checkout(hass)
         ],
     )
     assert spoken(calls) == ["Sam, leave yourself 32", "Sam", "Sam, you require 40"]
+
+
+# -- examples of the documentation -------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("document", "language"),
+    [("docs/automations.md", "en"), ("docs/de/automationen.md", "de")],
+)
+async def test_the_voice_example_starts_every_game(hass, document, language):
+    """Every game, spoken as the practice game select names it, becomes its option."""
+    text = (ROOT / document).read_text(encoding="utf-8")
+    (example,) = [
+        safe_load(block)
+        for block in re.findall(r"```yaml\n(.*?)```", text, re.DOTALL)
+        if "trigger: conversation" in block
+    ]
+    variables, start = example["actions"][0]["variables"], example["actions"][1]
+    translation = json.loads(
+        (
+            ROOT / "custom_components/autodarts/translations" / f"{language}.json"
+        ).read_text(encoding="utf-8")
+    )
+    games = translation["entity"]["select"]["practice_game"]["state"]
+    for option, name in games.items():
+        if option == "off":
+            continue
+        run = {"trigger": {"slots": {"game": name, "names": "Dennis"}}}
+        said = Template(variables["said"], hass).async_render(run, parse_result=False)
+        game = Template(start["data"]["game"], hass).async_render(
+            {**run, "said": said, "spoken": variables["spoken"]}, parse_result=False
+        )
+        assert game == option, name

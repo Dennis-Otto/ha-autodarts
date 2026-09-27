@@ -28,7 +28,7 @@ qualifying update follows this release process:
 4. After merging the checked version PR, the existing **Release integration**
    workflow validates the release and waits for every main-branch commit check
    (tests, HACS, hassfest, workflow lint, CodeQL, secret scan and end-to-end) to succeed on the
-   exact commit being published. Missing, failed, cancelled or skipped checks
+   exact commit being published. Missing, failed, canceled or skipped checks
    prevent publication. It then publishes the generated changelog.
 
 CI runs independently for every commit on `main` and for every caller. A new
@@ -104,7 +104,9 @@ from the Autodarts cloud application's Client ID.
   updates → Run workflow** on `main`.
 - A failed run does not publish a release. Fix the reported check or API problem
   and rerun; an existing version PR is reused, including after a successful merge
-  followed by a publishing failure.
+  followed by a publishing failure. If **Release integration** failed after it
+  created the draft, delete the leftover draft first, as described in
+  [a failed release run](#a-failed-release-run).
 - Closing a version PR without merging pauses that version. Reopen it to resume.
   Disable the workflow in GitHub Actions to pause the automation entirely.
 - A version manually changed on `main` is never overwritten. Publish that version
@@ -132,6 +134,32 @@ from the Autodarts cloud application's Client ID.
 Your introduction appears first. Leaving it empty produces only the generated
 notes, with no placeholder text. You can edit the introduction in a release draft
 before publishing. The complete notes also appear in the workflow run summary.
+
+### A failed release run
+
+A run that fails or is canceled before **Create a draft release with changelog
+for HACS** leaves nothing behind: fix the problem and run the workflow again.
+
+A run that fails after that step, while packaging, attesting, attaching the
+package or publishing, leaves an untagged draft of the version under **Releases**.
+A draft has no tag yet, and **Refuse an existing tag** checks only tags, so a
+rerun does not stop at it: it creates a second draft with the same tag, and the
+upload and publication steps, which find the release by its tag, may pick the
+wrong one. Re-running the failed job in Actions counts as such a rerun, because it
+repeats every step of the release job. Before running the workflow again:
+
+1. Delete the leftover draft of this version under **Releases**, or with
+   `gh release delete v1.6.0 --yes`, without `--cleanup-tag`.
+2. Check with `gh release list` that no draft of this version remains.
+3. Fix the reported problem and run **Release integration** again with the same
+   inputs.
+
+The same applies to a draft from a successful run that you want to build again:
+delete it first, or just edit its notes on the release page.
+
+If the tag already exists, the publication step got as far as publishing the
+release. It is never rebuilt: check its three assets on the release page instead
+of running the workflow again.
 
 ## Keep generated notes useful
 

@@ -73,7 +73,7 @@ A dart the board read wrong, a dart it missed, or the visits of a player without
 - **Correct a dart:** tap the dart on the [scoreboard](scoreboard.md#correct-and-enter-darts) and choose the right bed, or use [`autodarts.correct_dart`](entities.md#correct-a-dart-autodartscorrect_dart). The remaining score, a bust or a win, the Cricket marks and the statistics follow at once. The board keeps its own reading; when it corrects the dart itself later, its reading counts again.
 - **Enter a dart:** with *Practice manual entry* on, the scoreboard's keypad or [`autodarts.throw_dart`](entities.md#enter-a-dart-autodartsthrow_dart) adds a dart as if the board had detected it. This works with the detection stopped too, so a player without cameras can play along.
 - **Next player:** ends the visit without pulling the darts; the darts in the board count for nobody until they are pulled. Without darts, the player at the board passes in X01, the Cricket and the party games; in a party game the pass counts as a visit of three misses, so Halve-It halves the points and Golf scores 5 strokes. A training game, a bull-off and Killer while the numbers are chosen do not pass.
-- **Undo the last visit:** when a wrong reading is noticed after the takeout, *Undo last visit* on the scoreboard or [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) takes the visit back, also after a won leg: its darts become the current visit again, to correct them, and *Next player* ends it. This works while no dart is in the board and the game has not changed since, but not after a visit that decided a tournament match.
+- **Undo the last visit:** when a wrong reading is noticed after the takeout, *Undo last visit* on the scoreboard or [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) takes the visit back, also after a won leg: its darts become the current visit again, to correct them, and *Next player* ends it. This works while no dart is in the board and the game has not changed since, but not after a visit that decided a tournament match. The statistics, the players' progress with their achievements, the weekly report and the training calendar go back with the visit, so it counts once when it is booked again.
 - **Marked:** darts entered or corrected in Home Assistant carry `manual`, so automations can tell them apart. [The exact rules](how-it-works.md#corrections-and-darts-entered-by-hand).
 
 ## Matches, legs and sets
@@ -134,7 +134,7 @@ When an X01 or Cricket match of several players ends, the scoreboard and the liv
 
 Nobody to play with? X01 and the Cricket games can be played against the bot, a computer player of the strength you choose.
 
-- **Seat the bot:** tap **+ Bot** on the [new game screen](scoreboard.md#choose-the-next-game), set *Practice bot level*, or start a game with `bot_level`. The level is the 3-dart average the bot plays, from 20 for a beginner to 120, better than any professional's average. `0` plays without the bot. There is no level from 1 to 19: in *Practice bot level*, a step up from 0 seats the bot at 20, and a step down from 20 sends it home.
+- **Seat the bot:** tap **+ Bot** on the [new game screen](scoreboard.md#choose-the-next-game), set *Practice bot level*, or start a game with `bot_level`. The level is the 3-dart average the bot plays, from 20 for a beginner to 120, above any professional's season average. `0` plays without the bot. There is no level from 1 to 19: in *Practice bot level*, a step up from 0 seats the bot at 20, and a step down from 20 sends it home.
 - **In the Cricket games,** the level plays the marks per round of a player with that average, about a 24th of it: 2.5 at level 60, 3.3 at 80, 4.2 at 100 and 5 at 120.
 - **Its seat:** after the players. With the bot, up to three players play, also as the fourth player of two teams; such a team has no team name. Choosing X01 or a Cricket game for four players while a bot level is set asks you to make room first.
 - **Changing the level** during a match lets the bot play the new level from its next dart. Seating the bot, or sending it home with `0`, starts a new match; in party and training games, where it does not play, a new level changes nothing until the next X01 or Cricket game.
@@ -142,7 +142,7 @@ Nobody to play with? X01 and the Cricket games can be played against the bot, a 
 - **How it plays:** like a player: at the triple 20 to score, along the checkout route to finish and at a [setup](#x01) where no route exists; in Cricket it closes the numbers and scores while it is behind. With double in, it opens with a double that wins or leaves a finish for its darts, otherwise with the double 20, or with a smaller double where the double 20 would bust. Without double out and without a finish, it takes the biggest bed that does not bust. It always aims at the usual checkout routes, also with *Practice personal checkout routes*, and the cards show those routes for its turn. Its darts scatter as much as those of a player of its level. [How the bot plays](how-it-works.md#bot).
 - **What counts:** the bot's darts count for nobody's statistics, personal bests or achievements; the result of the match counts in your player profile. Party games, training games and tournaments are played without the bot; after a tournament, the bot comes back with the other practice settings.
 
-<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
+<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex, who plays from a start score of 169, has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
 
 ## Tournaments
 
@@ -274,7 +274,7 @@ Six pub classics for one to four players; Killer needs two. They book a visit wh
 
 ### Golf
 
-<img src="images/en/golf.webp" alt="Animation: Golf for Alex and Sam on the scoreboard. After every visit the scorecard fills: Alex plays 1, 3 and 2, Sam 4, 5 and 5, and the fourth hole is under way" width="760">
+<img src="images/en/golf.webp" alt="Animation: Golf for Alex and Sam on the scoreboard. After every visit the scorecard fills: Alex plays 2, 3 and 1, Sam 4, 5 and 5, and the fourth hole is under way" width="760">
 
 - Nine or 18 holes, set in *Practice Golf holes*; hole *n* is played on the number *n*.
 - A player throws up to three darts per hole and may stop after any dart by pulling the darts: **the last dart thrown counts**.

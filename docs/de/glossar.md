@@ -11,7 +11,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Feld** | Ein Bereich der Scheibe, der Punkte bringt: Single, Double oder Triple einer Zahl, das Single-Bull oder das Bullseye | Bed |
 | **Single, Double, Triple** | Die Felder einer Zahl, die einfach, doppelt oder dreifach zählen. Englische Caller sagen *Treble* für Triple. | Single, double, triple |
 | **Single-Bull, Bullseye** | Der äußere Ring des Bulls (25 Punkte) und seine Mitte (50 Punkte, ein Double) | Outer bull, bullseye |
-| **Fehlwurf** | Ein Dart außerhalb der Punktefelder | Miss |
+| **Fehlwurf** | Ein Dart außerhalb der Punktefelder; auf dem Tastenfeld der Anzeigetafel die Taste *Fehlwurf* | Miss |
 | **Aufnahme** | Bis zu drei Darts nacheinander, bis sie gezogen werden | Visit |
 | **Entnahme** | Das Ziehen der Darts aus dem Board; sie beendet die Aufnahme | Takeout |
 | **Abwurf** | Die Abwurflinie | Oche |
@@ -30,7 +30,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Doppelquote** | Treffer pro Dart aufs Double, auch im Doppeltraining und bei Bob's 27 | Doubles rate |
 | **Handicap, Startpunkte** | Eigene Punkte eines Spielers, mit denen er X01 beginnt, etwa 301 gegen 501 | Handicap, start score |
 | **Stellwurf, Rest** | Darts, die nicht checken können, aber für die nächste Aufnahme einen guten Rest stellen, etwa T20 T20 S17 für Rest 32 auf D16 | Setup, leave |
-| **100+, 140+, 180** | Eine Aufnahme mit 100 oder mehr, mit 140 oder mehr und das Maximum aus drei Triple 20 | Ton, ton-plus, 180 |
+| **100+, 140+, 180** | Eine Aufnahme mit 100, mit mehr als 100, mit 140 oder mehr und das Maximum aus drei Triple 20. Die Statistik zählt Aufnahmen von 100 bis 139 als 100+ und von 140 bis 179 als 140+ | Ton, ton-plus, ton-forty, 180 |
 
 ## Die Integration
 
@@ -69,7 +69,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Live-Karte** | Die Karte mit der aktuellen Aufnahme auf einer Live-Dartscheibe | Live card |
 | **Anzeigetafel** | Die Karte für ein Tablet oder einen Fernseher am Board | Scoreboard |
 | **Spielauswahl** | Der Bildschirm der Anzeigetafel, auf dem du Spiel, Spieler und Format wählst | New game screen |
-| **Ruhemodus** | Die Tafeln, die die Anzeigetafel zwischen den Spielen zeigt | Idle mode |
+| **Ruhemodus** | Die Seiten, die die Anzeigetafel zwischen den Spielen zeigt | Idle mode |
 | **Caller** | Die Stimme, die das Spiel ansagt: der Caller der Anzeigetafel im Browser oder die Caller-Blueprints auf deinen Lautsprechern | Caller |
 | **Automatisches Dashboard** | Das Dashboard, das die Integration für jedes Board baut | Automatic dashboard |
 | **Highlight-Galerie** | Die Fotos des Blueprints Highlight photo in der Medienansicht | Highlight gallery |

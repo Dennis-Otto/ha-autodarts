@@ -12,7 +12,7 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 
 | Blueprint | What it does | Import |
 | --- | --- | --- |
-| **Celebrate a visit score** | Runs your actions for visits from a minimum score (default 180), the moment the third dart lands. The actions can use `score`, `darts`, `segments` and `game`. | [![Import the visit score blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
+| **Celebrate a visit score** | Runs your actions for visits from a minimum score (default 180), the moment the third dart lands. The actions can use `score`, `darts`, `segments` and `game`. The bot's visits count only if you ask for them. | [![Import the visit score blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
 | **Dart caller** | Announces every visit on your speakers with any text-to-speech engine, with a special message for 180, and optionally every dart. It stays silent during a practice game, which the practice caller calls. The messages are templates. | [![Import the dart caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml) |
 | **Takeout actions** | Runs actions when you start pulling darts and when the board is clear, for example to brighten the board light. | [![Import the takeout actions blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftakeout.yaml) |
 | **Start and stop detection automatically** | Starts the detection when someone is at the board and stops it after an idle time you choose, so the cameras and board PC can rest. | [![Import the automatic detection blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fauto_detection.yaml) |
@@ -21,7 +21,7 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 | **Training session routine** | When a [training session](entities.md#training-session) starts, runs your actions, turns on the detection and calibrates the cameras after a short wait; when it ends, turns off the detection and runs your actions with `reason`, `darts`, `average` and `duration_minutes`. The detection switch and the calibration button are optional. | [![Import the training session routine blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
 | **Practice caller** | Calls the [practice game](games.md) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the score to leave when no checkout is possible and the bull-off. The messages are templates. | [![Import the practice caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
 | **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
-| **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `image`, `message`, `score`, `checkout`, `who` and `photo`. | [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
+| **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `photo_url`, `photo`, `image`, `message`, `score`, `checkout` and `who`. | [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off, an achievement and the winner of a tournament, and optionally during the takeout and in [online matches](online-matches.md). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](../blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
@@ -47,6 +47,7 @@ Every blueprint shows these settings when you create an automation from it: sele
 | Board events | | The *Events* entity of your board. |
 | Minimum score | 180 | The lowest visit score that runs the actions. A visit of three darts counts when its third dart lands; a shorter visit when the darts are pulled. |
 | Actions | | What happens after such a visit. It can use `score`, `darts`, `segments` and `game` (the practice game, or empty). |
+| Also for the bot | off | Also runs the actions for the visits of the practice game's [bot](entities.md#bot). Its darts are not in the board, so its visits are left out by default. |
 
 ### Dart caller
 
@@ -95,7 +96,7 @@ Don't combine this blueprint with a detection switch in the *training session ro
 | Alert actions | | For example a notification to your phone. `problem` is `offline` or `cameras`. |
 | Recovery actions | none | Run when a problem you were alerted about is gone, with `recovered` set to `true`. |
 
-A problem also counts when it starts while the sensor is unavailable, for example a camera that fails while the board restarts. A problem that ends while the board is offline gets no all-clear of its own; the all-clear of the connection covers it.
+A problem also counts when it starts while the sensor is unavailable, for example a camera that fails while the board restarts. A problem that ends while the board is offline gets no all-clear of its own. If the board was offline for longer than the grace period, the all-clear of the connection follows; after a shorter restart, a camera problem that the restart solved stays without an all-clear.
 
 ### Training report
 
@@ -140,6 +141,9 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | Bull-off throw | empty | Said when the next player throws for the bull, for example `{{ who }}, throw for the bull`. The first player of the bull-off is not called. Empty uses the *Next player* message. |
 | Bull-off won | empty | Said when the bull-off decides who starts, in one call with the first call of the match, for example `{{ who }} to throw first. Game on!`. Empty stays silent. |
 | Word for a player without a name | `Player` | Makes "Player 2" in a match without names. |
+| Word for the bot | `Bot` | The name of the practice game's [bot](entities.md#bot) in `who`, as the scoreboard shows it, for example "Bot, you require 40". |
+
+The first visit of a game is not called, because a game starts without a change of turn. With a [bull-off](games.md#bull-off), the call of the winner starts the game instead.
 
 ### Weekly report
 
@@ -167,7 +171,14 @@ The message can use `darts`, `visits`, `sessions`, `training_minutes`, `average`
 | Message for a visit | `{{ score }}!` | The `message` of a visit photo. |
 | Message for a checkout | `Checkout {{ checkout }}{{ ' by ' ~ who if who }}!` | The `message` of a checkout photo. |
 
-Your actions can use `image` (the camera picture), `message`, `score`, `checkout`, `who` (the player at the board, when the practice game names them) and `photo` (the file the picture is saved to).
+Your actions can use:
+
+- `photo_url`: the address of the saved photo, for a notification of the Home Assistant app, for example `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`.
+- `photo`: the file the picture is saved to.
+- `image`: the live picture of the camera, for photos that are not saved.
+- `message`, `score`, `checkout` and `who` (the player at the board, when the practice game names them).
+
+`photo` and `photo_url` are empty when no photo was saved: *Save to the gallery* is off, or Home Assistant could not write to the folder. `photo_url` is also empty for a folder outside the media folder, which the app cannot load from.
 
 ### Light show
 
@@ -185,16 +196,20 @@ Your actions can use `image` (the camera picture), `message`, `score`, `checkout
 | Actions for a won bull-off | none | Run when the bull-off decides who starts. |
 | Actions for an achievement | none | Run when a named player unlocks a new tier of an [achievement](entities.md#achievements). |
 | Actions for a won tournament | none | Run when the last match of a [tournament](entities.md#tournaments) counts, after the actions for the won match; `who` is the winner of the tournament. |
+| React to the takeout | off | Runs the two actions below while you pull the darts. Leave it off without them, so that takeouts never wait behind an effect. |
 | When the takeout starts | none | Run when a hand reaches the board. Not restored. |
 | When the board is clear | none | Run when all darts are out of the board. Not restored. |
+| Also for the bot | off | Also plays the moments of the practice game's [bot](entities.md#bot): its 180, bust, won leg or match and won bull-off. A leg or match the bot wins in a team match plays anyway, because its partner at the board wins it, too. |
+| Word for the bot | `Bot` | The bot's name in `who`. |
+| Word for a player without a name | `Player` | Makes "Player 2" in `who`. |
 | Moments with an effect | none | The moments whose actions start an effect. Only for them are the lights restored and the detection paused. |
 | Restore these lights | none | Their state is saved before an effect and restored after it. |
 | Effect duration | 10 seconds | How long an effect plays before the lights are restored and the detection starts again. |
-| Pause the detection during effects | off | Turns the detection off while an effect plays and on again afterwards, if it was on. |
+| Pause the detection during effects | off | Turns the detection off while an effect plays and on again afterwards, if it was on. The daily goal never pauses it, because it is reached in the middle of a visit. |
 | Detection switch | none | The *Detection* switch of your board, for pausing it. |
 | Also react to online matches | off | Also plays the actions for a bust, a won leg and a won match of an [online match](online-matches.md). A 180 and the takeout of your own darts come from your board anyway. |
 
-The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` or `board_clear`), `who`, `player`, `score` (of a 180), `checkout` (of a won leg) and `trigger.to_state.attributes` for every detail of the [board event](entities.md#board-events). See [light show with WLED and other lights](#light-show-with-wled-and-other-lights).
+The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` or `board_clear`), `who` (the player's name, the word for the bot, or "Player 2"), `player`, `score` (of a 180), `checkout` (of a won leg) and `trigger.to_state.attributes` for every detail of the [board event](entities.md#board-events). See [light show with WLED and other lights](#light-show-with-wled-and-other-lights).
 
 ### Dart caller messages
 
@@ -214,12 +229,12 @@ The practice caller's messages are templates with these variables:
 
 | Variable | Content |
 | --- | --- |
-| `who` | The player's name, "Player 2" in a match without names, empty when you play alone |
+| `who` | The player's name, "Bot" for the [bot](entities.md#bot) (see *Word for the bot*), "Player 2" in a match without names, empty when you play alone |
 | `team` | The team of the player in a [team match](entities.md#teams-and-start-scores), for example `Alex & Kim` when both partners have a name; empty otherwise |
 | `remaining` | The score left |
 | `checkout` | The route when a checkout is possible, for example `T20 T20 BULL`; in *Leg won*, the score checked out, for example `121` |
 | `darts`, `average` | Darts and 3-dart average of the leg, in *Leg won* |
-| `points` | Points in the Cricket and party games; strokes in Golf, runs in Baseball |
+| `points` | Points in the Cricket and party games; strokes in Golf, runs in Baseball. Killer keeps no points: its events carry the player's `lives` and whether they are a `killer`, for example `trigger.to_state.attributes.lives` |
 | `target` | The next target of a party game, for example `20`, `D` or `D16`; the hole in Golf and the inning in Baseball |
 | `leave`, `setup` | Where no checkout is possible: the score a [setup](entities.md#setup-hints) leaves, for example `32`, and its darts, for example `T20 T20 S17`; empty otherwise |
 | `hit` | The bed of the winning bull-off dart in *Bull-off won*: `BULL`, `25` or for example `S20` |
@@ -233,10 +248,10 @@ For example:
 | No checkout, a setup | `{{ who ~ ', leave' if who else 'Leave' }} yourself {{ leave }}` |
 | Next player | `{{ who }}`, or `{{ who }}, {{ target }}` in party games |
 | Bust | `No score` |
-| Leg won | `Game shot, and the leg{{ ', ' ~ who if who }}! {{ checkout }} checkout in {{ darts }} darts.` |
+| Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}! {{ checkout }} checkout in {{ darts }} darts.` |
 | Match won | `Game shot, and the match, {{ team or who }}!` |
 | Bull-off throw | `{{ who }}, throw for the bull` |
-| Bull-off won | `{{ who }} to throw first. Game on!`, or `{{ who }} wins the bull{{ ' by ' ~ distance ~ ' millimetres' if distance is number }}` |
+| Bull-off won | `{{ who }} to throw first. Game on!`, or `{{ who }} wins the bull{{ ' by ' ~ distance ~ ' millimeters' if distance is number }}` |
 | Word for a player without a name | `Player` |
 
 ### Highlight photo on your phone
@@ -248,10 +263,10 @@ action: notify.mobile_app_your_phone
 data:
   message: "{{ message }}"
   data:
-    image: "{{ image }}"
+    image: "{{ photo_url or image }}"
 ```
 
-The app loads the picture from the camera right away, while the darts are still in the board. Enable the camera entity on the device page first; camera entities are disabled by default.
+The app loads the saved photo, taken while the darts were still in the board, even when the notification reaches a sleeping phone minutes later. Without a saved photo it falls back to `image`, the live picture of the camera, which the app loads only when the notification arrives, possibly after the darts are pulled. Enable the camera entity on the device page first; camera entities are disabled by default.
 
 ### Highlight gallery
 
@@ -300,8 +315,10 @@ data:
 
 - **Back to normal:** choose the moments with actions under *Moments with an effect*, and add your lights to *Restore these lights*, for WLED the WLED light rather than the preset select. Before an effect, the blueprint saves their state in a scene, and after *Effect duration* it restores color, brightness and effect. Leave the lights empty if your actions end the effect themselves. Moments you don't choose run their actions and nothing else, so a moment without actions never pauses the board.
 - **Pause the detection:** flashing light next to the board can make the cameras see darts that are not there. Turn on *Pause the detection during effects* and choose the *Detection* switch: the detection stops for the effects of the chosen moments and starts again afterwards, but only if it was running. When the detection stops, the visit on the board counts as finished, as after a takeout: the practice game books it and the next player is up.
-- **One after the other:** a moment that happens while an effect plays waits for it, and each effect restores the lights it found. At most two moments wait; the automation runs in queued mode, because a restarted effect would never restore the lights and parallel effects would mix on the same lights.
-- **Takeout and board clear** set a look of their own, for example a bright board light while you pull the darts and your normal light afterwards. They are not restored and don't pause the detection.
+- **One after the other:** a moment that happens while an effect plays waits for it, and each effect restores the lights it found. Up to nine moments wait, enough for the match that wins a tournament with its personal bests and achievements. The automation runs in queued mode, because a restarted effect would never restore the lights and parallel effects would mix on the same lights.
+- **The daily goal** is reached with a dart in the middle of a visit, so its effect never pauses the detection: the rest of the visit still counts.
+- **Takeout and board clear** set a look of their own, for example a bright board light while you pull the darts and your normal light afterwards. Turn on *React to the takeout* for them. They are not restored and don't pause the detection; while the setting is off, takeouts never wait in the queue.
+- **The bot:** its darts are not in the board, so its moments stay dark unless you turn on *Also for the bot*. A leg or match it wins in a team match plays anyway.
 
 
 ### Weekly report on your phone
@@ -333,7 +350,7 @@ use_blueprint:
 
 ## Board events
 
-All realtime moments arrive through the **Events** entity of the board. Each event carries an `event_type` and its details; see the [event reference](entities.md#board-events). The examples use `event.autodarts_board_events`, the entity ID of a board named *Autodarts Board*; a board set up with an earlier version keeps `event.autodarts_board_board_events`.
+All realtime moments arrive through the **Events** entity of the board. Each event carries an `event_type` and its details; see the [event reference](entities.md#board-events). The examples use `event.autodarts_board_events`, the entity ID of a board named *Autodarts Board* in a Home Assistant set to English. Home Assistant forms entity IDs from the names in its language, so in German, Dutch, French or Spanish the IDs read differently, for example `event.autodarts_board_ereignisse` in German. A board set up with an earlier version keeps the ID it got then, such as `event.autodarts_board_board_events`.
 
 <img src="images/en/board-events.png" alt="The Events entity of the board in Home Assistant: the last event Visit thrown, its history, and the activity with every dart detected, the visit and the takeout" width="760">
 
@@ -359,7 +376,7 @@ Read the details from `trigger.to_state.attributes`, not from the current state 
 
 ## Examples
 
-The entity IDs in the examples depend on the name of your board and on the language during setup. You find yours on the device page of the board.
+The entity IDs in the examples are those of a board named *Autodarts Board* in a Home Assistant set to English; yours depend on the name of your board and on the language of Home Assistant during setup. You find them on the device page of the board.
 
 ### Flash the lights for a 180
 
@@ -674,7 +691,7 @@ mode: queued
 
 ### Start a game by voice
 
-With the Assist voice assistant, one sentence starts a game. `{names}` takes the rest of the sentence, for example "Dennis and Lea" or "Dennis, Lea and Sam". The game is spoken as words, so the automation turns "Halve it", "Around the Clock" or "Bob's 27" into the names of the action: `halve_it`, `around_the_clock` and `bobs_27`.
+With the Assist voice assistant, one sentence starts a game. `{names}` takes the rest of the sentence, for example "Dennis and Lea" or "Dennis, Lea and Sam". The game is spoken as words, so the automation turns "Halve it", "Around the Clock" or "Bob's 27" into the names of the action: `halve_it`, `around_the_clock` and `bobs_27`. Five games are named differently from how they are spoken; the automation looks them up in `spoken`.
 
 ```yaml
 alias: Darts - start by voice
@@ -683,11 +700,18 @@ triggers:
     command:
       - "start {game} for {names}"
 actions:
+  - variables:
+      said: >-
+        {{ trigger.slots.game | lower | replace("'", "") | replace("-", " ") }}
+      spoken:
+        cut throat cricket: cut_throat
+        doubles training: doubles
+        checkout training: checkout
+        singles training: singles
+        121 checkout: checkout_121
   - action: autodarts.start_game
     data:
-      game: >-
-        {{ trigger.slots.game | lower | replace("'", "") | replace("-", " ")
-           | replace(" ", "_") }}
+      game: "{{ spoken.get(said, said | replace(' ', '_')) }}"
       players: "{{ (trigger.slots.names | replace(', ', ' and ')).split(' and ') }}"
   - set_conversation_response: "Game on, {{ trigger.slots.names }}!"
 mode: single
@@ -765,15 +789,19 @@ tap_action:
 
 ### Leave the bot out
 
-The darts of the [bot](entities.md#bot) fire the usual events with `bot: true`, and its seat has no name. To celebrate only your own visits, add a condition to an automation:
+The darts of the [bot](entities.md#bot) fire the usual events with `bot: true`, and its seat has no name. The blueprints know it:
+
+- The visit score and the light show leave the bot out; turn on *Also for the bot* to include it.
+- The highlight photo takes no photo of the bot's darts, which are not in the board.
+- The callers call the bot by the *Word for the bot*, "Bot" by default, like the scoreboard.
+
+An automation made from a blueprint takes no conditions of its own unless you take control of it, so use these settings there. To celebrate only your own visits in an automation of your own, add a condition:
 
 ```yaml
 conditions:
   - condition: template
     value_template: "{{ not trigger.to_state.attributes.get('bot', false) }}"
 ```
-
-The highlight photo blueprint takes no photo of the bot's darts, which are not in the board.
 
 ## Online matches (experimental)
 
@@ -794,4 +822,4 @@ Since version 1.0, the **Detection status** sensor reports translatable states: 
 | `Calibrating` | `calibrating` |
 | `Error` | `error` |
 
-The UI shows these states in your language. The *Last event* sensor still reports the raw Board Manager text.
+The UI shows these states in your language. The *Last event* sensor still reports the raw Board Manager text. It is a diagnostic sensor now and, like *CPU usage*, starts disabled on a board set up with version 1.6.0 or later: enable it on the device page before an automation uses it. Boards set up before keep both entities as they are.

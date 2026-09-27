@@ -42,6 +42,7 @@ body:
         - Party games (Shanghai, Halve-It, Killer, Golf, Baseball, Count-Up)
         - Training games (Around the Clock, doubles, checkout, Bob's 27, 121 checkout, Catch 40, JDC Challenge, singles)
         - Match summary or tournaments
+        - Bot, corrections, keypad or undo
         - Player profiles, personal bests or doubles analysis
         - Achievements, trends, dart positions or leaderboard card
         - Weekly report, training calendar or export
@@ -51,10 +52,11 @@ body:
         - Scoreboard card, new game screen, idle mode or caller
         - Players or doubles card
         - Automatic dashboard
-        - Actions (start_game, delete_player, export, link_player, unlink_player)
+        - Actions (autodarts.*)
         - Blueprints
         - Highlight gallery
         - Online matches (online bridge)
+        - Translations
         - Documentation
         - Other
     validations:

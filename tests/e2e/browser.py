@@ -1066,6 +1066,235 @@ def tournament(browser: Browser) -> None:
     page.close()
 
 
+# The landscape tablet at the board that the scoreboard screens are built for.
+TABLET = {"width": 800, "height": 480}
+# Controls the card sizes for a finger; each is at least 44 px high, the keys of the
+# pad at least 40 px, so that the pad fits beside the scores of a short screen.
+FINGER_TARGETS = ".lobby-cta, .lobby button, .pad button, .undo-only, .start-next"
+PAD_KEYS = ".pad button"
+# The width of the scoreboard against its room, and every control that is smaller
+# than the card means it to be: finger targets, and whatever has a minimum size of
+# 44 px or more in the card's style.
+TABLET_LAYOUT = f"""
+() => {{
+  const card = ({SCOREBOARD_CARDS})()[0];
+  const root = card.shadowRoot;
+  const frame = root.querySelector('ha-card');
+  const small = [];
+  let targets = 0;
+  for (const el of root.querySelectorAll('button, input, {FINGER_TARGETS}')) {{
+    if (!el.getClientRects().length) continue;
+    const box = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    const finger = el.matches('{FINGER_TARGETS}');
+    if (finger) targets += 1;
+    const high = finger || parseFloat(style.minHeight) >= 44;
+    const wide = parseFloat(style.minWidth) >= 44;
+    const least = el.matches('{PAD_KEYS}') ? 39.5 : 43.5;
+    if ((high && box.height < least) || (wide && box.width < 43.5)) {{
+      const name = `${{el.className || el.tagName.toLowerCase()}} "${{el.textContent.trim()}}"`;
+      small.push(`${{name}} ${{Math.round(box.width)}}x${{Math.round(box.height)}}`);
+    }}
+  }}
+  return {{
+    width: frame.scrollWidth,
+    room: frame.clientWidth,
+    right: Math.round(card.getBoundingClientRect().right),
+    viewport: innerWidth,
+    targets,
+    small,
+  }};
+}}
+"""
+# The fitted scoreboard: its height against the screen and its own room, where the
+# start of the new game screen sits, and the pad beside the scores.
+TABLET_FIT = f"""
+() => {{
+  const card = ({SCOREBOARD_CARDS})()[0];
+  const root = card.shadowRoot;
+  const frame = root.querySelector('ha-card');
+  const box = (selector) => {{
+    const el = root.querySelector(selector);
+    if (!el || !el.getClientRects().length) return null;
+    const rect = el.getBoundingClientRect();
+    return {{ top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right }};
+  }};
+  const actions = root.querySelector('.lobby-actions');
+  return {{
+    bottom: Math.round(card.getBoundingClientRect().bottom),
+    screen: innerHeight,
+    height: frame.scrollHeight,
+    room: frame.clientHeight,
+    sticky: actions ? getComputedStyle(actions).position : null,
+    actions: box('.lobby-actions'),
+    main: box('.scoreboard > .main'),
+    pad: box('.scoreboard > .pad-area'),
+    beside: !!root.querySelector('.scoreboard.full.with-pad'),
+  }};
+}}
+"""
+
+
+def tablet_screen(browser: Browser) -> None:
+    """The new game screen, scoreboard, keypad and tournament on an 800 x 480 tablet:
+    nothing wider than the screen, targets for a finger, and idle mode without motion."""
+    page = browser.new_page(locale="en-US", viewport=TABLET)
+    page.add_init_script(CAPTURE_ERRORS)
+    card = "autodarts-scoreboard-card"
+
+    def fits(screen: str, targets: bool = True) -> None:
+        layout = page.evaluate(TABLET_LAYOUT)
+        check(
+            layout["width"] <= layout["room"] + 1
+            and layout["right"] <= layout["viewport"] + 1,
+            f"{screen} is wider than the tablet: {layout}",
+        )
+        check(not targets or layout["targets"], f"{screen} has no targets: {layout}")
+        check(not layout["small"], f"{screen}: targets below 44 px {layout['small']}")
+
+    def fills(screen: str) -> None:
+        """A full-height scoreboard is one screen high and needs no scrolling."""
+        fit = page.evaluate(TABLET_FIT)
+        check(
+            fit["bottom"] <= fit["screen"] + 1 and fit["height"] <= fit["room"] + 1,
+            f"{screen} is higher than the tablet: {fit}",
+        )
+
+    def open_screen(view: str) -> None:
+        errors = page_errors(page, [])
+        check(not errors, f"Console problems: {errors}")
+        page.goto(f"{HA}/autodarts-demo/{view}")
+        page.locator(f"{card} .main").wait_for(timeout=30000)
+
+    def game_off() -> None:
+        page.evaluate(
+            CALL_SERVICE,
+            ["select", "select_option", "practice_game", {"option": "off"}],
+        )
+        control({"status": "Throw", "event": "Takeout finished", "throws": []})
+
+    def end_game() -> None:
+        page.locator(f"{card} .lobby-toggle").click()
+        end = page.locator(f"{card} [data-lobby='end']")
+        end.click()
+        end.click()
+        page.wait_for_function(
+            f"() => !({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector(\"[data-lobby='end']\")",
+            timeout=15000,
+        )
+        page.locator(f"{card} [data-lobby='close']").click()
+
+    def choose(names: tuple[str, ...], game: str) -> None:
+        players = page.locator(f"{card} .lobby-player .who")
+        while players.count():
+            page.locator(f"{card} .lobby-player [data-lobby='remove']").first.click()
+        for name in names:
+            page.locator(f"{card} .suggestion", has_text=name).click()
+        page.locator(f"{card} .game", has_text=game).first.click()
+
+    # Between games, then the new game screen and an X01 match it starts.
+    page.goto(f"{HA}/autodarts-demo/tournament")
+    page.locator(f"{card} .main").wait_for(timeout=30000)
+    game_off()
+    page.locator(f"{card} .lobby-cta").wait_for(timeout=15000)
+    fits("The scoreboard between games")
+    page.locator(f"{card} .lobby-cta").click()
+    page.locator(f"{card} .lobby").wait_for(timeout=15000)
+    fits("The new game screen")
+    # The start stays at the bottom of the screen while the choices scroll.
+    fit = page.evaluate(TABLET_FIT)
+    actions = fit["actions"]
+    check(
+        fit["sticky"] == "sticky"
+        and actions is not None
+        and 0 <= actions["top"]
+        and actions["bottom"] <= fit["screen"] + 1,
+        f"The start of the new game screen is out of reach: {fit}",
+    )
+    choose(("Alex", "Sam"), "501")
+    page.locator(f"{card} .lobby .start").click()
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_STATE})().players.length === 2", timeout=15000
+    )
+    control({"event": "Throw detected", "throws": [T20]})
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_STATE})().darts[0] === 'T20'", timeout=15000
+    )
+    fits("The scoreboard of a match", targets=False)
+    fills("The scoreboard of a match")
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    end_game()
+
+    # The keypad for darts entered by hand.
+    open_screen("keypad")
+    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
+    page.evaluate(
+        CALL_ACTION, ["start_game", {"game": "301", "players": ["Alex", "Sam"]}]
+    )
+    page.locator(f"{card} .pad").wait_for(timeout=15000)
+    fits("The keypad")
+    fills("The keypad")
+    # In landscape, the pad sits beside the scores instead of below them.
+    fit = page.evaluate(TABLET_FIT)
+    main, pad = fit["main"], fit["pad"]
+    check(
+        fit["beside"]
+        and main is not None
+        and pad is not None
+        and pad["left"] >= main["right"] - 1
+        and pad["top"] < main["bottom"],
+        f"The pad is not beside the scores: {fit}",
+    )
+    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    game_off()
+
+    # A round robin: its setup, a match and the table with the next match.
+    open_screen("tournament")
+    page.locator(f"{card} .lobby-toggle").click()
+    page.locator(f"{card} [data-lobby='mode'][data-value='tournament']").click()
+    choose(("Alex", "Sam", "Kim"), "101")
+    fewer = page.locator(f"{card} [data-lobby='legs'][data-value='-1']")
+    while not fewer.is_disabled():
+        fewer.click()
+    fits("The tournament setup")
+    page.locator(f"{card} .lobby .start").click()
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector('.meta')"
+        ".textContent.startsWith('Tournament · Round 1')",
+        timeout=15000,
+    )
+    fits("A tournament match", targets=False)
+    for count in range(1, 4):
+        control({"event": "Throw detected", "throws": CHECKOUT_101[:count]})
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    # The table follows the eight seconds of the match summary.
+    page.locator(f"{card} .standings").wait_for(timeout=30000)
+    page.locator(f"{card} .start-next").wait_for(timeout=15000)
+    fits("The tournament table")
+    end_game()
+    stage = page.evaluate(STATE_OF, "tournament")
+    check(stage == "no_tournament", f"Tournament after stopping: {stage}")
+    game_off()
+
+    # Idle mode after ten seconds, without its fade for a device that asks for less
+    # motion; a tap brings the scoreboard back.
+    page.emulate_media(reduced_motion="reduce")
+    open_screen("idle")
+    panel = page.locator(f"{card} .idle-panel")
+    panel.wait_for(timeout=60000)
+    motion = panel.evaluate(
+        "(el) => [matchMedia('(prefers-reduced-motion: reduce)').matches,"
+        " getComputedStyle(el).animationName]"
+    )
+    check(motion == [True, "none"], f"Idle mode with reduced motion: {motion}")
+    fits("Idle mode", targets=False)
+    panel.click()
+    panel.wait_for(state="detached", timeout=15000)
+    errors = page_errors(page, [])
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+
 def caller(browser: Browser) -> None:
     """The caller stays silent until a tap switches it on."""
     page, problems = open_view(
@@ -1280,6 +1509,7 @@ def main() -> None:
             ("new game screen", lambda: lobby(browser)),
             ("correcting, the keypad and the bot", lambda: play_comfort(browser)),
             ("tournament", lambda: tournament(browser)),
+            ("tablet screen", lambda: tablet_screen(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
             ("live card editor", lambda: editor(browser, rows=7)),
@@ -1330,7 +1560,8 @@ def main() -> None:
         "history and "
         "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
         "match summary, its caller, new game screen, a corrected dart, the keypad "
-        "and a match against the bot, a tournament, the generated "
+        "and a match against the bot, a tournament, the screens on an 800 x 480 "
+        "tablet and idle mode with reduced motion, the generated "
         "dashboard, the players export, all seven card forms, the strategy editor, "
         "light theme and the cards and entity texts in Dutch, French and Spanish."
     )

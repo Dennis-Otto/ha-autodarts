@@ -108,9 +108,9 @@ highlight_color: "#00e5ff"
   - In `numbers` mode, the heatmap sums each number's singles, doubles and triples instead.
   - In `positions` mode, it shows where the darts landed, from the positions the board reports: a smoothed density from blue (few darts) to red (many), with the newest 300 darts as dots. Below the board, the [grouping](how-it-works.md#grouping) at up to three beds aimed at, for example *T20: grouping 38 mm · 80 % within 61 mm · 6 mm left of center*, with *4 mm tighter* when the newer darts group closer.
   - The switches above the board choose the mode and whose darts it shows: the session, or a named player with all their hits and the positions of their last 1000 darts. The most hit beds follow the choice. [How positions are kept](how-it-works.md#dart-positions).
-- **Statistics:** highest visit, 100+, 140+ and 180 visits, triple rate, doubles, bulls and misses. 180s light up in gold. Tap the tiles for the details of the session's darts; with a keyboard, the button *Training statistics, open the details* appears when you tab to it. Screen readers read every tile.
+- **Statistics:** highest visit, 100+, 140+ and 180 visits, triple rate, doubles, bulls and misses. 180s light up in gold. The 100+, 140+ and 180 counts grow when you pull the darts, once the visit is complete. Tap the tiles for the details of the session's darts; with a keyboard, the button *Training statistics, open the details* appears when you tab to it. Screen readers read every tile.
 - **Most hit beds:** the top five, with count and share: of the session's darts, or of the hits a player's profile counted.
-- **Personal bests:** every [personal best](entities.md#personal-bests-streak-and-daily-goal) that has a value: highest visit and checkout, the fewest darts for every start score, the best Cricket marks per round, the best session average, Around the Clock, the doubles training, Bob's 27 and the longest training streak. The section appears with the first record.
+- **Personal bests:** every [personal best](entities.md#personal-bests-streak-and-daily-goal) that has a value: highest visit and checkout, the fewest darts for every start score, the best Cricket marks per round, the best session average, Around the Clock, the doubles training, Bob's 27, the 121 checkout, Catch 40, the JDC Challenge, the singles training and the longest training streak. The section appears with the first record.
 - **Recent visits:** a bar chart of your last visits with the session average as a dashed line.
   - Bars are colored gray below 60, accent color from 60, green for 100+, orange for 140+ and gold for 180.
   - The visits come from the recorder, so the chart survives page reloads, and every visit shows, also when the turn passes at the same moment, as it does in a practice game.
@@ -222,7 +222,7 @@ show_system: false
 
 <img src="images/en/bot-match.webp" alt="Animation: a 301 match against the bot on the scoreboard. Alex throws and pulls the darts, the bot's three darts land one by one, and Alex is at the board again" width="760">
 
-<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
+<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex, who plays from a start score of 169, has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
 
 <img src="images/en/killer.webp" alt="Animation: Killer for Alex, Sam and Kim on the scoreboard. Everybody throws for a number, Alex becomes a killer and takes Sam's lives, Kim becomes a killer too, and Alex takes the last life to win" width="760">
 
@@ -272,7 +272,7 @@ On a full-height scoreboard in landscape, the pad and the keypad sit beside the 
 During a [tournament](entities.md#tournaments), the scoreboard follows it:
 
 - **During a match:** the title line names the round and the match, for example *Tournament · Semi-final · Match 5 of 7*.
-- **Between the matches:** the [summary](#match-summary) of a match stays for *Tournament summary* (8 seconds), then, during *Tournament pause*, the table of a round robin or the bracket of a knockout shows, with the next match, its round and a countdown to its start. *Start now* starts it at once. During a tournament, the new game screen does not open by itself.
+- **Between the matches:** the [summary](#match-summary) of a match stays for *Tournament summary duration* (8 seconds), then, during *Tournament pause*, the table of a round robin or the bracket of a knockout shows, with the next match, its round and a countdown to its start. *Start now* starts it at once. During a tournament, the new game screen does not open by itself.
 - **Table:** the position, matches played, won and lost, legs won and lost, the leg difference, the 3-dart average (Cricket: MPR) and the points. The players of the next match are marked, the winner of the tournament gets 🏆.
 - **Bracket:** a column for every round, with the match for third place below the final; byes, open places and results; the next match is outlined. A player who goes on slides into the next round; on devices set to reduce motion, the places fill without moving.
 - **Winner:** after the last match, a banner names the winner of the tournament, and the table or the bracket stays until a new match begins.
@@ -372,7 +372,7 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 
 <img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
 
-- **Badges:** every player's [achievements](entities.md#achievements). An earned badge shows its tier in bronze, silver, gold or platinum, the next goal and how far the player has come; a locked badge is greyed out, with its progress where it can be counted.
+- **Badges:** every player's [achievements](entities.md#achievements). An earned badge shows its tier in bronze, silver, gold or platinum, the next goal and how far the player has come; a locked badge is grayed out, with its progress where it can be counted.
 - **Trends:** for every player who practiced in the weeks shown, a tile per figure: 3-dart average, first 9, checkout rate, doubles rate and darts over the weeks, a line of the weekly values, and an arrow that compares the newer half of the weeks with the older half (↗ better, ↘ worse, → about the same). Weeks without practice interrupt the line.
 - **Grouping:** where each player's darts land around the beds they aimed at most, in millimeters, with the change of the newer darts. [How the grouping is measured](how-it-works.md#grouping).
 
@@ -393,7 +393,7 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 | `show_trends` | boolean | `true` | Show the trends |
 | `trend_weeks` | 4–12 | `12` | Weeks in the trends |
 | `show_spread` | boolean | `true` | Show the groupings |
-| `export` | boolean | `false` | Show an *Export* button. It exports the sessions, matches and profiles with [`autodarts.export`](entities.md#export-training-data-autodartsexport) to `www/autodarts` and downloads the file through Home Assistant with your login. Exports contain player names, and files in `www` need no login. |
+| `export` | boolean | `false` | Show an *Export* button. It exports the sessions, matches and profiles with [`autodarts.export`](entities.md#export-training-data-autodartsexport) to `autodarts/exports` in the media folder and downloads the file through Home Assistant with your login. Exports contain player names, so only administrators can export and download; for other users, such as the one of a wall tablet, the export fails. |
 | `export_format` | `csv`, `json` | `csv` | Format of the export; CSV comes as a ZIP file with one table each |
 | `accent_color` | [color](#colors) | theme primary color | Labels, the balance bars, progress and trend lines |
 
@@ -452,7 +452,7 @@ For every board, the dashboard gets up to five views, which update themselves wh
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard" width="760">
 
-The live view also has *Bull-off by distance* among the practice rules and *Tournament summary* among the tournament settings.
+The live view also has *Bull-off by distance* among the practice rules and *Tournament summary duration* among the tournament settings.
 
 In YAML, the whole dashboard is one line; `device_id`, `title` and `scoreboard` are optional. `scoreboard` sets options of the scoreboard view's card: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` and `idle_panels`, as described for the [scoreboard card](#scoreboard-card). Options you leave out keep the card's defaults.
 

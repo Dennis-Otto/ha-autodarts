@@ -9,22 +9,24 @@ blueprint:
     lights; a moment without actions stays dark.
 
 
-    With "Also react to online matches", busts, won legs and won matches of
-    online matches on play.autodarts.io play their effects, too. They need the
-    online bridge of the integration and the browser extension Tools for
-    Autodarts.
+    The darts of the practice game's bot are not in the board, so its moments
+    stay dark unless you turn on "Also for the bot". With "Also react to online
+    matches", busts, won legs and won matches of online matches on
+    play.autodarts.io play their effects, too. They need the online bridge of
+    the integration and the browser extension Tools for Autodarts.
 
 
     Optionally the lights return to how they were after an effect, and the
     detection pauses while an effect plays, so flashing lights next to the
     board cannot disturb the cameras. Choose the moments whose actions start
-    an effect under "After the effect".
+    an effect under "After the effect". Moments that happen while an effect
+    plays wait for it, up to nine of them.
 
 
     Your actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`,
     `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`,
-    `tournament`, `takeout` or `board_clear`), `who` (the player's name, or
-    "Player 2"), `player`
+    `tournament`, `takeout` or `board_clear`), `who` (the player's name,
+    "Bot" for the bot, or "Player 2"), `player`
     (1 to 4), `score` (of a 180), `checkout` (of a won leg) and
     `trigger.to_state.attributes` (every detail of the board event).
   domain: automation
@@ -177,6 +179,14 @@ blueprint:
       icon: mdi:hand-back-left
       collapsed: true
       input:
+        takeout_moments:
+          name: React to the takeout
+          description: >-
+            Runs the two actions below while you pull the darts. Leave it off
+            without such actions, so that takeouts never wait behind an effect.
+          default: false
+          selector:
+            boolean: {}
         takeout_actions:
           name: When the takeout starts
           description: >-
@@ -193,6 +203,33 @@ blueprint:
           default: []
           selector:
             action: {}
+    players:
+      name: Players
+      icon: mdi:account-multiple
+      collapsed: true
+      input:
+        include_bot:
+          name: Also for the bot
+          description: >-
+            Also plays the moments of the practice game's bot: its 180, bust,
+            won leg or match and won bull-off. Its darts are not in the board,
+            so they stay dark by default; a leg or match the bot wins for a
+            team plays anyway, because its partner wins it, too.
+          default: false
+          selector:
+            boolean: {}
+        bot_label:
+          name: Word for the bot
+          description: The `who` of the bot's moments.
+          default: "Bot"
+          selector:
+            text: {}
+        player_label:
+          name: Word for a player without a name
+          description: For example `Player` makes "Player 2".
+          default: "Player"
+          selector:
+            text: {}
     online:
       name: Online matches
       icon: mdi:web
@@ -271,6 +308,8 @@ blueprint:
             Turns the detection off while an effect plays and on again after
             it, if it was on. Use it when the effect disturbs the cameras; the
             visit on the board counts as finished when the detection stops.
+            The daily goal, which is reached in the middle of a visit, never
+            pauses the detection.
           default: false
           selector:
             boolean: {}
@@ -286,9 +325,11 @@ blueprint:
 
 # Queued: moments play one after the other, and each effect restores the
 # lights it found. A restarted run would leave the effect on and save it as the
-# state to restore; parallel runs would mix effects on the same lights.
+# state to restore; parallel runs would mix effects on the same lights. Ten
+# waiting moments hold a match that ends a tournament with personal bests and
+# achievements.
 mode: queued
-max: 3
+max: 10
 max_exceeded: silent
 
 triggers:
@@ -307,24 +348,41 @@ triggers:
         - bull_off_won
         - achievement_unlocked
         - tournament_finished
-        - takeout_started
-        - takeout_finished
         - online_busted
         - online_game_shot
         - online_match_shot
+  # Only when asked: every visit ends with a takeout, which would otherwise
+  # wait in the queue behind an effect for nothing.
+  - trigger: event.received
+    enabled: !input takeout_moments
+    target:
+      entity_id: !input board_events
+    options:
+      event_type:
+        - takeout_started
+        - takeout_finished
 
 variables:
   high_finish_minimum: !input high_finish_minimum
   online_matches: !input online_matches
+  include_bot: !input include_bot
+  bot_label: !input bot_label
+  player_label: !input player_label
   # Read from the triggering state: the next event may already have replaced it.
   kind: "{{ trigger.to_state.attributes.get('event_type', '') }}"
   score: "{{ trigger.to_state.attributes.get('score') | int(0) }}"
   checkout: "{{ trigger.to_state.attributes.get('checkout') | int(0) }}"
   player: "{{ trigger.to_state.attributes.get('player') | int(0) }}"
+  bot: "{{ trigger.to_state.attributes.get('bot', false) }}"
+  # Template characters leave a name: some fields, such as the message of a
+  # notification, are rendered once more.
   who: >-
-    {{ trigger.to_state.attributes.get('name')
-       or trigger.to_state.attributes.get('winner')
-       or ('Player ' ~ player if trigger.to_state.attributes.get('players', 1) > 1 else '') }}
+    {% set event = trigger.to_state.attributes %}
+    {%- set name = event.get('name') or event.get('winner') or '' %}
+    {%- if bot %}{{ bot_label }}
+    {%- elif name %}{{ name | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
+    {%- elif event.get('players', 1) > 1 %}{{ player_label ~ ' ' ~ player }}
+    {%- endif %}
   moment: >-
     {% set event = trigger.to_state.attributes %}
     {%- if kind == 'visit_thrown'
@@ -356,11 +414,23 @@ conditions:
   - alias: A moment of the game
     condition: template
     value_template: "{{ moment | length > 0 }}"
+  # The bot's darts are not in the board. A leg or match it wins for a team is
+  # its partner's win, too.
+  - alias: Not a moment of the bot, unless asked
+    condition: template
+    value_template: >-
+      {{ include_bot or not bot
+         or trigger.to_state.attributes.get('team') is not none
+            and moment in ['high_finish', 'leg', 'match'] }}
 
 actions:
   - variables:
       restoring: "{{ effect and restore_lights | length > 0 }}"
-      pausing: "{{ effect and pause_detection and detection | length > 0 and is_state(detection, 'on') }}"
+      # The daily goal is reached in the middle of a visit, which a pause
+      # would end.
+      pausing: >-
+        {{ effect and moment != 'daily_goal' and pause_detection
+           and detection | length > 0 and is_state(detection, 'on') }}
   - if:
       - condition: template
         value_template: "{{ restoring }}"

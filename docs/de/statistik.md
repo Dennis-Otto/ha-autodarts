@@ -46,8 +46,9 @@ Home Assistant behält den besten Wert jeder Bestleistung und meldet `personal_b
 | Bestleistung | Aus |
 | --- | --- |
 | Höchste Aufnahme | Jeder Aufnahme mit bis zu drei Darts |
-| Höchster Checkout, wenigste Darts für 101 bis 1001 | Gewonnenen X01-Legs mit Double-Out, allein gespielt |
-| Beste Marks pro Runde im Cricket | Gewonnenen Cricket-Legs, allein gespielt |
+| Höchster Checkout | Gewonnenen X01-Legs mit Double-Out, auch im Team-Match, für den Spieler, der ausgecheckt hat |
+| Wenigste Darts für 101 bis 1001 | Gewonnenen X01-Legs mit Double-Out, nicht im Team-Match, gezählt von den Startpunkten des Legs |
+| Beste Marks pro Runde im Cricket | Gewonnenen Cricket-Legs, nicht im Team-Match |
 | Bester Session-Average | Beendeten Sessions mit mindestens 30 Darts |
 | Around the Clock, Doppeltraining | Den wenigsten Darts eines beendeten Spiels |
 | Bob's 27, 121-Checkout, Catch 40, JDC Challenge, Singles-Training | Der höchsten Punktzahl |
@@ -87,7 +88,7 @@ Home Assistant führt eine Langzeitstatistik der Summen und Averages, Stunde fü
 
 - **Darts pro Tag** und **Übungslegs pro Tag** der letzten 30 Tage;
 - der **3-Dart-Average** der letzten sieben Tage;
-- **First-9-Average, Checkout- und Doppelquote** der letzten 10 X01-Legs.
+- **First-9-Average und Checkout-Quote** der letzten 10 X01-Legs und die **Doppelquote** derselben Legs, zusammen mit den letzten 10 Ergebnissen des Doppeltrainings und von Bob's 27.
 
 Eigene Grafiken baust du mit der Statistik-Grafik-Karte von Home Assistant. Der 3-Dart-Average deiner Sessions, Woche für Woche, über drei Monate:
 
@@ -108,9 +109,9 @@ Die Entitäts-IDs hängen vom Namen deines Boards und der Sprache bei der Einric
 
 <img src="../images/de/doubles-card.png" alt="Doubles-Karte: der Doppelring nach Quote von Rot bis Grün eingefärbt und eine Liste der Doubles mit Treffern, Darts und Quote, das beste zuerst" width="760">
 
-Home Assistant zählt jeden Dart aufs Double und ob er getroffen hat: bei X01, sobald ein Double den Rest checken könnte, im Doppeltraining, bei Bob's 27 und im Double-Teil der JDC Challenge. Die [Doubles-Karte](karten.md#doubles-karte) zeichnet die Quote jedes Doubles auf die Scheibe, für alle oder mit `player` für einen Spieler mit Namen. *Lieblingsdouble* nennt dein bestes Double mit mindestens 10 Darts.
+Home Assistant zählt jeden Dart aufs Double und ob er getroffen hat: bei X01, sobald ein Double den Rest checken könnte, im Doppeltraining, bei Bob's 27, im Checkout-Training, beim 121-Checkout und bei Catch 40 genauso wie bei X01 und im Double-Teil der JDC Challenge. Die [Doubles-Karte](karten.md#doubles-karte) zeichnet die Quote jedes Doubles auf die Scheibe, für alle oder mit `player` für einen Spieler mit Namen. *Lieblingsdouble* nennt dein bestes Double mit mindestens 10 Darts.
 
-Mit *Übungsspiel persönliche Checkout-Wege* bevorzugt der Checkout-Weg die stärksten Doubles des Spielers am Board: Ein Weg mit gleich vielen Darts zu einem Double mit besserer Quote gewinnt, solange er kein Double zum Stellen braucht. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
+Mit *Übungsspiel persönliche Checkout-Wege* bevorzugt der Checkout-Weg die stärksten Doubles des Spielers am Board: Ein Weg mit gleich vielen Darts zu einem Double mit besserer Quote gewinnt, solange er kein Double zum Stellen braucht. Als stark gilt ein Double ab 10 Darts darauf und mit einer Quote mindestens so hoch wie die des Spielers auf alle Doubles; ein nie getroffenes Double wird nie bevorzugt. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
 
 ## Spielerprofile
 
@@ -128,11 +129,11 @@ Jeder Spieler mit Namen bekommt im Übungsspiel ein Profil mit Werten über sein
 
 <img src="../images/de/players-badges.png" alt="Abzeichen eines Spielers auf der Spielerkarte: erreichte Stufen in Bronze, Silber und Gold, jede mit dem nächsten Ziel, dem Fortschritt dorthin und einem Fortschrittsbalken" width="620">
 
-Spieler mit Namen schalten Erfolge in Stufen frei, Bronze, Silber, Gold und für die Serie Platin: von der ersten 180 bis zur hundertsten, vom Checkout über 100 bis zur 170, ein Leg in 18, 15 oder 12 Darts, ein Neun-Darter, ein Hattrick, jedes Double einmal getroffen, neun Marks im Cricket, ein Shanghai, das beste Around the Clock und Bob's 27, Tage in Folge und geworfene Darts. Die Spielerkarte zeigt jedes Abzeichen mit dem nächsten Ziel und dem Fortschritt dorthin.
+Spieler mit Namen schalten Erfolge in Stufen frei, Bronze, Silber, Gold und für die Serie Platin: von der ersten 180 bis zur hundertsten, vom Checkout ab 100 bis zur 170, ein Leg in 18, 15 oder 12 Darts, ein Neun-Darter, ein Hattrick, jedes Double einmal getroffen, neun Marks im Cricket, ein Shanghai, das beste Around the Clock und Bob's 27, Tage in Folge und geworfene Darts. Die Spielerkarte zeigt jedes Abzeichen mit dem nächsten Ziel und dem Fortschritt dorthin.
 
 - Jede neue Stufe meldet `achievement_unlocked`, für eine [Benachrichtigung](automationen.md#einen-erfolg-feiern) oder die [Lichtshow](automationen.md#light-show). Nichts spielt oder spricht, solange keine Automation es tut.
 - Beim ersten Start nach dem Update wird still freigeschaltet, was die Profile schon belegen.
-- Der Schalter *Erfolge* schaltet sie ab; der Fortschritt zählt weiter und wird still freigeschaltet, wenn du sie wieder einschaltest.
+- Der Schalter *Erfolge freischalten* schaltet sie ab; der Fortschritt zählt weiter und wird still freigeschaltet, wenn du sie wieder einschaltest.
 
 [Alle Erfolge und ihre Stufen](entitaeten.md#erfolge)
 
@@ -183,7 +184,7 @@ Der **Trainingskalender** zeigt deine beendeten Sessions und Übungsmatches jede
 Nimm deine Daten mit in eine Tabellenkalkulation, eine Sicherung oder deine eigene Auswertung:
 
 - **Auf der Spielerkarte:** Schalte `export` ein und tippe auf *Exportieren*. Der Browser lädt Sessions, Matches und Profile herunter, als ZIP mit CSV-Tabellen oder als JSON.
-- **In einer Automation:** Die Aktion [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport) schreibt die Datei in deinen Konfigurationsordner und gibt zurück, wo sie liegt.
+- **In einer Automation:** Die Aktion [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport) schreibt die Datei und gibt zurück, wo sie liegt. Sie ist eine Aktion für Administratoren; Automationen führen sie auch aus.
 
 ```yaml
 action: autodarts.export
@@ -193,7 +194,7 @@ data:
 response_variable: export
 ```
 
-Exporte enthalten Spielernamen. Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; lösche Exporte, die du nicht mehr brauchst, oder exportiere in einen Ordner außerhalb von `www`.
+Exporte enthalten Spielernamen. Standardmäßig landen sie in `autodarts/exports` im Medienordner, der eine Anmeldung braucht; herunterladen dürfen sie nur Administratoren. Ein eigener Ordner muss einer sein, in den Home Assistant schreiben darf (`www`, ein Medienordner oder ein Ordner aus `allowlist_external_dirs`), und darf nicht versteckt sein. Höchstens 20 Exporte werden pro Stunde geschrieben. Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; lösche Exporte dort also, wenn du sie nicht mehr brauchst.
 
 ## Deine Daten
 
