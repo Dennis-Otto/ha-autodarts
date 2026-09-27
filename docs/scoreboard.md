@@ -113,7 +113,7 @@ For a [tournament](games.md#tournaments) of three to eight players, the screen a
 1. **Start it here:** tap **New game**, then **Tournament**. Choose up to eight named players, X01 with start scores for a handicap or a Cricket game, round robin or knockout, legs and sets, the rules, the match for third place and a random draw, and tap **Start tournament**.
 2. **During a match,** the title line names the round and the match, for example *Tournament · Semi-final · Match 5 of 7*.
 3. **Between the matches,** the summary of the match stays for a few seconds, then the table of a round robin or the bracket of a knockout shows, with the next match and a countdown. **Start now** starts it at once; otherwise it starts by itself as soon as the darts are out of the board.
-4. **At the end,** a banner names the winner of the tournament, and the table or the bracket stays until a new match begins. *Stop tournament* on the new game screen ends a tournament early.
+4. **At the end,** a banner names the winner of the tournament, and the table or the bracket stays until a new match begins. *Stop tournament* on the new game screen ends a tournament early. Starting a new tournament while one is played stops that one first, after a second tap.
 
 <table>
   <tr>
