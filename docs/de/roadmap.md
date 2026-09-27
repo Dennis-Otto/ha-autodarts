@@ -69,6 +69,7 @@ Für das nächste Release zusammengeführt; die Details stehen im [Changelog](..
 | **Erfolge** | Meilensteine pro Spieler in Stufen, etwa die erste 180, ein Checkout über 100, ein Neun-Darter oder eine Serie von zehn Tagen, jeweils mit einem Ereignis und als Abzeichen | Fertig |
 | **Trends und Trefferbilder pro Spieler** | Average, Checkout-Quote und Doppelquote pro Woche als Verlauf, das eigene Trefferbild jedes Spielers und eine Bestenliste mit den Rekorden aller Spieler | Fertig |
 | **Trefferbild der Dart-Positionen** | Ein Trefferbild, das zeigt, wo jeder Dart gelandet ist, aus den Positionen, die das Board meldet, mit der Streuung in Millimetern; die Karte wechselt zwischen Feldern, Zahlen und Positionen | Fertig |
+| **Ein Bot und Korrekturen** | Ein Bot mit Stärke 20 bis 120 bei X01 und den Cricket-Spielen, Korrekturen mit einem Tipp, von Hand eingegebene Darts per Tastenfeld, das Zurücknehmen der letzten Aufnahme und Stellwürfe, wo kein Checkout möglich ist | Fertig |
 | **Niederländisch, Französisch und Spanisch** | Die Integration, die Karten und der Caller in drei weiteren Sprachen, mit Tests, die jede Sprache vollständig halten | Fertig |
 | **Dokumentation** | Bebilderte Anleitungen zu Spielen, zur Anzeigetafel und zur Statistik, ein Glossar und ein Abschnitt zur Barrierefreiheit | Fertig |
 

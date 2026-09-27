@@ -25,7 +25,7 @@ The guides show the cards at work: [games and rules](games.md), [scoreboard at t
 
 - **Visit:** score, the three dart slots and a progress indicator. The latest dart is outlined.
 - **Last visits:** the scores of your last five visits, colored like the training card's chart. Hover one for its darts.
-- **Practice game:** while a [practice game](games.md) runs, the remaining score, the checkout route and busts appear above the dart slots, and the board outlines the bed to aim at next. "No checkout possible" appears only for a score that could be finished in one visit: up to 170 with double out, up to 180 without. In a match, a list shows every player with the remaining score, legs, sets and average, and highlights the player at the board; [start scores](games.md#start-scores-handicap) of their own appear beside the names, and a team match lists the two teams. A won match shows its result in large type, for example 2 : 1, and the [match summary](#match-summary) instead of the list. In the [party games](games.md#party-games), the panel shows the round or hole, the target and every player's points or, in Killer, their number and lives, and who is out. The bull of Around the Clock and Halve-It, where the outer bull counts too, reads *Bull (25/50)*, and both bull beds are outlined. During a bull-off it lists the bed and the distance of every dart and who leads, and it says when a tie throws again. In the [Cricket games](games.md#cricket-games), a chalkboard shows the marks of every player or team on the numbers of the game, the points and the marks per round, dims the numbers everybody has closed and outlines the next open number on the board. Screen readers read the marks as words. In a [training game](games.md#training-games), the panel shows the target, the progress, darts and hit rate (Bob's 27: points and round; checkout training and 121 checkout: the route and the checkout rate; Catch 40, the JDC Challenge and the singles training: the round or part and the points), and the board outlines the beds of the target. The live card and the [scoreboard](#scoreboard-card) share how they show a game, so both always tell the same.
+- **Practice game:** while a [practice game](games.md) runs, the remaining score, the checkout route and busts appear above the dart slots, and the board outlines the bed to aim at next. Where no checkout exists, the [setup](entities.md#setup-hints) takes its place, for example *T20 T20 S17 leaves 32*, and the board outlines its first dart; "No checkout possible" appears only when no setup exists for a score that could be finished in one visit: up to 170 with double out, up to 180 without. The [bot](entities.md#bot) is listed as *Bot*. In a match, a list shows every player with the remaining score, legs, sets and average, and highlights the player at the board; [start scores](games.md#start-scores-handicap) of their own appear beside the names, and a team match lists the two teams. A won match shows its result in large type, for example 2 : 1, and the [match summary](#match-summary) instead of the list. In the [party games](games.md#party-games), the panel shows the round or hole, the target and every player's points or, in Killer, their number and lives, and who is out. The bull of Around the Clock and Halve-It, where the outer bull counts too, reads *Bull (25/50)*, and both bull beds are outlined. During a bull-off it lists the bed and the distance of every dart and who leads, and it says when a tie throws again. In the [Cricket games](games.md#cricket-games), a chalkboard shows the marks of every player or team on the numbers of the game, the points and the marks per round, dims the numbers everybody has closed and outlines the next open number on the board. Screen readers read the marks as words. In a [training game](games.md#training-games), the panel shows the target, the progress, darts and hit rate (Bob's 27: points and round; checkout training and 121 checkout: the route and the checkout rate; Catch 40, the JDC Challenge and the singles training: the round or part and the points), and the board outlines the beds of the target. The live card and the [scoreboard](#scoreboard-card) share how they show a game, so both always tell the same.
 - **Board:**
   - Hit beds blink in the highlight color.
   - Numbered markers show where each dart landed.
@@ -199,7 +199,7 @@ show_system: false
 
 <img src="images/en/scoreboard.webp" alt="Animation: the scoreboard during a 501 match. The turn passes between Alex and Sam after every visit, and Alex checks out 141 with T20 T19 D12 to win the match" width="760">
 
-- **X01:** a tile for every player with the remaining score, legs, sets and average. The player at the board is outlined and gets the checkout route, a bust or the game shot. Players with a [start score](games.md#start-scores-handicap) of their own show it beside the name.
+- **X01:** a tile for every player with the remaining score, legs, sets and average. The player at the board is outlined and gets the checkout route, a bust or the game shot; where no checkout exists, the [setup](entities.md#setup-hints) with the score it leaves, such as *T20 T20 S17 leaves 32*. Players with a [start score](games.md#start-scores-handicap) of their own show it beside the name, and the [bot](entities.md#bot) its level.
 - **Teams:** in a team match, two team tiles such as *Alex & Kim* against *Sam & Lea*, with the shared score, the average of each partner and the partner at the board in bold. The banner names the winning team.
 - **Cricket:** a large chalkboard with the marks of every player, the points and the marks per round; the next open number is shown in its top-left corner, above the numbers. Tactics fills it from 20 down to 10 in smaller type, Cut-Throat Cricket reminds that the fewest points win, and a team match has a column per team.
 - **Party games:** the round and the target, every player's points, or in Killer their number and lives in red hearts. Golf and Baseball add a scorecard of every hole or inning with the total; after a tie, the extra rounds show as a play-off and the players out of it are dimmed.
@@ -210,14 +210,18 @@ show_system: false
 - **Match summary:** when an X01 or Cricket match ends, the [match summary](#match-summary) takes the place of the players.
 - **Tournaments:** the round of the match, and between the matches the table or the bracket; see [tournaments](#tournaments).
 - **Pictures:** players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture next to their name.
-- **Visit:** the three darts of the current visit and its score along the bottom.
+- **Visit:** the three darts of the current visit and its score along the bottom. A tap on a dart corrects it; see [correcting and entering darts](#correcting-and-entering-darts).
 - **Caller:** with `caller: true`, the screen at the board calls the game itself in the language of Home Assistant: English, German, Dutch, French or Spanish (other languages hear English). It calls only what counts:
-  - X01: the points a visit scored, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished (up to 170 with double out, 180 without), the game shot of a leg and the match, and a fanfare for a 180 that counted.
+  - X01: the points a visit scored, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished (up to 170 with double out, 180 without), "leave yourself 32" when only a [setup](entities.md#setup-hints) is possible, the game shot of a leg and the match, and a fanfare for a 180 that counted. The bot is called *Bot*.
   - Cricket games: the marks of a visit, such as "5 marks". Shanghai and Halve-It: the points on the target; Count-Up: the points of the visit; Baseball: the runs, such as "3 runs". Killer, Golf, where the last dart counts, and the training games get no score calls.
   - Checkout training, 121 checkout and Catch 40: what the next attempt or visit requires, such as "You require 121".
   - Darts thrown after a bust or a game shot are not called.
 
   It uses the speech output of the browser, so nothing needs to be set up in Home Assistant. Browsers play sound only after a tap: tap *Caller* on the scoreboard once to switch it on, and again to mute it. The button keeps its name; its pressed state and the speaker symbol show whether the caller is on.
+
+<img src="images/en/bot-match.webp" alt="Animation: a 301 match against the bot on the scoreboard. Alex throws and pulls the darts, the bot's three darts land one by one, and Alex is at the board again" width="760">
+
+<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
 
 <img src="images/en/killer.webp" alt="Animation: Killer for Alex, Sam and Kim on the scoreboard. Everybody throws for a number, Alex becomes a killer and takes Sam's lives, Kim becomes a killer too, and Alex takes the last life to win" width="760">
 
@@ -236,14 +240,31 @@ Choose the next game at the board, without a phone: tap **New game** below the s
 <img src="images/en/lobby.webp" alt="Animation: on the tablet, New game opens the screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
 - **Game:** every game of *Practice game*, grouped into X01, Cricket, party games and training games. `lobby_games` limits the choice.
-- **Players:** up to four, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. Killer needs two players; training games take the first player only. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own in steps of 100, from 101 to 1001.
+- **Players:** up to four, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. In X01 and the Cricket games, *+ Bot* seats the [bot](entities.md#bot) after the players, at level 60; − and + change its level in steps of 10, from 20 to 120, and ✕ sends it home. With the bot, up to three players play. Killer needs two players; training games take the first player only. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own in steps of 100, from 101 to 1001.
 - **Format:** legs per set and sets to win, for a match of several players.
 - **Options:** double out and double in for X01, and the bull-off for a match, with bull-off by distance where the board offers it. With four players of X01 or a Cricket game, *Teams* plays 1 and 3 against 2 and 4.
 - **Start:** starts the game with [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), and the scoreboard shows it at once. During a game, *End game* stops it after a second tap.
 
 The screen never opens in the preview of the card editor.
 
+<img src="images/en/lobby-bot.png" alt="The new game screen with 501 chosen: Alex and the bot at level 70 with − and + to change it" width="760">
+
 <img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, Sam starting from 301, three legs per set, double out and the start button" width="760">
+
+### Correcting and entering darts
+
+The darts of the visit along the bottom are buttons while `corrections` is on, which it is by default.
+
+<img src="images/en/correct-dart.webp" alt="Animation: the scoreboard shows T20, S20 and T20 for 140; a tap on the second dart opens the pad, a tap on T and on 20 corrects it, and the visit reads 180" width="760">
+
+- **Correct a dart:** tap a dart the board read wrong. A pad opens with S, D and T, the numbers 1 to 20, 25, Bull and Miss; S, D or T is set to the dart's bed. Tap the multiplier, then the number, or 25, Bull or Miss, and [`autodarts.correct_dart`](entities.md#correct-a-dart-autodartscorrect_dart) puts the dart there. The remaining score and the visit follow at once. A second tap on the dart, or *Cancel*, closes the pad. The bot's darts cannot be corrected.
+- **Keypad:** with `keypad: true`, a keypad shows while *Practice manual entry* is on, for darts the board missed or a player without cameras: every tap on a bed enters a dart with [`autodarts.throw_dart`](entities.md#enter-a-dart-autodartsthrow_dart), and the next dart starts from S again. *Next player* ends the visit without a takeout, and *Undo last visit* takes the last visit back to correct it; both need a second tap. While the bot is at the board, the keypad waits.
+- **Undo:** without the keypad, *Undo last visit* shows below the visit while [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) can take the last visit back, for a wrong reading noticed after the darts were pulled. It needs a second tap; the visit comes back to correct its darts, and the keypad's *Next player* or [`autodarts.next_player`](entities.md#pass-the-turn-autodartsnext_player) ends it again.
+- **Marks:** darts entered or corrected by hand have a dashed frame, the bot's darts a light one.
+
+The pad and the keypad make room for the new game screen, idle mode, the match summary and a tournament's table, and never react in the preview of the card editor.
+
+<img src="images/en/scoreboard-keypad.png" alt="The scoreboard with the keypad: Alex has entered T20 and S19 by hand, marked with dashed frames; below, S, D and T, the numbers 1 to 20, 25, Bull, Miss and Next player" width="760">
 
 ### Tournaments
 
@@ -301,9 +322,11 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `idle_panels` | list of panels | every panel | The panels of idle mode, in this order: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `show_summary` | boolean | `true` | Show the [match summary](#match-summary) when an X01 or Cricket match ends |
 | `summary_seconds` | 0–600 | `0` | How long the summary stays, in seconds; `0` keeps it until the next game starts |
+| `corrections` | boolean | `true` | A tap on a dart of the visit [corrects it](#correcting-and-entering-darts); *Undo last visit* shows while possible |
+| `keypad` | boolean | `false` | Show the [keypad](#correcting-and-entering-darts) for darts entered by hand while *Practice manual entry* is on |
 | `accent_color` | [color](#colors) | theme primary color | The player at the board, routes and the visit score |
 
-In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen and idle mode have collapsed sections of their own.
+In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen, idle mode, and correcting and entering darts have collapsed sections of their own.
 
 ```yaml
 type: custom:autodarts-scoreboard-card

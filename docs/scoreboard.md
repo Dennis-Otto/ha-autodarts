@@ -6,7 +6,7 @@ A tablet or a TV next to the board turns your darts room into a stage: the score
 
 <img src="images/en/scoreboard.webp" alt="Animation: the scoreboard during a 501 match. The turn passes between Alex and Sam after every visit, and Alex checks out 141 with T20 T19 D12 to win the match" width="760">
 
-**On this page:** [What you need](#what-you-need) · [Set up the screen](#set-up-the-screen) · [Landscape, portrait and TV](#landscape-portrait-and-tv) · [Choose the next game](#choose-the-next-game) · [During the game](#during-the-game) · [Tournaments](#tournaments) · [The caller](#the-caller) · [Between games: idle mode](#between-games-idle-mode) · [Tips](#tips) · [If something is off](#if-something-is-off)
+**On this page:** [What you need](#what-you-need) · [Set up the screen](#set-up-the-screen) · [Landscape, portrait and TV](#landscape-portrait-and-tv) · [Choose the next game](#choose-the-next-game) · [During the game](#during-the-game) · [Correct and enter darts](#correct-and-enter-darts) · [Tournaments](#tournaments) · [The caller](#the-caller) · [Between games: idle mode](#between-games-idle-mode) · [Tips](#tips) · [If something is off](#if-something-is-off)
 
 ## What you need
 
@@ -58,7 +58,7 @@ Tap **New game** below the score between games, or at the top right at any time.
 <img src="images/en/lobby.webp" alt="Animation: on the tablet, New game opens the screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
 1. **Game:** X01, the Cricket games, the party games and the training games, grouped. `lobby_games` limits the choice to the games you play.
-2. **Players:** tap a name to add the player, ▲ and ▼ to change the order, ✕ to remove them. Players [linked to a person](statistics.md#players-and-persons) who is at home come first, with their picture. Type a new name, or add a guest without one. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own.
+2. **Players:** tap a name to add the player, ▲ and ▼ to change the order, ✕ to remove them. Players [linked to a person](statistics.md#players-and-persons) who is at home come first, with their picture. Type a new name, or add a guest without one. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own. In X01 and the Cricket games, **+ Bot** seats the [bot](games.md#playing-against-the-bot) after the players; − and + beside it change its level.
 3. **Format and options:** legs per set and sets to win; double out and double in for X01; the [bull-off](games.md#bull-off); *Teams* for four players of X01 or Cricket.
 4. **Start.** The scoreboard shows the game at once. During a game, *End game* stops it after a second tap.
 
@@ -72,13 +72,13 @@ The scoreboard always shows what is being played, and the player at the board is
 
 | Game | The scoreboard shows |
 | --- | --- |
-| X01 | Every player's or team's remaining score, legs, sets and average; the checkout route, a bust or the game shot of the player at the board |
+| X01 | Every player's or team's remaining score, legs, sets and average; the checkout route, a bust or the game shot of the player at the board, and where no checkout exists the [setup](games.md#x01) with the score it leaves |
 | Cricket games | A large chalkboard with the marks of every player or team, the points and the marks per round; the next open number in the top-left corner |
 | Party games | The round and the target, every player's points, in Killer their number and lives, in Golf and Baseball a scorecard of every hole or inning |
 | Bull-off | The bed of every player's dart and its distance from the center, the dart that leads, and *Tie – throw again* when a tie throws again |
 | Training games | The target in large type with the round, the points or the hit rate |
 
-Along the bottom it shows the three darts of the current visit and their score. When a match is decided, a banner names the winner with the result, for example *Alex wins the match 3 : 2!*, and after an X01 or Cricket match the [match summary](games.md#match-summary) takes the place of the players: averages, checkout rate, highest checkout, 180s and the best leg of everybody.
+Along the bottom it shows the three darts of the current visit and their score; a tap on a dart [corrects it](#correct-and-enter-darts). When a match is decided, a banner names the winner with the result, for example *Alex wins the match 3 : 2!*, and after an X01 or Cricket match the [match summary](games.md#match-summary) takes the place of the players: averages, checkout rate, highest checkout, 180s and the best leg of everybody.
 
 <img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="760">
 
@@ -92,6 +92,19 @@ Along the bottom it shows the three darts of the current visit and their score. 
     <td width="50%"><img src="images/en/scoreboard-catch-40.png" alt="Catch 40 on the scoreboard: in the second round a single 12 leaves 50 of 62, the route is the bull, and the first checkout scored 3 points" width="100%"></td>
   </tr>
 </table>
+
+## Correct and enter darts
+
+<img src="images/en/correct-dart.webp" alt="Animation: the scoreboard shows T20, S20 and T20 for 140; a tap on the second dart opens the pad, a tap on T and on 20 corrects it, and the visit reads 180" width="760">
+
+- **A dart read wrong:** tap it in the visit along the bottom. A pad opens with S, D and T, the numbers 1 to 20, 25, Bull and Miss; tap the multiplier and the number, and the game counts the dart there. A second tap on the dart, or *Cancel*, closes the pad.
+- **A visit noticed too late:** after the takeout, *Undo last visit* below the visit takes the last visit back, with a second tap to confirm. Correct its darts, then end it with *Next player*.
+- **Darts entered by hand:** for darts the board missed, or a player without cameras, switch on *Practice manual entry* and the card's `keypad` option. The keypad enters every tapped bed as a dart; *Next player* ends the visit.
+- **What you see:** darts entered or corrected by hand get a dashed frame, the bot's darts a light one.
+
+<img src="images/en/scoreboard-keypad.png" alt="The scoreboard with the keypad: Alex has entered T20 and S19 by hand, marked with dashed frames; below, S, D and T, the numbers 1 to 20, 25, Bull, Miss and Next player" width="760">
+
+The [games guide](games.md#corrections-and-darts-entered-by-hand) explains what a correction changes, [all details](cards.md#correcting-and-entering-darts) are in the card guide.
 
 ## Tournaments
 
@@ -120,7 +133,7 @@ With `caller: true`, the screen at the board calls the game itself, through the 
 
 It calls only what counts, in the language of the screen's user: English, German, Dutch, French or Spanish.
 
-- **X01:** the points of a visit, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished, the game shot of a leg and the match, and a fanfare for a 180.
+- **X01:** the points of a visit, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished, "leave yourself 32" when only a setup is possible, the game shot of a leg and the match, and a fanfare for a 180. The bot is called *Bot*.
 - **Cricket games:** the marks of a visit, such as "5 marks". **Shanghai** and **Halve-It:** the points on the target; **Count-Up:** the points of the visit; **Baseball:** the runs.
 - **Checkout training, 121 checkout and Catch 40:** what the next attempt requires.
 - **Tournaments:** every match as it starts, "Next match: Alex against Sam", and the winner of the tournament.
@@ -152,6 +165,8 @@ A dart, a new game or a tap anywhere ends idle mode. `idle_panels` chooses the p
 | The new game screen does not open | It never opens in the preview of the card editor, and not with `lobby: false`. |
 | The screen shows an old version of the card after an update | Reload the page. In the Home Assistant app, use *Settings → Companion app → Debugging → Reset frontend cache*. |
 | Idle mode starts during a game | Idle mode waits for `idle_after` seconds without darts and taps, and only when no game runs or the game is decided. Raise `idle_after`, or set `idle: false`. |
+| A tap on a dart does nothing | The dart belongs to the bot, the card has `corrections: false`, or it is the preview of the card editor. |
+| The keypad does not show | It needs the card's `keypad: true` and *Practice manual entry* on, and it waits while the bot is at the board. |
 | No picture next to a name | The player is not linked to a person, or the person has no picture. See [players and persons](statistics.md#players-and-persons). |
 
 More help: [troubleshooting](troubleshooting.md).

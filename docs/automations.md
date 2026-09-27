@@ -19,7 +19,7 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 | **Board problem alert** | Alerts you after a grace period when the board goes offline or a camera fails. An optional all-clear is sent only after a real alert. The actions can use `problem` and `recovered`. | [![Import the board problem alert blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml) |
 | **Training report** | Sends a daily summary of darts, 3-dart average, highest visit and 180s, skipping days without darts. The `summary` variable has the sentence ready. | [![Import the training report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
 | **Training session routine** | When a [training session](entities.md#training-session) starts, runs your actions, turns on the detection and calibrates the cameras after a short wait; when it ends, turns off the detection and runs your actions with `reason`, `darts`, `average` and `duration_minutes`. The detection switch and the calibration button are optional. | [![Import the training session routine blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
-| **Practice caller** | Calls the [practice game](games.md) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the bull-off. The messages are templates. | [![Import the practice caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
+| **Practice caller** | Calls the [practice game](games.md) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the score to leave when no checkout is possible and the bull-off. The messages are templates. | [![Import the practice caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
 | **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `image`, `message`, `score`, `checkout`, `who` and `photo`. | [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off, an achievement and the winner of a tournament, and optionally during the takeout and in [online matches](online-matches.md). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
@@ -132,6 +132,7 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | Board events | | The *Events* entity of your board. |
 | Text-to-speech engine, Speakers, Language, Voice options | | As in the dart caller. |
 | Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Said when the next visit can finish the leg. |
+| No checkout, a setup | empty | Said when the next visit cannot finish the leg but can leave a finish, with `leave` and `setup`, for example `{{ who ~ ', leave' if who else 'Leave' }} yourself {{ leave }}`. Empty uses the *Next player* message. |
 | Next player | empty | Said when the next visit cannot finish the leg. Empty stays silent. |
 | Bust | `No score` | Said when a dart busts the visit. |
 | Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Said when a dart wins a leg that does not decide the match; in a team match with the team's name. |
@@ -220,6 +221,7 @@ The practice caller's messages are templates with these variables:
 | `darts`, `average` | Darts and 3-dart average of the leg, in *Leg won* |
 | `points` | Points in the Cricket and party games; strokes in Golf, runs in Baseball |
 | `target` | The next target of a party game, for example `20`, `D` or `D16`; the hole in Golf and the inning in Baseball |
+| `leave`, `setup` | Where no checkout is possible: the score a [setup](entities.md#setup-hints) leaves, for example `32`, and its darts, for example `T20 T20 S17`; empty otherwise |
 | `hit` | The bed of the winning bull-off dart in *Bull-off won*: `BULL`, `25` or for example `S20` |
 | `distance` | How far the winning bull-off dart landed from the center, in millimeters, in *Bull-off won*; empty when the board reported no position for it, never `None` |
 
@@ -228,6 +230,7 @@ For example:
 | Setting | Example |
 | --- | --- |
 | Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` |
+| No checkout, a setup | `{{ who ~ ', leave' if who else 'Leave' }} yourself {{ leave }}` |
 | Next player | `{{ who }}`, or `{{ who }}, {{ target }}` in party games |
 | Bust | `No score` |
 | Leg won | `Game shot, and the leg{{ ', ' ~ who if who }}! {{ checkout }} checkout in {{ darts }} darts.` |
@@ -349,6 +352,8 @@ triggers:
 ```
 
 A visit of three darts arrives as `visit_thrown` the moment its third dart lands, and as `visit_completed` when the darts are pulled. For celebrations and calls, use `visit_thrown`, and add `visit_completed` whose `thrown` attribute is `false` for visits with fewer darts.
+
+Darts entered or corrected in Home Assistant carry `manual: true`, and the events of the [bot](entities.md#bot) `bot: true`; see [leave the bot out](#leave-the-bot-out).
 
 Read the details from `trigger.to_state.attributes`, not from the current state of the entity. Two events can follow each other within milliseconds, for example `visit_completed` and `takeout_finished`, and the current state may already show the second one.
 
@@ -719,6 +724,56 @@ actions:
         {% endif %}
 mode: queued
 ```
+
+### Enter a visit by hand
+
+For a player without cameras, or a board with the detection switched off: a script enters a whole visit, for example "T20 T20 S20" from a text field on the dashboard or from Assist, and passes the turn. Switch on *Practice manual entry* first; the darts count like detected darts and are marked `manual`.
+
+```yaml
+script:
+  darts_enter_visit:
+    alias: Darts - enter a visit by hand
+    fields:
+      darts:
+        description: The beds of the visit, for example T20 T20 S20
+        example: T20 T20 S20
+        selector:
+          text: {}
+    sequence:
+      - repeat:
+          for_each: "{{ darts.split() }}"
+          sequence:
+            - action: autodarts.throw_dart
+              data:
+                segment: "{{ repeat.item }}"
+      - action: autodarts.next_player
+    mode: single
+```
+
+A button on the dashboard takes back the last visit, for a wrong reading noticed after the darts were pulled; the [scoreboard](cards.md#correcting-and-entering-darts) has one built in:
+
+```yaml
+type: button
+name: Undo last visit
+icon: mdi:undo
+tap_action:
+  action: perform-action
+  perform_action: autodarts.undo_visit
+  confirmation:
+    text: Take the last visit back?
+```
+
+### Leave the bot out
+
+The darts of the [bot](entities.md#bot) fire the usual events with `bot: true`, and its seat has no name. To celebrate only your own visits, add a condition to an automation:
+
+```yaml
+conditions:
+  - condition: template
+    value_template: "{{ not trigger.to_state.attributes.get('bot', false) }}"
+```
+
+The highlight photo blueprint takes no photo of the bot's darts, which are not in the board.
 
 ## Online matches (experimental)
 

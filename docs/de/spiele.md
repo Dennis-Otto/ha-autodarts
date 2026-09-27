@@ -6,7 +6,7 @@ Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 100
 
 <img src="../images/de/lobby.webp" alt="Animation: Auf dem Tablet am Board öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
-**Auf dieser Seite:** [Alle Spiele im Überblick](#alle-spiele-im-überblick) · [Ein Spiel starten](#ein-spiel-starten) · [Am Board](#am-board) · [Matches, Legs und Sätze](#matches-legs-und-sätze) · [Match-Zusammenfassung](#match-zusammenfassung) · [Teams](#teams) · [Startpunkte (Handicap)](#startpunkte-handicap) · [Ausbullen](#ausbullen) · [Turniere](#turniere) · [X01](#x01) · [Cricket-Spiele](#cricket-spiele) · [Partyspiele](#partyspiele) · [Trainingsspiele](#trainingsspiele) · [Statistik](#statistik)
+**Auf dieser Seite:** [Alle Spiele im Überblick](#alle-spiele-im-überblick) · [Ein Spiel starten](#ein-spiel-starten) · [Am Board](#am-board) · [Korrekturen und von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts) · [Matches, Legs und Sätze](#matches-legs-und-sätze) · [Match-Zusammenfassung](#match-zusammenfassung) · [Teams](#teams) · [Startpunkte (Handicap)](#startpunkte-handicap) · [Ausbullen](#ausbullen) · [Gegen den Bot spielen](#gegen-den-bot-spielen) · [Turniere](#turniere) · [X01](#x01) · [Cricket-Spiele](#cricket-spiele) · [Partyspiele](#partyspiele) · [Trainingsspiele](#trainingsspiele) · [Statistik](#statistik)
 
 ## Alle Spiele im Überblick
 
@@ -56,11 +56,23 @@ Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der S
 
 - **Eine Aufnahme endet, wenn du die Darts ziehst.** Das Übungsspiel verbucht sie mit der Entnahme. Darts, die beim Start eines Spiels schon im Board stecken, zählen nicht.
 - **Drei Darts pro Aufnahme.** Ein vierter Dart vor der Entnahme zählt nicht. Darts, die das Board nicht erkennt, etwa Abpraller, gelten als nicht geworfen.
-- **Korrekturen zählen.** Korrigierst du einen Dart in Autodarts vor der Entnahme, folgt das Spiel der Korrektur.
+- **Korrekturen zählen.** Korrigierst du einen Dart in Autodarts oder auf der Anzeigetafel vor der Entnahme, folgt das Spiel der Korrektur; siehe [Korrekturen und von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts).
 - **Der Wurf wechselt mit der Entnahme,** auch nach dem Überwerfen. Live-Karte und Anzeigetafel heben den Spieler am Board hervor.
 - **Was die Karten zeigen:** Rest und Checkout-Weg, die Kreidetafel von Cricket, Runde und Ziel eines Partyspiels oder das Ziel eines Trainingsspiels. Die Scheibe umrandet das Feld, auf das du zielst. [Live-Karte](karten.md#live-karte), [Anzeigetafel](anzeigetafel.md).
 - **Ereignisse für deine Automationen:** `bust`, `leg_won`, `match_won`, `turn_changed`, `bull_off_won`, `drill_finished`, `checkout_attempt`, `achievement_unlocked` und die Turnier-Ereignisse kommen in dem Moment, in dem sie passieren, für Caller und [Lichtshows](automationen.md#light-show).
 - **Trainingssessions zählen weiter.** Übungsspiel und [Trainingssession](statistik.md#trainingssessions) sind unabhängig; ein Dart zählt in beiden.
+
+## Korrekturen und von Hand eingegebene Darts
+
+<img src="../images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
+
+Ein falsch erkannter Dart, ein übersehener Dart oder die Aufnahmen eines Spielers ohne Kameras: Home Assistant bringt die Aufnahme in Ordnung, bevor sie zählt.
+
+- **Dart korrigieren:** Tippe auf der [Anzeigetafel](anzeigetafel.md#darts-korrigieren-und-eingeben) auf den Dart und wähle das richtige Feld, oder nutze [`autodarts.correct_dart`](entitaeten.md#dart-korrigieren-autodartscorrect_dart). Rest, Überwerfen oder Sieg, die Cricket-Marks und die Statistik folgen sofort. Das Board behält seine Erkennung; korrigiert es den Dart später selbst, zählt wieder seine Erkennung.
+- **Dart eingeben:** Mit eingeschalteter *Übungsspiel manuelle Eingabe* fügt das Tastenfeld der Anzeigetafel oder [`autodarts.throw_dart`](entitaeten.md#dart-eingeben-autodartsthrow_dart) einen Dart hinzu, als hätte das Board ihn erkannt. Das geht auch bei gestoppter Erkennung, so spielt auch ein Spieler ohne Kameras mit.
+- **Nächster Spieler:** beendet die Aufnahme, ohne die Darts zu ziehen; die Darts im Board zählen für niemanden, bis sie gezogen sind. Ohne Darts setzt der Spieler am Board bei X01 und den Cricket-Spielen aus.
+- **Letzte Aufnahme zurücknehmen:** Fällt eine falsche Erkennung erst nach der Entnahme auf, nimmt *Letzte Aufnahme zurück* auf der Anzeigetafel oder [`autodarts.undo_visit`](entitaeten.md#aufnahme-zurücknehmen-autodartsundo_visit) die Aufnahme zurück, auch nach einem gewonnenen Leg: Ihre Darts werden wieder die aktuelle Aufnahme, zum Korrigieren, und *Nächster Spieler* beendet sie. Das geht, solange kein Dart im Board steckt und sich das Spiel seitdem nicht geändert hat, aber nicht nach einer Aufnahme, die ein Turniermatch entschieden hat.
+- **Markiert:** In Home Assistant eingegebene oder korrigierte Darts tragen `manual`, damit Automationen sie unterscheiden können. [Die genauen Regeln](funktionsweise.md#korrekturen-und-von-hand-eingegebene-darts).
 
 ## Matches, Legs und Sätze
 
@@ -112,6 +124,20 @@ Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live
 - Mit *Übungsspiel Ausbullen nach Abstand* entscheidet der gemessene Abstand auch zwischen zwei Darts im selben Bull-Feld; Darts mit gleichem Abstand auf 0,1 mm werfen noch einmal.
 - Ein Dart ohne Position lässt sich nicht messen und schlägt deshalb nie einen gemessenen Dart: Braucht die Entscheidung einen Abstand, den das Board nicht gemeldet hat, werfen diese Spieler noch einmal.
 - Das Ausbullen entscheidet nur, wer beginnt. Bei drei oder vier Spielern folgen die anderen in der Reihenfolge der Plätze. `bull_off_won` meldet den Gewinner, etwa für den [Übungs-Caller](automationen.md#practice-caller).
+
+## Gegen den Bot spielen
+
+<img src="../images/de/bot-match.webp" alt="Animation: ein 301-Match gegen den Bot auf der Anzeigetafel. Alex wirft und zieht die Darts, die drei Darts des Bots landen nacheinander, und Alex ist wieder am Board" width="760">
+
+Niemand zum Mitspielen? X01 und die Cricket-Spiele lassen sich gegen den Bot spielen, einen Computerspieler in der Stärke deiner Wahl.
+
+- **Den Bot dazusetzen:** Tippe in der [Spielauswahl](anzeigetafel.md#das-nächste-spiel-wählen) auf **+ Bot**, stell *Übungsspiel Bot-Stärke* ein oder starte ein Spiel mit `bot_level`. Die Stärke ist der 3-Dart-Average, den der Bot spielt, von 20 für Anfänger bis 120, besser als der Average jedes Profis. `0` spielt ohne Bot.
+- **Sein Platz:** nach den Spielern. Mit dem Bot spielen bis zu drei Spieler, auch als vierter Spieler von zwei Teams.
+- **Sein Zug:** Sind deine Darts gezogen, wirft der Bot seine drei Darts nacheinander, jeweils nach der Pause von *Übungsspiel Bot-Pause* (2 Sekunden), und sie erscheinen auf den Karten dort, wo sie gelandet sind. Wirfst du, während er am Board ist, wirft er den Rest seiner Aufnahme sofort.
+- **Wie er spielt:** wie ein Spieler: auf die Triple 20 zum Punkten, entlang des Checkout-Wegs zum Checken und auf einen [Stellwurf](#x01), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Seine Darts streuen so stark wie die eines Spielers seiner Stärke. [Wie der Bot spielt](funktionsweise.md#bot).
+- **Was zählt:** Die Darts des Bots zählen für niemandes Statistik, Bestleistungen oder Erfolge; das Ergebnis des Matches zählt in deinem Spielerprofil. Partyspiele, Trainingsspiele und Turniere laufen ohne Bot.
+
+<img src="../images/de/scoreboard-bot.png" alt="Anzeigetafel eines 301-Matches gegen den Bot: Alex hat noch 169, und statt eines Checkouts zeigt die Karte T20 T20 S17 Rest 32; die Kachel des Bots heißt Bot Stärke 80" width="760">
 
 ## Turniere
 
@@ -173,6 +199,7 @@ Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Taste
 - **Überwerfen:** Ein Dart, der unter null geht, mit Double-Out 1 übrig lässt oder 0 ohne Double erreicht, überwirft die Aufnahme. Der Rest springt auf den Beginn der Aufnahme zurück. Der überwerfende Dart zählt als geworfen, spätere Darts der Aufnahme nicht.
 - **Game shot:** Ein Dart, der genau 0 erreicht, gewinnt das Leg. `leg_won` wird sofort gemeldet; verbucht wird das Leg beim Ziehen der Darts, eine Korrektur davor zählt also noch. Darts nach dem Siegdart zählen nicht.
 - **Checkout-Weg:** Sobald ein Rest checkbar ist, zeigen die Karten den Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170, und umranden das nächste Feld auf der Scheibe. „Kein Checkout möglich“ erscheint nur bei einem Rest, den eine Aufnahme checken könnte: bis 170 mit Double-Out, bis 180 ohne. Der Weg folgt den Checkout-Tabellen der Profis; mit *Übungsspiel persönliche Checkout-Wege* bevorzugt er deine stärksten Doubles. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
+- **Stellwurf:** Wo die übrigen Darts nicht checken können, bei 169, über 170 oder bei 100 mit einem Dart, zeigen die Karten stattdessen einen Stellwurf, etwa *T20 T20 S17 Rest 32*: Darts, die für die nächste Aufnahme ein gutes Double stellen, am liebsten 32, 40, 36 oder 16. Der Caller sagt „stell dir die 32“. [So wird der Stellwurf gewählt](funktionsweise.md#stellwürfe).
 - **Average:** erzielte Punkte pro drei Darts des Legs. Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
 
 <img src="../images/de/card-match.png" alt="Live-Karte in einem 501-Match von Alex und Sam: Alex am Board mit Rest 81 und dem Weg T19 D12, Sam mit Rest 361" width="760">
