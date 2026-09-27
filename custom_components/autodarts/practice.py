@@ -42,7 +42,6 @@ from .scoring import average as _average
 from .training import hit_key
 
 GAMES = (101, 301, 501, 701, 901, 1001)
-CRICKET = "cricket"
 LEG_HISTORY = 10
 # The statistics cover the last ten legs.
 STATS_LEGS = 10
