@@ -104,16 +104,17 @@ highlight_color: "#00e5ff"
 - **Serie und Tagesziel:** die [Trainingsserie](entitaeten.md#bestleistungen-serie-und-tagesziel) in Tagen und die Darts von heute mit einem Balken zum Tagesziel, der grün wird, sobald du es erreichst.
 - **Trefferbild:**
   - Jedes Feld ist nach Trefferhäufigkeit eingefärbt, von blau (selten) bis rot (am häufigsten).
-  - Mit dem Mauszeiger auf einem Feld siehst du Anzahl und Anteil.
+  - Mit dem Mauszeiger oder einem Tipp auf ein Feld siehst du Anzahl und Anteil. Screenreader bekommen die Anzahlen aller getroffenen Felder als Liste, das häufigste zuerst.
   - Im Modus `numbers` werden Single, Double und Triple jeder Zahl zusammengefasst.
   - Im Modus `positions` zeigt es, wo die Darts gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte von Blau (wenige Darts) bis Rot (viele), dazu die neuesten 300 Darts als Punkte. Unter der Scheibe steht die [Streuung](funktionsweise.md#streuung) auf bis zu drei Zielfeldern, etwa *T20: Streuung 38 mm · 80 % innerhalb 61 mm · 6 mm links der Mitte*, mit *4 mm enger*, wenn die neueren Darts enger liegen.
   - Die Umschalter über der Scheibe wählen den Modus und wessen Darts es zeigt: die der Session oder die eines benannten Spielers mit allen seinen Treffern und den Positionen seiner letzten 1000 Darts. Die häufigsten Felder folgen der Wahl. [Wie Positionen gespeichert werden](funktionsweise.md#dart-positionen).
-- **Statistik:** höchste Aufnahme, 100+, 140+ und 180er, Triple-Quote, Doubles, Bulls und Fehlwürfe. 180er leuchten golden. Ein Tipp auf die Kacheln, oder die Eingabe- oder Leertaste darauf, öffnet die Details der Darts der Session.
-- **Häufigste Felder:** die fünf meistgetroffenen Felder mit Anzahl und Anteil an allen Darts.
+- **Statistik:** höchste Aufnahme, 100+, 140+ und 180er, Triple-Quote, Doubles, Bulls und Fehlwürfe. 180er leuchten golden. Ein Tipp auf die Kacheln öffnet die Details der Darts der Session; mit der Tastatur erscheint dafür die Taste *Trainingsstatistik, Details öffnen*, wenn du sie mit Tab erreichst. Screenreader lesen jede Kachel vor.
+- **Häufigste Felder:** die fünf meistgetroffenen Felder mit Anzahl und Anteil: an den Darts der Session oder an den Treffern, die das Profil eines Spielers gezählt hat.
 - **Bestleistungen:** jede [Bestleistung](entitaeten.md#bestleistungen-serie-und-tagesziel), die einen Wert hat: höchste Aufnahme und höchster Checkout, die wenigsten Darts je Startwert, die beste MPR eines Cricket-Legs, der beste Session-Average, Around the Clock, das Doppeltraining, Bob's 27 und die längste Trainingsserie. Der Abschnitt erscheint mit der ersten Bestleistung.
 - **Letzte Aufnahmen:** ein Balkendiagramm deiner letzten Aufnahmen mit dem Average der Session als gestrichelter Linie.
   - Farben: grau unter 60, Akzentfarbe ab 60, grün ab 100, orange ab 140 und gold für 180.
-  - Die Aufnahmen kommen aus dem Recorder und bleiben daher auch nach dem Neuladen der Seite erhalten.
+  - Die Aufnahmen kommen aus dem Recorder und bleiben daher auch nach dem Neuladen der Seite erhalten, und jede Aufnahme erscheint, auch wenn im selben Moment der nächste Spieler an der Reihe ist wie im Übungsspiel.
+  - Eine [zurückgenommene Aufnahme](entitaeten.md#aufnahme-zurücknehmen-autodartsundo_visit) verschwindet aus dem Diagramm; korrigiert kommt sie als neue Aufnahme zurück. Die Aufnahmen des Bots fehlen, denn sie zählen für niemanden.
 - **Vergangene Sessions:** Ende, Dauer, Darts, 3-Dart-Average und höchste Aufnahme deiner letzten fünf beendeten Sessions.
 - **Session-Steuerung:**
   - *Session starten* und *Session beenden* schalten die [Trainingssession](entitaeten.md#trainingssession) ein und aus. Das Beenden braucht einen zweiten Tipp zur Bestätigung.
@@ -231,7 +232,7 @@ show_system: false
 
 <img src="../images/de/scoreboard-teams.png" alt="Anzeigetafel eines 501-Team-Matches: Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216, Sam am Board fett mit seinem Average" width="760">
 
-Das [automatische Dashboard](#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die Karte über den ganzen Bildschirm zeigt. Auf dem Handy lässt die bildschirmfüllende Anzeigetafel Platz für die Adresszeile des Browsers. Die Anleitung [Anzeigetafel am Board](anzeigetafel.md) zeigt Schritt für Schritt, wie du ein Tablet oder einen Fernseher, den Caller und den Ruhemodus einrichtest.
+Das [automatische Dashboard](#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die Karte über den ganzen Bildschirm zeigt. Mit `full_height` ist die Anzeigetafel genau einen Bildschirm hoch: Zahlen und Tabellen wachsen und schrumpfen mit dem Platz, den Banner, Aufnahme und Tastenfeld lassen, sodass nichts gescrollt werden muss, vom 800 × 480-Display bis zum Fernseher. Ein Tablet im Hochformat zeigt zwei Spieler übereinander, drei oder vier zu zweit nebeneinander. Auf dem Handy lässt die bildschirmfüllende Anzeigetafel Platz für die Adresszeile des Browsers. Die Anleitung [Anzeigetafel am Board](anzeigetafel.md) zeigt Schritt für Schritt, wie du ein Tablet oder einen Fernseher, den Caller und den Ruhemodus einrichtest.
 
 ### Spielauswahl
 
@@ -243,7 +244,7 @@ Wähle das nächste Spiel direkt am Board, ohne Handy: Tippe zwischen den Spiele
 - **Spieler:** bis zu vier, in Wurfreihenfolge. Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um ihn zu verschieben, und auf ✕, um ihn zu entfernen. Die Namen kommen aus den Spielerprofilen und den Namensfeldern der Spieler; Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, die zu Hause ist, stehen vorn, mit ihrem Bild und ⌂. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Ist niemand gewählt, wirft ein Spieler ohne Namen. Bei X01 und den Cricket-Spielen setzt *+ Bot* den [Bot](entitaeten.md#bot) nach den Spielern dazu, mit Stärke 60; − und + ändern seine Stärke in Zehnerschritten von 20 bis 120, und ✕ schickt ihn nach Hause. Mit dem Bot spielen bis zu drei Spieler. Killer braucht zwei Spieler; Trainingsspiele nehmen nur den ersten Spieler. Bei X01 stellen − und + neben einem Spieler eigene [Startpunkte](spiele.md#startpunkte-handicap) in Schritten von 100 ein, von 101 bis 1001.
 - **Format:** Legs pro Satz und Sätze zum Sieg, für ein Match mehrerer Spieler.
 - **Optionen:** Double-Out und Double-In bei X01 und das Ausbullen für ein Match, mit Ausbullen nach Abstand, wo das Board es anbietet. Mit vier Spielern bei X01 oder einem Cricket-Spiel spielt *Teams* Spieler 1 und 3 gegen 2 und 4.
-- **Start:** startet das Spiel mit [`autodarts.start_game`](entitaeten.md#übungsspiel-starten-autodartsstart_game), und die Anzeigetafel zeigt es sofort. Während eines Spiels beendet *Spiel beenden* es nach einem zweiten Tippen.
+- **Start:** startet das Spiel mit [`autodarts.start_game`](entitaeten.md#übungsspiel-starten-autodartsstart_game), und die Anzeigetafel zeigt es sofort. Ist die Erkennung gestoppt, schaltet der Start sie ein, denn ohne sie zählt kein Dart; die Auswahl sagt es vorher über der Taste. Die Starttaste bleibt am unteren Bildschirmrand, während die Seite scrollt. Während eines Spiels beendet *Spiel beenden* es nach einem zweiten Tippen.
 
 In der Vorschau des Karteneditors öffnet sich die Auswahl nie.
 
@@ -257,12 +258,12 @@ Die Darts der Aufnahme unten sind Tasten, solange `corrections` an ist, und das 
 
 <img src="../images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
 
-- **Dart korrigieren:** Tippe auf einen Dart, den das Board falsch erkannt hat. Ein Tastenfeld öffnet sich mit S, D und T, den Zahlen 1 bis 20, 25, Bull und Miss; S, D oder T steht auf dem Feld des Darts. Tippe den Multiplikator und dann die Zahl, oder 25, Bull oder Miss, und [`autodarts.correct_dart`](entitaeten.md#dart-korrigieren-autodartscorrect_dart) legt den Dart dorthin. Restpunkte und Aufnahme folgen sofort. Ein zweiter Tipp auf den Dart oder *Abbrechen* schließt das Tastenfeld. Die Darts des Bots lassen sich nicht korrigieren.
+- **Dart korrigieren:** Tippe auf einen Dart, den das Board falsch erkannt hat. Ein Tastenfeld öffnet sich mit S, D und T, den Zahlen 1 bis 20, 25, Bull und Fehlwurf; S, D oder T steht auf dem Feld des Darts. Tippe den Multiplikator und dann die Zahl, oder 25, Bull oder Fehlwurf, und [`autodarts.correct_dart`](entitaeten.md#dart-korrigieren-autodartscorrect_dart) legt den Dart dorthin. Restpunkte und Aufnahme folgen sofort. Ein zweiter Tipp auf den Dart oder *Abbrechen* schließt das Tastenfeld. Die Darts des Bots lassen sich nicht korrigieren.
 - **Tastenfeld:** Mit `keypad: true` erscheint ein Tastenfeld, solange *Übungsspiel manuelle Eingabe* an ist, für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras: Jeder Tipp auf ein Feld gibt mit [`autodarts.throw_dart`](entitaeten.md#dart-eingeben-autodartsthrow_dart) einen Dart ein, und der nächste Dart beginnt wieder bei S. *Nächster Spieler* beendet die Aufnahme ohne Entnahme, und *Letzte Aufnahme zurück* nimmt die letzte Aufnahme zurück, um sie zu korrigieren; beides braucht einen zweiten Tipp. Solange der Bot am Board ist, wartet das Tastenfeld.
 - **Zurücknehmen:** Ohne Tastenfeld erscheint *Letzte Aufnahme zurück* unter der Aufnahme, solange [`autodarts.undo_visit`](entitaeten.md#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurücknehmen kann, für eine falsche Erkennung, die erst nach dem Ziehen der Darts auffällt. Es braucht einen zweiten Tipp; die Aufnahme kommt zurück, um ihre Darts zu korrigieren, und *Nächster Spieler* des Tastenfelds oder [`autodarts.next_player`](entitaeten.md#weitergeben-autodartsnext_player) beendet sie wieder.
 - **Markierungen:** Von Hand eingegebene oder korrigierte Darts haben einen gestrichelten Rahmen, die Darts des Bots einen hellen.
 
-Tastenfeld und Korrektur machen Platz für die Spielauswahl, den Ruhemodus, die Match-Zusammenfassung und die Tabelle eines Turniers und reagieren in der Vorschau des Karteneditors nie.
+Auf einer bildschirmfüllenden Anzeigetafel im Querformat stehen Tastenfeld und Korrektur neben den Punkten, sodass Spieler, Aufnahme und Tastenfeld zusammen auf den Bildschirm passen. Tastenfeld und Korrektur machen Platz für die Spielauswahl, den Ruhemodus, die Match-Zusammenfassung und die Tabelle eines Turniers und reagieren in der Vorschau des Karteneditors nie.
 
 <img src="../images/de/scoreboard-keypad.png" alt="Die Anzeigetafel mit dem Tastenfeld: Alex hat T20 und S19 von Hand eingegeben, gestrichelt umrandet; darunter S, D und T, die Zahlen 1 bis 20, 25, Bull, Miss und Nächster Spieler" width="760">
 
@@ -277,7 +278,7 @@ Während eines [Turniers](entitaeten.md#turniere) folgt ihm die Anzeigetafel:
 - **Sieger:** Nach dem letzten Match nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt.
 - **Caller:** Mit eingeschaltetem Caller und `call_results` sagt er jedes Match beim Start an, „Nächstes Match: Alex gegen Sam“, und den Sieger des Turniers.
 - **Spielauswahl:** *Turnier* schaltet die Auswahl auf ein Turnier mit bis zu acht Spielern mit Namen um: X01, mit Startpunkten als Handicap, oder ein Cricket-Spiel, jeder gegen jeden oder K.-o.-System, Legs und Sätze, die Regeln, das Spiel um Platz 3 und eine zufällige Auslosung. *Turnier starten* startet es mit [`autodarts.start_tournament`](entitaeten.md#turnier-starten-autodartsstart_tournament). Während eines Turniers beendet *Turnier beenden* es samt seinem Spiel nach einem zweiten Tippen.
-- **Ruhemodus:** Die Tafel `tournament` zeigt Tabelle oder Turnierbaum des laufenden oder gerade beendeten Turniers.
+- **Ruhemodus:** Die Seite `tournament` zeigt Tabelle oder Turnierbaum des laufenden oder gerade beendeten Turniers.
 
 <img src="../images/de/tournament-table.png" alt="Das Turnier jeder gegen jeden mit vier Spielern auf der Anzeigetafel zwischen zwei Matches: als Nächstes Lea gegen Sam mit Countdown und die Tabelle mit Alex vorn mit 4 Punkten" width="760">
 
@@ -287,7 +288,7 @@ Während eines [Turniers](entitaeten.md#turniere) folgt ihm die Anzeigetafel:
 
 Läuft kein Spiel oder ist ein Match oder Trainingsspiel entschieden, und wirft oder tippt niemand für `idle_after` Sekunden (3 Minuten), zeigt die Anzeigetafel diese Tafeln im Wechsel, jede für `idle_interval` Sekunden:
 
-| Tafel | Zeigt |
+| Seite | Zeigt |
 | --- | --- |
 | `tournament` | Tabelle oder Turnierbaum des laufenden oder gerade beendeten Turniers |
 | `leaderboard` | Die fünf besten Spieler nach 3-Dart-Average, dann nach gewonnenen Legs, mit ihren Bildern |
@@ -296,7 +297,7 @@ Läuft kein Spiel oder ist ein Match oder Trainingsspiel entschieden, und wirft 
 | `last_match` | Das letzte Match mehrerer Spieler: das Spiel, wann es endete, und die Legs, in einem Match mit Sätzen die Sätze, und den Average aller Spieler |
 | `clock` | Uhrzeit und Datum |
 
-Tafeln ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tippen irgendwo beendet den Ruhemodus. Auf Geräten, die weniger Bewegung wünschen, wechseln die Tafeln ohne Überblenden.
+Seiten ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tippen irgendwo beendet den Ruhemodus; eine Spielauswahl, die du selbst geöffnet hattest, kommt so zurück, wie du sie verlassen hast, mit dem gewählten Spiel und den Spielern. Der Bildschirm ändert sich nur, wenn die nächste Seite fällig ist oder die Minute der Uhr endet. Auf Geräten, die weniger Bewegung wünschen, wechseln die Seiten ohne Überblenden.
 
 <img src="../images/de/scoreboard-idle.png" alt="Ruhemodus der Anzeigetafel: die Bestenliste mit Alex, Sam und Kim, ihren Bildern, 3-Dart-Averages und gewonnenen Legs" width="760">
 
@@ -318,8 +319,8 @@ Tafeln ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `lobby_games` | Liste von Spielen | jedes Spiel | Die Spiele, die die Spielauswahl anbietet, etwa `["501", cricket, killer]` |
 | `idle` | Wahrheitswert | `true` | Den [Ruhemodus](#ruhemodus) einschalten |
 | `idle_after` | Sekunden, 10–3600 | `180` | Zeit ohne Darts und Tippen, bis der Ruhemodus beginnt |
-| `idle_interval` | Sekunden, 3–120 | `10` | Zeit, die jede Tafel zu sehen ist |
-| `idle_panels` | Liste von Tafeln | jede Tafel | Die Tafeln des Ruhemodus in dieser Reihenfolge: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
+| `idle_interval` | Sekunden, 3–120 | `10` | Zeit, die jede Seite zu sehen ist |
+| `idle_panels` | Liste von Seiten | jede Seite | Die Seiten des Ruhemodus in dieser Reihenfolge: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `show_summary` | Wahrheitswert | `true` | Die [Match-Zusammenfassung](#match-zusammenfassung) anzeigen, wenn ein X01- oder Cricket-Match endet |
 | `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
 | `corrections` | Boolesch | `true` | Ein Tipp auf einen Dart der Aufnahme [korrigiert ihn](#darts-korrigieren-und-eingeben); *Letzte Aufnahme zurück* erscheint, solange es geht |
@@ -371,7 +372,7 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 
 <img src="../images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim mit ihren Bildern, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
 
-- **Abzeichen:** die [Erfolge](entitaeten.md#erfolge) jedes Spielers. Ein erreichtes Abzeichen zeigt seine Stufe in Bronze, Silber, Gold oder Platin, das nächste Ziel und wie weit der Spieler ist; ein gesperrtes ist ausgegraut, mit dem Fortschritt, wo er sich zählen lässt.
+- **Abzeichen:** die [Erfolge](entitaeten.md#erfolge) jedes Spielers. Ein erreichtes Abzeichen zeigt seine Stufe in Bronze, Silber, Gold oder Platin, das nächste Ziel und wie weit der Spieler ist; ein noch nicht erreichtes ist ausgegraut, mit dem Fortschritt, wo er sich zählen lässt.
 - **Trends:** für jeden Spieler, der in den gezeigten Wochen geübt hat, eine Kachel pro Kennzahl: 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts über die Wochen, eine Linie der Wochenwerte und ein Pfeil, der die neuere Hälfte der Wochen mit der älteren vergleicht (↗ besser, ↘ schlechter, → etwa gleich). Wochen ohne Training unterbrechen die Linie.
 - **Streuung:** wo die Darts jedes Spielers um die Felder landen, auf die er am häufigsten gezielt hat, in Millimetern, mit der Änderung der neueren Darts. [Wie die Streuung gemessen wird](funktionsweise.md#streuung).
 
@@ -388,7 +389,7 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 | `show_head_to_head` | Wahrheitswert | `true` | Direkte Vergleiche anzeigen |
 | `show_matches` | Wahrheitswert | `true` | Letzte Matches anzeigen |
 | `show_badges` | Wahrheitswert | `true` | Abzeichen anzeigen |
-| `show_locked` | Wahrheitswert | `true` | Auch gesperrte Abzeichen anzeigen; ohne sie fehlen Spieler ohne Abzeichen |
+| `show_locked` | Wahrheitswert | `true` | Auch noch nicht erreichte Abzeichen anzeigen; ohne sie fehlen Spieler ohne Abzeichen |
 | `show_trends` | Wahrheitswert | `true` | Trends anzeigen |
 | `trend_weeks` | 4–12 | `12` | Wochen in den Trends |
 | `show_spread` | Wahrheitswert | `true` | Streuung anzeigen |
@@ -451,20 +452,27 @@ Pro Board entstehen bis zu fünf Ansichten. Sie aktualisieren sich selbst, wenn 
 
 <img src="../images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards" width="760">
 
-In YAML ist das ganze Dashboard eine Zeile; `device_id` und `title` sind optional:
+Die Live-Ansicht hat außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Turnierzusammenfassung* bei den Turniereinstellungen.
+
+In YAML ist das ganze Dashboard eine Zeile; `device_id`, `title` und `scoreboard` sind optional. `scoreboard` setzt Optionen der Karte in der Ansicht *Anzeigetafel*: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` und `idle_panels`, wie bei der [Anzeigetafel](#anzeigetafel) beschrieben. Was du weglässt, behält den Standard der Karte.
 
 ```yaml
 strategy:
   type: custom:autodarts
   device_id: 0123456789abcdef   # nur dieses Board
   title: Darts
+  scoreboard:
+    caller: true
+    keypad: true
+    lobby_games: ["501", cricket, killer]
+    idle_panels: [leaderboard, clock]
 ```
 
-Um später Board oder Titel zu wählen, öffnest du im Dashboard das Menü (⋮) → **Dashboard bearbeiten**. Home Assistant zeigt dann den eigenen Editor des Dashboards:
+Um später Board, Titel oder die Optionen der Anzeigetafel zu wählen, öffnest du im Dashboard das Menü (⋮) → **Dashboard bearbeiten**. Home Assistant zeigt dann den eigenen Editor des Dashboards, die Optionen der Anzeigetafel im Abschnitt *Ansicht Anzeigetafel*:
 
 <img src="../images/de/strategy-editor.png" alt="Der Editor des automatischen Dashboards mit Board und Titel" width="760">
 
-Wird das gewählte Board aus Home Assistant entfernt, sagt das Dashboard das, statt leere Ansichten zu zeigen; wähle ein anderes Board oder leere die Auswahl, um jedes Board zu zeigen. Um die Ansichten selbst anzupassen, wählst du im Menü (⋮) dieses Editors **Kontrolle übernehmen**. Home Assistant macht aus den erzeugten Ansichten dann ein normales, frei bearbeitbares Dashboard.
+Wird das gewählte Board aus Home Assistant entfernt, sagt das Dashboard das, statt leere Ansichten zu zeigen; wähle ein anderes Board oder leere die Auswahl, um jedes Board zu zeigen. Um die Ansichten selbst anzupassen, wählst du im Menü (⋮) dieses Editors **Kontrolle übernehmen**. Home Assistant macht aus den erzeugten Ansichten dann ein normales, frei bearbeitbares Dashboard; es bekommt die Ansichten späterer Versionen nicht mehr, also nutze lieber die Einstellungen des Dashboards, wo sie reichen.
 
 ## Karteneditor
 
@@ -479,16 +487,19 @@ Alle Optionen lassen sich im visuellen Editor einstellen. Er ist ein Formular vo
 
 ### Farben
 
-`accent_color` und `highlight_color` nutzen die Farbauswahl von Home Assistant. Wähle eine Theme-Farbe wie *Primär*, *Akzent* oder *Rot*, die deinem Design folgt, oder tippe eine beliebige CSS-Farbe ein, zum Beispiel `#00e5ff`, `rgb(0 229 255)` oder `var(--accent-color)`. Ein leeres Feld oder ein Wert, der keine Farbe ist, nutzt den Standard.
+`accent_color` und `highlight_color` nutzen die Farbauswahl von Home Assistant. Wähle eine Theme-Farbe wie *Primär*, *Akzent* oder *Rot*, die deinem Design folgt, oder tippe eine beliebige CSS-Farbe ein, zum Beispiel `#00e5ff`, `rgb(0 229 255)` oder `var(--accent-color)`. Eine Theme-Variable zählt nur ohne Ersatzwert, als `var(--name)`. Ein leeres Feld oder ein Wert, der keine Farbe ist, nutzt den Standard.
+
+Text in der Akzentfarbe wird mit der Textfarbe deines Designs gemischt, und Tasten, die mit ihr gefüllt sind, werden abgedunkelt, sodass beides auch mit den hellen Primärfarben der Standard-Designs von Home Assistant lesbar bleibt.
 
 ## Barrierefreiheit
 
 Die Karten funktionieren mit Tastatur, mit Screenreader und ohne Animationen:
 
-- **Tastatur:** Jedes Bedienelement ist eine Taste mit sichtbarem Fokusrahmen in der Akzentfarbe. Die Scheibe der Live-Karte und die Statistik-Kacheln der Trainingskarte öffnen ihre Details mit der Eingabe- oder Leertaste. Die Kalibrieren-Tasten des Board-Status behalten den Fokus, während sie um Bestätigung bitten. In der Spielauswahl fügt die Eingabetaste den eingetippten Namen hinzu.
-- **Screenreader:** Tasten ohne Text haben eine Beschriftung, etwa „Alex nach oben“ in der Spielauswahl. Die Live-Scheibe liest die Darts der Aufnahme vor, etwa „Dartscheibe mit der aktuellen Aufnahme: T20, S5, Bull“, das Diagramm der letzten Aufnahmen ihre Punkte, und Cricket-Marks werden als Wörter gelesen. Der Status des Boards und der Sieger eines Matches werden angesagt, sobald sie sich ändern. Der Erkennungsschalter des Board-Status ist ein Schalter, und die Caller-Taste und die Optionen der Spielauswahl sagen, ob sie an sind.
-- **Reduzierte Bewegung:** Wünscht das Gerät reduzierte Bewegung, blinken getroffene Felder nicht mehr und der jüngste Dart pulsiert nicht; beide bleiben hervorgehoben. Die Tafeln des Ruhemodus wechseln ohne Überblendung, und die Plätze eines Turnierbaums füllen sich ohne Gleiten.
-- **Farbe und Kontrast:** Die Karten nehmen ihre Farben aus deinem Design, hell oder dunkel, und verlassen sich nie allein auf Farbe: Der Board-Status kommt mit einem Text, das Trefferbild zeigt die Anzahl eines Feldes beim Überfahren, und die Cricket-Marks sind Symbole. Wähle `accent_color` und `highlight_color` mit genug Kontrast zu deinem Design, oder nutze ein Design mit hohem Kontrast, dem die Karten folgen.
+- **Tastatur:** Jedes Bedienelement ist eine Taste mit sichtbarem Fokusrahmen in der Akzentfarbe. Die Scheibe der Live-Karte öffnet ihre Details mit der Eingabe- oder Leertaste, die Statistik der Trainingskarte mit einer eigenen Taste. Die Kalibrieren-Tasten des Board-Status behalten den Fokus, während sie um Bestätigung bitten. In der Spielauswahl und im Tastenfeld der Anzeigetafel behält eine Taste den Fokus, nachdem sie gedrückt wurde, und ein Name, den du tippst, behält Text und Cursor, während sich die Anzeige ändert; die Eingabetaste fügt den eingetippten Namen hinzu.
+- **Screenreader:** Tasten ohne Text haben eine Beschriftung, etwa „Alex nach oben“ in der Spielauswahl. Die Live-Scheibe liest die Darts der Aufnahme vor, etwa „Dartscheibe mit der aktuellen Aufnahme: T20, S5, Bull“, das Diagramm der letzten Aufnahmen ihre Punkte, ein Dart der Aufnahme auf der Anzeigetafel sein Feld, seine Punkte und was ein Tipp bewirkt; Cricket-Marks werden als Wörter gelesen und die Herzen im Killer als Leben. Der Spieler am Board ist als aktueller markiert und der Sieger wird genannt, nicht nur eingefärbt. Der Status des Boards und der Sieger eines Matches werden angesagt, sobald sie sich ändern, und nur dann; die Spielauswahl liest einen neuen Wert der Tasten − und + vor und was den Start aufhält. Der Erkennungsschalter des Board-Status ist ein Schalter, und die Caller-Taste und die Optionen der Spielauswahl sagen, ob sie an sind.
+- **Reduzierte Bewegung:** Wünscht das Gerät reduzierte Bewegung, blinken getroffene Felder nicht mehr und der jüngste Dart pulsiert nicht; beide bleiben hervorgehoben. Die Seiten des Ruhemodus wechseln ohne Überblendung, und die Plätze eines Turnierbaums füllen sich ohne Gleiten.
+- **Farbe und Kontrast:** Die Karten nehmen ihre Farben aus deinem Design, hell oder dunkel, und verlassen sich nie allein auf Farbe: Der Board-Status kommt mit einem Text, das Trefferbild zeigt die Anzahl eines Feldes beim Überfahren oder Antippen, und die Cricket-Marks sind Symbole. Text in der Akzentfarbe, grauer Text auf getönten Kacheln und die Farben der Doubles-Karte sind für einen Kontrast von mindestens 4,5:1 gemischt; ausgeschiedene Spieler werden über die Farbe blasser, nicht durch Transparenz. Im Kontrastmodus von Windows bekommen gedrückte Tasten einen Rahmen. Wähle `accent_color` und `highlight_color` mit genug Kontrast zu deinem Design, oder nutze ein Design mit hohem Kontrast, dem die Karten folgen.
+- **Touch:** Auf einem Touchscreen sind die kleinen Tasten wie *Neues Spiel*, der Caller, der Zeitraum-Umschalter und *Exportieren* mindestens 40 Pixel hoch.
 - **Sprache:** Die Karten folgen der Sprache deines Home-Assistant-Profils, Zahlen, Daten und Uhrzeiten seinen Formaten.
 
 ## Tipps

@@ -104,16 +104,17 @@ highlight_color: "#00e5ff"
 - **Streak and daily goal:** the [training streak](entities.md#personal-bests-streak-and-daily-goal) in days and today's darts, with a bar towards the daily goal that turns green when you reach it.
 - **Heatmap:**
   - Every bed is colored by how often you hit it, from blue (rarely) to red (most often).
-  - Hover a bed for its count and share.
+  - Hover or tap a bed for its count and share. Screen readers get the counts of all hit beds as a list, the most hit first.
   - In `numbers` mode, the heatmap sums each number's singles, doubles and triples instead.
   - In `positions` mode, it shows where the darts landed, from the positions the board reports: a smoothed density from blue (few darts) to red (many), with the newest 300 darts as dots. Below the board, the [grouping](how-it-works.md#grouping) at up to three beds aimed at, for example *T20: grouping 38 mm · 80 % within 61 mm · 6 mm left of center*, with *4 mm tighter* when the newer darts group closer.
   - The switches above the board choose the mode and whose darts it shows: the session, or a named player with all their hits and the positions of their last 1000 darts. The most hit beds follow the choice. [How positions are kept](how-it-works.md#dart-positions).
-- **Statistics:** highest visit, 100+, 140+ and 180 visits, triple rate, doubles, bulls and misses. 180s light up in gold. Tap the tiles, or press Enter or Space on them, for the details of the session's darts.
-- **Most hit beds:** the top five, with count and share of all darts.
+- **Statistics:** highest visit, 100+, 140+ and 180 visits, triple rate, doubles, bulls and misses. 180s light up in gold. Tap the tiles for the details of the session's darts; with a keyboard, the button *Training statistics, open the details* appears when you tab to it. Screen readers read every tile.
+- **Most hit beds:** the top five, with count and share: of the session's darts, or of the hits a player's profile counted.
 - **Personal bests:** every [personal best](entities.md#personal-bests-streak-and-daily-goal) that has a value: highest visit and checkout, the fewest darts for every start score, the best Cricket marks per round, the best session average, Around the Clock, the doubles training, Bob's 27 and the longest training streak. The section appears with the first record.
 - **Recent visits:** a bar chart of your last visits with the session average as a dashed line.
   - Bars are colored gray below 60, accent color from 60, green for 100+, orange for 140+ and gold for 180.
-  - The visits come from the recorder, so the chart survives page reloads.
+  - The visits come from the recorder, so the chart survives page reloads, and every visit shows, also when the turn passes at the same moment, as it does in a practice game.
+  - An [undone visit](entities.md#undo-a-visit-autodartsundo_visit) leaves the chart; corrected, it comes back as a new visit. The bot's visits are left out, as they count for nobody.
 - **Past sessions:** end time, duration, darts, 3-dart average and highest visit of your last five finished sessions.
 - **Session controls:**
   - *Start session* and *End session* switch the [training session](entities.md#training-session) on and off. Ending needs a second tap to confirm.
@@ -231,7 +232,7 @@ show_system: false
 
 <img src="images/en/scoreboard-teams.png" alt="Scoreboard of a 501 team match: Alex and Kim with 45 left against Sam and Lea with 216, Sam at the board in bold with his average" width="760">
 
-The [automatic dashboard](#automatic-dashboard) has a *Scoreboard* view that shows the card across the whole screen. On a phone, the full-height scoreboard leaves room for the browser's address bar. The guide [scoreboard at the board](scoreboard.md) shows how to set up a tablet or TV, the caller and idle mode step by step.
+The [automatic dashboard](#automatic-dashboard) has a *Scoreboard* view that shows the card across the whole screen. With `full_height`, the scoreboard is exactly one screen high: the numbers and tables grow and shrink with the room the banner, the visit and the keypad leave, so nothing has to be scrolled, from an 800 × 480 display to a TV. A portrait tablet shows two players one above the other, three or four two by two. On a phone, the full-height scoreboard leaves room for the browser's address bar. The guide [scoreboard at the board](scoreboard.md) shows how to set up a tablet or TV, the caller and idle mode step by step.
 
 ### New game screen
 
@@ -243,7 +244,7 @@ Choose the next game at the board, without a phone: tap **New game** below the s
 - **Players:** up to four, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. In X01 and the Cricket games, *+ Bot* seats the [bot](entities.md#bot) after the players, at level 60; − and + change its level in steps of 10, from 20 to 120, and ✕ sends it home. With the bot, up to three players play. Killer needs two players; training games take the first player only. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own in steps of 100, from 101 to 1001.
 - **Format:** legs per set and sets to win, for a match of several players.
 - **Options:** double out and double in for X01, and the bull-off for a match, with bull-off by distance where the board offers it. With four players of X01 or a Cricket game, *Teams* plays 1 and 3 against 2 and 4.
-- **Start:** starts the game with [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), and the scoreboard shows it at once. During a game, *End game* stops it after a second tap.
+- **Start:** starts the game with [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), and the scoreboard shows it at once. If detection is stopped, the start switches it on, because no dart counts without it; the screen says so above the button. The start stays at the bottom of the screen while the page scrolls. During a game, *End game* stops it after a second tap.
 
 The screen never opens in the preview of the card editor.
 
@@ -262,7 +263,7 @@ The darts of the visit along the bottom are buttons while `corrections` is on, w
 - **Undo:** without the keypad, *Undo last visit* shows below the visit while [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) can take the last visit back, for a wrong reading noticed after the darts were pulled. It needs a second tap; the visit comes back to correct its darts, and the keypad's *Next player* or [`autodarts.next_player`](entities.md#pass-the-turn-autodartsnext_player) ends it again.
 - **Marks:** darts entered or corrected by hand have a dashed frame, the bot's darts a light one.
 
-The pad and the keypad make room for the new game screen, idle mode, the match summary and a tournament's table, and never react in the preview of the card editor.
+On a full-height scoreboard in landscape, the pad and the keypad sit beside the scores, so the players, the visit and the pad fit the screen together. The pad and the keypad make room for the new game screen, idle mode, the match summary and a tournament's table, and never react in the preview of the card editor.
 
 <img src="images/en/scoreboard-keypad.png" alt="The scoreboard with the keypad: Alex has entered T20 and S19 by hand, marked with dashed frames; below, S, D and T, the numbers 1 to 20, 25, Bull, Miss and Next player" width="760">
 
@@ -296,7 +297,7 @@ When no game runs, or a match or training game is decided, and nobody throws or 
 | `last_match` | The last match of several players: the game, when it ended, and everybody's legs, or sets in a match of sets, and average |
 | `clock` | The time and the date |
 
-Panels with nothing to show are skipped. A dart, a new game or a tap anywhere ends idle mode. On devices set to reduce motion, the panels change without fading.
+Panels with nothing to show are skipped. A dart, a new game or a tap anywhere ends idle mode; a new game screen you opened by hand comes back as you left it, with the game and the players chosen. The screen changes only when the next panel is due or the clock's minute ends. On devices set to reduce motion, the panels change without fading.
 
 <img src="images/en/scoreboard-idle.png" alt="Idle mode of the scoreboard: the leaderboard with Alex, Sam and Kim, their pictures, 3-dart averages and legs won" width="760">
 
@@ -451,20 +452,27 @@ For every board, the dashboard gets up to five views, which update themselves wh
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard" width="760">
 
-In YAML, the whole dashboard is one line; `device_id` and `title` are optional:
+The live view also has *Bull-off by distance* among the practice rules and *Tournament summary* among the tournament settings.
+
+In YAML, the whole dashboard is one line; `device_id`, `title` and `scoreboard` are optional. `scoreboard` sets options of the scoreboard view's card: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` and `idle_panels`, as described for the [scoreboard card](#scoreboard-card). Options you leave out keep the card's defaults.
 
 ```yaml
 strategy:
   type: custom:autodarts
   device_id: 0123456789abcdef   # only this board
   title: Darts
+  scoreboard:
+    caller: true
+    keypad: true
+    lobby_games: ["501", cricket, killer]
+    idle_panels: [leaderboard, clock]
 ```
 
-To choose the board or the title later, open the dashboard's menu (⋮) → **Edit dashboard**. Home Assistant shows the dashboard's own editor:
+To choose the board, the title or the scoreboard's options later, open the dashboard's menu (⋮) → **Edit dashboard**. Home Assistant shows the dashboard's own editor, with the scoreboard's options in the section *Scoreboard view*:
 
 <img src="images/en/strategy-editor.png" alt="The editor of the automatic dashboard with the board and the title" width="760">
 
-If the chosen board is removed from Home Assistant, the dashboard says so instead of showing empty views; choose another board or clear the choice to show every board. To customize the views themselves, choose **Take control** in the menu (⋮) of that editor. Home Assistant then turns the generated views into a normal dashboard that you can edit.
+If the chosen board is removed from Home Assistant, the dashboard says so instead of showing empty views; choose another board or clear the choice to show every board. To customize the views themselves, choose **Take control** in the menu (⋮) of that editor. Home Assistant then turns the generated views into a normal dashboard that you can edit; it no longer gets the views of later releases, so prefer the dashboard's own settings where they are enough.
 
 ## Card editor
 
@@ -479,16 +487,19 @@ All options can be set in the visual editor. It is a form of Home Assistant, so 
 
 ### Colors
 
-`accent_color` and `highlight_color` use Home Assistant's color picker. Choose a theme color such as *Primary*, *Accent* or *Red*, which follows your theme, or type any CSS color, for example `#00e5ff`, `rgb(0 229 255)` or `var(--accent-color)`. An empty field, or a value that is not a color, uses the default.
+`accent_color` and `highlight_color` use Home Assistant's color picker. Choose a theme color such as *Primary*, *Accent* or *Red*, which follows your theme, or type any CSS color, for example `#00e5ff`, `rgb(0 229 255)` or `var(--accent-color)`. A theme variable counts without a fallback only, as `var(--name)`. An empty field, or a value that is not a color, uses the default.
+
+Text in the accent color is mixed with your theme's text color, and buttons filled with it are darkened, so both stay readable with the light primary colors of Home Assistant's default themes.
 
 ## Accessibility
 
 The cards work with a keyboard, with a screen reader and without animations:
 
-- **Keyboard:** every control is a button with a visible focus ring in the accent color. The board of the live card and the statistics tiles of the training card open their details with Enter or Space. The calibration buttons of the status card keep the focus while they ask for confirmation. On the new game screen, Enter adds the name you typed.
-- **Screen readers:** buttons without a text have a label, for example "Move Alex up" on the new game screen. The live board reads the darts of the visit, such as "Dartboard with the current visit: T20, S5, Bull", the chart of recent visits reads their scores, and Cricket marks read as words. The status of the board and the winner of a match are announced when they change. The detection toggle of the status card is a switch, and the caller button and the options of the new game screen say whether they are on.
+- **Keyboard:** every control is a button with a visible focus ring in the accent color. The board of the live card opens its details with Enter or Space, the statistics of the training card with their own button. The calibration buttons of the status card keep the focus while they ask for confirmation. On the new game screen and the pad of the scoreboard, a button keeps the focus after it is pressed, and a name being typed keeps its text and caret while the screen updates; Enter adds the name you typed.
+- **Screen readers:** buttons without a text have a label, for example "Move Alex up" on the new game screen. The live board reads the darts of the visit, such as "Dartboard with the current visit: T20, S5, Bull", the chart of recent visits reads their scores, a dart of the scoreboard's visit its bed, points and what a tap does, Cricket marks read as words and Killer's hearts as lives. The player at the board is marked as the current one and the winner is named, not only colored. The status of the board and the winner of a match are announced when they change, and only then; the new game screen reads out a new stepper value and what holds the start back. The detection toggle of the status card is a switch, and the caller button and the options of the new game screen say whether they are on.
 - **Reduced motion:** when the device asks for reduced motion, hit beds stop blinking and the latest dart stops pulsing; both stay highlighted. The panels of idle mode change without fading, and the places of a tournament bracket fill without sliding.
-- **Color and contrast:** the cards take their colors from your theme, light or dark, and never rely on color alone: the board status comes with a text, the heatmap shows the count of a bed on hover, and the Cricket marks are symbols. Choose an `accent_color` and a `highlight_color` with enough contrast to your theme, or use a high-contrast theme, which the cards follow.
+- **Color and contrast:** the cards take their colors from your theme, light or dark, and never rely on color alone: the board status comes with a text, the heatmap shows the count of a bed on hover or tap, and the Cricket marks are symbols. Text in the accent color, gray text on tinted tiles and the colors of the doubles card are mixed for a contrast of at least 4.5:1; players who are out are faded by color, not transparency. In Windows' high contrast mode, pressed buttons get an outline. Choose an `accent_color` and a `highlight_color` with enough contrast to your theme, or use a high-contrast theme, which the cards follow.
+- **Touch:** on a touch screen, the small buttons, such as *New game*, the caller, the period switch and *Export*, are at least 40 pixels high.
 - **Language:** the cards follow the language of your Home Assistant profile, and numbers, dates and times its formats.
 
 ## Tips
