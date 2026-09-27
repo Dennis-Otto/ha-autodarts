@@ -93,7 +93,7 @@ Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt je
 | Training 100+ Aufnahmen | Sensor, Summe | Aufnahmen mit 100–139 Punkten. |
 | Training 140+ Aufnahmen | Sensor, Summe | Aufnahmen mit 140–179 Punkten. |
 | Training 180er | Sensor, Summe | Aufnahmen mit drei Triple 20. |
-| Training Triple | Sensor, Summe | Darts in einem Triple-Feld. |
+| Training Triples | Sensor, Summe | Darts in einem Triple-Feld. |
 | Training Doubles | Sensor, Summe | Darts in einem Double-Feld (ohne Bull). |
 | Training Bull-Treffer | Sensor, Summe | Darts im Bull oder Single Bull. |
 | Training Fehlwürfe | Sensor, Summe | Darts außerhalb der Wertungsfelder. |
@@ -340,7 +340,7 @@ Spieler mit Namen schalten Erfolge frei, die meisten in Stufen: Bronze, Silber, 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
 | Erfolge | Sensor, Abzeichen (`badges`) | Die von allen Spielern zusammen freigeschalteten Stufen. Attribute: `latest` mit `name`, `achievement`, `tier` und `date` der letzten Freischaltung; `catalogue` mit `id`, `tiers` und `lower` (wahr, wenn weniger besser ist) jedes Erfolgs; `players` mit `name`, `unlocked` (Stufen), `badges` (Erfolg → `tier` und die `dates` seiner Stufen) und `progress` (Erfolg → der Wert, an dem er gemessen wird) jedes Spielers. Der Recorder speichert Katalog und Spieler nicht. |
-| Erfolge | Schalter, *Konfiguration* | Erfolge freischalten und `achievement_unlocked` auslösen. Standardmäßig an. Solange er aus ist, wird nichts freigeschaltet und nichts gemeldet, der Fortschritt zählt aber weiter; wieder an, wird das inzwischen Erreichte leise freigeschaltet. |
+| Erfolge freischalten | Schalter, *Konfiguration* | Erfolge freischalten und `achievement_unlocked` auslösen. Standardmäßig an. Solange er aus ist, wird nichts freigeschaltet und nichts gemeldet, der Fortschritt zählt aber weiter; wieder an, wird das inzwischen Erreichte leise freigeschaltet. |
 
 ## Doppelanalyse
 
@@ -414,7 +414,7 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen j
   ```
 
 - **Matches:** Das Turnier richtet das Übungsspiel für jedes Match ein: das Spiel, die beiden Spieler mit ihren Startpunkten, Legs und Sätze, Double-Out, Double-In und das Ausbullen. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet; der Spielplan verteilt den Anwurf möglichst gleichmäßig.
-- **Zwischen den Matches:** Das Ergebnis zählt, wenn die Darts der entscheidenden Aufnahme gezogen sind. Zuerst steht die [Zusammenfassung](karten.md#match-zusammenfassung) des Matches für die *Turnierzusammenfassung*, standardmäßig 8 Sekunden; dann beginnt die *Turnierpause*, standardmäßig 10 Sekunden, in der die Anzeigetafel Tabelle oder Turnierbaum mit dem nächsten Match zeigt. Das nächste Match beginnt also 18 Sekunden nach dem Ende des letzten, aber nie, solange Darts im Board stecken: Dann beginnt es, sobald sie gezogen sind. Mit einer Pause von 0 wartet es auf *Nächstes Turniermatch*. Darts, die in der Pause geworfen werden, zählen für kein Match; die Trainingssession zählt sie wie immer.
+- **Zwischen den Matches:** Das Ergebnis zählt, wenn die Darts der entscheidenden Aufnahme gezogen sind. Zuerst steht die [Zusammenfassung](karten.md#match-zusammenfassung) des Matches für die *Anzeigedauer der Turnierzusammenfassung*, standardmäßig 8 Sekunden; dann beginnt die *Turnierpause*, standardmäßig 10 Sekunden, in der die Anzeigetafel Tabelle oder Turnierbaum mit dem nächsten Match zeigt. Das nächste Match beginnt also 18 Sekunden nach dem Ende des letzten, aber nie, solange Darts im Board stecken: Dann beginnt es, sobald sie gezogen sind. Mit einer Pause von 0 wartet es auf *Nächstes Turniermatch*. Darts, die in der Pause geworfen werden, zählen für kein Match; die Trainingssession zählt sie wie immer.
 - **Andere Spiele:** Ein Spiel, das während eines Turniers gewählt wird, läuft wie gewohnt und zählt nicht fürs Turnier. Nach der Pause wartet das nächste Match, bis dieses Spiel entschieden oder beendet ist; *Nächstes Turniermatch* startet es sofort und richtet während eines Turniermatches dieses Match wieder ein. *Turnier beenden* beendet das Turnier; das laufende Match geht als Übungsmatch weiter.
 - **Neustarts:** Turnier, Ergebnisse und Pause überstehen einen Neustart von Home Assistant. Ist die Pause inzwischen abgelaufen, beginnt das nächste Match sofort.
 
@@ -425,7 +425,7 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen j
 | Turnierspiel | Auswahl, *Konfiguration* | `101` bis `1001`, `cricket`, `cut_throat` oder `tactics`; standardmäßig `501`. |
 | Turnierspieler | Text, *Konfiguration* | Drei bis acht Namen, durch Kommas getrennt, etwa `Dennis, Lea, Max`. |
 | Turnierpause | Zahl, Sekunden, *Konfiguration* | 0–600 Sekunden zwischen zwei Matches nach der Zusammenfassung, standardmäßig 10; 0 wartet auf *Nächstes Turniermatch*. Eine Änderung gilt sofort. |
-| Turnierzusammenfassung | Zahl, Sekunden, *Konfiguration* | 0–60 Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt, standardmäßig 8. Eine Änderung gilt sofort. |
+| Anzeigedauer der Turnierzusammenfassung | Zahl, Sekunden, *Konfiguration* | 0–60 Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt, standardmäßig 8. Eine Änderung gilt sofort. |
 | Turnier Spiel um Platz 3 | Schalter, *Konfiguration* | Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3. Standardmäßig aus. |
 | Turnier zufällige Auslosung | Schalter, *Konfiguration* | Lost die Reihenfolge der Spieler zufällig aus, statt die Reihenfolge der Namen zu nehmen. Standardmäßig aus. |
 | Turnier starten | Taste | Startet ein Turnier mit diesen Einstellungen und den Legs pro Satz, Sätzen zum Sieg und Regeln des [Übungsspiels](#übungsspiel). |
@@ -472,14 +472,14 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 | --- | --- | --- |
 | Lokale Verbindung | Binärsensor, *Diagnose* | Home Assistant erreicht den Board Manager. Ein oder zwei verpasste Lesevorgänge, also wenige Sekunden, lassen ihn an. |
 | Echtzeitverbindung | Binärsensor, *Diagnose* | Die Verbindung für Echtzeitereignisse steht. Bis darüber Ereignisse ankommen, liest die Integration alle 2 Sekunden. |
-| Autodarts-Cloud-Verbindung | Binärsensor, **BM 2**, *Diagnose* | Die Verbindung des Boards zu Autodarts. |
+| Cloud-Verbindung | Binärsensor, **BM 2**, *Diagnose* | Die Verbindung des Boards zu Autodarts. |
 | Kameras aktiv | Binärsensor | Die Kameras laufen. |
 | Kalibrierung läuft | Binärsensor | Eine Kalibrierung läuft. |
 | Kamerastörung | Binärsensor, *Diagnose* | An, wenn eine Kamera bei laufender Erkennung 15 Sekunden lang keine Bilder liefert. Normales Stoppen, Kalibrieren und Standby zählen nicht. |
-| Kamera *N* Störung | Binärsensor, *Diagnose* | Dasselbe für eine einzelne Kamera. |
+| Störung Kamera *N* | Binärsensor, *Diagnose* | Dasselbe für eine einzelne Kamera. |
 | Erkennungsbildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde der Erkennung. |
 | Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die das Board nachträglich korrigiert hat. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](fehlerbehebung.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
-| Kamera *N* Bildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde einer Kamera. |
+| Bildrate Kamera *N* | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde einer Kamera. |
 | CPU-Auslastung | Sensor, %, **BM 2**, *Diagnose*, *Deaktiviert* | CPU-Last des Board-PCs. |
 | Speichernutzung | Sensor, **BM 2**, *Diagnose*, *Deaktiviert* | Speichernutzung laut Board Manager 2. |
 | Betriebssystem | Sensor, **BM 2**, *Diagnose* | Distribution und Version des Board-PCs, etwa *Debian 13*. Attribute: `kernel`, `architecture`. |
@@ -524,6 +524,8 @@ Ohne lokales Board kommen auch *Letztes Ereignis*, *Letzter Dart* und *Darts in 
 
 ## Aktionen
 
+Mit den Aktionen kann jeder angemeldete Benutzer spielen. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player` und `autodarts.export` ändern die Daten der Spieler oder geben sie heraus und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
+
 ### Übungsspiel starten: `autodarts.start_game`
 
 Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skripte, Dashboard-Tasten und Sprachsteuerung. Werte, die du weglässt, bleiben, wie sie sind.
@@ -539,7 +541,7 @@ Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skript
 | `bull_off` | `true`, `false` | Ausbullen entscheidet, wer ein Match mehrerer Spieler beginnt |
 | `bull_off_distance` | `true`, `false` | Zwei Darts im selben Bull-Feld entscheidet der gemessene Abstand statt eines neuen Wurfs |
 | `teams` | `true`, `false` | Vier Spieler spielen X01 oder ein Cricket-Spiel als zwei Teams: Spieler 1 und 3 gegen 2 und 4 |
-| `start_scores` | bis zu 4 Zahlen, `0` oder 2–1001 | X01-Startpunkte der Spieler in Wurfreihenfolge, für ein Handicap; `0` oder ein fehlender Wert spielt die Startpunkte des Spiels |
+| `start_scores` | bis zu 4 Zahlen, `0` oder 2–1001 | X01-Startpunkte in Wurfreihenfolge, für ein Handicap: einer pro Spieler und einer für den Platz des Bots nach ihnen. Teams spielen von den Startpunkten der Spieler 1 und 2, gib also höchstens zwei an. `0` oder ein fehlender Wert spielt die Startpunkte des Spiels. Mit Double-In und Double-Out lassen sich Startpunkte von 3 nicht gewinnen und werden abgelehnt. |
 | `holes` | `9`, `18` | Löcher beim Golf |
 | `rounds` | 1–20 | Runden beim Count-Up |
 | `bot_level` | `0` oder 20–120 | Gegen den [Bot](#bot) spielen, in X01 und den Cricket-Spielen, mit diesem 3-Dart-Average; `0` spielt ohne ihn |
@@ -583,7 +585,7 @@ data:
   start_scores: [501, 301]
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht, wenn Killer weniger als zwei Spieler hätte wenn `teams` Teams ohne vier Spieler oder in einem anderen Spiel als X01 und den Cricket-Spielen verlangt, oder wenn vier Spieler dem Bot keinen Platz lassen. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
+Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht, wenn Killer weniger als zwei Spieler hätte, wenn `teams` Teams ohne vier Spieler oder in einem anderen Spiel als X01 und den Cricket-Spielen verlangt, wenn vier Spieler dem Bot keinen Platz lassen, wenn Startpunkte nicht `0` oder 2–1001 sind, wenn es mehr Startpunkte als Plätze gibt oder bei Teams mehr als zwei, wenn Startpunkte von 3 auf Double-In und Double-Out treffen oder wenn die Bot-Stärke 1–19 oder über 120 ist. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
 
 ### Dart korrigieren: `autodarts.correct_dart`
 
@@ -592,7 +594,7 @@ Legt einen Dart der aktuellen Aufnahme für Übungsspiel und Trainingssession in
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `dart` | 1–3 | Der Dart der aktuellen Aufnahme; Pflicht |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (äußeres Bull), `BULL`, `MISS` | Das Feld, in beliebiger Groß- und Kleinschreibung; Pflicht |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (äußeres Bull, auch `S25`, `SB` oder `OB`), `BULL` (Bullseye, auch `D25`, `DB` oder `50`), `MISS` | Das Feld, in beliebiger Groß- und Kleinschreibung; Pflicht |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -602,7 +604,7 @@ data:
   segment: T20
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn die Aufnahme keinen solchen Dart hat oder der Dart dem Bot gehört.
+Die Aktion bricht mit einer klaren Meldung ab, die bei einem unbekannten Feld die gültigen Felder nennt, und wenn die Aufnahme keinen solchen Dart hat oder der Dart dem Bot gehört.
 
 ### Dart eingeben: `autodarts.throw_dart`
 
@@ -610,7 +612,7 @@ Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt,
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` | Das Feld; Pflicht |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` und die anderen Namen der Bulls wie bei `autodarts.correct_dart` | Das Feld; Pflicht |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -619,7 +621,7 @@ data:
   segment: D16
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn die manuelle Eingabe aus ist, wenn die Aufnahme schon drei Darts hat oder solange der Bot am Board ist.
+Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn die manuelle Eingabe aus ist, wenn die Aufnahme schon drei Darts hat oder solange der Bot am Board ist.
 
 ### Weitergeben: `autodarts.next_player`
 
@@ -639,7 +641,7 @@ action: autodarts.undo_visit
 
 ### Spielerprofil löschen: `autodarts.delete_player`
 
-Vergisst Statistik, Bestleistungen, direkte Vergleiche, Fortschritt und Abzeichen eines Spielers und seine Verknüpfung mit einer Person. Der Name verschwindet auch aus den [Bestleistungen](#bestleistungen-serie-und-tagesziel) des Boards, deren Werte bleiben, und aus den Spielernamen des Übungsspiels, damit das nächste Leg das Profil nicht wieder anlegt. Der Match-Verlauf behält den Namen.
+Vergisst Statistik, Bestleistungen, direkte Vergleiche, Fortschritt und Abzeichen eines Spielers und seine Verknüpfung mit einer Person. Der Name verschwindet auch aus den [Bestleistungen](#bestleistungen-serie-und-tagesziel) des Boards, deren Werte bleiben, und aus den Spielernamen des Übungsspiels, damit das nächste Leg das Profil nicht wieder anlegt. Der Match-Verlauf behält den Namen. Nur für Administratoren.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
@@ -650,13 +652,13 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Profil mit diesem Na
 
 ### Trainingsdaten exportieren: `autodarts.export`
 
-Schreibt deine Trainingssessions, Übungsmatches oder Spielerprofile in eine Datei im Konfigurationsordner und gibt zurück, wo sie liegt, für Tabellenkalkulationen, Sicherungen oder eigene Auswertungen.
+Schreibt deine Trainingssessions, Übungsmatches oder Spielerprofile in eine Datei und gibt zurück, wo sie liegt, für Tabellenkalkulationen, Sicherungen oder eigene Auswertungen. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `format` | `csv` (Standard), `json` | CSV für Tabellenkalkulationen, in UTF-8 mit Byte-Order-Mark; mit `what: all` eine ZIP-Datei mit `sessions.csv`, `matches.csv` und `profiles.csv`. JSON ist eine Datei mit einer Liste pro Tabelle. |
 | `what` | `sessions`, `matches`, `profiles`, `all` (Standard) | Die Sessions und Matches der letzten 365 Tage (die des [Trainingskalenders](#trainingskalender)), die [Spielerprofile](#spielerprofile) oder alles |
-| `folder` | Ordner | Ein Ordner im Konfigurationsordner; standardmäßig `www/autodarts`. Ordner außerhalb, auch über `..` oder einen symbolischen Link, und versteckte Ordner wie `.storage` werden abgelehnt. |
+| `folder` | Ordner | Ein Ordner, in den Home Assistant schreiben lässt: `www`, ein Medienordner oder ein Ordner aus [`allowlist_external_dirs`](https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs), relativ zum Konfigurationsordner oder als absoluter Pfad. Ohne Angabe `autodarts/exports` im Medienordner, unter Home Assistant OS `/media/autodarts/exports`. Versteckte Ordner wie `.storage`, Steuerzeichen und Ordner, zu denen `..` oder ein symbolischer Link woandershin führt, werden abgelehnt. |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -667,7 +669,7 @@ data:
 response_variable: export
 ```
 
-Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der Ordner in `www` liegt, sonst `null`), `download` (eine Adresse unter `/api/`, von der angemeldete Benutzer die Datei bis zum nächsten Neustart von Home Assistant herunterladen), `format`, `what` und `rows` mit den Zeilen jeder Tabelle. Jeder Export ist eine neue Datei mit einem Namen wie `autodarts-all-20260927-201500-<zufällig>.zip`. Home Assistant liefert `www` unter `/local/` nur aus, wenn der Ordner beim Start schon existierte: Nach dem ersten Export in einen neuen Ordner `www` funktioniert `url` nach dem nächsten Neustart, `download` sofort.
+Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der Ordner in `www` liegt, sonst `null`), `download` (eine Adresse unter `/api/`, von der Administratoren die Datei bis zum nächsten Neustart von Home Assistant herunterladen), `format`, `what` und `rows` mit den Zeilen jeder Tabelle. Jeder Export ist eine neue Datei mit einem Namen wie `autodarts-all-20260927-201500-<zufällig>.zip`. Home Assistant liefert `www` unter `/local/` nur aus, wenn der Ordner beim Start schon existierte: Nach dem ersten Export in einen neuen Ordner `www` funktioniert `url` nach dem nächsten Neustart, `download` sofort. Pro Stunde werden höchstens 20 Exporte geschrieben.
 
 | Tabelle | Spalten |
 | --- | --- |
@@ -675,13 +677,13 @@ Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der
 | Matches | `started` (der erste Dart, falls bekannt), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (Spielernummer), `winner_name` und für jeden Spieler `name`, `legs` (im entscheidenden Satz gewonnen), `sets`, `match_legs` (im ganzen Match gewonnen; leer bei Matches vor Version 1.6) und `average`, `mpr` oder `points`; in CSV als `player_1_name` bis `player_4_points` |
 | Profile | Die Werte von *Spielerprofile*; in CSV ist jeder einfache Wert eine Spalte, und die wenigsten Darts pro Startwert heißen `fewest_darts_101` bis `fewest_darts_1001` |
 
-> **Datenschutz:** Exporte enthalten Spielernamen. Dateien in `www` liefert Home Assistant unter `/local/` **ohne Anmeldung** an jeden aus, der Home Assistant erreicht und den Dateinamen kennt. Der zufällige Teil des Namens macht ihn unerratbar; lösche Exporte, die du nicht mehr brauchst, oder exportiere in einen Ordner außerhalb von `www`, dann gibt es keinen Download-Link.
+> **Datenschutz:** Exporte enthalten Spielernamen. Der Medienordner, in dem sie standardmäßig landen, braucht eine Anmeldung. Dateien in `www` liefert Home Assistant unter `/local/` **ohne Anmeldung** an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; der zufällige Teil des Namens macht ihn unerratbar. Exportiere nur bewusst nach `www` und lösche Exporte dort, die du nicht mehr brauchst.
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn der Ordner nicht erlaubt ist oder die Datei nicht geschrieben werden kann.
+Die Aktion bricht mit einer klaren Meldung ab, wenn der Ordner nicht erlaubt ist, wenn in der letzten Stunde schon 20 Exporte geschrieben wurden oder wenn die Datei nicht geschrieben werden kann.
 
 ### Spieler mit einer Person verknüpfen: `autodarts.link_player`
 
-Macht einen Spieler zu einer Person von Home Assistant. [Anzeigetafel](karten.md#anzeigetafel), [Spielerkarte](karten.md#spielerkarte) und [Spielauswahl](karten.md#spielauswahl) zeigen das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Ein Spieler ohne Profil bekommt eines. Eine Person ist ein Spieler: Verknüpfst du die Person mit einem anderen Spieler, wandert die Verknüpfung dorthin.
+Macht einen Spieler zu einer Person von Home Assistant. [Anzeigetafel](karten.md#anzeigetafel), [Spielerkarte](karten.md#spielerkarte) und [Spielauswahl](karten.md#spielauswahl) zeigen das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Ein Spieler ohne Profil bekommt eines. Eine Person ist ein Spieler: Verknüpfst du die Person mit einem anderen Spieler, wandert die Verknüpfung dorthin. Nur für Administratoren.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
@@ -700,7 +702,7 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn Home Assistant diese Person 
 
 ### Spieler-Verknüpfung lösen: `autodarts.unlink_player`
 
-Vergisst, welche Person ein Spieler ist. Die Statistik des Spielers bleibt.
+Vergisst, welche Person ein Spieler ist. Die Statistik des Spielers bleibt. Nur für Administratoren.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
@@ -717,7 +719,7 @@ Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du w
 | --- | --- | --- |
 | `players` | 3–8 Namen | Die Spieler, in der Reihenfolge der Auslosung |
 | `format` | `round_robin`, `knockout` | Jeder gegen jeden oder ein Turnierbaum bis ins Finale |
-| `start_scores` | 0 oder 2–1001 pro Spieler | X01-Startpunkte der Spieler in der Reihenfolge von `players`, für ein Handicap; 0 oder ein fehlender Wert spielt die Startpunkte des Spiels |
+| `start_scores` | 0 oder 2–1001 pro Spieler | X01-Startpunkte der Spieler in der Reihenfolge von `players`, für ein Handicap, höchstens einer pro Spieler; 0 oder ein fehlender Wert spielt die Startpunkte des Spiels. Mit Double-In und Double-Out lassen sich Startpunkte von 3 nicht gewinnen und werden abgelehnt. |
 | `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics` | Das Spiel jedes Matches |
 | `legs` | 1–11 | Legs, die einen Satz gewinnen |
 | `sets` | 1–7 | Sätze, die ein Match gewinnen |
@@ -742,7 +744,7 @@ data:
   pause: 30
 ```
 
-Ein Turnier, das während eines anderen gestartet wird, ersetzt es. Die Aktion bricht mit einer klaren Meldung ab, wenn weniger als drei oder mehr als acht Spieler genannt sind oder ein Name zweimal vorkommt.
+Ein Turnier, das während eines anderen gestartet wird, ersetzt es. Die Aktion bricht mit einer klaren Meldung ab, wenn weniger als drei oder mehr als acht Spieler genannt sind, wenn ein Name zweimal vorkommt oder wenn die Startpunkte wie oben nicht passen.
 
 ### Nächstes Turniermatch starten: `autodarts.next_tournament_match`
 
