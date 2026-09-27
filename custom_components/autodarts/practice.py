@@ -9,7 +9,6 @@ bull-off can decide who starts.
 from __future__ import annotations
 
 import copy
-import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -40,7 +39,7 @@ from .party import (
     make_party,
 )
 from .positions import x01_aims
-from .profiles import NAME_LENGTH, Profiles
+from .profiles import Profiles, clean_name
 from .scoring import VISIT_DARTS, evaluate_visit, is_double, rate, score
 from .scoring import average as _average
 from .summary import HIGH_VISITS, Tally
@@ -72,25 +71,10 @@ OPTIONS = (
 GAME_OPTIONS = (*(str(game) for game in GAMES), *CRICKET_GAMES, *PARTY_GAMES, *DRILLS)
 # The rules a match is played with, which a tournament sets for its matches.
 MATCH_RULES = ("double_out", "double_in", "bull_off", "bull_off_distance")
-# Characters no player name contains: Home Assistant would render curly
-# brackets, percent and number signs as a template where a name goes into a
-# file name or a message, and control characters break both.
-NAME_EXCLUDED = re.compile(r"[{}%#\x00-\x1f\x7f-\x9f]")
 
 
 def _count(value: object, low: int, high: int, default: int) -> int:
     return value if type(value) is int and low <= value <= high else default
-
-
-def valid_name(name: str) -> bool:
-    """Whether a player name is free of the characters no name contains."""
-    return NAME_EXCLUDED.search(name) is None
-
-
-def clean_name(name: str) -> str:
-    """A player name as the games keep it: without the characters no name
-    contains, trimmed, and at most 20 characters long."""
-    return NAME_EXCLUDED.sub("", name).strip()[:NAME_LENGTH]
 
 
 def valid_start(value: object) -> bool:

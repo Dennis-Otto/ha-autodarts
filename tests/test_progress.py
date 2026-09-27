@@ -556,3 +556,20 @@ def test_an_undone_visit_rewinds_the_players_at_the_board():
     assert "sam" not in progress.players
     assert progress.players["alex"].counters["darts"] == 1
     assert len(progress.session) == 1 and progress.latest is None
+
+
+def test_the_bots_seat_is_nobodys_seat():
+    """A name left in the bot's seat gets no seat number in an announcement."""
+    progress = Progress()
+    play(practice(501, "Sam"), progress, "T20", "T20", "T20")
+    # As if Sam's 180 had never been announced.
+    progress.players["sam"].badges.clear()
+    # Sam leaves and the bot takes the seat: the name stays in it.
+    game = practice(501, "Alex", "Sam")
+    game.set_players(1)
+    game.set_bot(40)
+    assert game.bot_seat == 1 and game.names[1] == "Sam"
+    events = play(game, progress, "S1", "S1", "S1")
+    assert [(details["name"], details["player"]) for _, details in events] == [
+        ("Sam", None)
+    ]

@@ -61,7 +61,8 @@ from .local_api import (
 )
 from .manual import ManualDarts
 from .online import ONLINE_EVENT_TYPES
-from .practice import PracticeGame, valid_name
+from .practice import PracticeGame
+from .profiles import valid_name
 from .progress import Progress
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
 from .records import PersonalRecords

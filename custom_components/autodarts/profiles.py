@@ -9,6 +9,7 @@ also only from legs a player played alone, from one of the X01 start scores.
 
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -22,10 +23,25 @@ GAMES = (101, 301, 501, 701, 901, 1001)
 
 MATCH_HISTORY = 20
 NAME_LENGTH = 20
+# Characters no player name contains: Home Assistant would render curly
+# brackets, percent and number signs as a template where a name goes into a
+# file name or a message, and control characters break both.
+NAME_EXCLUDED = re.compile(r"[{}%#\x00-\x1f\x7f-\x9f]")
+
+
+def valid_name(name: str) -> bool:
+    """Whether a player name is free of the characters no name contains."""
+    return NAME_EXCLUDED.search(name) is None
+
+
+def clean_name(name: str) -> str:
+    """A player name as the games keep it: without the characters no name
+    contains, trimmed, and at most 20 characters long."""
+    return NAME_EXCLUDED.sub("", name).strip()[:NAME_LENGTH]
 
 
 def _key(name: str) -> str:
-    return name.strip().casefold()
+    return clean_name(name).casefold()
 
 
 def _person(value: object) -> str | None:
@@ -99,9 +115,10 @@ class Profile:
     @classmethod
     def restored(cls, saved: dict[str, Any]) -> Profile | None:
         name = saved.get("name")
-        if not isinstance(name, str) or not name.strip():
+        name = clean_name(name) if isinstance(name, str) else ""
+        if not name:
             return None
-        profile = cls(name=name.strip()[:NAME_LENGTH])
+        profile = cls(name=name)
         for key, value in asdict(cls(name="")).items():
             if type(value) is int:
                 setattr(profile, key, _count(saved.get(key)))
@@ -134,11 +151,12 @@ class Profiles:
         self.head_to_head: dict[str, list[int]] = {}
 
     def _profile(self, name: str | None) -> Profile | None:
-        if not name or not name.strip():
+        name = clean_name(name) if name else ""
+        if not name:
             return None
         key = _key(name)
         if key not in self.players:
-            self.players[key] = Profile(name=name.strip()[:NAME_LENGTH])
+            self.players[key] = Profile(name=name)
         profile = self.players[key]
         profile.last_played = dt_util.utcnow().isoformat()
         return profile
@@ -265,13 +283,14 @@ class Profiles:
         Linking creates the profile of a player who has not played yet, so the
         picture shows from the first game. False without a valid name or person.
         """
-        if not name.strip() or _person(person) is None:
+        name = clean_name(name)
+        if not name or _person(person) is None:
             return False
         key = _key(name)
         for other in self.players.values():
             if other.person == person:
                 other.person = None
-        profile = self.players.setdefault(key, Profile(name=name.strip()[:NAME_LENGTH]))
+        profile = self.players.setdefault(key, Profile(name=name))
         profile.person = person
         return True
 

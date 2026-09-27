@@ -162,3 +162,14 @@ def test_a_team_cricket_leg_sets_no_best_marks_per_round():
     assert game.legs[0]["team"] == 1
     assert all(profile.best_mpr == 0 for profile in game.profiles.players.values())
     assert by_name(game)["Alex"]["legs_won"] == 1
+
+
+def test_names_never_keep_template_characters():
+    """Linking and restoring clean a name as the games do."""
+    profiles = Profiles()
+    assert profiles.link("{{ Alex }}", "person.alex")
+    assert [profile.name for profile in profiles.players.values()] == ["Alex"]
+    assert not profiles.link("{%#}", "person.sam")
+    restored = Profiles()
+    restored.restore({"players": [{"name": "Sam{#}"}, {"name": "{}"}]})
+    assert [profile.name for profile in restored.players.values()] == ["Sam"]

@@ -12,11 +12,8 @@ from custom_components.autodarts.cricket import (
     next_target,
     play_visit,
 )
-from custom_components.autodarts.practice import (
-    PracticeGame,
-    clean_name,
-    valid_name,
-)
+from custom_components.autodarts.practice import PracticeGame
+from custom_components.autodarts.profiles import clean_name, valid_name
 
 from .test_party import game_of, kinds
 from .test_practice import dart, throw
