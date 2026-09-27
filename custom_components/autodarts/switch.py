@@ -7,8 +7,10 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
 from .entity import AutodartsLocalEntity
 from .local_api import CONFIG_SWITCHES
 from .local_coordinator import AutodartsLocalCoordinator
@@ -136,6 +138,12 @@ class AutodartsPracticeSwitch(AutodartsLocalEntity, SwitchEntity):
         return self.coordinator.practice.setting(self._option)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
+        if self._option in ("double_in", "double_out") and (
+            self.coordinator.practice.unwinnable(rules={self._option: True})
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="unwinnable_start"
+            )
         await self.coordinator.async_set_practice_option(self._option, True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:

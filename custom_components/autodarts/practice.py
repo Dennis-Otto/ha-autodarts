@@ -71,6 +71,9 @@ OPTIONS = (
 GAME_OPTIONS = (*(str(game) for game in GAMES), *CRICKET_GAMES, *PARTY_GAMES, *DRILLS)
 # The rules a match is played with, which a tournament sets for its matches.
 MATCH_RULES = ("double_out", "double_in", "bull_off", "bull_off_distance")
+# A start score that no dart can win with double in and double out: the only
+# opening double, D1, leaves 1.
+UNWINNABLE_START = 3
 
 
 def _count(value: object, low: int, high: int, default: int) -> int:
@@ -512,6 +515,17 @@ class PracticeGame:
         setattr(self, option, enabled)
         if option == "double_out":
             self.double_out_next = None
+
+    def unwinnable(
+        self, starts: list[int] | None = None, rules: dict[str, bool] | None = None
+    ) -> bool:
+        """Whether a seat would start from 3 with double in and double out, with
+        these start scores or rules instead of the current ones."""
+        rules = rules or {}
+        double_in = rules.get("double_in", self.setting("double_in"))
+        double_out = rules.get("double_out", self.setting("double_out"))
+        seats = (self.starts if starts is None else starts)[: len(self.players)]
+        return double_in and double_out and UNWINNABLE_START in seats
 
     def setting(self, option: str) -> bool:
         """A rule as players set it; double out may wait for the next leg."""

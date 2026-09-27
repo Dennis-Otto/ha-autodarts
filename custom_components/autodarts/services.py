@@ -33,6 +33,7 @@ from .practice import (
     MAX_PLAYERS,
     MAX_SETS,
     TEAM_PLAYERS,
+    UNWINNABLE_START,
     PracticeGame,
     valid_start,
 )
@@ -60,9 +61,6 @@ SERVICE_NEXT_PLAYER = "next_player"
 SERVICE_UNDO_VISIT = "undo_visit"
 
 
-# A start score that no dart can win with double in and double out: the only
-# opening double, D1, leaves 1.
-UNWINNABLE_START = 3
 # The longest bed name an error message repeats.
 BED_ECHO = 20
 # Numbers and beds are checked in the handlers, which explain a wrong value in
