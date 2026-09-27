@@ -80,15 +80,32 @@ UNAVAILABLE = re.compile(
 )
 
 
+# The log of a test whose errors pytest_runtest_teardown checks.
+CHECKED_LOG = pytest.StashKey[pytest.LogCaptureFixture]()
+
+
 @pytest.fixture(autouse=True)
 def no_unexpected_errors(request, caplog):
     """An error in the log fails the test, unless it is marked expected_errors."""
+    if not request.node.get_closest_marker("expected_errors"):
+        request.node.stash[CHECKED_LOG] = caplog
+
+
+@pytest.hookimpl(wrapper=True, trylast=True)
+def pytest_runtest_teardown(item):
+    """Checks the log once every fixture is torn down: hass last, which
+    unloads the entries and stops Home Assistant.
+
+    As the innermost wrapper, this runs while pytest still holds the records
+    of the teardown.
+    """
     yield
-    if request.node.get_closest_marker("expected_errors"):
+    caplog = item.stash.get(CHECKED_LOG, None)
+    if caplog is None:
         return
     errors = [
-        f"{record.name}: {record.getMessage()}"
-        for when in ("setup", "call")
+        f"{when}: {record.name}: {record.getMessage()}"
+        for when in ("setup", "call", "teardown")
         for record in caplog.get_records(when)
         if record.levelno >= logging.ERROR
         and record.name.startswith(WATCHED_LOGGERS)
