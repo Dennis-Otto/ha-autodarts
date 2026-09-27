@@ -37,6 +37,7 @@ async def async_setup_entry(
                     AutodartsPracticeSwitch(coordinator, option)
                     for option in PRACTICE_OPTIONS
                 ),
+                AutodartsAchievementsSwitch(coordinator),
             ]
         )
 
@@ -136,3 +137,26 @@ class AutodartsPracticeSwitch(AutodartsLocalEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_practice_option(self._option, False)
+
+
+class AutodartsAchievementsSwitch(AutodartsLocalEntity, SwitchEntity):
+    """Unlock the players' achievements and announce them."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "achievements_enabled")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def is_on(self) -> bool:
+        return self.coordinator.progress.enabled
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_achievements(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_achievements(False)

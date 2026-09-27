@@ -67,6 +67,8 @@ async def async_get_config_entry_diagnostics(
             if local
             else None
         ),
+        # Counts only: progress is kept per player name.
+        "progress": _progress(local) if local else None,
         "poll_interval_seconds": (
             local.update_interval.total_seconds()
             if local and local.update_interval
@@ -78,6 +80,21 @@ async def async_get_config_entry_diagnostics(
         "online_bridge": (
             runtime.bridge.diagnostics() if runtime.bridge else {"enabled": False}
         ),
+    }
+
+
+def _progress(local: AutodartsLocalCoordinator) -> dict[str, Any]:
+    """Whether achievements unlock, and how much progress is kept."""
+    progress = local.progress
+    players = progress.players.values()
+    return {
+        "achievements": progress.enabled,
+        "players": len(players),
+        "badges": sum(
+            len(dates) for player in players for dates in player.badges.values()
+        ),
+        "logged_positions": sum(len(player.log) for player in players),
+        "session_positions": len(progress.session),
     }
 
 
