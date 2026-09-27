@@ -1123,6 +1123,56 @@ class Scenario:
             game="501", players=["Alex"], teams=False, start_scores=[]
         )
 
+    async def match_summary(self) -> None:
+        """A match ends with its summary; double out waits for the next leg."""
+        await self.board("POST", "/control/state", json={"throws": []})
+        await self.expect_states({"num_throws": "0"})
+        await self.start_game(game="101", players=["Alex", "Sam"], legs=1)
+        await self.expect_states({"practice_remaining": "101"})
+        self.fired_board_events()
+        await self.visit(
+            T20, dart(1, 1, "SingleOuter", 0.8), dart(20, 2, "Double", 0.97)
+        )
+
+        async def summarized():
+            attributes = (await self.state("practice_remaining"))["attributes"]
+            return attributes.get("summary")
+
+        summary = await wait_for(summarized, "the summary of the match")
+        players = [
+            (item["name"], item["legs"], item["darts"], item["average"])
+            for item in summary["players"]
+        ]
+        check(
+            summary["winner"] == 1
+            and players == [("Alex", 1, 3, 101.0), ("Sam", 0, 0, None)]
+            and summary["players"][0]["highest_checkout"] == 101,
+            f"Unexpected match summary: {summary}",
+        )
+        won = [
+            item
+            for item in self.fired_board_events()
+            if item["event_type"] == "match_won"
+        ]
+        check(
+            len(won) == 1 and won[0]["summary"] == summary["players"],
+            f"match_won does not carry the summary: {won}",
+        )
+
+        # Double out switched on during a leg applies from the next one.
+        await self.start_game(game="301", players=["Alex"], double_out=False)
+        await self.expect_states({"practice_remaining": "301"})
+        await self.visit(T20)
+        await self.expect_states({"practice_remaining": "241"})
+        await self.service("switch", "turn_on", "practice_double_out")
+        await self.expect_states({"practice_double_out": "on"})
+        leg = (await self.state("practice_remaining"))["attributes"]
+        check(leg["double_out"] is False, f"Double out changed the leg: {leg}")
+        await self.service("button", "press", "practice_new_leg")
+        await self.expect_states({"practice_remaining": "301"})
+        leg = (await self.state("practice_remaining"))["attributes"]
+        check(leg["double_out"] is True, f"Double out missing in the next leg: {leg}")
+
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
         version = json.loads(MANIFEST.read_text())["version"]
@@ -1332,6 +1382,7 @@ async def main() -> None:
         await scenario.online_bridge(entry_id)
         await scenario.reports(entry_id)
         await scenario.games()
+        await scenario.match_summary()
         await scenario.card()
         await scenario.people()
         await scenario.gallery()
@@ -1346,9 +1397,10 @@ async def main() -> None:
         "controls, realtime darts/corrections/takeouts with positions, persistence, "
         "dropped sockets mid-visit, outages, failing and slow reads, malformed "
         "frames, a restart, the online bridge, weekly report, training calendar, "
-        "exports, Golf, Tactics and a team match with start scores, dashboard "
-        "card, players linked to persons, the highlight gallery in the media "
-        "browser, private diagnostics, clean logs and removal."
+        "exports, Golf, Tactics and a team match with start scores, a match "
+        "summary, double out from the next leg, dashboard card, players linked to "
+        "persons, the highlight gallery in the media browser, private diagnostics, "
+        "clean logs and removal."
     )
 
 

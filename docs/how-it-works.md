@@ -93,7 +93,7 @@ The practice game follows the darts of the current visit, including corrections,
   So 144 is T20 T20 D12, 136 T20 T20 D8, 130 T20 T20 D5, 127 T20 T17 D8, 73 T19 D8 and 64 T16 D8. The scores 159, 162, 163, 165, 166, 168, 169 and everything above 170 have no route with double out. Without double out, the biggest bed finishes: a single before a double or a treble.
 - **Personal routes:** with *Practice personal checkout routes*, the doubles of the player at the board with at least 10 darts each, best hit rate first, win over the usual route whenever a route with the same number of darts reaches them without a double to set up; among routes to the same double, the principles above decide.
 - **Statistics:** each finished X01 leg adds one record for everybody at the board: the points and darts of the first nine darts, the darts thrown at a double and the checkout. Bust visits score nothing, also in the first nine. The statistics sensors use the last 10 records, so their history shows how you improve. *Practice legs played* counts every finished leg of X01, the Cricket games and the party games.
-- **Storage:** the game, the rules, the teams and start scores, the players with their scores and marks, the match format and the last 10 legs are saved together with the training session.
+- **Storage:** the game, the rules, the teams and start scores, the players with their scores and marks, the match format, the last 10 legs and the [match summary](#match-summary) with the numbers it counts are saved together with the training session.
 
 ## Rules
 
@@ -106,6 +106,7 @@ The practice game follows the darts of the current visit, including corrections,
 - **Win:** a dart that reaches exactly 0 wins the leg. `leg_won` is announced at once, with the rules of the leg (`double_out`, `double_in`). The leg is booked when you pull the darts, so a correction before that still counts. Darts after the winning dart do not count. The next visit starts a new leg.
 - **Average:** points scored per three darts of the leg. Darts of a bust visit count, their points do not.
 - **Start scores (handicap):** a player whose *Practice start score* is not 0 starts every leg from that score, from 2 to 1001, for example 301 against 501. All other rules stay the same; the average counts from the player's own start, and `leg_won` names it in `start`.
+- **Changing double out:** a leg keeps the rules it started with. Switching double out on or off during a leg, once a dart counted, applies from the next leg; before the first dart of a leg, between matches and in the other games it applies at once. So no leg becomes unwinnable: a player who stands on 1 in a leg without double out can still finish it with a single 1 when double out comes on.
 
 ### Matches, legs and sets
 
@@ -122,6 +123,21 @@ The practice game follows the darts of the current visit, including corrections,
 - **Throwing first:** as in any match of four, the first throw passes to the next seat every leg, so the teams take turns.
 - **Winning:** both partners win the leg and the match. `leg_won` and `match_won` add `team` and `team_name` (*Alex & Kim* when both partners have a name); the darts, average and marks per round of the leg are the team's.
 - **Statistics per person:** the first nine, the checkout rate, the averages and the marks per round stay with the player who threw the darts. The player profiles count the leg and the match for both partners, and each of them beats both opponents in the head-to-head records; partners play no head-to-head. A team leg sets no fewest-darts and no marks-per-round best, on the board or in a profile; a checkout still counts for the player who threw it.
+
+### Match summary
+
+When a match of several players ends, the practice game sums it up for every player. `match_won` announces the numbers the moment the deciding dart lands, as they will be once the visit is booked; the `summary` attribute keeps them until the next match ends.
+
+- **Legs, sets and darts:** the legs won in the whole match, the sets, and every dart thrown in the match.
+- **3-dart average:** points per three darts of the whole match; darts of a bust visit count, their points do not.
+- **First-9 average:** points per three darts of the first nine darts of every leg; a bust visit scores nothing here either.
+- **Checkout rate:** legs checked out on a double per dart thrown at a double, with both counts. A dart counts at a double as for the [statistics](#records-and-statistics). Without double out, there is no checkout rate.
+- **Highest checkout:** the highest score a player finished a leg with, also in a leg without double out.
+- **100+, 140+ and 180:** visits of 100 to 139, 140 to 179 and 180 points that counted; a bust scores nothing.
+- **Best leg:** the fewest darts of a leg the player won.
+- **Cricket:** marks per round and the marks that counted, as in the [Cricket rules](#cricket), and the best leg.
+- **Party games:** legs, sets and darts.
+- **Teams:** both partners win the legs, and their best leg counts the darts of both; a checkout counts for the player who threw it.
 
 ### Bull-off
 

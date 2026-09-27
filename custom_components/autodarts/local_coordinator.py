@@ -1195,9 +1195,10 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return changed
 
     async def async_set_practice_option(self, option: str, enabled: bool) -> None:
-        """Double out, routes and the bull-off rule apply at once; double in,
-        the bull-off and teams start anew."""
-        setattr(self.practice, option, enabled)
+        """Routes and the bull-off rule apply at once, and double out until the
+        first dart of a leg, otherwise from the next leg; double in, the
+        bull-off and teams start anew."""
+        self.practice.set_option(option, enabled)
         if option in ("double_in", "bull_off", "teams"):
             self.practice.new_match()
         await self._async_training([])
@@ -1258,7 +1259,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ("teams", teams),
         ):
             if value is not None:
-                setattr(practice, option, value)
+                practice.set_option(option, value)
         if names:
             for index in range(len(practice.names)):
                 practice.set_name(index, names[index] if index < len(names) else "")

@@ -605,7 +605,8 @@ test("a won match names the winner and nobody aims any more", () => {
     practice("0", { game: 301, player: 1, won: true, winner: 1, legs_to_win: 3, scores: scoresOf("Alex") })
   );
   assert.equal(text(card, ".practice-meta"), "");
-  assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match!");
+  // The winner keeps the legs of the deciding set: the match ended 3 : 1.
+  assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match 3 : 1!");
   assert.deepEqual(scores(card), [
     ["player-score winner", "Alex", "Legs 3", "0"],
     ["player-score", "Sam", "Legs 1", "60"],
@@ -615,7 +616,14 @@ test("a won match names the winner and nobody aims any more", () => {
     hass,
     practice("0", { game: 301, player: 1, won: true, winner: 1, legs_to_win: 3, scores: scoresOf(null) })
   );
-  assert.equal(text(card, ".practice-route .note.won"), "Player 1 wins the match!");
+  assert.equal(text(card, ".practice-route .note.won"), "Player 1 wins the match 3 : 1!");
+  // With sets, the sets tell the result.
+  const sets = [
+    { player: 1, name: "Alex", remaining: 60, legs: 1, sets: 1, average: null },
+    { player: 2, name: "Sam", remaining: 0, legs: 2, sets: 2, average: null },
+  ];
+  card.hass = update(hass, practice("0", { game: 301, winner: 2, legs_to_win: 2, sets_to_win: 2, scores: sets }));
+  assert.equal(text(card, ".practice-route .note.won"), "Sam wins the match 2 : 1!");
 });
 
 test("a leg shot, a bust, double in and a dead end each explain the route", () => {
@@ -661,8 +669,9 @@ test("Around the Clock shows the next number and aims at all of its beds", () =>
   assert.equal($(card, ".scoreboard").hidden, true);
   assert.deepEqual(paths(card, "aim"), ["SI7", "SO7", "T7", "D7"].map(bedPath));
 
+  // The last target is the bull, where the outer bull counts as well.
   card.hass = update(hass, drill("25", { drill: "around_the_clock", progress: 20, darts: 0 }));
-  assert.equal(text(card, ".practice-remaining"), "25");
+  assert.equal(text(card, ".practice-remaining"), "Bull (25/50)");
   assert.equal(text(card, ".practice-meta"), "20 / 21 · 0 darts · – hits");
   assert.deepEqual(paths(card, "aim"), [bedPath("Bull"), bedPath("25")]);
 
@@ -813,9 +822,13 @@ test("a Cricket match shows the points, the player at the board and the winner",
     ["detail", "Sets10"],
   ]);
 
-  card.hass = update(hass, cricket({ winner: 1, won: true, target: null }));
+  const won = [
+    { ...players("Alex")[0], legs: 2, sets: 2 },
+    { ...players("Alex")[1], legs: 1, sets: 1 },
+  ];
+  card.hass = update(hass, cricket({ winner: 1, won: true, target: null, scores: won }));
   assert.equal(text(card, ".practice-meta"), "");
-  assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match!");
+  assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match 2 : 1!");
   assert.equal($(card, ".practice .cricket thead th.winner").textContent, "Alex");
   assert.deepEqual(paths(card, "aim"), []);
   card.hass = update(hass, cricket({ winner: 1, legs_to_win: 1, sets_to_win: 1, scores: players(null) }));
@@ -837,8 +850,8 @@ test("the bull-off shows who throws and how close each dart landed", () => {
         player,
         name,
         throws: [
-          { player: 1, name: "Alex", distance: 12.4 },
-          { player: 2, name: null, distance: null },
+          { player: 1, name: "Alex", hit: "S20", distance: 12.4 },
+          { player: 2, name: null, hit: null, distance: null },
         ],
       },
     });
@@ -848,12 +861,33 @@ test("the bull-off shows who throws and how close each dart landed", () => {
   assert.equal(text(card, ".practice-remaining"), "Bull");
   assert.equal(text(card, ".practice-route"), "Closest to the bull starts");
   assert.deepEqual(scores(card), [
-    ["player-score", "Alex", "", "12 mm"],
+    ["player-score", "Alex", "12.4 mm", "S20"],
     ["player-score active", "Player 2", "", "–"],
   ]);
   assert.deepEqual(paths(card, "aim"), [bedPath("Bull"), bedPath("25")]);
   card.hass = update(hass, bullOff(1, null));
   assert.equal(text(card, ".practice-meta"), "Player 1 to throw");
+
+  // A tie throws again; the bullseye beats the outer bull, measured or not.
+  card.hass = update(
+    hass,
+    practice("501", {
+      game: 501,
+      bull_off: {
+        player: 3,
+        rethrow: true,
+        throws: [
+          { player: 3, name: "Kim", hit: "25", distance: 10.2 },
+          { player: 1, name: "Alex", hit: "BULL", distance: null },
+        ],
+      },
+    })
+  );
+  assert.equal(text(card, ".practice-route .note.rethrow"), "Tie – throw again");
+  assert.deepEqual(scores(card), [
+    ["player-score active", "Kim", "10.2 mm", "25"],
+    ["player-score winner", "Alex", "leads", "Bull"],
+  ]);
 });
 
 test("Shanghai shows the round, the points and the number to hit", () => {
@@ -906,6 +940,10 @@ test("Halve-It names any double, any treble or the bull as the target", () => {
   card.hass = update(hass, halveIt("T"));
   assert.equal(text(card, ".practice-route .bed"), "Any treble");
   assert.equal(paths(card, "aim").length, 20);
+  // The bull round counts both bull beds, whether the target reads 25 or BULL.
+  card.hass = update(hass, halveIt("25"));
+  assert.equal(text(card, ".practice-route .bed"), "Bull (25/50)");
+  assert.deepEqual(paths(card, "aim"), [bedPath("Bull"), bedPath("25")]);
   card.hass = update(hass, halveIt("BULL"));
   assert.equal(text(card, ".practice-route .bed"), "Bull");
   assert.deepEqual(paths(card, "aim"), [bedPath("Bull"), bedPath("25")]);

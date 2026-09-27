@@ -37,12 +37,18 @@ const lastMatch = {
   state: "2026-09-26T20:00:00+00:00",
   attributes: {
     head_to_head: [{ players: ["Alex", "Lea"], wins: [3, 1] }, { players: ["A"], wins: [1] }],
+    // As the integration keeps a match: Killer, first to two legs.
     matches: [
       {
         ended: "2026-09-26T20:00:00+00:00",
         game: "killer",
+        legs_to_win: 2,
+        sets_to_win: 1,
         winner: 2,
-        players: [{ name: "Alex", legs: 0, sets: 0 }, { name: null, legs: 1, sets: 0 }],
+        players: [
+          { name: "Alex", legs: 1, sets: 0, match_legs: 1, points: 0 },
+          { name: null, legs: 2, sets: 1, match_legs: 2, points: 0 },
+        ],
       },
       { ended: 5, players: [] },
     ],
@@ -68,6 +74,7 @@ test("the players view keeps valid profiles, records and matches", () => {
   assert.equal(view.players[1].average, null);
   assert.equal(view.headToHead.length, 1);
   assert.equal(view.matches.length, 1);
+  assert.deepEqual([view.matches[0].legsToWin, view.matches[0].setsToWin], [2, 1]);
   assert.deepEqual(playersView(undefined, undefined), { players: [], headToHead: [], matches: [] });
 });
 
@@ -91,7 +98,7 @@ test("the players card shows statistics, the balance and who won", () => {
   assert.match(html.players.split("Lea")[1], /<dt>checkout_short<\/dt><dd>–<\/dd>/);
   assert.match(html.players.split("Lea")[1], /<dt>average<\/dt><dd>–<\/dd>/);
   assert.match(html.headToHead, /<span class="tally">3 : 1<\/span>.*<i style="width:75%">/);
-  assert.match(html.matches, /<span class="game">party_killer<\/span><span><span>Alex 0<\/span> · <b>score_player 2 1<\/b><\/span>/);
+  assert.match(html.matches, /<span class="game">party_killer<\/span><span><span>Alex 1<\/span> · <b>score_player 2 2<\/b><\/span>/);
 });
 
 test("the dashboard gets a players view once profiles exist", () => {

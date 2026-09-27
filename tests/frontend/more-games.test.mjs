@@ -293,7 +293,8 @@ test("the new training games show their target, points and beds", () => {
   assert.deepEqual(drillBeds(drillView(shanghai.drill)), ["SI12", "SO12", "T12", "D12"]);
 
   const singles = drill("25", { drill: "singles", progress: 20, targets: 21, score: 40 });
-  assert.match(board(singles).main, /<div class="big">25<\/div>.*drill_round <b>21 \/ 21<\/b>.*<b>40<\/b> drill_points/);
+  // The bull, where both bull beds count, reads "Bull (25/50)" in smaller type.
+  assert.match(board(singles).main, /<div class="big long">bull_target<\/div>.*drill_round <b>21 \/ 21<\/b>.*<b>40<\/b> drill_points/);
   assert.deepEqual(drillBeds(drillView(singles.drill)), ["Bull", "25"]);
   const finished = drill("unknown", { drill: "singles", finished: true, progress: 21, targets: 21, score: 63 });
   assert.match(board(finished).main, /drill_round <b>21 \/ 21<\/b>/);
@@ -363,7 +364,8 @@ test("the history names the new games and both winners of a team match", () => {
   };
   const html = playersHtml(playersView(null, lastMatch), ui).matches;
   assert.match(html, /cricket_tactics<\/span><span><b>Alex 2<\/b> · <span>Sam 1<\/span> · <b>Kim 2<\/b> · <span>Lea 1<\/span>/);
-  assert.match(html, /party_golf<\/span><span><span>A 0<\/span> · <b>B 0<\/b>/);
+  // A winner without legs is a match stored before 1.6: it had the legs it needed.
+  assert.match(html, /party_golf<\/span><span><span>A 0<\/span> · <b>B 1<\/b>/);
   assert.match(html, /cricket_cut_throat<\/span><span><span>A 0<\/span>/);
 });
 

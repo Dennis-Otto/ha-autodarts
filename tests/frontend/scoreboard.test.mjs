@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { scoreboardHtml, gameView } from "../../custom_components/autodarts/frontend/autodarts-card.js";
 
 const ui = {
-  t: (key) => key,
+  t: (key) => ({ score_winner_by: "score_winner_by {result}" })[key] ?? key,
   format: (value, digits) => (Number.isFinite(value) ? value.toFixed(digits) : "–"),
   percent: (value, digits) => (Number.isFinite(value) ? `${value.toFixed(digits)} %` : "–"),
   label: (key) => (key === "BULL" ? "Bull" : key),
@@ -69,7 +69,8 @@ test("the winner gets the banner; alone, busts and missing routes show a note", 
       },
     },
   });
-  assert.equal(won.banner, "score_player 2 score_winner");
+  // The winner's sets come first.
+  assert.equal(won.banner, "score_player 2 score_winner_by 2 : 1");
   assert.equal(won.meta, "2 sets_to_win");
   assert.match(won.main, /<div class="player winner"><div class="name">score_player 2/);
   assert.match(won.main, /&#60;b&#62;/);
@@ -223,10 +224,17 @@ test("party games and the bull-off have their own boards", () => {
   const bullOff = board({
     practice: {
       state: "501",
-      attributes: { game: 501, bull_off: { player: 2, throws: [{ player: 1, name: "Alex", distance: 11.4 }, { player: 2, name: "Sam" }] } },
+      attributes: {
+        game: 501,
+        bull_off: { player: 2, throws: [{ player: 1, name: "Alex", hit: "S20", distance: 11.4 }, { player: 2, name: "Sam" }] },
+      },
     },
   });
-  assert.deepEqual([bullOff.title, bullOff.meta], ["bull_off", "bull_off_hint"]);
-  assert.match(bullOff.main, /<div class="player"><div class="name">Alex<\/div><div class="big">11 mm<\/div>/);
+  assert.deepEqual([bullOff.title, bullOff.meta, bullOff.banner], ["bull_off", "bull_off_hint", ""]);
+  // Every dart shows its bed and how far from the centre it landed.
+  assert.match(
+    bullOff.main,
+    /<div class="player"><div class="name">Alex<\/div><div class="big">S20<\/div><div class="route"><\/div><div class="details">11\.4 mm<\/div>/
+  );
   assert.match(bullOff.main, /<div class="player active"><div class="name">Sam<\/div><div class="big">–<\/div>/);
 });
