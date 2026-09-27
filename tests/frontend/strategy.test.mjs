@@ -256,3 +256,66 @@ test("the live view sets up and starts tournaments, with the tournament's stage 
   assert.deepEqual(withEntities(keys.slice(1))[1].cards.map((card) => card.type), ["heading", "entities"]);
   assert.equal(withEntities(keys.slice(0, 1)).length, 1);
 });
+
+test("rows leave out the section at the end of French and Spanish names, too", () => {
+  const entities = [
+    entity("select.b_game", "practice_game", "dev1"),
+    entity("number.b_players", "practice_players", "dev1"),
+    entity("switch.b_routes", "practice_personal_routes", "dev1"),
+    entity("button.b_leg", "practice_new_leg", "dev1"),
+    entity("select.b_format", "tournament_format", "dev1"),
+    entity("button.b_start", "tournament_start", "dev1"),
+  ];
+  for (const [language, names, rows, tournamentRows] of [
+    [
+      "fr",
+      [
+        "Partie",
+        "Nombre de joueurs de la partie",
+        "Combinaisons de finish personnelles de la partie",
+        "Nouvelle manche de la partie",
+        "Format du tournoi",
+        "Démarrer le tournoi",
+      ],
+      ["Jeu", "Nombre de joueurs", "Combinaisons de finish personnelles", "Nouvelle manche"],
+      ["Format", "Démarrer le tournoi"],
+    ],
+    [
+      "es",
+      // A name without the section stays as it is.
+      [
+        "Partida",
+        "Jugadores de la partida",
+        "Rutas de cierre personales de la partida",
+        "Nuevo leg",
+        "Formato del torneo",
+        "Iniciar torneo",
+      ],
+      ["Juego", "Jugadores", "Rutas de cierre personales", "Nuevo leg"],
+      ["Formato", "Iniciar torneo"],
+    ],
+  ]) {
+    const config = dashboardStrategy({
+      locale: { language },
+      entities: Object.fromEntries(entities.map((item) => [item.entity_id, item])),
+      devices: { dev1: { name: "Autodarts Board" } },
+      states: Object.fromEntries(
+        entities.map(({ entity_id }, index) => [
+          entity_id,
+          { entity_id, state: "on", attributes: { friendly_name: `Autodarts Board ${names[index]}` } },
+        ])
+      ),
+    });
+    const [, practice, tournament] = config.views[0].sections;
+    assert.deepEqual(
+      practice.cards[1].entities.map((row) => row.name),
+      rows,
+      language
+    );
+    assert.deepEqual(
+      tournament.cards[1].entities.map((row) => row.name),
+      tournamentRows,
+      language
+    );
+  }
+});

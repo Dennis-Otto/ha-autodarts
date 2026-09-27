@@ -100,6 +100,9 @@ def test_names_tell_the_moment_the_player_and_the_score(tmp_path):
         "Checkout 121 · Jan 1"
     )
     assert Highlight("x.jpg", datetime(2026, 12, 24)).title("de") == "24.12."
+    # Dutch, French and Spanish write the day first, too.
+    assert photo.title("nl") == "180 · Alex · 06-09"
+    assert photo.title("fr") == photo.title("es") == "180 · Alex · 06/09"
 
 
 async def test_the_gallery_lists_the_months_and_their_photos(hass, gallery):
@@ -155,6 +158,16 @@ async def test_the_gallery_lists_the_months_and_their_photos(hass, gallery):
     assert (await source.async_browse_media(item(hass))).children[0].title == (
         "September 2026"
     )
+    # Months in the other languages of the integration; a regional variant counts.
+    for language, title, photo_title in (
+        ("nl", "Augustus 2026", "Sam · 31-08"),
+        ("fr", "Août 2026", "Sam · 31/08"),
+        ("es-419", "Agosto de 2026", "Sam · 31/08"),
+        ("it", "August 2026", "Sam · Aug 31"),
+    ):
+        hass.config.language = language
+        august = await source.async_browse_media(item(hass, "2026-08"))
+        assert (august.title, august.children[0].title) == (title, photo_title)
     with pytest.raises(BrowseError):
         await source.async_browse_media(item(hass, "../secret"))
 

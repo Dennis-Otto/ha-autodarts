@@ -434,11 +434,14 @@ test("later taps resume the one shared audio context, and the voice speaks the c
   assert.deepEqual(spoken.splice(0), [["Caller on", "en"]]);
   tap(card);
   said();
-  // A regional variant keeps its voice; French gets the English words, so an English voice.
+  // A regional variant keeps its voice; Italian gets the English words, so an English voice.
   for (const [lang, voice] of [
     ["en-GB", "en-GB"],
     ["de-CH", "de-CH"],
-    ["fr", "en"],
+    ["nl-BE", "nl-BE"],
+    ["fr", "fr"],
+    ["es-419", "es-419"],
+    ["it", "en"],
   ]) {
     card.hass = { ...hass, locale: { language: lang }, language: lang };
     tap(card);

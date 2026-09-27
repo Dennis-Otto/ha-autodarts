@@ -1,0 +1,1073 @@
+{
+  "title": "Autodarts",
+  "config": {
+    "step": {
+      "reauth_confirm": {
+        "title": "Associer à nouveau Autodarts",
+        "description": "Associez votre compte via la nouvelle connexion par appareil d'Autodarts. Saisissez un ID client public enregistré pour cette intégration, avec l'autorisation d'appareil activée. Votre cible, vos entités et vos paramètres locaux seront conservés.",
+        "data": {
+          "client_id": "ID client Autodarts"
+        },
+        "data_description": {
+          "client_id": "ID client OAuth public avec autorisation d'appareil, délivré par Autodarts pour cette intégration."
+        }
+      },
+      "auth_retry": {
+        "title": "Relancer la connexion à Autodarts",
+        "description": "Validez pour revenir à la saisie de l'ID client et demander un nouveau code de connexion."
+      },
+      "boards": {
+        "title": "Charger les cibles Autodarts",
+        "description": "Votre compte est associé. Validez pour réessayer de charger vos cibles."
+      },
+      "board": {
+        "title": "Sélectionner la cible",
+        "description": "Choisissez la cible Autodarts à surveiller.",
+        "data": {
+          "board_id": "Cible"
+        },
+        "data_description": {
+          "board_id": "Les cibles associées à votre compte Autodarts."
+        }
+      },
+      "cloud": {
+        "title": "Configurer Autodarts",
+        "description": "Saisissez l'ID client public enregistré auprès d'Autodarts pour cette intégration, avec l'autorisation d'appareil activée. Il s'agit d'un identifiant d'application, et non de votre adresse e-mail, de l'ID de votre cible ou d'un secret. Vous pouvez aussi saisir l'IP locale de votre cible. L'écran suivant affichera votre code de connexion.",
+        "data": {
+          "client_id": "ID client Autodarts",
+          "host": "IP locale de la cible (facultatif)",
+          "port": "Port local de la cible"
+        },
+        "data_description": {
+          "client_id": "ID client OAuth public avec autorisation d'appareil, délivré par Autodarts pour cette intégration. Il ne s'agit pas de votre adresse e-mail, de votre mot de passe ni de l'ID de votre cible.",
+          "host": "Facultatif. Connecte aussi la cible en local, ce qui active les commandes et les événements en temps réel.",
+          "port": "Port de l'API Board Manager, en général 3180."
+        }
+      },
+      "auth": {
+        "title": "Associer le compte Autodarts"
+      },
+      "user": {
+        "title": "Configurer Autodarts",
+        "description": "Recherchez des cibles Autodarts sur votre réseau ou saisissez l'adresse d'une cible.",
+        "menu_options": {
+          "discover": "Rechercher des cibles sur ce réseau",
+          "local": "Saisir l'adresse de la cible",
+          "cloud": "Associer un compte cloud"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurer Autodarts",
+        "description": "Recherchez à nouveau la cible ou modifiez son adresse locale. Votre cible et vos entités existantes sont conservées.",
+        "menu_options": {
+          "discover": "Rechercher des cibles sur ce réseau",
+          "local": "Saisir l'adresse de la cible",
+          "cloud": "Associer un compte cloud"
+        }
+      },
+      "local": {
+        "title": "Connecter une cible locale",
+        "description": "Saisissez l'adresse IP ou le nom d'hôte de Board Manager, sans http:// ni numéro de port. Aucun ID client n'est nécessaire. La cible doit déjà être configurée dans Board Manager.",
+        "data": {
+          "host": "IP ou nom d'hôte de la cible",
+          "port": "Port"
+        },
+        "data_description": {
+          "host": "Adresse IP ou nom d'hôte du PC sur lequel tourne Autodarts Board Manager, par exemple 192.168.1.50. Sans http:// ni numéro de port.",
+          "port": "Port de l'API Board Manager, en général 3180."
+        }
+      },
+      "discover": {
+        "title": "Choisissez votre cible",
+        "description": "Autodarts a répertorié ces cibles pour votre réseau. La recherche passe par le même service que l'application Board Manager, qui voit votre adresse IP publique. La cible est ensuite connectée en local, sans connexion à Autodarts.",
+        "data": {
+          "board_id": "Cible"
+        },
+        "data_description": {
+          "board_id": "Les cibles déjà configurées n'apparaissent pas dans la liste."
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Cible Autodarts détectée",
+        "description": "Ajouter la cible Autodarts à l'adresse {host}\u00a0? Board Manager {version}, {cameras} caméras. Elle fonctionne en local, sans connexion à Autodarts."
+      }
+    },
+    "progress": {
+      "wait_for_device": "Ouvrez la [page de connexion Autodarts]({verification_uri_complete}) et autorisez l'accès. Vous pouvez aussi ouvrir [{verification_uri}]({verification_uri}) sur un autre appareil et saisir **{user_code}**.\n\nUne fois l'accès autorisé, la configuration se poursuit automatiquement. Ne saisissez ce code que sur votre propre page de connexion Autodarts."
+    },
+    "error": {
+      "invalid_client": "Cet ID client n'est pas valide ou n'est pas activé pour la connexion par appareil. Vérifiez l'ID client de cette intégration. Une cible locale peut être configurée sans ID client.",
+      "expired_token": "Le code de connexion a expiré. Veuillez demander un nouveau code.",
+      "access_denied": "L'association a été refusée. Veuillez relancer la connexion puis autoriser l'accès.",
+      "invalid_auth": "Autodarts n'a pas pu autoriser cette connexion. Veuillez associer à nouveau votre compte.",
+      "cannot_connect": "Impossible de se connecter à Autodarts. Veuillez réessayer.",
+      "invalid_host": "Saisissez uniquement une adresse IP ou un nom d'hôte.",
+      "cannot_connect_local": "Impossible de joindre Board Manager en local, ou sa réponse n'est pas valide.",
+      "board_not_configured": "Aucun ID de cible n'est configuré dans Board Manager. Commencez par y terminer la configuration de la cible.",
+      "no_boards_found": "Aucune nouvelle cible n'a été trouvée automatiquement. Saisissez plutôt l'adresse de la cible.",
+      "discovery_failed": "La recherche de cibles est indisponible pour le moment. Saisissez plutôt l'adresse de la cible.",
+      "board_access_denied": "La cible a refusé l'accès (HTTP 401 ou 403). Board Manager ne nécessite aucune connexion\u00a0; vérifiez les proxys et les pare-feu entre Home Assistant et la cible."
+    },
+    "abort": {
+      "already_configured": "Cette cible Autodarts est déjà configurée.",
+      "no_boards": "Aucune cible trouvée pour ce compte.",
+      "wrong_account": "Le compte associé n'a pas accès à la cible existante. Veuillez associer le compte auquel appartient cette cible.",
+      "reauth_successful": "Autodarts a bien été associé. Votre cible et vos entités ont été conservées.",
+      "wrong_board": "Cette adresse appartient à une autre cible.",
+      "reconfigure_successful": "La configuration d'Autodarts a été mise à jour.",
+      "cannot_connect_local": "La cible annoncée sur votre réseau ne répond pas. Vérifiez que Board Manager est bien lancé.",
+      "board_not_configured": "Aucun ID de cible n'est configuré dans Board Manager. Commencez par y terminer la configuration de la cible.",
+      "already_in_progress": "La configuration de cette cible est déjà en cours."
+    },
+    "flow_title": "{name}"
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options d'Autodarts",
+        "description": "**Matchs en ligne (expérimental)\u00a0:** l'intégration voit les fléchettes sur votre cible, mais pas le déroulement d'un match en ligne sur play.autodarts.io. L'extension de navigateur Tools for Autodarts peut envoyer les moments forts de ce match, comme un bust, un game shot ou un 180, à Home Assistant. Ils arrivent sous forme d'événements de la cible dont le type commence par `online_`.",
+        "data": {
+          "online_bridge": "Recevoir les matchs en ligne depuis Tools for Autodarts",
+          "online_bridge_remote": "Accepter les appels depuis l'extérieur de votre réseau domestique",
+          "online_bridge_new_address": "Créer une nouvelle adresse secrète"
+        },
+        "data_description": {
+          "online_bridge": "Ouvre une adresse de webhook secrète pour l'extension de navigateur. L'étape suivante l'affiche.",
+          "online_bridge_remote": "Uniquement pour une adresse https via Home Assistant Cloud ou votre propre domaine. Désactivé\u00a0: seuls les appareils de votre réseau domestique peuvent appeler l'adresse.",
+          "online_bridge_new_address": "L'adresse actuelle cessera de fonctionner. Saisissez la nouvelle dans Tools for Autodarts."
+        }
+      },
+      "online_bridge": {
+        "title": "Adresse pour Tools for Autodarts",
+        "description": "Après validation, Home Assistant accepte les moments forts des matchs en ligne à cette adresse secrète\u00a0:\n\n`{url}`\n\nDans Tools for Autodarts, activez **WLED**, choisissez **Import CSV** et collez les lignes ci-dessous. Chaque ligne crée un effet de type URL qui appelle l'adresse avec `?event=` et son déclencheur. N'importez que les lignes dont vous avez besoin\u00a0: Tools for Autodarts n'exécute qu'un effet par déclencheur et en choisit un au hasard lorsque plusieurs partagent le même déclencheur.\n\n```\n{effects}\n```\n\nLe capteur *Dernier événement de la passerelle en ligne* affiche le dernier moment reçu. Gardez cette adresse pour vous\u00a0: quiconque la connaît peut envoyer des moments d'une partie à votre Home Assistant."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "board_status": {
+        "name": "État du cloud",
+        "state": {
+          "connected": "Connecté",
+          "disconnected": "Déconnecté"
+        }
+      },
+      "board_event": {
+        "name": "Dernier événement"
+      },
+      "game_mode": {
+        "name": "Mode de jeu"
+      },
+      "match_state": {
+        "name": "État du match",
+        "state": {
+          "no_match": "Aucun match",
+          "active": "En cours",
+          "finished": "Terminé"
+        }
+      },
+      "round": {
+        "name": "Tour"
+      },
+      "last_throw": {
+        "name": "Dernière fléchette"
+      },
+      "num_throws": {
+        "name": "Fléchettes de la volée"
+      },
+      "visit_score": {
+        "name": "Score de la volée"
+      },
+      "darts_thrown": {
+        "name": "Fléchettes lancées"
+      },
+      "local_status": {
+        "name": "État de la détection",
+        "state": {
+          "offline": "Hors ligne",
+          "starting": "Démarrage en cours",
+          "stopping": "Arrêt en cours",
+          "stopped": "Arrêtée",
+          "throw": "Prêt à lancer",
+          "takeout": "Retrait",
+          "takeout_in_progress": "Retrait des fléchettes",
+          "calibrating": "Calibrage en cours",
+          "error": "Erreur"
+        }
+      },
+      "last_throw_score": {
+        "name": "Score de la dernière fléchette"
+      },
+      "local_visit_score": {
+        "name": "Score détecté de la volée"
+      },
+      "detection_fps": {
+        "name": "Fréquence d'images de la détection"
+      },
+      "camera_fps": {
+        "name": "Fréquence d'images de la caméra {number}"
+      },
+      "training_darts": {
+        "name": "Fléchettes de l'entraînement"
+      },
+      "training_triples": {
+        "name": "Triples de l'entraînement"
+      },
+      "training_bulls": {
+        "name": "Bulls de l'entraînement"
+      },
+      "training_scores_180": {
+        "name": "180 de l'entraînement"
+      },
+      "training_points": {
+        "name": "Points de l'entraînement"
+      },
+      "training_doubles": {
+        "name": "Doubles de l'entraînement"
+      },
+      "training_misses": {
+        "name": "Ratés de l'entraînement"
+      },
+      "training_visits": {
+        "name": "Volées de l'entraînement"
+      },
+      "training_scores_100": {
+        "name": "Volées à 100+ de l'entraînement"
+      },
+      "training_scores_140": {
+        "name": "Volées à 140+ de l'entraînement"
+      },
+      "training_average": {
+        "name": "Moyenne 3 fléchettes de l'entraînement"
+      },
+      "training_highest_visit": {
+        "name": "Meilleure volée de l'entraînement"
+      },
+      "training_started": {
+        "name": "Début de la session d'entraînement"
+      },
+      "cpu_usage": {
+        "name": "Utilisation du CPU"
+      },
+      "memory_usage": {
+        "name": "Utilisation de la mémoire"
+      },
+      "training_last_session": {
+        "name": "Moyenne de la dernière session"
+      },
+      "host_os": {
+        "name": "Système d'exploitation"
+      },
+      "host_processor": {
+        "name": "Processeur"
+      },
+      "vision_version": {
+        "name": "Version du logiciel de détection"
+      },
+      "practice_remaining": {
+        "name": "Points restants de la partie"
+      },
+      "practice_checkout": {
+        "name": "Combinaison de finish de la partie"
+      },
+      "practice_target": {
+        "name": "Zone visée de la partie"
+      },
+      "practice_first_9_average": {
+        "name": "Moyenne First 9 de la partie"
+      },
+      "practice_checkout_rate": {
+        "name": "Taux de finish de la partie"
+      },
+      "practice_doubles_rate": {
+        "name": "Taux de doubles de la partie"
+      },
+      "practice_legs_played": {
+        "name": "Manches jouées de la partie"
+      },
+      "correction_rate": {
+        "name": "Taux de correction de la détection"
+      },
+      "personal_best": {
+        "name": "Dernier record personnel"
+      },
+      "darts_today": {
+        "name": "Fléchettes aujourd'hui"
+      },
+      "training_streak": {
+        "name": "Série d'entraînement"
+      },
+      "player_profiles": {
+        "name": "Profils de joueurs"
+      },
+      "last_match": {
+        "name": "Dernier match"
+      },
+      "favourite_double": {
+        "name": "Double préféré"
+      },
+      "online_bridge_last_event": {
+        "name": "Dernier événement de la passerelle en ligne"
+      },
+      "weekly_report": {
+        "name": "Rapport hebdomadaire"
+      },
+      "achievements": {
+        "name": "Succès"
+      },
+      "tournament": {
+        "name": "Tournoi",
+        "state": {
+          "no_tournament": "Aucun tournoi",
+          "round_1": "Tour 1",
+          "round_2": "Tour 2",
+          "round_3": "Tour 3",
+          "round_4": "Tour 4",
+          "round_5": "Tour 5",
+          "round_6": "Tour 6",
+          "round_7": "Tour 7",
+          "quarter_final": "Quart de finale",
+          "semi_final": "Demi-finale",
+          "third_place": "Petite finale",
+          "final": "Finale",
+          "finished": "Terminé"
+        },
+        "state_attributes": {
+          "status": {
+            "name": "Statut",
+            "state": {
+              "playing": "Match en cours",
+              "waiting": "En attente du prochain match",
+              "finished": "Terminé"
+            }
+          },
+          "format": {
+            "name": "Format",
+            "state": {
+              "round_robin": "Poule unique",
+              "knockout": "Élimination directe"
+            }
+          }
+        }
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Démarrer la détection"
+      },
+      "stop": {
+        "name": "Arrêter la détection"
+      },
+      "reset": {
+        "name": "Réinitialiser la détection"
+      },
+      "restart": {
+        "name": "Redémarrer Board Manager"
+      },
+      "calibrate": {
+        "name": "Démarrer le calibrage automatique"
+      },
+      "connect": {
+        "name": "Établir la liaison cloud"
+      },
+      "disconnect": {
+        "name": "Couper la liaison cloud"
+      },
+      "start_streams": {
+        "name": "Démarrer les flux des caméras"
+      },
+      "stop_streams": {
+        "name": "Arrêter les flux des caméras"
+      },
+      "calibrate_camera": {
+        "name": "Calibrer la caméra {number}"
+      },
+      "reset_training": {
+        "name": "Nouvelle session d'entraînement"
+      },
+      "practice_new_leg": {
+        "name": "Nouvelle manche de la partie"
+      },
+      "practice_new_match": {
+        "name": "Nouveau match de la partie"
+      },
+      "tournament_start": {
+        "name": "Démarrer le tournoi"
+      },
+      "tournament_next_match": {
+        "name": "Match suivant du tournoi"
+      },
+      "tournament_stop": {
+        "name": "Terminer le tournoi"
+      }
+    },
+    "switch": {
+      "detection": {
+        "name": "Détection"
+      },
+      "upstream": {
+        "name": "Liaison cloud"
+      },
+      "auto_calibrate_on_start": {
+        "name": "Calibrer au démarrage"
+      },
+      "auto_calibrate": {
+        "name": "Recalibrage automatique"
+      },
+      "auto_distortion": {
+        "name": "Correction automatique de la distorsion"
+      },
+      "training_session": {
+        "name": "Session d'entraînement"
+      },
+      "training_auto_start": {
+        "name": "Démarrer les sessions automatiquement"
+      },
+      "practice_double_out": {
+        "name": "Double out de la partie"
+      },
+      "practice_double_in": {
+        "name": "Double in de la partie"
+      },
+      "practice_bull_off": {
+        "name": "Bull-off de la partie"
+      },
+      "practice_bull_off_distance": {
+        "name": "Bull-off de la partie à la distance"
+      },
+      "practice_personal_routes": {
+        "name": "Combinaisons de finish personnelles de la partie"
+      },
+      "practice_teams": {
+        "name": "Équipes de la partie"
+      },
+      "achievements_enabled": {
+        "name": "Succès"
+      },
+      "tournament_third_place": {
+        "name": "Petite finale du tournoi"
+      },
+      "tournament_random_draw": {
+        "name": "Tirage au sort du tournoi"
+      }
+    },
+    "select": {
+      "standby_minutes": {
+        "name": "Veille des caméras",
+        "state": {
+          "5": "5 minutes",
+          "10": "10 minutes",
+          "15": "15 minutes",
+          "30": "30 minutes",
+          "60": "60 minutes"
+        }
+      },
+      "practice_game": {
+        "name": "Partie",
+        "state": {
+          "off": "Désactivée",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "around_the_clock": "Around the Clock",
+          "doubles": "Entraînement aux doubles",
+          "checkout": "Entraînement au finish",
+          "bobs_27": "Bob's 27",
+          "cricket": "Cricket",
+          "101": "101",
+          "901": "901",
+          "1001": "1001",
+          "shanghai": "Shanghai",
+          "halve_it": "Halve-It",
+          "killer": "Killer",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics",
+          "golf": "Golf",
+          "baseball": "Baseball",
+          "count_up": "Count-Up",
+          "checkout_121": "121 checkout",
+          "catch_40": "Catch 40",
+          "jdc_challenge": "JDC Challenge",
+          "singles": "Entraînement aux simples"
+        }
+      },
+      "weekly_report_day": {
+        "name": "Jour du rapport hebdomadaire",
+        "state": {
+          "monday": "Lundi",
+          "tuesday": "Mardi",
+          "wednesday": "Mercredi",
+          "thursday": "Jeudi",
+          "friday": "Vendredi",
+          "saturday": "Samedi",
+          "sunday": "Dimanche"
+        }
+      },
+      "practice_golf_holes": {
+        "name": "Trous de Golf de la partie"
+      },
+      "tournament_format": {
+        "name": "Format du tournoi",
+        "state": {
+          "round_robin": "Poule unique",
+          "knockout": "Élimination directe"
+        }
+      },
+      "tournament_game": {
+        "name": "Jeu du tournoi",
+        "state": {
+          "101": "101",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "901": "901",
+          "1001": "1001",
+          "cricket": "Cricket",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics"
+        }
+      }
+    },
+    "number": {
+      "training_idle_timeout": {
+        "name": "Délai d'inactivité de la session"
+      },
+      "practice_players": {
+        "name": "Nombre de joueurs de la partie"
+      },
+      "practice_legs": {
+        "name": "Manches par set de la partie"
+      },
+      "practice_sets": {
+        "name": "Sets pour gagner la partie"
+      },
+      "training_daily_goal": {
+        "name": "Objectif quotidien"
+      },
+      "practice_start": {
+        "name": "Score de départ du joueur {number} de la partie"
+      },
+      "practice_count_up_rounds": {
+        "name": "Tours de Count-Up de la partie"
+      },
+      "tournament_pause": {
+        "name": "Pause du tournoi"
+      },
+      "tournament_summary": {
+        "name": "Résumé du tournoi"
+      }
+    },
+    "binary_sensor": {
+      "local_connected": {
+        "name": "Connexion locale"
+      },
+      "hand_detected": {
+        "name": "Main détectée"
+      },
+      "image_stable": {
+        "name": "Image stable"
+      },
+      "takeout_partial": {
+        "name": "Fléchettes partiellement retirées"
+      },
+      "takeout_full": {
+        "name": "Fléchettes entièrement retirées"
+      },
+      "cameras_active": {
+        "name": "Caméras actives"
+      },
+      "calibrating": {
+        "name": "Calibrage en cours"
+      },
+      "realtime_connected": {
+        "name": "Connexion en temps réel"
+      },
+      "camera_problem": {
+        "name": "Problème de caméra"
+      },
+      "individual_camera_problem": {
+        "name": "Problème de la caméra {number}"
+      },
+      "cloud_link": {
+        "name": "Connexion au cloud Autodarts"
+      }
+    },
+    "camera": {
+      "board_camera": {
+        "name": "Caméra {number}"
+      }
+    },
+    "event": {
+      "board_events": {
+        "name": "Événements",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "dart_detected": "Fléchette détectée",
+              "dart_corrected": "Fléchette corrigée",
+              "takeout_started": "Début du retrait",
+              "takeout_finished": "Fin du retrait",
+              "status_changed": "Changement d'état",
+              "visit_thrown": "Volée lancée",
+              "visit_completed": "Volée terminée",
+              "session_started": "Session démarrée",
+              "session_ended": "Session terminée",
+              "bust": "Bust",
+              "leg_won": "Manche gagnée",
+              "match_won": "Match gagné",
+              "turn_changed": "Changement de joueur",
+              "drill_finished": "Jeu d'entraînement terminé",
+              "checkout_attempt": "Tentative de finish",
+              "personal_best": "Record personnel",
+              "daily_goal_reached": "Objectif quotidien atteint",
+              "bull_off_won": "Bull-off gagné",
+              "tournament_started": "Tournoi démarré",
+              "tournament_match_finished": "Match du tournoi terminé",
+              "tournament_finished": "Tournoi terminé",
+              "online_game_on": "En ligne\u00a0: game on",
+              "online_visit": "En ligne\u00a0: volée",
+              "online_dart": "En ligne\u00a0: fléchette",
+              "online_busted": "En ligne\u00a0: bust",
+              "online_game_shot": "En ligne\u00a0: game shot",
+              "online_match_shot": "En ligne\u00a0: match shot",
+              "online_bull_off": "En ligne\u00a0: début du bull-off",
+              "online_tournament_ready": "En ligne\u00a0: match de tournoi prêt",
+              "online_match_left": "En ligne\u00a0: match quitté",
+              "weekly_report": "Rapport hebdomadaire",
+              "achievement_unlocked": "Succès débloqué"
+            }
+          },
+          "achievement": {
+            "name": "Succès",
+            "state": {
+              "maximum": "180",
+              "ton_plus": "Volées à 100+",
+              "ton_forty": "Volées à 140+",
+              "high_finish": "Gros finish",
+              "short_leg": "Manche rapide",
+              "nine_darter": "Neuf fléchettes",
+              "legs_won": "Manches gagnées",
+              "matches_won": "Matchs gagnés",
+              "hat_trick": "Coup du chapeau",
+              "all_doubles": "Tous les doubles",
+              "cricket_nine": "Neuf marques",
+              "shanghai": "Shanghai",
+              "around_the_clock": "Around the Clock",
+              "bobs_27": "Bob's 27",
+              "streak": "Série",
+              "darts_thrown": "Fléchettes lancées"
+            }
+          }
+        }
+      }
+    },
+    "update": {
+      "board_software": {
+        "name": "Logiciel"
+      }
+    },
+    "text": {
+      "practice_player": {
+        "name": "Joueur {number} de la partie"
+      },
+      "tournament_players": {
+        "name": "Joueurs du tournoi"
+      }
+    },
+    "calendar": {
+      "training_calendar": {
+        "name": "Calendrier d'entraînement"
+      }
+    },
+    "time": {
+      "weekly_report_time": {
+        "name": "Heure du rapport hebdomadaire"
+      }
+    }
+  },
+  "exceptions": {
+    "action_failed": {
+      "message": "La cible n'a pas accepté l'action. Vérifiez la connexion à Board Manager et réessayez."
+    },
+    "board_unavailable": {
+      "message": "Board Manager ne répond pas."
+    },
+    "wrong_board": {
+      "message": "L'adresse configurée appartient à une autre cible."
+    },
+    "no_local_address": {
+      "message": "Saisissez l'adresse locale de Board Manager\u00a0: ouvrez le menu de cette entrée et sélectionnez Reconfigurer."
+    },
+    "relink_required": {
+      "message": "Associez à nouveau votre compte Autodarts avec un ID client enregistré."
+    },
+    "cloud_unavailable": {
+      "message": "Le cloud Autodarts ne répond pas."
+    },
+    "no_board": {
+      "message": "Aucune cible Autodarts avec une connexion locale n'est chargée."
+    },
+    "several_boards": {
+      "message": "Plusieurs cibles Autodarts sont configurées. Choisissez la cible."
+    },
+    "duplicate_player": {
+      "message": "{name} figure plusieurs fois dans la liste des joueurs. Chaque joueur doit avoir son propre nom."
+    },
+    "killer_players": {
+      "message": "Il faut au moins deux joueurs pour Killer."
+    },
+    "unknown_player": {
+      "message": "Il n'existe aucun profil de joueur nommé {name}."
+    },
+    "board_access_denied": {
+      "message": "Board Manager a refusé l'accès. Il ne nécessite normalement aucune connexion\u00a0; vérifiez les proxys et les pare-feu entre Home Assistant et la cible."
+    },
+    "unsupported_response": {
+      "message": "Board Manager répond dans un format que cette version de l'intégration ne comprend pas."
+    },
+    "not_supported": {
+      "message": "Cette cible ne prend pas en charge l'action."
+    },
+    "export_folder": {
+      "message": "Le dossier d'export {folder} doit se trouver dans le dossier de configuration de Home Assistant et ne doit pas être masqué."
+    },
+    "export_failed": {
+      "message": "Impossible d'écrire l'export\u00a0: {error}"
+    },
+    "unknown_person": {
+      "message": "Il n'existe aucune personne {person} dans Home Assistant."
+    },
+    "team_players": {
+      "message": "Le jeu en équipes nécessite quatre joueurs\u00a0: les joueurs 1 et 3 contre les joueurs 2 et 4."
+    },
+    "team_game": {
+      "message": "Le jeu en équipes est possible en X01 et dans les jeux de Cricket."
+    },
+    "invalid_start_score": {
+      "message": "Un score de départ vaut 0 (score de départ du jeu) ou est compris entre 2 et 1001."
+    },
+    "tournament_players": {
+      "message": "Un tournoi nécessite entre trois et huit joueurs, pas {count}."
+    },
+    "no_tournament": {
+      "message": "Aucun tournoi n'est en cours."
+    },
+    "tournament_match_running": {
+      "message": "Le match du tournoi entre {first} et {second} est toujours en cours. Jouez-le jusqu'au bout, ou terminez le tournoi."
+    }
+  },
+  "issues": {
+    "wrong_board": {
+      "title": "L'adresse de la cible Autodarts pointe vers une autre cible",
+      "description": "La cible à l'adresse {address} a un autre ID de cible que celle de cette entrée, elle reste donc hors ligne. Ouvrez l'intégration Autodarts, choisissez **Reconfigurer** et sélectionnez la bonne cible."
+    },
+    "board_manager_1": {
+      "title": "Passer la cible au nouveau Board Manager d'Autodarts",
+      "description": "Cette cible utilise l'application Board Manager classique. Autodarts la remplace par Board Manager 2, sans interface graphique, et désactivera l'ancienne dès que la plupart des joueurs auront migré. Installez Board Manager 2 sur le PC de la cible\u00a0; l'intégration bascule automatiquement et continue de fonctionner en local."
+    },
+    "calibration_recommended": {
+      "title": "Calibrer la cible Autodarts",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Calibrer maintenant",
+            "description": "La cible a corrigé {rate} % des dernières fléchettes. Un nouveau calibrage réduit généralement ce taux.\n\nRetirez d'abord toutes les fléchettes de la cible. Le calibrage prend quelques secondes."
+          }
+        },
+        "abort": {
+          "calibration_failed": "La cible n'a pas accepté le calibrage. Réessayez, ou lancez le calibrage depuis la carte État de la cible Autodarts.",
+          "board_unavailable": "La cible n'est pas chargée. Vérifiez la connexion et réessayez."
+        }
+      }
+    },
+    "board_access_denied": {
+      "title": "La cible Autodarts refuse l'accès",
+      "description": "La cible à l'adresse {address} répond avec HTTP 401 ou 403. Board Manager lui-même ne nécessite aucune connexion, c'est donc qu'un élément entre Home Assistant et la cible bloque les requêtes, par exemple un proxy inverse, un pare-feu ou une page de connexion devant le port 3180. Autorisez Home Assistant à accéder à la cible\u00a0; ce message disparaîtra de lui-même."
+    },
+    "unsupported_response": {
+      "title": "La cible Autodarts répond dans un format inconnu",
+      "description": "La cible répond aux requêtes {reads} dans un format que cette version de l'intégration ne comprend pas, par exemple après une mise à jour de Board Manager. Les valeurs issues de ces requêtes ne sont pas mises à jour. Mettez à jour l'intégration Autodarts\u00a0; si le message persiste, signalez-le en joignant les diagnostics."
+    },
+    "board_moved": {
+      "title": "Cible Autodarts trouvée à une nouvelle adresse",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Utiliser la nouvelle adresse",
+            "description": "La cible ne répond plus à son ancienne adresse. Le cloud Autodarts la signale à l'adresse {new}, où elle répond avec son ID de cible.\n\nConnecter la cible à cette adresse\u00a0? L'intégration sera rechargée\u00a0; les entités, l'entraînement et les paramètres seront conservés."
+          }
+        },
+        "abort": {
+          "board_unavailable": "La cible ne répond plus à la nouvelle adresse. Attendez le prochain message, ou ouvrez l'intégration et choisissez **Reconfigurer**."
+        }
+      }
+    }
+  },
+  "services": {
+    "start_game": {
+      "name": "Démarrer une partie",
+      "description": "Démarre une partie sur la cible\u00a0: X01, Cricket, un jeu de soirée ou un jeu d'entraînement, avec éventuellement les joueurs et le format du match.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        },
+        "game": {
+          "name": "Jeu",
+          "description": "X01 de 101 à 1001 points, un jeu de Cricket, un jeu de soirée ou un jeu d'entraînement."
+        },
+        "players": {
+          "name": "Joueurs",
+          "description": "Noms d'un à quatre joueurs, dans l'ordre de lancer. Si aucun nom n'est indiqué, le nombre de joueurs reste inchangé."
+        },
+        "legs": {
+          "name": "Manches par set",
+          "description": "Manches à gagner pour remporter un set dans un match."
+        },
+        "sets": {
+          "name": "Sets pour gagner",
+          "description": "Sets à gagner pour remporter le match."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "Les manches de X01 se terminent sur un double ou le bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "Les manches de X01 commencent par un double ou le bullseye."
+        },
+        "bull_off": {
+          "name": "Bull-off",
+          "description": "Les joueurs lancent d'abord sur le bull\u00a0; le plus proche commence le match."
+        },
+        "bull_off_distance": {
+          "name": "Bull-off à la distance",
+          "description": "Deux fléchettes dans la même zone du bull sont départagées par la distance mesurée par la cible, sans nouveau lancer."
+        },
+        "teams": {
+          "name": "Équipes",
+          "description": "Quatre joueurs de X01 ou d'un jeu de Cricket jouent en deux équipes\u00a0: les joueurs 1 et 3 contre les joueurs 2 et 4."
+        },
+        "start_scores": {
+          "name": "Scores de départ",
+          "description": "Scores de départ X01 des joueurs dans l'ordre de lancer, pour un handicap, par exemple 501 et 301. Avec 0 ou sans score, le joueur part du score de départ du jeu."
+        },
+        "holes": {
+          "name": "Trous de Golf",
+          "description": "Nombre de trous d'une partie de Golf\u00a0: 9 ou 18."
+        },
+        "rounds": {
+          "name": "Tours de Count-Up",
+          "description": "Nombre de tours de Count-Up, de 1 à 20."
+        }
+      }
+    },
+    "delete_player": {
+      "name": "Supprimer un profil de joueur",
+      "description": "Efface les statistiques, les records personnels et les face-à-face d'un joueur. Le nom disparaît aussi des records personnels de la cible et des noms de joueurs de la partie\u00a0; l'historique des matchs le conserve.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "Nécessaire uniquement avec plusieurs cibles."
+        },
+        "name": {
+          "name": "Nom",
+          "description": "Le nom du joueur, sans distinction entre majuscules et minuscules."
+        }
+      }
+    },
+    "export": {
+      "name": "Exporter les données d'entraînement",
+      "description": "Enregistre les sessions d'entraînement, les parties ou les profils de joueurs au format CSV ou JSON dans le dossier de configuration et renvoie le chemin du fichier. Les exports contiennent des noms de joueurs.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "Nécessaire uniquement avec plusieurs cibles."
+        },
+        "format": {
+          "name": "Format",
+          "description": "CSV pour les tableurs, ou JSON. En CSV, l'option Tout produit un fichier ZIP contenant un fichier CSV par tableau."
+        },
+        "what": {
+          "name": "Contenu",
+          "description": "Les sessions d'entraînement et les parties des 365 derniers jours, les profils de joueurs, ou tout."
+        },
+        "folder": {
+          "name": "Dossier",
+          "description": "Un dossier dans le dossier de configuration. Les fichiers placés dans www sont accessibles sous /local/ sans connexion."
+        }
+      }
+    },
+    "link_player": {
+      "name": "Associer un joueur à une personne",
+      "description": "Associe un joueur à une personne de Home Assistant\u00a0: la photo de la personne apparaît sur le tableau des scores, sur la carte des joueurs et dans l'écran Nouvelle partie, qui affiche aussi en premier les joueurs présents à la maison. Une personne correspond à un seul joueur\u00a0; une nouvelle association remplace l'ancienne.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "Nécessaire uniquement avec plusieurs cibles."
+        },
+        "player": {
+          "name": "Joueur",
+          "description": "Le nom du joueur, sans distinction entre majuscules et minuscules. Un joueur sans profil en reçoit un."
+        },
+        "person": {
+          "name": "Personne",
+          "description": "La personne de Home Assistant qui correspond à ce joueur."
+        }
+      }
+    },
+    "unlink_player": {
+      "name": "Dissocier un joueur",
+      "description": "Oublie à quelle personne correspond un joueur. Les statistiques du joueur sont conservées.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "Nécessaire uniquement avec plusieurs cibles."
+        },
+        "player": {
+          "name": "Joueur",
+          "description": "Le nom du joueur, sans distinction entre majuscules et minuscules."
+        }
+      }
+    },
+    "start_tournament": {
+      "name": "Démarrer un tournoi",
+      "description": "Tire au sort un tournoi de trois à huit joueurs et lance son premier match\u00a0: en poule unique ou en élimination directe, avec des matchs de X01 ou de Cricket.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        },
+        "players": {
+          "name": "Joueurs",
+          "description": "Noms de trois à huit joueurs, dans l'ordre du tirage. Si aucun nom n'est indiqué, ce sont les joueurs de l'entité Joueurs du tournoi qui jouent."
+        },
+        "start_scores": {
+          "name": "Scores de départ",
+          "description": "Scores de départ X01 des joueurs dans l'ordre des noms, pour un handicap, par exemple 501, 501 et 301. Avec 0 ou sans score, le joueur part du score de départ du jeu."
+        },
+        "format": {
+          "name": "Format",
+          "description": "Poule unique\u00a0: chaque joueur affronte une fois tous les autres. Élimination directe\u00a0: les vainqueurs avancent jusqu'à la finale."
+        },
+        "game": {
+          "name": "Jeu",
+          "description": "X01 de 101 à 1001 points, Cricket, Cut-Throat Cricket ou Tactics."
+        },
+        "legs": {
+          "name": "Manches par set",
+          "description": "Manches à gagner pour remporter un set dans chaque match. Sans valeur, les manches par set de la partie s'appliquent."
+        },
+        "sets": {
+          "name": "Sets pour gagner",
+          "description": "Sets à gagner pour remporter un match. Sans valeur, les sets de la partie s'appliquent."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "Les manches de X01 se terminent sur un double ou le bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "Les manches de X01 commencent par un double ou le bullseye."
+        },
+        "bull_off": {
+          "name": "Bull-off",
+          "description": "Un bull-off détermine qui commence chaque match."
+        },
+        "bull_off_distance": {
+          "name": "Bull-off à la distance",
+          "description": "Deux fléchettes dans la même zone du bull sont départagées par la distance mesurée par la cible, sans nouveau lancer."
+        },
+        "third_place": {
+          "name": "Petite finale",
+          "description": "En élimination directe à partir de quatre joueurs, les perdants des demi-finales disputent la troisième place."
+        },
+        "random_draw": {
+          "name": "Tirage au sort",
+          "description": "Tire au sort l'ordre des joueurs au lieu de reprendre l'ordre des noms."
+        },
+        "seed": {
+          "name": "Graine aléatoire",
+          "description": "Un nombre pour le tirage au sort\u00a0: le même nombre donne le même ordre."
+        },
+        "pause": {
+          "name": "Pause",
+          "description": "Secondes entre deux matchs, après le résumé\u00a0; avec 0, le match suivant ne commence qu'avec Match suivant du tournoi."
+        },
+        "summary": {
+          "name": "Résumé",
+          "description": "Secondes d'affichage du résumé d'un match avant le début de la pause."
+        }
+      }
+    },
+    "stop_tournament": {
+      "name": "Terminer le tournoi",
+      "description": "Termine le tournoi. Le match en cours continue comme une partie hors tournoi.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        }
+      }
+    },
+    "next_tournament_match": {
+      "name": "Match suivant du tournoi",
+      "description": "Démarre le match suivant du tournoi sans attendre la fin de la pause.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        }
+      }
+    }
+  },
+  "selector": {
+    "game": {
+      "options": {
+        "301": "301",
+        "501": "501",
+        "701": "701",
+        "around_the_clock": "Around the Clock",
+        "doubles": "Entraînement aux doubles",
+        "checkout": "Entraînement au finish",
+        "bobs_27": "Bob's 27",
+        "cricket": "Cricket",
+        "101": "101",
+        "901": "901",
+        "1001": "1001",
+        "shanghai": "Shanghai",
+        "halve_it": "Halve-It",
+        "killer": "Killer",
+        "cut_throat": "Cut-Throat Cricket",
+        "tactics": "Tactics",
+        "golf": "Golf",
+        "baseball": "Baseball",
+        "count_up": "Count-Up",
+        "checkout_121": "121 checkout",
+        "catch_40": "Catch 40",
+        "jdc_challenge": "JDC Challenge",
+        "singles": "Entraînement aux simples"
+      }
+    },
+    "export_format": {
+      "options": {
+        "csv": "CSV",
+        "json": "JSON"
+      }
+    },
+    "export_what": {
+      "options": {
+        "sessions": "Sessions d'entraînement",
+        "matches": "Parties",
+        "profiles": "Profils de joueurs",
+        "all": "Tout"
+      }
+    },
+    "tournament_format": {
+      "options": {
+        "round_robin": "Poule unique",
+        "knockout": "Élimination directe"
+      }
+    }
+  }
+}

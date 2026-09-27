@@ -43,7 +43,7 @@ The test suite covers:
 - the training rules and every platform;
 - repairs, diagnostics and the dashboard card registration;
 - every blueprint, run by Home Assistant's automation engine, also on the real board events of a practice match, with checks that every event type and attribute a blueprint reads exists and that every import link opens the right file;
-- every dashboard card, card form and the dashboard strategy with its editor, rendered in a [happy-dom](https://github.com/capricorn86/happy-dom) browser DOM against a simulated Home Assistant: every game, every option, both languages, controls with their confirmation, the caller and escaping of player names.
+- every dashboard card, card form and the dashboard strategy with its editor, rendered in a [happy-dom](https://github.com/capricorn86/happy-dom) browser DOM against a simulated Home Assistant: every game, every option, every language, controls with their confirmation, the caller and escaping of player names.
 
 The card logic is also fuzzed with [fast-check](https://fast-check.dev/): thousands of random and hostile inputs per run check that escaping, bed geometry, the heatmap and the history parser never break.
 
@@ -67,7 +67,8 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 - the practice game, match and training games;
 - the training heatmap with dart positions, history and sessions, and the status card;
 - the scoreboard and its caller, the players card with badges and trends, the leaderboard, the doubles card, and the download of the players export;
-- the generated dashboard, the forms of all seven cards, the strategy editor and the light theme.
+- the generated dashboard, the forms of all seven cards, the strategy editor and the light theme;
+- a browser in Dutch, French and Spanish, which gets the cards and the entity texts of Home Assistant in its language.
 
 When a step fails, the browser test saves a screenshot of every open page, and
 the scripts save the Home Assistant log, in `tests/e2e/artifacts/` or in the
@@ -125,5 +126,5 @@ See the [release guide](releases.md).
 ## Conventions
 
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), for example `feat:`, `fix:` and `docs:`.
-- User-facing text goes into `strings.json` and both translations; `strings.json` equals `translations/en.json`.
+- User-facing text goes into `strings.json` and every translation, card texts into every language of `TEXT`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text ([translations](../CONTRIBUTING.md#translations)).
 - New behaviour needs tests, and new user-facing features need documentation in English and German.

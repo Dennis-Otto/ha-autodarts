@@ -52,7 +52,7 @@
   - Erfüllt alle Regeln der [Qualitätsskala für Home-Assistant-Integrationen](https://developers.home-assistant.io/docs/core/integration-quality-scale/) bis Platin ([Selbsteinschätzung](../../custom_components/autodarts/quality_scale.yaml)), einschließlich strikter Typisierung.
   - Stellt Verbindungen selbst wieder her und meldet eine falsche Board-Adresse unter Reparaturen.
   - Diagnosedaten ohne Geheimnisse.
-  - Auf Deutsch und Englisch.
+  - Auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch: Einrichtung, Entitäten, Aktionen, Reparaturen, die Karten und der Caller ([Sprachen](#sprachen)).
   - Mehr als 350 automatische Tests, darunter ein Docker-End-to-End-Test mit beiden Board-Manager-Generationen und ein Browsertest jeder Karte.
 
 ## Schnellstart
@@ -114,6 +114,16 @@
 | [Roadmap](roadmap.md) | Erschienene Versionen und was als Nächstes kommt |
 
 Die Entwickler-Dokumentation gibt es auf Englisch: [Development](../development.md), [Releases](../releases.md).
+
+## Sprachen
+
+Die Integration spricht Deutsch, Englisch, Niederländisch, Französisch und Spanisch: Einrichtung, Optionen, Entitäten und ihre Zustände, Aktionen, Meldungen und Reparaturen, die Karten mit ihren Editoren und der Caller der Anzeigetafel. Sie folgt der Sprache von Home Assistant, eine regionale Variante wie `de-CH` oder `es-419` zählt zu ihrer Sprache. Andere Sprachen sehen Englisch.
+
+- Die Namen der Entitäten legt Home Assistant in der Sprache des Servers fest (**Einstellungen → System → Allgemein**), Zustände und Karten folgen der Sprache deines Benutzerprofils.
+- Der Caller spricht die Sprache der Karte mit einer Stimme deines Browsers oder Tablets für diese Sprache.
+- Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints auf Englisch, weil Home Assistant Blueprints nicht übersetzt.
+
+Eine Übersetzung verbessern oder eine Sprache hinzufügen: [Übersetzungen in CONTRIBUTING.md](../../CONTRIBUTING.md#translations).
 
 ## Unterstützte Geräte
 

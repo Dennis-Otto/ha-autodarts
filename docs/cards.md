@@ -4,7 +4,7 @@
 
 The integration includes seven cards. Home Assistant loads them automatically, so no dashboard resource and no separate HACS download are needed. Each card:
 
-- has a visual editor and follows your theme (light or dark) and language (English or German);
+- has a visual editor and follows your theme (light or dark) and [language](README.md#languages) (English, German, Dutch, French or Spanish);
 - adapts to its width, from a phone to a wall tablet;
 - finds your board by itself. With several boards, choose one in the editor.
 
@@ -203,7 +203,7 @@ show_system: false
 - **Tournaments:** the round of the match, and between the matches the table or the bracket; see [tournaments](#tournaments).
 - **Pictures:** players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture next to their name.
 - **Visit:** the three darts of the current visit and its score along the bottom.
-- **Caller:** with `caller: true`, the screen at the board calls the game itself in English or German, following the language of Home Assistant (other languages hear English). It calls only what counts:
+- **Caller:** with `caller: true`, the screen at the board calls the game itself in the language of Home Assistant: English, German, Dutch, French or Spanish (other languages hear English). It calls only what counts:
   - X01: the points a visit scored, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished (up to 170 with double out, 180 without), the game shot of a leg and the match, and a fanfare for a 180 that counted.
   - Cricket games: the marks of a visit, such as "5 marks". Shanghai and Halve-It: the points on the target; Count-Up: the points of the visit; Baseball: the runs, such as "3 runs". Killer, Golf, where the last dart counts, and the training games get no score calls.
   - Checkout training, 121 checkout and Catch 40: what the next attempt or visit requires, such as "You require 121".
