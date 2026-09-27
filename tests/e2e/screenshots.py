@@ -2137,13 +2137,20 @@ def main() -> None:
             locale=LOCALE,
             color_scheme="dark",
         )
+
+        def on_board() -> Page:
+            """A new page on the board's dashboard, for steps that call actions."""
+            page = people.new_page()
+            open_dashboard(page, "board")
+            return page
+
         players_card(people.new_page())
         doubles_card(people.new_page())
-        lobby_screen(people.new_page())
-        lobby_bot(people.new_page())
-        tournament_lobby(people.new_page())
-        tournament_table(people.new_page())
-        idle_screen(people.new_page())
+        lobby_screen(on_board())
+        lobby_bot(on_board())
+        tournament_lobby(on_board())
+        tournament_table(on_board())
+        idle_screen(on_board())
         media_gallery(people.new_page())
         # After the doubles training, so the training view shows its doubles.
         strategy_dashboard(people.new_page())
