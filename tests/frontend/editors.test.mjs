@@ -44,7 +44,9 @@ test("the live card form offers layout, board style, highlight, every switch and
       "show_practice",
       "show_connection",
       "show_controls",
+      "show_summary",
     ],
+    "summary_seconds",
     ["accent_color", "highlight_color"],
   ]);
   const [layout, style] = form.schema[2].schema;
@@ -55,7 +57,16 @@ test("the live card form offers layout, board style, highlight, every switch and
   assert.deepEqual(labels(form.schema[3]), ["All darts of the visit", "Last dart only", "Off"]);
   // Switches show their default until the configuration sets them.
   assert.deepEqual(form.schema[4].schema[0], { name: "blink", selector: { boolean: {} }, default: true });
-  assert.deepEqual(form.schema[5].schema, [ACCENT_FIELD, { name: "highlight_color", selector: { ui_color: {} } }]);
+  assert.deepEqual(form.schema[6].schema, [ACCENT_FIELD, { name: "highlight_color", selector: { ui_color: {} } }]);
+  // The summary of a finished match shows until the next game, unless seconds are set.
+  assert.deepEqual(form.schema[5], {
+    name: "summary_seconds",
+    selector: { number: { min: 0, max: 600, step: 1, mode: "box", unit_of_measurement: "s" } },
+    default: 0,
+  });
+  assert.equal(form.computeLabel(form.schema[5]), "Match summary (seconds)");
+  assert.match(form.computeHelper(form.schema[5]), /0 keeps it until the next game starts/);
+  assert.throws(() => form.assertConfig({ summary_seconds: "long" }), /summary_seconds/);
 });
 
 test("fields are labelled and explained in the page's language, with the default of every list", () => {
@@ -128,13 +139,15 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
   assert.deepEqual(names(form.schema), [
     "device_id",
     "title",
-    ["full_height", "show_visit", "show_status", "caller"],
+    ["full_height", "show_visit", "show_status", "caller", "show_summary"],
+    "summary_seconds",
     [["call_scores", "call_checkouts", "call_results", "call_sounds"]],
     [["lobby"], "lobby_games"],
     [["idle"], ["idle_after", "idle_interval"], "idle_panels"],
     "accent_color",
   ]);
-  const [caller, lobby, idle] = form.schema.slice(3, 6);
+  assert.equal(form.schema[2].schema[4].default, true);
+  const [caller, lobby, idle] = form.schema.slice(4, 7);
   assert.deepEqual([caller.type, caller.name, caller.flatten], ["expandable", "caller_options", true]);
   assert.equal(form.computeLabel(caller), "Caller options");
   assert.equal(form.computeHelper(caller), "These calls are made while the caller is on.");
@@ -191,7 +204,7 @@ test("the editor offers the games of the board on the page", () => {
   const other = { entity_id: "select.other_game", platform: "other", translation_key: "practice_game" };
   hass.entities = { "select.other_game": other, ...hass.entities };
   mount("autodarts-scoreboard-card", hass).remove();
-  const games = formOf("autodarts-scoreboard-card").schema[4].schema[1];
+  const games = formOf("autodarts-scoreboard-card").schema[5].schema[1];
   assert.deepEqual(games.selector.select.options, [
     { value: "501", label: "501" },
     { value: "cricket", label: "Cricket" },
@@ -199,7 +212,7 @@ test("the editor offers the games of the board on the page", () => {
   ]);
   // A board without the practice game leaves the list of every game the card knows.
   mount("autodarts-scoreboard-card", makeHass({ states: READY })).remove();
-  assert.equal(formOf("autodarts-scoreboard-card").schema[4].schema[1].selector.select.options.length, 23);
+  assert.equal(formOf("autodarts-scoreboard-card").schema[5].schema[1].selector.select.options.length, 23);
 });
 
 test("the doubles form offers the named players and takes any other name", () => {

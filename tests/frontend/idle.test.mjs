@@ -52,11 +52,13 @@ const STATES = {
         {
           ended: "2026-09-26T18:40:00+00:00",
           game: 501,
+          legs_to_win: 3,
+          sets_to_win: 1,
           winner: 2,
           players: [
-            { name: "Alex", legs: 1, sets: 0, average: 55.5 },
-            { name: "Sam", legs: 3, sets: 1, average: 60.1 },
-            { legs: 0, sets: 0, average: null },
+            { name: "Alex", legs: 1, sets: 0, match_legs: 1, average: 55.5 },
+            { name: "Sam", legs: 3, sets: 1, match_legs: 3, average: 60.1 },
+            { legs: 0, sets: 0, match_legs: 0, average: null },
           ],
         },
       ],
@@ -121,8 +123,9 @@ test("after the idle time the panels take turns, and a tap ends it", (t) => {
   assert.deepEqual(
     $$(card, ".result li").map((row) => [row.className, row.textContent]),
     [
+      // Sam won the first to three legs 3 : 1 : 0.
       ["", "Alex1Ø 55.5"],
-      ["winner", "Sam1Ø 60.1🏆"],
+      ["winner", "Sam3Ø 60.1🏆"],
       ["", "Player 30"],
     ]
   );
@@ -275,10 +278,12 @@ test("a decided game in German, a full daily goal and a single day of streak", (
             {
               ended: "2026-09-26T18:40:00+00:00",
               game: "cricket",
+              legs_to_win: 2,
+              sets_to_win: 1,
               winner: 1,
               players: [
-                { name: "Alex", legs: 2, sets: 0, mpr: 2.4 },
-                { name: "Sam", legs: 1, sets: 0, mpr: 1.85 },
+                { name: "Alex", legs: 2, sets: 1, match_legs: 2, mpr: 2.4 },
+                { name: "Sam", legs: 1, sets: 0, match_legs: 1, mpr: 1.85 },
               ],
             },
           ],

@@ -30,6 +30,9 @@ The scenario uses only Home Assistant's public REST and WebSocket APIs and verif
 - the weekly report and its settings, the training calendar through
   `calendar.get_events`, and exports as JSON and CSV with their download, with and
   without a login, and a refused folder outside the configuration
+- a practice match of two players that ends with its summary in the practice sensor
+  and the `match_won` event, and double out switched during a leg, which applies
+  from the next leg
 - diagnostics without the board ID, API key or webhook address, and logs without
   errors, tracebacks or secrets
 - removal of the entry, its entities, the realtime connection and the stored

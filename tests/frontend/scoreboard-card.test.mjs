@@ -191,16 +191,31 @@ test("Cricket, party games, the bull-off and training games get their own boards
   card.hass = update(hass, game({ game: "shanghai", round: 4, rounds: 7, target: "4", points: 12 }));
   assert.equal(text(card, ".meta"), "Round 4/7");
 
-  card.hass = update(hass, game({ bull_off: { player: 1, throws: [{ player: 1, name: "Alex", distance: 8.6 }] } }));
+  card.hass = update(
+    hass,
+    game({ bull_off: { player: 1, throws: [{ player: 1, name: "Alex", hit: "BULL", distance: 8.6 }] } })
+  );
   assert.equal(text(card, ".title"), "Bull-off");
   assert.equal(text(card, ".meta"), "Closest to the bull starts");
-  assert.equal(text(card, ".main .big"), "9 mm");
+  assert.equal(text(card, ".main .big"), "Bull");
+  assert.equal(text(card, ".main .details"), "8.6 mm");
+  assert.equal($(card, ".banner").hidden, true);
 
   card.hass = update(hass, {
     "sensor.practice_target": { state: "D5", attributes: { drill: "doubles", progress: 4, targets: 21, darts: 9 } },
   });
   assert.equal(text(card, ".title"), "Doubles training");
   assert.equal(text(card, ".main .big"), "D5");
+  assert.equal($(card, ".main .big").className, "big");
+  // The bull of Around the Clock reads in smaller type to fit the screen.
+  card.hass = update(hass, {
+    "sensor.practice_target": { state: "25", attributes: { drill: "around_the_clock", progress: 20, targets: 21 } },
+  });
+  assert.equal(text(card, ".main .big"), "Bull (25/50)");
+  assert.equal($(card, ".main .big").className, "big long");
+  card.hass = update(hass, {
+    "sensor.practice_target": { state: "D5", attributes: { drill: "doubles", progress: 4, targets: 21, darts: 9 } },
+  });
   assert.deepEqual(sum(card), ["Visit", "0"]);
 });
 
@@ -244,6 +259,11 @@ test("party games on the scoreboard show lives, targets and the winner", () => {
   ];
   const killer = (attributes) =>
     game({ game: "killer", scores: killers, legs_to_win: 2, sets_to_win: 2, ...attributes });
+  // Alex took the second set with two legs.
+  const won = [
+    { ...killers[0], legs: 2, sets: 2 },
+    { ...killers[1], legs: 0, sets: 1 },
+  ];
   const tiles = (card) =>
     $$(card, ".main .player").map((tile) => [
       tile.className,
@@ -270,17 +290,17 @@ test("party games on the scoreboard show lives, targets and the winner", () => {
   assert.equal(tiles(card)[0][3], "Killer needs at least two players");
   card.hass = update(hass, killer({ won: true }));
   assert.equal(tiles(card)[0][3], "Game shot!");
-  card.hass = update(hass, killer({ winner: 1 }));
+  card.hass = update(hass, killer({ winner: 1, scores: won }));
   assert.equal(tiles(card)[0][0], "player winner");
-  assert.equal(text(card, ".banner"), "Alex wins the match!");
+  assert.equal(text(card, ".banner"), "Alex wins the match 2 : 1!");
 
   const halveIt = (target) => game({ game: "halve_it", target, points: 40, scores: [{ player: 1, points: 40 }] });
   card.hass = update(hass, halveIt("D"));
   assert.deepEqual(tiles(card), [["player", "big", "40", "Any double", ""]]);
   card.hass = update(hass, halveIt("T"));
   assert.equal(tiles(card)[0][3], "Any treble");
-  card.hass = update(hass, halveIt("BULL"));
-  assert.equal(tiles(card)[0][3], "Bull");
+  card.hass = update(hass, halveIt("25"));
+  assert.equal(tiles(card)[0][3], "Bull (25/50)");
 });
 
 test("Cricket on the scoreboard shows legs, sets, the winner and a game shot", () => {
@@ -306,8 +326,12 @@ test("Cricket on the scoreboard shows legs, sets, the winner and a game shot", (
       ["active", "Sam"],
     ]
   );
-  card.hass = update(hass, cricket({ winner: 1, won: true }));
-  assert.equal(text(card, ".banner"), "Alex wins the match!");
+  const won = [
+    { ...players[0], legs: 2, sets: 2 },
+    { ...players[1], legs: 0, sets: 0 },
+  ];
+  card.hass = update(hass, cricket({ winner: 1, won: true, scores: won }));
+  assert.equal(text(card, ".banner"), "Alex wins the match 2 : 0!");
   assert.equal(text(card, ".main thead .aim"), "");
   assert.equal($(card, ".main thead th.winner").textContent, "Alex");
   card.hass = update(hass, cricket({ scores: players.slice(0, 1), won: true }));
@@ -501,6 +525,19 @@ test("alone, the caller calls the requirement without a name and the leg", () =>
   next = update(next, { ...visit(dart(20, 2)), ...alone({ remaining: 0, won: true, visit: ["D20"] }) });
   card.hass = next;
   assert.deepEqual(said(), ["Game shot, und das Leg!"]);
+  tap(card);
+  said();
+});
+
+test("the bull round of Halve-It counts both bull beds, on the board and in the call", () => {
+  const halveIt = (keys) =>
+    game({ game: "halve_it", round: 9, rounds: 9, target: "25", points: 40, scores: [{ player: 1, points: 40 }], visit: keys });
+  const { hass, card } = setup(halveIt([]), { caller: true });
+  assert.equal(text(card, ".main .route"), "Bull (25/50)");
+  tap(card);
+  said();
+  card.hass = update(hass, { ...visit(dart(25, 1), dart(25, 2), dart(20, 1)), ...halveIt(["25", "BULL", "S20"]) });
+  assert.deepEqual(said(), ["75"]);
   tap(card);
   said();
 });

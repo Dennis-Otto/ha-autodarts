@@ -93,7 +93,7 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
   So wird 144 zu T20 T20 D12, 136 zu T20 T20 D8, 130 zu T20 T20 D5, 127 zu T20 T17 D8, 73 zu T19 D8 und 64 zu T16 D8. Für 159, 162, 163, 165, 166, 168, 169 und alles über 170 gibt es mit Double-Out keinen Weg. Ohne Double-Out checkt das größte Feld: ein Single vor einem Double oder Triple.
 - **Persönliche Wege:** Mit *Übungsspiel persönliche Checkout-Wege* gewinnen die Doubles des Spielers am Board mit je mindestens 10 Darts, die beste Quote zuerst, gegen den üblichen Weg, sobald ein Weg mit gleich vielen Darts sie ohne Double als Stellwurf erreicht; zwischen Wegen zum selben Double entscheiden die Grundsätze oben.
 - **Statistik:** Jedes beendete X01-Leg ergibt einen Eintrag für alle am Board: Punkte und Darts der ersten neun Darts, Darts aufs Double und den Checkout. Überworfene Aufnahmen zählen keine Punkte, auch nicht in den ersten neun. Die Statistik-Sensoren nutzen die letzten 10 Einträge, ihr Verlauf zeigt deine Entwicklung. *Übungsspiel gespielte Legs* zählt jedes beendete Leg von X01, den Cricket-Spielen und den Partyspielen.
-- **Speicher:** Spiel, Regeln, Teams und Startpunkte, Spieler mit ihren Ständen und Treffern, Matchformat und die letzten 10 Legs werden zusammen mit der Trainingssession gespeichert.
+- **Speicher:** Spiel, Regeln, Teams und Startpunkte, Spieler mit ihren Ständen und Treffern, Matchformat, die letzten 10 Legs und die [Match-Zusammenfassung](#match-zusammenfassung) mit den Zahlen, die sie zählt, werden zusammen mit der Trainingssession gespeichert.
 
 ## Regeln
 
@@ -106,6 +106,7 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 - **Checkout:** Ein Dart, der genau 0 erreicht, gewinnt das Leg. `leg_won` wird sofort gemeldet, mit den Regeln des Legs (`double_out`, `double_in`). Verbucht wird das Leg beim Ziehen der Darts, eine Korrektur davor zählt also noch. Darts nach dem Siegdart zählen nicht. Die nächste Aufnahme beginnt ein neues Leg.
 - **Average:** erzielte Punkte pro drei Darts des Legs. Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
 - **Startpunkte (Handicap):** Ein Spieler, dessen *Übungsspiel Startpunkte* nicht 0 sind, beginnt jedes Leg mit diesen Punkten, von 2 bis 1001, zum Beispiel 301 gegen 501. Alle anderen Regeln bleiben gleich; der Average zählt ab den eigenen Startpunkten, und `leg_won` nennt sie in `start`.
+- **Double-Out ändern:** Ein Leg behält die Regeln, mit denen es begonnen hat. Schaltest du Double-Out während eines Legs ein oder aus, sobald ein Dart gezählt hat, gilt das ab dem nächsten Leg; vor dem ersten Dart eines Legs, zwischen zwei Matches und in den anderen Spielen gilt es sofort. So wird kein Leg unlösbar: Wer in einem Leg ohne Double-Out auf 1 steht, kann es mit einer Single 1 noch beenden, wenn Double-Out eingeschaltet wird.
 
 ### Matches, Legs und Sätze
 
@@ -122,6 +123,21 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 - **Anwurf:** Wie in jedem Match zu viert wechselt der Anwurf jedes Leg zum nächsten Platz, die Teams wechseln sich also ab.
 - **Sieg:** Beide Partner gewinnen das Leg und das Match. `leg_won` und `match_won` nennen zusätzlich `team` und `team_name` (*Alex & Kim*, wenn beide Partner einen Namen haben); Darts, Average und Treffer pro Runde des Legs sind die des Teams.
 - **Statistik pro Person:** First 9, Checkout-Quote, Averages und Treffer pro Runde bleiben bei dem Spieler, der die Darts geworfen hat. Die Spielerprofile zählen Leg und Match für beide Partner, und jeder von ihnen schlägt im direkten Vergleich beide Gegner; Partner haben keinen direkten Vergleich. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Treffer pro Runde, weder am Board noch im Profil; ein Checkout zählt weiter für den Spieler, der ihn geworfen hat.
+
+### Match-Zusammenfassung
+
+Endet ein Match mehrerer Spieler, fasst das Übungsspiel es für jeden Spieler zusammen. `match_won` meldet die Zahlen im Moment des entscheidenden Darts so, wie sie nach dem Buchen der Aufnahme sind; das Attribut `summary` behält sie, bis das nächste Match endet.
+
+- **Legs, Sätze und Darts:** die im ganzen Match gewonnenen Legs, die Sätze und jeder im Match geworfene Dart.
+- **3-Dart-Average:** Punkte pro drei Darts des ganzen Matches; Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
+- **First-9-Average:** Punkte pro drei Darts der ersten neun Darts jedes Legs; eine überworfene Aufnahme zählt auch hier nichts.
+- **Checkout-Quote:** mit einem Double ausgecheckte Legs pro Dart aufs Double, mit beiden Zahlen. Ein Dart zählt als Wurf aufs Double wie bei der [Statistik](#bestleistungen-und-statistik). Ohne Double-Out gibt es keine Checkout-Quote.
+- **Höchster Checkout:** der höchste Rest, mit dem ein Spieler ein Leg beendet hat, auch in einem Leg ohne Double-Out.
+- **100+, 140+ und 180:** Aufnahmen mit 100 bis 139, 140 bis 179 und 180 Punkten, die gezählt haben; Überwerfen zählt nichts.
+- **Bestes Leg:** die wenigsten Darts eines Legs, das der Spieler gewonnen hat.
+- **Cricket:** Marks pro Runde und die Marks, die gezählt haben, wie bei den [Cricket-Regeln](#cricket), und das beste Leg.
+- **Partyspiele:** Legs, Sätze und Darts.
+- **Teams:** Beide Partner gewinnen die Legs, und ihr bestes Leg zählt die Darts beider; ein Checkout zählt für den Spieler, der ihn geworfen hat.
 
 ### Ausbullen
 

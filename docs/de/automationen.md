@@ -200,7 +200,8 @@ Die Texte des Übungs-Callers sind Vorlagen mit diesen Variablen:
 | `darts`, `average` | Darts und 3-Dart-Average des Legs, bei *Leg won* |
 | `points` | Punkte bei den Cricket- und Partyspielen; Schläge beim Golf, Runs beim Baseball |
 | `target` | Das nächste Ziel eines Partyspiels, etwa `20`, `D` oder `D16`; das Loch beim Golf und das Inning beim Baseball |
-| `distance` | Wie weit der siegreiche Dart beim Ausbullen von der Mitte entfernt landete, in Millimetern, bei *Bull-off won*; `None`, wenn das Board für ihn keine Position gemeldet hat |
+| `hit` | Das Feld des siegreichen Darts beim Ausbullen, bei *Bull-off won*: `BULL`, `25` oder etwa `S20` |
+| `distance` | Wie weit der siegreiche Dart beim Ausbullen von der Mitte entfernt landete, in Millimetern, bei *Bull-off won*; leer, wenn das Board für ihn keine Position gemeldet hat, nie `None` |
 
 Zum Beispiel:
 
@@ -212,7 +213,7 @@ Zum Beispiel:
 | Leg won | `Game shot und das Leg{{ ' für ' ~ who if who }}!` |
 | Match won | `Game shot und das Match für {{ team or who }}!` |
 | Bull-off throw | `{{ who }}, dein Wurf aufs Bull` |
-| Bull-off won | `{{ who }} beginnt. Game on!` |
+| Bull-off won | `{{ who }} beginnt. Game on!`, oder `{{ who }} gewinnt das Ausbullen{{ ' mit ' ~ distance ~ ' Millimetern' if distance is number }}` |
 | Word for a player without a name | `Spieler` |
 
 ### Deutscher Wochenbericht
@@ -541,6 +542,34 @@ actions:
         {% else %}
           Überworfen. {{ spieler }}, du brauchst weiter {{ event.remaining }}.
         {% endif %}
+mode: queued
+```
+
+### Die Zusammenfassung eines Matches senden
+
+Schickt nach einem Übungsmatch mehrerer Spieler die Zahlen jedes Spielers aufs Handy. `match_won` bringt die [Match-Zusammenfassung](entitaeten.md#übungsspiel) in `summary` mit; X01 hat Averages und Checkouts, Cricket `mpr` und `marks`.
+
+```yaml
+alias: Darts – Match-Zusammenfassung
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: event.autodarts_board_events
+    options:
+      event_type:
+        - match_won
+actions:
+  - action: notify.mobile_app_handy
+    data:
+      title: "{{ trigger.to_state.attributes.name or 'Spieler ' ~ trigger.to_state.attributes.player }} gewinnt"
+      message: >-
+        {%- for player in trigger.to_state.attributes.summary %}
+        {{ player.name or 'Spieler ' ~ player.player }}: Legs {{ player.legs }}
+        {%- if player.get('average') is not none %}, Average {{ player.average }}{% endif %}
+        {%- if 'scores_180' in player %}, 180er {{ player.scores_180 }}{% endif %}
+        {%- if player.get('checkout_rate') is not none %}, Checkout {{ player.checkout_rate }} %{% endif %}
+        {%- if player.get('mpr') is not none %}, MPR {{ player.mpr }}{% endif %}.
+        {%- endfor %}
 mode: queued
 ```
 

@@ -137,6 +137,7 @@
         ]),
         'sets_to_win': 1,
         'start': 501,
+        'summary': None,
         'teams': None,
         'visit': list([
         ]),
@@ -193,6 +194,7 @@
       'bull_off_running': False,
       'double_in': False,
       'double_out': True,
+      'double_out_next': None,
       'game': 501,
       'legs_to_win': 1,
       'legs_total': 0,
@@ -313,6 +315,7 @@
         'legs_to_win': 1,
         'players': 1,
         'sets_to_win': 1,
+        'summary': None,
         'teams': None,
       }),
       'quality': dict({
@@ -368,6 +371,7 @@
       'bull_off_running': False,
       'double_in': False,
       'double_out': True,
+      'double_out_next': None,
       'game': None,
       'legs_to_win': 1,
       'legs_total': 0,

@@ -31,19 +31,56 @@ const lastMatch = (attributes) => ({
     attributes: { game: "killer", winner: null, matches: [], head_to_head: [], ...attributes },
   },
 });
+// Matches as the integration keeps them: the format, the winner, and every
+// player's legs of the final set, sets and legs of the whole match.
 const MATCHES = [
   {
     ended: "2026-09-26T20:00:00+00:00",
     game: "killer",
+    legs_to_win: 1,
+    sets_to_win: 1,
     winner: 2,
     players: [
-      { name: "Alex", legs: 0, sets: 0 },
-      { name: null, legs: 1, sets: 0 },
+      { name: "Alex", legs: 0, sets: 0, match_legs: 0, points: 0 },
+      { name: null, legs: 1, sets: 1, match_legs: 1, points: 0 },
     ],
   },
-  { ended: "later", game: 501, winner: 1, players: [{ name: "Lea", legs: 2, sets: 1 }] },
-  { ended: "2026-09-25T19:00:00+00:00", game: "cricket", winner: null, players: [{ name: "Alex" }] },
-  { ended: "2026-09-24T19:00:00+00:00", game: null, winner: null, players: [] },
+  {
+    ended: "later",
+    game: 501,
+    legs_to_win: 3,
+    sets_to_win: 1,
+    winner: 1,
+    players: [
+      { name: "Lea", legs: 3, sets: 1, match_legs: 3, average: 61.2 },
+      { name: "Alex", legs: 2, sets: 0, match_legs: 2, average: 58.3 },
+    ],
+  },
+  {
+    ended: "2026-09-25T19:00:00+00:00",
+    game: "cricket",
+    legs_to_win: 2,
+    sets_to_win: 2,
+    winner: 2,
+    players: [
+      { name: "Alex", legs: 1, sets: 1, match_legs: 3, mpr: 2.1 },
+      { name: "Sam", legs: 2, sets: 2, match_legs: 4, mpr: 2.4 },
+    ],
+  },
+  // Up to version 1.5, the winner lost the legs of the deciding set again.
+  {
+    ended: "2026-09-24T19:00:00+00:00",
+    game: 301,
+    legs_to_win: 3,
+    sets_to_win: 1,
+    winner: 1,
+    players: [
+      { name: "Lea", legs: 0, sets: 1 },
+      { name: "Alex", legs: 2, sets: 0 },
+      { name: "Kim" },
+    ],
+  },
+  { ended: "2026-09-23T19:00:00+00:00", game: null, winner: null, players: [] },
 ];
 const setup = (states, config = {}, options = {}) => {
   const hass = makeHass({ states, ...options });
@@ -107,14 +144,16 @@ test("recent matches show when they ended, the game and the winner in bold", () 
     matches.map((match) => [...match.children].map((part) => part.textContent.replace(/\s/g, " "))),
     [
       ["09/26, 8:00 PM", "Killer", "Alex 0 · Player 2 1"],
-      ["", "501", "Lea 1"],
-      ["09/25, 7:00 PM", "Cricket", "Alex 0"],
-      ["09/24, 7:00 PM", "", ""],
+      // A first to three legs ends 3 : 2, a match of sets tells the sets.
+      ["", "501", "Lea 3 · Alex 2"],
+      ["09/25, 7:00 PM", "Cricket · Sets", "Alex 1 · Sam 2"],
+      ["09/24, 7:00 PM", "301", "Lea 3 · Alex 2 · Kim 0"],
+      ["09/23, 7:00 PM", "", ""],
     ]
   );
   assert.deepEqual(
     matches.map((match) => match.querySelector("b")?.textContent),
-    ["Player 2 1", "Lea 1", undefined, undefined]
+    ["Player 2 1", "Lea 3", "Sam 2", "Lea 3", undefined]
   );
 });
 
