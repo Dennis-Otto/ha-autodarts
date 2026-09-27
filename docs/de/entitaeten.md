@@ -23,7 +23,7 @@ Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Bo
 | Punkte letzter Dart | Sensor, Punkte | Punkte des letzten Darts. |
 | Darts in der Aufnahme | Sensor, Darts | Darts, die gerade im Board erkannt sind (0–3). |
 | Erkannte Aufnahmepunkte | Sensor, Punkte | Summe der erkannten Darts. Das Attribut `throws` listet jeden Dart mit `segment`, `number`, `multiplier`, `score`, `bed` und der normierten Position `x`/`y`. In Home Assistant korrigierte oder eingegebene Darts und die Darts des [Bots](#bot) gehören zur Aufnahme, markiert mit `corrected`, `manual` oder `bot`; `dart` nummeriert die Darts der aktuellen Aufnahme (1–3), so wie [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) sie zählt. Das Attribut `recent_visits` listet die letzten zehn abgeschlossenen Aufnahmen, die neueste zuerst, mit `time`, `score`, `darts`, `segments` und `manual` bei einer Aufnahme mit von Hand eingegebenen oder korrigierten Darts. Der Recorder speichert beide Attribute nicht. |
-| Letztes Ereignis | Sensor | Der letzte Ereignistext des Board Managers, etwa `Throw detected` oder `Takeout started`. |
+| Letztes Ereignis | Sensor, *Diagnose*, *Deaktiviert* | Der letzte Ereignistext des Board Managers, etwa `Throw detected` oder `Takeout started`, auf Englisch, wie das Board ihn schreibt; *Erkennungsstatus* zeigt dasselbe übersetzt. Er ändert sich mit jedem Dart und ist daher anfangs deaktiviert. |
 
 Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwerfen. Letzter Dart, seine Punkte und die Aufnahmepunkte folgen Korrekturen, von Hand eingegebenen Darts und den Darts des Bots; *Darts in der Aufnahme* zählt die Darts, die das Board selbst sieht.
 
@@ -104,11 +104,11 @@ Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt je
 | Session-Timeout | Zahl, *Konfiguration* | Minuten ohne Darts, 0–240, nach denen eine Session von selbst endet. `0`, der Standard, lässt sie weiterlaufen. |
 | Average der letzten Session | Sensor, Punkte | 3-Dart-Average der letzten beendeten Session. Attribute: `started`, `ended`, `duration_minutes`, die Summen, `manual_darts` (von Hand eingegebene Darts) und `sessions` mit den letzten 20 Sessions, die der Recorder nicht speichert. |
 
-Die Summen nutzen die Zustandsklasse *total increasing*. Statistiken und Verlaufsdiagramme von Home Assistant behandeln einen Neustart der Session daher korrekt. [So wird gezählt](funktionsweise.md#trainingssession).
+Die Summen nutzen die Zustandsklasse *total* mit dem Start der Session als `last_reset`: Die Statistik von Home Assistant summiert sie pro Session, und eine Korrektur oder eine zurückgenommene Aufnahme kann sie senken. Die Aufnahmen mit 100+, 140+ und 180 zählen, sobald eine Aufnahme abgeschlossen ist, wenn ihre Darts gezogen werden. [So wird gezählt](funktionsweise.md#trainingssession).
 
 ## Bestleistungen, Serie und Tagesziel
 
-Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert hast, und deine Darts pro Tag. Jeder erkannte Dart zählt für den Tag, mit oder ohne Session. Der erste Wert eines Rekords setzt ihn still; wer ihn übertrifft, löst `personal_best` aus, gleiche Werte zählen nicht.
+Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert hast, und deine Darts pro Tag. Jeder erkannte Dart zählt für den Tag, mit oder ohne Session. Der erste Wert eines Rekords setzt ihn still; wer ihn übertrifft, löst `personal_best` aus, gleiche Werte zählen nicht. Die Rekorde eines Legs zählen, wenn das Leg verbucht wird, also wenn seine Darts gezogen werden; ein Sieg, den eine Korrektur zurücknimmt, setzt also keinen.
 
 | Rekord | Bester Wert | Aus |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert ha
 | Letzte Bestleistung | Sensor, Zeitstempel | Wann die letzte Bestleistung fiel; vor der ersten *unbekannt*. Attribute: `record`, `value`, `previous` und `name` dieser Bestleistung sowie der beste Wert jedes Rekords unter seinem Schlüssel, etwa `highest_checkout`. |
 | Darts heute | Sensor, Darts, Summe | Heute erkannte Darts; beginnt um Mitternacht bei 0. Attribute: `goal`, `goal_reached`, `progress` (Prozent des Ziels). |
 | Trainingsserie | Sensor, Dauer in Tagen | Tage in Folge mit mindestens einem Dart. Sie bleibt, bis ein ganzer Tag ohne Darts vergeht. Attribute: `best_streak`, `trained_today`, `last_day`. |
-| Tagesziel | Zahl, Darts, *Konfiguration* | Darts, die du jeden Tag werfen willst, 0–2000; `0`, der Standard, setzt kein Ziel. Erreichen die Darts von heute das Ziel, löst `daily_goal_reached` einmal aus. |
+| Tagesziel | Zahl, Darts, *Konfiguration* | Darts, die du jeden Tag werfen willst, 0–2000; `0`, der Standard, setzt kein Ziel. Erreichen die Darts von heute das Ziel, löst `daily_goal_reached` einmal aus. Ein höheres Ziel, das du danach setzt, wird erneut erreicht, mit dem Ereignis. |
 
 ## Wochenbericht
 
@@ -142,14 +142,14 @@ Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, 
 | `sessions` | [Trainingssessions](#trainingssession) mit Darts, die in der Woche endeten |
 | `training_minutes` | Zeit am Board: die Zeit von Dart zu Dart, ohne Pausen von mehr als fünf Minuten |
 | `checkout_rate`, `darts_at_double`, `checkouts` | X01-Übungslegs: ausgecheckte Legs pro Dart aufs Double, wie bei *Übungsspiel Checkout-Quote* |
-| `legs`, `matches` | Beendete Übungslegs und entschiedene Übungsmatches mehrerer Spieler |
+| `legs`, `matches` | Beendete Übungslegs und entschiedene Übungsmatches mehrerer Spieler, verbucht, wenn die Darts gezogen werden |
 | `streak`, `daily_goals` | Die Trainingsserie am Ende der Woche und die Tage, an denen das Tagesziel erreicht wurde |
 | `personal_bests` | Die Bestleistungen der Woche mit `record`, `value` und `name`, die neueste zuerst, höchstens 10 |
 | `week_start`, `week_end` | Beginn und Ende der Woche, in UTC |
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Wochenbericht | Sensor, Darts, Summe | Darts der laufenden Woche; jede Woche beginnt bei 0. Attribute: die Werte oben für die bisherige Woche, `average_change` gegenüber dem letzten Bericht und `last_week` mit dem letzten Bericht. Der Recorder speichert weder `last_week` noch `personal_bests`. |
+| Wochenbericht | Sensor, Darts, Summe | Darts der laufenden Woche; jede Woche beginnt bei 0, mit ihrem Beginn als `last_reset`. Attribute: die Werte oben für die bisherige Woche, `average_change` gegenüber dem letzten Bericht und `last_week` mit dem letzten Bericht. Der Recorder speichert weder `last_week` noch `personal_bests`. |
 | Tag des Wochenberichts | Auswahl, *Konfiguration* | Der Tag, der die Woche beendet, `monday` bis `sunday`; standardmäßig `monday`. |
 | Uhrzeit des Wochenberichts | Uhrzeit, *Konfiguration* | Die Uhrzeit an diesem Tag, auf die Minute; standardmäßig Mitternacht. |
 
@@ -157,12 +157,12 @@ Ein neuer Tag oder eine neue Uhrzeit beendet die laufende Woche bei ihrem nächs
 
 ## Trainingskalender
 
-Der **Trainingskalender** (`calendar.*_training_calendar`) zeigt deine beendeten Trainingssessions und Übungsmatches im Kalender von Home Assistant, etwa *Training · 312 Darts · Ø 54.2* oder *501 · Alex 3:2 Sam*. Er ist nur lesbar, und seine Titel lauten in jeder Sprache gleich.
+Der **Trainingskalender** (`calendar.*_training_calendar`) zeigt deine beendeten Trainingssessions und Übungsmatches im Kalender von Home Assistant, etwa *Training · 312 Darts · Ø 54,2* oder *501 · Alex 3:2 Sam*. Er ist nur lesbar. Seine Titel folgen auf Deutsch, Niederländisch, Französisch und Spanisch der Sprache von Home Assistant, mit dem Dezimalkomma; andere Sprachen lesen sich wie Englisch, etwa *Training · 312 Darts · Ø 54.2*.
 
 <img src="../images/de/training-calendar.png" alt="Der Kalender von Home Assistant mit einer Woche voller Trainingssessions und Übungsmatches von Alex, Sam und Kim" width="760">
 
 - **Sessions** reichen von ihrem Beginn bis zu ihrem Ende. Die Beschreibung nennt die 180er, die 140+- und 100+-Aufnahmen und die höchste Aufnahme (*Max*).
-- **Matches** mehrerer Spieler reichen vom ersten bis zum entscheidenden Dart. Der Titel zeigt die gewonnenen Sätze, oder die Legs, wenn ein Satz das Match entscheidet; Spieler ohne Namen erscheinen als `#1` bis `#4`. Die Beschreibung nennt Average, Marks pro Runde oder Punkte jedes Spielers. Matches von vor dem Update kennen ihren ersten Dart nicht und erscheinen als eine Minute.
+- **Matches** mehrerer Spieler, in jedem Spiel, reichen vom ersten bis zum entscheidenden Dart. Der Titel zeigt die gewonnenen Sätze, oder die Legs, wenn ein Satz das Match entscheidet; Spieler ohne Namen erscheinen als `#1` bis `#4` und der Bot als *Bot*, und ein Team-Match nennt beide Teams, etwa *501 · Alex & Kim 1:0 Sam & Lea*. Die Beschreibung nennt Average, Marks pro Runde oder Punkte jedes Spielers. Matches von vor Version 1.6 kennen ihren ersten Dart nicht und erscheinen als eine Minute.
 - **Ein Jahr Verlauf.** Der Kalender behält die Sessions und Matches der letzten 365 Tage, höchstens je 3.000. Nach dem Update übernimmt er die letzten 20 bereits gespeicherten Sessions und Matches.
 - **Zustand:** Der Kalender ist *aus*, weil nichts bevorsteht. Seine Attribute zeigen die Session oder das Match, das zuletzt endete.
 
@@ -199,7 +199,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel First-9-Average | Sensor, Punkte | 3-Dart-Average der ersten neun Darts jedes Legs, über die letzten 10 Legs aller Spieler am Board. |
 | Übungsspiel Checkout-Quote | Sensor, % | Gewonnene Legs pro Dart auf ein Double, über die letzten 10 Legs. Ein Dart zählt als Dart aufs Double, wenn ein Double den Rest checken könnte: 2 bis 40 bei geraden Zahlen oder 50. Nur mit Double-Out. |
 | Übungsspiel Doppelquote | Sensor, % | Dieselben Darts aufs Double zusammen mit den letzten 10 Ergebnissen aus Doppeltraining und Bob's 27. |
-| Übungsspiel gespielte Legs | Sensor, Summe | Beendete Legs in X01, den Cricket-Spielen und den Partyspielen; die Langzeitstatistik zeigt die Legs pro Tag. |
+| Übungsspiel gespielte Legs | Sensor, Summe | Beendete Legs in X01, den Cricket-Spielen und den Partyspielen; die Langzeitstatistik zeigt die Legs pro Tag. Eine zurückgenommene Aufnahme, die ein Leg gewonnen hat, nimmt das Leg mit zurück. |
 | Übungsspiel Spielerzahl | Zahl, *Konfiguration* | 1–4 Spieler; mit dem [Bot](#bot) 1–3 neben ihm. Eine Änderung startet ein neues Match. |
 | Übungsspiel Legs pro Satz | Zahl, *Konfiguration* | 1–11 Legs gewinnen einen Satz. Eine Änderung startet ein neues Match. |
 | Übungsspiel Sätze zum Sieg | Zahl, *Konfiguration* | 1–7 Sätze gewinnen das Match. Eine Änderung startet ein neues Match. |
@@ -221,7 +221,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 <img src="../images/de/scoreboard-teams.png" alt="Anzeigetafel eines 501-Team-Matches: Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216, Sam am Board fett mit seinem Average" width="760">
 
 - **Teams:** Schalte *Übungsspiel Teams* ein und stelle *Übungsspiel Spielerzahl* auf 4. Spieler 1 und 3 spielen gegen Spieler 2 und 4, in X01 und den [Cricket-Spielen](#cricket); geworfen wird in der Reihenfolge der Plätze, die Teams wechseln sich also ab. Partner teilen sich einen Stand: den Rest in X01, Marks und Punkte bei Cricket. Die Anzeigetafel zeigt zwei Team-Kacheln, *Alex & Kim* gegen *Sam & Lea*, mit dem Partner am Board in Fettschrift. Beide Partner gewinnen Leg und Match; die Ereignisse ergänzen `team` und `team_name`.
-- **Statistik:** Averages, First 9 und Checkout-Quote bleiben pro Person, und die [Spielerprofile](#spielerprofile) zählen Leg und Match für beide Partner. Direkte Vergleiche zählen nur zwischen Gegnern. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Marks pro Runde.
+- **Statistik:** Averages, First 9 und Checkout-Quote bleiben pro Person, und die [Spielerprofile](#spielerprofile) zählen Leg und Match für beide Partner. Direkte Vergleiche zählen nur zwischen Gegnern. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Marks pro Runde, weder in den Bestleistungen noch in den Profilen oder im Wochenfortschritt; sein Checkout zählt für den Partner, der ihn geworfen hat.
 - **Startpunkte:** Für ein Handicap stellst du *Übungsspiel Startpunkte Spieler N* ein, etwa 301 für eine Anfängerin gegen 501. `0` spielt die Startpunkte des Spiels. Die Anzeigetafel zeigt eigene Startpunkte neben den Namen, und `leg_won` nennt sie in `start`. Ein Team spielt mit den Startpunkten seines ersten Spielers. Ein Leg zählt für die Bestleistung der wenigsten Darts der Punkte, mit denen es begann: ab 301 für `fewest_darts_301`, ab 401 für keine.
 - Party- und Trainingsspiele spielt jeder für sich; mit weniger oder mehr als vier Spielern bewirkt *Übungsspiel Teams* nichts.
 
@@ -236,7 +236,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 - **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](karten.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`.
 - **Dart eingeben:** Ist *Übungsspiel manuelle Eingabe* an, fügen [`autodarts.throw_dart`](#dart-eingeben-autodartsthrow_dart) oder das Tastenfeld der Anzeigetafel einen Dart hinzu, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras, als hätte das Board ihn erkannt, markiert mit `manual`. Die Erkennung muss nicht laufen: Ist sie gestoppt, bilden die eingegebenen Darts die Aufnahme allein.
 - **Weitergeben:** [`autodarts.next_player`](#weitergeben-autodartsnext_player) beendet die Aufnahme, ohne die Darts zu ziehen. Die Darts im Board gehören zu keiner Aufnahme, bis sie gezogen sind, und neue Darts zählen für den nächsten Spieler. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus.
-- **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
+- **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Der Fortschritt der Spieler, der Wochenbericht und der Trainingskalender kehren mit zurück, damit die Aufnahme einmal zählt, wenn sie erneut endet. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
 
 [Die Regeln für Korrekturen und von Hand eingegebene Darts](funktionsweise.md#korrekturen-und-von-hand-eingegebene-darts).
 
@@ -248,7 +248,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 - **Sein Platz:** Der Bot sitzt nach den Spielern; mit *Übungsspiel Spielerzahl* auf 1 spielt also einer gegen den Bot, und mit dem Bot spielen bis zu drei Spieler. Partyspiele, Trainingsspiele und Turniere laufen ohne ihn.
 - **Sein Zug:** Der Bot wirft *Übungsspiel Bot-Pause* Sekunden, nachdem die Darts des Spielers vor ihm gezogen sind, Dart für Dart, und beendet seine Aufnahme nach derselben Pause. Seine Darts erscheinen auf den Karten wie erkannte, mit ihren Positionen, und lösen die üblichen Ereignisse mit `bot: true` aus. Wirft ein Spieler, während der Bot noch am Board ist, wirft der Bot den Rest seiner Aufnahme sofort, und die neuen Darts zählen für den Spieler.
 - **Wohin er zielt:** wie ein Spieler auf die Triple 20 zum Punkten, entlang des Checkout-Wegs und auf den [Stellwurf](#stellwürfe), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Seine Darts streuen um den Zielpunkt, sodass sein Average seiner Stärke entspricht. [Wie der Bot spielt](funktionsweise.md#bot).
-- **Seine Darts zählen für niemanden:** nicht für die Trainingssession, die Statistik, die Bestleistungen, die Spielerprofile, die Erfolge, den Wochenbericht oder die Korrekturquote. Das Ergebnis eines Matches gegen den Bot zählt in den Profilen der Spieler.
+- **Seine Darts zählen für niemanden:** nicht für die Trainingssession, die Statistik, die Bestleistungen, die Spielerprofile, die Erfolge, den Wochenbericht oder die Korrekturquote, und sie starten keine Trainingssession. Das Ergebnis eines Matches gegen den Bot zählt in den Profilen der Spieler.
 
 ## Stellwürfe
 
@@ -480,7 +480,7 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 | Erkennungsbildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde der Erkennung. |
 | Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die das Board nachträglich korrigiert hat. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](fehlerbehebung.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
 | Kamera *N* Bildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde einer Kamera. |
-| CPU-Auslastung | Sensor, %, **BM 2**, *Diagnose* | CPU-Last des Board-PCs. |
+| CPU-Auslastung | Sensor, %, **BM 2**, *Diagnose*, *Deaktiviert* | CPU-Last des Board-PCs. |
 | Speichernutzung | Sensor, **BM 2**, *Diagnose*, *Deaktiviert* | Speichernutzung laut Board Manager 2. |
 | Betriebssystem | Sensor, **BM 2**, *Diagnose* | Distribution und Version des Board-PCs, etwa *Debian 13*. Attribute: `kernel`, `architecture`. |
 | Prozessor | Sensor, **BM 2**, *Diagnose* | Prozessormodell des Board-PCs. Attribut: `cores`. |

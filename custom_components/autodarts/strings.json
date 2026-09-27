@@ -741,6 +741,15 @@
     "unsupported_response": {
       "message": "Board Manager answers in a format this version of the integration does not understand."
     },
+    "storage_newer": {
+      "message": "The stored training of this board comes from a newer version of the integration. Install that version again, or restore a backup; the stored data stays unchanged."
+    },
+    "storage_unreadable": {
+      "message": "The stored training of this board cannot be read right now. Home Assistant tries again; the stored data stays unchanged."
+    },
+    "storage_invalid": {
+      "message": "The stored training of this board cannot be restored. Please report this as a bug; the stored data stays unchanged."
+    },
     "not_supported": {
       "message": "This board does not support the action."
     },

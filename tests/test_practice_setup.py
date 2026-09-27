@@ -357,7 +357,8 @@ async def test_practice_statistics_follow_the_legs(hass, aioclient_mock):
     assert first_nine.attributes["legs_counted"] == 1
     registry = er.async_get(hass)
     legs = registry.async_get(entity_id(hass, "sensor", "practice_legs_played"))
-    assert legs.capabilities == {"state_class": "total_increasing"}
+    # An undone visit that won a leg takes the leg back.
+    assert legs.capabilities == {"state_class": "total"}
 
 
 async def test_party_games_rules_and_the_bull_off_in_home_assistant(

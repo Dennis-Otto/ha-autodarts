@@ -5,6 +5,7 @@ from copy import deepcopy
 from datetime import timedelta
 from unittest.mock import patch
 
+import pytest
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -31,6 +32,13 @@ from .local_helpers import (
 SECRETS = ("private-board-api-key", "private-tls-key")
 
 
+@pytest.fixture
+def cpu_usage(hass):
+    """The load of the board PC, switched on as a user would."""
+    er.async_get(hass).async_get_or_create("sensor", "autodarts", "board-1_cpu_usage")
+
+
+@pytest.mark.usefixtures("cpu_usage")
 async def test_board_manager_2_entities_and_one_system_read(hass, aioclient_mock):
     entry = await setup_v2(hass, aioclient_mock)
     assert entry.data["api_generation"] == 2
@@ -72,6 +80,14 @@ async def test_no_update_means_latest_is_installed(hass, aioclient_mock):
     assert state(hass, "update", "board_software") == "off"
 
 
+async def test_the_load_of_the_board_pc_is_off_unless_wanted(hass, aioclient_mock):
+    await setup_v2(hass, aioclient_mock)
+    for key in ("cpu_usage", "memory_usage"):
+        sensor = er.async_get(hass).async_get(entity_id(hass, "sensor", key))
+        assert sensor.disabled_by == er.RegistryEntryDisabler.INTEGRATION
+
+
+@pytest.mark.usefixtures("cpu_usage")
 async def test_failed_system_read_keeps_values(hass, aioclient_mock):
     entry = await setup_v2(hass, aioclient_mock)
     aioclient_mock.clear_requests()
@@ -118,7 +134,7 @@ async def test_board_without_system_endpoint_returns_to_classic(hass, aioclient_
 
 
 async def test_version_2_board_without_system_endpoint_settles_as_classic(
-    hass, aioclient_mock
+    hass, aioclient_mock, freezer
 ):
     """Such a board is switched over once and stays so, instead of reloading."""
     mock_board(aioclient_mock, version="2.0.0")
@@ -130,12 +146,16 @@ async def test_version_2_board_without_system_endpoint_settles_as_classic(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     coordinator = entry.runtime_data.local
-    # A board that is still starting may miss the route for a moment.
+    # A board that is still starting may miss the route for a while.
     assert entry.data["api_generation"] == 2
     assert "board-1_cpu_usage" in unique_ids(hass, entry)
     with patch.object(hass.config_entries, "async_schedule_reload") as reload:
-        for _ in range(2):
+        for _ in range(5):
+            freezer.tick(timedelta(seconds=59))
             await coordinator.async_refresh()
+        reload.assert_not_called()
+        freezer.tick(timedelta(seconds=5))
+        await coordinator.async_refresh()
     reload.assert_called_once_with(entry.entry_id)
     assert entry.data["api_generation"] == 1
     assert entry.data["no_system_api"] == "2.0.0"
@@ -151,6 +171,7 @@ async def test_version_2_board_without_system_endpoint_settles_as_classic(
             await coordinator.async_refresh()
     reload.assert_not_called()
     assert coordinator.generation == 1
+    # Only once an hour: the route may come with an update of the same version.
     assert "/api/system" not in {call[1].path for call in aioclient_mock.mock_calls}
     ids = unique_ids(hass, entry)
     assert "board-1_upstream" in ids
@@ -168,6 +189,31 @@ async def test_version_2_board_without_system_endpoint_settles_as_classic(
     )
 
 
+async def test_a_board_that_answers_the_system_endpoint_again_is_board_manager_2(
+    hass, aioclient_mock, freezer
+):
+    mock_board(aioclient_mock, version="2.0.0")
+    aioclient_mock.get(BASE + "/api/system", status=404)
+    data = {**local_entry_data(), "api_generation": 1, "no_system_api": "2.0.0"}
+    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data.local
+    aioclient_mock.clear_requests()
+    mock_board_v2(aioclient_mock)
+    with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+        freezer.tick(timedelta(minutes=59))
+        await coordinator.async_refresh()
+        reload.assert_not_called()
+        freezer.tick(timedelta(minutes=1))
+        await coordinator.async_refresh()
+    reload.assert_called_once_with(entry.entry_id)
+    assert entry.data["api_generation"] == 2
+    assert "no_system_api" not in entry.data
+
+
+@pytest.mark.usefixtures("cpu_usage")
 async def test_system_endpoint_missing_for_a_moment_changes_nothing(
     hass, aioclient_mock
 ):
@@ -176,15 +222,16 @@ async def test_system_endpoint_missing_for_a_moment_changes_nothing(
     missing = AutodartsEndpointMissing("starting")
     for _ in range(2):
         with patch.object(coordinator.client, "get_system", side_effect=missing):
-            await coordinator.async_refresh()
-            await coordinator.async_refresh()
+            for _ in range(4):
+                await coordinator.async_refresh()
         await coordinator.async_refresh()
     assert entry.data["api_generation"] == 2
     assert "no_system_api" not in entry.data
     assert state(hass, "sensor", "cpu_usage") == "12.5"
 
 
-async def test_new_board_manager_version_asks_for_the_system_endpoint_again(
+@pytest.mark.usefixtures("cpu_usage")
+async def test_a_board_that_brings_the_system_endpoint_at_start_is_board_manager_2(
     hass, aioclient_mock
 ):
     aioclient_mock.get(BASE + "/api/version", text="2.1.0")
@@ -200,17 +247,43 @@ async def test_new_board_manager_version_asks_for_the_system_endpoint_again(
     assert state(hass, "sensor", "cpu_usage") == "12.5"
 
 
+async def test_new_board_manager_version_asks_for_the_system_endpoint_again(
+    hass, aioclient_mock, freezer
+):
+    mock_board(aioclient_mock, version="2.0.0")
+    aioclient_mock.get(BASE + "/api/system", status=404)
+    data = {**local_entry_data(), "api_generation": 1, "no_system_api": "2.0.0"}
+    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.data["api_generation"] == 1
+    # Board Manager 2.1.0 is installed while Home Assistant runs.
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(BASE + "/api/version", text="2.1.0")
+    mock_board_v2(aioclient_mock, system={**deepcopy(SYSTEM), "version": "2.1.0"})
+    freezer.tick(timedelta(seconds=30))
+    with patch.object(hass.config_entries, "async_schedule_reload") as reload:
+        await entry.runtime_data.local.async_refresh()
+    reload.assert_called_once_with(entry.entry_id)
+    assert "no_system_api" not in entry.data
+    assert entry.data["api_generation"] == 2
+
+
 async def test_board_without_system_endpoint_of_unknown_version_stays_classic(
     hass, aioclient_mock
 ):
     mock_board(aioclient_mock, version="2.0.0")
+    aioclient_mock.get(BASE + "/api/system", status=404)
     data = {**local_entry_data(), "api_generation": 1, "no_system_api": ""}
     entry = MockConfigEntry(domain="autodarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.data["api_generation"] == 1
-    assert entry.data["no_system_api"] == ""
+    # Once the version is known, it is the one without the route: a new
+    # version asks again.
+    assert entry.data["no_system_api"] == "2.0.0"
     assert "board-1_upstream" in unique_ids(hass, entry)
 
 
@@ -246,6 +319,7 @@ async def test_board_pc_details_without_private_names(hass, aioclient_mock):
         assert private not in str(hass.states.async_all())
 
 
+@pytest.mark.usefixtures("cpu_usage")
 async def test_board_without_host_details_keeps_working(hass, aioclient_mock):
     aioclient_mock.get(BASE + "/api/host", status=404)
     entry = await setup_v2(hass, aioclient_mock)
@@ -255,6 +329,7 @@ async def test_board_without_host_details_keeps_working(hass, aioclient_mock):
     assert state(hass, "sensor", "cpu_usage") == "12.5"
 
 
+@pytest.mark.usefixtures("cpu_usage")
 async def test_failed_host_read_is_asked_again_at_the_next_poll(hass, aioclient_mock):
     aioclient_mock.get(BASE + "/api/host", status=503)
     entry = await setup_v2(hass, aioclient_mock)
@@ -269,14 +344,31 @@ async def test_failed_host_read_is_asked_again_at_the_next_poll(hass, aioclient_
     assert [call[1].path for call in aioclient_mock.mock_calls].count("/api/host") == 1
 
 
-async def test_board_that_tells_no_version_runs_as_classic(hass, aioclient_mock):
+async def test_board_that_tells_no_version_runs_as_classic(
+    hass, aioclient_mock, freezer
+):
     aioclient_mock.get(BASE + "/api/version", status=404)
     entry = await setup_local(hass, aioclient_mock)
     assert "api_generation" not in entry.data
-    assert entry.runtime_data.local.generation is None
+    coordinator = entry.runtime_data.local
+    assert coordinator.generation is None
     ids = unique_ids(hass, entry)
     assert "board-1_upstream" in ids and "board-1_cloud_link" not in ids
     assert state(hass, "switch", "detection") == "off"
+    # The version is asked with the other metadata, not with every poll.
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(BASE + "/api/version", status=404)
+    mock_board(aioclient_mock)
+    for _ in range(10):
+        freezer.tick(timedelta(seconds=2))
+        await coordinator.async_refresh()
+    paths = [call[1].path for call in aioclient_mock.mock_calls]
+    assert paths.count("/api/version") == 0
+    freezer.tick(timedelta(seconds=10))
+    await coordinator.async_refresh()
+    paths = [call[1].path for call in aioclient_mock.mock_calls]
+    # Once as the probe of the generation, once with the metadata.
+    assert paths.count("/api/version") == 2
 
 
 async def test_cameras_are_read_right_after_the_detection_starts(hass, aioclient_mock):

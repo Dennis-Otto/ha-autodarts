@@ -10,8 +10,10 @@ from homeassistant.helpers.storage import Store
 from .const import DOMAIN
 
 STORAGE_VERSION = 1
-# Raise with each change of the stored layout and upgrade in _async_migrate_func.
-STORAGE_MINOR_VERSION = 1
+# Raised with each change of the stored layout; every part restores older
+# layouts itself, see _async_migrate_func. 2: version 1.6 added the progress,
+# the tournament, the match summary and the bot.
+STORAGE_MINOR_VERSION = 2
 
 
 def storage_key(entry_id: str) -> str:
@@ -37,7 +39,8 @@ class TrainingStore(Store[dict[str, Any]]):
         """Data of another minor version loads as it is.
 
         Every part restores older layouts and ignores fields it does not know,
-        so data written by a newer release also loads after a downgrade. Home
-        Assistant refuses a newer major version before it calls this.
+        so data written by a newer release also loads after a downgrade; the
+        coordinator keeps its unknown parts when it saves. Home Assistant
+        refuses a newer major version before it calls this.
         """
         return old_data

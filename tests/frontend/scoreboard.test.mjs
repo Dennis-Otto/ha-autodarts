@@ -45,7 +45,7 @@ test("an X01 match shows every player, the player at the board and the route", (
   assert.match(match.main, /<div class="players n2">/);
   assert.match(
     match.main,
-    /<div class="player active"><div class="name">Alex<\/div><div class="big">81<\/div><div class="route"><span class="bed">T15<\/span><span class="bed">D18<\/span><\/div><div class="details">score_legs 1 · Ø 84\.2<\/div>/
+    /<div class="player active" aria-current="true"><div class="name">Alex<\/div><div class="big">81<\/div><div class="route"><span class="bed">T15<\/span><span class="bed">D18<\/span><\/div><div class="details">score_legs 1 · Ø 84\.2<\/div>/
   );
   assert.match(
     match.main,
@@ -106,7 +106,7 @@ test("cricket shows the chalkboard, the points and the next number", () => {
   assert.equal(cricket.title, "cricket");
   assert.match(
     cricket.main,
-    /<thead><tr><th class="aim"><span class="bed">T19<\/span><\/th><th class="active">Alex<\/th><th class="">Sam<\/th><\/tr><\/thead>/
+    /<thead><tr><th class="aim"><span class="bed">T19<\/span><\/th><th class="active" aria-current="true">Alex<\/th><th class="">Sam<\/th><\/tr><\/thead>/
   );
   // Every mark has a name for screen readers.
   const closed = '<span role="img" aria-label="mark_3">Ⓧ</span>';
@@ -211,8 +211,12 @@ test("party games and the bull-off have their own boards", () => {
     },
   });
   assert.equal(killer.title, "party_killer");
-  assert.match(killer.main, /<div class="big lives">♥♥♥<\/div><div class="route"><span class="note">killer_hunt<\/span>/);
-  assert.match(killer.main, /<div class="player out"><div class="name">Sam<\/div><div class="big lives">✕<\/div>/);
+  // Hearts read as the number of lives.
+  assert.match(
+    killer.main,
+    /<div class="big lives" role="img" aria-label="killer_lives">♥♥♥<\/div><div class="route"><span class="note">killer_hunt<\/span>/
+  );
+  assert.match(killer.main, /<div class="player out"><div class="name">Sam<\/div><div class="big lives" role="img" aria-label="killer_lives">✕<\/div>/);
   const halve = board({
     practice: {
       state: "unknown",
@@ -236,5 +240,5 @@ test("party games and the bull-off have their own boards", () => {
     bullOff.main,
     /<div class="player"><div class="name">Alex<\/div><div class="big">S20<\/div><div class="route"><\/div><div class="details">11\.4 mm<\/div>/
   );
-  assert.match(bullOff.main, /<div class="player active"><div class="name">Sam<\/div><div class="big">–<\/div>/);
+  assert.match(bullOff.main, /<div class="player active" aria-current="true"><div class="name">Sam<\/div><div class="big">–<\/div>/);
 });

@@ -192,7 +192,8 @@ async def test_the_pause_waits_for_the_button_and_changes_at_once(
     assert tournament(hass).attributes["current"]["match"] == 3
 
 
-async def test_a_timer_that_fires_early_waits_again(hass, aioclient_mock):
+async def test_a_timer_that_fires_early_waits_again(hass, aioclient_mock, freezer):
+    # A frozen clock: however long the test takes, the pause is not over.
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1)

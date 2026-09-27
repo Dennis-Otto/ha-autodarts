@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
-from dataclasses import dataclass
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, replace
 from datetime import datetime
 from functools import partial
 from typing import Any
@@ -40,7 +40,7 @@ from .const import (
 )
 from .coordinator import AutodartsDataUpdateCoordinator
 from .entity import AutodartsEntity, AutodartsLocalEntity
-from .local_coordinator import AutodartsLocalCoordinator
+from .local_coordinator import TELEMETRY_LISTENERS, AutodartsLocalCoordinator
 from .online import SENSOR_KEY as ONLINE_SENSOR_KEY
 from .online import OnlineBridge
 from .runtime import AutodartsConfigEntry
@@ -168,7 +168,8 @@ def _dart(dart: Any) -> dict[str, Any] | None:
     if type(number) is not int or type(multiplier) is not int:
         return None
     result = {
-        "segment": segment["name"] if isinstance(segment.get("name"), str) else None,
+        # Like any board text, short enough for the state of Last dart.
+        "segment": _text(segment.get("name")),
         "number": number,
         "multiplier": multiplier,
         "score": number * multiplier,
@@ -250,6 +251,8 @@ class AutodartsSensorEntityDescription(SensorEntityDescription):
 
     value_fn: Callable[[dict[str, Any]], Any]
     attr_fn: Callable[[dict[str, Any]], dict[str, Any]] | None = None
+    # A frame rate or load of the board PC, see TELEMETRY_LISTENERS.
+    telemetry: bool = False
 
 
 STATIC_SENSORS: tuple[AutodartsSensorEntityDescription, ...] = (
@@ -311,6 +314,20 @@ STATIC_SENSORS: tuple[AutodartsSensorEntityDescription, ...] = (
 )
 
 
+def _local_description(
+    description: AutodartsSensorEntityDescription,
+) -> AutodartsSensorEntityDescription:
+    """Locally, Last event repeats Detection status in the Board Manager's raw
+    English text with every dart: a diagnostic, off unless switched on."""
+    if description.key != SENSOR_BOARD_EVENT:
+        return description
+    return replace(
+        description,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    )
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: AutodartsConfigEntry,
@@ -359,7 +376,7 @@ async def async_setup_entry(
             )
         )
         entities.extend(
-            AutodartsLocalSensor(runtime.local, description)
+            AutodartsLocalSensor(runtime.local, _local_description(description))
             for description in STATIC_SENSORS
             if description.key in local_keys
         )
@@ -403,6 +420,7 @@ async def async_setup_entry(
                             entity_category=EntityCategory.DIAGNOSTIC,
                             entity_registry_enabled_default=False,
                             value_fn=partial(_camera_fps, index=index),
+                            telemetry=True,
                         ),
                     )
                     for index in sorted(new)
@@ -490,6 +508,7 @@ LOCAL_SENSORS = (
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: _number(data.get("stats", {}).get("fps")),
+        telemetry=True,
     ),
 )
 
@@ -523,7 +542,11 @@ SYSTEM_SENSORS = (
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         entity_category=EntityCategory.DIAGNOSTIC,
+        # It changes with every read of the board: off unless wanted, like the
+        # memory usage.
+        entity_registry_enabled_default=False,
         value_fn=lambda data: _system(data, "cpu_percent"),
+        telemetry=True,
     ),
     AutodartsSensorEntityDescription(
         key="memory_usage",
@@ -536,6 +559,7 @@ SYSTEM_SENSORS = (
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: _system(data, "memory_bytes"),
+        telemetry=True,
     ),
     AutodartsSensorEntityDescription(
         key="host_os",
@@ -575,16 +599,20 @@ class AutodartsLocalSensor(AutodartsLocalEntity, SensorEntity):
         super().__init__(coordinator, description.key)
         self.entity_description = description
         self._attr_translation_key = description.translation_key
+        if description.telemetry:
+            # Updated by every poll that changes only the frame rates and load.
+            self.coordinator_context = TELEMETRY_LISTENERS
 
     @property
     def native_value(self) -> Any:
         return self.entity_description.value_fn(self.coordinator.data or {})
 
     @property
-    def extra_state_attributes(self) -> dict[str, Any] | None:
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
         if attr_fn := self.entity_description.attr_fn:
             return attr_fn(self.coordinator.data or {})
-        return None
+        # Such as the camera number of a camera's sensor.
+        return super().extra_state_attributes
 
 
 class AutodartsCameraSensor(AutodartsLocalSensor):
@@ -598,6 +626,13 @@ class AutodartsCameraSensor(AutodartsLocalSensor):
     ) -> None:
         super().__init__(coordinator, description)
         self._attr_extra_state_attributes = {"camera": index + 1}
+        self._index = index
+
+    @property
+    def available(self) -> bool:
+        """Like the camera, unavailable once the board has fewer cameras."""
+        count = (self.coordinator.data or {}).get("settings", {}).get("camera_count", 0)
+        return super().available and self._index < count
 
 
 class AutodartsVisitSensor(AutodartsLocalSensor):
@@ -660,12 +695,20 @@ class AutodartsTrainingSensor(AutodartsLocalEntity, SensorEntity):
             if key == "average":
                 self._attr_suggested_display_precision = 1
         else:
-            # Totals only grow until the session is reset, like a meter.
-            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+            # Totals of the session, which starts them from zero. A correction
+            # or an undone visit takes points and darts back, so they can
+            # also go down.
+            self._attr_state_class = SensorStateClass.TOTAL
 
     @property
     def available(self) -> bool:
         return True
+
+    @property
+    def last_reset(self) -> datetime | None:
+        if self.state_class is not SensorStateClass.TOTAL:
+            return None
+        return dt_util.parse_datetime(self.coordinator.training.started)
 
     @property
     def native_value(self) -> datetime | float | int | None:
@@ -769,7 +812,7 @@ class AutodartsPracticeSensor(AutodartsLocalEntity, SensorEntity):
         }
 
 
-# Practice statistic -> unit; legs only grow, like a meter.
+# Practice statistic -> unit; an undone visit that won a leg takes it back.
 PRACTICE_STATISTICS = {
     "first_9_average": "points",
     "checkout_rate": PERCENTAGE,
@@ -786,7 +829,7 @@ class AutodartsPracticeStatistic(AutodartsLocalEntity, SensorEntity):
         self._key = key
         self._attr_native_unit_of_measurement = PRACTICE_STATISTICS[key]
         if key == "legs_played":
-            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+            self._attr_state_class = SensorStateClass.TOTAL
         else:
             self._attr_state_class = SensorStateClass.MEASUREMENT
             self._attr_suggested_display_precision = 1
@@ -809,6 +852,28 @@ class AutodartsPracticeStatistic(AutodartsLocalEntity, SensorEntity):
             "legs_counted": statistics["legs_counted"],
             "darts_at_double": statistics["darts_at_double"],
         }
+
+
+class RevisionCache:
+    """Attributes worked out once per change of the training and games.
+
+    The coordinator raises its revision with every change of the practice
+    game, the profiles and the progress; the date changes trends and streaks.
+    """
+
+    def __init__(self) -> None:
+        self._key: tuple[object, object] | None = None
+        self._value: dict[str, Any] = {}
+
+    def get(
+        self,
+        coordinator: AutodartsLocalCoordinator,
+        compute: Callable[[], dict[str, Any]],
+    ) -> dict[str, Any]:
+        key = ((coordinator.data or {}).get("revision"), dt_util.now().date())
+        if key != self._key:
+            self._key, self._value = key, compute()
+        return self._value
 
 
 class AutodartsRecordsEntity(AutodartsLocalEntity, SensorEntity):
@@ -896,6 +961,7 @@ class AutodartsPlayerProfiles(AutodartsLocalEntity, SensorEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "player_profiles")
+        self._cache = RevisionCache()
 
     @property
     def available(self) -> bool:
@@ -907,6 +973,9 @@ class AutodartsPlayerProfiles(AutodartsLocalEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
+        return self._cache.get(self.coordinator, self._players)
+
+    def _players(self) -> dict[str, Any]:
         # Each profile with the player's progress: trend, hits and grouping.
         progress, today = self.coordinator.progress, dt_util.now().date()
         return {
@@ -1069,8 +1138,8 @@ class AutodartsWeeklyReport(AutodartsLocalEntity, SensorEntity):
     """Darts of the running report week, with the week so far and the last report."""
 
     _attr_native_unit_of_measurement = "darts"
-    # A new week starts from zero, like a meter that is reset.
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    # A new week starts from zero; an undone visit can take a dart back.
+    _attr_state_class = SensorStateClass.TOTAL
     _unrecorded_attributes = frozenset({"personal_bests", "last_week"})
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
@@ -1079,6 +1148,10 @@ class AutodartsWeeklyReport(AutodartsLocalEntity, SensorEntity):
     @property
     def available(self) -> bool:
         return True
+
+    @property
+    def last_reset(self) -> datetime | None:
+        return self.coordinator.reports.report.started
 
     @property
     def native_value(self) -> int:
@@ -1098,14 +1171,19 @@ class AutodartsAchievements(AutodartsLocalEntity, SensorEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "achievements")
+        self._cache = RevisionCache()
 
     @property
     def available(self) -> bool:
         return True
 
     def _achievements(self) -> dict[str, Any]:
-        return self.coordinator.progress.achievements(
-            self.coordinator.practice.profiles
+        """Worked out once for the state and the attributes of each change."""
+        return self._cache.get(
+            self.coordinator,
+            lambda: self.coordinator.progress.achievements(
+                self.coordinator.practice.profiles
+            ),
         )
 
     @property

@@ -319,3 +319,66 @@ test("rows leave out the section at the end of French and Spanish names, too", (
     );
   }
 });
+
+test("the dashboard's settings choose the scoreboard's caller, keypad, games and idle panels", () => {
+  const scoreboard = (config) =>
+    dashboardStrategy(hass([...board("dev1", "a"), ...board("dev2", "b")]), config).views.filter((view) =>
+      view.path.startsWith("scoreboard")
+    );
+  // Every board's scoreboard gets the options; empty ones and unknown ones stay out.
+  const views = scoreboard({
+    scoreboard: {
+      caller: true,
+      keypad: true,
+      corrections: false,
+      idle: false,
+      lobby_games: ["501", "cricket"],
+      idle_panels: [],
+      title: "Not an option",
+      call_scores: null,
+    },
+  });
+  assert.equal(views.length, 2);
+  for (const view of views) {
+    const { device_id: _, ...card } = view.cards[0];
+    assert.deepEqual(card, {
+      type: "custom:autodarts-scoreboard-card",
+      full_height: true,
+      caller: true,
+      keypad: true,
+      corrections: false,
+      idle: false,
+      lobby_games: ["501", "cricket"],
+    });
+  }
+  // Without settings, or with settings that are not an object, the card keeps its own defaults.
+  for (const config of [{}, { scoreboard: "caller" }, { scoreboard: null }]) {
+    assert.deepEqual(Object.keys(scoreboard(config)[0].cards[0]), ["type", "device_id", "full_height"]);
+  }
+});
+
+test("the live view has every rule of the practice game and every setting of a tournament", () => {
+  const keys = [
+    ["select.b_game", "practice_game"],
+    ["switch.b_bull_off", "practice_bull_off"],
+    ["switch.b_distance", "practice_bull_off_distance"],
+    ["switch.b_teams", "practice_teams"],
+    ["number.b_pause", "tournament_pause"],
+    ["number.b_summary", "tournament_summary"],
+    ["switch.b_third", "tournament_third_place"],
+  ];
+  const config = dashboardStrategy(hass(keys.map(([id, key]) => entity(id, key, "dev1"))));
+  const [, practice, tournament] = config.views[0].sections;
+  assert.deepEqual(practice.cards[1].entities, ["select.b_game", "switch.b_bull_off", "switch.b_distance", "switch.b_teams"]);
+  assert.deepEqual(tournament.cards[1].entities, ["number.b_pause", "number.b_summary", "switch.b_third"]);
+});
+
+test("an entity named like its board alone keeps its own row", () => {
+  const config = dashboardStrategy({
+    locale: { language: "en" },
+    entities: { "number.b_players": entity("number.b_players", "practice_players", "dev1") },
+    devices: { dev1: { name: "Garage" } },
+    states: { "number.b_players": { state: "2", attributes: { friendly_name: "Garage " } } },
+  });
+  assert.deepEqual(config.views[0].sections[1].cards[1].entities, ["number.b_players"]);
+});

@@ -240,10 +240,18 @@ async def test_rejected_states_never_shift_positions_onto_the_visit(
 
 
 async def test_board_text_longer_than_a_state_reads_as_unknown(hass, aioclient_mock):
+    # Locally, Last event is a diagnostic that starts switched off.
+    er.async_get(hass).async_get_or_create("sensor", "autodarts", "board-1_board_event")
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     coordinator.async_receive("state", board(event="x" * 256, status="Throw"))
     assert state(hass, "sensor", "board_event") == "Throw"
+    # The same for the name of a segment, which Last dart shows.
+    coordinator.async_receive("state", board(("y" * 256, 20, 1), status="Throw"))
+    assert state(hass, "sensor", "last_throw") == "unknown"
+    assert state(hass, "sensor", "last_throw_score") == "20"
+    last_event = er.async_get(hass).async_get(entity_id(hass, "sensor", "board_event"))
+    assert last_event.entity_category == er.EntityCategory.DIAGNOSTIC
 
 
 # -- polling ----------------------------------------------------------------------------

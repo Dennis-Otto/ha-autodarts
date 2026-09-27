@@ -355,3 +355,63 @@ test("idle panels fade in unless the device asks for less motion", () => {
   assert.match(style, /@media \(prefers-reduced-motion: reduce\) \{ \.idle-panel \{ animation: none; \} \}/);
   assert.equal(DEVICE.length > 0, true);
 });
+
+test("idle mode renders only when the next panel is due or the clock's minute ends", (t) => {
+  clock(t);
+  const { card } = setup({}, { idle_panels: ["clock", "today"], idle_interval: 30 });
+  t.mock.timers.tick(180000);
+  assert.equal(text(card, ".clock .big"), "7:08 PM");
+  const updates = t.mock.method(card, "_update");
+  // Nothing renders until the next panel is due, and the clock shows the next minute.
+  t.mock.timers.tick(29999);
+  assert.equal(updates.mock.callCount(), 0);
+  t.mock.timers.tick(1);
+  assert.equal(updates.mock.callCount(), 1);
+  assert.equal(panel(card), "today");
+  t.mock.timers.tick(30000);
+  assert.equal(updates.mock.callCount(), 2);
+  assert.equal(text(card, ".clock .big"), "7:09 PM");
+  t.mock.timers.tick(30000);
+  assert.equal(updates.mock.callCount(), 3);
+  assert.equal(panel(card), "today");
+  t.mock.timers.tick(30000);
+  assert.equal(text(card, ".clock .big"), "7:10 PM");
+});
+
+test("the clock of a single panel moves on without the panel fading in again", (t) => {
+  clock(t);
+  const { card } = setup({}, { idle_panels: ["clock"], idle_interval: 120 });
+  t.mock.timers.tick(180000);
+  const shown = $(card, ".idle-panel");
+  assert.equal(text(card, ".clock .big"), "7:08 PM");
+  t.mock.timers.tick(60000);
+  assert.equal(text(card, ".clock .big"), "7:09 PM");
+  assert.equal($(card, ".idle-panel"), shown);
+  t.mock.timers.tick(120000);
+  assert.equal(text(card, ".clock .big"), "7:11 PM");
+  assert.equal($(card, ".idle-panel"), shown);
+});
+
+test("a new game screen opened by hand comes back as it was when idle mode ends", (t) => {
+  clock(t);
+  const game = { "select.practice_game": { state: "off", attributes: { options: ["off", "501", "cricket"] } } };
+  const { card } = setup(game, { idle_after: 10 });
+  $(card, ".lobby-toggle").click();
+  $(card, '[data-lobby="game"][data-value="cricket"]').click();
+  $(card, '[data-lobby="guest"]').click();
+  t.mock.timers.tick(10000);
+  assert.equal(panel(card), "leaderboard");
+  assert.equal($(card, ".lobby"), null);
+  // The tap that ends idle mode brings the screen back with the game and players chosen.
+  $(card, ".idle-panel").click();
+  assert.deepEqual(
+    $$(card, '.game[aria-pressed="true"]').map((button) => button.dataset.value),
+    ["cricket"]
+  );
+  assert.equal($$(card, ".lobby-player").length, 1);
+  // Closed, it stays closed through the next idle mode.
+  $(card, '[data-lobby="close"]').click();
+  t.mock.timers.tick(10000);
+  $(card, ".idle-panel").click();
+  assert.equal($(card, ".lobby"), null);
+});

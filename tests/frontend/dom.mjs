@@ -19,6 +19,20 @@ Object.defineProperty(window.Element.prototype, "textContent", {
   },
 });
 
+// happy-dom walks past the document when the focused element sits in another card's shadow
+// root and fails; a browser answers that no element of this shadow root has the focus.
+const activeElement = Object.getOwnPropertyDescriptor(window.ShadowRoot.prototype, "activeElement");
+Object.defineProperty(window.ShadowRoot.prototype, "activeElement", {
+  ...activeElement,
+  get() {
+    try {
+      return activeElement.get.call(this);
+    } catch {
+      return null;
+    }
+  },
+});
+
 export const DEVICE = "8d6c1f2e0a9b4c3d";
 
 // Registry ids read like Home Assistant's: sensor.local_status becomes sensor.dartboard_local_status.
@@ -65,7 +79,7 @@ export function camera(number, { problem = "off", fps = "30", calibrate = "unkno
 }
 
 // hass as a card sees it: registry entries of one board, their states and service calls.
-export function makeHass({ language = "en", states = {}, cameras = [], device = {}, callWS } = {}) {
+export function makeHass({ language = "en", states = {}, cameras = [], device = {}, callWS, connection } = {}) {
   const entities = {};
   const all = {};
   const add = (key, id, value) => {
@@ -87,6 +101,7 @@ export function makeHass({ language = "en", states = {}, cameras = [], device = 
       return Promise.resolve();
     },
     ...(callWS ? { callWS } : {}),
+    ...(connection ? { connection } : {}),
   };
 }
 

@@ -105,7 +105,8 @@ class PersonalRecords:
                 "date": latest.get("date"),
             }
             if isinstance(latest, dict)
-            and latest.get("record") in RECORDS
+            and isinstance(latest.get("record"), str)
+            and latest["record"] in RECORDS
             and isinstance(latest.get("date"), str)
             else None
         )
@@ -133,10 +134,13 @@ class PersonalRecords:
     # -- counting --------------------------------------------------------------
 
     def set_goal(self, goal: int, today: date) -> None:
-        """A goal that today's darts already reach counts as reached, quietly."""
+        """A goal that today's darts already reach counts as reached, quietly;
+        a higher goal that they do not reach is still to be reached today."""
         self.goal = _count(goal, DAILY_GOAL_MAX)
         if self.goal and self._darts(today) >= self.goal:
             self.goal_day = today
+        elif self.goal_day == today:
+            self.goal_day = None
 
     def observe(
         self, kind: str, attributes: dict[str, Any], now: datetime

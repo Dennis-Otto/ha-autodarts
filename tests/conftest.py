@@ -11,6 +11,8 @@ import pytest
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from hypothesis import settings
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from syrupy.assertion import SnapshotAssertion
+from syrupy.extensions.amber import AmberSnapshotExtension
 
 import custom_components
 
@@ -24,6 +26,16 @@ custom_components.__path__.insert(
 settings.register_profile("local", deadline=None)
 settings.register_profile("ci", deadline=None, derandomize=True, print_blob=True)
 settings.load_profile("ci" if os.environ.get("CI") else "local")
+
+
+@pytest.fixture
+def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
+    """Snapshots live in tests/__snapshots__, whichever pytest plugin loads last.
+
+    syrupy and the HA test plugin both define this fixture with different folders;
+    the plugins' load order follows the order of the installed packages on disk.
+    """
+    return snapshot.use_extension(AmberSnapshotExtension)
 
 
 @pytest.fixture(autouse=True)
@@ -52,11 +64,15 @@ def cloud_link():
         yield
 
 
-# Loggers of the integration, and those Home Assistant reports its entities with.
+# Loggers of the integration, those Home Assistant reports its entities with,
+# and those of the WebSocket commands and webhooks it offers, which answer a
+# crashing handler with an error of their own.
 WATCHED_LOGGERS = (
     "custom_components.autodarts",
     "homeassistant.helpers.entity",
     "homeassistant.helpers.entity_platform",
+    "homeassistant.components.websocket_api",
+    "homeassistant.components.webhook",
 )
 # How the coordinators report a board or cloud that is away, once per outage.
 UNAVAILABLE = re.compile(

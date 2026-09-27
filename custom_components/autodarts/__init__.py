@@ -109,6 +109,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
 
     if host := entry.data.get(CONF_HOST):
         runtime.local = local_coordinator(host, entry.data.get(CONF_PORT, DEFAULT_PORT))
+        # A store that cannot be read stops the setup, unlike a board that is
+        # switched off: nothing may overwrite the training with empty data.
+        await runtime.local.async_load()
         try:
             await runtime.local.async_config_entry_first_refresh()
         except ConfigEntryNotReady:
@@ -245,6 +248,9 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> bool:
+    # The board's repair issues come back with its next setup, where they
+    # still apply; their fixes need a loaded board.
+    _delete_issues(hass, entry)
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
@@ -252,5 +258,9 @@ async def async_remove_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -
     """Deleting the integration also deletes its local training session."""
     await TrainingStore(hass, entry.entry_id).async_remove()
     await BoardReports.async_remove(hass, entry.entry_id)
+    _delete_issues(hass, entry)
+
+
+def _delete_issues(hass: HomeAssistant, entry: ConfigEntry) -> None:
     for issue in ISSUES:
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")

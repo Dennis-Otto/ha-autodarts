@@ -236,7 +236,8 @@ test("a tap on a dart of the visit corrects it", () => {
     ["button", "dart manual", "3"],
   ]);
   assert.equal($(card, ".pad-area").hidden, true);
-  assert.equal($(card, '[data-dart="2"]').getAttribute("aria-label"), "Correct dart 2");
+  // A screen reader hears the dart and what a tap does.
+  assert.equal($(card, '[data-dart="2"]').getAttribute("aria-label"), "S20 20 – Correct dart 2");
   $(card, '[data-dart="2"]').click();
   assert.equal($(card, ".pad-area").hidden, false);
   assert.equal(text(card, ".pad .section-label"), "Correct dart 2");
@@ -563,4 +564,24 @@ test("the bot's seat on the new game screen", () => {
   assert.equal($(card, '[data-lobby="bot"][data-value="lower"]').disabled, true);
   assert.equal($(card, '[data-lobby="bot"][data-value="raise"]').getAttribute("aria-label"), "Stärkerer Bot");
   assert.equal($(card, '[data-lobby="bot"][data-value="remove"]').getAttribute("aria-label"), "Bot entfernen");
+});
+
+test("the pad sits beside the scores and keeps the focus on the button that was pressed", () => {
+  const { hass, card } = setup({ "switch.practice_manual_entry": "on" }, { keypad: true, full_height: true });
+  // The full-height scoreboard lays the pad beside the scores in landscape.
+  assert.equal($(card, ".scoreboard").classList.contains("with-pad"), true);
+  const pressedFocus = (selector) => {
+    const button = $(card, selector);
+    button.focus();
+    button.click();
+    return card.shadowRoot.activeElement.dataset.focus;
+  };
+  assert.equal(pressedFocus('[data-pad="multiplier"][data-value="2"]'), "multiplier:2");
+  assert.equal(pressedFocus('[data-pad="next"]'), "next:");
+  assert.equal(pressedFocus('[data-pad="next"]'), "next:");
+  // A lone undo button is no pad beside the scores.
+  card.hass = update(hass, { ...practice({ undo: true }), "switch.practice_manual_entry": "off" });
+  assert.ok($(card, ".undo-only"));
+  assert.equal($(card, ".undo-only").dataset.focus, "undo:");
+  assert.equal($(card, ".scoreboard").classList.contains("with-pad"), false);
 });

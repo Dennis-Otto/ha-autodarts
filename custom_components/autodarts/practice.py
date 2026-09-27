@@ -249,6 +249,8 @@ class PracticeGame:
         # Every player's numbers of the match, and the summary of the last match.
         self.tallies = [Tally()]
         self.summary: dict[str, Any] | None = None
+        # When the first dart of the match landed, for the training calendar.
+        self.match_started: str | None = None
         # The training game played instead of X01, if any.
         self.drill: str | None = None
         self.drills: dict[str, Drill] = {kind: make_drill(kind) for kind in DRILLS}
@@ -392,6 +394,8 @@ class PracticeGame:
             if isinstance(summary, dict) and isinstance(summary.get("players"), list)
             else None
         )
+        started = saved.get("match_started")
+        self.match_started = started if isinstance(started, str) else None
 
     def stored(self) -> dict[str, Any]:
         return {
@@ -429,6 +433,7 @@ class PracticeGame:
             "resume": copy.deepcopy(self.resume),
             "tallies": [tally.stored() for tally in self.tallies],
             "summary": copy.deepcopy(self.summary),
+            "match_started": self.match_started,
         }
 
     # -- settings --------------------------------------------------------------
@@ -590,6 +595,7 @@ class PracticeGame:
         self._resume()
         self.players = [Player() for _ in self.players]
         self.tallies = [Tally() for _ in self.players]
+        self.match_started = None
         self.starter, self.set_starter, self.winner = 0, 0, None
         self.bulling = (
             BullOff(list(range(len(self.players))))
@@ -892,6 +898,8 @@ class PracticeGame:
             # The first dart after a finished match starts the next one.
             self.new_match()
             self._skip = 0
+        if self.match_started is None and self._thrown():
+            self.match_started = dt_util.utcnow().isoformat()
         if self.bulling:
             return []
         if self.cricket:
@@ -1590,6 +1598,7 @@ class PracticeGame:
                 self.legs_to_win,
                 self.sets_to_win,
                 side,
+                self.match_started,
             )
             return
         players = len(self.players)

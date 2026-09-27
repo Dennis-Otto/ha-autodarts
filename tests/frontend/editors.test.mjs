@@ -341,7 +341,23 @@ test("the dashboard strategy has an editor with the board and the title", async 
   assert.equal(loading.querySelector("ha-form"), null);
   loading.hass = hass;
   const form = loading.querySelector("ha-form");
-  assert.deepEqual(form.schema, [DEVICE_FIELD, TITLE_FIELD]);
+  const [device, title, scoreboard] = form.schema;
+  assert.deepEqual([device, title], [DEVICE_FIELD, TITLE_FIELD]);
+  // The scoreboard view's options sit in a section of their own, stored under "scoreboard".
+  assert.equal(scoreboard.type, "expandable");
+  assert.equal(scoreboard.name, "scoreboard");
+  assert.equal(scoreboard.flatten, undefined);
+  assert.deepEqual(
+    scoreboard.schema[0].schema.map((field) => [field.name, field.default]),
+    [
+      ["caller", false],
+      ["keypad", false],
+      ["corrections", true],
+      ["idle", true],
+    ]
+  );
+  assert.equal(scoreboard.schema[1].name, "lobby_games");
+  assert.equal(scoreboard.schema[2].selector.select.options[0].label, "Tournament");
   assert.deepEqual(form.data, { type: "custom:autodarts", title: "Darts" });
   assert.equal(form.hass, hass);
   assert.equal(form.computeLabel({ name: "device_id" }), "Board");
@@ -351,6 +367,11 @@ test("the dashboard strategy has an editor with the board and the title", async 
   );
   assert.equal(form.computeHelper({ name: "title" }), undefined);
   assert.equal(form.computeLabel({ name: "theme" }), "theme");
+  assert.equal(form.computeLabel({ name: "" }), undefined);
+  assert.equal(form.computeLabel(scoreboard), "Scoreboard view");
+  assert.match(form.computeHelper(scoreboard), /^Options of the scoreboard in its view/);
+  assert.equal(form.computeLabel({ name: "keypad" }), "Keypad for darts entered by hand");
+  assert.match(form.computeHelper({ name: "keypad" }), /manual entry/);
 
   const changes = [];
   loading.addEventListener("config-changed", (event) => changes.push(event.detail.config));
@@ -364,6 +385,16 @@ test("the dashboard strategy has an editor with the board and the title", async 
   );
   assert.deepEqual(changes, [{ type: "custom:autodarts", device_id: DEVICE }]);
   assert.deepEqual(outside, []);
+  // Scoreboard options that are set stay; an empty list or a section without any goes.
+  for (const [scoreboard, expected] of [
+    [{ caller: true, lobby_games: [], idle_panels: ["clock"] }, { caller: true, idle_panels: ["clock"] }],
+    [{ lobby_games: [] }, undefined],
+  ]) {
+    form.dispatchEvent(
+      new CustomEvent("value-changed", { detail: { value: { type: "custom:autodarts", scoreboard } } })
+    );
+    assert.deepEqual(changes.at(-1), { type: "custom:autodarts", ...(expected ? { scoreboard: expected } : {}) });
+  }
   // A new configuration keeps the form.
   loading.setConfig({ type: "custom:autodarts" });
   assert.equal(loading.querySelector("ha-form"), form);

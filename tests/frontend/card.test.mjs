@@ -79,7 +79,7 @@ test("labels and kinds describe the dart", () => {
   assert.equal(label(hass, dart(25, 2, "Double")), "Bull");
   assert.equal(label(hass, dart(25, 1, "Single")), "25");
   assert.equal(label(hass, dart(3, 0, "Outside")), "Miss");
-  assert.equal(label({ locale: { language: "de" } }, dart(3, 0, "Outside")), "Miss");
+  assert.equal(label({ locale: { language: "de" } }, dart(3, 0, "Outside")), "Fehlwurf");
   assert.equal(kind(dart(20, 3, "Triple")), "triple");
   assert.equal(kind(dart(25, 1, "Single")), "outer-bull");
   assert.equal(kind(dart(0, 0, "Outside")), "miss");
@@ -121,6 +121,18 @@ test("colour options reach the style only as valid colours", (t) => {
   t.after(() => delete globalThis.CSS);
   for (const value of valid) assert.equal(cssColor(value, "fallback"), value);
   for (const value of ["url(https://example.com/x.png)", "red; background: blue", "", 42, null, undefined]) {
+    assert.equal(cssColor(value, "fallback"), "fallback");
+  }
+  // The browser accepts any var() with a fallback, and escapes hide a url(): neither reaches the style.
+  globalThis.CSS = { supports: () => true };
+  assert.equal(cssColor("var(--my-accent)", "fallback"), "var(--my-accent)");
+  for (const value of [
+    "var(--x, image-set('https://host/p.png' 1x))",
+    "var(--x, red)",
+    String.raw`u\72l(https://host/p.png)`,
+    "src('https://host/p.png')",
+    "-webkit-image-set(x)",
+  ]) {
     assert.equal(cssColor(value, "fallback"), "fallback");
   }
 });

@@ -741,6 +741,15 @@
     "unsupported_response": {
       "message": "Board Manager répond dans un format que cette version de l'intégration ne comprend pas."
     },
+    "storage_newer": {
+      "message": "L'entraînement enregistré de cette cible provient d'une version plus récente de l'intégration. Réinstallez cette version ou restaurez une sauvegarde\u00a0; les données enregistrées restent inchangées."
+    },
+    "storage_unreadable": {
+      "message": "L'entraînement enregistré de cette cible ne peut pas être lu pour le moment. Home Assistant réessaie\u00a0; les données enregistrées restent inchangées."
+    },
+    "storage_invalid": {
+      "message": "L'entraînement enregistré de cette cible ne peut pas être restauré. Veuillez le signaler comme bogue\u00a0; les données enregistrées restent inchangées."
+    },
     "not_supported": {
       "message": "Cette cible ne prend pas en charge l'action."
     },
