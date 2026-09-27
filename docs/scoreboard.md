@@ -19,7 +19,7 @@ A tablet or a TV next to the board turns your darts room into a stage: the score
 1. **Create the dashboard.** Go to **Settings → Dashboards → Add dashboard → Autodarts**. The [automatic dashboard](cards.md#automatic-dashboard) has a *Scoreboard* view that shows the [scoreboard card](cards.md#scoreboard-card) across the whole screen.
 2. **Open the view on the screen.** Sign in as the screen's user and open the dashboard's *Scoreboard* view. Its address ends in `/scoreboard`; bookmark it or put it on the home screen of the tablet.
 3. **Go full screen.** Use the browser's full-screen mode or a kiosk browser that opens the address at start. Keep the screen awake while it is on the charger, in the settings of the tablet or the kiosk browser.
-4. **Switch on what you like.** Open the dashboard's menu (⋮) → **Edit dashboard** → **Take control** to change the card, or build a view of your own: a view in panel mode with the scoreboard card and `full_height: true`. Useful options are the [caller](#the-caller), the games of the [new game screen](#choose-the-next-game) and the panels of [idle mode](#between-games-idle-mode):
+4. **Switch on what you like.** Open the dashboard's menu (⋮) → **Edit dashboard**. In the section *Scoreboard view*, switch on the [caller](#the-caller) and the [keypad](#correct-and-enter-darts), and choose the games of the [new game screen](#choose-the-next-game) and the panels of [idle mode](#between-games-idle-mode); the dashboard stays automatic and gets the views of later releases. For every other option, build a view of your own: a view in panel mode with the scoreboard card and `full_height: true`, or choose **Take control** in that editor's menu, which turns the dashboard into one you edit yourself:
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -34,7 +34,7 @@ The [card guide](cards.md#scoreboard-card) lists every option.
 
 ## Landscape, portrait and TV
 
-The scoreboard adapts to the shape of the screen. With `full_height: true` it fills the screen below the toolbar, and on a phone it leaves room for the browser's address bar.
+The scoreboard adapts to the shape of the screen. With `full_height: true` it is exactly the screen below the toolbar: a banner, the visit or the keypad make the numbers and tables smaller instead of pushing the page past the screen, so nothing needs scrolling, from a small 800 × 480 display to a TV. On a phone it leaves room for the browser's address bar.
 
 <table>
   <tr>
@@ -48,7 +48,7 @@ The scoreboard adapts to the shape of the screen. With `full_height: true` it fi
 </table>
 
 - **Landscape tablet or TV:** the best choice for X01 and the party games, whose player tiles sit side by side.
-- **Portrait tablet:** fine for Cricket, whose chalkboard is tall, and for one or two players.
+- **Portrait tablet:** fine for Cricket, whose chalkboard is tall, and for X01: two players stand one above the other, three or four two by two, and the scores use the height of the screen.
 - **Distance:** the remaining score is the largest text on the screen and grows with it. The bigger the screen, the farther away it reads, so a TV also serves the people watching.
 
 ## Choose the next game
@@ -60,7 +60,7 @@ Tap **New game** below the score between games, or at the top right at any time.
 1. **Game:** X01, the Cricket games, the party games and the training games, grouped. `lobby_games` limits the choice to the games you play.
 2. **Players:** tap a name to add the player, ▲ and ▼ to change the order, ✕ to remove them. Players [linked to a person](statistics.md#players-and-persons) who is at home come first, with their picture. Type a new name, or add a guest without one. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own. In X01 and the Cricket games, **+ Bot** seats the [bot](games.md#playing-against-the-bot) after the players; − and + beside it change its level.
 3. **Format and options:** legs per set and sets to win; double out and double in for X01; the [bull-off](games.md#bull-off); *Teams* for four players of X01 or Cricket.
-4. **Start.** The scoreboard shows the game at once. During a game, *End game* stops it after a second tap.
+4. **Start.** The scoreboard shows the game at once. If detection is stopped, the start switches it on, and the screen says so above the button beforehand. The start button stays at the bottom of the screen while the page scrolls. During a game, *End game* stops it after a second tap.
 
 <img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, Sam starting from 301, three legs per set, double out and the start button" width="760">
 
@@ -99,7 +99,7 @@ Along the bottom it shows the three darts of the current visit and their score; 
 
 - **A dart read wrong:** tap it in the visit along the bottom. A pad opens with S, D and T, the numbers 1 to 20, 25, Bull and Miss; tap the multiplier and the number, and the game counts the dart there. A second tap on the dart, or *Cancel*, closes the pad.
 - **A visit noticed too late:** after the takeout, *Undo last visit* below the visit takes the last visit back, with a second tap to confirm. Correct its darts, then end it with *Next player*.
-- **Darts entered by hand:** for darts the board missed, or a player without cameras, switch on *Practice manual entry* and the card's `keypad` option. The keypad enters every tapped bed as a dart; *Next player* ends the visit.
+- **Darts entered by hand:** for darts the board missed, or a player without cameras, switch on *Practice manual entry* and the card's `keypad` option. The keypad enters every tapped bed as a dart; *Next player* ends the visit. On a landscape screen, the pad and the keypad sit beside the scores, so both fit the screen.
 - **What you see:** darts entered or corrected by hand get a dashed frame, the bot's darts a light one.
 
 <img src="images/en/scoreboard-keypad.png" alt="The scoreboard with the keypad: Alex has entered T20 and S19 by hand, marked with dashed frames; below, S, D and T, the numbers 1 to 20, 25, Bull, Miss and Next player" width="760">
@@ -128,7 +128,7 @@ The table ranks by points, two for a win, then by the tie-breakers of the [tourn
 
 With `caller: true`, the screen at the board calls the game itself, through the speaker of the tablet or the TV. It needs no speakers or text-to-speech in Home Assistant.
 
-1. Switch on `caller` in the card's editor, or use the scoreboard of the automatic dashboard after **Take control**.
+1. Switch on `caller` in the card's editor, or for the automatic dashboard in its settings: menu (⋮) → **Edit dashboard** → *Scoreboard view*.
 2. Browsers play sound only after a tap: tap **Caller** on the scoreboard once. The speaker symbol and the pressed button show that it is on; tap again to mute it.
 
 It calls only what counts, in the language of the screen's user: English, German, Dutch, French or Spanish.
@@ -147,7 +147,7 @@ When no game runs, or a match or training game is decided, and nobody throws or 
 
 <img src="images/en/scoreboard-idle.png" alt="Idle mode of the scoreboard: the leaderboard with Alex, Sam and Kim, their pictures, 3-dart averages and legs won" width="760">
 
-A dart, a new game or a tap anywhere ends idle mode. `idle_panels` chooses the panels and their order, `idle_interval` how long each one shows. On devices set to reduce motion, the panels change without fading. [All panels](cards.md#idle-mode).
+A dart, a new game or a tap anywhere ends idle mode; a new game screen you had opened comes back as you left it. `idle_panels` chooses the panels and their order, `idle_interval` how long each one shows. On devices set to reduce motion, the panels change without fading. [All panels](cards.md#idle-mode).
 
 ## Tips
 
@@ -155,18 +155,19 @@ A dart, a new game or a tap anywhere ends idle mode. `idle_panels` chooses the p
 - **Pictures of the players:** [link the players to persons](statistics.md#players-and-persons) of Home Assistant; the scoreboard, the new game screen and idle mode show their pictures, and players who are at home come first.
 - **Light and sound:** the [light show](automations.md#light-show) and the [practice caller](automations.md#practice-caller) react to the same game, with the lights and speakers of your home.
 - **Several boards:** every board gets its own *Scoreboard* view in the automatic dashboard; choose the board in the card's editor for a view of your own.
-- **Accessibility:** the scoreboard follows your theme, announces the winner to screen readers, reads the Cricket marks as words, and when the device asks for reduced motion, it fills the tournament bracket without sliding and changes the panels of idle mode without fading. [Accessibility](cards.md#accessibility).
+- **Accessibility:** the scoreboard follows your theme with text that stays readable in its colors, announces the winner to screen readers, marks the player at the board, reads the Cricket marks as words and Killer's hearts as lives, keeps the focus on the button you pressed, and when the device asks for reduced motion, it fills the tournament bracket without sliding and changes the panels of idle mode without fading. [Accessibility](cards.md#accessibility).
 
 ## If something is off
 
 | What you see | What helps |
 | --- | --- |
+| Darts are not counted | Detection is stopped: the status at the top right says *Detection stopped*. The new game screen's start switches it on; otherwise switch it on with the [board status card](cards.md#board-status-card) or the live card. Also check that *Practice game* is not *Off* and that no [online match](online-matches.md) holds the board. |
 | The caller stays silent | Tap **Caller** once after every reload of the page: browsers play sound only after a tap. Check the volume of the device. |
 | The new game screen does not open | It never opens in the preview of the card editor, and not with `lobby: false`. |
 | The screen shows an old version of the card after an update | Reload the page. In the Home Assistant app, use *Settings → Companion app → Debugging → Reset frontend cache*. |
 | Idle mode starts during a game | Idle mode waits for `idle_after` seconds without darts and taps, and only when no game runs or the game is decided. Raise `idle_after`, or set `idle: false`. |
 | A tap on a dart does nothing | The dart belongs to the bot, the card has `corrections: false`, or it is the preview of the card editor. |
-| The keypad does not show | It needs the card's `keypad: true` and *Practice manual entry* on, and it waits while the bot is at the board. |
+| The keypad does not show | It needs the card's `keypad: true` (in the automatic dashboard: its settings, *Scoreboard view*) and *Practice manual entry* on, and it waits while the bot is at the board. |
 | No picture next to a name | The player is not linked to a person, or the person has no picture. See [players and persons](statistics.md#players-and-persons). |
 
 More help: [troubleshooting](troubleshooting.md).

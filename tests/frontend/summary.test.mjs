@@ -76,10 +76,12 @@ test("the summary of a won X01 match lists every number of every player", () => 
   const summary = summaryView(sensor(SUMMARY));
   assert.deepEqual([summary.kind, summary.winner, summary.ended, summary.doubleOut], ["x01", 1, SUMMARY.ended, true]);
   const html = summaryTable(summary, ui);
-  assert.match(html, /<thead><tr><th class="caption">summary<\/th><th class="winner">Alex<\/th><th class="">score_player 2<\/th><\/tr><\/thead>/);
+  assert.match(html, /<thead><tr><th class="caption">summary<\/th><th class="winner">Alex <span class="visually-hidden">winner<\/span><\/th><th class="">score_player 2<\/th><\/tr><\/thead>/);
+  // Teams that are no list leave the winner alone.
+  assert.equal(summaryTable(summary, ui, null), html);
   // A player linked to a person shows the picture.
   const pictured = summaryTable(summary, { ...ui, avatar: (name) => (name === "Alex" ? "/alex.png" : null) });
-  assert.match(pictured, /<th class="winner"><img class="avatar" src="\/alex.png" alt="" draggable="false">Alex<\/th><th class="">score_player 2<\/th>/);
+  assert.match(pictured, /<th class="winner"><img class="avatar" src="\/alex.png" alt="" draggable="false">Alex <span class="visually-hidden">winner<\/span><\/th><th class="">score_player 2<\/th>/);
   assert.deepEqual(cells(html), [
     ["result", "score_legs", "winner:2", ":1"],
     ["", "average", "winner:106.0", ":60.2"],

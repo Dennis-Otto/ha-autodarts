@@ -89,6 +89,30 @@ test("completed visits are read from the event history", () => {
   assert.deepEqual(visitsFromHistory(null), []);
 });
 
+test("undone visits leave the history, the bot's never join it, and new rows add to the known visits", () => {
+  const row = (second, event_type, extra = {}) => ({ s: `2026-09-25T20:00:${second}+00:00`, a: { event_type, ...extra } });
+  const known = [{ time: 1, score: 81, darts: 3, segments: [] }];
+  const rows = [
+    row("01", "visit_completed", { score: 26 }),
+    row("02", "visit_completed", { score: 100, bot: true }),
+    row("03", "visit_undone", { score: 26 }),
+    row("04", "visit_completed", { score: 60 }),
+    row("05", "visit_completed", { score: "a lot" }),
+    row("06", "visit_undone"),
+    row("07", "visit_undone"),
+    row("08", "visit_undone"),
+    row("09", "visit_completed", { score: 45 }),
+  ];
+  // The undone 26 goes, its corrected darts come back as 60; more undos than visits empty the list.
+  assert.deepEqual(
+    visitsFromHistory(rows.slice(0, 5), 0, known).map((visit) => visit.score),
+    [81, 60]
+  );
+  assert.deepEqual(visitsFromHistory(rows, 0, known).map((visit) => visit.score), [45]);
+  // The known visits stay as they were.
+  assert.deepEqual(known.map((visit) => visit.score), [81]);
+});
+
 test("a session start drops visits of the previous session in the same second", () => {
   // The start sensor reports 20:00:00; the previous visit ended 300 ms later.
   const since = Date.parse("2026-09-25T20:00:00+00:00");

@@ -73,7 +73,7 @@ test("a won match shows its summary on the scoreboard until the next game", () =
     $$(card, ".summary thead th").map((cell) => [cell.className, cell.textContent]),
     [
       ["caption", "Match summary"],
-      ["winner", "Alex"],
+      ["winner", "Alex Winner"],
       ["", "Sam"],
     ]
   );
@@ -111,7 +111,7 @@ test("the summary can stay for some seconds only, or not show at all", (t) => {
   assert.equal($(card, ".summary"), null);
   // The result stays in the banner and on the players.
   assert.equal(text(card, ".banner"), "Alex wins the match 2 : 1!");
-  assert.equal($(card, ".main .player.winner .name").textContent, "Alex");
+  assert.equal($(card, ".main .player.winner .name").textContent, "Alex Winner");
 
   // A card that was away while the time ran out shows the players when it returns.
   const away = mount("autodarts-scoreboard-card", hass, { summary_seconds: 5 });
@@ -208,7 +208,7 @@ test("party games keep their scores on screen", () => {
   };
   const card = mount("autodarts-scoreboard-card", makeHass({ states: { ...READY, ...killer } }));
   assert.equal($(card, ".summary"), null);
-  assert.equal($(card, ".main .player.winner .name").textContent, "Sam");
+  assert.equal($(card, ".main .player.winner .name").textContent, "Sam Winner");
   assert.equal(text(card, ".banner"), "Sam wins the match!");
 });
 
@@ -235,4 +235,61 @@ test("the summary speaks German", () => {
   );
   assert.deepEqual(rows(card)[3], ["Checkout-Quote", "50,0 % (1/2)", "50,0 % (1/2)"]);
   assert.deepEqual(rows(card)[8], ["Bestes Leg", "12 Darts", "12 Darts"]);
+});
+
+test("a summary time beyond the form's ten minutes counts as ten minutes", (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout", "Date"], now: 1_000_000 });
+  const hass = makeHass({ states: { ...READY, ...finished() } });
+  // Weeks of seconds would overflow the timer, which then fires at once, again and again.
+  const card = mount("autodarts-scoreboard-card", hass, { summary_seconds: 3_000_000 });
+  const updates = t.mock.method(card, "_update");
+  t.mock.timers.tick(1);
+  assert.equal(updates.mock.callCount(), 0);
+  t.mock.timers.tick(599_999);
+  assert.equal($(card, ".summary"), null);
+  assert.equal(updates.mock.callCount(), 1);
+});
+
+test("in a team match both partners of the winning team are the winners of the summary", () => {
+  const teams = [
+    { team: 1, players: [1, 3] },
+    { team: 2, players: [2, 4] },
+  ];
+  const summary = {
+    ...SUMMARY,
+    players: [
+      ...SUMMARY.players,
+      player(3, "Kim", { legs: 2, darts: 30, average: 50, first_9_average: 51 }),
+      player(4, "Lea", { legs: 1, darts: 27, average: 40, first_9_average: 42 }),
+    ],
+  };
+  const scores = [
+    { player: 1, name: "Alex", remaining: 0, legs: 2, sets: 1, average: 60.2, team: 1 },
+    { player: 2, name: "Sam", remaining: 61, legs: 1, sets: 0, average: 55.67, team: 2 },
+    { player: 3, name: "Kim", remaining: 0, legs: 2, sets: 1, average: 50, team: 1 },
+    { player: 4, name: "Lea", remaining: 61, legs: 1, sets: 0, average: 40, team: 2 },
+  ];
+  const hass = makeHass({ states: { ...READY, ...finished({ teams, scores, summary }) } });
+  const card = mount("autodarts-scoreboard-card", hass);
+  assert.equal(text(card, ".banner"), "Alex & Kim win the match 2 : 1!");
+  assert.deepEqual(
+    $$(card, ".summary thead th").map((cell) => [cell.className, cell.textContent]),
+    [
+      ["caption", "Match summary"],
+      ["winner", "Alex Winner"],
+      ["", "Sam"],
+      ["winner", "Kim Winner"],
+      ["", "Lea"],
+    ]
+  );
+  assert.deepEqual(
+    $$(card, ".summary tr.result td").map((cell) => cell.className),
+    ["winner", "", "winner", ""]
+  );
+  // The live card marks both partners, too.
+  const live = mount("autodarts-card", hass);
+  assert.deepEqual(
+    $$(live, ".summary thead th.winner").map((cell) => cell.textContent),
+    ["Alex Winner", "Kim Winner"]
+  );
 });

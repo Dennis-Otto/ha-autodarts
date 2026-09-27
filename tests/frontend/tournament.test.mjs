@@ -783,7 +783,7 @@ test("the new game screen starts a tournament of up to eight players", () => {
   assert.deepEqual(lobbyPlayers(card), ["Alex", "Kim", "Sam", "Lea", "Max", "Tom", "Ida", "Ben"]);
   assert.equal($(card, ".lobby-name").disabled, true);
   assert.equal($(card, ".lobby-player.resting"), null);
-  assert.equal(text(card, ".lobby-hint"), "");
+  assert.equal($(card, ".lobby-hint"), null);
   assert.deepEqual(
     $$(card, ".formats .option").map((button) => [button.textContent, button.getAttribute("aria-pressed")]),
     [
@@ -875,7 +875,7 @@ test("a preview shows the tournament without its button, and German reads German
   assert.equal(text(german, ".meta"), "K.-o.-System · Cricket · 1 von 5 Matches gespielt");
   assert.equal(text(german, ".next-up .section-label"), "Als Nächstes · Halbfinale");
   assert.equal(text(german, ".pairing"), "AlexgegenLea");
-  assert.equal(text(german, ".countdown"), "beginnt mit Nächstes Turniermatch");
+  assert.equal(text(german, ".countdown"), "beginnt mit „Nächstes Turniermatch“");
   assert.equal(text(german, ".start-next"), "Jetzt starten");
   assert.deepEqual(
     $$(german, ".round > .section-label").map((label) => label.textContent),
@@ -899,4 +899,16 @@ test("start scores go with their players into a tournament", () => {
   assert.deepEqual(tournamentStartData({ ...choice, starts: [0, 0, 0] }).start_scores, [0, 0, 0]);
   assert.equal("start_scores" in tournamentStartData({ ...choice, handicap: false, starts: undefined }), false);
   assert.equal("start_scores" in tournamentStartData({ ...choice, game: "cricket" }), false);
+});
+
+test("a stage the sensor names is escaped like every other text of the bracket", () => {
+  const stage = '"><img src=x onerror=alert(1)>';
+  const view = tournamentView({
+    state: "semi_final",
+    attributes: { ...KNOCKOUT, bracket: [{ stage, matches: [match(1, stage, ["Alex", "Sam"])] }] },
+  });
+  const html = tournamentHtml(view, ui()).main;
+  assert.doesNotMatch(html, /<img src=x/);
+  const page = new window.DOMParser().parseFromString(html, "text/html");
+  assert.equal(page.querySelector(".round").className, `round ${stage}`);
 });

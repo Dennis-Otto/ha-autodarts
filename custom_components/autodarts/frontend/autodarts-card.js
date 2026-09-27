@@ -215,6 +215,7 @@ const TEXT = {
     score_player: "Player",
     score_turn: "to throw",
     score_winner: "wins the match!",
+    winner: "Winner",
     score_legs: "Legs",
     score_sets: "Sets",
     practice_names: "Player names",
@@ -277,6 +278,8 @@ const TEXT = {
     any_treble: "Any treble",
     killer_choose: "Throw for your number",
     killer_hunt: "Killer – hit the others' doubles",
+    killer_life: "1 life",
+    killer_lives: "{count} lives",
     needs_players: "Killer needs at least two players",
     double_in_needed: "Start with a double",
     out: "out",
@@ -382,6 +385,7 @@ const TEXT = {
     lobby_options: "Options",
     lobby_one_player: "Training games are for one player: {name} plays.",
     lobby_nobody: "Nobody chosen: one player throws without a name.",
+    lobby_detection: "Detection is stopped: the start switches it on.",
     lobby_start: "Start {game}",
     lobby_close: "Close",
     lobby_end: "End game",
@@ -512,6 +516,7 @@ const TEXT = {
     highest_short: "Highest",
     show_sessions: "Show past sessions",
     statistics_label: "Training statistics, open the details",
+    statistics: "Training statistics",
     personal_bests: "Personal bests",
     best_session_average: "Best session average",
     best_cricket_mpr: "Best Cricket MPR",
@@ -643,6 +648,8 @@ const TEXT = {
     board_settings: "Board settings",
     training_settings: "Training settings",
     strategy_device_helper: "Optional. Without a selection, the dashboard shows every Autodarts board.",
+    strategy_scoreboard: "Scoreboard view",
+    strategy_scoreboard_helper: "Options of the scoreboard in its view; options left unset keep the card's defaults.",
     strategy_no_board: "No Autodarts board found. Set up the Autodarts integration, then reload this dashboard.",
     strategy_board_missing:
       "The board of this dashboard no longer exists. Edit the dashboard and choose another board, or clear the board to show every board.",
@@ -675,12 +682,12 @@ const TEXT = {
     points: "Punkte",
     dart: "Dart",
     of: "von",
-    miss: "Miss",
+    miss: "Fehlwurf",
     session: "Trainingssession",
     since: "seit",
     darts: "Darts",
     average: "3-Dart-Average",
-    triples: "Triple",
+    triples: "Triples",
     bulls: "Bulls",
     max: "180er",
     board: "Board Manager",
@@ -742,12 +749,13 @@ const TEXT = {
     game_shot: "Game shot!",
     no_checkout: "Kein Checkout möglich",
     setup_leave: "Rest {leave}",
-    setup_hint: "Kein Checkout mit den übrigen Darts: stell dir die nächste Aufnahme",
+    setup_hint: "Kein Checkout mit den übrigen Darts: stell dir einen Rest für die nächste Aufnahme",
     bot: "Bot",
     bot_level: "Stärke {level}",
     score_player: "Spieler",
     score_turn: "ist dran",
     score_winner: "gewinnt das Match!",
+    winner: "Sieger",
     score_legs: "Legs",
     score_sets: "Sätze",
     practice_names: "Spielernamen",
@@ -807,8 +815,10 @@ const TEXT = {
     start_score: "Startpunkte",
     any_double: "Beliebiges Double",
     any_treble: "Beliebiges Triple",
-    killer_choose: "Wirf für deine Zahl",
+    killer_choose: "Wirf um deine Zahl",
     killer_hunt: "Killer – triff die Doubles der anderen",
+    killer_life: "1 Leben",
+    killer_lives: "{count} Leben",
     needs_players: "Killer braucht mindestens zwei Spieler",
     double_in_needed: "Mit einem Double beginnen",
     out: "raus",
@@ -841,7 +851,7 @@ const TEXT = {
       "Noch keine Doubles von {player}. Prüfe den Namen in den Karteneinstellungen oder wirf in einem Übungsspiel als {player} auf Doubles.",
     doubles_routes: "Persönliche Checkout-Wege nutzen Doubles mit mindestens 10 Darts.",
     player: "Spieler",
-    player_helper: "Optional. Wähle oder tippe einen Spielernamen für die Doubles dieses Spielers; leer zeigt die aller.",
+    player_helper: "Optional. Wähle oder tippe einen Spielernamen für die Doubles dieses Spielers; leer zeigt die Doubles aller Spieler.",
     full_height: "Bildschirm füllen",
     show_visit: "Aktuelle Aufnahme anzeigen",
     show_status: "Board-Status anzeigen",
@@ -912,6 +922,7 @@ const TEXT = {
     lobby_options: "Optionen",
     lobby_one_player: "Trainingsspiele sind für einen Spieler: {name} spielt.",
     lobby_nobody: "Niemand gewählt: Ein Spieler wirft ohne Namen.",
+    lobby_detection: "Die Erkennung ist gestoppt: Der Start schaltet sie ein.",
     lobby_start: "{game} starten",
     lobby_close: "Schließen",
     lobby_end: "Spiel beenden",
@@ -944,7 +955,7 @@ const TEXT = {
     tournament_vs: "gegen",
     tournament_countdown: "beginnt in {time}",
     tournament_after_takeout: "beginnt, sobald das Board frei ist",
-    tournament_on_request: "beginnt mit Nächstes Turniermatch",
+    tournament_on_request: "beginnt mit „Nächstes Turniermatch“",
     tournament_start_now: "Jetzt starten",
     tournament_winner: "{name} gewinnt das Turnier!",
     tournament_bye: "Freilos",
@@ -980,11 +991,11 @@ const TEXT = {
     lobby_section_helper: "Tippe auf Neues Spiel, um Spiel, Spieler und Format zu wählen; die Auswahl öffnet sich auch einige Sekunden nach dem Ende eines Spiels.",
     idle: "Ruhemodus",
     idle_after: "Ruhemodus nach",
-    idle_interval: "Nächste Tafel nach",
-    idle_panels: "Tafeln",
-    idle_panels_helper: "Leer zeigt jede Tafel.",
+    idle_interval: "Nächste Seite nach",
+    idle_panels: "Seiten",
+    idle_panels_helper: "Leer zeigt jede Seite.",
     idle_section: "Ruhemodus",
-    idle_section_helper: "Läuft kein Spiel und wirft oder tippt niemand, zeigt die Anzeigetafel diese Tafeln im Wechsel.",
+    idle_section_helper: "Läuft kein Spiel und wirft oder tippt niemand, zeigt die Anzeigetafel diese Seiten im Wechsel.",
     bull_target: "Bull (25/50)",
     bull_off_rethrow: "Gleichstand – noch einmal werfen",
     bull_off_leads: "führt",
@@ -1015,10 +1026,10 @@ const TEXT = {
     no_darts: "Noch keine Darts in dieser Session. Leg los!",
     new_session: "Neue Session",
     hits: "Treffer",
-    mode: "Heatmap",
+    mode: "Trefferbild",
     mode_beds: "Felder",
     mode_numbers: "Zahlen",
-    show_heatmap: "Heatmap anzeigen",
+    show_heatmap: "Trefferbild anzeigen",
     show_top: "Häufigste Felder anzeigen",
     show_history: "Letzte Aufnahmen anzeigen",
     show_reset: "Session-Steuerung anzeigen",
@@ -1036,6 +1047,7 @@ const TEXT = {
     highest_short: "Höchste",
     show_sessions: "Vergangene Sessions anzeigen",
     statistics_label: "Trainingsstatistik, Details öffnen",
+    statistics: "Trainingsstatistik",
     personal_bests: "Bestleistungen",
     best_session_average: "Bester Session-Average",
     best_cricket_mpr: "Beste MPR im Cricket",
@@ -1050,8 +1062,8 @@ const TEXT = {
     badges: "Abzeichen",
     badge_count: "{count} Abzeichen",
     badge_count_one: "1 Abzeichen",
-    badge_locked: "Gesperrt",
-    badge_earned: "Erreicht {date}",
+    badge_locked: "Noch nicht erreicht",
+    badge_earned: "Erreicht am {date}",
     badge_progress: "{value} von {goal}",
     badge_best: "Bestwert bisher: {value}",
     tier_1: "Bronze",
@@ -1091,7 +1103,7 @@ const TEXT = {
     achievement_darts_thrown: "Geworfene Darts",
     achievement_darts_thrown_goal: "Geworfene Darts: {value}",
     show_badges: "Abzeichen anzeigen",
-    show_locked: "Gesperrte Abzeichen anzeigen",
+    show_locked: "Noch nicht erreichte Abzeichen anzeigen",
     show_trends: "Trends anzeigen",
     show_spread: "Streuung anzeigen",
     trend_weeks: "Wochen in den Trends",
@@ -1116,9 +1128,9 @@ const TEXT = {
     mode_positions: "Positionen",
     heatmap_source: "Wessen Darts",
     heatmap_session: "Session",
-    show_heatmap_controls: "Umschalter der Heatmap anzeigen",
+    show_heatmap_controls: "Umschalter des Trefferbilds anzeigen",
     heatmap_player_helper:
-      "Optional. Die Heatmap zeigt zuerst die Darts dieses Spielers statt der Session; die Umschalter über der Scheibe wechseln das.",
+      "Optional. Das Trefferbild zeigt zuerst die Darts dieses Spielers statt der Session; die Umschalter über der Scheibe wechseln das.",
     positions_label: "Dartscheibe mit den Positionen der Darts",
     positions_empty: "Noch keine Dart-Positionen.",
     legend_few: "wenige",
@@ -1165,27 +1177,29 @@ const TEXT = {
     board_settings: "Board-Einstellungen",
     training_settings: "Trainingseinstellungen",
     strategy_device_helper: "Optional. Ohne Auswahl zeigt das Dashboard jedes Autodarts-Board.",
+    strategy_scoreboard: "Ansicht Anzeigetafel",
+    strategy_scoreboard_helper: "Optionen der Anzeigetafel in ihrer Ansicht; was du nicht setzt, bleibt beim Standard der Karte.",
     strategy_no_board: "Kein Autodarts-Board gefunden. Richte die Autodarts-Integration ein und lade dieses Dashboard dann neu.",
     strategy_board_missing:
       "Das Board dieses Dashboards gibt es nicht mehr. Bearbeite das Dashboard und wähle ein anderes Board oder leere die Auswahl, um jedes Board zu zeigen.",
     picker_live: "Autodarts",
     picker_live_description:
       "Die aktuelle Aufnahme auf einer Live-Dartscheibe mit getroffenen Feldern, Dart-Positionen, dem Übungsspiel, Trainingsstatistik und Steuerung.",
-    picker_training: "Autodarts Training",
+    picker_training: "Autodarts-Training",
     picker_training_description:
-      "Die Trainingssession mit Heatmap der Treffer, 3-Dart-Average, Statistik, Bestleistungen und letzten Aufnahmen.",
-    picker_status: "Autodarts Board-Status",
+      "Die Trainingssession mit Trefferbild, 3-Dart-Average, Statistik, Bestleistungen und letzten Aufnahmen.",
+    picker_status: "Autodarts-Board-Status",
     picker_status_description: "Erkennung, Verbindungen, Kameras, Board-PC und Wartung eines Autodarts-Boards.",
-    picker_scoreboard: "Autodarts Anzeigetafel",
+    picker_scoreboard: "Autodarts-Anzeigetafel",
     picker_scoreboard_description:
       "Eine große Anzeigetafel für Tablet oder Fernseher am Board: X01, Cricket, Party- und Trainingsspiele, die Aufnahme und ein Caller.",
-    picker_players: "Autodarts Spieler",
+    picker_players: "Autodarts-Spieler",
     picker_players_description:
       "Statistik und Bestleistungen jedes Spielers mit Namen, direkte Vergleiche und die letzten Matches.",
-    picker_doubles: "Autodarts Doubles",
+    picker_doubles: "Autodarts-Doubles",
     picker_doubles_description:
       "Die Quote jedes Doubles der Scheibe, für alle oder einen Spieler, mit dem Lieblingsdouble.",
-    picker_leaderboard: "Autodarts Bestenliste",
+    picker_leaderboard: "Autodarts-Bestenliste",
     picker_leaderboard_description:
       "Rekorde aller Spieler: bester Average, höchster Checkout, meiste 180er, wenigste Darts und mehr, gesamt, in den letzten vier Wochen oder in dieser Woche.",
     picker_strategy_description:
@@ -1269,6 +1283,7 @@ const TEXT = {
     score_player: "Jugador",
     score_turn: "lanza",
     score_winner: "gana el partido",
+    winner: "Ganador",
     score_legs: "Legs",
     score_sets: "Sets",
     practice_names: "Nombres de los jugadores",
@@ -1330,6 +1345,8 @@ const TEXT = {
     any_treble: "Cualquier triple",
     killer_choose: "Lanza para conseguir tu número",
     killer_hunt: "Killer – acierta los dobles de los demás",
+    killer_life: "1 vida",
+    killer_lives: "{count} vidas",
     needs_players: "Killer necesita al menos dos jugadores",
     double_in_needed: "Empieza con un doble",
     out: "eliminado",
@@ -1432,6 +1449,7 @@ const TEXT = {
     lobby_options: "Opciones",
     lobby_one_player: "Los juegos de entrenamiento son para un jugador: juega {name}.",
     lobby_nobody: "No has elegido a nadie: lanza un jugador sin nombre.",
+    lobby_detection: "La detección está detenida: al empezar se activa.",
     lobby_start: "Empezar {game}",
     lobby_close: "Cerrar",
     lobby_end: "Terminar partida",
@@ -1556,6 +1574,7 @@ const TEXT = {
     highest_short: "Más alta",
     show_sessions: "Mostrar sesiones anteriores",
     statistics_label: "Estadísticas de entrenamiento, ver detalles",
+    statistics: "Estadísticas de entrenamiento",
     personal_bests: "Récords personales",
     best_session_average: "Mejor media de sesión",
     best_cricket_mpr: "Mejor MPR en Cricket",
@@ -1684,6 +1703,8 @@ const TEXT = {
     board_settings: "Configuración de la diana",
     training_settings: "Configuración del entrenamiento",
     strategy_device_helper: "Opcional. Sin selección, el panel de control muestra todas las dianas Autodarts.",
+    strategy_scoreboard: "Vista del marcador",
+    strategy_scoreboard_helper: "Opciones del marcador en su vista; las que no configures mantienen los valores predeterminados de la tarjeta.",
     strategy_no_board: "No se ha encontrado ninguna diana Autodarts. Configura la integración Autodarts y vuelve a cargar este panel de control.",
     strategy_board_missing:
       "La diana de este panel de control ya no existe. Edita el panel de control y elige otra diana, o quita la diana seleccionada para mostrar todas las dianas.",
@@ -1788,6 +1809,7 @@ const TEXT = {
     score_player: "Joueur",
     score_turn: "lance",
     score_winner: "remporte le match\u00a0!",
+    winner: "Vainqueur",
     score_legs: "Manches",
     score_sets: "Sets",
     practice_names: "Noms des joueurs",
@@ -1849,6 +1871,8 @@ const TEXT = {
     any_treble: "N'importe quel triple",
     killer_choose: "Lancez pour obtenir votre numéro",
     killer_hunt: "Killer – touchez les doubles des autres",
+    killer_life: "1 vie",
+    killer_lives: "{count} vies",
     needs_players: "Il faut au moins deux joueurs pour Killer",
     double_in_needed: "Commencez par un double",
     out: "éliminé",
@@ -1951,6 +1975,7 @@ const TEXT = {
     lobby_options: "Options",
     lobby_one_player: "Les jeux d'entraînement se jouent seul\u00a0: c'est {name} qui joue.",
     lobby_nobody: "Aucun joueur choisi\u00a0: un joueur lance sans nom.",
+    lobby_detection: "La détection est arrêtée\u00a0: le lancement l'active.",
     lobby_start: "Démarrer {game}",
     lobby_close: "Fermer",
     lobby_end: "Terminer la partie",
@@ -1959,7 +1984,7 @@ const TEXT = {
     teams: "Équipes (1 + 3 contre 2 + 4)",
     double_out: "Double out",
     double_in: "Double in",
-    bull_off_distance: "Bull-off à la distance",
+    bull_off_distance: "Bull-off départagé à la distance",
     idle_panel_leaderboard: "Classement",
     idle_panel_records: "Records personnels",
     idle_panel_today: "Aujourd'hui",
@@ -2075,6 +2100,7 @@ const TEXT = {
     highest_short: "Meilleure",
     show_sessions: "Afficher les sessions précédentes",
     statistics_label: "Statistiques d'entraînement, ouvrir les détails",
+    statistics: "Statistiques d'entraînement",
     personal_bests: "Records personnels",
     best_session_average: "Meilleure moyenne de session",
     best_cricket_mpr: "Meilleur MPR au Cricket",
@@ -2203,6 +2229,8 @@ const TEXT = {
     board_settings: "Paramètres de la cible",
     training_settings: "Paramètres d'entraînement",
     strategy_device_helper: "Facultatif. Sans sélection, le tableau de bord affiche toutes les cibles Autodarts.",
+    strategy_scoreboard: "Vue du tableau des scores",
+    strategy_scoreboard_helper: "Options du tableau des scores dans sa vue\u00a0; celles que vous ne définissez pas gardent les valeurs par défaut de la carte.",
     strategy_no_board: "Aucune cible Autodarts trouvée. Configurez l'intégration Autodarts, puis rechargez ce tableau de bord.",
     strategy_board_missing:
       "La cible de ce tableau de bord n'existe plus. Modifiez le tableau de bord et choisissez une autre cible, ou effacez la sélection pour afficher toutes les cibles.",
@@ -2307,6 +2335,7 @@ const TEXT = {
     score_player: "Speler",
     score_turn: "aan de beurt",
     score_winner: "wint de wedstrijd!",
+    winner: "Winnaar",
     score_legs: "Legs",
     score_sets: "Sets",
     practice_names: "Spelersnamen",
@@ -2368,6 +2397,8 @@ const TEXT = {
     any_treble: "Willekeurige triple",
     killer_choose: "Gooi voor je nummer",
     killer_hunt: "Killer – raak de dubbels van de anderen",
+    killer_life: "1 leven",
+    killer_lives: "{count} levens",
     needs_players: "Killer heeft minstens twee spelers nodig",
     double_in_needed: "Begin met een dubbel",
     out: "eruit",
@@ -2470,6 +2501,7 @@ const TEXT = {
     lobby_options: "Opties",
     lobby_one_player: "Trainingsspellen zijn voor één speler: {name} speelt.",
     lobby_nobody: "Niemand gekozen: één speler gooit zonder naam.",
+    lobby_detection: "De detectie staat uit: bij het starten gaat ze aan.",
     lobby_start: "{game} starten",
     lobby_close: "Sluiten",
     lobby_end: "Spel beëindigen",
@@ -2478,7 +2510,7 @@ const TEXT = {
     teams: "Teams (1 + 3 tegen 2 + 4)",
     double_out: "Double out",
     double_in: "Double in",
-    bull_off_distance: "Bullen op afstand",
+    bull_off_distance: "Bullen: gemeten afstand beslist",
     idle_panel_leaderboard: "Ranglijst",
     idle_panel_records: "Persoonlijke records",
     idle_panel_today: "Vandaag",
@@ -2536,12 +2568,12 @@ const TEXT = {
     lobby_games_helper: "Laat leeg om alle spellen van het bord aan te bieden.",
     lobby_section: "Scherm Nieuw spel",
     lobby_section_helper: "Tik op Nieuw spel om het spel, de spelers en het format te kiezen; het scherm opent ook een paar seconden nadat een spel is afgelopen.",
-    idle: "Ruststand",
-    idle_after: "Ruststand na",
+    idle: "Rustmodus",
+    idle_after: "Rustmodus na",
     idle_interval: "Volgend paneel na",
     idle_panels: "Panelen",
     idle_panels_helper: "Laat leeg om alle panelen te tonen.",
-    idle_section: "Ruststand",
+    idle_section: "Rustmodus",
     idle_section_helper: "Als er geen spel loopt en niemand gooit of tikt, toont het scorebord deze panelen afwisselend.",
     bull_target: "Bull (25/50)",
     bull_off_rethrow: "Gelijkstand – gooi opnieuw",
@@ -2594,6 +2626,7 @@ const TEXT = {
     highest_short: "Hoogste",
     show_sessions: "Eerdere sessies tonen",
     statistics_label: "Trainingsstatistieken, details openen",
+    statistics: "Trainingsstatistieken",
     personal_bests: "Persoonlijke records",
     best_session_average: "Beste sessiegemiddelde",
     best_cricket_mpr: "Beste Cricket-MPR",
@@ -2722,6 +2755,8 @@ const TEXT = {
     board_settings: "Bordinstellingen",
     training_settings: "Trainingsinstellingen",
     strategy_device_helper: "Optioneel. Zonder selectie toont het dashboard elk Autodarts-bord.",
+    strategy_scoreboard: "Scorebordweergave",
+    strategy_scoreboard_helper: "Opties van het scorebord in zijn weergave; wat je niet instelt, houdt de standaard van de kaart.",
     strategy_no_board: "Geen Autodarts-bord gevonden. Stel de Autodarts-integratie in en laad dit dashboard daarna opnieuw.",
     strategy_board_missing:
       "Het bord van dit dashboard bestaat niet meer. Bewerk het dashboard en kies een ander bord, of wis de bordkeuze om alle borden te tonen.",
@@ -3003,10 +3038,14 @@ const escapeHtml = (value) =>
 
 // Card options reach the style only as real colours, never as url() or broken values.
 // Colour names of Home Assistant's picker, such as "primary" or "red", follow the theme.
+// A theme variable counts only without a fallback: the browser accepts anything there,
+// images too. Escapes could hide a url().
 function cssColor(value, fallback) {
   if (typeof value !== "string") return fallback;
   if (THEME_COLORS.has(value)) return `var(--${value}-color)`;
-  return !/url\(/i.test(value) && globalThis.CSS?.supports?.("color", value) ? value : fallback;
+  if (/^var\(--[\w-]+\)$/.test(value)) return value;
+  if (/\\|url|image|src\(|var\(/i.test(value)) return fallback;
+  return globalThis.CSS?.supports?.("color", value) ? value : fallback;
 }
 
 const usable = (state) => state && !["unknown", "unavailable"].includes(state.state);
@@ -3095,7 +3134,11 @@ function amPm(locale, language) {
   return clocks.get(key);
 }
 
-// Day, month and time like "26.09., 14:05", in the server's or the browser's time zone.
+// The order of day and month of the user profile's date format; YMD has no year here.
+const DATE_ORDERS = { DMY: ["day", "month"], MDY: ["month", "day"], YMD: ["month", "day"] };
+
+// Day, month and time like "26.09., 14:05", in the server's or the browser's time zone,
+// with the date in the order of the user profile, as Home Assistant writes numeric dates.
 function formatDateTime(hass, time) {
   const moment = new Date(time);
   if (Number.isNaN(moment.getTime())) return "";
@@ -3103,14 +3146,21 @@ function formatDateTime(hass, time) {
   const language = locale.language || hass?.language;
   const twelve = amPm(locale, language);
   const server = hass?.config?.time_zone;
-  return formatter("date", language, {
+  const format = formatter("date", locale.date_format === "system" ? undefined : language, {
     day: "2-digit",
     month: "2-digit",
     hour: twelve ? "numeric" : "2-digit",
     minute: "2-digit",
     hourCycle: twelve ? "h12" : "h23",
     ...(server && locale.time_zone !== "local" ? { timeZone: server } : {}),
-  }).format(moment);
+  });
+  if (!Object.hasOwn(DATE_ORDERS, locale.date_format)) return format.format(moment);
+  const order = DATE_ORDERS[locale.date_format];
+  // The language's separators stay; day and month take the places of the profile's order.
+  const parts = format.formatToParts(moment);
+  const value = (type) => parts.find((part) => part.type === type).value;
+  let next = 0;
+  return parts.map((part) => (["day", "month"].includes(part.type) ? value(order[next++]) : part.value)).join("");
 }
 
 // Entity lookup ------------------------------------------------------------
@@ -3395,21 +3445,34 @@ function pastSessions(sessions, limit = 5) {
     }));
 }
 
-// Rows of history/history_during_period for the board events entity.
-function visitsFromHistory(rows, since = 0) {
-  let visits = [];
+// Board events that change the visits of the training card, and the most visits it shows.
+const VISIT_EVENTS = ["visit_completed", "visit_undone", "session_started"];
+const HISTORY_LIMIT = 60;
+
+// The visits of the session after rows of the board events entity, as the recorder
+// or the history stream deliver them, on top of the visits known so far: a session
+// start empties the list, a completed visit joins it, and an undone visit leaves it
+// again (its darts come back as a new visit). The bot's visits count for nobody.
+function visitsFromHistory(rows, since = 0, known = []) {
+  let visits = [...known];
   for (const row of Array.isArray(rows) ? rows : []) {
     const attributes = row?.a || row?.attributes;
+    const type = attributes?.event_type;
     const time = Date.parse(row?.s ?? row?.state);
     // The start sensor has whole seconds, so a visit of the previous session
     // can fall into the same second; the start event itself is precise.
-    if (attributes?.event_type === "session_started" && time >= since) {
+    if (!Number.isFinite(time) || time < since) continue;
+    if (type === "session_started") {
       visits = [];
       continue;
     }
-    if (attributes?.event_type !== "visit_completed") continue;
+    if (type === "visit_undone") {
+      visits = visits.slice(0, -1);
+      continue;
+    }
+    if (type !== "visit_completed" || attributes.bot === true) continue;
     const score = Number(attributes.score);
-    if (!Number.isFinite(time) || !Number.isFinite(score) || time < since) continue;
+    if (!Number.isFinite(score)) continue;
     visits.push({
       time,
       score,
@@ -3974,10 +4037,13 @@ function partyPlayers(party, ui) {
     const active = party.winner === null && score.player === party.player;
     // Out in Killer, or out of the extra rounds after a tie.
     const out = (killer && score.lives === 0) || Boolean(party.playoff && !party.playoff.includes(score.player));
+    const lives = score.lives ?? 0;
     return {
       name: playerName(ui, score, match),
-      value: killer ? hearts(score.lives ?? 0) : String(score.points),
+      value: killer ? hearts(lives) : String(score.points),
       lives: killer,
+      // Hearts read as "3 lives", not as three heart symbols.
+      spoken: killer ? fill(t(lives === 1 ? "killer_life" : "killer_lives"), { count: lives }) : "",
       state: party.winner === score.player ? "winner" : active && match ? "active" : out ? "out" : "",
       note: active ? partyNote(party, ui) : "",
       details: [
@@ -4021,29 +4087,41 @@ const membersHtml = (members) =>
     })
     .join(" · ");
 
+// Who is up and who won, for assistive technology: the page shows both by colour.
+const turnMark = (player) => (player.state === "active" ? ' aria-current="true"' : "");
+const winnerMark = (player, ui) =>
+  player.state === "winner" && ui.t ? ` <span class="visually-hidden">${escapeHtml(ui.t("winner"))}</span>` : "";
+
+// A value such as Killer's hearts, with the words a screen reader says instead.
+const valueHtml = (tag, style, player) =>
+  `<${tag} class="${style}${player.lives ? " lives" : ""}"` +
+  `${player.spoken ? ` role="img" aria-label="${escapeHtml(player.spoken)}"` : ""}>${escapeHtml(player.value)}</${tag}>`;
+
 // Players as large tiles on the scoreboard, with the picture of a linked person.
 function playerTiles(players, ui = {}) {
   const tiles = players.map(
     (player) =>
-      `<div class="player${player.state ? ` ${player.state}` : ""}"><div class="name">` +
-      `${avatarHtml(ui.avatar?.(player.name))}${escapeHtml(player.name)}${badge(player)}</div>` +
-      `<div class="big${player.lives ? " lives" : ""}">${escapeHtml(player.value)}</div>` +
+      `<div class="player${player.state ? ` ${player.state}` : ""}"${turnMark(player)}><div class="name">` +
+      `${avatarHtml(ui.avatar?.(player.name))}${escapeHtml(player.name)}${badge(player)}${winnerMark(player, ui)}</div>` +
+      valueHtml("div", "big", player) +
       `<div class="route">${player.note}</div>` +
       (player.members ? `<div class="members">${membersHtml(player.members)}</div>` : "") +
       `<div class="details">${escapeHtml(player.details.filter(Boolean).join(" · "))}</div></div>`
   );
-  return `<div class="players n${Math.max(players.length, 1)}">${tiles.join("")}</div>`;
+  const teams = players.some((player) => player.members) ? " teams" : "";
+  return `<div class="players n${Math.max(players.length, 1)}${teams}">${tiles.join("")}</div>`;
 }
 
 // Players as rows in the live card.
-const playerRows = (players) =>
+const playerRows = (players, ui = {}) =>
   players
     .map(
       (player) =>
-        `<div class="player-score${player.state ? ` ${player.state}` : ""}">` +
-        `<span class="who">${escapeHtml(player.name)}${badge(player)}</span>` +
+        `<div class="player-score${player.state ? ` ${player.state}` : ""}"${turnMark(player)}>` +
+        `<span class="who">${escapeHtml(player.name)}${badge(player)}${winnerMark(player, ui)}</span>` +
         `<span class="muted">${escapeHtml(player.details.filter(Boolean).join(" · "))}</span>` +
-        `<span class="rest${player.lives ? " lives" : ""}">${escapeHtml(player.value)}</span></div>`
+        valueHtml("span", "rest", player) +
+        `</div>`
     )
     .join("");
 
@@ -4105,7 +4183,10 @@ function cricketTable(cricket, ui, { aim = true } = {}) {
   rows.push(row("detail", t("cricket_mpr"), text((column) => column.mpr)));
   if (match && cricket.legsToWin > 1) rows.push(row("detail", t("score_legs"), text((column) => String(column.legs))));
   if (match && cricket.setsToWin > 1) rows.push(row("detail", t("score_sets"), text((column) => String(column.sets))));
-  const head = columns.map((column) => `<th class="${kind(column)}">${column.head}</th>`).join("");
+  const head = columns
+    .map((column) => ({ ...column, state: kind(column) }))
+    .map((column) => `<th class="${column.state}"${turnMark(column)}>${column.head}${winnerMark(column, ui)}</th>`)
+    .join("");
   const next = aim && cricket.target && !cricket.won && cricket.winner === null ? bedChips(ui, [cricket.target]) : "";
   const shot = aim && cricket.won && cricket.winner === null ? note(t("game_shot"), "won") : "";
   const corner = shot || next;
@@ -4357,13 +4438,17 @@ function summaryRows(summary, ui) {
 }
 
 // The summary as a table: a column per player with the picture of a linked
-// person, the winner's highlighted, and the result in the first row.
-function summaryTable(summary, ui) {
-  const column = (player) => (player.player === summary.winner ? "winner" : "");
+// person, the winner's highlighted, and the result in the first row. In a
+// team match, both partners of the winning team are the winners.
+function summaryTable(summary, ui, teams = []) {
+  const team = (Array.isArray(teams) ? teams : []).find((item) => item.players.includes(summary.winner));
+  const winners = team ? team.players : [summary.winner];
+  const column = (player) => (winners.includes(player.player) ? "winner" : "");
   const head = summary.players
     .map((player) => {
       const name = playerName(ui, player, true);
-      return `<th class="${column(player)}">${avatarHtml(ui.avatar?.(name))}${escapeHtml(name)}</th>`;
+      const state = column(player);
+      return `<th class="${state}">${avatarHtml(ui.avatar?.(name))}${escapeHtml(name)}${winnerMark({ state }, ui)}</th>`;
     })
     .join("");
   const rows = summaryRows(summary, ui)
@@ -4416,7 +4501,7 @@ function scoreboardHtml(view, ui) {
   const scorecard = view.mode === "party" && SCORECARD_GAMES.includes(game.kind);
   // The summary of a won match takes the place of the players.
   const main = view.summary
-    ? () => summaryTable(view.summary, ui)
+    ? () => summaryTable(view.summary, ui, game.teams)
     : {
         cricket: () => cricketTable(game, ui),
         party: () => playerTiles(partyPlayers(game, ui), ui) + (scorecard ? scorecardTable(game, ui) : ""),
@@ -4796,9 +4881,10 @@ function lobbyHtml(choice, ui) {
   const { t } = ui;
   const rules = gameRules(choice.game);
   const text = (key, values) => escapeHtml(values ? fill(t(key), values) : t(key));
+  // Every button keeps the focus through the next render, for keyboards and screen readers.
   const button = (action, value, content, extra = "") =>
     `<button type="button" data-lobby="${action}"${value === undefined ? "" : ` data-value="${escapeHtml(value)}"`}` +
-    `${extra}>${content}</button>`;
+    ` data-focus="${escapeHtml(`${action}:${value ?? ""}`)}"${extra}>${content}</button>`;
   const block = (label, content, kind) =>
     `<div class="lobby-block ${kind}"><div class="section-label">${text(label)}</div>${content}</div>`;
   // A tournament plays X01 and Cricket, as far as the board offers them.
@@ -4856,11 +4942,11 @@ function lobbyHtml(choice, ui) {
       const who = { name: shown(name, index) };
       return (
         `<li class="lobby-player${index >= seats ? " resting" : ""}">${avatarHtml(ui.avatar(name))}` +
-        `<span class="who">${escapeHtml(who.name)}</span>${startHtml(index, who)}` +
+        `<span class="who">${escapeHtml(who.name)}</span>${startHtml(index, who)}<span class="lobby-moves">` +
         button("up", index, "▲", ` aria-label="${text("lobby_move_up", who)}"${index === 0 ? " disabled" : ""}`) +
         button("down", index, "▼", ` aria-label="${text("lobby_move_down", who)}"${index === last ? " disabled" : ""}`) +
         button("remove", index, "✕", ` aria-label="${text("lobby_remove", who)}"`) +
-        `</li>`
+        `</span></li>`
       );
     })
     .join("");
@@ -4872,7 +4958,9 @@ function lobbyHtml(choice, ui) {
           "add",
           person.name,
           `${avatarHtml(person.picture)}<span>${escapeHtml(person.name)}</span>` +
-            (person.home ? `<span class="home" title="${text("lobby_home")}" aria-label="${text("lobby_home")}">⌂</span>` : ""),
+            (person.home
+              ? `<span class="home" role="img" title="${text("lobby_home")}" aria-label="${text("lobby_home")}">⌂</span>`
+              : ""),
           ` class="suggestion${person.home ? " home" : ""}"${full}`
         )
       )
@@ -4884,7 +4972,7 @@ function lobbyHtml(choice, ui) {
   const entry =
     `<div class="name-entry"><input class="lobby-name" type="text" maxlength="${LOBBY_LIMITS.name}" autocomplete="off"` +
     ` enterkeyhint="done" data-focus="lobby-name" placeholder="${text("lobby_name")}"` +
-    ` aria-label="${text("lobby_new_player")}" value="${escapeHtml(choice.draft)}"${full}>` +
+    ` aria-label="${text("lobby_new_player")}"${full}>` +
     `${button("add-name", undefined, text("lobby_add"), full)}</div>`;
   const match = choice.tournament || (!rules.drill && choice.players.length + Number(bot) > 1);
   const stepper = (key, label) => {
@@ -4914,17 +5002,13 @@ function lobbyHtml(choice, ui) {
         button("format", format, text(`tournament_${format}`), ` class="option" aria-pressed="${choice.format === format}"`)
       ).join("")}</div>`
     : "";
-  // Nobody chosen is one player without a name.
-  const blocked = choice.tournament
-    ? choice.players.length < TOURNAMENT_LIMITS.min
-    : Math.max(choice.players.length, 1) < rules.minPlayers;
-  const hint = blocked
-    ? t(choice.tournament ? "tournament_needs_players" : "needs_players")
-    : !choice.tournament && rules.drill && choice.players.length > 1
-      ? fill(t("lobby_one_player"), { name: shown(choice.players[0], 0) })
-      : "";
+  const blocked = lobbyBlocked(choice);
+  // The screen's live region reads the hints out; here they are shown.
+  const hints = lobbyHints(choice, ui)
+    .map((hint) => `<span class="lobby-hint">${escapeHtml(hint)}</span>`)
+    .join("");
   const actions =
-    `<div class="lobby-actions"><span class="lobby-hint" role="status">${escapeHtml(hint)}</span>` +
+    `<div class="lobby-actions">${hints}` +
     (ui.running || ui.tournamentRunning
       ? button(
           "end",
@@ -4969,8 +5053,28 @@ function lobbyHtml(choice, ui) {
           "options"
         )
       : "") +
-    `${actions}</div></section>`
+    `</div>${actions}</section>`
   );
+}
+
+// Whether the start waits for players: a tournament needs three, Killer two;
+// nobody chosen is one player without a name.
+const lobbyBlocked = (choice) =>
+  choice.tournament
+    ? choice.players.length < TOURNAMENT_LIMITS.min
+    : Math.max(choice.players.length, 1) < gameRules(choice.game).minPlayers;
+
+// What holds the start back or what it does besides: too few players, a training
+// game that one player plays, or detection that the start switches on.
+function lobbyHints(choice, ui) {
+  const { t } = ui;
+  const hints = [];
+  if (lobbyBlocked(choice)) hints.push(t(choice.tournament ? "tournament_needs_players" : "needs_players"));
+  else if (!choice.tournament && gameRules(choice.game).drill && choice.players.length > 1) {
+    hints.push(fill(t("lobby_one_player"), { name: choice.players[0] || `${t("score_player")} 1` }));
+  }
+  if (ui.detectionOff) hints.push(t("lobby_detection"));
+  return hints;
 }
 
 // Correcting and entering darts ---------------------------------------------------
@@ -4985,6 +5089,7 @@ function padHtml(pad, ui) {
   const { t } = ui;
   const button = (action, value, content, extra = "") =>
     `<button type="button" data-pad="${action}"${value === undefined ? "" : ` data-value="${escapeHtml(value)}"`}` +
+    ` data-focus="${escapeHtml(`${action}:${value ?? ""}`)}"` +
     `${pad.disabled && action !== "cancel" ? " disabled" : ""}${extra}>${content}</button>`;
   const title = pad.dart ? fill(t("correct_title"), { dart: pad.dart }) : t("enter_title");
   const multipliers = [
@@ -5340,7 +5445,7 @@ function tournamentBracket(view, ui, fresh = new Set()) {
     .filter((round) => round !== third)
     .map(
       (round) =>
-        `<div class="round ${round.stage}"><div class="section-label">${escapeHtml(stageName(t, round.stage))}</div>` +
+        `<div class="round ${escapeHtml(round.stage)}"><div class="section-label">${escapeHtml(stageName(t, round.stage))}</div>` +
         `<div class="duels">${round.matches.map((match, index) => box(match, round.stage, index)).join("")}` +
         (third && round.stage === "final"
           ? `<div class="section-label third">${escapeHtml(stageName(t, third.stage))}</div>` +
@@ -5763,7 +5868,7 @@ function trendsHtml(players, ui) {
           const trend = t(`trend_${metric.direction}`);
           return (
             `<div class="trend" data-metric="${metric.key}"><span class="trend-label">${escapeHtml(t(metric.label))}</span>` +
-            `<span class="trend-value">${escapeHtml(shown)} <span class="arrow ${metric.direction}" title="${escapeHtml(
+            `<span class="trend-value">${escapeHtml(shown)} <span class="arrow ${metric.direction}" role="img" title="${escapeHtml(
               trend
             )}" aria-label="${escapeHtml(trend)}">${TREND_ARROWS[metric.direction]}</span></span>` +
             `${sparkline(metric.values)}</div>`
@@ -6206,6 +6311,7 @@ const PRACTICE_KEYS = [
   "switch.practice_double_out",
   "switch.practice_double_in",
   "switch.practice_bull_off",
+  "switch.practice_bull_off_distance",
   "switch.practice_teams",
   "switch.practice_personal_routes",
   "select.practice_golf_holes",
@@ -6223,6 +6329,7 @@ const TOURNAMENT_KEYS = [
   "select.tournament_game",
   "text.tournament_players",
   "number.tournament_pause",
+  "number.tournament_summary",
   "switch.tournament_third_place",
   "switch.tournament_random_draw",
   "button.tournament_start",
@@ -6269,6 +6376,8 @@ function boardContext(hass, t, deviceId, number, count) {
     t,
     index,
     id,
+    // The state of an entity of the board by its key.
+    state: (key) => hass.states?.[id(key)],
     row,
     rows: (keys, section) => keys.map(id).filter(Boolean).map((entity) => row(entity, section)),
     // Several boards get their own set of views.
@@ -6313,14 +6422,25 @@ function liveDashboardView(board) {
   };
 }
 
-// The scoreboard fills the screen of a tablet or TV at the board.
-function scoreboardDashboardView(board) {
+// Options of the scoreboard view that the dashboard's own settings may set.
+const STRATEGY_SCOREBOARD = ["caller", "keypad", "corrections", "idle", "lobby_games", "idle_panels"];
+
+// The options set in the dashboard's settings, without the empty ones.
+function scoreboardOptions(config) {
+  const chosen = config?.scoreboard && typeof config.scoreboard === "object" ? config.scoreboard : {};
+  const set = (value) => value !== undefined && value !== null && !(Array.isArray(value) && !value.length);
+  return Object.fromEntries(STRATEGY_SCOREBOARD.filter((key) => set(chosen[key])).map((key) => [key, chosen[key]]));
+}
+
+// The scoreboard fills the screen of a tablet or TV at the board, with the options of
+// the dashboard's settings: the dashboard stays automatic, so later releases reach it.
+function scoreboardDashboardView(board, options = {}) {
   return {
     title: `${board.t("view_scoreboard")}${board.suffix}`,
     path: `scoreboard${board.slug}`,
     icon: "mdi:scoreboard-outline",
     panel: true,
-    cards: [board.card(SCOREBOARD_TYPE, { full_height: true })],
+    cards: [board.card(SCOREBOARD_TYPE, { full_height: true, ...options })],
   };
 }
 
@@ -6372,8 +6492,10 @@ function trainingDashboardView(board) {
   };
 }
 
+// The players and their records, once a player has a profile.
 function playersDashboardView(board) {
-  if (!board.id("sensor.player_profiles")) return null;
+  const players = board.state("sensor.player_profiles")?.attributes?.players;
+  if (!Array.isArray(players) || !players.length) return null;
   return {
     title: `${board.t("view_players")}${board.suffix}`,
     path: `players${board.slug}`,
@@ -6418,11 +6540,12 @@ function dashboardStrategy(hass, config = {}) {
     const content = t(config.device_id ? "strategy_board_missing" : "strategy_no_board");
     return { title, views: [{ title: "Autodarts", cards: [{ type: "markdown", content }] }] };
   }
+  const options = scoreboardOptions(config);
   const views = devices.flatMap((deviceId, number) => {
     const board = boardContext(hass, t, deviceId, number, devices.length);
     return [
       liveDashboardView(board),
-      scoreboardDashboardView(board),
+      scoreboardDashboardView(board, options),
       trainingDashboardView(board),
       playersDashboardView(board),
       boardDashboardView(board),
@@ -6688,7 +6811,38 @@ const FORMS = {
   doubles: () => [deviceField, titleField, playerField(), accentField],
 };
 
-const STRATEGY_FORM = [deviceField, titleField];
+// The dashboard's settings: the board, the title and, in a section of its own, what
+// the scoreboard view offers, in the page language.
+const strategyForm = (hass) => [
+  deviceField,
+  titleField,
+  {
+    type: "expandable",
+    name: "scoreboard",
+    schema: [
+      toggles(["caller", "keypad", "corrections", "idle"], SCOREBOARD_DEFAULTS),
+      { name: "lobby_games", selector: { select: { multiple: true, mode: "dropdown", options: gameOptions(hass) } } },
+      {
+        name: "idle_panels",
+        selector: {
+          select: {
+            multiple: true,
+            mode: "list",
+            options: IDLE_PANELS.map((panel) => ({ value: panel, label: translate(hass, `idle_panel_${panel}`) })),
+          },
+        },
+      },
+    ],
+  },
+];
+
+// Labels and help of the dashboard's settings that differ from those of the cards.
+const STRATEGY_LABELS = { scoreboard: "strategy_scoreboard" };
+const STRATEGY_HELPERS = {
+  ...FORM_HELPERS,
+  device_id: "strategy_device_helper",
+  scoreboard: "strategy_scoreboard_helper",
+};
 
 // Styles ----------------------------------------------------------------------
 
@@ -6701,12 +6855,28 @@ const BASE_CSS = `
     --ad-error-text: color-mix(in srgb, ${STATUS_COLORS.problem} 75%, var(--primary-text-color, #212121));
     --ad-warn-text: color-mix(in srgb, ${STATUS_COLORS.takeout} 45%, var(--primary-text-color, #212121));
     --ad-gold-text: color-mix(in srgb, ${GOLD} 45%, var(--primary-text-color, #212121));
+    /* The accent as text on the card, and as a fill under white text: the theme's
+       primary colour alone is too light for both on a light card. */
+    --ad-accent-text: color-mix(in srgb, var(--ad-accent) 60%, var(--primary-text-color, #212121));
+    --ad-accent-fill: color-mix(in srgb, var(--ad-accent) 70%, #000);
+    /* Secondary text that stays readable on tinted tiles. */
+    --ad-muted-text: color-mix(in srgb, var(--secondary-text-color) 80%, var(--primary-text-color, #212121));
   }
   [hidden] { display: none !important; }
+  /* Read by assistive technology, not shown. */
+  .visually-hidden {
+    position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+    overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  }
+  /* Windows High Contrast shows no background colours: pressed buttons get an outline. */
+  @media (forced-colors: active) {
+    [aria-pressed="true"], [aria-checked="true"] { outline: 3px solid Highlight; outline-offset: -3px; }
+  }
   /* A setup: its darts, then the score they leave. */
   .setup { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
   .setup .leave { font-weight: 700; color: var(--secondary-text-color); white-space: nowrap; }
-  ha-card { overflow: hidden; height: 100%; }
+  /* Clipped corners without a scroll container of its own, so sticky parts stick to the page. */
+  ha-card { overflow: hidden; overflow: clip; height: 100%; }
   .root { container-type: inline-size; height: 100%; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .title {
@@ -6726,9 +6896,9 @@ const BASE_CSS = `
   }
   .section-label {
     font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--ad-accent);
+    color: var(--ad-accent-text);
   }
-  .muted { font-size: 11px; color: var(--secondary-text-color); }
+  .muted { font-size: 11px; color: var(--ad-muted-text); }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
     display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
@@ -6748,9 +6918,9 @@ const BASE_CSS = `
   }
   :is(.controls button, button.action):hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
   :is(.controls button, button.action).primary {
-    color: var(--text-primary-color, #fff); background: var(--ad-accent); border-color: var(--ad-accent);
+    color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill);
   }
-  :is(.controls button, button.action).primary.stop { background: none; color: var(--ad-accent); }
+  :is(.controls button, button.action).primary.stop { background: none; color: var(--ad-accent-text); }
   :is(.controls button, button.action).confirm {
     color: #fff; background: ${STATUS_COLORS.problem}; border-color: ${STATUS_COLORS.problem};
   }
@@ -6805,7 +6975,7 @@ const CSS = `${BASE_CSS}
   .board { grid-area: board; align-self: center; }
   .visit-label {
     font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--ad-accent);
+    color: var(--ad-accent-text);
   }
   .score-row { display: flex; align-items: baseline; gap: 10px; margin-top: 2px; }
   .score {
@@ -6829,9 +6999,9 @@ const CSS = `${BASE_CSS}
   .practice-route { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
   .practice-route .bed {
     padding: 3px 9px; border-radius: 8px; font-weight: 700;
-    color: var(--ad-accent); border: 1px solid var(--ad-accent);
+    color: var(--ad-accent-text); border: 1px solid var(--ad-accent);
   }
-  .practice-route .bed:first-child { color: var(--text-primary-color, #fff); background: var(--ad-accent); }
+  .practice-route .bed:first-child { color: #fff; background: var(--ad-accent-fill); }
   .practice-route .note { font-weight: 700; }
   .practice-route .note:not(.won, .bust) { font-size: 11px; font-weight: 400; }
   .scoreboard { display: grid; gap: 4px; }
@@ -6857,9 +7027,9 @@ const CSS = `${BASE_CSS}
   .cricket th.aim .bed { font-size: 11px; padding: 1px 6px; }
   .cricket tr > :first-child { width: 4.2em; text-align: left; }
   .cricket tbody th { font-weight: 700; color: var(--secondary-text-color); }
-  .cricket td { font-size: 17px; font-weight: 800; line-height: 1.1; color: var(--ad-accent); }
+  .cricket td { font-size: 17px; font-weight: 800; line-height: 1.1; color: var(--ad-accent-text); }
   .cricket tr.closed > * { opacity: 0.35; }
-  .cricket tr.target th { color: var(--ad-accent); }
+  .cricket tr.target th { color: var(--ad-accent-text); }
   .cricket tr.total td {
     font-size: 15px; color: var(--primary-text-color);
     border-top: 1px solid var(--divider-color, rgba(127,127,127,.25));
@@ -6871,10 +7041,10 @@ const CSS = `${BASE_CSS}
   .summary th, .summary td { padding: 2px 6px; text-align: center; }
   .summary tr > :first-child { width: 36%; text-align: left; }
   .summary thead th { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .summary thead th.caption { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-accent); }
+  .summary thead th.caption { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-accent-text); }
   .summary tbody th { font-weight: 400; color: var(--secondary-text-color); }
   .summary td { font-weight: 700; color: var(--primary-text-color); }
-  .summary tr.result td { font-size: 17px; font-weight: 800; color: var(--ad-accent); }
+  .summary tr.result td { font-size: 17px; font-weight: 800; color: var(--ad-accent-text); }
   .summary .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 20%, transparent); }
   .aim path {
     fill: color-mix(in srgb, var(--ad-accent) 35%, transparent);
@@ -6898,9 +7068,9 @@ const CSS = `${BASE_CSS}
     border-color: var(--ad-highlight);
     box-shadow: 0 0 0 1px var(--ad-highlight), 0 0 18px color-mix(in srgb, var(--ad-highlight) 35%, transparent);
   }
-  .slot .index { font-size: 11px; color: var(--secondary-text-color); }
+  .slot .index { font-size: 11px; color: var(--ad-muted-text); }
   .slot .segment { font-size: 22px; font-weight: 800; margin: 2px 0; color: var(--primary-text-color); }
-  .slot .value { font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+  .slot .value { font-size: 12px; color: var(--ad-muted-text); font-variant-numeric: tabular-nums; }
   .slot.triple .segment { color: color-mix(in srgb, #ef6c57 80%, var(--primary-text-color)); }
   .slot.double .segment { color: color-mix(in srgb, #43b581 70%, var(--primary-text-color)); }
   .slot.bull .segment, .slot.outer-bull .segment { color: color-mix(in srgb, #e5484d 80%, var(--primary-text-color)); }
@@ -6949,9 +7119,11 @@ const SEGMENTED_CSS = `
   }
   .segmented button {
     font: inherit; font-size: 12px; font-weight: 600; padding: 4px 10px; border: 0; border-radius: 999px;
-    cursor: pointer; color: var(--secondary-text-color); background: none; white-space: nowrap;
+    cursor: pointer; color: var(--ad-muted-text); background: none; white-space: nowrap;
   }
-  .segmented button[aria-pressed="true"] { color: var(--text-primary-color, #fff); background: var(--ad-accent); }
+  .segmented button[aria-pressed="true"] { color: #fff; background: var(--ad-accent-fill); }
+  /* Finger-sized at a touch screen. */
+  @media (pointer: coarse) { .segmented button { min-height: 40px; } }
 `;
 
 const TRAINING_CSS = `${BASE_CSS}
@@ -6983,7 +7155,14 @@ const TRAINING_CSS = `${BASE_CSS}
   .body.single { grid-template-columns: minmax(0, 1fr); }
   @container (max-width: 560px) { .body { grid-template-columns: minmax(0, 1fr); } }
   .heat { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .heat-frame { width: min(100%, 380px); aspect-ratio: 1; }
+  .heat-frame { position: relative; width: min(100%, 380px); aspect-ratio: 1; }
+  /* The hits of a tapped bed, over the bottom of the board. */
+  .heat-caption {
+    position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 700; white-space: nowrap; pointer-events: none; color: var(--primary-text-color);
+    background: var(--ha-card-background, var(--card-background-color, #fff)); box-shadow: 0 1px 4px rgba(0,0,0,.25);
+  }
+  .heat-caption:empty { opacity: 0; }
   .heat-bed { stroke: rgba(0,0,0,.25); stroke-width: .6; }
   .legend { width: min(100%, 320px); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
   .legend-bar { height: 8px; border-radius: 999px; }
@@ -6994,9 +7173,14 @@ const TRAINING_CSS = `${BASE_CSS}
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
   }
   .tile .value { font-size: 20px; font-weight: 800; color: var(--primary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .tile .name { font-size: 11px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tile .name { font-size: 11px; color: var(--ad-muted-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tile.hot .value { color: var(--ad-gold-text); }
   @container (max-width: 380px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* The details of the statistics for a keyboard: shown when it reaches the button. */
+  .details.reveal { align-self: flex-end; flex: 0 0 auto; }
+  .details.reveal:not(:focus) {
+    position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+  }
   .bests dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 18px; margin: 8px 0 0; }
   .bests dl > div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
   .bests dt { font-size: 12px; color: var(--secondary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -7044,7 +7228,7 @@ const TRAINING_CSS = `${BASE_CSS}
   .group { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; gap: 10px; align-items: baseline; font-size: 13px; }
   .group-target {
     padding: 1px 0; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 800;
-    color: var(--ad-accent); border: 1px solid var(--ad-accent);
+    color: var(--ad-accent-text); border: 1px solid var(--ad-accent);
   }
   .group-change { font-size: 12px; font-weight: 700; white-space: nowrap; }
   .group-change.better { color: var(--ad-ok-text); }
@@ -7108,12 +7292,21 @@ const STATUS_CSS = `${BASE_CSS}
 `;
 
 const SCOREBOARD_CSS = `${BASE_CSS}
+  /* Secondary text sits on tinted tiles here: its darker mix stays readable on them. */
   .scoreboard {
     display: flex; flex-direction: column; gap: clamp(12px, 2cqi, 24px);
     padding: clamp(14px, 2.4cqi, 32px); box-sizing: border-box;
   }
-  /* The dynamic viewport leaves room for a phone's browser bar; older browsers use vh. */
+  /* Full height is the screen below Home Assistant's header: a banner, the visit or the
+     keypad make the numbers smaller instead of pushing the page past the screen. The
+     dynamic viewport leaves room for a phone's browser bar; older browsers use vh. */
   .scoreboard.full {
+    height: calc(100vh - var(--header-height, 56px) - 16px);
+    height: calc(100dvh - var(--header-height, 56px) - 16px);
+  }
+  /* The new game screen scrolls with the page, its start button stays at the bottom. */
+  .scoreboard.full.choosing {
+    height: auto;
     min-height: calc(100vh - var(--header-height, 56px) - 16px);
     min-height: calc(100dvh - var(--header-height, 56px) - 16px);
   }
@@ -7128,6 +7321,12 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .banner.rethrow { color: var(--ad-warn-text); background: color-mix(in srgb, ${STATUS_COLORS.takeout} 18%, transparent); }
   .main { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; min-height: 0; }
+  /* At full height the scores are a container of the room left: what is in it sizes by
+     that room, and a long table scrolls inside instead of the page. "safe" keeps the
+     top of a table that does not fit where it can be scrolled to. */
+  .scoreboard.full:not(.choosing) .main {
+    flex: 1 1 0; container-type: size; overflow-y: auto; justify-content: safe center;
+  }
   .players { display: grid; gap: clamp(8px, 1.6cqi, 24px); }
   .players.n1 { grid-template-columns: minmax(0, 1fr); }
   .players.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -7142,35 +7341,37 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .player.winner {
     border-color: ${STATUS_COLORS.ready}; background: color-mix(in srgb, ${STATUS_COLORS.ready} 14%, transparent);
   }
-  .player.out { opacity: .45; }
+  /* A player who is out fades by colour, which keeps the text readable. */
+  .player.out { border-style: dashed; }
+  .player.out :is(.name, .big, .details) { color: var(--ad-muted-text); }
   .big.lives { color: var(--ad-error-text); letter-spacing: 0; }
   .badge {
     display: inline-block; margin-left: .3em; padding: 0 .4em; border-radius: 8px; vertical-align: middle;
-    font-size: .55em; font-weight: 700; color: var(--secondary-text-color);
+    font-size: .55em; font-weight: 700; color: var(--ad-muted-text);
     border: 1px solid var(--divider-color, rgba(127,127,127,.4));
   }
-  .members { font-size: clamp(13px, 2.1cqi, 28px); color: var(--secondary-text-color); text-align: center; }
-  .members b { color: var(--ad-accent); }
+  .members { font-size: clamp(13px, 2.1cqi, 28px); color: var(--ad-muted-text); text-align: center; }
+  .members b { color: var(--ad-accent-text); }
   .cricket.many tbody th, .cricket.many tbody td { padding-top: .05em; padding-bottom: .05em; line-height: 1.05; }
   .cricket.many td { font-size: clamp(14px, min(3.2cqi, 2.7vh), 42px); }
   .cricket.many tbody th { font-size: clamp(13px, min(2.4cqi, 2.4vh), 32px); }
   .cricket.many tr.total td { font-size: clamp(20px, min(4.2cqi, 3.8vh), 56px); }
   .scorecard { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
   .scorecard th, .scorecard td { padding: .15em .2em; text-align: center; font-size: clamp(11px, 1.8cqi, 26px); }
-  .scorecard thead th { color: var(--secondary-text-color); font-weight: 600; }
+  .scorecard thead th { color: var(--ad-muted-text); font-weight: 600; }
   .scorecard tbody th {
     text-align: left; max-width: 8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     color: var(--primary-text-color);
   }
   .scorecard .now { background: color-mix(in srgb, var(--ad-accent) 14%, transparent); }
   .scorecard .total { font-weight: 800; color: var(--primary-text-color); }
-  .scorecard tr.active th { color: var(--ad-accent); }
+  .scorecard tr.active th { color: var(--ad-accent-text); }
   .scorecard tr.winner > * { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
   .player .name {
     max-width: 100%; min-height: 1.2em; font-size: clamp(16px, 2.8cqi, 40px); font-weight: 700;
     color: var(--primary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .player.active .name::before { content: "▶ "; content: "▶ " / ""; color: var(--ad-accent); }
+  .player.active .name::before { content: "▶ "; content: "▶ " / ""; color: var(--ad-accent-text); }
   .big {
     font-weight: 800; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums;
     color: var(--primary-text-color);
@@ -7191,10 +7392,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .bed {
     padding: .12em .55em; border-radius: 10px; font-weight: 800;
-    color: var(--ad-accent); border: 2px solid var(--ad-accent);
+    color: var(--ad-accent-text); border: 2px solid var(--ad-accent);
   }
-  .bed:first-child { color: var(--text-primary-color, #fff); background: var(--ad-accent); }
-  .details { font-size: clamp(12px, 1.9cqi, 24px); color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
+  .bed:first-child { color: #fff; background: var(--ad-accent-fill); }
+  .details { font-size: clamp(12px, 1.9cqi, 24px); color: var(--ad-muted-text); font-variant-numeric: tabular-nums; }
   .cricket { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
   .cricket th, .cricket td { padding: .1em .3em; text-align: center; }
   .cricket thead th {
@@ -7203,17 +7404,17 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .cricket tr > :first-child { width: 20%; }
   .cricket tbody th {
-    font-size: clamp(16px, min(3cqi, 3vh), 42px); font-weight: 800; color: var(--secondary-text-color);
+    font-size: clamp(16px, min(3cqi, 3vh), 42px); font-weight: 800; color: var(--ad-muted-text);
   }
-  .cricket td { font-size: clamp(20px, min(4.4cqi, 3.6vh), 60px); font-weight: 800; line-height: 1.05; color: var(--ad-accent); }
+  .cricket td { font-size: clamp(20px, min(4.4cqi, 3.6vh), 60px); font-weight: 800; line-height: 1.05; color: var(--ad-accent-text); }
   .cricket th.aim { font-size: clamp(14px, min(2.4cqi, 3vh), 30px); }
   .cricket th.aim .bed { display: inline-block; }
   .cricket tr.closed > * { opacity: .3; }
-  .cricket tr.target th { color: var(--ad-accent); }
+  .cricket tr.target th { color: var(--ad-accent-text); }
   .cricket tr.total > * { border-top: 2px solid var(--divider-color, rgba(127,127,127,.25)); }
   .cricket tr.total td { font-size: clamp(24px, min(5cqi, 4.4vh), 68px); color: var(--primary-text-color); }
   .cricket tr.detail > * {
-    font-size: clamp(12px, min(1.9cqi, 2.4vh), 24px); font-weight: 600; color: var(--secondary-text-color);
+    font-size: clamp(12px, min(1.9cqi, 2.4vh), 24px); font-weight: 600; color: var(--ad-muted-text);
   }
   .cricket .active { background: color-mix(in srgb, var(--ad-accent) 14%, transparent); }
   .cricket .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
@@ -7225,31 +7426,31 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .summary thead th.caption {
-    font-size: clamp(11px, min(1.5cqi, 2vh), 18px); letter-spacing: .12em; text-transform: uppercase; color: var(--ad-accent);
+    font-size: clamp(11px, min(1.5cqi, 2vh), 18px); letter-spacing: .12em; text-transform: uppercase; color: var(--ad-accent-text);
   }
-  .summary tbody th { font-size: clamp(12px, min(1.8cqi, 2.5vh), 24px); font-weight: 600; color: var(--secondary-text-color); }
+  .summary tbody th { font-size: clamp(12px, min(1.8cqi, 2.5vh), 24px); font-weight: 600; color: var(--ad-muted-text); }
   /* Sized by width and height, so every row fits a landscape screen. */
   .summary td { font-size: clamp(16px, min(2.8cqi, 2.9vh), 38px); font-weight: 800; color: var(--primary-text-color); }
-  .summary tr.result td { font-size: clamp(24px, min(5cqi, 5vh), 72px); line-height: 1.1; color: var(--ad-accent); }
+  .summary tr.result td { font-size: clamp(24px, min(5cqi, 5vh), 72px); line-height: 1.1; color: var(--ad-accent-text); }
   .summary tbody tr + tr > * { border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
   .summary .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
   .single { display: flex; flex-direction: column; align-items: center; gap: clamp(6px, 1.2cqi, 16px); text-align: center; }
   .single .label {
     font-size: clamp(12px, 1.9cqi, 24px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--ad-accent);
+    color: var(--ad-accent-text);
   }
   .facts {
     display: flex; flex-wrap: wrap; justify-content: center; gap: .3em 1.2em;
-    font-size: clamp(14px, 2.4cqi, 32px); color: var(--secondary-text-color); font-variant-numeric: tabular-nums;
+    font-size: clamp(14px, 2.4cqi, 32px); color: var(--ad-muted-text); font-variant-numeric: tabular-nums;
   }
   .facts b { color: var(--primary-text-color); }
   .caller-toggle {
     display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; cursor: pointer;
-    font: inherit; font-size: clamp(12px, 1.5cqi, 18px); font-weight: 600; color: var(--secondary-text-color);
+    font: inherit; font-size: clamp(12px, 1.5cqi, 18px); font-weight: 600; color: var(--ad-muted-text);
     border: 1px dashed var(--divider-color, rgba(127,127,127,.4)); background: none;
   }
   .caller-toggle[aria-pressed="true"] {
-    color: var(--text-primary-color, #fff); background: var(--ad-accent); border: 1px solid var(--ad-accent);
+    color: #fff; background: var(--ad-accent-fill); border: 1px solid var(--ad-accent-fill);
   }
   .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
   .visit { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: clamp(6px, 1.2cqi, 16px); }
@@ -7263,10 +7464,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
   }
   .dart .segment { font-size: clamp(18px, 3.6cqi, 48px); font-weight: 800; color: var(--primary-text-color); }
-  .dart.empty .segment { color: var(--secondary-text-color); }
+  .dart.empty .segment { color: var(--ad-muted-text); }
   .dart .points, .sum .muted { font-size: clamp(11px, 1.6cqi, 20px); min-height: 1.2em; }
-  .dart .points { color: var(--secondary-text-color); }
-  .sum { min-width: 4.5em; color: var(--text-primary-color, #fff); background: var(--ad-accent); }
+  .dart .points { color: var(--ad-muted-text); }
+  .sum { min-width: 4.5em; color: #fff; background: var(--ad-accent-fill); }
   /* A dart of the visit corrects with a tap; entered, corrected and bot darts are marked. */
   button.dart { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
   button.dart:focus-visible, .pad button:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
@@ -7285,35 +7486,39 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .pad button:disabled { opacity: .4; cursor: default; }
   .pad button[aria-pressed="true"] {
-    color: var(--text-primary-color, #fff); background: var(--ad-accent); border-color: var(--ad-accent);
+    color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill);
   }
   .pad .multiplier { min-width: 56px; }
   .pad-numbers { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
   @container (max-width: 560px) { .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
   .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
   .pad-extra button { flex: 1 1 5.5em; }
-  .pad .secondary, .undo-only { color: var(--ad-accent); border-color: var(--ad-accent); background: none; }
+  .pad .secondary, .undo-only { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
   .undo-only { justify-self: start; align-self: flex-start; }
   .lobby-player.bot .bot-icon { font-size: 1.3em; }
-  .sum .muted { color: inherit; opacity: .85; }
+  .sum .muted { color: inherit; }
   .sum .value { font-size: clamp(22px, 4.2cqi, 56px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
   /* The new game screen: large targets for a finger, readable from the oche. */
   .lobby-toggle, .lobby-cta, .lobby button { font: inherit; cursor: pointer; touch-action: manipulation; }
   .lobby-toggle {
     display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 999px;
-    font-size: clamp(12px, 1.5cqi, 18px); font-weight: 700; color: var(--ad-accent);
+    font-size: clamp(12px, 1.5cqi, 18px); font-weight: 700; color: var(--ad-accent-text);
     border: 1px solid var(--ad-accent); background: none;
   }
   .lobby-cta {
     align-self: center; min-height: 56px; padding: 0 clamp(24px, 4cqi, 56px); border: none; border-radius: 999px;
-    font-size: clamp(16px, 2.4cqi, 28px); font-weight: 800; color: var(--text-primary-color, #fff); background: var(--ad-accent);
+    font-size: clamp(16px, 2.4cqi, 28px); font-weight: 800; color: #fff; background: var(--ad-accent-fill);
   }
   .choosing .main { justify-content: flex-start; }
   .lobby {
     display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: clamp(14px, 2.4cqi, 32px); align-items: start;
   }
-  /* A portrait tablet or a phone stacks the games above the players. */
+  /* A portrait tablet or a phone stacks the games above the players; a small landscape
+     screen keeps them side by side. */
   @container (max-width: 880px) { .lobby { grid-template-columns: minmax(0, 1fr); } }
+  @media (orientation: landscape) {
+    @container (min-width: 640px) { .lobby { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); } }
+  }
   .lobby-games, .lobby-setup {
     display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(12px, 1.8cqi, 22px); align-content: start;
   }
@@ -7333,18 +7538,21 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     min-height: clamp(52px, 7cqi, 76px); padding: 4px 8px; font-size: clamp(15px, 2.1cqi, 26px); line-height: 1.1;
     hyphens: auto; overflow-wrap: break-word;
   }
-  .lobby [aria-pressed="true"] { color: var(--text-primary-color, #fff); background: var(--ad-accent); border-color: var(--ad-accent); }
+  .lobby [aria-pressed="true"] { color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill); }
   .lobby-players { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
   .lobby-player {
     display: flex; align-items: center; gap: 6px; padding: 4px 4px 4px 12px; border-radius: 16px;
     font-size: clamp(16px, 2cqi, 24px); font-weight: 700; background: color-mix(in srgb, var(--ad-accent) 12%, transparent);
   }
-  .lobby-player.resting { opacity: .45; }
-  .lobby-player .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lobby-player.resting { color: var(--ad-muted-text); background: none; outline: 1px dashed var(--divider-color, rgba(127,127,127,.4)); }
+  /* In a narrow column the moves go below the name and the start score. */
+  .lobby-player { flex-wrap: wrap; row-gap: 4px; }
+  .lobby-player .who { flex: 1 1 6em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lobby-moves { display: inline-flex; gap: 6px; margin-left: auto; }
   .lobby-player button { min-width: 48px; padding: 0; }
   .lobby-start { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
-  .lobby-start b { min-width: 3.2ch; text-align: center; font-size: .85em; color: var(--secondary-text-color); }
-  .lobby-start.own b { color: var(--ad-accent); }
+  .lobby-start b { min-width: 3.2ch; text-align: center; font-size: .85em; color: var(--ad-muted-text); }
+  .lobby-start.own b { color: var(--ad-accent-text); }
   .lobby-player .lobby-start button { min-width: 40px; }
   .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .lobby .suggestion { display: inline-flex; align-items: center; border-radius: 999px; }
@@ -7358,15 +7566,17 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .steppers { display: flex; flex-wrap: wrap; gap: 8px 24px; }
   .stepper { display: grid; gap: 4px; }
-  .stepper-label { font-size: clamp(13px, 1.6cqi, 18px); font-weight: 600; color: var(--secondary-text-color); }
+  .stepper-label { font-size: clamp(13px, 1.6cqi, 18px); font-weight: 600; color: var(--ad-muted-text); }
   .stepper-controls { display: flex; align-items: center; gap: 10px; }
   .lobby .stepper button { min-width: 52px; font-size: 22px; }
   .stepper-value { min-width: 2ch; text-align: center; font-size: clamp(20px, 2.6cqi, 32px); font-variant-numeric: tabular-nums; }
   .lobby-nobody { margin: 0 0 10px; font-size: clamp(12px, 1.5cqi, 16px); }
   .options { display: flex; flex-wrap: wrap; gap: 8px; }
   .options .section-label { flex-basis: 100%; margin-bottom: 0; }
-  /* The start stays in reach at the bottom of the screen while the page scrolls. */
+  /* The start stays in reach at the bottom of the screen while the page scrolls, below
+     both columns. */
   .lobby-actions {
+    grid-column: 1 / -1;
     position: sticky; bottom: 0; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
     gap: 10px; padding: 8px 0; background: var(--ha-card-background, var(--card-background-color, #1c1c1c));
   }
@@ -7375,7 +7585,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .lobby .secondary { background: none; }
   .lobby .start {
     min-height: 60px; padding: 0 clamp(20px, 3cqi, 40px); font-size: clamp(17px, 2.3cqi, 26px); font-weight: 800;
-    color: var(--text-primary-color, #fff); background: var(--ad-accent); border-color: var(--ad-accent);
+    color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill);
   }
   /* Idle mode: panels in turn, faded in unless the device asks for less motion. */
   .idle-panel { display: flex; flex-direction: column; gap: clamp(8px, 1.6cqi, 20px); animation: ad-fade .6s ease both; }
@@ -7390,17 +7600,17 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     border-radius: 16px; font-size: clamp(16px, 2.8cqi, 36px); background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
   }
   .ranking li.winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
-  .ranking .rank { min-width: 1.2em; font-weight: 800; color: var(--ad-accent); }
+  .ranking .rank { min-width: 1.2em; font-weight: 800; color: var(--ad-accent-text); }
   .ranking .who { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ranking .score { font-weight: 800; font-variant-numeric: tabular-nums; }
-  .ranking .muted { font-size: .55em; }
-  .match-head { text-align: center; font-size: clamp(14px, 2.2cqi, 28px); font-weight: 700; color: var(--secondary-text-color); }
+  .ranking .muted { font-size: .55em; color: var(--ad-muted-text); }
+  .match-head { text-align: center; font-size: clamp(14px, 2.2cqi, 28px); font-weight: 700; color: var(--ad-muted-text); }
   .records {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(160px, 24cqi, 300px), 1fr));
     gap: clamp(8px, 1.4cqi, 16px); width: min(100%, 1100px); margin: 0 auto;
   }
   .records div { padding: clamp(10px, 1.6cqi, 18px); border-radius: 16px; background: color-mix(in srgb, var(--primary-text-color) 5%, transparent); }
-  .records dt { font-size: clamp(12px, 1.6cqi, 18px); color: var(--secondary-text-color); }
+  .records dt { font-size: clamp(12px, 1.6cqi, 18px); color: var(--ad-muted-text); }
   .records dd { margin: 4px 0 0; font-size: clamp(20px, 3.4cqi, 44px); font-weight: 800; font-variant-numeric: tabular-nums; }
   .goal {
     width: min(80%, 640px); height: 12px; border-radius: 999px; overflow: hidden;
@@ -7420,12 +7630,12 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .35em;
     font-size: clamp(20px, 3.6cqi, 48px); font-weight: 800; color: var(--primary-text-color);
   }
-  .pairing .vs { font-size: .5em; font-weight: 600; color: var(--secondary-text-color); }
-  .countdown { font-size: clamp(13px, 1.8cqi, 22px); font-weight: 600; color: var(--secondary-text-color); }
+  .pairing .vs { font-size: .5em; font-weight: 600; color: var(--ad-muted-text); }
+  .countdown { font-size: clamp(13px, 1.8cqi, 22px); font-weight: 600; color: var(--ad-muted-text); }
   .start-next {
     min-height: 44px; padding: 0 18px; border-radius: 999px; cursor: pointer; touch-action: manipulation;
     font: inherit; font-size: clamp(13px, 1.7cqi, 20px); font-weight: 700;
-    color: var(--text-primary-color, #fff); background: var(--ad-accent); border: none;
+    color: #fff; background: var(--ad-accent-fill); border: none;
   }
   .standings {
     width: min(100%, 1100px); margin: 0 auto; border-collapse: collapse; font-variant-numeric: tabular-nums;
@@ -7433,7 +7643,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .standings th, .standings td { padding: .3em .45em; text-align: center; }
   .standings thead th {
-    font-size: .55em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--secondary-text-color);
+    font-size: .55em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ad-muted-text);
   }
   .standings abbr { text-decoration: none; }
   /* The name takes the room the numbers leave, and a long one ends in an ellipsis. */
@@ -7441,7 +7651,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .standings .player-name { display: flex; align-items: center; min-width: 0; }
   .standings .player-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .standings tbody tr { border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
-  .standings .rank { width: 2em; font-weight: 800; color: var(--ad-accent); }
+  .standings .rank { width: 2em; font-weight: 800; color: var(--ad-accent-text); }
   .standings .points { font-weight: 800; }
   .standings tr.next { background: color-mix(in srgb, var(--ad-accent) 10%, transparent); }
   .standings tr.champion { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
@@ -7456,17 +7666,18 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     border: 2px solid var(--divider-color, rgba(127,127,127,.3));
   }
   .duel.live { border-color: var(--ad-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ad-accent) 25%, transparent); }
-  .duel.bye { border-style: dashed; opacity: .7; }
+  .duel.bye { border-style: dashed; }
+  .duel.bye .slot { color: var(--ad-muted-text); }
   .slot {
     display: flex; align-items: center; gap: .3em; min-height: 1.7em; padding: .25em .6em;
     font-size: clamp(13px, 2cqi, 26px); color: var(--primary-text-color);
   }
   .slot + .slot { border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
   .slot .who { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .slot.open .who { font-weight: 500; font-style: italic; color: var(--secondary-text-color); }
+  .slot.open .who { font-weight: 500; font-style: italic; color: var(--ad-muted-text); }
   .slot .score { font-weight: 800; font-variant-numeric: tabular-nums; }
   .slot.won { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
-  .slot.lost { opacity: .5; }
+  .slot.lost { color: var(--ad-muted-text); }
   .duel.crowned .slot.won .who::after { content: " 🏆"; }
   /* A player who goes on slides into the next round, outlined for a moment. */
   .slot.fresh { animation: ad-advance 1.6s ease-out backwards; }
@@ -7481,6 +7692,77 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .lobby-mode { display: flex; gap: 8px; }
   .lobby .mode { flex: 1; font-size: clamp(15px, 2cqi, 22px); }
   .formats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  /* Finger-sized at a touch screen. */
+  @media (pointer: coarse) { .lobby-toggle, .caller-toggle { min-height: 40px; } }
+
+  /* Full height: numbers and tables take the width (cqi) and the height (cqh) of the
+     scores, less what the names, routes and details below them need. */
+  .scoreboard.full .main > .players { flex: 1 1 auto; }
+  .scoreboard.full .player { justify-content: center; }
+  .scoreboard.full .n1 .big { font-size: clamp(40px, min(24cqi, 100cqh - 19cqi), 320px); }
+  .scoreboard.full .single .big { font-size: clamp(40px, min(24cqi, 100cqh - 13cqi), 320px); }
+  .scoreboard.full .single .big.long { font-size: clamp(36px, min(11cqi, 100cqh - 13cqi), 150px); }
+  .scoreboard.full .main:has(.lobby-cta) .single .big { font-size: clamp(40px, min(24cqi, 100cqh - 13cqi - 80px), 320px); }
+  .scoreboard.full .n2 .big { font-size: clamp(40px, min(15cqi, 100cqh - 19cqi), 240px); }
+  .scoreboard.full .n3 .big { font-size: clamp(36px, min(10cqi, 100cqh - 19cqi), 170px); }
+  .scoreboard.full .n4 .big { font-size: clamp(36px, min(8cqi, 100cqh - 19cqi), 140px); }
+  .scoreboard.full .players.teams .big { font-size: clamp(36px, min(15cqi, 100cqh - 23cqi), 240px); }
+  @container (max-width: 640px) {
+    .scoreboard.full :is(.n3, .n4) .big { font-size: clamp(32px, min(15cqi, 50cqh - 21cqi), 120px); }
+  }
+  .scoreboard.full .cricket td { font-size: clamp(13px, min(4.4cqi, 6.2cqh), 60px); }
+  .scoreboard.full .cricket tbody th { font-size: clamp(12px, min(3cqi, 5.4cqh), 42px); }
+  .scoreboard.full .cricket thead th { font-size: clamp(12px, min(2.6cqi, 5.4cqh), 34px); }
+  .scoreboard.full .cricket tr.total td { font-size: clamp(16px, min(5cqi, 7.2cqh), 68px); }
+  .scoreboard.full .cricket tr.detail > * { font-size: clamp(11px, min(1.9cqi, 4cqh), 24px); }
+  .scoreboard.full .cricket.many td { font-size: clamp(12px, min(3.2cqi, 4.4cqh), 42px); }
+  .scoreboard.full .cricket.many tbody th { font-size: clamp(11px, min(2.4cqi, 4cqh), 32px); }
+  .scoreboard.full .cricket.many tr.total td { font-size: clamp(14px, min(4.2cqi, 5.6cqh), 56px); }
+  .scoreboard.full .summary td { font-size: clamp(12px, min(2.8cqi, 4.7cqh), 38px); }
+  .scoreboard.full .summary tbody th { font-size: clamp(11px, min(1.8cqi, 4.1cqh), 24px); }
+  .scoreboard.full .summary thead th { font-size: clamp(12px, min(2.6cqi, 5cqh), 34px); }
+  .scoreboard.full .summary tr.result td { font-size: clamp(16px, min(5cqi, 7.5cqh), 72px); }
+  .scoreboard.full .slot { font-size: clamp(12px, min(2cqi, 3.3cqh), 26px); }
+  .scoreboard.full .pairing { font-size: clamp(18px, min(3.6cqi, 6cqh), 48px); }
+  .scoreboard.full .standings { font-size: clamp(12px, min(2.2cqi, 3.7cqh), 30px); }
+  .scoreboard.full .banner { font-size: clamp(16px, min(3.4cqi, 5.5vh), 44px); padding: .3em 1em; }
+  /* A small landscape screen, such as 800 × 480 or 1024 × 600: less room around the parts. */
+  @media (max-height: 640px) {
+    .scoreboard.full { padding: 10px 16px; gap: 8px; }
+    .scoreboard.full .visit :is(.dart, .sum) { padding: 4px 6px; flex-direction: row; gap: 8px; }
+    .scoreboard.full .player { padding-block: 8px; }
+  }
+  /* Darts entered or corrected on a landscape screen: the pad beside the scores, where
+     it is in reach without scrolling. */
+  @media (orientation: landscape) {
+    .scoreboard.full.with-pad {
+      display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); grid-template-rows: auto auto minmax(0, 1fr) auto;
+      grid-template-areas: "header header" "banner banner" "main pad" "visit pad"; align-items: stretch;
+    }
+    .scoreboard.full.with-pad > header { grid-area: header; }
+    .scoreboard.full.with-pad > .banner { grid-area: banner; }
+    .scoreboard.full.with-pad > .main { grid-area: main; }
+    .scoreboard.full.with-pad > .visit { grid-area: visit; }
+    .scoreboard.full.with-pad > .pad-area { grid-area: pad; align-self: end; min-height: 0; }
+    .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    @media (max-height: 640px) {
+      .scoreboard.full.with-pad .pad button { min-height: 40px; }
+      .scoreboard.full.with-pad :is(.pad, .pad-numbers, .pad-extra) { gap: 4px; }
+    }
+  }
+  /* A portrait tablet: the tiles fill the height, two players one above the other. */
+  @media (orientation: portrait) {
+    .scoreboard.full .players.n2 { grid-template-columns: minmax(0, 1fr); }
+    .scoreboard.full .players:is(.n3, .n4) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .scoreboard.full .n1 .big { font-size: clamp(80px, min(36cqi, 100cqh - 19cqi), 420px); }
+    .scoreboard.full .n2 .big { font-size: clamp(64px, min(30cqi, 50cqh - 21cqi), 360px); }
+    .scoreboard.full :is(.n3, .n4) .big { font-size: clamp(48px, min(17cqi, 50cqh - 21cqi), 220px); }
+    .scoreboard.full .players.teams .big { font-size: clamp(48px, min(26cqi, 50cqh - 25cqi), 320px); }
+    .scoreboard.full .single .big { font-size: clamp(80px, min(36cqi, 100cqh - 13cqi), 420px); }
+    .scoreboard.full .cricket td { font-size: clamp(14px, min(6cqi, 6.2cqh), 80px); }
+    .scoreboard.full .cricket tr.total td { font-size: clamp(18px, min(7cqi, 7.2cqh), 90px); }
+    .scoreboard.full .cricket tbody th { font-size: clamp(13px, min(4.4cqi, 5.4cqh), 56px); }
+  }
 `;
 
 const PLAYERS_CSS = `${BASE_CSS}
@@ -7496,7 +7778,7 @@ const PLAYERS_CSS = `${BASE_CSS}
   .profile-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .profile-name .avatar { width: 1.6em; height: 1.6em; margin-right: .45em; }
   .profile dl { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; margin: 4px 0 0; }
-  .profile dt { font-size: 12px; color: var(--secondary-text-color); }
+  .profile dt { font-size: 12px; color: var(--ad-muted-text); }
   .profile dd { margin: 0; font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
   .versus { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px 10px; padding: 6px 0; }
   .versus .who { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -7513,7 +7795,9 @@ const PLAYERS_CSS = `${BASE_CSS}
   }
   .match .game { font-weight: 700; }
   .match b { color: var(--ad-ok-text); }
-  .players-card header .export { margin-left: auto; min-height: 32px; font-size: 13px; }
+  .players-card header .export { flex: 0 0 auto; margin-left: auto; min-height: 32px; font-size: 13px; }
+  /* Finger-sized at a touch screen. */
+  @media (pointer: coarse) { .players-card header .export { min-height: 40px; } }
 `;
 
 const DOUBLES_CSS = `${BASE_CSS}
@@ -7529,9 +7813,12 @@ const DOUBLES_CSS = `${BASE_CSS}
   }
   .double .bed {
     padding: 2px 0; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 800;
-    color: var(--c); border: 1px solid var(--c);
+    color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); border: 1px solid var(--c);
   }
-  .double.favourite .bed { color: #fff; background: var(--c); }
+  /* The rate's colour, darkened so white text stays readable on it. */
+  .double.favourite .bed {
+    color: #fff; background: color-mix(in srgb, var(--c) 60%, #000); border-color: color-mix(in srgb, var(--c) 60%, #000);
+  }
   .double .bar {
     height: 6px; border-radius: 999px; overflow: hidden;
     background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
@@ -7585,7 +7872,7 @@ const PROGRESS_CSS = `
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; align-items: center;
     padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
   }
-  .trend-label { font-size: 11px; color: var(--secondary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trend-label { font-size: 11px; color: var(--ad-muted-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .trend-value { font-size: 14px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .trend .spark { grid-column: 1 / -1; height: 24px; }
   .spark polyline {
@@ -7600,7 +7887,7 @@ const PROGRESS_CSS = `
   .group { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; gap: 10px; align-items: baseline; font-size: 13px; }
   .group-target {
     padding: 1px 0; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 800;
-    color: var(--ad-accent); border: 1px solid var(--ad-accent);
+    color: var(--ad-accent-text); border: 1px solid var(--ad-accent);
   }
   .group-text { color: var(--primary-text-color); }
   .group-change { font-size: 12px; font-weight: 700; white-space: nowrap; }
@@ -7616,7 +7903,7 @@ const LEADERBOARD_CSS = `${BASE_CSS}${SEGMENTED_CSS}
     display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; min-width: 0;
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
   }
-  .record-name { font-size: 12px; font-weight: 700; letter-spacing: .02em; color: var(--ad-accent); }
+  .record-name { font-size: 12px; font-weight: 700; letter-spacing: .02em; color: var(--ad-accent-text); }
   .record-leader { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
   .record-leader .who {
     font-size: 17px; font-weight: 800; color: var(--primary-text-color);
@@ -7625,7 +7912,7 @@ const LEADERBOARD_CSS = `${BASE_CSS}${SEGMENTED_CSS}
   .record-leader .who::before { content: "👑 "; font-size: 14px; }
   .record-leader .value { font-size: 20px; font-weight: 800; color: var(--ad-gold-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .record-places { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
-  .record-places li { display: grid; grid-template-columns: 1.8em minmax(0, 1fr) auto; gap: 6px; color: var(--secondary-text-color); }
+  .record-places li { display: grid; grid-template-columns: 1.8em minmax(0, 1fr) auto; gap: 6px; color: var(--ad-muted-text); }
   .record-places .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .record-places .value { font-variant-numeric: tabular-nums; }
 `;
@@ -7657,7 +7944,7 @@ function livePanel(view, ui) {
       meta: `${playerName(ui, { ...bullOff, bot }, true)} ${t("score_turn")}`,
       big: "Bull",
       route: bullOff.rethrow ? note(t("bull_off_rethrow"), "rethrow") : note(t("bull_off_hint")),
-      rows: playerRows(bullOffPlayers(bullOff, ui)),
+      rows: playerRows(bullOffPlayers(bullOff, ui), ui),
     };
   }
   if (view.mode === "cricket") {
@@ -7692,7 +7979,7 @@ function livePanel(view, ui) {
       meta: [partyRound(party, t), match ? turn(party) : ""].filter(Boolean).join(" · "),
       big: killer ? (party.phase === "choose" ? "?" : String(current?.number ?? "–")) : String(party.points),
       route: party.winner !== null ? winner(party) : partyNote(party, ui),
-      rows: match ? playerRows(partyPlayers(party, ui)) : "",
+      rows: match ? playerRows(partyPlayers(party, ui), ui) : "",
     };
   }
   const { practice } = view;
@@ -7704,7 +7991,7 @@ function livePanel(view, ui) {
     big: String(practice.remaining),
     route: practice.winner !== null ? winner(practice) : x01Note(practice, ui),
     routeTitle: practice.route.length ? `${t("checkout")}: ${practice.route.join(" ")}` : "",
-    rows: match ? playerRows(players) : "",
+    rows: match ? playerRows(players, ui) : "",
   };
 }
 
@@ -7712,7 +7999,7 @@ function livePanel(view, ui) {
 function summaryPanel(view, ui) {
   const panel = livePanel({ ...view, summary: null }, ui);
   const game = view.cricket ?? view.party ?? view.practice;
-  return { ...panel, big: matchResult(game) || panel.big, routeTitle: "", rows: summaryTable(view.summary, ui) };
+  return { ...panel, big: matchResult(game) || panel.big, routeTitle: "", rows: summaryTable(view.summary, ui, game.teams) };
 }
 
 // Home Assistant brings its form element with its own editors; the strategy
@@ -7802,7 +8089,8 @@ function createElements(Base) {
       // Party games keep their final scores on screen; they have no numbers to sum up.
       const shown = ["x01", "cricket"].includes(view.mode) && c.show_summary !== false;
       const summary = shown ? summaryView(this._state("practice")) : null;
-      const seconds = Number(c.summary_seconds) || 0;
+      // As the form allows: a timer of weeks would fire at once, and again with every update.
+      const seconds = Math.min(600, Number(c.summary_seconds) || 0);
       if (!summary || seconds <= 0) return summary;
       if (this._summarySeen?.ended !== summary.ended) this._summarySeen = { ended: summary.ended, at: Date.now() };
       const left = this._summarySeen.at + seconds * 1000 - Date.now();
@@ -7986,14 +8274,27 @@ function createElements(Base) {
     }
 
     // Replace markup only when it changes, so animations and focus survive updates.
-    // A focused element with data-focus gets the focus back after a change.
+    // A focused element with data-focus gets the focus back after a change, and a
+    // text field what was typed in it and where the caret was.
     _setHtml(element, html) {
       if (!element || element._adHtml === html) return;
       const active = this.shadowRoot.activeElement;
       const focus = active && element.contains(active) ? active.dataset.focus : undefined;
+      const typed = active?.tagName === "INPUT" ? [active.value, active.selectionStart, active.selectionEnd] : null;
       element.innerHTML = html;
       element._adHtml = html;
-      if (focus) [...element.querySelectorAll("[data-focus]")].find((item) => item.dataset.focus === focus)?.focus();
+      if (!focus) return;
+      const target = [...element.querySelectorAll("[data-focus]")].find((item) => item.dataset.focus === focus);
+      if (!target) return;
+      target.focus();
+      if (!typed) return;
+      target.value = typed[0];
+      target.setSelectionRange(typed[1], typed[2]);
+    }
+
+    // Text that is the same stays, so a status region does not announce it again.
+    _text(element, text) {
+      if (element.textContent !== text) element.textContent = text;
     }
   }
 
@@ -8383,8 +8684,9 @@ function createElements(Base) {
 
     constructor() {
       super();
+      // The visits of the session and the time of the newest board event read for them.
       this._visits = [];
-      this._seen = new Set();
+      this._historyTime = -Infinity;
       // The heatmap mode and whose darts it shows, as switched in the card.
       this._mode = null;
       this._source = null;
@@ -8407,11 +8709,22 @@ function createElements(Base) {
       return TRAINING_CSS;
     }
 
+    // The history stream ends with the card and starts again when it returns.
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      this._closeHistory();
+    }
+
+    connectedCallback() {
+      super.connectedCallback();
+      if (this._built) this._updateHistory();
+    }
+
     // Only visits and session starts change the card; other board events leave it alone.
     _relevant(id, state) {
       if (id !== this._ids.events) return state;
       const type = state?.attributes?.event_type;
-      if (this._event?.id !== id || type === "visit_completed" || type === "session_started") {
+      if (this._event?.id !== id || VISIT_EVENTS.includes(type)) {
         this._event = { id, state };
       }
       return this._event.state;
@@ -8441,12 +8754,14 @@ function createElements(Base) {
               <g class="heat-layer"></g>
               <g class="numbers">${numbersSvg(c.board_style)}</g>
             </svg>
+            <div class="heat-caption" aria-live="polite"></div>
           </div>
           <div class="legend">
             <span class="muted legend-min">1</span>
             <div class="legend-bar" style="background: linear-gradient(90deg, ${legend})"></div>
             <span class="muted legend-max">–</span>
           </div>
+          <ul class="visually-hidden heat-list"></ul>
           <div class="groups" hidden></div>
         </div>`;
     }
@@ -8460,7 +8775,8 @@ function createElements(Base) {
         <div class="side">
           ${
             c.show_stats
-              ? `<div class="tiles" role="button" tabindex="0" aria-label="${t("statistics_label")}">${tiles}</div>`
+              ? `<div class="tiles" role="group" aria-label="${t("statistics")}">${tiles}</div>` +
+                `<button type="button" class="action details reveal">${t("statistics_label")}</button>`
               : ""
           }
           ${
@@ -8565,6 +8881,8 @@ function createElements(Base) {
         empty: root.querySelector(".empty-hint"),
         heat: root.querySelector(".heat-layer"),
         heatSvg: root.querySelector(".heat-frame svg"),
+        heatCaption: root.querySelector(".heat-caption"),
+        heatList: root.querySelector(".heat-list"),
         legendMin: root.querySelector(".legend-min"),
         legendMax: root.querySelector(".legend-max"),
         modes: root.querySelector(".modes"),
@@ -8597,10 +8915,14 @@ function createElements(Base) {
         }
         this._confirmChanged();
       });
-      const tiles = root.querySelector(".tiles");
-      tiles?.addEventListener("click", () => this._moreInfo(this._ids.darts));
-      this._onKeys(tiles, () => this._moreInfo(this._ids.darts));
-      this._historyFor = null;
+      // A tap on the tiles opens the details; keyboards and screen readers have a button of their own.
+      root.querySelector(".tiles")?.addEventListener("click", () => this._moreInfo(this._ids.darts));
+      root.querySelector(".details")?.addEventListener("click", () => this._moreInfo(this._ids.darts));
+      // A tap on a bed tells its hits, on a touch screen too.
+      this._el.heatSvg?.addEventListener("click", (event) => {
+        const title = event.target.closest(".heat-bed")?.querySelector("title");
+        this._el.heatCaption.textContent = title ? title.textContent : "";
+      });
       this._el.modes?.addEventListener("click", (event) => {
         const button = event.target.closest?.("button[data-mode]");
         if (!button) return;
@@ -8638,13 +8960,15 @@ function createElements(Base) {
       const el = this._el;
       const session = this._state("session");
       if (el.sessionState) {
-        const changed = Date.parse(session?.last_changed);
-        el.sessionState.textContent = !session
+        // The end of the last session as it was booked; the switch's last change is
+        // also every restart of Home Assistant.
+        const ended = pastSessions(this._state("lastSession")?.attributes?.sessions, 1)[0]?.ended;
+        el.sessionState.textContent = !usable(session)
           ? ""
           : session.state === "on"
             ? this._t("session_running")
-            : Number.isFinite(changed)
-              ? `${this._t("session_ended")} ${formatDateTime(this._hass, changed)}`
+            : ended
+              ? `${this._t("session_ended")} ${formatDateTime(this._hass, ended)}`
               : this._t("no_session");
       }
       if (!el.sessions) return;
@@ -8765,9 +9089,11 @@ function createElements(Base) {
       const profile = source ? this._profile(source) : null;
       const hits = source ? profile?.hits : this._state("darts")?.attributes?.hits;
       this._updateHeatControls(source);
-      if (this._heatMode() === "positions") this._loadPositions(source);
+      if (this._el.heat && this._heatMode() === "positions") this._loadPositions(source);
       this._updateHeat(hits);
-      this._updateTop(hits, source ? (finite(profile?.darts_thrown) ?? 0) : darts);
+      // A player's shares are of the hits the profile counted; darts of older versions have no hits.
+      const counted = validHits(hits).reduce((sum, [, count]) => sum + count, 0);
+      this._updateTop(hits, source ? counted : darts);
     }
 
     _updateHeatControls(source) {
@@ -8820,15 +9146,20 @@ function createElements(Base) {
         // A board that is being removed has no positions to show.
       }
       if (this._positionsFor !== key) return;
-      this._positions = { source, positions: validPositions(result?.positions), spread: spreadView(result?.spread) };
-      this._drawPositions();
+      const positions = validPositions(result?.positions);
+      // The density is drawn once per answer, not with every update of the card.
+      this._positions = { source, positions, spread: spreadView(result?.spread), html: positionsHtml(positions) };
+      // An answer that arrives after a switch to beds or numbers waits for positions.
+      if (this._heatMode() === "positions") this._drawPositions();
     }
 
     _drawPositions() {
       const el = this._el;
+      if (!el.heat) return;
       const shown = this._positions?.source === this._heatSource() ? this._positions : null;
       const positions = shown?.positions ?? [];
-      this._setHtml(el.heat, positionsHtml(positions));
+      this._setHtml(el.heat, shown ? shown.html : positionsHtml([]));
+      this._setHtml(el.heatList, "");
       el.legendMin.textContent = this._t("legend_few");
       el.legendMax.textContent = positions.length ? this._t("legend_many") : "–";
       // Groupings need darts at a bed the game knows; without positions, the card says so.
@@ -8842,39 +9173,50 @@ function createElements(Base) {
     }
 
     _updateHeat(hits) {
-      if (!this._el.heat) return;
+      const el = this._el;
+      if (!el.heat) return;
       if (this._heatMode() === "positions") {
         this._drawPositions();
         return;
       }
-      this._el.groups.hidden = true;
-      this._el.legendMin.textContent = "1";
+      el.groups.hidden = true;
+      el.legendMin.textContent = "1";
       const levels = heatLevels(hits, this._heatMode());
       const max = Math.max(0, ...levels.values());
       const counts = new Map(validHits(hits));
       const total = [...counts.values()].reduce((sum, count) => sum + count, 0);
+      // What a hit bed tells: its name, its hits and their share.
       const describe = (bed) => {
         // Tooltips name the scoring bed; singles cover both single areas.
         const key = bed === "Bull" ? "BULL" : bed.replace(/^S[IO]/, "S");
         const numbers = this._heatMode() === "numbers";
-        const count = numbers ? levels.get(bed) : counts.get(key) || 0;
+        const count = numbers ? levels.get(bed) : counts.get(key);
         const name = numbers ? (bed === "Bull" || bed === "25" ? "Bull" : bed.replace(/^\D+/, "")) : hitLabel(this._hass, key);
-        const share = total ? ` · ${this._percent((count / total) * 100, 1)}` : "";
-        return `${name}: ${count} ${this._t("hits")}${share}`;
+        return [`${name}: ${count} ${this._t("hits")} · ${this._percent((count / total) * 100, 1)}`, count];
       };
-      const markup = [...levels.entries()]
-        .map(([bed, count]) => {
-          const path = bedPath(bed);
-          if (!path || !max) return "";
-          const ratio = heatRatio(count, max);
+      const beds = max ? [...levels.keys()].filter((bed) => bedPath(bed)).map((bed) => [bed, describe(bed)]) : [];
+      const markup = beds
+        .map(([bed, [text]]) => {
+          const ratio = heatRatio(levels.get(bed), max);
           return (
-            `<path class="heat-bed" d="${path}" fill="${heatColor(ratio)}" fill-opacity="${fmt(0.6 + 0.35 * ratio)}">` +
-            `<title>${escapeHtml(describe(bed))}</title></path>`
+            `<path class="heat-bed" d="${bedPath(bed)}" fill="${heatColor(ratio)}" fill-opacity="${fmt(0.6 + 0.35 * ratio)}">` +
+            `<title>${escapeHtml(text)}</title></path>`
           );
         })
         .join("");
-      this._setHtml(this._el.heat, markup);
-      if (this._el.legendMax) this._el.legendMax.textContent = max ? this._format(max) : "–";
+      // A tapped bed told its hits of the board as it was.
+      if (el.heat._adHtml !== markup) el.heatCaption.textContent = "";
+      this._setHtml(el.heat, markup);
+      // The same counts as a list for screen readers, most hit first, every bed once.
+      const listed = new Map(beds.map(([, described]) => described));
+      this._setHtml(
+        el.heatList,
+        [...listed]
+          .sort((a, b) => b[1] - a[1])
+          .map(([text]) => `<li>${escapeHtml(text)}</li>`)
+          .join("")
+      );
+      el.legendMax.textContent = max ? this._format(max) : "–";
     }
 
     _updateTop(hits, darts) {
@@ -8886,7 +9228,7 @@ function createElements(Base) {
         top.length
           ? top
               .map(([key, count]) => {
-                const width = most ? count / most : 0;
+                const width = count / most;
                 const share = darts > 0 ? ` · ${this._percent((count / darts) * 100, 0)}` : "";
                 return (
                   `<div class="top-row"><span class="key">${escapeHtml(hitLabel(this._hass, key))}</span>` +
@@ -8904,65 +9246,85 @@ function createElements(Base) {
       return Number.isFinite(started) ? started : 0;
     }
 
+    // The visits of the session: what the recorder has since the session started, then
+    // every board event as it happens. Home Assistant sends state changes that come
+    // together in one message, and the page shows only the last of them; the history
+    // stream has each one, so no visit goes missing behind the turn that follows it.
     _updateHistory() {
-      if (!this._el.history) return;
+      if (!this._el.history) {
+        this._closeHistory();
+        return;
+      }
       const since = this._sessionStart();
       const key = `${this._ids.events}|${since}`;
-      if (this._historyFor !== key) {
-        // A new session or board starts an empty history.
-        this._historyFor = key;
-        this._visits = [];
-        this._seen = new Set();
-        this._loadHistory(since, key);
-      }
-      const event = this._state("events");
-      if (event?.attributes?.event_type === "visit_completed") {
-        this._addVisits(visitsFromHistory([event], since));
-      }
+      if (this._historyFor !== key) this._openHistory(since, key);
+      // Without the recorder, the events entity's state still adds the visits it shows.
+      if (!this._stream) this._addRows([this._state("events")]);
       this._drawHistory();
     }
 
-    async _loadHistory(since, key) {
+    // A new session or board starts an empty history.
+    _openHistory(since, key) {
+      this._closeHistory();
+      this._historyFor = key;
+      this._historyStart = since;
+      this._visits = [];
+      this._historyTime = -Infinity;
       const id = this._ids.events;
-      if (!id || typeof this._hass.callWS !== "function") return;
+      const connection = this._hass.connection;
+      if (!id || typeof connection?.subscribeMessage !== "function") return;
       // The recorder keeps ten days by default; older visits are not needed.
       const start = Math.max(since, Date.now() - 7 * 86400000);
-      try {
-        const result = await this._hass.callWS({
-          type: "history/history_during_period",
-          start_time: new Date(start).toISOString(),
-          entity_ids: [id],
-          minimal_response: false,
-          no_attributes: false,
-          significant_changes_only: false,
-        });
-        if (this._historyFor !== key) return;
-        this._addVisits(visitsFromHistory(result?.[id], since));
-        this._drawHistory();
-      } catch (error) {
+      const stream = Promise.resolve(
+        connection.subscribeMessage(
+          (message) => {
+            if (this._historyFor !== key) return;
+            this._addRows(message?.states?.[id]);
+            this._drawHistory();
+          },
+          {
+            type: "history/stream",
+            entity_ids: [id],
+            start_time: new Date(start).toISOString(),
+            minimal_response: false,
+            no_attributes: false,
+            significant_changes_only: false,
+          }
+        )
+      );
+      this._stream = stream;
+      stream.catch(() => {
         // Without the recorder, visits of the open dashboard still appear.
-      }
+        if (this._stream === stream) this._stream = null;
+      });
+    }
+
+    _closeHistory() {
+      const stream = this._stream;
+      this._stream = null;
+      this._historyFor = null;
+      stream?.then((unsubscribe) => unsubscribe()).catch(() => {});
+    }
+
+    // Board events newer than those read before: a stream that starts again after a lost
+    // connection sends the older ones once more.
+    _addRows(rows) {
+      const time = (row) => Date.parse(row?.s ?? row?.state);
+      const fresh = (Array.isArray(rows) ? rows : []).filter((row) => time(row) > this._historyTime);
+      if (!fresh.length) return;
+      this._historyTime = Math.max(...fresh.map(time));
+      // The newest visits, as many as the largest chart shows.
+      this._visits = visitsFromHistory(fresh, this._historyStart, this._visits).slice(-HISTORY_LIMIT);
     }
 
     _historySize() {
-      return Math.min(60, Math.max(5, Number(this._config.history_size) || 20));
-    }
-
-    _addVisits(visits) {
-      for (const visit of visits) {
-        if (this._seen.has(visit.time)) continue;
-        this._seen.add(visit.time);
-        this._visits.push(visit);
-      }
-      this._visits.sort((a, b) => a.time - b.time);
-      const size = this._historySize();
-      if (this._visits.length > size) this._visits = this._visits.slice(-size);
+      return Math.min(HISTORY_LIMIT, Math.max(5, Number(this._config.history_size) || 20));
     }
 
     _drawHistory() {
+      // The stream draws only while the chart exists: without it, the stream is closed.
       const chart = this._el.history;
-      if (!chart) return;
-      const visits = this._visits;
+      const visits = this._visits.slice(-this._historySize());
       if (!visits.length) {
         chart.removeAttribute("role");
         chart.removeAttribute("aria-label");
@@ -9341,6 +9703,7 @@ function createElements(Base) {
               <div class="main"></div>
               ${c.show_visit ? `<div class="visit"></div>` : ""}
               <div class="pad-area" hidden></div>
+              <div class="visually-hidden said" role="status"></div>
             </div>
           </div>
         </ha-card>
@@ -9358,7 +9721,10 @@ function createElements(Base) {
         callerIcon: root.querySelector(".caller-icon"),
         lobby: root.querySelector(".lobby-toggle"),
         pad: root.querySelector(".pad-area"),
+        // A live region outside the markup that is replaced, so what it says is heard.
+        said: root.querySelector(".said"),
       };
+      this._hints = "";
       this._pick = null;
       this._multiplier = 1;
       this._el.visit?.addEventListener("click", (event) => {
@@ -9517,11 +9883,31 @@ function createElements(Base) {
         if (!games.includes(next.game)) next.game = games.includes("501") ? "501" : games[0];
         this._lobby = next;
       } else if (action === "add-name") {
-        this._lobby = lobbyChange(choice, "add", this._el.main.querySelector(".lobby-name").value);
+        const field = this._el.main.querySelector(".lobby-name");
+        this._lobby = lobbyChange(choice, "add", field.value);
+        // An added name leaves the field; one that cannot be added stays in it.
+        field.value = this._lobby.draft;
       } else {
         this._lobby = lobbyChange(choice, action, value);
+        this._say(this._lobbyValue(action, value));
       }
       this._update();
+    }
+
+    // What a stepper shows after its button, for a screen reader.
+    _lobbyValue(action, value) {
+      const choice = this._lobby;
+      const index = Number(value);
+      if (action === "legs" || action === "sets") return `${this._t(`lobby_${action}`)} ${choice[action]}`;
+      if (action === "lower" || action === "raise") {
+        const name = choice.players[index] || `${this._t("score_player")} ${index + 1}`;
+        return `${name} ${choice.starts[index] || choice.game}`;
+      }
+      return action === "bot" && choice.bot ? `${this._t("bot")} ${choice.bot}` : "";
+    }
+
+    _say(text) {
+      if (text) this._el.said.textContent = text;
     }
 
     // Opened by a tap, or by itself a few seconds after a game ended.
@@ -9544,11 +9930,20 @@ function createElements(Base) {
       return device?.primary_config_entry ?? device?.config_entries?.[0] ?? null;
     }
 
+    // Darts count only while the board detects them: the start switches detection on,
+    // which the new game screen says beforehand.
     _startGame(choice) {
       const options = { entry: this._entry(), distance: Boolean(this._ids.bullOffDistance) };
+      if (this._detectionOff()) this._toggleDetection();
       if (choice.tournament) this._call("autodarts", "start_tournament", tournamentStartData(choice, options));
       else this._call("autodarts", "start_game", startGameData(choice, options));
       this._lobby = null;
+    }
+
+    // Detection is stopped on a board that is online.
+    _detectionOff() {
+      const [status] = this._status();
+      return status !== "offline" && !detectionRunning((name) => this._state(name), status);
     }
 
     // Correcting and entering darts ------------------------------------------------
@@ -9697,24 +10092,38 @@ function createElements(Base) {
     _idleOn() {
       if (!this._idlePanels().length) return;
       this._idle = { index: 0, since: Date.now() };
+      // A new game screen opened by hand comes back with the tap that ends idle mode.
+      this._resting = this._lobby && !this._lobby.auto ? this._lobby : null;
       this._lobby = null;
       clearTimeout(this._lobbyTimer);
-      this._idleTick = setInterval(() => this._idleStep(), 1000);
+      this._idleNext();
       this._update();
     }
 
-    // Every second the clock moves on; after the interval the next panel shows.
+    // Milliseconds each panel shows.
+    _idleEvery() {
+      return Math.max(Number(this._config.idle_interval) || 0, 3) * 1000;
+    }
+
+    // The screen changes only when the next panel is due or the clock's minute ends.
+    _idleNext() {
+      const now = Date.now();
+      const panel = this._idle.since + this._idleEvery() - now;
+      clearTimeout(this._idleTick);
+      this._idleTick = setTimeout(() => this._idleStep(), Math.min(panel, 60000 - (now % 60000)));
+    }
+
     _idleStep() {
-      const every = Math.max(Number(this._config.idle_interval) || 0, 3) * 1000;
-      if (Date.now() - this._idle.since >= every) {
+      if (Date.now() - this._idle.since >= this._idleEvery()) {
         this._idle.index += 1;
         this._idle.since = Date.now();
       }
+      this._idleNext();
       this._update();
     }
 
     _idleOff() {
-      clearInterval(this._idleTick);
+      clearTimeout(this._idleTick);
       this._idleTick = null;
       this._idle = null;
     }
@@ -9724,6 +10133,8 @@ function createElements(Base) {
       this._activity = Date.now();
       if (this._idle) {
         this._idleOff();
+        this._lobby = this._resting ?? null;
+        this._resting = null;
         this._update();
       } else if (this._followed) {
         this._scheduleIdle(this._followed.state);
@@ -9770,7 +10181,7 @@ function createElements(Base) {
       const [status, statusText] = this._status();
       this.style.setProperty("--ad-status", STATUS_COLORS[status]);
       this.style.setProperty("--ad-accent", cssColor(c.accent_color, "var(--primary-color)"));
-      if (el.pill) el.pill.textContent = t(statusText);
+      if (el.pill) this._text(el.pill, t(statusText));
 
       const visit = this._state("visit");
       const view = gameView((name) => this._state(name));
@@ -9785,11 +10196,10 @@ function createElements(Base) {
       const panels = this._idle ? this._idlePanels() : [];
       const panel = panels.length ? panels[this._idle.index % panels.length] : null;
       let { title, meta, banner, main } = board;
+      let hints = "";
       if (this._lobby) {
         const choice = this._lobby;
-        title = t("lobby_title");
-        meta = "";
-        main = lobbyHtml(choice, {
+        const lobbyUi = {
           ...ui,
           games,
           tournamentGames: this._tournamentGames(),
@@ -9800,7 +10210,12 @@ function createElements(Base) {
           teams: Boolean(this._ids.teams),
           running: ![undefined, "off", "unknown", "unavailable"].includes(this._state("game")?.state),
           confirmEnd: this._confirm === "end",
-        });
+          detectionOff: this._detectionOff(),
+        };
+        title = t("lobby_title");
+        meta = "";
+        main = lobbyHtml(choice, lobbyUi);
+        hints = lobbyHints(choice, lobbyUi).join(" ");
       } else if (panel) {
         title = ui.name;
         meta = t(`idle_panel_${panel.panel}`);
@@ -9822,12 +10237,24 @@ function createElements(Base) {
       el.lobby.hidden = !games.length || Boolean(this._lobby);
       el.board.classList.toggle("choosing", Boolean(this._lobby));
       el.board.classList.toggle("idling", Boolean(panel));
-      el.title.textContent = title;
-      el.meta.textContent = meta;
+      this._text(el.title, title);
+      this._text(el.meta, meta);
       el.banner.hidden = !banner;
-      el.banner.textContent = banner;
+      this._text(el.banner, banner);
       el.banner.classList.toggle("rethrow", board.bannerKind === "rethrow");
-      this._setHtml(el.main, main);
+      // The same idle panel with a new minute or number keeps its element, so it does not fade in again.
+      const shown = el.main.firstElementChild;
+      if (panel && shown?.dataset.panel === panel.panel) {
+        this._setHtml(shown, panel.html);
+        el.main._adHtml = main;
+      } else {
+        this._setHtml(el.main, main);
+      }
+      // The hints of the new game screen are read out when they change; what is typed stays.
+      if (hints !== this._hints) this._say(hints);
+      this._hints = hints;
+      const field = this._lobby ? el.main.querySelector(".lobby-name") : null;
+      if (field && field !== this.shadowRoot.activeElement) field.value = this._lobby.draft;
       // The countdown to the next match changes every second, the rest stays.
       const counting = tournament.shown && !this._lobby && !panel && tournament.tournament.status === "waiting";
       const countdown = el.main.querySelector(".countdown");
@@ -9843,12 +10270,13 @@ function createElements(Base) {
       const tappable = c.corrections && !this.preview && !away;
       const pad = this.preview || away ? null : this._pad(view, darts);
       el.pad.hidden = !pad;
+      el.board.classList.toggle("with-pad", Boolean(pad && !pad.only));
       this._setHtml(
         el.pad,
         !pad
           ? ""
           : pad.only
-            ? `<button type="button" class="undo-only" data-pad="undo">↶ ${escapeHtml(
+            ? `<button type="button" class="undo-only" data-pad="undo" data-focus="undo:">↶ ${escapeHtml(
                 t(pad.confirm === "undo" ? "confirm" : "undo_visit")
               )}</button>`
             : padHtml(pad, { t })
@@ -9863,12 +10291,14 @@ function createElements(Base) {
         const flags = ["manual", "corrected", "bot"].filter((flag) => dart[flag] === true);
         const picked = Boolean(this._pick) && this._pick.dart === dart.dart;
         const style = ["dart", ...flags, ...(picked ? ["picked"] : [])].join(" ");
-        const content =
-          `<span class="segment">${escapeHtml(label(this._hass, dart))}</span>` +
-          `<span class="points">${dart.number * dart.multiplier}</span>`;
+        const bed = label(this._hass, dart);
+        const points = dart.number * dart.multiplier;
+        const content = `<span class="segment">${escapeHtml(bed)}</span><span class="points">${points}</span>`;
+        // The label names the dart and what a tap does: "T20 60 – Correct dart 1".
+        const spoken = `${bed} ${points} – ${fill(t("correct_title"), { dart: dart.dart })}`;
         return tappable && Number.isInteger(dart.dart) && !dart.bot
           ? `<button type="button" class="${style}" data-dart="${dart.dart}" data-focus="dart-${dart.dart}"` +
-              ` aria-label="${escapeHtml(fill(t("correct_title"), { dart: dart.dart }))}">${content}</button>`
+              ` aria-label="${escapeHtml(spoken)}">${content}</button>`
           : `<div class="${style}">${content}</div>`;
       });
       const sum =
@@ -10235,7 +10665,7 @@ function createElements(Base) {
 
   // Dashboard strategy -----------------------------------------------------------
 
-  // The editor of the dashboard strategy: the board and the title.
+  // The editor of the dashboard strategy: the board, the title and the scoreboard view.
   class AutodartsStrategyEditor extends Base {
     setConfig(config) {
       this._config = { ...config };
@@ -10256,14 +10686,18 @@ function createElements(Base) {
       if (!this._hass || !this._config || !customElements.get("ha-form")) return;
       if (!this._form) {
         const form = document.createElement("ha-form");
-        form.schema = STRATEGY_FORM;
-        form.computeLabel = (field) => translate(this._hass, field.name);
+        form.schema = strategyForm(this._hass);
+        form.computeLabel = (field) => (field.name ? translate(this._hass, STRATEGY_LABELS[field.name] ?? field.name) : undefined);
         form.computeHelper = (field) =>
-          field.name === "device_id" ? translate(this._hass, "strategy_device_helper") : undefined;
+          STRATEGY_HELPERS[field.name] ? translate(this._hass, STRATEGY_HELPERS[field.name]) : undefined;
         form.addEventListener("value-changed", (event) => {
           event.stopPropagation();
           const config = { ...event.detail.value };
           for (const key of ["device_id", "title"]) if (!config[key]) delete config[key];
+          // Scoreboard options left empty follow the card's defaults.
+          const scoreboard = scoreboardOptions(config);
+          if (Object.keys(scoreboard).length) config.scoreboard = scoreboard;
+          else delete config.scoreboard;
           this._config = config;
           this.dispatchEvent(new CustomEvent("config-changed", { bubbles: true, composed: true, detail: { config } }));
         });

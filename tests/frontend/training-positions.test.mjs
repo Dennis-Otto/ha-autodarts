@@ -192,7 +192,7 @@ test("the heatmap switches speak German", () => {
     ["Felder", "Zahlen", "Positionen"]
   );
   assert.equal(pressed(card, "sources")[0][0], "Session");
-  assert.equal($(card, ".modes").getAttribute("aria-label"), "Heatmap");
+  assert.equal($(card, ".modes").getAttribute("aria-label"), "Trefferbild");
   assert.equal($(card, ".sources").getAttribute("aria-label"), "Wessen Darts");
 });
 
@@ -212,4 +212,93 @@ test("positions without a known aim have no groupings to show", async () => {
   await settle();
   assert.equal($$(card, ".heat-layer .position").length, 1);
   assert.equal($(card, ".heat .groups").hidden, true);
+});
+
+test("positions stay unloaded without a heatmap, and a late answer waits for its mode", async () => {
+  const asked = [];
+  // Without the heatmap, positions are neither asked for nor drawn.
+  const hidden = setup({ show_heatmap: false, mode: "positions" }, board(asked)).card;
+  await settle();
+  assert.deepEqual(asked, []);
+  assert.equal($(hidden, ".heat-layer"), null);
+  // An answer that arrives after a switch to beds leaves the beds on the board.
+  const pending = [];
+  const { card } = setup({}, (message) => new Promise((resolve) => pending.push({ message, resolve })));
+  click(card, '[data-mode="positions"]');
+  click(card, '[data-mode="beds"]');
+  pending[0].resolve({ positions: [[0, 0.6]], spread: [] });
+  await settle();
+  assert.equal($$(card, ".heat-layer .position").length, 0);
+  assert.ok($(card, ".heat-layer path.heat-bed"));
+  assert.equal(text(card, ".legend-min"), "1");
+  // Back in positions mode, the answer shows without asking again.
+  click(card, '[data-mode="positions"]');
+  assert.equal(pending.length, 1);
+  assert.equal($$(card, ".heat-layer .position").length, 1);
+  // An answer after the heatmap was switched off is kept, and drawn nowhere.
+  const late = [];
+  const off = setup({ mode: "positions" }, (message) => new Promise((resolve) => late.push(resolve))).card;
+  off.setConfig({ type: "custom:autodarts-training-card", mode: "positions", show_heatmap: false });
+  off.hass = makeHass({ states: { ...SESSION, ...PROFILES }, callWS: () => new Promise(() => {}) });
+  late[0]({ positions: [[0, 0.6]], spread: [] });
+  await settle();
+  assert.equal($(off, ".heat-layer"), null);
+});
+
+test("the density of the positions is drawn once per answer, not with every update", async () => {
+  const { hass, card } = setup({ mode: "positions" }, board([]));
+  await settle();
+  const layer = $(card, ".heat-layer");
+  const drawn = layer.innerHTML;
+  const first = layer.firstElementChild;
+  // Other state changes keep the drawing as it is.
+  card.hass = update(hass, { "sensor.training_points": "300" });
+  assert.equal(layer.innerHTML, drawn);
+  assert.equal(layer.firstElementChild, first);
+});
+
+test("a player's most hit beds are shares of the hits the profile counted", () => {
+  // Darts from before an upgrade count in darts_thrown but have no hits.
+  const profiles = {
+    "sensor.player_profiles": {
+      state: "1",
+      attributes: { players: [{ name: "Alex", darts_thrown: 5000, hits: { T20: 6, S20: 3, MISS: 3 } }] },
+    },
+  };
+  const { card } = setup({ player: "Alex" }, undefined, profiles);
+  assert.deepEqual(
+    $$(card, ".top-row .count").map((count) => count.textContent),
+    ["6× · 50%", "3× · 25%"]
+  );
+});
+
+test("the hits of every bed can be read and tapped, not only hovered", () => {
+  const { hass, card } = setup();
+  // A list for screen readers, most hit first, every bed once.
+  assert.deepEqual(
+    $$(card, ".heat-list li").map((item) => item.textContent),
+    ["T20: 4 hits · 66.7%", "S20: 2 hits · 33.3%"]
+  );
+  const caption = $(card, ".heat-caption");
+  assert.equal(caption.getAttribute("aria-live"), "polite");
+  assert.equal(caption.textContent, "");
+  // A tap on a bed tells its hits; a tap beside the beds clears it.
+  $(card, ".heat-layer path.heat-bed").dispatchEvent(new window.Event("click", { bubbles: true }));
+  assert.equal(caption.textContent, "T20: 4 hits · 66.7%");
+  $(card, ".heat-frame svg").dispatchEvent(new window.Event("click", { bubbles: true }));
+  assert.equal(caption.textContent, "");
+  $(card, ".heat-layer path.heat-bed").dispatchEvent(new window.Event("click", { bubbles: true }));
+  // New hits change the board, and the told hits go.
+  card.hass = update(hass, { "sensor.training_darts": { state: "7", attributes: { hits: { T20: 5, S20: 2 } } } });
+  assert.equal(caption.textContent, "");
+  card.hass = update(hass, { "sensor.training_visits": "3" });
+  assert.equal(caption.textContent, "");
+  // In numbers mode every number is listed once; positions have no beds to list.
+  click(card, '[data-mode="numbers"]');
+  assert.deepEqual(
+    $$(card, ".heat-list li").map((item) => item.textContent),
+    ["20: 6 hits · 100.0%"]
+  );
+  click(card, '[data-mode="positions"]');
+  assert.deepEqual($$(card, ".heat-list li"), []);
 });
