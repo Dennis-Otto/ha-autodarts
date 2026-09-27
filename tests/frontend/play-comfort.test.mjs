@@ -169,8 +169,8 @@ test("the pad corrects a dart or enters one, with the next player and the undo b
   pad.innerHTML = html;
   assert.equal(pad.querySelector(".section-label").textContent, "Correct dart 2");
   assert.equal(pad.querySelector('[aria-pressed="true"]').textContent, "T");
-  assert.equal(pad.querySelectorAll(".number").length, 20);
-  assert.equal(pad.querySelector(".number").dataset.value, "T1");
+  assert.equal(pad.querySelectorAll(".pad-number").length, 20);
+  assert.equal(pad.querySelector(".pad-number").dataset.value, "T1");
   assert.deepEqual(
     [...pad.querySelectorAll(".pad-extra button")].map((button) => [button.dataset.pad, button.textContent]),
     [
@@ -243,8 +243,8 @@ test("a tap on a dart of the visit corrects it", () => {
   assert.equal(text(card, '.pad [aria-pressed="true"]'), "S");
   assert.equal($(card, '[data-dart="2"]').classList.contains("picked"), true);
   $(card, '[data-pad="multiplier"][data-value="3"]').click();
-  assert.equal($(card, '.number[data-value="T20"]') !== null, true);
-  $(card, '.number[data-value="T20"]').click();
+  assert.equal($(card, '.pad-number[data-value="T20"]') !== null, true);
+  $(card, '.pad-number[data-value="T20"]').click();
   assert.deepEqual(actions(hass), [["correct_dart", { config_entry_id: ENTRY, dart: 2, segment: "T20" }]]);
   assert.equal($(card, ".pad-area").hidden, true);
   // A second tap on the dart closes the pad again, and so does cancel.
@@ -295,7 +295,7 @@ test("the keypad enters darts while manual entry is on", () => {
   card.hass = update(hass, { "switch.practice_manual_entry": "on" });
   assert.equal(text(card, ".pad .section-label"), "Enter a dart");
   $(card, '[data-pad="multiplier"][data-value="3"]').click();
-  $(card, '.number[data-value="T20"]').click();
+  $(card, '.pad-number[data-value="T20"]').click();
   // Every dart starts from a single again.
   assert.equal(text(card, '.pad [aria-pressed="true"]'), "S");
   $(card, '[data-value="BULL"]').click();

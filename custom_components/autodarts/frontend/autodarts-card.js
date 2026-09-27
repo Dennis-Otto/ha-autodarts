@@ -4933,7 +4933,7 @@ function padHtml(pad, ui) {
     )
     .join("");
   const numbers = BOARD_NUMBERS.map((number) =>
-    button("bed", padBed(pad.multiplier, number), String(number), ` class="number"`)
+    button("bed", padBed(pad.multiplier, number), String(number), ` class="pad-number"`)
   ).join("");
   const bulls = [
     button("bed", "25", "25", ` class="bull"`),

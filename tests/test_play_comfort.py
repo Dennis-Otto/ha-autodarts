@@ -273,3 +273,34 @@ async def test_nothing_to_undo(hass, aioclient_mock):
     assert undoable(hass) is False
     with pytest.raises(ServiceValidationError):
         await act(hass, "undo_visit")
+
+
+async def test_a_new_game_ends_a_visit_entered_by_hand(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    await switch(hass, "practice_manual_entry", True)
+    await start(hass)
+    await act(hass, "throw_dart", segment="T20")
+    events = record(hass, coordinator)
+    await start(hass, "501")
+    # The dart counts for the training, not for the new game.
+    assert kinds(events) == ["visit_completed"]
+    assert coordinator.practice.snapshot()["visit"] == []
+    assert state(hass, "sensor", "practice_remaining") == "501"
+    assert coordinator.training.snapshot()["darts"] == 1
+
+
+async def test_no_undo_of_a_visit_a_tournament_took(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    await act(
+        hass, "start_tournament", players=["Alex", "Sam", "Kim"], game="101", legs=1
+    )
+    checkout = (T20, ("S1", 1, 1), ("D20", 20, 2))
+    receive(coordinator, *(board(*checkout[:count]) for count in (1, 2, 3)), board())
+    await hass.async_block_till_done()
+    matches = coordinator.tournament.tournament.matches
+    assert any(match.winner is not None for match in matches)
+    assert undoable(hass) is False
+    with pytest.raises(ServiceValidationError):
+        await act(hass, "undo_visit")

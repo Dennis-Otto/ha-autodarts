@@ -1258,7 +1258,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         }
         self._schedule_idle_end()
         self.async_update_listeners()
-        self._restart_bot()
+        self._after_change()
 
     async def async_start_session(self) -> None:
         started = self.training.start()
@@ -1437,6 +1437,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if due:
             self.tournament.next_match(self.practice)
         if events or due:
+            # A result the tournament took, or its next match, cannot be undone.
+            self._undo = None
             self._schedule_fixture()
         return events
 
@@ -1585,12 +1587,14 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._bot_unsub = None
 
     @callback
-    def _restart_bot(self) -> None:
-        """A changed game ends a visit of the bot; its next turn waits anew."""
+    def _after_change(self) -> None:
+        """A change of the game or the session ends a visit with darts of Home
+        Assistant's, entered by hand, undone or the bot's; the bot's next turn
+        waits anew."""
         self._cancel_bot()
-        if self.manual.bot_darts():
+        if self.manual.extras:
             self.manual.end_visit()
-            self._refresh("bot")
+            self._refresh("manual")
         self._schedule_bot()
 
     @callback
