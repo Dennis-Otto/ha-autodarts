@@ -28,6 +28,8 @@ from .local_helpers import (
 # Durations and times of the connection history differ from run to run.
 VOLATILE = props("last_success", "last_poll_seconds", "offline_seconds", "started")
 PLAYERS = ("Alexandra", "Samuel")
+S1 = ("S1", 1, 1)
+D20 = ("D20", 20, 2)
 
 
 @pytest.fixture(autouse=True)
@@ -68,6 +70,30 @@ async def test_diagnostics_of_a_named_match_with_a_bull_off(
     for name in PLAYERS:
         assert name not in json.dumps([during, after])
     assert after == snapshot(exclude=VOLATILE)
+
+
+async def test_diagnostics_of_a_team_match_leave_out_the_team_names(
+    hass, aioclient_mock, hass_client
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    names = [*PLAYERS, "Katharina", "Leonhard"]
+    await hass.services.async_call(
+        DOMAIN,
+        "start_game",
+        {"game": "101", "players": names, "teams": True, "legs": 2},
+        blocking=True,
+    )
+    # 101: both teams score 60, then the partner of the first player checks out.
+    await throw(hass, coordinator, T20)
+    await throw(hass, coordinator, T20)
+    await throw(hass, coordinator, S1, D20)
+    diagnostics = await get_diagnostics_for_config_entry(hass, hass_client, entry)
+    (leg,) = diagnostics["local"]["practice"]["legs"]
+    assert leg["team"] == 1 and leg["team_name"] == "**REDACTED**"
+    assert diagnostics["practice_game"]["teams"] is True
+    for name in names:
+        assert name not in json.dumps(diagnostics)
 
 
 async def test_diagnostics_of_board_manager_2(
