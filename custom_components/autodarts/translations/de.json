@@ -601,6 +601,9 @@
     },
     "export_failed": {
       "message": "Der Export konnte nicht geschrieben werden: {error}"
+    },
+    "unknown_person": {
+      "message": "Es gibt keine Person {person} in Home Assistant."
     }
   },
   "issues": {
@@ -726,6 +729,38 @@
         "folder": {
           "name": "Ordner",
           "description": "Ein Ordner im Konfigurationsordner. Dateien in www sind ohne Anmeldung unter /local/ erreichbar."
+        }
+      }
+    },
+    "link_player": {
+      "name": "Spieler mit Person verknüpfen",
+      "description": "Macht einen Spieler zu einer Person von Home Assistant: Das Bild der Person erscheint auf der Anzeigetafel, der Spielerkarte und in der Spielauswahl, die außerdem Spieler zuerst zeigt, die zu Hause sind. Eine Person ist ein Spieler; eine neue Verknüpfung ersetzt die alte.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Nur bei mehreren Boards nötig."
+        },
+        "player": {
+          "name": "Spieler",
+          "description": "Der Spielername, in beliebiger Groß- und Kleinschreibung. Ein Spieler ohne Profil bekommt eines."
+        },
+        "person": {
+          "name": "Person",
+          "description": "Die Person von Home Assistant, die dieser Spieler ist."
+        }
+      }
+    },
+    "unlink_player": {
+      "name": "Spieler-Verknüpfung lösen",
+      "description": "Vergisst, welche Person ein Spieler ist. Die Statistik des Spielers bleibt.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Nur bei mehreren Boards nötig."
+        },
+        "player": {
+          "name": "Spieler",
+          "description": "Der Spielername, in beliebiger Groß- und Kleinschreibung."
         }
       }
     }

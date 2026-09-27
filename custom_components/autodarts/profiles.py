@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from homeassistant.core import split_entity_id, valid_entity_id
 from homeassistant.util import dt as dt_util
 
 from .doubles import DoubleStats
@@ -21,6 +22,13 @@ NAME_LENGTH = 20
 
 def _key(name: str) -> str:
     return name.strip().casefold()
+
+
+def _person(value: object) -> str | None:
+    """A person entity ID such as person.alex, or None."""
+    if not isinstance(value, str) or not valid_entity_id(value):
+        return None
+    return value if split_entity_id(value)[0] == "person" else None
 
 
 def _ratio(part: int, whole: int, factor: int, digits: int) -> float | None:
@@ -56,6 +64,8 @@ class Profile:
     # Double -> attempts and hits.
     doubles: dict[str, list[int]] = field(default_factory=dict)
     last_played: str | None = None
+    # The Home Assistant person this player is, for the picture and presence.
+    person: str | None = None
 
     def double_stats(self) -> DoubleStats:
         stats = DoubleStats()
@@ -79,6 +89,7 @@ class Profile:
             "fewest_darts": dict(self.fewest_darts),
             "doubles": self.double_stats().snapshot(),
             "last_played": self.last_played,
+            "person": self.person,
         }
 
     @classmethod
@@ -105,6 +116,7 @@ class Profile:
         profile.doubles = doubles.counts
         if isinstance(saved.get("last_played"), str):
             profile.last_played = saved["last_played"]
+        profile.person = _person(saved.get("person"))
         return profile
 
 
@@ -220,6 +232,30 @@ class Profiles:
         del self.players[key]
         for pair in [pair for pair in self.head_to_head if key in pair.split("\x00")]:
             del self.head_to_head[pair]
+        return True
+
+    def link(self, name: str, person: str) -> bool:
+        """Make a player a Home Assistant person; a person is one player only.
+
+        Linking creates the profile of a player who has not played yet, so the
+        picture shows from the first game. False without a valid name or person.
+        """
+        if not name.strip() or _person(person) is None:
+            return False
+        key = _key(name)
+        for other in self.players.values():
+            if other.person == person:
+                other.person = None
+        profile = self.players.setdefault(key, Profile(name=name.strip()[:NAME_LENGTH]))
+        profile.person = person
+        return True
+
+    def unlink(self, name: str) -> bool:
+        """Forget which person a player is; False when there is no such profile."""
+        profile = self.players.get(_key(name))
+        if profile is None:
+            return False
+        profile.person = None
         return True
 
     # -- storage ---------------------------------------------------------------
