@@ -32,7 +32,7 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | Notice | Meaning and solution |
 | --- | --- |
 | **Autodarts board address points to a different board** | The configured address answers with a different board ID, for example because IP addresses were swapped. The entities stay unavailable so that they never show another board's data. Open the integration, choose **Reconfigure** and select the correct board. The notice disappears by itself. |
-| **Calibrate the Autodarts board** | At least 20 % of the last 100 darts, and at least 50 darts in all, needed a correction by the board, see *Detection correction rate*. Remove all darts, open the notice and confirm: the integration calibrates all cameras and counts again from zero. The notice also disappears once the rate falls below 10 %. |
+| **Calibrate the Autodarts board** | At least 20 % of the last 100 darts, and at least 50 darts in all, needed a correction, by the board, on the scoreboard or with `autodarts.correct_dart`, see *Detection correction rate*. Remove all darts, open the notice and confirm: the integration calibrates all cameras and counts again from zero. The notice also disappears once the rate falls below 10 %. |
 | **Update the board to the new Autodarts Board Manager** | The board still runs the classic Board Manager 1, which Autodarts will switch off. Install Board Manager 2 on the board PC. The integration switches over by itself and the notice disappears. |
 | **Autodarts board found at a new address** | The board has not answered at its address for five minutes, but the Autodarts cloud reports another address where it answers with its board ID, for example after a DHCP change. Open the notice and confirm: the integration checks the address once more, switches to it and reloads. Entities, training and settings are kept. Only entries linked to the Autodarts cloud get this notice; Board Manager 2 announces a new address itself, see [address changes](how-it-works.md#address-changes). |
 | **Autodarts board refuses access** | The board answers with HTTP 401 or 403. The Board Manager needs no login, so a reverse proxy, a firewall or a login in front of port 3180 blocks Home Assistant. Let Home Assistant reach the board; the notice disappears with the next successful read. |
@@ -56,6 +56,9 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *Enter the local Board Manager address: open the menu of this entry and select Reconfigure* | The entry has no local address, for example an old cloud entry. Open the entry's menu (⋮) → **Reconfigure** and enter the address. |
 | *Board Manager answers in a format this version of the integration does not understand* | Usually after a Board Manager update. Update the integration; see **Autodarts board answers in an unknown format** under [repairs](#repairs). |
 | *Board Manager refused access* | See **Autodarts board refuses access** under [repairs](#repairs). |
+| *The stored training of this board comes from a newer version of the integration* | The integration was downgraded after a newer version had saved the training, the practice game and the statistics. Install that version again, or restore a backup of Home Assistant from before the update. The board does not load until then, and the stored data stays unchanged. |
+| *The stored training of this board cannot be read right now* | Home Assistant could not read its `.storage` folder, for example because the disk is full or the permissions changed. Check the free space and the permissions of `.storage`; Home Assistant tries again by itself and overwrites nothing in the meantime. |
+| *The stored training of this board cannot be restored* | The stored data does not fit what this version expects. [Report a bug](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) with the log and the diagnostics; the stored data stays unchanged. |
 
 ### An action fails
 
@@ -64,20 +67,39 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *The board did not accept the action* | The board rejected the command or did not answer. Check the connection and try again. |
 | *This board does not support the action* | The Board Manager has no such command, for example the camera streams on Board Manager 1. |
 | *Board Manager refused access* | See **Autodarts board refuses access** under [repairs](#repairs). |
-| *No Autodarts board with a local connection is loaded* | `autodarts.start_game` and `autodarts.delete_player` need a board that is connected locally and loaded. Check the entry under **Settings → Devices & services**; an entry linked to the cloud only cannot play. |
+| *No Autodarts board with a local connection is loaded* | Every `autodarts` action needs a board that is connected locally and loaded. Check the entry under **Settings → Devices & services**; an entry linked to the cloud only cannot play. |
+| *Unauthorized* | `autodarts.delete_player`, `autodarts.export`, `autodarts.link_player` and `autodarts.unlink_player` delete or write out the players' data, so only administrators may run them, for example not the user of the screen at the board. Automations run them, too. |
 | *Several Autodarts boards are set up. Choose the board.* | With more than one board, choose the board in the action, the `config_entry_id` field in YAML. |
 | *Config entry … was not found*, *… does not belong to integration autodarts* or *… is not loaded* | The board chosen in the action was deleted, is another integration's entry or is not loaded. Choose the board again; a board that does not load shows why on its entry. |
 | *… is on the list of players more than once* | Every player needs a name of their own. Players without a name may appear more than once. |
+| *A player name cannot contain curly brackets, …* | Home Assistant would read these characters as the start of a template. Leave out `{`, `}`, `%`, `#` and control characters. |
 | *Killer needs at least two players* | Name two to four players in the action, or set *Practice players* to 2 or more. |
 | *There is no player profile named …* | Check the spelling; upper and lower case do not matter. The *Player profiles* sensor lists every profile. |
 | *There is no person … in Home Assistant* | `autodarts.link_player` needs a person entity, such as `person.alex`. Create the person under **Settings → People** first. |
 | *Teams need four players* | Teams play 1 and 3 against 2 and 4: name four players, or set *Practice players* to 4. |
 | *Teams play X01 and the Cricket games* | Switch *Teams* off for party and training games. |
-| *A start score is 0, for the game's start score, or 2 to 1001* | Correct `start_scores` in the action. |
-| *The export folder … must be inside the Home Assistant configuration folder* | Choose a folder inside the configuration folder that does not start with a dot, for example `www/autodarts` or `exports`. |
+| *A start score is 0, for the game's start score, or 2 to 1001* | Correct `start_scores` in the action or the *Practice start score player N* setting. |
+| *The start scores name … values, but only … players play* | `start_scores` has one value per player, in throwing order. Leave out the extra values. |
+| *Teams play from the start scores of players 1 and 2* | In a team match, the first start score is team 1's and the second team 2's. Give at most two. |
+| *A start score of 3 cannot be checked out with double in and double out* | The only opening double, D1, leaves 1, which no double can finish. Choose another start score, or switch off double in or double out. |
+| *… is not a bed of the board* | `segment` of `autodarts.correct_dart` or `autodarts.throw_dart` takes S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye or MISS. |
+| *The current visit has no dart …* | `autodarts.correct_dart` corrects dart 1, 2 or 3 of the current visit once it is on the board. A visit whose darts were pulled comes back with `autodarts.undo_visit`. |
+| *The darts of the bot cannot be corrected* | The bot's darts come from Home Assistant, not from the board. Only the darts of a player can be corrected. |
+| *Manual entry is off* | `autodarts.throw_dart` enters darts only while the *Practice manual entry* switch is on. Switch it on first. |
+| *The bot is at the board* | The bot is throwing its visit. Wait for it, or end it with `autodarts.next_player`. |
+| *The visit already has three darts* | Pass the turn with `autodarts.next_player`, or pull the darts, before you enter the next dart. |
+| *The visit has no darts to end* | Without darts, `autodarts.next_player` passes the turn only where a player may pass: in X01, the Cricket and the party games, but not in the training games, in a bull-off or while the Killer numbers are chosen. |
+| *There is no visit to undo* | `autodarts.undo_visit` takes back the last completed visit, while no dart is in the board and neither the game nor the training session has changed since. Pull the darts first; the darts of the current visit are corrected with `autodarts.correct_dart`. |
+| *The bot level is 0, for no bot, or a 3-dart average of 20 to 120* | Correct `bot_level` in the action or the *Practice bot level* setting. |
+| *With the bot, up to three players play* | The bot takes a seat of its own in X01 and the Cricket games. Play with three players at most, or set the bot level to 0. |
+| *The export folder … must not be hidden, and Home Assistant must allow writing to it* | Leave the folder empty for `autodarts/exports` of the media folder, or choose a folder that does not start with a dot in `www`, in a media folder or in a folder listed in `allowlist_external_dirs`. |
 | *The export could not be written* | The folder is not writable or the disk is full; the message names the reason. |
+| *… exports were written in the last hour* | The integration writes a limited number of exports per hour. Try again later. |
 | *A tournament needs three to eight players* | Name three to eight players, each with a name of their own. |
 | *No tournament is being played* | *Next tournament match* and *Stop tournament* need a running tournament. |
+| *A tournament is being played* | Only one tournament runs at a time. Stop it before you start a new one. |
+| *The tournament is over* | The final is played; *Next tournament match* has no match left. Stop the tournament, or start a new one. |
+| *… plays in the tournament* | A player of the running tournament cannot be deleted. Stop the tournament first. |
 | *The tournament match of … against … is still being played* | *Next tournament match* waits for the pause between two matches. Play the match to the end, or stop the tournament. |
 
 ### No realtime updates

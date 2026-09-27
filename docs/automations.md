@@ -234,7 +234,7 @@ The practice caller's messages are templates with these variables:
 | `remaining` | The score left |
 | `checkout` | The route when a checkout is possible, for example `T20 T20 BULL`; in *Leg won*, the score checked out, for example `121` |
 | `darts`, `average` | Darts and 3-dart average of the leg, in *Leg won* |
-| `points` | Points in the Cricket and party games; strokes in Golf, runs in Baseball |
+| `points` | Points in the Cricket and party games; strokes in Golf, runs in Baseball. Killer keeps no points: its events carry the player's `lives` and whether they are a `killer`, for example `trigger.to_state.attributes.lives` |
 | `target` | The next target of a party game, for example `20`, `D` or `D16`; the hole in Golf and the inning in Baseball |
 | `leave`, `setup` | Where no checkout is possible: the score a [setup](entities.md#setup-hints) leaves, for example `32`, and its darts, for example `T20 T20 S17`; empty otherwise |
 | `hit` | The bed of the winning bull-off dart in *Bull-off won*: `BULL`, `25` or for example `S20` |
@@ -822,4 +822,4 @@ Since version 1.0, the **Detection status** sensor reports translatable states: 
 | `Calibrating` | `calibrating` |
 | `Error` | `error` |
 
-The UI shows these states in your language. The *Last event* sensor still reports the raw Board Manager text.
+The UI shows these states in your language. The *Last event* sensor still reports the raw Board Manager text. It is a diagnostic sensor now and, like *CPU usage*, starts disabled on a board set up with version 1.6.0 or later: enable it on the device page before an automation uses it. Boards set up before keep both entities as they are.

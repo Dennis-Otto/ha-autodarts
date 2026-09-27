@@ -29,7 +29,7 @@ The visit score is the plain sum of the darts, without game rules such as busts.
 
 ## Board events
 
-The **Events** entity (for example `event.autodarts_board_events`, or `event.autodarts_board_board_events` for a board set up with an earlier version) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, `training` for session events and the start of a tournament, `schedule` for the weekly report, `manual` for [corrections, darts entered by hand](#corrections-and-darts-entered-by-hand) and what follows from them, `bot` for the darts of the [bot](#bot), or `online` for the moments of [online matches](online-matches.md), which the optional online bridge receives from the browser extension Tools for Autodarts. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
+The **Events** entity (for example `event.autodarts_board_events` in a Home Assistant set to English, `event.autodarts_board_ereignisse` in German, or `event.autodarts_board_board_events` for a board set up with an earlier version) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, `training` for session events and the start of a tournament, `schedule` for the weekly report, `manual` for [corrections, darts entered by hand](#corrections-and-darts-entered-by-hand) and what follows from them, `bot` for the darts of the [bot](#bot), or `online` for the moments of [online matches](online-matches.md), which the optional online bridge receives from the browser extension Tools for Autodarts. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
 
 | `event_type` | When | Attributes |
 | --- | --- | --- |
@@ -180,7 +180,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 - **Bull-off:** with *Practice bull-off* and two or more players, a match starts with one dart per player at the bull. As in the official rules, the bullseye beats the outer bull, which beats every other bed; two darts in the same bull bed throw again, in reverse order. Outside the bull, and inside it with *Practice bull-off by distance*, the dart closest to the center wins, measured from the dart positions the board reports; a dart without a position never beats a measured one. [The bull-off rules](games.md#bull-off).
 - **Visits:** a visit ends when you pull the darts. After a bust, the score of the visit start stays. Darts after a bust or after the winning dart do not count.
 - **Checkout:** the route for the darts left in the visit, for example `T20 T20 BULL` for 170. [How the route is chosen](how-it-works.md#practice-game).
-- **Matches:** set *Practice players* to 2, 3 or 4. After a visit, the next player throws; a bust passes the turn too. The first player to win *Practice legs per set* legs wins the set, and the first to win *Practice sets to win* sets wins the match. The first throw passes every leg within a set, and every set starts with the next player. The result, with the legs of the deciding set, stays on the card until the next dart, which starts a new match. With one player, legs and sets are not counted. [The match rules](games.md#matches-legs-and-sets).
+- **Matches:** set *Practice players* to 2, 3 or 4. After a visit, the next player throws; a bust passes the turn too. The first player to win *Practice legs per set* legs wins the set, and the first to win *Practice sets to win* sets wins the match. The first throw passes every leg within a set, and every set starts with the next player. The result, with the legs of the deciding set, stays on the card until the next dart, which starts a new match. With one player, legs count up; there are no sets and no match. [The match rules](games.md#matches-legs-and-sets).
 - **Match summary:** a finished match of several players is summed up for every player: legs, sets and darts; in X01 the 3-dart and first-9 average, the checkout rate, the highest checkout, 100+, 140+ and 180 visits, the best leg and the darts at a double; in Cricket the marks per round and the marks. The [scoreboard](cards.md#match-summary) shows it after an X01 or Cricket match, `match_won` announces it, and *Practice remaining score* keeps it in `summary` until the next match ends. [How the numbers are counted](how-it-works.md#match-summary).
 - **Sessions:** the practice game and [training sessions](#training-session) are independent. A dart counts in both.
 - **Corrections and darts entered by hand:** a dart the board read wrong is corrected with an action or a tap on the scoreboard, missed darts are entered by hand, and the last visit can be taken back; see [Corrections and darts entered by hand](#corrections-and-darts-entered-by-hand).
@@ -252,7 +252,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 
 ## Setup hints
 
-<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
+<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex, who plays from a start score of 169, has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
 
 When the darts left in a visit cannot check out, at 169, above 170 or at 100 with one dart, *Practice remaining score* names a setup in `setup`: its darts in `route`, for example `T20 T20 S17`, and the score they leave for the next visit in `leave`, for example `32`. The [scoreboard](cards.md#scoreboard-card) and the [live card](cards.md#live-card) show it where the checkout would be and outline its first dart; `turn_changed` carries it, and the scoreboard's caller says *Leave yourself 32*. Above 170 with three darts, only a double is worth setting up; below, a finish of two darts as well. With *Practice personal checkout routes*, the player's strongest doubles come first. [How the setup is chosen](how-it-works.md#setup-hints).
 
@@ -364,7 +364,7 @@ Six pub classics for one to four players, chosen in *Practice game*. They follow
 | **Shanghai** (`shanghai`) | Seven rounds at the numbers 1 to 7. Every dart in a bed of the round's number scores its value; a miss next to it does not. A single, double and triple of that number in one visit (a *Shanghai*) wins the leg at once; otherwise the most points after seven rounds win. |
 | **Halve-It** (`halve_it`) | Everybody starts with 40 points. The rounds aim at 15, 16, any double (the bullseye included), 17, 18, any triple, 19, 20 and the bull (`25`: the outer bull scores 25, the bullseye 50); hits add their score. A visit without a hit on the target halves the points, rounded down. The most points after nine rounds win. |
 | **Killer** (`killer`) | Two to four players. Each first throws one dart for a number of their own (any bed of a number nobody has yet; after a miss, the bull or a taken number, throw again). Then only doubles count: hitting the double of your own number makes you a killer for the rest of the leg. Killers take a life with every hit on another player's double, and lose one when they hit their own. Everybody has 3 lives; a player without lives is out, and the rest of their visit does nothing. The last one with a life left wins. |
-| **Golf** (`golf`) | Nine or 18 holes (*Practice Golf holes*), hole *n* on the number *n*. The last dart of a visit counts, so pull your darts to stop after a good one: a triple is 1 stroke, a double 2, an inner single 3, an outer single 4, anything else 5. The fewest strokes win. |
+| **Golf** (`golf`) | Nine or 18 holes (*Practice Golf holes*), hole *n* on the number *n*. The last dart of a visit counts, so pull your darts to stop after a good one: a double is 1 stroke, a triple 2, an inner single 3, an outer single 4, anything else 5. The fewest strokes win. |
 | **Baseball** (`baseball`) | Nine innings, inning *n* on the number *n*. Every dart in a bed of the number scores runs: a single 1, a double 2, a triple 3. The most runs win. |
 | **Count-Up** (`count_up`) | Every dart scores its value for 1 to 20 rounds (*Practice Count-Up rounds*, 8 by default). The most points win. |
 
@@ -382,10 +382,10 @@ Eight classic drills, chosen in *Practice game*. Each follows the darts of the c
 | --- | --- |
 | **Around the Clock** (`around_the_clock`) | Hit 1, 2, … 20 and then the bull, in order, with any bed of the number. The bull target is `25`: the outer bull and the bullseye both count. Fewer darts are better. |
 | **Doubles training** (`doubles`) | The same with the doubles only: D1 to D20, then the bullseye (`BULL`). |
-| **Checkout training** (`checkout`) | A random score from 2 to 170 that three darts can finish, checked out on a double within three visits. A bust ends the attempt; the route shows only while the attempt goes on. The checkout rate counts successful attempts. |
+| **Checkout training** (`checkout`) | A random score from 2 to 170 that three darts can finish, checked out on a double within three visits. A bust voids only its visit, as in X01; the route shows only while the attempt goes on. The checkout rate counts successful attempts. |
 | **Bob's 27** (`bobs_27`) | Start with 27 points and throw one visit at each double from D1 to D20 and then at the bullseye. Every hit adds the value of the double; a visit without a hit subtracts it. The game is lost as soon as the score reaches zero or less, and completed after the bullseye. |
-| **121 checkout** (`checkout_121`) | Check out 121 within nine darts. A finish raises the target to the next score, a miss lowers it by one, never below 121. The highest score checked out is the personal best. |
-| **Catch 40** (`catch_40`) | Check out 61 to 100 in turn, with two visits each: 3 points for a checkout in two darts, 2 in three darts, 1 in four to six darts. At most 120 points. |
+| **121 checkout** (`checkout_121`) | Check out 121 within nine darts. A finish raises the target to the next score up to 170, a miss lowers it by one, never below 121; a bust voids only its visit. The highest score checked out is the personal best. |
+| **Catch 40** (`catch_40`) | Check out 61 to 100 in turn, with two visits each: 3 points for a checkout in two darts (at 99 in three), 2 in three darts, 1 in four to six darts; a bust voids only its visit. At most 120 points. |
 | **JDC Challenge** (`jdc_challenge`) | The 57-dart routine of the Junior Darts Corporation: Shanghai visits at 10 to 15, one dart at every double and the bullseye, Shanghai visits at 15 to 20. At most 3,380 points. |
 | **Singles training** (`singles`) | One visit at each number from 1 to 20 and the bull; a single scores 1 point, a double 2, a triple 3. At most 186 points. |
 
@@ -629,6 +629,8 @@ Ends the current visit without pulling the darts, so the next player throws; the
 action: autodarts.next_player
 ```
 
+Takes `config_entry_id` when there is more than one board.
+
 ### Undo a visit: `autodarts.undo_visit`
 
 Takes the last completed visit back: the game returns to where it was before it, and its darts become the current visit again, to correct them and end the visit with `autodarts.next_player`. Visits of the bot after it are taken back, too. One visit can be undone, while no dart is in the board and the game and the training session have not changed since; a restart forgets it. The action fails with a clear message otherwise; `undo` of *Practice remaining score* tells whether it can.
@@ -636,6 +638,8 @@ Takes the last completed visit back: the game returns to where it was before it,
 ```yaml
 action: autodarts.undo_visit
 ```
+
+Takes `config_entry_id` when there is more than one board.
 
 ### Delete a player profile: `autodarts.delete_player`
 

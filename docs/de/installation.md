@@ -28,9 +28,11 @@ Neue Versionen zeigt HACS als Update unter **Einstellungen → Updates** an, sam
 
 ### Manuell
 
-1. Lade die neueste Version von [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases) herunter.
-2. Kopiere den Ordner `custom_components/autodarts` in den Ordner `custom_components` deiner Home-Assistant-Konfiguration. Danach gibt es `config/custom_components/autodarts/manifest.json`.
+1. Lade `autodarts.zip` der neuesten Version von [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases) herunter. Die Datei enthält die Dateien der Integration ohne umgebenden Ordner.
+2. Lege in deiner Home-Assistant-Konfiguration den Ordner `custom_components/autodarts` an und entpacke die Datei dort. Danach gibt es `config/custom_components/autodarts/manifest.json`.
 3. Starte Home Assistant neu.
+
+Der Release-Workflow signiert jedes Paket: `gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts` prüft mit der GitHub CLI, dass es aus diesem Repository gebaut wurde.
 
 ## Board hinzufügen
 
@@ -64,7 +66,7 @@ Die Board-ID liest die Integration selbst aus. Nicht erreichbare Adressen und Bo
 
 ### Nach der Einrichtung
 
-Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entitaeten.md) an. Die Karten findest du unter **Karte hinzufügen → Autodarts**; siehe [Dashboard-Karten](karten.md).
+Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entitaeten.md) an. Für ein Dashboard mit allem öffnest du **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**: Das [automatische Dashboard](karten.md#automatisches-dashboard) baut seine Ansichten aus deinen Boards. Auf einem eigenen Dashboard findest du die Karten unter **Karte hinzufügen → Autodarts**; siehe [Dashboard-Karten](karten.md).
 
 ## Autodarts-Cloud verknüpfen (optional)
 

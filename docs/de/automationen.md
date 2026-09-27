@@ -234,7 +234,7 @@ Die Texte des Übungs-Callers sind Vorlagen mit diesen Variablen:
 | `remaining` | Der Rest |
 | `checkout` | Der Weg, wenn ein Checkout möglich ist, etwa `T20 T20 BULL`; bei *Leg won* die ausgecheckten Punkte, etwa `121` |
 | `darts`, `average` | Darts und 3-Dart-Average des Legs, bei *Leg won* |
-| `points` | Punkte bei den Cricket- und Partyspielen; Schläge beim Golf, Runs beim Baseball |
+| `points` | Punkte bei den Cricket- und Partyspielen; Schläge beim Golf, Runs beim Baseball. Killer zählt keine Punkte: Seine Ereignisse bringen die `lives` des Spielers mit und ob er `killer` ist, etwa `trigger.to_state.attributes.lives` |
 | `target` | Das nächste Ziel eines Partyspiels, etwa `20`, `D` oder `D16`; das Loch beim Golf und das Inning beim Baseball |
 | `leave`, `setup` | Wo kein Checkout möglich ist: der Rest, den ein [Stellwurf](entitaeten.md#stellwürfe) stellt, etwa `32`, und seine Darts, etwa `T20 T20 S17`; sonst leer |
 | `hit` | Das Feld des siegreichen Darts beim Ausbullen, bei *Bull-off won*: `BULL`, `25` oder etwa `S20` |
@@ -824,4 +824,4 @@ Ab Version 1.0 meldet der Sensor **Erkennungsstatus** übersetzbare Zustände wi
 | `Calibrating` | `calibrating` |
 | `Error` | `error` |
 
-Die Oberfläche zeigt diese Zustände übersetzt an. Der Sensor *Letztes Ereignis* liefert weiterhin den Rohtext.
+Die Oberfläche zeigt diese Zustände übersetzt an. Der Sensor *Letztes Ereignis* liefert weiterhin den Rohtext. Er ist jetzt ein Diagnose-Sensor und startet wie *CPU-Auslastung* auf einem Board, das mit Version 1.6.0 oder neuer eingerichtet wurde, deaktiviert: Aktiviere ihn auf der Geräteseite, bevor eine Automation ihn nutzt. Früher eingerichtete Boards behalten beide Entitäten, wie sie sind.

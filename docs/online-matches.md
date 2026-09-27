@@ -29,7 +29,7 @@ To add an effect by hand, give it one trigger, the type **URL** and the address 
 | --- | --- | --- |
 | `gameon`, `bot_throw` | `online_game_on` | Tools for Autodarts sends `gameon` at the start of every turn and after every moment without an effect of its own: a good moment to return to your normal light. |
 | `busted` | `online_busted` | A bust. |
-| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | A won leg, with the `segment` of the winning dart or the `name` of the player when the trigger names them. |
+| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | A won leg, with the `segment` of the winning dart or the `name` of the player when the trigger names them. The name arrives in lower case: `gameshot_Lea` gives `lea`. |
 | `matchshot`, `matchshot+bull`, `matchshot_<name>` | `online_match_shot` | A won match, with the same details. |
 | `0` to `180` | `online_visit` | The `score` of a visit. |
 | `range_100_140` or `100-140` | `online_visit` | A visit in the range, with `score_min` and `score_max`. |

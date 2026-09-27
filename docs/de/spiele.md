@@ -83,7 +83,7 @@ Ein falsch erkannter Dart, ein übersehener Dart oder die Aufnahmen eines Spiele
 - **Spieler:** Stelle *Übungsspiel Spielerzahl* auf 2, 3 oder 4 oder wähle die Spieler in der Spielauswahl. Nach jeder Aufnahme wirft der nächste Spieler; auch nach dem Überwerfen ist der Nächste dran.
 - **Legs und Sätze:** Wer zuerst *Übungsspiel Legs pro Satz* Legs gewinnt, holt den Satz; es gibt keinen Tie-Break und keine zwei Legs Vorsprung. Wer zuerst *Übungsspiel Sätze zum Sieg* Sätze holt, gewinnt das Match. Mit einem Satz zum Sieg gewinnt einfach, wer zuerst so viele Legs holt. Mit einem Spieler zählen die Legs nur hoch.
 - **Anwurf:** Wie bei den Sätzen der PDC wechselt der Anwurf innerhalb eines Satzes jedes Leg zum nächsten Spieler, und jeder neue Satz beginnt mit dem Spieler nach dem, der den vorigen Satz begonnen hat. Bei zwei Spielern beginnt Spieler 1 die Sätze 1, 3 und 5 und Spieler 2 die Sätze 2 und 4. Das erste Leg eines Matches beginnt Spieler 1 oder wer das [Ausbullen](#ausbullen) gewinnt.
-- **Ergebnis:** Das Ergebnis bleibt auf den Karten stehen, bis der nächste Dart ein neues Match beginnt. Der Sieger behält die Legs des entscheidenden Satzes, ein Match auf drei Legs endet also 3:2 auf der Anzeigetafel. `match_won`, der Match-Verlauf und die [Spielerprofile](statistik.md#spielerprofile) behalten Legs und Sätze aller Spieler; `match_legs` zählt die Legs des ganzen Matches.
+- **Ergebnis:** Das Ergebnis bleibt auf den Karten stehen, bis der nächste Dart ein neues Match beginnt. Der Sieger behält die Legs des entscheidenden Satzes, ein Match auf drei gewonnene Legs endet also 3:2 auf der Anzeigetafel. `match_won`, der Match-Verlauf und die [Spielerprofile](statistik.md#spielerprofile) behalten Legs und Sätze aller Spieler; `match_legs` zählt die Legs des ganzen Matches.
 - **Averages:** Average und Marks pro Runde jedes Spielers gelten für das ganze Match.
 
 ## Match-Zusammenfassung
@@ -142,7 +142,7 @@ Niemand zum Mitspielen? X01 und die Cricket-Spiele lassen sich gegen den Bot spi
 - **Wie er spielt:** wie ein Spieler: auf die Triple 20 zum Punkten, entlang des Checkout-Wegs zum Checken und auf einen [Stellwurf](#x01), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Mit Double-In eröffnet er mit einem Double, das gewinnt oder für seine Darts einen checkbaren Rest lässt, sonst mit der Double 20 oder, wo die Double 20 überwerfen würde, mit einem kleineren Double. Ohne Double-Out und ohne Checkout nimmt er das größte Feld, das nicht überwirft. Er zielt immer auf die üblichen Checkout-Wege, auch mit *Übungsspiel persönliche Checkout-Wege*, und die Karten zeigen diese Wege in seinem Zug. Seine Darts streuen so stark wie die eines Spielers seiner Stärke. [Wie der Bot spielt](funktionsweise.md#bot).
 - **Was zählt:** Die Darts des Bots zählen für niemandes Statistik, Bestleistungen oder Erfolge; das Ergebnis des Matches zählt in deinem Spielerprofil. Partyspiele, Trainingsspiele und Turniere laufen ohne Bot; nach einem Turnier kommt der Bot mit den übrigen Einstellungen des Übungsspiels zurück.
 
-<img src="../images/de/scoreboard-bot.png" alt="Anzeigetafel eines 301-Matches gegen den Bot: Alex hat noch 169, und statt eines Checkouts zeigt die Karte T20 T20 S17 Rest 32; die Kachel des Bots heißt Bot Stärke 80" width="760">
+<img src="../images/de/scoreboard-bot.png" alt="Anzeigetafel eines 301-Matches gegen den Bot: Alex spielt mit 169 Startpunkten und hat noch 169, und statt eines Checkouts zeigt die Karte T20 T20 S17 Rest 32; die Kachel des Bots heißt Bot Stärke 80" width="760">
 
 ## Turniere
 
@@ -178,7 +178,7 @@ Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Taste
 
 - **Spieler:** drei bis acht Spieler mit je einem Namen, höchstens acht auch in *Turnierspieler*. Ein Name ist unabhängig von Groß- und Kleinschreibung derselbe Spieler, wie bei den [Spielerprofilen](entitaeten.md#spielerprofile). Einen Spieler des laufenden Turniers kannst du nicht löschen; ein gelöschter Spieler verschwindet aus der Liste für das nächste Turnier.
 - **Auslosung:** die Reihenfolge der Namen oder mit *Turnier zufällige Auslosung* oder einem `seed` eine zufällige Reihenfolge. Derselbe Startwert lost immer dieselbe Reihenfolge aus; eine zufällige Auslosung ohne Startwert wählt einen und zeigt ihn im Attribut `seed` von *Turnier*.
-- **Jeder gegen jeden:** Alle spielen einmal gegeneinander, in Runden nach dem Rundenturnier-Verfahren: drei oder vier Spieler spielen 3 Runden, fünf oder sechs 5, sieben oder acht 7. Bei einer ungeraden Zahl setzt in jeder Runde ein Spieler aus. Ein Spieler des letzten Matches einer Runde eröffnet die nächste Runde nur, wenn kein anderes Match es kann, und den Anwurf eines Matches bekommt der Spieler, der ihn seltener hatte.
+- **Jeder gegen jeden:** Alle spielen einmal gegeneinander, in Runden nach dem Rutschsystem (Kreismethode): drei oder vier Spieler spielen 3 Runden, fünf oder sechs 5, sieben oder acht 7. Bei einer ungeraden Zahl setzt in jeder Runde ein Spieler aus. Ein Spieler des letzten Matches einer Runde eröffnet die nächste Runde nur, wenn kein anderes Match es kann, und den Anwurf eines Matches bekommt der Spieler, der ihn seltener hatte.
 - **Punkte:** Ein gewonnenes Match bringt 2 Punkte wie in der Premier League, ein verlorenes keine. Ein Match kann nicht unentschieden enden.
 - **Bei Punktgleichheit** entscheiden nacheinander
   1. die Punkte aus den Matches der punktgleichen Spieler untereinander,
@@ -202,7 +202,7 @@ Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Taste
 - **Herunterzählen:** Der Rest beginnt bei 101, 301, 501, 701, 901 oder 1001, und jeder Dart zieht seine Punkte ab.
 - **Double-Out** (standardmäßig an): Der letzte Dart eines Legs muss ein Double oder das Bullseye treffen. Ohne Double-Out checkt jedes Feld.
 - **Double-In** (standardmäßig aus): Die Zählung eines Spielers beginnt mit dem ersten Double oder Bullseye des Legs; Darts davor zählen nichts. Die Karten fordern ein Double und umranden den Doppelring. Ein Überwerfen nimmt das öffnende Double zurück.
-- **Double-Out ändern:** Ein Leg behält die Regeln, mit denen es begonnen hat. Schaltest du Double-Out während eines Legs ein oder aus, sobald ein Dart gezählt hat, gilt das ab dem nächsten Leg; vor dem ersten Dart eines Legs, zwischen zwei Matches und in den anderen Spielen gilt es sofort. So wird kein Leg unlösbar: Wer in einem Leg ohne Double-Out auf 1 steht, kann es mit einer Single 1 noch beenden, wenn Double-Out eingeschaltet wird.
+- **Double-Out ändern:** Ein Leg behält die Regeln, mit denen es begonnen hat. Schaltest du Double-Out während eines Legs ein oder aus, sobald ein Dart gezählt hat, gilt das ab dem nächsten Leg; vor dem ersten Dart eines Legs, zwischen zwei Matches und in den anderen Spielen gilt es sofort. So wird kein Leg unlösbar: Wer in einem Leg ohne Double-Out auf 1 steht, kann es mit einem Single 1 noch beenden, wenn Double-Out eingeschaltet wird.
 - **Überwerfen:** Ein Dart, der unter null geht, mit Double-Out 1 übrig lässt oder 0 ohne Double erreicht, überwirft die Aufnahme. Der Rest springt auf den Beginn der Aufnahme zurück. Der überwerfende Dart zählt als geworfen, spätere Darts der Aufnahme nicht.
 - **Game shot:** Ein Dart, der genau 0 erreicht, gewinnt das Leg. `leg_won` wird sofort gemeldet; verbucht wird das Leg beim Ziehen der Darts, eine Korrektur davor zählt also noch. Darts nach dem Siegdart zählen nicht.
 - **Checkout-Weg:** Sobald ein Rest checkbar ist, zeigen die Karten den Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170, und umranden das nächste Feld auf der Scheibe. „Kein Checkout möglich“ erscheint nur bei einem Rest, den eine Aufnahme checken könnte: bis 170 mit Double-Out, bis 180 ohne. Der Weg folgt den Checkout-Tabellen der Profis; mit *Übungsspiel persönliche Checkout-Wege* bevorzugt er deine stärksten Doubles: die mit mindestens 10 Darts, die du mindestens so oft triffst wie alle deine Doubles zusammen, nie eines, das du noch nie getroffen hast. Auf dem Weg zum Double zählt das Single-Bull als leichtes Single, wie in `25 D18` für 61 aus den Tabellen; ein Stellwurf für die nächste Aufnahme meidet es, weil ein Fehlwurf daneben keinen checkbaren Rest lässt. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
@@ -213,7 +213,7 @@ Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Taste
 
 ## Cricket-Spiele
 
-<img src="../images/de/cricket.webp" alt="Animation: Cricket zwischen Alex und Sam. Alex schließt die 20, punktet 60 und trifft eine 19; nach der Entnahme schließt Sam die 19, punktet 57 und trifft eine Double 18" width="620">
+<img src="../images/de/cricket.webp" alt="Animation: Cricket zwischen Alex und Sam. Alex schließt die 20, punktet 60 und trifft eine 19; nach der Entnahme schließt Sam die 19, punktet 57 und trifft ein Double 18" width="620">
 
 Live-Karte und Anzeigetafel zeigen eine Kreidetafel mit den Marks jedes Spielers oder Teams (`/`, `X`, `Ⓧ`), den Punkten und den Marks pro Runde (MPR). Zahlen, die alle geschlossen haben, werden abgedunkelt, und die Scheibe umrandet die nächste offene Zahl, von 20 abwärts bis zum Bull. Hast du alles geschlossen, reichen die Punkte aber noch nicht zum Sieg, umrandet sie die höchste Zahl, die ein Gegner noch offen hat, zum Punkten; bei Cut-Throat eine, die ein Spieler mit den wenigsten Punkten offen hat. Screenreader lesen die Marks als Wörter vor.
 
@@ -328,7 +328,7 @@ Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen 
 
 ### Catch 40
 
-<img src="../images/de/scoreboard-catch-40.png" alt="Catch 40 auf der Anzeigetafel: In der zweiten Runde lässt eine Single 12 von 62 noch 50 übrig, der Weg ist das Bull, und der erste Checkout brachte 3 Punkte" width="760">
+<img src="../images/de/scoreboard-catch-40.png" alt="Catch 40 auf der Anzeigetafel: In der zweiten Runde lässt ein Single 12 von 62 noch 50 übrig, der Weg ist das Bull, und der erste Checkout brachte 3 Punkte" width="760">
 
 - Checke 61, 62 und so weiter bis 100, jeden Rest auf einem Double in höchstens zwei Aufnahmen, also sechs Darts.
 - Ein Checkout mit zwei Darts bringt 3 Punkte, mit drei Darts 2 und mit vier bis sechs Darts 1. Die 99 lässt sich mit zwei Darts nicht checken, dort bringen deshalb drei Darts 3 Punkte.

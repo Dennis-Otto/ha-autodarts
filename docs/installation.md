@@ -28,9 +28,11 @@ HACS shows new versions as an update in **Settings → Updates**. The update dia
 
 ### Manually
 
-1. Download the latest release from [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases).
-2. Copy the folder `custom_components/autodarts` into the `custom_components` folder of your Home Assistant configuration. The result is `config/custom_components/autodarts/manifest.json`.
+1. Download `autodarts.zip` of the latest release from [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases). It holds the files of the integration, without a folder around them.
+2. Create the folder `custom_components/autodarts` in your Home Assistant configuration and unpack the file there. The result is `config/custom_components/autodarts/manifest.json`.
 3. Restart Home Assistant.
+
+The release workflow signs every package: `gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts` checks with the GitHub CLI that it was built from this repository, see [signed release packages](releases.md#signed-release-packages).
 
 ## Add your board
 
@@ -64,7 +66,7 @@ The integration reads the board ID from the Board Manager. It rejects addresses 
 
 ### After setup
 
-Home Assistant creates one device, named after your board, with all [entities](entities.md). On a new dashboard the cards appear under **Add card → Autodarts**; see the [card guide](cards.md).
+Home Assistant creates one device, named after your board, with all [entities](entities.md). For a dashboard with everything, go to **Settings → Dashboards → Add dashboard → Autodarts**: the [automatic dashboard](cards.md#automatic-dashboard) builds its views from your boards. On a dashboard of your own, the cards appear under **Add card → Autodarts**; see the [card guide](cards.md).
 
 ## Link the Autodarts cloud (optional)
 

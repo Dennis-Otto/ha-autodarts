@@ -33,6 +33,13 @@ HTML_LINK = re.compile(r"""\b(?:href|src)=["']([^"']+)["']""")
 SRCSET = re.compile(r"""\bsrcset=["']([^"']+)["']""")
 HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$", re.MULTILINE)
 HTML_ANCHOR = re.compile(r"""<a\s+(?:[^>]*\s)?(?:id|name)=["']([^"']+)["']""")
+# A file or folder of the repository named in the text, such as `tests/test_api.py`.
+REPOSITORY_PATH = re.compile(
+    r"`((?:tests|custom_components|blueprints|scripts|\.github|\.devcontainer|docs)"
+    r"/[\w./-]*)`"
+)
+# Folders the tests create while they run.
+GENERATED = ("tests/e2e/artifacts/",)
 
 
 def prose(text: str) -> str:
@@ -104,6 +111,17 @@ def test_links_lead_to_files_and_headings(document):
         elif anchor and file.suffix == ".md" and anchor not in anchors(file):
             broken.append(f"{target}: no heading #{anchor}")
     assert not broken, "\n".join(broken)
+
+
+def test_the_repository_paths_in_the_text_exist():
+    """Evidence such as the tests named in the security guide can be found."""
+    missing = [
+        f"{document.relative_to(ROOT).as_posix()}: {path}"
+        for document in DOCUMENTS
+        for path in REPOSITORY_PATH.findall(FENCE.sub("", document.read_text("utf-8")))
+        if path not in GENERATED and not (ROOT / path).exists()
+    ]
+    assert not missing, "\n".join(missing)
 
 
 def test_the_readme_works_in_hacs():

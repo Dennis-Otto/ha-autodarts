@@ -30,6 +30,11 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 - **Cards:** Home Assistant's own editor forms with color pickers, an editor for the automatic dashboard, personal bests on the training card, numbers, dates and times in the formats of your profile, a caller that calls only what counts, and better keyboard and screen reader support.
 - **Connection:** visits and entities survive short connection faults; realtime reconnects with a back-off; a board that is off at the start no longer blocks the setup; repairs for a board that refuses access, answers in an unknown format or moved to a new address.
 - **Entities:** clearer names without a repeated "Board", diagnostic and configuration categories where they belong, and complete diagnostics without player names.
+- **Safe statistics:** a board whose stored training cannot be read right now, or was saved by a newer version, waits instead of starting empty, so its data is never overwritten. Every leg and visit counts once in the statistics, undo also rewinds the progress, the weekly report and the calendar, and in a team match only the player who checks out gets the checkout.
+- **Rules:** Golf counts a double as a hole in one and a triple as two strokes; in the checkout training, the 121 checkout and Catch 40 a bust voids only its visit, the 121 checkout plays every score up to 170, and Catch 40 scores 3 points for 99 in three darts; Cut-Throat Cricket checks the win after every dart; a tournament hands the practice game its players and settings back when it ends; the bot plays Cricket at the marks per round of its level.
+- **Scoreboard:** fits every screen, with the pad and the keypad beside the scores on a full-height screen in landscape; starting a game in the lobby also starts the detection; the automatic dashboard sets the scoreboard's caller, keypad, corrections, lobby games and idle panels without taking control; the training card's chart follows the history live, and an undone visit leaves it.
+- **Quieter entities:** *Last event* and *CPU usage*, which change all the time, start disabled on boards set up from now on.
+- **Blueprints:** the visit score and the light show leave the bot out unless you turn on *Also for the bot*, and the callers and the light show name it "Bot" like the scoreboard; the highlight photo hands the saved photo to your notification as `photo_url`; the light show keeps up to nine moments waiting behind an effect, reacts to the takeout only when you ask, and never pauses the detection in the middle of a visit; player names never become templates.
 - Brand icons and logos in the sizes of the Home Assistant brand specification.
 
 ### Documentation
@@ -85,7 +90,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 ## 1.0.1
 
 - Setup no longer offers the cloud link while Autodarts has not issued its client ID; old cloud entries keep working locally.
-- Card colours accept valid CSS colours only.
+- Card colors accept valid CSS colors only.
 
 ## 1.0.0
 

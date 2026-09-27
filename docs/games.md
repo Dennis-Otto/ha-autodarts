@@ -142,7 +142,7 @@ Nobody to play with? X01 and the Cricket games can be played against the bot, a 
 - **How it plays:** like a player: at the triple 20 to score, along the checkout route to finish and at a [setup](#x01) where no route exists; in Cricket it closes the numbers and scores while it is behind. With double in, it opens with a double that wins or leaves a finish for its darts, otherwise with the double 20, or with a smaller double where the double 20 would bust. Without double out and without a finish, it takes the biggest bed that does not bust. It always aims at the usual checkout routes, also with *Practice personal checkout routes*, and the cards show those routes for its turn. Its darts scatter as much as those of a player of its level. [How the bot plays](how-it-works.md#bot).
 - **What counts:** the bot's darts count for nobody's statistics, personal bests or achievements; the result of the match counts in your player profile. Party games, training games and tournaments are played without the bot; after a tournament, the bot comes back with the other practice settings.
 
-<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
+<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex, who plays from a start score of 169, has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
 
 ## Tournaments
 

@@ -29,7 +29,7 @@ Für einen Effekt von Hand gibst du ihm einen Trigger, den Typ **URL** und die A
 | --- | --- | --- |
 | `gameon`, `bot_throw` | `online_game_on` | Tools for Autodarts sendet `gameon` zu Beginn jeder Aufnahme und nach jedem Moment ohne eigenen Effekt: ein guter Moment für dein normales Licht. |
 | `busted` | `online_busted` | Überworfen. |
-| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | Ein gewonnenes Leg, mit dem `segment` des Siegerdarts oder dem `name` des Spielers, wenn der Trigger sie nennt. |
+| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | Ein gewonnenes Leg, mit dem `segment` des Siegerdarts oder dem `name` des Spielers, wenn der Trigger sie nennt. Der Name kommt kleingeschrieben an: Aus `gameshot_Lea` wird `lea`. |
 | `matchshot`, `matchshot+bull`, `matchshot_<name>` | `online_match_shot` | Ein gewonnenes Match, mit denselben Details. |
 | `0` bis `180` | `online_visit` | Die Punkte (`score`) einer Aufnahme. |
 | `range_100_140` oder `100-140` | `online_visit` | Eine Aufnahme in dem Bereich, mit `score_min` und `score_max`. |
@@ -53,7 +53,7 @@ alias: Darts - Turniermatch bereit
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_events
+      entity_id: event.autodarts_board_ereignisse
     options:
       event_type:
         - online_tournament_ready

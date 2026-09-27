@@ -63,7 +63,7 @@
       <h3>Analyze</h3>
       <ul>
         <li>3-dart average, first 9 average, checkout and doubles rate, and a heatmap of every bed or of the real dart positions, with the grouping in millimeters</li>
-        <li>Player profiles with badges in bronze, silver and gold, weekly trends, head-to-head records, the match history and a leaderboard</li>
+        <li>Player profiles with badges in bronze, silver, gold and platinum, weekly trends, head-to-head records, the match history and a leaderboard</li>
         <li>The hit rate of every double, a weekly report, a training calendar and exports to CSV or JSON</li>
         <li>Long-term statistics for graphs over weeks and months</li>
       </ul>
@@ -102,7 +102,7 @@
       <h3>Local and private</h3>
       <ul>
         <li>Found automatically with Board Manager 2; Board Manager 1 works too</li>
-        <li>Nothing leaves your network; board secrets are never stored</li>
+        <li>Nothing leaves your network unless you use the board search, the cloud link or the online bridge; board secrets are never stored</li>
         <li>Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish (<a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md#languages">languages</a>)</li>
         <li>Every rule of the Home Assistant quality scale up to Platinum, 100 % test coverage</li>
       </ul>

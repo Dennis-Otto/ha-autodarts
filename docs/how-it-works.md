@@ -77,7 +77,7 @@ Training sessions are computed in Home Assistant from what the board detects. Th
 - **Statistics.** The totals are sensors of the state class *total* whose `last_reset` is the start of the session. Home Assistant's long-term statistics sum them per session, and a correction or an undone visit may lower them.
 - **Storage.** The session, its settings, the last 20 sessions and the last 10 visits are saved in Home Assistant's `.storage` folder at most every five seconds, at once when a session starts or ends, and on shutdown. They are deleted together with the integration.
 
-Sessions do not know players or games. A running session counts every detected dart, whether you play X01, Cricket or just practise.
+Sessions do not know players or games. A running session counts every detected dart, whether you play X01, Cricket or just practice.
 
 ## Practice game
 
