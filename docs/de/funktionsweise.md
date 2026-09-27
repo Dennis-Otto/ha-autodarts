@@ -166,6 +166,26 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 - **Höchster Checkout und wenigste Darts:** Die Bestleistungen `highest_checkout` und `fewest_darts_*` und dieselben Werte der Spielerprofile kommen nur aus gewonnenen X01-Legs mit Double-Out, mit oder ohne Double-In. Ein Leg ohne Double-Out ist leichter zu beenden und setzt keine Bestleistung; Double-In macht ein Leg nur schwerer.
 - **Darts aufs Double:** Mit Double-Out zählt ein Dart als Wurf aufs Double, wenn ein Double den Rest checken könnte: 2 bis 40 bei geraden Zahlen oder 50. Bei 50 zählt also jeder Dart als Versuch aufs Bullseye, auch wenn ein Spieler stattdessen mit einer Single 10 stellt.
 
+## Wochenbericht
+
+Der Wochenbericht zählt, was das Board erkennt, wie bei den Darts des Tages, und folgt diesen Regeln:
+
+- **Jeder Dart zählt.** Darts zählen mit oder ohne Session, im Spiel oder ohne. Der 3-Dart-Average umfasst jede abgeschlossene Aufnahme der Woche, auch zusammengelegte Aufnahmen nach einer verpassten Entnahme; höchste Aufnahme und 180er zählen Aufnahmen mit bis zu drei Darts.
+- **Trainingszeit** ist die Zeit von einem Dart zum nächsten. Eine Pause von mehr als fünf Minuten zwischen zwei Darts zählt nicht, eine Pause zwischen zwei Sessions ist also kein Training.
+- **Sessions** zählen, wenn sie enden: Eine Session über das Wochenende hinaus zählt für die nächste Woche.
+- **Checkout-Quote** folgt den X01-Übungslegs, die in der Woche verbucht wurden: ausgecheckte Legs pro Dart aufs Double, wie bei *Übungsspiel Checkout-Quote*.
+- **Die Woche** reicht vom Berichtstag und der Uhrzeit bis zum selben Tag und derselben Uhrzeit eine Woche später, in der Zeitzone von Home Assistant. Eine Woche mit Zeitumstellung ist eine Stunde länger oder kürzer; eine Uhrzeit, die die Uhr überspringt, zählt in der Zeit vor der Umstellung.
+- **Ein neuer Berichtstag oder eine neue Uhrzeit** beendet die laufende Woche bei ihrem nächsten Eintreten; diese Woche kann also kürzer oder länger sein.
+- **Verpasste Berichte.** Ein Bericht, der fällig wurde, während Home Assistant aus war, folgt beim nächsten Start; Wochen dazwischen hatten keine Darts und entfallen.
+- **Speicherung.** Die laufende Woche und der letzte Bericht liegen in einem eigenen Speicher im Ordner `.storage` von Home Assistant. Sie werden höchstens alle zehn Sekunden gespeichert, sofort am Ende einer Woche und beim Beenden von Home Assistant, und zusammen mit der Integration gelöscht.
+
+## Trainingskalender und Exporte
+
+- **Journal.** Der Trainingskalender behält jede beendete Session und jedes Match mehrerer Spieler 365 Tage lang, höchstens je 3.000, in einem eigenen Speicher in `.storage`. Er wird gespeichert, wenn eine Session oder ein Match endet, und mit der Integration gelöscht. Beim ersten Start übernimmt er die Sessions und Matches, die die Integration schon gespeichert hat.
+- **Erster Dart.** Ein Match beginnt mit dem ersten Dart, der erkannt wird, während ein Match mehrerer Spieler gewählt ist. Wird das Spiel ausgeschaltet oder auf ein Trainingsspiel oder ein anderes Spiel umgestellt, vergisst der Kalender diesen Dart.
+- **Exporte** schreibt nur die Aktion `autodarts.export`, in einen Ordner im Konfigurationsordner. Der Ordner wird vor dem Schreiben aufgelöst, sodass weder `..`, ein absoluter Pfad noch ein symbolischer Link nach draußen führt; versteckte Ordner wie `.storage` werden abgelehnt. Jeder Export bekommt einen neuen Namen mit einem zufälligen Teil und ersetzt nie eine Datei. In CSV bekommt ein Text, der wie eine Tabellenformel beginnt (`=`, `+`, `-`, `@`), einen Apostroph vorangestellt, damit ein Spielername nicht als Formel läuft.
+- **Downloads.** Neben `/local/` können angemeldete Benutzer die seit dem Start von Home Assistant geschriebenen Exporte unter `/api/autodarts/export/<Name>` herunterladen; die Spielerkarte nutzt diese Adresse mit einem signierten Link, der nach einer Minute abläuft.
+
 ## Kamerazustand
 
 Eine Kamera gilt als gestört, wenn sie bei laufender Erkennung **15 Sekunden** lang keine Bilder liefert. Gestoppte Erkennung, Kalibrierung und Kamera-Standby sind keine Störung. Der gemeinsame Sensor *Kamerastörung* ist an, sobald eine Kamera gestört ist. Mit Echtzeitereignissen erscheint der Alarm, sobald die Bildraten ihn zeigen.
@@ -180,6 +200,7 @@ Die Kamera-Entitäten geben den Livestream von Board Manager 2 an höchstens zwe
 - **Die optionale Online-Brücke** empfängt nur: Die Browser-Erweiterung Tools for Autodarts ruft Home Assistant mit den Momenten eines Online-Matches auf, standardmäßig nur aus deinem Heimnetz. Sie sendet nirgendwohin. [Online-Matches](automationen.md#online-matches-experimentell).
 - **Board-Geheimnisse** wie der API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade und ähnliche Konfiguration werden direkt beim Lesen verworfen. Sie werden nie gespeichert, protokolliert oder angezeigt.
 - **Diagnosedaten** schwärzen Board-ID, Adresse, Client-ID, Token und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
+- **Exporte** enthalten Spielernamen. Die Aktion schreibt sie nur auf Anforderung; Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung aus, siehe [Exporte](#trainingskalender-und-exporte).
 
 ## Sicherheit
 

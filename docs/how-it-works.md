@@ -166,6 +166,26 @@ The practice game follows the darts of the current visit, including corrections,
 - **Highest checkout and fewest darts:** the personal bests `highest_checkout` and `fewest_darts_*` and the same values of the player profiles only come from won X01 legs with double out, with or without double in. A leg without double out finishes more easily and sets no record; double in only makes a leg harder.
 - **Darts at a double:** with double out, a dart counts as thrown at a double when one double could finish the score: 2 to 40 when even, or 50. So every dart at 50 counts as an attempt at the bullseye, also when a player sets up with a single 10 instead.
 
+## Weekly report
+
+The weekly report counts what the board detects, like the darts of the day, and follows these rules:
+
+- **Every dart counts.** Darts count in a session or not, in a game or not. The 3-dart average covers every completed visit of the week, also merged visits after a missed takeout; the highest visit and the 180s count visits of up to three darts.
+- **Training time** is the time from one dart to the next. A pause of more than five minutes between two darts does not count, so a break between two sessions is not training.
+- **Sessions** count when they end: a session that runs over the end of the week counts for the next one.
+- **Checkout rate** follows the X01 practice legs booked in the week: legs checked out per dart thrown at a double, like *Practice checkout rate*.
+- **The week** runs from the report day and time to the same day and time a week later, in Home Assistant's time zone. A week with a change to or from daylight saving time is an hour longer or shorter; a report time the clock skips counts in the time before the change.
+- **A new report day or time** ends the running week at its next occurrence, so that week can be shorter or longer.
+- **Missed reports.** A report that fell due while Home Assistant was stopped follows at the next start; weeks in between had no darts and are skipped.
+- **Storage.** The running week and the last report are saved in their own store in Home Assistant's `.storage` folder, at most every ten seconds, at once when a week ends and on shutdown. They are deleted together with the integration.
+
+## Training calendar and exports
+
+- **Journal.** The training calendar keeps every finished session and every match of several players for 365 days, at most 3,000 of each, in its own store in `.storage`. It is saved when a session or match ends and deleted together with the integration. At the first start it takes over the sessions and matches the integration already stored.
+- **First dart.** A match starts with the first dart detected while a match of several players is selected. Switching the game off, to a training game or to another game forgets that dart.
+- **Exports** are written by the action `autodarts.export` only, into a folder inside the configuration folder. The folder is resolved before writing, so neither `..`, an absolute path nor a symbolic link can lead outside, and hidden folders such as `.storage` are refused. Every export gets a new name with a random part and never replaces a file. In CSV, a text that starts like a spreadsheet formula (`=`, `+`, `-`, `@`) gets a leading apostrophe, so a player name cannot run as a formula.
+- **Downloads.** Besides `/local/`, logged-in users can download the exports written since Home Assistant started from `/api/autodarts/export/<name>`; the players card uses this address with a signed link that expires after a minute.
+
 ## Camera health
 
 A camera counts as failed when it delivers no frames for **15 seconds** while the detection runs. Stopped detection, calibration and camera standby are not failures. The combined *Camera problem* sensor is on when any camera has failed. With realtime events, the alarm appears as soon as the frame rates show it.
@@ -180,6 +200,7 @@ The camera entities relay the live stream of Board Manager 2 to at most two view
 - **The optional online bridge** only receives: the browser extension Tools for Autodarts calls Home Assistant with the moments of an online match, by default only from your home network. It sends nothing anywhere. [Online matches](automations.md#online-matches-experimental).
 - **Board secrets** are dropped as soon as they are read and are never stored, logged or shown: the board API key, TLS keys, camera device paths and similar configuration.
 - **Diagnostics** redact the board ID, host, client ID, tokens and player names. The connection history in them holds counts, kinds of errors and durations, but no addresses or error messages.
+- **Exports** contain player names. The action writes them only on request; files in `www` are served at `/local/` without a login, see [exports](#training-calendar-and-exports).
 
 ## Security
 

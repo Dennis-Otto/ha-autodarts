@@ -236,7 +236,7 @@ caller: true
 
 ## Players card
 
-`custom:autodarts-players-card` shows the [player profiles](entities.md#player-profiles): a tile for every named player with legs and matches won, 3-dart average, first 9, checkout rate, marks per round and the best marks per round of a Cricket leg, highest visit and checkout and the fewest darts per start score. Below, the head-to-head records with a balance bar and the recent matches with their winner.
+`custom:autodarts-players-card` shows the [player profiles](entities.md#player-profiles): a tile for every named player with legs and matches won, 3-dart average, first 9, checkout rate, marks per round and the best marks per round of a Cricket leg, highest visit and checkout and the fewest darts per start score. Below, the head-to-head records with a balance bar and the recent matches with their winner. On request, an *Export* button downloads everything as a file.
 
 <img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
 
@@ -248,6 +248,8 @@ caller: true
 | `title` | text | *Players* | Card title |
 | `show_head_to_head` | boolean | `true` | Show the head-to-head records |
 | `show_matches` | boolean | `true` | Show the recent matches |
+| `export` | boolean | `false` | Show an *Export* button. It exports the sessions, matches and profiles with [`autodarts.export`](entities.md#export-training-data-autodartsexport) to `www/autodarts` and downloads the file through Home Assistant with your login. Exports contain player names, and files in `www` need no login. |
+| `export_format` | `csv`, `json` | `csv` | Format of the export; CSV comes as a ZIP file with one table each |
 | `accent_color` | [color](#colors) | theme primary color | Labels and the balance bars |
 
 ## Automatic dashboard

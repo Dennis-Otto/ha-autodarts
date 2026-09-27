@@ -18,6 +18,7 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 | **Training report** | Sends a daily summary of darts, 3-dart average, highest visit and 180s, skipping days without darts. The `summary` variable has the sentence ready. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
 | **Training session routine** | When a [training session](entities.md#training-session) starts, runs your actions, turns on the detection and calibrates the cameras after a short wait; when it ends, turns off the detection and runs your actions with `reason`, `darts`, `average` and `duration_minutes`. The detection switch and the calibration button are optional. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
 | **Practice caller** | Calls the [practice game](entities.md#practice-game) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the bull-off. The messages are templates. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
+| **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Runs your actions with a picture from a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. The actions can use `image`, `message`, `score`, `checkout` and `who`. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal and a won bull-off, and optionally during the takeout and in [online matches](#online-matches-experimental). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
@@ -261,6 +262,34 @@ data:
 - **Pause the detection:** flashing light next to the board can make the cameras see darts that are not there. Turn on *Pause the detection during effects* and choose the *Detection* switch: the detection stops for the effects of the chosen moments and starts again afterwards, but only if it was running. When the detection stops, the visit on the board counts as finished, as after a takeout: the practice game books it and the next player is up.
 - **One after the other:** a moment that happens while an effect plays waits for it, and each effect restores the lights it found. At most two moments wait; the automation runs in queued mode, because a restarted effect would never restore the lights and parallel effects would mix on the same lights.
 - **Takeout and board clear** set a look of their own, for example a bright board light while you pull the darts and your normal light afterwards. They are not restored and don't pause the detection.
+
+
+### Weekly report on your phone
+
+Replace the *Notification actions* of the weekly report with a notification of the Home Assistant app:
+
+```yaml
+action: notify.mobile_app_your_phone
+data:
+  title: "{{ title }}"
+  message: "{{ message }}"
+```
+
+The ready-made `summary` reads, for example: *312 darts in 95 minutes at the board, 3 sessions. 3-dart average 54.2 (+2.1 on the week before). Best visit 140, 1 × 180. Checkout rate 31.2 %. 4 days in a row. 2 new personal bests.* Parts without a value, such as a week without 180s, are left out.
+
+<img src="images/en/weekly-report-notification.png" alt="The notification Your darts week in Home Assistant with the darts, sessions, 3-dart average, best visit and streak of the week" width="468">
+
+For a report in another language, write your own *Title* and *Message*. In German, in the YAML mode of the automation:
+
+```yaml
+use_blueprint:
+  path: autodarts/weekly_report.yaml
+  input:
+    board_events: event.autodarts_board_events
+    report_title: Deine Dartwoche
+    report_message: >-
+      {{ darts }} Darts{{ ' in ' ~ training_minutes ~ ' Minuten' if training_minutes else '' }}{{ ', 3-Dart-Average ' ~ (average | replace('.', ',')) ~ (' (' ~ ('+' if average_change > 0 else '') ~ (average_change | replace('.', ',')) ~ ')' if average_change is not none else '') if average is not none else '' }}{{ ', ' ~ scores_180 ~ ' × 180' if scores_180 else '' }}{{ ', ' ~ streak ~ (' Tag' if streak == 1 else ' Tage') ~ ' in Folge' if streak else '' }}.
+```
 
 ## Board events
 
@@ -523,6 +552,25 @@ actions:
           Daily goal reached: {{ event.darts }} darts, {{ event.streak }} days in a row.
         {% endif %}
 mode: queued
+```
+
+### Count the training sessions of the month
+
+The [training calendar](entities.md#training-calendar) answers questions about the past, for example in a script:
+
+```yaml
+sequence:
+  - action: calendar.get_events
+    target:
+      entity_id: calendar.autodarts_board_training_calendar
+    data:
+      start_date_time: "{{ now().replace(day=1, hour=0, minute=0, second=0) }}"
+      end_date_time: "{{ now() }}"
+    response_variable: calendar
+  - variables:
+      sessions: >-
+        {{ calendar['calendar.autodarts_board_training_calendar'].events
+           | selectattr('summary', 'match', 'Training') | list | count }}
 ```
 
 ### Start a game by voice

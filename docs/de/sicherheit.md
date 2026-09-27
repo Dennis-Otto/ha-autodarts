@@ -11,7 +11,8 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 | API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade | Konfiguration des Board Managers | Werden direkt beim Lesen verworfen; nie gespeichert, protokolliert, angezeigt oder in Diagnosedaten übernommen |
 | Autodarts-OAuth-Token (optionale Cloud-Verknüpfung) | Integrationseintrag in Home Assistant | Nur dort gespeichert, automatisch erneuert, nie protokolliert; das Passwort sieht die Integration nie |
 | Board-ID, Board-Adresse, Client-ID | Integrationseintrag in Home Assistant | In Diagnosedaten geschwärzt; der Verbindungsverlauf in den Diagnosedaten enthält Zähler, Fehlerarten und Dauern, nie Adressen oder Fehlermeldungen |
-| Trainingssession, Übungsspiele und Spielernamen | `.storage` von Home Assistant | Nur lokal; wird mit der Integration gelöscht; Spielernamen sind in Diagnosedaten geschwärzt |
+| Trainingssession, Übungsspiele, Spielernamen, Wochenbericht und Trainingskalender | `.storage` von Home Assistant | Nur lokal; wird mit der Integration gelöscht; Spielernamen sind in Diagnosedaten geschwärzt |
+| Exporte mit Spielernamen | Ein Ordner im Konfigurationsordner, standardmäßig `www/autodarts` | Nur auf Anforderung geschrieben; nie außerhalb des Konfigurationsordners; unerratbare Dateinamen |
 | Steuerung des Boards | Board-Manager-API | Aktionen nur auf Wunsch eines Nutzers oder einer Automation, genau einmal gesendet |
 | Adresse der Online-Brücke (optional) | Optionen des Integrationseintrags in Home Assistant | Ein zufälliges Geheimnis aus 64 Hexadezimalzeichen, nur in den Optionen angezeigt; von der Integration nie protokolliert und nie in Diagnosedaten; in den Optionen durch eine neue ersetzbar |
 
@@ -46,6 +47,8 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 | Jemand erfährt die Adresse der Online-Brücke und sendet falsche Momente | Standardmäßig aus; ohne Freigabe nur Aufrufe aus dem Heimnetz; ein Geheimnis aus 64 zufälligen Hexadezimalzeichen; nur bekannte Trigger, begrenzte Längen, höchstens 20 Aufrufe pro Sekunde; nur Ereignisse; eine neue Adresse in den Optionen | `tests/test_online.py` |
 | Viele Zuschauer überlasten den Board-PC mit Kamerastreams | Pro Kamera werden höchstens zwei Livestreams weitergegeben; weitere Zuschauer bekommen Standbilder | `tests/test_camera_stream.py` |
 | Fehlerhafte Board-Daten oder ein Fehler in einer Spielregel trennen die Verbindung | Fehler in Training und Spielen bleiben begrenzt und werden einmal protokolliert; schnell wechselnde Werte lösen keine Spiellogik aus; Lesevorgänge überschneiden sich nie | `tests/test_connection.py` |
+| Ein Export schreibt außerhalb des Konfigurationsordners oder überschreibt eine Datei | Der Ordner wird vor dem Schreiben aufgelöst, sodass `..`, absolute Pfade und symbolische Links nicht hinausführen, und versteckte Ordner werden abgelehnt; jeder Export ist eine neue Datei | `tests/test_reports_setup.py` |
+| Ein Spielername läuft in einer Tabellenkalkulation als Formel | CSV-Zellen, die wie eine Formel beginnen, bekommen einen Apostroph vorangestellt | `tests/test_reports_setup.py` |
 | Eine Aktion läuft doppelt, etwa Neustart oder Zurücksetzen | Aktionen werden genau einmal gesendet und nie automatisch wiederholt | `tests/test_local_api.py` |
 | Eine kompromittierte Abhängigkeit oder ein manipulierter Build | Abhängigkeiten per Hash, gepinnte Actions und Images, Dependabot, Dependency Review, CodeQL, Gitleaks, OpenSSF Scorecard | [Development](../development.md#continuous-integration) |
 | Ein manipuliertes Release | Release-Pakete tragen eine mit Sigstore signierte SLSA-Provenance | [Releases](../releases.md#signed-release-packages) |
@@ -60,6 +63,7 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 ## Verbleibende Risiken
 
 - Die lokale API des Board Managers hat keine Anmeldung. Jeder, der Port 3180 in deinem Netzwerk erreicht, kann das Board steuern, mit oder ohne diese Integration. Betreibe den Board-PC in einem vertrauenswürdigen Netzwerk.
+- Dateien im Ordner `www`, etwa Exporte, liefert Home Assistant unter `/local/` ohne Anmeldung an jeden aus, der Home Assistant erreicht und den Dateinamen kennt. Lösche Exporte, die du nicht mehr brauchst, oder exportiere in einen Ordner außerhalb von `www`.
 - Autodarts unterstützt die lokale API ab Board Manager 2 offiziell nicht mehr. Eine künftige Version kann sie ändern; die Integration erkennt die Generation und wird gegen beide getestet.
 - Die Integration spricht unverschlüsseltes HTTP mit dem Board. Meldet Board Manager 2 einen HTTPS-Port, nutzt sie den gemeldeten HTTP-Port; TLS zum Board wird nicht unterstützt.
 - Die Online-Brücke beruht darauf, dass ihre Adresse geheim bleibt. Wer sie kennt und Home Assistant erreicht, kann Online-Board-Ereignisse und die Automationen darauf auslösen, bis du eine neue Adresse erzeugst.

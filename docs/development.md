@@ -58,7 +58,7 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 
 ## Demo instance and browser test
 
-`tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session and a dashboard with all cards at <http://127.0.0.1:18124/autodarts-demo/board>. Login is not needed from the local network.
+`tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session, a week of sessions and matches in the training calendar, an automation from the weekly report blueprint and a dashboard with all cards at <http://127.0.0.1:18124/autodarts-demo/board>. Login is not needed from the local network.
 
 `tests/e2e/browser.sh` checks the cards in Chromium against the demo:
 
@@ -66,7 +66,7 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 - the live visit, highlights and controls with confirmation;
 - the practice game, match and training games;
 - the training heatmap, history and sessions, and the status card;
-- the scoreboard and its caller, the players and doubles cards;
+- the scoreboard and its caller, the players and doubles cards, and the download of the players export;
 - the generated dashboard, the forms of all six cards, the strategy editor and the light theme.
 
 When a step fails, the browser test saves a screenshot of every open page, and
