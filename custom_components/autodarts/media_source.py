@@ -56,8 +56,29 @@ MONTHS = {
         "Januar Februar März April Mai Juni Juli August September Oktober"
         " November Dezember"
     ).split(),
+    "es": (
+        "Enero Febrero Marzo Abril Mayo Junio Julio Agosto Septiembre Octubre"
+        " Noviembre Diciembre"
+    ).split(),
+    "fr": (
+        "Janvier Février Mars Avril Mai Juin Juillet Août Septembre Octobre"
+        " Novembre Décembre"
+    ).split(),
+    "nl": (
+        "Januari Februari Maart April Mei Juni Juli Augustus September Oktober"
+        " November December"
+    ).split(),
 }
+# "September 2026", in Spanish "Septiembre de 2026".
+MONTH_TITLES = {"es": "{month} de {year}"}
 SHORT_MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
+# Day and month as the language writes them: 26.09., 26/09 or 26-09.
+SHORT_DATES = {
+    "de": "{day:02d}.{month:02d}.",
+    "es": "{day:02d}/{month:02d}",
+    "fr": "{day:02d}/{month:02d}",
+    "nl": "{day:02d}-{month:02d}",
+}
 
 
 @dataclass(frozen=True)
@@ -88,18 +109,21 @@ class Highlight:
 
 
 def _language(hass: HomeAssistant) -> str:
-    return "de" if str(hass.config.language).startswith("de") else "en"
+    """The language of Home Assistant, such as "es" for "es-419"; others read English."""
+    language = str(hass.config.language).split("-")[0].lower()
+    return language if language in MONTHS else "en"
 
 
 def _short_date(day: date, language: str) -> str:
-    if language == "de":
-        return f"{day.day:02d}.{day.month:02d}."
+    if language in SHORT_DATES:
+        return SHORT_DATES[language].format(day=day.day, month=day.month)
     return f"{SHORT_MONTHS[day.month - 1]} {day.day}"
 
 
 def _month_title(month: str, language: str) -> str:
     year, number = month.split("-")
-    return f"{MONTHS[language][int(number) - 1]} {year}"
+    name = MONTHS[language][int(number) - 1]
+    return MONTH_TITLES.get(language, "{month} {year}").format(month=name, year=year)
 
 
 def _inside(folder: Path, path: Path) -> bool:

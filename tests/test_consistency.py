@@ -26,12 +26,12 @@ from .local_helpers import entity_id, setup_local
 
 INTEGRATION = Path(__file__).parents[1] / "custom_components" / "autodarts"
 STRINGS = json.loads((INTEGRATION / "strings.json").read_text(encoding="utf-8"))
+# Every translation file counts, so a new language joins every check below.
 TRANSLATIONS = {
-    language: json.loads(
-        (INTEGRATION / "translations" / f"{language}.json").read_text(encoding="utf-8")
-    )
-    for language in ("en", "de")
+    path.stem: json.loads(path.read_text(encoding="utf-8"))
+    for path in sorted((INTEGRATION / "translations").glob("*.json"))
 }
+LANGUAGES = sorted(TRANSLATIONS)
 SERVICES = yaml.safe_load((INTEGRATION / "services.yaml").read_text(encoding="utf-8"))
 ICONS = json.loads((INTEGRATION / "icons.json").read_text(encoding="utf-8"))
 SOURCES = "\n".join(
@@ -49,6 +49,14 @@ DEVICE_CLASS_ICONS = {
 }
 # Abort reasons Home Assistant raises itself.
 HOME_ASSISTANT_ABORTS = {"already_configured", "already_in_progress"}
+# Words of the wrong form of address: German, Dutch and Spanish speak to the
+# user informally, French formally, as Home Assistant does in these languages.
+WRONG_ADDRESS = {
+    "de": r"\b(Sie|Ihr|Ihre|Ihren|Ihrem)\b",
+    "nl": r"\b(u|uw|U|Uw)\b",
+    "fr": r"\b(tu|toi|ton|ta|tes|Tu|Toi|Ton|Ta|Tes)\b",
+    "es": r"\b(usted|ustedes|Usted|Ustedes)\b",
+}
 
 
 def texts(tree: object, path: str = "") -> dict[str, str]:
@@ -74,22 +82,36 @@ def test_english_translation_is_the_source_strings():
     assert TRANSLATIONS["en"] == STRINGS
 
 
-@pytest.mark.parametrize("language", ["en", "de"])
+@pytest.mark.parametrize("language", LANGUAGES)
 def test_every_language_has_every_text_with_its_placeholders(language):
     source, translated = texts(STRINGS), texts(TRANSLATIONS[language])
-    assert set(translated) == set(source)
+    # The texts of strings.json in its order, so the files compare line by line.
+    assert list(translated) == list(source)
     for path, text in source.items():
         assert placeholders(translated[path]) == placeholders(text), path
         assert translated[path].strip(), path
 
 
-@pytest.mark.parametrize("language", ["en", "de"])
+def assert_tidy(language: str, path: str, text: str) -> None:
+    """No stray spaces, the form of address and the punctuation of the language."""
+    assert text == text.strip() and "  " not in text, path
+    if language in WRONG_ADDRESS and not path.startswith("selector"):
+        assert not re.search(WRONG_ADDRESS[language], text), path
+    # The words only, without code, placeholders, links and addresses.
+    prose = re.sub(
+        r"```.*?```|`[^`]*`|{\w+}|\]\([^)]*\)|https?://", "", text, flags=re.S
+    )
+    if language == "fr":
+        # A no-break space goes before : ; ? and !, as in Home Assistant's French.
+        assert not re.search(r"\S[;?!]| [:;?!]|\w:", prose), path
+    if language == "es":
+        assert prose.count("¿") == prose.count("?"), path
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
 def test_texts_are_tidy(language):
     for path, text in texts(TRANSLATIONS[language]).items():
-        assert text == text.strip() and "  " not in text, path
-        if language == "de" and not path.startswith("selector"):
-            # German speaks to the user in the du form.
-            assert not re.search(r"\b(Sie|Ihr|Ihre|Ihren|Ihrem)\b", text), path
+        assert_tidy(language, path, text)
 
 
 async def test_the_game_options_agree_everywhere(hass, aioclient_mock):
@@ -121,7 +143,7 @@ def test_action_limits_agree_with_the_schema():
     assert f"one to {['one', 'two', 'three', 'four'][MAX_PLAYERS - 1]}" in description
 
 
-@pytest.mark.parametrize("language", ["en", "de"])
+@pytest.mark.parametrize("language", LANGUAGES)
 def test_every_action_and_field_is_described(language):
     services = TRANSLATIONS[language]["services"]
     assert set(services) == set(SERVICES)
@@ -180,14 +202,42 @@ def test_every_repair_issue_is_translated():
             assert spec["description"], issue
 
 
-def card_keys(language: str) -> set[str]:
-    """Top-level keys of TEXT.<language> in the card module."""
-    start = CARD.index(f"\n  {language}: {{\n", CARD.index("const TEXT = {"))
-    end = CARD.index("\n  },\n", start)
-    return set(re.findall(r"^    (\w+):", CARD[start:end], re.M))
+TEXT_BLOCK = CARD[
+    CARD.index("const TEXT = {\n") : CARD.index("\n};\n", CARD.index("const TEXT"))
+]
 
 
-def test_card_texts_exist_in_both_languages():
-    english, german = card_keys("en"), card_keys("de")
+def card_texts() -> dict[str, dict[str, str]]:
+    """TEXT of the card module: every text by its key, per language."""
+    # "  en: {", its texts, "  de: {", its texts, …
+    parts = re.split(r"^  (\w+): \{$", TEXT_BLOCK, flags=re.M)[1:]
+    return {
+        language: {
+            key: json.loads(value)
+            for key, value in re.findall(r'^    (\w+):\s+(".*"),$', body, re.M)
+        }
+        for language, body in zip(parts[::2], parts[1::2], strict=True)
+    }
+
+
+CARD_TEXTS = card_texts()
+
+
+def test_the_cards_speak_every_language_of_the_integration():
+    assert list(CARD_TEXTS) == ["en", "de", "es", "fr", "nl"]
+    assert set(CARD_TEXTS) == set(LANGUAGES)
+    # Every key of TEXT is one text; none escaped the parser.
+    keys = re.findall(r"^    \w+:", TEXT_BLOCK, re.M)
+    assert len(keys) == sum(len(texts) for texts in CARD_TEXTS.values())
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_card_texts_exist_in_every_language(language):
+    english, translated = CARD_TEXTS["en"], CARD_TEXTS[language]
     assert len(english) > 100
-    assert english == german
+    # The keys of TEXT.en in their order, each text with the same placeholders.
+    assert list(translated) == list(english)
+    for key, text in english.items():
+        assert placeholders(translated[key]) == placeholders(text), key
+        assert translated[key], key
+        assert_tidy(language, key, translated[key])

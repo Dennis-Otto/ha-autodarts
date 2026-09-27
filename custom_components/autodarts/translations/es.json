@@ -1,0 +1,857 @@
+{
+  "title": "Autodarts",
+  "config": {
+    "step": {
+      "reauth_confirm": {
+        "title": "Volver a vincular Autodarts",
+        "description": "Vincula tu cuenta con el nuevo inicio de sesión de dispositivo de Autodarts. Introduce un ID de cliente público registrado para esta integración y con la autorización de dispositivo habilitada. Tu diana, tus entidades y la configuración local se conservan.",
+        "data": {
+          "client_id": "ID de cliente de Autodarts"
+        },
+        "data_description": {
+          "client_id": "ID de cliente OAuth público con autorización de dispositivo, emitido por Autodarts para esta integración."
+        }
+      },
+      "auth_retry": {
+        "title": "Volver a iniciar sesión en Autodarts",
+        "description": "Pulsa Enviar para volver a la configuración del cliente y solicitar un código de inicio de sesión nuevo."
+      },
+      "boards": {
+        "title": "Cargar dianas de Autodarts",
+        "description": "Tu cuenta está vinculada. Pulsa Enviar para volver a intentar cargar tus dianas."
+      },
+      "board": {
+        "title": "Seleccionar diana",
+        "description": "Elige la diana Autodarts que quieres supervisar.",
+        "data": {
+          "board_id": "Diana"
+        },
+        "data_description": {
+          "board_id": "Las dianas vinculadas a tu cuenta de Autodarts."
+        }
+      },
+      "cloud": {
+        "title": "Configurar Autodarts",
+        "description": "Introduce el ID de cliente público registrado en Autodarts para esta integración, con la autorización de dispositivo habilitada. Es un ID de aplicación, no tu correo electrónico, el ID de la diana ni un secreto. Si quieres, introduce también la IP local de la diana. La siguiente pantalla mostrará tu código de inicio de sesión.",
+        "data": {
+          "client_id": "ID de cliente de Autodarts",
+          "host": "IP local de la diana (opcional)",
+          "port": "Puerto local de la diana"
+        },
+        "data_description": {
+          "client_id": "ID de cliente OAuth público con autorización de dispositivo, emitido por Autodarts para esta integración. No es tu correo electrónico, tu contraseña ni el ID de la diana.",
+          "host": "Opcional. Conecta además la diana en local, lo que habilita los controles y los eventos en tiempo real.",
+          "port": "Puerto de la API de Board Manager, normalmente 3180."
+        }
+      },
+      "auth": {
+        "title": "Vincular cuenta de Autodarts"
+      },
+      "user": {
+        "title": "Configurar Autodarts",
+        "description": "Busca dianas Autodarts en tu red o introduce la dirección de una diana.",
+        "menu_options": {
+          "discover": "Buscar dianas en esta red",
+          "local": "Introducir la dirección de la diana",
+          "cloud": "Vincular cuenta en la nube"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar Autodarts",
+        "description": "Vuelve a buscar la diana o cambia su dirección local. Tu diana y tus entidades actuales se conservan.",
+        "menu_options": {
+          "discover": "Buscar dianas en esta red",
+          "local": "Introducir la dirección de la diana",
+          "cloud": "Vincular cuenta en la nube"
+        }
+      },
+      "local": {
+        "title": "Conectar diana local",
+        "description": "Introduce la dirección IP o el nombre de host de Board Manager, sin http:// ni puerto. No se necesita ningún ID de cliente. La diana ya debe estar configurada en Board Manager.",
+        "data": {
+          "host": "IP o nombre de host de la diana",
+          "port": "Puerto"
+        },
+        "data_description": {
+          "host": "Dirección IP o nombre de host del PC en el que se ejecuta Autodarts Board Manager, por ejemplo 192.168.1.50. Sin http:// ni puerto.",
+          "port": "Puerto de la API de Board Manager, normalmente 3180."
+        }
+      },
+      "discover": {
+        "title": "Elige tu diana",
+        "description": "Autodarts ha encontrado estas dianas en tu red. La búsqueda usa el mismo servicio que la aplicación Board Manager y ve tu dirección IP pública. Después, la diana se conecta en local, sin iniciar sesión en Autodarts.",
+        "data": {
+          "board_id": "Diana"
+        },
+        "data_description": {
+          "board_id": "No aparecen las dianas que ya están configuradas."
+        }
+      },
+      "zeroconf_confirm": {
+        "title": "Diana Autodarts encontrada",
+        "description": "¿Añadir la diana Autodarts en {host}? Board Manager {version}, {cameras} cámaras. Funciona en local, sin iniciar sesión en Autodarts."
+      }
+    },
+    "progress": {
+      "wait_for_device": "Abre el [inicio de sesión de Autodarts]({verification_uri_complete}) y aprueba la conexión. También puedes abrir [{verification_uri}]({verification_uri}) en otro dispositivo e introducir **{user_code}**.\n\nEsta pantalla continúa automáticamente tras la aprobación. Introduce este código solo en tu propio inicio de sesión de Autodarts."
+    },
+    "error": {
+      "invalid_client": "Este ID de cliente no es válido o no está habilitado para el inicio de sesión de dispositivo. Comprueba el ID de cliente de esta integración. Una diana local se puede configurar sin ID de cliente.",
+      "expired_token": "El código de inicio de sesión ha caducado. Solicita un código nuevo.",
+      "access_denied": "Se ha denegado la conexión. Vuelve a iniciar sesión y apruébala.",
+      "invalid_auth": "Autodarts no ha podido autorizar esta conexión. Vuelve a vincular tu cuenta.",
+      "cannot_connect": "No se puede conectar con Autodarts. Inténtalo de nuevo.",
+      "invalid_host": "Introduce solo una dirección IP o un nombre de host.",
+      "cannot_connect_local": "No se puede acceder al Board Manager local o su respuesta no es válida.",
+      "board_not_configured": "No hay ningún ID de diana configurado en Board Manager. Termina primero allí la configuración de la diana.",
+      "no_boards_found": "No se ha encontrado automáticamente ninguna diana nueva. Introduce la dirección de la diana.",
+      "discovery_failed": "La búsqueda de dianas no está disponible ahora mismo. Introduce la dirección de la diana.",
+      "board_access_denied": "La diana ha denegado el acceso (HTTP 401 o 403). Board Manager no necesita inicio de sesión; comprueba los proxies y cortafuegos entre Home Assistant y la diana."
+    },
+    "abort": {
+      "already_configured": "Esta diana Autodarts ya está configurada.",
+      "no_boards": "No se han encontrado dianas para esta cuenta.",
+      "wrong_account": "La cuenta vinculada no tiene acceso a la diana existente. Vincula la cuenta a la que pertenece esta diana.",
+      "reauth_successful": "Autodarts se ha vinculado correctamente. Tu diana y tus entidades se han conservado.",
+      "wrong_board": "Esta dirección pertenece a otra diana.",
+      "reconfigure_successful": "Se ha actualizado la configuración de Autodarts.",
+      "cannot_connect_local": "La diana anunciada en tu red no responde. Comprueba que Board Manager esté en ejecución.",
+      "board_not_configured": "No hay ningún ID de diana configurado en Board Manager. Termina primero allí la configuración de la diana.",
+      "already_in_progress": "La configuración de esta diana ya está en curso."
+    },
+    "flow_title": "{name}"
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones de Autodarts",
+        "description": "**Partidos en línea (experimental):** la integración ve los dardos en tu diana, pero no el desarrollo de un partido en línea en play.autodarts.io. La extensión de navegador Tools for Autodarts puede enviar a Home Assistant los momentos del partido, como un bust, un game shot o un 180. Llegan como eventos de la diana cuyo tipo empieza por `online_`.",
+        "data": {
+          "online_bridge": "Recibir partidos en línea de Tools for Autodarts",
+          "online_bridge_remote": "Aceptar llamadas desde fuera de tu red doméstica",
+          "online_bridge_new_address": "Crear una nueva dirección secreta"
+        },
+        "data_description": {
+          "online_bridge": "Abre una dirección de webhook secreta para la extensión del navegador. El siguiente paso te la muestra.",
+          "online_bridge_remote": "Solo para una dirección https a través de Home Assistant Cloud o de tu propio dominio. Desactivado: solo los dispositivos de tu red doméstica pueden llamar a la dirección.",
+          "online_bridge_new_address": "La dirección actual deja de funcionar. Introduce la nueva en Tools for Autodarts."
+        }
+      },
+      "online_bridge": {
+        "title": "Dirección para Tools for Autodarts",
+        "description": "Cuando pulses Enviar, Home Assistant aceptará momentos de partidos en línea en esta dirección secreta:\n\n`{url}`\n\nEn Tools for Autodarts, activa **WLED**, elige **Import CSV** y pega las líneas de abajo. Cada línea crea un efecto de tipo URL que llama a la dirección con `?event=` y su desencadenante. Importa solo las líneas que necesites: Tools for Autodarts reproduce un efecto por desencadenante y, si varios comparten el mismo desencadenante, elige uno al azar.\n\n```\n{effects}\n```\n\nEl sensor *Último evento del puente en línea* muestra el último momento recibido. No compartas la dirección: quien la conozca puede enviar momentos de partido a tu Home Assistant."
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "board_status": {
+        "name": "Estado de la nube",
+        "state": {
+          "connected": "Conectado",
+          "disconnected": "Desconectado"
+        }
+      },
+      "board_event": {
+        "name": "Último evento"
+      },
+      "game_mode": {
+        "name": "Modo de juego"
+      },
+      "match_state": {
+        "name": "Estado del partido",
+        "state": {
+          "no_match": "Sin partido",
+          "active": "En curso",
+          "finished": "Terminado"
+        }
+      },
+      "round": {
+        "name": "Ronda"
+      },
+      "last_throw": {
+        "name": "Último dardo"
+      },
+      "num_throws": {
+        "name": "Dardos en la tirada"
+      },
+      "visit_score": {
+        "name": "Puntuación de la tirada"
+      },
+      "darts_thrown": {
+        "name": "Dardos lanzados"
+      },
+      "local_status": {
+        "name": "Estado de la detección",
+        "state": {
+          "offline": "Sin conexión",
+          "starting": "Iniciando",
+          "stopping": "Deteniendo",
+          "stopped": "Detenida",
+          "throw": "Lista para lanzar",
+          "takeout": "Retirada de dardos",
+          "takeout_in_progress": "Retirando dardos",
+          "calibrating": "Calibrando",
+          "error": "Error"
+        }
+      },
+      "last_throw_score": {
+        "name": "Puntuación del último dardo"
+      },
+      "local_visit_score": {
+        "name": "Puntuación detectada de la tirada"
+      },
+      "detection_fps": {
+        "name": "Velocidad de fotogramas de la detección"
+      },
+      "camera_fps": {
+        "name": "Velocidad de fotogramas de la cámara {number}"
+      },
+      "training_darts": {
+        "name": "Dardos del entrenamiento"
+      },
+      "training_triples": {
+        "name": "Triples del entrenamiento"
+      },
+      "training_bulls": {
+        "name": "Bulls del entrenamiento"
+      },
+      "training_scores_180": {
+        "name": "180 del entrenamiento"
+      },
+      "training_points": {
+        "name": "Puntos del entrenamiento"
+      },
+      "training_doubles": {
+        "name": "Dobles del entrenamiento"
+      },
+      "training_misses": {
+        "name": "Fallos del entrenamiento"
+      },
+      "training_visits": {
+        "name": "Tiradas del entrenamiento"
+      },
+      "training_scores_100": {
+        "name": "Tiradas de 100+ del entrenamiento"
+      },
+      "training_scores_140": {
+        "name": "Tiradas de 140+ del entrenamiento"
+      },
+      "training_average": {
+        "name": "Media de 3 dardos del entrenamiento"
+      },
+      "training_highest_visit": {
+        "name": "Tirada más alta del entrenamiento"
+      },
+      "training_started": {
+        "name": "Inicio de la sesión de entrenamiento"
+      },
+      "cpu_usage": {
+        "name": "Uso de CPU"
+      },
+      "memory_usage": {
+        "name": "Uso de memoria"
+      },
+      "training_last_session": {
+        "name": "Media de la última sesión"
+      },
+      "host_os": {
+        "name": "Sistema operativo"
+      },
+      "host_processor": {
+        "name": "Procesador"
+      },
+      "vision_version": {
+        "name": "Versión del software de detección"
+      },
+      "practice_remaining": {
+        "name": "Puntos restantes de la partida"
+      },
+      "practice_checkout": {
+        "name": "Ruta de cierre de la partida"
+      },
+      "practice_target": {
+        "name": "Objetivo de la partida"
+      },
+      "practice_first_9_average": {
+        "name": "Media First 9 de la partida"
+      },
+      "practice_checkout_rate": {
+        "name": "Porcentaje de cierre de la partida"
+      },
+      "practice_doubles_rate": {
+        "name": "Porcentaje de dobles de la partida"
+      },
+      "practice_legs_played": {
+        "name": "Legs jugados en la partida"
+      },
+      "correction_rate": {
+        "name": "Porcentaje de corrección de la detección"
+      },
+      "personal_best": {
+        "name": "Último récord personal"
+      },
+      "darts_today": {
+        "name": "Dardos hoy"
+      },
+      "training_streak": {
+        "name": "Racha de entrenamiento"
+      },
+      "player_profiles": {
+        "name": "Perfiles de jugador"
+      },
+      "last_match": {
+        "name": "Último partido"
+      },
+      "favourite_double": {
+        "name": "Doble favorito"
+      },
+      "online_bridge_last_event": {
+        "name": "Último evento del puente en línea"
+      },
+      "weekly_report": {
+        "name": "Informe semanal"
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Iniciar detección"
+      },
+      "stop": {
+        "name": "Detener detección"
+      },
+      "reset": {
+        "name": "Restablecer detección"
+      },
+      "restart": {
+        "name": "Reiniciar Board Manager"
+      },
+      "calibrate": {
+        "name": "Iniciar calibración automática"
+      },
+      "connect": {
+        "name": "Conectar a la nube"
+      },
+      "disconnect": {
+        "name": "Desconectar de la nube"
+      },
+      "start_streams": {
+        "name": "Iniciar transmisiones de las cámaras"
+      },
+      "stop_streams": {
+        "name": "Detener transmisiones de las cámaras"
+      },
+      "calibrate_camera": {
+        "name": "Calibrar cámara {number}"
+      },
+      "reset_training": {
+        "name": "Nueva sesión de entrenamiento"
+      },
+      "practice_new_leg": {
+        "name": "Nuevo leg"
+      },
+      "practice_new_match": {
+        "name": "Nuevo partido"
+      }
+    },
+    "switch": {
+      "detection": {
+        "name": "Detección"
+      },
+      "upstream": {
+        "name": "Conexión a la nube"
+      },
+      "auto_calibrate_on_start": {
+        "name": "Calibrar al iniciar"
+      },
+      "auto_calibrate": {
+        "name": "Recalibración automática"
+      },
+      "auto_distortion": {
+        "name": "Corrección automática de la distorsión"
+      },
+      "training_session": {
+        "name": "Sesión de entrenamiento"
+      },
+      "training_auto_start": {
+        "name": "Inicio automático de sesiones"
+      },
+      "practice_double_out": {
+        "name": "Double out de la partida"
+      },
+      "practice_double_in": {
+        "name": "Double in de la partida"
+      },
+      "practice_bull_off": {
+        "name": "Bull-off de la partida"
+      },
+      "practice_bull_off_distance": {
+        "name": "Bull-off por distancia de la partida"
+      },
+      "practice_personal_routes": {
+        "name": "Rutas de cierre personales de la partida"
+      },
+      "practice_teams": {
+        "name": "Equipos de la partida"
+      }
+    },
+    "select": {
+      "standby_minutes": {
+        "name": "Reposo de las cámaras",
+        "state": {
+          "5": "5 minutos",
+          "10": "10 minutos",
+          "15": "15 minutos",
+          "30": "30 minutos",
+          "60": "60 minutos"
+        }
+      },
+      "practice_game": {
+        "name": "Partida",
+        "state": {
+          "off": "Desactivada",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "around_the_clock": "Around the Clock",
+          "doubles": "Entrenamiento de dobles",
+          "checkout": "Entrenamiento de cierres",
+          "bobs_27": "Bob's 27",
+          "cricket": "Cricket",
+          "101": "101",
+          "901": "901",
+          "1001": "1001",
+          "shanghai": "Shanghai",
+          "halve_it": "Halve-It",
+          "killer": "Killer",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics",
+          "golf": "Golf",
+          "baseball": "Baseball",
+          "count_up": "Count-Up",
+          "checkout_121": "121 checkout",
+          "catch_40": "Catch 40",
+          "jdc_challenge": "JDC Challenge",
+          "singles": "Entrenamiento de simples"
+        }
+      },
+      "weekly_report_day": {
+        "name": "Día del informe semanal",
+        "state": {
+          "monday": "Lunes",
+          "tuesday": "Martes",
+          "wednesday": "Miércoles",
+          "thursday": "Jueves",
+          "friday": "Viernes",
+          "saturday": "Sábado",
+          "sunday": "Domingo"
+        }
+      },
+      "practice_golf_holes": {
+        "name": "Hoyos de Golf de la partida"
+      }
+    },
+    "number": {
+      "training_idle_timeout": {
+        "name": "Tiempo de inactividad de la sesión"
+      },
+      "practice_players": {
+        "name": "Jugadores de la partida"
+      },
+      "practice_legs": {
+        "name": "Legs por set de la partida"
+      },
+      "practice_sets": {
+        "name": "Sets para ganar la partida"
+      },
+      "training_daily_goal": {
+        "name": "Objetivo diario"
+      },
+      "practice_start": {
+        "name": "Puntuación inicial del jugador {number} de la partida"
+      },
+      "practice_count_up_rounds": {
+        "name": "Rondas de Count-Up de la partida"
+      }
+    },
+    "binary_sensor": {
+      "local_connected": {
+        "name": "Conexión local"
+      },
+      "hand_detected": {
+        "name": "Mano detectada"
+      },
+      "image_stable": {
+        "name": "Imagen estable"
+      },
+      "takeout_partial": {
+        "name": "Dardos retirados en parte"
+      },
+      "takeout_full": {
+        "name": "Dardos retirados por completo"
+      },
+      "cameras_active": {
+        "name": "Cámaras activas"
+      },
+      "calibrating": {
+        "name": "Calibración en curso"
+      },
+      "realtime_connected": {
+        "name": "Conexión en tiempo real"
+      },
+      "camera_problem": {
+        "name": "Problema de cámara"
+      },
+      "individual_camera_problem": {
+        "name": "Problema en la cámara {number}"
+      },
+      "cloud_link": {
+        "name": "Conexión a la nube de Autodarts"
+      }
+    },
+    "camera": {
+      "board_camera": {
+        "name": "Cámara {number}"
+      }
+    },
+    "event": {
+      "board_events": {
+        "name": "Eventos",
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "dart_detected": "Dardo detectado",
+              "dart_corrected": "Dardo corregido",
+              "takeout_started": "Retirada iniciada",
+              "takeout_finished": "Retirada terminada",
+              "status_changed": "Cambio de estado",
+              "visit_thrown": "Tirada lanzada",
+              "visit_completed": "Tirada completada",
+              "session_started": "Sesión iniciada",
+              "session_ended": "Sesión terminada",
+              "bust": "Bust",
+              "leg_won": "Leg ganado",
+              "match_won": "Partido ganado",
+              "turn_changed": "Cambio de turno",
+              "drill_finished": "Juego de entrenamiento terminado",
+              "checkout_attempt": "Intento de cierre",
+              "personal_best": "Récord personal",
+              "daily_goal_reached": "Objetivo diario alcanzado",
+              "bull_off_won": "Bull-off ganado",
+              "online_game_on": "En línea: game on",
+              "online_visit": "En línea: tirada",
+              "online_dart": "En línea: dardo",
+              "online_busted": "En línea: bust",
+              "online_game_shot": "En línea: game shot",
+              "online_match_shot": "En línea: match shot",
+              "online_bull_off": "En línea: empieza el bull-off",
+              "online_tournament_ready": "En línea: partido de torneo listo",
+              "online_match_left": "En línea: partido abandonado",
+              "weekly_report": "Informe semanal"
+            }
+          }
+        }
+      }
+    },
+    "update": {
+      "board_software": {
+        "name": "Software"
+      }
+    },
+    "text": {
+      "practice_player": {
+        "name": "Jugador {number} de la partida"
+      }
+    },
+    "calendar": {
+      "training_calendar": {
+        "name": "Calendario de entrenamiento"
+      }
+    },
+    "time": {
+      "weekly_report_time": {
+        "name": "Hora del informe semanal"
+      }
+    }
+  },
+  "exceptions": {
+    "action_failed": {
+      "message": "La diana no ha aceptado la acción. Comprueba la conexión con Board Manager e inténtalo de nuevo."
+    },
+    "board_unavailable": {
+      "message": "Board Manager no responde."
+    },
+    "wrong_board": {
+      "message": "La dirección configurada pertenece a otra diana."
+    },
+    "no_local_address": {
+      "message": "Introduce la dirección local de Board Manager: abre el menú de esta entrada y selecciona Reconfigurar."
+    },
+    "relink_required": {
+      "message": "Vuelve a vincular tu cuenta de Autodarts con un ID de cliente registrado."
+    },
+    "cloud_unavailable": {
+      "message": "La nube de Autodarts no responde."
+    },
+    "no_board": {
+      "message": "No hay cargada ninguna diana Autodarts con conexión local."
+    },
+    "several_boards": {
+      "message": "Hay varias dianas Autodarts configuradas. Elige la diana."
+    },
+    "duplicate_player": {
+      "message": "{name} aparece más de una vez en la lista de jugadores. Cada jugador necesita un nombre propio."
+    },
+    "killer_players": {
+      "message": "Killer necesita al menos dos jugadores."
+    },
+    "unknown_player": {
+      "message": "No hay ningún perfil de jugador llamado {name}."
+    },
+    "board_access_denied": {
+      "message": "Board Manager ha denegado el acceso. Normalmente no necesita inicio de sesión; comprueba los proxies y cortafuegos entre Home Assistant y la diana."
+    },
+    "unsupported_response": {
+      "message": "Board Manager responde en un formato que esta versión de la integración no entiende."
+    },
+    "not_supported": {
+      "message": "Esta diana no admite la acción."
+    },
+    "export_folder": {
+      "message": "La carpeta de exportación {folder} debe estar dentro de la carpeta de configuración de Home Assistant y no puede estar oculta."
+    },
+    "export_failed": {
+      "message": "No se ha podido escribir la exportación: {error}"
+    },
+    "unknown_person": {
+      "message": "No hay ninguna persona {person} en Home Assistant."
+    },
+    "team_players": {
+      "message": "Los equipos necesitan cuatro jugadores: los jugadores 1 y 3 contra los jugadores 2 y 4."
+    },
+    "team_game": {
+      "message": "Los equipos juegan a X01 y a los juegos de Cricket."
+    },
+    "invalid_start_score": {
+      "message": "La puntuación inicial debe ser 0, para usar la del juego, o de 2 a 1001."
+    }
+  },
+  "issues": {
+    "wrong_board": {
+      "title": "La dirección de la diana Autodarts apunta a otra diana",
+      "description": "La diana en {address} tiene un ID de diana distinto del de esta entrada, así que sigue sin conexión. Abre la integración Autodarts, elige **Reconfigurar** y selecciona la diana correcta."
+    },
+    "board_manager_1": {
+      "title": "Actualiza la diana al nuevo Autodarts Board Manager",
+      "description": "Esta diana usa la aplicación clásica de Board Manager. Autodarts la sustituye por Board Manager 2, sin interfaz gráfica, y desactivará la antigua cuando la mayoría de los jugadores haya migrado. Instala Board Manager 2 en el PC de la diana; la integración se adapta automáticamente y sigue funcionando en local."
+    },
+    "calibration_recommended": {
+      "title": "Calibra la diana Autodarts",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Calibrar ahora",
+            "description": "La diana ha corregido el {rate} % de los últimos dardos. Una nueva calibración suele reducir esta cifra.\n\nRetira antes todos los dardos de la diana. La calibración tarda unos segundos."
+          }
+        },
+        "abort": {
+          "calibration_failed": "La diana no ha aceptado la calibración. Inténtalo de nuevo o calibra desde la tarjeta de estado de la diana Autodarts.",
+          "board_unavailable": "La diana no está cargada. Comprueba la conexión e inténtalo de nuevo."
+        }
+      }
+    },
+    "board_access_denied": {
+      "title": "La diana Autodarts deniega el acceso",
+      "description": "La diana en {address} responde con HTTP 401 o 403. Board Manager no necesita inicio de sesión, así que algo entre Home Assistant y la diana bloquea las solicitudes, por ejemplo un proxy inverso, un cortafuegos o un inicio de sesión delante del puerto 3180. Permite que Home Assistant acceda a la diana; el aviso desaparecerá solo."
+    },
+    "unsupported_response": {
+      "title": "La diana Autodarts responde en un formato desconocido",
+      "description": "La diana responde a {reads} en un formato que esta versión de la integración no entiende, por ejemplo tras una actualización de Board Manager. Los valores de estas consultas no se actualizan. Actualiza la integración Autodarts; si el aviso no desaparece, comunícalo junto con los diagnósticos."
+    },
+    "board_moved": {
+      "title": "Diana Autodarts encontrada en una nueva dirección",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Usar la nueva dirección",
+            "description": "La diana ya no responde en su antigua dirección. La nube de Autodarts indica que está en {new}, donde responde con su ID de diana.\n\n¿Conectar la diana allí? La integración se vuelve a cargar; se conservan las entidades, el entrenamiento y la configuración."
+          }
+        },
+        "abort": {
+          "board_unavailable": "La diana ya no responde en la nueva dirección. Espera al siguiente aviso, o abre la integración y elige **Reconfigurar**."
+        }
+      }
+    }
+  },
+  "services": {
+    "start_game": {
+      "name": "Iniciar partida",
+      "description": "Inicia una partida en la diana: X01, Cricket, un juego de fiesta o un juego de entrenamiento, opcionalmente con jugadores y formato de partido.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        },
+        "game": {
+          "name": "Juego",
+          "description": "X01 de 101 a 1001 puntos, un juego de Cricket, un juego de fiesta o un juego de entrenamiento."
+        },
+        "players": {
+          "name": "Jugadores",
+          "description": "Nombres de uno a cuatro jugadores, en orden de lanzamiento. Sin nombres, el número de jugadores no cambia."
+        },
+        "legs": {
+          "name": "Legs por set",
+          "description": "Legs necesarios para ganar un set en un partido."
+        },
+        "sets": {
+          "name": "Sets para ganar",
+          "description": "Sets necesarios para ganar el partido."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "Los legs de X01 terminan en un doble o en el bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "Los legs de X01 empiezan con un doble o con el bullseye."
+        },
+        "bull_off": {
+          "name": "Bull-off",
+          "description": "Los jugadores lanzan primero al bull; quien quede más cerca empieza el partido."
+        },
+        "bull_off_distance": {
+          "name": "Bull-off por distancia",
+          "description": "Si dos dardos caen en el mismo segmento del bull, decide la distancia medida por la diana en lugar de repetir el lanzamiento."
+        },
+        "teams": {
+          "name": "Equipos",
+          "description": "Cuatro jugadores de X01 o de un juego de Cricket juegan en dos equipos: los jugadores 1 y 3 contra los jugadores 2 y 4."
+        },
+        "start_scores": {
+          "name": "Puntuaciones iniciales",
+          "description": "Puntuaciones iniciales de X01 de los jugadores en orden de lanzamiento, para jugar con hándicap, por ejemplo 501 y 301. Con 0 o sin puntuación se juega con la puntuación inicial del juego."
+        },
+        "holes": {
+          "name": "Hoyos de Golf",
+          "description": "Hoyos de una partida de Golf: 9 o 18."
+        },
+        "rounds": {
+          "name": "Rondas de Count-Up",
+          "description": "Rondas de Count-Up, de 1 a 20."
+        }
+      }
+    },
+    "delete_player": {
+      "name": "Eliminar perfil de jugador",
+      "description": "Borra las estadísticas, los récords personales y los cara a cara de un jugador. El nombre también desaparece de los récords personales de la diana y de los nombres de jugadores de la partida; el historial de partidos lo conserva.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "Solo es necesaria si tienes más de una diana."
+        },
+        "name": {
+          "name": "Nombre",
+          "description": "El nombre del jugador, sin distinguir entre mayúsculas y minúsculas."
+        }
+      }
+    },
+    "export": {
+      "name": "Exportar datos de entrenamiento",
+      "description": "Guarda sesiones de entrenamiento, partidos o perfiles de jugador como archivo CSV o JSON dentro de la carpeta de configuración y devuelve su ruta. Las exportaciones contienen nombres de jugadores.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "Solo es necesaria si tienes más de una diana."
+        },
+        "format": {
+          "name": "Formato",
+          "description": "CSV para hojas de cálculo, o JSON. Si exportas todo en CSV, se genera un archivo ZIP con un archivo CSV por tabla."
+        },
+        "what": {
+          "name": "Contenido",
+          "description": "Sesiones de entrenamiento y partidos de los últimos 365 días, los perfiles de jugador o todo."
+        },
+        "folder": {
+          "name": "Carpeta",
+          "description": "Una carpeta dentro de la carpeta de configuración. Los archivos de www están disponibles en /local/ sin iniciar sesión."
+        }
+      }
+    },
+    "link_player": {
+      "name": "Vincular jugador a persona",
+      "description": "Convierte a un jugador en una persona de Home Assistant: la foto de la persona aparece en el marcador, en la tarjeta de jugadores y en la pantalla de nueva partida, que además muestra primero a los jugadores que están en casa. Una persona es un solo jugador; si la vuelves a vincular, el vínculo pasa al nuevo jugador.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "Solo es necesaria si tienes más de una diana."
+        },
+        "player": {
+          "name": "Jugador",
+          "description": "El nombre del jugador, sin distinguir entre mayúsculas y minúsculas. Si el jugador no tiene perfil, se le crea uno."
+        },
+        "person": {
+          "name": "Persona",
+          "description": "La persona de Home Assistant que corresponde a este jugador."
+        }
+      }
+    },
+    "unlink_player": {
+      "name": "Desvincular jugador",
+      "description": "Deshace el vínculo entre un jugador y su persona. Las estadísticas del jugador se mantienen.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "Solo es necesaria si tienes más de una diana."
+        },
+        "player": {
+          "name": "Jugador",
+          "description": "El nombre del jugador, sin distinguir entre mayúsculas y minúsculas."
+        }
+      }
+    }
+  },
+  "selector": {
+    "game": {
+      "options": {
+        "301": "301",
+        "501": "501",
+        "701": "701",
+        "around_the_clock": "Around the Clock",
+        "doubles": "Entrenamiento de dobles",
+        "checkout": "Entrenamiento de cierres",
+        "bobs_27": "Bob's 27",
+        "cricket": "Cricket",
+        "101": "101",
+        "901": "901",
+        "1001": "1001",
+        "shanghai": "Shanghai",
+        "halve_it": "Halve-It",
+        "killer": "Killer",
+        "cut_throat": "Cut-Throat Cricket",
+        "tactics": "Tactics",
+        "golf": "Golf",
+        "baseball": "Baseball",
+        "count_up": "Count-Up",
+        "checkout_121": "121 checkout",
+        "catch_40": "Catch 40",
+        "jdc_challenge": "JDC Challenge",
+        "singles": "Entrenamiento de simples"
+      }
+    },
+    "export_format": {
+      "options": {
+        "csv": "CSV",
+        "json": "JSON"
+      }
+    },
+    "export_what": {
+      "options": {
+        "sessions": "Sesiones de entrenamiento",
+        "matches": "Partidos",
+        "profiles": "Perfiles de jugador",
+        "all": "Todo"
+      }
+    }
+  }
+}

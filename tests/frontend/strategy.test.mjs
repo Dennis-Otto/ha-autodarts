@@ -256,3 +256,43 @@ test("the live view sets up and starts tournaments, with the tournament's stage 
   assert.deepEqual(withEntities(keys.slice(1))[1].cards.map((card) => card.type), ["heading", "entities"]);
   assert.equal(withEntities(keys.slice(0, 1)).length, 1);
 });
+
+test("rows leave out the section at the end of French and Spanish names, too", () => {
+  const entities = [
+    entity("select.b_game", "practice_game", "dev1"),
+    entity("number.b_players", "practice_players", "dev1"),
+    entity("switch.b_routes", "practice_personal_routes", "dev1"),
+    entity("button.b_leg", "practice_new_leg", "dev1"),
+  ];
+  for (const [language, names, rows] of [
+    [
+      "fr",
+      ["Partie", "Nombre de joueurs de la partie", "Combinaisons de finish personnelles de la partie", "Nouvelle manche de la partie"],
+      ["Jeu", "Nombre de joueurs", "Combinaisons de finish personnelles", "Nouvelle manche"],
+    ],
+    [
+      "es",
+      // A name without the section stays as it is.
+      ["Partida", "Jugadores de la partida", "Rutas de cierre personales de la partida", "Nuevo leg"],
+      ["Juego", "Jugadores", "Rutas de cierre personales", "Nuevo leg"],
+    ],
+  ]) {
+    const config = dashboardStrategy({
+      locale: { language },
+      entities: Object.fromEntries(entities.map((item) => [item.entity_id, item])),
+      devices: { dev1: { name: "Autodarts Board" } },
+      states: Object.fromEntries(
+        entities.map(({ entity_id }, index) => [
+          entity_id,
+          { entity_id, state: "on", attributes: { friendly_name: `Autodarts Board ${names[index]}` } },
+        ])
+      ),
+    });
+    const practice = config.views[0].sections[1].cards[1];
+    assert.deepEqual(
+      practice.entities.map((row) => row.name),
+      rows,
+      language
+    );
+  }
+});

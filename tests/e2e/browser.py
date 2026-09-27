@@ -7,8 +7,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.request
 import zipfile
+from pathlib import Path
 
 from playwright.sync_api import Browser, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
@@ -20,6 +22,8 @@ LOADS = 5
 GENERATION = int(os.environ.get("BOARD_MANAGER", "1"))
 # Writable folder for screenshots of a failed step, mounted by browser.sh.
 ARTIFACTS = os.environ.get("BROWSER_ARTIFACTS", "")
+# The integration as mounted by browser.sh, for the texts every language expects.
+INTEGRATION = Path(__file__).resolve().parents[2] / "custom_components" / "autodarts"
 
 
 def find(tag: str) -> str:
@@ -255,10 +259,15 @@ def control(changes: dict) -> None:
 
 
 def open_view(
-    browser: Browser, view: str, cards: str, ready: str, scheme: str = "dark"
+    browser: Browser,
+    view: str,
+    cards: str,
+    ready: str,
+    scheme: str = "dark",
+    locale: str = "en-US",
 ) -> tuple[Page, list[str]]:
     page = browser.new_page(
-        locale="en-US", viewport={"width": 1280, "height": 820}, color_scheme=scheme
+        locale=locale, viewport={"width": 1280, "height": 820}, color_scheme=scheme
     )
     problems: list[str] = []
     page.add_init_script(CAPTURE_ERRORS)
@@ -278,8 +287,10 @@ def open_view(
     return page, problems
 
 
-def open_board(browser: Browser, scheme: str = "dark") -> tuple[Page, list[str]]:
-    return open_view(browser, "board", CARDS, ".board svg", scheme)
+def open_board(
+    browser: Browser, scheme: str = "dark", locale: str = "en-US"
+) -> tuple[Page, list[str]]:
+    return open_view(browser, "board", CARDS, ".board svg", scheme, locale)
 
 
 def page_errors(page: Page, problems: list[str]) -> list[str]:
@@ -1086,6 +1097,61 @@ def light_theme(browser: Browser) -> None:
     page.close()
 
 
+def read(path: str) -> str:
+    return (INTEGRATION / path).read_text(encoding="utf-8")
+
+
+def card_texts(language: str) -> dict[str, str]:
+    """TEXT.<language> of the card module."""
+    source = read("frontend/autodarts-card.js")
+    start = source.index(f"\n  {language}: {{\n", source.index("const TEXT = {"))
+    body = source[start : source.index("\n  },\n", start)]
+    return {
+        key: json.loads(value)
+        for key, value in re.findall(r'^    (\w+):\s+(".*"),$', body, re.M)
+    }
+
+
+# What the page shows and what Home Assistant serves in the language of the browser.
+LANGUAGE_STATE = f"""
+async (language) => {{
+  const hass = document.querySelector('home-assistant').hass;
+  const root = ({CARDS})()[0].shadowRoot;
+  const served = await hass.callWS({{
+    type: 'frontend/get_translations',
+    language,
+    category: 'entity',
+    integration: ['autodarts'],
+  }});
+  return {{
+    language: hass.locale.language,
+    label: root.querySelector('.visit-label').textContent,
+    reset: root.querySelector('[data-action="reset"]').textContent,
+    status: served.resources['component.autodarts.entity.sensor.local_status.name'],
+  }};
+}}
+"""
+
+
+def languages(browser: Browser) -> None:
+    """A browser in Dutch, French or Spanish gets the cards and the entity texts in it."""
+    for language in ("nl", "fr", "es"):
+        page, problems = open_board(browser, locale=f"{language}-{language.upper()}")
+        texts = card_texts(language)
+        translation = json.loads(read(f"translations/{language}.json"))
+        expected = {
+            "language": language,
+            "label": texts["visit"],
+            "reset": texts["reset"],
+            "status": translation["entity"]["sensor"]["local_status"]["name"],
+        }
+        state = page.evaluate(LANGUAGE_STATE, language)
+        check(state == expected, f"{language}: {state} != {expected}")
+        errors = page_errors(page, problems)
+        check(not errors, f"{language}: console problems: {errors}")
+        page.close()
+
+
 def keep_screenshots(browser: Browser, step: str) -> None:
     """Save every page still open after a failed step for the CI artifact."""
     if not ARTIFACTS or not os.path.isdir(ARTIFACTS):
@@ -1147,6 +1213,7 @@ def main() -> None:
             ),
             ("dashboard strategy editor", lambda: strategy_editor(browser)),
             ("light theme", lambda: light_theme(browser)),
+            ("languages", lambda: languages(browser)),
         ]
         for name, step in steps:
             # A failure then names the step, not only a timeout deep in Playwright.
@@ -1165,8 +1232,8 @@ def main() -> None:
         "history and "
         "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
         "match summary, its caller, new game screen and tournament, the generated "
-        "dashboard, the players export, all seven card forms, the strategy editor "
-        "and light theme."
+        "dashboard, the players export, all seven card forms, the strategy editor, "
+        "light theme and the cards and entity texts in Dutch, French and Spanish."
     )
 
 
