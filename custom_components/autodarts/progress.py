@@ -308,10 +308,11 @@ class Progress:
                 self._result(results[0], practice.names[0])
         if not self.enabled:
             return []
+        # The bot's seat keeps the name of whoever sat there before.
         seats = {
             _key(name): index + 1
             for index, name in enumerate(practice.names[: len(practice.players)])
-            if name
+            if name and index != practice.bot_seat
         }
         return self._unlock(practice.profiles, now, seats)
 

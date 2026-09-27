@@ -8,7 +8,7 @@ from custom_components.autodarts.doubles import (
 )
 from custom_components.autodarts.practice import PracticeGame
 
-from .test_practice import dart, throw
+from .local_helpers import dart, throw
 
 
 def test_the_double_that_finishes_a_score():

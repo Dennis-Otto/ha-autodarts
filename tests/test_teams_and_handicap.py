@@ -7,7 +7,7 @@ from custom_components.autodarts.practice import PracticeGame, valid_start
 from custom_components.autodarts.profiles import Profiles
 from custom_components.autodarts.records import PersonalRecords
 
-from .test_practice import dart, throw
+from .local_helpers import dart, throw
 
 NAMES = ["Alex", "Sam", "Kim", "Lea"]
 

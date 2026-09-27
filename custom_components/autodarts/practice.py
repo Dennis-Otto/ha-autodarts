@@ -9,7 +9,6 @@ bull-off can decide who starts.
 from __future__ import annotations
 
 import copy
-import re
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -40,7 +39,7 @@ from .party import (
     make_party,
 )
 from .positions import x01_aims
-from .profiles import NAME_LENGTH, Profiles
+from .profiles import Profiles, clean_name
 from .scoring import VISIT_DARTS, evaluate_visit, is_double, rate, score
 from .scoring import average as _average
 from .summary import HIGH_VISITS, Tally
@@ -72,25 +71,13 @@ OPTIONS = (
 GAME_OPTIONS = (*(str(game) for game in GAMES), *CRICKET_GAMES, *PARTY_GAMES, *DRILLS)
 # The rules a match is played with, which a tournament sets for its matches.
 MATCH_RULES = ("double_out", "double_in", "bull_off", "bull_off_distance")
-# Characters no player name contains: Home Assistant would render curly
-# brackets, percent and number signs as a template where a name goes into a
-# file name or a message, and control characters break both.
-NAME_EXCLUDED = re.compile(r"[{}%#\x00-\x1f\x7f-\x9f]")
+# A start score that no dart can win with double in and double out: the only
+# opening double, D1, leaves 1.
+UNWINNABLE_START = 3
 
 
 def _count(value: object, low: int, high: int, default: int) -> int:
     return value if type(value) is int and low <= value <= high else default
-
-
-def valid_name(name: str) -> bool:
-    """Whether a player name is free of the characters no name contains."""
-    return NAME_EXCLUDED.search(name) is None
-
-
-def clean_name(name: str) -> str:
-    """A player name as the games keep it: without the characters no name
-    contains, trimmed, and at most 20 characters long."""
-    return NAME_EXCLUDED.sub("", name).strip()[:NAME_LENGTH]
 
 
 def valid_start(value: object) -> bool:
@@ -528,6 +515,17 @@ class PracticeGame:
         setattr(self, option, enabled)
         if option == "double_out":
             self.double_out_next = None
+
+    def unwinnable(
+        self, starts: list[int] | None = None, rules: dict[str, bool] | None = None
+    ) -> bool:
+        """Whether a seat would start from 3 with double in and double out, with
+        these start scores or rules instead of the current ones."""
+        rules = rules or {}
+        double_in = rules.get("double_in", self.setting("double_in"))
+        double_out = rules.get("double_out", self.setting("double_out"))
+        seats = (self.starts if starts is None else starts)[: len(self.players)]
+        return double_in and double_out and UNWINNABLE_START in seats
 
     def setting(self, option: str) -> bool:
         """A rule as players set it; double out may wait for the next leg."""
@@ -1714,8 +1712,14 @@ class PracticeGame:
     # -- undo ------------------------------------------------------------------
 
     def checkpoint(self) -> dict[str, Any]:
-        """The game as it is, to come back to before the next visit is booked."""
-        return copy.deepcopy(self.stored())
+        """The game as it is, to come back to before the next visit is booked,
+        with the darts that were on the board when the leg or the drill began:
+        they count for no visit."""
+        saved = copy.deepcopy(self.stored())
+        saved["on_board"] = self._skip
+        if self.drill:
+            saved["drill_on_board"] = self.drills[self.drill].on_board
+        return saved
 
     def rewind(
         self,
@@ -1730,7 +1734,11 @@ class PracticeGame:
         """
         self.game = 0
         self.restore(checkpoint)
-        self._visit, self._skip, self._announced = [], 0, None
+        # Darts that counted for no visit before the undo count for none after it.
+        self._visit, self._skip = [], checkpoint.get("on_board", 0)
+        self._announced = None
+        if self.drill:
+            self.drills[self.drill].on_board = checkpoint.get("drill_on_board", 0)
         self.track(visit, positions)
 
     # -- state -----------------------------------------------------------------

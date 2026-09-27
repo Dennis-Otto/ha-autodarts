@@ -12,7 +12,7 @@ from custom_components.autodarts.party import (
 )
 from custom_components.autodarts.practice import MAX_PLAYERS, PracticeGame
 
-from .test_practice import dart, throw
+from .local_helpers import dart, throw
 
 
 def game_of(kind: str | int, players: int = 1, **names: str) -> PracticeGame:

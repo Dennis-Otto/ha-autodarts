@@ -17,6 +17,7 @@ from hypothesis.stateful import (
 
 from custom_components.autodarts.bot import Bot, aim, bed_name
 from custom_components.autodarts.cricket import CRICKET_GAMES, MARKS_TO_CLOSE
+from custom_components.autodarts.drills import DRILLS, RESULTS
 from custom_components.autodarts.manual import ManualDarts, parse_bed
 from custom_components.autodarts.party import KILLER_LIVES
 from custom_components.autodarts.practice import (
@@ -29,11 +30,12 @@ from custom_components.autodarts.practice import (
 )
 from custom_components.autodarts.training import TrainingSession, segments
 
-from .test_practice import dart
+from .local_helpers import dart
 
 KINDS = [
     *(101, 301, "cricket", "cut_throat", "tactics"),
     *("shanghai", "halve_it", "killer", "golf", "baseball", "count_up"),
+    *DRILLS,
 ]
 STARTS = [0, 0, 2, 40, 101, 301, 501, 1001]
 BEDS = [
@@ -97,9 +99,14 @@ class PracticeMachine(RuleBasedStateMachine):
         snapshot = self.game.snapshot()
         if self.game.bulling:
             return ("BULL", "25", "S20")[choice]
+        drill = snapshot["drill"]
+        if drill and "remaining" in drill:
+            # The checkout drills name the score to finish, not a bed.
+            route = drill["checkout"] or f"T{20 - choice}"
+            return str(route.split()[0])
         if snapshot.get("checkout"):
             return str(snapshot["checkout"].split()[0])
-        target = snapshot.get("target")
+        target = (drill or snapshot).get("target")
         if target:
             bed = {"D": "D20", "T": "T20", "25": "BULL"}.get(target, target)
             return f"{'SDT'[choice]}{bed}" if bed.isdigit() else str(bed)
@@ -331,6 +338,19 @@ class PracticeMachine(RuleBasedStateMachine):
                 assert player.match_points >= player.points
             for key in ("scores_100", "scores_140", "scores_180"):
                 assert getattr(tally, key) >= getattr(player, key)
+
+    @invariant()
+    def a_drill_keeps_its_results(self) -> None:
+        """A training game stays within its targets, and one that ended has its
+        result among the last ten."""
+        drill = self.game.snapshot()["drill"]
+        if drill is None:
+            return
+        assert drill["drill"] == self.game.drill
+        assert len(drill["results"]) <= RESULTS
+        assert drill["results"] or not drill["finished"]
+        if "progress" in drill:
+            assert 0 <= drill["progress"] <= drill["targets"]
 
     @invariant()
     def a_team_with_the_bot_has_no_name(self) -> None:

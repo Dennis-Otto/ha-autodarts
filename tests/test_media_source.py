@@ -22,8 +22,7 @@ from custom_components.autodarts.media_source import (
     highlight_folder,
 )
 
-from .test_local_setup import setup_local
-from .test_training import board
+from .local_helpers import board, setup_local
 
 PHOTOS = [
     "2026-09-26_21-05-33_Alex_180.jpg",
