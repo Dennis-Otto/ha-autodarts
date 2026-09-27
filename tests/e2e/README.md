@@ -33,8 +33,11 @@ The scenario uses only Home Assistant's public REST and WebSocket APIs and verif
 - a practice match of two players that ends with its summary in the practice sensor
   and the `match_won` event, and double out switched during a leg, which applies
   from the next leg
-- diagnostics without the board ID, API key or webhook address, and logs without
-  errors, tracebacks or secrets
+- a round robin tournament of three players at 101, started by
+  `autodarts.start_tournament` and played on the board: the order of play, the
+  pause between the matches, the table, the tournament events and the profiles
+- diagnostics without the board ID, API key, webhook address or player names, and
+  logs without errors, tracebacks or secrets
 - removal of the entry, its entities, the realtime connection and the stored
   training session, weekly report and journal
 

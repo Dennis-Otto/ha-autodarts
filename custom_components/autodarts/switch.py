@@ -1,4 +1,5 @@
-"""Local detection, upstream connection, settings, training and practice games."""
+"""Local detection, upstream connection, settings, training, practice games and
+tournaments."""
 
 from functools import partial
 from typing import Any
@@ -38,6 +39,8 @@ async def async_setup_entry(
                     for option in PRACTICE_OPTIONS
                 ),
                 AutodartsAchievementsSwitch(coordinator),
+                AutodartsTournamentSwitch(coordinator, "third_place"),
+                AutodartsTournamentSwitch(coordinator, "random_draw"),
             ]
         )
 
@@ -160,3 +163,27 @@ class AutodartsAchievementsSwitch(AutodartsLocalEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_achievements(False)
+
+
+class AutodartsTournamentSwitch(AutodartsLocalEntity, SwitchEntity):
+    """A setting of the next tournament: the third-place match or a random draw."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator, option: str) -> None:
+        super().__init__(coordinator, f"tournament_{option}")
+        self._option = option
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def is_on(self) -> bool:
+        return bool(getattr(self.coordinator.tournament.setup, self._option))
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_tournament(**{self._option: True})
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_tournament(**{self._option: False})

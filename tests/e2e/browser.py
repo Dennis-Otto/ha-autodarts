@@ -130,6 +130,18 @@ DOUBLE_20 = {
     "segment": {"name": "D20", "number": 20, "multiplier": 2, "bed": "Double"},
     "coords": {"x": 0.002, "y": 0.972},
 }
+# 101 in one visit: 60, 1 and the double 20.
+CHECKOUT_101 = [
+    T20,
+    {
+        "segment": {"name": "S1", "number": 1, "multiplier": 1, "bed": "SingleOuter"},
+        "coords": {"x": 0.244, "y": 0.751},
+    },
+    {
+        "segment": {"name": "D20", "number": 20, "multiplier": 2, "bed": "Double"},
+        "coords": {"x": 0.0, "y": 0.976},
+    },
+]
 # Calls a service for an Autodarts entity through the logged-in frontend.
 CALL_SERVICE = """
 async ([domain, service, key, data]) => {
@@ -875,6 +887,80 @@ def more_games(browser: Browser) -> None:
     page.close()
 
 
+def tournament(browser: Browser) -> None:
+    """A round robin started on the new game screen, played, shown and stopped."""
+    page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 800})
+    page.add_init_script(CAPTURE_ERRORS)
+    page.goto(f"{HA}/autodarts-demo/tournament")
+    card = "autodarts-scoreboard-card"
+    page.locator(f"{card} .main").wait_for(timeout=30000)
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    page.evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
+    )
+    page.locator(f"{card} .lobby-toggle").click()
+    page.locator(f"{card} [data-lobby='mode'][data-value='tournament']").click()
+    groups = page.locator(f"{card} .lobby-group .section-label").all_text_contents()
+    check(groups == ["X01", "Cricket"], f"Tournament games {groups}")
+    players = page.locator(f"{card} .lobby-player .who")
+    while players.count():
+        page.locator(f"{card} .lobby-player [data-lobby='remove']").first.click()
+    for name in ("Alex", "Sam", "Kim"):
+        page.locator(f"{card} .suggestion", has_text=name).click()
+    page.locator(f"{card} .game", has_text="101").click()
+    fewer = page.locator(f"{card} [data-lobby='legs'][data-value='-1']")
+    while not fewer.is_disabled():
+        fewer.click()
+    start = page.locator(f"{card} .lobby .start")
+    check(start.text_content() == "Start tournament", "No tournament to start")
+    start.click()
+
+    # Kim and Sam open the round robin; its round is in the match view.
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector('.meta')"
+        ".textContent.startsWith('Tournament · Round 1 · Match 1 of 3')",
+        timeout=15000,
+    )
+    state = page.evaluate(SCOREBOARD_STATE)
+    check(
+        [player[0] for player in state["players"]] == ["Kim", "Sam"],
+        f"First match {state}",
+    )
+    for count in range(1, 4):
+        control({"event": "Throw detected", "throws": CHECKOUT_101[:count]})
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+
+    # After the summary of the match (8 seconds), the table with the next match.
+    page.locator(f"{card} .standings").wait_for(timeout=15000)
+    rows = page.locator(f"{card} .standings tbody .who").all_text_contents()
+    check(rows == ["Kim", "Alex", "Sam"], f"Table {rows}")
+    pairing = page.locator(f"{card} .pairing").text_content()
+    check(pairing == "AlexvsKim", f"Next match {pairing!r}")
+    page.locator(f"{card} .start-next").click()
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector('.meta')"
+        ".textContent.startsWith('Tournament · Round 2 · Match 2 of 3')",
+        timeout=15000,
+    )
+
+    # Ending the game stops the tournament too.
+    page.locator(f"{card} .lobby-toggle").click()
+    end = page.locator(f"{card} [data-lobby='end']")
+    check(end.text_content() == "Stop tournament", f"End button {end.text_content()}")
+    end.click()
+    end.click()
+    page.wait_for_function(
+        f"() => !({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector(\"[data-lobby='end']\")",
+        timeout=15000,
+    )
+    stage = page.evaluate(STATE_OF, "tournament")
+    check(stage == "no_tournament", f"Tournament after stopping: {stage}")
+    page.locator(f"{card} [data-lobby='close']").click()
+    errors = page_errors(page, [])
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+
 def caller(browser: Browser) -> None:
     """The caller stays silent until a tap switches it on."""
     page, problems = open_view(
@@ -1029,6 +1115,7 @@ def main() -> None:
             ("more games", lambda: more_games(browser)),
             ("scoreboard caller", lambda: caller(browser)),
             ("new game screen", lambda: lobby(browser)),
+            ("tournament", lambda: tournament(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
             ("live card editor", lambda: editor(browser, rows=7)),
@@ -1077,8 +1164,9 @@ def main() -> None:
         "training heatmap with dart positions, badges, trends, the leaderboard, "
         "history and "
         "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
-        "match summary, its caller and new game screen, the generated dashboard, "
-        "the players export, all seven card forms, the strategy editor and light theme."
+        "match summary, its caller, new game screen and tournament, the generated "
+        "dashboard, the players export, all seven card forms, the strategy editor "
+        "and light theme."
     )
 
 

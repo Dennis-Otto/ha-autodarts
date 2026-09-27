@@ -59,6 +59,18 @@ def dart(number: int, multiplier: int, bed: str, radius: float) -> dict:
 
 
 SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5]
+S1 = {
+    "segment": {"name": "S1", "number": 1, "multiplier": 1, "bed": "SingleOuter"},
+    "coords": {"x": 0.244, "y": 0.751},
+}
+D20 = {
+    "segment": {"name": "D20", "number": 20, "multiplier": 2, "bed": "Double"},
+    "coords": {"x": 0.0, "y": 0.976},
+}
+# 101 in one visit: 60, 1 and the double 20.
+CHECKOUT_101 = [T20, S1, D20]
+# Names that appear nowhere else, so diagnostics can be searched for them.
+TOURNAMENT_PLAYERS = ["Anneliese", "Bertram", "Cordula"]
 # Logged while the fault injection makes the board unavailable.
 EXPECTED_LOGS = (
     "Board Manager does not answer",
@@ -127,6 +139,16 @@ ENTITIES = {
     "practice_new_match": "button",
     "practice_player_1": "text",
     "practice_player_4": "text",
+    "tournament": "sensor",
+    "tournament_format": "select",
+    "tournament_game": "select",
+    "tournament_players": "text",
+    "tournament_pause": "number",
+    "tournament_third_place": "switch",
+    "tournament_random_draw": "switch",
+    "tournament_start": "button",
+    "tournament_next_match": "button",
+    "tournament_stop": "button",
     "weekly_report": "sensor",
     "weekly_report_day": "select",
     "weekly_report_time": "time",
@@ -1377,10 +1399,95 @@ class Scenario:
             (GALLERY / PHOTO).unlink()
             outside.unlink()
 
+    async def tournament(self) -> None:
+        """A round robin of three at 101, started by the action and played on the board."""
+        self.fired_board_events()
+        await self.api(
+            "POST",
+            "/api/services/autodarts/start_tournament",
+            json={
+                "players": TOURNAMENT_PLAYERS,
+                "format": "round_robin",
+                "game": "101",
+                "legs": 1,
+                "sets": 1,
+                "double_out": True,
+                "bull_off": False,
+                "pause": 1,
+                "summary": 0,
+            },
+        )
+        await self.expect_states(
+            {
+                "tournament": "round_1",
+                "practice_game": "101",
+                "practice_remaining": "101",
+            }
+        )
+        pairings = []
+        for number in (1, 2, 3):
+
+            async def current(number: int = number) -> dict | None:
+                match = (await self.state("tournament"))["attributes"]["current"]
+                return match if match and match["match"] == number else None
+
+            match = await wait_for(current, f"tournament match {number}")
+            pairings.append(match["players"])
+            # The first player of every match checks out 101 in one visit.
+            for count in range(1, 4):
+                await self.board(
+                    "POST", "/control/state", json={"throws": CHECKOUT_101[:count]}
+                )
+            await self.expect_states({"practice_remaining": "0"})
+            await self.board("POST", "/control/state", json={"throws": []})
+        await self.expect_states({"tournament": "finished"})
+        attributes = (await self.state("tournament"))["attributes"]
+        first, second, third = TOURNAMENT_PLAYERS
+        check(
+            pairings == [[third, second], [first, third], [second, first]],
+            f"Unexpected order of play: {pairings}",
+        )
+        # Everybody won once, 1:0 with the same average: the order of the draw decides.
+        check(
+            attributes["winner"] == first
+            and [row["name"] for row in attributes["standings"]] == TOURNAMENT_PLAYERS
+            and all(row["points"] == 2 for row in attributes["standings"]),
+            f"Unexpected table: {attributes['standings']}",
+        )
+        fired = [
+            item
+            for item in self.fired_board_events()
+            if item["event_type"].startswith("tournament_")
+        ]
+        check(
+            [item["event_type"] for item in fired]
+            == [
+                "tournament_started",
+                *["tournament_match_finished"] * 3,
+                "tournament_finished",
+            ]
+            and fired[-1]["winner"] == first
+            and fired[1]["next"] == [first, third],
+            f"Unexpected tournament events: {fired}",
+        )
+        # The matches count for the profiles like any other match.
+        profiles = (await self.state("player_profiles"))["attributes"]["players"]
+        won = {player["name"]: player["matches_won"] for player in profiles}
+        check(
+            all(won.get(name) == 1 for name in TOURNAMENT_PLAYERS),
+            f"Tournament matches missing in the profiles: {won}",
+        )
+        await self.api("POST", "/api/services/autodarts/stop_tournament", json={})
+        await self.expect_states({"tournament": "no_tournament"})
+
     async def diagnostics(self, entry_id: str) -> None:
         report = await self.api("GET", f"/api/diagnostics/config_entry/{entry_id}")
         data = report["data"]
         check(API_KEY not in json.dumps(report), "Diagnostics expose the board API key")
+        for name in TOURNAMENT_PLAYERS:
+            check(
+                name not in json.dumps(report), f"Diagnostics expose the player {name}"
+            )
         check(TLS_KEY not in json.dumps(report), "Diagnostics expose the TLS key")
         check(BOARD_ID not in json.dumps(data), "Diagnostics expose the board ID")
         check("Alex" not in json.dumps(report), "Diagnostics expose a player name")
@@ -1467,6 +1574,7 @@ async def main() -> None:
         await scenario.card()
         await scenario.people()
         await scenario.gallery()
+        await scenario.tournament()
         await scenario.diagnostics(entry_id)
         await scenario.logs()
         await scenario.remove(entry_id)
@@ -1481,8 +1589,8 @@ async def main() -> None:
         "exports, Golf, Tactics and a team match with start scores, an achievement "
         "with dart positions, a match "
         "summary, double out from the next leg, dashboard card, players linked to "
-        "persons, the highlight gallery in the media browser, private diagnostics, "
-        "clean logs and removal."
+        "persons, the highlight gallery in the media browser, a round robin "
+        "tournament, private diagnostics, clean logs and removal."
     )
 
 

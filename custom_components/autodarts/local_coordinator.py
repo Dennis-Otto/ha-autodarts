@@ -57,6 +57,7 @@ from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
 from .records import PersonalRecords
 from .report import BoardReports
 from .storage import TrainingStore
+from .tournament import TOURNAMENT_EVENTS, TournamentDirector
 from .training import TrainingSession, segments
 
 _LOGGER = logging.getLogger(__name__)
@@ -87,6 +88,9 @@ RECONNECT_JITTER = 0.2
 RECONNECT_RESET_SECONDS = 30
 # Failed realtime attempts in a row before a warning, about half a minute.
 STREAM_WARN_ATTEMPTS = 5
+# A tournament match that is due waits this long before it looks again whether
+# the board is clear and no other game is played.
+FIXTURE_RETRY = timedelta(seconds=5)
 # A board away this long is looked for at the addresses the Autodarts cloud reports.
 REDISCOVER_SECONDS = 300
 REDISCOVER_INTERVAL = 1800
@@ -121,6 +125,7 @@ EVENT_TYPES = [
     "bull_off_won",
     "weekly_report",
     "achievement_unlocked",
+    *TOURNAMENT_EVENTS,
     # Moments of online matches, from the browser extension Tools for Autodarts.
     *ONLINE_EVENT_TYPES,
 ]
@@ -216,6 +221,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.records = PersonalRecords()
         self.reports = BoardReports(hass, entry.entry_id, self)
         self.progress = Progress()
+        self.tournament = TournamentDirector()
+        self._fixture_unsub: CALLBACK_TYPE | None = None
         self._midnight_unsub: CALLBACK_TYPE | None = None
         self._store = TrainingStore(hass, entry.entry_id)
         self._training_dirty = False
@@ -268,6 +275,10 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.practice.profiles,
             dt_util.now(),
         )
+        self.tournament.restore(
+            saved.get("tournament") if isinstance(saved, dict) else None
+        )
+        self.practice.hold = self.tournament.waiting
         if saved is None:
             self._save_training()
         await self.reports.async_load()
@@ -280,6 +291,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "practice": self.practice.stored(),
             "records": self.records.stored(),
             "progress": self.progress.stored(),
+            "tournament": self.tournament.stored(),
         }
 
     def _save_training(self) -> None:
@@ -290,6 +302,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def async_start(self) -> None:
         # Entities exist now, so an overdue idle end is announced, too.
         self._schedule_idle_end()
+        self._schedule_fixture()
         # Issues of earlier runs are not kept across restarts.
         self._report_generation()
         self.reports.async_start()
@@ -313,6 +326,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._idle_unsub:
             self._idle_unsub()
             self._idle_unsub = None
+        if self._fixture_unsub:
+            self._fixture_unsub()
+            self._fixture_unsub = None
         if self._midnight_unsub:
             self._midnight_unsub()
             self._midnight_unsub = None
@@ -618,6 +634,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.progress.session_visit(pending.booking)
         events = self.practice.finish_visit()
         events += self.progress.after(pending, self.practice, dt_util.now())
+        # A tournament takes the result once the practice game booked it.
+        events += self._fixture()
         for kind, details in self._recorded(events):
             self._emit(kind, details, source)
 
@@ -1301,6 +1319,74 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         practice.set_format(legs, sets)
         practice.play(game)
         await self._async_training([])
+
+    # -- tournaments ---------------------------------------------------------------
+
+    async def async_start_tournament(self, **options: Any) -> None:
+        """Draw a tournament and start its first match; see TournamentDirector.start."""
+        events = self.tournament.start(self.practice, dt_util.utcnow(), **options)
+        await self._async_tournament(events)
+
+    async def async_stop_tournament(self) -> None:
+        self.tournament.stop(self.practice)
+        await self._async_tournament([])
+
+    async def async_next_tournament_match(self) -> None:
+        """Start the next match without waiting for the pause to end."""
+        self.tournament.next_match(self.practice)
+        await self._async_tournament([])
+
+    async def async_set_tournament(self, **setup: Any) -> None:
+        """A setting of the next tournament; a new pause applies at once."""
+        self.tournament.configure(**setup)
+        await self._async_tournament([])
+
+    async def _async_tournament(self, events: list[tuple[str, dict[str, Any]]]) -> None:
+        await self._async_training(events)
+        self._schedule_fixture()
+
+    def _fixture(self) -> list[tuple[str, dict[str, Any]]]:
+        """After a visit: the result of a tournament match, and the next match
+        once the pause is over, no darts are left on the board and no other
+        game is being played."""
+        now = dt_util.utcnow()
+        events = self.tournament.booked(self.practice, now)
+        due = (
+            self.tournament.due(now)
+            and not self.training.visit()
+            and self.tournament.free(self.practice)
+        )
+        if due:
+            self.tournament.next_match(self.practice)
+        if events or due:
+            self._schedule_fixture()
+        return events
+
+    @callback
+    def _schedule_fixture(self) -> None:
+        if self._fixture_unsub:
+            self._fixture_unsub()
+            self._fixture_unsub = None
+        if (due := self.tournament.due_at()) is not None:
+            self._fixture_unsub = async_track_point_in_utc_time(
+                self.hass, self._async_fixture_due, max(due, dt_util.utcnow())
+            )
+
+    async def _async_fixture_due(self, _now: datetime) -> None:
+        """The pause is over: the next match starts, or with the takeout of the
+        darts still on the board, or once another game is decided."""
+        self._fixture_unsub = None
+        if not self.tournament.due(dt_util.utcnow()):
+            # Woken early, or the pause changed meanwhile.
+            self._schedule_fixture()
+            return
+        if not self.training.visit() and self.tournament.free(self.practice):
+            await self.async_next_tournament_match()
+            return
+        # The takeout starts it at once; the end of another game is checked again.
+        self._fixture_unsub = async_track_point_in_utc_time(
+            self.hass, self._async_fixture_due, dt_util.utcnow() + FIXTURE_RETRY
+        )
 
     @callback
     def _report_quality(self) -> None:

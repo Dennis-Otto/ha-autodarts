@@ -314,6 +314,41 @@
       },
       "achievements": {
         "name": "Achievements"
+      },
+      "tournament": {
+        "name": "Tournament",
+        "state": {
+          "no_tournament": "No tournament",
+          "round_1": "Round 1",
+          "round_2": "Round 2",
+          "round_3": "Round 3",
+          "round_4": "Round 4",
+          "round_5": "Round 5",
+          "round_6": "Round 6",
+          "round_7": "Round 7",
+          "quarter_final": "Quarter-final",
+          "semi_final": "Semi-final",
+          "third_place": "Third-place match",
+          "final": "Final",
+          "finished": "Finished"
+        },
+        "state_attributes": {
+          "status": {
+            "name": "Status",
+            "state": {
+              "playing": "Match in play",
+              "waiting": "Waiting for the next match",
+              "finished": "Finished"
+            }
+          },
+          "format": {
+            "name": "Format",
+            "state": {
+              "round_robin": "Round robin",
+              "knockout": "Knockout"
+            }
+          }
+        }
       }
     },
     "button": {
@@ -355,6 +390,15 @@
       },
       "practice_new_match": {
         "name": "New practice match"
+      },
+      "tournament_start": {
+        "name": "Start tournament"
+      },
+      "tournament_next_match": {
+        "name": "Next tournament match"
+      },
+      "tournament_stop": {
+        "name": "Stop tournament"
       }
     },
     "switch": {
@@ -399,6 +443,12 @@
       },
       "achievements_enabled": {
         "name": "Achievements"
+      },
+      "tournament_third_place": {
+        "name": "Tournament third-place match"
+      },
+      "tournament_random_draw": {
+        "name": "Tournament random draw"
       }
     },
     "select": {
@@ -455,6 +505,27 @@
       },
       "practice_golf_holes": {
         "name": "Practice Golf holes"
+      },
+      "tournament_format": {
+        "name": "Tournament format",
+        "state": {
+          "round_robin": "Round robin",
+          "knockout": "Knockout"
+        }
+      },
+      "tournament_game": {
+        "name": "Tournament game",
+        "state": {
+          "101": "101",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "901": "901",
+          "1001": "1001",
+          "cricket": "Cricket",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics"
+        }
       }
     },
     "number": {
@@ -478,6 +549,12 @@
       },
       "practice_count_up_rounds": {
         "name": "Practice Count-Up rounds"
+      },
+      "tournament_pause": {
+        "name": "Tournament pause"
+      },
+      "tournament_summary": {
+        "name": "Tournament summary"
       }
     },
     "binary_sensor": {
@@ -544,6 +621,9 @@
               "personal_best": "Personal best",
               "daily_goal_reached": "Daily goal reached",
               "bull_off_won": "Bull-off won",
+              "tournament_started": "Tournament started",
+              "tournament_match_finished": "Tournament match finished",
+              "tournament_finished": "Tournament finished",
               "online_game_on": "Online: game on",
               "online_visit": "Online: visit",
               "online_dart": "Online: dart",
@@ -589,6 +669,9 @@
     "text": {
       "practice_player": {
         "name": "Practice player {number}"
+      },
+      "tournament_players": {
+        "name": "Tournament players"
       }
     },
     "calendar": {
@@ -662,6 +745,15 @@
     },
     "invalid_start_score": {
       "message": "A start score is 0, for the game's start score, or 2 to 1001."
+    },
+    "tournament_players": {
+      "message": "A tournament needs three to eight players, not {count}."
+    },
+    "no_tournament": {
+      "message": "No tournament is being played."
+    },
+    "tournament_match_running": {
+      "message": "The tournament match of {first} against {second} is still being played. Play it to the end, or stop the tournament."
     }
   },
   "issues": {
@@ -837,6 +929,96 @@
           "description": "The player name, in any upper and lower case."
         }
       }
+    },
+    "start_tournament": {
+      "name": "Start tournament",
+      "description": "Draws a tournament of three to eight players and starts its first match: a round robin or a knockout of X01 or Cricket matches.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "The Autodarts board. Needed only with more than one board."
+        },
+        "players": {
+          "name": "Players",
+          "description": "Names of three to eight players, in the order of the draw. Without names, the players of Tournament players play."
+        },
+        "start_scores": {
+          "name": "Start scores",
+          "description": "X01 start scores of the players in the order of the names, for a handicap, for example 501, 501 and 301. 0 or a missing score plays the game's start score."
+        },
+        "format": {
+          "name": "Format",
+          "description": "Round robin: everyone plays everyone once. Knockout: the winners go on until the final."
+        },
+        "game": {
+          "name": "Game",
+          "description": "X01 from 101 to 1001 points, Cricket, Cut-Throat Cricket or Tactics."
+        },
+        "legs": {
+          "name": "Legs per set",
+          "description": "Legs that win a set in every match. Without it, the legs per set of the practice game apply."
+        },
+        "sets": {
+          "name": "Sets to win",
+          "description": "Sets that win a match. Without it, the sets of the practice game apply."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "X01 legs finish on a double or the bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "X01 legs start with a double or the bullseye."
+        },
+        "bull_off": {
+          "name": "Bull-off",
+          "description": "A bull-off decides who starts every match."
+        },
+        "bull_off_distance": {
+          "name": "Bull-off by distance",
+          "description": "Two darts in the same bull bed are decided by the distance the board measured instead of a rethrow."
+        },
+        "third_place": {
+          "name": "Third-place match",
+          "description": "In a knockout of four players or more, the losing semi-finalists play for third place."
+        },
+        "random_draw": {
+          "name": "Random draw",
+          "description": "Draws the order of the players at random instead of taking the order of the names."
+        },
+        "seed": {
+          "name": "Seed",
+          "description": "A number for a random draw: the same number draws the same order."
+        },
+        "pause": {
+          "name": "Pause",
+          "description": "Seconds between two matches, after the summary; 0 waits for Next tournament match."
+        },
+        "summary": {
+          "name": "Summary",
+          "description": "Seconds the summary of a match shows before the pause begins."
+        }
+      }
+    },
+    "stop_tournament": {
+      "name": "Stop tournament",
+      "description": "Ends the tournament. The match being played goes on as a practice match.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "The Autodarts board. Needed only with more than one board."
+        }
+      }
+    },
+    "next_tournament_match": {
+      "name": "Next tournament match",
+      "description": "Starts the next match of the tournament without waiting for the pause to end.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "The Autodarts board. Needed only with more than one board."
+        }
+      }
     }
   },
   "selector": {
@@ -879,6 +1061,12 @@
         "matches": "Practice matches",
         "profiles": "Player profiles",
         "all": "Everything"
+      }
+    },
+    "tournament_format": {
+      "options": {
+        "round_robin": "Round robin",
+        "knockout": "Knockout"
       }
     }
   }

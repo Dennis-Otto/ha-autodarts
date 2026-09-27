@@ -1,4 +1,5 @@
-"""Actions of the integration: start a practice game with one call, and more."""
+"""Actions of the integration: start a practice game or a tournament with one call,
+and more."""
 
 from __future__ import annotations
 
@@ -30,10 +31,23 @@ from .practice import (
     valid_start,
 )
 from .profiles import NAME_LENGTH
+from .tournament import (
+    FORMATS,
+    MAX_ENTRANTS,
+    MAX_PAUSE,
+    MAX_SEED,
+    MAX_SUMMARY,
+    MIN_ENTRANTS,
+    RULES,
+    TOURNAMENT_GAMES,
+)
 
 SERVICE_START_GAME = "start_game"
 SERVICE_DELETE_PLAYER = "delete_player"
 SERVICE_EXPORT = "export"
+SERVICE_START_TOURNAMENT = "start_tournament"
+SERVICE_STOP_TOURNAMENT = "stop_tournament"
+SERVICE_NEXT_TOURNAMENT_MATCH = "next_tournament_match"
 
 
 def _start_score(value: object) -> int:
@@ -69,6 +83,38 @@ START_GAME_SCHEMA = vol.Schema(
         ),
     }
 )
+
+
+START_TOURNAMENT_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
+        vol.Optional("players"): vol.All(
+            cv.ensure_list,
+            [vol.All(cv.string, vol.Length(max=NAME_LENGTH))],
+            vol.Length(min=MIN_ENTRANTS, max=MAX_ENTRANTS),
+        ),
+        vol.Optional("start_scores"): vol.All(
+            cv.ensure_list, [_start_score], vol.Length(max=MAX_ENTRANTS)
+        ),
+        vol.Optional("format"): vol.All(cv.string, vol.In(FORMATS)),
+        vol.Optional("game"): vol.All(cv.string, vol.In(TOURNAMENT_GAMES)),
+        vol.Optional("legs"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_LEGS)),
+        vol.Optional("sets"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SETS)),
+        **{vol.Optional(rule): cv.boolean for rule in RULES},
+        vol.Optional("third_place"): cv.boolean,
+        vol.Optional("random_draw"): cv.boolean,
+        vol.Optional("seed"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SEED)),
+        vol.Optional("pause"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=MAX_PAUSE)
+        ),
+        vol.Optional("summary"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=MAX_SUMMARY)
+        ),
+    }
+)
+
+# Actions that only name the board.
+BOARD_SCHEMA = vol.Schema({vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string})
 
 
 DELETE_PLAYER_SCHEMA = vol.Schema(
@@ -254,4 +300,38 @@ def async_setup_services(hass: HomeAssistant) -> None:
     )
     hass.services.async_register(
         DOMAIN, SERVICE_UNLINK_PLAYER, unlink_player, schema=UNLINK_PLAYER_SCHEMA
+    )
+
+    async def start_tournament(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        options = {
+            key: value
+            for key, value in call.data.items()
+            if key != ATTR_CONFIG_ENTRY_ID
+        }
+        rules = {rule: options.pop(rule, None) for rule in RULES}
+        await coordinator.async_start_tournament(rules=rules, **options)
+
+    async def stop_tournament(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        await coordinator.async_stop_tournament()
+
+    async def next_tournament_match(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        await coordinator.async_next_tournament_match()
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_START_TOURNAMENT,
+        start_tournament,
+        schema=START_TOURNAMENT_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_STOP_TOURNAMENT, stop_tournament, schema=BOARD_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_NEXT_TOURNAMENT_MATCH,
+        next_tournament_match,
+        schema=BOARD_SCHEMA,
     )

@@ -314,6 +314,41 @@
       },
       "achievements": {
         "name": "Erfolge"
+      },
+      "tournament": {
+        "name": "Turnier",
+        "state": {
+          "no_tournament": "Kein Turnier",
+          "round_1": "Runde 1",
+          "round_2": "Runde 2",
+          "round_3": "Runde 3",
+          "round_4": "Runde 4",
+          "round_5": "Runde 5",
+          "round_6": "Runde 6",
+          "round_7": "Runde 7",
+          "quarter_final": "Viertelfinale",
+          "semi_final": "Halbfinale",
+          "third_place": "Spiel um Platz 3",
+          "final": "Finale",
+          "finished": "Beendet"
+        },
+        "state_attributes": {
+          "status": {
+            "name": "Status",
+            "state": {
+              "playing": "Match läuft",
+              "waiting": "Wartet auf das nächste Match",
+              "finished": "Beendet"
+            }
+          },
+          "format": {
+            "name": "Format",
+            "state": {
+              "round_robin": "Jeder gegen jeden",
+              "knockout": "K.-o.-System"
+            }
+          }
+        }
       }
     },
     "button": {
@@ -355,6 +390,15 @@
       },
       "practice_new_match": {
         "name": "Neues Match im Übungsspiel"
+      },
+      "tournament_start": {
+        "name": "Turnier starten"
+      },
+      "tournament_next_match": {
+        "name": "Nächstes Turniermatch"
+      },
+      "tournament_stop": {
+        "name": "Turnier beenden"
       }
     },
     "switch": {
@@ -399,6 +443,12 @@
       },
       "achievements_enabled": {
         "name": "Erfolge"
+      },
+      "tournament_third_place": {
+        "name": "Turnier Spiel um Platz 3"
+      },
+      "tournament_random_draw": {
+        "name": "Turnier zufällige Auslosung"
       }
     },
     "select": {
@@ -455,6 +505,27 @@
       },
       "practice_golf_holes": {
         "name": "Übungsspiel Golf-Löcher"
+      },
+      "tournament_format": {
+        "name": "Turnierformat",
+        "state": {
+          "round_robin": "Jeder gegen jeden",
+          "knockout": "K.-o.-System"
+        }
+      },
+      "tournament_game": {
+        "name": "Turnierspiel",
+        "state": {
+          "101": "101",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "901": "901",
+          "1001": "1001",
+          "cricket": "Cricket",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics"
+        }
       }
     },
     "number": {
@@ -478,6 +549,12 @@
       },
       "practice_count_up_rounds": {
         "name": "Übungsspiel Count-Up-Runden"
+      },
+      "tournament_pause": {
+        "name": "Turnierpause"
+      },
+      "tournament_summary": {
+        "name": "Turnierzusammenfassung"
       }
     },
     "binary_sensor": {
@@ -544,6 +621,9 @@
               "personal_best": "Bestleistung",
               "daily_goal_reached": "Tagesziel erreicht",
               "bull_off_won": "Ausbullen gewonnen",
+              "tournament_started": "Turnier gestartet",
+              "tournament_match_finished": "Turniermatch beendet",
+              "tournament_finished": "Turnier beendet",
               "online_game_on": "Online: Game on",
               "online_visit": "Online: Aufnahme",
               "online_dart": "Online: Dart",
@@ -589,6 +669,9 @@
     "text": {
       "practice_player": {
         "name": "Übungsspiel Spieler {number}"
+      },
+      "tournament_players": {
+        "name": "Turnierspieler"
       }
     },
     "calendar": {
@@ -662,6 +745,15 @@
     },
     "invalid_start_score": {
       "message": "Startpunkte sind 0, für die Startpunkte des Spiels, oder 2 bis 1001."
+    },
+    "tournament_players": {
+      "message": "Ein Turnier braucht drei bis acht Spieler, nicht {count}."
+    },
+    "no_tournament": {
+      "message": "Es läuft kein Turnier."
+    },
+    "tournament_match_running": {
+      "message": "Das Turniermatch {first} gegen {second} läuft noch. Spiel es zu Ende oder beende das Turnier."
     }
   },
   "issues": {
@@ -837,6 +929,96 @@
           "description": "Der Spielername, in beliebiger Groß- und Kleinschreibung."
         }
       }
+    },
+    "start_tournament": {
+      "name": "Turnier starten",
+      "description": "Lost ein Turnier mit drei bis acht Spielern aus und startet das erste Match: jeder gegen jeden oder im K.-o.-System, mit Matches in X01 oder Cricket.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        },
+        "players": {
+          "name": "Spieler",
+          "description": "Namen von drei bis acht Spielern in der Reihenfolge der Auslosung. Ohne Namen spielen die Spieler aus Turnierspieler."
+        },
+        "start_scores": {
+          "name": "Startpunkte",
+          "description": "X01-Startpunkte der Spieler in der Reihenfolge der Namen, für ein Handicap, zum Beispiel 501, 501 und 301. 0 oder ein fehlender Wert spielt die Startpunkte des Spiels."
+        },
+        "format": {
+          "name": "Format",
+          "description": "Jeder gegen jeden: Alle spielen einmal gegeneinander. K.-o.-System: Die Sieger kommen weiter bis ins Finale."
+        },
+        "game": {
+          "name": "Spiel",
+          "description": "X01 von 101 bis 1001 Punkten, Cricket, Cut-Throat Cricket oder Tactics."
+        },
+        "legs": {
+          "name": "Legs pro Satz",
+          "description": "Legs, die in jedem Match einen Satz gewinnen. Ohne Angabe gelten die Legs pro Satz des Übungsspiels."
+        },
+        "sets": {
+          "name": "Sätze zum Sieg",
+          "description": "Sätze, die ein Match gewinnen. Ohne Angabe gelten die Sätze des Übungsspiels."
+        },
+        "double_out": {
+          "name": "Double-Out",
+          "description": "X01-Legs enden auf einem Double oder dem Bullseye."
+        },
+        "double_in": {
+          "name": "Double-In",
+          "description": "X01-Legs beginnen mit einem Double oder dem Bullseye."
+        },
+        "bull_off": {
+          "name": "Ausbullen",
+          "description": "Vor jedem Match entscheidet das Ausbullen, wer beginnt."
+        },
+        "bull_off_distance": {
+          "name": "Ausbullen nach Abstand",
+          "description": "Bei zwei Darts im selben Bull-Feld entscheidet der vom Board gemessene Abstand statt eines neuen Wurfs."
+        },
+        "third_place": {
+          "name": "Spiel um Platz 3",
+          "description": "Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3."
+        },
+        "random_draw": {
+          "name": "Zufällige Auslosung",
+          "description": "Lost die Reihenfolge der Spieler zufällig aus, statt die Reihenfolge der Namen zu nehmen."
+        },
+        "seed": {
+          "name": "Startwert",
+          "description": "Eine Zahl für eine zufällige Auslosung: Dieselbe Zahl lost dieselbe Reihenfolge aus."
+        },
+        "pause": {
+          "name": "Pause",
+          "description": "Sekunden zwischen zwei Matches, nach der Zusammenfassung; 0 wartet auf Nächstes Turniermatch."
+        },
+        "summary": {
+          "name": "Zusammenfassung",
+          "description": "Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt."
+        }
+      }
+    },
+    "stop_tournament": {
+      "name": "Turnier beenden",
+      "description": "Beendet das Turnier. Das laufende Match geht als Übungsspiel weiter.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        }
+      }
+    },
+    "next_tournament_match": {
+      "name": "Nächstes Turniermatch",
+      "description": "Startet das nächste Match des Turniers, ohne das Ende der Pause abzuwarten.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        }
+      }
     }
   },
   "selector": {
@@ -879,6 +1061,12 @@
         "matches": "Übungsmatches",
         "profiles": "Spielerprofile",
         "all": "Alles"
+      }
+    },
+    "tournament_format": {
+      "options": {
+        "round_robin": "Jeder gegen jeden",
+        "knockout": "K.-o.-System"
       }
     }
   }

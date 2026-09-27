@@ -24,6 +24,7 @@
     'realtime_connected': False,
     'records': None,
     'reports': None,
+    'tournament': None,
     'training_sessions': None,
   })
 # ---
@@ -228,6 +229,16 @@
       'time': '00:00',
       'weekday': 0,
     }),
+    'tournament': dict({
+      'format': 'round_robin',
+      'game': '501',
+      'pause': 10,
+      'players': 0,
+      'random_draw': False,
+      'running': None,
+      'summary': 8,
+      'third_place': False,
+    }),
     'training_sessions': dict({
       'active': True,
       'auto_start': True,
@@ -411,6 +422,16 @@
       'journal_sessions': 0,
       'time': '00:00',
       'weekday': 0,
+    }),
+    'tournament': dict({
+      'format': 'round_robin',
+      'game': '501',
+      'pause': 10,
+      'players': 0,
+      'random_draw': False,
+      'running': None,
+      'summary': 8,
+      'third_place': False,
     }),
     'training_sessions': dict({
       'active': True,

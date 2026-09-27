@@ -218,3 +218,41 @@ test("a renamed board is left out of the row names too", () => {
   });
   assert.deepEqual(config.views[0].sections[1].cards[1].entities, [{ entity: "number.b_players", name: "Players" }]);
 });
+
+test("the live view sets up and starts tournaments, with the tournament's stage as a tile", () => {
+  const keys = [
+    ["sensor.b_tournament", "tournament", "Autodarts Board Tournament"],
+    ["select.b_format", "tournament_format", "Autodarts Board Tournament format"],
+    ["text.b_players", "tournament_players", "Autodarts Board Tournament players"],
+    ["button.b_start", "tournament_start", "Autodarts Board Start tournament"],
+  ];
+  const withEntities = (list) =>
+    dashboardStrategy({
+      locale: { language: "en" },
+      entities: Object.fromEntries(list.map(([id, key]) => [id, entity(id, key, "dev1")])),
+      devices: { dev1: { name: "Autodarts Board" } },
+      states: Object.fromEntries(
+        list.map(([id, , name]) => [id, { entity_id: id, state: "on", attributes: { friendly_name: name } }])
+      ),
+    }).views[0].sections;
+  const [, tournament] = withEntities(keys);
+  assert.deepEqual(tournament, {
+    type: "grid",
+    column_span: 2,
+    cards: [
+      { type: "heading", heading: "Tournament" },
+      { type: "tile", entity: "sensor.b_tournament" },
+      {
+        type: "entities",
+        entities: [
+          { entity: "select.b_format", name: "Format" },
+          { entity: "text.b_players", name: "Players" },
+          { entity: "button.b_start", name: "Start tournament" },
+        ],
+      },
+    ],
+  });
+  // Without the sensor, the settings stand alone; without any, there is no section.
+  assert.deepEqual(withEntities(keys.slice(1))[1].cards.map((card) => card.type), ["heading", "entities"]);
+  assert.equal(withEntities(keys.slice(0, 1)).length, 1);
+});

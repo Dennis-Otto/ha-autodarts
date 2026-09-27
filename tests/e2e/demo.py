@@ -163,6 +163,19 @@ def dashboard() -> dict:
                     }
                 ],
             },
+            # A tournament on that screen.
+            {
+                "title": "Tournament",
+                "path": "tournament",
+                "panel": True,
+                "cards": [
+                    {
+                        "type": "custom:autodarts-scoreboard-card",
+                        "full_height": True,
+                        "idle": False,
+                    }
+                ],
+            },
         ],
     }
 

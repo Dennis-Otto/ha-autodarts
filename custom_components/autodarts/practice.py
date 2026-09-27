@@ -181,6 +181,8 @@ class PracticeGame:
         self.drills: dict[str, Drill] = {kind: make_drill(kind) for kind in DRILLS}
         self.profiles = Profiles()
         self.doubles = DoubleStats()
+        # A tournament keeps a finished match until its next match starts.
+        self.hold = False
         self._visit: list[dict[str, Any]] = []
         # Board positions of the visit's darts, where the board reports them.
         self._positions: list[tuple[float, float] | None] = []
@@ -654,6 +656,10 @@ class PracticeGame:
         if not self._playing():
             return []
         if self.winner is not None and self._thrown():
+            if self.hold:
+                # Darts thrown while a tournament waits count for no match.
+                self._skip = len(self._visit)
+                return []
             # The first dart after a finished match starts the next one.
             self.new_match()
             self._skip = 0

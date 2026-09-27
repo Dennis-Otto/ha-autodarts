@@ -1,4 +1,5 @@
-"""Camera standby of the Board Manager, the practice game, Golf holes and the report day."""
+"""Camera standby of the Board Manager, the practice game, Golf holes, the report
+day and the tournament."""
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import EntityCategory
@@ -12,6 +13,7 @@ from .party import GOLF_HOLES
 from .practice import GAME_OPTIONS
 from .report import WEEKDAYS
 from .runtime import AutodartsConfigEntry
+from .tournament import FORMATS, TOURNAMENT_GAMES
 
 PARALLEL_UPDATES = 1
 
@@ -28,6 +30,8 @@ async def async_setup_entry(
                 AutodartsPracticeGame(coordinator),
                 AutodartsGolfHoles(coordinator),
                 AutodartsReportDay(coordinator),
+                AutodartsTournamentSelect(coordinator, "format"),
+                AutodartsTournamentSelect(coordinator, "game"),
             ]
         )
 
@@ -128,3 +132,26 @@ class AutodartsReportDay(AutodartsLocalEntity, SelectEntity):
     async def async_select_option(self, option: str) -> None:
         reports = self.coordinator.reports
         await reports.async_set_schedule(WEEKDAYS.index(option), reports.report.time)
+
+
+class AutodartsTournamentSelect(AutodartsLocalEntity, SelectEntity):
+    """The format or the game of the next tournament."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+        super().__init__(coordinator, f"tournament_{key}")
+        self._key = key
+        self._attr_options = list(FORMATS if key == "format" else TOURNAMENT_GAMES)
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def current_option(self) -> str:
+        value: str = getattr(self.coordinator.tournament.setup, self._key)
+        return value
+
+    async def async_select_option(self, option: str) -> None:
+        await self.coordinator.async_set_tournament(**{self._key: option})

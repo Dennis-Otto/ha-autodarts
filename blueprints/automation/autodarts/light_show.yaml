@@ -3,7 +3,8 @@ blueprint:
   description: >-
     Plays your light effects at the big moments of the game: a 180, a high
     finish, a bust, a won leg or match, a personal best, the daily goal, a
-    won bull-off and an achievement, and optionally while you pull the darts. Every moment has
+    won bull-off, an achievement and the winner of a tournament, and optionally
+    while you pull the darts. Every moment has
     its own actions, for example a WLED preset or a flash of your room
     lights; a moment without actions stays dark.
 
@@ -22,7 +23,8 @@ blueprint:
 
     Your actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`,
     `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`,
-    `takeout` or `board_clear`), `who` (the player's name, or "Player 2"), `player`
+    `tournament`, `takeout` or `board_clear`), `who` (the player's name, or
+    "Player 2"), `player`
     (1 to 4), `score` (of a 180), `checkout` (of a won leg) and
     `trigger.to_state.attributes` (every detail of the board event).
   domain: automation
@@ -157,6 +159,19 @@ blueprint:
           default: []
           selector:
             action: {}
+    tournament:
+      name: Tournament won
+      icon: mdi:tournament
+      collapsed: true
+      input:
+        tournament_actions:
+          name: Actions for a won tournament
+          description: >-
+            Run when the last match of a tournament is booked, after the
+            actions for the won match; `who` is the winner of the tournament.
+          default: []
+          selector:
+            action: {}
     takeout:
       name: Takeout
       icon: mdi:hand-back-left
@@ -226,6 +241,8 @@ blueprint:
                   value: bull_off
                 - label: Achievement
                   value: achievement
+                - label: Tournament won
+                  value: tournament
         restore_lights:
           name: Restore these lights
           description: >-
@@ -289,6 +306,7 @@ triggers:
         - daily_goal_reached
         - bull_off_won
         - achievement_unlocked
+        - tournament_finished
         - takeout_started
         - takeout_finished
         - online_busted
@@ -305,6 +323,7 @@ variables:
   player: "{{ trigger.to_state.attributes.get('player') | int(0) }}"
   who: >-
     {{ trigger.to_state.attributes.get('name')
+       or trigger.to_state.attributes.get('winner')
        or ('Player ' ~ player if trigger.to_state.attributes.get('players', 1) > 1 else '') }}
   moment: >-
     {% set event = trigger.to_state.attributes %}
@@ -321,7 +340,8 @@ variables:
     {%- else %}
     {{- {'bust': 'bust', 'match_won': 'match', 'personal_best': 'personal_best',
          'daily_goal_reached': 'daily_goal', 'bull_off_won': 'bull_off',
-         'achievement_unlocked': 'achievement', 'takeout_started': 'takeout',
+         'achievement_unlocked': 'achievement', 'tournament_finished': 'tournament',
+         'takeout_started': 'takeout',
          'takeout_finished': 'board_clear'}.get(kind, '') }}
     {%- endif %}
   effect_moments: !input effect_moments
@@ -378,6 +398,8 @@ actions:
         sequence: !input bull_off_actions
       - conditions: "{{ moment == 'achievement' }}"
         sequence: !input achievement_actions
+      - conditions: "{{ moment == 'tournament' }}"
+        sequence: !input tournament_actions
       - conditions: "{{ moment == 'takeout' }}"
         sequence: !input takeout_actions
       - conditions: "{{ moment == 'board_clear' }}"

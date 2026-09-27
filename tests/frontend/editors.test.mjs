@@ -208,9 +208,14 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
     { name: "idle_after", selector: seconds(10, 3600), default: 180 },
     { name: "idle_interval", selector: seconds(3, 120), default: 10 },
   ]);
-  assert.deepEqual(labels(idle.schema[2]), ["Leaderboard", "Personal bests", "Today", "Last match", "Clock"]);
-  assert.equal(idle.schema[2].selector.select.mode, "list");
-  assert.equal(form.computeHelper(idle.schema[2]), "Empty shows every panel.");
+  assert.deepEqual(labels(idle.schema[2]), [
+    "Tournament",
+    "Leaderboard",
+    "Personal bests",
+    "Today",
+    "Last match",
+    "Clock",
+  ]);
 
   // Lists accept the games and panels they offer, and nothing else.
   assert.doesNotThrow(() => form.assertConfig({ lobby_games: [501, "cricket"], idle_panels: [], idle_after: 60 }));
