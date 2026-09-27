@@ -303,6 +303,60 @@ const TEXT = {
     say_marks: "{marks} marks",
     say_leg: "Game shot, and the leg!",
     say_match: "Game shot, and the match, {name}!",
+    // New game screen of the scoreboard
+    lobby_open: "New game",
+    lobby_title: "New game",
+    lobby_label: "Choose the game, the players and the format",
+    lobby_group_x01: "X01",
+    lobby_group_cricket: "Cricket",
+    lobby_group_party: "Party games",
+    lobby_group_training: "Training games",
+    lobby_group_more: "More games",
+    lobby_players: "Players",
+    lobby_guest: "Guest",
+    lobby_add: "Add",
+    lobby_name: "Name",
+    lobby_new_player: "Name of another player",
+    lobby_home: "at home",
+    lobby_move_up: "Move {name} up",
+    lobby_move_down: "Move {name} down",
+    lobby_remove: "Remove {name}",
+    lobby_format: "Format",
+    lobby_legs: "Legs per set",
+    lobby_sets: "Sets to win",
+    lobby_decrease: "Fewer: {name}",
+    lobby_increase: "More: {name}",
+    lobby_options: "Options",
+    lobby_one_player: "Training games are for one player: {name} plays.",
+    lobby_nobody: "Nobody chosen: one player throws without a name.",
+    lobby_start: "Start {game}",
+    lobby_close: "Close",
+    lobby_end: "End game",
+    double_out: "Double out",
+    double_in: "Double in",
+    bull_off_distance: "Bull-off by distance",
+    // Idle mode of the scoreboard
+    idle_panel_leaderboard: "Leaderboard",
+    idle_panel_records: "Personal bests",
+    idle_panel_today: "Today",
+    idle_panel_last_match: "Last match",
+    idle_panel_clock: "Clock",
+    idle_legs: "Legs {won}/{played}",
+    idle_goal: "of {goal} darts",
+    idle_back: "Tap to return",
+    // Scoreboard editor
+    lobby: "New game screen",
+    lobby_games: "Games offered",
+    lobby_games_helper: "Empty offers every game of the board.",
+    lobby_section: "New game screen",
+    lobby_section_helper: "Tap New game to choose the game, the players and the format; it also opens a few seconds after a game ends.",
+    idle: "Idle mode",
+    idle_after: "Idle after",
+    idle_interval: "Next panel after",
+    idle_panels: "Panels",
+    idle_panels_helper: "Empty shows every panel.",
+    idle_section: "Idle mode",
+    idle_section_helper: "When no game runs and nobody throws or taps, the scoreboard shows these panels in turn.",
     // Training card
     training: "Training",
     average_long: "3-dart average",
@@ -572,6 +626,57 @@ const TEXT = {
     say_marks: "{marks} Marks",
     say_leg: "Game shot, und das Leg!",
     say_match: "Game shot, und das Match, {name}!",
+    lobby_open: "Neues Spiel",
+    lobby_title: "Neues Spiel",
+    lobby_label: "Wähle das Spiel, die Spieler und das Format",
+    lobby_group_x01: "X01",
+    lobby_group_cricket: "Cricket",
+    lobby_group_party: "Partyspiele",
+    lobby_group_training: "Trainingsspiele",
+    lobby_group_more: "Weitere Spiele",
+    lobby_players: "Spieler",
+    lobby_guest: "Gast",
+    lobby_add: "Hinzufügen",
+    lobby_name: "Name",
+    lobby_new_player: "Name eines weiteren Spielers",
+    lobby_home: "zu Hause",
+    lobby_move_up: "{name} nach oben",
+    lobby_move_down: "{name} nach unten",
+    lobby_remove: "{name} entfernen",
+    lobby_format: "Format",
+    lobby_legs: "Legs pro Satz",
+    lobby_sets: "Sätze zum Sieg",
+    lobby_decrease: "Weniger: {name}",
+    lobby_increase: "Mehr: {name}",
+    lobby_options: "Optionen",
+    lobby_one_player: "Trainingsspiele sind für einen Spieler: {name} spielt.",
+    lobby_nobody: "Niemand gewählt: Ein Spieler wirft ohne Namen.",
+    lobby_start: "{game} starten",
+    lobby_close: "Schließen",
+    lobby_end: "Spiel beenden",
+    double_out: "Double-Out",
+    double_in: "Double-In",
+    bull_off_distance: "Ausbullen nach Abstand",
+    idle_panel_leaderboard: "Bestenliste",
+    idle_panel_records: "Bestleistungen",
+    idle_panel_today: "Heute",
+    idle_panel_last_match: "Letztes Match",
+    idle_panel_clock: "Uhr",
+    idle_legs: "Legs {won}/{played}",
+    idle_goal: "von {goal} Darts",
+    idle_back: "Tippen, um zurückzukehren",
+    lobby: "Spielauswahl",
+    lobby_games: "Angebotene Spiele",
+    lobby_games_helper: "Leer bietet jedes Spiel des Boards an.",
+    lobby_section: "Spielauswahl",
+    lobby_section_helper: "Tippe auf Neues Spiel, um Spiel, Spieler und Format zu wählen; die Auswahl öffnet sich auch einige Sekunden nach dem Ende eines Spiels.",
+    idle: "Ruhemodus",
+    idle_after: "Ruhemodus nach",
+    idle_interval: "Nächste Tafel nach",
+    idle_panels: "Tafeln",
+    idle_panels_helper: "Leer zeigt jede Tafel.",
+    idle_section: "Ruhemodus",
+    idle_section_helper: "Läuft kein Spiel und wirft oder tippt niemand, zeigt die Anzeigetafel diese Tafeln im Wechsel.",
     training: "Training",
     average_long: "3-Dart-Average",
     visits: "Aufnahmen",
@@ -725,6 +830,12 @@ const SCOREBOARD_DEFAULTS = {
   call_checkouts: true,
   call_results: true,
   call_sounds: true,
+  // The new game screen; without a list of games it offers every game of the board.
+  lobby: true,
+  // Panels in turn when no game runs and nobody threw or tapped for a while.
+  idle: true,
+  idle_after: 180,
+  idle_interval: 10,
 };
 
 // Entities a card reads, by domain and translation key of the integration.
@@ -819,6 +930,19 @@ const SCOREBOARD_KEYS = {
   max: "sensor.training_scores_180",
   streak: "sensor.training_streak",
   today: "sensor.darts_today",
+  // The new game screen reads the game, the format and the rules as they are set.
+  game: "select.practice_game",
+  players: "number.practice_players",
+  legs: "number.practice_legs",
+  sets: "number.practice_sets",
+  doubleOut: "switch.practice_double_out",
+  doubleIn: "switch.practice_double_in",
+  bullOff: "switch.practice_bull_off",
+  bullOffDistance: "switch.practice_bull_off_distance",
+  // Profiles with their pictures, records and the last match for the idle panels.
+  profiles: "sensor.player_profiles",
+  lastMatch: "sensor.last_match",
+  bests: "sensor.personal_best",
 };
 
 // Per-camera entities carry their camera number as an attribute.
@@ -1678,11 +1802,12 @@ function bullOffPlayers(bullOff, ui) {
   }));
 }
 
-// Players as large tiles on the scoreboard.
-function playerTiles(players) {
+// Players as large tiles on the scoreboard, with the picture of a linked person.
+function playerTiles(players, ui = {}) {
   const tiles = players.map(
     (player) =>
-      `<div class="player${player.state ? ` ${player.state}` : ""}"><div class="name">${escapeHtml(player.name)}</div>` +
+      `<div class="player${player.state ? ` ${player.state}` : ""}"><div class="name">` +
+      `${avatarHtml(ui.avatar?.(player.name))}${escapeHtml(player.name)}</div>` +
       `<div class="big${player.lives ? " lives" : ""}">${escapeHtml(player.value)}</div>` +
       `<div class="route">${player.note}</div>` +
       `<div class="details">${escapeHtml(player.details.filter(Boolean).join(" · "))}</div></div>`
@@ -1735,7 +1860,10 @@ function cricketTable(cricket, ui, { aim = true } = {}) {
   if (match && cricket.setsToWin > 1) rows.push(row("detail", t("score_sets"), text((score) => String(score.sets))));
   const names = cricket.scores.map((score) => playerName(ui, score, match));
   const head = cricket.scores
-    .map((score, index) => `<th class="${column(score)}">${escapeHtml(names[index])}</th>`)
+    .map(
+      (score, index) =>
+        `<th class="${column(score)}">${avatarHtml(ui.avatar?.(names[index]))}${escapeHtml(names[index])}</th>`
+    )
     .join("");
   const next = aim && cricket.target && !cricket.won && cricket.winner === null ? bedChips(ui, [cricket.target]) : "";
   const shot = aim && cricket.won && cricket.winner === null ? note(t("game_shot"), "won") : "";
@@ -1854,7 +1982,7 @@ function scoreboardHtml(view, ui) {
       title: t("bull_off"),
       meta: t("bull_off_hint"),
       banner: "",
-      main: playerTiles(bullOffPlayers(view.bullOff, ui)),
+      main: playerTiles(bullOffPlayers(view.bullOff, ui), ui),
     };
   }
   const game = { cricket: view.cricket, party: view.party }[view.mode] ?? view.practice;
@@ -1862,8 +1990,8 @@ function scoreboardHtml(view, ui) {
   const round = view.mode === "party" && game.rounds ? `${t("drill_round")} ${game.round}/${game.rounds}` : "";
   const main = {
     cricket: () => cricketTable(game, ui),
-    party: () => playerTiles(partyPlayers(game, ui)),
-    x01: () => playerTiles(x01Players(game, ui)),
+    party: () => playerTiles(partyPlayers(game, ui), ui),
+    x01: () => playerTiles(x01Players(game, ui), ui),
   }[view.mode]();
   return {
     title: { cricket: t("cricket"), party: view.party ? t(`party_${view.party.kind}`) : "" }[view.mode] ??
@@ -1921,12 +2049,14 @@ function playersView(profiles, lastMatch) {
   return { players, headToHead, matches };
 }
 
-// A game as players call it: 501, Cricket, Killer.
-function gameName(t, game) {
+// A game as players call it: 501, Cricket, Killer, Bob's 27. Games the card does
+// not know yet read as Home Assistant names the option, if it is asked.
+function gameName(t, game, fallback) {
   if (Number.isInteger(game)) return String(game);
   if (game === "cricket") return t("cricket");
   if (PARTY_GAMES.includes(game)) return t(`party_${game}`);
-  return String(game ?? "");
+  if (DRILLS.includes(game)) return t(`drill_${game}`);
+  return (fallback && fallback(game)) || String(game ?? "");
 }
 
 function playersHtml(view, ui) {
@@ -1948,7 +2078,8 @@ function playersHtml(view, ui) {
         ]),
       ];
       return (
-        `<div class="profile"><div class="profile-name">${escapeHtml(player.name)}</div>` +
+        `<div class="profile"><div class="profile-name">${avatarHtml(ui.avatar?.(player.name))}` +
+        `<span>${escapeHtml(player.name)}</span></div>` +
         `<div class="muted">${escapeHtml(
           `${t("profile_legs")} ${player.legsWon}/${player.legsPlayed} · ` +
             `${t("profile_matches")} ${player.matchesWon}/${player.matchesPlayed}`
@@ -1986,6 +2117,406 @@ function playersHtml(view, ui) {
     })
     .join("");
   return { players, headToHead, matches };
+}
+
+// People ---------------------------------------------------------------------
+
+// Pictures that Home Assistant serves itself or that come from the web; no other schemes.
+function pictureUrl(value) {
+  return typeof value === "string" && /^(\/(?!\/)|https?:\/\/)/i.test(value) ? value : null;
+}
+
+const avatarHtml = (picture) =>
+  picture ? `<img class="avatar" src="${escapeHtml(picture)}" alt="" draggable="false">` : "";
+
+// Names are the same player regardless of upper and lower case, as in the integration.
+const nameKey = (name) => String(name ?? "").trim().toLowerCase();
+
+// The person each player is linked to, with the picture and whether they are home.
+function personLinks(hass, profiles) {
+  const links = new Map();
+  const players = Array.isArray(profiles?.attributes?.players) ? profiles.attributes.players : [];
+  for (const player of players) {
+    if (!named(player?.name) || !named(player.person)) continue;
+    const state = hass?.states?.[player.person];
+    links.set(nameKey(player.name), {
+      person: player.person,
+      picture: pictureUrl(state?.attributes?.entity_picture),
+      home: state?.state === "home",
+    });
+  }
+  return links;
+}
+
+// The new game screen ------------------------------------------------------------
+
+const LOBBY_GROUPS = ["x01", "cricket", "party", "training", "more"];
+// Limits of the start_game action.
+const LOBBY_LIMITS = { players: 4, name: 20, legs: 11, sets: 7 };
+// Every game of the practice select this card knows, for the editor before a board is seen.
+const KNOWN_GAMES = ["101", "301", "501", "701", "901", "1001", "cricket", ...PARTY_GAMES, ...DRILLS];
+// A game that ended opens the new game screen after this pause, so the result shows first.
+const LOBBY_DELAY = 8000;
+const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance"];
+
+function gameGroup(game) {
+  if (/^\d+$/.test(game)) return "x01";
+  if (game.startsWith("cricket")) return "cricket";
+  if (PARTY_GAMES.includes(game)) return "party";
+  return DRILLS.includes(game) ? "training" : "more";
+}
+
+// What a game asks of the players, and whether the X01 rules apply.
+function gameRules(game) {
+  const group = gameGroup(game);
+  const drill = group === "training";
+  return {
+    x01: group === "x01",
+    drill,
+    minPlayers: game === "killer" ? 2 : 1,
+    maxPlayers: drill ? 1 : LOBBY_LIMITS.players,
+  };
+}
+
+// The games of the practice select by group, as far as the card offers them.
+function lobbyGames(options, offered) {
+  const wanted = Array.isArray(offered) && offered.length ? new Set(offered.map(String)) : null;
+  const games = (Array.isArray(options) ? options : [])
+    .map(String)
+    .filter((game) => game !== "off" && (!wanted || wanted.has(game)));
+  return LOBBY_GROUPS.map((group) => ({ group, games: games.filter((game) => gameGroup(game) === group) })).filter(
+    (item) => item.games.length
+  );
+}
+
+const within = (value, max, fallback) =>
+  Number.isInteger(value) ? Math.min(Math.max(value, 1), max) : fallback;
+
+// The choice the new game screen starts from: the game, the players and the
+// rules as the board has them now. A name twice becomes a guest.
+function lobbyChoice(board, games) {
+  const game = games.includes(board.game) ? board.game : games.includes("501") ? "501" : games[0];
+  const count = within(board.players, LOBBY_LIMITS.players, 1);
+  const players = [];
+  for (let index = 0; index < count; index += 1) {
+    const name = String(board.names[index] ?? "").trim();
+    players.push(players.some((other) => name && nameKey(other) === nameKey(name)) ? "" : name);
+  }
+  return {
+    game,
+    // Players without any name need not be chosen: the game starts with one of them.
+    players: players.some(Boolean) ? players : [],
+    legs: within(board.legs, LOBBY_LIMITS.legs, 1),
+    sets: within(board.sets, LOBBY_LIMITS.sets, 1),
+    double_out: board.double_out !== false,
+    double_in: board.double_in === true,
+    bull_off: board.bull_off === true,
+    bull_off_distance: board.bull_off_distance === true,
+    draft: "",
+  };
+}
+
+// The choice after a tap: a game, a player added, moved or removed, the format or a rule.
+function lobbyChange(choice, action, value) {
+  const next = { ...choice, players: [...choice.players] };
+  const index = Number(value);
+  const room = next.players.length < LOBBY_LIMITS.players;
+  if (action === "game") {
+    next.game = String(value);
+  } else if (action === "add") {
+    const name = String(value ?? "").trim().slice(0, LOBBY_LIMITS.name);
+    if (room && name && !next.players.some((player) => nameKey(player) === nameKey(name))) {
+      next.players.push(name);
+      next.draft = "";
+    }
+  } else if (action === "guest" && room) {
+    next.players.push("");
+  } else if (action === "remove") {
+    next.players.splice(index, 1);
+  } else if (action === "up" || action === "down") {
+    const other = action === "up" ? index - 1 : index + 1;
+    if (other >= 0 && other < next.players.length) {
+      [next.players[index], next.players[other]] = [next.players[other], next.players[index]];
+    }
+  } else if (action === "legs" || action === "sets") {
+    next[action] = within(next[action] + index, LOBBY_LIMITS[action], next[action]);
+  } else if (action === "toggle" && LOBBY_OPTIONS.includes(value)) {
+    next[value] = !next[value];
+  }
+  return next;
+}
+
+// Names to add: players at home first, then everybody else with a profile or a name field.
+function lobbySuggestions(profiles, names, links, chosen) {
+  const taken = new Set(chosen.map(nameKey));
+  const people = new Map();
+  const listed = (Array.isArray(profiles?.attributes?.players) ? profiles.attributes.players : []).map(
+    (player) => player?.name
+  );
+  for (const name of [...listed, ...names]) {
+    const key = nameKey(name);
+    if (!named(name) || !key || taken.has(key) || people.has(key)) continue;
+    const link = links.get(key);
+    people.set(key, { name: name.trim(), picture: link?.picture ?? null, home: link?.home === true });
+  }
+  const all = [...people.values()];
+  return [...all.filter((person) => person.home), ...all.filter((person) => !person.home)];
+}
+
+// The start_game action for a choice; rules the game or the board does not have stay out.
+function startGameData(choice, { entry = null, distance = false } = {}) {
+  const rules = gameRules(choice.game);
+  const players = choice.players.slice(0, rules.maxPlayers);
+  const data = { game: choice.game, players: players.length ? players : [""] };
+  if (entry) data.config_entry_id = entry;
+  if (!rules.drill && players.length > 1) {
+    Object.assign(data, { legs: choice.legs, sets: choice.sets, bull_off: choice.bull_off });
+    if (distance && choice.bull_off) data.bull_off_distance = choice.bull_off_distance;
+  }
+  if (rules.x01) Object.assign(data, { double_out: choice.double_out, double_in: choice.double_in });
+  return data;
+}
+
+// The new game screen: the games by group, the players, the format, the rules and the start.
+function lobbyHtml(choice, ui) {
+  const { t } = ui;
+  const rules = gameRules(choice.game);
+  const text = (key, values) => escapeHtml(values ? fill(t(key), values) : t(key));
+  const button = (action, value, content, extra = "") =>
+    `<button type="button" data-lobby="${action}"${value === undefined ? "" : ` data-value="${escapeHtml(value)}"`}` +
+    `${extra}>${content}</button>`;
+  const block = (label, content, kind) =>
+    `<div class="lobby-block ${kind}"><div class="section-label">${text(label)}</div>${content}</div>`;
+  const games = ui.games
+    .map(
+      ({ group, games: list }) =>
+        `<div class="lobby-group ${group}"><div class="section-label">${text(`lobby_group_${group}`)}</div>` +
+        `<div class="game-grid">${list
+          .map((game) =>
+            button("game", game, escapeHtml(ui.name(game)), ` class="game" aria-pressed="${game === choice.game}"`)
+          )
+          .join("")}</div></div>`
+    )
+    .join("");
+  const shown = (name, index) => name || `${t("score_player")} ${index + 1}`;
+  const last = choice.players.length - 1;
+  const players = choice.players
+    .map((name, index) => {
+      const who = { name: shown(name, index) };
+      return (
+        `<li class="lobby-player${index >= rules.maxPlayers ? " resting" : ""}">${avatarHtml(ui.avatar(name))}` +
+        `<span class="who">${escapeHtml(who.name)}</span>` +
+        button("up", index, "▲", ` aria-label="${text("lobby_move_up", who)}"${index === 0 ? " disabled" : ""}`) +
+        button("down", index, "▼", ` aria-label="${text("lobby_move_down", who)}"${index === last ? " disabled" : ""}`) +
+        button("remove", index, "✕", ` aria-label="${text("lobby_remove", who)}"`) +
+        `</li>`
+      );
+    })
+    .join("");
+  const full = choice.players.length >= LOBBY_LIMITS.players ? " disabled" : "";
+  const suggestions =
+    ui.suggestions
+      .map((person) =>
+        button(
+          "add",
+          person.name,
+          `${avatarHtml(person.picture)}<span>${escapeHtml(person.name)}</span>` +
+            (person.home ? `<span class="home" title="${text("lobby_home")}" aria-label="${text("lobby_home")}">⌂</span>` : ""),
+          ` class="suggestion${person.home ? " home" : ""}"${full}`
+        )
+      )
+      .join("") + button("guest", undefined, `+ ${text("lobby_guest")}`, ` class="suggestion guest"${full}`);
+  const entry =
+    `<div class="name-entry"><input class="lobby-name" type="text" maxlength="${LOBBY_LIMITS.name}" autocomplete="off"` +
+    ` enterkeyhint="done" data-focus="lobby-name" placeholder="${text("lobby_name")}"` +
+    ` aria-label="${text("lobby_new_player")}" value="${escapeHtml(choice.draft)}"${full}>` +
+    `${button("add-name", undefined, text("lobby_add"), full)}</div>`;
+  const match = !rules.drill && choice.players.length > 1;
+  const stepper = (key, label) => {
+    const name = { name: t(label) };
+    return (
+      `<div class="stepper"><span class="stepper-label">${text(label)}</span><span class="stepper-controls">` +
+      button(key, -1, "−", ` aria-label="${text("lobby_decrease", name)}"${choice[key] <= 1 ? " disabled" : ""}`) +
+      `<b class="stepper-value">${choice[key]}</b>` +
+      button(key, 1, "+", ` aria-label="${text("lobby_increase", name)}"${choice[key] >= LOBBY_LIMITS[key] ? " disabled" : ""}`) +
+      `</span></div>`
+    );
+  };
+  const options = [
+    ...(rules.x01 ? ["double_out", "double_in"] : []),
+    ...(match ? ["bull_off"] : []),
+    ...(match && ui.distance && choice.bull_off ? ["bull_off_distance"] : []),
+  ];
+  // Nobody chosen is one player without a name.
+  const blocked = Math.max(choice.players.length, 1) < rules.minPlayers;
+  const hint = blocked
+    ? t("needs_players")
+    : rules.drill && choice.players.length > 1
+      ? fill(t("lobby_one_player"), { name: shown(choice.players[0], 0) })
+      : "";
+  const actions =
+    `<div class="lobby-actions"><span class="lobby-hint" role="status">${escapeHtml(hint)}</span>` +
+    (ui.running ? button("end", undefined, text(ui.confirmEnd ? "confirm" : "lobby_end"), ' class="secondary"') : "") +
+    button("close", undefined, text("lobby_close"), ' class="secondary"') +
+    button("start", undefined, text("lobby_start", { game: ui.name(choice.game) }), ` class="start"${blocked ? " disabled" : ""}`) +
+    `</div>`;
+  return (
+    `<section class="lobby" aria-label="${text("lobby_label")}"><div class="lobby-games">${games}</div>` +
+    `<div class="lobby-setup">${block(
+      "lobby_players",
+      (players ? `<ol class="lobby-players">${players}</ol>` : `<p class="lobby-nobody muted">${text("lobby_nobody")}</p>`) +
+        `<div class="suggestions">${suggestions}</div>${entry}`,
+      "players-block"
+    )}` +
+    (match
+      ? block("lobby_format", `<div class="steppers">${stepper("legs", "lobby_legs")}${stepper("sets", "lobby_sets")}</div>`, "format")
+      : "") +
+    (options.length
+      ? block(
+          "lobby_options",
+          options
+            .map((option) =>
+              button("toggle", option, text(option), ` class="option" aria-pressed="${choice[option]}"`)
+            )
+            .join(""),
+          "options"
+        )
+      : "") +
+    `${actions}</div></section>`
+  );
+}
+
+// Idle mode ----------------------------------------------------------------------
+
+const IDLE_PANELS = ["leaderboard", "records", "today", "last_match", "clock"];
+
+// Whether a game is on: none without a game, over once a match or a training game is decided.
+function gameState(view) {
+  if (view.mode === "idle") return "none";
+  if (view.mode === "drill") return view.drill.finished ? "over" : "running";
+  if (view.mode === "bulloff") return "running";
+  const game = view.practice ?? view.cricket ?? view.party;
+  return game.winner === null ? "running" : "over";
+}
+
+// The best players by 3-dart average, then by legs won.
+function leaderboardHtml(data, ui) {
+  const ranked = data.players
+    .filter((player) => player.legsPlayed > 0)
+    .sort(
+      (a, b) => (b.average ?? -1) - (a.average ?? -1) || b.legsWon - a.legsWon || a.name.localeCompare(b.name)
+    )
+    .slice(0, 5);
+  if (!ranked.length) return "";
+  return `<ol class="ranking">${ranked
+    .map(
+      (player, index) =>
+        `<li><span class="rank">${index + 1}</span>${avatarHtml(ui.avatar(player.name))}` +
+        `<span class="who">${escapeHtml(player.name)}</span>` +
+        `<span class="score">${player.average === null ? "–" : `Ø ${escapeHtml(ui.format(player.average, 1))}`}</span>` +
+        `<span class="muted">${escapeHtml(
+          fill(ui.t("idle_legs"), { won: player.legsWon, played: player.legsPlayed })
+        )}</span></li>`
+    )
+    .join("")}</ol>`;
+}
+
+function recordsHtml(data, ui) {
+  return data.records.length ? `<dl class="records">${bestsHtml(data.records, ui)}</dl>` : "";
+}
+
+// Today's darts towards the daily goal, and the session.
+function todayHtml(data, ui) {
+  const { t, format } = ui;
+  const { stats } = data;
+  if (stats.today === null) return "";
+  const goal = stats.goal > 0;
+  const share = goal ? Math.min(100, Math.round((stats.today * 100) / stats.goal)) : 0;
+  const facts = [
+    { value: format(stats.average, 1), name: t("average") },
+    { value: format(stats.highest, 0), name: t("highest") },
+    { value: format(stats.max, 0), name: t("max") },
+    ...(stats.streak > 0
+      ? [{ value: format(stats.streak, 0), name: t(stats.streak === 1 ? "streak_day" : "streak_days") }]
+      : []),
+  ];
+  return (
+    `<div class="single"><div class="big">${escapeHtml(format(stats.today, 0))}</div>` +
+    `<div class="label">${escapeHtml(goal ? fill(t("idle_goal"), { goal: format(stats.goal, 0) }) : t("darts_today"))}</div>` +
+    (goal ? `<div class="goal${share >= 100 ? " reached" : ""}"><i style="width:${share}%"></i></div>` : "") +
+    `<div class="facts">${factsHtml(facts)}</div></div>`
+  );
+}
+
+// The last match of several players: the game, when, and everybody's result.
+function lastMatchHtml(data, ui) {
+  const { t, format } = ui;
+  const match = data.match;
+  if (!match) return "";
+  const rows = match.players
+    .map((player, index) => {
+      const name = named(player.name) ?? `${t("score_player")} ${index + 1}`;
+      const winner = index + 1 === match.winner;
+      const numbers = [
+        `${finite(player.sets) || finite(player.legs) || 0}`,
+        finite(player.average) === null ? "" : `Ø ${format(player.average, 1)}`,
+        finite(player.mpr) === null ? "" : `${t("cricket_mpr")} ${format(player.mpr, 2)}`,
+      ];
+      return (
+        `<li class="${winner ? "winner" : ""}">${avatarHtml(ui.avatar(name))}<span class="who">${escapeHtml(name)}</span>` +
+        `<span class="score">${escapeHtml(numbers[0])}</span>` +
+        `<span class="muted">${escapeHtml(numbers.slice(1).filter(Boolean).join(" · "))}</span>` +
+        `${winner ? '<span class="trophy" aria-hidden="true">🏆</span>' : ""}</li>`
+      );
+    })
+    .join("");
+  return (
+    `<div class="match-head">${escapeHtml(`${gameName(t, match.game)} · ${ui.date(match.ended)}`)}</div>` +
+    `<ol class="ranking result">${rows}</ol>`
+  );
+}
+
+function clockHtml(data, ui) {
+  const shown = ui.clock(data.now);
+  return (
+    `<div class="single clock"><div class="big">${escapeHtml(shown.time)}</div>` +
+    `<div class="facts"><span>${escapeHtml(shown.day)}</span></div></div>`
+  );
+}
+
+const IDLE_RENDER = {
+  leaderboard: leaderboardHtml,
+  records: recordsHtml,
+  today: todayHtml,
+  last_match: lastMatchHtml,
+  clock: clockHtml,
+};
+
+// The panels with something to show, in the order of the card's list.
+function idlePanels(wanted, data, ui) {
+  const list = Array.isArray(wanted) && wanted.length ? [...new Set(wanted)] : IDLE_PANELS;
+  return list
+    .filter((panel) => IDLE_PANELS.includes(panel))
+    .map((panel) => ({ panel, html: IDLE_RENDER[panel](data, ui) }))
+    .filter((panel) => panel.html);
+}
+
+// The time and the day as a clock shows them, in the server's or the browser's time zone.
+function formatClock(hass, moment) {
+  const locale = hass?.locale || {};
+  const language = locale.language || hass?.language;
+  const twelve = amPm(locale, language);
+  const server = hass?.config?.time_zone;
+  const zone = server && locale.time_zone !== "local" ? { timeZone: server } : {};
+  return {
+    time: formatter("date", language, {
+      hour: twelve ? "numeric" : "2-digit",
+      minute: "2-digit",
+      hourCycle: twelve ? "h12" : "h23",
+      ...zone,
+    }).format(moment),
+    day: formatter("date", language, { weekday: "long", day: "numeric", month: "long", ...zone }).format(moment),
+  };
 }
 
 // Doubles --------------------------------------------------------------------
@@ -2470,7 +3001,29 @@ const FORM_HELPERS = {
   accent_color: "color_helper",
   highlight_color: "highlight_color_helper",
   caller_options: "caller_options_helper",
+  lobby_section: "lobby_section_helper",
+  lobby_games: "lobby_games_helper",
+  idle_section: "idle_section_helper",
+  idle_panels: "idle_panels_helper",
 };
+
+// The games to offer in the editor: those of a board's practice select, or every game the card knows.
+function gameOptions(hass) {
+  const select = Object.values(hass?.entities || {}).find(
+    (entity) => entity.platform === "autodarts" && entity.translation_key === "practice_game"
+  );
+  const options = hass?.states?.[select?.entity_id]?.attributes?.options;
+  return (Array.isArray(options) ? options.map(String) : KNOWN_GAMES)
+    .filter((game) => game !== "off")
+    .map((game) => ({ value: game, label: gameName(pageText, /^\d+$/.test(game) ? Number(game) : game) }));
+}
+
+// Seconds in a box with their unit.
+const secondsField = (name, min, max) => ({
+  name,
+  selector: { number: { min, max, step: 1, mode: "box", unit_of_measurement: "s" } },
+  default: SCOREBOARD_DEFAULTS[name],
+});
 
 // Every field of a form, also those inside grids and expandable sections.
 const formFields = (schema) => schema.flatMap((field) => (field.schema ? formFields(field.schema) : [field]));
@@ -2496,8 +3049,13 @@ function cardForm(schema, defaults) {
       for (const field of fields) {
         const value = config?.[field.name];
         if (value === undefined || value === null || value === "") continue;
+        // YAML reads 501 as a number; the option is the text "501".
+        const allowed = (item) =>
+          options.get(field.name).some((option) => option.value === (typeof item === "number" ? String(item) : item));
         const valid = options.has(field.name)
-          ? options.get(field.name).some((option) => option.value === value)
+          ? field.selector.select.multiple
+            ? Array.isArray(value) && value.every(allowed)
+            : allowed(value)
           : field.selector.boolean
             ? typeof value === "boolean"
             : !field.selector.number || Number.isFinite(value);
@@ -2572,6 +3130,34 @@ const FORMS = {
       name: "caller_options",
       flatten: true,
       schema: [toggles(["call_scores", "call_checkouts", "call_results", "call_sounds"], SCOREBOARD_DEFAULTS)],
+    },
+    {
+      type: "expandable",
+      name: "lobby_section",
+      flatten: true,
+      schema: [
+        toggles(["lobby"], SCOREBOARD_DEFAULTS),
+        { name: "lobby_games", selector: { select: { multiple: true, mode: "dropdown", options: gameOptions(pageHass) } } },
+      ],
+    },
+    {
+      type: "expandable",
+      name: "idle_section",
+      flatten: true,
+      schema: [
+        toggles(["idle"], SCOREBOARD_DEFAULTS),
+        { type: "grid", name: "", schema: [secondsField("idle_after", 10, 3600), secondsField("idle_interval", 3, 120)] },
+        {
+          name: "idle_panels",
+          selector: {
+            select: {
+              multiple: true,
+              mode: "list",
+              options: IDLE_PANELS.map((panel) => ({ value: panel, label: pageText(`idle_panel_${panel}`) })),
+            },
+          },
+        },
+      ],
     },
     accentField,
   ],
@@ -2674,6 +3260,12 @@ const BASE_CSS = `
   .note.won { color: var(--ad-ok-text); }
   .note.bust { color: var(--ad-error-text); }
   .message { padding: 18px; color: var(--secondary-text-color); }
+  /* The picture of the person a player is linked to. */
+  .avatar {
+    display: inline-block; flex-shrink: 0; width: 1.25em; height: 1.25em; margin-right: .35em;
+    border-radius: 50%; object-fit: cover; vertical-align: -.2em;
+    background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
+  }
 `;
 
 const CSS = `${BASE_CSS}
@@ -3092,6 +3684,113 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .sum { min-width: 4.5em; color: var(--text-primary-color, #fff); background: var(--ad-accent); }
   .sum .muted { color: inherit; opacity: .85; }
   .sum .value { font-size: clamp(22px, 4.2cqi, 56px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  /* The new game screen: large targets for a finger, readable from the oche. */
+  .lobby-toggle, .lobby-cta, .lobby button { font: inherit; cursor: pointer; touch-action: manipulation; }
+  .lobby-toggle {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border-radius: 999px;
+    font-size: clamp(12px, 1.5cqi, 18px); font-weight: 700; color: var(--ad-accent);
+    border: 1px solid var(--ad-accent); background: none;
+  }
+  .lobby-cta {
+    align-self: center; min-height: 56px; padding: 0 clamp(24px, 4cqi, 56px); border: none; border-radius: 999px;
+    font-size: clamp(16px, 2.4cqi, 28px); font-weight: 800; color: var(--text-primary-color, #fff); background: var(--ad-accent);
+  }
+  .choosing .main { justify-content: flex-start; }
+  .lobby {
+    display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: clamp(14px, 2.4cqi, 32px); align-items: start;
+  }
+  /* A portrait tablet or a phone stacks the games above the players. */
+  @container (max-width: 880px) { .lobby { grid-template-columns: minmax(0, 1fr); } }
+  .lobby-games, .lobby-setup {
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(12px, 1.8cqi, 22px); align-content: start;
+  }
+  .lobby .section-label { margin-bottom: 8px; font-size: clamp(11px, 1.4cqi, 15px); }
+  .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(112px, 15cqi, 180px), 1fr)); gap: 8px; }
+  .lobby button {
+    min-height: 48px; padding: 0 14px; border-radius: 14px; font-weight: 700; color: var(--primary-text-color);
+    border: 2px solid var(--divider-color, rgba(127,127,127,.3));
+    background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+  }
+  .lobby button:disabled { opacity: .4; cursor: default; }
+  /* Training games have longer names. */
+  .lobby-group.training .game-grid, .lobby-group.more .game-grid {
+    grid-template-columns: repeat(auto-fill, minmax(clamp(150px, 20cqi, 240px), 1fr));
+  }
+  .lobby .game {
+    min-height: clamp(52px, 7cqi, 76px); padding: 4px 8px; font-size: clamp(15px, 2.1cqi, 26px); line-height: 1.1;
+    hyphens: auto; overflow-wrap: break-word;
+  }
+  .lobby [aria-pressed="true"] { color: var(--text-primary-color, #fff); background: var(--ad-accent); border-color: var(--ad-accent); }
+  .lobby-players { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 6px; }
+  .lobby-player {
+    display: flex; align-items: center; gap: 6px; padding: 4px 4px 4px 12px; border-radius: 16px;
+    font-size: clamp(16px, 2cqi, 24px); font-weight: 700; background: color-mix(in srgb, var(--ad-accent) 12%, transparent);
+  }
+  .lobby-player.resting { opacity: .45; }
+  .lobby-player .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lobby-player button { min-width: 48px; padding: 0; }
+  .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .lobby .suggestion { display: inline-flex; align-items: center; border-radius: 999px; }
+  .suggestion .home { margin-left: 6px; color: var(--ad-ok-text); }
+  .lobby .suggestion.guest { border-style: dashed; }
+  .name-entry { display: flex; gap: 8px; }
+  .lobby-name {
+    flex: 1; min-width: 0; min-height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 14px;
+    font: inherit; font-size: 16px; color: var(--primary-text-color); background: none;
+    border: 2px solid var(--divider-color, rgba(127,127,127,.3));
+  }
+  .steppers { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+  .stepper { display: grid; gap: 4px; }
+  .stepper-label { font-size: clamp(13px, 1.6cqi, 18px); font-weight: 600; color: var(--secondary-text-color); }
+  .stepper-controls { display: flex; align-items: center; gap: 10px; }
+  .lobby .stepper button { min-width: 52px; font-size: 22px; }
+  .stepper-value { min-width: 2ch; text-align: center; font-size: clamp(20px, 2.6cqi, 32px); font-variant-numeric: tabular-nums; }
+  .lobby-nobody { margin: 0 0 10px; font-size: clamp(12px, 1.5cqi, 16px); }
+  .options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .options .section-label { flex-basis: 100%; margin-bottom: 0; }
+  /* The start stays in reach at the bottom of the screen while the page scrolls. */
+  .lobby-actions {
+    position: sticky; bottom: 0; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
+    gap: 10px; padding: 8px 0; background: var(--ha-card-background, var(--card-background-color, #1c1c1c));
+  }
+  .lobby-hint { flex: 1 1 100%; font-weight: 700; color: var(--ad-warn-text); }
+  .lobby-hint:empty { display: none; }
+  .lobby .secondary { background: none; }
+  .lobby .start {
+    min-height: 60px; padding: 0 clamp(20px, 3cqi, 40px); font-size: clamp(17px, 2.3cqi, 26px); font-weight: 800;
+    color: var(--text-primary-color, #fff); background: var(--ad-accent); border-color: var(--ad-accent);
+  }
+  /* Idle mode: panels in turn, faded in unless the device asks for less motion. */
+  .idle-panel { display: flex; flex-direction: column; gap: clamp(8px, 1.6cqi, 20px); animation: ad-fade .6s ease both; }
+  @keyframes ad-fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .idle-panel { animation: none; } }
+  .idle-back { text-align: center; font-size: clamp(11px, 1.4cqi, 15px); }
+  .ranking {
+    list-style: none; margin: 0 auto; padding: 0; width: min(100%, 960px); display: grid; gap: clamp(6px, 1.2cqi, 14px);
+  }
+  .ranking li {
+    display: flex; align-items: center; gap: clamp(8px, 1.6cqi, 20px); padding: clamp(8px, 1.4cqi, 16px) clamp(12px, 2cqi, 24px);
+    border-radius: 16px; font-size: clamp(16px, 2.8cqi, 36px); background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+  }
+  .ranking li.winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
+  .ranking .rank { min-width: 1.2em; font-weight: 800; color: var(--ad-accent); }
+  .ranking .who { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ranking .score { font-weight: 800; font-variant-numeric: tabular-nums; }
+  .ranking .muted { font-size: .55em; }
+  .match-head { text-align: center; font-size: clamp(14px, 2.2cqi, 28px); font-weight: 700; color: var(--secondary-text-color); }
+  .records {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(160px, 24cqi, 300px), 1fr));
+    gap: clamp(8px, 1.4cqi, 16px); width: min(100%, 1100px); margin: 0 auto;
+  }
+  .records div { padding: clamp(10px, 1.6cqi, 18px); border-radius: 16px; background: color-mix(in srgb, var(--primary-text-color) 5%, transparent); }
+  .records dt { font-size: clamp(12px, 1.6cqi, 18px); color: var(--secondary-text-color); }
+  .records dd { margin: 4px 0 0; font-size: clamp(20px, 3.4cqi, 44px); font-weight: 800; font-variant-numeric: tabular-nums; }
+  .goal {
+    width: min(80%, 640px); height: 12px; border-radius: 999px; overflow: hidden;
+    background: color-mix(in srgb, var(--primary-text-color) 12%, transparent);
+  }
+  .goal i { display: block; height: 100%; border-radius: inherit; background: var(--ad-accent); }
+  .goal.reached i { background: ${STATUS_COLORS.ready}; }
 `;
 
 const PLAYERS_CSS = `${BASE_CSS}
@@ -3102,9 +3801,10 @@ const PLAYERS_CSS = `${BASE_CSS}
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
   }
   .profile-name {
-    font-size: 17px; font-weight: 800; color: var(--primary-text-color);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: flex; align-items: center; min-width: 0; font-size: 17px; font-weight: 800; color: var(--primary-text-color);
   }
+  .profile-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .profile-name .avatar { width: 1.6em; height: 1.6em; margin-right: .45em; }
   .profile dl { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; margin: 4px 0 0; }
   .profile dt { font-size: 12px; color: var(--secondary-text-color); }
   .profile dd { margin: 0; font-size: 13px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
@@ -3314,14 +4014,25 @@ function createElements(Base) {
       return BASE_CSS;
     }
 
+    // Cards that show the pictures of the persons linked to the players.
+    static avatars = false;
+
     // Entity ids whose state changes redraw the card.
     _watched() {
-      return Object.values(this._ids);
+      return [...Object.values(this._ids), ...(this.constructor.avatars ? this._personIds() : [])];
     }
 
-    // The state of a watched entity as far as the card cares about it.
+    // The persons linked to the player profiles.
+    _personIds() {
+      const players = this._state("profiles")?.attributes?.players;
+      return (Array.isArray(players) ? players : []).map((player) => named(player?.person)).filter(Boolean);
+    }
+
+    // The state of a watched entity as far as the card cares about it: of a
+    // person only the picture and whether they are home, not every move.
     _relevant(id, state) {
-      return state;
+      if (!state || !id.startsWith("person.")) return state;
+      return `${state.state}|${state.attributes?.entity_picture ?? ""}`;
     }
 
     _render() {
@@ -3386,14 +4097,17 @@ function createElements(Base) {
       return formatPercent(this._hass, value, digits);
     }
 
-    // Texts, numbers and beds as the shared renderers read them.
+    // Texts, numbers, beds and the pictures of players as the shared renderers read them.
     _ui() {
+      const links = personLinks(this._hass, this._state("profiles"));
       return {
         t: (key) => this._t(key),
         format: (value, digits) => this._format(value, digits),
         percent: (value, digits) => this._percent(value, digits),
         label: (key) => hitLabel(this._hass, key),
         date: (value) => formatDateTime(this._hass, value),
+        avatar: (name) => links.get(nameKey(name))?.picture ?? null,
+        links,
       };
     }
 
@@ -4597,6 +5311,8 @@ function createElements(Base) {
 
     static form = "scoreboard";
 
+    static avatars = true;
+
     getCardSize() {
       return 8;
     }
@@ -4607,6 +5323,31 @@ function createElements(Base) {
 
     _css() {
       return SCOREBOARD_CSS;
+    }
+
+    // Back on the screen counts as a look at it: the idle time starts again.
+    connectedCallback() {
+      if (!this._el) return;
+      this._activity = Date.now();
+      this._update();
+    }
+
+    disconnectedCallback() {
+      super.disconnectedCallback();
+      clearTimeout(this._lobbyTimer);
+      clearTimeout(this._idleTimer);
+      this._idleOff();
+    }
+
+    // The four player name fields, in their order.
+    _nameIds() {
+      return [...(this._index?.["text.practice_player"] ?? [])].sort((a, b) =>
+        a.localeCompare(b, "en", { numeric: true })
+      );
+    }
+
+    _watched() {
+      return [...super._watched(), ...this._nameIds()];
     }
 
     _build() {
@@ -4627,6 +5368,9 @@ function createElements(Base) {
                   <div class="muted meta"></div>
                 </div>
                 <div class="header-actions">
+                  <button type="button" class="lobby-toggle" hidden><span aria-hidden="true">＋</span><span>${t(
+                    "lobby_open"
+                  )}</span></button>
                   ${c.caller ? caller : ""}
                   ${c.show_status ? `<div class="pill" role="status"></div>` : ""}
                 </div>
@@ -4640,6 +5384,7 @@ function createElements(Base) {
       `;
       const root = this.shadowRoot;
       this._el = {
+        board: root.querySelector(".scoreboard"),
         title: root.querySelector(".title"),
         meta: root.querySelector(".meta"),
         pill: root.querySelector(".pill"),
@@ -4648,9 +5393,26 @@ function createElements(Base) {
         visit: root.querySelector(".visit"),
         caller: root.querySelector(".caller-toggle"),
         callerIcon: root.querySelector(".caller-icon"),
+        lobby: root.querySelector(".lobby-toggle"),
       };
       this._callerState = null;
+      this._followed = null;
       this._el.caller?.addEventListener("click", () => this._toggleCaller());
+      this._el.lobby.addEventListener("click", () => this._lobbyAction("open"));
+      this._el.main.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-lobby]");
+        if (target && !target.disabled) this._lobbyAction(target.dataset.lobby, target.dataset.value);
+      });
+      this._el.main.addEventListener("input", (event) => {
+        if (this._lobby && event.target.classList.contains("lobby-name")) this._lobby.draft = event.target.value;
+      });
+      this._el.main.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" || !event.target.classList.contains("lobby-name")) return;
+        event.preventDefault();
+        this._lobbyAction("add-name");
+      });
+      // Every tap and key at the screen ends idle mode and starts the idle time again.
+      for (const kind of ["click", "keydown"]) this._el.board.addEventListener(kind, () => this._touch());
     }
 
     // The tap that unlocks the sound; a second tap mutes the caller again.
@@ -4696,6 +5458,195 @@ function createElements(Base) {
       }
     }
 
+    // New game screen -----------------------------------------------------------
+
+    // The games the screen offers: none without the practice game or with the screen off.
+    _lobbyGames() {
+      if (this._config.lobby === false) return [];
+      return lobbyGames(this._state("game")?.attributes?.options, this._config.lobby_games);
+    }
+
+    // The game, the players and the rules as the board has them now.
+    _board() {
+      const on = (name) => this._state(name)?.state === "on";
+      return {
+        game: this._state("game")?.state,
+        players: this._number("players"),
+        names: this._nameIds().map((id) => {
+          const state = this._hass.states[id];
+          return usable(state) ? String(state.state) : "";
+        }),
+        legs: this._number("legs"),
+        sets: this._number("sets"),
+        double_out: !this._state("doubleOut") || on("doubleOut"),
+        double_in: on("doubleIn"),
+        bull_off: on("bullOff"),
+        bull_off_distance: on("bullOffDistance"),
+      };
+    }
+
+    // A game by the name players know; newer games by the name Home Assistant gives them.
+    _gameName(game) {
+      const select = this._state("game");
+      return gameName(
+        (key) => this._t(key),
+        /^\d+$/.test(game) ? Number(game) : game,
+        (option) => (this._hass.formatEntityState ? this._hass.formatEntityState(select, option) : null)
+      );
+    }
+
+    _lobbyAction(action, value) {
+      if (this.preview) return;
+      if (action === "open") {
+        this._openLobby(false);
+        return;
+      }
+      const choice = this._lobby;
+      if (!choice) return;
+      if (action === "close") {
+        this._lobby = null;
+      } else if (action === "start") {
+        this._startGame(choice);
+      } else if (action === "end") {
+        // Ending the game needs a second tap; the screen stays for the next game.
+        if (this._confirmed("end")) {
+          this._call("select", "select_option", { entity_id: this._ids.game, option: "off" });
+        }
+      } else if (action === "add-name") {
+        this._lobby = lobbyChange(choice, "add", this._el.main.querySelector(".lobby-name").value);
+      } else {
+        this._lobby = lobbyChange(choice, action, value);
+      }
+      this._update();
+    }
+
+    // Opened by a tap, or by itself a few seconds after a game ended.
+    _openLobby(auto) {
+      clearTimeout(this._lobbyTimer);
+      const games = this._lobbyGames().flatMap((group) => group.games);
+      if (this.preview || !games.length || this._lobby) return;
+      this._lobby = { ...lobbyChoice(this._board(), games), auto };
+      // The screen that opens by itself also waits the idle time before idle mode takes over.
+      this._activity = Date.now();
+      this._idleOff();
+      this._update();
+    }
+
+    // The start button stays disabled while the game lacks players.
+    _startGame(choice) {
+      const device = this._hass.devices?.[this._deviceId];
+      const entry = device?.primary_config_entry ?? device?.config_entries?.[0] ?? null;
+      this._call("autodarts", "start_game", startGameData(choice, { entry, distance: Boolean(this._ids.bullOffDistance) }));
+      this._lobby = null;
+    }
+
+    _confirmChanged() {
+      if (this._el && this.isConnected) this._update();
+    }
+
+    // Idle mode -----------------------------------------------------------------
+
+    // What happened since the last update: darts, and a game that started or ended.
+    _follow(visit, view) {
+      const state = gameState(view);
+      const darts = visitThrows(visit);
+      const signature = `${darts.map(dartKey).join(" ")}|${view.mode}|${state}`;
+      const previous = this._followed;
+      this._followed = { signature, state, darts: darts.length };
+      if (!previous || signature !== previous.signature) {
+        this._activity = Date.now();
+        this._idleOff();
+      }
+      // Players who throw after a game do not need the screen that opened by itself.
+      if (previous && darts.length > previous.darts && this._lobby?.auto) this._lobby = null;
+      if (state === "running") {
+        clearTimeout(this._lobbyTimer);
+      } else if (previous?.state === "running" && !this.preview && this.isConnected) {
+        clearTimeout(this._lobbyTimer);
+        this._lobbyTimer = setTimeout(() => this._openLobby(true), LOBBY_DELAY);
+      }
+      this._scheduleIdle(state);
+    }
+
+    _scheduleIdle(state) {
+      clearTimeout(this._idleTimer);
+      const c = this._config;
+      if (this.preview || !c.idle || state === "running" || !this.isConnected) {
+        this._idleOff();
+        return;
+      }
+      if (this._idle) return;
+      const due = this._activity + Math.max(Number(c.idle_after) || 0, 5) * 1000;
+      this._idleTimer = setTimeout(() => this._idleOn(), Math.max(due - Date.now(), 0));
+    }
+
+    _idleOn() {
+      if (!this._idlePanels().length) return;
+      this._idle = { index: 0, since: Date.now() };
+      this._lobby = null;
+      clearTimeout(this._lobbyTimer);
+      this._idleTick = setInterval(() => this._idleStep(), 1000);
+      this._update();
+    }
+
+    // Every second the clock moves on; after the interval the next panel shows.
+    _idleStep() {
+      const every = Math.max(Number(this._config.idle_interval) || 0, 3) * 1000;
+      if (Date.now() - this._idle.since >= every) {
+        this._idle.index += 1;
+        this._idle.since = Date.now();
+      }
+      this._update();
+    }
+
+    _idleOff() {
+      clearInterval(this._idleTick);
+      this._idleTick = null;
+      this._idle = null;
+    }
+
+    // A tap or a key at the screen.
+    _touch() {
+      this._activity = Date.now();
+      if (this._idle) {
+        this._idleOff();
+        this._update();
+      } else if (this._followed) {
+        this._scheduleIdle(this._followed.state);
+      }
+    }
+
+    // The idle panels with something to show.
+    _idlePanels() {
+      const profiles = playersView(this._state("profiles"), this._state("lastMatch"));
+      const data = {
+        players: profiles.players,
+        match: profiles.matches[0] ?? null,
+        records: bestsView(this._state("bests"), this._state("streak")),
+        stats: this._stats(),
+        now: new Date(),
+      };
+      const ui = { ...this._ui(), clock: (moment) => formatClock(this._hass, moment) };
+      return idlePanels(this._config.idle_panels, data, ui);
+    }
+
+    // The visit and the training session between games.
+    _stats() {
+      const visit = this._state("visit");
+      return {
+        visit: usable(visit) ? visit.state : null,
+        darts: this._number("darts"),
+        average: this._number("average"),
+        highest: this._number("highest"),
+        max: this._number("max"),
+        streak: this._number("streak"),
+        today: this._number("today"),
+        goal: Number(this._state("today")?.attributes?.goal) || 0,
+      };
+    }
+
+    // Rendering -----------------------------------------------------------------
+
     _update() {
       const c = this._config;
       const el = this._el;
@@ -4708,27 +5659,49 @@ function createElements(Base) {
 
       const visit = this._state("visit");
       const view = gameView((name) => this._state(name));
-      const board = scoreboardHtml(view, {
-        ...this._ui(),
-        name: this._deviceName(),
-        stats: {
-          visit: usable(visit) ? visit.state : null,
-          darts: this._number("darts"),
-          average: this._number("average"),
-          highest: this._number("highest"),
-          max: this._number("max"),
-          streak: this._number("streak"),
-          today: this._number("today"),
-          goal: Number(this._state("today")?.attributes?.goal) || 0,
-        },
-      });
+      const ui = { ...this._ui(), name: this._deviceName(), stats: this._stats() };
+      const board = scoreboardHtml(view, ui);
       this._announce(visit, view);
-      el.title.textContent = board.title;
-      el.meta.textContent = board.meta;
-      el.banner.hidden = !board.banner;
-      el.banner.textContent = board.banner;
-      this._setHtml(el.main, board.main);
+      this._follow(visit, view);
+      const games = this._lobbyGames();
+      if (!games.length) this._lobby = null;
+      const panels = this._idle ? this._idlePanels() : [];
+      const panel = panels.length ? panels[this._idle.index % panels.length] : null;
+      let { title, meta, banner, main } = board;
+      if (this._lobby) {
+        const choice = this._lobby;
+        title = t("lobby_title");
+        meta = "";
+        main = lobbyHtml(choice, {
+          ...ui,
+          games,
+          name: (game) => this._gameName(game),
+          suggestions: lobbySuggestions(this._state("profiles"), this._board().names, ui.links, choice.players),
+          distance: Boolean(this._ids.bullOffDistance),
+          running: ![undefined, "off", "unknown", "unavailable"].includes(this._state("game")?.state),
+          confirmEnd: this._confirm === "end",
+        });
+      } else if (panel) {
+        title = ui.name;
+        meta = t(`idle_panel_${panel.panel}`);
+        banner = "";
+        main =
+          `<div class="idle-panel" data-panel="${panel.panel}">${panel.html}</div>` +
+          `<div class="idle-back muted">${escapeHtml(t("idle_back"))}</div>`;
+      } else if (view.mode === "idle" && games.length) {
+        main += `<button type="button" class="lobby-cta" data-lobby="open">${escapeHtml(t("lobby_open"))}</button>`;
+      }
+      el.lobby.hidden = !games.length || Boolean(this._lobby);
+      el.board.classList.toggle("choosing", Boolean(this._lobby));
+      el.board.classList.toggle("idling", Boolean(panel));
+      el.title.textContent = title;
+      el.meta.textContent = meta;
+      el.banner.hidden = !banner;
+      el.banner.textContent = banner;
+      this._setHtml(el.main, main);
       if (!el.visit) return;
+      // The new game screen and the idle panels need the room of the visit.
+      el.visit.hidden = Boolean(this._lobby || panel);
       // Between games the big number already is the visit score.
       el.visit.classList.toggle("plain", view.mode === "idle");
       const darts = visitThrows(visit).slice(-3);
@@ -4756,6 +5729,8 @@ function createElements(Base) {
     static defaults = PLAYERS_DEFAULTS;
 
     static form = "players";
+
+    static avatars = true;
 
     getCardSize() {
       return 6;
@@ -5118,18 +6093,28 @@ export {
   drillView,
   entityIndex,
   escapeHtml,
+  formatClock,
   formatDateTime,
   formatNumber,
   formatPercent,
   frontendReady,
+  gameGroup,
+  gameRules,
+  gameState,
   gameView,
   heatColor,
   heatLevels,
   heatRatio,
   hitBeds,
+  idlePanels,
   kind,
   label,
   livePanel,
+  lobbyChange,
+  lobbyChoice,
+  lobbyGames,
+  lobbyHtml,
+  lobbySuggestions,
   NORM,
   NUMBERS,
   numbersSvg,
@@ -5137,6 +6122,8 @@ export {
   partyBeds,
   partyView,
   pastSessions,
+  personLinks,
+  pictureUrl,
   playersHtml,
   playersView,
   practiceView,
@@ -5147,6 +6134,7 @@ export {
   scoreboardHtml,
   sectorAt,
   shortProcessor,
+  startGameData,
   targetBeds,
   topHits,
   visitBucket,

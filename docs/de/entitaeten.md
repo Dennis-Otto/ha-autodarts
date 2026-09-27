@@ -33,12 +33,12 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
-| `dart_detected` | Ein neuer Dart landet | `dart_index` (1–3), `segment` (etwa `T20`, `S5`, `Bull`, `25` oder `M` für einen Fehlwurf), `score`, `game` |
-| `dart_corrected` | Das Board korrigiert einen erkannten Dart | `dart_index`, `segment`, `score`, `game` |
+| `dart_detected` | Ein neuer Dart landet | `dart_index` (1–3), `segment` (etwa `T20`, `S5`, `Bull`, `25` oder `M` für einen Fehlwurf), `score`, `game`, `name` |
+| `dart_corrected` | Das Board korrigiert einen erkannten Dart | `dart_index`, `segment`, `score`, `game`, `name` |
 | `takeout_started` | Du beginnst, die Darts zu ziehen | keine |
 | `takeout_finished` | Das Board ist wieder frei | keine |
-| `visit_thrown` | Der dritte Dart einer Aufnahme landet, solange die Darts noch im Board stecken; einmal pro Aufnahme | `score`, `darts` (3), `segments` (etwa `["T20", "T20", "S20"]`), `game` |
-| `visit_completed` | Eine Aufnahme endet: bei der Entnahme, wenn nach einer verpassten Entnahme neue Darts folgen, oder wenn die Erkennung stoppt | `score`, `darts`, `segments`, `game`, `thrown` (`true`, wenn `visit_thrown` die Aufnahme schon gemeldet hat) |
+| `visit_thrown` | Der dritte Dart einer Aufnahme landet, solange die Darts noch im Board stecken; einmal pro Aufnahme | `score`, `darts` (3), `segments` (etwa `["T20", "T20", "S20"]`), `game`, `name` |
+| `visit_completed` | Eine Aufnahme endet: bei der Entnahme, wenn nach einer verpassten Entnahme neue Darts folgen, oder wenn die Erkennung stoppt | `score`, `darts`, `segments`, `game`, `name`, `thrown` (`true`, wenn `visit_thrown` die Aufnahme schon gemeldet hat) |
 | `status_changed` | Der Erkennungsstatus ändert sich | `status` |
 | `session_started` | Eine Trainingssession beginnt: mit dem Schalter *Trainingssession*, der Taste *Neue Trainingssession* oder mit dem ersten Dart, wenn *Sessions automatisch starten* an ist | `started` und `reason` (`manual`, `new_session` oder `first_dart`) |
 | `session_ended` | Eine Trainingssession endet: mit dem Schalter, der Taste oder nach der Pause aus *Session-Timeout* | `reason` (`manual`, `new_session` oder `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` und die übrigen Trainingssummen |
@@ -62,7 +62,7 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 | `online_tournament_ready` | Ein Turniermatch von dir ist bereit | `trigger` |
 | `online_match_left` | Du hast das Online-Match verlassen | `trigger` |
 
-`game` ist das [Übungsspiel](#übungsspiel), das beim Landen des Darts läuft, etwa `501`, `cricket` oder `shanghai`, und leer ohne Übungsspiel und bei [Trainingsspielen](#trainingsspiele). Eine Aufnahme aus drei Darts wird zweimal gemeldet: mit `visit_thrown`, sobald ihr dritter Dart landet, für 180-Feiern und Caller, und mit `visit_completed`, wenn sie endet, mit den Punkten nach allen Korrekturen. Um auf jede Aufnahme genau einmal und so früh wie möglich zu reagieren, nutze `visit_thrown` und `visit_completed` mit `thrown` gleich `false`; die [Blueprints](automationen.md#blueprints) machen es so.
+`game` ist das [Übungsspiel](#übungsspiel), das beim Landen des Darts läuft, etwa `501`, `cricket` oder `shanghai`, und leer ohne Übungsspiel und bei [Trainingsspielen](#trainingsspiele). `name` ist der Name des Spielers am Board in diesem Spiel, auch beim Ausbullen; leer ohne Spiel oder Namen. Eine Aufnahme aus drei Darts wird zweimal gemeldet: mit `visit_thrown`, sobald ihr dritter Dart landet, für 180-Feiern und Caller, und mit `visit_completed`, wenn sie endet, mit den Punkten nach allen Korrekturen. Um auf jede Aufnahme genau einmal und so früh wie möglich zu reagieren, nutze `visit_thrown` und `visit_completed` mit `thrown` gleich `false`; die [Blueprints](automationen.md#blueprints) machen es so.
 
 Nach einem Neustart oder Verbindungsabbruch werden Ereignisse nie wiederholt. Beispiele stehen unter [Automationen](automationen.md).
 
@@ -216,10 +216,12 @@ Jeder Spieler eines Übungsspiels mit Namen bekommt ein Profil mit Gesamtwerten.
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Spielerprofile | Sensor, Spieler | Die Zahl der Profile. Attribut `players` mit, für jeden Spieler: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (Startwert → wenigste Darts für ein gewonnenes Leg) und `last_played`. `highest_visit` ist die höchste X01-Aufnahme des Spielers; `highest_checkout` und `fewest_darts` kommen nur aus Legs mit Double-Out. Der Recorder speichert die Liste nicht. |
+| Spielerprofile | Sensor, Spieler | Die Zahl der Profile. Attribut `players` mit, für jeden Spieler: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (Startwert → wenigste Darts für ein gewonnenes Leg), `last_played` und `person` (die [verknüpfte Person](#spieler-mit-einer-person-verknüpfen-autodartslink_player) oder keine). `highest_visit` ist die höchste X01-Aufnahme des Spielers; `highest_checkout` und `fewest_darts` kommen nur aus Legs mit Double-Out. Der Recorder speichert die Liste nicht. |
 | Letztes Match | Sensor, Zeitstempel | Wann das letzte Match mehrerer Spieler endete. Attribute: `game` und `winner` dieses Matches, `matches` mit den letzten 20 Matches (`ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` und `name`, `legs` und `sets` am Ende, `match_legs` sowie `average`, `mpr` oder `points` jedes Spielers) und `head_to_head` mit den Siegen jedes Paars benannter Spieler. Der Recorder speichert keine der Listen. |
 
 Die [Spielerkarte](karten.md#spielerkarte) zeigt alles davon. Um ein Profil zu entfernen, etwa nach einem Tippfehler im Namen, nutze [`autodarts.delete_player`](#spielerprofil-löschen-autodartsdelete_player).
+
+**Spieler und Personen:** Verknüpfe einen Spieler mit [`autodarts.link_player`](#spieler-mit-einer-person-verknüpfen-autodartslink_player) mit einer Person von Home Assistant. Anzeigetafel, Spielerkarte und [Spielauswahl](karten.md#spielauswahl) zeigen dann das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Die Verknüpfung wird mit dem Profil gespeichert und übersteht Neustarts.
 
 ## Doppelanalyse
 
@@ -374,7 +376,7 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn
 
 ### Spielerprofil löschen: `autodarts.delete_player`
 
-Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers. Der Name verschwindet auch aus den [Bestleistungen](#bestleistungen-serie-und-tagesziel) des Boards, deren Werte bleiben, und aus den Spielernamen des Übungsspiels, damit das nächste Leg das Profil nicht wieder anlegt. Der Match-Verlauf behält den Namen.
+Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers und seine Verknüpfung mit einer Person. Der Name verschwindet auch aus den [Bestleistungen](#bestleistungen-serie-und-tagesziel) des Boards, deren Werte bleiben, und aus den Spielernamen des Übungsspiels, damit das nächste Leg das Profil nicht wieder anlegt. Der Match-Verlauf behält den Namen.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
@@ -413,6 +415,36 @@ Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der
 > **Datenschutz:** Exporte enthalten Spielernamen. Dateien in `www` liefert Home Assistant unter `/local/` **ohne Anmeldung** an jeden aus, der Home Assistant erreicht und den Dateinamen kennt. Der zufällige Teil des Namens macht ihn unerratbar; lösche Exporte, die du nicht mehr brauchst, oder exportiere in einen Ordner außerhalb von `www`, dann gibt es keinen Download-Link.
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn der Ordner nicht erlaubt ist oder die Datei nicht geschrieben werden kann.
+
+### Spieler mit einer Person verknüpfen: `autodarts.link_player`
+
+Macht einen Spieler zu einer Person von Home Assistant. [Anzeigetafel](karten.md#anzeigetafel), [Spielerkarte](karten.md#spielerkarte) und [Spielauswahl](karten.md#spielauswahl) zeigen das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Ein Spieler ohne Profil bekommt eines. Eine Person ist ein Spieler: Verknüpfst du die Person mit einem anderen Spieler, wandert die Verknüpfung dorthin.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `player` | Text | Der Spielername, in beliebiger Groß- und Kleinschreibung; Pflichtfeld |
+| `person` | Personen-Entität | Etwa `person.dennis`; Pflichtfeld |
+| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+
+```yaml
+action: autodarts.link_player
+data:
+  player: Dennis
+  person: person.dennis
+```
+
+Die Aktion bricht mit einer klaren Meldung ab, wenn Home Assistant diese Person nicht kennt.
+
+### Spieler-Verknüpfung lösen: `autodarts.unlink_player`
+
+Vergisst, welche Person ein Spieler ist. Die Statistik des Spielers bleibt.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `player` | Text | Der Spielername, in beliebiger Groß- und Kleinschreibung; Pflichtfeld |
+| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+
+Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Profil mit diesem Namen gibt.
 
 ## Verfügbarkeit
 

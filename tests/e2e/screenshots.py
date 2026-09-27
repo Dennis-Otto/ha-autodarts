@@ -178,6 +178,15 @@ class Recorder:
             )
             for frame in self.frames
         ]
+        # A card that grows, like the scoreboard with its new game screen, keeps
+        # the size of its tallest frame; the rest is filled with its background.
+        height = max(frame.height for frame in resized)
+        for index, frame in enumerate(resized):
+            if frame.height < height:
+                fill = frame.getpixel((0, frame.height - 1))
+                padded = Image.new("RGB", (width, height), fill)
+                padded.paste(frame, (0, 0))
+                resized[index] = padded
         target = OUTPUT / f"{name}.webp"
         resized[0].save(
             target,
@@ -472,6 +481,116 @@ def killer_animation(page: Page) -> None:
     board.close()
     players(page, 1)
     game(page, "off")
+
+
+# A finger on the screen: a ring where the next tap lands, for the animations.
+TAP = """
+([x, y]) => {
+  const ring = document.createElement('div');
+  ring.id = 'demo-tap';
+  ring.style.cssText = `position:fixed;left:${x - 24}px;top:${y - 24}px;width:48px;height:48px;` +
+    'border-radius:50%;background:rgba(255,255,255,.3);border:3px solid rgba(255,255,255,.9);' +
+    'box-shadow:0 0 14px rgba(0,0,0,.6);z-index:10000;pointer-events:none';
+  document.body.append(ring);
+}
+"""
+UNTAP = "() => document.getElementById('demo-tap')?.remove()"
+SCOREBOARD = "autodarts-scoreboard-card"
+
+
+def tap(page: Page, recorder: Recorder, target, hold: int = 800) -> None:
+    """Show the finger on the target, tap it, and show what the tap changed."""
+    box = target.bounding_box()
+    page.evaluate(TAP, [box["x"] + box["width"] / 2, box["y"] + box["height"] / 2])
+    recorder.shot(450)
+    page.evaluate(UNTAP)
+    target.click()
+    page.wait_for_timeout(300)
+    recorder.shot(hold)
+
+
+def tablet(page: Page, path: str = "autodarts-auto/scoreboard") -> Page:
+    """A landscape tablet at the board, showing the scoreboard."""
+    board = page.context.new_page()
+    board.set_viewport_size({"width": 1280, "height": 800})
+    board.goto(f"{HA}/{path}")
+    return board
+
+
+def lobby_animation(page: Page) -> None:
+    """Choosing a game on the tablet: the game, a second player, the format, and go."""
+    pull_darts()
+    game(page, "off")
+    page.evaluate(SET_NAME, [0, "Alex"])
+    players(page, 1)
+    board = tablet(page)
+    wait_card(board, "!!r.querySelector('.lobby-cta')", SCOREBOARD, 60000)
+    board.wait_for_timeout(1500)
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1200)
+    card = board.locator(SCOREBOARD)
+    tap(board, recorder, card.locator(".lobby-cta"), 1200)
+    tap(board, recorder, card.locator(".game", has_text="Cricket"))
+    tap(board, recorder, card.locator(".suggestion", has_text="Sam"))
+    tap(board, recorder, card.locator("[data-lobby='legs'][data-value='1']"))
+    tap(board, recorder, card.locator("[data-lobby='legs'][data-value='1']"))
+    tap(board, recorder, card.locator(".lobby .start"), 300)
+    wait_card(board, "!!r.querySelector('.cricket')", SCOREBOARD)
+    board.wait_for_timeout(800)
+    recorder.shot(2800)
+    recorder.save("lobby")
+    board.close()
+    players(page, 1)
+    game(page, "off")
+
+
+def lobby_screen(page: Page) -> None:
+    """The new game screen: two players at home, three legs per set, the rules."""
+    pull_darts()
+    game(page, "off")
+    for index, name in enumerate(("Alex", "Sam")):
+        page.evaluate(SET_NAME, [index, name])
+    players(page, 2)
+    page.evaluate(CALL_SERVICE, ["number", "set_value", "practice_legs", {"value": 1}])
+    board = tablet(page)
+    wait_card(board, "!!r.querySelector('.lobby-cta')", SCOREBOARD, 60000)
+    card = board.locator(SCOREBOARD)
+    card.locator(".lobby-cta").click()
+    wait_card(board, "!!r.querySelector('.lobby')", SCOREBOARD)
+    for _ in range(2):
+        card.locator("[data-lobby='legs'][data-value='1']").click()
+    board.wait_for_timeout(1000)
+    page_shot(board, "scoreboard-lobby")
+    board.close()
+    players(page, 1)
+
+
+def idle_screen(page: Page) -> None:
+    """Idle mode: the leaderboard of the demo players, with their pictures."""
+    pull_darts()
+    game(page, "off")
+    board = tablet(page, "autodarts-demo/idle")
+    wait_card(
+        board,
+        "r.querySelector('.idle-panel')?.dataset.panel === 'leaderboard'",
+        SCOREBOARD,
+        60000,
+    )
+    board.wait_for_timeout(1500)
+    page_shot(board, "scoreboard-idle")
+    board.close()
+
+
+def media_gallery(page: Page) -> None:
+    """The highlight photos of September in the media browser."""
+    page.goto(
+        f"{HA}/media-browser/browser/app%2Cmedia-source%3A%2F%2Fautodarts"
+        "/directory%2Cmedia-source%3A%2F%2Fautodarts%2F2026-09"
+    )
+    # The title of a photo also sits in its hidden tooltip.
+    page.get_by_text("180 · Alex").filter(visible=True).first.wait_for(timeout=30000)
+    page.wait_for_timeout(3000)
+    page_shot(page, "media-gallery")
 
 
 def doubles_card(page: Page) -> None:
@@ -873,6 +992,7 @@ def main() -> None:
         training_game_animation(page)
         scoreboard_animation(page)
         killer_animation(page)
+        lobby_animation(page)
         games.close()
 
         people = browser.new_context(
@@ -883,6 +1003,9 @@ def main() -> None:
         )
         players_card(people.new_page())
         doubles_card(people.new_page())
+        lobby_screen(people.new_page())
+        idle_screen(people.new_page())
+        media_gallery(people.new_page())
         people.close()
 
         # Each opens a page in the demo's time zone; the report comes last,

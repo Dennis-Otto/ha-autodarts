@@ -121,6 +121,16 @@ async ([domain, service, key, data]) => {
   await hass.callService(domain, service, { entity_id: entity.entity_id, ...data });
 }
 """
+# The state of an Autodarts entity by its translation key.
+STATE_OF = """
+(key) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const entity = Object.values(hass.entities).find(
+    (item) => item.platform === 'autodarts' && item.translation_key === key
+  );
+  return hass.states[entity.entity_id].state;
+}
+"""
 # Names a practice player; the four name fields share one translation key.
 SET_NAME = """
 async ([index, name]) => {
@@ -622,6 +632,81 @@ def scoreboard(browser: Browser) -> None:
     page.close()
 
 
+def lobby(browser: Browser) -> None:
+    """A game is chosen and started on the scoreboard, and ended there again."""
+    page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 800})
+    page.add_init_script(CAPTURE_ERRORS)
+    page.goto(f"{HA}/autodarts-auto/scoreboard")
+    card = "autodarts-scoreboard-card"
+    page.locator(f"{card} .main").wait_for(timeout=30000)
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    page.evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
+    )
+    page.locator(f"{card} .lobby-cta").click()
+    page.locator(f"{card} .lobby").wait_for(timeout=15000)
+    title = page.locator(f"{card} .title").text_content()
+    check(title == "New game", f"Lobby title {title!r}")
+    players = page.locator(f"{card} .lobby-player .who")
+    # The screen starts with the players the board has; start from nobody.
+    while players.count():
+        page.locator(f"{card} .lobby-player [data-lobby='remove']").first.click()
+    # Players at home come first: Alex and Sam are home, Kim is out.
+    suggested = page.locator(f"{card} .suggestion:not(.guest)").all_text_contents()
+    check(
+        suggested[:3] == ["Alex⌂", "Sam⌂", "Kim"],
+        f"Suggestions {suggested}",
+    )
+    page.locator(f"{card} .game", has_text="Cricket").click()
+    page.locator(f"{card} .suggestion", has_text="Sam").click()
+    name = page.locator(f"{card} .lobby-name")
+    name.fill("Robin")
+    name.press("Enter")
+    page.locator(f"{card} .suggestion", has_text="Alex").click()
+    check(
+        players.all_text_contents() == ["Sam", "Robin", "Alex"],
+        f"Players {players.all_text_contents()}",
+    )
+    page.locator(f"{card} [data-lobby='up'][data-value='2']").click()
+    page.locator(f"{card} [data-lobby='up'][data-value='1']").click()
+    page.locator(f"{card} [data-lobby='remove'][data-value='2']").click()
+    page.locator(f"{card} [data-lobby='legs'][data-value='1']").click()
+    check(
+        players.all_text_contents() == ["Alex", "Sam"],
+        f"Players {players.all_text_contents()}",
+    )
+    pictures = page.locator(f"{card} .lobby-player .avatar").count()
+    check(pictures == 2, f"{pictures} pictures of linked players")
+    page.locator(f"{card} .lobby .start").click()
+
+    # The scoreboard shows the game it started, with the pictures of the players.
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_STATE})().title === 'Cricket'", timeout=15000
+    )
+    state = page.evaluate(SCOREBOARD_STATE)
+    check(state["cricket"][0][1:] == ["Alex", "Sam"], f"Scoreboard {state}")
+    heads = page.locator(f"{card} .cricket thead .avatar").count()
+    check(heads == 2, f"{heads} pictures on the chalkboard")
+    legs = page.evaluate(STATE_OF, "practice_legs")
+    check(legs in ("2", "2.0"), f"Legs per set {legs!r}")
+
+    # During a game the header opens the screen; ending the game needs a second tap.
+    page.locator(f"{card} .lobby-toggle").click()
+    end = page.locator(f"{card} [data-lobby='end']")
+    end.click()
+    check(end.text_content() == "Confirm?", "Ending did not ask for confirmation")
+    end.click()
+    page.wait_for_function(
+        f"() => !({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector(\"[data-lobby='end']\")",
+        timeout=15000,
+    )
+    page.locator(f"{card} [data-lobby='close']").click()
+    page.locator(f"{card} .lobby-cta").wait_for(timeout=15000)
+    errors = page_errors(page, [])
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+
 def caller(browser: Browser) -> None:
     """The caller stays silent until a tap switches it on."""
     page, problems = open_view(
@@ -772,6 +857,7 @@ def main() -> None:
             ("status card", lambda: status(browser)),
             ("scoreboard", lambda: scoreboard(browser)),
             ("scoreboard caller", lambda: caller(browser)),
+            ("new game screen", lambda: lobby(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
             ("live card editor", lambda: editor(browser)),
@@ -793,7 +879,7 @@ def main() -> None:
             ),
             (
                 "scoreboard editor",
-                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 5),
+                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 7),
             ),
             ("dashboard strategy editor", lambda: strategy_editor(browser)),
             ("light theme", lambda: light_theme(browser)),
@@ -813,7 +899,7 @@ def main() -> None:
         "training games, "
         "training heatmap, "
         "history and "
-        "sessions, board status, the scoreboard and its caller, "
+        "sessions, board status, the scoreboard, its caller and new game screen, "
         "the generated dashboard, the players export, all six card forms, the strategy editor and light theme."
     )
 

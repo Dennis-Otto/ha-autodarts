@@ -1,4 +1,6 @@
 // A browser for the card elements: a happy-dom window as globals and a fake Home Assistant.
+import { after } from "node:test";
+
 import { Window } from "happy-dom";
 
 // Dates read the same on every machine.
@@ -105,6 +107,9 @@ export async function loadCards() {
   await customElements.whenDefined("autodarts-card");
   return module;
 }
+
+// The cards leave the page after the tests of a file, which ends their timers.
+after(() => document.body.replaceChildren());
 
 export function mount(type, hass, config = {}) {
   const card = document.createElement(type);

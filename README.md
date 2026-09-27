@@ -31,8 +31,8 @@
   - a live dartboard with blinking hit beds and dart positions;
   - a training card with a hit heatmap, personal bests and visit history;
   - a board status card for detection, connections and cameras;
-  - a scoreboard for a tablet or TV at the board, readable from the oche, with an optional caller that announces the game;
-  - a players card with profiles, head-to-head records and recent matches;
+  - a scoreboard for a tablet or TV at the board, readable from the oche, with an optional caller that announces the game, a new game screen to choose the game, the players and the format right there, and an idle mode with a leaderboard, personal bests, today's darts, the last match and a clock;
+  - a players card with profiles, head-to-head records and recent matches, and the pictures of players linked to a person of Home Assistant;
   - a doubles card with the hit rate of every double on the board;
   - plus an automatic dashboard that arranges everything for every board in one click.
 - **Training analytics:**
@@ -43,9 +43,10 @@
   - player profiles with statistics and personal bests per name, a match history and head-to-head records;
   - a doubles analysis with the hit rate of every double and checkout routes over your strongest doubles;
   - a weekly report with the week's darts, training time, 3-dart average and its trend, sent to your phone if you like;
-  - a training calendar with a year of sessions and matches, and an export to CSV or JSON.
+  - a training calendar with a year of sessions and matches, and an export to CSV or JSON;
+  - players linked to persons of Home Assistant, with their picture and presence.
 - **Practice games and matches.** Play X01 (101 to 1001, with double in and a bull-off if you like), Cricket or the party games Shanghai, Halve-It and Killer on the local board, alone or as a match of up to four players with legs and sets. The remaining score counts down, busts are recognised, and the live card shows the checkout route, the bed to aim at and a scoreboard, in Cricket a chalkboard with marks, points and marks per round. Four training games train the basics: Around the Clock, doubles training, checkout training and Bob's 27. First-9 average, checkout rate, doubles rate and legs per day show your progress.
-- **Automations that feel like a stage.** Board events for every dart, correction, takeout, completed visit and training session, plus eleven ready-made blueprints: 180 celebrations, a dart caller, takeout lights, automatic detection, alerts, daily and weekly reports, a training session routine, a practice caller, a highlight photo and a light show.
+- **Automations that feel like a stage.** Board events for every dart, correction, takeout, completed visit and training session, plus eleven ready-made blueprints: 180 celebrations, a dart caller, takeout lights, automatic detection, alerts, daily and weekly reports, a training session routine, a practice caller, a highlight photo with a gallery in the media browser and a light show.
 - **Online matches too** *(experimental)*. An optional bridge brings busts, won legs and matches of online matches on play.autodarts.io into Home Assistant through the browser extension Tools for Autodarts. [How to set it up](docs/automations.md#online-matches-experimental).
 - **Full control.**
   - Start, stop and reset detection; calibrate the board or single cameras; restart Board Manager.
@@ -140,7 +141,8 @@ The [installation guide](docs/installation.md) covers requirements, manual insta
 | Reports | Weekly report with darts, training time, sessions, 3-dart average and its change, best visit, 180s, checkout rate, streak and personal bests of the week; `weekly_report` event at a day and time you choose | ✓ | ✓ |
 | Training calendar | Calendar of the training sessions and practice matches of the last 365 days | ✓ | ✓ |
 | Practice game | X01 from 101 to 1001 with double in and bull-off, Cricket, Shanghai, Halve-It and Killer for 1–4 players, double out, legs and sets, player names, remaining score, busts, checkout routes and the last 10 legs; training games Around the Clock, doubles, checkout training and Bob's 27 | ✓ | ✓ |
-| Actions | `autodarts.start_game`: start X01 or a training game with players, names and format in one call, also by voice; `autodarts.export`: sessions, matches and player profiles as CSV or JSON | ✓ | ✓ |
+| Actions | `autodarts.start_game`: start X01 or a training game with players, names and format in one call, also by voice; `autodarts.export`: sessions, matches and player profiles as CSV or JSON; `autodarts.link_player` and `autodarts.unlink_player`: link a player to a person of Home Assistant for the picture and presence | ✓ | ✓ |
+| Media browser | Highlight gallery: the photos of the highlight photo blueprint by month, with the player and the score | ✓ | ✓ |
 | Controls | Detection switch; start, stop and reset buttons; calibration (board and per camera); restart; camera streams | ✓ | ✓ |
 | Settings | Calibrate on start, automatic recalibration, distortion correction, camera standby | ✓ | ✓ |
 | Health | Local connection, realtime connection, cameras active, calibration, camera problems (overall and per camera), frame rates | ✓ | ✓ |
@@ -161,8 +163,8 @@ The integration serves its cards itself, so no dashboard resource is needed. Eac
 | --- | --- | --- |
 | **Autodarts** | `custom:autodarts-card` | The current visit on a dartboard drawn to Board Manager geometry. Hit beds blink, darts appear at their detected position and the board glows in the detection status colour. Also shows training statistics, connection chips and controls. |
 | **Autodarts training** | `custom:autodarts-training-card` | 3-dart average, a heatmap of your hits (per bed or per number), statistics tiles, your most hit beds and a chart of recent visits, plus a *New session* button. |
-| **Autodarts scoreboard** | `custom:autodarts-scoreboard-card` | A large scoreboard for a tablet or TV: every player's score with the checkout route, the Cricket chalkboard, the target of a training game, the winner and the current visit. |
-| **Autodarts players** | `custom:autodarts-players-card` | Every named player's statistics and personal bests, head-to-head records and the recent matches. |
+| **Autodarts scoreboard** | `custom:autodarts-scoreboard-card` | A large scoreboard for a tablet or TV: every player's score with the checkout route, the Cricket chalkboard, the target of a training game, the winner and the current visit. A new game screen starts the next game at the board, and idle mode shows a leaderboard, personal bests, today's darts, the last match and a clock. |
+| **Autodarts players** | `custom:autodarts-players-card` | Every named player's statistics and personal bests, head-to-head records and the recent matches, with the pictures of linked persons. |
 | **Autodarts doubles** | `custom:autodarts-doubles-card` | The hit rate of every double on the board, for everybody or one player, with the favourite double. |
 | **Autodarts board status** | `custom:autodarts-status-card` | Detection switch, Board Manager version and updates, connections, board PC load, a health tile for every camera and maintenance controls. |
 
@@ -191,7 +193,7 @@ Import a blueprint with one click, choose your board and you're done:
 | **Training report.** Your daily summary with the 3-dart average. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
 | **Training session routine.** Light, detection and calibration follow your training sessions. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
 | **Practice caller.** Who needs what, busts and game shots of the practice game on your speakers. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
-| **Highlight photo.** A picture of the board on your phone after a 180 or a checkout. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
+| **Highlight photo.** A picture of the board on your phone after a 180 or a checkout, and in a gallery of the media browser. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show.** Your WLED presets or room lights for a 180, a high finish, a bust, a won leg or match, a personal best and more, and back to your normal light afterwards. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
 Prefer writing your own? The [automation guide](docs/automations.md) explains the board events and has ready-to-use examples.

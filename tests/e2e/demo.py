@@ -15,7 +15,8 @@ from zoneinfo import ZoneInfo
 
 import aiohttp
 from board_mock import GENERATION, PORT
-from scenario import Scenario, wait_for
+from pictures import avatar, board_photo
+from scenario import HA, Scenario, wait_for
 
 DASHBOARD = "autodarts-demo"
 STRATEGY_DASHBOARD = "autodarts-auto"
@@ -80,6 +81,23 @@ CARDS = {
 }
 
 
+# Synthetic people: Alex and Sam are at home, Kim is out.
+PEOPLE = [
+    ("Alex", (0, 150, 199), "home"),
+    ("Sam", (156, 39, 176), "home"),
+    ("Kim", (239, 108, 0), "not_home"),
+]
+# Highlight photos named as the highlight photo blueprint saves them.
+GALLERY = Path("/media/autodarts/highlights")
+HIGHLIGHTS = {
+    "2026-09-26_21-05-33_Alex_180.jpg": ["T20", "T20", "T20"],
+    "2026-09-26_21-19-02_Sam_checkout-121.jpg": ["T20", "T11", "D14"],
+    "2026-09-12_20-44-10_Kim_140.jpg": ["T20", "T20", "S20"],
+    "2026-08-29_19-30-00_Alex_checkout-170.jpg": ["T20", "T20", "BULL"],
+    "2026-08-15_18-02-45_Sam_180.jpg": ["T20", "T20", "T20"],
+}
+
+
 def dashboard() -> dict:
     wide = {
         "board": 2,
@@ -93,17 +111,33 @@ def dashboard() -> dict:
     return {
         "title": "Autodarts",
         "views": [
+            *(
+                {
+                    "title": name.title(),
+                    "path": name,
+                    "type": "sections",
+                    "max_columns": 2,
+                    "sections": [
+                        {"type": "grid", "column_span": wide[name], "cards": [card]}
+                        for card in cards
+                    ],
+                }
+                for name, cards in CARDS.items()
+            ),
+            # The scoreboard on a screen at the board, idle after a short time.
             {
-                "title": name.title(),
-                "path": name,
-                "type": "sections",
-                "max_columns": 2,
-                "sections": [
-                    {"type": "grid", "column_span": wide[name], "cards": [card]}
-                    for card in cards
+                "title": "Idle",
+                "path": "idle",
+                "panel": True,
+                "cards": [
+                    {
+                        "type": "custom:autodarts-scoreboard-card",
+                        "full_height": True,
+                        "idle_after": 10,
+                        "idle_interval": 60,
+                    }
                 ],
-            }
-            for name, cards in CARDS.items()
+            },
         ],
     }
 
@@ -272,6 +306,50 @@ async def weekly_report(demo: Scenario) -> None:
     await wait_for(loaded, "the weekly report automation")
 
 
+async def people(demo: Scenario) -> None:
+    """Persons with pictures, linked to the players of the demo."""
+    for name, color, where in PEOPLE:
+        form = aiohttp.FormData()
+        form.add_field(
+            "file",
+            avatar(name[0], color),
+            filename=f"{name.lower()}.png",
+            content_type="image/png",
+        )
+        async with demo.session.post(
+            f"{HA}/api/image/upload", data=form, headers=demo.headers
+        ) as response:
+            image = await response.json()
+        picture = f"/api/image/serve/{image['id']}/512x512"
+        person = await demo.ws("person/create", name=name, picture=picture)
+        entity = f"person.{name.lower()}"
+        # Without device trackers, the demo tells who is home itself.
+        await demo.api(
+            "POST",
+            f"/api/states/{entity}",
+            json={
+                "state": where,
+                "attributes": {
+                    "friendly_name": name,
+                    "entity_picture": picture,
+                    "id": person["id"],
+                },
+            },
+        )
+        await demo.api(
+            "POST",
+            "/api/services/autodarts/link_player",
+            json={"player": name, "person": entity},
+        )
+
+
+def gallery() -> None:
+    """Highlight photos for the media browser."""
+    GALLERY.mkdir(parents=True, exist_ok=True)
+    for name, darts in HIGHLIGHTS.items():
+        (GALLERY / name).write_bytes(board_photo(darts))
+
+
 async def throw(demo: Scenario, darts: list[dict]) -> None:
     for count in range(1, len(darts) + 1):
         await demo.board("POST", "/control/state", json={"throws": darts[:count]})
@@ -333,6 +411,8 @@ async def main() -> None:
             mode="storage",
         )
         await demo.ws("lovelace/config/save", url_path=DASHBOARD, config=dashboard())
+        await people(demo)
+        gallery()
         # A second dashboard generated entirely by the Autodarts strategy.
         await demo.ws(
             "lovelace/dashboards/create",

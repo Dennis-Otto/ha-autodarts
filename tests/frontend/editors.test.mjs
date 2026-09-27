@@ -123,21 +123,76 @@ test("every card has the form of its own options", () => {
   assert.equal(players.computeHelper({ name: "export_format" }), "Default: CSV (a ZIP file with one table each)");
 });
 
-test("the caller's calls wait in a section of their own", () => {
+test("the caller's calls, the new game screen and idle mode wait in sections of their own", () => {
   const form = formOf("autodarts-scoreboard-card");
   assert.deepEqual(names(form.schema), [
     "device_id",
     "title",
     ["full_height", "show_visit", "show_status", "caller"],
     [["call_scores", "call_checkouts", "call_results", "call_sounds"]],
+    [["lobby"], "lobby_games"],
+    [["idle"], ["idle_after", "idle_interval"], "idle_panels"],
     "accent_color",
   ]);
-  const section = form.schema[3];
-  assert.deepEqual([section.type, section.name, section.flatten], ["expandable", "caller_options", true]);
-  assert.equal(form.computeLabel(section), "Caller options");
-  assert.equal(form.computeHelper(section), "These calls are made while the caller is on.");
+  const [caller, lobby, idle] = form.schema.slice(3, 6);
+  assert.deepEqual([caller.type, caller.name, caller.flatten], ["expandable", "caller_options", true]);
+  assert.equal(form.computeLabel(caller), "Caller options");
+  assert.equal(form.computeHelper(caller), "These calls are made while the caller is on.");
   assert.equal(form.schema[2].schema[3].default, false);
-  assert.equal(section.schema[0].schema[0].default, true);
+  assert.equal(caller.schema[0].schema[0].default, true);
+
+  // The new game screen is on by default and offers every game, unless the card names some.
+  assert.deepEqual([lobby.type, lobby.name, lobby.flatten], ["expandable", "lobby_section", true]);
+  assert.equal(form.computeLabel(lobby), "New game screen");
+  assert.match(form.computeHelper(lobby), /^Tap New game to choose the game/);
+  assert.equal(lobby.schema[0].schema[0].default, true);
+  const games = lobby.schema[1];
+  assert.deepEqual([games.selector.select.multiple, games.selector.select.mode], [true, "dropdown"]);
+  // Without a board on the page, the form offers every game the card knows.
+  assert.deepEqual(labels(games).slice(5, 9), ["1001", "Cricket", "Shanghai", "Halve-It"]);
+  assert.equal(labels(games).at(-1), "Bob's 27");
+  assert.equal(form.computeLabel(games), "Games offered");
+  assert.equal(form.computeHelper(games), "Empty offers every game of the board.");
+
+  assert.deepEqual([idle.type, idle.name, idle.flatten], ["expandable", "idle_section", true]);
+  assert.equal(form.computeLabel(idle), "Idle mode");
+  assert.equal(idle.schema[0].schema[0].default, true);
+  const seconds = (min, max) => ({ number: { min, max, step: 1, mode: "box", unit_of_measurement: "s" } });
+  assert.deepEqual(idle.schema[1].schema, [
+    { name: "idle_after", selector: seconds(10, 3600), default: 180 },
+    { name: "idle_interval", selector: seconds(3, 120), default: 10 },
+  ]);
+  assert.deepEqual(labels(idle.schema[2]), ["Leaderboard", "Personal bests", "Today", "Last match", "Clock"]);
+  assert.equal(idle.schema[2].selector.select.mode, "list");
+  assert.equal(form.computeHelper(idle.schema[2]), "Empty shows every panel.");
+
+  // Lists accept the games and panels they offer, and nothing else.
+  assert.doesNotThrow(() => form.assertConfig({ lobby_games: [501, "cricket"], idle_panels: [], idle_after: 60 }));
+  assert.throws(() => form.assertConfig({ lobby_games: ["pool"] }), /lobby_games/);
+  assert.throws(() => form.assertConfig({ idle_panels: "clock" }), /idle_panels/);
+  assert.throws(() => form.assertConfig({ idle_after: "soon" }), /idle_after/);
+});
+
+test("the editor offers the games of the board on the page", () => {
+  const hass = makeHass({
+    states: {
+      ...READY,
+      "select.practice_game": { state: "off", attributes: { options: ["off", "501", "cricket", "tactics"] } },
+    },
+  });
+  // The practice game of another integration does not count.
+  const other = { entity_id: "select.other_game", platform: "other", translation_key: "practice_game" };
+  hass.entities = { "select.other_game": other, ...hass.entities };
+  mount("autodarts-scoreboard-card", hass).remove();
+  const games = formOf("autodarts-scoreboard-card").schema[4].schema[1];
+  assert.deepEqual(games.selector.select.options, [
+    { value: "501", label: "501" },
+    { value: "cricket", label: "Cricket" },
+    { value: "tactics", label: "tactics" },
+  ]);
+  // A board without the practice game leaves the list of every game the card knows.
+  mount("autodarts-scoreboard-card", makeHass({ states: READY })).remove();
+  assert.equal(formOf("autodarts-scoreboard-card").schema[4].schema[1].selector.select.options.length, 14);
 });
 
 test("the doubles form offers the named players and takes any other name", () => {

@@ -16,12 +16,16 @@ from pathlib import Path
 
 import aiohttp
 from board_mock import API_KEY, BOARD_ID, GENERATION, PORT, TLS_KEY, UPDATE, VERSION
+from pictures import board_photo
 
 HA = "http://127.0.0.1:8123"
 BOARD = f"http://board-mock:{PORT}"
 CLIENT_ID = f"{HA}/"
 PASSWORD = "e2e-only-password"
 LOG = Path("/config/home-assistant.log")
+# The highlight gallery in the media folder of the Home Assistant container.
+GALLERY = Path("/media/autodarts/highlights")
+PHOTO = "2026-09-26_21-05-33_E2E Player_180.jpg"
 
 # Darts as Board Manager 2.0 reports them, with the bed and normalized position.
 T20 = {
@@ -251,12 +255,15 @@ class Scenario:
             elif future := self.pending.pop(payload["id"], None):
                 future.set_result(payload)
 
-    async def ws(self, command: str, **payload):
+    async def ws_result(self, command: str, **payload) -> dict:
         self.message_id += 1
         future = asyncio.get_running_loop().create_future()
         self.pending[self.message_id] = future
         await self.socket.send_json({"id": self.message_id, "type": command, **payload})
-        result = await asyncio.wait_for(future, 30)
+        return await asyncio.wait_for(future, 30)
+
+    async def ws(self, command: str, **payload):
+        result = await self.ws_result(command, **payload)
         check(result["success"], f"{command} failed: {result.get('error')}")
         return result["result"]
 
@@ -1035,6 +1042,106 @@ class Scenario:
             page = await response.text()
         check(url in page, "Dashboards do not load the Autodarts card")
 
+    async def people(self) -> None:
+        """A player becomes a person of Home Assistant, and stops being one."""
+        await self.api(
+            "POST",
+            "/api/states/person.e2e_player",
+            status=201,
+            json={"state": "home", "attributes": {"entity_picture": "/e2e.png"}},
+        )
+
+        async def person() -> str | None:
+            players = (await self.state("player_profiles"))["attributes"]["players"]
+            return next(
+                (p["person"] for p in players if p["name"] == "E2E Player"), "missing"
+            )
+
+        async def linked() -> bool:
+            return await person() == "person.e2e_player"
+
+        async def unlinked() -> bool:
+            return await person() is None
+
+        await self.api(
+            "POST",
+            "/api/services/autodarts/link_player",
+            json={"player": "E2E Player", "person": "person.e2e_player"},
+        )
+        await wait_for(linked, "the player linked to the person")
+        await self.api(
+            "POST",
+            "/api/services/autodarts/unlink_player",
+            json={"player": "e2e player"},
+        )
+        await wait_for(unlinked, "the link to be undone")
+        await self.api(
+            "POST", "/api/services/autodarts/delete_player", json={"name": "E2E Player"}
+        )
+        await self.api("DELETE", "/api/states/person.e2e_player")
+
+    async def gallery(self) -> None:
+        """The media browser lists the highlight photos by month and serves them."""
+        GALLERY.mkdir(parents=True, exist_ok=True)
+        photo = board_photo(["T20", "T20", "T20"])
+        (GALLERY / PHOTO).write_bytes(photo)
+        outside = GALLERY.parents[1] / "e2e-outside.jpg"
+        outside.write_bytes(photo)
+        try:
+            sources = await self.ws(
+                "media_source/browse_media", media_content_id="media-source://"
+            )
+            titles = [child["title"] for child in sources["children"]]
+            check("Autodarts" in titles, f"Media sources: {titles}")
+            root = await self.ws(
+                "media_source/browse_media", media_content_id="media-source://autodarts"
+            )
+            months = [
+                (child["title"], child["can_expand"]) for child in root["children"]
+            ]
+            check(months == [("September 2026", True)], f"Months: {months}")
+            month = await self.ws(
+                "media_source/browse_media",
+                media_content_id="media-source://autodarts/2026-09",
+            )
+            photos = [
+                (child["title"], child["media_class"], child["media_content_type"])
+                for child in month["children"]
+            ]
+            check(
+                photos == [("180 · E2E Player · Sep 26", "image", "image/jpeg")],
+                f"Photos: {photos}",
+            )
+            resolved = await self.ws(
+                "media_source/resolve_media",
+                media_content_id=f"media-source://autodarts/{PHOTO}",
+            )
+            check(
+                resolved["url"].startswith(
+                    "/media/local/autodarts/highlights/2026-09-26_21-05-33_E2E%20Player_180.jpg?authSig="
+                ),
+                f"Resolved: {resolved}",
+            )
+            # The signed address works without a login, like in an image element.
+            async with self.session.get(f"{HA}{resolved['url']}") as response:
+                check(response.status == 200, f"Photo: HTTP {response.status}")
+                check(await response.read() == photo, "The photo has other bytes")
+            # Nothing outside the gallery resolves.
+            for identifier in ("../e2e-outside.jpg", "..%2Fe2e-outside.jpg", "2026-09"):
+                failed = await self.ws_result(
+                    "media_source/resolve_media",
+                    media_content_id=f"media-source://autodarts/{identifier}",
+                )
+                check(not failed["success"], f"{identifier} resolved: {failed}")
+            unknown = await self.ws_result(
+                "media_source/browse_media",
+                media_content_id="media-source://autodarts/../..",
+            )
+            check(not unknown["success"], f"Browsing outside: {unknown}")
+        finally:
+            (GALLERY / PHOTO).unlink()
+            outside.unlink()
+
     async def diagnostics(self, entry_id: str) -> None:
         report = await self.api("GET", f"/api/diagnostics/config_entry/{entry_id}")
         data = report["data"]
@@ -1119,6 +1226,8 @@ async def main() -> None:
         await scenario.online_bridge(entry_id)
         await scenario.reports(entry_id)
         await scenario.card()
+        await scenario.people()
+        await scenario.gallery()
         await scenario.diagnostics(entry_id)
         await scenario.logs()
         await scenario.remove(entry_id)
@@ -1130,7 +1239,8 @@ async def main() -> None:
         "controls, realtime darts/corrections/takeouts with positions, persistence, "
         "dropped sockets mid-visit, outages, failing and slow reads, malformed "
         "frames, a restart, the online bridge, weekly report, training calendar, "
-        "exports, dashboard card, private diagnostics, clean logs and removal."
+        "exports, dashboard card, players linked to persons, the highlight gallery "
+        "in the media browser, private diagnostics, clean logs and removal."
     )
 
 

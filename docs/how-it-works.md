@@ -186,6 +186,15 @@ The weekly report counts what the board detects, like the darts of the day, and 
 - **Exports** are written by the action `autodarts.export` only, into a folder inside the configuration folder. The folder is resolved before writing, so neither `..`, an absolute path nor a symbolic link can lead outside, and hidden folders such as `.storage` are refused. Every export gets a new name with a random part and never replaces a file. In CSV, a text that starts like a spreadsheet formula (`=`, `+`, `-`, `@`) gets a leading apostrophe, so a player name cannot run as a formula.
 - **Downloads.** Besides `/local/`, logged-in users can download the exports written since Home Assistant started from `/api/autodarts/export/<name>`; the players card uses this address with a signed link that expires after a minute.
 
+## Highlight gallery
+
+The media source *Autodarts* shows the photos that the [highlight photo blueprint](automations.md#highlight-gallery) saves:
+
+- **Folder:** `autodarts/highlights` in the media folder of Home Assistant. That is the media folder `local`: `/media` on Home Assistant OS and in a container, otherwise the `media` folder in the configuration folder. If you set `media_dirs` without `local`, the first of them.
+- **Names:** `YYYY-MM-DD_HH-MM-SS_<player>_<score>.jpg`; the time and the player are optional, and a checkout reads `checkout-121`. Other pictures (`.jpg`, `.jpeg`, `.png`, `.webp`) show by their file name and the time they were saved.
+- **Order:** the months newest first, each with its newest photo as the cover; the photos of a month newest first.
+- **Safety:** only plain file names of that folder open, and only pictures; hidden files, subfolders and links out of the folder are ignored. Home Assistant's own media view serves the photos, to logged-in users or with a signed address.
+
 ## Camera health
 
 A camera counts as failed when it delivers no frames for **15 seconds** while the detection runs. Stopped detection, calibration and camera standby are not failures. The combined *Camera problem* sensor is on when any camera has failed. With realtime events, the alarm appears as soon as the frame rates show it.
@@ -201,6 +210,8 @@ The camera entities relay the live stream of Board Manager 2 to at most two view
 - **Board secrets** are dropped as soon as they are read and are never stored, logged or shown: the board API key, TLS keys, camera device paths and similar configuration.
 - **Diagnostics** redact the board ID, host, client ID, tokens and player names. The connection history in them holds counts, kinds of errors and durations, but no addresses or error messages.
 - **Exports** contain player names. The action writes them only on request; files in `www` are served at `/local/` without a login, see [exports](#training-calendar-and-exports).
+- **Highlight photos** stay in your media folder; the gallery reads nothing else.
+- **Persons:** a player linked to a person keeps only the entity ID of the person; the card reads the picture and whether the person is home from Home Assistant.
 
 ## Security
 
