@@ -50,6 +50,7 @@ from .local_api import (
     number,
     stats_summary,
 )
+from .online import ONLINE_EVENT_TYPES
 from .practice import PracticeGame
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
 from .records import PersonalRecords
@@ -116,6 +117,8 @@ EVENT_TYPES = [
     "personal_best",
     "daily_goal_reached",
     "bull_off_won",
+    # Moments of online matches, from the browser extension Tools for Autodarts.
+    *ONLINE_EVENT_TYPES,
 ]
 # Dart and visit events name the practice game being played, so that callers
 # can leave the game to the practice caller.

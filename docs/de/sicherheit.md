@@ -13,6 +13,7 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 | Board-ID, Board-Adresse, Client-ID | Integrationseintrag in Home Assistant | In Diagnosedaten geschwärzt; der Verbindungsverlauf in den Diagnosedaten enthält Zähler, Fehlerarten und Dauern, nie Adressen oder Fehlermeldungen |
 | Trainingssession, Übungsspiele und Spielernamen | `.storage` von Home Assistant | Nur lokal; wird mit der Integration gelöscht; Spielernamen sind in Diagnosedaten geschwärzt |
 | Steuerung des Boards | Board-Manager-API | Aktionen nur auf Wunsch eines Nutzers oder einer Automation, genau einmal gesendet |
+| Adresse der Online-Brücke (optional) | Optionen des Integrationseintrags in Home Assistant | Ein zufälliges Geheimnis aus 64 Hexadezimalzeichen, nur in den Optionen angezeigt; von der Integration nie protokolliert und nie in Diagnosedaten; in den Optionen durch eine neue ersetzbar |
 
 ## Vertrauensgrenzen
 
@@ -30,6 +31,7 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 2. **Integration → Dashboard.** Die Karten zeigen Board-Daten im Browser. Jeder Text vom Board oder aus der Entitätsverwaltung wird maskiert, Zahlen werden geprüft, bevor sie zu SVG-Geometrie werden.
 3. **Integration → Internet.** Im lokalen Betrieb verlässt nichts das Heimnetz. *Boards im Netzwerk suchen* fragt einmalig und nur auf Wunsch den öffentlichen Suchdienst von Autodarts; von sich aus fragt die Integration ihn nie. Die optionale Cloud-Verknüpfung nutzt die OAuth-Geräteanmeldung über HTTPS mit der gemeinsamen Verbindung von Home Assistant, und Board- und Match-IDs aus der Cloud werden als einzelner Pfadabschnitt kodiert.
 4. **Netzwerk → Integration (mDNS).** Jedes Gerät im Netzwerk kann ein Autodarts-Board melden. Die Integration spricht nur die Adressen an, von denen die Meldung kommt, nie Loopback-, Link-local- oder Multicast-Adressen und nie eine Adresse, die nur in den Eigenschaften der Meldung steht. Ein eingerichtetes Board zieht nur dann auf eine neue Adresse um, wenn es unter seiner eingerichteten Adresse nicht mehr mit seiner Board-ID antwortet.
+5. **Browser → Integration (Online-Brücke, optional).** Standardmäßig aus. Eingeschaltet nimmt Home Assistant die Aufrufe der Browser-Erweiterung Tools for Autodarts unter einer geheimen Webhook-Adresse an, standardmäßig nur aus dem Heimnetz. Die Integration nimmt nur die bekannten Trigger an, Felder begrenzter Länge und höchstens 20 Aufrufe pro Sekunde. Ein Aufruf kann nur ein Board-Ereignis `online_*` auslösen: Er steuert nie das Board und ändert keine gespeicherten Daten. [Online-Matches](automationen.md#online-matches-experimentell).
 
 ## Bedrohungen und Gegenmaßnahmen
 
@@ -41,6 +43,7 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 | Ein falsches Board unter der eingerichteten Adresse zeigt oder steuert fremde Daten | Die Board-ID wird bei Board Manager 2 bei jedem Lesen geprüft, bei Board Manager 1 beim Start und mindestens alle 30 Sekunden; bei Abweichung sind die Entitäten nicht verfügbar, seine Echtzeitnachrichten werden ignoriert, und ein Reparaturhinweis erscheint | `tests/test_quality.py`, `tests/test_realtime.py` |
 | Ein Gerät im Netzwerk meldet sich als Board | Nur die meldenden Adressen werden angesprochen; ein Board, das unter seiner eingerichteten Adresse noch antwortet, zieht nie um; die Board-ID muss passen | `tests/test_discovery.py` |
 | Präparierte IDs aus der Cloud erreichen andere API-Pfade | Board- und Match-IDs werden als einzelner Pfadabschnitt kodiert; eine leere ID oder eine ID, die kein Text ist, sendet nichts | `tests/test_api.py` |
+| Jemand erfährt die Adresse der Online-Brücke und sendet falsche Momente | Standardmäßig aus; ohne Freigabe nur Aufrufe aus dem Heimnetz; ein Geheimnis aus 64 zufälligen Hexadezimalzeichen; nur bekannte Trigger, begrenzte Längen, höchstens 20 Aufrufe pro Sekunde; nur Ereignisse; eine neue Adresse in den Optionen | `tests/test_online.py` |
 | Viele Zuschauer überlasten den Board-PC mit Kamerastreams | Pro Kamera werden höchstens zwei Livestreams weitergegeben; weitere Zuschauer bekommen Standbilder | `tests/test_camera_stream.py` |
 | Fehlerhafte Board-Daten oder ein Fehler in einer Spielregel trennen die Verbindung | Fehler in Training und Spielen bleiben begrenzt und werden einmal protokolliert; schnell wechselnde Werte lösen keine Spiellogik aus; Lesevorgänge überschneiden sich nie | `tests/test_connection.py` |
 | Eine Aktion läuft doppelt, etwa Neustart oder Zurücksetzen | Aktionen werden genau einmal gesendet und nie automatisch wiederholt | `tests/test_local_api.py` |
@@ -52,11 +55,12 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 - **Minimale Rechte:** GitHub-Workflows laufen mit Lese-Token, außer ein Job braucht mehr. Die Integration liest den Board Manager und schreibt nur, wenn du oder eine Automation es verlangt.
 - **Sicher im Fehlerfall:** Unbekannte Daten werden zu *unbekannt*, ein unerreichbares Board macht Entitäten nicht verfügbar, und ein falsches Board zeigt nie seine Daten.
 - **Lokal zuerst:** Die Cloud ist optional; die lokale Steuerung hängt nie von ihr ab.
-- **Kleine Angriffsfläche:** Keine Python-Abhängigkeiten zur Laufzeit, keine offenen Ports, keine Dienste außer den Entitäten.
+- **Kleine Angriffsfläche:** Keine Python-Abhängigkeiten zur Laufzeit, keine eigenen offenen Ports, keine Dienste außer den Entitäten und, nur solange die Online-Brücke an ist, eine geheime Webhook-Adresse auf dem Webserver von Home Assistant.
 
 ## Verbleibende Risiken
 
 - Die lokale API des Board Managers hat keine Anmeldung. Jeder, der Port 3180 in deinem Netzwerk erreicht, kann das Board steuern, mit oder ohne diese Integration. Betreibe den Board-PC in einem vertrauenswürdigen Netzwerk.
 - Autodarts unterstützt die lokale API ab Board Manager 2 offiziell nicht mehr. Eine künftige Version kann sie ändern; die Integration erkennt die Generation und wird gegen beide getestet.
 - Die Integration spricht unverschlüsseltes HTTP mit dem Board. Meldet Board Manager 2 einen HTTPS-Port, nutzt sie den gemeldeten HTTP-Port; TLS zum Board wird nicht unterstützt.
+- Die Online-Brücke beruht darauf, dass ihre Adresse geheim bleibt. Wer sie kennt und Home Assistant erreicht, kann Online-Board-Ereignisse und die Automationen darauf auslösen, bis du eine neue Adresse erzeugst.
 - Jeder im Netzwerk kann per mDNS ein Board melden. Home Assistant zeigt dann ein gefundenes Board an, das erst nach deiner Bestätigung hinzugefügt wird.

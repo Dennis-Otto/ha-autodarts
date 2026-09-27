@@ -82,6 +82,15 @@ To start over, press **New training session** or *New session* on the training c
 - **An old version of a card after an update:** reload the page. In the companion app, use *Settings → Companion app → Debugging → Reset frontend cache*.
 - **The training history is empty:** the history is read from the recorder. It needs the `recorder` integration (enabled by default) and fills with completed visits.
 
+### Moments of online matches don't arrive
+
+Follow the [online bridge](automations.md#online-matches-experimental) step by step and watch the *Online bridge last event* sensor:
+
+- **No sensor:** the bridge is off. Turn it on in the options of the board (**Configure**).
+- **The address itself:** open it with `?event=gameon` added in a browser of your home network. If the sensor does not change, the browser cannot reach Home Assistant at this address: use the address you open Home Assistant with. An address from outside your home network needs *Accept calls from outside your home network*.
+- **Only from the Autodarts page:** check that the WLED feature of Tools for Autodarts is on, the effects are enabled and the Autodarts page is open. The developer tools of the browser (F12, *Console*) show calls that the browser blocked, for example as *Mixed Content*; see [mixed content](automations.md#limitations).
+- **Some moments only:** a trigger the bridge does not know is named once in a warning in the Home Assistant log. Tools for Autodarts plays one effect per trigger, so remove other effects with the same trigger.
+
 ## Diagnostics and logs
 
 ### Download diagnostics

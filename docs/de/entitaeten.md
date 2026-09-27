@@ -29,7 +29,7 @@ Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwer
 
 ## Board-Ereignisse
 
-Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP und `training` für Session-Ereignisse. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
+Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und `online` für die Momente von [Online-Matches](automationen.md#online-matches-experimentell), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
@@ -51,6 +51,15 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 | `bull_off_won` | Das [Ausbullen](#übungsspiel) entscheidet, wer das Match beginnt | `game`, `player`, `name`, `players`, `hit` (das Feld des Siegerdarts: `BULL`, `25` oder etwa `S20`), `distance` (Millimeter von der Mitte, oder keiner ohne Position vom Board) |
 | `personal_best` | Ein Wert übertrifft deine [Bestleistung](#bestleistungen-serie-und-tagesziel) | `record`, `value`, `previous`, `name` (der Spieler, falls bekannt) |
 | `daily_goal_reached` | Die Darts von heute erreichen das [Tagesziel](#bestleistungen-serie-und-tagesziel), einmal pro Tag | `goal`, `darts`, `streak` |
+| `online_game_on` | [Online-Match](automationen.md#online-matches-experimentell): Eine Aufnahme beginnt, oder ein Moment ohne eigenen Effekt | `trigger`, `name` |
+| `online_visit` | Online-Match: eine Aufnahme | `trigger`, `score`; bei drei Darts auch `darts` und `segments`; bei einem Bereich `score_min` und `score_max` statt `score` |
+| `online_dart` | Online-Match: ein Dart | `trigger`, `segment` (`T20`, `D16`, `S5`, `25`, `BULL` oder `MISS`), `score` |
+| `online_busted` | Online-Match: überworfen | `trigger`, `name` |
+| `online_game_shot` | Online-Match: ein gewonnenes Leg | `trigger`, `segment` des Siegerdarts und `name`, wenn der Trigger sie nennt |
+| `online_match_shot` | Online-Match: ein gewonnenes Match | `trigger`, `segment`, `name` wie bei `online_game_shot` |
+| `online_bull_off` | Online-Match: Das Ausbullen beginnt | `trigger` |
+| `online_tournament_ready` | Ein Turniermatch von dir ist bereit | `trigger` |
+| `online_match_left` | Du hast das Online-Match verlassen | `trigger` |
 
 `game` ist das [Übungsspiel](#übungsspiel), das beim Landen des Darts läuft, etwa `501`, `cricket` oder `shanghai`, und leer ohne Übungsspiel und bei [Trainingsspielen](#trainingsspiele). Eine Aufnahme aus drei Darts wird zweimal gemeldet: mit `visit_thrown`, sobald ihr dritter Dart landet, für 180-Feiern und Caller, und mit `visit_completed`, wenn sie endet, mit den Punkten nach allen Korrekturen. Um auf jede Aufnahme genau einmal und so früh wie möglich zu reagieren, nutze `visit_thrown` und `visit_completed` mit `thrown` gleich `false`; die [Blueprints](automationen.md#blueprints) machen es so.
 
@@ -259,6 +268,7 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 | Prozessor | Sensor, **BM 2**, *Diagnose* | Prozessormodell des Board-PCs. Attribut: `cores`. |
 | Version der Erkennungssoftware | Sensor, **BM 2**, *Diagnose* | Version der Autodarts-Erkennungssoftware. Attribut: `opencv_version`. |
 | Software | Update, **BM 2** | Installierte und neueste Board-Manager-Version. Updates installierst du auf dem Board-PC. |
+| Letztes Ereignis der Online-Brücke | Sensor, Zeitstempel, *Diagnose* | Wann der letzte Moment eines [Online-Matches](automationen.md#online-matches-experimentell) ankam; vor dem ersten *unbekannt*. Nur, solange die Online-Brücke an ist. Attribute: `trigger`, `event_type`. |
 
 Die Entitäten einer einzelnen Kamera tragen das Attribut `camera` mit der Kameranummer. Die [Board-Status-Karte](karten.md#board-status) nutzt es.
 

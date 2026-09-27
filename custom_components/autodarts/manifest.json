@@ -3,7 +3,8 @@
   "name": "Autodarts",
   "after_dependencies": [
     "frontend",
-    "http"
+    "http",
+    "webhook"
   ],
   "codeowners": [
     "@Dennis-Otto"

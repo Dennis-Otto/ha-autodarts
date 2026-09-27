@@ -8,13 +8,17 @@ from ipaddress import IPv4Address, ip_address
 from typing import Any
 
 import voluptuous as vol
+from homeassistant.components import webhook
 from homeassistant.config_entries import (
     SOURCE_REAUTH,
     SOURCE_RECONFIGURE,
+    ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
+    OptionsFlowWithReload,
 )
 from homeassistant.const import CONF_NAME
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
@@ -41,6 +45,14 @@ from .const import (
 from .discovery import async_discover_boards
 from .errors import AutodartsApiError
 from .local_api import AutodartsLocalAuthError, AutodartsLocalClient, board_generation
+from .online import (
+    CONF_NEW_ADDRESS,
+    CONF_ONLINE_BRIDGE,
+    CONF_ONLINE_REMOTE,
+    CONF_WEBHOOK_ID,
+    bridge_url,
+    effects_csv,
+)
 
 
 def _valid_host(host: str) -> bool:
@@ -110,6 +122,11 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
     """Link an account using a registered public OAuth client and a short code."""
 
     VERSION = 2
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> AutodartsOptionsFlow:
+        return AutodartsOptionsFlow()
 
     def __init__(self) -> None:
         self._token: dict[str, Any] = {}
@@ -519,4 +536,58 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
             data[CONF_PORT] = self._user_input.get(CONF_PORT, DEFAULT_PORT)
         return self.async_create_entry(
             title=f"Autodarts ({self._boards[board_id]})", data=data
+        )
+
+
+class AutodartsOptionsFlow(OptionsFlowWithReload):
+    """Switch the bridge for online matches on or off and show its address."""
+
+    def __init__(self) -> None:
+        self._options: dict[str, Any] = {}
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        options = self.config_entry.options
+        if user_input is not None:
+            enabled = user_input[CONF_ONLINE_BRIDGE]
+            self._options = {
+                **options,
+                CONF_ONLINE_BRIDGE: enabled,
+                CONF_ONLINE_REMOTE: user_input[CONF_ONLINE_REMOTE],
+            }
+            # The address stays when the bridge is switched off, so that the
+            # effects in the browser work again after switching it on.
+            if enabled and (
+                user_input.get(CONF_NEW_ADDRESS) or not options.get(CONF_WEBHOOK_ID)
+            ):
+                self._options[CONF_WEBHOOK_ID] = webhook.async_generate_id()
+            if enabled:
+                return await self.async_step_online_bridge()
+            return self.async_create_entry(data=self._options)
+        schema: dict[vol.Marker, Any] = {
+            vol.Required(
+                CONF_ONLINE_BRIDGE, default=options.get(CONF_ONLINE_BRIDGE, False)
+            ): bool,
+            vol.Required(
+                CONF_ONLINE_REMOTE, default=options.get(CONF_ONLINE_REMOTE, False)
+            ): bool,
+        }
+        if options.get(CONF_WEBHOOK_ID):
+            schema[vol.Required(CONF_NEW_ADDRESS, default=False)] = bool
+        return self.async_show_form(step_id="init", data_schema=vol.Schema(schema))
+
+    async def async_step_online_bridge(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """The address and the effects to import into Tools for Autodarts."""
+        if user_input is not None:
+            return self.async_create_entry(data=self._options)
+        url = bridge_url(
+            self.hass, self._options[CONF_WEBHOOK_ID], self._options[CONF_ONLINE_REMOTE]
+        )
+        return self.async_show_form(
+            step_id="online_bridge",
+            data_schema=vol.Schema({}),
+            description_placeholders={"url": url, "effects": effects_csv(url)},
         )

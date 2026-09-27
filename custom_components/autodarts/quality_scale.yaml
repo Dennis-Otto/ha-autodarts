@@ -29,8 +29,11 @@ rules:
   action-exceptions: done
   config-entry-unloading: done
   docs-configuration-parameters:
-    status: exempt
-    comment: The integration has no options; the board is configured in Board Manager.
+    status: done
+    comment: >-
+      The only options switch the bridge for online matches on and off; they are
+      documented with the automations. The board itself is configured in Board
+      Manager.
   docs-installation-parameters: done
   entity-unavailable: done
   integration-owner: done

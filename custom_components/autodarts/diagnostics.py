@@ -63,6 +63,10 @@ async def async_get_config_entry_diagnostics(
         ),
         # Counts, kinds of errors and durations only; no addresses or messages.
         "connection": local.diagnostics() if local else None,
+        # Never the secret webhook address.
+        "online_bridge": (
+            runtime.bridge.diagnostics() if runtime.bridge else {"enabled": False}
+        ),
     }
 
 

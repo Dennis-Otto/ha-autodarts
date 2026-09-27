@@ -13,6 +13,7 @@ This page explains how the integration protects your data and your board, what i
 | Board ID, board address, client ID | Home Assistant config entry | Redacted from diagnostics; the connection history in diagnostics holds counts, kinds of errors and durations, never addresses or error messages |
 | Training session, practice games and player names | Home Assistant `.storage` | Local only; deleted together with the integration; player names are redacted from diagnostics |
 | Control of the board | Board Manager API | Actions only on request of a user or an automation, sent once |
+| Address of the online bridge (optional) | Options of the Home Assistant config entry | A random secret of 64 hexadecimal characters, shown only in the options; never logged by the integration or included in diagnostics; replaceable with a new one in the options |
 
 ## Trust boundaries
 
@@ -30,6 +31,7 @@ This page explains how the integration protects your data and your board, what i
 2. **Integration → dashboard.** The cards render board data in the browser. Every text from the board or the entity registry is escaped, and numbers are validated before they become SVG geometry.
 3. **Integration → internet.** Nothing leaves the local network in local mode. *Search for boards* contacts the public Autodarts discovery service once, on request; the integration never contacts it on its own. The optional cloud link uses the OAuth device login over HTTPS through Home Assistant's shared session, and board and match IDs from the cloud are encoded as a single path segment.
 4. **Network → integration (mDNS).** Any device in the network can announce an Autodarts board. The integration contacts only the addresses the announcement was sent from, never loopback, link-local or multicast addresses, and never an address named only in the announcement's properties. An existing board moves to a new address only when its configured address no longer answers with its board ID.
+5. **Browser → integration (online bridge, optional).** Off by default. When switched on, Home Assistant accepts the calls of the browser extension Tools for Autodarts at a secret webhook address, by default only from the home network. The integration accepts only the known triggers, fields of limited length and at most 20 calls per second. A call can only fire an `online_*` board event: it never controls the board or changes stored data. [Online matches](automations.md#online-matches-experimental).
 
 ## Threats and countermeasures
 
@@ -41,6 +43,7 @@ This page explains how the integration protects your data and your board, what i
 | A wrong board at a configured address shows or controls foreign data | The board ID is checked with every read of Board Manager 2, and with Board Manager 1 at the start and at least every 30 seconds; a mismatch makes the entities unavailable, ignores its realtime notifications and raises a repair notice | `tests/test_quality.py`, `tests/test_realtime.py` |
 | A device in the network announces itself as a board | Only the announcing addresses are contacted; a board that still answers at its configured address is never moved; the board ID must match | `tests/test_discovery.py` |
 | Crafted identifiers from the cloud reach other API routes | Board and match IDs are encoded as a single path segment; an empty or non-text ID sends nothing | `tests/test_api.py` |
+| Someone who learns the address of the online bridge sends fake moments | Off by default; only calls from the home network unless allowed; a secret of 64 random hexadecimal characters; known triggers only, limited lengths, at most 20 calls per second; events only; a new address in the options | `tests/test_online.py` |
 | Many viewers overload the board PC with camera streams | At most two live streams per camera are relayed; further viewers get snapshots | `tests/test_camera_stream.py` |
 | Faulty board data or a bug in a game rule cuts the connection | Errors in the training and the games are contained and logged once; high-rate values never run the game logic; reads never overlap | `tests/test_connection.py` |
 | An action runs twice, for example a restart or a reset | Actions are sent once and never retried automatically | `tests/test_local_api.py` |
@@ -52,11 +55,12 @@ This page explains how the integration protects your data and your board, what i
 - **Least privilege:** GitHub workflows run with read-only tokens unless a job needs more; the integration only reads the Board Manager and writes to it only when you or an automation ask for it.
 - **Fail safe:** unknown data becomes *unknown*, an unreachable board makes entities unavailable, and a wrong board never shows its data.
 - **Local first:** the cloud is optional, and local control never depends on it.
-- **Small attack surface:** no Python dependencies at runtime, no open ports, no services beyond the entities.
+- **Small attack surface:** no Python dependencies at runtime, no open ports of its own, no services beyond the entities and, only while the online bridge is on, one secret webhook address of Home Assistant's own web server.
 
 ## Residual risks
 
 - The Board Manager's local API has no login. Anyone who can reach port 3180 in your network can control the board, with or without this integration. Keep the board PC in a trusted network.
 - The local API is not officially supported by Autodarts from Board Manager 2 on. A future Board Manager version may change it; the integration detects the generation and is tested against both.
 - The integration talks plain HTTP to the board. If Board Manager 2 announces an HTTPS port, the plain HTTP port it announces is used; TLS to the board is not supported.
+- The online bridge relies on the secrecy of its address. Whoever knows it and can reach Home Assistant can fire online board events and the automations that react to them, until you create a new address.
 - Anyone in the network can announce a board over mDNS. Home Assistant then shows a discovered board, which is only added after you confirm it.

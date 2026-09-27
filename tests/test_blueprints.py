@@ -31,7 +31,8 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
 
-from .local_helpers import BULL, S20, T20, board, entity_id, setup_local
+from .local_helpers import BULL, S20, T20, board, entity_id, setup_bridge
+from .local_helpers import WEBHOOK_PATH as ONLINE_BRIDGE
 
 ROOT = Path(__file__).parents[1]
 BLUEPRINTS = ROOT / "blueprints" / "automation" / "autodarts"
@@ -226,9 +227,11 @@ async def visit(hass, coordinator, *darts) -> None:
     await hass.async_block_till_done()
 
 
-async def test_blueprints_follow_the_real_board_events(hass, aioclient_mock):
-    """A practice match and free play on the board events of the integration."""
-    entry = await setup_local(hass, aioclient_mock, state=board())
+async def test_blueprints_follow_the_real_board_events(
+    hass, aioclient_mock, hass_client_no_auth
+):
+    """A practice match, free play and an online match on the board events."""
+    entry = await setup_bridge(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     events = entity_id(hass, "event", "board_events")
     payloads: dict[str, set[str]] = defaultdict(set)
@@ -284,6 +287,7 @@ async def test_blueprints_follow_the_real_board_events(hass, aioclient_mock):
                         ]
                         for moment in MOMENTS
                     },
+                    "online_matches": True,
                 },
             ),
             (
@@ -320,6 +324,17 @@ async def test_blueprints_follow_the_real_board_events(hass, aioclient_mock):
             blocking=True,
         )
         await hass.async_block_till_done()
+    # Tools for Autodarts reports the moments of an online match; your own 180
+    # comes from the board.
+    client = await hass_client_no_auth()
+    for query in (
+        "event=busted&player=Lea",
+        "event=gameshot_dennis",
+        "event=matchshot",
+        "event=180",
+    ):
+        assert (await client.get(f"{ONLINE_BRIDGE}?{query}")).status == 200
+    await hass.async_block_till_done()
 
     assert spoken(speak) == [
         "Lea, throw for the bull",
@@ -339,6 +354,9 @@ async def test_blueprints_follow_the_real_board_events(hass, aioclient_mock):
         ("match", "Lea"),
         ("maximum", ""),
         ("personal_best", ""),
+        ("bust", "Lea"),
+        ("leg", "dennis"),
+        ("match", ""),
     ]
     assert not switch_on
     assert [call.data["message"] for call in photos] == [
@@ -1254,3 +1272,46 @@ async def test_light_show_without_restore_plays_moments_at_once(hass):
         ],
     )
     assert len(light) == 2 and not snapshot
+
+
+async def test_light_show_reacts_to_online_matches_when_asked(hass):
+    light = async_mock_service(hass, "test", "light")
+    online = async_mock_service(hass, "test", "online")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            ("light_show", {"board_events": EVENTS, **moment_actions()}),
+            (
+                "light_show",
+                {
+                    "board_events": EVENTS,
+                    **moment_actions("test.online"),
+                    "online_matches": True,
+                },
+            ),
+        ],
+    )
+    await fire_all(
+        hass,
+        [
+            ("online_busted", {"trigger": "busted", "source": "online"}),
+            (
+                "online_game_shot",
+                {"trigger": "gameshot+d10", "segment": "D10", "source": "online"},
+            ),
+            (
+                "online_match_shot",
+                {"trigger": "matchshot_dennis", "name": "dennis", "source": "online"},
+            ),
+            # Your own 180 comes from the board, and only once.
+            ("online_visit", {"trigger": "180", "score": 180, "source": "online"}),
+        ],
+    )
+    # Off by default: an online match stays dark.
+    assert not light
+    assert [(call.data["moment"], call.data["who"]) for call in online] == [
+        ("bust", ""),
+        ("leg", ""),
+        ("match", "dennis"),
+    ]

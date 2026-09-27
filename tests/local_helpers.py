@@ -201,6 +201,28 @@ async def setup_local(hass, aioclient_mock, **kwargs):
     return entry
 
 
+# Options of an entry with the online bridge switched on.
+WEBHOOK_ID = "0123456789abcdef" * 4
+WEBHOOK_PATH = f"/api/webhook/{WEBHOOK_ID}"
+BRIDGE = {"online_bridge": True, "online_bridge_webhook_id": WEBHOOK_ID}
+
+
+async def setup_bridge(hass, aioclient_mock, options=None, **kwargs):
+    """A Board Manager 1 board whose entry has the options, by default the bridge on."""
+    mock_board(aioclient_mock, **kwargs)
+    entry = MockConfigEntry(
+        domain="autodarts",
+        version=2,
+        data=local_entry_data(),
+        options=BRIDGE if options is None else options,
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state == ConfigEntryState.LOADED
+    return entry
+
+
 async def setup_v2(hass, aioclient_mock, **kwargs):
     """A Board Manager 2 board, set up locally."""
     mock_board_v2(aioclient_mock, **kwargs)

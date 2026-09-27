@@ -19,7 +19,7 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 | **Training session routine** | When a [training session](entities.md#training-session) starts, runs your actions, turns on the detection and calibrates the cameras after a short wait; when it ends, turns off the detection and runs your actions with `reason`, `darts`, `average` and `duration_minutes`. The detection switch and the calibration button are optional. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
 | **Practice caller** | Calls the [practice game](entities.md#practice-game) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the bull-off. The messages are templates. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
 | **Highlight photo** | Runs your actions with a picture from a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. The actions can use `image`, `message`, `score`, `checkout` and `who`. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
-| **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal and a won bull-off, and optionally during the takeout. It can restore your lights afterwards and pause the detection while an effect plays. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal and a won bull-off, and optionally during the takeout and in [online matches](#online-matches-experimental). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](../blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
 
@@ -166,6 +166,7 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | Effect duration | 10 seconds | How long an effect plays before the lights are restored and the detection starts again. |
 | Pause the detection during effects | off | Turns the detection off while an effect plays and on again afterwards, if it was on. |
 | Detection switch | none | The *Detection* switch of your board, for pausing it. |
+| Also react to online matches | off | Also plays the actions for a bust, a won leg and a won match of an [online match](#online-matches-experimental). A 180 and the takeout of your own darts come from your board anyway. |
 
 The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `takeout` or `board_clear`), `who`, `player`, `score` (of a 180), `checkout` (of a won leg) and `trigger.to_state.attributes` for every detail of the [board event](entities.md#board-events). See [light show with WLED and other lights](#light-show-with-wled-and-other-lights).
 
@@ -544,6 +545,80 @@ actions:
   - set_conversation_response: "Game on, {{ trigger.slots.names }}!"
 mode: single
 ```
+
+## Online matches (experimental)
+
+The integration sees the darts on your board in an online match on play.autodarts.io, too: `dart_detected`, `visit_thrown` and the takeout arrive as usual. It cannot see the game itself: a bust, a won leg or match and the darts of your opponents happen in the browser. Autodarts shares them only through its cloud, which needs a client ID that has not been issued yet.
+
+The optional **online bridge** brings these moments into Home Assistant with the browser extension [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts). Its WLED feature calls an address of your choice for each moment of the game. The bridge offers a secret Home Assistant address for it and turns every call into a [board event](entities.md#board-events) whose type starts with `online_` and whose `source` is `online`. It is off by default.
+
+### Set up the bridge
+
+1. Go to **Settings → Devices & services → Autodarts**, open **Configure** (the cog) of your board, turn on **Receive online matches from Tools for Autodarts** and submit.
+2. The next step shows the secret address and ready-made lines for Tools for Autodarts. Copy the lines and submit. From now on, Home Assistant accepts calls at the address. Open the options again whenever you need the address.
+3. In the browser at the board, open the settings of Tools for Autodarts, turn on **WLED**, choose **Import CSV**, paste the lines and save. Each line is an effect of the type **URL** for one trigger; delete the ones you don't need.
+4. Check that the moments arrive: open the address with `?event=gameon` added in a browser of your home network, or play a match. The **Online bridge last event** sensor on the device page, under *Diagnostic*, shows when the last moment arrived and its trigger.
+
+To add an effect by hand, give it one trigger, the type **URL** and the address followed by `?event=` and the same trigger, for example `…/api/webhook/<secret>?event=busted`. The name of a player can follow as `&player=Lea`. An effect of the type **JSON API** works too, with a body such as `{"event": "busted", "player": "Lea"}`.
+
+### Triggers and events
+
+| Trigger in Tools for Autodarts | Board event | Details |
+| --- | --- | --- |
+| `gameon`, `bot_throw` | `online_game_on` | Tools for Autodarts sends `gameon` at the start of every turn and after every moment without an effect of its own: a good moment to return to your normal light. |
+| `busted` | `online_busted` | A bust. |
+| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | A won leg, with the `segment` of the winning dart or the `name` of the player when the trigger names them. |
+| `matchshot`, `matchshot+bull`, `matchshot_<name>` | `online_match_shot` | A won match, with the same details. |
+| `0` to `180` | `online_visit` | The `score` of a visit. |
+| `range_100_140` or `100-140` | `online_visit` | A visit in the range, with `score_min` and `score_max`. |
+| Three darts such as `t20_t20_t20` | `online_visit` | `score`, `darts` and `segments` (for example `["T20", "T20", "T20"]`). |
+| `t20`, `d16`, `s5`, `s25`, `bull`, `m17`, `miss`, `outside` | `online_dart` | A dart, with `segment` (`T20`, `D16`, `S5`, `25`, `BULL` or `MISS`) and `score`. |
+| `bulloff` | `online_bull_off` | The bull-off begins. |
+| `tournament_ready` | `online_tournament_ready` | A tournament match of yours waits for you to mark yourself ready. |
+| `idle` | `online_match_left` | You left the match. |
+| `other` | none | A moment on another board; the bridge ignores it. |
+
+Every online event has `trigger` (as sent, in lowercase), `source` (`online`) and `name` when the address has `&player=`. A plain number is always the score of a visit, so `25` is a visit of 25 points and `s25` a dart in the outer bull. The board triggers of Tools for Autodarts, such as `board_started`, `throw` or `takeout`, are not accepted: the board events report them directly from your board, faster and without a browser.
+
+- **Your own darts** come from the board anyway: `dart_detected`, `visit_thrown` and the takeout are faster than the extension and work without it. Use the online events for what only the match knows: busts, won legs and matches, and the darts of your opponents.
+- **Only your board:** Tools for Autodarts reports the moments of every player in the match, your opponents' as well. To react to your own board only, enter your board ID under **Board IDs** in its WLED settings and keep the `other` line: moments on other boards then send `other` instead.
+- **Light show:** turn on *Also react to online matches* in the [light show](#light-show) to play busts, won legs and won matches of online matches.
+
+A notification when a tournament match is ready:
+
+```yaml
+alias: Darts - tournament match ready
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: event.autodarts_board_events
+    options:
+      event_type:
+        - online_tournament_ready
+actions:
+  - action: notify.mobile_app_phone
+    data:
+      message: Your tournament match is ready. Mark yourself ready on Autodarts.
+mode: single
+```
+
+### Security
+
+- The address contains a secret of 64 random hexadecimal characters. Whoever knows it can send moments of a game to your Home Assistant, nothing else: the bridge accepts only the triggers above, fields of limited length and at most 20 calls per second. The integration never logs the address, and diagnostics don't contain it. Home Assistant itself names it in a few of its own warnings, for example about a call from outside your network, so check logs before you share them.
+- By default, only devices in your home network can call the address; Home Assistant ignores calls from the internet. Turn on **Accept calls from outside your home network** only for an https address through Home Assistant Cloud or your own domain.
+- If the address got out, turn on **Create a new secret address** in the options and import the new lines into Tools for Autodarts. The old address stops working.
+- Switched off, the bridge does not exist: Home Assistant answers its address like any unknown one. The integration keeps the address for the next time you switch the bridge on.
+
+### Limitations
+
+- **A browser extension of a third party.** Moments arrive only while the Autodarts page is open in a browser with Tools for Autodarts and its WLED feature on. When the extension changes its triggers, the bridge may need an update. The events are never replayed.
+- **One effect per trigger.** Tools for Autodarts plays one effect per trigger and picks one at random when several effects share a trigger. A trigger that drives a WLED device in the extension and Home Assistant at the same time reaches each of them only now and then. Let Home Assistant drive your lights, for example with the light show, or use separate triggers.
+- **Effects only once.** With *trigger Effects only once* on, the extension skips an effect that is already playing, so the same moment twice in a row arrives once.
+- **Mixed content.** play.autodarts.io is an https page, and browsers may block its calls to a plain http address; the extension warns about that when you enter one. What works:
+  - An https address of Home Assistant with a trusted certificate, such as your Home Assistant Cloud address or your own domain. Turn on *Accept calls from outside your home network* unless the browser reaches that address inside your home network.
+  - A plain http address in your home network, such as `http://homeassistant.local:8123`, if the browser lets the calls through: allow *Insecure content* for play.autodarts.io in the site settings of Chrome or Edge, and allow access to devices on your local network when the browser asks.
+  - Whichever you choose, the *Online bridge last event* sensor shows whether the moments arrive.
+- **Board events only.** Online moments don't count in the training session, the practice game or the personal bests.
 
 ## Adapting automations from older versions
 
