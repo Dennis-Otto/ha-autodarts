@@ -134,11 +134,15 @@ async def test_changed_board_address_is_taken_from_the_cloud(hass, aioclient_moc
         json={"id": "board-1", "ip": BASE, "state": {"connected": True}},
     )
     data = {**entry_data(), "host": "192.0.2.99", "port": 3180, "local_only": False}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(
+        domain="autodarts", version=2, data=data, title="Autodarts (192.0.2.99)"
+    )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.data["host"] == "192.0.2.10"
+    # A title that named the old address names the new one.
+    assert entry.title == "Autodarts (192.0.2.10)"
     assert state(hass, "binary_sensor", "local_connected") == "on"
     assert state(hass, "switch", "detection") == "off"
 
