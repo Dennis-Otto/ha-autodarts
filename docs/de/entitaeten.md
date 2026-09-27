@@ -52,6 +52,7 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 | `personal_best` | Ein Wert übertrifft deine [Bestleistung](#bestleistungen-serie-und-tagesziel) | `record`, `value`, `previous`, `name` (der Spieler, falls bekannt) |
 | `daily_goal_reached` | Die Darts von heute erreichen das [Tagesziel](#bestleistungen-serie-und-tagesziel), einmal pro Tag | `goal`, `darts`, `streak` |
 | `weekly_report` | Die [Berichtswoche](#wochenbericht) endet, standardmäßig montags um Mitternacht | `week_start`, `week_end`, `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `darts_at_double`, `checkouts`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` |
+| `achievement_unlocked` | Ein Spieler mit Namen erreicht eine neue Stufe eines [Erfolgs](#erfolge) | `player` (der Platz 1–4 des Spielers am Board oder keiner), `name`, `achievement` (etwa `maximum`), `tier` (1–4), `tiers` (wie viele Stufen der Erfolg hat) und `threshold` (der Wert der Stufe, etwa 10 für zehn 180er) |
 | `online_game_on` | [Online-Match](automationen.md#online-matches-experimentell): Eine Aufnahme beginnt, oder ein Moment ohne eigenen Effekt | `trigger`, `name` |
 | `online_visit` | Online-Match: eine Aufnahme | `trigger`, `score`; bei drei Darts auch `darts` und `segments`; bei einem Bereich `score_min` und `score_max` statt `score` |
 | `online_dart` | Online-Match: ein Dart | `trigger`, `segment` (`T20`, `D16`, `S5`, `25`, `BULL` oder `MISS`), `score` |
@@ -61,7 +62,6 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 | `online_bull_off` | Online-Match: Das Ausbullen beginnt | `trigger` |
 | `online_tournament_ready` | Ein Turniermatch von dir ist bereit | `trigger` |
 | `online_match_left` | Du hast das Online-Match verlassen | `trigger` |
-| `achievement_unlocked` | Ein Spieler mit Namen erreicht eine neue Stufe eines [Erfolgs](#erfolge) | `player` (der Platz 1–4 des Spielers am Board oder keiner), `name`, `achievement` (etwa `maximum`), `tier` (1–4), `tiers` (wie viele Stufen der Erfolg hat) und `threshold` (der Wert der Stufe, etwa 10 für zehn 180er) |
 
 `game` ist das [Übungsspiel](#übungsspiel), das beim Landen des Darts läuft, etwa `501`, `cricket` oder `shanghai`, und leer ohne Übungsspiel und bei [Trainingsspielen](#trainingsspiele). `name` ist der Name des Spielers am Board in diesem Spiel, auch beim Ausbullen; leer ohne Spiel oder Namen. Eine Aufnahme aus drei Darts wird zweimal gemeldet: mit `visit_thrown`, sobald ihr dritter Dart landet, für 180-Feiern und Caller, und mit `visit_completed`, wenn sie endet, mit den Punkten nach allen Korrekturen. Um auf jede Aufnahme genau einmal und so früh wie möglich zu reagieren, nutze `visit_thrown` und `visit_completed` mit `thrown` gleich `false`; die [Blueprints](automationen.md#blueprints) machen es so.
 

@@ -1047,6 +1047,8 @@ class AutodartsWeeklyReport(AutodartsLocalEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         snapshot = self.coordinator.reports.snapshot()
         return {key: value for key, value in snapshot.items() if key != "darts"}
+
+
 class AutodartsAchievements(AutodartsLocalEntity, SensorEntity):
     """Achievements unlocked by all players, with every player's badges."""
 

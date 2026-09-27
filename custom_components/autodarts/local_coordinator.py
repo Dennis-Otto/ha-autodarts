@@ -120,9 +120,9 @@ EVENT_TYPES = [
     "daily_goal_reached",
     "bull_off_won",
     "weekly_report",
+    "achievement_unlocked",
     # Moments of online matches, from the browser extension Tools for Autodarts.
     *ONLINE_EVENT_TYPES,
-    "achievement_unlocked",
 ]
 # Dart and visit events name the practice game being played, so that callers
 # can leave the game to the practice caller.
