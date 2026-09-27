@@ -93,7 +93,7 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
   So wird 144 zu T20 T20 D12, 136 zu T20 T20 D8, 130 zu T20 T20 D5, 127 zu T20 T17 D8, 73 zu T19 D8 und 64 zu T16 D8. Für 159, 162, 163, 165, 166, 168, 169 und alles über 170 gibt es mit Double-Out keinen Weg. Ohne Double-Out checkt das größte Feld: ein Single vor einem Double oder Triple.
 - **Persönliche Wege:** Mit *Übungsspiel persönliche Checkout-Wege* gewinnen die Doubles des Spielers am Board mit je mindestens 10 Darts, die beste Quote zuerst, gegen den üblichen Weg, sobald ein Weg mit gleich vielen Darts sie ohne Double als Stellwurf erreicht; zwischen Wegen zum selben Double entscheiden die Grundsätze oben.
 - **Statistik:** Jedes beendete X01-Leg ergibt einen Eintrag für alle am Board: Punkte und Darts der ersten neun Darts, Darts aufs Double und den Checkout. Überworfene Aufnahmen zählen keine Punkte, auch nicht in den ersten neun. Die Statistik-Sensoren nutzen die letzten 10 Einträge, ihr Verlauf zeigt deine Entwicklung. *Übungsspiel gespielte Legs* zählt jedes beendete Leg von X01, den Cricket-Spielen und den Partyspielen.
-- **Speicher:** Spiel, Regeln, Teams und Startpunkte, Spieler mit ihren Ständen und Treffern, Matchformat und die letzten 10 Legs werden zusammen mit der Trainingssession gespeichert.
+- **Speicher:** Spiel, Regeln, Teams und Startpunkte, Spieler mit ihren Ständen und Treffern, Matchformat und die letzten 10 Legs werden zusammen mit der Trainingssession gespeichert, ebenso der [Fortschritt](#fortschritt-der-spieler) jedes Spielers.
 
 ## Regeln
 
@@ -239,6 +239,38 @@ Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint]
 - **Namen:** `JJJJ-MM-TT_HH-MM-SS_<Spieler>_<Punkte>.jpg`; Uhrzeit und Spieler sind optional, ein Checkout heißt `checkout-121`. Andere Bilder (`.jpg`, `.jpeg`, `.png`, `.webp`) erscheinen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
 - **Reihenfolge:** die Monate, die neuesten zuerst, jeder mit seinem neuesten Foto als Titelbild; die Fotos eines Monats, die neuesten zuerst.
 - **Sicherheit:** Nur einfache Dateinamen dieses Ordners öffnen sich, und nur Bilder; versteckte Dateien, Unterordner und Verknüpfungen aus dem Ordner hinaus werden ignoriert. Die Fotos liefert die Medienansicht von Home Assistant selbst aus, an angemeldete Benutzer oder mit einer signierten Adresse.
+
+## Fortschritt der Spieler
+
+Jeder benannte Spieler eines Übungs- oder Trainingsspiels hat neben dem [Spielerprofil](entitaeten.md#spielerprofile) einen eigenen Fortschritt. Er zählt die Darts jeder Aufnahme, die das Spiel für den Spieler am Board bucht, wenn die Darts gezogen werden; Trainingsspiele zählen für Spieler 1. Ein Spieler ohne Namen zählt für niemanden.
+
+- **Wochen.** Summen jeder Woche ab Montag für die letzten 12 Wochen: Darts, X01-Darts und -Punkte, die ersten neun Darts jedes Legs und ihre Punkte, Darts aufs Double und Checkouts, Darts auf Doubles und Treffer in allen Spielen, Cricket-Darts und -Marks, gespielte und gewonnene Legs und 180er, dazu der höchste Checkout, die wenigsten Darts eines 501-Legs und die beste Cricket-MPR der Woche. Legs und die Zahlen eines Legs zählen in der Woche, in der das Leg endet. Averages und Quoten entstehen aus den Summen, mehrere Wochen addieren sich also genau. Ältere Wochen fallen weg.
+- **Treffer pro Feld** jedes Darts des Spielers, wie das Trefferbild der Session.
+- **Tagesserie:** Tage in Folge mit mindestens einem Dart in einem Übungs- oder Trainingsspiel. Sie bleibt, bis ein ganzer Tag ohne Darts vergeht.
+- **Zähler für die Erfolge:** geworfene Darts, X01-Aufnahmen mit 100 oder mehr, 140 oder mehr und 180 Punkten, Hattricks, Cricket-Aufnahmen mit neun Marks, Shanghai-Siege, das beste Finish im Checkout-Training, die wenigsten Darts bei Around the Clock und das beste abgeschlossene Bob's 27. Alles andere kommt aus dem Spielerprofil.
+
+Eine Aufnahme zählt für die Erfolge so, wie das Spiel sie zählt: Überwerfen bringt nichts, ebenso Darts vor dem öffnenden Double bei Double-In. Die Erfolge werden nach jeder gebuchten Aufnahme geprüft; die [Übersicht der Erfolge](entitaeten.md#erfolge) nennt, woran jeder gemessen wird.
+
+### Dart-Positionen
+
+Der Board Manager meldet, wo jeder Dart gelandet ist, relativ zum äußeren Rand des Doppelrings. Home Assistant behält die Positionen der letzten 1000 Darts jedes benannten Spielers und die Darts der laufenden Trainingssession, höchstens 5000; eine neue Session beginnt leer, und Darts ohne Position, etwa Abpraller, fehlen. Jede Position wird mit dem Feld gespeichert, auf das der Dart gezielt war, wo das Spiel es kennt:
+
+- **X01:** das Double, wenn ein Dart den Rest checken kann, also 2 bis 40 bei geraden Zahlen oder das Bullseye bei 50. Sonst das erste Feld des Checkout-Wegs, wenn es mit den verbleibenden Darts einen gibt, oder die Triple 20, wenn kein Checkout möglich ist, wie bei einer Punkteaufnahme. Darts auf ein Single oder das Single-Bull, Darts bis zum öffnenden Double bei Double-In und Darts nach dem Überwerfen oder dem Finish haben kein Ziel.
+- **Doppeltraining und Bob's 27:** das Double der Runde. **Checkout-Training:** der Weg wie bei X01. **Ausbullen:** das Bullseye.
+- **Around the Clock, Cricket und die Partyspiele:** kein Ziel, weil dort jedes Feld einer Zahl zählt.
+
+Positionen werden auf ein Zehntel Millimeter mit dem Training gespeichert. Sie sagen nur, wo Darts landen, und verlassen Home Assistant nie; die Diagnosedaten zählen sie nur. Die Karten lesen sie bei Bedarf über den WebSocket-Befehl `autodarts/positions` (`device_id`, optional `player`), weil Tausende Positionen zu viele für Attribute von Entitäten sind.
+
+### Streuung
+
+Für jedes Zielfeld mit mindestens 10 gespeicherten Darts beschreibt die Streuung, wo diese Darts um die Mitte des Felds gelandet sind:
+
+1. Jede Position wird zur Abweichung in Millimetern von der Mitte des Felds, x nach rechts und y nach oben, so wie der Spieler auf die Scheibe blickt. Die Mitte eines Triples liegt 102 mm von der Scheibenmitte entfernt, die Mitte eines Doubles 165 mm, das Bullseye in der Mitte.
+2. Die **Abweichung** ist der Mittelwert dieser Abweichungen: wo die Darts im Schnitt landen. *6 mm links der Mitte, 3 mm zu hoch* beschreibt diesen Mittelpunkt.
+3. Die **Streuung** ist der Radius um den Mittelpunkt, in dem die Hälfte der Darts liegt, der kleinste Abstand mit mindestens 50 % der Darts innerhalb; der zweite Radius umfasst 80 %. *Streuung 38 mm* heißt, dass jeder zweite Dart innerhalb von 38 mm um den Mittelpunkt landet.
+4. Der **Trend** vergleicht die Streuung der neueren Hälfte der gespeicherten Darts mit der älteren, sobald es 20 sind: *4 mm enger* heißt, dass die neueren Darts 4 mm enger beieinander liegen.
+
+Die Abweichung zeigt die Treffsicherheit eines Spielers, die Streuung seine Gleichmäßigkeit. Beide beruhen auf den Positionen, die das Board meldet, und die Streuung eines Spielers umfasst seine letzten 1000 Darts. Das Profil nennt die sechs Felder mit den meisten Darts, die Karten die ersten drei.
 
 ## Kamerazustand
 

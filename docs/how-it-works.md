@@ -93,7 +93,7 @@ The practice game follows the darts of the current visit, including corrections,
   So 144 is T20 T20 D12, 136 T20 T20 D8, 130 T20 T20 D5, 127 T20 T17 D8, 73 T19 D8 and 64 T16 D8. The scores 159, 162, 163, 165, 166, 168, 169 and everything above 170 have no route with double out. Without double out, the biggest bed finishes: a single before a double or a treble.
 - **Personal routes:** with *Practice personal checkout routes*, the doubles of the player at the board with at least 10 darts each, best hit rate first, win over the usual route whenever a route with the same number of darts reaches them without a double to set up; among routes to the same double, the principles above decide.
 - **Statistics:** each finished X01 leg adds one record for everybody at the board: the points and darts of the first nine darts, the darts thrown at a double and the checkout. Bust visits score nothing, also in the first nine. The statistics sensors use the last 10 records, so their history shows how you improve. *Practice legs played* counts every finished leg of X01, the Cricket games and the party games.
-- **Storage:** the game, the rules, the teams and start scores, the players with their scores and marks, the match format and the last 10 legs are saved together with the training session.
+- **Storage:** the game, the rules, the teams and start scores, the players with their scores and marks, the match format and the last 10 legs are saved together with the training session, and so is every player's [progress](#player-progress).
 
 ## Rules
 
@@ -239,6 +239,38 @@ The media source *Autodarts* shows the photos that the [highlight photo blueprin
 - **Names:** `YYYY-MM-DD_HH-MM-SS_<player>_<score>.jpg`; the time and the player are optional, and a checkout reads `checkout-121`. Other pictures (`.jpg`, `.jpeg`, `.png`, `.webp`) show by their file name and the time they were saved.
 - **Order:** the months newest first, each with its newest photo as the cover; the photos of a month newest first.
 - **Safety:** only plain file names of that folder open, and only pictures; hidden files, subfolders and links out of the folder are ignored. Home Assistant's own media view serves the photos, to logged-in users or with a signed address.
+
+## Player progress
+
+Every named player of a practice or training game has progress of their own next to the [player profile](entities.md#player-profiles). It counts the darts of every visit the game books for the player at the board, when the darts are pulled; training games count for player 1. A player without a name counts for nobody.
+
+- **Weeks.** Sums of every week, from Monday, for the last 12 weeks: darts, X01 darts and points, the first nine darts of each leg and their points, darts at a double and checkouts, darts at doubles and hits in all games, Cricket darts and marks, legs played and won and 180s, with the week's highest checkout, fewest darts of a 501 leg and best Cricket MPR. The legs and the numbers of a leg count in the week the leg ends. Averages and rates come from the sums, so several weeks add up exactly. Older weeks are dropped.
+- **Hits per bed** of every dart the player threw, like the heatmap of the session.
+- **Day streak:** days in a row with at least one dart in a practice or training game. It stays until a whole day passes without darts.
+- **Counts for the achievements:** darts thrown, X01 visits of 100 or more, 140 or more and 180, hat tricks, nine-mark Cricket visits, Shanghai wins, the best checkout training finish, the fewest darts of Around the Clock and the best completed Bob's 27. Everything else comes from the player profile.
+
+A visit scores for the achievements as the game counts it: a bust scores nothing, and neither do darts before the opening double with double in. Achievements are checked after every booked visit; the [achievement reference](entities.md#achievements) lists what each measures.
+
+### Dart positions
+
+The Board Manager reports where each dart landed, relative to the outer edge of the double ring. Home Assistant keeps the positions of the last 1000 darts of every named player and of the darts of the current training session, at most 5000; a new session starts empty, and darts without a position, such as bounce-outs, are left out. Each position is kept with the bed the dart was aimed at, where the game knows it:
+
+- **X01:** the double when one dart can finish the score, that is 2 to 40 when even or the bullseye at 50. Otherwise the first bed of the checkout route when a route exists with the darts left, or the treble 20 when no checkout is possible, as in a scoring visit. Darts at a single or the outer bull, darts up to the opening double with double in, and darts after a bust or the finish have no aim.
+- **Doubles training and Bob's 27:** the double of the round. **Checkout training:** the route, as in X01. **Bull-off:** the bullseye.
+- **Around the Clock, Cricket and the party games:** no aim, because any bed of a number counts there.
+
+Positions are stored to a tenth of a millimeter with the training. They say where darts land and nothing else, and they never leave Home Assistant; diagnostics only count them. The cards read them on demand with the WebSocket command `autodarts/positions` (`device_id`, optional `player`), because thousands of positions are too many for entity attributes.
+
+### Grouping
+
+For every bed aimed at with at least 10 logged darts, the grouping describes where those darts landed around the center of the bed:
+
+1. Every position becomes an offset in millimeters from the center of the bed, x to the right and y up, as the player sees the board. The center of a treble lies 102 mm from the middle of the board, the center of a double 165 mm, and the bullseye in the middle.
+2. The **offset** is the mean of these offsets: where the darts land on average. *6 mm left of center, 3 mm high* describes that mean point.
+3. The **grouping** is the radius around the mean point that holds half of the darts, the smallest distance with at least 50 % of them within it; the second radius holds 80 %. *Grouping 38 mm* means that every second dart lands within 38 mm of the mean point.
+4. The **trend** compares the grouping of the newer half of the logged darts with the older half, once there are 20: *4 mm tighter* means the newer darts land 4 mm closer together.
+
+The offset shows the accuracy of a player, the grouping the precision. Both rely on the positions the board reports, and a player's grouping covers their last 1000 darts. The profile lists the six beds with the most darts, the cards the first three.
 
 ## Camera health
 

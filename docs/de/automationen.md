@@ -20,7 +20,7 @@ Blueprints sind fertige Automationen. Importieren, Board und Geräte auswählen,
 | **Practice caller** | Sagt das [Übungsspiel](entitaeten.md#übungsspiel) auf deinen Lautsprechern an: "Sam, you require 81", wenn ein Checkout möglich ist, "No score" nach dem Überwerfen, den Game shot eines Legs oder Matches und auf Wunsch das Ausbullen. Die Texte sind Vorlagen. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
 | **Weekly report** | Schickt deine [Trainingswoche](entitaeten.md#wochenbericht), wenn das Board sie beendet, standardmäßig montags um Mitternacht: Darts, Trainingszeit, Sessions, den 3-Dart-Average und seine Veränderung zur Vorwoche, beste Aufnahme, 180er, Checkout-Quote, Serie und neue Bestleistungen. Die Nachricht ist eine Vorlage; ohne eigene Aktionen erscheint der Bericht in den Benachrichtigungen von Home Assistant. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Macht ein Bild mit einer Board-Kamera nach einer Aufnahme ab 180 Punkten (einstellbar) oder einem Checkout im Übungsspiel, solange die Darts noch im Board stecken. Es speichert das Bild in der [Highlight-Galerie](#highlight-galerie) und führt deine Aktionen aus, die `image`, `message`, `score`, `checkout`, `who` und `photo` nutzen können. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
-| **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel und einem gewonnenen Ausbullen, auf Wunsch auch bei der Entnahme und in [Online-Matches](#online-matches-experimentell). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel, einem gewonnenen Ausbullen und einem Erfolg, auf Wunsch auch bei der Entnahme und in [Online-Matches](#online-matches-experimentell). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
 Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](../../blueprints/automation/autodarts) ein. Um einen früher importierten Blueprint zu aktualisieren, importierst du ihn über sein Menü auf der Blueprint-Seite erneut; deine Automationen behalten ihre Einstellungen.
 
@@ -166,6 +166,7 @@ Deine Aktionen können `image` (das Kamerabild), `message`, `score`, `checkout`,
 | Actions for a personal best | keine | Laufen, wenn ein Wert deine [Bestleistung](entitaeten.md#bestleistungen-serie-und-tagesziel) übertrifft. |
 | Actions for the daily goal | keine | Laufen, wenn die Darts von heute das Tagesziel erreichen. |
 | Actions for a won bull-off | keine | Laufen, wenn das Ausbullen entscheidet, wer beginnt. |
+| Actions for an achievement | keine | Laufen, wenn ein benannter Spieler eine neue Stufe eines [Erfolgs](entitaeten.md#erfolge) erreicht. |
 | When the takeout starts | keine | Läuft, wenn eine Hand zum Board greift. Wird nicht wiederhergestellt. |
 | When the board is clear | keine | Läuft, wenn alle Darts aus dem Board sind. Wird nicht wiederhergestellt. |
 | Moments with an effect | keine | Die Momente, deren Aktionen einen Effekt starten. Nur für sie wird das Licht wiederhergestellt und die Erkennung pausiert. |
@@ -175,7 +176,7 @@ Deine Aktionen können `image` (das Kamerabild), `message`, `score`, `checkout`,
 | Detection switch | keiner | Der Schalter *Erkennung* deines Boards, zum Pausieren. |
 | Also react to online matches | aus | Spielt auch die Aktionen für Überwerfen, ein gewonnenes Leg und ein gewonnenes Match eines [Online-Matches](#online-matches-experimentell). Eine 180 und die Entnahme deiner eigenen Darts kommen sowieso von deinem Board. |
 
-Die Aktionen können `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `takeout` oder `board_clear`), `who`, `player`, `score` (einer 180), `checkout` (eines gewonnenen Legs) und `trigger.to_state.attributes` für alle Details des [Board-Ereignisses](entitaeten.md#board-ereignisse) nutzen. Siehe [Lichtshow mit WLED und anderem Licht](#lichtshow-mit-wled-und-anderem-licht).
+Die Aktionen können `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `takeout` oder `board_clear`), `who`, `player`, `score` (einer 180), `checkout` (eines gewonnenen Legs) und `trigger.to_state.attributes` für alle Details des [Board-Ereignisses](entitaeten.md#board-ereignisse) nutzen. Siehe [Lichtshow mit WLED und anderem Licht](#lichtshow-mit-wled-und-anderem-licht).
 
 ### Deutscher Dart-Caller
 
@@ -587,6 +588,33 @@ sequence:
       sessions: >-
         {{ kalender['calendar.autodarts_board_training_calendar'].events
            | selectattr('summary', 'match', 'Training') | list | count }}
+```
+
+### Einen Erfolg feiern
+
+Eine Benachrichtigung mit Spieler, Erfolg und Stufe. Das Attribut `achievement` ist der Schlüssel des [Erfolgs](entitaeten.md#erfolge), etwa `maximum` oder `short_leg`; die Tabelle dort nennt jeden.
+
+```yaml
+alias: Darts – Erfolg
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: event.autodarts_board_events
+    options:
+      event_type:
+        - achievement_unlocked
+actions:
+  - action: notify.mobile_app_handy
+    data:
+      message: >-
+        {% set event = trigger.to_state.attributes %}
+        {% set titles = {'maximum': '180', 'ton_plus': '100+-Aufnahmen',
+           'high_finish': 'High Finish', 'short_leg': 'Kurzes Leg',
+           'legs_won': 'Gewonnene Legs', 'streak': 'Serie'} %}
+        {% set medal = ['Bronze', 'Silber', 'Gold', 'Platin'][event.tier - 1]
+           if event.tiers > 1 else 'freigeschaltet' %}
+        {{ event.name }}: {{ titles.get(event.achievement, event.achievement) }}, {{ medal }}!
+mode: queued
 ```
 
 ### Spiel per Sprache starten

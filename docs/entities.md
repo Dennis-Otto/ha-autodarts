@@ -61,6 +61,7 @@ The **Events** entity (for example `event.autodarts_board_events`, or `event.aut
 | `online_bull_off` | Online match: the bull-off begins | `trigger` |
 | `online_tournament_ready` | A tournament match of yours is ready | `trigger` |
 | `online_match_left` | You left the online match | `trigger` |
+| `achievement_unlocked` | A named player reaches a new tier of an [achievement](#achievements) | `player` (the seat 1–4 of the player at the board, or none), `name`, `achievement` (for example `maximum`), `tier` (1–4), `tiers` (how many the achievement has) and `threshold` (the value of the tier, for example 10 for ten 180s) |
 
 `game` is the [practice game](#practice-game) being played while the dart lands, such as `501`, `cricket` or `shanghai`, and empty without one and in [training games](#training-games). `name` is the name of the player at the board in that game, also during a bull-off; empty without a game or a name. A visit of three darts is announced twice: with `visit_thrown` the moment its third dart lands, for 180 celebrations and callers, and with `visit_completed` when it ends, with the final score after corrections. To react to every visit exactly once and as early as possible, use `visit_thrown` and `visit_completed` whose `thrown` is `false`; the [blueprints](automations.md#blueprints) do that.
 
@@ -245,12 +246,62 @@ Every named player of a practice game gets a profile with lifetime numbers. Name
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Player profiles | Sensor, players | The number of profiles. Attribute `players` with, for every player: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (start score → fewest darts for a won leg), `last_played` and `person` (the [linked person](#link-a-player-to-a-person-autodartslink_player), or none). `highest_visit` is the highest X01 score of the player; `highest_checkout` and `fewest_darts` come from legs with double out only. The recorder does not store the list. |
+| Player profiles | Sensor, players | The number of profiles. Attribute `players` with, for every player: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (start score → fewest darts for a won leg), `last_played` and `person` (the [linked person](#link-a-player-to-a-person-autodartslink_player), or none), and the player's [progress](#player-progress): `darts_thrown`, `maximums`, `streak`, `best_streak`, `hits`, `spread` and `trend`. `highest_visit` is the highest X01 score of the player; `highest_checkout` and `fewest_darts` come from legs with double out only. The recorder does not store the list. |
 | Last match | Sensor, timestamp | When the last match of several players ended. Attributes: `game` and `winner` of that match, `matches` with the last 20 matches (`ended`, `game`, `legs_to_win`, `sets_to_win`, `winner`, in a team match `winners` with both winners, and every player's `name`, `legs` and `sets` at the end, `match_legs` and `average`, `mpr` or `points`, and `team` in a team match), and `head_to_head` with the wins of every pair of named opponents. The recorder stores neither list. |
 
 The [players card](cards.md#players-card) shows all of it. To remove a profile, for example after a typo in a name, use [`autodarts.delete_player`](#delete-a-player-profile-autodartsdelete_player).
 
 **Players and persons:** link a player to a person of Home Assistant with [`autodarts.link_player`](#link-a-player-to-a-person-autodartslink_player). The scoreboard, the players card and the [new game screen](cards.md#new-game-screen) then show the person's picture, and the new game screen lists the players who are at home first. The link is saved with the profile and survives restarts.
+
+### Player progress
+
+Besides the lifetime numbers, every named player's entry in *Player profiles* carries their progress. It counts what the player throws in practice and training games; training games count for *Practice player 1*. [How progress is counted](how-it-works.md#player-progress).
+
+| Attribute | Content |
+| --- | --- |
+| `darts_thrown` | Darts thrown in practice and training games |
+| `maximums` | X01 visits that scored 180 |
+| `streak`, `best_streak` | Days in a row with darts in a practice or training game, now and at best; `streak` stays until a whole day passes without darts |
+| `hits` | Hits per bed, like the `hits` of *Training darts*, for the player's heatmap |
+| `spread` | The [grouping](how-it-works.md#grouping) at up to six beds aimed at, most darts first: `target`, `darts`, `offset_x` and `offset_y` (millimeters from the center of the bed, right and up), `r50` and `r80` (radii holding 50 and 80 % of the darts) and `change` (the radius of the newer half of the darts minus the older half; negative is tighter) |
+| `trend` | The last 12 weeks, oldest first: `weeks` with the Monday of each week, and one list per sum with a value for every week: `darts`, `x01_darts`, `x01_points`, `first9_points`, `first9_darts`, `at_double`, `checkouts`, `double_attempts`, `double_hits`, `cricket_darts`, `cricket_marks`, `legs`, `legs_won`, `maximums`, and the week's `highest_checkout`, `best_501` (fewest darts of a 501 leg) and `best_mpr`, which are empty without such a leg |
+
+The sums let you compute any average over any weeks, for example the 3-dart average of the last four weeks as three times the sum of `x01_points` divided by the sum of `x01_darts`.
+
+## Achievements
+
+Named players unlock achievements, most of them in tiers: bronze, silver, gold and, for the streak, platinum. They come from what the player throws in practice and training games; a player without a name unlocks nothing. Each new tier fires [`achievement_unlocked`](#board-events), and the [players card](cards.md#players-card) shows the badges.
+
+<img src="images/en/players-badges.png" alt="Badges of Alex on the players card: earned tiers in bronze, silver and gold with the next goal and a progress bar" width="620">
+
+| Achievement | `achievement` | Tiers | Measured by |
+| --- | --- | --- | --- |
+| 180 | `maximum` | 1, 10, 100 | X01 visits that scored 180 |
+| Ton-plus visits | `ton_plus` | 10, 100, 1000 | X01 visits that scored 100 or more; a bust scores nothing |
+| Ton-forty visits | `ton_forty` | 10, 100, 500 | X01 visits that scored 140 or more |
+| High finish | `high_finish` | 100, 150, 170 | The highest checkout of a won X01 leg with double out, or a finish of the checkout training in one visit |
+| Short leg | `short_leg` | 18, 15, 12 darts | The fewest darts of a won 501 leg with double out |
+| Nine-darter | `nine_darter` | 9 darts | The same, in nine darts |
+| Legs won | `legs_won` | 1, 50, 500 | Legs won in X01, Cricket and the party games |
+| Matches won | `matches_won` | 1, 25, 250 | Matches of several players won |
+| Hat trick | `hat_trick` | 1 | Three darts in the outer bull or the bullseye in one visit of any game |
+| Every double | `all_doubles` | 21 | Every double from D1 to D20 and the bullseye hit at least once |
+| Nine marks | `cricket_nine` | 1 | A Cricket visit of three trebles on 15 to 20 |
+| Shanghai | `shanghai` | 1 | Shanghai won with a single, double and treble of the round's number |
+| Around the Clock | `around_the_clock` | 40, 30, 21 darts | The fewest darts of a finished Around the Clock; 21 is perfect |
+| Bob's 27 | `bobs_27` | 100, 250, 500 points | The best completed Bob's 27 |
+| Streak | `streak` | 3, 7, 10, 30 days | The longest run of days with darts in practice or training games |
+| Darts thrown | `darts_thrown` | 1,000, 10,000, 100,000 | Darts thrown in practice and training games |
+
+- **Quiet.** An achievement only fires the event. Nothing speaks, plays or flashes unless an automation does.
+- **Earned before.** On the first start after the update, every achievement the player profiles already prove unlocks quietly, dated that day: legs and matches won, the highest checkout, the fewest darts of a 501 leg, the doubles hit and the darts of X01 and Cricket legs. Counts the profiles never kept, such as 180s, start from zero.
+- **Several tiers at once**, such as a first 501 leg in 12 darts, fire one event with the highest tier.
+- **Training games** count for *Practice player 1*.
+
+| Entity | Type | Description |
+| --- | --- | --- |
+| Achievements | Sensor, badges | The tiers unlocked by all players together. Attributes: `latest` with `name`, `achievement`, `tier` and `date` of the last unlock; `catalogue` with the `id`, the `tiers` and `lower` (true when fewer is better) of every achievement; `players` with every player's `name`, `unlocked` (tiers), `badges` (achievement → `tier` and the `dates` its tiers were unlocked) and `progress` (achievement → the value that measures it). The recorder does not store the catalogue and the players. |
+| Achievements | Switch, *Configuration* | Unlock achievements and fire `achievement_unlocked`. On by default. While it is off, nothing unlocks and nothing is announced, but progress keeps counting; turned on again, what was reached meanwhile unlocks quietly. |
 
 ## Doubles analysis
 
@@ -442,7 +493,7 @@ The action fails with a clear message when no board is loaded, when several boar
 
 ### Delete a player profile: `autodarts.delete_player`
 
-Forgets a player's statistics, personal bests, head-to-head records and the link to a person. The name also disappears from the board's [personal bests](#personal-bests-streak-and-daily-goal), whose values stay, and from the practice player names, so the next leg does not create the profile again. The match history keeps the name.
+Forgets a player's statistics, personal bests, head-to-head records, progress and badges, and the link to a person. The name also disappears from the board's [personal bests](#personal-bests-streak-and-daily-goal), whose values stay, and from the practice player names, so the next leg does not create the profile again. The match history keeps the name.
 
 | Field | Values | Description |
 | --- | --- | --- |

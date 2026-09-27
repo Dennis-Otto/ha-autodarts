@@ -2,7 +2,7 @@
 
 [← Übersicht](README.md) · [English](../cards.md)
 
-Die Integration bringt sechs Karten mit. Home Assistant lädt sie automatisch; eine Dashboard-Ressource oder ein eigener HACS-Download ist nicht nötig. Jede Karte:
+Die Integration bringt sieben Karten mit. Home Assistant lädt sie automatisch; eine Dashboard-Ressource oder ein eigener HACS-Download ist nicht nötig. Jede Karte:
 
 - hat einen visuellen Editor und folgt deinem Design (hell oder dunkel) und deiner Sprache (Deutsch oder Englisch);
 - passt sich ihrer Breite an, vom Handy bis zum Wandtablet;
@@ -90,6 +90,8 @@ highlight_color: "#00e5ff"
   - Jedes Feld ist nach Trefferhäufigkeit eingefärbt, von blau (selten) bis rot (am häufigsten).
   - Mit dem Mauszeiger auf einem Feld siehst du Anzahl und Anteil.
   - Im Modus `numbers` werden Single, Double und Triple jeder Zahl zusammengefasst.
+  - Im Modus `positions` zeigt es, wo die Darts gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte von Blau (wenige Darts) bis Rot (viele), dazu die neuesten 300 Darts als Punkte. Unter der Scheibe steht die [Streuung](funktionsweise.md#streuung) auf bis zu drei Zielfeldern, etwa *T20: Streuung 38 mm · 80 % innerhalb 61 mm · 6 mm links der Mitte*, mit *4 mm enger*, wenn die neueren Darts enger liegen.
+  - Die Umschalter über der Scheibe wählen den Modus und wessen Darts es zeigt: die der Session oder die eines benannten Spielers mit allen seinen Treffern und den Positionen seiner letzten 1000 Darts. Die häufigsten Felder folgen der Wahl. [Wie Positionen gespeichert werden](funktionsweise.md#dart-positionen).
 - **Statistik:** höchste Aufnahme, 100+, 140+ und 180er, Triple-Quote, Doubles, Bulls und Fehlwürfe. 180er leuchten golden. Ein Tipp auf die Kacheln, oder die Eingabe- oder Leertaste darauf, öffnet die Details der Darts der Session.
 - **Häufigste Felder:** die fünf meistgetroffenen Felder mit Anzahl und Anteil an allen Darts.
 - **Bestleistungen:** jede [Bestleistung](entitaeten.md#bestleistungen-serie-und-tagesziel), die einen Wert hat: höchste Aufnahme und höchster Checkout, die wenigsten Darts je Startwert, die beste MPR eines Cricket-Legs, der beste Session-Average, Around the Clock, das Doppeltraining, Bob's 27 und die längste Trainingsserie. Der Abschnitt erscheint mit der ersten Bestleistung.
@@ -108,10 +110,12 @@ highlight_color: "#00e5ff"
 | --- | --- | --- | --- |
 | `device_id` | Gerät | erstes Board | Das angezeigte Board |
 | `title` | Text | *Training · Board-Name* | Kartentitel |
-| `mode` | `beds`, `numbers` | `beds` | Trefferbild pro Feld oder pro Zahl |
+| `mode` | `beds`, `numbers`, `positions` | `beds` | Trefferbild pro Feld, pro Zahl oder der Dart-Positionen |
+| `player` | Text | die Session | Ein Spielername: Das Trefferbild beginnt mit den Darts dieses Spielers. Der Editor listet die benannten Spieler und nimmt auch jeden anderen Namen |
 | `board_style` | `muted`, `classic`, `autodarts` | `muted` | Die dezente Scheibe lässt das Trefferbild hervortreten |
 | `history_size` | 5–60 | `20` | Aufnahmen im Diagramm; Zahlen stehen bis 30 Aufnahmen darüber |
 | `show_heatmap` | Wahrheitswert | `true` | Trefferbild anzeigen |
+| `show_heatmap_controls` | Wahrheitswert | `true` | Die Umschalter für den Modus und wessen Darts das Trefferbild zeigt anzeigen |
 | `show_stats` | Wahrheitswert | `true` | Statistik anzeigen |
 | `show_bests` | Wahrheitswert | `true` | Bestleistungen anzeigen |
 | `show_top` | Wahrheitswert | `true` | Häufigste Felder anzeigen |
@@ -128,6 +132,17 @@ show_reset: false
 ```
 
 <img src="../images/de/training-card-mobile.png" alt="Trainingskarte auf dem Handy" width="320">
+
+<table>
+  <tr>
+    <td><img src="../images/de/training-positions.png" alt="Das Trefferbild im Modus Positionen mit den Darts von Alex: eine Dichte um das Triple 20, die Doubles 16 und 8 und das Bull, darunter jeweils die Streuung" width="380"></td>
+    <td><img src="../images/de/heatmap-modes.webp" alt="Animation: das Trefferbild wechselt von Feldern zu Zahlen und Positionen der Session, dann zu den Positionen und Feldern von Alex" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center"><code>mode: positions</code>, <code>player: Alex</code></td>
+    <td align="center">Die Umschalter über der Scheibe</td>
+  </tr>
+</table>
 
 ## Board-Status
 
@@ -279,6 +294,14 @@ idle_panels: [leaderboard, today, clock]
 
 <img src="../images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim mit ihren Bildern, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
 
+- **Abzeichen:** die [Erfolge](entitaeten.md#erfolge) jedes Spielers. Ein erreichtes Abzeichen zeigt seine Stufe in Bronze, Silber, Gold oder Platin, das nächste Ziel und wie weit der Spieler ist; ein gesperrtes ist ausgegraut, mit dem Fortschritt, wo er sich zählen lässt.
+- **Trends:** für jeden Spieler, der in den gezeigten Wochen geübt hat, eine Kachel pro Kennzahl: 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts über die Wochen, eine Linie der Wochenwerte und ein Pfeil, der die neuere Hälfte der Wochen mit der älteren vergleicht (↗ besser, ↘ schlechter, → etwa gleich). Wochen ohne Training unterbrechen die Linie.
+- **Streuung:** wo die Darts jedes Spielers um die Felder landen, auf die er am häufigsten gezielt hat, in Millimetern, mit der Änderung der neueren Darts. [Wie die Streuung gemessen wird](funktionsweise.md#streuung).
+
+<img src="../images/de/players-badges.png" alt="Abzeichen von Alex: erreichte Stufen in Bronze, Silber und Gold, jeweils mit dem nächsten Ziel, dem Fortschritt dorthin und einem Fortschrittsbalken" width="620">
+
+<img src="../images/de/players-trends.png" alt="Trends von Alex, Sam und Kim mit 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts pro Woche, und die Streuung jedes Spielers auf dem Triple 20, dem Bull und dem Double 8" width="620">
+
 ### Optionen
 
 | Option | Werte | Standard | Beschreibung |
@@ -287,9 +310,50 @@ idle_panels: [leaderboard, today, clock]
 | `title` | Text | *Spieler* | Kartentitel |
 | `show_head_to_head` | Wahrheitswert | `true` | Direkte Vergleiche anzeigen |
 | `show_matches` | Wahrheitswert | `true` | Letzte Matches anzeigen |
+| `show_badges` | Wahrheitswert | `true` | Abzeichen anzeigen |
+| `show_locked` | Wahrheitswert | `true` | Auch gesperrte Abzeichen anzeigen; ohne sie fehlen Spieler ohne Abzeichen |
+| `show_trends` | Wahrheitswert | `true` | Trends anzeigen |
+| `trend_weeks` | 4–12 | `12` | Wochen in den Trends |
+| `show_spread` | Wahrheitswert | `true` | Streuung anzeigen |
 | `export` | Wahrheitswert | `false` | Eine Taste *Exportieren* anzeigen. Sie exportiert Sessions, Matches und Profile mit [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport) nach `www/autodarts` und lädt die Datei mit deiner Anmeldung über Home Assistant herunter. Exporte enthalten Spielernamen, und Dateien in `www` brauchen keine Anmeldung. |
 | `export_format` | `csv`, `json` | `csv` | Format des Exports; CSV kommt als ZIP-Datei mit je einer Tabelle |
-| `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Balken |
+| `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen, Balken, Fortschritt und Trendlinien |
+
+## Bestenliste
+
+`custom:autodarts-leaderboard-card` ordnet die Rekorde aller benannten Spieler. Der Führende jedes Rekords bekommt die Krone, die nächsten Plätze folgen.
+
+<img src="../images/de/leaderboard-card.png" alt="Bestenliste mit dem Umschalter des Zeitraums und den Rekorden bester Average, höchster Checkout, meiste 180er, wenigste Darts bei 501, beste Cricket-MPR, längste Serie, meiste Abzeichen und meiste Darts, jeweils mit dem Führenden und zwei weiteren Plätzen" width="760">
+
+| Rekord | Gesamt | Letzte 4 Wochen, diese Woche |
+| --- | --- | --- |
+| Bester Average | Der 3-Dart-Average des Spielers in X01 | Der Average der X01-Legs, die im Zeitraum endeten |
+| Höchster Checkout | Der höchste Checkout mit Double-Out | Dasselbe im Zeitraum |
+| Meiste 180er | X01-Aufnahmen mit 180 Punkten | Dasselbe im Zeitraum |
+| Wenigste Darts, 501 | Die wenigsten Darts eines gewonnenen 501-Legs mit Double-Out | Dasselbe im Zeitraum |
+| Beste Cricket-MPR | Die beste MPR eines gewonnenen Cricket-Legs | Dasselbe im Zeitraum |
+| Längste Serie | Die längste Folge von Tagen mit Darts | – |
+| Meiste Abzeichen | Freigeschaltete Stufen von Erfolgen | Im Zeitraum freigeschaltete Stufen |
+| Meiste Darts | Geworfene Darts in Übungs- und Trainingsspielen | Dasselbe im Zeitraum |
+
+Ein Zeitraum umfasst ganze Wochen ab Montag: *Diese Woche* die laufende Woche, *Letzte 4 Wochen* die laufende und die drei davor. Bei gleichen Werten teilen sich Spieler den Platz. Der Umschalter oben wechselt den Zeitraum, bis sich die Konfiguration der Karte ändert.
+
+### Optionen
+
+| Option | Werte | Standard | Beschreibung |
+| --- | --- | --- | --- |
+| `device_id` | Gerät | erstes Board | Das anzuzeigende Board |
+| `title` | Text | *Bestenliste* | Kartentitel |
+| `period` | `all`, `month`, `week` | `all` | Gesamt, die letzten vier Wochen oder diese Woche |
+| `show_period` | Wahrheitswert | `true` | Den Umschalter des Zeitraums anzeigen |
+| `limit` | 1–5 | `3` | Angezeigte Plätze je Rekord |
+| `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und der Umschalter des Zeitraums |
+
+```yaml
+type: custom:autodarts-leaderboard-card
+period: month
+limit: 5
+```
 
 ## Automatisches Dashboard
 
@@ -305,7 +369,7 @@ Pro Board entstehen bis zu fünf Ansichten. Sie aktualisieren sich selbst, wenn 
 | **Live** | Die Live-Karte über die volle Breite, die Steuerung des Übungsspiels mit Teams und den Optionen für Golf und Count-Up, die Spielernamen und ihre Startpunkte |
 | **Anzeigetafel** | Die [Anzeigetafel](#anzeigetafel) über den ganzen Bildschirm, für ein Tablet oder einen Fernseher am Board |
 | **Training** | Die Trainingskarte mit den Bestleistungen, die [Doubles-Karte](#doubles-karte), das Tagesziel mit den Darts von heute, die Serie und die letzte Bestleistung, Darts pro Tag der letzten 30 Tage (aus den Langzeitstatistiken, die Home Assistant stündlich berechnet), der 3-Dart-Average der letzten 7 Tage, Übungslegs pro Tag, First-9-Average, Checkout- und Doppelquote des Übungsspiels sowie die Trainingseinstellungen: Sessions automatisch starten und nach einer Pause beenden |
-| **Spieler** | Die [Spielerkarte](#spielerkarte), sobald der erste benannte Spieler ein Profil hat |
+| **Spieler** | Die [Spielerkarte](#spielerkarte) und die [Bestenliste](#bestenliste), sobald der erste benannte Spieler ein Profil hat |
 | **Board** | Der Board-Status, die Board-Einstellungen, das Board-Manager-Update und der Anteil der Darts, die das Board korrigiert hat |
 
 <img src="../images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards" width="760">
