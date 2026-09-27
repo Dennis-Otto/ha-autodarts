@@ -22,30 +22,31 @@ Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Bo
 | Letzter Dart | Sensor | Feld des letzten Darts, zum Beispiel `T20`, `D16`, `S5`, `25`, `Bull`. |
 | Punkte letzter Dart | Sensor, Punkte | Punkte des letzten Darts. |
 | Darts in der Aufnahme | Sensor, Darts | Darts, die gerade im Board erkannt sind (0–3). |
-| Erkannte Aufnahmepunkte | Sensor, Punkte | Summe der erkannten Darts. Das Attribut `throws` listet jeden Dart mit `segment`, `number`, `multiplier`, `score`, `bed` und der normierten Position `x`/`y`. Das Attribut `recent_visits` listet die letzten zehn abgeschlossenen Aufnahmen, die neueste zuerst, mit `time`, `score`, `darts` und `segments`. Der Recorder speichert beide Attribute nicht. |
+| Erkannte Aufnahmepunkte | Sensor, Punkte | Summe der erkannten Darts. Das Attribut `throws` listet jeden Dart mit `segment`, `number`, `multiplier`, `score`, `bed` und der normierten Position `x`/`y`. In Home Assistant korrigierte oder eingegebene Darts und die Darts des [Bots](#bot) gehören zur Aufnahme, markiert mit `corrected`, `manual` oder `bot`; `dart` nummeriert die Darts der aktuellen Aufnahme (1–3), so wie [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) sie zählt. Das Attribut `recent_visits` listet die letzten zehn abgeschlossenen Aufnahmen, die neueste zuerst, mit `time`, `score`, `darts`, `segments` und `manual` bei einer Aufnahme mit von Hand eingegebenen oder korrigierten Darts. Der Recorder speichert beide Attribute nicht. |
 | Letztes Ereignis | Sensor | Der letzte Ereignistext des Board Managers, etwa `Throw detected` oder `Takeout started`. |
 
-Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwerfen.
+Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwerfen. Letzter Dart, seine Punkte und die Aufnahmepunkte folgen Korrekturen, von Hand eingegebenen Darts und den Darts des Bots; *Darts in der Aufnahme* zählt die Darts, die das Board selbst sieht.
 
 ## Board-Ereignisse
 
-Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht und `online` für die Momente von [Online-Matches](online-matches.md), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
+Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht, `manual` für [Korrekturen, von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts) und was daraus folgt, `bot` für die Darts des [Bots](#bot) und `online` für die Momente von [Online-Matches](online-matches.md), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
-| `dart_detected` | Ein neuer Dart landet | `dart_index` (1–3), `segment` (etwa `T20`, `S5`, `Bull`, `25` oder `M` für einen Fehlwurf), `score`, `game`, `name` |
-| `dart_corrected` | Das Board korrigiert einen erkannten Dart | `dart_index`, `segment`, `score`, `game`, `name` |
+| `dart_detected` | Ein neuer Dart landet, wird von Hand eingegeben oder vom Bot geworfen | `dart_index` (1–3), `segment` (etwa `T20`, `S5`, `Bull`, `25` oder `M` für einen Fehlwurf), `score`, `game`, `name`; `manual` bei einem von Hand eingegebenen Dart, `bot` bei einem Dart des Bots |
+| `dart_corrected` | Das Board oder [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) korrigiert einen Dart | `dart_index`, `segment`, `score`, `previous` (das Feld davor), `game`, `name`; `manual`, wenn der Dart in Home Assistant korrigiert wurde |
 | `takeout_started` | Du beginnst, die Darts zu ziehen | keine |
 | `takeout_finished` | Das Board ist wieder frei | keine |
-| `visit_thrown` | Der dritte Dart einer Aufnahme landet, solange die Darts noch im Board stecken; einmal pro Aufnahme | `score`, `darts` (3), `segments` (etwa `["T20", "T20", "S20"]`), `game`, `name` |
-| `visit_completed` | Eine Aufnahme endet: bei der Entnahme, wenn nach einer verpassten Entnahme neue Darts folgen, oder wenn die Erkennung stoppt | `score`, `darts`, `segments`, `game`, `name`, `thrown` (`true`, wenn `visit_thrown` die Aufnahme schon gemeldet hat) |
+| `visit_thrown` | Der dritte Dart einer Aufnahme landet, solange die Darts noch im Board stecken; einmal pro Aufnahme | `score`, `darts` (3), `segments` (etwa `["T20", "T20", "S20"]`), `game`, `name`; `manual`, wenn ein Dart der Aufnahme von Hand eingegeben oder korrigiert wurde, `bot` bei einer Aufnahme des Bots |
+| `visit_completed` | Eine Aufnahme endet: bei der Entnahme, wenn nach einer verpassten Entnahme neue Darts folgen, wenn die Erkennung stoppt oder mit [`autodarts.next_player`](#weitergeben-autodartsnext_player) | `score`, `darts`, `segments`, `game`, `name`, `thrown` (`true`, wenn `visit_thrown` die Aufnahme schon gemeldet hat); `manual` und `bot` wie bei `visit_thrown` |
+| `visit_undone` | [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) nimmt die letzte Aufnahme zurück | `score`, `darts`, `segments` (die Darts, die wieder die aktuelle Aufnahme sind), `game`, `name` |
 | `status_changed` | Der Erkennungsstatus ändert sich | `status` |
 | `session_started` | Eine Trainingssession beginnt: mit dem Schalter *Trainingssession*, der Taste *Neue Trainingssession* oder mit dem ersten Dart, wenn *Sessions automatisch starten* an ist | `started` und `reason` (`manual`, `new_session` oder `first_dart`) |
 | `session_ended` | Eine Trainingssession endet: mit dem Schalter, der Taste oder nach der Pause aus *Session-Timeout* | `reason` (`manual`, `new_session` oder `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` und die übrigen Trainingssummen |
 | `bust` | Ein Dart im [Übungsspiel](#übungsspiel) geht unter null, lässt mit Double-Out 1 übrig oder erreicht 0 ohne Double | `game`, `player`, `name`, `players`, `remaining` (der Rest zu Beginn der Aufnahme, der bleibt) |
 | `leg_won` | Ein Dart beendet das Übungsleg | `game`, `player`, `name`, `players`, `darts` und `average` des Legs, `checkout` (der ausgecheckte Rest), `start` (die Punkte, mit denen das Leg begann), `double_out` und `double_in` (die Regeln des Legs), `legs` des Gewinners im Satz einschließlich dieses Legs und `sets` danach, `match` (`true`, wenn das Leg das Match entscheidet); bei den [Cricket-Spielen](#cricket) `points` und `mpr` statt `average`, `checkout`, `start` und der Regeln, bei [Partyspielen](#partyspiele) `points`; im [Team-Match](#teams-und-startpunkte) zusätzlich `team` und `team_name` sowie `darts`, `average` und `mpr` des Teams |
 | `match_won` | Ein Dart entscheidet ein Übungsmatch mehrerer Spieler | `game`, `player`, `name`, `players`, `legs` (des Gewinners im entscheidenden Satz) und `sets`, `scores` mit `player`, `name`, `legs` und `sets` aller Spieler, etwa 3 : 2, und der `average` des Matches; bei Cricket `mpr`; im Team-Match zusätzlich `team` und `team_name`, ein `team` für jeden in `scores` und der Average des Teams; `summary` mit den Zahlen jedes Spielers für die [Match-Zusammenfassung](#übungsspiel), wie sie nach dem Buchen der entscheidenden Aufnahme sind |
-| `turn_changed` | Im Übungsspiel wurden die Darts gezogen und die nächste Aufnahme ist dran: im Match der nächste Spieler, allein derselbe | `game`, `player`, `name`, `players`, `remaining`, `checkout` (der Weg für drei Darts oder keiner); bei Cricket `points`, bei [Partyspielen](#partyspiele) `points` und `target` des nächsten Spielers; beim Ausbullen `bull_off`; im Team-Match `team` und `team_name` |
+| `turn_changed` | Im Übungsspiel wurden die Darts gezogen und die nächste Aufnahme ist dran: im Match der nächste Spieler, allein derselbe | `game`, `player`, `name`, `players`, `remaining`, `checkout` (der Weg für drei Darts oder keiner), `setup` (bei X01 ohne Checkout der [Stellwurf](#stellwürfe) mit `route` und `leave`, sonst keiner); bei Cricket `points`, bei [Partyspielen](#partyspiele) `points` und `target` des nächsten Spielers; beim Ausbullen `bull_off`; im Team-Match `team` und `team_name` |
 | `drill_finished` | Ein [Trainingsspiel](#trainingsspiele) endet: Around the Clock, Doppeltraining, Catch 40, JDC Challenge oder Singles-Training sind durch, oder Bob's 27 ist vorbei | `drill`, `darts`, `hits`, `hit_rate` (Prozent); Bob's 27 ergänzt `score` und `completed`; Catch 40 hat `score`, `checkouts` und `darts`, die JDC Challenge `score`, `parts` (die Punkte ihrer drei Teile) und `darts`, das Singles-Training zusätzlich `score` |
 | `checkout_attempt` | Ein Versuch im Checkout-Training oder im 121-Checkout endet | `drill`, `target`, `success`, `darts`, `attempts`, `successes`, `rate` (Prozent); der 121-Checkout ergänzt `next`, das nächste Ziel |
 | `bull_off_won` | Das [Ausbullen](#übungsspiel) entscheidet, wer das Match beginnt | `game`, `player`, `name`, `players`, `hit` (das Feld des Siegerdarts: `BULL`, `25` oder etwa `S20`), `distance` (Millimeter von der Mitte, oder keiner ohne Position vom Board) |
@@ -68,7 +69,7 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 
 `game` ist das [Übungsspiel](#übungsspiel), das beim Landen des Darts läuft, etwa `501`, `cricket` oder `shanghai`, und leer ohne Übungsspiel und bei [Trainingsspielen](#trainingsspiele). `name` ist der Name des Spielers am Board in diesem Spiel, auch beim Ausbullen; leer ohne Spiel oder Namen. Eine Aufnahme aus drei Darts wird zweimal gemeldet: mit `visit_thrown`, sobald ihr dritter Dart landet, für 180-Feiern und Caller, und mit `visit_completed`, wenn sie endet, mit den Punkten nach allen Korrekturen. Um auf jede Aufnahme genau einmal und so früh wie möglich zu reagieren, nutze `visit_thrown` und `visit_completed` mit `thrown` gleich `false`; die [Blueprints](automationen.md#blueprints) machen es so.
 
-Nach einem Neustart oder Verbindungsabbruch werden Ereignisse nie wiederholt. Beispiele stehen unter [Automationen](automationen.md).
+Ereignisse des Platzes des [Bots](#bot) tragen `bot: true` und keinen `name`, von seinen Darts bis zu einem Leg oder Match, das er gewinnt. Nach einem Neustart oder Verbindungsabbruch werden Ereignisse nie wiederholt. Beispiele stehen unter [Automationen](automationen.md).
 
 ## Trainingssession
 
@@ -77,6 +78,7 @@ Die Integration zählt deine Darts in Trainingssessions, in Home Assistant und u
 - **Starten und beenden:** Der Schalter *Trainingssession* startet eine Session bei null und beendet sie. *Neue Trainingssession* beendet die laufende Session und startet die nächste.
 - **Automatisch:** Ist *Sessions automatisch starten* an, startet der erste Dart eine Session, wenn keine läuft. *Session-Timeout* beendet eine Session so viele Minuten nach ihrem letzten Dart; `0` lässt sie weiterlaufen.
 - **Ohne Session** werden Darts und Aufnahmen weiter als [Board-Ereignisse](#board-ereignisse) gemeldet, etwa für eine 180-Feier im Online-Spiel, aber nicht gezählt.
+- **Von Hand und der Bot:** Von Hand eingegebene Darts zählen wie erkannte, ein korrigierter Dart zählt korrigiert; die Darts des Bots zählen für keine Session.
 - **Historie:** Eine beendete Session behält ihre Summen, bis die nächste beginnt. *Average der letzten Session* hält den 3-Dart-Average jeder beendeten Session mit Darts fest; sein Verlauf zeigt deine Entwicklung.
 
 Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt jeder Dart wie in Version 1.0.
@@ -100,7 +102,7 @@ Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt je
 | Neue Trainingssession | Taste | Beendet die laufende Session und startet die nächste; das Board selbst bleibt unberührt. |
 | Sessions automatisch starten | Schalter, *Konfiguration* | Der erste Dart startet eine Session, wenn keine läuft. Standardmäßig an. |
 | Session-Timeout | Zahl, *Konfiguration* | Minuten ohne Darts, 0–240, nach denen eine Session von selbst endet. `0`, der Standard, lässt sie weiterlaufen. |
-| Average der letzten Session | Sensor, Punkte | 3-Dart-Average der letzten beendeten Session. Attribute: `started`, `ended`, `duration_minutes`, die Summen und `sessions` mit den letzten 20 Sessions, die der Recorder nicht speichert. |
+| Average der letzten Session | Sensor, Punkte | 3-Dart-Average der letzten beendeten Session. Attribute: `started`, `ended`, `duration_minutes`, die Summen, `manual_darts` (von Hand eingegebene Darts) und `sessions` mit den letzten 20 Sessions, die der Recorder nicht speichert. |
 
 Die Summen nutzen die Zustandsklasse *total increasing*. Statistiken und Verlaufsdiagramme von Home Assistant behandeln einen Neustart der Session daher korrekt. [So wird gezählt](funktionsweise.md#trainingssession).
 
@@ -181,12 +183,15 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 - **Matches:** Stelle *Übungsspiel Spielerzahl* auf 2, 3 oder 4. Nach einer Aufnahme wirft der nächste Spieler; auch beim Überwerfen ist der Nächste dran. Wer zuerst *Übungsspiel Legs pro Satz* Legs gewinnt, holt den Satz, und wer zuerst *Übungsspiel Sätze zum Sieg* Sätze holt, gewinnt das Match. Der Anwurf wechselt innerhalb eines Satzes jedes Leg, und jeder Satz beginnt mit dem nächsten Spieler. Das Ergebnis mit den Legs des entscheidenden Satzes bleibt in der Karte stehen, bis der nächste Dart ein neues Match beginnt. Mit einem Spieler werden Legs und Sätze nicht gezählt. [Die Regeln für Matches](spiele.md#matches-legs-und-sätze).
 - **Match-Zusammenfassung:** Ein beendetes Match mehrerer Spieler wird für jeden Spieler zusammengefasst: Legs, Sätze und Darts; bei X01 3-Dart- und First-9-Average, Checkout-Quote, höchster Checkout, Aufnahmen mit 100+, 140+ und 180, bestes Leg und Darts aufs Double; bei Cricket Marks pro Runde und Marks. Die [Anzeigetafel](karten.md#match-zusammenfassung) zeigt sie nach einem X01- oder Cricket-Match, `match_won` meldet sie, und *Übungsspiel Restpunkte* behält sie in `summary`, bis das nächste Match endet. [Wie die Zahlen gezählt werden](funktionsweise.md#match-zusammenfassung).
 - **Sessions:** Übungsspiel und [Trainingssessions](#trainingssession) sind unabhängig. Ein Dart zählt in beiden.
+- **Korrekturen und von Hand eingegebene Darts:** Einen falsch erkannten Dart korrigierst du mit einer Aktion oder einem Tipp auf der Anzeigetafel, übersehene Darts gibst du von Hand ein, und die letzte Aufnahme lässt sich zurücknehmen; siehe [Korrekturen und von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts).
+- **Bot:** X01 und die Cricket-Spiele lassen sich gegen den Computer in einer Stärke deiner Wahl spielen; siehe [Bot](#bot).
+- **Stellwurf:** Wo die übrigen Darts nicht checken können, schlägt das Spiel vor, wohin du stattdessen wirfst; siehe [Stellwürfe](#stellwürfe).
 - **Weitere Spiele:** *Übungsspiel* bietet auch die [Cricket-Spiele](#cricket), sechs [Partyspiele](#partyspiele) und acht [Trainingsspiele](#trainingsspiele).
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
 | Übungsspiel | Auswahl | `off` (*Aus*), `101`, `301`, `501`, `701`, `901`, `1001`, ein Cricket-Spiel (`cricket`, `cut_throat`, `tactics`), ein Partyspiel (`shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`) oder ein Trainingsspiel: `around_the_clock`, `doubles` (*Doppeltraining*), `checkout` (*Checkout-Training*), `bobs_27`, `checkout_121` (*121-Checkout*), `catch_40`, `jdc_challenge`, `singles` (*Singles-Training*). Die Wahl startet ein neues Match oder Spiel. |
-| Übungsspiel Restpunkte | Sensor | Restpunkte des Spielers am Board; ohne Spiel *unbekannt*. Attribute: `game`, `double_out`, `double_in`, `opened` (der Spieler am Board hat mit Double-In geöffnet oder spielt ohne), `player` und `name` des Spielers am Board, `checkout`, `bust`, `won`, `visit` (die Felder der aktuellen Aufnahme), `darts` und `average` des Legs, `players`, `legs_to_win`, `sets_to_win`, `winner` (der Matchgewinner bis zum nächsten Dart), `start` (die Startpunkte des Spielers am Board), `teams` im [Team-Match](#teams-und-startpunkte) (`team`, `name` und `players` beider Teams, sonst keins), `scores` mit `player`, `name`, `remaining`, `opened`, `start`, `legs` (im laufenden Satz oder im entscheidenden Satz eines beendeten Matches), `sets`, `match_legs` (Legs des ganzen Matches), dem Match-`average` und im Team-Match dem `team` jedes Spielers, `bull_off` beim Ausbullen (der `player` am Board, `rethrow`, `by_distance` und `throws` mit `player`, `name`, `hit` und `distance`) sowie `legs` mit den letzten 10 Legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended`) sowie `summary` mit dem letzten beendeten Match mehrerer Spieler: `game`, `ended`, `winner`, `legs_to_win`, `sets_to_win`, `double_out` und `players` mit `player`, `name`, `legs` (im ganzen Match gewonnen), `sets` und `darts` aller Spieler; X01 ergänzt `average`, `first_9_average`, `checkouts`, `darts_at_double`, `checkout_rate`, `highest_checkout`, `scores_100`, `scores_140`, `scores_180` und `best_leg` (wenigste Darts eines gewonnenen Legs), Cricket `mpr`, `marks` und `best_leg`. `double_out` ist die Regel des laufenden Legs. Der Recorder speichert weder `visit`, `scores`, `legs` noch `summary`. |
+| Übungsspiel Restpunkte | Sensor | Restpunkte des Spielers am Board; ohne Spiel *unbekannt*. Attribute: `game`, `double_out`, `double_in`, `opened` (der Spieler am Board hat mit Double-In geöffnet oder spielt ohne), `player` und `name` des Spielers am Board, `checkout`, `bust`, `won`, `visit` (die Felder der aktuellen Aufnahme), `darts` und `average` des Legs, `players`, `legs_to_win`, `sets_to_win`, `winner` (der Matchgewinner bis zum nächsten Dart), `start` (die Startpunkte des Spielers am Board), `teams` im [Team-Match](#teams-und-startpunkte) (`team`, `name` und `players` beider Teams, sonst keins), `scores` mit `player`, `name`, `remaining`, `opened`, `start`, `legs` (im laufenden Satz oder im entscheidenden Satz eines beendeten Matches), `sets`, `match_legs` (Legs des ganzen Matches), dem Match-`average` und im Team-Match dem `team` jedes Spielers, `bull_off` beim Ausbullen (der `player` am Board, `rethrow`, `by_distance` und `throws` mit `player`, `name`, `hit` und `distance`) sowie `legs` mit den letzten 10 Legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended`) sowie `summary` mit dem letzten beendeten Match mehrerer Spieler: `game`, `ended`, `winner`, `legs_to_win`, `sets_to_win`, `double_out` und `players` mit `player`, `name`, `legs` (im ganzen Match gewonnen), `sets` und `darts` aller Spieler; X01 ergänzt `average`, `first_9_average`, `checkouts`, `darts_at_double`, `checkout_rate`, `highest_checkout`, `scores_100`, `scores_140`, `scores_180` und `best_leg` (wenigste Darts eines gewonnenen Legs), Cricket `mpr`, `marks` und `best_leg`. `double_out` ist die Regel des laufenden Legs. Mit dem [Bot](#bot) nennt `bot` dessen `player` und `level` (sonst keins), und seine Einträge in `scores`, in den `throws` des Ausbullens und in den `players` der Zusammenfassung tragen `bot: true`. `setup` enthält den [Stellwurf](#stellwürfe), wo kein Checkout möglich ist, und `undo` ist `true`, solange [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurücknehmen kann. Der Recorder speichert weder `visit`, `scores`, `legs` noch `summary`. |
 | Übungsspiel Checkout-Weg | Sensor | Der Checkout-Weg, etwa `T20 25 D18`; *unbekannt*, wenn es keinen gibt. |
 | Übungsspiel Ziel | Sensor | Das Ziel des [Trainingsspiels](#trainingsspiele), etwa `7`, `D16`, `BULL` oder der Checkout-Rest `81`, oder bei [Cricket](#cricket) die nächste offene Zahl, etwa `T19`; ohne Ziel *unbekannt*. Attribute: `drill`, `finished`, `visit`, `progress` und `targets`, `darts`, `hits`, `hit_rate`, das beste Ergebnis als `best` und `results` mit den letzten 10 Ergebnissen, die der Recorder nicht speichert. Bob's 27 ergänzt `score`; Checkout-Training und 121-Checkout ergänzen `remaining`, `checkout`, `bust`, `won`, `attempt_visit`, `attempt_visits`, `attempts`, `successes` und `rate`; Catch 40 ergänzt `score`, `checkouts` und dieselben Werte des Rests, der gerade gecheckt wird; die JDC Challenge ergänzt `part`, `score` und `parts`, das Singles-Training `score`. |
 | Neues Leg im Übungsspiel | Taste | Beginnt das Leg wieder beim vollen Rest; Legs und Sätze bleiben. Nach einem beendeten Match beginnt es das nächste Match. |
@@ -195,7 +200,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel Checkout-Quote | Sensor, % | Gewonnene Legs pro Dart auf ein Double, über die letzten 10 Legs. Ein Dart zählt als Dart aufs Double, wenn ein Double den Rest checken könnte: 2 bis 40 bei geraden Zahlen oder 50. Nur mit Double-Out. |
 | Übungsspiel Doppelquote | Sensor, % | Dieselben Darts aufs Double zusammen mit den letzten 10 Ergebnissen aus Doppeltraining und Bob's 27. |
 | Übungsspiel gespielte Legs | Sensor, Summe | Beendete Legs in X01, den Cricket-Spielen und den Partyspielen; die Langzeitstatistik zeigt die Legs pro Tag. |
-| Übungsspiel Spielerzahl | Zahl, *Konfiguration* | 1–4 Spieler. Eine Änderung startet ein neues Match. |
+| Übungsspiel Spielerzahl | Zahl, *Konfiguration* | 1–4 Spieler; mit dem [Bot](#bot) 1–3 neben ihm. Eine Änderung startet ein neues Match. |
 | Übungsspiel Legs pro Satz | Zahl, *Konfiguration* | 1–11 Legs gewinnen einen Satz. Eine Änderung startet ein neues Match. |
 | Übungsspiel Sätze zum Sieg | Zahl, *Konfiguration* | 1–7 Sätze gewinnen das Match. Eine Änderung startet ein neues Match. |
 | Übungsspiel Spieler *N* | Text, *Konfiguration* | Name von Spieler 1–4, höchstens 20 Zeichen, für Anzeigetafel und Ereignisse. Ohne Namen zeigt die Karte *Spieler N*. |
@@ -207,6 +212,9 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel Startpunkte Spieler *N* | Zahl, *Konfiguration* | Die X01-Startpunkte von Spieler 1–4 für ein Handicap, 2–1001; `0`, der Standard, spielt die Startpunkte des Spiels. Eine Änderung startet ein neues Match. |
 | Übungsspiel Golf-Löcher | Auswahl, *Konfiguration* | `9` oder `18` Löcher [Golf](#partyspiele); standardmäßig `9`. Eine Änderung startet eine Runde Golf neu. |
 | Übungsspiel Count-Up-Runden | Zahl, *Konfiguration* | 1–20 Runden [Count-Up](#partyspiele); standardmäßig `8`. Eine Änderung startet ein Count-Up neu. |
+| Übungsspiel manuelle Eingabe | Schalter, *Konfiguration* | Darts lassen sich [von Hand eingeben](#korrekturen-und-von-hand-eingegebene-darts), mit [`autodarts.throw_dart`](#dart-eingeben-autodartsthrow_dart) oder dem Tastenfeld der Anzeigetafel. Standardmäßig aus. |
+| Übungsspiel Bot-Stärke | Zahl, *Konfiguration* | Der 3-Dart-Average, den der [Bot](#bot) spielt, 20–120; `0`, der Standard, spielt ohne Bot. Eine Änderung startet ein neues Match. |
+| Übungsspiel Bot-Pause | Zahl, *Konfiguration* | Sekunden vor jedem Dart des Bots und bevor seine Aufnahme endet, 0–10 in Schritten von 0,5; standardmäßig `2`. |
 
 ## Teams und Startpunkte
 
@@ -220,6 +228,33 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 <img src="../images/de/scoreboard-handicap.png" alt="Anzeigetafel eines 501-Matches mit eigenen Startpunkten: Alex ab 501 mit Rest 361, Sam ab 301 mit Rest 241 und am Board" width="760">
 
 [Die Regeln für Teams und Startpunkte](spiele.md#teams).
+
+## Korrekturen und von Hand eingegebene Darts
+
+<img src="../images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
+
+- **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](karten.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`.
+- **Dart eingeben:** Ist *Übungsspiel manuelle Eingabe* an, fügen [`autodarts.throw_dart`](#dart-eingeben-autodartsthrow_dart) oder das Tastenfeld der Anzeigetafel einen Dart hinzu, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras, als hätte das Board ihn erkannt, markiert mit `manual`. Die Erkennung muss nicht laufen: Ist sie gestoppt, bilden die eingegebenen Darts die Aufnahme allein.
+- **Weitergeben:** [`autodarts.next_player`](#weitergeben-autodartsnext_player) beendet die Aufnahme, ohne die Darts zu ziehen. Die Darts im Board gehören zu keiner Aufnahme, bis sie gezogen sind, und neue Darts zählen für den nächsten Spieler. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus.
+- **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
+
+[Die Regeln für Korrekturen und von Hand eingegebene Darts](funktionsweise.md#korrekturen-und-von-hand-eingegebene-darts).
+
+## Bot
+
+<img src="../images/de/bot-match.webp" alt="Animation: ein 301-Match auf der Anzeigetafel. Alex wirft und zieht die Darts, die drei Darts des Bots landen nacheinander, und Alex ist wieder am Board" width="760">
+
+- **Gegen den Computer spielen** in X01 und den Cricket-Spielen: Stell *Übungsspiel Bot-Stärke* auf den 3-Dart-Average, den er spielen soll, von 20 bis 120, starte ein Spiel mit `bot_level` oder setz ihn in der [Spielauswahl](karten.md#spielauswahl) der Anzeigetafel dazu. `0` spielt ohne ihn.
+- **Sein Platz:** Der Bot sitzt nach den Spielern; mit *Übungsspiel Spielerzahl* auf 1 spielt also einer gegen den Bot, und mit dem Bot spielen bis zu drei Spieler. Partyspiele, Trainingsspiele und Turniere laufen ohne ihn.
+- **Sein Zug:** Der Bot wirft *Übungsspiel Bot-Pause* Sekunden, nachdem die Darts des Spielers vor ihm gezogen sind, Dart für Dart, und beendet seine Aufnahme nach derselben Pause. Seine Darts erscheinen auf den Karten wie erkannte, mit ihren Positionen, und lösen die üblichen Ereignisse mit `bot: true` aus. Wirft ein Spieler, während der Bot noch am Board ist, wirft der Bot den Rest seiner Aufnahme sofort, und die neuen Darts zählen für den Spieler.
+- **Wohin er zielt:** wie ein Spieler auf die Triple 20 zum Punkten, entlang des Checkout-Wegs und auf den [Stellwurf](#stellwürfe), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Seine Darts streuen um den Zielpunkt, sodass sein Average seiner Stärke entspricht. [Wie der Bot spielt](funktionsweise.md#bot).
+- **Seine Darts zählen für niemanden:** nicht für die Trainingssession, die Statistik, die Bestleistungen, die Spielerprofile, die Erfolge, den Wochenbericht oder die Korrekturquote. Das Ergebnis eines Matches gegen den Bot zählt in den Profilen der Spieler.
+
+## Stellwürfe
+
+<img src="../images/de/scoreboard-bot.png" alt="Anzeigetafel eines 301-Matches gegen den Bot: Alex hat noch 169, und statt eines Checkouts zeigt die Karte T20 T20 S17 Rest 32; die Kachel des Bots heißt Bot Stärke 80" width="760">
+
+Können die übrigen Darts einer Aufnahme nicht checken, bei 169, über 170 oder bei 100 mit einem Dart, nennt *Übungsspiel Restpunkte* in `setup` einen Stellwurf: seine Darts in `route`, etwa `T20 T20 S17`, und den Rest, den sie für die nächste Aufnahme stellen, in `leave`, etwa `32`. Die [Anzeigetafel](karten.md#anzeigetafel) und die [Live-Karte](karten.md#live-karte) zeigen ihn, wo sonst der Checkout steht, und umranden seinen ersten Dart; `turn_changed` enthält ihn, und der Caller der Anzeigetafel sagt *Stell dir die 32*. Über 170 mit drei Darts lohnt nur ein Double; darunter auch ein Finish mit zwei Darts. Mit *Übungsspiel persönliche Checkout-Wege* kommen die stärksten Doubles des Spielers zuerst. [Wie der Stellwurf gewählt wird](funktionsweise.md#stellwürfe).
 
 ## Cricket
 
@@ -507,6 +542,7 @@ Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skript
 | `start_scores` | bis zu 4 Zahlen, `0` oder 2–1001 | X01-Startpunkte der Spieler in Wurfreihenfolge, für ein Handicap; `0` oder ein fehlender Wert spielt die Startpunkte des Spiels |
 | `holes` | `9`, `18` | Löcher beim Golf |
 | `rounds` | 1–20 | Runden beim Count-Up |
+| `bot_level` | `0` oder 20–120 | Gegen den [Bot](#bot) spielen, in X01 und den Cricket-Spielen, mit diesem 3-Dart-Average; `0` spielt ohne ihn |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -515,6 +551,16 @@ data:
   game: "501"
   players: [Dennis, Lea]
   legs: 3
+```
+
+Gegen den Bot mit einem 3-Dart-Average von 60:
+
+```yaml
+action: autodarts.start_game
+data:
+  game: "501"
+  players: [Dennis]
+  bot_level: 60
 ```
 
 Ein Team-Match zu viert:
@@ -537,7 +583,59 @@ data:
   start_scores: [501, 301]
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht, wenn Killer weniger als zwei Spieler hätte oder wenn `teams` Teams ohne vier Spieler oder in einem anderen Spiel als X01 und den Cricket-Spielen verlangt. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
+Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht, wenn Killer weniger als zwei Spieler hätte wenn `teams` Teams ohne vier Spieler oder in einem anderen Spiel als X01 und den Cricket-Spielen verlangt, oder wenn vier Spieler dem Bot keinen Platz lassen. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
+
+### Dart korrigieren: `autodarts.correct_dart`
+
+Legt einen Dart der aktuellen Aufnahme für Übungsspiel und Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung. [Korrekturen](#korrekturen-und-von-hand-eingegebene-darts).
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `dart` | 1–3 | Der Dart der aktuellen Aufnahme; Pflicht |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (äußeres Bull), `BULL`, `MISS` | Das Feld, in beliebiger Groß- und Kleinschreibung; Pflicht |
+| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+
+```yaml
+action: autodarts.correct_dart
+data:
+  dart: 2
+  segment: T20
+```
+
+Die Aktion bricht mit einer klaren Meldung ab, wenn die Aufnahme keinen solchen Dart hat oder der Dart dem Bot gehört.
+
+### Dart eingeben: `autodarts.throw_dart`
+
+Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt, markiert mit `manual`: einen Dart, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras. Braucht *Übungsspiel manuelle Eingabe*.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` | Das Feld; Pflicht |
+| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+
+```yaml
+action: autodarts.throw_dart
+data:
+  segment: D16
+```
+
+Die Aktion bricht mit einer klaren Meldung ab, wenn die manuelle Eingabe aus ist, wenn die Aufnahme schon drei Darts hat oder solange der Bot am Board ist.
+
+### Weitergeben: `autodarts.next_player`
+
+Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft; die Darts im Board zählen für niemanden, bis sie gezogen sind. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus; in anderen Spielen bricht die Aktion dann mit einer klaren Meldung ab.
+
+```yaml
+action: autodarts.next_player
+```
+
+### Aufnahme zurücknehmen: `autodarts.undo_visit`
+
+Nimmt die letzte abgeschlossene Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, und ihre Darts werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit `autodarts.next_player` zu beenden. Aufnahmen des Bots danach werden mit zurückgenommen. Eine Aufnahme lässt sich zurücknehmen, solange kein Dart im Board steckt und sich Spiel und Trainingssession seitdem nicht geändert haben; ein Neustart vergisst sie. Sonst bricht die Aktion mit einer klaren Meldung ab; `undo` von *Übungsspiel Restpunkte* sagt, ob es geht.
+
+```yaml
+action: autodarts.undo_visit
+```
 
 ### Spielerprofil löschen: `autodarts.delete_player`
 

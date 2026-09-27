@@ -136,6 +136,8 @@ def _practice(local: AutodartsLocalCoordinator) -> dict[str, Any]:
         "double_out_next": practice.double_out_next,
         "bull_off_running": practice.bulling is not None,
         "players": len(practice.players),
+        "bot_level": practice.bot_level,
+        "bot_delay": practice.bot_delay,
         "legs_to_win": practice.legs_to_win,
         "sets_to_win": practice.sets_to_win,
         "stored_legs": len(practice.legs),

@@ -38,6 +38,9 @@
         <li>Party games: Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up</li>
         <li>Matches of up to four players with legs and sets, two teams of two, handicap start scores and a bull-off, and a summary of every match</li>
         <li>Tournaments of three to eight players: a round robin with a table or a knockout with a bracket</li>
+        <li>A bot from level 20 to 120 to play X01 and Cricket against</li>
+        <li>A tap corrects a dart the board read wrong; a keypad enters darts by hand, and the last visit can be undone</li>
+        <li>Setup hints where no checkout is possible, such as T20 T20 S17 to leave 32</li>
       </ul>
       <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md">Games and rules →</a></p>
     </td>

@@ -576,6 +576,165 @@ async ([service, data]) => {
 """
 
 
+# Playing comfort -----------------------------------------------------------------
+
+
+def bot_match(
+    page: Page, level: int, delay: float, starts: list[int] | None = None
+) -> None:
+    """Alex against the bot, which throws after a pause of its own."""
+    pull_darts()
+    game(page, "off")
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "practice_bot_delay", {"value": delay}]
+    )
+    data = {
+        "game": "301",
+        "players": ["Alex"],
+        "legs": 1,
+        "sets": 1,
+        "bot_level": level,
+    }
+    page.evaluate(
+        CALL_ACTION,
+        ["start_game", {**data, **({"start_scores": starts} if starts else {})}],
+    )
+
+
+def end_bot_match(page: Page) -> None:
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "practice_bot_level", {"value": 0}]
+    )
+    page.evaluate(SET_START, [0, 0])
+    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    pull_darts()
+    game(page, "off")
+
+
+def bot_animation(page: Page) -> None:
+    """A 301 match against the bot on the scoreboard: Alex throws, then the bot."""
+    bot_match(page, 80, 0.9)
+    board = tablet(page)
+    active = "r.querySelector('.player.active .name')?.textContent.startsWith('{name}')"
+    wait_card(board, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
+    board.wait_for_timeout(1500)
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1400)
+    bot = "Bot"
+    for names in (["T20", "T19", "T20"], ["S20", "T20", "S5"]):
+        darts = [at(name) for name in names]
+        for count in range(1, 4):
+            control({"event": "Throw detected", "throws": darts[:count]})
+            board.wait_for_timeout(350)
+        wait_card(
+            board,
+            "r.querySelectorAll('.visit .dart:not(.empty)').length === 3",
+            SCOREBOARD,
+        )
+        recorder.shot(900)
+        pull_darts()
+        wait_card(board, active.format(name=bot), SCOREBOARD)
+        recorder.shot(700)
+        # The bot's darts land one by one, like detected ones.
+        for count in range(1, 4):
+            wait_card(
+                board,
+                f"r.querySelectorAll('.visit .dart.bot').length >= {count}",
+                SCOREBOARD,
+            )
+            board.wait_for_timeout(150)
+            recorder.shot(700)
+        wait_card(board, active.format(name="Alex"), SCOREBOARD)
+        board.wait_for_timeout(300)
+        recorder.shot(1400)
+    recorder.save("bot-match")
+    board.close()
+    end_bot_match(page)
+
+
+def correct_animation(page: Page) -> None:
+    """A single 20 the board read where a treble 20 is, corrected with two taps."""
+    pull_darts()
+    page.evaluate(SET_NAME, [0, "Alex"])
+    players(page, 1)
+    game(page, "501")
+    board = tablet(page)
+    wait_card(board, "r.querySelectorAll('.player').length === 1", SCOREBOARD, 60000)
+    board.wait_for_timeout(1500)
+    recorder = Recorder(board, SCOREBOARD)
+    darts = [at("T20"), at("S20"), at("T20")]
+    for count in range(1, 4):
+        control({"event": "Throw detected", "throws": darts[:count]})
+        board.wait_for_timeout(350)
+    wait_card(
+        board, "r.querySelector('.sum .value')?.textContent === '140'", SCOREBOARD
+    )
+    recorder.shot(1400)
+    card = board.locator(SCOREBOARD)
+    tap(board, recorder, card.locator("[data-dart='2']"), 1000)
+    tap(board, recorder, card.locator("[data-pad='multiplier'][data-value='3']"), 700)
+    tap(board, recorder, card.locator(".pad-number[data-value='T20']"), 300)
+    wait_card(
+        board, "r.querySelector('.sum .value')?.textContent === '180'", SCOREBOARD
+    )
+    board.wait_for_timeout(300)
+    recorder.shot(2400)
+    recorder.save("correct-dart")
+    board.close()
+    pull_darts()
+    game(page, "off")
+
+
+def keypad_screen(page: Page) -> None:
+    """The keypad for darts entered by hand, with two darts of the visit entered."""
+    bot_match(page, 60, 2)
+    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
+    board = tablet(page, "autodarts-demo/keypad")
+    wait_card(board, "!!r.querySelector('.pad')", SCOREBOARD, 60000)
+    for segment in ("T20", "S19"):
+        board.evaluate(CALL_ACTION, ["throw_dart", {"segment": segment}])
+    wait_card(
+        board, "r.querySelectorAll('.visit .dart.manual').length === 2", SCOREBOARD
+    )
+    board.set_viewport_size({"width": 1280, "height": 1000})
+    board.wait_for_timeout(1000)
+    card_shot(board, "scoreboard-keypad", tag=SCOREBOARD)
+    board.close()
+    end_bot_match(page)
+
+
+def bot_scoreboard(page: Page) -> None:
+    """Alex at 169 against the bot: the setup that leaves 32 instead of a checkout."""
+    bot_match(page, 80, 10, [169])
+    board = tablet(page)
+    wait_card(board, "!!r.querySelector('.setup')", SCOREBOARD, 60000)
+    board.wait_for_timeout(1200)
+    card_shot(board, "scoreboard-bot", tag=SCOREBOARD)
+    board.close()
+    end_bot_match(page)
+
+
+def lobby_bot(page: Page) -> None:
+    """The new game screen with the bot seated after Alex."""
+    pull_darts()
+    game(page, "off")
+    page.evaluate(SET_NAME, [0, "Alex"])
+    players(page, 1)
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "practice_bot_level", {"value": 70}]
+    )
+    board = tablet(page)
+    wait_card(board, "!!r.querySelector('.lobby-cta')", SCOREBOARD, 60000)
+    board.locator(SCOREBOARD).locator(".lobby-cta").click()
+    wait_card(board, "!!r.querySelector('.lobby-player.bot')", SCOREBOARD)
+    board.wait_for_timeout(1000)
+    page_shot(board, "lobby-bot")
+    board.close()
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "practice_bot_level", {"value": 0}]
+    )
+
+
 def seek_scoreboard(board: Page, time: int) -> None:
     """Pause the animations of the scoreboard at a given time, for a frame."""
     board.evaluate(
@@ -1919,6 +2078,8 @@ def main() -> None:
         halve_it_animation(page)
         bull_off_animation(page)
         bobs_27_animation(page)
+        bot_animation(page)
+        correct_animation(page)
         games.close()
 
         # The new games and formats on the scoreboard.
@@ -1936,6 +2097,8 @@ def main() -> None:
         baseball_scoreboard(page)
         catch_40_scoreboard(page)
         scoreboard_portrait(page)
+        bot_scoreboard(page)
+        keypad_screen(page)
         formats.close()
 
         people = browser.new_context(
@@ -1947,6 +2110,7 @@ def main() -> None:
         players_card(people.new_page())
         doubles_card(people.new_page())
         lobby_screen(people.new_page())
+        lobby_bot(people.new_page())
         tournament_lobby(people.new_page())
         tournament_table(people.new_page())
         idle_screen(people.new_page())

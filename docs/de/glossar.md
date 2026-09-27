@@ -29,6 +29,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Checkout-Quote** | Gewonnene Legs pro Dart aufs Double | Checkout rate |
 | **Doppelquote** | Treffer pro Dart aufs Double, auch im Doppeltraining und bei Bob's 27 | Doubles rate |
 | **Handicap, Startpunkte** | Eigene Punkte eines Spielers, mit denen er X01 beginnt, etwa 301 gegen 501 | Handicap, start score |
+| **Stellwurf, Rest** | Darts, die nicht checken können, aber für die nächste Aufnahme einen guten Rest stellen, etwa T20 T20 S17 für Rest 32 auf D16 | Setup, leave |
 | **100+, 140+, 180** | Eine Aufnahme mit 100 oder mehr, mit 140 oder mehr und das Maximum aus drei Triple 20 | Ton, ton-plus, 180 |
 
 ## Die Integration
@@ -46,6 +47,8 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Trainingsspiele** | Around the Clock, Doppeltraining, Checkout-Training, Bob's 27, 121-Checkout, Catch 40, JDC Challenge und Singles-Training | Training games |
 | **Team-Match** | Vier Spieler bei X01 oder einem Cricket-Spiel als zwei Teams: 1 und 3 gegen 2 und 4 | Team match |
 | **Match-Zusammenfassung** | Die Zahlen jedes Spielers nach einem Match: Averages, Checkout-Quote, höchster Checkout, 180er und bestes Leg | Match summary |
+| **Bot** | Ein Computerspieler für X01 und die Cricket-Spiele; seine Stärke ist der 3-Dart-Average, den er spielt | Bot |
+| **Von Hand eingegebene Darts** | Darts, die in Home Assistant hinzugefügt werden, mit dem Tastenfeld der Anzeigetafel oder einer Aktion, als hätte das Board sie erkannt | Darts entered by hand |
 | **Turnier** | Drei bis acht Spieler, jeder gegen jeden oder im K.-o.-System, ein Match nach dem anderen | Tournament |
 | **Jeder gegen jeden** | Alle spielen einmal gegeneinander; eine Tabelle ordnet die Spieler | Round robin |
 | **K.-o.-System** | Die Sieger kommen über einen Turnierbaum bis ins Finale weiter | Knockout |

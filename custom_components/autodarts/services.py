@@ -1,5 +1,5 @@
 """Actions of the integration: start a practice game or a tournament with one call,
-and more."""
+correct and enter darts, pass the turn, undo a visit, and more."""
 
 from __future__ import annotations
 
@@ -17,10 +17,12 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.service import async_get_config_entry
 
+from .bot import valid_level
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES
 from .export import DEFAULT_FOLDER, EXPORT_CONTENTS, EXPORT_FORMATS, async_export
 from .local_coordinator import AutodartsLocalCoordinator
+from .manual import parse_bed
 from .party import GOLF_HOLES, MAX_ROUNDS
 from .practice import (
     GAME_OPTIONS,
@@ -48,6 +50,10 @@ SERVICE_EXPORT = "export"
 SERVICE_START_TOURNAMENT = "start_tournament"
 SERVICE_STOP_TOURNAMENT = "stop_tournament"
 SERVICE_NEXT_TOURNAMENT_MATCH = "next_tournament_match"
+SERVICE_CORRECT_DART = "correct_dart"
+SERVICE_THROW_DART = "throw_dart"
+SERVICE_NEXT_PLAYER = "next_player"
+SERVICE_UNDO_VISIT = "undo_visit"
 
 
 def _start_score(value: object) -> int:
@@ -56,6 +62,22 @@ def _start_score(value: object) -> int:
     if not valid_start(start):
         raise vol.Invalid("a start score is 0 or 2 to 1001")
     return int(start)
+
+
+def _bot_level(value: object) -> int:
+    """0 without the bot, or its 3-dart average of 20 to 120."""
+    level = vol.Coerce(int)(value)
+    if not valid_level(level):
+        raise vol.Invalid("a bot level is 0 or 20 to 120")
+    return int(level)
+
+
+def _bed(value: object) -> dict[str, object]:
+    """S1 to S20, D1 to D20, T1 to T20, 25, BULL or MISS, in any case."""
+    dart = parse_bed(cv.string(value))
+    if dart is None:
+        raise vol.Invalid("a bed is S1 to T20, 25, BULL or MISS, for example T20")
+    return dart
 
 
 START_GAME_SCHEMA = vol.Schema(
@@ -81,6 +103,21 @@ START_GAME_SCHEMA = vol.Schema(
         vol.Optional("rounds"): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=MAX_ROUNDS)
         ),
+        vol.Optional("bot_level"): _bot_level,
+    }
+)
+
+CORRECT_DART_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
+        vol.Required("dart"): vol.All(vol.Coerce(int), vol.Range(min=1, max=3)),
+        vol.Required("segment"): _bed,
+    }
+)
+THROW_DART_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
+        vol.Required("segment"): _bed,
     }
 )
 
@@ -184,10 +221,14 @@ def _coordinator(
 
 
 def _check_players(
-    game: str, names: list[str] | None, players: int, teams: bool = False
+    game: str,
+    names: list[str] | None,
+    players: int,
+    teams: bool = False,
+    bot: bool = False,
 ) -> None:
     """Every player needs a name of their own, Killer two players and teams
-    four players of X01 or a Cricket game."""
+    four players of X01 or a Cricket game; the bot takes a seat of its own."""
     seen: set[str] = set()
     for name in names or []:
         key = name.strip().casefold()
@@ -200,6 +241,12 @@ def _check_players(
         if key:
             seen.add(key)
     count = len(names) if names else players
+    if bot and (game.isdigit() or game in CRICKET_GAMES):
+        if count >= MAX_PLAYERS:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="bot_seat"
+            )
+        count += 1
     if game == "killer" and count < 2:
         raise ServiceValidationError(
             translation_domain=DOMAIN, translation_key="killer_players"
@@ -220,11 +267,14 @@ def async_setup_services(hass: HomeAssistant) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         game: str = call.data["game"]
         names: list[str] | None = call.data.get("players")
+        practice = coordinator.practice
+        level: int = call.data.get("bot_level", practice.bot_level)
         _check_players(
             game,
             names,
-            len(coordinator.practice.players),
+            practice.humans,
             call.data.get("teams") is True,
+            level > 0,
         )
         await coordinator.async_start_game(
             int(game) if game.isdigit() else game,
@@ -239,6 +289,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             start_scores=call.data.get("start_scores"),
             holes=call.data.get("holes"),
             rounds=call.data.get("rounds"),
+            bot_level=call.data.get("bot_level"),
         )
 
     async def delete_player(call: ServiceCall) -> None:
@@ -335,3 +386,27 @@ def async_setup_services(hass: HomeAssistant) -> None:
         next_tournament_match,
         schema=BOARD_SCHEMA,
     )
+
+    async def correct_dart(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        await coordinator.async_correct_dart(call.data["dart"], call.data["segment"])
+
+    async def throw_dart(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        await coordinator.async_throw_dart(call.data["segment"])
+
+    async def next_player(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        await coordinator.async_next_player()
+
+    async def undo_visit(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        await coordinator.async_undo_visit()
+
+    for name, handler, schema in (
+        (SERVICE_CORRECT_DART, correct_dart, CORRECT_DART_SCHEMA),
+        (SERVICE_THROW_DART, throw_dart, THROW_DART_SCHEMA),
+        (SERVICE_NEXT_PLAYER, next_player, BOARD_SCHEMA),
+        (SERVICE_UNDO_VISIT, undo_visit, BOARD_SCHEMA),
+    ):
+        hass.services.async_register(DOMAIN, name, handler, schema=schema)

@@ -6,7 +6,7 @@ Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001,
 
 <img src="images/en/lobby.webp" alt="Animation: on the tablet at the board, New game opens the game screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
-**On this page:** [All games at a glance](#all-games-at-a-glance) · [Start a game](#start-a-game) · [At the board](#at-the-board) · [Matches, legs and sets](#matches-legs-and-sets) · [Match summary](#match-summary) · [Teams](#teams) · [Start scores (handicap)](#start-scores-handicap) · [Bull-off](#bull-off) · [Tournaments](#tournaments) · [X01](#x01) · [Cricket games](#cricket-games) · [Party games](#party-games) · [Training games](#training-games) · [Statistics](#statistics)
+**On this page:** [All games at a glance](#all-games-at-a-glance) · [Start a game](#start-a-game) · [At the board](#at-the-board) · [Corrections and darts entered by hand](#corrections-and-darts-entered-by-hand) · [Matches, legs and sets](#matches-legs-and-sets) · [Match summary](#match-summary) · [Teams](#teams) · [Start scores (handicap)](#start-scores-handicap) · [Bull-off](#bull-off) · [Playing against the bot](#playing-against-the-bot) · [Tournaments](#tournaments) · [X01](#x01) · [Cricket games](#cricket-games) · [Party games](#party-games) · [Training games](#training-games) · [Statistics](#statistics)
 
 ## All games at a glance
 
@@ -56,11 +56,23 @@ To end a game, choose *Off* in *Practice game*, or tap **End game** on the new g
 
 - **A visit ends when you pull the darts.** The practice game books it with the takeout. Darts that are already in the board when a game starts do not count.
 - **Three darts per visit.** A fourth dart before the takeout does not count. Darts the board does not detect, such as bounce-outs, count as not thrown.
-- **Corrections count.** When you correct a dart in Autodarts before the takeout, the game follows the correction.
+- **Corrections count.** When you correct a dart in Autodarts or on the scoreboard before the takeout, the game follows the correction; see [corrections and darts entered by hand](#corrections-and-darts-entered-by-hand).
 - **The turn passes with the takeout,** also after a bust. The live card and the scoreboard outline the player at the board.
 - **What the cards show:** the remaining score and the checkout route, the Cricket chalkboard, the round and the target of a party game or the target of a training game. The board outlines the bed to aim at. [Live card](cards.md#live-card), [scoreboard](scoreboard.md).
 - **Events for your automations:** `bust`, `leg_won`, `match_won`, `turn_changed`, `bull_off_won`, `drill_finished`, `checkout_attempt`, `achievement_unlocked` and the tournament events arrive the moment they happen, for callers and [light shows](automations.md#light-show).
 - **Training sessions keep counting.** The practice game and the [training session](statistics.md#training-sessions) are independent; a dart counts in both.
+
+## Corrections and darts entered by hand
+
+<img src="images/en/correct-dart.webp" alt="Animation: the scoreboard shows T20, S20 and T20 for 140; a tap on the second dart opens the pad, a tap on T and on 20 corrects it, and the visit reads 180" width="760">
+
+A dart the board read wrong, a dart it missed, or the visits of a player without cameras: Home Assistant puts the visit right before it counts.
+
+- **Correct a dart:** tap the dart on the [scoreboard](scoreboard.md#correct-and-enter-darts) and choose the right bed, or use [`autodarts.correct_dart`](entities.md#correct-a-dart-autodartscorrect_dart). The remaining score, a bust or a win, the Cricket marks and the statistics follow at once. The board keeps its own reading; when it corrects the dart itself later, its reading counts again.
+- **Enter a dart:** with *Practice manual entry* on, the scoreboard's keypad or [`autodarts.throw_dart`](entities.md#enter-a-dart-autodartsthrow_dart) adds a dart as if the board had detected it. This works with the detection stopped too, so a player without cameras can play along.
+- **Next player:** ends the visit without pulling the darts; the darts in the board count for nobody until they are pulled. Without darts, the player at the board passes in X01 and the Cricket games.
+- **Undo the last visit:** when a wrong reading is noticed after the takeout, *Undo last visit* on the scoreboard or [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) takes the visit back, also after a won leg: its darts become the current visit again, to correct them, and *Next player* ends it. This works while no dart is in the board and the game has not changed since, but not after a visit that decided a tournament match.
+- **Marked:** darts entered or corrected in Home Assistant carry `manual`, so automations can tell them apart. [The exact rules](how-it-works.md#corrections-and-darts-entered-by-hand).
 
 ## Matches, legs and sets
 
@@ -112,6 +124,20 @@ When an X01 or Cricket match of several players ends, the scoreboard and the liv
 - With *Practice bull-off by distance*, the measured distance also decides between two darts in the same bull bed; darts equally close to 0.1 mm throw again.
 - A dart without a position cannot be measured, so it never beats a measured dart: when the decision needs a distance the board did not report, those players throw again.
 - The bull-off only decides who starts. With three or four players, the others follow in seat order. `bull_off_won` announces the winner, for example for the [practice caller](automations.md#practice-caller).
+
+## Playing against the bot
+
+<img src="images/en/bot-match.webp" alt="Animation: a 301 match against the bot on the scoreboard. Alex throws and pulls the darts, the bot's three darts land one by one, and Alex is at the board again" width="760">
+
+Nobody to play with? X01 and the Cricket games can be played against the bot, a computer player of the strength you choose.
+
+- **Seat the bot:** tap **+ Bot** on the [new game screen](scoreboard.md#choose-the-next-game), set *Practice bot level*, or start a game with `bot_level`. The level is the 3-dart average the bot plays, from 20 for a beginner to 120, better than any professional's average. `0` plays without the bot.
+- **Its seat:** after the players. With the bot, up to three players play, also as the fourth player of two teams.
+- **Its turn:** when your darts are pulled, the bot throws its three darts one by one, with the pause of *Practice bot delay* (2 seconds) before each, and they appear on the cards where they landed. Throw while it is at the board, and it throws the rest of its visit at once.
+- **How it plays:** like a player: at the triple 20 to score, along the checkout route to finish and at a [setup](#x01) where no route exists; in Cricket it closes the numbers and scores while it is behind. Its darts scatter as much as those of a player of its level. [How the bot plays](how-it-works.md#bot).
+- **What counts:** the bot's darts count for nobody's statistics, personal bests or achievements; the result of the match counts in your player profile. Party games, training games and tournaments are played without the bot.
+
+<img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
 
 ## Tournaments
 
@@ -173,6 +199,7 @@ The [entity reference](entities.md#tournaments) lists the tournament's settings,
 - **Bust:** a dart that goes below zero, leaves 1 with double out, or reaches 0 without a double busts the visit. The score returns to the start of the visit. The dart that busts counts as thrown; later darts of the visit do not.
 - **Game shot:** a dart that reaches exactly 0 wins the leg. `leg_won` is announced at once; the leg is booked when you pull the darts, so a correction before that still counts. Darts after the winning dart do not count.
 - **Checkout route:** whenever a score can be finished, the cards show the route for the darts left in the visit, for example `T20 T20 BULL` for 170, and outline the next bed on the board. "No checkout possible" appears only for a score that one visit could finish: up to 170 with double out, up to 180 without. The route follows the professional checkout charts; with *Practice personal checkout routes*, it prefers your strongest doubles. [How the route is chosen](how-it-works.md#practice-game).
+- **Setup:** where the darts left cannot check out, at 169, above 170 or at 100 with one dart, the cards show a setup instead, for example *T20 T20 S17 leaves 32*: darts that leave a good double for the next visit, preferably 32, 40, 36 or 16. The caller says *Leave yourself 32*. [How the setup is chosen](how-it-works.md#setup-hints).
 - **Average:** points scored per three darts of the leg. Darts of a bust visit count, their points do not.
 
 <img src="images/en/card-match.png" alt="Live card during a 501 match of Alex and Sam: Alex at the board with 81 left and the route T19 D12, Sam with 361 left" width="760">

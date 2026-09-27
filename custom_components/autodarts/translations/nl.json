@@ -449,6 +449,9 @@
       },
       "tournament_random_draw": {
         "name": "Toernooi willekeurige loting"
+      },
+      "practice_manual_entry": {
+        "name": "Oefenspel handmatige invoer"
       }
     },
     "select": {
@@ -555,6 +558,12 @@
       },
       "tournament_summary": {
         "name": "Toernooi samenvatting"
+      },
+      "practice_bot_level": {
+        "name": "Oefenspel botniveau"
+      },
+      "practice_bot_delay": {
+        "name": "Oefenspel botpauze"
       }
     },
     "binary_sensor": {
@@ -634,7 +643,8 @@
               "online_tournament_ready": "Online: toernooiwedstrijd klaar",
               "online_match_left": "Online: wedstrijd verlaten",
               "weekly_report": "Weekrapport",
-              "achievement_unlocked": "Prestatie ontgrendeld"
+              "achievement_unlocked": "Prestatie ontgrendeld",
+              "visit_undone": "Beurt ongedaan gemaakt"
             }
           },
           "achievement": {
@@ -754,6 +764,33 @@
     },
     "tournament_match_running": {
       "message": "De toernooiwedstrijd {first} tegen {second} is nog bezig. Speel die eerst uit of stop het toernooi."
+    },
+    "no_dart": {
+      "message": "De huidige beurt heeft geen dart {dart}."
+    },
+    "bot_dart": {
+      "message": "De darts van de bot kun je niet corrigeren."
+    },
+    "manual_entry_off": {
+      "message": "Handmatige invoer staat uit. Zet eerst Oefenspel handmatige invoer aan."
+    },
+    "bot_turn": {
+      "message": "De bot staat aan het bord. Wacht op zijn beurt of beëindig die met Volgende speler."
+    },
+    "visit_full": {
+      "message": "De beurt heeft al drie darts. Geef de beurt door met Volgende speler."
+    },
+    "empty_visit": {
+      "message": "De beurt heeft geen darts om te beëindigen. Alleen in X01 en de Cricket-spellen geef je een beurt zonder darts door."
+    },
+    "undo_unavailable": {
+      "message": "Er is geen beurt om ongedaan te maken. Ongedaan maken neemt de laatste afgeronde beurt terug zolang er geen dart in het bord zit en het spel en de trainingssessie sindsdien niet zijn veranderd."
+    },
+    "invalid_bot_level": {
+      "message": "Het botniveau is 0 (geen bot) of een 3-dart-gemiddelde van 20 tot 120."
+    },
+    "bot_seat": {
+      "message": "Met de bot spelen maximaal drie spelers: de bot neemt de vierde plaats in."
     }
   },
   "issues": {
@@ -859,6 +896,10 @@
         "rounds": {
           "name": "Count-Up-rondes",
           "description": "Aantal rondes Count-Up, 1 tot 20."
+        },
+        "bot_level": {
+          "name": "Botniveau",
+          "description": "Speel tegen de bot in X01 en de Cricket-spellen: het 3-dart-gemiddelde waarop hij speelt, 20 tot 120; bij 0 speel je zonder bot. De bot neemt de plaats na de spelers in."
         }
       }
     },
@@ -1013,6 +1054,58 @@
     "next_tournament_match": {
       "name": "Volgende toernooiwedstrijd",
       "description": "Start de volgende wedstrijd van het toernooi zonder op het einde van de pauze te wachten.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        }
+      }
+    },
+    "correct_dart": {
+      "name": "Dart corrigeren",
+      "description": "Zet een dart van de huidige beurt in een ander vak voor het oefenspel en de trainingssessie, alsof het bord hem daar had gedetecteerd. Het bord houdt zijn eigen detectie.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        },
+        "dart": {
+          "name": "Dart",
+          "description": "De dart van de huidige beurt: 1, 2 of 3."
+        },
+        "segment": {
+          "name": "Vak",
+          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 voor de outer bull, BULL voor de bullseye of MISS."
+        }
+      }
+    },
+    "throw_dart": {
+      "name": "Dart invoeren",
+      "description": "Voegt een dart aan de huidige beurt toe alsof het bord hem had gedetecteerd, gemarkeerd als handmatig ingevoerd. Vereist Oefenspel handmatige invoer.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        },
+        "segment": {
+          "name": "Vak",
+          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 voor de outer bull, BULL voor de bullseye of MISS."
+        }
+      }
+    },
+    "next_player": {
+      "name": "Volgende speler",
+      "description": "Beëindigt de huidige beurt zonder de darts te verwijderen, zodat de volgende speler gooit. Zonder darts slaat de speler aan het bord in X01 en de Cricket-spellen een beurt over.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        }
+      }
+    },
+    "undo_visit": {
+      "name": "Beurt ongedaan maken",
+      "description": "Neemt de laatste afgeronde beurt terug: het spel keert terug naar de stand van daarvoor, en de darts van die beurt worden weer de huidige beurt, zodat je ze kunt corrigeren en de beurt met Volgende speler kunt beëindigen. De beurten van de bot daarna worden ook ongedaan gemaakt.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",

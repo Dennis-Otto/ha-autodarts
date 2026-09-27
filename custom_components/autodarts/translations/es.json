@@ -449,6 +449,9 @@
       },
       "tournament_random_draw": {
         "name": "Sorteo aleatorio del torneo"
+      },
+      "practice_manual_entry": {
+        "name": "Entrada manual de la partida"
       }
     },
     "select": {
@@ -555,6 +558,12 @@
       },
       "tournament_summary": {
         "name": "Resumen del torneo"
+      },
+      "practice_bot_level": {
+        "name": "Nivel del bot de la partida"
+      },
+      "practice_bot_delay": {
+        "name": "Pausa del bot de la partida"
       }
     },
     "binary_sensor": {
@@ -634,7 +643,8 @@
               "online_tournament_ready": "En línea: partido de torneo listo",
               "online_match_left": "En línea: partido abandonado",
               "weekly_report": "Informe semanal",
-              "achievement_unlocked": "Logro desbloqueado"
+              "achievement_unlocked": "Logro desbloqueado",
+              "visit_undone": "Tirada deshecha"
             }
           },
           "achievement": {
@@ -754,6 +764,33 @@
     },
     "tournament_match_running": {
       "message": "El partido del torneo entre {first} y {second} sigue en juego. Juégalo hasta el final o termina el torneo."
+    },
+    "no_dart": {
+      "message": "La tirada actual no tiene dardo {dart}."
+    },
+    "bot_dart": {
+      "message": "Los dardos del bot no se pueden corregir."
+    },
+    "manual_entry_off": {
+      "message": "La entrada manual está desactivada. Activa primero Entrada manual de la partida."
+    },
+    "bot_turn": {
+      "message": "El bot está en la diana. Espera a que termine su tirada o termínala con Siguiente jugador."
+    },
+    "visit_full": {
+      "message": "La tirada ya tiene tres dardos. Pasa el turno con Siguiente jugador."
+    },
+    "empty_visit": {
+      "message": "La tirada no tiene dardos que terminar. Solo en X01 y los juegos de Cricket se puede pasar el turno sin dardos."
+    },
+    "undo_unavailable": {
+      "message": "No hay ninguna tirada que deshacer. Deshacer recupera la última tirada completada mientras no haya ningún dardo en la diana y ni la partida ni la sesión de entrenamiento hayan cambiado desde entonces."
+    },
+    "invalid_bot_level": {
+      "message": "El nivel del bot es 0 (sin bot) o una media de 3 dardos de 20 a 120."
+    },
+    "bot_seat": {
+      "message": "Con el bot juegan hasta tres jugadores: el bot ocupa el cuarto puesto."
     }
   },
   "issues": {
@@ -859,6 +896,10 @@
         "rounds": {
           "name": "Rondas de Count-Up",
           "description": "Rondas de Count-Up, de 1 a 20."
+        },
+        "bot_level": {
+          "name": "Nivel del bot",
+          "description": "Juega contra el bot en X01 y los juegos de Cricket: la media de 3 dardos con la que juega, de 20 a 120; con 0 se juega sin el bot. El bot ocupa el puesto después de los jugadores."
         }
       }
     },
@@ -1013,6 +1054,58 @@
     "next_tournament_match": {
       "name": "Siguiente partido del torneo",
       "description": "Inicia el siguiente partido del torneo sin esperar a que termine la pausa.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        }
+      }
+    },
+    "correct_dart": {
+      "name": "Corregir dardo",
+      "description": "Coloca un dardo de la tirada actual en otro segmento para la partida y la sesión de entrenamiento, como si la diana lo hubiera detectado ahí. La diana conserva su propia lectura.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        },
+        "dart": {
+          "name": "Dardo",
+          "description": "El dardo de la tirada actual: 1, 2 o 3."
+        },
+        "segment": {
+          "name": "Segmento",
+          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 para el bull exterior, BULL para el bullseye o MISS."
+        }
+      }
+    },
+    "throw_dart": {
+      "name": "Introducir dardo",
+      "description": "Añade un dardo a la tirada actual como si la diana lo hubiera detectado, marcado como introducido a mano. Requiere Entrada manual de la partida.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        },
+        "segment": {
+          "name": "Segmento",
+          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 para el bull exterior, BULL para el bullseye o MISS."
+        }
+      }
+    },
+    "next_player": {
+      "name": "Siguiente jugador",
+      "description": "Termina la tirada actual sin retirar los dardos, para que lance el siguiente jugador. Sin dardos, el jugador en la diana pasa turno en X01 y los juegos de Cricket.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        }
+      }
+    },
+    "undo_visit": {
+      "name": "Deshacer tirada",
+      "description": "Recupera la última tirada completada: la partida vuelve a como estaba antes, y los dardos de esa tirada vuelven a ser la tirada actual, para corregirlos y terminar la tirada con Siguiente jugador. También se deshacen las tiradas posteriores del bot.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",

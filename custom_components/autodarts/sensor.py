@@ -45,7 +45,7 @@ from .online import SENSOR_KEY as ONLINE_SENSOR_KEY
 from .online import OnlineBridge
 from .runtime import AutodartsConfigEntry
 from .tournament import STATES as TOURNAMENT_STATES
-from .training import COUNTERS
+from .training import COUNTERS, DART_FLAGS
 
 # Session values that can go down again, unlike the counters.
 TRAINING_MEASUREMENTS = ("average", "highest_visit")
@@ -181,12 +181,21 @@ def _dart(dart: Any) -> dict[str, Any] | None:
     ):
         # 1.0 is the outer edge of the double ring; y points to the 20.
         result["x"], result["y"] = round(coords["x"], 3), round(coords["y"], 3)
+    # Darts corrected or entered by hand, the bot's, and the number of a dart
+    # in the current visit.
+    result.update({flag: True for flag in DART_FLAGS if dart.get(flag) is True})
+    if type(dart.get("dart")) is int:
+        result["dart"] = dart["dart"]
     return result
 
 
 def _darts(data: dict[str, Any]) -> list[dict[str, Any]]:
-    """Valid darts of the current visit; malformed board data is ignored."""
-    throws = _local(data).get("throws")
+    """Valid darts of the current visit; malformed board data is ignored.
+
+    The visit as Home Assistant knows it, with corrections, darts entered by
+    hand and the bot's darts, once the board was followed.
+    """
+    throws = data["throws"] if "throws" in data else _local(data).get("throws")
     return list(filter(None, map(_dart, throws if isinstance(throws, list) else [])))
 
 

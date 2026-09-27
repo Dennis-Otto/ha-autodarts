@@ -569,6 +569,7 @@ class Scenario:
                     "bed": "Triple",
                     "x": 0.012,
                     "y": 0.598,
+                    "dart": 1,
                 },
                 {
                     "segment": "Bull",
@@ -578,6 +579,7 @@ class Scenario:
                     "bed": "Double",
                     "x": 0.004,
                     "y": -0.011,
+                    "dart": 2,
                 },
             ],
             f"Unexpected dart details for the dashboard card: {throws}",
@@ -1273,6 +1275,134 @@ class Scenario:
         leg = (await self.state("practice_remaining"))["attributes"]
         check(leg["double_out"] is True, f"Double out missing in the next leg: {leg}")
 
+    async def action(self, service: str, **data) -> None:
+        await self.api("POST", f"/api/services/autodarts/{service}", json=data)
+
+    async def play_comfort(self) -> None:
+        """A dart corrected, darts entered by hand, an undone visit and the bot."""
+        await self.board("POST", "/control/state", json={"throws": []})
+        await self.expect_states({"num_throws": "0"})
+        await self.start_game(game="301", players=["Alex", "Sam"], legs=1)
+        await self.expect_states({"practice_remaining": "301"})
+        self.fired_board_events()
+        # The board reads a single 20 where a treble 20 is; the correction holds
+        # while the board keeps its reading.
+        await self.board("POST", "/control/state", json={"throws": [T20, S20]})
+        await self.expect_states({"practice_remaining": "221"})
+        await self.action("correct_dart", dart=2, segment="T20")
+        await self.expect_states(
+            {"practice_remaining": "181", "local_visit_score": "120"}
+        )
+        corrected = [
+            item
+            for item in await self.events_until("dart_corrected")
+            if item["event_type"] == "dart_corrected"
+        ]
+        check(
+            (
+                corrected[-1]["segment"],
+                corrected[-1]["previous"],
+                corrected[-1]["manual"],
+            )
+            == ("T20", "S20", True),
+            f"Unexpected correction: {corrected}",
+        )
+        throws = (await self.state("local_visit_score"))["attributes"]["throws"]
+        check(
+            [(dart["segment"], dart.get("corrected"), dart["dart"]) for dart in throws]
+            == [("T20", None, 1), ("T20", True, 2)],
+            f"The visit does not show the correction: {throws}",
+        )
+        await self.board("POST", "/control/state", json={"throws": []})
+        await self.expect_states({"num_throws": "0", "practice_remaining": "301"})
+
+        # Sam plays without cameras: two darts entered by hand, then the next player.
+        await self.service("switch", "turn_on", "practice_manual_entry")
+        await self.expect_states({"practice_manual_entry": "on"})
+        self.fired_board_events()
+        darts = int((await self.state("training_darts"))["state"])
+        for segment in ("T20", "d20"):
+            await self.action("throw_dart", segment=segment)
+        await self.expect_states({"practice_remaining": "201"})
+        await self.action("next_player")
+        fired = await self.events_until("turn_changed")
+        entered = [
+            item
+            for item in fired
+            if item["event_type"] in ("dart_detected", "visit_completed")
+        ]
+        check(
+            [(item["event_type"], item.get("manual")) for item in entered]
+            == [
+                ("dart_detected", True),
+                ("dart_detected", True),
+                ("visit_completed", True),
+            ],
+            f"Darts entered by hand are not marked: {entered}",
+        )
+        await self.expect_states({"practice_remaining": "181"})
+        check(
+            int((await self.state("training_darts"))["state"]) == darts + 2,
+            "Darts entered by hand do not count for the training",
+        )
+        # Sam's visit comes back, and is ended again.
+        attributes = (await self.state("practice_remaining"))["attributes"]
+        check(attributes["undo"] is True, f"No undo offered: {attributes}")
+        await self.action("undo_visit")
+        undone = [
+            item
+            for item in await self.events_until("visit_undone")
+            if item["event_type"] == "visit_undone"
+        ]
+        check(
+            (undone[-1]["score"], undone[-1]["name"]) == (100, "Sam"),
+            f"Unexpected undo: {undone}",
+        )
+        await self.expect_states({"practice_remaining": "201"})
+        await self.action("next_player")
+        await self.expect_states({"practice_remaining": "181"})
+        await self.service("switch", "turn_off", "practice_manual_entry")
+
+        # A match against the bot: it throws half a second after each dart.
+        await self.service("number", "set_value", "practice_bot_delay", value=0.5)
+        await self.start_game(game="301", players=["Alex"], bot_level=120)
+        await self.expect_states(
+            {"practice_remaining": "301", "practice_bot_level": "120"}
+        )
+        darts = int((await self.state("training_darts"))["state"])
+        self.fired_board_events()
+        await self.visit(T20, T20, T20)
+
+        async def bot_visit():
+            fired.extend(self.fired_board_events())
+            return any(
+                item["event_type"] == "visit_completed" and item.get("bot")
+                for item in fired
+            )
+
+        fired = []
+        await wait_for(bot_visit, "the bot's visit")
+        bot = [
+            item
+            for item in fired
+            if item["event_type"] == "dart_detected" and item.get("bot")
+        ]
+        check(
+            len(bot) == 3 and all(item["name"] is None for item in bot),
+            f"Unexpected darts of the bot: {bot}",
+        )
+        scores = (await self.state("practice_remaining"))["attributes"]["scores"]
+        check(
+            scores[1].get("bot") is True and scores[1]["remaining"] < 301,
+            f"The bot did not score: {scores}",
+        )
+        check(
+            int((await self.state("training_darts"))["state"]) == darts + 3,
+            "The bot's darts count for the training",
+        )
+        await self.service("number", "set_value", "practice_bot_level", value=0)
+        await self.expect_states({"practice_bot_level": "0"})
+
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
         version = json.loads(MANIFEST.read_text())["version"]
@@ -1571,6 +1701,7 @@ async def main() -> None:
         await scenario.games()
         await scenario.achievements()
         await scenario.match_summary()
+        await scenario.play_comfort()
         await scenario.card()
         await scenario.people()
         await scenario.gallery()
@@ -1588,7 +1719,8 @@ async def main() -> None:
         "frames, a restart, the online bridge, weekly report, training calendar, "
         "exports, Golf, Tactics and a team match with start scores, an achievement "
         "with dart positions, a match "
-        "summary, double out from the next leg, dashboard card, players linked to "
+        "summary, double out from the next leg, a corrected dart, darts entered by "
+        "hand with an undone visit, a match against the bot, dashboard card, players linked to "
         "persons, the highlight gallery in the media browser, a round robin "
         "tournament, private diagnostics, clean logs and removal."
     )

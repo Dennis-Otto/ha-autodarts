@@ -449,6 +449,9 @@
       },
       "tournament_random_draw": {
         "name": "Tournament random draw"
+      },
+      "practice_manual_entry": {
+        "name": "Practice manual entry"
       }
     },
     "select": {
@@ -555,6 +558,12 @@
       },
       "tournament_summary": {
         "name": "Tournament summary"
+      },
+      "practice_bot_level": {
+        "name": "Practice bot level"
+      },
+      "practice_bot_delay": {
+        "name": "Practice bot delay"
       }
     },
     "binary_sensor": {
@@ -634,7 +643,8 @@
               "online_tournament_ready": "Online: tournament match ready",
               "online_match_left": "Online: match left",
               "weekly_report": "Weekly report",
-              "achievement_unlocked": "Achievement unlocked"
+              "achievement_unlocked": "Achievement unlocked",
+              "visit_undone": "Visit undone"
             }
           },
           "achievement": {
@@ -754,6 +764,33 @@
     },
     "tournament_match_running": {
       "message": "The tournament match of {first} against {second} is still being played. Play it to the end, or stop the tournament."
+    },
+    "no_dart": {
+      "message": "The current visit has no dart {dart}."
+    },
+    "bot_dart": {
+      "message": "The darts of the bot cannot be corrected."
+    },
+    "manual_entry_off": {
+      "message": "Manual entry is off. Switch on Practice manual entry first."
+    },
+    "bot_turn": {
+      "message": "The bot is at the board. Wait for its visit, or end it with Next player."
+    },
+    "visit_full": {
+      "message": "The visit already has three darts. Pass the turn with Next player."
+    },
+    "empty_visit": {
+      "message": "The visit has no darts to end. Only X01 and the Cricket games pass a turn without darts."
+    },
+    "undo_unavailable": {
+      "message": "There is no visit to undo. Undo takes back the last completed visit while no dart is on the board and neither the game nor the training session changed since."
+    },
+    "invalid_bot_level": {
+      "message": "The bot level is 0, for no bot, or a 3-dart average of 20 to 120."
+    },
+    "bot_seat": {
+      "message": "With the bot, up to three players play: the bot takes the fourth seat."
     }
   },
   "issues": {
@@ -859,6 +896,10 @@
         "rounds": {
           "name": "Count-Up rounds",
           "description": "Rounds of Count-Up, 1 to 20."
+        },
+        "bot_level": {
+          "name": "Bot level",
+          "description": "Play against the bot in X01 and the Cricket games: the 3-dart average it plays, 20 to 120; 0 plays without the bot. The bot takes the seat after the players."
         }
       }
     },
@@ -1013,6 +1054,58 @@
     "next_tournament_match": {
       "name": "Next tournament match",
       "description": "Starts the next match of the tournament without waiting for the pause to end.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "The Autodarts board. Needed only with more than one board."
+        }
+      }
+    },
+    "correct_dart": {
+      "name": "Correct dart",
+      "description": "Puts a dart of the current visit into another bed for the practice game and the training session, as if the board had detected it there. The board keeps its own reading.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "The Autodarts board. Needed only with more than one board."
+        },
+        "dart": {
+          "name": "Dart",
+          "description": "The dart of the current visit: 1, 2 or 3."
+        },
+        "segment": {
+          "name": "Bed",
+          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye, or MISS."
+        }
+      }
+    },
+    "throw_dart": {
+      "name": "Enter dart",
+      "description": "Adds a dart to the current visit as if the board had detected it, marked as entered by hand. Needs Practice manual entry.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "The Autodarts board. Needed only with more than one board."
+        },
+        "segment": {
+          "name": "Bed",
+          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye, or MISS."
+        }
+      }
+    },
+    "next_player": {
+      "name": "Next player",
+      "description": "Ends the current visit without pulling the darts, so the next player throws. Without darts, the player at the board passes in X01 and the Cricket games.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "The Autodarts board. Needed only with more than one board."
+        }
+      }
+    },
+    "undo_visit": {
+      "name": "Undo visit",
+      "description": "Takes the last completed visit back: the game returns to where it was before, and the darts of the visit become the current visit again, to correct them and end the visit with Next player. The visits of the bot after it are undone, too.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

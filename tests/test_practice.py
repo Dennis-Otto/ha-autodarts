@@ -139,6 +139,7 @@ def test_darts_already_thrown_do_not_count_for_a_new_leg():
         "double_in": False,
         "bull_off": None,
         "teams": None,
+        "bot": None,
     }
     game.play(501)
     game.track([dart("T20"), dart("T19")])
@@ -226,7 +227,7 @@ LEA = {"game": 301, "player": 2, "name": "Lea", "players": 2}
 def test_players_take_turns_and_a_bust_passes_the_turn():
     game = match(2, p1="Dennis", p2=" Lea ")
     assert throw(game, "T20", "T20", "T20") == [
-        ("turn_changed", {**LEA, "remaining": 301, "checkout": None})
+        ("turn_changed", {**LEA, "remaining": 301, "checkout": None, "setup": None})
     ]
     throw(game, "S20")
     scores = game.snapshot()["scores"]
@@ -238,7 +239,7 @@ def test_players_take_turns_and_a_bust_passes_the_turn():
     # 121 - 120 leaves one: a bust, and the turn passes anyway.
     assert throw(game, "T20", "T20") == [
         ("bust", {**DENNIS, "remaining": 121}),
-        ("turn_changed", {**LEA, "remaining": 281, "checkout": None}),
+        ("turn_changed", {**LEA, "remaining": 281, "checkout": None, "setup": None}),
     ]
     assert game.snapshot()["player"] == 2
 
@@ -470,11 +471,17 @@ def test_playing_alone_the_next_visit_is_announced_with_its_checkout():
     game = playing(301, 141)
     game.track([dart("T20")])
     assert game.finish_visit() == [
-        ("turn_changed", {**PLAYER_1, "remaining": 81, "checkout": "T19 D12"})
+        (
+            "turn_changed",
+            {**PLAYER_1, "remaining": 81, "checkout": "T19 D12", "setup": None},
+        )
     ]
     game.players[0].remaining = 40
     game.track([dart("D20")])
     # A won leg starts the next one.
     assert game.finish_visit() == [
-        ("turn_changed", {**PLAYER_1, "remaining": 301, "checkout": None})
+        (
+            "turn_changed",
+            {**PLAYER_1, "remaining": 301, "checkout": None, "setup": None},
+        )
     ]

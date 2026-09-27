@@ -8,12 +8,15 @@ a single towards one of the first seven doubles below (with two darts left,
 on 20 or 19 also any double whose single still leaves a one-dart finish);
 then any setup towards one of the first five; fewer trebles; bigger trebles;
 and the finishing double in the order below.
+
+When the darts left cannot finish, a setup leaves the next visit a finish of
+one or two darts, a preferred double first; see `setup`.
 """
 
 from __future__ import annotations
 
 from functools import lru_cache
-from itertools import product
+from itertools import combinations_with_replacement, product
 from typing import NamedTuple
 
 
@@ -34,8 +37,9 @@ DOUBLES = [Bed(f"D{number}", 2 * number, 2) for number in range(1, 21)] + [
 ]
 TREBLES = [Bed(f"T{number}", 3 * number, 3) for number in range(1, 21)]
 BEDS = [*SINGLES, *DOUBLES, *TREBLES]
-# Every score a double finishes, with that double.
+# Every score a double finishes, with that double, and the other way round.
 FINISHING = {bed.score: bed for bed in DOUBLES}
+FINISHING_SCORE = {bed.name: bed.score for bed in DOUBLES}
 
 # Doubles that halve into further doubles come first, the bull last.
 FINISH_ORDER = (
@@ -159,3 +163,97 @@ def checkout(
             best = min(routes, key=_single_out_rank)
         return tuple(bed.name for bed in best)
     return ()
+
+
+# Scores to leave for the next visit, best first: 32 halves down to D1 when a
+# dart lands in the single, 40 twice, 36 and 16 as well. The other doubles
+# follow in the order routes finish on them, the bull last.
+PREFERRED_LEAVES = (32, 40, 36, 16)
+LEAVE_ORDER = (
+    *PREFERRED_LEAVES,
+    *(
+        score
+        for score in (FINISHING_SCORE[name] for name in FINISH_ORDER)
+        if score not in PREFERRED_LEAVES
+    ),
+)
+# Setup darts go at singles, trebles and the outer bull, never at a double.
+SETUP_BEDS = [*SINGLES, *TREBLES]
+
+
+class Setup(NamedTuple):
+    """The darts that set up a finish, and the score they leave."""
+
+    route: tuple[str, ...]
+    leave: int
+
+
+def _hard(bed: Bed) -> bool:
+    """Small beds a setup rather avoids: the outer bull and the small trebles."""
+    return bed.score == 25 or (bed.multiplier == 3 and bed.number not in BIG_TREBLES)
+
+
+# Setup beds as the search needs them: score, small or not, treble or not;
+# trebles first and bigger beds first, the order a setup is thrown in.
+_SETUP = sorted(
+    ((bed.score, _hard(bed), bed.multiplier == 3, bed.name) for bed in SETUP_BEDS),
+    key=lambda bed: (not bed[2], -bed[0]),
+)
+
+
+@lru_cache(maxsize=16)
+def _leave_ranks(preferred: tuple[str, ...]) -> dict[int, tuple[int, int]]:
+    """How good every score is to start the next visit with.
+
+    Tier 0 are the preferred doubles, the player's strongest and then 32, 40,
+    36 and 16, in that order; tier 1 the other doubles. Tier 2 are the finishes
+    of two darts and the bull, the smaller the better. Scores that need three
+    darts are missing.
+    """
+    first = tuple(
+        FINISHING_SCORE[name] for name in preferred if name in FINISHING_SCORE
+    )
+    order = (*first, *(score for score in LEAVE_ORDER if score not in first))
+    ranks: dict[int, tuple[int, int]] = {}
+    for leave in range(2, HIGHEST[True]):
+        if leave in FINISHING and leave != FINISHING_SCORE["BULL"]:
+            tier = 0 if leave in (*first, *PREFERRED_LEAVES) else 1
+            ranks[leave] = (tier, order.index(leave))
+        elif checkout(leave, 2):
+            ranks[leave] = (2, leave)
+    return ranks
+
+
+@lru_cache(maxsize=1024)
+def setup(
+    remaining: int, darts: int = 3, preferred: tuple[str, ...] = ()
+) -> Setup | None:
+    """Where to aim when the darts left cannot check out with double out.
+
+    Above 170, at a score without a route such as 169, or with too few darts
+    left, the darts in hand set up the next visit. They leave the best score to
+    finish from (see `_leave_ranks`) with as few small beds as possible, then
+    the better leave, then fewer and bigger trebles. The trebles come first,
+    the single that sets up the double last. Above 170 with three darts, only
+    a double is worth setting up; below, a finish of two darts, too. None when
+    a checkout exists, or when nothing worth setting up can be left.
+    """
+    if remaining < 2 or not 0 < darts <= 3 or checkout(remaining, darts):
+        return None
+    ranks = _leave_ranks(preferred)
+    tiers = 1 if darts == 3 and remaining > HIGHEST[True] else 2
+    best: tuple[tuple[object, ...], tuple[str, ...], int] | None = None
+    for beds in combinations_with_replacement(_SETUP, darts):
+        leave = remaining - sum(bed[0] for bed in beds)
+        if (rank := ranks.get(leave)) is None or rank[0] > tiers:
+            continue
+        key = (
+            rank[0],
+            sum(bed[1] for bed in beds),
+            rank[1],
+            sum(bed[2] for bed in beds),
+            tuple(-bed[0] for bed in beds),
+        )
+        if best is None or key < best[0]:
+            best = (key, tuple(bed[3] for bed in beds), leave)
+    return None if best is None else Setup(best[1], best[2])

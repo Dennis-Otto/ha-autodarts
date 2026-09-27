@@ -33,7 +33,7 @@ A training session counts the darts you throw, whatever you play: an online matc
 
 - **Start:** with *Start sessions automatically* on (the default), the first dart starts a session. You can also start one on purpose with *Start session* on the training card or the *Training session* switch.
 - **End:** *End session* on the card, or automatically after the pause set in *Session idle timeout*. `0`, the default, keeps a session running until you end it. *New session* ends the running session and starts the next one.
-- **What counts:** darts, points, 3-dart average, visits, the highest visit, 100+, 140+ and 180 visits, triples, doubles, bulls, misses and the hits of every bed. Corrections of the board revise the totals; darts that were in the board when Home Assistant started do not count.
+- **What counts:** darts, points, 3-dart average, visits, the highest visit, 100+, 140+ and 180 visits, triples, doubles, bulls, misses and the hits of every bed. Corrections of the board or on the scoreboard revise the totals, and [darts entered by hand](games.md#corrections-and-darts-entered-by-hand) count like detected ones; the darts of the [bot](games.md#playing-against-the-bot) and darts that were in the board when Home Assistant started do not count.
 - **History:** the last 20 sessions stay with their totals; the training card lists the last five. *Last session average* keeps the 3-dart average of every finished session, so its history is your progress from session to session.
 - **Automations:** `session_started` and `session_ended` start the [training session routine](automations.md#training-session-routine), and the [training report](automations.md#training-report) sends your day.
 

@@ -27,6 +27,9 @@
         <li>Partyspiele: Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up</li>
         <li>Matches mit bis zu vier Spielern, Legs und Sätzen, zwei Teams zu zwei, Startpunkten als Handicap und Ausbullen, und eine Zusammenfassung jedes Matches</li>
         <li>Turniere mit drei bis acht Spielern: jeder gegen jeden mit Tabelle oder K.-o.-System mit Turnierbaum</li>
+        <li>Ein Bot mit Stärke 20 bis 120 als Gegner bei X01 und Cricket</li>
+        <li>Ein Tipp korrigiert einen falsch erkannten Dart; ein Tastenfeld gibt Darts von Hand ein, und die letzte Aufnahme lässt sich zurücknehmen</li>
+        <li>Stellwürfe, wo kein Checkout möglich ist, etwa T20 T20 S17 für Rest 32</li>
       </ul>
       <p><a href="spiele.md">Spiele und Regeln →</a></p>
     </td>

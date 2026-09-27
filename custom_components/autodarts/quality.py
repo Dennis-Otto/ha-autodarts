@@ -32,6 +32,12 @@ class DetectionQuality:
         index = attributes.get("dart_index")
         if type(index) is not int:
             return
+        if kind == "dart_detected" and (
+            attributes.get("manual") or attributes.get("bot")
+        ):
+            # Darts entered by hand or thrown by the bot were never detected; a
+            # correction by hand of a detected dart counts like one on the board.
+            return
         if kind == "dart_detected":
             self._darts.append(False)
             self._count += 1

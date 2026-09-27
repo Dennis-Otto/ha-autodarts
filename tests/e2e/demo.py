@@ -183,6 +183,20 @@ def dashboard() -> dict:
                     }
                 ],
             },
+            # The screen with the keypad for darts entered by hand.
+            {
+                "title": "Keypad",
+                "path": "keypad",
+                "panel": True,
+                "cards": [
+                    {
+                        "type": "custom:autodarts-scoreboard-card",
+                        "full_height": True,
+                        "idle": False,
+                        "keypad": True,
+                    }
+                ],
+            },
             # A tournament on that screen.
             {
                 "title": "Tournament",

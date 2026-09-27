@@ -176,6 +176,7 @@ def test_a_golf_leg_in_the_practice_game_uses_the_dart_positions():
                 "players": 2,
                 "remaining": None,
                 "checkout": None,
+                "setup": None,
                 "points": 0,
                 "target": "1",
             },
