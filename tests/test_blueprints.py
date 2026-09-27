@@ -202,6 +202,15 @@ def test_documents_import_every_blueprint(document):
     assert imported == {path.name for path in PATHS}
 
 
+def photo_name(call) -> str:
+    """The file a snapshot saves, without the folder and the moment it was taken."""
+    folder, _, name = str(call.data["filename"]).rpartition("/")
+    assert folder == "/media/autodarts/highlights", folder
+    assert call.data["entity_id"] == ["camera.autodarts_board_camera_1"]
+    assert re.match(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_", name), name
+    return name[20:]
+
+
 PHOTO = {
     "board_events": EVENTS,
     "camera": "camera.autodarts_board_camera_1",
@@ -251,6 +260,7 @@ async def test_blueprints_follow_the_real_board_events(
     celebrate = async_mock_service(hass, "test", "celebrate")
     light = async_mock_service(hass, "test", "light")
     photos = async_mock_service(hass, "test", "photo")
+    snapshots = async_mock_service(hass, "camera", "snapshot")
     switch_on = async_mock_service(hass, "switch", "turn_on")
     reports = async_mock_service(hass, "test", "report")
     voice = {**VOICE, "board_events": events}
@@ -381,6 +391,12 @@ async def test_blueprints_follow_the_real_board_events(
     assert [call.data["message"] for call in reports] == [
         "12 darts, 1 session. 3-dart average 123.0. Best visit 180, 1 × 180. "
         "Checkout rate 100.0 %. 1 day in a row. 2 new personal bests."
+    ]
+    # The gallery names each photo by the time, the player at the board and the score.
+    assert [photo_name(call) for call in snapshots] == [
+        "Dennis_140.jpg",
+        "Lea_checkout-101.jpg",
+        "180.jpg",
     ]
 
     # Whatever a blueprint reads is in the events it listens to.
@@ -1065,10 +1081,11 @@ async def test_training_session_prepares_the_board_despite_a_failing_action(hass
 
 async def test_highlight_photo_for_a_180_and_a_checkout(hass):
     photos = async_mock_service(hass, "test", "photo")
+    snapshots = async_mock_service(hass, "camera", "snapshot")
     hass.states.async_set(EVENTS, "unknown")
     await automate(hass, "highlight_photo", PHOTO)
     fire(hass, "visit_thrown", score=140, darts=3)
-    fire(hass, "visit_thrown", score=180, darts=3)
+    fire(hass, "visit_thrown", score=180, darts=3, name="Alex/Bee_2")
     # The photo waits a moment for a leg won by the same dart.
     await hass.async_block_till_done()
     assert [call.data for call in photos] == [
@@ -1084,21 +1101,29 @@ async def test_highlight_photo_for_a_180_and_a_checkout(hass):
     fire(hass, "leg_won", game="cricket", players=2, player=1, name="Lea", mpr=2.4)
     await hass.async_block_till_done()
     assert len(photos) == 2
+    # Characters a file name cannot have, and the separator, leave the player's name.
+    assert [photo_name(call) for call in snapshots] == [
+        "Alex Bee 2_180.jpg",
+        "Sam_checkout-121.jpg",
+    ]
 
 
 async def test_highlight_photo_of_a_checkout_by_the_third_dart(hass):
     """The visit and the leg arrive together; the leg gets one photo."""
     photos = async_mock_service(hass, "test", "photo")
+    snapshots = async_mock_service(hass, "camera", "snapshot")
     hass.states.async_set(EVENTS, "unknown")
     await automate(hass, "highlight_photo", {**PHOTO, "minimum_score": 100})
     fire(hass, "visit_thrown", score=170, darts=3)
     fire(hass, "leg_won", game=501, players=1, player=1, name=None, checkout=170)
     await hass.async_block_till_done()
     assert [call.data["message"] for call in photos] == ["Checkout 170!"]
+    assert [photo_name(call) for call in snapshots] == ["checkout-170.jpg"]
 
 
 async def test_highlight_photo_can_skip_checkouts_and_lower_the_score(hass):
     photos = async_mock_service(hass, "test", "photo")
+    async_mock_service(hass, "camera", "snapshot")
     hass.states.async_set(EVENTS, "unknown")
     # Saved before the visit came from the board events: the old input is ignored.
     await automate(
@@ -1116,6 +1141,63 @@ async def test_highlight_photo_can_skip_checkouts_and_lower_the_score(hass):
     fire(hass, "leg_won", game=501, players=1, player=1, name=None, checkout=40)
     await hass.async_block_till_done()
     assert [call.data["message"] for call in photos] == ["140!"]
+
+
+async def test_highlight_photo_gallery_folder_and_saving_can_change(hass):
+    photos = async_mock_service(hass, "test", "photo")
+    snapshots = async_mock_service(hass, "camera", "snapshot")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            (
+                "highlight_photo",
+                {
+                    **PHOTO,
+                    "gallery_folder": " /config/media/darts/ ",
+                    "checkouts": False,
+                },
+            ),
+            # Only the gallery, without actions of its own.
+            (
+                "highlight_photo",
+                {
+                    "board_events": EVENTS,
+                    "camera": "camera.autodarts_board_camera_2",
+                    "minimum_score": 100,
+                },
+            ),
+            ("highlight_photo", {**PHOTO, "save_photo": False, "minimum_score": 120}),
+        ],
+    )
+    fire(hass, "visit_thrown", score=180, darts=3, name="Lea")
+    await hass.async_block_till_done()
+    folders = sorted(
+        (str(call.data["filename"]).rsplit("/", 1)[0], call.data["entity_id"])
+        for call in snapshots
+    )
+    assert folders == [
+        ("/config/media/darts", ["camera.autodarts_board_camera_1"]),
+        ("/media/autodarts/highlights", ["camera.autodarts_board_camera_2"]),
+    ]
+    assert all(
+        str(call.data["filename"]).endswith("_Lea_180.jpg") for call in snapshots
+    )
+    assert len(photos) == 2
+
+
+async def test_a_photo_that_cannot_be_saved_is_still_sent(hass):
+    photos = async_mock_service(hass, "test", "photo")
+
+    async def refuse(call) -> None:
+        raise HomeAssistantError("Cannot write, no access to path")
+
+    hass.services.async_register("camera", "snapshot", refuse)
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "highlight_photo", PHOTO)
+    fire(hass, "visit_thrown", score=180, darts=3)
+    await hass.async_block_till_done()
+    assert [call.data["message"] for call in photos] == ["180!"]
 
 
 # -- light show ------------------------------------------------------------------------

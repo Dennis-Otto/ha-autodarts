@@ -1,16 +1,18 @@
 blueprint:
   name: "Autodarts: highlight photo"
   description: >-
-    Sends a photo of the board after a big visit or a checkout of the practice
+    Takes a photo of the board after a big visit or a checkout of the practice
     game, from one of the board cameras while the darts are still in the board.
     A visit counts when its third dart lands. When the same dart also wins a
     leg, you get one photo with the checkout message.
 
 
-    Your actions can use `image` (the camera picture, for example
-    `data: {image: "{{ image }}"}` in a notification of the Home Assistant
-    app), `message`, `score`, `checkout` and `who`. Turn on the camera entity
-    first; camera entities are disabled by default.
+    The photo is saved to the highlight gallery, which the media browser shows
+    under Autodarts, and your actions can send it on: they can use `image` (the
+    camera picture, for example `data: {image: "{{ image }}"}` in a
+    notification of the Home Assistant app), `message`, `score`, `checkout`,
+    `who` and `photo` (the saved file). Turn on the camera entity first;
+    camera entities are disabled by default.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/highlight_photo.yaml
@@ -58,6 +60,30 @@ blueprint:
           default: true
           selector:
             boolean: {}
+    gallery:
+      name: Gallery
+      icon: mdi:image-multiple
+      input:
+        save_photo:
+          name: Save to the gallery
+          description: >-
+            Saves every photo as a file in the folder below, named by the time,
+            the player and the score, for example
+            2026-09-26_21-05-33_Alex_180.jpg.
+          default: true
+          selector:
+            boolean: {}
+        gallery_folder:
+          name: Folder
+          description: >-
+            The highlight gallery of the media browser shows the folder
+            autodarts/highlights of your media folder: /media on Home Assistant
+            OS and in a container. Other installations use the media folder in
+            the configuration folder, for example
+            /config/media/autodarts/highlights.
+          default: /media/autodarts/highlights
+          selector:
+            text: {}
     photo:
       name: Photo
       icon: mdi:cellphone-message
@@ -66,7 +92,9 @@ blueprint:
           name: Actions
           description: >-
             For example a notification with `image: "{{ image }}"` and
-            `message: "{{ message }}"`.
+            `message: "{{ message }}"`. Optional when the photo goes to the
+            gallery.
+          default: []
           selector:
             action: {}
         score_message:
@@ -111,8 +139,18 @@ variables:
   score: "{{ trigger.to_state.attributes.get('score') | int(0) if trigger.id == 'visit' else 0 }}"
   checkout: >-
     {{ trigger.to_state.attributes.get('checkout') | int(0) if trigger.id == 'checkout' else 0 }}
-  who: >-
-    {{ (trigger.to_state.attributes.get('name') or '') if trigger.id == 'checkout' else '' }}
+  # The player at the board: the winner of a leg, or who threw the visit.
+  who: "{{ trigger.to_state.attributes.get('name') or '' }}"
+  save_photo: !input save_photo
+  gallery_folder: !input gallery_folder
+  # Characters that file names do not allow, and the separator _, leave the name.
+  photo_who: >-
+    {{ who | regex_replace('[\\\\/:*?"<>|_\x00-\x1f]+', ' ') | trim }}
+  # 2026-09-26_21-05-33_Alex_180.jpg or 2026-09-26_21-07-10_Alex_checkout-121.jpg
+  photo: >-
+    {{ gallery_folder | trim | regex_replace('/+$', '') }}/{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}
+    {{- '_' ~ photo_who if photo_who else '' }}
+    {{- '_checkout-' ~ checkout if trigger.id == 'checkout' else '_' ~ score }}.jpg
   score_text: !input score_message
   checkout_text: !input checkout_message
   message: "{{ checkout_text if trigger.id == 'checkout' else score_text }}"
@@ -126,4 +164,14 @@ conditions:
 actions:
   - delay:
       milliseconds: 500
+  - alias: Save the photo to the gallery
+    if: "{{ save_photo }}"
+    then:
+      # A folder Home Assistant may not write to must not stop the actions.
+      - action: camera.snapshot
+        continue_on_error: true
+        target:
+          entity_id: !input camera
+        data:
+          filename: "{{ photo }}"
   - sequence: !input photo_actions
