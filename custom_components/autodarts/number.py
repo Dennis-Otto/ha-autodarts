@@ -1,6 +1,7 @@
 """The pause that ends a session, the daily goal and the practice match format.
 
-Also the start scores of the players and the rounds of Count-Up.
+Also the start scores of the players, the rounds of Count-Up and the pause
+between tournament matches.
 """
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
@@ -16,6 +17,7 @@ from .party import MAX_ROUNDS
 from .practice import MAX_LEGS, MAX_PLAYERS, MAX_SETS, MAX_START, valid_start
 from .records import DAILY_GOAL_MAX
 from .runtime import AutodartsConfigEntry
+from .tournament import MAX_PAUSE
 from .training import IDLE_MINUTES_MAX
 
 PARALLEL_UPDATES = 0
@@ -47,6 +49,7 @@ async def async_setup_entry(
                     for index in range(MAX_PLAYERS)
                 ),
                 AutodartsCountUpRounds(coordinator),
+                AutodartsTournamentPause(coordinator),
             ]
         )
 
@@ -193,3 +196,29 @@ class AutodartsCountUpRounds(AutodartsLocalEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_party_rounds(count_up_rounds=int(value))
+
+
+class AutodartsTournamentPause(AutodartsLocalEntity, NumberEntity):
+    """Seconds between two tournament matches; 0 waits for the next one to be started."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_device_class = NumberDeviceClass.DURATION
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_native_min_value = 0
+    _attr_native_max_value = MAX_PAUSE
+    _attr_native_step = 1
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "tournament_pause")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.tournament.setup.pause
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.async_set_tournament(pause=int(value))

@@ -56,6 +56,7 @@ MOMENTS = (
     "daily_goal",
     "bull_off",
     "achievement",
+    "tournament",
 )
 # Consecutive events always get distinct timestamps, even with a frozen clock.
 TICKS = itertools.count(1)
@@ -418,6 +419,27 @@ async def test_blueprints_follow_the_real_board_events(
         "180.jpg",
         "Dennis_checkout-101.jpg",
     ]
+
+    # A round robin of three at 101, everybody winning once: the order of the
+    # draw makes Dennis the winner, and the light show plays the tournament.
+    with patch.object(coordinator.client, "get_state", side_effect=unchanged_board):
+        await coordinator.async_start_tournament(
+            players=["Dennis", "Lea", "Kim"],
+            game="101",
+            legs=1,
+            sets=1,
+            pause=0,
+            rules={"bull_off": False},
+        )
+        for _ in range(3):
+            await visit(hass, coordinator, T20, S1, D20)
+            if coordinator.tournament.waiting:
+                await coordinator.async_next_tournament_match()
+    await hass.async_block_till_done()
+    assert (light[-2].data["moment"], light[-1].data) == (
+        "match",
+        {"moment": "tournament", "who": "Dennis"},
+    )
 
     # Whatever a blueprint reads is in the events it listens to.
     for path in PATHS:
@@ -1307,6 +1329,9 @@ async def test_light_show_moments(hass):
                 {"player": 1, "name": "Dennis", "achievement": "maximum", "tier": 1},
             ),
             ("turn_changed", {**x01, "player": 2, "name": None}),
+            # The tournament's winner after the final.
+            ("tournament_match_finished", {"winner": "Lea", "loser": "Dennis"}),
+            ("tournament_finished", {"winner": "Lea", "runner_up": "Dennis"}),
         ],
     )
     assert [
@@ -1331,6 +1356,7 @@ async def test_light_show_moments(hass):
         ("daily_goal", "", 0, 0),
         ("bull_off", "Player 2", 0, 0),
         ("achievement", "Dennis", 0, 0),
+        ("tournament", "Lea", 0, 0),
     ]
 
 

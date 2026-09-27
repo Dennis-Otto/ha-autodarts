@@ -176,3 +176,118 @@ unlink_player:
       example: "Dennis"
       selector:
         text:
+
+start_tournament:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: autodarts
+    players:
+      required: false
+      example: '["Dennis", "Lea", "Max", "Kim"]'
+      selector:
+        text:
+          multiple: true
+    start_scores:
+      required: false
+      example: "[501, 501, 301]"
+      selector:
+        text:
+          type: number
+          multiple: true
+    format:
+      required: false
+      example: round_robin
+      selector:
+        select:
+          translation_key: tournament_format
+          options:
+            - round_robin
+            - knockout
+    game:
+      required: false
+      example: "501"
+      selector:
+        select:
+          translation_key: game
+          options:
+            - "101"
+            - "301"
+            - "501"
+            - "701"
+            - "901"
+            - "1001"
+            - cricket
+            - cut_throat
+            - tactics
+    legs:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 11
+          mode: box
+    sets:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 7
+          mode: box
+    double_out:
+      required: false
+      selector:
+        boolean: {}
+    double_in:
+      required: false
+      selector:
+        boolean: {}
+    bull_off:
+      required: false
+      selector:
+        boolean: {}
+    bull_off_distance:
+      required: false
+      selector:
+        boolean: {}
+    third_place:
+      required: false
+      selector:
+        boolean: {}
+    random_draw:
+      required: false
+      selector:
+        boolean: {}
+    seed:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 999999
+          mode: box
+    pause:
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 600
+          mode: box
+          unit_of_measurement: s
+
+stop_tournament:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: autodarts
+
+next_tournament_match:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: autodarts

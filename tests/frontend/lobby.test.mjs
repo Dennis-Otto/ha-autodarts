@@ -146,6 +146,10 @@ test("the choice starts from what the board has set, with every name once", () =
     double_in: false,
     bull_off: false,
     bull_off_distance: false,
+    tournament: false,
+    format: "round_robin",
+    third_place: false,
+    random_draw: false,
     draft: "",
   });
   const plain = lobbyChoice({ game: "off", players: null, names: [], legs: 2.5, sets: null }, ["301", "501"]);

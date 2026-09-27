@@ -218,6 +218,26 @@ When a match of several players ends, the practice game sums it up for every pla
 - **Singles training:** one visit at each number from 1 to 20 and then at the bull (`25`). Every dart in a bed of the number scores a point per mark: a single 1, a double 2, a treble 3; the outer bull 1 and the bullseye 2. At most 186 points.
 - Darts the board does not detect do not count: in the doubles part of the JDC Challenge, the next detected dart is thrown at the next double.
 
+### Tournaments
+
+- **Players:** three to eight players with a name each. A name is the same player regardless of upper and lower case, as in the [player profiles](entities.md#player-profiles).
+- **Draw:** the order of the names, or a random order with *Tournament random draw* or a `seed`. The same seed always draws the same order; a random draw without a seed picks one and shows it in the `seed` attribute of *Tournament*.
+- **Round robin:** everyone plays everyone once, in rounds by the circle method: three or four players play 3 rounds, five or six play 5, seven or eight play 7. With an odd number of players, one player sits out every round. Within a round, a player of the round's last match opens the next round only when no other match can, and the first throw goes to the player of a match who had it less often.
+- **Points:** a won match is worth 2 points, as in the Premier League, a lost one none. A match cannot end in a draw.
+- **Tie-breakers:** players level on points are ranked by
+  1. the points they won in the matches among themselves,
+  2. the leg difference: legs won minus legs lost over all their matches, every leg of a match with sets included,
+  3. the 3-dart average over all their matches (Cricket: the marks per round),
+  4. the order of the draw.
+
+  So of two players level on points, the one who won their match goes first; of three players who beat each other in turn, the leg difference decides.
+- **Knockout:** a bracket of 4 places for three or four players and of 8 places for five to eight. The first player of the draw is seed 1, the second seed 2, and so on, placed as in professional draws: seed 1 meets the last seed first, seeds 1 and 2 can meet in the final at the earliest, and seeds 1 to 4 not before the semi-finals. Places the players do not fill are byes for the top seeds, who go straight into the next round. The rounds are the quarter-finals, the semi-finals and the final.
+- **Third place:** with *Tournament third-place match* and four players or more, the losers of the semi-finals play for third place, before the final. Without it, a knockout has no third place.
+- **Order of play:** one match at a time, round by round. A knockout plays the matches of a round from the top of the bracket down, and the match for third place before the final.
+- **Matches:** every match is a [match](#matches-legs-and-sets) of two players, with the legs per set, sets to win, double out, double in and bull-off of the tournament. In X01, a player with a start score of their own starts every leg of the tournament from it, a handicap; the other one from the game's. The first named player throws first, unless the bull-off decides.
+- **Averages:** a player's average counts the points and darts of all their tournament matches; the darts of a bust visit count, its points do not.
+- **Winner:** the winner of the final, or the player at the top of the table after the last match.
+
 ### Records and statistics
 
 - **Highest visit:** the *Training highest visit* sensor and the `highest_visit` personal best take the points of the darts on the board in a visit of up to three darts, whatever the game: a bust visit or a Cricket visit counts with its board points, like the 100+, 140+ and 180 buckets. The `highest_visit` of a [player profile](entities.md#player-profiles) is the highest X01 score of that player instead: a bust scores nothing, and neither do darts before the opening double with double in.

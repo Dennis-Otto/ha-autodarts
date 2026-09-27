@@ -29,7 +29,7 @@ Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwer
 
 ## Board-Ereignisse
 
-Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse, `schedule` für den Wochenbericht und `online` für die Momente von [Online-Matches](automationen.md#online-matches-experimentell), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
+Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht und `online` für die Momente von [Online-Matches](automationen.md#online-matches-experimentell), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
@@ -49,6 +49,9 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 | `drill_finished` | Ein [Trainingsspiel](#trainingsspiele) endet: Around the Clock, Doppeltraining, Catch 40, JDC Challenge oder Singles-Training sind durch, oder Bob's 27 ist vorbei | `drill`, `darts`, `hits`, `hit_rate` (Prozent); Bob's 27 ergänzt `score` und `completed`; Catch 40 hat `score`, `checkouts` und `darts`, die JDC Challenge `score`, `parts` (die Punkte ihrer drei Teile) und `darts`, das Singles-Training zusätzlich `score` |
 | `checkout_attempt` | Ein Versuch im Checkout-Training oder im 121-Checkout endet | `drill`, `target`, `success`, `darts`, `attempts`, `successes`, `rate` (Prozent); der 121-Checkout ergänzt `next`, das nächste Ziel |
 | `bull_off_won` | Das [Ausbullen](#übungsspiel) entscheidet, wer das Match beginnt | `game`, `player`, `name`, `players`, `hit` (das Feld des Siegerdarts: `BULL`, `25` oder etwa `S20`), `distance` (Millimeter von der Mitte, oder keiner ohne Position vom Board) |
+| `tournament_started` | Ein [Turnier](#turniere) beginnt | `format` (`round_robin` oder `knockout`), `game`, `matches` (die Zahl der Matches), `players` (in der Reihenfolge der Auslosung), `start_scores` (in derselben Reihenfolge), `legs_to_win`, `sets_to_win`, `seed` (einer zufälligen Auslosung, sonst keiner) |
+| `tournament_match_finished` | Ein Match des Turniers zählt: Die Darts der entscheidenden Aufnahme sind gezogen | `format`, `game`, `matches`, `match` (seine Nummer im Spielplan), `round`, `stage` (`round_1` bis `round_7`, `quarter_final`, `semi_final`, `third_place` oder `final`), `players`, `winner`, `loser`, `legs` und `sets` beider Spieler, `next` (die Spieler des nächsten Matches, nach dem letzten keiner) |
+| `tournament_finished` | Das letzte Match des Turniers zählt | `format`, `game`, `matches`, `winner`, `runner_up`, `third` (keiner im K.-o.-System ohne Spiel um Platz 3), `players` |
 | `personal_best` | Ein Wert übertrifft deine [Bestleistung](#bestleistungen-serie-und-tagesziel) | `record`, `value`, `previous`, `name` (der Spieler, falls bekannt) |
 | `daily_goal_reached` | Die Darts von heute erreichen das [Tagesziel](#bestleistungen-serie-und-tagesziel), einmal pro Tag | `goal`, `darts`, `streak` |
 | `weekly_report` | Die [Berichtswoche](#wochenbericht) endet, standardmäßig montags um Mitternacht | `week_start`, `week_end`, `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `darts_at_double`, `checkouts`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` |
@@ -357,6 +360,49 @@ Acht klassische Übungen, gewählt in *Übungsspiel*. Jede folgt den Darts der a
 
 Trainingsspiele sind für einen Spieler; *Übungsspiel Spielerzahl* gilt für X01, die Cricket-Spiele und die Partyspiele.
 
+## Turniere
+
+Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen jeden**, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, oder das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen. Jedes Match ist ein [Übungsmatch](#übungsspiel) zwischen zwei Spielern mit den Legs, Sätzen und Regeln des Turniers: X01, bei dem jeder Spieler als Handicap von eigenen Startpunkten beginnen kann, oder [Cricket](#cricket), Cut-Throat Cricket oder Tactics. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](#spielerprofile), den Match-Verlauf und die direkten Vergleiche. [Regeln und Entscheidung bei Gleichstand](funktionsweise.md#turniere).
+
+<img src="../images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
+
+- **Start:** Tippe in der [Spielauswahl](karten.md#turniere) der Anzeigetafel auf *Turnier* und wähle Spieler, Format und Spiel; oder stelle die *Turnier*-Entitäten unten ein und drücke *Turnier starten*; oder rufe die Aktion [`autodarts.start_tournament`](#turnier-starten-autodartsstart_tournament) auf:
+
+  ```yaml
+  action: autodarts.start_tournament
+  data:
+    players: [Dennis, Lea, Max, Kim]
+    format: knockout
+    game: "501"
+    legs: 2
+    third_place: true
+  ```
+
+- **Matches:** Das Turnier richtet das Übungsspiel für jedes Match ein: das Spiel, die beiden Spieler mit ihren Startpunkten, Legs und Sätze, Double-Out, Double-In und das Ausbullen. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet; der Spielplan verteilt den Anwurf möglichst gleichmäßig.
+- **Zwischen den Matches:** Das Ergebnis zählt, wenn die Darts der entscheidenden Aufnahme gezogen sind. Das nächste Match beginnt nach der *Turnierpause*, standardmäßig 10 Sekunden, aber nie, solange Darts im Board stecken: Dann beginnt es, sobald sie gezogen sind. Mit einer Pause von 0 wartet es auf *Nächstes Turniermatch*. Darts, die in der Pause geworfen werden, zählen für kein Match; die Trainingssession zählt sie wie immer.
+- **Andere Spiele:** Ein Spiel, das während eines Turniers gewählt wird, läuft wie gewohnt und zählt nicht fürs Turnier. Nach der Pause wartet das nächste Match, bis dieses Spiel entschieden oder beendet ist; *Nächstes Turniermatch* startet es sofort und richtet während eines Turniermatches dieses Match wieder ein. *Turnier beenden* beendet das Turnier; das laufende Match geht als Übungsmatch weiter.
+- **Neustarts:** Turnier, Ergebnisse und Pause überstehen einen Neustart von Home Assistant. Ist die Pause inzwischen abgelaufen, beginnt das nächste Match sofort.
+
+| Entität | Typ | Beschreibung |
+| --- | --- | --- |
+| Turnier | Sensor (Enum) | Die Runde, die gespielt wird, während einer Pause die nächste: `no_tournament`, `round_1` bis `round_7`, `quarter_final`, `semi_final`, `third_place`, `final` oder `finished`. Die Attribute stehen unten. |
+| Turnierformat | Auswahl, *Konfiguration* | `round_robin` (jeder gegen jeden, Standard) oder `knockout` (K.-o.-System). |
+| Turnierspiel | Auswahl, *Konfiguration* | `101` bis `1001`, `cricket`, `cut_throat` oder `tactics`; standardmäßig `501`. |
+| Turnierspieler | Text, *Konfiguration* | Drei bis acht Namen, durch Kommas getrennt, etwa `Dennis, Lea, Max`. |
+| Turnierpause | Zahl, Sekunden, *Konfiguration* | 0–600 Sekunden zwischen zwei Matches, standardmäßig 10; 0 wartet auf *Nächstes Turniermatch*. Eine Änderung gilt sofort, gezählt ab dem Ende des letzten Matches. |
+| Turnier Spiel um Platz 3 | Schalter, *Konfiguration* | Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3. Standardmäßig aus. |
+| Turnier zufällige Auslosung | Schalter, *Konfiguration* | Lost die Reihenfolge der Spieler zufällig aus, statt die Reihenfolge der Namen zu nehmen. Standardmäßig aus. |
+| Turnier starten | Taste | Startet ein Turnier mit diesen Einstellungen und den Legs pro Satz, Sätzen zum Sieg und Regeln des [Übungsspiels](#übungsspiel). |
+| Nächstes Turniermatch | Taste | Startet das nächste Match, ohne das Ende der Pause abzuwarten. |
+| Turnier beenden | Taste | Beendet das Turnier. |
+
+*Turnier* hat die Attribute `status` (`playing`, `waiting` oder `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in der Reihenfolge der Auslosung), `start_scores` (der Spieler in derselben Reihenfolge; 0 spielt die des Spiels), `round` und `rounds`, `matches_played` und `matches_total`, `current` (das Match am Board), `next` (das Match danach), `last_result`, `pause`, `next_at` (wann das nächste Match beginnt, solange eine Pause läuft), `winner`, `started`, `ended` und `fixtures` (alle Matches in der Reihenfolge des Spielplans). Jeder gegen jeden ergänzt `standings`, das K.-o.-System `bracket`: seine Runden mit ihren Matches, Freilose eingeschlossen, und das Spiel um Platz 3.
+
+- Ein **Match** hat `match` (seine Nummer im Spielplan; keine bei einem Freilos), `round`, `stage`, `players`, `winner`, `bye`, `legs` (des ganzen Matches) und `sets` beider Spieler, `ended` und, sobald gespielt, den `average` (X01) oder `mpr` (Cricket) beider Spieler.
+- Eine Zeile der **Tabelle** (`standings`) hat `position`, `name`, `played`, `won`, `lost`, `legs_for`, `legs_against`, `leg_difference`, `points` und `average` oder `mpr`.
+
+Der Rekorder speichert weder `fixtures`, `standings`, `bracket`, `current`, `next` noch `last_result`. Die [Anzeigetafel](karten.md#turniere) zeigt während eines Matches die Runde und zwischen den Matches die Tabelle oder den Turnierbaum.
+
 ## Steuerung
 
 | Entität | Typ | Beschreibung |
@@ -563,6 +609,54 @@ Vergisst, welche Person ein Spieler ist. Die Statistik des Spielers bleibt.
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Profil mit diesem Namen gibt.
+
+### Turnier starten: `autodarts.start_tournament`
+
+Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du weglässt, kommen aus den *Turnier*-Entitäten, Legs, Sätze und Regeln aus dem [Übungsspiel](#übungsspiel); die Werte, die du angibst, bleiben in den *Turnier*-Entitäten fürs nächste Turnier.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `players` | 3–8 Namen | Die Spieler, in der Reihenfolge der Auslosung |
+| `format` | `round_robin`, `knockout` | Jeder gegen jeden oder ein Turnierbaum bis ins Finale |
+| `start_scores` | 0 oder 2–1001 pro Spieler | X01-Startpunkte der Spieler in der Reihenfolge von `players`, für ein Handicap; 0 oder ein fehlender Wert spielt die Startpunkte des Spiels |
+| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics` | Das Spiel jedes Matches |
+| `legs` | 1–11 | Legs, die einen Satz gewinnen |
+| `sets` | 1–7 | Sätze, die ein Match gewinnen |
+| `double_out` | `true`, `false` | X01-Legs auf einem Double oder dem Bullseye beenden |
+| `double_in` | `true`, `false` | X01-Legs mit einem Double oder dem Bullseye beginnen |
+| `bull_off` | `true`, `false` | Ausbullen entscheidet, wer jedes Match beginnt |
+| `bull_off_distance` | `true`, `false` | Zwei Darts im selben Bull-Feld entscheidet der gemessene Abstand statt eines neuen Wurfs |
+| `third_place` | `true`, `false` | Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3 |
+| `random_draw` | `true`, `false` | Die Reihenfolge der Spieler zufällig auslosen |
+| `seed` | 1–999999 | Eine Zahl für eine zufällige Auslosung: Dieselbe Zahl lost dieselbe Reihenfolge aus |
+| `pause` | 0–600 | Sekunden zwischen zwei Matches; 0 wartet auf *Nächstes Turniermatch* |
+| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+
+```yaml
+action: autodarts.start_tournament
+data:
+  players: [Dennis, Lea, Max, Kim, Sam]
+  format: round_robin
+  game: cricket
+  legs: 3
+  pause: 30
+```
+
+Ein Turnier, das während eines anderen gestartet wird, ersetzt es. Die Aktion bricht mit einer klaren Meldung ab, wenn weniger als drei oder mehr als acht Spieler genannt sind oder ein Name zweimal vorkommt.
+
+### Nächstes Turniermatch starten: `autodarts.next_tournament_match`
+
+Startet in der Pause das nächste Match des Turniers oder richtet das Match des Turniers wieder ein, wenn inzwischen ein anderes Spiel gewählt wurde. Die Aktion bricht mit einer klaren Meldung ab, solange das Match des Turniers läuft, und wenn kein Turnier läuft.
+
+```yaml
+action: autodarts.next_tournament_match
+```
+
+### Turnier beenden: `autodarts.stop_tournament`
+
+Beendet das Turnier; das laufende Match geht als Übungsmatch weiter. Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Turnier gibt.
+
+Beide Aktionen nehmen `config_entry_id`, wenn es mehr als ein Board gibt.
 
 ## Verfügbarkeit
 

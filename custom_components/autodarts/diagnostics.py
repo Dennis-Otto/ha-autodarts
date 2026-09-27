@@ -42,6 +42,7 @@ async def async_get_config_entry_diagnostics(
             else None
         ),
         "practice_game": _practice(local) if local else None,
+        "tournament": _tournament(local) if local else None,
         # Counts only: the bests, profiles and matches carry the names of players.
         "records": (
             {
@@ -95,6 +96,31 @@ def _progress(local: AutodartsLocalCoordinator) -> dict[str, Any]:
         ),
         "logged_positions": sum(len(player.log) for player in players),
         "session_positions": len(progress.session),
+    }
+
+
+def _tournament(local: AutodartsLocalCoordinator) -> dict[str, Any]:
+    """The setup and the progress of the tournament; the players only as a number."""
+    director = local.tournament
+    setup = director.setup
+    tournament = director.tournament
+    return {
+        "format": setup.format,
+        "game": setup.game,
+        "players": len(setup.players),
+        "third_place": setup.third_place,
+        "random_draw": setup.random_draw,
+        "pause": setup.pause,
+        "running": {
+            "format": tournament.format,
+            "game": tournament.game,
+            "status": tournament.status,
+            "players": len(tournament.players),
+            "matches_played": sum(match.played for match in tournament.matches),
+            "matches_total": len(tournament.numbers()),
+        }
+        if tournament
+        else None,
     }
 
 

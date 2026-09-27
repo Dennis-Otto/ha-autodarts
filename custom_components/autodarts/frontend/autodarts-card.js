@@ -374,6 +374,54 @@ const TEXT = {
     idle_legs: "Legs {won}/{played}",
     idle_goal: "of {goal} darts",
     idle_back: "Tap to return",
+    // Tournaments
+    tournament: "Tournament",
+    tournament_round_robin: "Round robin",
+    tournament_knockout: "Knockout",
+    tournament_round: "Round {round}",
+    tournament_stage_quarter_final: "Quarter-final",
+    tournament_stage_semi_final: "Semi-final",
+    tournament_stage_third_place: "Third-place match",
+    tournament_stage_final: "Final",
+    tournament_match: "Match {match} of {matches}",
+    tournament_progress: "{played} of {total} matches played",
+    tournament_next: "Next up",
+    tournament_vs: "vs",
+    tournament_countdown: "starts in {time}",
+    tournament_after_takeout: "starts when the board is clear",
+    tournament_on_request: "starts with Next tournament match",
+    tournament_start_now: "Start now",
+    tournament_winner: "{name} wins the tournament!",
+    tournament_bye: "Bye",
+    tournament_open: "Still open",
+    tournament_player: "Player",
+    tournament_played: "P",
+    tournament_played_long: "Matches played",
+    tournament_won: "W",
+    tournament_won_long: "Matches won",
+    tournament_lost: "L",
+    tournament_lost_long: "Matches lost",
+    tournament_legs: "Legs",
+    tournament_legs_long: "Legs won and lost",
+    tournament_difference: "+/−",
+    tournament_difference_long: "Leg difference",
+    tournament_points: "Pts",
+    tournament_points_long: "Points: two for a win",
+    tournament_start: "Start tournament",
+    tournament_stop: "Stop tournament",
+    tournament_needs_players: "A tournament needs three to eight players.",
+    tournament_mode: "Match or tournament",
+    tournament_mode_match: "Match",
+    tournament_mode_tournament: "Tournament",
+    third_place: "Third-place match",
+    random_draw: "Random draw",
+    idle_panel_tournament: "Tournament",
+    say_tournament_next: "Next match: {first} against {second}",
+    say_tournament_won: "{name} wins the tournament!",
+    tournament_section: "Tournament",
+    tournament_summary: "Summary before the tournament view",
+    tournament_summary_helper:
+      "After a tournament match, its summary stays this long; then the table or the bracket shows until the next match.",
     // Scoreboard editor
     lobby: "New game screen",
     lobby_games: "Games offered",
@@ -833,6 +881,53 @@ const TEXT = {
     idle_legs: "Legs {won}/{played}",
     idle_goal: "von {goal} Darts",
     idle_back: "Tippen, um zurückzukehren",
+    tournament: "Turnier",
+    tournament_round_robin: "Jeder gegen jeden",
+    tournament_knockout: "K.-o.-System",
+    tournament_round: "Runde {round}",
+    tournament_stage_quarter_final: "Viertelfinale",
+    tournament_stage_semi_final: "Halbfinale",
+    tournament_stage_third_place: "Spiel um Platz 3",
+    tournament_stage_final: "Finale",
+    tournament_match: "Match {match} von {matches}",
+    tournament_progress: "{played} von {total} Matches gespielt",
+    tournament_next: "Als Nächstes",
+    tournament_vs: "gegen",
+    tournament_countdown: "beginnt in {time}",
+    tournament_after_takeout: "beginnt, sobald das Board frei ist",
+    tournament_on_request: "beginnt mit Nächstes Turniermatch",
+    tournament_start_now: "Jetzt starten",
+    tournament_winner: "{name} gewinnt das Turnier!",
+    tournament_bye: "Freilos",
+    tournament_open: "Noch offen",
+    tournament_player: "Spieler",
+    tournament_played: "Sp.",
+    tournament_played_long: "Gespielte Matches",
+    tournament_won: "S",
+    tournament_won_long: "Gewonnene Matches",
+    tournament_lost: "N",
+    tournament_lost_long: "Verlorene Matches",
+    tournament_legs: "Legs",
+    tournament_legs_long: "Gewonnene und verlorene Legs",
+    tournament_difference: "+/−",
+    tournament_difference_long: "Leg-Differenz",
+    tournament_points: "Pkt.",
+    tournament_points_long: "Punkte: zwei für einen Sieg",
+    tournament_start: "Turnier starten",
+    tournament_stop: "Turnier beenden",
+    tournament_needs_players: "Ein Turnier braucht drei bis acht Spieler.",
+    tournament_mode: "Match oder Turnier",
+    tournament_mode_match: "Match",
+    tournament_mode_tournament: "Turnier",
+    third_place: "Spiel um Platz 3",
+    random_draw: "Zufällige Auslosung",
+    idle_panel_tournament: "Turnier",
+    say_tournament_next: "Nächstes Match: {first} gegen {second}",
+    say_tournament_won: "{name} gewinnt das Turnier!",
+    tournament_section: "Turnier",
+    tournament_summary: "Zusammenfassung vor der Turnieransicht",
+    tournament_summary_helper:
+      "Nach einem Turniermatch bleibt seine Zusammenfassung so lange stehen; dann zeigt die Anzeigetafel bis zum nächsten Match die Tabelle oder den Turnierbaum.",
     lobby: "Spielauswahl",
     lobby_games: "Angebotene Spiele",
     lobby_games_helper: "Leer bietet jedes Spiel des Boards an.",
@@ -1133,6 +1228,8 @@ const SCOREBOARD_DEFAULTS = {
   idle_interval: 10,
   show_summary: true,
   summary_seconds: 0,
+  // Seconds the result of a tournament match shows before the table or the bracket.
+  tournament_summary: 5,
 };
 
 // Entities a card reads, by domain and translation key of the integration.
@@ -1248,6 +1345,14 @@ const SCOREBOARD_KEYS = {
   profiles: "sensor.player_profiles",
   lastMatch: "sensor.last_match",
   bests: "sensor.personal_best",
+  // The tournament, its settings for the new game screen and its buttons.
+  tournament: "sensor.tournament",
+  tournamentGame: "select.tournament_game",
+  tournamentFormat: "select.tournament_format",
+  tournamentThird: "switch.tournament_third_place",
+  tournamentDraw: "switch.tournament_random_draw",
+  tournamentNext: "button.tournament_next_match",
+  tournamentStop: "button.tournament_stop",
 };
 
 // Per-camera entities carry their camera number as an attribute.
@@ -2919,17 +3024,37 @@ function lobbyChoice(board, games) {
     double_in: board.double_in === true,
     bull_off: board.bull_off === true,
     bull_off_distance: board.bull_off_distance === true,
+    // A tournament instead of a match, with the settings of the next tournament.
+    tournament: false,
+    format: TOURNAMENT_FORMATS.includes(board.format) ? board.format : "round_robin",
+    third_place: board.third_place === true,
+    random_draw: board.random_draw === true,
     draft: "",
   };
 }
+
+// How many players a choice takes: up to four in a match, eight in a tournament.
+const playerLimit = (choice) => (choice.tournament ? TOURNAMENT_LIMITS.players : LOBBY_LIMITS.players);
 
 // The choice after a tap: a game, a player added, moved or removed, the format or a rule.
 function lobbyChange(choice, action, value) {
   const next = { ...choice, players: [...choice.players], starts: [...(choice.starts ?? [])] };
   const index = Number(value);
-  const room = next.players.length < LOBBY_LIMITS.players;
+  const room = next.players.length < playerLimit(next);
   if (action === "game") {
     next.game = String(value);
+  } else if (action === "mode") {
+    // Tournament players need a name; a tournament of guests has no table.
+    next.tournament = value === "tournament";
+    // The start scores stay with their players.
+    const kept = next.players
+      .map((name, index) => [name, next.starts[index] ?? 0])
+      .filter(([name]) => name || !next.tournament)
+      .slice(0, playerLimit(next));
+    next.players = kept.map(([name]) => name);
+    next.starts = kept.map(([, start]) => start);
+  } else if (action === "format" && TOURNAMENT_FORMATS.includes(value)) {
+    next.format = value;
   } else if (action === "add") {
     const name = String(value ?? "").trim().slice(0, LOBBY_LIMITS.name);
     if (room && name && !next.players.some((player) => nameKey(player) === nameKey(name))) {
@@ -2937,7 +3062,7 @@ function lobbyChange(choice, action, value) {
       next.starts.push(0);
       next.draft = "";
     }
-  } else if (action === "guest" && room) {
+  } else if (action === "guest" && room && !next.tournament) {
     next.players.push("");
     next.starts.push(0);
   } else if (action === "remove") {
@@ -2957,7 +3082,7 @@ function lobbyChange(choice, action, value) {
     next.starts[index] = start === game ? 0 : start;
   } else if (action === "legs" || action === "sets") {
     next[action] = within(next[action] + index, LOBBY_LIMITS[action], next[action]);
-  } else if (action === "toggle" && LOBBY_OPTIONS.includes(value)) {
+  } else if (action === "toggle" && [...LOBBY_OPTIONS, "third_place", "random_draw"].includes(value)) {
     next[value] = !next[value];
   }
   return next;
@@ -3008,7 +3133,21 @@ function lobbyHtml(choice, ui) {
     `${extra}>${content}</button>`;
   const block = (label, content, kind) =>
     `<div class="lobby-block ${kind}"><div class="section-label">${text(label)}</div>${content}</div>`;
-  const games = ui.games
+  // A tournament plays X01 and Cricket, as far as the board offers them.
+  const offered = choice.tournament ? ui.tournamentGames : ui.games;
+  const modes = ui.tournamentGames.length
+    ? `<div class="lobby-mode" role="group" aria-label="${text("tournament_mode")}">${["match", "tournament"]
+        .map((mode) =>
+          button(
+            "mode",
+            mode,
+            text(`tournament_mode_${mode}`),
+            ` class="mode" aria-pressed="${choice.tournament === (mode === "tournament")}"`
+          )
+        )
+        .join("")}</div>`
+    : "";
+  const games = offered
     .map(
       ({ group, games: list }) =>
         `<div class="lobby-group ${group}"><div class="section-label">${text(`lobby_group_${group}`)}</div>` +
@@ -3033,11 +3172,12 @@ function lobbyHtml(choice, ui) {
       `</span>`
     );
   };
+  const seats = choice.tournament ? TOURNAMENT_LIMITS.players : rules.maxPlayers;
   const players = choice.players
     .map((name, index) => {
       const who = { name: shown(name, index) };
       return (
-        `<li class="lobby-player${index >= rules.maxPlayers ? " resting" : ""}">${avatarHtml(ui.avatar(name))}` +
+        `<li class="lobby-player${index >= seats ? " resting" : ""}">${avatarHtml(ui.avatar(name))}` +
         `<span class="who">${escapeHtml(who.name)}</span>${startHtml(index, who)}` +
         button("up", index, "▲", ` aria-label="${text("lobby_move_up", who)}"${index === 0 ? " disabled" : ""}`) +
         button("down", index, "▼", ` aria-label="${text("lobby_move_down", who)}"${index === last ? " disabled" : ""}`) +
@@ -3046,7 +3186,7 @@ function lobbyHtml(choice, ui) {
       );
     })
     .join("");
-  const full = choice.players.length >= LOBBY_LIMITS.players ? " disabled" : "";
+  const full = choice.players.length >= playerLimit(choice) ? " disabled" : "";
   const suggestions =
     ui.suggestions
       .map((person) =>
@@ -3058,13 +3198,14 @@ function lobbyHtml(choice, ui) {
           ` class="suggestion${person.home ? " home" : ""}"${full}`
         )
       )
-      .join("") + button("guest", undefined, `+ ${text("lobby_guest")}`, ` class="suggestion guest"${full}`);
+      .join("") +
+    (choice.tournament ? "" : button("guest", undefined, `+ ${text("lobby_guest")}`, ` class="suggestion guest"${full}`));
   const entry =
     `<div class="name-entry"><input class="lobby-name" type="text" maxlength="${LOBBY_LIMITS.name}" autocomplete="off"` +
     ` enterkeyhint="done" data-focus="lobby-name" placeholder="${text("lobby_name")}"` +
     ` aria-label="${text("lobby_new_player")}" value="${escapeHtml(choice.draft)}"${full}>` +
     `${button("add-name", undefined, text("lobby_add"), full)}</div>`;
-  const match = !rules.drill && choice.players.length > 1;
+  const match = choice.tournament || (!rules.drill && choice.players.length > 1);
   const stepper = (key, label) => {
     const name = { name: t(label) };
     return (
@@ -3079,23 +3220,46 @@ function lobbyHtml(choice, ui) {
     ...(rules.x01 ? ["double_out", "double_in"] : []),
     ...(match ? ["bull_off"] : []),
     ...(match && ui.distance && choice.bull_off ? ["bull_off_distance"] : []),
-    ...(rules.teams && ui.teams && choice.players.length === TEAM_SIZE ? ["teams"] : []),
+    ...(!choice.tournament && rules.teams && ui.teams && choice.players.length === TEAM_SIZE ? ["teams"] : []),
+    ...(choice.tournament && choice.format === "knockout" && choice.players.length >= THIRD_PLACE_PLAYERS
+      ? ["third_place"]
+      : []),
+    ...(choice.tournament ? ["random_draw"] : []),
   ];
+  const formats = choice.tournament
+    ? `<div class="formats">${TOURNAMENT_FORMATS.map((format) =>
+        button("format", format, text(`tournament_${format}`), ` class="option" aria-pressed="${choice.format === format}"`)
+      ).join("")}</div>`
+    : "";
   // Nobody chosen is one player without a name.
-  const blocked = Math.max(choice.players.length, 1) < rules.minPlayers;
+  const blocked = choice.tournament
+    ? choice.players.length < TOURNAMENT_LIMITS.min
+    : Math.max(choice.players.length, 1) < rules.minPlayers;
   const hint = blocked
-    ? t("needs_players")
-    : rules.drill && choice.players.length > 1
+    ? t(choice.tournament ? "tournament_needs_players" : "needs_players")
+    : !choice.tournament && rules.drill && choice.players.length > 1
       ? fill(t("lobby_one_player"), { name: shown(choice.players[0], 0) })
       : "";
   const actions =
     `<div class="lobby-actions"><span class="lobby-hint" role="status">${escapeHtml(hint)}</span>` +
-    (ui.running ? button("end", undefined, text(ui.confirmEnd ? "confirm" : "lobby_end"), ' class="secondary"') : "") +
+    (ui.running || ui.tournamentRunning
+      ? button(
+          "end",
+          undefined,
+          text(ui.confirmEnd ? "confirm" : ui.tournamentRunning ? "tournament_stop" : "lobby_end"),
+          ' class="secondary"'
+        )
+      : "") +
     button("close", undefined, text("lobby_close"), ' class="secondary"') +
-    button("start", undefined, text("lobby_start", { game: ui.name(choice.game) }), ` class="start"${blocked ? " disabled" : ""}`) +
+    button(
+      "start",
+      undefined,
+      choice.tournament ? text("tournament_start") : text("lobby_start", { game: ui.name(choice.game) }),
+      ` class="start"${blocked ? " disabled" : ""}`
+    ) +
     `</div>`;
   return (
-    `<section class="lobby" aria-label="${text("lobby_label")}"><div class="lobby-games">${games}</div>` +
+    `<section class="lobby" aria-label="${text("lobby_label")}"><div class="lobby-games">${modes}${games}</div>` +
     `<div class="lobby-setup">${block(
       "lobby_players",
       (players ? `<ol class="lobby-players">${players}</ol>` : `<p class="lobby-nobody muted">${text("lobby_nobody")}</p>`) +
@@ -3103,7 +3267,11 @@ function lobbyHtml(choice, ui) {
       "players-block"
     )}` +
     (match
-      ? block("lobby_format", `<div class="steppers">${stepper("legs", "lobby_legs")}${stepper("sets", "lobby_sets")}</div>`, "format")
+      ? block(
+          "lobby_format",
+          `${formats}<div class="steppers">${stepper("legs", "lobby_legs")}${stepper("sets", "lobby_sets")}</div>`,
+          "format"
+        )
       : "") +
     (options.length
       ? block(
@@ -3122,7 +3290,8 @@ function lobbyHtml(choice, ui) {
 
 // Idle mode ----------------------------------------------------------------------
 
-const IDLE_PANELS = ["leaderboard", "records", "today", "last_match", "clock"];
+// The tournament first: while one is on, it matters most.
+const IDLE_PANELS = ["tournament", "leaderboard", "records", "today", "last_match", "clock"];
 
 // Whether a game is on: none without a game, over once a match or a training game is decided.
 function gameState(view) {
@@ -3220,6 +3389,7 @@ function clockHtml(data, ui) {
 }
 
 const IDLE_RENDER = {
+  tournament: tournamentPanelHtml,
   leaderboard: leaderboardHtml,
   records: recordsHtml,
   today: todayHtml,
@@ -3252,6 +3422,307 @@ function formatClock(hass, moment) {
     }).format(moment),
     day: formatter("date", language, { weekday: "long", day: "numeric", month: "long", ...zone }).format(moment),
   };
+}
+
+// Tournaments ----------------------------------------------------------------------
+
+const TOURNAMENT_STATUS = ["playing", "waiting", "finished"];
+// Players of the start_tournament action.
+const TOURNAMENT_LIMITS = { min: 3, players: 8 };
+const TOURNAMENT_FORMATS = ["round_robin", "knockout"];
+// A knockout has a match for third place from four players.
+const THIRD_PLACE_PLAYERS = 4;
+
+// A match of the tournament sensor: its players, the winner and the result.
+function tournamentMatch(item) {
+  if (!item || typeof item !== "object") return null;
+  const pair = (list, read) => [0, 1].map((index) => read(Array.isArray(list) ? list[index] : undefined));
+  return {
+    match: finite(item.match),
+    round: finite(item.round) ?? 1,
+    stage: named(item.stage) ?? "",
+    players: pair(item.players, named),
+    winner: named(item.winner),
+    bye: item.bye === true,
+    legs: pair(item.legs, (value) => finite(value) ?? 0),
+    sets: pair(item.sets, (value) => finite(value) ?? 0),
+    ended: named(item.ended),
+  };
+}
+
+// The tournament being played or just finished, from its sensor; null without one.
+function tournamentView(state) {
+  const attributes = state?.attributes ?? {};
+  if (!usable(state) || !TOURNAMENT_STATUS.includes(attributes.status)) return null;
+  const list = (value) => (Array.isArray(value) ? value : []);
+  const game = Number.isInteger(attributes.game) ? attributes.game : named(attributes.game);
+  const nextAt = Date.parse(attributes.next_at);
+  return {
+    stage: state.state,
+    status: attributes.status,
+    format: attributes.format === "knockout" ? "knockout" : "round_robin",
+    game,
+    // Cricket ranks by marks per round, X01 by the 3-dart average.
+    mpr: typeof game === "string",
+    setsToWin: finite(attributes.sets_to_win) ?? 1,
+    played: finite(attributes.matches_played) ?? 0,
+    total: finite(attributes.matches_total) ?? 0,
+    current: tournamentMatch(attributes.current),
+    next: tournamentMatch(attributes.next),
+    last: tournamentMatch(attributes.last_result),
+    nextAt: Number.isFinite(nextAt) ? nextAt : null,
+    pause: finite(attributes.pause) ?? 0,
+    winner: named(attributes.winner),
+    started: named(attributes.started),
+    standings: list(attributes.standings)
+      .filter((row) => named(row?.name))
+      .map((row) => ({
+        position: finite(row.position) ?? 0,
+        name: row.name,
+        played: finite(row.played) ?? 0,
+        won: finite(row.won) ?? 0,
+        lost: finite(row.lost) ?? 0,
+        legsFor: finite(row.legs_for) ?? 0,
+        legsAgainst: finite(row.legs_against) ?? 0,
+        difference: finite(row.leg_difference) ?? 0,
+        points: finite(row.points) ?? 0,
+        average: finite(row.average ?? row.mpr),
+      })),
+    bracket: list(attributes.bracket)
+      .filter((round) => named(round?.stage))
+      .map((round) => ({ stage: round.stage, matches: list(round.matches).map(tournamentMatch).filter(Boolean) })),
+  };
+}
+
+// "Round 2", or a knockout stage such as "Semi-final".
+function stageName(t, stage) {
+  const round = /^round_(\d+)$/.exec(stage);
+  return round ? fill(t("tournament_round"), { round: round[1] }) : t(`tournament_stage_${stage}`);
+}
+
+// The tournament round of a match, for the scoreboard's match view.
+function tournamentLabel(view, match, t) {
+  return [
+    t("tournament"),
+    stageName(t, match.stage),
+    fill(t("tournament_match"), { match: match.match, matches: view.total }),
+  ].join(" · ");
+}
+
+// Whether the practice game plays this match: the same two players, in order.
+const playsMatch = (names, match) =>
+  Boolean(match) && names.length === 2 && match.players.every((name, index) => name === names[index]);
+
+const signed = (value) => (value > 0 ? `+${value}` : value < 0 ? `−${-value}` : "0");
+
+// The round robin table, with the players of the next match marked.
+function tournamentTable(view, ui) {
+  const { t, format } = ui;
+  const column = (key) =>
+    `<th scope="col"><abbr title="${escapeHtml(t(`${key}_long`))}">${escapeHtml(t(key))}</abbr></th>`;
+  const statistic = view.mpr
+    ? `<th scope="col">${escapeHtml(t("cricket_mpr"))}</th>`
+    : `<th scope="col"><abbr title="${escapeHtml(t("average_long"))}">Ø</abbr></th>`;
+  const next = new Set((view.status === "waiting" ? view.next : view.current)?.players ?? []);
+  const rows = view.standings.map((row) => {
+    const kind = row.name === view.winner ? "champion" : next.has(row.name) ? "next" : "";
+    return (
+      `<tr${kind ? ` class="${kind}"` : ""}><td class="rank">${row.position}</td>` +
+      `<th scope="row" class="who"><span class="player-name">${avatarHtml(ui.avatar(row.name))}` +
+      `<span>${escapeHtml(row.name)}</span></span></th>` +
+      `<td>${row.played}</td><td>${row.won}</td><td>${row.lost}</td>` +
+      `<td>${row.legsFor}:${row.legsAgainst}</td><td>${signed(row.difference)}</td>` +
+      `<td>${row.average === null ? "–" : escapeHtml(format(row.average, view.mpr ? 2 : 1))}</td>` +
+      `<td class="points">${row.points}</td></tr>`
+    );
+  });
+  return (
+    `<table class="standings"><thead><tr><th scope="col" class="rank">#</th>` +
+    `<th scope="col" class="who">${escapeHtml(t("tournament_player"))}</th>` +
+    ["tournament_played", "tournament_won", "tournament_lost", "tournament_legs", "tournament_difference"]
+      .map(column)
+      .join("") +
+    `${statistic}${column("tournament_points")}</tr></thead><tbody>${rows.join("")}</tbody></table>`
+  );
+}
+
+// Every place of the bracket with its player and whether the match decided it,
+// so that a place filled since the last look can be animated.
+function bracketSlots(view) {
+  const slots = new Map();
+  for (const round of view?.bracket ?? []) {
+    round.matches.forEach((match, index) => {
+      const decided = match.winner !== null && !match.bye;
+      match.players.forEach((name, side) => {
+        slots.set(`${round.stage}-${index}-${side}`, `${name}|${decided && name === match.winner}`);
+      });
+    });
+  }
+  return slots;
+}
+
+// The places that got a player or a result since the last bracket; none at first sight.
+function freshSlots(before, after) {
+  const fresh = new Set();
+  if (!before) return fresh;
+  for (const [key, value] of after) {
+    if (before.get(key) !== value && !value.startsWith("null|")) fresh.add(key);
+  }
+  return fresh;
+}
+
+// The knockout bracket: a column per round; the match for third place below the final.
+function tournamentBracket(view, ui, fresh = new Set()) {
+  const { t } = ui;
+  const live = (view.status === "waiting" ? view.next : view.current)?.match ?? null;
+  const box = (match, stage, index) => {
+    const decided = match.winner !== null && !match.bye;
+    const slots = match.players.map((name, side) => {
+      const key = `${stage}-${index}-${side}`;
+      const classes = [
+        "slot",
+        name === null ? "open" : "",
+        decided && name === match.winner ? "won" : "",
+        decided && name !== match.winner ? "lost" : "",
+        fresh.has(key) ? "fresh" : "",
+      ].filter(Boolean);
+      const shown = name ?? t(match.bye ? "tournament_bye" : "tournament_open");
+      const score = decided ? String(view.setsToWin > 1 ? match.sets[side] : match.legs[side]) : "";
+      return (
+        `<div class="${classes.join(" ")}">${avatarHtml(name && ui.avatar(name))}` +
+        `<span class="who">${escapeHtml(shown)}</span><span class="score">${score}</span></div>`
+      );
+    });
+    const kind = [
+      "duel",
+      match.bye ? "bye" : "",
+      match.match !== null && match.match === live ? "live" : "",
+      stage === "final" && view.winner ? "crowned" : "",
+    ].filter(Boolean);
+    return `<div class="${kind.join(" ")}">${slots.join("")}</div>`;
+  };
+  const third = view.bracket.find((round) => round.stage === "third_place");
+  const columns = view.bracket
+    .filter((round) => round !== third)
+    .map(
+      (round) =>
+        `<div class="round ${round.stage}"><div class="section-label">${escapeHtml(stageName(t, round.stage))}</div>` +
+        `<div class="duels">${round.matches.map((match, index) => box(match, round.stage, index)).join("")}` +
+        (third && round.stage === "final"
+          ? `<div class="section-label third">${escapeHtml(stageName(t, third.stage))}</div>` +
+            third.matches.map((match, index) => box(match, third.stage, index)).join("")
+          : "") +
+        `</div></div>`
+    );
+  return `<div class="bracket">${columns.join("")}</div>`;
+}
+
+// Who plays next, while the tournament waits; the countdown is filled in every second.
+function tournamentNextUp(view, ui) {
+  const { t } = ui;
+  const match = view.status === "waiting" ? view.next : null;
+  if (!match) return "";
+  const [first, second] = match.players.map((name) => name ?? t("tournament_open"));
+  return (
+    `<div class="next-up"><span class="section-label">${escapeHtml(
+      `${t("tournament_next")} · ${stageName(t, match.stage)}`
+    )}</span>` +
+    `<span class="pairing">${avatarHtml(ui.avatar(first))}<b>${escapeHtml(first)}</b>` +
+    `<span class="vs">${escapeHtml(t("tournament_vs"))}</span><b>${escapeHtml(second)}</b>${avatarHtml(
+      ui.avatar(second)
+    )}</span>` +
+    `<span class="countdown" role="timer"></span>` +
+    (ui.startNow
+      ? `<button type="button" class="start-next" data-tournament="next">${escapeHtml(t("tournament_start_now"))}</button>`
+      : "") +
+    `</div>`
+  );
+}
+
+// When the next match starts: in a few seconds, after the takeout, or when asked.
+function tournamentCountdown(view, now, t) {
+  if (view.status !== "waiting") return "";
+  if (!view.pause || view.nextAt === null) return t("tournament_on_request");
+  const seconds = Math.min(Math.max(Math.ceil((view.nextAt - now) / 1000), 0), view.pause);
+  if (!seconds) return t("tournament_after_takeout");
+  // A long pause counts down in minutes and seconds.
+  const time =
+    seconds < 60 ? `${seconds} s` : `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} min`;
+  return fill(t("tournament_countdown"), { time });
+}
+
+// The tournament between its matches: who plays next, and the table or the bracket.
+function tournamentHtml(view, ui) {
+  const { t } = ui;
+  const body = view.format === "knockout" ? tournamentBracket(view, ui, ui.fresh) : tournamentTable(view, ui);
+  return {
+    title: t("tournament"),
+    meta: [
+      t(`tournament_${view.format}`),
+      gameName(t, view.game),
+      view.status === "finished" ? "" : fill(t("tournament_progress"), { played: view.played, total: view.total }),
+    ]
+      .filter(Boolean)
+      .join(" · "),
+    banner: view.winner ? fill(t("tournament_winner"), { name: view.winner }) : "",
+    main: `<div class="tournament ${view.format}">${tournamentNextUp(view, ui)}${body}</div>`,
+  };
+}
+
+// The idle panel of a tournament: its table or bracket.
+function tournamentPanelHtml(data, ui) {
+  const view = data.tournament;
+  if (!view) return "";
+  return view.format === "knockout" ? tournamentBracket(view, ui) : tournamentTable(view, ui);
+}
+
+// What the caller follows of a tournament.
+function tournamentCallState(view) {
+  return view
+    ? {
+        started: view.started,
+        status: view.status,
+        match: view.current?.match ?? null,
+        players: view.current?.players ?? [],
+        winner: view.winner,
+      }
+    : null;
+}
+
+// The calls of a tournament: every match as it starts, and the champion. Nothing
+// at first sight: undefined is a card that has not seen the tournament sensor yet.
+function tournamentCalls(previous, current, options) {
+  if (previous === undefined || !current || options.call_results === false) return [];
+  const same = previous?.started === current.started;
+  if (current.status === "finished") {
+    return same && previous.status !== "finished" ? [{ kind: "tournament_won", name: current.winner }] : [];
+  }
+  if (current.status !== "playing" || (same && current.match === previous.match)) return [];
+  const [first, second] = current.players;
+  return [{ kind: "tournament_next", first, second }];
+}
+
+// The start_tournament action for the choice of the new game screen.
+function tournamentStartData(choice, { entry = null, distance = false } = {}) {
+  const named = choice.players.map((name, index) => [name, choice.starts?.[index] ?? 0]).filter(([name]) => name);
+  const players = named.map(([name]) => name);
+  const starts = named.map(([, start]) => start);
+  const data = {
+    players,
+    format: choice.format,
+    game: choice.game,
+    legs: choice.legs,
+    sets: choice.sets,
+    bull_off: choice.bull_off,
+    random_draw: choice.random_draw,
+  };
+  if (entry) data.config_entry_id = entry;
+  if (distance && choice.bull_off) data.bull_off_distance = choice.bull_off_distance;
+  if (gameGroup(choice.game) === "x01") Object.assign(data, { double_out: choice.double_out, double_in: choice.double_in });
+  // A handicap goes with the start, and so does the game's start score when it is back.
+  if (gameGroup(choice.game) === "x01" && (choice.handicap || starts.some(Boolean))) data.start_scores = starts;
+  if (choice.format === "knockout") data.third_place = choice.third_place && players.length >= THIRD_PLACE_PLAYERS;
+  return data;
 }
 
 // Doubles --------------------------------------------------------------------
@@ -3917,6 +4388,8 @@ function callerText(call, t) {
   if (call.kind === "bust") return t("say_bust");
   if (call.kind === "leg") return t("say_leg");
   if (call.kind === "match") return fill(t("say_match"), { name: call.name }).replace(", !", "!");
+  if (call.kind === "tournament_next") return fill(t("say_tournament_next"), { first: call.first, second: call.second });
+  if (call.kind === "tournament_won") return fill(t("say_tournament_won"), { name: call.name });
   if (call.kind === "require") {
     // Alone, nobody needs a name; in a match, unnamed players have a number.
     const name = call.players > 1 ? call.name || `${t("score_player")} ${call.player}` : null;
@@ -3998,6 +4471,19 @@ const PRACTICE_KEYS = [
   "button.practice_new_match",
 ];
 
+// The settings of the next tournament and its buttons; the sensor gets a tile.
+const TOURNAMENT_KEYS = [
+  "select.tournament_format",
+  "select.tournament_game",
+  "text.tournament_players",
+  "number.tournament_pause",
+  "switch.tournament_third_place",
+  "switch.tournament_random_draw",
+  "button.tournament_start",
+  "button.tournament_next_match",
+  "button.tournament_stop",
+];
+
 // An entity's name without its board and without the section it sits in, so
 // "Autodarts Board Practice players" reads "Players" under "Practice".
 function rowName(hass, entityId, prefixes) {
@@ -4050,6 +4536,13 @@ function liveDashboardView(board) {
     ...(names.length ? [{ type: "entities", title: t("practice_names"), entities: names }] : []),
     ...(starts.length ? [{ type: "entities", title: t("practice_starts"), entities: starts }] : []),
   ];
+  const tournament = board.rows(TOURNAMENT_KEYS, t("tournament"));
+  const stage = board.id("sensor.tournament");
+  const tournamentCards = [
+    { type: "heading", heading: t("tournament") },
+    ...(stage ? [tile(stage)] : []),
+    { type: "entities", entities: tournament },
+  ];
   return {
     title: `${t("view_live")}${board.suffix}`,
     path: `live${board.slug}`,
@@ -4059,6 +4552,7 @@ function liveDashboardView(board) {
     sections: [
       { type: "grid", column_span: 2, cards: [board.card(CARD_TYPE, FULL)] },
       ...(practice.length ? [{ type: "grid", column_span: 2, cards: controls }] : []),
+      ...(tournament.length ? [{ type: "grid", column_span: 2, cards: tournamentCards }] : []),
     ],
   };
 }
@@ -4226,6 +4720,7 @@ const FORM_HELPERS = {
   idle_section: "idle_section_helper",
   idle_panels: "idle_panels_helper",
   summary_seconds: "summary_seconds_helper",
+  tournament_summary: "tournament_summary_helper",
 };
 
 // The games to offer in the editor: those of a board's practice select, or every game the card knows.
@@ -4375,6 +4870,12 @@ const FORMS = {
         toggles(["lobby"], SCOREBOARD_DEFAULTS),
         { name: "lobby_games", selector: { select: { multiple: true, mode: "dropdown", options: gameOptions(pageHass) } } },
       ],
+    },
+    {
+      type: "expandable",
+      name: "tournament_section",
+      flatten: true,
+      schema: [secondsField("tournament_summary", 0, 60)],
     },
     {
       type: "expandable",
@@ -5118,6 +5619,79 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .goal i { display: block; height: 100%; border-radius: inherit; background: var(--ad-accent); }
   .goal.reached i { background: ${STATUS_COLORS.ready}; }
+  /* Tournaments: who plays next, the round robin table and the knockout bracket. */
+  .tournament { display: flex; flex-direction: column; gap: clamp(10px, 1.8cqi, 24px); width: 100%; }
+  .next-up {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px clamp(10px, 2cqi, 24px);
+    padding: clamp(10px, 1.6cqi, 20px); border-radius: 18px; text-align: center;
+    background: color-mix(in srgb, var(--ad-accent) 12%, transparent);
+  }
+  .next-up .section-label { flex-basis: 100%; font-size: clamp(11px, 1.4cqi, 15px); }
+  .pairing {
+    display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .35em;
+    font-size: clamp(20px, 3.6cqi, 48px); font-weight: 800; color: var(--primary-text-color);
+  }
+  .pairing .vs { font-size: .5em; font-weight: 600; color: var(--secondary-text-color); }
+  .countdown { font-size: clamp(13px, 1.8cqi, 22px); font-weight: 600; color: var(--secondary-text-color); }
+  .start-next {
+    min-height: 44px; padding: 0 18px; border-radius: 999px; cursor: pointer; touch-action: manipulation;
+    font: inherit; font-size: clamp(13px, 1.7cqi, 20px); font-weight: 700;
+    color: var(--text-primary-color, #fff); background: var(--ad-accent); border: none;
+  }
+  .standings {
+    width: min(100%, 1100px); margin: 0 auto; border-collapse: collapse; font-variant-numeric: tabular-nums;
+    font-size: clamp(14px, 2.2cqi, 30px); color: var(--primary-text-color);
+  }
+  .standings th, .standings td { padding: .3em .45em; text-align: center; }
+  .standings thead th {
+    font-size: .55em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--secondary-text-color);
+  }
+  .standings abbr { text-decoration: none; }
+  /* The name takes the room the numbers leave, and a long one ends in an ellipsis. */
+  .standings .who { width: 40%; max-width: 0; text-align: left; font-weight: 700; }
+  .standings .player-name { display: flex; align-items: center; min-width: 0; }
+  .standings .player-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .standings tbody tr { border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
+  .standings .rank { width: 2em; font-weight: 800; color: var(--ad-accent); }
+  .standings .points { font-weight: 800; }
+  .standings tr.next { background: color-mix(in srgb, var(--ad-accent) 10%, transparent); }
+  .standings tr.champion { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
+  .standings tr.champion .player-name span::after { content: " 🏆"; }
+  .bracket { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: clamp(10px, 2.4cqi, 36px); }
+  .bracket .round { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .bracket .duels { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 10px; }
+  .bracket .section-label { font-size: clamp(11px, 1.4cqi, 15px); }
+  .bracket .section-label.third { margin-top: 6px; }
+  .duel {
+    position: relative; border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
+    border: 2px solid var(--divider-color, rgba(127,127,127,.3));
+  }
+  .duel.live { border-color: var(--ad-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ad-accent) 25%, transparent); }
+  .duel.bye { border-style: dashed; opacity: .7; }
+  .slot {
+    display: flex; align-items: center; gap: .3em; min-height: 1.7em; padding: .25em .6em;
+    font-size: clamp(13px, 2cqi, 26px); color: var(--primary-text-color);
+  }
+  .slot + .slot { border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
+  .slot .who { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot.open .who { font-weight: 500; font-style: italic; color: var(--secondary-text-color); }
+  .slot .score { font-weight: 800; font-variant-numeric: tabular-nums; }
+  .slot.won { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
+  .slot.lost { opacity: .5; }
+  .duel.crowned .slot.won .who::after { content: " 🏆"; }
+  /* A player who goes on slides into the next round, outlined for a moment. */
+  .slot.fresh { animation: ad-advance 1.6s ease-out backwards; }
+  @keyframes ad-advance {
+    from { opacity: 0; transform: translateX(-1.5em); box-shadow: inset 0 0 0 3px var(--ad-accent); }
+    35% { opacity: 1; transform: none; box-shadow: inset 0 0 0 3px var(--ad-accent); }
+    to { box-shadow: inset 0 0 0 3px transparent; }
+  }
+  @media (prefers-reduced-motion: reduce) { .slot.fresh { animation: none; } }
+  /* A phone shows the rounds one below the other. */
+  @container (max-width: 560px) { .bracket { grid-auto-flow: row; } }
+  .lobby-mode { display: flex; gap: 8px; }
+  .lobby .mode { flex: 1; font-size: clamp(15px, 2cqi, 22px); }
+  .formats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 `;
 
 const PLAYERS_CSS = `${BASE_CSS}
@@ -6925,6 +7499,9 @@ function createElements(Base) {
       super.disconnectedCallback();
       clearTimeout(this._lobbyTimer);
       clearTimeout(this._idleTimer);
+      clearTimeout(this._tournamentTimer);
+      clearInterval(this._tournamentTick);
+      this._tournamentTick = null;
       this._idleOff();
     }
 
@@ -6998,6 +7575,7 @@ function createElements(Base) {
       this._el.main.addEventListener("click", (event) => {
         const target = event.target.closest("[data-lobby]");
         if (target && !target.disabled) this._lobbyAction(target.dataset.lobby, target.dataset.value);
+        if (event.target.closest("[data-tournament]") && !this.preview) this._press(this._ids.tournamentNext);
       });
       this._el.main.addEventListener("input", (event) => {
         if (this._lobby && event.target.classList.contains("lobby-name")) this._lobby.draft = event.target.value;
@@ -7043,12 +7621,18 @@ function createElements(Base) {
       speech.speak(utterance);
     }
 
-    _announce(visit, view) {
+    _announce(visit, view, tournament) {
       const current = callerState(visit, view, this._callerState);
       const previous = this._callerState;
       this._callerState = current;
+      const followed = tournamentCallState(tournament);
+      const before = this._tournamentCall;
+      this._tournamentCall = followed;
       if (!this._config.caller || !callerAudio.unlocked || this.preview) return;
-      for (const call of callerCalls(previous, current, this._config)) {
+      for (const call of [
+        ...callerCalls(previous, current, this._config),
+        ...tournamentCalls(before, followed, this._config),
+      ]) {
         if (call.kind === "fanfare") playFanfare();
         else this._speak(callerText(call, (key) => this._t(key)));
       }
@@ -7083,7 +7667,17 @@ function createElements(Base) {
           const start = Number(this._hass.states[id]?.state);
           return Number.isInteger(start) ? start : 0;
         }),
+        format: this._state("tournamentFormat")?.state,
+        third_place: on("tournamentThird"),
+        random_draw: on("tournamentDraw"),
       };
+    }
+
+    // The tournament games the screen offers, of the games it offers at all.
+    _tournamentGames() {
+      const offered = new Set(this._lobbyGames().flatMap((group) => group.games));
+      const games = this._state("tournamentGame")?.attributes?.options;
+      return lobbyGames((Array.isArray(games) ? games : []).filter((game) => offered.has(String(game))));
     }
 
     // A game by the name players know; newer games by the name Home Assistant gives them.
@@ -7110,9 +7704,16 @@ function createElements(Base) {
         this._startGame(choice);
       } else if (action === "end") {
         // Ending the game needs a second tap; the screen stays for the next game.
+        // A tournament ends with its game.
         if (this._confirmed("end")) {
+          if (this._tournamentRunning()) this._press(this._ids.tournamentStop);
           this._call("select", "select_option", { entity_id: this._ids.game, option: "off" });
         }
+      } else if (action === "mode") {
+        const next = lobbyChange(choice, action, value);
+        const games = (next.tournament ? this._tournamentGames() : this._lobbyGames()).flatMap((group) => group.games);
+        if (!games.includes(next.game)) next.game = games.includes("501") ? "501" : games[0];
+        this._lobby = next;
       } else if (action === "add-name") {
         this._lobby = lobbyChange(choice, "add", this._el.main.querySelector(".lobby-name").value);
       } else {
@@ -7125,7 +7726,8 @@ function createElements(Base) {
     _openLobby(auto) {
       clearTimeout(this._lobbyTimer);
       const games = this._lobbyGames().flatMap((group) => group.games);
-      if (this.preview || !games.length || this._lobby) return;
+      // Between the matches of a tournament, its table or bracket shows instead.
+      if (this.preview || !games.length || this._lobby || (auto && this._tournamentOwned)) return;
       this._lobby = { ...lobbyChoice(this._board(), games), auto };
       // The screen that opens by itself also waits the idle time before idle mode takes over.
       this._activity = Date.now();
@@ -7137,8 +7739,57 @@ function createElements(Base) {
     _startGame(choice) {
       const device = this._hass.devices?.[this._deviceId];
       const entry = device?.primary_config_entry ?? device?.config_entries?.[0] ?? null;
-      this._call("autodarts", "start_game", startGameData(choice, { entry, distance: Boolean(this._ids.bullOffDistance) }));
+      const options = { entry, distance: Boolean(this._ids.bullOffDistance) };
+      if (choice.tournament) this._call("autodarts", "start_tournament", tournamentStartData(choice, options));
+      else this._call("autodarts", "start_game", startGameData(choice, options));
       this._lobby = null;
+    }
+
+    // Tournament ------------------------------------------------------------------
+
+    _tournamentRunning() {
+      return ["playing", "waiting"].includes(tournamentView(this._state("tournament"))?.status);
+    }
+
+    // The tournament and what the screen shows of it: the round in the match view,
+    // or, between its matches, the table or the bracket once the result has shown.
+    _tournamentState(view) {
+      const tournament = tournamentView(this._state("tournament"));
+      this._tournamentOwned = false;
+      clearTimeout(this._tournamentTimer);
+      if (!tournament) return { tournament, shown: false, label: "" };
+      const game = view.practice ?? view.cricket ?? view.party ?? null;
+      const names = game ? game.scores.map((score) => score.name) : [];
+      const over = gameState(view) !== "running";
+      // A new match after the final: the tournament is over for this screen.
+      if (tournament.status === "finished" && !over) this._tournamentDismissed = tournament.started;
+      // When the screen saw the result of the last match; long ago at first sight.
+      const result = tournament.last ? `${tournament.started}|${tournament.last.match}` : null;
+      if (this._tournamentResult?.key !== result) {
+        this._tournamentResult = { key: result, at: this._tournamentResult ? Date.now() : 0 };
+      }
+      const playing = tournament.status === "playing" && playsMatch(names, tournament.current);
+      const between =
+        over &&
+        (tournament.status === "waiting" ||
+          (tournament.status === "finished" && this._tournamentDismissed !== tournament.started));
+      this._tournamentOwned = playing || between;
+      const summary = Math.max(Number(this._config.tournament_summary) || 0, 0) * 1000;
+      const wait = this._tournamentResult.at + summary - Date.now();
+      if (between && wait > 0) this._tournamentTimer = setTimeout(() => this._update(), wait);
+      // The match view names the round, also with the result of the match.
+      const labelled = playing ? tournament.current : between && wait > 0 ? tournament.last : null;
+      // The bracket animates the places filled since it last changed.
+      const slots = bracketSlots(tournament);
+      const signature = JSON.stringify([...slots]);
+      if (this._bracket?.signature !== signature) {
+        this._bracket = { signature, slots, fresh: freshSlots(this._bracket?.slots, slots) };
+      }
+      return {
+        tournament,
+        shown: between && wait <= 0,
+        label: labelled ? tournamentLabel(tournament, labelled, (key) => this._t(key)) : "",
+      };
     }
 
     _confirmChanged() {
@@ -7224,6 +7875,7 @@ function createElements(Base) {
     _idlePanels() {
       const profiles = playersView(this._state("profiles"), this._state("lastMatch"));
       const data = {
+        tournament: tournamentView(this._state("tournament")),
         players: profiles.players,
         match: profiles.matches[0] ?? null,
         records: bestsView(this._state("bests"), this._state("streak")),
@@ -7266,7 +7918,8 @@ function createElements(Base) {
       const ui = { ...this._ui(), name: this._deviceName(), stats: this._stats() };
       const summary = this._matchSummary(view);
       const board = scoreboardHtml({ ...view, summary }, ui);
-      this._announce(visit, view);
+      const tournament = this._tournamentState(view);
+      this._announce(visit, view, tournament.tournament);
       this._follow(visit, view, summary);
       const games = this._lobbyGames();
       if (!games.length) this._lobby = null;
@@ -7280,6 +7933,8 @@ function createElements(Base) {
         main = lobbyHtml(choice, {
           ...ui,
           games,
+          tournamentGames: this._tournamentGames(),
+          tournamentRunning: this._tournamentRunning(),
           name: (game) => this._gameName(game),
           suggestions: lobbySuggestions(this._state("profiles"), this._board().names, ui.links, choice.players),
           distance: Boolean(this._ids.bullOffDistance),
@@ -7294,6 +7949,14 @@ function createElements(Base) {
         main =
           `<div class="idle-panel" data-panel="${panel.panel}">${panel.html}</div>` +
           `<div class="idle-back muted">${escapeHtml(t("idle_back"))}</div>`;
+      } else if (tournament.shown) {
+        ({ title, meta, banner, main } = tournamentHtml(tournament.tournament, {
+          ...ui,
+          fresh: this._bracket.fresh,
+          startNow: Boolean(this._ids.tournamentNext) && !this.preview,
+        }));
+      } else if (tournament.label) {
+        meta = [tournament.label, meta].filter(Boolean).join(" · ");
       } else if (view.mode === "idle" && games.length) {
         main += `<button type="button" class="lobby-cta" data-lobby="open">${escapeHtml(t("lobby_open"))}</button>`;
       }
@@ -7306,9 +7969,17 @@ function createElements(Base) {
       el.banner.textContent = banner;
       el.banner.classList.toggle("rethrow", board.bannerKind === "rethrow");
       this._setHtml(el.main, main);
+      // The countdown to the next match changes every second, the rest stays.
+      const counting = tournament.shown && !this._lobby && !panel && tournament.tournament.status === "waiting";
+      const countdown = el.main.querySelector(".countdown");
+      if (countdown) countdown.textContent = tournamentCountdown(tournament.tournament, Date.now(), t);
+      if (counting !== Boolean(this._tournamentTick)) {
+        clearInterval(this._tournamentTick);
+        this._tournamentTick = counting ? setInterval(() => this._update(), 1000) : null;
+      }
       if (!el.visit) return;
-      // The new game screen, the idle panels and the match summary need the room of the visit.
-      el.visit.hidden = Boolean(this._lobby || panel || summary);
+      // The new game screen, the idle panels, the match summary and the tournament need the room of the visit.
+      el.visit.hidden = Boolean(this._lobby || panel || summary || tournament.shown);
       // Between games the big number already is the visit score.
       el.visit.classList.toggle("plain", view.mode === "idle");
       const darts = visitThrows(visit).slice(-3);
@@ -7826,6 +8497,16 @@ export {
   aimBeds,
   badgesHtml,
   badgesView,
+  bracketSlots,
+  freshSlots,
+  stageName,
+  tournamentCalls,
+  tournamentCallState,
+  tournamentCountdown,
+  tournamentHtml,
+  tournamentLabel,
+  tournamentStartData,
+  tournamentView,
   bedPath,
   beds,
   bestsHtml,

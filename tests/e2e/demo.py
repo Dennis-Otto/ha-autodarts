@@ -163,6 +163,20 @@ def dashboard() -> dict:
                     }
                 ],
             },
+            # A tournament on that screen, its table or bracket right after a result.
+            {
+                "title": "Tournament",
+                "path": "tournament",
+                "panel": True,
+                "cards": [
+                    {
+                        "type": "custom:autodarts-scoreboard-card",
+                        "full_height": True,
+                        "tournament_summary": 1,
+                        "idle": False,
+                    }
+                ],
+            },
         ],
     }
 

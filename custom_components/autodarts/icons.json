@@ -74,6 +74,15 @@
       },
       "practice_new_match": {
         "default": "mdi:restart-alert"
+      },
+      "tournament_start": {
+        "default": "mdi:trophy-outline"
+      },
+      "tournament_next_match": {
+        "default": "mdi:skip-next-circle-outline"
+      },
+      "tournament_stop": {
+        "default": "mdi:stop-circle-outline"
       }
     },
     "event": {
@@ -102,6 +111,9 @@
       },
       "practice_count_up_rounds": {
         "default": "mdi:counter"
+      },
+      "tournament_pause": {
+        "default": "mdi:timer-sand"
       }
     },
     "select": {
@@ -116,6 +128,12 @@
       },
       "practice_golf_holes": {
         "default": "mdi:golf"
+      },
+      "tournament_format": {
+        "default": "mdi:tournament"
+      },
+      "tournament_game": {
+        "default": "mdi:bullseye"
       }
     },
     "sensor": {
@@ -279,6 +297,13 @@
       },
       "achievements": {
         "default": "mdi:trophy-award"
+      },
+      "tournament": {
+        "default": "mdi:tournament",
+        "state": {
+          "finished": "mdi:trophy",
+          "no_tournament": "mdi:tournament"
+        }
       }
     },
     "switch": {
@@ -335,11 +360,20 @@
         "state": {
           "off": "mdi:trophy-broken"
         }
+      },
+      "tournament_third_place": {
+        "default": "mdi:podium-bronze"
+      },
+      "tournament_random_draw": {
+        "default": "mdi:shuffle-variant"
       }
     },
     "text": {
       "practice_player": {
         "default": "mdi:account"
+      },
+      "tournament_players": {
+        "default": "mdi:account-group"
       }
     },
     "calendar": {
@@ -368,6 +402,15 @@
     },
     "unlink_player": {
       "service": "mdi:account-cancel"
+    },
+    "start_tournament": {
+      "service": "mdi:tournament"
+    },
+    "stop_tournament": {
+      "service": "mdi:stop-circle-outline"
+    },
+    "next_tournament_match": {
+      "service": "mdi:skip-next-circle-outline"
     }
   }
 }

@@ -200,6 +200,7 @@ show_system: false
 - **Between games:** the title (the board name unless you set `title`) and the score of the current visit together with darts, 3-dart average, highest visit and 180s of the training session, the training streak and today's darts towards the daily goal.
 - **Winner:** a banner names the winner of the match with the result, for example *Alex wins the match 3 : 2!*, until the next dart. The result counts legs, or sets in a match of sets; a match of one leg has none.
 - **Match summary:** when an X01 or Cricket match ends, the [match summary](#match-summary) takes the place of the players.
+- **Tournaments:** the round of the match, and between the matches the table or the bracket; see [tournaments](#tournaments).
 - **Pictures:** players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture next to their name.
 - **Visit:** the three darts of the current visit and its score along the bottom.
 - **Caller:** with `caller: true`, the screen at the board calls the game itself in English or German, following the language of Home Assistant (other languages hear English). It calls only what counts:
@@ -236,12 +237,30 @@ The screen never opens in the preview of the card editor.
 
 <img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, Sam starting from 301, three legs per set, double out and the start button" width="760">
 
+### Tournaments
+
+During a [tournament](entities.md#tournaments), the scoreboard follows it:
+
+- **During a match:** the title line names the round and the match, for example *Tournament · Semi-final · Match 5 of 7*.
+- **Between the matches:** the [summary](#match-summary) of a match stays for `tournament_summary` seconds (5), then the table of a round robin or the bracket of a knockout shows, with the next match, its round and a countdown to its start. *Start now* starts it at once. During a tournament, the new game screen does not open by itself.
+- **Table:** the position, matches played, won and lost, legs won and lost, the leg difference, the 3-dart average (Cricket: MPR) and the points. The players of the next match are marked, the winner of the tournament gets 🏆.
+- **Bracket:** a column for every round, with the match for third place below the final; byes, open places and results; the next match is outlined. A player who goes on slides into the next round; on devices set to reduce motion, the places fill without moving.
+- **Winner:** after the last match, a banner names the winner of the tournament, and the table or the bracket stays until a new match begins.
+- **Caller:** with the caller on and `call_results`, it announces every match as it starts, "Next match: Alex against Sam", and the winner of the tournament.
+- **New game screen:** *Tournament* switches the screen to a tournament of up to eight named players: X01, with start scores for a handicap, or a Cricket game, round robin or knockout, legs and sets, the rules, the match for third place and a random draw. *Start tournament* starts it with [`autodarts.start_tournament`](entities.md#start-a-tournament-autodartsstart_tournament). During a tournament, *Stop tournament* ends it and its game after a second tap.
+- **Idle mode:** the panel `tournament` shows the table or the bracket of the tournament being played or just finished.
+
+<img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="760">
+
+<img src="images/en/tournament-lobby.png" alt="The new game screen in tournament mode: X01 and the Cricket games, six players with their start scores, knockout with the match for third place, and the start button" width="760">
+
 ### Idle mode
 
 When no game runs, or a match or training game is decided, and nobody throws or taps for `idle_after` seconds (3 minutes), the scoreboard shows these panels in turn, one every `idle_interval` seconds:
 
 | Panel | Shows |
 | --- | --- |
+| `tournament` | The table or the bracket of the tournament being played or just finished |
 | `leaderboard` | The five best players by 3-dart average, then by legs won, with their pictures |
 | `records` | The personal bests of the board and the longest training streak |
 | `today` | Today's darts towards the daily goal, the 3-dart average, highest visit and 180s of the session, and the streak |
@@ -271,12 +290,13 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `idle` | boolean | `true` | Switch [idle mode](#idle-mode) on |
 | `idle_after` | seconds, 10–3600 | `180` | Time without darts and taps before idle mode starts |
 | `idle_interval` | seconds, 3–120 | `10` | Time each panel shows |
-| `idle_panels` | list of panels | every panel | The panels of idle mode, in this order: `leaderboard`, `records`, `today`, `last_match`, `clock` |
+| `tournament_summary` | seconds, 0–60 | `5` | How long the summary of a tournament match shows before the [table or the bracket](#tournaments) |
+| `idle_panels` | list of panels | every panel | The panels of idle mode, in this order: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `show_summary` | boolean | `true` | Show the [match summary](#match-summary) when an X01 or Cricket match ends |
 | `summary_seconds` | 0–600 | `0` | How long the summary stays, in seconds; `0` keeps it until the next game starts |
 | `accent_color` | [color](#colors) | theme primary color | The player at the board, routes and the visit score |
 
-In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen and idle mode have collapsed sections of their own.
+In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen, the tournament and idle mode have collapsed sections of their own.
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -296,7 +316,7 @@ When an X01 or Cricket match of several players ends, the scoreboard and the liv
 
 - **X01:** legs (and sets), 3-dart average, first-9 average, checkout rate with the legs checked out and the darts at a double, highest checkout, 180s, 140+ and 100+ visits, best leg in darts, darts at a double and all darts. Without double out, the checkout rate and the darts at a double are left out.
 - **Cricket:** legs (and sets), marks per round, marks, best leg in darts and all darts.
-- **How long:** until the first dart of the next game, or `summary_seconds` after the card first showed it. Then the players and the result come back, and on the scoreboard the [new game screen](#new-game-screen) opens a few seconds later. While the summary shows, the new game screen opens only with a tap, and [idle mode](#idle-mode) can take over after its idle time. `show_summary: false` switches the summary off.
+- **How long:** until the first dart of the next game, or `summary_seconds` after the card first showed it. Then the players and the result come back, and on the scoreboard the [new game screen](#new-game-screen) opens a few seconds later. While the summary shows, the new game screen opens only with a tap, and [idle mode](#idle-mode) can take over after its idle time. `show_summary: false` switches the summary off. Between the matches of a [tournament](#tournaments), the table or the bracket follows after `tournament_summary` seconds.
 
 Party games keep their scores on screen. The numbers come from the `summary` attribute of the [practice remaining score](entities.md#practice-game); [how they are counted](how-it-works.md#match-summary).
 
@@ -393,7 +413,7 @@ For every board, the dashboard gets up to five views, which update themselves wh
 
 | View | Contents |
 | --- | --- |
-| **Live** | The live card across the full width, the practice game controls with teams and the Golf and Count-Up options, the player names and their start scores |
+| **Live** | The live card across the full width, the practice game controls with teams and the Golf and Count-Up options, the player names, their start scores and the [tournament](entities.md#tournaments) with its settings and buttons |
 | **Scoreboard** | The [scoreboard card](#scoreboard-card) across the whole screen, for a tablet or TV at the board |
 | **Training** | The training card with the personal bests, the [doubles card](#doubles-card), the daily goal with darts today, the streak and the last personal best, darts per day for the last 30 days (from long-term statistics, which Home Assistant compiles hourly), the 3-dart average of the last 7 days, practice legs per day, the first 9 average, checkout rate and doubles rate of the practice game, and the training settings: starting sessions automatically and ending them after a pause |
 | **Players** | The [players card](#players-card) and the [leaderboard](#leaderboard-card), once the first named player has a profile |

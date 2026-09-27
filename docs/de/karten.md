@@ -191,6 +191,7 @@ show_system: false
 - **Zwischen den Spielen:** der Titel (der Board-Name, wenn du keinen `title` setzt) und die Punkte der aktuellen Aufnahme zusammen mit Darts, 3-Dart-Average, höchster Aufnahme und 180ern der Trainingssession, der Trainingsserie und den Darts von heute zum Tagesziel.
 - **Sieger:** Ein Banner nennt den Matchgewinner mit dem Ergebnis, etwa *Alex gewinnt das Match 3 : 2!*, bis zum nächsten Dart. Das Ergebnis zählt Legs, in einem Match mit Sätzen die Sätze; ein Match über ein Leg hat keins.
 - **Match-Zusammenfassung:** Endet ein X01- oder Cricket-Match, tritt die [Match-Zusammenfassung](#match-zusammenfassung) an die Stelle der Spieler.
+- **Turniere:** die Runde des Matches und zwischen den Matches Tabelle oder Turnierbaum; siehe [Turniere](#turniere).
 - **Bilder:** Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person neben ihrem Namen.
 - **Aufnahme:** Unten stehen die drei Darts der aktuellen Aufnahme und ihre Punkte.
 - **Caller:** Mit `caller: true` sagt der Bildschirm am Board das Spiel selbst an, auf Deutsch oder Englisch, je nach Sprache von Home Assistant (andere Sprachen hören Englisch). Er sagt nur an, was zählt:
@@ -227,12 +228,30 @@ In der Vorschau des Karteneditors öffnet sich die Auswahl nie.
 
 <img src="../images/de/scoreboard-lobby.png" alt="Die Spielauswahl auf einem Tablet im Querformat: die Spiele nach Gruppen mit 501 gewählt, Alex und Sam mit ihren Bildern, Sam ab 301 Startpunkten, drei Legs pro Satz, Double-Out und die Starttaste" width="760">
 
+### Turniere
+
+Während eines [Turniers](entitaeten.md#turniere) folgt ihm die Anzeigetafel:
+
+- **Während eines Matches:** Die Titelzeile nennt Runde und Match, etwa *Turnier · Halbfinale · Match 5 von 7*.
+- **Zwischen den Matches:** Die [Zusammenfassung](#match-zusammenfassung) eines Matches bleibt `tournament_summary` Sekunden (5) stehen, dann erscheint die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System), mit dem nächsten Match, seiner Runde und einem Countdown bis zum Beginn. *Jetzt starten* startet es sofort. Während eines Turniers öffnet sich die Spielauswahl nicht von selbst.
+- **Tabelle:** Platz, gespielte, gewonnene und verlorene Matches, gewonnene und verlorene Legs, die Leg-Differenz, der 3-Dart-Average (Cricket: MPR) und die Punkte. Die Spieler des nächsten Matches sind hervorgehoben, der Turniersieger bekommt 🏆.
+- **Turnierbaum:** eine Spalte pro Runde, das Spiel um Platz 3 unter dem Finale; Freilose, offene Plätze und Ergebnisse; das nächste Match ist umrandet. Wer weiterkommt, gleitet in die nächste Runde; auf Geräten, die weniger Bewegung wünschen, füllen sich die Plätze ohne Bewegung.
+- **Sieger:** Nach dem letzten Match nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt.
+- **Caller:** Mit eingeschaltetem Caller und `call_results` sagt er jedes Match beim Start an, „Nächstes Match: Alex gegen Sam“, und den Sieger des Turniers.
+- **Spielauswahl:** *Turnier* schaltet die Auswahl auf ein Turnier mit bis zu acht Spielern mit Namen um: X01, mit Startpunkten als Handicap, oder ein Cricket-Spiel, jeder gegen jeden oder K.-o.-System, Legs und Sätze, die Regeln, das Spiel um Platz 3 und eine zufällige Auslosung. *Turnier starten* startet es mit [`autodarts.start_tournament`](entitaeten.md#turnier-starten-autodartsstart_tournament). Während eines Turniers beendet *Turnier beenden* es samt seinem Spiel nach einem zweiten Tippen.
+- **Ruhemodus:** Die Tafel `tournament` zeigt Tabelle oder Turnierbaum des laufenden oder gerade beendeten Turniers.
+
+<img src="../images/de/tournament-table.png" alt="Das Turnier jeder gegen jeden mit vier Spielern auf der Anzeigetafel zwischen zwei Matches: als Nächstes Lea gegen Sam mit Countdown und die Tabelle mit Alex vorn mit 4 Punkten" width="760">
+
+<img src="../images/de/tournament-lobby.png" alt="Die Spielauswahl im Turniermodus: X01 und die Cricket-Spiele, sechs Spieler mit ihren Startpunkten, K.-o.-System mit Spiel um Platz 3 und die Starttaste" width="760">
+
 ### Ruhemodus
 
 Läuft kein Spiel oder ist ein Match oder Trainingsspiel entschieden, und wirft oder tippt niemand für `idle_after` Sekunden (3 Minuten), zeigt die Anzeigetafel diese Tafeln im Wechsel, jede für `idle_interval` Sekunden:
 
 | Tafel | Zeigt |
 | --- | --- |
+| `tournament` | Tabelle oder Turnierbaum des laufenden oder gerade beendeten Turniers |
 | `leaderboard` | Die fünf besten Spieler nach 3-Dart-Average, dann nach gewonnenen Legs, mit ihren Bildern |
 | `records` | Die Bestleistungen des Boards und die längste Trainingsserie |
 | `today` | Die Darts von heute zum Tagesziel, 3-Dart-Average, höchste Aufnahme und 180er der Session sowie die Serie |
@@ -262,12 +281,13 @@ Tafeln ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `idle` | Wahrheitswert | `true` | Den [Ruhemodus](#ruhemodus) einschalten |
 | `idle_after` | Sekunden, 10–3600 | `180` | Zeit ohne Darts und Tippen, bis der Ruhemodus beginnt |
 | `idle_interval` | Sekunden, 3–120 | `10` | Zeit, die jede Tafel zu sehen ist |
-| `idle_panels` | Liste von Tafeln | jede Tafel | Die Tafeln des Ruhemodus in dieser Reihenfolge: `leaderboard`, `records`, `today`, `last_match`, `clock` |
+| `tournament_summary` | Sekunden, 0–60 | `5` | Wie lange die Zusammenfassung eines Turniermatches vor [Tabelle oder Turnierbaum](#turniere) stehen bleibt |
+| `idle_panels` | Liste von Tafeln | jede Tafel | Die Tafeln des Ruhemodus in dieser Reihenfolge: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `show_summary` | Wahrheitswert | `true` | Die [Match-Zusammenfassung](#match-zusammenfassung) anzeigen, wenn ein X01- oder Cricket-Match endet |
 | `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Spieler am Board, Wege und Aufnahmepunkte |
 
-Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl und Ruhemodus haben eigene eingeklappte Abschnitte.
+Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl, Turnier und Ruhemodus haben eigene eingeklappte Abschnitte.
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -287,7 +307,7 @@ Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live
 
 - **X01:** Legs (und Sätze), 3-Dart-Average, First-9-Average, Checkout-Quote mit den ausgecheckten Legs und den Darts aufs Double, höchster Checkout, 180er, Aufnahmen mit 140+ und 100+, bestes Leg in Darts, Darts aufs Double und alle Darts. Ohne Double-Out fehlen Checkout-Quote und Darts aufs Double.
 - **Cricket:** Legs (und Sätze), Marks pro Runde, Marks, bestes Leg in Darts und alle Darts.
-- **Wie lange:** bis zum ersten Dart des nächsten Spiels oder `summary_seconds` nachdem die Karte sie zuerst gezeigt hat. Danach sind Spieler und Ergebnis wieder zu sehen, und auf der Anzeigetafel öffnet sich einige Sekunden später die [Spielauswahl](#spielauswahl). Solange die Zusammenfassung zu sehen ist, öffnet sich die Spielauswahl nur durch Tippen, und der [Ruhemodus](#ruhemodus) kann nach seiner Wartezeit übernehmen. `show_summary: false` schaltet die Zusammenfassung ab.
+- **Wie lange:** bis zum ersten Dart des nächsten Spiels oder `summary_seconds` nachdem die Karte sie zuerst gezeigt hat. Danach sind Spieler und Ergebnis wieder zu sehen, und auf der Anzeigetafel öffnet sich einige Sekunden später die [Spielauswahl](#spielauswahl). Solange die Zusammenfassung zu sehen ist, öffnet sich die Spielauswahl nur durch Tippen, und der [Ruhemodus](#ruhemodus) kann nach seiner Wartezeit übernehmen. `show_summary: false` schaltet die Zusammenfassung ab. Zwischen den Matches eines [Turniers](#turniere) folgen nach `tournament_summary` Sekunden Tabelle oder Turnierbaum.
 
 Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem Attribut `summary` der [Übungsspiel-Restpunkte](entitaeten.md#übungsspiel); [wie sie gezählt werden](funktionsweise.md#match-zusammenfassung).
 
@@ -384,7 +404,7 @@ Pro Board entstehen bis zu fünf Ansichten. Sie aktualisieren sich selbst, wenn 
 
 | Ansicht | Inhalt |
 | --- | --- |
-| **Live** | Die Live-Karte über die volle Breite, die Steuerung des Übungsspiels mit Teams und den Optionen für Golf und Count-Up, die Spielernamen und ihre Startpunkte |
+| **Live** | Die Live-Karte über die volle Breite, die Steuerung des Übungsspiels mit Teams und den Optionen für Golf und Count-Up, die Spielernamen, ihre Startpunkte und das [Turnier](entitaeten.md#turniere) mit seinen Einstellungen und Tasten |
 | **Anzeigetafel** | Die [Anzeigetafel](#anzeigetafel) über den ganzen Bildschirm, für ein Tablet oder einen Fernseher am Board |
 | **Training** | Die Trainingskarte mit den Bestleistungen, die [Doubles-Karte](#doubles-karte), das Tagesziel mit den Darts von heute, die Serie und die letzte Bestleistung, Darts pro Tag der letzten 30 Tage (aus den Langzeitstatistiken, die Home Assistant stündlich berechnet), der 3-Dart-Average der letzten 7 Tage, Übungslegs pro Tag, First-9-Average, Checkout- und Doppelquote des Übungsspiels sowie die Trainingseinstellungen: Sessions automatisch starten und nach einer Pause beenden |
 | **Spieler** | Die [Spielerkarte](#spielerkarte) und die [Bestenliste](#bestenliste), sobald der erste benannte Spieler ein Profil hat |

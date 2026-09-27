@@ -169,11 +169,12 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
     "summary_seconds",
     [["call_scores", "call_checkouts", "call_results", "call_sounds"]],
     [["lobby"], "lobby_games"],
+    ["tournament_summary"],
     [["idle"], ["idle_after", "idle_interval"], "idle_panels"],
     "accent_color",
   ]);
   assert.equal(form.schema[2].schema[4].default, true);
-  const [caller, lobby, idle] = form.schema.slice(4, 7);
+  const [caller, lobby, tournament, idle] = form.schema.slice(4, 8);
   assert.deepEqual([caller.type, caller.name, caller.flatten], ["expandable", "caller_options", true]);
   assert.equal(form.computeLabel(caller), "Caller options");
   assert.equal(form.computeHelper(caller), "These calls are made while the caller is on.");
@@ -208,7 +209,21 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
     { name: "idle_after", selector: seconds(10, 3600), default: 180 },
     { name: "idle_interval", selector: seconds(3, 120), default: 10 },
   ]);
-  assert.deepEqual(labels(idle.schema[2]), ["Leaderboard", "Personal bests", "Today", "Last match", "Clock"]);
+  assert.deepEqual(labels(idle.schema[2]), [
+    "Tournament",
+    "Leaderboard",
+    "Personal bests",
+    "Today",
+    "Last match",
+    "Clock",
+  ]);
+
+  // The result of a tournament match shows for a few seconds, then the table or the bracket.
+  assert.deepEqual([tournament.type, tournament.name, tournament.flatten], ["expandable", "tournament_section", true]);
+  assert.equal(form.computeLabel(tournament), "Tournament");
+  assert.deepEqual(tournament.schema, [{ name: "tournament_summary", selector: seconds(0, 60), default: 5 }]);
+  assert.equal(form.computeLabel(tournament.schema[0]), "Summary before the tournament view");
+  assert.match(form.computeHelper(tournament.schema[0]), /^After a tournament match, its summary stays/);
   assert.equal(idle.schema[2].selector.select.mode, "list");
   assert.equal(form.computeHelper(idle.schema[2]), "Empty shows every panel.");
 

@@ -45,6 +45,10 @@ async def async_setup_entry(
                 AutodartsTrainingReset(coordinator),
                 AutodartsNewLeg(coordinator),
                 AutodartsNewMatch(coordinator),
+                *(
+                    AutodartsTournamentButton(coordinator, action)
+                    for action in ("start", "next_match", "stop")
+                ),
             ]
         )
         known: set[int] = set()
@@ -142,3 +146,23 @@ class AutodartsNewMatch(AutodartsLocalEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         await self.coordinator.async_new_match()
+
+
+class AutodartsTournamentButton(AutodartsLocalEntity, ButtonEntity):
+    """Start a tournament with its settings, start its next match or stop it."""
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator, action: str) -> None:
+        super().__init__(coordinator, f"tournament_{action}")
+        self._action = action
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    async def async_press(self) -> None:
+        if self._action == "start":
+            await self.coordinator.async_start_tournament()
+        elif self._action == "next_match":
+            await self.coordinator.async_next_tournament_match()
+        else:
+            await self.coordinator.async_stop_tournament()

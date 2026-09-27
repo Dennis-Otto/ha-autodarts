@@ -44,6 +44,7 @@ from .local_coordinator import AutodartsLocalCoordinator
 from .online import SENSOR_KEY as ONLINE_SENSOR_KEY
 from .online import OnlineBridge
 from .runtime import AutodartsConfigEntry
+from .tournament import STATES as TOURNAMENT_STATES
 from .training import COUNTERS
 
 # Session values that can go down again, unlike the counters.
@@ -345,6 +346,7 @@ async def async_setup_entry(
                 AutodartsLastMatch(runtime.local),
                 AutodartsWeeklyReport(runtime.local),
                 AutodartsAchievements(runtime.local),
+                AutodartsTournament(runtime.local),
             )
         )
         entities.extend(
@@ -961,6 +963,33 @@ class AutodartsLastMatch(AutodartsLocalEntity, SensorEntity):
             "matches": snapshot["matches"],
             "head_to_head": snapshot["head_to_head"],
         }
+
+
+class AutodartsTournament(AutodartsLocalEntity, SensorEntity):
+    """The stage of the tournament, with its matches and its table or bracket."""
+
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = TOURNAMENT_STATES
+    # The matches, the table and the bracket are for cards; the recorder keeps
+    # the stage and the players.
+    _unrecorded_attributes = frozenset(
+        {"fixtures", "standings", "bracket", "current", "next", "last_result"}
+    )
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "tournament")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> str:
+        return self.coordinator.tournament.state()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return self.coordinator.tournament.snapshot()
 
 
 class AutodartsCorrectionRate(AutodartsLocalEntity, SensorEntity):

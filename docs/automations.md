@@ -20,7 +20,7 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 | **Practice caller** | Calls the [practice game](entities.md#practice-game) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the bull-off. The messages are templates. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
 | **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `image`, `message`, `score`, `checkout`, `who` and `photo`. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
-| **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off and an achievement, and optionally during the takeout and in [online matches](#online-matches-experimental). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off, an achievement and the winner of a tournament, and optionally during the takeout and in [online matches](#online-matches-experimental). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](../blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
 
@@ -165,6 +165,7 @@ Your actions can use `image` (the camera picture), `message`, `score`, `checkout
 | Actions for the daily goal | none | Run when today's darts reach the daily goal. |
 | Actions for a won bull-off | none | Run when the bull-off decides who starts. |
 | Actions for an achievement | none | Run when a named player unlocks a new tier of an [achievement](entities.md#achievements). |
+| Actions for a won tournament | none | Run when the last match of a [tournament](entities.md#tournaments) counts, after the actions for the won match; `who` is the winner of the tournament. |
 | When the takeout starts | none | Run when a hand reaches the board. Not restored. |
 | When the board is clear | none | Run when all darts are out of the board. Not restored. |
 | Moments with an effect | none | The moments whose actions start an effect. Only for them are the lights restored and the detection paused. |
@@ -174,7 +175,7 @@ Your actions can use `image` (the camera picture), `message`, `score`, `checkout
 | Detection switch | none | The *Detection* switch of your board, for pausing it. |
 | Also react to online matches | off | Also plays the actions for a bust, a won leg and a won match of an [online match](#online-matches-experimental). A 180 and the takeout of your own darts come from your board anyway. |
 
-The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `takeout` or `board_clear`), `who`, `player`, `score` (of a 180), `checkout` (of a won leg) and `trigger.to_state.attributes` for every detail of the [board event](entities.md#board-events). See [light show with WLED and other lights](#light-show-with-wled-and-other-lights).
+The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` or `board_clear`), `who`, `player`, `score` (of a 180), `checkout` (of a won leg) and `trigger.to_state.attributes` for every detail of the [board event](entities.md#board-events). See [light show with WLED and other lights](#light-show-with-wled-and-other-lights).
 
 ### Dart caller messages
 
@@ -663,6 +664,38 @@ actions:
       players: "{{ (trigger.slots.names | replace(', ', ' and ')).split(' and ') }}"
   - set_conversation_response: "Game on, {{ trigger.slots.names }}!"
 mode: single
+```
+
+### Announce the results of a tournament
+
+Call every result of a [tournament](entities.md#tournaments), the next match and the winner on your speakers.
+
+```yaml
+alias: Darts - tournament announcer
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: event.autodarts_board_events
+    options:
+      event_type:
+        - tournament_match_finished
+        - tournament_finished
+actions:
+  - action: tts.speak
+    target:
+      entity_id: tts.home_assistant_cloud
+    data:
+      media_player_entity_id: media_player.darts_room
+      message: >-
+        {% set event = trigger.to_state.attributes %}
+        {% if event.event_type == 'tournament_finished' %}
+          {{ event.winner }} wins the tournament, ahead of {{ event.runner_up }}!
+        {% else %}
+          {{ event.winner }} beats {{ event.loser }},
+          {{ event.legs | max }} legs to {{ event.legs | min }}.
+          {% if event.next %}Next up: {{ event.next | join(' against ') }}.{% endif %}
+        {% endif %}
+mode: queued
 ```
 
 ## Online matches (experimental)

@@ -556,6 +556,149 @@ def lobby_animation(page: Page) -> None:
     game(page, "off")
 
 
+# Calls an action of the integration through the logged-in frontend.
+CALL_ACTION = """
+async ([service, data]) => {
+  const hass = document.querySelector('home-assistant').hass;
+  await hass.callService('autodarts', service, data);
+}
+"""
+
+
+def seek_scoreboard(board: Page, time: int) -> None:
+    """Pause the animations of the scoreboard at a given time, for a frame."""
+    board.evaluate(
+        "(time) => { for (const card of ("
+        + find(SCOREBOARD)
+        + ")()) { for (const animation of card.shadowRoot.getAnimations()) {"
+        " animation.pause(); animation.currentTime = time; } } }",
+        time,
+    )
+
+
+def checkout_101(page: Page, loser: list[str] | None = None) -> None:
+    """The first player checks out 101 in one visit, or misses and the second does."""
+    if loser:
+        visit(page, loser)
+    visit(page, ["T20", "S1", "D20"])
+
+
+def tournament_bracket_animation(page: Page) -> None:
+    """A knockout of five filling its bracket: every winner slides into the next round."""
+    pull_darts()
+    game(page, "off")
+    page.evaluate(
+        CALL_ACTION,
+        [
+            "start_tournament",
+            {
+                "players": ["Alex", "Sam", "Kim", "Lea", "Max"],
+                "format": "knockout",
+                "game": "101",
+                "legs": 1,
+                "sets": 1,
+                "double_out": True,
+                "bull_off": False,
+                "third_place": True,
+                "pause": 0,
+            },
+        ],
+    )
+    board = tablet(page, "autodarts-demo/tournament")
+    wait_card(board, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
+    board.wait_for_timeout(1500)
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1600)
+    # Lea, Alex, Kim after Sam's miss, Lea for third place and Alex win.
+    misses = [None, None, ["S20", "S20", "S1"], None, None]
+    for number, miss in enumerate(misses, 1):
+        checkout_101(page, miss)
+        wait_card(board, "!!r.querySelector('.bracket')", SCOREBOARD)
+        board.wait_for_timeout(200)
+        # The places filled by the result slide in, frame by frame.
+        for time in (0, 250, 500, 800, 1600):
+            seek_scoreboard(board, time)
+            recorder.shot(160 if time < 1600 else 2200)
+        if number < len(misses):
+            page.evaluate(CALL_ACTION, ["next_tournament_match", {}])
+            wait_card(board, "!r.querySelector('.bracket')", SCOREBOARD)
+            board.wait_for_timeout(600)
+            recorder.shot(1000)
+    recorder.shot(1800)
+    recorder.save("tournament-bracket")
+    board.close()
+    page.evaluate(CALL_ACTION, ["stop_tournament", {}])
+    players(page, 1)
+    game(page, "off")
+
+
+def tournament_table(page: Page) -> None:
+    """A round robin of four between two matches: the next match, the countdown, the table."""
+    pull_darts()
+    game(page, "off")
+    page.evaluate(
+        CALL_ACTION,
+        [
+            "start_tournament",
+            {
+                "players": ["Alex", "Sam", "Kim", "Lea"],
+                "format": "round_robin",
+                "game": "101",
+                "legs": 1,
+                "sets": 1,
+                "double_out": True,
+                "bull_off": False,
+                "pause": 0,
+            },
+        ],
+    )
+    # Alex beats Lea, Sam beats Kim, then Alex beats Kim: Alex leads on 4 points.
+    checkout_101(page)
+    page.evaluate(CALL_ACTION, ["next_tournament_match", {}])
+    checkout_101(page, ["S20", "S20", "S20"])
+    page.evaluate(CALL_ACTION, ["next_tournament_match", {}])
+    checkout_101(page, ["S1", "S1", "S1"])
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "tournament_pause", {"value": 90}]
+    )
+    board = tablet(page, "autodarts-demo/tournament")
+    wait_card(board, "!!r.querySelector('.standings')", SCOREBOARD, 60000)
+    board.wait_for_timeout(1500)
+    page_shot(board, "tournament-table")
+    board.close()
+    page.evaluate(CALL_ACTION, ["stop_tournament", {}])
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "tournament_pause", {"value": 10}]
+    )
+    players(page, 1)
+    game(page, "off")
+
+
+def tournament_lobby(page: Page) -> None:
+    """The new game screen in tournament mode: six players, a knockout with third place."""
+    pull_darts()
+    game(page, "off")
+    board = tablet(page)
+    wait_card(board, "!!r.querySelector('.lobby-cta')", SCOREBOARD, 60000)
+    card = board.locator(SCOREBOARD)
+    card.locator(".lobby-cta").click()
+    wait_card(board, "!!r.querySelector('.lobby-mode')", SCOREBOARD)
+    card.locator("[data-lobby='mode'][data-value='tournament']").click()
+    for name in ("Alex", "Sam", "Kim", "Lea", "Max", "Tom"):
+        suggestion = card.locator(".suggestion", has_text=name)
+        if suggestion.count():
+            suggestion.first.click()
+        else:
+            card.locator(".lobby-name").fill(name)
+            card.locator("[data-lobby='add-name']").click()
+    card.locator("[data-lobby='format'][data-value='knockout']").click()
+    card.locator("[data-lobby='toggle'][data-value='third_place']").click()
+    board.wait_for_timeout(1000)
+    # Six players and the rules are taller than a tablet; the card shows them all.
+    card_shot(board, "tournament-lobby", tag=SCOREBOARD)
+    board.close()
+
+
 def lobby_screen(page: Page) -> None:
     """The new game screen: two players at home, Sam from 301, three legs per set."""
     pull_darts()
@@ -1357,6 +1500,7 @@ def main() -> None:
         lobby_animation(page)
         golf_animation(page)
         checkout_121_animation(page)
+        tournament_bracket_animation(page)
         games.close()
 
         # The new games and formats on the scoreboard.
@@ -1382,6 +1526,8 @@ def main() -> None:
         players_card(people.new_page())
         doubles_card(people.new_page())
         lobby_screen(people.new_page())
+        tournament_lobby(people.new_page())
+        tournament_table(people.new_page())
         idle_screen(people.new_page())
         media_gallery(people.new_page())
         progress_cards(people.new_page())
