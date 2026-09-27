@@ -43,11 +43,11 @@ The **Events** entity (for example `event.autodarts_board_events`, or `event.aut
 | `session_started` | A training session starts: with the *Training session* switch, the *New training session* button, or the first dart when *Start sessions automatically* is on | `started` and `reason` (`manual`, `new_session` or `first_dart`) |
 | `session_ended` | A training session ends: with the switch, the button, or after the pause set in *Session idle timeout* | `reason` (`manual`, `new_session` or `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` and the other training totals |
 | `bust` | A dart of the [practice game](#practice-game) goes below zero, leaves 1 with double out, or reaches 0 without a double | `game`, `player`, `name`, `players`, `remaining` (the score at the start of the visit, which stays) |
-| `leg_won` | A dart finishes the practice leg | `game`, `player`, `name`, `players`, `darts` and `average` of the leg, `checkout` (the score checked out), `double_out` and `double_in` (the rules of the leg), `legs` of the winner in the set including this leg and `sets` afterwards, `match` (`true` when the leg decides the match); in [Cricket](#cricket) `points` and `mpr` instead of `average`, `checkout` and the rules |
-| `match_won` | A dart decides a practice match of several players | `game`, `player`, `name`, `players`, `legs` (of the winner in the deciding set) and `sets`, `scores` with `player`, `name`, `legs` and `sets` of everybody, for example 3 : 2, and the `average` of the match; `mpr` in Cricket |
-| `turn_changed` | In a practice game, the darts were pulled and the next visit is up: the next player in a match, the same player when playing alone | `game`, `player`, `name`, `players`, `remaining`, `checkout` (the route for three darts, or none); in Cricket `points`, in [party games](#party-games) `points` and `target` of the next player; during a bull-off `bull_off` |
-| `drill_finished` | A [training game](#training-games) ends: Around the Clock or doubles training reach the end, or Bob's 27 ends | `drill`, `darts`, `hits`, `hit_rate` (percent); Bob's 27 adds `score` and `completed` |
-| `checkout_attempt` | An attempt of the checkout training ends | `drill`, `target`, `success`, `darts`, `attempts`, `successes`, `rate` (percent) |
+| `leg_won` | A dart finishes the practice leg | `game`, `player`, `name`, `players`, `darts` and `average` of the leg, `checkout` (the score checked out), `start` (the score the leg started from), `double_out` and `double_in` (the rules of the leg), `legs` of the winner in the set including this leg and `sets` afterwards, `match` (`true` when the leg decides the match); in the [Cricket games](#cricket) `points` and `mpr` instead of `average`, `checkout`, `start` and the rules, in [party games](#party-games) `points`; in a [team match](#teams-and-start-scores) also `team` and `team_name`, and `darts`, `average` and `mpr` of the team |
+| `match_won` | A dart decides a practice match of several players | `game`, `player`, `name`, `players`, `legs` (of the winner in the deciding set) and `sets`, `scores` with `player`, `name`, `legs` and `sets` of everybody, for example 3 : 2, and the `average` of the match; `mpr` in Cricket; in a team match also `team` and `team_name`, a `team` for everybody in `scores`, and the team's average |
+| `turn_changed` | In a practice game, the darts were pulled and the next visit is up: the next player in a match, the same player when playing alone | `game`, `player`, `name`, `players`, `remaining`, `checkout` (the route for three darts, or none); in Cricket `points`, in [party games](#party-games) `points` and `target` of the next player; during a bull-off `bull_off`; in a team match `team` and `team_name` |
+| `drill_finished` | A [training game](#training-games) ends: Around the Clock, the doubles training, Catch 40, the JDC Challenge or the singles training reach the end, or Bob's 27 ends | `drill`, `darts`, `hits`, `hit_rate` (percent); Bob's 27 adds `score` and `completed`; Catch 40 has `score`, `checkouts` and `darts`, the JDC Challenge `score`, `parts` (the points of its three parts) and `darts`, the singles training `score` as well |
+| `checkout_attempt` | An attempt of the checkout training or the 121 checkout ends | `drill`, `target`, `success`, `darts`, `attempts`, `successes`, `rate` (percent); the 121 checkout adds `next`, the next target |
 | `bull_off_won` | The [bull-off](#practice-game) decides who starts the match | `game`, `player`, `name`, `players`, `hit` (the bed of the winning dart: `BULL`, `25` or for example `S20`), `distance` (millimetres from the centre, or none without a position from the board) |
 | `personal_best` | A value beats your [personal best](#personal-bests-streak-and-daily-goal) | `record`, `value`, `previous`, `name` (the player, if known) |
 | `daily_goal_reached` | Today's darts reach the [daily goal](#personal-bests-streak-and-daily-goal), once per day | `goal`, `darts`, `streak` |
@@ -108,10 +108,12 @@ Home Assistant keeps your best values, the days you trained and your darts per d
 | --- | --- | --- |
 | `highest_visit` | highest | a visit of up to three darts |
 | `highest_checkout` | highest | a won X01 leg with double out |
-| `fewest_darts_101` to `fewest_darts_1001` | fewest | a won X01 leg with double out from 101, 301, 501, 701, 901 or 1001 |
-| `best_cricket_mpr` | highest | the marks per round of a won Cricket leg |
+| `fewest_darts_101` to `fewest_darts_1001` | fewest | a won X01 leg with double out that started from 101, 301, 501, 701, 901 or 1001, played alone, not as a team |
+| `best_cricket_mpr` | highest | the marks per round of a won Cricket leg, played alone |
 | `around_the_clock`, `doubles` | fewest | darts of a finished training game |
 | `bobs_27` | highest | the score of a completed Bob's 27 |
+| `checkout_121` | highest | the highest score checked out in the 121 checkout |
+| `catch_40`, `jdc_challenge`, `singles` | highest | the score of a finished game of Catch 40, the JDC Challenge or the singles training |
 | `best_session_average` | highest | a finished training session of at least 30 darts |
 
 | Entity | Type | Description |
@@ -167,26 +169,27 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 <img src="images/en/practice-checkout.webp" alt="Animation: a 141 checkout in a 501 leg. After each dart the remaining score, the route and the outlined bed change: T20 T19 D12, then game shot and a new leg" width="620">
 
 - **Start:** choose 101, 301, 501, 701, 901 or 1001 in *Practice game*. Darts already on the board do not count. *New practice leg* starts the leg again from the full score.
+- **Start scores and teams:** every player can start from a score of their own, and four players can play as two teams; see [Teams and start scores](#teams-and-start-scores).
 - **Double in:** with *Practice double in*, a player's score starts with the first double or bullseye of the leg; darts before it score nothing, and a bust takes the opening back. The card asks for a double and outlines the double ring.
 - **Bull-off:** with *Practice bull-off* and two or more players, a match starts with one dart per player at the bull. As in the official rules, the bullseye beats the outer bull, which beats every other bed; two darts in the same bull bed throw again, in reverse order. Outside the bull, and inside it with *Practice bull-off by distance*, the dart closest to the centre wins, measured from the dart positions the board reports; a dart without a position never beats a measured one. [The bull-off rules](how-it-works.md#bull-off).
 - **Visits:** a visit ends when you pull the darts. After a bust, the score of the visit start stays. Darts after a bust or after the winning dart do not count.
 - **Checkout:** the route for the darts left in the visit, for example `T20 T20 BULL` for 170. [How the route is chosen](how-it-works.md#practice-game).
 - **Matches:** set *Practice players* to 2, 3 or 4. After a visit, the next player throws; a bust passes the turn too. The first player to win *Practice legs per set* legs wins the set, and the first to win *Practice sets to win* sets wins the match. The first throw passes every leg within a set, and every set starts with the next player. The result, with the legs of the deciding set, stays on the card until the next dart, which starts a new match. With one player, legs and sets are not counted. [The match rules](how-it-works.md#matches-legs-and-sets).
 - **Sessions:** the practice game and [training sessions](#training-session) are independent. A dart counts in both.
-- **More games:** *Practice game* also offers three [party games](#party-games) and four [training games](#training-games).
+- **More games:** *Practice game* also offers the [Cricket games](#cricket), six [party games](#party-games) and eight [training games](#training-games).
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Practice game | Select | `off`, `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, a party game (`shanghai`, `halve_it`, `killer`) or a training game: `around_the_clock`, `doubles`, `checkout`, `bobs_27`. Choosing starts a new match or game. |
-| Practice remaining score | Sensor | Remaining score of the player at the board; *unknown* without a game. Attributes: `game`, `double_out`, `player` and `name` of the player at the board, `checkout`, `bust`, `won`, `visit` (the segments of the current visit), `darts` and `average` of the leg, `players`, `legs_to_win`, `sets_to_win`, `winner` (the player who won the match, until the next dart), `scores` with `player`, `name`, `remaining`, `legs` (in the current set, or the deciding set of a finished match), `sets`, `match_legs` (legs of the whole match) and the match `average` of every player, `bull_off` during a bull-off (the `player` at the board, `rethrow`, `by_distance` and `throws` with `player`, `name`, `hit` and `distance`), and `legs` with the last 10 legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended`). The recorder stores neither `visit`, `scores` nor `legs`. |
+| Practice game | Select | `off`, `101`, `301`, `501`, `701`, `901`, `1001`, a Cricket game (`cricket`, `cut_throat`, `tactics`), a party game (`shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`) or a training game: `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles`. Choosing starts a new match or game. |
+| Practice remaining score | Sensor | Remaining score of the player at the board; *unknown* without a game. Attributes: `game`, `double_out`, `player` and `name` of the player at the board, `checkout`, `bust`, `won`, `visit` (the segments of the current visit), `darts` and `average` of the leg, `players`, `legs_to_win`, `sets_to_win`, `winner` (the player who won the match, until the next dart), `start` (the start score of the player at the board), `teams` in a [team match](#teams-and-start-scores) (`team`, `name` and `players` of both teams, otherwise none), `scores` with `player`, `name`, `remaining`, `start`, `legs` (in the current set, or the deciding set of a finished match), `sets`, `match_legs` (legs of the whole match), the match `average` and in a team match the `team` of every player, `bull_off` during a bull-off (the `player` at the board, `rethrow`, `by_distance` and `throws` with `player`, `name`, `hit` and `distance`), and `legs` with the last 10 legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended`). The recorder stores neither `visit`, `scores` nor `legs`. |
 | Practice checkout | Sensor | The checkout route, for example `T20 25 D18`; *unknown* when no route exists. |
-| Practice target | Sensor | The target of the [training game](#training-games), for example `7`, `D16`, `BULL` or the checkout score `81`, or the next open number in [Cricket](#cricket), for example `T19`; *unknown* without a target. Attributes: `drill`, `finished`, `visit`, `progress` and `targets`, `darts`, `hits`, `hit_rate`, the best result as `best`, and `results` with the last 10 results, which the recorder does not store. Bob's 27 adds `score`; the checkout training adds `remaining`, `checkout`, `bust`, `won`, `attempt_visit`, `attempt_visits`, `attempts`, `successes` and `rate`. |
-| New practice leg | Button | Starts the leg again from the full score; legs and sets stay. |
+| Practice target | Sensor | The target of the [training game](#training-games), for example `7`, `D16`, `BULL` or the checkout score `81`, or the next open number in [Cricket](#cricket), for example `T19`; *unknown* without a target. Attributes: `drill`, `finished`, `visit`, `progress` and `targets`, `darts`, `hits`, `hit_rate`, the best result as `best`, and `results` with the last 10 results, which the recorder does not store. Bob's 27 adds `score`; the checkout training and the 121 checkout add `remaining`, `checkout`, `bust`, `won`, `attempt_visit`, `attempt_visits`, `attempts`, `successes` and `rate`; Catch 40 adds `score`, `checkouts` and the same values of the number being checked out; the JDC Challenge adds `part`, `score` and `parts`, the singles training `score`. |
+| New practice leg | Button | Starts the leg again from the full score; legs and sets stay. After a finished match, it starts the next match. |
 | New practice match | Button | Starts the match again from zero legs and sets. |
 | Practice first 9 average | Sensor, points | 3-dart average of the first nine darts of each leg, over the last 10 legs of everybody at the board. |
 | Practice checkout rate | Sensor, % | Legs won per dart thrown at a double, over the last 10 legs. A dart counts at a double when one double could finish the score: 2 to 40 when even, or 50. Only with double out. |
 | Practice doubles rate | Sensor, % | The same darts at a double together with the last 10 results of the doubles training and Bob's 27. |
-| Practice legs played | Sensor, total | Legs finished in X01, Cricket and the party games; its long-term statistics show the legs per day. |
+| Practice legs played | Sensor, total | Legs finished in X01, the Cricket games and the party games; its long-term statistics show the legs per day. |
 | Practice players | Number, *Configuration* | 1–4 players. A change starts a new match. |
 | Practice legs per set | Number, *Configuration* | 1–11 legs win a set. A change starts a new match. |
 | Practice sets to win | Number, *Configuration* | 1–7 sets win the match. A change starts a new match. |
@@ -195,6 +198,23 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 | Practice double in | Switch, *Configuration* | Start scoring with a double or the bullseye. Off by default; a change starts a new match. |
 | Practice bull-off | Switch, *Configuration* | A bull-off decides who starts a match of several players. Off by default; a change starts a new match. |
 | Practice bull-off by distance | Switch, *Configuration* | Two darts in the same bull bed are decided by the distance the board measured instead of a rethrow. Off by default, as the official rules want; applies at once. |
+| Practice teams | Switch, *Configuration* | Four players of X01 or a Cricket game play as two teams. Off by default; a change starts a new match. |
+| Practice start score player *N* | Number, *Configuration* | The X01 start score of player 1–4 for a handicap, 2–1001; `0`, the default, plays the game's start score. A change starts a new match. |
+| Practice Golf holes | Select, *Configuration* | `9` or `18` holes of [Golf](#party-games); `9` by default. A change starts a game of Golf anew. |
+| Practice Count-Up rounds | Number, *Configuration* | 1–20 rounds of [Count-Up](#party-games); `8` by default. A change starts a game of Count-Up anew. |
+
+## Teams and start scores
+
+<img src="images/en/scoreboard-teams.png" alt="Scoreboard of a 501 team match: Alex and Kim with 45 left against Sam and Lea with 216, Sam at the board in bold with his average" width="760">
+
+- **Teams:** switch on *Practice teams* and set *Practice players* to 4. Players 1 and 3 play against players 2 and 4 in X01 and the [Cricket games](#cricket); they throw in seat order, so the teams alternate. Partners share one score: the remaining score in X01, the marks and points in Cricket. The scoreboard shows two team tiles, *Alex & Kim* against *Sam & Lea*, with the partner at the board in bold. Both partners win the leg and the match; the events add `team` and `team_name`.
+- **Statistics:** the averages, the first nine and the checkout rate stay per person, and the [player profiles](#player-profiles) count the leg and the match for both partners. Head-to-head records count only between opponents. A team leg sets no fewest-darts and no marks-per-round personal best.
+- **Start scores:** for a handicap, set *Practice start score player N*, for example 301 for a beginner against 501. `0` plays the game's start score. The scoreboard shows every start score beside the names, and `leg_won` names it in `start`. A team plays from the start score of its first player. A leg counts for the fewest-darts record of the score it started from: from 301 for `fewest_darts_301`, from 401 for none.
+- Party and training games are always played alone; with fewer or more than four players, *Practice teams* does nothing.
+
+<img src="images/en/scoreboard-handicap.png" alt="Scoreboard of a 501 match with start scores: Alex from 501 with 361 left, Sam from 301 with 241 left and at the board" width="760">
+
+[The rules of teams and start scores](how-it-works.md#teams).
 
 ## Cricket
 
@@ -208,16 +228,25 @@ Choose `cricket` in *Practice game*, alone or as a match of up to four players w
 - **Target:** *Practice target* shows the next open number from 20 down to the bull, for example `T19` or `BULL`, and the card outlines it on the board.
 - **Marks per round (MPR):** marks that counted per three darts, the usual Cricket statistic. Marks on a number nobody needs any more do not count.
 
-The card shows a chalkboard with the marks of every player (`/`, `X`, `Ⓧ`), the points and the MPR. *Practice remaining score* stays *unknown* in Cricket; its attributes carry the game: `game` is `cricket`, plus `points`, `mpr`, `target`, `numbers` (20 to 15 and 25) and `scores` with `marks`, `points`, `legs`, `sets` and `mpr` of every player. Cricket legs do not count for the X01 statistics.
+Two variants play by the same marks:
+
+| Game | Rules |
+| --- | --- |
+| **Cut-Throat Cricket** (`cut_throat`) | Marks on a closed number give its value to every other player who still has it open. Close every number with the fewest points to win. |
+| **Tactics** (`tactics`) | Cricket on 20 to 10 and the bull, twelve numbers in all. |
+
+<img src="images/en/scoreboard-tactics.png" alt="Scoreboard in Tactics between Alex and Sam: the chalkboard from 20 down to 10 and the bull, Alex with 94 points, Sam at the board with T15 as the next target" width="760">
+
+The card shows a chalkboard with the marks of every player (`/`, `X`, `Ⓧ`), the points and the MPR, and the numbers of the game. *Practice remaining score* stays *unknown* in the Cricket games; its attributes carry the game: `game` is `cricket`, `cut_throat` or `tactics`, plus `points`, `mpr`, `target`, `numbers` (20 to 15 and 25, in Tactics 20 to 10 and 25) and `scores` with `marks`, `points`, `legs`, `sets` and `mpr` of every player. Cricket legs do not count for the X01 statistics; the MPR of the [player profiles](#player-profiles) and `best_cricket_mpr` come from Cricket only.
 
 ## Player profiles
 
-Every named player of a practice game gets a profile with lifetime numbers. Names are the same player regardless of upper and lower case; players without a name count for nobody. Every leg of X01, Cricket and the party games counts; X01 legs add the averages and the checkout rate, Cricket legs the marks per round.
+Every named player of a practice game gets a profile with lifetime numbers. Names are the same player regardless of upper and lower case; players without a name count for nobody. Every leg of X01, the Cricket games and the party games counts; X01 legs add the averages and the checkout rate, Cricket legs the marks per round. In a [team match](#teams-and-start-scores), both partners win the leg and the match.
 
 | Entity | Type | Description |
 | --- | --- | --- |
 | Player profiles | Sensor, players | The number of profiles. Attribute `players` with, for every player: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (start score → fewest darts for a won leg), `last_played` and `person` (the [linked person](#link-a-player-to-a-person-autodartslink_player), or none). `highest_visit` is the highest X01 score of the player; `highest_checkout` and `fewest_darts` come from legs with double out only. The recorder does not store the list. |
-| Last match | Sensor, timestamp | When the last match of several players ended. Attributes: `game` and `winner` of that match, `matches` with the last 20 matches (`ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` and every player's `name`, `legs` and `sets` at the end, `match_legs` and `average`, `mpr` or `points`), and `head_to_head` with the wins of every pair of named players. The recorder stores neither list. |
+| Last match | Sensor, timestamp | When the last match of several players ended. Attributes: `game` and `winner` of that match, `matches` with the last 20 matches (`ended`, `game`, `legs_to_win`, `sets_to_win`, `winner`, in a team match `winners` with both winners, and every player's `name`, `legs` and `sets` at the end, `match_legs` and `average`, `mpr` or `points`, and `team` in a team match), and `head_to_head` with the wins of every pair of named opponents. The recorder stores neither list. |
 
 The [players card](cards.md#players-card) shows all of it. To remove a profile, for example after a typo in a name, use [`autodarts.delete_player`](#delete-a-player-profile-autodartsdelete_player).
 
@@ -225,7 +254,7 @@ The [players card](cards.md#players-card) shows all of it. To remove a profile, 
 
 ## Doubles analysis
 
-Home Assistant counts every dart thrown at a double and whether it hit: in X01 when one double could finish the remaining score (2 to 40 when even, or 50 for the bullseye), in the doubles training at the current double, and in Bob's 27 at the double of the round. It keeps the numbers for everybody and, in the [player profiles](#player-profiles), for every named player.
+Home Assistant counts every dart thrown at a double and whether it hit: in X01 when one double could finish the remaining score (2 to 40 when even, or 50 for the bullseye), in the doubles training at the current double, in Bob's 27 at the double of the round, and in the doubles part of the JDC Challenge at the double of each dart. It keeps the numbers for everybody and, in the [player profiles](#player-profiles), for every named player.
 
 | Entity | Type | Description |
 | --- | --- | --- |
@@ -238,19 +267,24 @@ The [doubles card](cards.md#doubles-card) draws the hit rate of every double on 
 
 <img src="images/en/killer.webp" alt="Animation: Killer for Alex, Sam and Kim on the scoreboard. Everybody throws for a number, Alex becomes a killer and takes Sam's lives, Kim becomes a killer too, and Alex takes the last life to win" width="760">
 
-Three pub classics for one to four players, chosen in *Practice game*. They follow the darts like X01, book a visit when you pull the darts, and win legs and sets like any match. The live card and the [scoreboard](cards.md#scoreboard-card) show the round, the target, every player's points or lives, and outline the beds to aim at.
+Six pub classics for one to four players, chosen in *Practice game*. They follow the darts like X01, book a visit when you pull the darts, and win legs and sets like any match. The live card and the [scoreboard](cards.md#scoreboard-card) show the round, the target, every player's points or lives, and outline the beds to aim at; in Golf and Baseball, the scoreboard keeps a scorecard of every hole and inning.
 
 | Game | Rules |
 | --- | --- |
 | **Shanghai** (`shanghai`) | Seven rounds at the numbers 1 to 7. Every dart in a bed of the round's number scores its value; a miss next to it does not. A single, double and treble of that number in one visit (a *Shanghai*) wins the leg at once; otherwise the most points after seven rounds win. |
 | **Halve-It** (`halve_it`) | Everybody starts with 40 points. The rounds aim at 15, 16, any double (the bullseye included), 17, 18, any treble, 19, 20 and the bull (`25`: the outer bull scores 25, the bullseye 50); hits add their score. A visit without a hit on the target halves the points, rounded down. The most points after nine rounds win. |
 | **Killer** (`killer`) | Two to four players. Each first throws one dart for a number of their own (any bed of a number nobody has yet; after a miss, the bull or a taken number, throw again). Then only doubles count: hitting the double of your own number makes you a killer for the rest of the leg. Killers take a life with every hit on another player's double, and lose one when they hit their own. Everybody has 3 lives; a player without lives is out, and the rest of their visit does nothing. The last one with a life left wins. |
+| **Golf** (`golf`) | Nine or 18 holes (*Practice Golf holes*), hole *n* on the number *n*. The last dart of a visit counts, so pull your darts to stop after a good one: a treble is 1 stroke, a double 2, an inner single 3, an outer single 4, anything else 5. The fewest strokes win. |
+| **Baseball** (`baseball`) | Nine innings, inning *n* on the number *n*. Every dart in a bed of the number scores runs: a single 1, a double 2, a treble 3. The most runs win. |
+| **Count-Up** (`count_up`) | Every dart scores its value for 1 to 20 rounds (*Practice Count-Up rounds*, 8 by default). The most points win. |
 
-In Shanghai and Halve-It, a tie in points goes to the player with more hits; if that is equal too, the leg is played again. Shanghai and Killer are won by a single dart; later darts of the visit do not count. [All rules](how-it-works.md#rules). *Practice remaining score* stays *unknown*; its attributes carry `game`, `round`, `rounds`, `target` (`D` and `T` mean any double and any treble), `phase` (`choose` or `play` in Killer), `points` and `scores` with `points`, `legs`, `sets` and, in Killer, `number`, `lives` and `killer` of every player. *Practice target* shows the target, in Killer the own double until you are a killer. Party games do not count for the X01 statistics.
+<img src="images/en/golf.webp" alt="Animation: Golf for Alex and Sam on the scoreboard. After every visit the scorecard fills: Alex plays 1, 3 and 2, Sam 4, 5 and 5, and the fourth hole is under way" width="760">
+
+In Shanghai and Halve-It, a tie in points goes to the player with more hits; if that is equal too, the leg is played again. In Golf, Baseball and Count-Up, a tie at the top plays extra rounds among the tied players until one of them leads after a round. Shanghai and Killer are won by a single dart; later darts of the visit do not count. [All rules](how-it-works.md#rules). *Practice remaining score* stays *unknown*; its attributes carry `game`, `round`, `rounds`, `target` (`D` and `T` mean any double and any treble), `phase` (`choose` or `play` in Killer), `playoff` (the players of the extra rounds after a tie, otherwise none), `points` and `scores` with `points`, `legs`, `sets` and, in Killer, `number`, `lives` and `killer`, in Golf and Baseball the `scorecard` with the score of every round, of every player. *Practice target* shows the target, in Killer the own double until you are a killer. Party games do not count for the X01 statistics.
 
 ## Training games
 
-Four classic drills, chosen in *Practice game*. Each follows the darts of the current visit and books the visit when you pull the darts. Darts already on the board when a game starts do not count. A finished game stays on the card until the next dart starts it again; *New practice leg* starts it again at once. Every game keeps its last 10 results.
+Eight classic drills, chosen in *Practice game*. Each follows the darts of the current visit and books the visit when you pull the darts. Darts already on the board when a game starts do not count. A finished game stays on the card until the next dart starts it again; *New practice leg* starts it again at once. Every game keeps its last 10 results.
 
 <img src="images/en/training-game.webp" alt="Animation: Around the Clock. Each hit moves the target from 1 to 6 and outlines every bed of the next number on the board" width="620">
 
@@ -260,8 +294,16 @@ Four classic drills, chosen in *Practice game*. Each follows the darts of the cu
 | **Doubles training** (`doubles`) | The same with the doubles only: D1 to D20, then the bullseye (`BULL`). |
 | **Checkout training** (`checkout`) | A random score from 2 to 170 that three darts can finish, checked out on a double within three visits. A bust ends the attempt; the route shows only while the attempt goes on. The checkout rate counts successful attempts. |
 | **Bob's 27** (`bobs_27`) | Start with 27 points and throw one visit at each double from D1 to D20 and then at the bullseye. Every hit adds the value of the double; a visit without a hit subtracts it. The game is lost as soon as the score reaches zero or less, and completed after the bullseye. |
+| **121 checkout** (`checkout_121`) | Check out 121 within nine darts. A finish raises the target to the next score, a miss lowers it by one, never below 121. The highest score checked out is the personal best. |
+| **Catch 40** (`catch_40`) | Check out 61 to 100 in turn, with two visits each: 3 points for a checkout in two darts, 2 in three darts, 1 in four to six darts. At most 120 points. |
+| **JDC Challenge** (`jdc_challenge`) | The 57-dart routine of the Junior Darts Corporation: Shanghai visits at 10 to 15, one dart at every double and the bullseye, Shanghai visits at 15 to 20. At most 3,380 points. |
+| **Singles training** (`singles`) | One visit at each number from 1 to 20 and the bull; a single scores 1 point, a double 2, a treble 3. At most 186 points. |
 
-Training games are for one player; *Practice players* applies to X01, Cricket and the party games.
+<img src="images/en/checkout-121.webp" alt="Animation: the 121 checkout on the live card. T20, S1 and S20 leave 40, D20 in the second visit is the game shot, and the target climbs to 122" width="620">
+
+[All rules of the training games](how-it-works.md#training-games).
+
+Training games are for one player; *Practice players* applies to X01, the Cricket games and the party games.
 
 ## Controls
 
@@ -354,7 +396,7 @@ Sets up and starts a game in one call, for automations, scripts, dashboard butto
 
 | Field | Values | Description |
 | --- | --- | --- |
-| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `shanghai`, `halve_it`, `killer`, `around_the_clock`, `doubles`, `checkout`, `bobs_27` | The game; required |
+| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles` | The game; required |
 | `players` | 1–4 names | Players in throwing order; the number of names sets the number of players |
 | `legs` | 1–11 | Legs that win a set |
 | `sets` | 1–7 | Sets that win the match |
@@ -362,6 +404,10 @@ Sets up and starts a game in one call, for automations, scripts, dashboard butto
 | `double_in` | `true`, `false` | Start X01 legs with a double or the bullseye |
 | `bull_off` | `true`, `false` | A bull-off decides who starts a match of several players |
 | `bull_off_distance` | `true`, `false` | Two darts in the same bull bed are decided by the measured distance instead of a rethrow |
+| `teams` | `true`, `false` | Four players of X01 or a Cricket game play as two teams: players 1 and 3 against 2 and 4 |
+| `start_scores` | up to 4 numbers, `0` or 2–1001 | X01 start scores of the players in throwing order, for a handicap; `0` or a missing score plays the game's start score |
+| `holes` | `9`, `18` | Holes of Golf |
+| `rounds` | 1–20 | Rounds of Count-Up |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml
@@ -372,7 +418,27 @@ data:
   legs: 3
 ```
 
-The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when a name appears twice among the players, or when Killer would have fewer than two players. Values beyond the limits above are rejected before anything changes.
+A team match of four:
+
+```yaml
+action: autodarts.start_game
+data:
+  game: "501"
+  players: [Alex, Sam, Kim, Lea]
+  teams: true
+```
+
+A handicap, Mia starting from 301:
+
+```yaml
+action: autodarts.start_game
+data:
+  game: "501"
+  players: [Dennis, Mia]
+  start_scores: [501, 301]
+```
+
+The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when a name appears twice among the players, when Killer would have fewer than two players, or when `teams` asks for teams without four players or in a game other than X01 and the Cricket games. Values beyond the limits above are rejected before anything changes.
 
 ### Delete a player profile: `autodarts.delete_player`
 

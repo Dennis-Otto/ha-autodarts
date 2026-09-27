@@ -11,7 +11,7 @@ from .runtime import AutodartsConfigEntry
 
 # Identifiers, addresses, credentials and player names that must never leave a
 # bug report; segment names of darts are redacted with the player names.
-TO_REDACT = {"board_id", "client_id", "host", "token", "ip", "name"}
+TO_REDACT = {"board_id", "client_id", "host", "token", "ip", "name", "team_name"}
 
 
 async def async_get_config_entry_diagnostics(

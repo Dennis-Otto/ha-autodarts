@@ -1,4 +1,4 @@
-"""Camera standby of the Board Manager, the practice game and the report day."""
+"""Camera standby of the Board Manager, the practice game, Golf holes and the report day."""
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import EntityCategory
@@ -8,6 +8,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .entity import AutodartsLocalEntity
 from .local_api import STANDBY_MINUTES
 from .local_coordinator import AutodartsLocalCoordinator
+from .party import GOLF_HOLES
 from .practice import GAME_OPTIONS
 from .report import WEEKDAYS
 from .runtime import AutodartsConfigEntry
@@ -25,6 +26,7 @@ async def async_setup_entry(
             [
                 AutodartsStandbySelect(coordinator),
                 AutodartsPracticeGame(coordinator),
+                AutodartsGolfHoles(coordinator),
                 AutodartsReportDay(coordinator),
             ]
         )
@@ -53,7 +55,7 @@ class AutodartsStandbySelect(AutodartsLocalEntity, SelectEntity):
 
 
 class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
-    """X01, Cricket, a party or training game; a choice starts it anew."""
+    """X01, a Cricket, party or training game; a choice starts it anew."""
 
     _attr_options = ["off", *GAME_OPTIONS]
 
@@ -71,7 +73,7 @@ class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
         if practice.drill:
             return practice.drill
         if practice.cricket:
-            return "cricket"
+            return practice.cricket
         if practice.party:
             return practice.party.kind
         return str(practice.game) if practice.game else "off"
@@ -83,6 +85,27 @@ class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
             await self.coordinator.async_play(int(option))
         else:
             await self.coordinator.async_play(option)
+
+
+class AutodartsGolfHoles(AutodartsLocalEntity, SelectEntity):
+    """Nine or 18 holes of Golf; a change starts a game of Golf anew."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_options = [str(holes) for holes in GOLF_HOLES]
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "practice_golf_holes")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def current_option(self) -> str:
+        return str(self.coordinator.practice.golf_holes)
+
+    async def async_select_option(self, option: str) -> None:
+        await self.coordinator.async_set_party_rounds(golf_holes=int(option))
 
 
 class AutodartsReportDay(AutodartsLocalEntity, SelectEntity):

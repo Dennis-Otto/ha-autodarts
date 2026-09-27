@@ -121,6 +121,7 @@
             'player': 1,
             'remaining': 501,
             'sets': 0,
+            'start': 501,
           }),
           dict({
             'average': 180.0,
@@ -131,9 +132,12 @@
             'player': 2,
             'remaining': 321,
             'sets': 0,
+            'start': 501,
           }),
         ]),
         'sets_to_win': 1,
+        'start': 501,
+        'teams': None,
         'visit': list([
         ]),
         'winner': None,
@@ -196,6 +200,7 @@
       'players': 2,
       'sets_to_win': 1,
       'stored_legs': 0,
+      'teams': False,
     }),
     'realtime_connected': False,
     'records': dict({
@@ -308,6 +313,7 @@
         'legs_to_win': 1,
         'players': 1,
         'sets_to_win': 1,
+        'teams': None,
       }),
       'quality': dict({
         'corrected': 0,
@@ -369,6 +375,7 @@
       'players': 1,
       'sets_to_win': 1,
       'stored_legs': 0,
+      'teams': False,
     }),
     'realtime_connected': False,
     'records': dict({

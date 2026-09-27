@@ -1,4 +1,7 @@
-"""Party games for one to four players: Shanghai, Halve-It and Killer; and the bull-off.
+"""Party games for one to four players and the bull-off.
+
+Shanghai, Halve-It and Killer, and Golf, Baseball and Count-Up, which play a
+fixed number of rounds and settle a tie at the top in extra rounds.
 
 A party game follows the darts of the visit for the player at the board and
 books the visit when the darts are pulled, like X01. It knows its own rules:
@@ -15,7 +18,7 @@ from typing import Any
 from .scoring import score
 from .training import hit_key
 
-PARTY_GAMES = ("shanghai", "halve_it", "killer")
+PARTY_GAMES = ("shanghai", "halve_it", "killer", "golf", "baseball", "count_up")
 SHANGHAI_ROUNDS = 7
 # Halve-It: a number, any double (D), any treble (T) or the bull (25) per round.
 HALVE_IT_TARGETS = ("15", "16", "D", "17", "18", "T", "19", "20", "25")
@@ -25,6 +28,16 @@ KILLER_LIVES = 3
 BOARD_RADIUS_MM = 170
 # The bullseye beats the outer bull, which beats every other bed.
 BULL_BEDS = {"BULL": 2, "25": 1}
+GOLF_HOLES = (9, 18)
+BASEBALL_INNINGS = 9
+COUNT_UP_ROUNDS = 8
+MAX_ROUNDS = 20
+# Golf strokes of a dart at the hole: treble, double, inner and outer single.
+GOLF_STROKES = {3: 1, 2: 2}
+GOLF_INNER, GOLF_OUTER, GOLF_MISS = 3, 4, 5
+# Singles closer to the centre than the middle of the treble ring (97 to
+# 107 mm) are inner singles.
+INNER_SINGLE = 102 / BOARD_RADIUS_MM
 
 
 def distance_mm(position: tuple[float, float] | None) -> float | None:
@@ -32,6 +45,11 @@ def distance_mm(position: tuple[float, float] | None) -> float | None:
     if position is None:
         return None
     return round(math.hypot(*position) * BOARD_RADIUS_MM, 1)
+
+
+def inner_single(position: tuple[float, float] | None) -> bool | None:
+    """Whether a single landed inside the treble ring; None without a position."""
+    return None if position is None else math.hypot(*position) < INNER_SINGLE
 
 
 class BullOff:
@@ -157,6 +175,8 @@ class PartyGame(ABC):
 
     kind = ""
     start = 0
+    # Rounds of a leg, where the game has a fixed number.
+    rounds: int | None = None
 
     def __init__(self, players: int) -> None:
         self.players = players
@@ -172,6 +192,15 @@ class PartyGame(ABC):
     @property
     def round(self) -> int:
         return self.turns // self.players + 1
+
+    @property
+    def shown_round(self) -> int | None:
+        """The round the card shows, which never passes the last one."""
+        return min(self.round, self.rounds) if self.rounds else None
+
+    def playoff(self) -> list[int] | None:
+        """The players of extra rounds after a tie, while they play them."""
+        return None
 
     @abstractmethod
     def target(self, player: int) -> str | None:
@@ -250,6 +279,7 @@ class Shanghai(PartyGame):
     """Seven rounds at 1 to 7; a single, double and treble in one visit wins."""
 
     kind = "shanghai"
+    rounds = SHANGHAI_ROUNDS
 
     def target(self, player: int) -> str | None:
         return str(min(self.round, SHANGHAI_ROUNDS))
@@ -277,6 +307,7 @@ class HalveIt(PartyGame):
 
     kind = "halve_it"
     start = HALVE_IT_START
+    rounds = len(HALVE_IT_TARGETS)
 
     def target(self, player: int) -> str | None:
         return HALVE_IT_TARGETS[min(self.round, len(HALVE_IT_TARGETS)) - 1]
@@ -451,12 +482,198 @@ class Killer(PartyGame):
             self.killers = [killer is True for killer in killers]
 
 
+class RoundsGame(PartyGame):
+    """A fixed number of rounds for everybody; the best total wins.
+
+    A tie at the top after the last round plays extra rounds among the tied
+    players, in their throwing order, until one of them is ahead after a
+    round. Round n aims at the number n, and extra rounds carry on from
+    there, after 20 from 1 again.
+    """
+
+    default_rounds = 9
+    lowest_wins = False
+
+    def __init__(self, players: int, rounds: int | None = None) -> None:
+        self.length = rounds or self.default_rounds
+        self.rounds = self.length
+        super().__init__(players)
+
+    def new_leg(self, players: int, starter: int) -> None:
+        super().new_leg(players, starter)
+        self.current_round = 1
+        # The players of the round in throwing order, and how many have thrown.
+        self.lineup = [(starter + offset) % players for offset in range(players)]
+        self.thrown = 0
+        # The score of every round, per player.
+        self.scorecard: list[list[int]] = [[] for _ in range(players)]
+
+    @property
+    def round(self) -> int:
+        return self.current_round
+
+    @property
+    def shown_round(self) -> int | None:
+        return self.current_round
+
+    def playoff(self) -> list[int] | None:
+        return list(self.lineup) if self.current_round > self.length else None
+
+    def number(self) -> int:
+        return (self.current_round - 1) % MAX_ROUNDS + 1
+
+    def target(self, player: int) -> str | None:
+        return str(self.number())
+
+    @abstractmethod
+    def score(self, darts: list[dict[str, Any]]) -> tuple[int, int]:
+        """The points and the hits of a visit in the current round."""
+
+    def visit(self, player: int, darts: list[dict[str, Any]]) -> Visit:
+        points = list(self.points)
+        scored, hits = self.score(darts)
+        points[player] += scored
+        return Visit(points, hits=hits, darts=len(darts))
+
+    def book(self, player: int, darts: list[dict[str, Any]]) -> Visit:
+        result = self.visit(player, darts)
+        self.scorecard[player].append(result.points[player] - self.points[player])
+        self.points = result.points
+        self.hits[player] += result.hits
+        self.turns += 1
+        self.thrown += 1
+        if self.thrown == len(self.lineup):
+            result.won = self._round_played()
+        return result
+
+    def _round_played(self) -> int | None:
+        """The winner once the last round decides the leg; otherwise the next round."""
+        if self.current_round >= self.length:
+            pick = min if self.lowest_wins else max
+            best = pick(self.points[player] for player in self.lineup)
+            leaders = [player for player in self.lineup if self.points[player] == best]
+            if len(leaders) == 1:
+                return leaders[0]
+            self.lineup = leaders
+        self.current_round += 1
+        self.thrown = 0
+        return None
+
+    def next(self, player: int) -> int:
+        return self.lineup[self.thrown]
+
+    def details(self, player: int) -> dict[str, Any]:
+        return {"scorecard": list(self.scorecard[player])}
+
+    def stored(self) -> dict[str, Any]:
+        return {
+            **super().stored(),
+            "round": self.current_round,
+            "lineup": list(self.lineup),
+            "thrown": self.thrown,
+            "scorecard": [list(scores) for scores in self.scorecard],
+        }
+
+    def restore(self, saved: object) -> None:
+        super().restore(saved)
+        if not isinstance(saved, dict):
+            return
+        size = self.players
+        current, lineup = saved.get("round"), saved.get("lineup")
+        thrown, scorecard = saved.get("thrown"), saved.get("scorecard")
+        if type(current) is int and current >= 1:
+            self.current_round = current
+        if (
+            isinstance(lineup, list)
+            and lineup
+            and all(type(player) is int and 0 <= player < size for player in lineup)
+            and len(set(lineup)) == len(lineup)
+        ):
+            self.lineup = list(lineup)
+        # Everybody has thrown once the last round decided the leg.
+        if type(thrown) is int and 0 <= thrown <= len(self.lineup):
+            self.thrown = thrown
+        if (
+            isinstance(scorecard, list)
+            and len(scorecard) == size
+            and all(
+                isinstance(scores, list)
+                and all(type(value) is int and value >= 0 for value in scores)
+                for scores in scorecard
+            )
+        ):
+            self.scorecard = [list(scores) for scores in scorecard]
+
+
+def golf_strokes(dart: dict[str, Any], hole: int) -> int:
+    """Strokes of a dart at the hole: treble 1, double 2, inner single 3,
+    outer single 4, anything else 5. A single without a position counts as
+    an outer single."""
+    if dart["number"] != hole or dart["multiplier"] == 0:
+        return GOLF_MISS
+    if dart["multiplier"] in GOLF_STROKES:
+        return GOLF_STROKES[dart["multiplier"]]
+    return GOLF_INNER if dart.get("inner") else GOLF_OUTER
+
+
+class Golf(RoundsGame):
+    """Nine or 18 holes, hole n at the number n; the last dart of the visit
+    counts, so players stop by pulling their darts. The fewest strokes win."""
+
+    kind = "golf"
+    lowest_wins = True
+
+    def score(self, darts: list[dict[str, Any]]) -> tuple[int, int]:
+        if not darts:
+            return 0, 0
+        strokes = golf_strokes(darts[-1], self.number())
+        return strokes, int(strokes < GOLF_MISS)
+
+
+class Baseball(RoundsGame):
+    """Nine innings, inning n at the number n: a single scores one run, a
+    double two, a treble three. The most runs win."""
+
+    kind = "baseball"
+
+    def score(self, darts: list[dict[str, Any]]) -> tuple[int, int]:
+        number = self.number()
+        hits = [
+            dart["multiplier"]
+            for dart in darts
+            if dart["number"] == number and dart["multiplier"] > 0
+        ]
+        return sum(hits), len(hits)
+
+
+class CountUp(RoundsGame):
+    """Every dart scores its value for a number of rounds; the most points win."""
+
+    kind = "count_up"
+    default_rounds = COUNT_UP_ROUNDS
+
+    def target(self, player: int) -> str | None:
+        return None
+
+    def score(self, darts: list[dict[str, Any]]) -> tuple[int, int]:
+        return sum(score(dart) for dart in darts), sum(
+            score(dart) > 0 for dart in darts
+        )
+
+
 GAME_RULES: dict[str, type[PartyGame]] = {
     "shanghai": Shanghai,
     "halve_it": HalveIt,
     "killer": Killer,
+    "golf": Golf,
+    "baseball": Baseball,
+    "count_up": CountUp,
 }
 
 
-def make_party(kind: str, players: int) -> PartyGame:
-    return GAME_RULES[kind](players)
+def make_party(kind: str, players: int, rounds: int | None = None) -> PartyGame:
+    """The rules of a party game; Golf and Count-Up take their number of rounds."""
+    rules = GAME_RULES[kind]
+    if issubclass(rules, RoundsGame):
+        return rules(players, rounds)
+    return rules(players)

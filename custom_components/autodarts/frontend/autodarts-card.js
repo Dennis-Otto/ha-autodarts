@@ -211,6 +211,7 @@ const TEXT = {
     score_legs: "Legs",
     score_sets: "Sets",
     practice_names: "Player names",
+    practice_starts: "Start scores (handicap)",
     practice_game_row: "Game",
     practice_legs_per_day: "Practice legs per day",
     practice_trend: "First 9, checkout and doubles rate",
@@ -230,7 +231,17 @@ const TEXT = {
     drill_done: "Done in {darts} darts",
     drill_bobs_done: "Done with {points} points",
     drill_bobs_lost: "Below zero – the next dart starts again",
+    drill_checkout_121: "121 checkout",
+    drill_catch_40: "Catch 40",
+    drill_jdc_challenge: "JDC Challenge",
+    drill_singles: "Singles training",
+    drill_part: "Part",
+    drill_best: "Best",
+    drill_target: "Target",
     cricket: "Cricket",
+    cricket_cut_throat: "Cut-Throat Cricket",
+    cricket_tactics: "Tactics",
+    cut_throat_hint: "Fewest points win",
     cricket_mpr: "MPR",
     cricket_points: "Points",
     mark_0: "No marks",
@@ -242,6 +253,17 @@ const TEXT = {
     party_shanghai: "Shanghai",
     party_halve_it: "Halve-It",
     party_killer: "Killer",
+    party_golf: "Golf",
+    party_baseball: "Baseball",
+    party_count_up: "Count-Up",
+    golf_hole: "Hole",
+    baseball_inning: "Inning",
+    playoff: "Play-off",
+    golf_hint: "The last dart counts – pull your darts to stop",
+    total: "Total",
+    team: "Team",
+    score_winners: "win the match!",
+    start_score: "Start score",
     any_double: "Any double",
     any_treble: "Any treble",
     killer_choose: "Throw for your number",
@@ -301,6 +323,8 @@ const TEXT = {
     say_no_score: "No score",
     say_mark: "One mark",
     say_marks: "{marks} marks",
+    say_run: "One run",
+    say_runs: "{runs} runs",
     say_leg: "Game shot, and the leg!",
     say_match: "Game shot, and the match, {name}!",
     // New game screen of the scoreboard
@@ -332,6 +356,9 @@ const TEXT = {
     lobby_start: "Start {game}",
     lobby_close: "Close",
     lobby_end: "End game",
+    lobby_start_lower: "Lower start score: {name}",
+    lobby_start_raise: "Higher start score: {name}",
+    teams: "Teams (1 + 3 against 2 + 4)",
     double_out: "Double out",
     double_in: "Double in",
     bull_off_distance: "Bull-off by distance",
@@ -535,6 +562,7 @@ const TEXT = {
     score_legs: "Legs",
     score_sets: "Sätze",
     practice_names: "Spielernamen",
+    practice_starts: "Startpunkte (Handicap)",
     practice_game_row: "Spiel",
     practice_legs_per_day: "Übungslegs pro Tag",
     practice_trend: "First 9, Checkout- und Doppelquote",
@@ -554,7 +582,17 @@ const TEXT = {
     drill_done: "Geschafft in {darts} Darts",
     drill_bobs_done: "Geschafft mit {points} Punkten",
     drill_bobs_lost: "Unter null – der nächste Dart startet neu",
+    drill_checkout_121: "121-Checkout",
+    drill_catch_40: "Catch 40",
+    drill_jdc_challenge: "JDC Challenge",
+    drill_singles: "Singles-Training",
+    drill_part: "Teil",
+    drill_best: "Bestes",
+    drill_target: "Ziel",
     cricket: "Cricket",
+    cricket_cut_throat: "Cut-Throat Cricket",
+    cricket_tactics: "Tactics",
+    cut_throat_hint: "Die wenigsten Punkte gewinnen",
     cricket_mpr: "MPR",
     cricket_points: "Punkte",
     mark_0: "Keine Marks",
@@ -566,6 +604,17 @@ const TEXT = {
     party_shanghai: "Shanghai",
     party_halve_it: "Halve-It",
     party_killer: "Killer",
+    party_golf: "Golf",
+    party_baseball: "Baseball",
+    party_count_up: "Count-Up",
+    golf_hole: "Loch",
+    baseball_inning: "Inning",
+    playoff: "Stechen",
+    golf_hint: "Der letzte Dart zählt – zieh deine Darts, um aufzuhören",
+    total: "Gesamt",
+    team: "Team",
+    score_winners: "gewinnen das Match!",
+    start_score: "Startpunkte",
     any_double: "Beliebiges Double",
     any_treble: "Beliebiges Triple",
     killer_choose: "Wirf für deine Zahl",
@@ -624,6 +673,8 @@ const TEXT = {
     say_no_score: "Keine Punkte",
     say_mark: "Ein Mark",
     say_marks: "{marks} Marks",
+    say_run: "Ein Run",
+    say_runs: "{runs} Runs",
     say_leg: "Game shot, und das Leg!",
     say_match: "Game shot, und das Match, {name}!",
     lobby_open: "Neues Spiel",
@@ -654,6 +705,9 @@ const TEXT = {
     lobby_start: "{game} starten",
     lobby_close: "Schließen",
     lobby_end: "Spiel beenden",
+    lobby_start_lower: "Weniger Startpunkte: {name}",
+    lobby_start_raise: "Mehr Startpunkte: {name}",
+    teams: "Teams (1 + 3 gegen 2 + 4)",
     double_out: "Double-Out",
     double_in: "Double-In",
     bull_off_distance: "Ausbullen nach Abstand",
@@ -939,6 +993,7 @@ const SCOREBOARD_KEYS = {
   doubleIn: "switch.practice_double_in",
   bullOff: "switch.practice_bull_off",
   bullOffDistance: "switch.practice_bull_off_distance",
+  teams: "switch.practice_teams",
   // Profiles with their pictures, records and the last match for the idle panels.
   profiles: "sensor.player_profiles",
   lastMatch: "sensor.last_match",
@@ -1410,6 +1465,10 @@ const RECORD_ORDER = [
   ["around_the_clock", "drill_around_the_clock", "darts"],
   ["doubles", "drill_doubles", "darts"],
   ["bobs_27", "drill_bobs_27", "points"],
+  ["checkout_121", "drill_checkout_121", "count"],
+  ["catch_40", "drill_catch_40", "points"],
+  ["jdc_challenge", "drill_jdc_challenge", "points"],
+  ["singles", "drill_singles", "points"],
 ];
 
 // Every personal best that has a value, and the longest training streak.
@@ -1459,6 +1518,15 @@ function bestsHtml(records, ui) {
 const gameVisit = (attributes) =>
   (Array.isArray(attributes.visit) ? attributes.visit : []).filter((key) => typeof key === "string");
 
+// The two teams of a team match: the team number and its players.
+function teamsView(teams) {
+  return (Array.isArray(teams) ? teams : [])
+    .filter((team) => team && Number.isInteger(team.team) && Array.isArray(team.players))
+    .map((team) => ({ team: team.team, players: team.players.filter(Number.isInteger) }));
+}
+
+const teamOf = (score) => (Number.isInteger(score.team) ? score.team : null);
+
 // The practice leg of the remaining-score sensor, or null without a game.
 function practiceView(state) {
   if (!usable(state)) return null;
@@ -1472,6 +1540,8 @@ function practiceView(state) {
       player: score.player,
       name: named(score.name),
       remaining: score.remaining,
+      start: finite(score.start),
+      team: teamOf(score),
       legs: finite(score.legs) ?? 0,
       sets: finite(score.sets) ?? 0,
       average: finite(score.average),
@@ -1479,6 +1549,7 @@ function practiceView(state) {
   return {
     game: finite(attributes.game),
     remaining,
+    teams: teamsView(attributes.teams),
     route: route.filter((bed) => hitBeds(bed).length),
     bust: attributes.bust === true,
     won: attributes.won === true,
@@ -1500,7 +1571,18 @@ function practiceView(state) {
 // The highest score that ends a leg: two trebles 20 and the bull, or three trebles 20.
 const highestCheckout = (practice) => (practice.doubleOut ? 170 : 180);
 
-const DRILLS = ["around_the_clock", "doubles", "checkout", "bobs_27"];
+const DRILLS = [
+  "around_the_clock",
+  "doubles",
+  "checkout",
+  "bobs_27",
+  "checkout_121",
+  "catch_40",
+  "jdc_challenge",
+  "singles",
+];
+// Training games that check out a score, with a route to show.
+const CHECKOUT_DRILLS = ["checkout", "checkout_121", "catch_40"];
 
 // The training game of the target sensor; a finished game has no target.
 function drillView(state) {
@@ -1525,32 +1607,34 @@ function drillView(state) {
     attempts: finite(attributes.attempts) ?? 0,
     successes: finite(attributes.successes) ?? 0,
     rate: finite(attributes.rate),
+    part: finite(attributes.part),
+    best: finite(attributes.best),
+    thrown: gameVisit(attributes),
     completed: Array.isArray(attributes.results) ? attributes.results[0]?.completed === true : false,
   };
 }
 
-// Beds to aim at in a training game: every bed of the number in Around the Clock.
+// Beds to aim at in a training game: the route of a checkout, every bed of a
+// number and the whole bull for 25, or the double of the doubles.
 function drillBeds(drill) {
   if (!drill || drill.finished) return [];
-  if (drill.kind === "checkout") return hitBeds(drill.route[0] ?? "");
+  if (CHECKOUT_DRILLS.includes(drill.kind)) return hitBeds(drill.route[0] ?? "");
   const target = drill.target ?? "";
-  if (drill.kind !== "around_the_clock") return hitBeds(target);
-  if (target === "BULL") return [...hitBeds("BULL"), ...hitBeds("25")];
-  return ["S", "T", "D"].flatMap((bed) => hitBeds(`${bed}${target}`));
+  return /^\d+$/.test(target) ? targetBeds(target) : hitBeds(target);
 }
 
 const CRICKET_NUMBERS = [20, 19, 18, 17, 16, 15, 25];
+const CRICKET_GAMES = ["cricket", "cut_throat", "tactics"];
 // No mark, one, two, and a closed number, as on a Cricket chalkboard.
 const CRICKET_MARKS = ["", "/", "X", "Ⓧ"];
 
 // The Cricket leg of the remaining-score sensor, which has no state then.
 function cricketView(state) {
   const attributes = state?.attributes || {};
-  if (!state || state.state === "unavailable" || attributes.game !== "cricket") return null;
+  if (!state || state.state === "unavailable" || !CRICKET_GAMES.includes(attributes.game)) return null;
+  // Tactics adds the numbers 14 to 10.
   const numbers =
-    Array.isArray(attributes.numbers) &&
-    attributes.numbers.length === CRICKET_NUMBERS.length &&
-    attributes.numbers.every(Number.isInteger)
+    Array.isArray(attributes.numbers) && attributes.numbers.length && attributes.numbers.every(Number.isInteger)
       ? attributes.numbers
       : CRICKET_NUMBERS;
   const scores = (Array.isArray(attributes.scores) ? attributes.scores : [])
@@ -1563,12 +1647,15 @@ function cricketView(state) {
       name: named(score.name),
       marks: score.marks.map((mark) => (Number.isInteger(mark) ? Math.min(Math.max(mark, 0), 3) : 0)),
       points: finite(score.points) ?? 0,
+      team: teamOf(score),
       legs: finite(score.legs) ?? 0,
       sets: finite(score.sets) ?? 0,
       mpr: finite(score.mpr),
     }));
   return {
+    kind: attributes.game,
     numbers,
+    teams: teamsView(attributes.teams),
     target: typeof attributes.target === "string" && hitBeds(attributes.target).length ? attributes.target : null,
     won: attributes.won === true,
     darts: finite(attributes.darts) ?? 0,
@@ -1591,7 +1678,9 @@ function cricketBeds(cricket) {
   return hitBeds(cricket.target);
 }
 
-const PARTY_GAMES = ["shanghai", "halve_it", "killer"];
+const PARTY_GAMES = ["shanghai", "halve_it", "killer", "golf", "baseball", "count_up"];
+// Party games with a scorecard of every round.
+const SCORECARD_GAMES = ["golf", "baseball"];
 const BOARD_NUMBERS = Array.from({ length: 20 }, (_, index) => index + 1);
 
 // A party game of the remaining-score sensor, which has no state then.
@@ -1609,11 +1698,14 @@ function partyView(state) {
       number: Number.isInteger(score.number) ? score.number : null,
       lives: Number.isInteger(score.lives) ? score.lives : null,
       killer: score.killer === true,
+      scorecard: Array.isArray(score.scorecard) ? score.scorecard.filter(Number.isInteger) : [],
     }));
   return {
     kind: attributes.game,
     round: finite(attributes.round),
     rounds: finite(attributes.rounds),
+    // The players of extra rounds after a tie.
+    playoff: Array.isArray(attributes.playoff) ? attributes.playoff.filter(Number.isInteger) : null,
     target: typeof attributes.target === "string" && attributes.target ? attributes.target : null,
     phase: attributes.phase === "choose" ? "choose" : "play",
     needsPlayers: finite(attributes.needs_players),
@@ -1643,10 +1735,11 @@ function bullOffView(state) {
   };
 }
 
-// Beds of a target: a number, any double (with the bull) or treble, or the whole bull.
+// Beds of a target: a number, any double (with the bull) or treble, or the
+// whole bull, which games name 25.
 function targetBeds(target) {
   if (!target) return [];
-  if (target === "BULL") return [...hitBeds("BULL"), ...hitBeds("25")];
+  if (target === "BULL" || target === "25") return [...hitBeds("BULL"), ...hitBeds("25")];
   if (target === "D") return [...BOARD_NUMBERS.flatMap((n) => hitBeds(`D${n}`)), ...hitBeds("BULL")];
   if (target === "T") return BOARD_NUMBERS.flatMap((n) => hitBeds(`T${n}`));
   return ["S", "T", "D"].flatMap((bed) => hitBeds(`${bed}${target}`));
@@ -1711,6 +1804,23 @@ const playerName = (ui, score, match) =>
 
 const note = (text, kind = "") => `<span class="note${kind ? ` ${kind}` : ""}">${escapeHtml(text)}</span>`;
 
+// The players of a team as they are called: Alex & Kim.
+const teamName = (ui, team, scores) =>
+  team.players
+    .map((player) => playerName(ui, scores.find((score) => score.player === player) ?? { player, name: null }, true))
+    .join(" & ");
+
+// Who won the match: a player, or both players of a team.
+function winnerText(game, ui) {
+  const team = game.teams?.find((item) => item.players.includes(game.winner));
+  if (team) return `${teamName(ui, team, game.scores)} ${ui.t("score_winners")}`;
+  const score = game.scores.find((item) => item.player === game.winner) ?? { player: game.winner, name: null };
+  return `${playerName(ui, score, true)} ${ui.t("score_winner")}`;
+}
+
+// The Cricket game as players call it: Cricket, Cut-Throat Cricket, Tactics.
+const cricketTitle = (t, kind) => t(kind === "cricket" ? "cricket" : `cricket_${kind}`);
+
 const bedChips = (ui, route) =>
   route.map((bed) => `<span class="bed">${escapeHtml(ui.label(bed))}</span>`).join("");
 
@@ -1731,6 +1841,9 @@ function x01Note(practice, ui) {
   return practice.remaining <= highestCheckout(practice) ? note(t("no_checkout")) : "";
 }
 
+// Start scores are worth showing when players start from different scores.
+const handicap = (practice) => practice.scores.some((score) => score.start !== null && score.start !== practice.game);
+
 // A player of the scoreboard and of the live card's match list.
 function x01Players(practice, ui) {
   const { t, format } = ui;
@@ -1738,10 +1851,12 @@ function x01Players(practice, ui) {
     ? practice.scores
     : [{ player: 1, name: practice.name, remaining: practice.remaining, legs: 0, sets: 0, average: null }];
   const match = scores.length > 1;
+  const starts = handicap(practice);
   return scores.map((score) => {
     const active = practice.winner === null && score.player === practice.player;
     return {
       name: playerName(ui, score, match),
+      badge: starts && score.start ? String(score.start) : "",
       value: String(score.remaining),
       state: practice.winner === score.player ? "winner" : active && match ? "active" : "",
       note: active ? x01Note(practice, ui) : "",
@@ -1753,6 +1868,39 @@ function x01Players(practice, ui) {
           ],
     };
   });
+}
+
+// The two teams of a team match: the score, the partners with the one at the
+// board, and legs and sets.
+function x01Teams(practice, ui) {
+  const { t, format } = ui;
+  const starts = handicap(practice);
+  return practice.teams
+    .map((team) => ({ team, members: practice.scores.filter((score) => team.players.includes(score.player)) }))
+    .filter(({ members }) => members.length)
+    .map(({ team, members }) => {
+      const up = practice.winner === null && team.players.includes(practice.player);
+      const [first] = members;
+      return {
+        name: teamName(ui, team, practice.scores),
+        badge: starts && first.start ? String(first.start) : "",
+        value: String(first.remaining),
+        state: team.players.includes(practice.winner) ? "winner" : up ? "active" : "",
+        note: up ? x01Note(practice, ui) : "",
+        members: members.map((score) => ({
+          name: playerName(ui, score, true),
+          up: up && score.player === practice.player,
+          detail: score.average === null ? "" : `Ø ${format(score.average, 1)}`,
+        })),
+        details: matchScore(practice, first, t),
+      };
+    });
+}
+
+// Every player, or in a team match the two teams.
+function x01Tiles(practice, ui) {
+  const teams = x01Teams(practice, ui);
+  return teams.length ? teams : x01Players(practice, ui);
 }
 
 // What the player at the board aims at in a party game.
@@ -1774,7 +1922,8 @@ function partyPlayers(party, ui) {
   const killer = party.kind === "killer";
   return party.scores.map((score) => {
     const active = party.winner === null && score.player === party.player;
-    const out = killer && score.lives === 0;
+    // Out in Killer, or out of the extra rounds after a tie.
+    const out = (killer && score.lives === 0) || Boolean(party.playoff && !party.playoff.includes(score.player));
     return {
       name: playerName(ui, score, match),
       value: killer ? hearts(score.lives ?? 0) : String(score.points),
@@ -1785,7 +1934,7 @@ function partyPlayers(party, ui) {
         ...(match ? matchScore(party, score, t) : []),
         killer && score.number ? String(score.number) : "",
         killer && score.killer ? t("party_killer") : "",
-        out ? t("out") : "",
+        killer && out ? t("out") : "",
       ],
     };
   });
@@ -1802,14 +1951,27 @@ function bullOffPlayers(bullOff, ui) {
   }));
 }
 
+// A start score of the player's own, beside the name.
+const badge = (player) => (player.badge ? ` <span class="badge">${escapeHtml(player.badge)}</span>` : "");
+
+// The partners of a team, the one at the board in bold.
+const membersHtml = (members) =>
+  members
+    .map((member) => {
+      const text = escapeHtml([member.name, member.detail].filter(Boolean).join(" "));
+      return member.up ? `<b>${text}</b>` : `<span>${text}</span>`;
+    })
+    .join(" · ");
+
 // Players as large tiles on the scoreboard, with the picture of a linked person.
 function playerTiles(players, ui = {}) {
   const tiles = players.map(
     (player) =>
       `<div class="player${player.state ? ` ${player.state}` : ""}"><div class="name">` +
-      `${avatarHtml(ui.avatar?.(player.name))}${escapeHtml(player.name)}</div>` +
+      `${avatarHtml(ui.avatar?.(player.name))}${escapeHtml(player.name)}${badge(player)}</div>` +
       `<div class="big${player.lives ? " lives" : ""}">${escapeHtml(player.value)}</div>` +
       `<div class="route">${player.note}</div>` +
+      (player.members ? `<div class="members">${membersHtml(player.members)}</div>` : "") +
       `<div class="details">${escapeHtml(player.details.filter(Boolean).join(" · "))}</div></div>`
   );
   return `<div class="players n${Math.max(players.length, 1)}">${tiles.join("")}</div>`;
@@ -1821,59 +1983,120 @@ const playerRows = (players) =>
     .map(
       (player) =>
         `<div class="player-score${player.state ? ` ${player.state}` : ""}">` +
-        `<span class="who">${escapeHtml(player.name)}</span>` +
+        `<span class="who">${escapeHtml(player.name)}${badge(player)}</span>` +
         `<span class="muted">${escapeHtml(player.details.filter(Boolean).join(" · "))}</span>` +
         `<span class="rest${player.lives ? " lives" : ""}">${escapeHtml(player.value)}</span></div>`
     )
     .join("");
 
+// The columns of the chalkboard: every player, or every team with its
+// partners, the one at the board in bold.
+function cricketColumns(cricket, ui) {
+  const mpr = (score) => (score.mpr === null ? "–" : ui.format(score.mpr, 2));
+  const playing = cricket.winner === null;
+  const teams = cricket.teams
+    .map((team) => ({ team, members: cricket.scores.filter((score) => team.players.includes(score.player)) }))
+    .filter(({ members }) => members.length)
+    .map(({ team, members }) => ({
+      ...members[0],
+      head: members
+        .map((score) => {
+          const name = escapeHtml(playerName(ui, score, true));
+          return playing && score.player === cricket.player ? `<b>${name}</b>` : name;
+        })
+        .join(" &#38; "),
+      mpr: members.map(mpr).join(" · "),
+      active: playing && team.players.includes(cricket.player),
+      winner: team.players.includes(cricket.winner),
+    }));
+  if (teams.length) return teams;
+  const match = cricket.scores.length > 1;
+  return cricket.scores.map((score) => ({
+    ...score,
+    head: `${avatarHtml(ui.avatar?.(playerName(ui, score, match)))}${escapeHtml(playerName(ui, score, match))}`,
+    mpr: mpr(score),
+    active: playing && cricket.player === score.player,
+    winner: cricket.winner === score.player,
+  }));
+}
+
 // The Cricket chalkboard: marks, points, marks per round, legs and sets. The
 // scoreboard shows the next number in its corner; the live card has it beside.
 function cricketTable(cricket, ui, { aim = true } = {}) {
-  const { t, format } = ui;
-  const match = cricket.scores.length > 1;
-  const column = (score) =>
-    cricket.winner === score.player
-      ? "winner"
-      : match && cricket.winner === null && cricket.player === score.player
-        ? "active"
-        : "";
-  const row = (kind, heading, content) =>
-    `<tr class="${kind}"><th>${escapeHtml(heading)}</th>${cricket.scores
-      .map((score) => `<td class="${column(score)}">${content(score)}</td>`)
+  const { t } = ui;
+  const columns = cricketColumns(cricket, ui);
+  const match = columns.length > 1;
+  const kind = (column) => (column.winner ? "winner" : match && column.active ? "active" : "");
+  const row = (style, heading, content) =>
+    `<tr class="${style}"><th>${escapeHtml(heading)}</th>${columns
+      .map((column) => `<td class="${kind(column)}">${content(column)}</td>`)
       .join("")}</tr>`;
   const marks = (count) =>
     `<span role="img" aria-label="${escapeHtml(t(`mark_${count}`))}">${CRICKET_MARKS[count]}</span>`;
   const rows = cricket.numbers.map((number, slot) => {
     const bed = number === 25 ? "BULL" : `T${number}`;
-    const kind = cricket.scores.every((score) => score.marks[slot] >= 3)
+    const style = columns.every((column) => column.marks[slot] >= 3)
       ? "closed"
       : bed === cricket.target
         ? "target"
         : "";
-    return row(kind, number === 25 ? "Bull" : String(number), (score) => marks(score.marks[slot]));
+    return row(style, number === 25 ? "Bull" : String(number), (column) => marks(column.marks[slot]));
   });
-  const text = (value) => (score) => escapeHtml(value(score));
-  if (match) rows.push(row("total", t("cricket_points"), text((score) => String(score.points))));
-  rows.push(row("detail", t("cricket_mpr"), text((score) => (score.mpr === null ? "–" : format(score.mpr, 2)))));
-  if (match && cricket.legsToWin > 1) rows.push(row("detail", t("score_legs"), text((score) => String(score.legs))));
-  if (match && cricket.setsToWin > 1) rows.push(row("detail", t("score_sets"), text((score) => String(score.sets))));
-  const names = cricket.scores.map((score) => playerName(ui, score, match));
-  const head = cricket.scores
-    .map(
-      (score, index) =>
-        `<th class="${column(score)}">${avatarHtml(ui.avatar?.(names[index]))}${escapeHtml(names[index])}</th>`
-    )
-    .join("");
+  const text = (value) => (column) => escapeHtml(value(column));
+  if (match) rows.push(row("total", t("cricket_points"), text((column) => String(column.points))));
+  rows.push(row("detail", t("cricket_mpr"), text((column) => column.mpr)));
+  if (match && cricket.legsToWin > 1) rows.push(row("detail", t("score_legs"), text((column) => String(column.legs))));
+  if (match && cricket.setsToWin > 1) rows.push(row("detail", t("score_sets"), text((column) => String(column.sets))));
+  const head = columns.map((column) => `<th class="${kind(column)}">${column.head}</th>`).join("");
   const next = aim && cricket.target && !cricket.won && cricket.winner === null ? bedChips(ui, [cricket.target]) : "";
   const shot = aim && cricket.won && cricket.winner === null ? note(t("game_shot"), "won") : "";
   const corner = shot || next;
+  // Tactics has twelve numbers; they fit the screen in smaller type.
+  const size = cricket.numbers.length > CRICKET_NUMBERS.length ? " many" : "";
   // The next number sits above the numbers, so the chalkboard fits a landscape screen.
   return (
-    `<table class="cricket">${
-      corner || names.some(Boolean) ? `<thead><tr><th class="aim">${corner}</th>${head}</tr></thead>` : ""
+    `<table class="cricket${size}">${
+      corner || columns.some((column) => column.head) ? `<thead><tr><th class="aim">${corner}</th>${head}</tr></thead>` : ""
     }<tbody>${rows.join("")}</tbody></table>`
   );
+}
+
+// Golf and Baseball: the score of every hole or inning per player, and the total.
+function scorecardTable(party, ui) {
+  const current = party.winner === null ? party.round : null;
+  const played = Math.max(party.rounds ?? 0, current ?? 0, ...party.scores.map((score) => score.scorecard.length));
+  const rounds = Array.from({ length: played }, (_, index) => index + 1);
+  // Extra rounds go on from 1 after 20.
+  const number = (round) => ((round - 1) % 20) + 1;
+  const now = (round) => (round === current ? ` class="now"` : "");
+  const match = party.scores.length > 1;
+  const rows = party.scores.map((score) => {
+    const up = current !== null && score.player === party.player;
+    // The visit at the board counts for the round being played.
+    const booked = score.scorecard.reduce((sum, value) => sum + value, 0);
+    const live = up && party.visit.length ? score.points - booked : null;
+    const cells = rounds
+      .map((round) => `<td${now(round)}>${score.scorecard[round - 1] ?? (round === current && live !== null ? live : "")}</td>`)
+      .join("");
+    const style = party.winner === score.player ? "winner" : up && match ? "active" : "";
+    return (
+      `<tr${style ? ` class="${style}"` : ""}><th>${escapeHtml(playerName(ui, score, match))}</th>${cells}` +
+      `<td class="total">${score.points}</td></tr>`
+    );
+  });
+  const head = rounds.map((round) => `<th${now(round)}>${number(round)}</th>`).join("");
+  return (
+    `<table class="scorecard"><thead><tr><th></th>${head}<th class="total">${escapeHtml(ui.t("total"))}</th></tr></thead>` +
+    `<tbody>${rows.join("")}</tbody></table>`
+  );
+}
+
+// The round of a party game: Hole 3/9, Inning 5/9, Round 2/7, or an extra round.
+function partyRound(party, t) {
+  if (!party.rounds || party.round === null) return "";
+  const name = t({ golf: "golf_hole", baseball: "baseball_inning" }[party.kind] ?? "drill_round");
+  if (party.playoff) return `${t("playoff")} · ${name} ${party.target ?? party.round}`;
+  return `${name} ${party.round}/${party.rounds}`;
 }
 
 // A training game: the target, what happened and the facts about the game.
@@ -1895,14 +2118,43 @@ function drillParts(drill, ui) {
       ],
     };
   }
-  if (drill.kind === "checkout") {
+  const scored = drill.finished ? note(fill(t("drill_bobs_done"), { points: drill.score }), "won") : "";
+  if (drill.kind === "catch_40" && drill.finished) {
+    return { big, note: scored, facts: [fact(String(drill.score ?? 0), t("drill_points"))] };
+  }
+  if (CHECKOUT_DRILLS.includes(drill.kind)) {
+    const visit = fact(`${drill.visit ?? 1} / ${drill.visits ?? 3}`, t("drill_visit"), true);
+    const facts =
+      drill.kind === "catch_40"
+        ? [
+            fact(`${drill.progress + 1} / ${drill.targets}`, t("drill_round"), true),
+            visit,
+            fact(String(drill.score ?? 0), t("drill_points")),
+          ]
+        : [
+            visit,
+            fact(`${drill.successes} / ${drill.attempts}`, t("drill_checked")),
+            ...(drill.rate === null ? [] : [fact(percent(drill.rate))]),
+            ...(drill.best === null ? [] : [fact(String(drill.best), t("drill_best"), true)]),
+          ];
     return {
       big: String(drill.remaining ?? drill.target ?? "–"),
       note: drill.won ? note(t("game_shot"), "won") : drill.bust ? note(t("bust"), "bust") : bedChips(ui, drill.route),
+      facts,
+    };
+  }
+  if (drill.kind === "jdc_challenge" || drill.kind === "singles") {
+    const step =
+      drill.kind === "jdc_challenge"
+        ? fact(`${drill.part ?? 1} / 3`, t("drill_part"), true)
+        : fact(`${Math.min(drill.progress + 1, drill.targets)} / ${drill.targets}`, t("drill_round"), true);
+    return {
+      big,
+      note: scored,
       facts: [
-        fact(`${drill.visit ?? 1} / ${drill.visits ?? 3}`, t("drill_visit"), true),
-        fact(`${drill.successes} / ${drill.attempts}`, t("drill_checked")),
-        ...(drill.rate === null ? [] : [fact(percent(drill.rate))]),
+        step,
+        fact(String(drill.score ?? 0), t("drill_points")),
+        ...(drill.best === null ? [] : [fact(String(drill.best), t("drill_best"), true)]),
       ],
     };
   }
@@ -1986,18 +2238,20 @@ function scoreboardHtml(view, ui) {
     };
   }
   const game = { cricket: view.cricket, party: view.party }[view.mode] ?? view.practice;
-  const winner = game.scores.find((score) => score.player === game.winner);
-  const round = view.mode === "party" && game.rounds ? `${t("drill_round")} ${game.round}/${game.rounds}` : "";
+  const round = view.mode === "party" ? partyRound(game, t) : "";
+  // Cut-Throat turns the points round, and Golf's players stop by pulling their darts.
+  const hint = { cut_throat: "cut_throat_hint", golf: "golf_hint" }[game.kind];
+  const scorecard = view.mode === "party" && SCORECARD_GAMES.includes(game.kind);
   const main = {
     cricket: () => cricketTable(game, ui),
-    party: () => playerTiles(partyPlayers(game, ui), ui),
-    x01: () => playerTiles(x01Players(game, ui), ui),
+    party: () => playerTiles(partyPlayers(game, ui), ui) + (scorecard ? scorecardTable(game, ui) : ""),
+    x01: () => playerTiles(x01Tiles(game, ui), ui),
   }[view.mode]();
   return {
-    title: { cricket: t("cricket"), party: view.party ? t(`party_${view.party.kind}`) : "" }[view.mode] ??
+    title: { cricket: cricketTitle(t, game.kind), party: t(`party_${game.kind}`) }[view.mode] ??
       `${t("practice")} ${game.game ?? ""}`.trim(),
-    meta: [round, ...matchFormat(game, t)].filter(Boolean).join(" · "),
-    banner: winner ? `${playerName(ui, winner, true)} ${t("score_winner")}` : "",
+    meta: [round, hint ? t(hint) : "", ...matchFormat(game, t)].filter(Boolean).join(" · "),
+    banner: game.winner !== null ? winnerText(game, ui) : "",
     main,
   };
 }
@@ -2044,6 +2298,8 @@ function playersView(profiles, lastMatch) {
       ended: match.ended,
       game: match.game,
       winner: finite(match.winner),
+      // Both players of the winning team, in a team match.
+      winners: Array.isArray(match.winners) ? match.winners.filter(Number.isInteger) : [finite(match.winner)],
       players: match.players.filter((player) => player && typeof player === "object"),
     }));
   return { players, headToHead, matches };
@@ -2053,7 +2309,7 @@ function playersView(profiles, lastMatch) {
 // not know yet read as Home Assistant names the option, if it is asked.
 function gameName(t, game, fallback) {
   if (Number.isInteger(game)) return String(game);
-  if (game === "cricket") return t("cricket");
+  if (CRICKET_GAMES.includes(game)) return cricketTitle(t, game);
   if (PARTY_GAMES.includes(game)) return t(`party_${game}`);
   if (DRILLS.includes(game)) return t(`drill_${game}`);
   return (fallback && fallback(game)) || String(game ?? "");
@@ -2106,7 +2362,7 @@ function playersHtml(view, ui) {
       const players = match.players
         .map((player, index) => {
           const shown = `${player.name || `${t("score_player")} ${index + 1}`} ${player.sets || player.legs || 0}`;
-          const tag = index + 1 === match.winner ? "b" : "span";
+          const tag = match.winners.includes(index + 1) ? "b" : "span";
           return `<${tag}>${escapeHtml(shown)}</${tag}>`;
         })
         .join(" · ");
@@ -2154,14 +2410,18 @@ const LOBBY_GROUPS = ["x01", "cricket", "party", "training", "more"];
 // Limits of the start_game action.
 const LOBBY_LIMITS = { players: 4, name: 20, legs: 11, sets: 7 };
 // Every game of the practice select this card knows, for the editor before a board is seen.
-const KNOWN_GAMES = ["101", "301", "501", "701", "901", "1001", "cricket", ...PARTY_GAMES, ...DRILLS];
+const KNOWN_GAMES = ["101", "301", "501", "701", "901", "1001", ...CRICKET_GAMES, ...PARTY_GAMES, ...DRILLS];
 // A game that ended opens the new game screen after this pause, so the result shows first.
 const LOBBY_DELAY = 8000;
-const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance"];
+const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance", "teams"];
+// Teams are two pairs of players; start scores of their own go in steps of 100.
+const TEAM_SIZE = 4;
+const START_STEP = 100;
+const START_LIMITS = [101, 1001];
 
 function gameGroup(game) {
   if (/^\d+$/.test(game)) return "x01";
-  if (game.startsWith("cricket")) return "cricket";
+  if (game.startsWith("cricket") || CRICKET_GAMES.includes(game)) return "cricket";
   if (PARTY_GAMES.includes(game)) return "party";
   return DRILLS.includes(game) ? "training" : "more";
 }
@@ -2173,6 +2433,8 @@ function gameRules(game) {
   return {
     x01: group === "x01",
     drill,
+    // Four players of X01 or a Cricket game may play as two teams.
+    teams: group === "x01" || group === "cricket",
     minPlayers: game === "killer" ? 2 : 1,
     maxPlayers: drill ? 1 : LOBBY_LIMITS.players,
   };
@@ -2202,10 +2464,17 @@ function lobbyChoice(board, games) {
     const name = String(board.names[index] ?? "").trim();
     players.push(players.some((other) => name && nameKey(other) === nameKey(name)) ? "" : name);
   }
+  // Players without any name need not be chosen: the game starts with one of them.
+  const chosen = players.some(Boolean) ? players : [];
+  const starts = Array.isArray(board.starts) ? board.starts : [];
+  const start = (index) => (Number.isInteger(starts[index]) ? starts[index] : 0);
   return {
     game,
-    // Players without any name need not be chosen: the game starts with one of them.
-    players: players.some(Boolean) ? players : [],
+    players: chosen,
+    // The start score of every player, 0 for the game's; set ones go back with the start.
+    starts: chosen.map((_, index) => start(index)),
+    handicap: starts.some((value) => Number.isInteger(value) && value > 0),
+    teams: board.teams === true,
     legs: within(board.legs, LOBBY_LIMITS.legs, 1),
     sets: within(board.sets, LOBBY_LIMITS.sets, 1),
     double_out: board.double_out !== false,
@@ -2218,7 +2487,7 @@ function lobbyChoice(board, games) {
 
 // The choice after a tap: a game, a player added, moved or removed, the format or a rule.
 function lobbyChange(choice, action, value) {
-  const next = { ...choice, players: [...choice.players] };
+  const next = { ...choice, players: [...choice.players], starts: [...(choice.starts ?? [])] };
   const index = Number(value);
   const room = next.players.length < LOBBY_LIMITS.players;
   if (action === "game") {
@@ -2227,17 +2496,27 @@ function lobbyChange(choice, action, value) {
     const name = String(value ?? "").trim().slice(0, LOBBY_LIMITS.name);
     if (room && name && !next.players.some((player) => nameKey(player) === nameKey(name))) {
       next.players.push(name);
+      next.starts.push(0);
       next.draft = "";
     }
   } else if (action === "guest" && room) {
     next.players.push("");
+    next.starts.push(0);
   } else if (action === "remove") {
     next.players.splice(index, 1);
+    next.starts.splice(index, 1);
   } else if (action === "up" || action === "down") {
     const other = action === "up" ? index - 1 : index + 1;
     if (other >= 0 && other < next.players.length) {
       [next.players[index], next.players[other]] = [next.players[other], next.players[index]];
+      [next.starts[index], next.starts[other]] = [next.starts[other] ?? 0, next.starts[index] ?? 0];
     }
+  } else if ((action === "lower" || action === "raise") && gameGroup(next.game) === "x01" && index in next.players) {
+    // A start score of the player's own in steps of 100; the game's start is 0.
+    const game = Number(next.game);
+    const shown = (next.starts[index] || game) + (action === "raise" ? START_STEP : -START_STEP);
+    const start = Math.min(Math.max(shown, START_LIMITS[0]), START_LIMITS[1]);
+    next.starts[index] = start === game ? 0 : start;
   } else if (action === "legs" || action === "sets") {
     next[action] = within(next[action] + index, LOBBY_LIMITS[action], next[action]);
   } else if (action === "toggle" && LOBBY_OPTIONS.includes(value)) {
@@ -2274,6 +2553,10 @@ function startGameData(choice, { entry = null, distance = false } = {}) {
     if (distance && choice.bull_off) data.bull_off_distance = choice.bull_off_distance;
   }
   if (rules.x01) Object.assign(data, { double_out: choice.double_out, double_in: choice.double_in });
+  // Start scores go with the start once any is set, so the game's start comes back, too.
+  const starts = players.map((_, index) => choice.starts?.[index] ?? 0);
+  if (rules.x01 && (choice.handicap || starts.some(Boolean))) data.start_scores = starts;
+  if (rules.teams && players.length === TEAM_SIZE) data.teams = choice.teams === true;
   return data;
 }
 
@@ -2300,12 +2583,24 @@ function lobbyHtml(choice, ui) {
     .join("");
   const shown = (name, index) => name || `${t("score_player")} ${index + 1}`;
   const last = choice.players.length - 1;
+  // In X01, every player can start from a score of their own.
+  const startHtml = (index, who) => {
+    if (!rules.x01) return "";
+    const start = choice.starts?.[index] || Number(choice.game);
+    return (
+      `<span class="lobby-start${choice.starts?.[index] ? " own" : ""}">` +
+      button("lower", index, "−", ` aria-label="${text("lobby_start_lower", who)}"${start <= START_LIMITS[0] ? " disabled" : ""}`) +
+      `<b>${start}</b>` +
+      button("raise", index, "+", ` aria-label="${text("lobby_start_raise", who)}"${start >= START_LIMITS[1] ? " disabled" : ""}`) +
+      `</span>`
+    );
+  };
   const players = choice.players
     .map((name, index) => {
       const who = { name: shown(name, index) };
       return (
         `<li class="lobby-player${index >= rules.maxPlayers ? " resting" : ""}">${avatarHtml(ui.avatar(name))}` +
-        `<span class="who">${escapeHtml(who.name)}</span>` +
+        `<span class="who">${escapeHtml(who.name)}</span>${startHtml(index, who)}` +
         button("up", index, "▲", ` aria-label="${text("lobby_move_up", who)}"${index === 0 ? " disabled" : ""}`) +
         button("down", index, "▼", ` aria-label="${text("lobby_move_down", who)}"${index === last ? " disabled" : ""}`) +
         button("remove", index, "✕", ` aria-label="${text("lobby_remove", who)}"`) +
@@ -2346,6 +2641,7 @@ function lobbyHtml(choice, ui) {
     ...(rules.x01 ? ["double_out", "double_in"] : []),
     ...(match ? ["bull_off"] : []),
     ...(match && ui.distance && choice.bull_off ? ["bull_off_distance"] : []),
+    ...(rules.teams && ui.teams && choice.players.length === TEAM_SIZE ? ["teams"] : []),
   ];
   // Nobody chosen is one player without a name.
   const blocked = Math.max(choice.players.length, 1) < rules.minPlayers;
@@ -2628,11 +2924,16 @@ function visitCount(view, keys, start) {
   if (view.mode === "cricket" && !view.cricket.won) {
     return { kind: "marks", marks: keys.reduce((sum, key) => sum + cricketMarks(key, view.cricket.numbers), 0) };
   }
-  if (view.mode === "party" && view.party.kind !== "killer" && !view.party.won) {
-    const aim = new Set(targetBeds(view.party.target));
-    return { kind: "score", score: points(keys.filter((key) => hitBeds(key).some((bed) => aim.has(bed)))) };
+  // Killer counts lives, and in Golf the last dart counts, whenever the darts are pulled.
+  const { party } = view;
+  if (view.mode !== "party" || party.won || ["killer", "golf"].includes(party.kind)) return null;
+  if (party.kind === "count_up") return { kind: "score", score: points(keys) };
+  if (party.kind === "baseball") {
+    const inning = [Number(party.target)];
+    return { kind: "runs", runs: keys.reduce((sum, key) => sum + cricketMarks(key, inning), 0) };
   }
-  return null;
+  const aim = new Set(targetBeds(party.target));
+  return { kind: "score", score: points(keys.filter((key) => hitBeds(key).some((bed) => aim.has(bed)))) };
 }
 
 // What the caller listens to: the darts a game counted, or the visit on the board between games.
@@ -2641,8 +2942,10 @@ function callerState(visit, view, previous = null) {
   const game = current.practice ?? current.cricket ?? current.party ?? null;
   const winner = game?.scores?.find((score) => score.player === game.winner);
   // Darts after a bust or a game shot are not among the darts of the game.
-  const keys = game ? game.visit : current.mode === "idle" ? visitThrows(visit).map(dartKey) : [];
-  const remaining = current.practice?.remaining ?? null;
+  const idle = current.mode === "idle" ? visitThrows(visit).map(dartKey) : [];
+  const keys = game ? game.visit : (current.drill?.thrown ?? idle);
+  // A checkout training has a remaining score, too.
+  const remaining = current.practice?.remaining ?? current.drill?.remaining ?? null;
   const player = game?.player ?? null;
   // The remaining score before the visit, which the visit's score is counted from.
   const start = !keys.length
@@ -2660,7 +2963,7 @@ function callerState(visit, view, previous = null) {
     players: game?.scores?.length ?? 0,
     remaining,
     start,
-    route: current.practice?.route ?? [],
+    route: current.practice?.route ?? current.drill?.route ?? [],
     bust: game?.bust === true,
     won: game?.won === true,
     winner: game?.winner ?? null,
@@ -2689,7 +2992,7 @@ function callerCalls(previous, current, options) {
   // The route exists only for a score the darts of a visit can finish.
   if (
     on("call_checkouts") &&
-    current.mode === "x01" &&
+    ["x01", "drill"].includes(current.mode) &&
     current.darts === 0 &&
     turn &&
     current.winner === null &&
@@ -2713,6 +3016,10 @@ function callerText(call, t) {
   if (call.kind === "marks") {
     if (call.marks === 0) return t("say_no_score");
     return call.marks === 1 ? t("say_mark") : fill(t("say_marks"), { marks: call.marks });
+  }
+  if (call.kind === "runs") {
+    if (call.runs === 0) return t("say_no_score");
+    return call.runs === 1 ? t("say_run") : fill(t("say_runs"), { runs: call.runs });
   }
   if (call.kind === "bust") return t("say_bust");
   if (call.kind === "leg") return t("say_leg");
@@ -2790,7 +3097,10 @@ const PRACTICE_KEYS = [
   "switch.practice_double_out",
   "switch.practice_double_in",
   "switch.practice_bull_off",
+  "switch.practice_teams",
   "switch.practice_personal_routes",
+  "select.practice_golf_holes",
+  "number.practice_count_up_rounds",
   "button.practice_new_leg",
   "button.practice_new_match",
 ];
@@ -2840,10 +3150,12 @@ function liveDashboardView(board) {
   const { t } = board;
   const practice = board.rows(PRACTICE_KEYS, t("practice"));
   const names = (board.index["text.practice_player"] ?? []).map((entity) => board.row(entity, t("practice")));
+  const starts = (board.index["number.practice_start"] ?? []).map((entity) => board.row(entity, t("practice")));
   const controls = [
     { type: "heading", heading: t("practice") },
     { type: "entities", entities: practice },
     ...(names.length ? [{ type: "entities", title: t("practice_names"), entities: names }] : []),
+    ...(starts.length ? [{ type: "entities", title: t("practice_starts"), entities: starts }] : []),
   ];
   return {
     title: `${t("view_live")}${board.suffix}`,
@@ -3339,6 +3651,10 @@ const CSS = `${BASE_CSS}
   .player-score.winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 20%, transparent); }
   .player-score .who { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .player-score .rest { font-weight: 800; font-variant-numeric: tabular-nums; }
+  .player-score .badge {
+    margin-left: .3em; padding: 0 .35em; border-radius: 6px; font-size: 11px; font-weight: 600;
+    color: var(--secondary-text-color); border: 1px solid var(--divider-color, rgba(127,127,127,.4));
+  }
   .cricket { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; table-layout: fixed; }
   .cricket th, .cricket td { padding: 3px 6px; text-align: center; }
   .cricket thead th {
@@ -3598,6 +3914,28 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .player.out { opacity: .45; }
   .big.lives { color: var(--ad-error-text); letter-spacing: 0; }
+  .badge {
+    display: inline-block; margin-left: .3em; padding: 0 .4em; border-radius: 8px; vertical-align: middle;
+    font-size: .55em; font-weight: 700; color: var(--secondary-text-color);
+    border: 1px solid var(--divider-color, rgba(127,127,127,.4));
+  }
+  .members { font-size: clamp(13px, 2.1cqi, 28px); color: var(--secondary-text-color); text-align: center; }
+  .members b { color: var(--ad-accent); }
+  .cricket.many tbody th, .cricket.many tbody td { padding-top: .05em; padding-bottom: .05em; line-height: 1.05; }
+  .cricket.many td { font-size: clamp(14px, min(3.2cqi, 2.7vh), 42px); }
+  .cricket.many tbody th { font-size: clamp(13px, min(2.4cqi, 2.4vh), 32px); }
+  .cricket.many tr.total td { font-size: clamp(20px, min(4.2cqi, 3.8vh), 56px); }
+  .scorecard { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .scorecard th, .scorecard td { padding: .15em .2em; text-align: center; font-size: clamp(11px, 1.8cqi, 26px); }
+  .scorecard thead th { color: var(--secondary-text-color); font-weight: 600; }
+  .scorecard tbody th {
+    text-align: left; max-width: 8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--primary-text-color);
+  }
+  .scorecard .now { background: color-mix(in srgb, var(--ad-accent) 14%, transparent); }
+  .scorecard .total { font-weight: 800; color: var(--primary-text-color); }
+  .scorecard tr.active th { color: var(--ad-accent); }
+  .scorecard tr.winner > * { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
   .player .name {
     max-width: 100%; min-height: 1.2em; font-size: clamp(16px, 2.8cqi, 40px); font-weight: 700;
     color: var(--primary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -3729,6 +4067,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .lobby-player.resting { opacity: .45; }
   .lobby-player .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lobby-player button { min-width: 48px; padding: 0; }
+  .lobby-start { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+  .lobby-start b { min-width: 3.2ch; text-align: center; font-size: .85em; color: var(--secondary-text-color); }
+  .lobby-start.own b { color: var(--ad-accent); }
+  .lobby-player .lobby-start button { min-width: 40px; }
   .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .lobby .suggestion { display: inline-flex; align-items: center; border-radius: 999px; }
   .suggestion .home { margin-left: 6px; color: var(--ad-ok-text); }
@@ -3859,10 +4201,7 @@ function livePanel(view, ui) {
   const { t, format } = ui;
   const turn = (game) =>
     game.winner === null ? `${playerName(ui, { player: game.player, name: game.name }, true)} ${t("score_turn")}` : "";
-  const winner = (game) => {
-    const score = game.scores.find((item) => item.player === game.winner) ?? { player: game.winner, name: null };
-    return note(`${playerName(ui, score, true)} ${t("score_winner")}`, "won");
-  };
+  const winner = (game) => note(winnerText(game, ui), "won");
   if (view.mode === "drill") {
     const parts = drillParts(view.drill, ui);
     return {
@@ -3893,7 +4232,7 @@ function livePanel(view, ui) {
       ? [`${cricket.darts} ${t("leg_darts")}`, cricket.mpr === null ? "" : `${t("cricket_mpr")} ${format(cricket.mpr, 2)}`]
       : [];
     return {
-      title: t("cricket"),
+      title: cricketTitle(t, cricket.kind),
       meta: match ? turn(cricket) : alone.filter(Boolean).join(" · "),
       big: match ? String(cricket.points) : `${closed}/${cricket.numbers.length}`,
       route:
@@ -3912,16 +4251,14 @@ function livePanel(view, ui) {
     const killer = party.kind === "killer";
     return {
       title: t(`party_${party.kind}`),
-      meta: [party.rounds ? `${t("drill_round")} ${party.round}/${party.rounds}` : "", match ? turn(party) : ""]
-        .filter(Boolean)
-        .join(" · "),
+      meta: [partyRound(party, t), match ? turn(party) : ""].filter(Boolean).join(" · "),
       big: killer ? (party.phase === "choose" ? "?" : String(current?.number ?? "–")) : String(party.points),
       route: party.winner !== null ? winner(party) : partyNote(party, ui),
       rows: match ? playerRows(partyPlayers(party, ui)) : "",
     };
   }
   const { practice } = view;
-  const players = x01Players(practice, ui);
+  const players = x01Tiles(practice, ui);
   const match = players.length > 1;
   return {
     title: `${t("practice")} ${practice.game ?? ""}`.trim(),
@@ -5346,8 +5683,15 @@ function createElements(Base) {
       );
     }
 
+    // The start scores of the players, in the same order as the names.
+    _startIds() {
+      return [...(this._index?.["number.practice_start"] ?? [])].sort((a, b) =>
+        a.localeCompare(b, "en", { numeric: true })
+      );
+    }
+
     _watched() {
-      return [...super._watched(), ...this._nameIds()];
+      return [...super._watched(), ...this._nameIds(), ...this._startIds()];
     }
 
     _build() {
@@ -5482,6 +5826,11 @@ function createElements(Base) {
         double_in: on("doubleIn"),
         bull_off: on("bullOff"),
         bull_off_distance: on("bullOffDistance"),
+        teams: on("teams"),
+        starts: this._startIds().map((id) => {
+          const start = Number(this._hass.states[id]?.state);
+          return Number.isInteger(start) ? start : 0;
+        }),
       };
     }
 
@@ -5678,6 +6027,7 @@ function createElements(Base) {
           name: (game) => this._gameName(game),
           suggestions: lobbySuggestions(this._state("profiles"), this._board().names, ui.links, choice.players),
           distance: Boolean(this._ids.bullOffDistance),
+          teams: Boolean(this._ids.teams),
           running: ![undefined, "off", "unknown", "unavailable"].includes(this._state("game")?.state),
           confirmEnd: this._confirm === "end",
         });

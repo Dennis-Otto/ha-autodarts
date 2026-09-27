@@ -17,8 +17,14 @@ RECORDS: dict[str, bool] = {
     "around_the_clock": False,
     "doubles": False,
     "bobs_27": True,
+    "checkout_121": True,
+    "catch_40": True,
+    "jdc_challenge": True,
+    "singles": True,
     "best_session_average": True,
 }
+# Training games whose score is the record.
+SCORED_DRILLS = ("catch_40", "jdc_challenge", "singles")
 # A session average needs this many darts to count as a record.
 SESSION_DARTS = 30
 DAILY_GOAL_MAX = 2000
@@ -176,22 +182,33 @@ class PersonalRecords:
         if kind == "visit_completed" and _count(value("darts")) <= 3:
             # Merged visits after a missed takeout are not one visit.
             return [("highest_visit", _value(value("score")), None)]
+        # A team leg is no one player's: it sets no record of darts or marks.
+        alone = value("team") is None
         if kind == "leg_won" and value("game") == "cricket":
-            return [("best_cricket_mpr", _value(value("mpr")), name)]
+            return [("best_cricket_mpr", _value(value("mpr")), name)] if alone else []
         if kind == "leg_won" and value("game") in GAMES:
             # Legs without double out finish more easily; they set no record.
             if value("double_out") is not True:
                 return []
-            return [
-                ("highest_checkout", _value(value("checkout")), name),
-                (f"fewest_darts_{value('game')}", _value(value("darts")), name),
-            ]
+            # A leg counts for the score it really started from.
+            start = value("start") or value("game")
+            records = [("highest_checkout", _value(value("checkout")), name)]
+            if alone and start in GAMES:
+                records.append((f"fewest_darts_{start}", _value(value("darts")), name))
+            return records
         drill = value("drill")
         if kind == "drill_finished" and drill in ("around_the_clock", "doubles"):
             return [(str(drill), _value(value("darts")), None)]
         if kind == "drill_finished" and drill == "bobs_27":
             completed = value("completed") is True
             return [("bobs_27", _value(value("score")) if completed else None, None)]
+        if kind == "drill_finished" and drill in SCORED_DRILLS:
+            return [(str(drill), _value(value("score")), None)]
+        if kind == "checkout_attempt" and drill == "checkout_121":
+            success = value("success") is True
+            return [
+                ("checkout_121", _value(value("target")) if success else None, None)
+            ]
         if kind == "session_ended" and _count(value("darts")) >= SESSION_DARTS:
             return [("best_session_average", _value(value("average")), None)]
         return []

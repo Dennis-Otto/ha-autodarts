@@ -11,6 +11,7 @@ from hypothesis.stateful import (
     rule,
 )
 
+from custom_components.autodarts.cricket import CRICKET_GAMES
 from custom_components.autodarts.party import KILLER_LIVES
 from custom_components.autodarts.practice import (
     GAMES,
@@ -23,7 +24,11 @@ from custom_components.autodarts.practice import (
 
 from .test_practice import dart
 
-KINDS = [101, 301, "cricket", "shanghai", "halve_it", "killer"]
+KINDS = [
+    *(101, 301, "cricket", "cut_throat", "tactics"),
+    *("shanghai", "halve_it", "killer", "golf", "baseball", "count_up"),
+]
+STARTS = [0, 0, 2, 40, 101, 301, 501, 1001]
 BEDS = [
     *("T20", "T19", "T15", "T3", "T1", "S20", "S19", "S15", "S3", "S2", "S1"),
     *("D20", "D19", "D16", "D8", "D7", "D3", "D2", "D1", "BULL", "25", "MISS"),
@@ -58,9 +63,14 @@ class PracticeMachine(RuleBasedStateMachine):
         legs=st.integers(1, 3),
         sets=st.integers(1, 2),
         bull_off=st.booleans(),
+        teams=st.booleans(),
+        starts=st.lists(st.sampled_from(STARTS), min_size=4, max_size=4),
     )
-    def start(self, kind, players, legs, sets, bull_off) -> None:
+    def start(self, kind, players, legs, sets, bull_off, teams, starts) -> None:
         self.game.bull_off = bull_off
+        self.game.teams = teams
+        for index, start in enumerate(starts):
+            self.game.set_start(index, start)
         self.game.set_players(players)
         self.game.set_format(legs, sets)
         self.game.play(kind)
@@ -117,25 +127,30 @@ class PracticeMachine(RuleBasedStateMachine):
         self._track()
 
     @rule(
-        change=st.sampled_from(["option", "format", "game", "leg"]),
+        change=st.sampled_from(["option", "format", "game", "leg", "start", "rounds"]),
         option=st.sampled_from(OPTIONS),
         enabled=st.booleans(),
         kind=st.sampled_from(KINDS),
         legs=st.integers(0, MAX_LEGS + 1),
         sets=st.integers(0, MAX_SETS + 1),
         players=st.integers(0, MAX_PLAYERS + 1),
+        start=st.sampled_from([*STARTS, 1, 1002]),
     )
-    def change(self, change, option, enabled, kind, legs, sets, players) -> None:
+    def change(self, change, option, enabled, kind, legs, sets, players, start) -> None:
         """A rule, the format, the game or a new leg, as the entities set them."""
         game = self.game
         if change == "option":
-            # As the coordinator does: double in and the bull-off start anew.
+            # As the coordinator does: double in, the bull-off and teams start anew.
             setattr(game, option, enabled)
-            if option in ("double_in", "bull_off"):
+            if option in ("double_in", "bull_off", "teams"):
                 game.new_match()
         elif change == "format":
             game.set_format(legs, sets)
             game.set_players(players)
+        elif change == "start":
+            game.set_start(players, start)
+        elif change == "rounds":
+            game.set_rounds(9 + 9 * enabled, legs)
         elif change == "game":
             game.play(kind)
         else:
@@ -163,20 +178,34 @@ class PracticeMachine(RuleBasedStateMachine):
         assert players == len(game.players)
         assert 1 <= snapshot["player"] <= players
         winner = snapshot["winner"]
+        teams = snapshot["teams"]
+        assert teams is None or (
+            players == 4 and snapshot["game"] in (*GAMES, *CRICKET_GAMES)
+        )
+
+        def partners(first: int | None, second: int) -> bool:
+            """The same player, or partners in a team."""
+            if first is None:
+                return False
+            return first == second or bool(teams and (first - second) % 2 == 0)
+
         for score in snapshot["scores"]:
             assert 0 <= score["legs"] <= score["match_legs"]
             if players > 1:
                 assert score["legs"] <= game.legs_to_win
                 assert score["sets"] <= game.sets_to_win
-            won = score["player"] == winner
-            # Only the winner has a won match, with every set it needed.
+            won = partners(winner, score["player"])
+            # Only the winners have a won match, with every set it needed.
             assert won == (players > 1 and score["sets"] == game.sets_to_win)
             if snapshot["game"] in GAMES:
-                assert 0 <= score["remaining"] <= snapshot["game"]
-                # Nothing is left for the winner, or for a checkout on the board.
-                checkout = snapshot["won"] and score["player"] == snapshot["player"]
+                assert 0 <= score["remaining"] <= score["start"]
+                # Nothing is left for the winners, or for a checkout on the board.
+                checkout = snapshot["won"] and partners(
+                    snapshot["player"], score["player"]
+                )
                 assert (score["remaining"] == 0) == (won or checkout)
-            elif snapshot["game"] == "cricket":
+            elif snapshot["game"] in CRICKET_GAMES:
+                assert len(score["marks"]) == len(snapshot["numbers"])
                 assert all(0 <= mark <= 3 for mark in score["marks"])
             else:
                 assert score["points"] >= 0

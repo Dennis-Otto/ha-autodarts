@@ -130,8 +130,8 @@ Lass die Kalibrierungstaste leer, wenn die Board-Einstellung *Beim Start kalibri
 | Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Wird gesagt, wenn die nächste Aufnahme das Leg beenden kann. |
 | Next player | leer | Wird gesagt, wenn die nächste Aufnahme das Leg nicht beenden kann. Leer bleibt stumm. |
 | Bust | `No score` | Wird gesagt, wenn ein Dart die Aufnahme überwirft. |
-| Leg won | `Game shot, and the leg{{ ', ' ~ who if who }}!` | Wird gesagt, wenn ein Dart ein Leg gewinnt, das nicht das Match entscheidet. |
-| Match won | `Game shot, and the match, {{ who }}!` | Wird gesagt, wenn ein Dart das Match entscheidet. |
+| Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Wird gesagt, wenn ein Dart ein Leg gewinnt, das nicht das Match entscheidet; im Team-Match mit dem Namen des Teams. |
+| Match won | `Game shot, and the match, {{ team or who }}!` | Wird gesagt, wenn ein Dart das Match entscheidet; im Team-Match mit dem Namen des Teams. |
 | Bull-off throw | leer | Wird gesagt, wenn der nächste Spieler zum Ausbullen wirft, etwa `{{ who }}, throw for the bull`. Der erste Spieler des Ausbullens wird nicht aufgerufen. Leer nutzt den Text von *Next player*. |
 | Bull-off won | leer | Wird gesagt, wenn das Ausbullen entscheidet, wer beginnt, zusammen mit der ersten Ansage des Matches, etwa `{{ who }} to throw first. Game on!`. Leer bleibt stumm. |
 | Word for a player without a name | `Player` | Ergibt „Player 2“ in einem Match ohne Namen. |
@@ -194,11 +194,12 @@ Die Texte des Übungs-Callers sind Vorlagen mit diesen Variablen:
 | Variable | Inhalt |
 | --- | --- |
 | `who` | Der Name des Spielers, „Spieler 2“ in einem Match ohne Namen, leer, wenn du allein spielst |
+| `team` | Das Team des Spielers im [Team-Match](entitaeten.md#teams-und-startpunkte), etwa `Alex & Kim`, wenn beide Partner einen Namen haben; sonst leer |
 | `remaining` | Der Rest |
 | `checkout` | Der Weg, wenn ein Checkout möglich ist, etwa `T20 T20 BULL`; bei *Leg won* die ausgecheckten Punkte, etwa `121` |
 | `darts`, `average` | Darts und 3-Dart-Average des Legs, bei *Leg won* |
-| `points` | Punkte bei Cricket und Partyspielen |
-| `target` | Das nächste Ziel eines Partyspiels, etwa `20`, `D` oder `D16` |
+| `points` | Punkte bei den Cricket- und Partyspielen; Schläge beim Golf, Runs beim Baseball |
+| `target` | Das nächste Ziel eines Partyspiels, etwa `20`, `D` oder `D16`; das Loch beim Golf und das Inning beim Baseball |
 | `distance` | Wie weit der siegreiche Dart beim Ausbullen von der Mitte entfernt landete, in Millimetern, bei *Bull-off won*; `None`, wenn das Board für ihn keine Position gemeldet hat |
 
 Zum Beispiel:
@@ -209,7 +210,7 @@ Zum Beispiel:
 | Next player | `{{ who }} ist dran`, bei Partyspielen `{{ who }} ist dran, {{ target }}` |
 | Bust | `Überworfen` |
 | Leg won | `Game shot und das Leg{{ ' für ' ~ who if who }}!` |
-| Match won | `Game shot und das Match für {{ who }}!` |
+| Match won | `Game shot und das Match für {{ team or who }}!` |
 | Bull-off throw | `{{ who }}, dein Wurf aufs Bull` |
 | Bull-off won | `{{ who }} beginnt. Game on!` |
 | Word for a player without a name | `Spieler` |
@@ -533,7 +534,8 @@ actions:
       media_player_entity_id: media_player.dartraum
       message: >-
         {% set event = trigger.to_state.attributes %}
-        {% set spieler = event.name or 'Spieler ' ~ event.player %}
+        {# Im Team-Match gewinnt das Team das Leg. #}
+        {% set spieler = event.team_name or event.name or 'Spieler ' ~ event.player %}
         {% if event.event_type == 'leg_won' %}
           Game shot, das Leg für {{ spieler }} mit {{ event.darts }} Darts.
         {% else %}

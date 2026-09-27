@@ -1,13 +1,19 @@
-"""The pause that ends a session, the daily goal and the practice match format."""
+"""The pause that ends a session, the daily goal and the practice match format.
+
+Also the start scores of the players and the rounds of Count-Up.
+"""
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
 from homeassistant.const import EntityCategory, UnitOfTime
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
-from .practice import MAX_LEGS, MAX_PLAYERS, MAX_SETS
+from .party import MAX_ROUNDS
+from .practice import MAX_LEGS, MAX_PLAYERS, MAX_SETS, MAX_START, valid_start
 from .records import DAILY_GOAL_MAX
 from .runtime import AutodartsConfigEntry
 from .training import IDLE_MINUTES_MAX
@@ -36,6 +42,11 @@ async def async_setup_entry(
                     AutodartsPracticeNumber(coordinator, key)
                     for key in PRACTICE_NUMBERS
                 ),
+                *(
+                    AutodartsStartScore(coordinator, index)
+                    for index in range(MAX_PLAYERS)
+                ),
+                AutodartsCountUpRounds(coordinator),
             ]
         )
 
@@ -126,3 +137,59 @@ class AutodartsPracticeNumber(AutodartsLocalEntity, NumberEntity):
             await self.coordinator.async_set_match_format(legs=int(value))
         else:
             await self.coordinator.async_set_match_format(sets=int(value))
+
+
+class AutodartsStartScore(AutodartsLocalEntity, NumberEntity):
+    """A player's own X01 start score for a handicap; 0 plays the game's."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_native_min_value = 0
+    _attr_native_max_value = MAX_START
+    _attr_native_step = 1
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator, index: int) -> None:
+        super().__init__(coordinator, f"practice_start_{index + 1}")
+        self._attr_translation_key = "practice_start"
+        self._attr_translation_placeholders = {"number": str(index + 1)}
+        self._index = index
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.practice.starts[self._index]
+
+    async def async_set_native_value(self, value: float) -> None:
+        start = int(value)
+        if not valid_start(start):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="invalid_start_score"
+            )
+        await self.coordinator.async_set_start_score(self._index, start)
+
+
+class AutodartsCountUpRounds(AutodartsLocalEntity, NumberEntity):
+    """Rounds of Count-Up; a change starts a game of Count-Up anew."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_native_min_value = 1
+    _attr_native_max_value = MAX_ROUNDS
+    _attr_native_step = 1
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "practice_count_up_rounds")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.practice.count_up_rounds
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.async_set_party_rounds(count_up_rounds=int(value))

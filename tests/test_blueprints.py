@@ -348,6 +348,11 @@ async def test_blueprints_follow_the_real_board_events(
         coordinator.reports.report.ends = dt_util.utcnow()
         await coordinator.reports._async_report(dt_util.utcnow())
         await hass.async_block_till_done()
+        # A team match names the team of the player who checks out.
+        await coordinator.async_start_game(
+            101, names=["Dennis", "Lea", "Kim", "Sam"], bull_off=False, teams=True
+        )
+        await visit(hass, coordinator, T20, S1, D20)
     # Tools for Autodarts reports the moments of an online match; your own 180
     # comes from the board.
     client = await hass_client_no_auth()
@@ -368,6 +373,7 @@ async def test_blueprints_follow_the_real_board_events(
         "Game shot, and the match, Lea!",
         # The dart caller waits for the end of the practice game.
         "One hundred and eighty!",
+        "Game shot, and the match, Dennis & Kim!",
     ]
     assert [call.data for call in celebrate] == [{"score": 180}]
     assert [(call.data["moment"], call.data["who"]) for call in light] == [
@@ -378,6 +384,7 @@ async def test_blueprints_follow_the_real_board_events(
         ("match", "Lea"),
         ("maximum", ""),
         ("personal_best", ""),
+        ("match", "Dennis"),
         ("bust", "Lea"),
         ("leg", "dennis"),
         ("match", ""),
@@ -387,6 +394,7 @@ async def test_blueprints_follow_the_real_board_events(
         "140!",
         "Checkout 101 by Lea!",
         "180!",
+        "Checkout 101 by Dennis!",
     ]
     assert [call.data["message"] for call in reports] == [
         "12 darts, 1 session. 3-dart average 123.0. Best visit 180, 1 × 180. "
@@ -397,6 +405,7 @@ async def test_blueprints_follow_the_real_board_events(
         "Dennis_140.jpg",
         "Lea_checkout-101.jpg",
         "180.jpg",
+        "Dennis_checkout-101.jpg",
     ]
 
     # Whatever a blueprint reads is in the events it listens to.
@@ -619,6 +628,27 @@ async def test_practice_caller_calls_requirements_busts_and_game_shots(hass):
         "You require 40",
         "Game shot, and the leg!",
         "Game shot, and the leg, Sam!",
+    ]
+
+
+async def test_practice_caller_names_the_team_of_a_team_match(hass):
+    calls = async_mock_service(hass, "tts", "speak")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "practice_caller", VOICE)
+    teams = {"game": 501, "players": 4, "player": 3, "name": "Kim", "team": 1}
+    await fire_all(
+        hass,
+        [
+            ("leg_won", {**teams, "team_name": "Alex & Kim", "match": False}),
+            # Without both names, the player at the board is named.
+            ("leg_won", {**teams, "team_name": None, "match": False}),
+            ("match_won", {**teams, "team_name": "Alex & Kim"}),
+        ],
+    )
+    assert spoken(calls) == [
+        "Game shot, and the leg, Alex & Kim!",
+        "Game shot, and the leg, Kim!",
+        "Game shot, and the match, Alex & Kim!",
     ]
 
 

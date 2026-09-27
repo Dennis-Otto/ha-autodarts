@@ -1195,11 +1195,23 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return changed
 
     async def async_set_practice_option(self, option: str, enabled: bool) -> None:
-        """Double out, routes and the bull-off rule apply at once; double in and
-        the bull-off start anew."""
+        """Double out, routes and the bull-off rule apply at once; double in,
+        the bull-off and teams start anew."""
         setattr(self.practice, option, enabled)
-        if option in ("double_in", "bull_off"):
+        if option in ("double_in", "bull_off", "teams"):
             self.practice.new_match()
+        await self._async_training([])
+
+    async def async_set_start_score(self, index: int, start: int) -> None:
+        """A player's own X01 start score, 0 for the game's; a new match."""
+        self.practice.set_start(index, start)
+        await self._async_training([])
+
+    async def async_set_party_rounds(
+        self, golf_holes: int | None = None, count_up_rounds: int | None = None
+    ) -> None:
+        """Holes of Golf and rounds of Count-Up; the game being played starts anew."""
+        self.practice.set_rounds(golf_holes, count_up_rounds)
         await self._async_training([])
 
     async def async_new_match(self) -> None:
@@ -1231,6 +1243,10 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         double_in: bool | None = None,
         bull_off: bool | None = None,
         bull_off_distance: bool | None = None,
+        teams: bool | None = None,
+        start_scores: list[int] | None = None,
+        holes: int | None = None,
+        rounds: int | None = None,
     ) -> None:
         """Set up a practice game in one step; unset values stay as they are."""
         practice = self.practice
@@ -1239,6 +1255,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ("double_in", double_in),
             ("bull_off", bull_off),
             ("bull_off_distance", bull_off_distance),
+            ("teams", teams),
         ):
             if value is not None:
                 setattr(practice, option, value)
@@ -1246,6 +1263,12 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             for index in range(len(practice.names)):
                 practice.set_name(index, names[index] if index < len(names) else "")
             practice.set_players(len(names))
+        if start_scores is not None:
+            # Players without a start score of their own play the game's.
+            for index in range(len(practice.starts)):
+                own = start_scores[index] if index < len(start_scores) else 0
+                practice.set_start(index, own)
+        practice.set_rounds(holes, rounds)
         practice.set_format(legs, sets)
         practice.play(game)
         await self._async_training([])

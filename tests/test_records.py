@@ -84,6 +84,19 @@ def test_every_kind_of_record_has_its_source():
             {"drill": "bobs_27", "score": 120, "completed": True},
         ),
         (
+            "checkout_attempt",
+            {"drill": "checkout_121", "target": 124, "success": True},
+            {"drill": "checkout_121", "target": 130, "success": True},
+        ),
+        *(
+            (
+                "drill_finished",
+                {"drill": drill, "score": 20},
+                {"drill": drill, "score": 40},
+            )
+            for drill in ("catch_40", "jdc_challenge", "singles")
+        ),
+        (
             "session_ended",
             {"darts": SESSION_DARTS, "average": 45.5},
             {"darts": 90, "average": 51.2},
@@ -101,6 +114,10 @@ def test_every_kind_of_record_has_its_source():
         "around_the_clock",
         "doubles",
         "bobs_27",
+        "checkout_121",
+        "catch_40",
+        "jdc_challenge",
+        "singles",
         "best_session_average",
     ]
     bests = records.snapshot(MONDAY.date())["bests"]
@@ -121,6 +138,9 @@ def test_merged_visits_lost_games_and_short_sessions_set_no_record():
         ("leg_won", {"game": 301, "darts": 6, "checkout": 141}),
         ("visit_completed", {"score": 0, "darts": 3}),
         ("dart_corrected", {"score": 60}),
+        # A missed 121 checkout, or a checkout of the checkout training.
+        ("checkout_attempt", {"drill": "checkout_121", "target": 150}),
+        ("checkout_attempt", {"drill": "checkout", "target": 150, "success": True}),
     ):
         assert records.observe(kind, attributes, MONDAY) == []
     assert records.snapshot(MONDAY.date())["bests"] == {}

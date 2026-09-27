@@ -390,6 +390,9 @@
       },
       "practice_personal_routes": {
         "name": "Practice personal checkout routes"
+      },
+      "practice_teams": {
+        "name": "Practice teams"
       }
     },
     "select": {
@@ -420,7 +423,16 @@
           "1001": "1001",
           "shanghai": "Shanghai",
           "halve_it": "Halve-It",
-          "killer": "Killer"
+          "killer": "Killer",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics",
+          "golf": "Golf",
+          "baseball": "Baseball",
+          "count_up": "Count-Up",
+          "checkout_121": "121 checkout",
+          "catch_40": "Catch 40",
+          "jdc_challenge": "JDC Challenge",
+          "singles": "Singles training"
         }
       },
       "weekly_report_day": {
@@ -434,6 +446,9 @@
           "saturday": "Saturday",
           "sunday": "Sunday"
         }
+      },
+      "practice_golf_holes": {
+        "name": "Practice Golf holes"
       }
     },
     "number": {
@@ -451,6 +466,12 @@
       },
       "training_daily_goal": {
         "name": "Daily goal"
+      },
+      "practice_start": {
+        "name": "Practice start score player {number}"
+      },
+      "practice_count_up_rounds": {
+        "name": "Practice Count-Up rounds"
       }
     },
     "binary_sensor": {
@@ -604,6 +625,15 @@
     },
     "unknown_person": {
       "message": "There is no person {person} in Home Assistant."
+    },
+    "team_players": {
+      "message": "Teams need four players: players 1 and 3 against players 2 and 4."
+    },
+    "team_game": {
+      "message": "Teams play X01 and the Cricket games."
+    },
+    "invalid_start_score": {
+      "message": "A start score is 0, for the game's start score, or 2 to 1001."
     }
   },
   "issues": {
@@ -664,7 +694,7 @@
         },
         "game": {
           "name": "Game",
-          "description": "X01 from 101 to 1001 points, Cricket, a party game or a training game."
+          "description": "X01 from 101 to 1001 points, a Cricket game, a party game or a training game."
         },
         "players": {
           "name": "Players",
@@ -693,6 +723,22 @@
         "bull_off_distance": {
           "name": "Bull-off by distance",
           "description": "Two darts in the same bull bed are decided by the distance the board measured instead of a rethrow."
+        },
+        "teams": {
+          "name": "Teams",
+          "description": "Four players of X01 or a Cricket game play as two teams: players 1 and 3 against players 2 and 4."
+        },
+        "start_scores": {
+          "name": "Start scores",
+          "description": "X01 start scores of the players in throwing order, for a handicap, for example 501 and 301. 0 or a missing score plays the game's start score."
+        },
+        "holes": {
+          "name": "Golf holes",
+          "description": "Holes of a round of Golf: 9 or 18."
+        },
+        "rounds": {
+          "name": "Count-Up rounds",
+          "description": "Rounds of Count-Up, 1 to 20."
         }
       }
     },
@@ -781,7 +827,16 @@
         "1001": "1001",
         "shanghai": "Shanghai",
         "halve_it": "Halve-It",
-        "killer": "Killer"
+        "killer": "Killer",
+        "cut_throat": "Cut-Throat Cricket",
+        "tactics": "Tactics",
+        "golf": "Golf",
+        "baseball": "Baseball",
+        "count_up": "Count-Up",
+        "checkout_121": "121 checkout",
+        "catch_40": "Catch 40",
+        "jdc_challenge": "JDC Challenge",
+        "singles": "Singles training"
       }
     },
     "export_format": {

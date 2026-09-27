@@ -128,8 +128,8 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Said when the next visit can finish the leg. |
 | Next player | empty | Said when the next visit cannot finish the leg. Empty stays silent. |
 | Bust | `No score` | Said when a dart busts the visit. |
-| Leg won | `Game shot, and the leg{{ ', ' ~ who if who }}!` | Said when a dart wins a leg that does not decide the match. |
-| Match won | `Game shot, and the match, {{ who }}!` | Said when a dart decides the match. |
+| Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Said when a dart wins a leg that does not decide the match; in a team match with the team's name. |
+| Match won | `Game shot, and the match, {{ team or who }}!` | Said when a dart decides the match; in a team match with the team's name. |
 | Bull-off throw | empty | Said when the next player throws for the bull, for example `{{ who }}, throw for the bull`. The first player of the bull-off is not called. Empty uses the *Next player* message. |
 | Bull-off won | empty | Said when the bull-off decides who starts, in one call with the first call of the match, for example `{{ who }} to throw first. Game on!`. Empty stays silent. |
 | Word for a player without a name | `Player` | Makes "Player 2" in a match without names. |
@@ -194,11 +194,12 @@ The practice caller's messages are templates with these variables:
 | Variable | Content |
 | --- | --- |
 | `who` | The player's name, "Player 2" in a match without names, empty when you play alone |
+| `team` | The team of the player in a [team match](entities.md#teams-and-start-scores), for example `Alex & Kim` when both partners have a name; empty otherwise |
 | `remaining` | The score left |
 | `checkout` | The route when a checkout is possible, for example `T20 T20 BULL`; in *Leg won*, the score checked out, for example `121` |
 | `darts`, `average` | Darts and 3-dart average of the leg, in *Leg won* |
-| `points` | Points in Cricket and party games |
-| `target` | The next target of a party game, for example `20`, `D` or `D16` |
+| `points` | Points in the Cricket and party games; strokes in Golf, runs in Baseball |
+| `target` | The next target of a party game, for example `20`, `D` or `D16`; the hole in Golf and the inning in Baseball |
 | `distance` | How far the winning bull-off dart landed from the centre, in millimetres, in *Bull-off won*; `None` when the board reported no position for it |
 
 For example:
@@ -209,7 +210,7 @@ For example:
 | Next player | `{{ who }}`, or `{{ who }}, {{ target }}` in party games |
 | Bust | `No score` |
 | Leg won | `Game shot, and the leg{{ ', ' ~ who if who }}! {{ checkout }} checkout in {{ darts }} darts.` |
-| Match won | `Game shot, and the match, {{ who }}!` |
+| Match won | `Game shot, and the match, {{ team or who }}!` |
 | Bull-off throw | `{{ who }}, throw for the bull` |
 | Bull-off won | `{{ who }} to throw first. Game on!`, or `{{ who }} wins the bull by {{ distance }} millimetres` |
 | Word for a player without a name | `Player` |
@@ -534,7 +535,8 @@ actions:
       media_player_entity_id: media_player.darts_room
       message: >-
         {% set event = trigger.to_state.attributes %}
-        {% set player = event.name or 'Player ' ~ event.player %}
+        {# In a team match, the team wins the leg. #}
+        {% set player = event.team_name or event.name or 'Player ' ~ event.player %}
         {% if event.event_type == 'leg_won' %}
           Game shot, and the leg, {{ player }}, in {{ event.darts }} darts.
         {% else %}

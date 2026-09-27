@@ -661,8 +661,8 @@ test("Around the Clock shows the next number and aims at all of its beds", () =>
   assert.equal($(card, ".scoreboard").hidden, true);
   assert.deepEqual(paths(card, "aim"), ["SI7", "SO7", "T7", "D7"].map(bedPath));
 
-  card.hass = update(hass, drill("BULL", { drill: "around_the_clock", progress: 20, darts: 0 }));
-  assert.equal(text(card, ".practice-remaining"), "Bull");
+  card.hass = update(hass, drill("25", { drill: "around_the_clock", progress: 20, darts: 0 }));
+  assert.equal(text(card, ".practice-remaining"), "25");
   assert.equal(text(card, ".practice-meta"), "20 / 21 · 0 darts · – hits");
   assert.deepEqual(paths(card, "aim"), [bedPath("Bull"), bedPath("25")]);
 

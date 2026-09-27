@@ -92,8 +92,8 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 
   So wird 144 zu T20 T20 D12, 136 zu T20 T20 D8, 130 zu T20 T20 D5, 127 zu T20 T17 D8, 73 zu T19 D8 und 64 zu T16 D8. Für 159, 162, 163, 165, 166, 168, 169 und alles über 170 gibt es mit Double-Out keinen Weg. Ohne Double-Out checkt das größte Feld: ein Single vor einem Double oder Triple.
 - **Persönliche Wege:** Mit *Übungsspiel persönliche Checkout-Wege* gewinnen die Doubles des Spielers am Board mit je mindestens 10 Darts, die beste Quote zuerst, gegen den üblichen Weg, sobald ein Weg mit gleich vielen Darts sie ohne Double als Stellwurf erreicht; zwischen Wegen zum selben Double entscheiden die Grundsätze oben.
-- **Statistik:** Jedes beendete X01-Leg ergibt einen Eintrag für alle am Board: Punkte und Darts der ersten neun Darts, Darts aufs Double und den Checkout. Überworfene Aufnahmen zählen keine Punkte, auch nicht in den ersten neun. Die Statistik-Sensoren nutzen die letzten 10 Einträge, ihr Verlauf zeigt deine Entwicklung. *Übungsspiel gespielte Legs* zählt jedes beendete Leg von X01, Cricket und den Partyspielen.
-- **Speicher:** Spiel, Regeln, Spieler mit ihren Ständen und Treffern, Matchformat und die letzten 10 Legs werden zusammen mit der Trainingssession gespeichert.
+- **Statistik:** Jedes beendete X01-Leg ergibt einen Eintrag für alle am Board: Punkte und Darts der ersten neun Darts, Darts aufs Double und den Checkout. Überworfene Aufnahmen zählen keine Punkte, auch nicht in den ersten neun. Die Statistik-Sensoren nutzen die letzten 10 Einträge, ihr Verlauf zeigt deine Entwicklung. *Übungsspiel gespielte Legs* zählt jedes beendete Leg von X01, den Cricket-Spielen und den Partyspielen.
+- **Speicher:** Spiel, Regeln, Teams und Startpunkte, Spieler mit ihren Ständen und Treffern, Matchformat und die letzten 10 Legs werden zusammen mit der Trainingssession gespeichert.
 
 ## Regeln
 
@@ -105,6 +105,7 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 - **Überwerfen:** Ein Dart, der unter null geht, mit Double-Out 1 übrig lässt oder 0 ohne Double erreicht, überwirft die Aufnahme. Der Rest springt auf den Beginn der Aufnahme zurück. Der überwerfende Dart zählt als geworfen, spätere Darts der Aufnahme nicht.
 - **Checkout:** Ein Dart, der genau 0 erreicht, gewinnt das Leg. `leg_won` wird sofort gemeldet, mit den Regeln des Legs (`double_out`, `double_in`). Verbucht wird das Leg beim Ziehen der Darts, eine Korrektur davor zählt also noch. Darts nach dem Siegdart zählen nicht. Die nächste Aufnahme beginnt ein neues Leg.
 - **Average:** erzielte Punkte pro drei Darts des Legs. Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
+- **Startpunkte (Handicap):** Ein Spieler, dessen *Übungsspiel Startpunkte* nicht 0 sind, beginnt jedes Leg mit diesen Punkten, von 2 bis 1001, zum Beispiel 301 gegen 501. Alle anderen Regeln bleiben gleich; der Average zählt ab den eigenen Startpunkten, und `leg_won` nennt sie in `start`.
 
 ### Matches, Legs und Sätze
 
@@ -113,6 +114,14 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 - **Anwurf:** Wie bei den Sätzen der PDC wechselt der Anwurf innerhalb eines Satzes jedes Leg zum nächsten Spieler, und jeder neue Satz beginnt mit dem Spieler nach dem, der den vorigen Satz begonnen hat. Bei zwei Spielern beginnt Spieler 1 die Sätze 1, 3 und 5 und Spieler 2 die Sätze 2 und 4. Das erste Leg eines Matches beginnt Spieler 1 oder wer das Ausbullen gewinnt.
 - **Ergebnis:** Das Ergebnis bleibt stehen, bis der nächste Dart ein neues Match beginnt. Der Sieger behält die Legs des entscheidenden Satzes, ein Match auf drei Legs endet also 3:2 auf der Anzeigetafel. `match_won`, der Verlauf von *Letztes Match* und die Spielerprofile behalten Legs und Sätze aller Spieler; `match_legs` zählt die Legs des ganzen Matches.
 - **Averages:** Average und Treffer pro Runde jedes Spielers gelten für das ganze Match.
+
+### Teams
+
+- **Zwei Teams zu zwei:** Mit *Übungsspiel Teams* und vier Spielern in X01 oder einem Cricket-Spiel spielen Spieler 1 und 3 gegen Spieler 2 und 4. Geworfen wird in der Reihenfolge der Plätze, die Teams wechseln sich also ab: A1, B1, A2, B2. Mit weniger oder mehr als vier Spielern und in Party- und Trainingsspielen spielt jeder für sich.
+- **Ein Stand pro Team:** Partner teilen sich den Rest, mit Double-In das öffnende Double und in den Cricket-Spielen Treffer und Punkte. Ein Team spielt mit den Startpunkten seines ersten Spielers, Spieler 1 oder Spieler 2.
+- **Anwurf:** Wie in jedem Match zu viert wechselt der Anwurf jedes Leg zum nächsten Platz, die Teams wechseln sich also ab.
+- **Sieg:** Beide Partner gewinnen das Leg und das Match. `leg_won` und `match_won` nennen zusätzlich `team` und `team_name` (*Alex & Kim*, wenn beide Partner einen Namen haben); Darts, Average und Treffer pro Runde des Legs sind die des Teams.
+- **Statistik pro Person:** First 9, Checkout-Quote, Averages und Treffer pro Runde bleiben bei dem Spieler, der die Darts geworfen hat. Die Spielerprofile zählen Leg und Match für beide Partner, und jeder von ihnen schlägt im direkten Vergleich beide Gegner; Partner haben keinen direkten Vergleich. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Treffer pro Runde, weder am Board noch im Profil; ein Checkout zählt weiter für den Spieler, der ihn geworfen hat.
 
 ### Ausbullen
 
@@ -129,6 +138,16 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 - **Punkte:** Weitere Treffer bringen den Wert der Zahl (25 fürs Bull), solange ein anderer Spieler sie offen hat.
 - **Sieg:** Schließe alle Zahlen mit mindestens so vielen Punkten wie alle anderen. Der Sieg wird nach jedem Dart geprüft: Ein schließender Dart gewinnt sofort, wenn die Punkte reichen, und spätere Darts der Aufnahme zählen nicht. Allein gewinnt, wer alle Zahlen schließt.
 - **Treffer pro Runde:** die Treffer, die eine Zahl geschlossen oder gepunktet haben, pro drei tatsächlich geworfene Darts.
+
+### Cut-Throat Cricket
+
+- **Treffer:** wie bei Cricket, auf 20 bis 15 und das Bull.
+- **Punkte für die anderen:** Weitere Treffer auf eine geschlossene Zahl geben ihren Wert jedem anderen Spieler, der sie noch offen hat; wer sie wirft, bekommt nichts.
+- **Sieg:** Schließe alle Zahlen mit nicht mehr Punkten als alle anderen: Die wenigsten Punkte gewinnen. Allein gewinnt, wer alle Zahlen schließt.
+
+### Tactics
+
+- Cricket auf die Zahlen 20 bis 10 und das Bull, zwölf Zahlen insgesamt. Treffer, Punkte und Sieg folgen den Regeln von Cricket.
 
 ### Shanghai
 
@@ -153,17 +172,43 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 - Wer keine Leben mehr hat, ist raus: Der Rest der Aufnahme bewirkt nichts, und der Wurf überspringt ihn von da an.
 - Wer als Letzter noch ein Leben hat, gewinnt sofort; spätere Darts der Aufnahme zählen nicht.
 
+### Golf
+
+- Neun oder 18 Löcher, eingestellt in *Übungsspiel Golf-Löcher*; Loch *n* wird auf die Zahl *n* gespielt.
+- Ein Spieler wirft bis zu drei Darts pro Loch und darf nach jedem Dart aufhören, indem er die Darts zieht: **Der letzte geworfene Dart zählt.**
+- Schläge: ein Triple 1, ein Double 2, ein inneres Single 3, ein äußeres Single 4, alles andere 5. Ob ein Single innen oder außen liegt, ergibt sich aus der Position, die das Board meldet; ein Single ohne Position zählt als äußeres Single.
+- Die wenigsten Schläge nach dem letzten Loch gewinnen. Bei Gleichstand an der Spitze spielen die Gleichauf-Liegenden in ihrer Wurfreihenfolge Zusatzlöcher auf die nächsten Zahlen (nach 20 wieder ab 1), bis einer von ihnen nach einem Loch weniger Schläge hat.
+
+### Baseball
+
+- Neun Innings; Inning *n* wird auf die Zahl *n* gespielt, mit einer Aufnahme aus drei Darts.
+- Jeder Dart in einem Feld der Zahl des Innings bringt Runs: ein Single 1, ein Double 2, ein Triple 3. Das Bull bringt nichts.
+- Die meisten Runs nach neun Innings gewinnen. Bei Gleichstand an der Spitze spielen die Gleichauf-Liegenden Zusatz-Innings auf 10, 11 und so weiter, bis einer von ihnen nach einem Inning vorn liegt.
+
+### Count-Up
+
+- 1 bis 20 Runden, eingestellt in *Übungsspiel Count-Up-Runden*, standardmäßig 8. Jeder Dart bringt seinen Wert.
+- Die meisten Punkte gewinnen. Bei Gleichstand an der Spitze spielen die Gleichauf-Liegenden Zusatzrunden, bis einer von ihnen nach einer Runde vorn liegt.
+
 ### Trainingsspiele
 
 - **Around the Clock:** 1 bis 20, dann das Bull, der Reihe nach, mit jedem Feld der Zahl. Das Bull-Ziel heißt `25`: Single-Bull und Bullseye zählen beide.
 - **Doppeltraining:** D1 bis D20, dann das Bullseye (`BULL`); nur Doppelring und Bullseye zählen.
 - **Checkout-Training:** ein zufälliger Rest von 2 bis 170, der mit drei Darts checkbar ist, auf einem Double in höchstens drei Aufnahmen ausgecheckt. Überwerfen oder eine dritte Aufnahme ohne Checkout beenden den Versuch; der Weg steht nur, solange der Versuch läuft.
 - **Bob's 27:** Start mit 27 Punkten, je eine Aufnahme auf jedes Double von D1 bis D20 und dann aufs Bullseye. Jeder Treffer bringt den Wert des Doubles; eine Aufnahme ohne Treffer zieht ihn ab. Das Spiel ist verloren, sobald die Punkte null oder weniger erreichen, und geschafft nach dem Bullseye.
+- **121-Checkout:** Checke 121 auf einem Double in höchstens drei Aufnahmen, also neun Darts. Ein Checkout hebt das Ziel auf den nächsten Rest; Überwerfen oder drei Aufnahmen ohne Checkout senken es um eins, nie unter 121. Reste ohne Checkout (159, 162, 163, 165, 166, 168, 169) werden übersprungen, 170 ist das höchste Ziel. Jeder Versuch meldet `checkout_attempt` mit dem nächsten Ziel in `next`.
+- **Catch 40:** Checke 61, 62 und so weiter bis 100, jeden Rest auf einem Double in höchstens zwei Aufnahmen, also sechs Darts. Ein Checkout mit zwei Darts bringt 3 Punkte, mit drei Darts 2 und mit vier bis sechs Darts 1. Überwerfen oder zwei Aufnahmen ohne Checkout bringen nichts, und der nächste Rest folgt. Höchstens 120 Punkte.
+- **JDC Challenge:** das Trainingsprogramm der [Junior Darts Corporation](https://www.juniordarts.com/) mit 57 Darts, wie es ihre Akademien spielen ([Regeln](https://www.godartspro.com/jdc/)). Zuerst eine Aufnahme auf jede Zahl von 10 bis 15: Jeder Dart in einem Feld der Zahl bringt seinen Wert, und Single, Double und Triple der Zahl in der Aufnahme bringen 100 dazu (ein Shanghai). Dann ein Dart auf jedes Double von D1 bis D20, 50 Punkte pro Treffer, und einer aufs Bullseye für 100. Dann eine Aufnahme auf jede Zahl von 15 bis 20 wie im ersten Teil. Höchstens 3.380 Punkte.
+- **Singles-Training:** eine Aufnahme auf jede Zahl von 1 bis 20 und dann aufs Bull (`25`). Jeder Dart in einem Feld der Zahl bringt einen Punkt pro Treffer: ein Single 1, ein Double 2, ein Triple 3; das Single-Bull 1 und das Bullseye 2. Höchstens 186 Punkte.
+- Darts, die das Board nicht erkennt, zählen nicht: Im Double-Teil der JDC Challenge geht der nächste erkannte Dart aufs nächste Double.
 
 ### Bestleistungen und Statistik
 
 - **Höchste Aufnahme:** Der Sensor *Training höchste Aufnahme* und die Bestleistung `highest_visit` nehmen die Punkte der Darts im Board in einer Aufnahme mit bis zu drei Darts, egal in welchem Spiel: Eine überworfene Aufnahme oder eine Cricket-Aufnahme zählt mit ihren Board-Punkten, wie bei den Stufen 100+, 140+ und 180. Die `highest_visit` eines [Spielerprofils](entitaeten.md#spielerprofile) ist dagegen die höchste X01-Aufnahme dieses Spielers: Überwerfen zählt nichts, und mit Double-In auch keine Darts vor dem öffnenden Double.
 - **Höchster Checkout und wenigste Darts:** Die Bestleistungen `highest_checkout` und `fewest_darts_*` und dieselben Werte der Spielerprofile kommen nur aus gewonnenen X01-Legs mit Double-Out, mit oder ohne Double-In. Ein Leg ohne Double-Out ist leichter zu beenden und setzt keine Bestleistung; Double-In macht ein Leg nur schwerer.
+- **Startpunkte und Teams:** Die wenigsten Darts zählen für die Punkte, mit denen ein Leg wirklich begonnen hat: Ein Leg ab 301 Startpunkten zählt für `fewest_darts_301`, ein Leg ab 401 für keine Bestleistung, weil 401 kein X01-Spiel ist. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Treffer pro Runde.
+- **Cricket-Spiele:** Die Treffer pro Runde der Profile und `best_cricket_mpr` kommen aus Cricket; Cut-Throat und Tactics zählen ihre Legs und Matches.
+- **Trainingsspiele:** `checkout_121` hält den höchsten Rest, der im 121-Checkout gecheckt wurde; `catch_40`, `jdc_challenge` und `singles` halten die höchste Punktzahl eines beendeten Spiels.
 - **Darts aufs Double:** Mit Double-Out zählt ein Dart als Wurf aufs Double, wenn ein Double den Rest checken könnte: 2 bis 40 bei geraden Zahlen oder 50. Bei 50 zählt also jeder Dart als Versuch aufs Bullseye, auch wenn ein Spieler stattdessen mit einer Single 10 stellt.
 
 ## Wochenbericht

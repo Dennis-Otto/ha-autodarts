@@ -18,7 +18,7 @@ Zum Hinzufügen bearbeitest du ein Dashboard, wählst **Karte hinzufügen** und 
 
 - **Aufnahme:** Punkte, die drei Dart-Felder und der Fortschritt. Der jüngste Dart ist hervorgehoben.
 - **Vorige Aufnahmen:** die Punkte deiner letzten fünf Aufnahmen, eingefärbt wie im Diagramm der Trainingskarte. Mit dem Mauszeiger siehst du die Darts.
-- **Übungsspiel:** Läuft ein [Übungsspiel](entitaeten.md#übungsspiel), stehen Restpunkte, Checkout-Weg und Überwerfen über den Dart-Feldern, und die Scheibe umrandet das nächste Zielfeld. „Kein Checkout möglich“ erscheint nur bei einem Rest, der sich in einer Aufnahme beenden ließe: bis 170 mit Double-Out, bis 180 ohne. Im Match listet der Bereich alle Spieler mit Restpunkten, Legs, Sätzen und Average und hebt den Spieler am Board hervor. Bei den [Partyspielen](entitaeten.md#partyspiele) zeigt der Bereich Runde, Ziel und die Punkte aller Spieler, bei Killer ihre Zahl und Leben und wer raus ist. Beim Ausbullen listet er den Abstand jedes Darts. Bei [Cricket](entitaeten.md#cricket) zeigt eine Kreidetafel die Marks aller Spieler auf 20 bis 15 und dem Bull, die Punkte und die Marks pro Runde, blendet Zahlen ab, die alle geschlossen haben, und umrandet die nächste offene Zahl auf der Scheibe. Screenreader lesen die Marks als Wörter vor. In einem [Trainingsspiel](entitaeten.md#trainingsspiele) zeigt der Bereich Ziel, Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training: Weg und Checkout-Quote), und die Scheibe umrandet die Felder des Ziels. Live-Karte und [Anzeigetafel](#anzeigetafel) zeigen ein Spiel auf dieselbe Weise an und sagen daher immer dasselbe.
+- **Übungsspiel:** Läuft ein [Übungsspiel](entitaeten.md#übungsspiel), stehen Restpunkte, Checkout-Weg und Überwerfen über den Dart-Feldern, und die Scheibe umrandet das nächste Zielfeld. „Kein Checkout möglich“ erscheint nur bei einem Rest, der sich in einer Aufnahme beenden ließe: bis 170 mit Double-Out, bis 180 ohne. Im Match listet der Bereich alle Spieler mit Restpunkten, Legs, Sätzen und Average und hebt den Spieler am Board hervor; eigene [Startpunkte](entitaeten.md#teams-und-startpunkte) stehen neben den Namen, und ein Team-Match listet die beiden Teams. Bei den [Partyspielen](entitaeten.md#partyspiele) zeigt der Bereich Runde oder Loch, Ziel und die Punkte aller Spieler, bei Killer ihre Zahl und Leben und wer raus ist. Beim Ausbullen listet er den Abstand jedes Darts. Bei den [Cricket-Spielen](entitaeten.md#cricket) zeigt eine Kreidetafel die Marks aller Spieler oder Teams auf den Zahlen des Spiels, die Punkte und die Marks pro Runde, blendet Zahlen ab, die alle geschlossen haben, und umrandet die nächste offene Zahl auf der Scheibe. Screenreader lesen die Marks als Wörter vor. In einem [Trainingsspiel](entitaeten.md#trainingsspiele) zeigt der Bereich Ziel, Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training und 121-Checkout: Weg und Checkout-Quote; Catch 40, JDC Challenge und Singles-Training: Runde oder Teil und Punkte), und die Scheibe umrandet die Felder des Ziels. Live-Karte und [Anzeigetafel](#anzeigetafel) zeigen ein Spiel auf dieselbe Weise an und sagen daher immer dasselbe.
 - **Scheibe:**
   - Getroffene Felder blinken in der Hervorhebungsfarbe.
   - Nummerierte Markierungen zeigen, wo jeder Dart steckt.
@@ -165,18 +165,20 @@ show_system: false
 
 <img src="../images/de/scoreboard.webp" alt="Animation: die Anzeigetafel in einem 501-Match. Nach jeder Aufnahme wechselt der Wurf zwischen Alex und Sam, und Alex checkt 141 mit T20 T19 D12 zum Matchgewinn" width="760">
 
-- **X01:** eine Kachel pro Spieler mit Restpunkten, Legs, Sätzen und Average. Der Spieler am Board ist hervorgehoben und bekommt den Checkout-Weg, das Überwerfen oder das Game shot.
-- **Cricket:** eine große Kreidetafel mit den Marks aller Spieler, den Punkten und den Marks pro Runde; die nächste offene Zahl steht in der Ecke oben links, über den Zahlen.
-- **Partyspiele:** Runde und Ziel, die Punkte aller Spieler oder bei Killer ihre Zahl und Leben als rote Herzen.
+- **X01:** eine Kachel pro Spieler mit Restpunkten, Legs, Sätzen und Average. Der Spieler am Board ist hervorgehoben und bekommt den Checkout-Weg, das Überwerfen oder das Game shot. Spieler mit eigenen [Startpunkten](entitaeten.md#teams-und-startpunkte) zeigen sie neben dem Namen.
+- **Teams:** im Team-Match zwei Team-Kacheln wie *Alex & Kim* gegen *Sam & Lea*, mit dem gemeinsamen Rest, dem Average jedes Partners und dem Partner am Board in Fettschrift. Das Banner nennt das Siegerteam.
+- **Cricket:** eine große Kreidetafel mit den Marks aller Spieler, den Punkten und den Marks pro Runde; die nächste offene Zahl steht in der Ecke oben links, über den Zahlen. Tactics füllt sie von 20 bis 10 in kleinerer Schrift, Cut-Throat Cricket erinnert daran, dass die wenigsten Punkte gewinnen, und ein Team-Match hat eine Spalte pro Team.
+- **Partyspiele:** Runde und Ziel, die Punkte aller Spieler oder bei Killer ihre Zahl und Leben als rote Herzen. Golf und Baseball ergänzen eine Scorekarte aller Löcher oder Innings mit der Summe; nach einem Gleichstand erscheinen die Zusatzrunden als Stechen, und wer nicht mehr dabei ist, wird abgeblendet.
 - **Ausbullen:** der Abstand jedes Darts zur Mitte.
-- **Trainingsspiele:** das Ziel in großer Schrift mit Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training: Rest, Weg und Checkout-Quote).
+- **Trainingsspiele:** das Ziel in großer Schrift mit Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training und 121-Checkout: Rest, Weg, Checkout-Quote und das beste erreichte Ziel; Catch 40: Rest, Aufnahme und Punkte; JDC Challenge: Teil und Punkte; Singles-Training: Runde und Punkte).
 - **Zwischen den Spielen:** der Titel (der Board-Name, wenn du keinen `title` setzt) und die Punkte der aktuellen Aufnahme zusammen mit Darts, 3-Dart-Average, höchster Aufnahme und 180ern der Trainingssession, der Trainingsserie und den Darts von heute zum Tagesziel.
 - **Sieger:** Ein Banner nennt den Matchgewinner bis zum nächsten Dart.
 - **Bilder:** Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person neben ihrem Namen.
 - **Aufnahme:** Unten stehen die drei Darts der aktuellen Aufnahme und ihre Punkte.
 - **Caller:** Mit `caller: true` sagt der Bildschirm am Board das Spiel selbst an, auf Deutsch oder Englisch, je nach Sprache von Home Assistant (andere Sprachen hören Englisch). Er sagt nur an, was zählt:
   - X01: die Punkte, die eine Aufnahme gebracht hat, „Überworfen“ nach dem Überwerfen, „Keine Punkte“ für eine Aufnahme vor dem öffnenden Double, „du brauchst 81“, sobald sich der Rest beenden lässt (bis 170 mit Double-Out, 180 ohne), das Game shot von Leg und Match und eine Fanfare bei einer 180, die gezählt hat.
-  - Cricket: die Marks einer Aufnahme, etwa „5 Marks“. Shanghai und Halve-It: die Punkte auf dem Ziel. Killer und die Trainingsspiele bekommen keine Punkteansagen.
+  - Cricket-Spiele: die Marks einer Aufnahme, etwa „5 Marks“. Shanghai und Halve-It: die Punkte auf dem Ziel; Count-Up: die Punkte der Aufnahme; Baseball: die Runs, etwa „3 Runs“. Killer, Golf, wo der letzte Dart zählt, und die Trainingsspiele bekommen keine Punkteansagen.
+  - Checkout-Training, 121-Checkout und Catch 40: was der nächste Versuch oder die nächste Aufnahme braucht, etwa „Du brauchst 121“.
   - Darts nach dem Überwerfen oder dem Game shot werden nicht angesagt.
 
   Er nutzt die Sprachausgabe des Browsers, in Home Assistant muss nichts eingerichtet werden. Browser spielen Ton erst nach einem Tippen: Tippe einmal auf *Caller* auf der Anzeigetafel, um ihn einzuschalten, und noch einmal zum Stummschalten. Die Taste behält ihren Namen; ihr gedrückter Zustand und das Lautsprechersymbol zeigen, ob der Caller an ist.
@@ -184,6 +186,10 @@ show_system: false
 <img src="../images/de/killer.webp" alt="Animation: Killer für Alex, Sam und Kim auf der Anzeigetafel. Alle werfen für eine Zahl, Alex wird Killer und nimmt Sam die Leben, Kim wird ebenfalls Killer, und Alex nimmt das letzte Leben zum Sieg" width="760">
 
 <img src="../images/de/scoreboard-cricket.png" alt="Anzeigetafel bei Cricket zwischen Alex und Sam: die Kreidetafel mit Marks, Punkten und Marks pro Runde, T19 als nächstes Ziel" width="760">
+
+<img src="../images/de/golf.webp" alt="Animation: Golf für Alex und Sam auf der Anzeigetafel. Nach jeder Aufnahme füllt sich die Scorekarte: Alex spielt 1, 3 und 2, Sam 4, 5 und 5, und das vierte Loch läuft" width="760">
+
+<img src="../images/de/scoreboard-teams.png" alt="Anzeigetafel eines 501-Team-Matches: Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216, Sam am Board fett mit seinem Average" width="760">
 
 Das [automatische Dashboard](#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die Karte über den ganzen Bildschirm zeigt. Öffne sie auf dem Tablet und nutze den Vollbildmodus des Browsers oder die Home-Assistant-App im Kioskmodus. Auf dem Handy lässt die bildschirmfüllende Anzeigetafel Platz für die Adresszeile des Browsers.
 
@@ -194,14 +200,14 @@ Wähle das nächste Spiel direkt am Board, ohne Handy: Tippe zwischen den Spiele
 <img src="../images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Auswahl, Cricket wird gewählt, Sam kommt zu Alex, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
 - **Spiel:** jedes Spiel von *Übungsspiel*, gruppiert in X01, Cricket, Partyspiele und Trainingsspiele. `lobby_games` schränkt die Auswahl ein.
-- **Spieler:** bis zu vier, in Wurfreihenfolge. Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um ihn zu verschieben, und auf ✕, um ihn zu entfernen. Die Namen kommen aus den Spielerprofilen und den Namensfeldern der Spieler; Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, die zu Hause ist, stehen vorn, mit ihrem Bild und ⌂. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Ist niemand gewählt, wirft ein Spieler ohne Namen. Killer braucht zwei Spieler; Trainingsspiele nehmen nur den ersten Spieler.
+- **Spieler:** bis zu vier, in Wurfreihenfolge. Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um ihn zu verschieben, und auf ✕, um ihn zu entfernen. Die Namen kommen aus den Spielerprofilen und den Namensfeldern der Spieler; Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, die zu Hause ist, stehen vorn, mit ihrem Bild und ⌂. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Ist niemand gewählt, wirft ein Spieler ohne Namen. Killer braucht zwei Spieler; Trainingsspiele nehmen nur den ersten Spieler. Bei X01 stellen − und + neben einem Spieler eigene [Startpunkte](entitaeten.md#teams-und-startpunkte) in Schritten von 100 ein, von 101 bis 1001.
 - **Format:** Legs pro Satz und Sätze zum Sieg, für ein Match mehrerer Spieler.
-- **Optionen:** Double-Out und Double-In bei X01 und das Ausbullen für ein Match, mit Ausbullen nach Abstand, wo das Board es anbietet.
+- **Optionen:** Double-Out und Double-In bei X01 und das Ausbullen für ein Match, mit Ausbullen nach Abstand, wo das Board es anbietet. Mit vier Spielern bei X01 oder einem Cricket-Spiel spielt *Teams* Spieler 1 und 3 gegen 2 und 4.
 - **Start:** startet das Spiel mit [`autodarts.start_game`](entitaeten.md#übungsspiel-starten-autodartsstart_game), und die Anzeigetafel zeigt es sofort. Während eines Spiels beendet *Spiel beenden* es nach einem zweiten Tippen.
 
 In der Vorschau des Karteneditors öffnet sich die Auswahl nie.
 
-<img src="../images/de/scoreboard-lobby.png" alt="Die Spielauswahl auf einem Tablet im Querformat: die Spiele nach Gruppen mit 501 gewählt, Alex und Sam mit ihren Bildern, drei Legs pro Satz, Double-Out und die Starttaste" width="760">
+<img src="../images/de/scoreboard-lobby.png" alt="Die Spielauswahl auf einem Tablet im Querformat: die Spiele nach Gruppen mit 501 gewählt, Alex und Sam mit ihren Bildern, Sam ab 301 Startpunkten, drei Legs pro Satz, Double-Out und die Starttaste" width="760">
 
 ### Ruhemodus
 
@@ -269,7 +275,7 @@ idle_panels: [leaderboard, today, clock]
 
 ## Spielerkarte
 
-`custom:autodarts-players-card` zeigt die [Spielerprofile](entitaeten.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Sieger. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter.
+`custom:autodarts-players-card` zeigt die [Spielerprofile](entitaeten.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Sieger, im Team-Match beiden Partnern. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter.
 
 <img src="../images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim mit ihren Bildern, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
 
@@ -296,7 +302,7 @@ Pro Board entstehen bis zu fünf Ansichten. Sie aktualisieren sich selbst, wenn 
 
 | Ansicht | Inhalt |
 | --- | --- |
-| **Live** | Die Live-Karte über die volle Breite, die Steuerung des Übungsspiels und die Spielernamen |
+| **Live** | Die Live-Karte über die volle Breite, die Steuerung des Übungsspiels mit Teams und den Optionen für Golf und Count-Up, die Spielernamen und ihre Startpunkte |
 | **Anzeigetafel** | Die [Anzeigetafel](#anzeigetafel) über den ganzen Bildschirm, für ein Tablet oder einen Fernseher am Board |
 | **Training** | Die Trainingskarte mit den Bestleistungen, die [Doubles-Karte](#doubles-karte), das Tagesziel mit den Darts von heute, die Serie und die letzte Bestleistung, Darts pro Tag der letzten 30 Tage (aus den Langzeitstatistiken, die Home Assistant stündlich berechnet), der 3-Dart-Average der letzten 7 Tage, Übungslegs pro Tag, First-9-Average, Checkout- und Doppelquote des Übungsspiels sowie die Trainingseinstellungen: Sessions automatisch starten und nach einer Pause beenden |
 | **Spieler** | Die [Spielerkarte](#spielerkarte), sobald der erste benannte Spieler ein Profil hat |

@@ -79,6 +79,18 @@ async ([index, name]) => {
 }
 """
 
+# Sets a player's own start score; the four numbers share one translation key.
+SET_START = """
+async ([index, value]) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const ids = Object.values(hass.entities)
+    .filter((item) => item.platform === 'autodarts' && item.translation_key === 'practice_start')
+    .map((item) => item.entity_id)
+    .sort();
+  await hass.callService('number', 'set_value', { entity_id: ids[index], value });
+}
+"""
+
 FIND_CARDS = """
 () => {
   const cards = [];
@@ -530,7 +542,7 @@ def lobby_animation(page: Page) -> None:
     recorder.shot(1200)
     card = board.locator(SCOREBOARD)
     tap(board, recorder, card.locator(".lobby-cta"), 1200)
-    tap(board, recorder, card.locator(".game", has_text="Cricket"))
+    tap(board, recorder, card.locator(".game[data-value='cricket']"))
     tap(board, recorder, card.locator(".suggestion", has_text="Sam"))
     tap(board, recorder, card.locator("[data-lobby='legs'][data-value='1']"))
     tap(board, recorder, card.locator("[data-lobby='legs'][data-value='1']"))
@@ -545,7 +557,7 @@ def lobby_animation(page: Page) -> None:
 
 
 def lobby_screen(page: Page) -> None:
-    """The new game screen: two players at home, three legs per set, the rules."""
+    """The new game screen: two players at home, Sam from 301, three legs per set."""
     pull_darts()
     game(page, "off")
     for index, name in enumerate(("Alex", "Sam")):
@@ -559,6 +571,7 @@ def lobby_screen(page: Page) -> None:
     wait_card(board, "!!r.querySelector('.lobby')", SCOREBOARD)
     for _ in range(2):
         card.locator("[data-lobby='legs'][data-value='1']").click()
+        card.locator("[data-lobby='lower'][data-value='1']").click()
     board.wait_for_timeout(1000)
     page_shot(board, "scoreboard-lobby")
     board.close()
@@ -593,6 +606,179 @@ def media_gallery(page: Page) -> None:
     page.get_by_text("180 · Alex").filter(visible=True).first.wait_for(timeout=30000)
     page.wait_for_timeout(3000)
     page_shot(page, "media-gallery")
+
+
+# The new games ---------------------------------------------------------------
+
+
+def inner(number: int) -> dict:
+    """A single inside the treble ring, which Golf counts as three strokes."""
+    angle = math.radians(90 - ORDER.index(number) * 18)
+    return {
+        "segment": {"name": f"S{number}", "number": number, "multiplier": 1},
+        "coords": {
+            "x": round(0.4 * math.cos(angle), 3),
+            "y": round(0.4 * math.sin(angle), 3),
+        },
+    }
+
+
+def match_of(page: Page, names: list[str], option: str) -> Page:
+    """A match of these players; returns the scoreboard view at the board."""
+    pull_darts()
+    for index, name in enumerate(names):
+        page.evaluate(SET_NAME, [index, name])
+    players(page, len(names))
+    for key, value in (("practice_legs", 2), ("practice_sets", 1)):
+        page.evaluate(CALL_SERVICE, ["number", "set_value", key, {"value": value}])
+    game(page, option)
+    board = page.context.new_page()
+    board.set_viewport_size({"width": 1280, "height": 800})
+    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    wait_card(
+        board, "!!r.querySelector('.main .player, .main table')", SCOREBOARD, 60000
+    )
+    board.wait_for_timeout(1500)
+    return board
+
+
+def throw_visits(board: Page, visits: list[list[dict]]) -> None:
+    for darts in visits:
+        for count in range(1, len(darts) + 1):
+            control({"event": "Throw detected", "throws": darts[:count]})
+            board.wait_for_timeout(250)
+        pull_darts()
+        board.wait_for_timeout(500)
+
+
+def end_match(page: Page) -> None:
+    players(page, 1)
+    for index in range(4):
+        page.evaluate(SET_START, [index, 0])
+    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_teams", {}])
+    game(page, "off")
+
+
+def tactics_scoreboard(page: Page) -> None:
+    """Tactics on the scoreboard: the chalkboard runs down to 10."""
+    board = match_of(page, ["Alex", "Sam"], "tactics")
+    throw_visits(
+        board,
+        [
+            [at("T20"), at("T20"), at("S19")],
+            [at("T20"), at("T19"), at("S18")],
+            [at("T19"), at("T18"), at("D17")],
+            [at("T18"), at("D17"), at("S16")],
+            [at("T17"), at("T16"), at("T15")],
+            [at("S17"), at("T16"), at("D15")],
+            [at("T14"), at("T13"), at("S12")],
+        ],
+    )
+    control({"event": "Throw detected", "throws": [at("T12")]})
+    wait_card(
+        board,
+        "r.querySelectorAll('.cricket tbody tr')[8]?.children[2]?.textContent === 'Ⓧ'",
+        SCOREBOARD,
+    )
+    board.wait_for_timeout(800)
+    page_shot(board, "scoreboard-tactics")
+    board.close()
+    end_match(page)
+
+
+def teams_scoreboard(page: Page) -> None:
+    """A team match of four on the scoreboard, the partner at the board outlined."""
+    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_teams", {}])
+    board = match_of(page, ["Alex", "Sam", "Kim", "Lea"], "501")
+    throw_visits(
+        board,
+        [
+            [at("T20"), at("T20"), at("T20")],
+            [at("T20"), at("S20"), at("T20")],
+            [at("T20"), at("T19"), at("S19")],
+            [at("S20"), at("T20"), at("S5")],
+            [at("T20"), at("T20"), at("S20")],
+        ],
+    )
+    control({"event": "Throw detected", "throws": [at("T20")]})
+    wait_card(board, "r.querySelector('.player.active .members b')", SCOREBOARD)
+    board.wait_for_timeout(800)
+    page_shot(board, "scoreboard-teams")
+    board.close()
+    end_match(page)
+
+
+def handicap_scoreboard(page: Page) -> None:
+    """Sam starts from 301 against Alex's 501."""
+    page.evaluate(SET_START, [1, 301])
+    board = match_of(page, ["Alex", "Sam"], "501")
+    throw_visits(board, [[at("T20"), at("T20"), at("S20")]])
+    control({"event": "Throw detected", "throws": [at("T20")]})
+    wait_card(board, "r.querySelectorAll('.player .badge').length === 2", SCOREBOARD)
+    board.wait_for_timeout(800)
+    page_shot(board, "scoreboard-handicap")
+    board.close()
+    end_match(page)
+
+
+def golf_animation(page: Page) -> None:
+    """Golf for two on the scoreboard: the scorecard fills hole by hole."""
+    page.evaluate(
+        CALL_SERVICE,
+        ["select", "select_option", "practice_golf_holes", {"option": "9"}],
+    )
+    board = match_of(page, ["Alex", "Sam"], "golf")
+    wait_card(board, "!!r.querySelector('.scorecard')", SCOREBOARD)
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1400)
+    holes = [
+        [at("T1")],
+        [at("S2"), at("S1")],
+        [inner(2)],
+        [at("T3"), at("S3")],
+        [at("D3")],
+        [at("S5"), at("T4")],
+        [at("S4"), at("D4")],
+    ]
+    for darts in holes:
+        for count in range(1, len(darts) + 1):
+            control({"event": "Throw detected", "throws": darts[:count]})
+            board.wait_for_timeout(500)
+            recorder.shot(700)
+        pull_darts()
+        board.wait_for_timeout(700)
+        recorder.shot(900)
+    recorder.shot(1600)
+    recorder.save("golf")
+    board.close()
+    end_match(page)
+
+
+def checkout_121_animation(page: Page) -> None:
+    """The 121 checkout: a finish climbs to 122."""
+    pull_darts()
+    game(page, "checkout_121")
+    wait_card(page, big("121"))
+    recorder = Recorder(page)
+    recorder.blink(1, hold=1400)
+    for darts, remaining in (
+        ([at("T20"), at("S1"), at("S20")], "40"),
+        ([at("D20")], "0"),
+    ):
+        thrown: list[dict] = []
+        for name in darts:
+            thrown.append(name)
+            control({"event": "Throw detected", "throws": thrown})
+            page.wait_for_timeout(500)
+            recorder.blink(8, step=120, hold=900)
+        wait_card(page, big(remaining))
+        recorder.blink(1, hold=1200)
+        pull_darts()
+        page.wait_for_timeout(700)
+    wait_card(page, big("122"))
+    recorder.blink(1, hold=1800)
+    recorder.save("checkout-121")
+    game(page, "off")
 
 
 def doubles_card(page: Page) -> None:
@@ -995,7 +1181,23 @@ def main() -> None:
         scoreboard_animation(page)
         killer_animation(page)
         lobby_animation(page)
+        golf_animation(page)
+        checkout_121_animation(page)
         games.close()
+
+        # The new games and formats on the scoreboard.
+        formats = browser.new_context(
+            viewport={"width": 1280, "height": 1000},
+            device_scale_factor=2,
+            locale=LOCALE,
+            color_scheme="dark",
+        )
+        page = formats.new_page()
+        open_dashboard(page, "board")
+        tactics_scoreboard(page)
+        teams_scoreboard(page)
+        handicap_scoreboard(page)
+        formats.close()
 
         people = browser.new_context(
             viewport={"width": 1280, "height": 1000},

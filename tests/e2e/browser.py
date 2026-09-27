@@ -61,6 +61,9 @@ SCOREBOARD_STATE = f"""
       [...row.children].map((cell) => cell.textContent)
     ),
     darts: [...root.querySelectorAll('.visit .segment')].map((el) => el.textContent),
+    scorecard: [...root.querySelectorAll('.scorecard tbody tr')].map((row) =>
+      [...row.children].map((cell) => cell.textContent)
+    ),
     sum: text('.sum .value'),
     full: root.querySelector('.scoreboard').classList.contains('full'),
   }};
@@ -110,6 +113,10 @@ PRACTICE_STATE = f"""
 T20 = {
     "segment": {"name": "T20", "number": 20, "multiplier": 3, "bed": "Triple"},
     "coords": {"x": 0.035, "y": 0.608},
+}
+T1 = {
+    "segment": {"name": "T1", "number": 1, "multiplier": 3, "bed": "Triple"},
+    "coords": {"x": 0.187, "y": 0.576},
 }
 # Calls a service for an Autodarts entity through the logged-in frontend.
 CALL_SERVICE = """
@@ -657,7 +664,7 @@ def lobby(browser: Browser) -> None:
         suggested[:3] == ["Alex⌂", "Sam⌂", "Kim"],
         f"Suggestions {suggested}",
     )
-    page.locator(f"{card} .game", has_text="Cricket").click()
+    page.locator(f"{card} .game[data-value='cricket']").click()
     page.locator(f"{card} .suggestion", has_text="Sam").click()
     name = page.locator(f"{card} .lobby-name")
     name.fill("Robin")
@@ -702,6 +709,75 @@ def lobby(browser: Browser) -> None:
     )
     page.locator(f"{card} [data-lobby='close']").click()
     page.locator(f"{card} .lobby-cta").wait_for(timeout=15000)
+    errors = page_errors(page, [])
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+
+def more_games(browser: Browser) -> None:
+    """A team match, Tactics and Golf on the scoreboard."""
+    page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 800})
+    page.add_init_script(CAPTURE_ERRORS)
+    page.goto(f"{HA}/autodarts-auto/scoreboard")
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_CARDS})().some((card) => card.shadowRoot?.querySelector('.main'))",
+        timeout=30000,
+    )
+
+    def wait(condition: str) -> dict:
+        page.wait_for_function(
+            f"() => {{ const state = ({SCOREBOARD_STATE})(); return {condition}; }}",
+            timeout=15000,
+        )
+        return page.evaluate(SCOREBOARD_STATE)
+
+    def takeout() -> None:
+        control({"status": "Takeout in progress", "event": "Takeout started"})
+        control({"status": "Throw", "event": "Takeout finished", "throws": []})
+
+    def call(domain: str, service: str, key: str, **data) -> None:
+        page.evaluate(CALL_SERVICE, [domain, service, key, data])
+
+    takeout()
+    for index, name in enumerate(("Alex", "Sam", "Kim", "Lea")):
+        page.evaluate(SET_NAME, [index, name])
+    call("number", "set_value", "practice_players", value=4)
+    call("switch", "turn_on", "practice_teams")
+    call("select", "select_option", "practice_game", option="301")
+    state = wait("state.players.length === 2")
+    check(
+        state["players"] == [["Alex & Kim", "301", True], ["Sam & Lea", "301", False]],
+        f"Scoreboard of a team match {state}",
+    )
+    control({"event": "Throw detected", "throws": [T20]})
+    takeout()
+    state = wait("state.players[1][2]")
+    check(
+        state["players"] == [["Alex & Kim", "241", False], ["Sam & Lea", "301", True]],
+        f"Scoreboard after the first team visit {state}",
+    )
+    call("switch", "turn_off", "practice_teams")
+    call("number", "set_value", "practice_players", value=2)
+
+    call("select", "select_option", "practice_game", option="tactics")
+    state = wait("state.title === 'Tactics'")
+    numbers = [row[0] for row in state["cricket"][1:13]]
+    check(
+        numbers == [*(str(number) for number in range(20, 9, -1)), "Bull"],
+        f"Scoreboard in Tactics {state}",
+    )
+
+    call("select", "select_option", "practice_game", option="golf")
+    state = wait("state.title === 'Golf' && state.scorecard.length === 2")
+    control({"event": "Throw detected", "throws": [T1]})
+    takeout()
+    state = wait("state.scorecard[0][1] === '1'")
+    check(
+        state["scorecard"][0][0] == "Alex" and state["scorecard"][0][-1] == "1",
+        f"Scorecard of Golf {state}",
+    )
+    call("number", "set_value", "practice_players", value=1)
+    call("select", "select_option", "practice_game", option="off")
     errors = page_errors(page, [])
     check(not errors, f"Console problems: {errors}")
     page.close()
@@ -856,6 +932,7 @@ def main() -> None:
             ("practice game", lambda: practice(browser)),
             ("status card", lambda: status(browser)),
             ("scoreboard", lambda: scoreboard(browser)),
+            ("more games", lambda: more_games(browser)),
             ("scoreboard caller", lambda: caller(browser)),
             ("new game screen", lambda: lobby(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
@@ -899,8 +976,9 @@ def main() -> None:
         "training games, "
         "training heatmap, "
         "history and "
-        "sessions, board status, the scoreboard, its caller and new game screen, "
-        "the generated dashboard, the players export, all six card forms, the strategy editor and light theme."
+        "sessions, board status, the scoreboard with teams, Tactics and Golf, its "
+        "caller and new game screen, the generated dashboard, the players export, "
+        "all six card forms, the strategy editor and light theme."
     )
 
 

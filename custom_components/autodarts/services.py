@@ -17,14 +17,32 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.service import async_get_config_entry
 
 from .const import DOMAIN
+from .cricket import CRICKET_GAMES
 from .export import DEFAULT_FOLDER, EXPORT_CONTENTS, EXPORT_FORMATS, async_export
 from .local_coordinator import AutodartsLocalCoordinator
-from .practice import GAME_OPTIONS, MAX_LEGS, MAX_PLAYERS, MAX_SETS
+from .party import GOLF_HOLES, MAX_ROUNDS
+from .practice import (
+    GAME_OPTIONS,
+    MAX_LEGS,
+    MAX_PLAYERS,
+    MAX_SETS,
+    TEAM_PLAYERS,
+    valid_start,
+)
 from .profiles import NAME_LENGTH
 
 SERVICE_START_GAME = "start_game"
 SERVICE_DELETE_PLAYER = "delete_player"
 SERVICE_EXPORT = "export"
+
+
+def _start_score(value: object) -> int:
+    """0 for the game's start score, or a start score of 2 to 1001."""
+    start = vol.Coerce(int)(value)
+    if not valid_start(start):
+        raise vol.Invalid("a start score is 0 or 2 to 1001")
+    return int(start)
+
 
 START_GAME_SCHEMA = vol.Schema(
     {
@@ -41,6 +59,14 @@ START_GAME_SCHEMA = vol.Schema(
         vol.Optional("double_in"): cv.boolean,
         vol.Optional("bull_off"): cv.boolean,
         vol.Optional("bull_off_distance"): cv.boolean,
+        vol.Optional("teams"): cv.boolean,
+        vol.Optional("start_scores"): vol.All(
+            cv.ensure_list, [_start_score], vol.Length(max=MAX_PLAYERS)
+        ),
+        vol.Optional("holes"): vol.All(vol.Coerce(int), vol.In(GOLF_HOLES)),
+        vol.Optional("rounds"): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=MAX_ROUNDS)
+        ),
     }
 )
 
@@ -111,8 +137,11 @@ def _coordinator(
     return boards[0]
 
 
-def _check_players(game: str, names: list[str] | None, players: int) -> None:
-    """Every player needs a name of their own, and Killer two players."""
+def _check_players(
+    game: str, names: list[str] | None, players: int, teams: bool = False
+) -> None:
+    """Every player needs a name of their own, Killer two players and teams
+    four players of X01 or a Cricket game."""
     seen: set[str] = set()
     for name in names or []:
         key = name.strip().casefold()
@@ -124,9 +153,18 @@ def _check_players(game: str, names: list[str] | None, players: int) -> None:
             )
         if key:
             seen.add(key)
-    if game == "killer" and (len(names) if names else players) < 2:
+    count = len(names) if names else players
+    if game == "killer" and count < 2:
         raise ServiceValidationError(
             translation_domain=DOMAIN, translation_key="killer_players"
+        )
+    if teams and not (game.isdigit() or game in CRICKET_GAMES):
+        raise ServiceValidationError(
+            translation_domain=DOMAIN, translation_key="team_game"
+        )
+    if teams and count != TEAM_PLAYERS:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN, translation_key="team_players"
         )
 
 
@@ -136,7 +174,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         game: str = call.data["game"]
         names: list[str] | None = call.data.get("players")
-        _check_players(game, names, len(coordinator.practice.players))
+        _check_players(
+            game,
+            names,
+            len(coordinator.practice.players),
+            call.data.get("teams") is True,
+        )
         await coordinator.async_start_game(
             int(game) if game.isdigit() else game,
             names=names,
@@ -146,6 +189,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
             double_in=call.data.get("double_in"),
             bull_off=call.data.get("bull_off"),
             bull_off_distance=call.data.get("bull_off_distance"),
+            teams=call.data.get("teams"),
+            start_scores=call.data.get("start_scores"),
+            holes=call.data.get("holes"),
+            rounds=call.data.get("rounds"),
         )
 
     async def delete_player(call: ServiceCall) -> None:
