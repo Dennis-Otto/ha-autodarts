@@ -542,7 +542,7 @@ def lobby_animation(page: Page) -> None:
     recorder.shot(1200)
     card = board.locator(SCOREBOARD)
     tap(board, recorder, card.locator(".lobby-cta"), 1200)
-    tap(board, recorder, card.locator(".game", has_text="Cricket"))
+    tap(board, recorder, card.locator(".game[data-value='cricket']"))
     tap(board, recorder, card.locator(".suggestion", has_text="Sam"))
     tap(board, recorder, card.locator("[data-lobby='legs'][data-value='1']"))
     tap(board, recorder, card.locator("[data-lobby='legs'][data-value='1']"))
