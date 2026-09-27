@@ -11,6 +11,8 @@ import pytest
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from hypothesis import settings
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from syrupy.assertion import SnapshotAssertion
+from syrupy.extensions.amber import AmberSnapshotExtension
 
 import custom_components
 
@@ -24,6 +26,16 @@ custom_components.__path__.insert(
 settings.register_profile("local", deadline=None)
 settings.register_profile("ci", deadline=None, derandomize=True, print_blob=True)
 settings.load_profile("ci" if os.environ.get("CI") else "local")
+
+
+@pytest.fixture
+def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
+    """Snapshots live in tests/__snapshots__, whichever pytest plugin loads last.
+
+    syrupy and the HA test plugin both define this fixture with different folders;
+    the plugins' load order follows the order of the installed packages on disk.
+    """
+    return snapshot.use_extension(AmberSnapshotExtension)
 
 
 @pytest.fixture(autouse=True)
