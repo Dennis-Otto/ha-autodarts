@@ -62,7 +62,9 @@ async def async_discover_boards(session: aiohttp.ClientSession) -> list[dict[str
                 "board_id": board_id,
                 "host": host,
                 "port": _port(board.get("insecurePort") or board.get("port")),
-                "name": name if isinstance(name, str) and name else "Autodarts",
+                "name": name.strip()
+                if isinstance(name, str) and name.strip()
+                else None,
                 "version": version if isinstance(version, str) else None,
             }
         )

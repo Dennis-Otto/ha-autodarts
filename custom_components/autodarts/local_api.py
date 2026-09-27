@@ -435,10 +435,3 @@ class AutodartsLocalClient:
                 payload={"motion": {"standby_minutes": minutes}},
                 response_type="none",
             )
-
-    async def test_connection(self) -> bool:
-        try:
-            await self.get_state()
-        except AutodartsApiError:
-            return False
-        return True

@@ -10,9 +10,7 @@ from homeassistant.helpers import entity_registry as er
 from custom_components.autodarts.camera import AutodartsCamera
 from custom_components.autodarts.errors import AutodartsConnectionError
 
-from .local_helpers import BASE
-from .test_board_manager_2 import setup_v2
-from .test_local_setup import entity_id, setup_local
+from .local_helpers import BASE, entity_id, setup_local, setup_v2
 
 MJPEG = "multipart/x-mixed-replace; boundary=frame"
 FRAME = b"--frame\r\nContent-Type: image/jpeg\r\n\r\njpeg\r\n"

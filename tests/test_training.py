@@ -4,27 +4,7 @@ import pytest
 
 from custom_components.autodarts.training import COUNTERS, TrainingSession
 
-
-def board(*hits, **changes):
-    return {
-        "running": True,
-        "connected": True,
-        "status": "Throw",
-        "event": "Throw",
-        "numThrows": len(hits),
-        "throws": [
-            {"segment": {"name": name, "number": number, "multiplier": multiplier}}
-            for name, number, multiplier in hits
-        ],
-        **changes,
-    }
-
-
-T20 = ("T20", 20, 3)
-S20 = ("S20", 20, 1)
-BULL = ("Bull", 25, 2)
-OUTER_BULL = ("25", 25, 1)
-MISS = ("M", 0, 0)
+from .local_helpers import BULL, MISS, OUTER_BULL, S20, T20, board
 
 
 def test_visits_duplicates_coordinates_and_bulls():

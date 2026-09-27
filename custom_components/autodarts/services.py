@@ -8,16 +8,15 @@ from homeassistant.const import ATTR_CONFIG_ENTRY_ID
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.service import async_get_config_entry
 
 from .const import DOMAIN
-from .drills import DRILLS
 from .local_coordinator import AutodartsLocalCoordinator
-from .party import PARTY_GAMES
-from .practice import GAMES, MAX_LEGS, MAX_PLAYERS, MAX_SETS, NAME_LENGTH
+from .practice import GAME_OPTIONS, MAX_LEGS, MAX_PLAYERS, MAX_SETS
+from .profiles import NAME_LENGTH
 
 SERVICE_START_GAME = "start_game"
 SERVICE_DELETE_PLAYER = "delete_player"
-GAME_OPTIONS = [*(str(game) for game in GAMES), "cricket", *PARTY_GAMES, *DRILLS]
 
 START_GAME_SCHEMA = vol.Schema(
     {
@@ -51,18 +50,17 @@ def _coordinator(
 ) -> AutodartsLocalCoordinator:
     """The board of the given entry, or the only local board there is."""
     if entry_id:
-        entry = hass.config_entries.async_get_entry(entry_id)
-        if entry is None or entry.domain != DOMAIN:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="unknown_board"
-            )
-        entries = [entry]
+        # Home Assistant explains an unknown, foreign or unloaded entry itself.
+        entries = [async_get_config_entry(hass, DOMAIN, entry_id)]
     else:
-        entries = hass.config_entries.async_entries(DOMAIN)
+        # Entries without a local board, or not loaded, are no candidates.
+        entries = [
+            entry
+            for entry in hass.config_entries.async_entries(DOMAIN)
+            if entry.state is ConfigEntryState.LOADED
+        ]
     boards: list[AutodartsLocalCoordinator] = [
-        entry.runtime_data.local
-        for entry in entries
-        if entry.state is ConfigEntryState.LOADED and entry.runtime_data.local
+        entry.runtime_data.local for entry in entries if entry.runtime_data.local
     ]
     if not boards:
         raise ServiceValidationError(

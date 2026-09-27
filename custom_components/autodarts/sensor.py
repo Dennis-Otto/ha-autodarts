@@ -380,6 +380,7 @@ async def async_setup_entry(
                             translation_key="camera_fps",
                             translation_placeholders={"number": str(index + 1)},
                             native_unit_of_measurement="fps",
+                            state_class=SensorStateClass.MEASUREMENT,
                             entity_category=EntityCategory.DIAGNOSTIC,
                             entity_registry_enabled_default=False,
                             value_fn=partial(_camera_fps, index=index),
@@ -466,6 +467,7 @@ LOCAL_SENSORS = (
         key="detection_fps",
         translation_key="detection_fps",
         native_unit_of_measurement="fps",
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
         value_fn=lambda data: _number(data.get("stats", {}).get("fps")),
@@ -844,6 +846,7 @@ class AutodartsDailyDarts(AutodartsRecordsEntity):
 class AutodartsStreak(AutodartsRecordsEntity):
     """Days in a row with at least one dart; today does not break it yet."""
 
+    _attr_device_class = SensorDeviceClass.DURATION
     _attr_native_unit_of_measurement = UnitOfTime.DAYS
     _attr_state_class = SensorStateClass.MEASUREMENT
 

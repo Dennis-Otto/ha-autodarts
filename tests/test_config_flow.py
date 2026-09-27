@@ -15,18 +15,19 @@ from custom_components.autodarts.api import (
     DeviceAuthorization,
 )
 
+# Valid for a day, so that neither a long test run nor a frozen clock ends them.
 DEVICE = DeviceAuthorization(
     "private-device",
     "ABCD-EFGH",
     "https://auth.autodarts.io/link",
     "https://auth.autodarts.io/link?user_code=ABCD-EFGH",
-    time.monotonic() + 600,
+    time.monotonic() + 86400,
     5,
 )
 TOKEN = {
     "access_token": "test-access",
     "refresh_token": "test-refresh",
-    "expires_at": time.time() + 900,
+    "expires_at": time.time() + 86400,
 }
 BOARD = {"id": "board-1", "name": "My Board"}
 CLIENT_ID = "registered-test-client"
@@ -177,6 +178,11 @@ async def test_code_request_errors(hass, error, translation):
         )
     assert result["step_id"] == "cloud"
     assert result["errors"] == {"base": translation}
+    # Once the code request works, the same flow links the account.
+    future = asyncio.get_running_loop().create_future()
+    result = await start_link(hass, result, future)
+    result = await complete_link(hass, result, future, [BOARD])
+    assert result["type"] == FlowResultType.CREATE_ENTRY
 
 
 @pytest.mark.usefixtures("cloud_link")
@@ -192,6 +198,10 @@ async def test_device_error_can_restart(hass, code):
     assert result["errors"] == {"base": code}
     result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
     assert result["step_id"] == "cloud"
+    future = asyncio.get_running_loop().create_future()
+    result = await start_link(hass, result, future)
+    result = await complete_link(hass, result, future, [BOARD])
+    assert result["type"] == FlowResultType.CREATE_ENTRY
 
 
 @pytest.mark.usefixtures("cloud_link")

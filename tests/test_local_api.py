@@ -15,11 +15,6 @@ from custom_components.autodarts.local_api import (
 from .local_helpers import BASE, STATE, mock_board
 
 
-@pytest.fixture
-async def client(hass, aioclient_mock):
-    return AutodartsLocalClient("192.0.2.10", 3180, async_get_clientsession(hass))
-
-
 async def test_read_real_response_shapes_and_discard_secrets(client, aioclient_mock):
     mock_board(aioclient_mock)
     assert await client.get_state() == STATE

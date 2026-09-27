@@ -24,7 +24,6 @@ from homeassistant.helpers.event import (
     async_track_point_in_utc_time,
     async_track_time_change,
 )
-from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -54,6 +53,7 @@ from .local_api import (
 from .practice import PracticeGame
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
 from .records import PersonalRecords
+from .storage import TrainingStore
 from .training import TrainingSession, segments
 
 _LOGGER = logging.getLogger(__name__)
@@ -208,9 +208,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.quality = DetectionQuality()
         self.records = PersonalRecords()
         self._midnight_unsub: CALLBACK_TYPE | None = None
-        self._store: Store[dict[str, Any]] = Store(
-            hass, 1, f"{DOMAIN}.{entry.entry_id}.training"
-        )
+        self._store = TrainingStore(hass, entry.entry_id)
         self._training_dirty = False
         self._revision = 0
         self._idle_unsub: CALLBACK_TYPE | None = None
@@ -1254,6 +1252,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self.async_action(lambda: self.client.command("calibrate"))
         self.quality.reset()
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id("calibration"))
+        # The correction rate starts over now, not with the next read.
+        self.async_update_listeners()
 
     def _idle_due(self) -> datetime | None:
         """When a running session ends without darts, if the user wants that."""

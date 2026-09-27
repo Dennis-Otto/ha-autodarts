@@ -21,9 +21,17 @@ from custom_components.autodarts.local_api import (
 )
 from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
 
-from .local_helpers import BASE, STATE
-from .test_local_setup import entity_id, setup_local, state
-from .test_training import BULL, S20, T20, board
+from .local_helpers import (
+    BASE,
+    BULL,
+    S20,
+    STATE,
+    T20,
+    board,
+    entity_id,
+    setup_local,
+    state,
+)
 
 REAL_EVENTS = AutodartsLocalClient.events
 
@@ -46,6 +54,13 @@ class Socket:
                 yield frame
             else:
                 yield aiohttp.WSMessage(aiohttp.WSMsgType.TEXT, frame, None)
+
+
+@pytest.fixture
+def motion_sensors_enabled():
+    """Also create the motion sensors that start disabled."""
+    with patch("custom_components.autodarts.binary_sensor.MOTION_DISABLED", ()):
+        yield
 
 
 async def test_socket_frames_are_filtered_and_closed(hass):
@@ -240,6 +255,7 @@ async def test_push_updates_entities_and_emits_one_event_per_dart(hass, aioclien
     assert hass.states.get(event_id).attributes["event_type"] == "dart_corrected"
 
 
+@pytest.mark.usefixtures("motion_sensors_enabled")
 async def test_motion_sensors_and_takeout_events_are_not_replayed(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
@@ -396,6 +412,7 @@ async def test_poll_fallback_produces_events_and_counts_once(hass, aioclient_moc
     assert state(hass, "sensor", "training_darts") == "1"
 
 
+@pytest.mark.usefixtures("motion_sensors_enabled")
 async def test_calibration_hides_stale_motion_flags(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local

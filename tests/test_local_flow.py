@@ -42,12 +42,26 @@ async def test_create_local_entry_without_credentials(hass, aioclient_mock):
 @pytest.mark.parametrize(
     "host", ["", "http://192.0.2.10:3180", "some host", "user@host", "192.0.2.10:3180"]
 )
-async def test_bad_host_has_useful_validation(hass, host):
+async def test_bad_host_has_useful_validation(hass, aioclient_mock, host):
     result = await open_local(hass)
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"host": host, "port": 3180}
     )
     assert result["errors"] == {"host": "invalid_host"}
+    await create_after_error(hass, aioclient_mock, result)
+
+
+async def create_after_error(hass, aioclient_mock, result):
+    """The form keeps its flow: the correct address sets the board up."""
+    aioclient_mock.clear_requests()
+    mock_board(aioclient_mock)
+    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"host": "192.0.2.10", "port": 3180}
+        )
+        await hass.async_block_till_done()
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["title"] == "Autodarts (192.0.2.10)"
 
 
 @pytest.mark.parametrize(
@@ -73,6 +87,7 @@ async def test_local_setup_errors(hass, aioclient_mock, failure, error):
         result["flow_id"], {"host": "192.0.2.10", "port": 3180}
     )
     assert result["errors"] == {"base": error}
+    await create_after_error(hass, aioclient_mock, result)
 
 
 async def test_local_setup_detects_legacy_duplicate(hass, aioclient_mock):

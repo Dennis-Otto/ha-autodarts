@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
@@ -17,11 +18,11 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 
 from . import const
 from .api import AutodartsCloudClient
+from .button import V1_BUTTONS
 from .card import async_register_card
 from .const import (
     CONF_BOARD_ID,
@@ -42,13 +43,14 @@ from .local_coordinator import ISSUES, AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry, AutodartsRuntimeData
 from .sensor import SYSTEM_SENSORS
 from .services import async_setup_services
+from .storage import TrainingStore
 
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 # Entities that only one Board Manager generation provides.
-V1_ONLY = (("switch", "upstream"), ("button", "connect"), ("button", "disconnect"))
+V1_ONLY = (("switch", "upstream"), *(("button", key) for key in V1_BUTTONS))
 V2_ONLY = (
     ("binary_sensor", "cloud_link"),
     *(("sensor", description.key) for description in SYSTEM_SENSORS),
@@ -171,8 +173,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
             None,
         )
         board = (runtime.cloud.data or {}).get("board", {}) if runtime.cloud else {}
-        runtime.local.device_name = board.get("name") or (
-            device.name if device and device.name else "Autodarts Board"
+        # The name from Autodarts, else the one found by the board search.
+        runtime.local.device_name = (
+            board.get("name")
+            or entry.data.get(CONF_NAME)
+            or (device.name if device and device.name else "Autodarts Board")
         )
     if runtime.local:
         runtime.local.setup_generation = runtime.local.generation or 1
@@ -238,6 +243,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -
 
 async def async_remove_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> None:
     """Deleting the integration also deletes its local training session."""
-    await Store(hass, 1, f"{DOMAIN}.{entry.entry_id}.training").async_remove()
+    await TrainingStore(hass, entry.entry_id).async_remove()
     for issue in ISSUES:
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")

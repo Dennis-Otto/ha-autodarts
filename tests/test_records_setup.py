@@ -11,17 +11,24 @@ from custom_components.autodarts.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 
-from .local_helpers import local_entry_data, mock_board
-from .test_local_setup import entity_id, setup_local, state
+from .local_helpers import (
+    T20,
+    board,
+    entity_id,
+    local_entry_data,
+    mock_board,
+    record,
+    setup_local,
+    state,
+)
 from .test_practice_setup import set_number, throw
-from .test_sessions import record
-from .test_training import T20, board
 
 
 async def test_darts_today_the_daily_goal_and_a_personal_best(
     hass, aioclient_mock, freezer
 ):
-    # 11:00 in the test time zone, US/Pacific.
+    # Days start at midnight in Home Assistant's time zone: 07:00 UTC in summer.
+    await hass.config.async_set_time_zone("US/Pacific")
     freezer.move_to("2026-09-21 18:00:00+00:00")
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local

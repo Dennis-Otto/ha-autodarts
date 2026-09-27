@@ -10,12 +10,19 @@ from homeassistant.config_entries import (
     SOURCE_ZEROCONF,
 )
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.const import DISCOVERY_URL
 
-from .local_helpers import BASE, local_entry_data, mock_board, mock_board_v2
+from .local_helpers import (
+    BASE,
+    local_entry_data,
+    mock_board,
+    mock_board_v2,
+    second_board_config,
+)
 
 OTHER = "http://192.0.2.20:3180"
 LISTED = [
@@ -262,7 +269,37 @@ async def test_search_lists_new_boards_and_connects_locally(hass, aioclient_mock
     )
     await hass.async_block_till_done()
     assert result["type"] == FlowResultType.CREATE_ENTRY
-    assert result["data"] == {**local_entry_data(), "api_generation": 2}
+    # The name the board has in Autodarts names the entry and the device.
+    assert result["title"] == "Autodarts (Living room)"
+    assert result["data"] == {
+        **local_entry_data(),
+        "api_generation": 2,
+        "name": "Living room",
+    }
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        ("autodarts", "board-1"), result["result"].entry_id
+    )
+    assert device.name == "Living room"
+
+
+async def test_search_lists_a_board_without_a_name_by_its_address(hass, aioclient_mock):
+    nameless = {"boardId": "board-2", "name": " ", "ip": "192.0.2.40"}
+    aioclient_mock.get(DISCOVERY_URL, json=[LISTED[0], nameless])
+    mock_board(
+        aioclient_mock, config=second_board_config(), base="http://192.0.2.40:3180"
+    )
+    result = await start(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": "discover"}
+    )
+    options = result["data_schema"].schema["board_id"].container
+    assert options["board-2"] == "Autodarts · 192.0.2.40"
+    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"board_id": "board-2"}
+        )
+    assert result["title"] == "Autodarts (192.0.2.40)"
+    assert "name" not in result["data"]
 
 
 async def test_search_without_new_boards_falls_back_to_address(hass, aioclient_mock):
@@ -274,6 +311,13 @@ async def test_search_without_new_boards_falls_back_to_address(hass, aioclient_m
     )
     assert result["step_id"] == "local"
     assert result["errors"] == {"base": "no_boards_found"}
+    # The board of the entry above answers at the entered address.
+    mock_board(aioclient_mock)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"host": "192.0.2.10", "port": 3180}
+    )
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
 
 
 async def test_unavailable_search_falls_back_to_address(hass, aioclient_mock):
@@ -284,6 +328,15 @@ async def test_unavailable_search_falls_back_to_address(hass, aioclient_mock):
     )
     assert result["step_id"] == "local"
     assert result["errors"] == {"base": "discovery_failed"}
+    mock_board(aioclient_mock)
+    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"host": "192.0.2.10", "port": 3180}
+        )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    # Without the search, no name is known.
+    assert result["title"] == "Autodarts (192.0.2.10)"
+    assert "name" not in result["data"]
 
 
 async def test_reconfigure_by_search_updates_the_address(hass, aioclient_mock):

@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock
 import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts import async_setup_entry
@@ -19,17 +18,7 @@ from custom_components.autodarts.api import (
 )
 from custom_components.autodarts.coordinator import AutodartsDataUpdateCoordinator
 
-
-def entry_data():
-    return {
-        "client_id": "registered-test-client",
-        "board_id": "board-1",
-        "token": {
-            "access_token": "old",
-            "refresh_token": "old-refresh",
-            "expires_at": 0,
-        },
-    }
+from .local_helpers import entity_summary, entry_data
 
 
 @pytest.mark.usefixtures("cloud_link")
@@ -42,7 +31,9 @@ async def test_old_entry_requests_reauthentication(hass):
         await async_setup_entry(hass, entry)
 
 
-async def test_setup_refreshes_persists_and_loads_sensors(hass, aioclient_mock):
+async def test_setup_refreshes_persists_and_loads_sensors(
+    hass, aioclient_mock, snapshot
+):
     entry = MockConfigEntry(domain="autodarts", version=2, data=entry_data())
     entry.add_to_hass(hass)
     aioclient_mock.post(
@@ -57,13 +48,8 @@ async def test_setup_refreshes_persists_and_loads_sensors(hass, aioclient_mock):
     await hass.async_block_till_done()
     assert entry.state == ConfigEntryState.LOADED
     assert entry.data["token"]["refresh_token"] == "rotated"
-    registry = er.async_get(hass)
-    entities = er.async_entries_for_config_entry(registry, entry.entry_id)
-    assert len(entities) == 9
-    assert {entity.unique_id for entity in entities} >= {
-        "board-1_board_status",
-        "board-1_last_throw",
-    }
+    # Without a local board, the cloud provides the match entities.
+    assert entity_summary(hass, entry) == snapshot
     assert await hass.config_entries.async_unload(entry.entry_id)
 
 
@@ -103,20 +89,21 @@ async def test_auth_errors_from_all_cloud_reads_require_reauth(hass, method):
     cloud.get_match_state.return_value = {"round": 1}
     getattr(cloud, method).side_effect = AutodartsAuthError("invalid_token")
     coordinator = AutodartsDataUpdateCoordinator(hass, cloud, "board-1")
-    with pytest.raises(ConfigEntryAuthFailed):
-        await coordinator._async_update_data()
+    await coordinator.async_refresh()
+    assert not coordinator.last_update_success
+    assert isinstance(coordinator.last_exception, ConfigEntryAuthFailed)
 
 
 async def test_cloud_is_polled_quickly_only_during_a_match(hass):
     cloud = AsyncMock()
     cloud.get_board.return_value = {"id": "board-1"}
     coordinator = AutodartsDataUpdateCoordinator(hass, cloud, "board-1")
-    await coordinator._async_update_data()
+    await coordinator.async_refresh()
     assert coordinator.update_interval == timedelta(seconds=60)
     cloud.get_board.return_value = {"id": "board-1", "matchId": "match-1"}
     cloud.get_match.return_value = {"id": "match-1"}
     cloud.get_match_state.return_value = {"round": 1}
-    await coordinator._async_update_data()
+    await coordinator.async_refresh()
     assert coordinator.update_interval == timedelta(seconds=5)
 
 
@@ -127,7 +114,7 @@ async def test_match_without_its_live_state_is_still_shown(hass, caplog):
     cloud.get_match_state.side_effect = AutodartsConnectionError
     coordinator = AutodartsDataUpdateCoordinator(hass, cloud, "board-1")
     with caplog.at_level(logging.DEBUG):
-        result = await coordinator._async_update_data()
-    assert result["match"] == {"id": "match-1", "variant": "X01"}
+        await coordinator.async_refresh()
+    assert coordinator.data["match"] == {"id": "match-1", "variant": "X01"}
     assert "Could not fetch match state for match-1" in caplog.text
     assert "Could not fetch the current match" not in caplog.text

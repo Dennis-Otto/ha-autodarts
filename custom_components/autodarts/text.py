@@ -7,7 +7,8 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
-from .practice import MAX_PLAYERS, NAME_LENGTH
+from .practice import MAX_PLAYERS
+from .profiles import NAME_LENGTH
 from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 0

@@ -23,10 +23,21 @@ from custom_components.autodarts.local_coordinator import (
     _throw_positions,
 )
 
-from .local_helpers import BASE, STATE, local_entry_data, mock_board, mock_board_v2
-from .test_local_setup import entity_id, setup_local, state
-from .test_setup import entry_data
-from .test_training import BULL, S20, T20, board
+from .local_helpers import (
+    BASE,
+    BULL,
+    S20,
+    STATE,
+    T20,
+    board,
+    entity_id,
+    entry_data,
+    local_entry_data,
+    mock_board,
+    mock_board_v2,
+    setup_local,
+    state,
+)
 
 OTHER = "http://192.0.2.20:3180"
 LOGGER = "custom_components.autodarts.local_coordinator"
@@ -172,6 +183,7 @@ async def test_status_changes_are_announced_also_after_a_gap(hass, aioclient_moc
 # -- faults in the games and in the data --------------------------------------------
 
 
+@pytest.mark.expected_errors
 async def test_game_faults_never_cost_the_board_connection(
     hass, aioclient_mock, caplog
 ):
@@ -437,6 +449,7 @@ async def test_woken_reconnect_starts_the_back_off_over(hass, aioclient_mock):
     assert all(0.8 * base <= delay <= base for delay, base in zip(waits, bases))
 
 
+@pytest.mark.expected_errors
 async def test_realtime_problems_are_logged_once(hass, aioclient_mock, caplog):
     caplog.set_level(logging.DEBUG, logger=LOGGER)
     calls = 0
@@ -702,6 +715,8 @@ async def test_address_that_is_not_this_board_is_not_offered(
     entry = await setup_cloud_board(hass, aioclient_mock, OTHER)
     coordinator = entry.runtime_data.local
     aioclient_mock.clear_requests()
+    # The cloud keeps answering while the board is away.
+    mock_cloud(aioclient_mock, OTHER)
     if answer == "offline":
         aioclient_mock.get(OTHER + "/api/state", status=503)
     else:
@@ -710,15 +725,21 @@ async def test_address_that_is_not_this_board_is_not_offered(
     await go_away(hass, aioclient_mock, freezer, coordinator)
     assert issue(hass, "board_moved", entry) is None
     # The cloud is asked again only after half an hour.
-    probes = len(aioclient_mock.mock_calls)
+
+    def board_calls() -> int:
+        return sum(
+            call[1].host != "api.autodarts.io" for call in aioclient_mock.mock_calls
+        )
+
+    probes = board_calls()
     freezer.tick(timedelta(minutes=29))
     await coordinator.async_refresh()
     await hass.async_block_till_done()
-    assert len(aioclient_mock.mock_calls) == probes + 1
+    assert board_calls() == probes + 1
     freezer.tick(timedelta(minutes=1))
     await coordinator.async_refresh()
     await hass.async_block_till_done()
-    assert len(aioclient_mock.mock_calls) >= probes + 2
+    assert board_calls() >= probes + 2
 
 
 async def test_local_board_is_never_looked_up_elsewhere(hass, aioclient_mock, freezer):
@@ -736,10 +757,14 @@ async def test_board_back_at_its_address_withdraws_the_offer(
     entry = await setup_cloud_board(hass, aioclient_mock, OTHER)
     coordinator = entry.runtime_data.local
     aioclient_mock.clear_requests()
+    # The cloud keeps answering while the board is away.
+    mock_cloud(aioclient_mock, OTHER)
     mock_board(aioclient_mock, base=OTHER)
     await go_away(hass, aioclient_mock, freezer, coordinator)
     assert issue(hass, "board_moved", entry) is not None
     aioclient_mock.clear_requests()
+    # The cloud keeps answering while the board is away.
+    mock_cloud(aioclient_mock, OTHER)
     mock_board(aioclient_mock)
     await coordinator.async_refresh()
     assert issue(hass, "board_moved", entry) is None
@@ -752,10 +777,14 @@ async def test_moved_board_repair_checks_the_address_again(
     entry = await setup_cloud_board(hass, aioclient_mock, OTHER)
     coordinator = entry.runtime_data.local
     aioclient_mock.clear_requests()
+    # The cloud keeps answering while the board is away.
+    mock_cloud(aioclient_mock, OTHER)
     mock_board(aioclient_mock, base=OTHER)
     await go_away(hass, aioclient_mock, freezer, coordinator)
     issue_id = f"board_moved_{entry.entry_id}"
     aioclient_mock.clear_requests()
+    # The cloud keeps answering while the board is away.
+    mock_cloud(aioclient_mock, OTHER)
     if answer == "offline":
         aioclient_mock.get(OTHER + "/api/state", status=503)
     elif answer == "another board":

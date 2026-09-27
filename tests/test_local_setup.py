@@ -20,39 +20,28 @@ from custom_components.autodarts.errors import (
     AutodartsConnectionError,
 )
 
-from .local_helpers import BASE, CONFIG, STATE, local_entry_data, mock_board
-from .test_setup import entry_data
+from .local_helpers import (
+    BASE,
+    CONFIG,
+    STATE,
+    entity_id,
+    entity_summary,
+    entry_data,
+    local_entry_data,
+    mock_board,
+    setup_local,
+    state,
+)
 
 
-async def setup_local(hass, aioclient_mock, **kwargs):
-    mock_board(aioclient_mock, **kwargs)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    assert entry.state == ConfigEntryState.LOADED
-    return entry
-
-
-def entity_id(hass, platform, key):
-    result = er.async_get(hass).async_get_entity_id(
-        platform, "autodarts", f"board-1_{key}"
-    )
-    assert result is not None
-    return result
-
-
-def state(hass, platform, key):
-    return hass.states.get(entity_id(hass, platform, key)).state
-
-
-async def test_local_only_setup_entities_and_private_diagnostics(hass, aioclient_mock):
+async def test_local_only_setup_entities_and_private_diagnostics(
+    hass, aioclient_mock, snapshot
+):
     entry = await setup_local(hass, aioclient_mock)
     assert entry.runtime_data.cloud is None
     assert all(str(call[1]).startswith(BASE) for call in aioclient_mock.mock_calls)
     registry = er.async_get(hass)
-    entities = er.async_entries_for_config_entry(registry, entry.entry_id)
-    assert len(entities) == 92
+    assert entity_summary(hass, entry) == snapshot
     assert state(hass, "switch", "detection") == "off"
     assert state(hass, "switch", "upstream") == "on"
     assert state(hass, "binary_sensor", "local_connected") == "on"
@@ -70,34 +59,10 @@ async def test_local_only_setup_entities_and_private_diagnostics(hass, aioclient
     assert device.name == "Autodarts Board"
     assert device.sw_version == "1.0.7"
     assert device.configuration_url == BASE
+    # The complete diagnostics are compared in test_diagnostics.py.
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
-    assert diagnostics["local_available"] is True
-    assert diagnostics["cloud_configured"] is False
     assert diagnostics["local"]["settings"]["board_id"] == "**REDACTED**"
     assert diagnostics["entry"]["data"]["host"] == "**REDACTED**"
-    assert diagnostics["entry"]["data"]["port"] == 3180
-    assert diagnostics["poll_interval_seconds"] == 2
-    assert diagnostics["training_sessions"] == {
-        "active": True,
-        "auto_start": True,
-        "idle_minutes": 0,
-        "stored_sessions": 0,
-    }
-    assert diagnostics["practice_game"] == {
-        "game": None,
-        "double_out": True,
-        "players": 1,
-        "legs_to_win": 1,
-        "sets_to_win": 1,
-        "stored_legs": 0,
-        "legs_total": 0,
-    }
-    assert diagnostics["records"] == {
-        "stored_bests": 0,
-        "streak": 0,
-        "best_streak": 0,
-        "daily_goal": 0,
-    }
     for sensitive in ("private-board-api-key", "api_key", "192.0.2.10", "/dev/video0"):
         assert sensitive not in str(diagnostics)
     coordinator = entry.runtime_data.local
@@ -357,7 +322,7 @@ async def test_wrong_board_at_configured_address_cannot_be_controlled(
 
 
 async def test_discovered_host_saved_and_later_cloud_auth_failure_is_isolated(
-    hass, aioclient_mock
+    hass, aioclient_mock, snapshot
 ):
     mock_board(aioclient_mock)
     aioclient_mock.post(
@@ -379,8 +344,8 @@ async def test_discovered_host_saved_and_later_cloud_auth_failure_is_isolated(
     await hass.async_block_till_done()
     assert entry.data["host"] == "192.0.2.10"
     assert entry.data["port"] == 3180
-    registry = er.async_get(hass)
-    assert len(er.async_entries_for_config_entry(registry, entry.entry_id)) == 98
+    # The cloud adds its match entities to the local ones.
+    assert entity_summary(hass, entry) == snapshot
     assert state(hass, "sensor", "board_status") == "connected"
     with patch.object(
         entry.runtime_data.cloud.cloud,

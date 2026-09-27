@@ -5,10 +5,8 @@ from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.autodarts.const import DOMAIN
 
-from .test_local_setup import entity_id, setup_local, state
+from .local_helpers import board, entity_id, setup_local, state, switch
 from .test_practice_setup import select_game, set_number, throw
-from .test_sessions import switch
-from .test_training import board
 
 D20 = ("D20", 20, 2)
 

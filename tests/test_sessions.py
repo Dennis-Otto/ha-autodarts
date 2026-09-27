@@ -3,39 +3,26 @@
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     async_fire_time_changed,
 )
 
-from .local_helpers import local_entry_data, mock_board
-from .test_local_setup import entity_id, setup_local, state
-from .test_training import BULL, S20, T20, board
-
-
-def record(hass, coordinator) -> list[tuple[str, dict]]:
-    events: list[tuple[str, dict]] = []
-
-    @callback
-    def receive(kind: str, attributes: dict) -> None:
-        events.append((kind, attributes))
-
-    async_dispatcher_connect(hass, coordinator.event_signal, receive)
-    return events
-
-
-async def switch(hass, key: str, on: bool) -> None:
-    await hass.services.async_call(
-        "switch",
-        "turn_on" if on else "turn_off",
-        {"entity_id": entity_id(hass, "switch", key)},
-        blocking=True,
-    )
-    await hass.async_block_till_done()
+from .local_helpers import (
+    BULL,
+    S20,
+    T20,
+    board,
+    entity_id,
+    local_entry_data,
+    mock_board,
+    record,
+    setup_local,
+    state,
+    switch,
+)
 
 
 async def test_switch_ends_and_starts_sessions_with_events_and_history(

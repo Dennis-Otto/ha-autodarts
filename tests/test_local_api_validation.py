@@ -5,21 +5,14 @@ from unittest.mock import Mock
 
 import aiohttp
 import pytest
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from custom_components.autodarts.errors import AutodartsConnectionError
 from custom_components.autodarts.local_api import (
     AutodartsEndpointMissing,
-    AutodartsLocalClient,
     AutodartsProtocolError,
 )
 
 from .local_helpers import BASE, CONFIG, STATE, SYSTEM
-
-
-@pytest.fixture
-async def client(hass, aioclient_mock):
-    return AutodartsLocalClient("192.0.2.10", 3180, async_get_clientsession(hass))
 
 
 @pytest.mark.parametrize(
@@ -90,14 +83,6 @@ async def test_invalid_camera_index_sends_nothing(client, aioclient_mock):
         with pytest.raises(ValueError):
             await client.calibrate_camera(index)
     assert not aioclient_mock.mock_calls
-
-
-async def test_connection_check(client, aioclient_mock):
-    aioclient_mock.get(f"{BASE}/api/state", json=STATE)
-    assert await client.test_connection() is True
-    aioclient_mock.clear_requests()
-    aioclient_mock.get(f"{BASE}/api/state", status=500)
-    assert await client.test_connection() is False
 
 
 @pytest.mark.parametrize(

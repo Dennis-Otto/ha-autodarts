@@ -1,10 +1,9 @@
 """The start_game action and the detection quality with its calibration repair."""
 
 import pytest
-import voluptuous as vol
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import issue_registry as ir
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.setup import async_setup_component
 
 from custom_components.autodarts.const import DOMAIN
 from custom_components.autodarts.quality import (
@@ -12,11 +11,17 @@ from custom_components.autodarts.quality import (
     QUALITY_MINIMUM,
     DetectionQuality,
 )
-from custom_components.autodarts.repairs import async_create_fix_flow
+from custom_components.autodarts.repairs import CalibrationFlow
 
-from .local_helpers import BASE, local_entry_data, mock_board
-from .test_local_setup import entity_id, setup_local, state
-from .test_training import board
+from .local_helpers import (
+    BASE,
+    S20,
+    T20,
+    board,
+    entity_id,
+    setup_local,
+    state,
+)
 
 
 def darts(quality: DetectionQuality, count: int, corrected_every: int = 0) -> None:
@@ -129,56 +134,6 @@ async def test_start_game_sets_up_a_match_in_one_call(hass, aioclient_mock):
     assert state(hass, "select", "practice_game") == "killer"
 
 
-async def test_start_game_names_the_board_problem(hass, aioclient_mock):
-    entry = await setup_local(hass, aioclient_mock, state=board())
-    with pytest.raises(vol.Invalid):
-        await hass.services.async_call(
-            DOMAIN, "start_game", {"game": "401"}, blocking=True
-        )
-    with pytest.raises(vol.Invalid):
-        await hass.services.async_call(
-            DOMAIN,
-            "start_game",
-            {"game": "501", "players": ["A", "B", "C", "D", "E"]},
-            blocking=True,
-        )
-    with pytest.raises(ServiceValidationError) as error:
-        await hass.services.async_call(
-            DOMAIN,
-            "start_game",
-            {"game": "501", "config_entry_id": "nope"},
-            blocking=True,
-        )
-    assert error.value.translation_key == "unknown_board"
-
-    second = MockConfigEntry(domain=DOMAIN, version=2, data=local_entry_data())
-    second.add_to_hass(hass)
-    mock_board(aioclient_mock, state=board())
-    assert await hass.config_entries.async_setup(second.entry_id)
-    await hass.async_block_till_done()
-    with pytest.raises(ServiceValidationError) as error:
-        await hass.services.async_call(
-            DOMAIN, "start_game", {"game": "501"}, blocking=True
-        )
-    assert error.value.translation_key == "several_boards"
-    await hass.services.async_call(
-        DOMAIN,
-        "start_game",
-        {"game": "301", "config_entry_id": entry.entry_id},
-        blocking=True,
-    )
-    assert entry.runtime_data.local.practice.game == 301
-
-    for loaded in (entry, second):
-        assert await hass.config_entries.async_unload(loaded.entry_id)
-    await hass.async_block_till_done()
-    with pytest.raises(ServiceValidationError) as error:
-        await hass.services.async_call(
-            DOMAIN, "start_game", {"game": "501"}, blocking=True
-        )
-    assert error.value.translation_key == "no_board"
-
-
 async def test_start_game_needs_two_players_for_killer_and_names_of_their_own(
     hass, aioclient_mock
 ):
@@ -212,34 +167,50 @@ async def test_start_game_needs_two_players_for_killer_and_names_of_their_own(
     assert practice.party.kind == "killer"
 
 
+async def fix(hass, hass_client, issue_id: str, confirm: bool = True) -> dict:
+    """Open a repair as the user interface does, and confirm it."""
+    assert await async_setup_component(hass, "repairs", {})
+    client = await hass_client()
+    response = await client.post(
+        "/api/repairs/issues/fix", json={"handler": DOMAIN, "issue_id": issue_id}
+    )
+    flow = await response.json()
+    if not confirm or flow["type"] != "form":
+        return flow
+    assert flow["step_id"] == "confirm"
+    response = await client.post(f"/api/repairs/issues/fix/{flow['flow_id']}", json={})
+    return await response.json()
+
+
 async def test_many_corrections_suggest_a_calibration_that_the_repair_runs(
-    hass, aioclient_mock
+    hass, aioclient_mock, hass_client
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     issue_id = f"calibration_{entry.entry_id}"
     registry = ir.async_get(hass)
 
-    darts(coordinator.quality, QUALITY_MINIMUM - 1, corrected_every=2)
-    coordinator.async_receive("state", board())
-    assert registry.async_get_issue(DOMAIN, issue_id) is None
-    darts(coordinator.quality, 3, corrected_every=2)
-    coordinator.async_receive("state", board())
+    # Every visit, the board reads the first dart anew: a third is corrected.
+    for visit in range(QUALITY_MINIMUM // 3 + 1):
+        for darts_on_board in ((T20,), (S20,), (S20, T20), (S20, T20, T20), ()):
+            coordinator.async_receive("state", board(*darts_on_board))
+        if visit == QUALITY_MINIMUM // 3 - 1:
+            # Too few darts yet to tell.
+            assert registry.async_get_issue(DOMAIN, issue_id) is None
     await hass.async_block_till_done()
     issue = registry.async_get_issue(DOMAIN, issue_id)
     assert issue is not None and issue.is_fixable
-    # 25 of 52 darts were corrected.
-    assert issue.translation_placeholders == {"rate": "48"}
-    coordinator.async_update_listeners()
+    assert issue.translation_placeholders == {"rate": "33"}
     rate = hass.states.get(entity_id(hass, "sensor", "correction_rate"))
-    assert float(rate.state) == 48.1 and rate.attributes["darts"] == QUALITY_MINIMUM + 2
+    assert float(rate.state) == 33.3
+    assert (rate.attributes["darts"], rate.attributes["corrected"]) == (51, 17)
 
     aioclient_mock.post(f"{BASE}/api/config/calibration/auto", json={})
-    flow = await async_create_fix_flow(hass, issue_id, issue.data)
-    flow.hass = hass
-    flow.issue_id = issue_id
-    assert (await flow.async_step_init())["step_id"] == "confirm"
-    result = await flow.async_step_confirm({})
+    placeholders = (await fix(hass, hass_client, issue_id, confirm=False))[
+        "description_placeholders"
+    ]
+    assert placeholders == {"rate": "33"}
+    result = await fix(hass, hass_client, issue_id)
     assert result["type"] == "create_entry"
     assert any(
         call[0] == "POST" and call[1].path == "/api/config/calibration/auto"
@@ -247,29 +218,59 @@ async def test_many_corrections_suggest_a_calibration_that_the_repair_runs(
     )
     assert registry.async_get_issue(DOMAIN, issue_id) is None
     assert coordinator.quality.rate is None
+    assert state(hass, "sensor", "correction_rate") == "unknown"
 
 
-async def test_a_rejected_calibration_keeps_the_repair_open(hass, aioclient_mock):
+async def test_a_rejected_calibration_keeps_the_repair_open(
+    hass, aioclient_mock, hass_client
+):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     issue_id = f"calibration_{entry.entry_id}"
     darts(coordinator.quality, QUALITY_MINIMUM, corrected_every=2)
     coordinator.async_receive("state", board())
-    issue = ir.async_get(hass).async_get_issue(DOMAIN, issue_id)
-    assert issue is not None
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
 
     aioclient_mock.post(f"{BASE}/api/config/calibration/auto", status=409)
-    flow = await async_create_fix_flow(hass, issue_id, issue.data)
-    flow.hass = hass
-    flow.issue_id = issue_id
-    result = await flow.async_step_confirm({})
+    result = await fix(hass, hass_client, issue_id)
     assert result["type"] == "abort" and result["reason"] == "calibration_failed"
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
     assert coordinator.quality.snapshot()["darts"] == QUALITY_MINIMUM
 
 
-async def test_the_repair_gives_up_on_an_unloaded_board(hass):
-    flow = await async_create_fix_flow(hass, "calibration_x", {"entry_id": "gone"})
-    flow.hass = hass
-    result = await flow.async_step_confirm({})
+async def test_the_repair_gives_up_on_an_unloaded_board(
+    hass, aioclient_mock, hass_client
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    issue_id = f"calibration_{entry.entry_id}"
+    darts(entry.runtime_data.local.quality, QUALITY_MINIMUM, corrected_every=2)
+    entry.runtime_data.local.async_receive("state", board())
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    result = await fix(hass, hass_client, issue_id)
     assert result["type"] == "abort" and result["reason"] == "board_unavailable"
+
+
+async def test_another_fixable_issue_only_asks_for_confirmation(
+    hass, aioclient_mock, hass_client
+):
+    await setup_local(hass, aioclient_mock)
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        "something_else",
+        is_fixable=True,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="board_manager_1",
+    )
+    result = await fix(hass, hass_client, "something_else")
+    assert result["type"] == "create_entry"
+
+
+async def test_a_calibration_without_its_notice_asks_without_a_rate(hass):
+    """The notice may be gone meanwhile, for example after a recalibration."""
+    flow = CalibrationFlow("gone")
+    flow.hass, flow.handler, flow.issue_id = hass, DOMAIN, "calibration_gone"
+    result = await flow.async_step_init()
+    assert result["step_id"] == "confirm"
+    assert result["description_placeholders"] is None

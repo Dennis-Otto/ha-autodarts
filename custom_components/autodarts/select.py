@@ -5,12 +5,10 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .drills import DRILLS
 from .entity import AutodartsLocalEntity
 from .local_api import STANDBY_MINUTES
 from .local_coordinator import AutodartsLocalCoordinator
-from .party import PARTY_GAMES
-from .practice import GAMES
+from .practice import GAME_OPTIONS
 from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 1
@@ -52,13 +50,7 @@ class AutodartsStandbySelect(AutodartsLocalEntity, SelectEntity):
 class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
     """X01, Cricket, a party or training game; a choice starts it anew."""
 
-    _attr_options = [
-        "off",
-        *(str(game) for game in GAMES),
-        "cricket",
-        *PARTY_GAMES,
-        *DRILLS,
-    ]
+    _attr_options = ["off", *GAME_OPTIONS]
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "practice_game")

@@ -31,8 +31,7 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
 
-from .test_local_setup import entity_id, setup_local
-from .test_training import BULL, S20, T20, board
+from .local_helpers import BULL, S20, T20, board, entity_id, setup_local
 
 ROOT = Path(__file__).parents[1]
 BLUEPRINTS = ROOT / "blueprints" / "automation" / "autodarts"
