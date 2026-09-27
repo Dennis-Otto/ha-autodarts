@@ -22,6 +22,7 @@ test("the practice view reads the remaining score sensor", () => {
     {
       game: 501,
       remaining: 121,
+      teams: [],
       route: ["T20", "25", "D18"],
       bust: false,
       won: false,
@@ -90,8 +91,8 @@ test("a match brings every player's score", () => {
   assert.equal(view.name, null);
   assert.equal(view.legsToWin, 3);
   assert.deepEqual(view.scores, [
-    { player: 1, name: "Dennis", remaining: 121, legs: 1, sets: 0, average: 90 },
-    { player: 2, name: null, remaining: 281, legs: 0, sets: 0, average: null },
+    { player: 1, name: "Dennis", remaining: 121, start: null, team: null, legs: 1, sets: 0, average: 90 },
+    { player: 2, name: null, remaining: 281, start: null, team: null, legs: 0, sets: 0, average: null },
   ]);
 });
 
@@ -143,7 +144,8 @@ test("training games show their target, progress and beds to aim at", async () =
   });
   assert.deepEqual([clock.target, clock.progress, clock.darts, clock.hitRate], ["7", 6, 9, 66.7]);
   assert.deepEqual(drillBeds(clock), ["SI7", "SO7", "T7", "D7"]);
-  assert.deepEqual(drillBeds({ ...clock, target: "BULL" }), ["Bull", "25"]);
+  // The bull target of Around the Clock is 25: both bull beds count.
+  assert.deepEqual(drillBeds({ ...clock, target: "25" }), ["Bull", "25"]);
   const doubles = drillView({ state: "D16", attributes: { drill: "doubles" } });
   assert.deepEqual(drillBeds(doubles), ["D16"]);
   const done = drillView({
@@ -228,7 +230,7 @@ test("cricket shows every player's marks, the points and the bed to aim at", asy
   assert.deepEqual(cricketBeds({ ...view, target: "BULL" }), ["Bull", "25"]);
   assert.deepEqual(cricketBeds({ ...view, won: true }), []);
   assert.deepEqual(cricketBeds({ ...view, winner: 1 }), []);
-  const odd = cricketView({ state: "unknown", attributes: { game: "cricket", target: "<b>", numbers: [1] } });
+  const odd = cricketView({ state: "unknown", attributes: { game: "cricket", target: "<b>", numbers: [1, "x"] } });
   assert.deepEqual([odd.target, odd.numbers, odd.scores, odd.mpr], [null, [20, 19, 18, 17, 16, 15, 25], [], null]);
 });
 
