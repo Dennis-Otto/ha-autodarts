@@ -405,6 +405,7 @@ async def test_blueprints_follow_the_real_board_events(
         "Dennis_140.jpg",
         "Lea_checkout-101.jpg",
         "180.jpg",
+        "Dennis_checkout-101.jpg",
     ]
 
     # Whatever a blueprint reads is in the events it listens to.
