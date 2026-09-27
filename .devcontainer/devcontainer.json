@@ -2,8 +2,8 @@
   "name": "ha-autodarts",
   "build": { "dockerfile": "Dockerfile" },
   "features": {
-    "ghcr.io/devcontainers/features/node:1": { "version": "24" },
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/node:2": { "version": "24" },
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {}
   },
   "postCreateCommand": "pip install --require-hashes -r requirements-test.txt && npm ci --ignore-scripts",
   "forwardPorts": [18124],
