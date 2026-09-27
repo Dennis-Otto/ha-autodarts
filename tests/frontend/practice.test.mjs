@@ -65,6 +65,8 @@ test("game views fill in what a sensor leaves out", () => {
   assert.deepEqual(bullOffView({ state: "501", attributes: { bull_off: { player: "first", throws: null } } }), {
     player: 1,
     name: null,
+    rethrow: false,
+    byDistance: false,
     throws: [],
   });
 });
@@ -144,8 +146,9 @@ test("training games show their target, progress and beds to aim at", async () =
   });
   assert.deepEqual([clock.target, clock.progress, clock.darts, clock.hitRate], ["7", 6, 9, 66.7]);
   assert.deepEqual(drillBeds(clock), ["SI7", "SO7", "T7", "D7"]);
-  // The bull target of Around the Clock is 25: both bull beds count.
+  // The bull of Around the Clock is 25: both bull beds count.
   assert.deepEqual(drillBeds({ ...clock, target: "25" }), ["Bull", "25"]);
+  assert.deepEqual(drillBeds({ ...clock, target: "BULL" }), ["Bull"]);
   const doubles = drillView({ state: "D16", attributes: { drill: "doubles" } });
   assert.deepEqual(drillBeds(doubles), ["D16"]);
   const done = drillView({
@@ -248,6 +251,7 @@ test("party games show points, lives and the beds of their target", async () => 
   const halve = (target) => partyBeds({ ...shanghai, kind: "halve_it", target });
   assert.equal(halve("D").length, 21);
   assert.equal(halve("T").length, 20);
+  assert.deepEqual(halve("25"), ["Bull", "25"]);
   assert.deepEqual(halve("BULL"), ["Bull", "25"]);
   assert.deepEqual(partyBeds({ ...shanghai, won: true }), []);
   const killer = partyView({
@@ -274,14 +278,24 @@ test("party games show points, lives and the beds of their target", async () => 
   assert.equal(bullOffView({ state: "301", attributes: { bull_off: null } }), null);
   const bullOff = bullOffView({
     state: "301",
-    attributes: { bull_off: { player: 2, name: "Sam", throws: [{ player: 1, distance: 11 }, { player: 2, distance: null }, "x"] } },
+    attributes: {
+      bull_off: {
+        player: 2,
+        name: "Sam",
+        rethrow: true,
+        by_distance: true,
+        throws: [{ player: 1, hit: "S20", distance: 11 }, { player: 2, hit: null, distance: null }, "x"],
+      },
+    },
   });
   assert.deepEqual(bullOff, {
     player: 2,
     name: "Sam",
+    rethrow: true,
+    byDistance: true,
     throws: [
-      { player: 1, name: null, distance: 11 },
-      { player: 2, name: null, distance: null },
+      { player: 1, name: null, hit: "S20", distance: 11 },
+      { player: 2, name: null, hit: null, distance: null },
     ],
   });
 });

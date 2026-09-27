@@ -134,7 +134,8 @@ class Drill(ABC):
             "drill": self.kind,
             "finished": self.finished,
             "visit": [hit_key(dart) for dart in self._thrown()],
-            "results": self.results,
+            # A copy: Home Assistant keeps the attributes of every state it wrote.
+            "results": [dict(result) for result in self.results],
         }
 
 

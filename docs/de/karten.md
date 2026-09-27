@@ -18,7 +18,7 @@ Zum Hinzufügen bearbeitest du ein Dashboard, wählst **Karte hinzufügen** und 
 
 - **Aufnahme:** Punkte, die drei Dart-Felder und der Fortschritt. Der jüngste Dart ist hervorgehoben.
 - **Vorige Aufnahmen:** die Punkte deiner letzten fünf Aufnahmen, eingefärbt wie im Diagramm der Trainingskarte. Mit dem Mauszeiger siehst du die Darts.
-- **Übungsspiel:** Läuft ein [Übungsspiel](entitaeten.md#übungsspiel), stehen Restpunkte, Checkout-Weg und Überwerfen über den Dart-Feldern, und die Scheibe umrandet das nächste Zielfeld. „Kein Checkout möglich“ erscheint nur bei einem Rest, der sich in einer Aufnahme beenden ließe: bis 170 mit Double-Out, bis 180 ohne. Im Match listet der Bereich alle Spieler mit Restpunkten, Legs, Sätzen und Average und hebt den Spieler am Board hervor; eigene [Startpunkte](entitaeten.md#teams-und-startpunkte) stehen neben den Namen, und ein Team-Match listet die beiden Teams. Bei den [Partyspielen](entitaeten.md#partyspiele) zeigt der Bereich Runde oder Loch, Ziel und die Punkte aller Spieler, bei Killer ihre Zahl und Leben und wer raus ist. Beim Ausbullen listet er den Abstand jedes Darts. Bei den [Cricket-Spielen](entitaeten.md#cricket) zeigt eine Kreidetafel die Marks aller Spieler oder Teams auf den Zahlen des Spiels, die Punkte und die Marks pro Runde, blendet Zahlen ab, die alle geschlossen haben, und umrandet die nächste offene Zahl auf der Scheibe. Screenreader lesen die Marks als Wörter vor. In einem [Trainingsspiel](entitaeten.md#trainingsspiele) zeigt der Bereich Ziel, Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training und 121-Checkout: Weg und Checkout-Quote; Catch 40, JDC Challenge und Singles-Training: Runde oder Teil und Punkte), und die Scheibe umrandet die Felder des Ziels. Live-Karte und [Anzeigetafel](#anzeigetafel) zeigen ein Spiel auf dieselbe Weise an und sagen daher immer dasselbe.
+- **Übungsspiel:** Läuft ein [Übungsspiel](entitaeten.md#übungsspiel), stehen Restpunkte, Checkout-Weg und Überwerfen über den Dart-Feldern, und die Scheibe umrandet das nächste Zielfeld. „Kein Checkout möglich“ erscheint nur bei einem Rest, der sich in einer Aufnahme beenden ließe: bis 170 mit Double-Out, bis 180 ohne. Im Match listet der Bereich alle Spieler mit Restpunkten, Legs, Sätzen und Average und hebt den Spieler am Board hervor; eigene [Startpunkte](entitaeten.md#teams-und-startpunkte) stehen neben den Namen, und ein Team-Match listet die beiden Teams. Ein gewonnenes Match zeigt sein Ergebnis in großer Schrift, etwa 2 : 1, und statt der Liste die [Match-Zusammenfassung](#match-zusammenfassung). Bei den [Partyspielen](entitaeten.md#partyspiele) zeigt der Bereich Runde oder Loch, Ziel und die Punkte aller Spieler, bei Killer ihre Zahl und Leben und wer raus ist. Das Bull bei Around the Clock und Halve-It, bei dem auch das äußere Bull zählt, heißt *Bull (25/50)*, und beide Bull-Felder sind umrandet. Beim Ausbullen listet er Feld und Abstand jedes Darts und wer führt, und er sagt, wenn ein Gleichstand neu wirft. Bei den [Cricket-Spielen](entitaeten.md#cricket) zeigt eine Kreidetafel die Marks aller Spieler oder Teams auf den Zahlen des Spiels, die Punkte und die Marks pro Runde, blendet Zahlen ab, die alle geschlossen haben, und umrandet die nächste offene Zahl auf der Scheibe. Screenreader lesen die Marks als Wörter vor. In einem [Trainingsspiel](entitaeten.md#trainingsspiele) zeigt der Bereich Ziel, Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training und 121-Checkout: Weg und Checkout-Quote; Catch 40, JDC Challenge und Singles-Training: Runde oder Teil und Punkte), und die Scheibe umrandet die Felder des Ziels. Live-Karte und [Anzeigetafel](#anzeigetafel) zeigen ein Spiel auf dieselbe Weise an und sagen daher immer dasselbe.
 - **Scheibe:**
   - Getroffene Felder blinken in der Hervorhebungsfarbe.
   - Nummerierte Markierungen zeigen, wo jeder Dart steckt.
@@ -54,6 +54,8 @@ Ein Tipp auf die Scheibe, oder die Eingabe- oder Leertaste darauf, öffnet die D
 | `show_stats` | Wahrheitswert | `true` | Trainingsstatistik anzeigen |
 | `show_recent` | Wahrheitswert | `true` | Vorige Aufnahmen anzeigen |
 | `show_practice` | Wahrheitswert | `true` | Übungsspiel und nächstes Zielfeld anzeigen |
+| `show_summary` | Wahrheitswert | `true` | Die [Match-Zusammenfassung](#match-zusammenfassung) anzeigen, wenn ein X01- oder Cricket-Match endet |
+| `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
 | `show_connection` | Wahrheitswert | `true` | Verbindungen anzeigen |
 | `show_controls` | Wahrheitswert | `true` | Steuerung anzeigen |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Haupttaste |
@@ -184,10 +186,11 @@ show_system: false
 - **Teams:** im Team-Match zwei Team-Kacheln wie *Alex & Kim* gegen *Sam & Lea*, mit dem gemeinsamen Rest, dem Average jedes Partners und dem Partner am Board in Fettschrift. Das Banner nennt das Siegerteam.
 - **Cricket:** eine große Kreidetafel mit den Marks aller Spieler, den Punkten und den Marks pro Runde; die nächste offene Zahl steht in der Ecke oben links, über den Zahlen. Tactics füllt sie von 20 bis 10 in kleinerer Schrift, Cut-Throat Cricket erinnert daran, dass die wenigsten Punkte gewinnen, und ein Team-Match hat eine Spalte pro Team.
 - **Partyspiele:** Runde und Ziel, die Punkte aller Spieler oder bei Killer ihre Zahl und Leben als rote Herzen. Golf und Baseball ergänzen eine Scorekarte aller Löcher oder Innings mit der Summe; nach einem Gleichstand erscheinen die Zusatzrunden als Stechen, und wer nicht mehr dabei ist, wird abgeblendet.
-- **Ausbullen:** der Abstand jedes Darts zur Mitte.
+- **Ausbullen:** das Feld jedes Darts und sein Abstand zur Mitte, wenn das Board ihn gemessen hat. Sobald zwei Darts stecken, ist der führende markiert. Ein Gleichstand zeigt das Banner *Gleichstand – noch einmal werfen*.
 - **Trainingsspiele:** das Ziel in großer Schrift mit Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training und 121-Checkout: Rest, Weg, Checkout-Quote und das beste erreichte Ziel; Catch 40: Rest, Aufnahme und Punkte; JDC Challenge: Teil und Punkte; Singles-Training: Runde und Punkte).
 - **Zwischen den Spielen:** der Titel (der Board-Name, wenn du keinen `title` setzt) und die Punkte der aktuellen Aufnahme zusammen mit Darts, 3-Dart-Average, höchster Aufnahme und 180ern der Trainingssession, der Trainingsserie und den Darts von heute zum Tagesziel.
-- **Sieger:** Ein Banner nennt den Matchgewinner bis zum nächsten Dart.
+- **Sieger:** Ein Banner nennt den Matchgewinner mit dem Ergebnis, etwa *Alex gewinnt das Match 3 : 2!*, bis zum nächsten Dart. Das Ergebnis zählt Legs, in einem Match mit Sätzen die Sätze; ein Match über ein Leg hat keins.
+- **Match-Zusammenfassung:** Endet ein X01- oder Cricket-Match, tritt die [Match-Zusammenfassung](#match-zusammenfassung) an die Stelle der Spieler.
 - **Bilder:** Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person neben ihrem Namen.
 - **Aufnahme:** Unten stehen die drei Darts der aktuellen Aufnahme und ihre Punkte.
 - **Caller:** Mit `caller: true` sagt der Bildschirm am Board das Spiel selbst an, auf Deutsch oder Englisch, je nach Sprache von Home Assistant (andere Sprachen hören Englisch). Er sagt nur an, was zählt:
@@ -210,7 +213,7 @@ Das [automatische Dashboard](#automatisches-dashboard) hat eine Ansicht *Anzeige
 
 ### Spielauswahl
 
-Wähle das nächste Spiel direkt am Board, ohne Handy: Tippe zwischen den Spielen auf **Neues Spiel** unter den Punkten oder jederzeit oben rechts. Einige Sekunden nach dem Ende eines Matches oder Trainingsspiels öffnet sich die Auswahl auch von selbst, mit der letzten Wahl für eine Revanche; wirft stattdessen jemand einen Dart, schließt sie sich wieder.
+Wähle das nächste Spiel direkt am Board, ohne Handy: Tippe zwischen den Spielen auf **Neues Spiel** unter den Punkten oder jederzeit oben rechts. Einige Sekunden nach dem Ende eines Matches oder Trainingsspiels, oder nach seiner [Match-Zusammenfassung](#match-zusammenfassung), öffnet sich die Auswahl auch von selbst, mit der letzten Wahl für eine Revanche; wirft stattdessen jemand einen Dart, schließt sie sich wieder.
 
 <img src="../images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Auswahl, Cricket wird gewählt, Sam kommt zu Alex, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
@@ -233,7 +236,7 @@ Läuft kein Spiel oder ist ein Match oder Trainingsspiel entschieden, und wirft 
 | `leaderboard` | Die fünf besten Spieler nach 3-Dart-Average, dann nach gewonnenen Legs, mit ihren Bildern |
 | `records` | Die Bestleistungen des Boards und die längste Trainingsserie |
 | `today` | Die Darts von heute zum Tagesziel, 3-Dart-Average, höchste Aufnahme und 180er der Session sowie die Serie |
-| `last_match` | Das letzte Match mehrerer Spieler: das Spiel, wann es endete, und Legs oder Sätze und Average aller Spieler |
+| `last_match` | Das letzte Match mehrerer Spieler: das Spiel, wann es endete, und die Legs, in einem Match mit Sätzen die Sätze, und den Average aller Spieler |
 | `clock` | Uhrzeit und Datum |
 
 Tafeln ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tippen irgendwo beendet den Ruhemodus. Auf Geräten, die weniger Bewegung wünschen, wechseln die Tafeln ohne Überblenden.
@@ -260,6 +263,8 @@ Tafeln ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `idle_after` | Sekunden, 10–3600 | `180` | Zeit ohne Darts und Tippen, bis der Ruhemodus beginnt |
 | `idle_interval` | Sekunden, 3–120 | `10` | Zeit, die jede Tafel zu sehen ist |
 | `idle_panels` | Liste von Tafeln | jede Tafel | Die Tafeln des Ruhemodus in dieser Reihenfolge: `leaderboard`, `records`, `today`, `last_match`, `clock` |
+| `show_summary` | Wahrheitswert | `true` | Die [Match-Zusammenfassung](#match-zusammenfassung) anzeigen, wenn ein X01- oder Cricket-Match endet |
+| `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Spieler am Board, Wege und Aufnahmepunkte |
 
 Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl und Ruhemodus haben eigene eingeklappte Abschnitte.
@@ -271,7 +276,20 @@ caller: true
 lobby_games: ["301", "501", cricket, killer]
 idle_after: 300
 idle_panels: [leaderboard, today, clock]
+summary_seconds: 60
 ```
+
+### Match-Zusammenfassung
+
+Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live-Karte es zusammen: eine Spalte pro Spieler, die des Siegers hervorgehoben, mit dem Ergebnis in der ersten Zeile.
+
+<img src="../images/de/match-summary.png" alt="Anzeigetafel, nachdem Alex Sam in 301 mit 2 : 1 geschlagen hat: die Match-Zusammenfassung mit Legs, 3-Dart-Average, First 9, Checkout-Quote, höchstem Checkout, 180ern, 140+, 100+, bestem Leg, Darts aufs Double und Darts beider Spieler" width="760">
+
+- **X01:** Legs (und Sätze), 3-Dart-Average, First-9-Average, Checkout-Quote mit den ausgecheckten Legs und den Darts aufs Double, höchster Checkout, 180er, Aufnahmen mit 140+ und 100+, bestes Leg in Darts, Darts aufs Double und alle Darts. Ohne Double-Out fehlen Checkout-Quote und Darts aufs Double.
+- **Cricket:** Legs (und Sätze), Marks pro Runde, Marks, bestes Leg in Darts und alle Darts.
+- **Wie lange:** bis zum ersten Dart des nächsten Spiels oder `summary_seconds` nachdem die Karte sie zuerst gezeigt hat. Danach sind Spieler und Ergebnis wieder zu sehen, und auf der Anzeigetafel öffnet sich einige Sekunden später die [Spielauswahl](#spielauswahl). Solange die Zusammenfassung zu sehen ist, öffnet sich die Spielauswahl nur durch Tippen, und der [Ruhemodus](#ruhemodus) kann nach seiner Wartezeit übernehmen. `show_summary: false` schaltet die Zusammenfassung ab.
+
+Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem Attribut `summary` der [Übungsspiel-Restpunkte](entitaeten.md#übungsspiel); [wie sie gezählt werden](funktionsweise.md#match-zusammenfassung).
 
 ## Doubles-Karte
 
@@ -290,7 +308,7 @@ idle_panels: [leaderboard, today, clock]
 
 ## Spielerkarte
 
-`custom:autodarts-players-card` zeigt die [Spielerprofile](entitaeten.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Sieger, im Team-Match beiden Partnern. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter.
+`custom:autodarts-players-card` zeigt die [Spielerprofile](entitaeten.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Ergebnis und dem Sieger in Fett: die Legs, die jeder Spieler gewonnen hat, in einem Match mit Sätzen die Sätze, etwa *Cricket · Sätze*. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter.
 
 <img src="../images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim mit ihren Bildern, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
 

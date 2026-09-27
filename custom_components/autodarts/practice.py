@@ -8,6 +8,7 @@ starts.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -40,6 +41,7 @@ from .positions import x01_aims
 from .profiles import NAME_LENGTH, Profiles
 from .scoring import VISIT_DARTS, evaluate_visit, is_double, rate, score
 from .scoring import average as _average
+from .summary import Tally
 from .training import hit_key
 
 GAMES = (101, 301, 501, 701, 901, 1001)
@@ -143,6 +145,8 @@ class PracticeGame:
         self.double_out = True
         self.double_in = False
         self.bull_off = False
+        # Double out switched on or off during a leg: the rule of the next leg.
+        self.double_out_next: bool | None = None
         # Two darts in the same bull bed: the measured distance decides instead
         # of a rethrow, as the official rules want.
         self.bull_off_distance = False
@@ -169,6 +173,9 @@ class PracticeGame:
         self.legs: list[dict[str, Any]] = []
         self.leg_stats: list[dict[str, int]] = []
         self.legs_total = 0
+        # Every player's numbers of the match, and the summary of the last match.
+        self.tallies = [Tally()]
+        self.summary: dict[str, Any] | None = None
         # The training game played instead of X01, if any.
         self.drill: str | None = None
         self.drills: dict[str, Drill] = {kind: make_drill(kind) for kind in DRILLS}
@@ -279,6 +286,25 @@ class PracticeGame:
             and type(leg.get("darts")) is int
             and leg["darts"] > 0
         ][:LEG_HISTORY]
+        self._restore_match(saved)
+
+    def _restore_match(self, saved: dict[str, Any]) -> None:
+        """The tallies of the match, its summary and a double out waiting for
+        the next leg; stores before version 1.6 have none of them."""
+        pending = saved.get("double_out_next")
+        self.double_out_next = pending if isinstance(pending, bool) else None
+        tallies = saved.get("tallies")
+        self.tallies = (
+            [Tally.restored(tally) for tally in tallies]
+            if isinstance(tallies, list) and len(tallies) == len(self.players)
+            else [Tally() for _ in self.players]
+        )
+        summary = saved.get("summary")
+        self.summary = (
+            copy.deepcopy(summary)
+            if isinstance(summary, dict) and isinstance(summary.get("players"), list)
+            else None
+        )
 
     def stored(self) -> dict[str, Any]:
         return {
@@ -309,6 +335,9 @@ class PracticeGame:
             "drill": self.drill,
             "drills": {kind: drill.stored() for kind, drill in self.drills.items()},
             "profiles": self.profiles.stored(),
+            "double_out_next": self.double_out_next,
+            "tallies": [tally.stored() for tally in self.tallies],
+            "summary": copy.deepcopy(self.summary),
         }
 
     # -- settings --------------------------------------------------------------
@@ -361,6 +390,34 @@ class PracticeGame:
         if kind in before and before[kind] != self._rounds(kind):
             self.play(str(kind))
 
+    def set_option(self, option: str, enabled: bool) -> None:
+        """Switch a rule of the game on or off.
+
+        Double out changes a leg only before its first dart; once darts count,
+        it applies from the next leg. A leg keeps its rules, so none becomes
+        unwinnable, as for a player on 1 when double out comes on.
+        """
+        if option == "double_out" and self._leg_begun():
+            self.double_out_next = None if enabled == self.double_out else enabled
+            return
+        setattr(self, option, enabled)
+        if option == "double_out":
+            self.double_out_next = None
+
+    def setting(self, option: str) -> bool:
+        """A rule as players set it; double out may wait for the next leg."""
+        if option == "double_out" and self.double_out_next is not None:
+            return self.double_out_next
+        return bool(getattr(self, option))
+
+    def _leg_begun(self) -> bool:
+        """Darts of the X01 leg in progress count already."""
+        return bool(
+            self.game
+            and self.winner is None
+            and (any(player.darts for player in self.players) or self._thrown())
+        )
+
     def set_name(self, index: int, name: str) -> None:
         if 0 <= index < MAX_PLAYERS:
             self.names[index] = name.strip()[:NAME_LENGTH]
@@ -374,6 +431,7 @@ class PracticeGame:
         """Everybody starts from zero legs and sets; player 1 throws first,
         unless a bull-off decides it."""
         self.players = [Player() for _ in self.players]
+        self.tallies = [Tally() for _ in self.players]
         self.starter, self.set_starter, self.winner = 0, 0, None
         self.bulling = (
             BullOff(list(range(len(self.players))))
@@ -390,6 +448,8 @@ class PracticeGame:
         if self.winner is not None:
             self.new_match()
             return
+        if self.double_out_next is not None:
+            self.double_out, self.double_out_next = self.double_out_next, None
         if self.drill:
             self.drills[self.drill].reset(len(self._visit))
         slots = len(self._numbers())
@@ -574,7 +634,18 @@ class PracticeGame:
         visit: list[dict[str, Any]],
         positions: list[tuple[float, float] | None] | None = None,
     ) -> list[tuple[str, dict[str, Any]]]:
-        """Follow the darts of the current visit, announcing a bust or a win."""
+        """Follow the darts of the current visit, announcing a bust or a win.
+
+        A won match comes with every player's numbers for its summary, as the
+        visit that decided it leaves them once it is booked.
+        """
+        return self._summarized(self._follow(visit, positions), booked=False)
+
+    def _follow(
+        self,
+        visit: list[dict[str, Any]],
+        positions: list[tuple[float, float] | None] | None = None,
+    ) -> list[tuple[str, dict[str, Any]]]:
         self._visit = list(visit)
         self._positions = list(positions or [])
         self._skip = min(self._skip, len(self._visit))
@@ -643,6 +714,7 @@ class PracticeGame:
 
     def finish_visit(self) -> list[tuple[str, dict[str, Any]]]:
         """Book the visit whose darts were pulled; then the next player throws."""
+        decided = self.winner is not None
         events: list[tuple[str, dict[str, Any]]] = []
         if self.drill:
             self._record_doubles(self.drills[self.drill].double_attempts(), 0)
@@ -670,6 +742,7 @@ class PracticeGame:
             if self.double_in and opening < darts and outcome != "bust":
                 player.opened = True
             self.profiles.visit(self._name(self.current), scored)
+            self.tallies[self.current].visit(scored)
             if outcome == "won":
                 self._book_leg()
             else:
@@ -679,8 +752,10 @@ class PracticeGame:
             if self.winner is None:
                 # Also when playing alone: the next visit is up, for callers.
                 events.append(self._turn())
+        if self.winner is not None and not decided:
+            self.summary = self._summary(self.winner)
         self._visit, self._skip, self._announced = [], 0, None
-        return events
+        return self._summarized(events, booked=True)
 
     def _turn(self) -> tuple[str, dict[str, Any]]:
         """The player at the board next, with what callers need to announce."""
@@ -1156,6 +1231,7 @@ class PracticeGame:
         return entries
 
     def _book_leg(self) -> None:
+        self._tally_leg()
         self.profiles.leg(self._kind(), self._leg_entries())
         winner = self.players[self.current]
         side = self._side(self.current)
@@ -1220,6 +1296,102 @@ class PracticeGame:
             self.starter = (self.starter + 1) % players
         self.new_leg()
 
+    # -- match summary ------------------------------------------------------------
+
+    def _tally_leg(self) -> None:
+        """The leg that ended counts for everybody's match numbers. A team
+        wins the leg together, in the darts of both partners; the checkout
+        counts for the player who threw it."""
+        for player, tally in zip(self.players, self.tallies, strict=True):
+            tally.leg(player.first9_points, player.first9_darts, player.at_double)
+        darts = self._sum(self.current, "darts")
+        for index in self._side(self.current):
+            checkout = self.players[index].remaining
+            if not self.game or index != self.current:
+                checkout = 0
+            self.tallies[index].won(darts, checkout, self.double_out)
+
+    def _summary(self, winner: int) -> dict[str, Any]:
+        """The match that just ended: its format, winner and every player."""
+        return {
+            "game": self._kind(),
+            "ended": dt_util.utcnow().isoformat(),
+            "winner": winner + 1,
+            "legs_to_win": self.legs_to_win,
+            "sets_to_win": self.sets_to_win,
+            "double_out": self.double_out,
+            "players": [
+                self._summary_entry(index) for index in range(len(self.players))
+            ],
+        }
+
+    def _summary_entry(self, index: int) -> dict[str, Any]:
+        """One player's numbers of the match: legs, sets and darts; X01 its
+        averages, checkouts, high visits and best leg; Cricket its marks."""
+        player, tally = self.players[index], self.tallies[index]
+        entry: dict[str, Any] = {
+            "player": index + 1,
+            "name": self._name(index),
+            "legs": player.match_legs,
+            "sets": player.sets,
+            "darts": player.match_darts,
+        }
+        if self.cricket:
+            entry.update(
+                mpr=marks_per_round(player.match_marks, player.match_darts),
+                marks=player.match_marks,
+                best_leg=tally.best_leg or None,
+            )
+        elif not self.party:
+            entry.update(
+                average=_average(player.match_points, player.match_darts),
+                first_9_average=_average(tally.first9_points, tally.first9_darts),
+                checkouts=tally.checkouts,
+                darts_at_double=tally.at_double,
+                checkout_rate=rate(tally.checkouts, tally.at_double),
+                highest_checkout=tally.highest_checkout or None,
+                scores_100=tally.scores_100,
+                scores_140=tally.scores_140,
+                scores_180=tally.scores_180,
+                best_leg=tally.best_leg or None,
+            )
+        return entry
+
+    def _settled(self) -> list[dict[str, Any]]:
+        """Every player's numbers of the summary once the visit that decides
+        the match is booked: a scratch copy of the game books it."""
+        # The copy must not touch the profiles and doubles of the players.
+        memo: dict[int, Any] = {
+            id(self.profiles): Profiles(),
+            id(self.doubles): DoubleStats(),
+        }
+        scratch = copy.deepcopy(self, memo)
+        scratch.finish_visit()
+        assert scratch.summary is not None
+        players: list[dict[str, Any]] = scratch.summary["players"]
+        return players
+
+    def _summarized(
+        self, events: list[tuple[str, dict[str, Any]]], booked: bool
+    ) -> list[tuple[str, dict[str, Any]]]:
+        """A won match announces every player's numbers of its summary."""
+        if not any(kind == "match_won" for kind, _ in events):
+            return events
+        if booked:
+            assert self.summary is not None
+            players = self.summary["players"]
+        else:
+            players = self._settled()
+        return [
+            (
+                kind,
+                {**payload, "summary": copy.deepcopy(players)}
+                if kind == "match_won"
+                else payload,
+            )
+            for kind, payload in events
+        ]
+
     # -- state -----------------------------------------------------------------
 
     def snapshot(self) -> dict[str, Any]:
@@ -1228,7 +1400,9 @@ class PracticeGame:
             "players": len(self.players),
             "legs_to_win": self.legs_to_win,
             "sets_to_win": self.sets_to_win,
-            "legs": self.legs,
+            # Copies: Home Assistant keeps the attributes of every state it wrote.
+            "legs": [dict(leg) for leg in self.legs],
+            "summary": copy.deepcopy(self.summary),
             "drill": self.drills[self.drill].snapshot() if self.drill else None,
             "double_in": self.double_in,
             "bull_off": self._bull_off_snapshot(),

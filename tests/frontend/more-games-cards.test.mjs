@@ -51,8 +51,13 @@ test("the scoreboard shows two team tiles with the partner at the board", () => 
   assert.equal(text(card, ".player.active .members b"), "Kim Ø 52.0");
   assert.equal(text(card, ".player.active .route"), "T20D20");
   assert.equal(text(card, ".meta"), "2 legs per set");
-  card.hass = update(hass, teamMatch([0, 301], { player: 1, winner: 1 }));
-  assert.equal(text(card, ".banner"), "Alex & Kim win the match!");
+  // A won match keeps the legs of the deciding set; a team counts once in the result.
+  const scores = teamMatch([0, 301])["sensor.practice_remaining"].attributes.scores.map((score) => ({
+    ...score,
+    legs: score.team === 1 ? 2 : 1,
+  }));
+  card.hass = update(hass, teamMatch([0, 301], { player: 1, winner: 1, scores }));
+  assert.equal(text(card, ".banner"), "Alex & Kim win the match 2 : 1!");
   assert.equal($(card, ".banner").hidden, false);
 });
 

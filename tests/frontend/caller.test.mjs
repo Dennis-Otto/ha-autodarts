@@ -158,6 +158,8 @@ test("Cricket calls the marks of the visit, party games their points, Killer and
   assert.deepEqual(visitCount(party("shanghai", "3"), ["S3", "T3", "S17"], null), { kind: "score", score: 12 });
   assert.deepEqual(visitCount(party("halve_it", "D"), ["D20", "BULL", "T20"], null), { kind: "score", score: 90 });
   assert.deepEqual(visitCount(party("halve_it", null), ["D20"], null), { kind: "score", score: 0 });
+  // The bull of Halve-It (25) takes both bull beds.
+  assert.deepEqual(visitCount(party("halve_it", "25"), ["25", "BULL", "S20"], null), { kind: "score", score: 75 });
   assert.deepEqual(visitCount(party("halve_it", "BULL"), ["25", "BULL", "S20"], null), { kind: "score", score: 75 });
   assert.equal(visitCount(party("shanghai", "3", true), ["S3", "D3", "T3"], null), null);
   assert.equal(visitCount(party("killer", null), ["D7", "D7", "D7"], null), null);

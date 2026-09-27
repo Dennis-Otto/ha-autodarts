@@ -387,6 +387,21 @@ const TEXT = {
     idle_panels_helper: "Empty shows every panel.",
     idle_section: "Idle mode",
     idle_section_helper: "When no game runs and nobody throws or taps, the scoreboard shows these panels in turn.",
+    // Bull targets, the bull-off and the result of a match
+    bull_target: "Bull (25/50)",
+    bull_off_rethrow: "Tie – throw again",
+    bull_off_leads: "leads",
+    score_winner_by: "wins the match {result}!",
+    score_winners_by: "win the match {result}!",
+    // Match summary
+    summary: "Match summary",
+    summary_marks: "Marks",
+    summary_best_leg: "Best leg",
+    summary_checkout: "Checkout rate",
+    summary_at_double: "Darts at a double",
+    show_summary: "Show the match summary",
+    summary_seconds: "Match summary (seconds)",
+    summary_seconds_helper: "How long the summary stays after a match; 0 keeps it until the next game starts.",
     // Training card
     training: "Training",
     average_long: "3-dart average",
@@ -830,6 +845,19 @@ const TEXT = {
     idle_panels_helper: "Leer zeigt jede Tafel.",
     idle_section: "Ruhemodus",
     idle_section_helper: "Läuft kein Spiel und wirft oder tippt niemand, zeigt die Anzeigetafel diese Tafeln im Wechsel.",
+    bull_target: "Bull (25/50)",
+    bull_off_rethrow: "Gleichstand – noch einmal werfen",
+    bull_off_leads: "führt",
+    score_winner_by: "gewinnt das Match {result}!",
+    score_winners_by: "gewinnen das Match {result}!",
+    summary: "Match-Zusammenfassung",
+    summary_marks: "Marks",
+    summary_best_leg: "Bestes Leg",
+    summary_checkout: "Checkout-Quote",
+    summary_at_double: "Darts aufs Double",
+    show_summary: "Match-Zusammenfassung anzeigen",
+    summary_seconds: "Match-Zusammenfassung (Sekunden)",
+    summary_seconds_helper: "Wie lange die Zusammenfassung nach einem Match bleibt; 0 zeigt sie bis zum nächsten Spiel.",
     training: "Training",
     average_long: "3-Dart-Average",
     visits: "Aufnahmen",
@@ -1037,6 +1065,9 @@ const DEFAULTS = {
   show_controls: true,
   show_recent: true,
   show_practice: true,
+  // The summary of a finished match stays until the next game, or this many seconds.
+  show_summary: true,
+  summary_seconds: 0,
 };
 
 const TRAINING_DEFAULTS = {
@@ -1100,6 +1131,8 @@ const SCOREBOARD_DEFAULTS = {
   idle: true,
   idle_after: 180,
   idle_interval: 10,
+  show_summary: true,
+  summary_seconds: 0,
 };
 
 // Entities a card reads, by domain and translation key of the integration.
@@ -1888,11 +1921,11 @@ function cricketView(state) {
   };
 }
 
-// Beds to aim at in Cricket: the treble of the next open number, or the whole bull.
+// Beds to aim at in Cricket: the treble of the next open number, or the whole
+// bull, whose beds both mark.
 function cricketBeds(cricket) {
   if (!cricket || cricket.won || cricket.winner !== null || !cricket.target) return [];
-  if (cricket.target === "BULL") return [...hitBeds("BULL"), ...hitBeds("25")];
-  return hitBeds(cricket.target);
+  return cricket.target === "BULL" ? targetBeds("25") : hitBeds(cricket.target);
 }
 
 const PARTY_GAMES = ["shanghai", "halve_it", "killer", "golf", "baseball", "count_up"];
@@ -1939,17 +1972,42 @@ function partyView(state) {
   };
 }
 
-// The bull-off before a match, while it runs.
+// The bull-off before a match, while it runs: the bed and distance of every
+// dart so far, and whether a tie throws again.
 function bullOffView(state) {
   const bullOff = state?.attributes?.bull_off;
   if (!state || state.state === "unavailable" || !bullOff || typeof bullOff !== "object") return null;
   return {
     player: Number.isInteger(bullOff.player) ? bullOff.player : 1,
     name: named(bullOff.name),
+    rethrow: bullOff.rethrow === true,
+    byDistance: bullOff.by_distance === true,
     throws: (Array.isArray(bullOff.throws) ? bullOff.throws : [])
       .filter((item) => item && Number.isInteger(item.player))
-      .map((item) => ({ player: item.player, name: named(item.name), distance: finite(item.distance) })),
+      .map((item) => ({
+        player: item.player,
+        name: named(item.name),
+        hit: named(item.hit),
+        distance: finite(item.distance),
+      })),
   };
+}
+
+// The bullseye beats the outer bull, which beats every other bed.
+const BULL_RANKS = { BULL: 2, 25: 1 };
+
+// The players whose dart no other beats so far, as the integration decides:
+// the better bull bed first; outside the bull, or by distance if the players
+// want, the closer dart. Darts the board did not measure stay tied.
+function bullOffLeaders(bullOff) {
+  const thrown = bullOff.throws.filter((item) => item.hit);
+  const rank = (item) => BULL_RANKS[item.hit] ?? 0;
+  const best = Math.max(0, ...thrown.map(rank));
+  const leaders = thrown.filter((item) => rank(item) === best);
+  const measured = leaders.every((item) => item.distance !== null);
+  if (leaders.length < 2 || (best && !bullOff.byDistance) || !measured) return leaders.map((item) => item.player);
+  const nearest = Math.min(...leaders.map((item) => item.distance));
+  return leaders.filter((item) => item.distance === nearest).map((item) => item.player);
 }
 
 // Beds of a target: a number, any double (with the bull) or treble, or the
@@ -1976,10 +2034,12 @@ function partyBeds(party) {
   return targetBeds(party.target);
 }
 
-// How a target reads: "Any double" for D, "Bull" for BULL, D7 for D7.
+// How a target reads: "Any double" for D, "Bull (25/50)" for the bull where
+// both beds count, "Bull" for the bullseye, D7 for D7.
 function targetText(ui, target) {
   if (target === "D") return ui.t("any_double");
   if (target === "T") return ui.t("any_treble");
+  if (target === "25") return ui.t("bull_target");
   return ui.label(target);
 }
 
@@ -2004,7 +2064,7 @@ function gameView(stateOf) {
 function aimBeds(view) {
   const { mode, practice } = view;
   if (mode === "drill") return drillBeds(view.drill);
-  if (mode === "bulloff") return [...hitBeds("BULL"), ...hitBeds("25")];
+  if (mode === "bulloff") return targetBeds("25");
   if (mode === "cricket") return cricketBeds(view.cricket);
   if (mode === "party") return partyBeds(view.party);
   if (mode !== "x01" || practice.winner !== null) return [];
@@ -2027,12 +2087,35 @@ const teamName = (ui, team, scores) =>
     .map((player) => playerName(ui, scores.find((score) => score.player === player) ?? { player, name: null }, true))
     .join(" & ");
 
-// Who won the match: a player, or both players of a team.
+// A won match as darts players tell it, the winner first: 3 : 2 in legs, or
+// in sets when the match has them; a team counts once. A match of one leg
+// has no result to tell.
+function matchResult(game) {
+  const winner = game.scores.find((score) => score.player === game.winner);
+  if (!winner || game.scores.length < 2 || (game.legsToWin < 2 && game.setsToWin < 2)) return "";
+  const count = (score) => (game.setsToWin > 1 ? score.sets : score.legs);
+  const teams = game.teams ?? [];
+  const others = teams.length
+    ? teams
+        .filter((team) => !team.players.includes(winner.player))
+        .map((team) => game.scores.find((score) => score.player === team.players[0]))
+        .filter(Boolean)
+    : game.scores.filter((score) => score !== winner);
+  return [winner, ...others].map(count).join(" : ");
+}
+
+// Who won the match, and how: "Alex wins the match 3 : 2!", or both players
+// of a team; without a result "Alex wins the match!".
 function winnerText(game, ui) {
+  const result = matchResult(game);
   const team = game.teams?.find((item) => item.players.includes(game.winner));
-  if (team) return `${teamName(ui, team, game.scores)} ${ui.t("score_winners")}`;
+  if (team) {
+    const said = result ? fill(ui.t("score_winners_by"), { result }) : ui.t("score_winners");
+    return `${teamName(ui, team, game.scores)} ${said}`;
+  }
   const score = game.scores.find((item) => item.player === game.winner) ?? { player: game.winner, name: null };
-  return `${playerName(ui, score, true)} ${ui.t("score_winner")}`;
+  const said = result ? fill(ui.t("score_winner_by"), { result }) : ui.t("score_winner");
+  return `${playerName(ui, score, true)} ${said}`;
 }
 
 // The Cricket game as players call it: Cricket, Cut-Throat Cricket, Tactics.
@@ -2157,14 +2240,22 @@ function partyPlayers(party, ui) {
   });
 }
 
+// Every dart of the bull-off with its bed and, where measured, its distance;
+// once two darts are in, the one that leads.
 function bullOffPlayers(bullOff, ui) {
   const match = bullOff.throws.length > 1;
+  const leaders = bullOffLeaders(bullOff);
+  const thrown = bullOff.throws.filter((item) => item.hit).length;
+  const leader = thrown > 1 && leaders.length === 1 ? leaders[0] : null;
   return bullOff.throws.map((item) => ({
     name: playerName(ui, item, match),
-    value: item.distance === null ? "–" : `${ui.format(item.distance, 0)} mm`,
-    state: item.player === bullOff.player ? "active" : "",
+    value: item.hit ? ui.label(item.hit) : "–",
+    state: item.player === bullOff.player ? "active" : item.player === leader ? "winner" : "",
     note: "",
-    details: [],
+    details: [
+      item.distance === null ? "" : `${ui.format(item.distance, 1)} mm`,
+      item.player === leader ? ui.t("bull_off_leads") : "",
+    ],
   }));
 }
 
@@ -2319,9 +2410,9 @@ function partyRound(party, t) {
 // A training game: the target, what happened and the facts about the game.
 // A fact reads "12 darts", or with its name first "Round 3 / 21".
 function drillParts(drill, ui) {
-  const { t, percent, label } = ui;
+  const { t, percent } = ui;
   const fact = (value, name = "", lead = false) => ({ value, name, lead });
-  const big = drill.finished ? "✓" : label(drill.target ?? "–");
+  const big = drill.finished ? "✓" : targetText(ui, drill.target ?? "–");
   if (drill.kind === "bobs_27") {
     const outcome = drill.completed
       ? note(fill(t("drill_bobs_done"), { points: drill.score }), "won")
@@ -2401,8 +2492,10 @@ const factsText = (facts) =>
 
 function drillBoard(drill, ui) {
   const parts = drillParts(drill, ui);
+  // "Bull (25/50)" fits the screen in smaller type than a number.
+  const long = parts.big.length > 4 ? " long" : "";
   return (
-    `<div class="single"><div class="big">${escapeHtml(parts.big)}</div><div class="route">${parts.note}</div>` +
+    `<div class="single"><div class="big${long}">${escapeHtml(parts.big)}</div><div class="route">${parts.note}</div>` +
     `<div class="facts">${factsHtml(parts.facts)}</div></div>`
   );
 }
@@ -2428,6 +2521,114 @@ function idleBoard(stats, ui) {
   );
 }
 
+// Match summary ----------------------------------------------------------------
+
+// The summary of the finished match on the board, as the practice sensor keeps
+// it; the next game, which clears the winner, ends it.
+function summaryView(state) {
+  const attributes = state?.attributes || {};
+  const summary = attributes.summary;
+  if (!state || state.state === "unavailable" || !summary || typeof summary !== "object") return null;
+  if (!Number.isInteger(attributes.winner) || summary.winner !== attributes.winner || summary.game !== attributes.game) {
+    return null;
+  }
+  const raw = (Array.isArray(summary.players) ? summary.players : []).filter(
+    (item) => item && Number.isInteger(item.player)
+  );
+  if (raw.length < 2) return null;
+  // X01 has averages, the Cricket games marks per round; party games neither.
+  const kind = "average" in raw[0] ? "x01" : "mpr" in raw[0] ? "cricket" : "party";
+  return {
+    ended: String(summary.ended ?? ""),
+    kind,
+    winner: summary.winner,
+    legsToWin: finite(summary.legs_to_win) ?? 1,
+    setsToWin: finite(summary.sets_to_win) ?? 1,
+    doubleOut: summary.double_out !== false,
+    players: raw.map((item) => ({
+      player: item.player,
+      name: named(item.name),
+      legs: finite(item.legs) ?? 0,
+      sets: finite(item.sets) ?? 0,
+      darts: finite(item.darts),
+      average: finite(item.average),
+      first9: finite(item.first_9_average),
+      checkouts: finite(item.checkouts) ?? 0,
+      atDouble: finite(item.darts_at_double) ?? 0,
+      checkoutRate: finite(item.checkout_rate),
+      highestCheckout: finite(item.highest_checkout),
+      scores100: finite(item.scores_100),
+      scores140: finite(item.scores_140),
+      scores180: finite(item.scores_180),
+      bestLeg: finite(item.best_leg),
+      mpr: finite(item.mpr),
+      marks: finite(item.marks),
+    })),
+  };
+}
+
+// The rows of the summary: the result, then the numbers of the game.
+function summaryRows(summary, ui) {
+  const { t, format, percent } = ui;
+  const value = (number, digits = 0) => (number === null ? "–" : format(number, digits));
+  const darts = (number) => (number === null ? "–" : fill(t("unit_darts"), { value: format(number, 0) }));
+  const checkout = (player) =>
+    player.checkoutRate === null
+      ? "–"
+      : `${percent(player.checkoutRate, 1)} (${player.checkouts}/${player.atDouble})`;
+  const doubles = summary.doubleOut;
+  const rows = {
+    x01: [
+      [t("average"), (player) => value(player.average, 1)],
+      [t("first_9"), (player) => value(player.first9, 1)],
+      ...(doubles ? [[t("summary_checkout"), checkout]] : []),
+      [t("highest_checkout"), (player) => value(player.highestCheckout)],
+      [t("max"), (player) => value(player.scores180)],
+      [t("scores_140"), (player) => value(player.scores140)],
+      [t("scores_100"), (player) => value(player.scores100)],
+      [t("summary_best_leg"), (player) => darts(player.bestLeg)],
+      ...(doubles ? [[t("summary_at_double"), (player) => value(player.atDouble)]] : []),
+    ],
+    cricket: [
+      [t("cricket_mpr"), (player) => value(player.mpr, 2)],
+      [t("summary_marks"), (player) => value(player.marks)],
+      [t("summary_best_leg"), (player) => darts(player.bestLeg)],
+    ],
+    party: [],
+  }[summary.kind];
+  const sets = summary.setsToWin > 1;
+  const legs = [t("score_legs"), (player) => String(player.legs)];
+  return [
+    ...(sets ? [[t("score_sets"), (player) => String(player.sets)], legs] : [legs]),
+    ...rows,
+    [t("darts"), (player) => value(player.darts)],
+  ];
+}
+
+// The summary as a table: a column per player with the picture of a linked
+// person, the winner's highlighted, and the result in the first row.
+function summaryTable(summary, ui) {
+  const column = (player) => (player.player === summary.winner ? "winner" : "");
+  const head = summary.players
+    .map((player) => {
+      const name = playerName(ui, player, true);
+      return `<th class="${column(player)}">${avatarHtml(ui.avatar?.(name))}${escapeHtml(name)}</th>`;
+    })
+    .join("");
+  const rows = summaryRows(summary, ui)
+    .map(
+      ([name, cell], index) =>
+        `<tr${index ? "" : ` class="result"`}><th>${escapeHtml(name)}</th>${summary.players
+          .map((player) => `<td class="${column(player)}">${escapeHtml(cell(player))}</td>`)
+          .join("")}</tr>`
+    )
+    .join("");
+  return (
+    `<table class="summary"><thead><tr><th class="caption">${escapeHtml(ui.t("summary"))}</th>${head}</tr></thead>` +
+    `<tbody>${rows}</tbody></table>`
+  );
+}
+
 // Legs per set and sets to win of a match.
 const matchFormat = (game, t) =>
   game.scores.length > 1
@@ -2441,16 +2642,19 @@ const matchFormat = (game, t) =>
 function scoreboardHtml(view, ui) {
   const { t } = ui;
   if (view.mode === "drill") {
-    return { title: t(`drill_${view.drill.kind}`), meta: "", banner: "", main: drillBoard(view.drill, ui) };
+    return { title: t(`drill_${view.drill.kind}`), meta: "", banner: "", bannerKind: "", main: drillBoard(view.drill, ui) };
   }
   if (view.mode === "idle") {
-    return { title: ui.name, meta: t("training"), banner: "", main: idleBoard(ui.stats, ui) };
+    return { title: ui.name, meta: t("training"), banner: "", bannerKind: "", main: idleBoard(ui.stats, ui) };
   }
   if (view.mode === "bulloff") {
+    // A tie throws again, which the banner tells in the colour of a warning.
+    const { rethrow } = view.bullOff;
     return {
       title: t("bull_off"),
       meta: t("bull_off_hint"),
-      banner: "",
+      banner: rethrow ? t("bull_off_rethrow") : "",
+      bannerKind: rethrow ? "rethrow" : "",
       main: playerTiles(bullOffPlayers(view.bullOff, ui), ui),
     };
   }
@@ -2459,17 +2663,21 @@ function scoreboardHtml(view, ui) {
   // Cut-Throat turns the points round, and Golf's players stop by pulling their darts.
   const hint = { cut_throat: "cut_throat_hint", golf: "golf_hint" }[game.kind];
   const scorecard = view.mode === "party" && SCORECARD_GAMES.includes(game.kind);
-  const main = {
-    cricket: () => cricketTable(game, ui),
-    party: () => playerTiles(partyPlayers(game, ui), ui) + (scorecard ? scorecardTable(game, ui) : ""),
-    x01: () => playerTiles(x01Tiles(game, ui), ui),
-  }[view.mode]();
+  // The summary of a won match takes the place of the players.
+  const main = view.summary
+    ? () => summaryTable(view.summary, ui)
+    : {
+        cricket: () => cricketTable(game, ui),
+        party: () => playerTiles(partyPlayers(game, ui), ui) + (scorecard ? scorecardTable(game, ui) : ""),
+        x01: () => playerTiles(x01Tiles(game, ui), ui),
+      }[view.mode];
   return {
     title: { cricket: cricketTitle(t, game.kind), party: t(`party_${game.kind}`) }[view.mode] ??
       `${t("practice")} ${game.game ?? ""}`.trim(),
     meta: [round, hint ? t(hint) : "", ...matchFormat(game, t)].filter(Boolean).join(" · "),
     banner: game.winner !== null ? winnerText(game, ui) : "",
-    main,
+    bannerKind: "",
+    main: main(),
   };
 }
 
@@ -2517,9 +2725,20 @@ function playersView(profiles, lastMatch) {
       winner: finite(match.winner),
       // Both players of the winning team, in a team match.
       winners: Array.isArray(match.winners) ? match.winners.filter(Number.isInteger) : [finite(match.winner)],
+      legsToWin: finite(match.legs_to_win) ?? 1,
+      setsToWin: finite(match.sets_to_win) ?? 1,
       players: match.players.filter((player) => player && typeof player === "object"),
     }));
   return { players, headToHead, matches };
+}
+
+// What a player won in a match of the history: sets when the match had sets,
+// otherwise legs. Up to version 1.5, winning the match took the winner's legs
+// of the deciding set away again; a match won in legs had all it needed.
+function historyScore(match, player, index) {
+  if (match.setsToWin > 1) return finite(player.sets) ?? 0;
+  const legs = finite(player.legs) ?? 0;
+  return match.winners.includes(index + 1) ? Math.max(legs, match.legsToWin) : legs;
 }
 
 // A game as players call it: 501, Cricket, Killer, Bob's 27. Games the card does
@@ -2578,14 +2797,16 @@ function playersHtml(view, ui) {
     .map((match) => {
       const players = match.players
         .map((player, index) => {
-          const shown = `${player.name || `${t("score_player")} ${index + 1}`} ${player.sets || player.legs || 0}`;
+          const shown = `${player.name || `${t("score_player")} ${index + 1}`} ${historyScore(match, player, index)}`;
           const tag = match.winners.includes(index + 1) ? "b" : "span";
           return `<${tag}>${escapeHtml(shown)}</${tag}>`;
         })
         .join(" · ");
+      // Results count legs; a match of sets says so.
+      const game = [gameName(t, match.game), match.setsToWin > 1 ? t("score_sets") : ""].filter(Boolean).join(" · ");
       return (
         `<div class="match"><span class="muted">${escapeHtml(date(match.ended))}</span>` +
-        `<span class="game">${escapeHtml(gameName(t, match.game))}</span><span>${players}</span></div>`
+        `<span class="game">${escapeHtml(game)}</span><span>${players}</span></div>`
       );
     })
     .join("");
@@ -2971,7 +3192,8 @@ function lastMatchHtml(data, ui) {
       const name = named(player.name) ?? `${t("score_player")} ${index + 1}`;
       const winner = index + 1 === match.winner;
       const numbers = [
-        `${finite(player.sets) || finite(player.legs) || 0}`,
+        // Legs, or sets in a match of sets, as in the players card.
+        String(historyScore(match, player, index)),
         finite(player.average) === null ? "" : `Ø ${format(player.average, 1)}`,
         finite(player.mpr) === null ? "" : `${t("cricket_mpr")} ${format(player.mpr, 2)}`,
       ];
@@ -4003,6 +4225,7 @@ const FORM_HELPERS = {
   lobby_games: "lobby_games_helper",
   idle_section: "idle_section_helper",
   idle_panels: "idle_panels_helper",
+  summary_seconds: "summary_seconds_helper",
 };
 
 // The games to offer in the editor: those of a board's practice select, or every game the card knows.
@@ -4017,10 +4240,10 @@ function gameOptions(hass) {
 }
 
 // Seconds in a box with their unit.
-const secondsField = (name, min, max) => ({
+const secondsField = (name, min, max, defaults = SCOREBOARD_DEFAULTS) => ({
   name,
   selector: { number: { min, max, step: 1, mode: "box", unit_of_measurement: "s" } },
-  default: SCOREBOARD_DEFAULTS[name],
+  default: defaults[name],
 });
 
 // Every field of a form, also those inside grids and expandable sections.
@@ -4089,9 +4312,12 @@ const FORMS = {
         "show_practice",
         "show_connection",
         "show_controls",
+        "show_summary",
       ],
       DEFAULTS
     ),
+    // Seconds the summary of a finished match stays; 0 until the next game starts.
+    secondsField("summary_seconds", 0, 600, DEFAULTS),
     { type: "grid", name: "", schema: [accentField, colorField("highlight_color")] },
   ],
   training: () => [
@@ -4132,7 +4358,8 @@ const FORMS = {
   scoreboard: () => [
     deviceField,
     titleField,
-    toggles(["full_height", "show_visit", "show_status", "caller"], SCOREBOARD_DEFAULTS),
+    toggles(["full_height", "show_visit", "show_status", "caller", "show_summary"], SCOREBOARD_DEFAULTS),
+    secondsField("summary_seconds", 0, 600),
     // The calls matter only with the caller on, so they wait in a closed section.
     {
       type: "expandable",
@@ -4275,6 +4502,7 @@ const BASE_CSS = `
   .note { font-weight: 800; color: var(--secondary-text-color); }
   .note.won { color: var(--ad-ok-text); }
   .note.bust { color: var(--ad-error-text); }
+  .note.rethrow { color: var(--ad-warn-text); }
   .message { padding: 18px; color: var(--secondary-text-color); }
   /* The picture of the person a player is linked to. */
   .avatar {
@@ -4377,6 +4605,15 @@ const CSS = `${BASE_CSS}
   .cricket tr.detail td { font-size: 12px; font-weight: 600; color: var(--secondary-text-color); }
   .cricket .active { background: color-mix(in srgb, var(--ad-accent) 18%, transparent); }
   .cricket .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 20%, transparent); }
+  .summary { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .summary th, .summary td { padding: 2px 6px; text-align: center; }
+  .summary tr > :first-child { width: 36%; text-align: left; }
+  .summary thead th { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .summary thead th.caption { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-accent); }
+  .summary tbody th { font-weight: 400; color: var(--secondary-text-color); }
+  .summary td { font-weight: 700; color: var(--primary-text-color); }
+  .summary tr.result td { font-size: 17px; font-weight: 800; color: var(--ad-accent); }
+  .summary .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 20%, transparent); }
   .aim path {
     fill: color-mix(in srgb, var(--ad-accent) 35%, transparent);
     stroke: var(--ad-accent); stroke-width: 3; stroke-dasharray: 6 3;
@@ -4627,6 +4864,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     font-size: clamp(18px, 3.4cqi, 44px); color: var(--ad-ok-text);
     background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent);
   }
+  .banner.rethrow { color: var(--ad-warn-text); background: color-mix(in srgb, ${STATUS_COLORS.takeout} 18%, transparent); }
   .main { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 12px; min-height: 0; }
   .players { display: grid; gap: clamp(8px, 1.6cqi, 24px); }
   .players.n1 { grid-template-columns: minmax(0, 1fr); }
@@ -4677,6 +4915,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   /* Sized by width and height, so a landscape screen shows everything at once. */
   .n1 .big, .single .big { font-size: clamp(80px, min(24cqi, 32vh), 320px); }
+  .single .big.long { font-size: clamp(48px, min(11cqi, 20vh), 150px); letter-spacing: -0.02em; }
   .n2 .big { font-size: clamp(64px, min(15cqi, 26vh), 240px); }
   .n3 .big { font-size: clamp(48px, min(10cqi, 22vh), 170px); }
   .n4 .big { font-size: clamp(44px, min(8cqi, 20vh), 140px); }
@@ -4716,6 +4955,22 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .cricket .active { background: color-mix(in srgb, var(--ad-accent) 14%, transparent); }
   .cricket .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
+  .summary { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+  .summary th, .summary td { padding: .12em .4em; line-height: 1.2; text-align: center; }
+  .summary tr > :first-child { width: 26%; text-align: left; }
+  .summary thead th {
+    font-size: clamp(14px, min(2.6cqi, 3.4vh), 34px); font-weight: 700; color: var(--primary-text-color);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .summary thead th.caption {
+    font-size: clamp(11px, min(1.5cqi, 2vh), 18px); letter-spacing: .12em; text-transform: uppercase; color: var(--ad-accent);
+  }
+  .summary tbody th { font-size: clamp(12px, min(1.8cqi, 2.5vh), 24px); font-weight: 600; color: var(--secondary-text-color); }
+  /* Sized by width and height, so every row fits a landscape screen. */
+  .summary td { font-size: clamp(16px, min(2.8cqi, 2.9vh), 38px); font-weight: 800; color: var(--primary-text-color); }
+  .summary tr.result td { font-size: clamp(24px, min(5cqi, 5vh), 72px); line-height: 1.1; color: var(--ad-accent); }
+  .summary tbody tr + tr > * { border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
+  .summary .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
   .single { display: flex; flex-direction: column; align-items: center; gap: clamp(6px, 1.2cqi, 16px); text-align: center; }
   .single .label {
     font-size: clamp(12px, 1.9cqi, 24px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
@@ -5017,6 +5272,7 @@ const LEADERBOARD_CSS = `${BASE_CSS}${SEGMENTED_CSS}
 // The practice panel of the live card: the game, the line under it, the big
 // number, what to aim at next and, in a match, a row for every player.
 function livePanel(view, ui) {
+  if (view.summary) return summaryPanel(view, ui);
   const { t, format } = ui;
   const turn = (game) =>
     game.winner === null ? `${playerName(ui, { player: game.player, name: game.name }, true)} ${t("score_turn")}` : "";
@@ -5037,7 +5293,7 @@ function livePanel(view, ui) {
       title: t("bull_off"),
       meta: `${playerName(ui, bullOff, true)} ${t("score_turn")}`,
       big: "Bull",
-      route: note(t("bull_off_hint")),
+      route: bullOff.rethrow ? note(t("bull_off_rethrow"), "rethrow") : note(t("bull_off_hint")),
       rows: playerRows(bullOffPlayers(bullOff, ui)),
     };
   }
@@ -5087,6 +5343,13 @@ function livePanel(view, ui) {
     routeTitle: practice.route.length ? `${t("checkout")}: ${practice.route.join(" ")}` : "",
     rows: match ? playerRows(players) : "",
   };
+}
+
+// A won match with its summary: the result in large type, the summary below.
+function summaryPanel(view, ui) {
+  const panel = livePanel({ ...view, summary: null }, ui);
+  const game = view.cricket ?? view.party ?? view.practice;
+  return { ...panel, big: matchResult(game) || panel.big, routeTitle: "", rows: summaryTable(view.summary, ui) };
 }
 
 // Home Assistant brings its form element with its own editors; the strategy
@@ -5160,6 +5423,29 @@ function createElements(Base) {
       clearTimeout(this._confirmTimer);
       this._confirm = null;
       this._confirmChanged();
+      clearTimeout(this._summaryTimer);
+    }
+
+    // A summary whose time ran out while the card was away is gone when it returns.
+    connectedCallback() {
+      if (this._built && this._summarySeen) this._update();
+    }
+
+    // The summary of the finished match, while it shows: until the next game
+    // starts or, with summary_seconds, that long after the card first showed it.
+    _matchSummary(view) {
+      const c = this._config;
+      clearTimeout(this._summaryTimer);
+      // Party games keep their final scores on screen; they have no numbers to sum up.
+      const shown = ["x01", "cricket"].includes(view.mode) && c.show_summary !== false;
+      const summary = shown ? summaryView(this._state("practice")) : null;
+      const seconds = Number(c.summary_seconds) || 0;
+      if (!summary || seconds <= 0) return summary;
+      if (this._summarySeen?.ended !== summary.ended) this._summarySeen = { ended: summary.ended, at: Date.now() };
+      const left = this._summarySeen.at + seconds * 1000 - Date.now();
+      if (left <= 0) return null;
+      this._summaryTimer = setTimeout(() => this._update(), left);
+      return summary;
     }
 
     getGridOptions() {
@@ -5580,7 +5866,7 @@ function createElements(Base) {
       if (!el.practice) return;
       el.practice.hidden = view.mode === "idle";
       if (view.mode === "idle") return;
-      const panel = livePanel(view, this._ui());
+      const panel = livePanel({ ...view, summary: this._matchSummary(view) }, this._ui());
       el.practiceTitle.textContent = panel.title;
       el.practiceMeta.textContent = panel.meta;
       el.practiceRemaining.textContent = panel.big;
@@ -6862,7 +7148,7 @@ function createElements(Base) {
     // Idle mode -----------------------------------------------------------------
 
     // What happened since the last update: darts, and a game that started or ended.
-    _follow(visit, view) {
+    _follow(visit, view, summary = null) {
       const state = gameState(view);
       const darts = visitThrows(visit);
       const signature = `${darts.map(dartKey).join(" ")}|${view.mode}|${state}`;
@@ -6874,9 +7160,12 @@ function createElements(Base) {
       }
       // Players who throw after a game do not need the screen that opened by itself.
       if (previous && darts.length > previous.darts && this._lobby?.auto) this._lobby = null;
-      if (state === "running") {
+      // The summary of a match comes first: the screen opens by itself only after it.
+      const summaryEnded = Boolean(this._summaryShown && !summary);
+      this._summaryShown = Boolean(summary);
+      if (state === "running" || summary) {
         clearTimeout(this._lobbyTimer);
-      } else if (previous?.state === "running" && !this.preview && this.isConnected) {
+      } else if ((previous?.state === "running" || summaryEnded) && !this.preview && this.isConnected) {
         clearTimeout(this._lobbyTimer);
         this._lobbyTimer = setTimeout(() => this._openLobby(true), LOBBY_DELAY);
       }
@@ -6975,9 +7264,10 @@ function createElements(Base) {
       const visit = this._state("visit");
       const view = gameView((name) => this._state(name));
       const ui = { ...this._ui(), name: this._deviceName(), stats: this._stats() };
-      const board = scoreboardHtml(view, ui);
+      const summary = this._matchSummary(view);
+      const board = scoreboardHtml({ ...view, summary }, ui);
       this._announce(visit, view);
-      this._follow(visit, view);
+      this._follow(visit, view, summary);
       const games = this._lobbyGames();
       if (!games.length) this._lobby = null;
       const panels = this._idle ? this._idlePanels() : [];
@@ -7014,10 +7304,11 @@ function createElements(Base) {
       el.meta.textContent = meta;
       el.banner.hidden = !banner;
       el.banner.textContent = banner;
+      el.banner.classList.toggle("rethrow", board.bannerKind === "rethrow");
       this._setHtml(el.main, main);
       if (!el.visit) return;
-      // The new game screen and the idle panels need the room of the visit.
-      el.visit.hidden = Boolean(this._lobby || panel);
+      // The new game screen, the idle panels and the match summary need the room of the visit.
+      el.visit.hidden = Boolean(this._lobby || panel || summary);
       // Between games the big number already is the visit score.
       el.visit.classList.toggle("plain", view.mode === "idle");
       const darts = visitThrows(visit).slice(-3);
@@ -7541,6 +7832,7 @@ export {
   bestsView,
   boardStatus,
   boardSvg,
+  bullOffLeaders,
   bullOffView,
   callerCalls,
   callerState,
@@ -7586,6 +7878,7 @@ export {
   lobbyGames,
   lobbyHtml,
   lobbySuggestions,
+  matchResult,
   NORM,
   NUMBERS,
   numbersSvg,
@@ -7613,7 +7906,10 @@ export {
   spreadHtml,
   spreadView,
   startGameData,
+  summaryTable,
+  summaryView,
   targetBeds,
+  targetText,
   tierColor,
   topHits,
   trendsHtml,

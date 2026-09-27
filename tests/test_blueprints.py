@@ -723,15 +723,22 @@ async def test_practice_caller_calls_the_bull_off(hass):
         {
             **VOICE,
             "bull_off_turn_message": "{{ who }}, throw for the bull",
-            "bull_off_message": "{{ who }} wins the bull by {{ distance }} mm",
+            "bull_off_message": (
+                "{{ who }} wins the bull with {{ hit }}"
+                "{{ ', ' ~ distance ~ ' mm' if distance is number }}"
+            ),
         },
     )
     match = {"game": 101, "players": 2, "remaining": None, "checkout": None}
+    won = {**match, "player": 2, "name": "Lea", "hit": "S20"}
     await fire_all(
         hass,
         [
             ("turn_changed", {**match, "player": 2, "name": "Lea", "bull_off": True}),
-            ("bull_off_won", {**match, "player": 1, "name": None, "distance": 3.2}),
+            (
+                "bull_off_won",
+                {**match, "player": 1, "name": None, "hit": "BULL", "distance": 3.2},
+            ),
             # The winner starts: one call for both.
             (
                 "turn_changed",
@@ -743,14 +750,18 @@ async def test_practice_caller_calls_the_bull_off(hass):
                     "checkout": "T17 BULL",
                 },
             ),
-            ("bull_off_won", {**match, "player": 2, "name": "Lea", "distance": 12.5}),
+            ("bull_off_won", {**won, "distance": 12.5}),
+            ("turn_changed", {**match, "player": 2, "name": "Lea", "remaining": 501}),
+            # A dart without a position has no distance, and nobody says "None".
+            ("bull_off_won", {**won, "hit": "25", "distance": None}),
             ("turn_changed", {**match, "player": 2, "name": "Lea", "remaining": 501}),
         ],
     )
     assert spoken(calls) == [
         "Lea, throw for the bull",
-        "Player 1 wins the bull by 3.2 mm Player 1, you require 101",
-        "Lea wins the bull by 12.5 mm",
+        "Player 1 wins the bull with BULL, 3.2 mm Player 1, you require 101",
+        "Lea wins the bull with S20, 12.5 mm",
+        "Lea wins the bull with 25",
     ]
 
 

@@ -134,6 +134,7 @@ def test_darts_already_thrown_do_not_count_for_a_new_leg():
         "legs_to_win": 1,
         "sets_to_win": 1,
         "legs": [],
+        "summary": None,
         "drill": None,
         "double_in": False,
         "bull_off": None,

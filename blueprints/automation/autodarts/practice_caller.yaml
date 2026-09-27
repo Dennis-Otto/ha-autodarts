@@ -11,8 +11,10 @@ blueprint:
     `remaining`, `checkout` (the route when a checkout is possible, for example
     `T20 T20 BULL`; the score checked out when a leg is won), `darts`,
     `average`, `points` (Cricket and party games), `target` (the next target of
-    a party game, for example `20` or `D16`) and `distance` (millimetres from
-    the centre, when the bull-off is won). An empty message stays silent.
+    a party game, for example `20` or `D16`), and when the bull-off is won
+    `hit` (the bed of the winning dart: `BULL`, `25` or for example `S20`) and
+    `distance` (millimetres from the centre, empty when the board measured no
+    position). An empty message stays silent.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/practice_caller.yaml
@@ -125,7 +127,9 @@ blueprint:
           description: >-
             Said when the bull-off decides who starts, together with the
             first call of the match, for example
-            `{{ who }} to throw first. Game on!`. Empty stays silent.
+            `{{ who }} to throw first. Game on!`. `hit` names the bed of the
+            winning dart and `distance` its millimetres, if measured. Empty
+            stays silent.
           default: ""
           selector:
             text: {}
@@ -171,9 +175,15 @@ variables:
   points: "{{ trigger.to_state.attributes.get('points') | int(0) }}"
   target: "{{ trigger.to_state.attributes.get('target') or '' }}"
   bull_off: "{{ trigger.to_state.attributes.get('bull_off', false) }}"
+  # A won bull-off is called with the next turn, so its dart is the event before.
+  hit: >-
+    {{ (trigger.from_state.attributes.get('hit') if previous == 'bull_off_won'
+        else trigger.to_state.attributes.get('hit')) or '' }}
+  # A dart without a position has no distance: empty, never "None".
   distance: >-
-    {{ trigger.from_state.attributes.get('distance') if previous == 'bull_off_won'
-       else trigger.to_state.attributes.get('distance') }}
+    {% set measured = trigger.from_state.attributes.get('distance')
+       if previous == 'bull_off_won' else trigger.to_state.attributes.get('distance') %}
+    {{- '' if measured is none else measured }}
   deciding: "{{ trigger.to_state.attributes.get('match', false) }}"
   checkout_text: !input checkout_message
   turn_text: !input turn_message

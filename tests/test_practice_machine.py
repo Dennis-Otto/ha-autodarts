@@ -141,7 +141,7 @@ class PracticeMachine(RuleBasedStateMachine):
         game = self.game
         if change == "option":
             # As the coordinator does: double in, the bull-off and teams start anew.
-            setattr(game, option, enabled)
+            game.set_option(option, enabled)
             if option in ("double_in", "bull_off", "teams"):
                 game.new_match()
         elif change == "format":
@@ -199,6 +199,9 @@ class PracticeMachine(RuleBasedStateMachine):
             assert won == (players > 1 and score["sets"] == game.sets_to_win)
             if snapshot["game"] in GAMES:
                 assert 0 <= score["remaining"] <= score["start"]
+                # Every leg can still be won: nobody stands on 1 with double out.
+                open_leg = winner is None and snapshot["double_out"]
+                assert not (open_leg and score["remaining"] == 1)
                 # Nothing is left for the winners, or for a checkout on the board.
                 checkout = snapshot["won"] and partners(
                     snapshot["player"], score["player"]

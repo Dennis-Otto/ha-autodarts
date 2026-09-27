@@ -962,6 +962,51 @@ def scoreboard_page(page: Page) -> Page:
     return board
 
 
+def match_summary(page: Page) -> None:
+    """The scoreboard after Alex beats Sam 2 : 1 in 301: the summary of the match."""
+    pull_darts()
+    page.evaluate(SET_NAME, [0, "Alex"])
+    page.evaluate(SET_NAME, [1, "Sam"])
+    players(page, 2)
+    for key, value in (("practice_legs", 2), ("practice_sets", 1)):
+        page.evaluate(CALL_SERVICE, ["number", "set_value", key, {"value": value}])
+    game(page, "301")
+    board = scoreboard_page(page)
+    tag = "autodarts-scoreboard-card"
+    visits = [
+        # Leg 1: Alex scores 180 and checks out 121.
+        ["T20", "T20", "T20"],
+        ["T20", "S20", "S5"],
+        ["T20", "T11", "D14"],
+        # Leg 2: Sam scores 140 and checks out 161 on the bull.
+        ["T20", "T20", "S20"],
+        ["T19", "S19", "S3"],
+        ["T20", "T17", "BULL"],
+        # Leg 3: Sam's 180 is too late; Alex misses D17 and takes D1.
+        ["T20", "T20", "S20"],
+        ["S20", "S20", "S20"],
+        ["T20", "T19", "S10"],
+        ["T20", "T20", "T20"],
+        ["D16", "D1"],
+    ]
+    for names in visits:
+        darts = [BULL if name == "BULL" else at(name) for name in names]
+        for count in range(1, len(darts) + 1):
+            control({"event": "Throw detected", "throws": darts[:count]})
+            board.wait_for_timeout(250)
+        pull_darts()
+        wait_card(board, "!r.querySelector('.visit .dart:not(.empty)')", tag)
+        board.wait_for_timeout(400)
+    wait_card(board, "r.querySelector('.summary')", tag)
+    # A taller screen keeps the whole card below the toolbar of Home Assistant.
+    board.set_viewport_size({"width": 1280, "height": 1000})
+    board.wait_for_timeout(800)
+    card_shot(board, "match-summary", tag=tag)
+    board.close()
+    players(page, 1)
+    game(page, "off")
+
+
 def practice_card(page: Page) -> None:
     """A 501 match in the live card, and the scoreboard in Cricket."""
 
@@ -1342,6 +1387,10 @@ def main() -> None:
         progress_cards(people.new_page())
         # Recorded sharp at twice the size, shown at the size of the card.
         heatmap_animation(people.new_page())
+        # Last: the match adds to the players and doubles of the cards above.
+        page = people.new_page()
+        open_dashboard(page, "board")
+        match_summary(page)
         people.close()
 
         # Each opens a page in the demo's time zone; the report comes last,

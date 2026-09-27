@@ -105,6 +105,8 @@ def _practice(local: AutodartsLocalCoordinator) -> dict[str, Any]:
         # A training game, or 501, cricket or a party game such as killer.
         "game": practice.drill or practice.kind,
         **{option: getattr(practice, option) for option in OPTIONS},
+        # Double out switched during a leg, for the next leg.
+        "double_out_next": practice.double_out_next,
         "bull_off_running": practice.bulling is not None,
         "players": len(practice.players),
         "legs_to_win": practice.legs_to_win,

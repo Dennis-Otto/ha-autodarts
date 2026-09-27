@@ -130,7 +130,7 @@ class AutodartsPracticeSwitch(AutodartsLocalEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        return bool(getattr(self.coordinator.practice, self._option))
+        return self.coordinator.practice.setting(self._option)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_practice_option(self._option, True)

@@ -65,6 +65,9 @@ SCOREBOARD_STATE = f"""
     scorecard: [...root.querySelectorAll('.scorecard tbody tr')].map((row) =>
       [...row.children].map((cell) => cell.textContent)
     ),
+    summary: [...root.querySelectorAll('.summary tr')].map((row) =>
+      [...row.children].map((cell) => cell.textContent)
+    ),
     sum: text('.sum .value'),
     full: root.querySelector('.scoreboard').classList.contains('full'),
   }};
@@ -118,6 +121,14 @@ T20 = {
 T1 = {
     "segment": {"name": "T1", "number": 1, "multiplier": 3, "bed": "Triple"},
     "coords": {"x": 0.187, "y": 0.576},
+}
+SINGLE_1 = {
+    "segment": {"name": "S1", "number": 1, "multiplier": 1, "bed": "SingleOuter"},
+    "coords": {"x": 0.25, "y": 0.72},
+}
+DOUBLE_20 = {
+    "segment": {"name": "D20", "number": 20, "multiplier": 2, "bed": "Double"},
+    "coords": {"x": 0.002, "y": 0.972},
 }
 # Calls a service for an Autodarts entity through the logged-in frontend.
 CALL_SERVICE = """
@@ -676,6 +687,28 @@ def scoreboard(browser: Browser) -> None:
         f"Scoreboard after the turn {state}",
     )
 
+    # The match ends with its summary; the next dart starts the next match.
+    page.evaluate(CALL_SERVICE, ["number", "set_value", "practice_legs", {"value": 1}])
+    game("101")
+    state = wait("state.players.length === 2 && state.players[0][1] === '101'")
+    throws = [T20, SINGLE_1, DOUBLE_20]
+    for count in range(1, 4):
+        control({"event": "Throw detected", "throws": throws[:count]})
+    takeout()
+    state = wait("state.summary.length > 0")
+    check(
+        state["banner"] == "Alex wins the match!"
+        and state["summary"][0] == ["Match summary", "Alex", "Sam"]
+        and state["summary"][1] == ["Legs", "1", "0"]
+        and ["3-dart avg.", "101.0", "–"] in state["summary"]
+        and not state["players"],
+        f"Scoreboard summary {state}",
+    )
+    control({"event": "Throw detected", "throws": [T20]})
+    state = wait("state.summary.length === 0")
+    check(state["banner"] is None, f"Scoreboard after the summary {state}")
+    takeout()
+
     # Cricket: the chalkboard with both players.
     game("cricket")
     state = wait("state.title === 'Cricket'")
@@ -998,7 +1031,7 @@ def main() -> None:
             ("new game screen", lambda: lobby(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
-            ("live card editor", lambda: editor(browser)),
+            ("live card editor", lambda: editor(browser, rows=7)),
             (
                 "training card editor",
                 lambda: editor(browser, "training", TRAINING_CARDS, ".heat-layer", 7),
@@ -1023,7 +1056,7 @@ def main() -> None:
             ),
             (
                 "scoreboard editor",
-                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 7),
+                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 8),
             ),
             ("dashboard strategy editor", lambda: strategy_editor(browser)),
             ("light theme", lambda: light_theme(browser)),
@@ -1043,9 +1076,9 @@ def main() -> None:
         "training games, "
         "training heatmap with dart positions, badges, trends, the leaderboard, "
         "history and "
-        "sessions, board status, the scoreboard with teams, Tactics and Golf, its "
-        "caller and new game screen, the generated dashboard, the players export, "
-        "all seven card forms, the strategy editor and light theme."
+        "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
+        "match summary, its caller and new game screen, the generated dashboard, "
+        "the players export, all seven card forms, the strategy editor and light theme."
     )
 
 
