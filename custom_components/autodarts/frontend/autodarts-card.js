@@ -3874,8 +3874,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   .members { font-size: clamp(13px, 2.1cqi, 28px); color: var(--secondary-text-color); text-align: center; }
   .members b { color: var(--ad-accent); }
-  .cricket.many td { font-size: clamp(16px, min(3.4cqi, 2.8vh), 44px); }
-  .cricket.many tbody th { font-size: clamp(14px, min(2.4cqi, 2.4vh), 32px); }
+  .cricket.many tbody th, .cricket.many tbody td { padding-top: .05em; padding-bottom: .05em; line-height: 1.05; }
+  .cricket.many td { font-size: clamp(14px, min(3.2cqi, 2.7vh), 42px); }
+  .cricket.many tbody th { font-size: clamp(13px, min(2.4cqi, 2.4vh), 32px); }
+  .cricket.many tr.total td { font-size: clamp(20px, min(4.2cqi, 3.8vh), 56px); }
   .scorecard { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
   .scorecard th, .scorecard td { padding: .15em .2em; text-align: center; font-size: clamp(11px, 1.8cqi, 26px); }
   .scorecard thead th { color: var(--secondary-text-color); font-weight: 600; }

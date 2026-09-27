@@ -92,8 +92,8 @@ The practice game follows the darts of the current visit, including corrections,
 
   So 144 is T20 T20 D12, 136 T20 T20 D8, 130 T20 T20 D5, 127 T20 T17 D8, 73 T19 D8 and 64 T16 D8. The scores 159, 162, 163, 165, 166, 168, 169 and everything above 170 have no route with double out. Without double out, the biggest bed finishes: a single before a double or a treble.
 - **Personal routes:** with *Practice personal checkout routes*, the doubles of the player at the board with at least 10 darts each, best hit rate first, win over the usual route whenever a route with the same number of darts reaches them without a double to set up; among routes to the same double, the principles above decide.
-- **Statistics:** each finished X01 leg adds one record for everybody at the board: the points and darts of the first nine darts, the darts thrown at a double and the checkout. Bust visits score nothing, also in the first nine. The statistics sensors use the last 10 records, so their history shows how you improve. *Practice legs played* counts every finished leg of X01, Cricket and the party games.
-- **Storage:** the game, the rules, the players with their scores and marks, the match format and the last 10 legs are saved together with the training session.
+- **Statistics:** each finished X01 leg adds one record for everybody at the board: the points and darts of the first nine darts, the darts thrown at a double and the checkout. Bust visits score nothing, also in the first nine. The statistics sensors use the last 10 records, so their history shows how you improve. *Practice legs played* counts every finished leg of X01, the Cricket games and the party games.
+- **Storage:** the game, the rules, the teams and start scores, the players with their scores and marks, the match format and the last 10 legs are saved together with the training session.
 
 ## Rules
 
@@ -105,6 +105,7 @@ The practice game follows the darts of the current visit, including corrections,
 - **Bust:** a dart that goes below zero, leaves 1 with double out, or reaches 0 without a double busts the visit. The score returns to the start of the visit. The dart that busts counts as thrown; later darts of the visit do not.
 - **Win:** a dart that reaches exactly 0 wins the leg. `leg_won` is announced at once, with the rules of the leg (`double_out`, `double_in`). The leg is booked when you pull the darts, so a correction before that still counts. Darts after the winning dart do not count. The next visit starts a new leg.
 - **Average:** points scored per three darts of the leg. Darts of a bust visit count, their points do not.
+- **Start scores (handicap):** a player whose *Practice start score* is not 0 starts every leg from that score, from 2 to 1001, for example 301 against 501. All other rules stay the same; the average counts from the player's own start, and `leg_won` names it in `start`.
 
 ### Matches, legs and sets
 
@@ -113,6 +114,14 @@ The practice game follows the darts of the current visit, including corrections,
 - **Throwing first:** as in PDC set play, the first throw passes to the next player every leg within a set, and every new set starts with the player after the one who started the previous set. With two players, player 1 starts sets 1, 3 and 5 and player 2 sets 2 and 4. The first leg of a match starts with player 1, or with the winner of the bull-off.
 - **Result:** the match result stays until the next dart, which starts a new match. The winner keeps the legs of the deciding set, so a first-to-3 match ends 3–2 on the scoreboard. `match_won`, the *Last match* history and the player profiles keep every player's legs and sets; `match_legs` counts the legs of the whole match.
 - **Averages:** each player's average and marks per round cover the whole match.
+
+### Teams
+
+- **Two teams of two:** with *Practice teams* and four players of X01 or a Cricket game, players 1 and 3 play against players 2 and 4. The throwing order is the seat order, so the teams alternate: A1, B1, A2, B2. With fewer or more than four players, and in party and training games, everybody plays alone.
+- **One score per team:** partners share the remaining score, the opening double with double in, and in the Cricket games the marks and points. A team plays from the start score of its first player, player 1 or player 2.
+- **Throwing first:** as in any match of four, the first throw passes to the next seat every leg, so the teams take turns.
+- **Winning:** both partners win the leg and the match. `leg_won` and `match_won` add `team` and `team_name` (*Alex & Kim* when both partners have a name); the darts, average and marks per round of the leg are the team's.
+- **Statistics per person:** the first nine, the checkout rate, the averages and the marks per round stay with the player who threw the darts. The player profiles count the leg and the match for both partners, and each of them beats both opponents in the head-to-head records; partners play no head-to-head. A team leg sets no fewest-darts and no marks-per-round best, on the board or in a profile; a checkout still counts for the player who threw it.
 
 ### Bull-off
 
@@ -129,6 +138,16 @@ The practice game follows the darts of the current visit, including corrections,
 - **Points:** further marks score the number's value (25 for the bull) while another player has it open.
 - **Win:** close every number with at least as many points as everybody else. The win is checked after every dart, so a closing dart wins at once when the points are enough, and later darts of the visit do not count. Alone, closing every number wins.
 - **Marks per round:** the marks that closed a number or scored, per three darts actually thrown.
+
+### Cut-Throat Cricket
+
+- **Marks:** as in Cricket, on 20 to 15 and the bull.
+- **Points go to the others:** further marks on a closed number give its value to every other player who still has it open; the player who threw them scores nothing.
+- **Win:** close every number with no more points than anybody else: the fewest points win. Alone, closing every number wins.
+
+### Tactics
+
+- Cricket on the numbers 20 to 10 and the bull, twelve numbers in all. Marks, points and the win follow the rules of Cricket.
 
 ### Shanghai
 
@@ -153,17 +172,43 @@ The practice game follows the darts of the current visit, including corrections,
 - A player without lives is out: the rest of the visit does nothing, and the turn skips them from then on.
 - The last player with a life left wins at once; later darts of the visit do not count.
 
+### Golf
+
+- Nine or 18 holes, set in *Practice Golf holes*; hole *n* is played on the number *n*.
+- A player throws up to three darts per hole and may stop after any dart by pulling the darts: **the last dart thrown counts**.
+- Strokes: a treble 1, a double 2, an inner single 3, an outer single 4, anything else 5. Whether a single is inner or outer comes from the position the board reports; a single without a position counts as an outer single.
+- The fewest strokes after the last hole win. A tie at the top plays extra holes among the tied players, in their throwing order, on the next numbers (after 20 from 1 again), until one of them has fewer strokes after a hole.
+
+### Baseball
+
+- Nine innings; inning *n* is played on the number *n*, with one visit of three darts.
+- Every dart in a bed of the inning's number scores runs: a single 1, a double 2, a treble 3. The bull scores nothing.
+- The most runs after nine innings win. A tie at the top plays extra innings among the tied players on 10, 11 and so on, until one of them leads after an inning.
+
+### Count-Up
+
+- 1 to 20 rounds, set in *Practice Count-Up rounds*, 8 by default. Every dart scores its value.
+- The most points win. A tie at the top plays extra rounds among the tied players until one of them leads after a round.
+
 ### Training games
 
 - **Around the Clock:** 1 to 20, then the bull, in order, with any bed of the number. The bull target is shown as `25`: the outer bull and the bullseye both count.
 - **Doubles training:** D1 to D20, then the bullseye (`BULL`); only the double ring and the bullseye count.
 - **Checkout training:** a random score from 2 to 170 that three darts can finish, checked out on a double within three visits. A bust or a third visit without the finish ends the attempt; the route shows only while the attempt goes on.
 - **Bob's 27:** start with 27 points and throw one visit at each double from D1 to D20 and then at the bullseye. Every hit adds the value of the double; a visit without a hit subtracts it. The game is lost as soon as the score reaches zero or less, and completed after the bullseye.
+- **121 checkout:** check out 121 on a double within three visits, nine darts. A finish raises the target to the next score; a bust or three visits without the finish lower it by one, never below 121. Scores without a checkout (159, 162, 163, 165, 166, 168, 169) are skipped, and 170 is the top. Every attempt fires `checkout_attempt` with the `next` target.
+- **Catch 40:** check out 61, 62 and so on up to 100, each on a double within two visits, six darts. A checkout in two darts scores 3 points, in three darts 2 and in four to six darts 1. A bust or two visits without the finish score nothing, and the next number follows. At most 120 points.
+- **JDC Challenge:** the practice routine of the [Junior Darts Corporation](https://www.juniordarts.com/), 57 darts, as its academies play it ([rules](https://www.godartspro.com/jdc/)). First one visit at each number from 10 to 15: every dart in a bed of the number scores its value, and a single, double and treble of it in the visit add 100 (a Shanghai). Then one dart at each double from D1 to D20, 50 points a hit, and one at the bullseye for 100. Then one visit at each number from 15 to 20 like the first part. At most 3,380 points.
+- **Singles training:** one visit at each number from 1 to 20 and then at the bull (`25`). Every dart in a bed of the number scores a point per mark: a single 1, a double 2, a treble 3; the outer bull 1 and the bullseye 2. At most 186 points.
+- Darts the board does not detect do not count: in the doubles part of the JDC Challenge, the next detected dart is thrown at the next double.
 
 ### Records and statistics
 
 - **Highest visit:** the *Training highest visit* sensor and the `highest_visit` personal best take the points of the darts on the board in a visit of up to three darts, whatever the game: a bust visit or a Cricket visit counts with its board points, like the 100+, 140+ and 180 buckets. The `highest_visit` of a [player profile](entities.md#player-profiles) is the highest X01 score of that player instead: a bust scores nothing, and neither do darts before the opening double with double in.
 - **Highest checkout and fewest darts:** the personal bests `highest_checkout` and `fewest_darts_*` and the same values of the player profiles only come from won X01 legs with double out, with or without double in. A leg without double out finishes more easily and sets no record; double in only makes a leg harder.
+- **Start scores and teams:** the fewest darts count for the score a leg really started from: a leg from a start score of 301 counts for `fewest_darts_301`, a leg from 401 for no record, because 401 is no X01 game. A team leg sets no fewest darts and no best marks per round.
+- **Cricket games:** the marks per round of the profiles and `best_cricket_mpr` come from Cricket; Cut-Throat and Tactics count their legs and matches.
+- **Training games:** `checkout_121` keeps the highest score checked out in the 121 checkout; `catch_40`, `jdc_challenge` and `singles` keep the highest score of a finished game.
 - **Darts at a double:** with double out, a dart counts as thrown at a double when one double could finish the score: 2 to 40 when even, or 50. So every dart at 50 counts as an attempt at the bullseye, also when a player sets up with a single 10 instead.
 
 ## Weekly report

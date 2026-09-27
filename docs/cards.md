@@ -21,7 +21,7 @@ To add one, edit a dashboard, select **Add card** and search for **Autodarts**. 
 
 - **Visit:** score, the three dart slots and a progress indicator. The latest dart is outlined.
 - **Last visits:** the scores of your last five visits, colored like the training card's chart. Hover one for its darts.
-- **Practice game:** while a [practice game](entities.md#practice-game) runs, the remaining score, the checkout route and busts appear above the dart slots, and the board outlines the bed to aim at next. "No checkout possible" appears only for a score that could be finished in one visit: up to 170 with double out, up to 180 without. In a match, a list shows every player with the remaining score, legs, sets and average, and highlights the player at the board. In the [party games](entities.md#party-games), the panel shows the round, the target and every player's points or, in Killer, their number and lives, and who is out. During a bull-off it lists the distance of every dart. In [Cricket](entities.md#cricket), a chalkboard shows the marks of every player on 20 to 15 and the bull, the points and the marks per round, dims the numbers everybody has closed and outlines the next open number on the board. Screen readers read the marks as words. In a [training game](entities.md#training-games), the panel shows the target, the progress, darts and hit rate (Bob's 27: points and round; checkout training: the route and the checkout rate), and the board outlines the beds of the target. The live card and the [scoreboard](#scoreboard-card) share how they show a game, so both always tell the same.
+- **Practice game:** while a [practice game](entities.md#practice-game) runs, the remaining score, the checkout route and busts appear above the dart slots, and the board outlines the bed to aim at next. "No checkout possible" appears only for a score that could be finished in one visit: up to 170 with double out, up to 180 without. In a match, a list shows every player with the remaining score, legs, sets and average, and highlights the player at the board; [start scores](entities.md#teams-and-start-scores) of their own appear beside the names, and a team match lists the two teams. In the [party games](entities.md#party-games), the panel shows the round or hole, the target and every player's points or, in Killer, their number and lives, and who is out. During a bull-off it lists the distance of every dart. In the [Cricket games](entities.md#cricket), a chalkboard shows the marks of every player or team on the numbers of the game, the points and the marks per round, dims the numbers everybody has closed and outlines the next open number on the board. Screen readers read the marks as words. In a [training game](entities.md#training-games), the panel shows the target, the progress, darts and hit rate (Bob's 27: points and round; checkout training and 121 checkout: the route and the checkout rate; Catch 40, the JDC Challenge and the singles training: the round or part and the points), and the board outlines the beds of the target. The live card and the [scoreboard](#scoreboard-card) share how they show a game, so both always tell the same.
 - **Board:**
   - Hit beds blink in the highlight color.
   - Numbered markers show where each dart landed.
@@ -174,18 +174,20 @@ show_system: false
 
 <img src="images/en/scoreboard.webp" alt="Animation: the scoreboard during a 501 match. The turn passes between Alex and Sam after every visit, and Alex checks out 141 with T20 T19 D12 to win the match" width="760">
 
-- **X01:** a tile for every player with the remaining score, legs, sets and average. The player at the board is outlined and gets the checkout route, a bust or the game shot.
-- **Cricket:** a large chalkboard with the marks of every player, the points and the marks per round; the next open number is shown in its top-left corner, above the numbers.
-- **Party games:** the round and the target, every player's points, or in Killer their number and lives in red hearts.
+- **X01:** a tile for every player with the remaining score, legs, sets and average. The player at the board is outlined and gets the checkout route, a bust or the game shot. Players with a [start score](entities.md#teams-and-start-scores) of their own show it beside the name.
+- **Teams:** in a team match, two team tiles such as *Alex & Kim* against *Sam & Lea*, with the shared score, the average of each partner and the partner at the board in bold. The banner names the winning team.
+- **Cricket:** a large chalkboard with the marks of every player, the points and the marks per round; the next open number is shown in its top-left corner, above the numbers. Tactics fills it from 20 down to 10 in smaller type, Cut-Throat Cricket reminds that the fewest points win, and a team match has a column per team.
+- **Party games:** the round and the target, every player's points, or in Killer their number and lives in red hearts. Golf and Baseball add a scorecard of every hole or inning with the total; after a tie, the extra rounds show as a play-off and the players out of it are dimmed.
 - **Bull-off:** the distance of every player's dart from the center.
-- **Training games:** the target in large type, with the progress, darts and hit rate (Bob's 27: points and round; checkout training: the score, the route and the checkout rate).
+- **Training games:** the target in large type, with the progress, darts and hit rate (Bob's 27: points and round; checkout training and 121 checkout: the score, the route, the checkout rate and the best score reached; Catch 40: the number, the visit and the points; the JDC Challenge: the part and the points; singles training: the round and the points).
 - **Between games:** the title (the board name unless you set `title`) and the score of the current visit together with darts, 3-dart average, highest visit and 180s of the training session, the training streak and today's darts towards the daily goal.
 - **Winner:** a banner names the winner of the match until the next dart.
 - **Pictures:** players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture next to their name.
 - **Visit:** the three darts of the current visit and its score along the bottom.
 - **Caller:** with `caller: true`, the screen at the board calls the game itself in English or German, following the language of Home Assistant (other languages hear English). It calls only what counts:
   - X01: the points a visit scored, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished (up to 170 with double out, 180 without), the game shot of a leg and the match, and a fanfare for a 180 that counted.
-  - Cricket: the marks of a visit, such as "5 marks". Shanghai and Halve-It: the points on the target. Killer and the training games get no score calls.
+  - Cricket games: the marks of a visit, such as "5 marks". Shanghai and Halve-It: the points on the target; Count-Up: the points of the visit; Baseball: the runs, such as "3 runs". Killer, Golf, where the last dart counts, and the training games get no score calls.
+  - Checkout training, 121 checkout and Catch 40: what the next attempt or visit requires, such as "You require 121".
   - Darts thrown after a bust or a game shot are not called.
 
   It uses the speech output of the browser, so nothing needs to be set up in Home Assistant. Browsers play sound only after a tap: tap *Caller* on the scoreboard once to switch it on, and again to mute it. The button keeps its name; its pressed state and the speaker symbol show whether the caller is on.
@@ -193,6 +195,10 @@ show_system: false
 <img src="images/en/killer.webp" alt="Animation: Killer for Alex, Sam and Kim on the scoreboard. Everybody throws for a number, Alex becomes a killer and takes Sam's lives, Kim becomes a killer too, and Alex takes the last life to win" width="760">
 
 <img src="images/en/scoreboard-cricket.png" alt="Scoreboard in Cricket between Alex and Sam: the chalkboard with marks, points and marks per round, and T19 as the next target" width="760">
+
+<img src="images/en/golf.webp" alt="Animation: Golf for Alex and Sam on the scoreboard. After every visit the scorecard fills: Alex plays 1, 3 and 2, Sam 4, 5 and 5, and the fourth hole is under way" width="760">
+
+<img src="images/en/scoreboard-teams.png" alt="Scoreboard of a 501 team match: Alex and Kim with 45 left against Sam and Lea with 216, Sam at the board in bold with his average" width="760">
 
 The [automatic dashboard](#automatic-dashboard) has a *Scoreboard* view that shows the card across the whole screen. Open it on the tablet, and use the browser's full-screen mode or the Home Assistant app in kiosk mode. On a phone, the full-height scoreboard leaves room for the browser's address bar.
 
@@ -278,7 +284,7 @@ idle_panels: [leaderboard, today, clock]
 
 ## Players card
 
-`custom:autodarts-players-card` shows the [player profiles](entities.md#player-profiles): a tile for every named player with legs and matches won, 3-dart average, first 9, checkout rate, marks per round and the best marks per round of a Cricket leg, highest visit and checkout and the fewest darts per start score. Players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture. Below, the head-to-head records with a balance bar and the recent matches with their winner. On request, an *Export* button downloads everything as a file.
+`custom:autodarts-players-card` shows the [player profiles](entities.md#player-profiles): a tile for every named player with legs and matches won, 3-dart average, first 9, checkout rate, marks per round and the best marks per round of a Cricket leg, highest visit and checkout and the fewest darts per start score. Players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture. Below, the head-to-head records with a balance bar and the recent matches with their winner, both partners in a team match. On request, an *Export* button downloads everything as a file.
 
 <img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
 
@@ -305,7 +311,7 @@ For every board, the dashboard gets up to five views, which update themselves wh
 
 | View | Contents |
 | --- | --- |
-| **Live** | The live card across the full width, the practice game controls and the player names |
+| **Live** | The live card across the full width, the practice game controls with teams and the Golf and Count-Up options, the player names and their start scores |
 | **Scoreboard** | The [scoreboard card](#scoreboard-card) across the whole screen, for a tablet or TV at the board |
 | **Training** | The training card with the personal bests, the [doubles card](#doubles-card), the daily goal with darts today, the streak and the last personal best, darts per day for the last 30 days (from long-term statistics, which Home Assistant compiles hourly), the 3-dart average of the last 7 days, practice legs per day, the first 9 average, checkout rate and doubles rate of the practice game, and the training settings: starting sessions automatically and ending them after a pause |
 | **Players** | The [players card](#players-card), once the first named player has a profile |
