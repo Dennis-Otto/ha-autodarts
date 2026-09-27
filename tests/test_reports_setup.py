@@ -23,7 +23,9 @@ from custom_components.autodarts.diagnostics import (
     async_get_config_entry_diagnostics,
 )
 from custom_components.autodarts.export import (
+    FORMULA_START,
     ExportFolderError,
+    csv_text,
     default_folder,
     export_folder,
 )
@@ -475,6 +477,19 @@ async def test_export_tables_as_csv(hass, played):
     assert ",'=Alex," in matches[1]
 
 
+@pytest.mark.parametrize("start", FORMULA_START)
+def test_a_cell_that_starts_like_a_formula_stays_text(start):
+    """Every character a spreadsheet starts a formula with, in every column."""
+    rows = [
+        {"name": f"{start}Alex", "legs": 1, "average": -1.5},
+        {"name": f"Sam{start}", "legs": 0, "average": None},
+    ]
+    written = list(csv.DictReader(io.StringIO(csv_text("profiles", rows))))
+    assert [row["name"] for row in written] == [f"'{start}Alex", f"Sam{start}"]
+    # Numbers stay numbers, also below zero.
+    assert [row["average"] for row in written] == ["-1.5", ""]
+
+
 async def test_an_empty_export_still_has_its_columns(hass, aioclient_mock, tmp_path):
     default = folders(hass, tmp_path)
     await setup_local(hass, aioclient_mock, state=board())
@@ -600,6 +615,25 @@ async def test_exports_are_limited_per_hour(hass, aioclient_mock, tmp_path):
         patch("custom_components.autodarts.export.monotonic", return_value=4600.0),
     ):
         await export(hass, what="sessions")
+
+
+async def test_export_never_follows_a_link_out_of_the_configuration_folder(
+    hass, aioclient_mock, tmp_path
+):
+    config = tmp_path / "config"
+    config.mkdir()
+    (tmp_path / "outside").mkdir()
+    try:
+        (config / "link").symlink_to(tmp_path / "outside", target_is_directory=True)
+    except OSError:
+        pytest.skip("Creating links needs rights Windows does not always grant.")
+    hass.config.config_dir = str(config)
+    await setup_local(hass, aioclient_mock, state=board())
+    for folder in ("link", "link/exports"):
+        with pytest.raises(ServiceValidationError) as error:
+            await export(hass, folder=folder)
+        assert error.value.translation_key == "export_folder"
+    assert list((tmp_path / "outside").iterdir()) == []
 
 
 async def test_export_reports_a_folder_it_cannot_create(hass, aioclient_mock, tmp_path):
