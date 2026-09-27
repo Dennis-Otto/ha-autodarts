@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import math
 import re
 import socket
 import time
@@ -40,6 +41,24 @@ BULL = {
     "segment": {"name": "Bull", "number": 25, "multiplier": 2, "bed": "Double"},
     "coords": {"x": 0.004, "y": -0.011},
 }
+
+
+def dart(number: int, multiplier: int, bed: str, radius: float) -> dict:
+    """A dart in a bed of the number, at a distance from the centre."""
+    angle = math.radians(18 * SECTORS.index(number))
+    name = f"{'SDT'[multiplier - 1]}{number}"
+    return {
+        "segment": {
+            "name": name,
+            "number": number,
+            "multiplier": multiplier,
+            "bed": bed,
+        },
+        "coords": {"x": radius * math.sin(angle), "y": radius * math.cos(angle)},
+    }
+
+
+SECTORS = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5]
 # Logged while the fault injection makes the board unavailable.
 EXPECTED_LOGS = (
     "Board Manager does not answer",
@@ -112,6 +131,11 @@ ENTITIES = {
     "weekly_report_day": "select",
     "weekly_report_time": "time",
     "training_calendar": "calendar",
+    "practice_teams": "switch",
+    "practice_start_1": "number",
+    "practice_start_4": "number",
+    "practice_golf_holes": "select",
+    "practice_count_up_rounds": "number",
 }
 if GENERATION >= 2:
     # Board Manager 2 reports its cloud link, load and updates, and has no toggle.
@@ -1017,6 +1041,88 @@ class Scenario:
 
         await wait_for(persisted, "the persisted training journal", timeout=30)
 
+    async def start_game(self, **data) -> None:
+        await self.api("POST", "/api/services/autodarts/start_game", json=data)
+
+    async def visit(self, *darts: dict) -> None:
+        """Throw a visit and pull the darts."""
+        await self.board("POST", "/control/state", json={"throws": list(darts)})
+        await self.expect_states({"num_throws": str(len(darts))})
+        await self.board("POST", "/control/state", json={"throws": []})
+        await self.expect_states({"num_throws": "0"})
+
+    async def events_until(self, kind: str) -> list[dict]:
+        """The board events until one of this kind arrived."""
+        fired: list[dict] = []
+
+        async def arrived():
+            fired.extend(self.fired_board_events())
+            return any(item["event_type"] == kind for item in fired)
+
+        await wait_for(arrived, f"a {kind} event")
+        return fired
+
+    async def games(self) -> None:
+        """New games, a team match and start scores, set up with the action."""
+        self.fired_board_events()
+        # Golf alone: nine holes, and the last dart of a visit counts.
+        await self.start_game(game="golf", players=["Alex"], holes=9)
+        await self.expect_states({"practice_game": "golf", "practice_target": "1"})
+        # An inner single is three strokes: the board's position tells the bed.
+        await self.visit(dart(1, 1, "SingleInner", 0.35))
+        await self.visit(dart(2, 3, "Triple", 0.6), dart(2, 1, "SingleOuter", 0.8))
+        for hole in range(3, 10):
+            await self.visit(dart(hole, 3, "Triple", 0.6))
+        won = [
+            item
+            for item in await self.events_until("leg_won")
+            if item["event_type"] == "leg_won"
+        ]
+        check(
+            [(item["game"], item["points"], item["darts"]) for item in won]
+            == [("golf", 3 + 4 + 7, 10)],
+            f"Unexpected end of the Golf leg: {won}",
+        )
+
+        # Tactics for two: the numbers go down to 10.
+        await self.start_game(game="tactics", players=["Alex", "Sam"])
+        await self.expect_states({"practice_game": "tactics", "practice_target": "T20"})
+        await self.visit(dart(10, 3, "Triple", 0.6), dart(10, 3, "Triple", 0.6))
+        game = (await self.state("practice_remaining"))["attributes"]
+        check(
+            len(game["numbers"]) == 12
+            and [score["points"] for score in game["scores"]] == [30, 0]
+            and game["scores"][0]["marks"][10] == 3
+            and game["player"] == 2,
+            f"Unexpected Tactics chalkboard: {game}",
+        )
+
+        # Two teams of two, the second team from 201.
+        await self.start_game(
+            game="301",
+            players=["Alex", "Sam", "Kim", "Lea"],
+            teams=True,
+            start_scores=[0, 201],
+        )
+        await self.expect_states({"practice_teams": "on", "practice_start_2": "201"})
+        self.fired_board_events()
+        await self.visit(T20)
+        game = (await self.state("practice_remaining"))["attributes"]
+        check(
+            [score["remaining"] for score in game["scores"]] == [241, 201, 241, 201]
+            and [team["name"] for team in game["teams"]] == ["Alex & Kim", "Sam & Lea"],
+            f"Unexpected team match: {game}",
+        )
+        turns = [
+            (item["player"], item.get("team"), item.get("team_name"))
+            for item in await self.events_until("turn_changed")
+            if item["event_type"] == "turn_changed"
+        ]
+        check(turns == [(2, 2, "Sam & Lea")], f"Unexpected turn: {turns}")
+        await self.start_game(
+            game="501", players=["Alex"], teams=False, start_scores=[]
+        )
+
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
         version = json.loads(MANIFEST.read_text())["version"]
@@ -1225,6 +1331,7 @@ async def main() -> None:
         await scenario.resilience(entry_id)
         await scenario.online_bridge(entry_id)
         await scenario.reports(entry_id)
+        await scenario.games()
         await scenario.card()
         await scenario.people()
         await scenario.gallery()
@@ -1239,8 +1346,9 @@ async def main() -> None:
         "controls, realtime darts/corrections/takeouts with positions, persistence, "
         "dropped sockets mid-visit, outages, failing and slow reads, malformed "
         "frames, a restart, the online bridge, weekly report, training calendar, "
-        "exports, dashboard card, players linked to persons, the highlight gallery "
-        "in the media browser, private diagnostics, clean logs and removal."
+        "exports, Golf, Tactics and a team match with start scores, dashboard "
+        "card, players linked to persons, the highlight gallery in the media "
+        "browser, private diagnostics, clean logs and removal."
     )
 
 

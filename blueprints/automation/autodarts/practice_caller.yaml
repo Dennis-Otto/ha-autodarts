@@ -98,14 +98,17 @@ blueprint:
           name: Leg won
           description: >-
             Said when a dart wins a leg that does not decide the match, with
-            `checkout`, `darts` and `average` of the leg.
-          default: "Game shot, and the leg{{ ', ' ~ who if who }}!"
+            `checkout`, `darts` and `average` of the leg. In a team match,
+            `team` names the team.
+          default: "Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!"
           selector:
             text: {}
         match_message:
           name: Match won
-          description: Said when a dart decides the match.
-          default: "Game shot, and the match, {{ who }}!"
+          description: >-
+            Said when a dart decides the match. In a team match, `team` names
+            the team.
+          default: "Game shot, and the match, {{ team or who }}!"
           selector:
             text: {}
         bull_off_turn_message:
@@ -159,6 +162,8 @@ variables:
   name: "{{ trigger.to_state.attributes.get('name') or '' }}"
   label: !input player_label
   who: "{{ name if name else (label ~ ' ' ~ player if players > 1 else '') }}"
+  # The team of the player in a team match, when both partners have a name.
+  team: "{{ trigger.to_state.attributes.get('team_name') or '' }}"
   remaining: "{{ trigger.to_state.attributes.get('remaining') | int(0) }}"
   checkout: "{{ trigger.to_state.attributes.get('checkout') or '' }}"
   darts: "{{ trigger.to_state.attributes.get('darts') | int(0) }}"
