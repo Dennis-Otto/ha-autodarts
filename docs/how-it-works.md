@@ -210,7 +210,7 @@ Everything the integration keeps lives in Home Assistant's `.storage` folder, ne
 
 | Store | Contents |
 | --- | --- |
-| `autodarts.<entry>.training` | The training session with its settings, the last 20 sessions and the last 10 visits; the practice game with its rules, teams, start scores, player names and the last 10 legs; the personal bests, the training streak and the darts of the day; the player profiles with their statistics, personal bests, doubles and linked persons, the last 20 matches and the head-to-head records; the doubles analysis |
+| `autodarts.<entry>.training` | The training session with its settings, the last 20 sessions and the last 10 visits; the practice game with its rules, teams, start scores, player names and the last 10 legs; the personal bests, the training streak and the darts of the day; the player profiles with their statistics, personal bests, doubles and linked persons, the last 20 matches and the head-to-head records; every player's progress with weekly sums, achievements and the positions of their last 1000 darts; the doubles analysis; the tournament with its results |
 | `autodarts.<entry>.report` | The running week and the last weekly report |
 | `autodarts.<entry>.journal` | The sessions and matches of the training calendar, 365 days, at most 3,000 of each |
 

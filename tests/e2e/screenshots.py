@@ -1512,7 +1512,7 @@ def dart_by_dart(board: Page, recorder: Recorder, darts: list[dict]) -> None:
 def hero_animation(page: Page) -> None:
     """The first picture of the README: a 301 match on the live card and the scoreboard.
 
-    Alex throws a 180, Sam scores 85, and Alex checks out 121 to win the match.
+    Alex throws a 180, Sam scores 85, and Alex checks out 121 for the game shot.
     """
     start_match(page, ["Alex", "Sam"], "301")
     view = page.context.new_page()
@@ -1557,15 +1557,13 @@ def hero_animation(page: Page) -> None:
         wait_card(view, active.format(following), SCOREBOARD)
         view.wait_for_timeout(300)
         recorder.blink(1, hold=900)
-    # Alex follows the route the cards show for 121.
+    # Alex follows the route the cards show for 121; the game shot ends the
+    # animation, before the match summary takes the place of the players.
     throw(view.evaluate(ROUTE).split())
-    recorder.blink(1, hold=900)
-    pull_darts()
-    wait_card(view, "!r.querySelector('.banner').hidden", SCOREBOARD)
-    view.wait_for_timeout(300)
     recorder.blink(1, hold=2800)
     recorder.save("hero", width=960)
     view.close()
+    pull_darts()
     players(page, 1)
     game(page, "off")
 
@@ -1575,7 +1573,7 @@ def scoreboard_game(page: Page, names: list[str], option: str) -> Page:
     start_match(page, names, option)
     board = page.context.new_page()
     # High enough that the winner's banner never pushes the card under the toolbar.
-    board.set_viewport_size({"width": 1280, "height": 900})
+    board.set_viewport_size({"width": 1280, "height": 1000})
     board.goto(f"{HA}/autodarts-auto/scoreboard")
     wait_card(
         board, "!!r.querySelector('.main .player, .main .single')", SCOREBOARD, 60000

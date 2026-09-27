@@ -60,8 +60,9 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 - **Lokal zuerst:** Die Cloud ist optional; die lokale Steuerung hängt nie von ihr ab.
 - **Kleine Angriffsfläche:** Keine Python-Abhängigkeiten zur Laufzeit und keine eigenen offenen Ports. Was die Integration dem Webserver von Home Assistant hinzufügt:
   - die Kartendatei unter `/autodarts/autodarts-card.js`, ohne Anmeldung ausgeliefert wie jede andere Frontend-Datei; sie enthält Code, keine Daten;
-  - die Aktionen `autodarts.start_game`, `autodarts.delete_player`, `autodarts.export`, `autodarts.link_player` und `autodarts.unlink_player`, die wie jede Aktion eine Anmeldung brauchen;
+  - die Aktionen `autodarts.start_game`, `autodarts.start_tournament`, `autodarts.next_tournament_match`, `autodarts.stop_tournament`, `autodarts.delete_player`, `autodarts.export`, `autodarts.link_player` und `autodarts.unlink_player`, die wie jede Aktion eine Anmeldung brauchen;
   - die Downloads der Exporte seit dem letzten Start unter `/api/autodarts/export/`, für angemeldete Benutzer oder mit einem signierten Link, der nach einer Minute abläuft;
+  - den WebSocket-Befehl `autodarts/positions`, mit dem die Karten die Dart-Positionen lesen, für angemeldete Benutzer;
   - nur solange die Online-Brücke an ist, eine geheime Webhook-Adresse.
 
 ## Verbleibende Risiken

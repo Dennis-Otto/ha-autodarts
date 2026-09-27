@@ -45,11 +45,20 @@ The words of darts and of this integration, as the documentation, the entities a
 | **Party games** | Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up | Partyspiele |
 | **Training games** | Around the Clock, doubles training, checkout training, Bob's 27, 121 checkout, Catch 40, JDC Challenge and singles training | Trainingsspiele |
 | **Team match** | Four players of X01 or a Cricket game as two teams: 1 and 3 against 2 and 4 | Team-Match |
+| **Match summary** | The numbers of every player after a match: averages, checkout rate, highest checkout, 180s and the best leg | Match-Zusammenfassung |
+| **Tournament** | Three to eight players in a round robin or a knockout, one match at a time | Turnier |
+| **Round robin** | Everyone plays everyone once; a table ranks the players | Jeder gegen jeden |
+| **Knockout** | The winners go on through a bracket until the final | K.-o.-System |
+| **Bracket, bye, seed** | The tree of a knockout; a free pass into the next round; a player's place in the draw | Turnierbaum, Freilos, Setzliste |
 | **Personal best** | The best value of a record, such as the highest checkout, kept per board and per player | Bestleistung |
 | **Training streak** | Days in a row with at least one dart | Trainingsserie |
 | **Daily goal** | The darts you want to throw every day | Tagesziel |
 | **Player profile** | The lifetime statistics and personal bests of a named player | Spielerprofil |
 | **Head-to-head** | The wins of two players against each other | Direkter Vergleich |
+| **Achievement, badge** | A milestone of a player in tiers of bronze, silver, gold and platinum, shown as a badge | Erfolg, Abzeichen |
+| **Dart positions** | Where the darts really landed, as the board reports it | Dart-Positionen |
+| **Grouping** | How closely a player's darts land around the bed they aimed at, in millimeters | Streuung |
+| **Leaderboard** | The records of all players on the leaderboard card, or the best players by average in idle mode | Bestenliste |
 | **Favorite double** | The double with your best hit rate, among those with at least 10 darts | Lieblingsdouble |
 | **Heatmap** | The board colored by how often each bed was hit; the card calls it *hit map* | Trefferbild |
 | **Weekly report** | The sum of a training week, announced when the week ends | Wochenbericht |

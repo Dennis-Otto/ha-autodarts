@@ -45,11 +45,20 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Partyspiele** | Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up | Party games |
 | **Trainingsspiele** | Around the Clock, Doppeltraining, Checkout-Training, Bob's 27, 121-Checkout, Catch 40, JDC Challenge und Singles-Training | Training games |
 | **Team-Match** | Vier Spieler bei X01 oder einem Cricket-Spiel als zwei Teams: 1 und 3 gegen 2 und 4 | Team match |
+| **Match-Zusammenfassung** | Die Zahlen jedes Spielers nach einem Match: Averages, Checkout-Quote, höchster Checkout, 180er und bestes Leg | Match summary |
+| **Turnier** | Drei bis acht Spieler, jeder gegen jeden oder im K.-o.-System, ein Match nach dem anderen | Tournament |
+| **Jeder gegen jeden** | Alle spielen einmal gegeneinander; eine Tabelle ordnet die Spieler | Round robin |
+| **K.-o.-System** | Die Sieger kommen über einen Turnierbaum bis ins Finale weiter | Knockout |
+| **Turnierbaum, Freilos, Setzliste** | Der Baum eines K.-o.-Turniers; der direkte Einzug in die nächste Runde; der Platz eines Spielers in der Auslosung | Bracket, bye, seed |
 | **Bestleistung** | Der beste Wert einer Kategorie, etwa der höchste Checkout, pro Board und pro Spieler | Personal best |
 | **Trainingsserie** | Tage in Folge mit mindestens einem Dart | Training streak |
 | **Tagesziel** | Die Darts, die du jeden Tag werfen willst | Daily goal |
 | **Spielerprofil** | Statistik und Bestleistungen eines Spielers mit Namen über seine ganze Zeit | Player profile |
 | **Direkter Vergleich** | Die Siege zweier Spieler gegeneinander | Head-to-head |
+| **Erfolg, Abzeichen** | Ein Meilenstein eines Spielers in den Stufen Bronze, Silber, Gold und Platin, als Abzeichen gezeigt | Achievement, badge |
+| **Dart-Positionen** | Wo die Darts wirklich gelandet sind, wie das Board es meldet | Dart positions |
+| **Streuung** | Wie eng die Darts eines Spielers um das Feld liegen, auf das er gezielt hat, in Millimetern | Grouping |
+| **Bestenliste** | Die Rekorde aller Spieler auf der Karte Bestenliste oder die besten Spieler nach Average im Ruhemodus | Leaderboard |
 | **Lieblingsdouble** | Das Double mit deiner besten Quote, unter denen mit mindestens 10 Darts | Favorite double |
 | **Trefferbild** | Die Scheibe, eingefärbt danach, wie oft jedes Feld getroffen wurde; auch Heatmap | Heatmap, hit map |
 | **Wochenbericht** | Die Summe einer Trainingswoche, gemeldet, wenn die Woche endet | Weekly report |

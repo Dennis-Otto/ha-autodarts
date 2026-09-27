@@ -2,11 +2,11 @@
 
 [← Documentation](README.md) · [Deutsch](de/spiele.md)
 
-Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, three Cricket games, six party games and eight training games, alone or as a match of up to four players. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
+Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, three Cricket games, six party games and eight training games, alone, as a match of up to four players or as a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
 
 <img src="images/en/lobby.webp" alt="Animation: on the tablet at the board, New game opens the game screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
-**On this page:** [All games at a glance](#all-games-at-a-glance) · [Start a game](#start-a-game) · [At the board](#at-the-board) · [Matches, legs and sets](#matches-legs-and-sets) · [Teams](#teams) · [Start scores (handicap)](#start-scores-handicap) · [Bull-off](#bull-off) · [X01](#x01) · [Cricket games](#cricket-games) · [Party games](#party-games) · [Training games](#training-games) · [Statistics](#statistics)
+**On this page:** [All games at a glance](#all-games-at-a-glance) · [Start a game](#start-a-game) · [At the board](#at-the-board) · [Matches, legs and sets](#matches-legs-and-sets) · [Match summary](#match-summary) · [Teams](#teams) · [Start scores (handicap)](#start-scores-handicap) · [Bull-off](#bull-off) · [Tournaments](#tournaments) · [X01](#x01) · [Cricket games](#cricket-games) · [Party games](#party-games) · [Training games](#training-games) · [Statistics](#statistics)
 
 ## All games at a glance
 
@@ -29,13 +29,14 @@ Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001,
 | [**121 checkout**](#121-checkout) | 1 | Check out 121 in nine darts, and climb |
 | [**Catch 40**](#catch-40) | 1 | Check out 61 to 100, the faster the more points |
 | [**JDC Challenge**](#jdc-challenge) | 1 | The 57-dart routine of the Junior Darts Corporation |
-| [**Singles training**](#singles-training) | 1 | One visit at every number, points per mark |
+| [**Singles training**](#singles-training) | 1 | One visit at each number, points per mark |
+| [**Tournament**](#tournaments) | 3–8 | A round robin or a knockout of X01 or Cricket matches, one at a time |
 
 ## Start a game
 
 There are four ways to start a game. All of them end in the same place: the *Practice game* of your board, which the [live card](cards.md#live-card), the [scoreboard](scoreboard.md) and the [board events](entities.md#board-events) follow.
 
-1. **On the screen at the board.** Tap **New game** on the [scoreboard](scoreboard.md#choose-the-next-game), choose the game, the players and the format, and tap **Start**. The screen also opens by itself a few seconds after a game ends, ready for a rematch.
+1. **On the screen at the board.** Tap **New game** on the [scoreboard](scoreboard.md#choose-the-next-game), choose the game, the players and the format, and tap **Start**. The screen also opens by itself a few seconds after a game ends, ready for a rematch. **Tournament** on the same screen starts a [tournament](#tournaments).
 2. **On the dashboard.** The *Live* view of the [automatic dashboard](cards.md#automatic-dashboard) has the practice controls: *Practice game*, the number of players, their names and start scores, legs, sets and the rules. Choosing a game starts it.
 3. **In an automation or script** with the action [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), which sets everything in one call:
 
@@ -58,7 +59,7 @@ To end a game, choose *Off* in *Practice game*, or tap **End game** on the new g
 - **Corrections count.** When you correct a dart in Autodarts before the takeout, the game follows the correction.
 - **The turn passes with the takeout,** also after a bust. The live card and the scoreboard outline the player at the board.
 - **What the cards show:** the remaining score and the checkout route, the Cricket chalkboard, the round and the target of a party game or the target of a training game. The board outlines the bed to aim at. [Live card](cards.md#live-card), [scoreboard](scoreboard.md).
-- **Events for your automations:** `bust`, `leg_won`, `match_won`, `turn_changed`, `bull_off_won`, `drill_finished` and `checkout_attempt` arrive the moment they happen, for callers and [light shows](automations.md#light-show).
+- **Events for your automations:** `bust`, `leg_won`, `match_won`, `turn_changed`, `bull_off_won`, `drill_finished`, `checkout_attempt`, `achievement_unlocked` and the tournament events arrive the moment they happen, for callers and [light shows](automations.md#light-show).
 - **Training sessions keep counting.** The practice game and the [training session](statistics.md#training-sessions) are independent; a dart counts in both.
 
 ## Matches, legs and sets
@@ -70,6 +71,17 @@ To end a game, choose *Off* in *Practice game*, or tap **End game** on the new g
 - **Throwing first:** as in PDC set play, the first throw passes to the next player every leg within a set, and every new set starts with the player after the one who started the previous set. With two players, player 1 starts sets 1, 3 and 5 and player 2 sets 2 and 4. The first leg of a match starts with player 1, or with the winner of the [bull-off](#bull-off).
 - **Result:** the result stays on the cards until the next dart, which starts a new match. The winner keeps the legs of the deciding set, so a first-to-3 match ends 3–2 on the scoreboard. `match_won`, the match history and the [player profiles](statistics.md#player-profiles) keep every player's legs and sets; `match_legs` counts the legs of the whole match.
 - **Averages:** each player's average and marks per round cover the whole match.
+
+## Match summary
+
+<img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="760">
+
+When an X01 or Cricket match of several players ends, the scoreboard and the live card sum it up: a column for every player, the winner's highlighted, with the result in the first row. The winner's banner names the result too, for example *Alex wins the match 3 : 2!*
+
+- **X01:** legs and sets, 3-dart and first-9 average, the checkout rate with the legs checked out and the darts at a double, the highest checkout, 180s, 140+ and 100+ visits, the best leg in darts and all darts. Without double out, the checkout rate and the darts at a double are left out.
+- **Cricket:** legs and sets, marks per round, marks, the best leg in darts and all darts.
+- **Party games** keep their scores on the screen.
+- **How long:** until the first dart of the next game, or for `summary_seconds` of the [card](cards.md#match-summary). `match_won` carries the numbers for your automations, for example to [send them to your phone](automations.md#send-the-summary-of-a-match). [How they are counted](how-it-works.md#match-summary).
 
 ## Teams
 
@@ -92,14 +104,63 @@ To end a game, choose *Off* in *Practice game*, or tap **End game** on the new g
 
 ## Bull-off
 
-<img src="images/en/bull-off.webp" alt="Animation: the bull-off on the scoreboard. Alex hits the outer bull 16 millimeters from the center, Sam the bullseye 4 millimeters from it, and the 501 match starts with Sam at the board" width="760">
+<img src="images/en/bull-off.webp" alt="Animation: the bull-off on the scoreboard. Alex hits the outer bull 15.7 millimeters from the center, Sam the bullseye 4 millimeters from it and leads, and the 501 match starts with Sam at the board" width="760">
 
-- With *Practice bull-off* (on the new game screen: *Bull-off*) and two or more players, a match starts with one dart per player at the bull, in seat order. Only the first dart of each visit counts. The scoreboard shows the distance of every dart from the center.
+- With *Practice bull-off* (on the new game screen: *Bull-off*) and two or more players, a match starts with one dart per player at the bull, in seat order. Only the first dart of each visit counts. The scoreboard shows the bed of every dart and its distance from the center, marks the dart that leads, and says *Tie – throw again* when a tie throws again.
 - As the WDF and PDC rules want, the bullseye beats the outer bull, which beats every other bed. Two or more darts in the same bull bed tie: those players throw again, the last of them first.
 - Outside the bull, the dart closer to the center wins. The distance comes from the position the board reports, measured against the outer edge of the double ring (170 mm).
 - With *Practice bull-off by distance*, the measured distance also decides between two darts in the same bull bed; darts equally close to 0.1 mm throw again.
 - A dart without a position cannot be measured, so it never beats a measured dart: when the decision needs a distance the board did not report, those players throw again.
 - The bull-off only decides who starts. With three or four players, the others follow in seat order. `bull_off_won` announces the winner, for example for the [practice caller](automations.md#practice-caller).
+
+## Tournaments
+
+<img src="images/en/tournament-bracket.webp" alt="Animation: the knockout bracket of five players on the scoreboard. Lea beats Max in the quarter-final and slides into the semi-final; Alex beats Lea and goes into the final, Lea into the match for third place; Kim beats Sam, Lea takes third place and Alex wins the final" width="760">
+
+A tournament for three to eight named players at one board, one match at a time: a **round robin**, in which everyone plays everyone once and a table ranks the players, or a **knockout**, in which the winners go on through a bracket until the final. Every match is an X01 match, with start scores for a handicap if you like, or a Cricket game, with the legs, sets and rules of the tournament. The results go into the [player profiles](statistics.md#player-profiles) and the head-to-head records like every match.
+
+1. **Start:** tap **New game** on the scoreboard, then **Tournament**. Choose the players, round robin or knockout, the game, the legs and sets and the rules, and tap **Start tournament**. Or start it from an automation:
+
+   ```yaml
+   action: autodarts.start_tournament
+   data:
+     players: [Alex, Sam, Kim, Lea]
+     format: round_robin
+     game: "501"
+     legs: 2
+   ```
+
+2. **Play:** the first match starts at once, and the title line of the scoreboard names the round and the match. When a match is decided and the darts are pulled, the scoreboard shows its summary, then the table or the bracket with the next match and a countdown. The next match starts by itself; **Start now** skips the wait.
+3. **Winner:** after the last match, a banner names the winner, and the table or the bracket stays until a new match begins. `tournament_finished` can start the [light show](automations.md#light-show) or [announce the results](automations.md#announce-the-results-of-a-tournament).
+
+<table>
+  <tr>
+    <td width="50%"><img src="images/en/tournament-lobby.png" alt="The new game screen in tournament mode: X01 and the Cricket games, six players with their start scores, knockout with the match for third place, and the start button" width="100%"></td>
+    <td width="50%"><img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="100%"></td>
+  </tr>
+</table>
+
+The [entity reference](entities.md#tournaments) lists the tournament's settings, buttons and actions, and the [scoreboard guide](scoreboard.md#tournaments) what the screen shows.
+
+### Tournament rules
+
+- **Players:** three to eight players with a name each. A name is the same player regardless of upper and lower case, as in the [player profiles](entities.md#player-profiles).
+- **Draw:** the order of the names, or a random order with *Tournament random draw* or a `seed`. The same seed always draws the same order; a random draw without a seed picks one and shows it in the `seed` attribute of *Tournament*.
+- **Round robin:** everyone plays everyone once, in rounds by the circle method: three or four players play 3 rounds, five or six play 5, seven or eight play 7. With an odd number of players, one player sits out every round. Within a round, a player of the round's last match opens the next round only when no other match can, and the first throw goes to the player of a match who had it less often.
+- **Points:** a won match is worth 2 points, as in the Premier League, a lost one none. A match cannot end in a draw.
+- **Tie-breakers:** players level on points are ranked by
+  1. the points they won in the matches among themselves,
+  2. the leg difference: legs won minus legs lost over all their matches, every leg of a match with sets included,
+  3. the 3-dart average over all their matches (Cricket: the marks per round),
+  4. the order of the draw.
+
+  So of two players level on points, the one who won their match goes first; of three players who beat each other in turn, the leg difference decides.
+- **Knockout:** a bracket of 4 places for three or four players and of 8 places for five to eight. The first player of the draw is seed 1, the second seed 2, and so on, placed as in professional draws: seed 1 meets the last seed first, seeds 1 and 2 can meet in the final at the earliest, and seeds 1 to 4 not before the semi-finals. Places the players do not fill are byes for the top seeds, who go straight into the next round. The rounds are the quarter-finals, the semi-finals and the final.
+- **Third place:** with *Tournament third-place match* and four players or more, the losers of the semi-finals play for third place, before the final. Without it, a knockout has no third place.
+- **Order of play:** one match at a time, round by round. A knockout plays the matches of a round from the top of the bracket down, and the match for third place before the final.
+- **Matches:** every match is a [match](#matches-legs-and-sets) of two players, with the legs per set, sets to win, double out, double in and bull-off of the tournament. In X01, a player with a start score of their own starts every leg of the tournament from it, a handicap; the other one from the game's. The first named player throws first, unless the bull-off decides.
+- **Averages:** a player's average counts the points and darts of all their tournament matches; the darts of a bust visit count, its points do not.
+- **Winner:** the winner of the final, or the player at the top of the table after the last match.
 
 ## X01
 
@@ -108,6 +169,7 @@ To end a game, choose *Off* in *Practice game*, or tap **End game** on the new g
 - **Counting down:** the score starts at 101, 301, 501, 701, 901 or 1001, and every dart subtracts its score.
 - **Double out** (on by default): the last dart of a leg must hit a double or the bullseye. Without double out, any bed finishes.
 - **Double in** (off by default): a player's score starts with the first double or bullseye of the leg; darts before it score nothing. The cards ask for a double and outline the double ring. A bust takes the opening double back.
+- **Changing double out:** a leg keeps the rules it started with. Switching double out on or off during a leg, once a dart counted, applies from the next leg; before the first dart of a leg, between matches and in the other games it applies at once. So no leg becomes unwinnable: a player who stands on 1 in a leg without double out can still finish it with a single 1 when double out comes on.
 - **Bust:** a dart that goes below zero, leaves 1 with double out, or reaches 0 without a double busts the visit. The score returns to the start of the visit. The dart that busts counts as thrown; later darts of the visit do not.
 - **Game shot:** a dart that reaches exactly 0 wins the leg. `leg_won` is announced at once; the leg is booked when you pull the darts, so a correction before that still counts. Darts after the winning dart do not count.
 - **Checkout route:** whenever a score can be finished, the cards show the route for the darts left in the visit, for example `T20 T20 BULL` for 170, and outline the next bed on the board. "No checkout possible" appears only for a score that one visit could finish: up to 170 with double out, up to 180 without. The route follows the professional checkout charts; with *Practice personal checkout routes*, it prefers your strongest doubles. [How the route is chosen](how-it-works.md#practice-game).
@@ -159,7 +221,7 @@ Six pub classics for one to four players; Killer needs two. They book a visit wh
 
 <img src="images/en/halve-it.webp" alt="Animation: Halve-It for Alex and Sam on the scoreboard. Sam misses the 15 and falls from 40 to 20 points, catches up on the 16, and misses any double in the third round: 116 points become 58" width="760">
 
-- Everybody starts with 40 points. The nine rounds aim at 15, 16, any double, 17, 18, any triple, 19, 20 and the bull, shown as 25.
+- Everybody starts with 40 points. The nine rounds aim at 15, 16, any double, 17, 18, any triple, 19, 20 and the bull, shown as *Bull (25/50)*.
 - Hits add their score. *Any double* includes the bullseye. In the bull round, the outer bull scores 25 and the bullseye 50.
 - A visit without a hit on the target halves the points, rounded down, also when fewer than three darts were thrown.
 - The most points after nine rounds win; ties are decided as in Shanghai.
@@ -205,7 +267,7 @@ Eight classic drills for one player. Each follows the darts of the current visit
 
 <img src="images/en/training-game.webp" alt="Animation: Around the Clock. Each hit moves the target from 1 to 6 and outlines every bed of the next number on the board" width="620">
 
-- 1 to 20, then the bull, in order, with any bed of the number. The bull target is shown as `25`: the outer bull and the bullseye both count. Fewer darts are better.
+- 1 to 20, then the bull, in order, with any bed of the number. The bull target reads *Bull (25/50)* on the cards, `25` in the attributes: the outer bull and the bullseye both count, and both are outlined. Fewer darts are better.
 
 ### Doubles training
 
@@ -250,4 +312,4 @@ Eight classic drills for one player. Each follows the darts of the current visit
 
 ## Statistics
 
-Every game feeds the statistics: X01 legs the first-9 average, checkout rate and doubles rate; Cricket the marks per round; named players their [profiles](statistics.md#player-profiles), head-to-head records and match history; every dart at a double the [doubles analysis](statistics.md#doubles-analysis). The [statistics guide](statistics.md) shows all of it, and [records and statistics](how-it-works.md#records-and-statistics) explains exactly which legs count for which record.
+Every game feeds the statistics: X01 legs the first-9 average, checkout rate and doubles rate; Cricket the marks per round; named players their [profiles](statistics.md#player-profiles), head-to-head records, match history, [achievements](statistics.md#achievements) and weekly trends; every dart at a double the [doubles analysis](statistics.md#doubles-analysis). The [statistics guide](statistics.md) shows all of it, and [records and statistics](how-it-works.md#records-and-statistics) explains exactly which legs count for which record.

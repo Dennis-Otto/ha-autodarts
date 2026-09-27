@@ -4,15 +4,15 @@
 
 **Dein Autodarts-Board live in Home Assistant: lokal, in Echtzeit und bereit für Automationen.**
 
-<img src="../images/de/hero.webp" alt="Animation: ein 301-Match auf der Live-Karte und der Anzeigetafel nebeneinander. Alex wirft drei Triple 20, die Felder leuchten auf und die Anzeigetafel zählt auf 121 herunter; Sam wirft 85; Alex checkt 121 mit T20, Single-Bull und D18 und gewinnt das Match" width="880">
+<img src="../images/de/hero.webp" alt="Animation: ein 301-Match auf der Live-Karte und der Anzeigetafel nebeneinander. Alex wirft drei Triple 20, die Felder leuchten auf und die Anzeigetafel zählt auf 121 herunter; Sam wirft 85; Alex checkt 121 mit T20, Single-Bull und D18 zum Game shot" width="880">
 
 **Schnell zu:** [Schnellstart](#schnellstart) · [Anleitungen](#anleitungen) · [Anwendungsfälle](#anwendungsfälle) · [Blueprints](#blueprints) · [Glossar](glossar.md) · [Änderungen](../../CHANGELOG.md)
 
 ## Warum
 
 - **Sofort und lokal.** Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direkt vom Board Manager in deinem Netzwerk. Kein Konto, keine Cloud, keine Client-ID.
-- **Ein ganzer Dartabend.** X01 von 101 bis 1001, drei Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein oder als Match mit bis zu vier Spielern, mit einer Anzeigetafel für das Tablet am Board.
-- **Deine Entwicklung in Zahlen.** Averages, Trefferbilder, Bestleistungen, Doubles, Spielerprofile, ein Wochenbericht und ein Jahr Verlauf, alles bei dir zu Hause.
+- **Ein ganzer Dartabend.** X01 von 101 bis 1001, drei Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern oder als Turnier mit bis zu acht, mit einer Anzeigetafel für das Tablet am Board.
+- **Deine Entwicklung in Zahlen.** Averages, Trefferbilder der echten Dart-Positionen, Bestleistungen, Abzeichen, Wochentrends, Spielerprofile, ein Wochenbericht und ein Jahr Verlauf, alles bei dir zu Hause.
 - **Dein Zuhause spielt mit.** Licht für eine 180, ein Caller auf deinen Lautsprechern, das Boardlicht bei der Entnahme, ein Foto deines besten Checkouts.
 
 ## Das kann die Integration
@@ -25,11 +25,12 @@
         <li>X01 von 101 bis 1001 mit Double-Out, Double-In und dem Checkout-Weg nach jedem Dart</li>
         <li>Cricket, Cut-Throat Cricket und Tactics auf einer Kreidetafel</li>
         <li>Partyspiele: Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up</li>
-        <li>Matches mit bis zu vier Spielern, Legs und Sätzen, zwei Teams zu zwei, Startpunkten als Handicap und Ausbullen</li>
+        <li>Matches mit bis zu vier Spielern, Legs und Sätzen, zwei Teams zu zwei, Startpunkten als Handicap und Ausbullen, und eine Zusammenfassung jedes Matches</li>
+        <li>Turniere mit drei bis acht Spielern: jeder gegen jeden mit Tabelle oder K.-o.-System mit Turnierbaum</li>
       </ul>
       <p><a href="spiele.md">Spiele und Regeln →</a></p>
     </td>
-    <td width="45%"><img src="../images/de/killer.webp" alt="Animation: Killer für Alex, Sam und Kim auf der Anzeigetafel; Alex wird Killer, nimmt den anderen die Leben und gewinnt" width="100%"></td>
+    <td width="45%"><img src="../images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel; die Sieger rücken in die nächste Runde, bis Alex das Finale gewinnt" width="100%"></td>
   </tr>
   <tr>
     <td width="55%" valign="top">
@@ -47,21 +48,21 @@
     <td width="55%" valign="top">
       <h3>Auswerten</h3>
       <ul>
-        <li>3-Dart-Average, First-9-Average, Checkout- und Doppelquote und ein Trefferbild jedes Feldes</li>
-        <li>Spielerprofile mit direkten Vergleichen und dem Match-Verlauf</li>
+        <li>3-Dart-Average, First-9-Average, Checkout- und Doppelquote und ein Trefferbild jedes Feldes oder der echten Dart-Positionen, mit der Streuung in Millimetern</li>
+        <li>Spielerprofile mit Abzeichen in Bronze, Silber und Gold, Wochentrends, direkten Vergleichen, dem Match-Verlauf und einer Bestenliste</li>
         <li>Die Quote jedes Doubles, ein Wochenbericht, ein Trainingskalender und Exporte als CSV oder JSON</li>
         <li>Langzeitstatistik für Grafiken über Wochen und Monate</li>
       </ul>
       <p><a href="statistik.md">Statistik und Spieler →</a></p>
     </td>
-    <td width="45%"><img src="../images/de/training-card.png" alt="Trainingskarte mit 3-Dart-Average, Trefferbild, Statistik-Kacheln, häufigsten Feldern, Bestleistungen und letzten Aufnahmen" width="100%"></td>
+    <td width="45%"><img src="../images/de/heatmap-modes.webp" alt="Animation: Das Trefferbild der Trainingskarte wechselt von Feldern zu Zahlen und den echten Dart-Positionen, dann zu den Darts eines Spielers" width="100%"></td>
   </tr>
   <tr>
     <td width="55%" valign="top">
       <h3>Bildschirm am Board</h3>
       <ul>
         <li>Eine Anzeigetafel für Tablet oder Fernseher, lesbar vom Abwurf aus</li>
-        <li>Eine Spielauswahl, um Spiel, Spieler und Format direkt am Board zu wählen</li>
+        <li>Eine Spielauswahl, um Spiel, Spieler und Format direkt am Board zu wählen oder ein Turnier zu starten</li>
         <li>Ein Caller, der das Spiel über den Browser des Bildschirms ansagt</li>
         <li>Ein Ruhemodus mit Bestenliste, Bestleistungen, den Darts von heute und einer Uhr</li>
       </ul>
@@ -88,7 +89,7 @@
       <ul>
         <li>Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch</li>
         <li>Nichts verlässt dein Netzwerk; Geheimnisse des Boards werden nie gespeichert</li>
-        <li>Sechs Dashboard-Karten und ein automatisches Dashboard, auf Deutsch und Englisch</li>
+        <li>Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch und Englisch</li>
         <li>Alle Regeln der Qualitätsskala von Home Assistant bis Platin, 100 % Testabdeckung</li>
       </ul>
       <p><a href="funktionsweise.md">Funktionsweise →</a></p>
@@ -135,9 +136,9 @@ Die [Installationsanleitung](installation.md) beschreibt die manuelle Installati
 
 | Anleitung | Inhalt |
 | --- | --- |
-| [Spiele und Regeln](spiele.md) | Alle Spiele im Überblick, vier Wege, eines zu starten, Matches, Teams, Handicaps, das Ausbullen und die Regeln von X01, den Cricket-Spielen, den Partyspielen und den Trainingsspielen |
-| [Anzeigetafel am Board](anzeigetafel.md) | Ein Tablet oder Fernseher neben dem Board: Einrichtung, Quer- und Hochformat, Spielauswahl, Caller und Ruhemodus |
-| [Statistik und Spieler](statistik.md) | Trainingssessions, Bestleistungen, das Trefferbild, Fortschritt über die Zeit, Doubles, Spielerprofile, Wochenbericht, Trainingskalender und Exporte |
+| [Spiele und Regeln](spiele.md) | Alle Spiele im Überblick, vier Wege, eines zu starten, Matches, Teams, Handicaps, das Ausbullen, die Match-Zusammenfassung, Turniere und die Regeln von X01, den Cricket-Spielen, den Partyspielen und den Trainingsspielen |
+| [Anzeigetafel am Board](anzeigetafel.md) | Ein Tablet oder Fernseher neben dem Board: Einrichtung, Quer- und Hochformat, Spielauswahl, Turniere, Caller und Ruhemodus |
+| [Statistik und Spieler](statistik.md) | Trainingssessions, Bestleistungen, Trefferbild und Dart-Positionen, Fortschritt über die Zeit, Doubles, Spielerprofile, Erfolge, Trends, Bestenliste, Wochenbericht, Trainingskalender und Exporte |
 | [Automationen](automationen.md) | Elf Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele |
 | [Online-Matches](online-matches.md) | Überwerfen, gewonnene Legs und Matches von Online-Matches als Board-Ereignisse, mit der Browser-Erweiterung Tools for Autodarts *(experimentell)* |
 
@@ -145,7 +146,7 @@ Die [Installationsanleitung](installation.md) beschreibt die manuelle Installati
 
 | Seite | Inhalt |
 | --- | --- |
-| [Dashboard-Karten](karten.md) | Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Doubles-Karte, Spielerkarte und automatisches Dashboard, mit allen Optionen und Barrierefreiheit |
+| [Dashboard-Karten](karten.md) | Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Doubles-Karte, Spielerkarte, Bestenliste und automatisches Dashboard, mit allen Optionen und Barrierefreiheit |
 | [Entitäten und Ereignisse](entitaeten.md) | Alle Entitäten, Board-Ereignisse, Zustände, Attribute und Aktionen, und welche Board-Manager-Generation sie liefert |
 | [Funktionsweise](funktionsweise.md) | Architektur, Aktualisierung, Verbindungsverhalten, Board-Manager-Generationen, Adresswechsel, Training und Bestleistungen, gespeicherte Daten und Datenschutz |
 | [Fehlerbehebung](fehlerbehebung.md) | Meldungen bei der Einrichtung, Reparaturen, nicht verfügbare Entitäten, fehlgeschlagene Aktionen, Diagnose und Logs |
@@ -165,7 +166,7 @@ Die [Installationsanleitung](installation.md) beschreibt die manuelle Installati
 <table>
   <tr>
     <td width="50%" valign="top"><img src="../images/de/training-card.png" alt="Trainingskarte mit 3-Dart-Average, Trefferbild, Statistik und letzten Aufnahmen" width="100%"><br><b>Gezielt trainieren.</b> Verfolge nach jeder Session deinen Average, deine 180er und wohin deine Darts fliegen, und lass dich von Tagesziel und Trainingsserie antreiben. <a href="statistik.md">Statistik</a></td>
-    <td width="50%" valign="top"><img src="../images/de/lobby.webp" alt="Animation: In der Spielauswahl des Tablets am Board wird ein Spiel gewählt und startet auf der Anzeigetafel" width="100%"><br><b>Ein Dartabend mit Freunden.</b> Wähle das Spiel am Tablet neben dem Board, lass die Anzeigetafel zählen und ansagen, und sieh zwischen den Spielen die Bestenliste. <a href="anzeigetafel.md">Anzeigetafel</a></td>
+    <td width="50%" valign="top"><img src="../images/de/lobby.webp" alt="Animation: In der Spielauswahl des Tablets am Board wird ein Spiel gewählt und startet auf der Anzeigetafel" width="100%"><br><b>Ein Dartabend mit Freunden.</b> Wähle das Spiel am Tablet neben dem Board oder starte ein Turnier, lass die Anzeigetafel zählen und ansagen, und sieh zwischen den Spielen Tabelle oder Bestenliste. <a href="anzeigetafel.md">Anzeigetafel</a></td>
   </tr>
   <tr>
     <td width="50%" valign="top"><img src="../images/de/blueprint-light-show.png" alt="Eine neue Automation aus dem Blueprint Light show mit einem Abschnitt für jeden Moment des Spiels" width="100%"><br><b>Atmosphäre.</b> Lichtshows für eine 180 oder ein gewonnenes Match, ein Dart-Caller auf deinen Lautsprechern und das Boardlicht bei der Entnahme. <a href="automationen.md">Automationen</a></td>
@@ -188,7 +189,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig:
 
 | Blueprint | Import |
 | --- | --- |
-| **Light show.** Deine WLED-Presets oder Raumlichter bei einer 180, einem High Finish, beim Überwerfen, einem gewonnenen Leg oder Match, einer Bestleistung und mehr, und danach zurück zu deinem normalen Licht. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Light show.** Deine WLED-Presets oder Raumlichter bei einer 180, einem High Finish, beim Überwerfen, einem gewonnenen Leg oder Match, einer Bestleistung, einem Erfolg, dem Sieger eines Turniers und mehr, und danach zurück zu deinem normalen Licht. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 | **Celebrate a visit score.** Deine Aktionen für jede 180, jede Aufnahme ab 100 oder eine Punktzahl deiner Wahl, sobald der dritte Dart landet. | [![Blueprint „Celebrate a visit score“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
 | **Dart caller.** Jede Aufnahme auf deinen Lautsprechern, mit einer eigenen Ansage für die 180. | [![Blueprint „Dart caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml) |
 | **Practice caller.** Wer was braucht, Überwerfen und Game shots des Übungsspiels auf deinen Lautsprechern. | [![Blueprint „Practice caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |

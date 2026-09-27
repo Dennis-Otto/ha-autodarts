@@ -76,6 +76,9 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *A start score is 0, for the game's start score, or 2 to 1001* | Correct `start_scores` in the action. |
 | *The export folder … must be inside the Home Assistant configuration folder* | Choose a folder inside the configuration folder that does not start with a dot, for example `www/autodarts` or `exports`. |
 | *The export could not be written* | The folder is not writable or the disk is full; the message names the reason. |
+| *A tournament needs three to eight players* | Name three to eight players, each with a name of their own. |
+| *No tournament is being played* | *Next tournament match* and *Stop tournament* need a running tournament. |
+| *The tournament match of … against … is still being played* | *Next tournament match* waits for the pause between two matches. Play the match to the end, or stop the tournament. |
 
 ### No realtime updates
 

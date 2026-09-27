@@ -2,11 +2,11 @@
 
 [← Documentation](README.md) · [Deutsch](de/anzeigetafel.md)
 
-A tablet or a TV next to the board turns your darts room into a stage: the score large enough to read from the oche, the checkout route of the player at the board, the next game chosen right there, a caller, and between games a leaderboard. Everything runs in Home Assistant; the screen only needs a browser.
+A tablet or a TV next to the board turns your darts room into a stage: the score large enough to read from the oche, the checkout route of the player at the board, the next game or a whole tournament chosen right there, a caller, and between games a leaderboard. Everything runs in Home Assistant; the screen only needs a browser.
 
 <img src="images/en/scoreboard.webp" alt="Animation: the scoreboard during a 501 match. The turn passes between Alex and Sam after every visit, and Alex checks out 141 with T20 T19 D12 to win the match" width="760">
 
-**On this page:** [What you need](#what-you-need) · [Set up the screen](#set-up-the-screen) · [Landscape, portrait and TV](#landscape-portrait-and-tv) · [Choose the next game](#choose-the-next-game) · [During the game](#during-the-game) · [The caller](#the-caller) · [Between games: idle mode](#between-games-idle-mode) · [Tips](#tips) · [If something is off](#if-something-is-off)
+**On this page:** [What you need](#what-you-need) · [Set up the screen](#set-up-the-screen) · [Landscape, portrait and TV](#landscape-portrait-and-tv) · [Choose the next game](#choose-the-next-game) · [During the game](#during-the-game) · [Tournaments](#tournaments) · [The caller](#the-caller) · [Between games: idle mode](#between-games-idle-mode) · [Tips](#tips) · [If something is off](#if-something-is-off)
 
 ## What you need
 
@@ -75,10 +75,12 @@ The scoreboard always shows what is being played, and the player at the board is
 | X01 | Every player's or team's remaining score, legs, sets and average; the checkout route, a bust or the game shot of the player at the board |
 | Cricket games | A large chalkboard with the marks of every player or team, the points and the marks per round; the next open number in the top-left corner |
 | Party games | The round and the target, every player's points, in Killer their number and lives, in Golf and Baseball a scorecard of every hole or inning |
-| Bull-off | The distance of every player's dart from the center |
+| Bull-off | The bed of every player's dart and its distance from the center, the dart that leads, and *Tie – throw again* when a tie throws again |
 | Training games | The target in large type with the round, the points or the hit rate |
 
-Along the bottom it shows the three darts of the current visit and their score, and when a match is decided, a banner names the winner until the next dart.
+Along the bottom it shows the three darts of the current visit and their score. When a match is decided, a banner names the winner with the result, for example *Alex wins the match 3 : 2!*, and after an X01 or Cricket match the [match summary](games.md#match-summary) takes the place of the players: averages, checkout rate, highest checkout, 180s and the best leg of everybody.
+
+<img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="760">
 
 <table>
   <tr>
@@ -90,6 +92,24 @@ Along the bottom it shows the three darts of the current visit and their score, 
     <td width="50%"><img src="images/en/scoreboard-catch-40.png" alt="Catch 40 on the scoreboard: in the second round a single 12 leaves 50 of 62, the route is the bull, and the first checkout scored 3 points" width="100%"></td>
   </tr>
 </table>
+
+## Tournaments
+
+For a [tournament](games.md#tournaments) of three to eight players, the screen at the board runs the evening:
+
+1. **Start it here:** tap **New game**, then **Tournament**. Choose up to eight named players, X01 with start scores for a handicap or a Cricket game, round robin or knockout, legs and sets, the rules, the match for third place and a random draw, and tap **Start tournament**.
+2. **During a match,** the title line names the round and the match, for example *Tournament · Semi-final · Match 5 of 7*.
+3. **Between the matches,** the summary of the match stays for a few seconds, then the table of a round robin or the bracket of a knockout shows, with the next match and a countdown. **Start now** starts it at once; otherwise it starts by itself as soon as the darts are out of the board.
+4. **At the end,** a banner names the winner of the tournament, and the table or the bracket stays until a new match begins. *Stop tournament* on the new game screen ends a tournament early.
+
+<table>
+  <tr>
+    <td width="50%"><img src="images/en/tournament-lobby.png" alt="The new game screen in tournament mode: X01 and the Cricket games, six players with their start scores, knockout with the match for third place, and the start button" width="100%"></td>
+    <td width="50%"><img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="100%"></td>
+  </tr>
+</table>
+
+The table ranks by points, two for a win, then by the tie-breakers of the [tournament rules](games.md#tournament-rules). In the bracket, a player who goes on slides into the next round. [All details](cards.md#tournaments).
 
 ## The caller
 
@@ -103,13 +123,14 @@ It calls only what counts, in English or German, following the language of the s
 - **X01:** the points of a visit, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished, the game shot of a leg and the match, and a fanfare for a 180.
 - **Cricket games:** the marks of a visit, such as "5 marks". **Shanghai** and **Halve-It:** the points on the target; **Count-Up:** the points of the visit; **Baseball:** the runs.
 - **Checkout training, 121 checkout and Catch 40:** what the next attempt requires.
+- **Tournaments:** every match as it starts, "Next match: Alex against Sam", and the winner of the tournament.
 - Darts after a bust or a game shot are not called. Killer, Golf and the other training games get no score calls.
 
 `call_scores`, `call_checkouts`, `call_results` and `call_sounds` switch each kind of call on or off. Which voice speaks depends on the browser and the operating system: offline voices of the operating system keep the calls in your home; some browsers use online voices that send the text to their provider. For speakers in the room, use the [dart caller and practice caller blueprints](automations.md#which-caller) instead.
 
 ## Between games: idle mode
 
-When no game runs, or a match or training game is decided, and nobody throws or taps for `idle_after` seconds (3 minutes by default), the scoreboard shows its panels in turn: the leaderboard, the personal bests of the board, today's darts towards the daily goal, the last match and a clock.
+When no game runs, or a match or training game is decided, and nobody throws or taps for `idle_after` seconds (3 minutes by default), the scoreboard shows its panels in turn: the table or bracket of a tournament, the leaderboard, the personal bests of the board, today's darts towards the daily goal, the last match and a clock.
 
 <img src="images/en/scoreboard-idle.png" alt="Idle mode of the scoreboard: the leaderboard with Alex, Sam and Kim, their pictures, 3-dart averages and legs won" width="760">
 
@@ -121,7 +142,7 @@ A dart, a new game or a tap anywhere ends idle mode. `idle_panels` chooses the p
 - **Pictures of the players:** [link the players to persons](statistics.md#players-and-persons) of Home Assistant; the scoreboard, the new game screen and idle mode show their pictures, and players who are at home come first.
 - **Light and sound:** the [light show](automations.md#light-show) and the [practice caller](automations.md#practice-caller) react to the same game, with the lights and speakers of your home.
 - **Several boards:** every board gets its own *Scoreboard* view in the automatic dashboard; choose the board in the card's editor for a view of your own.
-- **Accessibility:** the scoreboard follows your theme, announces the winner to screen readers, reads the Cricket marks as words and changes the panels of idle mode without fading when the device asks for reduced motion. [Accessibility](cards.md#accessibility).
+- **Accessibility:** the scoreboard follows your theme, announces the winner to screen readers, reads the Cricket marks as words, and when the device asks for reduced motion, it fills the tournament bracket without sliding and changes the panels of idle mode without fading. [Accessibility](cards.md#accessibility).
 
 ## If something is off
 

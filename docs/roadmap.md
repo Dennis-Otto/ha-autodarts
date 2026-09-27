@@ -64,11 +64,12 @@ Merged for the next release; the [changelog](../CHANGELOG.md#160) has the detail
 | **Reports** | A weekly report with a blueprint, a training calendar of a year and exports to CSV or JSON | Done |
 | **Highlights and light** | A highlight gallery in the media browser and a light show blueprint | Done |
 | **Online matches** *(experimental)* | Busts, won legs and matches of online matches through the browser extension Tools for Autodarts | Done |
+| **Tournament mode** | Round robin or knockout for three to eight named players at one board: the table or bracket on the scoreboard, the next match starts by itself, and the results go into the player profiles | Done |
+| **Match summary** | Every player's averages, checkout rate, highest checkout, 180s and best leg after a match, on the scoreboard, the live card and in `match_won` | Done |
+| **Achievements** | Milestones per player in tiers, such as the first 180, a ton-plus checkout, a nine-darter or a ten-day streak, each with an event and shown as badges | Done |
+| **Trends and heatmaps per player** | Average, checkout rate and doubles rate per week as a trend, every player's own heatmap and a leaderboard of the records of all players | Done |
+| **Heatmap of the dart positions** | A heatmap that draws where every dart landed, from the positions the board reports, with the grouping in millimeters; the card switches between beds, numbers and positions | Done |
 | **Documentation** | Illustrated guides for games, the scoreboard and statistics, a glossary and an accessibility section | Done |
-| **Tournament mode** | Round robin or knockout for three to eight named players at one board: the table or bracket on the scoreboard, the next match starts by itself, and the results go into the player profiles | In progress |
-| **Achievements** | Milestones per player, such as the first 180, a ton-plus checkout, a nine-darter or a ten-day streak, each with an event and shown on a badge card | In progress |
-| **Trends and heatmaps per player** | Average, checkout rate and doubles rate per week as a trend, and every player's own heatmap in the players card | In progress |
-| **Heatmap of the dart positions** | A heatmap that draws where every dart landed, from the positions the board reports; the card switches between beds, numbers and positions | In progress |
 
 ## Next
 

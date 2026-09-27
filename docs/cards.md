@@ -10,7 +10,7 @@ The integration includes seven cards. Home Assistant loads them automatically, s
 
 To add one, edit a dashboard, select **Add card** and search for **Autodarts**. The card picker names the cards in your language and links each one to its section below.
 
-**On this page:** [Live card](#live-card) · [Training card](#training-card) · [Board status card](#board-status-card) · [Scoreboard card](#scoreboard-card) · [Doubles card](#doubles-card) · [Players card](#players-card) · [Automatic dashboard](#automatic-dashboard) · [Card editor](#card-editor) · [Accessibility](#accessibility) · [Tips](#tips)
+**On this page:** [Live card](#live-card) · [Training card](#training-card) · [Board status card](#board-status-card) · [Scoreboard card](#scoreboard-card) · [Doubles card](#doubles-card) · [Players card](#players-card) · [Leaderboard card](#leaderboard-card) · [Automatic dashboard](#automatic-dashboard) · [Card editor](#card-editor) · [Accessibility](#accessibility) · [Tips](#tips)
 
 The guides show the cards at work: [games and rules](games.md), [scoreboard at the board](scoreboard.md) and [statistics and players](statistics.md).
 
@@ -464,7 +464,7 @@ The cards work with a keyboard, with a screen reader and without animations:
 
 - **Keyboard:** every control is a button with a visible focus ring in the accent color. The board of the live card and the statistics tiles of the training card open their details with Enter or Space. The calibration buttons of the status card keep the focus while they ask for confirmation. On the new game screen, Enter adds the name you typed.
 - **Screen readers:** buttons without a text have a label, for example "Move Alex up" on the new game screen. The live board reads the darts of the visit, such as "Dartboard with the current visit: T20, S5, Bull", the chart of recent visits reads their scores, and Cricket marks read as words. The status of the board and the winner of a match are announced when they change. The detection toggle of the status card is a switch, and the caller button and the options of the new game screen say whether they are on.
-- **Reduced motion:** when the device asks for reduced motion, hit beds stop blinking and the latest dart stops pulsing; both stay highlighted. The panels of idle mode change without fading.
+- **Reduced motion:** when the device asks for reduced motion, hit beds stop blinking and the latest dart stops pulsing; both stay highlighted. The panels of idle mode change without fading, and the places of a tournament bracket fill without sliding.
 - **Color and contrast:** the cards take their colors from your theme, light or dark, and never rely on color alone: the board status comes with a text, the heatmap shows the count of a bed on hover, and the Cricket marks are symbols. Choose an `accent_color` and a `highlight_color` with enough contrast to your theme, or use a high-contrast theme, which the cards follow.
 - **Language:** the cards follow the language of your Home Assistant profile, and numbers, dates and times its formats.
 

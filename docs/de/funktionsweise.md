@@ -210,7 +210,7 @@ Alles, was die Integration speichert, liegt im Ordner `.storage` von Home Assist
 
 | Speicher | Inhalt |
 | --- | --- |
-| `autodarts.<entry>.training` | Die Trainingssession mit ihren Einstellungen, die letzten 20 Sessions und die letzten 10 Aufnahmen; das Übungsspiel mit Regeln, Teams, Startpunkten, Spielernamen und den letzten 10 Legs; die Bestleistungen, die Trainingsserie und die Darts des Tages; die Spielerprofile mit Statistik, Bestleistungen, Doubles und verknüpften Personen, die letzten 20 Matches und die direkten Vergleiche; die Doppelanalyse |
+| `autodarts.<entry>.training` | Die Trainingssession mit ihren Einstellungen, die letzten 20 Sessions und die letzten 10 Aufnahmen; das Übungsspiel mit Regeln, Teams, Startpunkten, Spielernamen und den letzten 10 Legs; die Bestleistungen, die Trainingsserie und die Darts des Tages; die Spielerprofile mit Statistik, Bestleistungen, Doubles und verknüpften Personen, die letzten 20 Matches und die direkten Vergleiche; der Fortschritt jedes Spielers mit Wochensummen, Erfolgen und den Positionen seiner letzten 1000 Darts; die Doppelanalyse; das Turnier mit seinen Ergebnissen |
 | `autodarts.<entry>.report` | Die laufende Woche und der letzte Wochenbericht |
 | `autodarts.<entry>.journal` | Sessions und Matches des Trainingskalenders, 365 Tage, höchstens je 3.000 |
 

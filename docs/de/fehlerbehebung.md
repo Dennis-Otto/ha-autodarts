@@ -77,6 +77,9 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Startpunkte sind 0, für die Startpunkte des Spiels, oder 2 bis 1001.* | Korrigiere `start_scores` in der Aktion. |
 | *Der Exportordner … muss im Konfigurationsordner von Home Assistant liegen und darf nicht versteckt sein.* | Wähle einen Ordner im Konfigurationsordner, der nicht mit einem Punkt beginnt, etwa `www/autodarts` oder `exports`. |
 | *Der Export konnte nicht geschrieben werden: …* | Der Ordner ist nicht beschreibbar oder der Speicher voll; die Meldung nennt den Grund. |
+| *Ein Turnier braucht drei bis acht Spieler, nicht …* | Nenne drei bis acht Spieler, jeden mit eigenem Namen. |
+| *Es läuft kein Turnier.* | *Nächstes Turniermatch* und *Turnier beenden* brauchen ein laufendes Turnier. |
+| *Das Turniermatch … gegen … läuft noch.* | *Nächstes Turniermatch* wartet auf die Pause zwischen zwei Matches. Spiel das Match zu Ende oder beende das Turnier. |
 
 ### Keine Echtzeitaktualisierung
 

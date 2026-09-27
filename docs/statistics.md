@@ -2,20 +2,21 @@
 
 [← Documentation](README.md) · [Deutsch](de/statistik.md)
 
-Every dart the board detects becomes a number in Home Assistant: your 3-dart average, where your darts land, your personal bests, your doubles, and for every named player a profile with head-to-head records. It all stays in your home, survives restarts and fills Home Assistant's long-term statistics, so you see your progress over weeks and months.
+Every dart the board detects becomes a number in Home Assistant: your 3-dart average, where your darts land, your personal bests, your doubles, and for every named player a profile with badges, weekly trends and head-to-head records. It all stays in your home, survives restarts and fills Home Assistant's long-term statistics, so you see your progress over weeks and months.
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard: the training card with 3-dart average, heatmap, statistics, personal bests and recent visits, the doubles card, and the graphs of darts per day and the 3-dart average" width="760">
 
-**On this page:** [Where to find what](#where-to-find-what) · [Training sessions](#training-sessions) · [Personal bests, streak and daily goal](#personal-bests-streak-and-daily-goal) · [Heatmap](#heatmap) · [Progress over time](#progress-over-time) · [Doubles analysis](#doubles-analysis) · [Player profiles](#player-profiles) · [Players and persons](#players-and-persons) · [Weekly report](#weekly-report) · [Training calendar](#training-calendar) · [Export](#export) · [Your data](#your-data)
+**On this page:** [Where to find what](#where-to-find-what) · [Training sessions](#training-sessions) · [Personal bests, streak and daily goal](#personal-bests-streak-and-daily-goal) · [Heatmap and dart positions](#heatmap-and-dart-positions) · [Progress over time](#progress-over-time) · [Doubles analysis](#doubles-analysis) · [Player profiles](#player-profiles) · [Achievements](#achievements) · [Trends and grouping](#trends-and-grouping) · [Leaderboard](#leaderboard) · [Players and persons](#players-and-persons) · [Weekly report](#weekly-report) · [Training calendar](#training-calendar) · [Export](#export) · [Your data](#your-data)
 
 ## Where to find what
 
 | Where | What it shows |
 | --- | --- |
-| [Training card](cards.md#training-card) | The running session: 3-dart average, heatmap, statistics, personal bests, recent visits and past sessions |
-| [Players card](cards.md#players-card) | Every named player's statistics and personal bests, head-to-head records, recent matches and the export |
+| [Training card](cards.md#training-card) | The running session: 3-dart average, heatmap of beds, numbers or dart positions for the session or any player, statistics, personal bests, recent visits and past sessions |
+| [Players card](cards.md#players-card) | Every named player's statistics and personal bests, badges, weekly trends and grouping, head-to-head records, recent matches and the export |
+| [Leaderboard card](cards.md#leaderboard-card) | The records of all players, for all time, the last four weeks or this week |
 | [Doubles card](cards.md#doubles-card) | The hit rate of every double, for everybody or one player |
-| *Training* view of the [automatic dashboard](cards.md#automatic-dashboard) | The training card, the doubles card and graphs of darts per day, the 3-dart average, legs per day and the practice rates |
+| *Training* and *Players* views of the [automatic dashboard](cards.md#automatic-dashboard) | The training card, the doubles card and graphs of darts per day, the 3-dart average, legs per day and the practice rates; the players card and the leaderboard |
 | [Idle mode](scoreboard.md#between-games-idle-mode) of the scoreboard | The leaderboard, the personal bests of the board, today's darts and the last match |
 | Home Assistant's calendar | Every session and match of the last year, in the [training calendar](#training-calendar) |
 | Your phone | The [weekly report](#weekly-report) |
@@ -58,13 +59,24 @@ Home Assistant keeps the best value of every record and fires `personal_best` wh
 
 [The records in detail](entities.md#personal-bests-streak-and-daily-goal) · [Which legs count for which record](how-it-works.md#records-and-statistics)
 
-## Heatmap
+## Heatmap and dart positions
 
-The heatmap of the training card colors every bed by how often you hit it, from blue (rarely) to red (most often). Hover a bed for its count and share. With `mode: numbers`, it sums the singles, doubles and triples of every number instead, which shows at a glance whether you drift towards the 5 or the 1. The most hit beds list the top five with their share of all darts.
+<img src="images/en/heatmap-modes.webp" alt="Animation: the heatmap of the training card switches from beds to numbers and the dart positions of the session, then to Alex's positions and beds" width="620">
+
+The heatmap of the training card has three modes, which the switches above the board choose:
+
+- **Beds:** every bed colored by how often you hit it, from blue (rarely) to red (most often). Hover a bed for its count and share.
+- **Numbers:** the singles, doubles and triples of every number summed up, which shows at a glance whether you drift towards the 5 or the 1.
+- **Positions:** where the darts really landed, from the positions the board reports: a smoothed density with the newest 300 darts as dots, and below the board the [grouping](#trends-and-grouping) at up to three beds you aimed at.
+
+The second switch chooses whose darts it shows: the running session, or a named player with all their hits and the positions of their last 1000 darts. The most hit beds follow the choice.
+
+<img src="images/en/training-positions.png" alt="The heatmap in positions mode with Alex's darts: a density around the triple 20, the doubles 16 and 8 and the bull, and the grouping at each of them below" width="620">
 
 ```yaml
 type: custom:autodarts-training-card
-mode: numbers
+mode: positions
+player: Alex
 ```
 
 ## Progress over time
@@ -109,7 +121,35 @@ Every named player of a practice game gets a profile with lifetime numbers: legs
 - **Names:** a name is the same player whatever the upper and lower case; players without a name count for nobody. Give your regular players names, on the [new game screen](scoreboard.md#choose-the-next-game) or in *Practice player N*.
 - **What counts:** every leg of X01, the Cricket games and the party games. X01 legs add the averages and the checkout rate, Cricket legs the marks per round. In a [team match](games.md#teams), both partners win the leg and the match.
 - **Match history:** the last 20 matches of several players, with every player's legs, sets and average.
-- **A typo in a name?** Remove the profile with [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player). The match history keeps the name.
+- **Tournaments** count like every match: their legs, matches and head-to-head records go into the profiles. [Tournaments](games.md#tournaments).
+- **A typo in a name?** Remove the profile with [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player), which also forgets the player's progress and badges. The match history keeps the name.
+
+## Achievements
+
+<img src="images/en/players-badges.png" alt="Badges of a player on the players card: earned tiers in bronze, silver and gold, each with the next goal, the progress towards it and a progress bar" width="620">
+
+Named players unlock achievements in tiers of bronze, silver, gold and, for the streak, platinum: from the first 180 to a hundred, from a ton-plus checkout to 170, a leg in 18, 15 or 12 darts, a nine-darter, a hat trick, every double hit once, nine marks in Cricket, a Shanghai, the best Around the Clock and Bob's 27, days in a row and darts thrown. The players card shows every badge with the next goal and the progress towards it.
+
+- Each new tier fires `achievement_unlocked`, for a [notification](automations.md#celebrate-an-achievement) or the [light show](automations.md#light-show). Nothing plays or speaks unless an automation does.
+- On the first start after the update, what the profiles already prove unlocks quietly.
+- The *Achievements* switch turns them off; progress keeps counting and unlocks quietly when you turn them on again.
+
+[Every achievement and its tiers](entities.md#achievements)
+
+## Trends and grouping
+
+<img src="images/en/players-trends.png" alt="Trends of Alex, Sam and Kim with the 3-dart average, first 9, checkout rate, doubles rate and darts per week, and the grouping of each player at the triple 20, the bull and the double 8" width="620">
+
+- **Weekly trends:** for every player who practiced in the weeks shown, the 3-dart average, first 9, checkout rate, doubles rate and darts of up to 12 weeks, as a line with an arrow that compares the newer half of the weeks with the older half: ↗ better, ↘ worse, → about the same.
+- **Grouping:** where a player's darts land around the beds they aimed at most, in millimeters. The offset tells the accuracy, for example *6 mm left of center*; the grouping the precision, the radius that holds half of the darts, for example *grouping 38 mm*; and the trend whether the newer darts group tighter. [How the grouping is measured](how-it-works.md#grouping).
+
+The weekly sums are in the `trend` attribute of *Player profiles*, so you can build graphs of your own. [Player progress](entities.md#player-progress).
+
+## Leaderboard
+
+<img src="images/en/leaderboard-card.png" alt="Leaderboard card with the period switch and the records best average, highest checkout, most 180s, fewest darts in 501, best Cricket MPR, longest streak, most badges and most darts, each with the leader and two more places" width="760">
+
+The [leaderboard card](cards.md#leaderboard-card) ranks the records of all named players: best average, highest checkout, most 180s, fewest darts in 501, best Cricket MPR, longest streak, most badges and most darts. The switch at the top chooses all time, the last four weeks or this week, so a new player can top this week's board. The scoreboard's [idle mode](scoreboard.md#between-games-idle-mode) shows a leaderboard between games, too.
 
 ## Players and persons
 
@@ -157,6 +197,6 @@ Exports contain player names. Files in `www` are served at `/local/` without a l
 
 ## Your data
 
-- **Local only.** Sessions, games, personal bests, profiles, the weekly report and the calendar are stored in Home Assistant's `.storage` folder and never leave your home. [What is stored where](how-it-works.md#stored-data).
+- **Local only.** Sessions, games and tournaments, personal bests, profiles with their progress, badges and dart positions, the weekly report and the calendar are stored in Home Assistant's `.storage` folder and never leave your home. [What is stored where](how-it-works.md#stored-data).
 - **Diagnostics** redact player names and board details, so you can attach them to a bug report.
 - **Start over:** *New session* starts a new training session; [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player) forgets one player. Deleting the board in **Settings → Devices & services** deletes all of its stored data.

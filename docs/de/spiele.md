@@ -2,11 +2,11 @@
 
 [← Dokumentation](README.md) · [English](../games.md)
 
-Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, drei Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein oder als Match mit bis zu vier Spielern. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
+Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, drei Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
 
 <img src="../images/de/lobby.webp" alt="Animation: Auf dem Tablet am Board öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
-**Auf dieser Seite:** [Alle Spiele im Überblick](#alle-spiele-im-überblick) · [Ein Spiel starten](#ein-spiel-starten) · [Am Board](#am-board) · [Matches, Legs und Sätze](#matches-legs-und-sätze) · [Teams](#teams) · [Startpunkte (Handicap)](#startpunkte-handicap) · [Ausbullen](#ausbullen) · [X01](#x01) · [Cricket-Spiele](#cricket-spiele) · [Partyspiele](#partyspiele) · [Trainingsspiele](#trainingsspiele) · [Statistik](#statistik)
+**Auf dieser Seite:** [Alle Spiele im Überblick](#alle-spiele-im-überblick) · [Ein Spiel starten](#ein-spiel-starten) · [Am Board](#am-board) · [Matches, Legs und Sätze](#matches-legs-und-sätze) · [Match-Zusammenfassung](#match-zusammenfassung) · [Teams](#teams) · [Startpunkte (Handicap)](#startpunkte-handicap) · [Ausbullen](#ausbullen) · [Turniere](#turniere) · [X01](#x01) · [Cricket-Spiele](#cricket-spiele) · [Partyspiele](#partyspiele) · [Trainingsspiele](#trainingsspiele) · [Statistik](#statistik)
 
 ## Alle Spiele im Überblick
 
@@ -30,12 +30,13 @@ Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 100
 | [**Catch 40**](#catch-40) | 1 | 61 bis 100 checken, je schneller, desto mehr Punkte |
 | [**JDC Challenge**](#jdc-challenge) | 1 | Die 57-Dart-Routine der Junior Darts Corporation |
 | [**Singles-Training**](#singles-training) | 1 | Eine Aufnahme auf jede Zahl, Punkte pro Treffer |
+| [**Turnier**](#turniere) | 3–8 | Jeder gegen jeden oder K.-o.-System aus X01- oder Cricket-Matches, eines nach dem anderen |
 
 ## Ein Spiel starten
 
 Es gibt vier Wege, ein Spiel zu starten. Alle enden am selben Ort: im *Übungsspiel* deines Boards, dem die [Live-Karte](karten.md#live-karte), die [Anzeigetafel](anzeigetafel.md) und die [Board-Ereignisse](entitaeten.md#board-ereignisse) folgen.
 
-1. **Am Bildschirm neben dem Board.** Tippe auf der [Anzeigetafel](anzeigetafel.md#das-nächste-spiel-wählen) auf **Neues Spiel**, wähle Spiel, Spieler und Format und tippe auf **Starten**. Einige Sekunden nach dem Ende eines Spiels öffnet sich die Auswahl auch von selbst, bereit für eine Revanche.
+1. **Am Bildschirm neben dem Board.** Tippe auf der [Anzeigetafel](anzeigetafel.md#das-nächste-spiel-wählen) auf **Neues Spiel**, wähle Spiel, Spieler und Format und tippe auf **Starten**. Einige Sekunden nach dem Ende eines Spiels öffnet sich die Auswahl auch von selbst, bereit für eine Revanche. **Turnier** in derselben Auswahl startet ein [Turnier](#turniere).
 2. **Im Dashboard.** Die Ansicht *Live* des [automatischen Dashboards](karten.md#automatisches-dashboard) hat die Steuerung des Übungsspiels: *Übungsspiel*, die Spielerzahl, die Namen und Startpunkte, Legs, Sätze und die Regeln. Die Wahl eines Spiels startet es.
 3. **In einer Automation oder einem Skript** mit der Aktion [`autodarts.start_game`](entitaeten.md#übungsspiel-starten-autodartsstart_game), die alles in einem Aufruf einstellt:
 
@@ -58,7 +59,7 @@ Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der S
 - **Korrekturen zählen.** Korrigierst du einen Dart in Autodarts vor der Entnahme, folgt das Spiel der Korrektur.
 - **Der Wurf wechselt mit der Entnahme,** auch nach dem Überwerfen. Live-Karte und Anzeigetafel heben den Spieler am Board hervor.
 - **Was die Karten zeigen:** Rest und Checkout-Weg, die Kreidetafel von Cricket, Runde und Ziel eines Partyspiels oder das Ziel eines Trainingsspiels. Die Scheibe umrandet das Feld, auf das du zielst. [Live-Karte](karten.md#live-karte), [Anzeigetafel](anzeigetafel.md).
-- **Ereignisse für deine Automationen:** `bust`, `leg_won`, `match_won`, `turn_changed`, `bull_off_won`, `drill_finished` und `checkout_attempt` kommen in dem Moment, in dem sie passieren, für Caller und [Lichtshows](automationen.md#light-show).
+- **Ereignisse für deine Automationen:** `bust`, `leg_won`, `match_won`, `turn_changed`, `bull_off_won`, `drill_finished`, `checkout_attempt`, `achievement_unlocked` und die Turnier-Ereignisse kommen in dem Moment, in dem sie passieren, für Caller und [Lichtshows](automationen.md#light-show).
 - **Trainingssessions zählen weiter.** Übungsspiel und [Trainingssession](statistik.md#trainingssessions) sind unabhängig; ein Dart zählt in beiden.
 
 ## Matches, Legs und Sätze
@@ -70,6 +71,17 @@ Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der S
 - **Anwurf:** Wie bei den Sätzen der PDC wechselt der Anwurf innerhalb eines Satzes jedes Leg zum nächsten Spieler, und jeder neue Satz beginnt mit dem Spieler nach dem, der den vorigen Satz begonnen hat. Bei zwei Spielern beginnt Spieler 1 die Sätze 1, 3 und 5 und Spieler 2 die Sätze 2 und 4. Das erste Leg eines Matches beginnt Spieler 1 oder wer das [Ausbullen](#ausbullen) gewinnt.
 - **Ergebnis:** Das Ergebnis bleibt auf den Karten stehen, bis der nächste Dart ein neues Match beginnt. Der Sieger behält die Legs des entscheidenden Satzes, ein Match auf drei Legs endet also 3:2 auf der Anzeigetafel. `match_won`, der Match-Verlauf und die [Spielerprofile](statistik.md#spielerprofile) behalten Legs und Sätze aller Spieler; `match_legs` zählt die Legs des ganzen Matches.
 - **Averages:** Average und Marks pro Runde jedes Spielers gelten für das ganze Match.
+
+## Match-Zusammenfassung
+
+<img src="../images/de/match-summary.png" alt="Anzeigetafel, nachdem Alex Sam in 301 mit 2 : 1 geschlagen hat: die Match-Zusammenfassung mit Legs, 3-Dart-Average, First 9, Checkout-Quote, höchstem Checkout, 180ern, 140+, 100+, bestem Leg, Darts aufs Double und Darts beider Spieler" width="760">
+
+Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live-Karte es zusammen: eine Spalte pro Spieler, die des Siegers hervorgehoben, mit dem Ergebnis in der ersten Zeile. Auch das Banner des Siegers nennt das Ergebnis, etwa *Alex gewinnt das Match 3 : 2!*
+
+- **X01:** Legs und Sätze, 3-Dart- und First-9-Average, die Checkout-Quote mit den ausgecheckten Legs und den Darts aufs Double, der höchste Checkout, 180er, Aufnahmen mit 140+ und 100+, das beste Leg in Darts und alle Darts. Ohne Double-Out fehlen Checkout-Quote und Darts aufs Double.
+- **Cricket:** Legs und Sätze, Marks pro Runde, Marks, das beste Leg in Darts und alle Darts.
+- **Partyspiele** behalten ihre Punkte auf dem Bildschirm.
+- **Wie lange:** bis zum ersten Dart des nächsten Spiels oder für `summary_seconds` der [Karte](karten.md#match-zusammenfassung). `match_won` liefert die Zahlen für deine Automationen, etwa um [sie aufs Handy zu schicken](automationen.md#die-zusammenfassung-eines-matches-senden). [So werden sie gezählt](funktionsweise.md#match-zusammenfassung).
 
 ## Teams
 
@@ -92,14 +104,63 @@ Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der S
 
 ## Ausbullen
 
-<img src="../images/de/bull-off.webp" alt="Animation: Ausbullen auf der Anzeigetafel. Alex trifft das Single-Bull 16 Millimeter von der Mitte, Sam das Bullseye 4 Millimeter davon, und das 501-Match beginnt mit Sam am Board" width="760">
+<img src="../images/de/bull-off.webp" alt="Animation: Ausbullen auf der Anzeigetafel. Alex trifft das Single-Bull 15,7 Millimeter von der Mitte, Sam das Bullseye 4 Millimeter davon und führt, und das 501-Match beginnt mit Sam am Board" width="760">
 
-- Mit *Übungsspiel Ausbullen* (in der Spielauswahl: *Ausbullen*) und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull, in der Reihenfolge der Plätze. Nur der erste Dart jeder Aufnahme zählt. Die Anzeigetafel zeigt den Abstand jedes Darts zur Mitte.
+- Mit *Übungsspiel Ausbullen* (in der Spielauswahl: *Ausbullen*) und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull, in der Reihenfolge der Plätze. Nur der erste Dart jeder Aufnahme zählt. Die Anzeigetafel zeigt das Feld jedes Darts und seinen Abstand zur Mitte, hebt den führenden Dart hervor und meldet *Gleichstand – noch einmal werfen*, wenn ein Gleichstand neu wirft.
 - Wie es die Regeln von WDF und PDC wollen, schlägt das Bullseye das Single-Bull und dieses jedes andere Feld. Zwei oder mehr Darts im selben Bull-Feld sind gleichauf: Diese Spieler werfen noch einmal, der letzte von ihnen zuerst.
 - Außerhalb des Bulls gewinnt der Dart, der der Mitte näher ist. Der Abstand ergibt sich aus der Position, die das Board meldet, bezogen auf den äußeren Rand des Doppelrings (170 mm).
 - Mit *Übungsspiel Ausbullen nach Abstand* entscheidet der gemessene Abstand auch zwischen zwei Darts im selben Bull-Feld; Darts mit gleichem Abstand auf 0,1 mm werfen noch einmal.
 - Ein Dart ohne Position lässt sich nicht messen und schlägt deshalb nie einen gemessenen Dart: Braucht die Entscheidung einen Abstand, den das Board nicht gemeldet hat, werfen diese Spieler noch einmal.
 - Das Ausbullen entscheidet nur, wer beginnt. Bei drei oder vier Spielern folgen die anderen in der Reihenfolge der Plätze. `bull_off_won` meldet den Gewinner, etwa für den [Übungs-Caller](automationen.md#practice-caller).
+
+## Turniere
+
+<img src="../images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
+
+Ein Turnier für drei bis acht Spieler mit Namen an einem Board, ein Match nach dem anderen: **jeder gegen jeden**, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, oder das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen. Jedes Match ist ein X01-Match, auf Wunsch mit Startpunkten als Handicap, oder ein Cricket-Spiel, mit den Legs, Sätzen und Regeln des Turniers. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](statistik.md#spielerprofile) und die direkten Vergleiche.
+
+1. **Starten:** Tippe auf der Anzeigetafel auf **Neues Spiel**, dann auf **Turnier**. Wähle die Spieler, jeder gegen jeden oder K.-o.-System, das Spiel, Legs und Sätze und die Regeln und tippe auf **Turnier starten**. Oder starte es aus einer Automation:
+
+   ```yaml
+   action: autodarts.start_tournament
+   data:
+     players: [Alex, Sam, Kim, Lea]
+     format: round_robin
+     game: "501"
+     legs: 2
+   ```
+
+2. **Spielen:** Das erste Match beginnt sofort, und die Titelzeile der Anzeigetafel nennt Runde und Match. Ist ein Match entschieden und sind die Darts gezogen, zeigt die Anzeigetafel seine Zusammenfassung, dann Tabelle oder Turnierbaum mit dem nächsten Match und einem Countdown. Das nächste Match beginnt von selbst; **Jetzt starten** überspringt das Warten.
+3. **Sieger:** Nach dem letzten Match nennt ein Banner den Sieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt. `tournament_finished` kann die [Lichtshow](automationen.md#light-show) starten oder [die Ergebnisse ansagen](automationen.md#ergebnisse-eines-turniers-ansagen).
+
+<table>
+  <tr>
+    <td width="50%"><img src="../images/de/tournament-lobby.png" alt="Die Spielauswahl im Turniermodus: X01 und die Cricket-Spiele, sechs Spieler mit ihren Startpunkten, K.-o.-System mit Spiel um Platz 3 und die Starttaste" width="100%"></td>
+    <td width="50%"><img src="../images/de/tournament-table.png" alt="Das Turnier jeder gegen jeden mit vier Spielern auf der Anzeigetafel zwischen zwei Matches: als Nächstes Lea gegen Sam mit Countdown und die Tabelle mit Alex vorn mit 4 Punkten" width="100%"></td>
+  </tr>
+</table>
+
+Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Tasten und Aktionen des Turniers, die [Anleitung zur Anzeigetafel](anzeigetafel.md#turniere), was der Bildschirm zeigt.
+
+### Turnierregeln
+
+- **Spieler:** drei bis acht Spieler mit je einem Namen. Ein Name ist unabhängig von Groß- und Kleinschreibung derselbe Spieler, wie bei den [Spielerprofilen](entitaeten.md#spielerprofile).
+- **Auslosung:** die Reihenfolge der Namen oder mit *Turnier zufällige Auslosung* oder einem `seed` eine zufällige Reihenfolge. Derselbe Startwert lost immer dieselbe Reihenfolge aus; eine zufällige Auslosung ohne Startwert wählt einen und zeigt ihn im Attribut `seed` von *Turnier*.
+- **Jeder gegen jeden:** Alle spielen einmal gegeneinander, in Runden nach dem Rundenturnier-Verfahren: drei oder vier Spieler spielen 3 Runden, fünf oder sechs 5, sieben oder acht 7. Bei einer ungeraden Zahl setzt in jeder Runde ein Spieler aus. Ein Spieler des letzten Matches einer Runde eröffnet die nächste Runde nur, wenn kein anderes Match es kann, und den Anwurf eines Matches bekommt der Spieler, der ihn seltener hatte.
+- **Punkte:** Ein gewonnenes Match bringt 2 Punkte wie in der Premier League, ein verlorenes keine. Ein Match kann nicht unentschieden enden.
+- **Bei Punktgleichheit** entscheiden nacheinander
+  1. die Punkte aus den Matches der punktgleichen Spieler untereinander,
+  2. die Leg-Differenz: gewonnene minus verlorene Legs aus allen ihren Matches, bei Matches mit Sätzen alle Legs,
+  3. der 3-Dart-Average aus allen ihren Matches (Cricket: die Marks pro Runde),
+  4. die Reihenfolge der Auslosung.
+
+  Von zwei punktgleichen Spielern steht also vorn, wer das direkte Duell gewonnen hat; bei drei Spielern, die sich reihum geschlagen haben, entscheidet die Leg-Differenz.
+- **K.-o.-System:** ein Turnierbaum mit 4 Plätzen für drei oder vier Spieler und mit 8 Plätzen für fünf bis acht. Der erste Spieler der Auslosung ist Nummer 1 der Setzliste, der zweite Nummer 2 und so weiter, gesetzt wie bei Profiturnieren: Nummer 1 trifft zuerst auf die letzte Nummer, die Nummern 1 und 2 können sich frühestens im Finale treffen und die Nummern 1 bis 4 nicht vor dem Halbfinale. Plätze, die die Spieler nicht füllen, sind Freilose für die besten Nummern, die direkt in die nächste Runde kommen. Die Runden heißen Viertelfinale, Halbfinale und Finale.
+- **Platz 3:** Mit *Turnier Spiel um Platz 3* und mindestens vier Spielern spielen die Verlierer der Halbfinals vor dem Finale um Platz 3. Ohne diese Einstellung gibt es im K.-o.-System keinen dritten Platz.
+- **Spielplan:** ein Match nach dem anderen, Runde für Runde. Im K.-o.-System spielen die Matches einer Runde von oben nach unten im Turnierbaum, das Spiel um Platz 3 vor dem Finale.
+- **Matches:** Jedes Match ist ein [Match](#matches-legs-und-sätze) zweier Spieler mit den Legs pro Satz, Sätzen zum Sieg, Double-Out, Double-In und dem Ausbullen des Turniers. Bei X01 beginnt ein Spieler mit eigenen Startpunkten jedes Leg des Turniers von diesen, als Handicap; der andere von denen des Spiels. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet.
+- **Averages:** Der Average eines Spielers zählt Punkte und Darts aller seiner Turniermatches; die Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
+- **Sieger:** der Sieger des Finales oder der Erste der Tabelle nach dem letzten Match.
 
 ## X01
 
@@ -108,6 +169,7 @@ Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der S
 - **Herunterzählen:** Der Rest beginnt bei 101, 301, 501, 701, 901 oder 1001, und jeder Dart zieht seine Punkte ab.
 - **Double-Out** (standardmäßig an): Der letzte Dart eines Legs muss ein Double oder das Bullseye treffen. Ohne Double-Out checkt jedes Feld.
 - **Double-In** (standardmäßig aus): Die Zählung eines Spielers beginnt mit dem ersten Double oder Bullseye des Legs; Darts davor zählen nichts. Die Karten fordern ein Double und umranden den Doppelring. Ein Überwerfen nimmt das öffnende Double zurück.
+- **Double-Out ändern:** Ein Leg behält die Regeln, mit denen es begonnen hat. Schaltest du Double-Out während eines Legs ein oder aus, sobald ein Dart gezählt hat, gilt das ab dem nächsten Leg; vor dem ersten Dart eines Legs, zwischen zwei Matches und in den anderen Spielen gilt es sofort. So wird kein Leg unlösbar: Wer in einem Leg ohne Double-Out auf 1 steht, kann es mit einer Single 1 noch beenden, wenn Double-Out eingeschaltet wird.
 - **Überwerfen:** Ein Dart, der unter null geht, mit Double-Out 1 übrig lässt oder 0 ohne Double erreicht, überwirft die Aufnahme. Der Rest springt auf den Beginn der Aufnahme zurück. Der überwerfende Dart zählt als geworfen, spätere Darts der Aufnahme nicht.
 - **Game shot:** Ein Dart, der genau 0 erreicht, gewinnt das Leg. `leg_won` wird sofort gemeldet; verbucht wird das Leg beim Ziehen der Darts, eine Korrektur davor zählt also noch. Darts nach dem Siegdart zählen nicht.
 - **Checkout-Weg:** Sobald ein Rest checkbar ist, zeigen die Karten den Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170, und umranden das nächste Feld auf der Scheibe. „Kein Checkout möglich“ erscheint nur bei einem Rest, den eine Aufnahme checken könnte: bis 170 mit Double-Out, bis 180 ohne. Der Weg folgt den Checkout-Tabellen der Profis; mit *Übungsspiel persönliche Checkout-Wege* bevorzugt er deine stärksten Doubles. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
@@ -159,7 +221,7 @@ Sechs Kneipenklassiker für einen bis vier Spieler; Killer braucht zwei. Sie ver
 
 <img src="../images/de/halve-it.webp" alt="Animation: Halve-It für Alex und Sam auf der Anzeigetafel. Sam verfehlt die 15 und fällt von 40 auf 20 Punkte, holt auf der 16 auf und verfehlt in der dritten Runde jedes Double: aus 116 Punkten werden 58" width="760">
 
-- Alle beginnen mit 40 Punkten. Die neun Runden zielen auf 15, 16, ein beliebiges Double, 17, 18, ein beliebiges Triple, 19, 20 und das Bull, angezeigt als 25.
+- Alle beginnen mit 40 Punkten. Die neun Runden zielen auf 15, 16, ein beliebiges Double, 17, 18, ein beliebiges Triple, 19, 20 und das Bull, angezeigt als *Bull (25/50)*.
 - Treffer bringen ihre Punkte. *Beliebiges Double* schließt das Bullseye ein. In der Bull-Runde bringt das Single-Bull 25 und das Bullseye 50.
 - Eine Aufnahme ohne Treffer aufs Ziel halbiert die Punkte, abgerundet, auch wenn weniger als drei Darts geworfen wurden.
 - Die meisten Punkte nach neun Runden gewinnen; Gleichstände werden wie bei Shanghai entschieden.
@@ -205,7 +267,7 @@ Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen 
 
 <img src="../images/de/training-game.webp" alt="Animation: Around the Clock, jeder Treffer bringt das Ziel von 1 bis 6 weiter und umrandet alle Felder der nächsten Zahl auf der Scheibe" width="620">
 
-- 1 bis 20, dann das Bull, der Reihe nach, mit jedem Feld der Zahl. Das Bull-Ziel heißt `25`: Single-Bull und Bullseye zählen beide. Weniger Darts sind besser.
+- 1 bis 20, dann das Bull, der Reihe nach, mit jedem Feld der Zahl. Das Bull-Ziel heißt auf den Karten *Bull (25/50)*, in den Attributen `25`: Single-Bull und Bullseye zählen beide, und beide sind umrandet. Weniger Darts sind besser.
 
 ### Doppeltraining
 
@@ -250,4 +312,4 @@ Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen 
 
 ## Statistik
 
-Jedes Spiel füllt die Statistik: X01-Legs den First-9-Average, die Checkout-Quote und die Doppelquote; Cricket die Marks pro Runde; benannte Spieler ihre [Profile](statistik.md#spielerprofile), direkten Vergleiche und den Match-Verlauf; jeder Dart aufs Double die [Doppelanalyse](statistik.md#doppelanalyse). Die [Anleitung zur Statistik](statistik.md) zeigt alles davon, und [Bestleistungen und Statistik](funktionsweise.md#bestleistungen-und-statistik) erklärt genau, welche Legs für welche Bestleistung zählen.
+Jedes Spiel füllt die Statistik: X01-Legs den First-9-Average, die Checkout-Quote und die Doppelquote; Cricket die Marks pro Runde; benannte Spieler ihre [Profile](statistik.md#spielerprofile), direkten Vergleiche, den Match-Verlauf, ihre [Erfolge](statistik.md#erfolge) und Wochentrends; jeder Dart aufs Double die [Doppelanalyse](statistik.md#doppelanalyse). Die [Anleitung zur Statistik](statistik.md) zeigt alles davon, und [Bestleistungen und Statistik](funktionsweise.md#bestleistungen-und-statistik) erklärt genau, welche Legs für welche Bestleistung zählen.

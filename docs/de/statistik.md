@@ -2,20 +2,21 @@
 
 [← Dokumentation](README.md) · [English](../statistics.md)
 
-Jeder Dart, den das Board erkennt, wird in Home Assistant zu einer Zahl: dein 3-Dart-Average, wohin deine Darts fliegen, deine Bestleistungen, deine Doubles und für jeden Spieler mit Namen ein Profil mit direkten Vergleichen. Alles bleibt bei dir zu Hause, übersteht Neustarts und füllt die Langzeitstatistik von Home Assistant, sodass du deine Entwicklung über Wochen und Monate siehst.
+Jeder Dart, den das Board erkennt, wird in Home Assistant zu einer Zahl: dein 3-Dart-Average, wohin deine Darts fliegen, deine Bestleistungen, deine Doubles und für jeden Spieler mit Namen ein Profil mit Abzeichen, Wochentrends und direkten Vergleichen. Alles bleibt bei dir zu Hause, übersteht Neustarts und füllt die Langzeitstatistik von Home Assistant, sodass du deine Entwicklung über Wochen und Monate siehst.
 
 <img src="../images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards: die Trainingskarte mit 3-Dart-Average, Trefferbild, Statistik, Bestleistungen und letzten Aufnahmen, die Doubles-Karte und die Grafiken der Darts pro Tag und des 3-Dart-Averages" width="760">
 
-**Auf dieser Seite:** [Wo du was findest](#wo-du-was-findest) · [Trainingssessions](#trainingssessions) · [Bestleistungen, Serie und Tagesziel](#bestleistungen-serie-und-tagesziel) · [Trefferbild](#trefferbild) · [Fortschritt über die Zeit](#fortschritt-über-die-zeit) · [Doppelanalyse](#doppelanalyse) · [Spielerprofile](#spielerprofile) · [Spieler und Personen](#spieler-und-personen) · [Wochenbericht](#wochenbericht) · [Trainingskalender](#trainingskalender) · [Export](#export) · [Deine Daten](#deine-daten)
+**Auf dieser Seite:** [Wo du was findest](#wo-du-was-findest) · [Trainingssessions](#trainingssessions) · [Bestleistungen, Serie und Tagesziel](#bestleistungen-serie-und-tagesziel) · [Trefferbild und Dart-Positionen](#trefferbild-und-dart-positionen) · [Fortschritt über die Zeit](#fortschritt-über-die-zeit) · [Doppelanalyse](#doppelanalyse) · [Spielerprofile](#spielerprofile) · [Erfolge](#erfolge) · [Trends und Streuung](#trends-und-streuung) · [Bestenliste](#bestenliste) · [Spieler und Personen](#spieler-und-personen) · [Wochenbericht](#wochenbericht) · [Trainingskalender](#trainingskalender) · [Export](#export) · [Deine Daten](#deine-daten)
 
 ## Wo du was findest
 
 | Wo | Was es zeigt |
 | --- | --- |
-| [Trainingskarte](karten.md#trainingskarte) | Die laufende Session: 3-Dart-Average, Trefferbild, Statistik, Bestleistungen, letzte Aufnahmen und vergangene Sessions |
-| [Spielerkarte](karten.md#spielerkarte) | Statistik und Bestleistungen jedes Spielers mit Namen, direkte Vergleiche, letzte Matches und der Export |
+| [Trainingskarte](karten.md#trainingskarte) | Die laufende Session: 3-Dart-Average, Trefferbild nach Feldern, Zahlen oder Dart-Positionen für die Session oder jeden Spieler, Statistik, Bestleistungen, letzte Aufnahmen und vergangene Sessions |
+| [Spielerkarte](karten.md#spielerkarte) | Statistik und Bestleistungen jedes Spielers mit Namen, Abzeichen, Wochentrends und Streuung, direkte Vergleiche, letzte Matches und der Export |
+| [Bestenliste](karten.md#bestenliste) | Die Rekorde aller Spieler, insgesamt, in den letzten vier Wochen oder in dieser Woche |
 | [Doubles-Karte](karten.md#doubles-karte) | Die Quote jedes Doubles, für alle oder einen Spieler |
-| Ansicht *Training* des [automatischen Dashboards](karten.md#automatisches-dashboard) | Trainingskarte, Doubles-Karte und Grafiken der Darts pro Tag, des 3-Dart-Averages, der Legs pro Tag und der Quoten des Übungsspiels |
+| Ansichten *Training* und *Spieler* des [automatischen Dashboards](karten.md#automatisches-dashboard) | Trainingskarte, Doubles-Karte und Grafiken der Darts pro Tag, des 3-Dart-Averages, der Legs pro Tag und der Quoten des Übungsspiels; Spielerkarte und Bestenliste |
 | [Ruhemodus](anzeigetafel.md#zwischen-den-spielen-ruhemodus) der Anzeigetafel | Die Bestenliste, die Bestleistungen des Boards, die Darts von heute und das letzte Match |
 | Kalender von Home Assistant | Jede Session und jedes Match des letzten Jahres im [Trainingskalender](#trainingskalender) |
 | Dein Handy | Der [Wochenbericht](#wochenbericht) |
@@ -58,13 +59,24 @@ Home Assistant behält den besten Wert jeder Bestleistung und meldet `personal_b
 
 [Die Bestleistungen im Detail](entitaeten.md#bestleistungen-serie-und-tagesziel) · [Welche Legs für welche Bestleistung zählen](funktionsweise.md#bestleistungen-und-statistik)
 
-## Trefferbild
+## Trefferbild und Dart-Positionen
 
-Das Trefferbild der Trainingskarte färbt jedes Feld danach, wie oft du es getroffen hast, von Blau (selten) bis Rot (am häufigsten). Fahre mit der Maus über ein Feld für Anzahl und Anteil. Mit `mode: numbers` fasst es stattdessen Single, Double und Triple jeder Zahl zusammen und zeigt auf einen Blick, ob du zur 5 oder zur 1 abdriftest. Die häufigsten Felder listen die ersten fünf mit ihrem Anteil an allen Darts.
+<img src="../images/de/heatmap-modes.webp" alt="Animation: Das Trefferbild der Trainingskarte wechselt von Feldern zu Zahlen und den Dart-Positionen der Session, dann zu den Positionen und Feldern von Alex" width="620">
+
+Das Trefferbild der Trainingskarte hat drei Modi, die die Umschalter über der Scheibe wählen:
+
+- **Felder:** jedes Feld danach eingefärbt, wie oft du es getroffen hast, von Blau (selten) bis Rot (am häufigsten). Fahre mit der Maus über ein Feld für Anzahl und Anteil.
+- **Zahlen:** Single, Double und Triple jeder Zahl zusammengefasst; das zeigt auf einen Blick, ob du zur 5 oder zur 1 abdriftest.
+- **Positionen:** wo die Darts wirklich gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte mit den neuesten 300 Darts als Punkten und unter der Scheibe die [Streuung](#trends-und-streuung) an bis zu drei Feldern, auf die du gezielt hast.
+
+Der zweite Umschalter wählt, wessen Darts es zeigt: die laufende Session oder einen Spieler mit Namen mit all seinen Treffern und den Positionen seiner letzten 1000 Darts. Die häufigsten Felder folgen der Wahl.
+
+<img src="../images/de/training-positions.png" alt="Das Trefferbild im Modus Positionen mit den Darts von Alex: eine Dichte um die Triple 20, die Doubles 16 und 8 und das Bull, darunter die Streuung an jedem davon" width="620">
 
 ```yaml
 type: custom:autodarts-training-card
-mode: numbers
+mode: positions
+player: Alex
 ```
 
 ## Fortschritt über die Zeit
@@ -109,7 +121,35 @@ Jeder Spieler mit Namen bekommt im Übungsspiel ein Profil mit Werten über sein
 - **Namen:** Ein Name ist derselbe Spieler, egal in welcher Groß- und Kleinschreibung; Spieler ohne Namen zählen für niemanden. Gib deinen Stammspielern Namen, in der [Spielauswahl](anzeigetafel.md#das-nächste-spiel-wählen) oder in *Übungsspiel Spieler N*.
 - **Was zählt:** jedes Leg von X01, den Cricket-Spielen und den Partyspielen. X01-Legs bringen die Averages und die Checkout-Quote, Cricket-Legs die Marks pro Runde. In einem [Team-Match](spiele.md#teams) gewinnen beide Partner Leg und Match.
 - **Match-Verlauf:** die letzten 20 Matches mehrerer Spieler, mit Legs, Sätzen und Average jedes Spielers.
-- **Ein Tippfehler im Namen?** Entferne das Profil mit [`autodarts.delete_player`](entitaeten.md#spielerprofil-löschen-autodartsdelete_player). Der Match-Verlauf behält den Namen.
+- **Turniere** zählen wie jedes Match: Ihre Legs, Matches und direkten Vergleiche fließen in die Profile. [Turniere](spiele.md#turniere).
+- **Ein Tippfehler im Namen?** Entferne das Profil mit [`autodarts.delete_player`](entitaeten.md#spielerprofil-löschen-autodartsdelete_player); das vergisst auch Fortschritt und Abzeichen des Spielers. Der Match-Verlauf behält den Namen.
+
+## Erfolge
+
+<img src="../images/de/players-badges.png" alt="Abzeichen eines Spielers auf der Spielerkarte: erreichte Stufen in Bronze, Silber und Gold, jede mit dem nächsten Ziel, dem Fortschritt dorthin und einem Fortschrittsbalken" width="620">
+
+Spieler mit Namen schalten Erfolge in Stufen frei, Bronze, Silber, Gold und für die Serie Platin: von der ersten 180 bis zur hundertsten, vom Checkout über 100 bis zur 170, ein Leg in 18, 15 oder 12 Darts, ein Neun-Darter, ein Hattrick, jedes Double einmal getroffen, neun Marks im Cricket, ein Shanghai, das beste Around the Clock und Bob's 27, Tage in Folge und geworfene Darts. Die Spielerkarte zeigt jedes Abzeichen mit dem nächsten Ziel und dem Fortschritt dorthin.
+
+- Jede neue Stufe meldet `achievement_unlocked`, für eine [Benachrichtigung](automationen.md#einen-erfolg-feiern) oder die [Lichtshow](automationen.md#light-show). Nichts spielt oder spricht, solange keine Automation es tut.
+- Beim ersten Start nach dem Update wird still freigeschaltet, was die Profile schon belegen.
+- Der Schalter *Erfolge* schaltet sie ab; der Fortschritt zählt weiter und wird still freigeschaltet, wenn du sie wieder einschaltest.
+
+[Alle Erfolge und ihre Stufen](entitaeten.md#erfolge)
+
+## Trends und Streuung
+
+<img src="../images/de/players-trends.png" alt="Trends von Alex, Sam und Kim mit 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts pro Woche und die Streuung jedes Spielers an der Triple 20, dem Bull und der Double 8" width="620">
+
+- **Wochentrends:** für jeden Spieler, der in den gezeigten Wochen geübt hat, 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts über bis zu 12 Wochen, als Linie mit einem Pfeil, der die neuere Hälfte der Wochen mit der älteren vergleicht: ↗ besser, ↘ schlechter, → etwa gleich.
+- **Streuung:** wo die Darts eines Spielers um die Felder landen, auf die er am meisten gezielt hat, in Millimetern. Die Abweichung zeigt die Treffgenauigkeit, etwa *6 mm links der Mitte*, die Streuung die Präzision, den Radius, in dem die Hälfte der Darts liegt, etwa *Streuung 38 mm*, und der Trend, ob die neueren Darts enger liegen. [So wird die Streuung gemessen](funktionsweise.md#streuung).
+
+Die Wochensummen stehen im Attribut `trend` von *Spielerprofile*, für eigene Grafiken. [Fortschritt der Spieler](entitaeten.md#fortschritt-der-spieler).
+
+## Bestenliste
+
+<img src="../images/de/leaderboard-card.png" alt="Bestenliste mit dem Umschalter des Zeitraums und den Rekorden bester Average, höchster Checkout, meiste 180er, wenigste Darts bei 501, beste Cricket-MPR, längste Serie, meiste Abzeichen und meiste Darts, jeweils mit dem Führenden und zwei weiteren Plätzen" width="760">
+
+Die [Bestenliste](karten.md#bestenliste) ordnet die Rekorde aller Spieler mit Namen: bester Average, höchster Checkout, meiste 180er, wenigste Darts bei 501, beste Cricket-MPR, längste Serie, meiste Abzeichen und meiste Darts. Der Umschalter oben wählt insgesamt, die letzten vier Wochen oder diese Woche, so kann auch ein neuer Spieler die Woche anführen. Auch der [Ruhemodus](anzeigetafel.md#zwischen-den-spielen-ruhemodus) der Anzeigetafel zeigt zwischen den Spielen eine Bestenliste.
 
 ## Spieler und Personen
 
@@ -157,6 +197,6 @@ Exporte enthalten Spielernamen. Dateien in `www` liefert Home Assistant unter `/
 
 ## Deine Daten
 
-- **Nur lokal.** Sessions, Spiele, Bestleistungen, Profile, der Wochenbericht und der Kalender liegen im Ordner `.storage` von Home Assistant und verlassen dein Zuhause nie. [Was wo gespeichert wird](funktionsweise.md#gespeicherte-daten).
+- **Nur lokal.** Sessions, Spiele und Turniere, Bestleistungen, Profile mit Fortschritt, Abzeichen und Dart-Positionen, der Wochenbericht und der Kalender liegen im Ordner `.storage` von Home Assistant und verlassen dein Zuhause nie. [Was wo gespeichert wird](funktionsweise.md#gespeicherte-daten).
 - **Diagnosedaten** schwärzen Spielernamen und Board-Details, du kannst sie also einem Fehlerbericht anhängen.
 - **Neu anfangen:** *Neue Session* startet eine neue Trainingssession; [`autodarts.delete_player`](entitaeten.md#spielerprofil-löschen-autodartsdelete_player) vergisst einen Spieler. Löschst du das Board unter **Einstellungen → Geräte & Dienste**, werden alle seine gespeicherten Daten gelöscht.
