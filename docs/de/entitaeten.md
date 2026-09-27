@@ -127,7 +127,7 @@ Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert ha
 | Letzte Bestleistung | Sensor, Zeitstempel | Wann die letzte Bestleistung fiel; vor der ersten *unbekannt*. Attribute: `record`, `value`, `previous` und `name` dieser Bestleistung sowie der beste Wert jedes Rekords unter seinem Schlüssel, etwa `highest_checkout`. |
 | Darts heute | Sensor, Darts, Summe | Heute erkannte Darts; beginnt um Mitternacht bei 0. Attribute: `goal`, `goal_reached`, `progress` (Prozent des Ziels). |
 | Trainingsserie | Sensor, Dauer in Tagen | Tage in Folge mit mindestens einem Dart. Sie bleibt, bis ein ganzer Tag ohne Darts vergeht. Attribute: `best_streak`, `trained_today`, `last_day`. |
-| Tagesziel | Zahl, Darts, *Konfiguration* | Darts, die du jeden Tag werfen willst, 0–2000; `0`, der Standard, setzt kein Ziel. Erreichen die Darts von heute das Ziel, löst `daily_goal_reached` einmal aus. Ein höheres Ziel, das du danach setzt, wird erneut erreicht, mit dem Ereignis. |
+| Tagesziel | Zahl, Darts, *Konfiguration* | Darts, die du jeden Tag werfen willst, 0–2000 in Zehnerschritten; `0`, der Standard, setzt kein Ziel. Erreichen die Darts von heute das Ziel, löst `daily_goal_reached` einmal aus. Ein höheres Ziel, das du danach setzt, wird erneut erreicht, mit dem Ereignis. |
 
 ## Wochenbericht
 
@@ -478,7 +478,7 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 | Kamerastörung | Binärsensor, *Diagnose* | An, wenn eine Kamera bei laufender Erkennung 15 Sekunden lang keine Bilder liefert. Normales Stoppen, Kalibrieren und Standby zählen nicht. |
 | Kamera *N* Störung | Binärsensor, *Diagnose* | Dasselbe für eine einzelne Kamera. |
 | Erkennungsbildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde der Erkennung. |
-| Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die das Board nachträglich korrigiert hat. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](fehlerbehebung.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
+| Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die nachträglich korrigiert wurden: vom Board, auf der Anzeigetafel oder mit `autodarts.correct_dart`. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](fehlerbehebung.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
 | Kamera *N* Bildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde einer Kamera. |
 | CPU-Auslastung | Sensor, %, **BM 2**, *Diagnose*, *Deaktiviert* | CPU-Last des Board-PCs. |
 | Speichernutzung | Sensor, **BM 2**, *Diagnose*, *Deaktiviert* | Speichernutzung laut Board Manager 2. |

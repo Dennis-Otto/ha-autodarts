@@ -127,7 +127,7 @@ Home Assistant keeps your best values, the days you trained and your darts per d
 | Last personal best | Sensor, timestamp | When the last personal best fell; *unknown* before the first. Attributes: `record`, `value`, `previous` and `name` of that best, and the best value of every record under its key, for example `highest_checkout`. |
 | Darts today | Sensor, darts, total | Darts detected today; starts from 0 at midnight. Attributes: `goal`, `goal_reached`, `progress` (percent of the goal). |
 | Training streak | Sensor, duration in days | Days in a row with at least one dart. It stays until a whole day passes without darts. Attributes: `best_streak`, `trained_today`, `last_day`. |
-| Daily goal | Number, darts, *Configuration* | Darts to throw every day, 0–2000; `0`, the default, sets no goal. When today's darts reach it, `daily_goal_reached` fires once. A higher goal set after that is reached anew, with the event again. |
+| Daily goal | Number, darts, *Configuration* | Darts to throw every day, 0–2000 in steps of 10; `0`, the default, sets no goal. When today's darts reach it, `daily_goal_reached` fires once. A higher goal set after that is reached anew, with the event again. |
 
 ## Weekly report
 
@@ -478,7 +478,7 @@ A change is written to the Board Manager configuration; only the changed setting
 | Camera problem | Binary sensor, *Diagnostic* | On when any camera delivers no frames for 15 seconds during active detection. Normal stops, calibration and standby are ignored. |
 | Camera *N* problem | Binary sensor, *Diagnostic* | The same for one camera. |
 | Detection frame rate | Sensor, fps, *Diagnostic*, *Disabled* | Frames per second of the detection. |
-| Detection correction rate | Sensor, %, *Diagnostic* | Share of the last 100 detected darts that the board corrected afterwards. From 20 % over at least 50 darts, a [repair](troubleshooting.md#repairs) suggests to recalibrate. Attributes: `darts`, `corrected`. |
+| Detection correction rate | Sensor, %, *Diagnostic* | Share of the last 100 detected darts that were corrected afterwards: by the board, on the scoreboard or with `autodarts.correct_dart`. From 20 % over at least 50 darts, a [repair](troubleshooting.md#repairs) suggests to recalibrate. Attributes: `darts`, `corrected`. |
 | Camera *N* frame rate | Sensor, fps, *Diagnostic*, *Disabled* | Frames per second of one camera. |
 | CPU usage | Sensor, %, **BM 2**, *Diagnostic*, *Disabled* | CPU load of the board PC. |
 | Memory usage | Sensor, **BM 2**, *Diagnostic*, *Disabled* | Memory use as reported by Board Manager 2. |
