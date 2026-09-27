@@ -134,6 +134,11 @@ DOUBLE_20 = {
     "segment": {"name": "D20", "number": 20, "multiplier": 2, "bed": "Double"},
     "coords": {"x": 0.002, "y": 0.972},
 }
+# A single 20 in the outer single bed, where a treble 20 could be read.
+SINGLE_20 = {
+    "segment": {"name": "S20", "number": 20, "multiplier": 1, "bed": "SingleOuter"},
+    "coords": {"x": 0.01, "y": 0.8},
+}
 # 101 in one visit: 60, 1 and the double 20.
 CHECKOUT_101 = [
     T20,
@@ -754,6 +759,93 @@ def scoreboard(browser: Browser) -> None:
     page.close()
 
 
+# Calls an action of the integration through the logged-in frontend.
+CALL_ACTION = """
+async ([service, data]) => {
+  const hass = document.querySelector('home-assistant').hass;
+  await hass.callService('autodarts', service, data);
+}
+"""
+
+
+def play_comfort(browser: Browser) -> None:
+    """A tap corrects a dart, the keypad enters one and passes, the bot throws, and
+    the last visit comes back."""
+    page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 1000})
+    page.add_init_script(CAPTURE_ERRORS)
+    page.goto(f"{HA}/autodarts-demo/keypad")
+    card = page.locator("autodarts-scoreboard-card")
+    card.locator(".main").wait_for(timeout=30000)
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "practice_bot_delay", {"value": 0.5}]
+    )
+    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
+    page.evaluate(
+        CALL_ACTION,
+        ["start_game", {"game": "301", "players": ["Alex"], "bot_level": 120}],
+    )
+    card.locator(".pad").wait_for(timeout=15000)
+    names = card.locator(".player .name").all_text_contents()
+    check(names == ["Alex", "Bot Level 120"], f"Players against the bot {names}")
+    title = card.locator(".pad .section-label").text_content()
+    check(title == "Enter a dart", f"Keypad title {title!r}")
+
+    # The board reads a single 20; a tap on the dart puts it into the treble.
+    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    card.locator("[data-dart='2']").click()
+    title = card.locator(".pad .section-label").text_content()
+    check(title == "Correct dart 2", f"Pad title {title!r}")
+    card.locator("[data-pad='multiplier'][data-value='3']").click()
+    card.locator(".pad-number[data-value='T20']").click()
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector('.sum .value')?.textContent === '120'",
+        timeout=15000,
+    )
+    # The third dart entered by hand, then the next player with a second tap.
+    card.locator("[data-pad='multiplier'][data-value='3']").click()
+    card.locator(".pad-number[data-value='T20']").click()
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector('.sum .value')?.textContent === '180'",
+        timeout=15000,
+    )
+    card.locator("[data-pad='next']").click()
+    label = card.locator("[data-pad='next']").text_content()
+    check(label == "Confirm?", f"Next player asks for a second tap: {label!r}")
+    card.locator("[data-pad='next']").click()
+
+    # The bot throws, and Alex is up again; the undo takes both visits back.
+    page.wait_for_function(
+        f"""() => {{
+          const root = ({SCOREBOARD_CARDS})()[0].shadowRoot;
+          const tiles = [...root.querySelectorAll('.player')];
+          return tiles[0].classList.contains('active') && tiles[1].querySelector('.big').textContent !== '301';
+        }}""",
+        timeout=20000,
+    )
+    card.locator("[data-pad='undo']").click()
+    card.locator("[data-pad='undo']").click()
+    page.wait_for_function(
+        f"""() => {{
+          const root = ({SCOREBOARD_CARDS})()[0].shadowRoot;
+          const values = [...root.querySelectorAll('.player .big')].map((el) => el.textContent);
+          return values[0] === '121' && values[1] === '301';
+        }}""",
+        timeout=15000,
+    )
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "practice_bot_level", {"value": 0}]
+    )
+    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    page.evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
+    )
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    errors = page_errors(page, [])
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+
 def lobby(browser: Browser) -> None:
     """A game is chosen and started on the scoreboard, and ended there again."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 800})
@@ -1181,6 +1273,7 @@ def main() -> None:
             ("more games", lambda: more_games(browser)),
             ("scoreboard caller", lambda: caller(browser)),
             ("new game screen", lambda: lobby(browser)),
+            ("correcting, the keypad and the bot", lambda: play_comfort(browser)),
             ("tournament", lambda: tournament(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
@@ -1209,7 +1302,7 @@ def main() -> None:
             ),
             (
                 "scoreboard editor",
-                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 8),
+                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 9),
             ),
             ("dashboard strategy editor", lambda: strategy_editor(browser)),
             ("light theme", lambda: light_theme(browser)),
@@ -1231,7 +1324,8 @@ def main() -> None:
         "training heatmap with dart positions, badges, trends, the leaderboard, "
         "history and "
         "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
-        "match summary, its caller, new game screen and tournament, the generated "
+        "match summary, its caller, new game screen, a corrected dart, the keypad "
+        "and a match against the bot, a tournament, the generated "
         "dashboard, the players export, all seven card forms, the strategy editor, "
         "light theme and the cards and entity texts in Dutch, French and Spanish."
     )
