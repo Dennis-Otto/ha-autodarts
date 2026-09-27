@@ -557,7 +557,7 @@ def lobby_animation(page: Page) -> None:
 
 
 def lobby_screen(page: Page) -> None:
-    """The new game screen: two players at home, three legs per set, the rules."""
+    """The new game screen: two players at home, Sam from 301, three legs per set."""
     pull_darts()
     game(page, "off")
     for index, name in enumerate(("Alex", "Sam")):
@@ -571,6 +571,7 @@ def lobby_screen(page: Page) -> None:
     wait_card(board, "!!r.querySelector('.lobby')", SCOREBOARD)
     for _ in range(2):
         card.locator("[data-lobby='legs'][data-value='1']").click()
+        card.locator("[data-lobby='lower'][data-value='1']").click()
     board.wait_for_timeout(1000)
     page_shot(board, "scoreboard-lobby")
     board.close()

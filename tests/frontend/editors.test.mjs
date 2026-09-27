@@ -149,8 +149,15 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
   const games = lobby.schema[1];
   assert.deepEqual([games.selector.select.multiple, games.selector.select.mode], [true, "dropdown"]);
   // Without a board on the page, the form offers every game the card knows.
-  assert.deepEqual(labels(games).slice(5, 9), ["1001", "Cricket", "Shanghai", "Halve-It"]);
-  assert.equal(labels(games).at(-1), "Bob's 27");
+  assert.deepEqual(labels(games).slice(5, 11), [
+    "1001",
+    "Cricket",
+    "Cut-Throat Cricket",
+    "Tactics",
+    "Shanghai",
+    "Halve-It",
+  ]);
+  assert.equal(labels(games).at(-1), "Singles training");
   assert.equal(form.computeLabel(games), "Games offered");
   assert.equal(form.computeHelper(games), "Empty offers every game of the board.");
 
@@ -177,7 +184,7 @@ test("the editor offers the games of the board on the page", () => {
   const hass = makeHass({
     states: {
       ...READY,
-      "select.practice_game": { state: "off", attributes: { options: ["off", "501", "cricket", "tactics"] } },
+      "select.practice_game": { state: "off", attributes: { options: ["off", "501", "cricket", "bingo"] } },
     },
   });
   // The practice game of another integration does not count.
@@ -188,11 +195,11 @@ test("the editor offers the games of the board on the page", () => {
   assert.deepEqual(games.selector.select.options, [
     { value: "501", label: "501" },
     { value: "cricket", label: "Cricket" },
-    { value: "tactics", label: "tactics" },
+    { value: "bingo", label: "bingo" },
   ]);
   // A board without the practice game leaves the list of every game the card knows.
   mount("autodarts-scoreboard-card", makeHass({ states: READY })).remove();
-  assert.equal(formOf("autodarts-scoreboard-card").schema[4].schema[1].selector.select.options.length, 14);
+  assert.equal(formOf("autodarts-scoreboard-card").schema[4].schema[1].selector.select.options.length, 23);
 });
 
 test("the doubles form offers the named players and takes any other name", () => {

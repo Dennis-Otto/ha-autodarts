@@ -209,14 +209,14 @@ Choose the next game at the board, without a phone: tap **New game** below the s
 <img src="images/en/lobby.webp" alt="Animation: on the tablet, New game opens the screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
 - **Game:** every game of *Practice game*, grouped into X01, Cricket, party games and training games. `lobby_games` limits the choice.
-- **Players:** up to four, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. Killer needs two players; training games take the first player only.
+- **Players:** up to four, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. Killer needs two players; training games take the first player only. In X01, − and + beside a player set a [start score](entities.md#teams-and-start-scores) of their own in steps of 100, from 101 to 1001.
 - **Format:** legs per set and sets to win, for a match of several players.
-- **Options:** double out and double in for X01, and the bull-off for a match, with bull-off by distance where the board offers it.
+- **Options:** double out and double in for X01, and the bull-off for a match, with bull-off by distance where the board offers it. With four players of X01 or a Cricket game, *Teams* plays 1 and 3 against 2 and 4.
 - **Start:** starts the game with [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), and the scoreboard shows it at once. During a game, *End game* stops it after a second tap.
 
 The screen never opens in the preview of the card editor.
 
-<img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, three legs per set, double out and the start button" width="760">
+<img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, Sam starting from 301, three legs per set, double out and the start button" width="760">
 
 ### Idle mode
 

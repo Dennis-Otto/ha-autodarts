@@ -356,6 +356,9 @@ const TEXT = {
     lobby_start: "Start {game}",
     lobby_close: "Close",
     lobby_end: "End game",
+    lobby_start_lower: "Lower start score: {name}",
+    lobby_start_raise: "Higher start score: {name}",
+    teams: "Teams (1 + 3 against 2 + 4)",
     double_out: "Double out",
     double_in: "Double in",
     bull_off_distance: "Bull-off by distance",
@@ -702,6 +705,9 @@ const TEXT = {
     lobby_start: "{game} starten",
     lobby_close: "Schließen",
     lobby_end: "Spiel beenden",
+    lobby_start_lower: "Weniger Startpunkte: {name}",
+    lobby_start_raise: "Mehr Startpunkte: {name}",
+    teams: "Teams (1 + 3 gegen 2 + 4)",
     double_out: "Double-Out",
     double_in: "Double-In",
     bull_off_distance: "Ausbullen nach Abstand",
@@ -987,6 +993,7 @@ const SCOREBOARD_KEYS = {
   doubleIn: "switch.practice_double_in",
   bullOff: "switch.practice_bull_off",
   bullOffDistance: "switch.practice_bull_off_distance",
+  teams: "switch.practice_teams",
   // Profiles with their pictures, records and the last match for the idle panels.
   profiles: "sensor.player_profiles",
   lastMatch: "sensor.last_match",
@@ -2403,14 +2410,18 @@ const LOBBY_GROUPS = ["x01", "cricket", "party", "training", "more"];
 // Limits of the start_game action.
 const LOBBY_LIMITS = { players: 4, name: 20, legs: 11, sets: 7 };
 // Every game of the practice select this card knows, for the editor before a board is seen.
-const KNOWN_GAMES = ["101", "301", "501", "701", "901", "1001", "cricket", ...PARTY_GAMES, ...DRILLS];
+const KNOWN_GAMES = ["101", "301", "501", "701", "901", "1001", ...CRICKET_GAMES, ...PARTY_GAMES, ...DRILLS];
 // A game that ended opens the new game screen after this pause, so the result shows first.
 const LOBBY_DELAY = 8000;
-const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance"];
+const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance", "teams"];
+// Teams are two pairs of players; start scores of their own go in steps of 100.
+const TEAM_SIZE = 4;
+const START_STEP = 100;
+const START_LIMITS = [101, 1001];
 
 function gameGroup(game) {
   if (/^\d+$/.test(game)) return "x01";
-  if (game.startsWith("cricket")) return "cricket";
+  if (game.startsWith("cricket") || CRICKET_GAMES.includes(game)) return "cricket";
   if (PARTY_GAMES.includes(game)) return "party";
   return DRILLS.includes(game) ? "training" : "more";
 }
@@ -2422,6 +2433,8 @@ function gameRules(game) {
   return {
     x01: group === "x01",
     drill,
+    // Four players of X01 or a Cricket game may play as two teams.
+    teams: group === "x01" || group === "cricket",
     minPlayers: game === "killer" ? 2 : 1,
     maxPlayers: drill ? 1 : LOBBY_LIMITS.players,
   };
@@ -2451,10 +2464,17 @@ function lobbyChoice(board, games) {
     const name = String(board.names[index] ?? "").trim();
     players.push(players.some((other) => name && nameKey(other) === nameKey(name)) ? "" : name);
   }
+  // Players without any name need not be chosen: the game starts with one of them.
+  const chosen = players.some(Boolean) ? players : [];
+  const starts = Array.isArray(board.starts) ? board.starts : [];
+  const start = (index) => (Number.isInteger(starts[index]) ? starts[index] : 0);
   return {
     game,
-    // Players without any name need not be chosen: the game starts with one of them.
-    players: players.some(Boolean) ? players : [],
+    players: chosen,
+    // The start score of every player, 0 for the game's; set ones go back with the start.
+    starts: chosen.map((_, index) => start(index)),
+    handicap: starts.some((value) => Number.isInteger(value) && value > 0),
+    teams: board.teams === true,
     legs: within(board.legs, LOBBY_LIMITS.legs, 1),
     sets: within(board.sets, LOBBY_LIMITS.sets, 1),
     double_out: board.double_out !== false,
@@ -2467,7 +2487,7 @@ function lobbyChoice(board, games) {
 
 // The choice after a tap: a game, a player added, moved or removed, the format or a rule.
 function lobbyChange(choice, action, value) {
-  const next = { ...choice, players: [...choice.players] };
+  const next = { ...choice, players: [...choice.players], starts: [...(choice.starts ?? [])] };
   const index = Number(value);
   const room = next.players.length < LOBBY_LIMITS.players;
   if (action === "game") {
@@ -2476,17 +2496,27 @@ function lobbyChange(choice, action, value) {
     const name = String(value ?? "").trim().slice(0, LOBBY_LIMITS.name);
     if (room && name && !next.players.some((player) => nameKey(player) === nameKey(name))) {
       next.players.push(name);
+      next.starts.push(0);
       next.draft = "";
     }
   } else if (action === "guest" && room) {
     next.players.push("");
+    next.starts.push(0);
   } else if (action === "remove") {
     next.players.splice(index, 1);
+    next.starts.splice(index, 1);
   } else if (action === "up" || action === "down") {
     const other = action === "up" ? index - 1 : index + 1;
     if (other >= 0 && other < next.players.length) {
       [next.players[index], next.players[other]] = [next.players[other], next.players[index]];
+      [next.starts[index], next.starts[other]] = [next.starts[other] ?? 0, next.starts[index] ?? 0];
     }
+  } else if ((action === "lower" || action === "raise") && gameGroup(next.game) === "x01" && index in next.players) {
+    // A start score of the player's own in steps of 100; the game's start is 0.
+    const game = Number(next.game);
+    const shown = (next.starts[index] || game) + (action === "raise" ? START_STEP : -START_STEP);
+    const start = Math.min(Math.max(shown, START_LIMITS[0]), START_LIMITS[1]);
+    next.starts[index] = start === game ? 0 : start;
   } else if (action === "legs" || action === "sets") {
     next[action] = within(next[action] + index, LOBBY_LIMITS[action], next[action]);
   } else if (action === "toggle" && LOBBY_OPTIONS.includes(value)) {
@@ -2523,6 +2553,10 @@ function startGameData(choice, { entry = null, distance = false } = {}) {
     if (distance && choice.bull_off) data.bull_off_distance = choice.bull_off_distance;
   }
   if (rules.x01) Object.assign(data, { double_out: choice.double_out, double_in: choice.double_in });
+  // Start scores go with the start once any is set, so the game's start comes back, too.
+  const starts = players.map((_, index) => choice.starts?.[index] ?? 0);
+  if (rules.x01 && (choice.handicap || starts.some(Boolean))) data.start_scores = starts;
+  if (rules.teams && players.length === TEAM_SIZE) data.teams = choice.teams === true;
   return data;
 }
 
@@ -2549,12 +2583,24 @@ function lobbyHtml(choice, ui) {
     .join("");
   const shown = (name, index) => name || `${t("score_player")} ${index + 1}`;
   const last = choice.players.length - 1;
+  // In X01, every player can start from a score of their own.
+  const startHtml = (index, who) => {
+    if (!rules.x01) return "";
+    const start = choice.starts?.[index] || Number(choice.game);
+    return (
+      `<span class="lobby-start${choice.starts?.[index] ? " own" : ""}">` +
+      button("lower", index, "−", ` aria-label="${text("lobby_start_lower", who)}"${start <= START_LIMITS[0] ? " disabled" : ""}`) +
+      `<b>${start}</b>` +
+      button("raise", index, "+", ` aria-label="${text("lobby_start_raise", who)}"${start >= START_LIMITS[1] ? " disabled" : ""}`) +
+      `</span>`
+    );
+  };
   const players = choice.players
     .map((name, index) => {
       const who = { name: shown(name, index) };
       return (
         `<li class="lobby-player${index >= rules.maxPlayers ? " resting" : ""}">${avatarHtml(ui.avatar(name))}` +
-        `<span class="who">${escapeHtml(who.name)}</span>` +
+        `<span class="who">${escapeHtml(who.name)}</span>${startHtml(index, who)}` +
         button("up", index, "▲", ` aria-label="${text("lobby_move_up", who)}"${index === 0 ? " disabled" : ""}`) +
         button("down", index, "▼", ` aria-label="${text("lobby_move_down", who)}"${index === last ? " disabled" : ""}`) +
         button("remove", index, "✕", ` aria-label="${text("lobby_remove", who)}"`) +
@@ -2595,6 +2641,7 @@ function lobbyHtml(choice, ui) {
     ...(rules.x01 ? ["double_out", "double_in"] : []),
     ...(match ? ["bull_off"] : []),
     ...(match && ui.distance && choice.bull_off ? ["bull_off_distance"] : []),
+    ...(rules.teams && ui.teams && choice.players.length === TEAM_SIZE ? ["teams"] : []),
   ];
   // Nobody chosen is one player without a name.
   const blocked = Math.max(choice.players.length, 1) < rules.minPlayers;
@@ -4020,6 +4067,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .lobby-player.resting { opacity: .45; }
   .lobby-player .who { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lobby-player button { min-width: 48px; padding: 0; }
+  .lobby-start { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+  .lobby-start b { min-width: 3.2ch; text-align: center; font-size: .85em; color: var(--secondary-text-color); }
+  .lobby-start.own b { color: var(--ad-accent); }
+  .lobby-player .lobby-start button { min-width: 40px; }
   .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .lobby .suggestion { display: inline-flex; align-items: center; border-radius: 999px; }
   .suggestion .home { margin-left: 6px; color: var(--ad-ok-text); }
@@ -5632,8 +5683,15 @@ function createElements(Base) {
       );
     }
 
+    // The start scores of the players, in the same order as the names.
+    _startIds() {
+      return [...(this._index?.["number.practice_start"] ?? [])].sort((a, b) =>
+        a.localeCompare(b, "en", { numeric: true })
+      );
+    }
+
     _watched() {
-      return [...super._watched(), ...this._nameIds()];
+      return [...super._watched(), ...this._nameIds(), ...this._startIds()];
     }
 
     _build() {
@@ -5768,6 +5826,11 @@ function createElements(Base) {
         double_in: on("doubleIn"),
         bull_off: on("bullOff"),
         bull_off_distance: on("bullOffDistance"),
+        teams: on("teams"),
+        starts: this._startIds().map((id) => {
+          const start = Number(this._hass.states[id]?.state);
+          return Number.isInteger(start) ? start : 0;
+        }),
       };
     }
 
@@ -5964,6 +6027,7 @@ function createElements(Base) {
           name: (game) => this._gameName(game),
           suggestions: lobbySuggestions(this._state("profiles"), this._board().names, ui.links, choice.players),
           distance: Boolean(this._ids.bullOffDistance),
+          teams: Boolean(this._ids.teams),
           running: ![undefined, "off", "unknown", "unavailable"].includes(this._state("game")?.state),
           confirmEnd: this._confirm === "end",
         });

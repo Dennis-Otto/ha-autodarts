@@ -107,16 +107,18 @@ const started = (hass) => hass.calls.filter(([domain]) => domain === "autodarts"
 
 test("games are grouped, filtered and ruled like the practice game", () => {
   assert.deepEqual(
-    ["501", "cricket", "cricket_cut_throat", "killer", "bobs_27", "tactics"].map(gameGroup),
-    ["x01", "cricket", "cricket", "party", "training", "more"]
+    ["501", "cricket", "cricket_cut_throat", "cut_throat", "tactics", "killer", "golf", "bobs_27", "catch_40", "bingo"].map(
+      gameGroup
+    ),
+    ["x01", "cricket", "cricket", "cricket", "cricket", "party", "party", "training", "training", "more"]
   );
-  assert.deepEqual(gameRules("killer"), { x01: false, drill: false, minPlayers: 2, maxPlayers: 4 });
-  assert.deepEqual(gameRules("doubles"), { x01: false, drill: true, minPlayers: 1, maxPlayers: 1 });
-  assert.deepEqual(gameRules("701").x01, true);
-  assert.deepEqual(lobbyGames([...OPTIONS, "tactics"], ["501", "tactics", "doubles"]), [
+  assert.deepEqual(gameRules("killer"), { x01: false, drill: false, teams: false, minPlayers: 2, maxPlayers: 4 });
+  assert.deepEqual(gameRules("doubles"), { x01: false, drill: true, teams: false, minPlayers: 1, maxPlayers: 1 });
+  assert.deepEqual([gameRules("701").x01, gameRules("701").teams, gameRules("tactics").teams], [true, true, true]);
+  assert.deepEqual(lobbyGames([...OPTIONS, "bingo"], ["501", "bingo", "doubles"]), [
     { group: "x01", games: ["501"] },
     { group: "training", games: ["doubles"] },
-    { group: "more", games: ["tactics"] },
+    { group: "more", games: ["bingo"] },
   ]);
   assert.deepEqual(lobbyGames(undefined, []), []);
   assert.equal(lobbyGames(OPTIONS, []).length, 4);
@@ -135,6 +137,9 @@ test("the choice starts from what the board has set, with every name once", () =
   assert.deepEqual(lobbyChoice(board, ["501", "cricket"]), {
     game: "cricket",
     players: ["Alex", "", "Sam"],
+    starts: [0, 0, 0],
+    handicap: false,
+    teams: false,
     legs: 11,
     sets: 1,
     double_out: false,
@@ -621,11 +626,11 @@ test("the screen that opens by itself waits the idle time before idle mode takes
 
 test("the new game screen speaks German and names newer games as Home Assistant does", () => {
   const { hass, card } = setup(
-    { "select.practice_game": { state: "off", attributes: { options: [...OPTIONS, "tactics"] } } },
+    { "select.practice_game": { state: "off", attributes: { options: [...OPTIONS, "bingo"] } } },
     {},
     { language: "de" }
   );
-  hass.formatEntityState = (state, option) => (option === "tactics" ? "Taktik" : option);
+  hass.formatEntityState = (state, option) => (option === "bingo" ? "Bingo" : option);
   card.hass = { ...hass };
   tap(card, ".lobby-toggle");
   assert.equal(text(card, ".title"), "Neues Spiel");
@@ -633,7 +638,7 @@ test("the new game screen speaks German and names newer games as Home Assistant 
     $$(card, ".lobby-group .section-label").map((label) => label.textContent),
     ["X01", "Cricket", "Partyspiele", "Trainingsspiele", "Weitere Spiele"]
   );
-  assert.equal($$(card, ".game").at(-1).textContent, "Taktik");
+  assert.equal($$(card, ".game").at(-1).textContent, "Bingo");
   assert.equal(text(card, ".lobby .start"), "501 starten");
   assert.deepEqual(options(card).map(([option]) => text(card, `[data-value="${option}"]`)), [
     "Double-Out",
@@ -648,5 +653,117 @@ test("the new game screen speaks German and names newer games as Home Assistant 
   // Without Home Assistant's names, a newer game reads as its option.
   delete hass.formatEntityState;
   card.hass = update(hass, { "number.practice_legs": "4" });
-  assert.equal($$(card, ".game").at(-1).textContent, "tactics");
+  assert.equal($$(card, ".game").at(-1).textContent, "bingo");
+});
+
+test("in X01 every player can start from a score of their own, in steps of 100", () => {
+  let choice = lobbyChoice(
+    { game: "501", players: 2, names: ["Alex", "Sam"], starts: [0, 301, "x", 0] },
+    ["501", "cricket"]
+  );
+  assert.deepEqual([choice.starts, choice.handicap], [[0, 301], true]);
+  choice = lobbyChange(choice, "raise", "0");
+  choice = lobbyChange(choice, "lower", "1");
+  assert.deepEqual(choice.starts, [601, 201]);
+  // Back at the game's start, a start of its own is 0 again; 101 and 1001 are the limits.
+  choice = lobbyChange(choice, "lower", "0");
+  assert.deepEqual(choice.starts, [0, 201]);
+  for (let step = 0; step < 3; step += 1) choice = lobbyChange(choice, "lower", "1");
+  for (let step = 0; step < 6; step += 1) choice = lobbyChange(choice, "raise", "0");
+  assert.deepEqual(choice.starts, [1001, 101]);
+  // The start scores move and go with their players.
+  choice = lobbyChange(choice, "guest");
+  choice = lobbyChange(choice, "up", "1");
+  assert.deepEqual([choice.players, choice.starts], [["Sam", "Alex", ""], [101, 1001, 0]]);
+  choice = lobbyChange(choice, "remove", "0");
+  assert.deepEqual(choice.starts, [1001, 0]);
+  // Nobody at that place, or a game other than X01, changes nothing.
+  assert.deepEqual(lobbyChange(choice, "raise", "5").starts, [1001, 0]);
+  assert.deepEqual(lobbyChange({ ...choice, game: "cricket" }, "raise", "1").starts, [1001, 0]);
+  assert.deepEqual(startGameData(choice), {
+    game: "501",
+    players: ["Alex", ""],
+    legs: 1,
+    sets: 1,
+    bull_off: false,
+    double_out: true,
+    double_in: false,
+    start_scores: [1001, 0],
+  });
+  // Once the board had start scores, the game's start goes back with the start.
+  const reset = lobbyChoice({ game: "301", players: 1, names: ["Alex"], starts: [0, 201] }, ["301"]);
+  assert.deepEqual(startGameData(reset).start_scores, [0]);
+  // A choice from older cards without start scores starts from the game's.
+  const { starts, ...older } = reset;
+  assert.deepEqual(lobbyChange(older, "raise", "0").starts, [401]);
+  const pair = { ...older, players: ["Alex", "Sam"] };
+  assert.deepEqual(lobbyChange(pair, "down", "0").starts, [0, 0]);
+  assert.equal("start_scores" in startGameData({ ...older, handicap: false }), false);
+});
+
+test("four players of X01 or Cricket can play as two teams", () => {
+  const names = ["Alex", "Sam", "Kim", "Lea"];
+  let choice = lobbyChoice({ game: "cricket", players: 4, names, teams: true }, ["cricket", "golf"]);
+  assert.equal(startGameData(choice).teams, true);
+  choice = lobbyChange(choice, "toggle", "teams");
+  assert.equal(startGameData(choice).teams, false);
+  // Teams need four players and a game for teams.
+  assert.equal("teams" in startGameData({ ...choice, players: names.slice(0, 3) }), false);
+  assert.equal("teams" in startGameData({ ...choice, game: "golf" }), false);
+});
+
+test("the new game screen offers teams and start scores of their own", () => {
+  const teams = {
+    "switch.practice_teams": "off",
+    "number.practice_players": "4",
+    "select.practice_game": { state: "501", attributes: { options: OPTIONS } },
+  };
+  const { hass, card } = setup(teams);
+  ["Alex", "Sam", "Kim", "Lea"].forEach((name, index) => {
+    const id = `text.dartboard_practice_player_${index + 1}`;
+    hass.states[id] = { ...hass.states[id], state: name };
+  });
+  // The four start scores share one translation key, like the names.
+  hass.entities = { ...hass.entities };
+  [0, 301, 0, "unavailable"].forEach((start, index) => {
+    const id = `number.dartboard_practice_start_score_player_${index + 1}`;
+    hass.entities[id] = { entity_id: id, platform: "autodarts", device_id: DEVICE, translation_key: "practice_start" };
+    hass.states[id] = { entity_id: id, state: String(start), attributes: {} };
+  });
+  card.hass = { ...hass };
+  tap(card, ".lobby-toggle");
+  assert.deepEqual(
+    $$(card, ".lobby-start").map((start) => [start.className, start.querySelector("b").textContent]),
+    [
+      ["lobby-start", "501"],
+      ["lobby-start own", "301"],
+      ["lobby-start", "501"],
+      ["lobby-start", "501"],
+    ]
+  );
+  assert.equal($(card, '[data-lobby="raise"][data-value="0"]').getAttribute("aria-label"), "Higher start score: Alex");
+  lobbyTap(card, "raise", "0");
+  // 101 and 1001 are the limits of the steps.
+  for (let step = 0; step < 5; step += 1) lobbyTap(card, "raise", "2");
+  for (let step = 0; step < 4; step += 1) lobbyTap(card, "lower", "3");
+  assert.deepEqual(
+    ["raise", "lower"].map((action) => $(card, `[data-lobby="${action}"][data-value="${action === "raise" ? 2 : 3}"]`).disabled),
+    [true, true]
+  );
+  assert.deepEqual(options(card), [
+    ["double_out", "true"],
+    ["double_in", "false"],
+    ["bull_off", "false"],
+    ["teams", "false"],
+  ]);
+  assert.equal(text(card, '[data-value="teams"]'), "Teams (1 + 3 against 2 + 4)");
+  lobbyTap(card, "toggle", "teams");
+  tap(card, ".lobby .start");
+  const [[, , data]] = started(hass);
+  assert.deepEqual([data.start_scores, data.teams], [[601, 301, 1001, 101], true]);
+  // Cricket has no start scores; without the team switch, no teams are offered.
+  const cricket = setup({ "number.practice_players": "4" });
+  tap(cricket.card, ".lobby-toggle");
+  lobbyTap(cricket.card, "game", "cricket");
+  assert.deepEqual([$$(cricket.card, ".lobby-start").length, options(cricket.card).length], [0, 1]);
 });
