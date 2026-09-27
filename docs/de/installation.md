@@ -28,9 +28,11 @@ Neue Versionen zeigt HACS als Update unter **Einstellungen → Updates** an, sam
 
 ### Manuell
 
-1. Lade die neueste Version von [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases) herunter.
-2. Kopiere den Ordner `custom_components/autodarts` in den Ordner `custom_components` deiner Home-Assistant-Konfiguration. Danach gibt es `config/custom_components/autodarts/manifest.json`.
+1. Lade `autodarts.zip` der neuesten Version von [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases) herunter. Die Datei enthält die Dateien der Integration ohne umgebenden Ordner.
+2. Lege in deiner Home-Assistant-Konfiguration den Ordner `custom_components/autodarts` an und entpacke die Datei dort. Danach gibt es `config/custom_components/autodarts/manifest.json`.
 3. Starte Home Assistant neu.
+
+Der Release-Workflow signiert jedes Paket: `gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts` prüft mit der GitHub CLI, dass es aus diesem Repository gebaut wurde.
 
 ## Board hinzufügen
 
@@ -64,7 +66,7 @@ Die Board-ID liest die Integration selbst aus. Nicht erreichbare Adressen und Bo
 
 ### Nach der Einrichtung
 
-Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entitaeten.md) an. Die Karten findest du unter **Karte hinzufügen → Autodarts**; siehe [Dashboard-Karten](karten.md).
+Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entitaeten.md) an. Für ein Dashboard mit allem öffnest du **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**, wie es auch der Dialog am Ende der Einrichtung sagt: Das [automatische Dashboard](karten.md#automatisches-dashboard) baut seine Ansichten aus deinen Boards. Auf einem eigenen Dashboard findest du die Karten unter **Karte hinzufügen → Autodarts**; siehe [Dashboard-Karten](karten.md).
 
 ## Autodarts-Cloud verknüpfen (optional)
 
@@ -94,7 +96,7 @@ Board, Entitäten, Verlauf und Dashboards bleiben erhalten. Eine Adresse oder ei
 Autodarts ersetzt den klassischen Board Manager durch den Headless **Board Manager 2** und schaltet die alte Version ab, sobald die meisten Spieler umgestiegen sind. Solange ein Board noch Board Manager 1 nutzt, zeigt Home Assistant einen **Reparaturhinweis**.
 
 1. Installiere Board Manager 2 nach der Anleitung von Autodarts auf dem Board-PC.
-2. An der Integration musst du nichts ändern. Sie erkennt die neue Generation beim nächsten Lesen, lädt sich neu und ergänzt die neuen Entitäten: die Autodarts-Cloud-Verbindung, CPU und Speicher, Betriebssystem, Prozessor und Erkennungssoftware des Board-PCs und das Board-Manager-Update. Aktivierte Kamera-Entitäten zeigen statt Standbildern den Livestream.
+2. An der Integration musst du nichts ändern. Sie erkennt die neue Generation beim nächsten Lesen, lädt sich neu und ergänzt die neuen Entitäten: die Cloud-Verbindung, CPU und Speicher, Betriebssystem, Prozessor und Erkennungssoftware des Board-PCs und das Board-Manager-Update. Aktivierte Kamera-Entitäten zeigen statt Standbildern den Livestream.
 3. Entitäten, die es nur bei Board Manager 1 gibt, der Schalter für die Cloud-Verbindung und seine Tasten zum Herstellen und Trennen, werden automatisch entfernt.
 
 Trainingssession, Entitäts-IDs und Dashboards bleiben erhalten.

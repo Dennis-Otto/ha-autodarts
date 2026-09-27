@@ -46,8 +46,9 @@ Home Assistant keeps the best value of every record and fires `personal_best` wh
 | Record | From |
 | --- | --- |
 | Highest visit | Any visit of up to three darts |
-| Highest checkout, fewest darts for 101 to 1001 | Won X01 legs with double out, played alone |
-| Best Cricket marks per round | Won Cricket legs, played alone |
+| Highest checkout | Won X01 legs with double out, also in a team match, for the player who checked out |
+| Fewest darts for 101 to 1001 | Won X01 legs with double out, not in a team match, counted from the leg's own start score |
+| Best Cricket marks per round | Won Cricket legs, not in a team match |
 | Best session average | Finished sessions of at least 30 darts |
 | Around the Clock, doubles training | The fewest darts of a finished game |
 | Bob's 27, 121 checkout, Catch 40, JDC Challenge, singles training | The highest score |
@@ -87,7 +88,7 @@ Home Assistant keeps long-term statistics of the totals and averages, hour by ho
 
 - **Darts per day** and **practice legs per day** for the last 30 days;
 - the **3-dart average** of the last seven days;
-- the **first 9 average, checkout rate and doubles rate** of the last 10 X01 legs.
+- the **first 9 average and checkout rate** of the last 10 X01 legs, and the **doubles rate** of the same legs together with the last 10 results of the doubles training and Bob's 27.
 
 Build your own graphs with Home Assistant's statistics graph card. The 3-dart average of your sessions, week by week, over three months:
 
@@ -108,9 +109,9 @@ The entity IDs depend on the name of your board; you find yours on the device pa
 
 <img src="images/en/doubles-card.png" alt="Doubles card: the double ring colored by hit rate from red to green, and a list of the doubles with hits, darts and hit rate, the best first" width="760">
 
-Home Assistant counts every dart thrown at a double and whether it hit: in X01 whenever one double could finish the score, in the doubles training, in Bob's 27 and in the doubles part of the JDC Challenge. The [doubles card](cards.md#doubles-card) draws the hit rate of every double on the board, for everybody or, with `player`, for one named player. *Favorite double* names your best double with at least 10 darts.
+Home Assistant counts every dart thrown at a double and whether it hit: in X01 whenever one double could finish the score, in the doubles training, in Bob's 27, in the checkout training, the 121 checkout and Catch 40 in the same way as in X01, and in the doubles part of the JDC Challenge. The [doubles card](cards.md#doubles-card) draws the hit rate of every double on the board, for everybody or, with `player`, for one named player. *Favorite double* names your best double with at least 10 darts.
 
-With *Practice personal checkout routes* on, the checkout route prefers the strongest doubles of the player at the board: a route with the same number of darts to a double with a better hit rate wins, as long as it needs no double to set up. [How the route is chosen](how-it-works.md#practice-game).
+With *Practice personal checkout routes* on, the checkout route prefers the strongest doubles of the player at the board: a route with the same number of darts to a double with a better hit rate wins, as long as it needs no double to set up. A double counts as strong from 10 darts thrown at it and a hit rate at least as high as the player's rate on all doubles; a double never hit is never preferred. [How the route is chosen](how-it-works.md#practice-game).
 
 ## Player profiles
 
@@ -132,7 +133,7 @@ Named players unlock achievements in tiers of bronze, silver, gold and, for the 
 
 - Each new tier fires `achievement_unlocked`, for a [notification](automations.md#celebrate-an-achievement) or the [light show](automations.md#light-show). Nothing plays or speaks unless an automation does.
 - On the first start after the update, what the profiles already prove unlocks quietly.
-- The *Achievements* switch turns them off; progress keeps counting and unlocks quietly when you turn them on again.
+- The *Unlock achievements* switch turns them off; progress keeps counting and unlocks quietly when you turn them on again.
 
 [Every achievement and its tiers](entities.md#achievements)
 
@@ -183,7 +184,7 @@ The **Training calendar** shows your finished sessions and practice matches of e
 Take your data to a spreadsheet, a backup or your own analysis:
 
 - **On the players card:** turn on `export` and tap *Export*. The browser downloads the sessions, matches and profiles, as a ZIP of CSV tables or as JSON.
-- **In an automation:** the action [`autodarts.export`](entities.md#export-training-data-autodartsexport) writes the file below your configuration folder and returns where it is.
+- **In an automation:** the action [`autodarts.export`](entities.md#export-training-data-autodartsexport) writes the file and returns where it is. It is an action for administrators; automations run it, too.
 
 ```yaml
 action: autodarts.export
@@ -193,7 +194,7 @@ data:
 response_variable: export
 ```
 
-Exports contain player names. Files in `www` are served at `/local/` without a login to anyone who can reach Home Assistant and knows the file name; delete exports you no longer need, or export to a folder outside `www`.
+Exports contain player names. By default they go to `autodarts/exports` in the media folder, which needs a login; only administrators download them. A folder of your own must be one where Home Assistant allows writing (`www`, a media folder or a folder listed in `allowlist_external_dirs`) and must not be hidden. At most 20 exports are written in an hour. Files in `www` are served at `/local/` without a login to anyone who can reach Home Assistant and knows the file name, so delete exports there that you no longer need.
 
 ## Your data
 

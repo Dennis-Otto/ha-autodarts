@@ -22,15 +22,15 @@ The words of darts and of this integration, as the documentation, the entities a
 | **Bust** | A dart that goes below zero, leaves 1 with double out, or reaches zero without a double; the visit counts nothing | Überwerfen |
 | **Game shot** | The dart that wins a leg | Game shot |
 | **Bull-off** | One dart per player at the bull to decide who throws first | Ausbullen |
-| **Marks** | In Cricket, the hits on a number: a single is one mark, a double two, a triple three | Treffer |
-| **MPR** | Marks per round: the Cricket marks that counted, per three darts | Treffer pro Runde (MPR) |
+| **Marks** | In Cricket, the hits on a number: a single is one mark, a double two, a triple three | Marks |
+| **MPR** | Marks per round: the Cricket marks that counted, per three darts | Marks pro Runde (MPR) |
 | **3-dart average** | Points per three darts, the usual measure of a player | 3-Dart-Average |
 | **First 9 average** | The 3-dart average of the first nine darts of a leg | First-9-Average |
 | **Checkout rate** | Legs won per dart thrown at a double | Checkout-Quote |
 | **Doubles rate** | Hits per dart thrown at a double, also in the doubles training and Bob's 27 | Doppelquote |
 | **Handicap, start score** | A score of a player's own to start X01 from, such as 301 against 501 | Handicap, Startpunkte |
 | **Setup, leave** | Darts that cannot finish but leave a good score for the next visit, such as T20 T20 S17 to leave 32 on D16 | Stellwurf, Rest |
-| **Ton, ton-plus, 180** | A visit of 100 or more, of 140 or more, and the maximum of three triple 20s | 100+, 140+, 180 |
+| **Ton, ton-plus, ton-forty, 180** | A visit of 100, of more than 100, of 140 or more, and the maximum of three triple 20s. The statistics count visits of 100 to 139 as 100+ and of 140 to 179 as 140+ | 100+, 140+, 180 |
 
 ## The integration
 

@@ -17,7 +17,7 @@ Ein Tablet oder Fernseher neben dem Board macht deinen Dartraum zur Bühne: der 
 ## Den Bildschirm einrichten
 
 1. **Dashboard anlegen.** Öffne **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**. Das [automatische Dashboard](karten.md#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die [Anzeigetafel-Karte](karten.md#anzeigetafel) über den ganzen Bildschirm zeigt.
-2. **Ansicht auf dem Bildschirm öffnen.** Melde dich als Benutzer des Bildschirms an und öffne die Ansicht *Anzeigetafel* des Dashboards. Ihre Adresse endet auf `/scoreboard`; lege ein Lesezeichen an oder setze sie auf den Startbildschirm des Tablets.
+2. **Ansicht auf dem Bildschirm öffnen.** Melde dich als Benutzer des Bildschirms an und öffne die Ansicht *Anzeigetafel* des Dashboards. Ihre Adresse endet auf `/scoreboard`, bei mehreren Boards auf `/scoreboard-1`, `/scoreboard-2` und so weiter; lege ein Lesezeichen an oder setze sie auf den Startbildschirm des Tablets.
 3. **Vollbild.** Nutze den Vollbildmodus des Browsers oder einen Kiosk-Browser, der die Adresse beim Start öffnet. Lass den Bildschirm am Ladegerät eingeschaltet, in den Einstellungen des Tablets oder des Kiosk-Browsers.
 4. **Einschalten, was dir gefällt.** Öffne das Menü des Dashboards (⋮) → **Dashboard bearbeiten**. Im Abschnitt *Ansicht Anzeigetafel* schaltest du den [Caller](#der-caller) und das [Tastenfeld](#darts-korrigieren-und-eingeben) ein und wählst die Spiele der [Spielauswahl](#das-nächste-spiel-wählen) und die Seiten des [Ruhemodus](#zwischen-den-spielen-ruhemodus); das Dashboard bleibt automatisch und bekommt die Ansichten späterer Versionen. Für jede andere Option baust du eine eigene Ansicht: eine Ansicht im Panel-Modus mit der Anzeigetafel und `full_height: true`, oder du wählst im Menü dieses Editors **Kontrolle übernehmen**, das aus dem Dashboard eines macht, das du selbst bearbeitest:
 
@@ -89,7 +89,7 @@ Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte; ei
   </tr>
   <tr>
     <td width="50%"><img src="../images/de/golf.webp" alt="Animation: Golf für Alex und Sam auf der Anzeigetafel. Nach jeder Aufnahme füllt sich die Scorekarte: Alex spielt 1, 3 und 2, Sam 4, 5 und 5, und das vierte Loch läuft" width="100%"></td>
-    <td width="50%"><img src="../images/de/scoreboard-catch-40.png" alt="Catch 40 auf der Anzeigetafel: In der zweiten Runde lässt eine Single 12 von 62 noch 50 übrig, der Weg ist das Bull, und der erste Checkout brachte 3 Punkte" width="100%"></td>
+    <td width="50%"><img src="../images/de/scoreboard-catch-40.png" alt="Catch 40 auf der Anzeigetafel: In der zweiten Runde lässt ein Single 12 von 62 noch 50 übrig, der Weg ist das Bull, und der erste Checkout brachte 3 Punkte" width="100%"></td>
   </tr>
 </table>
 

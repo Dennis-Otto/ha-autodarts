@@ -4,7 +4,9 @@ blueprint:
     Runs your actions the moment a visit reaches a minimum score, for example
     a light show for every 180 or a sound for each ton. A visit of three darts
     counts when its third dart lands, while the darts are still in the board.
-    A shorter visit counts when the darts are pulled.
+    A shorter visit counts when the darts are pulled. The visits of the
+    practice game's bot count only when you ask for them: its darts are not in
+    the board.
 
 
     Your actions can use the variables `score` (points of the visit),
@@ -41,6 +43,14 @@ blueprint:
       description: What happens after such a visit, for example a light effect or a sound.
       selector:
         action: {}
+    include_bot:
+      name: Also for the bot
+      description: >-
+        Also runs the actions for the visits of the practice game's bot. Its
+        darts are not in the board, so its visits are left out by default.
+      default: false
+      selector:
+        boolean: {}
 
 mode: queued
 max: 5
@@ -57,6 +67,7 @@ triggers:
 
 variables:
   minimum_score: !input minimum_score
+  include_bot: !input include_bot
   # Read from the triggering state: the next event may already have replaced it.
   kind: "{{ trigger.to_state.attributes.get('event_type', '') }}"
   score: "{{ trigger.to_state.attributes.get('score') | int(0) }}"
@@ -72,5 +83,8 @@ conditions:
   - alias: The visit reaches the minimum score
     condition: template
     value_template: "{{ score >= minimum_score }}"
+  - alias: Not a visit of the bot, unless asked
+    condition: template
+    value_template: "{{ include_bot or not trigger.to_state.attributes.get('bot', false) }}"
 
 actions: !input celebration

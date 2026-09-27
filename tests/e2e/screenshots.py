@@ -13,10 +13,12 @@ import os
 import re
 import sys
 import urllib.request
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from PIL import Image
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Browser, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 HA = "http://homeassistant:8123"
@@ -24,6 +26,8 @@ BOARD = "http://board-mock:3180"
 LANGUAGE = os.environ.get("DEMO_LANGUAGE", "en")
 OUTPUT = Path(os.environ.get("OUTPUT", "/repo/docs/images")) / LANGUAGE
 LOCALE = {"en": "en-US", "de": "de-DE"}[LANGUAGE]
+# Screenshots of a failed run, never next to the scripts (ignored by Git).
+ARTIFACTS = Path(__file__).resolve().parent / "artifacts"
 
 # Demo darts as the Board Manager reports them (see demo.py).
 T20 = {
@@ -170,6 +174,30 @@ def tall_card_shot(page: Page, name: str, index: int = 0) -> None:
 def page_shot(page: Page, name: str) -> None:
     page.screenshot(path=str(OUTPUT / f"{name}.png"))
     print(f"saved {OUTPUT / name}.png")
+
+
+@contextmanager
+def failure_screenshots() -> Iterator[list[Browser]]:
+    """Save every page still open when a capture fails, in tests/e2e/artifacts."""
+    browsers: list[Browser] = []
+    try:
+        yield browsers
+    except Exception:
+        ARTIFACTS.mkdir(parents=True, exist_ok=True)
+        pages = [
+            page
+            for browser in browsers
+            for context in browser.contexts
+            for page in context.pages
+        ]
+        for number, page in enumerate(pages, start=1):
+            path = ARTIFACTS / f"screenshots-{LANGUAGE}-failure-{number}.png"
+            try:
+                page.screenshot(path=str(path), full_page=True)
+                print(f"saved {path}")
+            except Exception as error:  # A screenshot must never hide the failure.
+                print(f"No failure screenshot {number}: {error}")
+        raise
 
 
 class Recorder:
@@ -1986,8 +2014,10 @@ def online_bridge_options(page: Page) -> None:
 
 def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    with sync_playwright() as playwright:
+    # The inner context saves the open pages while the browser still runs.
+    with sync_playwright() as playwright, failure_screenshots() as browsers:
         browser = playwright.chromium.launch()
+        browsers.append(browser)
         for scheme, suffix in (("dark", ""), ("light", "-light")):
             context = browser.new_context(
                 viewport={"width": 1280, "height": 820},

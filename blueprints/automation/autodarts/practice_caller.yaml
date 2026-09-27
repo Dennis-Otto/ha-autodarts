@@ -7,8 +7,9 @@ blueprint:
     checkout is possible and the bull-off.
 
 
-    The messages are templates. They can use `who` (the player's name,
-    "Player 2" in a match without names, empty when you play alone),
+    The messages are templates. They can use `who` (the player's name, "Bot"
+    for the practice game's bot, "Player 2" in a match without names, empty
+    when you play alone),
     `remaining`, `checkout` (the route when a checkout is possible, for example
     `T20 T20 BULL`; the score checked out when a leg is won), `darts`,
     `average`, `points` (Cricket and party games), `target` (the next target of
@@ -16,8 +17,12 @@ blueprint:
     setup leaves when no checkout is possible, for example `32`, and its darts,
     for example `T20 T20 S17`), and when the bull-off is won
     `hit` (the bed of the winning dart: `BULL`, `25` or for example `S20`) and
-    `distance` (millimetres from the centre, empty when the board measured no
+    `distance` (millimeters from the center, empty when the board measured no
     position). An empty message stays silent.
+
+
+    The first visit of a game is not called: a practice game starts without a
+    turn change, unless a bull-off decides who starts.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/practice_caller.yaml
@@ -141,7 +146,7 @@ blueprint:
             Said when the bull-off decides who starts, together with the
             first call of the match, for example
             `{{ who }} to throw first. Game on!`. `hit` names the bed of the
-            winning dart and `distance` its millimetres, if measured. Empty
+            winning dart and `distance` its millimeters, if measured. Empty
             stays silent.
           default: ""
           selector:
@@ -150,6 +155,14 @@ blueprint:
           name: Word for a player without a name
           description: For example `Player` makes "Player 2".
           default: "Player"
+          selector:
+            text: {}
+        bot_label:
+          name: Word for the bot
+          description: >-
+            The `who` of the practice game's bot, for example "Bot, you
+            require 40", as the scoreboard names it.
+          default: "Bot"
           selector:
             text: {}
 
@@ -176,11 +189,20 @@ variables:
   previous: "{{ trigger.from_state.attributes.get('event_type', '') }}"
   player: "{{ trigger.to_state.attributes.get('player') | int(1) }}"
   players: "{{ trigger.to_state.attributes.get('players') | int(1) }}"
-  name: "{{ trigger.to_state.attributes.get('name') or '' }}"
+  bot: "{{ trigger.to_state.attributes.get('bot', false) }}"
+  # Template characters leave the names: some fields, such as the message of a
+  # notification, are rendered once more.
+  name: >-
+    {{ (trigger.to_state.attributes.get('name') or '')
+       | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
   label: !input player_label
-  who: "{{ name if name else (label ~ ' ' ~ player if players > 1 else '') }}"
+  bot_label: !input bot_label
+  who: >-
+    {{ bot_label if bot else name if name else (label ~ ' ' ~ player if players > 1 else '') }}
   # The team of the player in a team match, when both partners have a name.
-  team: "{{ trigger.to_state.attributes.get('team_name') or '' }}"
+  team: >-
+    {{ (trigger.to_state.attributes.get('team_name') or '')
+       | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
   remaining: "{{ trigger.to_state.attributes.get('remaining') | int(0) }}"
   checkout: "{{ trigger.to_state.attributes.get('checkout') or '' }}"
   # Where to aim without a checkout: the darts and the score they leave.
