@@ -9,11 +9,13 @@ blueprint:
 
 
     The photo is saved to the highlight gallery, which the media browser shows
-    under Autodarts, and your actions can send it on: they can use `image` (the
-    camera picture, for example `data: {image: "{{ image }}"}` in a
-    notification of the Home Assistant app), `message`, `score`, `checkout`,
-    `who` and `photo` (the saved file). Turn on the camera entity first;
-    camera entities are disabled by default.
+    under Autodarts, and your actions can send it on: they can use `photo_url`
+    (the address of the saved photo, for example `data: {image: "{{ photo_url
+    or image }}"}` in a notification of the Home Assistant app), `photo` (the
+    saved file), `image` (the live camera picture), `message`, `score`,
+    `checkout` and `who`. `photo` and `photo_url` are empty when no photo was
+    saved. Turn on the camera entity first; camera entities are disabled by
+    default.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/highlight_photo.yaml
@@ -92,8 +94,8 @@ blueprint:
         photo_actions:
           name: Actions
           description: >-
-            For example a notification with `image: "{{ image }}"` and
-            `message: "{{ message }}"`. Optional when the photo goes to the
+            For example a notification with `image: "{{ photo_url or image }}"`
+            and `message: "{{ message }}"`. Optional when the photo goes to the
             gallery.
           default: []
           selector:
@@ -141,12 +143,17 @@ variables:
   checkout: >-
     {{ trigger.to_state.attributes.get('checkout') | int(0) if trigger.id == 'checkout' else 0 }}
   # The player at the board: the winner of a leg, or who threw the visit.
-  who: "{{ trigger.to_state.attributes.get('name') or '' }}"
+  # Template characters leave the name: some fields, such as the file name of
+  # a snapshot and the message of a notification, are rendered once more.
+  who: >-
+    {{ (trigger.to_state.attributes.get('name') or '')
+       | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
   save_photo: !input save_photo
   gallery_folder: !input gallery_folder
-  # Characters that file names do not allow, and the separator _, leave the name.
+  # Characters that file names and addresses do not allow, and the separator
+  # _, leave the name.
   photo_who: >-
-    {{ who | regex_replace('[\\\\/:*?"<>|_\x00-\x1f]+', ' ') | trim }}
+    {{ who | regex_replace('[\\\\/:*?"<>|_{}%#\x00-\x1f]+', ' ') | trim }}
   # 2026-09-26_21-05-33_Alex_180.jpg or 2026-09-26_21-07-10_Alex_checkout-121.jpg
   photo: >-
     {{ gallery_folder | trim | regex_replace('/+$', '') }}/{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}
@@ -169,14 +176,25 @@ conditions:
 actions:
   - delay:
       milliseconds: 500
+  - variables:
+      saved: false
   - alias: Save the photo to the gallery
     if: "{{ save_photo }}"
     then:
       # A folder Home Assistant may not write to must not stop the actions.
-      - action: camera.snapshot
-        continue_on_error: true
-        target:
-          entity_id: !input camera
-        data:
-          filename: "{{ photo }}"
+      - continue_on_error: true
+        sequence:
+          - action: camera.snapshot
+            target:
+              entity_id: !input camera
+            data:
+              filename: "{{ photo }}"
+          - variables:
+              saved: true
+  # Only a saved photo has a file, and an address when it is in the media folder.
+  - variables:
+      photo: "{{ photo if saved else '' }}"
+      photo_url: >-
+        {{ '/media/local/' ~ (photo | regex_replace('^.*?/media/', '') | urlencode)
+           if '/media/' in photo else '' }}
   - sequence: !input photo_actions
