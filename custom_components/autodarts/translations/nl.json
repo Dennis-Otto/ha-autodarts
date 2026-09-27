@@ -311,6 +311,9 @@
       },
       "weekly_report": {
         "name": "Weekrapport"
+      },
+      "achievements": {
+        "name": "Prestaties"
       }
     },
     "button": {
@@ -393,6 +396,9 @@
       },
       "practice_teams": {
         "name": "Oefenspel teams"
+      },
+      "achievements_enabled": {
+        "name": "Prestaties"
       }
     },
     "select": {
@@ -547,7 +553,29 @@
               "online_bull_off": "Online: bullen begint",
               "online_tournament_ready": "Online: toernooiwedstrijd klaar",
               "online_match_left": "Online: wedstrijd verlaten",
-              "weekly_report": "Weekrapport"
+              "weekly_report": "Weekrapport",
+              "achievement_unlocked": "Prestatie ontgrendeld"
+            }
+          },
+          "achievement": {
+            "name": "Prestatie",
+            "state": {
+              "maximum": "180",
+              "ton_plus": "100+ beurten",
+              "ton_forty": "140+ beurten",
+              "high_finish": "High finish",
+              "short_leg": "Korte leg",
+              "nine_darter": "Negendarter",
+              "legs_won": "Gewonnen legs",
+              "matches_won": "Gewonnen wedstrijden",
+              "hat_trick": "Hattrick",
+              "all_doubles": "Alle dubbels",
+              "cricket_nine": "Negen marks",
+              "shanghai": "Shanghai",
+              "around_the_clock": "Around the Clock",
+              "bobs_27": "Bob's 27",
+              "streak": "Reeks",
+              "darts_thrown": "Gegooide darts"
             }
           }
         }

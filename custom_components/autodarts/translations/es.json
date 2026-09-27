@@ -311,6 +311,9 @@
       },
       "weekly_report": {
         "name": "Informe semanal"
+      },
+      "achievements": {
+        "name": "Logros"
       }
     },
     "button": {
@@ -393,6 +396,9 @@
       },
       "practice_teams": {
         "name": "Equipos de la partida"
+      },
+      "achievements_enabled": {
+        "name": "Logros"
       }
     },
     "select": {
@@ -547,7 +553,29 @@
               "online_bull_off": "En línea: empieza el bull-off",
               "online_tournament_ready": "En línea: partido de torneo listo",
               "online_match_left": "En línea: partido abandonado",
-              "weekly_report": "Informe semanal"
+              "weekly_report": "Informe semanal",
+              "achievement_unlocked": "Logro desbloqueado"
+            }
+          },
+          "achievement": {
+            "name": "Logro",
+            "state": {
+              "maximum": "180",
+              "ton_plus": "Tiradas de 100+",
+              "ton_forty": "Tiradas de 140+",
+              "high_finish": "Cierre alto",
+              "short_leg": "Leg corto",
+              "nine_darter": "Leg de nueve dardos",
+              "legs_won": "Legs ganados",
+              "matches_won": "Partidos ganados",
+              "hat_trick": "Hat-trick",
+              "all_doubles": "Todos los dobles",
+              "cricket_nine": "Nueve marcas",
+              "shanghai": "Shanghai",
+              "around_the_clock": "Around the Clock",
+              "bobs_27": "Bob's 27",
+              "streak": "Racha",
+              "darts_thrown": "Dardos lanzados"
             }
           }
         }

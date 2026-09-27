@@ -311,6 +311,9 @@
       },
       "weekly_report": {
         "name": "Rapport hebdomadaire"
+      },
+      "achievements": {
+        "name": "Succès"
       }
     },
     "button": {
@@ -393,6 +396,9 @@
       },
       "practice_teams": {
         "name": "Équipes de la partie"
+      },
+      "achievements_enabled": {
+        "name": "Succès"
       }
     },
     "select": {
@@ -547,7 +553,29 @@
               "online_bull_off": "En ligne\u00a0: début du bull-off",
               "online_tournament_ready": "En ligne\u00a0: match de tournoi prêt",
               "online_match_left": "En ligne\u00a0: match quitté",
-              "weekly_report": "Rapport hebdomadaire"
+              "weekly_report": "Rapport hebdomadaire",
+              "achievement_unlocked": "Succès débloqué"
+            }
+          },
+          "achievement": {
+            "name": "Succès",
+            "state": {
+              "maximum": "180",
+              "ton_plus": "Volées à 100+",
+              "ton_forty": "Volées à 140+",
+              "high_finish": "Gros finish",
+              "short_leg": "Manche rapide",
+              "nine_darter": "Neuf fléchettes",
+              "legs_won": "Manches gagnées",
+              "matches_won": "Matchs gagnés",
+              "hat_trick": "Coup du chapeau",
+              "all_doubles": "Tous les doubles",
+              "cricket_nine": "Neuf marques",
+              "shanghai": "Shanghai",
+              "around_the_clock": "Around the Clock",
+              "bobs_27": "Bob's 27",
+              "streak": "Série",
+              "darts_thrown": "Fléchettes lancées"
             }
           }
         }
