@@ -3,7 +3,8 @@ blueprint:
   description: >-
     Calls the practice game on your speakers like a caller on stage: what a
     player requires when a checkout is possible, "No score" after a bust, the
-    game shot of a leg or the match, and optionally the bull-off.
+    game shot of a leg or the match, and optionally the score to leave when no
+    checkout is possible and the bull-off.
 
 
     The messages are templates. They can use `who` (the player's name,
@@ -11,7 +12,9 @@ blueprint:
     `remaining`, `checkout` (the route when a checkout is possible, for example
     `T20 T20 BULL`; the score checked out when a leg is won), `darts`,
     `average`, `points` (Cricket and party games), `target` (the next target of
-    a party game, for example `20` or `D16`), and when the bull-off is won
+    a party game, for example `20` or `D16`), `leave` and `setup` (the score a
+    setup leaves when no checkout is possible, for example `32`, and its darts,
+    for example `T20 T20 S17`), and when the bull-off is won
     `hit` (the bed of the winning dart: `BULL`, `25` or for example `S20`) and
     `distance` (millimetres from the centre, empty when the board measured no
     position). An empty message stays silent.
@@ -79,6 +82,16 @@ blueprint:
             Said when the next visit can finish the leg, with `remaining` and
             the route in `checkout`.
           default: "{{ who ~ ', you' if who else 'You' }} require {{ remaining }}"
+          selector:
+            text: {}
+        setup_message:
+          name: No checkout, a setup
+          description: >-
+            Said when the next visit cannot finish the leg but can leave a
+            finish for the visit after, with `leave` and the darts in `setup`,
+            for example `{{ who ~ ', leave' if who else 'Leave' }} yourself
+            {{ leave }}`. Empty uses the "Next player" message.
+          default: ""
           selector:
             text: {}
         turn_message:
@@ -170,6 +183,10 @@ variables:
   team: "{{ trigger.to_state.attributes.get('team_name') or '' }}"
   remaining: "{{ trigger.to_state.attributes.get('remaining') | int(0) }}"
   checkout: "{{ trigger.to_state.attributes.get('checkout') or '' }}"
+  # Where to aim without a checkout: the darts and the score they leave.
+  plan: "{{ trigger.to_state.attributes.get('setup') or {} }}"
+  leave: "{{ plan.leave if plan else '' }}"
+  setup: "{{ plan.route if plan else '' }}"
   darts: "{{ trigger.to_state.attributes.get('darts') | int(0) }}"
   average: "{{ trigger.to_state.attributes.get('average') }}"
   points: "{{ trigger.to_state.attributes.get('points') | int(0) }}"
@@ -186,6 +203,7 @@ variables:
     {{- '' if measured is none else measured }}
   deciding: "{{ trigger.to_state.attributes.get('match', false) }}"
   checkout_text: !input checkout_message
+  setup_text: !input setup_message
   turn_text: !input turn_message
   bust_text: !input bust_message
   leg_text: !input leg_message
@@ -195,7 +213,7 @@ variables:
   message: >-
     {% if kind == 'turn_changed' and bull_off %}{{ bull_off_turn_text or turn_text }}
     {%- elif kind == 'turn_changed' %}
-    {%- set call = checkout_text if checkout else turn_text %}
+    {%- set call = checkout_text if checkout else (setup_text if setup and setup_text else turn_text) %}
     {%- if previous == 'bull_off_won' %}{{ (bull_off_text | string ~ ' ' ~ call | string) | trim }}
     {%- else %}{{ call }}{% endif %}
     {%- elif kind == 'bust' %}{{ bust_text }}

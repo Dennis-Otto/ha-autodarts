@@ -1175,6 +1175,11 @@ async def test_highlight_photo_for_a_180_and_a_checkout(hass):
     fire(hass, "leg_won", game="cricket", players=2, player=1, name="Lea", mpr=2.4)
     await hass.async_block_till_done()
     assert len(photos) == 2
+    # The bot's darts are not in the board.
+    fire(hass, "visit_thrown", score=180, darts=3, name=None, bot=True)
+    fire(hass, "leg_won", game=501, players=2, player=2, checkout=121, bot=True)
+    await hass.async_block_till_done()
+    assert len(photos) == 2
     # Characters a file name cannot have, and the separator, leave the player's name.
     assert [photo_name(call) for call in snapshots] == [
         "Alex Bee 2_180.jpg",
@@ -1498,3 +1503,39 @@ async def test_light_show_reacts_to_online_matches_when_asked(hass):
         ("leg", ""),
         ("match", "dennis"),
     ]
+
+
+async def test_practice_caller_names_the_score_to_leave_without_a_checkout(hass):
+    calls = async_mock_service(hass, "tts", "speak")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "practice_caller",
+        {
+            **VOICE,
+            "setup_message": "{{ who ~ ', leave' if who else 'Leave' }} yourself {{ leave }}",
+            "turn_message": "{{ who }}",
+        },
+    )
+    match = {"game": 501, "players": 2, "player": 2, "name": "Sam", "checkout": None}
+    await fire_all(
+        hass,
+        [
+            (
+                "turn_changed",
+                {
+                    **match,
+                    "remaining": 169,
+                    "setup": {"route": "T20 T20 S17", "leave": 32},
+                },
+            ),
+            # Nothing to set up: the next player is called.
+            ("turn_changed", {**match, "remaining": 301, "setup": None}),
+            # A checkout wins over a setup.
+            (
+                "turn_changed",
+                {**match, "remaining": 40, "checkout": "D20", "setup": None},
+            ),
+        ],
+    )
+    assert spoken(calls) == ["Sam, leave yourself 32", "Sam", "Sam, you require 40"]

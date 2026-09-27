@@ -4,7 +4,8 @@ blueprint:
     Takes a photo of the board after a big visit or a checkout of the practice
     game, from one of the board cameras while the darts are still in the board.
     A visit counts when its third dart lands. When the same dart also wins a
-    leg, you get one photo with the checkout message.
+    leg, you get one photo with the checkout message. The bot's darts are not in
+    the board, so its visits and legs get no photo.
 
 
     The photo is saved to the highlight gallery, which the media browser shows
@@ -160,6 +161,10 @@ conditions:
     condition: template
     value_template: >-
       {{ score >= minimum_score if trigger.id == 'visit' else checkout > 0 }}
+  # The darts of the practice game's bot are not in the board to take a picture of.
+  - alias: Not a visit or a leg of the bot
+    condition: template
+    value_template: "{{ 'bot' not in trigger.to_state.attributes }}"
 
 actions:
   - delay:
