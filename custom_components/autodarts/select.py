@@ -55,7 +55,7 @@ class AutodartsStandbySelect(AutodartsLocalEntity, SelectEntity):
 
 
 class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
-    """X01, Cricket, a party or training game; a choice starts it anew."""
+    """X01, a Cricket, party or training game; a choice starts it anew."""
 
     _attr_options = ["off", *GAME_OPTIONS]
 
@@ -73,7 +73,7 @@ class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
         if practice.drill:
             return practice.drill
         if practice.cricket:
-            return "cricket"
+            return practice.cricket
         if practice.party:
             return practice.party.kind
         return str(practice.game) if practice.game else "off"
