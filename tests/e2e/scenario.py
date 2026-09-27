@@ -388,7 +388,10 @@ class Scenario:
         check(result["type"] == "create_entry", f"Local setup failed: {result}")
         entry_id = result["result"]["entry_id"]
 
-        duplicate = await self.local_flow("board-mock", PORT)
+        # The same board at the address of its entry; a new address would be
+        # taken over instead (address_updated, see test_discovery.py).
+        stored = self.board_ip if GENERATION >= 2 else "board-mock"
+        duplicate = await self.local_flow(stored, PORT)
         check(
             duplicate.get("reason") == "already_configured",
             f"Second entry for the same board was not rejected: {duplicate}",
