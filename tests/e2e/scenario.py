@@ -40,6 +40,8 @@ BULL = {
 EXPECTED_LOGS = (
     "Board Manager does not answer",
     "realtime events at",
+    # The online bridge explains an unknown trigger once.
+    "The online bridge ignored the unknown event 'takeout'",
 )
 EXPECTED_TRACEBACK = "[custom_components.autodarts.local_coordinator] Full error:"
 MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
@@ -150,6 +152,7 @@ class Scenario:
         self.reader: asyncio.Task | None = None
         # Discovery stores the announced address instead of the service name.
         self.board_ip = socket.gethostbyname("board-mock")
+        self.webhook_id: str | None = None
 
     async def http(self, method: str, url: str, *, status: int = 200, **kwargs):
         async with self.session.request(
@@ -724,6 +727,145 @@ class Scenario:
             f"Diagnostics do not show the faults: {realtime}",
         )
 
+    async def options(
+        self, flow_id: str | None = None, entry_id: str | None = None, **data
+    ) -> dict:
+        if flow_id is None:
+            return await self.api(
+                "POST",
+                "/api/config/config_entries/options/flow",
+                json={"handler": entry_id},
+            )
+        return await self.api(
+            "POST", f"/api/config/config_entries/options/flow/{flow_id}", json=data
+        )
+
+    async def bridge_sensor(self) -> str | None:
+        for item in await self.ws("config/entity_registry/list"):
+            if item["unique_id"] == f"{BOARD_ID}_online_bridge_last_event":
+                return item["entity_id"]
+        return None
+
+    async def webhook(self, method: str, path: str, **kwargs) -> tuple[int, str]:
+        """A call as Tools for Autodarts makes it: no login, no JSON content type."""
+        async with self.session.request(method, f"{HA}{path}", **kwargs) as response:
+            return response.status, await response.text()
+
+    async def online_bridge(self, entry_id: str) -> None:
+        """Moments of an online match arrive through the webhook of the options."""
+        form = await self.options(entry_id=entry_id)
+        check(form["step_id"] == "init", f"Unexpected options: {form}")
+        shown = await self.options(
+            form["flow_id"], online_bridge=True, online_bridge_remote=False
+        )
+        check(shown["step_id"] == "online_bridge", f"No bridge address: {shown}")
+        url = shown["description_placeholders"]["url"]
+        webhook_id = url.rsplit("/", 1)[1]
+        check(re.fullmatch("[0-9a-f]{64}", webhook_id) is not None, f"Address: {url}")
+        effects = shown["description_placeholders"]["effects"].splitlines()
+        check(
+            f"Home Assistant: 180;URL;{url}?event=180;180" in effects,
+            f"Unexpected effects to import: {effects}",
+        )
+        done = await self.options(shown["flow_id"])
+        check(done["type"] == "create_entry", f"Options were not saved: {done}")
+        self.webhook_id = webhook_id
+        sensor = await wait_for(self.bridge_sensor, "the online bridge sensor", 60)
+        self.entities[f"{BOARD_ID}_online_bridge_last_event"] = sensor
+        await self.expect_states(
+            {"online_bridge_last_event": "unknown", "realtime_connected": "on"},
+            timeout=90,
+        )
+        self.fired_board_events()
+
+        path = f"/api/webhook/{webhook_id}"
+        answers = [
+            await self.webhook("GET", f"{path}?event=180"),
+            await self.webhook(
+                "POST",
+                path,
+                data='{"event": "busted", "player": "Lea"}',
+                headers={"Content-Type": "text/plain;charset=UTF-8"},
+            ),
+            await self.webhook("GET", f"{path}?event=takeout"),
+        ]
+        check(
+            answers == [(200, "ok"), (200, "ok"), (400, "unknown event")],
+            f"Unexpected webhook answers: {answers}",
+        )
+        fired: list[dict] = []
+
+        async def arrived():
+            fired.extend(
+                item
+                for item in self.fired_board_events()
+                if item.get("event_type", "").startswith("online_")
+            )
+            return len(fired) >= 2
+
+        await wait_for(arrived, "the online board events")
+        check(
+            [
+                (item["event_type"], item.get("score"), item.get("name"))
+                for item in fired
+            ]
+            == [("online_visit", 180, None), ("online_busted", None, "Lea")]
+            and all(item["source"] == "online" for item in fired),
+            f"Unexpected online events: {fired}",
+        )
+        last = await self.state("online_bridge_last_event")
+        check(
+            last["state"] not in ("unknown", "unavailable")
+            and last["attributes"]["trigger"] == "busted",
+            f"Unexpected last event: {last}",
+        )
+        report = await self.api("GET", f"/api/diagnostics/config_entry/{entry_id}")
+        check(
+            webhook_id not in json.dumps(report),
+            "Diagnostics expose the webhook address",
+        )
+        summary = report["data"]["online_bridge"]
+        check(
+            summary["events"] == 2 and summary["invalid"] == 1,
+            f"Unexpected bridge diagnostics: {summary}",
+        )
+
+        # Switched off, the address answers like any unknown one. The reloaded
+        # event entity restores its last event, which is not a new one.
+        last_event = (await self.state("board_events"))["state"]
+        form = await self.options(entry_id=entry_id)
+        done = await self.options(
+            form["flow_id"],
+            online_bridge=False,
+            online_bridge_remote=False,
+            online_bridge_new_address=False,
+        )
+        check(done["type"] == "create_entry", f"Options were not saved: {done}")
+
+        async def removed():
+            return await self.bridge_sensor() is None
+
+        await wait_for(removed, "the online bridge sensor to be removed", 60)
+        del self.entities[f"{BOARD_ID}_online_bridge_last_event"]
+        answer = await self.webhook("GET", f"{path}?event=180")
+        check(answer == (200, ""), f"The switched-off bridge answered: {answer}")
+        await self.expect_states({"realtime_connected": "on"}, timeout=90)
+        new_online_events = []
+        while not self.events.empty():
+            data = self.events.get_nowait()["data"]
+            new = data["new_state"]
+            if (
+                data["entity_id"] == self.entity("board_events")
+                and new
+                and new["state"] != last_event
+                and new["attributes"].get("event_type", "").startswith("online_")
+            ):
+                new_online_events.append(new["attributes"])
+        check(
+            not new_online_events,
+            f"The switched-off bridge fired events: {new_online_events}",
+        )
+
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
         version = json.loads(MANIFEST.read_text())["version"]
@@ -778,6 +920,10 @@ class Scenario:
         log = LOG.read_text() if LOG.exists() else ""
         check(API_KEY not in log, "Home Assistant log contains the board API key")
         check(TLS_KEY not in log, "Home Assistant log contains the TLS key")
+        check(
+            self.webhook_id is not None and self.webhook_id not in log,
+            "Home Assistant log contains the webhook address",
+        )
         # Records start with a timestamp; the outage of the fault injection logs
         # its cause at debug level, every other traceback is a problem.
         records = re.split(r"\n(?=\d{4}-\d{2}-\d{2} )", log)
@@ -825,6 +971,7 @@ async def main() -> None:
         await scenario.controls()
         await scenario.realtime(entry_id)
         await scenario.resilience(entry_id)
+        await scenario.online_bridge(entry_id)
         await scenario.card()
         await scenario.diagnostics(entry_id)
         await scenario.logs()
@@ -836,7 +983,8 @@ async def main() -> None:
         + "local config flow and validation, registries, "
         "controls, realtime darts/corrections/takeouts with positions, persistence, "
         "dropped sockets mid-visit, outages, failing and slow reads, malformed "
-        "frames, a restart, dashboard card, private diagnostics, clean logs and "
+        "frames, a restart, the online bridge, dashboard card, private diagnostics, "
+        "clean logs and "
         "removal."
     )
 

@@ -177,6 +177,7 @@ The camera entities relay the live stream of Board Manager 2 to at most two view
 - **Local mode** talks only to the Board Manager in your network. Nothing is sent to the internet.
 - **Search for boards** asks `discover.autodarts.com`, the public Autodarts discovery service, once when you use it. The service sees your public IP address and returns the boards registered from it.
 - **The optional cloud link** uses the Autodarts device login. Home Assistant stores OAuth tokens, never your password.
+- **The optional online bridge** only receives: the browser extension Tools for Autodarts calls Home Assistant with the moments of an online match, by default only from your home network. It sends nothing anywhere. [Online matches](automations.md#online-matches-experimental).
 - **Board secrets** are dropped as soon as they are read and are never stored, logged or shown: the board API key, TLS keys, camera device paths and similar configuration.
 - **Diagnostics** redact the board ID, host, client ID, tokens and player names. The connection history in them holds counts, kinds of errors and durations, but no addresses or error messages.
 

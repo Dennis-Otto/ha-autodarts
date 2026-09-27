@@ -1,0 +1,17 @@
+# serializer version: 1
+# name: test_entities_and_diagnostics_of_the_bridge
+  dict({
+    'board-1_online_bridge_last_event': 'sensor.autodarts_board_online_bridge_last_event | diagnostic | enabled',
+  })
+# ---
+# name: test_entities_and_diagnostics_of_the_bridge.1
+  dict({
+    'enabled': True,
+    'events': 1,
+    'ignored': 0,
+    'invalid': 0,
+    'last_event_type': 'online_busted',
+    'limited': 0,
+    'remote': False,
+  })
+# ---

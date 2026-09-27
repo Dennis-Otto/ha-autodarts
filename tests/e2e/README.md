@@ -25,8 +25,10 @@ The scenario uses only Home Assistant's public REST and WebSocket APIs and verif
   of a visit, an outage while darts are pulled and thrown again, failing and slow
   reads, malformed frames and a restart; visits, practice scores and entities
   must come through them
-- diagnostics without the board ID or API key, and logs without errors, tracebacks
-  or secrets
+- the online bridge: switched on in the options, calls of Tools for Autodarts
+  become board events and the diagnostic sensor, and switched off it is gone
+- diagnostics without the board ID, API key or webhook address, and logs without
+  errors, tracebacks or secrets
 - removal of the entry, its entities, the realtime connection and the stored
   training session
 

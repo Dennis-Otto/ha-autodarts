@@ -177,6 +177,7 @@ Die Kamera-Entitäten geben den Livestream von Board Manager 2 an höchstens zwe
 - **Lokaler Betrieb:** Die Integration spricht nur mit dem Board Manager in deinem Netzwerk; ins Internet geht nichts.
 - **Boards im Netzwerk suchen:** Fragt einmalig bei Benutzung `discover.autodarts.com`, den öffentlichen Suchdienst von Autodarts. Er sieht deine öffentliche IP-Adresse und liefert die von dort registrierten Boards.
 - **Die optionale Cloud-Verknüpfung** nutzt die Geräteanmeldung von Autodarts. Home Assistant speichert OAuth-Token, nie dein Passwort.
+- **Die optionale Online-Brücke** empfängt nur: Die Browser-Erweiterung Tools for Autodarts ruft Home Assistant mit den Momenten eines Online-Matches auf, standardmäßig nur aus deinem Heimnetz. Sie sendet nirgendwohin. [Online-Matches](automationen.md#online-matches-experimentell).
 - **Board-Geheimnisse** wie der API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade und ähnliche Konfiguration werden direkt beim Lesen verworfen. Sie werden nie gespeichert, protokolliert oder angezeigt.
 - **Diagnosedaten** schwärzen Board-ID, Adresse, Client-ID, Token und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
 

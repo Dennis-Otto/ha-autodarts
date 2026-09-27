@@ -121,6 +121,28 @@
     },
     "flow_title": "{name}"
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Autodarts options",
+        "description": "**Online matches (experimental):** the integration sees the darts on your board, but not the game of an online match on play.autodarts.io. The browser extension Tools for Autodarts can send its moments, such as a bust, a game shot or a 180, to Home Assistant. They arrive as board events whose type starts with `online_`.",
+        "data": {
+          "online_bridge": "Receive online matches from Tools for Autodarts",
+          "online_bridge_remote": "Accept calls from outside your home network",
+          "online_bridge_new_address": "Create a new secret address"
+        },
+        "data_description": {
+          "online_bridge": "Opens a secret webhook address for the browser extension. The next step shows it.",
+          "online_bridge_remote": "Only for an https address through Home Assistant Cloud or your own domain. Off: only devices in your home network can call the address.",
+          "online_bridge_new_address": "The current address stops working. Enter the new one in Tools for Autodarts."
+        }
+      },
+      "online_bridge": {
+        "title": "Address for Tools for Autodarts",
+        "description": "After you submit, Home Assistant accepts moments of online matches at this secret address:\n\n`{url}`\n\nIn Tools for Autodarts, turn on **WLED**, choose **Import CSV** and paste the lines below. Each line creates an effect of type URL that calls the address with `?event=` and its trigger. Import only the lines you need: Tools for Autodarts plays one effect per trigger and picks one at random when several share a trigger.\n\n```\n{effects}\n```\n\nThe *Online bridge last event* sensor shows the last moment that arrived. Keep the address to yourself: whoever knows it can send moments of a game to your Home Assistant."
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "board_status": {
@@ -283,6 +305,9 @@
       },
       "favourite_double": {
         "name": "Favorite double"
+      },
+      "online_bridge_last_event": {
+        "name": "Online bridge last event"
       }
     },
     "button": {
@@ -476,7 +501,16 @@
               "checkout_attempt": "Checkout attempt",
               "personal_best": "Personal best",
               "daily_goal_reached": "Daily goal reached",
-              "bull_off_won": "Bull-off won"
+              "bull_off_won": "Bull-off won",
+              "online_game_on": "Online: game on",
+              "online_visit": "Online: visit",
+              "online_dart": "Online: dart",
+              "online_busted": "Online: bust",
+              "online_game_shot": "Online: game shot",
+              "online_match_shot": "Online: match shot",
+              "online_bull_off": "Online: bull-off starts",
+              "online_tournament_ready": "Online: tournament match ready",
+              "online_match_left": "Online: match left"
             }
           }
         }

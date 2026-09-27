@@ -44,6 +44,7 @@
   - a doubles analysis with the hit rate of every double and checkout routes over your strongest doubles.
 - **Practice games and matches.** Play X01 (101 to 1001, with double in and a bull-off if you like), Cricket or the party games Shanghai, Halve-It and Killer on the local board, alone or as a match of up to four players with legs and sets. The remaining score counts down, busts are recognised, and the live card shows the checkout route, the bed to aim at and a scoreboard, in Cricket a chalkboard with marks, points and marks per round. Four training games train the basics: Around the Clock, doubles training, checkout training and Bob's 27. First-9 average, checkout rate, doubles rate and legs per day show your progress.
 - **Automations that feel like a stage.** Board events for every dart, correction, takeout, completed visit and training session, plus ten ready-made blueprints: 180 celebrations, a dart caller, takeout lights, automatic detection, alerts, daily reports, a training session routine, a practice caller, a highlight photo and a light show.
+- **Online matches too** *(experimental)*. An optional bridge brings busts, won legs and matches of online matches on play.autodarts.io into Home Assistant through the browser extension Tools for Autodarts. [How to set it up](docs/automations.md#online-matches-experimental).
 - **Full control.**
   - Start, stop and reset detection; calibrate the board or single cameras; restart Board Manager.
   - Board settings, camera standby and Board Manager updates.
@@ -143,6 +144,7 @@ The [installation guide](docs/installation.md) covers requirements, manual insta
 | Cloud link | Switch and buttons for the board's own cloud connection | ✓ | – |
 | System | Autodarts cloud connection, CPU and memory, operating system, processor and detection software of the board PC, Board Manager update | – | ✓ |
 | Cameras | One camera entity per board camera (disabled by default): snapshots, and the live stream with Board Manager 2 | ✓ | ✓ |
+| Online matches *(experimental)* | Busts, won legs and matches, visits and darts of online matches on play.autodarts.io as board events, through the browser extension Tools for Autodarts; off by default | ✓ | ✓ |
 | Cloud match data *(optional)* | Cloud status, game mode, match state, round, visit score, darts thrown | Needs an Autodarts client ID | Needs an Autodarts client ID |
 
 The [entity reference](docs/entities.md) lists every entity with its states, attributes and defaults.
@@ -213,6 +215,7 @@ Details: [how it works](docs/how-it-works.md).
 ## Known limitations
 
 - **Cloud match data is on hold.** It needs an OAuth client ID that Autodarts issues for this integration, and none is bundled yet. Everything local works without it.
+- **Online matches through a browser extension.** Busts and game shots of online matches arrive only while the Autodarts page is open with Tools for Autodarts, a third-party extension. [Limitations](docs/automations.md#limitations).
 - **No game logic in training.** Training statistics count the darts the board detects. They do not know players, legs, busts or checkouts.
 - **Board Manager updates are not installed from Home Assistant.** The update entity reports new Board Manager 2 versions; you install them on the board PC.
 - **Live camera view with Board Manager 2 only.** With Board Manager 1, the camera entities show snapshots.

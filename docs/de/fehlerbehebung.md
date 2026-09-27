@@ -83,6 +83,15 @@ Neu beginnen: **Neue Trainingssession** oder *Neue Session* auf der Trainingskar
 - **Alte Kartenversion nach einem Update:** Lade die Seite neu. In der Companion-App hilft *Einstellungen → Companion-App → Fehlerbehebung → Frontend-Cache zurücksetzen*.
 - **Der Aufnahmeverlauf ist leer:** Er kommt aus dem Recorder und braucht daher die Integration `recorder` (standardmäßig aktiv). Er füllt sich mit abgeschlossenen Aufnahmen.
 
+### Momente von Online-Matches kommen nicht an
+
+Gehe die [Online-Brücke](automationen.md#online-matches-experimentell) Schritt für Schritt durch und beobachte den Sensor *Letztes Ereignis der Online-Brücke*:
+
+- **Kein Sensor:** Die Brücke ist aus. Schalte sie in den Optionen des Boards (**Konfigurieren**) ein.
+- **Die Adresse selbst:** Öffne sie mit angehängtem `?event=gameon` in einem Browser in deinem Heimnetz. Ändert sich der Sensor nicht, erreicht der Browser Home Assistant unter dieser Adresse nicht: Nimm die Adresse, mit der du Home Assistant öffnest. Eine Adresse von außerhalb deines Heimnetzes braucht *Aufrufe von außerhalb deines Heimnetzes annehmen*.
+- **Nur von der Autodarts-Seite nicht:** Prüfe, ob die WLED-Funktion von Tools for Autodarts an ist, die Effekte aktiviert sind und die Autodarts-Seite offen ist. Die Entwicklertools des Browsers (F12, *Konsole*) zeigen Aufrufe, die der Browser blockiert hat, etwa als *Mixed Content*; siehe [gemischte Inhalte](automationen.md#grenzen).
+- **Nur manche Momente:** Einen Trigger, den die Brücke nicht kennt, nennt einmalig eine Warnung im Log von Home Assistant. Tools for Autodarts spielt pro Trigger einen Effekt, entferne also andere Effekte mit demselben Trigger.
+
 ## Diagnose und Logs
 
 ### Diagnosedaten herunterladen

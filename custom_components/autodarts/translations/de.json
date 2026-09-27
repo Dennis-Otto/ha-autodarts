@@ -121,6 +121,28 @@
     },
     "flow_title": "{name}"
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Autodarts-Optionen",
+        "description": "**Online-Matches (experimentell):** Die Integration sieht die Darts auf deinem Board, aber nicht das Spiel eines Online-Matches auf play.autodarts.io. Die Browser-Erweiterung Tools for Autodarts kann dessen Momente wie ein Überwerfen, einen Game Shot oder eine 180 an Home Assistant senden. Diese Momente kommen als Board-Ereignisse an, deren Typ mit `online_` beginnt.",
+        "data": {
+          "online_bridge": "Online-Matches von Tools for Autodarts empfangen",
+          "online_bridge_remote": "Aufrufe von außerhalb deines Heimnetzes annehmen",
+          "online_bridge_new_address": "Neue geheime Adresse erzeugen"
+        },
+        "data_description": {
+          "online_bridge": "Öffnet eine geheime Webhook-Adresse für die Browser-Erweiterung. Der nächste Schritt zeigt sie.",
+          "online_bridge_remote": "Nur für eine https-Adresse über Home Assistant Cloud oder deine eigene Domain. Aus: Nur Geräte in deinem Heimnetz können die Adresse aufrufen.",
+          "online_bridge_new_address": "Die bisherige Adresse funktioniert dann nicht mehr. Trage die neue in Tools for Autodarts ein."
+        }
+      },
+      "online_bridge": {
+        "title": "Adresse für Tools for Autodarts",
+        "description": "Nach dem Absenden nimmt Home Assistant unter dieser geheimen Adresse Momente von Online-Matches an:\n\n`{url}`\n\nSchalte in Tools for Autodarts **WLED** ein, wähle **Import CSV** und füge die Zeilen unten ein. Jede Zeile legt einen Effekt vom Typ URL an, der die Adresse mit `?event=` und seinem Trigger aufruft. Importiere nur die Zeilen, die du brauchst: Tools for Autodarts spielt pro Trigger einen Effekt und wählt zufällig einen aus, wenn sich mehrere einen Trigger teilen.\n\n```\n{effects}\n```\n\nDer Sensor *Letztes Ereignis der Online-Brücke* zeigt den zuletzt angekommenen Moment. Behalte die Adresse für dich: Wer sie kennt, kann deinem Home Assistant Momente eines Spiels senden."
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "board_status": {
@@ -283,6 +305,9 @@
       },
       "favourite_double": {
         "name": "Lieblingsdouble"
+      },
+      "online_bridge_last_event": {
+        "name": "Letztes Ereignis der Online-Brücke"
       }
     },
     "button": {
@@ -476,7 +501,16 @@
               "checkout_attempt": "Checkout-Versuch",
               "personal_best": "Bestleistung",
               "daily_goal_reached": "Tagesziel erreicht",
-              "bull_off_won": "Ausbullen gewonnen"
+              "bull_off_won": "Ausbullen gewonnen",
+              "online_game_on": "Online: Game on",
+              "online_visit": "Online: Aufnahme",
+              "online_dart": "Online: Dart",
+              "online_busted": "Online: überworfen",
+              "online_game_shot": "Online: Game Shot",
+              "online_match_shot": "Online: Match Shot",
+              "online_bull_off": "Online: Ausbullen beginnt",
+              "online_tournament_ready": "Online: Turniermatch bereit",
+              "online_match_left": "Online: Match verlassen"
             }
           }
         }

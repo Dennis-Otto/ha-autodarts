@@ -258,6 +258,9 @@
       },
       "favourite_double": {
         "default": "mdi:target"
+      },
+      "online_bridge_last_event": {
+        "default": "mdi:web"
       }
     },
     "switch": {

@@ -35,6 +35,7 @@
 - **Automationen mit Bühnenatmosphäre.**
   - Board-Ereignisse für jeden Dart, jede Korrektur, jede Entnahme, jede geworfene und abgeschlossene Aufnahme und jede Trainingssession.
   - Zehn fertige Blueprints: 180-Feier, Dart-Caller, Licht bei der Entnahme, automatische Erkennung, Warnungen, tägliche Berichte, eine Routine für Trainingssessions, ein Übungs-Caller, ein Highlight-Foto und eine Lichtshow.
+  - Online-Matches *(experimentell)*: Eine optionale Brücke bringt Überwerfen, gewonnene Legs und Matches, Aufnahmen und Darts von Online-Matches auf play.autodarts.io über die Browser-Erweiterung Tools for Autodarts nach Home Assistant; standardmäßig aus. [So richtest du sie ein](automationen.md#online-matches-experimentell).
 - **Volle Kontrolle.**
   - Erkennung starten, stoppen und zurücksetzen.
   - Kalibrierung für das Board oder einzelne Kameras; Board Manager neu starten.
@@ -111,6 +112,7 @@ Die Entwickler-Dokumentation gibt es auf Englisch: [Development](../development.
 ## Bekannte Einschränkungen
 
 - **Cloud-Spieldaten sind noch nicht verfügbar.** Sie brauchen eine OAuth-Client-ID, die Autodarts für diese Integration vergibt; sie ist beantragt, aber noch nicht enthalten. Alles Lokale funktioniert ohne sie.
+- **Online-Matches über eine Browser-Erweiterung.** Überwerfen und Game Shots von Online-Matches kommen nur an, solange die Autodarts-Seite mit Tools for Autodarts offen ist, einer Erweiterung von Dritten. [Grenzen](automationen.md#grenzen).
 - **Keine Spiellogik im Training.** Das Training zählt die Darts, die das Board erkennt. Spieler, Legs, Überwerfen oder Checkouts kennt es nicht.
 - **Board-Manager-Updates installierst du auf dem Board-PC.** Die Update-Entität zeigt neue Versionen von Board Manager 2 nur an.
 - **Liveansicht der Kameras nur mit Board Manager 2.** Mit Board Manager 1 zeigen die Kamera-Entitäten Standbilder.

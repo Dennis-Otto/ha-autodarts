@@ -29,7 +29,7 @@ The visit score is the plain sum of the darts, without game rules such as busts.
 
 ## Board events
 
-The **Events** entity (for example `event.autodarts_board_events`, or `event.autodarts_board_board_events` for a board set up with an earlier version) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, or `training` for session events. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
+The **Events** entity (for example `event.autodarts_board_events`, or `event.autodarts_board_board_events` for a board set up with an earlier version) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, `training` for session events, or `online` for the moments of [online matches](automations.md#online-matches-experimental), which the optional online bridge receives from the browser extension Tools for Autodarts. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
 
 | `event_type` | When | Attributes |
 | --- | --- | --- |
@@ -51,6 +51,15 @@ The **Events** entity (for example `event.autodarts_board_events`, or `event.aut
 | `bull_off_won` | The [bull-off](#practice-game) decides who starts the match | `game`, `player`, `name`, `players`, `hit` (the bed of the winning dart: `BULL`, `25` or for example `S20`), `distance` (millimetres from the centre, or none without a position from the board) |
 | `personal_best` | A value beats your [personal best](#personal-bests-streak-and-daily-goal) | `record`, `value`, `previous`, `name` (the player, if known) |
 | `daily_goal_reached` | Today's darts reach the [daily goal](#personal-bests-streak-and-daily-goal), once per day | `goal`, `darts`, `streak` |
+| `online_game_on` | [Online match](automations.md#online-matches-experimental): a turn starts, or a moment without an effect of its own | `trigger`, `name` |
+| `online_visit` | Online match: a visit | `trigger`, `score`; for three darts also `darts` and `segments`; for a range `score_min` and `score_max` instead of `score` |
+| `online_dart` | Online match: a dart | `trigger`, `segment` (`T20`, `D16`, `S5`, `25`, `BULL` or `MISS`), `score` |
+| `online_busted` | Online match: a bust | `trigger`, `name` |
+| `online_game_shot` | Online match: a won leg | `trigger`, `segment` of the winning dart and `name`, if the trigger names them |
+| `online_match_shot` | Online match: a won match | `trigger`, `segment`, `name` as with `online_game_shot` |
+| `online_bull_off` | Online match: the bull-off begins | `trigger` |
+| `online_tournament_ready` | A tournament match of yours is ready | `trigger` |
+| `online_match_left` | You left the online match | `trigger` |
 
 `game` is the [practice game](#practice-game) being played while the dart lands, such as `501`, `cricket` or `shanghai`, and empty without one and in [training games](#training-games). A visit of three darts is announced twice: with `visit_thrown` the moment its third dart lands, for 180 celebrations and callers, and with `visit_completed` when it ends, with the final score after corrections. To react to every visit exactly once and as early as possible, use `visit_thrown` and `visit_completed` whose `thrown` is `false`; the [blueprints](automations.md#blueprints) do that.
 
@@ -259,6 +268,7 @@ A change is written to the Board Manager configuration; only the changed setting
 | Processor | Sensor, **BM 2**, *Diagnostic* | Processor model of the board PC. Attribute: `cores`. |
 | Detection software version | Sensor, **BM 2**, *Diagnostic* | Version of the Autodarts detection software. Attribute: `opencv_version`. |
 | Software | Update, **BM 2** | Installed and latest Board Manager version. Install updates on the board PC. |
+| Online bridge last event | Sensor, timestamp, *Diagnostic* | When the last moment of an [online match](automations.md#online-matches-experimental) arrived; *unknown* before the first. Only while the online bridge is on. Attributes: `trigger`, `event_type`. |
 
 Per-camera entities carry a `camera` attribute with the camera number, which the [status card](cards.md#board-status-card) uses.
 

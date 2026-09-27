@@ -22,7 +22,9 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import dt as dt_util
 
 from .const import (
@@ -39,6 +41,8 @@ from .const import (
 from .coordinator import AutodartsDataUpdateCoordinator
 from .entity import AutodartsEntity, AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
+from .online import SENSOR_KEY as ONLINE_SENSOR_KEY
+from .online import OnlineBridge
 from .runtime import AutodartsConfigEntry
 from .training import COUNTERS
 
@@ -359,6 +363,8 @@ async def async_setup_entry(
             )(runtime.local, description)
             for description in LOCAL_SENSORS
         )
+        if runtime.bridge:
+            entities.append(AutodartsOnlineBridgeSensor(runtime.local, runtime.bridge))
     async_add_entities(entities)
     if coordinator := runtime.local:
         known: set[int] = set()
@@ -964,3 +970,46 @@ class AutodartsCorrectionRate(AutodartsLocalEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         quality = self.coordinator.quality.snapshot()
         return {"darts": quality["darts"], "corrected": quality["corrected"]}
+
+
+class AutodartsOnlineBridgeSensor(AutodartsLocalEntity, RestoreEntity, SensorEntity):
+    """When the last moment of an online match arrived, to check the bridge."""
+
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self, coordinator: AutodartsLocalCoordinator, bridge: OnlineBridge
+    ) -> None:
+        super().__init__(coordinator, ONLINE_SENSOR_KEY)
+        self._bridge = bridge
+
+    @property
+    def available(self) -> bool:
+        # Online matches do not need the board.
+        return True
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if last := await self.async_get_last_state():
+            self._bridge.restore(
+                dt_util.parse_datetime(last.state),
+                last.attributes.get("trigger"),
+                last.attributes.get("event_type"),
+            )
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, self._bridge.signal, self.async_write_ha_state
+            )
+        )
+
+    @property
+    def native_value(self) -> datetime | None:
+        return self._bridge.last_event
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {
+            "trigger": self._bridge.last_trigger,
+            "event_type": self._bridge.last_event_type,
+        }
