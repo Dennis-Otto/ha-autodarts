@@ -197,9 +197,16 @@ async def test_the_next_player_while_darts_are_in_the_board(hass, aioclient_mock
     assert events[0][1]["name"] == "Lea" and events[0][1]["remaining"] == 281
 
 
-async def test_no_pass_without_darts_in_party_games(hass, aioclient_mock):
-    await setup_local(hass, aioclient_mock, state=board())
-    await start(hass, "shanghai")
+async def test_a_party_game_passes_without_darts_but_not_while_choosing(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    practice = entry.runtime_data.local.practice
+    await start(hass, "golf", players=["Alex", "Sam"])
+    # A visit without darts: three misses, five strokes in Golf.
+    await act(hass, "next_player")
+    assert practice.current == 1 and practice.party.points == [5, 0]
+    await start(hass, "killer", players=["Alex", "Sam"])
     with pytest.raises(ServiceValidationError) as error:
         await act(hass, "next_player")
     assert error.value.translation_key == "empty_visit"

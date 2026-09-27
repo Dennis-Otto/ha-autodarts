@@ -723,11 +723,17 @@
     "duplicate_player": {
       "message": "{name} figure plusieurs fois dans la liste des joueurs. Chaque joueur doit avoir son propre nom."
     },
+    "invalid_player_name": {
+      "message": "Un nom de joueur ne peut pas contenir d'accolades, de signe pour cent, de croisillon (#) ni de caractères de contrôle."
+    },
     "killer_players": {
       "message": "Il faut au moins deux joueurs pour Killer."
     },
     "unknown_player": {
       "message": "Il n'existe aucun profil de joueur nommé {name}."
+    },
+    "player_in_tournament": {
+      "message": "{name} participe au tournoi. Terminez le tournoi avant de supprimer ce joueur."
     },
     "board_access_denied": {
       "message": "Board Manager a refusé l'accès. Il ne nécessite normalement aucune connexion\u00a0; vérifiez les proxys et les pare-feu entre Home Assistant et la cible."
@@ -762,6 +768,12 @@
     "no_tournament": {
       "message": "Aucun tournoi n'est en cours."
     },
+    "tournament_running": {
+      "message": "Un tournoi est déjà en cours. Terminez-le avant d'en démarrer un nouveau."
+    },
+    "tournament_finished": {
+      "message": "Le tournoi est fini. Terminez-le ou démarrez-en un nouveau."
+    },
     "tournament_match_running": {
       "message": "Le match du tournoi entre {first} et {second} est toujours en cours. Jouez-le jusqu'au bout, ou terminez le tournoi."
     },
@@ -781,7 +793,7 @@
       "message": "La volée compte déjà trois fléchettes. Passez la main avec Joueur suivant."
     },
     "empty_visit": {
-      "message": "La volée ne contient aucune fléchette à terminer. Seuls le X01 et les jeux de Cricket permettent de passer son tour sans fléchette."
+      "message": "La volée ne contient aucune fléchette à terminer. Au X01, aux jeux de Cricket et aux jeux de soirée, on peut passer son tour sans fléchette, mais pas aux jeux d'entraînement, pendant le bull-off ni pendant le choix des numéros au Killer."
     },
     "undo_unavailable": {
       "message": "Aucune volée à annuler. L'annulation reprend la dernière volée terminée tant qu'aucune fléchette n'est dans la cible et que ni la partie ni la session d'entraînement n'ont changé depuis."
@@ -1095,7 +1107,7 @@
     },
     "next_player": {
       "name": "Joueur suivant",
-      "description": "Termine la volée en cours sans retirer les fléchettes, pour que le joueur suivant lance. Sans fléchette, le joueur à la cible passe son tour en X01 et dans les jeux de Cricket.",
+      "description": "Termine la volée en cours sans retirer les fléchettes, pour que le joueur suivant lance. Sans fléchette, le joueur à la cible passe son tour en X01, dans les jeux de Cricket et dans les jeux de soirée, où cela compte comme trois fléchettes manquées.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",

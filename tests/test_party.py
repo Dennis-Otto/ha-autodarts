@@ -368,13 +368,18 @@ def test_the_same_bull_bed_throws_again_in_reverse_order():
     assert distance_mm((0.03, 0.04)) == 8.5 and distance_mm(None) is None
 
 
-def test_beds_decide_before_distances_and_unmeasured_darts_throw_again():
+def test_beds_decide_before_distances_and_a_measured_dart_beats_one_without():
     bull_off = BullOff([0, 1])
     bull_off.book(dart("S20"), (0.1, 0.0))
     # Outside the bull, the measured distance decides: 17 against 34 mm.
     assert bull_off.book(dart("S1"), (0.2, 0.0)) == 0
+    # A dart the board did not measure, entered by hand, loses there.
     bull_off = BullOff([0, 1])
-    bull_off.book(dart("S20"), (0.1, 0.0))
+    bull_off.book(dart("S1"), None)
+    assert bull_off.book(dart("S20"), (0.9, 0.0)) == 1
+    # Two darts without a position cannot be told apart: both throw again.
+    bull_off = BullOff([0, 1])
+    bull_off.book(dart("S20"), None)
     assert bull_off.book(dart("S1"), None) is None and bull_off.order == [1, 0]
     # The outer bull beats every other bed, however close.
     bull_off = BullOff([0, 1])
@@ -382,11 +387,24 @@ def test_beds_decide_before_distances_and_unmeasured_darts_throw_again():
     assert bull_off.book(dart("S20"), (0.1, 0.0)) == 0
 
 
+def test_a_dart_off_the_board_loses_to_any_bed():
+    bull_off = BullOff([0, 1, 2])
+    bull_off.book(dart("MISS"), None)
+    bull_off.book(dart("S20"), (0.95, 0.0))
+    # A miss the board measured close to the bull still comes last.
+    assert bull_off.book(dart("MISS"), (0.0, 1.05)) == 1
+    # Everybody off the board: all of them throw again, the last one first.
+    bull_off = BullOff([0, 1])
+    bull_off.book(dart("MISS"), (0.0, 1.02))
+    assert bull_off.book(dart("MISS"), (0.0, 1.2)) is None
+    assert bull_off.order == [1, 0] and bull_off.rethrow
+
+
 def test_by_distance_the_closer_dart_in_the_same_bull_bed_wins():
     bull_off = BullOff([0, 1])
     bull_off.book(dart("BULL"), (0.03, 0.0), True)
     assert bull_off.book(dart("BULL"), (0.0, -0.02), True) == 1
-    # A dart without a position never beats a measured one: both throw again.
+    # Inside the bull, only measured darts are compared: both throw again.
     bull_off = BullOff([0, 1])
     bull_off.book(dart("BULL"), (0.03, 0.0), True)
     assert bull_off.book(dart("BULL"), None, True) is None

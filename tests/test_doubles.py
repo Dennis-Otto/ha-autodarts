@@ -24,8 +24,9 @@ def test_hit_rates_the_favourite_and_the_preferred_order():
     stats.record([("D8", True)] * 2)
     stats.record([("S20", True)])
     assert stats.rate("D16") == 60.0 and stats.rate("D1") is None
-    # D8 has too few darts to count yet.
-    assert stats.preferred() == ("D16", "D20")
+    # D8 has too few darts to count yet, and D20 hits less often than the
+    # doubles together (11 of 24).
+    assert stats.preferred() == ("D16",)
     snapshot = stats.snapshot()
     assert (snapshot["attempts"], snapshot["hits"], snapshot["favourite"]) == (
         24,
@@ -39,6 +40,22 @@ def test_hit_rates_the_favourite_and_the_preferred_order():
     restored.restore({"D16": [1, 2], "D3": [4], "X": [1, 1], "BULL": [3, 1]})
     assert restored.stored() == {"BULL": [3, 1]}
     assert DoubleStats().snapshot()["rate"] is None
+
+
+def test_a_double_is_preferred_only_when_it_is_a_strong_one():
+    stats = DoubleStats()
+    # Ten misses at D1, and five of nine at D20: D1 has the attempts, but it
+    # is never hit, so the usual routes stay.
+    stats.record([("D1", False)] * 10 + [("D20", True)] * 5 + [("D20", False)] * 4)
+    assert stats.preferred() == () and stats.snapshot()["favourite"] is None
+    assert checkout(62, 3, True, stats.preferred()) == checkout(62) == ("T10", "D16")
+    # Once D20 has its attempts, it leads; D1 never does.
+    stats.record([("D20", False)])
+    assert stats.preferred() == ("D20",)
+    # A double hit exactly as often as all doubles together is strong enough.
+    even = DoubleStats()
+    even.record([("D16", True)] * 3 + [("D16", False)] * 7)
+    assert even.preferred() == ("D16",)
 
 
 def test_preferred_doubles_rank_first_among_equal_routes():
@@ -98,9 +115,11 @@ def test_personal_routes_follow_the_strongest_doubles_of_the_player():
 def test_finished_drills_and_darts_after_the_last_double_count_nothing():
     practice = PracticeGame()
     practice.play("checkout")
-    throw(practice, "D1")
-    # The checkout training scores its own attempts; they are not double darts.
-    assert practice.doubles.counts == {}
+    drill = practice.drills["checkout"]
+    drill.target = drill.start = 40
+    # Darts at a double in the checkout training count, up to the finish.
+    throw(practice, "S20", "D10", "D5")
+    assert practice.doubles.counts == {"D20": [1, 0], "D10": [1, 1]}
     doubles = practice.drills["doubles"]
     doubles.index = 20
     doubles.track([dart("BULL"), dart("D1")])

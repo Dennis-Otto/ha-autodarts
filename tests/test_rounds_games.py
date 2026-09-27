@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -27,8 +28,9 @@ def single(number: int, inner: bool | None) -> dict:
 
 
 def test_golf_strokes_by_bed():
-    assert golf_strokes(dart("T3"), 3) == 1
-    assert golf_strokes(dart("D3"), 3) == 2
+    # The double is the hole in one, the treble two strokes.
+    assert golf_strokes(dart("D3"), 3) == 1
+    assert golf_strokes(dart("T3"), 3) == 2
     assert golf_strokes(single(3, True), 3) == 3
     assert golf_strokes(single(3, False), 3) == 4
     # Without a position the board saw, a single counts as an outer single.
@@ -41,17 +43,27 @@ def test_inner_singles_lie_inside_the_treble_ring():
     assert inner_single(None) is None
     assert inner_single((0.0, 0.3)) is True
     assert inner_single((0.4, 0.5)) is False
+    # The middle of the treble ring, 99 to 107 mm from the centre, splits them.
+    assert inner_single((0.0, 102.9 / 170)) is True
+    assert inner_single((0.0, 103.1 / 170)) is False
 
 
 def test_the_last_dart_of_a_golf_visit_counts():
     golf = Golf(1)
     assert golf.target(0) == "1" and golf.rounds == 9
     assert golf.visit(0, []).points == [0]
-    assert golf.visit(0, darts("T1", "MISS")).points == [5]
+    assert golf.visit(0, darts("D1", "MISS")).points == [5]
     # A player stops after a good dart by pulling the darts.
-    result = golf.book(0, darts("MISS", "T1"))
+    result = golf.book(0, darts("MISS", "D1"))
     assert result.points == [1] and result.hits == 1 and result.won is None
     assert golf.round == 2 and golf.details(0) == {"scorecard": [1]}
+
+
+def test_a_golf_hole_passed_without_a_dart_is_a_miss():
+    golf = Golf(1)
+    result = golf.book(0, [])
+    assert result.points == [5] and result.darts == 0 and result.hits == 0
+    assert golf.details(0) == {"scorecard": [5]} and golf.round == 2
 
 
 def test_golf_is_won_with_the_fewest_strokes_after_the_last_hole():
@@ -59,29 +71,29 @@ def test_golf_is_won_with_the_fewest_strokes_after_the_last_hole():
     assert isinstance(golf, Golf) and golf.rounds == 18
     golf = make_party("golf", 2, 9)
     for hole in range(1, 9):
-        golf.book(0, darts(f"T{hole}"))
-        golf.book(1, darts(f"D{hole}"))
-    assert golf.book(0, darts("D9")).won is None
-    result = golf.book(1, darts("T9"))
+        golf.book(0, darts(f"D{hole}"))
+        golf.book(1, darts(f"T{hole}"))
+    assert golf.book(0, darts("T9")).won is None
+    result = golf.book(1, darts("D9"))
     assert result.won == 0 and golf.points == [10, 17]
 
 
 def test_a_tie_plays_extra_holes_among_the_tied_players():
     golf = Golf(3, 1)
     golf.new_leg(3, 1)
-    # Player 2 starts; players 2 and 3 tie at the top with a double each.
+    # Player 2 starts; players 2 and 3 tie at the top with a treble each.
     assert golf.next(0) == 1
-    golf.book(1, darts("D1"))
-    golf.book(2, darts("D1"))
+    golf.book(1, darts("T1"))
+    golf.book(2, darts("T1"))
     assert golf.book(0, darts("S2")).won is None
     assert golf.playoff() == [1, 2] and golf.round == 2
     assert golf.target(1) == "2" and golf.next(0) == 1
-    golf.book(1, darts("T2"))
+    golf.book(1, darts("D2"))
     assert golf.next(1) == 2
-    result = golf.book(2, darts("T2"))
+    result = golf.book(2, darts("D2"))
     assert result.won is None and golf.round == 3
-    golf.book(1, darts("D3"))
-    assert golf.book(2, darts("T3")).won == 2
+    golf.book(1, darts("T3"))
+    assert golf.book(2, darts("D3")).won == 2
 
 
 def test_extra_rounds_go_on_from_one_after_twenty():
@@ -126,7 +138,7 @@ def test_count_up_adds_every_dart_for_its_rounds():
 
 def test_rounds_games_restore_their_state_and_ignore_nonsense():
     golf = Golf(3, 9)
-    golf.book(0, darts("T1"))
+    golf.book(0, darts("D1"))
     saved = json.loads(json.dumps(golf.stored()))
     restored = Golf(3, 9)
     restored.restore(saved)
@@ -194,8 +206,8 @@ def test_a_golf_leg_ends_with_leg_won_after_the_last_hole():
     practice = rounds_game("golf", 1)
     practice.set_rounds(golf_holes=9)
     for hole in range(1, 9):
-        throw(practice, f"T{hole}")
-    events = throw(practice, "D9")
+        throw(practice, f"D{hole}")
+    events = throw(practice, "T9")
     assert events == [
         (
             "leg_won",
@@ -213,6 +225,25 @@ def test_a_golf_leg_ends_with_leg_won_after_the_last_hole():
         )
     ]
     assert practice.legs[0]["points"] == 10 and practice.legs_total == 1
+
+
+@pytest.mark.parametrize(
+    ("kind", "points"),
+    [("golf", 5), ("baseball", 0), ("count_up", 0), ("shanghai", 0)],
+)
+def test_a_party_game_passes_a_visit_without_darts_as_three_misses(kind, points):
+    practice = rounds_game(kind)
+    assert practice.passes()
+    ((event, turn),) = practice.finish_visit(empty=True)
+    assert event == "turn_changed" and turn["player"] == 2
+    assert practice.snapshot()["scores"][0]["points"] == points
+    assert practice.players[0].darts == 0
+
+
+def test_halve_it_halves_a_visit_passed_without_darts():
+    practice = rounds_game("halve_it")
+    practice.finish_visit(empty=True)
+    assert practice.party.points == [20, 40]
 
 
 def test_count_up_rounds_are_an_option_and_restart_the_game():

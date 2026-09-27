@@ -3,9 +3,10 @@
 The bot aims like a player: in X01 at the treble 20 to score, along the
 checkout route when it can finish, and at the setup shot when it cannot; in
 the Cricket games it closes numbers and scores where it pays. Its darts land
-with a Gaussian scatter in millimetres around the aim point, and the scatter
-of a level is calibrated so that the bot's 3-dart average in legs of 501 with
-double out matches the level.
+with a Gaussian scatter in millimetres around the aim point. In X01, the
+scatter of a level is calibrated so that the bot's 3-dart average in legs of
+501 with double out matches the level; in the Cricket games, so that its marks
+per round match those of a player with that average, a 24th of it.
 """
 
 from __future__ import annotations
@@ -15,8 +16,8 @@ import random
 from bisect import bisect_left
 from typing import Any
 
-from .checkout import checkout, setup
-from .cricket import CRICKET_NUMBERS, MARKS_TO_CLOSE
+from .checkout import BEDS, FINISH_ORDER, FINISHING_SCORE, checkout, setup
+from .cricket import CRICKET_NUMBERS, MARKS_TO_CLOSE, play_visit
 from .scoring import evaluate_visit
 
 # 0 plays without the bot; otherwise the 3-dart average it plays, 20 to 120.
@@ -71,6 +72,35 @@ SCATTER = (
     (115, 6.03),
     (120, 5.55),
 )
+# In the Cricket games, a level plays the marks per round (MPR) of a player
+# with that 3-dart average: a 24th of it, 2.5 at 60 and 5 at 120, a common
+# rule of thumb. The scatter was measured with play_cricket_leg() over 6,000
+# legs per scatter, the bot against a player who never scores, and is
+# interpolated between two levels. The tests check the MPR it plays.
+AVERAGE_PER_MPR = 24
+CRICKET_SCATTER = (
+    (20, 97.06),
+    (25, 71.21),
+    (30, 50.78),
+    (35, 36.79),
+    (40, 29.42),
+    (45, 24.99),
+    (50, 22.0),
+    (55, 19.79),
+    (60, 18.15),
+    (65, 16.7),
+    (70, 15.49),
+    (75, 14.5),
+    (80, 13.64),
+    (85, 12.74),
+    (90, 12.08),
+    (95, 11.4),
+    (100, 10.71),
+    (105, 10.12),
+    (110, 9.51),
+    (115, 8.99),
+    (120, 8.51),
+)
 
 
 def valid_level(value: object) -> bool:
@@ -78,15 +108,17 @@ def valid_level(value: object) -> bool:
     return type(value) is int and (value == 0 or MIN_LEVEL <= value <= MAX_LEVEL)
 
 
-def scatter(level: int) -> float:
-    """The scatter in millimetres that plays this 3-dart average."""
-    levels = [entry[0] for entry in SCATTER]
+def scatter(level: int, cricket: bool = False) -> float:
+    """The scatter in millimetres that plays this 3-dart average, or in the
+    Cricket games the marks per round that go with it."""
+    table = CRICKET_SCATTER if cricket else SCATTER
+    levels = [entry[0] for entry in table]
     level = min(max(level, levels[0]), levels[-1])
     index = bisect_left(levels, level)
-    high_level, high = SCATTER[index]
+    high_level, high = table[index]
     if high_level == level:
         return high
-    low_level, low = SCATTER[index - 1]
+    low_level, low = table[index - 1]
     return low + (high - low) * (level - low_level) / (high_level - low_level)
 
 
@@ -136,15 +168,43 @@ def aim_point(bed: str) -> tuple[float, float]:
 def x01_aim(remaining: int, darts: int, double_out: bool, opened: bool = True) -> str:
     """The checkout route if one exists, else the setup shot, else the treble 20.
 
-    Before the opening double of double in, the bot aims at the double 20.
+    Without double out, a score below 60 that the darts left cannot finish
+    takes the biggest bed that does not bust. Before the opening double of
+    double in, the bot aims at a double, see `_opening`.
     """
     if not opened:
-        return "D20"
+        return _opening(remaining, darts, double_out)
     if route := checkout(remaining, darts, double_out):
         return route[0]
     if double_out and (plan := setup(remaining, darts)):
         return plan.route[0]
+    if not double_out and remaining < 60:
+        return max(
+            (bed for bed in BEDS if bed.score < remaining),
+            key=lambda bed: (bed.score, -bed.multiplier),
+        ).name
     return "T20"
+
+
+def _opening(remaining: int, darts: int, double_out: bool) -> str:
+    """The double that opens a leg with double in: one that wins, then a
+    double ring that leaves a finish for the darts left, in the order routes
+    finish on doubles; otherwise the double 20, or the biggest double that
+    does not bust where it does."""
+    lowest = 2 if double_out else 0
+    for name in FINISH_ORDER:
+        if remaining == FINISHING_SCORE[name]:
+            return name
+    # The bullseye is too small to open with, unless it wins.
+    for name in FINISH_ORDER[:-1]:
+        if checkout(remaining - FINISHING_SCORE[name], darts - 1, double_out):
+            return name
+    safe = [
+        name for name in FINISH_ORDER if remaining - FINISHING_SCORE[name] >= lowest
+    ]
+    if not safe or "D20" in safe:
+        return "D20"
+    return max(safe, key=FINISHING_SCORE.__getitem__)
 
 
 def _target(number: int) -> str:
@@ -247,9 +307,11 @@ class Bot:
         # Darts need no cryptographic randomness.
         self.rng = rng or random.Random()  # noqa: S311
 
-    def throw(self, bed: str, level: int) -> tuple[dict[str, Any], tuple[float, float]]:
+    def throw(
+        self, bed: str, level: int, cricket: bool = False
+    ) -> tuple[dict[str, Any], tuple[float, float]]:
         """A dart aimed at the bed: its segment and its position on the board."""
-        sigma = scatter(level)
+        sigma = scatter(level, cricket)
         aim_x, aim_y = aim_point(bed)
         # Positions like the board's, relative to the outer edge of the double
         # ring; the bed is the one at the position the cards show.
@@ -285,3 +347,30 @@ def play_leg(bot: Bot, level: int, start: int = 501, double_out: bool = True) ->
         if outcome == "won":
             return total
         remaining = left
+
+
+def play_cricket_leg(
+    bot: Bot, level: int, numbers: tuple[int, ...] = CRICKET_NUMBERS
+) -> tuple[int, int]:
+    """The marks that counted and the darts of the bot for a Cricket leg
+    against a player who never scores, by the rules of the practice game.
+
+    This is how the Cricket scatter of every level was calibrated, and how the
+    tests check it.
+    """
+    marks, points, counted, total = [0] * len(numbers), 0, 0, 0
+    others, scores = [[0] * len(numbers)], [0]
+    while True:
+        visit: list[dict[str, Any]] = []
+        result = play_visit(marks, points, visit, others, scores, numbers)
+        for _ in range(BOT_DARTS):
+            bed = cricket_aim(result.marks, result.points, others, scores, numbers)
+            visit.append(bot.throw(bed, level, cricket=True)[0])
+            result = play_visit(marks, points, visit, others, scores, numbers)
+            if result.won:
+                break
+        counted += result.counted
+        total += result.darts
+        if result.won:
+            return counted, total
+        marks, points = result.marks, result.points

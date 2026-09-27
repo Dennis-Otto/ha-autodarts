@@ -2,6 +2,7 @@
 
 import random
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 import voluptuous as vol
@@ -13,6 +14,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.autodarts.bot import Bot
+from custom_components.autodarts.number import AutodartsBotLevel
 
 from .local_helpers import (
     S20,
@@ -26,7 +28,7 @@ from .local_helpers import (
     state,
 )
 from .test_play_comfort import act, kinds, receive, start, throws
-from .test_practice_setup import set_number
+from .test_practice_setup import select_game, set_number
 
 
 async def pass_time(hass, freezer, seconds: float) -> None:
@@ -241,8 +243,16 @@ async def test_the_bot_settings(hass, aioclient_mock):
     await start(hass, "501")
     await set_number(hass, "practice_bot_level", 60)
     assert practice.bot_seat == 1 and state(hass, "number", "practice_players") == "1"
+    # There is no level from 1 to 19: a step down from 20 sends the bot home,
+    # and a step up from 0 seats the weakest bot.
+    await set_number(hass, "practice_bot_level", 20)
+    await set_number(hass, "practice_bot_level", 19)
+    assert practice.bot_level == 0 and practice.bot_seat is None
+    await set_number(hass, "practice_bot_level", 1)
+    assert practice.bot_level == 20
+    await set_number(hass, "practice_bot_level", 60)
     with pytest.raises(ServiceValidationError) as error:
-        await set_number(hass, "practice_bot_level", 10)
+        await AutodartsBotLevel(entry.runtime_data.local).async_set_native_value(121)
     assert error.value.translation_key == "invalid_bot_level"
     # With the bot, three players at most.
     await set_number(hass, "practice_players", 3)
@@ -261,6 +271,44 @@ async def test_the_bot_settings(hass, aioclient_mock):
     assert practice.bot_level == 60 and practice.bot_seat is None
     await set_number(hass, "practice_bot_delay", 2.5)
     assert practice.bot_delay == 2.5
+
+
+async def test_start_game_counts_the_players_before_a_new_bot_level(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    practice = entry.runtime_data.local.practice
+    await start(hass, "501", players=["Alex", "Sam"])
+    # Without players, the players stay, and the bot joins them.
+    await start(hass, "501", bot_level=60)
+    assert practice.humans == 2 and len(practice.players) == 3
+    assert practice.names[:2] == ["Alex", "Sam"] and practice.bot_seat == 2
+    # Sent home, the bot leaves its seat to nobody.
+    await start(hass, "301", bot_level=0)
+    assert practice.humans == 2 and len(practice.players) == 2
+
+
+async def test_choosing_a_game_of_the_bot_keeps_four_players(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    practice = entry.runtime_data.local.practice
+    await start(hass, "killer", players=["A", "B", "C", "D"], bot_level=60)
+    for game in ("501", "cricket"):
+        with pytest.raises(ServiceValidationError) as error:
+            await select_game(hass, game)
+        assert error.value.translation_key == "bot_seat"
+    assert practice.kind == "killer" and len(practice.players) == 4
+    # Party games have room for four.
+    await select_game(hass, "shanghai")
+    assert practice.kind == "shanghai" and len(practice.players) == 4
+
+
+async def test_the_bot_throws_with_its_cricket_scatter(hass, aioclient_mock, freezer):
+    entry, coordinator = await against_the_bot(hass, aioclient_mock, game="cricket")
+    with patch.object(coordinator.bot, "throw", wraps=coordinator.bot.throw) as throw:
+        receive(coordinator, board(T20), board())
+        await pass_time(hass, freezer, 1.1)
+    assert throw.call_args.kwargs == {"cricket": True}
+    assert await hass.config_entries.async_unload(entry.entry_id)
 
 
 async def test_start_game_with_the_bot(hass, aioclient_mock):

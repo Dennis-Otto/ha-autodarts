@@ -723,11 +723,17 @@
     "duplicate_player": {
       "message": "{name} steht mehrfach in der Spielerliste. Jeder Spieler braucht einen eigenen Namen."
     },
+    "invalid_player_name": {
+      "message": "Ein Spielername darf keine geschweiften Klammern, kein Prozentzeichen, keine Raute (#) und keine Steuerzeichen enthalten."
+    },
     "killer_players": {
       "message": "Killer braucht mindestens zwei Spieler."
     },
     "unknown_player": {
       "message": "Es gibt kein Spielerprofil mit dem Namen {name}."
+    },
+    "player_in_tournament": {
+      "message": "{name} spielt im Turnier mit. Beende das Turnier, bevor du den Spieler löschst."
     },
     "board_access_denied": {
       "message": "Der Board Manager verweigert den Zugriff. Er braucht normalerweise keine Anmeldung; prüfe Proxys und Firewalls zwischen Home Assistant und dem Board."
@@ -762,6 +768,12 @@
     "no_tournament": {
       "message": "Es läuft kein Turnier."
     },
+    "tournament_running": {
+      "message": "Es läuft bereits ein Turnier. Beende es, bevor du ein neues startest."
+    },
+    "tournament_finished": {
+      "message": "Das Turnier ist vorbei. Beende es oder starte ein neues."
+    },
     "tournament_match_running": {
       "message": "Das Turniermatch {first} gegen {second} läuft noch. Spiel es zu Ende oder beende das Turnier."
     },
@@ -781,7 +793,7 @@
       "message": "Die Aufnahme hat schon drei Darts. Gib mit Nächster Spieler weiter."
     },
     "empty_visit": {
-      "message": "Die Aufnahme hat keine Darts zum Beenden. Nur X01 und die Cricket-Spiele geben ohne Darts weiter."
+      "message": "Die Aufnahme hat keine Darts zum Beenden. Ohne Darts gibst du in X01, den Cricket- und den Partyspielen weiter, nicht aber in Trainingsspielen, beim Ausbullen und während bei Killer die Zahlen gewählt werden."
     },
     "undo_unavailable": {
       "message": "Es gibt keine Aufnahme zum Zurücknehmen. Zurücknehmen geht für die letzte abgeschlossene Aufnahme, solange kein Dart im Board steckt und sich weder das Spiel noch die Trainings-Session seitdem geändert haben."
@@ -1095,7 +1107,7 @@
     },
     "next_player": {
       "name": "Nächster Spieler",
-      "description": "Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus.",
+      "description": "Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft. Ohne Darts setzt der Spieler am Board in X01, den Cricket- und den Partyspielen aus; in Partyspielen zählt das als drei Fehlwürfe.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

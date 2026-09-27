@@ -7,6 +7,8 @@ ranks the players; in a knockout the winners go on through a bracket until the
 final. When a match ends, its result goes into the table or the bracket, and
 the next match starts after the summary of the match and a pause, never while
 darts of a visit are on the board. The matches count for the player profiles like any other match.
+When the tournament ends, the practice game goes back to its settings from
+before, with the next match or the next change of a setting.
 """
 
 from __future__ import annotations
@@ -22,8 +24,17 @@ from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES, marks_per_round
-from .practice import GAMES, MAX_LEGS, MAX_SETS, PracticeGame, valid_start
-from .profiles import NAME_LENGTH
+from .practice import (
+    GAMES,
+    MATCH_RULES,
+    MAX_LEGS,
+    MAX_SETS,
+    PracticeGame,
+    clean_name,
+    valid_name,
+    valid_settings,
+    valid_start,
+)
 from .scoring import average
 
 ROUND_ROBIN = "round_robin"
@@ -44,7 +55,7 @@ MAX_SEED = 999_999
 # A won match of the round robin is worth two points, as in the Premier League.
 WIN_POINTS = 2
 # The rules every match of a tournament is played with.
-RULES = ("double_out", "double_in", "bull_off", "bull_off_distance")
+RULES = MATCH_RULES
 # A match for third place needs two losing semi-finalists.
 THIRD_PLACE_ENTRANTS = 4
 
@@ -86,12 +97,25 @@ def _invalid(key: str, **placeholders: str) -> ServiceValidationError:
 
 def _name(name: str) -> str:
     """A player name as the practice game keeps it."""
-    return name.strip()[:NAME_LENGTH]
+    return clean_name(name)
+
+
+def split_players(text: str) -> list[str]:
+    """Names separated by commas, semicolons or new lines, as they were
+    written; empty ones are dropped."""
+    return [name for name in re.split(r"[,;\r\n]", text) if name.strip()]
 
 
 def parse_players(text: str) -> list[str]:
-    """Names separated by commas, semicolons or new lines; empty ones are dropped."""
-    return [_name(name) for name in re.split(r"[,;\n]", text) if name.strip()]
+    """The names of a list separated by commas, semicolons or new lines, as
+    the practice game keeps them."""
+    return [name for name in map(_name, split_players(text)) if name]
+
+
+def check_names(names: list[str]) -> None:
+    """Player names must not contain the characters no name contains."""
+    if not all(valid_name(name) for name in names):
+        raise _invalid("invalid_player_name")
 
 
 def _flag(value: object, default: bool) -> bool:
@@ -118,14 +142,15 @@ class TournamentSetup:
     def restored(cls, saved: object) -> TournamentSetup:
         data = saved if isinstance(saved, dict) else {}
         players = data.get("players")
+        names = [
+            _name(name)
+            for name in (players if isinstance(players, list) else [])
+            if isinstance(name, str)
+        ]
         return cls(
             format=data["format"] if data.get("format") in FORMATS else ROUND_ROBIN,
             game=data["game"] if data.get("game") in TOURNAMENT_GAMES else "501",
-            players=[
-                _name(name)
-                for name in (players if isinstance(players, list) else [])
-                if isinstance(name, str) and name.strip()
-            ][:MAX_ENTRANTS],
+            players=[name for name in names if name][:MAX_ENTRANTS],
             third_place=_flag(data.get("third_place"), False),
             random_draw=_flag(data.get("random_draw"), False),
             pause=_count(data.get("pause"), 0, MAX_PAUSE, DEFAULT_PAUSE),
@@ -509,7 +534,7 @@ class Tournament:
             and saved.get("game") in TOURNAMENT_GAMES
             and isinstance(players, list)
             and MIN_ENTRANTS <= len(players) <= MAX_ENTRANTS
-            and all(isinstance(name, str) and name.strip() for name in players)
+            and all(isinstance(name, str) and _name(name) for name in players)
         ):
             return None
         rules = saved.get("rules")
@@ -578,16 +603,24 @@ class TournamentDirector:
 
     It sets the practice game up for every match and takes the result when the
     match is booked. Between two matches, the practice game holds the result:
-    darts thrown meanwhile start no new match.
+    darts thrown meanwhile start no new match. The settings of the practice
+    game from before the tournament go back to it when the tournament ends.
     """
 
     def __init__(self) -> None:
         self.setup = TournamentSetup()
         self.tournament: Tournament | None = None
+        # The practice settings from before the tournament being played.
+        self.saved: dict[str, Any] | None = None
 
     @property
     def waiting(self) -> bool:
         return self.tournament is not None and self.tournament.status == WAITING
+
+    @property
+    def running(self) -> bool:
+        """A tournament is being played, or waits for its next match."""
+        return self.tournament is not None and self.tournament.status != FINISHED
 
     def configure(self, **values: Any) -> None:
         """Settings of the next tournament; None leaves one as it is."""
@@ -615,8 +648,11 @@ class TournamentDirector:
         Unset values come from the setup; legs, sets and rules from the practice
         game. Start scores go with the players in their order; 0 or none plays
         the game's. A seed draws the order at random, the same order for the
-        same seed.
+        same seed. A tournament being played has to be stopped first.
         """
+        if self.running:
+            raise _invalid("tournament_running")
+        check_names(list(players or []))
         given_starts = list(start_scores or [])
         entrants = [
             (_name(name), given_starts[index] if index < len(given_starts) else 0)
@@ -648,7 +684,8 @@ class TournamentDirector:
             legs=practice.legs_to_win if legs is None else legs,
             sets=practice.sets_to_win if sets is None else sets,
             rules={
-                rule: bool(getattr(practice, rule))
+                # A double out waiting for the next leg is the one players set.
+                rule: practice.setting(rule)
                 if given.get(rule) is None
                 else bool(given[rule])
                 for rule in RULES
@@ -657,6 +694,10 @@ class TournamentDirector:
             seed=seed,
             started=now.isoformat(),
         )
+        # The settings to go back to: those before an earlier tournament, if
+        # the practice game has not gone back to them yet.
+        self.saved = practice.resume or practice.settings()
+        practice.resume = None
         self._play(practice)
         tournament = self.tournament
         return [
@@ -674,18 +715,44 @@ class TournamentDirector:
         ]
 
     def stop(self, practice: PracticeGame) -> None:
-        """End the tournament; the practice match being played goes on."""
+        """End the tournament; the practice match being played goes on, and
+        the practice settings from before come back after it."""
         if self.tournament is None:
             raise _invalid("no_tournament")
         self.tournament = None
         practice.hold = False
+        self._hand_back(practice)
+
+    def _hand_back(self, practice: PracticeGame) -> None:
+        """The practice settings from before the tournament go back to the
+        practice game with its next match or change of a setting."""
+        if self.saved is not None:
+            practice.resume, self.saved = self.saved, None
+
+    def forget(self, name: str) -> None:
+        """Take a deleted player off the setup of the next tournament; a player
+        of the tournament being played cannot be deleted."""
+        key = name.strip().casefold()
+        tournament = self.tournament
+        if self.running and tournament is not None:
+            if any(player.casefold() == key for player in tournament.players):
+                raise _invalid("player_in_tournament", name=name.strip())
+        self.setup.players = [
+            player for player in self.setup.players if player.casefold() != key
+        ]
+        if self.saved:
+            self.saved["names"] = [
+                "" if slot.casefold() == key else slot for slot in self.saved["names"]
+            ]
 
     def next_match(self, practice: PracticeGame) -> None:
         """Start the next match now, or set the current one up again when the
         practice game plays something else."""
         tournament = self.tournament
-        if tournament is None or tournament.status == FINISHED:
+        if tournament is None:
             raise _invalid("no_tournament")
+        if tournament.status == FINISHED:
+            raise _invalid("tournament_finished")
         index = tournament.upcoming()
         assert index is not None
         if tournament.status == PLAYING and self.plays(practice):
@@ -729,15 +796,28 @@ class TournamentDirector:
         return [str(name) for name in tournament.names(tournament.matches[index])]
 
     def plays(self, practice: PracticeGame) -> bool:
-        """Whether the practice game plays the current match of the tournament."""
+        """Whether the practice game plays the current match of the tournament:
+        its game and players, with the format, the rules and the start scores
+        of the tournament. A match whose settings were changed is another one."""
         tournament = self.tournament
-        if tournament is None or tournament.current() is None:
+        index = None if tournament is None else tournament.current()
+        if tournament is None or index is None:
             return False
         names = self._current_names()
+        starts = [
+            0 if entrant is None else tournament.starts[entrant]
+            for entrant in tournament.matches[index].players
+        ]
         return (
             practice.kind == tournament.kind
             and len(practice.players) == len(names)
             and practice.names[: len(names)] == names
+            and practice.starts[: len(starts)] == starts
+            and practice.legs_to_win == tournament.legs_to_win
+            and practice.sets_to_win == tournament.sets_to_win
+            and all(
+                practice.setting(rule) == on for rule, on in tournament.rules.items()
+            )
         )
 
     def booked(
@@ -776,6 +856,7 @@ class TournamentDirector:
             practice.hold = True
             return events
         tournament.status, tournament.ended = FINISHED, now.isoformat()
+        self._hand_back(practice)
         champion, runner_up, third = tournament.podium()
         events.append(
             (
@@ -814,13 +895,26 @@ class TournamentDirector:
     def due(self, now: datetime) -> bool:
         return (at := self.due_at()) is not None and at <= now
 
-    @staticmethod
-    def free(practice: PracticeGame) -> bool:
+    def free(self, practice: PracticeGame) -> bool:
         """Whether the practice game can make way for the next match by itself:
-        it shows a result, or nothing is played. Another game chosen during the
-        pause is played to its end first."""
-        return practice.winner is not None or (
+        it shows a result, or nothing is played. A match of the last two
+        players started anew during the pause, by a change of its settings,
+        makes way until its first dart. Another game chosen during the pause
+        is played to its end first."""
+        if practice.winner is not None or (
             practice.kind is None and practice.drill is None
+        ):
+            return True
+        tournament = self.tournament
+        last = None if tournament is None else tournament.last_played()
+        if not self.waiting or tournament is None or last is None:
+            return False
+        names = [str(name) for name in tournament.names(tournament.matches[last])]
+        return (
+            practice.fresh
+            and practice.kind == tournament.kind
+            and len(practice.players) == len(names)
+            and practice.names[: len(names)] == names
         )
 
     # -- storage and state ---------------------------------------------------------
@@ -829,12 +923,14 @@ class TournamentDirector:
         return {
             "setup": asdict(self.setup),
             "tournament": self.tournament.stored() if self.tournament else None,
+            "practice": dict(self.saved) if self.saved else None,
         }
 
     def restore(self, saved: object) -> None:
         data = saved if isinstance(saved, dict) else {}
         self.setup = TournamentSetup.restored(data.get("setup"))
         self.tournament = Tournament.restored(data.get("tournament"))
+        self.saved = valid_settings(data.get("practice")) if self.running else None
 
     def state(self) -> str:
         """The stage being played, or the next one during a pause."""

@@ -427,3 +427,112 @@ async def test_the_action_takes_start_scores_for_a_handicap(hass, aioclient_mock
     assert entry.runtime_data.local.practice.starts == [0, 301, 0, 0]
     with pytest.raises(vol.Invalid):
         await action(hass, "start_tournament", players=PLAYERS, start_scores=[1])
+
+
+async def text(hass, key: str, value: str) -> None:
+    await hass.services.async_call(
+        "text",
+        "set_value",
+        {"entity_id": entity_id(hass, "text", key), "value": value},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+
+async def test_names_and_the_list_of_players_are_checked(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    nine = ", ".join(f"Player {number}" for number in range(9))
+    for key, value, error_key in (
+        ("tournament_players", nine, "tournament_players"),
+        ("tournament_players", "Alex, {{ 6*7 }}, Kim", "invalid_player_name"),
+        ("practice_player_1", "50%", "invalid_player_name"),
+    ):
+        with pytest.raises(ServiceValidationError) as error:
+            await text(hass, key, value)
+        assert error.value.translation_key == error_key
+    assert error.value.translation_placeholders is None
+    assert coordinator.tournament.setup.players == []
+    assert coordinator.practice.names[0] == ""
+    # Eight names of 20 characters always fit into the state.
+    await text(hass, "tournament_players", ",".join(f"{'X' * 19}{n}" for n in range(8)))
+    assert len(state(hass, "text", "tournament_players")) <= 255
+    with pytest.raises(ServiceValidationError) as error:
+        await action(hass, "start_game", game="501", players=["Alex", "{% if %}"])
+    assert error.value.translation_key == "invalid_player_name"
+    with pytest.raises(ServiceValidationError) as error:
+        await action(hass, "start_tournament", players=["Alex", "Sam", "#Kim"])
+    assert error.value.translation_key == "invalid_player_name"
+    assert state(hass, "sensor", "tournament") == "no_tournament"
+
+
+async def test_a_tournament_is_stopped_before_the_next_one_starts(hass, aioclient_mock):
+    await setup_local(hass, aioclient_mock, state=board())
+    await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1)
+    await text(hass, "tournament_players", "Tom, Ida, Ben")
+    with pytest.raises(ServiceValidationError) as error:
+        await press(hass, "tournament_start")
+    assert error.value.translation_key == "tournament_running"
+    with pytest.raises(ServiceValidationError) as error:
+        await action(hass, "start_tournament", players=["Tom", "Ida", "Ben"])
+    assert error.value.translation_key == "tournament_running"
+    assert tournament(hass).attributes["players"] == PLAYERS
+    await press(hass, "tournament_stop")
+    await press(hass, "tournament_start")
+    assert sorted(tournament(hass).attributes["players"]) == ["Ben", "Ida", "Tom"]
+
+
+async def test_after_the_last_match_the_practice_settings_come_back(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    await action(hass, "start_game", game="501", players=["Zoe"], bot_level=60)
+    await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1, pause=0)
+    assert state(hass, "number", "practice_bot_level") == "0"
+    for _ in range(3):
+        await throw(hass, coordinator, *CHECKOUT)
+        if tournament(hass).attributes["status"] == "waiting":
+            await press(hass, "tournament_next_match")
+    assert state(hass, "sensor", "tournament") == "finished"
+    with pytest.raises(ServiceValidationError) as error:
+        await press(hass, "tournament_next_match")
+    assert error.value.translation_key == "tournament_finished"
+    # The final's result stays until the next dart, which plays Zoe and the bot.
+    assert state(hass, "text", "practice_player_1") != "Zoe"
+    await throw(hass, coordinator, S20, pull=False)
+    assert state(hass, "text", "practice_player_1") == "Zoe"
+    assert state(hass, "number", "practice_bot_level") == "60"
+    assert state(hass, "number", "practice_players") == "1"
+    assert state(hass, "sensor", "practice_remaining") == "81"
+
+
+async def test_a_player_of_the_tournament_is_deleted_after_it(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1)
+    # Kim throws first, and so has a profile.
+    await throw(hass, coordinator, S20)
+    assert "kim" in coordinator.practice.profiles.players
+    with pytest.raises(ServiceValidationError) as error:
+        await action(hass, "delete_player", name="kim")
+    assert error.value.translation_key == "player_in_tournament"
+    assert error.value.translation_placeholders == {"name": "kim"}
+    assert "kim" in coordinator.practice.profiles.players
+    await press(hass, "tournament_stop")
+    await action(hass, "delete_player", name="kim")
+    assert "kim" not in coordinator.practice.profiles.players
+    assert state(hass, "text", "tournament_players") == "Alex, Sam"
+
+
+async def test_a_game_after_a_stopped_tournament_has_the_players_from_before(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    practice = entry.runtime_data.local.practice
+    await action(hass, "start_game", game="501", players=["Zoe"], bot_level=60)
+    await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1)
+    await press(hass, "tournament_stop")
+    await action(hass, "start_game", game="301")
+    assert practice.humans == 1 and practice.bot_seat == 1
+    assert practice.names[0] == "Zoe" and practice.kind == 301

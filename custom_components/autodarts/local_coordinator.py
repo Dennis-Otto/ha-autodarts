@@ -55,7 +55,7 @@ from .local_api import (
 )
 from .manual import ManualDarts
 from .online import ONLINE_EVENT_TYPES
-from .practice import PracticeGame
+from .practice import PracticeGame, valid_name
 from .progress import Progress
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
 from .records import PersonalRecords
@@ -1293,8 +1293,10 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         await self._async_training([])
 
     async def async_delete_player(self, name: str) -> bool:
-        """Forget a player profile, and the name in the records and the player
-        slots; False when there is no profile by that name."""
+        """Forget a player profile, and the name in the records, the player
+        slots and the next tournament; False when there is no profile by that
+        name. A player of the tournament being played stays."""
+        self.tournament.forget(name)
         deleted = self.practice.profiles.delete(name)
         if deleted:
             self.practice.forget(name)
@@ -1374,8 +1376,10 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         """Set up a practice game in one step; unset values stay as they are."""
         practice = self.practice
-        if bot_level is not None:
-            practice.bot_level = bot_level
+        if names and not all(valid_name(name) for name in names):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="invalid_player_name"
+            )
         for option, value in (
             ("double_out", double_out),
             ("double_in", double_in),
@@ -1395,7 +1399,12 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 practice.set_start(index, own)
         practice.set_rounds(holes, rounds)
         practice.set_format(legs, sets)
-        practice.play(game, len(names) if names else None)
+        # The players besides the bot, counted before a new level of the bot
+        # changes which seat is its own.
+        humans = practice.humans
+        if bot_level is not None:
+            practice.bot_level = bot_level
+        practice.play(game, len(names) if names else humans)
         await self._async_training([])
 
     # -- tournaments ---------------------------------------------------------------
@@ -1566,7 +1575,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _bot_throw(self) -> None:
         dart, position = self.bot.throw(
-            bot_aim(self.practice.snapshot()), self.practice.bot_level
+            bot_aim(self.practice.snapshot()),
+            self.practice.bot_level,
+            cricket=self.practice.cricket is not None,
         )
         self.manual.add(dart, position, "bot")
 

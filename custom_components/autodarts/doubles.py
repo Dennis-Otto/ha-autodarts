@@ -1,8 +1,9 @@
 """Hit rates of every double, and the doubles a player finishes on best.
 
 A dart counts as an attempt at a double when that double is the target: in
-X01 when one double could finish the remaining score, in the doubles training
-and in Bob's 27 at the double of the round.
+X01, the checkout training, 121 and Catch 40 when one double could finish the
+remaining score, in the doubles training and in Bob's 27 at the double of the
+round, and in the JDC Challenge at the double of the step.
 """
 
 from __future__ import annotations
@@ -51,15 +52,22 @@ class DoubleStats:
         return round(hit * 100 / attempts, 1) if attempts else None
 
     def preferred(self) -> tuple[str, ...]:
-        """Doubles with enough attempts, the best hit rate first."""
-        known = [
+        """The player's strong doubles, the best hit rate first: those with
+        enough attempts that are hit at least as often as all doubles
+        together. A double never hit is never one of them."""
+        attempts = sum(count[0] for count in self.counts.values())
+        hit = sum(count[1] for count in self.counts.values())
+        strong = [
             double
             for double in DOUBLES
-            if self.counts.get(double, (0, 0))[0] >= MIN_ATTEMPTS
+            if (count := self.counts.get(double, [0, 0]))[0] >= MIN_ATTEMPTS
+            and count[1] > 0
+            # Hits per attempt at least the overall rate, without rounding.
+            and count[1] * attempts >= hit * count[0]
         ]
         return tuple(
             sorted(
-                known,
+                strong,
                 key=lambda double: (-(self.rate(double) or 0), -self.counts[double][0]),
             )
         )

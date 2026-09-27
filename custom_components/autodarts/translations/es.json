@@ -723,11 +723,17 @@
     "duplicate_player": {
       "message": "{name} aparece más de una vez en la lista de jugadores. Cada jugador necesita un nombre propio."
     },
+    "invalid_player_name": {
+      "message": "Un nombre de jugador no puede contener llaves, el signo de porcentaje, la almohadilla (#) ni caracteres de control."
+    },
     "killer_players": {
       "message": "Killer necesita al menos dos jugadores."
     },
     "unknown_player": {
       "message": "No hay ningún perfil de jugador llamado {name}."
+    },
+    "player_in_tournament": {
+      "message": "{name} juega en el torneo. Termina el torneo antes de eliminar al jugador."
     },
     "board_access_denied": {
       "message": "Board Manager ha denegado el acceso. Normalmente no necesita inicio de sesión; comprueba los proxies y cortafuegos entre Home Assistant y la diana."
@@ -762,6 +768,12 @@
     "no_tournament": {
       "message": "No se está jugando ningún torneo."
     },
+    "tournament_running": {
+      "message": "Ya se está jugando un torneo. Termínalo antes de iniciar uno nuevo."
+    },
+    "tournament_finished": {
+      "message": "El torneo ya acabó. Termínalo o inicia uno nuevo."
+    },
     "tournament_match_running": {
       "message": "El partido del torneo entre {first} y {second} sigue en juego. Juégalo hasta el final o termina el torneo."
     },
@@ -781,7 +793,7 @@
       "message": "La tirada ya tiene tres dardos. Pasa el turno con Siguiente jugador."
     },
     "empty_visit": {
-      "message": "La tirada no tiene dardos que terminar. Solo en X01 y los juegos de Cricket se puede pasar el turno sin dardos."
+      "message": "La tirada no tiene dardos que terminar. En X01, los juegos de Cricket y los juegos de fiesta se puede pasar el turno sin dardos, pero no en los juegos de entrenamiento, durante el bull-off ni mientras se eligen los números en Killer."
     },
     "undo_unavailable": {
       "message": "No hay ninguna tirada que deshacer. Deshacer recupera la última tirada completada mientras no haya ningún dardo en la diana y ni la partida ni la sesión de entrenamiento hayan cambiado desde entonces."
@@ -1095,7 +1107,7 @@
     },
     "next_player": {
       "name": "Siguiente jugador",
-      "description": "Termina la tirada actual sin retirar los dardos, para que lance el siguiente jugador. Sin dardos, el jugador en la diana pasa turno en X01 y los juegos de Cricket.",
+      "description": "Termina la tirada actual sin retirar los dardos, para que lance el siguiente jugador. Sin dardos, el jugador en la diana pasa turno en X01, los juegos de Cricket y los juegos de fiesta, donde el pase cuenta como tres fallos.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",

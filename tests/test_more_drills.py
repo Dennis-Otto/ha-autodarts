@@ -59,30 +59,69 @@ def test_the_121_ladder_climbs_on_a_finish_and_steps_down_on_a_miss():
     for _ in range(3):
         events = throw(drill, "S1", "S1", "S1")
     assert events[0][1]["success"] is False and events[0][1]["next"] == 121
-    # Never below 121: a bust ends the attempt as well.
-    events = throw(drill, "T20", "T20", "T20")
+    # Never below 121.
+    for _ in range(3):
+        events = throw(drill, "T20", "T20", "T20")
     assert events[0][1]["next"] == 121 and drill.target == 121
 
 
-def test_the_121_ladder_skips_scores_without_a_checkout_and_tops_out_at_170():
-    assert 159 not in LADDER and 160 in LADDER and LADDER[-1] == 170
+def test_a_bust_in_121_voids_only_its_visit():
+    drill = LadderDrill()
+    # 121: T20 T20 busts; the second visit starts from 121 again.
+    assert throw(drill, "T20", "T20") == []
+    snapshot = drill.snapshot()
+    assert snapshot["remaining"] == 121 and snapshot["attempt_visit"] == 2
+    assert snapshot["checkout"] == " ".join(checkout(121, 3))
+    drill.track(json_darts("T20"))
+    drill.track(json_darts("T20", "T20"))
+    snapshot = drill.snapshot()
+    # A bust shows until the darts are pulled, with the route of the next visit.
+    assert snapshot["bust"] and snapshot["remaining"] == 121
+    assert snapshot["checkout"] == " ".join(checkout(121, 3))
+    drill.finish_visit()
+    drill.track([])
+    events = throw(drill, "T20", "T11", "D14")
+    assert events[0][1]["success"] is True and events[0][1]["darts"] == 7
+    # A bust in the last visit ends the attempt.
+    throw(drill, "S1", "S1", "S1")
+    throw(drill, "S1", "S1", "S1")
+    drill.track(json_darts("T20", "T20"))
+    assert drill.snapshot()["checkout"] is None and drill.snapshot()["bust"]
+    drill.finish_visit()
+    assert drill.target == 121 and drill.visits == 0
+
+
+def test_the_121_ladder_plays_every_score_up_to_170():
+    assert LADDER == tuple(range(121, 171))
     drill = LadderDrill()
     drill.target = drill.start = 158
     throw(drill, "T20", "T20", "D19")
+    assert drill.target == 159
+    # 159 has no checkout in one visit: the cards show a setup instead.
+    snapshot = drill.snapshot()
+    assert snapshot["checkout"] is None
+    assert snapshot["setup"] == {"route": "T20 T20 S7", "leave": 32}
+    throw(drill, "T20", "T20", "S7")
+    snapshot = drill.snapshot()
+    assert snapshot["remaining"] == 32 and snapshot["checkout"] == "D16"
+    assert snapshot["setup"] is None
+    throw(drill, "D16")
     assert drill.target == 160
     drill.target = drill.start = 170
     throw(drill, "T20", "T20", "BULL")
     assert drill.target == 170
     copy = restored(drill)
-    assert copy.target == 170 and copy.successes == 2
+    assert copy.target == 170 and copy.successes == 3
     # A stored target the ladder does not know starts the ladder again.
     fresh = LadderDrill()
-    fresh.restore({"target": 159, "start": 100})
+    fresh.restore({"target": 171, "start": 100})
     assert fresh.target == 121
 
 
 def test_catch_40_scores_by_the_darts_a_checkout_takes():
-    assert [catch_points(darts) for darts in (2, 3, 4, 6)] == [3, 2, 1, 1]
+    assert [catch_points(darts, 61) for darts in (2, 3, 4, 6)] == [3, 2, 1, 1]
+    # No two darts finish 99: three darts score 3 there.
+    assert [catch_points(darts, 99) for darts in (3, 4)] == [3, 1]
     drill = CatchDrill()
     snapshot = drill.snapshot()
     assert snapshot["target"] == "61" and snapshot["targets"] == 40
@@ -101,13 +140,52 @@ def test_catch_40_scores_by_the_darts_a_checkout_takes():
     assert drill.snapshot()["attempt_visit"] == 2
     throw(drill, "D16")
     assert drill.score == 4 and drill.index == 2
-    # A bust ends the number without points.
+    # A bust voids only its visit: 63 again, and a finish then scores 1.
     throw(drill, "T20", "T20")
-    assert drill.score == 4 and drill.index == 3
-    # Two visits without the finish, too.
+    assert drill.index == 2 and drill.start == 63 and drill.visits == 1
+    snapshot = drill.snapshot()
+    assert snapshot["attempt_visit"] == 2 and snapshot["remaining"] == 63
+    drill.track(json_darts("T13", "D12"))
+    assert drill.snapshot()["score"] == 5
+    drill.finish_visit()
+    drill.track([])
+    assert drill.score == 5 and drill.index == 3
+    # Two busts, or two visits without the finish, score nothing.
+    throw(drill, "T20", "T20")
+    throw(drill, "T20", "T20")
+    assert drill.score == 5 and drill.index == 4
     throw(drill, "S1", "S1", "S1")
     throw(drill, "S1", "S1", "S1")
-    assert drill.score == 4 and drill.index == 4 and drill.darts == 14
+    assert drill.score == 5 and drill.index == 5 and drill.darts == 20
+
+
+def test_catch_40_gives_three_points_for_99_in_three_darts():
+    drill = CatchDrill()
+    drill.index, drill.start = CATCH_TARGETS.index(99), 99
+    drill.track(json_darts("T19", "S10", "D16"))
+    assert drill.snapshot()["score"] == 3
+    drill.finish_visit()
+    assert drill.score == 3 and drill.checkouts == 1
+
+
+def test_the_checkout_drills_count_their_darts_at_a_double():
+    drill = CatchDrill()
+    # 61: T11 leaves 28, D14 is a dart at a double, and so is BULL at 50.
+    drill.track(json_darts("T11", "S14", "D7"))
+    assert drill.double_attempts() == [("D14", False), ("D7", True)]
+    drill.finish_visit()
+    assert drill.double_attempts() == []
+    drill.track(json_darts("S12", "S20", "S20"))
+    # 62: S12 leaves 50, so S20 is a dart at the bull, and the next at D15.
+    assert drill.double_attempts() == [("BULL", False), ("D15", False)]
+    drill.finished = True
+    assert drill.double_attempts() == []
+    ladder = LadderDrill()
+    ladder.track(json_darts("T20", "T20", "S1"))
+    assert ladder.double_attempts() == []
+    ladder.start = 40
+    ladder.track(json_darts("S20", "D10"))
+    assert ladder.double_attempts() == [("D20", False), ("D10", True)]
 
 
 def json_darts(*names):
@@ -135,6 +213,20 @@ def test_catch_40_finishes_after_100_and_restarts_with_the_next_dart():
     assert copy.snapshot()["target"] == "61" and copy.snapshot()["score"] == 0
     copy.restore({"index": 5, "start": 200, "checkouts": 90, "score": 900})
     assert (copy.start, copy.checkouts, copy.score) == (66, 6, 18)
+
+
+def test_catch_40_and_the_checkout_training_count_for_the_doubles_analysis():
+    practice = PracticeGame()
+    practice.set_name(0, "Alex")
+    practice.play("catch_40")
+    for count in (1, 2, 3):
+        practice.track(json_darts("T11", "S14", "D7")[:count], [None] * count)
+    booking = practice.booking()
+    # 61 is aimed at along its route, 25 D18: the outer bull logs no aim.
+    assert booking.booked_aims == [None, "D14", "D7"]
+    practice.finish_visit()
+    assert practice.doubles.counts == {"D14": [1, 0], "D7": [1, 1]}
+    assert practice.profiles.players["alex"].doubles == practice.doubles.counts
 
 
 def test_the_jdc_challenge_plays_shanghai_doubles_and_shanghai():
@@ -191,6 +283,10 @@ def test_the_jdc_challenge_plays_shanghai_doubles_and_shanghai():
 def test_singles_score_a_point_per_mark_on_the_number():
     drill = SinglesDrill()
     assert drill.snapshot()["target"] == "1" and drill.snapshot()["targets"] == 21
+    # A double of the number is no dart at a double.
+    drill.track([dart("D1")])
+    assert drill.double_attempts() == []
+    drill.track([])
     throw(drill, "S1", "D1", "T2")
     snapshot = drill.snapshot()
     assert snapshot["target"] == "2" and snapshot["score"] == 3
