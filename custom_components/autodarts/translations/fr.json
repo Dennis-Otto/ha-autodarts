@@ -314,6 +314,41 @@
       },
       "achievements": {
         "name": "Succès"
+      },
+      "tournament": {
+        "name": "Tournoi",
+        "state": {
+          "no_tournament": "Aucun tournoi",
+          "round_1": "Tour 1",
+          "round_2": "Tour 2",
+          "round_3": "Tour 3",
+          "round_4": "Tour 4",
+          "round_5": "Tour 5",
+          "round_6": "Tour 6",
+          "round_7": "Tour 7",
+          "quarter_final": "Quart de finale",
+          "semi_final": "Demi-finale",
+          "third_place": "Petite finale",
+          "final": "Finale",
+          "finished": "Terminé"
+        },
+        "state_attributes": {
+          "status": {
+            "name": "Statut",
+            "state": {
+              "playing": "Match en cours",
+              "waiting": "En attente du prochain match",
+              "finished": "Terminé"
+            }
+          },
+          "format": {
+            "name": "Format",
+            "state": {
+              "round_robin": "Poule unique",
+              "knockout": "Élimination directe"
+            }
+          }
+        }
       }
     },
     "button": {
@@ -355,6 +390,15 @@
       },
       "practice_new_match": {
         "name": "Nouveau match de la partie"
+      },
+      "tournament_start": {
+        "name": "Démarrer le tournoi"
+      },
+      "tournament_next_match": {
+        "name": "Match suivant du tournoi"
+      },
+      "tournament_stop": {
+        "name": "Terminer le tournoi"
       }
     },
     "switch": {
@@ -399,6 +443,12 @@
       },
       "achievements_enabled": {
         "name": "Succès"
+      },
+      "tournament_third_place": {
+        "name": "Petite finale du tournoi"
+      },
+      "tournament_random_draw": {
+        "name": "Tirage au sort du tournoi"
       }
     },
     "select": {
@@ -455,6 +505,27 @@
       },
       "practice_golf_holes": {
         "name": "Trous de Golf de la partie"
+      },
+      "tournament_format": {
+        "name": "Format du tournoi",
+        "state": {
+          "round_robin": "Poule unique",
+          "knockout": "Élimination directe"
+        }
+      },
+      "tournament_game": {
+        "name": "Jeu du tournoi",
+        "state": {
+          "101": "101",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "901": "901",
+          "1001": "1001",
+          "cricket": "Cricket",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics"
+        }
       }
     },
     "number": {
@@ -478,6 +549,12 @@
       },
       "practice_count_up_rounds": {
         "name": "Tours de Count-Up de la partie"
+      },
+      "tournament_pause": {
+        "name": "Pause du tournoi"
+      },
+      "tournament_summary": {
+        "name": "Résumé du tournoi"
       }
     },
     "binary_sensor": {
@@ -544,6 +621,9 @@
               "personal_best": "Record personnel",
               "daily_goal_reached": "Objectif quotidien atteint",
               "bull_off_won": "Bull-off gagné",
+              "tournament_started": "Tournoi démarré",
+              "tournament_match_finished": "Match du tournoi terminé",
+              "tournament_finished": "Tournoi terminé",
               "online_game_on": "En ligne\u00a0: game on",
               "online_visit": "En ligne\u00a0: volée",
               "online_dart": "En ligne\u00a0: fléchette",
@@ -589,6 +669,9 @@
     "text": {
       "practice_player": {
         "name": "Joueur {number} de la partie"
+      },
+      "tournament_players": {
+        "name": "Joueurs du tournoi"
       }
     },
     "calendar": {
@@ -662,6 +745,15 @@
     },
     "invalid_start_score": {
       "message": "Un score de départ vaut 0 (score de départ du jeu) ou est compris entre 2 et 1001."
+    },
+    "tournament_players": {
+      "message": "Un tournoi nécessite entre trois et huit joueurs, pas {count}."
+    },
+    "no_tournament": {
+      "message": "Aucun tournoi n'est en cours."
+    },
+    "tournament_match_running": {
+      "message": "Le match du tournoi entre {first} et {second} est toujours en cours. Jouez-le jusqu'au bout, ou terminez le tournoi."
     }
   },
   "issues": {
@@ -837,6 +929,96 @@
           "description": "Le nom du joueur, sans distinction entre majuscules et minuscules."
         }
       }
+    },
+    "start_tournament": {
+      "name": "Démarrer un tournoi",
+      "description": "Tire au sort un tournoi de trois à huit joueurs et lance son premier match\u00a0: en poule unique ou en élimination directe, avec des matchs de X01 ou de Cricket.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        },
+        "players": {
+          "name": "Joueurs",
+          "description": "Noms de trois à huit joueurs, dans l'ordre du tirage. Si aucun nom n'est indiqué, ce sont les joueurs de l'entité Joueurs du tournoi qui jouent."
+        },
+        "start_scores": {
+          "name": "Scores de départ",
+          "description": "Scores de départ X01 des joueurs dans l'ordre des noms, pour un handicap, par exemple 501, 501 et 301. Avec 0 ou sans score, le joueur part du score de départ du jeu."
+        },
+        "format": {
+          "name": "Format",
+          "description": "Poule unique\u00a0: chaque joueur affronte une fois tous les autres. Élimination directe\u00a0: les vainqueurs avancent jusqu'à la finale."
+        },
+        "game": {
+          "name": "Jeu",
+          "description": "X01 de 101 à 1001 points, Cricket, Cut-Throat Cricket ou Tactics."
+        },
+        "legs": {
+          "name": "Manches par set",
+          "description": "Manches à gagner pour remporter un set dans chaque match. Sans valeur, les manches par set de la partie s'appliquent."
+        },
+        "sets": {
+          "name": "Sets pour gagner",
+          "description": "Sets à gagner pour remporter un match. Sans valeur, les sets de la partie s'appliquent."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "Les manches de X01 se terminent sur un double ou le bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "Les manches de X01 commencent par un double ou le bullseye."
+        },
+        "bull_off": {
+          "name": "Bull-off",
+          "description": "Un bull-off détermine qui commence chaque match."
+        },
+        "bull_off_distance": {
+          "name": "Bull-off à la distance",
+          "description": "Deux fléchettes dans la même zone du bull sont départagées par la distance mesurée par la cible, sans nouveau lancer."
+        },
+        "third_place": {
+          "name": "Petite finale",
+          "description": "En élimination directe à partir de quatre joueurs, les perdants des demi-finales disputent la troisième place."
+        },
+        "random_draw": {
+          "name": "Tirage au sort",
+          "description": "Tire au sort l'ordre des joueurs au lieu de reprendre l'ordre des noms."
+        },
+        "seed": {
+          "name": "Graine aléatoire",
+          "description": "Un nombre pour le tirage au sort\u00a0: le même nombre donne le même ordre."
+        },
+        "pause": {
+          "name": "Pause",
+          "description": "Secondes entre deux matchs, après le résumé\u00a0; avec 0, le match suivant ne commence qu'avec Match suivant du tournoi."
+        },
+        "summary": {
+          "name": "Résumé",
+          "description": "Secondes d'affichage du résumé d'un match avant le début de la pause."
+        }
+      }
+    },
+    "stop_tournament": {
+      "name": "Terminer le tournoi",
+      "description": "Termine le tournoi. Le match en cours continue comme une partie hors tournoi.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        }
+      }
+    },
+    "next_tournament_match": {
+      "name": "Match suivant du tournoi",
+      "description": "Démarre le match suivant du tournoi sans attendre la fin de la pause.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        }
+      }
     }
   },
   "selector": {
@@ -879,6 +1061,12 @@
         "matches": "Parties",
         "profiles": "Profils de joueurs",
         "all": "Tout"
+      }
+    },
+    "tournament_format": {
+      "options": {
+        "round_robin": "Poule unique",
+        "knockout": "Élimination directe"
       }
     }
   }

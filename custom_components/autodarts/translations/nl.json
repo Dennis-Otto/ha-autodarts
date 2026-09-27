@@ -314,6 +314,41 @@
       },
       "achievements": {
         "name": "Prestaties"
+      },
+      "tournament": {
+        "name": "Toernooi",
+        "state": {
+          "no_tournament": "Geen toernooi",
+          "round_1": "Ronde 1",
+          "round_2": "Ronde 2",
+          "round_3": "Ronde 3",
+          "round_4": "Ronde 4",
+          "round_5": "Ronde 5",
+          "round_6": "Ronde 6",
+          "round_7": "Ronde 7",
+          "quarter_final": "Kwartfinale",
+          "semi_final": "Halve finale",
+          "third_place": "Troostfinale",
+          "final": "Finale",
+          "finished": "Afgelopen"
+        },
+        "state_attributes": {
+          "status": {
+            "name": "Status",
+            "state": {
+              "playing": "Wedstrijd bezig",
+              "waiting": "Wacht op de volgende wedstrijd",
+              "finished": "Afgelopen"
+            }
+          },
+          "format": {
+            "name": "Format",
+            "state": {
+              "round_robin": "Iedereen tegen iedereen",
+              "knockout": "Knock-out"
+            }
+          }
+        }
       }
     },
     "button": {
@@ -355,6 +390,15 @@
       },
       "practice_new_match": {
         "name": "Oefenspel nieuwe wedstrijd"
+      },
+      "tournament_start": {
+        "name": "Toernooi starten"
+      },
+      "tournament_next_match": {
+        "name": "Volgende toernooiwedstrijd"
+      },
+      "tournament_stop": {
+        "name": "Toernooi stoppen"
       }
     },
     "switch": {
@@ -399,6 +443,12 @@
       },
       "achievements_enabled": {
         "name": "Prestaties"
+      },
+      "tournament_third_place": {
+        "name": "Toernooi troostfinale"
+      },
+      "tournament_random_draw": {
+        "name": "Toernooi willekeurige loting"
       }
     },
     "select": {
@@ -455,6 +505,27 @@
       },
       "practice_golf_holes": {
         "name": "Oefenspel Golf-holes"
+      },
+      "tournament_format": {
+        "name": "Toernooi format",
+        "state": {
+          "round_robin": "Iedereen tegen iedereen",
+          "knockout": "Knock-out"
+        }
+      },
+      "tournament_game": {
+        "name": "Toernooi spel",
+        "state": {
+          "101": "101",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "901": "901",
+          "1001": "1001",
+          "cricket": "Cricket",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics"
+        }
       }
     },
     "number": {
@@ -478,6 +549,12 @@
       },
       "practice_count_up_rounds": {
         "name": "Oefenspel Count-Up-rondes"
+      },
+      "tournament_pause": {
+        "name": "Toernooi pauze"
+      },
+      "tournament_summary": {
+        "name": "Toernooi samenvatting"
       }
     },
     "binary_sensor": {
@@ -544,6 +621,9 @@
               "personal_best": "Persoonlijk record",
               "daily_goal_reached": "Dagdoel bereikt",
               "bull_off_won": "Bullen gewonnen",
+              "tournament_started": "Toernooi gestart",
+              "tournament_match_finished": "Toernooiwedstrijd afgerond",
+              "tournament_finished": "Toernooi afgerond",
               "online_game_on": "Online: game on",
               "online_visit": "Online: beurt",
               "online_dart": "Online: dart",
@@ -589,6 +669,9 @@
     "text": {
       "practice_player": {
         "name": "Oefenspel speler {number}"
+      },
+      "tournament_players": {
+        "name": "Toernooi spelers"
       }
     },
     "calendar": {
@@ -662,6 +745,15 @@
     },
     "invalid_start_score": {
       "message": "Een startscore is 0 (voor de startscore van het spel) of ligt tussen 2 en 1001."
+    },
+    "tournament_players": {
+      "message": "Een toernooi heeft drie tot acht spelers nodig, niet {count}."
+    },
+    "no_tournament": {
+      "message": "Er wordt geen toernooi gespeeld."
+    },
+    "tournament_match_running": {
+      "message": "De toernooiwedstrijd {first} tegen {second} is nog bezig. Speel die eerst uit of stop het toernooi."
     }
   },
   "issues": {
@@ -837,6 +929,96 @@
           "description": "De spelersnaam; hoofdletters en kleine letters maken niet uit."
         }
       }
+    },
+    "start_tournament": {
+      "name": "Toernooi starten",
+      "description": "Maakt de loting voor een toernooi met drie tot acht spelers en start de eerste wedstrijd: iedereen tegen iedereen of knock-out, met wedstrijden in X01 of Cricket.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        },
+        "players": {
+          "name": "Spelers",
+          "description": "Namen van drie tot acht spelers, in de volgorde van de loting. Zonder namen spelen de spelers uit Toernooi spelers."
+        },
+        "start_scores": {
+          "name": "Startscores",
+          "description": "X01-startscores van de spelers in de volgorde van de namen, voor een handicap, bijvoorbeeld 501, 501 en 301. Bij 0 of een ontbrekende score geldt de startscore van het spel."
+        },
+        "format": {
+          "name": "Format",
+          "description": "Iedereen tegen iedereen: elke speler speelt één keer tegen elke andere speler. Knock-out: de winnaars gaan door tot en met de finale."
+        },
+        "game": {
+          "name": "Spel",
+          "description": "X01 van 101 tot 1001 punten, Cricket, Cut-Throat Cricket of Tactics."
+        },
+        "legs": {
+          "name": "Legs per set",
+          "description": "Aantal legs dat je in elke wedstrijd nodig hebt om een set te winnen. Zonder waarde gelden de legs per set van het oefenspel."
+        },
+        "sets": {
+          "name": "Sets om te winnen",
+          "description": "Aantal sets dat je nodig hebt om een wedstrijd te winnen. Zonder waarde gelden de sets van het oefenspel."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "X01-legs eindigen op een dubbel of de bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "X01-legs beginnen met een dubbel of de bullseye."
+        },
+        "bull_off": {
+          "name": "Bullen",
+          "description": "Bij elke wedstrijd wordt eerst gebuld om te bepalen wie begint."
+        },
+        "bull_off_distance": {
+          "name": "Bullen op afstand",
+          "description": "Bij twee darts in hetzelfde bullvak beslist de door het bord gemeten afstand, in plaats van dat er opnieuw wordt gegooid."
+        },
+        "third_place": {
+          "name": "Troostfinale",
+          "description": "Bij een knock-out met vier of meer spelers spelen de verliezers van de halve finales om de derde plaats."
+        },
+        "random_draw": {
+          "name": "Willekeurige loting",
+          "description": "Bepaalt de volgorde van de spelers door loting, in plaats van de volgorde van de namen aan te houden."
+        },
+        "seed": {
+          "name": "Startwaarde",
+          "description": "Een getal voor een willekeurige loting: hetzelfde getal levert dezelfde volgorde op."
+        },
+        "pause": {
+          "name": "Pauze",
+          "description": "Seconden tussen twee wedstrijden, na de samenvatting; bij 0 wordt gewacht op Volgende toernooiwedstrijd."
+        },
+        "summary": {
+          "name": "Samenvatting",
+          "description": "Seconden dat de samenvatting van een wedstrijd te zien is voordat de pauze begint."
+        }
+      }
+    },
+    "stop_tournament": {
+      "name": "Toernooi stoppen",
+      "description": "Beëindigt het toernooi. De lopende wedstrijd gaat verder als oefenwedstrijd.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        }
+      }
+    },
+    "next_tournament_match": {
+      "name": "Volgende toernooiwedstrijd",
+      "description": "Start de volgende wedstrijd van het toernooi zonder op het einde van de pauze te wachten.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        }
+      }
     }
   },
   "selector": {
@@ -879,6 +1061,12 @@
         "matches": "Oefenwedstrijden",
         "profiles": "Spelersprofielen",
         "all": "Alles"
+      }
+    },
+    "tournament_format": {
+      "options": {
+        "round_robin": "Iedereen tegen iedereen",
+        "knockout": "Knock-out"
       }
     }
   }

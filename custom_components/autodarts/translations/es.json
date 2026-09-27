@@ -314,6 +314,41 @@
       },
       "achievements": {
         "name": "Logros"
+      },
+      "tournament": {
+        "name": "Torneo",
+        "state": {
+          "no_tournament": "Sin torneo",
+          "round_1": "Ronda 1",
+          "round_2": "Ronda 2",
+          "round_3": "Ronda 3",
+          "round_4": "Ronda 4",
+          "round_5": "Ronda 5",
+          "round_6": "Ronda 6",
+          "round_7": "Ronda 7",
+          "quarter_final": "Cuartos de final",
+          "semi_final": "Semifinal",
+          "third_place": "Partido por el tercer puesto",
+          "final": "Final",
+          "finished": "Terminado"
+        },
+        "state_attributes": {
+          "status": {
+            "name": "Estado",
+            "state": {
+              "playing": "Partido en juego",
+              "waiting": "Esperando al siguiente partido",
+              "finished": "Terminado"
+            }
+          },
+          "format": {
+            "name": "Formato",
+            "state": {
+              "round_robin": "Todos contra todos",
+              "knockout": "Eliminación directa"
+            }
+          }
+        }
       }
     },
     "button": {
@@ -355,6 +390,15 @@
       },
       "practice_new_match": {
         "name": "Nuevo partido"
+      },
+      "tournament_start": {
+        "name": "Iniciar torneo"
+      },
+      "tournament_next_match": {
+        "name": "Siguiente partido del torneo"
+      },
+      "tournament_stop": {
+        "name": "Terminar torneo"
       }
     },
     "switch": {
@@ -399,6 +443,12 @@
       },
       "achievements_enabled": {
         "name": "Logros"
+      },
+      "tournament_third_place": {
+        "name": "Partido por el tercer puesto del torneo"
+      },
+      "tournament_random_draw": {
+        "name": "Sorteo aleatorio del torneo"
       }
     },
     "select": {
@@ -455,6 +505,27 @@
       },
       "practice_golf_holes": {
         "name": "Hoyos de Golf de la partida"
+      },
+      "tournament_format": {
+        "name": "Formato del torneo",
+        "state": {
+          "round_robin": "Todos contra todos",
+          "knockout": "Eliminación directa"
+        }
+      },
+      "tournament_game": {
+        "name": "Juego del torneo",
+        "state": {
+          "101": "101",
+          "301": "301",
+          "501": "501",
+          "701": "701",
+          "901": "901",
+          "1001": "1001",
+          "cricket": "Cricket",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics"
+        }
       }
     },
     "number": {
@@ -478,6 +549,12 @@
       },
       "practice_count_up_rounds": {
         "name": "Rondas de Count-Up de la partida"
+      },
+      "tournament_pause": {
+        "name": "Pausa del torneo"
+      },
+      "tournament_summary": {
+        "name": "Resumen del torneo"
       }
     },
     "binary_sensor": {
@@ -544,6 +621,9 @@
               "personal_best": "Récord personal",
               "daily_goal_reached": "Objetivo diario alcanzado",
               "bull_off_won": "Bull-off ganado",
+              "tournament_started": "Torneo iniciado",
+              "tournament_match_finished": "Partido del torneo terminado",
+              "tournament_finished": "Torneo terminado",
               "online_game_on": "En línea: game on",
               "online_visit": "En línea: tirada",
               "online_dart": "En línea: dardo",
@@ -589,6 +669,9 @@
     "text": {
       "practice_player": {
         "name": "Jugador {number} de la partida"
+      },
+      "tournament_players": {
+        "name": "Jugadores del torneo"
       }
     },
     "calendar": {
@@ -662,6 +745,15 @@
     },
     "invalid_start_score": {
       "message": "La puntuación inicial debe ser 0, para usar la del juego, o de 2 a 1001."
+    },
+    "tournament_players": {
+      "message": "Un torneo necesita de tres a ocho jugadores, no {count}."
+    },
+    "no_tournament": {
+      "message": "No se está jugando ningún torneo."
+    },
+    "tournament_match_running": {
+      "message": "El partido del torneo entre {first} y {second} sigue en juego. Juégalo hasta el final o termina el torneo."
     }
   },
   "issues": {
@@ -837,6 +929,96 @@
           "description": "El nombre del jugador, sin distinguir entre mayúsculas y minúsculas."
         }
       }
+    },
+    "start_tournament": {
+      "name": "Iniciar torneo",
+      "description": "Sortea un torneo de tres a ocho jugadores e inicia su primer partido: todos contra todos o eliminación directa, con partidos de X01 o de Cricket.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        },
+        "players": {
+          "name": "Jugadores",
+          "description": "Nombres de tres a ocho jugadores, en el orden del sorteo. Sin nombres, juegan los jugadores indicados en Jugadores del torneo."
+        },
+        "start_scores": {
+          "name": "Puntuaciones iniciales",
+          "description": "Puntuaciones iniciales de X01 de los jugadores en el orden de los nombres, para jugar con hándicap, por ejemplo 501, 501 y 301. Con 0 o sin puntuación se juega con la puntuación inicial del juego."
+        },
+        "format": {
+          "name": "Formato",
+          "description": "Todos contra todos: cada jugador se enfrenta una vez a todos los demás. Eliminación directa: los ganadores avanzan hasta la final."
+        },
+        "game": {
+          "name": "Juego",
+          "description": "X01 de 101 a 1001 puntos, Cricket, Cut-Throat Cricket o Tactics."
+        },
+        "legs": {
+          "name": "Legs por set",
+          "description": "Legs necesarios para ganar un set en cada partido. Si no se indica, se usan los legs por set de la partida."
+        },
+        "sets": {
+          "name": "Sets para ganar",
+          "description": "Sets necesarios para ganar un partido. Si no se indica, se usan los sets de la partida."
+        },
+        "double_out": {
+          "name": "Double out",
+          "description": "Los legs de X01 terminan en un doble o en el bullseye."
+        },
+        "double_in": {
+          "name": "Double in",
+          "description": "Los legs de X01 empiezan con un doble o con el bullseye."
+        },
+        "bull_off": {
+          "name": "Bull-off",
+          "description": "Un bull-off decide quién empieza cada partido."
+        },
+        "bull_off_distance": {
+          "name": "Bull-off por distancia",
+          "description": "Si dos dardos caen en el mismo segmento del bull, decide la distancia medida por la diana en lugar de repetir el lanzamiento."
+        },
+        "third_place": {
+          "name": "Partido por el tercer puesto",
+          "description": "En una eliminación directa de cuatro o más jugadores, los perdedores de las semifinales juegan por el tercer puesto."
+        },
+        "random_draw": {
+          "name": "Sorteo aleatorio",
+          "description": "Sortea el orden de los jugadores al azar en lugar de usar el orden de los nombres."
+        },
+        "seed": {
+          "name": "Semilla",
+          "description": "Un número para el sorteo aleatorio: el mismo número da el mismo orden."
+        },
+        "pause": {
+          "name": "Pausa",
+          "description": "Segundos entre dos partidos, después del resumen; con 0 se espera a Siguiente partido del torneo."
+        },
+        "summary": {
+          "name": "Resumen",
+          "description": "Segundos durante los que se muestra el resumen de un partido antes de que empiece la pausa."
+        }
+      }
+    },
+    "stop_tournament": {
+      "name": "Terminar torneo",
+      "description": "Termina el torneo. El partido en curso continúa fuera del torneo.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        }
+      }
+    },
+    "next_tournament_match": {
+      "name": "Siguiente partido del torneo",
+      "description": "Inicia el siguiente partido del torneo sin esperar a que termine la pausa.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        }
+      }
     }
   },
   "selector": {
@@ -879,6 +1061,12 @@
         "matches": "Partidos",
         "profiles": "Perfiles de jugador",
         "all": "Todo"
+      }
+    },
+    "tournament_format": {
+      "options": {
+        "round_robin": "Todos contra todos",
+        "knockout": "Eliminación directa"
       }
     }
   }
