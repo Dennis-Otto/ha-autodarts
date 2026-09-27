@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis.stateful import (
@@ -228,4 +229,6 @@ class PracticeMachine(RuleBasedStateMachine):
 PracticeMachine.TestCase.settings = settings(
     max_examples=200, stateful_step_count=80, deadline=None
 )
-TestPracticeMachine = PracticeMachine.TestCase
+# 200 games take 10-25 s on a busy machine, and shrinking a failure takes longer:
+# a generous limit lets a real failure show its example instead of a timeout.
+TestPracticeMachine = pytest.mark.timeout(180)(PracticeMachine.TestCase)
