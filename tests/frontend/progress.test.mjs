@@ -216,7 +216,7 @@ test("badges come from the catalogue with their tier, dates and progress", () =>
 test("badges show the next goal, the progress and when they were earned", () => {
   const { players } = badgesView(achievements);
   const html = badgesHtml(players[0], ui);
-  assert.match(html, /data-badge="maximum" style="--tier:#9aa4b1"/);
+  assert.match(html, /data-badge="maximum" style="--tier:#a9b6c4"/);
   assert.match(html, /<b>180 · Silver<\/b><span>180s in X01: 100<\/span><span class="muted">37 of 100<\/span>/);
   assert.match(html, /<span class="badge-bar"><i style="width:37%"><\/i><\/span>/);
   assert.match(html, /<b>Short leg · Bronze<\/b><span>A 501 leg in 15 darts or fewer<\/span><span class="muted">Best so far: 17<\/span>/);

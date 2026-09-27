@@ -205,3 +205,11 @@ test("a new configuration shows its own mode and player", () => {
   assert.equal($(card, '[data-mode="numbers"]').getAttribute("aria-pressed"), "true");
   assert.equal($(card, '[data-source=""]').getAttribute("aria-pressed"), "true");
 });
+
+test("positions without a known aim have no groupings to show", async () => {
+  const answers = { "": { positions: [[0.1, 0.2]], spread: [] } };
+  const { card } = setup({ mode: "positions" }, board([], answers));
+  await settle();
+  assert.equal($$(card, ".heat-layer .position").length, 1);
+  assert.equal($(card, ".heat .groups").hidden, true);
+});

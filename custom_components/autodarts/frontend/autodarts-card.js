@@ -885,7 +885,7 @@ const TEXT = {
     badge_locked: "Gesperrt",
     badge_earned: "Erreicht {date}",
     badge_progress: "{value} von {goal}",
-    badge_best: "Bisher bestes: {value}",
+    badge_best: "Bestwert bisher: {value}",
     tier_1: "Bronze",
     tier_2: "Silber",
     tier_3: "Gold",
@@ -3139,7 +3139,7 @@ const ACHIEVEMENT_ICONS = {
   darts_thrown: "mdi:arrow-projectile-multiple",
 };
 // Bronze, silver, gold and platinum; an achievement of a single tier is gold.
-const TIER_COLORS = ["#c07a3c", "#9aa4b1", GOLD, "#5fd0e8"];
+const TIER_COLORS = ["#c07a3c", "#a9b6c4", GOLD, "#5fd0e8"];
 
 function tierColor(tier, tiers) {
   if (!tier) return null;
@@ -4934,18 +4934,24 @@ const PROGRESS_CSS = `
     display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 10px; align-items: center; min-width: 0;
     padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--tier) 13%, transparent);
   }
+  /* A medal: the tier's colour with a metallic sheen. */
   .badge-icon {
     width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; --mdc-icon-size: 22px;
-    color: #fff; background: var(--tier); box-shadow: 0 0 0 3px color-mix(in srgb, var(--tier) 30%, transparent);
+    color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.3);
+    background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--tier) 35%, #fff), var(--tier) 55%,
+      color-mix(in srgb, var(--tier) 70%, #000));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--tier) 45%, transparent), 0 1px 3px rgba(0,0,0,.25);
   }
-  .badge-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: 12px; }
-  .badge-text > :is(b, span) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: 12px; line-height: 1.3; }
   .badge-text b { font-size: 13px; color: var(--primary-text-color); }
   .badge-text > span { color: var(--secondary-text-color); }
-  .badge.locked { background: color-mix(in srgb, var(--primary-text-color) 4%, transparent); }
+  .badge.locked {
+    background: none; border: 1px dashed color-mix(in srgb, var(--primary-text-color) 22%, transparent);
+    padding: 7px 9px;
+  }
   .badge.locked .badge-icon {
-    color: var(--secondary-text-color); box-shadow: none;
-    background: color-mix(in srgb, var(--primary-text-color) 14%, transparent);
+    color: var(--disabled-text-color, #9e9e9e); box-shadow: none; text-shadow: none;
+    background: color-mix(in srgb, var(--primary-text-color) 8%, transparent);
   }
   .badge.locked .badge-text b { color: var(--secondary-text-color); }
   .badge-bar {
@@ -4956,7 +4962,7 @@ const PROGRESS_CSS = `
   .trend-player, .group-player { padding: 8px 0; border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
   :is(.trend-player, .group-player):first-child { border-top: 0; }
   .trend-name { font-weight: 700; margin-bottom: 6px; color: var(--primary-text-color); }
-  .trends { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .trends { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
   .trend {
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; align-items: center;
     padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
@@ -4992,7 +4998,7 @@ const LEADERBOARD_CSS = `${BASE_CSS}${SEGMENTED_CSS}
     display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; min-width: 0;
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
   }
-  .record-name { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ad-accent); }
+  .record-name { font-size: 12px; font-weight: 700; letter-spacing: .02em; color: var(--ad-accent); }
   .record-leader { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
   .record-leader .who {
     font-size: 17px; font-weight: 800; color: var(--primary-text-color);
@@ -6176,7 +6182,8 @@ function createElements(Base) {
       this._setHtml(el.heat, positionsHtml(positions));
       el.legendMin.textContent = this._t("legend_few");
       el.legendMax.textContent = positions.length ? this._t("legend_many") : "–";
-      el.groups.hidden = !shown;
+      // Groupings need darts at a bed the game knows; without positions, the card says so.
+      el.groups.hidden = !shown || (positions.length > 0 && !shown.spread.length);
       this._setHtml(
         el.groups,
         shown && !positions.length
