@@ -16,6 +16,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 - **Reports:** a weekly report with its sensor, the `weekly_report` event and a blueprint; a training calendar of the last 365 days; `autodarts.export` and an export button on the players card for CSV or JSON.
 - **Highlights and light:** a highlight gallery in the media browser, fed by the highlight photo blueprint, and a new light show blueprint for WLED and room lights.
 - **Online matches** *(experimental)*: an optional bridge brings busts, won legs and matches and the darts of opponents on play.autodarts.io into Home Assistant through the browser extension Tools for Autodarts.
+- **Dutch, French and Spanish:** the integration, the cards and the caller speak three more languages.
 - **Events in time:** `visit_thrown` announces a visit the moment its third dart lands; dart and visit events name the game and the player.
 - **Bull-off by distance:** optionally, the measured distance also decides between two darts in the same bull bed. The scoreboard shows the bed and the distance of every dart and who leads.
 - **Double out from the next leg:** switching double out during a leg applies from the next leg, so no leg becomes unwinnable.

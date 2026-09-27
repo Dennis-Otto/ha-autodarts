@@ -89,7 +89,7 @@
       <ul>
         <li>Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch</li>
         <li>Nichts verlässt dein Netzwerk; Geheimnisse des Boards werden nie gespeichert</li>
-        <li>Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch und Englisch</li>
+        <li>Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch (<a href="#sprachen">Sprachen</a>)</li>
         <li>Alle Regeln der Qualitätsskala von Home Assistant bis Platin, 100 % Testabdeckung</li>
       </ul>
       <p><a href="funktionsweise.md">Funktionsweise →</a></p>
@@ -214,6 +214,16 @@ Die Blueprints sind auf Englisch beschriftet; ihre Texte, etwa die Ansagen, wäh
 | Home Assistant | ab 2026.8 | 2026.8.0 und 2026.9.3 |
 
 Jede Board-Hardware, auf der der Autodarts Board Manager läuft, funktioniert, weil die Integration mit dem Board Manager spricht, nicht mit den Kameras.
+
+## Sprachen
+
+Die Integration spricht Deutsch, Englisch, Niederländisch, Französisch und Spanisch: Einrichtung, Optionen, Entitäten und ihre Zustände, Aktionen, Meldungen und Reparaturen, die Karten mit ihren Editoren und der Caller der Anzeigetafel. Sie folgt der Sprache von Home Assistant, eine regionale Variante wie `de-CH` oder `es-419` zählt zu ihrer Sprache. Andere Sprachen sehen Englisch.
+
+- Die Namen der Entitäten legt Home Assistant in der Sprache des Servers fest (**Einstellungen → System → Allgemein**), Zustände und Karten folgen der Sprache deines Benutzerprofils.
+- Der Caller spricht die Sprache der Karte mit einer Stimme deines Browsers oder Tablets für diese Sprache.
+- Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints auf Englisch, weil Home Assistant Blueprints nicht übersetzt.
+
+Eine Übersetzung verbessern oder eine Sprache hinzufügen: [Übersetzungen in CONTRIBUTING.md](../../CONTRIBUTING.md#translations).
 
 ## Bekannte Einschränkungen
 

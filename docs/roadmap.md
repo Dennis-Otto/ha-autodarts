@@ -69,6 +69,7 @@ Merged for the next release; the [changelog](../CHANGELOG.md#160) has the detail
 | **Achievements** | Milestones per player in tiers, such as the first 180, a ton-plus checkout, a nine-darter or a ten-day streak, each with an event and shown as badges | Done |
 | **Trends and heatmaps per player** | Average, checkout rate and doubles rate per week as a trend, every player's own heatmap and a leaderboard of the records of all players | Done |
 | **Heatmap of the dart positions** | A heatmap that draws where every dart landed, from the positions the board reports, with the grouping in millimeters; the card switches between beds, numbers and positions | Done |
+| **Dutch, French and Spanish** | The integration, the cards and the caller in three more languages, with tests that keep every language complete | Done |
 | **Documentation** | Illustrated guides for games, the scoreboard and statistics, a glossary and an accessibility section | Done |
 
 ## Next
@@ -77,11 +78,11 @@ Ideas for the versions after 1.6. Votes and reactions on the [feature requests](
 
 | Topic | What it brings | Dependency |
 | --- | --- | --- |
-| **Voice control with Assist** | "Start 501 for Alex and Sam", "What is my average today?" as sentences of their own, without an automation | Sentences in English and German that feel natural at the board |
+| **Voice control with Assist** | "Start 501 for Alex and Sam", "What is my average today?" as sentences of their own, without an automation | Sentences in every language of the integration that feel natural at the board |
 | **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works | Test reports from players who use it |
 | **Cloud link** | Cloud match data and cloud match events: leg and match won, bust, player change, remaining score | An OAuth client ID from Autodarts, which has been requested |
 | **HACS default repository** | Installation without adding a custom repository | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); the HACS review queue takes several months |
-| **More languages** | The integration and the cards in more languages | Contributions from native speakers |
+| **Further languages** | The integration and the cards in more languages | Contributions from native speakers ([how to add a language](../CONTRIBUTING.md#translations)) |
 
 ## Later
 

@@ -69,6 +69,7 @@ Für das nächste Release zusammengeführt; die Details stehen im [Changelog](..
 | **Erfolge** | Meilensteine pro Spieler in Stufen, etwa die erste 180, ein Checkout über 100, ein Neun-Darter oder eine Serie von zehn Tagen, jeweils mit einem Ereignis und als Abzeichen | Fertig |
 | **Trends und Trefferbilder pro Spieler** | Average, Checkout-Quote und Doppelquote pro Woche als Verlauf, das eigene Trefferbild jedes Spielers und eine Bestenliste mit den Rekorden aller Spieler | Fertig |
 | **Trefferbild der Dart-Positionen** | Ein Trefferbild, das zeigt, wo jeder Dart gelandet ist, aus den Positionen, die das Board meldet, mit der Streuung in Millimetern; die Karte wechselt zwischen Feldern, Zahlen und Positionen | Fertig |
+| **Niederländisch, Französisch und Spanisch** | Die Integration, die Karten und der Caller in drei weiteren Sprachen, mit Tests, die jede Sprache vollständig halten | Fertig |
 | **Dokumentation** | Bebilderte Anleitungen zu Spielen, zur Anzeigetafel und zur Statistik, ein Glossar und ein Abschnitt zur Barrierefreiheit | Fertig |
 
 ## Als Nächstes
@@ -77,11 +78,11 @@ Ideen für die Versionen nach 1.6. Stimmen und Reaktionen auf die [Feature-Wüns
 
 | Thema | Was es bringt | Voraussetzung |
 | --- | --- | --- |
-| **Sprachsteuerung mit Assist** | „Starte 501 für Alex und Sam“, „Wie ist mein Average heute?“ als eigene Sätze, ohne Automation | Sätze auf Deutsch und Englisch, die sich am Board natürlich anfühlen |
+| **Sprachsteuerung mit Assist** | „Starte 501 für Alex und Sam“, „Wie ist mein Average heute?“ als eigene Sätze, ohne Automation | Sätze in jeder Sprache der Integration, die sich am Board natürlich anfühlen |
 | **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert | Testberichte von Spielern, die es nutzen |
 | **Cloud-Verknüpfung** | Cloud-Spieldaten und Cloud-Spielereignisse: Leg und Match gewonnen, Überwerfen, Spielerwechsel, Restpunkte | Eine OAuth-Client-ID von Autodarts; sie ist beantragt |
 | **HACS-Standardkatalog** | Installation, ohne ein benutzerdefiniertes Repository hinzuzufügen | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |
-| **Weitere Sprachen** | Integration und Karten in weiteren Sprachen | Beiträge von Muttersprachlern |
+| **Weitere Sprachen** | Integration und Karten in weiteren Sprachen | Beiträge von Muttersprachlern ([so kommt eine Sprache dazu](../../CONTRIBUTING.md#translations)) |
 
 ## Später
 

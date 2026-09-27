@@ -11,7 +11,7 @@ Ein Tablet oder Fernseher neben dem Board macht deinen Dartraum zur Bühne: der 
 ## Was du brauchst
 
 - **Einen Bildschirm mit Browser:** ein Tablet an der Wand, einen Fernseher mit Browser oder einem kleinen PC, ein altes Handy. Alles, was dein Home Assistant öffnet, funktioniert.
-- **Einen Home-Assistant-Benutzer für den Bildschirm.** Ein eigener Benutzer ohne Administratorrechte verhindert, dass am Bildschirm deine Einstellungen geändert werden. Der Bildschirm zeigt das Dashboard in der Sprache dieses Benutzers: Deutsch oder Englisch, andere Sprachen auf Englisch.
+- **Einen Home-Assistant-Benutzer für den Bildschirm.** Ein eigener Benutzer ohne Administratorrechte verhindert, dass am Bildschirm deine Einstellungen geändert werden. Der Bildschirm zeigt das Dashboard in der Sprache dieses Benutzers: Deutsch, Englisch, Niederländisch, Französisch oder Spanisch, andere [Sprachen](README.md#sprachen) auf Englisch.
 - **Die Karten der Integration,** die sich von selbst laden. Auf dem Bildschirm musst du nichts installieren.
 
 ## Den Bildschirm einrichten
@@ -118,7 +118,7 @@ Mit `caller: true` sagt der Bildschirm am Board das Spiel selbst an, über den L
 1. Schalte `caller` im Editor der Karte ein, oder nutze die Anzeigetafel des automatischen Dashboards nach **Kontrolle übernehmen**.
 2. Browser spielen Ton erst nach einem Tippen ab: Tippe einmal auf **Caller** auf der Anzeigetafel. Lautsprechersymbol und gedrückte Taste zeigen, dass er an ist; ein weiteres Tippen schaltet ihn stumm.
 
-Er sagt nur an, was zählt, auf Deutsch oder Englisch, je nach Sprache des Benutzers am Bildschirm:
+Er sagt nur an, was zählt, in der Sprache des Benutzers am Bildschirm: Deutsch, Englisch, Niederländisch, Französisch oder Spanisch.
 
 - **X01:** die Punkte einer Aufnahme, „Überworfen“ beim Überwerfen, „Keine Punkte“ vor dem öffnenden Double, „du brauchst 81“, sobald der Rest checkbar ist, den Game shot eines Legs und des Matches und eine Fanfare bei einer 180.
 - **Cricket-Spiele:** die Marks einer Aufnahme, etwa „5 Marks“. **Shanghai** und **Halve-It:** die Punkte auf das Ziel; **Count-Up:** die Punkte der Aufnahme; **Baseball:** die Runs.

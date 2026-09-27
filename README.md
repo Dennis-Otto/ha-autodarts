@@ -100,7 +100,7 @@
       <ul>
         <li>Found automatically with Board Manager 2; Board Manager 1 works too</li>
         <li>Nothing leaves your network; board secrets are never stored</li>
-        <li>Seven dashboard cards and an automatic dashboard, in English and German</li>
+        <li>Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish (<a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md#languages">languages</a>)</li>
         <li>Every rule of the Home Assistant quality scale up to Platinum, 100 % test coverage</li>
       </ul>
       <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md">How it works →</a></p>

@@ -11,7 +11,7 @@ A tablet or a TV next to the board turns your darts room into a stage: the score
 ## What you need
 
 - **A screen with a browser:** a tablet on the wall, a TV with a browser or a small PC, an old phone. Anything that opens your Home Assistant works.
-- **A Home Assistant user for the screen.** A user of its own, without administrator rights, keeps the screen from changing your settings. The screen shows the dashboard in that user's language: English or German, other languages in English.
+- **A Home Assistant user for the screen.** A user of its own, without administrator rights, keeps the screen from changing your settings. The screen shows the dashboard in that user's language: English, German, Dutch, French or Spanish, other [languages](README.md#languages) in English.
 - **The integration's cards,** which load by themselves. There is nothing to install on the screen.
 
 ## Set up the screen
@@ -118,7 +118,7 @@ With `caller: true`, the screen at the board calls the game itself, through the 
 1. Switch on `caller` in the card's editor, or use the scoreboard of the automatic dashboard after **Take control**.
 2. Browsers play sound only after a tap: tap **Caller** on the scoreboard once. The speaker symbol and the pressed button show that it is on; tap again to mute it.
 
-It calls only what counts, in English or German, following the language of the screen's user:
+It calls only what counts, in the language of the screen's user: English, German, Dutch, French or Spanish.
 
 - **X01:** the points of a visit, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished, the game shot of a leg and the match, and a fanfare for a 180.
 - **Cricket games:** the marks of a visit, such as "5 marks". **Shanghai** and **Halve-It:** the points on the target; **Count-Up:** the points of the visit; **Baseball:** the runs.

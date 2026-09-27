@@ -70,3 +70,13 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 | Home Assistant | 2026.8 or newer | 2026.8.0 and 2026.9.3 |
 
 Any board hardware that runs the Autodarts Board Manager works, because the integration talks to the Board Manager, not to the cameras.
+
+## Languages
+
+The integration speaks English, German, Dutch, French and Spanish: setup, options, entities and their states, actions, messages and repairs, the cards with their editors and the caller of the scoreboard. It follows the language of Home Assistant; a regional variant such as `de-CH` or `es-419` counts as its language. Other languages see English.
+
+- Home Assistant names the entities in the language of the server (**Settings → System → General**); states and cards follow the language of your user profile.
+- The caller speaks the card's language with a voice of your browser or tablet for that language.
+- The documentation is in English and German, the blueprints in English because Home Assistant does not translate blueprints.
+
+To improve a translation or add a language, see [translations in CONTRIBUTING.md](../CONTRIBUTING.md#translations).
