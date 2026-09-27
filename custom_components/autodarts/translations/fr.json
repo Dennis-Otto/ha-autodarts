@@ -449,6 +449,9 @@
       },
       "tournament_random_draw": {
         "name": "Tirage au sort du tournoi"
+      },
+      "practice_manual_entry": {
+        "name": "Saisie manuelle de la partie"
       }
     },
     "select": {
@@ -555,6 +558,12 @@
       },
       "tournament_summary": {
         "name": "Résumé du tournoi"
+      },
+      "practice_bot_level": {
+        "name": "Niveau du bot de la partie"
+      },
+      "practice_bot_delay": {
+        "name": "Pause du bot de la partie"
       }
     },
     "binary_sensor": {
@@ -634,7 +643,8 @@
               "online_tournament_ready": "En ligne\u00a0: match de tournoi prêt",
               "online_match_left": "En ligne\u00a0: match quitté",
               "weekly_report": "Rapport hebdomadaire",
-              "achievement_unlocked": "Succès débloqué"
+              "achievement_unlocked": "Succès débloqué",
+              "visit_undone": "Volée annulée"
             }
           },
           "achievement": {
@@ -754,6 +764,33 @@
     },
     "tournament_match_running": {
       "message": "Le match du tournoi entre {first} et {second} est toujours en cours. Jouez-le jusqu'au bout, ou terminez le tournoi."
+    },
+    "no_dart": {
+      "message": "La volée en cours n'a pas de fléchette {dart}."
+    },
+    "bot_dart": {
+      "message": "Les fléchettes du bot ne peuvent pas être corrigées."
+    },
+    "manual_entry_off": {
+      "message": "La saisie manuelle est désactivée. Activez d'abord Saisie manuelle de la partie."
+    },
+    "bot_turn": {
+      "message": "Le bot est à la cible. Attendez la fin de sa volée, ou terminez-la avec Joueur suivant."
+    },
+    "visit_full": {
+      "message": "La volée compte déjà trois fléchettes. Passez la main avec Joueur suivant."
+    },
+    "empty_visit": {
+      "message": "La volée ne contient aucune fléchette à terminer. Seuls le X01 et les jeux de Cricket permettent de passer son tour sans fléchette."
+    },
+    "undo_unavailable": {
+      "message": "Aucune volée à annuler. L'annulation reprend la dernière volée terminée tant qu'aucune fléchette n'est dans la cible et que ni la partie ni la session d'entraînement n'ont changé depuis."
+    },
+    "invalid_bot_level": {
+      "message": "Le niveau du bot vaut 0 (sans bot) ou une moyenne 3 fléchettes de 20 à 120."
+    },
+    "bot_seat": {
+      "message": "Avec le bot, trois joueurs au maximum peuvent jouer\u00a0: le bot prend la quatrième place."
     }
   },
   "issues": {
@@ -859,6 +896,10 @@
         "rounds": {
           "name": "Tours de Count-Up",
           "description": "Nombre de tours de Count-Up, de 1 à 20."
+        },
+        "bot_level": {
+          "name": "Niveau du bot",
+          "description": "Jouez contre le bot en X01 et dans les jeux de Cricket\u00a0: la moyenne 3 fléchettes qu'il joue, de 20 à 120\u00a0; 0 joue sans le bot. Le bot prend la place après les joueurs."
         }
       }
     },
@@ -1013,6 +1054,58 @@
     "next_tournament_match": {
       "name": "Match suivant du tournoi",
       "description": "Démarre le match suivant du tournoi sans attendre la fin de la pause.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        }
+      }
+    },
+    "correct_dart": {
+      "name": "Corriger une fléchette",
+      "description": "Place une fléchette de la volée en cours dans une autre zone pour la partie et la session d'entraînement, comme si la cible l'y avait détectée. La cible conserve sa propre détection.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        },
+        "dart": {
+          "name": "Fléchette",
+          "description": "La fléchette de la volée en cours\u00a0: 1, 2 ou 3."
+        },
+        "segment": {
+          "name": "Zone",
+          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 pour le bull extérieur, BULL pour le bullseye, ou MISS."
+        }
+      }
+    },
+    "throw_dart": {
+      "name": "Saisir une fléchette",
+      "description": "Ajoute une fléchette à la volée en cours comme si la cible l'avait détectée, marquée comme saisie à la main. Nécessite Saisie manuelle de la partie.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        },
+        "segment": {
+          "name": "Zone",
+          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 pour le bull extérieur, BULL pour le bullseye, ou MISS."
+        }
+      }
+    },
+    "next_player": {
+      "name": "Joueur suivant",
+      "description": "Termine la volée en cours sans retirer les fléchettes, pour que le joueur suivant lance. Sans fléchette, le joueur à la cible passe son tour en X01 et dans les jeux de Cricket.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        }
+      }
+    },
+    "undo_visit": {
+      "name": "Annuler la volée",
+      "description": "Reprend la dernière volée terminée\u00a0: la partie revient à son état précédent, et les fléchettes de cette volée redeviennent la volée en cours, pour les corriger et terminer la volée avec Joueur suivant. Les volées du bot qui ont suivi sont également annulées.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
