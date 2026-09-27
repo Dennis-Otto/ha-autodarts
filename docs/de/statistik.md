@@ -133,7 +133,7 @@ Spieler mit Namen schalten Erfolge in Stufen frei, Bronze, Silber, Gold und für
 
 - Jede neue Stufe meldet `achievement_unlocked`, für eine [Benachrichtigung](automationen.md#einen-erfolg-feiern) oder die [Lichtshow](automationen.md#light-show). Nichts spielt oder spricht, solange keine Automation es tut.
 - Beim ersten Start nach dem Update wird still freigeschaltet, was die Profile schon belegen.
-- Der Schalter *Erfolge* schaltet sie ab; der Fortschritt zählt weiter und wird still freigeschaltet, wenn du sie wieder einschaltest.
+- Der Schalter *Erfolge freischalten* schaltet sie ab; der Fortschritt zählt weiter und wird still freigeschaltet, wenn du sie wieder einschaltest.
 
 [Alle Erfolge und ihre Stufen](entitaeten.md#erfolge)
 
@@ -184,7 +184,7 @@ Der **Trainingskalender** zeigt deine beendeten Sessions und Übungsmatches jede
 Nimm deine Daten mit in eine Tabellenkalkulation, eine Sicherung oder deine eigene Auswertung:
 
 - **Auf der Spielerkarte:** Schalte `export` ein und tippe auf *Exportieren*. Der Browser lädt Sessions, Matches und Profile herunter, als ZIP mit CSV-Tabellen oder als JSON.
-- **In einer Automation:** Die Aktion [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport) schreibt die Datei in deinen Konfigurationsordner und gibt zurück, wo sie liegt.
+- **In einer Automation:** Die Aktion [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport) schreibt die Datei und gibt zurück, wo sie liegt. Sie ist eine Aktion für Administratoren; Automationen führen sie auch aus.
 
 ```yaml
 action: autodarts.export
@@ -194,7 +194,7 @@ data:
 response_variable: export
 ```
 
-Exporte enthalten Spielernamen. Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; lösche Exporte, die du nicht mehr brauchst, oder exportiere in einen Ordner außerhalb von `www`.
+Exporte enthalten Spielernamen. Standardmäßig landen sie in `autodarts/exports` im Medienordner, der eine Anmeldung braucht; herunterladen dürfen sie nur Administratoren. Ein eigener Ordner muss einer sein, in den Home Assistant schreiben darf (`www`, ein Medienordner oder ein Ordner aus `allowlist_external_dirs`), und darf nicht versteckt sein. Höchstens 20 Exporte werden pro Stunde geschrieben. Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; lösche Exporte dort also, wenn du sie nicht mehr brauchst.
 
 ## Deine Daten
 

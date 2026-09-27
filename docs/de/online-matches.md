@@ -14,7 +14,7 @@ Die optionale **Online-Brücke** bringt diese Momente mit der Browser-Erweiterun
 
 ## Brücke einrichten
 
-1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, dort **Konfigurieren** (das Zahnrad) deines Boards, schalte **Online-Matches von Tools for Autodarts empfangen** ein und sende ab.
+1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, dort **Konfigurieren** (das Zahnrad) deines Boards, schalte **Online-Matches von Tools for Autodarts empfangen** ein und sende ab. Diese Optionen haben nur Einträge mit lokalem Board.
 2. Der nächste Schritt zeigt die geheime Adresse und fertige Zeilen für Tools for Autodarts. Kopiere die Zeilen und sende ab. Ab jetzt nimmt Home Assistant Aufrufe unter der Adresse an. Öffne die Optionen wieder, wann immer du die Adresse brauchst.
 3. Öffne im Browser am Board die Einstellungen von Tools for Autodarts, schalte **WLED** ein, wähle **Import CSV**, füge die Zeilen ein und speichere. Jede Zeile ist ein Effekt vom Typ **URL** für einen Trigger; lösche die, die du nicht brauchst.
 4. Prüfe, ob die Momente ankommen: Öffne die Adresse mit angehängtem `?event=gameon` in einem Browser in deinem Heimnetz, oder spiele ein Match. Der Sensor **Letztes Ereignis der Online-Brücke** auf der Geräteseite unter *Diagnose* zeigt, wann der letzte Moment ankam, und seinen Trigger.
@@ -66,9 +66,9 @@ mode: single
 
 ## Sicherheit
 
-- Die Adresse enthält ein Geheimnis aus 64 zufälligen Hexadezimalzeichen. Wer sie kennt, kann deinem Home Assistant Momente eines Spiels senden, sonst nichts: Die Brücke nimmt nur die Trigger oben an, Felder begrenzter Länge und höchstens 20 Aufrufe pro Sekunde. Die Integration schreibt die Adresse nie ins Log, und die Diagnosedaten enthalten sie nicht. Home Assistant selbst nennt sie in einigen eigenen Warnungen, etwa zu einem Aufruf von außerhalb deines Netzes; prüfe Logs also, bevor du sie teilst.
+- Die Adresse enthält ein Geheimnis aus 64 zufälligen Hexadezimalzeichen. Wer sie kennt, kann deinem Home Assistant Momente eines Spiels senden, sonst nichts: Die Brücke nimmt nur die Trigger oben an, Felder begrenzter Länge und höchstens 20 Aufrufe pro Sekunde und 120 pro Minute. Die Integration schreibt die Adresse nie ins Log, und die Diagnosedaten enthalten sie nicht. Home Assistant selbst nennt sie in einigen eigenen Warnungen, etwa zu einem Aufruf von außerhalb deines Netzes; prüfe Logs also, bevor du sie teilst.
 - Standardmäßig können nur Geräte in deinem Heimnetz die Adresse aufrufen; Aufrufe aus dem Internet ignoriert Home Assistant. Schalte **Aufrufe von außerhalb deines Heimnetzes annehmen** nur für eine https-Adresse über Home Assistant Cloud oder deine eigene Domain ein.
-- Ist die Adresse nach außen gelangt, schalte in den Optionen **Neue geheime Adresse erzeugen** ein und importiere die neuen Zeilen in Tools for Autodarts. Die alte Adresse funktioniert dann nicht mehr.
+- Ist die Adresse nach außen gelangt, schalte in den Optionen **Neue geheime Adresse erzeugen** ein und importiere die neuen Zeilen in Tools for Autodarts. Die alte Adresse funktioniert dann sofort nicht mehr, auch wenn du die Brücke im selben Schritt ausschaltest.
 - Ausgeschaltet gibt es die Brücke nicht: Home Assistant beantwortet ihre Adresse wie jede unbekannte. Die Integration behält die Adresse für das nächste Einschalten.
 
 ## Grenzen

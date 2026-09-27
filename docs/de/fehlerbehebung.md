@@ -80,7 +80,7 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Teams brauchen vier Spieler: Spieler 1 und 3 gegen Spieler 2 und 4.* | Nenne vier Spieler oder stelle *Übungsspiel Spielerzahl* auf 4. |
 | *Teams spielen X01 und die Cricket-Spiele.* | Schalte *Teams* für Party- und Trainingsspiele aus. |
 | *Startpunkte sind 0 (die des Spiels) oder 2 bis 1001.* | Korrigiere `start_scores` in der Aktion oder die Einstellung *Übungsspiel Startpunkte Spieler N*. |
-| *Die Startpunkte nennen … Werte, es spielen aber nur … Spieler.* | `start_scores` hat einen Wert pro Spieler, in Wurfreihenfolge. Lass die überzähligen Werte weg. |
+| *Die Startpunkte nennen … Werte, es spielen aber nur … Spieler.* | `start_scores` hat höchstens einen Wert pro Spieler, in Wurfreihenfolge; mit dem Bot zählt auch sein Platz. Lass die überzähligen Werte weg. |
 | *Teams spielen von den Startpunkten der Spieler 1 und 2, ein Wert pro Team.* | Im Team-Match gilt der erste Wert für Team 1 und der zweite für Team 2. Gib höchstens zwei an. |
 | *Startpunkte von 3 lassen sich mit Double-In und Double-Out nicht auschecken: …* | Das einzige Eröffnungs-Double, D1, lässt 1 übrig, und die kann kein Double beenden. Wähle andere Startpunkte oder schalte Double-In oder Double-Out aus. |
 | *… ist kein Feld des Boards.* | `segment` von `autodarts.correct_dart` und `autodarts.throw_dart` nimmt S1 bis S20, D1 bis D20, T1 bis T20, 25 für das äußere Bull, BULL für das Bullseye oder MISS. |

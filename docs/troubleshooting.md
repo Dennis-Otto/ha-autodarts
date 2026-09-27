@@ -79,7 +79,7 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *Teams need four players* | Teams play 1 and 3 against 2 and 4: name four players, or set *Practice players* to 4. |
 | *Teams play X01 and the Cricket games* | Switch *Teams* off for party and training games. |
 | *A start score is 0, for the game's start score, or 2 to 1001* | Correct `start_scores` in the action or the *Practice start score player N* setting. |
-| *The start scores name … values, but only … players play* | `start_scores` has one value per player, in throwing order. Leave out the extra values. |
+| *The start scores name … values, but only … players play* | `start_scores` has at most one value per player, in throwing order; with the bot, its seat counts, too. Leave out the extra values. |
 | *Teams play from the start scores of players 1 and 2* | In a team match, the first start score is team 1's and the second team 2's. Give at most two. |
 | *A start score of 3 cannot be checked out with double in and double out* | The only opening double, D1, leaves 1, which no double can finish. Choose another start score, or switch off double in or double out. |
 | *… is not a bed of the board* | `segment` of `autodarts.correct_dart` or `autodarts.throw_dart` takes S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye or MISS. |

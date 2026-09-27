@@ -133,7 +133,7 @@ Named players unlock achievements in tiers of bronze, silver, gold and, for the 
 
 - Each new tier fires `achievement_unlocked`, for a [notification](automations.md#celebrate-an-achievement) or the [light show](automations.md#light-show). Nothing plays or speaks unless an automation does.
 - On the first start after the update, what the profiles already prove unlocks quietly.
-- The *Achievements* switch turns them off; progress keeps counting and unlocks quietly when you turn them on again.
+- The *Unlock achievements* switch turns them off; progress keeps counting and unlocks quietly when you turn them on again.
 
 [Every achievement and its tiers](entities.md#achievements)
 
@@ -184,7 +184,7 @@ The **Training calendar** shows your finished sessions and practice matches of e
 Take your data to a spreadsheet, a backup or your own analysis:
 
 - **On the players card:** turn on `export` and tap *Export*. The browser downloads the sessions, matches and profiles, as a ZIP of CSV tables or as JSON.
-- **In an automation:** the action [`autodarts.export`](entities.md#export-training-data-autodartsexport) writes the file below your configuration folder and returns where it is.
+- **In an automation:** the action [`autodarts.export`](entities.md#export-training-data-autodartsexport) writes the file and returns where it is. It is an action for administrators; automations run it, too.
 
 ```yaml
 action: autodarts.export
@@ -194,7 +194,7 @@ data:
 response_variable: export
 ```
 
-Exports contain player names. Files in `www` are served at `/local/` without a login to anyone who can reach Home Assistant and knows the file name; delete exports you no longer need, or export to a folder outside `www`.
+Exports contain player names. By default they go to `autodarts/exports` in the media folder, which needs a login; only administrators download them. A folder of your own must be one where Home Assistant allows writing (`www`, a media folder or a folder listed in `allowlist_external_dirs`) and must not be hidden. At most 20 exports are written in an hour. Files in `www` are served at `/local/` without a login to anyone who can reach Home Assistant and knows the file name, so delete exports there that you no longer need.
 
 ## Your data
 

@@ -1068,8 +1068,10 @@ def tournament(browser: Browser) -> None:
 
 # The landscape tablet at the board that the scoreboard screens are built for.
 TABLET = {"width": 800, "height": 480}
-# Controls the card sizes for a finger; each is at least 44 px high.
+# Controls the card sizes for a finger; each is at least 44 px high, the keys of the
+# pad at least 40 px, so that the pad fits beside the scores of a short screen.
 FINGER_TARGETS = ".lobby-cta, .lobby button, .pad button, .undo-only, .start-next"
+PAD_KEYS = ".pad button"
 # The width of the scoreboard against its room, and every control that is smaller
 # than the card means it to be: finger targets, and whatever has a minimum size of
 # 44 px or more in the card's style.
@@ -1088,7 +1090,8 @@ TABLET_LAYOUT = f"""
     if (finger) targets += 1;
     const high = finger || parseFloat(style.minHeight) >= 44;
     const wide = parseFloat(style.minWidth) >= 44;
-    if ((high && box.height < 43.5) || (wide && box.width < 43.5)) {{
+    const least = el.matches('{PAD_KEYS}') ? 39.5 : 43.5;
+    if ((high && box.height < least) || (wide && box.width < 43.5)) {{
       const name = `${{el.className || el.tagName.toLowerCase()}} "${{el.textContent.trim()}}"`;
       small.push(`${{name}} ${{Math.round(box.width)}}x${{Math.round(box.height)}}`);
     }}
@@ -1100,6 +1103,33 @@ TABLET_LAYOUT = f"""
     viewport: innerWidth,
     targets,
     small,
+  }};
+}}
+"""
+# The fitted scoreboard: its height against the screen and its own room, where the
+# start of the new game screen sits, and the pad beside the scores.
+TABLET_FIT = f"""
+() => {{
+  const card = ({SCOREBOARD_CARDS})()[0];
+  const root = card.shadowRoot;
+  const frame = root.querySelector('ha-card');
+  const box = (selector) => {{
+    const el = root.querySelector(selector);
+    if (!el || !el.getClientRects().length) return null;
+    const rect = el.getBoundingClientRect();
+    return {{ top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right }};
+  }};
+  const actions = root.querySelector('.lobby-actions');
+  return {{
+    bottom: Math.round(card.getBoundingClientRect().bottom),
+    screen: innerHeight,
+    height: frame.scrollHeight,
+    room: frame.clientHeight,
+    sticky: actions ? getComputedStyle(actions).position : null,
+    actions: box('.lobby-actions'),
+    main: box('.scoreboard > .main'),
+    pad: box('.scoreboard > .pad-area'),
+    beside: !!root.querySelector('.scoreboard.full.with-pad'),
   }};
 }}
 """
@@ -1121,6 +1151,14 @@ def tablet_screen(browser: Browser) -> None:
         )
         check(not targets or layout["targets"], f"{screen} has no targets: {layout}")
         check(not layout["small"], f"{screen}: targets below 44 px {layout['small']}")
+
+    def fills(screen: str) -> None:
+        """A full-height scoreboard is one screen high and needs no scrolling."""
+        fit = page.evaluate(TABLET_FIT)
+        check(
+            fit["bottom"] <= fit["screen"] + 1 and fit["height"] <= fit["room"] + 1,
+            f"{screen} is higher than the tablet: {fit}",
+        )
 
     def open_screen(view: str) -> None:
         errors = page_errors(page, [])
@@ -1163,6 +1201,16 @@ def tablet_screen(browser: Browser) -> None:
     page.locator(f"{card} .lobby-cta").click()
     page.locator(f"{card} .lobby").wait_for(timeout=15000)
     fits("The new game screen")
+    # The start stays at the bottom of the screen while the choices scroll.
+    fit = page.evaluate(TABLET_FIT)
+    actions = fit["actions"]
+    check(
+        fit["sticky"] == "sticky"
+        and actions is not None
+        and 0 <= actions["top"]
+        and actions["bottom"] <= fit["screen"] + 1,
+        f"The start of the new game screen is out of reach: {fit}",
+    )
     choose(("Alex", "Sam"), "501")
     page.locator(f"{card} .lobby .start").click()
     page.wait_for_function(
@@ -1173,6 +1221,7 @@ def tablet_screen(browser: Browser) -> None:
         f"() => ({SCOREBOARD_STATE})().darts[0] === 'T20'", timeout=15000
     )
     fits("The scoreboard of a match", targets=False)
+    fills("The scoreboard of a match")
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
     end_game()
 
@@ -1184,6 +1233,18 @@ def tablet_screen(browser: Browser) -> None:
     )
     page.locator(f"{card} .pad").wait_for(timeout=15000)
     fits("The keypad")
+    fills("The keypad")
+    # In landscape, the pad sits beside the scores instead of below them.
+    fit = page.evaluate(TABLET_FIT)
+    main, pad = fit["main"], fit["pad"]
+    check(
+        fit["beside"]
+        and main is not None
+        and pad is not None
+        and pad["left"] >= main["right"] - 1
+        and pad["top"] < main["bottom"],
+        f"The pad is not beside the scores: {fit}",
+    )
     page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
     game_off()
 

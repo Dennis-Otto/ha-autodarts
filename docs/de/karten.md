@@ -108,9 +108,9 @@ highlight_color: "#00e5ff"
   - Im Modus `numbers` werden Single, Double und Triple jeder Zahl zusammengefasst.
   - Im Modus `positions` zeigt es, wo die Darts gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte von Blau (wenige Darts) bis Rot (viele), dazu die neuesten 300 Darts als Punkte. Unter der Scheibe steht die [Streuung](funktionsweise.md#streuung) auf bis zu drei Zielfeldern, etwa *T20: Streuung 38 mm · 80 % innerhalb 61 mm · 6 mm links der Mitte*, mit *4 mm enger*, wenn die neueren Darts enger liegen.
   - Die Umschalter über der Scheibe wählen den Modus und wessen Darts es zeigt: die der Session oder die eines benannten Spielers mit allen seinen Treffern und den Positionen seiner letzten 1000 Darts. Die häufigsten Felder folgen der Wahl. [Wie Positionen gespeichert werden](funktionsweise.md#dart-positionen).
-- **Statistik:** höchste Aufnahme, 100+, 140+ und 180er, Triple-Quote, Doubles, Bulls und Fehlwürfe. 180er leuchten golden. Ein Tipp auf die Kacheln öffnet die Details der Darts der Session; mit der Tastatur erscheint dafür die Taste *Trainingsstatistik, Details öffnen*, wenn du sie mit Tab erreichst. Screenreader lesen jede Kachel vor.
+- **Statistik:** höchste Aufnahme, 100+, 140+ und 180er, Triple-Quote, Doubles, Bulls und Fehlwürfe. 180er leuchten golden. Die Zahlen für 100+, 140+ und 180er wachsen, wenn du die Darts ziehst und die Aufnahme damit abgeschlossen ist. Ein Tipp auf die Kacheln öffnet die Details der Darts der Session; mit der Tastatur erscheint dafür die Taste *Trainingsstatistik, Details öffnen*, wenn du sie mit Tab erreichst. Screenreader lesen jede Kachel vor.
 - **Häufigste Felder:** die fünf meistgetroffenen Felder mit Anzahl und Anteil: an den Darts der Session oder an den Treffern, die das Profil eines Spielers gezählt hat.
-- **Bestleistungen:** jede [Bestleistung](entitaeten.md#bestleistungen-serie-und-tagesziel), die einen Wert hat: höchste Aufnahme und höchster Checkout, die wenigsten Darts je Startwert, die beste MPR eines Cricket-Legs, der beste Session-Average, Around the Clock, das Doppeltraining, Bob's 27 und die längste Trainingsserie. Der Abschnitt erscheint mit der ersten Bestleistung.
+- **Bestleistungen:** jede [Bestleistung](entitaeten.md#bestleistungen-serie-und-tagesziel), die einen Wert hat: höchste Aufnahme und höchster Checkout, die wenigsten Darts je Startwert, die beste MPR eines Cricket-Legs, der beste Session-Average, Around the Clock, das Doppeltraining, Bob's 27, der 121-Checkout, Catch 40, die JDC Challenge, das Singles-Training und die längste Trainingsserie. Der Abschnitt erscheint mit der ersten Bestleistung.
 - **Letzte Aufnahmen:** ein Balkendiagramm deiner letzten Aufnahmen mit dem Average der Session als gestrichelter Linie.
   - Farben: grau unter 60, Akzentfarbe ab 60, grün ab 100, orange ab 140 und gold für 180.
   - Die Aufnahmen kommen aus dem Recorder und bleiben daher auch nach dem Neuladen der Seite erhalten, und jede Aufnahme erscheint, auch wenn im selben Moment der nächste Spieler an der Reihe ist wie im Übungsspiel.
@@ -272,7 +272,7 @@ Auf einer bildschirmfüllenden Anzeigetafel im Querformat stehen Tastenfeld und 
 Während eines [Turniers](entitaeten.md#turniere) folgt ihm die Anzeigetafel:
 
 - **Während eines Matches:** Die Titelzeile nennt Runde und Match, etwa *Turnier · Halbfinale · Match 5 von 7*.
-- **Zwischen den Matches:** Die [Zusammenfassung](#match-zusammenfassung) eines Matches bleibt für die *Turnierzusammenfassung* (8 Sekunden) stehen, dann erscheint während der *Turnierpause* die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System), mit dem nächsten Match, seiner Runde und einem Countdown bis zum Beginn. *Jetzt starten* startet es sofort. Während eines Turniers öffnet sich die Spielauswahl nicht von selbst.
+- **Zwischen den Matches:** Die [Zusammenfassung](#match-zusammenfassung) eines Matches bleibt für die *Anzeigedauer der Turnierzusammenfassung* (8 Sekunden) stehen, dann erscheint während der *Turnierpause* die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System), mit dem nächsten Match, seiner Runde und einem Countdown bis zum Beginn. *Jetzt starten* startet es sofort. Während eines Turniers öffnet sich die Spielauswahl nicht von selbst.
 - **Tabelle:** Platz, gespielte, gewonnene und verlorene Matches, gewonnene und verlorene Legs, die Leg-Differenz, der 3-Dart-Average (Cricket: MPR) und die Punkte. Die Spieler des nächsten Matches sind hervorgehoben, der Turniersieger bekommt 🏆.
 - **Turnierbaum:** eine Spalte pro Runde, das Spiel um Platz 3 unter dem Finale; Freilose, offene Plätze und Ergebnisse; das nächste Match ist umrandet. Wer weiterkommt, gleitet in die nächste Runde; auf Geräten, die weniger Bewegung wünschen, füllen sich die Plätze ohne Bewegung.
 - **Sieger:** Nach dem letzten Match nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt.
@@ -393,7 +393,7 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 | `show_trends` | Wahrheitswert | `true` | Trends anzeigen |
 | `trend_weeks` | 4–12 | `12` | Wochen in den Trends |
 | `show_spread` | Wahrheitswert | `true` | Streuung anzeigen |
-| `export` | Wahrheitswert | `false` | Eine Taste *Exportieren* anzeigen. Sie exportiert Sessions, Matches und Profile mit [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport) nach `www/autodarts` und lädt die Datei mit deiner Anmeldung über Home Assistant herunter. Exporte enthalten Spielernamen, und Dateien in `www` brauchen keine Anmeldung. |
+| `export` | Wahrheitswert | `false` | Eine Taste *Exportieren* anzeigen. Sie exportiert Sessions, Matches und Profile mit [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport) nach `autodarts/exports` im Medienordner und lädt die Datei mit deiner Anmeldung über Home Assistant herunter. Exporte enthalten Spielernamen, deshalb dürfen nur Administratoren exportieren und herunterladen; für andere Benutzer, etwa den eines Wandtablets, schlägt der Export fehl. |
 | `export_format` | `csv`, `json` | `csv` | Format des Exports; CSV kommt als ZIP-Datei mit je einer Tabelle |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen, Balken, Fortschritt und Trendlinien |
 
@@ -452,7 +452,7 @@ Pro Board entstehen bis zu fünf Ansichten. Sie aktualisieren sich selbst, wenn 
 
 <img src="../images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards" width="760">
 
-Die Live-Ansicht hat außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Turnierzusammenfassung* bei den Turniereinstellungen.
+Die Live-Ansicht hat außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Anzeigedauer der Turnierzusammenfassung* bei den Turniereinstellungen.
 
 In YAML ist das ganze Dashboard eine Zeile; `device_id`, `title` und `scoreboard` sind optional. `scoreboard` setzt Optionen der Karte in der Ansicht *Anzeigetafel*: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` und `idle_panels`, wie bei der [Anzeigetafel](#anzeigetafel) beschrieben. Was du weglässt, behält den Standard der Karte.
 

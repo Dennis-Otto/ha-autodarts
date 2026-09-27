@@ -14,7 +14,7 @@ The optional **online bridge** brings these moments into Home Assistant with the
 
 ## Set up the bridge
 
-1. Go to **Settings → Devices & services → Autodarts**, open **Configure** (the cog) of your board, turn on **Receive online matches from Tools for Autodarts** and submit.
+1. Go to **Settings → Devices & services → Autodarts**, open **Configure** (the cog) of your board, turn on **Receive online matches from Tools for Autodarts** and submit. Only entries with a local board have these options.
 2. The next step shows the secret address and ready-made lines for Tools for Autodarts. Copy the lines and submit. From now on, Home Assistant accepts calls at the address. Open the options again whenever you need the address.
 3. In the browser at the board, open the settings of Tools for Autodarts, turn on **WLED**, choose **Import CSV**, paste the lines and save. Each line is an effect of the type **URL** for one trigger; delete the ones you don't need.
 4. Check that the moments arrive: open the address with `?event=gameon` added in a browser of your home network, or play a match. The **Online bridge last event** sensor on the device page, under *Diagnostic*, shows when the last moment arrived and its trigger.
@@ -66,9 +66,9 @@ mode: single
 
 ## Security
 
-- The address contains a secret of 64 random hexadecimal characters. Whoever knows it can send moments of a game to your Home Assistant, nothing else: the bridge accepts only the triggers above, fields of limited length and at most 20 calls per second. The integration never logs the address, and diagnostics don't contain it. Home Assistant itself names it in a few of its own warnings, for example about a call from outside your network, so check logs before you share them.
+- The address contains a secret of 64 random hexadecimal characters. Whoever knows it can send moments of a game to your Home Assistant, nothing else: the bridge accepts only the triggers above, fields of limited length and at most 20 calls per second and 120 per minute. The integration never logs the address, and diagnostics don't contain it. Home Assistant itself names it in a few of its own warnings, for example about a call from outside your network, so check logs before you share them.
 - By default, only devices in your home network can call the address; Home Assistant ignores calls from the internet. Turn on **Accept calls from outside your home network** only for an https address through Home Assistant Cloud or your own domain.
-- If the address got out, turn on **Create a new secret address** in the options and import the new lines into Tools for Autodarts. The old address stops working.
+- If the address got out, turn on **Create a new secret address** in the options and import the new lines into Tools for Autodarts. The old address stops working at once, also when you switch the bridge off in the same step.
 - Switched off, the bridge does not exist: Home Assistant answers its address like any unknown one. The integration keeps the address for the next time you switch the bridge on.
 
 ## Limitations
