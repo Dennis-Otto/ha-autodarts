@@ -1,7 +1,7 @@
 """The pause that ends a session, the daily goal and the practice match format.
 
-Also the start scores of the players, the rounds of Count-Up and the pause
-between tournament matches.
+Also the start scores of the players, the rounds of Count-Up, the pause
+between tournament matches and the bot.
 """
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
@@ -10,11 +10,19 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .bot import MAX_DELAY, MAX_LEVEL, valid_level
 from .const import DOMAIN
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
 from .party import MAX_ROUNDS
-from .practice import MAX_LEGS, MAX_PLAYERS, MAX_SETS, MAX_START, valid_start
+from .practice import (
+    MAX_LEGS,
+    MAX_PLAYERS,
+    MAX_SETS,
+    MAX_START,
+    PracticeGame,
+    valid_start,
+)
 from .records import DAILY_GOAL_MAX
 from .runtime import AutodartsConfigEntry
 from .tournament import MAX_PAUSE, MAX_SUMMARY
@@ -51,7 +59,17 @@ async def async_setup_entry(
                 AutodartsCountUpRounds(coordinator),
                 AutodartsTournamentSeconds(coordinator, "pause"),
                 AutodartsTournamentSeconds(coordinator, "summary"),
+                AutodartsBotLevel(coordinator),
+                AutodartsBotDelay(coordinator),
             ]
+        )
+
+
+def _check_seat(practice: PracticeGame, humans: int, level: int) -> None:
+    """The bot takes a seat of its own in X01 and the Cricket games."""
+    if level and humans >= MAX_PLAYERS and (practice.game or practice.cricket):
+        raise ServiceValidationError(
+            translation_domain=DOMAIN, translation_key="bot_seat"
         )
 
 
@@ -127,7 +145,8 @@ class AutodartsPracticeNumber(AutodartsLocalEntity, NumberEntity):
     def native_value(self) -> int:
         practice = self.coordinator.practice
         if self._key == "practice_players":
-            return len(practice.players)
+            # The bot's seat is not a player's.
+            return practice.humans
         return (
             practice.legs_to_win
             if self._key == "practice_legs"
@@ -136,6 +155,8 @@ class AutodartsPracticeNumber(AutodartsLocalEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         if self._key == "practice_players":
+            practice = self.coordinator.practice
+            _check_seat(practice, int(value), practice.bot_level)
             await self.coordinator.async_set_players(int(value))
         elif self._key == "practice_legs":
             await self.coordinator.async_set_match_format(legs=int(value))
@@ -226,3 +247,60 @@ class AutodartsTournamentSeconds(AutodartsLocalEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_tournament(**{self._key: int(value)})
+
+
+class AutodartsBotLevel(AutodartsLocalEntity, NumberEntity):
+    """The bot's 3-dart average in X01 and the Cricket games; 0 plays without it."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_native_min_value = 0
+    _attr_native_max_value = MAX_LEVEL
+    _attr_native_step = 1
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "practice_bot_level")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.practice.bot_level
+
+    async def async_set_native_value(self, value: float) -> None:
+        level = int(value)
+        if not valid_level(level):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="invalid_bot_level"
+            )
+        practice = self.coordinator.practice
+        _check_seat(practice, practice.humans, level)
+        await self.coordinator.async_set_bot(level=level)
+
+
+class AutodartsBotDelay(AutodartsLocalEntity, NumberEntity):
+    """Seconds before each of the bot's darts and before its visit ends."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_device_class = NumberDeviceClass.DURATION
+    _attr_native_unit_of_measurement = UnitOfTime.SECONDS
+    _attr_native_min_value = 0
+    _attr_native_max_value = MAX_DELAY
+    _attr_native_step = 0.5
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "practice_bot_delay")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> float:
+        return self.coordinator.practice.bot_delay
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.async_set_bot(delay=float(value))

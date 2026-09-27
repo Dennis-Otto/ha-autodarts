@@ -43,7 +43,10 @@ def test_corrections_revise_score_and_180_without_adding_darts():
     session.observe(board(T20, T20, T20))
     events = session.observe(board(T20, S20, T20))
     assert events == [
-        ("dart_corrected", {"dart_index": 2, "segment": "S20", "score": 20})
+        (
+            "dart_corrected",
+            {"dart_index": 2, "segment": "S20", "score": 20, "previous": "T20"},
+        )
     ]
     assert session.snapshot()["darts"] == 3
     assert session.snapshot()["scores_180"] == 0
@@ -271,7 +274,10 @@ def test_the_third_dart_announces_the_visit_once():
     ]
     # Neither a correction nor a withdrawn and detected dart announce it again.
     assert session.observe(board(T20, T20, T20)) == [
-        ("dart_corrected", {"dart_index": 3, "segment": "T20", "score": 60})
+        (
+            "dart_corrected",
+            {"dart_index": 3, "segment": "T20", "score": 60, "previous": "S20"},
+        )
     ]
     assert session.observe(board(T20, T20)) == []
     assert [kind for kind, _ in session.observe(board(T20, T20, T20))] == [

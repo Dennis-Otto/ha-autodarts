@@ -200,6 +200,9 @@ class WeeklyReport:
     def observe(self, kind: str, attributes: dict[str, Any], now: datetime) -> None:
         count = self.counts
         value = attributes.get
+        if value("bot") and kind in ("dart_detected", "visit_completed"):
+            # The bot's darts are nobody's training; its legs are still played.
+            return
         if kind == "dart_detected":
             count["darts"] += 1
             if self.last_dart and timedelta(0) < now - self.last_dart <= TRAINING_GAP:

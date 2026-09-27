@@ -449,6 +449,9 @@
       },
       "tournament_random_draw": {
         "name": "Turnier zufällige Auslosung"
+      },
+      "practice_manual_entry": {
+        "name": "Übungsspiel manuelle Eingabe"
       }
     },
     "select": {
@@ -555,6 +558,12 @@
       },
       "tournament_summary": {
         "name": "Turnierzusammenfassung"
+      },
+      "practice_bot_level": {
+        "name": "Übungsspiel Bot-Stärke"
+      },
+      "practice_bot_delay": {
+        "name": "Übungsspiel Bot-Pause"
       }
     },
     "binary_sensor": {
@@ -634,7 +643,8 @@
               "online_tournament_ready": "Online: Turniermatch bereit",
               "online_match_left": "Online: Match verlassen",
               "weekly_report": "Wochenbericht",
-              "achievement_unlocked": "Erfolg freigeschaltet"
+              "achievement_unlocked": "Erfolg freigeschaltet",
+              "visit_undone": "Aufnahme zurückgenommen"
             }
           },
           "achievement": {
@@ -754,6 +764,33 @@
     },
     "tournament_match_running": {
       "message": "Das Turniermatch {first} gegen {second} läuft noch. Spiel es zu Ende oder beende das Turnier."
+    },
+    "no_dart": {
+      "message": "Die aktuelle Aufnahme hat keinen Dart {dart}."
+    },
+    "bot_dart": {
+      "message": "Die Darts des Bots lassen sich nicht korrigieren."
+    },
+    "manual_entry_off": {
+      "message": "Die manuelle Eingabe ist aus. Schalte zuerst Übungsspiel manuelle Eingabe ein."
+    },
+    "bot_turn": {
+      "message": "Der Bot ist am Board. Warte seine Aufnahme ab oder beende sie mit Nächster Spieler."
+    },
+    "visit_full": {
+      "message": "Die Aufnahme hat schon drei Darts. Gib mit Nächster Spieler weiter."
+    },
+    "empty_visit": {
+      "message": "Die Aufnahme hat keine Darts zum Beenden. Nur X01 und die Cricket-Spiele geben ohne Darts weiter."
+    },
+    "undo_unavailable": {
+      "message": "Es gibt keine Aufnahme zum Zurücknehmen. Zurücknehmen geht für die letzte abgeschlossene Aufnahme, solange kein Dart im Board steckt und sich weder das Spiel noch die Trainings-Session seitdem geändert haben."
+    },
+    "invalid_bot_level": {
+      "message": "Die Bot-Stärke ist 0, ohne Bot, oder ein 3-Dart-Average von 20 bis 120."
+    },
+    "bot_seat": {
+      "message": "Mit dem Bot spielen bis zu drei Spieler: Der Bot nimmt den vierten Platz ein."
     }
   },
   "issues": {
@@ -859,6 +896,10 @@
         "rounds": {
           "name": "Count-Up-Runden",
           "description": "Runden von Count-Up, 1 bis 20."
+        },
+        "bot_level": {
+          "name": "Bot-Stärke",
+          "description": "Gegen den Bot spielen, in X01 und den Cricket-Spielen: der 3-Dart-Average, den er spielt, 20 bis 120; 0 spielt ohne Bot. Der Bot sitzt nach den Spielern."
         }
       }
     },
@@ -1013,6 +1054,58 @@
     "next_tournament_match": {
       "name": "Nächstes Turniermatch",
       "description": "Startet das nächste Match des Turniers, ohne das Ende der Pause abzuwarten.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        }
+      }
+    },
+    "correct_dart": {
+      "name": "Dart korrigieren",
+      "description": "Legt einen Dart der aktuellen Aufnahme für das Übungsspiel und die Trainings-Session in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        },
+        "dart": {
+          "name": "Dart",
+          "description": "Der Dart der aktuellen Aufnahme: 1, 2 oder 3."
+        },
+        "segment": {
+          "name": "Feld",
+          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 für das äußere Bull, BULL für das Bullseye oder MISS."
+        }
+      }
+    },
+    "throw_dart": {
+      "name": "Dart eingeben",
+      "description": "Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt, markiert als von Hand eingegeben. Braucht Übungsspiel manuelle Eingabe.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        },
+        "segment": {
+          "name": "Feld",
+          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 für das äußere Bull, BULL für das Bullseye oder MISS."
+        }
+      }
+    },
+    "next_player": {
+      "name": "Nächster Spieler",
+      "description": "Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        }
+      }
+    },
+    "undo_visit": {
+      "name": "Aufnahme zurücknehmen",
+      "description": "Nimmt die letzte abgeschlossene Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, und die Darts der Aufnahme werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit Nächster Spieler zu beenden. Die Aufnahmen des Bots danach werden ebenfalls zurückgenommen.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

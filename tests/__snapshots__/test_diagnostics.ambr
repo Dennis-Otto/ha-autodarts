@@ -97,6 +97,7 @@
       }),
       'practice': dict({
         'average': None,
+        'bot': None,
         'bull_off': None,
         'bust': False,
         'checkout': None,
@@ -138,6 +139,7 @@
           }),
         ]),
         'sets_to_win': 1,
+        'setup': None,
         'start': 501,
         'summary': None,
         'teams': None,
@@ -163,6 +165,8 @@
       'stats': dict({
         'fps': 12.5,
       }),
+      'throws': list([
+      ]),
       'training': dict({
         'active': True,
         'bulls': 2,
@@ -175,6 +179,7 @@
           'BULL': 1,
           'T20': 3,
         }),
+        'manual_darts': 0,
         'misses': 0,
         'points': 255,
         'scores_100': 0,
@@ -191,6 +196,8 @@
     }),
     'poll_interval_seconds': 2.0,
     'practice_game': dict({
+      'bot_delay': 2.0,
+      'bot_level': 0,
       'bull_off': True,
       'bull_off_distance': False,
       'bull_off_running': False,
@@ -200,6 +207,7 @@
       'game': 501,
       'legs_to_win': 1,
       'legs_total': 0,
+      'manual_entry': False,
       'personal_routes': False,
       'players': 2,
       'sets_to_win': 1,
@@ -324,6 +332,7 @@
         'isTakeoutPartial': False,
       }),
       'practice': dict({
+        'bot': None,
         'bull_off': None,
         'double_in': False,
         'double_out': True,
@@ -360,6 +369,8 @@
         'memory_bytes': 314363904,
         'update_available': '2.0.2',
       }),
+      'throws': list([
+      ]),
       'training': dict({
         'active': True,
         'bulls': 0,
@@ -369,6 +380,7 @@
         'highest_visit': 0,
         'hits': dict({
         }),
+        'manual_darts': 0,
         'misses': 0,
         'points': 0,
         'scores_100': 0,
@@ -385,6 +397,8 @@
     }),
     'poll_interval_seconds': 2.0,
     'practice_game': dict({
+      'bot_delay': 2.0,
+      'bot_level': 0,
       'bull_off': False,
       'bull_off_distance': False,
       'bull_off_running': False,
@@ -394,6 +408,7 @@
       'game': None,
       'legs_to_win': 1,
       'legs_total': 0,
+      'manual_entry': False,
       'personal_routes': False,
       'players': 1,
       'sets_to_win': 1,

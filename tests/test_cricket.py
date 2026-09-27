@@ -85,10 +85,22 @@ def test_players_take_turns_and_score_on_open_numbers():
     assert snapshot["mpr"] == 9.0 and snapshot["numbers"] == list(CRICKET_NUMBERS)
     assert snapshot["scores"][0]["marks"] == [3, 0, 0, 0, 0, 0, 0]
     assert throw(game, "T20", "T20", "S19") == [
-        ("turn_changed", {**LEA, "remaining": None, "checkout": None, "points": 0})
+        (
+            "turn_changed",
+            {**LEA, "remaining": None, "checkout": None, "setup": None, "points": 0},
+        )
     ]
     assert throw(game, "T20") == [
-        ("turn_changed", {**DENNIS, "remaining": None, "checkout": None, "points": 60})
+        (
+            "turn_changed",
+            {
+                **DENNIS,
+                "remaining": None,
+                "checkout": None,
+                "setup": None,
+                "points": 60,
+            },
+        )
     ]
     scores = game.snapshot()["scores"]
     assert [(score["marks"][:2], score["points"]) for score in scores] == [
@@ -163,6 +175,7 @@ def test_playing_alone_closing_everything_wins_and_starts_the_next_leg():
                 "players": 1,
                 "remaining": None,
                 "checkout": None,
+                "setup": None,
                 "points": 0,
             },
         )

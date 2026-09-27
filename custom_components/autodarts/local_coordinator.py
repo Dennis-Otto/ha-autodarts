@@ -14,19 +14,22 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import (
+    async_call_later,
     async_track_point_in_utc_time,
     async_track_time_change,
 )
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
+from .bot import BOT_DARTS, Bot
+from .bot import aim as bot_aim
 from .camera_health import CameraHealth
 from .const import (
     BOARD_MANAGER_2_URL,
@@ -50,6 +53,7 @@ from .local_api import (
     number,
     stats_summary,
 )
+from .manual import ManualDarts
 from .online import ONLINE_EVENT_TYPES
 from .practice import PracticeGame
 from .progress import Progress
@@ -58,7 +62,7 @@ from .records import PersonalRecords
 from .report import BoardReports
 from .storage import TrainingStore
 from .tournament import TOURNAMENT_EVENTS, TournamentDirector
-from .training import TrainingSession, segments
+from .training import TrainingSession, hit_key, segments
 
 _LOGGER = logging.getLogger(__name__)
 # Poll quickly without realtime events; with them, polling only reconciles.
@@ -126,6 +130,7 @@ EVENT_TYPES = [
     "weekly_report",
     "achievement_unlocked",
     *TOURNAMENT_EVENTS,
+    "visit_undone",
     # Moments of online matches, from the browser extension Tools for Autodarts.
     *ONLINE_EVENT_TYPES,
 ]
@@ -262,6 +267,15 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._observed_motion: dict[str, Any] | None = None
         self._taking_out = False
         self._positions: list[tuple[float, float] | None] = []
+        # Corrections, darts entered by hand and the bot's darts in the visit.
+        self.manual = ManualDarts()
+        self.bot = Bot()
+        self._bot_unsub: CALLBACK_TYPE | None = None
+        # The practice game before the last visit of a player was booked, with
+        # where that visit's darts landed, to undo the visit.
+        self._undo: tuple[dict[str, Any], list[tuple[float, float] | None]] | None = (
+            None
+        )
 
     async def _async_setup(self) -> None:
         saved = await self._store.async_load()
@@ -315,6 +329,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._stream_task = self._entry.async_create_background_task(
                 self.hass, self._listen(), f"{DOMAIN} local events"
             )
+        # The bot goes on with its turn after a restart.
+        self._schedule_bot()
 
     async def async_shutdown(self) -> None:
         await super().async_shutdown()
@@ -332,6 +348,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._midnight_unsub:
             self._midnight_unsub()
             self._midnight_unsub = None
+        self._cancel_bot()
         if self._training_dirty:
             await self._store.async_save(self._stored())
             self._training_dirty = False
@@ -557,7 +574,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # The positions of a session start over with it, like its hits.
                 self.progress.session_started()
             result.append((kind, attributes))
-            result.extend(self.records.observe(kind, attributes, now))
+            # The bot sets no personal bests and throws no darts of the day.
+            if not attributes.get("bot"):
+                result.extend(self.records.observe(kind, attributes, now))
         self.reports.observe(result, now)
         return result
 
@@ -578,7 +597,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _process(self, data: dict[str, Any], fields: set[str], source: str) -> None:
         state = data.get("local", {})
         if "local" in fields:
-            self._guarded(lambda: self._track(data, state, source))
+            self._guarded(lambda: self._follow_visit(data, state, source))
             if self._observed_state is not None:
                 self._observe_status(self._observed_state, state, source)
             self._observed_state = state
@@ -613,7 +632,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 }
             self._emit(kind, attributes, source)
             if kind == "visit_completed":
-                self._book_visit(source)
+                self._checkpoint(attributes)
+                self._book_visit(source, bot=attributes.get("bot") is True)
         if (positions := _throw_positions(state)) is not None:
             self._positions = positions
         visit = self.training.visit()
@@ -627,10 +647,11 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._emit(kind, attributes, source)
         self._publish_game(data, announced)
 
-    def _book_visit(self, source: str) -> None:
+    def _book_visit(self, source: str, bot: bool = False) -> None:
         """Book the pulled darts in the practice game and the players' progress."""
         pending = self.progress.before(self.practice)
-        if self.training.active:
+        # The bot's darts are nobody's training.
+        if self.training.active and not bot:
             self.progress.session_visit(pending.booking)
         events = self.practice.finish_visit()
         events += self.progress.after(pending, self.practice, dt_util.now())
@@ -638,6 +659,52 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         events += self._fixture()
         for kind, details in self._recorded(events):
             self._emit(kind, details, source)
+
+    def _follow_visit(
+        self, data: dict[str, Any], state: dict[str, Any], source: str
+    ) -> None:
+        """The visit as Home Assistant knows it: the board's darts with the
+        corrections, the darts entered by hand and the bot's darts."""
+        # The board's darts show, should the games fail.
+        data.pop("throws", None)
+        if self.practice.bot_up and self.manual.board_darts(state):
+            # A player throws while the bot is at the board: it finishes at once.
+            self._bot_finish(data, state)
+        effective = self.manual.apply(state)
+        self._track(data, effective, source)
+        data["throws"] = self._visit_throws(effective)
+        self._schedule_bot()
+
+    def _visit_throws(self, state: dict[str, Any]) -> list[Any]:
+        """The darts for the cards, each dart of the visit with its number."""
+        throws = state.get("throws")
+        numbers = {
+            slot: number for number, slot in enumerate(self.training.visit_slots(), 1)
+        }
+        return [
+            {**throw, "dart": numbers[slot]}
+            if slot in numbers and isinstance(throw, dict)
+            else throw
+            for slot, throw in enumerate(throws if isinstance(throws, list) else [])
+        ]
+
+    def _refresh(self, source: str) -> None:
+        """Follow the visit again after a change made in Home Assistant."""
+        data = dict(self.data or {})
+        self._guarded(lambda: self._follow_visit(data, data.get("local") or {}, source))
+        self.data = data
+        self.async_update_listeners()
+
+    def _checkpoint(self, visit: dict[str, Any]) -> None:
+        """The game before a player's visit is booked, to undo the visit; the
+        bot's visits are undone together with the visit before them."""
+        if visit.get("bot"):
+            return
+        count = visit["darts"]
+        known = self._positions[-count:] if count else []
+        positions: list[tuple[float, float] | None] = [None] * (count - len(known))
+        positions.extend(known)
+        self._undo = (self.practice.checkpoint(), positions)
 
     def _publish_game(self, data: dict[str, Any], announced: bool) -> None:
         """Snapshots for the entities; a change is saved and raises the revision."""
@@ -1183,6 +1250,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         }
         self._schedule_idle_end()
         self.async_update_listeners()
+        # A change of the game or the session cannot be undone visit by visit.
+        self._undo = None
+        self._restart_bot()
 
     async def async_start_session(self) -> None:
         started = self.training.start()
@@ -1294,9 +1364,12 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         start_scores: list[int] | None = None,
         holes: int | None = None,
         rounds: int | None = None,
+        bot_level: int | None = None,
     ) -> None:
         """Set up a practice game in one step; unset values stay as they are."""
         practice = self.practice
+        if bot_level is not None:
+            practice.bot_level = bot_level
         for option, value in (
             ("double_out", double_out),
             ("double_in", double_in),
@@ -1309,7 +1382,6 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if names:
             for index in range(len(practice.names)):
                 practice.set_name(index, names[index] if index < len(names) else "")
-            practice.set_players(len(names))
         if start_scores is not None:
             # Players without a start score of their own play the game's.
             for index in range(len(practice.starts)):
@@ -1317,7 +1389,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 practice.set_start(index, own)
         practice.set_rounds(holes, rounds)
         practice.set_format(legs, sets)
-        practice.play(game)
+        practice.play(game, len(names) if names else None)
         await self._async_training([])
 
     # -- tournaments ---------------------------------------------------------------
@@ -1387,6 +1459,156 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._fixture_unsub = async_track_point_in_utc_time(
             self.hass, self._async_fixture_due, dt_util.utcnow() + FIXTURE_RETRY
         )
+
+    async def async_set_bot(
+        self, level: int | None = None, delay: float | None = None
+    ) -> None:
+        """The bot's level, 0 without the bot, and the seconds between its darts."""
+        if level is not None:
+            self.practice.set_bot(level)
+        if delay is not None:
+            self.practice.bot_delay = delay
+        await self._async_training([])
+
+    # -- corrections, darts entered by hand and the bot ---------------------------
+
+    async def async_correct_dart(self, dart: int, segment: dict[str, Any]) -> None:
+        """Put a dart of the current visit into another bed."""
+        slots = self.training.visit_slots()
+        if not 1 <= dart <= len(slots):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="no_dart",
+                translation_placeholders={"dart": str(dart)},
+            )
+        place = slots[dart - 1]
+        kind, index = self.manual.sources[place]
+        if kind == "extra" and self.manual.extras[index].dart.get("bot"):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="bot_dart"
+            )
+        self.manual.correct(place, segment)
+        self._refresh("manual")
+
+    async def async_throw_dart(self, segment: dict[str, Any]) -> None:
+        """A dart entered by hand, as if the board had detected it."""
+        if not self.practice.manual_entry:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="manual_entry_off"
+            )
+        if self.practice.bot_up:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="bot_turn"
+            )
+        if len(self.training.visit()) >= BOT_DARTS:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="visit_full"
+            )
+        self.manual.add(segment, None, "manual")
+        self._refresh("manual")
+
+    async def async_next_player(self) -> None:
+        """End the visit without pulling the darts; without darts, pass."""
+        if self.training.visit() or self.manual.extras:
+            self.manual.end_visit()
+        elif self.practice.passes():
+            for kind, attributes in self._recorded(
+                self.practice.finish_visit(empty=True)
+            ):
+                self._emit(kind, attributes, "manual")
+        else:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="empty_visit"
+            )
+        self._refresh("manual")
+
+    async def async_undo_visit(self) -> None:
+        """Take the last visit of a player back as the current visit, with the
+        game as it was before; the bot's visits after it are undone, too."""
+        darts = self.training.undo_visit() if self._undo else None
+        if self._undo is None or darts is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="undo_unavailable"
+            )
+        checkpoint, positions = self._undo
+        self._undo = None
+        self._cancel_bot()
+        self.practice.rewind(checkpoint, darts, positions)
+        self.manual.replay(darts, positions)
+        self._emit(
+            "visit_undone",
+            {
+                "darts": len(darts),
+                "score": sum(dart["number"] * dart["multiplier"] for dart in darts),
+                "segments": [dart["name"] or hit_key(dart) for dart in darts],
+                "game": self.practice.kind,
+                "name": self.practice.thrower,
+            },
+            "manual",
+        )
+        self._refresh("manual")
+
+    def _bot_done(self) -> bool:
+        """Whether the bot's visit is over: its darts thrown, a bust or a win."""
+        snapshot = self.practice.snapshot()
+        thrown = self.manual.bot_darts()
+        if snapshot["bull_off"]:
+            return thrown >= 1
+        return bool(thrown >= BOT_DARTS or snapshot.get("bust") or snapshot["won"])
+
+    def _bot_throw(self) -> None:
+        dart, position = self.bot.throw(
+            bot_aim(self.practice.snapshot()), self.practice.bot_level
+        )
+        self.manual.add(dart, position, "bot")
+
+    @callback
+    def _schedule_bot(self) -> None:
+        """The bot's next dart, or the end of its visit, after its delay."""
+        if not self.practice.bot_up:
+            self._cancel_bot()
+        elif self._bot_unsub is None:
+            self._bot_unsub = async_call_later(
+                self.hass, self.practice.bot_delay, self._bot_step
+            )
+
+    @callback
+    def _cancel_bot(self) -> None:
+        if self._bot_unsub:
+            self._bot_unsub()
+            self._bot_unsub = None
+
+    @callback
+    def _restart_bot(self) -> None:
+        """A changed game ends a visit of the bot; its next turn waits anew."""
+        self._cancel_bot()
+        if self.manual.bot_darts():
+            self.manual.end_visit()
+            self._refresh("bot")
+        self._schedule_bot()
+
+    @callback
+    def _bot_step(self, _now: datetime) -> None:
+        self._bot_unsub = None
+        if not self.practice.bot_up:
+            # A step that was due when the game changed.
+            return
+        if self._bot_done():
+            self.manual.end_visit()
+        else:
+            self._bot_throw()
+        self._refresh("bot")
+
+    def _bot_finish(self, data: dict[str, Any], state: dict[str, Any]) -> None:
+        """The bot throws the rest of its visit at once and ends it, before the
+        new darts on the board count for the next player."""
+        self._cancel_bot()
+        before = self.manual.held(state)
+        while not self._bot_done():
+            self._bot_throw()
+            self._track(data, self.manual.apply(before), "bot")
+        self.manual.end_visit()
+        self._track(data, self.manual.apply(before), "bot")
 
     @callback
     def _report_quality(self) -> None:

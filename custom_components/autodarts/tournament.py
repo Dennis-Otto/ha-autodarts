@@ -715,6 +715,8 @@ class TournamentDirector:
                 slot, 0 if entrant is None else tournament.starts[entrant]
             )
         practice.hold = False
+        # Tournaments are for the players: the bot sits them out.
+        practice.bot_level = 0
         practice.set_players(len(names))
         practice.set_format(tournament.legs_to_win, tournament.sets_to_win)
         practice.play(tournament.kind)

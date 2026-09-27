@@ -117,6 +117,12 @@
       },
       "tournament_summary": {
         "default": "mdi:clipboard-text-clock-outline"
+      },
+      "practice_bot_level": {
+        "default": "mdi:robot"
+      },
+      "practice_bot_delay": {
+        "default": "mdi:timer-outline"
       }
     },
     "select": {
@@ -369,6 +375,9 @@
       },
       "tournament_random_draw": {
         "default": "mdi:shuffle-variant"
+      },
+      "practice_manual_entry": {
+        "default": "mdi:keyboard-outline"
       }
     },
     "text": {
@@ -414,6 +423,18 @@
     },
     "next_tournament_match": {
       "service": "mdi:skip-next-circle-outline"
+    },
+    "correct_dart": {
+      "service": "mdi:pencil-outline"
+    },
+    "throw_dart": {
+      "service": "mdi:keyboard-outline"
+    },
+    "next_player": {
+      "service": "mdi:skip-next"
+    },
+    "undo_visit": {
+      "service": "mdi:undo"
     }
   }
 }
