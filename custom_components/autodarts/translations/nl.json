@@ -723,11 +723,17 @@
     "duplicate_player": {
       "message": "{name} staat meer dan eens in de spelerslijst. Elke speler heeft een eigen naam nodig."
     },
+    "invalid_player_name": {
+      "message": "Een spelersnaam mag geen accolades, procentteken, hekje (#) of stuurtekens bevatten."
+    },
     "killer_players": {
       "message": "Killer heeft minstens twee spelers nodig."
     },
     "unknown_player": {
       "message": "Er is geen spelersprofiel met de naam {name}."
+    },
+    "player_in_tournament": {
+      "message": "{name} speelt mee in het toernooi. Stop het toernooi voordat je de speler verwijdert."
     },
     "board_access_denied": {
       "message": "Board Manager weigert de toegang. Normaal is er geen aanmelding nodig; controleer proxy's en firewalls tussen Home Assistant en het bord."
@@ -771,6 +777,12 @@
     "no_tournament": {
       "message": "Er wordt geen toernooi gespeeld."
     },
+    "tournament_running": {
+      "message": "Er wordt al een toernooi gespeeld. Stop het voordat je een nieuw toernooi start."
+    },
+    "tournament_finished": {
+      "message": "Het toernooi is afgelopen. Stop het of start een nieuw toernooi."
+    },
     "tournament_match_running": {
       "message": "De toernooiwedstrijd {first} tegen {second} is nog bezig. Speel die eerst uit of stop het toernooi."
     },
@@ -790,7 +802,7 @@
       "message": "De beurt heeft al drie darts. Geef de beurt door met Volgende speler."
     },
     "empty_visit": {
-      "message": "De beurt heeft geen darts om te beëindigen. Alleen in X01 en de Cricket-spellen geef je een beurt zonder darts door."
+      "message": "De beurt heeft geen darts om te beëindigen. In X01, de Cricket-spellen en de partyspellen geef je een beurt zonder darts door, maar niet in trainingsspellen, bij het bullen of terwijl bij Killer de nummers worden gekozen."
     },
     "undo_unavailable": {
       "message": "Er is geen beurt om ongedaan te maken. Ongedaan maken neemt de laatste afgeronde beurt terug zolang er geen dart in het bord zit en het spel en de trainingssessie sindsdien niet zijn veranderd."
@@ -1104,7 +1116,7 @@
     },
     "next_player": {
       "name": "Volgende speler",
-      "description": "Beëindigt de huidige beurt zonder de darts te verwijderen, zodat de volgende speler gooit. Zonder darts slaat de speler aan het bord in X01 en de Cricket-spellen een beurt over.",
+      "description": "Beëindigt de huidige beurt zonder de darts te verwijderen, zodat de volgende speler gooit. Zonder darts slaat de speler aan het bord in X01, de Cricket-spellen en de partyspellen een beurt over; in partyspellen telt dat als drie missers.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",

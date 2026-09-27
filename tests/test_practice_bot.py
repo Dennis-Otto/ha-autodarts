@@ -144,10 +144,20 @@ def test_a_visit_without_darts_passes_in_x01_and_cricket():
     assert game.finish_visit() == []
 
 
-def test_no_pass_in_party_games_the_bull_off_training_games_or_after_the_match():
+def test_no_pass_while_choosing_in_the_bull_off_training_games_or_after_the_match():
     game = PracticeGame()
-    game.play("shanghai")
+    game.set_players(2)
+    game.play("killer")
+    # Killer passes only once every player has a number.
     assert not game.passes() and game.finish_visit(empty=True) == []
+    game.party.numbers = [20, 3]
+    assert game.passes()
+    ((kind, turn),) = game.finish_visit(empty=True)
+    assert kind == "turn_changed" and turn["player"] == 2
+    assert turn["lives"] == 3 and turn["killer"] is False and "points" not in turn
+    game.set_players(1)
+    game.play("killer")
+    assert not game.passes()
     game.play("around_the_clock")
     assert not game.passes()
     game.bull_off = True

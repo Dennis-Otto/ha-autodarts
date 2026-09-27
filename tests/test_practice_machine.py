@@ -16,7 +16,7 @@ from hypothesis.stateful import (
 )
 
 from custom_components.autodarts.bot import Bot, aim, bed_name
-from custom_components.autodarts.cricket import CRICKET_GAMES
+from custom_components.autodarts.cricket import CRICKET_GAMES, MARKS_TO_CLOSE
 from custom_components.autodarts.manual import ManualDarts, parse_bed
 from custom_components.autodarts.party import KILLER_LIVES
 from custom_components.autodarts.practice import (
@@ -161,7 +161,11 @@ class PracticeMachine(RuleBasedStateMachine):
                 break
             if thrown == 3 or snapshot.get("bust") or snapshot.get("won"):
                 break
-            dart, position = bot.throw(aim(snapshot), self.game.bot_level)
+            dart, position = bot.throw(
+                aim(snapshot),
+                self.game.bot_level,
+                cricket=snapshot["game"] in CRICKET_GAMES,
+            )
             self.darts.append(bed_name(dart["number"], dart["multiplier"]))
             self.positions.append(position)
             self._track()
@@ -169,7 +173,7 @@ class PracticeMachine(RuleBasedStateMachine):
 
     @rule()
     def pass_turn(self) -> None:
-        """Next player without darts: X01 and the Cricket games pass."""
+        """Next player without darts: X01, the Cricket and the party games pass."""
         if not self.darts:
             passes = self.game.passes()
             assert bool(self.game.finish_visit(empty=True)) == passes
@@ -307,6 +311,61 @@ class PracticeMachine(RuleBasedStateMachine):
             assert 0 <= bulling.index < len(bulling.order)
             assert set(bulling.hits) == set(bulling.distances)
             assert len(bulling.hits) == bulling.index
+            # The dart at the bull scores for nobody.
+            snapshot = self.game.snapshot()
+            assert snapshot.get("visit", []) == []
+            assert not snapshot.get("won") and not snapshot.get("bust")
+            if snapshot["game"] in GAMES:
+                assert snapshot["remaining"] == snapshot["start"]
+            if snapshot["game"] in CRICKET_GAMES:
+                assert snapshot["target"] is None
+
+    @invariant()
+    def a_leg_counts_for_the_match_once(self) -> None:
+        """What the leg being played added to the match, a new leg takes back."""
+        game = self.game
+        for player, tally in zip(game.players, game.tallies, strict=True):
+            assert player.match_darts >= player.darts
+            assert player.match_marks >= player.marks_hit
+            if game.game:
+                assert player.match_points >= player.points
+            for key in ("scores_100", "scores_140", "scores_180"):
+                assert getattr(tally, key) >= getattr(player, key)
+
+    @invariant()
+    def a_team_with_the_bot_has_no_name(self) -> None:
+        snapshot = self.game.snapshot()
+        seat = self.game.bot_seat
+        for team in snapshot.get("teams") or []:
+            if seat is not None and seat + 1 in team["players"]:
+                assert team["name"] is None
+
+    @invariant()
+    def nobody_wins_a_cricket_leg_unnoticed(self) -> None:
+        """Between visits, nobody but the winner has everything closed with
+        enough points: Cricket the most, Cut-Throat the fewest."""
+        game = self.game
+        if not game.cricket or self.darts or game.bulling or len(game.players) < 2:
+            return
+        teams = game.snapshot()["teams"] is not None
+
+        def side(index: int) -> int:
+            return index % 2 if teams else index
+
+        for index, player in enumerate(game.players):
+            others = [
+                other.points
+                for number, other in enumerate(game.players)
+                if side(number) != side(index)
+            ]
+            closed = all(mark >= MARKS_TO_CLOSE for mark in player.marks)
+            if game.cricket == "cut_throat":
+                wins = closed and all(player.points <= other for other in others)
+            else:
+                wins = closed and all(player.points >= other for other in others)
+            if wins:
+                assert game.winner is not None
+                assert side(game.winner) == side(index)
 
 
 PracticeMachine.TestCase.settings = settings(

@@ -8,6 +8,8 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from custom_components.autodarts.bot import (
+    AVERAGE_PER_MPR,
+    CRICKET_SCATTER,
     MAX_LEVEL,
     MIN_LEVEL,
     SCATTER,
@@ -17,6 +19,7 @@ from custom_components.autodarts.bot import (
     aim_point,
     bed_name,
     cricket_aim,
+    play_cricket_leg,
     play_leg,
     scatter,
     segment_at,
@@ -31,6 +34,9 @@ from custom_components.autodarts.manual import BEDS
 # 1,000 legs, and the seeds are fixed, so the test never flakes.
 TOLERANCE = 0.05
 LEGS = {20: 400, 60: 300, 100: 300, 120: 300}
+# The marks per round the bot plays in Cricket, a 24th of its level, hold
+# within 1.5 % over these legs.
+CRICKET_LEGS = {20: 150, 60: 300, 120: 300}
 
 
 def polar(radius: float, number: int) -> tuple[float, float]:
@@ -102,8 +108,23 @@ def test_bed_names():
         # Single out finishes on the biggest bed; beyond it, the treble 20.
         (20, 1, False, True, "S20"),
         (61, 1, False, True, "T20"),
-        # Double in: the double 20 opens the leg.
+        # Without a finish, single out takes the biggest bed that does not bust.
+        (59, 1, False, True, "T19"),
+        (44, 1, False, True, "T14"),
+        (23, 1, False, True, "D11"),
+        # Double in: the double 20 opens the leg ...
         (501, 3, True, False, "D20"),
+        (100, 2, True, False, "D20"),
+        # ... unless a double wins at once, or leaves a finish for the darts
+        # left, as at a handicap start of 40 or less.
+        (32, 3, True, False, "D16"),
+        (50, 3, True, False, "BULL"),
+        (40, 3, False, False, "D20"),
+        (33, 3, True, False, "D8"),
+        (36, 2, True, False, "D18"),
+        # Where the double 20 busts, the biggest double that does not.
+        (41, 1, True, False, "D19"),
+        (3, 1, True, False, "D20"),
     ],
 )
 def test_where_the_bot_aims_in_x01(remaining, darts, double_out, opened, bed):
@@ -235,6 +256,41 @@ def test_the_bot_plays_its_level(level):
     darts = sum(play_leg(bot, level) for _ in range(legs))
     average = 501 * 3 * legs / darts
     assert abs(average - level) <= level * TOLERANCE, average
+
+
+@pytest.mark.parametrize("level", sorted(CRICKET_LEGS))
+def test_the_bot_plays_the_marks_per_round_of_its_level_in_cricket(level):
+    """Marks per round against a player who never scores, over hundreds of legs."""
+    bot = Bot(random.Random(level))
+    marks = darts = 0
+    for _ in range(CRICKET_LEGS[level]):
+        counted, thrown = play_cricket_leg(bot, level)
+        marks += counted
+        darts += thrown
+    target = level / AVERAGE_PER_MPR
+    assert abs(marks * 3 / darts - target) <= target * TOLERANCE
+
+
+def test_the_cricket_scatter_of_a_level():
+    assert [scatter(level, cricket=True) for level, _ in CRICKET_SCATTER] == [
+        sigma for _, sigma in CRICKET_SCATTER
+    ]
+    sigmas = [sigma for _, sigma in CRICKET_SCATTER]
+    assert sigmas == sorted(sigmas, reverse=True)
+    # The Cricket numbers are harder to score on than the treble 20: a level
+    # scatters more in Cricket than in X01.
+    assert all(scatter(level, cricket=True) > sigma for level, sigma in SCATTER)
+    # A dart of the Cricket games lands with that scatter.
+    aim_x, aim_y = aim_point("T20")
+    x01 = Bot(random.Random(1)).throw("T20", 60)[1]
+    cricket = Bot(random.Random(1)).throw("T20", 60, cricket=True)[1]
+    ratio = (cricket[1] * 170 - aim_y) / (x01[1] * 170 - aim_y)
+    assert ratio == pytest.approx(scatter(60, cricket=True) / scatter(60), rel=0.01)
+
+
+def test_the_bot_plays_tactics_down_to_ten():
+    counted, darts = play_cricket_leg(Bot(random.Random(5)), 120, TACTICS_NUMBERS)
+    assert counted >= 36 and darts >= 12
 
 
 def test_a_leg_of_the_bot_ends_on_a_double_or_with_single_out():

@@ -26,18 +26,23 @@ HALVE_IT_START = 40
 KILLER_LIVES = 3
 # Board Manager positions are relative to the outer edge of the double ring.
 BOARD_RADIUS_MM = 170
-# The bullseye beats the outer bull, which beats every other bed.
-BULL_BEDS = {"BULL": 2, "25": 1}
+# The bullseye beats the outer bull, which beats every other bed of the board;
+# a dart off the board comes last.
+BULL_BEDS = {"BULL": 3, "25": 2}
+BOARD_BED, OFF_BOARD = 1, 0
 GOLF_HOLES = (9, 18)
 BASEBALL_INNINGS = 9
 COUNT_UP_ROUNDS = 8
 MAX_ROUNDS = 20
-# Golf strokes of a dart at the hole: treble, double, inner and outer single.
-GOLF_STROKES = {3: 1, 2: 2}
+# Golf strokes of a dart at the hole: the double is the hole in one, the
+# treble two strokes, then the inner and the outer single.
+GOLF_STROKES = {2: 1, 3: 2}
 GOLF_INNER, GOLF_OUTER, GOLF_MISS = 3, 4, 5
-# Singles closer to the centre than the middle of the treble ring (97 to
+# Singles closer to the centre than the middle of the treble ring (99 to
 # 107 mm) are inner singles.
-INNER_SINGLE = 102 / BOARD_RADIUS_MM
+INNER_SINGLE = 103 / BOARD_RADIUS_MM
+# A visit that ends without a dart, when the player passes: three misses.
+MISSES = [{"number": 0, "multiplier": 0}] * 3
 
 
 def distance_mm(position: tuple[float, float] | None) -> float | None:
@@ -56,10 +61,12 @@ class BullOff:
     """Every player throws one dart at the bull; the closest starts the match.
 
     As the WDF and PDC rules want, the bullseye beats the outer bull, which
-    beats every other bed, and two darts in the same bull bed throw again, in
-    reverse order. Outside the bull, the measured distance decides; so it does
-    inside, if players want. Darts the board did not measure cannot be told
-    apart, so their players throw again as well.
+    beats every other bed of the board, and a dart off the board comes last;
+    two darts in the same bull bed throw again, in reverse order. Outside the
+    bull, the measured distance decides, and a dart the board did not measure
+    loses to a measured one; so the distance decides inside, if players want,
+    but only between measured darts. Darts off the board, and darts none of
+    which the board measured, throw again.
     """
 
     def __init__(self, order: list[int]) -> None:
@@ -95,22 +102,31 @@ class BullOff:
         self.hits, self.distances, self.rethrow = {}, {}, True
         return None
 
+    def _bed(self, player: int) -> int:
+        """How the bed of the player's dart ranks: the bull beds first."""
+        hit = self.hits[player]
+        return BULL_BEDS.get(hit, OFF_BOARD if hit == "MISS" else BOARD_BED)
+
     def _closest(self, by_distance: bool) -> list[int]:
         """The players whose darts nothing beats."""
-        beds = {player: BULL_BEDS.get(self.hits[player], 0) for player in self.order}
+        beds = {player: self._bed(player) for player in self.order}
         best = max(beds.values())
         closest = [player for player in self.order if beds[player] == best]
-        if len(closest) == 1 or (best and not by_distance):
+        if (
+            len(closest) == 1
+            or best == OFF_BOARD
+            or (best > BOARD_BED and not by_distance)
+        ):
             return closest
-        measured = [
-            distance
+        measured = {
+            player: distance
             for player in closest
             if (distance := self.distances[player]) is not None
-        ]
-        if len(measured) < len(closest):
+        }
+        if not measured or (best > BOARD_BED and len(measured) < len(closest)):
             return closest
-        nearest = min(measured)
-        return [player for player in closest if self.distances[player] == nearest]
+        nearest = min(measured.values())
+        return [player for player, distance in measured.items() if distance == nearest]
 
     def stored(self) -> dict[str, Any]:
         return {
@@ -339,7 +355,7 @@ class HalveIt(PartyGame):
         # A visit ends with fewer than three darts when darts miss the board.
         thrown = len(darts)
         if not any(self.hit(dart, self.target(player) or "") for dart in darts):
-            darts = [*darts, *[{"number": 0, "multiplier": 0}] * 3][:3]
+            darts = [*darts, *MISSES][:3]
         result = super().book(player, darts)
         result.darts = thrown
         return result
@@ -606,7 +622,7 @@ class RoundsGame(PartyGame):
 
 
 def golf_strokes(dart: dict[str, Any], hole: int) -> int:
-    """Strokes of a dart at the hole: treble 1, double 2, inner single 3,
+    """Strokes of a dart at the hole: double 1, treble 2, inner single 3,
     outer single 4, anything else 5. A single without a position counts as
     an outer single."""
     if dart["number"] != hole or dart["multiplier"] == 0:
@@ -618,7 +634,8 @@ def golf_strokes(dart: dict[str, Any], hole: int) -> int:
 
 class Golf(RoundsGame):
     """Nine or 18 holes, hole n at the number n; the last dart of the visit
-    counts, so players stop by pulling their darts. The fewest strokes win."""
+    counts, so players stop by pulling their darts. The double is a hole in
+    one, the treble two strokes; the fewest strokes win."""
 
     kind = "golf"
     lowest_wins = True
@@ -628,6 +645,12 @@ class Golf(RoundsGame):
             return 0, 0
         strokes = golf_strokes(darts[-1], self.number())
         return strokes, int(strokes < GOLF_MISS)
+
+    def book(self, player: int, darts: list[dict[str, Any]]) -> Visit:
+        # A player who passes without a dart plays the hole as a miss.
+        result = super().book(player, darts or MISSES[:1])
+        result.darts = len(darts)
+        return result
 
 
 class Baseball(RoundsGame):

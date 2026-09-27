@@ -4,7 +4,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.checkout import BEDS, DOUBLES, checkout
+from custom_components.autodarts.checkout import BEDS, DOUBLES, Setup, checkout, setup
 
 BY_NAME = {bed.name: bed for bed in BEDS}
 
@@ -206,3 +206,11 @@ def test_preferred_doubles_never_change_what_is_possible(remaining, darts, prefe
         # A double sets up only when the usual route needs one as well.
         doubles = sum(BY_NAME[name].multiplier == 2 for name in usual[:-1])
         assert sum(bed.multiplier == 2 for bed in beds[:-1]) == doubles
+
+
+def test_the_outer_bull_sets_up_a_double_in_a_route_but_not_the_next_visit():
+    # Routes take the outer bull like an easy single before the double, as
+    # the charts do for 61, and so after a treble 20 for 121.
+    assert checkout(61) == ("25", "D18") and checkout(121) == ("T20", "25", "D18")
+    # A setup avoids it: a dart next to it leaves no finish for the next visit.
+    assert setup(57, 1) == Setup(("S17",), 40)

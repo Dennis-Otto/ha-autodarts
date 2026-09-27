@@ -112,10 +112,18 @@ def test_checkout_training_books_attempts_on_three_visits():
     assert events[0][1]["success"] is False and events[0][1]["darts"] == 3
     assert drill.snapshot()["rate"] == 50.0
 
-    # A bust ends the attempt at once.
+    # As in X01, a bust voids only its visit: 40 is left for the next one.
     drill.target = drill.start = 40
+    assert throw(drill, "T20") == []
+    assert drill.start == 40 and drill.visits == 1 and drill.attempts == 2
+    events = throw(drill, "S20", "D10")
+    assert events[0][1]["success"] is True and events[0][1]["darts"] == 3
+    # A bust in the third visit ends the attempt.
+    drill.target = drill.start = 40
+    throw(drill, "S10")
+    throw(drill, "S10")
     assert throw(drill, "T20")[0][1]["success"] is False
-    assert drill.attempts == 3
+    assert drill.attempts == 4
 
 
 def test_checkout_training_shows_the_route_for_the_rest_of_the_visit():
@@ -129,11 +137,15 @@ def test_checkout_training_shows_the_route_for_the_rest_of_the_visit():
     snapshot = drill.snapshot()
     assert snapshot["won"] and snapshot["remaining"] == 0
     assert snapshot["checkout"] is None
-    # A bust ends the attempt: no route, the next target follows.
+    # A bust leaves the score of the visit start for the next visit.
     drill.track([dart("T20")])
     snapshot = drill.snapshot()
     assert snapshot["bust"] and snapshot["remaining"] == 40
-    assert snapshot["checkout"] is None
+    assert snapshot["checkout"] == "D20" and snapshot["attempt_visit"] == 1
+    # The bust of the last visit ends the attempt: no route then.
+    drill.visits = CHECKOUT_VISITS - 1
+    assert drill.snapshot()["checkout"] is None
+    drill.visits = 0
     # A full visit shows the route for the next one, unless it was the last.
     drill.track([dart("S10"), dart("S10"), dart("S10")])
     snapshot = drill.snapshot()

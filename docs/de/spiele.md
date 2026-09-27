@@ -50,7 +50,9 @@ Es gibt vier Wege, ein Spiel zu starten. Alle enden am selben Ort: im *Übungssp
 
 4. **Per Sprache** mit Assist: „Starte Cricket für Alex und Sam“. Die [Anleitung zu Automationen](automationen.md#spiel-per-sprache-starten) enthält die Automation.
 
-Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der Spielauswahl auf **Spiel beenden**. *Neues Leg im Übungsspiel* beginnt das Leg neu; *Neues Match im Übungsspiel* beginnt das Match bei null Legs und Sätzen.
+Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der Spielauswahl auf **Spiel beenden**. *Neues Leg im Übungsspiel* beginnt das Leg neu, und was dieses Leg zu den Averages und der Zusammenfassung des Matches beigetragen hat, zählt nicht mehr; *Neues Match im Übungsspiel* beginnt das Match bei null Legs und Sätzen.
+
+Spielernamen dürfen keine geschweiften Klammern, kein Prozentzeichen, keine Raute (#) und keine Steuerzeichen enthalten, weil Home Assistant sie sonst als Template liest, wo ein Name in eine Nachricht oder einen Dateinamen kommt. Die Namens-Entitäten und die Aktionen lehnen solche Namen ab.
 
 ## Am Board
 
@@ -70,7 +72,7 @@ Ein falsch erkannter Dart, ein übersehener Dart oder die Aufnahmen eines Spiele
 
 - **Dart korrigieren:** Tippe auf der [Anzeigetafel](anzeigetafel.md#darts-korrigieren-und-eingeben) auf den Dart und wähle das richtige Feld, oder nutze [`autodarts.correct_dart`](entitaeten.md#dart-korrigieren-autodartscorrect_dart). Rest, Überwerfen oder Sieg, die Cricket-Marks und die Statistik folgen sofort. Das Board behält seine Erkennung; korrigiert es den Dart später selbst, zählt wieder seine Erkennung.
 - **Dart eingeben:** Mit eingeschalteter *Übungsspiel manuelle Eingabe* fügt das Tastenfeld der Anzeigetafel oder [`autodarts.throw_dart`](entitaeten.md#dart-eingeben-autodartsthrow_dart) einen Dart hinzu, als hätte das Board ihn erkannt. Das geht auch bei gestoppter Erkennung, so spielt auch ein Spieler ohne Kameras mit.
-- **Nächster Spieler:** beendet die Aufnahme, ohne die Darts zu ziehen; die Darts im Board zählen für niemanden, bis sie gezogen sind. Ohne Darts setzt der Spieler am Board bei X01 und den Cricket-Spielen aus.
+- **Nächster Spieler:** beendet die Aufnahme, ohne die Darts zu ziehen; die Darts im Board zählen für niemanden, bis sie gezogen sind. Ohne Darts setzt der Spieler am Board bei X01, den Cricket- und den Partyspielen aus; in einem Partyspiel zählt das Aussetzen als Aufnahme aus drei Fehlwürfen, Halve-It halbiert also die Punkte und Golf zählt 5 Schläge. In Trainingsspielen, beim Ausbullen und bei Killer, solange die Zahlen gewählt werden, setzt niemand aus.
 - **Letzte Aufnahme zurücknehmen:** Fällt eine falsche Erkennung erst nach der Entnahme auf, nimmt *Letzte Aufnahme zurück* auf der Anzeigetafel oder [`autodarts.undo_visit`](entitaeten.md#aufnahme-zurücknehmen-autodartsundo_visit) die Aufnahme zurück, auch nach einem gewonnenen Leg: Ihre Darts werden wieder die aktuelle Aufnahme, zum Korrigieren, und *Nächster Spieler* beendet sie. Das geht, solange kein Dart im Board steckt und sich das Spiel seitdem nicht geändert hat, aber nicht nach einer Aufnahme, die ein Turniermatch entschieden hat.
 - **Markiert:** In Home Assistant eingegebene oder korrigierte Darts tragen `manual`, damit Automationen sie unterscheiden können. [Die genauen Regeln](funktionsweise.md#korrekturen-und-von-hand-eingegebene-darts).
 
@@ -102,7 +104,7 @@ Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live
 - **Zwei Teams zu zwei:** Schalte *Übungsspiel Teams* ein (in der Spielauswahl: *Teams*) und spiele X01 oder ein Cricket-Spiel zu viert. Spieler 1 und 3 spielen gegen Spieler 2 und 4. Geworfen wird in der Reihenfolge der Plätze, die Teams wechseln sich also ab: A1, B1, A2, B2. Mit weniger oder mehr als vier Spielern und in Party- und Trainingsspielen spielt jeder für sich.
 - **Ein Stand pro Team:** Partner teilen sich den Rest, mit Double-In das öffnende Double und in den Cricket-Spielen Marks und Punkte. Ein Team spielt mit den Startpunkten seines ersten Spielers.
 - **Der Anwurf** wechselt jedes Leg zum nächsten Platz, wie in jedem Match zu viert, die Teams wechseln sich also ab.
-- **Sieg:** Beide Partner gewinnen das Leg und das Match. Die Anzeigetafel nennt das siegreiche Team, und `leg_won` und `match_won` nennen zusätzlich `team` und `team_name`, etwa *Alex & Kim*.
+- **Sieg:** Beide Partner gewinnen das Leg und das Match. Die Anzeigetafel nennt das siegreiche Team, und `leg_won` und `match_won` nennen zusätzlich `team` und `team_name`, etwa *Alex & Kim*. Ein Team, bei dem nicht beide Spieler einen Namen haben, und ein Team mit dem Bot haben keinen `team_name`.
 - **Statistik pro Person:** First 9, Checkout-Quote, Averages und Marks pro Runde bleiben bei dem Spieler, der die Darts geworfen hat. Die Spielerprofile zählen Leg und Match für beide Partner, und jeder von ihnen schlägt im direkten Vergleich beide Gegner; Partner haben keinen direkten Vergleich. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Marks pro Runde; ein Checkout zählt weiter für den Spieler, der ihn geworfen hat.
 
 ## Startpunkte (Handicap)
@@ -120,9 +122,10 @@ Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live
 
 - Mit *Übungsspiel Ausbullen* (in der Spielauswahl: *Ausbullen*) und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull, in der Reihenfolge der Plätze. Nur der erste Dart jeder Aufnahme zählt. Die Anzeigetafel zeigt das Feld jedes Darts und seinen Abstand zur Mitte, hebt den führenden Dart hervor und meldet *Gleichstand – noch einmal werfen*, wenn ein Gleichstand neu wirft.
 - Wie es die Regeln von WDF und PDC wollen, schlägt das Bullseye das Single-Bull und dieses jedes andere Feld. Zwei oder mehr Darts im selben Bull-Feld sind gleichauf: Diese Spieler werfen noch einmal, der letzte von ihnen zuerst.
-- Außerhalb des Bulls gewinnt der Dart, der der Mitte näher ist. Der Abstand ergibt sich aus der Position, die das Board meldet, bezogen auf den äußeren Rand des Doppelrings (170 mm).
+- Außerhalb des Bulls gewinnt der Dart, der der Mitte näher ist. Der Abstand ergibt sich aus der Position, die das Board meldet, bezogen auf den äußeren Rand des Doppelrings (170 mm). Jedes Feld der Scheibe schlägt einen Dart neben der Scheibe; verfehlen alle Darts die Scheibe, werfen alle noch einmal.
 - Mit *Übungsspiel Ausbullen nach Abstand* entscheidet der gemessene Abstand auch zwischen zwei Darts im selben Bull-Feld; Darts mit gleichem Abstand auf 0,1 mm werfen noch einmal.
-- Ein Dart ohne Position lässt sich nicht messen und schlägt deshalb nie einen gemessenen Dart: Braucht die Entscheidung einen Abstand, den das Board nicht gemeldet hat, werfen diese Spieler noch einmal.
+- Ein Dart ohne Position, etwa ein von Hand eingegebener, lässt sich nicht messen. Außerhalb des Bulls schlägt ihn ein gemessener Dart, und zwei Darts ohne Position werfen noch einmal. Im selben Bull-Feld ist ein Dart ohne Position gleichauf, auch nach Abstand, und diese Spieler werfen noch einmal.
+- Der Dart aufs Bull zählt im Spiel nichts: Rest, Marks und Averages beginnen mit der ersten Aufnahme des Matches.
 - Das Ausbullen entscheidet nur, wer beginnt. Bei drei oder vier Spielern folgen die anderen in der Reihenfolge der Plätze. `bull_off_won` meldet den Gewinner, etwa für den [Übungs-Caller](automationen.md#practice-caller).
 
 ## Gegen den Bot spielen
@@ -131,11 +134,13 @@ Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live
 
 Niemand zum Mitspielen? X01 und die Cricket-Spiele lassen sich gegen den Bot spielen, einen Computerspieler in der Stärke deiner Wahl.
 
-- **Den Bot dazusetzen:** Tippe in der [Spielauswahl](anzeigetafel.md#das-nächste-spiel-wählen) auf **+ Bot**, stell *Übungsspiel Bot-Stärke* ein oder starte ein Spiel mit `bot_level`. Die Stärke ist der 3-Dart-Average, den der Bot spielt, von 20 für Anfänger bis 120, besser als der Average jedes Profis. `0` spielt ohne Bot.
-- **Sein Platz:** nach den Spielern. Mit dem Bot spielen bis zu drei Spieler, auch als vierter Spieler von zwei Teams.
+- **Den Bot dazusetzen:** Tippe in der [Spielauswahl](anzeigetafel.md#das-nächste-spiel-wählen) auf **+ Bot**, stell *Übungsspiel Bot-Stärke* ein oder starte ein Spiel mit `bot_level`. Die Stärke ist der 3-Dart-Average, den der Bot spielt, von 20 für Anfänger bis 120, besser als der Average jedes Profis. `0` spielt ohne Bot. Stärken von 1 bis 19 gibt es nicht: In *Übungsspiel Bot-Stärke* setzt ein Schritt nach oben von 0 den Bot auf 20, ein Schritt nach unten von 20 schickt ihn nach Hause.
+- **In den Cricket-Spielen** spielt die Stärke die Marks pro Runde eines Spielers mit diesem Average, etwa ein Vierundzwanzigstel davon: 2,5 bei Stärke 60, 3,3 bei 80, 4,2 bei 100 und 5 bei 120.
+- **Sein Platz:** nach den Spielern. Mit dem Bot spielen bis zu drei Spieler, auch als vierter Spieler von zwei Teams; ein solches Team hat keinen Teamnamen. Wählst du X01 oder ein Cricket-Spiel für vier Spieler, während eine Bot-Stärke eingestellt ist, bittet dich die Meldung, erst Platz zu machen.
+- **Die Stärke ändern:** Während eines Matches spielt der Bot die neue Stärke ab seinem nächsten Dart. Den Bot dazuzusetzen oder mit `0` nach Hause zu schicken, beginnt ein neues Match; in Party- und Trainingsspielen, in denen er nicht mitspielt, ändert eine neue Stärke bis zum nächsten X01- oder Cricket-Spiel nichts.
 - **Sein Zug:** Sind deine Darts gezogen, wirft der Bot seine drei Darts nacheinander, jeweils nach der Pause von *Übungsspiel Bot-Pause* (2 Sekunden), und sie erscheinen auf den Karten dort, wo sie gelandet sind. Wirfst du, während er am Board ist, wirft er den Rest seiner Aufnahme sofort.
-- **Wie er spielt:** wie ein Spieler: auf die Triple 20 zum Punkten, entlang des Checkout-Wegs zum Checken und auf einen [Stellwurf](#x01), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Seine Darts streuen so stark wie die eines Spielers seiner Stärke. [Wie der Bot spielt](funktionsweise.md#bot).
-- **Was zählt:** Die Darts des Bots zählen für niemandes Statistik, Bestleistungen oder Erfolge; das Ergebnis des Matches zählt in deinem Spielerprofil. Partyspiele, Trainingsspiele und Turniere laufen ohne Bot.
+- **Wie er spielt:** wie ein Spieler: auf die Triple 20 zum Punkten, entlang des Checkout-Wegs zum Checken und auf einen [Stellwurf](#x01), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Mit Double-In eröffnet er mit einem Double, das gewinnt oder für seine Darts einen checkbaren Rest lässt, sonst mit der Double 20 oder, wo die Double 20 überwerfen würde, mit einem kleineren Double. Ohne Double-Out und ohne Checkout nimmt er das größte Feld, das nicht überwirft. Er zielt immer auf die üblichen Checkout-Wege, auch mit *Übungsspiel persönliche Checkout-Wege*, und die Karten zeigen diese Wege in seinem Zug. Seine Darts streuen so stark wie die eines Spielers seiner Stärke. [Wie der Bot spielt](funktionsweise.md#bot).
+- **Was zählt:** Die Darts des Bots zählen für niemandes Statistik, Bestleistungen oder Erfolge; das Ergebnis des Matches zählt in deinem Spielerprofil. Partyspiele, Trainingsspiele und Turniere laufen ohne Bot; nach einem Turnier kommt der Bot mit den übrigen Einstellungen des Übungsspiels zurück.
 
 <img src="../images/de/scoreboard-bot.png" alt="Anzeigetafel eines 301-Matches gegen den Bot: Alex hat noch 169, und statt eines Checkouts zeigt die Karte T20 T20 S17 Rest 32; die Kachel des Bots heißt Bot Stärke 80" width="760">
 
@@ -158,6 +163,7 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board, ein Match nach 
 
 2. **Spielen:** Das erste Match beginnt sofort, und die Titelzeile der Anzeigetafel nennt Runde und Match. Ist ein Match entschieden und sind die Darts gezogen, zeigt die Anzeigetafel seine Zusammenfassung, dann Tabelle oder Turnierbaum mit dem nächsten Match und einem Countdown. Das nächste Match beginnt von selbst; **Jetzt starten** überspringt das Warten.
 3. **Sieger:** Nach dem letzten Match nennt ein Banner den Sieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt. `tournament_finished` kann die [Lichtshow](automationen.md#light-show) starten oder [die Ergebnisse ansagen](automationen.md#ergebnisse-eines-turniers-ansagen).
+4. **Danach:** Das Übungsspiel kehrt zu den Spielern, Namen, Startpunkten, Legs, Sätzen, Regeln und der Bot-Stärke von vor dem Turnier zurück, mit dem ersten Dart des nächsten Matches oder der ersten Änderung einer Einstellung des Übungsspiels. Nach *Turnier beenden* wird ein laufendes Match erst zu Ende gespielt. Ein neues Turnier startet nur, wenn keines läuft: Beende das laufende zuerst.
 
 <table>
   <tr>
@@ -170,7 +176,7 @@ Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Taste
 
 ### Turnierregeln
 
-- **Spieler:** drei bis acht Spieler mit je einem Namen. Ein Name ist unabhängig von Groß- und Kleinschreibung derselbe Spieler, wie bei den [Spielerprofilen](entitaeten.md#spielerprofile).
+- **Spieler:** drei bis acht Spieler mit je einem Namen, höchstens acht auch in *Turnierspieler*. Ein Name ist unabhängig von Groß- und Kleinschreibung derselbe Spieler, wie bei den [Spielerprofilen](entitaeten.md#spielerprofile). Einen Spieler des laufenden Turniers kannst du nicht löschen; ein gelöschter Spieler verschwindet aus der Liste für das nächste Turnier.
 - **Auslosung:** die Reihenfolge der Namen oder mit *Turnier zufällige Auslosung* oder einem `seed` eine zufällige Reihenfolge. Derselbe Startwert lost immer dieselbe Reihenfolge aus; eine zufällige Auslosung ohne Startwert wählt einen und zeigt ihn im Attribut `seed` von *Turnier*.
 - **Jeder gegen jeden:** Alle spielen einmal gegeneinander, in Runden nach dem Rundenturnier-Verfahren: drei oder vier Spieler spielen 3 Runden, fünf oder sechs 5, sieben oder acht 7. Bei einer ungeraden Zahl setzt in jeder Runde ein Spieler aus. Ein Spieler des letzten Matches einer Runde eröffnet die nächste Runde nur, wenn kein anderes Match es kann, und den Anwurf eines Matches bekommt der Spieler, der ihn seltener hatte.
 - **Punkte:** Ein gewonnenes Match bringt 2 Punkte wie in der Premier League, ein verlorenes keine. Ein Match kann nicht unentschieden enden.
@@ -184,9 +190,10 @@ Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Taste
 - **K.-o.-System:** ein Turnierbaum mit 4 Plätzen für drei oder vier Spieler und mit 8 Plätzen für fünf bis acht. Der erste Spieler der Auslosung ist Nummer 1 der Setzliste, der zweite Nummer 2 und so weiter, gesetzt wie bei Profiturnieren: Nummer 1 trifft zuerst auf die letzte Nummer, die Nummern 1 und 2 können sich frühestens im Finale treffen und die Nummern 1 bis 4 nicht vor dem Halbfinale. Plätze, die die Spieler nicht füllen, sind Freilose für die besten Nummern, die direkt in die nächste Runde kommen. Die Runden heißen Viertelfinale, Halbfinale und Finale.
 - **Platz 3:** Mit *Turnier Spiel um Platz 3* und mindestens vier Spielern spielen die Verlierer der Halbfinals vor dem Finale um Platz 3. Ohne diese Einstellung gibt es im K.-o.-System keinen dritten Platz.
 - **Spielplan:** ein Match nach dem anderen, Runde für Runde. Im K.-o.-System spielen die Matches einer Runde von oben nach unten im Turnierbaum, das Spiel um Platz 3 vor dem Finale.
-- **Matches:** Jedes Match ist ein [Match](#matches-legs-und-sätze) zweier Spieler mit den Legs pro Satz, Sätzen zum Sieg, Double-Out, Double-In und dem Ausbullen des Turniers. Bei X01 beginnt ein Spieler mit eigenen Startpunkten jedes Leg des Turniers von diesen, als Handicap; der andere von denen des Spiels. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet.
+- **Matches:** Jedes Match ist ein [Match](#matches-legs-und-sätze) zweier Spieler mit den Legs pro Satz, Sätzen zum Sieg, Double-Out, Double-In und dem Ausbullen des Turniers. Regeln, die das Turnier nicht festlegt, übernimmt es aus dem Übungsspiel, so wie du sie eingestellt hast, auch ein Double-Out, das aufs nächste Leg wartet. Bei X01 beginnt ein Spieler mit eigenen Startpunkten jedes Leg des Turniers von diesen, als Handicap; der andere von denen des Spiels. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet.
+- **Geänderte Matches:** Ein Match, dessen Legs, Sätze, Startpunkte oder Regeln sich während des Spiels ändern, ist kein Turniermatch mehr, und sein Ergebnis zählt nicht; *Nächstes Turniermatch* stellt das Turniermatch wieder her. Eine in der Pause geänderte Einstellung beginnt das Match der letzten beiden Spieler neu: Bis zu seinem ersten Dart macht es nach der Pause dem nächsten Match Platz.
 - **Averages:** Der Average eines Spielers zählt Punkte und Darts aller seiner Turniermatches; die Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
-- **Sieger:** der Sieger des Finales oder der Erste der Tabelle nach dem letzten Match.
+- **Sieger:** der Sieger des Finales oder der Erste der Tabelle nach dem letzten Match. Danach meldet *Nächstes Turniermatch*, dass das Turnier vorbei ist: Beende es oder starte ein neues.
 
 ## X01
 
@@ -198,7 +205,7 @@ Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Taste
 - **Double-Out ändern:** Ein Leg behält die Regeln, mit denen es begonnen hat. Schaltest du Double-Out während eines Legs ein oder aus, sobald ein Dart gezählt hat, gilt das ab dem nächsten Leg; vor dem ersten Dart eines Legs, zwischen zwei Matches und in den anderen Spielen gilt es sofort. So wird kein Leg unlösbar: Wer in einem Leg ohne Double-Out auf 1 steht, kann es mit einer Single 1 noch beenden, wenn Double-Out eingeschaltet wird.
 - **Überwerfen:** Ein Dart, der unter null geht, mit Double-Out 1 übrig lässt oder 0 ohne Double erreicht, überwirft die Aufnahme. Der Rest springt auf den Beginn der Aufnahme zurück. Der überwerfende Dart zählt als geworfen, spätere Darts der Aufnahme nicht.
 - **Game shot:** Ein Dart, der genau 0 erreicht, gewinnt das Leg. `leg_won` wird sofort gemeldet; verbucht wird das Leg beim Ziehen der Darts, eine Korrektur davor zählt also noch. Darts nach dem Siegdart zählen nicht.
-- **Checkout-Weg:** Sobald ein Rest checkbar ist, zeigen die Karten den Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170, und umranden das nächste Feld auf der Scheibe. „Kein Checkout möglich“ erscheint nur bei einem Rest, den eine Aufnahme checken könnte: bis 170 mit Double-Out, bis 180 ohne. Der Weg folgt den Checkout-Tabellen der Profis; mit *Übungsspiel persönliche Checkout-Wege* bevorzugt er deine stärksten Doubles. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
+- **Checkout-Weg:** Sobald ein Rest checkbar ist, zeigen die Karten den Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170, und umranden das nächste Feld auf der Scheibe. „Kein Checkout möglich“ erscheint nur bei einem Rest, den eine Aufnahme checken könnte: bis 170 mit Double-Out, bis 180 ohne. Der Weg folgt den Checkout-Tabellen der Profis; mit *Übungsspiel persönliche Checkout-Wege* bevorzugt er deine stärksten Doubles: die mit mindestens 10 Darts, die du mindestens so oft triffst wie alle deine Doubles zusammen, nie eines, das du noch nie getroffen hast. Auf dem Weg zum Double zählt das Single-Bull als leichtes Single, wie in `25 D18` für 61 aus den Tabellen; ein Stellwurf für die nächste Aufnahme meidet es, weil ein Fehlwurf daneben keinen checkbaren Rest lässt. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
 - **Stellwurf:** Wo die übrigen Darts nicht checken können, bei 169, über 170 oder bei 100 mit einem Dart, zeigen die Karten stattdessen einen Stellwurf, etwa *T20 T20 S17 Rest 32*: Darts, die für die nächste Aufnahme ein gutes Double stellen, am liebsten 32, 40, 36 oder 16. Der Caller sagt „stell dir die 32“. [So wird der Stellwurf gewählt](funktionsweise.md#stellwürfe).
 - **Average:** erzielte Punkte pro drei Darts des Legs. Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
 
@@ -208,7 +215,7 @@ Die [Referenz der Entitäten](entitaeten.md#turniere) nennt Einstellungen, Taste
 
 <img src="../images/de/cricket.webp" alt="Animation: Cricket zwischen Alex und Sam. Alex schließt die 20, punktet 60 und trifft eine 19; nach der Entnahme schließt Sam die 19, punktet 57 und trifft eine Double 18" width="620">
 
-Live-Karte und Anzeigetafel zeigen eine Kreidetafel mit den Marks jedes Spielers oder Teams (`/`, `X`, `Ⓧ`), den Punkten und den Marks pro Runde (MPR). Zahlen, die alle geschlossen haben, werden abgedunkelt, und die Scheibe umrandet die nächste offene Zahl, von 20 abwärts bis zum Bull. Screenreader lesen die Marks als Wörter vor.
+Live-Karte und Anzeigetafel zeigen eine Kreidetafel mit den Marks jedes Spielers oder Teams (`/`, `X`, `Ⓧ`), den Punkten und den Marks pro Runde (MPR). Zahlen, die alle geschlossen haben, werden abgedunkelt, und die Scheibe umrandet die nächste offene Zahl, von 20 abwärts bis zum Bull. Hast du alles geschlossen, reichen die Punkte aber noch nicht zum Sieg, umrandet sie die höchste Zahl, die ein Gegner noch offen hat, zum Punkten; bei Cut-Throat eine, die ein Spieler mit den wenigsten Punkten offen hat. Screenreader lesen die Marks als Wörter vor.
 
 ### Cricket
 
@@ -223,7 +230,7 @@ Live-Karte und Anzeigetafel zeigen eine Kreidetafel mit den Marks jedes Spielers
 
 - **Marks:** wie bei Cricket, auf 20 bis 15 und das Bull.
 - **Punkte für die anderen:** Weitere Marks auf eine geschlossene Zahl geben ihren Wert jedem anderen Spieler, der sie noch offen hat; wer sie wirft, bekommt nichts.
-- **Sieg:** Schließe alle Zahlen mit nicht mehr Punkten als alle anderen: Die wenigsten Punkte gewinnen. Allein gewinnt, wer alle Zahlen schließt. Die Anzeigetafel erinnert daran, dass die wenigsten Punkte gewinnen.
+- **Sieg:** Schließe alle Zahlen mit nicht mehr Punkten als alle anderen: Die wenigsten Punkte gewinnen. Der Sieg wird nach jedem Dart geprüft, auch für die anderen: Lassen die Punkte eines Darts einen anderen Spieler, der alles geschlossen hat, mit den wenigsten Punkten zurück, gewinnt dieser sofort, und spätere Darts der Aufnahme zählen nicht. Allein gewinnt, wer alle Zahlen schließt. Die Anzeigetafel erinnert daran, dass die wenigsten Punkte gewinnen.
 
 ### Tactics
 
@@ -263,6 +270,7 @@ Sechs Kneipenklassiker für einen bis vier Spieler; Killer braucht zwei. Sie ver
 - Ein Killer nimmt mit jedem Treffer auf das Double eines anderen ein Leben und verliert mit jedem Treffer auf das eigene eines, auch mit einem zweiten eigenen Double in der Aufnahme, die ihn zum Killer gemacht hat.
 - Wer keine Leben mehr hat, ist raus: Der Rest der Aufnahme bewirkt nichts, und der Wurf überspringt ihn von da an.
 - Wer als Letzter noch ein Leben hat, gewinnt sofort; spätere Darts der Aufnahme zählen nicht.
+- Killer führt keine Punkte: `turn_changed` und `leg_won` nennen stattdessen die `lives` des Spielers und ob er `killer` ist.
 
 ### Golf
 
@@ -270,7 +278,7 @@ Sechs Kneipenklassiker für einen bis vier Spieler; Killer braucht zwei. Sie ver
 
 - Neun oder 18 Löcher, eingestellt in *Übungsspiel Golf-Löcher*; Loch *n* wird auf die Zahl *n* gespielt.
 - Ein Spieler wirft bis zu drei Darts pro Loch und darf nach jedem Dart aufhören, indem er die Darts zieht: **Der letzte geworfene Dart zählt.**
-- Schläge: ein Triple 1, ein Double 2, ein inneres Single 3, ein äußeres Single 4, alles andere 5. Ob ein Single innen oder außen liegt, ergibt sich aus der Position, die das Board meldet; ein Single ohne Position zählt als äußeres Single.
+- Schläge: Ein Double ist ein Hole-in-One, 1 Schlag; ein Triple 2, ein inneres Single 3, ein äußeres Single 4, alles andere 5, auch eine Aufnahme, bei der du ohne Dart aussetzt. Ob ein Single innen oder außen liegt, ergibt sich aus der Position, die das Board meldet, geteilt in der Mitte des Triple-Rings; ein Single ohne Position zählt als äußeres Single.
 - Die wenigsten Schläge nach dem letzten Loch gewinnen. Bei Gleichstand an der Spitze spielen die Gleichauf-Liegenden in ihrer Wurfreihenfolge Zusatzlöcher auf die nächsten Zahlen (nach 20 wieder ab 1), bis einer von ihnen nach einem Loch weniger Schläge hat. Die Anzeigetafel führt eine Scorekarte jedes Lochs und zeigt die Zusatzlöcher als Stechen.
 
 ### Baseball
@@ -288,7 +296,7 @@ Sechs Kneipenklassiker für einen bis vier Spieler; Killer braucht zwei. Sie ver
 
 ## Trainingsspiele
 
-Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen Aufnahme, verbucht die Aufnahme, wenn du die Darts ziehst, und umrandet ihr Ziel auf der Scheibe. Ein beendetes Spiel bleibt auf den Karten, bis der nächste Dart es neu startet; *Neues Leg im Übungsspiel* startet es sofort neu. Jedes Spiel behält seine letzten 10 Ergebnisse, und sein bestes Ergebnis ist eine [Bestleistung](statistik.md#bestleistungen-serie-und-tagesziel). `drill_finished` und `checkout_attempt` melden die Ergebnisse.
+Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen Aufnahme, verbucht die Aufnahme, wenn du die Darts ziehst, und umrandet ihr Ziel auf der Scheibe. Ein beendetes Spiel bleibt auf den Karten, bis der nächste Dart es neu startet; *Neues Leg im Übungsspiel* startet es sofort neu. Jedes Spiel behält seine letzten 10 Ergebnisse, und sein bestes Ergebnis ist eine [Bestleistung](statistik.md#bestleistungen-serie-und-tagesziel). `drill_finished` und `checkout_attempt` melden die Ergebnisse. Im Checkout-Training, bei 121 und Catch 40 zählt wie bei X01 jeder Dart auf einen Rest, den ein Double checkt, für deine [Doppelanalyse](statistik.md#doppelanalyse).
 
 ### Around the Clock
 
@@ -302,7 +310,7 @@ Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen 
 
 ### Checkout-Training
 
-- Ein zufälliger Rest von 2 bis 170, der mit drei Darts checkbar ist, auf einem Double in höchstens drei Aufnahmen ausgecheckt. Überwerfen oder eine dritte Aufnahme ohne Checkout beenden den Versuch; der Weg steht nur, solange der Versuch läuft. Die Checkout-Quote zählt die gelungenen Versuche.
+- Ein zufälliger Rest von 2 bis 170, der mit drei Darts checkbar ist, auf einem Double in höchstens drei Aufnahmen ausgecheckt. Wie bei X01 macht ein Überwerfen nur seine Aufnahme ungültig: Die nächste Aufnahme beginnt mit dem Rest davor. Eine dritte Aufnahme ohne Checkout, auch eine überworfene, beendet den Versuch; der Weg steht nur, solange der Versuch läuft. Die Checkout-Quote zählt die gelungenen Versuche.
 
 ### Bob's 27
 
@@ -315,15 +323,16 @@ Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen 
 
 <img src="../images/de/checkout-121.webp" alt="Animation: der 121-Checkout auf der Live-Karte. T20, S1 und S20 lassen 40 übrig, D20 in der zweiten Aufnahme ist der Game shot, und das Ziel steigt auf 122" width="620">
 
-- Checke 121 auf einem Double in höchstens drei Aufnahmen, also neun Darts. Ein Checkout hebt das Ziel auf den nächsten Rest; Überwerfen oder drei Aufnahmen ohne Checkout senken es um eins, nie unter 121.
-- Reste ohne Checkout (159, 162, 163, 165, 166, 168, 169) werden übersprungen, 170 ist das höchste Ziel. Der höchste gecheckte Rest ist die Bestleistung.
+- Checke 121 auf einem Double in höchstens drei Aufnahmen, also neun Darts. Wie bei X01 macht ein Überwerfen nur seine Aufnahme ungültig. Ein Checkout hebt das Ziel auf den nächsten Rest; drei Aufnahmen ohne Checkout senken es um eins, nie unter 121.
+- Jeder Rest bis 170 wird gespielt, auch die, die eine Aufnahme nicht checken kann, etwa 159: Neun Darts können es, und die Karten zeigen dort statt eines Wegs einen Stellwurf für die nächste Aufnahme. 170 ist das höchste Ziel. Der höchste gecheckte Rest ist die Bestleistung.
 
 ### Catch 40
 
 <img src="../images/de/scoreboard-catch-40.png" alt="Catch 40 auf der Anzeigetafel: In der zweiten Runde lässt eine Single 12 von 62 noch 50 übrig, der Weg ist das Bull, und der erste Checkout brachte 3 Punkte" width="760">
 
 - Checke 61, 62 und so weiter bis 100, jeden Rest auf einem Double in höchstens zwei Aufnahmen, also sechs Darts.
-- Ein Checkout mit zwei Darts bringt 3 Punkte, mit drei Darts 2 und mit vier bis sechs Darts 1. Überwerfen oder zwei Aufnahmen ohne Checkout bringen nichts, und der nächste Rest folgt. Höchstens 120 Punkte.
+- Ein Checkout mit zwei Darts bringt 3 Punkte, mit drei Darts 2 und mit vier bis sechs Darts 1. Die 99 lässt sich mit zwei Darts nicht checken, dort bringen deshalb drei Darts 3 Punkte.
+- Wie bei X01 macht ein Überwerfen nur seine Aufnahme ungültig: Die zweite Aufnahme beginnt mit dem Rest davor, und ein Checkout bringt dann 1 Punkt. Zwei Aufnahmen ohne Checkout bringen nichts, und der nächste Rest folgt. Höchstens 120 Punkte.
 
 ### JDC Challenge
 

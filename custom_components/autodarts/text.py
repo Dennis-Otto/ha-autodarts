@@ -3,14 +3,16 @@
 from homeassistant.components.text import TextEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
 from .practice import MAX_PLAYERS
 from .profiles import NAME_LENGTH
 from .runtime import AutodartsConfigEntry
-from .tournament import parse_players
+from .tournament import MAX_ENTRANTS, check_names, parse_players, split_players
 
 PARALLEL_UPDATES = 0
 
@@ -55,11 +57,13 @@ class AutodartsPlayerName(AutodartsLocalEntity, TextEntity):
         return self.coordinator.practice.names[self._index]
 
     async def async_set_value(self, value: str) -> None:
+        check_names([value])
         await self.coordinator.async_set_player_name(self._index, value)
 
 
 class AutodartsTournamentPlayers(AutodartsLocalEntity, TextEntity):
-    """The players of the next tournament, their names separated by commas."""
+    """The players of the next tournament, their names separated by commas;
+    eight at most, so the list always fits into the 255 characters of a state."""
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_min = 0
@@ -77,4 +81,12 @@ class AutodartsTournamentPlayers(AutodartsLocalEntity, TextEntity):
         return ", ".join(self.coordinator.tournament.setup.players)
 
     async def async_set_value(self, value: str) -> None:
-        await self.coordinator.async_set_tournament(players=parse_players(value))
+        check_names(split_players(value))
+        players = parse_players(value)
+        if len(players) > MAX_ENTRANTS:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="tournament_players",
+                translation_placeholders={"count": str(len(players))},
+            )
+        await self.coordinator.async_set_tournament(players=players)

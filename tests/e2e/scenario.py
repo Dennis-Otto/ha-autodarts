@@ -1099,6 +1099,7 @@ class Scenario:
         # An inner single is three strokes: the board's position tells the bed.
         await self.visit(dart(1, 1, "SingleInner", 0.35))
         await self.visit(dart(2, 3, "Triple", 0.6), dart(2, 1, "SingleOuter", 0.8))
+        # A treble is two strokes, a double one.
         for hole in range(3, 10):
             await self.visit(dart(hole, 3, "Triple", 0.6))
         won = [
@@ -1108,7 +1109,7 @@ class Scenario:
         ]
         check(
             [(item["game"], item["points"], item["darts"]) for item in won]
-            == [("golf", 3 + 4 + 7, 10)],
+            == [("golf", 3 + 4 + 14, 10)],
             f"Unexpected end of the Golf leg: {won}",
         )
 

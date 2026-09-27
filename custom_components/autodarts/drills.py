@@ -16,10 +16,10 @@ from typing import Any
 
 from homeassistant.util import dt as dt_util
 
-from .checkout import checkout
-from .doubles import double_of
+from .checkout import checkout, setup
+from .doubles import aimed_at, double_of
 from .doubles import hits as hits_double
-from .scoring import BULL, VISIT_DARTS, evaluate_visit, is_double
+from .scoring import BULL, VISIT_DARTS, evaluate_visit, is_double, score
 from .training import hit_key
 
 DRILLS = (
@@ -38,9 +38,9 @@ TARGETS = (*range(1, 21), BULL)
 BOBS_START = 27
 CHECKOUT_VISITS = 3
 # Every score from 2 to 170 that three darts can finish on a double.
-CHECKOUT_SCORES = tuple(score for score in range(2, 171) if checkout(score))
-# The 121 ladder climbs from 121 to 170 over the scores that have a checkout.
-LADDER = tuple(score for score in CHECKOUT_SCORES if score >= 121)
+CHECKOUT_SCORES = tuple(value for value in range(2, 171) if checkout(value))
+# The 121 ladder climbs from 121 to 170; nine darts finish every one of them.
+LADDER = tuple(range(121, 171))
 # Catch 40: the checkouts 61 to 100, two visits each.
 CATCH_TARGETS = tuple(range(61, 101))
 CATCH_VISITS = 2
@@ -63,6 +63,18 @@ def _rate(hits: int, darts: int) -> float | None:
 
 def _count(value: object, default: int = 0) -> int:
     return value if type(value) is int and value >= 0 else default
+
+
+def _double_attempts(start: int, darts: list[dict[str, Any]]) -> list[tuple[str, bool]]:
+    """Darts of a checkout visit thrown at a double, and whether they hit it:
+    those at a score one double finishes, up to a bust or the finish."""
+    attempts: list[tuple[str, bool]] = []
+    running = start
+    for dart in darts[: evaluate_visit(start, darts, True)[2]]:
+        if double := aimed_at(running):
+            attempts.append((double, hits_double(dart, double)))
+        running -= score(dart)
+    return attempts
 
 
 def _results(saved: object) -> list[dict[str, Any]]:
@@ -346,7 +358,11 @@ class BobsDrill(Drill):
 
 
 class CheckoutDrill(Drill):
-    """A random finish from 2 to 170, checked out on a double in three visits."""
+    """A random finish from 2 to 170, checked out on a double in three visits.
+
+    As in X01, a bust voids only its visit: the next visit starts from the
+    score the bust left untouched.
+    """
 
     kind = "checkout"
     scores = CHECKOUT_SCORES
@@ -383,11 +399,15 @@ class CheckoutDrill(Drill):
             "rate": _rate(self.successes, self.attempts),
         }
 
+    def double_attempts(self) -> list[tuple[str, bool]]:
+        return _double_attempts(self.start, self._thrown())
+
     def _book(self) -> list[tuple[str, dict[str, Any]]]:
         remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), True)
         self.visits += 1
         self.attempt_darts += darts
-        if outcome is None and self.visits < CHECKOUT_VISITS:
+        if outcome != "won" and self.visits < CHECKOUT_VISITS:
+            # After a bust, the remaining score is the one of the visit start.
             self.start = remaining
             return []
         success = outcome == "won"
@@ -442,18 +462,24 @@ class CheckoutDrill(Drill):
 def _finish(
     remaining: int, outcome: str | None, thrown: int, visits: int, limit: int
 ) -> dict[str, Any]:
-    """The remaining score, route and visit of a checkout attempt."""
-    if outcome is not None or (thrown >= VISIT_DARTS and visits + 1 >= limit):
-        # A finish, a bust or the last visit ends the attempt: the next
+    """The remaining score, route and visit of a checkout attempt; where the
+    darts left cannot finish, the setup for the next visit."""
+    over = outcome == "bust" or thrown >= VISIT_DARTS
+    if outcome == "won" or (over and visits + 1 >= limit):
+        # A finish, or the end of the last visit, ends the attempt: the next
         # target follows when the darts are pulled.
-        route: tuple[str, ...] = ()
-    elif thrown >= VISIT_DARTS:
-        route = checkout(remaining, VISIT_DARTS)
+        left = 0
+    elif over:
+        # The next visit starts with three darts; a bust left the score as it was.
+        left = VISIT_DARTS
     else:
-        route = checkout(remaining, VISIT_DARTS - thrown)
+        left = VISIT_DARTS - thrown
+    route = checkout(remaining, left)
+    plan = None if route else setup(remaining, left)
     return {
         "remaining": remaining,
         "checkout": " ".join(route) or None,
+        "setup": {"route": " ".join(plan.route), "leave": plan.leave} if plan else None,
         "bust": outcome == "bust",
         "won": outcome == "won",
         "attempt_visit": visits + 1,
@@ -465,7 +491,8 @@ class LadderDrill(CheckoutDrill):
     """121: nine darts to check out, starting at 121.
 
     A finish climbs to the next score, a miss steps one down, never below 121;
-    the scores without a checkout are left out, and 170 is the top.
+    170 is the top. Nine darts finish every score of the ladder, also the ones
+    one visit cannot finish, such as 159.
     """
 
     kind = "checkout_121"
@@ -489,16 +516,21 @@ class LadderDrill(CheckoutDrill):
         return {**super().snapshot(), "best": max(reached) if reached else None}
 
 
-def catch_points(darts: int) -> int:
-    """Catch 40 points for a checkout in this many darts."""
-    return 3 if darts <= 2 else 2 if darts == 3 else 1
+def catch_points(darts: int, target: int) -> int:
+    """Catch 40 points for checking the target out in this many darts: 3 in
+    two darts, and in three where no two darts can finish it, as at 99; 2 in
+    three darts, 1 in four to six."""
+    if darts <= 2 or (darts == VISIT_DARTS and not checkout(target, 2)):
+        return 3
+    return 2 if darts == VISIT_DARTS else 1
 
 
 class CatchDrill(Drill):
     """Catch 40: check out 61 to 100 in turn, with two visits each.
 
-    Two darts score 3 points, three darts 2 and four to six darts 1; a bust
-    ends the number without points, like two visits without the finish.
+    Two darts score 3 points, three darts 2 (3 at 99, which no two darts
+    finish) and four to six darts 1. As in X01, a bust voids only its visit:
+    the second visit starts from the score before it, and its finish scores 1.
     """
 
     kind = "catch_40"
@@ -523,16 +555,20 @@ class CatchDrill(Drill):
         self.start = CATCH_TARGETS[min(index, len(CATCH_TARGETS) - 1)]
         self.visits, self.target_darts = 0, 0
 
+    def double_attempts(self) -> list[tuple[str, bool]]:
+        return [] if self.finished else _double_attempts(self.start, self._thrown())
+
     def _book(self) -> list[tuple[str, dict[str, Any]]]:
         remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), True)
         self.visits += 1
-        self.target_darts += darts
+        # A bust ends the visit: a finish can only come with the next one.
+        self.target_darts += VISIT_DARTS if outcome == "bust" else darts
         self.darts += darts
-        if outcome is None and self.visits < CATCH_VISITS:
+        if outcome != "won" and self.visits < CATCH_VISITS:
             self.start = remaining
             return []
         if outcome == "won":
-            self.score += catch_points(self.target_darts)
+            self.score += catch_points(self.target_darts, CATCH_TARGETS[self.index])
             self.checkouts += 1
         if self.index < len(CATCH_TARGETS) - 1:
             self._target(self.index + 1)
@@ -596,7 +632,11 @@ class CatchDrill(Drill):
             "target": str(CATCH_TARGETS[self.index]),
             **_finish(remaining, outcome, thrown, self.visits, CATCH_VISITS),
             "score": self.score
-            + (catch_points(self.target_darts + darts) if won else 0),
+            + (
+                catch_points(self.target_darts + darts, CATCH_TARGETS[self.index])
+                if won
+                else 0
+            ),
             "checkouts": self.checkouts + int(won),
             "darts": self.darts + darts,
         }

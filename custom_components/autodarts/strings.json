@@ -723,11 +723,17 @@
     "duplicate_player": {
       "message": "{name} is on the list of players more than once. Every player needs a name of their own."
     },
+    "invalid_player_name": {
+      "message": "A player name cannot contain curly brackets, a percent sign, a number sign (#) or control characters."
+    },
     "killer_players": {
       "message": "Killer needs at least two players."
     },
     "unknown_player": {
       "message": "There is no player profile named {name}."
+    },
+    "player_in_tournament": {
+      "message": "{name} plays in the tournament. Stop the tournament before you delete the player."
     },
     "board_access_denied": {
       "message": "Board Manager refused access. It normally needs no login; check proxies and firewalls between Home Assistant and the board."
@@ -771,6 +777,12 @@
     "no_tournament": {
       "message": "No tournament is being played."
     },
+    "tournament_running": {
+      "message": "A tournament is being played. Stop it before you start a new one."
+    },
+    "tournament_finished": {
+      "message": "The tournament is over. Stop it, or start a new one."
+    },
     "tournament_match_running": {
       "message": "The tournament match of {first} against {second} is still being played. Play it to the end, or stop the tournament."
     },
@@ -790,7 +802,7 @@
       "message": "The visit already has three darts. Pass the turn with Next player."
     },
     "empty_visit": {
-      "message": "The visit has no darts to end. Only X01 and the Cricket games pass a turn without darts."
+      "message": "The visit has no darts to end. A turn passes without darts in X01, the Cricket and the party games, but not in the training games, a bull-off or while the Killer numbers are chosen."
     },
     "undo_unavailable": {
       "message": "There is no visit to undo. Undo takes back the last completed visit while no dart is on the board and neither the game nor the training session changed since."
@@ -1104,7 +1116,7 @@
     },
     "next_player": {
       "name": "Next player",
-      "description": "Ends the current visit without pulling the darts, so the next player throws. Without darts, the player at the board passes in X01 and the Cricket games.",
+      "description": "Ends the current visit without pulling the darts, so the next player throws. Without darts, the player at the board passes in X01, the Cricket and the party games, where the pass counts as three misses.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

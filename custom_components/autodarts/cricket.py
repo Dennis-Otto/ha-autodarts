@@ -32,6 +32,9 @@ class CricketVisit(NamedTuple):
     counted: int
     # The points of the others: Cut-Throat gives them the points.
     others: list[int]
+    # In Cut-Throat, the other player, by their place in the others, whom the
+    # points of this visit left with everything closed and the fewest points.
+    other_won: int | None = None
 
 
 def _marks(
@@ -63,7 +66,9 @@ def play_visit(
     Marks beyond three score the number's value only while another player
     still has it open: for the player at the board, or in Cut-Throat for every
     player with the number open. Closing everything wins once no one has more
-    points, or in Cut-Throat fewer; playing alone, closing everything wins.
+    points, or in Cut-Throat fewer; playing alone, closing everything wins. In
+    Cut-Throat, the points a dart gives can also make another player who has
+    closed everything the one with the fewest: that player wins at once.
     """
     marks, others = list(marks), list(others_points)
     counted = 0
@@ -92,14 +97,52 @@ def play_visit(
             points <= other if cut_throat else points >= other for other in others
         ):
             return CricketVisit(marks, points, count, True, counted, others)
+        if cut_throat and (winner := _lowest_closed(others_marks, others, points)):
+            return CricketVisit(marks, points, count, False, counted, others, winner[0])
     return CricketVisit(marks, points, len(darts), False, counted, others)
 
 
+def _lowest_closed(
+    others_marks: list[list[int]], others: list[int], points: int
+) -> list[int]:
+    """The others with everything closed and no more points than anybody."""
+    fewest = min([points, *others])
+    return [
+        index
+        for index, marks in enumerate(others_marks)
+        if others[index] == fewest and all(mark >= MARKS_TO_CLOSE for mark in marks)
+    ]
+
+
+def _bed(number: int) -> str:
+    return "BULL" if number == 25 else f"T{number}"
+
+
 def next_target(
-    marks: list[int], numbers: tuple[int, ...] = CRICKET_NUMBERS
+    marks: list[int],
+    numbers: tuple[int, ...] = CRICKET_NUMBERS,
+    others_marks: list[list[int]] | None = None,
+    others_points: list[int] | None = None,
+    cut_throat: bool = False,
 ) -> str | None:
-    """The bed to aim at next: the treble of the highest open number, then the bull."""
+    """The bed to aim at next: the treble of the highest open number, then the bull.
+
+    With everything closed and the points not yet enough to win, the highest
+    number another player still has open, to score on it; in Cut-Throat, one
+    that a player with the fewest points has open. None when nothing is left.
+    """
     for slot, number in enumerate(numbers):
         if marks[slot] < MARKS_TO_CLOSE:
-            return "BULL" if number == 25 else f"T{number}"
+            return _bed(number)
+    others = list(others_marks or [])
+    if cut_throat and others_points:
+        fewest = min(others_points)
+        others = [
+            other
+            for other, points in zip(others, others_points, strict=True)
+            if points == fewest
+        ]
+    for slot, number in enumerate(numbers):
+        if any(other[slot] < MARKS_TO_CLOSE for other in others):
+            return _bed(number)
     return None

@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .bot import MAX_DELAY, MAX_LEVEL, valid_level
+from .bot import MAX_DELAY, MAX_LEVEL, MIN_LEVEL, valid_level
 from .const import DOMAIN
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
@@ -250,7 +250,11 @@ class AutodartsTournamentSeconds(AutodartsLocalEntity, NumberEntity):
 
 
 class AutodartsBotLevel(AutodartsLocalEntity, NumberEntity):
-    """The bot's 3-dart average in X01 and the Cricket games; 0 plays without it."""
+    """The bot's 3-dart average in X01 and the Cricket games; 0 plays without it.
+
+    There is no level from 1 to 19: such a value steps on to the next level
+    in the direction of the change, from 0 up to 20 and from 20 down to 0.
+    """
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_min_value = 0
@@ -271,11 +275,13 @@ class AutodartsBotLevel(AutodartsLocalEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         level = int(value)
+        practice = self.coordinator.practice
+        if 0 < level < MIN_LEVEL:
+            level = MIN_LEVEL if level > practice.bot_level else 0
         if not valid_level(level):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="invalid_bot_level"
             )
-        practice = self.coordinator.practice
         _check_seat(practice, practice.humans, level)
         await self.coordinator.async_set_bot(level=level)
 

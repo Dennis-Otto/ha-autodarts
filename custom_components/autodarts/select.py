@@ -4,13 +4,16 @@ day and the tournament."""
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
+from .cricket import CRICKET_GAMES
 from .entity import AutodartsLocalEntity
 from .local_api import STANDBY_MINUTES
 from .local_coordinator import AutodartsLocalCoordinator
 from .party import GOLF_HOLES
-from .practice import GAME_OPTIONS
+from .practice import GAME_OPTIONS, MAX_PLAYERS
 from .report import WEEKDAYS
 from .runtime import AutodartsConfigEntry
 from .tournament import FORMATS, TOURNAMENT_GAMES
@@ -83,6 +86,16 @@ class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
         return str(practice.game) if practice.game else "off"
 
     async def async_select_option(self, option: str) -> None:
+        practice = self.coordinator.practice
+        if (
+            practice.bot_level
+            and practice.humans >= MAX_PLAYERS
+            and (option.isdigit() or option in CRICKET_GAMES)
+        ):
+            # The bot would take the seat of the fourth player.
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="bot_seat"
+            )
         if option == "off":
             await self.coordinator.async_play(0)
         elif option.isdigit():
