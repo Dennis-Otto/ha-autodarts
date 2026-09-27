@@ -34,10 +34,9 @@ from .practice import (
     MAX_SETS,
     TEAM_PLAYERS,
     PracticeGame,
-    valid_name,
     valid_start,
 )
-from .profiles import NAME_LENGTH
+from .profiles import NAME_LENGTH, valid_name
 from .tournament import (
     FORMATS,
     MAX_ENTRANTS,
