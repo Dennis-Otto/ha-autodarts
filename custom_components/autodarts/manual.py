@@ -28,11 +28,22 @@ BEDS: dict[str, tuple[int, int]] = {
     "BULL": (25, 2),
     "MISS": (0, 0),
 }
+# Other names players use for the bulls: the single or outer bull, and the
+# double bull or bullseye by its score.
+ALIASES = {
+    "S25": "25",
+    "SB": "25",
+    "OB": "25",
+    "D25": "BULL",
+    "DB": "BULL",
+    "50": "BULL",
+}
 
 
 def parse_bed(name: object) -> dict[str, Any] | None:
     """A dart in the named bed, in any upper and lower case; None if unknown."""
     key = name.strip().upper() if isinstance(name, str) else ""
+    key = ALIASES.get(key, key)
     if key not in BEDS:
         return None
     number, multiplier = BEDS[key]

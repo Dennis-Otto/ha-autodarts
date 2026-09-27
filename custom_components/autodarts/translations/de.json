@@ -32,7 +32,7 @@
       },
       "cloud": {
         "title": "Autodarts einrichten",
-        "description": "Trage die öffentliche Client-ID ein, die Autodarts für diese Integration mit Geräteanmeldung freigeschaltet hat. Das ist eine Anwendungs-ID, keine E-Mail-Adresse, Board-ID oder ein Passwort. Optional kannst du die lokale Board-IP angeben. Anschließend wird dein Anmeldecode angezeigt.",
+        "description": "Trage die öffentliche Client-ID ein, die Autodarts für diese Integration mit Geräteanmeldung freigeschaltet hat. Das ist eine Anwendungs-ID, keine E-Mail-Adresse, keine Board-ID und kein Passwort. Optional kannst du die lokale Board-IP angeben. Anschließend wird dein Anmeldecode angezeigt.",
         "data": {
           "client_id": "Autodarts-Client-ID",
           "host": "Lokale Board-IP (optional)",
@@ -67,7 +67,7 @@
       },
       "local": {
         "title": "Lokales Board verbinden",
-        "description": "Gib die IP-Adresse oder den Hostnamen des Board Managers ein, ohne http:// und ohne Port. Eine Client-ID ist nicht nötig. Das Board muss bereits im Board Manager eingerichtet sein.",
+        "description": "Gib die IP-Adresse oder den Hostnamen des Board Managers ein, ohne http:// und ohne Port. Das Board muss bereits im Board Manager eingerichtet sein.",
         "data": {
           "host": "Board-IP oder Hostname",
           "port": "Port"
@@ -117,9 +117,13 @@
       "reconfigure_successful": "Die Autodarts-Konfiguration wurde aktualisiert.",
       "cannot_connect_local": "Das im Netzwerk gemeldete Board antwortet nicht. Prüfe, ob der Board Manager läuft.",
       "board_not_configured": "Im Board Manager ist noch keine Board-ID eingerichtet. Schließe dort zuerst die Einrichtung des Boards ab.",
-      "already_in_progress": "Die Einrichtung dieses Boards läuft bereits."
+      "already_in_progress": "Die Einrichtung dieses Boards läuft bereits.",
+      "address_updated": "Dieses Autodarts-Board ist bereits eingerichtet. Seine Adresse wurde aktualisiert, und die Integration wird neu geladen."
     },
-    "flow_title": "{name}"
+    "flow_title": "{name}",
+    "create_entry": {
+      "default": "Das Board ist eingerichtet. Für ein fertiges Dashboard mit Anzeigetafel, Training und Statistik öffne **Einstellungen → Dashboards → Dashboard hinzufügen** und wähle **Autodarts**."
+    }
   },
   "options": {
     "step": {
@@ -205,13 +209,13 @@
         "name": "Erkennungsbildrate"
       },
       "camera_fps": {
-        "name": "Kamera {number} Bildrate"
+        "name": "Bildrate Kamera {number}"
       },
       "training_darts": {
         "name": "Training Darts"
       },
       "training_triples": {
-        "name": "Training Triple"
+        "name": "Training Triples"
       },
       "training_bulls": {
         "name": "Training Bull-Treffer"
@@ -442,7 +446,7 @@
         "name": "Übungsspiel Teams"
       },
       "achievements_enabled": {
-        "name": "Erfolge"
+        "name": "Erfolge freischalten"
       },
       "tournament_third_place": {
         "name": "Turnier Spiel um Platz 3"
@@ -557,7 +561,7 @@
         "name": "Turnierpause"
       },
       "tournament_summary": {
-        "name": "Turnierzusammenfassung"
+        "name": "Anzeigedauer der Turnierzusammenfassung"
       },
       "practice_bot_level": {
         "name": "Übungsspiel Bot-Stärke"
@@ -595,10 +599,10 @@
         "name": "Kamerastörung"
       },
       "individual_camera_problem": {
-        "name": "Kamera {number} Störung"
+        "name": "Störung Kamera {number}"
       },
       "cloud_link": {
-        "name": "Autodarts-Cloud-Verbindung"
+        "name": "Cloud-Verbindung"
       }
     },
     "camera": {
@@ -754,7 +758,7 @@
       "message": "Dieses Board unterstützt die Aktion nicht."
     },
     "export_folder": {
-      "message": "Der Exportordner {folder} muss im Konfigurationsordner von Home Assistant liegen und darf nicht versteckt sein."
+      "message": "Der Exportordner {folder} darf nicht versteckt sein, und Home Assistant muss dort Schreiben erlauben: in www, den Medienordnern und den Ordnern aus allowlist_external_dirs."
     },
     "export_failed": {
       "message": "Der Export konnte nicht geschrieben werden: {error}"
@@ -769,7 +773,7 @@
       "message": "Teams spielen X01 und die Cricket-Spiele."
     },
     "invalid_start_score": {
-      "message": "Startpunkte sind 0, für die Startpunkte des Spiels, oder 2 bis 1001."
+      "message": "Startpunkte sind 0 (die des Spiels) oder 2 bis 1001."
     },
     "tournament_players": {
       "message": "Ein Turnier braucht drei bis acht Spieler, nicht {count}."
@@ -805,13 +809,28 @@
       "message": "Die Aufnahme hat keine Darts zum Beenden. Ohne Darts gibst du in X01, den Cricket- und den Partyspielen weiter, nicht aber in Trainingsspielen, beim Ausbullen und während bei Killer die Zahlen gewählt werden."
     },
     "undo_unavailable": {
-      "message": "Es gibt keine Aufnahme zum Zurücknehmen. Zurücknehmen geht für die letzte abgeschlossene Aufnahme, solange kein Dart im Board steckt und sich weder das Spiel noch die Trainings-Session seitdem geändert haben."
+      "message": "Es gibt keine Aufnahme zum Zurücknehmen. Zurücknehmen geht für die letzte abgeschlossene Aufnahme, solange kein Dart im Board steckt und sich weder das Spiel noch die Trainingssession seitdem geändert haben."
     },
     "invalid_bot_level": {
-      "message": "Die Bot-Stärke ist 0, ohne Bot, oder ein 3-Dart-Average von 20 bis 120."
+      "message": "Die Bot-Stärke ist 0 (kein Bot) oder ein 3-Dart-Average von 20 bis 120."
     },
     "bot_seat": {
       "message": "Mit dem Bot spielen bis zu drei Spieler: Der Bot nimmt den vierten Platz ein."
+    },
+    "invalid_segment": {
+      "message": "{segment} ist kein Feld des Boards. Gib S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS ein."
+    },
+    "too_many_start_scores": {
+      "message": "Die Startpunkte nennen {scores} Werte, es spielen aber nur {players} Spieler. Gib höchstens einen Wert pro Spieler an, in Wurfreihenfolge."
+    },
+    "team_start_scores": {
+      "message": "Teams spielen von den Startpunkten der Spieler 1 und 2, ein Wert pro Team. Gib höchstens zwei Werte an."
+    },
+    "unwinnable_start": {
+      "message": "Startpunkte von 3 lassen sich mit Double-In und Double-Out nicht auschecken: Das einzige Eröffnungs-Double, D1, lässt 1 übrig. Wähle andere Startpunkte, oder schalte Double-In oder Double-Out aus."
+    },
+    "export_limit": {
+      "message": "In der letzten Stunde wurden {count} Exporte geschrieben, mehr schreibt die Integration nicht. Versuche es später erneut."
     }
   },
   "issues": {
@@ -852,7 +871,7 @@
         "step": {
           "confirm": {
             "title": "Neue Adresse verwenden",
-            "description": "Das Board antwortet nicht mehr unter seiner alten Adresse. Die Autodarts-Cloud meldet es unter {new}, wo es mit seiner Board-ID antwortet.\n\nDas Board dort verbinden? Die Integration wird neu geladen; Entitäten, Training und Einstellungen bleiben erhalten."
+            "description": "Ein Board mit der Board-ID dieses Eintrags antwortet unter {new}, unter seiner eingerichteten Adresse aber nicht mehr.\n\nDas Board dort verbinden? Bestätige nur, wenn es dein Board ist: Jedes Gerät in deinem Netzwerk kann eine Board-ID vorgeben. Die Integration wird neu geladen; Entitäten, Training und Einstellungen bleiben erhalten."
           }
         },
         "abort": {
@@ -908,7 +927,7 @@
         },
         "start_scores": {
           "name": "Startpunkte",
-          "description": "X01-Startpunkte der Spieler in Wurfreihenfolge, für ein Handicap, zum Beispiel 501 und 301. 0 oder ein fehlender Wert spielt die Startpunkte des Spiels."
+          "description": "X01-Startpunkte der Spieler in Wurfreihenfolge, für ein Handicap, zum Beispiel 501 und 301; auch der Platz des Bots nach den Spielern hat welche. 0 oder ein fehlender Wert spielt die Startpunkte des Spiels. Teams spielen von den Startpunkten der Spieler 1 und 2."
         },
         "holes": {
           "name": "Golf-Löcher",
@@ -920,13 +939,13 @@
         },
         "bot_level": {
           "name": "Bot-Stärke",
-          "description": "Gegen den Bot spielen, in X01 und den Cricket-Spielen: der 3-Dart-Average, den er spielt, 20 bis 120; 0 spielt ohne Bot. Der Bot sitzt nach den Spielern."
+          "description": "Gegen den Bot spielen, in X01 und den Cricket-Spielen: der 3-Dart-Average, den er spielt, 20 bis 120; 0 spielt ohne Bot. Der Bot wirft nach den Spielern."
         }
       }
     },
     "delete_player": {
       "name": "Spielerprofil löschen",
-      "description": "Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers. Auch aus den Bestleistungen des Boards und den Spielernamen des Übungsspiels verschwindet der Name; der Match-Verlauf behält ihn.",
+      "description": "Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers. Auch aus den Bestleistungen des Boards und den Spielernamen des Übungsspiels verschwindet der Name; der Match-Verlauf behält ihn. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -940,7 +959,7 @@
     },
     "export": {
       "name": "Trainingsdaten exportieren",
-      "description": "Schreibt Trainingssessions, Übungsmatches oder Spielerprofile als CSV- oder JSON-Datei in den Konfigurationsordner und gibt ihren Pfad zurück. Exporte enthalten Spielernamen.",
+      "description": "Schreibt Trainingssessions, Übungsmatches oder Spielerprofile als CSV- oder JSON-Datei, standardmäßig nach autodarts/exports im Medienordner, und gibt ihren Pfad und einen Download-Link zurück. Exporte enthalten Spielernamen. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -956,13 +975,13 @@
         },
         "folder": {
           "name": "Ordner",
-          "description": "Ein Ordner im Konfigurationsordner. Dateien in www sind ohne Anmeldung unter /local/ erreichbar."
+          "description": "Optional. Ein Ordner relativ zum Konfigurationsordner oder ein absoluter Pfad, in den Home Assistant schreiben darf: www, ein Medienordner oder ein Ordner aus allowlist_external_dirs. Dateien in www sind ohne Anmeldung unter /local/ erreichbar. Ohne Ordner: autodarts/exports im Medienordner."
         }
       }
     },
     "link_player": {
       "name": "Spieler mit Person verknüpfen",
-      "description": "Macht einen Spieler zu einer Person von Home Assistant: Das Bild der Person erscheint auf der Anzeigetafel, der Spielerkarte und in der Spielauswahl, die außerdem Spieler zuerst zeigt, die zu Hause sind. Eine Person ist ein Spieler; eine neue Verknüpfung ersetzt die alte.",
+      "description": "Macht einen Spieler zu einer Person von Home Assistant: Das Bild der Person erscheint auf der Anzeigetafel, der Spielerkarte und in der Spielauswahl, die außerdem Spieler zuerst zeigt, die zu Hause sind. Eine Person ist ein Spieler; eine neue Verknüpfung ersetzt die alte. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -980,7 +999,7 @@
     },
     "unlink_player": {
       "name": "Spieler-Verknüpfung lösen",
-      "description": "Vergisst, welche Person ein Spieler ist. Die Statistik des Spielers bleibt.",
+      "description": "Vergisst, welche Person ein Spieler ist. Die Statistik des Spielers bleibt. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1084,7 +1103,7 @@
     },
     "correct_dart": {
       "name": "Dart korrigieren",
-      "description": "Legt einen Dart der aktuellen Aufnahme für das Übungsspiel und die Trainings-Session in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung.",
+      "description": "Legt einen Dart der aktuellen Aufnahme für das Übungsspiel und die Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1096,7 +1115,7 @@
         },
         "segment": {
           "name": "Feld",
-          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 für das äußere Bull, BULL für das Bullseye oder MISS."
+          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS."
         }
       }
     },
@@ -1110,7 +1129,7 @@
         },
         "segment": {
           "name": "Feld",
-          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 für das äußere Bull, BULL für das Bullseye oder MISS."
+          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS."
         }
       }
     },

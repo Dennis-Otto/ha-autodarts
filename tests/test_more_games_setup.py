@@ -157,13 +157,17 @@ async def test_start_game_checks_teams_and_start_scores(hass, aioclient_mock):
         ({"game": "501", "teams": True}, "team_players"),
         ({"game": "501", "teams": True, "players": ["A", "B", "C"]}, "team_players"),
         ({"game": "golf", "teams": True, "players": ["A", "B", "C", "D"]}, "team_game"),
+        ({"game": "501", "start_scores": [1]}, "invalid_start_score"),
+        (
+            {"game": "501", "start_scores": [501, 501, 501, 501, 501]},
+            "too_many_start_scores",
+        ),
     ):
         with pytest.raises(ServiceValidationError) as error:
             await hass.services.async_call(DOMAIN, "start_game", data, blocking=True)
         assert error.value.translation_key == key
     for data in (
-        {"game": "501", "start_scores": [1]},
-        {"game": "501", "start_scores": [501, 501, 501, 501, 501]},
+        {"game": "501", "start_scores": ["many"]},
         {"game": "501", "holes": 12},
         {"game": "501", "rounds": 21},
     ):

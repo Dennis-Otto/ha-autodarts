@@ -67,7 +67,7 @@
       },
       "local": {
         "title": "Lokaal bord verbinden",
-        "description": "Voer het IP-adres of de hostnaam van Board Manager in, zonder http:// of poort. Een client-ID is niet nodig. Het bord moet al in Board Manager zijn ingesteld.",
+        "description": "Voer het IP-adres of de hostnaam van Board Manager in, zonder http:// of poort. Het bord moet al in Board Manager zijn ingesteld.",
         "data": {
           "host": "IP-adres of hostnaam van het bord",
           "port": "Poort"
@@ -117,9 +117,13 @@
       "reconfigure_successful": "De Autodarts-configuratie is bijgewerkt.",
       "cannot_connect_local": "Het bord dat zich in je netwerk heeft gemeld, reageert niet. Controleer of Board Manager draait.",
       "board_not_configured": "Er is geen bord-ID ingesteld in Board Manager. Rond daar eerst het instellen van het bord af.",
-      "already_in_progress": "Dit bord wordt al ingesteld."
+      "already_in_progress": "Dit bord wordt al ingesteld.",
+      "address_updated": "Dit Autodarts-bord is al ingesteld. Het adres is bijgewerkt en de integratie wordt opnieuw geladen."
     },
-    "flow_title": "{name}"
+    "flow_title": "{name}",
+    "create_entry": {
+      "default": "Het bord is ingesteld. Voor een kant-en-klaar dashboard met scorebord, training en statistieken open je **Instellingen → Dashboards → Dashboard toevoegen** en kies je **Autodarts**."
+    }
   },
   "options": {
     "step": {
@@ -433,7 +437,7 @@
         "name": "Oefenspel bullen"
       },
       "practice_bull_off_distance": {
-        "name": "Oefenspel bullen op afstand"
+        "name": "Oefenspel bullen op gemeten afstand"
       },
       "practice_personal_routes": {
         "name": "Oefenspel persoonlijke uitgooiroutes"
@@ -442,7 +446,7 @@
         "name": "Oefenspel teams"
       },
       "achievements_enabled": {
-        "name": "Prestaties"
+        "name": "Prestaties vrijspelen"
       },
       "tournament_third_place": {
         "name": "Toernooi troostfinale"
@@ -510,14 +514,14 @@
         "name": "Oefenspel Golf-holes"
       },
       "tournament_format": {
-        "name": "Toernooi format",
+        "name": "Toernooiformat",
         "state": {
           "round_robin": "Iedereen tegen iedereen",
           "knockout": "Knock-out"
         }
       },
       "tournament_game": {
-        "name": "Toernooi spel",
+        "name": "Toernooispel",
         "state": {
           "101": "101",
           "301": "301",
@@ -554,10 +558,10 @@
         "name": "Oefenspel Count-Up-rondes"
       },
       "tournament_pause": {
-        "name": "Toernooi pauze"
+        "name": "Toernooipauze"
       },
       "tournament_summary": {
-        "name": "Toernooi samenvatting"
+        "name": "Weergaveduur toernooisamenvatting"
       },
       "practice_bot_level": {
         "name": "Oefenspel botniveau"
@@ -598,7 +602,7 @@
         "name": "Probleem camera {number}"
       },
       "cloud_link": {
-        "name": "Autodarts-cloudverbinding"
+        "name": "Cloudverbinding"
       }
     },
     "camera": {
@@ -681,7 +685,7 @@
         "name": "Oefenspel speler {number}"
       },
       "tournament_players": {
-        "name": "Toernooi spelers"
+        "name": "Toernooispelers"
       }
     },
     "calendar": {
@@ -754,7 +758,7 @@
       "message": "Dit bord ondersteunt deze actie niet."
     },
     "export_folder": {
-      "message": "De exportmap {folder} moet in de configuratiemap van Home Assistant liggen en mag niet verborgen zijn."
+      "message": "De exportmap {folder} mag niet verborgen zijn, en Home Assistant moet er schrijven toestaan: www, de mediamappen en de mappen uit allowlist_external_dirs zijn toegestaan."
     },
     "export_failed": {
       "message": "De export kon niet worden weggeschreven: {error}"
@@ -812,6 +816,21 @@
     },
     "bot_seat": {
       "message": "Met de bot spelen maximaal drie spelers: de bot neemt de vierde plaats in."
+    },
+    "invalid_segment": {
+      "message": "{segment} is geen vak van het bord. Voer S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS in."
+    },
+    "too_many_start_scores": {
+      "message": "De startscores bevatten {scores} waarden, maar er spelen maar {players} spelers. Geef hoogstens één startscore per speler op, in gooivolgorde."
+    },
+    "team_start_scores": {
+      "message": "Teams spelen vanaf de startscores van speler 1 en 2, één per team. Geef hoogstens twee startscores op."
+    },
+    "unwinnable_start": {
+      "message": "Een startscore van 3 is met double in en double out niet uit te gooien: de enige openingsdubbel, D1, laat 1 over. Kies een andere startscore, of schakel double in of double out uit."
+    },
+    "export_limit": {
+      "message": "In het afgelopen uur zijn {count} exports geschreven, meer schrijft de integratie niet. Probeer het later opnieuw."
     }
   },
   "issues": {
@@ -852,7 +871,7 @@
         "step": {
           "confirm": {
             "title": "Nieuw adres gebruiken",
-            "description": "Het bord reageert niet meer op zijn oude adres. De Autodarts-cloud meldt het op {new}, waar het antwoordt met zijn bord-ID.\n\nHet bord daar verbinden? De integratie wordt opnieuw geladen; entiteiten, training en instellingen blijven behouden."
+            "description": "Een bord met de bord-ID van deze vermelding antwoordt op {new}, terwijl het op het ingestelde adres niet meer reageert.\n\nHet bord daar verbinden? Bevestig alleen als het jouw bord is: elk apparaat in je netwerk kan zich met een bord-ID melden. De integratie wordt opnieuw geladen; entiteiten, training en instellingen blijven behouden."
           }
         },
         "abort": {
@@ -899,7 +918,7 @@
           "description": "De spelers gooien eerst op de bull; wie het dichtst bij zit, begint de wedstrijd."
         },
         "bull_off_distance": {
-          "name": "Bullen op afstand",
+          "name": "Bullen: gemeten afstand beslist",
           "description": "Bij twee darts in hetzelfde bullvak beslist de door het bord gemeten afstand, in plaats van dat er opnieuw wordt gegooid."
         },
         "teams": {
@@ -908,7 +927,7 @@
         },
         "start_scores": {
           "name": "Startscores",
-          "description": "X01-startscores van de spelers in gooivolgorde, voor een handicap, bijvoorbeeld 501 en 301. Bij 0 of een ontbrekende score geldt de startscore van het spel."
+          "description": "X01-startscores van de spelers in gooivolgorde, voor een handicap, bijvoorbeeld 501 en 301; ook de plaats van de bot na de spelers heeft er een. Bij 0 of een ontbrekende score geldt de startscore van het spel. Teams spelen vanaf de startscores van speler 1 en 2."
         },
         "holes": {
           "name": "Golf-holes",
@@ -926,7 +945,7 @@
     },
     "delete_player": {
       "name": "Spelersprofiel verwijderen",
-      "description": "Wist de statistieken, persoonlijke records en onderlinge duels van een speler. De naam verdwijnt ook uit de persoonlijke records van het bord en uit de spelersnamen van het oefenspel; de wedstrijdgeschiedenis behoudt hem.",
+      "description": "Wist de statistieken, persoonlijke records en onderlinge duels van een speler. De naam verdwijnt ook uit de persoonlijke records van het bord en uit de spelersnamen van het oefenspel; de wedstrijdgeschiedenis behoudt hem. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -940,7 +959,7 @@
     },
     "export": {
       "name": "Trainingsgegevens exporteren",
-      "description": "Schrijft trainingssessies, oefenwedstrijden of spelersprofielen als CSV- of JSON-bestand in de configuratiemap en geeft het pad ervan terug. Exports bevatten spelersnamen.",
+      "description": "Schrijft trainingssessies, oefenwedstrijden of spelersprofielen als CSV- of JSON-bestand, standaard naar autodarts/exports in de mediamap, en geeft het pad en een downloadlink terug. Exports bevatten spelersnamen. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -956,13 +975,13 @@
         },
         "folder": {
           "name": "Map",
-          "description": "Een map binnen de configuratiemap. Bestanden in www zijn zonder aanmelding bereikbaar via /local/."
+          "description": "Optioneel. Een map ten opzichte van de configuratiemap, of een absoluut pad, waarin Home Assistant mag schrijven: www, een mediamap of een map uit allowlist_external_dirs. Bestanden in www zijn zonder aanmelding bereikbaar via /local/. Zonder map: autodarts/exports in de mediamap."
         }
       }
     },
     "link_player": {
       "name": "Speler aan persoon koppelen",
-      "description": "Koppelt een speler aan een persoon in Home Assistant: de foto van de persoon verschijnt op het scorebord, de spelerskaart en het scherm Nieuw spel, dat bovendien de spelers die thuis zijn bovenaan zet. Een persoon kan maar aan één speler gekoppeld zijn; opnieuw koppelen verplaatst de koppeling.",
+      "description": "Koppelt een speler aan een persoon in Home Assistant: de foto van de persoon verschijnt op het scorebord, de spelerskaart en het scherm Nieuw spel, dat bovendien de spelers die thuis zijn bovenaan zet. Een persoon kan maar aan één speler gekoppeld zijn; opnieuw koppelen verplaatst de koppeling. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -980,7 +999,7 @@
     },
     "unlink_player": {
       "name": "Speler ontkoppelen",
-      "description": "Verwijdert de koppeling tussen een speler en een persoon. De statistieken van de speler blijven behouden.",
+      "description": "Verwijdert de koppeling tussen een speler en een persoon. De statistieken van de speler blijven behouden. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -1002,7 +1021,7 @@
         },
         "players": {
           "name": "Spelers",
-          "description": "Namen van drie tot acht spelers, in de volgorde van de loting. Zonder namen spelen de spelers uit Toernooi spelers."
+          "description": "Namen van drie tot acht spelers, in de volgorde van de loting. Zonder namen spelen de spelers uit Toernooispelers."
         },
         "start_scores": {
           "name": "Startscores",
@@ -1037,7 +1056,7 @@
           "description": "Bij elke wedstrijd wordt eerst gebuld om te bepalen wie begint."
         },
         "bull_off_distance": {
-          "name": "Bullen op afstand",
+          "name": "Bullen: gemeten afstand beslist",
           "description": "Bij twee darts in hetzelfde bullvak beslist de door het bord gemeten afstand, in plaats van dat er opnieuw wordt gegooid."
         },
         "third_place": {
@@ -1096,7 +1115,7 @@
         },
         "segment": {
           "name": "Vak",
-          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 voor de outer bull, BULL voor de bullseye of MISS."
+          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS."
         }
       }
     },
@@ -1110,7 +1129,7 @@
         },
         "segment": {
           "name": "Vak",
-          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 voor de outer bull, BULL voor de bullseye of MISS."
+          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS."
         }
       }
     },

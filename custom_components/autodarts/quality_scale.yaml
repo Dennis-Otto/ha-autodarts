@@ -31,9 +31,10 @@ rules:
   docs-configuration-parameters:
     status: done
     comment: >-
-      The only options switch the bridge for online matches on and off; they are
-      documented with the automations. The board itself is configured in Board
-      Manager.
+      The only options belong to the bridge for online matches of entries with a
+      local board: switching it on, accepting calls from outside the home network
+      and creating a new secret address. They are documented with the online
+      matches. The board itself is configured in Board Manager.
   docs-installation-parameters: done
   entity-unavailable: done
   integration-owner: done
@@ -45,7 +46,13 @@ rules:
   # Gold
   devices: done
   diagnostics: done
-  discovery-update-info: done
+  discovery-update-info:
+    status: done
+    comment: >-
+      An announced board whose configured address no longer answers with its
+      board ID raises a repair that moves the entry once the user confirms it:
+      any device can announce a board ID. An address entered in the setup
+      updates the entry directly.
   discovery: done
   docs-data-update: done
   docs-examples: done

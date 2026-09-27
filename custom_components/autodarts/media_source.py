@@ -6,16 +6,23 @@ autodarts/highlights of the media directory, for example
 browser lists them by month, newest first, with titles like
 "180 · Alex · 26.09.". Only plain file names of that folder resolve, so no
 identifier can reach anything outside it.
+
+The media browser embeds every thumbnail it shows, so the thumbnails are small
+copies of the photos, made once and kept while Home Assistant runs.
 """
 
 from __future__ import annotations
 
+import io
 import re
+from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import quote
 
+from aiohttp import web
+from homeassistant.components.http import KEY_HASS, HomeAssistantView
 from homeassistant.components.media_player import BrowseError, MediaClass
 from homeassistant.components.media_source import (
     BrowseMediaSource,
@@ -27,11 +34,21 @@ from homeassistant.components.media_source import (
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from homeassistant.util import raise_if_invalid_filename
+from homeassistant.util.hass_dict import HassKey
+from PIL import Image, ImageOps
 
 from .const import DOMAIN
 
 # The folder of the highlight photos inside the media directory.
 HIGHLIGHTS = Path("autodarts", "highlights")
+THUMBNAIL_URL = "/api/autodarts/highlights/{name}"
+# The longer side of a thumbnail, in pixels; the media browser shows them
+# smaller than this.
+THUMBNAIL_SIZE = 320
+KEPT_THUMBNAILS = 200
+# Larger pictures are no snapshots of a board camera and get no thumbnail.
+MAX_PIXELS = 40_000_000
+THUMBNAIL_VIEW: HassKey[HighlightThumbnailView] = HassKey(f"{DOMAIN}_thumbnails")
 PHOTO_TYPES = {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
@@ -79,6 +96,8 @@ SHORT_DATES = {
     "fr": "{day:02d}/{month:02d}",
     "nl": "{day:02d}-{month:02d}",
 }
+# A checkout as the darts players of the language call it.
+CHECKOUTS = {"es": "Cierre", "fr": "Finish", "nl": "Uitgooi"}
 
 
 @dataclass(frozen=True)
@@ -100,8 +119,10 @@ class Highlight:
     def title(self, language: str) -> str:
         """180 · Alex · 26.09. or Checkout 121 · Sep 26."""
         parts = [self.label] if self.label else []
-        if self.score is not None:
-            parts.append(f"Checkout {self.score}" if self.checkout else str(self.score))
+        if self.score is not None and self.checkout:
+            parts.append(f"{CHECKOUTS.get(language, 'Checkout')} {self.score}")
+        elif self.score is not None:
+            parts.append(str(self.score))
         if self.player:
             parts.append(self.player)
         parts.append(_short_date(self.taken.date(), language))
@@ -170,7 +191,85 @@ def highlight_folder(hass: HomeAssistant) -> tuple[str, Path] | None:
     return source, Path(media[source]) / HIGHLIGHTS
 
 
+def _photo_name(name: str) -> bool:
+    """A plain, visible file name of a photo, nothing that leads elsewhere."""
+    try:
+        raise_if_invalid_filename(name)
+    except ValueError:
+        return False
+    return not name.startswith(".") and Path(name).suffix.lower() in PHOTO_TYPES
+
+
+def _version(folder: Path, name: str) -> tuple[str, int, int] | None:
+    """The photo's name, change time and size, or None when it is no photo of
+    the folder; a new photo under the same name gets a new thumbnail."""
+    path = folder / name
+    try:
+        if not _inside(folder, path):
+            return None
+        stat = path.stat()
+    except OSError:
+        # Removed or replaced while it was looked at.
+        return None
+    return name, stat.st_mtime_ns, stat.st_size
+
+
+def thumbnail(path: Path) -> bytes | None:
+    """A small JPEG of the photo, upright as it was taken; None if it is none."""
+    try:
+        with Image.open(path) as photo:
+            if photo.width * photo.height > MAX_PIXELS:
+                return None
+            # JPEG photos decode at a fraction of their size, which is faster.
+            photo.draft("RGB", (THUMBNAIL_SIZE, THUMBNAIL_SIZE))
+            small = ImageOps.exif_transpose(photo)
+            small.thumbnail((THUMBNAIL_SIZE, THUMBNAIL_SIZE))
+            output = io.BytesIO()
+            small.convert("RGB").save(output, "JPEG", quality=80)
+    except (OSError, ValueError, Image.DecompressionBombError):
+        return None
+    return output.getvalue()
+
+
+class HighlightThumbnailView(HomeAssistantView):
+    """Thumbnails of the highlight photos, for logged-in users as the photos."""
+
+    url = THUMBNAIL_URL
+    name = "api:autodarts:highlights"
+
+    def __init__(self) -> None:
+        # (name, change time, size) -> thumbnail, the most recently used last.
+        self.cache: OrderedDict[tuple[str, int, int], bytes] = OrderedDict()
+
+    async def get(self, request: web.Request, name: str) -> web.StreamResponse:
+        hass = request.app[KEY_HASS]
+        found = highlight_folder(hass)
+        if found is None or not _photo_name(name):
+            return self.json_message("Highlight not found", 404)
+        folder = found[1]
+        key = await hass.async_add_executor_job(_version, folder, name)
+        if key is None:
+            return self.json_message("Highlight not found", 404)
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        else:
+            body = await hass.async_add_executor_job(thumbnail, folder / name)
+            if body is None:
+                return self.json_message("Highlight not readable", 404)
+            self.cache[key] = body
+            while len(self.cache) > KEPT_THUMBNAILS:
+                self.cache.popitem(last=False)
+        return web.Response(
+            body=self.cache[key],
+            content_type="image/jpeg",
+            headers={"Cache-Control": "private, max-age=3600"},
+        )
+
+
 async def async_get_media_source(hass: HomeAssistant) -> HighlightSource:
+    if THUMBNAIL_VIEW not in hass.data and hass.http is not None:
+        hass.data[THUMBNAIL_VIEW] = HighlightThumbnailView()
+        hass.http.register_view(hass.data[THUMBNAIL_VIEW])
     return HighlightSource(hass)
 
 
@@ -200,10 +299,12 @@ class HighlightSource(MediaSource):
         """The address of Home Assistant's media view for a photo."""
         return quote(f"/media/{source}/{HIGHLIGHTS.as_posix()}/{file}")
 
+    @staticmethod
+    def _thumbnail(file: str) -> str:
+        return THUMBNAIL_URL.format(name=quote(file, safe=""))
+
     async def async_browse_media(self, item: MediaSourceItem) -> BrowseMediaSource:
         photos = await self.hass.async_add_executor_job(self._scan)
-        found = highlight_folder(self.hass)
-        source = found[0] if found else ""
         language = _language(self.hass)
         if not item.identifier:
             covers: dict[str, Highlight] = {}
@@ -226,7 +327,7 @@ class HighlightSource(MediaSource):
                         media_class=MediaClass.DIRECTORY,
                         media_content_type="",
                         title=_month_title(month, language),
-                        thumbnail=self._url(source, cover.file),
+                        thumbnail=self._thumbnail(cover.file),
                         can_play=False,
                         can_expand=True,
                         children_media_class=MediaClass.IMAGE,
@@ -252,7 +353,7 @@ class HighlightSource(MediaSource):
                     media_class=MediaClass.IMAGE,
                     media_content_type=PHOTO_TYPES[Path(photo.file).suffix.lower()],
                     title=photo.title(language),
-                    thumbnail=self._url(source, photo.file),
+                    thumbnail=self._thumbnail(photo.file),
                     can_play=True,
                     can_expand=False,
                 )
@@ -264,16 +365,12 @@ class HighlightSource(MediaSource):
     async def async_resolve_media(self, item: MediaSourceItem) -> PlayMedia:
         """A photo by its plain file name; nothing outside the folder resolves."""
         name = item.identifier
-        suffix = Path(name).suffix.lower()
         found = highlight_folder(self.hass)
-        try:
-            raise_if_invalid_filename(name)
-        except ValueError as err:
-            raise Unresolvable(f"Invalid highlight: {name}") from err
-        if found is None or name.startswith(".") or suffix not in PHOTO_TYPES:
+        if found is None or not _photo_name(name):
             raise Unresolvable(f"Invalid highlight: {name}")
         source, folder = found
         path = folder / name
         if not await self.hass.async_add_executor_job(_inside, folder, path):
             raise Unresolvable(f"Unknown highlight: {name}")
+        suffix = Path(name).suffix.lower()
         return PlayMedia(self._url(source, name), PHOTO_TYPES[suffix], path=path)

@@ -67,7 +67,7 @@
       },
       "local": {
         "title": "Connect local board",
-        "description": "Enter the Board Manager IP address or hostname, without http:// or a port. No client ID is required. The board must already be configured in Board Manager.",
+        "description": "Enter the Board Manager IP address or hostname, without http:// or a port. The board must already be configured in Board Manager.",
         "data": {
           "host": "Board IP or hostname",
           "port": "Port"
@@ -117,9 +117,13 @@
       "reconfigure_successful": "The Autodarts configuration was updated.",
       "cannot_connect_local": "The board announced on your network does not answer. Check that Board Manager is running.",
       "board_not_configured": "No board ID is configured in Board Manager. Complete board setup there first.",
-      "already_in_progress": "Setup of this board is already in progress."
+      "already_in_progress": "Setup of this board is already in progress.",
+      "address_updated": "This Autodarts board is already set up. Its address was updated, and the integration reloads."
     },
-    "flow_title": "{name}"
+    "flow_title": "{name}",
+    "create_entry": {
+      "default": "The board is set up. For a ready-made dashboard with the scoreboard, training and statistics, go to **Settings → Dashboards → Add dashboard** and choose **Autodarts**."
+    }
   },
   "options": {
     "step": {
@@ -442,7 +446,7 @@
         "name": "Practice teams"
       },
       "achievements_enabled": {
-        "name": "Achievements"
+        "name": "Unlock achievements"
       },
       "tournament_third_place": {
         "name": "Tournament third-place match"
@@ -557,7 +561,7 @@
         "name": "Tournament pause"
       },
       "tournament_summary": {
-        "name": "Tournament summary"
+        "name": "Tournament summary duration"
       },
       "practice_bot_level": {
         "name": "Practice bot level"
@@ -598,7 +602,7 @@
         "name": "Camera {number} problem"
       },
       "cloud_link": {
-        "name": "Autodarts cloud connection"
+        "name": "Cloud link"
       }
     },
     "camera": {
@@ -754,7 +758,7 @@
       "message": "This board does not support the action."
     },
     "export_folder": {
-      "message": "The export folder {folder} must be inside the Home Assistant configuration folder and must not be hidden."
+      "message": "The export folder {folder} must not be hidden, and Home Assistant must allow writing to it: www, the media folders and the folders listed in allowlist_external_dirs are allowed."
     },
     "export_failed": {
       "message": "The export could not be written: {error}"
@@ -812,6 +816,21 @@
     },
     "bot_seat": {
       "message": "With the bot, up to three players play: the bot takes the fourth seat."
+    },
+    "invalid_segment": {
+      "message": "{segment} is not a bed of the board. Enter S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS."
+    },
+    "too_many_start_scores": {
+      "message": "The start scores name {scores} values, but only {players} players play. Give at most one start score per player, in throwing order."
+    },
+    "team_start_scores": {
+      "message": "Teams play from the start scores of players 1 and 2, one per team. Give at most two start scores."
+    },
+    "unwinnable_start": {
+      "message": "A start score of 3 cannot be checked out with double in and double out: the only opening double, D1, leaves 1. Choose another start score, or switch off double in or double out."
+    },
+    "export_limit": {
+      "message": "{count} exports were written in the last hour, as many as the integration writes. Try again later."
     }
   },
   "issues": {
@@ -852,7 +871,7 @@
         "step": {
           "confirm": {
             "title": "Use the new address",
-            "description": "The board no longer answers at its old address. The Autodarts cloud reports it at {new}, where it answers with its board ID.\n\nConnect the board there? The integration reloads; entities, training and settings are kept."
+            "description": "A board with the board ID of this entry answers at {new}, while it no longer answers at its configured address.\n\nConnect the board there? Confirm only if this is your board: any device on your network can claim a board ID. The integration reloads; entities, training and settings are kept."
           }
         },
         "abort": {
@@ -908,7 +927,7 @@
         },
         "start_scores": {
           "name": "Start scores",
-          "description": "X01 start scores of the players in throwing order, for a handicap, for example 501 and 301. 0 or a missing score plays the game's start score."
+          "description": "X01 start scores of the players in throwing order, for a handicap, for example 501 and 301; the bot's seat after the players has one, too. 0 or a missing score plays the game's start score. Teams play from the start scores of players 1 and 2."
         },
         "holes": {
           "name": "Golf holes",
@@ -926,7 +945,7 @@
     },
     "delete_player": {
       "name": "Delete player profile",
-      "description": "Forgets a player's statistics, personal bests and head-to-head records. The name also disappears from the personal bests of the board and the practice player names; the match history keeps it.",
+      "description": "Forgets a player's statistics, personal bests and head-to-head records. The name also disappears from the personal bests of the board and the practice player names; the match history keeps it. For administrators; automations can use it, too.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -940,7 +959,7 @@
     },
     "export": {
       "name": "Export training data",
-      "description": "Writes training sessions, practice matches or player profiles as a CSV or JSON file below the configuration folder and returns its path. Exports contain player names.",
+      "description": "Writes training sessions, practice matches or player profiles as a CSV or JSON file, by default to autodarts/exports in the media folder, and returns its path and a download link. Exports contain player names. For administrators; automations can use it, too.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -956,13 +975,13 @@
         },
         "folder": {
           "name": "Folder",
-          "description": "A folder inside the configuration folder. Files in www are available at /local/ without a login."
+          "description": "Optional. A folder relative to the configuration folder, or an absolute path, where Home Assistant allows writing: www, a media folder or a folder listed in allowlist_external_dirs. Files in www are available at /local/ without a login. Without a folder: autodarts/exports in the media folder."
         }
       }
     },
     "link_player": {
       "name": "Link player to person",
-      "description": "Makes a player a person of Home Assistant: the person's picture appears on the scoreboard, the players card and the new game screen, which also lists players at home first. A person is one player; linking them again moves the link.",
+      "description": "Makes a player a person of Home Assistant: the person's picture appears on the scoreboard, the players card and the new game screen, which also lists players at home first. A person is one player; linking them again moves the link. For administrators; automations can use it, too.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -980,7 +999,7 @@
     },
     "unlink_player": {
       "name": "Unlink player",
-      "description": "Forgets which person a player is. The player's statistics stay.",
+      "description": "Forgets which person a player is. The player's statistics stay. For administrators; automations can use it, too.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1096,7 +1115,7 @@
         },
         "segment": {
           "name": "Bed",
-          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye, or MISS."
+          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS."
         }
       }
     },
@@ -1110,7 +1129,7 @@
         },
         "segment": {
           "name": "Bed",
-          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye, or MISS."
+          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS."
         }
       }
     },

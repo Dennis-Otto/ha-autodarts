@@ -147,8 +147,7 @@ export:
             - all
     folder:
       required: false
-      default: www/autodarts
-      example: "www/autodarts"
+      example: "/media/autodarts/exports"
       selector:
         text:
 
