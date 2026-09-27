@@ -9,12 +9,13 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import aiohttp
 from board_mock import GENERATION, PORT
+from demo_progress import seed
 from pictures import avatar, board_photo
 from scenario import HA, Scenario, wait_for
 
@@ -70,6 +71,27 @@ CARDS = {
     "scoreboard": [{"type": "custom:autodarts-scoreboard-card", "caller": True}],
     "players": [{"type": "custom:autodarts-players-card", "export": True}],
     "doubles": [{"type": "custom:autodarts-doubles-card"}],
+    "leaderboard": [{"type": "custom:autodarts-leaderboard-card"}],
+    # The players card with badges, trends and groupings, and one player's darts.
+    "progress": [
+        {
+            "type": "custom:autodarts-players-card",
+            "show_head_to_head": False,
+            "show_matches": False,
+            "show_locked": False,
+        }
+    ],
+    "positions": [
+        {
+            "type": "custom:autodarts-training-card",
+            "mode": "positions",
+            "player": "Alex",
+            "show_bests": False,
+            "show_history": False,
+            "show_sessions": False,
+            "show_reset": False,
+        }
+    ],
     "styles": [
         {
             "type": "custom:autodarts-card",
@@ -106,6 +128,9 @@ def dashboard() -> dict:
         "scoreboard": 2,
         "players": 2,
         "doubles": 2,
+        "leaderboard": 2,
+        "progress": 2,
+        "positions": 2,
         "styles": 1,
     }
     return {
@@ -373,6 +398,18 @@ async def play(demo: Scenario, visits: list[list[dict]]) -> None:
         await asyncio.sleep(0.4)
 
 
+async def history(demo: Scenario, entry_id: str) -> None:
+    """Weeks of practice of three players, written while the entry is disabled."""
+    await demo.ws("config_entries/disable", entry_id=entry_id, disabled_by="user")
+    await wait_for(lambda: demo.entry_is("not_loaded"), "the disabled entry")
+    seed(Path(f"/config/.storage/autodarts.{entry_id}.training"), date.today())
+    await demo.ws("config_entries/disable", entry_id=entry_id, disabled_by=None)
+    await wait_for(lambda: demo.entry_is("loaded"), "the enabled entry")
+    # The badges the weeks earned unlock quietly.
+    await demo.service("switch", "turn_on", "achievements_enabled")
+    await demo.expect_states({"achievements_enabled": "on"})
+
+
 async def main() -> None:
     timeout = aiohttp.ClientTimeout(total=60)
     async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -387,6 +424,7 @@ async def main() -> None:
         await demo.registries(entry_id)
         await seed_journal(demo, entry_id)
         await weekly_report(demo)
+        await history(demo, entry_id)
         # A daily goal the demo darts reach halfway, for the training card.
         await demo.service("number", "set_value", "training_daily_goal", value=120)
         await demo.service("button", "press", "start")

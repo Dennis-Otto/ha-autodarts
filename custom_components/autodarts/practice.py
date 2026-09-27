@@ -24,7 +24,7 @@ from .cricket import (
     play_visit,
 )
 from .doubles import DoubleStats, aimed_at, hits
-from .drills import DRILLS, Drill, make_drill
+from .drills import DRILLS, CheckoutDrill, Drill, make_drill
 from .party import (
     COUNT_UP_ROUNDS,
     GOLF_HOLES,
@@ -37,6 +37,7 @@ from .party import (
     inner_single,
     make_party,
 )
+from .positions import x01_aims
 from .profiles import NAME_LENGTH, Profiles
 from .scoring import VISIT_DARTS, evaluate_visit, is_double, rate, score
 from .scoring import average as _average
@@ -1468,3 +1469,103 @@ class PracticeGame:
                 for index, item in enumerate(self.players)
             ],
         }
+
+    # -- analysis ----------------------------------------------------------------
+
+    def booking(self) -> Booking:
+        """The visit that finish_visit books next, for the players' statistics.
+
+        Every dart of the visit comes with its position and, where the game
+        knows it, the bed it was aimed at; the darts that count for the player
+        at the board follow from the start and end of the booked darts.
+        """
+        visit = list(self._visit)
+        booking = Booking(
+            visit=visit,
+            positions=[
+                self._positions[index] if index < len(self._positions) else None
+                for index in range(len(visit))
+            ],
+            aims=[None] * len(visit),
+            start=self._skip,
+            end=self._skip + len(self._thrown()),
+        )
+        thrown = self._thrown()
+        if not thrown:
+            return booking
+        if self.drill:
+            self._drill_booking(booking, thrown)
+        elif not self._playing() or self.winner is not None:
+            return booking
+        elif self.bulling:
+            booking.player = self.bulling.thrower
+            booking.game = "bull_off"
+            booking.end = booking.start + 1
+            booking.aims[booking.start] = "BULL"
+        else:
+            booking.player, booking.game = self.current, self._kind()
+            if self.game:
+                self._x01_booking(booking, thrown)
+            elif self.cricket:
+                booking.cricket = self._numbers()
+            elif self.party and self.party.kind == "shanghai":
+                booking.shanghai = self._party_visit().won == self.current
+        booking.name = None if booking.player is None else self._name(booking.player)
+        return booking
+
+    def _x01_booking(self, booking: Booking, thrown: list[dict[str, Any]]) -> None:
+        player = self.players[self.current]
+        opening = None if player.opened or not self.double_in else self._opening()
+        aims = x01_aims(player.remaining, thrown, self.double_out, opening, self._route)
+        booking.aims[booking.start : booking.end] = aims
+        booking.scored = player.remaining - self._evaluate()[0]
+
+    def _drill_booking(self, booking: Booking, thrown: list[dict[str, Any]]) -> None:
+        """Training games are for player 1; most know the bed aimed at."""
+        assert self.drill is not None
+        drill = self.drills[self.drill]
+        booking.player, booking.game = 0, self.drill
+        if isinstance(drill, CheckoutDrill):
+            aims = x01_aims(drill.start, thrown, True, None, checkout)
+            if evaluate_visit(drill.start, thrown, True)[1] == "won":
+                booking.checkout = drill.start
+        else:
+            doubles = [double for double, _ in drill.double_attempts()]
+            aims = [*doubles, *[None] * len(thrown)][: len(thrown)]
+        booking.aims[booking.start : booking.end] = aims
+
+
+@dataclass
+class Booking:
+    """A visit as the practice game books it, see PracticeGame.booking."""
+
+    visit: list[dict[str, Any]]
+    # Positions and aimed beds, one per dart of the visit.
+    positions: list[tuple[float, float] | None]
+    aims: list[str | None]
+    # The darts from start to end count for the player at the board, if any.
+    start: int = 0
+    end: int = 0
+    player: int | None = None
+    name: str | None = None
+    game: int | str | None = None
+    # X01 points the visit scores, nothing for a bust.
+    scored: int | None = None
+    # The numbers of the Cricket game being played.
+    cricket: tuple[int, ...] = ()
+    # A Shanghai: a single, double and treble of the round's number.
+    shanghai: bool = False
+    # The score the visit checked out in the checkout training.
+    checkout: int | None = None
+
+    @property
+    def darts(self) -> list[dict[str, Any]]:
+        return self.visit[self.start : self.end]
+
+    @property
+    def booked_positions(self) -> list[tuple[float, float] | None]:
+        return self.positions[self.start : self.end]
+
+    @property
+    def booked_aims(self) -> list[str | None]:
+        return self.aims[self.start : self.end]

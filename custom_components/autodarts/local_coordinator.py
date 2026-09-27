@@ -52,6 +52,7 @@ from .local_api import (
 )
 from .online import ONLINE_EVENT_TYPES
 from .practice import PracticeGame
+from .progress import Progress
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
 from .records import PersonalRecords
 from .report import BoardReports
@@ -119,6 +120,7 @@ EVENT_TYPES = [
     "daily_goal_reached",
     "bull_off_won",
     "weekly_report",
+    "achievement_unlocked",
     # Moments of online matches, from the browser extension Tools for Autodarts.
     *ONLINE_EVENT_TYPES,
 ]
@@ -213,6 +215,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.quality = DetectionQuality()
         self.records = PersonalRecords()
         self.reports = BoardReports(hass, entry.entry_id, self)
+        self.progress = Progress()
         self._midnight_unsub: CALLBACK_TYPE | None = None
         self._store = TrainingStore(hass, entry.entry_id)
         self._training_dirty = False
@@ -260,16 +263,23 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             saved.get("practice") if isinstance(saved, dict) else None
         )
         self.records.restore(saved.get("records") if isinstance(saved, dict) else None)
+        self.progress.restore(
+            saved.get("progress") if isinstance(saved, dict) else None,
+            self.practice.profiles,
+            dt_util.now(),
+        )
         if saved is None:
             self._save_training()
         await self.reports.async_load()
 
     def _stored(self) -> dict[str, Any]:
-        """Training sessions, the practice game and personal bests, saved together."""
+        """Training sessions, the practice game, personal bests and the players'
+        progress, saved together."""
         return {
             **self.training.stored(),
             "practice": self.practice.stored(),
             "records": self.records.stored(),
+            "progress": self.progress.stored(),
         }
 
     def _save_training(self) -> None:
@@ -527,6 +537,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         now = dt_util.now()
         result: list[tuple[str, dict[str, Any]]] = []
         for kind, attributes in events:
+            if kind == "session_started":
+                # The positions of a session start over with it, like its hits.
+                self.progress.session_started()
             result.append((kind, attributes))
             result.extend(self.records.observe(kind, attributes, now))
         self.reports.observe(result, now)
@@ -584,8 +597,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 }
             self._emit(kind, attributes, source)
             if kind == "visit_completed":
-                for turn, details in self._recorded(self.practice.finish_visit()):
-                    self._emit(turn, details, source)
+                self._book_visit(source)
         if (positions := _throw_positions(state)) is not None:
             self._positions = positions
         visit = self.training.visit()
@@ -598,6 +610,16 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             announced = True
             self._emit(kind, attributes, source)
         self._publish_game(data, announced)
+
+    def _book_visit(self, source: str) -> None:
+        """Book the pulled darts in the practice game and the players' progress."""
+        pending = self.progress.before(self.practice)
+        if self.training.active:
+            self.progress.session_visit(pending.booking)
+        events = self.practice.finish_visit()
+        events += self.progress.after(pending, self.practice, dt_util.now())
+        for kind, details in self._recorded(events):
+            self._emit(kind, details, source)
 
     def _publish_game(self, data: dict[str, Any], announced: bool) -> None:
         """Snapshots for the entities; a change is saved and raises the revision."""
@@ -1183,6 +1205,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if deleted:
             self.practice.forget(name)
             self.records.forget(name)
+            self.progress.forget(name)
             await self._async_training([])
         return deleted
 
@@ -1213,6 +1236,11 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     ) -> None:
         """Holes of Golf and rounds of Count-Up; the game being played starts anew."""
         self.practice.set_rounds(golf_holes, count_up_rounds)
+        await self._async_training([])
+
+    async def async_set_achievements(self, enabled: bool) -> None:
+        """Achievements reached while they were off unlock quietly when on again."""
+        self.progress.enable(enabled, self.practice.profiles, dt_util.now())
         await self._async_training([])
 
     async def async_new_match(self) -> None:

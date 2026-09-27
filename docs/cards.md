@@ -2,7 +2,7 @@
 
 [← Documentation](README.md) · [Deutsch](de/karten.md)
 
-The integration includes six cards. Home Assistant loads them automatically, so no dashboard resource and no separate HACS download are needed. Each card:
+The integration includes seven cards. Home Assistant loads them automatically, so no dashboard resource and no separate HACS download are needed. Each card:
 
 - has a visual editor and follows your theme (light or dark) and language (English or German);
 - adapts to its width, from a phone to a wall tablet;
@@ -98,6 +98,8 @@ highlight_color: "#00e5ff"
   - Every bed is colored by how often you hit it, from blue (rarely) to red (most often).
   - Hover a bed for its count and share.
   - In `numbers` mode, the heatmap sums each number's singles, doubles and triples instead.
+  - In `positions` mode, it shows where the darts landed, from the positions the board reports: a smoothed density from blue (few darts) to red (many), with the newest 300 darts as dots. Below the board, the [grouping](how-it-works.md#grouping) at up to three beds aimed at, for example *T20: grouping 38 mm · 80 % within 61 mm · 6 mm left of center*, with *4 mm tighter* when the newer darts group closer.
+  - The switches above the board choose the mode and whose darts it shows: the session, or a named player with all their hits and the positions of their last 1000 darts. The most hit beds follow the choice. [How positions are kept](how-it-works.md#dart-positions).
 - **Statistics:** highest visit, 100+, 140+ and 180 visits, triple rate, doubles, bulls and misses. 180s light up in gold. Tap the tiles, or press Enter or Space on them, for the details of the session's darts.
 - **Most hit beds:** the top five, with count and share of all darts.
 - **Personal bests:** every [personal best](entities.md#personal-bests-streak-and-daily-goal) that has a value: highest visit and checkout, the fewest darts for every start score, the best Cricket marks per round, the best session average, Around the Clock, the doubles training, Bob's 27 and the longest training streak. The section appears with the first record.
@@ -116,10 +118,12 @@ highlight_color: "#00e5ff"
 | --- | --- | --- | --- |
 | `device_id` | device | first board | The board to show |
 | `title` | text | *Training · board name* | Card title |
-| `mode` | `beds`, `numbers` | `beds` | Heatmap per bed or per number |
+| `mode` | `beds`, `numbers`, `positions` | `beds` | Heatmap per bed, per number or of the dart positions |
+| `player` | text | the session | A player name: the heatmap starts with that player's darts. The editor lists the named players and takes any other name |
 | `board_style` | `muted`, `classic`, `autodarts` | `muted` | The muted board lets the heatmap stand out |
 | `history_size` | 5–60 | `20` | Visits in the chart; labels are shown up to 30 |
 | `show_heatmap` | boolean | `true` | Show the heatmap |
+| `show_heatmap_controls` | boolean | `true` | Show the switches of the mode and of whose darts the heatmap shows |
 | `show_stats` | boolean | `true` | Show the statistics tiles |
 | `show_bests` | boolean | `true` | Show the personal bests |
 | `show_top` | boolean | `true` | Show the most hit beds |
@@ -136,6 +140,17 @@ show_reset: false
 ```
 
 <img src="images/en/training-card-mobile.png" alt="Training card on a phone" width="320">
+
+<table>
+  <tr>
+    <td><img src="images/en/training-positions.png" alt="The heatmap in positions mode with Alex's darts: a density around the treble 20, the doubles 16 and 8 and the bull, and the grouping of each below" width="380"></td>
+    <td><img src="images/en/heatmap-modes.webp" alt="Animation: the heatmap switches from beds to numbers and positions of the session, then to Alex's positions and beds" width="380"></td>
+  </tr>
+  <tr>
+    <td align="center"><code>mode: positions</code>, <code>player: Alex</code></td>
+    <td align="center">The switches above the board</td>
+  </tr>
+</table>
 
 ## Board status card
 
@@ -306,6 +321,14 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 
 <img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
 
+- **Badges:** every player's [achievements](entities.md#achievements). An earned badge shows its tier in bronze, silver, gold or platinum, the next goal and how far the player has come; a locked badge is greyed out, with its progress where it can be counted.
+- **Trends:** for every player who practiced in the weeks shown, a tile per figure: 3-dart average, first 9, checkout rate, doubles rate and darts over the weeks, a line of the weekly values, and an arrow that compares the newer half of the weeks with the older half (↗ better, ↘ worse, → about the same). Weeks without practice interrupt the line.
+- **Grouping:** where each player's darts land around the beds they aimed at most, in millimeters, with the change of the newer darts. [How the grouping is measured](how-it-works.md#grouping).
+
+<img src="images/en/players-badges.png" alt="Badges of Alex: earned tiers in bronze, silver and gold, each with the next goal, the progress towards it and a progress bar" width="620">
+
+<img src="images/en/players-trends.png" alt="Trends of Alex, Sam and Kim with the 3-dart average, first 9, checkout rate, doubles rate and darts per week, and the grouping of each player at the treble 20, the bull and the double 8" width="620">
+
 ### Options
 
 | Option | Values | Default | Description |
@@ -314,9 +337,50 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 | `title` | text | *Players* | Card title |
 | `show_head_to_head` | boolean | `true` | Show the head-to-head records |
 | `show_matches` | boolean | `true` | Show the recent matches |
+| `show_badges` | boolean | `true` | Show the badges |
+| `show_locked` | boolean | `true` | Show locked badges too; without them, players without a badge are left out |
+| `show_trends` | boolean | `true` | Show the trends |
+| `trend_weeks` | 4–12 | `12` | Weeks in the trends |
+| `show_spread` | boolean | `true` | Show the groupings |
 | `export` | boolean | `false` | Show an *Export* button. It exports the sessions, matches and profiles with [`autodarts.export`](entities.md#export-training-data-autodartsexport) to `www/autodarts` and downloads the file through Home Assistant with your login. Exports contain player names, and files in `www` need no login. |
 | `export_format` | `csv`, `json` | `csv` | Format of the export; CSV comes as a ZIP file with one table each |
-| `accent_color` | [color](#colors) | theme primary color | Labels and the balance bars |
+| `accent_color` | [color](#colors) | theme primary color | Labels, the balance bars, progress and trend lines |
+
+## Leaderboard card
+
+`custom:autodarts-leaderboard-card` ranks the records of all named players. The leader of each record gets the crown, the next places follow.
+
+<img src="images/en/leaderboard-card.png" alt="Leaderboard card with the period switch and the records best average, highest checkout, most 180s, fewest darts in 501, best Cricket MPR, longest streak, most badges and most darts, each with the leader and two more places" width="760">
+
+| Record | All time | Last 4 weeks, this week |
+| --- | --- | --- |
+| Best average | The player's 3-dart average in X01 | The average of the X01 legs that ended in the period |
+| Highest checkout | The highest checkout with double out | The same, in the period |
+| Most 180s | X01 visits that scored 180 | The same, in the period |
+| Fewest darts, 501 | The fewest darts of a won 501 leg with double out | The same, in the period |
+| Best Cricket MPR | The best marks per round of a won Cricket leg | The same, in the period |
+| Longest streak | The longest run of days with darts | – |
+| Most badges | Achievement tiers unlocked | Tiers unlocked in the period |
+| Most darts | Darts thrown in practice and training games | The same, in the period |
+
+A period covers whole weeks from Monday: *This week* the current week, *Last 4 weeks* the current week and the three before. Players share a place when their values are equal. The switch at the top changes the period until the card's configuration changes.
+
+### Options
+
+| Option | Values | Default | Description |
+| --- | --- | --- | --- |
+| `device_id` | device | first board | The board to show |
+| `title` | text | *Leaderboard* | Card title |
+| `period` | `all`, `month`, `week` | `all` | All time, the last four weeks or this week |
+| `show_period` | boolean | `true` | Show the period switch |
+| `limit` | 1–5 | `3` | Places shown per record |
+| `accent_color` | [color](#colors) | theme primary color | Labels and the period switch |
+
+```yaml
+type: custom:autodarts-leaderboard-card
+period: month
+limit: 5
+```
 
 ## Automatic dashboard
 
@@ -332,7 +396,7 @@ For every board, the dashboard gets up to five views, which update themselves wh
 | **Live** | The live card across the full width, the practice game controls with teams and the Golf and Count-Up options, the player names and their start scores |
 | **Scoreboard** | The [scoreboard card](#scoreboard-card) across the whole screen, for a tablet or TV at the board |
 | **Training** | The training card with the personal bests, the [doubles card](#doubles-card), the daily goal with darts today, the streak and the last personal best, darts per day for the last 30 days (from long-term statistics, which Home Assistant compiles hourly), the 3-dart average of the last 7 days, practice legs per day, the first 9 average, checkout rate and doubles rate of the practice game, and the training settings: starting sessions automatically and ending them after a pause |
-| **Players** | The [players card](#players-card), once the first named player has a profile |
+| **Players** | The [players card](#players-card) and the [leaderboard](#leaderboard-card), once the first named player has a profile |
 | **Board** | The board status card, the board settings, the Board Manager update and the share of darts the board corrected |
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard" width="760">

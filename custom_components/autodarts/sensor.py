@@ -344,6 +344,7 @@ async def async_setup_entry(
                 AutodartsDoubles(runtime.local),
                 AutodartsLastMatch(runtime.local),
                 AutodartsWeeklyReport(runtime.local),
+                AutodartsAchievements(runtime.local),
             )
         )
         entities.extend(
@@ -895,7 +896,14 @@ class AutodartsPlayerProfiles(AutodartsLocalEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        return {"players": self.coordinator.practice.profiles.snapshot()["players"]}
+        # Each profile with the player's progress: trend, hits and grouping.
+        progress, today = self.coordinator.progress, dt_util.now().date()
+        return {
+            "players": [
+                {**profile, **progress.summary(profile["name"], today)}
+                for profile in self.coordinator.practice.profiles.snapshot()["players"]
+            ]
+        }
 
 
 class AutodartsDoubles(AutodartsLocalEntity, SensorEntity):
@@ -1042,3 +1050,30 @@ class AutodartsWeeklyReport(AutodartsLocalEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         snapshot = self.coordinator.reports.snapshot()
         return {key: value for key, value in snapshot.items() if key != "darts"}
+
+
+class AutodartsAchievements(AutodartsLocalEntity, SensorEntity):
+    """Achievements unlocked by all players, with every player's badges."""
+
+    _attr_native_unit_of_measurement = "badges"
+    _unrecorded_attributes = frozenset({"catalogue", "players"})
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "achievements")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    def _achievements(self) -> dict[str, Any]:
+        return self.coordinator.progress.achievements(
+            self.coordinator.practice.profiles
+        )
+
+    @property
+    def native_value(self) -> int:
+        return sum(player["unlocked"] for player in self._achievements()["players"])
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return self._achievements()

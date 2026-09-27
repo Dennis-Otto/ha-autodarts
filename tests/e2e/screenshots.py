@@ -815,8 +815,137 @@ def players_card(page: Page) -> None:
         " c.shadowRoot.querySelectorAll('.profile').length >= 2)",
         timeout=60000,
     )
+    # Badges, trends and groupings have pictures of their own.
+    page.evaluate(
+        f"() => ({find('autodarts-players-card')})().forEach((card) => card.setConfig("
+        "{...card._config, show_badges: false, show_trends: false, show_spread: false}))"
+    )
     page.wait_for_timeout(1200)
     card_shot(page, "players-card", tag="autodarts-players-card")
+
+
+# The box of some parts of a card, scrolled below the toolbar: the card's full
+# width, from the first part to the last.
+PARTS = """
+([tag, selectors]) => {
+  const cards = [];
+  (function collect(root) {
+    root.querySelectorAll(tag).forEach((card) => cards.push(card));
+    root.querySelectorAll('*').forEach((el) => el.shadowRoot && collect(el.shadowRoot));
+  })(document);
+  const card = cards[0];
+  const parts = selectors.map((selector) => card.shadowRoot.querySelector(selector));
+  parts[0].scrollIntoView();
+  window.scrollBy(0, -100);
+  const frame = card.getBoundingClientRect();
+  const boxes = parts.map((part) => part.getBoundingClientRect());
+  const top = Math.min(...boxes.map((box) => box.top)) - 16;
+  const bottom = Math.max(...boxes.map((box) => box.bottom)) + 16;
+  return { x: frame.left, y: top, width: frame.width, height: bottom - top };
+}
+"""
+
+
+def part_shot(page: Page, name: str, tag: str, selectors: list[str]) -> None:
+    """A part of a card, such as one of its sections, across the card's width."""
+    clip = page.evaluate(PARTS, [tag, selectors])
+    page.screenshot(path=str(OUTPUT / f"{name}.png"), clip=clip)
+    print(f"saved {OUTPUT / name}.png")
+
+
+def progress_cards(page: Page) -> None:
+    """Badges, trends and groupings of the demo players, Alex's darts and the records."""
+    size = page.viewport_size
+    page.set_viewport_size({"width": size["width"], "height": 2000})
+    players = "autodarts-players-card"
+    page.goto(f"{HA}/autodarts-demo/progress")
+    page.wait_for_function(
+        f"() => ({find(players)})().some((c) =>"
+        " c.shadowRoot.querySelectorAll('.trend .spark').length >= 10"
+        " && c.shadowRoot.querySelectorAll('.badge').length >= 10"
+        " && c.shadowRoot.querySelectorAll('.group').length >= 3)",
+        timeout=60000,
+    )
+    page.wait_for_timeout(1500)
+    part_shot(
+        page,
+        "players-badges",
+        players,
+        [".badges-section .section-head", ".badge-player"],
+    )
+    part_shot(page, "players-trends", players, [".trends-section", ".groups-section"])
+    training = "autodarts-training-card"
+    page.goto(f"{HA}/autodarts-demo/positions")
+    page.wait_for_function(
+        f"() => ({find(training)})().some((c) =>"
+        " c.shadowRoot.querySelectorAll('.heat-layer .position').length > 100"
+        " && c.shadowRoot.querySelectorAll('.heat .group').length >= 2)",
+        timeout=60000,
+    )
+    page.wait_for_timeout(1500)
+    part_shot(page, "training-positions", training, [".heat"])
+    page.goto(f"{HA}/autodarts-demo/leaderboard")
+    page.wait_for_function(
+        f"() => ({find('autodarts-leaderboard-card')})().some((c) =>"
+        " c.shadowRoot.querySelectorAll('.record').length >= 7)",
+        timeout=60000,
+    )
+    page.wait_for_timeout(1200)
+    card_shot(page, "leaderboard-card", tag="autodarts-leaderboard-card")
+    page.set_viewport_size(size)
+
+
+def heatmap_animation(page: Page) -> None:
+    """The heatmap from beds to numbers and positions, then Alex's own darts."""
+    tag = "autodarts-training-card"
+    page.goto(f"{HA}/autodarts-demo/positions")
+    page.wait_for_function(
+        f"() => ({find(tag)})().some((c) =>"
+        " c.shadowRoot.querySelectorAll('.heat-layer .position').length > 100)",
+        timeout=60000,
+    )
+    # The heatmap of the card, where the switches are.
+    recorder = Recorder(page, f"{tag} .heat")
+
+    def show(selector: str, ready: str, hold: int) -> None:
+        page.locator(f"{tag} {selector}").click()
+        page.wait_for_function(
+            f"() => ({find(tag)})()[0].shadowRoot.querySelector('{ready}')",
+            timeout=30000,
+        )
+        page.wait_for_timeout(700)
+        recorder.shot(hold)
+
+    show("button[data-source='']", 'button[data-source=""][aria-pressed=true]', 200)
+    show("button[data-mode='beds']", ".heat-layer .heat-bed", 1800)
+    show(
+        "button[data-mode='numbers']",
+        "button[data-mode=numbers][aria-pressed=true]",
+        1800,
+    )
+    show("button[data-mode='positions']", ".heat-layer .position", 1800)
+    show(
+        "button[data-source='Alex']",
+        "button[data-source=Alex][aria-pressed=true]",
+        2400,
+    )
+    show("button[data-mode='beds']", "button[data-mode=beds][aria-pressed=true]", 2400)
+    # The first frame only prepared the session; the animation starts with its beds.
+    recorder.frames.pop(0)
+    recorder.durations.pop(0)
+    # Groupings make some frames taller; every frame gets the size of the tallest.
+    size = (
+        max(frame.width for frame in recorder.frames),
+        max(frame.height for frame in recorder.frames),
+    )
+    frames = []
+    for frame in recorder.frames:
+        frame = frame.convert("RGB")
+        canvas = Image.new("RGB", size, frame.getpixel((2, 2)))
+        canvas.paste(frame, (0, 0))
+        frames.append(canvas)
+    recorder.frames = frames
+    recorder.save("heatmap-modes", width=520)
 
 
 def scoreboard_page(page: Page) -> Page:
@@ -1255,6 +1384,9 @@ def main() -> None:
         lobby_screen(people.new_page())
         idle_screen(people.new_page())
         media_gallery(people.new_page())
+        progress_cards(people.new_page())
+        # Recorded sharp at twice the size, shown at the size of the card.
+        heatmap_animation(people.new_page())
         # Last: the match adds to the players and doubles of the cards above.
         page = people.new_page()
         open_dashboard(page, "board")

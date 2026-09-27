@@ -55,6 +55,7 @@ MOMENTS = (
     "personal_best",
     "daily_goal",
     "bull_off",
+    "achievement",
 )
 # Consecutive events always get distinct timestamps, even with a frozen clock.
 TICKS = itertools.count(1)
@@ -382,9 +383,19 @@ async def test_blueprints_follow_the_real_board_events(
         ("bust", "Dennis"),
         ("personal_best", ""),
         ("match", "Lea"),
+        # Lea's checkout of 101, first leg and first match unlock achievements.
+        ("achievement", "Lea"),
+        ("achievement", "Lea"),
+        ("achievement", "Lea"),
         ("maximum", ""),
         ("personal_best", ""),
         ("match", "Dennis"),
+        # Dennis checks out 101 for the team; the leg and the match count for Kim, too.
+        ("achievement", "Dennis"),
+        ("achievement", "Dennis"),
+        ("achievement", "Dennis"),
+        ("achievement", "Kim"),
+        ("achievement", "Kim"),
         ("bust", "Lea"),
         ("leg", "dennis"),
         ("match", ""),
@@ -1291,6 +1302,10 @@ async def test_light_show_moments(hass):
             ("personal_best", {"record": "highest_visit", "value": 180}),
             ("daily_goal_reached", {"goal": 100, "darts": 100, "streak": 3}),
             ("bull_off_won", {**x01, "player": 2, "name": None, "distance": 4.1}),
+            (
+                "achievement_unlocked",
+                {"player": 1, "name": "Dennis", "achievement": "maximum", "tier": 1},
+            ),
             ("turn_changed", {**x01, "player": 2, "name": None}),
         ],
     )
@@ -1315,6 +1330,7 @@ async def test_light_show_moments(hass):
         ("personal_best", "", 0, 0),
         ("daily_goal", "", 0, 0),
         ("bull_off", "Player 2", 0, 0),
+        ("achievement", "Dennis", 0, 0),
     ]
 
 

@@ -16,13 +16,14 @@
   - Board Manager 2 meldet sich selbst im Netzwerk; Home Assistant bietet das Board mit einem Klick an.
   - Alternativ suchst du nach deinen Boards oder gibst die Adresse ein.
 - **Beide Board-Manager-Generationen.** Unterstützt den klassischen Board Manager 1 und den Headless Board Manager 2. Nach einem Update stellt sich die Integration selbst um.
-- **Sechs Dashboard-Karten**, die automatisch geladen werden:
+- **Sieben Dashboard-Karten**, die automatisch geladen werden:
   - Live-Dartscheibe mit blinkenden Treffern und Dart-Positionen;
-  - Trainingskarte mit Trefferbild, Bestleistungen und Aufnahmeverlauf;
+  - Trainingskarte mit Trefferbild der Felder oder der echten Dart-Positionen, für die Session oder jeden Spieler, Bestleistungen und Aufnahmeverlauf;
   - Board-Status mit Erkennung, Verbindungen und Kameras;
   - Anzeigetafel für ein Tablet oder einen Fernseher am Board, lesbar vom Abwurf aus, mit einem Caller, der das Spiel auf Wunsch ansagt, einer Spielauswahl für Spiel, Spieler und Format direkt am Board und einem Ruhemodus mit Bestenliste, Bestleistungen, den Darts von heute, dem letzten Match und einer Uhr;
-  - Spielerkarte mit Profilen, direkten Vergleichen und letzten Matches und den Bildern der Spieler, die mit einer Person von Home Assistant verknüpft sind;
+  - Spielerkarte mit Profilen, Abzeichen, Wochentrends, Streuung in Millimetern, direkten Vergleichen und letzten Matches und den Bildern der Spieler, die mit einer Person von Home Assistant verknüpft sind;
   - Doubles-Karte mit der Quote jedes Doubles auf der Scheibe;
+  - Bestenliste mit den Rekorden aller Spieler, gesamt, in den letzten vier Wochen oder in dieser Woche;
   - dazu ein automatisches Dashboard, das alles pro Board mit einem Klick anordnet.
 - **Trainingsanalyse:**
   - Trainingssessions, die mit dem ersten Dart oder bewusst beginnen, nach einer Pause enden und die letzten 20 Sessions behalten;
@@ -33,7 +34,9 @@
   - Doppelanalyse mit der Quote jedes Doubles und Checkout-Wegen über deine stärksten Doubles;
   - Wochenbericht mit den Darts der Woche, der Trainingszeit, dem 3-Dart-Average und seinem Trend, auf Wunsch aufs Handy;
   - Trainingskalender mit einem Jahr Sessions und Matches und ein Export als CSV oder JSON;
-  - Spieler, die mit Personen von Home Assistant verknüpft sind, mit ihrem Bild und ihrer Anwesenheit.
+  - Spieler, die mit Personen von Home Assistant verknüpft sind, mit ihrem Bild und ihrer Anwesenheit;
+  - Erfolge in Bronze, Silber, Gold und Platin, von der ersten 180 bis zum Neun-Darter, mit einem Ereignis für jede neue Stufe;
+  - zwölf Wochen Trends pro Spieler und die Streuung seiner Darts um die Felder, auf die er zielt, gemessen aus den echten Dart-Positionen.
 - **Übungsspiele und Matches.** Spiele X01 (101 bis 1001, auf Wunsch mit Double-In, Ausbullen und eigenen Startpunkten als Handicap), Cricket, Cut-Throat Cricket und Tactics oder die Partyspiele Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up am lokalen Board, allein, als Match mit bis zu vier Spielern, Legs und Sätzen oder bei X01 und Cricket als zwei Teams zu zwei. Die Restpunkte zählen herunter, Überwerfen wird erkannt, und die Live-Karte zeigt Checkout-Weg, nächstes Zielfeld und eine Anzeigetafel, bei Cricket eine Kreidetafel mit Treffern, Punkten und Treffern pro Runde. Endet ein Match, zeigt eine Zusammenfassung Averages, Checkout-Quote, höchsten Checkout, 180er und bestes Leg jedes Spielers. Acht Trainingsspiele üben die Grundlagen: Around the Clock, Doppeltraining, Checkout-Training, Bob's 27, 121-Checkout, Catch 40, die JDC Challenge und das Singles-Training. First-9-Average, Checkout-Quote, Doppelquote und Legs pro Tag zeigen deine Entwicklung.
 - **Automationen mit Bühnenatmosphäre.**
   - Board-Ereignisse für jeden Dart, jede Korrektur, jede Entnahme, jede geworfene und abgeschlossene Aufnahme und jede Trainingssession.
@@ -86,6 +89,14 @@
     <td width="50%"><img src="../images/de/practice-checkout.webp" alt="Animation: ein 141er-Checkout mit Weg und umrandetem Feld nach jedem Dart"><p align="center"><b>Übungsspiel</b>: der Checkout-Weg folgt jedem Dart</p></td>
     <td width="50%"><img src="../images/de/training-game.webp" alt="Animation: Around the Clock, jeder Treffer bringt das Ziel und seine umrandeten Felder weiter"><p align="center"><b>Trainingsspiel</b>: Around the Clock</p></td>
   </tr>
+  <tr>
+    <td width="50%"><img src="../images/de/players-badges.png" alt="Abzeichen eines Spielers in Bronze, Silber und Gold, jeweils mit dem nächsten Ziel und dem Fortschritt"><p align="center"><b>Abzeichen</b>: Erfolge in Stufen</p></td>
+    <td width="50%"><img src="../images/de/heatmap-modes.webp" alt="Animation: das Trefferbild wechselt von Feldern zu Zahlen und den echten Dart-Positionen, dann zu den Darts eines Spielers"><p align="center"><b>Trefferbild</b>: Felder, Zahlen oder Dart-Positionen</p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../images/de/leaderboard-card.png" alt="Bestenliste mit den Rekorden aller Spieler und dem Umschalter des Zeitraums"><p align="center"><b>Bestenliste</b>: Rekorde aller Spieler</p></td>
+    <td width="50%"><img src="../images/de/players-trends.png" alt="Wochentrends dreier Spieler mit Verlaufslinien und Pfeilen und ihre Streuung in Millimetern"><p align="center"><b>Trends und Streuung</b> pro Spieler</p></td>
+  </tr>
 </table>
 
 ## Anleitungen
@@ -94,7 +105,7 @@
 | --- | --- |
 | [Installation und Einrichtung](installation.md) | Voraussetzungen, HACS, manuelle Installation, Einrichtung, Cloud-Verknüpfung, Updates, Entfernen |
 | [Entitäten und Ereignisse](entitaeten.md) | Alle Entitäten, Board-Ereignisse, Zustände und Attribute |
-| [Dashboard-Karten](karten.md) | Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Spieler- und Doubles-Karte mit allen Optionen |
+| [Dashboard-Karten](karten.md) | Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Spieler- und Doubles-Karte und Bestenliste mit allen Optionen |
 | [Automationen](automationen.md) | Blueprints, Board-Ereignisse und fertige Beispiele |
 | [Funktionsweise](funktionsweise.md) | Architektur, Aktualisierung, Verbindungsverhalten, Adresswechsel, Trainingsregeln, Datenschutz |
 | [Fehlerbehebung](fehlerbehebung.md) | Meldungen, Reparaturen, Diagnose und Logs |

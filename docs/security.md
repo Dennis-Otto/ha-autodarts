@@ -11,7 +11,7 @@ This page explains how the integration protects your data and your board, what i
 | Board API key, TLS key, camera device paths | Board Manager configuration | Dropped as soon as a configuration is read; never stored, logged, shown or included in diagnostics |
 | Autodarts OAuth tokens (optional cloud link) | Home Assistant config entry | Stored only there, refreshed automatically, never logged; the password is never seen |
 | Board ID, board address, client ID | Home Assistant config entry | Redacted from diagnostics; the connection history in diagnostics holds counts, kinds of errors and durations, never addresses or error messages |
-| Training session, practice games, player names, weekly report and training calendar | Home Assistant `.storage` | Local only; deleted together with the integration; player names are redacted from diagnostics |
+| Training session, practice games, player names and their progress with dart positions, weekly report and training calendar | Home Assistant `.storage` | Local only; deleted together with the integration; player names are redacted from diagnostics |
 | Exports with player names | A folder inside the configuration folder, by default `www/autodarts` | Written only on request; never outside the configuration folder; unguessable file names |
 | Control of the board | Board Manager API | Actions only on request of a user or an automation, sent once |
 | Address of the online bridge (optional) | Options of the Home Assistant config entry | A random secret of 64 hexadecimal characters, shown only in the options; never logged by the integration or included in diagnostics; replaceable with a new one in the options |

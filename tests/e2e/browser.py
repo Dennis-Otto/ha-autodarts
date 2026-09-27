@@ -42,6 +42,7 @@ STATUS_CARDS = find("autodarts-status-card")
 SCOREBOARD_CARDS = find("autodarts-scoreboard-card")
 PLAYERS_CARDS = find("autodarts-players-card")
 DOUBLES_CARDS = find("autodarts-doubles-card")
+LEADERBOARD_CARDS = find("autodarts-leaderboard-card")
 FORM_EDITORS = find("hui-form-editor")
 SCOREBOARD_STATE = f"""
 () => {{
@@ -481,6 +482,64 @@ def practice(browser: Browser) -> None:
     page.close()
 
 
+def progress(browser: Browser) -> None:
+    """Badges, trends, the positions heatmap and the leaderboard after the practice games."""
+    page, problems = open_view(browser, "players", PLAYERS_CARDS, ".profile")
+    page.wait_for_function(
+        f"() => ({PLAYERS_CARDS})()[0].shadowRoot.querySelector('.badges-section:not([hidden])')",
+        timeout=15000,
+    )
+    earned = page.evaluate(
+        f"() => [...({PLAYERS_CARDS})()[0].shadowRoot.querySelectorAll('.badge:not(.locked)')]"
+        ".map((badge) => badge.dataset.badge)"
+    )
+    # Alex threw a 180 in 301 and nine marks in Cricket.
+    check("maximum" in earned and "cricket_nine" in earned, f"Earned badges {earned}")
+    trends = page.evaluate(
+        f"() => ({PLAYERS_CARDS})()[0].shadowRoot.querySelectorAll('.trend-player').length"
+    )
+    check(trends >= 1, f"Trends of {trends} players")
+    errors = page_errors(page, problems)
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+    page, problems = open_view(browser, "training", TRAINING_CARDS, ".heat-layer")
+    page.locator("autodarts-training-card button[data-mode='positions']").click()
+    page.wait_for_function(
+        f"() => ({TRAINING_CARDS})()[0].shadowRoot.querySelectorAll('.heat-layer .position').length > 0",
+        timeout=15000,
+    )
+    page.locator("autodarts-training-card button[data-source='Alex']").click()
+    page.wait_for_function(
+        f"() => ({TRAINING_CARDS})()[0].shadowRoot"
+        ".querySelector('button[data-source=\"Alex\"]').getAttribute('aria-pressed') === 'true'",
+        timeout=15000,
+    )
+    page.wait_for_function(
+        f"() => ({TRAINING_CARDS})()[0].shadowRoot.querySelectorAll('.heat-layer .position').length > 0",
+        timeout=15000,
+    )
+    errors = page_errors(page, problems)
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+    page, problems = open_view(browser, "leaderboard", LEADERBOARD_CARDS, ".record")
+    leader = page.evaluate(
+        f"() => ({LEADERBOARD_CARDS})()[0].shadowRoot"
+        ".querySelector('[data-record=\"maximums\"] .record-leader .who')?.textContent"
+    )
+    check(leader == "Alex", f"Most 180s: {leader}")
+    page.locator("autodarts-leaderboard-card button[data-period='week']").click()
+    pressed = page.evaluate(
+        f"() => ({LEADERBOARD_CARDS})()[0].shadowRoot"
+        ".querySelector('[data-period=\"week\"]').getAttribute('aria-pressed')"
+    )
+    check(pressed == "true", "The period did not switch")
+    errors = page_errors(page, problems)
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+
 def training(browser: Browser) -> None:
     page, problems = open_view(browser, "training", TRAINING_CARDS, ".heat-layer path")
     # The history of completed visits is loaded from the recorder.
@@ -845,6 +904,7 @@ def strategy(browser: Browser) -> None:
         ("scoreboard", SCOREBOARD_CARDS, ".main"),
         ("training", TRAINING_CARDS, ".heat-layer"),
         ("players", PLAYERS_CARDS, ".players-card"),
+        ("players", LEADERBOARD_CARDS, ".leaderboard"),
         ("board", STATUS_CARDS, ".camera"),
     ):
         page.goto(f"{HA}/autodarts-auto/{view}")
@@ -963,6 +1023,7 @@ def main() -> None:
             ("training card", lambda: training(browser)),
             ("live card", lambda: visit(browser)),
             ("practice game", lambda: practice(browser)),
+            ("progress and leaderboard", lambda: progress(browser)),
             ("status card", lambda: status(browser)),
             ("scoreboard", lambda: scoreboard(browser)),
             ("more games", lambda: more_games(browser)),
@@ -973,7 +1034,7 @@ def main() -> None:
             ("live card editor", lambda: editor(browser, rows=7)),
             (
                 "training card editor",
-                lambda: editor(browser, "training", TRAINING_CARDS, ".heat-layer", 6),
+                lambda: editor(browser, "training", TRAINING_CARDS, ".heat-layer", 7),
             ),
             (
                 "status card editor",
@@ -985,7 +1046,13 @@ def main() -> None:
             ),
             (
                 "players editor",
-                lambda: editor(browser, "players", PLAYERS_CARDS, ".players-card", 5),
+                lambda: editor(browser, "players", PLAYERS_CARDS, ".players-card", 6),
+            ),
+            (
+                "leaderboard editor",
+                lambda: editor(
+                    browser, "leaderboard", LEADERBOARD_CARDS, ".leaderboard", 5
+                ),
             ),
             (
                 "scoreboard editor",
@@ -1007,11 +1074,11 @@ def main() -> None:
         "Browser check passed: card registration on every load, visit, highlights, "
         "controls with confirmation, last visits, practice game, match and "
         "training games, "
-        "training heatmap, "
+        "training heatmap with dart positions, badges, trends, the leaderboard, "
         "history and "
         "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
         "match summary, its caller and new game screen, the generated dashboard, "
-        "the players export, all six card forms, the strategy editor and light theme."
+        "the players export, all seven card forms, the strategy editor and light theme."
     )
 
 

@@ -20,6 +20,7 @@
     }),
     'poll_interval_seconds': None,
     'practice_game': None,
+    'progress': None,
     'realtime_connected': False,
     'records': None,
     'reports': None,
@@ -204,6 +205,13 @@
       'stored_legs': 0,
       'teams': False,
     }),
+    'progress': dict({
+      'achievements': True,
+      'badges': 1,
+      'logged_positions': 0,
+      'players': 2,
+      'session_positions': 0,
+    }),
     'realtime_connected': False,
     'records': dict({
       'best_streak': 1,
@@ -380,6 +388,13 @@
       'sets_to_win': 1,
       'stored_legs': 0,
       'teams': False,
+    }),
+    'progress': dict({
+      'achievements': True,
+      'badges': 0,
+      'logged_positions': 0,
+      'players': 0,
+      'session_positions': 0,
     }),
     'realtime_connected': False,
     'records': dict({

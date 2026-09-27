@@ -52,6 +52,7 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 | `personal_best` | Ein Wert übertrifft deine [Bestleistung](#bestleistungen-serie-und-tagesziel) | `record`, `value`, `previous`, `name` (der Spieler, falls bekannt) |
 | `daily_goal_reached` | Die Darts von heute erreichen das [Tagesziel](#bestleistungen-serie-und-tagesziel), einmal pro Tag | `goal`, `darts`, `streak` |
 | `weekly_report` | Die [Berichtswoche](#wochenbericht) endet, standardmäßig montags um Mitternacht | `week_start`, `week_end`, `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `darts_at_double`, `checkouts`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` |
+| `achievement_unlocked` | Ein Spieler mit Namen erreicht eine neue Stufe eines [Erfolgs](#erfolge) | `player` (der Platz 1–4 des Spielers am Board oder keiner), `name`, `achievement` (etwa `maximum`), `tier` (1–4), `tiers` (wie viele Stufen der Erfolg hat) und `threshold` (der Wert der Stufe, etwa 10 für zehn 180er) |
 | `online_game_on` | [Online-Match](automationen.md#online-matches-experimentell): Eine Aufnahme beginnt, oder ein Moment ohne eigenen Effekt | `trigger`, `name` |
 | `online_visit` | Online-Match: eine Aufnahme | `trigger`, `score`; bei drei Darts auch `darts` und `segments`; bei einem Bereich `score_min` und `score_max` statt `score` |
 | `online_dart` | Online-Match: ein Dart | `trigger`, `segment` (`T20`, `D16`, `S5`, `25`, `BULL` oder `MISS`), `score` |
@@ -246,12 +247,62 @@ Jeder Spieler eines Übungsspiels mit Namen bekommt ein Profil mit Gesamtwerten.
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Spielerprofile | Sensor, Spieler | Die Zahl der Profile. Attribut `players` mit, für jeden Spieler: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (Startwert → wenigste Darts für ein gewonnenes Leg), `last_played` und `person` (die [verknüpfte Person](#spieler-mit-einer-person-verknüpfen-autodartslink_player) oder keine). `highest_visit` ist die höchste X01-Aufnahme des Spielers; `highest_checkout` und `fewest_darts` kommen nur aus Legs mit Double-Out. Der Recorder speichert die Liste nicht. |
+| Spielerprofile | Sensor, Spieler | Die Zahl der Profile. Attribut `players` mit, für jeden Spieler: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (Startwert → wenigste Darts für ein gewonnenes Leg), `last_played` und `person` (die [verknüpfte Person](#spieler-mit-einer-person-verknüpfen-autodartslink_player) oder keine), dazu der [Fortschritt](#fortschritt-der-spieler) des Spielers: `darts_thrown`, `maximums`, `streak`, `best_streak`, `hits`, `spread` und `trend`. `highest_visit` ist die höchste X01-Aufnahme des Spielers; `highest_checkout` und `fewest_darts` kommen nur aus Legs mit Double-Out. Der Recorder speichert die Liste nicht. |
 | Letztes Match | Sensor, Zeitstempel | Wann das letzte Match mehrerer Spieler endete. Attribute: `game` und `winner` dieses Matches, `matches` mit den letzten 20 Matches (`ended`, `game`, `legs_to_win`, `sets_to_win`, `winner`, im Team-Match `winners` mit beiden Gewinnern, und `name`, `legs` und `sets` am Ende, `match_legs` sowie `average`, `mpr` oder `points` und im Team-Match `team` jedes Spielers) und `head_to_head` mit den Siegen jedes Paars benannter Gegner. Der Recorder speichert keine der Listen. |
 
 Die [Spielerkarte](karten.md#spielerkarte) zeigt alles davon. Um ein Profil zu entfernen, etwa nach einem Tippfehler im Namen, nutze [`autodarts.delete_player`](#spielerprofil-löschen-autodartsdelete_player).
 
 **Spieler und Personen:** Verknüpfe einen Spieler mit [`autodarts.link_player`](#spieler-mit-einer-person-verknüpfen-autodartslink_player) mit einer Person von Home Assistant. Anzeigetafel, Spielerkarte und [Spielauswahl](karten.md#spielauswahl) zeigen dann das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Die Verknüpfung wird mit dem Profil gespeichert und übersteht Neustarts.
+
+### Fortschritt der Spieler
+
+Neben den Gesamtwerten trägt der Eintrag jedes benannten Spielers in *Spielerprofile* seinen Fortschritt. Er zählt, was der Spieler in Übungs- und Trainingsspielen wirft; Trainingsspiele zählen für *Übungsspiel Spieler 1*. [Wie der Fortschritt zählt](funktionsweise.md#fortschritt-der-spieler).
+
+| Attribut | Inhalt |
+| --- | --- |
+| `darts_thrown` | Geworfene Darts in Übungs- und Trainingsspielen |
+| `maximums` | X01-Aufnahmen mit 180 Punkten |
+| `streak`, `best_streak` | Tage in Folge mit Darts in einem Übungs- oder Trainingsspiel, aktuell und am längsten; `streak` bleibt, bis ein ganzer Tag ohne Darts vergeht |
+| `hits` | Treffer pro Feld, wie `hits` von *Training Darts*, für das Trefferbild des Spielers |
+| `spread` | Die [Streuung](funktionsweise.md#streuung) auf bis zu sechs Zielfeldern, die mit den meisten Darts zuerst: `target`, `darts`, `offset_x` und `offset_y` (Millimeter von der Mitte des Felds, nach rechts und oben), `r50` und `r80` (Radien mit 50 und 80 % der Darts) und `change` (der Radius der neueren Hälfte der Darts minus der älteren; negativ ist enger) |
+| `trend` | Die letzten 12 Wochen, die älteste zuerst: `weeks` mit dem Montag jeder Woche und eine Liste pro Summe mit einem Wert für jede Woche: `darts`, `x01_darts`, `x01_points`, `first9_points`, `first9_darts`, `at_double`, `checkouts`, `double_attempts`, `double_hits`, `cricket_darts`, `cricket_marks`, `legs`, `legs_won`, `maximums` sowie `highest_checkout`, `best_501` (wenigste Darts eines 501-Legs) und `best_mpr` der Woche, die ohne ein solches Leg leer sind |
+
+Aus den Summen lässt sich jeder Durchschnitt über beliebige Wochen berechnen, etwa der 3-Dart-Average der letzten vier Wochen als dreimal die Summe von `x01_points` geteilt durch die Summe von `x01_darts`.
+
+## Erfolge
+
+Spieler mit Namen schalten Erfolge frei, die meisten in Stufen: Bronze, Silber, Gold und bei der Serie Platin. Sie kommen aus dem, was der Spieler in Übungs- und Trainingsspielen wirft; ein Spieler ohne Namen schaltet nichts frei. Jede neue Stufe löst [`achievement_unlocked`](#board-ereignisse) aus, und die [Spielerkarte](karten.md#spielerkarte) zeigt die Abzeichen.
+
+<img src="../images/de/players-badges.png" alt="Abzeichen von Alex auf der Spielerkarte: erreichte Stufen in Bronze, Silber und Gold mit dem nächsten Ziel und einem Fortschrittsbalken" width="620">
+
+| Erfolg | `achievement` | Stufen | Gemessen an |
+| --- | --- | --- | --- |
+| 180 | `maximum` | 1, 10, 100 | X01-Aufnahmen mit 180 Punkten |
+| 100+-Aufnahmen | `ton_plus` | 10, 100, 1000 | X01-Aufnahmen mit 100 oder mehr Punkten; Überwerfen zählt nichts |
+| 140+-Aufnahmen | `ton_forty` | 10, 100, 500 | X01-Aufnahmen mit 140 oder mehr Punkten |
+| High Finish | `high_finish` | 100, 150, 170 | Der höchste Checkout eines gewonnenen X01-Legs mit Double-Out oder ein Finish des Checkout-Trainings in einer Aufnahme |
+| Kurzes Leg | `short_leg` | 18, 15, 12 Darts | Die wenigsten Darts eines gewonnenen 501-Legs mit Double-Out |
+| Neun-Darter | `nine_darter` | 9 Darts | Dasselbe mit neun Darts |
+| Gewonnene Legs | `legs_won` | 1, 50, 500 | Gewonnene Legs in X01, Cricket und den Partyspielen |
+| Gewonnene Matches | `matches_won` | 1, 25, 250 | Gewonnene Matches mehrerer Spieler |
+| Hattrick | `hat_trick` | 1 | Drei Darts im Single-Bull oder Bullseye in einer Aufnahme eines beliebigen Spiels |
+| Alle Doubles | `all_doubles` | 21 | Jedes Double von D1 bis D20 und das Bullseye mindestens einmal getroffen |
+| Neun Marks | `cricket_nine` | 1 | Eine Aufnahme aus drei Triples auf den Zahlen von Cricket oder seinen Varianten: 15 bis 20, bei Tactics 10 bis 20 |
+| Shanghai | `shanghai` | 1 | Shanghai mit Single, Double und Triple der Zahl der Runde gewonnen |
+| Around the Clock | `around_the_clock` | 40, 30, 21 Darts | Die wenigsten Darts eines beendeten Around the Clock; 21 ist perfekt |
+| Bob's 27 | `bobs_27` | 100, 250, 500 Punkte | Das beste abgeschlossene Bob's 27 |
+| Serie | `streak` | 3, 7, 10, 30 Tage | Die längste Folge von Tagen mit Darts in Übungs- oder Trainingsspielen |
+| Geworfene Darts | `darts_thrown` | 1.000, 10.000, 100.000 | Geworfene Darts in Übungs- und Trainingsspielen |
+
+- **Leise.** Ein Erfolg löst nur das Ereignis aus. Nichts spricht, spielt oder blinkt, außer eine Automation tut es.
+- **Schon erreicht.** Beim ersten Start nach dem Update werden alle Erfolge, die die Spielerprofile schon belegen, leise freigeschaltet, mit dem Datum dieses Tages: gewonnene Legs und Matches, der höchste Checkout, die wenigsten Darts eines 501-Legs, getroffene Doubles und die Darts der X01- und Cricket-Legs. Was die Profile nie gezählt haben, etwa 180er, beginnt bei null.
+- **Mehrere Stufen auf einmal**, etwa ein erstes 501-Leg mit 12 Darts, lösen ein Ereignis mit der höchsten Stufe aus.
+- **Trainingsspiele** zählen für *Übungsspiel Spieler 1*.
+
+| Entität | Typ | Beschreibung |
+| --- | --- | --- |
+| Erfolge | Sensor, Abzeichen (`badges`) | Die von allen Spielern zusammen freigeschalteten Stufen. Attribute: `latest` mit `name`, `achievement`, `tier` und `date` der letzten Freischaltung; `catalogue` mit `id`, `tiers` und `lower` (wahr, wenn weniger besser ist) jedes Erfolgs; `players` mit `name`, `unlocked` (Stufen), `badges` (Erfolg → `tier` und die `dates` seiner Stufen) und `progress` (Erfolg → der Wert, an dem er gemessen wird) jedes Spielers. Der Recorder speichert Katalog und Spieler nicht. |
+| Erfolge | Schalter, *Konfiguration* | Erfolge freischalten und `achievement_unlocked` auslösen. Standardmäßig an. Solange er aus ist, wird nichts freigeschaltet und nichts gemeldet, der Fortschritt zählt aber weiter; wieder an, wird das inzwischen Erreichte leise freigeschaltet. |
 
 ## Doppelanalyse
 
@@ -443,7 +494,7 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn
 
 ### Spielerprofil löschen: `autodarts.delete_player`
 
-Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers und seine Verknüpfung mit einer Person. Der Name verschwindet auch aus den [Bestleistungen](#bestleistungen-serie-und-tagesziel) des Boards, deren Werte bleiben, und aus den Spielernamen des Übungsspiels, damit das nächste Leg das Profil nicht wieder anlegt. Der Match-Verlauf behält den Namen.
+Vergisst Statistik, Bestleistungen, direkte Vergleiche, Fortschritt und Abzeichen eines Spielers und seine Verknüpfung mit einer Person. Der Name verschwindet auch aus den [Bestleistungen](#bestleistungen-serie-und-tagesziel) des Boards, deren Werte bleiben, und aus den Spielernamen des Übungsspiels, damit das nächste Leg das Profil nicht wieder anlegt. Der Match-Verlauf behält den Namen.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |

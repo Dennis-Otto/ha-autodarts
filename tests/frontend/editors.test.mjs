@@ -102,14 +102,26 @@ test("every card has the form of its own options", () => {
     "device_id",
     "title",
     ["mode", "board_style"],
+    "player",
     "history_size",
-    ["show_heatmap", "show_stats", "show_bests", "show_top", "show_history", "show_sessions", "show_reset"],
+    [
+      "show_heatmap",
+      "show_heatmap_controls",
+      "show_stats",
+      "show_bests",
+      "show_top",
+      "show_history",
+      "show_sessions",
+      "show_reset",
+    ],
     "accent_color",
   ]);
   const [mode, style] = training.schema[2].schema;
-  assert.deepEqual(labels(mode), ["Beds", "Numbers"]);
+  assert.deepEqual(labels(mode), ["Beds", "Numbers", "Positions"]);
   assert.deepEqual(labels(style), ["Muted", "Classic", "Autodarts"]);
-  assert.deepEqual(training.schema[3], {
+  // The heatmap's player has help of its own.
+  assert.match(training.computeHelper(training.schema[3]), /this player's darts instead of the session's/);
+  assert.deepEqual(training.schema[4], {
     name: "history_size",
     selector: { number: { min: 5, max: 60, step: 1, mode: "slider" } },
     default: 20,
@@ -124,14 +136,28 @@ test("every card has the form of its own options", () => {
   assert.deepEqual(names(players.schema), [
     "device_id",
     "title",
-    ["show_head_to_head", "show_matches", "export"],
+    ["show_head_to_head", "show_matches", "show_badges", "show_locked", "show_trends", "show_spread", "export"],
+    "trend_weeks",
     "export_format",
     "accent_color",
   ]);
   // The export writes player names into a file: off unless asked for.
-  assert.equal(players.schema[2].schema[2].default, false);
-  assert.deepEqual(labels(players.schema[3]), ["CSV (a ZIP file with one table each)", "JSON"]);
+  assert.equal(players.schema[2].schema[6].default, false);
+  assert.deepEqual(players.schema[3].selector, { number: { min: 4, max: 12, step: 1, mode: "slider" } });
+  assert.deepEqual(labels(players.schema[4]), ["CSV (a ZIP file with one table each)", "JSON"]);
   assert.equal(players.computeHelper({ name: "export_format" }), "Default: CSV (a ZIP file with one table each)");
+  const leaderboard = formOf("autodarts-leaderboard-card");
+  assert.deepEqual(names(leaderboard.schema), [
+    "device_id",
+    "title",
+    ["period", "limit"],
+    ["show_period"],
+    "accent_color",
+  ]);
+  assert.deepEqual(labels(leaderboard.schema[2].schema[0]), ["All time", "Last 4 weeks", "This week"]);
+  assert.equal(leaderboard.computeHelper({ name: "period" }), "Default: All time");
+  assert.throws(() => leaderboard.assertConfig({ period: "year" }), /The option period does not accept "year"/);
+  leaderboard.assertConfig({ period: "week", limit: 5, show_period: false });
 });
 
 test("the caller's calls, the new game screen and idle mode wait in sections of their own", () => {

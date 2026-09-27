@@ -27,13 +27,14 @@
 - **Local and realtime.** Talks directly to the Autodarts Board Manager in your network. Darts appear within a fraction of a second, and no cloud account or client ID is needed.
 - **Found automatically.** Board Manager 2 announces itself on the network, so Home Assistant offers the board with one click. You can also search for your boards or enter an address.
 - **Both Board Manager generations.** Works with the classic Board Manager 1 and the headless Board Manager 2. It detects the generation and switches over by itself when you update the board.
-- **Six dashboard cards** are included and load automatically:
+- **Seven dashboard cards** are included and load automatically:
   - a live dartboard with blinking hit beds and dart positions;
-  - a training card with a hit heatmap, personal bests and visit history;
+  - a training card with a heatmap of hits or of the real dart positions, for the session or any player, personal bests and visit history;
   - a board status card for detection, connections and cameras;
   - a scoreboard for a tablet or TV at the board, readable from the oche, with an optional caller that announces the game, a new game screen to choose the game, the players and the format right there, and an idle mode with a leaderboard, personal bests, today's darts, the last match and a clock;
-  - a players card with profiles, head-to-head records and recent matches, and the pictures of players linked to a person of Home Assistant;
+  - a players card with profiles, badges, weekly trends, groupings in millimeters, head-to-head records and recent matches, and the pictures of players linked to a person of Home Assistant;
   - a doubles card with the hit rate of every double on the board;
+  - a leaderboard of the records of all players, for all time, the last four weeks or this week;
   - plus an automatic dashboard that arranges everything for every board in one click.
 - **Training analytics:**
   - training sessions that start with the first dart or on purpose, end after a pause and keep your last 20 sessions;
@@ -44,7 +45,9 @@
   - a doubles analysis with the hit rate of every double and checkout routes over your strongest doubles;
   - a weekly report with the week's darts, training time, 3-dart average and its trend, sent to your phone if you like;
   - a training calendar with a year of sessions and matches, and an export to CSV or JSON;
-  - players linked to persons of Home Assistant, with their picture and presence.
+  - players linked to persons of Home Assistant, with their picture and presence;
+  - achievements in bronze, silver, gold and platinum, from the first 180 to a nine-darter, with an event for every new tier;
+  - twelve weeks of trends per player, and the grouping of their darts around the beds they aim at, measured from the real dart positions.
 - **Practice games and matches.** Play X01 (101 to 1001, with double in, a bull-off and start scores of their own for a handicap if you like), Cricket, Cut-Throat Cricket and Tactics, or the party games Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up on the local board, alone, as a match of up to four players with legs and sets, or in X01 and Cricket as two teams of two. The remaining score counts down, busts are recognised, and the live card shows the checkout route, the bed to aim at and a scoreboard, in Cricket a chalkboard with marks, points and marks per round. When a match ends, a summary shows every player's averages, checkout rate, highest checkout, 180s and best leg. Eight training games train the basics: Around the Clock, doubles training, checkout training, Bob's 27, the 121 checkout, Catch 40, the JDC Challenge and the singles training. First-9 average, checkout rate, doubles rate and legs per day show your progress.
 - **Automations that feel like a stage.** Board events for every dart, correction, takeout, completed visit and training session, plus eleven ready-made blueprints: 180 celebrations, a dart caller, takeout lights, automatic detection, alerts, daily and weekly reports, a training session routine, a practice caller, a highlight photo with a gallery in the media browser and a light show.
 - **Online matches too** *(experimental)*. An optional bridge brings busts, won legs and matches of online matches on play.autodarts.io into Home Assistant through the browser extension Tools for Autodarts. [How to set it up](docs/automations.md#online-matches-experimental).
@@ -111,6 +114,26 @@
       <p align="center"><b>Training game</b>: Around the Clock</p>
     </td>
   </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/en/players-badges.png" alt="Badges of a player in bronze, silver and gold, each with the next goal and its progress">
+      <p align="center"><b>Badges</b>: achievements in tiers</p>
+    </td>
+    <td width="50%">
+      <img src="docs/images/en/heatmap-modes.webp" alt="Animation: the heatmap switches from beds to numbers and the real dart positions, then to one player's darts">
+      <p align="center"><b>Heatmap</b>: beds, numbers or dart positions</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/images/en/leaderboard-card.png" alt="Leaderboard with the records of all players and the period switch">
+      <p align="center"><b>Leaderboard</b>: records of all players</p>
+    </td>
+    <td width="50%">
+      <img src="docs/images/en/players-trends.png" alt="Weekly trends of three players with sparklines and arrows, and their groupings in millimeters">
+      <p align="center"><b>Trends and grouping</b> per player</p>
+    </td>
+  </tr>
 </table>
 
 ## Quick start
@@ -127,7 +150,7 @@
 
    Choose **Search for boards on this network** or **Enter board address** and confirm. You need no account, password or client ID.
 
-3. **Add the cards.** Edit a dashboard, choose **Add card** and search for *Autodarts*; all six cards pick your board automatically. Or create a complete dashboard in one step: **Settings → Dashboards → Add dashboard → Autodarts**.
+3. **Add the cards.** Edit a dashboard, choose **Add card** and search for *Autodarts*; all seven cards pick your board automatically. Or create a complete dashboard in one step: **Settings → Dashboards → Add dashboard → Autodarts**.
 
 The [installation guide](docs/installation.md) covers requirements, manual installation, cloud linking, updates and removal.
 
@@ -136,11 +159,12 @@ The [installation guide](docs/installation.md) covers requirements, manual insta
 | Area | Entities and features | Board Manager 1 | Board Manager 2 |
 | --- | --- | :---: | :---: |
 | Live visit | Detection status, last dart, darts in visit, visit score with dart positions | ✓ | ✓ |
-| Board events | Dart detected and corrected, takeout started and finished, visit thrown and completed, status changed, session started and ended, bust, leg won, match won, turn changed, bull-off won, training game finished, checkout attempt, personal best, daily goal reached, weekly report | ✓ | ✓ |
+| Board events | Dart detected and corrected, takeout started and finished, visit thrown and completed, status changed, session started and ended, bust, leg won, match won, turn changed, bull-off won, training game finished, checkout attempt, personal best, daily goal reached, weekly report, achievement unlocked | ✓ | ✓ |
 | Training | Training sessions with automatic start and end and the last 20 sessions; darts, points, 3-dart average, visits, highest visit, 100+/140+/180, triples, doubles, bulls, misses, hits per bed | ✓ | ✓ |
 | Reports | Weekly report with darts, training time, sessions, 3-dart average and its change, best visit, 180s, checkout rate, streak and personal bests of the week; `weekly_report` event at a day and time you choose | ✓ | ✓ |
 | Training calendar | Calendar of the training sessions and practice matches of the last 365 days | ✓ | ✓ |
 | Practice game | X01 from 101 to 1001 with double in, bull-off and start scores for a handicap, Cricket, Cut-Throat Cricket, Tactics, Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up for 1–4 players, X01 and Cricket also as two teams of two, double out, legs and sets, player names, remaining score, busts, checkout routes and the last 10 legs; training games Around the Clock, doubles, checkout training, Bob's 27, 121 checkout, Catch 40, JDC Challenge and singles training | ✓ | ✓ |
+| Players | Profiles with lifetime numbers, 16 achievements in tiers with a switch to turn them off, weekly trends, hits per bed and the positions of the last 1000 darts with the grouping per bed | ✓ | ✓ |
 | Match summary | Every player's 3-dart and first-9 average, checkout rate, highest checkout, 100+/140+/180, best leg and darts at a double of a finished match (Cricket: marks per round and marks), on the scoreboard and live card, in `match_won` and in the practice sensor | ✓ | ✓ |
 | Actions | `autodarts.start_game`: start any practice or training game with players, names, format, teams, start scores, Golf holes and Count-Up rounds in one call, also by voice; `autodarts.export`: sessions, matches and player profiles as CSV or JSON; `autodarts.link_player` and `autodarts.unlink_player`: link a player to a person of Home Assistant for the picture and presence | ✓ | ✓ |
 | Media browser | Highlight gallery: the photos of the highlight photo blueprint by month, with the player and the score | ✓ | ✓ |
@@ -163,9 +187,10 @@ The integration serves its cards itself, so no dashboard resource is needed. Eac
 | Card | Type | Highlights |
 | --- | --- | --- |
 | **Autodarts** | `custom:autodarts-card` | The current visit on a dartboard drawn to Board Manager geometry. Hit beds blink, darts appear at their detected position and the board glows in the detection status colour. Also shows training statistics, connection chips and controls. |
-| **Autodarts training** | `custom:autodarts-training-card` | 3-dart average, a heatmap of your hits (per bed or per number), statistics tiles, your most hit beds and a chart of recent visits, plus a *New session* button. |
+| **Autodarts training** | `custom:autodarts-training-card` | 3-dart average, a heatmap of your hits per bed or per number, or of where the darts really landed, for the session or any player, statistics tiles, your most hit beds and a chart of recent visits, plus a *New session* button. |
 | **Autodarts scoreboard** | `custom:autodarts-scoreboard-card` | A large scoreboard for a tablet or TV: every player's or team's score with the checkout route, the Cricket chalkboard, the Golf and Baseball scorecard, the target of a training game, the winner with the result, the match summary and the current visit. A new game screen starts the next game at the board, and idle mode shows a leaderboard, personal bests, today's darts, the last match and a clock. |
-| **Autodarts players** | `custom:autodarts-players-card` | Every named player's statistics and personal bests, head-to-head records and the recent matches, with the pictures of linked persons. |
+| **Autodarts players** | `custom:autodarts-players-card` | Every named player's statistics and personal bests, badges, weekly trends with sparklines, groupings in millimeters, head-to-head records and the recent matches, with the pictures of linked persons. |
+| **Autodarts leaderboard** | `custom:autodarts-leaderboard-card` | Records across all players: best average, highest checkout, most 180s, fewest darts, best Cricket MPR, longest streak, most badges and most darts, for all time, the last four weeks or this week. |
 | **Autodarts doubles** | `custom:autodarts-doubles-card` | The hit rate of every double on the board, for everybody or one player, with the favourite double. |
 | **Autodarts board status** | `custom:autodarts-status-card` | Detection switch, Board Manager version and updates, connections, board PC load, a health tile for every camera and maintenance controls. |
 
@@ -235,7 +260,7 @@ Details: [how it works](docs/how-it-works.md).
 | --- | --- |
 | [Installation](docs/installation.md) | Requirements, HACS and manual installation, setup, cloud link, updates, removal |
 | [Entities](docs/entities.md) | Every entity, event, state and attribute |
-| [Dashboard cards](docs/cards.md) | All six cards and their options |
+| [Dashboard cards](docs/cards.md) | All seven cards and their options |
 | [Automations](docs/automations.md) | Board events, blueprints and examples |
 | [How it works](docs/how-it-works.md) | Data flow, update intervals, training rules, privacy |
 | [Troubleshooting](docs/troubleshooting.md) | Common problems, repairs, diagnostics and logs |

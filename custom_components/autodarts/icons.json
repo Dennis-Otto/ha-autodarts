@@ -276,6 +276,9 @@
       },
       "weekly_report": {
         "default": "mdi:calendar-week"
+      },
+      "achievements": {
+        "default": "mdi:trophy-award"
       }
     },
     "switch": {
@@ -326,6 +329,12 @@
       },
       "practice_teams": {
         "default": "mdi:account-multiple"
+      },
+      "achievements_enabled": {
+        "default": "mdi:trophy-outline",
+        "state": {
+          "off": "mdi:trophy-broken"
+        }
       }
     },
     "text": {

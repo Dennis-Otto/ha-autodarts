@@ -46,6 +46,7 @@ from .runtime import AutodartsConfigEntry, AutodartsRuntimeData
 from .sensor import SYSTEM_SENSORS
 from .services import async_setup_services
 from .storage import TrainingStore
+from .websocket import async_setup_websocket
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,9 +62,11 @@ V2_ONLY = (
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Provide the dashboard card and the actions once, independent of entries."""
+    """Provide the dashboard card, the actions and the positions for the cards
+    once, independent of entries."""
     await async_register_card(hass)
     async_setup_services(hass)
+    async_setup_websocket(hass)
     return True
 
 

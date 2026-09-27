@@ -21,6 +21,7 @@ const CARDS = [
   ["autodarts-scoreboard-card", "Autodarts scoreboard", "cards.md#scoreboard-card"],
   ["autodarts-players-card", "Autodarts players", "cards.md#players-card"],
   ["autodarts-doubles-card", "Autodarts doubles", "cards.md#doubles-card"],
+  ["autodarts-leaderboard-card", "Autodarts leaderboard", "cards.md#leaderboard-card"],
 ];
 const ELEMENTS = [
   "ll-strategy-dashboard-autodarts",
@@ -31,6 +32,7 @@ const ELEMENTS = [
   "autodarts-scoreboard-card",
   "autodarts-players-card",
   "autodarts-doubles-card",
+  "autodarts-leaderboard-card",
 ];
 const STRATEGY = {
   type: "autodarts",
@@ -61,12 +63,13 @@ test("the cards wait for Home Assistant's app element before they register", asy
 
 test("the card picker speaks the language Home Assistant has when it opens", () => {
   page.document.documentElement.lang = "de";
-  const [live, training, , scoreboard, , doubles] = read(page.customCards);
+  const [live, training, , scoreboard, , doubles, leaderboard] = read(page.customCards);
   assert.deepEqual(
-    [live.name, training.name, scoreboard.name, doubles.name],
-    ["Autodarts", "Autodarts Training", "Autodarts Anzeigetafel", "Autodarts Doubles"]
+    [live.name, training.name, scoreboard.name, doubles.name, leaderboard.name],
+    ["Autodarts", "Autodarts Training", "Autodarts Anzeigetafel", "Autodarts Doubles", "Autodarts Bestenliste"]
   );
   assert.equal(training.documentationURL, `${DOCS}/de/karten.md#trainingskarte`);
+  assert.equal(leaderboard.documentationURL, `${DOCS}/de/karten.md#bestenliste`);
   assert.match(scoreboard.description, /^Eine große Anzeigetafel/);
   const [strategy] = read(page.customStrategies);
   assert.equal(strategy.documentationURL, `${DOCS}/de/karten.md#automatisches-dashboard`);

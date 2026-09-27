@@ -2,8 +2,8 @@ blueprint:
   name: "Autodarts: light show"
   description: >-
     Plays your light effects at the big moments of the game: a 180, a high
-    finish, a bust, a won leg or match, a personal best, the daily goal and a
-    won bull-off, and optionally while you pull the darts. Every moment has
+    finish, a bust, a won leg or match, a personal best, the daily goal, a
+    won bull-off and an achievement, and optionally while you pull the darts. Every moment has
     its own actions, for example a WLED preset or a flash of your room
     lights; a moment without actions stays dark.
 
@@ -21,8 +21,8 @@ blueprint:
 
 
     Your actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`,
-    `match`, `personal_best`, `daily_goal`, `bull_off`, `takeout` or
-    `board_clear`), `who` (the player's name, or "Player 2"), `player`
+    `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`,
+    `takeout` or `board_clear`), `who` (the player's name, or "Player 2"), `player`
     (1 to 4), `score` (of a 180), `checkout` (of a won leg) and
     `trigger.to_state.attributes` (every detail of the board event).
   domain: automation
@@ -144,6 +144,19 @@ blueprint:
           default: []
           selector:
             action: {}
+    achievement:
+      name: Achievement
+      icon: mdi:trophy-award
+      collapsed: true
+      input:
+        achievement_actions:
+          name: Actions for an achievement
+          description: >-
+            Run when a named player unlocks a new tier of an achievement, such
+            as a first 180 or ten legs won.
+          default: []
+          selector:
+            action: {}
     takeout:
       name: Takeout
       icon: mdi:hand-back-left
@@ -211,6 +224,8 @@ blueprint:
                   value: daily_goal
                 - label: Bull-off won
                   value: bull_off
+                - label: Achievement
+                  value: achievement
         restore_lights:
           name: Restore these lights
           description: >-
@@ -273,6 +288,7 @@ triggers:
         - personal_best
         - daily_goal_reached
         - bull_off_won
+        - achievement_unlocked
         - takeout_started
         - takeout_finished
         - online_busted
@@ -305,7 +321,8 @@ variables:
     {%- else %}
     {{- {'bust': 'bust', 'match_won': 'match', 'personal_best': 'personal_best',
          'daily_goal_reached': 'daily_goal', 'bull_off_won': 'bull_off',
-         'takeout_started': 'takeout', 'takeout_finished': 'board_clear'}.get(kind, '') }}
+         'achievement_unlocked': 'achievement', 'takeout_started': 'takeout',
+         'takeout_finished': 'board_clear'}.get(kind, '') }}
     {%- endif %}
   effect_moments: !input effect_moments
   restore_lights: !input restore_lights
@@ -359,6 +376,8 @@ actions:
         sequence: !input daily_goal_actions
       - conditions: "{{ moment == 'bull_off' }}"
         sequence: !input bull_off_actions
+      - conditions: "{{ moment == 'achievement' }}"
+        sequence: !input achievement_actions
       - conditions: "{{ moment == 'takeout' }}"
         sequence: !input takeout_actions
       - conditions: "{{ moment == 'board_clear' }}"

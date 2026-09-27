@@ -311,6 +311,9 @@
       },
       "weekly_report": {
         "name": "Weekly report"
+      },
+      "achievements": {
+        "name": "Achievements"
       }
     },
     "button": {
@@ -393,6 +396,9 @@
       },
       "practice_teams": {
         "name": "Practice teams"
+      },
+      "achievements_enabled": {
+        "name": "Achievements"
       }
     },
     "select": {
@@ -547,7 +553,29 @@
               "online_bull_off": "Online: bull-off starts",
               "online_tournament_ready": "Online: tournament match ready",
               "online_match_left": "Online: match left",
-              "weekly_report": "Weekly report"
+              "weekly_report": "Weekly report",
+              "achievement_unlocked": "Achievement unlocked"
+            }
+          },
+          "achievement": {
+            "name": "Achievement",
+            "state": {
+              "maximum": "180",
+              "ton_plus": "Ton-plus visits",
+              "ton_forty": "Ton-forty visits",
+              "high_finish": "High finish",
+              "short_leg": "Short leg",
+              "nine_darter": "Nine-darter",
+              "legs_won": "Legs won",
+              "matches_won": "Matches won",
+              "hat_trick": "Hat trick",
+              "all_doubles": "Every double",
+              "cricket_nine": "Nine marks",
+              "shanghai": "Shanghai",
+              "around_the_clock": "Around the Clock",
+              "bobs_27": "Bob's 27",
+              "streak": "Streak",
+              "darts_thrown": "Darts thrown"
             }
           }
         }

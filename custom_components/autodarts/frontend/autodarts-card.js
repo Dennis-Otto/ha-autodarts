@@ -10,6 +10,8 @@
  *   maintenance controls at a glance.
  * - autodarts-scoreboard-card, autodarts-players-card and autodarts-doubles-card:
  *   the game at the board, the player profiles and the hit rate per double.
+ * - autodarts-leaderboard-card: records across all players, for all time, the
+ *   last four weeks or this week.
  * - The dashboard strategy "custom:autodarts" builds a complete dashboard with
  *   live, scoreboard, training, players and board views for every board.
  *
@@ -23,6 +25,7 @@ const STATUS_TYPE = "autodarts-status-card";
 const SCOREBOARD_TYPE = "autodarts-scoreboard-card";
 const PLAYERS_TYPE = "autodarts-players-card";
 const DOUBLES_TYPE = "autodarts-doubles-card";
+const LEADERBOARD_TYPE = "autodarts-leaderboard-card";
 const STRATEGY_TYPE = "autodarts";
 const STRATEGY_ELEMENT = `ll-strategy-dashboard-${STRATEGY_TYPE}`;
 const STRATEGY_EDITOR_TYPE = "autodarts-strategy-editor";
@@ -448,6 +451,99 @@ const TEXT = {
     unit_days: "{value} days",
     unit_minutes: "{value} min",
     under_a_minute: "<1 min",
+    // Progress: badges, trends, grouping, dart positions and the leaderboard
+    badges: "Badges",
+    badge_count: "{count} badges",
+    badge_count_one: "1 badge",
+    badge_locked: "Locked",
+    badge_earned: "Earned {date}",
+    badge_progress: "{value} of {goal}",
+    badge_best: "Best so far: {value}",
+    tier_1: "Bronze",
+    tier_2: "Silver",
+    tier_3: "Gold",
+    tier_4: "Platinum",
+    achievement_maximum: "180",
+    achievement_maximum_goal: "180s in X01: {value}",
+    achievement_ton_plus: "Ton-plus visits",
+    achievement_ton_plus_goal: "X01 visits of 100 or more: {value}",
+    achievement_ton_forty: "Ton-forty visits",
+    achievement_ton_forty_goal: "X01 visits of 140 or more: {value}",
+    achievement_high_finish: "High finish",
+    achievement_high_finish_goal: "A checkout of {value} or more",
+    achievement_short_leg: "Short leg",
+    achievement_short_leg_goal: "A 501 leg in {value} darts or fewer",
+    achievement_nine_darter: "Nine-darter",
+    achievement_nine_darter_goal: "A 501 leg in nine darts",
+    achievement_legs_won: "Legs won",
+    achievement_legs_won_goal: "Legs won: {value}",
+    achievement_matches_won: "Matches won",
+    achievement_matches_won_goal: "Matches won: {value}",
+    achievement_hat_trick: "Hat trick",
+    achievement_hat_trick_goal: "Three bulls in one visit",
+    achievement_all_doubles: "Every double",
+    achievement_all_doubles_goal: "Every double from D1 to D20 and the bullseye",
+    achievement_cricket_nine: "Nine marks",
+    achievement_cricket_nine_goal: "Three trebles in one Cricket visit",
+    achievement_shanghai: "Shanghai",
+    achievement_shanghai_goal: "Win Shanghai with a single, double and treble",
+    achievement_around_the_clock: "Around the Clock",
+    achievement_around_the_clock_goal: "Around the Clock in {value} darts or fewer",
+    achievement_bobs_27: "Bob's 27",
+    achievement_bobs_27_goal: "Bob's 27 with {value} points or more",
+    achievement_streak: "Streak",
+    achievement_streak_goal: "Days in a row: {value}",
+    achievement_darts_thrown: "Darts thrown",
+    achievement_darts_thrown_goal: "Darts thrown: {value}",
+    show_badges: "Show badges",
+    show_locked: "Show locked badges",
+    show_trends: "Show trends",
+    show_spread: "Show grouping",
+    trend_weeks: "Weeks in the trends",
+    trends: "Trends",
+    trends_range: "last {weeks} weeks",
+    doubles_rate_short: "Doubles",
+    trend_up: "rising",
+    trend_down: "falling",
+    trend_steady: "steady",
+    spread: "Grouping",
+    spread_group: "grouping {r50}",
+    spread_group80: "80 % within {r80}",
+    spread_left: "{distance} left of center",
+    spread_right: "{distance} right of center",
+    spread_high: "{distance} high",
+    spread_low: "{distance} low",
+    spread_centered: "centered",
+    spread_tighter: "{value} tighter",
+    spread_wider: "{value} wider",
+    spread_hint: "Half of the darts land within the grouping around their mean point, 80 % within the second radius.",
+    unit_mm: "{value} mm",
+    mode_positions: "Positions",
+    heatmap_source: "Whose darts",
+    heatmap_session: "Session",
+    show_heatmap_controls: "Show the heatmap switches",
+    heatmap_player_helper:
+      "Optional. The heatmap starts with this player's darts instead of the session's; the switches above the board change it.",
+    positions_label: "Dartboard with the positions of the darts",
+    positions_empty: "No dart positions yet.",
+    legend_few: "few",
+    legend_many: "many",
+    leaderboard: "Leaderboard",
+    period: "Period",
+    period_all: "All time",
+    period_month: "Last 4 weeks",
+    period_week: "This week",
+    show_period: "Show the period switch",
+    limit: "Places per record",
+    record_average: "Best average",
+    record_checkout: "Highest checkout",
+    record_maximums: "Most 180s",
+    record_best_501: "Fewest darts, 501",
+    record_mpr: "Best Cricket MPR",
+    record_streak: "Longest streak",
+    record_achievements: "Most badges",
+    record_darts: "Most darts",
+    leaderboard_empty: "No records yet. Name the players of a practice game, and their legs make the leaderboard.",
     // Status card
     detection: "Detection",
     connections: "Connections",
@@ -497,6 +593,9 @@ const TEXT = {
     picker_doubles: "Autodarts doubles",
     picker_doubles_description:
       "The hit rate of every double on the board, for everybody or one player, with the favorite double.",
+    picker_leaderboard: "Autodarts leaderboard",
+    picker_leaderboard_description:
+      "Records across all players: best average, highest checkout, most 180s, fewest darts and more, for all time, the last four weeks or this week.",
     picker_strategy_description:
       "Live, scoreboard, training, players and board views for every Autodarts board, built automatically.",
   },
@@ -807,6 +906,99 @@ const TEXT = {
     unit_days: "{value} Tage",
     unit_minutes: "{value} Min.",
     under_a_minute: "<1 Min.",
+    // Fortschritt: Abzeichen, Trends, Streuung, Dart-Positionen und die Bestenliste
+    badges: "Abzeichen",
+    badge_count: "{count} Abzeichen",
+    badge_count_one: "1 Abzeichen",
+    badge_locked: "Gesperrt",
+    badge_earned: "Erreicht {date}",
+    badge_progress: "{value} von {goal}",
+    badge_best: "Bestwert bisher: {value}",
+    tier_1: "Bronze",
+    tier_2: "Silber",
+    tier_3: "Gold",
+    tier_4: "Platin",
+    achievement_maximum: "180",
+    achievement_maximum_goal: "180er in X01: {value}",
+    achievement_ton_plus: "100+-Aufnahmen",
+    achievement_ton_plus_goal: "X01-Aufnahmen mit 100 oder mehr: {value}",
+    achievement_ton_forty: "140+-Aufnahmen",
+    achievement_ton_forty_goal: "X01-Aufnahmen mit 140 oder mehr: {value}",
+    achievement_high_finish: "High Finish",
+    achievement_high_finish_goal: "Ein Checkout von {value} oder mehr",
+    achievement_short_leg: "Kurzes Leg",
+    achievement_short_leg_goal: "Ein 501-Leg mit höchstens {value} Darts",
+    achievement_nine_darter: "Neun-Darter",
+    achievement_nine_darter_goal: "Ein 501-Leg mit neun Darts",
+    achievement_legs_won: "Gewonnene Legs",
+    achievement_legs_won_goal: "Gewonnene Legs: {value}",
+    achievement_matches_won: "Gewonnene Matches",
+    achievement_matches_won_goal: "Gewonnene Matches: {value}",
+    achievement_hat_trick: "Hattrick",
+    achievement_hat_trick_goal: "Drei Bulls in einer Aufnahme",
+    achievement_all_doubles: "Alle Doubles",
+    achievement_all_doubles_goal: "Jedes Double von D1 bis D20 und das Bullseye",
+    achievement_cricket_nine: "Neun Marks",
+    achievement_cricket_nine_goal: "Drei Triples in einer Cricket-Aufnahme",
+    achievement_shanghai: "Shanghai",
+    achievement_shanghai_goal: "Shanghai mit Single, Double und Triple gewinnen",
+    achievement_around_the_clock: "Around the Clock",
+    achievement_around_the_clock_goal: "Around the Clock mit höchstens {value} Darts",
+    achievement_bobs_27: "Bob's 27",
+    achievement_bobs_27_goal: "Bob's 27 mit mindestens {value} Punkten",
+    achievement_streak: "Serie",
+    achievement_streak_goal: "Tage in Folge: {value}",
+    achievement_darts_thrown: "Geworfene Darts",
+    achievement_darts_thrown_goal: "Geworfene Darts: {value}",
+    show_badges: "Abzeichen anzeigen",
+    show_locked: "Gesperrte Abzeichen anzeigen",
+    show_trends: "Trends anzeigen",
+    show_spread: "Streuung anzeigen",
+    trend_weeks: "Wochen in den Trends",
+    trends: "Trends",
+    trends_range: "letzte {weeks} Wochen",
+    doubles_rate_short: "Doubles",
+    trend_up: "steigend",
+    trend_down: "fallend",
+    trend_steady: "gleichbleibend",
+    spread: "Streuung",
+    spread_group: "Streuung {r50}",
+    spread_group80: "80 % innerhalb {r80}",
+    spread_left: "{distance} links der Mitte",
+    spread_right: "{distance} rechts der Mitte",
+    spread_high: "{distance} zu hoch",
+    spread_low: "{distance} zu tief",
+    spread_centered: "mittig",
+    spread_tighter: "{value} enger",
+    spread_wider: "{value} weiter",
+    spread_hint: "Die Hälfte der Darts landet innerhalb der Streuung um ihren Mittelpunkt, 80 % innerhalb des zweiten Radius.",
+    unit_mm: "{value} mm",
+    mode_positions: "Positionen",
+    heatmap_source: "Wessen Darts",
+    heatmap_session: "Session",
+    show_heatmap_controls: "Umschalter der Heatmap anzeigen",
+    heatmap_player_helper:
+      "Optional. Die Heatmap zeigt zuerst die Darts dieses Spielers statt der Session; die Umschalter über der Scheibe wechseln das.",
+    positions_label: "Dartscheibe mit den Positionen der Darts",
+    positions_empty: "Noch keine Dart-Positionen.",
+    legend_few: "wenige",
+    legend_many: "viele",
+    leaderboard: "Bestenliste",
+    period: "Zeitraum",
+    period_all: "Gesamt",
+    period_month: "Letzte 4 Wochen",
+    period_week: "Diese Woche",
+    show_period: "Umschalter des Zeitraums anzeigen",
+    limit: "Plätze je Rekord",
+    record_average: "Bester Average",
+    record_checkout: "Höchster Checkout",
+    record_maximums: "Meiste 180er",
+    record_best_501: "Wenigste Darts, 501",
+    record_mpr: "Beste Cricket-MPR",
+    record_streak: "Längste Serie",
+    record_achievements: "Meiste Abzeichen",
+    record_darts: "Meiste Darts",
+    leaderboard_empty: "Noch keine Rekorde. Gib den Spielern eines Übungsspiels Namen, dann kommen ihre Legs in die Bestenliste.",
     detection: "Erkennung",
     connections: "Verbindungen",
     cloud: "Cloud",
@@ -853,6 +1045,9 @@ const TEXT = {
     picker_doubles: "Autodarts Doubles",
     picker_doubles_description:
       "Die Quote jedes Doubles der Scheibe, für alle oder einen Spieler, mit dem Lieblingsdouble.",
+    picker_leaderboard: "Autodarts Bestenliste",
+    picker_leaderboard_description:
+      "Rekorde aller Spieler: bester Average, höchster Checkout, meiste 180er, wenigste Darts und mehr, gesamt, in den letzten vier Wochen oder in dieser Woche.",
     picker_strategy_description:
       "Live-, Anzeigetafel-, Trainings-, Spieler- und Board-Ansicht für jedes Autodarts-Board, automatisch erstellt.",
   },
@@ -886,7 +1081,11 @@ const TRAINING_DEFAULTS = {
   show_reset: true,
   show_sessions: true,
   history_size: 20,
+  show_heatmap_controls: true,
 };
+
+// Hits per bed, per number, or where the darts landed.
+const HEAT_MODES = ["beds", "numbers", "positions"];
 
 const STATUS_DEFAULTS = {
   show_connection: true,
@@ -903,6 +1102,17 @@ const PLAYERS_DEFAULTS = {
   // The export writes a file with player names; the button appears on request.
   export: false,
   export_format: "csv",
+  show_badges: true,
+  show_locked: true,
+  show_trends: true,
+  show_spread: true,
+  trend_weeks: 12,
+};
+
+const LEADERBOARD_DEFAULTS = {
+  period: "all",
+  show_period: true,
+  limit: 3,
 };
 
 const SCOREBOARD_DEFAULTS = {
@@ -979,6 +1189,7 @@ const TRAINING_KEYS = {
   streak: "sensor.training_streak",
   today: "sensor.darts_today",
   bests: "sensor.personal_best",
+  profiles: "sensor.player_profiles",
 };
 
 const STATUS_KEYS = {
@@ -1004,6 +1215,12 @@ const DOUBLES_KEYS = {
 const PLAYERS_KEYS = {
   profiles: "sensor.player_profiles",
   lastMatch: "sensor.last_match",
+  achievements: "sensor.achievements",
+};
+
+const LEADERBOARD_KEYS = {
+  profiles: "sensor.player_profiles",
+  achievements: "sensor.achievements",
 };
 
 const SCOREBOARD_KEYS = {
@@ -3122,6 +3339,460 @@ function doublesHtml(view, ui) {
   return { ring, list };
 }
 
+// Progress -------------------------------------------------------------------
+
+// The icon of every achievement; the colour of a badge tells its tier.
+const ACHIEVEMENT_ICONS = {
+  maximum: "mdi:crown",
+  ton_plus: "mdi:arrow-up-bold-circle-outline",
+  ton_forty: "mdi:rocket-launch",
+  high_finish: "mdi:flag-checkered",
+  short_leg: "mdi:run-fast",
+  nine_darter: "mdi:star-shooting",
+  legs_won: "mdi:trophy-variant-outline",
+  matches_won: "mdi:trophy",
+  hat_trick: "mdi:bullseye",
+  all_doubles: "mdi:circle-double",
+  cricket_nine: "mdi:pound",
+  shanghai: "mdi:dice-multiple",
+  around_the_clock: "mdi:clock-time-twelve-outline",
+  bobs_27: "mdi:target",
+  streak: "mdi:fire",
+  darts_thrown: "mdi:arrow-projectile-multiple",
+};
+// Bronze, silver, gold and platinum; an achievement of a single tier is gold.
+const TIER_COLORS = ["#c07a3c", "#a9b6c4", GOLD, "#5fd0e8"];
+
+function tierColor(tier, tiers) {
+  if (!tier) return null;
+  return TIER_COLORS[tiers === 1 ? 2 : Math.min(tier, TIER_COLORS.length) - 1];
+}
+
+// Every player's badges from the achievements sensor: the tier reached, when,
+// and how far the value has come towards the next tier.
+function badgesView(achievements) {
+  const attributes = achievements?.attributes || {};
+  const catalogue = (Array.isArray(attributes.catalogue) ? attributes.catalogue : []).filter(
+    (item) =>
+      item && typeof item.id === "string" && Array.isArray(item.tiers) && item.tiers.length && item.tiers.every(Number.isFinite)
+  );
+  const players = (Array.isArray(attributes.players) ? attributes.players : [])
+    .filter((player) => player && named(player.name))
+    .map((player) => {
+      const earned = player.badges && typeof player.badges === "object" ? player.badges : {};
+      const progress = player.progress && typeof player.progress === "object" ? player.progress : {};
+      const badges = catalogue.map((item) => {
+        const tiers = item.tiers.length;
+        const reached = Number(earned[item.id]?.tier);
+        const tier = Number.isInteger(reached) ? Math.min(Math.max(reached, 0), tiers) : 0;
+        const dates = (Array.isArray(earned[item.id]?.dates) ? earned[item.id].dates : []).filter(
+          (date) => typeof date === "string"
+        );
+        const value = finite(progress[item.id]);
+        const goal = item.tiers[Math.min(tier, tiers - 1)];
+        // A count shows how far it has come; fewest darts and yes-or-no badges do not.
+        const measurable = item.lower !== true && goal > 1 && tier < tiers && value !== null;
+        return {
+          id: item.id,
+          tier,
+          tiers,
+          goal,
+          lower: item.lower === true,
+          value,
+          share: measurable ? Math.min(1, Math.max(0, value / goal)) : null,
+          date: dates.at(-1) ?? null,
+          dates,
+        };
+      });
+      return { name: player.name, unlocked: badges.reduce((sum, badge) => sum + badge.tier, 0), badges };
+    });
+  return { players };
+}
+
+function badgesHtml(player, ui, locked = true) {
+  const { t, format, date } = ui;
+  return player.badges
+    .filter((badge) => locked || badge.tier)
+    .map((badge) => {
+      const tier = badge.tier && badge.tiers > 1 ? t(`tier_${Math.min(badge.tier, 4)}`) : "";
+      const title = `${t(`achievement_${badge.id}`)}${tier ? ` · ${tier}` : ""}`;
+      const goal = fill(t(`achievement_${badge.id}_goal`), { value: format(badge.goal) });
+      let status = t("badge_locked");
+      if (badge.share !== null) status = fill(t("badge_progress"), { value: format(badge.value), goal: format(badge.goal) });
+      else if (badge.lower && badge.value !== null && badge.tier < badge.tiers) status = fill(t("badge_best"), { value: format(badge.value) });
+      else if (badge.tier) status = fill(t("badge_earned"), { date: date(badge.date) });
+      const bar = badge.share === null ? "" : `<span class="badge-bar"><i style="width:${fmt(badge.share * 100)}%"></i></span>`;
+      const color = tierColor(badge.tier, badge.tiers);
+      return (
+        `<div class="badge${badge.tier ? "" : " locked"}" data-badge="${escapeHtml(badge.id)}"` +
+        `${color ? ` style="--tier:${color}"` : ""}>` +
+        `<span class="badge-icon"><ha-icon icon="${ACHIEVEMENT_ICONS[badge.id] ?? "mdi:medal-outline"}"></ha-icon></span>` +
+        `<span class="badge-text"><b>${escapeHtml(title)}</b><span>${escapeHtml(goal)}</span>` +
+        `<span class="muted">${escapeHtml(status)}</span>${bar}</span></div>`
+      );
+    })
+    .join("");
+}
+
+// The weekly sums of a player's trend that its figures come from.
+const TREND_SUMS = [
+  "darts",
+  "x01_darts",
+  "x01_points",
+  "first9_points",
+  "first9_darts",
+  "at_double",
+  "checkouts",
+  "double_attempts",
+  "double_hits",
+  "maximums",
+];
+const ratioOf = (part, whole, factor) => (whole > 0 ? (part * factor) / whole : null);
+const TREND_METRICS = [
+  { key: "average", label: "average", digits: 1, of: (sums) => ratioOf(sums.x01_points, sums.x01_darts, 3) },
+  { key: "first_9", label: "first_9", digits: 1, of: (sums) => ratioOf(sums.first9_points, sums.first9_darts, 3) },
+  {
+    key: "checkout_rate",
+    label: "checkout_short",
+    digits: 1,
+    percent: true,
+    of: (sums) => ratioOf(sums.checkouts, sums.at_double, 100),
+  },
+  {
+    key: "doubles_rate",
+    label: "doubles_rate_short",
+    digits: 1,
+    percent: true,
+    of: (sums) => ratioOf(sums.double_hits, sums.double_attempts, 100),
+  },
+  { key: "darts", label: "darts", digits: 0, of: (sums) => (sums.darts > 0 ? sums.darts : null) },
+];
+
+// The last weeks of a trend, oldest first, each with its sums.
+function trendWeeks(trend, size) {
+  const weeks = Array.isArray(trend?.weeks) ? trend.weeks.filter((week) => typeof week === "string") : [];
+  const count = Math.min(Math.max(1, Math.round(size) || 1), weeks.length);
+  const first = weeks.length - count;
+  return weeks.slice(first).map((week, index) => {
+    const sums = { week };
+    for (const name of TREND_SUMS) sums[name] = finite(trend[name]?.[first + index]) ?? 0;
+    for (const name of ["highest_checkout", "best_501", "best_mpr"]) sums[name] = finite(trend[name]?.[first + index]);
+    return sums;
+  });
+}
+
+// Sums of several weeks; bests keep the best week.
+function addWeeks(weeks) {
+  const total = Object.fromEntries(TREND_SUMS.map((name) => [name, 0]));
+  const best = (values, pick) => (values.length ? pick(...values) : null);
+  for (const week of weeks) for (const name of TREND_SUMS) total[name] += week[name];
+  const known = (name) => weeks.map((week) => week[name]).filter((value) => value !== null && value > 0);
+  total.highest_checkout = best(known("highest_checkout"), Math.max);
+  total.best_501 = best(known("best_501"), Math.min);
+  total.best_mpr = best(known("best_mpr"), Math.max);
+  return total;
+}
+
+// Every figure of a player's trend: its value over the weeks, the value of each
+// week for the sparkline, and whether the newer half of the weeks is better.
+function trendView(trend, size = 12) {
+  const weeks = trendWeeks(trend, size);
+  const half = Math.floor(weeks.length / 2);
+  return TREND_METRICS.map((metric) => {
+    const before = metric.of(addWeeks(weeks.slice(0, half)));
+    const after = metric.of(addWeeks(weeks.slice(half)));
+    let direction = "steady";
+    if (before !== null && after !== null) {
+      const change = after - before;
+      if (Math.abs(change) >= Math.max(0.5, Math.abs(before) * 0.02)) direction = change > 0 ? "up" : "down";
+    }
+    return {
+      key: metric.key,
+      label: metric.label,
+      digits: metric.digits,
+      percent: metric.percent === true,
+      values: weeks.map((week) => metric.of(week)),
+      value: metric.of(addWeeks(weeks)),
+      direction,
+    };
+  });
+}
+
+// A small line of the weekly values; weeks without a value interrupt it.
+function sparkline(values) {
+  const known = values.filter((value) => value !== null);
+  if (!known.length) return "";
+  const low = Math.min(...known);
+  const high = Math.max(...known);
+  const x = (index) => fmt(values.length > 1 ? (index * 100) / (values.length - 1) : 50);
+  const y = (value) => fmt(high === low ? 12 : 21 - ((value - low) / (high - low)) * 18);
+  const runs = [[]];
+  values.forEach((value, index) => {
+    if (value === null) runs.push([]);
+    else runs.at(-1).push(`${x(index)},${y(value)}`);
+  });
+  const lines = runs
+    .filter((points) => points.length)
+    .map((points) =>
+      points.length > 1 ? `<polyline points="${points.join(" ")}"/>` : `<polyline class="dot" points="${points[0]} ${points[0]}"/>`
+    )
+    .join("");
+  const last = values.findLastIndex((value) => value !== null);
+  const end = `${x(last)},${y(values[last])}`;
+  return (
+    `<svg class="spark" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">` +
+    `${lines}<polyline class="dot last" points="${end} ${end}"/></svg>`
+  );
+}
+
+const TREND_ARROWS = { up: "↗", down: "↘", steady: "→" };
+
+function trendsHtml(players, ui) {
+  const { t, format, percent } = ui;
+  return players
+    .map((player) => {
+      const metrics = player.metrics
+        .map((metric) => {
+          const shown =
+            metric.value === null ? "–" : metric.percent ? percent(metric.value, metric.digits) : format(metric.value, metric.digits);
+          const trend = t(`trend_${metric.direction}`);
+          return (
+            `<div class="trend" data-metric="${metric.key}"><span class="trend-label">${escapeHtml(t(metric.label))}</span>` +
+            `<span class="trend-value">${escapeHtml(shown)} <span class="arrow ${metric.direction}" title="${escapeHtml(
+              trend
+            )}" aria-label="${escapeHtml(trend)}">${TREND_ARROWS[metric.direction]}</span></span>` +
+            `${sparkline(metric.values)}</div>`
+          );
+        })
+        .join("");
+      return `<div class="trend-player"><div class="trend-name">${escapeHtml(player.name)}</div><div class="trends">${metrics}</div></div>`;
+    })
+    .join("");
+}
+
+// The groupings of a player or the session, at most `limit` beds.
+function spreadView(groups, limit = 3) {
+  return (Array.isArray(groups) ? groups : [])
+    .filter(
+      (group) =>
+        group &&
+        typeof group.target === "string" &&
+        ["darts", "offset_x", "offset_y", "r50", "r80"].every((key) => Number.isFinite(group[key]))
+    )
+    .slice(0, limit)
+    .map((group) => ({ ...group, change: finite(group.change) }));
+}
+
+// "6 mm left of center, 2 mm high", in board directions as the player sees them.
+function offsetText(ui, group) {
+  const { t, format } = ui;
+  const mm = (value) => fill(t("unit_mm"), { value: format(Math.abs(value)) });
+  const parts = [];
+  if (Math.abs(group.offset_x) >= 1) {
+    parts.push(fill(t(group.offset_x < 0 ? "spread_left" : "spread_right"), { distance: mm(group.offset_x) }));
+  }
+  if (Math.abs(group.offset_y) >= 1) {
+    parts.push(fill(t(group.offset_y < 0 ? "spread_low" : "spread_high"), { distance: mm(group.offset_y) }));
+  }
+  return parts.join(", ") || t("spread_centered");
+}
+
+function spreadHtml(groups, ui) {
+  const { t, format, label } = ui;
+  const mm = (value) => fill(t("unit_mm"), { value: format(Math.abs(value)) });
+  return groups
+    .map((group) => {
+      const text = [
+        fill(t("spread_group"), { r50: mm(group.r50) }),
+        fill(t("spread_group80"), { r80: mm(group.r80) }),
+        offsetText(ui, group),
+      ].join(" · ");
+      const changed = group.change !== null && Math.abs(group.change) >= 1;
+      const change = changed
+        ? `<span class="group-change ${group.change < 0 ? "better" : "worse"}">${escapeHtml(
+            fill(t(group.change < 0 ? "spread_tighter" : "spread_wider"), { value: mm(group.change) })
+          )}</span>`
+        : "";
+      return (
+        `<div class="group" data-target="${escapeHtml(group.target)}"><span class="group-target">${escapeHtml(
+          label(group.target)
+        )}</span><span class="group-text">${escapeHtml(text)}</span>${change}</div>`
+      );
+    })
+    .join("");
+}
+
+// Trends and groupings of every named player from the profiles sensor.
+function progressView(profiles, weeks = 12) {
+  return (Array.isArray(profiles?.attributes?.players) ? profiles.attributes.players : [])
+    .filter((player) => player && named(player.name))
+    .map((player) => ({
+      name: player.name,
+      metrics: trendView(player.trend, weeks),
+      groups: spreadView(player.spread),
+      active: trendWeeks(player.trend, weeks).some((week) => week.darts > 0 || week.x01_darts > 0),
+    }));
+}
+
+// A smoothed density of dart positions on a grid over the board, in millimetres.
+const DENSITY_CELL = 8;
+const DENSITY_SIGMA = 8;
+// The newest darts are also drawn as dots, up to this many.
+const POSITION_DOTS = 300;
+
+const validPositions = (positions) =>
+  (Array.isArray(positions) ? positions : []).filter(
+    (position) => Array.isArray(position) && Number.isFinite(position[0]) && Number.isFinite(position[1])
+  );
+
+function positionsDensity(positions) {
+  const cells = new Map();
+  const reach = Math.ceil((3 * DENSITY_SIGMA) / DENSITY_CELL);
+  for (const [nx, ny] of validPositions(positions)) {
+    const x = nx * NORM;
+    const y = -ny * NORM;
+    const column = Math.round(x / DENSITY_CELL);
+    const row = Math.round(y / DENSITY_CELL);
+    for (let i = column - reach; i <= column + reach; i += 1) {
+      for (let j = row - reach; j <= row + reach; j += 1) {
+        const dx = i * DENSITY_CELL - x;
+        const dy = j * DENSITY_CELL - y;
+        const weight = Math.exp(-(dx * dx + dy * dy) / (2 * DENSITY_SIGMA * DENSITY_SIGMA));
+        if (weight < 0.01) continue;
+        const key = `${i},${j}`;
+        cells.set(key, (cells.get(key) || 0) + weight);
+      }
+    }
+  }
+  return cells;
+}
+
+// The density in the heatmap colours, softened by a blur, and the newest darts as dots.
+function positionsHtml(positions) {
+  const valid = validPositions(positions);
+  const cells = positionsDensity(valid);
+  let max = 0;
+  for (const value of cells.values()) max = Math.max(max, value);
+  const half = DENSITY_CELL / 2;
+  const density = [...cells.entries()]
+    .filter(([, value]) => value >= max * 0.04)
+    .map(([key, value]) => {
+      const [column, row] = key.split(",").map(Number);
+      const ratio = value / max;
+      return (
+        `<rect x="${fmt(column * DENSITY_CELL - half)}" y="${fmt(row * DENSITY_CELL - half)}" ` +
+        `width="${DENSITY_CELL}" height="${DENSITY_CELL}" fill="${heatColor(ratio)}" fill-opacity="${fmt(0.3 + 0.6 * ratio)}"/>`
+      );
+    })
+    .join("");
+  const dots = valid
+    .slice(-POSITION_DOTS)
+    .map(([x, y]) => `<circle class="position" cx="${fmt(x * NORM)}" cy="${fmt(-y * NORM)}" r="2.2"/>`)
+    .join("");
+  return `<g class="density" filter="url(#ad-density)">${density}</g><g class="positions">${dots}</g>`;
+}
+
+// Leaderboard ------------------------------------------------------------------
+
+// Records across all players: all time from the profiles, a period from the weeks.
+const LEADERBOARD_RECORDS = [
+  { key: "average", digits: 1 },
+  { key: "checkout", digits: 0 },
+  { key: "maximums", digits: 0 },
+  { key: "best_501", digits: 0, lower: true, unit: "unit_darts" },
+  { key: "mpr", digits: 2 },
+  { key: "streak", digits: 0, unit: "unit_days", always: true },
+  { key: "achievements", digits: 0 },
+  { key: "darts", digits: 0 },
+];
+const PERIOD_WEEKS = { week: 1, month: 4 };
+const PERIODS = ["all", "month", "week"];
+
+function leaderboardRecords(profiles, achievements, period = "all") {
+  const weeks = PERIOD_WEEKS[period] ?? null;
+  const badges = new Map(badgesView(achievements).players.map((player) => [player.name.toLowerCase(), player]));
+  const players = (Array.isArray(profiles?.attributes?.players) ? profiles.attributes.players : []).filter(
+    (player) => player && named(player.name)
+  );
+  const rows = players.map((player) => {
+    const earned = badges.get(player.name.toLowerCase());
+    if (!weeks) {
+      return {
+        name: player.name,
+        average: finite(player.average),
+        checkout: finite(player.highest_checkout),
+        maximums: finite(player.maximums),
+        best_501: finite(player.fewest_darts?.["501"]),
+        mpr: finite(player.best_mpr),
+        streak: finite(player.best_streak),
+        achievements: earned?.unlocked ?? null,
+        darts: finite(player.darts_thrown),
+      };
+    }
+    const range = trendWeeks(player.trend, weeks);
+    const sums = addWeeks(range);
+    const since = range[0]?.week ?? "9999";
+    return {
+      name: player.name,
+      average: ratioOf(sums.x01_points, sums.x01_darts, 3),
+      checkout: sums.highest_checkout,
+      maximums: sums.maximums,
+      best_501: sums.best_501,
+      mpr: sums.best_mpr,
+      streak: null,
+      // Every tier unlocked since the first day of the period.
+      achievements: (earned?.badges ?? []).reduce(
+        (count, badge) => count + badge.dates.filter((date) => date.slice(0, 10) >= since).length,
+        0
+      ),
+      darts: sums.darts,
+    };
+  });
+  const records = LEADERBOARD_RECORDS.filter((record) => !weeks || !record.always)
+    .map((record) => {
+      const better = (a, b) => (record.lower ? a[record.key] - b[record.key] : b[record.key] - a[record.key]);
+      const ranked = rows
+        .filter((row) => row[record.key] !== null && row[record.key] > 0)
+        .sort((a, b) => better(a, b) || a.name.localeCompare(b.name));
+      // Equal values share their place.
+      const places = ranked.map((row) => ({
+        name: row.name,
+        value: row[record.key],
+        place: 1 + ranked.filter((other) => better(other, row) < 0).length,
+      }));
+      return { ...record, places };
+    })
+    .filter((record) => record.places.length);
+  return { period: weeks ? period : "all", records };
+}
+
+function leaderboardRecordsHtml(view, ui, limit = 3) {
+  const { t, format } = ui;
+  const shown = (record, value) => {
+    const number = format(value, record.digits);
+    if (!record.unit) return number;
+    return fill(t(record.unit === "unit_days" && value === 1 ? "unit_day" : record.unit), { value: number });
+  };
+  return view.records
+    .map((record) => {
+      const [leader, ...rest] = record.places.slice(0, Math.max(1, limit));
+      const others = rest
+        .map(
+          (place) =>
+            `<li><span class="place">${place.place}.</span><span class="who">${escapeHtml(place.name)}</span>` +
+            `<span class="value">${escapeHtml(shown(record, place.value))}</span></li>`
+        )
+        .join("");
+      return (
+        `<div class="record" data-record="${record.key}"><div class="record-name">${escapeHtml(t(`record_${record.key}`))}</div>` +
+        `<div class="record-leader"><span class="who">${escapeHtml(leader.name)}</span>` +
+        `<span class="value">${escapeHtml(shown(record, leader.value))}</span></div>` +
+        `${others ? `<ol class="record-places">${others}</ol>` : ""}</div>`
+      );
+    })
+    .join("");
+}
+
 // Caller ---------------------------------------------------------------------
 
 // Marks of a Cricket dart: a treble is three, the outer bull one, the bull two.
@@ -3459,7 +4130,10 @@ function playersDashboardView(board) {
     icon: "mdi:account-group",
     type: "sections",
     max_columns: 2,
-    sections: [{ type: "grid", column_span: 2, cards: [board.card(PLAYERS_TYPE, FULL)] }],
+    sections: [
+      { type: "grid", column_span: 2, cards: [board.card(PLAYERS_TYPE, FULL)] },
+      { type: "grid", column_span: 2, cards: [board.card(LEADERBOARD_TYPE, FULL)] },
+    ],
   };
 }
 
@@ -3528,6 +4202,19 @@ const colorField = (name, defaultColor) => ({
   selector: { ui_color: defaultColor ? { default_color: defaultColor } : {} },
 });
 const accentField = colorField("accent_color", "primary");
+// Named players to pick from; any other name can be typed in.
+const playerField = (helper) => ({
+  name: "player",
+  ...(helper ? { helper } : {}),
+  selector: {
+    select: {
+      mode: "dropdown",
+      custom_value: true,
+      options: profileNames(pageHass).map((name) => ({ value: name, label: name })),
+    },
+  },
+});
+
 const FORM_HELPERS = {
   device_id: "device_helper",
   player: "player_helper",
@@ -3575,6 +4262,7 @@ function cardForm(schema, defaults) {
     schema,
     computeLabel: (field) => (field.name ? pageText(field.name) : undefined),
     computeHelper: (field) => {
+      if (field.helper) return pageText(field.helper);
       if (FORM_HELPERS[field.name]) return pageText(FORM_HELPERS[field.name]);
       const standard = options.get(field.name)?.find((option) => option.value === defaults[field.name]);
       return standard ? fill(pageText("default_hint"), { value: standard.label }) : undefined;
@@ -3638,15 +4326,25 @@ const FORMS = {
     {
       type: "grid",
       name: "",
-      schema: [dropdown("mode", "mode", ["beds", "numbers"]), dropdown("board_style", "style", ["muted", "classic", "autodarts"])],
+      schema: [dropdown("mode", "mode", HEAT_MODES), dropdown("board_style", "style", ["muted", "classic", "autodarts"])],
     },
+    playerField("heatmap_player_helper"),
     {
       name: "history_size",
       selector: { number: { min: 5, max: 60, step: 1, mode: "slider" } },
       default: TRAINING_DEFAULTS.history_size,
     },
     toggles(
-      ["show_heatmap", "show_stats", "show_bests", "show_top", "show_history", "show_sessions", "show_reset"],
+      [
+        "show_heatmap",
+        "show_heatmap_controls",
+        "show_stats",
+        "show_bests",
+        "show_top",
+        "show_history",
+        "show_sessions",
+        "show_reset",
+      ],
       TRAINING_DEFAULTS
     ),
     accentField,
@@ -3702,26 +4400,33 @@ const FORMS = {
   players: () => [
     deviceField,
     titleField,
-    toggles(["show_head_to_head", "show_matches", "export"], PLAYERS_DEFAULTS),
+    toggles(
+      ["show_head_to_head", "show_matches", "show_badges", "show_locked", "show_trends", "show_spread", "export"],
+      PLAYERS_DEFAULTS
+    ),
+    {
+      name: "trend_weeks",
+      selector: { number: { min: 4, max: 12, step: 1, mode: "slider" } },
+      default: PLAYERS_DEFAULTS.trend_weeks,
+    },
     dropdown("export_format", "export_format", ["csv", "json"]),
     accentField,
   ],
-  // Named players to pick from; any other name can be typed in.
-  doubles: () => [
+  leaderboard: () => [
     deviceField,
     titleField,
     {
-      name: "player",
-      selector: {
-        select: {
-          mode: "dropdown",
-          custom_value: true,
-          options: profileNames(pageHass).map((name) => ({ value: name, label: name })),
-        },
-      },
+      type: "grid",
+      name: "",
+      schema: [
+        dropdown("period", "period", PERIODS),
+        { name: "limit", selector: { number: { min: 1, max: 5, step: 1, mode: "box" } }, default: LEADERBOARD_DEFAULTS.limit },
+      ],
     },
+    toggles(["show_period"], LEADERBOARD_DEFAULTS),
     accentField,
   ],
+  doubles: () => [deviceField, titleField, playerField(), accentField],
 };
 
 const STRATEGY_FORM = [deviceField, titleField];
@@ -3974,6 +4679,19 @@ const CSS = `${BASE_CSS}
   }
 `;
 
+// Buttons that switch the view of a card: the heatmap mode, whose darts, the period.
+const SEGMENTED_CSS = `
+  .segmented {
+    display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
+  }
+  .segmented button {
+    font: inherit; font-size: 12px; font-weight: 600; padding: 4px 10px; border: 0; border-radius: 999px;
+    cursor: pointer; color: var(--secondary-text-color); background: none; white-space: nowrap;
+  }
+  .segmented button[aria-pressed="true"] { color: var(--text-primary-color, #fff); background: var(--ad-accent); }
+`;
+
 const TRAINING_CSS = `${BASE_CSS}
   .training { display: flex; flex-direction: column; gap: 18px; padding: 18px; box-sizing: border-box; }
   .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
@@ -4057,6 +4775,19 @@ const TRAINING_CSS = `${BASE_CSS}
   }
   .session-table :is(th, td):first-child { text-align: left; }
   .empty-hint { font-size: 13px; color: var(--secondary-text-color); text-align: center; padding: 8px 0; }
+  .heat-head { width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .heat-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+  .position { fill: #fff; fill-opacity: .85; stroke: rgba(0,0,0,.55); stroke-width: .6; }
+  .heat .groups { width: 100%; display: grid; gap: 2px; }
+  .group { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; gap: 10px; align-items: baseline; font-size: 13px; }
+  .group-target {
+    padding: 1px 0; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 800;
+    color: var(--ad-accent); border: 1px solid var(--ad-accent);
+  }
+  .group-change { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .group-change.better { color: var(--ad-ok-text); }
+  .group-change.worse { color: var(--ad-error-text); }
+  ${SEGMENTED_CSS}
 `;
 
 const STATUS_CSS = `${BASE_CSS}
@@ -4445,6 +5176,95 @@ const DOUBLES_CSS = `${BASE_CSS}
   .double .bar i { display: block; height: 100%; border-radius: inherit; }
   .double .count { font-size: 12px; color: var(--secondary-text-color); }
   .double .rate { font-size: 13px; font-weight: 700; text-align: right; }
+`;
+
+// Badges, trends and groupings of the players card.
+const PROGRESS_CSS = `
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .badge-player + .badge-player { margin-top: 12px; }
+  .badge-owner { display: flex; align-items: baseline; gap: 8px; margin: 8px 0 6px; }
+  .badge-owner b { font-size: 15px; color: var(--primary-text-color); }
+  .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .badge {
+    display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 10px; align-items: center; min-width: 0;
+    padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--tier) 13%, transparent);
+  }
+  /* A medal: the tier's colour with a metallic sheen. */
+  .badge-icon {
+    width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; --mdc-icon-size: 22px;
+    color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,.3);
+    background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--tier) 35%, #fff), var(--tier) 55%,
+      color-mix(in srgb, var(--tier) 70%, #000));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--tier) 45%, transparent), 0 1px 3px rgba(0,0,0,.25);
+  }
+  .badge-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: 12px; line-height: 1.3; }
+  .badge-text b { font-size: 13px; color: var(--primary-text-color); }
+  .badge-text > span { color: var(--secondary-text-color); }
+  .badge.locked {
+    background: none; border: 1px dashed color-mix(in srgb, var(--primary-text-color) 22%, transparent);
+    padding: 7px 9px;
+  }
+  .badge.locked .badge-icon {
+    color: var(--disabled-text-color, #9e9e9e); box-shadow: none; text-shadow: none;
+    background: color-mix(in srgb, var(--primary-text-color) 8%, transparent);
+  }
+  .badge.locked .badge-text b { color: var(--secondary-text-color); }
+  .badge-bar {
+    display: block; height: 4px; margin-top: 3px; border-radius: 999px; overflow: hidden;
+    background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
+  }
+  .badge-bar i { display: block; height: 100%; border-radius: inherit; background: var(--ad-accent); }
+  .trend-player, .group-player { padding: 8px 0; border-top: 1px solid var(--divider-color, rgba(127,127,127,.2)); }
+  :is(.trend-player, .group-player):first-child { border-top: 0; }
+  .trend-name { font-weight: 700; margin-bottom: 6px; color: var(--primary-text-color); }
+  .trends { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .trend {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; align-items: center;
+    padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+  }
+  .trend-label { font-size: 11px; color: var(--secondary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trend-value { font-size: 14px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .trend .spark { grid-column: 1 / -1; height: 24px; }
+  .spark polyline {
+    fill: none; stroke: var(--ad-accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .spark .dot { stroke-width: 5; }
+  .arrow.up { color: var(--ad-ok-text); }
+  .arrow.down { color: var(--ad-error-text); }
+  .arrow.steady { color: var(--secondary-text-color); }
+  .groups { display: grid; gap: 2px; }
+  .group { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; gap: 10px; align-items: baseline; font-size: 13px; }
+  .group-target {
+    padding: 1px 0; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 800;
+    color: var(--ad-accent); border: 1px solid var(--ad-accent);
+  }
+  .group-text { color: var(--primary-text-color); }
+  .group-change { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .group-change.better { color: var(--ad-ok-text); }
+  .group-change.worse { color: var(--ad-error-text); }
+`;
+
+const LEADERBOARD_CSS = `${BASE_CSS}${SEGMENTED_CSS}
+  .leaderboard { display: flex; flex-direction: column; gap: 14px; padding: 18px; box-sizing: border-box; }
+  .leaderboard header { flex-wrap: wrap; }
+  .records { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .record {
+    display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; min-width: 0;
+    background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+  }
+  .record-name { font-size: 12px; font-weight: 700; letter-spacing: .02em; color: var(--ad-accent); }
+  .record-leader { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
+  .record-leader .who {
+    font-size: 17px; font-weight: 800; color: var(--primary-text-color);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .record-leader .who::before { content: "👑 "; font-size: 14px; }
+  .record-leader .value { font-size: 20px; font-weight: 800; color: var(--ad-gold-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .record-places { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 13px; }
+  .record-places li { display: grid; grid-template-columns: 1.8em minmax(0, 1fr) auto; gap: 6px; color: var(--secondary-text-color); }
+  .record-places .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .record-places .value { font-variant-numeric: tabular-nums; }
 `;
 
 // Live card panel --------------------------------------------------------------
@@ -5202,6 +6022,18 @@ function createElements(Base) {
       super();
       this._visits = [];
       this._seen = new Set();
+      // The heatmap mode and whose darts it shows, as switched in the card.
+      this._mode = null;
+      this._source = null;
+      this._positions = null;
+      this._positionsFor = null;
+    }
+
+    // A new configuration shows its own mode and player again.
+    setConfig(config) {
+      this._mode = null;
+      this._source = null;
+      super.setConfig(config);
     }
 
     getCardSize() {
@@ -5225,21 +6057,34 @@ function createElements(Base) {
     _heatHtml(t) {
       const c = this._config;
       const legend = [0, 0.25, 0.5, 0.75, 1].map(heatColor).join(", ");
+      const modes = HEAT_MODES.map(
+        (mode) => `<button type="button" data-mode="${mode}" aria-pressed="false">${t(`mode_${mode}`)}</button>`
+      ).join("");
+      const controls = c.show_heatmap_controls
+        ? `<div class="heat-controls">
+            <div class="segmented modes" role="group" aria-label="${t("mode")}">${modes}</div>
+            <div class="segmented sources" role="group" aria-label="${t("heatmap_source")}" hidden></div>
+          </div>`
+        : "";
       return `
         <div class="heat">
-          <div class="section-label">${t("heatmap")}</div>
+          <div class="heat-head"><div class="section-label">${t("heatmap")}</div>${controls}</div>
           <div class="heat-frame">
             <svg viewBox="-230 -230 460 460" role="img" aria-label="${t("heatmap_label")}">
+              <defs><filter id="ad-density" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="4"/>
+              </filter></defs>
               <g class="face">${boardSvg(c.board_style)}</g>
               <g class="heat-layer"></g>
               <g class="numbers">${numbersSvg(c.board_style)}</g>
             </svg>
           </div>
           <div class="legend">
-            <span class="muted">1</span>
+            <span class="muted legend-min">1</span>
             <div class="legend-bar" style="background: linear-gradient(90deg, ${legend})"></div>
             <span class="muted legend-max">–</span>
           </div>
+          <div class="groups" hidden></div>
         </div>`;
     }
 
@@ -5356,7 +6201,12 @@ function createElements(Base) {
         totals: Object.fromEntries([...root.querySelectorAll("[data-total]")].map((el) => [el.dataset.total, el])),
         empty: root.querySelector(".empty-hint"),
         heat: root.querySelector(".heat-layer"),
+        heatSvg: root.querySelector(".heat-frame svg"),
+        legendMin: root.querySelector(".legend-min"),
         legendMax: root.querySelector(".legend-max"),
+        modes: root.querySelector(".modes"),
+        sources: root.querySelector(".sources"),
+        groups: root.querySelector(".heat .groups"),
         tiles: Object.fromEntries(
           [...root.querySelectorAll("[data-tile]")].map((el) => [el.dataset.tile, el.querySelector(".value")])
         ),
@@ -5388,6 +6238,18 @@ function createElements(Base) {
       tiles?.addEventListener("click", () => this._moreInfo(this._ids.darts));
       this._onKeys(tiles, () => this._moreInfo(this._ids.darts));
       this._historyFor = null;
+      this._el.modes?.addEventListener("click", (event) => {
+        const button = event.target.closest?.("button[data-mode]");
+        if (!button) return;
+        this._mode = button.dataset.mode;
+        this._update();
+      });
+      this._el.sources?.addEventListener("click", (event) => {
+        const button = event.target.closest?.("button[data-source]");
+        if (!button) return;
+        this._source = button.dataset.source;
+        this._update();
+      });
     }
 
     _confirmChanged() {
@@ -5508,25 +6370,130 @@ function createElements(Base) {
         tiles.triple_rate.textContent = darts > 0 && triples !== null ? this._percent((triples / darts) * 100, 1) : "–";
       }
 
-      const hits = this._state("darts")?.attributes?.hits;
-      this._updateHeat(hits);
-      this._updateTop(hits, darts);
+      this._updateHeatmap(darts);
       this._updateBests();
       this._updateHistory();
       this._updateSessions();
       this._confirmChanged();
     }
 
+    // The heatmap mode chosen in the card, otherwise the configured one.
+    _heatMode() {
+      const mode = this._mode ?? this._config.mode;
+      return HEAT_MODES.includes(mode) ? mode : "beds";
+    }
+
+    // Whose darts the heatmap shows: a player's name, or empty for the session.
+    _heatSource() {
+      return this._source ?? String(this._config.player ?? "").trim();
+    }
+
+    _profile(name) {
+      const players = this._state("profiles")?.attributes?.players;
+      const wanted = name.toLowerCase();
+      return (Array.isArray(players) ? players : []).find(
+        (player) => typeof player?.name === "string" && player.name.toLowerCase() === wanted
+      );
+    }
+
+    // The session or a player: hits for the beds and numbers, positions from the board.
+    _updateHeatmap(darts) {
+      const source = this._heatSource();
+      const profile = source ? this._profile(source) : null;
+      const hits = source ? profile?.hits : this._state("darts")?.attributes?.hits;
+      this._updateHeatControls(source);
+      if (this._heatMode() === "positions") this._loadPositions(source);
+      this._updateHeat(hits);
+      this._updateTop(hits, source ? (finite(profile?.darts_thrown) ?? 0) : darts);
+    }
+
+    _updateHeatControls(source) {
+      const el = this._el;
+      if (el.heatSvg) {
+        el.heatSvg.setAttribute("aria-label", this._t(this._heatMode() === "positions" ? "positions_label" : "heatmap_label"));
+      }
+      if (!el.modes) return;
+      for (const button of el.modes.querySelectorAll("button")) {
+        button.setAttribute("aria-pressed", String(button.dataset.mode === this._heatMode()));
+      }
+      const players = this._state("profiles")?.attributes?.players;
+      const names = (Array.isArray(players) ? players : [])
+        .filter((player) => named(player?.name) && (finite(player.darts_thrown) ?? 0) > 0)
+        .map((player) => player.name)
+        .sort((a, b) => a.localeCompare(b));
+      if (source && !names.some((name) => name.toLowerCase() === source.toLowerCase())) names.push(source);
+      el.sources.hidden = !names.length;
+      this._setHtml(
+        el.sources,
+        ["", ...names]
+          .map(
+            (name) =>
+              `<button type="button" data-source="${escapeHtml(name)}" aria-pressed="${
+                name.toLowerCase() === source.toLowerCase()
+              }">${escapeHtml(name || this._t("heatmap_session"))}</button>`
+          )
+          .join("")
+      );
+    }
+
+    // New positions come with every booked visit of the session or the player.
+    _positionsKey(source) {
+      const count = source ? finite(this._profile(source)?.darts_thrown) : this._number("visits");
+      return `${this._deviceId}|${source}|${count ?? ""}`;
+    }
+
+    async _loadPositions(source) {
+      const key = this._positionsKey(source);
+      if (this._positionsFor === key || typeof this._hass.callWS !== "function") return;
+      this._positionsFor = key;
+      let result = null;
+      try {
+        result = await this._hass.callWS({
+          type: "autodarts/positions",
+          device_id: this._deviceId,
+          ...(source ? { player: source } : {}),
+        });
+      } catch (error) {
+        // A board that is being removed has no positions to show.
+      }
+      if (this._positionsFor !== key) return;
+      this._positions = { source, positions: validPositions(result?.positions), spread: spreadView(result?.spread) };
+      this._drawPositions();
+    }
+
+    _drawPositions() {
+      const el = this._el;
+      const shown = this._positions?.source === this._heatSource() ? this._positions : null;
+      const positions = shown?.positions ?? [];
+      this._setHtml(el.heat, positionsHtml(positions));
+      el.legendMin.textContent = this._t("legend_few");
+      el.legendMax.textContent = positions.length ? this._t("legend_many") : "–";
+      // Groupings need darts at a bed the game knows; without positions, the card says so.
+      el.groups.hidden = !shown || (positions.length > 0 && !shown.spread.length);
+      this._setHtml(
+        el.groups,
+        shown && !positions.length
+          ? `<div class="empty-hint">${escapeHtml(this._t("positions_empty"))}</div>`
+          : spreadHtml(shown?.spread ?? [], this._ui())
+      );
+    }
+
     _updateHeat(hits) {
       if (!this._el.heat) return;
-      const levels = heatLevels(hits, this._config.mode);
+      if (this._heatMode() === "positions") {
+        this._drawPositions();
+        return;
+      }
+      this._el.groups.hidden = true;
+      this._el.legendMin.textContent = "1";
+      const levels = heatLevels(hits, this._heatMode());
       const max = Math.max(0, ...levels.values());
       const counts = new Map(validHits(hits));
       const total = [...counts.values()].reduce((sum, count) => sum + count, 0);
       const describe = (bed) => {
         // Tooltips name the scoring bed; singles cover both single areas.
         const key = bed === "Bull" ? "BULL" : bed.replace(/^S[IO]/, "S");
-        const numbers = this._config.mode === "numbers";
+        const numbers = this._heatMode() === "numbers";
         const count = numbers ? levels.get(bed) : counts.get(key) || 0;
         const name = numbers ? (bed === "Bull" || bed === "25" ? "Bull" : bed.replace(/^\D+/, "")) : hitLabel(this._hass, key);
         const share = total ? ` · ${this._percent((count / total) * 100, 1)}` : "";
@@ -6386,7 +7353,7 @@ function createElements(Base) {
       const section = (name, title) =>
         `<div class="${name}-section" hidden><div class="section-label">${t(title)}</div><div class="${name}"></div></div>`;
       this.shadowRoot.innerHTML = `
-        <style>${PLAYERS_CSS}</style>
+        <style>${PLAYERS_CSS}${PROGRESS_CSS}</style>
         <ha-card>
           <div class="root">
             <div class="players-card">
@@ -6399,6 +7366,7 @@ function createElements(Base) {
               <div class="profiles"></div>
               ${c.show_head_to_head ? section("h2h", "head_to_head") : ""}
               ${c.show_matches ? section("matches", "recent_matches") : ""}
+              ${this._progressHtml(t)}
             </div>
           </div>
         </ha-card>
@@ -6483,6 +7451,153 @@ function createElements(Base) {
         el.matchesSection.hidden = !view.matches.length;
         this._setHtml(el.matches, html.matches);
       }
+      this._updateProgress();
+    }
+
+    // Badges, trends and groupings, each in a section of its own.
+    _progressHtml(t) {
+      const c = this._config;
+      const section = (name, title, extra = "") =>
+        `<div class="${name}-section" hidden><div class="section-head"><div class="section-label">${t(title)}</div>` +
+        `<span class="muted ${name}-meta"></span></div><div class="${name}-list"></div>${extra}</div>`;
+      return [
+        c.show_badges ? section("badges", "badges") : "",
+        c.show_trends ? section("trends", "trends") : "",
+        c.show_spread ? section("groups", "spread", `<p class="muted">${t("spread_hint")}</p>`) : "",
+      ].join("");
+    }
+
+    _updateProgress() {
+      const c = this._config;
+      const root = this.shadowRoot;
+      const ui = this._ui();
+      const badges = root.querySelector(".badges-section");
+      if (badges) {
+        const players = badgesView(this._state("achievements")).players.filter(
+          (player) => c.show_locked || player.unlocked
+        );
+        badges.hidden = !players.length;
+        const count = (player) =>
+          player.unlocked === 1 ? this._t("badge_count_one") : fill(this._t("badge_count"), { count: this._format(player.unlocked) });
+        this._setHtml(
+          badges.querySelector(".badges-list"),
+          players
+            .map(
+              (player) =>
+                `<div class="badge-player"><div class="badge-owner"><b>${escapeHtml(player.name)}</b>` +
+                `<span class="muted">${escapeHtml(count(player))}</span></div>` +
+                `<div class="badge-list">${badgesHtml(player, ui, c.show_locked)}</div></div>`
+            )
+            .join("")
+        );
+      }
+      const weeks = Math.min(12, Math.max(4, Math.round(Number(c.trend_weeks)) || PLAYERS_DEFAULTS.trend_weeks));
+      const progress = progressView(this._state("profiles"), weeks);
+      const trends = root.querySelector(".trends-section");
+      if (trends) {
+        const active = progress.filter((player) => player.active);
+        trends.hidden = !active.length;
+        trends.querySelector(".trends-meta").textContent = fill(this._t("trends_range"), { weeks });
+        this._setHtml(trends.querySelector(".trends-list"), trendsHtml(active, ui));
+      }
+      const groups = root.querySelector(".groups-section");
+      if (groups) {
+        const grouped = progress.filter((player) => player.groups.length);
+        groups.hidden = !grouped.length;
+        this._setHtml(
+          groups.querySelector(".groups-list"),
+          grouped
+            .map(
+              (player) =>
+                `<div class="group-player"><div class="trend-name">${escapeHtml(player.name)}</div>` +
+                `<div class="groups">${spreadHtml(player.groups, ui)}</div></div>`
+            )
+            .join("")
+        );
+      }
+    }
+  }
+
+  // Leaderboard card --------------------------------------------------------------
+
+  class AutodartsLeaderboardCard extends CardBase {
+    static keys = LEADERBOARD_KEYS;
+
+    static defaults = LEADERBOARD_DEFAULTS;
+
+    static form = "leaderboard";
+
+    constructor() {
+      super();
+      // The period switched in the card, until the configuration changes.
+      this._chosen = null;
+    }
+
+    setConfig(config) {
+      this._chosen = null;
+      super.setConfig(config);
+    }
+
+    getCardSize() {
+      return 5;
+    }
+
+    _css() {
+      return LEADERBOARD_CSS;
+    }
+
+    _period() {
+      const period = this._chosen ?? this._config.period;
+      return PERIODS.includes(period) ? period : "all";
+    }
+
+    _build() {
+      const t = (key) => escapeHtml(this._t(key));
+      const periods = this._config.show_period
+        ? `<div class="segmented periods" role="group" aria-label="${t("period")}">${PERIODS.map(
+            (period) => `<button type="button" data-period="${period}" aria-pressed="false">${t(`period_${period}`)}</button>`
+          ).join("")}</div>`
+        : "";
+      this.shadowRoot.innerHTML = `
+        <style>${LEADERBOARD_CSS}</style>
+        <ha-card>
+          <div class="root">
+            <div class="leaderboard">
+              <header><div class="title"></div>${periods}</header>
+              <div class="message empty" hidden>${t("leaderboard_empty")}</div>
+              <div class="records"></div>
+            </div>
+          </div>
+        </ha-card>
+      `;
+      const root = this.shadowRoot;
+      this._el = {
+        title: root.querySelector(".title"),
+        empty: root.querySelector(".empty"),
+        records: root.querySelector(".records"),
+        periods: root.querySelector(".periods"),
+      };
+      this._el.periods?.addEventListener("click", (event) => {
+        const button = event.target.closest?.("button[data-period]");
+        if (!button) return;
+        this._chosen = button.dataset.period;
+        this._update();
+      });
+    }
+
+    _update() {
+      const c = this._config;
+      const el = this._el;
+      this.style.setProperty("--ad-accent", cssColor(c.accent_color, "var(--primary-color)"));
+      el.title.textContent = c.title || this._t("leaderboard");
+      const period = this._period();
+      for (const button of el.periods?.querySelectorAll("button") ?? []) {
+        button.setAttribute("aria-pressed", String(button.dataset.period === period));
+      }
+      const view = leaderboardRecords(this._state("profiles"), this._state("achievements"), period);
+      el.empty.hidden = view.records.length > 0;
+      const limit = Math.min(5, Math.max(1, Math.round(Number(c.limit)) || LEADERBOARD_DEFAULTS.limit));
+      this._setHtml(el.records, leaderboardRecordsHtml(view, this._ui(), limit));
     }
   }
 
@@ -6628,6 +7743,7 @@ function createElements(Base) {
     [SCOREBOARD_TYPE]: AutodartsScoreboardCard,
     [PLAYERS_TYPE]: AutodartsPlayersCard,
     [DOUBLES_TYPE]: AutodartsDoublesCard,
+    [LEADERBOARD_TYPE]: AutodartsLeaderboardCard,
   };
 }
 
@@ -6641,6 +7757,7 @@ const CARDS = [
   { type: SCOREBOARD_TYPE, key: "scoreboard", docs: ["cards.md#scoreboard-card", "de/karten.md#anzeigetafel"] },
   { type: PLAYERS_TYPE, key: "players", docs: ["cards.md#players-card", "de/karten.md#spielerkarte"] },
   { type: DOUBLES_TYPE, key: "doubles", docs: ["cards.md#doubles-card", "de/karten.md#doubles-karte"] },
+  { type: LEADERBOARD_TYPE, key: "leaderboard", docs: ["cards.md#leaderboard-card", "de/karten.md#bestenliste"] },
 ];
 const STRATEGY_DOCS = ["cards.md#automatic-dashboard", "de/karten.md#automatisches-dashboard"];
 
@@ -6705,7 +7822,10 @@ async function frontendReady(timeout = 30000) {
 if (globalThis.window?.customElements) frontendReady().then(register);
 
 export {
+  addWeeks,
   aimBeds,
+  badgesHtml,
+  badgesView,
   bedPath,
   beds,
   bestsHtml,
@@ -6750,6 +7870,8 @@ export {
   idlePanels,
   kind,
   label,
+  leaderboardRecords,
+  leaderboardRecordsHtml,
   livePanel,
   lobbyChange,
   lobbyChoice,
@@ -6760,6 +7882,7 @@ export {
   NORM,
   NUMBERS,
   numbersSvg,
+  offsetText,
   parseSegment,
   partyBeds,
   partyView,
@@ -6768,20 +7891,30 @@ export {
   pictureUrl,
   playersHtml,
   playersView,
+  positionsDensity,
+  positionsHtml,
   practiceView,
   profileNames,
+  progressView,
   R,
   recentVisits,
   register,
   scoreboardHtml,
   sectorAt,
   shortProcessor,
+  sparkline,
+  spreadHtml,
+  spreadView,
   startGameData,
   summaryTable,
   summaryView,
   targetBeds,
   targetText,
+  tierColor,
   topHits,
+  trendsHtml,
+  trendView,
+  trendWeeks,
   visitBucket,
   visitCount,
   visitsFromHistory,

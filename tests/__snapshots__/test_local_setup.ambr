@@ -1,6 +1,8 @@
 # serializer version: 1
 # name: test_discovered_host_saved_and_later_cloud_auth_failure_is_isolated
   dict({
+    'board-1_achievements': 'sensor.match_board_achievements | - | enabled',
+    'board-1_achievements_enabled': 'switch.match_board_achievements | config | enabled',
     'board-1_auto_calibrate': 'switch.match_board_automatic_recalibration | config | enabled',
     'board-1_auto_calibrate_on_start': 'switch.match_board_calibrate_on_start | config | enabled',
     'board-1_auto_distortion': 'switch.match_board_automatic_distortion_correction | config | enabled',
@@ -114,6 +116,8 @@
 # ---
 # name: test_local_only_setup_entities_and_private_diagnostics
   dict({
+    'board-1_achievements': 'sensor.autodarts_board_achievements | - | enabled',
+    'board-1_achievements_enabled': 'switch.autodarts_board_achievements | config | enabled',
     'board-1_auto_calibrate': 'switch.autodarts_board_automatic_recalibration | config | enabled',
     'board-1_auto_calibrate_on_start': 'switch.autodarts_board_calibrate_on_start | config | enabled',
     'board-1_auto_distortion': 'switch.autodarts_board_automatic_distortion_correction | config | enabled',

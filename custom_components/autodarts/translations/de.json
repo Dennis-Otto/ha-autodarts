@@ -311,6 +311,9 @@
       },
       "weekly_report": {
         "name": "Wochenbericht"
+      },
+      "achievements": {
+        "name": "Erfolge"
       }
     },
     "button": {
@@ -393,6 +396,9 @@
       },
       "practice_teams": {
         "name": "Übungsspiel Teams"
+      },
+      "achievements_enabled": {
+        "name": "Erfolge"
       }
     },
     "select": {
@@ -547,7 +553,29 @@
               "online_bull_off": "Online: Ausbullen beginnt",
               "online_tournament_ready": "Online: Turniermatch bereit",
               "online_match_left": "Online: Match verlassen",
-              "weekly_report": "Wochenbericht"
+              "weekly_report": "Wochenbericht",
+              "achievement_unlocked": "Erfolg freigeschaltet"
+            }
+          },
+          "achievement": {
+            "name": "Erfolg",
+            "state": {
+              "maximum": "180",
+              "ton_plus": "100+-Aufnahmen",
+              "ton_forty": "140+-Aufnahmen",
+              "high_finish": "High Finish",
+              "short_leg": "Kurzes Leg",
+              "nine_darter": "Neun-Darter",
+              "legs_won": "Gewonnene Legs",
+              "matches_won": "Gewonnene Matches",
+              "hat_trick": "Hattrick",
+              "all_doubles": "Alle Doubles",
+              "cricket_nine": "Neun Marks",
+              "shanghai": "Shanghai",
+              "around_the_clock": "Around the Clock",
+              "bobs_27": "Bob's 27",
+              "streak": "Serie",
+              "darts_thrown": "Geworfene Darts"
             }
           }
         }

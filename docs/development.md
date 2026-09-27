@@ -7,7 +7,7 @@
 | Path | Contents |
 | --- | --- |
 | `custom_components/autodarts/` | The integration |
-| `custom_components/autodarts/frontend/autodarts-card.js` | The six dashboard cards, served by the integration |
+| `custom_components/autodarts/frontend/autodarts-card.js` | The seven dashboard cards, served by the integration |
 | `blueprints/automation/autodarts/` | Automation blueprints |
 | `tests/` | Unit and integration tests with `pytest-homeassistant-custom-component` |
 | `tests/frontend/` | Node tests of the card logic and of every card element in a browser DOM, including property-based tests with fast-check |
@@ -58,16 +58,16 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 
 ## Demo instance and browser test
 
-`tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session, a week of sessions and matches in the training calendar, an automation from the weekly report blueprint and a dashboard with all cards at <http://127.0.0.1:18124/autodarts-demo/board>. Login is not needed from the local network.
+`tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session, twelve weeks of practice of three made-up players, a week of sessions and matches in the training calendar, an automation from the weekly report blueprint and a dashboard with all cards at <http://127.0.0.1:18124/autodarts-demo/board>. Login is not needed from the local network.
 
 `tests/e2e/browser.sh` checks the cards in Chromium against the demo:
 
 - the cards are registered on every load;
 - the live visit, highlights and controls with confirmation;
 - the practice game, match and training games;
-- the training heatmap, history and sessions, and the status card;
-- the scoreboard and its caller, the players and doubles cards, and the download of the players export;
-- the generated dashboard, the forms of all six cards, the strategy editor and the light theme.
+- the training heatmap with dart positions, history and sessions, and the status card;
+- the scoreboard and its caller, the players card with badges and trends, the leaderboard, the doubles card, and the download of the players export;
+- the generated dashboard, the forms of all seven cards, the strategy editor and the light theme.
 
 When a step fails, the browser test saves a screenshot of every open page, and
 the scripts save the Home Assistant log, in `tests/e2e/artifacts/` or in the
