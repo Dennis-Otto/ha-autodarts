@@ -31,7 +31,9 @@ from custom_components.autodarts.manual import BEDS
 
 # The averages the bot plays over this many legs of 501 with double out may
 # stray this far from its level: the calibration holds within 1.5 % over
-# 1,000 legs, and the seeds are fixed, so the test never flakes.
+# 1,000 legs, and the seeds are fixed, so the test never flakes. A leg of
+# level 20 takes 75 darts, give or take 40 %: 400 legs pin its average to
+# 2 %; the 70 legs that fit into a second would leave the tolerance to chance.
 TOLERANCE = 0.05
 LEGS = {20: 400, 60: 300, 100: 300, 120: 300}
 # The marks per round the bot plays in Cricket, a 24th of its level, hold
@@ -293,7 +295,36 @@ def test_the_bot_plays_tactics_down_to_ten():
     assert counted >= 36 and darts >= 12
 
 
-def test_a_leg_of_the_bot_ends_on_a_double_or_with_single_out():
-    bot = Bot(random.Random(3))
-    assert play_leg(bot, 120, start=40) >= 1
-    assert play_leg(bot, 60, start=301, double_out=False) >= 6
+class RecordingBot(Bot):
+    """A bot that keeps every dart it throws."""
+
+    def __init__(self, seed: int) -> None:
+        super().__init__(random.Random(seed))
+        self.darts: list[dict] = []
+
+    def throw(self, bed: str, level: int, cricket: bool = False):
+        dart, position = super().throw(bed, level, cricket)
+        self.darts.append(dart)
+        return dart, position
+
+
+@pytest.mark.parametrize(
+    ("level", "start", "double_out", "fewest"),
+    [(120, 40, True, 1), (60, 301, True, 6), (60, 301, False, 6)],
+)
+def test_a_leg_of_the_bot_ends_on_a_double_or_with_single_out(
+    level, start, double_out, fewest
+):
+    """With double out, the dart that wins a leg is a double or the bullseye;
+    with single out, a single or a treble wins as well."""
+    bot = RecordingBot(3)
+    finishes = []
+    for _ in range(20):
+        bot.darts.clear()
+        # Every dart thrown counts, those of a bust as well.
+        assert play_leg(bot, level, start, double_out) == len(bot.darts) >= fewest
+        finishes.append(bot.darts[-1]["multiplier"])
+    if double_out:
+        assert set(finishes) == {2}
+    else:
+        assert set(finishes) - {2}
