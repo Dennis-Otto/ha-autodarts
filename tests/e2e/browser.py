@@ -1174,7 +1174,10 @@ def strategy_editor(browser: Browser) -> None:
     form = page.locator("autodarts-strategy-editor > ha-form")
     form.wait_for(timeout=15000)
     fields = form.evaluate("(element) => element.schema.map((field) => field.name)")
-    check(fields == ["device_id", "title"], f"Strategy editor fields {fields}")
+    check(
+        fields == ["device_id", "title", "scoreboard"],
+        f"Strategy editor fields {fields}",
+    )
     page.keyboard.press("Escape")
     errors = page_errors(page, [])
     check(not errors, f"Console problems: {errors}")
