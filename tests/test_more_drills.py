@@ -20,8 +20,8 @@ from custom_components.autodarts.drills import (
 )
 from custom_components.autodarts.practice import PracticeGame
 
+from .local_helpers import dart
 from .test_drills import throw
-from .test_practice import dart
 
 
 def restored(drill):

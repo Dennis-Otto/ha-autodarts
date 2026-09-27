@@ -8,11 +8,11 @@ from pytest_homeassistant_custom_component.common import (
     async_mock_service,
 )
 
-from .local_helpers import T20, board, entity_id, setup_local
-from .test_blueprints import automate, blueprint_folder, fire  # noqa: F401
+from .local_helpers import EVENTS, T20, automate, board, entity_id, fire, setup_local
 from .test_practice_setup import throw
 
-EVENTS = "event.autodarts_board_events"
+pytestmark = pytest.mark.usefixtures("blueprint_folder")
+
 WEEK = {
     "week_start": "2026-09-27T22:00:00+00:00",
     "week_end": "2026-10-04T22:00:00+00:00",

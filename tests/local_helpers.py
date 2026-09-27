@@ -1,13 +1,21 @@
-"""Synthetic fixtures shaped like Board Manager 1.0.7 responses, and the helpers
-that set a board up in Home Assistant."""
+"""Synthetic fixtures shaped like Board Manager 1.0.7 responses, the helpers
+that set a board up in Home Assistant, and those the tests of the practice
+games and of the blueprints share."""
 
+import itertools
 from copy import deepcopy
+from datetime import timedelta
+from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.setup import async_setup_component
+from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.autodarts.practice import PracticeGame
 
 BASE = "http://192.0.2.10:3180"
 STATE = {
@@ -312,3 +320,96 @@ def entity_summary(hass, entry) -> dict[str, str]:
             key=lambda item: item.unique_id,
         )
     }
+
+
+# -- practice games, played without Home Assistant -------------------------------
+
+
+def dart(name: str) -> dict:
+    if name == "BULL":
+        return {"number": 25, "multiplier": 2, "name": "Bull"}
+    if name == "25":
+        return {"number": 25, "multiplier": 1, "name": "25"}
+    if name == "MISS":
+        return {"number": 0, "multiplier": 0, "name": "M"}
+    return {
+        "number": int(name[1:]),
+        "multiplier": "SDT".index(name[0]) + 1,
+        "name": name,
+    }
+
+
+def throw(game: PracticeGame, *names: str) -> list[tuple[str, dict]]:
+    """Throw a visit dart by dart and pull the darts; return the events.
+
+    Playing alone, the turn stays with the same player; those events are
+    left out here and checked on their own.
+    """
+    events = []
+    for count in range(1, len(names) + 1):
+        events += game.track([dart(name) for name in names[:count]])
+    events += game.finish_visit()
+    game.track([])
+    if len(game.players) == 1:
+        events = [event for event in events if event[0] != "turn_changed"]
+    return events
+
+
+PLAYER_1 = {"game": 301, "player": 1, "name": None, "players": 1}
+
+
+def playing(start: int, remaining: int | None = None, **settings) -> PracticeGame:
+    game = PracticeGame()
+    game.restore({"game": start, "remaining": remaining or start, **settings})
+    return game
+
+
+def match(players: int, legs: int = 1, sets: int = 1, **names) -> PracticeGame:
+    game = PracticeGame()
+    game.play(301)
+    game.set_players(players)
+    game.set_format(legs, sets)
+    for index, name in names.items():
+        game.set_name(int(index[1:]) - 1, name)
+    return game
+
+
+def win_leg(game: PracticeGame, winner: int) -> list[tuple[str, dict]]:
+    """The given player (1 to 4) wins the leg; the others miss until then."""
+    while game.snapshot()["player"] != winner:
+        throw(game, "MISS")
+    game.players[winner - 1].remaining = 40
+    return throw(game, "D20")
+
+
+# -- blueprints, run by Home Assistant's automation engine ------------------------
+
+BLUEPRINTS = Path(__file__).parents[1] / "blueprints" / "automation" / "autodarts"
+EVENTS = "event.autodarts_board_events"
+# Consecutive events always get distinct timestamps, even with a frozen clock.
+TICKS = itertools.count(1)
+
+
+async def automate_all(hass, instances: list[tuple[str, dict]]) -> None:
+    configs = [
+        {"use_blueprint": {"path": f"autodarts/{name}.yaml", "input": inputs}}
+        for name, inputs in instances
+    ]
+    assert await async_setup_component(hass, "automation", {"automation": configs})
+    await hass.async_block_till_done()
+    automations = hass.states.async_all("automation")
+    assert [state.state for state in automations] == ["on"] * len(configs), automations
+
+
+async def automate(hass, name: str, inputs: dict) -> None:
+    await automate_all(hass, [(name, inputs)])
+
+
+def fire(hass, event_type: str, **attributes) -> None:
+    hass.states.async_set(
+        EVENTS,
+        (dt_util.utcnow() + timedelta(microseconds=next(TICKS))).isoformat(
+            timespec="microseconds"
+        ),
+        {"event_type": event_type, **attributes},
+    )

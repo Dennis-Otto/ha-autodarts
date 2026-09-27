@@ -3,7 +3,7 @@
 from custom_components.autodarts.practice import PracticeGame
 from custom_components.autodarts.profiles import MATCH_HISTORY, Profiles
 
-from .test_practice import throw
+from .local_helpers import throw
 from .test_teams_and_handicap import teams
 
 

@@ -17,7 +17,7 @@ from custom_components.autodarts.drills import (
 )
 from custom_components.autodarts.practice import PracticeGame
 
-from .test_practice import dart
+from .local_helpers import dart
 
 
 def throw(drill, *names: str) -> list[tuple[str, dict]]:

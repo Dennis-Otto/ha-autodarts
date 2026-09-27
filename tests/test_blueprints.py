@@ -1,12 +1,10 @@
 """The automation blueprints, run by Home Assistant's own automation engine."""
 
 import asyncio
-import itertools
 import json
 import logging
 import random
 import re
-import shutil
 from collections import defaultdict
 from datetime import timedelta
 from pathlib import Path
@@ -24,7 +22,6 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.template import Template
-from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 from homeassistant.util.yaml import load_yaml
 from pytest_homeassistant_custom_component.common import (
@@ -38,13 +35,25 @@ from yaml import safe_load
 from custom_components.autodarts.bot import Bot
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
 
-from .local_helpers import BULL, S20, T20, board, entity_id, setup_bridge
+from .local_helpers import (
+    BLUEPRINTS,
+    BULL,
+    EVENTS,
+    S20,
+    T20,
+    automate,
+    automate_all,
+    board,
+    entity_id,
+    fire,
+    setup_bridge,
+)
 from .local_helpers import WEBHOOK_PATH as ONLINE_BRIDGE
 
+pytestmark = pytest.mark.usefixtures("blueprint_folder")
+
 ROOT = Path(__file__).parents[1]
-BLUEPRINTS = ROOT / "blueprints" / "automation" / "autodarts"
 PATHS = sorted(BLUEPRINTS.glob("*.yaml"))
-EVENTS = "event.autodarts_board_events"
 SOURCE = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/"
 IMPORT = re.compile(
     r"https://my\.home-assistant\.io/redirect/blueprint_import/\?blueprint_url=[^)\s\"']+"
@@ -65,41 +74,6 @@ MOMENTS = (
     "achievement",
     "tournament",
 )
-# Consecutive events always get distinct timestamps, even with a frozen clock.
-TICKS = itertools.count(1)
-
-
-@pytest.fixture(autouse=True)
-async def blueprint_folder(hass, tmp_path):
-    """Serve the repository blueprints from a temporary configuration folder."""
-    hass.config.config_dir = str(tmp_path)
-    shutil.copytree(BLUEPRINTS, tmp_path / "blueprints" / "automation" / "autodarts")
-    assert await async_setup_component(hass, "event", {})
-
-
-async def automate_all(hass, instances: list[tuple[str, dict]]) -> None:
-    configs = [
-        {"use_blueprint": {"path": f"autodarts/{name}.yaml", "input": inputs}}
-        for name, inputs in instances
-    ]
-    assert await async_setup_component(hass, "automation", {"automation": configs})
-    await hass.async_block_till_done()
-    automations = hass.states.async_all("automation")
-    assert [state.state for state in automations] == ["on"] * len(configs), automations
-
-
-async def automate(hass, name: str, inputs: dict) -> None:
-    await automate_all(hass, [(name, inputs)])
-
-
-def fire(hass, event_type: str, **attributes) -> None:
-    hass.states.async_set(
-        EVENTS,
-        (dt_util.utcnow() + timedelta(microseconds=next(TICKS))).isoformat(
-            timespec="microseconds"
-        ),
-        {"event_type": event_type, **attributes},
-    )
 
 
 async def fire_all(hass, events: list[tuple[str, dict]]) -> None:

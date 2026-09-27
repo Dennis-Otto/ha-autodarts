@@ -11,7 +11,7 @@ from custom_components.autodarts.cricket import (
 )
 from custom_components.autodarts.practice import MAX_PLAYERS, PracticeGame
 
-from .test_practice import dart, throw
+from .local_helpers import dart, throw
 
 OPEN = [0] * 7
 CLOSED = [3] * 7

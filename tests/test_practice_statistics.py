@@ -5,7 +5,7 @@ from hypothesis import strategies as st
 
 from custom_components.autodarts.practice import STATS_LEGS, PracticeGame
 
-from .test_practice import match, playing, throw
+from .local_helpers import match, playing, throw
 
 
 def test_a_nine_darter_counts_its_first_nine_and_one_dart_at_a_double():

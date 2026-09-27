@@ -30,7 +30,7 @@ from custom_components.autodarts.tournament import (
     split_players,
 )
 
-from .test_practice import dart
+from .local_helpers import dart
 
 NOW = datetime(2026, 9, 27, 12, 0, tzinfo=UTC)
 NAMES = ["Alex", "Sam", "Kim", "Lea", "Max", "Tom", "Ida", "Ben"]

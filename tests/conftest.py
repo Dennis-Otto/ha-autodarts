@@ -4,11 +4,13 @@ import asyncio
 import logging
 import os
 import re
+import shutil
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.setup import async_setup_component
 from hypothesis import settings
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from syrupy.assertion import SnapshotAssertion
@@ -112,6 +114,16 @@ def pytest_runtest_teardown(item):
         and not UNAVAILABLE.match(record.getMessage())
     ]
     assert not errors, errors
+
+
+@pytest.fixture
+async def blueprint_folder(hass, tmp_path):
+    """Serve the repository blueprints from a temporary configuration folder."""
+    from .local_helpers import BLUEPRINTS
+
+    hass.config.config_dir = str(tmp_path)
+    shutil.copytree(BLUEPRINTS, tmp_path / "blueprints" / "automation" / "autodarts")
+    assert await async_setup_component(hass, "event", {})
 
 
 @pytest.fixture

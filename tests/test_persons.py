@@ -9,11 +9,18 @@ from custom_components.autodarts.const import DOMAIN
 from custom_components.autodarts.practice import PracticeGame
 from custom_components.autodarts.profiles import Profile, Profiles
 
-from .local_helpers import local_entry_data, mock_board
-from .test_local_setup import entity_id, setup_local
+from .local_helpers import (
+    BULL,
+    S20,
+    T20,
+    board,
+    entity_id,
+    local_entry_data,
+    mock_board,
+    record,
+    setup_local,
+)
 from .test_practice_setup import throw
-from .test_sessions import record
-from .test_training import BULL, S20, T20, board
 
 
 def players(hass) -> dict[str, dict]:

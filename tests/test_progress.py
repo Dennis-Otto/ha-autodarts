@@ -13,8 +13,8 @@ from custom_components.autodarts.progress import (
     Progress,
 )
 
+from .local_helpers import dart
 from .test_positions import around
-from .test_practice import dart
 
 # A Wednesday; its week starts on Monday, 21 September.
 NOW = datetime(2026, 9, 23, 20, 0, tzinfo=UTC)

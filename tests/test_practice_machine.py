@@ -30,7 +30,7 @@ from custom_components.autodarts.practice import (
 )
 from custom_components.autodarts.training import TrainingSession, segments
 
-from .test_practice import dart
+from .local_helpers import dart
 
 KINDS = [
     *(101, 301, "cricket", "cut_throat", "tactics"),

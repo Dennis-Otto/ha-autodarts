@@ -8,11 +8,19 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.const import DOMAIN
 
-from .local_helpers import local_entry_data, mock_board
-from .test_local_setup import entity_id, setup_local, state
+from .local_helpers import (
+    S20,
+    T20,
+    board,
+    entity_id,
+    local_entry_data,
+    mock_board,
+    record,
+    setup_local,
+    state,
+    switch,
+)
 from .test_practice_setup import select_game, set_number, throw
-from .test_sessions import record, switch
-from .test_training import S20, T20, board
 
 # A single 1 inside the treble ring, and one outside.
 INNER_S1 = {

@@ -15,8 +15,8 @@ from custom_components.autodarts.cricket import (
 from custom_components.autodarts.practice import PracticeGame
 from custom_components.autodarts.profiles import clean_name, valid_name
 
+from .local_helpers import dart, throw
 from .test_party import game_of, kinds
-from .test_practice import dart, throw
 
 CLOSED = [3] * 7
 NAMES = ["Alex", "Sam", "Kim", "Lea"]

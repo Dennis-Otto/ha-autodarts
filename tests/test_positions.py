@@ -17,7 +17,7 @@ from custom_components.autodarts.positions import (
     x01_aims,
 )
 
-from .test_practice import dart
+from .local_helpers import dart
 
 
 def darts(*names: str) -> list[dict]:

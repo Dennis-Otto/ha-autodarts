@@ -11,7 +11,7 @@ from custom_components.autodarts.cricket import (
 )
 from custom_components.autodarts.practice import PracticeGame
 
-from .test_practice import dart, throw
+from .local_helpers import dart, throw
 
 OPEN = [0] * 7
 TACTICS_OPEN = [0] * 12
