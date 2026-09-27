@@ -66,7 +66,7 @@ test("the card picker speaks the language Home Assistant has when it opens", () 
   const [live, training, , scoreboard, , doubles, leaderboard] = read(page.customCards);
   assert.deepEqual(
     [live.name, training.name, scoreboard.name, doubles.name, leaderboard.name],
-    ["Autodarts", "Autodarts Training", "Autodarts Anzeigetafel", "Autodarts Doubles", "Autodarts Bestenliste"]
+    ["Autodarts", "Autodarts-Training", "Autodarts-Anzeigetafel", "Autodarts-Doubles", "Autodarts-Bestenliste"]
   );
   assert.equal(training.documentationURL, `${DOCS}/de/karten.md#trainingskarte`);
   assert.equal(leaderboard.documentationURL, `${DOCS}/de/karten.md#bestenliste`);
@@ -128,7 +128,9 @@ test("other hosts get the cards after thirty seconds", async (t) => {
   await plain;
 });
 
-test("the cards register as soon as Home Assistant's app element exists", async () => {
+test("the cards register as soon as Home Assistant's app element exists", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const cleared = t.mock.method(globalThis, "clearTimeout");
   let define;
   globalThis.window = {
     customElements: { get: () => undefined, whenDefined: () => new Promise((resolve) => (define = resolve)) },
@@ -136,8 +138,10 @@ test("the cards register as soon as Home Assistant's app element exists", async 
   try {
     const waiting = frontendReady();
     define();
-    // No thirty-second timer is left behind.
     await waiting;
+    // No thirty-second timer is left behind: the one that was set is cleared.
+    assert.equal(cleared.mock.callCount(), 1);
+    assert.notEqual(cleared.mock.calls[0].arguments[0], undefined);
   } finally {
     globalThis.window = page;
   }

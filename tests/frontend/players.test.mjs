@@ -101,18 +101,24 @@ test("the players card shows statistics, the balance and who won", () => {
   assert.match(html.matches, /<span class="game">party_killer<\/span><span><span>Alex 1<\/span> · <b>score_player 2 2<\/b><\/span>/);
 });
 
-test("the dashboard gets a players view once profiles exist", () => {
+test("the dashboard gets a players view once a player has a profile", () => {
   const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev1", platform: "autodarts" });
-  const hass = (items) => ({
+  const hass = (items, states = {}) => ({
     locale: { language: "en" },
     entities: Object.fromEntries(items.map((item) => [item.entity_id, item])),
     devices: { dev1: { id: "dev1" } },
-    states: {},
+    states,
   });
   const without = dashboardStrategy(hass([entity("sensor.b_darts", "training_darts")]));
   assert.equal(without.views.some((view) => view.path === "players"), false);
+  const entities = [entity("sensor.b_darts", "training_darts"), entity("sensor.b_profiles", "player_profiles")];
+  // The sensor exists on every board; the view waits for the first profile.
+  for (const profiles of [undefined, { state: "0", attributes: { players: [] } }, { state: "1", attributes: {} }]) {
+    const empty = dashboardStrategy(hass(entities, profiles ? { "sensor.b_profiles": profiles } : {}));
+    assert.equal(empty.views.some((view) => view.path === "players"), false);
+  }
   const withProfiles = dashboardStrategy(
-    hass([entity("sensor.b_darts", "training_darts"), entity("sensor.b_profiles", "player_profiles")])
+    hass(entities, { "sensor.b_profiles": { state: "1", attributes: { players: [{ name: "Alex" }] } } })
   );
   const players = withProfiles.views.find((view) => view.path === "players");
   assert.equal(players.title, "Players");

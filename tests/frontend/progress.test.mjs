@@ -295,11 +295,11 @@ test("trends show a tile for every figure with its arrow", () => {
   const html = trendsHtml([{ name: "Alex <3", metrics: trendView(TREND, 4) }], ui);
   assert.match(html, /<div class="trend-name">Alex &#60;3<\/div>/);
   assert.match(html, /data-metric="average"><span class="trend-label">3-dart avg.<\/span><span class="trend-value">46.2 /);
-  assert.match(html, /<span class="arrow up" title="rising" aria-label="rising">↗<\/span>/);
+  assert.match(html, /<span class="arrow up" role="img" title="rising" aria-label="rising">↗<\/span>/);
   assert.match(html, /data-metric="checkout_rate">.*?<span class="trend-value">25.0% /);
   assert.match(html, /data-metric="darts">.*?<span class="trend-value">270 /);
   const empty = trendsHtml([{ name: "Kim", metrics: trendView({ weeks: WEEKS }, 4) }], ui);
-  assert.match(empty, /<span class="trend-value">– <span class="arrow steady" title="steady" aria-label="steady">→<\/span>/);
+  assert.match(empty, /<span class="trend-value">– <span class="arrow steady" role="img" title="steady" aria-label="steady">→<\/span>/);
 });
 
 test("groupings read as millimetres and directions on the board", () => {
@@ -416,7 +416,7 @@ test("the leaderboard shows the leader and the next places", () => {
 });
 
 test("the players view of the dashboard has the leaderboard too", () => {
-  const board = makeHass({ states: { "sensor.player_profiles": "2" } });
+  const board = makeHass({ states: { "sensor.player_profiles": { state: "2", attributes: { players: [{ name: "Alex" }] } } } });
   const view = dashboardStrategy(board).views.find((item) => item.path === "players");
   assert.deepEqual(
     view.sections.map((section) => section.cards[0].type),

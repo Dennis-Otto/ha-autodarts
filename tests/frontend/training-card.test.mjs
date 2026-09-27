@@ -38,13 +38,6 @@ const visitRow = (time, score, segments = ["S20", "S20", "S20"]) => ({
   a: { event_type: "visit_completed", score, darts: segments.length, segments },
   lu: Date.parse(time) / 1000,
 });
-// The recorder's answer to history/history_during_period; requests are kept in `asked`.
-const asked = [];
-const history = (rows) => async (message) => {
-  asked.push(message);
-  return { [EVENTS]: rows };
-};
-
 test("the training card shows the session average, darts and visits", () => {
   const { card } = setup();
   assert.equal(text(card, ".title"), "Training · Dartboard");
@@ -195,32 +188,56 @@ test("the streak and today's darts count towards the daily goal", () => {
   assert.equal($(card, ".goal").hidden, true);
 });
 
-test("the history loads the visits of the session from the recorder", async (t) => {
-  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-09-26T15:00:00Z") });
-  asked.length = 0;
-  const rows = [
-    visitRow("2026-09-26T14:29:59.000+00:00", 99),
-    visitRow("2026-09-26T14:31:00.000+00:00", 60),
-    { s: "2026-09-26T14:32:00.000+00:00", a: { event_type: "takeout_finished" } },
-    visitRow("2026-09-26T14:33:00.000+00:00", 140, ["T20", "T20", "D10"]),
-  ];
-  const { card } = setup({}, {}, { callWS: history(rows) });
-  assert.deepEqual(asked, [
-    {
-      type: "history/history_during_period",
-      start_time: "2026-09-26T14:30:00.000Z",
-      entity_ids: [EVENTS],
-      minimal_response: false,
-      no_attributes: false,
-      significant_changes_only: false,
+// Home Assistant's websocket connection with the history stream: every subscription is kept
+// with its message, its callback and whether it was closed again.
+const historyStream = ({ fail = false, unsubscribe = () => Promise.resolve() } = {}) => {
+  const streams = [];
+  const connection = {
+    subscribeMessage(callback, message) {
+      const stream = { callback, message, closed: false };
+      streams.push(stream);
+      if (fail) return Promise.reject(new Error("unknown command"));
+      return Promise.resolve(() => {
+        stream.closed = true;
+        return unsubscribe();
+      });
     },
-  ]);
+  };
+  return { streams, connection };
+};
+// The recorder's rows, or new board events, as a message of the stream.
+const send = (stream, rows) => stream.callback({ states: { [EVENTS]: rows } });
+const eventRow = (time, event_type, extra = {}) => ({ s: time, a: { event_type, ...extra }, lu: Date.parse(time) / 1000 });
+const chartLabel = (card) => $(card, ".history-chart").getAttribute("aria-label");
+
+test("the history loads the visits of the session from the recorder, then follows every board event", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-09-26T15:00:00Z") });
+  const { streams, connection } = historyStream();
+  const { card } = setup({}, {}, { connection });
+  assert.deepEqual(
+    streams.map((stream) => stream.message),
+    [
+      {
+        type: "history/stream",
+        entity_ids: [EVENTS],
+        start_time: "2026-09-26T14:30:00.000Z",
+        minimal_response: false,
+        no_attributes: false,
+        significant_changes_only: false,
+      },
+    ]
+  );
   assert.equal(text(card, ".history-chart"), "Completed visits appear here.");
   assert.equal($(card, ".history-chart").getAttribute("role"), null);
-  await settle();
+  send(streams[0], [
+    visitRow("2026-09-26T14:29:59.000+00:00", 99),
+    visitRow("2026-09-26T14:31:00.000+00:00", 60),
+    eventRow("2026-09-26T14:32:00.000+00:00", "takeout_finished"),
+    visitRow("2026-09-26T14:33:00.000+00:00", 140, ["T20", "T20", "D10"]),
+  ]);
   const chart = $(card, ".history-chart");
   assert.equal(chart.getAttribute("role"), "img");
-  assert.equal(chart.getAttribute("aria-label"), "Recent visits: 60, 140");
+  assert.equal(chartLabel(card), "Recent visits: 60, 140");
   const bars = $$(card, ".visit-bar");
   assert.equal(bars.length, 20);
   assert.equal($$(card, ".visit-bar.empty").length, 18);
@@ -233,85 +250,185 @@ test("the history loads the visits of the session from the recorder", async (t) 
   );
   const line = $(card, ".average-line");
   assert.deepEqual([line.getAttribute("style"), line.title], ["--height:0.31", "3-dart average: 55.8"]);
+
+  // A practice game books the visit and passes the turn at once: the page sees only the
+  // turn, the stream both. Visits without segments show their score alone.
+  send(streams[0], [
+    eventRow("2026-09-26T14:35:00.000+00:00", "visit_completed", { score: 26 }),
+    eventRow("2026-09-26T14:35:00.001+00:00", "turn_changed"),
+  ]);
+  assert.equal(chartLabel(card), "Recent visits: 60, 140, 26");
+  assert.equal($$(card, ".visit-bar:not(.empty)").at(-1).title, "26");
+  // The bot's visits count for nobody.
+  const bot = visitRow("2026-09-26T14:36:00.000+00:00", 100);
+  send(streams[0], [{ ...bot, a: { ...bot.a, bot: true } }]);
+  assert.equal(chartLabel(card), "Recent visits: 60, 140, 26");
+  // An undone visit leaves the chart; corrected, it comes back as a new visit.
+  send(streams[0], [
+    eventRow("2026-09-26T14:37:00.000+00:00", "visit_undone", { score: 26 }),
+    visitRow("2026-09-26T14:37:30.000+00:00", 45, ["S20", "S20", "S5"]),
+  ]);
+  assert.equal(chartLabel(card), "Recent visits: 60, 140, 45");
+  // After a lost connection the stream sends the recorder's rows again: nothing doubles.
+  send(streams[0], [visitRow("2026-09-26T14:31:00.000+00:00", 60), visitRow("2026-09-26T14:33:00.000+00:00", 140)]);
+  send(streams[0], []);
+  streams[0].callback({});
+  assert.equal(chartLabel(card), "Recent visits: 60, 140, 45");
+  // A new session in the stream empties the chart.
+  send(streams[0], [eventRow("2026-09-26T14:40:00.000+00:00", "session_started")]);
+  assert.equal(text(card, ".history-chart"), "Completed visits appear here.");
 });
 
-test("an older session loads at most a week of history", async (t) => {
+test("an older session loads at most a week of history", (t) => {
   t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-09-26T15:00:00Z") });
-  asked.length = 0;
-  setup({ "sensor.training_started": "2026-08-01T10:00:00+00:00" }, {}, { callWS: history([]) });
-  setup({ "sensor.training_started": "unknown" }, {}, { callWS: history([]) });
+  const { streams, connection } = historyStream();
+  setup({ "sensor.training_started": "2026-08-01T10:00:00+00:00" }, {}, { connection });
+  setup({ "sensor.training_started": "unknown" }, {}, { connection });
   assert.deepEqual(
-    asked.map((message) => message.start_time),
+    streams.map((stream) => stream.message.start_time),
     ["2026-09-19T15:00:00.000Z", "2026-09-19T15:00:00.000Z"]
   );
 });
 
-test("completed visits of the open dashboard are added once each", async () => {
-  const rows = [visitRow("2026-09-26T14:31:00.000+00:00", 60)];
-  const { hass, card } = setup({}, {}, { callWS: history(rows) });
-  await settle();
-  // Visits without segments show their score alone.
-  const visit = { state: "2026-09-26T14:35:00.000+00:00", attributes: { event_type: "visit_completed", score: 26 } };
-  const next = update(hass, { "event.board_events": visit });
-  card.hass = next;
-  card.hass = update(next, { "sensor.training_visits": "9" });
-  assert.equal($(card, ".history-chart").getAttribute("aria-label"), "Recent visits: 60, 26");
-  assert.deepEqual(
-    $$(card, ".visit-bar:not(.empty)").map((bar) => bar.title),
-    ["S20 · S20 · S20 = 60", "26"]
-  );
+test("without the recorder, visits of the open dashboard are added once each", async () => {
+  const board = (hass, event) => update(hass, { "event.board_events": event });
+  for (const options of [{}, historyStream({ fail: true })]) {
+    const { hass, card } = setup({}, {}, options.connection ? { connection: options.connection } : {});
+    await settle();
+    const visit = { state: "2026-09-26T14:35:00.000+00:00", attributes: { event_type: "visit_completed", score: 26 } };
+    let next = board(hass, visit);
+    card.hass = next;
+    card.hass = update(next, { "sensor.training_visits": "9" });
+    assert.equal(chartLabel(card), "Recent visits: 26");
+    // Undone, the visit leaves the chart once.
+    next = board(next, { state: "2026-09-26T14:36:00.000+00:00", attributes: { event_type: "visit_undone" } });
+    card.hass = next;
+    card.hass = update(next, { "sensor.training_visits": "8" });
+    assert.equal(text(card, ".history-chart"), "Completed visits appear here.");
+    // The bot's visits count for nobody.
+    card.hass = board(next, {
+      state: "2026-09-26T14:37:00.000+00:00",
+      attributes: { event_type: "visit_completed", score: 60, bot: true },
+    });
+    assert.equal(text(card, ".history-chart"), "Completed visits appear here.");
+  }
+  // Without the events entity there is nothing to follow.
+  const { "event.board_events": _, ...states } = SESSION;
+  const { streams, connection } = historyStream();
+  const noEvents = mount("autodarts-training-card", makeHass({ states, connection }));
+  assert.deepEqual(streams, []);
+  assert.equal(text(noEvents, ".history-chart"), "Completed visits appear here.");
 });
 
-test("a new session starts an empty history and ignores late results of the old one", async () => {
-  const pending = [];
-  const callWS = (message) => new Promise((resolve) => pending.push({ message, resolve }));
-  const { hass, card } = setup({}, {}, { callWS });
+test("a new session starts an empty history and closes the stream of the old one", async () => {
+  const { streams, connection } = historyStream();
+  const { hass, card } = setup({}, {}, { connection });
+  send(streams[0], [visitRow("2026-09-26T14:31:00.000+00:00", 180)]);
   card.hass = update(hass, {
     "sensor.training_started": "2026-09-26T16:00:00+00:00",
     "sensor.training_visits": "0",
   });
-  assert.equal(pending.length, 2);
-  pending[0].resolve({ [EVENTS]: [visitRow("2026-09-26T16:01:00.000+00:00", 180)] });
   await settle();
+  assert.deepEqual(
+    streams.map((stream) => [stream.message.start_time, stream.closed]),
+    [
+      ["2026-09-26T14:30:00.000Z", true],
+      ["2026-09-26T16:00:00.000Z", false],
+    ]
+  );
   assert.equal(text(card, ".history-chart"), "Completed visits appear here.");
-  pending[1].resolve({ [EVENTS]: [visitRow("2026-09-26T16:02:00.000+00:00", 45)] });
-  await settle();
-  assert.equal($(card, ".history-chart").getAttribute("aria-label"), "Recent visits: 45");
+  // A late message of the old stream is left out.
+  send(streams[0], [visitRow("2026-09-26T16:01:00.000+00:00", 100)]);
+  assert.equal(text(card, ".history-chart"), "Completed visits appear here.");
+  send(streams[1], [visitRow("2026-09-26T16:02:00.000+00:00", 45)]);
+  assert.equal(chartLabel(card), "Recent visits: 45");
 });
 
-test("without a recorder the history still waits for visits", async () => {
-  const failing = setup({}, {}, { callWS: () => Promise.reject(new Error("recorder disabled")) }).card;
+test("a stream that fails after the next one started leaves that one alone", async () => {
+  const pending = [];
+  const connection = {
+    subscribeMessage: (callback, message) =>
+      new Promise((resolve, reject) => pending.push({ callback, message, resolve, reject })),
+  };
+  const { hass, card } = setup({}, {}, { connection });
+  card.hass = update(hass, { "sensor.training_started": "2026-09-26T16:00:00+00:00" });
+  // The first stream fails after the card closed it for the new session.
+  pending[0].reject(new Error("connection lost"));
   await settle();
-  assert.equal(text(failing, ".history-chart"), "Completed visits appear here.");
-  const offline = setup().card;
+  pending[1].resolve(() => Promise.resolve());
   await settle();
-  assert.equal(text(offline, ".history-chart"), "Completed visits appear here.");
-  const { "event.board_events": _, ...states } = SESSION;
-  let asked = false;
-  const noEvents = mount("autodarts-training-card", makeHass({ states, callWS: async () => (asked = true) }));
+  pending[1].callback({ states: { [EVENTS]: [visitRow("2026-09-26T16:02:00.000+00:00", 60)] } });
+  assert.equal(chartLabel(card), "Recent visits: 60");
+  // A stream that fails while it is the card's own leaves the events entity to add visits.
+  card.hass = update(hass, { "sensor.training_started": "2026-09-26T17:00:00+00:00" });
+  pending[2].reject(new Error("recorder stopped"));
   await settle();
-  assert.equal(asked, false);
-  assert.equal(text(noEvents, ".history-chart"), "Completed visits appear here.");
+  card.hass = update(hass, {
+    "sensor.training_started": "2026-09-26T17:00:00+00:00",
+    "event.board_events": { state: "2026-09-26T17:01:00.000+00:00", attributes: { event_type: "visit_completed", score: 81 } },
+  });
+  assert.equal(chartLabel(card), "Recent visits: 81");
 });
 
-test("the history size keeps between five and sixty visits, with labels up to thirty", async () => {
+test("the stream ends with the card and starts again when it returns", async () => {
+  const { streams, connection } = historyStream({ unsubscribe: () => Promise.reject(new Error("offline")) });
+  const { card } = setup({}, {}, { connection });
+  send(streams[0], [visitRow("2026-09-26T14:31:00.000+00:00", 60)]);
+  card.remove();
+  await settle();
+  assert.equal(streams[0].closed, true);
+  document.body.append(card);
+  assert.equal(streams.length, 2);
+  send(streams[1], [visitRow("2026-09-26T14:31:00.000+00:00", 60)]);
+  assert.equal(chartLabel(card), "Recent visits: 60");
+  // Without the history chart there is no stream at all; a card placed before it has hass waits.
+  const hidden = setup({}, { show_history: false }, { connection });
+  assert.equal(streams.length, 2);
+  hidden.card.setConfig({ type: "custom:autodarts-training-card", show_history: true });
+  assert.equal(streams.length, 3);
+  hidden.card.setConfig({ type: "custom:autodarts-training-card", show_history: false });
+  await settle();
+  assert.equal(streams[2].closed, true);
+  const early = document.createElement("autodarts-training-card");
+  document.body.append(early);
+  early.setConfig({ type: "custom:autodarts-training-card" });
+  early.hass = makeHass({ states: SESSION, connection });
+  assert.equal(streams.length, 4);
+});
+
+test("a new configuration keeps the history, also for a larger chart", () => {
+  const { streams, connection } = historyStream();
+  const { card } = setup({}, { history_size: 5 }, { connection });
   const rows = [60, 45, 100, 26, 140, 81, 180].map((score, index) =>
     visitRow(`2026-09-26T14:4${index}:00.000+00:00`, score)
   );
-  const small = setup({}, { history_size: 2 }, { callWS: history(rows) }).card;
-  await settle();
+  send(streams[0], rows);
+  assert.equal(chartLabel(card), "Recent visits: 100, 26, 140, 81, 180");
+  card.setConfig({ type: "custom:autodarts-training-card", history_size: 10, title: "Practice room" });
+  assert.equal(streams.length, 1);
+  assert.equal(chartLabel(card), "Recent visits: 60, 45, 100, 26, 140, 81, 180");
+});
+
+test("the history size keeps between five and sixty visits, with labels up to thirty", () => {
+  const rows = Array.from({ length: 70 }, (_, index) =>
+    visitRow(new Date(Date.parse("2026-09-26T14:40:00Z") + index * 1000).toISOString(), (index * 7) % 181)
+  );
+  const chart = (config, states = {}, sent = rows.slice(-7)) => {
+    const { streams, connection } = historyStream();
+    const { card } = setup(states, config, { connection });
+    send(streams[0], sent);
+    return card;
+  };
+  const small = chart({ history_size: 2 });
   assert.equal($$(small, ".visit-bar").length, 5);
-  assert.equal($(small, ".history-chart").getAttribute("aria-label"), "Recent visits: 100, 26, 140, 81, 180");
-  const large = setup({}, { history_size: 100 }, { callWS: history(rows) }).card;
-  await settle();
+  assert.equal($$(small, ".visit-bar:not(.empty)").length, 5);
+  // The card keeps the newest sixty visits, as many as the largest chart shows.
+  const large = chart({ history_size: 100 }, {}, rows);
   assert.equal($$(large, ".visit-bar").length, 60);
+  assert.equal($$(large, ".visit-bar:not(.empty)").length, 60);
   assert.equal($$(large, ".visit-bar .label").length, 0);
-  const invalid = setup(
-    { "sensor.training_average": "unknown" },
-    { history_size: "many" },
-    { callWS: history(rows) }
-  ).card;
-  await settle();
+  assert.equal($$(large, ".visit-bar")[0].title, "S20 · S20 · S20 = 70");
+  const invalid = chart({ history_size: "many" }, { "sensor.training_average": "unknown" });
   assert.equal($$(invalid, ".visit-bar").length, 20);
   assert.equal($$(invalid, ".visit-bar .label").length, 7);
   assert.equal($(invalid, ".average-line"), null);
@@ -338,13 +455,25 @@ test("past sessions list when they ended, how long they took and how they went",
   assert.equal($(card, ".sessions").hidden, true);
 });
 
+// The last session as the integration booked it.
+const LAST = {
+  "sensor.training_last_session": {
+    state: "48.2",
+    attributes: { sessions: [{ ended: "2026-09-26T15:10:00+00:00", duration_minutes: 40, darts: 150, average: 48.2 }] },
+  },
+};
+
 test("the session state tells whether a session runs or when it ended", () => {
-  const { hass, card } = setup();
+  const { hass, card } = setup(LAST);
   assert.equal(text(card, ".session-state"), "Session running");
-  card.hass = update(hass, { "switch.training_session": { state: "off", last_changed: "2026-09-26T15:10:00+00:00" } });
+  // The end comes from the booked session: the switch also changes with every restart.
+  card.hass = update(hass, { "switch.training_session": { state: "off", last_changed: "2026-09-27T08:00:00+00:00" } });
   assert.match(text(card, ".session-state"), /^Session ended 09\/26, 3:10\sPM$/);
-  card.hass = update(hass, { "switch.training_session": "off" });
+  card.hass = update(hass, { "switch.training_session": "off", "sensor.training_last_session": "unknown" });
   assert.equal(text(card, ".session-state"), "No session running");
+  // A switch that is not available tells nothing.
+  card.hass = update(hass, { "switch.training_session": "unavailable" });
+  assert.equal(text(card, ".session-state"), "");
   const { "switch.training_session": _, ...states } = SESSION;
   const lean = mount("autodarts-training-card", makeHass({ states }));
   assert.equal(text(lean, ".session-state"), "");
@@ -442,7 +571,7 @@ test("the training card speaks German", () => {
   card.hass = withLanguage(makeHass({ states: SESSION }), "en");
   assert.equal(text(card, ".average"), "55.8");
   // Without a locale, Home Assistant's language decides.
-  const ended = { ...SESSION, "switch.training_session": { state: "off", last_changed: "2026-09-26T15:10:00+00:00" } };
+  const ended = { ...SESSION, ...LAST, "switch.training_session": "off" };
   const legacy = mount("autodarts-training-card", {
     ...makeHass({ states: ended }),
     locale: undefined,
@@ -506,18 +635,22 @@ test("personal bests list every record with a value and the longest streak", () 
   assert.deepEqual(bests(german).at(-1), ["Längste Serie", "12 Tage"]);
 });
 
-test("the statistics tiles are a button for the keyboard too", () => {
+test("the statistics tiles are read out, and a button of their own opens the details", () => {
   const { card } = setup();
   const tiles = $(card, ".tiles");
+  // A group, not a button: a button would hide the eight figures from screen readers.
   assert.deepEqual(
     [tiles.getAttribute("role"), tiles.getAttribute("tabindex"), tiles.getAttribute("aria-label")],
-    ["button", "0", "Training statistics, open the details"]
+    ["group", null, "Training statistics"]
   );
+  assert.equal(text(card, '[data-tile="highest"]'), "140Highest visit");
+  const details = $(card, ".details");
+  assert.deepEqual([details.localName, details.type, details.textContent], ["button", "button", "Training statistics, open the details"]);
   const opened = moreInfo(card);
-  for (const key of ["Enter", " ", "Tab"]) {
-    tiles.dispatchEvent(new window.KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
-  }
+  tiles.click();
+  details.click();
   assert.deepEqual(opened, ["sensor.dartboard_training_darts", "sensor.dartboard_training_darts"]);
+  assert.equal($(setup({}, { show_stats: false }).card, ".details"), null);
   // The fire emoji is decoration only.
   assert.equal($(card, ".streak [aria-hidden]").textContent, "🔥");
 });
@@ -535,7 +668,7 @@ test("board events other than visits and session starts leave the card alone", (
 });
 
 test("numbers, times and time zones follow the user profile", () => {
-  const ended = { ...SESSION, "switch.training_session": { state: "off", last_changed: "2026-09-26T15:10:00+00:00" } };
+  const ended = { ...SESSION, ...LAST, "switch.training_session": "off" };
   const profile = (locale, config) => {
     const hass = makeHass({ states: ended });
     return mount("autodarts-training-card", { ...hass, locale: { ...hass.locale, ...locale }, config });
@@ -554,4 +687,21 @@ test("numbers, times and time zones follow the user profile", () => {
   const system = new Intl.NumberFormat(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(55.75);
   assert.equal(text(profile({ number_format: "system", time_format: "system" }), ".average"), system);
   assert.equal(text(profile({ number_format: "quote_decimal" }), ".average"), "55.8");
+  // The date follows the profile's date format, the language keeps its separators.
+  const date = (date_format) => text(profile({ date_format, time_format: "24" }), ".session-state");
+  assert.equal(date("DMY"), "Session ended 26/09, 15:10");
+  assert.equal(date("MDY"), "Session ended 09/26, 15:10");
+  assert.equal(date("YMD"), "Session ended 09/26, 15:10");
+  assert.equal(date("language"), "Session ended 09/26, 15:10");
+  const german = (date_format) =>
+    text(profile({ language: "de", date_format, time_format: "24" }), ".session-state").replace(/^\S+ \S+ /, "");
+  assert.deepEqual([german("DMY"), german("MDY"), german("constructor")], ["26.09., 15:10", "09.26., 15:10", "26.09., 15:10"]);
+  const browser = new Intl.DateTimeFormat(undefined, {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date("2026-09-26T15:10:00+00:00"));
+  assert.equal(date("system"), `Session ended ${browser}`);
 });

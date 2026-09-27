@@ -324,7 +324,8 @@ test("between games a big button opens the new game screen with the board's sett
   assert.equal(text(card, ".lobby .start"), "Start 501");
   // Without a game there is nothing to end.
   assert.equal($(card, '[data-lobby="end"]'), null);
-  assert.equal($(card, ".lobby-hint").textContent, "");
+  // Nothing holds the start back.
+  assert.equal($(card, ".lobby-hint"), null);
 });
 
 test("with nobody chosen, one player throws without a name", () => {
@@ -790,4 +791,120 @@ test("the new game screen offers teams and start scores of their own", () => {
   tap(cricket.card, ".lobby-toggle");
   lobbyTap(cricket.card, "game", "cricket");
   assert.deepEqual([$$(cricket.card, ".lobby-start").length, options(cricket.card).length], [0, 1]);
+});
+
+test("buttons keep the focus through every render, for keyboards and screen readers", () => {
+  const { card } = setup();
+  tap(card, ".lobby-toggle");
+  const focused = () => card.shadowRoot.activeElement;
+  for (const [action, value] of [
+    ["game", "cricket"],
+    ["legs", "1"],
+    ["toggle", "bull_off"],
+    ["game", "501"],
+    ["raise", "0"],
+  ]) {
+    const button = $(card, `[data-lobby="${action}"][data-value="${value}"]`);
+    button.focus();
+    button.click();
+    // The markup is new, and the same button has the focus again.
+    assert.notEqual(focused(), button, action);
+    assert.equal(focused().dataset.focus, `${action}:${value}`, action);
+  }
+  // A button that is gone after the tap leaves the focus nowhere.
+  const suggestion = $(card, '[data-lobby="add"][data-value="Kim"]');
+  suggestion.focus();
+  suggestion.click();
+  assert.equal($(card, '[data-lobby="add"][data-value="Kim"]'), null);
+  assert.deepEqual(players(card), ["Alex", "Sam", "Kim"]);
+});
+
+test("a name being typed keeps its text and its caret when the screen renders again", () => {
+  const { hass, card } = setup();
+  tap(card, ".lobby-toggle");
+  const field = $(card, ".lobby-name");
+  // The draft is never part of the markup, so typing does not replace the field.
+  assert.equal(field.hasAttribute("value"), false);
+  field.focus();
+  field.value = "Jona";
+  field.setSelectionRange(2, 2);
+  field.dispatchEvent(new window.Event("input", { bubbles: true }));
+  // The board's status changes: the same field stays, with its caret.
+  card.hass = update(hass, { "sensor.local_status": "Takeout" });
+  assert.equal($(card, ".lobby-name"), field);
+  assert.deepEqual([field.value, field.selectionStart], ["Jona", 2]);
+  // Kim leaves home: the suggestions change and the field is new, with the text and caret of the old one.
+  card.hass = withPeople(update(hass, { "sensor.local_status": "Throw" }), { "person.kim": { state: "not_home", attributes: {} } });
+  const renewed = $(card, ".lobby-name");
+  assert.notEqual(renewed, field);
+  assert.equal(card.shadowRoot.activeElement, renewed);
+  assert.deepEqual([renewed.value, renewed.selectionStart, renewed.selectionEnd], ["Jona", 2, 2]);
+  // A tap elsewhere renders the field anew with the name typed so far.
+  $(card, '[data-lobby="legs"][data-value="1"]').click();
+  assert.equal($(card, ".lobby-name").value, "Jona");
+  $(card, ".lobby-name").dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  assert.deepEqual(players(card), ["Alex", "Sam", "Jona"]);
+  assert.equal($(card, ".lobby-name").value, "");
+});
+
+test("the start stays at the bottom below both columns, and a live region reads out what changed", () => {
+  const { card } = setup();
+  tap(card, ".lobby-toggle");
+  // Sticky only works as a child of the grid, not inside a column.
+  assert.equal($(card, ".lobby-actions").parentElement, $(card, ".lobby"));
+  const said = $(card, ".said");
+  assert.deepEqual([said.getAttribute("role"), said.parentElement, said.className], ["status", $(card, ".scoreboard"), "visually-hidden said"]);
+  lobbyTap(card, "legs", "1");
+  assert.equal(said.textContent, "Legs per set 4");
+  lobbyTap(card, "sets", "1");
+  assert.equal(said.textContent, "Sets to win 2");
+  lobbyTap(card, "raise", "0");
+  assert.equal(said.textContent, "Alex 601");
+  lobbyTap(card, "guest");
+  lobbyTap(card, "lower", "2");
+  assert.equal(said.textContent, "Player 3 401");
+  lobbyTap(card, "remove", "2");
+  lobbyTap(card, "bot", "add");
+  assert.equal(said.textContent, "Bot 60");
+  lobbyTap(card, "bot", "raise");
+  assert.equal(said.textContent, "Bot 70");
+  // Taps without a value to read out leave the last one.
+  lobbyTap(card, "bot", "remove");
+  lobbyTap(card, "toggle", "bull_off");
+  assert.equal(said.textContent, "Bot 70");
+  // What holds the start back is read out once, when it appears.
+  lobbyTap(card, "game", "killer");
+  lobbyTap(card, "remove", "1");
+  lobbyTap(card, "remove", "0");
+  assert.equal(said.textContent, "Killer needs at least two players");
+  // Once the hint goes, nothing new is said.
+  said.textContent = "";
+  lobbyTap(card, "game", "cricket");
+  assert.equal($(card, ".lobby-hint"), null);
+  assert.equal(said.textContent, "");
+});
+
+test("a start with detection stopped switches detection on, which the screen says first", () => {
+  const { hass, card } = setup({ "switch.detection": "off" });
+  tap(card, ".lobby-toggle");
+  assert.deepEqual($$(card, ".lobby-hint").map((hint) => hint.textContent), ["Detection is stopped: the start switches it on."]);
+  lobbyTap(card, "start");
+  assert.deepEqual(hass.calls.slice(0, 2), [
+    ["switch", "turn_on", { entity_id: "switch.dartboard_detection" }],
+    ["autodarts", "start_game", started(hass)[0][2]],
+  ]);
+  // Boards without the switch press their start button; an offline board and a running one are left alone.
+  const { "switch.detection": _, ...ready } = READY;
+  const buttons = makeHass({ states: { ...ready, ...BOARD, "sensor.local_status": "Stopped" } });
+  const legacy = mount("autodarts-scoreboard-card", buttons);
+  tap(legacy, ".lobby-toggle");
+  lobbyTap(legacy, "start");
+  assert.deepEqual(buttons.calls[0], ["button", "press", { entity_id: "button.dartboard_start" }]);
+  for (const states of [{ "switch.detection": "off", "binary_sensor.local_connected": "off" }, {}]) {
+    const other = setup(states);
+    tap(other.card, ".lobby-toggle");
+    assert.equal($(other.card, ".lobby-hint"), null);
+    lobbyTap(other.card, "start");
+    assert.deepEqual(other.hass.calls.map(([domain]) => domain), ["autodarts"]);
+  }
 });

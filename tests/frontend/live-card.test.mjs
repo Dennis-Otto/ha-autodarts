@@ -608,7 +608,7 @@ test("a won match names the winner and nobody aims any more", () => {
   // The winner keeps the legs of the deciding set: the match ended 3 : 1.
   assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match 3 : 1!");
   assert.deepEqual(scores(card), [
-    ["player-score winner", "Alex", "Legs 3", "0"],
+    ["player-score winner", "Alex Winner", "Legs 3", "0"],
     ["player-score", "Sam", "Legs 1", "60"],
   ]);
   assert.deepEqual(paths(card, "aim"), []);
@@ -829,7 +829,8 @@ test("a Cricket match shows the points, the player at the board and the winner",
   card.hass = update(hass, cricket({ winner: 1, won: true, target: null, scores: won }));
   assert.equal(text(card, ".practice-meta"), "");
   assert.equal(text(card, ".practice-route .note.won"), "Alex wins the match 2 : 1!");
-  assert.equal($(card, ".practice .cricket thead th.winner").textContent, "Alex");
+  // Who won is said, not only shown by colour.
+  assert.equal($(card, ".practice .cricket thead th.winner").textContent, "Alex Winner");
   assert.deepEqual(paths(card, "aim"), []);
   card.hass = update(hass, cricket({ winner: 1, legs_to_win: 1, sets_to_win: 1, scores: players(null) }));
   assert.equal(text(card, ".practice-route .note.won"), "Player 1 wins the match!");
@@ -886,7 +887,7 @@ test("the bull-off shows who throws and how close each dart landed", () => {
   assert.equal(text(card, ".practice-route .note.rethrow"), "Tie – throw again");
   assert.deepEqual(scores(card), [
     ["player-score active", "Kim", "10.2 mm", "25"],
-    ["player-score winner", "Alex", "leads", "Bull"],
+    ["player-score winner", "Alex Winner", "leads", "Bull"],
   ]);
 });
 
