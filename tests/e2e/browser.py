@@ -726,7 +726,8 @@ def scoreboard(browser: Browser) -> None:
     state = wait("state.summary.length > 0")
     check(
         state["banner"] == "Alex wins the match!"
-        and state["summary"][0] == ["Match summary", "Alex", "Sam"]
+        # The winner is also named for screen readers.
+        and state["summary"][0] == ["Match summary", "Alex Winner", "Sam"]
         and state["summary"][1] == ["Legs", "1", "0"]
         and ["3-dart avg.", "101.0", "–"] in state["summary"]
         and not state["players"],
