@@ -220,6 +220,13 @@ def test_count_up_rounds_are_an_option_and_restart_the_game():
     assert practice.snapshot()["rounds"] == 3 and practice.party.rounds == 3
     practice.set_rounds(count_up_rounds=99)
     assert practice.count_up_rounds == 3
+    # Only a change of its own rounds starts the game anew.
+    throw(practice, "T20")
+    practice.set_rounds(golf_holes=18, count_up_rounds=3)
+    assert practice.party.points == [60]
+    practice.set_rounds(count_up_rounds=4)
+    assert practice.party.points == [0] and practice.party.rounds == 4
+    practice.set_rounds(count_up_rounds=3)
     throw(practice, "T20")
     throw(practice, "T20")
     events = throw(practice, "T20")
@@ -228,10 +235,10 @@ def test_count_up_rounds_are_an_option_and_restart_the_game():
     practice.play("baseball")
     restored = PracticeGame()
     restored.restore(json.loads(json.dumps(practice.stored())))
-    assert restored.count_up_rounds == 3 and restored.golf_holes == 9
+    assert restored.count_up_rounds == 3 and restored.golf_holes == 18
     assert restored.party.kind == "baseball" and restored.party.rounds == 9
     restored.restore({"game": "count_up", "count_up_rounds": 0, "golf_holes": 10})
-    assert restored.count_up_rounds == 8 and restored.golf_holes == 9
+    assert restored.count_up_rounds == 8 and restored.golf_holes == 18
 
 
 @settings(max_examples=60, deadline=None)

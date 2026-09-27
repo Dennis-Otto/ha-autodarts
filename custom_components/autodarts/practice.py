@@ -347,15 +347,18 @@ class PracticeGame:
     def set_rounds(
         self, golf_holes: int | None = None, count_up_rounds: int | None = None
     ) -> None:
-        """Holes of Golf and rounds of Count-Up; the game being played starts anew."""
+        """Holes of Golf and rounds of Count-Up; a change starts the game anew
+        while it is played."""
+        before = {"golf": self.golf_holes, "count_up": self.count_up_rounds}
         if golf_holes in GOLF_HOLES:
             self.golf_holes = golf_holes
         if count_up_rounds is not None:
             self.count_up_rounds = _count(
                 count_up_rounds, 1, MAX_ROUNDS, self.count_up_rounds
             )
-        if self.party and self.party.kind in ("golf", "count_up"):
-            self.play(self.party.kind)
+        kind = self.party.kind if self.party else None
+        if kind in before and before[kind] != self._rounds(kind):
+            self.play(str(kind))
 
     def set_name(self, index: int, name: str) -> None:
         if 0 <= index < MAX_PLAYERS:
