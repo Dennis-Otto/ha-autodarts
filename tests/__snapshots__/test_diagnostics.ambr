@@ -15,6 +15,9 @@
     }),
     'local': None,
     'local_available': False,
+    'online_bridge': dict({
+      'enabled': False,
+    }),
     'poll_interval_seconds': None,
     'practice_game': None,
     'realtime_connected': False,
@@ -175,6 +178,9 @@
       'version': '1.0.7',
     }),
     'local_available': True,
+    'online_bridge': dict({
+      'enabled': False,
+    }),
     'poll_interval_seconds': 2.0,
     'practice_game': dict({
       'bull_off': True,
@@ -339,6 +345,9 @@
       'version': '2.0.0',
     }),
     'local_available': True,
+    'online_bridge': dict({
+      'enabled': False,
+    }),
     'poll_interval_seconds': 2.0,
     'practice_game': dict({
       'bull_off': False,

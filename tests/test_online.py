@@ -21,6 +21,11 @@ from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
     mock_restore_cache,
 )
+from pytest_homeassistant_custom_component.components.diagnostics import (
+    get_diagnostics_for_config_entry,
+)
+from syrupy.assertion import SnapshotAssertion
+from syrupy.filters import props
 
 from custom_components.autodarts import online
 from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
@@ -37,6 +42,7 @@ from .local_helpers import (
     BRIDGE,
     WEBHOOK_ID,
     entity_id,
+    entity_summary,
     local_entry_data,
     setup_bridge,
 )
@@ -661,3 +667,22 @@ async def test_no_bridge_without_the_board_or_webhooks(hass, aioclient_mock):
     with patch.object(online, "async_setup_component", return_value=False):
         loaded = await setup_bridge(hass, aioclient_mock)
     assert loaded.runtime_data.bridge is None
+
+
+async def test_entities_and_diagnostics_of_the_bridge(
+    hass, aioclient_mock, hass_client, snapshot: SnapshotAssertion
+):
+    """The bridge adds one diagnostic sensor; diagnostics keep the address secret."""
+    assert await async_setup_component(hass, "diagnostics", {})
+    entry = await setup_bridge(hass, aioclient_mock)
+    added = {
+        unique_id: summary
+        for unique_id, summary in entity_summary(hass, entry).items()
+        if "online" in unique_id
+    }
+    assert added == snapshot
+    client = await hass_client()
+    assert (await client.get(f"{PATH}?event=busted")).status == HTTPStatus.OK
+    diagnostics = await get_diagnostics_for_config_entry(hass, hass_client, entry)
+    assert WEBHOOK_ID not in json.dumps(diagnostics)
+    assert diagnostics["online_bridge"] == snapshot(exclude=props("last_event"))
