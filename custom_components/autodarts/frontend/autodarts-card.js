@@ -386,6 +386,7 @@ const TEXT = {
     lobby_one_player: "Training games are for one player: {name} plays.",
     lobby_nobody: "Nobody chosen: one player throws without a name.",
     lobby_detection: "Detection is stopped: the start switches it on.",
+    lobby_tournament_running: "A tournament is being played: the start stops it first, after a second tap.",
     lobby_start: "Start {game}",
     lobby_close: "Close",
     lobby_end: "End game",
@@ -923,6 +924,7 @@ const TEXT = {
     lobby_one_player: "Trainingsspiele sind für einen Spieler: {name} spielt.",
     lobby_nobody: "Niemand gewählt: Ein Spieler wirft ohne Namen.",
     lobby_detection: "Die Erkennung ist gestoppt: Der Start schaltet sie ein.",
+    lobby_tournament_running: "Es läuft ein Turnier: Der Start beendet es zuerst, nach einem zweiten Tippen.",
     lobby_start: "{game} starten",
     lobby_close: "Schließen",
     lobby_end: "Spiel beenden",
@@ -1450,6 +1452,7 @@ const TEXT = {
     lobby_one_player: "Los juegos de entrenamiento son para un jugador: juega {name}.",
     lobby_nobody: "No has elegido a nadie: lanza un jugador sin nombre.",
     lobby_detection: "La detección está detenida: al empezar se activa.",
+    lobby_tournament_running: "Se está jugando un torneo: al empezar se detiene primero, tras un segundo toque.",
     lobby_start: "Empezar {game}",
     lobby_close: "Cerrar",
     lobby_end: "Terminar partida",
@@ -1976,6 +1979,7 @@ const TEXT = {
     lobby_one_player: "Les jeux d'entraînement se jouent seul\u00a0: c'est {name} qui joue.",
     lobby_nobody: "Aucun joueur choisi\u00a0: un joueur lance sans nom.",
     lobby_detection: "La détection est arrêtée\u00a0: le lancement l'active.",
+    lobby_tournament_running: "Un tournoi est en cours\u00a0: le lancement l'arrête d'abord, après un second appui.",
     lobby_start: "Démarrer {game}",
     lobby_close: "Fermer",
     lobby_end: "Terminer la partie",
@@ -2502,6 +2506,7 @@ const TEXT = {
     lobby_one_player: "Trainingsspellen zijn voor één speler: {name} speelt.",
     lobby_nobody: "Niemand gekozen: één speler gooit zonder naam.",
     lobby_detection: "De detectie staat uit: bij het starten gaat ze aan.",
+    lobby_tournament_running: "Er wordt een toernooi gespeeld: starten stopt het eerst, na een tweede tik.",
     lobby_start: "{game} starten",
     lobby_close: "Sluiten",
     lobby_end: "Spel beëindigen",
@@ -3645,6 +3650,8 @@ function drillView(state) {
     route: route.filter((bed) => hitBeds(bed).length),
     bust: attributes.bust === true,
     won: attributes.won === true,
+    // Where the darts left cannot finish, the darts that leave a finish for the next visit.
+    setup: setupView(attributes.setup),
     visit: finite(attributes.attempt_visit),
     visits: finite(attributes.attempt_visits),
     attempts: finite(attributes.attempts) ?? 0,
@@ -3661,7 +3668,7 @@ function drillView(state) {
 // number and the whole bull for 25, or the double of the doubles.
 function drillBeds(drill) {
   if (!drill || drill.finished) return [];
-  if (CHECKOUT_DRILLS.includes(drill.kind)) return hitBeds(drill.route[0] ?? "");
+  if (CHECKOUT_DRILLS.includes(drill.kind)) return hitBeds(drill.route[0] ?? drill.setup?.route[0] ?? "");
   const target = drill.target ?? "";
   return /^\d+$/.test(target) ? targetBeds(target) : hitBeds(target);
 }
@@ -4278,7 +4285,13 @@ function drillParts(drill, ui) {
           ];
     return {
       big: String(drill.remaining ?? drill.target ?? "–"),
-      note: drill.won ? note(t("game_shot"), "won") : drill.bust ? note(t("bust"), "bust") : bedChips(ui, drill.route),
+      note: drill.won
+        ? note(t("game_shot"), "won")
+        : drill.bust
+          ? note(t("bust"), "bust")
+          : drill.setup && !drill.route.length
+            ? setupHtml(drill.setup, ui)
+            : bedChips(ui, drill.route),
       facts,
     };
   }
@@ -5021,7 +5034,11 @@ function lobbyHtml(choice, ui) {
     button(
       "start",
       undefined,
-      choice.tournament ? text("tournament_start") : text("lobby_start", { game: ui.name(choice.game) }),
+      ui.confirmStart
+        ? text("confirm")
+        : choice.tournament
+          ? text("tournament_start")
+          : text("lobby_start", { game: ui.name(choice.game) }),
       ` class="start"${blocked ? " disabled" : ""}`
     ) +
     `</div>`;
@@ -5073,6 +5090,7 @@ function lobbyHints(choice, ui) {
   else if (!choice.tournament && gameRules(choice.game).drill && choice.players.length > 1) {
     hints.push(fill(t("lobby_one_player"), { name: choice.players[0] || `${t("score_player")} 1` }));
   }
+  if (choice.tournament && ui.tournamentRunning) hints.push(t("lobby_tournament_running"));
   if (ui.detectionOff) hints.push(t("lobby_detection"));
   return hints;
 }
@@ -6169,7 +6187,7 @@ function callerState(visit, view, previous = null) {
     remaining,
     start,
     route: current.practice?.route ?? current.drill?.route ?? [],
-    setup: current.practice?.setup?.leave ?? null,
+    setup: current.practice?.setup?.leave ?? current.drill?.setup?.leave ?? null,
     bust: game?.bust === true,
     won: game?.won === true,
     winner: game?.winner ?? null,
@@ -9869,7 +9887,8 @@ function createElements(Base) {
       if (action === "close") {
         this._lobby = null;
       } else if (action === "start") {
-        this._startGame(choice);
+        // A new tournament stops the one being played, which needs a second tap.
+        if (!choice.tournament || !this._tournamentRunning() || this._confirmed("start")) this._startGame(choice);
       } else if (action === "end") {
         // Ending the game needs a second tap; the screen stays for the next game.
         // A tournament ends with its game.
@@ -9935,9 +9954,24 @@ function createElements(Base) {
     _startGame(choice) {
       const options = { entry: this._entry(), distance: Boolean(this._ids.bullOffDistance) };
       if (this._detectionOff()) this._toggleDetection();
-      if (choice.tournament) this._call("autodarts", "start_tournament", tournamentStartData(choice, options));
+      if (choice.tournament) this._startTournament(tournamentStartData(choice, options));
       else this._call("autodarts", "start_game", startGameData(choice, options));
       this._lobby = null;
+    }
+
+    // The integration starts no tournament while one is played: the one being played
+    // stops first, and the new one starts once the stop succeeded. A failure shows
+    // Home Assistant's message, in the language of the user.
+    async _startTournament(data) {
+      if (this._tournamentRunning()) {
+        const entry = this._entry();
+        try {
+          await this._hass.callService("autodarts", "stop_tournament", entry ? { config_entry_id: entry } : {});
+        } catch (error) {
+          return;
+        }
+      }
+      this._call("autodarts", "start_tournament", data);
     }
 
     // Detection is stopped on a board that is online.
@@ -10210,6 +10244,7 @@ function createElements(Base) {
           teams: Boolean(this._ids.teams),
           running: ![undefined, "off", "unknown", "unavailable"].includes(this._state("game")?.state),
           confirmEnd: this._confirm === "end",
+          confirmStart: this._confirm === "start",
           detectionOff: this._detectionOff(),
         };
         title = t("lobby_title");
@@ -10342,7 +10377,12 @@ function createElements(Base) {
               <header>
                 <div class="title"></div>
                 <div class="muted count"></div>
-                ${c.export ? `<button class="action export">${t("export_button")}</button>` : ""}
+                ${
+                  // The export is an action for administrators; others would only get an error.
+                  c.export && this._hass.user?.is_admin === true
+                    ? `<button class="action export">${t("export_button")}</button>`
+                    : ""
+                }
               </header>
               <div class="message empty" hidden>${t("no_profiles")}</div>
               <div class="profiles"></div>

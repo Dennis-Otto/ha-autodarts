@@ -210,3 +210,29 @@ test("the 121 checkout shows the route and calls what the next attempt requires"
   delete window.speechSynthesis;
   delete globalThis.SpeechSynthesisUtterance;
 });
+
+test("the scoreboard and the live card show the setup of a checkout training without a route", () => {
+  const states = {
+    ...drill("159", {
+      drill: "checkout_121",
+      remaining: 159,
+      checkout: null,
+      setup: { route: "T20 T19 S10", leave: 32 },
+      attempt_visit: 1,
+      attempt_visits: 3,
+      attempts: 2,
+      successes: 1,
+      visit: [],
+    }),
+    ...practice("unknown", { game: null }),
+  };
+  const scoreboard = setup("autodarts-scoreboard-card", states).card;
+  assert.equal(text(scoreboard, ".main .big"), "159");
+  assert.equal(text(scoreboard, ".main .route"), "T20T19S10leaves 32");
+  assert.equal(
+    $(scoreboard, ".main .route .setup").getAttribute("title"),
+    "No checkout with the darts left: set up the next visit"
+  );
+  const live = setup("autodarts-card", states).card;
+  assert.equal(text(live, ".practice-route"), "T20T19S10leaves 32");
+});

@@ -79,7 +79,7 @@ export function camera(number, { problem = "off", fps = "30", calibrate = "unkno
 }
 
 // hass as a card sees it: registry entries of one board, their states and service calls.
-export function makeHass({ language = "en", states = {}, cameras = [], device = {}, callWS, connection } = {}) {
+export function makeHass({ language = "en", states = {}, cameras = [], device = {}, callWS, connection, user } = {}) {
   const entities = {};
   const all = {};
   const add = (key, id, value) => {
@@ -102,6 +102,7 @@ export function makeHass({ language = "en", states = {}, cameras = [], device = 
     },
     ...(callWS ? { callWS } : {}),
     ...(connection ? { connection } : {}),
+    ...(user ? { user } : {}),
   };
 }
 

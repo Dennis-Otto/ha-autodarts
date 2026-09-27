@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { $, $$, DEVICE, READY, entityId, loadCards, makeHass, mount, text, update, window } from "./dom.mjs";
+import { $, $$, DEVICE, READY, entityId, loadCards, makeHass, mount, settle, text, update, window } from "./dom.mjs";
 
 const {
   bracketSlots,
@@ -911,4 +911,81 @@ test("a stage the sensor names is escaped like every other text of the bracket",
   assert.doesNotMatch(html, /<img src=x/);
   const page = new window.DOMParser().parseFromString(html, "text/html");
   assert.equal(page.querySelector(".round").className, `round ${stage}`);
+});
+
+// A name typed into the new game screen and added.
+function typeName(card, name) {
+  const input = $(card, ".lobby-name");
+  input.value = name;
+  input.dispatchEvent(new window.Event("input", { bubbles: true }));
+  lobbyTap(card, "add-name");
+}
+
+test("a new tournament stops the one being played first, after a second tap", async (context) => {
+  context.mock.timers.enable({ apis: ["setTimeout"] });
+  const { hass, card } = setup(
+    { ...PLAYING, ...practice(["Alex", "Kim"]) },
+    {},
+    { device: { primary_config_entry: "entry-1" } }
+  );
+  $(card, ".lobby-toggle").click();
+  lobbyTap(card, "mode", "tournament");
+  typeName(card, "Sam");
+  // The screen says beforehand what the start does.
+  assert.deepEqual(
+    $$(card, ".lobby-hint").map((hint) => hint.textContent),
+    ["A tournament is being played: the start stops it first, after a second tap."]
+  );
+  lobbyTap(card, "start");
+  assert.equal(text(card, ".lobby .start"), "Confirm?");
+  assert.deepEqual(started(hass), []);
+  // Without the second tap, the start goes back to what it was.
+  context.mock.timers.tick(4000);
+  assert.equal(text(card, ".lobby .start"), "Start tournament");
+  lobbyTap(card, "start");
+  lobbyTap(card, "start");
+  assert.equal($(card, ".lobby"), null);
+  // The stop has to succeed before the new tournament starts.
+  assert.deepEqual(started(hass), [["autodarts", "stop_tournament", { config_entry_id: "entry-1" }]]);
+  await settle();
+  assert.deepEqual(
+    started(hass).map(([, service, data]) => [service, data.players]),
+    [
+      ["stop_tournament", undefined],
+      ["start_tournament", ["Alex", "Kim", "Sam"]],
+    ]
+  );
+});
+
+test("a stop that fails leaves the tournament being played, and a match starts at once", async () => {
+  const { hass, card } = setup({ ...PLAYING, ...practice(["Alex", "Kim"]) });
+  // Home Assistant shows the failure of an action as a toast of its own.
+  hass.callService = (domain, service, data) => {
+    hass.calls.push([domain, service, data]);
+    return service === "stop_tournament" ? Promise.reject(new Error("board unavailable")) : Promise.resolve();
+  };
+  $(card, ".lobby-toggle").click();
+  lobbyTap(card, "mode", "tournament");
+  typeName(card, "Sam");
+  lobbyTap(card, "start");
+  lobbyTap(card, "start");
+  await settle();
+  assert.deepEqual(started(hass).map(([, service, data]) => [service, data]), [["stop_tournament", {}]]);
+  // A match during a tournament needs no second tap; nothing to stop for it.
+  $(card, ".lobby-toggle").click();
+  lobbyTap(card, "start");
+  await settle();
+  assert.deepEqual(
+    started(hass).map(([, service]) => service),
+    ["stop_tournament", "start_game"]
+  );
+  // Without a running tournament, the start of one needs no second tap either.
+  const idle = setup();
+  $(idle.card, ".lobby-toggle").click();
+  lobbyTap(idle.card, "mode", "tournament");
+  typeName(idle.card, "Sam");
+  assert.equal($(idle.card, ".lobby-hint"), null);
+  lobbyTap(idle.card, "start");
+  await settle();
+  assert.deepEqual(started(idle.hass).map(([, service]) => service), ["start_tournament"]);
 });
