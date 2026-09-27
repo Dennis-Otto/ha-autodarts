@@ -30,11 +30,10 @@ from .practice import (
     MAX_LEGS,
     MAX_SETS,
     PracticeGame,
-    clean_name,
-    valid_name,
     valid_settings,
     valid_start,
 )
+from .profiles import clean_name, valid_name
 from .scoring import average
 
 ROUND_ROBIN = "round_robin"

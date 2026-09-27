@@ -67,7 +67,7 @@
       },
       "local": {
         "title": "Connecter une cible locale",
-        "description": "Saisissez l'adresse IP ou le nom d'hôte de Board Manager, sans http:// ni numéro de port. Aucun ID client n'est nécessaire. La cible doit déjà être configurée dans Board Manager.",
+        "description": "Saisissez l'adresse IP ou le nom d'hôte de Board Manager, sans http:// ni numéro de port. La cible doit déjà être configurée dans Board Manager.",
         "data": {
           "host": "IP ou nom d'hôte de la cible",
           "port": "Port"
@@ -117,9 +117,13 @@
       "reconfigure_successful": "La configuration d'Autodarts a été mise à jour.",
       "cannot_connect_local": "La cible annoncée sur votre réseau ne répond pas. Vérifiez que Board Manager est bien lancé.",
       "board_not_configured": "Aucun ID de cible n'est configuré dans Board Manager. Commencez par y terminer la configuration de la cible.",
-      "already_in_progress": "La configuration de cette cible est déjà en cours."
+      "already_in_progress": "La configuration de cette cible est déjà en cours.",
+      "address_updated": "Cette cible Autodarts est déjà configurée. Son adresse a été mise à jour et l'intégration est rechargée."
     },
-    "flow_title": "{name}"
+    "flow_title": "{name}",
+    "create_entry": {
+      "default": "La cible est configurée. Pour un tableau de bord prêt à l'emploi avec le tableau des scores, l'entraînement et les statistiques, ouvrez **Paramètres → Tableaux de bord → Ajouter un tableau de bord** et choisissez **Autodarts**."
+    }
   },
   "options": {
     "step": {
@@ -188,7 +192,7 @@
           "starting": "Démarrage en cours",
           "stopping": "Arrêt en cours",
           "stopped": "Arrêtée",
-          "throw": "Prêt à lancer",
+          "throw": "Prête à lancer",
           "takeout": "Retrait",
           "takeout_in_progress": "Retrait des fléchettes",
           "calibrating": "Calibrage en cours",
@@ -433,7 +437,7 @@
         "name": "Bull-off de la partie"
       },
       "practice_bull_off_distance": {
-        "name": "Bull-off de la partie à la distance"
+        "name": "Bull-off de la partie départagé à la distance"
       },
       "practice_personal_routes": {
         "name": "Combinaisons de finish personnelles de la partie"
@@ -442,7 +446,7 @@
         "name": "Équipes de la partie"
       },
       "achievements_enabled": {
-        "name": "Succès"
+        "name": "Débloquer les succès"
       },
       "tournament_third_place": {
         "name": "Petite finale du tournoi"
@@ -557,7 +561,7 @@
         "name": "Pause du tournoi"
       },
       "tournament_summary": {
-        "name": "Résumé du tournoi"
+        "name": "Durée du résumé du tournoi"
       },
       "practice_bot_level": {
         "name": "Niveau du bot de la partie"
@@ -598,7 +602,7 @@
         "name": "Problème de la caméra {number}"
       },
       "cloud_link": {
-        "name": "Connexion au cloud Autodarts"
+        "name": "Liaison cloud"
       }
     },
     "camera": {
@@ -754,7 +758,7 @@
       "message": "Cette cible ne prend pas en charge l'action."
     },
     "export_folder": {
-      "message": "Le dossier d'export {folder} doit se trouver dans le dossier de configuration de Home Assistant et ne doit pas être masqué."
+      "message": "Le dossier d'export {folder} ne doit pas être masqué, et Home Assistant doit y autoriser l'écriture\u00a0: www, les dossiers multimédias et les dossiers de allowlist_external_dirs sont autorisés."
     },
     "export_failed": {
       "message": "Impossible d'écrire l'export\u00a0: {error}"
@@ -812,6 +816,21 @@
     },
     "bot_seat": {
       "message": "Avec le bot, trois joueurs au maximum peuvent jouer\u00a0: le bot prend la quatrième place."
+    },
+    "invalid_segment": {
+      "message": "{segment} n'est pas une zone de la cible. Saisissez S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS."
+    },
+    "too_many_start_scores": {
+      "message": "Les scores de départ comptent {scores} valeurs, mais seuls {players} joueurs jouent. Indiquez au plus un score de départ par joueur, dans l'ordre de lancer."
+    },
+    "team_start_scores": {
+      "message": "Les équipes partent des scores de départ des joueurs 1 et 2, un par équipe. Indiquez au plus deux scores de départ."
+    },
+    "unwinnable_start": {
+      "message": "Un score de départ de 3 ne peut pas être fini en double in et double out\u00a0: le seul double d'ouverture, D1, laisse 1. Choisissez un autre score de départ, ou désactivez le double in ou le double out."
+    },
+    "export_limit": {
+      "message": "{count} exports ont été écrits au cours de la dernière heure, le maximum pour l'intégration. Réessayez plus tard."
     }
   },
   "issues": {
@@ -852,7 +871,7 @@
         "step": {
           "confirm": {
             "title": "Utiliser la nouvelle adresse",
-            "description": "La cible ne répond plus à son ancienne adresse. Le cloud Autodarts la signale à l'adresse {new}, où elle répond avec son ID de cible.\n\nConnecter la cible à cette adresse\u00a0? L'intégration sera rechargée\u00a0; les entités, l'entraînement et les paramètres seront conservés."
+            "description": "Une cible avec l'ID de cible de cette entrée répond à l'adresse {new}, alors qu'elle ne répond plus à l'adresse configurée.\n\nConnecter la cible à cette adresse\u00a0? Ne confirmez que s'il s'agit de votre cible\u00a0: n'importe quel appareil de votre réseau peut se présenter avec un ID de cible. L'intégration sera rechargée\u00a0; les entités, l'entraînement et les paramètres seront conservés."
           }
         },
         "abort": {
@@ -899,7 +918,7 @@
           "description": "Les joueurs lancent d'abord sur le bull\u00a0; le plus proche commence le match."
         },
         "bull_off_distance": {
-          "name": "Bull-off à la distance",
+          "name": "Bull-off départagé à la distance",
           "description": "Deux fléchettes dans la même zone du bull sont départagées par la distance mesurée par la cible, sans nouveau lancer."
         },
         "teams": {
@@ -908,7 +927,7 @@
         },
         "start_scores": {
           "name": "Scores de départ",
-          "description": "Scores de départ X01 des joueurs dans l'ordre de lancer, pour un handicap, par exemple 501 et 301. Avec 0 ou sans score, le joueur part du score de départ du jeu."
+          "description": "Scores de départ X01 des joueurs dans l'ordre de lancer, pour un handicap, par exemple 501 et 301\u00a0; la place du bot après les joueurs en a un aussi. Avec 0 ou sans score, le joueur part du score de départ du jeu. Les équipes partent des scores de départ des joueurs 1 et 2."
         },
         "holes": {
           "name": "Trous de Golf",
@@ -926,7 +945,7 @@
     },
     "delete_player": {
       "name": "Supprimer un profil de joueur",
-      "description": "Efface les statistiques, les records personnels et les face-à-face d'un joueur. Le nom disparaît aussi des records personnels de la cible et des noms de joueurs de la partie\u00a0; l'historique des matchs le conserve.",
+      "description": "Efface les statistiques, les records personnels et les face-à-face d'un joueur. Le nom disparaît aussi des records personnels de la cible et des noms de joueurs de la partie\u00a0; l'historique des matchs le conserve. Un joueur du tournoi en cours ne peut être supprimé qu'une fois le tournoi terminé. Réservée aux administrateurs\u00a0; les automatisations peuvent aussi l'utiliser.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -940,7 +959,7 @@
     },
     "export": {
       "name": "Exporter les données d'entraînement",
-      "description": "Enregistre les sessions d'entraînement, les parties ou les profils de joueurs au format CSV ou JSON dans le dossier de configuration et renvoie le chemin du fichier. Les exports contiennent des noms de joueurs.",
+      "description": "Enregistre les sessions d'entraînement, les parties ou les profils de joueurs au format CSV ou JSON, par défaut dans autodarts/exports du dossier multimédia, et renvoie le chemin du fichier et un lien de téléchargement. Les exports contiennent des noms de joueurs. Réservée aux administrateurs\u00a0; les automatisations peuvent aussi l'utiliser.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -956,13 +975,13 @@
         },
         "folder": {
           "name": "Dossier",
-          "description": "Un dossier dans le dossier de configuration. Les fichiers placés dans www sont accessibles sous /local/ sans connexion."
+          "description": "Facultatif. Un dossier relatif au dossier de configuration, ou un chemin absolu, dans lequel Home Assistant autorise l'écriture\u00a0: www, un dossier multimédia ou un dossier de allowlist_external_dirs. Les fichiers placés dans www sont accessibles sous /local/ sans connexion. Sans dossier\u00a0: autodarts/exports dans le dossier multimédia."
         }
       }
     },
     "link_player": {
       "name": "Associer un joueur à une personne",
-      "description": "Associe un joueur à une personne de Home Assistant\u00a0: la photo de la personne apparaît sur le tableau des scores, sur la carte des joueurs et dans l'écran Nouvelle partie, qui affiche aussi en premier les joueurs présents à la maison. Une personne correspond à un seul joueur\u00a0; une nouvelle association remplace l'ancienne.",
+      "description": "Associe un joueur à une personne de Home Assistant\u00a0: la photo de la personne apparaît sur le tableau des scores, sur la carte des joueurs et dans l'écran Nouvelle partie, qui affiche aussi en premier les joueurs présents à la maison. Une personne correspond à un seul joueur\u00a0; une nouvelle association remplace l'ancienne. Réservée aux administrateurs\u00a0; les automatisations peuvent aussi l'utiliser.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -980,7 +999,7 @@
     },
     "unlink_player": {
       "name": "Dissocier un joueur",
-      "description": "Oublie à quelle personne correspond un joueur. Les statistiques du joueur sont conservées.",
+      "description": "Oublie à quelle personne correspond un joueur. Les statistiques du joueur sont conservées. Réservée aux administrateurs\u00a0; les automatisations peuvent aussi l'utiliser.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -994,7 +1013,7 @@
     },
     "start_tournament": {
       "name": "Démarrer un tournoi",
-      "description": "Tire au sort un tournoi de trois à huit joueurs et lance son premier match\u00a0: en poule unique ou en élimination directe, avec des matchs de X01 ou de Cricket.",
+      "description": "Tire au sort un tournoi de trois à huit joueurs et lance son premier match\u00a0: en poule unique ou en élimination directe, avec des matchs de X01 ou de Cricket. Un tournoi en cours doit d'abord être terminé.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -1037,7 +1056,7 @@
           "description": "Un bull-off détermine qui commence chaque match."
         },
         "bull_off_distance": {
-          "name": "Bull-off à la distance",
+          "name": "Bull-off départagé à la distance",
           "description": "Deux fléchettes dans la même zone du bull sont départagées par la distance mesurée par la cible, sans nouveau lancer."
         },
         "third_place": {
@@ -1096,7 +1115,7 @@
         },
         "segment": {
           "name": "Zone",
-          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 pour le bull extérieur, BULL pour le bullseye, ou MISS."
+          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS."
         }
       }
     },
@@ -1110,7 +1129,7 @@
         },
         "segment": {
           "name": "Zone",
-          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 pour le bull extérieur, BULL pour le bullseye, ou MISS."
+          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS."
         }
       }
     },

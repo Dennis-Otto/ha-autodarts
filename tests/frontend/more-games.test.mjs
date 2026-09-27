@@ -414,3 +414,38 @@ test("a team names a missing player by number, and a scorecard needs no round co
   const golf = party("golf", { winner: 1, scores: [{ player: 1, points: 3, scorecard: [3] }] });
   assert.match(board({ practice: golf }).main, /<thead><tr><th><\/th><th>1<\/th><th class="total">/);
 });
+
+test("a checkout training without a route shows the setup, aims at it and calls the score to leave", () => {
+  // 159 in the 121 ladder: one visit cannot finish it, three darts leave a finish.
+  const ladder = drill("159", {
+    drill: "checkout_121",
+    remaining: 159,
+    checkout: null,
+    setup: { route: "T20 T19 S10", leave: 32 },
+    attempt_visit: 1,
+    attempt_visits: 3,
+  });
+  const view = drillView(ladder.drill);
+  assert.deepEqual(view.setup, { route: ["T20", "T19", "S10"], leave: 32 });
+  assert.match(
+    board(ladder).main,
+    /<div class="big">159<\/div><div class="route"><span class="setup" title="setup_hint"><span class="bed">T20<\/span><span class="bed">T19<\/span><span class="bed">S10<\/span><span class="leave">setup_leave<\/span><\/span><\/div>/
+  );
+  // The board outlines the setup's first dart, as in X01.
+  assert.deepEqual(drillBeds(view), ["T20"]);
+  // A route wins over a setup, a bust over both; an unusable setup is none.
+  const routed = drill("81", { drill: "checkout", remaining: 81, checkout: "T15 D18", setup: { route: "S1", leave: 80 } });
+  assert.match(board(routed).main, /<div class="route"><span class="bed">T15<\/span><span class="bed">D18<\/span><\/div>/);
+  const bust = drill("159", { drill: "checkout", remaining: 159, bust: true, setup: { route: "T20", leave: 99 } });
+  assert.match(board(bust).main, /<span class="note bust">bust<\/span>/);
+  assert.equal(drillView(drill("159", { drill: "checkout", setup: { route: "Z9", leave: 1 } }).drill).setup, null);
+  assert.equal(drillView(drill("159", { drill: "checkout" }).drill).setup, null);
+  // The caller names the score to leave, like in X01.
+  const state = (keys, setup) => ({
+    mode: "drill",
+    drill: { kind: "checkout_121", remaining: 159, route: [], setup, thrown: keys },
+  });
+  const throwing = callerState(visit(dart(20, 1)), state(["S20"], null));
+  const next = callerState(visit(), state([], { route: ["T20", "T19", "S10"], leave: 32 }), throwing);
+  assert.deepEqual(callerCalls(throwing, next, all), [{ kind: "setup", name: null, player: null, players: 0, leave: 32 }]);
+});

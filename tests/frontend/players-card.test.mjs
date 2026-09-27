@@ -254,9 +254,19 @@ function notices(card) {
   return messages;
 }
 
-test("the export button is off by default", () => {
-  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) });
+// The export is an action for administrators.
+const ADMIN = { id: "8f1c", name: "Dennis", is_admin: true };
+
+test("the export button is off by default, and only administrators get it", () => {
+  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, {}, { user: ADMIN });
   assert.equal($(card, ".export"), null);
+  // A user without admin rights, or a page without a user, would only get an error.
+  for (const user of [{ ...ADMIN, is_admin: false }, undefined]) {
+    const other = setup({ ...profiles(ALEX), ...lastMatch({}) }, { export: true }, { user }).card;
+    assert.equal($(other, ".export"), null);
+    assert.equal(text(other, ".title"), "Players");
+  }
+  assert.ok($(setup({ ...profiles(ALEX), ...lastMatch({}) }, { export: true }, { user: ADMIN }).card, ".export"));
 });
 
 test("the export button writes every table and downloads the file with the user's login", async () => {
@@ -268,7 +278,7 @@ test("the export button writes every table and downloads the file with the user'
   const { card } = setup(
     { ...profiles(ALEX), ...lastMatch({}) },
     { export: true },
-    { callWS, device: { primary_config_entry: "entry-1", config_entries: ["other", "entry-1"] } }
+    { callWS, user: ADMIN, device: { primary_config_entry: "entry-1", config_entries: ["other", "entry-1"] } }
   );
   const { clicked, restore } = downloads();
   try {
@@ -307,7 +317,7 @@ test("the export can be JSON and picks the board's entry", async () => {
       [{ export: true, export_format: "json" }, { config_entries: ["entry-2"] }],
       [{ export: true, export_format: "xml" }, {}],
     ]) {
-      const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, config, { callWS, device });
+      const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, config, { callWS, device, user: ADMIN });
       $(card, ".export").click();
       await settle();
     }
@@ -336,7 +346,7 @@ test("a failed export shows why and leaves the button ready", async () => {
     () => Promise.resolve({ response: { download: "https://example.com/x.zip" } }),
   ];
   const callWS = () => answers.shift()();
-  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, { export: true }, { callWS });
+  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, { export: true }, { callWS, user: ADMIN });
   const messages = notices(card);
   const { clicked, restore } = downloads();
   try {
@@ -359,7 +369,7 @@ test("a failed export shows why and leaves the button ready", async () => {
 
 
 test("the export needs Home Assistant's connection and no preview", async () => {
-  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, { export: true });
+  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, { export: true }, { user: ADMIN });
   const messages = notices(card);
   card.preview = true;
   $(card, ".export").click();
@@ -373,7 +383,7 @@ test("the export needs Home Assistant's connection and no preview", async () => 
 });
 
 test("the export button speaks German", () => {
-  const hass = makeHass({ language: "de", states: { ...profiles(ALEX), ...lastMatch({}) } });
+  const hass = makeHass({ language: "de", states: { ...profiles(ALEX), ...lastMatch({}) }, user: ADMIN });
   const card = mount("autodarts-players-card", hass, { export: true });
   assert.equal(text(card, ".export"), "Exportieren");
 });

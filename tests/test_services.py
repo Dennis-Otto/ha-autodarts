@@ -2,7 +2,8 @@
 
 import pytest
 import voluptuous as vol
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.core import Context
+from homeassistant.exceptions import ServiceValidationError, Unauthorized
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.const import DOMAIN
@@ -12,6 +13,27 @@ from custom_components.autodarts.profiles import NAME_LENGTH
 from .local_helpers import board, entry_data, mock_cloud, setup_local
 
 LONGEST = "x" * NAME_LENGTH
+# The actions that forget or write out the data of the players.
+ADMIN_ACTIONS = {
+    "delete_player": {"name": "Alex"},
+    "export": {"what": "profiles"},
+    "link_player": {"player": "Alex", "person": "person.alex"},
+    "unlink_player": {"player": "Alex"},
+}
+
+
+async def call(hass, service: str, context: Context | None = None, **data) -> None:
+    await hass.services.async_call(
+        DOMAIN, service, data, blocking=True, context=context
+    )
+
+
+async def invalid(hass, service: str, **data) -> ServiceValidationError:
+    """The translated error of a call that is refused before anything changes."""
+    with pytest.raises(ServiceValidationError) as error:
+        await call(hass, service, **data)
+    assert error.value.translation_domain == DOMAIN
+    return error.value
 
 
 @pytest.mark.parametrize(
@@ -128,3 +150,226 @@ async def test_a_cloud_only_board_cannot_play(hass, aioclient_mock):
         with pytest.raises(ServiceValidationError) as error:
             await hass.services.async_call(DOMAIN, "start_game", data, blocking=True)
         assert error.value.translation_key == "no_board"
+
+
+# -- administrators ----------------------------------------------------------------
+
+
+@pytest.mark.parametrize("service", ADMIN_ACTIONS)
+async def test_actions_on_the_players_data_are_for_administrators(
+    hass, aioclient_mock, tmp_path, hass_read_only_user, hass_admin_user, service
+):
+    """A wall tablet's user may play, but not delete or export the players."""
+    hass.config.config_dir = str(tmp_path)
+    hass.config.media_dirs = {"local": str(tmp_path / "media")}
+    hass.config.allowlist_external_dirs = {str(tmp_path / "media")}
+    hass.states.async_set("person.alex", "home")
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    profiles = entry.runtime_data.local.practice.profiles
+    await entry.runtime_data.local.async_link_player("Alex", "person.alex")
+    before = profiles.snapshot()
+    with pytest.raises(Unauthorized):
+        await call(
+            hass,
+            service,
+            Context(user_id=hass_read_only_user.id),
+            **ADMIN_ACTIONS[service],
+        )
+    assert profiles.snapshot() == before
+    assert not (tmp_path / "media").exists()
+    await call(
+        hass, service, Context(user_id=hass_admin_user.id), **ADMIN_ACTIONS[service]
+    )
+    # Playing stays open for every user.
+    await call(hass, "start_game", Context(user_id=hass_read_only_user.id), game="301")
+    assert entry.runtime_data.local.practice.game == 301
+
+
+# -- translated errors --------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "data,key,placeholders",
+    [
+        ({"bot_level": 10}, "invalid_bot_level", None),
+        ({"bot_level": 121}, "invalid_bot_level", None),
+        ({"start_scores": [501, 1]}, "invalid_start_score", None),
+        ({"start_scores": ["1002"]}, "invalid_start_score", None),
+        (
+            {"players": ["A", "B"], "start_scores": [501, 301, 101]},
+            "too_many_start_scores",
+            {"scores": "3", "players": "2"},
+        ),
+        # The bot's seat after the players has a start score of its own.
+        (
+            {"players": ["A"], "bot_level": 60, "start_scores": [501, 301, 101]},
+            "too_many_start_scores",
+            {"scores": "3", "players": "2"},
+        ),
+        (
+            {"players": ["A", "B", "C", "D"], "teams": True, "start_scores": [1, 2, 3]},
+            "invalid_start_score",
+            None,
+        ),
+        (
+            {
+                "players": ["A", "B", "C", "D"],
+                "teams": True,
+                "start_scores": [501, 301, 101],
+            },
+            "team_start_scores",
+            None,
+        ),
+        (
+            {"double_in": True, "double_out": True, "start_scores": [501, 3]},
+            "unwinnable_start",
+            None,
+        ),
+    ],
+)
+async def test_start_game_explains_a_wrong_value(
+    hass, aioclient_mock, data, key, placeholders
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    await entry.runtime_data.local.async_set_players(2)
+    error = await invalid(hass, "start_game", game="501", **data)
+    assert (error.translation_key, error.translation_placeholders) == (
+        key,
+        placeholders,
+    )
+    assert entry.runtime_data.local.practice.game == 0
+
+
+@pytest.mark.parametrize(
+    "data,starts",
+    [
+        ({"players": ["A", "B"], "start_scores": ["501", 301]}, [501, 301, 0, 0]),
+        (
+            {"players": ["A"], "bot_level": 60, "start_scores": [501, 301]},
+            [501, 301, 0, 0],
+        ),
+        (
+            {
+                "players": ["A", "B", "C", "D"],
+                "teams": True,
+                "start_scores": [501, 301],
+            },
+            [501, 301, 0, 0],
+        ),
+        # 3 is a fine start score with double out alone.
+        ({"double_in": False, "double_out": True, "start_scores": [3]}, [3, 0, 0, 0]),
+    ],
+)
+async def test_start_game_takes_one_start_score_per_seat(
+    hass, aioclient_mock, data, starts
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    await call(hass, "start_game", game="501", **data)
+    assert entry.runtime_data.local.practice.starts == starts
+
+
+async def test_start_game_checks_the_start_scores_it_keeps(hass, aioclient_mock):
+    """Without start scores, those set on the board are checked."""
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    await coordinator.async_set_start_score(1, 3)
+    error = await invalid(
+        hass,
+        "start_game",
+        game="301",
+        players=["A", "B"],
+        double_in=True,
+        double_out=True,
+    )
+    assert error.translation_key == "unwinnable_start"
+    # A team plays from its first player's start score only.
+    await coordinator.async_set_start_score(1, 0)
+    await coordinator.async_set_start_score(2, 3)
+    await call(
+        hass,
+        "start_game",
+        game="301",
+        players=["A", "B", "C", "D"],
+        teams=True,
+        double_in=True,
+        double_out=True,
+    )
+    assert coordinator.practice.game == 301
+
+
+async def test_start_tournament_explains_wrong_start_scores(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    director = entry.runtime_data.local.tournament
+    players = ["Alex", "Sam", "Kim"]
+    error = await invalid(
+        hass, "start_tournament", players=players, start_scores=[501, 501, 301, 101]
+    )
+    assert (error.translation_key, error.translation_placeholders) == (
+        "too_many_start_scores",
+        {"scores": "4", "players": "3"},
+    )
+    error = await invalid(hass, "start_tournament", players=players, start_scores=[1])
+    assert error.translation_key == "invalid_start_score"
+    error = await invalid(
+        hass,
+        "start_tournament",
+        players=players,
+        game="301",
+        double_in=True,
+        double_out=True,
+        start_scores=[501, 3],
+    )
+    assert error.translation_key == "unwinnable_start"
+    # Without names, the players of the setup count.
+    await entry.runtime_data.local.async_set_tournament(players=[*players, "Lea"])
+    error = await invalid(hass, "start_tournament", start_scores=[501] * 5)
+    assert error.translation_placeholders == {"scores": "5", "players": "4"}
+    assert director.tournament is None
+    # Cricket has no start scores to win from.
+    await call(
+        hass,
+        "start_tournament",
+        players=players,
+        game="cricket",
+        double_in=True,
+        double_out=True,
+        start_scores=[3],
+    )
+    assert director.tournament is not None
+
+
+async def test_a_wrong_bed_is_explained(hass, aioclient_mock):
+    await setup_local(hass, aioclient_mock, state=board())
+    for service, data in (("correct_dart", {"dart": 1}), ("throw_dart", {})):
+        error = await invalid(hass, service, segment=" T21 ", **data)
+        assert (error.translation_key, error.translation_placeholders) == (
+            "invalid_segment",
+            {"segment": "T21"},
+        )
+    # Only the start of a long text is repeated.
+    error = await invalid(hass, "throw_dart", segment="X" * 40)
+    assert error.translation_placeholders == {"segment": "X" * 20}
+    error = await invalid(hass, "throw_dart", segment="T\x0020")
+    assert error.translation_placeholders == {"segment": "T?20"}
+    with pytest.raises(vol.Invalid):
+        await call(hass, "throw_dart", segment="")
+
+
+async def test_player_names_that_templates_would_run_are_refused(hass, aioclient_mock):
+    """{ } % # in a name would run in the templates of automations."""
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    hass.states.async_set("person.alex", "home")
+    for service, data in (
+        ("start_game", {"game": "501", "players": ["Alex", "{{ 6*7 }}"]}),
+        ("start_tournament", {"players": ["Alex", "Sam", "50%"]}),
+        ("link_player", {"player": "#Kim", "person": "person.alex"}),
+    ):
+        error = await invalid(hass, service, **data)
+        assert error.translation_key == "invalid_player_name"
+    assert not coordinator.practice.profiles.snapshot()["players"]
+    assert coordinator.tournament.tournament is None
+    # The board checks the names of a game on its own, too.
+    with pytest.raises(ServiceValidationError) as error:
+        await coordinator.async_start_game(501, names=["Alex", "{x}"])
+    assert error.value.translation_key == "invalid_player_name"

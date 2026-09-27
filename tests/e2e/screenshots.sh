@@ -36,6 +36,7 @@ for language in ${LANGUAGES:-en de}; do
 		sh -c "pip install --quiet --disable-pip-version-check --root-user-action=ignore --break-system-packages --require-hashes -r requirements-browser.txt && python screenshots.py"
 done
 
-# Shrink the screenshots to about a fifth without visible loss.
+# Shrink the screenshots to about a fifth without visible loss. pngquant exits
+# with 98 or 99 when it keeps a file that would not get smaller or better.
 "${DOCKER_BIN}" run --rm --volume "${ROOT_MOUNT}:/repo" "${ALPINE_IMAGE}" \
-	sh -c "apk add --no-cache pngquant >/dev/null && pngquant --force --skip-if-larger --strip --quality=80-95 --ext .png /repo/docs/images/*/*.png"
+	sh -c "apk add --no-cache pngquant >/dev/null && { pngquant --force --skip-if-larger --strip --quality=80-95 --ext .png /repo/docs/images/*/*.png; status=\$?; [ \$status -eq 0 ] || [ \$status -eq 98 ] || [ \$status -eq 99 ]; }"

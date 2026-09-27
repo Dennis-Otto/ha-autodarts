@@ -14,7 +14,7 @@ from custom_components.autodarts.checkout import (
 )
 from custom_components.autodarts.practice import PracticeGame
 
-from .test_practice import dart, playing
+from .local_helpers import dart, playing
 
 SCORES = {bed.name: bed.score for bed in BEDS}
 

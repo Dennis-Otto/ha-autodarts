@@ -4,7 +4,7 @@ import json
 
 from custom_components.autodarts.practice import PracticeGame
 
-from .test_practice import PLAYER_1, dart, match, playing, throw
+from .local_helpers import PLAYER_1, dart, match, playing, throw
 
 
 def test_double_out_switched_on_while_a_player_stands_on_1_waits_for_the_next_leg():

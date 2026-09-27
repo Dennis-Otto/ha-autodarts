@@ -67,7 +67,7 @@
       },
       "local": {
         "title": "Conectar diana local",
-        "description": "Introduce la dirección IP o el nombre de host de Board Manager, sin http:// ni puerto. No se necesita ningún ID de cliente. La diana ya debe estar configurada en Board Manager.",
+        "description": "Introduce la dirección IP o el nombre de host de Board Manager, sin http:// ni puerto. La diana ya debe estar configurada en Board Manager.",
         "data": {
           "host": "IP o nombre de host de la diana",
           "port": "Puerto"
@@ -117,9 +117,13 @@
       "reconfigure_successful": "Se ha actualizado la configuración de Autodarts.",
       "cannot_connect_local": "La diana anunciada en tu red no responde. Comprueba que Board Manager esté en ejecución.",
       "board_not_configured": "No hay ningún ID de diana configurado en Board Manager. Termina primero allí la configuración de la diana.",
-      "already_in_progress": "La configuración de esta diana ya está en curso."
+      "already_in_progress": "La configuración de esta diana ya está en curso.",
+      "address_updated": "Esta diana Autodarts ya está configurada. Se ha actualizado su dirección y la integración se vuelve a cargar."
     },
-    "flow_title": "{name}"
+    "flow_title": "{name}",
+    "create_entry": {
+      "default": "La diana está configurada. Para un panel listo con el marcador, el entrenamiento y las estadísticas, abre **Ajustes → Paneles de control → Añadir panel de control** y elige **Autodarts**."
+    }
   },
   "options": {
     "step": {
@@ -433,7 +437,7 @@
         "name": "Bull-off de la partida"
       },
       "practice_bull_off_distance": {
-        "name": "Bull-off por distancia de la partida"
+        "name": "Bull-off de la partida por distancia"
       },
       "practice_personal_routes": {
         "name": "Rutas de cierre personales de la partida"
@@ -442,7 +446,7 @@
         "name": "Equipos de la partida"
       },
       "achievements_enabled": {
-        "name": "Logros"
+        "name": "Desbloquear logros"
       },
       "tournament_third_place": {
         "name": "Partido por el tercer puesto del torneo"
@@ -557,7 +561,7 @@
         "name": "Pausa del torneo"
       },
       "tournament_summary": {
-        "name": "Resumen del torneo"
+        "name": "Duración del resumen del torneo"
       },
       "practice_bot_level": {
         "name": "Nivel del bot de la partida"
@@ -598,7 +602,7 @@
         "name": "Problema en la cámara {number}"
       },
       "cloud_link": {
-        "name": "Conexión a la nube de Autodarts"
+        "name": "Conexión a la nube"
       }
     },
     "camera": {
@@ -754,7 +758,7 @@
       "message": "Esta diana no admite la acción."
     },
     "export_folder": {
-      "message": "La carpeta de exportación {folder} debe estar dentro de la carpeta de configuración de Home Assistant y no puede estar oculta."
+      "message": "La carpeta de exportación {folder} no puede estar oculta, y Home Assistant debe permitir escribir en ella: www, las carpetas multimedia y las carpetas de allowlist_external_dirs están permitidas."
     },
     "export_failed": {
       "message": "No se ha podido escribir la exportación: {error}"
@@ -812,6 +816,21 @@
     },
     "bot_seat": {
       "message": "Con el bot juegan hasta tres jugadores: el bot ocupa el cuarto puesto."
+    },
+    "invalid_segment": {
+      "message": "{segment} no es un segmento de la diana. Introduce S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS."
+    },
+    "too_many_start_scores": {
+      "message": "Las puntuaciones iniciales tienen {scores} valores, pero solo juegan {players} jugadores. Indica como máximo una puntuación inicial por jugador, en orden de lanzamiento."
+    },
+    "team_start_scores": {
+      "message": "Los equipos juegan con las puntuaciones iniciales de los jugadores 1 y 2, una por equipo. Indica como máximo dos puntuaciones iniciales."
+    },
+    "unwinnable_start": {
+      "message": "Una puntuación inicial de 3 no se puede cerrar con double in y double out: el único doble de apertura, D1, deja 1. Elige otra puntuación inicial, o desactiva el double in o el double out."
+    },
+    "export_limit": {
+      "message": "En la última hora se escribieron {count} exportaciones, el máximo de la integración. Inténtalo de nuevo más tarde."
     }
   },
   "issues": {
@@ -852,7 +871,7 @@
         "step": {
           "confirm": {
             "title": "Usar la nueva dirección",
-            "description": "La diana ya no responde en su antigua dirección. La nube de Autodarts indica que está en {new}, donde responde con su ID de diana.\n\n¿Conectar la diana allí? La integración se vuelve a cargar; se conservan las entidades, el entrenamiento y la configuración."
+            "description": "Una diana con el ID de diana de esta entrada responde en {new}, mientras que ya no responde en la dirección configurada.\n\n¿Conectar la diana allí? Confirma solo si es tu diana: cualquier dispositivo de tu red puede presentarse con un ID de diana. La integración se vuelve a cargar; se conservan las entidades, el entrenamiento y la configuración."
           }
         },
         "abort": {
@@ -908,7 +927,7 @@
         },
         "start_scores": {
           "name": "Puntuaciones iniciales",
-          "description": "Puntuaciones iniciales de X01 de los jugadores en orden de lanzamiento, para jugar con hándicap, por ejemplo 501 y 301. Con 0 o sin puntuación se juega con la puntuación inicial del juego."
+          "description": "Puntuaciones iniciales de X01 de los jugadores en orden de lanzamiento, para jugar con hándicap, por ejemplo 501 y 301; el puesto del bot tras los jugadores también tiene una. Con 0 o sin puntuación se juega con la puntuación inicial del juego. Los equipos juegan con las puntuaciones iniciales de los jugadores 1 y 2."
         },
         "holes": {
           "name": "Hoyos de Golf",
@@ -926,7 +945,7 @@
     },
     "delete_player": {
       "name": "Eliminar perfil de jugador",
-      "description": "Borra las estadísticas, los récords personales y los cara a cara de un jugador. El nombre también desaparece de los récords personales de la diana y de los nombres de jugadores de la partida; el historial de partidos lo conserva.",
+      "description": "Borra las estadísticas, los récords personales y los cara a cara de un jugador. El nombre también desaparece de los récords personales de la diana y de los nombres de jugadores de la partida; el historial de partidos lo conserva. Un jugador del torneo en curso solo se puede eliminar cuando el torneo haya terminado. Solo para administradores; las automatizaciones también pueden usarla.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -940,7 +959,7 @@
     },
     "export": {
       "name": "Exportar datos de entrenamiento",
-      "description": "Guarda sesiones de entrenamiento, partidos o perfiles de jugador como archivo CSV o JSON dentro de la carpeta de configuración y devuelve su ruta. Las exportaciones contienen nombres de jugadores.",
+      "description": "Guarda sesiones de entrenamiento, partidos o perfiles de jugador como archivo CSV o JSON, por defecto en autodarts/exports de la carpeta multimedia, y devuelve su ruta y un enlace de descarga. Las exportaciones contienen nombres de jugadores. Solo para administradores; las automatizaciones también pueden usarla.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -956,13 +975,13 @@
         },
         "folder": {
           "name": "Carpeta",
-          "description": "Una carpeta dentro de la carpeta de configuración. Los archivos de www están disponibles en /local/ sin iniciar sesión."
+          "description": "Opcional. Una carpeta relativa a la carpeta de configuración, o una ruta absoluta, en la que Home Assistant permite escribir: www, una carpeta multimedia o una carpeta de allowlist_external_dirs. Los archivos de www están disponibles en /local/ sin iniciar sesión. Sin carpeta: autodarts/exports en la carpeta multimedia."
         }
       }
     },
     "link_player": {
       "name": "Vincular jugador a persona",
-      "description": "Convierte a un jugador en una persona de Home Assistant: la foto de la persona aparece en el marcador, en la tarjeta de jugadores y en la pantalla de nueva partida, que además muestra primero a los jugadores que están en casa. Una persona es un solo jugador; si la vuelves a vincular, el vínculo pasa al nuevo jugador.",
+      "description": "Convierte a un jugador en una persona de Home Assistant: la foto de la persona aparece en el marcador, en la tarjeta de jugadores y en la pantalla de nueva partida, que además muestra primero a los jugadores que están en casa. Una persona es un solo jugador; si la vuelves a vincular, el vínculo pasa al nuevo jugador. Solo para administradores; las automatizaciones también pueden usarla.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -980,7 +999,7 @@
     },
     "unlink_player": {
       "name": "Desvincular jugador",
-      "description": "Deshace el vínculo entre un jugador y su persona. Las estadísticas del jugador se mantienen.",
+      "description": "Deshace el vínculo entre un jugador y su persona. Las estadísticas del jugador se mantienen. Solo para administradores; las automatizaciones también pueden usarla.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -994,7 +1013,7 @@
     },
     "start_tournament": {
       "name": "Iniciar torneo",
-      "description": "Sortea un torneo de tres a ocho jugadores e inicia su primer partido: todos contra todos o eliminación directa, con partidos de X01 o de Cricket.",
+      "description": "Sortea un torneo de tres a ocho jugadores e inicia su primer partido: todos contra todos o eliminación directa, con partidos de X01 o de Cricket. Un torneo en curso debe terminarse primero.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -1096,7 +1115,7 @@
         },
         "segment": {
           "name": "Segmento",
-          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 para el bull exterior, BULL para el bullseye o MISS."
+          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS."
         }
       }
     },
@@ -1110,7 +1129,7 @@
         },
         "segment": {
           "name": "Segmento",
-          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 para el bull exterior, BULL para el bullseye o MISS."
+          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS."
         }
       }
     },

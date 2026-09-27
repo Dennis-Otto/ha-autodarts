@@ -128,7 +128,10 @@ def _single_out_rank(route: tuple[Bed, ...]) -> tuple[object, ...]:
     )
 
 
-@lru_cache(maxsize=2048)
+# A bot of the lowest level asks for about 2,800 different checkouts and 1,200
+# setups: smaller caches keep evicting what it needs again, and every miss
+# costs milliseconds in the event loop.
+@lru_cache(maxsize=8192)
 def checkout(
     remaining: int,
     darts: int = 3,
@@ -224,7 +227,7 @@ def _leave_ranks(preferred: tuple[str, ...]) -> dict[int, tuple[int, int]]:
     return ranks
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=4096)
 def setup(
     remaining: int, darts: int = 3, preferred: tuple[str, ...] = ()
 ) -> Setup | None:

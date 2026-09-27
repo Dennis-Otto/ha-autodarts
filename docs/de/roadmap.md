@@ -53,7 +53,7 @@ Enthalten, alles ohne Autodarts-Cloud:
 
 ## Version 1.6: mehr Spiele, eine Spielauswahl, Berichte und Online-Matches
 
-Für das nächste Release zusammengeführt; die Details stehen im [Changelog](../../CHANGELOG.md#160) (auf Englisch).
+Erschienen als 1.6.0 am 27. September 2026; die Details stehen im [Changelog](../../CHANGELOG.md#160) (auf Englisch).
 
 | Thema | Was es bringt | Stand |
 | --- | --- | --- |

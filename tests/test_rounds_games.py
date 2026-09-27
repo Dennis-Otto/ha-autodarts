@@ -16,7 +16,7 @@ from custom_components.autodarts.party import (
 )
 from custom_components.autodarts.practice import PracticeGame
 
-from .test_practice import dart, throw
+from .local_helpers import dart, throw
 
 
 def darts(*names: str) -> list[dict]:

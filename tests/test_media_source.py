@@ -1,8 +1,10 @@
 """The highlight gallery of the media browser: photos by month, safe by design."""
 
+import io
 import os
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from homeassistant.components import media_source
@@ -10,7 +12,9 @@ from homeassistant.components.media_player import BrowseError, MediaClass
 from homeassistant.components.media_source import MediaSourceItem, Unresolvable
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
+from PIL import Image
 
+from custom_components.autodarts import media_source as highlights
 from custom_components.autodarts.media_source import (
     Highlight,
     async_get_media_source,
@@ -18,8 +22,7 @@ from custom_components.autodarts.media_source import (
     highlight_folder,
 )
 
-from .test_local_setup import setup_local
-from .test_training import board
+from .local_helpers import board, setup_local
 
 PHOTOS = [
     "2026-09-26_21-05-33_Alex_180.jpg",
@@ -103,6 +106,14 @@ def test_names_tell_the_moment_the_player_and_the_score(tmp_path):
     # Dutch, French and Spanish write the day first, too.
     assert photo.title("nl") == "180 · Alex · 06-09"
     assert photo.title("fr") == photo.title("es") == "180 · Alex · 06/09"
+    # A checkout, as the players of the language call it.
+    checkout = Highlight("x.jpg", datetime(2026, 1, 1), None, 121, True)
+    assert [checkout.title(language) for language in ("de", "nl", "fr", "es")] == [
+        "Checkout 121 · 01.01.",
+        "Uitgooi 121 · 01-01",
+        "Finish 121 · 01/01",
+        "Cierre 121 · 01/01",
+    ]
 
 
 async def test_the_gallery_lists_the_months_and_their_photos(hass, gallery):
@@ -121,7 +132,8 @@ async def test_the_gallery_lists_the_months_and_their_photos(hass, gallery):
         ("2026-08", "August 2026"),
         ("2026-07", "July 2026"),
     ]
-    cover = "/media/local/autodarts/highlights/2026-09-26_21-07-10_Alex%20Bee_checkout-121.JPG"
+    # Thumbnails are small copies; the media browser embeds every one it shows.
+    cover = "/api/autodarts/highlights/2026-09-26_21-07-10_Alex%20Bee_checkout-121.JPG"
     assert root.children[0].thumbnail == cover
 
     september = await source.async_browse_media(item(hass, "2026-09"))
@@ -145,8 +157,7 @@ async def test_the_gallery_lists_the_months_and_their_photos(hass, gallery):
         False,
     )
     assert (
-        photo.thumbnail
-        == "/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg"
+        photo.thumbnail == "/api/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg"
     )
     july = await source.async_browse_media(item(hass, "2026-07"))
     assert [photo.title for photo in july.children] == ["kitchen · Jul 4"]
@@ -234,3 +245,88 @@ async def test_the_media_browser_finds_the_gallery_of_the_integration(
         hass, "media-source://autodarts/2026-08-30.jpeg", None
     )
     assert resolved.url == "/media/local/autodarts/highlights/2026-08-30.jpeg"
+
+
+def picture(path: Path, size: tuple[int, int], orientation: int | None = None) -> None:
+    """A real photo; with an EXIF orientation, as a camera held sideways writes it."""
+    exif = Image.Exif()
+    if orientation:
+        exif[0x0112] = orientation
+    Image.new("RGB", size, "red").save(path, exif=exif)
+
+
+async def test_thumbnails_are_small_copies_for_logged_in_users(
+    hass, gallery, hass_client, hass_client_no_auth
+):
+    assert await async_setup_component(hass, "http", {})
+    # The view is added once, however often the media browser asks.
+    await async_get_media_source(hass)
+    source = await async_get_media_source(hass)
+    picture(gallery / "2026-09-27_Alex_180.jpg", (1600, 1200))
+    picture(gallery / "2026-09-27_Kim_140.png", (200, 100), orientation=6)
+    root = await source.async_browse_media(item(hass))
+    client = await hass_client()
+    alex = "/api/autodarts/highlights/2026-09-27_Alex_180.jpg"
+    kim = "/api/autodarts/highlights/2026-09-27_Kim_140.png"
+
+    response = await client.get(alex)
+    assert response.status == 200
+    assert response.content_type == "image/jpeg"
+    assert "private" in response.headers["Cache-Control"]
+    with Image.open(io.BytesIO(await response.read())) as small:
+        assert small.size == (320, 240)
+    # A photo taken sideways is shown upright, and never larger than it is.
+    response = await client.get(kim)
+    with Image.open(io.BytesIO(await response.read())) as small:
+        assert small.size == (100, 200)
+
+    # A thumbnail is made once, and again when the photo changes.
+    with patch.object(highlights, "thumbnail", wraps=highlights.thumbnail) as made:
+        for _ in range(2):
+            await client.get(alex)
+        assert made.call_count == 0
+        picture(gallery / "2026-09-27_Alex_180.jpg", (800, 800))
+        response = await client.get(alex)
+        assert made.call_count == 1
+    with Image.open(io.BytesIO(await response.read())) as small:
+        assert small.size == (320, 320)
+    # Only the most recently used thumbnails are kept.
+    picture(gallery / "2026-09-27_Sam_100.jpg", (400, 300))
+    with (
+        patch.object(highlights, "KEPT_THUMBNAILS", 1),
+        patch.object(highlights, "thumbnail", wraps=highlights.thumbnail) as made,
+    ):
+        await client.get("/api/autodarts/highlights/2026-09-27_Sam_100.jpg")
+        await client.get(kim)
+        await client.get(kim)
+        assert made.call_count == 2
+    # A huge picture is no snapshot of the board and gets no thumbnail.
+    picture(gallery / "2026-09-27_Lea_60.jpg", (40, 40))
+    with patch.object(highlights, "MAX_PIXELS", 1000):
+        response = await client.get("/api/autodarts/highlights/2026-09-27_Lea_60.jpg")
+    assert response.status == 404
+
+    for name in (
+        "notes.txt",
+        ".hidden.jpg",
+        "missing.jpg",
+        "a folder.jpg",
+        # Not a picture, although it is named like one.
+        "2026-08-30.jpeg",
+    ):
+        response = await client.get(f"/api/autodarts/highlights/{name}")
+        assert response.status == 404, name
+    # Home Assistant refuses a way out of the folder before the integration does.
+    response = await client.get("/api/autodarts/highlights/..%2F..%2Fsecret.jpg")
+    assert response.status in (400, 404)
+    anonymous = await hass_client_no_auth()
+    response = await anonymous.get(root.children[0].thumbnail)
+    assert response.status == 401
+    hass.config.media_dirs = {}
+    response = await client.get(root.children[0].thumbnail)
+    assert response.status == 404
+
+
+def test_a_photo_that_disappears_while_it_is_read_has_no_thumbnail(gallery):
+    with patch.object(highlights, "_inside", side_effect=FileNotFoundError):
+        assert highlights._version(gallery, "2026-08-30.jpeg") is None

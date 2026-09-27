@@ -1,6 +1,7 @@
 """Recovery from board outages, flaky reads, cloud failures and old entries."""
 
 import asyncio
+import logging
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -134,11 +135,15 @@ async def test_changed_board_address_is_taken_from_the_cloud(hass, aioclient_moc
         json={"id": "board-1", "ip": BASE, "state": {"connected": True}},
     )
     data = {**entry_data(), "host": "192.0.2.99", "port": 3180, "local_only": False}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(
+        domain="autodarts", version=2, data=data, title="Autodarts (192.0.2.99)"
+    )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.data["host"] == "192.0.2.10"
+    # A title that named the old address names the new one.
+    assert entry.title == "Autodarts (192.0.2.10)"
     assert state(hass, "binary_sensor", "local_connected") == "on"
     assert state(hass, "switch", "detection") == "off"
 
@@ -253,7 +258,7 @@ async def test_missed_poll_during_realtime_stream_is_no_outage(hass, aioclient_m
 
 @pytest.mark.expected_errors
 async def test_stream_survives_unexpected_errors_and_polls_slowly_meanwhile(
-    hass, aioclient_mock
+    hass, aioclient_mock, caplog
 ):
     release, handshake, live, fail, reconnected = (asyncio.Event() for _ in range(5))
     calls = 0
@@ -296,6 +301,16 @@ async def test_stream_survives_unexpected_errors_and_polls_slowly_meanwhile(
     assert coordinator.update_interval == timedelta(seconds=2)
     # The connection delivered notifications, so the back-off starts at 1 second.
     assert 0.8 <= waits[0] <= 1
+    # The failure is logged once, with the error that ended the stream.
+    errors = [
+        record
+        for record in caplog.records
+        if record.levelno >= logging.ERROR and record.name.startswith("custom_")
+    ]
+    assert [record.getMessage() for record in errors] == [
+        "Unexpected error in the local event stream"
+    ]
+    assert str(errors[0].exc_info[1]) == "unexpected board message"
 
 
 async def test_connected_stream_without_any_board_answer_is_still_an_outage(

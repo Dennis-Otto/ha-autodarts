@@ -6,44 +6,7 @@ from hypothesis import strategies as st
 from custom_components.autodarts.checkout import checkout
 from custom_components.autodarts.practice import GAMES, MAX_PLAYERS, PracticeGame
 
-
-def dart(name: str) -> dict:
-    if name == "BULL":
-        return {"number": 25, "multiplier": 2, "name": "Bull"}
-    if name == "25":
-        return {"number": 25, "multiplier": 1, "name": "25"}
-    if name == "MISS":
-        return {"number": 0, "multiplier": 0, "name": "M"}
-    return {
-        "number": int(name[1:]),
-        "multiplier": "SDT".index(name[0]) + 1,
-        "name": name,
-    }
-
-
-def throw(game: PracticeGame, *names: str) -> list[tuple[str, dict]]:
-    """Throw a visit dart by dart and pull the darts; return the events.
-
-    Playing alone, the turn stays with the same player; those events are
-    left out here and checked on their own.
-    """
-    events = []
-    for count in range(1, len(names) + 1):
-        events += game.track([dart(name) for name in names[:count]])
-    events += game.finish_visit()
-    game.track([])
-    if len(game.players) == 1:
-        events = [event for event in events if event[0] != "turn_changed"]
-    return events
-
-
-PLAYER_1 = {"game": 301, "player": 1, "name": None, "players": 1}
-
-
-def playing(start: int, remaining: int | None = None, **settings) -> PracticeGame:
-    game = PracticeGame()
-    game.restore({"game": start, "remaining": remaining or start, **settings})
-    return game
+from .local_helpers import PLAYER_1, dart, match, playing, throw, win_leg
 
 
 def test_a_leg_counts_down_and_suggests_the_checkout():
@@ -213,16 +176,6 @@ def test_any_visits_keep_the_leg_consistent(start, double_out, visits):
         assert leg["average"] == round(start * 3 / leg["darts"], 2)
 
 
-def match(players: int, legs: int = 1, sets: int = 1, **names) -> PracticeGame:
-    game = PracticeGame()
-    game.play(301)
-    game.set_players(players)
-    game.set_format(legs, sets)
-    for index, name in names.items():
-        game.set_name(int(index[1:]) - 1, name)
-    return game
-
-
 DENNIS = {"game": 301, "player": 1, "name": "Dennis", "players": 2}
 LEA = {"game": 301, "player": 2, "name": "Lea", "players": 2}
 
@@ -245,14 +198,6 @@ def test_players_take_turns_and_a_bust_passes_the_turn():
         ("turn_changed", {**LEA, "remaining": 281, "checkout": None, "setup": None}),
     ]
     assert game.snapshot()["player"] == 2
-
-
-def win_leg(game: PracticeGame, winner: int) -> list[tuple[str, dict]]:
-    """The given player (1 to 4) wins the leg; the others miss until then."""
-    while game.snapshot()["player"] != winner:
-        throw(game, "MISS")
-    game.players[winner - 1].remaining = 40
-    return throw(game, "D20")
 
 
 def test_legs_make_sets_and_sets_make_the_match():

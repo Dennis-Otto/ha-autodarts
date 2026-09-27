@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from homeassistant.core_config import Config
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
@@ -20,6 +21,13 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.autodarts.diagnostics import (
     async_get_config_entry_diagnostics,
+)
+from custom_components.autodarts.export import (
+    FORMULA_START,
+    ExportFolderError,
+    csv_text,
+    default_folder,
+    export_folder,
 )
 
 from .local_helpers import (
@@ -387,11 +395,21 @@ async def export(hass, **data) -> dict:
     )
 
 
+def folders(hass, config: Path, media: Path | None = None) -> Path:
+    """The configuration folder, with www and a media folder allowed for writing
+    as Home Assistant sets them up; returns the default export folder."""
+    media = media or config / "media"
+    hass.config.config_dir = str(config)
+    hass.config.media_dirs = {"local": str(media)}
+    hass.config.allowlist_external_dirs = {str(config / "www"), str(media)}
+    return media / "autodarts" / "exports"
+
+
 @pytest.fixture
 async def played(hass, aioclient_mock, freezer, tmp_path):
     """A board with a finished session and a match, and a configuration folder."""
     freezer.move_to("2026-09-27 18:00:00+00:00")
-    hass.config.config_dir = str(tmp_path)
+    folders(hass, tmp_path)
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     await throw(hass, coordinator, T20, T20, S20)
@@ -403,9 +421,10 @@ async def played(hass, aioclient_mock, freezer, tmp_path):
 async def test_export_everything_as_json(hass, played):
     result = await export(hass, format="json")
     path = Path(result["path"])
-    assert path.parent == played / "www" / "autodarts"
+    # The media folder needs a login.
+    assert path.parent == played / "media" / "autodarts" / "exports"
     assert path.name.startswith("autodarts-all-20260927-")
-    assert result["url"] == f"/local/autodarts/{path.name}"
+    assert result["url"] is None
     assert result["download"] == f"/api/autodarts/export/{path.name}"
     assert result["rows"] == {"sessions": 1, "matches": 1, "profiles": 2}
     content = json.loads(path.read_text(encoding="utf-8"))
@@ -418,6 +437,11 @@ async def test_export_everything_as_json(hass, played):
     assert [player["legs"] for player in match["players"]] == [1, 0]
     assert match["started"] == "2026-09-27T18:00:00+00:00"
     assert {profile["name"] for profile in content["profiles"]} == {"=Alex", "Sam"}
+    # In www, which Home Assistant serves without a login, only on request.
+    result = await export(hass, format="json", folder="www/autodarts")
+    path = Path(result["path"])
+    assert path.parent == played / "www" / "autodarts"
+    assert result["url"] == f"/local/autodarts/{path.name}"
 
 
 async def test_export_tables_as_csv(hass, played):
@@ -453,12 +477,25 @@ async def test_export_tables_as_csv(hass, played):
     assert ",'=Alex," in matches[1]
 
 
+@pytest.mark.parametrize("start", FORMULA_START)
+def test_a_cell_that_starts_like_a_formula_stays_text(start):
+    """Every character a spreadsheet starts a formula with, in every column."""
+    rows = [
+        {"name": f"{start}Alex", "legs": 1, "average": -1.5},
+        {"name": f"Sam{start}", "legs": 0, "average": None},
+    ]
+    written = list(csv.DictReader(io.StringIO(csv_text("profiles", rows))))
+    assert [row["name"] for row in written] == [f"'{start}Alex", f"Sam{start}"]
+    # Numbers stay numbers, also below zero.
+    assert [row["average"] for row in written] == ["-1.5", ""]
+
+
 async def test_an_empty_export_still_has_its_columns(hass, aioclient_mock, tmp_path):
-    hass.config.config_dir = str(tmp_path)
+    default = folders(hass, tmp_path)
     await setup_local(hass, aioclient_mock, state=board())
     # Without Home Assistant's web server, there is just no download.
     with patch.object(hass, "http", None):
-        result = await export(hass, what="profiles", folder="exports")
+        result = await export(hass, what="profiles")
     assert result["url"] is None
     assert Path(result["path"]).read_text("utf-8-sig") == "name\n"
     result = await export(hass, what="matches")
@@ -468,37 +505,159 @@ async def test_an_empty_export_still_has_its_columns(hass, aioclient_mock, tmp_p
     await hass.services.async_call(
         "autodarts", "export", {"what": "sessions"}, blocking=True
     )
-    assert len(list((tmp_path / "www" / "autodarts").iterdir())) == 2
+    assert len(list(default.iterdir())) == 3
 
 
-@pytest.mark.parametrize("folder", ["../outside", ".storage", "www/.hidden", "/etc"])
-async def test_export_never_writes_outside_the_configuration_folder(
-    hass, aioclient_mock, tmp_path, folder
+@pytest.mark.parametrize(
+    "folder,shown",
+    [
+        ("../outside", "../outside"),
+        (".storage", ".storage"),
+        ("www/.hidden", "www/.hidden"),
+        ("/etc", "/etc"),
+        # Only where Home Assistant allows writing.
+        ("exports", "exports"),
+        ("custom_components/autodarts", "custom_components/autodarts"),
+        # Control characters never reach the file system or the message.
+        ("www/a\x00b", "www/a?b"),
+        ("www/tab\there", "www/tab?here"),
+    ],
+)
+async def test_export_writes_only_where_home_assistant_allows_it(
+    hass, aioclient_mock, tmp_path, folder, shown
 ):
-    hass.config.config_dir = str(tmp_path / "config")
+    folders(hass, tmp_path / "config")
     await setup_local(hass, aioclient_mock, state=board())
     with pytest.raises(ServiceValidationError) as error:
         await export(hass, folder=folder)
     assert error.value.translation_key == "export_folder"
+    assert error.value.translation_placeholders == {"folder": shown}
     assert not (tmp_path / "outside").exists()
+    assert not (tmp_path / "config" / "exports").exists()
+    assert not (tmp_path / "config" / "custom_components").exists()
+
+
+async def test_export_to_an_allowed_folder_of_your_own(hass, aioclient_mock, tmp_path):
+    """A folder of allowlist_external_dirs, given by its path; never a hidden one."""
+    folders(hass, tmp_path / ".homeassistant")
+    share = tmp_path / "share"
+    hass.config.allowlist_external_dirs.add(str(share))
+    await setup_local(hass, aioclient_mock, state=board())
+    result = await export(hass, what="sessions", folder=str(share / "darts"))
+    assert Path(result["path"]).parent == share / "darts"
+    # A hidden configuration folder, as in a Home Assistant Core install, is fine.
+    result = await export(hass, what="sessions")
+    assert Path(result["path"]).parent == (
+        tmp_path / ".homeassistant" / "media" / "autodarts" / "exports"
+    )
+    with pytest.raises(ServiceValidationError) as error:
+        await export(hass, folder=str(share / ".secret"))
+    assert error.value.translation_key == "export_folder"
+    # A link cannot lead from an allowed folder to one that is not.
+    try:
+        (share / "link").symlink_to(tmp_path / ".homeassistant")
+    except OSError:
+        return  # Creating links needs rights Windows does not always grant.
+    with pytest.raises(ServiceValidationError):
+        await export(hass, folder=str(share / "link" / "exports"))
+    assert not (tmp_path / ".homeassistant" / "exports").exists()
+
+
+async def test_the_default_folder_must_be_allowed_too(hass, aioclient_mock, tmp_path):
+    folders(hass, tmp_path)
+    hass.config.allowlist_external_dirs = set()
+    await setup_local(hass, aioclient_mock, state=board())
+    with pytest.raises(ServiceValidationError) as error:
+        await export(hass, what="sessions")
+    assert error.value.translation_placeholders == {"folder": "autodarts/exports"}
+    assert not (tmp_path / "media").exists()
+
+
+def test_a_folder_that_cannot_be_resolved_is_refused(tmp_path):
+    config = Config.__new__(Config)
+    config.config_dir = str(tmp_path)
+    with (
+        patch.object(Path, "resolve", side_effect=RuntimeError("Symlink loop")),
+        pytest.raises(ExportFolderError),
+    ):
+        export_folder(config, "www/loop")
+
+
+def test_the_default_folder_without_a_local_media_folder(tmp_path):
+    config = Config.__new__(Config)
+    config.config_dir = str(tmp_path)
+    config.media_dirs = {"recordings": str(tmp_path / "recordings")}
+    assert default_folder(config) == tmp_path / "recordings" / "autodarts" / "exports"
+    config.media_dirs = {}
+    assert default_folder(config) == tmp_path / "media" / "autodarts" / "exports"
+
+
+async def test_exports_are_limited_per_hour(hass, aioclient_mock, tmp_path):
+    """A looping automation cannot fill the disk."""
+    folders(hass, tmp_path)
+    await setup_local(hass, aioclient_mock, state=board())
+    with (
+        patch("custom_components.autodarts.export.EXPORT_LIMIT", 2),
+        patch("custom_components.autodarts.export.monotonic", return_value=1000.0),
+    ):
+        await export(hass, what="sessions")
+        # A refused folder writes nothing and does not count.
+        with pytest.raises(ServiceValidationError):
+            await export(hass, what="sessions", folder="exports")
+        await export(hass, what="sessions")
+        with pytest.raises(ServiceValidationError) as error:
+            await export(hass, what="sessions")
+    assert error.value.translation_key == "export_limit"
+    assert error.value.translation_placeholders == {"count": "2"}
+    # An hour later, the next export is written.
+    with (
+        patch("custom_components.autodarts.export.EXPORT_LIMIT", 2),
+        patch("custom_components.autodarts.export.monotonic", return_value=4600.0),
+    ):
+        await export(hass, what="sessions")
+
+
+async def test_export_never_follows_a_link_out_of_the_configuration_folder(
+    hass, aioclient_mock, tmp_path
+):
+    config = tmp_path / "config"
+    config.mkdir()
+    (tmp_path / "outside").mkdir()
+    try:
+        (config / "link").symlink_to(tmp_path / "outside", target_is_directory=True)
+    except OSError:
+        pytest.skip("Creating links needs rights Windows does not always grant.")
+    hass.config.config_dir = str(config)
+    await setup_local(hass, aioclient_mock, state=board())
+    for folder in ("link", "link/exports"):
+        with pytest.raises(ServiceValidationError) as error:
+            await export(hass, folder=folder)
+        assert error.value.translation_key == "export_folder"
+    assert list((tmp_path / "outside").iterdir()) == []
 
 
 async def test_export_reports_a_folder_it_cannot_create(hass, aioclient_mock, tmp_path):
-    hass.config.config_dir = str(tmp_path)
-    (tmp_path / "taken").write_text("a file, not a folder")
+    folders(hass, tmp_path)
+    (tmp_path / "www").mkdir()
+    (tmp_path / "www" / "taken").write_text("a file, not a folder")
     await setup_local(hass, aioclient_mock, state=board())
     with pytest.raises(HomeAssistantError) as error:
-        await export(hass, folder="taken")
+        await export(hass, folder="www/taken")
     assert error.value.translation_key == "export_failed"
 
 
-async def test_logged_in_users_download_the_exports_of_this_run(
-    hass, aioclient_mock, tmp_path, hass_client, hass_client_no_auth
+async def test_administrators_download_the_exports_of_this_run(
+    hass,
+    aioclient_mock,
+    tmp_path,
+    hass_client,
+    hass_client_no_auth,
+    hass_read_only_access_token,
 ):
-    hass.config.config_dir = str(tmp_path)
+    folders(hass, tmp_path)
     assert await async_setup_component(hass, "http", {})
     await setup_local(hass, aioclient_mock, state=board())
-    result = await export(hass, what="sessions", folder="exports")
+    result = await export(hass, what="sessions")
     name = Path(result["path"]).name
     assert (result["url"], result["download"]) == (
         None,
@@ -511,6 +670,9 @@ async def test_logged_in_users_download_the_exports_of_this_run(
     assert (await response.read()).startswith(b"\xef\xbb\xbfstarted,")
     anonymous = await hass_client_no_auth()
     assert (await anonymous.get(result["download"])).status == 401
+    # A user who is no administrator gets no player data either.
+    user = await hass_client(access_token=hass_read_only_access_token)
+    assert (await user.get(result["download"])).status == 401
     assert (await client.get("/api/autodarts/export/other.csv")).status == 404
     Path(result["path"]).unlink()
     assert (await client.get(result["download"])).status == 404

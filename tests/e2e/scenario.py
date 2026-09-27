@@ -78,7 +78,7 @@ EXPECTED_LOGS = (
     # The online bridge explains an unknown trigger once.
     "The online bridge ignored the unknown event 'takeout'",
     # The WebSocket API logs the refused export of the reports step.
-    "The export folder ../outside must be inside",
+    "The export folder ../outside must not be hidden",
 )
 EXPECTED_TRACEBACK = "[custom_components.autodarts.local_coordinator] Full error:"
 MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
@@ -388,7 +388,10 @@ class Scenario:
         check(result["type"] == "create_entry", f"Local setup failed: {result}")
         entry_id = result["result"]["entry_id"]
 
-        duplicate = await self.local_flow("board-mock", PORT)
+        # The same board at the address of its entry; a new address would be
+        # taken over instead (address_updated, see test_discovery.py).
+        stored = self.board_ip if GENERATION >= 2 else "board-mock"
+        duplicate = await self.local_flow(stored, PORT)
         check(
             duplicate.get("reason") == "already_configured",
             f"Second entry for the same board was not rejected: {duplicate}",
@@ -1037,10 +1040,11 @@ class Scenario:
             "autodarts", "export", service_data={"format": "json", "what": "all"}
         )
         name = Path(export["path"]).name
+        # By default in the media folder, which needs a login: no /local/ address.
         check(
-            export["path"] == f"/config/www/autodarts/{name}"
+            export["path"] == f"/media/autodarts/exports/{name}"
             and name.startswith("autodarts-all-")
-            and export["url"] == f"/local/autodarts/{name}"
+            and export["url"] is None
             and export["download"] == f"/api/autodarts/export/{name}"
             and export["rows"] == {"sessions": 1, "matches": 0, "profiles": 0},
             f"Unexpected export: {export}",
@@ -1060,8 +1064,17 @@ class Scenario:
         status, _ = await self.download(signed["path"], {})
         check(status == 200, f"Signed export download failed: HTTP {status}")
 
+        # On request in www, which Home Assistant serves at /local/.
         export = await self.call(
-            "autodarts", "export", service_data={"what": "sessions"}
+            "autodarts",
+            "export",
+            service_data={"what": "sessions", "folder": "www/autodarts"},
+        )
+        name = Path(export["path"]).name
+        check(
+            export["path"] == f"/config/www/autodarts/{name}"
+            and export["url"] == f"/local/autodarts/{name}",
+            f"Unexpected export to www: {export}",
         )
         status, body = await self.download(export["download"], self.headers)
         check(

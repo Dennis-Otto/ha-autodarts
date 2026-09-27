@@ -5,7 +5,7 @@ import json
 from custom_components.autodarts.bot import DEFAULT_DELAY
 from custom_components.autodarts.practice import PracticeGame, valid_delay
 
-from .test_practice import dart, throw
+from .local_helpers import dart, throw
 
 
 def against_the_bot(game: int | str = 301, level: int = 60, humans: int = 1):

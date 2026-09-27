@@ -4,7 +4,6 @@ import json
 from datetime import timedelta
 
 import pytest
-import voluptuous as vol
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
@@ -426,8 +425,9 @@ async def test_the_action_takes_start_scores_for_a_handicap(hass, aioclient_mock
         301,
     ]
     assert entry.runtime_data.local.practice.starts == [0, 301, 0, 0]
-    with pytest.raises(vol.Invalid):
+    with pytest.raises(ServiceValidationError) as error:
         await action(hass, "start_tournament", players=PLAYERS, start_scores=[1])
+    assert error.value.translation_key == "invalid_start_score"
 
 
 async def text(hass, key: str, value: str) -> None:

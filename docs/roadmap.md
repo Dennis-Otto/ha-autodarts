@@ -53,7 +53,7 @@ Released features, all of them working without the Autodarts cloud:
 
 ## Version 1.6: more games, a game lobby, reports and online matches
 
-Merged for the next release; the [changelog](../CHANGELOG.md#160) has the details.
+Released as 1.6.0 on 27 September 2026; the [changelog](../CHANGELOG.md#160) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |

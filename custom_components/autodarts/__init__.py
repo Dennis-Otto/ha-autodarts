@@ -41,6 +41,7 @@ from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
 from .local_coordinator import ISSUES, AutodartsLocalCoordinator
 from .online import async_setup_bridge
+from .repairs import address_title
 from .report import BoardReports
 from .runtime import AutodartsConfigEntry, AutodartsRuntimeData
 from .sensor import SYSTEM_SENSORS
@@ -103,7 +104,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
                 await runtime.local.async_shutdown()
             runtime.local = candidate
             hass.config_entries.async_update_entry(
-                entry, data={**entry.data, CONF_HOST: host, CONF_PORT: port}
+                entry,
+                title=address_title(entry, host),
+                data={**entry.data, CONF_HOST: host, CONF_PORT: port},
             )
             return
 

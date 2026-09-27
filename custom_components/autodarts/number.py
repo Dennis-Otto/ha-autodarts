@@ -193,6 +193,12 @@ class AutodartsStartScore(AutodartsLocalEntity, NumberEntity):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="invalid_start_score"
             )
+        starts = list(self.coordinator.practice.starts)
+        starts[self._index] = start
+        if self.coordinator.practice.unwinnable(starts):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="unwinnable_start"
+            )
         await self.coordinator.async_set_start_score(self._index, start)
 
 

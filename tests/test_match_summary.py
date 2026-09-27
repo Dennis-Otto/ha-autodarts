@@ -6,7 +6,7 @@ import json
 from custom_components.autodarts.practice import PracticeGame
 from custom_components.autodarts.summary import Tally
 
-from .test_practice import match, throw, win_leg
+from .local_helpers import match, throw, win_leg
 
 
 def x01_match() -> tuple[PracticeGame, dict]:

@@ -8,11 +8,19 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.const import DOMAIN
 
-from .local_helpers import local_entry_data, mock_board
-from .test_local_setup import entity_id, setup_local, state
+from .local_helpers import (
+    S20,
+    T20,
+    board,
+    entity_id,
+    local_entry_data,
+    mock_board,
+    record,
+    setup_local,
+    state,
+    switch,
+)
 from .test_practice_setup import select_game, set_number, throw
-from .test_sessions import record, switch
-from .test_training import S20, T20, board
 
 # A single 1 inside the treble ring, and one outside.
 INNER_S1 = {
@@ -157,13 +165,17 @@ async def test_start_game_checks_teams_and_start_scores(hass, aioclient_mock):
         ({"game": "501", "teams": True}, "team_players"),
         ({"game": "501", "teams": True, "players": ["A", "B", "C"]}, "team_players"),
         ({"game": "golf", "teams": True, "players": ["A", "B", "C", "D"]}, "team_game"),
+        ({"game": "501", "start_scores": [1]}, "invalid_start_score"),
+        (
+            {"game": "501", "start_scores": [501, 501, 501, 501, 501]},
+            "too_many_start_scores",
+        ),
     ):
         with pytest.raises(ServiceValidationError) as error:
             await hass.services.async_call(DOMAIN, "start_game", data, blocking=True)
         assert error.value.translation_key == key
     for data in (
-        {"game": "501", "start_scores": [1]},
-        {"game": "501", "start_scores": [501, 501, 501, 501, 501]},
+        {"game": "501", "start_scores": ["many"]},
         {"game": "501", "holes": 12},
         {"game": "501", "rounds": 21},
     ):
@@ -203,3 +215,32 @@ async def test_new_games_and_options_survive_a_restart(
     remaining = hass.states.get(entity_id(hass, "sensor", "practice_remaining"))
     assert [score["points"] for score in remaining.attributes["scores"]] == [40, 20]
     assert remaining.attributes["teams"] is None
+
+
+async def test_a_start_of_3_and_both_double_rules_exclude_each_other(
+    hass, aioclient_mock
+):
+    """The start score numbers and the double switches never make a leg that no
+    dart can win: from 3, the only opening double, D1, leaves 1."""
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    practice = entry.runtime_data.local.practice
+    await switch(hass, "practice_double_in", True)
+    await switch(hass, "practice_double_out", True)
+    with pytest.raises(ServiceValidationError) as error:
+        await set_number(hass, "practice_start_1", 3)
+    assert error.value.translation_key == "unwinnable_start"
+    assert practice.starts[0] == 0
+    # A seat nobody plays may keep any start score.
+    await set_number(hass, "practice_start_4", 3)
+
+    await switch(hass, "practice_double_in", False)
+    await set_number(hass, "practice_start_1", 3)
+    with pytest.raises(ServiceValidationError) as error:
+        await switch(hass, "practice_double_in", True)
+    assert error.value.translation_key == "unwinnable_start"
+    assert practice.double_in is False
+    await switch(hass, "practice_double_out", False)
+    await switch(hass, "practice_double_in", True)
+    with pytest.raises(ServiceValidationError):
+        await switch(hass, "practice_double_out", True)
+    assert (practice.double_in, practice.setting("double_out")) == (True, False)
