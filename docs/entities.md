@@ -23,7 +23,7 @@ Every board is one device with the entities below. Its name is the one the board
 | Last dart score | Sensor, points | Score of the last dart. |
 | Darts in visit | Sensor, darts | Darts currently detected on the board (0–3). |
 | Detected visit score | Sensor, points | Sum of the detected darts. The `throws` attribute lists each dart with `segment`, `number`, `multiplier`, `score`, `bed` and the normalized position `x`/`y`. Darts corrected or entered in Home Assistant and the darts of the [bot](#bot) belong to the visit, marked `corrected`, `manual` or `bot`; `dart` numbers the darts of the current visit (1–3), as [`autodarts.correct_dart`](#correct-a-dart-autodartscorrect_dart) counts them. The `recent_visits` attribute lists the last ten completed visits, newest first, with `time`, `score`, `darts`, `segments` and `manual` for a visit with darts entered or corrected by hand. The recorder stores neither attribute. |
-| Last event | Sensor | The Board Manager's latest event text, such as `Throw detected` or `Takeout started`. |
+| Last event | Sensor, *Diagnostic*, *Disabled* | The Board Manager's latest event text, such as `Throw detected` or `Takeout started`, in English as the board writes it; *Detection status* shows the same translated. It changes with every dart, so it starts disabled. |
 
 The visit score is the plain sum of the darts, without game rules such as busts. The last dart, its score and the visit score follow corrections, darts entered by hand and the bot's darts; *Darts in visit* counts the darts the board itself sees.
 
@@ -104,11 +104,11 @@ The defaults, automatic start on and no pause limit, count every dart as version
 | Session idle timeout | Number, *Configuration* | Minutes without darts, 0–240, after which a session ends by itself. `0`, the default, keeps it running. |
 | Last session average | Sensor, points | 3-dart average of the last finished session. Attributes: `started`, `ended`, `duration_minutes`, the totals, `manual_darts` (darts entered by hand), and `sessions` with the last 20 sessions, which the recorder does not store. |
 
-Totals use the state class *total increasing*, so Home Assistant's statistics and energy-style graphs handle resets correctly. [How the counting works](how-it-works.md#training-session).
+Totals use the state class *total*, with the start of the session as `last_reset`: Home Assistant's statistics sum them per session, and a correction or an undone visit may lower them. The 100+, 140+ and 180 visits count once a visit is complete, when its darts are pulled. [How the counting works](how-it-works.md#training-session).
 
 ## Personal bests, streak and daily goal
 
-Home Assistant keeps your best values, the days you trained and your darts per day. Every detected dart counts for the day, in a session or not. The first value of each record sets it quietly; beating it fires `personal_best`, and equal values do not count.
+Home Assistant keeps your best values, the days you trained and your darts per day. Every detected dart counts for the day, in a session or not. The first value of each record sets it quietly; beating it fires `personal_best`, and equal values do not count. The records of a leg count when the leg is booked, as its darts are pulled, so a win that a correction takes back sets none.
 
 | Record | Best value | From |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Home Assistant keeps your best values, the days you trained and your darts per d
 | Last personal best | Sensor, timestamp | When the last personal best fell; *unknown* before the first. Attributes: `record`, `value`, `previous` and `name` of that best, and the best value of every record under its key, for example `highest_checkout`. |
 | Darts today | Sensor, darts, total | Darts detected today; starts from 0 at midnight. Attributes: `goal`, `goal_reached`, `progress` (percent of the goal). |
 | Training streak | Sensor, duration in days | Days in a row with at least one dart. It stays until a whole day passes without darts. Attributes: `best_streak`, `trained_today`, `last_day`. |
-| Daily goal | Number, darts, *Configuration* | Darts to throw every day, 0–2000; `0`, the default, sets no goal. When today's darts reach it, `daily_goal_reached` fires once. |
+| Daily goal | Number, darts, *Configuration* | Darts to throw every day, 0–2000; `0`, the default, sets no goal. When today's darts reach it, `daily_goal_reached` fires once. A higher goal set after that is reached anew, with the event again. |
 
 ## Weekly report
 
@@ -142,14 +142,14 @@ Home Assistant sums up your training week. Every detected dart counts, in a sess
 | `sessions` | [Training sessions](#training-session) with darts that ended in the week |
 | `training_minutes` | Time at the board: the time from dart to dart, without pauses of more than five minutes |
 | `checkout_rate`, `darts_at_double`, `checkouts` | X01 practice legs: legs checked out per dart thrown at a double, like *Practice checkout rate* |
-| `legs`, `matches` | Practice legs finished and practice matches of several players decided |
+| `legs`, `matches` | Practice legs finished and practice matches of several players decided, as booked when the darts are pulled |
 | `streak`, `daily_goals` | The training streak when the week ends, and the days that reached the daily goal |
 | `personal_bests` | The personal bests of the week with `record`, `value` and `name`, the latest first, at most 10 |
 | `week_start`, `week_end` | Start and end of the week, in UTC |
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Weekly report | Sensor, darts, total | Darts of the running week; every week starts from 0. Attributes: the values above for the week so far, `average_change` against the last report, and `last_week` with the last report. The recorder stores neither `last_week` nor `personal_bests`. |
+| Weekly report | Sensor, darts, total | Darts of the running week; every week starts from 0, with its start as `last_reset`. Attributes: the values above for the week so far, `average_change` against the last report, and `last_week` with the last report. The recorder stores neither `last_week` nor `personal_bests`. |
 | Weekly report day | Select, *Configuration* | The day that ends the week, `monday` to `sunday`; `monday` by default. |
 | Weekly report time | Time, *Configuration* | The time of that day, to the minute; midnight by default. |
 
@@ -157,12 +157,12 @@ A new day or time ends the running week at its next occurrence. A report that fe
 
 ## Training calendar
 
-The **Training calendar** (`calendar.*_training_calendar`) shows your finished training sessions and practice matches in Home Assistant's calendar, for example *Training · 312 Darts · Ø 54.2* or *501 · Alex 3:2 Sam*. It is read-only, and its titles read the same in every language.
+The **Training calendar** (`calendar.*_training_calendar`) shows your finished training sessions and practice matches in Home Assistant's calendar, for example *Training · 312 Darts · Ø 54.2* or *501 · Alex 3:2 Sam*. It is read-only. Its titles follow Home Assistant's language in German, Dutch, French and Spanish, with the decimal comma, for example *Training · 312 Darts · Ø 54,2*; other languages read as in English.
 
 <img src="images/en/training-calendar.png" alt="Home Assistant's calendar with a week of training sessions and practice matches of Alex, Sam and Kim" width="760">
 
 - **Sessions** run from their start to their end. The description lists the 180s, 140+ and 100+ visits and the highest visit (*Max*).
-- **Matches** of several players run from their first dart to the deciding dart. The title shows the sets won, or the legs when one set decides the match; players without a name appear as `#1` to `#4`. The description lists each player's average, marks per round or points. Matches played before the update have no first dart and appear as one minute.
+- **Matches** of several players, of every game, run from their first dart to the deciding dart. The title shows the sets won, or the legs when one set decides the match; players without a name appear as `#1` to `#4` and the bot as *Bot*, and a team match names both teams, for example *501 · Alex & Kim 1:0 Sam & Lea*. The description lists each player's average, marks per round or points. Matches played before version 1.6 have no first dart and appear as one minute.
 - **A year of history.** The calendar keeps the sessions and matches of the last 365 days, at most 3,000 of each. After the update, it takes over the last 20 sessions and matches already stored.
 - **State:** the calendar is *off*, because nothing lies ahead. Its attributes show the session or match that ended last.
 
@@ -199,7 +199,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 | Practice first 9 average | Sensor, points | 3-dart average of the first nine darts of each leg, over the last 10 legs of everybody at the board. |
 | Practice checkout rate | Sensor, % | Legs won per dart thrown at a double, over the last 10 legs. A dart counts at a double when one double could finish the score: 2 to 40 when even, or 50. Only with double out. |
 | Practice doubles rate | Sensor, % | The same darts at a double together with the last 10 results of the doubles training and Bob's 27. |
-| Practice legs played | Sensor, total | Legs finished in X01, the Cricket games and the party games; its long-term statistics show the legs per day. |
+| Practice legs played | Sensor, total | Legs finished in X01, the Cricket games and the party games; its long-term statistics show the legs per day. An undone visit that won a leg takes the leg back. |
 | Practice players | Number, *Configuration* | 1–4 players; with the [bot](#bot), 1–3 besides it. A change starts a new match. |
 | Practice legs per set | Number, *Configuration* | 1–11 legs win a set. A change starts a new match. |
 | Practice sets to win | Number, *Configuration* | 1–7 sets win the match. A change starts a new match. |
@@ -221,7 +221,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 <img src="images/en/scoreboard-teams.png" alt="Scoreboard of a 501 team match: Alex and Kim with 45 left against Sam and Lea with 216, Sam at the board in bold with his average" width="760">
 
 - **Teams:** switch on *Practice teams* and set *Practice players* to 4. Players 1 and 3 play against players 2 and 4 in X01 and the [Cricket games](#cricket); they throw in seat order, so the teams alternate. Partners share one score: the remaining score in X01, the marks and points in Cricket. The scoreboard shows two team tiles, *Alex & Kim* against *Sam & Lea*, with the partner at the board in bold. Both partners win the leg and the match; the events add `team` and `team_name`.
-- **Statistics:** the averages, the first nine and the checkout rate stay per person, and the [player profiles](#player-profiles) count the leg and the match for both partners. Head-to-head records count only between opponents. A team leg sets no fewest-darts and no marks-per-round personal best.
+- **Statistics:** the averages, the first nine and the checkout rate stay per person, and the [player profiles](#player-profiles) count the leg and the match for both partners. Head-to-head records count only between opponents. A team leg sets no fewest-darts and no marks-per-round personal best, neither in the records nor in the profiles or the weekly progress; its checkout counts for the partner who threw it.
 - **Start scores:** for a handicap, set *Practice start score player N*, for example 301 for a beginner against 501. `0` plays the game's start score. The scoreboard shows every start score beside the names, and `leg_won` names it in `start`. A team plays from the start score of its first player. A leg counts for the fewest-darts record of the score it started from: from 301 for `fewest_darts_301`, from 401 for none.
 - Party and training games are always played alone; with fewer or more than four players, *Practice teams* does nothing.
 
@@ -236,7 +236,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 - **Correct a dart:** when the board reads a dart wrong, [`autodarts.correct_dart`](#correct-a-dart-autodartscorrect_dart) or a tap on the dart on the [scoreboard](cards.md#correcting-and-entering-darts) puts it into the right bed. The practice game and the training session count the corrected dart at once: the remaining score, a bust or a win, the marks and the statistics follow. The board keeps its own reading; the correction holds until the darts are pulled or until the board corrects the dart itself. `dart_corrected` announces it with `previous` and `manual`.
 - **Enter a dart:** with *Practice manual entry* on, [`autodarts.throw_dart`](#enter-a-dart-autodartsthrow_dart) or the scoreboard's keypad adds a dart the board missed, or the darts of a player without cameras, as if the board had detected it, marked `manual`. The detection need not run: while it is stopped, the darts entered make the visit on their own.
 - **Next player:** [`autodarts.next_player`](#pass-the-turn-autodartsnext_player) ends the visit without pulling the darts. The darts in the board belong to no visit until they are pulled, and new darts count for the next player. Without darts, the player at the board passes in X01 and the Cricket games.
-- **Undo a visit:** when the darts were pulled before a wrong reading was noticed, [`autodarts.undo_visit`](#undo-a-visit-autodartsundo_visit) takes the last visit back: the game returns to where it was before it, also after a won leg, and the visit's darts leave the training totals and become the current visit again, to correct them and end the visit with *Next player*. Visits of the [bot](#bot) after it are taken back with it. `visit_undone` announces it.
+- **Undo a visit:** when the darts were pulled before a wrong reading was noticed, [`autodarts.undo_visit`](#undo-a-visit-autodartsundo_visit) takes the last visit back: the game returns to where it was before it, also after a won leg, and the visit's darts leave the training totals and become the current visit again, to correct them and end the visit with *Next player*. The players' progress, the weekly report and the training calendar return with it, so the visit counts once when it ends again. Visits of the [bot](#bot) after it are taken back with it. `visit_undone` announces it.
 
 [The rules of corrections and darts entered by hand](how-it-works.md#corrections-and-darts-entered-by-hand).
 
@@ -248,7 +248,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 - **Its seat:** the bot sits after the players, so one player plays against the bot with *Practice players* at 1; with the bot, up to three players play. Party games, training games and tournaments are played without it.
 - **Its turn:** the bot throws *Practice bot delay* seconds after the darts of the player before were pulled, dart by dart, and ends its visit after the same pause. Its darts show on the cards like detected ones, with their positions, and fire the usual events with `bot: true`. If a player throws while the bot is still at the board, the bot throws the rest of its visit at once, and the new darts count for the player.
 - **How it aims:** like a player, at the treble 20 to score, along the checkout route, and at the [setup](#setup-hints) where no route exists; in Cricket it closes the numbers and scores while behind. Its darts scatter around the aim point so that its average matches its level. [How the bot plays](how-it-works.md#bot).
-- **Its darts count for nobody:** not for the training session, the statistics, the personal bests, the player profiles, the achievements, the weekly report or the correction rate. The result of a match against the bot counts in the players' profiles.
+- **Its darts count for nobody:** not for the training session, the statistics, the personal bests, the player profiles, the achievements, the weekly report or the correction rate, and they never start a training session. The result of a match against the bot counts in the players' profiles.
 
 ## Setup hints
 
@@ -480,7 +480,7 @@ A change is written to the Board Manager configuration; only the changed setting
 | Detection frame rate | Sensor, fps, *Diagnostic*, *Disabled* | Frames per second of the detection. |
 | Detection correction rate | Sensor, %, *Diagnostic* | Share of the last 100 detected darts that the board corrected afterwards. From 20 % over at least 50 darts, a [repair](troubleshooting.md#repairs) suggests to recalibrate. Attributes: `darts`, `corrected`. |
 | Camera *N* frame rate | Sensor, fps, *Diagnostic*, *Disabled* | Frames per second of one camera. |
-| CPU usage | Sensor, %, **BM 2**, *Diagnostic* | CPU load of the board PC. |
+| CPU usage | Sensor, %, **BM 2**, *Diagnostic*, *Disabled* | CPU load of the board PC. |
 | Memory usage | Sensor, **BM 2**, *Diagnostic*, *Disabled* | Memory use as reported by Board Manager 2. |
 | Operating system | Sensor, **BM 2**, *Diagnostic* | Distribution and version of the board PC, for example *Debian 13*. Attributes: `kernel`, `architecture`. |
 | Processor | Sensor, **BM 2**, *Diagnostic* | Processor model of the board PC. Attribute: `cores`. |

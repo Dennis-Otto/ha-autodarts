@@ -735,6 +735,15 @@
     "unsupported_response": {
       "message": "Board Manager responde en un formato que esta versión de la integración no entiende."
     },
+    "storage_newer": {
+      "message": "El entrenamiento guardado de esta diana procede de una versión más reciente de la integración. Vuelve a instalar esa versión o restaura una copia de seguridad; los datos guardados no cambian."
+    },
+    "storage_unreadable": {
+      "message": "El entrenamiento guardado de esta diana no se puede leer ahora. Home Assistant lo vuelve a intentar; los datos guardados no cambian."
+    },
+    "storage_invalid": {
+      "message": "El entrenamiento guardado de esta diana no se puede restaurar. Notifícalo como error; los datos guardados no cambian."
+    },
     "not_supported": {
       "message": "Esta diana no admite la acción."
     },

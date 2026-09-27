@@ -169,7 +169,7 @@ if GENERATION >= 2:
         "memory_usage": "sensor",
         "board_software": "update",
     }
-    DISABLED_BY_DEFAULT = {"detection_fps", "memory_usage"}
+    DISABLED_BY_DEFAULT = {"detection_fps", "cpu_usage", "memory_usage"}
     ABSENT = {"upstream", "connect", "disconnect"}
 else:
     ENTITIES |= {"connect": "button", "upstream": "switch"}
@@ -481,7 +481,7 @@ class Scenario:
             "training_darts": "0",
         }
         if GENERATION >= 2:
-            expected |= {"cloud_link": "on", "cpu_usage": "7.5", "board_software": "on"}
+            expected |= {"cloud_link": "on", "board_software": "on"}
         else:
             expected |= {"upstream": "on"}
         await self.expect_states(expected)

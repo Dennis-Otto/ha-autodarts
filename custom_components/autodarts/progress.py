@@ -9,7 +9,9 @@ a name is the same player in any upper and lower case.
 
 from __future__ import annotations
 
+import copy
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from typing import Any
@@ -350,14 +352,17 @@ class Progress:
             return
         week = player.week(today)
         game, darts = leg.get("game"), _count(leg.get("darts"))
+        # Like the profile, a team leg sets no fewest darts and no best MPR.
+        alone = leg.get("team") is None
         if game in GAMES and leg.get("double_out") is True:
             index = WEEK["highest_checkout"]
             week[index] = max(week[index], _count(leg.get("checkout")))
             best = WEEK["best_501"]
-            if game == 501 and darts:
+            # A handicap leg counts for the score it really started from.
+            if leg.get("start", game) == 501 and darts and alone:
                 week[best] = min(week[best] or darts, darts)
         mpr = leg.get("mpr")
-        if game == "cricket" and isinstance(mpr, int | float):
+        if game == "cricket" and isinstance(mpr, int | float) and alone:
             index = WEEK["best_mpr"]
             week[index] = max(week[index], round(mpr * 100))
 
@@ -459,6 +464,28 @@ class Progress:
         if self.latest and _key(self.latest["name"]) == _key(name):
             self.latest = None
 
+    # -- undo ------------------------------------------------------------------
+
+    def checkpoint(self, names: Iterable[str]) -> dict[str, Any]:
+        """The progress of these players and of the session, before a visit
+        is booked; a visit books for the players at the board only."""
+        keys = {_key(name) for name in names if name and name.strip()}
+        return {
+            "players": {key: copy.deepcopy(self.players.get(key)) for key in keys},
+            "session": copy.deepcopy(self.session),
+            "latest": copy.deepcopy(self.latest),
+        }
+
+    def rewind(self, checkpoint: dict[str, Any]) -> None:
+        """Back to a checkpoint, as when the visits since were never booked."""
+        for key, player in checkpoint["players"].items():
+            if player is None:
+                self.players.pop(key, None)
+            else:
+                self.players[key] = player
+        self.session = checkpoint["session"]
+        self.latest = checkpoint["latest"]
+
     # -- storage ---------------------------------------------------------------
 
     def stored(self) -> dict[str, Any]:
@@ -491,7 +518,8 @@ class Progress:
         if (
             isinstance(latest, dict)
             and isinstance(latest.get("name"), str)
-            and latest.get("achievement") in ACHIEVEMENTS
+            and isinstance(latest.get("achievement"), str)
+            and latest["achievement"] in ACHIEVEMENTS
             and type(latest.get("tier")) is int
             and isinstance(latest.get("date"), str)
         ):

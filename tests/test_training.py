@@ -18,9 +18,11 @@ def test_visits_duplicates_coordinates_and_bulls():
     repeated["throws"][0]["coords"] = {"x": 0.1, "y": 0.2}
     assert session.observe(repeated) == []
     assert session.snapshot()["darts"] == 3
-    assert session.snapshot()["scores_180"] == 1
     assert session.snapshot()["triples"] == 3
+    # A visit counts as a 180 once it is complete, when the darts are pulled.
+    assert session.snapshot()["scores_180"] == 0
     session.observe(board())
+    assert session.snapshot()["scores_180"] == 1
     # A miss next to a number keeps its number: it is still a miss.
     session.observe(board(BULL, OUTER_BULL, ("M7", 7, 0)))
     assert {key: session.snapshot()[key] for key in COUNTERS} == {
@@ -49,12 +51,27 @@ def test_corrections_revise_score_and_180_without_adding_darts():
         )
     ]
     assert session.snapshot()["darts"] == 3
-    assert session.snapshot()["scores_180"] == 0
     assert session.snapshot()["triples"] == 2
     assert session.snapshot()["points"] == 140
     session.observe(board(T20, T20, T20))
-    assert session.snapshot()["scores_180"] == 1
     assert session.snapshot()["points"] == 180
+    session.observe(board())
+    assert session.snapshot()["scores_180"] == 1
+    assert session.snapshot()["scores_140"] == 0
+
+
+def test_a_visit_counts_for_one_score_band_only_once_complete():
+    """Totals of the bands never go down within a visit: T20 T20 would be a
+    100+ visit until the third T20 makes it a 180."""
+    session = TrainingSession()
+    session.observe(board())
+    for darts in ((T20,), (T20, T20), (T20, T20, T20)):
+        session.observe(board(*darts))
+        assert [session.snapshot()[key] for key in COUNTERS[-3:]] == [0, 0, 0]
+    # A restart keeps the visit on the board with its score band.
+    assert session.stored()["scores_180"] == 1
+    session.observe(board())
+    assert [session.snapshot()[key] for key in COUNTERS[-3:]] == [0, 0, 1]
 
 
 TAKEOUT = {"status": "Takeout in progress", "event": "Takeout started"}
@@ -158,9 +175,10 @@ def test_reset_ignores_darts_already_on_the_board():
     assert session.observe(board(T20, T20)) == []
     session.observe(board(T20, T20, T20))
     assert session.snapshot()["darts"] == 1
-    assert session.snapshot()["scores_180"] == 0
     session.observe(board())
+    assert session.snapshot()["scores_180"] == 0
     session.observe(board(T20, T20, T20))
+    session.observe(board())
     assert session.snapshot()["darts"] == 4
     assert session.snapshot()["scores_180"] == 1
 
@@ -572,3 +590,19 @@ def test_gap_before_the_first_state_or_with_a_stopped_board():
     ]
     # The stop settled the visit; the same darts after a restart count nothing.
     assert session.observe(board(T20, S20)) == []
+
+
+def test_the_bots_darts_never_start_a_session():
+    session = TrainingSession()
+    session.observe(board())
+    session.end("manual")
+    bot = board(T20)
+    bot["throws"][0]["bot"] = True
+    assert [kind for kind, _ in session.observe(bot)] == ["dart_detected"]
+    assert session.active is False
+    # A player's dart after it does, and the bot's dart stays uncounted.
+    both = board(T20, S20)
+    both["throws"][0]["bot"] = True
+    events = session.observe(both)
+    assert [kind for kind, _ in events] == ["session_started", "dart_detected"]
+    assert session.snapshot()["darts"] == 1

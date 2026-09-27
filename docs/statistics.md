@@ -33,7 +33,7 @@ A training session counts the darts you throw, whatever you play: an online matc
 
 - **Start:** with *Start sessions automatically* on (the default), the first dart starts a session. You can also start one on purpose with *Start session* on the training card or the *Training session* switch.
 - **End:** *End session* on the card, or automatically after the pause set in *Session idle timeout*. `0`, the default, keeps a session running until you end it. *New session* ends the running session and starts the next one.
-- **What counts:** darts, points, 3-dart average, visits, the highest visit, 100+, 140+ and 180 visits, triples, doubles, bulls, misses and the hits of every bed. Corrections of the board or on the scoreboard revise the totals, and [darts entered by hand](games.md#corrections-and-darts-entered-by-hand) count like detected ones; the darts of the [bot](games.md#playing-against-the-bot) and darts that were in the board when Home Assistant started do not count.
+- **What counts:** darts, points, 3-dart average, visits, the highest visit, 100+, 140+ and 180 visits, triples, doubles, bulls, misses and the hits of every bed. A visit counts as 100+, 140+ or 180 once its darts are pulled. Corrections of the board or on the scoreboard revise the totals, an [undone visit](games.md#corrections-and-darts-entered-by-hand) leaves them until it is booked again, and [darts entered by hand](games.md#corrections-and-darts-entered-by-hand) count like detected ones; the darts of the [bot](games.md#playing-against-the-bot) and darts that were in the board when Home Assistant started do not count.
 - **History:** the last 20 sessions stay with their totals; the training card lists the last five. *Last session average* keeps the 3-dart average of every finished session, so its history is your progress from session to session.
 - **Automations:** `session_started` and `session_ended` start the [training session routine](automations.md#training-session-routine), and the [training report](automations.md#training-report) sends your day.
 
@@ -119,10 +119,10 @@ With *Practice personal checkout routes* on, the checkout route prefers the stro
 Every named player of a practice game gets a profile with lifetime numbers: legs and matches played and won, 3-dart average, first 9 average, checkout rate, marks per round, the highest visit and checkout, the best marks per round and the fewest darts for every start score. The [players card](cards.md#players-card) shows them with the head-to-head records of every pair of opponents and the recent matches.
 
 - **Names:** a name is the same player whatever the upper and lower case; players without a name count for nobody. Give your regular players names, on the [new game screen](scoreboard.md#choose-the-next-game) or in *Practice player N*.
-- **What counts:** every leg of X01, the Cricket games and the party games. X01 legs add the averages and the checkout rate, Cricket legs the marks per round. In a [team match](games.md#teams), both partners win the leg and the match.
+- **What counts:** every leg of X01, the Cricket games and the party games. X01 legs add the averages and the checkout rate, Cricket legs the marks per round. In a [team match](games.md#teams), both partners win the leg and the match; the checkout counts for the partner who threw it, and a team leg sets no fewest darts and no best marks per round.
 - **Match history:** the last 20 matches of several players, with every player's legs, sets and average.
 - **Tournaments** count like every match: their legs, matches and head-to-head records go into the profiles. [Tournaments](games.md#tournaments).
-- **A typo in a name?** Remove the profile with [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player), which also forgets the player's progress and badges. The match history keeps the name.
+- **A typo in a name?** Remove the profile with [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player), which also forgets the player's progress and badges and takes the name out of the personal bests and the weekly report. The match history keeps the name.
 
 ## Achievements
 
@@ -176,7 +176,7 @@ When the week ends, by default on Monday at midnight, `weekly_report` sums it up
 
 <img src="images/en/training-calendar.png" alt="Home Assistant's calendar with a week of training sessions and practice matches of Alex, Sam and Kim" width="760">
 
-The **Training calendar** shows your finished sessions and practice matches of the last 365 days in Home Assistant's calendar, for example *Training · 312 Darts · Ø 54.2* or *501 · Alex 3:2 Sam*. Open **Calendar** in the sidebar, or ask it in an automation with `calendar.get_events`, for example to [count the sessions of a month](automations.md#count-the-training-sessions-of-the-month).
+The **Training calendar** shows your finished sessions and practice matches of every game of the last 365 days in Home Assistant's calendar, for example *Training · 312 Darts · Ø 54.2* or *501 · Alex 3:2 Sam*, in German *Training · 312 Darts · Ø 54,2*. Open **Calendar** in the sidebar, or ask it in an automation with `calendar.get_events`, for example to [count the sessions of a month](automations.md#count-the-training-sessions-of-the-month).
 
 ## Export
 

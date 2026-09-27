@@ -33,7 +33,7 @@ Eine Trainingssession zählt die Darts, die du wirfst, egal was du spielst: ein 
 
 - **Beginn:** Mit *Sessions automatisch starten* (Standard) startet der erste Dart eine Session. Du kannst eine auch bewusst starten, mit *Session starten* auf der Trainingskarte oder dem Schalter *Trainingssession*.
 - **Ende:** *Session beenden* auf der Karte oder automatisch nach der Pause, die in *Session-Timeout* eingestellt ist. `0`, der Standard, lässt eine Session laufen, bis du sie beendest. *Neue Session* beendet die laufende Session und startet die nächste.
-- **Was zählt:** Darts, Punkte, 3-Dart-Average, Aufnahmen, die höchste Aufnahme, 100+-, 140+- und 180er-Aufnahmen, Triples, Doubles, Bulls, Fehlwürfe und die Treffer jedes Feldes. Korrekturen des Boards oder auf der Anzeigetafel ändern die Summen mit, und [von Hand eingegebene Darts](spiele.md#korrekturen-und-von-hand-eingegebene-darts) zählen wie erkannte; die Darts des [Bots](spiele.md#gegen-den-bot-spielen) und Darts, die beim Start von Home Assistant im Board stecken, zählen nicht.
+- **Was zählt:** Darts, Punkte, 3-Dart-Average, Aufnahmen, die höchste Aufnahme, 100+-, 140+- und 180er-Aufnahmen, Triples, Doubles, Bulls, Fehlwürfe und die Treffer jedes Feldes. Eine Aufnahme zählt als 100+, 140+ oder 180, sobald ihre Darts gezogen werden. Korrekturen des Boards oder auf der Anzeigetafel ändern die Summen mit, eine [zurückgenommene Aufnahme](spiele.md#korrekturen-und-von-hand-eingegebene-darts) verlässt sie, bis sie erneut verbucht wird, und [von Hand eingegebene Darts](spiele.md#korrekturen-und-von-hand-eingegebene-darts) zählen wie erkannte; die Darts des [Bots](spiele.md#gegen-den-bot-spielen) und Darts, die beim Start von Home Assistant im Board stecken, zählen nicht.
 - **Verlauf:** Die letzten 20 Sessions bleiben mit ihren Summen erhalten; die Trainingskarte zeigt die letzten fünf. *Average der letzten Session* hält den 3-Dart-Average jeder beendeten Session, sein Verlauf ist also deine Entwicklung von Session zu Session.
 - **Automationen:** `session_started` und `session_ended` starten die [Routine für Trainingssessions](automationen.md#training-session-routine), und der [Trainingsbericht](automationen.md#training-report) schickt deinen Tag.
 
@@ -119,10 +119,10 @@ Mit *Übungsspiel persönliche Checkout-Wege* bevorzugt der Checkout-Weg die st�
 Jeder Spieler mit Namen bekommt im Übungsspiel ein Profil mit Werten über seine ganze Zeit: gespielte und gewonnene Legs und Matches, 3-Dart-Average, First-9-Average, Checkout-Quote, Marks pro Runde, die höchste Aufnahme und der höchste Checkout, die besten Marks pro Runde und die wenigsten Darts für jede Startpunktzahl. Die [Spielerkarte](karten.md#spielerkarte) zeigt sie mit den direkten Vergleichen jedes Gegnerpaars und den letzten Matches.
 
 - **Namen:** Ein Name ist derselbe Spieler, egal in welcher Groß- und Kleinschreibung; Spieler ohne Namen zählen für niemanden. Gib deinen Stammspielern Namen, in der [Spielauswahl](anzeigetafel.md#das-nächste-spiel-wählen) oder in *Übungsspiel Spieler N*.
-- **Was zählt:** jedes Leg von X01, den Cricket-Spielen und den Partyspielen. X01-Legs bringen die Averages und die Checkout-Quote, Cricket-Legs die Marks pro Runde. In einem [Team-Match](spiele.md#teams) gewinnen beide Partner Leg und Match.
+- **Was zählt:** jedes Leg von X01, den Cricket-Spielen und den Partyspielen. X01-Legs bringen die Averages und die Checkout-Quote, Cricket-Legs die Marks pro Runde. In einem [Team-Match](spiele.md#teams) gewinnen beide Partner Leg und Match; der Checkout zählt für den Partner, der ihn geworfen hat, und ein Team-Leg setzt keine wenigsten Darts und keine besten Marks pro Runde.
 - **Match-Verlauf:** die letzten 20 Matches mehrerer Spieler, mit Legs, Sätzen und Average jedes Spielers.
 - **Turniere** zählen wie jedes Match: Ihre Legs, Matches und direkten Vergleiche fließen in die Profile. [Turniere](spiele.md#turniere).
-- **Ein Tippfehler im Namen?** Entferne das Profil mit [`autodarts.delete_player`](entitaeten.md#spielerprofil-löschen-autodartsdelete_player); das vergisst auch Fortschritt und Abzeichen des Spielers. Der Match-Verlauf behält den Namen.
+- **Ein Tippfehler im Namen?** Entferne das Profil mit [`autodarts.delete_player`](entitaeten.md#spielerprofil-löschen-autodartsdelete_player); das vergisst auch Fortschritt und Abzeichen des Spielers und nimmt den Namen aus den Bestleistungen und dem Wochenbericht. Der Match-Verlauf behält den Namen.
 
 ## Erfolge
 
@@ -176,7 +176,7 @@ Endet die Woche, standardmäßig montags um Mitternacht, fasst `weekly_report` s
 
 <img src="../images/de/training-calendar.png" alt="Der Kalender von Home Assistant mit einer Woche Trainingssessions und Übungsmatches von Alex, Sam und Kim" width="760">
 
-Der **Trainingskalender** zeigt deine beendeten Sessions und Übungsmatches der letzten 365 Tage im Kalender von Home Assistant, etwa *Training · 312 Darts · Ø 54.2* oder *501 · Alex 3:2 Sam*. Öffne **Kalender** in der Seitenleiste oder frage ihn in einer Automation mit `calendar.get_events` ab, etwa um [die Trainingssessions eines Monats zu zählen](automationen.md#trainingssessions-des-monats-zählen).
+Der **Trainingskalender** zeigt deine beendeten Sessions und Übungsmatches jedes Spiels der letzten 365 Tage im Kalender von Home Assistant, etwa *Training · 312 Darts · Ø 54,2* oder *501 · Alex 3:2 Sam*. Öffne **Kalender** in der Seitenleiste oder frage ihn in einer Automation mit `calendar.get_events` ab, etwa um [die Trainingssessions eines Monats zu zählen](automationen.md#trainingssessions-des-monats-zählen).
 
 ## Export
 

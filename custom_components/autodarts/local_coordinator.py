@@ -14,7 +14,13 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.exceptions import (
+    ConfigEntryError,
+    ConfigEntryNotReady,
+    HomeAssistantError,
+    ServiceValidationError,
+    UnsupportedStorageVersionError,
+)
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -42,7 +48,7 @@ from .const import (
     LIFECYCLE_STATUSES,
 )
 from .discovery import cloud_addresses
-from .errors import AutodartsApiError
+from .errors import AutodartsApiError, AutodartsConnectionError
 from .local_api import (
     AutodartsEndpointMissing,
     AutodartsLocalAuthError,
@@ -79,8 +85,14 @@ TOLERATED_FAILURES = 2
 METADATA_SECONDS = 30
 # The board PC changes only with system or Board Manager updates.
 HOST_REFRESH_SECONDS = 3600
-# Answers without /api/system in a row before a board counts as Board Manager 1.
+# Answers without /api/system in a row, over at least this long, before a board
+# counts as Board Manager 1; a board that is still starting may miss it a while.
 SYSTEM_MISSES = 3
+SYSTEM_MISS_SECONDS = 300
+# How often a board without /api/system is asked again, as after an update.
+SYSTEM_RECHECK_SECONDS = HOST_REFRESH_SECONDS
+# The first poll during setup waits this long for the board.
+FIRST_POLL_SECONDS = 3
 # Unknown answers in a row to a required read before a repair notice appears.
 PROTOCOL_FAILURES = 3
 REQUIRED_PATHS = ("/api/state", "/api/config", "/api/system")
@@ -108,6 +120,11 @@ MOTION_FLAGS = (
 )
 # High-rate values that change no entity by themselves, except the camera alarm.
 TELEMETRY = ("stats", "camera_stats")
+# Values of the board PC's load in data["system"] that change with every read.
+SYSTEM_TELEMETRY = ("cpu_percent", "memory_bytes")
+# The listener context of the entities that show telemetry: a poll that only
+# changes telemetry updates them alone, not every entity of the board.
+TELEMETRY_LISTENERS = "telemetry"
 EVENT_TYPES = [
     "dart_detected",
     "dart_corrected",
@@ -137,6 +154,9 @@ EVENT_TYPES = [
 # Dart and visit events name the practice game being played, so that callers
 # can leave the game to the practice caller.
 PLAY_EVENTS = ("dart_detected", "dart_corrected", "visit_thrown", "visit_completed")
+# Results announced with the dart that decides them, which a correction can
+# take back; statistics take them from the booking instead.
+RESULT_EVENTS = ("leg_won", "match_won")
 # Repair issues of an entry, named <issue>_<entry_id>.
 ISSUES = (
     "wrong_board",
@@ -171,6 +191,16 @@ def _lifecycle(state: dict[str, Any]) -> tuple[object, str]:
     return state.get("running"), status if status in LIFECYCLE_STATUSES else "running"
 
 
+def _without_telemetry(data: dict[str, Any]) -> dict[str, Any]:
+    """The data without frame rates and the board PC's load."""
+    result = {key: value for key, value in data.items() if key not in TELEMETRY}
+    if isinstance(system := data.get("system"), dict):
+        result["system"] = {
+            key: value for key, value in system.items() if key not in SYSTEM_TELEMETRY
+        }
+    return result
+
+
 def _error_name(error: BaseException) -> str:
     """The kind of a failure, for diagnostics; messages may contain addresses."""
     return type(error.__cause__ or error).__name__
@@ -189,6 +219,18 @@ class ConnectionStats:
     stream_failures: int = 0
     reconnect_delay: float = RECONNECT_MIN
     last_close: str | None = None
+
+
+@dataclass
+class Checkpoint:
+    """Everything a player's visit changes when it is booked, as it was before,
+    to undo the visit: the practice game, where the visit's darts landed, the
+    progress of the players at the board, the weekly report and the journal."""
+
+    practice: dict[str, Any]
+    positions: list[tuple[float, float] | None]
+    progress: dict[str, Any]
+    reports: dict[str, Any]
 
 
 class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -230,18 +272,31 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._fixture_unsub: CALLBACK_TYPE | None = None
         self._midnight_unsub: CALLBACK_TYPE | None = None
         self._store = TrainingStore(hass, entry.entry_id)
+        # Whether the stores were restored; nothing is saved before.
+        self._loaded = False
+        # Top-level parts of the store this release does not know.
+        self._unknown: dict[str, Any] = {}
         self._training_dirty = False
         self._revision = 0
         self._idle_unsub: CALLBACK_TYPE | None = None
         self._health = CameraHealth()
         self._settings: dict[str, Any] = {}
         self._version: str | None = None
+        # The version the device page shows, as far as this run set it.
+        self._device_version: str | None = None
         # Board Manager 1 (classic app) or 2 (headless board); None until known.
         self.generation: int | None = entry.data.get(CONF_API_GENERATION)
         self.setup_generation: int | None = None
         # The Board Manager version that answered without /api/system, if any.
         self._no_system_api: str | None = entry.data.get(CONF_NO_SYSTEM_API)
         self._system_misses = 0
+        # When the misses in a row began, and when a board without the route
+        # was last asked again; None before.
+        self._system_missing_since: float | None = None
+        self._system_checked: float | None = None
+        self._first_poll = True
+        # When a board of unknown generation was last asked for its version.
+        self._version_probed: float | None = None
         self._metadata_updated = 0.0
         self._host: dict[str, Any] | None = None
         self._host_updated = 0.0
@@ -263,6 +318,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._stream_error_logged = False
         self._reconnect_now = asyncio.Event()
         self._revisions: dict[str, int] = {}
+        # The poll being published changed only telemetry.
+        self._telemetry_only = False
         self._observed_state: dict[str, Any] | None = None
         self._observed_motion: dict[str, Any] | None = None
         self._taking_out = False
@@ -271,36 +328,74 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.manual = ManualDarts()
         self.bot = Bot()
         self._bot_unsub: CALLBACK_TYPE | None = None
-        # The practice game before the last visit of a player was booked, with
-        # where that visit's darts landed, to undo the visit.
-        self._undo: tuple[dict[str, Any], list[tuple[float, float] | None]] | None = (
-            None
-        )
+        # The game and the statistics before the last visit of a player was
+        # booked, to undo the visit.
+        self._undo: Checkpoint | None = None
 
-    async def _async_setup(self) -> None:
-        saved = await self._store.async_load()
-        self.training.restore(saved)
-        self.practice.restore(
-            saved.get("practice") if isinstance(saved, dict) else None
-        )
-        self.records.restore(saved.get("records") if isinstance(saved, dict) else None)
-        self.progress.restore(
-            saved.get("progress") if isinstance(saved, dict) else None,
-            self.practice.profiles,
-            dt_util.now(),
-        )
-        self.tournament.restore(
-            saved.get("tournament") if isinstance(saved, dict) else None
-        )
-        self.practice.hold = self.tournament.waiting
+    async def async_load(self) -> None:
+        """Restore the stored training, games and reports; before the first poll.
+
+        Nothing is saved until everything is restored. A store that cannot be
+        read stops the setup instead, so that no empty data overwrites it: for
+        a retry after a read error, for good when it is of a newer layout or
+        cannot be restored.
+        """
+        try:
+            saved = await self._store.async_load()
+            self._restore(saved)
+            await self.reports.async_load()
+        except UnsupportedStorageVersionError as err:
+            self._keep_stores()
+            raise ConfigEntryError(
+                translation_domain=DOMAIN, translation_key="storage_newer"
+            ) from err
+        except (HomeAssistantError, OSError) as err:
+            self._keep_stores()
+            raise ConfigEntryNotReady(
+                translation_domain=DOMAIN, translation_key="storage_unreadable"
+            ) from err
+        except Exception as err:
+            self._keep_stores()
+            _LOGGER.exception("The stored training cannot be restored")
+            raise ConfigEntryError(
+                translation_domain=DOMAIN, translation_key="storage_invalid"
+            ) from err
+        self._loaded = True
         if saved is None:
             self._save_training()
-        await self.reports.async_load()
+
+    async def _async_setup(self) -> None:
+        # The setup loads first, so that its errors stop the setup; a board
+        # found at another address loads here.
+        if not self._loaded:
+            await self.async_load()
+
+    def _restore(self, saved: object) -> None:
+        stored = saved if isinstance(saved, dict) else {}
+        self.training.restore(saved if isinstance(saved, dict) else None)
+        self.practice.restore(stored.get("practice"))
+        self.records.restore(stored.get("records"))
+        self.progress.restore(
+            stored.get("progress"), self.practice.profiles, dt_util.now()
+        )
+        self.tournament.restore(stored.get("tournament"))
+        self.practice.hold = self.tournament.waiting
+        # Parts that a newer release stored stay after a downgrade.
+        known = self._stored()
+        self._unknown = {
+            key: value for key, value in stored.items() if key not in known
+        }
+
+    def _keep_stores(self) -> None:
+        """Never write a store that could not be read."""
+        for store in (self._store, *self.reports.stores):
+            store.make_read_only()
 
     def _stored(self) -> dict[str, Any]:
         """Training sessions, the practice game, personal bests and the players'
         progress, saved together."""
         return {
+            **self._unknown,
             **self.training.stored(),
             "practice": self.practice.stored(),
             "records": self.records.stored(),
@@ -349,7 +444,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._midnight_unsub()
             self._midnight_unsub = None
         self._cancel_bot()
-        if self._training_dirty:
+        # A store that was never restored is never written.
+        if self._loaded and self._training_dirty:
             await self._store.async_save(self._stored())
             self._training_dirty = False
         await self.reports.async_shutdown()
@@ -564,9 +660,16 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
     def _recorded(
-        self, events: list[tuple[str, dict[str, Any]]]
+        self,
+        events: list[tuple[str, dict[str, Any]]],
+        booked: list[tuple[str, dict[str, Any]]] | None = None,
     ) -> list[tuple[str, dict[str, Any]]]:
-        """The events, each followed by the personal bests or daily goal it brings."""
+        """The events, each followed by the personal bests or daily goal it brings.
+
+        Legs and matches count for the records and the weekly report once the
+        practice game booked them, see _booked: a correction can take back the
+        leg_won and match_won announced with a winning dart.
+        """
         now = dt_util.now()
         result: list[tuple[str, dict[str, Any]]] = []
         for kind, attributes in events:
@@ -575,10 +678,25 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.progress.session_started()
             result.append((kind, attributes))
             # The bot sets no personal bests and throws no darts of the day.
+            if not attributes.get("bot") and kind not in RESULT_EVENTS:
+                result.extend(self.records.observe(kind, attributes, now))
+        for kind, attributes in booked or []:
             if not attributes.get("bot"):
                 result.extend(self.records.observe(kind, attributes, now))
-        self.reports.observe(result, now)
+        self.reports.observe(result, now, booked)
         return result
+
+    def _booked(
+        self, legs_total: int, decided: bool
+    ) -> list[tuple[str, dict[str, Any]]]:
+        """The leg and the match that booking a visit ended, if any."""
+        practice = self.practice
+        booked: list[tuple[str, dict[str, Any]]] = []
+        if practice.legs_total > legs_total and practice.legs:
+            booked.append(("leg_won", practice.legs[0]))
+        if practice.winner is not None and not decided:
+            booked.append(("match_won", {"game": practice.kind}))
+        return booked
 
     @callback
     def _async_new_day(self, _now: datetime) -> None:
@@ -621,7 +739,14 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _track(self, data: dict[str, Any], state: dict[str, Any], source: str) -> None:
         """Training, practice game and records follow the darts on the board."""
         announced = False
-        for kind, attributes in self._recorded(self.training.observe(state)):
+        observed = self.training.observe(state)
+        # The weekly report before it counts a completed visit, to undo it.
+        reports = (
+            self.reports.checkpoint()
+            if any(kind == "visit_completed" for kind, _ in observed)
+            else {}
+        )
+        for kind, attributes in self._recorded(observed):
             announced = True
             self.quality.record(kind, attributes)
             if kind in PLAY_EVENTS:
@@ -632,7 +757,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 }
             self._emit(kind, attributes, source)
             if kind == "visit_completed":
-                self._checkpoint(attributes)
+                self._checkpoint(attributes, reports)
                 self._book_visit(source, bot=attributes.get("bot") is True)
         if (positions := _throw_positions(state)) is not None:
             self._positions = positions
@@ -653,11 +778,13 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # The bot's darts are nobody's training.
         if self.training.active and not bot:
             self.progress.session_visit(pending.booking)
+        decided = self.practice.winner is not None
         events = self.practice.finish_visit()
+        booked = self._booked(pending.legs_total, decided)
         events += self.progress.after(pending, self.practice, dt_util.now())
         # A tournament takes the result once the practice game booked it.
         events += self._fixture()
-        for kind, details in self._recorded(events):
+        for kind, details in self._recorded(events, booked):
             self._emit(kind, details, source)
 
     def _follow_visit(
@@ -701,7 +828,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         undo = self._undo is not None and self.training.can_undo()
         return {**self.practice.snapshot(), "undo": undo}
 
-    def _checkpoint(self, visit: dict[str, Any]) -> None:
+    def _checkpoint(self, visit: dict[str, Any], reports: dict[str, Any]) -> None:
         """The game before a player's visit is booked, to undo the visit; the
         bot's visits are undone together with the visit before them."""
         if visit.get("bot"):
@@ -710,7 +837,13 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         known = self._positions[-count:] if count else []
         positions: list[tuple[float, float] | None] = [None] * (count - len(known))
         positions.extend(known)
-        self._undo = (self.practice.checkpoint(), positions)
+        self._undo = Checkpoint(
+            practice=self.practice.checkpoint(),
+            positions=positions,
+            # The visit, a leg it ends and training games book for these players.
+            progress=self.progress.checkpoint(self.practice.names),
+            reports=reports,
+        )
 
     def _publish_game(self, data: dict[str, Any], announced: bool) -> None:
         """Snapshots for the entities; a change is saved and raises the revision."""
@@ -898,6 +1031,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Keep across restarts which version lacks /api/system, or forget it."""
         self._no_system_api = version
         self._system_misses = 0
+        self._system_missing_since = None
+        self._system_checked = time.monotonic()
         data = {
             key: value
             for key, value in self._entry.data.items()
@@ -912,7 +1047,14 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """The version tells the generation, unless /api/system is known missing."""
         generation = board_generation(self._version)
         missing = self._no_system_api
-        if missing is not None and self._version and missing not in ("", self._version):
+        if missing == "" and self._version:
+            # The version that lacked /api/system, once known: another one
+            # asks again.
+            self._no_system_api = missing = self._version
+            self.hass.config_entries.async_update_entry(
+                self._entry, data={**self._entry.data, CONF_NO_SYSTEM_API: missing}
+            )
+        if missing is not None and self._version and missing != self._version:
             # Another Board Manager version may bring /api/system: ask again.
             _LOGGER.info(
                 "Board Manager %s found; checking again for /api/system", self._version
@@ -989,20 +1131,33 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _reads(self) -> dict[str, Any]:
         """Everything besides the state, in one read on Board Manager 2."""
-        if self.generation is None:
+        now = time.monotonic()
+        if self.generation is None and (
+            self._version_probed is None
+            or now - self._version_probed >= METADATA_SECONDS
+        ):
             # An unknown board reveals its generation through its version first.
+            self._version_probed = now
             version = await self._optional(self.client.get_version(), "/api/version")
             if generation := board_generation(version):
                 self._version = version
                 self._set_generation(generation)
+        if not self.board_manager_2 and await self._system_back(now):
+            self._set_generation(2)
         if self.board_manager_2:
             reads = await self._read_system()
             if reads is not None:
                 self._system_misses = 0
+                self._system_missing_since = None
                 return reads
             self._system_misses += 1
-            # A board that is still starting may miss the route for a moment.
-            if self._system_misses >= SYSTEM_MISSES:
+            if self._system_missing_since is None:
+                self._system_missing_since = now
+            # A board that is still starting may miss the route for a while.
+            if (
+                self._system_misses >= SYSTEM_MISSES
+                and now - self._system_missing_since >= SYSTEM_MISS_SECONDS
+            ):
                 _LOGGER.info(
                     "Board Manager %s answers without /api/system; using the "
                     "protocol of Board Manager 1",
@@ -1012,20 +1167,82 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._set_generation(1)
         return await self._read_legacy()
 
+    async def _system_back(self, now: float) -> bool:
+        """Whether /api/system, found missing before, answers again; asked
+        once an hour, as the version may stay the same across an update."""
+        checked = self._system_checked
+        if self._no_system_api is None or (
+            checked is not None and now - checked < SYSTEM_RECHECK_SECONDS
+        ):
+            return False
+        self._system_checked = now
+        try:
+            await self.client.get_system()
+        except AutodartsApiError:
+            return False
+        _LOGGER.info("Board Manager answers /api/system again; using its protocol")
+        self._remember_no_system_api(None)
+        return True
+
     async def _async_update_data(self) -> dict[str, Any]:
         async with self._poll_lock:
             started = time.monotonic()
             try:
-                return await self._poll()
+                data = await self._poll()
             finally:
                 self.connection.poll_seconds = round(time.monotonic() - started, 3)
                 self._report_protocol()
                 self.update_interval = self._poll_interval()
+        # Frame rates and the load change with nearly every poll; alone, they
+        # only update the entities that show them.
+        self._telemetry_only = (
+            self.last_update_success
+            and self.data is not None
+            and _without_telemetry(data) == _without_telemetry(self.data)
+        )
+        return data
+
+    async def _async_refresh(
+        self,
+        log_failures: bool = True,
+        raise_on_auth_failed: bool = False,
+        scheduled: bool = False,
+        raise_on_entry_error: bool = False,
+    ) -> None:
+        try:
+            await super()._async_refresh(
+                log_failures, raise_on_auth_failed, scheduled, raise_on_entry_error
+            )
+        finally:
+            self._telemetry_only = False
+
+    @callback
+    def async_update_listeners(self) -> None:
+        """Update every entity, or only those showing telemetry after a poll
+        that changed nothing else."""
+        if not self._telemetry_only:
+            super().async_update_listeners()
+            return
+        self._telemetry_only = False
+        for update_callback, context in list(self._listeners.values()):
+            if context != TELEMETRY_LISTENERS:
+                continue
+            try:
+                update_callback()
+            except Exception:
+                _LOGGER.exception("Unexpected error updating a telemetry entity")
 
     async def _poll(self) -> dict[str, Any]:
         revisions = dict(self._revisions)
+        # The setup waits only briefly for a board that is switched off: it
+        # goes on without the board anyway.
+        first, self._first_poll = self._first_poll, False
         try:
-            state = await self.client.get_state()
+            try:
+                async with asyncio.timeout(FIRST_POLL_SECONDS if first else None):
+                    state = await self.client.get_state()
+            except TimeoutError as err:
+                raise AutodartsConnectionError("Board Manager is slow") from err
         except AutodartsApiError as err:
             self._protocol_result("/api/state", err)
             return self._poll_failed(err)
@@ -1050,7 +1267,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._version = (version if isinstance(version, str) else None) or (
             self._version
         )
-        if previous_version and self._version != previous_version:
+        if self._version != self._device_version:
             self._update_device_version()
         self._check_generation()
         if self.board_manager_2 and (
@@ -1229,12 +1446,20 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @callback
     def _update_device_version(self) -> None:
-        """Show a Board Manager update on the device page without a reload."""
+        """Show a Board Manager update on the device page without a reload.
+
+        Also the first version known: the entities of a board that was away
+        at the start cleared it. Before the device exists, its entities
+        create it with the version.
+        """
         registry = dr.async_get(self.hass)
         device = registry.async_get_device_by_identifier(
             (DOMAIN, self.board_id), self._entry.entry_id
         )
-        if device and device.sw_version != self._version:
+        if device is None:
+            return
+        self._device_version = self._version
+        if device.sw_version != self._version:
             registry.async_update_device(device.id, sw_version=self._version)
 
     # -- actions -----------------------------------------------------------------
@@ -1300,6 +1525,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.practice.forget(name)
             self.records.forget(name)
             self.progress.forget(name)
+            self.reports.forget(name)
             await self._async_training([])
         return deleted
 
@@ -1538,11 +1764,14 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="undo_unavailable"
             )
-        checkpoint, positions = self._undo
+        checkpoint = self._undo
         self._undo = None
         self._cancel_bot()
-        self.practice.rewind(checkpoint, darts, positions)
-        self.manual.replay(darts, positions)
+        # Booked again once it ends, the visit must not count twice.
+        self.progress.rewind(checkpoint.progress)
+        self.reports.rewind(checkpoint.reports)
+        self.practice.rewind(checkpoint.practice, darts, checkpoint.positions)
+        self.manual.replay(darts, checkpoint.positions)
         self._emit(
             "visit_undone",
             {

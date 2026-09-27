@@ -245,9 +245,15 @@ async def test_the_repair_gives_up_on_an_unloaded_board(
     issue_id = f"calibration_{entry.entry_id}"
     darts(entry.runtime_data.local.quality, QUALITY_MINIMUM, corrected_every=2)
     entry.runtime_data.local.async_receive("state", board())
+    flow = await fix(hass, hass_client, issue_id, confirm=False)
+    assert flow["type"] == "form"
+    # The notices of a board go with it; they come back with its next setup.
     assert await hass.config_entries.async_unload(entry.entry_id)
     await hass.async_block_till_done()
-    result = await fix(hass, hass_client, issue_id)
+    assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is None
+    client = await hass_client()
+    response = await client.post(f"/api/repairs/issues/fix/{flow['flow_id']}", json={})
+    result = await response.json()
     assert result["type"] == "abort" and result["reason"] == "board_unavailable"
 
 

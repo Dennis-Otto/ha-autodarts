@@ -735,6 +735,15 @@
     "unsupported_response": {
       "message": "Board Manager antwoordt in een formaat dat deze versie van de integratie niet begrijpt."
     },
+    "storage_newer": {
+      "message": "De opgeslagen training van dit bord komt van een nieuwere versie van de integratie. Installeer die versie opnieuw of zet een back-up terug; de opgeslagen gegevens blijven ongewijzigd."
+    },
+    "storage_unreadable": {
+      "message": "De opgeslagen training van dit bord kan nu niet worden gelezen. Home Assistant probeert het opnieuw; de opgeslagen gegevens blijven ongewijzigd."
+    },
+    "storage_invalid": {
+      "message": "De opgeslagen training van dit bord kan niet worden hersteld. Meld dit als fout; de opgeslagen gegevens blijven ongewijzigd."
+    },
     "not_supported": {
       "message": "Dit bord ondersteunt deze actie niet."
     },

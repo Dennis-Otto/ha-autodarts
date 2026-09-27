@@ -290,7 +290,9 @@ def mock_cloud(mock, board_id="board-1"):
 
 
 def entity_summary(hass, entry) -> dict[str, str]:
-    """Entity ID, category and whether it starts disabled, by unique ID."""
+    """By unique ID: entity ID, category, whether it starts disabled, device
+    class, unit, state class and translation key, and whether it is named
+    after its device."""
     registry = er.async_get(hass)
     return {
         item.unique_id: " | ".join(
@@ -298,6 +300,11 @@ def entity_summary(hass, entry) -> dict[str, str]:
                 item.entity_id,
                 item.entity_category or "-",
                 "disabled" if item.disabled_by else "enabled",
+                item.original_device_class or "-",
+                item.unit_of_measurement or "-",
+                (item.capabilities or {}).get("state_class") or "-",
+                item.translation_key or "-",
+                "named" if item.has_entity_name else "unnamed",
             )
         )
         for item in sorted(

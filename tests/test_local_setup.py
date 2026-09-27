@@ -148,7 +148,9 @@ async def test_cloud_connection_switch_connects_and_disconnects(hass, aioclient_
     ]
 
 
-async def test_camera_frame_rates_follow_the_camera_order(hass, aioclient_mock):
+async def test_camera_frame_rates_follow_the_camera_order(
+    hass, aioclient_mock, freezer
+):
     aioclient_mock.get(BASE + "/api/cams/stats", json={"fps": [29.9, "fast"]})
     entry = await setup_local(hass, aioclient_mock)
     registry = er.async_get(hass)
@@ -162,6 +164,20 @@ async def test_camera_frame_rates_follow_the_camera_order(hass, aioclient_mock):
     assert state(hass, "sensor", "camera_1_fps") == "unknown"
     # The board reports fewer cameras than it has configured.
     assert state(hass, "sensor", "camera_2_fps") == "unknown"
+    # Cards group the entities of a camera by its number.
+    for index in range(3):
+        fps = hass.states.get(entity_id(hass, "sensor", f"camera_{index}_fps"))
+        assert fps.attributes["camera"] == index + 1
+    # A camera the board no longer has is unavailable, like its picture entity.
+    config = deepcopy(CONFIG)
+    config["cam"]["cams"] = config["cam"]["cams"][:1]
+    aioclient_mock.clear_requests()
+    mock_board(aioclient_mock, config=config)
+    freezer.tick(timedelta(seconds=30))
+    await entry.runtime_data.local.async_refresh()
+    await hass.async_block_till_done()
+    assert state(hass, "sensor", "camera_0_fps") == "29.9"
+    assert state(hass, "sensor", "camera_1_fps") == "unavailable"
 
 
 async def test_command_rejection_is_visible_to_user(hass, aioclient_mock):

@@ -735,6 +735,15 @@
     "unsupported_response": {
       "message": "Der Board Manager antwortet in einem Format, das diese Version der Integration nicht versteht."
     },
+    "storage_newer": {
+      "message": "Das gespeicherte Training dieses Boards stammt aus einer neueren Version der Integration. Installiere diese Version wieder oder stelle ein Backup wieder her; die gespeicherten Daten bleiben unverändert."
+    },
+    "storage_unreadable": {
+      "message": "Das gespeicherte Training dieses Boards kann gerade nicht gelesen werden. Home Assistant versucht es erneut; die gespeicherten Daten bleiben unverändert."
+    },
+    "storage_invalid": {
+      "message": "Das gespeicherte Training dieses Boards kann nicht wiederhergestellt werden. Bitte melde das als Fehler; die gespeicherten Daten bleiben unverändert."
+    },
     "not_supported": {
       "message": "Dieses Board unterstützt die Aktion nicht."
     },

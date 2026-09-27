@@ -259,6 +259,9 @@ def test_records_survive_a_restart_and_invalid_data_is_dropped():
     assert (snapshot["darts_today"], snapshot["goal"]) == (0, 0)
     broken.restore(None)
     assert broken.snapshot(date(2026, 9, 21))["bests"] == {"highest_visit": 100}
+    # Stored data may hold anything, even a list for a record.
+    broken.restore({"latest": {"record": ["doubles"], "date": "2026-09-21"}})
+    assert broken.latest is None
 
 
 @given(
@@ -281,3 +284,22 @@ def test_any_days_keep_the_streak_and_the_bests_consistent(days):
     scores = [score for _, score, _ in days if score]
     if scores:
         assert records.snapshot(day.date())["bests"]["highest_visit"] == max(scores)
+
+
+def test_a_higher_daily_goal_is_reached_anew():
+    records, day = PersonalRecords(), MONDAY.date()
+    records.set_goal(2, day)
+    assert [kind for kind, _ in darts(records, 2)] == ["daily_goal_reached"]
+    assert records.snapshot(day)["goal_reached"] is True
+    records.set_goal(5, day)
+    assert records.snapshot(day)["goal_reached"] is False
+    assert darts(records, 2) == []
+    assert darts(records, 1) == [
+        ("daily_goal_reached", {"goal": 5, "darts": 5, "streak": 1})
+    ]
+    # A lower goal is reached at once, quietly; a goal set on another day
+    # leaves the day it was reached.
+    records.set_goal(3, day)
+    assert records.snapshot(day)["goal_reached"] is True
+    records.set_goal(9, day + timedelta(days=1))
+    assert records.goal_day == day

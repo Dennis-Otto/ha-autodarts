@@ -259,9 +259,13 @@ class TrainingSession:
         self.recent_visits = [visit for visit in restored if visit][:RECENT_VISITS]
 
     def stored(self) -> dict[str, Any]:
-        """Everything that survives a restart, including settings and history."""
+        """Everything that survives a restart, including settings and history.
+
+        The visit on the board counts with its score: after a restart, its
+        darts belong to no visit.
+        """
         return {
-            **self.snapshot(),
+            **self.snapshot(scores=True),
             "auto_start": self.auto_start,
             "idle_minutes": self.idle_minutes,
             "last_activity": self.last_activity,
@@ -279,7 +283,9 @@ class TrainingSession:
             if counting
         ]
 
-    def _contribution(self) -> dict[str, int]:
+    def _contribution(self, scores: bool = True) -> dict[str, int]:
+        """What the counted darts of the active visit add to the totals; the
+        score of the visit only once it is complete, if scores is False."""
         darts = self._counted()
         return {
             "darts": len(darts),
@@ -295,14 +301,17 @@ class TrainingSession:
             ),
             "misses": sum(hit_key(d) == "MISS" for d in darts),
             "visits": int(bool(darts)),
-            **_visit_summary(darts),
+            **_visit_summary(darts if scores else []),
         }
 
     def _manual_darts(self) -> int:
         return sum(bool(dart.get("manual")) for dart in self._counted())
 
-    def snapshot(self) -> dict[str, Any]:
-        current = self._contribution()
+    def snapshot(self, scores: bool = False) -> dict[str, Any]:
+        """The session's totals. A visit counts for the 100+, 140+ and 180
+        visits once complete, unless scores: two trebles would be a 100+
+        visit until the third makes it a 180."""
+        current = self._contribution(scores)
         hits = self._hits + Counter(map(hit_key, self._counted()))
         return {
             "started": self.started,
@@ -547,7 +556,8 @@ class TrainingSession:
             kind = None
             details: dict[str, Any] = {}
             if index >= len(self._active):
-                if not self.active and self.auto_start:
+                # The bot's darts are nobody's training, so they start none.
+                if not self.active and self.auto_start and not dart.get("bot"):
                     events.append(self._start("first_dart"))
                 self._active.append(dart)
                 self._tracked.append(True)

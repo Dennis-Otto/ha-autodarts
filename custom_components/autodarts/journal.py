@@ -9,12 +9,15 @@ further back.
 from __future__ import annotations
 
 import math
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, NamedTuple
 
 from homeassistant.util import dt as dt_util
+
+from .cricket import CRICKET_GAMES
+from .party import PARTY_GAMES
 
 JOURNAL_DAYS = 365
 # At most this many sessions and as many matches, the newest.
@@ -34,11 +37,38 @@ SESSION_COUNTS = (
 )
 # A player's result of a match: the X01 average, Cricket MPR or party points.
 RESULTS = ("average", "mpr", "points")
+# Every Cricket and party game; X01 games are named by their start score.
 GAME_NAMES = {
     "cricket": "Cricket",
+    "cut_throat": "Cut-Throat",
+    "tactics": "Tactics",
     "shanghai": "Shanghai",
     "halve_it": "Halve-It",
     "killer": "Killer",
+    "golf": "Golf",
+    "baseball": "Baseball",
+    "count_up": "Count-Up",
+}
+GAME_KINDS = frozenset((*CRICKET_GAMES, *PARTY_GAMES))
+# The bot of a practice match has no name of its own.
+BOT_LABEL = "Bot"
+
+
+class Locale(NamedTuple):
+    """The calendar's words and decimal mark in a language."""
+
+    training: str
+    darts: str
+    highest: str
+    decimal: str
+
+
+LOCALES = {
+    "en": Locale("Training", "Darts", "Max", "."),
+    "de": Locale("Training", "Darts", "Max", ","),
+    "nl": Locale("Training", "darts", "Max", ","),
+    "fr": Locale("Entraînement", "fléchettes", "Max", ","),
+    "es": Locale("Entrenamiento", "dardos", "Máx.", ","),
 }
 # Calendar events last at least this long, also a session of one dart.
 MINIMUM_LENGTH = timedelta(minutes=1)
@@ -66,9 +96,15 @@ def _utc(value: str) -> datetime:
 
 
 def _game(value: object) -> int | str | None:
+    """An X01 start score, or a Cricket or party game; stored data may hold anything."""
     if type(value) is int and value > 0:
         return value
-    return value if value in GAME_NAMES else None
+    return value if isinstance(value, str) and value in GAME_KINDS else None
+
+
+def locale(language: str) -> Locale:
+    """The calendar's words for a language such as de or en-GB; English otherwise."""
+    return LOCALES.get(language.split("-")[0].lower(), LOCALES["en"])
 
 
 def session_entry(saved: object) -> dict[str, Any] | None:
@@ -95,6 +131,11 @@ def _player(saved: object) -> dict[str, Any]:
         "legs": _count(data.get("legs")),
         "sets": _count(data.get("sets")),
     }
+    # The bot's seat, and the team of a player in a team match.
+    if data.get("bot") is True:
+        player["bot"] = True
+    if (team := data.get("team")) in (1, 2) and type(team) is int:
+        player["team"] = team
     # Legs won in the whole match; matches before version 1.6 do not know them.
     if type(data.get("match_legs")) is int:
         player["match_legs"] = _count(data["match_legs"])
@@ -144,7 +185,9 @@ def duration_minutes(entry: dict[str, Any]) -> float:
 
 
 def player_label(player: dict[str, Any], index: int) -> str:
-    """A player's name, or the position for a player without one."""
+    """A player's name, Bot for the bot, or the seat of a player without a name."""
+    if player.get("bot"):
+        return BOT_LABEL
     name: str | None = player["name"]
     return name or f"#{index + 1}"
 
@@ -177,32 +220,61 @@ def game_name(game: int | str) -> str:
     return GAME_NAMES.get(str(game), str(game))
 
 
-def _decimal(value: float | int, digits: int) -> str:
-    return f"{value:.{digits}f}"
+def _decimal(value: float | int, digits: int, language: str) -> str:
+    """A number with the decimal mark of the language, such as 54,2 in German."""
+    return f"{value:.{digits}f}".replace(".", locale(language).decimal)
 
 
-def session_title(entry: dict[str, Any]) -> str:
-    """For example "Training · 312 Darts · Ø 54.2", the same in every language."""
-    parts = ["Training", f"{entry['darts']} Darts"]
+def session_title(entry: dict[str, Any], language: str = "en") -> str:
+    """For example "Training · 312 Darts · Ø 54.2", in German "Ø 54,2"."""
+    words = locale(language)
+    parts = [words.training, f"{entry['darts']} {words.darts}"]
     if (value := average(entry)) is not None:
-        parts.append(f"Ø {_decimal(value, 1)}")
+        parts.append(f"Ø {_decimal(value, 1, language)}")
     return " · ".join(parts)
 
 
-def session_description(entry: dict[str, Any]) -> str:
+def session_description(entry: dict[str, Any], language: str = "en") -> str:
     return " · ".join(
         [
             f"180: {entry['scores_180']}",
             f"140+: {entry['scores_140']}",
             f"100+: {entry['scores_100']}",
-            f"Max: {entry['highest_visit']}",
+            f"{locale(language).highest}: {entry['highest_visit']}",
         ]
     )
 
 
+def _team_scores(entry: dict[str, Any]) -> list[tuple[str, int]] | None:
+    """Both teams of a team match with their score, such as ("Alex & Kim", 1)."""
+    players = entry["players"]
+    if sorted(player.get("team", 0) for player in players) != [1, 1, 2, 2]:
+        return None
+    won = scores(entry)
+    return [
+        (
+            " & ".join(
+                player_label(player, index)
+                for index, player in enumerate(players)
+                if player["team"] == team
+            ),
+            next(
+                score
+                for player, score in zip(players, won, strict=True)
+                if player["team"] == team
+            ),
+        )
+        for team in (1, 2)
+    ]
+
+
 def match_title(entry: dict[str, Any]) -> str:
-    """For example "501 · Alex 3:2 Sam", or every player with their score."""
+    """For example "501 · Alex 3:2 Sam", "501 · Alex & Kim 1:0 Sam & Lea" for
+    two teams, or every player with their score."""
     game = game_name(entry["game"])
+    if teams := _team_scores(entry):
+        (first, first_score), (second, second_score) = teams
+        return f"{game} · {first} {first_score}:{second_score} {second}"
     players = entry["players"]
     labels = [player_label(player, index) for index, player in enumerate(players)]
     won = scores(entry)
@@ -213,15 +285,15 @@ def match_title(entry: dict[str, Any]) -> str:
     )
 
 
-def match_description(entry: dict[str, Any]) -> str:
+def match_description(entry: dict[str, Any], language: str = "en") -> str:
     """Every player's result: the average, marks per round or points."""
     lines = []
     for index, player in enumerate(entry["players"]):
         label = player_label(player, index)
         if "average" in player:
-            lines.append(f"{label}: Ø {_decimal(player['average'], 1)}")
+            lines.append(f"{label}: Ø {_decimal(player['average'], 1, language)}")
         elif "mpr" in player:
-            lines.append(f"{label}: MPR {_decimal(player['mpr'], 2)}")
+            lines.append(f"{label}: MPR {_decimal(player['mpr'], 2, language)}")
         elif "points" in player:
             lines.append(f"{label}: {player['points']}")
     return "\n".join(lines)
@@ -238,16 +310,18 @@ class JournalEvent:
     description: str
 
 
-def _event(kind: str, entry: dict[str, Any]) -> JournalEvent:
+def _event(kind: str, entry: dict[str, Any], language: str) -> JournalEvent:
     end = _utc(entry["ended"])
     # Matches from before the journal did not keep their first dart. A short
     # event starts earlier instead of reaching past the moment it ended.
     start = _utc(entry["started"]) if entry["started"] else end
     start = min(start, end - MINIMUM_LENGTH)
     if kind == "session":
-        summary, description = session_title(entry), session_description(entry)
+        summary = session_title(entry, language)
+        description = session_description(entry, language)
     else:
-        summary, description = match_title(entry), match_description(entry)
+        summary = match_title(entry)
+        description = match_description(entry, language)
     return JournalEvent(
         uid=f"{kind}-{entry['ended']}",
         start=start,
@@ -260,18 +334,11 @@ def _event(kind: str, entry: dict[str, Any]) -> JournalEvent:
 class TrainingJournal:
     """Finished sessions and matches of the last year, oldest first."""
 
-    def __init__(self) -> None:
+    def __init__(self, language: Callable[[], str] = lambda: "en") -> None:
         self.sessions: list[dict[str, Any]] = []
         self.matches: list[dict[str, Any]] = []
-        # When the first dart of the running match landed, and in which game.
-        self.match_start: tuple[datetime, int | str] | None = None
-
-    def observe_dart(self, now: datetime, game: int | str | None) -> None:
-        """A match starts with its first dart; without a match nothing starts."""
-        if game is None:
-            self.match_start = None
-        elif self.match_start is None or self.match_start[1] != game:
-            self.match_start = (dt_util.as_utc(now), game)
+        # The language of the calendar, as Home Assistant's may change.
+        self._language = language
 
     def sync(
         self,
@@ -281,19 +348,28 @@ class TrainingJournal:
     ) -> bool:
         """Take over sessions and matches that ended since the last entries.
 
-        Both sources list the newest first. Returns whether anything changed.
+        Both sources list the newest first; a match knows when its first dart
+        landed. Returns whether anything changed.
         """
         sessions = self._fresh(self.sessions, map(session_entry, history))
         new = self._fresh(self.matches, map(match_entry, matches))
-        if new and self.match_start:
-            # The first dart belongs to the match that ended first.
-            began, game = self.match_start
-            if game == new[0]["game"] and began <= _utc(new[0]["ended"]):
-                new[0]["started"] = began.isoformat()
-            self.match_start = None
         self.sessions.extend(sessions)
         self.matches.extend(new)
         return self._prune(now) or bool(sessions or new)
+
+    def last_match(self) -> str | None:
+        """When the newest match ended, to rewind to it."""
+        return self.matches[-1]["ended"] if self.matches else None
+
+    def rewind(self, last: str | None) -> bool:
+        """Forget the matches that ended after this one, as after an undone
+        visit that decided a match; whether any was forgotten."""
+        before = len(self.matches)
+        while self.matches and (
+            last is None or _utc(self.matches[-1]["ended"]) > _utc(last)
+        ):
+            self.matches.pop()
+        return len(self.matches) != before
 
     @staticmethod
     def _fresh(
@@ -336,32 +412,30 @@ class TrainingJournal:
 
     def latest(self) -> JournalEvent | None:
         """The session or match that ended last; both lists are in that order."""
+        language = self._language()
         last = [
-            _event(kind, entries[-1])
+            _event(kind, entries[-1], language)
             for kind, entries in (("session", self.sessions), ("match", self.matches))
             if entries
         ]
         return max(last, key=lambda event: event.end, default=None)
 
     def _all(self) -> list[JournalEvent]:
+        language = self._language()
         return [
-            *(_event("session", entry) for entry in self.sessions),
-            *(_event("match", entry) for entry in self.matches),
+            *(_event("session", entry, language) for entry in self.sessions),
+            *(_event("match", entry, language) for entry in self.matches),
         ]
 
     # -- storage -------------------------------------------------------------------
 
     def stored(self) -> dict[str, Any]:
-        start = self.match_start
         return {
             "sessions": [dict(entry) for entry in self.sessions],
             "matches": [
                 {**entry, "players": [dict(player) for player in entry["players"]]}
                 for entry in self.matches
             ],
-            "match_start": {"time": start[0].isoformat(), "game": start[1]}
-            if start
-            else None,
         }
 
     def restore(self, saved: object) -> None:
@@ -377,7 +451,3 @@ class TrainingJournal:
                 # Entries stay in the order they ended; anything else is dropped.
                 if entry and self._fresh(entries, [entry]):
                     entries.append(entry)
-        start = saved.get("match_start")
-        start = start if isinstance(start, dict) else {}
-        began, game = _moment(start.get("time")), _game(start.get("game"))
-        self.match_start = (began, game) if began and game is not None else None
