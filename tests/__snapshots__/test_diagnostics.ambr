@@ -143,6 +143,7 @@
         'start': 501,
         'summary': None,
         'teams': None,
+        'undo': True,
         'visit': list([
         ]),
         'winner': None,
@@ -345,6 +346,7 @@
         'sets_to_win': 1,
         'summary': None,
         'teams': None,
+        'undo': False,
       }),
       'quality': dict({
         'corrected': 0,

@@ -170,6 +170,7 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
     [["call_scores", "call_checkouts", "call_results", "call_sounds"]],
     [["lobby"], "lobby_games"],
     [["idle"], ["idle_after", "idle_interval"], "idle_panels"],
+    [["corrections", "keypad"]],
     "accent_color",
   ]);
   assert.equal(form.schema[2].schema[4].default, true);

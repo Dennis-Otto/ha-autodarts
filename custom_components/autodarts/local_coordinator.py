@@ -695,6 +695,12 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.data = data
         self.async_update_listeners()
 
+    def _practice_snapshot(self) -> dict[str, Any]:
+        """The practice game for the entities, and whether the last visit of a
+        player can be undone now."""
+        undo = self._undo is not None and self.training.can_undo()
+        return {**self.practice.snapshot(), "undo": undo}
+
     def _checkpoint(self, visit: dict[str, Any]) -> None:
         """The game before a player's visit is booked, to undo the visit; the
         bot's visits are undone together with the visit before them."""
@@ -708,7 +714,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _publish_game(self, data: dict[str, Any], announced: bool) -> None:
         """Snapshots for the entities; a change is saved and raises the revision."""
-        training, practice = self.training.snapshot(), self.practice.snapshot()
+        training, practice = self.training.snapshot(), self._practice_snapshot()
         # The first snapshots only show what was restored; async_start schedules
         # an overdue pause once the entities that announce its end exist.
         if announced or (
@@ -1241,17 +1247,17 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._training_dirty = self._stored() != stored
         for kind, attributes in events:
             self._emit(kind, attributes, "training")
+        # A change of the game or the session cannot be undone visit by visit.
+        self._undo = None
         self._revision += 1
         self.data = {
             **(self.data or {}),
             "training": self.training.snapshot(),
-            "practice": self.practice.snapshot(),
+            "practice": self._practice_snapshot(),
             "revision": self._revision,
         }
         self._schedule_idle_end()
         self.async_update_listeners()
-        # A change of the game or the session cannot be undone visit by visit.
-        self._undo = None
         self._restart_bot()
 
     async def async_start_session(self) -> None:

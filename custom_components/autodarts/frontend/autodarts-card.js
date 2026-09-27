@@ -208,6 +208,10 @@ const TEXT = {
     bust: "Bust – the score stays",
     game_shot: "Game shot!",
     no_checkout: "No checkout possible",
+    setup_leave: "leaves {leave}",
+    setup_hint: "No checkout with the darts left: set up the next visit",
+    bot: "Bot",
+    bot_level: "Level {level}",
     score_player: "Player",
     score_turn: "to throw",
     score_winner: "wins the match!",
@@ -332,6 +336,23 @@ const TEXT = {
     say_runs: "{runs} runs",
     say_leg: "Game shot, and the leg!",
     say_match: "Game shot, and the match, {name}!",
+    say_setup: "{name}, leave yourself {leave}",
+    say_setup_alone: "Leave yourself {leave}",
+    // Correcting and entering darts on the scoreboard
+    correct_title: "Correct dart {dart}",
+    enter_title: "Enter a dart",
+    pad_single: "Single",
+    pad_double: "Double",
+    pad_treble: "Treble",
+    pad_cancel: "Cancel",
+    next_player: "Next player",
+    undo_visit: "Undo last visit",
+    corrections: "Correct darts with a tap",
+    keypad: "Keypad for darts entered by hand",
+    keypad_helper: "Shows while Practice manual entry is on.",
+    input_section: "Correcting and entering darts",
+    input_section_helper:
+      "Tap a dart of the visit to put it into another bed; the keypad enters darts the board missed, passes the turn and undoes the last visit.",
     // New game screen of the scoreboard
     lobby_open: "New game",
     lobby_title: "New game",
@@ -350,6 +371,9 @@ const TEXT = {
     lobby_move_up: "Move {name} up",
     lobby_move_down: "Move {name} down",
     lobby_remove: "Remove {name}",
+    lobby_bot_lower: "Weaker bot",
+    lobby_bot_raise: "Stronger bot",
+    lobby_bot_remove: "Remove the bot",
     lobby_format: "Format",
     lobby_legs: "Legs per set",
     lobby_sets: "Sets to win",
@@ -717,6 +741,10 @@ const TEXT = {
     bust: "Überworfen – der Rest bleibt",
     game_shot: "Game shot!",
     no_checkout: "Kein Checkout möglich",
+    setup_leave: "Rest {leave}",
+    setup_hint: "Kein Checkout mit den übrigen Darts: stell dir die nächste Aufnahme",
+    bot: "Bot",
+    bot_level: "Stärke {level}",
     score_player: "Spieler",
     score_turn: "ist dran",
     score_winner: "gewinnt das Match!",
@@ -839,6 +867,23 @@ const TEXT = {
     say_runs: "{runs} Runs",
     say_leg: "Game shot, und das Leg!",
     say_match: "Game shot, und das Match, {name}!",
+    say_setup: "{name}, stell dir die {leave}",
+    say_setup_alone: "Stell dir die {leave}",
+    // Darts auf der Anzeigetafel korrigieren und eingeben
+    correct_title: "Dart {dart} korrigieren",
+    enter_title: "Dart eingeben",
+    pad_single: "Single",
+    pad_double: "Double",
+    pad_treble: "Triple",
+    pad_cancel: "Abbrechen",
+    next_player: "Nächster Spieler",
+    undo_visit: "Letzte Aufnahme zurück",
+    corrections: "Darts per Tipp korrigieren",
+    keypad: "Tastenfeld für von Hand eingegebene Darts",
+    keypad_helper: "Erscheint, solange Übungsspiel manuelle Eingabe an ist.",
+    input_section: "Darts korrigieren und eingeben",
+    input_section_helper:
+      "Tippe auf einen Dart der Aufnahme, um ihn in ein anderes Feld zu legen; das Tastenfeld gibt Darts ein, die das Board übersehen hat, gibt weiter und nimmt die letzte Aufnahme zurück.",
     lobby_open: "Neues Spiel",
     lobby_title: "Neues Spiel",
     lobby_label: "Wähle das Spiel, die Spieler und das Format",
@@ -856,6 +901,9 @@ const TEXT = {
     lobby_move_up: "{name} nach oben",
     lobby_move_down: "{name} nach unten",
     lobby_remove: "{name} entfernen",
+    lobby_bot_lower: "Schwächerer Bot",
+    lobby_bot_raise: "Stärkerer Bot",
+    lobby_bot_remove: "Bot entfernen",
     lobby_format: "Format",
     lobby_legs: "Legs pro Satz",
     lobby_sets: "Sätze zum Sieg",
@@ -2713,6 +2761,10 @@ const SCOREBOARD_DEFAULTS = {
   idle_interval: 10,
   show_summary: true,
   summary_seconds: 0,
+  // A tap on a dart of the visit corrects it; the keypad enters darts by hand
+  // while Practice manual entry is on.
+  corrections: true,
+  keypad: false,
 };
 
 // Entities a card reads, by domain and translation key of the integration.
@@ -2824,6 +2876,9 @@ const SCOREBOARD_KEYS = {
   bullOff: "switch.practice_bull_off",
   bullOffDistance: "switch.practice_bull_off_distance",
   teams: "switch.practice_teams",
+  // The bot for the new game screen, and whether darts can be entered by hand.
+  botLevel: "number.practice_bot_level",
+  manualEntry: "switch.practice_manual_entry",
   // Profiles with their pictures, records and the last match for the idle panels.
   profiles: "sensor.player_profiles",
   lastMatch: "sensor.last_match",
@@ -3370,6 +3425,16 @@ function teamsView(teams) {
 
 const teamOf = (score) => (Number.isInteger(score.team) ? score.team : null);
 
+// The bot's seat among the scores: marked, the others as they were.
+const botOf = (score) => (score.bot === true ? { bot: true } : {});
+
+// Where to aim when no checkout exists: the setup darts and the score they leave.
+function setupView(setup) {
+  if (!setup || typeof setup.route !== "string" || !Number.isInteger(setup.leave)) return null;
+  const route = setup.route.split(/\s+/).filter((bed) => hitBeds(bed).length);
+  return route.length ? { route, leave: setup.leave } : null;
+}
+
 // The practice leg of the remaining-score sensor, or null without a game.
 function practiceView(state) {
   if (!usable(state)) return null;
@@ -3385,6 +3450,7 @@ function practiceView(state) {
       remaining: score.remaining,
       start: finite(score.start),
       team: teamOf(score),
+      ...botOf(score),
       legs: finite(score.legs) ?? 0,
       sets: finite(score.sets) ?? 0,
       average: finite(score.average),
@@ -3394,6 +3460,8 @@ function practiceView(state) {
     remaining,
     teams: teamsView(attributes.teams),
     route: route.filter((bed) => hitBeds(bed).length),
+    ...(setupView(attributes.setup) ? { setup: setupView(attributes.setup) } : {}),
+    ...(finite(attributes.bot?.level) ? { botLevel: attributes.bot.level } : {}),
     bust: attributes.bust === true,
     won: attributes.won === true,
     darts: finite(attributes.darts) ?? 0,
@@ -3491,6 +3559,7 @@ function cricketView(state) {
       marks: score.marks.map((mark) => (Number.isInteger(mark) ? Math.min(Math.max(mark, 0), 3) : 0)),
       points: finite(score.points) ?? 0,
       team: teamOf(score),
+      ...botOf(score),
       legs: finite(score.legs) ?? 0,
       sets: finite(score.sets) ?? 0,
       mpr: finite(score.mpr),
@@ -3580,6 +3649,7 @@ function bullOffView(state) {
       .map((item) => ({
         player: item.player,
         name: named(item.name),
+        ...botOf(item),
         hit: named(item.hit),
         distance: finite(item.distance),
       })),
@@ -3663,14 +3733,20 @@ function aimBeds(view) {
   if (mode !== "x01" || practice.winner !== null) return [];
   // Before double in, every double opens the leg.
   if (!practice.opened) return targetBeds("D");
-  return practice.won ? [] : hitBeds(practice.route[0] ?? "");
+  // Without a checkout, the setup's first dart.
+  return practice.won ? [] : hitBeds(practice.route[0] ?? practice.setup?.route[0] ?? "");
 }
 
 // Scoreboard -----------------------------------------------------------------
 
 // Players without a name are numbered in a match; alone, nobody needs a name.
+// The bot is the bot.
 const playerName = (ui, score, match) =>
-  score.name || (match ? `${ui.t("score_player")} ${score.player}` : "");
+  score.bot ? ui.t("bot") : score.name || (match ? `${ui.t("score_player")} ${score.player}` : "");
+
+// The score of the player at the board, with the name and whether it is the bot.
+const upScore = (game) =>
+  game.scores?.find((score) => score.player === game.player) ?? { player: game.player, name: game.name };
 
 const note = (text, kind = "") => `<span class="note${kind ? ` ${kind}` : ""}">${escapeHtml(text)}</span>`;
 
@@ -3730,9 +3806,15 @@ function x01Note(practice, ui) {
   if (practice.bust) return note(t("bust"), "bust");
   if (practice.route.length) return bedChips(ui, practice.route);
   if (!practice.opened) return note(t("double_in_needed"));
+  if (practice.setup) return setupHtml(practice.setup, ui);
   // Single out finishes up to 180; double out only up to 170.
   return practice.remaining <= highestCheckout(practice) ? note(t("no_checkout")) : "";
 }
+
+// The setup darts, and the score they leave for the next visit.
+const setupHtml = (setup, ui) =>
+  `<span class="setup" title="${escapeHtml(ui.t("setup_hint"))}">${bedChips(ui, setup.route)}` +
+  `<span class="leave">${escapeHtml(fill(ui.t("setup_leave"), { leave: setup.leave }))}</span></span>`;
 
 // Start scores are worth showing when players start from different scores.
 const handicap = (practice) => practice.scores.some((score) => score.start !== null && score.start !== practice.game);
@@ -3749,7 +3831,13 @@ function x01Players(practice, ui) {
     const active = practice.winner === null && score.player === practice.player;
     return {
       name: playerName(ui, score, match),
-      badge: starts && score.start ? String(score.start) : "",
+      // The bot shows its level; players their own start score.
+      badge:
+        score.bot && practice.botLevel
+          ? fill(t("bot_level"), { level: practice.botLevel })
+          : starts && score.start
+            ? String(score.start)
+            : "",
       value: String(score.remaining),
       state: practice.winner === score.player ? "winner" : active && match ? "active" : "",
       note: active ? x01Note(practice, ui) : "",
@@ -4141,6 +4229,7 @@ function summaryView(state) {
     players: raw.map((item) => ({
       player: item.player,
       name: named(item.name),
+      ...botOf(item),
       legs: finite(item.legs) ?? 0,
       sets: finite(item.sets) ?? 0,
       darts: finite(item.darts),
@@ -4447,6 +4536,10 @@ const LOBBY_DELAY = 8000;
 const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance", "teams"];
 // Teams are two pairs of players; start scores of their own go in steps of 100.
 const TEAM_SIZE = 4;
+// The bot's level: its 3-dart average, set in steps of 10.
+const BOT_LEVELS = [20, 120];
+const BOT_STEP = 10;
+const BOT_DEFAULT = 60;
 const START_STEP = 100;
 const START_LIMITS = [101, 1001];
 
@@ -4464,8 +4557,10 @@ function gameRules(game) {
   return {
     x01: group === "x01",
     drill,
-    // Four players of X01 or a Cricket game may play as two teams.
+    // Four players of X01 or a Cricket game may play as two teams, and the
+    // bot plays these games, too.
     teams: group === "x01" || group === "cricket",
+    bot: group === "x01" || group === "cricket",
     minPlayers: game === "killer" ? 2 : 1,
     maxPlayers: drill ? 1 : LOBBY_LIMITS.players,
   };
@@ -4512,6 +4607,8 @@ function lobbyChoice(board, games) {
     double_in: board.double_in === true,
     bull_off: board.bull_off === true,
     bull_off_distance: board.bull_off_distance === true,
+    // The bot's level, where the board has a bot.
+    ...(Number.isInteger(board.bot) && board.bot >= BOT_LEVELS[0] ? { bot: Math.min(board.bot, BOT_LEVELS[1]) } : {}),
     // A tournament instead of a match, with the settings of the next tournament.
     tournament: false,
     format: TOURNAMENT_FORMATS.includes(board.format) ? board.format : "round_robin",
@@ -4521,8 +4618,13 @@ function lobbyChoice(board, games) {
   };
 }
 
-// How many players a choice takes: up to four in a match, eight in a tournament.
-const playerLimit = (choice) => (choice.tournament ? TOURNAMENT_LIMITS.players : LOBBY_LIMITS.players);
+// Whether the bot plays the chosen game: in a match of X01 or a Cricket game.
+const botSeat = (choice) => Boolean(choice.bot) && !choice.tournament && gameRules(choice.game).bot;
+
+// How many players a choice takes: up to four in a match, eight in a tournament;
+// the bot takes a seat of its own.
+const playerLimit = (choice) =>
+  choice.tournament ? TOURNAMENT_LIMITS.players : LOBBY_LIMITS.players - Number(botSeat(choice));
 
 // The choice after a tap: a game, a player added, moved or removed, the format or a rule.
 function lobbyChange(choice, action, value) {
@@ -4572,6 +4674,11 @@ function lobbyChange(choice, action, value) {
     next[action] = within(next[action] + index, LOBBY_LIMITS[action], next[action]);
   } else if (action === "toggle" && [...LOBBY_OPTIONS, "third_place", "random_draw"].includes(value)) {
     next[value] = !next[value];
+  } else if (action === "bot") {
+    // In, out, weaker or stronger; a new bot plays at a medium level.
+    const level = { add: BOT_DEFAULT, remove: 0, lower: next.bot - BOT_STEP, raise: next.bot + BOT_STEP }[value];
+    const seated = value === "add" ? room && !next.bot : Boolean(next.bot);
+    if (seated && level !== undefined) next.bot = level && Math.min(Math.max(level, BOT_LEVELS[0]), BOT_LEVELS[1]);
   }
   return next;
 }
@@ -4596,10 +4703,11 @@ function lobbySuggestions(profiles, names, links, chosen) {
 // The start_game action for a choice; rules the game or the board does not have stay out.
 function startGameData(choice, { entry = null, distance = false } = {}) {
   const rules = gameRules(choice.game);
-  const players = choice.players.slice(0, rules.maxPlayers);
+  const players = choice.players.slice(0, rules.maxPlayers - Number(botSeat(choice)));
   const data = { game: choice.game, players: players.length ? players : [""] };
   if (entry) data.config_entry_id = entry;
-  if (!rules.drill && players.length > 1) {
+  // Nobody chosen is one player without a name, who may play the bot.
+  if (!rules.drill && Math.max(players.length, 1) + Number(botSeat(choice)) > 1) {
     Object.assign(data, { legs: choice.legs, sets: choice.sets, bull_off: choice.bull_off });
     if (distance && choice.bull_off) data.bull_off_distance = choice.bull_off_distance;
   }
@@ -4607,7 +4715,10 @@ function startGameData(choice, { entry = null, distance = false } = {}) {
   // Start scores go with the start once any is set, so the game's start comes back, too.
   const starts = players.map((_, index) => choice.starts?.[index] ?? 0);
   if (rules.x01 && (choice.handicap || starts.some(Boolean))) data.start_scores = starts;
-  if (rules.teams && players.length === TEAM_SIZE) data.teams = choice.teams === true;
+  // The bot plays its games once chosen, and leaves them with level 0.
+  const bot = botSeat(choice);
+  if (rules.bot && "bot" in choice) data.bot_level = bot ? choice.bot : 0;
+  if (rules.teams && players.length + Number(bot) === TEAM_SIZE) data.teams = choice.teams === true;
   return data;
 }
 
@@ -4660,7 +4771,17 @@ function lobbyHtml(choice, ui) {
       `</span>`
     );
   };
-  const seats = choice.tournament ? TOURNAMENT_LIMITS.players : rules.maxPlayers;
+  const bot = botSeat(choice);
+  const seats = choice.tournament ? TOURNAMENT_LIMITS.players : rules.maxPlayers - Number(bot);
+  // The bot sits after the players, at its level.
+  const botRow = bot
+    ? `<li class="lobby-player bot"><span class="bot-icon" aria-hidden="true">🤖</span>` +
+      `<span class="who">${text("bot")}</span><span class="lobby-start own">` +
+      button("bot", "lower", "−", ` aria-label="${text("lobby_bot_lower")}"${choice.bot <= BOT_LEVELS[0] ? " disabled" : ""}`) +
+      `<b>${choice.bot}</b>` +
+      button("bot", "raise", "+", ` aria-label="${text("lobby_bot_raise")}"${choice.bot >= BOT_LEVELS[1] ? " disabled" : ""}`) +
+      `</span>${button("bot", "remove", "✕", ` aria-label="${text("lobby_bot_remove")}"`)}</li>`
+    : "";
   const players = choice.players
     .map((name, index) => {
       const who = { name: shown(name, index) };
@@ -4687,13 +4808,16 @@ function lobbyHtml(choice, ui) {
         )
       )
       .join("") +
-    (choice.tournament ? "" : button("guest", undefined, `+ ${text("lobby_guest")}`, ` class="suggestion guest"${full}`));
+    (choice.tournament ? "" : button("guest", undefined, `+ ${text("lobby_guest")}`, ` class="suggestion guest"${full}`)) +
+    (!choice.tournament && rules.bot && !choice.bot
+      ? button("bot", "add", `+ ${text("bot")}`, ` class="suggestion bot"${full}`)
+      : "");
   const entry =
     `<div class="name-entry"><input class="lobby-name" type="text" maxlength="${LOBBY_LIMITS.name}" autocomplete="off"` +
     ` enterkeyhint="done" data-focus="lobby-name" placeholder="${text("lobby_name")}"` +
     ` aria-label="${text("lobby_new_player")}" value="${escapeHtml(choice.draft)}"${full}>` +
     `${button("add-name", undefined, text("lobby_add"), full)}</div>`;
-  const match = choice.tournament || (!rules.drill && choice.players.length > 1);
+  const match = choice.tournament || (!rules.drill && choice.players.length + Number(bot) > 1);
   const stepper = (key, label) => {
     const name = { name: t(label) };
     return (
@@ -4708,7 +4832,9 @@ function lobbyHtml(choice, ui) {
     ...(rules.x01 ? ["double_out", "double_in"] : []),
     ...(match ? ["bull_off"] : []),
     ...(match && ui.distance && choice.bull_off ? ["bull_off_distance"] : []),
-    ...(!choice.tournament && rules.teams && ui.teams && choice.players.length === TEAM_SIZE ? ["teams"] : []),
+    ...(!choice.tournament && rules.teams && ui.teams && choice.players.length + Number(bot) === TEAM_SIZE
+      ? ["teams"]
+      : []),
     ...(choice.tournament && choice.format === "knockout" && choice.players.length >= THIRD_PLACE_PLAYERS
       ? ["third_place"]
       : []),
@@ -4750,7 +4876,9 @@ function lobbyHtml(choice, ui) {
     `<section class="lobby" aria-label="${text("lobby_label")}"><div class="lobby-games">${modes}${games}</div>` +
     `<div class="lobby-setup">${block(
       "lobby_players",
-      (players ? `<ol class="lobby-players">${players}</ol>` : `<p class="lobby-nobody muted">${text("lobby_nobody")}</p>`) +
+      (players || botRow
+        ? `<ol class="lobby-players">${players}${botRow}</ol>`
+        : `<p class="lobby-nobody muted">${text("lobby_nobody")}</p>`) +
         `<div class="suggestions">${suggestions}</div>${entry}`,
       "players-block"
     )}` +
@@ -4773,6 +4901,54 @@ function lobbyHtml(choice, ui) {
         )
       : "") +
     `${actions}</div></section>`
+  );
+}
+
+// Correcting and entering darts ---------------------------------------------------
+
+// The bed a pad button enters: S20, D16, T19, 25, BULL or MISS.
+const padBed = (multiplier, number) => `${"SDT"[multiplier - 1]}${number}`;
+
+// The pad of the scoreboard: single, double or treble, the numbers, the bulls
+// and a miss. It corrects a dart of the visit, or enters darts by hand with
+// the next player and the undo of the last visit, which need a second tap.
+function padHtml(pad, ui) {
+  const { t } = ui;
+  const button = (action, value, content, extra = "") =>
+    `<button type="button" data-pad="${action}"${value === undefined ? "" : ` data-value="${escapeHtml(value)}"`}` +
+    `${pad.disabled && action !== "cancel" ? " disabled" : ""}${extra}>${content}</button>`;
+  const title = pad.dart ? fill(t("correct_title"), { dart: pad.dart }) : t("enter_title");
+  const multipliers = [
+    [1, "pad_single"],
+    [2, "pad_double"],
+    [3, "pad_treble"],
+  ]
+    .map(([multiplier, name]) =>
+      button(
+        "multiplier",
+        multiplier,
+        "SDT"[multiplier - 1],
+        ` class="multiplier" aria-pressed="${pad.multiplier === multiplier}" aria-label="${escapeHtml(t(name))}"`
+      )
+    )
+    .join("");
+  const numbers = BOARD_NUMBERS.map((number) =>
+    button("bed", padBed(pad.multiplier, number), String(number), ` class="number"`)
+  ).join("");
+  const bulls = [
+    button("bed", "25", "25", ` class="bull"`),
+    button("bed", "BULL", "Bull", ` class="bull"`),
+    button("bed", "MISS", escapeHtml(t("miss")), ` class="miss"`),
+  ].join("");
+  const confirm = (action, key) => escapeHtml(t(pad.confirm === action ? "confirm" : key));
+  const actions = pad.dart
+    ? button("cancel", undefined, escapeHtml(t("pad_cancel")), ` class="secondary"`)
+    : button("next", undefined, confirm("next", "next_player"), ` class="secondary"`) +
+      (pad.undo ? button("undo", undefined, `↶ ${confirm("undo", "undo_visit")}`, ` class="secondary"`) : "");
+  return (
+    `<section class="pad${pad.dart ? " correcting" : ""}" aria-label="${escapeHtml(title)}">` +
+    `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>${multipliers}</div>` +
+    `<div class="pad-numbers">${numbers}</div><div class="pad-extra">${bulls}${actions}</div></section>`
   );
 }
 
@@ -5800,6 +5976,7 @@ function callerState(visit, view, previous = null) {
   // A checkout training has a remaining score, too.
   const remaining = current.practice?.remaining ?? current.drill?.remaining ?? null;
   const player = game?.player ?? null;
+  const up = game ? upScore(game) : null;
   // The remaining score before the visit, which the visit's score is counted from.
   const start = !keys.length
     ? remaining
@@ -5813,10 +5990,12 @@ function callerState(visit, view, previous = null) {
     mode: current.mode,
     player,
     name: game?.name ?? null,
+    bot: up?.bot === true,
     players: game?.scores?.length ?? 0,
     remaining,
     start,
     route: current.practice?.route ?? current.drill?.route ?? [],
+    setup: current.practice?.setup?.leave ?? null,
     bust: game?.bust === true,
     won: game?.won === true,
     winner: game?.winner ?? null,
@@ -5842,23 +6021,25 @@ function callerCalls(previous, current, options) {
   }
   const turn =
     current.player !== previous.player || current.remaining !== previous.remaining || previous.darts > 0;
-  // The route exists only for a score the darts of a visit can finish.
-  if (
+  // The route exists only for a score the darts of a visit can finish; without
+  // one, the caller names the score to leave.
+  const up =
     on("call_checkouts") &&
     ["x01", "drill"].includes(current.mode) &&
     current.darts === 0 &&
     turn &&
     current.winner === null &&
-    current.route.length &&
-    current.remaining !== null
-  ) {
-    calls.push({
-      kind: "require",
-      name: current.name,
-      player: current.player,
-      players: current.players,
-      remaining: current.remaining,
-    });
+    current.remaining !== null;
+  const who = {
+    name: current.name,
+    ...(current.bot ? { bot: true } : {}),
+    player: current.player,
+    players: current.players,
+  };
+  if (up && current.route.length) {
+    calls.push({ kind: "require", ...who, remaining: current.remaining });
+  } else if (up && current.setup !== null) {
+    calls.push({ kind: "setup", ...who, leave: current.setup });
   }
   return calls;
 }
@@ -5883,12 +6064,12 @@ function callerText(call, t) {
   }
   if (call.kind === "tournament_next") return fill(t("say_tournament_next"), { first: call.first, second: call.second });
   if (call.kind === "tournament_won") return fill(t("say_tournament_won"), { name: call.name });
-  if (call.kind === "require") {
+  if (call.kind === "require" || call.kind === "setup") {
     // Alone, nobody needs a name; in a match, unnamed players have a number.
-    const name = call.players > 1 ? call.name || `${t("score_player")} ${call.player}` : null;
-    return name
-      ? fill(t("say_require"), { name, remaining: call.remaining })
-      : fill(t("say_require_alone"), { remaining: call.remaining });
+    const name = call.players > 1 ? playerName({ t }, call, true) : null;
+    const [say, value] =
+      call.kind === "require" ? ["say_require", { remaining: call.remaining }] : ["say_setup", { leave: call.leave }];
+    return name ? fill(t(say), { name, ...value }) : fill(t(`${say}_alone`), value);
   }
   return "";
 }
@@ -5960,6 +6141,9 @@ const PRACTICE_KEYS = [
   "switch.practice_personal_routes",
   "select.practice_golf_holes",
   "number.practice_count_up_rounds",
+  "number.practice_bot_level",
+  "number.practice_bot_delay",
+  "switch.practice_manual_entry",
   "button.practice_new_leg",
   "button.practice_new_match",
 ];
@@ -6222,6 +6406,8 @@ const FORM_HELPERS = {
   lobby_games: "lobby_games_helper",
   idle_section: "idle_section_helper",
   idle_panels: "idle_panels_helper",
+  keypad: "keypad_helper",
+  input_section: "input_section_helper",
   summary_seconds: "summary_seconds_helper",
 };
 
@@ -6392,6 +6578,13 @@ const FORMS = {
         },
       ],
     },
+    // Corrections are on, the keypad off: it needs Practice manual entry anyway.
+    {
+      type: "expandable",
+      name: "input_section",
+      flatten: true,
+      schema: [toggles(["corrections", "keypad"], SCOREBOARD_DEFAULTS)],
+    },
     accentField,
   ],
   players: () => [
@@ -6441,6 +6634,9 @@ const BASE_CSS = `
     --ad-gold-text: color-mix(in srgb, ${GOLD} 45%, var(--primary-text-color, #212121));
   }
   [hidden] { display: none !important; }
+  /* A setup: its darts, then the score they leave. */
+  .setup { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .setup .leave { font-weight: 700; color: var(--secondary-text-color); white-space: nowrap; }
   ha-card { overflow: hidden; height: 100%; }
   .root { container-type: inline-size; height: 100%; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -7002,6 +7198,34 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .dart .points, .sum .muted { font-size: clamp(11px, 1.6cqi, 20px); min-height: 1.2em; }
   .dart .points { color: var(--secondary-text-color); }
   .sum { min-width: 4.5em; color: var(--text-primary-color, #fff); background: var(--ad-accent); }
+  /* A dart of the visit corrects with a tap; entered, corrected and bot darts are marked. */
+  button.dart { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  button.dart:focus-visible, .pad button:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+  .dart.picked { border-color: var(--ad-accent); box-shadow: inset 0 0 0 2px var(--ad-accent); }
+  .dart.manual, .dart.corrected { border-style: dashed; }
+  .dart.bot { border-color: color-mix(in srgb, var(--ad-accent) 45%, transparent); }
+  .pad, .undo-only { font-size: clamp(14px, 1.8cqi, 22px); }
+  .pad { display: grid; gap: clamp(6px, 1cqi, 12px); }
+  .pad-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pad-head .section-label { flex: 1; min-width: 8em; }
+  .pad button, .undo-only {
+    min-height: 48px; padding: 0 10px; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer;
+    touch-action: manipulation; color: var(--primary-text-color);
+    border: 2px solid var(--divider-color, rgba(127,127,127,.3));
+    background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+  }
+  .pad button:disabled { opacity: .4; cursor: default; }
+  .pad button[aria-pressed="true"] {
+    color: var(--text-primary-color, #fff); background: var(--ad-accent); border-color: var(--ad-accent);
+  }
+  .pad .multiplier { min-width: 56px; }
+  .pad-numbers { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+  @container (max-width: 560px) { .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pad-extra button { flex: 1 1 5.5em; }
+  .pad .secondary, .undo-only { color: var(--ad-accent); border-color: var(--ad-accent); background: none; }
+  .undo-only { justify-self: start; align-self: flex-start; }
+  .lobby-player.bot .bot-icon { font-size: 1.3em; }
   .sum .muted { color: inherit; opacity: .85; }
   .sum .value { font-size: clamp(22px, 4.2cqi, 56px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
   /* The new game screen: large targets for a finger, readable from the oche. */
@@ -7344,8 +7568,7 @@ const LEADERBOARD_CSS = `${BASE_CSS}${SEGMENTED_CSS}
 function livePanel(view, ui) {
   if (view.summary) return summaryPanel(view, ui);
   const { t, format } = ui;
-  const turn = (game) =>
-    game.winner === null ? `${playerName(ui, { player: game.player, name: game.name }, true)} ${t("score_turn")}` : "";
+  const turn = (game) => (game.winner === null ? `${playerName(ui, upScore(game), true)} ${t("score_turn")}` : "");
   const winner = (game) => note(winnerText(game, ui), "won");
   if (view.mode === "drill") {
     const parts = drillParts(view.drill, ui);
@@ -7359,9 +7582,10 @@ function livePanel(view, ui) {
   }
   if (view.mode === "bulloff") {
     const { bullOff } = view;
+    const bot = bullOff.throws.some((item) => item.player === bullOff.player && item.bot);
     return {
       title: t("bull_off"),
-      meta: `${playerName(ui, bullOff, true)} ${t("score_turn")}`,
+      meta: `${playerName(ui, { ...bullOff, bot }, true)} ${t("score_turn")}`,
       big: "Bull",
       route: bullOff.rethrow ? note(t("bull_off_rethrow"), "rethrow") : note(t("bull_off_hint")),
       rows: playerRows(bullOffPlayers(bullOff, ui)),
@@ -9047,6 +9271,7 @@ function createElements(Base) {
               <div class="banner" role="status" hidden></div>
               <div class="main"></div>
               ${c.show_visit ? `<div class="visit"></div>` : ""}
+              <div class="pad-area" hidden></div>
             </div>
           </div>
         </ha-card>
@@ -9063,7 +9288,18 @@ function createElements(Base) {
         caller: root.querySelector(".caller-toggle"),
         callerIcon: root.querySelector(".caller-icon"),
         lobby: root.querySelector(".lobby-toggle"),
+        pad: root.querySelector(".pad-area"),
       };
+      this._pick = null;
+      this._multiplier = 1;
+      this._el.visit?.addEventListener("click", (event) => {
+        const dart = event.target.closest("[data-dart]");
+        if (dart) this._pickDart(Number(dart.dataset.dart));
+      });
+      this._el.pad.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-pad]");
+        if (target && !target.disabled) this._padAction(target.dataset.pad, target.dataset.value);
+      });
       this._callerState = null;
       this._followed = null;
       this._el.caller?.addEventListener("click", () => this._toggleCaller());
@@ -9166,6 +9402,7 @@ function createElements(Base) {
         format: this._state("tournamentFormat")?.state,
         third_place: on("tournamentThird"),
         random_draw: on("tournamentDraw"),
+        bot: this._number("botLevel"),
       };
     }
 
@@ -9232,13 +9469,69 @@ function createElements(Base) {
     }
 
     // The start button stays disabled while the game lacks players.
-    _startGame(choice) {
+    // The config entry of the board, for actions of the integration.
+    _entry() {
       const device = this._hass.devices?.[this._deviceId];
-      const entry = device?.primary_config_entry ?? device?.config_entries?.[0] ?? null;
-      const options = { entry, distance: Boolean(this._ids.bullOffDistance) };
+      return device?.primary_config_entry ?? device?.config_entries?.[0] ?? null;
+    }
+
+    _startGame(choice) {
+      const options = { entry: this._entry(), distance: Boolean(this._ids.bullOffDistance) };
       if (choice.tournament) this._call("autodarts", "start_tournament", tournamentStartData(choice, options));
       else this._call("autodarts", "start_game", startGameData(choice, options));
       this._lobby = null;
+    }
+
+    // Correcting and entering darts ------------------------------------------------
+
+    // A tap on a dart of the visit opens the pad to correct it; another tap closes it.
+    _pickDart(dart) {
+      if (this.preview) return;
+      const shown = visitThrows(this._state("visit")).find((item) => item.dart === dart);
+      this._pick =
+        this._pick?.dart === dart || !shown ? null : { dart, multiplier: Math.min(Math.max(shown.multiplier, 1), 3) };
+      this._update();
+    }
+
+    _padAction(action, value) {
+      if (this.preview) return;
+      const pick = this._pick;
+      const data = (extra) => ({ ...(this._entry() ? { config_entry_id: this._entry() } : {}), ...extra });
+      if (action === "multiplier") {
+        if (pick) pick.multiplier = Number(value);
+        else this._multiplier = Number(value);
+      } else if (action === "bed" && pick) {
+        this._call("autodarts", "correct_dart", data({ dart: pick.dart, segment: value }));
+        this._pick = null;
+      } else if (action === "bed") {
+        this._call("autodarts", "throw_dart", data({ segment: value }));
+        this._multiplier = 1;
+      } else if (action === "cancel") {
+        this._pick = null;
+      } else if (this._confirmed(action)) {
+        // Passing the turn and undoing the last visit need a second tap.
+        this._call("autodarts", action === "next" ? "next_player" : "undo_visit", data({}));
+      }
+      this._update();
+    }
+
+    // The pad while a dart is corrected, or the keypad while darts are entered
+    // by hand; a single undo button where only that is possible.
+    _pad(view, darts) {
+      const c = this._config;
+      const practice = this._state("practice")?.attributes ?? {};
+      const game = view.practice ?? view.cricket ?? view.party ?? null;
+      const thrower = view.bullOff?.throws.find((item) => item.player === view.bullOff.player);
+      // While the bot is at the board, its darts count; nobody enters any.
+      const disabled = Boolean((game ? upScore(game) : thrower)?.bot);
+      const undo = practice.undo === true && !darts.length;
+      const confirm = ["next", "undo"].includes(this._confirm) ? this._confirm : null;
+      if (this._pick && !darts.some((dart) => dart.dart === this._pick.dart)) this._pick = null;
+      if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled };
+      if (c.keypad && this._state("manualEntry")?.state === "on") {
+        return { dart: null, multiplier: this._multiplier, disabled, undo, confirm };
+      }
+      return c.corrections && undo ? { only: "undo", confirm } : null;
     }
 
     // Tournament ------------------------------------------------------------------
@@ -9474,18 +9767,40 @@ function createElements(Base) {
         clearInterval(this._tournamentTick);
         this._tournamentTick = counting ? setInterval(() => this._update(), 1000) : null;
       }
-      if (!el.visit) return;
       // The new game screen, the idle panels, the match summary and the tournament need the room of the visit.
-      el.visit.hidden = Boolean(this._lobby || panel || summary || tournament.shown);
+      const away = Boolean(this._lobby || panel || summary || tournament.shown);
+      const darts = visitThrows(visit).slice(-3);
+      // Darts of the current visit correct with a tap; the bot's darts do not.
+      const tappable = c.corrections && !this.preview && !away;
+      const pad = this.preview || away ? null : this._pad(view, darts);
+      el.pad.hidden = !pad;
+      this._setHtml(
+        el.pad,
+        !pad
+          ? ""
+          : pad.only
+            ? `<button type="button" class="undo-only" data-pad="undo">↶ ${escapeHtml(
+                t(pad.confirm === "undo" ? "confirm" : "undo_visit")
+              )}</button>`
+            : padHtml(pad, { t })
+      );
+      if (!el.visit) return;
+      el.visit.hidden = away;
       // Between games the big number already is the visit score.
       el.visit.classList.toggle("plain", view.mode === "idle");
-      const darts = visitThrows(visit).slice(-3);
       const slots = [0, 1, 2].map((index) => {
         const dart = darts[index];
-        return dart
-          ? `<div class="dart"><span class="segment">${escapeHtml(label(this._hass, dart))}</span>` +
-              `<span class="points">${dart.number * dart.multiplier}</span></div>`
-          : `<div class="dart empty"><span class="segment">–</span><span class="points"></span></div>`;
+        if (!dart) return `<div class="dart empty"><span class="segment">–</span><span class="points"></span></div>`;
+        const flags = ["manual", "corrected", "bot"].filter((flag) => dart[flag] === true);
+        const picked = Boolean(this._pick) && this._pick.dart === dart.dart;
+        const style = ["dart", ...flags, ...(picked ? ["picked"] : [])].join(" ");
+        const content =
+          `<span class="segment">${escapeHtml(label(this._hass, dart))}</span>` +
+          `<span class="points">${dart.number * dart.multiplier}</span>`;
+        return tappable && Number.isInteger(dart.dart) && !dart.bot
+          ? `<button type="button" class="${style}" data-dart="${dart.dart}" data-focus="dart-${dart.dart}"` +
+              ` aria-label="${escapeHtml(fill(t("correct_title"), { dart: dart.dart }))}">${content}</button>`
+          : `<div class="${style}">${content}</div>`;
       });
       const sum =
         view.mode === "idle"
@@ -10058,6 +10373,8 @@ export {
   lobbyHtml,
   lobbySuggestions,
   matchResult,
+  padBed,
+  padHtml,
   NORM,
   NUMBERS,
   numbersSvg,
@@ -10080,6 +10397,7 @@ export {
   register,
   scoreboardHtml,
   sectorAt,
+  setupView,
   shortProcessor,
   sparkline,
   spreadHtml,

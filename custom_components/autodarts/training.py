@@ -376,6 +376,11 @@ class TrainingSession:
             "full": self._full,
         }
 
+    def can_undo(self) -> bool:
+        """Whether undo_visit can take the last completed visit back now."""
+        last = self._last
+        return last is not None and last["session"] == self.started and not self._active
+
     def undo_visit(self) -> list[dict[str, Any]] | None:
         """Take the last completed visit back as the current visit.
 
@@ -385,7 +390,7 @@ class TrainingSession:
         the session that counted them still runs; None otherwise.
         """
         last = self._last
-        if last is None or last["session"] != self.started or self._active:
+        if last is None or not self.can_undo():
             return None
         for key in COUNTERS:
             self._committed[key] -= last["contribution"][key]

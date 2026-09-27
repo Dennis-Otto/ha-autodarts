@@ -112,8 +112,22 @@ test("games are grouped, filtered and ruled like the practice game", () => {
     ),
     ["x01", "cricket", "cricket", "cricket", "cricket", "party", "party", "training", "training", "more"]
   );
-  assert.deepEqual(gameRules("killer"), { x01: false, drill: false, teams: false, minPlayers: 2, maxPlayers: 4 });
-  assert.deepEqual(gameRules("doubles"), { x01: false, drill: true, teams: false, minPlayers: 1, maxPlayers: 1 });
+  assert.deepEqual(gameRules("killer"), {
+    x01: false,
+    drill: false,
+    teams: false,
+    bot: false,
+    minPlayers: 2,
+    maxPlayers: 4,
+  });
+  assert.deepEqual(gameRules("doubles"), {
+    x01: false,
+    drill: true,
+    teams: false,
+    bot: false,
+    minPlayers: 1,
+    maxPlayers: 1,
+  });
   assert.deepEqual([gameRules("701").x01, gameRules("701").teams, gameRules("tactics").teams], [true, true, true]);
   assert.deepEqual(lobbyGames([...OPTIONS, "bingo"], ["501", "bingo", "doubles"]), [
     { group: "x01", games: ["501"] },
@@ -296,6 +310,7 @@ test("between games a big button opens the new game screen with the board's sett
     ["suggestion", "Lea"],
     ["suggestion", "Player 12"],
     ["suggestion guest", "+ Guest"],
+    ["suggestion bot", "+ Bot"],
   ]);
   assert.equal($(card, ".suggestion.home .home").getAttribute("aria-label"), "at home");
   assert.deepEqual(steppers(card), ["Legs per set−3+", "Sets to win−1+"]);
@@ -649,7 +664,12 @@ test("the new game screen speaks German and names newer games as Home Assistant 
     "Double-In",
     "Ausbullen",
   ]);
-  assert.equal(suggestions(card).at(-1)[1], "+ Gast");
+  assert.deepEqual(
+    suggestions(card)
+      .slice(-2)
+      .map(([, label]) => label),
+    ["+ Gast", "+ Bot"]
+  );
   assert.deepEqual(
     $$(card, ".lobby-block > .section-label").map((label) => label.textContent),
     ["Spieler", "Format", "Optionen"]

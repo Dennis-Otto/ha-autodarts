@@ -38,6 +38,11 @@ def kinds(events) -> list[str]:
     return [kind for kind, _ in events]
 
 
+def undoable(hass) -> bool:
+    remaining = hass.states.get(entity_id(hass, "sensor", "practice_remaining"))
+    return remaining.attributes["undo"]
+
+
 def throws(hass) -> list[dict]:
     visit = hass.states.get(entity_id(hass, "sensor", "local_visit_score"))
     return visit.attributes["throws"]
@@ -211,8 +216,11 @@ async def test_undo_the_last_visit_to_correct_it(hass, aioclient_mock):
     assert coordinator.practice.players[0].remaining == 361
     assert state(hass, "sensor", "training_points") == "140"
     assert coordinator.practice.current == 1
+    # The cards offer the undo while it is possible.
+    assert undoable(hass) is True
     events.clear()
     await act(hass, "undo_visit")
+    assert undoable(hass) is False
     assert events[0] == (
         "visit_undone",
         {
@@ -251,14 +259,17 @@ async def test_nothing_to_undo(hass, aioclient_mock):
     await start(hass)
     receive(coordinator, board(T20), board())
     await hass.async_block_till_done()
+    assert undoable(hass) is True
     # A dart of the next visit is in the board.
     receive(coordinator, board(MISS))
     await hass.async_block_till_done()
+    assert undoable(hass) is False
     with pytest.raises(ServiceValidationError):
         await act(hass, "undo_visit")
     receive(coordinator, board())
     await hass.async_block_till_done()
     # A new game cannot go back to the last one.
     await start(hass)
+    assert undoable(hass) is False
     with pytest.raises(ServiceValidationError):
         await act(hass, "undo_visit")
