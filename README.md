@@ -138,12 +138,12 @@ The [installation guide](docs/installation.md) covers requirements, manual insta
 | Actions | `autodarts.start_game`: start X01 or a training game with players, names and format in one call, also by voice | ✓ | ✓ |
 | Controls | Detection switch; start, stop and reset buttons; calibration (board and per camera); restart; camera streams | ✓ | ✓ |
 | Settings | Calibrate on start, automatic recalibration, distortion correction, camera standby | ✓ | ✓ |
-| Health | Board Manager connection, realtime connection, cameras active, calibration, camera problems (overall and per camera), frame rates | ✓ | ✓ |
+| Health | Local connection, realtime connection, cameras active, calibration, camera problems (overall and per camera), frame rates | ✓ | ✓ |
 | Motion | Hand detected, image stable, darts partially or fully removed | ✓ | ✓ |
-| Board cloud link | Switch and buttons for the board's own cloud connection | ✓ | – |
+| Cloud link | Switch and buttons for the board's own cloud connection | ✓ | – |
 | System | Autodarts cloud connection, CPU and memory, operating system, processor and detection software of the board PC, Board Manager update | – | ✓ |
 | Cameras | One camera entity per board camera (disabled by default): snapshots, and the live stream with Board Manager 2 | ✓ | ✓ |
-| Cloud match data *(optional)* | Board status, game mode, match state, round, visit score, darts thrown | Needs an Autodarts client ID | Needs an Autodarts client ID |
+| Cloud match data *(optional)* | Cloud status, game mode, match state, round, visit score, darts thrown | Needs an Autodarts client ID | Needs an Autodarts client ID |
 
 The [entity reference](docs/entities.md) lists every entity with its states, attributes and defaults.
 

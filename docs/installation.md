@@ -48,7 +48,7 @@ If the board later gets a new IP address, the announcement updates the configure
 
 ### 2. Search for boards on this network
 
-Choose **Search for boards on this network**. The integration asks the public Autodarts discovery service, which the Board Manager app uses as well, which boards are registered from your internet connection. Pick your board, and the integration connects to it locally.
+Choose **Search for boards on this network**. The integration asks the public Autodarts discovery service, which the Board Manager app uses as well, which boards are registered from your internet connection. Pick your board, and the integration connects to it locally. The entry and the device take the name the board has in Autodarts.
 
 > The discovery service sees your public IP address, like any website. Nothing else is sent. If the service is unavailable or finds no new board, the address form opens instead.
 
@@ -95,7 +95,7 @@ Autodarts replaces the classic Board Manager with the headless **Board Manager 2
 
 1. Install Board Manager 2 on the board PC as described by Autodarts.
 2. Keep the integration as it is. It detects the new generation on the next read, reloads itself and adds the new entities: cloud connection, CPU, memory and update.
-3. Entities that only Board Manager 1 has, such as the board cloud link switch, are removed automatically.
+3. Entities that only Board Manager 1 has, such as the cloud link switch, are removed automatically.
 
 Your training session, entity IDs and dashboards are kept.
 

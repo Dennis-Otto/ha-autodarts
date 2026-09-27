@@ -1,0 +1,14 @@
+# serializer version: 1
+# name: test_setup_refreshes_persists_and_loads_sensors
+  dict({
+    'board-1_board_event': 'sensor.my_board_last_event | - | enabled',
+    'board-1_board_status': 'sensor.my_board_cloud_status | diagnostic | enabled',
+    'board-1_darts_thrown': 'sensor.my_board_darts_thrown | - | enabled',
+    'board-1_game_mode': 'sensor.my_board_game_mode | - | enabled',
+    'board-1_last_throw': 'sensor.my_board_last_dart | - | enabled',
+    'board-1_match_state': 'sensor.my_board_match_state | - | enabled',
+    'board-1_num_throws': 'sensor.my_board_darts_in_visit | - | enabled',
+    'board-1_round': 'sensor.my_board_round | - | enabled',
+    'board-1_visit_score': 'sensor.my_board_visit_score | - | enabled',
+  })
+# ---

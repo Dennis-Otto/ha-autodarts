@@ -46,7 +46,7 @@ Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen
 | --- | --- | --- |
 | Erkennung | Version beginnt mit `1.` | Version beginnt mit `2.` und `/api/system` existiert |
 | Lesen | Einzelne Aufrufe für Zustand, Statistik, Kameras, Bewegung, Einstellungen und Version | Ein gemeinsamer Aufruf von `/api/system` |
-| Extras | Schalter für die Board-Cloud-Verbindung | Cloud-Verbindung, CPU, Speicher, Update-Hinweis, mDNS-Erkennung |
+| Extras | Schalter für die Cloud-Verbindung | Cloud-Verbindung, CPU, Speicher, Update-Hinweis, mDNS-Erkennung |
 
 Die Generation wird bei jedem Lesen geprüft. Nach einem Update des Boards lädt sich die Integration neu und ergänzt oder entfernt die generationsspezifischen Entitäten; sonst ändert sich nichts. Solange ein Board noch Board Manager 1 nutzt, empfiehlt ein Reparaturhinweis das Update. Solange die Generation noch unbekannt ist, etwa weil das Board beim ersten Start aus ist, werden keine Entitäten entfernt.
 
@@ -162,7 +162,7 @@ Das Übungsspiel folgt wie die Trainingssession den Darts der aktuellen Aufnahme
 
 ### Bestleistungen und Statistik
 
-- **Höchste Aufnahme:** Der Sensor *Training: Höchste Aufnahme* und die Bestleistung `highest_visit` nehmen die Punkte der Darts im Board in einer Aufnahme mit bis zu drei Darts, egal in welchem Spiel: Eine überworfene Aufnahme oder eine Cricket-Aufnahme zählt mit ihren Board-Punkten, wie bei den Stufen 100+, 140+ und 180. Die `highest_visit` eines [Spielerprofils](entitaeten.md#spielerprofile) ist dagegen die höchste X01-Aufnahme dieses Spielers: Überwerfen zählt nichts, und mit Double-In auch keine Darts vor dem öffnenden Double.
+- **Höchste Aufnahme:** Der Sensor *Training höchste Aufnahme* und die Bestleistung `highest_visit` nehmen die Punkte der Darts im Board in einer Aufnahme mit bis zu drei Darts, egal in welchem Spiel: Eine überworfene Aufnahme oder eine Cricket-Aufnahme zählt mit ihren Board-Punkten, wie bei den Stufen 100+, 140+ und 180. Die `highest_visit` eines [Spielerprofils](entitaeten.md#spielerprofile) ist dagegen die höchste X01-Aufnahme dieses Spielers: Überwerfen zählt nichts, und mit Double-In auch keine Darts vor dem öffnenden Double.
 - **Höchster Checkout und wenigste Darts:** Die Bestleistungen `highest_checkout` und `fewest_darts_*` und dieselben Werte der Spielerprofile kommen nur aus gewonnenen X01-Legs mit Double-Out, mit oder ohne Double-In. Ein Leg ohne Double-Out ist leichter zu beenden und setzt keine Bestleistung; Double-In macht ein Leg nur schwerer.
 - **Darts aufs Double:** Mit Double-Out zählt ein Dart als Wurf aufs Double, wenn ein Double den Rest checken könnte: 2 bis 40 bei geraden Zahlen oder 50. Bei 50 zählt also jeder Dart als Versuch aufs Bullseye, auch wenn ein Spieler stattdessen mit einer Single 10 stellt.
 

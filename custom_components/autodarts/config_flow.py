@@ -14,6 +14,7 @@ from homeassistant.config_entries import (
     ConfigFlow,
     ConfigFlowResult,
 )
+from homeassistant.const import CONF_NAME
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
@@ -119,6 +120,8 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         self._auth_error: str | None = None
         self._found: dict[str, dict[str, Any]] = {}
         self._discovered: dict[str, Any] = {}
+        # Names the board search reported, by board ID.
+        self._names: dict[str, str] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -157,7 +160,10 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         }
         if generation := board_generation(identity.get("version")):
             data[CONF_API_GENERATION] = generation
-        return self.async_create_entry(title=f"Autodarts ({host})", data=data)
+        # The name given in Autodarts names the entry and the device.
+        if name := self._names.get(identity["board_id"]):
+            data[CONF_NAME] = name
+        return self.async_create_entry(title=f"Autodarts ({name or host})", data=data)
 
     async def async_step_discover(
         self, user_input: dict[str, Any] | None = None
@@ -183,6 +189,11 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         }
         if not self._found:
             return await self.async_step_local(error="no_boards_found")
+        self._names = {
+            board_id: board["name"]
+            for board_id, board in self._found.items()
+            if board["name"]
+        }
         return self.async_show_form(
             step_id="discover",
             data_schema=vol.Schema(
@@ -190,7 +201,7 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_BOARD_ID): vol.In(
                         {
                             board_id: (
-                                f"{board['name']} · {board['host']}"
+                                f"{board['name'] or 'Autodarts'} · {board['host']}"
                                 + (f" · {board['version']}" if board["version"] else "")
                             )
                             for board_id, board in self._found.items()

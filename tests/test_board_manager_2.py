@@ -18,30 +18,17 @@ from .local_helpers import (
     BASE,
     STATE,
     SYSTEM,
+    entity_id,
     local_entry_data,
     mock_board,
     mock_board_v2,
+    setup_local,
+    setup_v2,
+    state,
+    unique_ids,
 )
-from .test_local_setup import entity_id, setup_local, state
 
 SECRETS = ("private-board-api-key", "private-tls-key")
-
-
-def unique_ids(hass, entry) -> set[str]:
-    registry = er.async_get(hass)
-    return {
-        item.unique_id
-        for item in er.async_entries_for_config_entry(registry, entry.entry_id)
-    }
-
-
-async def setup_v2(hass, aioclient_mock, **kwargs):
-    mock_board_v2(aioclient_mock, **kwargs)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
-    return entry
 
 
 async def test_board_manager_2_entities_and_one_system_read(hass, aioclient_mock):

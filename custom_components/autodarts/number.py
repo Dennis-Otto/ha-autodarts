@@ -94,6 +94,7 @@ class AutodartsDailyGoal(AutodartsLocalEntity, NumberEntity):
 class AutodartsPracticeNumber(AutodartsLocalEntity, NumberEntity):
     """Players of a practice match, legs per set and sets to win."""
 
+    _attr_entity_category = EntityCategory.CONFIG
     _attr_native_min_value = 1
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX

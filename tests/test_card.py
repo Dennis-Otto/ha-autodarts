@@ -11,8 +11,7 @@ from homeassistant.setup import async_setup_component
 from custom_components.autodarts.card import CARD_PATH, CARD_URL, async_register_card
 from custom_components.autodarts.sensor import AutodartsVisitSensor
 
-from .local_helpers import STATE
-from .test_local_setup import entity_id, setup_local
+from .local_helpers import STATE, entity_id, setup_local
 
 MANIFEST = Path(__file__).parents[1] / "custom_components/autodarts/manifest.json"
 

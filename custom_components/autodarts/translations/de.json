@@ -25,6 +25,9 @@
         "description": "Wähle das Autodarts-Board, das überwacht werden soll.",
         "data": {
           "board_id": "Board"
+        },
+        "data_description": {
+          "board_id": "Die Boards, die mit deinem Autodarts-Konto verknüpft sind."
         }
       },
       "cloud": {
@@ -64,7 +67,7 @@
       },
       "local": {
         "title": "Lokales Board verbinden",
-        "description": "IP-Adresse oder Hostname des Board Managers eingeben, ohne http:// und ohne Port. Keine Client-ID nötig. Das Board muss bereits im Board Manager eingerichtet sein.",
+        "description": "Gib die IP-Adresse oder den Hostnamen des Board Managers ein, ohne http:// und ohne Port. Eine Client-ID ist nicht nötig. Das Board muss bereits im Board Manager eingerichtet sein.",
         "data": {
           "host": "Board-IP oder Hostname",
           "port": "Port"
@@ -98,9 +101,9 @@
       "access_denied": "Die Verknüpfung wurde abgelehnt. Bitte starte die Anmeldung neu und bestätige sie.",
       "invalid_auth": "Autodarts konnte diese Verbindung nicht autorisieren. Bitte verknüpfe dein Konto erneut.",
       "cannot_connect": "Autodarts ist nicht erreichbar. Bitte versuche es erneut.",
-      "invalid_host": "Bitte nur IP-Adresse oder Hostname eingeben.",
+      "invalid_host": "Gib nur eine IP-Adresse oder einen Hostnamen ein.",
       "cannot_connect_local": "Der lokale Board Manager ist nicht erreichbar oder liefert keine gültigen Daten.",
-      "board_not_configured": "Im Board Manager ist noch keine Board-ID hinterlegt. Bitte dort zuerst das Board einrichten.",
+      "board_not_configured": "Im Board Manager ist noch keine Board-ID eingerichtet. Schließe dort zuerst die Einrichtung des Boards ab.",
       "no_boards_found": "Es wurden keine neuen Boards automatisch gefunden. Gib stattdessen die Board-Adresse ein.",
       "discovery_failed": "Die Board-Suche ist gerade nicht erreichbar. Gib stattdessen die Board-Adresse ein.",
       "board_access_denied": "Das Board verweigert den Zugriff (HTTP 401 oder 403). Der Board Manager braucht keine Anmeldung; prüfe Proxys und Firewalls zwischen Home Assistant und dem Board."
@@ -113,7 +116,7 @@
       "wrong_board": "Diese Adresse gehört zu einem anderen Board.",
       "reconfigure_successful": "Die Autodarts-Konfiguration wurde aktualisiert.",
       "cannot_connect_local": "Das im Netzwerk gemeldete Board antwortet nicht. Prüfe, ob der Board Manager läuft.",
-      "board_not_configured": "Im Board Manager ist keine Board-ID eingerichtet. Schließe dort zuerst die Board-Einrichtung ab.",
+      "board_not_configured": "Im Board Manager ist noch keine Board-ID eingerichtet. Schließe dort zuerst die Einrichtung des Boards ab.",
       "already_in_progress": "Die Einrichtung dieses Boards läuft bereits."
     },
     "flow_title": "{name}"
@@ -121,22 +124,22 @@
   "entity": {
     "sensor": {
       "board_status": {
-        "name": "Board-Status",
+        "name": "Cloud-Status",
         "state": {
           "connected": "Verbunden",
           "disconnected": "Getrennt"
         }
       },
       "board_event": {
-        "name": "Letztes Board-Ereignis"
+        "name": "Letztes Ereignis"
       },
       "game_mode": {
         "name": "Spielmodus"
       },
       "match_state": {
-        "name": "Spielstatus",
+        "name": "Match-Status",
         "state": {
-          "no_match": "Kein Spiel",
+          "no_match": "Kein Match",
           "active": "Läuft",
           "finished": "Beendet"
         }
@@ -166,7 +169,7 @@
           "throw": "Bereit zum Werfen",
           "takeout": "Entnahme",
           "takeout_in_progress": "Darts werden entnommen",
-          "calibrating": "Kalibriert",
+          "calibrating": "Kalibrierung läuft",
           "error": "Fehler"
         }
       },
@@ -180,46 +183,46 @@
         "name": "Erkennungsbildrate"
       },
       "camera_fps": {
-        "name": "Bildrate Kamera {number}"
+        "name": "Kamera {number} Bildrate"
       },
       "training_darts": {
-        "name": "Training: Darts"
+        "name": "Training Darts"
       },
       "training_triples": {
-        "name": "Training: Triple"
+        "name": "Training Triple"
       },
       "training_bulls": {
-        "name": "Training: Bull-Treffer"
+        "name": "Training Bull-Treffer"
       },
       "training_scores_180": {
-        "name": "Training: 180er"
+        "name": "Training 180er"
       },
       "training_points": {
-        "name": "Training: Punkte"
+        "name": "Training Punkte"
       },
       "training_doubles": {
-        "name": "Training: Doubles"
+        "name": "Training Doubles"
       },
       "training_misses": {
-        "name": "Training: Fehlwürfe"
+        "name": "Training Fehlwürfe"
       },
       "training_visits": {
-        "name": "Training: Aufnahmen"
+        "name": "Training Aufnahmen"
       },
       "training_scores_100": {
-        "name": "Training: 100+ Aufnahmen"
+        "name": "Training 100+ Aufnahmen"
       },
       "training_scores_140": {
-        "name": "Training: 140+ Aufnahmen"
+        "name": "Training 140+ Aufnahmen"
       },
       "training_average": {
-        "name": "Training: 3-Dart-Average"
+        "name": "Training 3-Dart-Average"
       },
       "training_highest_visit": {
-        "name": "Training: Höchste Aufnahme"
+        "name": "Training höchste Aufnahme"
       },
       "training_started": {
-        "name": "Trainingsbeginn"
+        "name": "Beginn der Trainingssession"
       },
       "cpu_usage": {
         "name": "CPU-Auslastung"
@@ -228,13 +231,13 @@
         "name": "Speichernutzung"
       },
       "training_last_session": {
-        "name": "Schnitt der letzten Session"
+        "name": "Average der letzten Session"
       },
       "host_os": {
-        "name": "Betriebssystem des Board-PCs"
+        "name": "Betriebssystem"
       },
       "host_processor": {
-        "name": "Prozessor des Board-PCs"
+        "name": "Prozessor"
       },
       "vision_version": {
         "name": "Version der Erkennungssoftware"
@@ -299,10 +302,10 @@
         "name": "Automatische Kalibrierung starten"
       },
       "connect": {
-        "name": "Board-Cloud-Verbindung herstellen"
+        "name": "Cloud-Verbindung herstellen"
       },
       "disconnect": {
-        "name": "Board-Cloud-Verbindung trennen"
+        "name": "Cloud-Verbindung trennen"
       },
       "start_streams": {
         "name": "Kamerastreams starten"
@@ -317,10 +320,10 @@
         "name": "Neue Trainingssession"
       },
       "practice_new_leg": {
-        "name": "Neues Übungsleg"
+        "name": "Neues Leg im Übungsspiel"
       },
       "practice_new_match": {
-        "name": "Neues Übungsmatch"
+        "name": "Neues Match im Übungsspiel"
       }
     },
     "switch": {
@@ -328,7 +331,7 @@
         "name": "Erkennung"
       },
       "upstream": {
-        "name": "Board-Cloud-Verbindung"
+        "name": "Cloud-Verbindung"
       },
       "auto_calibrate_on_start": {
         "name": "Beim Start kalibrieren"
@@ -363,7 +366,14 @@
     },
     "select": {
       "standby_minutes": {
-        "name": "Kamera-Standby (Minuten)"
+        "name": "Kamera-Standby",
+        "state": {
+          "5": "5 Minuten",
+          "10": "10 Minuten",
+          "15": "15 Minuten",
+          "30": "30 Minuten",
+          "60": "60 Minuten"
+        }
       },
       "practice_game": {
         "name": "Übungsspiel",
@@ -388,10 +398,10 @@
     },
     "number": {
       "training_idle_timeout": {
-        "name": "Session beenden nach einer Pause von"
+        "name": "Session-Timeout"
       },
       "practice_players": {
-        "name": "Übungsspiel Spieler"
+        "name": "Übungsspiel Spielerzahl"
       },
       "practice_legs": {
         "name": "Übungsspiel Legs pro Satz"
@@ -405,7 +415,7 @@
     },
     "binary_sensor": {
       "local_connected": {
-        "name": "Board-Manager-Verbindung"
+        "name": "Lokale Verbindung"
       },
       "hand_detected": {
         "name": "Hand erkannt"
@@ -432,7 +442,7 @@
         "name": "Kamerastörung"
       },
       "individual_camera_problem": {
-        "name": "Störung Kamera {number}"
+        "name": "Kamera {number} Störung"
       },
       "cloud_link": {
         "name": "Autodarts-Cloud-Verbindung"
@@ -445,7 +455,7 @@
     },
     "event": {
       "board_events": {
-        "name": "Board-Ereignisse",
+        "name": "Ereignisse",
         "state_attributes": {
           "event_type": {
             "state": {
@@ -474,7 +484,7 @@
     },
     "update": {
       "board_software": {
-        "name": "Board-Software"
+        "name": "Software"
       }
     },
     "text": {
@@ -501,9 +511,6 @@
     },
     "cloud_unavailable": {
       "message": "Die Autodarts-Cloud antwortet nicht."
-    },
-    "unknown_board": {
-      "message": "Das ist kein Autodarts-Board."
     },
     "no_board": {
       "message": "Es ist kein Autodarts-Board mit lokaler Verbindung geladen."
@@ -533,7 +540,7 @@
   "issues": {
     "wrong_board": {
       "title": "Autodarts-Board-Adresse zeigt auf ein anderes Board",
-      "description": "Das Board unter {address} hat eine andere Board-ID als das Board dieses Eintrags und bleibt deshalb offline. Öffne die Autodarts-Integration, wähle **Neu konfigurieren** und wähle das richtige Board."
+      "description": "Das Board unter {address} hat eine andere Board-ID als das Board dieses Eintrags und bleibt deshalb offline. Öffne die Autodarts-Integration, wähle **Neu konfigurieren** und suche dort das richtige Board aus."
     },
     "board_manager_1": {
       "title": "Board auf den neuen Autodarts Board Manager umstellen",
@@ -545,12 +552,12 @@
         "step": {
           "confirm": {
             "title": "Jetzt kalibrieren",
-            "description": "Das Board hat {rate} % der letzten Darts korrigiert. Eine neue Kalibrierung senkt das meist.\n\nZieh vorher alle Darts aus dem Board. Die Kalibrierung dauert ein paar Sekunden."
+            "description": "Das Board hat {rate} % der letzten Darts korrigiert. Eine neue Kalibrierung senkt das meist.\n\nZiehe vorher alle Darts aus dem Board. Die Kalibrierung dauert ein paar Sekunden."
           }
         },
         "abort": {
-          "calibration_failed": "Das Board hat die Kalibrierung nicht angenommen. Versuch es erneut oder kalibriere über die Board-Status-Karte.",
-          "board_unavailable": "Das Board ist nicht geladen. Prüfe die Verbindung und versuch es erneut."
+          "calibration_failed": "Das Board hat die Kalibrierung nicht angenommen. Versuche es erneut oder kalibriere über die Board-Status-Karte.",
+          "board_unavailable": "Das Board ist nicht geladen. Prüfe die Verbindung und versuche es erneut."
         }
       }
     },
@@ -580,7 +587,7 @@
   "services": {
     "start_game": {
       "name": "Spiel starten",
-      "description": "Startet ein X01-Übungsspiel oder ein Trainingsspiel am Board, auf Wunsch mit Spielern, Namen und Matchformat.",
+      "description": "Startet ein Übungsspiel am Board: X01, Cricket, ein Partyspiel oder ein Trainingsspiel, auf Wunsch mit Spielern und Matchformat.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -604,7 +611,7 @@
         },
         "double_out": {
           "name": "Double-Out",
-          "description": "X01-Legs auf einem Double oder dem Bullseye beenden."
+          "description": "X01-Legs enden auf einem Double oder dem Bullseye."
         },
         "double_in": {
           "name": "Double-In",
@@ -616,7 +623,7 @@
         },
         "bull_off_distance": {
           "name": "Ausbullen nach Abstand",
-          "description": "Zwei Darts im selben Bull-Ring entscheidet der Abstand, den das Board gemessen hat, statt eines neuen Wurfs."
+          "description": "Bei zwei Darts im selben Bull-Feld entscheidet der vom Board gemessene Abstand statt eines neuen Wurfs."
         }
       }
     },

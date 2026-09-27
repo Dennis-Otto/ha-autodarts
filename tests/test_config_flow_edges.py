@@ -72,6 +72,12 @@ async def test_cloud_form_rejects_an_invalid_board_address(hass):
     )
     assert result["step_id"] == "cloud"
     assert result["errors"] == {"host": "invalid_host"}
+    result, future = await link_with(
+        hass, result, {"client_id": CLIENT_ID, "host": "192.0.2.10"}
+    )
+    result = await complete_link(hass, result, future, [BOARD])
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["data"]["host"] == "192.0.2.10"
 
 
 @pytest.mark.usefixtures("cloud_link")
@@ -105,6 +111,7 @@ async def test_unexpected_login_error_and_lost_connection(hass):
     result = await hass.config_entries.flow.async_configure(result["flow_id"])
     assert result["step_id"] == "auth_retry"
     assert result["errors"] == {"base": "cannot_connect"}
+    await relink(hass, result)
 
 
 @pytest.mark.usefixtures("cloud_link")
@@ -118,6 +125,17 @@ async def test_rejected_token_while_listing_boards_asks_to_retry(hass):
         result = await hass.config_entries.flow.async_configure(result["flow_id"])
     assert result["step_id"] == "auth_retry"
     assert result["errors"] == {"base": "invalid_auth"}
+    await relink(hass, result)
+
+
+async def relink(hass, result):
+    """After a failed login, linking again creates the entry."""
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+    assert result["step_id"] == "cloud"
+    future = asyncio.get_running_loop().create_future()
+    result = await start_link(hass, result, future)
+    result = await complete_link(hass, result, future, [BOARD])
+    assert result["type"] == FlowResultType.CREATE_ENTRY
 
 
 @pytest.mark.usefixtures("cloud_link")

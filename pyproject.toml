@@ -3,6 +3,13 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 pythonpath = ["."]
+# A hanging test fails instead of blocking the run, locally as in CI.
+timeout = 30
+# Warnings of the integration's own code are errors.
+filterwarnings = ['error:::custom_components\.autodarts']
+markers = [
+    "expected_errors: the test logs errors of the integration on purpose",
+]
 
 [tool.coverage.run]
 branch = true

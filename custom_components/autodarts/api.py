@@ -15,7 +15,6 @@ import aiohttp
 from .errors import AutodartsApiError as AutodartsApiError
 from .errors import AutodartsAuthError as AutodartsAuthError
 from .errors import AutodartsConnectionError as AutodartsConnectionError
-from .local_api import AutodartsLocalClient as AutodartsLocalClient
 
 DEFAULT_TIMEOUT = 10
 API_BASE = "https://api.autodarts.io"

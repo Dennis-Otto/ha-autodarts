@@ -5,7 +5,7 @@
 ## Quick checks
 
 1. **Is the Board Manager running?** Open `http://<board-ip>:3180` in a browser on a device in the same network. Board Manager 1 shows its app; Board Manager 2 answers on `http://<board-ip>:3180/api/state`.
-2. **Is the entity *Board Manager connection* on?** If not, Home Assistant cannot reach the board. Check the address, the port and the network between them (VLANs, firewall, Docker networking).
+2. **Is the entity *Local connection* on?** If not, Home Assistant cannot reach the board. Check the address, the port and the network between them (VLANs, firewall, Docker networking).
 3. **Is the entity *Realtime connection* on?** If not, updates still arrive every 2 seconds, but not instantly. See [realtime connection](#no-realtime-updates).
 
 ## Setup
@@ -49,6 +49,12 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *The board did not accept the action* | The board rejected the command or did not answer. Check the connection and try again. |
 | *This board does not support the action* | The Board Manager has no such command, for example the camera streams on Board Manager 1. |
 | *Board Manager refused access* | See **Autodarts board refuses access** under [repairs](#repairs). |
+| *No Autodarts board with a local connection is loaded* | `autodarts.start_game` and `autodarts.delete_player` need a board that is connected locally and loaded. Check the entry under **Settings → Devices & services**; an entry linked to the cloud only cannot play. |
+| *Several Autodarts boards are set up. Choose the board.* | With more than one board, choose the board in the action, the `config_entry_id` field in YAML. |
+| *Config entry … was not found*, *… does not belong to integration autodarts* or *… is not loaded* | The board chosen in the action was deleted, is another integration's entry or is not loaded. Choose the board again; a board that does not load shows why on its entry. |
+| *… is on the list of players more than once* | Every player needs a name of their own. Players without a name may appear more than once. |
+| *Killer needs at least two players* | Name two to four players in the action, or set *Practice players* to 2 or more. |
+| *There is no player profile named …* | Check the spelling; upper and lower case do not matter. The *Player profiles* sensor lists every profile. |
 
 ### No realtime updates
 
@@ -80,7 +86,7 @@ To start over, press **New training session** or *New session* on the training c
 
 ### Download diagnostics
 
-**Settings → Devices & services → Autodarts →** the board's menu (⋮) → **Download diagnostics**. The file contains the board state, the settings summary, the Board Manager generation, connection states and the poll interval. Under `connection`, it also shows the connection history: failed reads in a row, the kind of the last error, the last successful read, how long the board has been away, the duration of the last read, reads answered in an unknown format and, for the realtime connection, connects, failed attempts, the current back-off, why it last ended and how many frames were skipped. The board ID, addresses, tokens and player names are redacted; error messages are not included.
+**Settings → Devices & services → Autodarts →** the board's menu (⋮) → **Download diagnostics**. The file contains the board state, the settings summary, the Board Manager generation, connection states and the poll interval, whether a cloud connection is set up, the practice game with its rules and whether a bull-off runs, and the numbers of stored sessions, personal bests, player profiles, matches and darts at a double. Under `connection`, it also shows the connection history: failed reads in a row, the kind of the last error, the last successful read, how long the board has been away, the duration of the last read, reads answered in an unknown format and, for the realtime connection, connects, failed attempts, the current back-off, why it last ended and how many frames were skipped. The board ID, the board name, addresses, tokens and player names are redacted; error messages are not included.
 
 ### Enable debug logging
 

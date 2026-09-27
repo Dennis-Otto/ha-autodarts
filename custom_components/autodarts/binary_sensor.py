@@ -15,12 +15,16 @@ from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 0
 
+# Motion flags of the detection; they change with nearly every dart and takeout.
 MOTION_SENSORS = {
     "hand_detected": "isHand",
     "image_stable": "isStable",
     "takeout_partial": "isTakeoutPartial",
     "takeout_full": "isTakeoutFull",
 }
+# The live card shows a hand at the board and a takeout; the others are for
+# diagnosis only and would just fill the recorder.
+MOTION_DISABLED = ("image_stable", "takeout_full")
 
 
 async def async_setup_entry(
@@ -89,12 +93,15 @@ class AutodartsLocalState(AutodartsLocalEntity, BinarySensorEntity):
             coordinator, key if index is None else f"camera_{index}_problem"
         )
         self._key, self._index = key, index
-        if key == "camera_problem":
+        if key in MOTION_SENSORS:
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
+            self._attr_entity_registry_enabled_default = key not in MOTION_DISABLED
+        elif key == "camera_problem":
             self._attr_device_class = BinarySensorDeviceClass.PROBLEM
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
         elif key in ("cameras_active", "calibrating"):
             self._attr_device_class = BinarySensorDeviceClass.RUNNING
-        elif key in ("realtime_connected", "cloud_link"):
+        else:  # realtime_connected and cloud_link
             self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
         if index is not None:

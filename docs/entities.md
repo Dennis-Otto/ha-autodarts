@@ -2,7 +2,7 @@
 
 [← Documentation](README.md) · [Deutsch](de/entitaeten.md)
 
-Every board is one device with the entities below. Their names follow your Home Assistant language, and their entity IDs are derived from the board name, for example `sensor.autodarts_board_training_3_dart_average`.
+Every board is one device with the entities below. Its name is the one the board has in Autodarts when the board search or the cloud found it, otherwise *Autodarts Board*. The entity names follow your Home Assistant language and do not repeat the device name. Entity IDs are derived from both when an entity is created, for example `sensor.autodarts_board_training_3_dart_average`, and stay as they are when a later version renames an entity.
 
 **Legend:**
 
@@ -23,13 +23,13 @@ Every board is one device with the entities below. Their names follow your Home 
 | Last dart score | Sensor, points | Score of the last dart. |
 | Darts in visit | Sensor, darts | Darts currently detected on the board (0–3). |
 | Detected visit score | Sensor, points | Sum of the detected darts. The `throws` attribute lists each dart with `segment`, `number`, `multiplier`, `score`, `bed` and the normalised position `x`/`y`. The `recent_visits` attribute lists the last ten completed visits, newest first, with `time`, `score`, `darts` and `segments`. The recorder stores neither attribute. |
-| Last board event | Sensor | The Board Manager's latest event text, such as `Throw detected` or `Takeout started`. |
+| Last event | Sensor | The Board Manager's latest event text, such as `Throw detected` or `Takeout started`. |
 
 The visit score is the plain sum of the darts, without game rules such as busts.
 
 ## Board events
 
-The **Board events** entity (`event.*_board_events`) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, or `training` for session events. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
+The **Events** entity (for example `event.autodarts_board_events`, or `event.autodarts_board_board_events` for a board set up with an earlier version) fires native Home Assistant events. Its `event_type` attribute tells what happened, and further attributes carry the details. Every event also has `source`: `websocket` for realtime events, `poll` when it was noticed during a reconciliation read, or `training` for session events. The entity stays available while the board is away, so events of Home Assistant itself, such as `session_ended` or `personal_best`, always arrive.
 
 | `event_type` | When | Attributes |
 | --- | --- | --- |
@@ -41,7 +41,7 @@ The **Board events** entity (`event.*_board_events`) fires native Home Assistant
 | `visit_completed` | A visit ends: on takeout, when new darts follow a missed takeout, or when detection stops | `score`, `darts`, `segments`, `game`, `thrown` (`true` when `visit_thrown` already announced the visit) |
 | `status_changed` | The detection status changes | `status` |
 | `session_started` | A training session starts: with the *Training session* switch, the *New training session* button, or the first dart when *Start sessions automatically* is on | `started` and `reason` (`manual`, `new_session` or `first_dart`) |
-| `session_ended` | A training session ends: with the switch, the button, or after the pause set in *End session after a pause of* | `reason` (`manual`, `new_session` or `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` and the other training totals |
+| `session_ended` | A training session ends: with the switch, the button, or after the pause set in *Session idle timeout* | `reason` (`manual`, `new_session` or `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` and the other training totals |
 | `bust` | A dart of the [practice game](#practice-game) goes below zero, leaves 1 with double out, or reaches 0 without a double | `game`, `player`, `name`, `players`, `remaining` (the score at the start of the visit, which stays) |
 | `leg_won` | A dart finishes the practice leg | `game`, `player`, `name`, `players`, `darts` and `average` of the leg, `checkout` (the score checked out), `double_out` and `double_in` (the rules of the leg), `legs` of the winner in the set including this leg and `sets` afterwards, `match` (`true` when the leg decides the match); in [Cricket](#cricket) `points` and `mpr` instead of `average`, `checkout` and the rules |
 | `match_won` | A dart decides a practice match of several players | `game`, `player`, `name`, `players`, `legs` (of the winner in the deciding set) and `sets`, `scores` with `player`, `name`, `legs` and `sets` of everybody, for example 3 : 2, and the `average` of the match; `mpr` in Cricket |
@@ -61,7 +61,7 @@ Events are never replayed after a restart or reconnection. See [automations](aut
 The integration counts your darts in training sessions, in Home Assistant and independent of Autodarts games. Sessions survive restarts.
 
 - **Start and end:** the *Training session* switch starts a session from zero and ends it. *New training session* ends the running session and starts the next one.
-- **Automatically:** with *Start sessions automatically* on, the first dart starts a session when none runs. *End session after a pause of* ends a session that many minutes after its last dart; `0` keeps it running.
+- **Automatically:** with *Start sessions automatically* on, the first dart starts a session when none runs. *Session idle timeout* ends a session that many minutes after its last dart; `0` keeps it running.
 - **Without a session,** darts and visits are still announced as [board events](#board-events), for example for a 180 celebration during an online game, but they are not counted.
 - **History:** a finished session keeps its totals until the next one starts. *Last session average* keeps the 3-dart average of every finished session with darts, so its history shows your progress.
 
@@ -85,7 +85,7 @@ The defaults, automatic start on and no pause limit, count every dart as version
 | Training session | Switch | On while a session runs. Turning it on starts a session from zero; turning it off ends it. |
 | New training session | Button | Ends the running session and starts the next one. The board itself is not touched. |
 | Start sessions automatically | Switch, *Configuration* | The first dart starts a session when none runs. On by default. |
-| End session after a pause of | Number, *Configuration* | Minutes without darts, 0–240, after which a session ends by itself. `0`, the default, keeps it running. |
+| Session idle timeout | Number, *Configuration* | Minutes without darts, 0–240, after which a session ends by itself. `0`, the default, keeps it running. |
 | Last session average | Sensor, points | 3-dart average of the last finished session. Attributes: `started`, `ended`, `duration_minutes`, the totals, and `sessions` with the last 20 sessions, which the recorder does not store. |
 
 Totals use the state class *total increasing*, so Home Assistant's statistics and energy-style graphs handle resets correctly. [How the counting works](how-it-works.md#training-session).
@@ -108,7 +108,7 @@ Home Assistant keeps your best values, the days you trained and your darts per d
 | --- | --- | --- |
 | Last personal best | Sensor, timestamp | When the last personal best fell; *unknown* before the first. Attributes: `record`, `value`, `previous` and `name` of that best, and the best value of every record under its key, for example `highest_checkout`. |
 | Darts today | Sensor, darts, total | Darts detected today; starts from 0 at midnight. Attributes: `goal`, `goal_reached`, `progress` (percent of the goal). |
-| Training streak | Sensor, days | Days in a row with at least one dart. It stays until a whole day passes without darts. Attributes: `best_streak`, `trained_today`, `last_day`. |
+| Training streak | Sensor, duration in days | Days in a row with at least one dart. It stays until a whole day passes without darts. Attributes: `best_streak`, `trained_today`, `last_day`. |
 | Daily goal | Number, darts, *Configuration* | Darts to throw every day, 0–2000; `0`, the default, sets no goal. When today's darts reach it, `daily_goal_reached` fires once. |
 
 ## Practice game
@@ -138,9 +138,9 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 | Practice checkout rate | Sensor, % | Legs won per dart thrown at a double, over the last 10 legs. A dart counts at a double when one double could finish the score: 2 to 40 when even, or 50. Only with double out. |
 | Practice doubles rate | Sensor, % | The same darts at a double together with the last 10 results of the doubles training and Bob's 27. |
 | Practice legs played | Sensor, total | Legs finished in X01, Cricket and the party games; its long-term statistics show the legs per day. |
-| Practice players | Number | 1–4 players. A change starts a new match. |
-| Practice legs per set | Number | 1–11 legs win a set. A change starts a new match. |
-| Practice sets to win | Number | 1–7 sets win the match. A change starts a new match. |
+| Practice players | Number, *Configuration* | 1–4 players. A change starts a new match. |
+| Practice legs per set | Number, *Configuration* | 1–11 legs win a set. A change starts a new match. |
+| Practice sets to win | Number, *Configuration* | 1–7 sets win the match. A change starts a new match. |
 | Practice player *N* | Text, *Configuration* | Name of player 1–4, at most 20 characters, for the scoreboard and the events. Without a name, the card shows *Player N*. |
 | Practice double out | Switch, *Configuration* | Finish on a double or the bullseye. On by default. |
 | Practice double in | Switch, *Configuration* | Start scoring with a double or the bullseye. Off by default; a change starts a new match. |
@@ -178,7 +178,7 @@ Home Assistant counts every dart thrown at a double and whether it hit: in X01 w
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Favourite double | Sensor | The double with the best hit rate among those with at least 10 darts, for example `D16`; *unknown* before. Attributes: `attempts`, `hits`, `rate` (percent) and `doubles` with `double`, `attempts`, `hits` and `rate` of every double thrown at. The recorder does not store the list. |
+| Favorite double | Sensor | The double with the best hit rate among those with at least 10 darts, for example `D16`; *unknown* before. Attributes: `attempts`, `hits`, `rate` (percent) and `doubles` with `double`, `attempts`, `hits` and `rate` of every double thrown at. The recorder does not store the list. |
 | Practice personal checkout routes | Switch, *Configuration* | Checkout routes prefer the strongest doubles of the player at the board (their profile, otherwise everybody's darts): a route with the same number of darts to a double with a better hit rate wins, without a double to set up; only doubles with at least 10 darts count. Off by default. |
 
 The [doubles card](cards.md#doubles-card) draws the hit rate of every double on the board.
@@ -223,8 +223,8 @@ Training games are for one player; *Practice players* applies to X01, Cricket an
 | Calibrate camera *N* | Button, *Configuration* | Calibrates one camera. |
 | Restart Board Manager | Button, *Configuration* | Restarts the Board Manager service. |
 | Start camera streams, Stop camera streams | Buttons, *Configuration*, *Disabled* | Controls the camera streams of the Board Manager. |
-| Board cloud link | Switch, **BM 1** | Connects or disconnects the board's own connection to Autodarts. |
-| Connect board cloud link, Disconnect board cloud link | Buttons, **BM 1**, *Disabled* | The same as buttons. |
+| Cloud link | Switch, **BM 1** | Connects or disconnects the board's own connection to Autodarts. |
+| Connect cloud link, Disconnect cloud link | Buttons, **BM 1**, *Disabled* | The same as buttons. |
 
 Every action is sent **once**. If the board rejects it or does not answer, Home Assistant shows an error message instead of retrying, so an action is never executed twice.
 
@@ -235,7 +235,7 @@ Every action is sent **once**. If the board rejects it or does not answer, Home 
 | Calibrate on start | Switch, *Configuration* | Calibrates when the detection starts. |
 | Automatic recalibration | Switch, *Configuration* | Lets the Board Manager recalibrate by itself. |
 | Automatic distortion correction | Switch, *Configuration* | Corrects lens distortion during calibration. |
-| Camera standby (minutes) | Select, *Configuration* | Puts the cameras on standby after 5, 10, 15, 30 or 60 idle minutes. |
+| Camera standby | Select, *Configuration* | Puts the cameras on standby after 5, 10, 15, 30 or 60 idle minutes. |
 
 A change is written to the Board Manager configuration; only the changed setting is sent.
 
@@ -243,7 +243,7 @@ A change is written to the Board Manager configuration; only the changed setting
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Board Manager connection | Binary sensor, *Diagnostic* | Home Assistant reaches the Board Manager. One or two missed reads, a few seconds, keep it on. |
+| Local connection | Binary sensor, *Diagnostic* | Home Assistant reaches the Board Manager. One or two missed reads, a few seconds, keep it on. |
 | Realtime connection | Binary sensor, *Diagnostic* | The connection for realtime events is open. Until events arrive over it, the integration reads every 2 seconds. |
 | Autodarts cloud connection | Binary sensor, **BM 2**, *Diagnostic* | The board's connection to Autodarts. |
 | Cameras active | Binary sensor | The cameras are running. |
@@ -255,10 +255,10 @@ A change is written to the Board Manager configuration; only the changed setting
 | Camera *N* frame rate | Sensor, fps, *Diagnostic*, *Disabled* | Frames per second of one camera. |
 | CPU usage | Sensor, %, **BM 2**, *Diagnostic* | CPU load of the board PC. |
 | Memory usage | Sensor, **BM 2**, *Diagnostic*, *Disabled* | Memory use as reported by Board Manager 2. |
-| Board PC operating system | Sensor, **BM 2**, *Diagnostic* | Distribution and version of the board PC, for example *Debian 13*. Attributes: `kernel`, `architecture`. |
-| Board PC processor | Sensor, **BM 2**, *Diagnostic* | Processor model of the board PC. Attribute: `cores`. |
+| Operating system | Sensor, **BM 2**, *Diagnostic* | Distribution and version of the board PC, for example *Debian 13*. Attributes: `kernel`, `architecture`. |
+| Processor | Sensor, **BM 2**, *Diagnostic* | Processor model of the board PC. Attribute: `cores`. |
 | Detection software version | Sensor, **BM 2**, *Diagnostic* | Version of the Autodarts detection software. Attribute: `opencv_version`. |
-| Board software | Update, **BM 2** | Installed and latest Board Manager version. Install updates on the board PC. |
+| Software | Update, **BM 2** | Installed and latest Board Manager version. Install updates on the board PC. |
 
 Per-camera entities carry a `camera` attribute with the camera number, which the [status card](cards.md#board-status-card) uses.
 
@@ -266,12 +266,12 @@ Per-camera entities carry a `camera` attribute with the camera number, which the
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Hand detected | Binary sensor | A hand is in front of the board. |
-| Image stable | Binary sensor | The camera image is steady. |
-| Darts partially removed | Binary sensor | Some darts are removed. |
-| Darts fully removed | Binary sensor | All darts are removed. |
+| Hand detected | Binary sensor, *Diagnostic* | A hand is in front of the board. |
+| Image stable | Binary sensor, *Diagnostic*, *Disabled* | The camera image is steady. |
+| Darts partially removed | Binary sensor, *Diagnostic* | Some darts are removed. |
+| Darts fully removed | Binary sensor, *Diagnostic*, *Disabled* | All darts are removed. |
 
-These sensors are *off* while the detection is stopped, starting, stopping or calibrating.
+These sensors are *off* while the detection is stopped, starting, stopping or calibrating. They change with nearly every dart and takeout, and each change is recorded. The live card shows a hand at the board and a takeout from the first and third, so these two are enabled; the other two start disabled. Boards set up with an earlier version keep all four enabled; disable those you do not need in the entity settings.
 
 ## Cameras
 
@@ -285,14 +285,14 @@ These entities exist only with a [linked Autodarts account](installation.md#link
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Board status | Sensor (enum), *Diagnostic* | `connected` or `disconnected` in the Autodarts cloud. |
+| Cloud status | Sensor (enum), *Diagnostic* | `connected` or `disconnected` in the Autodarts cloud. |
 | Game mode | Sensor | Variant of the current match, such as `X01` or `Cricket`. |
 | Match state | Sensor (enum) | `no_match`, `active` or `finished`. |
 | Round | Sensor | Current round. |
 | Visit score | Sensor, points | Score of the current visit in the match. |
 | Darts thrown | Sensor, darts | Darts thrown in the match. |
 
-Without a local board, *Last board event*, *Last dart* and *Darts in visit* come from the cloud as well.
+Without a local board, *Last event*, *Last dart* and *Darts in visit* come from the cloud as well.
 
 ## Actions
 
@@ -320,7 +320,7 @@ data:
   legs: 3
 ```
 
-The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when a name appears twice among the players, or when Killer would have fewer than two players.
+The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when a name appears twice among the players, or when Killer would have fewer than two players. Values beyond the limits above are rejected before anything changes.
 
 ### Delete a player profile: `autodarts.delete_player`
 

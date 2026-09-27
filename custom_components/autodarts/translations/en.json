@@ -25,6 +25,9 @@
         "description": "Choose the Autodarts board to monitor.",
         "data": {
           "board_id": "Board"
+        },
+        "data_description": {
+          "board_id": "The boards linked to your Autodarts account."
         }
       },
       "cloud": {
@@ -36,7 +39,7 @@
           "port": "Local board port"
         },
         "data_description": {
-          "client_id": "Public OAuth client ID with device authorization, issued by Autodarts for this integration. Not your e-mail address, password or board ID.",
+          "client_id": "Public OAuth client ID with device authorization, issued by Autodarts for this integration. Not your email address, password or board ID.",
           "host": "Optional. Also connects the board locally, which enables controls and realtime events.",
           "port": "Board Manager API port, normally 3180."
         }
@@ -90,7 +93,7 @@
       }
     },
     "progress": {
-      "wait_for_device": "Open [Autodarts login]({verification_uri_complete}) and approve the connection. Alternatively, open [{verification_uri}]({verification_uri}) on another device and enter **{user_code}**.\n\nThis screen continues automatically after approval. Only share this code with your own Autodarts login."
+      "wait_for_device": "Open [Autodarts login]({verification_uri_complete}) and approve the connection. Alternatively, open [{verification_uri}]({verification_uri}) on another device and enter **{user_code}**.\n\nThis screen continues automatically after approval. Only enter this code in your own Autodarts login."
     },
     "error": {
       "invalid_client": "This client ID is invalid or is not enabled for device login. Check the client ID for this integration. Local board setup is available without a client ID.",
@@ -121,14 +124,14 @@
   "entity": {
     "sensor": {
       "board_status": {
-        "name": "Board status",
+        "name": "Cloud status",
         "state": {
           "connected": "Connected",
           "disconnected": "Disconnected"
         }
       },
       "board_event": {
-        "name": "Last board event"
+        "name": "Last event"
       },
       "game_mode": {
         "name": "Game mode"
@@ -231,10 +234,10 @@
         "name": "Last session average"
       },
       "host_os": {
-        "name": "Board PC operating system"
+        "name": "Operating system"
       },
       "host_processor": {
-        "name": "Board PC processor"
+        "name": "Processor"
       },
       "vision_version": {
         "name": "Detection software version"
@@ -279,7 +282,7 @@
         "name": "Last match"
       },
       "favourite_double": {
-        "name": "Favourite double"
+        "name": "Favorite double"
       }
     },
     "button": {
@@ -299,10 +302,10 @@
         "name": "Start automatic calibration"
       },
       "connect": {
-        "name": "Connect board cloud link"
+        "name": "Connect cloud link"
       },
       "disconnect": {
-        "name": "Disconnect board cloud link"
+        "name": "Disconnect cloud link"
       },
       "start_streams": {
         "name": "Start camera streams"
@@ -328,7 +331,7 @@
         "name": "Detection"
       },
       "upstream": {
-        "name": "Board cloud link"
+        "name": "Cloud link"
       },
       "auto_calibrate_on_start": {
         "name": "Calibrate on start"
@@ -363,7 +366,14 @@
     },
     "select": {
       "standby_minutes": {
-        "name": "Camera standby (minutes)"
+        "name": "Camera standby",
+        "state": {
+          "5": "5 minutes",
+          "10": "10 minutes",
+          "15": "15 minutes",
+          "30": "30 minutes",
+          "60": "60 minutes"
+        }
       },
       "practice_game": {
         "name": "Practice game",
@@ -388,7 +398,7 @@
     },
     "number": {
       "training_idle_timeout": {
-        "name": "End session after a pause of"
+        "name": "Session idle timeout"
       },
       "practice_players": {
         "name": "Practice players"
@@ -405,7 +415,7 @@
     },
     "binary_sensor": {
       "local_connected": {
-        "name": "Board Manager connection"
+        "name": "Local connection"
       },
       "hand_detected": {
         "name": "Hand detected"
@@ -445,7 +455,7 @@
     },
     "event": {
       "board_events": {
-        "name": "Board events",
+        "name": "Events",
         "state_attributes": {
           "event_type": {
             "state": {
@@ -474,7 +484,7 @@
     },
     "update": {
       "board_software": {
-        "name": "Board software"
+        "name": "Software"
       }
     },
     "text": {
@@ -501,9 +511,6 @@
     },
     "cloud_unavailable": {
       "message": "The Autodarts cloud does not answer."
-    },
-    "unknown_board": {
-      "message": "This is not an Autodarts board."
     },
     "no_board": {
       "message": "No Autodarts board with a local connection is loaded."
@@ -580,7 +587,7 @@
   "services": {
     "start_game": {
       "name": "Start game",
-      "description": "Starts an X01 practice game or a training game on the board, optionally with players, names and match format.",
+      "description": "Starts a practice game on the board: X01, Cricket, a party game or a training game, optionally with players and match format.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -604,7 +611,7 @@
         },
         "double_out": {
           "name": "Double out",
-          "description": "Finish X01 legs on a double or the bullseye."
+          "description": "X01 legs finish on a double or the bullseye."
         },
         "double_in": {
           "name": "Double in",
@@ -616,7 +623,7 @@
         },
         "bull_off_distance": {
           "name": "Bull-off by distance",
-          "description": "Two darts in the same bull ring are decided by the distance the board measured instead of a rethrow."
+          "description": "Two darts in the same bull bed are decided by the distance the board measured instead of a rethrow."
         }
       }
     },

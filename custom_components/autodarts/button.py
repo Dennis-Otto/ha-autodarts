@@ -25,7 +25,7 @@ BUTTONS = {
     "stop_streams": (False, EntityCategory.CONFIG),
 }
 # Board Manager 2 has no routes to connect or disconnect its cloud link.
-V1_ONLY = ("connect", "disconnect")
+V1_BUTTONS = ("connect", "disconnect")
 
 
 async def async_setup_entry(
@@ -34,7 +34,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     if coordinator := entry.runtime_data.local:
-        unsupported = V1_ONLY if coordinator.board_manager_2 else ()
+        unsupported = V1_BUTTONS if coordinator.board_manager_2 else ()
         async_add_entities(
             [
                 AutodartsButton(coordinator, key)

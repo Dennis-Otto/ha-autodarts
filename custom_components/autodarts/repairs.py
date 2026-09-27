@@ -4,13 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.repairs import RepairsFlow, RepairsFlowResult
+from homeassistant.components.repairs import (
+    ConfirmRepairFlow,
+    RepairsFlow,
+    RepairsFlowResult,
+)
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import CONF_BOARD_ID, CONF_HOST, CONF_PORT
+from .const import CONF_BOARD_ID, CONF_HOST, CONF_PORT, DOMAIN
 from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
 
@@ -30,7 +35,13 @@ class CalibrationFlow(RepairsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> RepairsFlowResult:
         if user_input is None:
-            return self.async_show_form(step_id="confirm")
+            issue = ir.async_get(self.hass).async_get_issue(DOMAIN, self.issue_id)
+            return self.async_show_form(
+                step_id="confirm",
+                description_placeholders=issue.translation_placeholders
+                if issue
+                else None,
+            )
         entry = self.hass.config_entries.async_get_entry(self._entry_id)
         loaded = entry is not None and entry.state is ConfigEntryState.LOADED
         coordinator = entry.runtime_data.local if entry and loaded else None
@@ -85,6 +96,11 @@ class BoardMovedFlow(RepairsFlow):
 async def async_create_fix_flow(
     hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None
 ) -> RepairsFlow:
+    """The flow of a fixable issue, named <issue>_<entry_id>."""
+    data = data or {}
     if issue_id.startswith("board_moved_"):
-        return BoardMovedFlow(data or {})
-    return CalibrationFlow(str((data or {}).get("entry_id", "")))
+        return BoardMovedFlow(data)
+    if issue_id.startswith("calibration_"):
+        return CalibrationFlow(str(data.get("entry_id", "")))
+    # Only the issues above are fixable; any other one has nothing to confirm.
+    return ConfirmRepairFlow()

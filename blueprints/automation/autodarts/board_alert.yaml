@@ -19,7 +19,7 @@ blueprint:
       input:
         connection:
           name: Board connection
-          description: The "Board Manager connection" sensor of your Autodarts board.
+          description: The "Local connection" sensor of your Autodarts board.
           selector:
             entity:
               filter:

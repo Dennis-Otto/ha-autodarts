@@ -25,7 +25,7 @@ from .party import (
     distance_mm,
     make_party,
 )
-from .profiles import Profiles
+from .profiles import NAME_LENGTH, Profiles
 from .scoring import VISIT_DARTS, evaluate_visit, is_double, rate, score
 from .scoring import average as _average
 from .training import hit_key
@@ -39,7 +39,6 @@ STATS_KEYS = ("first9_points", "first9_darts", "at_double", "checkouts")
 MAX_PLAYERS = 4
 MAX_LEGS = 11
 MAX_SETS = 7
-NAME_LENGTH = 20
 # The rules of the practice game that players switch on and off.
 OPTIONS = (
     "double_out",
@@ -48,6 +47,8 @@ OPTIONS = (
     "bull_off_distance",
     "personal_routes",
 )
+# The games to choose from, as the practice game select and start_game offer them.
+GAME_OPTIONS = (*(str(game) for game in GAMES), CRICKET, *PARTY_GAMES, *DRILLS)
 
 
 def _count(value: object, low: int, high: int, default: int) -> int:

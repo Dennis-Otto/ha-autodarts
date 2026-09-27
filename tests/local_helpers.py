@@ -1,6 +1,13 @@
-"""Synthetic fixtures shaped like Board Manager 1.0.7 responses."""
+"""Synthetic fixtures shaped like Board Manager 1.0.7 responses, and the helpers
+that set a board up in Home Assistant."""
 
 from copy import deepcopy
+
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.core import callback
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 BASE = "http://192.0.2.10:3180"
 STATE = {
@@ -118,12 +125,25 @@ def mock_board(
     )
 
 
-def local_entry_data():
+def local_entry_data(board_id="board-1", host="192.0.2.10"):
     return {
-        "board_id": "board-1",
-        "host": "192.0.2.10",
+        "board_id": board_id,
+        "host": host,
         "port": 3180,
         "local_only": True,
+    }
+
+
+def entry_data():
+    """A cloud entry, linked with a registered client ID."""
+    return {
+        "client_id": "registered-test-client",
+        "board_id": "board-1",
+        "token": {
+            "access_token": "old",
+            "refresh_token": "old-refresh",
+            "expires_at": 0,
+        },
     }
 
 
@@ -134,3 +154,132 @@ def mock_board_v2(mock, *, system=None, state=None, host=None, base=BASE):
     mock.put(f"{base}/api/upstream/connect", status=404)
     mock.put(f"{base}/api/upstream/disconnect", status=404)
     mock_board(mock, state=state, version="2.0.0", base=base)
+
+
+# A second board in the same home: its own ID, address and two cameras.
+SECOND_BASE = "http://192.0.2.20:3180"
+
+
+def second_board_config():
+    config = deepcopy(CONFIG)
+    config["auth"]["board_id"] = "board-2"
+    config["cam"]["cams"] = ["/dev/video0", "/dev/video2"]
+    return config
+
+
+def board(*hits, **changes):
+    """A running board with the given darts of the current visit."""
+    return {
+        "running": True,
+        "connected": True,
+        "status": "Throw",
+        "event": "Throw",
+        "numThrows": len(hits),
+        "throws": [
+            {"segment": {"name": name, "number": number, "multiplier": multiplier}}
+            for name, number, multiplier in hits
+        ],
+        **changes,
+    }
+
+
+T20 = ("T20", 20, 3)
+S20 = ("S20", 20, 1)
+BULL = ("Bull", 25, 2)
+OUTER_BULL = ("25", 25, 1)
+MISS = ("M", 0, 0)
+
+
+async def setup_local(hass, aioclient_mock, **kwargs):
+    """A Board Manager 1 board, set up locally."""
+    mock_board(aioclient_mock, **kwargs)
+    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state == ConfigEntryState.LOADED
+    return entry
+
+
+async def setup_v2(hass, aioclient_mock, **kwargs):
+    """A Board Manager 2 board, set up locally."""
+    mock_board_v2(aioclient_mock, **kwargs)
+    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry
+
+
+def entity_id(hass, platform, key, board_id="board-1"):
+    result = er.async_get(hass).async_get_entity_id(
+        platform, "autodarts", f"{board_id}_{key}"
+    )
+    assert result is not None
+    return result
+
+
+def state(hass, platform, key, board_id="board-1"):
+    return hass.states.get(entity_id(hass, platform, key, board_id)).state
+
+
+def unique_ids(hass, entry) -> set[str]:
+    registry = er.async_get(hass)
+    return {
+        item.unique_id
+        for item in er.async_entries_for_config_entry(registry, entry.entry_id)
+    }
+
+
+def record(hass, coordinator) -> list[tuple[str, dict]]:
+    """The events the board announces from now on."""
+    events: list[tuple[str, dict]] = []
+
+    @callback
+    def receive(kind: str, attributes: dict) -> None:
+        events.append((kind, attributes))
+
+    async_dispatcher_connect(hass, coordinator.event_signal, receive)
+    return events
+
+
+async def switch(hass, key: str, on: bool) -> None:
+    await hass.services.async_call(
+        "switch",
+        "turn_on" if on else "turn_off",
+        {"entity_id": entity_id(hass, "switch", key)},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+
+def mock_cloud(mock, board_id="board-1"):
+    """The Autodarts cloud: a token refresh and a board without a match."""
+    from custom_components.autodarts.api import API_BASE, REFRESH_URL
+
+    mock.post(
+        REFRESH_URL,
+        json={"access_token": "new", "refresh_token": "rotated", "expires_in": 900},
+    )
+    mock.get(
+        f"{API_BASE}/bs/v0/boards/{board_id}",
+        json={"id": board_id, "name": "My Board", "state": {"connected": True}},
+    )
+
+
+def entity_summary(hass, entry) -> dict[str, str]:
+    """Entity ID, category and whether it starts disabled, by unique ID."""
+    registry = er.async_get(hass)
+    return {
+        item.unique_id: " | ".join(
+            (
+                item.entity_id,
+                item.entity_category or "-",
+                "disabled" if item.disabled_by else "enabled",
+            )
+        )
+        for item in sorted(
+            er.async_entries_for_config_entry(registry, entry.entry_id),
+            key=lambda item: item.unique_id,
+        )
+    }

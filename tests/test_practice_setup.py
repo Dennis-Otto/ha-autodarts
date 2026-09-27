@@ -3,10 +3,20 @@
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from .local_helpers import local_entry_data, mock_board
-from .test_local_setup import entity_id, setup_local, state
-from .test_sessions import record, switch
-from .test_training import BULL, OUTER_BULL, S20, T20, board
+from .local_helpers import (
+    BULL,
+    OUTER_BULL,
+    S20,
+    T20,
+    board,
+    entity_id,
+    local_entry_data,
+    mock_board,
+    record,
+    setup_local,
+    state,
+    switch,
+)
 
 D18 = ("D18", 18, 2)
 D20 = ("D20", 20, 2)

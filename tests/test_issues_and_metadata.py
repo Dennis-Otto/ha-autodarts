@@ -16,9 +16,16 @@ from custom_components.autodarts.coordinator import AutodartsDataUpdateCoordinat
 from custom_components.autodarts.errors import AutodartsConnectionError
 from custom_components.autodarts.local_coordinator import ISSUES
 
-from .local_helpers import CONFIG, STATE, local_entry_data, mock_board
-from .test_board_manager_2 import setup_v2
-from .test_local_setup import entity_id, setup_local, state
+from .local_helpers import (
+    CONFIG,
+    STATE,
+    entity_id,
+    local_entry_data,
+    mock_board,
+    setup_local,
+    setup_v2,
+    state,
+)
 
 
 def issue(hass, name, entry):
@@ -141,20 +148,21 @@ async def test_failed_match_reads_are_logged_once(hass, caplog):
     coordinator = AutodartsDataUpdateCoordinator(hass, cloud, "board-1")
     with caplog.at_level(logging.WARNING):
         for _ in range(3):
-            result = await coordinator._async_update_data()
-    assert result["match"] is None
+            await coordinator.async_refresh()
+    assert coordinator.data["match"] is None
     assert caplog.text.count("Could not fetch the current match") == 1
     cloud.get_match.side_effect = None
     cloud.get_match.return_value = {"id": "match-1"}
     cloud.get_match_state.return_value = {"round": 2}
-    assert (await coordinator._async_update_data())["match"] == {
+    await coordinator.async_refresh()
+    assert coordinator.data["match"] == {
         "id": "match-1",
         "round": 2,
     }
     cloud.get_match.side_effect = AutodartsConnectionError
     caplog.clear()
     with caplog.at_level(logging.WARNING):
-        await coordinator._async_update_data()
+        await coordinator.async_refresh()
     assert "Could not fetch the current match" in caplog.text
 
 
@@ -163,7 +171,8 @@ async def test_match_id_that_is_no_text_means_no_match(hass, match_id):
     cloud = AsyncMock()
     cloud.get_board.return_value = {"id": "board-1", "matchId": match_id}
     coordinator = AutodartsDataUpdateCoordinator(hass, cloud, "board-1")
-    assert (await coordinator._async_update_data())["match"] is None
+    await coordinator.async_refresh()
+    assert coordinator.data["match"] is None
     cloud.get_match.assert_not_called()
 
 

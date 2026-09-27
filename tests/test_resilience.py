@@ -14,9 +14,15 @@ from custom_components.autodarts.errors import AutodartsConnectionError
 from custom_components.autodarts.local_api import AutodartsLocalClient
 from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
 
-from .local_helpers import BASE, STATE, local_entry_data, mock_board
-from .test_local_setup import setup_local, state
-from .test_setup import entry_data
+from .local_helpers import (
+    BASE,
+    STATE,
+    entry_data,
+    local_entry_data,
+    mock_board,
+    setup_local,
+    state,
+)
 
 OTHER = "http://192.0.2.99:3180"
 
@@ -245,6 +251,7 @@ async def test_missed_poll_during_realtime_stream_is_no_outage(hass, aioclient_m
     assert state(hass, "switch", "detection") == "off"
 
 
+@pytest.mark.expected_errors
 async def test_stream_survives_unexpected_errors_and_polls_slowly_meanwhile(
     hass, aioclient_mock
 ):
