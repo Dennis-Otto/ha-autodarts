@@ -25,7 +25,7 @@ blueprint:
       input:
         board_events:
           name: Board events
-          description: The "Board events" entity of your Autodarts board.
+          description: The "Events" entity of your Autodarts board.
           selector:
             entity:
               filter:

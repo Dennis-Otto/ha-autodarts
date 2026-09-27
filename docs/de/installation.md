@@ -48,7 +48,7 @@ Bekommt das Board später eine neue IP-Adresse, übernimmt die Integration sie a
 
 ### 2. Boards im Netzwerk suchen
 
-Wähle **Boards im Netzwerk suchen**. Die Integration fragt den öffentlichen Autodarts-Suchdienst, den auch die Board-Manager-App nutzt, welche Boards von deinem Internetanschluss aus registriert sind. Du wählst dein Board, und die Integration verbindet sich lokal mit ihm.
+Wähle **Boards im Netzwerk suchen**. Die Integration fragt den öffentlichen Autodarts-Suchdienst, den auch die Board-Manager-App nutzt, welche Boards von deinem Internetanschluss aus registriert sind. Du wählst dein Board, und die Integration verbindet sich lokal mit ihm. Eintrag und Gerät tragen den Namen, den das Board in Autodarts hat.
 
 > Der Suchdienst sieht wie jede Website deine öffentliche IP-Adresse; sonst wird nichts übertragen. Ist der Dienst nicht erreichbar oder findet er kein neues Board, öffnet sich stattdessen das Adressformular.
 
@@ -68,7 +68,7 @@ Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten
 
 ## Autodarts-Cloud verknüpfen (optional)
 
-Mit einem verknüpften Autodarts-Konto kommen Spieldaten aus der Cloud dazu: Spielmodus, Spielstatus, Runde, Punkte der Aufnahme und geworfene Darts. Die lokale Steuerung hängt nicht davon ab. Sie funktioniert weiter, wenn die Cloud nicht erreichbar ist oder die Anmeldung abläuft.
+Mit einem verknüpften Autodarts-Konto kommen Spieldaten aus der Cloud dazu: Spielmodus, Match-Status, Runde, Punkte der Aufnahme und geworfene Darts. Die lokale Steuerung hängt nicht davon ab. Sie funktioniert weiter, wenn die Cloud nicht erreichbar ist oder die Anmeldung abläuft.
 
 > **Stand:** Für die Verknüpfung braucht es eine öffentliche OAuth-Client-ID mit Geräteanmeldung, die Autodarts für diese Integration vergibt. Sie ist beantragt, aber noch nicht enthalten. Bis dahin bieten Einrichtung und **Neu konfigurieren** die Cloud-Verknüpfung nicht an. Alles Lokale funktioniert ohne sie.
 
@@ -95,7 +95,7 @@ Autodarts ersetzt den klassischen Board Manager durch den Headless **Board Manag
 
 1. Installiere Board Manager 2 nach der Anleitung von Autodarts auf dem Board-PC.
 2. An der Integration musst du nichts ändern. Sie erkennt die neue Generation beim nächsten Lesen, lädt sich neu und ergänzt die neuen Entitäten: Cloud-Verbindung, CPU, Speicher und Update.
-3. Entitäten, die es nur bei Board Manager 1 gibt, etwa der Schalter für die Board-Cloud-Verbindung, werden automatisch entfernt.
+3. Entitäten, die es nur bei Board Manager 1 gibt, etwa der Schalter für die Cloud-Verbindung, werden automatisch entfernt.
 
 Trainingssession, Entitäts-IDs und Dashboards bleiben erhalten.
 

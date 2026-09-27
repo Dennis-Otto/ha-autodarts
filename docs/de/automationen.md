@@ -39,7 +39,7 @@ Jeder Blueprint zeigt diese Einstellungen, wenn du eine Automation daraus anlegs
 
 | Einstellung | Standard | Was sie bewirkt |
 | --- | --- | --- |
-| Board events | | Die Entität *Board-Ereignisse* deines Boards. |
+| Board events | | Die Entität *Ereignisse* deines Boards. |
 | Minimum score | 180 | Die niedrigste Punktzahl einer Aufnahme, die die Aktionen auslöst. Eine Aufnahme aus drei Darts zählt, sobald ihr dritter Dart landet, eine kürzere beim Ziehen der Darts. |
 | Actions | | Was nach einer solchen Aufnahme passiert. Nutzbar sind `score`, `darts`, `segments` und `game` (das Übungsspiel oder leer). |
 
@@ -47,7 +47,7 @@ Jeder Blueprint zeigt diese Einstellungen, wenn du eine Automation daraus anlegs
 
 | Einstellung | Standard | Was sie bewirkt |
 | --- | --- | --- |
-| Board events | | Die Entität *Board-Ereignisse* deines Boards. |
+| Board events | | Die Entität *Ereignisse* deines Boards. |
 | Text-to-speech engine | | Die Sprachausgabe, etwa Home Assistant Cloud oder Piper. |
 | Speakers | | Die Mediaplayer, die die Ansagen abspielen. |
 | Language | leer | Die Sprache der Stimme, etwa `de-DE`; leer nutzt die Sprache der Sprachausgabe. |
@@ -64,7 +64,7 @@ Ein leerer Text bleibt stumm.
 
 | Einstellung | Standard | Was sie bewirkt |
 | --- | --- | --- |
-| Board events | | Die Entität *Board-Ereignisse* deines Boards. |
+| Board events | | Die Entität *Ereignisse* deines Boards. |
 | When the takeout starts | keine | Läuft, wenn eine Hand zum Board greift, um die Darts zu ziehen. |
 | When the board is clear | keine | Läuft, wenn alle Darts aus dem Board sind. |
 
@@ -84,7 +84,7 @@ Kombiniere diesen Blueprint nicht mit einem Erkennungsschalter in der *Training 
 
 | Einstellung | Standard | Was sie bewirkt |
 | --- | --- | --- |
-| Board connection | | Der Sensor *Board-Manager-Verbindung* deines Boards. |
+| Board connection | | Der Sensor *Lokale Verbindung* deines Boards. |
 | Camera problem | | Der Sensor *Kamerastörung* deines Boards. |
 | Grace period | 2 Minuten | Wie lange ein Problem dauern muss, bevor gewarnt wird, damit ein Neustart des Board Managers oder eine kurze Kalibrierung ruhig bleibt. |
 | Alert actions | | Zum Beispiel eine Benachrichtigung aufs Handy. `problem` ist `offline` oder `cameras`. |
@@ -98,10 +98,10 @@ Ein Problem zählt auch, wenn es beginnt, während der Sensor nicht verfügbar i
 | --- | --- | --- |
 | Time | 21:00 | Wann der Bericht kommt. Wähle eine späte Uhrzeit: Darts zählen für den Tag, an dem sie geworfen werden. |
 | Minimum darts | 1 | Kein Bericht, wenn heute weniger Darts geworfen wurden. |
-| Training darts | | Der Sensor *Training: Darts* deines Boards. |
-| Training 3-dart average | | Der Sensor *Training: 3-Dart-Average* deines Boards. |
-| Training highest visit | | Der Sensor *Training: Höchste Aufnahme* deines Boards. |
-| Training 180s | | Der Sensor *Training: 180er* deines Boards. |
+| Training darts | | Der Sensor *Training Darts* deines Boards. |
+| Training 3-dart average | | Der Sensor *Training 3-Dart-Average* deines Boards. |
+| Training highest visit | | Der Sensor *Training höchste Aufnahme* deines Boards. |
+| Training 180s | | Der Sensor *Training 180er* deines Boards. |
 | Actions | | Zum Beispiel eine Benachrichtigung mit `summary`. Nutzbar sind auch `darts`, `average`, `highest`, `scores_180` und `darts_today`. |
 
 Eine beendete Session behält ihre Summen bis zur nächsten. Deshalb prüft der Bericht den Sensor *Darts heute* desselben Boards und überspringt Tage ohne Darts. Ist dieser Sensor deaktiviert, entscheiden die Darts der Session. Für jeden Tag eine neue Session füge *Neue Trainingssession* deines Boards als letzte Aktion hinzu.
@@ -110,7 +110,7 @@ Eine beendete Session behält ihre Summen bis zur nächsten. Deshalb prüft der 
 
 | Einstellung | Standard | Was sie bewirkt |
 | --- | --- | --- |
-| Board events | | Die Entität *Board-Ereignisse* deines Boards. |
+| Board events | | Die Entität *Ereignisse* deines Boards. |
 | Detection switch | keiner | Wird beim Start einer Session ein- und am Ende ausgeschaltet. |
 | Calibration button | keine | Die Taste *Automatische Kalibrierung starten*, gedrückt nach dem Start der Erkennung. Hat der erste Dart die Session gestartet, entfällt sie, weil dieser Dart noch im Board steckt. |
 | Wait before calibrating | 5 Sekunden | Gibt den Kameras Zeit zum Öffnen. |
@@ -124,7 +124,7 @@ Lass die Kalibrierungstaste leer, wenn die Board-Einstellung *Beim Start kalibri
 
 | Einstellung | Standard | Was sie bewirkt |
 | --- | --- | --- |
-| Board events | | Die Entität *Board-Ereignisse* deines Boards. |
+| Board events | | Die Entität *Ereignisse* deines Boards. |
 | Text-to-speech engine, Speakers, Language, Voice options | | Wie beim Dart caller. |
 | Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Wird gesagt, wenn die nächste Aufnahme das Leg beenden kann. |
 | Next player | leer | Wird gesagt, wenn die nächste Aufnahme das Leg nicht beenden kann. Leer bleibt stumm. |
@@ -139,7 +139,7 @@ Lass die Kalibrierungstaste leer, wenn die Board-Einstellung *Beim Start kalibri
 
 | Einstellung | Standard | Was sie bewirkt |
 | --- | --- | --- |
-| Board events | | Die Entität *Board-Ereignisse* deines Boards. |
+| Board events | | Die Entität *Ereignisse* deines Boards. |
 | Camera | | Die Board-Kamera, die das Foto macht. Aktiviere vorher die Kamera-Entität; Kamera-Entitäten sind standardmäßig deaktiviert. |
 | Visits from | 180 | Eine Aufnahme mit mindestens diesen Punkten bekommt ein Foto, sobald ihr dritter Dart landet. |
 | Checkouts | an | Auch ein Foto, wenn ein Übungsleg mit einem Checkout gewonnen wird. Beendet derselbe Dart eine Aufnahme und ein Leg, bekommst du ein Foto, mit dem Checkout-Text. |
@@ -151,7 +151,7 @@ Lass die Kalibrierungstaste leer, wenn die Board-Einstellung *Beim Start kalibri
 
 | Einstellung | Standard | Was sie bewirkt |
 | --- | --- | --- |
-| Board events | | Die Entität *Board-Ereignisse* deines Boards. |
+| Board events | | Die Entität *Ereignisse* deines Boards. |
 | Actions for a 180 | keine | Laufen, sobald der dritte Dart einer 180 landet. |
 | High finish from | 100 | Ein Übungsleg, das mit einem Checkout ab diesen Punkten gewonnen wird, ist ein High Finish. |
 | Actions for a high finish | keine | Laufen bei einem High Finish, statt der Aktionen für ein gewonnenes Leg. |
@@ -263,15 +263,15 @@ data:
 
 ## Board-Ereignisse
 
-Alle Echtzeitmomente kommen über die Entität **Board-Ereignisse**. Jedes Ereignis hat einen `event_type` und seine Details, siehe [Ereignisse](entitaeten.md#board-ereignisse).
+Alle Echtzeitmomente kommen über die Entität **Ereignisse** des Boards. Jedes Ereignis hat einen `event_type` und seine Details, siehe [Ereignisse](entitaeten.md#board-ereignisse). Die Beispiele nutzen `event.autodarts_board_events`, die Entitäts-ID eines Boards namens *Autodarts Board*; ein mit einer früheren Version eingerichtetes Board behält `event.autodarts_board_board_events`.
 
-Im Automationseditor wählst du den Auslöser **Ereignis empfangen** (*Entität → Ereignis*), die Entität der Board-Ereignisse und die gewünschten Ereignistypen. In YAML:
+Im Automationseditor wählst du den Auslöser **Ereignis empfangen** (*Entität → Ereignis*), die Entität *Ereignisse* deines Boards und die gewünschten Ereignistypen. In YAML:
 
 ```yaml
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - visit_thrown
@@ -292,7 +292,7 @@ alias: Darts – 180-Lichtshow
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - visit_thrown
@@ -323,14 +323,14 @@ triggers:
   - trigger: event.received
     id: started
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - takeout_started
   - trigger: event.received
     id: finished
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - takeout_finished
@@ -399,14 +399,14 @@ alias: Darts – Ablauf der Trainingssession
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - session_started
     id: started
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - session_ended
@@ -476,7 +476,7 @@ alias: Darts – Ansage im Übungsspiel
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - leg_won
@@ -505,7 +505,7 @@ alias: Darts – Bestleistung
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - personal_best
@@ -560,4 +560,4 @@ Ab Version 1.0 meldet der Sensor **Erkennungsstatus** übersetzbare Zustände wi
 | `Calibrating` | `calibrating` |
 | `Error` | `error` |
 
-Die Oberfläche zeigt diese Zustände übersetzt an. Der Sensor *Letztes Board-Ereignis* liefert weiterhin den Rohtext.
+Die Oberfläche zeigt diese Zustände übersetzt an. Der Sensor *Letztes Ereignis* liefert weiterhin den Rohtext.

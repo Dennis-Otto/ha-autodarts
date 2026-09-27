@@ -2,7 +2,7 @@
 
 [← Übersicht](README.md) · [English](../entities.md)
 
-Jedes Board ist ein Gerät mit den folgenden Entitäten. Ihre Namen folgen der Sprache von Home Assistant. Die Entitäts-IDs leiten sich vom Board-Namen ab, zum Beispiel `sensor.autodarts_board_training_3_dart_average`.
+Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Board in Autodarts, wenn die Board-Suche oder die Cloud es gefunden hat, sonst *Autodarts Board*. Die Namen der Entitäten folgen der Sprache von Home Assistant und wiederholen den Gerätenamen nicht. Die Entitäts-IDs leiten sich beim Anlegen einer Entität aus beiden ab, zum Beispiel `sensor.autodarts_board_training_3_dart_average`, und bleiben erhalten, wenn eine spätere Version eine Entität umbenennt.
 
 **Legende:**
 
@@ -23,13 +23,13 @@ Jedes Board ist ein Gerät mit den folgenden Entitäten. Ihre Namen folgen der S
 | Punkte letzter Dart | Sensor, Punkte | Punkte des letzten Darts. |
 | Darts in der Aufnahme | Sensor, Darts | Darts, die gerade im Board erkannt sind (0–3). |
 | Erkannte Aufnahmepunkte | Sensor, Punkte | Summe der erkannten Darts. Das Attribut `throws` listet jeden Dart mit `segment`, `number`, `multiplier`, `score`, `bed` und der normierten Position `x`/`y`. Das Attribut `recent_visits` listet die letzten zehn abgeschlossenen Aufnahmen, die neueste zuerst, mit `time`, `score`, `darts` und `segments`. Der Recorder speichert beide Attribute nicht. |
-| Letztes Board-Ereignis | Sensor | Der letzte Ereignistext des Board Managers, etwa `Throw detected` oder `Takeout started`. |
+| Letztes Ereignis | Sensor | Der letzte Ereignistext des Board Managers, etwa `Throw detected` oder `Takeout started`. |
 
 Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwerfen.
 
 ## Board-Ereignisse
 
-Die Entität **Board-Ereignisse** (`event.*_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP und `training` für Session-Ereignisse. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
+Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP und `training` für Session-Ereignisse. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
@@ -41,7 +41,7 @@ Die Entität **Board-Ereignisse** (`event.*_board_events`) löst native Home-Ass
 | `visit_completed` | Eine Aufnahme endet: bei der Entnahme, wenn nach einer verpassten Entnahme neue Darts folgen, oder wenn die Erkennung stoppt | `score`, `darts`, `segments`, `game`, `thrown` (`true`, wenn `visit_thrown` die Aufnahme schon gemeldet hat) |
 | `status_changed` | Der Erkennungsstatus ändert sich | `status` |
 | `session_started` | Eine Trainingssession beginnt: mit dem Schalter *Trainingssession*, der Taste *Neue Trainingssession* oder mit dem ersten Dart, wenn *Sessions automatisch starten* an ist | `started` und `reason` (`manual`, `new_session` oder `first_dart`) |
-| `session_ended` | Eine Trainingssession endet: mit dem Schalter, der Taste oder nach der Pause aus *Session beenden nach einer Pause von* | `reason` (`manual`, `new_session` oder `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` und die übrigen Trainingssummen |
+| `session_ended` | Eine Trainingssession endet: mit dem Schalter, der Taste oder nach der Pause aus *Session-Timeout* | `reason` (`manual`, `new_session` oder `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` und die übrigen Trainingssummen |
 | `bust` | Ein Dart im [Übungsspiel](#übungsspiel) geht unter null, lässt mit Double-Out 1 übrig oder erreicht 0 ohne Double | `game`, `player`, `name`, `players`, `remaining` (der Rest zu Beginn der Aufnahme, der bleibt) |
 | `leg_won` | Ein Dart beendet das Übungsleg | `game`, `player`, `name`, `players`, `darts` und `average` des Legs, `checkout` (der ausgecheckte Rest), `double_out` und `double_in` (die Regeln des Legs), `legs` des Gewinners im Satz einschließlich dieses Legs und `sets` danach, `match` (`true`, wenn das Leg das Match entscheidet); bei [Cricket](#cricket) `points` und `mpr` statt `average`, `checkout` und der Regeln |
 | `match_won` | Ein Dart entscheidet ein Übungsmatch mehrerer Spieler | `game`, `player`, `name`, `players`, `legs` (des Gewinners im entscheidenden Satz) und `sets`, `scores` mit `player`, `name`, `legs` und `sets` aller Spieler, etwa 3 : 2, und der `average` des Matches; bei Cricket `mpr` |
@@ -61,32 +61,32 @@ Nach einem Neustart oder Verbindungsabbruch werden Ereignisse nie wiederholt. Be
 Die Integration zählt deine Darts in Trainingssessions, in Home Assistant und unabhängig von Autodarts-Spielen. Sessions überstehen Neustarts.
 
 - **Starten und beenden:** Der Schalter *Trainingssession* startet eine Session bei null und beendet sie. *Neue Trainingssession* beendet die laufende Session und startet die nächste.
-- **Automatisch:** Ist *Sessions automatisch starten* an, startet der erste Dart eine Session, wenn keine läuft. *Session beenden nach einer Pause von* beendet eine Session so viele Minuten nach ihrem letzten Dart; `0` lässt sie weiterlaufen.
+- **Automatisch:** Ist *Sessions automatisch starten* an, startet der erste Dart eine Session, wenn keine läuft. *Session-Timeout* beendet eine Session so viele Minuten nach ihrem letzten Dart; `0` lässt sie weiterlaufen.
 - **Ohne Session** werden Darts und Aufnahmen weiter als [Board-Ereignisse](#board-ereignisse) gemeldet, etwa für eine 180-Feier im Online-Spiel, aber nicht gezählt.
-- **Historie:** Eine beendete Session behält ihre Summen, bis die nächste beginnt. *Schnitt der letzten Session* hält den 3-Dart-Average jeder beendeten Session mit Darts fest; sein Verlauf zeigt deine Entwicklung.
+- **Historie:** Eine beendete Session behält ihre Summen, bis die nächste beginnt. *Average der letzten Session* hält den 3-Dart-Average jeder beendeten Session mit Darts fest; sein Verlauf zeigt deine Entwicklung.
 
 Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt jeder Dart wie in Version 1.0.
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Training: Darts | Sensor, Summe | Darts der Session. Das Attribut `hits` zählt die Treffer pro Feld, etwa `{"T20": 12, "S20": 30, "BULL": 2, "MISS": 3}`; das Trefferbild nutzt es. Der Recorder speichert `hits` nicht. |
-| Training: Punkte | Sensor, Summe | Summe aller Punkte. |
-| Training: 3-Dart-Average | Sensor | Punkte pro drei Darts, der übliche Darts-Schnitt. Vor dem ersten Dart *unbekannt*. |
-| Training: Aufnahmen | Sensor, Summe | Aufnahmen mit mindestens einem gezählten Dart. |
-| Training: Höchste Aufnahme | Sensor | Höchste Aufnahme der Session. |
-| Training: 100+ Aufnahmen | Sensor, Summe | Aufnahmen mit 100–139 Punkten. |
-| Training: 140+ Aufnahmen | Sensor, Summe | Aufnahmen mit 140–179 Punkten. |
-| Training: 180er | Sensor, Summe | Aufnahmen mit drei Triple 20. |
-| Training: Triple | Sensor, Summe | Darts in einem Triple-Feld. |
-| Training: Doubles | Sensor, Summe | Darts in einem Double-Feld (ohne Bull). |
-| Training: Bull-Treffer | Sensor, Summe | Darts im Bull oder Single Bull. |
-| Training: Fehlwürfe | Sensor, Summe | Darts außerhalb der Wertungsfelder. |
-| Trainingsbeginn | Sensor, Zeitstempel | Wann die Session begonnen hat. |
+| Training Darts | Sensor, Summe | Darts der Session. Das Attribut `hits` zählt die Treffer pro Feld, etwa `{"T20": 12, "S20": 30, "BULL": 2, "MISS": 3}`; das Trefferbild nutzt es. Der Recorder speichert `hits` nicht. |
+| Training Punkte | Sensor, Summe | Summe aller Punkte. |
+| Training 3-Dart-Average | Sensor | Punkte pro drei Darts, der übliche Darts-Schnitt. Vor dem ersten Dart *unbekannt*. |
+| Training Aufnahmen | Sensor, Summe | Aufnahmen mit mindestens einem gezählten Dart. |
+| Training höchste Aufnahme | Sensor | Höchste Aufnahme der Session. |
+| Training 100+ Aufnahmen | Sensor, Summe | Aufnahmen mit 100–139 Punkten. |
+| Training 140+ Aufnahmen | Sensor, Summe | Aufnahmen mit 140–179 Punkten. |
+| Training 180er | Sensor, Summe | Aufnahmen mit drei Triple 20. |
+| Training Triple | Sensor, Summe | Darts in einem Triple-Feld. |
+| Training Doubles | Sensor, Summe | Darts in einem Double-Feld (ohne Bull). |
+| Training Bull-Treffer | Sensor, Summe | Darts im Bull oder Single Bull. |
+| Training Fehlwürfe | Sensor, Summe | Darts außerhalb der Wertungsfelder. |
+| Beginn der Trainingssession | Sensor, Zeitstempel | Wann die Session begonnen hat. |
 | Trainingssession | Schalter | An, solange eine Session läuft. Einschalten startet eine Session bei null, Ausschalten beendet sie. |
 | Neue Trainingssession | Taste | Beendet die laufende Session und startet die nächste; das Board selbst bleibt unberührt. |
 | Sessions automatisch starten | Schalter, *Konfiguration* | Der erste Dart startet eine Session, wenn keine läuft. Standardmäßig an. |
-| Session beenden nach einer Pause von | Zahl, *Konfiguration* | Minuten ohne Darts, 0–240, nach denen eine Session von selbst endet. `0`, der Standard, lässt sie weiterlaufen. |
-| Schnitt der letzten Session | Sensor, Punkte | 3-Dart-Average der letzten beendeten Session. Attribute: `started`, `ended`, `duration_minutes`, die Summen und `sessions` mit den letzten 20 Sessions, die der Recorder nicht speichert. |
+| Session-Timeout | Zahl, *Konfiguration* | Minuten ohne Darts, 0–240, nach denen eine Session von selbst endet. `0`, der Standard, lässt sie weiterlaufen. |
+| Average der letzten Session | Sensor, Punkte | 3-Dart-Average der letzten beendeten Session. Attribute: `started`, `ended`, `duration_minutes`, die Summen und `sessions` mit den letzten 20 Sessions, die der Recorder nicht speichert. |
 
 Die Summen nutzen die Zustandsklasse *total increasing*. Statistiken und Verlaufsdiagramme von Home Assistant behandeln einen Neustart der Session daher korrekt. [So wird gezählt](funktionsweise.md#trainingssession).
 
@@ -108,7 +108,7 @@ Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert ha
 | --- | --- | --- |
 | Letzte Bestleistung | Sensor, Zeitstempel | Wann die letzte Bestleistung fiel; vor der ersten *unbekannt*. Attribute: `record`, `value`, `previous` und `name` dieser Bestleistung sowie der beste Wert jedes Rekords unter seinem Schlüssel, etwa `highest_checkout`. |
 | Darts heute | Sensor, Darts, Summe | Heute erkannte Darts; beginnt um Mitternacht bei 0. Attribute: `goal`, `goal_reached`, `progress` (Prozent des Ziels). |
-| Trainingsserie | Sensor, Tage | Tage in Folge mit mindestens einem Dart. Sie bleibt, bis ein ganzer Tag ohne Darts vergeht. Attribute: `best_streak`, `trained_today`, `last_day`. |
+| Trainingsserie | Sensor, Dauer in Tagen | Tage in Folge mit mindestens einem Dart. Sie bleibt, bis ein ganzer Tag ohne Darts vergeht. Attribute: `best_streak`, `trained_today`, `last_day`. |
 | Tagesziel | Zahl, Darts, *Konfiguration* | Darts, die du jeden Tag werfen willst, 0–2000; `0`, der Standard, setzt kein Ziel. Erreichen die Darts von heute das Ziel, löst `daily_goal_reached` einmal aus. |
 
 ## Übungsspiel
@@ -117,12 +117,12 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 
 <img src="../images/de/practice-checkout.webp" alt="Animation: ein 141er-Checkout in einem 501-Leg. Nach jedem Dart ändern sich Rest, Weg und umrandetes Feld: T20 T19 D12, dann Game shot und ein neues Leg" width="620">
 
-- **Starten:** Wähle 101, 301, 501, 701, 901 oder 1001 in *Übungsspiel*. Darts, die schon im Board stecken, zählen nicht. *Neues Übungsleg* beginnt das Leg wieder beim vollen Rest.
+- **Starten:** Wähle 101, 301, 501, 701, 901 oder 1001 in *Übungsspiel*. Darts, die schon im Board stecken, zählen nicht. *Neues Leg im Übungsspiel* beginnt das Leg wieder beim vollen Rest.
 - **Double-In:** Mit *Übungsspiel Double-In* beginnt die Zählung eines Spielers mit dem ersten Double oder Bullseye des Legs; Darts davor zählen nichts, und ein Überwerfen nimmt die Öffnung zurück. Die Karte fordert ein Double und umrandet den Doppelring.
 - **Ausbullen:** Mit *Übungsspiel Ausbullen* und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull. Wie in den offiziellen Regeln schlägt das Bullseye das Single-Bull und dieses jedes andere Feld; zwei Darts im selben Bull-Feld werfen noch einmal, in umgekehrter Reihenfolge. Außerhalb des Bulls, und mit *Übungsspiel Ausbullen nach Abstand* auch darin, gewinnt der Dart, der der Mitte am nächsten ist, gemessen an den Dart-Positionen, die das Board meldet; ein Dart ohne Position schlägt nie einen gemessenen. [Die Regeln fürs Ausbullen](funktionsweise.md#ausbullen).
 - **Aufnahmen:** Eine Aufnahme endet, wenn du die Darts ziehst. Nach dem Überwerfen bleibt der Rest vom Beginn der Aufnahme. Darts nach dem Überwerfen oder nach dem Checkout zählen nicht.
 - **Checkout:** der Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
-- **Matches:** Stelle *Übungsspiel Spieler* auf 2, 3 oder 4. Nach einer Aufnahme wirft der nächste Spieler; auch beim Überwerfen ist der Nächste dran. Wer zuerst *Übungsspiel Legs pro Satz* Legs gewinnt, holt den Satz, und wer zuerst *Übungsspiel Sätze zum Sieg* Sätze holt, gewinnt das Match. Der Anwurf wechselt innerhalb eines Satzes jedes Leg, und jeder Satz beginnt mit dem nächsten Spieler. Das Ergebnis mit den Legs des entscheidenden Satzes bleibt in der Karte stehen, bis der nächste Dart ein neues Match beginnt. Mit einem Spieler werden Legs und Sätze nicht gezählt. [Die Regeln für Matches](funktionsweise.md#matches-legs-und-sätze).
+- **Matches:** Stelle *Übungsspiel Spielerzahl* auf 2, 3 oder 4. Nach einer Aufnahme wirft der nächste Spieler; auch beim Überwerfen ist der Nächste dran. Wer zuerst *Übungsspiel Legs pro Satz* Legs gewinnt, holt den Satz, und wer zuerst *Übungsspiel Sätze zum Sieg* Sätze holt, gewinnt das Match. Der Anwurf wechselt innerhalb eines Satzes jedes Leg, und jeder Satz beginnt mit dem nächsten Spieler. Das Ergebnis mit den Legs des entscheidenden Satzes bleibt in der Karte stehen, bis der nächste Dart ein neues Match beginnt. Mit einem Spieler werden Legs und Sätze nicht gezählt. [Die Regeln für Matches](funktionsweise.md#matches-legs-und-sätze).
 - **Sessions:** Übungsspiel und [Trainingssessions](#trainingssession) sind unabhängig. Ein Dart zählt in beiden.
 - **Weitere Spiele:** *Übungsspiel* bietet auch drei [Partyspiele](#partyspiele) und vier [Trainingsspiele](#trainingsspiele).
 
@@ -132,15 +132,15 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel Restpunkte | Sensor | Restpunkte des Spielers am Board; ohne Spiel *unbekannt*. Attribute: `game`, `double_out`, `player` und `name` des Spielers am Board, `checkout`, `bust`, `won`, `visit` (die Felder der aktuellen Aufnahme), `darts` und `average` des Legs, `players`, `legs_to_win`, `sets_to_win`, `winner` (der Matchgewinner bis zum nächsten Dart), `scores` mit `player`, `name`, `remaining`, `legs` (im laufenden Satz oder im entscheidenden Satz eines beendeten Matches), `sets`, `match_legs` (Legs des ganzen Matches) und dem Match-`average` jedes Spielers, `bull_off` beim Ausbullen (der `player` am Board, `rethrow`, `by_distance` und `throws` mit `player`, `name`, `hit` und `distance`) sowie `legs` mit den letzten 10 Legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended`). Der Recorder speichert weder `visit`, `scores` noch `legs`. |
 | Übungsspiel Checkout-Weg | Sensor | Der Checkout-Weg, etwa `T20 25 D18`; *unbekannt*, wenn es keinen gibt. |
 | Übungsspiel Ziel | Sensor | Das Ziel des [Trainingsspiels](#trainingsspiele), etwa `7`, `D16`, `BULL` oder der Checkout-Rest `81`, oder bei [Cricket](#cricket) die nächste offene Zahl, etwa `T19`; ohne Ziel *unbekannt*. Attribute: `drill`, `finished`, `visit`, `progress` und `targets`, `darts`, `hits`, `hit_rate`, das beste Ergebnis als `best` und `results` mit den letzten 10 Ergebnissen, die der Recorder nicht speichert. Bob's 27 ergänzt `score`; das Checkout-Training ergänzt `remaining`, `checkout`, `bust`, `won`, `attempt_visit`, `attempt_visits`, `attempts`, `successes` und `rate`. |
-| Neues Übungsleg | Taste | Beginnt das Leg wieder beim vollen Rest; Legs und Sätze bleiben. |
-| Neues Übungsmatch | Taste | Beginnt das Match wieder bei null Legs und Sätzen. |
+| Neues Leg im Übungsspiel | Taste | Beginnt das Leg wieder beim vollen Rest; Legs und Sätze bleiben. |
+| Neues Match im Übungsspiel | Taste | Beginnt das Match wieder bei null Legs und Sätzen. |
 | Übungsspiel First-9-Average | Sensor, Punkte | 3-Dart-Average der ersten neun Darts jedes Legs, über die letzten 10 Legs aller Spieler am Board. |
 | Übungsspiel Checkout-Quote | Sensor, % | Gewonnene Legs pro Dart auf ein Double, über die letzten 10 Legs. Ein Dart zählt als Dart aufs Double, wenn ein Double den Rest checken könnte: 2 bis 40 bei geraden Zahlen oder 50. Nur mit Double-Out. |
 | Übungsspiel Doppelquote | Sensor, % | Dieselben Darts aufs Double zusammen mit den letzten 10 Ergebnissen aus Doppeltraining und Bob's 27. |
 | Übungsspiel gespielte Legs | Sensor, Summe | Beendete Legs in X01, Cricket und den Partyspielen; die Langzeitstatistik zeigt die Legs pro Tag. |
-| Übungsspiel Spieler | Zahl | 1–4 Spieler. Eine Änderung startet ein neues Match. |
-| Übungsspiel Legs pro Satz | Zahl | 1–11 Legs gewinnen einen Satz. Eine Änderung startet ein neues Match. |
-| Übungsspiel Sätze zum Sieg | Zahl | 1–7 Sätze gewinnen das Match. Eine Änderung startet ein neues Match. |
+| Übungsspiel Spielerzahl | Zahl, *Konfiguration* | 1–4 Spieler. Eine Änderung startet ein neues Match. |
+| Übungsspiel Legs pro Satz | Zahl, *Konfiguration* | 1–11 Legs gewinnen einen Satz. Eine Änderung startet ein neues Match. |
+| Übungsspiel Sätze zum Sieg | Zahl, *Konfiguration* | 1–7 Sätze gewinnen das Match. Eine Änderung startet ein neues Match. |
 | Übungsspiel Spieler *N* | Text, *Konfiguration* | Name von Spieler 1–4, höchstens 20 Zeichen, für Anzeigetafel und Ereignisse. Ohne Namen zeigt die Karte *Spieler N*. |
 | Übungsspiel Double-Out | Schalter, *Konfiguration* | Checkout auf einem Double oder dem Bullseye. Standardmäßig an. |
 | Übungsspiel Double-In | Schalter, *Konfiguration* | Die Zählung beginnt mit einem Double oder dem Bullseye. Standardmäßig aus; eine Änderung startet ein neues Match. |
@@ -199,7 +199,7 @@ Bei Shanghai und Halve-It entscheidet bei Punktgleichheit die Zahl der Treffer; 
 
 ## Trainingsspiele
 
-Vier klassische Übungen, gewählt in *Übungsspiel*. Jede folgt den Darts der aktuellen Aufnahme und verbucht die Aufnahme, wenn du die Darts ziehst. Darts, die beim Start schon im Board stecken, zählen nicht. Ein beendetes Spiel bleibt in der Karte stehen, bis der nächste Dart es neu startet; *Neues Übungsleg* startet es sofort neu. Jedes Spiel behält seine letzten 10 Ergebnisse.
+Vier klassische Übungen, gewählt in *Übungsspiel*. Jede folgt den Darts der aktuellen Aufnahme und verbucht die Aufnahme, wenn du die Darts ziehst. Darts, die beim Start schon im Board stecken, zählen nicht. Ein beendetes Spiel bleibt in der Karte stehen, bis der nächste Dart es neu startet; *Neues Leg im Übungsspiel* startet es sofort neu. Jedes Spiel behält seine letzten 10 Ergebnisse.
 
 <img src="../images/de/training-game.webp" alt="Animation: Around the Clock. Jeder Treffer bringt das Ziel von 1 bis 6 weiter und umrandet alle Felder der nächsten Zahl" width="620">
 
@@ -210,7 +210,7 @@ Vier klassische Übungen, gewählt in *Übungsspiel*. Jede folgt den Darts der a
 | **Checkout-Training** (`checkout`) | Ein zufälliger Rest von 2 bis 170, der mit drei Darts checkbar ist, auf einem Double in höchstens drei Aufnahmen ausgecheckt. Überwerfen beendet den Versuch; der Weg steht nur, solange der Versuch läuft. Die Checkout-Quote zählt erfolgreiche Versuche. |
 | **Bob's 27** (`bobs_27`) | Start mit 27 Punkten, je eine Aufnahme auf jedes Double von D1 bis D20 und dann aufs Bullseye. Jeder Treffer bringt den Wert des Doubles; eine Aufnahme ohne Treffer zieht ihn ab. Das Spiel ist verloren, sobald die Punkte null oder weniger erreichen, und geschafft nach dem Bullseye. |
 
-Trainingsspiele sind für einen Spieler; *Übungsspiel Spieler* gilt für X01, Cricket und die Partyspiele.
+Trainingsspiele sind für einen Spieler; *Übungsspiel Spielerzahl* gilt für X01, Cricket und die Partyspiele.
 
 ## Steuerung
 
@@ -223,8 +223,8 @@ Trainingsspiele sind für einen Spieler; *Übungsspiel Spieler* gilt für X01, C
 | Kamera *N* kalibrieren | Taste, *Konfiguration* | Kalibriert eine Kamera. |
 | Board Manager neu starten | Taste, *Konfiguration* | Startet den Board-Manager-Dienst neu. |
 | Kamerastreams starten, Kamerastreams stoppen | Tasten, *Konfiguration*, *Deaktiviert* | Steuert die Kamerastreams des Board Managers. |
-| Board-Cloud-Verbindung | Schalter, **BM 1** | Stellt die eigene Verbindung des Boards zu Autodarts her oder trennt sie. |
-| Board-Cloud-Verbindung herstellen, Board-Cloud-Verbindung trennen | Tasten, **BM 1**, *Deaktiviert* | Dasselbe als Tasten. |
+| Cloud-Verbindung | Schalter, **BM 1** | Stellt die eigene Verbindung des Boards zu Autodarts her oder trennt sie. |
+| Cloud-Verbindung herstellen, Cloud-Verbindung trennen | Tasten, **BM 1**, *Deaktiviert* | Dasselbe als Tasten. |
 
 Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antwortet es nicht, meldet Home Assistant einen Fehler, statt es erneut zu versuchen. So wird keine Aktion doppelt ausgeführt.
 
@@ -235,7 +235,7 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 | Beim Start kalibrieren | Schalter, *Konfiguration* | Kalibriert beim Start der Erkennung. |
 | Automatisch nachkalibrieren | Schalter, *Konfiguration* | Der Board Manager kalibriert bei Bedarf selbst nach. |
 | Automatische Verzerrungskorrektur | Schalter, *Konfiguration* | Korrigiert die Linsenverzerrung bei der Kalibrierung. |
-| Kamera-Standby (Minuten) | Auswahl, *Konfiguration* | Versetzt die Kameras nach 5, 10, 15, 30 oder 60 Minuten ohne Nutzung in den Standby. |
+| Kamera-Standby | Auswahl, *Konfiguration* | Versetzt die Kameras nach 5, 10, 15, 30 oder 60 Minuten ohne Nutzung in den Standby. |
 
 Änderungen werden in die Board-Manager-Konfiguration geschrieben; gesendet wird nur die geänderte Einstellung.
 
@@ -243,22 +243,22 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Board-Manager-Verbindung | Binärsensor, *Diagnose* | Home Assistant erreicht den Board Manager. Ein oder zwei verpasste Lesevorgänge, also wenige Sekunden, lassen ihn an. |
+| Lokale Verbindung | Binärsensor, *Diagnose* | Home Assistant erreicht den Board Manager. Ein oder zwei verpasste Lesevorgänge, also wenige Sekunden, lassen ihn an. |
 | Echtzeitverbindung | Binärsensor, *Diagnose* | Die Verbindung für Echtzeitereignisse steht. Bis darüber Ereignisse ankommen, liest die Integration alle 2 Sekunden. |
 | Autodarts-Cloud-Verbindung | Binärsensor, **BM 2**, *Diagnose* | Die Verbindung des Boards zu Autodarts. |
 | Kameras aktiv | Binärsensor | Die Kameras laufen. |
 | Kalibrierung läuft | Binärsensor | Eine Kalibrierung läuft. |
 | Kamerastörung | Binärsensor, *Diagnose* | An, wenn eine Kamera bei laufender Erkennung 15 Sekunden lang keine Bilder liefert. Normales Stoppen, Kalibrieren und Standby zählen nicht. |
-| Störung Kamera *N* | Binärsensor, *Diagnose* | Dasselbe für eine einzelne Kamera. |
+| Kamera *N* Störung | Binärsensor, *Diagnose* | Dasselbe für eine einzelne Kamera. |
 | Erkennungsbildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde der Erkennung. |
 | Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die das Board nachträglich korrigiert hat. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](fehlerbehebung.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
-| Bildrate Kamera *N* | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde einer Kamera. |
+| Kamera *N* Bildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde einer Kamera. |
 | CPU-Auslastung | Sensor, %, **BM 2**, *Diagnose* | CPU-Last des Board-PCs. |
 | Speichernutzung | Sensor, **BM 2**, *Diagnose*, *Deaktiviert* | Speichernutzung laut Board Manager 2. |
-| Betriebssystem des Board-PCs | Sensor, **BM 2**, *Diagnose* | Distribution und Version des Board-PCs, etwa *Debian 13*. Attribute: `kernel`, `architecture`. |
-| Prozessor des Board-PCs | Sensor, **BM 2**, *Diagnose* | Prozessormodell des Board-PCs. Attribut: `cores`. |
+| Betriebssystem | Sensor, **BM 2**, *Diagnose* | Distribution und Version des Board-PCs, etwa *Debian 13*. Attribute: `kernel`, `architecture`. |
+| Prozessor | Sensor, **BM 2**, *Diagnose* | Prozessormodell des Board-PCs. Attribut: `cores`. |
 | Version der Erkennungssoftware | Sensor, **BM 2**, *Diagnose* | Version der Autodarts-Erkennungssoftware. Attribut: `opencv_version`. |
-| Board-Software | Update, **BM 2** | Installierte und neueste Board-Manager-Version. Updates installierst du auf dem Board-PC. |
+| Software | Update, **BM 2** | Installierte und neueste Board-Manager-Version. Updates installierst du auf dem Board-PC. |
 
 Die Entitäten einer einzelnen Kamera tragen das Attribut `camera` mit der Kameranummer. Die [Board-Status-Karte](karten.md#board-status) nutzt es.
 
@@ -266,12 +266,12 @@ Die Entitäten einer einzelnen Kamera tragen das Attribut `camera` mit der Kamer
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Hand erkannt | Binärsensor | Eine Hand ist vor dem Board. |
-| Bild stabil | Binärsensor | Das Kamerabild ist ruhig. |
-| Darts teilweise entfernt | Binärsensor | Einige Darts sind entfernt. |
-| Darts vollständig entfernt | Binärsensor | Alle Darts sind entfernt. |
+| Hand erkannt | Binärsensor, *Diagnose* | Eine Hand ist vor dem Board. |
+| Bild stabil | Binärsensor, *Diagnose*, *Deaktiviert* | Das Kamerabild ist ruhig. |
+| Darts teilweise entfernt | Binärsensor, *Diagnose* | Einige Darts sind entfernt. |
+| Darts vollständig entfernt | Binärsensor, *Diagnose*, *Deaktiviert* | Alle Darts sind entfernt. |
 
-Während die Erkennung gestoppt ist, startet, stoppt oder kalibriert, sind diese Sensoren *aus*.
+Während die Erkennung gestoppt ist, startet, stoppt oder kalibriert, sind diese Sensoren *aus*. Sie ändern sich mit fast jedem Dart und jeder Entnahme, und jede Änderung wird aufgezeichnet. Die Live-Karte zeigt eine Hand am Board und eine Entnahme mit dem ersten und dritten Sensor, deshalb sind diese beiden aktiv; die anderen beiden werden deaktiviert angelegt. Bei einem mit einer früheren Version eingerichteten Board bleiben alle vier aktiv; nicht benötigte deaktivierst du in den Entitätseinstellungen.
 
 ## Kameras
 
@@ -285,14 +285,14 @@ Diese Entitäten gibt es nur mit [verknüpftem Autodarts-Konto](installation.md#
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Board-Status | Sensor (Aufzählung), *Diagnose* | `connected` oder `disconnected` in der Autodarts-Cloud. |
+| Cloud-Status | Sensor (Aufzählung), *Diagnose* | `connected` oder `disconnected` in der Autodarts-Cloud. |
 | Spielmodus | Sensor | Variante des laufenden Spiels, etwa `X01` oder `Cricket`. |
-| Spielstatus | Sensor (Aufzählung) | `no_match`, `active` oder `finished`. |
+| Match-Status | Sensor (Aufzählung) | `no_match`, `active` oder `finished`. |
 | Runde | Sensor | Aktuelle Runde. |
 | Punkte der Aufnahme | Sensor, Punkte | Punkte der aktuellen Aufnahme im Spiel. |
 | Geworfene Darts | Sensor, Darts | Im Spiel geworfene Darts. |
 
-Ohne lokales Board kommen auch *Letztes Board-Ereignis*, *Letzter Dart* und *Darts in der Aufnahme* aus der Cloud.
+Ohne lokales Board kommen auch *Letztes Ereignis*, *Letzter Dart* und *Darts in der Aufnahme* aus der Cloud.
 
 ## Aktionen
 
@@ -320,7 +320,7 @@ data:
   legs: 3
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn ein Name zweimal unter den Spielern steht oder wenn Killer weniger als zwei Spieler hätte.
+Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht oder wenn Killer weniger als zwei Spieler hätte. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
 
 ### Spielerprofil löschen: `autodarts.delete_player`
 

@@ -37,7 +37,7 @@ Every blueprint shows these settings when you create an automation from it. Sett
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Board events | | The *Board events* entity of your board. |
+| Board events | | The *Events* entity of your board. |
 | Minimum score | 180 | The lowest visit score that runs the actions. A visit of three darts counts when its third dart lands; a shorter visit when the darts are pulled. |
 | Actions | | What happens after such a visit. It can use `score`, `darts`, `segments` and `game` (the practice game, or empty). |
 
@@ -45,7 +45,7 @@ Every blueprint shows these settings when you create an automation from it. Sett
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Board events | | The *Board events* entity of your board. |
+| Board events | | The *Events* entity of your board. |
 | Text-to-speech engine | | The engine that speaks, for example Home Assistant Cloud or Piper. |
 | Speakers | | The media players that play the calls. |
 | Language | empty | The language of the voice, for example `en-GB`; empty uses the language of the engine. |
@@ -62,7 +62,7 @@ An empty message stays silent.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Board events | | The *Board events* entity of your board. |
+| Board events | | The *Events* entity of your board. |
 | When the takeout starts | none | Runs when a hand reaches the board to pull the darts. |
 | When the board is clear | none | Runs when all darts are out of the board. |
 
@@ -82,7 +82,7 @@ Don't combine this blueprint with a detection switch in the *training session ro
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Board connection | | The *Board Manager connection* sensor of your board. |
+| Board connection | | The *Local connection* sensor of your board. |
 | Camera problem | | The *Camera problem* sensor of your board. |
 | Grace period | 2 minutes | How long a problem has to last before the alert, so that a Board Manager restart or a short calibration stays quiet. |
 | Alert actions | | For example a notification to your phone. `problem` is `offline` or `cameras`. |
@@ -108,7 +108,7 @@ A finished session keeps its totals until the next one starts, so the report che
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Board events | | The *Board events* entity of your board. |
+| Board events | | The *Events* entity of your board. |
 | Detection switch | none | Turned on when a session starts and off when it ends. |
 | Calibration button | none | The *Start automatic calibration* button, pressed after the detection has started. It is skipped when the first dart started the session, because that dart is still in the board. |
 | Wait before calibrating | 5 seconds | Gives the cameras time to open. |
@@ -122,7 +122,7 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Board events | | The *Board events* entity of your board. |
+| Board events | | The *Events* entity of your board. |
 | Text-to-speech engine, Speakers, Language, Voice options | | As in the dart caller. |
 | Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Said when the next visit can finish the leg. |
 | Next player | empty | Said when the next visit cannot finish the leg. Empty stays silent. |
@@ -137,7 +137,7 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Board events | | The *Board events* entity of your board. |
+| Board events | | The *Events* entity of your board. |
 | Camera | | The board camera that takes the photo. Enable the camera entity first; camera entities are disabled by default. |
 | Visits from | 180 | A visit with at least this score gets a photo when its third dart lands. |
 | Checkouts | on | Also a photo when a practice leg is won with a checkout. When the same dart finishes a visit and a leg, you get one photo, with the checkout message. |
@@ -149,7 +149,7 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Board events | | The *Board events* entity of your board. |
+| Board events | | The *Events* entity of your board. |
 | Actions for a 180 | none | Run the moment the third dart of a 180 lands. |
 | High finish from | 100 | A practice leg won with a checkout of at least this score is a high finish. |
 | Actions for a high finish | none | Run for a high finish, instead of the actions for a won leg. |
@@ -263,15 +263,15 @@ data:
 
 ## Board events
 
-All realtime moments arrive through the **Board events** entity. Each event carries an `event_type` and its details; see the [event reference](entities.md#board-events).
+All realtime moments arrive through the **Events** entity of the board. Each event carries an `event_type` and its details; see the [event reference](entities.md#board-events). The examples use `event.autodarts_board_events`, the entity ID of a board named *Autodarts Board*; a board set up with an earlier version keeps `event.autodarts_board_board_events`.
 
-In the automation editor, choose the trigger **Event received** (*Entity → Event*), select the board events entity and the event types you want. In YAML:
+In the automation editor, choose the trigger **Event received** (*Entity → Event*), select the *Events* entity of your board and the event types you want. In YAML:
 
 ```yaml
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - visit_thrown
@@ -292,7 +292,7 @@ alias: Darts - 180 light show
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - visit_thrown
@@ -323,14 +323,14 @@ triggers:
   - trigger: event.received
     id: started
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - takeout_started
   - trigger: event.received
     id: finished
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - takeout_finished
@@ -399,14 +399,14 @@ alias: Darts - training session routine
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - session_started
     id: started
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - session_ended
@@ -476,7 +476,7 @@ alias: Darts - practice caller
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - leg_won
@@ -505,7 +505,7 @@ alias: Darts - personal best
 triggers:
   - trigger: event.received
     target:
-      entity_id: event.autodarts_board_board_events
+      entity_id: event.autodarts_board_events
     options:
       event_type:
         - personal_best
@@ -560,4 +560,4 @@ Since version 1.0, the **Detection status** sensor reports translatable states: 
 | `Calibrating` | `calibrating` |
 | `Error` | `error` |
 
-The UI shows these states in your language. The *Last board event* sensor still reports the raw Board Manager text.
+The UI shows these states in your language. The *Last event* sensor still reports the raw Board Manager text.

@@ -46,7 +46,7 @@ A board is one config entry with up to two independent connections:
 | --- | --- | --- |
 | Detection | Version starts with `1.` | Version starts with `2.` and `/api/system` exists |
 | Reads | Separate reads for state, statistics, cameras, motion, settings and version | One combined `/api/system` read |
-| Extras | Board cloud link switch | Cloud connection, CPU, memory, update notice, mDNS discovery |
+| Extras | Cloud link switch | Cloud connection, CPU, memory, update notice, mDNS discovery |
 
 The generation is detected on every read. When you update the board, the integration reloads itself and adds or removes the generation-specific entities; nothing else changes. While a board still runs Board Manager 1, a repair notice recommends the update. While the generation is still unknown, for example when the board is off at the first start, no entities are removed.
 

@@ -5,7 +5,7 @@
 ## Schnelle Prüfung
 
 1. **Läuft der Board Manager?** Öffne `http://<Board-IP>:3180` im Browser eines Geräts im selben Netzwerk. Board Manager 1 zeigt seine App; Board Manager 2 antwortet unter `http://<Board-IP>:3180/api/state`.
-2. **Ist die Entität *Board-Manager-Verbindung* an?** Wenn nicht, erreicht Home Assistant das Board nicht. Prüfe Adresse, Port und das Netzwerk dazwischen: VLANs, Firewall, Docker-Netzwerk.
+2. **Ist die Entität *Lokale Verbindung* an?** Wenn nicht, erreicht Home Assistant das Board nicht. Prüfe Adresse, Port und das Netzwerk dazwischen: VLANs, Firewall, Docker-Netzwerk.
 3. **Ist die Entität *Echtzeitverbindung* an?** Wenn nicht, kommen Änderungen trotzdem alle 2 Sekunden an, nur nicht sofort. Siehe [Echtzeitverbindung](#keine-echtzeitaktualisierung).
 
 ## Einrichtung
@@ -14,7 +14,7 @@
 | --- | --- |
 | *Der lokale Board Manager ist nicht erreichbar oder liefert keine gültigen Daten.* | Falsche Adresse oder falscher Port, der Board Manager läuft nicht, oder auf dem Port antwortet etwas anderes. Trage nur die IP-Adresse ein, ohne `http://` und ohne Port. |
 | *Das Board verweigert den Zugriff (HTTP 401 oder 403).* | Der Board Manager selbst braucht keine Anmeldung. Etwas vor Port 3180 blockiert Home Assistant, zum Beispiel ein Reverse Proxy, eine Firewall oder eine Anmeldeseite. Lass Home Assistant direkt auf das Board zugreifen oder trage die Adresse des Boards selbst ein. |
-| *Im Board Manager ist noch keine Board-ID hinterlegt.* | Das Board ist noch nicht bei Autodarts eingerichtet. Schließe die Einrichtung im Board Manager ab und versuche es erneut. |
+| *Im Board Manager ist noch keine Board-ID eingerichtet.* | Das Board ist noch nicht bei Autodarts eingerichtet. Schließe die Einrichtung im Board Manager ab und versuche es erneut. |
 | *Es wurden keine neuen Boards automatisch gefunden.* | Die Suche findet nur Boards, die von deinem Internetanschluss aus registriert und noch nicht eingerichtet sind. Gib stattdessen die Adresse ein. |
 | *Die Board-Suche ist gerade nicht erreichbar.* | Der Suchdienst von Autodarts ist nicht erreichbar. Gib stattdessen die Adresse ein. |
 | *Dieses Autodarts-Board ist bereits eingerichtet.* | Das Board ist schon vorhanden. Über **Neu konfigurieren** änderst du seine Adresse. |
@@ -50,6 +50,12 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Das Board hat die Aktion nicht angenommen.* | Das Board hat den Befehl abgelehnt oder nicht geantwortet. Prüfe die Verbindung und versuche es erneut. |
 | *Dieses Board unterstützt die Aktion nicht.* | Der Board Manager kennt diesen Befehl nicht, zum Beispiel die Kamerastreams bei Board Manager 1. |
 | *Der Board Manager verweigert den Zugriff.* | Siehe **Autodarts-Board verweigert den Zugriff** unter [Reparaturen](#reparaturen). |
+| *Es ist kein Autodarts-Board mit lokaler Verbindung geladen.* | `autodarts.start_game` und `autodarts.delete_player` brauchen ein lokal verbundenes, geladenes Board. Prüfe den Eintrag unter **Einstellungen → Geräte & Dienste**; ein nur mit der Cloud verknüpfter Eintrag kann nicht spielen. |
+| *Es sind mehrere Autodarts-Boards eingerichtet. Wähle das Board.* | Bei mehreren Boards wählst du das Board in der Aktion, in YAML im Feld `config_entry_id`. |
+| Home Assistant meldet, dass der Konfigurationseintrag nicht gefunden wurde, zu einer anderen Integration gehört oder nicht geladen ist | Das in der Aktion gewählte Board wurde gelöscht, ist ein Eintrag einer anderen Integration oder ist nicht geladen. Wähle das Board neu; lädt ein Board nicht, steht der Grund an seinem Eintrag. |
+| *… steht mehrfach in der Spielerliste.* | Jeder Spieler braucht einen eigenen Namen. Spieler ohne Namen dürfen mehrfach vorkommen. |
+| *Killer braucht mindestens zwei Spieler.* | Nenne in der Aktion zwei bis vier Spieler oder stelle *Übungsspiel Spielerzahl* auf 2 oder mehr. |
+| *Es gibt kein Spielerprofil mit dem Namen …* | Prüfe die Schreibweise; Groß- und Kleinschreibung spielen keine Rolle. Der Sensor *Spielerprofile* listet alle Profile. |
 
 ### Keine Echtzeitaktualisierung
 
@@ -85,9 +91,11 @@ Neu beginnen: **Neue Trainingssession** oder *Neue Session* auf der Trainingskar
 
 - den Board-Zustand und die Zusammenfassung der Einstellungen;
 - die Board-Manager-Generation, die Verbindungen und das Leseintervall;
+- ob eine Cloud-Verbindung eingerichtet ist, das Übungsspiel mit seinen Regeln und ob gerade ausgebullt wird;
+- die Zahl der gespeicherten Sessions, Bestleistungen, Spielerprofile, Matches und Darts aufs Double;
 - unter `connection` den Verlauf der Verbindung: verpasste Lesevorgänge in Folge, die Art des letzten Fehlers, das letzte erfolgreiche Lesen, wie lange das Board schon fehlt, die Dauer des letzten Lesens, Abfragen mit unbekanntem Format und für die Echtzeitverbindung Verbindungsaufbauten, fehlgeschlagene Versuche, den aktuellen Abstand bis zum nächsten Versuch, den Grund des letzten Abbruchs und die Zahl übersprungener Nachrichten.
 
-Board-ID, Adressen, Token und Spielernamen sind geschwärzt; Fehlermeldungen sind nicht enthalten.
+Board-ID, Board-Name, Adressen, Token und Spielernamen sind geschwärzt; Fehlermeldungen sind nicht enthalten.
 
 ### Debug-Protokollierung
 
