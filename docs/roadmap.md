@@ -2,7 +2,7 @@
 
 [← Documentation](README.md) · [Deutsch](de/roadmap.md)
 
-This roadmap shows what each version brought and what comes next. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose).
+This roadmap shows what each version brought, what the next release brings and what comes after it. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose).
 
 ## Version 1.0: the local foundation
 
@@ -49,26 +49,46 @@ Released features, all of them working without the Autodarts cloud:
 - Player profiles with statistics and personal bests per name, a match history and head-to-head records, and a players card.
 - A doubles analysis with the hit rate of every double, a doubles card and personal checkout routes.
 - A caller in the scoreboard that announces the game through the browser, off by default.
+- `autodarts.delete_player` removes a player profile, for example after a typo in a name.
 
-## Next: 1.6
+## Version 1.6: more games, a game lobby, reports and online matches
 
-| Topic | What it brings |
-| --- | --- |
-| **Tournament mode** | Round robin or knockout for three to eight named players at one board: the table or bracket on the scoreboard, the next match starts by itself, and the results go into the player profiles |
-| **Achievements** | Milestones per player, such as the first 180, a ton-plus checkout, a nine-darter or a ten-day streak, each with an event and shown on a badge card |
-| **Trends and heatmaps per player** | Average, checkout rate and doubles rate per week as a trend, and every player's own heatmap in the players card |
-| **Heatmap of the dart positions** | A heatmap that draws where every dart landed, from the positions the board reports; the card switches between beds, numbers and positions |
-| **Handicap starts** | Different X01 start scores per player in the same match, for example 501 against 301 |
-| **Dutch, French and Spanish** | The integration, the cards and the caller in three more languages, with tests that keep every language complete |
+Merged for the next release; the [changelog](../CHANGELOG.md#160) has the details.
+
+| Topic | What it brings | Status |
+| --- | --- | --- |
+| **More games** | Cut-Throat Cricket, Tactics, Golf, Baseball and Count-Up; the training games 121 checkout, Catch 40, JDC Challenge and singles training | Done |
+| **Handicap starts and teams** | Different X01 start scores per player in the same match, for example 501 against 301, and two teams of two in X01 and the Cricket games | Done |
+| **Official rules** | PDC set order, match results as 3–2, checkout routes like the professional charts, the bull-off of the WDF and PDC rules | Done |
+| **A scoreboard to start games** | A new game screen at the board, idle mode with a leaderboard, and the pictures of players linked to persons of Home Assistant | Done |
+| **Reports** | A weekly report with a blueprint, a training calendar of a year and exports to CSV or JSON | Done |
+| **Highlights and light** | A highlight gallery in the media browser and a light show blueprint | Done |
+| **Online matches** *(experimental)* | Busts, won legs and matches of online matches through the browser extension Tools for Autodarts | Done |
+| **Tournament mode** | Round robin or knockout for three to eight named players at one board: the table or bracket on the scoreboard, the next match starts by itself, and the results go into the player profiles | Done |
+| **Match summary** | Every player's averages, checkout rate, highest checkout, 180s and best leg after a match, on the scoreboard, the live card and in `match_won` | Done |
+| **Achievements** | Milestones per player in tiers, such as the first 180, a ton-plus checkout, a nine-darter or a ten-day streak, each with an event and shown as badges | Done |
+| **Trends and heatmaps per player** | Average, checkout rate and doubles rate per week as a trend, every player's own heatmap and a leaderboard of the records of all players | Done |
+| **Heatmap of the dart positions** | A heatmap that draws where every dart landed, from the positions the board reports, with the grouping in millimeters; the card switches between beds, numbers and positions | Done |
+| **Dutch, French and Spanish** | The integration, the cards and the caller in three more languages, with tests that keep every language complete | Done |
+| **Documentation** | Illustrated guides for games, the scoreboard and statistics, a glossary and an accessibility section | Done |
+
+## Next
+
+Ideas for the versions after 1.6. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
+
+| Topic | What it brings | Dependency |
+| --- | --- | --- |
+| **Voice control with Assist** | "Start 501 for Alex and Sam", "What is my average today?" as sentences of their own, without an automation | Sentences in every language of the integration that feel natural at the board |
+| **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works | Test reports from players who use it |
+| **Cloud link** | Cloud match data and cloud match events: leg and match won, bust, player change, remaining score | An OAuth client ID from Autodarts, which has been requested |
+| **HACS default repository** | Installation without adding a custom repository | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); the HACS review queue takes several months |
+| **Further languages** | The integration and the cards in more languages | Contributions from native speakers ([how to add a language](../CONTRIBUTING.md#translations)) |
 
 ## Later
 
 | Topic | Dependency |
 | --- | --- |
-| **Cloud match events:** leg and match won, bust, player change, remaining score | An OAuth client ID from Autodarts, which has been requested |
-| **HACS default repository** | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); the HACS review queue takes several months |
-| **Further languages** | Contributions from native speakers ([how to add a language](../CONTRIBUTING.md#translations)) |
-| **Protocol library on PyPI** | A separate library for the Board Manager protocol, a prerequisite for a possible Home Assistant core integration |
+| **Protocol library on PyPI** (`aioautodarts`) | A separate library for the Board Manager protocol, a prerequisite for a possible Home Assistant core integration; postponed until the protocol settles |
 
 ## How priorities are set
 

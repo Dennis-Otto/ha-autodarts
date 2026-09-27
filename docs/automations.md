@@ -4,35 +4,41 @@
 
 Your board is fast enough for automations that happen *while* you play. The light flashes the moment the third dart of a 180 lands, and the speaker calls the score before you reach the board.
 
+**On this page:** [Blueprints](#blueprints) · [Blueprint settings](#blueprint-settings) · [Board events](#board-events) · [Examples](#examples) · [Online matches](#online-matches-experimental) · [Adapting automations from older versions](#adapting-automations-from-older-versions)
+
 ## Blueprints
 
 Blueprints are ready-made automations. Import one, choose your board and the devices to use, and you're done. They require Home Assistant 2026.8 or newer, and they follow the current version of the integration: update both together.
 
 | Blueprint | What it does | Import |
 | --- | --- | --- |
-| **Celebrate a visit score** | Runs your actions for visits from a minimum score (default 180), the moment the third dart lands. The actions can use `score`, `darts`, `segments` and `game`. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
-| **Dart caller** | Announces every visit on your speakers with any text-to-speech engine, with a special message for 180, and optionally every dart. It stays silent during a practice game, which the practice caller calls. The messages are templates. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml) |
-| **Takeout actions** | Runs actions when you start pulling darts and when the board is clear, for example to brighten the board light. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftakeout.yaml) |
-| **Start and stop detection automatically** | Starts the detection when someone is at the board and stops it after an idle time you choose, so the cameras and board PC can rest. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fauto_detection.yaml) |
-| **Board problem alert** | Alerts you after a grace period when the board goes offline or a camera fails. An optional all-clear is sent only after a real alert. The actions can use `problem` and `recovered`. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml) |
-| **Training report** | Sends a daily summary of darts, 3-dart average, highest visit and 180s, skipping days without darts. The `summary` variable has the sentence ready. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
-| **Training session routine** | When a [training session](entities.md#training-session) starts, runs your actions, turns on the detection and calibrates the cameras after a short wait; when it ends, turns off the detection and runs your actions with `reason`, `darts`, `average` and `duration_minutes`. The detection switch and the calibration button are optional. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
-| **Practice caller** | Calls the [practice game](entities.md#practice-game) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the bull-off. The messages are templates. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
-| **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
-| **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `image`, `message`, `score`, `checkout`, `who` and `photo`. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
-| **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off, an achievement and the winner of a tournament, and optionally during the takeout and in [online matches](#online-matches-experimental). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Celebrate a visit score** | Runs your actions for visits from a minimum score (default 180), the moment the third dart lands. The actions can use `score`, `darts`, `segments` and `game`. | [![Import the visit score blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
+| **Dart caller** | Announces every visit on your speakers with any text-to-speech engine, with a special message for 180, and optionally every dart. It stays silent during a practice game, which the practice caller calls. The messages are templates. | [![Import the dart caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml) |
+| **Takeout actions** | Runs actions when you start pulling darts and when the board is clear, for example to brighten the board light. | [![Import the takeout actions blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftakeout.yaml) |
+| **Start and stop detection automatically** | Starts the detection when someone is at the board and stops it after an idle time you choose, so the cameras and board PC can rest. | [![Import the automatic detection blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fauto_detection.yaml) |
+| **Board problem alert** | Alerts you after a grace period when the board goes offline or a camera fails. An optional all-clear is sent only after a real alert. The actions can use `problem` and `recovered`. | [![Import the board problem alert blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml) |
+| **Training report** | Sends a daily summary of darts, 3-dart average, highest visit and 180s, skipping days without darts. The `summary` variable has the sentence ready. | [![Import the training report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
+| **Training session routine** | When a [training session](entities.md#training-session) starts, runs your actions, turns on the detection and calibrates the cameras after a short wait; when it ends, turns off the detection and runs your actions with `reason`, `darts`, `average` and `duration_minutes`. The detection switch and the calibration button are optional. | [![Import the training session routine blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
+| **Practice caller** | Calls the [practice game](games.md) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the bull-off. The messages are templates. | [![Import the practice caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
+| **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
+| **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `image`, `message`, `score`, `checkout`, `who` and `photo`. | [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
+| **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off, an achievement and the winner of a tournament, and optionally during the takeout and in [online matches](online-matches.md). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](../blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
+
+<img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the eleven Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="760">
 
 ### Which caller?
 
 - **Dart caller:** calls every visit, in any game on the board, for example during an online match. While a [practice game](entities.md#practice-game) of the integration is played, it stays silent, so that it never talks over the practice caller. Turn off *Stay silent in practice games* if you don't use the practice caller.
 - **Practice caller:** calls what matters in the practice game: requirements, busts, game shots and, if you like, the bull-off.
-- **Caller of the scoreboard card:** the [scoreboard](cards.md#scoreboard-card) calls visits and the practice game in one voice, through the browser of the screen at the board. It needs no speakers in Home Assistant.
+- **Caller of the scoreboard card:** the [scoreboard](scoreboard.md#the-caller) calls visits and the practice game in one voice, through the browser of the screen at the board. It needs no speakers in Home Assistant.
 
 ## Blueprint settings
 
-Every blueprint shows these settings when you create an automation from it. Settings with a default are optional.
+Every blueprint shows these settings when you create an automation from it: select the blueprint on the blueprints page, fill in the form and save. Settings with a default are optional.
+
+<img src="images/en/blueprint-light-show.png" alt="A new automation from the light show blueprint: its description, the Events entity of the board and a section for every moment, such as a 180, a high finish and a bust" width="760">
 
 ### Celebrate a visit score
 
@@ -134,6 +140,18 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | Bull-off won | empty | Said when the bull-off decides who starts, in one call with the first call of the match, for example `{{ who }} to throw first. Game on!`. Empty stays silent. |
 | Word for a player without a name | `Player` | Makes "Player 2" in a match without names. |
 
+### Weekly report
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Board events | | The *Events* entity of your board. |
+| Minimum darts | 1 | Skips the report of a week with fewer darts, for example a week on holiday. With 0, every week is reported. |
+| Title | `Your darts week` | The title of the notification, available as `title`. |
+| Message | `{{ summary }}` | The text of the notification, available as `message`. |
+| Notification actions | a notification in Home Assistant | How the report is sent, for example to your phone, see [below](#weekly-report-on-your-phone). |
+
+The message can use `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` (how many were set), `week_start`, `week_end` and `summary`, a ready-made summary in English. The board ends the week at its *Weekly report day* and *Weekly report time*, by default on Monday at midnight.
+
 ### Highlight photo
 
 | Setting | Default | What it does |
@@ -173,7 +191,7 @@ Your actions can use `image` (the camera picture), `message`, `score`, `checkout
 | Effect duration | 10 seconds | How long an effect plays before the lights are restored and the detection starts again. |
 | Pause the detection during effects | off | Turns the detection off while an effect plays and on again afterwards, if it was on. |
 | Detection switch | none | The *Detection* switch of your board, for pausing it. |
-| Also react to online matches | off | Also plays the actions for a bust, a won leg and a won match of an [online match](#online-matches-experimental). A 180 and the takeout of your own darts come from your board anyway. |
+| Also react to online matches | off | Also plays the actions for a bust, a won leg and a won match of an [online match](online-matches.md). A 180 and the takeout of your own darts come from your board anyway. |
 
 The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` or `board_clear`), `who`, `player`, `score` (of a 180), `checkout` (of a won leg) and `trigger.to_state.attributes` for every detail of the [board event](entities.md#board-events). See [light show with WLED and other lights](#light-show-with-wled-and-other-lights).
 
@@ -203,7 +221,7 @@ The practice caller's messages are templates with these variables:
 | `points` | Points in the Cricket and party games; strokes in Golf, runs in Baseball |
 | `target` | The next target of a party game, for example `20`, `D` or `D16`; the hole in Golf and the inning in Baseball |
 | `hit` | The bed of the winning bull-off dart in *Bull-off won*: `BULL`, `25` or for example `S20` |
-| `distance` | How far the winning bull-off dart landed from the centre, in millimetres, in *Bull-off won*; empty when the board reported no position for it, never `None` |
+| `distance` | How far the winning bull-off dart landed from the center, in millimeters, in *Bull-off won*; empty when the board reported no position for it, never `None` |
 
 For example:
 
@@ -313,6 +331,10 @@ use_blueprint:
 ## Board events
 
 All realtime moments arrive through the **Events** entity of the board. Each event carries an `event_type` and its details; see the [event reference](entities.md#board-events). The examples use `event.autodarts_board_events`, the entity ID of a board named *Autodarts Board*; a board set up with an earlier version keeps `event.autodarts_board_board_events`.
+
+<img src="images/en/board-events.png" alt="The Events entity of the board in Home Assistant: the last event Visit thrown, its history, and the activity with every dart detected, the visit and the takeout" width="760">
+
+Open the entity on the device page to watch the events arrive while you throw; its activity lists every event with the time it happened.
 
 In the automation editor, choose the trigger **Event received** (*Entity → Event*), select the *Events* entity of your board and the event types you want. In YAML:
 
@@ -700,77 +722,7 @@ mode: queued
 
 ## Online matches (experimental)
 
-The integration sees the darts on your board in an online match on play.autodarts.io, too: `dart_detected`, `visit_thrown` and the takeout arrive as usual. It cannot see the game itself: a bust, a won leg or match and the darts of your opponents happen in the browser. Autodarts shares them only through its cloud, which needs a client ID that has not been issued yet.
-
-The optional **online bridge** brings these moments into Home Assistant with the browser extension [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts). Its WLED feature calls an address of your choice for each moment of the game. The bridge offers a secret Home Assistant address for it and turns every call into a [board event](entities.md#board-events) whose type starts with `online_` and whose `source` is `online`. It is off by default.
-
-### Set up the bridge
-
-1. Go to **Settings → Devices & services → Autodarts**, open **Configure** (the cog) of your board, turn on **Receive online matches from Tools for Autodarts** and submit.
-2. The next step shows the secret address and ready-made lines for Tools for Autodarts. Copy the lines and submit. From now on, Home Assistant accepts calls at the address. Open the options again whenever you need the address.
-3. In the browser at the board, open the settings of Tools for Autodarts, turn on **WLED**, choose **Import CSV**, paste the lines and save. Each line is an effect of the type **URL** for one trigger; delete the ones you don't need.
-4. Check that the moments arrive: open the address with `?event=gameon` added in a browser of your home network, or play a match. The **Online bridge last event** sensor on the device page, under *Diagnostic*, shows when the last moment arrived and its trigger.
-
-To add an effect by hand, give it one trigger, the type **URL** and the address followed by `?event=` and the same trigger, for example `…/api/webhook/<secret>?event=busted`. The name of a player can follow as `&player=Lea`. An effect of the type **JSON API** works too, with a body such as `{"event": "busted", "player": "Lea"}`.
-
-### Triggers and events
-
-| Trigger in Tools for Autodarts | Board event | Details |
-| --- | --- | --- |
-| `gameon`, `bot_throw` | `online_game_on` | Tools for Autodarts sends `gameon` at the start of every turn and after every moment without an effect of its own: a good moment to return to your normal light. |
-| `busted` | `online_busted` | A bust. |
-| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | A won leg, with the `segment` of the winning dart or the `name` of the player when the trigger names them. |
-| `matchshot`, `matchshot+bull`, `matchshot_<name>` | `online_match_shot` | A won match, with the same details. |
-| `0` to `180` | `online_visit` | The `score` of a visit. |
-| `range_100_140` or `100-140` | `online_visit` | A visit in the range, with `score_min` and `score_max`. |
-| Three darts such as `t20_t20_t20` | `online_visit` | `score`, `darts` and `segments` (for example `["T20", "T20", "T20"]`). |
-| `t20`, `d16`, `s5`, `s25`, `bull`, `m17`, `miss`, `outside` | `online_dart` | A dart, with `segment` (`T20`, `D16`, `S5`, `25`, `BULL` or `MISS`) and `score`. |
-| `bulloff` | `online_bull_off` | The bull-off begins. |
-| `tournament_ready` | `online_tournament_ready` | A tournament match of yours waits for you to mark yourself ready. |
-| `idle` | `online_match_left` | You left the match. |
-| `other` | none | A moment on another board; the bridge ignores it. |
-
-Every online event has `trigger` (as sent, in lowercase), `source` (`online`) and `name` when the address has `&player=`. A plain number is always the score of a visit, so `25` is a visit of 25 points and `s25` a dart in the outer bull. The board triggers of Tools for Autodarts, such as `board_started`, `throw` or `takeout`, are not accepted: the board events report them directly from your board, faster and without a browser.
-
-- **Your own darts** come from the board anyway: `dart_detected`, `visit_thrown` and the takeout are faster than the extension and work without it. Use the online events for what only the match knows: busts, won legs and matches, and the darts of your opponents.
-- **Only your board:** Tools for Autodarts reports the moments of every player in the match, your opponents' as well. To react to your own board only, enter your board ID under **Board IDs** in its WLED settings and keep the `other` line: moments on other boards then send `other` instead.
-- **Light show:** turn on *Also react to online matches* in the [light show](#light-show) to play busts, won legs and won matches of online matches.
-
-A notification when a tournament match is ready:
-
-```yaml
-alias: Darts - tournament match ready
-triggers:
-  - trigger: event.received
-    target:
-      entity_id: event.autodarts_board_events
-    options:
-      event_type:
-        - online_tournament_ready
-actions:
-  - action: notify.mobile_app_phone
-    data:
-      message: Your tournament match is ready. Mark yourself ready on Autodarts.
-mode: single
-```
-
-### Security
-
-- The address contains a secret of 64 random hexadecimal characters. Whoever knows it can send moments of a game to your Home Assistant, nothing else: the bridge accepts only the triggers above, fields of limited length and at most 20 calls per second. The integration never logs the address, and diagnostics don't contain it. Home Assistant itself names it in a few of its own warnings, for example about a call from outside your network, so check logs before you share them.
-- By default, only devices in your home network can call the address; Home Assistant ignores calls from the internet. Turn on **Accept calls from outside your home network** only for an https address through Home Assistant Cloud or your own domain.
-- If the address got out, turn on **Create a new secret address** in the options and import the new lines into Tools for Autodarts. The old address stops working.
-- Switched off, the bridge does not exist: Home Assistant answers its address like any unknown one. The integration keeps the address for the next time you switch the bridge on.
-
-### Limitations
-
-- **A browser extension of a third party.** Moments arrive only while the Autodarts page is open in a browser with Tools for Autodarts and its WLED feature on. When the extension changes its triggers, the bridge may need an update. The events are never replayed.
-- **One effect per trigger.** Tools for Autodarts plays one effect per trigger and picks one at random when several effects share a trigger. A trigger that drives a WLED device in the extension and Home Assistant at the same time reaches each of them only now and then. Let Home Assistant drive your lights, for example with the light show, or use separate triggers.
-- **Effects only once.** With *trigger Effects only once* on, the extension skips an effect that is already playing, so the same moment twice in a row arrives once.
-- **Mixed content.** play.autodarts.io is an https page, and browsers may block its calls to a plain http address; the extension warns about that when you enter one. What works:
-  - An https address of Home Assistant with a trusted certificate, such as your Home Assistant Cloud address or your own domain. Turn on *Accept calls from outside your home network* unless the browser reaches that address inside your home network.
-  - A plain http address in your home network, such as `http://homeassistant.local:8123`, if the browser lets the calls through: allow *Insecure content* for play.autodarts.io in the site settings of Chrome or Edge, and allow access to devices on your local network when the browser asks.
-  - Whichever you choose, the *Online bridge last event* sensor shows whether the moments arrive.
-- **Board events only.** Online moments don't count in the training session, the practice game or the personal bests.
+In online matches on play.autodarts.io, your own darts arrive as usual. Busts, won legs and matches and the darts of your opponents arrive through the optional online bridge and the browser extension Tools for Autodarts, as board events whose type starts with `online_`. The [online matches guide](online-matches.md) explains how to set it up.
 
 ## Adapting automations from older versions
 

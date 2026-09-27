@@ -1,6 +1,6 @@
 # Entitäten und Ereignisse
 
-[← Übersicht](README.md) · [English](../entities.md)
+[← Dokumentation](README.md) · [English](../entities.md)
 
 Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Board in Autodarts, wenn die Board-Suche oder die Cloud es gefunden hat, sonst *Autodarts Board*. Die Namen der Entitäten folgen der Sprache von Home Assistant und wiederholen den Gerätenamen nicht. Die Entitäts-IDs leiten sich beim Anlegen einer Entität aus beiden ab, zum Beispiel `sensor.autodarts_board_training_3_dart_average`, und bleiben erhalten, wenn eine spätere Version eine Entität umbenennt.
 
@@ -29,7 +29,7 @@ Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwer
 
 ## Board-Ereignisse
 
-Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht und `online` für die Momente von [Online-Matches](automationen.md#online-matches-experimentell), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
+Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht und `online` für die Momente von [Online-Matches](online-matches.md), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
@@ -56,7 +56,7 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 | `daily_goal_reached` | Die Darts von heute erreichen das [Tagesziel](#bestleistungen-serie-und-tagesziel), einmal pro Tag | `goal`, `darts`, `streak` |
 | `weekly_report` | Die [Berichtswoche](#wochenbericht) endet, standardmäßig montags um Mitternacht | `week_start`, `week_end`, `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `darts_at_double`, `checkouts`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` |
 | `achievement_unlocked` | Ein Spieler mit Namen erreicht eine neue Stufe eines [Erfolgs](#erfolge) | `player` (der Platz 1–4 des Spielers am Board oder keiner), `name`, `achievement` (etwa `maximum`), `tier` (1–4), `tiers` (wie viele Stufen der Erfolg hat) und `threshold` (der Wert der Stufe, etwa 10 für zehn 180er) |
-| `online_game_on` | [Online-Match](automationen.md#online-matches-experimentell): Eine Aufnahme beginnt, oder ein Moment ohne eigenen Effekt | `trigger`, `name` |
+| `online_game_on` | [Online-Match](online-matches.md): Eine Aufnahme beginnt, oder ein Moment ohne eigenen Effekt | `trigger`, `name` |
 | `online_visit` | Online-Match: eine Aufnahme | `trigger`, `score`; bei drei Darts auch `darts` und `segments`; bei einem Bereich `score_min` und `score_max` statt `score` |
 | `online_dart` | Online-Match: ein Dart | `trigger`, `segment` (`T20`, `D16`, `S5`, `25`, `BULL` oder `MISS`), `score` |
 | `online_busted` | Online-Match: überworfen | `trigger`, `name` |
@@ -85,7 +85,7 @@ Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt je
 | --- | --- | --- |
 | Training Darts | Sensor, Summe | Darts der Session. Das Attribut `hits` zählt die Treffer pro Feld, etwa `{"T20": 12, "S20": 30, "BULL": 2, "MISS": 3}`; das Trefferbild nutzt es. Der Recorder speichert `hits` nicht. |
 | Training Punkte | Sensor, Summe | Summe aller Punkte. |
-| Training 3-Dart-Average | Sensor | Punkte pro drei Darts, der übliche Darts-Schnitt. Vor dem ersten Dart *unbekannt*. |
+| Training 3-Dart-Average | Sensor | Punkte pro drei Darts, der übliche Durchschnitt im Darts. Vor dem ersten Dart *unbekannt*. |
 | Training Aufnahmen | Sensor, Summe | Aufnahmen mit mindestens einem gezählten Dart. |
 | Training höchste Aufnahme | Sensor | Höchste Aufnahme der Session. |
 | Training 100+ Aufnahmen | Sensor, Summe | Aufnahmen mit 100–139 Punkten. |
@@ -113,7 +113,7 @@ Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert ha
 | `highest_visit` | höchster | einer Aufnahme mit bis zu drei Darts |
 | `highest_checkout` | höchster | einem gewonnenen X01-Leg mit Double-Out |
 | `fewest_darts_101` bis `fewest_darts_1001` | wenigste | einem gewonnenen X01-Leg mit Double-Out, das mit 101, 301, 501, 701, 901 oder 1001 begann, allein gespielt, nicht als Team |
-| `best_cricket_mpr` | höchster | den Treffern pro Runde eines gewonnenen Cricket-Legs, allein gespielt |
+| `best_cricket_mpr` | höchster | den Marks pro Runde eines gewonnenen Cricket-Legs, allein gespielt |
 | `around_the_clock`, `doubles` | wenigste | Darts eines beendeten Trainingsspiels |
 | `bobs_27` | höchster | den Punkten eines geschafften Bob's 27 |
 | `checkout_121` | höchster | dem höchsten Rest, der im 121-Checkout gecheckt wurde |
@@ -129,7 +129,7 @@ Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert ha
 
 ## Wochenbericht
 
-Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, mit oder ohne Session, wie bei den Darts des Tages. Endet die Woche, standardmäßig montags um Mitternacht in der Zeitzone von Home Assistant, meldet das Ereignis `weekly_report` die Woche, und die nächste Woche beginnt bei null. Die [Blaupause Wochenbericht](automationen.md#deutscher-wochenbericht) schickt ihn auf dein Handy.
+Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, mit oder ohne Session, wie bei den Darts des Tages. Endet die Woche, standardmäßig montags um Mitternacht in der Zeitzone von Home Assistant, meldet das Ereignis `weekly_report` die Woche, und die nächste Woche beginnt bei null. Der [Blueprint Weekly report](automationen.md#weekly-report) schickt ihn auf dein Handy.
 
 | Wert | Bedeutung |
 | --- | --- |
@@ -160,7 +160,7 @@ Der **Trainingskalender** (`calendar.*_training_calendar`) zeigt deine beendeten
 <img src="../images/de/training-calendar.png" alt="Der Kalender von Home Assistant mit einer Woche voller Trainingssessions und Übungsmatches von Alex, Sam und Kim" width="760">
 
 - **Sessions** reichen von ihrem Beginn bis zu ihrem Ende. Die Beschreibung nennt die 180er, die 140+- und 100+-Aufnahmen und die höchste Aufnahme (*Max*).
-- **Matches** mehrerer Spieler reichen vom ersten bis zum entscheidenden Dart. Der Titel zeigt die gewonnenen Sätze, oder die Legs, wenn ein Satz das Match entscheidet; Spieler ohne Namen erscheinen als `#1` bis `#4`. Die Beschreibung nennt Average, Treffer pro Runde oder Punkte jedes Spielers. Matches von vor dem Update kennen ihren ersten Dart nicht und erscheinen als eine Minute.
+- **Matches** mehrerer Spieler reichen vom ersten bis zum entscheidenden Dart. Der Titel zeigt die gewonnenen Sätze, oder die Legs, wenn ein Satz das Match entscheidet; Spieler ohne Namen erscheinen als `#1` bis `#4`. Die Beschreibung nennt Average, Marks pro Runde oder Punkte jedes Spielers. Matches von vor dem Update kennen ihren ersten Dart nicht und erscheinen als eine Minute.
 - **Ein Jahr Verlauf.** Der Kalender behält die Sessions und Matches der letzten 365 Tage, höchstens je 3.000. Nach dem Update übernimmt er die letzten 20 bereits gespeicherten Sessions und Matches.
 - **Zustand:** Der Kalender ist *aus*, weil nichts bevorsteht. Seine Attribute zeigen die Session oder das Match, das zuletzt endete.
 
@@ -168,17 +168,17 @@ Kalender-Auslöser und die Aktion `calendar.get_events` funktionieren wie bei je
 
 ## Übungsspiel
 
-Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen Board ohne Autodarts-Spiel. Home Assistant zählt herunter, erkennt Überwerfen und zeigt den Checkout-Weg. Das Spiel braucht keine Cloud und übersteht Neustarts.
+Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen Board ohne Autodarts-Spiel. Home Assistant zählt herunter, erkennt Überwerfen und zeigt den Checkout-Weg. Das Spiel braucht keine Cloud und übersteht Neustarts. Die [Anleitung zu Spielen und Regeln](spiele.md) erklärt, wie du ein Spiel startest, und die Regeln jedes Spiels; dieser Abschnitt ist die Referenz seiner Entitäten.
 
 <img src="../images/de/practice-checkout.webp" alt="Animation: ein 141er-Checkout in einem 501-Leg. Nach jedem Dart ändern sich Rest, Weg und umrandetes Feld: T20 T19 D12, dann Game shot und ein neues Leg" width="620">
 
 - **Starten:** Wähle 101, 301, 501, 701, 901 oder 1001 in *Übungsspiel*. Darts, die schon im Board stecken, zählen nicht. *Neues Leg im Übungsspiel* beginnt das Leg wieder beim vollen Rest.
 - **Startpunkte und Teams:** Jeder Spieler kann mit eigenen Startpunkten beginnen, und vier Spieler können als zwei Teams spielen; siehe [Teams und Startpunkte](#teams-und-startpunkte).
 - **Double-In:** Mit *Übungsspiel Double-In* beginnt die Zählung eines Spielers mit dem ersten Double oder Bullseye des Legs; Darts davor zählen nichts, und ein Überwerfen nimmt die Öffnung zurück. Die Karte fordert ein Double und umrandet den Doppelring.
-- **Ausbullen:** Mit *Übungsspiel Ausbullen* und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull. Wie in den offiziellen Regeln schlägt das Bullseye das Single-Bull und dieses jedes andere Feld; zwei Darts im selben Bull-Feld werfen noch einmal, in umgekehrter Reihenfolge. Außerhalb des Bulls, und mit *Übungsspiel Ausbullen nach Abstand* auch darin, gewinnt der Dart, der der Mitte am nächsten ist, gemessen an den Dart-Positionen, die das Board meldet; ein Dart ohne Position schlägt nie einen gemessenen. [Die Regeln fürs Ausbullen](funktionsweise.md#ausbullen).
+- **Ausbullen:** Mit *Übungsspiel Ausbullen* und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull. Wie in den offiziellen Regeln schlägt das Bullseye das Single-Bull und dieses jedes andere Feld; zwei Darts im selben Bull-Feld werfen noch einmal, in umgekehrter Reihenfolge. Außerhalb des Bulls, und mit *Übungsspiel Ausbullen nach Abstand* auch darin, gewinnt der Dart, der der Mitte am nächsten ist, gemessen an den Dart-Positionen, die das Board meldet; ein Dart ohne Position schlägt nie einen gemessenen. [Die Regeln fürs Ausbullen](spiele.md#ausbullen).
 - **Aufnahmen:** Eine Aufnahme endet, wenn du die Darts ziehst. Nach dem Überwerfen bleibt der Rest vom Beginn der Aufnahme. Darts nach dem Überwerfen oder nach dem Checkout zählen nicht.
 - **Checkout:** der Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
-- **Matches:** Stelle *Übungsspiel Spielerzahl* auf 2, 3 oder 4. Nach einer Aufnahme wirft der nächste Spieler; auch beim Überwerfen ist der Nächste dran. Wer zuerst *Übungsspiel Legs pro Satz* Legs gewinnt, holt den Satz, und wer zuerst *Übungsspiel Sätze zum Sieg* Sätze holt, gewinnt das Match. Der Anwurf wechselt innerhalb eines Satzes jedes Leg, und jeder Satz beginnt mit dem nächsten Spieler. Das Ergebnis mit den Legs des entscheidenden Satzes bleibt in der Karte stehen, bis der nächste Dart ein neues Match beginnt. Mit einem Spieler werden Legs und Sätze nicht gezählt. [Die Regeln für Matches](funktionsweise.md#matches-legs-und-sätze).
+- **Matches:** Stelle *Übungsspiel Spielerzahl* auf 2, 3 oder 4. Nach einer Aufnahme wirft der nächste Spieler; auch beim Überwerfen ist der Nächste dran. Wer zuerst *Übungsspiel Legs pro Satz* Legs gewinnt, holt den Satz, und wer zuerst *Übungsspiel Sätze zum Sieg* Sätze holt, gewinnt das Match. Der Anwurf wechselt innerhalb eines Satzes jedes Leg, und jeder Satz beginnt mit dem nächsten Spieler. Das Ergebnis mit den Legs des entscheidenden Satzes bleibt in der Karte stehen, bis der nächste Dart ein neues Match beginnt. Mit einem Spieler werden Legs und Sätze nicht gezählt. [Die Regeln für Matches](spiele.md#matches-legs-und-sätze).
 - **Match-Zusammenfassung:** Ein beendetes Match mehrerer Spieler wird für jeden Spieler zusammengefasst: Legs, Sätze und Darts; bei X01 3-Dart- und First-9-Average, Checkout-Quote, höchster Checkout, Aufnahmen mit 100+, 140+ und 180, bestes Leg und Darts aufs Double; bei Cricket Marks pro Runde und Marks. Die [Anzeigetafel](karten.md#match-zusammenfassung) zeigt sie nach einem X01- oder Cricket-Match, `match_won` meldet sie, und *Übungsspiel Restpunkte* behält sie in `summary`, bis das nächste Match endet. [Wie die Zahlen gezählt werden](funktionsweise.md#match-zusammenfassung).
 - **Sessions:** Übungsspiel und [Trainingssessions](#trainingssession) sind unabhängig. Ein Dart zählt in beiden.
 - **Weitere Spiele:** *Übungsspiel* bietet auch die [Cricket-Spiele](#cricket), sechs [Partyspiele](#partyspiele) und acht [Trainingsspiele](#trainingsspiele).
@@ -186,7 +186,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
 | Übungsspiel | Auswahl | `off` (*Aus*), `101`, `301`, `501`, `701`, `901`, `1001`, ein Cricket-Spiel (`cricket`, `cut_throat`, `tactics`), ein Partyspiel (`shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`) oder ein Trainingsspiel: `around_the_clock`, `doubles` (*Doppeltraining*), `checkout` (*Checkout-Training*), `bobs_27`, `checkout_121` (*121-Checkout*), `catch_40`, `jdc_challenge`, `singles` (*Singles-Training*). Die Wahl startet ein neues Match oder Spiel. |
-| Übungsspiel Restpunkte | Sensor | Restpunkte des Spielers am Board; ohne Spiel *unbekannt*. Attribute: `game`, `double_out`, `player` und `name` des Spielers am Board, `checkout`, `bust`, `won`, `visit` (die Felder der aktuellen Aufnahme), `darts` und `average` des Legs, `players`, `legs_to_win`, `sets_to_win`, `winner` (der Matchgewinner bis zum nächsten Dart), `start` (die Startpunkte des Spielers am Board), `teams` im [Team-Match](#teams-und-startpunkte) (`team`, `name` und `players` beider Teams, sonst keins), `scores` mit `player`, `name`, `remaining`, `start`, `legs` (im laufenden Satz oder im entscheidenden Satz eines beendeten Matches), `sets`, `match_legs` (Legs des ganzen Matches), dem Match-`average` und im Team-Match dem `team` jedes Spielers, `bull_off` beim Ausbullen (der `player` am Board, `rethrow`, `by_distance` und `throws` mit `player`, `name`, `hit` und `distance`) sowie `legs` mit den letzten 10 Legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended`) sowie `summary` mit dem letzten beendeten Match mehrerer Spieler: `game`, `ended`, `winner`, `legs_to_win`, `sets_to_win`, `double_out` und `players` mit `player`, `name`, `legs` (im ganzen Match gewonnen), `sets` und `darts` aller Spieler; X01 ergänzt `average`, `first_9_average`, `checkouts`, `darts_at_double`, `checkout_rate`, `highest_checkout`, `scores_100`, `scores_140`, `scores_180` und `best_leg` (wenigste Darts eines gewonnenen Legs), Cricket `mpr`, `marks` und `best_leg`. `double_out` ist die Regel des laufenden Legs. Der Recorder speichert weder `visit`, `scores`, `legs` noch `summary`. |
+| Übungsspiel Restpunkte | Sensor | Restpunkte des Spielers am Board; ohne Spiel *unbekannt*. Attribute: `game`, `double_out`, `double_in`, `opened` (der Spieler am Board hat mit Double-In geöffnet oder spielt ohne), `player` und `name` des Spielers am Board, `checkout`, `bust`, `won`, `visit` (die Felder der aktuellen Aufnahme), `darts` und `average` des Legs, `players`, `legs_to_win`, `sets_to_win`, `winner` (der Matchgewinner bis zum nächsten Dart), `start` (die Startpunkte des Spielers am Board), `teams` im [Team-Match](#teams-und-startpunkte) (`team`, `name` und `players` beider Teams, sonst keins), `scores` mit `player`, `name`, `remaining`, `opened`, `start`, `legs` (im laufenden Satz oder im entscheidenden Satz eines beendeten Matches), `sets`, `match_legs` (Legs des ganzen Matches), dem Match-`average` und im Team-Match dem `team` jedes Spielers, `bull_off` beim Ausbullen (der `player` am Board, `rethrow`, `by_distance` und `throws` mit `player`, `name`, `hit` und `distance`) sowie `legs` mit den letzten 10 Legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended`) sowie `summary` mit dem letzten beendeten Match mehrerer Spieler: `game`, `ended`, `winner`, `legs_to_win`, `sets_to_win`, `double_out` und `players` mit `player`, `name`, `legs` (im ganzen Match gewonnen), `sets` und `darts` aller Spieler; X01 ergänzt `average`, `first_9_average`, `checkouts`, `darts_at_double`, `checkout_rate`, `highest_checkout`, `scores_100`, `scores_140`, `scores_180` und `best_leg` (wenigste Darts eines gewonnenen Legs), Cricket `mpr`, `marks` und `best_leg`. `double_out` ist die Regel des laufenden Legs. Der Recorder speichert weder `visit`, `scores`, `legs` noch `summary`. |
 | Übungsspiel Checkout-Weg | Sensor | Der Checkout-Weg, etwa `T20 25 D18`; *unbekannt*, wenn es keinen gibt. |
 | Übungsspiel Ziel | Sensor | Das Ziel des [Trainingsspiels](#trainingsspiele), etwa `7`, `D16`, `BULL` oder der Checkout-Rest `81`, oder bei [Cricket](#cricket) die nächste offene Zahl, etwa `T19`; ohne Ziel *unbekannt*. Attribute: `drill`, `finished`, `visit`, `progress` und `targets`, `darts`, `hits`, `hit_rate`, das beste Ergebnis als `best` und `results` mit den letzten 10 Ergebnissen, die der Recorder nicht speichert. Bob's 27 ergänzt `score`; Checkout-Training und 121-Checkout ergänzen `remaining`, `checkout`, `bust`, `won`, `attempt_visit`, `attempt_visits`, `attempts`, `successes` und `rate`; Catch 40 ergänzt `score`, `checkouts` und dieselben Werte des Rests, der gerade gecheckt wird; die JDC Challenge ergänzt `part`, `score` und `parts`, das Singles-Training `score`. |
 | Neues Leg im Übungsspiel | Taste | Beginnt das Leg wieder beim vollen Rest; Legs und Sätze bleiben. Nach einem beendeten Match beginnt es das nächste Match. |
@@ -212,41 +212,41 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 
 <img src="../images/de/scoreboard-teams.png" alt="Anzeigetafel eines 501-Team-Matches: Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216, Sam am Board fett mit seinem Average" width="760">
 
-- **Teams:** Schalte *Übungsspiel Teams* ein und stelle *Übungsspiel Spielerzahl* auf 4. Spieler 1 und 3 spielen gegen Spieler 2 und 4, in X01 und den [Cricket-Spielen](#cricket); geworfen wird in der Reihenfolge der Plätze, die Teams wechseln sich also ab. Partner teilen sich einen Stand: den Rest in X01, Treffer und Punkte bei Cricket. Die Anzeigetafel zeigt zwei Team-Kacheln, *Alex & Kim* gegen *Sam & Lea*, mit dem Partner am Board in Fettschrift. Beide Partner gewinnen Leg und Match; die Ereignisse ergänzen `team` und `team_name`.
-- **Statistik:** Averages, First 9 und Checkout-Quote bleiben pro Person, und die [Spielerprofile](#spielerprofile) zählen Leg und Match für beide Partner. Direkte Vergleiche zählen nur zwischen Gegnern. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Treffer pro Runde.
+- **Teams:** Schalte *Übungsspiel Teams* ein und stelle *Übungsspiel Spielerzahl* auf 4. Spieler 1 und 3 spielen gegen Spieler 2 und 4, in X01 und den [Cricket-Spielen](#cricket); geworfen wird in der Reihenfolge der Plätze, die Teams wechseln sich also ab. Partner teilen sich einen Stand: den Rest in X01, Marks und Punkte bei Cricket. Die Anzeigetafel zeigt zwei Team-Kacheln, *Alex & Kim* gegen *Sam & Lea*, mit dem Partner am Board in Fettschrift. Beide Partner gewinnen Leg und Match; die Ereignisse ergänzen `team` und `team_name`.
+- **Statistik:** Averages, First 9 und Checkout-Quote bleiben pro Person, und die [Spielerprofile](#spielerprofile) zählen Leg und Match für beide Partner. Direkte Vergleiche zählen nur zwischen Gegnern. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Marks pro Runde.
 - **Startpunkte:** Für ein Handicap stellst du *Übungsspiel Startpunkte Spieler N* ein, etwa 301 für eine Anfängerin gegen 501. `0` spielt die Startpunkte des Spiels. Die Anzeigetafel zeigt eigene Startpunkte neben den Namen, und `leg_won` nennt sie in `start`. Ein Team spielt mit den Startpunkten seines ersten Spielers. Ein Leg zählt für die Bestleistung der wenigsten Darts der Punkte, mit denen es begann: ab 301 für `fewest_darts_301`, ab 401 für keine.
 - Party- und Trainingsspiele spielt jeder für sich; mit weniger oder mehr als vier Spielern bewirkt *Übungsspiel Teams* nichts.
 
 <img src="../images/de/scoreboard-handicap.png" alt="Anzeigetafel eines 501-Matches mit eigenen Startpunkten: Alex ab 501 mit Rest 361, Sam ab 301 mit Rest 241 und am Board" width="760">
 
-[Die Regeln für Teams und Startpunkte](funktionsweise.md#teams).
+[Die Regeln für Teams und Startpunkte](spiele.md#teams).
 
 ## Cricket
 
 Wähle `cricket` in *Übungsspiel*, allein oder als Match mit bis zu vier Spielern, Legs und Sätzen wie bei X01.
 
-<img src="../images/de/cricket.webp" alt="Animation: Cricket zwischen Alex und Sam. Alex schließt die 20, punktet 60 und trifft eine 19; nach der Entnahme schließt Sam die 19, punktet 57 und trifft eine Doppel-18" width="620">
+<img src="../images/de/cricket.webp" alt="Animation: Cricket zwischen Alex und Sam. Alex schließt die 20, punktet 60 und trifft eine 19; nach der Entnahme schließt Sam die 19, punktet 57 und trifft eine Double 18" width="620">
 
-- **Treffer:** Nur 20 bis 15 und das Bull zählen. Ein Single ist ein Treffer, ein Double zwei, ein Triple drei; das Single-Bull ist ein Treffer, das Bullseye zwei. Drei Treffer schließen eine Zahl.
+- **Marks:** Nur 20 bis 15 und das Bull zählen. Ein Single ist ein Mark, ein Double zwei, ein Triple drei; das Single-Bull ist ein Mark, das Bullseye zwei. Drei Marks schließen eine Zahl.
 - **Punkte:** Treffer auf einer geschlossenen Zahl bringen ihren Wert (25 beim Bull), solange ein anderer Spieler sie noch offen hat.
 - **Sieg:** Schließe alle Zahlen und hab mindestens so viele Punkte wie alle anderen. Allein gewinnt das Schließen aller Zahlen das Leg.
 - **Ziel:** *Übungsspiel Ziel* zeigt die nächste offene Zahl von 20 abwärts bis zum Bull, etwa `T19` oder `BULL`, und die Karte umrandet sie auf der Scheibe.
-- **Treffer pro Runde (MPR):** gezählte Treffer pro drei Darts, die übliche Cricket-Statistik. Treffer auf einer Zahl, die niemand mehr braucht, zählen nicht.
+- **Marks pro Runde (MPR):** gezählte Marks pro drei Darts, die übliche Cricket-Statistik. Marks auf einer Zahl, die niemand mehr braucht, zählen nicht.
 
 Zwei Varianten zählen dieselben Treffer:
 
 | Spiel | Regeln |
 | --- | --- |
-| **Cut-Throat Cricket** (`cut_throat`) | Treffer auf einer geschlossenen Zahl geben ihren Wert jedem anderen Spieler, der sie noch offen hat. Wer alle Zahlen mit den wenigsten Punkten schließt, gewinnt. |
+| **Cut-Throat Cricket** (`cut_throat`) | Marks auf einer geschlossenen Zahl geben ihren Wert jedem anderen Spieler, der sie noch offen hat. Wer alle Zahlen mit den wenigsten Punkten schließt, gewinnt. |
 | **Tactics** (`tactics`) | Cricket auf 20 bis 10 und das Bull, zwölf Zahlen insgesamt. |
 
 <img src="../images/de/scoreboard-tactics.png" alt="Anzeigetafel bei Tactics zwischen Alex und Sam: die Kreidetafel von 20 bis 10 und dem Bull, Alex mit 94 Punkten, Sam am Board mit T15 als nächstem Ziel" width="760">
 
-Die Karte zeigt eine Kreidetafel mit den Treffern aller Spieler (`/`, `X`, `Ⓧ`), den Punkten und der MPR, mit den Zahlen des Spiels. *Übungsspiel Restpunkte* bleibt bei den Cricket-Spielen *unbekannt*; seine Attribute tragen das Spiel: `game` ist `cricket`, `cut_throat` oder `tactics`, dazu `points`, `mpr`, `target`, `numbers` (20 bis 15 und 25, bei Tactics 20 bis 10 und 25) und `scores` mit `marks`, `points`, `legs`, `sets` und `mpr` jedes Spielers. Cricket-Legs zählen nicht für die X01-Statistik; die MPR der [Spielerprofile](#spielerprofile) und `best_cricket_mpr` kommen nur aus Cricket.
+Die Karte zeigt eine Kreidetafel mit den Marks aller Spieler (`/`, `X`, `Ⓧ`), den Punkten und der MPR, mit den Zahlen des Spiels. *Übungsspiel Restpunkte* bleibt bei den Cricket-Spielen *unbekannt*; seine Attribute tragen das Spiel: `game` ist `cricket`, `cut_throat` oder `tactics`, dazu `points`, `mpr`, `target`, `numbers` (20 bis 15 und 25, bei Tactics 20 bis 10 und 25) und `scores` mit `marks`, `points`, `legs`, `sets` und `mpr` jedes Spielers. Cricket-Legs zählen nicht für die X01-Statistik; die MPR der [Spielerprofile](#spielerprofile) und `best_cricket_mpr` kommen nur aus Cricket.
 
 ## Spielerprofile
 
-Jeder Spieler eines Übungsspiels mit Namen bekommt ein Profil mit Gesamtwerten. Ein Name ist derselbe Spieler, gleich ob groß oder klein geschrieben; Spieler ohne Namen zählen für niemanden. Jedes Leg von X01, den Cricket-Spielen und den Partyspielen zählt; X01-Legs ergänzen Averages und Checkout-Quote, Cricket-Legs die Treffer pro Runde. Im [Team-Match](#teams-und-startpunkte) gewinnen beide Partner Leg und Match.
+Jeder Spieler eines Übungsspiels mit Namen bekommt ein Profil mit Gesamtwerten. Ein Name ist derselbe Spieler, gleich ob groß oder klein geschrieben; Spieler ohne Namen zählen für niemanden. Jedes Leg von X01, den Cricket-Spielen und den Partyspielen zählt; X01-Legs ergänzen Averages und Checkout-Quote, Cricket-Legs die Marks pro Runde. Im [Team-Match](#teams-und-startpunkte) gewinnen beide Partner Leg und Match.
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
@@ -335,7 +335,7 @@ Sechs Kneipenklassiker für einen bis vier Spieler, gewählt in *Übungsspiel*. 
 
 <img src="../images/de/golf.webp" alt="Animation: Golf für Alex und Sam auf der Anzeigetafel. Nach jeder Aufnahme füllt sich die Scorekarte: Alex spielt 1, 3 und 2, Sam 4, 5 und 5, und das vierte Loch läuft" width="760">
 
-Bei Shanghai und Halve-It entscheidet bei Punktgleichheit die Zahl der Treffer; ist auch die gleich, wird das Leg neu gespielt. Bei Golf, Baseball und Count-Up spielen die Gleichauf-Liegenden an der Spitze Zusatzrunden, bis einer von ihnen nach einer Runde vorn liegt. Shanghai und Killer gewinnt ein einzelner Dart; spätere Darts der Aufnahme zählen nicht. [Alle Regeln](funktionsweise.md#regeln). *Übungsspiel Restpunkte* bleibt *unbekannt*; seine Attribute tragen `game`, `round`, `rounds`, `target` (`D` und `T` stehen für ein beliebiges Double und Triple), `phase` (bei Killer `choose` oder `play`), `playoff` (die Spieler der Zusatzrunden nach einem Gleichstand, sonst keins), `points` und `scores` mit `points`, `legs`, `sets`, bei Killer `number`, `lives` und `killer` und bei Golf und Baseball der `scorecard` mit dem Ergebnis jeder Runde jedes Spielers. *Übungsspiel Ziel* zeigt das Ziel, bei Killer das eigene Double, bis du Killer bist. Partyspiele zählen nicht für die X01-Statistik.
+Bei Shanghai und Halve-It entscheidet bei Punktgleichheit die Zahl der Treffer; ist auch die gleich, wird das Leg neu gespielt. Bei Golf, Baseball und Count-Up spielen die Gleichauf-Liegenden an der Spitze Zusatzrunden, bis einer von ihnen nach einer Runde vorn liegt. Shanghai und Killer gewinnt ein einzelner Dart; spätere Darts der Aufnahme zählen nicht. [Alle Regeln](spiele.md#partyspiele). *Übungsspiel Restpunkte* bleibt *unbekannt*; seine Attribute tragen `game`, `round`, `rounds`, `target` (`D` und `T` stehen für ein beliebiges Double und Triple), `phase` (bei Killer `choose` oder `play`), `playoff` (die Spieler der Zusatzrunden nach einem Gleichstand, sonst keins), `points` und `scores` mit `points`, `legs`, `sets`, bei Killer `number`, `lives` und `killer` und bei Golf und Baseball der `scorecard` mit dem Ergebnis jeder Runde jedes Spielers. *Übungsspiel Ziel* zeigt das Ziel, bei Killer das eigene Double, bis du Killer bist. Partyspiele zählen nicht für die X01-Statistik.
 
 ## Trainingsspiele
 
@@ -356,13 +356,13 @@ Acht klassische Übungen, gewählt in *Übungsspiel*. Jede folgt den Darts der a
 
 <img src="../images/de/checkout-121.webp" alt="Animation: der 121-Checkout auf der Live-Karte. T20, S1 und S20 lassen 40, D20 in der zweiten Aufnahme ist der Game shot, und das Ziel steigt auf 122" width="620">
 
-[Alle Regeln der Trainingsspiele](funktionsweise.md#trainingsspiele).
+[Alle Regeln der Trainingsspiele](spiele.md#trainingsspiele).
 
 Trainingsspiele sind für einen Spieler; *Übungsspiel Spielerzahl* gilt für X01, die Cricket-Spiele und die Partyspiele.
 
 ## Turniere
 
-Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen jeden**, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, oder das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen. Jedes Match ist ein [Übungsmatch](#übungsspiel) zwischen zwei Spielern mit den Legs, Sätzen und Regeln des Turniers: X01, bei dem jeder Spieler als Handicap von eigenen Startpunkten beginnen kann, oder [Cricket](#cricket), Cut-Throat Cricket oder Tactics. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](#spielerprofile), den Match-Verlauf und die direkten Vergleiche. [Regeln und Entscheidung bei Gleichstand](funktionsweise.md#turniere).
+Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen jeden**, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, oder das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen. Jedes Match ist ein [Übungsmatch](#übungsspiel) zwischen zwei Spielern mit den Legs, Sätzen und Regeln des Turniers: X01, bei dem jeder Spieler als Handicap von eigenen Startpunkten beginnen kann, oder [Cricket](#cricket), Cut-Throat Cricket oder Tactics. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](#spielerprofile), den Match-Verlauf und die direkten Vergleiche. [Regeln und Entscheidung bei Gleichstand](spiele.md#turniere).
 
 <img src="../images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
 
@@ -451,7 +451,7 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 | Prozessor | Sensor, **BM 2**, *Diagnose* | Prozessormodell des Board-PCs. Attribut: `cores`. |
 | Version der Erkennungssoftware | Sensor, **BM 2**, *Diagnose* | Version der Autodarts-Erkennungssoftware. Attribut: `opencv_version`. |
 | Software | Update, **BM 2** | Installierte und neueste Board-Manager-Version. Updates installierst du auf dem Board-PC. |
-| Letztes Ereignis der Online-Brücke | Sensor, Zeitstempel, *Diagnose* | Wann der letzte Moment eines [Online-Matches](automationen.md#online-matches-experimentell) ankam; vor dem ersten *unbekannt*. Nur, solange die Online-Brücke an ist. Attribute: `trigger`, `event_type`. |
+| Letztes Ereignis der Online-Brücke | Sensor, Zeitstempel, *Diagnose* | Wann der letzte Moment eines [Online-Matches](online-matches.md) ankam; vor dem ersten *unbekannt*. Nur, solange die Online-Brücke an ist. Attribute: `trigger`, `event_type`. |
 
 Die Entitäten einer einzelnen Kamera tragen das Attribut `camera` mit der Kameranummer. Die [Board-Status-Karte](karten.md#board-status) nutzt es.
 

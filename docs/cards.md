@@ -10,6 +10,10 @@ The integration includes seven cards. Home Assistant loads them automatically, s
 
 To add one, edit a dashboard, select **Add card** and search for **Autodarts**. The card picker names the cards in your language and links each one to its section below.
 
+**On this page:** [Live card](#live-card) · [Training card](#training-card) · [Board status card](#board-status-card) · [Scoreboard card](#scoreboard-card) · [Doubles card](#doubles-card) · [Players card](#players-card) · [Leaderboard card](#leaderboard-card) · [Automatic dashboard](#automatic-dashboard) · [Card editor](#card-editor) · [Accessibility](#accessibility) · [Tips](#tips)
+
+The guides show the cards at work: [games and rules](games.md), [scoreboard at the board](scoreboard.md) and [statistics and players](statistics.md).
+
 ## Live card
 
 `custom:autodarts-card` shows the current visit, dart by dart, on a board drawn with the geometry of the Autodarts Board Manager.
@@ -21,7 +25,7 @@ To add one, edit a dashboard, select **Add card** and search for **Autodarts**. 
 
 - **Visit:** score, the three dart slots and a progress indicator. The latest dart is outlined.
 - **Last visits:** the scores of your last five visits, colored like the training card's chart. Hover one for its darts.
-- **Practice game:** while a [practice game](entities.md#practice-game) runs, the remaining score, the checkout route and busts appear above the dart slots, and the board outlines the bed to aim at next. "No checkout possible" appears only for a score that could be finished in one visit: up to 170 with double out, up to 180 without. In a match, a list shows every player with the remaining score, legs, sets and average, and highlights the player at the board; [start scores](entities.md#teams-and-start-scores) of their own appear beside the names, and a team match lists the two teams. A won match shows its result in large type, for example 2 : 1, and the [match summary](#match-summary) instead of the list. In the [party games](entities.md#party-games), the panel shows the round or hole, the target and every player's points or, in Killer, their number and lives, and who is out. The bull of Around the Clock and Halve-It, where the outer bull counts too, reads *Bull (25/50)*, and both bull beds are outlined. During a bull-off it lists the bed and the distance of every dart and who leads, and it says when a tie throws again. In the [Cricket games](entities.md#cricket), a chalkboard shows the marks of every player or team on the numbers of the game, the points and the marks per round, dims the numbers everybody has closed and outlines the next open number on the board. Screen readers read the marks as words. In a [training game](entities.md#training-games), the panel shows the target, the progress, darts and hit rate (Bob's 27: points and round; checkout training and 121 checkout: the route and the checkout rate; Catch 40, the JDC Challenge and the singles training: the round or part and the points), and the board outlines the beds of the target. The live card and the [scoreboard](#scoreboard-card) share how they show a game, so both always tell the same.
+- **Practice game:** while a [practice game](games.md) runs, the remaining score, the checkout route and busts appear above the dart slots, and the board outlines the bed to aim at next. "No checkout possible" appears only for a score that could be finished in one visit: up to 170 with double out, up to 180 without. In a match, a list shows every player with the remaining score, legs, sets and average, and highlights the player at the board; [start scores](games.md#start-scores-handicap) of their own appear beside the names, and a team match lists the two teams. A won match shows its result in large type, for example 2 : 1, and the [match summary](#match-summary) instead of the list. In the [party games](games.md#party-games), the panel shows the round or hole, the target and every player's points or, in Killer, their number and lives, and who is out. The bull of Around the Clock and Halve-It, where the outer bull counts too, reads *Bull (25/50)*, and both bull beds are outlined. During a bull-off it lists the bed and the distance of every dart and who leads, and it says when a tie throws again. In the [Cricket games](games.md#cricket-games), a chalkboard shows the marks of every player or team on the numbers of the game, the points and the marks per round, dims the numbers everybody has closed and outlines the next open number on the board. Screen readers read the marks as words. In a [training game](games.md#training-games), the panel shows the target, the progress, darts and hit rate (Bob's 27: points and round; checkout training and 121 checkout: the route and the checkout rate; Catch 40, the JDC Challenge and the singles training: the round or part and the points), and the board outlines the beds of the target. The live card and the [scoreboard](#scoreboard-card) share how they show a game, so both always tell the same.
 - **Board:**
   - Hit beds blink in the highlight color.
   - Numbered markers show where each dart landed.
@@ -37,6 +41,10 @@ Tap the board, or press Enter or Space on it, to open the visit details. Numbers
 <img src="images/en/practice-checkout.webp" alt="Animation: a 141 checkout in a 501 leg. After each dart the remaining score, the route and the outlined bed change: T20 T19 D12, then game shot and a new leg" width="620">
 
 <img src="images/en/card-match.png" alt="Live card during a 501 match of Alex and Sam: Alex at the board with 81 left and the route T19 D12, Sam with 361 left" width="760">
+
+On a phone, the live card stacks the visit, the board, the statistics and the controls:
+
+<img src="images/en/card-mobile.png" alt="The live card on a phone: the visit of T20, S5 and Bull for 115 points, the last visits, the board with the three darts, the training statistics and the controls" width="320">
 
 <img src="images/en/cricket.webp" alt="Animation: Cricket between Alex and Sam. Alex closes the 20, scores 60 and hits a 19; after the takeout Sam closes the 19, scores 57 and hits a double 18" width="620">
 
@@ -191,7 +199,7 @@ show_system: false
 
 <img src="images/en/scoreboard.webp" alt="Animation: the scoreboard during a 501 match. The turn passes between Alex and Sam after every visit, and Alex checks out 141 with T20 T19 D12 to win the match" width="760">
 
-- **X01:** a tile for every player with the remaining score, legs, sets and average. The player at the board is outlined and gets the checkout route, a bust or the game shot. Players with a [start score](entities.md#teams-and-start-scores) of their own show it beside the name.
+- **X01:** a tile for every player with the remaining score, legs, sets and average. The player at the board is outlined and gets the checkout route, a bust or the game shot. Players with a [start score](games.md#start-scores-handicap) of their own show it beside the name.
 - **Teams:** in a team match, two team tiles such as *Alex & Kim* against *Sam & Lea*, with the shared score, the average of each partner and the partner at the board in bold. The banner names the winning team.
 - **Cricket:** a large chalkboard with the marks of every player, the points and the marks per round; the next open number is shown in its top-left corner, above the numbers. Tactics fills it from 20 down to 10 in smaller type, Cut-Throat Cricket reminds that the fewest points win, and a team match has a column per team.
 - **Party games:** the round and the target, every player's points, or in Killer their number and lives in red hearts. Golf and Baseball add a scorecard of every hole or inning with the total; after a tie, the extra rounds show as a play-off and the players out of it are dimmed.
@@ -219,7 +227,7 @@ show_system: false
 
 <img src="images/en/scoreboard-teams.png" alt="Scoreboard of a 501 team match: Alex and Kim with 45 left against Sam and Lea with 216, Sam at the board in bold with his average" width="760">
 
-The [automatic dashboard](#automatic-dashboard) has a *Scoreboard* view that shows the card across the whole screen. Open it on the tablet, and use the browser's full-screen mode or the Home Assistant app in kiosk mode. On a phone, the full-height scoreboard leaves room for the browser's address bar.
+The [automatic dashboard](#automatic-dashboard) has a *Scoreboard* view that shows the card across the whole screen. On a phone, the full-height scoreboard leaves room for the browser's address bar. The guide [scoreboard at the board](scoreboard.md) shows how to set up a tablet or TV, the caller and idle mode step by step.
 
 ### New game screen
 
@@ -228,7 +236,7 @@ Choose the next game at the board, without a phone: tap **New game** below the s
 <img src="images/en/lobby.webp" alt="Animation: on the tablet, New game opens the screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
 - **Game:** every game of *Practice game*, grouped into X01, Cricket, party games and training games. `lobby_games` limits the choice.
-- **Players:** up to four, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. Killer needs two players; training games take the first player only. In X01, − and + beside a player set a [start score](entities.md#teams-and-start-scores) of their own in steps of 100, from 101 to 1001.
+- **Players:** up to four, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. Killer needs two players; training games take the first player only. In X01, − and + beside a player set a [start score](games.md#start-scores-handicap) of their own in steps of 100, from 101 to 1001.
 - **Format:** legs per set and sets to win, for a match of several players.
 - **Options:** double out and double in for X01, and the bull-off for a match, with bull-off by distance where the board offers it. With four players of X01 or a Cricket game, *Teams* plays 1 and 3 against 2 and 4.
 - **Start:** starts the game with [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), and the scoreboard shows it at once. During a game, *End game* stops it after a second tap.
@@ -449,6 +457,16 @@ All options can be set in the visual editor. It is a form of Home Assistant, so 
 ### Colors
 
 `accent_color` and `highlight_color` use Home Assistant's color picker. Choose a theme color such as *Primary*, *Accent* or *Red*, which follows your theme, or type any CSS color, for example `#00e5ff`, `rgb(0 229 255)` or `var(--accent-color)`. An empty field, or a value that is not a color, uses the default.
+
+## Accessibility
+
+The cards work with a keyboard, with a screen reader and without animations:
+
+- **Keyboard:** every control is a button with a visible focus ring in the accent color. The board of the live card and the statistics tiles of the training card open their details with Enter or Space. The calibration buttons of the status card keep the focus while they ask for confirmation. On the new game screen, Enter adds the name you typed.
+- **Screen readers:** buttons without a text have a label, for example "Move Alex up" on the new game screen. The live board reads the darts of the visit, such as "Dartboard with the current visit: T20, S5, Bull", the chart of recent visits reads their scores, and Cricket marks read as words. The status of the board and the winner of a match are announced when they change. The detection toggle of the status card is a switch, and the caller button and the options of the new game screen say whether they are on.
+- **Reduced motion:** when the device asks for reduced motion, hit beds stop blinking and the latest dart stops pulsing; both stay highlighted. The panels of idle mode change without fading, and the places of a tournament bracket fill without sliding.
+- **Color and contrast:** the cards take their colors from your theme, light or dark, and never rely on color alone: the board status comes with a text, the heatmap shows the count of a bed on hover, and the Cricket marks are symbols. Choose an `accent_color` and a `highlight_color` with enough contrast to your theme, or use a high-contrast theme, which the cards follow.
+- **Language:** the cards follow the language of your Home Assistant profile, and numbers, dates and times its formats.
 
 ## Tips
 

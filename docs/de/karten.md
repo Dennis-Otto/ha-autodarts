@@ -1,6 +1,6 @@
 # Dashboard-Karten
 
-[← Übersicht](README.md) · [English](../cards.md)
+[← Dokumentation](README.md) · [English](../cards.md)
 
 Die Integration bringt sieben Karten mit. Home Assistant lädt sie automatisch; eine Dashboard-Ressource oder ein eigener HACS-Download ist nicht nötig. Jede Karte:
 
@@ -10,15 +10,22 @@ Die Integration bringt sieben Karten mit. Home Assistant lädt sie automatisch; 
 
 Zum Hinzufügen bearbeitest du ein Dashboard, wählst **Karte hinzufügen** und suchst nach **Autodarts**. Die Kartenauswahl nennt die Karten in deiner Sprache und verlinkt jede auf ihren Abschnitt unten.
 
+**Auf dieser Seite:** [Live-Karte](#live-karte) · [Trainingskarte](#trainingskarte) · [Board-Status](#board-status) · [Anzeigetafel](#anzeigetafel) · [Doubles-Karte](#doubles-karte) · [Spielerkarte](#spielerkarte) · [Bestenliste](#bestenliste) · [Automatisches Dashboard](#automatisches-dashboard) · [Karteneditor](#karteneditor) · [Barrierefreiheit](#barrierefreiheit) · [Tipps](#tipps)
+
+Die Anleitungen zeigen die Karten im Einsatz: [Spiele und Regeln](spiele.md), [Anzeigetafel am Board](anzeigetafel.md) und [Statistik und Spieler](statistik.md).
+
 ## Live-Karte
 
 `custom:autodarts-card` zeigt die aktuelle Aufnahme Dart für Dart auf einer Scheibe mit der Geometrie des Autodarts Board Managers.
 
-<img src="../images/de/card.png" alt="Live-Karte mit Aufnahmepunkten, Dart-Feldern, der Scheibe mit blinkenden Treffern, Statistik, Verbindungen und Steuerung" width="760">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="../images/de/card-light.png">
+  <img src="../images/de/card.png" alt="Live-Karte mit Aufnahmepunkten, Dart-Feldern, der Scheibe mit blinkenden Treffern, Statistik, Verbindungen und Steuerung" width="760">
+</picture>
 
 - **Aufnahme:** Punkte, die drei Dart-Felder und der Fortschritt. Der jüngste Dart ist hervorgehoben.
 - **Vorige Aufnahmen:** die Punkte deiner letzten fünf Aufnahmen, eingefärbt wie im Diagramm der Trainingskarte. Mit dem Mauszeiger siehst du die Darts.
-- **Übungsspiel:** Läuft ein [Übungsspiel](entitaeten.md#übungsspiel), stehen Restpunkte, Checkout-Weg und Überwerfen über den Dart-Feldern, und die Scheibe umrandet das nächste Zielfeld. „Kein Checkout möglich“ erscheint nur bei einem Rest, der sich in einer Aufnahme beenden ließe: bis 170 mit Double-Out, bis 180 ohne. Im Match listet der Bereich alle Spieler mit Restpunkten, Legs, Sätzen und Average und hebt den Spieler am Board hervor; eigene [Startpunkte](entitaeten.md#teams-und-startpunkte) stehen neben den Namen, und ein Team-Match listet die beiden Teams. Ein gewonnenes Match zeigt sein Ergebnis in großer Schrift, etwa 2 : 1, und statt der Liste die [Match-Zusammenfassung](#match-zusammenfassung). Bei den [Partyspielen](entitaeten.md#partyspiele) zeigt der Bereich Runde oder Loch, Ziel und die Punkte aller Spieler, bei Killer ihre Zahl und Leben und wer raus ist. Das Bull bei Around the Clock und Halve-It, bei dem auch das äußere Bull zählt, heißt *Bull (25/50)*, und beide Bull-Felder sind umrandet. Beim Ausbullen listet er Feld und Abstand jedes Darts und wer führt, und er sagt, wenn ein Gleichstand neu wirft. Bei den [Cricket-Spielen](entitaeten.md#cricket) zeigt eine Kreidetafel die Marks aller Spieler oder Teams auf den Zahlen des Spiels, die Punkte und die Marks pro Runde, blendet Zahlen ab, die alle geschlossen haben, und umrandet die nächste offene Zahl auf der Scheibe. Screenreader lesen die Marks als Wörter vor. In einem [Trainingsspiel](entitaeten.md#trainingsspiele) zeigt der Bereich Ziel, Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training und 121-Checkout: Weg und Checkout-Quote; Catch 40, JDC Challenge und Singles-Training: Runde oder Teil und Punkte), und die Scheibe umrandet die Felder des Ziels. Live-Karte und [Anzeigetafel](#anzeigetafel) zeigen ein Spiel auf dieselbe Weise an und sagen daher immer dasselbe.
+- **Übungsspiel:** Läuft ein [Übungsspiel](spiele.md), stehen Restpunkte, Checkout-Weg und Überwerfen über den Dart-Feldern, und die Scheibe umrandet das nächste Zielfeld. „Kein Checkout möglich“ erscheint nur bei einem Rest, der sich in einer Aufnahme beenden ließe: bis 170 mit Double-Out, bis 180 ohne. Im Match listet der Bereich alle Spieler mit Restpunkten, Legs, Sätzen und Average und hebt den Spieler am Board hervor; eigene [Startpunkte](spiele.md#startpunkte-handicap) stehen neben den Namen, und ein Team-Match listet die beiden Teams. Ein gewonnenes Match zeigt sein Ergebnis in großer Schrift, etwa 2 : 1, und statt der Liste die [Match-Zusammenfassung](#match-zusammenfassung). Bei den [Partyspielen](spiele.md#partyspiele) zeigt der Bereich Runde oder Loch, Ziel und die Punkte aller Spieler, bei Killer ihre Zahl und Leben und wer raus ist. Das Bull bei Around the Clock und Halve-It, bei dem auch das äußere Bull zählt, heißt *Bull (25/50)*, und beide Bull-Felder sind umrandet. Beim Ausbullen listet er Feld und Abstand jedes Darts und wer führt, und er sagt, wenn ein Gleichstand neu wirft. Bei den [Cricket-Spielen](spiele.md#cricket-spiele) zeigt eine Kreidetafel die Marks aller Spieler oder Teams auf den Zahlen des Spiels, die Punkte und die Marks pro Runde, blendet Zahlen ab, die alle geschlossen haben, und umrandet die nächste offene Zahl auf der Scheibe. Screenreader lesen die Marks als Wörter vor. In einem [Trainingsspiel](spiele.md#trainingsspiele) zeigt der Bereich Ziel, Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training und 121-Checkout: Weg und Checkout-Quote; Catch 40, JDC Challenge und Singles-Training: Runde oder Teil und Punkte), und die Scheibe umrandet die Felder des Ziels. Live-Karte und [Anzeigetafel](#anzeigetafel) zeigen ein Spiel auf dieselbe Weise an und sagen daher immer dasselbe.
 - **Scheibe:**
   - Getroffene Felder blinken in der Hervorhebungsfarbe.
   - Nummerierte Markierungen zeigen, wo jeder Dart steckt.
@@ -34,6 +41,10 @@ Ein Tipp auf die Scheibe, oder die Eingabe- oder Leertaste darauf, öffnet die D
 <img src="../images/de/practice-checkout.webp" alt="Animation: ein 141er-Checkout in einem 501-Leg. Nach jedem Dart ändern sich Rest, Weg und umrandetes Feld: T20 T19 D12, dann Game shot und ein neues Leg" width="620">
 
 <img src="../images/de/card-match.png" alt="Live-Karte in einem 501-Match von Alex und Sam: Alex am Board mit 81 Rest und dem Weg T19 D12, Sam mit 361 Rest" width="760">
+
+Auf dem Handy stapelt die Live-Karte Aufnahme, Scheibe, Statistik und Steuerung:
+
+<img src="../images/de/card-mobile.png" alt="Die Live-Karte auf dem Handy: die Aufnahme aus T20, S5 und Bull mit 115 Punkten, die letzten Aufnahmen, die Scheibe mit den drei Darts, die Trainingsstatistik und die Steuerung" width="320">
 
 <img src="../images/de/cricket.webp" alt="Animation: Cricket zwischen Alex und Sam. Alex schließt die 20, punktet 60 und trifft eine 19; nach der Entnahme schließt Sam die 19, punktet 57 und trifft ein Double 18" width="620">
 
@@ -84,7 +95,10 @@ highlight_color: "#00e5ff"
 
 `custom:autodarts-training-card` macht aus der lokalen [Trainingssession](entitaeten.md#trainingssession) ein Dashboard, das du nach jedem Training ansehen willst.
 
-<img src="../images/de/training-card.png" alt="Trainingskarte mit 3-Dart-Average, Trefferbild, Statistik, häufigsten Feldern, Bestleistungen und letzten Aufnahmen" width="760">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="../images/de/training-card-light.png">
+  <img src="../images/de/training-card.png" alt="Trainingskarte mit 3-Dart-Average, Trefferbild, Statistik, häufigsten Feldern, Bestleistungen und letzten Aufnahmen" width="760">
+</picture>
 
 - **3-Dart-Average**, Anzahl der Darts und Aufnahmen und der Beginn der Session.
 - **Serie und Tagesziel:** die [Trainingsserie](entitaeten.md#bestleistungen-serie-und-tagesziel) in Tagen und die Darts von heute mit einem Balken zum Tagesziel, der grün wird, sobald du es erreichst.
@@ -150,7 +164,10 @@ show_reset: false
 
 `custom:autodarts-status-card` zeigt den Zustand des Boards und bündelt die Wartung an einem Ort.
 
-<img src="../images/de/status-card.png" alt="Board-Status mit Erkennungsschalter, Board-Manager-Version und Update, Verbindungen, CPU-Last, Kameras und Wartungstasten" width="760">
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="../images/de/status-card-light.png">
+  <img src="../images/de/status-card.png" alt="Board-Status mit Erkennungsschalter, Board-Manager-Version und Update, Verbindungen, CPU-Last, Kameras und Wartungstasten" width="760">
+</picture>
 
 - **Erkennung:** ein Schalter mit dem aktuellen Status, eingefärbt in der Statusfarbe. Boards ohne Erkennungsschalter starten und stoppen die Erkennung mit ihren Tasten; der Schalter folgt dann dem Board-Status.
 - **Board Manager:** die installierte Version. Mit Board Manager 2 zeigt ein Hinweis ein verfügbares Update an; ein Tipp darauf öffnet die Details.
@@ -210,7 +227,7 @@ show_system: false
 
 <img src="../images/de/scoreboard-teams.png" alt="Anzeigetafel eines 501-Team-Matches: Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216, Sam am Board fett mit seinem Average" width="760">
 
-Das [automatische Dashboard](#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die Karte über den ganzen Bildschirm zeigt. Öffne sie auf dem Tablet und nutze den Vollbildmodus des Browsers oder die Home-Assistant-App im Kioskmodus. Auf dem Handy lässt die bildschirmfüllende Anzeigetafel Platz für die Adresszeile des Browsers.
+Das [automatische Dashboard](#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die Karte über den ganzen Bildschirm zeigt. Auf dem Handy lässt die bildschirmfüllende Anzeigetafel Platz für die Adresszeile des Browsers. Die Anleitung [Anzeigetafel am Board](anzeigetafel.md) zeigt Schritt für Schritt, wie du ein Tablet oder einen Fernseher, den Caller und den Ruhemodus einrichtest.
 
 ### Spielauswahl
 
@@ -219,7 +236,7 @@ Wähle das nächste Spiel direkt am Board, ohne Handy: Tippe zwischen den Spiele
 <img src="../images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Auswahl, Cricket wird gewählt, Sam kommt zu Alex, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
 - **Spiel:** jedes Spiel von *Übungsspiel*, gruppiert in X01, Cricket, Partyspiele und Trainingsspiele. `lobby_games` schränkt die Auswahl ein.
-- **Spieler:** bis zu vier, in Wurfreihenfolge. Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um ihn zu verschieben, und auf ✕, um ihn zu entfernen. Die Namen kommen aus den Spielerprofilen und den Namensfeldern der Spieler; Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, die zu Hause ist, stehen vorn, mit ihrem Bild und ⌂. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Ist niemand gewählt, wirft ein Spieler ohne Namen. Killer braucht zwei Spieler; Trainingsspiele nehmen nur den ersten Spieler. Bei X01 stellen − und + neben einem Spieler eigene [Startpunkte](entitaeten.md#teams-und-startpunkte) in Schritten von 100 ein, von 101 bis 1001.
+- **Spieler:** bis zu vier, in Wurfreihenfolge. Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um ihn zu verschieben, und auf ✕, um ihn zu entfernen. Die Namen kommen aus den Spielerprofilen und den Namensfeldern der Spieler; Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, die zu Hause ist, stehen vorn, mit ihrem Bild und ⌂. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Ist niemand gewählt, wirft ein Spieler ohne Namen. Killer braucht zwei Spieler; Trainingsspiele nehmen nur den ersten Spieler. Bei X01 stellen − und + neben einem Spieler eigene [Startpunkte](spiele.md#startpunkte-handicap) in Schritten von 100 ein, von 101 bis 1001.
 - **Format:** Legs pro Satz und Sätze zum Sieg, für ein Match mehrerer Spieler.
 - **Optionen:** Double-Out und Double-In bei X01 und das Ausbullen für ein Match, mit Ausbullen nach Abstand, wo das Board es anbietet. Mit vier Spielern bei X01 oder einem Cricket-Spiel spielt *Teams* Spieler 1 und 3 gegen 2 und 4.
 - **Start:** startet das Spiel mit [`autodarts.start_game`](entitaeten.md#übungsspiel-starten-autodartsstart_game), und die Anzeigetafel zeigt es sofort. Während eines Spiels beendet *Spiel beenden* es nach einem zweiten Tippen.
@@ -440,6 +457,16 @@ Alle Optionen lassen sich im visuellen Editor einstellen. Er ist ein Formular vo
 ### Farben
 
 `accent_color` und `highlight_color` nutzen die Farbauswahl von Home Assistant. Wähle eine Theme-Farbe wie *Primär*, *Akzent* oder *Rot*, die deinem Design folgt, oder tippe eine beliebige CSS-Farbe ein, zum Beispiel `#00e5ff`, `rgb(0 229 255)` oder `var(--accent-color)`. Ein leeres Feld oder ein Wert, der keine Farbe ist, nutzt den Standard.
+
+## Barrierefreiheit
+
+Die Karten funktionieren mit Tastatur, mit Screenreader und ohne Animationen:
+
+- **Tastatur:** Jedes Bedienelement ist eine Taste mit sichtbarem Fokusrahmen in der Akzentfarbe. Die Scheibe der Live-Karte und die Statistik-Kacheln der Trainingskarte öffnen ihre Details mit der Eingabe- oder Leertaste. Die Kalibrieren-Tasten des Board-Status behalten den Fokus, während sie um Bestätigung bitten. In der Spielauswahl fügt die Eingabetaste den eingetippten Namen hinzu.
+- **Screenreader:** Tasten ohne Text haben eine Beschriftung, etwa „Alex nach oben“ in der Spielauswahl. Die Live-Scheibe liest die Darts der Aufnahme vor, etwa „Dartscheibe mit der aktuellen Aufnahme: T20, S5, Bull“, das Diagramm der letzten Aufnahmen ihre Punkte, und Cricket-Marks werden als Wörter gelesen. Der Status des Boards und der Sieger eines Matches werden angesagt, sobald sie sich ändern. Der Erkennungsschalter des Board-Status ist ein Schalter, und die Caller-Taste und die Optionen der Spielauswahl sagen, ob sie an sind.
+- **Reduzierte Bewegung:** Wünscht das Gerät reduzierte Bewegung, blinken getroffene Felder nicht mehr und der jüngste Dart pulsiert nicht; beide bleiben hervorgehoben. Die Tafeln des Ruhemodus wechseln ohne Überblendung, und die Plätze eines Turnierbaums füllen sich ohne Gleiten.
+- **Farbe und Kontrast:** Die Karten nehmen ihre Farben aus deinem Design, hell oder dunkel, und verlassen sich nie allein auf Farbe: Der Board-Status kommt mit einem Text, das Trefferbild zeigt die Anzahl eines Feldes beim Überfahren, und die Cricket-Marks sind Symbole. Wähle `accent_color` und `highlight_color` mit genug Kontrast zu deinem Design, oder nutze ein Design mit hohem Kontrast, dem die Karten folgen.
+- **Sprache:** Die Karten folgen der Sprache deines Home-Assistant-Profils, Zahlen, Daten und Uhrzeiten seinen Formaten.
 
 ## Tipps
 

@@ -7,7 +7,7 @@
 | Requirement | Details |
 | --- | --- |
 | Home Assistant | **2026.8** or newer |
-| Autodarts board | Set up and working in the Autodarts Board Manager: **Board Manager 2** (headless, recommended) or the classic **Board Manager 1** |
+| Autodarts board | Set up and working in the Autodarts Board Manager: **Board Manager 2** (headless, recommended) or the classic **Board Manager 1**. Boards run by **Autodarts Desktop** have not been tested yet; please [report](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) how it works with yours |
 | Network | Home Assistant reaches the board PC on the local network, TCP port **3180** by default |
 | Optional: cloud match data | An Autodarts account and an OAuth client ID that Autodarts issues for this integration (see [cloud link](#link-the-autodarts-cloud-optional)) |
 
@@ -54,7 +54,7 @@ Choose **Search for boards on this network**. The integration asks the public Au
 
 ### 3. Enter the board address
 
-Choose **Enter board address** and enter the IP address or host name of the board PC, for example `192.168.1.50` or `autodarts.local`, without `http://` and without a port. The port is normally **3180**.
+Choose **Enter board address** and enter the IP address or host name of the board PC, for example `192.0.2.10` or `autodarts.local`, without `http://` and without a port. The port is normally **3180**.
 
 <img src="images/en/setup-local.png" alt="The form to enter the Board Manager address and port" width="520">
 
@@ -94,8 +94,8 @@ The board, its entities, their history and your dashboards stay as they are. The
 Autodarts replaces the classic Board Manager with the headless **Board Manager 2** and will turn the old one off once most players have migrated. Home Assistant shows a **repair notice** as long as a board runs Board Manager 1.
 
 1. Install Board Manager 2 on the board PC as described by Autodarts.
-2. Keep the integration as it is. It detects the new generation on the next read, reloads itself and adds the new entities: cloud connection, CPU, memory and update.
-3. Entities that only Board Manager 1 has, such as the cloud link switch, are removed automatically.
+2. Keep the integration as it is. It detects the new generation on the next read, reloads itself and adds the new entities: the Autodarts cloud connection, CPU and memory, the operating system, processor and detection software of the board PC, and the Board Manager update. Enabled camera entities switch from snapshots to the live stream.
+3. Entities that only Board Manager 1 has, the cloud link switch and its connect and disconnect buttons, are removed automatically.
 
 Your training session, entity IDs and dashboards are kept.
 
@@ -110,7 +110,7 @@ Entries of the first version, which stored an address or an account password, ar
 
 ## Remove
 
-1. **Settings → Devices & services → Autodarts**, open the board's menu (⋮) and select **Delete**. This also deletes the stored training session and all repair notices of the board.
+1. **Settings → Devices & services → Autodarts**, open the board's menu (⋮) and select **Delete**. This also deletes everything the integration stored for the board: the training sessions, the practice game, the personal bests, the player profiles with their match history and doubles, the weekly report, the training calendar and the repair notices. Export what you want to keep with [`autodarts.export`](entities.md#export-training-data-autodartsexport) first. Highlight photos and exports stay where they are.
 2. To uninstall the code: in **HACS**, open **Autodarts** and select **Remove**. For a manual installation, delete `config/custom_components/autodarts`.
 3. Restart Home Assistant. The dashboard cards disappear with the integration. Remove dashboard cards and automations that use them.
 

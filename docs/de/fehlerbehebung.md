@@ -1,6 +1,6 @@
 # Fehlerbehebung
 
-[← Übersicht](README.md) · [English](../troubleshooting.md)
+[← Dokumentation](README.md) · [English](../troubleshooting.md)
 
 ## Schnelle Prüfung
 
@@ -12,12 +12,16 @@
 
 | Meldung | Ursache und Lösung |
 | --- | --- |
+| *Gib nur eine IP-Adresse oder einen Hostnamen ein.* | Die Adresse enthält mehr als den Host, etwa `http://`, einen Pfad oder einen Port. Trage nur die IP-Adresse oder den Hostnamen ein und den Port in sein eigenes Feld. |
 | *Der lokale Board Manager ist nicht erreichbar oder liefert keine gültigen Daten.* | Falsche Adresse oder falscher Port, der Board Manager läuft nicht, oder auf dem Port antwortet etwas anderes. Trage nur die IP-Adresse ein, ohne `http://` und ohne Port. |
 | *Das Board verweigert den Zugriff (HTTP 401 oder 403).* | Der Board Manager selbst braucht keine Anmeldung. Etwas vor Port 3180 blockiert Home Assistant, zum Beispiel ein Reverse Proxy, eine Firewall oder eine Anmeldeseite. Lass Home Assistant direkt auf das Board zugreifen oder trage die Adresse des Boards selbst ein. |
 | *Im Board Manager ist noch keine Board-ID eingerichtet.* | Das Board ist noch nicht bei Autodarts eingerichtet. Schließe die Einrichtung im Board Manager ab und versuche es erneut. |
 | *Es wurden keine neuen Boards automatisch gefunden.* | Die Suche findet nur Boards, die von deinem Internetanschluss aus registriert und noch nicht eingerichtet sind. Gib stattdessen die Adresse ein. |
 | *Die Board-Suche ist gerade nicht erreichbar.* | Der Suchdienst von Autodarts ist nicht erreichbar. Gib stattdessen die Adresse ein. |
 | *Dieses Autodarts-Board ist bereits eingerichtet.* | Das Board ist schon vorhanden. Über **Neu konfigurieren** änderst du seine Adresse. |
+| *Diese Adresse gehört zu einem anderen Board.* | **Neu konfigurieren** hat unter der neuen Adresse ein anderes Board gefunden. Trage die Adresse des Boards ein, zu dem dieser Eintrag gehört, oder füge das andere Board als neuen Eintrag hinzu. |
+| *Das im Netzwerk gemeldete Board antwortet nicht.* | Ein entdecktes Board hat unter der gemeldeten Adresse nicht geantwortet, etwa weil der Board Manager inzwischen gestoppt ist. Starte den Board Manager und füge das Board erneut hinzu oder gib seine Adresse ein. |
+| *Die Einrichtung dieses Boards läuft bereits.* | Ein anderer Einrichtungsdialog für dasselbe Board ist offen, etwa der des entdeckten Boards. Schließe ihn ab oder schließe ihn. |
 | Das Board wird nicht automatisch gefunden | Die automatische Erkennung braucht Board Manager 2 und mDNS im Netzwerk. Home Assistant in Docker braucht dafür `network_mode: host`; über VLAN-Grenzen hinweg funktioniert mDNS nur mit einem Repeater. Nutze sonst die Suche oder die Adresse. |
 | *Diese Client-ID ist ungültig oder nicht für die Geräteanmeldung freigeschaltet.* | Die Cloud-Verknüpfung braucht eine Client-ID, die Autodarts für diese Integration vergibt. Sie gibt es noch nicht; siehe [Cloud-Verknüpfung](installation.md#autodarts-cloud-verknüpfen-optional). Die lokale Einrichtung funktioniert ohne sie. |
 
@@ -29,7 +33,7 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | Hinweis | Bedeutung und Lösung |
 | --- | --- |
 | **Autodarts-Board-Adresse zeigt auf ein anderes Board** | Unter der eingerichteten Adresse antwortet ein Board mit anderer Board-ID, etwa nach vertauschten IP-Adressen. Die Entitäten bleiben nicht verfügbar, damit sie nie Daten eines fremden Boards zeigen. Öffne die Integration, wähle **Neu konfigurieren** und das richtige Board. Der Hinweis verschwindet dann von selbst. |
-| **Autodarts-Board kalibrieren** | Mindestens 20 % der letzten Darts musste das Board korrigieren, siehe *Korrekturquote der Erkennung*. Zieh alle Darts, öffne den Hinweis und bestätige: Die Integration kalibriert alle Kameras und zählt wieder bei null. Der Hinweis verschwindet auch, sobald die Quote unter 10 % fällt. |
+| **Autodarts-Board kalibrieren** | Mindestens 20 % der letzten 100 Darts, bei mindestens 50 Darts insgesamt, musste das Board korrigieren, siehe *Korrekturquote der Erkennung*. Zieh alle Darts, öffne den Hinweis und bestätige: Die Integration kalibriert alle Kameras und zählt wieder bei null. Der Hinweis verschwindet auch, sobald die Quote unter 10 % fällt. |
 | **Board auf den neuen Autodarts Board Manager umstellen** | Das Board nutzt noch den klassischen Board Manager 1, den Autodarts abschalten wird. Installiere Board Manager 2 auf dem Board-PC; die Integration stellt sich selbst um, und der Hinweis verschwindet. |
 | **Autodarts-Board unter neuer Adresse gefunden** | Das Board antwortet seit fünf Minuten nicht unter seiner Adresse, aber die Autodarts-Cloud meldet eine andere Adresse, unter der es mit seiner Board-ID antwortet, etwa nach einer DHCP-Änderung. Öffne den Hinweis und bestätige: Die Integration prüft die Adresse noch einmal, wechselt zu ihr und lädt neu. Entitäten, Training und Einstellungen bleiben erhalten. Diesen Hinweis bekommen nur Einträge mit Autodarts-Cloud-Verknüpfung; Board Manager 2 meldet eine neue Adresse selbst, siehe [Adresswechsel](funktionsweise.md#adresswechsel). |
 | **Autodarts-Board verweigert den Zugriff** | Das Board antwortet mit HTTP 401 oder 403. Der Board Manager braucht keine Anmeldung, also blockiert ein Reverse Proxy, eine Firewall oder eine Anmeldung vor Port 3180 Home Assistant. Lass Home Assistant auf das Board zugreifen; der Hinweis verschwindet beim nächsten erfolgreichen Lesen. |
@@ -42,6 +46,17 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 - **Alle Board-Entitäten:** Der Board Manager hat dreimal hintereinander nicht geantwortet; ein oder zwei verpasste Lesevorgänge, also wenige Sekunden, behalten die letzten Werte. Sobald das Board wieder da ist, erholen sich die Entitäten innerhalb von Sekunden. Training, Übungsspiel, persönliche Bestleistungen und die Board-Ereignisse bleiben verfügbar, auch wenn das Board beim Start von Home Assistant ausgeschaltet ist.
 - **Nur Einstellungen und Kameras, der Rest funktioniert:** Das Board hat seine Konfiguration noch nicht gemeldet. Das erledigt sich beim nächsten Lesen, spätestens nach 30 Sekunden.
 - **Nach einem Board-Manager-Update:** Beim Wechsel der Generation lädt sich die Integration neu. Warte ein paar Sekunden.
+
+### Meldungen am Eintrag des Boards
+
+**Einstellungen → Geräte & Dienste → Autodarts** zeigt, warum ein Board nicht geladen ist oder seine Entitäten nicht verfügbar sind:
+
+| Meldung | Ursache und Lösung |
+| --- | --- |
+| *Der Board Manager antwortet nicht.* | Das Board ist offline oder nicht erreichbar. Prüfe, ob Board-PC und Board Manager laufen; die Entitäten erholen sich von selbst. |
+| *Gib die lokale Adresse des Board Managers ein: Öffne das Menü dieses Eintrags und wähle Neu konfigurieren.* | Der Eintrag hat keine lokale Adresse, etwa ein alter Cloud-Eintrag. Öffne das Menü des Eintrags (⋮) → **Neu konfigurieren** und trage die Adresse ein. |
+| *Der Board Manager antwortet in einem Format, das diese Version der Integration nicht versteht.* | Meist nach einem Board-Manager-Update. Aktualisiere die Integration; siehe **Autodarts-Board antwortet in einem unbekannten Format** unter [Reparaturen](#reparaturen). |
+| *Der Board Manager verweigert den Zugriff.* | Siehe **Autodarts-Board verweigert den Zugriff** unter [Reparaturen](#reparaturen). |
 
 ### Eine Aktion schlägt fehl
 
@@ -56,6 +71,15 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *… steht mehrfach in der Spielerliste.* | Jeder Spieler braucht einen eigenen Namen. Spieler ohne Namen dürfen mehrfach vorkommen. |
 | *Killer braucht mindestens zwei Spieler.* | Nenne in der Aktion zwei bis vier Spieler oder stelle *Übungsspiel Spielerzahl* auf 2 oder mehr. |
 | *Es gibt kein Spielerprofil mit dem Namen …* | Prüfe die Schreibweise; Groß- und Kleinschreibung spielen keine Rolle. Der Sensor *Spielerprofile* listet alle Profile. |
+| *Es gibt keine Person … in Home Assistant.* | `autodarts.link_player` braucht eine Personen-Entität, etwa `person.alex`. Lege die Person zuerst unter **Einstellungen → Personen** an. |
+| *Teams brauchen vier Spieler: Spieler 1 und 3 gegen Spieler 2 und 4.* | Nenne vier Spieler oder stelle *Übungsspiel Spielerzahl* auf 4. |
+| *Teams spielen X01 und die Cricket-Spiele.* | Schalte *Teams* für Party- und Trainingsspiele aus. |
+| *Startpunkte sind 0, für die Startpunkte des Spiels, oder 2 bis 1001.* | Korrigiere `start_scores` in der Aktion. |
+| *Der Exportordner … muss im Konfigurationsordner von Home Assistant liegen und darf nicht versteckt sein.* | Wähle einen Ordner im Konfigurationsordner, der nicht mit einem Punkt beginnt, etwa `www/autodarts` oder `exports`. |
+| *Der Export konnte nicht geschrieben werden: …* | Der Ordner ist nicht beschreibbar oder der Speicher voll; die Meldung nennt den Grund. |
+| *Ein Turnier braucht drei bis acht Spieler, nicht …* | Nenne drei bis acht Spieler, jeden mit eigenem Namen. |
+| *Es läuft kein Turnier.* | *Nächstes Turniermatch* und *Turnier beenden* brauchen ein laufendes Turnier. |
+| *Das Turniermatch … gegen … läuft noch.* | *Nächstes Turniermatch* wartet auf die Pause zwischen zwei Matches. Spiel das Match zu Ende oder beende das Turnier. |
 
 ### Keine Echtzeitaktualisierung
 
@@ -85,11 +109,11 @@ Neu beginnen: **Neue Trainingssession** oder *Neue Session* auf der Trainingskar
 
 ### Momente von Online-Matches kommen nicht an
 
-Gehe die [Online-Brücke](automationen.md#online-matches-experimentell) Schritt für Schritt durch und beobachte den Sensor *Letztes Ereignis der Online-Brücke*:
+Gehe die [Online-Brücke](online-matches.md) Schritt für Schritt durch und beobachte den Sensor *Letztes Ereignis der Online-Brücke*:
 
 - **Kein Sensor:** Die Brücke ist aus. Schalte sie in den Optionen des Boards (**Konfigurieren**) ein.
 - **Die Adresse selbst:** Öffne sie mit angehängtem `?event=gameon` in einem Browser in deinem Heimnetz. Ändert sich der Sensor nicht, erreicht der Browser Home Assistant unter dieser Adresse nicht: Nimm die Adresse, mit der du Home Assistant öffnest. Eine Adresse von außerhalb deines Heimnetzes braucht *Aufrufe von außerhalb deines Heimnetzes annehmen*.
-- **Nur von der Autodarts-Seite nicht:** Prüfe, ob die WLED-Funktion von Tools for Autodarts an ist, die Effekte aktiviert sind und die Autodarts-Seite offen ist. Die Entwicklertools des Browsers (F12, *Konsole*) zeigen Aufrufe, die der Browser blockiert hat, etwa als *Mixed Content*; siehe [gemischte Inhalte](automationen.md#grenzen).
+- **Nur von der Autodarts-Seite nicht:** Prüfe, ob die WLED-Funktion von Tools for Autodarts an ist, die Effekte aktiviert sind und die Autodarts-Seite offen ist. Die Entwicklertools des Browsers (F12, *Konsole*) zeigen Aufrufe, die der Browser blockiert hat, etwa als *Mixed Content*; siehe [gemischte Inhalte](online-matches.md#grenzen).
 - **Nur manche Momente:** Einen Trigger, den die Brücke nicht kennt, nennt einmalig eine Warnung im Log von Home Assistant. Tools for Autodarts spielt pro Trigger einen Effekt, entferne also andere Effekte mit demselben Trigger.
 
 ## Diagnose und Logs

@@ -149,6 +149,26 @@ def dashboard() -> dict:
                 }
                 for name, cards in CARDS.items()
             ),
+            # The live card and the scoreboard side by side, for the animation at
+            # the top of the README.
+            {
+                "title": "Hero",
+                "path": "hero",
+                "type": "sections",
+                "max_columns": 3,
+                "sections": [
+                    {
+                        "type": "grid",
+                        "column_span": 1,
+                        "cards": [{"type": "custom:autodarts-card", "layout": "board"}],
+                    },
+                    {
+                        "type": "grid",
+                        "column_span": 2,
+                        "cards": [{"type": "custom:autodarts-scoreboard-card"}],
+                    },
+                ],
+            },
             # The scoreboard on a screen at the board, idle after a short time.
             {
                 "title": "Idle",
@@ -296,6 +316,91 @@ async def seed_journal(demo: Scenario, entry_id: str) -> None:
     await wait_for(lambda: state("loaded"), "the entry with a week in its calendar")
 
 
+# Four weeks of long-term statistics before the demo day, as the recorder compiles
+# them, for the graphs of the generated dashboard: (days ago, darts, 3-dart
+# average, first 9 average, checkout rate, doubles rate, practice legs) of every
+# training day. The last week matches the sessions of the training calendar.
+STATISTICS = [
+    (27, 210, 46.8, 51.2, 18.5, 24.0, 2),
+    (26, 285, 47.9, 52.0, 20.1, 25.2, 3),
+    (24, 168, 45.6, 50.4, 19.0, 24.8, 1),
+    (23, 330, 48.7, 53.1, 21.4, 26.3, 4),
+    (21, 246, 48.1, 52.6, 22.0, 26.9, 2),
+    (20, 372, 49.6, 54.0, 23.5, 27.8, 5),
+    (19, 198, 48.9, 53.4, 22.8, 27.1, 1),
+    (17, 306, 50.2, 54.9, 24.6, 28.5, 3),
+    (16, 264, 49.8, 54.2, 25.1, 29.0, 2),
+    (14, 420, 51.4, 55.8, 26.3, 29.8, 6),
+    (13, 180, 50.6, 55.1, 25.7, 29.4, 1),
+    (12, 348, 51.9, 56.3, 27.0, 30.6, 4),
+    (10, 294, 52.3, 56.9, 27.8, 31.2, 3),
+    (9, 222, 51.7, 56.0, 27.2, 30.8, 2),
+    (8, 390, 53.0, 57.6, 28.9, 32.1, 5),
+    (6, 312, 54.2, 58.4, 29.6, 32.8, 3),
+    (5, 240, 50.1, 55.3, 28.4, 31.9, 2),
+    (3, 366, 53.0, 57.9, 30.2, 33.4, 4),
+    (2, 180, 52.5, 57.1, 29.8, 33.0, 1),
+    (1, 420, 58.1, 61.7, 31.2, 34.6, 5),
+]
+SUMS = ("training_darts", "practice_legs_played")
+MEANS = (
+    "training_average",
+    "practice_first_9_average",
+    "practice_checkout_rate",
+    "practice_doubles_rate",
+)
+
+
+async def seed_statistics(demo: Scenario) -> None:
+    """Long-term statistics of four weeks, so the graphs never say "No statistics found".
+
+    The recorder continues a total from its own five-minute statistics, which start
+    at zero. So the imported totals end at zero yesterday, and a row long before
+    the first day holds where they start: every day keeps its change, and today
+    continues without a jump when the recorder compiles the next hour.
+    """
+    now = datetime.now(ZoneInfo("Europe/Berlin"))
+    rows: dict[str, list[dict]] = {key: [] for key in (*SUMS, *MEANS)}
+    totals = {
+        "training_darts": -sum(day[1] for day in STATISTICS),
+        "practice_legs_played": -sum(day[-1] for day in STATISTICS),
+    }
+    start = (now - timedelta(days=40)).replace(minute=0, second=0, microsecond=0)
+    for key, total in totals.items():
+        rows[key].append({"start": start.isoformat(), "state": 0, "sum": total})
+    for days, darts, *values, legs in STATISTICS:
+        # One hour of the evening holds the day, as if the session ended then.
+        start = (now - timedelta(days=days)).replace(
+            hour=19, minute=0, second=0, microsecond=0
+        )
+        for key, value in zip(SUMS, (darts, legs), strict=True):
+            totals[key] += value
+            rows[key].append(
+                {"start": start.isoformat(), "state": value, "sum": totals[key]}
+            )
+        for key, value in zip(MEANS, values, strict=True):
+            rows[key].append(
+                {"start": start.isoformat(), "mean": value, "min": value, "max": value}
+            )
+    for key, stats in rows.items():
+        entity = demo.entity(key)
+        state = await demo.api("GET", f"/api/states/{entity}")
+        await demo.ws(
+            "recorder/import_statistics",
+            metadata={
+                "has_sum": key in SUMS,
+                # 0: no mean, 1: an arithmetic mean.
+                "mean_type": 0 if key in SUMS else 1,
+                "name": None,
+                "source": "recorder",
+                "statistic_id": entity,
+                "unit_class": None,
+                "unit_of_measurement": state["attributes"].get("unit_of_measurement"),
+            },
+            stats=stats,
+        )
+
+
 # The weekly report blueprint of the repository; in German with the message of
 # the documentation.
 GERMAN_REPORT = {
@@ -436,6 +541,7 @@ async def main() -> None:
         entry_id = result["result"]["entry_id"]
         await demo.registries(entry_id)
         await seed_journal(demo, entry_id)
+        await seed_statistics(demo)
         await weekly_report(demo)
         await history(demo, entry_id)
         # A daily goal the demo darts reach halfway, for the training card.

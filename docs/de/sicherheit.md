@@ -1,6 +1,6 @@
 # Sicherheit
 
-[← Übersicht](README.md) · [English](../security.md)
+[← Dokumentation](README.md) · [English](../security.md)
 
 Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, wem sie vertraut und welche Risiken bleiben. Sicherheitslücken meldest du bitte vertraulich, wie in [SECURITY.md](../../SECURITY.md) beschrieben.
 
@@ -11,7 +11,7 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 | API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade | Konfiguration des Board Managers | Werden direkt beim Lesen verworfen; nie gespeichert, protokolliert, angezeigt oder in Diagnosedaten übernommen |
 | Autodarts-OAuth-Token (optionale Cloud-Verknüpfung) | Integrationseintrag in Home Assistant | Nur dort gespeichert, automatisch erneuert, nie protokolliert; das Passwort sieht die Integration nie |
 | Board-ID, Board-Adresse, Client-ID | Integrationseintrag in Home Assistant | In Diagnosedaten geschwärzt; der Verbindungsverlauf in den Diagnosedaten enthält Zähler, Fehlerarten und Dauern, nie Adressen oder Fehlermeldungen |
-| Trainingssession, Übungsspiele, Spielernamen und ihr Fortschritt samt Dart-Positionen, Wochenbericht und Trainingskalender | `.storage` von Home Assistant | Nur lokal; wird mit der Integration gelöscht; Spielernamen sind in Diagnosedaten geschwärzt |
+| Trainingssessions, Übungsspiele und Turniere, Bestleistungen, Spielernamen und -profile mit direkten Vergleichen, Match-Verlauf, Doppelanalyse, Fortschritt samt Dart-Positionen, Erfolgen und verknüpften Personen, Wochenbericht und Trainingskalender | `.storage` von Home Assistant ([gespeicherte Daten](funktionsweise.md#gespeicherte-daten)) | Nur lokal; wird mit der Integration gelöscht; Spielernamen sind in Diagnosedaten geschwärzt |
 | Exporte mit Spielernamen | Ein Ordner im Konfigurationsordner, standardmäßig `www/autodarts` | Nur auf Anforderung geschrieben; nie außerhalb des Konfigurationsordners; unerratbare Dateinamen |
 | Steuerung des Boards | Board-Manager-API | Aktionen nur auf Wunsch eines Nutzers oder einer Automation, genau einmal gesendet |
 | Adresse der Online-Brücke (optional) | Optionen des Integrationseintrags in Home Assistant | Ein zufälliges Geheimnis aus 64 Hexadezimalzeichen, nur in den Optionen angezeigt; von der Integration nie protokolliert und nie in Diagnosedaten; in den Optionen durch eine neue ersetzbar |
@@ -32,7 +32,7 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 2. **Integration → Dashboard.** Die Karten zeigen Board-Daten im Browser. Jeder Text vom Board oder aus der Entitätsverwaltung wird maskiert, Zahlen werden geprüft, bevor sie zu SVG-Geometrie werden.
 3. **Integration → Internet.** Im lokalen Betrieb verlässt nichts das Heimnetz. *Boards im Netzwerk suchen* fragt einmalig und nur auf Wunsch den öffentlichen Suchdienst von Autodarts; von sich aus fragt die Integration ihn nie. Die optionale Cloud-Verknüpfung nutzt die OAuth-Geräteanmeldung über HTTPS mit der gemeinsamen Verbindung von Home Assistant, und Board- und Match-IDs aus der Cloud werden als einzelner Pfadabschnitt kodiert.
 4. **Netzwerk → Integration (mDNS).** Jedes Gerät im Netzwerk kann ein Autodarts-Board melden. Die Integration spricht nur die Adressen an, von denen die Meldung kommt, nie Loopback-, Link-local- oder Multicast-Adressen und nie eine Adresse, die nur in den Eigenschaften der Meldung steht. Ein eingerichtetes Board zieht nur dann auf eine neue Adresse um, wenn es unter seiner eingerichteten Adresse nicht mehr mit seiner Board-ID antwortet.
-5. **Browser → Integration (Online-Brücke, optional).** Standardmäßig aus. Eingeschaltet nimmt Home Assistant die Aufrufe der Browser-Erweiterung Tools for Autodarts unter einer geheimen Webhook-Adresse an, standardmäßig nur aus dem Heimnetz. Die Integration nimmt nur die bekannten Trigger an, Felder begrenzter Länge und höchstens 20 Aufrufe pro Sekunde. Ein Aufruf kann nur ein Board-Ereignis `online_*` auslösen: Er steuert nie das Board und ändert keine gespeicherten Daten. [Online-Matches](automationen.md#online-matches-experimentell).
+5. **Browser → Integration (Online-Brücke, optional).** Standardmäßig aus. Eingeschaltet nimmt Home Assistant die Aufrufe der Browser-Erweiterung Tools for Autodarts unter einer geheimen Webhook-Adresse an, standardmäßig nur aus dem Heimnetz. Die Integration nimmt nur die bekannten Trigger an, Felder begrenzter Länge und höchstens 20 Aufrufe pro Sekunde. Ein Aufruf kann nur ein Board-Ereignis `online_*` auslösen: Er steuert nie das Board und ändert keine gespeicherten Daten. [Online-Matches](online-matches.md).
 
 ## Bedrohungen und Gegenmaßnahmen
 
@@ -58,7 +58,12 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 - **Minimale Rechte:** GitHub-Workflows laufen mit Lese-Token, außer ein Job braucht mehr. Die Integration liest den Board Manager und schreibt nur, wenn du oder eine Automation es verlangt.
 - **Sicher im Fehlerfall:** Unbekannte Daten werden zu *unbekannt*, ein unerreichbares Board macht Entitäten nicht verfügbar, und ein falsches Board zeigt nie seine Daten.
 - **Lokal zuerst:** Die Cloud ist optional; die lokale Steuerung hängt nie von ihr ab.
-- **Kleine Angriffsfläche:** Keine Python-Abhängigkeiten zur Laufzeit, keine eigenen offenen Ports, keine Dienste außer den Entitäten und, nur solange die Online-Brücke an ist, eine geheime Webhook-Adresse auf dem Webserver von Home Assistant.
+- **Kleine Angriffsfläche:** Keine Python-Abhängigkeiten zur Laufzeit und keine eigenen offenen Ports. Was die Integration dem Webserver von Home Assistant hinzufügt:
+  - die Kartendatei unter `/autodarts/autodarts-card.js`, ohne Anmeldung ausgeliefert wie jede andere Frontend-Datei; sie enthält Code, keine Daten;
+  - die Aktionen `autodarts.start_game`, `autodarts.start_tournament`, `autodarts.next_tournament_match`, `autodarts.stop_tournament`, `autodarts.delete_player`, `autodarts.export`, `autodarts.link_player` und `autodarts.unlink_player`, die wie jede Aktion eine Anmeldung brauchen;
+  - die Downloads der Exporte seit dem letzten Start unter `/api/autodarts/export/`, für angemeldete Benutzer oder mit einem signierten Link, der nach einer Minute abläuft;
+  - den WebSocket-Befehl `autodarts/positions`, mit dem die Karten die Dart-Positionen lesen, für angemeldete Benutzer;
+  - nur solange die Online-Brücke an ist, eine geheime Webhook-Adresse.
 
 ## Verbleibende Risiken
 

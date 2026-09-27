@@ -10,6 +10,7 @@ import io
 import json
 import math
 import os
+import re
 import sys
 import urllib.request
 from pathlib import Path
@@ -154,6 +155,16 @@ def card_shot(
     card = page.locator(tag).nth(index)
     card.screenshot(path=str(OUTPUT / f"{name}.png"), animations="allow")
     print(f"saved {OUTPUT / name}.png")
+
+
+def tall_card_shot(page: Page, name: str, index: int = 0) -> None:
+    """A card taller than the window, which would scroll under the toolbar."""
+    size = page.viewport_size
+    page.set_viewport_size({"width": size["width"], "height": 2000})
+    page.wait_for_timeout(800)
+    peak(page)
+    card_shot(page, name, index)
+    page.set_viewport_size(size)
 
 
 def page_shot(page: Page, name: str) -> None:
@@ -1419,6 +1430,401 @@ def weekly_report_notification(page: Page) -> None:
     report.context.close()
 
 
+# The illustrated guides -------------------------------------------------------------
+
+# A wall tablet and the pictures of the README need no sidebar.
+HIDE_SIDEBAR = "localStorage.setItem('dockedSidebar', JSON.stringify('always_hidden'))"
+OUTER_BULL = {
+    "segment": {"name": "25", "number": 25, "multiplier": 1, "bed": "Single"},
+    "coords": {"x": -0.06, "y": 0.07},
+}
+# The checkout route of the practice game, as the sensor shows it.
+ROUTE = """
+() => {
+  const hass = document.querySelector('home-assistant').hass;
+  const entity = Object.values(hass.entities).find(
+    (item) => item.platform === 'autodarts' && item.translation_key === 'practice_checkout'
+  );
+  return hass.states[entity.entity_id].state;
+}
+"""
+# Replaces the secret of the online bridge on the screen before a screenshot.
+MASK_SECRET = """
+() => {
+  (function mask(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      walker.currentNode.textContent = walker.currentNode.textContent.replace(/[0-9a-f]{64}/g, '…');
+    }
+    root.querySelectorAll('*').forEach((el) => el.shadowRoot && mask(el.shadowRoot));
+  })(document);
+}
+"""
+
+
+class ClipRecorder(Recorder):
+    """Frames of a region of the page, such as two cards side by side."""
+
+    def __init__(self, page: Page, clip: dict) -> None:
+        super().__init__(page)
+        self.clip = clip
+
+    def shot(self, duration: int) -> None:
+        image = self.page.screenshot(clip=self.clip, animations="allow")
+        self.frames.append(Image.open(io.BytesIO(image)))
+        self.durations.append(duration)
+
+
+def named_dart(name: str) -> dict:
+    """A dart in the bed a checkout route names: T20, D12, 25 or BULL."""
+    return {"BULL": BULL, "25": OUTER_BULL}.get(name) or at(name)
+
+
+def own_context(page: Page, **options):
+    """A browser context of its own, for a device of another size."""
+    return page.context.browser.new_context(
+        locale=LOCALE, color_scheme="dark", **{"device_scale_factor": 1, **options}
+    )
+
+
+def start_match(page: Page, names: list[str], option: str, legs: int = 1) -> None:
+    """A match of these players, decided by one set of `legs` legs."""
+    pull_darts()
+    for index, name in enumerate(names):
+        page.evaluate(SET_NAME, [index, name])
+    players(page, len(names))
+    for key, value in (("practice_legs", legs), ("practice_sets", 1)):
+        page.evaluate(CALL_SERVICE, ["number", "set_value", key, {"value": value}])
+    game(page, option)
+
+
+def dart_by_dart(board: Page, recorder: Recorder, darts: list[dict]) -> None:
+    """Throw a visit dart by dart, a frame after each, and pull the darts."""
+    for count in range(1, len(darts) + 1):
+        control({"event": "Throw detected", "throws": darts[:count]})
+        board.wait_for_timeout(500)
+        recorder.shot(700)
+    pull_darts()
+    board.wait_for_timeout(700)
+    recorder.shot(1000)
+
+
+def hero_animation(page: Page) -> None:
+    """The first picture of the README: a 301 match on the live card and the scoreboard.
+
+    Alex throws a 180, Sam scores 85, and Alex checks out 121 for the game shot.
+    """
+    start_match(page, ["Alex", "Sam"], "301")
+    view = page.context.new_page()
+    view.add_init_script(HIDE_SIDEBAR)
+    view.set_viewport_size({"width": 1280, "height": 720})
+    view.goto(f"{HA}/autodarts-demo/hero")
+    wait_card(view, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
+    view.wait_for_timeout(1500)
+    boxes = [
+        view.locator(tag).first.bounding_box() for tag in ("autodarts-card", SCOREBOARD)
+    ]
+    left = min(box["x"] for box in boxes) - 12
+    top = min(box["y"] for box in boxes) - 12
+    right = max(box["x"] + box["width"] for box in boxes) + 12
+    bottom = max(box["y"] + box["height"] for box in boxes) + 12
+    recorder = ClipRecorder(
+        view, {"x": left, "y": top, "width": right - left, "height": bottom - top}
+    )
+    recorder.blink(1, hold=1400)
+    darts_shown = "r.querySelectorAll('.visit .dart:not(.empty)').length === {0}"
+    active = "r.querySelector('.player.active .name')?.textContent.includes('{0}')"
+
+    def throw(names: list[str]) -> None:
+        thrown: list[dict] = []
+        for name in names:
+            thrown.append(named_dart(name))
+            control({"event": "Throw detected", "throws": thrown})
+            wait_card(view, darts_shown.format(len(thrown)), SCOREBOARD)
+            # The bed lights up, then holds at full strength.
+            view.evaluate(SEEK, 250)
+            recorder.shot(250)
+            view.evaluate(SEEK, 800)
+            recorder.shot(650)
+
+    for names, following in (
+        (["T20", "T20", "T20"], "Sam"),
+        (["T20", "S20", "S5"], "Alex"),
+    ):
+        throw(names)
+        recorder.blink(1, hold=600)
+        pull_darts()
+        wait_card(view, active.format(following), SCOREBOARD)
+        view.wait_for_timeout(300)
+        recorder.blink(1, hold=900)
+    # Alex follows the route the cards show for 121; the game shot ends the
+    # animation, before the match summary takes the place of the players.
+    throw(view.evaluate(ROUTE).split())
+    recorder.blink(1, hold=2800)
+    recorder.save("hero", width=960)
+    view.close()
+    pull_darts()
+    players(page, 1)
+    game(page, "off")
+
+
+def scoreboard_game(page: Page, names: list[str], option: str) -> Page:
+    """A game of these players on the scoreboard of a landscape tablet."""
+    start_match(page, names, option)
+    board = page.context.new_page()
+    # High enough that the winner's banner never pushes the card under the toolbar.
+    board.set_viewport_size({"width": 1280, "height": 1000})
+    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    wait_card(
+        board, "!!r.querySelector('.main .player, .main .single')", SCOREBOARD, 60000
+    )
+    board.wait_for_timeout(1500)
+    return board
+
+
+def shanghai_animation(page: Page) -> None:
+    """Shanghai for two: Sam hits single, double and triple 2 and wins at once."""
+    board = scoreboard_game(page, ["Alex", "Sam"], "shanghai")
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1400)
+    for darts in (
+        [at("S1"), at("T1"), at("S20")],
+        [at("D1"), at("S1"), at("S1")],
+        [at("S2"), at("D2"), at("S15")],
+    ):
+        dart_by_dart(board, recorder, darts)
+    shanghai = [at("S2"), at("D2"), at("T2")]
+    for count in range(1, 4):
+        control({"event": "Throw detected", "throws": shanghai[:count]})
+        board.wait_for_timeout(500)
+        recorder.shot(700 if count < 3 else 1200)
+    pull_darts()
+    wait_card(board, "!r.querySelector('.banner').hidden", SCOREBOARD)
+    board.wait_for_timeout(300)
+    recorder.shot(2600)
+    recorder.save("shanghai")
+    board.close()
+    end_match(page)
+
+
+def halve_it_animation(page: Page) -> None:
+    """Halve-It for two: a visit without a hit on the target halves the points."""
+    board = scoreboard_game(page, ["Alex", "Sam"], "halve_it")
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1400)
+    for darts in (
+        [at("T15"), at("S15"), at("S1")],
+        [at("S2"), at("S10"), at("S6")],
+        [at("S16"), at("S7"), at("S8")],
+        [at("D16"), at("S16"), at("T16")],
+        [at("S3"), at("S17"), at("D17")],
+        [at("S5"), at("S1"), at("S20")],
+    ):
+        dart_by_dart(board, recorder, darts)
+    recorder.shot(1600)
+    recorder.save("halve-it")
+    board.close()
+    end_match(page)
+
+
+def bull_off_animation(page: Page) -> None:
+    """The bull-off: Sam's bullseye beats Alex's outer bull, and Sam throws first."""
+    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_bull_off", {}])
+    board = scoreboard_game(page, ["Alex", "Sam"], "501")
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1600)
+    for dart in (OUTER_BULL, BULL):
+        control({"event": "Throw detected", "throws": [dart]})
+        board.wait_for_timeout(700)
+        recorder.shot(1400)
+        pull_darts()
+        board.wait_for_timeout(700)
+        if dart is OUTER_BULL:
+            recorder.shot(1000)
+    wait_card(
+        board,
+        "r.querySelector('.player.active .name')?.textContent.includes('Sam')",
+        SCOREBOARD,
+    )
+    board.wait_for_timeout(300)
+    recorder.shot(2600)
+    recorder.save("bull-off")
+    board.close()
+    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_bull_off", {}])
+    end_match(page)
+
+
+def bobs_27_animation(page: Page) -> None:
+    """Bob's 27 on the scoreboard: every double adds, a visit without one subtracts."""
+    board = scoreboard_game(page, ["Alex"], "bobs_27")
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1400)
+    for darts in (
+        [at("D1"), at("S1"), at("D1")],
+        [at("S2"), at("S5"), at("S2")],
+        [at("D3"), at("D3"), at("T3")],
+    ):
+        dart_by_dart(board, recorder, darts)
+    recorder.shot(1400)
+    recorder.save("bobs-27")
+    board.close()
+    end_match(page)
+
+
+def baseball_scoreboard(page: Page) -> None:
+    """Baseball for two after four innings: the scorecard of the runs."""
+    board = scoreboard_game(page, ["Alex", "Sam"], "baseball")
+    throw_visits(
+        board,
+        [
+            [at("S1"), at("T1"), at("S1")],
+            [at("D1"), at("S1"), at("S20")],
+            [at("S2"), at("S2"), at("D2")],
+            [at("T2"), at("S2"), at("S15")],
+            [at("S3"), at("S17"), at("S3")],
+            [at("T3"), at("D3"), at("S3")],
+            [at("D4"), at("S4"), at("S4")],
+        ],
+    )
+    control({"event": "Throw detected", "throws": [at("S4")]})
+    wait_card(board, "!!r.querySelector('.scorecard')", SCOREBOARD)
+    board.wait_for_timeout(800)
+    page_shot(board, "scoreboard-baseball")
+    board.close()
+    end_match(page)
+
+
+def catch_40_scoreboard(page: Page) -> None:
+    """Catch 40 on the scoreboard: the score to check out, the round and the points."""
+    pull_darts()
+    players(page, 1)
+    game(page, "catch_40")
+    board = tablet(page)
+    wait_card(board, "!!r.querySelector('.single .big')", SCOREBOARD, 60000)
+    board.wait_for_timeout(1000)
+    # 61 in two darts, then a first dart at 62.
+    throw_visits(board, [[at("T11"), at("D14")]])
+    control({"event": "Throw detected", "throws": [at("S12")]})
+    board.wait_for_timeout(1000)
+    page_shot(board, "scoreboard-catch-40")
+    board.close()
+    pull_darts()
+    game(page, "off")
+
+
+def scoreboard_portrait(page: Page) -> None:
+    """The scoreboard of a portrait tablet: the Cricket chalkboard fills its height."""
+    start_match(page, ["Alex", "Sam"], "cricket", legs=3)
+    context = own_context(page, viewport={"width": 800, "height": 1280})
+    context.add_init_script(HIDE_SIDEBAR)
+    board = context.new_page()
+    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    wait_card(board, "!!r.querySelector('.cricket')", SCOREBOARD, 60000)
+    throw_visits(
+        board,
+        [
+            [at("T20"), at("S20"), at("S19")],
+            [at("T19"), at("T19"), at("S20")],
+            [at("S20"), at("T18"), at("D18")],
+            [at("T17"), at("S17"), at("S16")],
+        ],
+    )
+    control({"event": "Throw detected", "throws": [at("T16")]})
+    wait_card(
+        board, "r.querySelectorAll('.visit .dart:not(.empty)').length === 1", SCOREBOARD
+    )
+    board.wait_for_timeout(1000)
+    page_shot(board, "scoreboard-portrait")
+    context.close()
+    end_match(page)
+
+
+def dashboard_trends(page: Page) -> None:
+    """The graphs of the generated training view, from four weeks of statistics."""
+    context = own_context(
+        page, viewport={"width": 1280, "height": 2400}, device_scale_factor=2
+    )
+    view = context.new_page()
+    view.goto(f"{HA}/autodarts-auto/training")
+    view.locator("hui-statistics-graph-card").first.wait_for(timeout=60000)
+    # The graphs draw a moment after their data arrives.
+    view.wait_for_timeout(5000)
+    section = view.locator("hui-section").last
+    section.screenshot(path=str(OUTPUT / "dashboard-trends.png"))
+    print(f"saved {OUTPUT / 'dashboard-trends'}.png")
+    context.close()
+
+
+def blueprints_page(page: Page) -> None:
+    """The blueprints of the integration in Home Assistant, and the light show's form."""
+    context = own_context(
+        page, viewport={"width": 1280, "height": 900}, device_scale_factor=2
+    )
+    view = context.new_page()
+    view.goto(f"{HA}/config/blueprint/dashboard")
+    view.get_by_text("Autodarts: light show").first.wait_for(timeout=60000)
+    view.wait_for_timeout(1500)
+    page_shot(view, "blueprints")
+    # A blueprint opens a new automation with its form.
+    view.get_by_text("Autodarts: light show").first.click()
+    view.wait_for_url("**/config/automation/edit/new", timeout=30000)
+    view.wait_for_timeout(3000)
+    page_shot(view, "blueprint-light-show")
+    context.close()
+
+
+def board_events_dialog(page: Page) -> None:
+    """The events entity after a visit: the last event, its history and the activity."""
+    pull_darts()
+    context = own_context(
+        page, viewport={"width": 1280, "height": 900}, device_scale_factor=2
+    )
+    view = context.new_page()
+    open_dashboard(view, "board")
+    for darts in ([T20], [T20, S5], [T20, S5, BULL]):
+        control({"event": "Throw detected", "throws": darts})
+        view.wait_for_timeout(500)
+    entity = view.evaluate(
+        "() => Object.values(document.querySelector('home-assistant').hass.entities)"
+        ".find((item) => item.platform === 'autodarts' && item.translation_key === 'board_events')"
+        ".entity_id"
+    )
+    view.evaluate(
+        "(entityId) => document.querySelector('home-assistant').dispatchEvent("
+        "new CustomEvent('hass-more-info', {bubbles: true, composed: true, detail: {entityId}}))",
+        entity,
+    )
+    view.locator("ha-more-info-dialog").wait_for(state="attached", timeout=30000)
+    # The history and the activity load a moment after the dialog opens.
+    view.wait_for_timeout(4000)
+    page_shot(view, "board-events")
+    context.close()
+
+
+def online_bridge_options(page: Page) -> None:
+    """The options of the board: the address and the lines for Tools for Autodarts.
+
+    The secret of the address is masked. Closing the dialog keeps the options as
+    they were.
+    """
+    context = own_context(
+        page, viewport={"width": 1280, "height": 1100}, device_scale_factor=2
+    )
+    view = context.new_page()
+    view.goto(f"{HA}/config/integrations/integration/autodarts")
+    label = "Configure" if LANGUAGE == "en" else "Konfigurieren"
+    view.locator(f"button[aria-label='{label}']").first.click()
+    dialog = view.locator("dialog-data-entry-flow")
+    dialog.locator("ha-checkbox").first.click()
+    # The button with a text submits; the icon buttons have none.
+    dialog.locator("ha-button").filter(has_text=re.compile(r"\w")).last.click()
+    dialog.locator("ha-markdown code, ha-markdown pre").first.wait_for(timeout=30000)
+    view.wait_for_timeout(1500)
+    view.evaluate(MASK_SECRET)
+    page_shot(view, "online-bridge")
+    context.close()
+
+
 def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as playwright:
@@ -1440,13 +1846,16 @@ def main() -> None:
             if scheme == "dark":
                 open_dashboard(page, "styles")
                 peak(page)
-                card_shot(page, "card-autodarts-style", 0)
+                # The short card first, while the page is at the top: the tall one
+                # scrolls it under the toolbar.
                 card_shot(page, "card-board-only", 1)
+                tall_card_shot(page, "card-autodarts-style", 0)
                 editor(page)
                 strategy_editor(page)
-                strategy_dashboard(page)
                 config_flow(page)
                 device_page(page)
+                # Before the games, whose legs would end the graphs of the week.
+                dashboard_trends(page)
             context.close()
 
         mobile = browser.new_context(
@@ -1496,6 +1905,7 @@ def main() -> None:
         )
         page = games.new_page()
         open_dashboard(page, "board")
+        hero_animation(page)
         checkout_animation(page)
         cricket_animation(page)
         training_game_animation(page)
@@ -1505,6 +1915,10 @@ def main() -> None:
         golf_animation(page)
         checkout_121_animation(page)
         tournament_bracket_animation(page)
+        shanghai_animation(page)
+        halve_it_animation(page)
+        bull_off_animation(page)
+        bobs_27_animation(page)
         games.close()
 
         # The new games and formats on the scoreboard.
@@ -1519,6 +1933,9 @@ def main() -> None:
         tactics_scoreboard(page)
         teams_scoreboard(page)
         handicap_scoreboard(page)
+        baseball_scoreboard(page)
+        catch_40_scoreboard(page)
+        scoreboard_portrait(page)
         formats.close()
 
         people = browser.new_context(
@@ -1534,6 +1951,11 @@ def main() -> None:
         tournament_table(people.new_page())
         idle_screen(people.new_page())
         media_gallery(people.new_page())
+        # After the doubles training, so the training view shows its doubles.
+        strategy_dashboard(people.new_page())
+        blueprints_page(people.new_page())
+        board_events_dialog(people.new_page())
+        online_bridge_options(people.new_page())
         progress_cards(people.new_page())
         # Recorded sharp at twice the size, shown at the size of the card.
         heatmap_animation(people.new_page())
