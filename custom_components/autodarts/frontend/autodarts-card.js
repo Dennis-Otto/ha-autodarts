@@ -27,6 +27,8 @@ const STRATEGY_TYPE = "autodarts";
 const STRATEGY_ELEMENT = `ll-strategy-dashboard-${STRATEGY_TYPE}`;
 const STRATEGY_EDITOR_TYPE = "autodarts-strategy-editor";
 const REPOSITORY = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs";
+// Files of the action autodarts.export, downloaded with the user's login.
+const EXPORT_DOWNLOADS = "/api/autodarts/export/";
 
 // Board Manager geometry in millimetres; dart coordinates are normalised to
 // the outer edge of the double ring (170 mm) with y pointing to the 20.
@@ -263,6 +265,13 @@ const TEXT = {
     recent_matches: "Recent matches",
     show_head_to_head: "Show head-to-head",
     show_matches: "Show recent matches",
+    export: "Show export button",
+    export_format: "Export format",
+    export_format_csv: "CSV (a ZIP file with one table each)",
+    export_format_json: "JSON",
+    export_button: "Export",
+    exporting: "Exporting …",
+    export_failed: "Export failed",
     doubles_title: "Doubles",
     doubles_darts: "darts at a double",
     doubles_empty: "Throw at doubles in X01, the doubles training or Bob's 27 to see your hit rate on every double.",
@@ -525,6 +534,13 @@ const TEXT = {
     recent_matches: "Letzte Matches",
     show_head_to_head: "Direkten Vergleich anzeigen",
     show_matches: "Letzte Matches anzeigen",
+    export: "Export-Button anzeigen",
+    export_format: "Exportformat",
+    export_format_csv: "CSV (eine ZIP-Datei mit je einer Tabelle)",
+    export_format_json: "JSON",
+    export_button: "Exportieren",
+    exporting: "Exportiere …",
+    export_failed: "Export fehlgeschlagen",
     doubles_title: "Doubles",
     doubles_darts: "Darts aufs Double",
     doubles_empty: "Wirf im X01, im Doppeltraining oder bei Bob's 27 auf Doubles, dann siehst du hier die Quote jedes Doubles.",
@@ -694,6 +710,9 @@ const DOUBLES_DEFAULTS = {};
 const PLAYERS_DEFAULTS = {
   show_head_to_head: true,
   show_matches: true,
+  // The export writes a file with player names; the button appears on request.
+  export: false,
+  export_format: "csv",
 };
 
 const SCOREBOARD_DEFAULTS = {
@@ -2556,7 +2575,13 @@ const FORMS = {
     },
     accentField,
   ],
-  players: () => [deviceField, titleField, toggles(["show_head_to_head", "show_matches"], PLAYERS_DEFAULTS), accentField],
+  players: () => [
+    deviceField,
+    titleField,
+    toggles(["show_head_to_head", "show_matches", "export"], PLAYERS_DEFAULTS),
+    dropdown("export_format", "export_format", ["csv", "json"]),
+    accentField,
+  ],
   // Named players to pick from; any other name can be typed in.
   doubles: () => [
     deviceField,
@@ -3098,6 +3123,7 @@ const PLAYERS_CSS = `${BASE_CSS}
   }
   .match .game { font-weight: 700; }
   .match b { color: var(--ad-ok-text); }
+  .players-card header .export { margin-left: auto; min-height: 32px; font-size: 13px; }
 `;
 
 const DOUBLES_CSS = `${BASE_CSS}
@@ -4752,6 +4778,7 @@ function createElements(Base) {
               <header>
                 <div class="title"></div>
                 <div class="muted count"></div>
+                ${c.export ? `<button class="action export">${t("export_button")}</button>` : ""}
               </header>
               <div class="message empty" hidden>${t("no_profiles")}</div>
               <div class="profiles"></div>
@@ -4771,7 +4798,56 @@ function createElements(Base) {
         h2h: root.querySelector(".h2h"),
         matchesSection: root.querySelector(".matches-section"),
         matches: root.querySelector(".matches"),
+        export: root.querySelector(".export"),
       };
+      this._el.export?.addEventListener("click", () => this._export());
+    }
+
+    // The action writes the file; it downloads through Home Assistant with the
+    // user's login, also while Home Assistant does not serve the www folder.
+    async _export() {
+      const button = this._el.export;
+      if (this.preview || button.disabled) return;
+      button.disabled = true;
+      button.textContent = this._t("exporting");
+      const device = this._hass.devices?.[this._deviceId];
+      const entry = device?.primary_config_entry || device?.config_entries?.[0];
+      try {
+        const result = await this._hass.callWS({
+          type: "call_service",
+          domain: "autodarts",
+          service: "export",
+          service_data: {
+            format: this._config.export_format === "json" ? "json" : "csv",
+            what: "all",
+            ...(entry ? { config_entry_id: entry } : {}),
+          },
+          return_response: true,
+        });
+        const download = result?.response?.download;
+        if (typeof download !== "string" || !download.startsWith(EXPORT_DOWNLOADS)) {
+          throw new Error(result?.response?.path || "");
+        }
+        const signed = await this._hass.callWS({ type: "auth/sign_path", path: download, expires: 60 });
+        const link = document.createElement("a");
+        link.href = signed.path;
+        link.download = download.slice(EXPORT_DOWNLOADS.length);
+        this.shadowRoot.append(link);
+        link.click();
+        link.remove();
+      } catch (error) {
+        const detail = error?.message ? `: ${error.message}` : "";
+        this.dispatchEvent(
+          new CustomEvent("hass-notification", {
+            bubbles: true,
+            composed: true,
+            detail: { message: `${this._t("export_failed")}${detail}` },
+          })
+        );
+      } finally {
+        button.disabled = false;
+        button.textContent = this._t("export_button");
+      }
     }
 
     _update() {

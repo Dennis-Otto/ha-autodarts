@@ -252,6 +252,7 @@ async def test_blueprints_follow_the_real_board_events(
     light = async_mock_service(hass, "test", "light")
     photos = async_mock_service(hass, "test", "photo")
     switch_on = async_mock_service(hass, "switch", "turn_on")
+    reports = async_mock_service(hass, "test", "report")
     voice = {**VOICE, "board_events": events}
     await automate_all(
         hass,
@@ -299,6 +300,15 @@ async def test_blueprints_follow_the_real_board_events(
                 "highlight_photo",
                 {**PHOTO, "board_events": events, "minimum_score": 100},
             ),
+            (
+                "weekly_report",
+                {
+                    "board_events": events,
+                    "notify_actions": [
+                        {"action": "test.report", "data": {"message": "{{ message }}"}}
+                    ],
+                },
+            ),
         ],
     )
     with patch.object(coordinator.client, "get_state", side_effect=unchanged_board):
@@ -323,6 +333,10 @@ async def test_blueprints_follow_the_real_board_events(
             {"entity_id": entity_id(hass, "button", "reset_training")},
             blocking=True,
         )
+        await hass.async_block_till_done()
+        # The week ends now instead of on Monday.
+        coordinator.reports.report.ends = dt_util.utcnow()
+        await coordinator.reports._async_report(dt_util.utcnow())
         await hass.async_block_till_done()
     # Tools for Autodarts reports the moments of an online match; your own 180
     # comes from the board.
@@ -363,6 +377,10 @@ async def test_blueprints_follow_the_real_board_events(
         "140!",
         "Checkout 101 by Lea!",
         "180!",
+    ]
+    assert [call.data["message"] for call in reports] == [
+        "12 darts, 1 session. 3-dart average 123.0. Best visit 180, 1 × 180. "
+        "Checkout rate 100.0 %. 1 day in a row. 2 new personal bests."
     ]
 
     # Whatever a blueprint reads is in the events it listens to.

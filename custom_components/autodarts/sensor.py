@@ -343,6 +343,7 @@ async def async_setup_entry(
                 AutodartsPlayerProfiles(runtime.local),
                 AutodartsDoubles(runtime.local),
                 AutodartsLastMatch(runtime.local),
+                AutodartsWeeklyReport(runtime.local),
             )
         )
         entities.extend(
@@ -1013,3 +1014,28 @@ class AutodartsOnlineBridgeSensor(AutodartsLocalEntity, RestoreEntity, SensorEnt
             "trigger": self._bridge.last_trigger,
             "event_type": self._bridge.last_event_type,
         }
+
+
+class AutodartsWeeklyReport(AutodartsLocalEntity, SensorEntity):
+    """Darts of the running report week, with the week so far and the last report."""
+
+    _attr_native_unit_of_measurement = "darts"
+    # A new week starts from zero, like a meter that is reset.
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _unrecorded_attributes = frozenset({"personal_bests", "last_week"})
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "weekly_report")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.reports.report.counts["darts"]
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        snapshot = self.coordinator.reports.snapshot()
+        return {key: value for key, value in snapshot.items() if key != "darts"}

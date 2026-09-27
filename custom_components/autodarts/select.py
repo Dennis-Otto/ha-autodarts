@@ -1,4 +1,4 @@
-"""Camera standby of the Board Manager and the practice game."""
+"""Camera standby of the Board Manager, the practice game and the report day."""
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import EntityCategory
@@ -9,6 +9,7 @@ from .entity import AutodartsLocalEntity
 from .local_api import STANDBY_MINUTES
 from .local_coordinator import AutodartsLocalCoordinator
 from .practice import GAME_OPTIONS
+from .report import WEEKDAYS
 from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 1
@@ -21,7 +22,11 @@ async def async_setup_entry(
 ) -> None:
     if coordinator := entry.runtime_data.local:
         async_add_entities(
-            [AutodartsStandbySelect(coordinator), AutodartsPracticeGame(coordinator)]
+            [
+                AutodartsStandbySelect(coordinator),
+                AutodartsPracticeGame(coordinator),
+                AutodartsReportDay(coordinator),
+            ]
         )
 
 
@@ -78,3 +83,25 @@ class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
             await self.coordinator.async_play(int(option))
         else:
             await self.coordinator.async_play(option)
+
+
+class AutodartsReportDay(AutodartsLocalEntity, SelectEntity):
+    """The weekday on which the weekly report ends the week."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_options = list(WEEKDAYS)
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "weekly_report_day")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def current_option(self) -> str:
+        return WEEKDAYS[self.coordinator.reports.report.weekday]
+
+    async def async_select_option(self, option: str) -> None:
+        reports = self.coordinator.reports
+        await reports.async_set_schedule(WEEKDAYS.index(option), reports.report.time)

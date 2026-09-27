@@ -109,12 +109,18 @@ test("every card has the form of its own options", () => {
     ["show_connection", "show_system", "show_cameras", "show_controls"],
     "accent_color",
   ]);
-  assert.deepEqual(names(formOf("autodarts-players-card").schema), [
+  const players = formOf("autodarts-players-card");
+  assert.deepEqual(names(players.schema), [
     "device_id",
     "title",
-    ["show_head_to_head", "show_matches"],
+    ["show_head_to_head", "show_matches", "export"],
+    "export_format",
     "accent_color",
   ]);
+  // The export writes player names into a file: off unless asked for.
+  assert.equal(players.schema[2].schema[2].default, false);
+  assert.deepEqual(labels(players.schema[3]), ["CSV (a ZIP file with one table each)", "JSON"]);
+  assert.equal(players.computeHelper({ name: "export_format" }), "Default: CSV (a ZIP file with one table each)");
 });
 
 test("the caller's calls wait in a section of their own", () => {

@@ -47,6 +47,8 @@ PLATFORMS: Final = [
     "camera",
     "event",
     "update",
+    "calendar",
+    "time",
 ]
 
 # Sensor keys — board

@@ -75,3 +75,37 @@ start_game:
       required: false
       selector:
         boolean: {}
+
+export:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: autodarts
+    format:
+      required: false
+      default: csv
+      selector:
+        select:
+          translation_key: export_format
+          options:
+            - csv
+            - json
+    what:
+      required: false
+      default: all
+      selector:
+        select:
+          translation_key: export_what
+          options:
+            - sessions
+            - matches
+            - profiles
+            - all
+    folder:
+      required: false
+      default: www/autodarts
+      example: "www/autodarts"
+      selector:
+        text:

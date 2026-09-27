@@ -56,6 +56,17 @@ async def async_get_config_entry_diagnostics(
             if local
             else None
         ),
+        # Counts only: the journal carries the names of players.
+        "reports": (
+            {
+                "weekday": local.reports.report.weekday,
+                "time": local.reports.report.time.isoformat(timespec="minutes"),
+                "journal_sessions": len(local.reports.journal.sessions),
+                "journal_matches": len(local.reports.journal.matches),
+            }
+            if local
+            else None
+        ),
         "poll_interval_seconds": (
             local.update_interval.total_seconds()
             if local and local.update_interval

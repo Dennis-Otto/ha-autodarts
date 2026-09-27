@@ -54,6 +54,7 @@ from .online import ONLINE_EVENT_TYPES
 from .practice import PracticeGame
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
 from .records import PersonalRecords
+from .report import BoardReports
 from .storage import TrainingStore
 from .training import TrainingSession, segments
 
@@ -117,6 +118,7 @@ EVENT_TYPES = [
     "personal_best",
     "daily_goal_reached",
     "bull_off_won",
+    "weekly_report",
     # Moments of online matches, from the browser extension Tools for Autodarts.
     *ONLINE_EVENT_TYPES,
 ]
@@ -210,6 +212,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.practice = PracticeGame()
         self.quality = DetectionQuality()
         self.records = PersonalRecords()
+        self.reports = BoardReports(hass, entry.entry_id, self)
         self._midnight_unsub: CALLBACK_TYPE | None = None
         self._store = TrainingStore(hass, entry.entry_id)
         self._training_dirty = False
@@ -259,6 +262,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.records.restore(saved.get("records") if isinstance(saved, dict) else None)
         if saved is None:
             self._save_training()
+        await self.reports.async_load()
 
     def _stored(self) -> dict[str, Any]:
         """Training sessions, the practice game and personal bests, saved together."""
@@ -278,6 +282,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._schedule_idle_end()
         # Issues of earlier runs are not kept across restarts.
         self._report_generation()
+        self.reports.async_start()
         if self._midnight_unsub is None:
             # Darts today and the streak change with the date, not with a dart.
             self._midnight_unsub = async_track_time_change(
@@ -304,6 +309,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self._training_dirty:
             await self._store.async_save(self._stored())
             self._training_dirty = False
+        await self.reports.async_shutdown()
 
     # -- realtime events ---------------------------------------------------------
 
@@ -523,6 +529,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for kind, attributes in events:
             result.append((kind, attributes))
             result.extend(self.records.observe(kind, attributes, now))
+        self.reports.observe(result, now)
         return result
 
     @callback
