@@ -104,6 +104,15 @@ class Drill(ABC):
         self._skip = on_board
         self._announced = False
 
+    @property
+    def on_board(self) -> int:
+        """Darts of the visit that were on the board when the drill began."""
+        return self._skip
+
+    @on_board.setter
+    def on_board(self, darts: int) -> None:
+        self._skip = darts
+
     def _thrown(self) -> list[dict[str, Any]]:
         return self._visit[self._skip : VISIT_DARTS]
 

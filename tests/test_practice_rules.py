@@ -311,3 +311,31 @@ def test_a_party_leg_passed_to_its_end_survives_a_restart():
         }
     )
     assert restored.legs == []
+
+
+@pytest.mark.parametrize(
+    ("kind", "on_board", "counted"),
+    [
+        (101, "T20", lambda game: game.snapshot()["remaining"] == 101),
+        (
+            "around_the_clock",
+            "S1",
+            lambda game: game.snapshot()["drill"]["progress"] == 0,
+        ),
+    ],
+)
+def test_darts_on_the_board_at_a_new_leg_count_after_an_undo_neither(
+    kind, on_board, counted
+):
+    """Darts that were on the board when a leg or a drill began count for no
+    visit, also when that visit is undone and booked again."""
+    game = PracticeGame()
+    game.play(kind)
+    game.track([dart(on_board)])
+    game.new_leg()
+    saved = game.checkpoint()
+    game.finish_visit()
+    assert counted(game)
+    game.rewind(saved, [dart(on_board)], [None])
+    game.finish_visit()
+    assert counted(game)

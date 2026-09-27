@@ -1712,8 +1712,14 @@ class PracticeGame:
     # -- undo ------------------------------------------------------------------
 
     def checkpoint(self) -> dict[str, Any]:
-        """The game as it is, to come back to before the next visit is booked."""
-        return copy.deepcopy(self.stored())
+        """The game as it is, to come back to before the next visit is booked,
+        with the darts that were on the board when the leg or the drill began:
+        they count for no visit."""
+        saved = copy.deepcopy(self.stored())
+        saved["on_board"] = self._skip
+        if self.drill:
+            saved["drill_on_board"] = self.drills[self.drill].on_board
+        return saved
 
     def rewind(
         self,
@@ -1728,7 +1734,11 @@ class PracticeGame:
         """
         self.game = 0
         self.restore(checkpoint)
-        self._visit, self._skip, self._announced = [], 0, None
+        # Darts that counted for no visit before the undo count for none after it.
+        self._visit, self._skip = [], checkpoint.get("on_board", 0)
+        self._announced = None
+        if self.drill:
+            self.drills[self.drill].on_board = checkpoint.get("drill_on_board", 0)
         self.track(visit, positions)
 
     # -- state -----------------------------------------------------------------
