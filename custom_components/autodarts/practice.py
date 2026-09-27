@@ -1332,6 +1332,8 @@ class PracticeGame:
             booking.player, booking.game = self.current, self._kind()
             if self.game:
                 self._x01_booking(booking, thrown)
+            elif self.cricket:
+                booking.cricket = self._numbers()
             elif self.party and self.party.kind == "shanghai":
                 booking.shanghai = self._party_visit().won == self.current
         booking.name = None if booking.player is None else self._name(booking.player)
@@ -1375,6 +1377,8 @@ class Booking:
     game: int | str | None = None
     # X01 points the visit scores, nothing for a bust.
     scored: int | None = None
+    # The numbers of the Cricket game being played.
+    cricket: tuple[int, ...] = ()
     # A Shanghai: a single, double and treble of the round's number.
     shanghai: bool = False
     # The score the visit checked out in the checkout training.

@@ -390,6 +390,12 @@ async def test_blueprints_follow_the_real_board_events(
         ("maximum", ""),
         ("personal_best", ""),
         ("match", "Dennis"),
+        # Dennis checks out 101 for the team; the leg and the match count for Kim, too.
+        ("achievement", "Dennis"),
+        ("achievement", "Dennis"),
+        ("achievement", "Dennis"),
+        ("achievement", "Kim"),
+        ("achievement", "Kim"),
         ("bust", "Lea"),
         ("leg", "dennis"),
         ("match", ""),

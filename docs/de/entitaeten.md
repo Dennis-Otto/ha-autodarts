@@ -286,7 +286,7 @@ Spieler mit Namen schalten Erfolge frei, die meisten in Stufen: Bronze, Silber, 
 | Gewonnene Matches | `matches_won` | 1, 25, 250 | Gewonnene Matches mehrerer Spieler |
 | Hattrick | `hat_trick` | 1 | Drei Darts im Single-Bull oder Bullseye in einer Aufnahme eines beliebigen Spiels |
 | Alle Doubles | `all_doubles` | 21 | Jedes Double von D1 bis D20 und das Bullseye mindestens einmal getroffen |
-| Neun Marks | `cricket_nine` | 1 | Eine Cricket-Aufnahme aus drei Triples auf 15 bis 20 |
+| Neun Marks | `cricket_nine` | 1 | Eine Aufnahme aus drei Triples auf den Zahlen von Cricket oder seinen Varianten: 15 bis 20, bei Tactics 10 bis 20 |
 | Shanghai | `shanghai` | 1 | Shanghai mit Single, Double und Triple der Zahl der Runde gewonnen |
 | Around the Clock | `around_the_clock` | 40, 30, 21 Darts | Die wenigsten Darts eines beendeten Around the Clock; 21 ist perfekt |
 | Bob's 27 | `bobs_27` | 100, 250, 500 Punkte | Das beste abgeschlossene Bob's 27 |

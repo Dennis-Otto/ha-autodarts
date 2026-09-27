@@ -187,7 +187,13 @@ def test_cricket_nine_marks_and_a_hat_trick():
     # Trebles of numbers that are no Cricket numbers are no nine marks.
     game.play(501)
     assert play(game, progress, "T14", "T13", "T12") == []
+    game.play("cricket")
+    assert play(game, progress, "T20", "T19", "T14") == []
     assert progress.players["alex"].counters["cricket_nines"] == 1
+    # Tactics plays 10 to 20.
+    game.play("tactics")
+    play(game, progress, "T14", "T13", "T12")
+    assert progress.players["alex"].counters["cricket_nines"] == 2
 
 
 def test_a_won_cricket_leg_sets_the_best_mpr_of_the_week():

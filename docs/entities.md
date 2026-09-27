@@ -286,7 +286,7 @@ Named players unlock achievements, most of them in tiers: bronze, silver, gold a
 | Matches won | `matches_won` | 1, 25, 250 | Matches of several players won |
 | Hat trick | `hat_trick` | 1 | Three darts in the outer bull or the bullseye in one visit of any game |
 | Every double | `all_doubles` | 21 | Every double from D1 to D20 and the bullseye hit at least once |
-| Nine marks | `cricket_nine` | 1 | A Cricket visit of three trebles on 15 to 20 |
+| Nine marks | `cricket_nine` | 1 | A visit of three trebles on the numbers of Cricket or its variants: 15 to 20, in Tactics 10 to 20 |
 | Shanghai | `shanghai` | 1 | Shanghai won with a single, double and treble of the round's number |
 | Around the Clock | `around_the_clock` | 40, 30, 21 darts | The fewest darts of a finished Around the Clock; 21 is perfect |
 | Bob's 27 | `bobs_27` | 100, 250, 500 points | The best completed Bob's 27 |

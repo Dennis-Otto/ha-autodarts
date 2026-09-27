@@ -72,8 +72,6 @@ COUNTERS = (
     "around_the_clock",
     "bobs_27",
 )
-# The numbers of Cricket that have a treble.
-CRICKET_TREBLES = frozenset(range(15, 21))
 
 
 def _key(name: str) -> str:
@@ -337,8 +335,9 @@ class Progress:
             counters["hat_tricks"] += all(
                 dart["number"] == 25 and dart["multiplier"] in (1, 2) for dart in darts
             )
-            counters["cricket_nines"] += booking.game == "cricket" and all(
-                dart["number"] in CRICKET_TREBLES and dart["multiplier"] == 3
+            # Nine marks: three trebles on numbers of the Cricket game.
+            counters["cricket_nines"] += bool(booking.cricket) and all(
+                dart["number"] in booking.cricket and dart["multiplier"] == 3
                 for dart in darts
             )
         counters["shanghais"] += booking.shanghai
