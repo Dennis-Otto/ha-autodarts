@@ -67,6 +67,8 @@ class Board:
         }
         self.commands: list[dict] = []
         self.unexpected: list[str] = []
+        # Reads by path, so a test can tell when an injected fault was read.
+        self.reads: dict[str, int] = {}
         self.sockets: set[web.WebSocketResponse] = set()
         self.clear_faults()
 
@@ -284,6 +286,9 @@ def routes(board: Board) -> web.RouteTableDef:
                 "commands": board.commands,
                 "unexpected": board.unexpected,
                 "sockets": len(board.sockets),
+                "reads": board.reads,
+                # Counted faults not yet used up; None without a counted fault.
+                "faults_left": board.fault_count,
             }
         )
 
@@ -301,6 +306,7 @@ def fault_injection(board: Board):
             and request.path.startswith("/api/")
             and request.path != "/api/events"
         ):
+            board.reads[request.path] = board.reads.get(request.path, 0) + 1
             status, delay = board.read_fault(request.path)
             if delay:
                 await asyncio.sleep(delay)

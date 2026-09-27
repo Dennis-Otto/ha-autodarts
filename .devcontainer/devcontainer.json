@@ -1,6 +1,6 @@
 {
   "name": "ha-autodarts",
-  "image": "mcr.microsoft.com/devcontainers/python:3.14",
+  "build": { "dockerfile": "Dockerfile" },
   "features": {
     "ghcr.io/devcontainers/features/node:1": { "version": "24" },
     "ghcr.io/devcontainers/features/docker-in-docker:2": {}

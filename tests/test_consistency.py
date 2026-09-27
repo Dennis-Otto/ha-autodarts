@@ -1,4 +1,5 @@
-"""Translations, action descriptions, icons and card texts agree with the code."""
+"""Translations, action descriptions, icons and card texts agree with the code,
+and tool versions kept in two places agree with each other."""
 
 import json
 import re
@@ -241,3 +242,44 @@ def test_card_texts_exist_in_every_language(language):
         assert placeholders(translated[key]) == placeholders(text), key
         assert translated[key], key
         assert_tidy(language, key, translated[key])
+
+
+# Dependabot bumps the requirements files; the copies elsewhere follow by hand.
+ROOT = INTEGRATION.parents[1]
+E2E = ROOT / "tests" / "e2e"
+
+
+def pinned(path: Path, package: str) -> str:
+    """The version of a package pinned as ``package==version`` in a requirements file."""
+    text = path.read_text(encoding="utf-8")
+    versions = re.findall(rf"^{re.escape(package)}==(\S+)", text, re.M | re.I)
+    assert len(versions) == 1, (path.name, versions)
+    return versions[0]
+
+
+def test_pre_commit_runs_the_ruff_of_the_test_requirements():
+    config = (ROOT / ".pre-commit-config.yaml").read_text(encoding="utf-8")
+    # A rev is a tag, or a commit with the tag as "# frozen: v1.2.3".
+    rev = re.search(
+        r"repo: https://github\.com/astral-sh/ruff-pre-commit\n"
+        r"\s+rev: (\S+)(?: # frozen: (\S+))?\n",
+        config,
+    )
+    assert rev, "the Ruff hook is missing"
+    version = (rev[2] or rev[1]).removeprefix("v")
+    assert version == pinned(ROOT / "requirements-test.in", "ruff")
+    assert version == pinned(ROOT / "requirements-test.txt", "ruff")
+
+
+@pytest.mark.parametrize("script", ["browser.sh", "screenshots.sh"])
+def test_the_playwright_image_matches_the_playwright_package(script):
+    text = (E2E / script).read_text(encoding="utf-8")
+    images = re.findall(
+        r"^PLAYWRIGHT_IMAGE=\"mcr\.microsoft\.com/playwright/python:"
+        r"v([\d.]+)-\w+@sha256:[0-9a-f]{64}\"$",
+        text,
+        re.M,
+    )
+    # The browsers of the image fit only the same version of the package.
+    assert images == [pinned(E2E / "requirements-browser.in", "playwright")]
+    assert images == [pinned(E2E / "requirements-browser.txt", "playwright")]

@@ -678,6 +678,26 @@ class Scenario:
     async def fault(self, **fault) -> None:
         await self.board("POST", "/control/fault", json=fault)
 
+    async def faulted_reads(self, path: str) -> None:
+        """Wait until the board used up its counted faults and was read twice more.
+
+        Polls never overlap, so the second read after the faults shows that Home
+        Assistant has handled every faulted read and the first good one after them.
+        """
+
+        async def used_up():
+            requests = await self.board("GET", "/control/requests")
+            return requests if requests["faults_left"] == 0 else None
+
+        requests = await wait_for(used_up, f"the faulted reads of {path}", timeout=60)
+        reads = requests["reads"].get(path, 0)
+
+        async def read_again():
+            requests = await self.board("GET", "/control/requests")
+            return requests["reads"].get(path, 0) >= reads + 2 or None
+
+        await wait_for(read_again, f"two reads of {path} after the faults", timeout=60)
+
     async def resilience(self, entry_id: str) -> None:
         """Faults of a real network and board: visits and entities survive them."""
         # Polling is back, as it notices a board that is away.
@@ -754,15 +774,15 @@ class Scenario:
         await self.expect_states({"realtime_connected": "off"})
         self.fired_board_events()
         await self.fault(http_status=503, paths=["/api/state"], count=2)
-        await asyncio.sleep(8)
+        await self.faulted_reads("/api/state")
         # Longer than the ten seconds a read may take.
         await self.fault(delay=11, paths=["/api/state"], count=1)
-        await asyncio.sleep(14)
+        await self.faulted_reads("/api/state")
+        await self.expect_states({"local_connected": "on"})
         check(
             "off" not in self.state_changes("local_connected"),
             "A few failed reads made the board unavailable",
         )
-        await self.expect_states({"local_connected": "on"})
         await self.fault(clear=True)
         await self.expect_states({"realtime_connected": "on"}, timeout=90)
 

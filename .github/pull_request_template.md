@@ -13,7 +13,7 @@
 ## Checklist
 
 - [ ] Tests cover the change (`pytest --cov`, `npm test`, and the Docker end-to-end or browser test for visible flows).
-- [ ] User-facing texts are in `strings.json` and both translations.
+- [ ] User-facing texts are in `strings.json`, every translation (`de`, `nl`, `fr`, `es`) and every `TEXT` language of the card.
 - [ ] The documentation in `docs/` and `docs/de/` is updated.
 - [ ] Screenshots are regenerated with `bash tests/e2e/screenshots.sh` if a card or dialog looks different.
 - [ ] No tokens, keys, real board IDs or private addresses are included.

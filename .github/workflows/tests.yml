@@ -26,7 +26,9 @@ jobs:
       - name: Install hash-pinned test dependencies
         run: pip install --require-hashes -r requirements-test.txt
       - name: Run tests with a coverage gate
-        run: pytest -q --timeout=30 --cov --cov-report=term-missing --cov-report=xml
+        # pytest-xdist runs the tests on every core; pytest-cov combines the
+        # branch coverage of all workers before it applies fail_under.
+        run: pytest -q -n auto --timeout=30 --cov --cov-report=term-missing --cov-report=xml
       - name: Publish the coverage summary
         if: always()
         run: |
