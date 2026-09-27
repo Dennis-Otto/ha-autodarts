@@ -209,7 +209,8 @@ def player(
         best_mpr=settings["mpr"],
         fewest_darts={"501": settings["fewest"], "301": settings["fewest"] - 5},
         doubles=doubles,
-        last_played=f"{(today if current else today - timedelta(days=20)).isoformat()}T20:00:00+00:00",
+        # Always in the past, so that the games of the demo come first.
+        last_played=f"{(today - timedelta(days=1 if current else 20)).isoformat()}T20:00:00+00:00",
     )
     return asdict(profile), progress.stored()
 
