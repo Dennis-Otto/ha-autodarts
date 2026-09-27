@@ -136,6 +136,8 @@ ENTITIES = {
     "practice_start_4": "number",
     "practice_golf_holes": "select",
     "practice_count_up_rounds": "number",
+    "achievements": "sensor",
+    "achievements_enabled": "switch",
 }
 if GENERATION >= 2:
     # Board Manager 2 reports its cloud link, load and updates, and has no toggle.
@@ -187,6 +189,7 @@ class Scenario:
         # Discovery stores the announced address instead of the service name.
         self.board_ip = socket.gethostbyname("board-mock")
         self.webhook_id: str | None = None
+        self.device_id = ""
 
     async def http(self, method: str, url: str, *, status: int = 200, **kwargs):
         async with self.session.request(
@@ -436,6 +439,7 @@ class Scenario:
         ]
         check(len(devices) == 1, f"Expected one board device, got {devices}")
         device = devices[0]
+        self.device_id = device["id"]
         check(device["sw_version"] == VERSION, f"Firmware: {device['sw_version']}")
         check(
             device["configuration_url"] in (BOARD, f"http://{self.board_ip}:{PORT}"),
@@ -1123,6 +1127,80 @@ class Scenario:
             game="501", players=["Alex"], teams=False, start_scores=[]
         )
 
+    async def achievements(self) -> None:
+        """A 180 of a named player unlocks a badge; the cards read the positions.
+
+        The games before gave Alex other badges and darts already.
+        """
+        await self.api(
+            "POST",
+            "/api/services/autodarts/start_game",
+            json={"game": "501", "players": ["Alex"]},
+        )
+        await self.expect_states({"practice_game": "501", "practice_remaining": "501"})
+        badges = int((await self.state("achievements"))["state"])
+        self.fired_board_events()
+        for count in range(1, 4):
+            await self.board(
+                "POST",
+                "/control/state",
+                json={"event": "Throw detected", "throws": [T20] * count},
+            )
+        await self.expect_states({"local_visit_score": "180"})
+        await self.board(
+            "POST",
+            "/control/state",
+            json={"status": "Takeout in progress", "event": "Takeout started"},
+        )
+        await self.board(
+            "POST",
+            "/control/state",
+            json={"status": "Throw", "event": "Takeout finished", "throws": []},
+        )
+        await self.expect_states(
+            {"practice_remaining": "321", "achievements": str(badges + 1)}
+        )
+        unlocked = [
+            {key: item.get(key) for key in ("player", "name", "achievement", "tier")}
+            for item in self.fired_board_events()
+            if item["event_type"] == "achievement_unlocked"
+        ]
+        check(
+            unlocked
+            == [{"player": 1, "name": "Alex", "achievement": "maximum", "tier": 1}],
+            f"Unexpected achievements: {unlocked}",
+        )
+        attributes = (await self.state("achievements"))["attributes"]
+        alex = next(item for item in attributes["players"] if item["name"] == "Alex")
+        check(
+            attributes["latest"]["achievement"] == "maximum"
+            and alex["badges"]["maximum"]["tier"] == 1,
+            f"Unexpected achievements sensor: {attributes}",
+        )
+        profiles = (await self.state("player_profiles"))["attributes"]["players"]
+        alex = next(item for item in profiles if item["name"] == "Alex")
+        check(
+            alex["maximums"] == 1
+            and alex["hits"]["T20"] >= 3
+            and alex["trend"]["maximums"][-1] == 1,
+            f"Unexpected progress of Alex: {alex}",
+        )
+        player = await self.ws(
+            "autodarts/positions", device_id=self.device_id, player="alex"
+        )
+        check(
+            player["player"] == "Alex"
+            and player["positions"][-3:] == [[0.012, 0.598]] * 3,
+            f"Unexpected positions of Alex: {player}",
+        )
+        session = await self.ws("autodarts/positions", device_id=self.device_id)
+        check(
+            session["positions"][-3:] == [[0.012, 0.598]] * 3,
+            f"Unexpected positions of the session: {session}",
+        )
+        await self.service("select", "select_option", "practice_game", option="off")
+        await self.expect_states({"practice_game": "off"})
+
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
         version = json.loads(MANIFEST.read_text())["version"]
@@ -1142,6 +1220,7 @@ class Scenario:
             "autodarts-scoreboard-card",
             "autodarts-players-card",
             "autodarts-doubles-card",
+            "autodarts-leaderboard-card",
         ):
             check(f'"{element}"' in source, f"Card element {element} missing")
         async with self.session.get(f"{HA}/") as response:
@@ -1254,6 +1333,7 @@ class Scenario:
         check(API_KEY not in json.dumps(report), "Diagnostics expose the board API key")
         check(TLS_KEY not in json.dumps(report), "Diagnostics expose the TLS key")
         check(BOARD_ID not in json.dumps(data), "Diagnostics expose the board ID")
+        check("Alex" not in json.dumps(report), "Diagnostics expose a player name")
         check(
             data["local_available"] is True
             and data["realtime_connected"] is True
@@ -1332,6 +1412,7 @@ async def main() -> None:
         await scenario.online_bridge(entry_id)
         await scenario.reports(entry_id)
         await scenario.games()
+        await scenario.achievements()
         await scenario.card()
         await scenario.people()
         await scenario.gallery()
@@ -1346,7 +1427,8 @@ async def main() -> None:
         "controls, realtime darts/corrections/takeouts with positions, persistence, "
         "dropped sockets mid-visit, outages, failing and slow reads, malformed "
         "frames, a restart, the online bridge, weekly report, training calendar, "
-        "exports, Golf, Tactics and a team match with start scores, dashboard "
+        "exports, Golf, Tactics and a team match with start scores, an achievement "
+        "with dart positions, dashboard "
         "card, players linked to persons, the highlight gallery in the media "
         "browser, private diagnostics, clean logs and removal."
     )
