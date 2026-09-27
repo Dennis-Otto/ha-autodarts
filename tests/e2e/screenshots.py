@@ -583,6 +583,8 @@ def idle_screen(page: Page) -> None:
 
 def media_gallery(page: Page) -> None:
     """The highlight photos of September in the media browser."""
+    # Low enough for the month without a screen full of nothing below it.
+    page.set_viewport_size({"width": 1280, "height": 640})
     page.goto(
         f"{HA}/media-browser/browser/app%2Cmedia-source%3A%2F%2Fautodarts"
         "/directory%2Cmedia-source%3A%2F%2Fautodarts%2F2026-09"
