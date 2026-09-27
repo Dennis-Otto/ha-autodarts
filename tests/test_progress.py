@@ -449,6 +449,8 @@ def test_restore_ignores_broken_progress():
         {"name": 1, "achievement": "maximum", "tier": 1, "date": "x"},
         {"name": "Alex", "achievement": "maximum", "tier": "1", "date": "x"},
         {"name": "Alex", "achievement": "maximum", "tier": 1, "date": None},
+        # Stored data may hold anything, even a list for a name.
+        {"name": "Alex", "achievement": ["maximum"], "tier": 1, "date": "x"},
     ):
         progress.restore({"players": [], "latest": latest}, Profiles(), NOW)
         assert progress.latest is None
@@ -518,3 +520,39 @@ def test_a_visit_without_darts_books_nobody():
     booking = game.booking()
     assert booking.visit == [dart("T20")] and booking.darts == []
     assert booking.player is None
+
+
+def test_the_week_bests_come_from_legs_one_player_played_from_501():
+    """A handicap leg counts for its own start score, a team leg for nobody's
+    fewest darts and best MPR, like the records and the profiles."""
+    game, progress = practice(501, "Sam", "Kim"), Progress()
+    game.set_start(0, 301)
+    game.players[0].remaining = 40
+    play(game, progress, "D20")
+    assert week(progress, "Sam", "best_501") is None
+    assert week(progress, "Sam", "highest_checkout") == 40
+    team = practice(501, "Alex", "Sam", "Kim", "Lea", teams=True)
+    for player in team.players:
+        player.remaining = 32
+    play(team, progress, "D16")
+    assert week(progress, "Alex", "best_501") is None
+    assert week(progress, "Alex", "highest_checkout") == 32
+    cricket = practice("cricket", "Alex", "Sam", "Kim", "Lea", teams=True)
+    for player in cricket.players[0::2]:
+        player.marks = [3, 3, 3, 3, 3, 3, 2]
+    play(cricket, progress, "BULL")
+    assert cricket.legs[0]["team"] == 1
+    assert week(progress, "Alex", "best_mpr") is None
+
+
+def test_an_undone_visit_rewinds_the_players_at_the_board():
+    game, progress = practice(501, "Alex", "Sam"), Progress()
+    play(game, progress, "T20", positions=[(0.0, 0.6)])
+    checkpoint = progress.checkpoint(game.names)
+    assert set(checkpoint["players"]) == {"alex", "sam"}
+    play(game, progress, "T20", "T20", "T20", positions=[(0.0, 0.6)] * 3)
+    assert "sam" in progress.players and progress.latest is not None
+    progress.rewind(checkpoint)
+    assert "sam" not in progress.players
+    assert progress.players["alex"].counters["darts"] == 1
+    assert len(progress.session) == 1 and progress.latest is None

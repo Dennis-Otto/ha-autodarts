@@ -178,9 +178,10 @@ class Profiles:
                 profile.first9_darts += _count(entry.get("first9_darts"))
                 profile.at_double += _count(entry.get("at_double"))
                 double_out = entry.get("double_out") is True
-                if won and double_out:
+                # In a team, the checkout counts for the partner who threw it.
+                checkout = _count(entry.get("checkout"))
+                if won and double_out and checkout:
                     profile.checkouts += 1
-                    checkout = _count(entry.get("checkout"))
                     profile.highest_checkout = max(profile.highest_checkout, checkout)
                 # The fewest darts count for the score the player really started
                 # from, and only for a leg the player played alone.
@@ -192,7 +193,8 @@ class Profiles:
                 marks = _count(entry.get("marks"))
                 profile.cricket_darts += darts
                 profile.cricket_marks += marks
-                if won and darts:
+                # Marks of a team leg are no one player's best.
+                if won and darts and not team:
                     profile.best_mpr = max(
                         profile.best_mpr, round(marks * 3 / darts, 2)
                     )
@@ -205,11 +207,13 @@ class Profiles:
         legs_to_win: int,
         sets_to_win: int,
         winners: list[int] | None = None,
+        started: str | None = None,
     ) -> None:
         """A finished match of several players: history and head-to-head.
 
         In a team match, both players of the winning team win it, and each of
-        them beats both opponents; partners play no head-to-head.
+        them beats both opponents; partners play no head-to-head. The match
+        started with its first dart, for the training calendar.
         """
         side = winners or [winner]
         for index, entry in enumerate(players):
@@ -217,6 +221,7 @@ class Profiles:
                 profile.matches_played += 1
                 profile.matches_won += int(index in side)
         match: dict[str, Any] = {
+            "started": started,
             "ended": dt_util.utcnow().isoformat(),
             "game": game,
             "legs_to_win": legs_to_win,

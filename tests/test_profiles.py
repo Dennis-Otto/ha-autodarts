@@ -4,6 +4,7 @@ from custom_components.autodarts.practice import PracticeGame
 from custom_components.autodarts.profiles import MATCH_HISTORY, Profiles
 
 from .test_practice import throw
+from .test_teams_and_handicap import teams
 
 
 def named(game: int | str, *names: str, legs: int = 1) -> PracticeGame:
@@ -132,3 +133,32 @@ def test_the_history_keeps_the_last_matches():
         profiles.match(501, [{"name": "A"}, {"name": "B"}], index % 2, 1, 1)
     assert len(profiles.matches) == MATCH_HISTORY
     assert profiles.snapshot()["head_to_head"][0]["wins"] == [13, 12]
+
+
+def test_in_a_team_the_checkout_counts_for_the_player_who_threw_it():
+    game = teams()
+    for player in game.players:
+        player.remaining = 40
+    throw(game, "MISS", "D20")
+    players = by_name(game)
+    assert players["Alex"]["legs_won"] == players["Kim"]["legs_won"] == 1
+    assert (players["Alex"]["checkout_rate"], players["Alex"]["highest_checkout"]) == (
+        50.0,
+        40,
+    )
+    # Kim threw no dart at a double and checked nothing out.
+    assert game.profiles.players["kim"].checkouts == 0
+    assert (players["Kim"]["checkout_rate"], players["Kim"]["highest_checkout"]) == (
+        None,
+        None,
+    )
+
+
+def test_a_team_cricket_leg_sets_no_best_marks_per_round():
+    game = teams("cricket")
+    for player in game.players[0::2]:
+        player.marks = [3, 3, 3, 3, 3, 3, 2]
+    throw(game, "BULL")
+    assert game.legs[0]["team"] == 1
+    assert all(profile.best_mpr == 0 for profile in game.profiles.players.values())
+    assert by_name(game)["Alex"]["legs_won"] == 1

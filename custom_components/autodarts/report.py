@@ -23,7 +23,6 @@ from .journal import TrainingJournal
 
 if TYPE_CHECKING:
     from .local_coordinator import AutodartsLocalCoordinator
-    from .practice import PracticeGame
 
 WEEKDAYS = (
     "monday",
@@ -198,6 +197,7 @@ class WeeklyReport:
     # -- counting --------------------------------------------------------------
 
     def observe(self, kind: str, attributes: dict[str, Any], now: datetime) -> None:
+        """Count an event; legs and matches count once booked, see booked."""
         count = self.counts
         value = attributes.get
         if value("bot") and kind in ("dart_detected", "visit_completed"):
@@ -222,15 +222,20 @@ class WeeklyReport:
                 count["scores_180"] += int(darts == 3 and score == 180)
         elif kind == "session_ended":
             count["sessions"] += int(_count(value("darts")) > 0)
-        elif kind == "leg_won":
-            count["legs"] += 1
-        elif kind == "match_won":
-            count["matches"] += 1
         elif kind == "daily_goal_reached":
             count["daily_goals"] += 1
         elif kind == "personal_best" and (best := _restored_best(attributes)):
             self.bests.insert(0, best)
             del self.bests[REPORT_BESTS:]
+
+    def booked(self, kind: str) -> None:
+        """A leg or match the practice game booked. The live leg_won and
+        match_won of a winning dart can be corrected away; a booking stays,
+        unless its visit is undone."""
+        if kind == "leg_won":
+            self.counts["legs"] += 1
+        elif kind == "match_won":
+            self.counts["matches"] += 1
 
     def book_legs(
         self, legs: list[dict[str, Any]], stats: list[dict[str, int]]
@@ -322,6 +327,12 @@ class WeeklyReport:
         )
         if self.started is None or self.ends is None or self.ends <= self.started:
             self.started = self.ends = None
+        self.last_dart = _moment(saved.get("last_dart"))
+        self._restore_counts(saved)
+        self.last = _restored_report(saved.get("last"))
+
+    def _restore_counts(self, saved: dict[str, Any]) -> None:
+        """The counters of the running week, its best visit and bests."""
         counts = saved.get("counts")
         self.counts = {
             key: _count(counts.get(key) if isinstance(counts, dict) else None)
@@ -334,20 +345,28 @@ class WeeklyReport:
             for best in map(_restored_best, bests if isinstance(bests, list) else [])
             if best
         ][:REPORT_BESTS]
-        self.last_dart = _moment(saved.get("last_dart"))
         last_leg = saved.get("last_leg")
         valid = isinstance(last_leg, str) and (not last_leg or _moment(last_leg))
         self.last_leg = last_leg if valid and isinstance(last_leg, str) else None
-        self.last = _restored_report(saved.get("last"))
+
+    def rewind(self, saved: dict[str, Any]) -> bool:
+        """Back to the counters stored before an undone visit was booked; a
+        week that ended meanwhile stays as it was reported. Whether it rewound."""
+        if _moment(saved.get("started")) != self.started:
+            return False
+        self._restore_counts(saved)
+        return True
+
+    def forget(self, name: str) -> None:
+        """Remove a player's name from the bests of this and the last week."""
+        key = name.strip().casefold()
+        for best in [*self.bests, *(self.last or {}).get("personal_bests", [])]:
+            if (best.get("name") or "").strip().casefold() == key:
+                best["name"] = None
 
 
 def _store(hass: HomeAssistant, entry_id: str, name: str) -> Store[dict[str, Any]]:
     return Store(hass, 1, f"{DOMAIN}.{entry_id}.{name}", private=True)
-
-
-def match_game(practice: PracticeGame) -> int | str | None:
-    """The practice match of several players being played, if any."""
-    return practice.kind if len(practice.players) > 1 else None
 
 
 class BoardReports:
@@ -366,18 +385,26 @@ class BoardReports:
         self.hass = hass
         self._coordinator = coordinator
         self.report = WeeklyReport()
-        self.journal = TrainingJournal()
+        # The calendar reads in the language of Home Assistant.
+        self.journal = TrainingJournal(lambda: hass.config.language)
         # Private like the training: both keep the names of players.
         self._report_store = _store(hass, entry_id, "report")
         self._journal_store = _store(hass, entry_id, "journal")
         self._report_dirty = False
         self._journal_dirty = False
+        # Nothing is saved before both stores were restored.
+        self._loaded = False
         self._unsub: CALLBACK_TYPE | None = None
+
+    @property
+    def stores(self) -> tuple[Store[dict[str, Any]], ...]:
+        return self._report_store, self._journal_store
 
     async def async_load(self) -> None:
         """Restore both stores; a new journal takes over the stored history."""
         self.report.restore(await self._report_store.async_load())
         self.journal.restore(await self._journal_store.async_load())
+        self._loaded = True
         if self.report.started is None:
             self.report.begin(dt_util.utcnow())
             self._save_report()
@@ -392,6 +419,8 @@ class BoardReports:
         if self._unsub:
             self._unsub()
             self._unsub = None
+        if not self._loaded:
+            return
         if self._report_dirty:
             await self._report_store.async_save(self.report.stored())
             self._report_dirty = False
@@ -407,27 +436,54 @@ class BoardReports:
 
     # -- counting --------------------------------------------------------------
 
-    def observe(self, events: list[tuple[str, dict[str, Any]]], now: datetime) -> None:
-        """Count the events and take over finished sessions, matches and legs."""
+    def observe(
+        self,
+        events: list[tuple[str, dict[str, Any]]],
+        now: datetime,
+        booked: list[tuple[str, dict[str, Any]]] | None = None,
+    ) -> None:
+        """Count the events and the legs and matches booked, and take over
+        finished sessions, matches and legs."""
         coordinator = self._coordinator
         practice = coordinator.practice
-        game = match_game(practice)
         for kind, attributes in events:
-            if kind == "dart_detected":
-                self.journal.observe_dart(now, game)
             self.report.observe(kind, attributes, now)
-        booked = self.report.book_legs(practice.legs, practice.leg_stats)
-        if events or booked:
+        for kind, _ in booked or []:
+            self.report.booked(kind)
+        legs = self.report.book_legs(practice.legs, practice.leg_stats)
+        if events or booked or legs:
             self._save_report()
         if self.journal.sync(
             coordinator.training.history, practice.profiles.matches, now
         ):
-            self._journal_dirty = True
-            self._journal_store.async_delay_save(self.journal.stored, SAVE_DELAY)
+            self._save_journal()
 
     def _save_report(self) -> None:
         self._report_dirty = True
         self._report_store.async_delay_save(self.report.stored, SAVE_DELAY)
+
+    def _save_journal(self) -> None:
+        self._journal_dirty = True
+        self._journal_store.async_delay_save(self.journal.stored, SAVE_DELAY)
+
+    # -- undo and deleted players ----------------------------------------------
+
+    def checkpoint(self) -> dict[str, Any]:
+        """The report and the journal before a visit counts, to undo it."""
+        return {"report": self.report.stored(), "match": self.journal.last_match()}
+
+    def rewind(self, checkpoint: dict[str, Any]) -> None:
+        """Back to the checkpoint, as when the undone visit never counted."""
+        if self.report.rewind(checkpoint["report"]):
+            self._save_report()
+        if self.journal.rewind(checkpoint["match"]):
+            self._save_journal()
+
+    def forget(self, name: str) -> None:
+        """Remove a deleted player's name from the personal bests of the report;
+        the calendar keeps the matches as they were played."""
+        self.report.forget(name)
+        self._save_report()
 
     def snapshot(self) -> dict[str, Any]:
         """The running week for the sensor, with the last week's report."""

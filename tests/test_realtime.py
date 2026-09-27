@@ -239,7 +239,8 @@ async def test_push_updates_entities_and_emits_one_event_per_dart(hass, aioclien
     assert visit_score == "180"
     assert hass.states.get(event_id).attributes["event_type"] == "visit_thrown"
     assert state(hass, "sensor", "training_darts") == "3"
-    assert state(hass, "sensor", "training_scores_180") == "1"
+    # The visit counts as a 180 once it is complete.
+    assert state(hass, "sensor", "training_scores_180") == "0"
     assert state(hass, "sensor", "training_average") == "180.0"
     assert state(hass, "sensor", "training_highest_visit") == "180"
     darts = hass.states.get(entity_id(hass, "sensor", "training_darts"))

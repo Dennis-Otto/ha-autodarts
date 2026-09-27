@@ -6,11 +6,9 @@ from zoneinfo import ZoneInfo
 import pytest
 from homeassistant.util import dt as dt_util
 
-from custom_components.autodarts.practice import PracticeGame
 from custom_components.autodarts.report import (
     REPORT_BESTS,
     WeeklyReport,
-    match_game,
     report_week,
 )
 
@@ -84,8 +82,12 @@ def test_darts_visits_and_results_count_for_the_week():
         report.observe("visit_completed", {"score": score, "darts": darts}, start)
     report.observe("session_ended", {"darts": 30}, start)
     report.observe("session_ended", {"darts": 0}, start)
+    # Legs and matches announced with a winning dart count once booked.
     report.observe("leg_won", {"game": 501}, start)
     report.observe("match_won", {"game": 501}, start)
+    report.booked("leg_won")
+    report.booked("match_won")
+    report.booked("turn_changed")
     report.observe("daily_goal_reached", {"goal": 3}, start)
     for value in range(REPORT_BESTS + 2):
         report.observe(
@@ -269,18 +271,38 @@ def test_a_stored_report_keeps_only_valid_values():
     ]
 
 
-def test_only_matches_of_several_players_are_matches():
-    practice = PracticeGame()
-    assert match_game(practice) is None
-    practice.play(501)
-    assert match_game(practice) is None
-    practice.set_players(2)
-    assert match_game(practice) == 501
-    practice.play("cricket")
-    assert match_game(practice) == "cricket"
-    practice.play("killer")
-    assert match_game(practice) == "killer"
-    practice.play("doubles")
-    assert match_game(practice) is None
-    practice.play(0)
-    assert match_game(practice) is None
+def test_an_undone_visit_leaves_the_week_as_it_was_before():
+    report = WeeklyReport()
+    report.begin(local("2026-09-30 12:00"))
+    dart(report, local("2026-09-30 18:00"))
+    report.book_legs([leg(501, 1)], [{"at_double": 1, "checkouts": 0}])
+    before = report.stored()
+    report.observe("visit_completed", {"score": 180, "darts": 3}, local("2026-09-30"))
+    report.booked("leg_won")
+    report.book_legs(
+        [leg(501, 9), leg(501, 1)],
+        [{"at_double": 2, "checkouts": 1}, {"at_double": 1, "checkouts": 0}],
+    )
+    assert report.rewind(before) is True
+    assert report.stored() == before
+    # A week that ended since stays as it was reported.
+    report.observe("visit_completed", {"score": 60, "darts": 3}, local("2026-09-30"))
+    report.rollover(local("2026-10-05 00:00"), 0)
+    assert report.rewind(before) is False
+    assert report.last["visits"] == 1
+
+
+def test_a_deleted_player_leaves_the_bests_of_the_report():
+    report = WeeklyReport()
+    report.begin(local("2026-09-30 12:00"))
+    for name in ("Alex", "Sam"):
+        report.observe(
+            "personal_best",
+            {"record": "highest_visit", "value": 100, "name": name},
+            local("2026-09-30"),
+        )
+    report.last = report.snapshot(0)
+    report.forget(" alex ")
+    assert [best["name"] for best in report.bests] == ["Sam", None]
+    assert [best["name"] for best in report.last["personal_bests"]] == ["Sam", None]
+    WeeklyReport().forget("Alex")

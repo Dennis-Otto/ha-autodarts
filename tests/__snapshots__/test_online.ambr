@@ -1,7 +1,7 @@
 # serializer version: 1
 # name: test_entities_and_diagnostics_of_the_bridge
   dict({
-    'board-1_online_bridge_last_event': 'sensor.autodarts_board_online_bridge_last_event | diagnostic | enabled',
+    'board-1_online_bridge_last_event': 'sensor.autodarts_board_online_bridge_last_event | diagnostic | enabled | timestamp | - | - | online_bridge_last_event | named',
   })
 # ---
 # name: test_entities_and_diagnostics_of_the_bridge.1

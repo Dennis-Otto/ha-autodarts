@@ -172,8 +172,10 @@ async def test_positions_need_a_loaded_board(hass, aioclient_mock, hass_ws_clien
     device = dr.async_get(hass).async_get_or_create(
         config_entry_id=other.entry_id, identifiers={("demo", "lamp")}
     )
-    assert (await positions(hass, client, device_id=device.id))["success"] is False
+    foreign = await positions(hass, client, device_id=device.id)
+    assert (foreign["success"], foreign["error"]["code"]) == (False, "not_found")
     board_device = device_id(hass, entry)
     assert (await positions(hass, client, device_id=board_device))["success"] is True
     assert await hass.config_entries.async_unload(entry.entry_id)
-    assert (await positions(hass, client, device_id=board_device))["success"] is False
+    unloaded = await positions(hass, client, device_id=board_device)
+    assert (unloaded["success"], unloaded["error"]["code"]) == (False, "not_found")

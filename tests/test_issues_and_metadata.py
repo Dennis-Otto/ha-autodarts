@@ -137,7 +137,15 @@ async def test_entity_categories_and_classes(hass, aioclient_mock):
     assert entry("binary_sensor", "cameras_active").original_device_class == "running"
     assert entry("binary_sensor", "calibrating").original_device_class == "running"
     darts = hass.states.get(entity_id(hass, "sensor", "training_darts"))
-    assert darts.attributes["state_class"] == "total_increasing"
+    # Session totals start from zero with the session, and a correction or an
+    # undone visit can lower them.
+    assert darts.attributes["state_class"] == "total"
+    coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
+    assert darts.attributes["last_reset"] == coordinator.training.started
+    session = hass.states.get(entity_id(hass, "sensor", "training_started"))
+    assert "last_reset" not in session.attributes
+    average = hass.states.get(entity_id(hass, "sensor", "training_average"))
+    assert "last_reset" not in average.attributes
     assert "icon" not in darts.attributes
 
 

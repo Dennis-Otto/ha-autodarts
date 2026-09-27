@@ -52,11 +52,15 @@ def cloud_link():
         yield
 
 
-# Loggers of the integration, and those Home Assistant reports its entities with.
+# Loggers of the integration, those Home Assistant reports its entities with,
+# and those of the WebSocket commands and webhooks it offers, which answer a
+# crashing handler with an error of their own.
 WATCHED_LOGGERS = (
     "custom_components.autodarts",
     "homeassistant.helpers.entity",
     "homeassistant.helpers.entity_platform",
+    "homeassistant.components.websocket_api",
+    "homeassistant.components.webhook",
 )
 # How the coordinators report a board or cloud that is away, once per outage.
 UNAVAILABLE = re.compile(

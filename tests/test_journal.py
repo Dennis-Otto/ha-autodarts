@@ -6,14 +6,21 @@ from unittest.mock import patch
 import pytest
 from homeassistant.util import dt as dt_util
 
+from custom_components.autodarts.cricket import CRICKET_GAMES
 from custom_components.autodarts.journal import (
+    GAME_NAMES,
     JournalEvent,
     TrainingJournal,
+    game_name,
+    match_description,
     match_entry,
     match_title,
     player_results,
+    session_description,
     session_entry,
+    session_title,
 )
+from custom_components.autodarts.party import PARTY_GAMES
 
 NOW = datetime(2026, 9, 27, 20, 0, tzinfo=dt_util.UTC)
 
@@ -178,13 +185,89 @@ def test_calendar_titles_and_descriptions_read_the_same_in_every_language():
     ]
 
 
+@pytest.mark.parametrize("game", [*CRICKET_GAMES, *PARTY_GAMES])
+def test_the_journal_knows_every_game_by_its_name(game):
+    entry = match_entry(match(0, game=game))
+    assert entry["game"] == game
+    assert match_title(entry).startswith(f"{GAME_NAMES[game]} · ")
+    assert set(GAME_NAMES) == {*CRICKET_GAMES, *PARTY_GAMES}
+    assert game_name(501) == "501"
+
+
+def test_the_bot_and_teams_keep_their_seats_in_the_calendar():
+    bot = match_entry(
+        match(
+            0,
+            winner=2,
+            players=[
+                {"name": "Alex", "legs": 1, "average": 50.0},
+                {"name": None, "legs": 2, "bot": True, "average": 60.0},
+            ],
+        )
+    )
+    assert bot["players"][1]["bot"] is True
+    assert match_title(bot) == "501 · Alex 1:3 Bot"
+    assert match_description(bot) == "Alex: Ø 50.0\nBot: Ø 60.0"
+    players = [
+        {"name": "Alex", "legs": 1, "team": 1},
+        {"name": "Sam", "legs": 0, "team": 2},
+        {"name": "Kim", "legs": 1, "team": 1},
+        {"name": None, "legs": 0, "team": 2, "bot": True},
+    ]
+    teams = match_entry(match(0, legs_to_win=1, players=players))
+    assert [player["team"] for player in teams["players"]] == [1, 2, 1, 2]
+    assert match_title(teams) == "501 · Alex & Kim 1:0 Sam & Bot"
+    # Seats of anything but two teams of two read player by player.
+    odd = match_entry(
+        match(0, legs_to_win=1, players=[*players[:3], {"name": "Lea", "team": 3}])
+    )
+    assert "team" not in odd["players"][3]
+    assert match_title(odd) == "501 · Alex 1 · Sam 0 · Kim 1 · Lea 0"
+
+
+def test_calendar_entries_read_in_the_language_of_home_assistant():
+    entry = session_entry(
+        session(-60, 0, darts=312, points=5642, scores_140=3, highest_visit=140)
+    )
+    assert session_title(entry, "de") == "Training · 312 Darts · Ø 54,2"
+    assert session_title(entry, "nl") == "Training · 312 darts · Ø 54,2"
+    assert session_title(entry, "fr") == "Entraînement · 312 fléchettes · Ø 54,2"
+    assert session_title(entry, "es-419") == "Entrenamiento · 312 dardos · Ø 54,2"
+    assert session_title(entry, "en-GB") == session_title(entry, "pt")
+    assert session_title(entry, "pt") == "Training · 312 Darts · Ø 54.2"
+    assert session_description(entry, "es").endswith("Máx.: 140")
+    cricket = match_entry(
+        match(
+            0, game="cricket", players=[{"name": "Alex", "mpr": 2.4}, {"name": "Sam"}]
+        )
+    )
+    assert match_description(cricket, "fr") == "Alex: MPR 2,40"
+    language = "en"
+    journal = TrainingJournal(lambda: language)
+    journal.sync([session(-60, -10, darts=3, points=100)], [], NOW)
+    assert journal.latest().summary == "Training · 3 Darts · Ø 100.0"
+    language = "de"
+    assert journal.latest().summary == "Training · 3 Darts · Ø 100,0"
+
+
+def test_an_undone_visit_takes_its_match_back_from_the_journal():
+    journal = journal_with(matches=[match(-10)])
+    assert journal.last_match() == at(-10)
+    journal.sync([], [match(-2), match(-10)], NOW)
+    assert journal.rewind(at(-10)) is True
+    assert [entry["ended"] for entry in journal.matches] == [at(-10)]
+    assert journal.rewind(at(-10)) is False
+    assert journal.rewind(None) is True
+    assert journal.matches == [] and journal.last_match() is None
+
+
 def test_events_last_at_least_a_minute_and_matches_start_with_their_first_dart():
     journal = TrainingJournal()
-    journal.observe_dart(NOW + timedelta(minutes=-30), 301)
-    # The same game keeps the first dart; another game or none starts over.
-    journal.observe_dart(NOW + timedelta(minutes=-25), 301)
-    journal.sync([session(-50, -50, darts=1, points=20)], [match(-5, game=301)], NOW)
-    assert journal.match_start is None
+    journal.sync(
+        [session(-50, -50, darts=1, points=20)],
+        [match(-5, game=301, started=at(-30))],
+        NOW,
+    )
     session_event, match_event = journal.events(NOW - timedelta(hours=1), NOW)
     assert session_event == JournalEvent(
         uid=f"session-{at(-50)}",
@@ -197,17 +280,8 @@ def test_events_last_at_least_a_minute_and_matches_start_with_their_first_dart()
         NOW - timedelta(minutes=30),
         NOW - timedelta(minutes=5),
     )
-
-    journal.observe_dart(NOW, 501)
-    journal.observe_dart(NOW, None)
-    assert journal.match_start is None
-    journal.observe_dart(NOW, 501)
-    journal.observe_dart(NOW + timedelta(minutes=1), "cricket")
-    # A dart of another game, or after the match ended, is not its first dart.
-    journal.sync([], [match(20, game=501), match(-1, game=301)], NOW)
-    assert journal.matches[-1]["started"] is None
-    journal.observe_dart(NOW + timedelta(minutes=40), 501)
-    journal.sync([], [match(30, game=501), match(20, game=501)], NOW)
+    # A match from before the journal knew its first dart lasts a minute.
+    journal.sync([], [match(30, game=501, started=None)], NOW)
     assert journal.matches[-1]["started"] is None
     assert journal.latest().end == NOW + timedelta(minutes=30)
     assert journal.latest().start == NOW + timedelta(minutes=29)
@@ -262,11 +336,9 @@ def test_events_of_a_period_overlap_it():
 
 def test_the_journal_survives_a_restart():
     journal = journal_with(sessions=[session(-30, -20)], matches=[match(-10)])
-    journal.observe_dart(NOW, "killer")
     restored = TrainingJournal()
     restored.restore(journal.stored())
     assert restored.stored() == journal.stored()
-    assert restored.match_start == (NOW, "killer")
 
 
 @pytest.mark.parametrize(
@@ -276,7 +348,13 @@ def test_the_journal_survives_a_restart():
         {"sessions": "all", "matches": None, "match_start": "now"},
         {
             "sessions": [session(-30, -20), session(-90, -60), None],
-            "matches": [match(-10), match(-10), {"ended": at(0)}],
+            "matches": [
+                match(-10),
+                match(-10),
+                {"ended": at(0)},
+                # Stored data may hold anything, even a list for a game.
+                match(-5, game=["golf"]),
+            ],
             "match_start": {"time": at(0), "game": "golf"},
         },
     ],
@@ -287,4 +365,4 @@ def test_broken_or_unordered_storage_keeps_what_is_valid(saved):
     stored = journal.stored()
     assert len(stored["sessions"]) <= 1
     assert len(stored["matches"]) <= 1
-    assert stored["match_start"] is None
+    assert "match_start" not in stored

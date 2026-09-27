@@ -150,6 +150,13 @@ class DartLog:
     def __len__(self) -> int:
         return len(self.darts)
 
+    def __deepcopy__(self, memo: dict[int, Any]) -> DartLog:
+        """A copy for undo: the positions are immutable, so copying is quick."""
+        log = DartLog(self.darts.maxlen or 0)
+        log.darts.extend(self.darts)
+        log._spread = self._spread
+        return log
+
     def add(self, position: tuple[float, float] | None, aim: str | None) -> None:
         if position is None or math.hypot(*position) > MAX_DISTANCE:
             return
