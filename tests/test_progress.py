@@ -474,7 +474,7 @@ def test_the_achievements_of_every_player():
     alex, sam = snapshot["players"]
     assert (alex["name"], alex["unlocked"], alex["badges"]) == ("alex", 0, {})
     assert sam["unlocked"] == 1
-    assert sam["badges"] == {"maximum": {"tier": 1, "date": NOW.isoformat()}}
+    assert sam["badges"] == {"maximum": {"tier": 1, "dates": [NOW.isoformat()]}}
     assert set(sam["progress"]) == set(ACHIEVEMENTS)
     assert sam["progress"]["maximum"] == 1 and sam["progress"]["short_leg"] is None
     assert alex["progress"]["darts_thrown"] == 1

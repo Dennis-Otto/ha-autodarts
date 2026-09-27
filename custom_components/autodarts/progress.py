@@ -525,7 +525,7 @@ class Progress:
         ):
             values = self._values(player, profiles.players.get(key))
             badges: dict[str, dict[str, Any]] = {
-                achievement: {"tier": len(dates), "date": dates[-1]}
+                achievement: {"tier": len(dates), "dates": list(dates)}
                 for achievement, dates in player.badges.items()
                 if dates
             }
