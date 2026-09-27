@@ -10,6 +10,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import webhook
 from homeassistant.config_entries import (
+    SOURCE_IGNORE,
     SOURCE_REAUTH,
     SOURCE_RECONFIGURE,
     ConfigEntry,
@@ -53,6 +54,7 @@ from .online import (
     bridge_url,
     effects_csv,
 )
+from .repairs import address_title, async_offer_address
 
 
 def _valid_host(host: str) -> bool:
@@ -128,6 +130,13 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry: ConfigEntry) -> AutodartsOptionsFlow:
         return AutodartsOptionsFlow()
 
+    @classmethod
+    @callback
+    def async_supports_options_flow(cls, config_entry: ConfigEntry) -> bool:
+        """The options switch the bridge for online matches, which delivers its
+        moments as events of the local board; without one, nothing receives them."""
+        return bool(config_entry.data.get(CONF_HOST))
+
     def __init__(self) -> None:
         self._token: dict[str, Any] = {}
         self._boards: dict[str, str] = {}
@@ -150,21 +159,32 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         client = AutodartsLocalClient(host, port, async_get_clientsession(self.hass))
         return await client.identify()
 
-    async def _async_still_answers(self, board_id: str, host: str, port: int) -> bool:
-        """Whether a configured board still answers at its address, not this one."""
+    def _entry_elsewhere(
+        self, board_id: str, host: str, port: int
+    ) -> ConfigEntry | None:
+        """The entry of this board, when it has another address than this one."""
         entry = self.hass.config_entries.async_entry_for_domain_unique_id(
             DOMAIN, board_id
         )
-        if entry is None or not entry.data.get(CONF_HOST):
-            return False
-        configured = (entry.data[CONF_HOST], entry.data.get(CONF_PORT, DEFAULT_PORT))
-        if configured == (host, port):
+        if entry is None or entry.source == SOURCE_IGNORE:
+            return None
+        configured = (
+            entry.data.get(CONF_HOST),
+            entry.data.get(CONF_PORT, DEFAULT_PORT),
+        )
+        return None if configured == (host, port) else entry
+
+    async def _async_still_answers(self, entry: ConfigEntry) -> bool:
+        """Whether the board of the entry still answers at the entry's address."""
+        if not entry.data.get(CONF_HOST):
             return False
         try:
-            identity = await self._async_identify(*configured)
+            identity = await self._async_identify(
+                entry.data[CONF_HOST], entry.data.get(CONF_PORT, DEFAULT_PORT)
+            )
         except (AutodartsApiError, ValueError):
             return False
-        return bool(identity["board_id"] == board_id)
+        return bool(identity["board_id"] == entry.unique_id)
 
     def _local_entry(
         self, host: str, port: int, identity: dict[str, Any]
@@ -188,6 +208,10 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         """Offer the boards Autodarts lists for this network."""
         if user_input is not None:
             board = self._found[user_input[CONF_BOARD_ID]]
+            # The address form keeps the found address if the board does not answer.
+            self._user_input.update(
+                {CONF_HOST: board["host"], CONF_PORT: board["port"]}
+            )
             return await self.async_step_local(
                 {CONF_HOST: board["host"], CONF_PORT: board["port"]}
             )
@@ -244,12 +268,12 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         if not board_id:
             return self.async_abort(reason="board_not_configured")
         await self.async_set_unique_id(board_id)
-        if await self._async_still_answers(board_id, host, port):
-            # Only a board that left its address moves: another device echoing
-            # the board ID never takes over a working entry.
-            return self.async_abort(reason="already_configured")
-        # A known board that moved to a new address is updated and reloaded.
-        self._abort_if_unique_id_configured(updates={CONF_HOST: host, CONF_PORT: port})
+        entry = self._entry_elsewhere(board_id, host, port)
+        if entry is not None and not await self._async_still_answers(entry):
+            # Any device can announce the board ID, so a board that left its
+            # address moves only once the user confirms the repair.
+            async_offer_address(self.hass, entry, host, port)
+        self._abort_if_unique_id_configured()
         self._async_abort_entries_match({CONF_BOARD_ID: identity["board_id"]})
         self._discovered = {"host": host, "port": port, **identity}
         self.context["title_placeholders"] = {"name": host}
@@ -314,11 +338,21 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
                             return self.async_abort(reason="wrong_board")
                         return self.async_update_reload_and_abort(
                             entry,
+                            title=address_title(entry, host),
                             data_updates={CONF_HOST: host, CONF_PORT: port},
                             reason="reconfigure_successful",
                         )
                     else:
                         await self.async_set_unique_id(board_id)
+                        known = self._entry_elsewhere(board_id, host, port)
+                        if known is not None:
+                            # The board answers where the user says it is now.
+                            return self.async_update_reload_and_abort(
+                                known,
+                                title=address_title(known, host),
+                                data_updates={CONF_HOST: host, CONF_PORT: port},
+                                reason="address_updated",
+                            )
                         self._abort_if_unique_id_configured()
                         self._async_abort_entries_match({CONF_BOARD_ID: board_id})
                         return self._local_entry(host, port, identity)
@@ -557,9 +591,10 @@ class AutodartsOptionsFlow(OptionsFlowWithReload):
                 CONF_ONLINE_REMOTE: user_input[CONF_ONLINE_REMOTE],
             }
             # The address stays when the bridge is switched off, so that the
-            # effects in the browser work again after switching it on.
-            if enabled and (
-                user_input.get(CONF_NEW_ADDRESS) or not options.get(CONF_WEBHOOK_ID)
+            # effects in the browser work again after switching it on; a new
+            # one replaces it at once, so a leaked address never works again.
+            if user_input.get(CONF_NEW_ADDRESS) or (
+                enabled and not options.get(CONF_WEBHOOK_ID)
             ):
                 self._options[CONF_WEBHOOK_ID] = webhook.async_generate_id()
             if enabled:

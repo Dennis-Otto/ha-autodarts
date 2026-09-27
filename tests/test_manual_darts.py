@@ -27,7 +27,12 @@ def test_beds_by_name():
     assert parse_bed("25") == {"number": 25, "multiplier": 1, "name": "25"}
     assert parse_bed("Miss") == {"number": 0, "multiplier": 0, "name": "MISS"}
     assert parse_bed("s5")["name"] == "S5"
-    for wrong in ("T21", "S0", "D25", "T25", "X", "", 20, None):
+    # Other names of the bulls.
+    for alias in ("S25", "sb", "OB"):
+        assert parse_bed(alias) == parse_bed("25")
+    for alias in ("D25", "db", "50", " Bull "):
+        assert parse_bed(alias) == parse_bed("BULL")
+    for wrong in ("T21", "S0", "T25", "D50", "X", "", 20, None):
         assert parse_bed(wrong) is None
 
 

@@ -9,15 +9,53 @@ from homeassistant.components.repairs import (
     RepairsFlow,
     RepairsFlowResult,
 )
-from homeassistant.config_entries import ConfigEntryState
-from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from yarl import URL
 
-from .const import CONF_BOARD_ID, CONF_HOST, CONF_PORT, DOMAIN
+from .const import CONF_BOARD_ID, CONF_HOST, CONF_PORT, DEFAULT_PORT, DOMAIN
 from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
+
+
+def address_title(entry: ConfigEntry, host: str) -> str:
+    """The entry's title at a new address: a title that named the old address
+    names the new one; a board's name stays."""
+    old = entry.data.get(CONF_HOST)
+    if old and entry.title == f"Autodarts ({old})":
+        return f"Autodarts ({host})"
+    return entry.title
+
+
+def _address(host: str, port: int) -> str:
+    return str(URL.build(scheme="http", host=host, port=port))
+
+
+@callback
+def async_offer_address(
+    hass: HomeAssistant, entry: ConfigEntry, host: str, port: int
+) -> None:
+    """A board with the entry's board ID answers at another address. Any device
+    can claim a board ID, so the entry moves only once the user confirms."""
+    old = entry.data.get(CONF_HOST)
+    ir.async_create_issue(
+        hass,
+        DOMAIN,
+        f"board_moved_{entry.entry_id}",
+        is_fixable=True,
+        severity=ir.IssueSeverity.WARNING,
+        translation_key="board_moved",
+        translation_placeholders={
+            "old": _address(old, entry.data.get(CONF_PORT, DEFAULT_PORT))
+            if old
+            else "",
+            "new": _address(host, port),
+        },
+        data={"entry_id": entry.entry_id, "host": host, "port": port},
+    )
 
 
 class CalibrationFlow(RepairsFlow):
@@ -87,7 +125,9 @@ class BoardMovedFlow(RepairsFlow):
         if identity["board_id"] != entry.data[CONF_BOARD_ID]:
             return self.async_abort(reason="board_unavailable")
         self.hass.config_entries.async_update_entry(
-            entry, data={**entry.data, CONF_HOST: host, CONF_PORT: port}
+            entry,
+            title=address_title(entry, host),
+            data={**entry.data, CONF_HOST: host, CONF_PORT: port},
         )
         self.hass.config_entries.async_schedule_reload(entry.entry_id)
         return self.async_create_entry(data={})

@@ -1,10 +1,11 @@
 """Export training sessions, practice matches and player profiles to a file.
 
-Files are written below the configuration folder only, by default to
-www/autodarts, which Home Assistant serves at /local/autodarts. Every file
-gets a new, unguessable name, because /local/ needs no login. Logged-in users
-can also download the files written since the start through the API, which
-works even while Home Assistant does not serve the www folder.
+Only administrators, automations and scripts export. Files go where Home
+Assistant lets integrations write: by default to autodarts/exports of the media
+folder, which needs a login, or on request to www, another media folder or a
+folder of allowlist_external_dirs. Every file gets a new, unguessable name,
+because www is served at /local/ without a login. Administrators download the
+files written since the start through the API.
 """
 
 from __future__ import annotations
@@ -14,14 +15,18 @@ import io
 import json
 import secrets
 import zipfile
+from collections import deque
 from collections.abc import Callable
 from pathlib import Path
+from time import monotonic
 from typing import Any
 from urllib.parse import quote
 
 from aiohttp import web
 from homeassistant.components.http import KEY_HASS, HomeAssistantView
+from homeassistant.components.http.decorators import require_admin
 from homeassistant.core import HomeAssistant
+from homeassistant.core_config import Config
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.util import dt as dt_util
 from homeassistant.util.hass_dict import HassKey
@@ -39,7 +44,8 @@ from .local_coordinator import AutodartsLocalCoordinator
 EXPORT_FORMATS = ("csv", "json")
 EXPORT_TABLES = ("sessions", "matches", "profiles")
 EXPORT_CONTENTS = (*EXPORT_TABLES, "all")
-DEFAULT_FOLDER = "www/autodarts"
+# Inside the media folder, which Home Assistant serves only with a login.
+DEFAULT_FOLDER = Path("autodarts", "exports")
 MATCH_PLAYERS = 4
 SESSION_COLUMNS = (
     "started",
@@ -64,29 +70,61 @@ DOWNLOAD_URL = "/api/autodarts/export/{name}"
 # File name -> path of the exports written since Home Assistant started.
 EXPORTS: HassKey[dict[str, Path]] = HassKey(f"{DOMAIN}_exports")
 KEPT_DOWNLOADS = 50
+# No more exports than this in an hour, so that a looping automation cannot
+# fill the disk.
+EXPORT_LIMIT = 20
+EXPORT_WINDOW = 3600.0
+EXPORT_TIMES: HassKey[deque[float]] = HassKey(f"{DOMAIN}_export_times")
 
 
 class ExportFolderError(ValueError):
-    """The folder lies outside the configuration folder or is hidden."""
+    """The folder is hidden, or Home Assistant does not allow writing there."""
 
 
-def export_folder(config_dir: str, folder: str) -> Path:
-    """The export folder, resolved; symbolic links cannot lead outside."""
-    base = Path(config_dir).resolve()
-    target = (base / folder).resolve()
-    if not target.is_relative_to(base) or any(
-        part.startswith(".") for part in target.relative_to(base).parts
-    ):
+def default_folder(config: Config) -> Path:
+    """autodarts/exports of the media folder the media browser shows first."""
+    media = config.media_dirs
+    root = media.get("local") or next(iter(media.values()), config.path("media"))
+    return Path(root) / DEFAULT_FOLDER
+
+
+def export_folder(config: Config, folder: str | None) -> Path:
+    """The export folder, resolved, so that neither .. nor a symbolic link leads
+    elsewhere; runs in the executor.
+
+    A folder is relative to the configuration folder, or absolute. It must not
+    be hidden and must be one where Home Assistant allows writing: www, the
+    media folders and the folders of allowlist_external_dirs.
+    """
+    if folder is not None and not folder.isprintable():
+        raise ExportFolderError(folder)
+    try:
+        base = Path(config.config_dir).resolve()
+        target = (base / folder if folder else default_folder(config)).resolve()
+        roots = [
+            base,
+            *(Path(path).resolve() for path in config.allowlist_external_dirs),
+        ]
+    except (OSError, RuntimeError, ValueError) as err:
+        raise ExportFolderError(folder) from err
+    for root in roots:
+        if target.is_relative_to(root) and any(
+            part.startswith(".") for part in target.relative_to(root).parts
+        ):
+            raise ExportFolderError(folder)
+    # Home Assistant checks the folder of a file that does not exist yet.
+    if not config.is_allowed_path(str(target / "export")):
         raise ExportFolderError(folder)
     return target
 
 
 class ExportDownloadView(HomeAssistantView):
-    """Downloads of this run's exports, for logged-in users and signed paths."""
+    """Downloads of this run's exports, for administrators and their signed paths."""
 
     url = DOWNLOAD_URL
     name = "api:autodarts:export"
 
+    @require_admin
     async def get(self, request: web.Request, name: str) -> web.StreamResponse:
         hass = request.app[KEY_HASS]
         path = hass.data.get(EXPORTS, {}).get(name)
@@ -215,15 +253,15 @@ def csv_text(table: str, rows: list[dict[str, Any]]) -> str:
 
 
 def _write(
-    config_dir: str,
-    folder: str,
+    config: Config,
+    folder: str | None,
     name: str,
     file_format: str,
     data: dict[str, list[dict[str, Any]]],
     exported: str,
 ) -> tuple[Path, str | None]:
     """Write the file and find its /local/ address; runs in the executor."""
-    target = export_folder(config_dir, folder)
+    target = export_folder(config, folder)
     target.mkdir(parents=True, exist_ok=True)
     if file_format == "json":
         path = target / f"{name}.json"
@@ -245,7 +283,29 @@ def _write(
                 archive.writestr(
                     f"{table}.csv", csv_text(table, rows).encode("utf-8-sig")
                 )
-    return path, public_url(config_dir, path)
+    return path, public_url(config.config_dir, path)
+
+
+def _shown(folder: str | None) -> str:
+    """The folder for a message: control characters as ?, the default by name."""
+    if not folder:
+        return DEFAULT_FOLDER.as_posix()
+    return "".join(char if char.isprintable() else "?" for char in folder)
+
+
+def _recent_exports(hass: HomeAssistant) -> deque[float]:
+    """When the exports of the last hour were written; refuses one too many."""
+    times = hass.data.setdefault(EXPORT_TIMES, deque())
+    now = monotonic()
+    while times and now - times[0] >= EXPORT_WINDOW:
+        times.popleft()
+    if len(times) >= EXPORT_LIMIT:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="export_limit",
+            translation_placeholders={"count": str(EXPORT_LIMIT)},
+        )
+    return times
 
 
 async def async_export(
@@ -253,23 +313,23 @@ async def async_export(
     coordinator: AutodartsLocalCoordinator,
     file_format: str,
     what: str,
-    folder: str,
+    folder: str | None = None,
 ) -> dict[str, Any]:
     """Write the export and describe it for the service response."""
+    written = _recent_exports(hass)
     tables = EXPORT_TABLES if what == "all" else (what,)
     data = {table: TABLES[table](coordinator) for table in tables}
     now = dt_util.now()
     name = f"autodarts-{what}-{now:%Y%m%d-%H%M%S}-{secrets.token_hex(8)}"
-    config_dir = hass.config.config_dir
     try:
         path, url = await hass.async_add_executor_job(
-            _write, config_dir, folder, name, file_format, data, now.isoformat()
+            _write, hass.config, folder, name, file_format, data, now.isoformat()
         )
     except ExportFolderError as err:
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="export_folder",
-            translation_placeholders={"folder": folder},
+            translation_placeholders={"folder": _shown(folder)},
         ) from err
     except OSError as err:
         raise HomeAssistantError(
@@ -277,6 +337,7 @@ async def async_export(
             translation_key="export_failed",
             translation_placeholders={"error": str(err)},
         ) from err
+    written.append(monotonic())
     return {
         "path": str(path),
         "url": url,

@@ -317,9 +317,12 @@ async def test_start_game_with_the_bot(hass, aioclient_mock):
     with pytest.raises(ServiceValidationError) as error:
         await start(hass, players=["A", "B", "C", "D"], bot_level=60)
     assert error.value.translation_key == "bot_seat"
-    for wrong in (10, 121, "strong"):
-        with pytest.raises(vol.Invalid):
+    for wrong in (10, 121):
+        with pytest.raises(ServiceValidationError) as error:
             await start(hass, bot_level=wrong)
+        assert error.value.translation_key == "invalid_bot_level"
+    with pytest.raises(vol.Invalid):
+        await start(hass, bot_level="strong")
     # Three players and the bot make two teams.
     await start(hass, "cricket", players=["A", "B", "C"], bot_level=80, teams=True)
     assert practice.bot_seat == 3 and practice.snapshot()["teams"] is not None

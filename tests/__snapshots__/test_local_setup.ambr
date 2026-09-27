@@ -2,7 +2,7 @@
 # name: test_discovered_host_saved_and_later_cloud_auth_failure_is_isolated
   dict({
     'board-1_achievements': 'sensor.match_board_achievements | - | enabled | - | badges | - | achievements | named',
-    'board-1_achievements_enabled': 'switch.match_board_achievements | config | enabled | - | - | - | achievements_enabled | named',
+    'board-1_achievements_enabled': 'switch.match_board_unlock_achievements | config | enabled | - | - | - | achievements_enabled | named',
     'board-1_auto_calibrate': 'switch.match_board_automatic_recalibration | config | enabled | - | - | - | auto_calibrate | named',
     'board-1_auto_calibrate_on_start': 'switch.match_board_calibrate_on_start | config | enabled | - | - | - | auto_calibrate_on_start | named',
     'board-1_auto_distortion': 'switch.match_board_automatic_distortion_correction | config | enabled | - | - | - | auto_distortion | named',
@@ -99,7 +99,7 @@
     'board-1_tournament_random_draw': 'switch.match_board_tournament_random_draw | config | enabled | - | - | - | tournament_random_draw | named',
     'board-1_tournament_start': 'button.match_board_start_tournament | - | enabled | - | - | - | tournament_start | named',
     'board-1_tournament_stop': 'button.match_board_stop_tournament | - | enabled | - | - | - | tournament_stop | named',
-    'board-1_tournament_summary': 'number.match_board_tournament_summary | config | enabled | duration | s | - | tournament_summary | named',
+    'board-1_tournament_summary': 'number.match_board_tournament_summary_duration | config | enabled | duration | s | - | tournament_summary | named',
     'board-1_tournament_third_place': 'switch.match_board_tournament_third_place_match | config | enabled | - | - | - | tournament_third_place | named',
     'board-1_training_auto_start': 'switch.match_board_start_sessions_automatically | config | enabled | - | - | - | training_auto_start | named',
     'board-1_training_average': 'sensor.match_board_training_3_dart_average | - | enabled | - | points | measurement | training_average | named',
@@ -131,7 +131,7 @@
 # name: test_local_only_setup_entities_and_private_diagnostics
   dict({
     'board-1_achievements': 'sensor.autodarts_board_achievements | - | enabled | - | badges | - | achievements | named',
-    'board-1_achievements_enabled': 'switch.autodarts_board_achievements | config | enabled | - | - | - | achievements_enabled | named',
+    'board-1_achievements_enabled': 'switch.autodarts_board_unlock_achievements | config | enabled | - | - | - | achievements_enabled | named',
     'board-1_auto_calibrate': 'switch.autodarts_board_automatic_recalibration | config | enabled | - | - | - | auto_calibrate | named',
     'board-1_auto_calibrate_on_start': 'switch.autodarts_board_calibrate_on_start | config | enabled | - | - | - | auto_calibrate_on_start | named',
     'board-1_auto_distortion': 'switch.autodarts_board_automatic_distortion_correction | config | enabled | - | - | - | auto_distortion | named',
@@ -223,7 +223,7 @@
     'board-1_tournament_random_draw': 'switch.autodarts_board_tournament_random_draw | config | enabled | - | - | - | tournament_random_draw | named',
     'board-1_tournament_start': 'button.autodarts_board_start_tournament | - | enabled | - | - | - | tournament_start | named',
     'board-1_tournament_stop': 'button.autodarts_board_stop_tournament | - | enabled | - | - | - | tournament_stop | named',
-    'board-1_tournament_summary': 'number.autodarts_board_tournament_summary | config | enabled | duration | s | - | tournament_summary | named',
+    'board-1_tournament_summary': 'number.autodarts_board_tournament_summary_duration | config | enabled | duration | s | - | tournament_summary | named',
     'board-1_tournament_third_place': 'switch.autodarts_board_tournament_third_place_match | config | enabled | - | - | - | tournament_third_place | named',
     'board-1_training_auto_start': 'switch.autodarts_board_start_sessions_automatically | config | enabled | - | - | - | training_auto_start | named',
     'board-1_training_average': 'sensor.autodarts_board_training_3_dart_average | - | enabled | - | points | measurement | training_average | named',
