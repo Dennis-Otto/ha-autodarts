@@ -274,6 +274,7 @@ Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint]
 - **Ordner:** `autodarts/highlights` im Medienordner von Home Assistant. Das ist der Medienordner `local`: `/media` unter Home Assistant OS und im Container, sonst der Ordner `media` im Konfigurationsordner. Hast du `media_dirs` ohne `local` gesetzt, der erste davon.
 - **Namen:** `JJJJ-MM-TT_HH-MM-SS_<Spieler>_<Punkte>.jpg`; Uhrzeit und Spieler sind optional, ein Checkout heißt `checkout-121`. Andere Bilder (`.jpg`, `.jpeg`, `.png`, `.webp`) erscheinen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
 - **Reihenfolge:** die Monate, die neuesten zuerst, jeder mit seinem neuesten Foto als Titelbild; die Fotos eines Monats, die neuesten zuerst.
+- **Titel:** in der Sprache des Home-Assistant-Servers, etwa *September 2026* und *180 · Alex · 26.09.* auf Deutsch, *Sep 26* auf Englisch, *26-09* auf Niederländisch und *26/09* auf Französisch und Spanisch.
 - **Sicherheit:** Nur einfache Dateinamen dieses Ordners öffnen sich, und nur Bilder; versteckte Dateien, Unterordner und Verknüpfungen aus dem Ordner hinaus werden ignoriert. Die Fotos liefert die Medienansicht von Home Assistant selbst aus, an angemeldete Benutzer oder mit einer signierten Adresse.
 
 ## Fortschritt der Spieler

@@ -60,7 +60,7 @@
   - Meets every rule of the [Home Assistant integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/) up to Platinum ([self-assessment](custom_components/autodarts/quality_scale.yaml)), including strict typing.
   - Reconnects automatically and flags a wrong board address in Repairs.
   - Redacts all secrets in diagnostics.
-  - Translated into English and German.
+  - In English, German, Dutch, French and Spanish: setup, entities, actions, repairs, the cards and the caller ([languages](docs/README.md#languages)).
   - More than 350 automated tests, including a Docker end-to-end test against both Board Manager generations and a real browser test of every card.
 
 ## Screenshots

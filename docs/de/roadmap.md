@@ -59,6 +59,7 @@ Enthalten, alles ohne Autodarts-Cloud:
 | **Trends und Trefferbilder pro Spieler** | Average, Checkout-Quote und Doppelquote pro Woche als Verlauf und das eigene Trefferbild jedes Spielers in der Spielerkarte |
 | **Trefferbild der Dart-Positionen** | Ein Trefferbild, das zeigt, wo jeder Dart gelandet ist, aus den Positionen, die das Board meldet; die Karte wechselt zwischen Feldern, Zahlen und Positionen |
 | **Handicap-Start** | Unterschiedliche X01-Startwerte pro Spieler im selben Match, etwa 501 gegen 301 |
+| **Niederländisch, Französisch und Spanisch** | Die Integration, die Karten und der Caller in drei weiteren Sprachen, mit Tests, die jede Sprache vollständig halten |
 
 ## Später
 
@@ -66,7 +67,7 @@ Enthalten, alles ohne Autodarts-Cloud:
 | --- | --- |
 | **Cloud-Spielereignisse:** Leg und Match gewonnen, Überwerfen, Spielerwechsel, Restpunkte | Eine OAuth-Client-ID von Autodarts; sie ist beantragt |
 | **HACS-Standardkatalog** | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |
-| **Weitere Sprachen** | Beiträge von Muttersprachlern |
+| **Weitere Sprachen** | Beiträge von Muttersprachlern ([so kommt eine Sprache dazu](../../CONTRIBUTING.md#translations)) |
 | **Protokoll-Bibliothek auf PyPI** | Eine eigene Bibliothek für das Board-Manager-Protokoll; Voraussetzung für einen möglichen Weg in den Home-Assistant-Kern |
 
 ## So werden Prioritäten gesetzt
