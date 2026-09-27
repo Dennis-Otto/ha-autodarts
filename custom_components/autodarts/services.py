@@ -1,22 +1,30 @@
-"""Actions of the integration: start a practice game with one call."""
+"""Actions of the integration: start a practice game with one call, and more."""
 
 from __future__ import annotations
 
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_CONFIG_ENTRY_ID
-from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+    ServiceResponse,
+    SupportsResponse,
+    callback,
+)
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.service import async_get_config_entry
 
 from .const import DOMAIN
+from .export import DEFAULT_FOLDER, EXPORT_CONTENTS, EXPORT_FORMATS, async_export
 from .local_coordinator import AutodartsLocalCoordinator
 from .practice import GAME_OPTIONS, MAX_LEGS, MAX_PLAYERS, MAX_SETS
 from .profiles import NAME_LENGTH
 
 SERVICE_START_GAME = "start_game"
 SERVICE_DELETE_PLAYER = "delete_player"
+SERVICE_EXPORT = "export"
 
 START_GAME_SCHEMA = vol.Schema(
     {
@@ -41,6 +49,18 @@ DELETE_PLAYER_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
         vol.Required("name"): vol.All(cv.string, vol.Length(min=1, max=NAME_LENGTH)),
+    }
+)
+
+
+EXPORT_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
+        vol.Optional("format", default="csv"): vol.In(EXPORT_FORMATS),
+        vol.Optional("what", default="all"): vol.In(EXPORT_CONTENTS),
+        vol.Optional("folder", default=DEFAULT_FOLDER): vol.All(
+            cv.string, vol.Length(min=1, max=255)
+        ),
     }
 )
 
@@ -122,6 +142,24 @@ def async_setup_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN, SERVICE_START_GAME, start_game, schema=START_GAME_SCHEMA
     )
+
+    async def export(call: ServiceCall) -> ServiceResponse:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        return await async_export(
+            hass,
+            coordinator,
+            call.data["format"],
+            call.data["what"],
+            call.data["folder"],
+        )
+
     hass.services.async_register(
         DOMAIN, SERVICE_DELETE_PLAYER, delete_player, schema=DELETE_PLAYER_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_EXPORT,
+        export,
+        schema=EXPORT_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
     )

@@ -709,6 +709,88 @@ def strategy_editor(page: Page) -> None:
     page.keyboard.press("Escape")
 
 
+# Reports ---------------------------------------------------------------------------
+
+# The report day and time one minute from now, in Home Assistant's time zone.
+NEXT_MINUTE = """
+async () => {
+  const hass = document.querySelector('home-assistant').hass;
+  const text = await hass.callApi('POST', 'template', {
+    template: "{{ (now() + timedelta(minutes=1)).strftime('%A|%H:%M:00') | lower }}",
+  });
+  return text.split('|');
+}
+"""
+REPORTED = """
+async () => {
+  const hass = document.querySelector('home-assistant').hass;
+  const notifications = await hass.callWS({ type: 'persistent_notification/get' });
+  return notifications.some((item) => item.notification_id === 'autodarts_weekly_report');
+}
+"""
+SHOW_NOTIFICATIONS = """
+() => document.querySelector('home-assistant').shadowRoot
+  .querySelector('home-assistant-main')
+  .dispatchEvent(new CustomEvent('hass-show-notifications', { bubbles: true, composed: true }))
+"""
+
+
+def local_page(page: Page) -> Page:
+    """A page in the demo's time zone, so that times read as the board saw them."""
+    context = page.context.browser.new_context(
+        viewport={"width": 1280, "height": 900},
+        device_scale_factor=2,
+        locale=LOCALE,
+        color_scheme="dark",
+        timezone_id="Europe/Berlin",
+    )
+    return context.new_page()
+
+
+def training_calendar(page: Page) -> None:
+    """Home Assistant's calendar with the week of sessions and matches before today."""
+    calendar = local_page(page)
+    calendar.goto(f"{HA}/calendar")
+    calendar.locator(".fc-event").first.wait_for(timeout=60000)
+    # The list of seven days, one week back, shows every title in full.
+    calendar.locator("ha-button[value=listWeek]").click()
+    calendar.locator("ha-full-calendar .prev").click()
+    calendar.locator(".fc-list-event").first.wait_for(timeout=15000)
+    calendar.wait_for_timeout(1500)
+    page_shot(calendar, "training-calendar")
+    calendar.context.close()
+
+
+def weekly_report_notification(page: Page) -> None:
+    """The notification of the demo's weekly report automation, from its blueprint.
+
+    Last, because the report starts the demo's week anew.
+    """
+    report = local_page(page)
+    open_dashboard(report, "board")
+    day, time = report.evaluate(NEXT_MINUTE)
+    report.evaluate(
+        CALL_SERVICE, ["select", "select_option", "weekly_report_day", {"option": day}]
+    )
+    report.evaluate(
+        CALL_SERVICE, ["time", "set_value", "weekly_report_time", {"time": time}]
+    )
+    for _ in range(90):
+        if report.evaluate(REPORTED):
+            break
+        report.wait_for_timeout(2000)
+    else:
+        raise RuntimeError("The weekly report sent no notification")
+    report.evaluate(SHOW_NOTIFICATIONS)
+    title = "Deine Dartwoche" if LANGUAGE == "de" else "Your darts week"
+    report.get_by_text(title).wait_for(timeout=15000)
+    report.wait_for_timeout(1500)
+    notification = report.locator("persistent-notification-item").first
+    notification.screenshot(path=str(OUTPUT / "weekly-report-notification.png"))
+    print(f"saved {OUTPUT / 'weekly-report-notification'}.png")
+    report.context.close()
+
+
 def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as playwright:
@@ -802,6 +884,13 @@ def main() -> None:
         players_card(people.new_page())
         doubles_card(people.new_page())
         people.close()
+
+        # Each opens a page in the demo's time zone; the report comes last,
+        # because it starts a new week.
+        page = browser.new_page()
+        training_calendar(page)
+        weekly_report_notification(page)
+        page.close()
         browser.close()
 
 

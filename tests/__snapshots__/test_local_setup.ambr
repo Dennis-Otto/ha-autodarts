@@ -81,6 +81,7 @@
     'board-1_training_auto_start': 'switch.match_board_start_sessions_automatically | config | enabled',
     'board-1_training_average': 'sensor.match_board_training_3_dart_average | - | enabled',
     'board-1_training_bulls': 'sensor.match_board_training_bull_hits | - | enabled',
+    'board-1_training_calendar': 'calendar.match_board_training_calendar | - | enabled',
     'board-1_training_daily_goal': 'number.match_board_daily_goal | config | enabled',
     'board-1_training_darts': 'sensor.match_board_training_darts | - | enabled',
     'board-1_training_doubles': 'sensor.match_board_training_doubles | - | enabled',
@@ -99,6 +100,9 @@
     'board-1_training_visits': 'sensor.match_board_training_visits | - | enabled',
     'board-1_upstream': 'switch.match_board_cloud_link | - | enabled',
     'board-1_visit_score': 'sensor.match_board_visit_score | - | enabled',
+    'board-1_weekly_report': 'sensor.match_board_weekly_report | - | enabled',
+    'board-1_weekly_report_day': 'select.match_board_weekly_report_day | config | enabled',
+    'board-1_weekly_report_time': 'time.match_board_weekly_report_time | config | enabled',
   })
 # ---
 # name: test_local_only_setup_entities_and_private_diagnostics
@@ -178,6 +182,7 @@
     'board-1_training_auto_start': 'switch.autodarts_board_start_sessions_automatically | config | enabled',
     'board-1_training_average': 'sensor.autodarts_board_training_3_dart_average | - | enabled',
     'board-1_training_bulls': 'sensor.autodarts_board_training_bull_hits | - | enabled',
+    'board-1_training_calendar': 'calendar.autodarts_board_training_calendar | - | enabled',
     'board-1_training_daily_goal': 'number.autodarts_board_daily_goal | config | enabled',
     'board-1_training_darts': 'sensor.autodarts_board_training_darts | - | enabled',
     'board-1_training_doubles': 'sensor.autodarts_board_training_doubles | - | enabled',
@@ -195,5 +200,8 @@
     'board-1_training_triples': 'sensor.autodarts_board_training_triples | - | enabled',
     'board-1_training_visits': 'sensor.autodarts_board_training_visits | - | enabled',
     'board-1_upstream': 'switch.autodarts_board_cloud_link | - | enabled',
+    'board-1_weekly_report': 'sensor.autodarts_board_weekly_report | - | enabled',
+    'board-1_weekly_report_day': 'select.autodarts_board_weekly_report_day | config | enabled',
+    'board-1_weekly_report_time': 'time.autodarts_board_weekly_report_time | config | enabled',
   })
 # ---

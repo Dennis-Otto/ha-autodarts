@@ -227,7 +227,7 @@ caller: true
 
 ## Spielerkarte
 
-`custom:autodarts-players-card` zeigt die [Spielerprofile](entitaeten.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Sieger.
+`custom:autodarts-players-card` zeigt die [Spielerprofile](entitaeten.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Sieger. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter.
 
 <img src="../images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
 
@@ -239,6 +239,8 @@ caller: true
 | `title` | Text | *Spieler* | Kartentitel |
 | `show_head_to_head` | Wahrheitswert | `true` | Direkte Vergleiche anzeigen |
 | `show_matches` | Wahrheitswert | `true` | Letzte Matches anzeigen |
+| `export` | Wahrheitswert | `false` | Eine Taste *Exportieren* anzeigen. Sie exportiert Sessions, Matches und Profile mit [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport) nach `www/autodarts` und lädt die Datei mit deiner Anmeldung über Home Assistant herunter. Exporte enthalten Spielernamen, und Dateien in `www` brauchen keine Anmeldung. |
+| `export_format` | `csv`, `json` | `csv` | Format des Exports; CSV kommt als ZIP-Datei mit je einer Tabelle |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Balken |
 
 ## Automatisches Dashboard

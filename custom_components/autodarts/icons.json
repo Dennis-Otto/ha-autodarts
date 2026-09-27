@@ -104,6 +104,9 @@
       },
       "practice_game": {
         "default": "mdi:scoreboard-outline"
+      },
+      "weekly_report_day": {
+        "default": "mdi:calendar-week-begin"
       }
     },
     "sensor": {
@@ -261,6 +264,9 @@
       },
       "online_bridge_last_event": {
         "default": "mdi:web"
+      },
+      "weekly_report": {
+        "default": "mdi:calendar-week"
       }
     },
     "switch": {
@@ -314,6 +320,16 @@
       "practice_player": {
         "default": "mdi:account"
       }
+    },
+    "calendar": {
+      "training_calendar": {
+        "default": "mdi:calendar-check"
+      }
+    },
+    "time": {
+      "weekly_report_time": {
+        "default": "mdi:clock-outline"
+      }
     }
   },
   "services": {
@@ -322,6 +338,9 @@
     },
     "delete_player": {
       "service": "mdi:account-remove"
+    },
+    "export": {
+      "service": "mdi:file-export-outline"
     }
   }
 }

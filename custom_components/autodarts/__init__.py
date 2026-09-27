@@ -41,6 +41,7 @@ from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
 from .local_coordinator import ISSUES, AutodartsLocalCoordinator
 from .online import async_setup_bridge
+from .report import BoardReports
 from .runtime import AutodartsConfigEntry, AutodartsRuntimeData
 from .sensor import SYSTEM_SENSORS
 from .services import async_setup_services
@@ -247,5 +248,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -
 async def async_remove_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> None:
     """Deleting the integration also deletes its local training session."""
     await TrainingStore(hass, entry.entry_id).async_remove()
+    await BoardReports.async_remove(hass, entry.entry_id)
     for issue in ISSUES:
         ir.async_delete_issue(hass, DOMAIN, f"{issue}_{entry.entry_id}")

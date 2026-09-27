@@ -22,6 +22,7 @@
     'practice_game': None,
     'realtime_connected': False,
     'records': None,
+    'reports': None,
     'training_sessions': None,
   })
 # ---
@@ -206,6 +207,12 @@
       'stored_matches': 0,
       'streak': 1,
     }),
+    'reports': dict({
+      'journal_matches': 0,
+      'journal_sessions': 0,
+      'time': '00:00',
+      'weekday': 0,
+    }),
     'training_sessions': dict({
       'active': True,
       'auto_start': True,
@@ -372,6 +379,12 @@
       'stored_bests': 0,
       'stored_matches': 0,
       'streak': 0,
+    }),
+    'reports': dict({
+      'journal_matches': 0,
+      'journal_sessions': 0,
+      'time': '00:00',
+      'weekday': 0,
     }),
     'training_sessions': dict({
       'active': True,

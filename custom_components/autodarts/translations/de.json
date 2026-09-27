@@ -308,6 +308,9 @@
       },
       "online_bridge_last_event": {
         "name": "Letztes Ereignis der Online-Brücke"
+      },
+      "weekly_report": {
+        "name": "Wochenbericht"
       }
     },
     "button": {
@@ -419,6 +422,18 @@
           "halve_it": "Halve-It",
           "killer": "Killer"
         }
+      },
+      "weekly_report_day": {
+        "name": "Tag des Wochenberichts",
+        "state": {
+          "monday": "Montag",
+          "tuesday": "Dienstag",
+          "wednesday": "Mittwoch",
+          "thursday": "Donnerstag",
+          "friday": "Freitag",
+          "saturday": "Samstag",
+          "sunday": "Sonntag"
+        }
       }
     },
     "number": {
@@ -510,7 +525,8 @@
               "online_match_shot": "Online: Match Shot",
               "online_bull_off": "Online: Ausbullen beginnt",
               "online_tournament_ready": "Online: Turniermatch bereit",
-              "online_match_left": "Online: Match verlassen"
+              "online_match_left": "Online: Match verlassen",
+              "weekly_report": "Wochenbericht"
             }
           }
         }
@@ -524,6 +540,16 @@
     "text": {
       "practice_player": {
         "name": "Übungsspiel Spieler {number}"
+      }
+    },
+    "calendar": {
+      "training_calendar": {
+        "name": "Trainingskalender"
+      }
+    },
+    "time": {
+      "weekly_report_time": {
+        "name": "Uhrzeit des Wochenberichts"
       }
     }
   },
@@ -569,6 +595,12 @@
     },
     "not_supported": {
       "message": "Dieses Board unterstützt die Aktion nicht."
+    },
+    "export_folder": {
+      "message": "Der Exportordner {folder} muss im Konfigurationsordner von Home Assistant liegen und darf nicht versteckt sein."
+    },
+    "export_failed": {
+      "message": "Der Export konnte nicht geschrieben werden: {error}"
     }
   },
   "issues": {
@@ -674,6 +706,28 @@
           "description": "Der Spielername, in beliebiger Groß- und Kleinschreibung."
         }
       }
+    },
+    "export": {
+      "name": "Trainingsdaten exportieren",
+      "description": "Schreibt Trainingssessions, Übungsmatches oder Spielerprofile als CSV- oder JSON-Datei in den Konfigurationsordner und gibt ihren Pfad zurück. Exporte enthalten Spielernamen.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Nur bei mehr als einem Board nötig."
+        },
+        "format": {
+          "name": "Format",
+          "description": "CSV für Tabellenkalkulationen oder JSON. CSV mit allem ist eine ZIP-Datei mit einer CSV-Datei pro Tabelle."
+        },
+        "what": {
+          "name": "Inhalt",
+          "description": "Trainingssessions und Übungsmatches der letzten 365 Tage, die Spielerprofile oder alles."
+        },
+        "folder": {
+          "name": "Ordner",
+          "description": "Ein Ordner im Konfigurationsordner. Dateien in www sind ohne Anmeldung unter /local/ erreichbar."
+        }
+      }
     }
   },
   "selector": {
@@ -693,6 +747,20 @@
         "shanghai": "Shanghai",
         "halve_it": "Halve-It",
         "killer": "Killer"
+      }
+    },
+    "export_format": {
+      "options": {
+        "csv": "CSV",
+        "json": "JSON"
+      }
+    },
+    "export_what": {
+      "options": {
+        "sessions": "Trainingssessions",
+        "matches": "Übungsmatches",
+        "profiles": "Spielerprofile",
+        "all": "Alles"
       }
     }
   }

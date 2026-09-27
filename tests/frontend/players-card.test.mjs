@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { $, $$, loadCards, makeHass, mount, text, update } from "./dom.mjs";
+import { $, $$, loadCards, makeHass, mount, settle, text, update, window } from "./dom.mjs";
 
 await loadCards();
 
@@ -181,4 +181,160 @@ test("the players card speaks German, also without a locale", () => {
     ["Bestes 501-Leg", "18 Darts"],
   ]);
   assert.equal(text(card, ".match .muted"), "26.09., 20:00");
+});
+
+// Export ---------------------------------------------------------------------
+
+const NAME = "autodarts-all-20260927-201500-0123456789abcdef.zip";
+const DOWNLOAD = `/api/autodarts/export/${NAME}`;
+
+// Home Assistant's answers: the response of the action, then a signed path.
+function connection(response) {
+  const requests = [];
+  const callWS = (message) => {
+    requests.push(message);
+    if (message.type === "auth/sign_path") return Promise.resolve({ path: `${message.path}?authSig=signed` });
+    return Promise.resolve({ context: {}, response });
+  };
+  return { requests, callWS };
+}
+
+// Clicks on download links, instead of navigating the test browser.
+function downloads() {
+  const clicked = [];
+  const original = window.HTMLAnchorElement.prototype.click;
+  window.HTMLAnchorElement.prototype.click = function click() {
+    clicked.push({ href: this.getAttribute("href"), download: this.download, connected: this.isConnected });
+  };
+  return { clicked, restore: () => (window.HTMLAnchorElement.prototype.click = original) };
+}
+
+function notices(card) {
+  const messages = [];
+  card.addEventListener("hass-notification", (event) => messages.push(event.detail.message));
+  return messages;
+}
+
+test("the export button is off by default", () => {
+  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) });
+  assert.equal($(card, ".export"), null);
+});
+
+test("the export button writes every table and downloads the file with the user's login", async () => {
+  const { requests, callWS } = connection({
+    path: `/config/www/autodarts/${NAME}`,
+    url: `/local/autodarts/${NAME}`,
+    download: DOWNLOAD,
+  });
+  const { card } = setup(
+    { ...profiles(ALEX), ...lastMatch({}) },
+    { export: true },
+    { callWS, device: { primary_config_entry: "entry-1", config_entries: ["other", "entry-1"] } }
+  );
+  const { clicked, restore } = downloads();
+  try {
+    const button = $(card, ".export");
+    assert.equal(button.textContent, "Export");
+    button.click();
+    assert.equal(button.disabled, true);
+    assert.equal(button.textContent, "Exporting …");
+    // A second tap while the file is written does nothing.
+    button.click();
+    await settle();
+    assert.deepEqual(requests, [
+      {
+        type: "call_service",
+        domain: "autodarts",
+        service: "export",
+        service_data: { format: "csv", what: "all", config_entry_id: "entry-1" },
+        return_response: true,
+      },
+      { type: "auth/sign_path", path: DOWNLOAD, expires: 60 },
+    ]);
+    assert.deepEqual(clicked, [{ href: `${DOWNLOAD}?authSig=signed`, download: NAME, connected: true }]);
+    assert.equal($(card, "a"), null);
+    assert.equal(button.disabled, false);
+    assert.equal(button.textContent, "Export");
+  } finally {
+    restore();
+  }
+});
+
+test("the export can be JSON and picks the board's entry", async () => {
+  const { requests, callWS } = connection({ download: DOWNLOAD.replace(".zip", ".json") });
+  const { clicked, restore } = downloads();
+  try {
+    for (const [config, device] of [
+      [{ export: true, export_format: "json" }, { config_entries: ["entry-2"] }],
+      [{ export: true, export_format: "xml" }, {}],
+    ]) {
+      const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, config, { callWS, device });
+      $(card, ".export").click();
+      await settle();
+    }
+    assert.deepEqual(
+      requests.filter((request) => request.service_data).map((request) => request.service_data),
+      [
+        { format: "json", what: "all", config_entry_id: "entry-2" },
+        { format: "csv", what: "all" },
+      ]
+    );
+    assert.deepEqual(
+      clicked.map((link) => link.download),
+      [NAME.replace(".zip", ".json"), NAME.replace(".zip", ".json")]
+    );
+  } finally {
+    restore();
+  }
+});
+
+test("a failed export shows why and leaves the button ready", async () => {
+  const answers = [
+    () => Promise.reject(new Error("The export could not be written: disk full")),
+    () => Promise.resolve({ response: { url: null, path: "/config/exports/x.csv" } }),
+    () => Promise.reject({}),
+    // Only exports of the integration are downloaded.
+    () => Promise.resolve({ response: { download: "https://example.com/x.zip" } }),
+  ];
+  const callWS = () => answers.shift()();
+  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, { export: true }, { callWS });
+  const messages = notices(card);
+  const { clicked, restore } = downloads();
+  try {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      $(card, ".export").click();
+      await settle();
+    }
+    assert.deepEqual(messages, [
+      "Export failed: The export could not be written: disk full",
+      "Export failed: /config/exports/x.csv",
+      "Export failed",
+      "Export failed",
+    ]);
+    assert.deepEqual(clicked, []);
+    assert.equal($(card, ".export").disabled, false);
+  } finally {
+    restore();
+  }
+});
+
+
+test("the export needs Home Assistant's connection and no preview", async () => {
+  const { card } = setup({ ...profiles(ALEX), ...lastMatch({}) }, { export: true });
+  const messages = notices(card);
+  card.preview = true;
+  $(card, ".export").click();
+  await settle();
+  assert.deepEqual(messages, []);
+  card.preview = false;
+  $(card, ".export").click();
+  await settle();
+  assert.equal(messages.length, 1);
+  assert.match(messages[0], /^Export failed: /);
+});
+
+test("the export button speaks German", () => {
+  const hass = makeHass({ language: "de", states: { ...profiles(ALEX), ...lastMatch({}) } });
+  const card = mount("autodarts-players-card", hass, { export: true });
+  assert.equal(text(card, ".export"), "Exportieren");
 });

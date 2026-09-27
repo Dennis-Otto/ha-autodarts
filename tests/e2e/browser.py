@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import os
 import urllib.request
+import zipfile
 
 from playwright.sync_api import Browser, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
@@ -662,6 +663,29 @@ def strategy(browser: Browser) -> None:
     page.close()
 
 
+def players_export(browser: Browser) -> None:
+    """The export button of the players card downloads every table as a ZIP file."""
+    page, problems = open_view(browser, "players", PLAYERS_CARDS, ".export")
+    with page.expect_download(timeout=30000) as download:
+        page.evaluate(
+            f"() => ({PLAYERS_CARDS})()[0].shadowRoot.querySelector('.export').click()"
+        )
+    name = download.value.suggested_filename
+    check(
+        name.startswith("autodarts-all-") and name.endswith(".zip"),
+        f"Unexpected export download: {name}",
+    )
+    with zipfile.ZipFile(download.value.path()) as archive:
+        tables = sorted(archive.namelist())
+    check(
+        tables == ["matches.csv", "profiles.csv", "sessions.csv"],
+        f"Unexpected export tables: {tables}",
+    )
+    errors = page_errors(page, problems)
+    check(not errors, f"Console problems: {errors}")
+    page.close()
+
+
 def editor(
     browser: Browser,
     view: str = "board",
@@ -749,6 +773,7 @@ def main() -> None:
             ("scoreboard", lambda: scoreboard(browser)),
             ("scoreboard caller", lambda: caller(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
+            ("players export", lambda: players_export(browser)),
             ("live card editor", lambda: editor(browser)),
             (
                 "training card editor",
@@ -764,7 +789,7 @@ def main() -> None:
             ),
             (
                 "players editor",
-                lambda: editor(browser, "players", PLAYERS_CARDS, ".players-card", 4),
+                lambda: editor(browser, "players", PLAYERS_CARDS, ".players-card", 5),
             ),
             (
                 "scoreboard editor",
@@ -789,7 +814,7 @@ def main() -> None:
         "training heatmap, "
         "history and "
         "sessions, board status, the scoreboard and its caller, "
-        "the generated dashboard, all six card forms, the strategy editor and light theme."
+        "the generated dashboard, the players export, all six card forms, the strategy editor and light theme."
     )
 
 

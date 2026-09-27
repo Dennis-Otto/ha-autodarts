@@ -42,6 +42,8 @@ EXPECTED_LOGS = (
     "realtime events at",
     # The online bridge explains an unknown trigger once.
     "The online bridge ignored the unknown event 'takeout'",
+    # The WebSocket API logs the refused export of the reports step.
+    "The export folder ../outside must be inside",
 )
 EXPECTED_TRACEBACK = "[custom_components.autodarts.local_coordinator] Full error:"
 MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
@@ -102,6 +104,10 @@ ENTITIES = {
     "practice_new_match": "button",
     "practice_player_1": "text",
     "practice_player_4": "text",
+    "weekly_report": "sensor",
+    "weekly_report_day": "select",
+    "weekly_report_time": "time",
+    "training_calendar": "calendar",
 }
 if GENERATION >= 2:
     # Board Manager 2 reports its cloud link, load and updates, and has no toggle.
@@ -866,6 +872,144 @@ class Scenario:
             f"The switched-off bridge fired events: {new_online_events}",
         )
 
+    async def call(self, domain: str, service: str, **data) -> dict:
+        """An action with its response, over the WebSocket API like the cards."""
+        result = await self.ws(
+            "call_service",
+            domain=domain,
+            service=service,
+            return_response=True,
+            **data,
+        )
+        return result["response"]
+
+    async def refused(self, command: str, **payload) -> dict:
+        """A command that must fail, with the error it reports."""
+        self.message_id += 1
+        future = asyncio.get_running_loop().create_future()
+        self.pending[self.message_id] = future
+        await self.socket.send_json({"id": self.message_id, "type": command, **payload})
+        result = await asyncio.wait_for(future, 30)
+        check(not result["success"], f"{command} did not fail: {result}")
+        return result["error"]
+
+    async def download(self, path: str, headers: dict[str, str]) -> tuple[int, str]:
+        async with self.session.get(f"{HA}{path}", headers=headers) as response:
+            return response.status, await response.text(encoding="utf-8-sig")
+
+    async def reports(self, entry_id: str) -> None:
+        """Weekly report, training calendar and exports over the real API."""
+        await self.expect_states(
+            {"weekly_report_day": "monday", "weekly_report_time": "00:00:00"}
+        )
+        # The week counts every dart so far; the session started with the first.
+        training = {
+            key: (await self.state(f"training_{key}"))["state"]
+            for key in ("darts", "visits", "average")
+        }
+        report = await self.state("weekly_report")
+        attributes = report["attributes"]
+        check(
+            (report["state"], str(attributes["visits"]), str(attributes["average"]))
+            == (training["darts"], training["visits"], training["average"])
+            and attributes["last_week"] is None,
+            f"The weekly report {report} differs from the session {training}",
+        )
+        await self.service(
+            "select", "select_option", "weekly_report_day", option="sunday"
+        )
+        await self.service("time", "set_value", "weekly_report_time", time="20:30:00")
+        await self.expect_states(
+            {"weekly_report_day": "sunday", "weekly_report_time": "20:30:00"}
+        )
+
+        # A new session ends the one with the darts of the earlier steps.
+        await self.service("button", "press", "reset_training")
+        calendar = self.entity("training_calendar")
+        period = {
+            "start_date_time": time.strftime(
+                "%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(time.time() - 86400)
+            ),
+            "end_date_time": time.strftime(
+                "%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(time.time() + 3600)
+            ),
+        }
+
+        async def listed():
+            events = (
+                await self.call(
+                    "calendar",
+                    "get_events",
+                    service_data=period,
+                    target={"entity_id": calendar},
+                )
+            )[calendar]["events"]
+            return events or None
+
+        events = await wait_for(listed, "the finished session in the calendar")
+        darts, average = int(training["darts"]), float(training["average"])
+        check(
+            [event["summary"] for event in events]
+            == [f"Training · {darts} Darts · Ø {average:.1f}"],
+            f"Unexpected training calendar: {events}",
+        )
+
+        export = await self.call(
+            "autodarts", "export", service_data={"format": "json", "what": "all"}
+        )
+        name = Path(export["path"]).name
+        check(
+            export["path"] == f"/config/www/autodarts/{name}"
+            and name.startswith("autodarts-all-")
+            and export["url"] == f"/local/autodarts/{name}"
+            and export["download"] == f"/api/autodarts/export/{name}"
+            and export["rows"] == {"sessions": 1, "matches": 0, "profiles": 0},
+            f"Unexpected export: {export}",
+        )
+        status, body = await self.download(export["download"], self.headers)
+        check(status == 200, f"Export download failed: HTTP {status}")
+        sessions = json.loads(body)["sessions"]
+        check(
+            [(item["darts"], item["average"]) for item in sessions]
+            == [(darts, average)],
+            f"Unexpected exported sessions: {sessions}",
+        )
+        status, _ = await self.download(export["download"], {})
+        check(status == 401, f"Export downloadable without login: HTTP {status}")
+        # The players card downloads with a signed path, as a browser link does.
+        signed = await self.ws("auth/sign_path", path=export["download"], expires=60)
+        status, _ = await self.download(signed["path"], {})
+        check(status == 200, f"Signed export download failed: HTTP {status}")
+
+        export = await self.call(
+            "autodarts", "export", service_data={"what": "sessions"}
+        )
+        status, body = await self.download(export["download"], self.headers)
+        check(
+            status == 200 and body.splitlines()[0].startswith("started,ended,"),
+            f"Unexpected CSV export: HTTP {status} {body[:200]}",
+        )
+        error = await self.refused(
+            "call_service",
+            domain="autodarts",
+            service="export",
+            service_data={"folder": "../outside"},
+            return_response=True,
+        )
+        check(
+            error["code"] == "service_validation_error",
+            f"An export outside the configuration folder was not refused: {error}",
+        )
+
+        store = Path(f"/config/.storage/autodarts.{entry_id}.journal")
+
+        async def persisted():
+            if not store.exists():
+                return None
+            return len(json.loads(store.read_text())["data"]["sessions"]) == 1 or None
+
+        await wait_for(persisted, "the persisted training journal", timeout=30)
+
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
         version = json.loads(MANIFEST.read_text())["version"]
@@ -953,10 +1097,11 @@ class Scenario:
             if item["platform"] == "autodarts"
         ]
         check(not remaining, f"Entities remain after removal: {remaining}")
-        check(
-            not Path(f"/config/.storage/autodarts.{entry_id}.training").exists(),
-            "Training session was not deleted with the integration",
-        )
+        for store in ("training", "report", "journal"):
+            check(
+                not Path(f"/config/.storage/autodarts.{entry_id}.{store}").exists(),
+                f"The {store} store was not deleted with the integration",
+            )
 
 
 async def main() -> None:
@@ -972,6 +1117,7 @@ async def main() -> None:
         await scenario.realtime(entry_id)
         await scenario.resilience(entry_id)
         await scenario.online_bridge(entry_id)
+        await scenario.reports(entry_id)
         await scenario.card()
         await scenario.diagnostics(entry_id)
         await scenario.logs()
@@ -983,9 +1129,8 @@ async def main() -> None:
         + "local config flow and validation, registries, "
         "controls, realtime darts/corrections/takeouts with positions, persistence, "
         "dropped sockets mid-visit, outages, failing and slow reads, malformed "
-        "frames, a restart, the online bridge, dashboard card, private diagnostics, "
-        "clean logs and "
-        "removal."
+        "frames, a restart, the online bridge, weekly report, training calendar, "
+        "exports, dashboard card, private diagnostics, clean logs and removal."
     )
 
 

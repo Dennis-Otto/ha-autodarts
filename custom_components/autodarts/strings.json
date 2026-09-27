@@ -308,6 +308,9 @@
       },
       "online_bridge_last_event": {
         "name": "Online bridge last event"
+      },
+      "weekly_report": {
+        "name": "Weekly report"
       }
     },
     "button": {
@@ -419,6 +422,18 @@
           "halve_it": "Halve-It",
           "killer": "Killer"
         }
+      },
+      "weekly_report_day": {
+        "name": "Weekly report day",
+        "state": {
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        }
       }
     },
     "number": {
@@ -510,7 +525,8 @@
               "online_match_shot": "Online: match shot",
               "online_bull_off": "Online: bull-off starts",
               "online_tournament_ready": "Online: tournament match ready",
-              "online_match_left": "Online: match left"
+              "online_match_left": "Online: match left",
+              "weekly_report": "Weekly report"
             }
           }
         }
@@ -524,6 +540,16 @@
     "text": {
       "practice_player": {
         "name": "Practice player {number}"
+      }
+    },
+    "calendar": {
+      "training_calendar": {
+        "name": "Training calendar"
+      }
+    },
+    "time": {
+      "weekly_report_time": {
+        "name": "Weekly report time"
       }
     }
   },
@@ -569,6 +595,12 @@
     },
     "not_supported": {
       "message": "This board does not support the action."
+    },
+    "export_folder": {
+      "message": "The export folder {folder} must be inside the Home Assistant configuration folder and must not be hidden."
+    },
+    "export_failed": {
+      "message": "The export could not be written: {error}"
     }
   },
   "issues": {
@@ -674,6 +706,28 @@
           "description": "The player name, in any upper and lower case."
         }
       }
+    },
+    "export": {
+      "name": "Export training data",
+      "description": "Writes training sessions, practice matches or player profiles as a CSV or JSON file below the configuration folder and returns its path. Exports contain player names.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Only needed with more than one board."
+        },
+        "format": {
+          "name": "Format",
+          "description": "CSV for spreadsheets, or JSON. CSV with everything is a ZIP file with one CSV file per table."
+        },
+        "what": {
+          "name": "Content",
+          "description": "Training sessions and practice matches of the last 365 days, the player profiles, or everything."
+        },
+        "folder": {
+          "name": "Folder",
+          "description": "A folder inside the configuration folder. Files in www are available at /local/ without a login."
+        }
+      }
     }
   },
   "selector": {
@@ -693,6 +747,20 @@
         "shanghai": "Shanghai",
         "halve_it": "Halve-It",
         "killer": "Killer"
+      }
+    },
+    "export_format": {
+      "options": {
+        "csv": "CSV",
+        "json": "JSON"
+      }
+    },
+    "export_what": {
+      "options": {
+        "sessions": "Training sessions",
+        "matches": "Practice matches",
+        "profiles": "Player profiles",
+        "all": "Everything"
       }
     }
   }

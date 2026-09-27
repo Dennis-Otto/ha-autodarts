@@ -5,3 +5,5 @@ services:
       DEMO_LANGUAGE: ${DEMO_LANGUAGE:-en}
     volumes:
       - ./demo.configuration.yaml:/config/configuration.yaml:ro
+      # The blueprints of the repository, for the weekly report screenshot.
+      - ../../blueprints/automation/autodarts:/config/blueprints/automation/autodarts:ro

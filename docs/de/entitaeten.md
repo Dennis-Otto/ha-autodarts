@@ -29,7 +29,7 @@ Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwer
 
 ## Board-Ereignisse
 
-Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und `online` für die Momente von [Online-Matches](automationen.md#online-matches-experimentell), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
+Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit einer früheren Version eingerichteten Board `event.autodarts_board_board_events`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse, `schedule` für den Wochenbericht und `online` für die Momente von [Online-Matches](automationen.md#online-matches-experimentell), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
@@ -51,6 +51,7 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_events`, bei einem mit 
 | `bull_off_won` | Das [Ausbullen](#übungsspiel) entscheidet, wer das Match beginnt | `game`, `player`, `name`, `players`, `hit` (das Feld des Siegerdarts: `BULL`, `25` oder etwa `S20`), `distance` (Millimeter von der Mitte, oder keiner ohne Position vom Board) |
 | `personal_best` | Ein Wert übertrifft deine [Bestleistung](#bestleistungen-serie-und-tagesziel) | `record`, `value`, `previous`, `name` (der Spieler, falls bekannt) |
 | `daily_goal_reached` | Die Darts von heute erreichen das [Tagesziel](#bestleistungen-serie-und-tagesziel), einmal pro Tag | `goal`, `darts`, `streak` |
+| `weekly_report` | Die [Berichtswoche](#wochenbericht) endet, standardmäßig montags um Mitternacht | `week_start`, `week_end`, `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `darts_at_double`, `checkouts`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` |
 | `online_game_on` | [Online-Match](automationen.md#online-matches-experimentell): Eine Aufnahme beginnt, oder ein Moment ohne eigenen Effekt | `trigger`, `name` |
 | `online_visit` | Online-Match: eine Aufnahme | `trigger`, `score`; bei drei Darts auch `darts` und `segments`; bei einem Bereich `score_min` und `score_max` statt `score` |
 | `online_dart` | Online-Match: ein Dart | `trigger`, `segment` (`T20`, `D16`, `S5`, `25`, `BULL` oder `MISS`), `score` |
@@ -119,6 +120,45 @@ Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert ha
 | Darts heute | Sensor, Darts, Summe | Heute erkannte Darts; beginnt um Mitternacht bei 0. Attribute: `goal`, `goal_reached`, `progress` (Prozent des Ziels). |
 | Trainingsserie | Sensor, Dauer in Tagen | Tage in Folge mit mindestens einem Dart. Sie bleibt, bis ein ganzer Tag ohne Darts vergeht. Attribute: `best_streak`, `trained_today`, `last_day`. |
 | Tagesziel | Zahl, Darts, *Konfiguration* | Darts, die du jeden Tag werfen willst, 0–2000; `0`, der Standard, setzt kein Ziel. Erreichen die Darts von heute das Ziel, löst `daily_goal_reached` einmal aus. |
+
+## Wochenbericht
+
+Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, mit oder ohne Session, wie bei den Darts des Tages. Endet die Woche, standardmäßig montags um Mitternacht in der Zeitzone von Home Assistant, meldet das Ereignis `weekly_report` die Woche, und die nächste Woche beginnt bei null. Die [Blaupause Wochenbericht](automationen.md#wochenbericht) schickt ihn auf dein Handy.
+
+| Wert | Bedeutung |
+| --- | --- |
+| `darts` | In der Woche erkannte Darts |
+| `visits`, `average` | Abgeschlossene Aufnahmen und ihr 3-Dart-Average |
+| `average_change` | Der Average minus dem Average der Vorwoche; `null`, außer beide Wochen haben einen |
+| `highest_visit`, `scores_180` | Die höchste Aufnahme mit bis zu drei Darts und die Aufnahmen aus drei Triple 20 |
+| `sessions` | [Trainingssessions](#trainingssession) mit Darts, die in der Woche endeten |
+| `training_minutes` | Zeit am Board: die Zeit von Dart zu Dart, ohne Pausen von mehr als fünf Minuten |
+| `checkout_rate`, `darts_at_double`, `checkouts` | X01-Übungslegs: ausgecheckte Legs pro Dart aufs Double, wie bei *Übungsspiel Checkout-Quote* |
+| `legs`, `matches` | Beendete Übungslegs und entschiedene Übungsmatches mehrerer Spieler |
+| `streak`, `daily_goals` | Die Trainingsserie am Ende der Woche und die Tage, an denen das Tagesziel erreicht wurde |
+| `personal_bests` | Die Bestleistungen der Woche mit `record`, `value` und `name`, die neueste zuerst, höchstens 10 |
+| `week_start`, `week_end` | Beginn und Ende der Woche, in UTC |
+
+| Entität | Typ | Beschreibung |
+| --- | --- | --- |
+| Wochenbericht | Sensor, Darts, Summe | Darts der laufenden Woche; jede Woche beginnt bei 0. Attribute: die Werte oben für die bisherige Woche, `average_change` gegenüber dem letzten Bericht und `last_week` mit dem letzten Bericht. Der Recorder speichert weder `last_week` noch `personal_bests`. |
+| Tag des Wochenberichts | Auswahl, *Konfiguration* | Der Tag, der die Woche beendet, `monday` bis `sunday`; standardmäßig `monday`. |
+| Uhrzeit des Wochenberichts | Uhrzeit, *Konfiguration* | Die Uhrzeit an diesem Tag, auf die Minute; standardmäßig Mitternacht. |
+
+Ein neuer Tag oder eine neue Uhrzeit beendet die laufende Woche bei ihrem nächsten Eintreten. Ein Bericht, der fällig wurde, während Home Assistant aus war, folgt beim nächsten Start; die Wochen dazwischen hatten keine Darts und entfallen. [Wie die Woche gezählt wird](funktionsweise.md#wochenbericht).
+
+## Trainingskalender
+
+Der **Trainingskalender** (`calendar.*_training_calendar`) zeigt deine beendeten Trainingssessions und Übungsmatches im Kalender von Home Assistant, etwa *Training · 312 Darts · Ø 54.2* oder *501 · Alex 3:2 Sam*. Er ist nur lesbar, und seine Titel lauten in jeder Sprache gleich.
+
+<img src="../images/de/training-calendar.png" alt="Der Kalender von Home Assistant mit einer Woche voller Trainingssessions und Übungsmatches von Alex, Sam und Kim" width="760">
+
+- **Sessions** reichen von ihrem Beginn bis zu ihrem Ende. Die Beschreibung nennt die 180er, die 140+- und 100+-Aufnahmen und die höchste Aufnahme (*Max*).
+- **Matches** mehrerer Spieler reichen vom ersten bis zum entscheidenden Dart. Der Titel zeigt die gewonnenen Sätze, oder die Legs, wenn ein Satz das Match entscheidet; Spieler ohne Namen erscheinen als `#1` bis `#4`. Die Beschreibung nennt Average, Treffer pro Runde oder Punkte jedes Spielers. Matches von vor dem Update kennen ihren ersten Dart nicht und erscheinen als eine Minute.
+- **Ein Jahr Verlauf.** Der Kalender behält die Sessions und Matches der letzten 365 Tage, höchstens je 3.000. Nach dem Update übernimmt er die letzten 20 bereits gespeicherten Sessions und Matches.
+- **Zustand:** Der Kalender ist *aus*, weil nichts bevorsteht. Seine Attribute zeigen die Session oder das Match, das zuletzt endete.
+
+Kalender-Auslöser und die Aktion `calendar.get_events` funktionieren wie bei jedem Kalender, etwa um die Sessions eines Monats in einer Vorlage zu zählen.
 
 ## Übungsspiel
 
@@ -342,6 +382,37 @@ Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers. Der Na
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Profil mit diesem Namen gibt.
+
+### Trainingsdaten exportieren: `autodarts.export`
+
+Schreibt deine Trainingssessions, Übungsmatches oder Spielerprofile in eine Datei im Konfigurationsordner und gibt zurück, wo sie liegt, für Tabellenkalkulationen, Sicherungen oder eigene Auswertungen.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `format` | `csv` (Standard), `json` | CSV für Tabellenkalkulationen, in UTF-8 mit Byte-Order-Mark; mit `what: all` eine ZIP-Datei mit `sessions.csv`, `matches.csv` und `profiles.csv`. JSON ist eine Datei mit einer Liste pro Tabelle. |
+| `what` | `sessions`, `matches`, `profiles`, `all` (Standard) | Die Sessions und Matches der letzten 365 Tage (die des [Trainingskalenders](#trainingskalender)), die [Spielerprofile](#spielerprofile) oder alles |
+| `folder` | Ordner | Ein Ordner im Konfigurationsordner; standardmäßig `www/autodarts`. Ordner außerhalb, auch über `..` oder einen symbolischen Link, und versteckte Ordner wie `.storage` werden abgelehnt. |
+| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+
+```yaml
+action: autodarts.export
+data:
+  format: json
+  what: matches
+response_variable: export
+```
+
+Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der Ordner in `www` liegt, sonst `null`), `download` (eine Adresse unter `/api/`, von der angemeldete Benutzer die Datei bis zum nächsten Neustart von Home Assistant herunterladen), `format`, `what` und `rows` mit den Zeilen jeder Tabelle. Jeder Export ist eine neue Datei mit einem Namen wie `autodarts-all-20260927-201500-<zufällig>.zip`. Home Assistant liefert `www` unter `/local/` nur aus, wenn der Ordner beim Start schon existierte: Nach dem ersten Export in einen neuen Ordner `www` funktioniert `url` nach dem nächsten Neustart, `download` sofort.
+
+| Tabelle | Spalten |
+| --- | --- |
+| Sessions | `started`, `ended`, `duration_minutes`, `average`, `darts`, `points`, `visits`, `highest_visit`, `scores_100`, `scores_140`, `scores_180`, `triples`, `doubles`, `bulls`, `misses` |
+| Matches | `started` (der erste Dart, falls bekannt), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (Spielernummer), `winner_name` und für jeden Spieler `name`, `legs` (im entscheidenden Satz gewonnen), `sets`, `match_legs` (im ganzen Match gewonnen; leer bei Matches vor Version 1.6) und `average`, `mpr` oder `points`; in CSV als `player_1_name` bis `player_4_points` |
+| Profile | Die Werte von *Spielerprofile*; in CSV ist jeder einfache Wert eine Spalte, und die wenigsten Darts pro Startwert heißen `fewest_darts_101` bis `fewest_darts_1001` |
+
+> **Datenschutz:** Exporte enthalten Spielernamen. Dateien in `www` liefert Home Assistant unter `/local/` **ohne Anmeldung** an jeden aus, der Home Assistant erreicht und den Dateinamen kennt. Der zufällige Teil des Namens macht ihn unerratbar; lösche Exporte, die du nicht mehr brauchst, oder exportiere in einen Ordner außerhalb von `www`, dann gibt es keinen Download-Link.
+
+Die Aktion bricht mit einer klaren Meldung ab, wenn der Ordner nicht erlaubt ist oder die Datei nicht geschrieben werden kann.
 
 ## Verfügbarkeit
 

@@ -1,0 +1,146 @@
+blueprint:
+  name: "Autodarts: weekly report"
+  description: >-
+    Sends your training week as a notification when the board ends the week:
+    darts, training time and sessions, the 3-dart average and how it changed
+    since the week before, the best visit, 180s, the checkout rate of X01
+    practice legs, your streak and the personal bests of the week. The board
+    ends the week at its "Weekly report day" and "Weekly report time",
+    by default on Monday at midnight.
+
+
+    The message is a template. It can use `darts`, `visits`, `sessions`,
+    `training_minutes`, `average`, `average_change`, `highest_visit`,
+    `scores_180`, `checkout_rate`, `legs`, `matches`, `streak`,
+    `daily_goals`, `personal_bests` (how many were set), `week_start`,
+    `week_end` and `summary`, a ready-made summary in English. Without your
+    own actions, the report appears in the notifications of Home Assistant.
+  domain: automation
+  author: Dennis Otto
+  source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/weekly_report.yaml
+  homeassistant:
+    min_version: "2026.8.0"
+  input:
+    board:
+      name: Board
+      icon: mdi:bullseye-arrow
+      input:
+        board_events:
+          name: Board events
+          description: The "Events" entity of your Autodarts board.
+          selector:
+            entity:
+              filter:
+                - integration: autodarts
+                  domain: event
+        minimum_darts:
+          name: Minimum darts
+          description: >-
+            Skip the report of a week with fewer darts, for example a week on
+            holiday. With 0, every week is reported.
+          default: 1
+          selector:
+            number:
+              min: 0
+              max: 10000
+              mode: box
+              unit_of_measurement: darts
+    notification:
+      name: Notification
+      icon: mdi:message-text
+      input:
+        report_title:
+          name: Title
+          description: The title of the notification, available as `title`.
+          default: Your darts week
+          selector:
+            text: {}
+        report_message:
+          name: Message
+          description: >-
+            The text of the notification, available as `message`. For example
+            `{{ summary }}`, or in German `{{ darts }} Darts, 3-Dart-Average
+            {{ average }}`.
+          default: "{{ summary }}"
+          selector:
+            text:
+              multiline: true
+        notify_actions:
+          name: Notification actions
+          description: >-
+            How the report is sent, for example the action
+            `notify.mobile_app_your_phone` with the message `{{ message }}`
+            and the title `{{ title }}`. By default, a notification in Home
+            Assistant.
+          default:
+            - action: persistent_notification.create
+              data:
+                title: "{{ title }}"
+                message: "{{ message }}"
+                notification_id: autodarts_weekly_report
+          selector:
+            action: {}
+
+mode: queued
+max: 5
+max_exceeded: silent
+
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: !input board_events
+    options:
+      event_type:
+        - weekly_report
+
+variables:
+  minimum_darts: !input minimum_darts
+  # Read from the triggering state: the next event may already have replaced it.
+  darts: "{{ trigger.to_state.attributes.get('darts') | int(0) }}"
+  visits: "{{ trigger.to_state.attributes.get('visits') | int(0) }}"
+  sessions: "{{ trigger.to_state.attributes.get('sessions') | int(0) }}"
+  training_minutes: "{{ trigger.to_state.attributes.get('training_minutes') | int(0) }}"
+  average: >-
+    {% set value = trigger.to_state.attributes.get('average') %}
+    {{- none if value is none else value | float(0) | round(1) }}
+  average_change: >-
+    {% set value = trigger.to_state.attributes.get('average_change') %}
+    {{- none if value is none else value | float(0) | round(1) }}
+  highest_visit: "{{ trigger.to_state.attributes.get('highest_visit') | int(0) }}"
+  scores_180: "{{ trigger.to_state.attributes.get('scores_180') | int(0) }}"
+  checkout_rate: >-
+    {% set value = trigger.to_state.attributes.get('checkout_rate') %}
+    {{- none if value is none else value | float(0) | round(1) }}
+  legs: "{{ trigger.to_state.attributes.get('legs') | int(0) }}"
+  matches: "{{ trigger.to_state.attributes.get('matches') | int(0) }}"
+  streak: "{{ trigger.to_state.attributes.get('streak') | int(0) }}"
+  daily_goals: "{{ trigger.to_state.attributes.get('daily_goals') | int(0) }}"
+  personal_bests: "{{ trigger.to_state.attributes.get('personal_bests') | default([], true) | count }}"
+  week_start: "{{ trigger.to_state.attributes.get('week_start') }}"
+  week_end: "{{ trigger.to_state.attributes.get('week_end') }}"
+  summary: >-
+    {% set change = '' if average_change is none
+      else ' (' ~ ('+' if average_change > 0 else '') ~ average_change ~ ' on the week before)' %}
+    {%- set parts = [
+      darts ~ ' darts'
+        ~ (' in ' ~ training_minutes ~ (' minute' if training_minutes == 1 else ' minutes')
+           ~ ' at the board' if training_minutes else '')
+        ~ (', ' ~ sessions ~ (' session' if sessions == 1 else ' sessions') if sessions else '') ~ '.',
+      ('3-dart average ' ~ average ~ change ~ '.') if average is not none else '',
+      ('Best visit ' ~ highest_visit ~ (', ' ~ scores_180 ~ ' × 180' if scores_180 else '') ~ '.')
+        if highest_visit else '',
+      ('Checkout rate ' ~ checkout_rate ~ ' %.') if checkout_rate is not none else '',
+      (streak ~ (' day' if streak == 1 else ' days') ~ ' in a row.') if streak else '',
+      (personal_bests ~ ' new personal best' ~ ('' if personal_bests == 1 else 's') ~ '.')
+        if personal_bests else '',
+    ] %}
+    {{- parts | select | join(' ') }}
+  title: !input report_title
+  message: !input report_message
+
+conditions:
+  - alias: Enough darts in the week
+    condition: template
+    value_template: "{{ darts >= minimum_darts }}"
+
+actions: !input notify_actions
