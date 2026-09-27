@@ -1,8 +1,8 @@
 # Roadmap
 
-[← Übersicht](README.md) · [English](../roadmap.md)
+[← Dokumentation](README.md) · [English](../roadmap.md)
 
-Diese Roadmap zeigt, was jede Version gebracht hat und was als Nächstes kommt. Sie ist eine Richtung, kein Versprechen: Die Prioritäten richten sich nach den Rückmeldungen der Spieler, die Termine nach der verfügbaren Freizeit. Ideen und Stimmen sind als [Funktionswunsch](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) willkommen.
+Diese Roadmap zeigt, was jede Version gebracht hat, was das nächste Release bringt und was danach kommt. Sie ist eine Richtung, kein Versprechen: Die Prioritäten richten sich nach den Rückmeldungen der Spieler, die Termine nach der verfügbaren Freizeit. Ideen und Stimmen sind als [Funktionswunsch](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) willkommen.
 
 ## Version 1.0: das lokale Fundament
 
@@ -37,38 +37,56 @@ Enthalten, alles ohne Autodarts-Cloud:
 
 ## Version 1.4: Cricket, Anzeigetafel und Bestleistungen
 
-- Cricket für einen bis vier Spieler mit Treffern, geschlossenen Zahlen, Punkten und Treffern pro Runde sowie einer Kreidetafel in der Live-Karte.
+- Cricket für einen bis vier Spieler mit Marks, geschlossenen Zahlen, Punkten und Marks pro Runde sowie einer Kreidetafel in der Live-Karte.
 - Eine Anzeigetafel als Karte und als Vollbild-Ansicht für einen Bildschirm am Board, lesbar vom Abwurf aus.
 - Bestleistungen mit einem Ereignis, sobald eine fällt, eine Trainingsserie in Tagen und ein Tagesziel.
 - `autodarts.start_game` startet X01, Cricket oder ein Trainingsspiel mit Spielern, Namen und Format in einer Aktion.
 - Erkennungsqualität: der Anteil korrigierter Darts, mit einer Reparatur, die das Board nachkalibriert, wenn er steigt.
 
-## Version 1.5: Partyspiele, Spielerprofile, Doppel und ein Caller
+## Version 1.5: Partyspiele, Spielerprofile, Doubles und ein Caller
 
 - Shanghai, Halve-It und Killer für einen bis vier Spieler; X01 von 101 bis 1001 mit Double-In und Ausbullen.
 - Spielerprofile mit Statistik und Bestleistungen pro Name, Match-Verlauf und direkten Vergleichen sowie eine Spielerkarte.
-- Eine Doppelanalyse mit der Quote jedes Doubles, eine Doppelkarte und persönliche Checkout-Wege.
+- Eine Doppelanalyse mit der Quote jedes Doubles, eine Doubles-Karte und persönliche Checkout-Wege.
 - Ein Caller in der Anzeigetafel, der das Spiel über den Browser ansagt, standardmäßig aus.
+- `autodarts.delete_player` löscht ein Spielerprofil, etwa nach einem Tippfehler im Namen.
 
-## Als Nächstes: 1.6
+## Version 1.6: mehr Spiele, eine Spielauswahl, Berichte und Online-Matches
 
-| Thema | Was es bringt |
-| --- | --- |
-| **Turniermodus** | Jeder gegen jeden oder K.-o. für drei bis acht benannte Spieler an einem Board: Tabelle oder Turnierbaum auf der Anzeigetafel, das nächste Match startet von selbst, und die Ergebnisse fließen in die Spielerprofile |
-| **Erfolge** | Meilensteine pro Spieler, etwa die erste 180, ein Checkout über 100, ein Neun-Darter oder eine Serie von zehn Tagen, jeweils mit einem Ereignis und auf einer Abzeichen-Karte |
-| **Trends und Trefferbilder pro Spieler** | Average, Checkout-Quote und Doppelquote pro Woche als Verlauf und das eigene Trefferbild jedes Spielers in der Spielerkarte |
-| **Trefferbild der Dart-Positionen** | Ein Trefferbild, das zeigt, wo jeder Dart gelandet ist, aus den Positionen, die das Board meldet; die Karte wechselt zwischen Feldern, Zahlen und Positionen |
-| **Handicap-Start** | Unterschiedliche X01-Startwerte pro Spieler im selben Match, etwa 501 gegen 301 |
-| **Niederländisch, Französisch und Spanisch** | Die Integration, die Karten und der Caller in drei weiteren Sprachen, mit Tests, die jede Sprache vollständig halten |
+Für das nächste Release zusammengeführt; die Details stehen im [Changelog](../../CHANGELOG.md#160) (auf Englisch).
+
+| Thema | Was es bringt | Stand |
+| --- | --- | --- |
+| **Mehr Spiele** | Cut-Throat Cricket, Tactics, Golf, Baseball und Count-Up; die Trainingsspiele 121-Checkout, Catch 40, JDC Challenge und Singles-Training | Fertig |
+| **Handicap und Teams** | Unterschiedliche X01-Startpunkte pro Spieler im selben Match, etwa 501 gegen 301, und zwei Teams zu zwei bei X01 und den Cricket-Spielen | Fertig |
+| **Offizielle Regeln** | Satzfolge der PDC, Match-Ergebnisse wie 3:2, Checkout-Wege wie in den Tabellen der Profis, Ausbullen nach den Regeln von WDF und PDC | Fertig |
+| **Eine Anzeigetafel, die Spiele startet** | Eine Spielauswahl am Board, ein Ruhemodus mit Bestenliste und die Bilder von Spielern, die mit Personen von Home Assistant verknüpft sind | Fertig |
+| **Berichte** | Ein Wochenbericht mit Blueprint, ein Trainingskalender über ein Jahr und Exporte als CSV oder JSON | Fertig |
+| **Highlights und Licht** | Eine Highlight-Galerie in der Medienansicht und ein Blueprint für Lichtshows | Fertig |
+| **Online-Matches** *(experimentell)* | Überwerfen, gewonnene Legs und Matches von Online-Matches über die Browser-Erweiterung Tools for Autodarts | Fertig |
+| **Dokumentation** | Bebilderte Anleitungen zu Spielen, zur Anzeigetafel und zur Statistik, ein Glossar und ein Abschnitt zur Barrierefreiheit | Fertig |
+| **Turniermodus** | Jeder gegen jeden oder K.-o. für drei bis acht benannte Spieler an einem Board: Tabelle oder Turnierbaum auf der Anzeigetafel, das nächste Match startet von selbst, und die Ergebnisse fließen in die Spielerprofile | In Arbeit |
+| **Erfolge** | Meilensteine pro Spieler, etwa die erste 180, ein Checkout über 100, ein Neun-Darter oder eine Serie von zehn Tagen, jeweils mit einem Ereignis und auf einer Abzeichen-Karte | In Arbeit |
+| **Trends und Trefferbilder pro Spieler** | Average, Checkout-Quote und Doppelquote pro Woche als Verlauf und das eigene Trefferbild jedes Spielers in der Spielerkarte | In Arbeit |
+| **Trefferbild der Dart-Positionen** | Ein Trefferbild, das zeigt, wo jeder Dart gelandet ist, aus den Positionen, die das Board meldet; die Karte wechselt zwischen Feldern, Zahlen und Positionen | In Arbeit |
+
+## Als Nächstes
+
+Ideen für die Versionen nach 1.6. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
+
+| Thema | Was es bringt | Voraussetzung |
+| --- | --- | --- |
+| **Sprachsteuerung mit Assist** | „Starte 501 für Alex und Sam“, „Wie ist mein Average heute?“ als eigene Sätze, ohne Automation | Sätze auf Deutsch und Englisch, die sich am Board natürlich anfühlen |
+| **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert | Testberichte von Spielern, die es nutzen |
+| **Cloud-Verknüpfung** | Cloud-Spieldaten und Cloud-Spielereignisse: Leg und Match gewonnen, Überwerfen, Spielerwechsel, Restpunkte | Eine OAuth-Client-ID von Autodarts; sie ist beantragt |
+| **HACS-Standardkatalog** | Installation, ohne ein benutzerdefiniertes Repository hinzuzufügen | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |
+| **Weitere Sprachen** | Integration und Karten in weiteren Sprachen | Beiträge von Muttersprachlern |
 
 ## Später
 
 | Thema | Voraussetzung |
 | --- | --- |
-| **Cloud-Spielereignisse:** Leg und Match gewonnen, Überwerfen, Spielerwechsel, Restpunkte | Eine OAuth-Client-ID von Autodarts; sie ist beantragt |
-| **HACS-Standardkatalog** | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |
-| **Weitere Sprachen** | Beiträge von Muttersprachlern ([so kommt eine Sprache dazu](../../CONTRIBUTING.md#translations)) |
-| **Protokoll-Bibliothek auf PyPI** | Eine eigene Bibliothek für das Board-Manager-Protokoll; Voraussetzung für einen möglichen Weg in den Home-Assistant-Kern |
+| **Protokoll-Bibliothek auf PyPI** (`aioautodarts`) | Eine eigene Bibliothek für das Board-Manager-Protokoll, Voraussetzung für einen möglichen Weg in den Home-Assistant-Kern; zurückgestellt, bis das Protokoll sich gesetzt hat |
 
 ## So werden Prioritäten gesetzt
 

@@ -1,0 +1,162 @@
+# Statistics and players
+
+[← Documentation](README.md) · [Deutsch](de/statistik.md)
+
+Every dart the board detects becomes a number in Home Assistant: your 3-dart average, where your darts land, your personal bests, your doubles, and for every named player a profile with head-to-head records. It all stays in your home, survives restarts and fills Home Assistant's long-term statistics, so you see your progress over weeks and months.
+
+<img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard: the training card with 3-dart average, heatmap, statistics, personal bests and recent visits, the doubles card, and the graphs of darts per day and the 3-dart average" width="760">
+
+**On this page:** [Where to find what](#where-to-find-what) · [Training sessions](#training-sessions) · [Personal bests, streak and daily goal](#personal-bests-streak-and-daily-goal) · [Heatmap](#heatmap) · [Progress over time](#progress-over-time) · [Doubles analysis](#doubles-analysis) · [Player profiles](#player-profiles) · [Players and persons](#players-and-persons) · [Weekly report](#weekly-report) · [Training calendar](#training-calendar) · [Export](#export) · [Your data](#your-data)
+
+## Where to find what
+
+| Where | What it shows |
+| --- | --- |
+| [Training card](cards.md#training-card) | The running session: 3-dart average, heatmap, statistics, personal bests, recent visits and past sessions |
+| [Players card](cards.md#players-card) | Every named player's statistics and personal bests, head-to-head records, recent matches and the export |
+| [Doubles card](cards.md#doubles-card) | The hit rate of every double, for everybody or one player |
+| *Training* view of the [automatic dashboard](cards.md#automatic-dashboard) | The training card, the doubles card and graphs of darts per day, the 3-dart average, legs per day and the practice rates |
+| [Idle mode](scoreboard.md#between-games-idle-mode) of the scoreboard | The leaderboard, the personal bests of the board, today's darts and the last match |
+| Home Assistant's calendar | Every session and match of the last year, in the [training calendar](#training-calendar) |
+| Your phone | The [weekly report](#weekly-report) |
+| [Sensors](entities.md) | Every value, for your own cards, graphs and automations |
+
+## Training sessions
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="images/en/training-card-light.png">
+  <img src="images/en/training-card.png" alt="Training card with 3-dart average, heatmap, statistics tiles, most hit beds, personal bests and recent visits" width="760">
+</picture>
+
+A training session counts the darts you throw, whatever you play: an online match, a practice game or just a few visits at the 20.
+
+- **Start:** with *Start sessions automatically* on (the default), the first dart starts a session. You can also start one on purpose with *Start session* on the training card or the *Training session* switch.
+- **End:** *End session* on the card, or automatically after the pause set in *Session idle timeout*. `0`, the default, keeps a session running until you end it. *New session* ends the running session and starts the next one.
+- **What counts:** darts, points, 3-dart average, visits, the highest visit, 100+, 140+ and 180 visits, triples, doubles, bulls, misses and the hits of every bed. Corrections of the board revise the totals; darts that were in the board when Home Assistant started do not count.
+- **History:** the last 20 sessions stay with their totals; the training card lists the last five. *Last session average* keeps the 3-dart average of every finished session, so its history is your progress from session to session.
+- **Automations:** `session_started` and `session_ended` start the [training session routine](automations.md#training-session-routine), and the [training report](automations.md#training-report) sends your day.
+
+[All training entities](entities.md#training-session) · [How the counting works](how-it-works.md#training-session)
+
+## Personal bests, streak and daily goal
+
+Home Assistant keeps the best value of every record and fires `personal_best` when you beat one, for example for the [light show](automations.md#light-show):
+
+| Record | From |
+| --- | --- |
+| Highest visit | Any visit of up to three darts |
+| Highest checkout, fewest darts for 101 to 1001 | Won X01 legs with double out, played alone |
+| Best Cricket marks per round | Won Cricket legs, played alone |
+| Best session average | Finished sessions of at least 30 darts |
+| Around the Clock, doubles training | The fewest darts of a finished game |
+| Bob's 27, 121 checkout, Catch 40, JDC Challenge, singles training | The highest score |
+| Longest streak | Days in a row with at least one dart |
+
+- **Training streak:** the days in a row with at least one dart. Today does not break it; a whole day without darts does.
+- **Daily goal:** set *Daily goal* to the darts you want to throw every day. The training card shows a bar towards it, and `daily_goal_reached` fires once a day when you reach it.
+- The first value of each record sets it quietly; equal values do not count as new bests.
+
+[The records in detail](entities.md#personal-bests-streak-and-daily-goal) · [Which legs count for which record](how-it-works.md#records-and-statistics)
+
+## Heatmap
+
+The heatmap of the training card colors every bed by how often you hit it, from blue (rarely) to red (most often). Hover a bed for its count and share. With `mode: numbers`, it sums the singles, doubles and triples of every number instead, which shows at a glance whether you drift towards the 5 or the 1. The most hit beds list the top five with their share of all darts.
+
+```yaml
+type: custom:autodarts-training-card
+mode: numbers
+```
+
+## Progress over time
+
+Home Assistant keeps long-term statistics of the totals and averages, hour by hour and for as long as you use the integration. The *Training* view of the automatic dashboard draws them:
+
+<img src="images/en/dashboard-trends.png" alt="The graphs of the training view: goals and personal bests, darts per day over four weeks, the 3-dart average of the last seven days, practice legs per day, and the first 9 average, checkout rate and doubles rate of the practice game" width="760">
+
+- **Darts per day** and **practice legs per day** for the last 30 days;
+- the **3-dart average** of the last seven days;
+- the **first 9 average, checkout rate and doubles rate** of the last 10 X01 legs.
+
+Build your own graphs with Home Assistant's statistics graph card. The 3-dart average of your sessions, week by week, over three months:
+
+```yaml
+type: statistics-graph
+title: 3-dart average per week
+entities:
+  - sensor.autodarts_board_last_session_average
+stat_types: [mean]
+period: week
+days_to_show: 90
+chart_type: line
+```
+
+The entity IDs depend on the name of your board; you find yours on the device page. Home Assistant compiles long-term statistics once an hour, so a new day appears in the graphs after the next full hour.
+
+## Doubles analysis
+
+<img src="images/en/doubles-card.png" alt="Doubles card: the double ring colored by hit rate from red to green, and a list of the doubles with hits, darts and hit rate, the best first" width="760">
+
+Home Assistant counts every dart thrown at a double and whether it hit: in X01 whenever one double could finish the score, in the doubles training, in Bob's 27 and in the doubles part of the JDC Challenge. The [doubles card](cards.md#doubles-card) draws the hit rate of every double on the board, for everybody or, with `player`, for one named player. *Favorite double* names your best double with at least 10 darts.
+
+With *Practice personal checkout routes* on, the checkout route prefers the strongest doubles of the player at the board: a route with the same number of darts to a double with a better hit rate wins, as long as it needs no double to set up. [How the route is chosen](how-it-works.md#practice-game).
+
+## Player profiles
+
+<img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
+
+Every named player of a practice game gets a profile with lifetime numbers: legs and matches played and won, 3-dart average, first 9 average, checkout rate, marks per round, the highest visit and checkout, the best marks per round and the fewest darts for every start score. The [players card](cards.md#players-card) shows them with the head-to-head records of every pair of opponents and the recent matches.
+
+- **Names:** a name is the same player whatever the upper and lower case; players without a name count for nobody. Give your regular players names, on the [new game screen](scoreboard.md#choose-the-next-game) or in *Practice player N*.
+- **What counts:** every leg of X01, the Cricket games and the party games. X01 legs add the averages and the checkout rate, Cricket legs the marks per round. In a [team match](games.md#teams), both partners win the leg and the match.
+- **Match history:** the last 20 matches of several players, with every player's legs, sets and average.
+- **A typo in a name?** Remove the profile with [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player). The match history keeps the name.
+
+## Players and persons
+
+Link a player to a person of Home Assistant, and the [scoreboard](scoreboard.md), the players card and the new game screen show the person's picture. The new game screen lists the players who are at home first.
+
+```yaml
+action: autodarts.link_player
+data:
+  player: Alex
+  person: person.alex
+```
+
+A person is one player: linking the person to another player moves the link. [`autodarts.unlink_player`](entities.md#unlink-a-player-autodartsunlink_player) removes it; the statistics stay. The integration keeps only the entity ID of the person; the picture and whether the person is home come from Home Assistant.
+
+## Weekly report
+
+<img src="images/en/weekly-report-notification.png" alt="The notification Your darts week in Home Assistant with the darts, sessions, 3-dart average, best visit and streak of the week" width="468">
+
+When the week ends, by default on Monday at midnight, `weekly_report` sums it up: darts, training time, sessions, the 3-dart average and its change since the week before, the best visit, 180s, the checkout rate, the streak, the days that reached the daily goal and the new personal bests. The [weekly report blueprint](automations.md#weekly-report-on-your-phone) sends it to your phone. *Weekly report day* and *Weekly report time* move the end of the week; the *Weekly report* sensor shows the running week.
+
+[All values of the report](entities.md#weekly-report) · [How the week is counted](how-it-works.md#weekly-report)
+
+## Training calendar
+
+<img src="images/en/training-calendar.png" alt="Home Assistant's calendar with a week of training sessions and practice matches of Alex, Sam and Kim" width="760">
+
+The **Training calendar** shows your finished sessions and practice matches of the last 365 days in Home Assistant's calendar, for example *Training · 312 Darts · Ø 54.2* or *501 · Alex 3:2 Sam*. Open **Calendar** in the sidebar, or ask it in an automation with `calendar.get_events`, for example to [count the sessions of a month](automations.md#count-the-training-sessions-of-the-month).
+
+## Export
+
+Take your data to a spreadsheet, a backup or your own analysis:
+
+- **On the players card:** turn on `export` and tap *Export*. The browser downloads the sessions, matches and profiles, as a ZIP of CSV tables or as JSON.
+- **In an automation:** the action [`autodarts.export`](entities.md#export-training-data-autodartsexport) writes the file below your configuration folder and returns where it is.
+
+```yaml
+action: autodarts.export
+data:
+  format: csv
+  what: sessions
+response_variable: export
+```
+
+Exports contain player names. Files in `www` are served at `/local/` without a login to anyone who can reach Home Assistant and knows the file name; delete exports you no longer need, or export to a folder outside `www`.
+
+## Your data
+
+- **Local only.** Sessions, games, personal bests, profiles, the weekly report and the calendar are stored in Home Assistant's `.storage` folder and never leave your home. [What is stored where](how-it-works.md#stored-data).
+- **Diagnostics** redact player names and board details, so you can attach them to a bug report.
+- **Start over:** *New session* starts a new training session; [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player) forgets one player. Deleting the board in **Settings → Devices & services** deletes all of its stored data.

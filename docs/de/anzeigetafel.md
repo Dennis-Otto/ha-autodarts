@@ -1,0 +1,136 @@
+# Anzeigetafel am Board
+
+[← Dokumentation](README.md) · [English](../scoreboard.md)
+
+Ein Tablet oder Fernseher neben dem Board macht deinen Dartraum zur Bühne: der Rest groß genug, um ihn vom Abwurf zu lesen, der Checkout-Weg des Spielers am Board, das nächste Spiel direkt dort gewählt, ein Caller und zwischen den Spielen eine Bestenliste. Alles läuft in Home Assistant; der Bildschirm braucht nur einen Browser.
+
+<img src="../images/de/scoreboard.webp" alt="Animation: die Anzeigetafel in einem 501-Match; nach jeder Aufnahme wechselt der Wurf zwischen Alex und Sam, und Alex checkt 141 mit T20 T19 D12 zum Sieg" width="760">
+
+**Auf dieser Seite:** [Was du brauchst](#was-du-brauchst) · [Den Bildschirm einrichten](#den-bildschirm-einrichten) · [Quer, hochkant und Fernseher](#quer-hochkant-und-fernseher) · [Das nächste Spiel wählen](#das-nächste-spiel-wählen) · [Während des Spiels](#während-des-spiels) · [Der Caller](#der-caller) · [Zwischen den Spielen: Ruhemodus](#zwischen-den-spielen-ruhemodus) · [Tipps](#tipps) · [Wenn etwas nicht passt](#wenn-etwas-nicht-passt)
+
+## Was du brauchst
+
+- **Einen Bildschirm mit Browser:** ein Tablet an der Wand, einen Fernseher mit Browser oder einem kleinen PC, ein altes Handy. Alles, was dein Home Assistant öffnet, funktioniert.
+- **Einen Home-Assistant-Benutzer für den Bildschirm.** Ein eigener Benutzer ohne Administratorrechte verhindert, dass am Bildschirm deine Einstellungen geändert werden. Der Bildschirm zeigt das Dashboard in der Sprache dieses Benutzers: Deutsch oder Englisch, andere Sprachen auf Englisch.
+- **Die Karten der Integration,** die sich von selbst laden. Auf dem Bildschirm musst du nichts installieren.
+
+## Den Bildschirm einrichten
+
+1. **Dashboard anlegen.** Öffne **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**. Das [automatische Dashboard](karten.md#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die [Anzeigetafel-Karte](karten.md#anzeigetafel) über den ganzen Bildschirm zeigt.
+2. **Ansicht auf dem Bildschirm öffnen.** Melde dich als Benutzer des Bildschirms an und öffne die Ansicht *Anzeigetafel* des Dashboards. Ihre Adresse endet auf `/scoreboard`; lege ein Lesezeichen an oder setze sie auf den Startbildschirm des Tablets.
+3. **Vollbild.** Nutze den Vollbildmodus des Browsers oder einen Kiosk-Browser, der die Adresse beim Start öffnet. Lass den Bildschirm am Ladegerät eingeschaltet, in den Einstellungen des Tablets oder des Kiosk-Browsers.
+4. **Einschalten, was dir gefällt.** Öffne das Menü des Dashboards (⋮) → **Dashboard bearbeiten** → **Kontrolle übernehmen**, um die Karte zu ändern, oder baue eine eigene Ansicht: eine Ansicht im Panel-Modus mit der Anzeigetafel und `full_height: true`. Nützliche Optionen sind der [Caller](#der-caller), die Spiele der [Spielauswahl](#das-nächste-spiel-wählen) und die Tafeln des [Ruhemodus](#zwischen-den-spielen-ruhemodus):
+
+```yaml
+type: custom:autodarts-scoreboard-card
+full_height: true
+caller: true
+lobby_games: ["301", "501", cricket, killer, around_the_clock]
+idle_after: 300
+idle_panels: [leaderboard, today, last_match, clock]
+```
+
+Die [Anleitung zu den Karten](karten.md#anzeigetafel) nennt jede Option.
+
+## Quer, hochkant und Fernseher
+
+Die Anzeigetafel passt sich der Form des Bildschirms an. Mit `full_height: true` füllt sie den Bildschirm unter der Werkzeugleiste, und auf einem Handy lässt sie Platz für die Adressleiste des Browsers.
+
+<table>
+  <tr>
+    <td width="62%"><img src="../images/de/scoreboard-teams.png" alt="Die Anzeigetafel auf einem Tablet im Querformat: ein 501-Team-Match von Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216" width="100%"></td>
+    <td width="38%"><img src="../images/de/scoreboard-portrait.png" alt="Die Anzeigetafel auf einem Tablet im Hochformat: die Cricket-Kreidetafel von Alex und Sam mit T19 als nächstem Ziel und der aktuellen Aufnahme am unteren Rand" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center">Tablet im Querformat oder Fernseher</td>
+    <td align="center">Tablet im Hochformat</td>
+  </tr>
+</table>
+
+- **Tablet im Querformat oder Fernseher:** die beste Wahl für X01 und die Partyspiele, deren Spielerkacheln nebeneinander stehen.
+- **Tablet im Hochformat:** gut für Cricket, dessen Kreidetafel hoch ist, und für einen oder zwei Spieler.
+- **Entfernung:** Der Rest ist der größte Text auf dem Bildschirm und wächst mit ihm. Je größer der Bildschirm, desto weiter weg ist er lesbar; ein Fernseher bedient also auch die Zuschauer.
+
+## Das nächste Spiel wählen
+
+Tippe zwischen den Spielen auf **Neues Spiel** unter dem Punktestand oder jederzeit oben rechts. Einige Sekunden nach dem Ende eines Matches oder Trainingsspiels öffnet sich die Auswahl auch von selbst, mit der letzten Wahl für eine Revanche; ein stattdessen geworfener Dart schließt sie wieder.
+
+<img src="../images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
+
+1. **Spiel:** X01, die Cricket-Spiele, die Partyspiele und die Trainingsspiele, in Gruppen. `lobby_games` beschränkt die Auswahl auf die Spiele, die ihr spielt.
+2. **Spieler:** Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um die Reihenfolge zu ändern, und auf ✕, um ihn zu entfernen. Spieler, die mit einer [Person verknüpft](statistik.md#spieler-und-personen) sind, die zu Hause ist, stehen vorn, mit ihrem Bild. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Bei X01 setzen − und + neben einem Spieler [eigene Startpunkte](spiele.md#startpunkte-handicap).
+3. **Format und Optionen:** Legs pro Satz und Sätze zum Sieg; Double-Out und Double-In für X01; das [Ausbullen](spiele.md#ausbullen); *Teams* für vier Spieler bei X01 oder Cricket.
+4. **Starten.** Die Anzeigetafel zeigt das Spiel sofort. Während eines Spiels beendet *Spiel beenden* es nach einem zweiten Tippen.
+
+<img src="../images/de/scoreboard-lobby.png" alt="Die Spielauswahl auf einem Tablet im Querformat: die Spiele nach Gruppen mit 501 gewählt, Alex und Sam mit ihren Bildern, Sam ab 301, drei Legs pro Satz, Double-Out und die Start-Taste" width="760">
+
+Die Auswahl startet das Spiel mit [`autodarts.start_game`](entitaeten.md#übungsspiel-starten-autodartsstart_game), genau wie eine Automation oder ein Sprachbefehl. Die [Anleitung zu Spielen](spiele.md#ein-spiel-starten) zeigt die anderen Wege.
+
+## Während des Spiels
+
+Die Anzeigetafel zeigt immer, was gespielt wird, und der Spieler am Board ist hervorgehoben:
+
+| Spiel | Die Anzeigetafel zeigt |
+| --- | --- |
+| X01 | Rest, Legs, Sätze und Average jedes Spielers oder Teams; Checkout-Weg, Überwerfen oder Game shot des Spielers am Board |
+| Cricket-Spiele | Eine große Kreidetafel mit den Marks jedes Spielers oder Teams, den Punkten und den Marks pro Runde; die nächste offene Zahl oben links |
+| Partyspiele | Runde und Ziel, die Punkte jedes Spielers, bei Killer Zahl und Leben, bei Golf und Baseball eine Scorekarte jedes Lochs oder Innings |
+| Ausbullen | Den Abstand des Darts jedes Spielers zur Mitte |
+| Trainingsspiele | Das Ziel in großer Schrift mit Runde, Punkten oder Trefferquote |
+
+Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte, und ist ein Match entschieden, nennt ein Banner den Sieger bis zum nächsten Dart.
+
+<table>
+  <tr>
+    <td width="50%"><img src="../images/de/killer.webp" alt="Animation: Killer für Alex, Sam und Kim auf der Anzeigetafel. Jeder wirft um eine Zahl, Alex wird Killer und nimmt Sam die Leben, Kim wird ebenfalls Killer, und Alex nimmt das letzte Leben zum Sieg" width="100%"></td>
+    <td width="50%"><img src="../images/de/scoreboard-cricket.png" alt="Anzeigetafel bei Cricket zwischen Alex und Sam: die Kreidetafel mit Marks, Punkten und Marks pro Runde, T19 als nächstes Ziel" width="100%"></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="../images/de/golf.webp" alt="Animation: Golf für Alex und Sam auf der Anzeigetafel. Nach jeder Aufnahme füllt sich die Scorekarte: Alex spielt 1, 3 und 2, Sam 4, 5 und 5, und das vierte Loch läuft" width="100%"></td>
+    <td width="50%"><img src="../images/de/scoreboard-catch-40.png" alt="Catch 40 auf der Anzeigetafel: In der zweiten Runde lässt eine Single 12 von 62 noch 50 übrig, der Weg ist das Bull, und der erste Checkout brachte 3 Punkte" width="100%"></td>
+  </tr>
+</table>
+
+## Der Caller
+
+Mit `caller: true` sagt der Bildschirm am Board das Spiel selbst an, über den Lautsprecher des Tablets oder Fernsehers. Er braucht keine Lautsprecher und keine Sprachausgabe in Home Assistant.
+
+1. Schalte `caller` im Editor der Karte ein, oder nutze die Anzeigetafel des automatischen Dashboards nach **Kontrolle übernehmen**.
+2. Browser spielen Ton erst nach einem Tippen ab: Tippe einmal auf **Caller** auf der Anzeigetafel. Lautsprechersymbol und gedrückte Taste zeigen, dass er an ist; ein weiteres Tippen schaltet ihn stumm.
+
+Er sagt nur an, was zählt, auf Deutsch oder Englisch, je nach Sprache des Benutzers am Bildschirm:
+
+- **X01:** die Punkte einer Aufnahme, „Überworfen“ beim Überwerfen, „Keine Punkte“ vor dem öffnenden Double, „du brauchst 81“, sobald der Rest checkbar ist, den Game shot eines Legs und des Matches und eine Fanfare bei einer 180.
+- **Cricket-Spiele:** die Marks einer Aufnahme, etwa „5 Marks“. **Shanghai** und **Halve-It:** die Punkte auf das Ziel; **Count-Up:** die Punkte der Aufnahme; **Baseball:** die Runs.
+- **Checkout-Training, 121-Checkout und Catch 40:** was der nächste Versuch braucht.
+- Darts nach dem Überwerfen oder einem Game shot werden nicht angesagt. Killer, Golf und die anderen Trainingsspiele bekommen keine Punktansagen.
+
+`call_scores`, `call_checkouts`, `call_results` und `call_sounds` schalten jede Art von Ansage ein oder aus. Welche Stimme spricht, hängt von Browser und Betriebssystem ab: Offline-Stimmen des Betriebssystems behalten die Ansagen bei dir zu Hause; manche Browser nutzen Online-Stimmen, die den Text an ihren Anbieter schicken. Für Lautsprecher im Raum nutzt du stattdessen die [Blueprints Dart caller und Practice caller](automationen.md#welcher-caller).
+
+## Zwischen den Spielen: Ruhemodus
+
+Läuft kein Spiel oder ist ein Match oder Trainingsspiel entschieden und wirft oder tippt `idle_after` Sekunden lang niemand (standardmäßig 3 Minuten), zeigt die Anzeigetafel ihre Tafeln im Wechsel: die Bestenliste, die Bestleistungen des Boards, die Darts von heute zum Tagesziel, das letzte Match und eine Uhr.
+
+<img src="../images/de/scoreboard-idle.png" alt="Ruhemodus der Anzeigetafel: die Bestenliste mit Alex, Sam und Kim, ihren Bildern, 3-Dart-Averages und gewonnenen Legs" width="760">
+
+Ein Dart, ein neues Spiel oder ein Tippen irgendwohin beendet den Ruhemodus. `idle_panels` wählt die Tafeln und ihre Reihenfolge, `idle_interval`, wie lange jede zu sehen ist. Auf Geräten, die reduzierte Bewegung wünschen, wechseln die Tafeln ohne Überblendung. [Alle Tafeln](karten.md#ruhemodus).
+
+## Tipps
+
+- **Die Live-Karte auf einem zweiten Bildschirm:** Ein Handy oder zweites Tablet mit der [Live-Karte](karten.md#live-karte) zeigt die Scheibe mit jedem Dart dort, wo er gelandet ist, neben der Anzeigetafel.
+- **Bilder der Spieler:** [Verknüpfe die Spieler mit Personen](statistik.md#spieler-und-personen) von Home Assistant; Anzeigetafel, Spielauswahl und Ruhemodus zeigen ihre Bilder, und Spieler, die zu Hause sind, stehen vorn.
+- **Licht und Ton:** Die [Lichtshow](automationen.md#light-show) und der [Übungs-Caller](automationen.md#practice-caller) reagieren auf dasselbe Spiel, mit den Lampen und Lautsprechern deines Zuhauses.
+- **Mehrere Boards:** Jedes Board bekommt im automatischen Dashboard eine eigene Ansicht *Anzeigetafel*; für eine eigene Ansicht wählst du das Board im Editor der Karte.
+- **Barrierefreiheit:** Die Anzeigetafel folgt deinem Theme, meldet Screenreadern den Sieger, liest die Cricket-Marks als Wörter vor und wechselt die Tafeln des Ruhemodus ohne Überblendung, wenn das Gerät reduzierte Bewegung wünscht. [Barrierefreiheit](karten.md#barrierefreiheit).
+
+## Wenn etwas nicht passt
+
+| Was du siehst | Was hilft |
+| --- | --- |
+| Der Caller bleibt stumm | Tippe nach jedem Neuladen der Seite einmal auf **Caller**: Browser spielen Ton erst nach einem Tippen ab. Prüfe die Lautstärke des Geräts. |
+| Die Spielauswahl öffnet sich nicht | Sie öffnet sich nie in der Vorschau des Karteneditors und nicht mit `lobby: false`. |
+| Nach einem Update zeigt der Bildschirm eine alte Version der Karte | Lade die Seite neu. In der Home-Assistant-App nutzt du *Einstellungen → Companion-App → Fehlerbehebung → Frontend-Cache zurücksetzen*. |
+| Der Ruhemodus beginnt während eines Spiels | Der Ruhemodus wartet `idle_after` Sekunden ohne Darts und Tippen, und nur, wenn kein Spiel läuft oder das Spiel entschieden ist. Erhöhe `idle_after` oder setze `idle: false`. |
+| Kein Bild neben einem Namen | Der Spieler ist mit keiner Person verknüpft, oder die Person hat kein Bild. Siehe [Spieler und Personen](statistik.md#spieler-und-personen). |
+
+Mehr Hilfe: [Fehlerbehebung](fehlerbehebung.md).

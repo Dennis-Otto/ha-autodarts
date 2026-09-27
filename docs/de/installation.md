@@ -1,13 +1,13 @@
 # Installation und Einrichtung
 
-[← Übersicht](README.md) · [English](../installation.md)
+[← Dokumentation](README.md) · [English](../installation.md)
 
 ## Voraussetzungen
 
 | Voraussetzung | Details |
 | --- | --- |
 | Home Assistant | **2026.8** oder neuer |
-| Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2** (Headless, empfohlen) oder der klassische **Board Manager 1** |
+| Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2** (Headless, empfohlen) oder der klassische **Board Manager 1**. Boards mit **Autodarts Desktop** sind noch nicht getestet; [berichte](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) gern, wie es mit deinem funktioniert |
 | Netzwerk | Home Assistant erreicht den Board-PC im lokalen Netzwerk, standardmäßig über TCP-Port **3180** |
 | Optional: Cloud-Spieldaten | Ein Autodarts-Konto und eine OAuth-Client-ID, die Autodarts für diese Integration vergibt (siehe [Cloud-Verknüpfung](#autodarts-cloud-verknüpfen-optional)) |
 
@@ -54,7 +54,7 @@ Wähle **Boards im Netzwerk suchen**. Die Integration fragt den öffentlichen Au
 
 ### 3. Board-Adresse eingeben
 
-Wähle **Board-Adresse eingeben** und trage die IP-Adresse oder den Hostnamen des Board-PCs ein, zum Beispiel `192.168.1.50` oder `autodarts.local`. Lass `http://` und den Port weg. Der Port ist normalerweise **3180**.
+Wähle **Board-Adresse eingeben** und trage die IP-Adresse oder den Hostnamen des Board-PCs ein, zum Beispiel `192.0.2.10` oder `autodarts.local`. Lass `http://` und den Port weg. Der Port ist normalerweise **3180**.
 
 <img src="../images/de/setup-local.png" alt="Das Formular für Adresse und Port des Board Managers" width="520">
 
@@ -94,8 +94,8 @@ Board, Entitäten, Verlauf und Dashboards bleiben erhalten. Eine Adresse oder ei
 Autodarts ersetzt den klassischen Board Manager durch den Headless **Board Manager 2** und schaltet die alte Version ab, sobald die meisten Spieler umgestiegen sind. Solange ein Board noch Board Manager 1 nutzt, zeigt Home Assistant einen **Reparaturhinweis**.
 
 1. Installiere Board Manager 2 nach der Anleitung von Autodarts auf dem Board-PC.
-2. An der Integration musst du nichts ändern. Sie erkennt die neue Generation beim nächsten Lesen, lädt sich neu und ergänzt die neuen Entitäten: Cloud-Verbindung, CPU, Speicher und Update.
-3. Entitäten, die es nur bei Board Manager 1 gibt, etwa der Schalter für die Cloud-Verbindung, werden automatisch entfernt.
+2. An der Integration musst du nichts ändern. Sie erkennt die neue Generation beim nächsten Lesen, lädt sich neu und ergänzt die neuen Entitäten: die Autodarts-Cloud-Verbindung, CPU und Speicher, Betriebssystem, Prozessor und Erkennungssoftware des Board-PCs und das Board-Manager-Update. Aktivierte Kamera-Entitäten zeigen statt Standbildern den Livestream.
+3. Entitäten, die es nur bei Board Manager 1 gibt, der Schalter für die Cloud-Verbindung und seine Tasten zum Herstellen und Trennen, werden automatisch entfernt.
 
 Trainingssession, Entitäts-IDs und Dashboards bleiben erhalten.
 
@@ -110,7 +110,7 @@ Einträge der ersten Version, die eine Adresse oder ein Kontopasswort gespeicher
 
 ## Entfernen
 
-1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, im Menü des Boards (⋮) wählst du **Löschen**. Dabei werden auch die gespeicherte Trainingssession und alle Reparaturhinweise des Boards gelöscht.
+1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, im Menü des Boards (⋮) wählst du **Löschen**. Dabei wird auch alles gelöscht, was die Integration für das Board gespeichert hat: die Trainingssessions, das Übungsspiel, die Bestleistungen, die Spielerprofile mit Match-Verlauf und Doubles, der Wochenbericht, der Trainingskalender und die Reparaturhinweise. Sichere vorher, was du behalten willst, mit [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport). Highlight-Fotos und Exporte bleiben, wo sie sind.
 2. Um den Code zu deinstallieren, öffnest du **Autodarts** in HACS und wählst **Entfernen**. Bei einer manuellen Installation löschst du `config/custom_components/autodarts`.
 3. Starte Home Assistant neu. Die Dashboard-Karten verschwinden mit der Integration. Entferne Karten und Automationen, die sie verwenden.
 

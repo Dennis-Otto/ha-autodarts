@@ -37,18 +37,22 @@ body:
         - Entities or board events
         - Training sessions and statistics
         - X01 practice game or match
-        - Cricket
-        - Party games (Shanghai, Halve-It, Killer)
-        - Training games (Around the Clock, doubles, checkout, Bob's 27)
+        - Teams, start scores or bull-off
+        - Cricket games (Cricket, Cut-Throat, Tactics)
+        - Party games (Shanghai, Halve-It, Killer, Golf, Baseball, Count-Up)
+        - Training games (Around the Clock, doubles, checkout, Bob's 27, 121 checkout, Catch 40, JDC Challenge, singles)
         - Player profiles, personal bests or doubles analysis
+        - Weekly report, training calendar or export
         - Live card
         - Training card
         - Board status card
-        - Scoreboard card or caller
+        - Scoreboard card, new game screen, idle mode or caller
         - Players or doubles card
         - Automatic dashboard
-        - Actions (start_game, delete_player)
+        - Actions (start_game, delete_player, export, link_player, unlink_player)
         - Blueprints
+        - Highlight gallery
+        - Online matches (online bridge)
         - Documentation
         - Other
     validations:

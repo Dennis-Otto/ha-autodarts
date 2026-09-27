@@ -12,12 +12,16 @@
 
 | Message | Cause and solution |
 | --- | --- |
+| *Enter an IP address or hostname only* | The address contains more than the host, such as `http://`, a path or a port. Enter only the IP address or host name, and the port in its own field. |
 | *Cannot reach the local Board Manager or its response is invalid* | Wrong address or port, the Board Manager is not running, or something else answers on that port. Enter the IP address only, without `http://` and without a port. |
 | *The board refused access (HTTP 401 or 403)* | The Board Manager itself needs no login, so something in front of port 3180 blocks Home Assistant, for example a reverse proxy, a firewall or a login page. Let Home Assistant reach the board directly, or enter the board's own address. |
 | *No board ID is configured in Board Manager* | The board has not been set up with Autodarts yet. Finish the setup in the Board Manager, then try again. |
 | *No new boards were found automatically* | The search only finds boards that registered from your internet connection and that are not set up yet. Enter the address instead. |
 | *The board search is unavailable right now* | The Autodarts discovery service is unreachable. Enter the address instead. |
 | *This Autodarts board is already configured* | The board is already set up. Use **Reconfigure** to change its address. |
+| *This address belongs to a different board* | **Reconfigure** found another board at the new address. Enter the address of the board this entry belongs to, or add the other board as a new entry. |
+| *The board announced on your network does not answer* | A discovered board did not answer at the address it announced, for example because the Board Manager stopped meanwhile. Start the Board Manager and add the board again, or enter its address. |
+| *Setup of this board is already in progress* | Another setup dialog for the same board is open, for example the discovered board. Finish or close it. |
 | The board is not discovered automatically | Automatic discovery needs Board Manager 2 and mDNS in your network. Home Assistant in Docker needs `network_mode: host`, and mDNS does not cross VLANs without a repeater. Use the search or the address instead. |
 | *This client ID is invalid or is not enabled for device login* | The cloud link needs a client ID issued by Autodarts for this integration. None is available yet; see [cloud link](installation.md#link-the-autodarts-cloud-optional). Local setup works without it. |
 
@@ -28,7 +32,7 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | Notice | Meaning and solution |
 | --- | --- |
 | **Autodarts board address points to a different board** | The configured address answers with a different board ID, for example because IP addresses were swapped. The entities stay unavailable so that they never show another board's data. Open the integration, choose **Reconfigure** and select the correct board. The notice disappears by itself. |
-| **Calibrate the Autodarts board** | At least 20 % of the last darts needed a correction by the board, see *Detection correction rate*. Remove all darts, open the notice and confirm: the integration calibrates all cameras and counts again from zero. The notice also disappears once the rate falls below 10 %. |
+| **Calibrate the Autodarts board** | At least 20 % of the last 100 darts, and at least 50 darts in all, needed a correction by the board, see *Detection correction rate*. Remove all darts, open the notice and confirm: the integration calibrates all cameras and counts again from zero. The notice also disappears once the rate falls below 10 %. |
 | **Update the board to the new Autodarts Board Manager** | The board still runs the classic Board Manager 1, which Autodarts will switch off. Install Board Manager 2 on the board PC. The integration switches over by itself and the notice disappears. |
 | **Autodarts board found at a new address** | The board has not answered at its address for five minutes, but the Autodarts cloud reports another address where it answers with its board ID, for example after a DHCP change. Open the notice and confirm: the integration checks the address once more, switches to it and reloads. Entities, training and settings are kept. Only entries linked to the Autodarts cloud get this notice; Board Manager 2 announces a new address itself, see [address changes](how-it-works.md#address-changes). |
 | **Autodarts board refuses access** | The board answers with HTTP 401 or 403. The Board Manager needs no login, so a reverse proxy, a firewall or a login in front of port 3180 blocks Home Assistant. Let Home Assistant reach the board; the notice disappears with the next successful read. |
@@ -41,6 +45,17 @@ Home Assistant shows these notices under **Settings → Repairs**:
 - **All board entities unavailable:** the Board Manager has not answered three reads in a row; one or two missed reads, a few seconds, keep the last values. The entities recover by themselves within seconds after the board is back. Training, practice game, personal bests and the board events stay available, also when the board is switched off while Home Assistant starts.
 - **Settings and camera entities unavailable, the rest works:** the board has not reported its configuration yet. This resolves with the next read, at the latest after 30 seconds.
 - **Unavailable after a Board Manager update:** the integration reloads itself when the generation changes. Wait a few seconds.
+
+### Messages on the board's entry
+
+**Settings → Devices & services → Autodarts** shows why a board is not loaded or its entities are unavailable:
+
+| Message | Cause and solution |
+| --- | --- |
+| *Board Manager does not answer* | The board is offline or unreachable. Check that the board PC and the Board Manager run; the entities recover by themselves. |
+| *Enter the local Board Manager address: open the menu of this entry and select Reconfigure* | The entry has no local address, for example an old cloud entry. Open the entry's menu (⋮) → **Reconfigure** and enter the address. |
+| *Board Manager answers in a format this version of the integration does not understand* | Usually after a Board Manager update. Update the integration; see **Autodarts board answers in an unknown format** under [repairs](#repairs). |
+| *Board Manager refused access* | See **Autodarts board refuses access** under [repairs](#repairs). |
 
 ### An action fails
 
@@ -55,6 +70,12 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *… is on the list of players more than once* | Every player needs a name of their own. Players without a name may appear more than once. |
 | *Killer needs at least two players* | Name two to four players in the action, or set *Practice players* to 2 or more. |
 | *There is no player profile named …* | Check the spelling; upper and lower case do not matter. The *Player profiles* sensor lists every profile. |
+| *There is no person … in Home Assistant* | `autodarts.link_player` needs a person entity, such as `person.alex`. Create the person under **Settings → People** first. |
+| *Teams need four players* | Teams play 1 and 3 against 2 and 4: name four players, or set *Practice players* to 4. |
+| *Teams play X01 and the Cricket games* | Switch *Teams* off for party and training games. |
+| *A start score is 0, for the game's start score, or 2 to 1001* | Correct `start_scores` in the action. |
+| *The export folder … must be inside the Home Assistant configuration folder* | Choose a folder inside the configuration folder that does not start with a dot, for example `www/autodarts` or `exports`. |
+| *The export could not be written* | The folder is not writable or the disk is full; the message names the reason. |
 
 ### No realtime updates
 
@@ -84,11 +105,11 @@ To start over, press **New training session** or *New session* on the training c
 
 ### Moments of online matches don't arrive
 
-Follow the [online bridge](automations.md#online-matches-experimental) step by step and watch the *Online bridge last event* sensor:
+Follow the [online bridge](online-matches.md) step by step and watch the *Online bridge last event* sensor:
 
 - **No sensor:** the bridge is off. Turn it on in the options of the board (**Configure**).
 - **The address itself:** open it with `?event=gameon` added in a browser of your home network. If the sensor does not change, the browser cannot reach Home Assistant at this address: use the address you open Home Assistant with. An address from outside your home network needs *Accept calls from outside your home network*.
-- **Only from the Autodarts page:** check that the WLED feature of Tools for Autodarts is on, the effects are enabled and the Autodarts page is open. The developer tools of the browser (F12, *Console*) show calls that the browser blocked, for example as *Mixed Content*; see [mixed content](automations.md#limitations).
+- **Only from the Autodarts page:** check that the WLED feature of Tools for Autodarts is on, the effects are enabled and the Autodarts page is open. The developer tools of the browser (F12, *Console*) show calls that the browser blocked, for example as *Mixed Content*; see [mixed content](online-matches.md#limitations).
 - **Some moments only:** a trigger the bridge does not know is named once in a warning in the Home Assistant log. Tools for Autodarts plays one effect per trigger, so remove other effects with the same trigger.
 
 ## Diagnostics and logs

@@ -67,4 +67,4 @@ Style of the languages:
 - The `say_*` texts are spoken by the caller; write them as a caller would say them.
 - `practice_entity` and `tournament_entity` in `TEXT` say how the names of the practice and tournament entities read, for example `Practice {name}` or `{name} de la partie`, so the automatic dashboard can show them without the section they sit in. Keep them in line with the entity names of the translation file.
 
-The documentation is English with a complete German translation in `docs/de/`. A pull request that changes a page changes both languages.
+The documentation is English with a complete German translation in `docs/de/`. A pull request that changes a page changes both languages. Keep the terms of the [glossary](docs/glossary.md) ([German](docs/de/glossar.md)), for example "Übungsspiel", "Aufnahme" for a visit and "Doppelquote". `tests/test_docs_links.py` checks that every link, heading anchor and image resolves.

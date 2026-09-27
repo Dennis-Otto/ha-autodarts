@@ -11,7 +11,7 @@ This page explains how the integration protects your data and your board, what i
 | Board API key, TLS key, camera device paths | Board Manager configuration | Dropped as soon as a configuration is read; never stored, logged, shown or included in diagnostics |
 | Autodarts OAuth tokens (optional cloud link) | Home Assistant config entry | Stored only there, refreshed automatically, never logged; the password is never seen |
 | Board ID, board address, client ID | Home Assistant config entry | Redacted from diagnostics; the connection history in diagnostics holds counts, kinds of errors and durations, never addresses or error messages |
-| Training session, practice games, player names and their progress with dart positions, weekly report and training calendar | Home Assistant `.storage` | Local only; deleted together with the integration; player names are redacted from diagnostics |
+| Training sessions, practice games and tournaments, personal bests, player names and profiles with head-to-head records, match history, doubles statistics, progress with dart positions, achievements and linked persons, weekly report and training calendar | Home Assistant `.storage` ([stored data](how-it-works.md#stored-data)) | Local only; deleted together with the integration; player names are redacted from diagnostics |
 | Exports with player names | A folder inside the configuration folder, by default `www/autodarts` | Written only on request; never outside the configuration folder; unguessable file names |
 | Control of the board | Board Manager API | Actions only on request of a user or an automation, sent once |
 | Address of the online bridge (optional) | Options of the Home Assistant config entry | A random secret of 64 hexadecimal characters, shown only in the options; never logged by the integration or included in diagnostics; replaceable with a new one in the options |
@@ -32,7 +32,7 @@ This page explains how the integration protects your data and your board, what i
 2. **Integration → dashboard.** The cards render board data in the browser. Every text from the board or the entity registry is escaped, and numbers are validated before they become SVG geometry.
 3. **Integration → internet.** Nothing leaves the local network in local mode. *Search for boards* contacts the public Autodarts discovery service once, on request; the integration never contacts it on its own. The optional cloud link uses the OAuth device login over HTTPS through Home Assistant's shared session, and board and match IDs from the cloud are encoded as a single path segment.
 4. **Network → integration (mDNS).** Any device in the network can announce an Autodarts board. The integration contacts only the addresses the announcement was sent from, never loopback, link-local or multicast addresses, and never an address named only in the announcement's properties. An existing board moves to a new address only when its configured address no longer answers with its board ID.
-5. **Browser → integration (online bridge, optional).** Off by default. When switched on, Home Assistant accepts the calls of the browser extension Tools for Autodarts at a secret webhook address, by default only from the home network. The integration accepts only the known triggers, fields of limited length and at most 20 calls per second. A call can only fire an `online_*` board event: it never controls the board or changes stored data. [Online matches](automations.md#online-matches-experimental).
+5. **Browser → integration (online bridge, optional).** Off by default. When switched on, Home Assistant accepts the calls of the browser extension Tools for Autodarts at a secret webhook address, by default only from the home network. The integration accepts only the known triggers, fields of limited length and at most 20 calls per second. A call can only fire an `online_*` board event: it never controls the board or changes stored data. [Online matches](online-matches.md).
 
 ## Threats and countermeasures
 
@@ -58,7 +58,11 @@ This page explains how the integration protects your data and your board, what i
 - **Least privilege:** GitHub workflows run with read-only tokens unless a job needs more; the integration only reads the Board Manager and writes to it only when you or an automation ask for it.
 - **Fail safe:** unknown data becomes *unknown*, an unreachable board makes entities unavailable, and a wrong board never shows its data.
 - **Local first:** the cloud is optional, and local control never depends on it.
-- **Small attack surface:** no Python dependencies at runtime, no open ports of its own, no services beyond the entities and, only while the online bridge is on, one secret webhook address of Home Assistant's own web server.
+- **Small attack surface:** no Python dependencies at runtime and no open ports of its own. What the integration adds to Home Assistant's own web server:
+  - the card file at `/autodarts/autodarts-card.js`, served without a login like every other frontend file; it contains code, no data;
+  - the actions `autodarts.start_game`, `autodarts.delete_player`, `autodarts.export`, `autodarts.link_player` and `autodarts.unlink_player`, which need a login like every action;
+  - the downloads of this run's exports at `/api/autodarts/export/`, for logged-in users or with a signed link that expires after a minute;
+  - only while the online bridge is on, one secret webhook address.
 
 ## Residual risks
 
