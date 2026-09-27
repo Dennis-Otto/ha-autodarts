@@ -65,10 +65,10 @@ test("a team match shows two teams with the partner at the board", () => {
   ]);
   assert.deepEqual([view.scores[2].team, view.scores[2].start], [1, 301]);
   const html = board({ practice });
-  assert.match(html.main, /<div class="players n2">/);
+  assert.match(html.main, /<div class="players n2 teams">/);
   assert.match(
     html.main,
-    /<div class="player active"><div class="name">Alex &#38; Kim<\/div><div class="big">141<\/div><div class="route"><span class="bed">T20<\/span>/
+    /<div class="player active" aria-current="true"><div class="name">Alex &#38; Kim<\/div><div class="big">141<\/div><div class="route"><span class="bed">T20<\/span>/
   );
   assert.match(html.main, /<div class="members"><span>Alex Ø 60\.5<\/span> · <b>Kim Ø 45\.0<\/b><\/div>/);
   assert.match(html.main, /<div class="name">Sam &#38; score_player 4<\/div><div class="big">201<\/div>/);
@@ -161,12 +161,12 @@ test("team Cricket shows a column per team, the partner at the board in bold", (
   ];
   const cricket = { state: "unknown", attributes: { game: "cricket", player: 3, teams: TEAMS, scores } };
   const html = board({ practice: cricket });
-  assert.match(html.main, /<th class="active">Alex &#38; <b>Kim<\/b><\/th><th class="">Sam &#38; Lea<\/th>/);
+  assert.match(html.main, /<th class="active" aria-current="true">Alex &#38; <b>Kim<\/b><\/th><th class="">Sam &#38; Lea<\/th>/);
   assert.match(html.main, /<tr class="total"><th>cricket_points<\/th><td class="active">20<\/td><td class="">0<\/td>/);
   assert.match(html.main, /<td class="active">2\.50 · 1\.25<\/td><td class="">– · 0\.00<\/td>/);
   const won = board({ practice: { ...cricket, attributes: { ...cricket.attributes, winner: 2 } } });
   assert.equal(won.banner, "Sam & Lea score_winners");
-  assert.match(won.main, /<th class="winner">Sam &#38; Lea<\/th>/);
+  assert.match(won.main, /<th class="winner">Sam &#38; Lea <span class="visually-hidden">winner<\/span><\/th>/);
 });
 
 const party = (game, attributes) => ({ state: "unknown", attributes: { game, player: 1, ...attributes } });

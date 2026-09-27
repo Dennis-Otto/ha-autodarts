@@ -172,7 +172,7 @@ test("the winner of a match gets the banner", () => {
   const { card } = setup({ ...game({ remaining: 0, won: true, winner: 1 }, "0") });
   assert.equal($(card, ".banner").hidden, false);
   assert.equal(text(card, ".banner"), "Alex wins the match!");
-  assert.equal($(card, ".main .player.winner .name").textContent, "Alex");
+  assert.equal($(card, ".main .player.winner .name").textContent, "Alex Winner");
 });
 
 test("Cricket, party games, the bull-off and training games get their own boards", () => {
@@ -284,6 +284,16 @@ test("party games on the scoreboard show lives, targets and the winner", () => {
     ],
     ["player out", "big lives", "✕", "", "Legs 0 · Sets 1 · 12 · out"],
   ]);
+  // Hearts are read as lives, not as heart symbols.
+  assert.deepEqual(
+    $$(card, ".main .big.lives").map((big) => [big.getAttribute("role"), big.getAttribute("aria-label")]),
+    [
+      ["img", "3 lives"],
+      ["img", "0 lives"],
+    ]
+  );
+  card.hass = update(hass, killer({ scores: [{ ...killers[0], lives: 1 }, killers[1]] }));
+  assert.equal($(card, ".main .big.lives").getAttribute("aria-label"), "1 life");
   card.hass = update(hass, killer({ target: "D12" }));
   assert.equal(tiles(card)[0][3], "D12");
   card.hass = update(hass, killer({ needs_players: 2 }));
@@ -333,7 +343,7 @@ test("Cricket on the scoreboard shows legs, sets, the winner and a game shot", (
   card.hass = update(hass, cricket({ winner: 1, won: true, scores: won }));
   assert.equal(text(card, ".banner"), "Alex wins the match 2 : 0!");
   assert.equal(text(card, ".main thead .aim"), "");
-  assert.equal($(card, ".main thead th.winner").textContent, "Alex");
+  assert.equal($(card, ".main thead th.winner").textContent, "Alex Winner");
   card.hass = update(hass, cricket({ scores: players.slice(0, 1), won: true }));
   assert.equal(text(card, ".main thead .aim"), "Game shot!");
 });
@@ -600,4 +610,57 @@ test("without speech synthesis the caller stays silent", (t) => {
   tap(card);
   assert.equal($(card, ".caller-toggle").getAttribute("aria-pressed"), "false");
   assert.deepEqual(spoken, []);
+});
+
+test("the status and the banner are written only when they change, and the player up is marked", () => {
+  const { hass, card } = setup(game({ remaining: 81 }, "81"));
+  const pill = $(card, ".pill");
+  const text = pill.firstChild;
+  // A status region that is rewritten with the same words is read out again.
+  card.hass = update(hass, { "sensor.training_darts": "25" });
+  assert.equal(pill.firstChild, text);
+  card.hass = update(hass, { "switch.detection": "off" });
+  assert.equal(pill.textContent, "Detection stopped");
+  assert.equal($(card, ".main .player.active").getAttribute("aria-current"), "true");
+  assert.equal($(card, ".main .player:not(.active)").getAttribute("aria-current"), null);
+  card.hass = update(hass, game({ remaining: 0, won: true, winner: 1 }, "0"));
+  const banner = $(card, ".banner").firstChild;
+  card.hass = update(hass, { ...game({ remaining: 0, won: true, winner: 1 }, "0"), "sensor.training_darts": "26" });
+  assert.equal($(card, ".banner").firstChild, banner);
+});
+
+test("the full-height scoreboard fits the screen, lays out a portrait tablet and keeps its contrast", () => {
+  const style = $(setup({}, { full_height: true }).card, "style").textContent;
+  const has = (pattern) => assert.match(style, pattern);
+  // The screen below the header, not more; the new game screen scrolls with the page.
+  has(/\.scoreboard\.full \{\s*height: calc\(100vh - var\(--header-height, 56px\) - 16px\);\s*height: calc\(100dvh/);
+  has(/\.scoreboard\.full\.choosing \{\s*height: auto;/);
+  has(/\.scoreboard\.full:not\(\.choosing\) \.main \{\s*flex: 1 1 0; container-type: size; overflow-y: auto; justify-content: safe center;/);
+  // The numbers take the width and the height left; the pad sits beside the scores in landscape.
+  has(/\.scoreboard\.full \.n2 \.big \{ font-size: clamp\(40px, min\(15cqi, 100cqh - 19cqi\), 240px\); \}/);
+  has(/@media \(orientation: landscape\) \{\s*\.scoreboard\.full\.with-pad \{/);
+  has(/@media \(orientation: portrait\) \{\s*\.scoreboard\.full \.players\.n2 \{ grid-template-columns: minmax\(0, 1fr\); \}/);
+  // Sticky needs a card without a scroll container of its own.
+  has(/ha-card \{ overflow: hidden; overflow: clip;/);
+  has(/\.lobby-actions \{\s*grid-column: 1 \/ -1;\s*position: sticky;/);
+  // Accent text and fills are darkened for contrast; pressed buttons show in High Contrast.
+  has(/--ad-accent-text: color-mix\(in srgb, var\(--ad-accent\) 60%, var\(--primary-text-color, #212121\)\);/);
+  has(/--ad-accent-fill: color-mix\(in srgb, var\(--ad-accent\) 70%, #000\);/);
+  has(/\.bed:first-child \{ color: #fff; background: var\(--ad-accent-fill\); \}/);
+  has(/@media \(forced-colors: active\) \{\s*\[aria-pressed="true"\], \[aria-checked="true"\] \{ outline: 3px solid Highlight;/);
+  has(/@media \(pointer: coarse\) \{ \.lobby-toggle, \.caller-toggle \{ min-height: 40px; \} \}/);
+  assert.doesNotMatch(style, /opacity: \.85/);
+});
+
+test("a bull-off dart that missed the board reads as a miss", () => {
+  const { card } = setup(
+    game({
+      remaining: 501,
+      bull_off: { player: 2, throws: [{ player: 1, name: "Alex", hit: "MISS" }, { player: 2, name: "Sam" }] },
+    })
+  );
+  assert.deepEqual(
+    $$(card, ".main .player .big").map((big) => big.textContent),
+    ["Miss", "–"]
+  );
 });
