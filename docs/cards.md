@@ -181,6 +181,7 @@ show_system: false
 - **Training games:** the target in large type, with the progress, darts and hit rate (Bob's 27: points and round; checkout training: the score, the route and the checkout rate).
 - **Between games:** the title (the board name unless you set `title`) and the score of the current visit together with darts, 3-dart average, highest visit and 180s of the training session, the training streak and today's darts towards the daily goal.
 - **Winner:** a banner names the winner of the match until the next dart.
+- **Pictures:** players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture next to their name.
 - **Visit:** the three darts of the current visit and its score along the bottom.
 - **Caller:** with `caller: true`, the screen at the board calls the game itself in English or German, following the language of Home Assistant (other languages hear English). It calls only what counts:
   - X01: the points a visit scored, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished (up to 170 with double out, 180 without), the game shot of a leg and the match, and a fanfare for a 180 that counted.
@@ -194,6 +195,38 @@ show_system: false
 <img src="images/en/scoreboard-cricket.png" alt="Scoreboard in Cricket between Alex and Sam: the chalkboard with marks, points and marks per round, and T19 as the next target" width="760">
 
 The [automatic dashboard](#automatic-dashboard) has a *Scoreboard* view that shows the card across the whole screen. Open it on the tablet, and use the browser's full-screen mode or the Home Assistant app in kiosk mode. On a phone, the full-height scoreboard leaves room for the browser's address bar.
+
+### New game screen
+
+Choose the next game at the board, without a phone: tap **New game** below the score between games, or at the top right at any time. A few seconds after a match or a training game ends, the screen also opens by itself, with the last choice ready for a rematch; a dart thrown instead closes it again.
+
+<img src="images/en/lobby.webp" alt="Animation: on the tablet, New game opens the screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
+
+- **Game:** every game of *Practice game*, grouped into X01, Cricket, party games and training games. `lobby_games` limits the choice.
+- **Players:** up to four, in throwing order. Tap a name to add the player, ▲ and ▼ to move them, ✕ to remove them. The names come from the player profiles and the player name fields; players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) who is at home come first, with their picture and ⌂. Type a new name, or add a guest without one. With nobody chosen, one player without a name throws. Killer needs two players; training games take the first player only.
+- **Format:** legs per set and sets to win, for a match of several players.
+- **Options:** double out and double in for X01, and the bull-off for a match, with bull-off by distance where the board offers it.
+- **Start:** starts the game with [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), and the scoreboard shows it at once. During a game, *End game* stops it after a second tap.
+
+The screen never opens in the preview of the card editor.
+
+<img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, three legs per set, double out and the start button" width="760">
+
+### Idle mode
+
+When no game runs, or a match or training game is decided, and nobody throws or taps for `idle_after` seconds (3 minutes), the scoreboard shows these panels in turn, one every `idle_interval` seconds:
+
+| Panel | Shows |
+| --- | --- |
+| `leaderboard` | The five best players by 3-dart average, then by legs won, with their pictures |
+| `records` | The personal bests of the board and the longest training streak |
+| `today` | Today's darts towards the daily goal, the 3-dart average, highest visit and 180s of the session, and the streak |
+| `last_match` | The last match of several players: the game, when it ended, and everybody's legs or sets and average |
+| `clock` | The time and the date |
+
+Panels with nothing to show are skipped. A dart, a new game or a tap anywhere ends idle mode. On devices set to reduce motion, the panels change without fading.
+
+<img src="images/en/scoreboard-idle.png" alt="Idle mode of the scoreboard: the leaderboard with Alex, Sam and Kim, their pictures, 3-dart averages and legs won" width="760">
 
 ### Options
 
@@ -209,14 +242,23 @@ The [automatic dashboard](#automatic-dashboard) has a *Scoreboard* view that sho
 | `call_checkouts` | boolean | `true` | Call what the next player requires when a checkout is possible |
 | `call_results` | boolean | `true` | Call busts and game shots |
 | `call_sounds` | boolean | `true` | Play a fanfare for a 180 |
+| `lobby` | boolean | `true` | Offer the [new game screen](#new-game-screen) |
+| `lobby_games` | list of games | every game | The games the new game screen offers, for example `["501", cricket, killer]` |
+| `idle` | boolean | `true` | Switch [idle mode](#idle-mode) on |
+| `idle_after` | seconds, 10–3600 | `180` | Time without darts and taps before idle mode starts |
+| `idle_interval` | seconds, 3–120 | `10` | Time each panel shows |
+| `idle_panels` | list of panels | every panel | The panels of idle mode, in this order: `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `accent_color` | [color](#colors) | theme primary color | The player at the board, routes and the visit score |
 
-In the editor, the four `call_…` options wait in the collapsed section *Caller options*.
+In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen and idle mode have collapsed sections of their own.
 
 ```yaml
 type: custom:autodarts-scoreboard-card
 full_height: true
 caller: true
+lobby_games: ["301", "501", cricket, killer]
+idle_after: 300
+idle_panels: [leaderboard, today, clock]
 ```
 
 ## Doubles card
@@ -236,9 +278,9 @@ caller: true
 
 ## Players card
 
-`custom:autodarts-players-card` shows the [player profiles](entities.md#player-profiles): a tile for every named player with legs and matches won, 3-dart average, first 9, checkout rate, marks per round and the best marks per round of a Cricket leg, highest visit and checkout and the fewest darts per start score. Below, the head-to-head records with a balance bar and the recent matches with their winner. On request, an *Export* button downloads everything as a file.
+`custom:autodarts-players-card` shows the [player profiles](entities.md#player-profiles): a tile for every named player with legs and matches won, 3-dart average, first 9, checkout rate, marks per round and the best marks per round of a Cricket leg, highest visit and checkout and the fewest darts per start score. Players [linked to a person](entities.md#link-a-player-to-a-person-autodartslink_player) show the person's picture. Below, the head-to-head records with a balance bar and the recent matches with their winner. On request, an *Export* button downloads everything as a file.
 
-<img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
+<img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
 
 ### Options
 
@@ -292,7 +334,7 @@ All options can be set in the visual editor. It is a form of Home Assistant, so 
 
 - The device picker offers only Autodarts boards.
 - Switches show their default until you change them; lists name their default below the field.
-- The caller options of the scoreboard wait in a collapsed section, the doubles card offers the named players.
+- The caller options, the new game screen and idle mode of the scoreboard wait in collapsed sections; the doubles card offers the named players.
 - An option the form cannot show, such as a mistyped `layout`, sends the editor to the code view with a message that names it.
 
 <img src="images/en/card-editor.png" alt="The visual editor of the live card" width="760">

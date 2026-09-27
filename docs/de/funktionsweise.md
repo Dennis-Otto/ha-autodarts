@@ -186,6 +186,15 @@ Der Wochenbericht zählt, was das Board erkennt, wie bei den Darts des Tages, un
 - **Exporte** schreibt nur die Aktion `autodarts.export`, in einen Ordner im Konfigurationsordner. Der Ordner wird vor dem Schreiben aufgelöst, sodass weder `..`, ein absoluter Pfad noch ein symbolischer Link nach draußen führt; versteckte Ordner wie `.storage` werden abgelehnt. Jeder Export bekommt einen neuen Namen mit einem zufälligen Teil und ersetzt nie eine Datei. In CSV bekommt ein Text, der wie eine Tabellenformel beginnt (`=`, `+`, `-`, `@`), einen Apostroph vorangestellt, damit ein Spielername nicht als Formel läuft.
 - **Downloads.** Neben `/local/` können angemeldete Benutzer die seit dem Start von Home Assistant geschriebenen Exporte unter `/api/autodarts/export/<Name>` herunterladen; die Spielerkarte nutzt diese Adresse mit einem signierten Link, der nach einer Minute abläuft.
 
+## Highlight-Galerie
+
+Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint](automationen.md#highlight-galerie) speichert:
+
+- **Ordner:** `autodarts/highlights` im Medienordner von Home Assistant. Das ist der Medienordner `local`: `/media` unter Home Assistant OS und im Container, sonst der Ordner `media` im Konfigurationsordner. Hast du `media_dirs` ohne `local` gesetzt, der erste davon.
+- **Namen:** `JJJJ-MM-TT_HH-MM-SS_<Spieler>_<Punkte>.jpg`; Uhrzeit und Spieler sind optional, ein Checkout heißt `checkout-121`. Andere Bilder (`.jpg`, `.jpeg`, `.png`, `.webp`) erscheinen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
+- **Reihenfolge:** die Monate, die neuesten zuerst, jeder mit seinem neuesten Foto als Titelbild; die Fotos eines Monats, die neuesten zuerst.
+- **Sicherheit:** Nur einfache Dateinamen dieses Ordners öffnen sich, und nur Bilder; versteckte Dateien, Unterordner und Verknüpfungen aus dem Ordner hinaus werden ignoriert. Die Fotos liefert die Medienansicht von Home Assistant selbst aus, an angemeldete Benutzer oder mit einer signierten Adresse.
+
 ## Kamerazustand
 
 Eine Kamera gilt als gestört, wenn sie bei laufender Erkennung **15 Sekunden** lang keine Bilder liefert. Gestoppte Erkennung, Kalibrierung und Kamera-Standby sind keine Störung. Der gemeinsame Sensor *Kamerastörung* ist an, sobald eine Kamera gestört ist. Mit Echtzeitereignissen erscheint der Alarm, sobald die Bildraten ihn zeigen.
@@ -201,6 +210,8 @@ Die Kamera-Entitäten geben den Livestream von Board Manager 2 an höchstens zwe
 - **Board-Geheimnisse** wie der API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade und ähnliche Konfiguration werden direkt beim Lesen verworfen. Sie werden nie gespeichert, protokolliert oder angezeigt.
 - **Diagnosedaten** schwärzen Board-ID, Adresse, Client-ID, Token und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
 - **Exporte** enthalten Spielernamen. Die Aktion schreibt sie nur auf Anforderung; Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung aus, siehe [Exporte](#trainingskalender-und-exporte).
+- **Highlight-Fotos** bleiben in deinem Medienordner; die Galerie liest nichts anderes.
+- **Personen:** Ein mit einer Person verknüpfter Spieler behält nur die Entitäts-ID der Person; Bild und Anwesenheit liest die Karte aus Home Assistant.
 
 ## Sicherheit
 

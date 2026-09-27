@@ -349,6 +349,13 @@ class PracticeGame:
         """The X01, Cricket or party game being played; None otherwise."""
         return self._kind() if self._playing() else None
 
+    @property
+    def thrower(self) -> str | None:
+        """The name of the player at the board in a game, if they have one."""
+        if not self._playing():
+            return None
+        return self._name(self.bulling.thrower if self.bulling else self.current)
+
     def _who(self, index: int) -> dict[str, Any]:
         return {
             "game": self._kind(),

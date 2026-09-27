@@ -601,6 +601,9 @@
     },
     "export_failed": {
       "message": "The export could not be written: {error}"
+    },
+    "unknown_person": {
+      "message": "There is no person {person} in Home Assistant."
     }
   },
   "issues": {
@@ -726,6 +729,38 @@
         "folder": {
           "name": "Folder",
           "description": "A folder inside the configuration folder. Files in www are available at /local/ without a login."
+        }
+      }
+    },
+    "link_player": {
+      "name": "Link player to person",
+      "description": "Makes a player a person of Home Assistant: the person's picture appears on the scoreboard, the players card and the new game screen, which also lists players at home first. A person is one player; linking them again moves the link.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Only needed with more than one board."
+        },
+        "player": {
+          "name": "Player",
+          "description": "The player name, in any upper and lower case. A player without a profile gets one."
+        },
+        "person": {
+          "name": "Person",
+          "description": "The person of Home Assistant who is this player."
+        }
+      }
+    },
+    "unlink_player": {
+      "name": "Unlink player",
+      "description": "Forgets which person a player is. The player's statistics stay.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Only needed with more than one board."
+        },
+        "player": {
+          "name": "Player",
+          "description": "The player name, in any upper and lower case."
         }
       }
     }

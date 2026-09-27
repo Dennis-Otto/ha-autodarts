@@ -577,7 +577,11 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             announced = True
             self.quality.record(kind, attributes)
             if kind in PLAY_EVENTS:
-                attributes = {**attributes, "game": self.practice.kind}
+                attributes = {
+                    **attributes,
+                    "game": self.practice.kind,
+                    "name": self.practice.thrower,
+                }
             self._emit(kind, attributes, source)
             if kind == "visit_completed":
                 for turn, details in self._recorded(self.practice.finish_visit()):
@@ -1181,6 +1185,14 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.records.forget(name)
             await self._async_training([])
         return deleted
+
+    async def async_link_player(self, name: str, person: str | None) -> bool:
+        """Link a player to a person, or unlink with None; False when that fails."""
+        profiles = self.practice.profiles
+        changed = profiles.link(name, person) if person else profiles.unlink(name)
+        if changed:
+            await self._async_training([])
+        return changed
 
     async def async_set_practice_option(self, option: str, enabled: bool) -> None:
         """Double out, routes and the bull-off rule apply at once; double in and

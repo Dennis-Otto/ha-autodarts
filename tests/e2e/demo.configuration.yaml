@@ -31,6 +31,10 @@ frontend:
 history:
 logbook:
 recorder:
+# Persons with pictures for the players, and the media browser with the highlight gallery.
+image_upload:
+media_source:
+person:
 onboarding:
 system_log:
 websocket_api:

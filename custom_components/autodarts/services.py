@@ -52,6 +52,24 @@ DELETE_PLAYER_SCHEMA = vol.Schema(
     }
 )
 
+# A player name as the profiles know it: trimmed, never empty.
+PLAYER_NAME = vol.All(cv.string, vol.Strip, vol.Length(min=1, max=NAME_LENGTH))
+SERVICE_LINK_PLAYER = "link_player"
+SERVICE_UNLINK_PLAYER = "unlink_player"
+LINK_PLAYER_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
+        vol.Required("player"): PLAYER_NAME,
+        vol.Required("person"): cv.entity_domain("person"),
+    }
+)
+UNLINK_PLAYER_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
+        vol.Required("player"): PLAYER_NAME,
+    }
+)
+
 
 EXPORT_SCHEMA = vol.Schema(
     {
@@ -162,4 +180,31 @@ def async_setup_services(hass: HomeAssistant) -> None:
         export,
         schema=EXPORT_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    async def link_player(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        person: str = call.data["person"]
+        if hass.states.get(person) is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_person",
+                translation_placeholders={"person": person},
+            )
+        await coordinator.async_link_player(call.data["player"], person)
+
+    async def unlink_player(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        if not await coordinator.async_link_player(call.data["player"], None):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_player",
+                translation_placeholders={"name": call.data["player"]},
+            )
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_LINK_PLAYER, link_player, schema=LINK_PLAYER_SCHEMA
+    )
+    hass.services.async_register(
+        DOMAIN, SERVICE_UNLINK_PLAYER, unlink_player, schema=UNLINK_PLAYER_SCHEMA
     )

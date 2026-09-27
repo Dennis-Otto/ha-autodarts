@@ -33,12 +33,12 @@ The **Events** entity (for example `event.autodarts_board_events`, or `event.aut
 
 | `event_type` | When | Attributes |
 | --- | --- | --- |
-| `dart_detected` | A new dart lands | `dart_index` (1–3), `segment` (for example `T20`, `S5`, `Bull`, `25` or `M` for a miss), `score`, `game` |
-| `dart_corrected` | The board corrects a detected dart | `dart_index`, `segment`, `score`, `game` |
+| `dart_detected` | A new dart lands | `dart_index` (1–3), `segment` (for example `T20`, `S5`, `Bull`, `25` or `M` for a miss), `score`, `game`, `name` |
+| `dart_corrected` | The board corrects a detected dart | `dart_index`, `segment`, `score`, `game`, `name` |
 | `takeout_started` | You start pulling the darts | none |
 | `takeout_finished` | The board is clear again | none |
-| `visit_thrown` | The third dart of a visit lands, while the darts are still in the board; once per visit | `score`, `darts` (3), `segments` (for example `["T20", "T20", "S20"]`), `game` |
-| `visit_completed` | A visit ends: on takeout, when new darts follow a missed takeout, or when detection stops | `score`, `darts`, `segments`, `game`, `thrown` (`true` when `visit_thrown` already announced the visit) |
+| `visit_thrown` | The third dart of a visit lands, while the darts are still in the board; once per visit | `score`, `darts` (3), `segments` (for example `["T20", "T20", "S20"]`), `game`, `name` |
+| `visit_completed` | A visit ends: on takeout, when new darts follow a missed takeout, or when detection stops | `score`, `darts`, `segments`, `game`, `name`, `thrown` (`true` when `visit_thrown` already announced the visit) |
 | `status_changed` | The detection status changes | `status` |
 | `session_started` | A training session starts: with the *Training session* switch, the *New training session* button, or the first dart when *Start sessions automatically* is on | `started` and `reason` (`manual`, `new_session` or `first_dart`) |
 | `session_ended` | A training session ends: with the switch, the button, or after the pause set in *Session idle timeout* | `reason` (`manual`, `new_session` or `idle`), `started`, `ended`, `duration_minutes`, `darts`, `points`, `average`, `visits`, `highest_visit` and the other training totals |
@@ -62,7 +62,7 @@ The **Events** entity (for example `event.autodarts_board_events`, or `event.aut
 | `online_tournament_ready` | A tournament match of yours is ready | `trigger` |
 | `online_match_left` | You left the online match | `trigger` |
 
-`game` is the [practice game](#practice-game) being played while the dart lands, such as `501`, `cricket` or `shanghai`, and empty without one and in [training games](#training-games). A visit of three darts is announced twice: with `visit_thrown` the moment its third dart lands, for 180 celebrations and callers, and with `visit_completed` when it ends, with the final score after corrections. To react to every visit exactly once and as early as possible, use `visit_thrown` and `visit_completed` whose `thrown` is `false`; the [blueprints](automations.md#blueprints) do that.
+`game` is the [practice game](#practice-game) being played while the dart lands, such as `501`, `cricket` or `shanghai`, and empty without one and in [training games](#training-games). `name` is the name of the player at the board in that game, also during a bull-off; empty without a game or a name. A visit of three darts is announced twice: with `visit_thrown` the moment its third dart lands, for 180 celebrations and callers, and with `visit_completed` when it ends, with the final score after corrections. To react to every visit exactly once and as early as possible, use `visit_thrown` and `visit_completed` whose `thrown` is `false`; the [blueprints](automations.md#blueprints) do that.
 
 Events are never replayed after a restart or reconnection. See [automations](automations.md) for examples.
 
@@ -216,10 +216,12 @@ Every named player of a practice game gets a profile with lifetime numbers. Name
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Player profiles | Sensor, players | The number of profiles. Attribute `players` with, for every player: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (start score → fewest darts for a won leg) and `last_played`. `highest_visit` is the highest X01 score of the player; `highest_checkout` and `fewest_darts` come from legs with double out only. The recorder does not store the list. |
+| Player profiles | Sensor, players | The number of profiles. Attribute `players` with, for every player: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (start score → fewest darts for a won leg), `last_played` and `person` (the [linked person](#link-a-player-to-a-person-autodartslink_player), or none). `highest_visit` is the highest X01 score of the player; `highest_checkout` and `fewest_darts` come from legs with double out only. The recorder does not store the list. |
 | Last match | Sensor, timestamp | When the last match of several players ended. Attributes: `game` and `winner` of that match, `matches` with the last 20 matches (`ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` and every player's `name`, `legs` and `sets` at the end, `match_legs` and `average`, `mpr` or `points`), and `head_to_head` with the wins of every pair of named players. The recorder stores neither list. |
 
 The [players card](cards.md#players-card) shows all of it. To remove a profile, for example after a typo in a name, use [`autodarts.delete_player`](#delete-a-player-profile-autodartsdelete_player).
+
+**Players and persons:** link a player to a person of Home Assistant with [`autodarts.link_player`](#link-a-player-to-a-person-autodartslink_player). The scoreboard, the players card and the [new game screen](cards.md#new-game-screen) then show the person's picture, and the new game screen lists the players who are at home first. The link is saved with the profile and survives restarts.
 
 ## Doubles analysis
 
@@ -374,7 +376,7 @@ The action fails with a clear message when no board is loaded, when several boar
 
 ### Delete a player profile: `autodarts.delete_player`
 
-Forgets a player's statistics, personal bests and head-to-head records. The name also disappears from the board's [personal bests](#personal-bests-streak-and-daily-goal), whose values stay, and from the practice player names, so the next leg does not create the profile again. The match history keeps the name.
+Forgets a player's statistics, personal bests, head-to-head records and the link to a person. The name also disappears from the board's [personal bests](#personal-bests-streak-and-daily-goal), whose values stay, and from the practice player names, so the next leg does not create the profile again. The match history keeps the name.
 
 | Field | Values | Description |
 | --- | --- | --- |
@@ -413,6 +415,36 @@ The response has `path` (the file), `url` (its `/local/` address when the folder
 > **Privacy:** exports contain player names. Files in `www` are served at `/local/` **without a login** to anyone who can reach Home Assistant and knows the file name. The random part of the name keeps it from being guessed; delete exports you no longer need, or export to a folder outside `www`, which gives no download link.
 
 The action fails with a clear message when the folder is not allowed or the file cannot be written.
+
+### Link a player to a person: `autodarts.link_player`
+
+Makes a player a person of Home Assistant. The [scoreboard](cards.md#scoreboard-card), the [players card](cards.md#players-card) and the [new game screen](cards.md#new-game-screen) show the person's picture, and the new game screen lists the players who are at home first. A player without a profile gets one. A person is one player: linking the person to another player moves the link.
+
+| Field | Values | Description |
+| --- | --- | --- |
+| `player` | text | The player name, in any upper and lower case; required |
+| `person` | person entity | For example `person.dennis`; required |
+| `config_entry_id` | Autodarts entry | Only needed with more than one board |
+
+```yaml
+action: autodarts.link_player
+data:
+  player: Dennis
+  person: person.dennis
+```
+
+The action fails with a clear message when Home Assistant has no such person.
+
+### Unlink a player: `autodarts.unlink_player`
+
+Forgets which person a player is. The player's statistics stay.
+
+| Field | Values | Description |
+| --- | --- | --- |
+| `player` | text | The player name, in any upper and lower case; required |
+| `config_entry_id` | Autodarts entry | Only needed with more than one board |
+
+The action fails with a clear message when there is no profile by that name.
 
 ## Availability
 

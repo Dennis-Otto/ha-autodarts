@@ -19,7 +19,7 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 | **Training session routine** | When a [training session](entities.md#training-session) starts, runs your actions, turns on the detection and calibrates the cameras after a short wait; when it ends, turns off the detection and runs your actions with `reason`, `darts`, `average` and `duration_minutes`. The detection switch and the calibration button are optional. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
 | **Practice caller** | Calls the [practice game](entities.md#practice-game) on your speakers: "Sam, you require 81" when a checkout is possible, "No score" after a bust, the game shot of a leg or the match, and optionally the bull-off. The messages are templates. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
 | **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
-| **Highlight photo** | Runs your actions with a picture from a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. The actions can use `image`, `message`, `score`, `checkout` and `who`. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
+| **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `image`, `message`, `score`, `checkout`, `who` and `photo`. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal and a won bull-off, and optionally during the takeout and in [online matches](#online-matches-experimental). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](../blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
@@ -142,9 +142,13 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | Camera | | The board camera that takes the photo. Enable the camera entity first; camera entities are disabled by default. |
 | Visits from | 180 | A visit with at least this score gets a photo when its third dart lands. |
 | Checkouts | on | Also a photo when a practice leg is won with a checkout. When the same dart finishes a visit and a leg, you get one photo, with the checkout message. |
-| Actions | | For example a notification, see [below](#highlight-photo-on-your-phone). |
+| Save to the gallery | on | Saves every photo in the folder below, for the [highlight gallery](#highlight-gallery) of the media browser. |
+| Folder | `/media/autodarts/highlights` | Where the photos go. Home Assistant OS and containers use `/media`; other installations the `media` folder in the configuration folder, for example `/config/media/autodarts/highlights`. |
+| Actions | none | For example a notification, see [below](#highlight-photo-on-your-phone). Optional while the photos go to the gallery. |
 | Message for a visit | `{{ score }}!` | The `message` of a visit photo. |
 | Message for a checkout | `Checkout {{ checkout }}{{ ' by ' ~ who if who }}!` | The `message` of a checkout photo. |
+
+Your actions can use `image` (the camera picture), `message`, `score`, `checkout`, `who` (the player at the board, when the practice game names them) and `photo` (the file the picture is saved to).
 
 ### Light show
 
@@ -223,6 +227,17 @@ data:
 ```
 
 The app loads the picture from the camera right away, while the darts are still in the board. Enable the camera entity on the device page first; camera entities are disabled by default.
+
+### Highlight gallery
+
+The highlight photo saves every picture as a file named by the moment, the player and the score, for example `2026-09-26_21-05-33_Alex_180.jpg` or `2026-09-26_21-07-10_Alex_checkout-121.jpg`. Open **Media → Autodarts** in the sidebar: the gallery lists the months, newest first, and every photo with a title such as *180 · Alex · Sep 26*.
+
+<img src="images/en/media-gallery.png" alt="The highlight gallery in the media browser of Home Assistant: September 2026 with a checkout of 121 by Sam, a 180 by Alex and a 140 by Kim" width="760">
+
+- The gallery shows the folder `autodarts/highlights` of the media folder of Home Assistant, which is `/media/autodarts/highlights` on Home Assistant OS and in a container. [How the gallery works](how-it-works.md#highlight-gallery).
+- Photos you copy there yourself show, too; without a name of this kind, by their file name and the time they were saved.
+- To delete a photo, open **Media → My media → autodarts → highlights**.
+- The gallery needs the media browser, which the default configuration of Home Assistant includes.
 
 ### Light show with WLED and other lights
 

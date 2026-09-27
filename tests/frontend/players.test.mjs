@@ -81,7 +81,7 @@ test("a profile without statistics counts no legs and no matches yet", () => {
 
 test("the players card shows statistics, the balance and who won", () => {
   const html = playersHtml(playersView(profiles, lastMatch), ui);
-  assert.match(html.players, /<div class="profile-name">Alex<\/div><div class="muted">profile_legs 12\/20 · profile_matches 3\/5<\/div>/);
+  assert.match(html.players, /<div class="profile-name"><span>Alex<\/span><\/div><div class="muted">profile_legs 12\/20 · profile_matches 3\/5<\/div>/);
   assert.match(html.players, /<dt>average<\/dt><dd>61\.3<\/dd>/);
   assert.match(html.players, /<dt>checkout_short<\/dt><dd>31\.3%<\/dd>/);
   assert.match(html.players, /<dt>cricket_mpr<\/dt><dd>2\.40<\/dd><dt>best_mpr<\/dt><dd>3\.10<\/dd>/);

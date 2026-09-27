@@ -20,8 +20,8 @@
   - Live-Dartscheibe mit blinkenden Treffern und Dart-Positionen;
   - Trainingskarte mit Trefferbild, Bestleistungen und Aufnahmeverlauf;
   - Board-Status mit Erkennung, Verbindungen und Kameras;
-  - Anzeigetafel für ein Tablet oder einen Fernseher am Board, lesbar vom Abwurf aus, mit einem Caller, der das Spiel auf Wunsch ansagt;
-  - Spielerkarte mit Profilen, direkten Vergleichen und letzten Matches;
+  - Anzeigetafel für ein Tablet oder einen Fernseher am Board, lesbar vom Abwurf aus, mit einem Caller, der das Spiel auf Wunsch ansagt, einer Spielauswahl für Spiel, Spieler und Format direkt am Board und einem Ruhemodus mit Bestenliste, Bestleistungen, den Darts von heute, dem letzten Match und einer Uhr;
+  - Spielerkarte mit Profilen, direkten Vergleichen und letzten Matches und den Bildern der Spieler, die mit einer Person von Home Assistant verknüpft sind;
   - Doubles-Karte mit der Quote jedes Doubles auf der Scheibe;
   - dazu ein automatisches Dashboard, das alles pro Board mit einem Klick anordnet.
 - **Trainingsanalyse:**
@@ -32,11 +32,12 @@
   - Spielerprofile mit Statistik und Bestleistungen pro Name, Match-Verlauf und direkten Vergleichen;
   - Doppelanalyse mit der Quote jedes Doubles und Checkout-Wegen über deine stärksten Doubles;
   - Wochenbericht mit den Darts der Woche, der Trainingszeit, dem 3-Dart-Average und seinem Trend, auf Wunsch aufs Handy;
-  - Trainingskalender mit einem Jahr Sessions und Matches und ein Export als CSV oder JSON.
+  - Trainingskalender mit einem Jahr Sessions und Matches und ein Export als CSV oder JSON;
+  - Spieler, die mit Personen von Home Assistant verknüpft sind, mit ihrem Bild und ihrer Anwesenheit.
 - **Übungsspiele und Matches.** Spiele X01 (101 bis 1001, auf Wunsch mit Double-In und Ausbullen), Cricket oder die Partyspiele Shanghai, Halve-It und Killer am lokalen Board, allein oder als Match mit bis zu vier Spielern, Legs und Sätzen. Die Restpunkte zählen herunter, Überwerfen wird erkannt, und die Live-Karte zeigt Checkout-Weg, nächstes Zielfeld und eine Anzeigetafel, bei Cricket eine Kreidetafel mit Treffern, Punkten und Treffern pro Runde. Vier Trainingsspiele üben die Grundlagen: Around the Clock, Doppeltraining, Checkout-Training und Bob's 27. First-9-Average, Checkout-Quote, Doppelquote und Legs pro Tag zeigen deine Entwicklung.
 - **Automationen mit Bühnenatmosphäre.**
   - Board-Ereignisse für jeden Dart, jede Korrektur, jede Entnahme, jede geworfene und abgeschlossene Aufnahme und jede Trainingssession.
-  - Elf fertige Blueprints: 180-Feier, Dart-Caller, Licht bei der Entnahme, automatische Erkennung, Warnungen, tägliche und wöchentliche Berichte, eine Routine für Trainingssessions, ein Übungs-Caller, ein Highlight-Foto und eine Lichtshow.
+  - Elf fertige Blueprints: 180-Feier, Dart-Caller, Licht bei der Entnahme, automatische Erkennung, Warnungen, tägliche und wöchentliche Berichte, eine Routine für Trainingssessions, ein Übungs-Caller, ein Highlight-Foto mit Galerie in der Medienansicht und eine Lichtshow.
   - Online-Matches *(experimentell)*: Eine optionale Brücke bringt Überwerfen, gewonnene Legs und Matches, Aufnahmen und Darts von Online-Matches auf play.autodarts.io über die Browser-Erweiterung Tools for Autodarts nach Home Assistant; standardmäßig aus. [So richtest du sie ein](automationen.md#online-matches-experimentell).
 - **Volle Kontrolle.**
   - Erkennung starten, stoppen und zurücksetzen.

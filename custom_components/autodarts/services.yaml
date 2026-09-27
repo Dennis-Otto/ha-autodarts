@@ -109,3 +109,36 @@ export:
       example: "www/autodarts"
       selector:
         text:
+
+link_player:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: autodarts
+    player:
+      required: true
+      example: "Dennis"
+      selector:
+        text:
+    person:
+      required: true
+      example: "person.dennis"
+      selector:
+        entity:
+          filter:
+            domain: person
+
+unlink_player:
+  fields:
+    config_entry_id:
+      required: false
+      selector:
+        config_entry:
+          integration: autodarts
+    player:
+      required: true
+      example: "Dennis"
+      selector:
+        text:

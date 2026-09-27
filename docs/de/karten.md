@@ -172,6 +172,7 @@ show_system: false
 - **Trainingsspiele:** das Ziel in großer Schrift mit Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training: Rest, Weg und Checkout-Quote).
 - **Zwischen den Spielen:** der Titel (der Board-Name, wenn du keinen `title` setzt) und die Punkte der aktuellen Aufnahme zusammen mit Darts, 3-Dart-Average, höchster Aufnahme und 180ern der Trainingssession, der Trainingsserie und den Darts von heute zum Tagesziel.
 - **Sieger:** Ein Banner nennt den Matchgewinner bis zum nächsten Dart.
+- **Bilder:** Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person neben ihrem Namen.
 - **Aufnahme:** Unten stehen die drei Darts der aktuellen Aufnahme und ihre Punkte.
 - **Caller:** Mit `caller: true` sagt der Bildschirm am Board das Spiel selbst an, auf Deutsch oder Englisch, je nach Sprache von Home Assistant (andere Sprachen hören Englisch). Er sagt nur an, was zählt:
   - X01: die Punkte, die eine Aufnahme gebracht hat, „Überworfen“ nach dem Überwerfen, „Keine Punkte“ für eine Aufnahme vor dem öffnenden Double, „du brauchst 81“, sobald sich der Rest beenden lässt (bis 170 mit Double-Out, 180 ohne), das Game shot von Leg und Match und eine Fanfare bei einer 180, die gezählt hat.
@@ -185,6 +186,38 @@ show_system: false
 <img src="../images/de/scoreboard-cricket.png" alt="Anzeigetafel bei Cricket zwischen Alex und Sam: die Kreidetafel mit Marks, Punkten und Marks pro Runde, T19 als nächstes Ziel" width="760">
 
 Das [automatische Dashboard](#automatisches-dashboard) hat eine Ansicht *Anzeigetafel*, die die Karte über den ganzen Bildschirm zeigt. Öffne sie auf dem Tablet und nutze den Vollbildmodus des Browsers oder die Home-Assistant-App im Kioskmodus. Auf dem Handy lässt die bildschirmfüllende Anzeigetafel Platz für die Adresszeile des Browsers.
+
+### Spielauswahl
+
+Wähle das nächste Spiel direkt am Board, ohne Handy: Tippe zwischen den Spielen auf **Neues Spiel** unter den Punkten oder jederzeit oben rechts. Einige Sekunden nach dem Ende eines Matches oder Trainingsspiels öffnet sich die Auswahl auch von selbst, mit der letzten Wahl für eine Revanche; wirft stattdessen jemand einen Dart, schließt sie sich wieder.
+
+<img src="../images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Auswahl, Cricket wird gewählt, Sam kommt zu Alex, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
+
+- **Spiel:** jedes Spiel von *Übungsspiel*, gruppiert in X01, Cricket, Partyspiele und Trainingsspiele. `lobby_games` schränkt die Auswahl ein.
+- **Spieler:** bis zu vier, in Wurfreihenfolge. Tippe auf einen Namen, um den Spieler hinzuzufügen, auf ▲ und ▼, um ihn zu verschieben, und auf ✕, um ihn zu entfernen. Die Namen kommen aus den Spielerprofilen und den Namensfeldern der Spieler; Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, die zu Hause ist, stehen vorn, mit ihrem Bild und ⌂. Tippe einen neuen Namen ein oder füge einen Gast ohne Namen hinzu. Ist niemand gewählt, wirft ein Spieler ohne Namen. Killer braucht zwei Spieler; Trainingsspiele nehmen nur den ersten Spieler.
+- **Format:** Legs pro Satz und Sätze zum Sieg, für ein Match mehrerer Spieler.
+- **Optionen:** Double-Out und Double-In bei X01 und das Ausbullen für ein Match, mit Ausbullen nach Abstand, wo das Board es anbietet.
+- **Start:** startet das Spiel mit [`autodarts.start_game`](entitaeten.md#übungsspiel-starten-autodartsstart_game), und die Anzeigetafel zeigt es sofort. Während eines Spiels beendet *Spiel beenden* es nach einem zweiten Tippen.
+
+In der Vorschau des Karteneditors öffnet sich die Auswahl nie.
+
+<img src="../images/de/scoreboard-lobby.png" alt="Die Spielauswahl auf einem Tablet im Querformat: die Spiele nach Gruppen mit 501 gewählt, Alex und Sam mit ihren Bildern, drei Legs pro Satz, Double-Out und die Starttaste" width="760">
+
+### Ruhemodus
+
+Läuft kein Spiel oder ist ein Match oder Trainingsspiel entschieden, und wirft oder tippt niemand für `idle_after` Sekunden (3 Minuten), zeigt die Anzeigetafel diese Tafeln im Wechsel, jede für `idle_interval` Sekunden:
+
+| Tafel | Zeigt |
+| --- | --- |
+| `leaderboard` | Die fünf besten Spieler nach 3-Dart-Average, dann nach gewonnenen Legs, mit ihren Bildern |
+| `records` | Die Bestleistungen des Boards und die längste Trainingsserie |
+| `today` | Die Darts von heute zum Tagesziel, 3-Dart-Average, höchste Aufnahme und 180er der Session sowie die Serie |
+| `last_match` | Das letzte Match mehrerer Spieler: das Spiel, wann es endete, und Legs oder Sätze und Average aller Spieler |
+| `clock` | Uhrzeit und Datum |
+
+Tafeln ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tippen irgendwo beendet den Ruhemodus. Auf Geräten, die weniger Bewegung wünschen, wechseln die Tafeln ohne Überblenden.
+
+<img src="../images/de/scoreboard-idle.png" alt="Ruhemodus der Anzeigetafel: die Bestenliste mit Alex, Sam und Kim, ihren Bildern, 3-Dart-Averages und gewonnenen Legs" width="760">
 
 ### Optionen
 
@@ -200,14 +233,23 @@ Das [automatische Dashboard](#automatisches-dashboard) hat eine Ansicht *Anzeige
 | `call_checkouts` | Wahrheitswert | `true` | Ansagen, was der nächste Spieler braucht, wenn ein Checkout möglich ist |
 | `call_results` | Wahrheitswert | `true` | Überwerfen und Game shot ansagen |
 | `call_sounds` | Wahrheitswert | `true` | Eine Fanfare bei einer 180 spielen |
+| `lobby` | Wahrheitswert | `true` | Die [Spielauswahl](#spielauswahl) anbieten |
+| `lobby_games` | Liste von Spielen | jedes Spiel | Die Spiele, die die Spielauswahl anbietet, etwa `["501", cricket, killer]` |
+| `idle` | Wahrheitswert | `true` | Den [Ruhemodus](#ruhemodus) einschalten |
+| `idle_after` | Sekunden, 10–3600 | `180` | Zeit ohne Darts und Tippen, bis der Ruhemodus beginnt |
+| `idle_interval` | Sekunden, 3–120 | `10` | Zeit, die jede Tafel zu sehen ist |
+| `idle_panels` | Liste von Tafeln | jede Tafel | Die Tafeln des Ruhemodus in dieser Reihenfolge: `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Spieler am Board, Wege und Aufnahmepunkte |
 
-Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*.
+Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl und Ruhemodus haben eigene eingeklappte Abschnitte.
 
 ```yaml
 type: custom:autodarts-scoreboard-card
 full_height: true
 caller: true
+lobby_games: ["301", "501", cricket, killer]
+idle_after: 300
+idle_panels: [leaderboard, today, clock]
 ```
 
 ## Doubles-Karte
@@ -227,9 +269,9 @@ caller: true
 
 ## Spielerkarte
 
-`custom:autodarts-players-card` zeigt die [Spielerprofile](entitaeten.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Sieger. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter.
+`custom:autodarts-players-card` zeigt die [Spielerprofile](entitaeten.md#spielerprofile): eine Kachel pro benanntem Spieler mit gewonnenen Legs und Matches, 3-Dart-Average, First 9, Checkout-Quote, Marks pro Runde und der besten MPR eines Cricket-Legs, höchster Aufnahme und höchstem Checkout sowie den wenigsten Darts pro Startwert. Spieler, die [mit einer Person verknüpft](entitaeten.md#spieler-mit-einer-person-verknüpfen-autodartslink_player) sind, zeigen das Bild der Person. Darunter die direkten Vergleiche mit Balken und die letzten Matches mit ihrem Sieger. Auf Wunsch lädt eine Taste *Exportieren* alles als Datei herunter.
 
-<img src="../images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
+<img src="../images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim mit ihren Bildern, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
 
 ### Optionen
 
@@ -283,7 +325,7 @@ Alle Optionen lassen sich im visuellen Editor einstellen. Er ist ein Formular vo
 
 - Die Geräteauswahl bietet nur Autodarts-Boards an.
 - Schalter zeigen ihren Standard, bis du sie änderst; Listen nennen ihren Standard unter dem Feld.
-- Die Caller-Optionen der Anzeigetafel stehen in einem eingeklappten Abschnitt, die Doubles-Karte bietet die benannten Spieler an.
+- Caller-Optionen, Spielauswahl und Ruhemodus der Anzeigetafel stehen in eingeklappten Abschnitten; die Doubles-Karte bietet die benannten Spieler an.
 - Eine Option, die das Formular nicht darstellen kann, etwa ein vertipptes `layout`, schickt den Editor in die Code-Ansicht, mit einer Meldung, die sie nennt.
 
 <img src="../images/de/card-editor.png" alt="Der visuelle Editor der Live-Karte" width="760">
