@@ -22,6 +22,8 @@ homeassistant:
     - type: homeassistant
 
 api:
+# demo.py writes the automations of the demo, such as the weekly report.
+automation: !include_dir_merge_list automations
 config:
 diagnostics:
 frontend:

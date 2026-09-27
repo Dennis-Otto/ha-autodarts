@@ -27,10 +27,13 @@ The scenario uses only Home Assistant's public REST and WebSocket APIs and verif
   must come through them
 - the online bridge: switched on in the options, calls of Tools for Autodarts
   become board events and the diagnostic sensor, and switched off it is gone
+- the weekly report and its settings, the training calendar through
+  `calendar.get_events`, and exports as JSON and CSV with their download, with and
+  without a login, and a refused folder outside the configuration
 - diagnostics without the board ID, API key or webhook address, and logs without
   errors, tracebacks or secrets
 - removal of the entry, its entities, the realtime connection and the stored
-  training session
+  training session, weekly report and journal
 
 Optional environment variables:
 
