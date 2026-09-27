@@ -1,7 +1,9 @@
 """Practice games on the local board for up to four players, and training games.
 
-X01, Cricket and the party games Shanghai, Halve-It and Killer; with several
-players, a bull-off can decide who starts.
+X01 with a start score of its own for every player, Cricket, Cut-Throat and
+Tactics, the party games, and the training games; X01 and the Cricket games
+also as two teams of two. With several players, a bull-off can decide who
+starts.
 """
 
 from __future__ import annotations
@@ -12,17 +14,26 @@ from typing import Any
 from homeassistant.util import dt as dt_util
 
 from .checkout import checkout
-from .cricket import CRICKET_NUMBERS, marks_per_round, next_target, play_visit
+from .cricket import (
+    CRICKET_GAMES,
+    CRICKET_NUMBERS,
+    CricketVisit,
+    marks_per_round,
+    next_target,
+    play_visit,
+)
 from .doubles import DoubleStats, aimed_at, hits
 from .drills import DRILLS, Drill, make_drill
 from .party import (
-    HALVE_IT_TARGETS,
+    COUNT_UP_ROUNDS,
+    GOLF_HOLES,
+    MAX_ROUNDS,
     PARTY_GAMES,
-    SHANGHAI_ROUNDS,
     BullOff,
     PartyGame,
     Visit,
     distance_mm,
+    inner_single,
     make_party,
 )
 from .profiles import NAME_LENGTH, Profiles
@@ -39,6 +50,10 @@ STATS_KEYS = ("first9_points", "first9_darts", "at_double", "checkouts")
 MAX_PLAYERS = 4
 MAX_LEGS = 11
 MAX_SETS = 7
+# A start score of its own: 0 plays the game's, otherwise 2 to 1001.
+MAX_START = 1001
+# Two teams of two: players 1 and 3 against players 2 and 4.
+TEAM_PLAYERS = 4
 # The rules of the practice game that players switch on and off.
 OPTIONS = (
     "double_out",
@@ -46,13 +61,19 @@ OPTIONS = (
     "bull_off",
     "bull_off_distance",
     "personal_routes",
+    "teams",
 )
 # The games to choose from, as the practice game select and start_game offer them.
-GAME_OPTIONS = (*(str(game) for game in GAMES), CRICKET, *PARTY_GAMES, *DRILLS)
+GAME_OPTIONS = (*(str(game) for game in GAMES), *CRICKET_GAMES, *PARTY_GAMES, *DRILLS)
 
 
 def _count(value: object, low: int, high: int, default: int) -> int:
     return value if type(value) is int and low <= value <= high else default
+
+
+def valid_start(value: object) -> bool:
+    """0 for the game's start score, or a start score of 2 to 1001."""
+    return type(value) is int and (value == 0 or 2 <= value <= MAX_START)
 
 
 @dataclass
@@ -79,14 +100,14 @@ class Player:
     # Double in: scoring starts with the first double of the leg.
     opened: bool = False
 
-    def new_leg(self, game: int) -> None:
-        self.remaining, self.darts, self.points = game, 0, 0
+    def new_leg(self, start: int, slots: int = len(CRICKET_NUMBERS)) -> None:
+        self.remaining, self.darts, self.points = start, 0, 0
         self.first9_points, self.first9_darts, self.at_double = 0, 0, 0
-        self.marks, self.marks_hit = [0] * len(CRICKET_NUMBERS), 0
+        self.marks, self.marks_hit = [0] * slots, 0
         self.opened = False
 
     @classmethod
-    def restored(cls, saved: object, game: int) -> Player:
+    def restored(cls, saved: object, slots: int = len(CRICKET_NUMBERS)) -> Player:
         data = saved if isinstance(saved, dict) else {}
         numbers = {
             key: _count(data.get(key), 0, 10**6, 0)
@@ -94,17 +115,14 @@ class Player:
             if type(value) is int
         }
         marks = data.get("marks")
-        valid = isinstance(marks, list) and len(marks) == len(CRICKET_NUMBERS)
-        player = cls(
+        valid = isinstance(marks, list) and len(marks) == slots
+        return cls(
             **numbers,
             marks=[_count(mark, 0, 3, 0) for mark in marks]
             if valid and isinstance(marks, list)
-            else [0] * len(CRICKET_NUMBERS),
+            else [0] * slots,
             opened=data.get("opened") is True,
         )
-        if player.remaining > game:
-            player.new_leg(game)
-        return player
 
 
 class PracticeGame:
@@ -119,7 +137,8 @@ class PracticeGame:
     def __init__(self) -> None:
         # The X01 start score; 0 while no X01 game is played.
         self.game = 0
-        self.cricket = False
+        # The Cricket game being played: cricket, cut_throat or tactics.
+        self.cricket: str | None = None
         self.party: PartyGame | None = None
         self.double_out = True
         self.double_in = False
@@ -129,6 +148,12 @@ class PracticeGame:
         self.bull_off_distance = False
         # Checkout routes over the strongest doubles of the player at the board.
         self.personal_routes = False
+        # Four players of X01 or Cricket play as two teams of two.
+        self.teams = False
+        # A start score of their own per player; 0 plays the game's.
+        self.starts = [0] * MAX_PLAYERS
+        self.golf_holes = GOLF_HOLES[0]
+        self.count_up_rounds = COUNT_UP_ROUNDS
         # The bull-off before a match of several players, while it runs.
         self.bulling: BullOff | None = None
         self.legs_to_win = 1
@@ -161,12 +186,21 @@ class PracticeGame:
     def restore(self, saved: object) -> None:
         if not isinstance(saved, dict):
             return
-        if saved.get("game") in GAMES:
-            self.game = saved["game"]
-        self.cricket = saved.get("game") == CRICKET
+        kind = saved.get("game")
+        if kind in GAMES:
+            self.game = kind
+        self.cricket = kind if kind in CRICKET_GAMES else None
         for option in OPTIONS:
             if isinstance(saved.get(option), bool):
                 setattr(self, option, saved[option])
+        starts = saved.get("starts")
+        if isinstance(starts, list) and len(starts) == MAX_PLAYERS:
+            self.starts = [start if valid_start(start) else 0 for start in starts]
+        if saved.get("golf_holes") in GOLF_HOLES:
+            self.golf_holes = saved["golf_holes"]
+        self.count_up_rounds = _count(
+            saved.get("count_up_rounds"), 1, MAX_ROUNDS, COUNT_UP_ROUNDS
+        )
         self.legs_to_win = _count(saved.get("legs_to_win"), 1, MAX_LEGS, 1)
         self.sets_to_win = _count(saved.get("sets_to_win"), 1, MAX_SETS, 1)
         names = saved.get("names")
@@ -175,15 +209,16 @@ class PracticeGame:
                 name.strip()[:NAME_LENGTH] if isinstance(name, str) else ""
                 for name in [*names, *[""] * MAX_PLAYERS][:MAX_PLAYERS]
             ]
+        slots = len(self._numbers())
         players = saved.get("players")
         if isinstance(players, list) and 0 < len(players) <= MAX_PLAYERS:
-            self.players = [Player.restored(player, self.game) for player in players]
+            self.players = [Player.restored(player, slots) for player in players]
         else:
             # Version 1.2 stored a single player at the top level.
             self.players = [
                 Player.restored(
                     {"remaining": saved.get("remaining"), "darts": saved.get("darts")},
-                    self.game,
+                    slots,
                 )
             ]
         last = len(self.players) - 1
@@ -201,12 +236,15 @@ class PracticeGame:
         winner = saved.get("winner")
         self.winner = winner if type(winner) is int and 0 <= winner <= last else None
         for index, player in enumerate(self.players):
-            # Only the winner of a finished match has nothing left to score.
-            if self.game and not player.remaining and index != self.winner:
-                player.new_leg(self.game)
-        kind = saved.get("game")
+            start = self._start(index)
+            # Only the winners of a finished match have nothing left to score.
+            left = player.remaining or index in self._winners()
+            if self.game and (player.remaining > start or not left):
+                player.new_leg(start, slots)
         self.party = (
-            make_party(kind, len(self.players)) if kind in PARTY_GAMES else None
+            make_party(kind, len(self.players), self._rounds(kind))
+            if kind in PARTY_GAMES
+            else None
         )
         if self.party:
             self.party.restore(saved.get("party"))
@@ -225,19 +263,19 @@ class PracticeGame:
         self.profiles.restore(saved.get("profiles"))
         self.doubles.restore(saved.get("doubles"))
         drills = saved.get("drills")
-        for kind, drill in self.drills.items():
-            state = drills.get(kind) if isinstance(drills, dict) else None
+        for drill_kind, drill in self.drills.items():
+            state = drills.get(drill_kind) if isinstance(drills, dict) else None
             if isinstance(state, dict):
                 drill.restore(state)
         self.drill = saved["drill"] if saved.get("drill") in DRILLS else None
         if self.drill:
-            self.game, self.cricket, self.party, self.bulling = 0, False, None, None
+            self.game, self.cricket, self.party, self.bulling = 0, None, None, None
         legs = saved.get("legs")
         self.legs = [
             dict(leg)
             for leg in (legs if isinstance(legs, list) else [])
             if isinstance(leg, dict)
-            and leg.get("game") in (*GAMES, CRICKET, *PARTY_GAMES)
+            and leg.get("game") in (*GAMES, *CRICKET_GAMES, *PARTY_GAMES)
             and type(leg.get("darts")) is int
             and leg["darts"] > 0
         ][:LEG_HISTORY]
@@ -250,6 +288,10 @@ class PracticeGame:
             "bull_off": self.bull_off,
             "bull_off_distance": self.bull_off_distance,
             "personal_routes": self.personal_routes,
+            "teams": self.teams,
+            "starts": list(self.starts),
+            "golf_holes": self.golf_holes,
+            "count_up_rounds": self.count_up_rounds,
             "doubles": self.doubles.stored(),
             "party": self.party.stored() if self.party else None,
             "bulling": self.bulling.stored() if self.bulling else None,
@@ -272,15 +314,15 @@ class PracticeGame:
     # -- settings --------------------------------------------------------------
 
     def play(self, game: int | str) -> None:
-        """Start a match of X01, Cricket or a party game, or a training game.
+        """Start a match of X01, a Cricket or party game, or a training game.
 
         0 stops playing.
         """
         self.drill = game if isinstance(game, str) and game in DRILLS else None
-        self.cricket = game == CRICKET
+        self.cricket = game if isinstance(game, str) and game in CRICKET_GAMES else None
         self.game = game if not self.drill and game in GAMES else 0
         self.party = (
-            make_party(game, len(self.players))
+            make_party(game, len(self.players), self._rounds(game))
             if isinstance(game, str) and game in PARTY_GAMES
             else None
         )
@@ -296,6 +338,25 @@ class PracticeGame:
         if sets is not None:
             self.sets_to_win = _count(sets, 1, MAX_SETS, self.sets_to_win)
         self.new_match()
+
+    def set_start(self, index: int, start: int) -> None:
+        """A start score of the player's own, or 0 for the game's; a new match."""
+        if 0 <= index < MAX_PLAYERS and valid_start(start):
+            self.starts[index] = start
+        self.new_match()
+
+    def set_rounds(
+        self, golf_holes: int | None = None, count_up_rounds: int | None = None
+    ) -> None:
+        """Holes of Golf and rounds of Count-Up; the game being played starts anew."""
+        if golf_holes in GOLF_HOLES:
+            self.golf_holes = golf_holes
+        if count_up_rounds is not None:
+            self.count_up_rounds = _count(
+                count_up_rounds, 1, MAX_ROUNDS, self.count_up_rounds
+            )
+        if self.party and self.party.kind in ("golf", "count_up"):
+            self.play(self.party.kind)
 
     def set_name(self, index: int, name: str) -> None:
         if 0 <= index < MAX_PLAYERS:
@@ -319,11 +380,18 @@ class PracticeGame:
         self.new_leg()
 
     def new_leg(self) -> None:
-        """Start the leg from the full score; darts already thrown do not count."""
+        """Start the leg from the full score; darts already thrown do not count.
+
+        After a finished match, the next match starts.
+        """
+        if self.winner is not None:
+            self.new_match()
+            return
         if self.drill:
             self.drills[self.drill].reset(len(self._visit))
-        for player in self.players:
-            player.new_leg(self.game)
+        slots = len(self._numbers())
+        for index, player in enumerate(self.players):
+            player.new_leg(self._start(index), slots)
         if self.party:
             self.party.new_leg(len(self.players), self.starter)
         self.current = self.starter
@@ -338,11 +406,71 @@ class PracticeGame:
     def _kind(self) -> int | str:
         """The game as events and storage name it: 501, cricket or killer."""
         if self.cricket:
-            return CRICKET
+            return self.cricket
         return self.party.kind if self.party else self.game
 
     def _playing(self) -> bool:
         return bool(self.game or self.cricket or self.party)
+
+    def _numbers(self) -> tuple[int, ...]:
+        """The numbers of the Cricket game: 20 to 15 and the bull, or Tactics'."""
+        return CRICKET_GAMES[self.cricket] if self.cricket else CRICKET_NUMBERS
+
+    def _rounds(self, kind: object) -> int | None:
+        return {"golf": self.golf_holes, "count_up": self.count_up_rounds}.get(
+            str(kind)
+        )
+
+    def _start(self, index: int) -> int:
+        """The score a player starts X01 legs from: their own, or the game's.
+        Partners play from the start of the first player of their team."""
+        if not self.game:
+            return 0
+        own = self.starts[index % 2 if self._teamed() else index]
+        return own or self.game
+
+    def _teamed(self) -> bool:
+        """Four players of X01 or a Cricket game play as two teams."""
+        return (
+            self.teams
+            and len(self.players) == TEAM_PLAYERS
+            and bool(self.game or self.cricket)
+        )
+
+    def _side(self, index: int) -> list[int]:
+        """The player and their partner in a team, in seat order."""
+        return [index % 2, index % 2 + 2] if self._teamed() else [index]
+
+    def _winners(self) -> list[int]:
+        return [] if self.winner is None else self._side(self.winner)
+
+    def _team_name(self, team: int) -> str | None:
+        """Alex & Kim, when both players of the team have a name."""
+        names = [self.names[team], self.names[team + 2]]
+        return " & ".join(names) if all(names) else None
+
+    def _share(self, index: int) -> None:
+        """Partners keep one score: the remaining score and the opening double
+        in X01, the marks and points in Cricket."""
+        player = self.players[index]
+        for other in self._side(index):
+            partner = self.players[other]
+            partner.remaining, partner.opened = player.remaining, player.opened
+            partner.marks = list(player.marks)
+            if self.cricket:
+                partner.points = player.points
+
+    def _teams_snapshot(self) -> list[dict[str, Any]] | None:
+        if not self._teamed():
+            return None
+        return [
+            {
+                "team": team + 1,
+                "name": self._team_name(team),
+                "players": [team + 1, team + 3],
+            }
+            for team in (0, 1)
+        ]
 
     @property
     def kind(self) -> int | str | None:
@@ -357,12 +485,20 @@ class PracticeGame:
         return self._name(self.bulling.thrower if self.bulling else self.current)
 
     def _who(self, index: int) -> dict[str, Any]:
-        return {
+        who = {
             "game": self._kind(),
             "player": index + 1,
             "name": self._name(index),
             "players": len(self.players),
         }
+        if self._teamed():
+            who["team"] = index % 2 + 1
+            who["team_name"] = self._team_name(index % 2)
+        return who
+
+    def _sum(self, index: int, key: str) -> int:
+        """A number of the player, or of both partners in a team."""
+        return sum(getattr(self.players[other], key) for other in self._side(index))
 
     def _thrown(self) -> list[dict[str, Any]]:
         return self._visit[self._skip : VISIT_DARTS]
@@ -418,12 +554,14 @@ class PracticeGame:
 
     def _final(self, winner: int, legs: int, sets: int) -> list[dict[str, Any]]:
         """Legs and sets of everybody once this leg decides the match."""
+        side = self._side(winner)
         return [
             {
                 "player": index + 1,
                 "name": self._name(index),
-                "legs": legs if index == winner else player.legs,
-                "sets": sets if index == winner else player.sets,
+                "legs": legs if index in side else player.legs,
+                "sets": sets if index in side else player.sets,
+                **({"team": index % 2 + 1} if self._teamed() else {}),
             }
             for index, player in enumerate(self.players)
         ]
@@ -462,7 +600,8 @@ class PracticeGame:
             ]
         if outcome != "won":
             return []
-        leg_darts = player.darts + darts
+        leg_darts = self._sum(self.current, "darts") + darts
+        start = self._start(self.current)
         legs, sets, match = self._result(self.current)
         events: list[tuple[str, dict[str, Any]]] = [
             (
@@ -470,8 +609,9 @@ class PracticeGame:
                 {
                     **self._who(self.current),
                     "darts": leg_darts,
-                    "average": _average(self.game, leg_darts),
+                    "average": _average(start, leg_darts),
                     "checkout": player.remaining,
+                    "start": start,
                     "double_out": self.double_out,
                     "double_in": self.double_in,
                     "legs": legs,
@@ -490,8 +630,8 @@ class PracticeGame:
                         "sets": sets,
                         "scores": self._final(self.current, legs, sets),
                         "average": _average(
-                            player.match_points + player.remaining,
-                            player.match_darts + darts,
+                            self._sum(self.current, "match_points") + player.remaining,
+                            self._sum(self.current, "match_darts") + darts,
                         ),
                     },
                 )
@@ -531,6 +671,7 @@ class PracticeGame:
                 self._book_leg()
             else:
                 player.remaining = remaining
+                self._share(self.current)
                 self.current = (self.current + 1) % len(self.players)
             if self.winner is None:
                 # Also when playing alone: the next visit is up, for callers.
@@ -677,38 +818,43 @@ class PracticeGame:
 
     # -- cricket -----------------------------------------------------------------
 
-    def _cricket_visit(self) -> tuple[list[int], int, int, bool, int]:
+    def _opponents(self) -> list[int]:
+        side = self._side(self.current)
+        return [index for index in range(len(self.players)) if index not in side]
+
+    def _cricket_visit(self) -> CricketVisit:
         player = self.players[self.current]
-        others = [
-            item for index, item in enumerate(self.players) if index != self.current
-        ]
+        opponents = [self.players[index] for index in self._opponents()]
         return play_visit(
             player.marks,
             player.points,
             self._thrown(),
-            [item.marks for item in others],
-            [item.points for item in others],
+            [item.marks for item in opponents],
+            [item.points for item in opponents],
+            self._numbers(),
+            self.cricket == "cut_throat",
         )
 
     def _track_cricket(self) -> list[tuple[str, dict[str, Any]]]:
-        _, points, darts, won, counted = self._cricket_visit()
-        outcome = "won" if won else None
+        visit = self._cricket_visit()
+        outcome = "won" if visit.won else None
         if outcome == self._announced:
             return []
         self._announced = outcome
-        if not won:
+        if not visit.won:
             return []
-        player = self.players[self.current]
         legs, sets, match = self._result(self.current)
-        leg_darts = player.darts + darts
+        leg_darts = self._sum(self.current, "darts") + visit.darts
         events: list[tuple[str, dict[str, Any]]] = [
             (
                 "leg_won",
                 {
                     **self._who(self.current),
                     "darts": leg_darts,
-                    "points": points,
-                    "mpr": marks_per_round(player.marks_hit + counted, leg_darts),
+                    "points": visit.points,
+                    "mpr": marks_per_round(
+                        self._sum(self.current, "marks_hit") + visit.counted, leg_darts
+                    ),
                     "legs": legs,
                     "sets": sets,
                     "match": match,
@@ -725,7 +871,8 @@ class PracticeGame:
                         "sets": sets,
                         "scores": self._final(self.current, legs, sets),
                         "mpr": marks_per_round(
-                            player.match_marks + counted, player.match_darts + darts
+                            self._sum(self.current, "match_marks") + visit.counted,
+                            self._sum(self.current, "match_darts") + visit.darts,
                         ),
                     },
                 )
@@ -733,53 +880,69 @@ class PracticeGame:
         return events
 
     def _book_cricket(self) -> list[tuple[str, dict[str, Any]]]:
-        marks, points, darts, won, counted = self._cricket_visit()
+        visit = self._cricket_visit()
         player = self.players[self.current]
-        player.marks, player.points = marks, points
-        player.darts += darts
-        player.match_darts += darts
-        player.marks_hit += counted
-        player.match_marks += counted
-        if won:
+        player.marks, player.points = visit.marks, visit.points
+        # Cut-Throat gives the points to the others.
+        for index, points in zip(self._opponents(), visit.others, strict=True):
+            self.players[index].points = points
+        player.darts += visit.darts
+        player.match_darts += visit.darts
+        player.marks_hit += visit.counted
+        player.match_marks += visit.counted
+        self._share(self.current)
+        if visit.won:
             self._book_leg()
         else:
             self.current = (self.current + 1) % len(self.players)
         return [] if self.winner is not None else [self._turn()]
 
     def _cricket_snapshot(self, common: dict[str, Any]) -> dict[str, Any]:
-        marks, points, darts, won, counted = self._cricket_visit()
-        player = self.players[self.current]
-        done = won or self.winner is not None
+        visit = self._cricket_visit()
+        side, opponents = self._side(self.current), self._opponents()
+        done = visit.won or self.winner is not None
+        darts = self._sum(self.current, "darts") + visit.darts
+
+        def points(index: int) -> int:
+            if index in side:
+                return visit.points
+            return visit.others[opponents.index(index)]
+
         return {
-            "game": CRICKET,
+            "game": self.cricket,
             **common,
             "player": self.current + 1,
             "name": self._name(self.current),
             "winner": None if self.winner is None else self.winner + 1,
             "remaining": None,
             "checkout": None,
-            "target": None if done else next_target(marks),
+            "target": None if done else next_target(visit.marks, self._numbers()),
             "bust": False,
-            "won": won,
+            "won": visit.won,
             "visit": [hit_key(dart) for dart in self._thrown()],
-            "darts": player.darts + darts,
+            "darts": darts,
             "average": None,
-            "points": points,
-            "mpr": marks_per_round(player.marks_hit + counted, player.darts + darts),
-            "numbers": list(CRICKET_NUMBERS),
+            "points": visit.points,
+            "mpr": marks_per_round(
+                self._sum(self.current, "marks_hit") + visit.counted, darts
+            ),
+            "numbers": list(self._numbers()),
             "scores": [
                 {
                     "player": index + 1,
                     "name": self._name(index),
-                    "marks": marks if index == self.current else list(item.marks),
-                    "points": points if index == self.current else item.points,
+                    "marks": list(visit.marks if index in side else item.marks),
+                    "points": points(index),
                     "legs": item.legs,
                     "sets": item.sets,
                     "match_legs": item.match_legs,
                     "mpr": marks_per_round(
-                        item.match_marks + (counted if index == self.current else 0),
-                        item.match_darts + (darts if index == self.current else 0),
+                        item.match_marks
+                        + (visit.counted if index == self.current else 0),
+                        item.match_darts
+                        + (visit.darts if index == self.current else 0),
                     ),
+                    **({"team": index % 2 + 1} if self._teamed() else {}),
                 }
                 for index, item in enumerate(self.players)
             ],
@@ -824,9 +987,16 @@ class PracticeGame:
             )
         return events
 
+    def _party_darts(self) -> list[dict[str, Any]]:
+        """The darts of the visit, with the single bed the board saw them in."""
+        return [
+            {**dart, "inner": inner_single(self._position(index))}
+            for index, dart in enumerate(self._thrown())
+        ]
+
     def _party_visit(self) -> Visit:
         assert self.party is not None
-        return self.party.visit(self.current, self._thrown())
+        return self.party.visit(self.current, self._party_darts())
 
     def _track_party(self) -> list[tuple[str, dict[str, Any]]]:
         """Shanghai and Killer can be won with a single dart."""
@@ -847,9 +1017,8 @@ class PracticeGame:
         assert self.party is not None
         if not self._party_ready():
             return []
-        thrown = self._thrown()
         announced = self._announced == "won"
-        result = self.party.book(self.current, thrown)
+        result = self.party.book(self.current, self._party_darts())
         events: list[tuple[str, dict[str, Any]]] = []
         if result.won is not None and result.won >= 0 and not announced:
             # A win at the end of the last round is known only now.
@@ -896,8 +1065,8 @@ class PracticeGame:
             number = result.numbers[self.current]
             killer = result.killers[self.current]
             target = None if number is None or killer else f"D{number}"
-        rounds = {"shanghai": SHANGHAI_ROUNDS, "halve_it": len(HALVE_IT_TARGETS)}
         choosing = party.kind == "killer" and None in getattr(party, "numbers", [])
+        playoff = party.playoff()
         player = self.players[self.current]
         return {
             "game": party.kind,
@@ -914,10 +1083,9 @@ class PracticeGame:
             "darts": player.darts + (result.darts if result else 0),
             "average": None,
             "points": points[self.current],
-            "round": min(party.round, rounds[party.kind])
-            if party.kind in rounds
-            else None,
-            "rounds": rounds.get(party.kind),
+            "round": party.shown_round,
+            "rounds": party.rounds,
+            "playoff": None if playoff is None else [index + 1 for index in playoff],
             "phase": "choose" if choosing else "play",
             "needs_players": None if ready else 2,
             "scores": [
@@ -937,12 +1105,16 @@ class PracticeGame:
     def _leg_entries(self) -> list[dict[str, Any]]:
         """Every player's numbers of the leg that just ended, for the profiles."""
         entries = []
+        side = self._side(self.current)
         for index, player in enumerate(self.players):
             entry: dict[str, Any] = {
                 "name": self._name(index),
-                "won": index == self.current,
+                "won": index in side,
                 "darts": player.darts,
             }
+            if self._teamed():
+                # A team leg sets no record of fewest darts for one player.
+                entry["team"] = True
             if self.cricket:
                 entry["marks"] = player.marks_hit
             elif not self.party:
@@ -953,6 +1125,7 @@ class PracticeGame:
                     at_double=player.at_double,
                     double_out=self.double_out,
                     double_in=self.double_in,
+                    start=self._start(index),
                     checkout=player.remaining if index == self.current else 0,
                 )
             entries.append(entry)
@@ -968,6 +1141,8 @@ class PracticeGame:
                 "sets": player.sets,
                 "match_legs": player.match_legs,
             }
+            if self._teamed():
+                entry["team"] = index % 2 + 1
             if self.cricket:
                 entry["mpr"] = marks_per_round(player.match_marks, player.match_darts)
             elif self.party:
@@ -980,20 +1155,23 @@ class PracticeGame:
     def _book_leg(self) -> None:
         self.profiles.leg(self._kind(), self._leg_entries())
         winner = self.players[self.current]
+        side = self._side(self.current)
+        darts = self._sum(self.current, "darts")
         if self.cricket:
             record = {
-                "darts": winner.darts,
+                "darts": darts,
                 "points": winner.points,
-                "mpr": marks_per_round(winner.marks_hit, winner.darts),
+                "mpr": marks_per_round(self._sum(self.current, "marks_hit"), darts),
             }
         elif self.party:
-            record = {"darts": winner.darts, "points": self.party.points[self.current]}
+            record = {"darts": darts, "points": self.party.points[self.current]}
         else:
             self._book_stats()
             record = {
-                "darts": winner.darts,
-                "average": _average(self.game, winner.darts),
+                "darts": darts,
+                "average": _average(self._start(self.current), darts),
                 "checkout": winner.remaining,
+                "start": self._start(self.current),
                 "double_out": self.double_out,
                 "double_in": self.double_in,
             }
@@ -1009,11 +1187,14 @@ class PracticeGame:
         self.legs_total += 1
         legs, sets, match = self._result(self.current)
         set_won = sets > winner.sets
-        winner.legs, winner.sets = legs, sets
-        winner.match_legs += 1
+        for index in side:
+            player = self.players[index]
+            player.legs, player.sets = legs, sets
+            player.match_legs += 1
         if match:
-            # The result stays: the winner keeps the legs of the deciding set.
-            winner.remaining = 0
+            # The result stays: the winners keep the legs of the deciding set.
+            for index in side:
+                self.players[index].remaining = 0
             self.winner = self.current
             self.profiles.match(
                 self._kind(),
@@ -1021,6 +1202,7 @@ class PracticeGame:
                 self.current,
                 self.legs_to_win,
                 self.sets_to_win,
+                side,
             )
             return
         players = len(self.players)
@@ -1047,6 +1229,7 @@ class PracticeGame:
             "drill": self.drills[self.drill].snapshot() if self.drill else None,
             "double_in": self.double_in,
             "bull_off": self._bull_off_snapshot(),
+            "teams": self._teams_snapshot(),
         }
         if self.cricket:
             return self._cricket_snapshot(common)
@@ -1057,6 +1240,7 @@ class PracticeGame:
         remaining, outcome, darts = self._evaluate()
         thrown = len(self._thrown())
         player = self.players[self.current]
+        side = self._side(self.current)
         # A bust takes an opening double of the visit back.
         opened = (
             not self.double_in
@@ -1071,7 +1255,7 @@ class PracticeGame:
         else:
             route = self._route(remaining, 3 - thrown)
         scored = player.remaining - remaining
-        leg_darts = player.darts + darts
+        leg_darts = self._sum(self.current, "darts") + darts
         return {
             "game": self.game,
             **common,
@@ -1084,16 +1268,18 @@ class PracticeGame:
             "won": outcome == "won",
             "visit": [hit_key(dart) for dart in self._thrown()],
             "darts": leg_darts,
-            "average": _average(player.points + scored, leg_darts),
+            "average": _average(self._sum(self.current, "points") + scored, leg_darts),
             "opened": opened,
+            "start": self._start(self.current),
             "scores": [
                 {
                     "player": index + 1,
                     "name": self._name(index),
-                    "remaining": remaining if index == self.current else item.remaining,
+                    "remaining": remaining if index in side else item.remaining,
                     "opened": opened
-                    if index == self.current
+                    if index in side
                     else item.opened or not self.double_in,
+                    "start": self._start(index),
                     "legs": item.legs,
                     "sets": item.sets,
                     "match_legs": item.match_legs,
@@ -1101,6 +1287,7 @@ class PracticeGame:
                         item.match_points + (scored if index == self.current else 0),
                         item.match_darts + (darts if index == self.current else 0),
                     ),
+                    **({"team": index % 2 + 1} if self._teamed() else {}),
                 }
                 for index, item in enumerate(self.players)
             ],

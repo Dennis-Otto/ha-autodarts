@@ -1,0 +1,252 @@
+"""Training games: the 121 ladder, Catch 40, the JDC Challenge and singles."""
+
+import json
+
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
+from custom_components.autodarts.checkout import checkout
+from custom_components.autodarts.drills import (
+    CATCH_TARGETS,
+    JDC_STEPS,
+    LADDER,
+    TARGETS,
+    CatchDrill,
+    JdcDrill,
+    LadderDrill,
+    SinglesDrill,
+    catch_points,
+    make_drill,
+)
+from custom_components.autodarts.practice import PracticeGame
+
+from .test_drills import throw
+from .test_practice import dart
+
+
+def restored(drill):
+    """The drill after a restart, from what the store keeps."""
+    copy = make_drill(drill.kind)
+    copy.restore(json.loads(json.dumps(drill.stored())))
+    assert copy.stored() == drill.stored()
+    return copy
+
+
+def test_the_121_ladder_climbs_on_a_finish_and_steps_down_on_a_miss():
+    drill = LadderDrill()
+    snapshot = drill.snapshot()
+    assert snapshot["target"] == "121" and snapshot["remaining"] == 121
+    assert snapshot["checkout"] == " ".join(checkout(121, 3))
+    assert snapshot["attempt_visits"] == 3 and snapshot["best"] is None
+    events = throw(drill, "T20", "T11", "D14")
+    assert events == [
+        (
+            "checkout_attempt",
+            {
+                "drill": "checkout_121",
+                "target": 121,
+                "success": True,
+                "darts": 3,
+                "attempts": 1,
+                "successes": 1,
+                "rate": 100.0,
+                "next": 122,
+            },
+        )
+    ]
+    assert drill.snapshot()["target"] == "122" and drill.snapshot()["best"] == 121
+    # Three visits without the finish step one down.
+    for _ in range(3):
+        events = throw(drill, "S1", "S1", "S1")
+    assert events[0][1]["success"] is False and events[0][1]["next"] == 121
+    # Never below 121: a bust ends the attempt as well.
+    events = throw(drill, "T20", "T20", "T20")
+    assert events[0][1]["next"] == 121 and drill.target == 121
+
+
+def test_the_121_ladder_skips_scores_without_a_checkout_and_tops_out_at_170():
+    assert 159 not in LADDER and 160 in LADDER and LADDER[-1] == 170
+    drill = LadderDrill()
+    drill.target = drill.start = 158
+    throw(drill, "T20", "T20", "D19")
+    assert drill.target == 160
+    drill.target = drill.start = 170
+    throw(drill, "T20", "T20", "BULL")
+    assert drill.target == 170
+    copy = restored(drill)
+    assert copy.target == 170 and copy.successes == 2
+    # A stored target the ladder does not know starts the ladder again.
+    fresh = LadderDrill()
+    fresh.restore({"target": 159, "start": 100})
+    assert fresh.target == 121
+
+
+def test_catch_40_scores_by_the_darts_a_checkout_takes():
+    assert [catch_points(darts) for darts in (2, 3, 4, 6)] == [3, 2, 1, 1]
+    drill = CatchDrill()
+    snapshot = drill.snapshot()
+    assert snapshot["target"] == "61" and snapshot["targets"] == 40
+    assert snapshot["attempt_visits"] == 2
+    assert snapshot["checkout"] == " ".join(checkout(61, 3))
+    # 61 in two darts: 3 points, and the next target follows.
+    drill.track(json_darts("T15", "D8"))
+    assert drill.snapshot()["won"] and drill.snapshot()["score"] == 3
+    drill.finish_visit()
+    drill.track([])
+    snapshot = drill.snapshot()
+    assert snapshot["target"] == "62" and snapshot["score"] == 3
+    assert snapshot["checkouts"] == 1 and snapshot["progress"] == 1
+    # 62 in two visits: four darts score 1.
+    throw(drill, "T10", "MISS", "MISS")
+    assert drill.snapshot()["attempt_visit"] == 2
+    throw(drill, "D16")
+    assert drill.score == 4 and drill.index == 2
+    # A bust ends the number without points.
+    throw(drill, "T20", "T20")
+    assert drill.score == 4 and drill.index == 3
+    # Two visits without the finish, too.
+    throw(drill, "S1", "S1", "S1")
+    throw(drill, "S1", "S1", "S1")
+    assert drill.score == 4 and drill.index == 4 and drill.darts == 14
+
+
+def json_darts(*names):
+    return [dart(name) for name in names]
+
+
+def test_catch_40_finishes_after_100_and_restarts_with_the_next_dart():
+    drill = CatchDrill()
+    drill.index = len(CATCH_TARGETS) - 1
+    drill.start = 100
+    drill.score, drill.checkouts, drill.darts = 50, 20, 150
+    events = throw(drill, "T20", "D20")
+    assert events == [
+        (
+            "drill_finished",
+            {"drill": "catch_40", "score": 53, "checkouts": 21, "darts": 152},
+        )
+    ]
+    snapshot = drill.snapshot()
+    assert snapshot["finished"] and snapshot["target"] is None
+    assert snapshot["progress"] == 40 and snapshot["best"] == 53
+    copy = restored(drill)
+    assert copy.finished and copy.score == 53
+    copy.track(json_darts("S1"))
+    assert copy.snapshot()["target"] == "61" and copy.snapshot()["score"] == 0
+    copy.restore({"index": 5, "start": 200, "checkouts": 90, "score": 900})
+    assert (copy.start, copy.checkouts, copy.score) == (66, 6, 18)
+
+
+def test_the_jdc_challenge_plays_shanghai_doubles_and_shanghai():
+    assert len(JDC_STEPS) == 33
+    drill = JdcDrill()
+    snapshot = drill.snapshot()
+    assert snapshot["target"] == "10" and snapshot["part"] == 1
+    # A single, double and treble of the number: its value and 100.
+    throw(drill, "S10", "D10", "T10")
+    assert drill.parts == [160, 0, 0] and drill.snapshot()["target"] == "11"
+    for number in range(11, 16):
+        throw(drill, f"T{number}", "S1")
+    assert drill.parts == [160 + 3 * sum(range(11, 16)), 0, 0]
+    snapshot = drill.snapshot()
+    assert snapshot["target"] == "D1" and snapshot["part"] == 2
+    # One dart per double: the target moves with every dart.
+    drill.track(json_darts("D1"))
+    assert drill.snapshot()["target"] == "D2" and drill.snapshot()["parts"][1] == 50
+    assert drill.double_attempts() == [("D1", True)]
+    drill.finish_visit()
+    drill.track([])
+    throw(drill, "D2", "S3", "D4")
+    for start in range(5, 20, 3):
+        throw(drill, *(f"D{number}" for number in range(start, start + 3)))
+    # The bullseye is worth 100; darts after it do not count.
+    events = throw(drill, "D20", "BULL", "T20")
+    assert drill.parts[1] == 50 * 19 + 100 and drill.snapshot()["part"] == 3
+    assert events == [] and drill.darts == 13 + 21
+    for number in range(15, 20):
+        throw(drill, f"S{number}")
+    events = throw(drill, "T20", "D20", "S20")
+    score = sum(drill.parts)
+    assert events == [
+        (
+            "drill_finished",
+            {
+                "drill": "jdc_challenge",
+                "score": score,
+                "parts": drill.parts,
+                "darts": 13 + 21 + 8,
+            },
+        )
+    ]
+    snapshot = drill.snapshot()
+    assert snapshot["finished"] and snapshot["target"] is None
+    assert snapshot["progress"] == 33 and snapshot["best"] == score
+    assert drill.double_attempts() == []
+    copy = restored(drill)
+    assert copy.finished and copy.step == 33
+    copy.restore({"step": 99, "parts": [1, 2]})
+    assert copy.step == 32 and copy.parts == drill.parts
+
+
+def test_singles_score_a_point_per_mark_on_the_number():
+    drill = SinglesDrill()
+    assert drill.snapshot()["target"] == "1" and drill.snapshot()["targets"] == 21
+    throw(drill, "S1", "D1", "T2")
+    snapshot = drill.snapshot()
+    assert snapshot["target"] == "2" and snapshot["score"] == 3
+    assert snapshot["hits"] == 2 and snapshot["hit_rate"] == 66.7
+    for number in range(2, 21):
+        throw(drill, f"T{number}")
+    events = throw(drill, "BULL", "25", "MISS")
+    assert events == [
+        (
+            "drill_finished",
+            {
+                "drill": "singles",
+                "score": 3 + 19 * 3 + 3,
+                "darts": 25,
+                "hits": 23,
+                "hit_rate": 92.0,
+            },
+        )
+    ]
+    assert drill.snapshot()["target"] is None and drill.snapshot()["best"] == 63
+    copy = restored(drill)
+    copy.restore({"index": 30, "darts": 3, "hits": 9, "score": 99})
+    assert (copy.index, copy.hits, copy.score) == (len(TARGETS) - 1, 3, 9)
+
+
+def test_the_new_training_games_run_in_the_practice_game():
+    game = PracticeGame()
+    for kind in ("checkout_121", "catch_40", "jdc_challenge", "singles"):
+        game.play(kind)
+        snapshot = game.snapshot()
+        assert snapshot["drill"]["drill"] == kind and snapshot["game"] is None
+    # The doubles of the JDC Challenge count for the doubles analysis.
+    game.play("jdc_challenge")
+    game.drills["jdc_challenge"].step = 6
+    game.track(json_darts("D1", "MISS"))
+    game.finish_visit()
+    assert game.doubles.counts == {"D1": [1, 1], "D2": [1, 0]}
+
+
+@settings(max_examples=50, deadline=None)
+@given(
+    kind=st.sampled_from(["checkout_121", "catch_40", "jdc_challenge", "singles"]),
+    visits=st.lists(
+        st.lists(
+            st.sampled_from(["T20", "T19", "D20", "D8", "S1", "BULL", "25", "MISS"]),
+            min_size=1,
+            max_size=3,
+        ),
+        max_size=80,
+    ),
+)
+def test_training_games_survive_restarts_at_any_point(kind, visits):
+    drill = make_drill(kind)
+    for visit in visits:
+        throw(drill, *visit)
+        drill = restored(drill)
+        snapshot = drill.snapshot()
+        assert 0 <= snapshot.get("progress", 0) <= snapshot.get("targets", 1000)
+        assert snapshot.get("score", 0) >= 0

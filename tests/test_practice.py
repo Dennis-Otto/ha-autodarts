@@ -93,6 +93,7 @@ def test_a_double_wins_the_leg_and_the_next_leg_starts():
                 "darts": 2,
                 "average": 451.5,
                 "checkout": 40,
+                "start": 301,
                 "double_out": True,
                 "double_in": False,
                 "legs": 1,
@@ -136,6 +137,7 @@ def test_darts_already_thrown_do_not_count_for_a_new_leg():
         "drill": None,
         "double_in": False,
         "bull_off": None,
+        "teams": None,
     }
     game.play(501)
     game.track([dart("T20"), dart("T19")])

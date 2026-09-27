@@ -3,7 +3,8 @@
 Profiles exist for named players only; a name is the same player regardless of
 upper and lower case. Legs count in every game; X01 legs add the averages and
 the checkout rate, Cricket legs the marks per round. The highest checkout and
-the fewest darts come from X01 legs with double out only.
+the fewest darts come from X01 legs with double out only; the fewest darts
+also only from legs a player played alone, from one of the X01 start scores.
 """
 
 from __future__ import annotations
@@ -15,6 +16,9 @@ from homeassistant.core import split_entity_id, valid_entity_id
 from homeassistant.util import dt as dt_util
 
 from .doubles import DoubleStats
+
+# The X01 start scores; a leg from another start sets no fewest darts.
+GAMES = (101, 301, 501, 701, 901, 1001)
 
 MATCH_HISTORY = 20
 NAME_LENGTH = 20
@@ -163,6 +167,7 @@ class Profiles:
             if profile is None:
                 continue
             won = entry.get("won") is True
+            team = entry.get("team") is True
             profile.legs_played += 1
             profile.legs_won += int(won)
             darts = _count(entry.get("darts"))
@@ -175,11 +180,14 @@ class Profiles:
                 double_out = entry.get("double_out") is True
                 if won and double_out:
                     profile.checkouts += 1
-                if won and darts and double_out:
-                    best = profile.fewest_darts.get(str(game))
-                    profile.fewest_darts[str(game)] = min(best or darts, darts)
                     checkout = _count(entry.get("checkout"))
                     profile.highest_checkout = max(profile.highest_checkout, checkout)
+                # The fewest darts count for the score the player really started
+                # from, and only for a leg the player played alone.
+                start = entry.get("start", game)
+                if won and darts and double_out and start in GAMES and not team:
+                    best = profile.fewest_darts.get(str(start))
+                    profile.fewest_darts[str(start)] = min(best or darts, darts)
             elif game == "cricket":
                 marks = _count(entry.get("marks"))
                 profile.cricket_darts += darts
@@ -196,28 +204,40 @@ class Profiles:
         winner: int,
         legs_to_win: int,
         sets_to_win: int,
+        winners: list[int] | None = None,
     ) -> None:
-        """A finished match of several players: history and head-to-head."""
+        """A finished match of several players: history and head-to-head.
+
+        In a team match, both players of the winning team win it, and each of
+        them beats both opponents; partners play no head-to-head.
+        """
+        side = winners or [winner]
         for index, entry in enumerate(players):
             if profile := self._profile(entry.get("name")):
                 profile.matches_played += 1
-                profile.matches_won += int(index == winner)
-        self.matches.insert(
-            0,
-            {
-                "ended": dt_util.utcnow().isoformat(),
-                "game": game,
-                "legs_to_win": legs_to_win,
-                "sets_to_win": sets_to_win,
-                "winner": winner + 1,
-                "players": [dict(entry) for entry in players],
-            },
-        )
+                profile.matches_won += int(index in side)
+        match: dict[str, Any] = {
+            "ended": dt_util.utcnow().isoformat(),
+            "game": game,
+            "legs_to_win": legs_to_win,
+            "sets_to_win": sets_to_win,
+            "winner": winner + 1,
+            "players": [dict(entry) for entry in players],
+        }
+        if len(side) > 1:
+            match["winners"] = [index + 1 for index in side]
+        self.matches.insert(0, match)
         del self.matches[MATCH_HISTORY:]
-        champion = players[winner].get("name")
+        for index in side:
+            self._beat(players[index].get("name"), players, side)
+
+    def _beat(
+        self, champion: str | None, players: list[dict[str, Any]], side: list[int]
+    ) -> None:
+        """A win of the champion over every named opponent."""
         for index, entry in enumerate(players):
             other = entry.get("name")
-            if index == winner or not champion or not other:
+            if index in side or not champion or not other:
                 continue
             first, second = sorted((champion.strip(), other.strip()), key=_key)
             pair = f"{_key(first)}\x00{_key(second)}"

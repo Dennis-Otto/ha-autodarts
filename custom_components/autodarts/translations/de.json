@@ -390,6 +390,9 @@
       },
       "practice_personal_routes": {
         "name": "Übungsspiel persönliche Checkout-Wege"
+      },
+      "practice_teams": {
+        "name": "Übungsspiel Teams"
       }
     },
     "select": {
@@ -420,7 +423,16 @@
           "1001": "1001",
           "shanghai": "Shanghai",
           "halve_it": "Halve-It",
-          "killer": "Killer"
+          "killer": "Killer",
+          "cut_throat": "Cut-Throat Cricket",
+          "tactics": "Tactics",
+          "golf": "Golf",
+          "baseball": "Baseball",
+          "count_up": "Count-Up",
+          "checkout_121": "121-Checkout",
+          "catch_40": "Catch 40",
+          "jdc_challenge": "JDC Challenge",
+          "singles": "Singles-Training"
         }
       },
       "weekly_report_day": {
@@ -434,6 +446,9 @@
           "saturday": "Samstag",
           "sunday": "Sonntag"
         }
+      },
+      "practice_golf_holes": {
+        "name": "Übungsspiel Golf-Löcher"
       }
     },
     "number": {
@@ -451,6 +466,12 @@
       },
       "training_daily_goal": {
         "name": "Tagesziel"
+      },
+      "practice_start": {
+        "name": "Übungsspiel Startpunkte Spieler {number}"
+      },
+      "practice_count_up_rounds": {
+        "name": "Übungsspiel Count-Up-Runden"
       }
     },
     "binary_sensor": {
@@ -604,6 +625,15 @@
     },
     "unknown_person": {
       "message": "Es gibt keine Person {person} in Home Assistant."
+    },
+    "team_players": {
+      "message": "Teams brauchen vier Spieler: Spieler 1 und 3 gegen Spieler 2 und 4."
+    },
+    "team_game": {
+      "message": "Teams spielen X01 und die Cricket-Spiele."
+    },
+    "invalid_start_score": {
+      "message": "Startpunkte sind 0, für die Startpunkte des Spiels, oder 2 bis 1001."
     }
   },
   "issues": {
@@ -664,7 +694,7 @@
         },
         "game": {
           "name": "Spiel",
-          "description": "X01 von 101 bis 1001 Punkten, Cricket, ein Partyspiel oder ein Trainingsspiel."
+          "description": "X01 von 101 bis 1001 Punkten, ein Cricket-Spiel, ein Partyspiel oder ein Trainingsspiel."
         },
         "players": {
           "name": "Spieler",
@@ -693,6 +723,22 @@
         "bull_off_distance": {
           "name": "Ausbullen nach Abstand",
           "description": "Bei zwei Darts im selben Bull-Feld entscheidet der vom Board gemessene Abstand statt eines neuen Wurfs."
+        },
+        "teams": {
+          "name": "Teams",
+          "description": "Vier Spieler spielen X01 oder ein Cricket-Spiel als zwei Teams: Spieler 1 und 3 gegen Spieler 2 und 4."
+        },
+        "start_scores": {
+          "name": "Startpunkte",
+          "description": "X01-Startpunkte der Spieler in Wurfreihenfolge, für ein Handicap, zum Beispiel 501 und 301. 0 oder ein fehlender Wert spielt die Startpunkte des Spiels."
+        },
+        "holes": {
+          "name": "Golf-Löcher",
+          "description": "Löcher einer Runde Golf: 9 oder 18."
+        },
+        "rounds": {
+          "name": "Count-Up-Runden",
+          "description": "Runden von Count-Up, 1 bis 20."
         }
       }
     },
@@ -781,7 +827,16 @@
         "1001": "1001",
         "shanghai": "Shanghai",
         "halve_it": "Halve-It",
-        "killer": "Killer"
+        "killer": "Killer",
+        "cut_throat": "Cut-Throat Cricket",
+        "tactics": "Tactics",
+        "golf": "Golf",
+        "baseball": "Baseball",
+        "count_up": "Count-Up",
+        "checkout_121": "121-Checkout",
+        "catch_40": "Catch 40",
+        "jdc_challenge": "JDC Challenge",
+        "singles": "Singles-Training"
       }
     },
     "export_format": {

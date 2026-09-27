@@ -96,6 +96,12 @@
       },
       "training_daily_goal": {
         "default": "mdi:flag-checkered"
+      },
+      "practice_start": {
+        "default": "mdi:scale-balance"
+      },
+      "practice_count_up_rounds": {
+        "default": "mdi:counter"
       }
     },
     "select": {
@@ -107,6 +113,9 @@
       },
       "weekly_report_day": {
         "default": "mdi:calendar-week-begin"
+      },
+      "practice_golf_holes": {
+        "default": "mdi:golf"
       }
     },
     "sensor": {
@@ -314,6 +323,9 @@
       },
       "practice_personal_routes": {
         "default": "mdi:routes"
+      },
+      "practice_teams": {
+        "default": "mdi:account-multiple"
       }
     },
     "text": {

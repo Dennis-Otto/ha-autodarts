@@ -32,13 +32,22 @@ start_game:
             - "901"
             - "1001"
             - cricket
+            - cut_throat
+            - tactics
             - shanghai
             - halve_it
             - killer
+            - golf
+            - baseball
+            - count_up
             - around_the_clock
             - doubles
             - checkout
             - bobs_27
+            - checkout_121
+            - catch_40
+            - jdc_challenge
+            - singles
     players:
       required: false
       example: '["Dennis", "Lea"]'
@@ -75,6 +84,33 @@ start_game:
       required: false
       selector:
         boolean: {}
+    teams:
+      required: false
+      selector:
+        boolean: {}
+    start_scores:
+      required: false
+      example: "[501, 301]"
+      selector:
+        number:
+          min: 0
+          max: 1001
+          mode: box
+          multiple: true
+    holes:
+      required: false
+      selector:
+        select:
+          options:
+            - "9"
+            - "18"
+    rounds:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 20
+          mode: box
 
 export:
   fields:
