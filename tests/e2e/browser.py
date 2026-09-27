@@ -978,9 +978,10 @@ def more_games(browser: Browser) -> None:
     state = wait("state.title === 'Golf' && state.scorecard.length === 2")
     control({"event": "Throw detected", "throws": [T1]})
     takeout()
-    state = wait("state.scorecard[0][1] === '1'")
+    # A treble is two strokes.
+    state = wait("state.scorecard[0][1] === '2'")
     check(
-        state["scorecard"][0][0] == "Alex" and state["scorecard"][0][-1] == "1",
+        state["scorecard"][0][0] == "Alex" and state["scorecard"][0][-1] == "2",
         f"Scorecard of Golf {state}",
     )
     call("number", "set_value", "practice_players", value=1)
