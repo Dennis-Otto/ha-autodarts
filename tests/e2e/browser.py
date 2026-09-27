@@ -930,7 +930,7 @@ def tournament(browser: Browser) -> None:
         control({"event": "Throw detected", "throws": CHECKOUT_101[:count]})
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
 
-    # A second after the result, the table with the next match.
+    # After the summary of the match (8 seconds), the table with the next match.
     page.locator(f"{card} .standings").wait_for(timeout=15000)
     rows = page.locator(f"{card} .standings tbody .who").all_text_contents()
     check(rows == ["Kim", "Alex", "Sam"], f"Table {rows}")
@@ -1143,7 +1143,7 @@ def main() -> None:
             ),
             (
                 "scoreboard editor",
-                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 9),
+                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 8),
             ),
             ("dashboard strategy editor", lambda: strategy_editor(browser)),
             ("light theme", lambda: light_theme(browser)),

@@ -552,6 +552,9 @@
       },
       "tournament_pause": {
         "name": "Turnierpause"
+      },
+      "tournament_summary": {
+        "name": "Turnierzusammenfassung"
       }
     },
     "binary_sensor": {
@@ -989,7 +992,11 @@
         },
         "pause": {
           "name": "Pause",
-          "description": "Sekunden zwischen zwei Matches; 0 wartet auf Nächstes Turniermatch."
+          "description": "Sekunden zwischen zwei Matches, nach der Zusammenfassung; 0 wartet auf Nächstes Turniermatch."
+        },
+        "summary": {
+          "name": "Zusammenfassung",
+          "description": "Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt."
         }
       }
     },

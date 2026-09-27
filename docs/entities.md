@@ -129,7 +129,7 @@ Home Assistant keeps your best values, the days you trained and your darts per d
 
 ## Weekly report
 
-Home Assistant sums up your training week. Every detected dart counts, in a session or not, like the darts of the day. When the week ends, by default on Monday at midnight in Home Assistant's time zone, the event `weekly_report` announces the week, and the next week starts from zero. The [weekly report blueprint](automations.md#weekly-report) sends it to your phone.
+Home Assistant sums up your training week. Every detected dart counts, in a session or not, like the darts of the day. When the week ends, by default on Monday at midnight in Home Assistant's time zone, the event `weekly_report` announces the week, and the next week starts from zero. The [weekly report blueprint](automations.md#weekly-report-on-your-phone) sends it to your phone.
 
 | Value | Meaning |
 | --- | --- |
@@ -379,7 +379,7 @@ A tournament for three to eight named players at one board: a **round robin**, i
   ```
 
 - **Matches:** the tournament sets the practice game up for every match: the game, the two players with their start scores, the legs and sets, double out, double in and the bull-off. The first named player throws first, unless a bull-off decides; the schedule gives every player the first throw about equally often.
-- **Between matches:** the result counts when the darts of the winning visit are pulled. The next match starts after *Tournament pause*, 10 seconds by default, but never while darts are on the board: then it starts as soon as they are pulled. With a pause of 0, it waits for *Next tournament match*. Darts thrown during the pause count for no match; the training session counts them as always.
+- **Between matches:** the result counts when the darts of the winning visit are pulled. First the [summary](cards.md#match-summary) of the match shows for *Tournament summary*, 8 seconds by default; then *Tournament pause* begins, 10 seconds by default, in which the scoreboard shows the table or the bracket with the next match. So the next match starts 18 seconds after the end of the last one, but never while darts are on the board: then it starts as soon as they are pulled. With a pause of 0, it waits for *Next tournament match*. Darts thrown during the pause count for no match; the training session counts them as always.
 - **Other games:** a game chosen during a tournament is played as usual and does not count for the tournament. After the pause, the next match waits until that game is decided or ended; *Next tournament match* starts it at once, and during a match of the tournament sets that match up again. *Stop tournament* ends the tournament; the match being played goes on as a practice match.
 - **Restarts:** the tournament, its results and its pause survive a restart of Home Assistant. When the pause ended meanwhile, the next match starts right away.
 
@@ -389,14 +389,15 @@ A tournament for three to eight named players at one board: a **round robin**, i
 | Tournament format | Select, *Configuration* | `round_robin` (the default) or `knockout`. |
 | Tournament game | Select, *Configuration* | `101` to `1001`, `cricket`, `cut_throat` or `tactics`; `501` by default. |
 | Tournament players | Text, *Configuration* | Three to eight names, separated by commas, for example `Dennis, Lea, Max`. |
-| Tournament pause | Number, seconds, *Configuration* | 0–600 seconds between two matches, 10 by default; 0 waits for *Next tournament match*. A change applies at once, counted from the end of the last match. |
+| Tournament pause | Number, seconds, *Configuration* | 0–600 seconds between two matches after the summary, 10 by default; 0 waits for *Next tournament match*. A change applies at once. |
+| Tournament summary | Number, seconds, *Configuration* | 0–60 seconds the summary of a match shows before the pause begins, 8 by default. A change applies at once. |
 | Tournament third-place match | Switch, *Configuration* | In a knockout of four players or more, the losers of the semi-finals play for third place. Off by default. |
 | Tournament random draw | Switch, *Configuration* | Draws the order of the players at random instead of taking the order of the names. Off by default. |
 | Start tournament | Button | Starts a tournament with these settings and the legs per set, sets to win and rules of the [practice game](#practice-game). |
 | Next tournament match | Button | Starts the next match without waiting for the pause to end. |
 | Stop tournament | Button | Ends the tournament. |
 
-*Tournament* has the attributes `status` (`playing`, `waiting` or `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in the order of the draw), `start_scores` (of the players in the same order; 0 plays the game's), `round` and `rounds`, `matches_played` and `matches_total`, `current` (the match at the board), `next` (the match after it), `last_result`, `pause`, `next_at` (when the next match starts, while a pause runs), `winner`, `started`, `ended` and `fixtures` (every match in the order of play). A round robin adds `standings`, a knockout `bracket`: its rounds with their matches, byes included, and the match for third place.
+*Tournament* has the attributes `status` (`playing`, `waiting` or `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in the order of the draw), `start_scores` (of the players in the same order; 0 plays the game's), `round` and `rounds`, `matches_played` and `matches_total`, `current` (the match at the board), `next` (the match after it), `last_result`, `pause`, `summary`, `next_at` (when the next match starts: the end of the last match, the summary and the pause), `winner`, `started`, `ended` and `fixtures` (every match in the order of play). A round robin adds `standings`, a knockout `bracket`: its rounds with their matches, byes included, and the match for third place.
 
 - A **match** has `match` (its number in the order of play; none for a bye), `round`, `stage`, `players`, `winner`, `bye`, `legs` (of the whole match) and `sets` of both players, `ended` and, once played, the `average` (X01) or `mpr` (Cricket) of both players.
 - A row of **standings** has `position`, `name`, `played`, `won`, `lost`, `legs_for`, `legs_against`, `leg_difference`, `points` and `average` or `mpr`.
@@ -629,7 +630,8 @@ Draws a [tournament](#tournaments) and starts its first match. Values you leave 
 | `third_place` | `true`, `false` | In a knockout of four players or more, the losers of the semi-finals play for third place |
 | `random_draw` | `true`, `false` | Draw the order of the players at random |
 | `seed` | 1–999999 | A number for a random draw: the same number draws the same order |
-| `pause` | 0–600 | Seconds between two matches; 0 waits for *Next tournament match* |
+| `pause` | 0–600 | Seconds between two matches, after the summary; 0 waits for *Next tournament match* |
+| `summary` | 0–60 | Seconds the summary of a match shows before the pause begins |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml

@@ -114,6 +114,9 @@
       },
       "tournament_pause": {
         "default": "mdi:timer-sand"
+      },
+      "tournament_summary": {
+        "default": "mdi:clipboard-text-clock-outline"
       }
     },
     "select": {

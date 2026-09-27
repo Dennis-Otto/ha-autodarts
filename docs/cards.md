@@ -242,7 +242,7 @@ The screen never opens in the preview of the card editor.
 During a [tournament](entities.md#tournaments), the scoreboard follows it:
 
 - **During a match:** the title line names the round and the match, for example *Tournament · Semi-final · Match 5 of 7*.
-- **Between the matches:** the [summary](#match-summary) of a match stays for `tournament_summary` seconds (5), then the table of a round robin or the bracket of a knockout shows, with the next match, its round and a countdown to its start. *Start now* starts it at once. During a tournament, the new game screen does not open by itself.
+- **Between the matches:** the [summary](#match-summary) of a match stays for *Tournament summary* (8 seconds), then, during *Tournament pause*, the table of a round robin or the bracket of a knockout shows, with the next match, its round and a countdown to its start. *Start now* starts it at once. During a tournament, the new game screen does not open by itself.
 - **Table:** the position, matches played, won and lost, legs won and lost, the leg difference, the 3-dart average (Cricket: MPR) and the points. The players of the next match are marked, the winner of the tournament gets 🏆.
 - **Bracket:** a column for every round, with the match for third place below the final; byes, open places and results; the next match is outlined. A player who goes on slides into the next round; on devices set to reduce motion, the places fill without moving.
 - **Winner:** after the last match, a banner names the winner of the tournament, and the table or the bracket stays until a new match begins.
@@ -290,13 +290,12 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `idle` | boolean | `true` | Switch [idle mode](#idle-mode) on |
 | `idle_after` | seconds, 10–3600 | `180` | Time without darts and taps before idle mode starts |
 | `idle_interval` | seconds, 3–120 | `10` | Time each panel shows |
-| `tournament_summary` | seconds, 0–60 | `5` | How long the summary of a tournament match shows before the [table or the bracket](#tournaments) |
 | `idle_panels` | list of panels | every panel | The panels of idle mode, in this order: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `show_summary` | boolean | `true` | Show the [match summary](#match-summary) when an X01 or Cricket match ends |
 | `summary_seconds` | 0–600 | `0` | How long the summary stays, in seconds; `0` keeps it until the next game starts |
 | `accent_color` | [color](#colors) | theme primary color | The player at the board, routes and the visit score |
 
-In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen, the tournament and idle mode have collapsed sections of their own.
+In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen and idle mode have collapsed sections of their own.
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -316,7 +315,7 @@ When an X01 or Cricket match of several players ends, the scoreboard and the liv
 
 - **X01:** legs (and sets), 3-dart average, first-9 average, checkout rate with the legs checked out and the darts at a double, highest checkout, 180s, 140+ and 100+ visits, best leg in darts, darts at a double and all darts. Without double out, the checkout rate and the darts at a double are left out.
 - **Cricket:** legs (and sets), marks per round, marks, best leg in darts and all darts.
-- **How long:** until the first dart of the next game, or `summary_seconds` after the card first showed it. Then the players and the result come back, and on the scoreboard the [new game screen](#new-game-screen) opens a few seconds later. While the summary shows, the new game screen opens only with a tap, and [idle mode](#idle-mode) can take over after its idle time. `show_summary: false` switches the summary off. Between the matches of a [tournament](#tournaments), the table or the bracket follows after `tournament_summary` seconds.
+- **How long:** until the first dart of the next game, or `summary_seconds` after the card first showed it. Then the players and the result come back, and on the scoreboard the [new game screen](#new-game-screen) opens a few seconds later. While the summary shows, the new game screen opens only with a tap, and [idle mode](#idle-mode) can take over after its idle time. `show_summary: false` switches the summary off. Between the matches of a [tournament](#tournaments), the table or the bracket follows after *Tournament summary*.
 
 Party games keep their scores on screen. The numbers come from the `summary` attribute of the [practice remaining score](entities.md#practice-game); [how they are counted](how-it-works.md#match-summary).
 

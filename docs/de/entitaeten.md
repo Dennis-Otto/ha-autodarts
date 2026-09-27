@@ -129,7 +129,7 @@ Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert ha
 
 ## Wochenbericht
 
-Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, mit oder ohne Session, wie bei den Darts des Tages. Endet die Woche, standardmäßig montags um Mitternacht in der Zeitzone von Home Assistant, meldet das Ereignis `weekly_report` die Woche, und die nächste Woche beginnt bei null. Die [Blaupause Wochenbericht](automationen.md#wochenbericht) schickt ihn auf dein Handy.
+Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, mit oder ohne Session, wie bei den Darts des Tages. Endet die Woche, standardmäßig montags um Mitternacht in der Zeitzone von Home Assistant, meldet das Ereignis `weekly_report` die Woche, und die nächste Woche beginnt bei null. Die [Blaupause Wochenbericht](automationen.md#deutscher-wochenbericht) schickt ihn auf dein Handy.
 
 | Wert | Bedeutung |
 | --- | --- |
@@ -379,7 +379,7 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen j
   ```
 
 - **Matches:** Das Turnier richtet das Übungsspiel für jedes Match ein: das Spiel, die beiden Spieler mit ihren Startpunkten, Legs und Sätze, Double-Out, Double-In und das Ausbullen. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet; der Spielplan verteilt den Anwurf möglichst gleichmäßig.
-- **Zwischen den Matches:** Das Ergebnis zählt, wenn die Darts der entscheidenden Aufnahme gezogen sind. Das nächste Match beginnt nach der *Turnierpause*, standardmäßig 10 Sekunden, aber nie, solange Darts im Board stecken: Dann beginnt es, sobald sie gezogen sind. Mit einer Pause von 0 wartet es auf *Nächstes Turniermatch*. Darts, die in der Pause geworfen werden, zählen für kein Match; die Trainingssession zählt sie wie immer.
+- **Zwischen den Matches:** Das Ergebnis zählt, wenn die Darts der entscheidenden Aufnahme gezogen sind. Zuerst steht die [Zusammenfassung](karten.md#match-zusammenfassung) des Matches für die *Turnierzusammenfassung*, standardmäßig 8 Sekunden; dann beginnt die *Turnierpause*, standardmäßig 10 Sekunden, in der die Anzeigetafel Tabelle oder Turnierbaum mit dem nächsten Match zeigt. Das nächste Match beginnt also 18 Sekunden nach dem Ende des letzten, aber nie, solange Darts im Board stecken: Dann beginnt es, sobald sie gezogen sind. Mit einer Pause von 0 wartet es auf *Nächstes Turniermatch*. Darts, die in der Pause geworfen werden, zählen für kein Match; die Trainingssession zählt sie wie immer.
 - **Andere Spiele:** Ein Spiel, das während eines Turniers gewählt wird, läuft wie gewohnt und zählt nicht fürs Turnier. Nach der Pause wartet das nächste Match, bis dieses Spiel entschieden oder beendet ist; *Nächstes Turniermatch* startet es sofort und richtet während eines Turniermatches dieses Match wieder ein. *Turnier beenden* beendet das Turnier; das laufende Match geht als Übungsmatch weiter.
 - **Neustarts:** Turnier, Ergebnisse und Pause überstehen einen Neustart von Home Assistant. Ist die Pause inzwischen abgelaufen, beginnt das nächste Match sofort.
 
@@ -389,14 +389,15 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen j
 | Turnierformat | Auswahl, *Konfiguration* | `round_robin` (jeder gegen jeden, Standard) oder `knockout` (K.-o.-System). |
 | Turnierspiel | Auswahl, *Konfiguration* | `101` bis `1001`, `cricket`, `cut_throat` oder `tactics`; standardmäßig `501`. |
 | Turnierspieler | Text, *Konfiguration* | Drei bis acht Namen, durch Kommas getrennt, etwa `Dennis, Lea, Max`. |
-| Turnierpause | Zahl, Sekunden, *Konfiguration* | 0–600 Sekunden zwischen zwei Matches, standardmäßig 10; 0 wartet auf *Nächstes Turniermatch*. Eine Änderung gilt sofort, gezählt ab dem Ende des letzten Matches. |
+| Turnierpause | Zahl, Sekunden, *Konfiguration* | 0–600 Sekunden zwischen zwei Matches nach der Zusammenfassung, standardmäßig 10; 0 wartet auf *Nächstes Turniermatch*. Eine Änderung gilt sofort. |
+| Turnierzusammenfassung | Zahl, Sekunden, *Konfiguration* | 0–60 Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt, standardmäßig 8. Eine Änderung gilt sofort. |
 | Turnier Spiel um Platz 3 | Schalter, *Konfiguration* | Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3. Standardmäßig aus. |
 | Turnier zufällige Auslosung | Schalter, *Konfiguration* | Lost die Reihenfolge der Spieler zufällig aus, statt die Reihenfolge der Namen zu nehmen. Standardmäßig aus. |
 | Turnier starten | Taste | Startet ein Turnier mit diesen Einstellungen und den Legs pro Satz, Sätzen zum Sieg und Regeln des [Übungsspiels](#übungsspiel). |
 | Nächstes Turniermatch | Taste | Startet das nächste Match, ohne das Ende der Pause abzuwarten. |
 | Turnier beenden | Taste | Beendet das Turnier. |
 
-*Turnier* hat die Attribute `status` (`playing`, `waiting` oder `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in der Reihenfolge der Auslosung), `start_scores` (der Spieler in derselben Reihenfolge; 0 spielt die des Spiels), `round` und `rounds`, `matches_played` und `matches_total`, `current` (das Match am Board), `next` (das Match danach), `last_result`, `pause`, `next_at` (wann das nächste Match beginnt, solange eine Pause läuft), `winner`, `started`, `ended` und `fixtures` (alle Matches in der Reihenfolge des Spielplans). Jeder gegen jeden ergänzt `standings`, das K.-o.-System `bracket`: seine Runden mit ihren Matches, Freilose eingeschlossen, und das Spiel um Platz 3.
+*Turnier* hat die Attribute `status` (`playing`, `waiting` oder `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in der Reihenfolge der Auslosung), `start_scores` (der Spieler in derselben Reihenfolge; 0 spielt die des Spiels), `round` und `rounds`, `matches_played` und `matches_total`, `current` (das Match am Board), `next` (das Match danach), `last_result`, `pause`, `summary`, `next_at` (wann das nächste Match beginnt: Ende des letzten Matches, Zusammenfassung und Pause), `winner`, `started`, `ended` und `fixtures` (alle Matches in der Reihenfolge des Spielplans). Jeder gegen jeden ergänzt `standings`, das K.-o.-System `bracket`: seine Runden mit ihren Matches, Freilose eingeschlossen, und das Spiel um Platz 3.
 
 - Ein **Match** hat `match` (seine Nummer im Spielplan; keine bei einem Freilos), `round`, `stage`, `players`, `winner`, `bye`, `legs` (des ganzen Matches) und `sets` beider Spieler, `ended` und, sobald gespielt, den `average` (X01) oder `mpr` (Cricket) beider Spieler.
 - Eine Zeile der **Tabelle** (`standings`) hat `position`, `name`, `played`, `won`, `lost`, `legs_for`, `legs_against`, `leg_difference`, `points` und `average` oder `mpr`.
@@ -629,7 +630,8 @@ Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du w
 | `third_place` | `true`, `false` | Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3 |
 | `random_draw` | `true`, `false` | Die Reihenfolge der Spieler zufällig auslosen |
 | `seed` | 1–999999 | Eine Zahl für eine zufällige Auslosung: Dieselbe Zahl lost dieselbe Reihenfolge aus |
-| `pause` | 0–600 | Sekunden zwischen zwei Matches; 0 wartet auf *Nächstes Turniermatch* |
+| `pause` | 0–600 | Sekunden zwischen zwei Matches, nach der Zusammenfassung; 0 wartet auf *Nächstes Turniermatch* |
+| `summary` | 0–60 | Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml

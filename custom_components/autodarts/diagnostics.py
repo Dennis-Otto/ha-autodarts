@@ -111,6 +111,7 @@ def _tournament(local: AutodartsLocalCoordinator) -> dict[str, Any]:
         "third_place": setup.third_place,
         "random_draw": setup.random_draw,
         "pause": setup.pause,
+        "summary": setup.summary,
         "running": {
             "format": tournament.format,
             "game": tournament.game,

@@ -36,6 +36,7 @@ from .tournament import (
     MAX_ENTRANTS,
     MAX_PAUSE,
     MAX_SEED,
+    MAX_SUMMARY,
     MIN_ENTRANTS,
     RULES,
     TOURNAMENT_GAMES,
@@ -105,6 +106,9 @@ START_TOURNAMENT_SCHEMA = vol.Schema(
         vol.Optional("seed"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SEED)),
         vol.Optional("pause"): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=MAX_PAUSE)
+        ),
+        vol.Optional("summary"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=MAX_SUMMARY)
         ),
     }
 )

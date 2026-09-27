@@ -114,7 +114,7 @@ async def test_a_round_robin_plays_through_with_pauses(hass, aioclient_mock, fre
     assert remaining.attributes["winner"] == 2
     # The pause ends while darts are on the board: the takeout starts the match.
     await throw(hass, coordinator, T20, pull=False)
-    freezer.tick(timedelta(seconds=11))
+    freezer.tick(timedelta(seconds=19))
     await pass_pause(hass, 0)
     assert tournament(hass).attributes["status"] == "waiting"
     coordinator.async_receive("state", board())
@@ -124,7 +124,7 @@ async def test_a_round_robin_plays_through_with_pauses(hass, aioclient_mock, fre
 
     await throw(hass, coordinator, *CHECKOUT)
     # The pause ends with an empty board: the next match starts at once.
-    freezer.tick(timedelta(seconds=11))
+    freezer.tick(timedelta(seconds=19))
     await pass_pause(hass, 0)
     assert tournament(hass).attributes["current"]["players"] == ["Sam", "Alex"]
     await throw(hass, coordinator, S1, S1, S1)
@@ -173,7 +173,7 @@ async def test_the_pause_waits_for_the_button_and_changes_at_once(
     assert tournament(hass).attributes["next_at"] is None
     await pass_pause(hass, 3600)
     assert tournament(hass).attributes["status"] == "waiting"
-    # A pause set now counts from the end of the match.
+    # A pause set now counts from the end of the match and its summary.
     await hass.services.async_call(
         "number",
         "set_value",
@@ -183,7 +183,7 @@ async def test_the_pause_waits_for_the_button_and_changes_at_once(
     await hass.async_block_till_done()
     assert tournament(hass).attributes["pause"] == 30
     assert tournament(hass).attributes["status"] == "waiting"
-    freezer.tick(timedelta(seconds=31))
+    freezer.tick(timedelta(seconds=39))
     await pass_pause(hass, 0)
     assert tournament(hass).attributes["status"] == "playing"
     # The button starts the next match at once.
@@ -215,6 +215,7 @@ async def test_the_entities_set_the_next_tournament_up(hass, aioclient_mock):
         ("select", "tournament_game"),
         ("text", "tournament_players"),
         ("number", "tournament_pause"),
+        ("number", "tournament_summary"),
         ("switch", "tournament_third_place"),
         ("switch", "tournament_random_draw"),
     ):
@@ -223,7 +224,15 @@ async def test_the_entities_set_the_next_tournament_up(hass, aioclient_mock):
     assert state(hass, "select", "tournament_format") == "round_robin"
     assert state(hass, "select", "tournament_game") == "501"
     assert state(hass, "number", "tournament_pause") == "10"
+    assert state(hass, "number", "tournament_summary") == "8"
     assert state(hass, "switch", "tournament_third_place") == "off"
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": entity_id(hass, "number", "tournament_summary"), "value": 12},
+        blocking=True,
+    )
+    assert state(hass, "number", "tournament_summary") == "12"
     for key, option in (
         ("tournament_format", "knockout"),
         ("tournament_game", "cricket"),
@@ -299,9 +308,11 @@ async def test_the_action_sets_rules_draw_and_pause(hass, aioclient_mock):
         third_place=True,
         seed=11,
         pause=0,
+        summary=3,
     )
     attributes = tournament(hass).attributes
     assert attributes["seed"] == 11 and attributes["pause"] == 0
+    assert attributes["summary"] == 3
     assert sorted(attributes["players"]) == ["Alex", "Kim", "Lea", "Max", "Sam"]
     assert (attributes["legs_to_win"], attributes["sets_to_win"]) == (2, 2)
     practice = coordinator.practice
@@ -348,6 +359,7 @@ async def test_diagnostics_count_the_tournament_without_names(
         "third_place": False,
         "random_draw": False,
         "pause": 10,
+        "summary": 8,
         "running": {
             "format": "round_robin",
             "game": "101",
@@ -371,7 +383,7 @@ async def test_another_game_in_the_pause_is_played_to_its_end(
     await throw(hass, coordinator, *CHECKOUT)
     # Somebody plays a game of their own during the pause.
     await action(hass, "start_game", game="301", players=["Tom"])
-    freezer.tick(timedelta(seconds=11))
+    freezer.tick(timedelta(seconds=19))
     await pass_pause(hass, 0)
     assert tournament(hass).attributes["status"] == "waiting"
     assert coordinator.practice.kind == 301

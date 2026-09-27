@@ -275,6 +275,14 @@ start_tournament:
           max: 600
           mode: box
           unit_of_measurement: s
+    summary:
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 60
+          mode: box
+          unit_of_measurement: s
 
 stop_tournament:
   fields:

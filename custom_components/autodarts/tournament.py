@@ -5,8 +5,8 @@ X01, with a start score of their own for a handicap if wanted, or a Cricket
 game. In a round robin everyone plays everyone once and a table
 ranks the players; in a knockout the winners go on through a bracket until the
 final. When a match ends, its result goes into the table or the bracket, and
-the next match starts after a pause, never while darts of a visit are on the
-board. The matches count for the player profiles like any other match.
+the next match starts after the summary of the match and a pause, never while
+darts of a visit are on the board. The matches count for the player profiles like any other match.
 """
 
 from __future__ import annotations
@@ -36,6 +36,10 @@ MAX_ENTRANTS = 8
 # Seconds between two matches; 0 waits until the next match is started.
 DEFAULT_PAUSE = 10
 MAX_PAUSE = 600
+# Seconds the summary of a match shows before the pause begins, so that the
+# table or the bracket with the next match gets the whole pause.
+DEFAULT_SUMMARY = 8
+MAX_SUMMARY = 60
 MAX_SEED = 999_999
 # A won match of the round robin is worth two points, as in the Premier League.
 WIN_POINTS = 2
@@ -108,6 +112,7 @@ class TournamentSetup:
     third_place: bool = False
     random_draw: bool = False
     pause: int = DEFAULT_PAUSE
+    summary: int = DEFAULT_SUMMARY
 
     @classmethod
     def restored(cls, saved: object) -> TournamentSetup:
@@ -124,6 +129,7 @@ class TournamentSetup:
             third_place=_flag(data.get("third_place"), False),
             random_draw=_flag(data.get("random_draw"), False),
             pause=_count(data.get("pause"), 0, MAX_PAUSE, DEFAULT_PAUSE),
+            summary=_count(data.get("summary"), 0, MAX_SUMMARY, DEFAULT_SUMMARY),
         )
 
 
@@ -792,7 +798,8 @@ class TournamentDirector:
         }
 
     def due_at(self) -> datetime | None:
-        """When the pause after the last match ends; None without a pause."""
+        """When the next match is due: the summary of the last match, then the
+        pause; None without a pause."""
         tournament = self.tournament
         if tournament is None or tournament.status != WAITING or not self.setup.pause:
             return None
@@ -800,7 +807,7 @@ class TournamentDirector:
         assert last is not None
         ended = tournament.matches[last].ended
         ended_at = dt_util.parse_datetime(ended or "") or dt_util.utcnow()
-        return ended_at + timedelta(seconds=self.setup.pause)
+        return ended_at + timedelta(seconds=self.setup.summary + self.setup.pause)
 
     def due(self, now: datetime) -> bool:
         return (at := self.due_at()) is not None and at <= now
@@ -876,6 +883,7 @@ class TournamentDirector:
             "next": tournament.match(following),
             "last_result": tournament.match(last),
             "pause": self.setup.pause,
+            "summary": self.setup.summary,
             "next_at": due.isoformat() if due else None,
             "winner": tournament.podium()[0] if finished else None,
             "started": tournament.started,

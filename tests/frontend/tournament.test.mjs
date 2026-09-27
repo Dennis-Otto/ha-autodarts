@@ -83,6 +83,7 @@ const ROUND_ROBIN = {
   next: SECOND,
   last_result: { ...FIRST, average: [45.5, 60.25] },
   pause: 10,
+  summary: 5,
   next_at: at(10),
   winner: null,
   started: STARTED,
@@ -130,7 +131,10 @@ test("the tournament sensor reads as a view, and malformed values as defaults", 
     [view.stage, view.status, view.format, view.game, view.mpr, view.setsToWin, view.played, view.total],
     ["round_2", "waiting", "round_robin", 501, false, 1, 1, 3]
   );
-  assert.deepEqual([view.nextAt, view.pause, view.winner, view.started, view.current], [NOW + 10000, 10, null, STARTED, null]);
+  assert.deepEqual(
+    [view.nextAt, view.pause, view.summary, view.winner, view.started, view.current],
+    [NOW + 10000, 10, 5, null, STARTED, null]
+  );
   assert.deepEqual(view.last, {
     match: 1,
     round: 1,
@@ -170,8 +174,8 @@ test("the tournament sensor reads as a view, and malformed values as defaults", 
     },
   });
   assert.deepEqual(
-    [odd.format, odd.game, odd.mpr, odd.setsToWin, odd.played, odd.total, odd.nextAt, odd.pause, odd.current],
-    ["round_robin", null, false, 1, 0, 0, null, 0, null]
+    [odd.format, odd.game, odd.mpr, odd.setsToWin, odd.played, odd.total, odd.nextAt, odd.pause, odd.summary, odd.current],
+    ["round_robin", null, false, 1, 0, 0, null, 0, 8, null]
   );
   assert.deepEqual(odd.next, {
     match: null,
@@ -629,7 +633,7 @@ test("Cricket and party games or no game at all are no match of the tournament",
   });
   assert.doesNotMatch(text(card, ".meta"), /Tournament/);
   // Without a game, a waiting tournament shows at once when the result needs no time.
-  const idle = setup({ ...tournament(), "sensor.practice_remaining": "unknown" }, { tournament_summary: 0 }).card;
+  const idle = setup({ ...tournament({ summary: 0 }), "sensor.practice_remaining": "unknown" }).card;
   assert.equal(shown(idle), true);
 });
 

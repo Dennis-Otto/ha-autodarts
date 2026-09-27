@@ -1414,6 +1414,7 @@ class Scenario:
                 "double_out": True,
                 "bull_off": False,
                 "pause": 1,
+                "summary": 0,
             },
         )
         await self.expect_states(

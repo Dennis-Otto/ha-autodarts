@@ -233,7 +233,7 @@ In der Vorschau des Karteneditors öffnet sich die Auswahl nie.
 Während eines [Turniers](entitaeten.md#turniere) folgt ihm die Anzeigetafel:
 
 - **Während eines Matches:** Die Titelzeile nennt Runde und Match, etwa *Turnier · Halbfinale · Match 5 von 7*.
-- **Zwischen den Matches:** Die [Zusammenfassung](#match-zusammenfassung) eines Matches bleibt `tournament_summary` Sekunden (5) stehen, dann erscheint die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System), mit dem nächsten Match, seiner Runde und einem Countdown bis zum Beginn. *Jetzt starten* startet es sofort. Während eines Turniers öffnet sich die Spielauswahl nicht von selbst.
+- **Zwischen den Matches:** Die [Zusammenfassung](#match-zusammenfassung) eines Matches bleibt für die *Turnierzusammenfassung* (8 Sekunden) stehen, dann erscheint während der *Turnierpause* die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System), mit dem nächsten Match, seiner Runde und einem Countdown bis zum Beginn. *Jetzt starten* startet es sofort. Während eines Turniers öffnet sich die Spielauswahl nicht von selbst.
 - **Tabelle:** Platz, gespielte, gewonnene und verlorene Matches, gewonnene und verlorene Legs, die Leg-Differenz, der 3-Dart-Average (Cricket: MPR) und die Punkte. Die Spieler des nächsten Matches sind hervorgehoben, der Turniersieger bekommt 🏆.
 - **Turnierbaum:** eine Spalte pro Runde, das Spiel um Platz 3 unter dem Finale; Freilose, offene Plätze und Ergebnisse; das nächste Match ist umrandet. Wer weiterkommt, gleitet in die nächste Runde; auf Geräten, die weniger Bewegung wünschen, füllen sich die Plätze ohne Bewegung.
 - **Sieger:** Nach dem letzten Match nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt.
@@ -281,13 +281,12 @@ Tafeln ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `idle` | Wahrheitswert | `true` | Den [Ruhemodus](#ruhemodus) einschalten |
 | `idle_after` | Sekunden, 10–3600 | `180` | Zeit ohne Darts und Tippen, bis der Ruhemodus beginnt |
 | `idle_interval` | Sekunden, 3–120 | `10` | Zeit, die jede Tafel zu sehen ist |
-| `tournament_summary` | Sekunden, 0–60 | `5` | Wie lange die Zusammenfassung eines Turniermatches vor [Tabelle oder Turnierbaum](#turniere) stehen bleibt |
 | `idle_panels` | Liste von Tafeln | jede Tafel | Die Tafeln des Ruhemodus in dieser Reihenfolge: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `show_summary` | Wahrheitswert | `true` | Die [Match-Zusammenfassung](#match-zusammenfassung) anzeigen, wenn ein X01- oder Cricket-Match endet |
 | `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Spieler am Board, Wege und Aufnahmepunkte |
 
-Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl, Turnier und Ruhemodus haben eigene eingeklappte Abschnitte.
+Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl und Ruhemodus haben eigene eingeklappte Abschnitte.
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -307,7 +306,7 @@ Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live
 
 - **X01:** Legs (und Sätze), 3-Dart-Average, First-9-Average, Checkout-Quote mit den ausgecheckten Legs und den Darts aufs Double, höchster Checkout, 180er, Aufnahmen mit 140+ und 100+, bestes Leg in Darts, Darts aufs Double und alle Darts. Ohne Double-Out fehlen Checkout-Quote und Darts aufs Double.
 - **Cricket:** Legs (und Sätze), Marks pro Runde, Marks, bestes Leg in Darts und alle Darts.
-- **Wie lange:** bis zum ersten Dart des nächsten Spiels oder `summary_seconds` nachdem die Karte sie zuerst gezeigt hat. Danach sind Spieler und Ergebnis wieder zu sehen, und auf der Anzeigetafel öffnet sich einige Sekunden später die [Spielauswahl](#spielauswahl). Solange die Zusammenfassung zu sehen ist, öffnet sich die Spielauswahl nur durch Tippen, und der [Ruhemodus](#ruhemodus) kann nach seiner Wartezeit übernehmen. `show_summary: false` schaltet die Zusammenfassung ab. Zwischen den Matches eines [Turniers](#turniere) folgen nach `tournament_summary` Sekunden Tabelle oder Turnierbaum.
+- **Wie lange:** bis zum ersten Dart des nächsten Spiels oder `summary_seconds` nachdem die Karte sie zuerst gezeigt hat. Danach sind Spieler und Ergebnis wieder zu sehen, und auf der Anzeigetafel öffnet sich einige Sekunden später die [Spielauswahl](#spielauswahl). Solange die Zusammenfassung zu sehen ist, öffnet sich die Spielauswahl nur durch Tippen, und der [Ruhemodus](#ruhemodus) kann nach seiner Wartezeit übernehmen. `show_summary: false` schaltet die Zusammenfassung ab. Zwischen den Matches eines [Turniers](#turniere) folgen nach der *Turnierzusammenfassung* Tabelle oder Turnierbaum.
 
 Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem Attribut `summary` der [Übungsspiel-Restpunkte](entitaeten.md#übungsspiel); [wie sie gezählt werden](funktionsweise.md#match-zusammenfassung).
 

@@ -236,6 +236,7 @@
       'players': 0,
       'random_draw': False,
       'running': None,
+      'summary': 8,
       'third_place': False,
     }),
     'training_sessions': dict({
@@ -429,6 +430,7 @@
       'players': 0,
       'random_draw': False,
       'running': None,
+      'summary': 8,
       'third_place': False,
     }),
     'training_sessions': dict({

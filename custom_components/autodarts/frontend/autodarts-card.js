@@ -418,10 +418,6 @@ const TEXT = {
     idle_panel_tournament: "Tournament",
     say_tournament_next: "Next match: {first} against {second}",
     say_tournament_won: "{name} wins the tournament!",
-    tournament_section: "Tournament",
-    tournament_summary: "Summary before the tournament view",
-    tournament_summary_helper:
-      "After a tournament match, its summary stays this long; then the table or the bracket shows until the next match.",
     // Scoreboard editor
     lobby: "New game screen",
     lobby_games: "Games offered",
@@ -924,10 +920,6 @@ const TEXT = {
     idle_panel_tournament: "Turnier",
     say_tournament_next: "Nächstes Match: {first} gegen {second}",
     say_tournament_won: "{name} gewinnt das Turnier!",
-    tournament_section: "Turnier",
-    tournament_summary: "Zusammenfassung vor der Turnieransicht",
-    tournament_summary_helper:
-      "Nach einem Turniermatch bleibt seine Zusammenfassung so lange stehen; dann zeigt die Anzeigetafel bis zum nächsten Match die Tabelle oder den Turnierbaum.",
     lobby: "Spielauswahl",
     lobby_games: "Angebotene Spiele",
     lobby_games_helper: "Leer bietet jedes Spiel des Boards an.",
@@ -1228,8 +1220,6 @@ const SCOREBOARD_DEFAULTS = {
   idle_interval: 10,
   show_summary: true,
   summary_seconds: 0,
-  // Seconds the result of a tournament match shows before the table or the bracket.
-  tournament_summary: 5,
 };
 
 // Entities a card reads, by domain and translation key of the integration.
@@ -3472,6 +3462,7 @@ function tournamentView(state) {
     last: tournamentMatch(attributes.last_result),
     nextAt: Number.isFinite(nextAt) ? nextAt : null,
     pause: finite(attributes.pause) ?? 0,
+    summary: finite(attributes.summary) ?? 8,
     winner: named(attributes.winner),
     started: named(attributes.started),
     standings: list(attributes.standings)
@@ -4720,7 +4711,6 @@ const FORM_HELPERS = {
   idle_section: "idle_section_helper",
   idle_panels: "idle_panels_helper",
   summary_seconds: "summary_seconds_helper",
-  tournament_summary: "tournament_summary_helper",
 };
 
 // The games to offer in the editor: those of a board's practice select, or every game the card knows.
@@ -4870,12 +4860,6 @@ const FORMS = {
         toggles(["lobby"], SCOREBOARD_DEFAULTS),
         { name: "lobby_games", selector: { select: { multiple: true, mode: "dropdown", options: gameOptions(pageHass) } } },
       ],
-    },
-    {
-      type: "expandable",
-      name: "tournament_section",
-      flatten: true,
-      schema: [secondsField("tournament_summary", 0, 60)],
     },
     {
       type: "expandable",
@@ -7774,7 +7758,8 @@ function createElements(Base) {
         (tournament.status === "waiting" ||
           (tournament.status === "finished" && this._tournamentDismissed !== tournament.started));
       this._tournamentOwned = playing || between;
-      const summary = Math.max(Number(this._config.tournament_summary) || 0, 0) * 1000;
+      // The summary time of the tournament, after which its pause begins.
+      const summary = tournament.summary * 1000;
       const wait = this._tournamentResult.at + summary - Date.now();
       if (between && wait > 0) this._tournamentTimer = setTimeout(() => this._update(), wait);
       // The match view names the round, also with the result of the match.

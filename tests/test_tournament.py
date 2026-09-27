@@ -248,7 +248,9 @@ def test_a_round_robin_of_three_through_the_practice_game():
     assert snapshot["next"]["players"] == ["Alex", "Kim"]
     assert snapshot["last_result"]["winner"] == "Sam"
     assert snapshot["last_result"]["average"] == [3.0, 101.0]
-    assert snapshot["next_at"] == (NOW + timedelta(seconds=10)).isoformat()
+    # The summary of the match, then the pause.
+    assert snapshot["next_at"] == (NOW + timedelta(seconds=18)).isoformat()
+    assert (snapshot["pause"], snapshot["summary"]) == (10, 8)
 
     tournament.next_match(practice)
     assert not practice.hold and practice.winner is None
@@ -599,9 +601,12 @@ def test_the_pause_ends_after_the_last_match():
     assert not tournament.due(NOW + timedelta(hours=1))
     win(practice)
     tournament.booked(practice, NOW)
+    assert tournament.due_at() == NOW + timedelta(seconds=38)
+    assert not tournament.due(NOW + timedelta(seconds=37))
+    assert tournament.due(NOW + timedelta(seconds=38))
+    # Without a summary, the pause begins with the end of the match.
+    tournament.configure(summary=0)
     assert tournament.due_at() == NOW + timedelta(seconds=30)
-    assert not tournament.due(NOW + timedelta(seconds=29))
-    assert tournament.due(NOW + timedelta(seconds=30))
     tournament.configure(pause=0)
     assert tournament.due_at() is None and not tournament.due(NOW + timedelta(hours=1))
     assert tournament.snapshot()["next_at"] is None
@@ -646,6 +651,7 @@ def test_restore_keeps_the_setup_and_ignores_what_it_does_not_know():
                 "third_place": "yes",
                 "random_draw": True,
                 "pause": 9999,
+                "summary": 61,
             }
         }
     )

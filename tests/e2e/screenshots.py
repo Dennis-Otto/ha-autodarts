@@ -601,6 +601,8 @@ def tournament_bracket_animation(page: Page) -> None:
                 "bull_off": False,
                 "third_place": True,
                 "pause": 0,
+                # The table or the bracket right after a result.
+                "summary": 1,
             },
         ],
     )
@@ -649,6 +651,8 @@ def tournament_table(page: Page) -> None:
                 "double_out": True,
                 "bull_off": False,
                 "pause": 0,
+                # The table or the bracket right after a result.
+                "summary": 1,
             },
         ],
     )
