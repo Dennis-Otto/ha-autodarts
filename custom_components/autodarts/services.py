@@ -34,6 +34,7 @@ from .practice import (
     MAX_SETS,
     TEAM_PLAYERS,
     PracticeGame,
+    valid_name,
     valid_start,
 )
 from .profiles import NAME_LENGTH
@@ -225,6 +226,13 @@ def _bed(value: str) -> dict[str, object]:
     return dart
 
 
+def _check_names(names: list[str] | None) -> None:
+    """Names without the characters no player name contains, such as { } % #,
+    which templates of automations would run."""
+    if not all(valid_name(name) for name in names or []):
+        raise _invalid("invalid_player_name")
+
+
 def _check_level(level: int) -> None:
     if not valid_level(level):
         raise _invalid("invalid_bot_level")
@@ -314,6 +322,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         names: list[str] | None = call.data.get("players")
         practice = coordinator.practice
         level: int = call.data.get("bot_level", practice.bot_level)
+        _check_names(names)
         _check_level(level)
         _check_players(
             game, names, practice.humans, call.data.get("teams") is True, level > 0
@@ -387,6 +396,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def link_player(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         person: str = call.data["person"]
+        _check_names([call.data["player"]])
         if hass.states.get(person) is None:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -414,6 +424,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def start_tournament(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         setup = coordinator.tournament.setup
+        _check_names(call.data.get("players"))
         _check_starts(
             call.data.get("start_scores"),
             len(call.data.get("players", setup.players)),

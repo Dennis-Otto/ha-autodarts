@@ -945,7 +945,7 @@
     },
     "delete_player": {
       "name": "Spielerprofil löschen",
-      "description": "Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers. Auch aus den Bestleistungen des Boards und den Spielernamen des Übungsspiels verschwindet der Name; der Match-Verlauf behält ihn. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
+      "description": "Vergisst Statistik, Bestleistungen und direkte Vergleiche eines Spielers. Auch aus den Bestleistungen des Boards und den Spielernamen des Übungsspiels verschwindet der Name; der Match-Verlauf behält ihn. Einen Spieler des laufenden Turniers kannst du erst löschen, wenn das Turnier beendet ist. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1013,7 +1013,7 @@
     },
     "start_tournament": {
       "name": "Turnier starten",
-      "description": "Lost ein Turnier mit drei bis acht Spielern aus und startet das erste Match: jeder gegen jeden oder im K.-o.-System, mit Matches in X01 oder Cricket.",
+      "description": "Lost ein Turnier mit drei bis acht Spielern aus und startet das erste Match: jeder gegen jeden oder im K.-o.-System, mit Matches in X01 oder Cricket. Ein laufendes Turnier muss vorher beendet werden.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

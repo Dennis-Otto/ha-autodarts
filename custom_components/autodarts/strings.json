@@ -945,7 +945,7 @@
     },
     "delete_player": {
       "name": "Delete player profile",
-      "description": "Forgets a player's statistics, personal bests and head-to-head records. The name also disappears from the personal bests of the board and the practice player names; the match history keeps it. For administrators; automations can use it, too.",
+      "description": "Forgets a player's statistics, personal bests and head-to-head records. The name also disappears from the personal bests of the board and the practice player names; the match history keeps it. A player of the tournament being played can be deleted once the tournament is stopped. For administrators; automations can use it, too.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1013,7 +1013,7 @@
     },
     "start_tournament": {
       "name": "Start tournament",
-      "description": "Draws a tournament of three to eight players and starts its first match: a round robin or a knockout of X01 or Cricket matches.",
+      "description": "Draws a tournament of three to eight players and starts its first match: a round robin or a knockout of X01 or Cricket matches. A tournament being played has to be stopped first.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

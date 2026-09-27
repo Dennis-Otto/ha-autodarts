@@ -585,7 +585,7 @@ data:
   start_scores: [501, 301]
 ```
 
-The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when a name appears twice among the players, when Killer would have fewer than two players, when `teams` asks for teams without four players or in a game other than X01 and the Cricket games, when four players leave no seat for the bot, when a start score is not `0` or 2–1001, when there are more start scores than seats or, for teams, more than two, when a start score of 3 meets double in and double out, or when the bot level is 1–19 or above 120. Values beyond the limits above are rejected before anything changes.
+The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when a name appears twice among the players or contains curly brackets, a percent sign, a number sign or control characters, when Killer would have fewer than two players, when `teams` asks for teams without four players or in a game other than X01 and the Cricket games, when four players leave no seat for the bot, when a start score is not `0` or 2–1001, when there are more start scores than seats or, for teams, more than two, when a start score of 3 meets double in and double out, or when the bot level is 1–19 or above 120. Values beyond the limits above are rejected before anything changes.
 
 ### Correct a dart: `autodarts.correct_dart`
 
@@ -648,7 +648,7 @@ Forgets a player's statistics, personal bests, head-to-head records, progress an
 | `name` | text | The player name, in any upper and lower case; required |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
-The action fails with a clear message when there is no profile by that name.
+The action fails with a clear message when there is no profile by that name, and while the player plays in the tournament being played: stop the tournament first. The player also leaves the players of the next tournament.
 
 ### Export training data: `autodarts.export`
 
@@ -698,7 +698,7 @@ data:
   person: person.dennis
 ```
 
-The action fails with a clear message when Home Assistant has no such person.
+The action fails with a clear message when Home Assistant has no such person, or when the player name contains curly brackets, a percent sign, a number sign or control characters.
 
 ### Unlink a player: `autodarts.unlink_player`
 
@@ -744,7 +744,7 @@ data:
   pause: 30
 ```
 
-A tournament started while another one runs replaces it. The action fails with a clear message when fewer than three or more than eight players are named, when a name appears twice, or when the start scores are wrong as above.
+A tournament being played has to be stopped before the next one starts; a finished one is replaced. The action fails with a clear message while a tournament is being played, when fewer than three or more than eight players are named, when a name appears twice or contains curly brackets, a percent sign, a number sign or control characters, or when the start scores are wrong as above.
 
 ### Start the next tournament match: `autodarts.next_tournament_match`
 

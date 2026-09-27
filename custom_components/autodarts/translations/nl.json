@@ -945,7 +945,7 @@
     },
     "delete_player": {
       "name": "Spelersprofiel verwijderen",
-      "description": "Wist de statistieken, persoonlijke records en onderlinge duels van een speler. De naam verdwijnt ook uit de persoonlijke records van het bord en uit de spelersnamen van het oefenspel; de wedstrijdgeschiedenis behoudt hem. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "description": "Wist de statistieken, persoonlijke records en onderlinge duels van een speler. De naam verdwijnt ook uit de persoonlijke records van het bord en uit de spelersnamen van het oefenspel; de wedstrijdgeschiedenis behoudt hem. Een speler van het lopende toernooi kun je pas verwijderen als het toernooi is gestopt. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -1013,7 +1013,7 @@
     },
     "start_tournament": {
       "name": "Toernooi starten",
-      "description": "Maakt de loting voor een toernooi met drie tot acht spelers en start de eerste wedstrijd: iedereen tegen iedereen of knock-out, met wedstrijden in X01 of Cricket.",
+      "description": "Maakt de loting voor een toernooi met drie tot acht spelers en start de eerste wedstrijd: iedereen tegen iedereen of knock-out, met wedstrijden in X01 of Cricket. Een lopend toernooi moet eerst worden gestopt.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",

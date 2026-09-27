@@ -945,7 +945,7 @@
     },
     "delete_player": {
       "name": "Supprimer un profil de joueur",
-      "description": "Efface les statistiques, les records personnels et les face-à-face d'un joueur. Le nom disparaît aussi des records personnels de la cible et des noms de joueurs de la partie\u00a0; l'historique des matchs le conserve. Réservée aux administrateurs\u00a0; les automatisations peuvent aussi l'utiliser.",
+      "description": "Efface les statistiques, les records personnels et les face-à-face d'un joueur. Le nom disparaît aussi des records personnels de la cible et des noms de joueurs de la partie\u00a0; l'historique des matchs le conserve. Un joueur du tournoi en cours ne peut être supprimé qu'une fois le tournoi terminé. Réservée aux administrateurs\u00a0; les automatisations peuvent aussi l'utiliser.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -1013,7 +1013,7 @@
     },
     "start_tournament": {
       "name": "Démarrer un tournoi",
-      "description": "Tire au sort un tournoi de trois à huit joueurs et lance son premier match\u00a0: en poule unique ou en élimination directe, avec des matchs de X01 ou de Cricket.",
+      "description": "Tire au sort un tournoi de trois à huit joueurs et lance son premier match\u00a0: en poule unique ou en élimination directe, avec des matchs de X01 ou de Cricket. Un tournoi en cours doit d'abord être terminé.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",

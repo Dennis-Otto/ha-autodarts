@@ -353,3 +353,23 @@ async def test_a_wrong_bed_is_explained(hass, aioclient_mock):
     assert error.translation_placeholders == {"segment": "T?20"}
     with pytest.raises(vol.Invalid):
         await call(hass, "throw_dart", segment="")
+
+
+async def test_player_names_that_templates_would_run_are_refused(hass, aioclient_mock):
+    """{ } % # in a name would run in the templates of automations."""
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    hass.states.async_set("person.alex", "home")
+    for service, data in (
+        ("start_game", {"game": "501", "players": ["Alex", "{{ 6*7 }}"]}),
+        ("start_tournament", {"players": ["Alex", "Sam", "50%"]}),
+        ("link_player", {"player": "#Kim", "person": "person.alex"}),
+    ):
+        error = await invalid(hass, service, **data)
+        assert error.translation_key == "invalid_player_name"
+    assert not coordinator.practice.profiles.snapshot()["players"]
+    assert coordinator.tournament.tournament is None
+    # The board checks the names of a game on its own, too.
+    with pytest.raises(ServiceValidationError) as error:
+        await coordinator.async_start_game(501, names=["Alex", "{x}"])
+    assert error.value.translation_key == "invalid_player_name"

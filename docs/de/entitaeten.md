@@ -585,7 +585,7 @@ data:
   start_scores: [501, 301]
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht, wenn Killer weniger als zwei Spieler hätte, wenn `teams` Teams ohne vier Spieler oder in einem anderen Spiel als X01 und den Cricket-Spielen verlangt, wenn vier Spieler dem Bot keinen Platz lassen, wenn Startpunkte nicht `0` oder 2–1001 sind, wenn es mehr Startpunkte als Plätze gibt oder bei Teams mehr als zwei, wenn Startpunkte von 3 auf Double-In und Double-Out treffen oder wenn die Bot-Stärke 1–19 oder über 120 ist. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
+Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht oder geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält, wenn Killer weniger als zwei Spieler hätte, wenn `teams` Teams ohne vier Spieler oder in einem anderen Spiel als X01 und den Cricket-Spielen verlangt, wenn vier Spieler dem Bot keinen Platz lassen, wenn Startpunkte nicht `0` oder 2–1001 sind, wenn es mehr Startpunkte als Plätze gibt oder bei Teams mehr als zwei, wenn Startpunkte von 3 auf Double-In und Double-Out treffen oder wenn die Bot-Stärke 1–19 oder über 120 ist. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
 
 ### Dart korrigieren: `autodarts.correct_dart`
 
@@ -648,7 +648,7 @@ Vergisst Statistik, Bestleistungen, direkte Vergleiche, Fortschritt und Abzeiche
 | `name` | Text | Der Spielername, in beliebiger Groß- und Kleinschreibung; Pflichtfeld |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Profil mit diesem Namen gibt.
+Die Aktion bricht mit einer klaren Meldung ab, wenn es kein Profil mit diesem Namen gibt, und solange der Spieler im laufenden Turnier mitspielt: Beende zuerst das Turnier. Der Spieler verschwindet auch aus den Spielern des nächsten Turniers.
 
 ### Trainingsdaten exportieren: `autodarts.export`
 
@@ -698,7 +698,7 @@ data:
   person: person.dennis
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn Home Assistant diese Person nicht kennt.
+Die Aktion bricht mit einer klaren Meldung ab, wenn Home Assistant diese Person nicht kennt oder der Spielername geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält.
 
 ### Spieler-Verknüpfung lösen: `autodarts.unlink_player`
 
@@ -744,7 +744,7 @@ data:
   pause: 30
 ```
 
-Ein Turnier, das während eines anderen gestartet wird, ersetzt es. Die Aktion bricht mit einer klaren Meldung ab, wenn weniger als drei oder mehr als acht Spieler genannt sind, wenn ein Name zweimal vorkommt oder wenn die Startpunkte wie oben nicht passen.
+Ein laufendes Turnier muss beendet sein, bevor das nächste beginnt; ein abgeschlossenes wird ersetzt. Die Aktion bricht mit einer klaren Meldung ab, solange ein Turnier läuft, wenn weniger als drei oder mehr als acht Spieler genannt sind, wenn ein Name zweimal vorkommt oder geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält oder wenn die Startpunkte wie oben nicht passen.
 
 ### Nächstes Turniermatch starten: `autodarts.next_tournament_match`
 

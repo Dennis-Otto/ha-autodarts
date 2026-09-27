@@ -945,7 +945,7 @@
     },
     "delete_player": {
       "name": "Eliminar perfil de jugador",
-      "description": "Borra las estadísticas, los récords personales y los cara a cara de un jugador. El nombre también desaparece de los récords personales de la diana y de los nombres de jugadores de la partida; el historial de partidos lo conserva. Solo para administradores; las automatizaciones también pueden usarla.",
+      "description": "Borra las estadísticas, los récords personales y los cara a cara de un jugador. El nombre también desaparece de los récords personales de la diana y de los nombres de jugadores de la partida; el historial de partidos lo conserva. Un jugador del torneo en curso solo se puede eliminar cuando el torneo haya terminado. Solo para administradores; las automatizaciones también pueden usarla.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -1013,7 +1013,7 @@
     },
     "start_tournament": {
       "name": "Iniciar torneo",
-      "description": "Sortea un torneo de tres a ocho jugadores e inicia su primer partido: todos contra todos o eliminación directa, con partidos de X01 o de Cricket.",
+      "description": "Sortea un torneo de tres a ocho jugadores e inicia su primer partido: todos contra todos o eliminación directa, con partidos de X01 o de Cricket. Un torneo en curso debe terminarse primero.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
