@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from copy import deepcopy
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -9,7 +10,11 @@ import pytest
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import EVENT_HOMEASSISTANT_CLOSE
 from homeassistant.helpers import device_registry as dr
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.autodarts.api import API_BASE, REFRESH_URL
 from custom_components.autodarts.errors import AutodartsConnectionError
@@ -18,7 +23,9 @@ from custom_components.autodarts.local_coordinator import AutodartsLocalCoordina
 
 from .local_helpers import (
     BASE,
+    CONFIG,
     STATE,
+    entity_id,
     entry_data,
     local_entry_data,
     mock_board,
@@ -242,6 +249,52 @@ async def test_failed_reads_keep_settings_and_motion(hass, aioclient_mock, freez
     assert state(hass, "select", "standby_minutes") == "15"
     assert coordinator.data["motion"]["isStable"] is True
     assert coordinator.data["settings"]["camera_count"] == 3
+
+
+async def test_setting_switched_during_a_poll_shows_without_waiting(
+    hass, aioclient_mock, freezer
+):
+    """A poll that asked for the settings just before a switch changed one gets
+    the old value; the switch must not show it until the next regular read."""
+    entry = await setup_local(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    freezer.tick(timedelta(seconds=30))
+    read_settings = coordinator.client.get_config
+    asked, answered = asyncio.Event(), asyncio.Event()
+
+    async def settings_on_the_way():
+        settings = await read_settings()
+        asked.set()
+        await answered.wait()
+        return settings
+
+    with patch.object(coordinator.client, "get_config", settings_on_the_way):
+        poll = hass.async_create_task(coordinator.async_refresh())
+        await asked.wait()
+    switched = deepcopy(CONFIG)
+    switched["cam"]["auto_distortion"] = True
+    aioclient_mock.clear_requests()
+    mock_board(aioclient_mock, config=switched)
+    aioclient_mock.patch(f"{BASE}/api/config", status=204)
+    switching = hass.async_create_task(
+        hass.services.async_call(
+            "switch",
+            "turn_on",
+            {"entity_id": entity_id(hass, "switch", "auto_distortion")},
+            blocking=True,
+        )
+    )
+    async with asyncio.timeout(5):
+        while not any(call[0] == "PATCH" for call in aioclient_mock.mock_calls):
+            await asyncio.sleep(0)
+    # The old answer arrives after the board has taken the new setting.
+    answered.set()
+    await poll
+    await switching
+    # The switch's own refresh follows the poll after the one-second cooldown.
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=2))
+    await hass.async_block_till_done()
+    assert state(hass, "switch", "auto_distortion") == "on"
 
 
 async def test_missed_poll_during_realtime_stream_is_no_outage(hass, aioclient_mock):
