@@ -348,7 +348,7 @@ Home Assistant counts every dart thrown at a double and whether it hit: in X01 w
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Favorite double | Sensor | The double with the best hit rate among those with at least 10 darts, for example `D16`; *unknown* before. Attributes: `attempts`, `hits`, `rate` (percent) and `doubles` with `double`, `attempts`, `hits` and `rate` of every double thrown at. The recorder does not store the list. |
+| Favorite double | Sensor | The double with the best hit rate among those with at least 10 darts, for example `D16`; *unknown* before. Attributes: `attempts`, `hits`, `rate` (percent), `doubles` with `double`, `attempts`, `hits` and `rate` of every double thrown at, and `landed` with how often every double was hit by any dart, such as `{"D16": 12}`. The recorder stores neither. |
 | Practice personal checkout routes | Switch, *Configuration* | Checkout routes prefer the strongest doubles of the player at the board (their profile, otherwise everybody's darts): a route with the same number of darts to a double with a better hit rate wins, without a double to set up; only doubles with at least 10 darts count. Off by default. |
 
 The [doubles card](cards.md#doubles-card) draws the hit rate of every double on the board.

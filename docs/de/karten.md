@@ -361,7 +361,7 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 
 ## Doubles-Karte
 
-`custom:autodarts-doubles-card` zeigt die [Doppelanalyse](entitaeten.md#doppelanalyse): den Doppelring der Scheibe, gefärbt von Rot (selten getroffen) bis Grün (etwa jeder zweite Dart), und jedes geworfene Double, das beste zuerst, mit Treffern, Darts und Quote. Das Lieblingsdouble ist ausgefüllt. Mit `player` zeigt sie die Doubles eines benannten Spielers statt die aller; ein Name ohne Profil bekommt den Hinweis, die Schreibweise zu prüfen.
+`custom:autodarts-doubles-card` zeigt die [Doppelanalyse](entitaeten.md#doppelanalyse): jedes getroffene Double auf dem Doppelring der Scheibe, gefärbt nach seiner Quote von Rot (selten getroffen) bis Grün (etwa jeder zweite Dart), wo Darts darauf zielten, und sonst in der Akzentfarbe, je kräftiger, desto öfter getroffen. Die Liste darunter zeigt jedes Double, die beste Quote zuerst, mit den Treffern aller Darts, den Treffern und Darts beim Zielen darauf und der Quote. Das Lieblingsdouble ist ausgefüllt. Mit `player` zeigt sie die Doubles eines benannten Spielers statt die aller; ein Name ohne Profil bekommt den Hinweis, die Schreibweise zu prüfen.
 
 <img src="../images/de/doubles-card.png" alt="Doubles-Karte: der Doppelring nach Quote von Rot bis Grün gefärbt und eine Liste der Doubles mit Treffern, Darts und Quote, das beste zuerst" width="760">
 

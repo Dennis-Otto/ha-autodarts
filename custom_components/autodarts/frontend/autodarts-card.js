@@ -308,7 +308,14 @@ const TEXT = {
     export_failed: "Export failed",
     doubles_title: "Doubles",
     doubles_darts: "darts at a double",
-    doubles_empty: "Throw at doubles in X01, the doubles training or Bob's 27 to see your hit rate on every double.",
+    doubles_empty:
+      "Every double you hit shows up here. Its hit rate needs darts aimed at it: X01 with double out, the doubles training, Bob's 27 and the checkout games.",
+    doubles_hit: "doubles hit",
+    doubles_landed: "hit {count}×",
+    doubles_landed_short: "{count}×",
+    doubles_aimed: "aimed",
+    doubles_legend:
+      "× counts every dart in the double; 3/5 and the rate count the darts aimed at it: X01 with double out, the doubles training, Bob's 27 and the checkout games.",
     doubles_unknown_player:
       "No doubles of {player} yet. Check the name in the card settings, or throw at doubles in a practice game as {player}.",
     doubles_routes: "Personal checkout routes use doubles with at least 10 darts.",
@@ -853,7 +860,14 @@ const TEXT = {
     export_failed: "Export fehlgeschlagen",
     doubles_title: "Doubles",
     doubles_darts: "Darts aufs Double",
-    doubles_empty: "Wirf im X01, im Doppeltraining oder bei Bob's 27 auf Doubles, dann siehst du hier die Quote jedes Doubles.",
+    doubles_empty:
+      "Jedes Double, das du triffst, erscheint hier. Seine Quote braucht Darts, die aufs Double zielen: X01 mit Double-Out, Doppeltraining, Bob's 27 und die Checkout-Spiele.",
+    doubles_hit: "Doubles getroffen",
+    doubles_landed: "{count}× getroffen",
+    doubles_landed_short: "{count}×",
+    doubles_aimed: "gezielt",
+    doubles_legend:
+      "× zählt jeden Dart im Double; 3/5 und die Quote zählen die Darts, die aufs Double zielten: X01 mit Double-Out, Doppeltraining, Bob's 27 und die Checkout-Spiele.",
     doubles_unknown_player:
       "Noch keine Doubles von {player}. Prüfe den Namen in den Karteneinstellungen oder wirf in einem Übungsspiel als {player} auf Doubles.",
     doubles_routes: "Persönliche Checkout-Wege nutzen Doubles mit mindestens 10 Darts.",
@@ -1388,7 +1402,14 @@ const TEXT = {
     export_failed: "Error al exportar",
     doubles_title: "Dobles",
     doubles_darts: "dardos a doble",
-    doubles_empty: "Lanza a dobles en X01, en el entrenamiento de dobles o en Bob's 27 para ver tu porcentaje de aciertos en cada doble.",
+    doubles_empty:
+      "Aquí aparece cada doble que aciertas. Su porcentaje de aciertos necesita dardos apuntados al doble: X01 con Double out, el entrenamiento de dobles, Bob's 27 y los juegos de checkout.",
+    doubles_hit: "dobles acertados",
+    doubles_landed: "acertado {count}×",
+    doubles_landed_short: "{count}×",
+    doubles_aimed: "apuntados",
+    doubles_legend:
+      "× cuenta cada dardo en el doble; 3/5 y el porcentaje cuentan los dardos apuntados al doble: X01 con Double out, el entrenamiento de dobles, Bob's 27 y los juegos de checkout.",
     doubles_unknown_player:
       "Aún no hay dobles de {player}. Comprueba el nombre en la configuración de la tarjeta o lanza a dobles en una partida como {player}.",
     doubles_routes: "Las rutas de cierre personales usan dobles con al menos 10 dardos.",
@@ -1921,7 +1942,14 @@ const TEXT = {
     export_failed: "Échec de l'export",
     doubles_title: "Doubles",
     doubles_darts: "fléchettes sur double",
-    doubles_empty: "Lancez sur les doubles en X01, à l'entraînement aux doubles ou au Bob's 27 pour voir ici votre taux de réussite sur chaque double.",
+    doubles_empty:
+      "Chaque double que vous touchez apparaît ici. Son taux de réussite demande des fléchettes qui le visent\u00a0: X01 en Double out, l'entraînement aux doubles, le Bob's 27 et les jeux de checkout.",
+    doubles_hit: "doubles touchés",
+    doubles_landed: "touché {count}×",
+    doubles_landed_short: "{count}×",
+    doubles_aimed: "visées",
+    doubles_legend:
+      "× compte chaque fléchette dans le double\u00a0; 3/5 et le taux comptent les fléchettes qui le visaient\u00a0: X01 en Double out, l'entraînement aux doubles, le Bob's 27 et les jeux de checkout.",
     doubles_unknown_player:
       "Aucun double de {player} pour l'instant. Vérifiez le nom dans les paramètres de la carte, ou lancez sur les doubles dans une partie en tant que {player}.",
     doubles_routes: "Les combinaisons de finish personnelles utilisent les doubles visés par au moins 10 fléchettes.",
@@ -2454,7 +2482,14 @@ const TEXT = {
     export_failed: "Exporteren mislukt",
     doubles_title: "Dubbels",
     doubles_darts: "darts op een dubbel",
-    doubles_empty: "Gooi op dubbels in X01, de dubbeltraining of Bob's 27 om je trefferpercentage op elke dubbel te zien.",
+    doubles_empty:
+      "Elke dubbel die je raakt, verschijnt hier. Het trefferpercentage vraagt pijlen die op de dubbel mikken: X01 met Double out, de dubbeltraining, Bob's 27 en de checkoutspellen.",
+    doubles_hit: "dubbels geraakt",
+    doubles_landed: "{count}× geraakt",
+    doubles_landed_short: "{count}×",
+    doubles_aimed: "gemikt",
+    doubles_legend:
+      "× telt elke pijl in de dubbel; 3/5 en het percentage tellen de pijlen die op de dubbel mikten: X01 met Double out, de dubbeltraining, Bob's 27 en de checkoutspellen.",
     doubles_unknown_player:
       "Nog geen dubbels van {player}. Controleer de naam in de kaartinstellingen, of gooi in een oefenspel als {player} op dubbels.",
     doubles_routes: "Persoonlijke uitgooiroutes gebruiken dubbels waarop minstens 10 darts zijn gegooid.",
@@ -5706,27 +5741,42 @@ function tournamentStartData(choice, { entry = null, distance = false } = {}) {
 
 const DOUBLE_ORDER = [...BOARD_NUMBERS.map((number) => `D${number}`), "BULL"];
 
-function doubleCounts(source) {
-  const doubles = (Array.isArray(source?.doubles) ? source.doubles : [])
-    .filter(
-      (item) =>
-        item &&
-        DOUBLE_ORDER.includes(item.double) &&
-        Number.isInteger(item.attempts) &&
-        Number.isInteger(item.hits) &&
-        item.attempts > 0
-    )
-    .map((item) => ({
-      double: item.double,
-      attempts: item.attempts,
-      hits: item.hits,
-      rate: finite(item.rate) ?? Math.round((item.hits * 1000) / item.attempts) / 10,
-    }));
+// Every double hit by any dart, with its attempts and hit rate where darts were aimed
+// at it; `landed` counts the darts in each double by name, such as { D16: 3 }.
+function doubleCounts(source, landed) {
+  const aimed = new Map(
+    (Array.isArray(source?.doubles) ? source.doubles : [])
+      .filter(
+        (item) =>
+          item &&
+          DOUBLE_ORDER.includes(item.double) &&
+          Number.isInteger(item.attempts) &&
+          Number.isInteger(item.hits) &&
+          item.attempts > 0
+      )
+      .map((item) => [item.double, item])
+  );
+  const counted = landed && typeof landed === "object" ? landed : {};
+  const doubles = DOUBLE_ORDER.map((double) => {
+    const item = aimed.get(double);
+    // A hit of a dart aimed at the double is a hit of the double, also where older
+    // data counted no hits.
+    const count = Math.max(Number.isInteger(counted[double]) && counted[double] > 0 ? counted[double] : 0, item?.hits ?? 0);
+    if (!item && !count) return null;
+    return {
+      double,
+      landed: count,
+      attempts: item?.attempts ?? 0,
+      hits: item?.hits ?? 0,
+      rate: item ? (finite(item.rate) ?? Math.round((item.hits * 1000) / item.attempts) / 10) : null,
+    };
+  }).filter(Boolean);
   return {
     attempts: finite(source?.attempts) ?? 0,
     hits: finite(source?.hits) ?? 0,
     rate: finite(source?.rate),
     favourite: typeof source?.favourite === "string" ? source.favourite : null,
+    landed: doubles.reduce((sum, item) => sum + item.landed, 0),
     doubles,
   };
 }
@@ -5749,11 +5799,12 @@ function doublesView(doubles, profiles, player = "") {
     const profile = (Array.isArray(profiles?.attributes?.players) ? profiles.attributes.players : []).find(
       (item) => typeof item?.name === "string" && item.name.trim().toLowerCase() === wanted
     );
-    return { player: profile?.name ?? player, known: Boolean(profile), ...doubleCounts(profile?.doubles) };
+    // A profile counts every dart by the bed it hit.
+    return { player: profile?.name ?? player, known: Boolean(profile), ...doubleCounts(profile?.doubles, profile?.hits) };
   }
   const attributes = doubles?.attributes || {};
   const favourite = usable(doubles) ? doubles.state : null;
-  return { player: null, known: true, ...doubleCounts({ ...attributes, favourite }) };
+  return { player: null, known: true, ...doubleCounts({ ...attributes, favourite }, attributes.landed) };
 }
 
 // Red for rarely hit doubles, green from about one hit in two.
@@ -5762,26 +5813,44 @@ function doubleColor(rate) {
   return `hsl(${hue} 70% 46%)`;
 }
 
+// The colour of a double: its hit rate where darts were aimed at it, else the accent,
+// the stronger the more often it was hit.
+const doubleTint = (item, most) =>
+  item.rate === null
+    ? `color-mix(in srgb, var(--ad-accent) ${Math.round(35 + (55 * item.landed) / most)}%, transparent)`
+    : doubleColor(item.rate);
+
 function doublesHtml(view, ui) {
-  const { format, percent, label } = ui;
+  const { t, format, percent, label } = ui;
+  const most = Math.max(1, ...view.doubles.map((item) => item.landed));
+  const told = (item) =>
+    [
+      fill(t("doubles_landed"), { count: format(item.landed, 0) }),
+      item.attempts ? `${format(item.hits, 0)}/${format(item.attempts, 0)} ${t("doubles_aimed")}` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
   // Every double of the list is a bed of the board.
   const ring = view.doubles
     .map(
       (item) =>
-        `<path d="${bedPath(hitBeds(item.double)[0])}" style="fill:${doubleColor(item.rate)}"><title>${escapeHtml(
-          `${label(item.double)}: ${item.hits}/${item.attempts}`
+        `<path d="${bedPath(hitBeds(item.double)[0])}" style="fill:${doubleTint(item, most)}"><title>${escapeHtml(
+          `${label(item.double)}: ${told(item)}`
         )}</title></path>`
     )
     .join("");
+  // The bar tells how often a double was hit, its colour the rate; the doubles aimed at
+  // come first, the best rate first.
   const list = [...view.doubles]
-    .sort((a, b) => b.rate - a.rate || b.attempts - a.attempts)
+    .sort((a, b) => (b.rate ?? -1) - (a.rate ?? -1) || b.attempts - a.attempts || b.landed - a.landed)
     .map(
       (item) =>
-        `<div class="double${item.double === view.favourite ? " favourite" : ""}">` +
-        `<span class="bed" style="--c:${doubleColor(item.rate)}">${escapeHtml(label(item.double))}</span>` +
-        `<span class="bar"><i style="width:${Math.min(item.rate, 100)}%;background:${doubleColor(item.rate)}"></i></span>` +
-        `<span class="count">${escapeHtml(`${format(item.hits, 0)}/${format(item.attempts, 0)}`)}</span>` +
-        `<span class="rate">${escapeHtml(percent(item.rate, 0))}</span></div>`
+        `<div class="double${item.double === view.favourite ? " favourite" : ""}" title="${escapeHtml(told(item))}">` +
+        `<span class="bed" style="--c:${doubleTint(item, most)}">${escapeHtml(label(item.double))}</span>` +
+        `<span class="bar"><i style="width:${Math.round((100 * item.landed) / most)}%;background:${doubleTint(item, most)}"></i></span>` +
+        `<span class="landed">${escapeHtml(fill(t("doubles_landed_short"), { count: format(item.landed, 0) }))}</span>` +
+        `<span class="count">${item.attempts ? escapeHtml(`${format(item.hits, 0)}/${format(item.attempts, 0)}`) : ""}</span>` +
+        `<span class="rate">${escapeHtml(item.rate === null ? "–" : percent(item.rate, 0))}</span></div>`
     )
     .join("");
   return { ring, list };
@@ -8125,7 +8194,7 @@ const DOUBLES_CSS = `${BASE_CSS}
   .ring path { stroke: var(--ha-card-background, var(--card-background-color, #1c1c1c)); stroke-width: 1.5; }
   .double-list { display: grid; gap: 6px; }
   .double {
-    display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto 3.4em; gap: 10px; align-items: center;
+    display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto auto 3.4em; gap: 10px; align-items: center;
     font-variant-numeric: tabular-nums;
   }
   .double .bed {
@@ -8141,6 +8210,7 @@ const DOUBLES_CSS = `${BASE_CSS}
     background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
   }
   .double .bar i { display: block; height: 100%; border-radius: inherit; }
+  .double .landed { font-size: 13px; font-weight: 700; }
   .double .count { font-size: 12px; color: var(--secondary-text-color); }
   .double .rate { font-size: 13px; font-weight: 700; text-align: right; }
 `;
@@ -11149,6 +11219,7 @@ function createElements(Base) {
                 </div>
                 <div>
                   <div class="double-list"></div>
+                  <p class="muted">${t("doubles_legend")}</p>
                   <p class="muted">${t("doubles_routes")}</p>
                 </div>
               </div>
@@ -11175,10 +11246,15 @@ function createElements(Base) {
       this.style.setProperty("--ad-accent", cssColor(c.accent_color, "var(--primary-color)"));
       const view = doublesView(this._state("doubles"), this._state("profiles"), c.player);
       el.title.textContent = c.title || [t("doubles_title"), view.player].filter(Boolean).join(" · ");
-      el.meta.textContent = view.attempts
-        ? `${this._format(view.attempts)} ${t("doubles_darts")}` +
-          (view.rate === null ? "" : ` · ${this._percent(view.rate, 1)}`)
-        : "";
+      el.meta.textContent = [
+        view.landed ? `${this._format(view.landed)} ${t("doubles_hit")}` : null,
+        view.attempts
+          ? `${this._format(view.attempts)} ${t("doubles_darts")}` +
+            (view.rate === null ? "" : ` · ${this._percent(view.rate, 1)}`)
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
       el.empty.hidden = view.doubles.length > 0;
       // A name without a profile is most likely mistyped, which the card says.
       el.empty.textContent = view.known ? t("doubles_empty") : fill(t("doubles_unknown_player"), { player: view.player });

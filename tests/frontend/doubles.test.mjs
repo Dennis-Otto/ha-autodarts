@@ -1,4 +1,4 @@
-// The doubles card: hit rates per double for everybody or one player.
+// The doubles card: every double hit, and hit rates per double, for everybody or one player.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -22,6 +22,7 @@ const doubles = {
       { double: "S20", attempts: 5, hits: 5 },
       { double: "D8", attempts: 0, hits: 0 },
     ],
+    landed: { D16: 12, D20: 3, BULL: 1, D7: 2 },
   },
 };
 const profiles = {
@@ -32,20 +33,22 @@ const profiles = {
 };
 
 test("without sensors nobody has doubles yet", () => {
-  const empty = { attempts: 0, hits: 0, rate: null, favourite: null, doubles: [] };
+  const empty = { attempts: 0, hits: 0, rate: null, favourite: null, landed: 0, doubles: [] };
   assert.deepEqual(doublesView(undefined, undefined), { player: null, known: true, ...empty });
   assert.deepEqual(doublesView(undefined, { state: "0", attributes: {} }, "Lea"), { player: "Lea", known: false, ...empty });
 });
 
 test("everybody's doubles or one player's", () => {
   const all = doublesView(doubles, profiles);
-  assert.deepEqual([all.player, all.favourite, all.attempts, all.rate], [null, "D16", 42, 31]);
+  assert.deepEqual([all.player, all.favourite, all.attempts, all.rate, all.landed], [null, "D16", 42, 31, 18]);
+  // From D1 to D20, the bull last; D7 was only hit while aiming elsewhere.
   assert.deepEqual(
-    all.doubles.map((item) => [item.double, item.rate]),
+    all.doubles.map((item) => [item.double, item.rate, item.landed]),
     [
-      ["D16", 45],
-      ["D20", 15],
-      ["BULL", 50],
+      ["D7", null, 2],
+      ["D16", 45, 12],
+      ["D20", 15, 3],
+      ["BULL", 50, 1],
     ]
   );
   const alex = doublesView(doubles, profiles, " alex ");
@@ -59,15 +62,21 @@ test("colours run from red to green and the list starts with the best double", (
   assert.equal(doubleColor(0), "hsl(0 70% 46%)");
   assert.equal(doubleColor(50), "hsl(130 70% 46%)");
   assert.equal(doubleColor(90), "hsl(130 70% 46%)");
+  const texts = { doubles_landed: "hit {count}×", doubles_landed_short: "{count}×", doubles_aimed: "aimed" };
   const html = doublesHtml(doublesView(doubles, profiles), {
+    t: (key) => texts[key],
     format: (value, digits) => value.toFixed(digits),
     percent: (value, digits) => `${value.toFixed(digits)} %`,
     label: (key) => (key === "BULL" ? "Bull" : key),
   });
-  assert.match(html.list, /^<div class="double"><span class="bed"[^>]*>Bull<\/span>/);
-  assert.match(html.list, /<div class="double favourite"><span class="bed"[^>]*>D16<\/span>.*<span class="count">9\/20<\/span><span class="rate">45 %<\/span>/);
-  assert.equal((html.ring.match(/<path /g) || []).length, 3);
-  assert.match(html.ring, /<title>D20: 3\/20<\/title>/);
+  assert.match(html.list, /^<div class="double" title="hit 1× · 1\/2 aimed"><span class="bed"[^>]*>Bull<\/span>/);
+  assert.match(
+    html.list,
+    /<div class="double favourite"[^>]*><span class="bed"[^>]*>D16<\/span>.*<span class="landed">12×<\/span><span class="count">9\/20<\/span><span class="rate">45 %<\/span>/
+  );
+  assert.match(html.list, /<span class="bed"[^>]*>D7<\/span>.*<span class="landed">2×<\/span><span class="count"><\/span><span class="rate">–<\/span><\/div>$/);
+  assert.equal((html.ring.match(/<path /g) || []).length, 4);
+  assert.match(html.ring, /<title>D20: hit 3× · 3\/20 aimed<\/title>/);
 });
 
 test("the training view shows the doubles card once the sensor exists", () => {

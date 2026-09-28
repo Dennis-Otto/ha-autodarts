@@ -1,8 +1,10 @@
-"""Hit rates per double and checkout routes over the strongest doubles."""
+"""Hit rates per double, checkout routes over the strongest doubles, and how
+often every double was hit at all."""
 
 from custom_components.autodarts.checkout import checkout
 from custom_components.autodarts.doubles import (
     MIN_ATTEMPTS,
+    DoubleHits,
     DoubleStats,
     aimed_at,
 )
@@ -130,3 +132,73 @@ def test_finished_drills_and_darts_after_the_last_double_count_nothing():
     bobs.track([dart("D1")])
     bobs.finished = True
     assert bobs.double_attempts() == []
+
+
+def test_every_double_hit_counts_whatever_the_dart_was_aimed_at():
+    practice = PracticeGame()
+    # Training without a game.
+    throw(practice, "D20", "T20", "BULL")
+    assert practice.double_hits.snapshot() == {"D20": 1, "BULL": 1}
+    # X01 without double out: no attempts, but the hits count.
+    practice.play(301)
+    practice.double_out = False
+    throw(practice, "D16", "S16", "D16")
+    assert practice.doubles.stored() == {}
+    # Cricket aims at the numbers; its doubles are hits as well.
+    practice.play("cricket")
+    throw(practice, "D20", "D19", "MISS")
+    assert practice.double_hits.snapshot() == {
+        "D16": 2,
+        "D19": 1,
+        "D20": 2,
+        "BULL": 1,
+    }
+    # A dart before the leg began counts for no visit, and for no hit.
+    practice.play(501)
+    practice.track([dart("D5")])
+    practice.play(501)
+    throw(practice, "D6")
+    assert "D5" not in practice.double_hits.snapshot()
+
+
+def test_the_bots_doubles_count_for_nobody():
+    practice = PracticeGame()
+    practice.set_name(0, "Alex")
+    practice.set_bot(60)
+    practice.play(501)
+    throw(practice, "S1", "S1", "S1")
+    assert practice.bot_up
+    throw(practice, "D20", "D20", "D20")
+    assert practice.double_hits.snapshot() == {}
+    # A dart the board marks as the bot's counts for nobody either.
+    hits = DoubleHits()
+    hits.record([{**dart("D3"), "bot": True}, dart("D4"), dart("S4"), dart("MISS")])
+    assert hits.snapshot() == {"D4": 1}
+
+
+def test_double_hits_are_stored_restored_and_rewound():
+    practice = PracticeGame()
+    throw(practice, "D8", "D8")
+    saved = practice.stored()
+    assert saved["double_hits"] == {"D8": 2}
+    other = PracticeGame()
+    other.restore(saved)
+    assert other.double_hits.snapshot() == {"D8": 2}
+    # Only whole counts of real doubles come back.
+    other.double_hits.restore(
+        {"D21": 3, "D5": 0, "D6": -1, "D7": "2", "D9": 1.5, "BULL": 2, "S8": 4}
+    )
+    assert other.double_hits.snapshot() == {"BULL": 2}
+    other.double_hits.restore(None)
+    assert other.double_hits.snapshot() == {}
+    # An undone visit takes its hits back.
+    practice.play(501)
+    checkpoint = practice.checkpoint()
+    throw(practice, "D10")
+    assert practice.double_hits.snapshot() == {"D8": 2, "D10": 1}
+    practice.rewind(checkpoint, [], [])
+    assert practice.double_hits.snapshot() == {"D8": 2}
+    # The summary of a decided match books its visit on a copy, not twice.
+    practice.players[0].remaining = 40
+    throw(practice, "D20")
+    assert practice.double_hits.snapshot() == {"D8": 2, "D20": 1}

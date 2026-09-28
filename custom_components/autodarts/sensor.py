@@ -987,9 +987,10 @@ class AutodartsPlayerProfiles(AutodartsLocalEntity, SensorEntity):
 
 
 class AutodartsDoubles(AutodartsLocalEntity, SensorEntity):
-    """The double hit best, with the hit rate of every double."""
+    """The double hit best, with the hit rate of every double and how often every
+    double was hit by any dart."""
 
-    _unrecorded_attributes = frozenset({"doubles"})
+    _unrecorded_attributes = frozenset({"doubles", "landed"})
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "favourite_double")
@@ -1005,8 +1006,12 @@ class AutodartsDoubles(AutodartsLocalEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        snapshot = self.coordinator.practice.doubles.snapshot()
-        return {key: snapshot[key] for key in ("attempts", "hits", "rate", "doubles")}
+        practice = self.coordinator.practice
+        snapshot = practice.doubles.snapshot()
+        return {
+            **{key: snapshot[key] for key in ("attempts", "hits", "rate", "doubles")},
+            "landed": practice.double_hits.snapshot(),
+        }
 
 
 class AutodartsLastMatch(AutodartsLocalEntity, SensorEntity):

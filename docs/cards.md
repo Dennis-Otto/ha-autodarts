@@ -361,7 +361,7 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 
 ## Doubles card
 
-`custom:autodarts-doubles-card` shows the [doubles analysis](entities.md#doubles-analysis): the double ring of the board colored from red (rarely hit) to green (about every second dart), and every double thrown at, the best first, with hits, darts and hit rate. The favorite double is filled. With `player`, it shows the doubles of one named player instead of everybody's; a name without a profile gets a hint to check its spelling.
+`custom:autodarts-doubles-card` shows the [doubles analysis](entities.md#doubles-analysis): every double hit on the double ring of the board, colored by its hit rate from red (rarely hit) to green (about every second dart) where darts were aimed at it, and in the accent color by how often it was hit where not. The list below shows every double, the best rate first, with how often it was hit by any dart, the hits and darts aimed at it, and its hit rate. The favorite double is filled. With `player`, it shows the doubles of one named player instead of everybody's; a name without a profile gets a hint to check its spelling.
 
 <img src="images/en/doubles-card.png" alt="Doubles card: the double ring colored by hit rate from red to green, and a list of the doubles with hits, darts and hit rate, the best first" width="760">
 
