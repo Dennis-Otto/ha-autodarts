@@ -25,6 +25,12 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      # Actions pinned to a commit of their default branch instead of a release.
+      # Dependabot moves such a pin from commit to commit, reports the update as
+      # major and skips the cooldown. Both only start the current image of HACS
+      # and hassfest, so their commit updates merge like patch updates.
+      COMMIT_PINNED_ACTIONS: '["hacs/action", "home-assistant/actions/hassfest"]'
     steps:
       # Do not check out or execute pull request code in this privileged workflow.
       - name: Read verified Dependabot metadata
@@ -42,3 +48,22 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: gh pr merge --auto --squash --match-head-commit "$PR_HEAD_SHA" "$PR_URL"
+
+      - name: Enable automatic squash merge for commit updates of listed actions
+        # One listed action per PR; a group or a real release still needs a maintainer.
+        if: >-
+          steps.metadata.outputs.package-ecosystem == 'github_actions' &&
+          contains(fromJSON(env.COMMIT_PINNED_ACTIONS), steps.metadata.outputs.dependency-names)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PREVIOUS_VERSION: ${{ steps.metadata.outputs.previous-version }}
+          NEW_VERSION: ${{ steps.metadata.outputs.new-version }}
+        run: |
+          commit='^[0-9a-f]{40}$'
+          if [[ ! $PREVIOUS_VERSION =~ $commit || ! $NEW_VERSION =~ $commit ]]; then
+            echo "Not a commit-to-commit update; a maintainer merges it."
+            exit 0
+          fi
+          gh pr merge --auto --squash --match-head-commit "$PR_HEAD_SHA" "$PR_URL"

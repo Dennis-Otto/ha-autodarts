@@ -124,7 +124,8 @@ Dependencies are pinned:
 
 Dependabot keeps the Python and Node tools, the Actions, the Compose images and the
 dev container's image and Features current, and waits seven days before it proposes
-a new version; security updates come at once. The Playwright, Alpine and Mermaid
+a new version; security updates come at once, and so do new commits of the HACS
+and hassfest actions, which follow a branch instead of releases. The Playwright, Alpine and Mermaid
 images in the scripts under `tests/e2e/` and `scripts/` are updated by hand. Two checks deliberately run moving
 images: HACS validation and hassfest always apply the rules that HACS and Home
 Assistant use for new submissions today, and the weekly beta run uses the beta tag.
