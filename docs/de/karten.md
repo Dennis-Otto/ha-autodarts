@@ -23,7 +23,7 @@ Die Anleitungen zeigen die Karten im Einsatz: [Spiele und Regeln](spiele.md), [A
   <img src="../images/de/card.png" alt="Live-Karte mit Aufnahmepunkten, Dart-Feldern, der Scheibe mit blinkenden Treffern, Statistik, Verbindungen und Steuerung" width="760">
 </picture>
 
-- **Aufnahme:** Punkte, die drei Dart-Felder und der Fortschritt. Der jüngste Dart ist hervorgehoben.
+- **Aufnahme:** Punkte, die drei Dart-Felder und der Fortschritt. Der jüngste Dart ist hervorgehoben. Ein Dart mit einem Stift oben rechts wird mit einem Tipp korrigiert: Das [Tastenfeld der Anzeigetafel](#darts-korrigieren-und-eingeben) öffnet sich unter den Dart-Feldern, mit seinen Tasten, seiner Scheibe, der Lupe und dem Zoom. Die Darts des Bots und Darts, die ältere Integrationen ohne ihre Nummer melden, haben keinen Stift.
 - **Vorige Aufnahmen:** die Punkte deiner letzten fünf Aufnahmen, eingefärbt wie im Diagramm der Trainingskarte. Mit dem Mauszeiger siehst du die Darts.
 - **Übungsspiel:** Läuft ein [Übungsspiel](spiele.md), stehen Restpunkte, Checkout-Weg und Überwerfen über den Dart-Feldern, und die Scheibe umrandet das nächste Zielfeld. Wo kein Checkout möglich ist, tritt der [Stellwurf](entitaeten.md#stellwürfe) an seine Stelle, etwa *T20 T20 S17 Rest 32*, und die Scheibe umrandet seinen ersten Dart; „Kein Checkout möglich“ erscheint nur, wenn es keinen Stellwurf gibt, bei einem Rest, der sich in einer Aufnahme beenden ließe: bis 170 mit Double-Out, bis 180 ohne. Der [Bot](entitaeten.md#bot) steht als *Bot* in der Liste. Im Match listet der Bereich alle Spieler mit Restpunkten, Legs, Sätzen und Average und hebt den Spieler am Board hervor; eigene [Startpunkte](spiele.md#startpunkte-handicap) stehen neben den Namen, und ein Team-Match listet die beiden Teams. Ein gewonnenes Match zeigt sein Ergebnis in großer Schrift, etwa 2 : 1, und statt der Liste die [Match-Zusammenfassung](#match-zusammenfassung). Bei den [Partyspielen](spiele.md#partyspiele) zeigt der Bereich Runde oder Loch, Ziel und die Punkte aller Spieler, bei Killer ihre Zahl und Leben und wer raus ist. Das Bull bei Around the Clock und Halve-It, bei dem auch das äußere Bull zählt, heißt *Bull (25/50)*, und beide Bull-Felder sind umrandet. Beim Ausbullen listet er Feld und Abstand jedes Darts und wer führt, und er sagt, wenn ein Gleichstand neu wirft. Bei den [Cricket-Spielen](spiele.md#cricket-spiele) zeigt eine Kreidetafel die Marks aller Spieler oder Teams auf den Zahlen des Spiels, die Punkte und die Marks pro Runde, blendet Zahlen ab, die alle geschlossen haben, und umrandet die nächste offene Zahl auf der Scheibe. Screenreader lesen die Marks als Wörter vor. In einem [Trainingsspiel](spiele.md#trainingsspiele) zeigt der Bereich Ziel, Fortschritt, Darts und Trefferquote (Bob's 27: Punkte und Runde; Checkout-Training und 121-Checkout: Weg, oder wo die übrigen Darts den Rest nicht beenden können, der [Stellwurf](entitaeten.md#stellwürfe) mit dem Rest, den er lässt, und Checkout-Quote; Catch 40, JDC Challenge und Singles-Training: Runde oder Teil und Punkte), und die Scheibe umrandet die Felder des Ziels. Live-Karte und [Anzeigetafel](#anzeigetafel) zeigen ein Spiel auf dieselbe Weise an und sagen daher immer dasselbe.
 - **Scheibe:**
@@ -34,9 +34,11 @@ Die Anleitungen zeigen die Karten im Einsatz: [Spiele und Regeln](spiele.md), [A
 - **Verbindungen:** Board Manager, Echtzeit und Kameras; ein Tipp öffnet die Details.
 - **Steuerung:** Erkennung starten oder stoppen, zurücksetzen und kalibrieren. Zurücksetzen und Kalibrieren brauchen einen zweiten Tipp zur Bestätigung. Boards ohne Erkennungsschalter bekommen die Start- oder Stopp-Taste, die zum Board-Status passt.
 
-Ein Tipp auf die Scheibe, oder die Eingabe- oder Leertaste darauf, öffnet die Details der Aufnahme. Zahlen, Daten und Uhrzeiten folgen deinen [Profileinstellungen](https://www.home-assistant.io/docs/organizing/users/#user-profile): Zahlenformat, 12- oder 24-Stunden-Uhr und die Zeitzone des Servers oder des Browsers.
+Die Scheibe zeigt die Aufnahme; ein Tipp darauf bewirkt nichts. Zahlen, Daten und Uhrzeiten folgen deinen [Profileinstellungen](https://www.home-assistant.io/docs/organizing/users/#user-profile): Zahlenformat, 12- oder 24-Stunden-Uhr und die Zeitzone des Servers oder des Browsers.
 
 <img src="../images/de/card-visit.webp" alt="Animation: drei Darts landen, ihre Felder blinken, die Punkte zählen mit; die Entnahme leert die Scheibe" width="620">
+
+<img src="../images/de/correct-live.webp" alt="Animation: Die Live-Karte zeigt T20 und S20 für 80; ein Tipp auf den zweiten Dart mit seinem Stift öffnet das Tastenfeld unter den Darts, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 120" width="620">
 
 <img src="../images/de/practice-checkout.webp" alt="Animation: ein 141er-Checkout in einem 501-Leg. Nach jedem Dart ändern sich Rest, Weg und umrandetes Feld: T20 T19 D12, dann Game shot und ein neues Leg" width="620">
 
@@ -67,6 +69,7 @@ Auf dem Handy stapelt die Live-Karte Aufnahme, Scheibe, Statistik und Steuerung:
 | `show_practice` | Wahrheitswert | `true` | Übungsspiel und nächstes Zielfeld anzeigen |
 | `show_summary` | Wahrheitswert | `true` | Die [Match-Zusammenfassung](#match-zusammenfassung) anzeigen, wenn ein X01- oder Cricket-Match endet |
 | `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
+| `corrections` | Wahrheitswert | `true` | Einen Dart der Aufnahme mit einem Tipp darauf korrigieren |
 | `show_connection` | Wahrheitswert | `true` | Verbindungen anzeigen |
 | `show_controls` | Wahrheitswert | `true` | Steuerung anzeigen |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Haupttaste |
@@ -108,7 +111,7 @@ highlight_color: "#00e5ff"
   - Im Modus `numbers` werden Single, Double und Triple jeder Zahl zusammengefasst.
   - Im Modus `positions` zeigt es, wo die Darts gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte von Blau (wenige Darts) bis Rot (viele), dazu die neuesten 300 Darts als Punkte. Bei der Session erscheinen die Darts der aktuellen Aufnahme sofort als blaue Pins und gehen beim Ziehen in die gespeicherten Darts über. Unter der Scheibe steht die [Streuung](funktionsweise.md#streuung) auf bis zu drei Zielfeldern, etwa *T20: Streuung 38 mm · 80 % innerhalb 61 mm · 6 mm links der Mitte*, mit *4 mm enger*, wenn die neueren Darts enger liegen.
   - Die Umschalter über der Scheibe wählen den Modus und wessen Darts es zeigt: die der Session oder die eines benannten Spielers mit allen seinen Treffern und den Positionen seiner letzten 1000 Darts. Die häufigsten Felder folgen der Wahl. [Wie Positionen gespeichert werden](funktionsweise.md#dart-positionen).
-- **Statistik:** höchste Aufnahme, 100+, 140+ und 180er, Triple-Quote, Doubles, Bulls und Fehlwürfe. 180er leuchten golden. Die Zahlen für 100+, 140+ und 180er wachsen, wenn du die Darts ziehst und die Aufnahme damit abgeschlossen ist. Ein Tipp auf die Kacheln öffnet die Details der Darts der Session; mit der Tastatur erscheint dafür die Taste *Trainingsstatistik, Details öffnen*, wenn du sie mit Tab erreichst. Screenreader lesen jede Kachel vor.
+- **Statistik:** höchste Aufnahme, 100+, 140+ und 180er, Triple-Quote, Doubles, Bulls und Fehlwürfe. 180er leuchten golden. Die Zahlen für 100+, 140+ und 180er wachsen, wenn du die Darts ziehst und die Aufnahme damit abgeschlossen ist. *Details ›* unter den Kacheln öffnet die Details der Darts der Session. Screenreader lesen jede Kachel vor.
 - **Häufigste Felder:** die fünf meistgetroffenen Felder mit Anzahl und Anteil: an den Darts der Session oder an den Treffern, die das Profil eines Spielers gezählt hat.
 - **Bestleistungen:** jede [Bestleistung](entitaeten.md#bestleistungen-serie-und-tagesziel), die einen Wert hat: höchste Aufnahme und höchster Checkout, die wenigsten Darts je Startwert, die beste MPR eines Cricket-Legs, der beste Session-Average, Around the Clock, das Doppeltraining, Bob's 27, der 121-Checkout, Catch 40, die JDC Challenge, das Singles-Training und die längste Trainingsserie. Der Abschnitt erscheint mit der ersten Bestleistung.
 - **Letzte Aufnahmen:** ein Balkendiagramm deiner letzten Aufnahmen mit dem Average der Session als gestrichelter Linie.
@@ -171,11 +174,11 @@ show_reset: false
 </picture>
 
 - **Erkennung:** ein Schalter mit dem aktuellen Status, eingefärbt in der Statusfarbe. Boards ohne Erkennungsschalter starten und stoppen die Erkennung mit ihren Tasten; der Schalter folgt dann dem Board-Status.
-- **Board Manager:** die installierte Version. Mit Board Manager 2 zeigt ein Hinweis ein verfügbares Update an; ein Tipp darauf öffnet die Details.
+- **Board Manager:** die installierte Version. Mit Board Manager 2 zeigt ein Hinweis ein verfügbares Update an, *Update auf 2.0.2 ›*; ein Tipp darauf öffnet die Details.
 - **Verbindungen:** Board Manager, Echtzeit und die Cloud-Verbindung des Boards.
-- **Board-PC** (Board Manager 2): CPU- und Speicherlast, die Erkennungsbildrate und der Anteil der Darts, die das Board korrigiert hat, jeweils wenn du den Sensor aktiviert hast. Ein Tipp auf einen Wert öffnet seinen Verlauf. Ohne Werte bleibt die Kachel verborgen.
-- **Kameras:** eine Kachel pro Kamera mit Status, Bildrate (wenn der Bildraten-Sensor aktiv ist) und eigener Kalibrierung. Eine gestörte Kamera wird rot. Der Tastaturfokus bleibt auf der Kalibrieren-Taste, während sie um Bestätigung bittet.
-- **Wartung:** Kalibrieren, Erkennung zurücksetzen und Board Manager neu starten, jeweils mit zweitem Tipp zur Bestätigung.
+- **Board-PC** (Board Manager 2): CPU- und Speicherlast, die Erkennungsbildrate und der Anteil der Darts, die das Board korrigiert hat, jeweils wenn du den Sensor aktiviert hast. Ein Wert mit Pfeil öffnet seinen Verlauf, ebenso die Systemzeile. Ohne Werte bleibt die Kachel verborgen.
+- **Kameras:** eine Kachel pro Kamera mit Status, Bildrate (wenn der Bildraten-Sensor aktiv ist) und eigener Kalibrierung. Ihr Name mit Pfeil öffnet die Kamera. Eine gestörte Kamera wird rot. Der Tastaturfokus bleibt auf der Kalibrieren-Taste, während sie um Bestätigung bittet.
+- **Wartung:** Alle kalibrieren, Erkennung zurücksetzen und Board Manager neu starten, jeweils mit zweitem Tipp zur Bestätigung.
 
 ### Optionen
 
@@ -259,17 +262,17 @@ Die Darts der Aufnahme unten sind Tasten, solange `corrections` an ist, und das 
 <img src="../images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
 
 - **Dart korrigieren:** Tippe auf einen Dart, den das Board falsch erkannt hat. Ein Tastenfeld öffnet sich mit S, D und T, den Zahlen 1 bis 20, 25, Bull und Fehlwurf; S, D oder T steht auf dem Feld des Darts. Tippe den Multiplikator und dann die Zahl, oder 25, Bull oder Fehlwurf, und [`autodarts.correct_dart`](entitaeten.md#dart-korrigieren-autodartscorrect_dart) legt den Dart dorthin. Restpunkte und Aufnahme folgen sofort. Ein zweiter Tipp auf den Dart oder *Abbrechen* schließt das Tastenfeld. Die Darts des Bots lassen sich nicht korrigieren.
-- **Wo der Dart steckt:** *🎯 Scheibe* im Tastenfeld zeigt die Scheibe statt der Tasten. Tippe die Stelle an, an der der Dart steckt: Das Feld ergibt sich daraus, und der Dart wird dort in den [Dart-Positionen](funktionsweise.md#dart-positionen) gespeichert. Der gestrichelte Ring zeigt, wo das Board den Dart gesehen hat. Ein mit den Tasten korrigierter Dart hat keine Position, weil das Board auch die Stelle falsch gesehen hat. Die Scheibe bleibt die Ansicht des Tastenfelds, bis du wieder auf *🎯 Scheibe* tippst, und das Tastenfeld für die Eingabe nutzt sie auch.
+- **Wo der Dart steckt:** *Tasten | Scheibe* oben im Tastenfeld wechselt von den Tasten zur Scheibe. Tippe die Stelle an, an der der Dart steckt: Das Feld ergibt sich daraus, und der Dart wird dort in den [Dart-Positionen](funktionsweise.md#dart-positionen) gespeichert. Der gestrichelte Ring zeigt, wo das Board den Dart gesehen hat. Ein mit den Tasten korrigierter Dart hat keine Position, weil das Board auch die Stelle falsch gesehen hat. Die Scheibe bleibt die Ansicht des Tastenfelds, bis du *Tasten* wählst, und das Tastenfeld für die Eingabe nutzt sie auch.
 
-  <img src="../images/de/correct-dart-board.webp" alt="Animation: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf öffnet das Tastenfeld, 🎯 Scheibe zeigt die Scheibe mit einem gestrichelten Ring, wo das Board den Dart gesehen hat, und ein Tipp auf das Single 20 darüber korrigiert die Aufnahme auf 140" width="760">
+  <img src="../images/de/correct-dart-board.webp" alt="Animation: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf öffnet das Tastenfeld, Scheibe zeigt die Scheibe mit einem gestrichelten Ring, wo das Board den Dart gesehen hat, und ein Tipp auf das Single 20 darüber korrigiert die Aufnahme auf 140" width="760">
 
 - **Kleine Bildschirme:** Auf einer Karte schmaler als 600 Pixel oder einem Bildschirm niedriger als das, etwa auf dem Handy hochkant oder quer, öffnet sich die Scheibe einer Korrektur zweieinhalbfach vergrößert um die Stelle, an der das Board den Dart gesehen hat; ein Dart ohne Position und das Tastenfeld öffnen die ganze Scheibe. Eine runde Lupen-Taste wechselt auf jedem Bildschirm zwischen beidem, auf dem Handy aus der Ecke der Scheibe wie bei einer Karte: Mit ihrem Plus vergrößert sie um den Dart, der korrigiert wird, sonst um den letzten Dart mit Position, mit ihrem Minus zeigt sie die ganze Scheibe. Ein Finger auf der Scheibe zeigt eine Lupe über ihm, nahe dem oberen Rand neben ihm, mit der Stelle unter dem Finger vergrößert und einem Kreuz darauf; der Dart landet dort, wo der Finger loslässt. Zwei Finger zoomen bis zum Fünffachen und verschieben die Scheibe, ohne einen Dart zu setzen. Lupe und Finger funktionieren auf jedem Touchscreen, auch einem großen Monitor; eine Maus klickt wie bisher.
 
-  <img src="../images/de/correct-dart-loupe.webp" alt="Animation auf einem Handy: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf und auf 🎯 Scheibe öffnet die Scheibe vergrößert um den gestrichelten Ring, wo das Board ihn gesehen hat; ein Finger schiebt vom Ring nach oben, die Lupe darüber zeigt das Single 20 unter einem Kreuz, und wo der Finger loslässt, wird die Aufnahme zu 140" width="360">
+  <img src="../images/de/correct-dart-loupe.webp" alt="Animation auf einem Handy: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf und auf Scheibe öffnet die Scheibe vergrößert um den gestrichelten Ring, wo das Board ihn gesehen hat; ein Finger schiebt vom Ring nach oben, die Lupe darüber zeigt das Single 20 unter einem Kreuz, und wo der Finger loslässt, wird die Aufnahme zu 140" width="360">
 
 - **Tastenfeld:** Mit `keypad: true` erscheint ein Tastenfeld, solange *Übungsspiel manuelle Eingabe* an ist, für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras: Jeder Tipp auf ein Feld gibt mit [`autodarts.throw_dart`](entitaeten.md#dart-eingeben-autodartsthrow_dart) einen Dart ein, und der nächste Dart beginnt wieder bei S. *Nächster Spieler* beendet die Aufnahme ohne Entnahme, und *Letzte Aufnahme zurück* nimmt die letzte Aufnahme zurück, um sie zu korrigieren; beides braucht einen zweiten Tipp. Solange der Bot am Board ist, wartet das Tastenfeld.
 - **Zurücknehmen:** Ohne Tastenfeld erscheint *Letzte Aufnahme zurück* unter der Aufnahme, solange [`autodarts.undo_visit`](entitaeten.md#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurücknehmen kann, für eine falsche Erkennung, die erst nach dem Ziehen der Darts auffällt. Es braucht einen zweiten Tipp; die Aufnahme kommt zurück, um ihre Darts zu korrigieren, und *Nächster Spieler* des Tastenfelds oder [`autodarts.next_player`](entitaeten.md#weitergeben-autodartsnext_player) beendet sie wieder.
-- **Markierungen:** Von Hand eingegebene oder korrigierte Darts haben einen gestrichelten Rahmen, die Darts des Bots einen hellen.
+- **Markierungen:** Ein Dart, den ein Tipp korrigiert, hat einen Rahmen und einen Stift oben rechts; ein von Hand eingegebener oder korrigierter einen gestrichelten Rahmen, und die Darts des Bots sind in der Akzentfarbe getönt.
 
 Auf einer bildschirmfüllenden Anzeigetafel im Querformat stehen Tastenfeld und Korrektur neben den Punkten, sodass Spieler, Aufnahme und Tastenfeld zusammen auf den Bildschirm passen. Tastenfeld und Korrektur machen Platz für die Spielauswahl, den Ruhemodus, die Match-Zusammenfassung und die Tabelle eines Turniers und reagieren in der Vorschau des Karteneditors nie.
 
@@ -280,7 +283,7 @@ Auf einer bildschirmfüllenden Anzeigetafel im Querformat stehen Tastenfeld und 
 Während eines [Turniers](entitaeten.md#turniere) folgt ihm die Anzeigetafel:
 
 - **Während eines Matches:** Die Titelzeile nennt Runde und Match, etwa *Turnier · Halbfinale · Match 5 von 7*.
-- **Zwischen den Matches:** Die [Zusammenfassung](#match-zusammenfassung) eines Matches bleibt für die *Anzeigedauer der Turnierzusammenfassung* (8 Sekunden) stehen, dann erscheint während der *Turnierpause* die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System), mit dem nächsten Match, seiner Runde und einem Countdown bis zum Beginn. *Jetzt starten* startet es sofort. Während eines Turniers öffnet sich die Spielauswahl nicht von selbst.
+- **Zwischen den Matches:** Die [Zusammenfassung](#match-zusammenfassung) eines Matches bleibt für die *Turnier Dauer der Zusammenfassung* (8 Sekunden) stehen, dann erscheint während der *Turnierpause* die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System), mit dem nächsten Match, seiner Runde und einem Countdown bis zum Beginn. *Jetzt starten* startet es sofort. Während eines Turniers öffnet sich die Spielauswahl nicht von selbst.
 - **Tabelle:** Platz, gespielte, gewonnene und verlorene Matches, gewonnene und verlorene Legs, die Leg-Differenz, der 3-Dart-Average (Cricket: MPR) und die Punkte. Die Spieler des nächsten Matches sind hervorgehoben, der Turniersieger bekommt 🏆.
 - **Turnierbaum:** eine Spalte pro Runde, das Spiel um Platz 3 unter dem Finale; Freilose, offene Plätze und Ergebnisse; das nächste Match ist umrandet. Wer weiterkommt, gleitet in die nächste Runde; auf Geräten, die weniger Bewegung wünschen, füllen sich die Plätze ohne Bewegung.
 - **Sieger:** Nach dem letzten Match nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt.
@@ -380,8 +383,8 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 
 <img src="../images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim mit ihren Bildern, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="760">
 
-- **Abzeichen:** die [Erfolge](entitaeten.md#erfolge) jedes Spielers. Ein erreichtes Abzeichen zeigt seine Stufe in Bronze, Silber, Gold oder Platin, das nächste Ziel und wie weit der Spieler ist; ein noch nicht erreichtes ist ausgegraut, mit dem Fortschritt, wo er sich zählen lässt.
-- **Trends:** für jeden Spieler, der in den gezeigten Wochen geübt hat, eine Kachel pro Kennzahl: 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts über die Wochen, eine Linie der Wochenwerte und ein Pfeil, der die neuere Hälfte der Wochen mit der älteren vergleicht (↗ besser, ↘ schlechter, → etwa gleich). Wochen ohne Training unterbrechen die Linie.
+- **Abzeichen:** die [Erfolge](entitaeten.md#erfolge) jedes Spielers. Ein erreichtes Abzeichen zeigt seine Stufe in Bronze, Silber, Gold oder Platin, das nächste Ziel und wie weit der Spieler ist; ein noch nicht erreichtes ist ausgegraut, mit dem Fortschritt, wo er sich zählen lässt. Die Galerie eines Spielers zeigt die erreichten Abzeichen und die drei Ziele, die am nächsten sind; *Alle 18 Abzeichen ▾* öffnet den Rest, *Weniger anzeigen* schließt ihn wieder.
+- **Trends:** für jeden Spieler, der in den gezeigten Wochen geübt hat, eine Kachel pro Kennzahl: 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts über die Wochen, eine Linie der Wochenwerte und ein Pfeil, der die neuere Hälfte der Wochen mit der älteren vergleicht (↗ besser, ↘ schlechter, → etwa gleich). Wochen ohne Training sind ein gestrichelter Abschnitt der Linie; fehlt eine Hälfte zum Vergleich, zeigt die Kachel keinen Pfeil.
 - **Streuung:** wo die Darts jedes Spielers um die Felder landen, auf die er am häufigsten gezielt hat, in Millimetern, mit der Änderung der neueren Darts. [Wie die Streuung gemessen wird](funktionsweise.md#streuung).
 
 <img src="../images/de/players-badges.png" alt="Abzeichen von Alex: erreichte Stufen in Bronze, Silber und Gold, jeweils mit dem nächsten Ziel, dem Fortschritt dorthin und einem Fortschrittsbalken" width="620">
@@ -397,7 +400,7 @@ Partyspiele behalten ihre Punkte auf dem Bildschirm. Die Zahlen stammen aus dem 
 | `show_head_to_head` | Wahrheitswert | `true` | Direkte Vergleiche anzeigen |
 | `show_matches` | Wahrheitswert | `true` | Letzte Matches anzeigen |
 | `show_badges` | Wahrheitswert | `true` | Abzeichen anzeigen |
-| `show_locked` | Wahrheitswert | `true` | Auch noch nicht erreichte Abzeichen anzeigen; ohne sie fehlen Spieler ohne Abzeichen |
+| `show_locked` | Wahrheitswert | `true` | Die nächsten Ziele und auf Wunsch alle noch nicht erreichten Abzeichen anzeigen; ohne sie fehlen Spieler ohne Abzeichen |
 | `show_trends` | Wahrheitswert | `true` | Trends anzeigen |
 | `trend_weeks` | 4–12 | `12` | Wochen in den Trends |
 | `show_spread` | Wahrheitswert | `true` | Streuung anzeigen |
@@ -460,7 +463,7 @@ Pro Board entstehen bis zu fünf Ansichten. Sie aktualisieren sich selbst, wenn 
 
 <img src="../images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards" width="760">
 
-Die Live-Ansicht hat außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Anzeigedauer der Turnierzusammenfassung* bei den Turniereinstellungen.
+Die Live-Ansicht hat außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Turnier Dauer der Zusammenfassung* bei den Turniereinstellungen.
 
 In YAML ist das ganze Dashboard eine Zeile; `device_id`, `title` und `scoreboard` sind optional. `scoreboard` setzt Optionen der Karte in der Ansicht *Anzeigetafel*: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` und `idle_panels`, wie bei der [Anzeigetafel](#anzeigetafel) beschrieben. Was du weglässt, behält den Standard der Karte.
 

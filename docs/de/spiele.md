@@ -50,7 +50,7 @@ Es gibt vier Wege, ein Spiel zu starten. Alle enden am selben Ort: im *Übungssp
 
 4. **Per Sprache** mit Assist: „Starte Cricket für Alex und Sam“. Die [Anleitung zu Automationen](automationen.md#spiel-per-sprache-starten) enthält die Automation.
 
-Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der Spielauswahl auf **Spiel beenden**. *Neues Leg im Übungsspiel* beginnt das Leg neu, und was dieses Leg zu den Averages und der Zusammenfassung des Matches beigetragen hat, zählt nicht mehr; *Neues Match im Übungsspiel* beginnt das Match bei null Legs und Sätzen.
+Um ein Spiel zu beenden, wählst du *Aus* in *Übungsspiel* oder tippst in der Spielauswahl auf **Spiel beenden**. *Übungsspiel neues Leg* beginnt das Leg neu, und was dieses Leg zu den Averages und der Zusammenfassung des Matches beigetragen hat, zählt nicht mehr; *Übungsspiel neues Match* beginnt das Match bei null Legs und Sätzen.
 
 Spielernamen dürfen keine geschweiften Klammern, kein Prozentzeichen, keine Raute (#) und keine Steuerzeichen enthalten, weil Home Assistant sie sonst als Template liest, wo ein Name in eine Nachricht oder einen Dateinamen kommt. Die Namens-Entitäten und die Aktionen lehnen solche Namen ab.
 
@@ -296,7 +296,7 @@ Sechs Kneipenklassiker für einen bis vier Spieler; Killer braucht zwei. Sie ver
 
 ## Trainingsspiele
 
-Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen Aufnahme, verbucht die Aufnahme, wenn du die Darts ziehst, und umrandet ihr Ziel auf der Scheibe. Ein beendetes Spiel bleibt auf den Karten, bis der nächste Dart es neu startet; *Neues Leg im Übungsspiel* startet es sofort neu. Jedes Spiel behält seine letzten 10 Ergebnisse, und sein bestes Ergebnis ist eine [Bestleistung](statistik.md#bestleistungen-serie-und-tagesziel). `drill_finished` und `checkout_attempt` melden die Ergebnisse. Im Checkout-Training, bei 121 und Catch 40 zählt wie bei X01 jeder Dart auf einen Rest, den ein Double checkt, für deine [Doppelanalyse](statistik.md#doppelanalyse).
+Acht klassische Übungen für einen Spieler. Jede folgt den Darts der aktuellen Aufnahme, verbucht die Aufnahme, wenn du die Darts ziehst, und umrandet ihr Ziel auf der Scheibe. Ein beendetes Spiel bleibt auf den Karten, bis der nächste Dart es neu startet; *Übungsspiel neues Leg* startet es sofort neu. Jedes Spiel behält seine letzten 10 Ergebnisse, und sein bestes Ergebnis ist eine [Bestleistung](statistik.md#bestleistungen-serie-und-tagesziel). `drill_finished` und `checkout_attempt` melden die Ergebnisse. Im Checkout-Training, bei 121 und Catch 40 zählt wie bei X01 jeder Dart auf einen Rest, den ein Double checkt, für deine [Doppelanalyse](statistik.md#doppelanalyse).
 
 ### Around the Clock
 

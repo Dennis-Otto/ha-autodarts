@@ -121,6 +121,45 @@ test("locked badges and players without a badge can be hidden", () => {
   assert.equal($(none, ".badges-section").hidden, true);
 });
 
+test("a player's gallery shows the badges earned and the next goals, and opens to all of them", () => {
+  const ids = ["maximum", "hat_trick", "ton_plus", "ton_forty", "high_finish", "short_leg"];
+  const gallery = {
+    "sensor.achievements": {
+      state: "1",
+      attributes: {
+        catalogue: ids.map((id) => ({ id, tiers: [10] })),
+        players: [
+          {
+            name: "Alex",
+            badges: { maximum: { tier: 1, dates: [] } },
+            // The goals closest to being earned come first; one without progress last.
+            progress: { hat_trick: 2, ton_plus: 9, ton_forty: 5, high_finish: 1 },
+          },
+        ],
+      },
+    },
+  };
+  const card = players({}, gallery);
+  const shown = () => $$(card, ".badge").map((badge) => badge.dataset.badge);
+  // Earned, then the three nearest goals, in the catalogue's order.
+  assert.deepEqual(shown(), ["maximum", "hat_trick", "ton_plus", "ton_forty"]);
+  const more = () => $(card, ".more-badges");
+  assert.deepEqual([more().textContent, more().getAttribute("aria-expanded")], ["All 6 badges", "false"]);
+  assert.equal(more().querySelectorAll(".cue.expand.inline").length, 1);
+  click(card, ".more-badges");
+  assert.deepEqual(shown(), ids);
+  assert.deepEqual([more().textContent, more().getAttribute("aria-expanded")], ["Show fewer", "true"]);
+  click(card, ".more-badges");
+  assert.deepEqual(shown(), ["maximum", "hat_trick", "ton_plus", "ton_forty"]);
+  // A tap beside the link changes nothing.
+  click(card, ".badge-owner");
+  assert.equal(shown().length, 4);
+  // Without locked badges, only the earned ones show, and nothing opens.
+  const earned = players({ show_locked: false }, gallery);
+  assert.deepEqual($$(earned, ".badge").map((badge) => badge.dataset.badge), ["maximum"]);
+  assert.equal($(earned, ".more-badges"), null);
+});
+
 test("trends show every active player's weeks with arrows", () => {
   const card = players({ trend_weeks: 4 });
   const section = $(card, ".trends-section");

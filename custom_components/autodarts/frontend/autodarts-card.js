@@ -157,6 +157,8 @@ const TEXT = {
     stop: "Stop detection",
     reset: "Reset detection",
     calibrate: "Calibrate",
+    calibrate_all: "Calibrate all",
+    details: "Details",
     confirm: "Confirm?",
     status_offline: "Board unreachable",
     status_calibrating: "Calibrating",
@@ -360,6 +362,9 @@ const TEXT = {
     pad_spot_hint: "Tap where the dart is. Hold and slide for a magnifier; two fingers zoom.",
     pad_zoom: "Zoom",
     pad_whole: "Whole board",
+    pad_keys: "Keys",
+    pad_view: "Enter with",
+    pad_bot_wait: "The bot is throwing; the pad waits for your turn.",
     pad_seen: "Where the board saw it",
     next_player: "Next player",
     undo_visit: "Undo last visit",
@@ -397,6 +402,8 @@ const TEXT = {
     lobby_increase: "More: {name}",
     lobby_options: "Options",
     lobby_one_player: "Training games are for one player: {name} plays.",
+    lobby_resting: "{game} is for {count}: the others sit out.",
+    lobby_full: "{count} players at most.",
     lobby_nobody: "Nobody chosen: one player throws without a name.",
     lobby_detection: "Detection is stopped: the start switches it on.",
     lobby_tournament_running: "A tournament is being played: the start stops it first, after a second tap.",
@@ -546,6 +553,8 @@ const TEXT = {
     badge_count: "{count} badges",
     badge_count_one: "1 badge",
     badge_locked: "Locked",
+    badges_all: "All {count} badges",
+    badges_fewer: "Show fewer",
     badge_earned: "Earned {date}",
     badge_progress: "{value} of {goal}",
     badge_best: "Best so far: {value}",
@@ -712,6 +721,8 @@ const TEXT = {
     stop: "Erkennung stoppen",
     reset: "Erkennung zurücksetzen",
     calibrate: "Kalibrieren",
+    calibrate_all: "Alle kalibrieren",
+    details: "Details",
     confirm: "Bestätigen?",
     status_offline: "Board nicht erreichbar",
     status_calibrating: "Kalibrierung läuft",
@@ -912,6 +923,9 @@ const TEXT = {
     pad_spot_hint: "Tippe an, wo der Dart steckt. Halten und schieben zeigt eine Lupe, zwei Finger zoomen.",
     pad_zoom: "Zoom",
     pad_whole: "Ganze Scheibe",
+    pad_keys: "Tasten",
+    pad_view: "Eingabe mit",
+    pad_bot_wait: "Der Bot wirft; das Tastenfeld wartet, bis du dran bist.",
     pad_seen: "Wo das Board ihn erkannt hat",
     next_player: "Nächster Spieler",
     undo_visit: "Letzte Aufnahme zurück",
@@ -948,6 +962,8 @@ const TEXT = {
     lobby_increase: "Mehr: {name}",
     lobby_options: "Optionen",
     lobby_one_player: "Trainingsspiele sind für einen Spieler: {name} spielt.",
+    lobby_resting: "{game} ist für {count}: Die übrigen setzen aus.",
+    lobby_full: "Höchstens {count} Spieler.",
     lobby_nobody: "Niemand gewählt: Ein Spieler wirft ohne Namen.",
     lobby_detection: "Die Erkennung ist gestoppt: Der Start schaltet sie ein.",
     lobby_tournament_running: "Es läuft ein Turnier: Der Start beendet es zuerst, nach einem zweiten Tippen.",
@@ -1091,6 +1107,8 @@ const TEXT = {
     badge_count: "{count} Abzeichen",
     badge_count_one: "1 Abzeichen",
     badge_locked: "Noch nicht erreicht",
+    badges_all: "Alle {count} Abzeichen",
+    badges_fewer: "Weniger anzeigen",
     badge_earned: "Erreicht am {date}",
     badge_progress: "{value} von {goal}",
     badge_best: "Bestwert bisher: {value}",
@@ -1254,6 +1272,8 @@ const TEXT = {
     stop: "Detener detección",
     reset: "Restablecer detección",
     calibrate: "Calibrar",
+    calibrate_all: "Calibrar todas",
+    details: "Detalles",
     confirm: "¿Confirmar?",
     status_offline: "Diana inaccesible",
     status_calibrating: "Calibrando",
@@ -1453,6 +1473,9 @@ const TEXT = {
     pad_spot_hint: "Toca donde está el dardo. Mantén y desliza para ver una lupa; con dos dedos haces zoom.",
     pad_zoom: "Zoom",
     pad_whole: "Diana entera",
+    pad_keys: "Teclas",
+    pad_view: "Introducir con",
+    pad_bot_wait: "El bot está lanzando; el teclado espera tu turno.",
     pad_seen: "Donde lo vio la diana",
     next_player: "Siguiente jugador",
     undo_visit: "Deshacer la última tirada",
@@ -1489,6 +1512,8 @@ const TEXT = {
     lobby_increase: "Más: {name}",
     lobby_options: "Opciones",
     lobby_one_player: "Los juegos de entrenamiento son para un jugador: juega {name}.",
+    lobby_resting: "{game} es para {count}: los demás descansan.",
+    lobby_full: "{count} jugadores como máximo.",
     lobby_nobody: "No has elegido a nadie: lanza un jugador sin nombre.",
     lobby_detection: "La detección está detenida: al empezar se activa.",
     lobby_tournament_running: "Se está jugando un torneo: al empezar se detiene primero, tras un segundo toque.",
@@ -1631,6 +1656,8 @@ const TEXT = {
     badge_count: "{count} insignias",
     badge_count_one: "1 insignia",
     badge_locked: "Bloqueada",
+    badges_all: "Las {count} insignias",
+    badges_fewer: "Mostrar menos",
     badge_earned: "Conseguida el {date}",
     badge_progress: "{value} de {goal}",
     badge_best: "Mejor hasta ahora: {value}",
@@ -1794,6 +1821,8 @@ const TEXT = {
     stop: "Arrêter la détection",
     reset: "Réinitialiser la détection",
     calibrate: "Calibrer",
+    calibrate_all: "Tout calibrer",
+    details: "Détails",
     confirm: "Confirmer\u00a0?",
     status_offline: "Cible injoignable",
     status_calibrating: "Calibrage en cours",
@@ -1993,6 +2022,9 @@ const TEXT = {
     pad_spot_hint: "Touchez l'endroit où se trouve la fléchette. Maintenez et glissez pour une loupe\u00a0; deux doigts zooment.",
     pad_zoom: "Zoom",
     pad_whole: "Cible entière",
+    pad_keys: "Touches",
+    pad_view: "Saisir avec",
+    pad_bot_wait: "Le bot lance\u00a0; le pavé attend votre tour.",
     pad_seen: "Là où la cible l'a vue",
     next_player: "Joueur suivant",
     undo_visit: "Annuler la dernière volée",
@@ -2029,6 +2061,8 @@ const TEXT = {
     lobby_increase: "Plus\u00a0: {name}",
     lobby_options: "Options",
     lobby_one_player: "Les jeux d'entraînement se jouent seul\u00a0: c'est {name} qui joue.",
+    lobby_resting: "{game} se joue à {count}\u00a0: les autres attendent.",
+    lobby_full: "{count} joueurs au maximum.",
     lobby_nobody: "Aucun joueur choisi\u00a0: un joueur lance sans nom.",
     lobby_detection: "La détection est arrêtée\u00a0: le lancement l'active.",
     lobby_tournament_running: "Un tournoi est en cours\u00a0: le lancement l'arrête d'abord, après un second appui.",
@@ -2171,6 +2205,8 @@ const TEXT = {
     badge_count: "{count} badges",
     badge_count_one: "1 badge",
     badge_locked: "Verrouillé",
+    badges_all: "Les {count} badges",
+    badges_fewer: "Afficher moins",
     badge_earned: "Obtenu le {date}",
     badge_progress: "{value} sur {goal}",
     badge_best: "Meilleur résultat\u00a0: {value}",
@@ -2334,6 +2370,8 @@ const TEXT = {
     stop: "Detectie stoppen",
     reset: "Detectie resetten",
     calibrate: "Kalibreren",
+    calibrate_all: "Alles kalibreren",
+    details: "Details",
     confirm: "Bevestigen?",
     status_offline: "Bord onbereikbaar",
     status_calibrating: "Bezig met kalibreren",
@@ -2533,6 +2571,9 @@ const TEXT = {
     pad_spot_hint: "Tik aan waar de dart zit. Houd vast en schuif voor een vergrootglas; met twee vingers zoom je.",
     pad_zoom: "Zoom",
     pad_whole: "Heel bord",
+    pad_keys: "Toetsen",
+    pad_view: "Invoeren met",
+    pad_bot_wait: "De bot gooit; het toetsenbord wacht op jouw beurt.",
     pad_seen: "Waar het bord hem zag",
     next_player: "Volgende speler",
     undo_visit: "Laatste beurt ongedaan maken",
@@ -2569,6 +2610,8 @@ const TEXT = {
     lobby_increase: "Meer: {name}",
     lobby_options: "Opties",
     lobby_one_player: "Trainingsspellen zijn voor één speler: {name} speelt.",
+    lobby_resting: "{game} is voor {count}: de rest wacht.",
+    lobby_full: "Maximaal {count} spelers.",
     lobby_nobody: "Niemand gekozen: één speler gooit zonder naam.",
     lobby_detection: "De detectie staat uit: bij het starten gaat ze aan.",
     lobby_tournament_running: "Er wordt een toernooi gespeeld: starten stopt het eerst, na een tweede tik.",
@@ -2711,6 +2754,8 @@ const TEXT = {
     badge_count: "{count} badges",
     badge_count_one: "1 badge",
     badge_locked: "Vergrendeld",
+    badges_all: "Alle {count} badges",
+    badges_fewer: "Minder tonen",
     badge_earned: "Behaald op {date}",
     badge_progress: "{value} van {goal}",
     badge_best: "Beste tot nu toe: {value}",
@@ -2867,6 +2912,8 @@ const DEFAULTS = {
   show_controls: true,
   show_recent: true,
   show_practice: true,
+  // A tap on a dart of the visit corrects it.
+  corrections: true,
   // The summary of a finished match stays until the next game, or this many seconds.
   show_summary: true,
   summary_seconds: 0,
@@ -5095,7 +5142,7 @@ function lobbyHtml(choice, ui) {
           "end",
           undefined,
           text(ui.confirmEnd ? "confirm" : ui.tournamentRunning ? "tournament_stop" : "lobby_end"),
-          ' class="secondary"'
+          ` class="secondary${ui.confirmEnd ? " confirm" : ""}"`
         )
       : "") +
     button("close", undefined, text("lobby_close"), ' class="secondary"') +
@@ -5107,7 +5154,7 @@ function lobbyHtml(choice, ui) {
         : choice.tournament
           ? text("tournament_start")
           : text("lobby_start", { game: ui.name(choice.game) }),
-      ` class="start"${blocked ? " disabled" : ""}`
+      ` class="start${ui.confirmStart ? " confirm" : ""}"${blocked ? " disabled" : ""}`
     ) +
     `</div>`;
   return (
@@ -5154,9 +5201,18 @@ const lobbyBlocked = (choice) =>
 function lobbyHints(choice, ui) {
   const { t } = ui;
   const hints = [];
+  const rules = gameRules(choice.game);
+  // The seats of a match: the bot takes one; players beyond them sit out.
+  const seats = rules.maxPlayers - Number(botSeat(choice));
+  const limit = playerLimit(choice);
   if (lobbyBlocked(choice)) hints.push(t(choice.tournament ? "tournament_needs_players" : "needs_players"));
-  else if (!choice.tournament && gameRules(choice.game).drill && choice.players.length > 1) {
+  else if (!choice.tournament && rules.drill && choice.players.length > 1) {
     hints.push(fill(t("lobby_one_player"), { name: choice.players[0] || `${t("score_player")} 1` }));
+  } else if (!choice.tournament && choice.players.length > seats) {
+    hints.push(fill(t("lobby_resting"), { game: ui.name(choice.game), count: seats }));
+  } else if (choice.players.length >= limit && ui.suggestions.length) {
+    // A full game takes no more of the suggestions, which fade.
+    hints.push(fill(t("lobby_full"), { count: limit }));
   }
   if (choice.tournament && ui.tournamentRunning) hints.push(t("lobby_tournament_running"));
   if (ui.detectionOff) hints.push(t("lobby_detection"));
@@ -5178,6 +5234,17 @@ const PAD_ZOOM_MOST = 5;
 const LOUPE_ZOOM = 2.5;
 // A card narrower than this, or a screen lower, as a phone on its side, is a small screen.
 const PAD_SMALL = 600;
+// Building blocks: the icons of the cards, lines in the colour of their text.
+const ICON_PATHS = {
+  edit: "M4 20l1.2-4.8L15.6 4.8a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.8 18.8z M13.8 6.6l3.6 3.6",
+  details: "M9 5l7 7-7 7",
+  expand: "M6 9l6 6 6-6",
+};
+// A cue says what a tap does: a pencil edits, an arrow opens the details. At the top right
+// of a tile, or inline after the words of a control that looks like text.
+const cueHtml = (kind, inline = false) =>
+  `<svg class="cue ${kind}${inline ? " inline" : ""}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[kind]}"/></svg>`;
+const EDIT_ICON = cueHtml("edit");
 // The arrow of the undo, apart from its words, which screen readers say alone.
 const UNDO_ICON = `<span class="undo-icon" aria-hidden="true">↶</span>`;
 
@@ -5272,12 +5339,20 @@ function padHtml(pad, ui) {
     button("bed", "MISS", escapeHtml(t("miss")), ` class="miss"`),
   ].join("");
   const confirm = (action, key) => escapeHtml(t(pad.confirm === action ? "confirm" : key));
+  const confirming = (action) => (pad.confirm === action ? " confirm" : "");
   const actions = pad.dart
     ? button("cancel", undefined, escapeHtml(t("pad_cancel")), ` class="secondary"`)
-    : button("next", undefined, confirm("next", "next_player"), ` class="secondary"`) +
-      (pad.undo ? button("undo", undefined, `${UNDO_ICON} ${confirm("undo", "undo_visit")}`, ` class="secondary"`) : "");
+    : button("next", undefined, confirm("next", "next_player"), ` class="secondary${confirming("next")}"`) +
+      (pad.undo
+        ? button("undo", undefined, `${UNDO_ICON} ${confirm("undo", "undo_visit")}`, ` class="secondary${confirming("undo")}"`)
+        : "");
   // The board instead of the keys, for the spot where the dart is.
-  const view = button("board", undefined, `🎯 ${escapeHtml(t("pad_board"))}`, ` class="view" aria-pressed="${pad.board === true}"`);
+  // The keys or the board, one of the two, as the segmented control of every card.
+  const view =
+    `<div class="segmented view" role="group" aria-label="${escapeHtml(t("pad_view"))}">` +
+    button("keys", undefined, escapeHtml(t("pad_keys")), ` aria-pressed="${pad.board !== true}"`) +
+    button("board", undefined, escapeHtml(t("pad_board")), ` aria-pressed="${pad.board === true}"`) +
+    `</div>`;
   // On the board, a switch between the whole board and its part around the dart: a
   // magnifier with a plus zooms in, one with a minus shows all of it.
   const zoomed = padViewBox(pad.zoom).size < PAD_VIEW;
@@ -5299,8 +5374,16 @@ function padHtml(pad, ui) {
   return (
     `<section class="pad${pad.dart ? " correcting" : ""}${pad.board ? " on-board" : ""}" aria-label="${escapeHtml(title)}">` +
     `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>${pad.board ? "" : multipliers}${zoom}${view}</div>` +
+    (pad.disabled ? `<p class="pad-hint pad-wait">${escapeHtml(t("pad_bot_wait"))}</p>` : "") +
     `${body}<div class="pad-extra">${pad.board ? "" : bulls}${actions}</div></section>`
   );
+}
+
+// While the bot is at the board, its darts count; nobody enters or corrects any.
+function botAtBoard(view) {
+  const game = view.practice ?? view.cricket ?? view.party ?? null;
+  const thrower = view.bullOff?.throws.find((item) => item.player === view.bullOff.player);
+  return Boolean((game ? upScore(game) : thrower)?.bot);
 }
 
 // Idle mode ----------------------------------------------------------------------
@@ -5930,10 +6013,23 @@ function badgesView(achievements) {
   return { players };
 }
 
-function badgesHtml(player, ui, locked = true) {
+// The badges a closed gallery shows: those earned, and the next goals, the locked badges
+// closest to being earned.
+const BADGE_GOALS = 3;
+function shownBadges(player, locked, open) {
+  if (!locked) return player.badges.filter((badge) => badge.tier);
+  if (open) return player.badges;
+  const goals = player.badges
+    .filter((badge) => !badge.tier)
+    .sort((a, b) => (b.share ?? -1) - (a.share ?? -1))
+    .slice(0, BADGE_GOALS);
+  return player.badges.filter((badge) => badge.tier || goals.includes(badge));
+}
+
+function badgesHtml(player, ui, locked = true, open = true) {
   const { t, format, date } = ui;
-  return player.badges
-    .filter((badge) => locked || badge.tier)
+  const before = open && locked ? shownBadges(player, true, false) : null;
+  return shownBadges(player, locked, open)
     .map((badge) => {
       const tier = badge.tier && badge.tiers > 1 ? t(`tier_${Math.min(badge.tier, 4)}`) : "";
       const title = `${t(`achievement_${badge.id}`)}${tier ? ` · ${tier}` : ""}`;
@@ -5945,7 +6041,8 @@ function badgesHtml(player, ui, locked = true) {
       const bar = badge.share === null ? "" : `<span class="badge-bar"><i style="width:${fmt(badge.share * 100)}%"></i></span>`;
       const color = tierColor(badge.tier, badge.tiers);
       return (
-        `<div class="badge${badge.tier ? "" : " locked"}" data-badge="${escapeHtml(badge.id)}"` +
+        `<div class="badge${badge.tier ? "" : " locked"}${before && !before.includes(badge) ? " appear" : ""}"` +
+        ` data-badge="${escapeHtml(badge.id)}"` +
         `${color ? ` style="--tier:${color}"` : ""}>` +
         `<span class="badge-icon"><ha-icon icon="${ACHIEVEMENT_ICONS[badge.id] ?? "mdi:medal-outline"}"></ha-icon></span>` +
         `<span class="badge-text"><b>${escapeHtml(title)}</b><span>${escapeHtml(goal)}</span>` +
@@ -6022,8 +6119,10 @@ function trendView(trend, size = 12) {
   return TREND_METRICS.map((metric) => {
     const before = metric.of(addWeeks(weeks.slice(0, half)));
     const after = metric.of(addWeeks(weeks.slice(half)));
-    let direction = "steady";
+    // Without both halves there is nothing to compare, and no arrow.
+    let direction = null;
     if (before !== null && after !== null) {
+      direction = "steady";
       const change = after - before;
       if (Math.abs(change) >= Math.max(0.5, Math.abs(before) * 0.02)) direction = change > 0 ? "up" : "down";
     }
@@ -6039,25 +6138,31 @@ function trendView(trend, size = 12) {
   });
 }
 
-// A small line of the weekly values; weeks without a value interrupt it.
+// A small line of the weekly values. It runs on through the weeks without a value, whose
+// stretch is dashed, so that it never breaks into pieces; a single value is a dot.
 function sparkline(values) {
-  const known = values.filter((value) => value !== null);
+  const known = values.map((value, index) => [index, value]).filter(([, value]) => value !== null);
   if (!known.length) return "";
-  const low = Math.min(...known);
-  const high = Math.max(...known);
+  const low = Math.min(...known.map(([, value]) => value));
+  const high = Math.max(...known.map(([, value]) => value));
   const x = (index) => fmt(values.length > 1 ? (index * 100) / (values.length - 1) : 50);
   const y = (value) => fmt(high === low ? 12 : 21 - ((value - low) / (high - low)) * 18);
-  const runs = [[]];
-  values.forEach((value, index) => {
-    if (value === null) runs.push([]);
-    else runs.at(-1).push(`${x(index)},${y(value)}`);
+  const point = ([index, value]) => `${x(index)},${y(value)}`;
+  const runs = [[known[0]]];
+  const gaps = [];
+  known.slice(1).forEach((item, at) => {
+    const before = known[at];
+    if (item[0] === before[0] + 1) runs.at(-1).push(item);
+    else {
+      gaps.push([before, item]);
+      runs.push([item]);
+    }
   });
-  const lines = runs
-    .filter((points) => points.length)
-    .map((points) =>
-      points.length > 1 ? `<polyline points="${points.join(" ")}"/>` : `<polyline class="dot" points="${points[0]} ${points[0]}"/>`
-    )
-    .join("");
+  const line = (points, style = "") => `<polyline${style ? ` class="${style}"` : ""} points="${points.map(point).join(" ")}"/>`;
+  const lines =
+    known.length === 1
+      ? line([known[0], known[0]], "dot")
+      : [...gaps.map((pair) => line(pair, "gap")), ...runs.filter((run) => run.length > 1).map((run) => line(run))].join("");
   const last = values.findLastIndex((value) => value !== null);
   const end = `${x(last)},${y(values[last])}`;
   return (
@@ -6076,17 +6181,22 @@ function trendsHtml(players, ui) {
         .map((metric) => {
           const shown =
             metric.value === null ? "–" : metric.percent ? percent(metric.value, metric.digits) : format(metric.value, metric.digits);
-          const trend = t(`trend_${metric.direction}`);
+          const trend = metric.direction ? t(`trend_${metric.direction}`) : "";
+          const arrow = metric.direction
+            ? ` <span class="arrow ${metric.direction}" role="img" title="${escapeHtml(trend)}" aria-label="${escapeHtml(trend)}">` +
+              `${TREND_ARROWS[metric.direction]}</span>`
+            : "";
           return (
             `<div class="trend" data-metric="${metric.key}"><span class="trend-label">${escapeHtml(t(metric.label))}</span>` +
-            `<span class="trend-value">${escapeHtml(shown)} <span class="arrow ${metric.direction}" role="img" title="${escapeHtml(
-              trend
-            )}" aria-label="${escapeHtml(trend)}">${TREND_ARROWS[metric.direction]}</span></span>` +
+            `<span class="trend-value">${escapeHtml(shown)}${arrow}</span>` +
             `${sparkline(metric.values)}</div>`
           );
         })
         .join("");
-      return `<div class="trend-player"><div class="trend-name">${escapeHtml(player.name)}</div><div class="trends">${metrics}</div></div>`;
+      return (
+        `<div class="trend-player"><div class="trend-name">${escapeHtml(player.name)}</div>` +
+        `<div class="trends balanced n${player.metrics.length}">${metrics}</div></div>`
+      );
     })
     .join("");
 }
@@ -6920,6 +7030,7 @@ const FORMS = {
         "show_connection",
         "show_controls",
         "show_summary",
+        "corrections",
       ],
       DEFAULTS
     ),
@@ -7080,6 +7191,22 @@ const STRATEGY_HELPERS = {
 
 // Coloured text is mixed with the theme's text colour: darker on light themes,
 // lighter on dark ones, so it stays readable on both.
+// Building block, segmented control: buttons that switch the view of a card, one at a
+// time, such as the heatmap's mode, whose darts, the period or the pad's keys and board.
+const SEGMENTED_CSS = `
+  .segmented {
+    display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
+  }
+  .segmented button {
+    font: inherit; font-size: 12px; font-weight: 600; padding: 4px 10px; border: 0; border-radius: 999px;
+    cursor: pointer; color: var(--ad-muted-text); background: none; white-space: nowrap;
+  }
+  .segmented button[aria-pressed="true"] { color: #fff; background: var(--ad-accent-fill); }
+  /* Finger-sized at a touch screen. */
+  @media (any-pointer: coarse) { .segmented button { min-height: 40px; } }
+`;
+
 const BASE_CSS = `
   :host {
     display: block;
@@ -7093,6 +7220,13 @@ const BASE_CSS = `
     --ad-accent-fill: color-mix(in srgb, var(--ad-accent) 70%, #000);
     /* Secondary text that stays readable on tinted tiles. */
     --ad-muted-text: color-mix(in srgb, var(--secondary-text-color) 80%, var(--primary-text-color, #212121));
+    /* The tint a control takes under a pointer, and when it is pressed. */
+    --ad-hover: color-mix(in srgb, var(--primary-text-color, #212121) 7%, transparent);
+    --ad-press: color-mix(in srgb, var(--primary-text-color, #212121) 14%, transparent);
+    /* How long a change of state takes, and how it moves: quick, and calm at its end. */
+    --ad-fast: 150ms;
+    --ad-slow: 240ms;
+    --ad-ease: cubic-bezier(.2, .7, .2, 1);
   }
   [hidden] { display: none !important; }
   /* Read by assistive technology, not shown. */
@@ -7115,12 +7249,12 @@ const BASE_CSS = `
     font-size: 16px; font-weight: 600; color: var(--primary-text-color);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  /* Building block, status: a glowing dot and its words, never the shape of a button. */
   .pill {
-    display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0;
-    padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 28px;
+    font-size: 12px; font-weight: 600;
     color: color-mix(in srgb, var(--ad-status) 45%, var(--primary-text-color, #212121));
-    background: color-mix(in srgb, var(--ad-status) 14%, transparent);
-    transition: color .4s, background .4s;
+    transition: color .4s;
   }
   .pill::before {
     content: ""; width: 8px; height: 8px; border-radius: 50%;
@@ -7134,6 +7268,27 @@ const BASE_CSS = `
   /* No word alone on a line: titles and labels balance their lines, text avoids orphans. */
   .title, .section-label, th { text-wrap: balance; }
   .muted, .pad-hint, .lobby-hint, .hint, .empty-hint { text-wrap: pretty; }
+  /* Building block, cue: what a tap on a tile does, at its top right: a pencil edits, an
+     arrow opens the details; inline after the words of a control that looks like text.
+     The pencil turns to the accent while its tile is being edited. */
+  .cue {
+    position: absolute; top: 6px; right: 6px; width: 14px; height: 14px; overflow: visible; pointer-events: none;
+    fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    color: var(--ad-muted-text);
+  }
+  .cue.inline { position: static; display: inline-block; width: .9em; height: .9em; margin-left: .3em; vertical-align: -.1em; }
+  .picked .cue { color: var(--ad-accent-text); }
+  /* A link that opens more below it turns its arrow up once open. */
+  .cue.expand { transition: transform .2s; }
+  [aria-expanded="true"] > .cue.expand { transform: rotate(180deg); }
+  /* Building block, tile: a static one is a tinted area without a frame; one a tap edits
+     or opens has a frame, which the pointer lights up, and a cue. */
+  .tappable { position: relative; border: 1px solid var(--divider-color, rgba(127,127,127,.3)); }
+  @media (hover: hover) { .tappable:not(:disabled):hover { border-color: var(--ad-accent); } }
+  /* Building block, tag: a label such as a bed of a route, framed but never filled like a
+     button; the one that comes next is tinted and bold. */
+  .bed { border-radius: 8px; font-weight: 700; color: var(--ad-accent-text); border: 1px solid var(--ad-accent); }
+  .bed:first-child { font-weight: 800; background: color-mix(in srgb, var(--ad-accent) 16%, transparent); }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
     display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
@@ -7153,16 +7308,39 @@ const BASE_CSS = `
     border: 1px solid var(--divider-color, rgba(127,127,127,.3)); background: none;
     transition: background .2s, border-color .2s, color .2s;
   }
-  :is(.controls button, button.action):hover { background: color-mix(in srgb, var(--primary-text-color) 6%, transparent); }
   :is(.controls button, button.action).primary {
     color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill);
   }
   :is(.controls button, button.action).primary.stop { background: none; color: var(--ad-accent-text); }
-  :is(.controls button, button.action).confirm {
-    color: #fff; background: ${STATUS_COLORS.problem}; border-color: ${STATUS_COLORS.problem};
+  /* Building block, control: every button answers. A mouse sees what it can click, a
+     finger feels its press, a keyboard sees where it is; a disabled one fades, and the
+     second tap a button asks for, to confirm, is red wherever it is. */
+  button:not(:disabled) { cursor: pointer; }
+  @media (hover: hover) {
+    button:not(:disabled):hover { background-image: linear-gradient(var(--ad-hover), var(--ad-hover)); }
   }
-  :is(.controls button, button.action):disabled { opacity: .45; cursor: default; }
+  button:not(:disabled):active {
+    background-image: linear-gradient(var(--ad-press), var(--ad-press)); transform: scale(.97);
+  }
+  button:disabled { opacity: .45; cursor: default; }
+  :host button.confirm { color: #fff; background: ${STATUS_COLORS.problem}; border-color: ${STATUS_COLORS.problem}; }
   :is(button, [tabindex]):focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+  /* Building block, motion: a change of state glides, what appears as a whole fades in from
+     a little below, and a device that asks for less motion gets none. Parts drawn anew
+     with every tap do not fade in, or they would flicker. */
+  button, .tappable {
+    transition: background-color var(--ad-fast) var(--ad-ease), border-color var(--ad-fast) var(--ad-ease),
+      color var(--ad-fast) var(--ad-ease), box-shadow var(--ad-fast) var(--ad-ease),
+      opacity var(--ad-fast) var(--ad-ease), transform var(--ad-fast) var(--ad-ease);
+  }
+  .appear { transition: opacity var(--ad-slow) var(--ad-ease), transform var(--ad-slow) var(--ad-ease); }
+  @starting-style { .appear { opacity: 0; transform: translateY(6px); } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important;
+    }
+    button:not(:disabled):active { transform: none; }
+  }
   svg { display: block; width: 100%; height: 100%; overflow: visible; }
   .number {
     font-size: 22px; font-weight: 700; line-height: 1; text-anchor: middle; dominant-baseline: central;
@@ -7179,10 +7357,134 @@ const BASE_CSS = `
     border-radius: 50%; object-fit: cover; vertical-align: -.2em;
     background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
   }
+  ${SEGMENTED_CSS}
+  /* Building block, link: a control that looks like text, with an arrow after it, which
+     opens the details of what it names. */
+  .link {
+    display: inline-flex; align-items: center; padding: 0; border: 0; background: none;
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--ad-accent-text); text-align: start;
+  }
+  @media (hover: hover) { .link:not(:disabled):hover { text-decoration: underline; background-image: none; } }
+  .link:not(:disabled):active { background-image: none; opacity: .7; }
+  @media (any-pointer: coarse) { .link { min-height: 40px; } }
+  /* What opens its details with a tap underlines its words under a mouse. */
+  @media (hover: hover) { :is(.metric, .system-info, .camera-name):hover .opens { text-decoration: underline; } }
 `;
 
-const CSS = `${BASE_CSS}
+// Building block, balanced grid: tiles in as many columns as fit, in rows as even as they
+// can be, four tiles as two by two rather than three and one; a shorter last row stands
+// in the middle, or its last tile fills it. A grid says how many tiles it has with a
+// class such as "balanced n4"; beyond eight tiles it fills its rows as they come. The
+// widths are those of the card, whose padding the tiles do not get.
+function balancedCss(selector, min, gap, padding, most = 8) {
+  const rules = [];
+  for (let count = 2; count <= most; count += 1) {
+    for (let fit = 1; fit <= count; fit += 1) {
+      const rows = Math.ceil(count / fit);
+      const columns = Math.ceil(count / rows);
+      const from = fit === 1 ? 0 : fit * min + (fit - 1) * gap + padding;
+      const to = fit === count ? 0 : (fit + 1) * min + fit * gap + padding - 0.02;
+      const query = [from && `(min-width: ${from}px)`, to && `(max-width: ${to}px)`].filter(Boolean).join(" and ");
+      const grid = `${selector}.balanced.n${count}`;
+      const last = count - (rows - 1) * columns;
+      const free = columns - last;
+      let place = "";
+      if (free > 0 && free % 2 === 0) place = ` ${grid} > :nth-child(${count - last + 1}) { grid-column-start: ${free / 2 + 1}; }`;
+      else if (free > 0) place = ` ${grid} > :last-child { grid-column-end: -1; }`;
+      rules.push(`  @container ${query} { ${grid} { grid-template-columns: repeat(${columns}, minmax(0, 1fr)); }${place} }`);
+    }
+  }
+  return rules.join("\n");
+}
+
+// Each player on one line, the name beside the score, where the scores have little room.
+const compactPlayers = (players, height) => `  @container (max-height: ${height}px) {
+    ${players} { gap: 6px; }
+    ${players} .player {
+      flex-direction: row; justify-content: space-between; gap: 8px; padding: 4px 10px; border-radius: 14px;
+    }
+    ${players} .player .name { font-size: clamp(13px, 8cqh, 18px); text-align: left; min-height: 0; }
+    ${players} .big { font-size: clamp(20px, 16cqh, 36px); }
+    ${players} .player :is(.route, .members, .details) { display: none; }
+  }`;
+
+// The pad that corrects a dart of the visit, on the live card and the scoreboard: the
+// keys, or the board to tap with its loupe.
+const PAD_CSS = `
+  .pad, .undo-only { font-size: clamp(14px, 1.8cqi, 22px); }
+  .pad { display: grid; gap: clamp(6px, 1cqi, 12px); }
+  .pad-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pad-head .section-label { flex: 1; min-width: 8em; }
+  .pad button, .undo-only {
+    min-height: 48px; padding: 0 10px; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer;
+    touch-action: manipulation; color: var(--primary-text-color);
+    border: 2px solid var(--divider-color, rgba(127,127,127,.3));
+    background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+  }
+  .pad button:disabled { opacity: .4; cursor: default; }
+  .pad button[aria-pressed="true"] {
+    color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill);
+  }
+  .pad .multiplier { min-width: 56px; }
+  .pad .zoom {
+    display: grid; place-items: center; width: 44px; height: 44px; min-height: 0; padding: 0; border-radius: 50%;
+    background: var(--ha-card-background, var(--card-background-color, #fff));
+  }
+  .pad .zoom[aria-pressed="true"] {
+    color: var(--ad-accent-text); border-color: var(--ad-accent); background: var(--ha-card-background, var(--card-background-color, #fff));
+  }
+  .pad .zoom svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+  .pad-numbers { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+  /* A narrow pad keeps S, D, T and its keys or board in one row. */
+  @container (max-width: 560px) {
+    .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .pad .multiplier { min-width: 44px; }
+    .pad .segmented.view { padding: 2px; }
+    .pad .segmented.view button { padding: 0 10px; }
+  }
+  .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pad-extra button { flex: 1 1 5.5em; }
+  .pad .secondary, .undo-only { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
+  /* The board instead of the keys: a tap says where the dart is. Zoomed in, it draws
+     only within its own box, never over the keys and the edge of the card. */
+  .pad .view { margin-left: auto; }
+  .pad .segmented button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; font-size: inherit; color: var(--ad-muted-text); background: none; }
+  .pad .segmented button[aria-pressed="true"] { color: #fff; background: var(--ad-accent-fill); }
+  .pad-wait { margin: 0; font-weight: 700; color: var(--ad-warn-text); }
+  .pad-board {
+    width: min(100%, 420px, 52vh); height: auto; aspect-ratio: 1; margin-inline: auto; overflow: hidden;
+    cursor: crosshair; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .pad-board.disabled { opacity: .4; cursor: default; }
+  /* Fingers on the board aim and zoom; the page does not scroll or zoom under them. */
+  .pad-board[data-pad="spot"] { touch-action: none; }
+  :is(.pad-board, .loupe) .spot { vector-effect: non-scaling-stroke; }
+  /* The loupe above the finger that aims: the board magnified, a cross on the spot. */
+  .loupe {
+    position: absolute; z-index: 3; width: 132px; height: 132px; border-radius: 50%; overflow: hidden; pointer-events: none;
+    border: 3px solid var(--ad-accent); box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+    background: var(--primary-background-color, #111);
+  }
+  .loupe svg { display: block; width: 100%; height: 100%; }
+  .loupe { transition: opacity var(--ad-fast) var(--ad-ease), transform var(--ad-fast) var(--ad-ease); }
+  @starting-style { .loupe { opacity: 0; transform: scale(.8); } }
+  .loupe::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(var(--ad-accent), var(--ad-accent)) center / 2px 34px no-repeat,
+      linear-gradient(var(--ad-accent), var(--ad-accent)) center / 34px 2px no-repeat;
+  }
+  :is(.pad-board, .loupe) .spot { fill: #3182ce; stroke: #fff; stroke-width: 3; pointer-events: none; }
+  :is(.pad-board, .loupe) .spot.seen { fill: none; stroke: var(--ad-accent); stroke-width: 4; stroke-dasharray: 7 5; pointer-events: auto; }
+  .pad-hint { text-align: center; font-size: .8em; color: var(--ad-muted-text); }
+  .undo-only { justify-self: start; align-self: flex-start; }
+  .undo-icon { margin-inline-end: .2em; }
+  .pad button:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+`;
+
+const CSS = `${BASE_CSS}${PAD_CSS}
   .layout {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas: "header board" "visit board" "session board" "footer board";
@@ -7234,11 +7536,7 @@ const CSS = `${BASE_CSS}
     color: var(--primary-text-color); font-variant-numeric: tabular-nums;
   }
   .practice-route { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; }
-  .practice-route .bed {
-    padding: 3px 9px; border-radius: 8px; font-weight: 700;
-    color: var(--ad-accent-text); border: 1px solid var(--ad-accent);
-  }
-  .practice-route .bed:first-child { color: #fff; background: var(--ad-accent-fill); }
+  .practice-route .bed { padding: 3px 9px; }
   .practice-route .note { font-weight: 700; }
   .practice-route .note:not(.won, .bust) { font-size: 11px; font-weight: 400; }
   .scoreboard { display: grid; gap: 4px; }
@@ -7289,18 +7587,19 @@ const CSS = `${BASE_CSS}
   }
   .recent { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
   .recent-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  /* A visit gone by: its score after a dot in its colour, plain text and nothing to tap. */
   .recent-visit {
-    min-width: 2.4em; padding: 3px 8px; border-radius: 999px; text-align: center;
+    display: inline-flex; align-items: center; gap: 5px;
     font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary-text-color);
-    border: 1px solid var(--bucket); background: color-mix(in srgb, var(--bucket) 16%, transparent);
   }
+  .recent-visit::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--bucket); }
   .slot {
     position: relative; padding: 10px 8px 9px; border-radius: 14px; text-align: center;
-    border: 1px solid var(--divider-color, rgba(127,127,127,.25));
+    border: 1px solid transparent;
     background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
     transition: border-color .3s, box-shadow .3s, background .3s;
   }
-  .slot.empty { border-style: dashed; background: none; }
+  .slot.empty { background: color-mix(in srgb, var(--primary-text-color) 2%, transparent); }
   .slot.latest {
     border-color: var(--ad-highlight);
     box-shadow: 0 0 0 1px var(--ad-highlight), 0 0 18px color-mix(in srgb, var(--ad-highlight) 35%, transparent);
@@ -7312,6 +7611,12 @@ const CSS = `${BASE_CSS}
   .slot.double .segment { color: color-mix(in srgb, #43b581 70%, var(--primary-text-color)); }
   .slot.bull .segment, .slot.outer-bull .segment { color: color-mix(in srgb, #e5484d 80%, var(--primary-text-color)); }
   .slot.miss .segment { color: var(--secondary-text-color); }
+  .slot > span { display: block; }
+  button.slot { width: 100%; font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  button.slot:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+  .slot.picked { border-color: var(--ad-accent); box-shadow: inset 0 0 0 2px var(--ad-accent); }
+  /* The pad below the darts fits their column, however wide the card is. */
+  .visit > .pad-area { margin-top: 2px; container-type: inline-size; }
   .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
   .stat { min-width: 0; }
   .stat .value {
@@ -7328,7 +7633,7 @@ const CSS = `${BASE_CSS}
     box-shadow: 0 0 42px 4px color-mix(in srgb, var(--ad-status) 55%, transparent);
     transition: box-shadow .5s;
   }
-  .board-frame svg { cursor: pointer; border-radius: 50%; }
+  .board-frame svg { border-radius: 50%; }
   .layout.vertical .board-frame, .layout.board-only .board-frame { width: min(100%, 420px); }
   @container (max-width: 520px) {
     .layout.auto .board-frame { width: min(100%, 360px); }
@@ -7344,21 +7649,6 @@ const CSS = `${BASE_CSS}
   @media (prefers-reduced-motion: reduce) {
     .blink .hit, .dart.latest .halo { animation: none; }
   }
-`;
-
-// Buttons that switch the view of a card: the heatmap mode, whose darts, the period.
-const SEGMENTED_CSS = `
-  .segmented {
-    display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px;
-    background: color-mix(in srgb, var(--primary-text-color) 6%, transparent);
-  }
-  .segmented button {
-    font: inherit; font-size: 12px; font-weight: 600; padding: 4px 10px; border: 0; border-radius: 999px;
-    cursor: pointer; color: var(--ad-muted-text); background: none; white-space: nowrap;
-  }
-  .segmented button[aria-pressed="true"] { color: #fff; background: var(--ad-accent-fill); }
-  /* Finger-sized at a touch screen. */
-  @media (any-pointer: coarse) { .segmented button { min-height: 40px; } }
 `;
 
 const TRAINING_CSS = `${BASE_CSS}
@@ -7402,7 +7692,7 @@ const TRAINING_CSS = `${BASE_CSS}
   .legend { width: min(100%, 320px); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
   .legend-bar { height: 8px; border-radius: 999px; }
   .side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; cursor: pointer; border-radius: 14px; }
+  .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; border-radius: 14px; }
   .tile {
     min-width: 0; padding: 10px 8px; border-radius: 14px; text-align: center;
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
@@ -7412,11 +7702,7 @@ const TRAINING_CSS = `${BASE_CSS}
   .tile .name { font-size: 11px; line-height: 1.25; color: var(--ad-muted-text); overflow-wrap: break-word; hyphens: auto; }
   .tile.hot .value { color: var(--ad-gold-text); }
   @container (max-width: 380px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  /* The details of the statistics for a keyboard: shown when it reaches the button. */
-  .details.reveal { align-self: flex-end; flex: 0 0 auto; }
-  .details.reveal:not(:focus) {
-    position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
-  }
+  .side > .details { align-self: flex-end; margin-top: -10px; }
   .bests dl { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 18px; margin: 8px 0 0; }
   .bests dl > div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
   .bests dt { font-size: 12px; color: var(--secondary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -7478,7 +7764,6 @@ const TRAINING_CSS = `${BASE_CSS}
   .group-change { font-size: 12px; font-weight: 700; white-space: nowrap; }
   .group-change.better { color: var(--ad-ok-text); }
   .group-change.worse { color: var(--ad-error-text); }
-  ${SEGMENTED_CSS}
 `;
 
 const STATUS_CSS = `${BASE_CSS}
@@ -7502,6 +7787,7 @@ const STATUS_CSS = `${BASE_CSS}
   .toggle[aria-checked="true"]::after { transform: translateX(22px); }
   .toggle:disabled { opacity: .45; cursor: default; }
   .info { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+${balancedCss(".info", 150, 8, 36)}
   .info-tile {
     display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 12px; border-radius: 14px;
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
@@ -7523,6 +7809,7 @@ const STATUS_CSS = `${BASE_CSS}
   .metric .value { display: block; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary-text-color); }
   .metric .name { display: block; font-size: 11px; color: var(--secondary-text-color); }
   .camera-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+${balancedCss(".camera-grid", 130, 8, 36)}
   .camera {
     display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px;
     border: 1px solid var(--divider-color, rgba(127,127,127,.25));
@@ -7543,7 +7830,7 @@ const STATUS_CSS = `${BASE_CSS}
   }
 `;
 
-const SCOREBOARD_CSS = `${BASE_CSS}
+const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   /* Secondary text sits on tinted tiles here: its darker mix stays readable on them. */
   .scoreboard {
     --ad-pad: clamp(14px, 2.4cqi, 32px);
@@ -7601,8 +7888,8 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .players.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .player {
     display: flex; flex-direction: column; align-items: center; gap: clamp(4px, .8cqi, 12px); min-width: 0;
-    padding: clamp(12px, 2.2cqi, 32px) 12px; border-radius: 20px;
-    border: 2px solid var(--divider-color, rgba(127,127,127,.25)); transition: border-color .3s, background .3s;
+    padding: clamp(12px, 2.2cqi, 32px) 12px; border-radius: 20px; border: 2px solid transparent;
+    background: color-mix(in srgb, var(--primary-text-color) 4%, transparent); transition: border-color .3s, background .3s;
   }
   .player.active { border-color: var(--ad-accent); background: color-mix(in srgb, var(--ad-accent) 12%, transparent); }
   .player.winner {
@@ -7659,11 +7946,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .4em;
     min-height: 1.8em; font-size: clamp(14px, 2.6cqi, 34px);
   }
-  .bed {
-    padding: .12em .55em; border-radius: 10px; font-weight: 800;
-    color: var(--ad-accent-text); border: 2px solid var(--ad-accent);
-  }
-  .bed:first-child { color: #fff; background: var(--ad-accent-fill); }
+  .route .bed, .setup .bed { padding: .12em .55em; border-radius: 10px; border-width: 2px; }
   .details { font-size: clamp(12px, 1.9cqi, 24px); color: var(--ad-muted-text); font-variant-numeric: tabular-nums; }
   .cricket { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
   /* On a full screen the chalkboard's rows share its whole height, without bands above
@@ -7720,7 +8003,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .caller-toggle {
     display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; cursor: pointer;
     font: inherit; font-size: clamp(12px, 1.5cqi, 18px); font-weight: 600; color: var(--ad-muted-text);
-    border: 1px dashed var(--divider-color, rgba(127,127,127,.4)); background: none;
+    border: 1px solid var(--divider-color, rgba(127,127,127,.4)); background: none;
   }
   .caller-toggle[aria-pressed="true"] {
     color: #fff; background: var(--ad-accent-fill); border: 1px solid var(--ad-accent-fill);
@@ -7733,7 +8016,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     padding: clamp(6px, 1.2cqi, 16px); border-radius: 14px;
   }
   .dart {
-    border: 1px solid var(--divider-color, rgba(127,127,127,.25));
+    position: relative; border: 1px solid transparent;
     background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
   }
   /* A dart's bed and points grow with its own tile, which is narrow beside a pad. */
@@ -7743,71 +8026,18 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .dart .points { font-size: clamp(11px, 7cqi, 20px); min-height: 1.2em; }
   .sum .muted { font-size: clamp(11px, 1.6cqi, 20px); min-height: 1.2em; }
   .dart .points { color: var(--ad-muted-text); }
-  .sum { min-width: 4.5em; color: #fff; background: var(--ad-accent-fill); }
+  .sum { min-width: 4.5em; color: var(--ad-accent-text); background: color-mix(in srgb, var(--ad-accent) 14%, transparent); }
   /* A dart of the visit corrects with a tap; entered, corrected and bot darts are marked. */
   button.dart { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
   @media (any-pointer: coarse) { .visit button.dart { min-height: 44px; } }
-  button.dart:focus-visible, .pad button:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+  button.dart:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+  .visit .dart .cue {
+    top: clamp(3px, 4cqi, 10px); right: clamp(3px, 4cqi, 10px); width: clamp(11px, 9cqi, 20px); height: clamp(11px, 9cqi, 20px);
+  }
   .dart.picked { border-color: var(--ad-accent); box-shadow: inset 0 0 0 2px var(--ad-accent); }
   .dart.manual, .dart.corrected { border-style: dashed; }
-  .dart.bot { border-color: color-mix(in srgb, var(--ad-accent) 45%, transparent); }
-  .pad, .undo-only { font-size: clamp(14px, 1.8cqi, 22px); }
-  .pad { display: grid; gap: clamp(6px, 1cqi, 12px); }
-  .pad-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .pad-head .section-label { flex: 1; min-width: 8em; }
-  .pad button, .undo-only {
-    min-height: 48px; padding: 0 10px; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer;
-    touch-action: manipulation; color: var(--primary-text-color);
-    border: 2px solid var(--divider-color, rgba(127,127,127,.3));
-    background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
-  }
-  .pad button:disabled { opacity: .4; cursor: default; }
-  .pad button[aria-pressed="true"] {
-    color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill);
-  }
-  .pad .multiplier { min-width: 56px; }
-  .pad .zoom {
-    display: grid; place-items: center; width: 44px; height: 44px; min-height: 0; padding: 0; border-radius: 50%;
-    background: var(--ha-card-background, var(--card-background-color, #fff));
-  }
-  .pad .zoom[aria-pressed="true"] {
-    color: var(--ad-accent-text); border-color: var(--ad-accent); background: var(--ha-card-background, var(--card-background-color, #fff));
-  }
-  .pad .zoom svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
-  .pad-numbers { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
-  @container (max-width: 560px) { .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
-  .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pad-extra button { flex: 1 1 5.5em; }
-  .pad .secondary, .undo-only { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
-  /* The board instead of the keys: a tap says where the dart is. Zoomed in, it draws
-     only within its own box, never over the keys and the edge of the card. */
-  .pad .view { margin-left: auto; }
-  .pad-board {
-    width: min(100%, 420px, 52vh); height: auto; aspect-ratio: 1; margin-inline: auto; overflow: hidden;
-    cursor: crosshair; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  }
-  .pad-board.disabled { opacity: .4; cursor: default; }
-  /* Fingers on the board aim and zoom; the page does not scroll or zoom under them. */
-  .pad-board[data-pad="spot"] { touch-action: none; }
-  :is(.pad-board, .loupe) .spot { vector-effect: non-scaling-stroke; }
-  /* The loupe above the finger that aims: the board magnified, a cross on the spot. */
-  .loupe {
-    position: absolute; z-index: 3; width: 132px; height: 132px; border-radius: 50%; overflow: hidden; pointer-events: none;
-    border: 3px solid var(--ad-accent); box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
-    background: var(--primary-background-color, #111);
-  }
-  .loupe svg { display: block; width: 100%; height: 100%; }
-  .loupe::after {
-    content: ""; position: absolute; inset: 0;
-    background:
-      linear-gradient(var(--ad-accent), var(--ad-accent)) center / 2px 34px no-repeat,
-      linear-gradient(var(--ad-accent), var(--ad-accent)) center / 34px 2px no-repeat;
-  }
-  :is(.pad-board, .loupe) .spot { fill: #3182ce; stroke: #fff; stroke-width: 3; pointer-events: none; }
-  :is(.pad-board, .loupe) .spot.seen { fill: none; stroke: var(--ad-accent); stroke-width: 4; stroke-dasharray: 7 5; pointer-events: auto; }
-  .pad-hint { text-align: center; font-size: .8em; color: var(--ad-muted-text); }
-  .undo-only { justify-self: start; align-self: flex-start; }
-  .undo-icon { margin-inline-end: .2em; }
+  .dart.manual, .dart.corrected { border-color: var(--divider-color, rgba(127,127,127,.4)); }
+  .dart.bot { background: color-mix(in srgb, var(--ad-accent) 10%, transparent); }
   .lobby-player.bot .bot-icon { font-size: 1.3em; }
   .sum .muted { color: inherit; }
   .sum .value { font-size: clamp(22px, 4.2cqi, 56px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -8154,16 +8384,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     .scoreboard.full.with-pad .pad.on-board > .pad-hint { display: none; }
   }
   /* Little room for the scores, as beside a pad on a phone: each player on one line, the
-     name beside the score, so that every score stays in sight. */
-  @container (max-height: 200px) {
-    .scoreboard.full .players { gap: 6px; }
-    .scoreboard.full .player {
-      flex-direction: row; justify-content: space-between; gap: 8px; padding: 4px 10px; border-radius: 14px;
-    }
-    .scoreboard.full .player .name { font-size: clamp(13px, 8cqh, 18px); text-align: left; min-height: 0; }
-    .scoreboard.full .players .big { font-size: clamp(20px, 16cqh, 36px); }
-    .scoreboard.full .player :is(.route, .members, .details) { display: none; }
-  }
+     name beside the score, so that every score stays in sight. Three or four players in
+     two rows of tiles need their line sooner. */
+${compactPlayers(".scoreboard.full .players", 200)}
+${compactPlayers(".scoreboard.full .players:is(.n3, .n4)", 280)}
   /* Little room above the visit, as on a phone on its side: the visit without its
      label, the facts smaller, and a smaller start of the next game; with even less
      room, the number and the start alone. */
@@ -8192,6 +8416,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
 const PLAYERS_CSS = `${BASE_CSS}
   .players-card { display: flex; flex-direction: column; gap: 16px; padding: 18px; box-sizing: border-box; }
   .profiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+${balancedCss(".profiles", 210, 10, 36)}
   .profile {
     display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; min-width: 0;
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
@@ -8243,10 +8468,8 @@ const DOUBLES_CSS = `${BASE_CSS}
     padding: 2px 0; border-radius: 8px; text-align: center; font-size: 12px; font-weight: 800;
     color: color-mix(in srgb, var(--c) 50%, var(--primary-text-color, #212121)); border: 1px solid var(--c);
   }
-  /* The rate's colour, darkened so white text stays readable on it. */
-  .double.favourite .bed {
-    color: #fff; background: color-mix(in srgb, var(--c) 60%, #000); border-color: color-mix(in srgb, var(--c) 60%, #000);
-  }
+  /* The favourite double: tinted in its rate's colour, like the next bed of a route. */
+  .double.favourite .bed { background: color-mix(in srgb, var(--c) 20%, transparent); }
   .double .bar {
     height: 6px; border-radius: 999px; overflow: hidden;
     background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
@@ -8298,6 +8521,7 @@ const PROGRESS_CSS = `
   :is(.trend-player, .group-player):first-child { border-top: 0; }
   .trend-name { font-weight: 700; margin-bottom: 6px; color: var(--primary-text-color); }
   .trends { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+${balancedCss(".trends", 140, 8, 36)}
   .trend {
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; align-items: center;
     padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
@@ -8310,6 +8534,7 @@ const PROGRESS_CSS = `
     vector-effect: non-scaling-stroke;
   }
   .spark .dot { stroke-width: 5; }
+  .spark .gap { stroke-dasharray: 3 4; opacity: .55; }
   .arrow.up { color: var(--ad-ok-text); }
   .arrow.down { color: var(--ad-error-text); }
   .arrow.steady { color: var(--secondary-text-color); }
@@ -8325,7 +8550,7 @@ const PROGRESS_CSS = `
   .group-change.worse { color: var(--ad-error-text); }
 `;
 
-const LEADERBOARD_CSS = `${BASE_CSS}${SEGMENTED_CSS}
+const LEADERBOARD_CSS = `${BASE_CSS}
   .leaderboard { display: flex; flex-direction: column; gap: 14px; padding: 18px; box-sizing: border-box; }
   .leaderboard header { flex-wrap: wrap; }
   .records { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
@@ -8694,15 +8919,6 @@ function createElements(Base) {
       );
     }
 
-    // Enter and space act on an element that is a button to assistive technology.
-    _onKeys(element, action) {
-      element?.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        event.preventDefault();
-        action();
-      });
-    }
-
     // Replace markup only when it changes, so animations and focus survive updates.
     // A focused element with data-focus gets the focus back after a change, and a
     // text field what was typed in it and where the caret was.
@@ -8730,7 +8946,232 @@ function createElements(Base) {
 
   // Live visit card ------------------------------------------------------------
 
-  class AutodartsCard extends CardBase {
+  // Correcting a dart of the visit, on the live card and the scoreboard: a tap on a
+  // dart picks it, the pad puts it where it is with the keys or a spot on the board.
+  class PadCard extends CardBase {
+    // The config entry of the board, for actions of the integration.
+    _entry() {
+      const device = this._hass.devices?.[this._deviceId];
+      return device?.primary_config_entry ?? device?.config_entries?.[0] ?? null;
+    }
+
+    // The state of correcting and the taps that change it: the darts, the pad, and the
+    // frame the loupe moves in. The pad shows the board instead of the keys, all of it
+    // or zoomed in; the fingers on it and when the last one set a dart.
+    _initPad(darts, frame) {
+      this._padFrame = frame;
+      this._pick = null;
+      this._multiplier = 1;
+      this._padBoard = false;
+      this._padZoom = null;
+      this._touches = new Map();
+      this._gesture = null;
+      this._touched = 0;
+      darts?.addEventListener("click", (event) => {
+        const dart = event.target.closest("[data-dart]");
+        if (dart) this._pickDart(Number(dart.dataset.dart));
+      });
+      this._el.pad.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-pad]");
+        if (!target || target.disabled) return;
+        const spot = target.dataset.pad === "spot";
+        // A finger that let go of the board has set its dart already.
+        if (spot && Date.now() - this._touched < 800) return;
+        // A tap on the board says where the dart is.
+        const value = spot ? boardSpot(target, event, padViewBox(this._padZoom)) : target.dataset.value;
+        this._padAction(target.dataset.pad, value);
+      });
+      for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel"]) {
+        this._el.pad.addEventListener(type, (event) => this._boardTouch(event));
+      }
+    }
+
+    // What the pad shows of the darts of the visit, for any pad: the board instead of
+    // the keys, zoomed in or not, and the darts where they are, the one being corrected
+    // where the board saw it. A picked dart that left the visit is dropped.
+    _padBase(darts) {
+      if (this._pick && !darts.some((dart) => dart.dart === this._pick.dart)) this._pick = null;
+      const board = this._padBoard;
+      const pins = darts
+        .filter((dart) => Number.isFinite(dart.x) && Number.isFinite(dart.y))
+        .map((dart) => ({ x: dart.x, y: dart.y, seen: dart.dart === this._pick?.dart }));
+      return { board, zoom: board ? this._padZoom : null, pins };
+    }
+
+    // A tap on a dart of the visit opens the pad to correct it; another tap closes it.
+    _pickDart(dart) {
+      if (this.preview) return;
+      const shown = visitThrows(this._state("visit")).find((item) => item.dart === dart);
+      this._pick =
+        this._pick?.dart === dart || !shown ? null : { dart, multiplier: Math.min(Math.max(shown.multiplier, 1), 3) };
+      if (this._padBoard) this._padZoom = this._openZoom();
+      this._update();
+    }
+
+    // Where the board to tap opens: on a small screen, zoomed in on where the board saw
+    // the dart being corrected; for darts entered by hand, the whole board.
+    _openZoom() {
+      const width = this.getBoundingClientRect().width;
+      const small = Math.min(width, window.innerHeight) < PAD_SMALL;
+      return this._pick && width > 0 && small ? this._zoomAt(this._pick.dart) : null;
+    }
+
+    // Zoomed in on a dart of the visit, the one being corrected or else the last one;
+    // on the bull without a dart that has a position.
+    _zoomAt(dart) {
+      const darts = visitThrows(this._state("visit")).filter((item) => Number.isFinite(item.x) && Number.isFinite(item.y));
+      const at = darts.find((item) => item.dart === dart) ?? (dart === undefined ? darts.at(-1) : null);
+      if (dart !== undefined && !at) return null;
+      return { scale: PAD_ZOOM, x: (at?.x ?? 0) * NORM, y: -(at?.y ?? 0) * NORM };
+    }
+
+    // Fingers on the board to tap: one aims with the loupe and sets the dart where it
+    // lets go; a second finger turns aiming into zooming and moving the board. A mouse
+    // clicks instead.
+    _boardTouch(event) {
+      if (event.pointerType === "mouse") return;
+      const touches = this._touches;
+      if (event.type === "pointerdown") {
+        const svg = event.target.closest?.("svg.pad-board[data-pad='spot']");
+        if (!svg) return;
+        event.preventDefault();
+        svg.setPointerCapture?.(event.pointerId);
+        touches.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+        if (!this._gesture) {
+          this._gesture = { svg, aim: event.pointerId, pinch: null };
+          this._el.loupe.innerHTML = `<svg>${svg.innerHTML}</svg>`;
+        } else if (touches.size === 2) {
+          const [a, b] = [...touches.values()];
+          const middle = { clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 };
+          this._gesture.aim = null;
+          this._gesture.pinch = {
+            distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
+            scale: this._padZoom?.scale ?? 1,
+            anchor: boardPoint(svg, middle, padViewBox(this._padZoom)),
+          };
+        }
+        this._aim(event);
+        return;
+      }
+      const gesture = this._gesture;
+      if (!gesture || !touches.has(event.pointerId)) return;
+      if (event.type === "pointermove") {
+        touches.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+        if (gesture.pinch && touches.size === 2) this._pinch();
+        else this._aim(event);
+        return;
+      }
+      touches.delete(event.pointerId);
+      if (event.type === "pointerup" && gesture.aim === event.pointerId) {
+        const spot = boardSpot(gesture.svg, event, padViewBox(this._padZoom));
+        this._touched = Date.now();
+        this._endGesture();
+        this._padAction("spot", spot);
+      } else if (!touches.size) {
+        this._endGesture();
+      }
+    }
+
+    // The loupe above the aiming finger, which would hide the spot itself, or beside it
+    // where there is no room above; it shows the board around the spot magnified.
+    _aim(event) {
+      const gesture = this._gesture;
+      const loupe = this._el.loupe;
+      const view = padViewBox(this._padZoom);
+      const point = gesture.aim === event.pointerId ? boardPoint(gesture.svg, event, view) : null;
+      loupe.hidden = !point;
+      if (!point) return;
+      const size = view.size / LOUPE_ZOOM;
+      loupe.firstElementChild.setAttribute("viewBox", viewBoxText({ x: point[0] - size / 2, y: point[1] - size / 2, size }));
+      const box = this._padFrame.getBoundingClientRect();
+      const width = loupe.offsetWidth || 132;
+      const x = event.clientX - box.left;
+      const y = event.clientY - box.top;
+      const above = y - width - 24;
+      const beside = x + 24 + width <= box.width ? x + 24 : x - 24 - width;
+      const left = above >= 0 ? x - width / 2 : beside;
+      loupe.style.left = `${Math.round(Math.min(Math.max(left, 0), Math.max(box.width - width, 0)))}px`;
+      loupe.style.top = `${Math.round(above >= 0 ? above : Math.max(y - width / 2, 0))}px`;
+    }
+
+    // Two fingers zoom the board, and the spot between them stays between them.
+    _pinch() {
+      const { svg, pinch } = this._gesture;
+      const [a, b] = [...this._touches.values()];
+      const scale = Math.min(
+        Math.max((pinch.scale * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)) / pinch.distance, 1),
+        PAD_ZOOM_MOST
+      );
+      const rect = svg.getBoundingClientRect();
+      const pixels = Math.min(rect.width, rect.height) / (PAD_VIEW / scale);
+      if (!pinch.anchor || !(pixels > 0)) return;
+      const middle = { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+      this._padZoom =
+        scale > 1.02
+          ? {
+              scale,
+              x: pinch.anchor[0] - (middle.x - rect.left - rect.width / 2) / pixels,
+              y: pinch.anchor[1] - (middle.y - rect.top - rect.height / 2) / pixels,
+            }
+          : null;
+      svg.setAttribute("viewBox", viewBoxText(padViewBox(this._padZoom)));
+    }
+
+    _endGesture() {
+      this._clearGesture();
+      this._update();
+    }
+
+    _clearGesture() {
+      this._gesture = null;
+      this._touches.clear();
+      this._el.loupe.hidden = true;
+    }
+
+    // Fingers on the board keep the pad as it is until they let go. A pad that closes or
+    // shows its keys ends what the fingers did, which no longer reach it.
+    _keepPad(pad) {
+      if (this._gesture && pad?.board) return true;
+      if (this._gesture) this._clearGesture();
+      return false;
+    }
+
+    _padAction(action, value) {
+      if (this.preview) return;
+      const pick = this._pick;
+      const data = (extra) => ({ ...(this._entry() ? { config_entry_id: this._entry() } : {}), ...extra });
+      if (action === "multiplier") {
+        if (pick) pick.multiplier = Number(value);
+        else this._multiplier = Number(value);
+      } else if (action === "bed" && pick) {
+        this._call("autodarts", "correct_dart", data({ dart: pick.dart, segment: value }));
+        this._pick = null;
+      } else if (action === "bed") {
+        this._call("autodarts", "throw_dart", data({ segment: value }));
+        this._multiplier = 1;
+      } else if (action === "spot") {
+        // The bed follows from the spot, in Home Assistant as on the board.
+        if (!value) return;
+        const [x, y] = value;
+        this._call("autodarts", pick ? "correct_dart" : "throw_dart", data({ ...(pick ? { dart: pick.dart } : {}), x, y }));
+        this._pick = null;
+      } else if (action === "board" || action === "keys") {
+        this._padBoard = action === "board";
+        this._padZoom = this._padBoard ? this._openZoom() : null;
+      } else if (action === "zoom") {
+        this._padZoom = padViewBox(this._padZoom).size < PAD_VIEW ? null : this._zoomAt(pick?.dart);
+      } else if (action === "cancel") {
+        this._pick = null;
+      } else if (this._confirmed(action)) {
+        // Passing the turn and undoing the last visit need a second tap.
+        this._call("autodarts", action === "next" ? "next_player" : "undo_visit", data({}));
+      }
+      this._update();
+    }
+
+  }
+
+  class AutodartsCard extends PadCard {
     static keys = KEYS;
 
     static defaults = DEFAULTS;
@@ -8759,13 +9200,6 @@ function createElements(Base) {
           </div>
           <div class="scoreboard" hidden></div>
         </div>`;
-      const slots = [1, 2, 3]
-        .map(
-          (n) =>
-            `<div class="slot empty"><div class="index">${t("dart")} ${n}</div>` +
-            `<div class="segment">–</div><div class="value">&nbsp;</div></div>`
-        )
-        .join("");
       const recent = `<div class="recent" hidden><span class="muted">${t("recent")}</span><div class="recent-list"></div></div>`;
       return `
         <div class="visit">
@@ -8778,7 +9212,8 @@ function createElements(Base) {
             </div>
           </div>
           ${c.show_practice ? practice : ""}
-          <div class="slots">${slots}</div>
+          <div class="slots"></div>
+          <div class="pad-area appear" hidden></div>
           ${c.show_recent ? recent : ""}
         </div>`;
     }
@@ -8788,7 +9223,7 @@ function createElements(Base) {
       return `
         <div class="board">
           <div class="board-frame">
-            <svg viewBox="-230 -230 460 460" role="button" tabindex="0" aria-label="${t("board_label")}">
+            <svg viewBox="-230 -230 460 460" role="img" aria-label="${t("board_label")}">
               <g class="face">${boardSvg(c.board_style)}</g>
               <g class="hits${c.blink ? " blink" : ""}"></g>
               <g class="aim"></g>
@@ -8847,6 +9282,7 @@ function createElements(Base) {
               ${this._boardHtml(t)}
               ${this._sessionHtml(t)}
               ${this._footerHtml(t)}
+              <div class="loupe" hidden aria-hidden="true"></div>
             </div>
           </div>
         </ha-card>`;
@@ -8865,7 +9301,10 @@ function createElements(Base) {
         practiceRoute: root.querySelector(".practice-route"),
         scoreboard: root.querySelector(".scoreboard"),
         aim: root.querySelector(".aim"),
-        slots: [...root.querySelectorAll(".slot")],
+        layout: root.querySelector(".layout"),
+        slots: root.querySelector(".slots"),
+        pad: root.querySelector(".pad-area"),
+        loupe: root.querySelector(".loupe"),
         since: root.querySelector(".since"),
         stats: Object.fromEntries(
           [...root.querySelectorAll(".stat")].map((el) => [el.dataset.stat, el.querySelector(".value")])
@@ -8876,13 +9315,12 @@ function createElements(Base) {
         darts: root.querySelector(".darts"),
         svg: root.querySelector("svg"),
       };
+      this._initPad(this._el.slots, this._el.layout);
       this._el.controls?.addEventListener("click", (event) => this._onControl(event));
       this._el.chips?.addEventListener("click", (event) => {
         const id = event.target.closest(".chip")?.dataset.entity;
         if (id) this._moreInfo(id);
       });
-      this._el.svg.addEventListener("click", () => this._moreInfo(this._ids.visit));
-      this._onKeys(this._el.svg, () => this._moreInfo(this._ids.visit));
     }
 
     _darts() {
@@ -8932,19 +9370,12 @@ function createElements(Base) {
         );
       }
 
-      el.slots.forEach((slot, index) => {
-        const dart = darts[index];
-        const [segment, value] = [slot.querySelector(".segment"), slot.querySelector(".value")];
-        if (!dart) {
-          slot.className = `slot ${index < darts.length ? "unknown" : "empty"}`;
-          segment.textContent = index < darts.length ? "?" : "–";
-          value.innerHTML = "&nbsp;";
-          return;
-        }
-        slot.className = `slot ${kind(dart)}${index === darts.length - 1 ? " latest" : ""}`;
-        segment.textContent = label(hass, dart);
-        value.textContent = `${dart.number * dart.multiplier} ${t("points")}`;
-      });
+      // Darts of the current visit correct with a tap, which Home Assistant carries out
+      // also while the board is offline; the bot's darts do not.
+      const tappable = c.corrections && !this.preview;
+      if (!tappable) this._pick = null;
+      this._setHtml(el.slots, [0, 1, 2].map((index) => this._slotHtml(darts[index], index, darts.length, tappable)).join(""));
+      this._updatePad(darts);
 
       // The practice sensor carries one game at a time; a training game comes first.
       const view = c.show_practice ? gameView((name) => this._state(name)) : { mode: "idle" };
@@ -8953,6 +9384,45 @@ function createElements(Base) {
       this._updateStats();
       this._updateChips();
       this._updateControls(status);
+    }
+
+    // A dart of the visit: its bed and points, and a pencil where a tap corrects it.
+    _slotHtml(dart, index, count, tappable) {
+      const t = (key) => escapeHtml(this._t(key));
+      const head = `<span class="index">${t("dart")} ${index + 1}</span>`;
+      if (!dart) {
+        const unknown = index < count;
+        return (
+          `<div class="slot ${unknown ? "unknown" : "empty"}">${head}` +
+          `<span class="segment">${unknown ? "?" : "–"}</span><span class="value">&nbsp;</span></div>`
+        );
+      }
+      const correctable = tappable && Number.isInteger(dart.dart) && !dart.bot;
+      const picked = correctable && this._pick?.dart === dart.dart;
+      const style = `slot ${kind(dart)}${index === count - 1 ? " latest" : ""}${picked ? " picked" : ""}`;
+      const bed = label(this._hass, dart);
+      const points = dart.number * dart.multiplier;
+      const content = `${head}<span class="segment">${escapeHtml(bed)}</span><span class="value">${points} ${t("points")}</span>`;
+      if (!correctable) return `<div class="${style}">${content}</div>`;
+      // The label names the dart and what a tap does: "T20 60 – Correct dart 1".
+      const spoken = `${bed} ${points} – ${fill(this._t("correct_title"), { dart: dart.dart })}`;
+      return (
+        `<button type="button" class="${style} tappable" data-dart="${dart.dart}" data-focus="dart-${dart.dart}"` +
+        ` aria-label="${escapeHtml(spoken)}">${content}${EDIT_ICON}</button>`
+      );
+    }
+
+    // The pad of the dart being corrected, below the darts; fingers on its board keep it
+    // as it is until they let go. While the bot is at the board, it waits.
+    _updatePad(darts) {
+      const el = this._el;
+      const base = this._padBase(darts.filter(Boolean));
+      const pick = this._pick;
+      const pad = pick
+        ? { dart: pick.dart, multiplier: pick.multiplier, disabled: botAtBoard(gameView((name) => this._state(name))), ...base }
+        : null;
+      el.pad.hidden = !pad;
+      if (!this._keepPad(pad)) this._setHtml(el.pad, pad ? padHtml(pad, { t: (key) => this._t(key) }) : "");
     }
 
     _updatePractice(view) {
@@ -9213,7 +9683,8 @@ function createElements(Base) {
           ${
             c.show_stats
               ? `<div class="tiles" role="group" aria-label="${t("statistics")}">${tiles}</div>` +
-                `<button type="button" class="action details reveal">${t("statistics_label")}</button>`
+                `<button type="button" class="link details" aria-label="${t("statistics_label")}">` +
+                `${t("details")}${cueHtml("details", true)}</button>`
               : ""
           }
           ${
@@ -9353,7 +9824,6 @@ function createElements(Base) {
         this._confirmChanged();
       });
       // A tap on the tiles opens the details; keyboards and screen readers have a button of their own.
-      root.querySelector(".tiles")?.addEventListener("click", () => this._moreInfo(this._ids.darts));
       root.querySelector(".details")?.addEventListener("click", () => this._moreInfo(this._ids.darts));
       // A tap on a bed tells its hits, on a touch screen too.
       this._el.heatSvg?.addEventListener("click", (event) => {
@@ -9871,7 +10341,7 @@ function createElements(Base) {
         </div>`;
       const controls = `
         <div class="controls">
-          <button data-action="calibrate">${t("calibrate")}</button>
+          <button data-action="calibrate">${t("calibrate_all")}</button>
           <button data-action="reset">${t("reset")}</button>
           <button data-action="restart">${t("restart")}</button>
         </div>`;
@@ -9975,8 +10445,13 @@ function createElements(Base) {
       el.update.hidden = update?.state !== "on" && update?.state !== "off";
       el.update.classList.toggle("ok", update?.state === "off");
       el.update.disabled = update?.state !== "on";
-      el.update.textContent =
-        update?.state === "on" ? `${t("update_available")} ${update.attributes?.latest_version ?? ""}`.trim() : t("up_to_date");
+      // An update opens its details with a tap, and says so with an arrow.
+      this._setHtml(
+        el.update,
+        update?.state === "on"
+          ? `${escapeHtml(`${t("update_available")} ${update.attributes?.latest_version ?? ""}`.trim())}${cueHtml("details", true)}`
+          : escapeHtml(t("up_to_date"))
+      );
 
       this._updateChips();
       this._updateSystem();
@@ -10008,7 +10483,8 @@ function createElements(Base) {
         value === null
           ? ""
           : `<button class="metric" data-entity="${escapeHtml(this._ids[name])}" data-focus="${escapeHtml(name)}">` +
-            `<span class="value">${escapeHtml(value)}</span><span class="name">${escapeHtml(text)}</span></button>`;
+            `<span class="value">${escapeHtml(value)}</span>` +
+            `<span class="name opens">${escapeHtml(text)}${cueHtml("details", true)}</span></button>`;
       // Percentages read as Home Assistant writes them; other units keep their symbol.
       const measured = (name, digits, unit) => {
         const number = this._number(name);
@@ -10031,9 +10507,11 @@ function createElements(Base) {
       ].filter(Boolean);
       if (this._el.systemInfo) {
         this._el.systemInfo.hidden = !info.length;
-        this._el.systemInfo.textContent = info.join(" · ");
+        this._setHtml(this._el.systemInfo, `<span class="opens">${escapeHtml(info.join(" · "))}</span>${cueHtml("details", true)}`);
       }
       this._el.system.hidden = !markup && !info.length;
+      const tiles = this._el.system.parentElement;
+      tiles.className = `info balanced n${[...tiles.children].filter((tile) => !tile.hidden).length}`;
       this._setHtml(this._el.metrics, markup);
     }
 
@@ -10057,7 +10535,8 @@ function createElements(Base) {
             `<div class="camera${problem ? " problem" : ""}">` +
             `<div class="camera-head"><button class="camera-name" data-entity="${escapeHtml(target || "")}"` +
             ` data-focus="${escapeHtml(`camera:${camera.number}`)}">` +
-            `${escapeHtml(`${this._t("camera")} ${camera.number}`)}</button><span class="dot" title="${escapeHtml(
+            `<span class="opens">${escapeHtml(`${this._t("camera")} ${camera.number}`)}</span>${cueHtml("details", true)}` +
+            `</button><span class="dot" title="${escapeHtml(
               this._t(problem ? "camera_failure" : "camera_ok")
             )}"></span></div>` +
             `<div class="fps">${escapeHtml(problem ? this._t("camera_failure") : fps || this._t("camera_ok"))}</div>` +
@@ -10065,16 +10544,19 @@ function createElements(Base) {
           );
         })
         .join("");
+      this._el.cameras.className = `camera-grid balanced n${cameras.length}`;
       this._setHtml(this._el.cameras, markup);
     }
 
     _updateControls(status) {
       const controls = this._el.controls;
       if (!controls) return;
+      // Beside every camera's own calibration, this one calibrates them all.
+      const words = { calibrate: "calibrate_all", reset: "reset", restart: "restart" };
       for (const action of ["calibrate", "reset", "restart"]) {
         const button = controls.querySelector(`[data-action="${action}"]`);
         const confirming = this._confirm === action;
-        button.textContent = this._t(confirming ? "confirm" : action);
+        button.textContent = this._t(confirming ? "confirm" : words[action]);
         button.classList.toggle("confirm", confirming);
         button.hidden = !this._ids[action];
         button.disabled = status === "offline";
@@ -10084,7 +10566,7 @@ function createElements(Base) {
 
   // Scoreboard card -------------------------------------------------------------
 
-  class AutodartsScoreboardCard extends CardBase {
+  class AutodartsScoreboardCard extends PadCard {
     static keys = SCOREBOARD_KEYS;
 
     static defaults = SCOREBOARD_DEFAULTS;
@@ -10165,10 +10647,10 @@ function createElements(Base) {
                   ${c.show_status ? `<div class="pill" role="status"></div>` : ""}
                 </div>
               </header>
-              <div class="banner" role="status" hidden></div>
+              <div class="banner appear" role="status" hidden></div>
               <div class="main"></div>
               ${c.show_visit ? `<div class="visit"></div>` : ""}
-              <div class="pad-area" hidden></div>
+              <div class="pad-area appear" hidden></div>
               <div class="loupe" hidden aria-hidden="true"></div>
               <div class="visually-hidden said" role="status"></div>
             </div>
@@ -10193,32 +10675,7 @@ function createElements(Base) {
         said: root.querySelector(".said"),
       };
       this._hints = "";
-      this._pick = null;
-      this._multiplier = 1;
-      // The pad shows the board instead of the keys, all of it or zoomed in.
-      this._padBoard = false;
-      this._padZoom = null;
-      // The fingers on the board and what they do, and when the last one set a dart.
-      this._touches = new Map();
-      this._gesture = null;
-      this._touched = 0;
-      this._el.visit?.addEventListener("click", (event) => {
-        const dart = event.target.closest("[data-dart]");
-        if (dart) this._pickDart(Number(dart.dataset.dart));
-      });
-      this._el.pad.addEventListener("click", (event) => {
-        const target = event.target.closest("[data-pad]");
-        if (!target || target.disabled) return;
-        const spot = target.dataset.pad === "spot";
-        // A finger that let go of the board has set its dart already.
-        if (spot && Date.now() - this._touched < 800) return;
-        // A tap on the board says where the dart is.
-        const value = spot ? boardSpot(target, event, padViewBox(this._padZoom)) : target.dataset.value;
-        this._padAction(target.dataset.pad, value);
-      });
-      for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel"]) {
-        this._el.pad.addEventListener(type, (event) => this._boardTouch(event));
-      }
+      this._initPad(this._el.visit, this._el.board);
       this._callerState = null;
       this._followed = null;
       this._el.caller?.addEventListener("click", () => this._toggleCaller());
@@ -10408,13 +10865,6 @@ function createElements(Base) {
       this._update();
     }
 
-    // The start button stays disabled while the game lacks players.
-    // The config entry of the board, for actions of the integration.
-    _entry() {
-      const device = this._hass.devices?.[this._deviceId];
-      return device?.primary_config_entry ?? device?.config_entries?.[0] ?? null;
-    }
-
     // Darts count only while the board detects them: the start switches detection on,
     // which the new game screen says beforehand.
     _startGame(choice) {
@@ -10446,188 +10896,18 @@ function createElements(Base) {
       return status !== "offline" && !detectionRunning((name) => this._state(name), status);
     }
 
-    // Correcting and entering darts ------------------------------------------------
-
-    // A tap on a dart of the visit opens the pad to correct it; another tap closes it.
-    _pickDart(dart) {
-      if (this.preview) return;
-      const shown = visitThrows(this._state("visit")).find((item) => item.dart === dart);
-      this._pick =
-        this._pick?.dart === dart || !shown ? null : { dart, multiplier: Math.min(Math.max(shown.multiplier, 1), 3) };
-      if (this._padBoard) this._padZoom = this._openZoom();
-      this._update();
-    }
-
-    // Where the board to tap opens: on a small screen, zoomed in on where the board saw
-    // the dart being corrected; for darts entered by hand, the whole board.
-    _openZoom() {
-      const width = this.getBoundingClientRect().width;
-      const small = Math.min(width, window.innerHeight) < PAD_SMALL;
-      return this._pick && width > 0 && small ? this._zoomAt(this._pick.dart) : null;
-    }
-
-    // Zoomed in on a dart of the visit, the one being corrected or else the last one;
-    // on the bull without a dart that has a position.
-    _zoomAt(dart) {
-      const darts = visitThrows(this._state("visit")).filter((item) => Number.isFinite(item.x) && Number.isFinite(item.y));
-      const at = darts.find((item) => item.dart === dart) ?? (dart === undefined ? darts.at(-1) : null);
-      if (dart !== undefined && !at) return null;
-      return { scale: PAD_ZOOM, x: (at?.x ?? 0) * NORM, y: -(at?.y ?? 0) * NORM };
-    }
-
-    // Fingers on the board to tap: one aims with the loupe and sets the dart where it
-    // lets go; a second finger turns aiming into zooming and moving the board. A mouse
-    // clicks instead.
-    _boardTouch(event) {
-      if (event.pointerType === "mouse") return;
-      const touches = this._touches;
-      if (event.type === "pointerdown") {
-        const svg = event.target.closest?.("svg.pad-board[data-pad='spot']");
-        if (!svg) return;
-        event.preventDefault();
-        svg.setPointerCapture?.(event.pointerId);
-        touches.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
-        if (!this._gesture) {
-          this._gesture = { svg, aim: event.pointerId, pinch: null };
-          this._el.loupe.innerHTML = `<svg>${svg.innerHTML}</svg>`;
-        } else if (touches.size === 2) {
-          const [a, b] = [...touches.values()];
-          const middle = { clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 };
-          this._gesture.aim = null;
-          this._gesture.pinch = {
-            distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
-            scale: this._padZoom?.scale ?? 1,
-            anchor: boardPoint(svg, middle, padViewBox(this._padZoom)),
-          };
-        }
-        this._aim(event);
-        return;
-      }
-      const gesture = this._gesture;
-      if (!gesture || !touches.has(event.pointerId)) return;
-      if (event.type === "pointermove") {
-        touches.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
-        if (gesture.pinch && touches.size === 2) this._pinch();
-        else this._aim(event);
-        return;
-      }
-      touches.delete(event.pointerId);
-      if (event.type === "pointerup" && gesture.aim === event.pointerId) {
-        const spot = boardSpot(gesture.svg, event, padViewBox(this._padZoom));
-        this._touched = Date.now();
-        this._endGesture();
-        this._padAction("spot", spot);
-      } else if (!touches.size) {
-        this._endGesture();
-      }
-    }
-
-    // The loupe above the aiming finger, which would hide the spot itself, or beside it
-    // where there is no room above; it shows the board around the spot magnified.
-    _aim(event) {
-      const gesture = this._gesture;
-      const loupe = this._el.loupe;
-      const view = padViewBox(this._padZoom);
-      const point = gesture.aim === event.pointerId ? boardPoint(gesture.svg, event, view) : null;
-      loupe.hidden = !point;
-      if (!point) return;
-      const size = view.size / LOUPE_ZOOM;
-      loupe.firstElementChild.setAttribute("viewBox", viewBoxText({ x: point[0] - size / 2, y: point[1] - size / 2, size }));
-      const box = this._el.board.getBoundingClientRect();
-      const width = loupe.offsetWidth || 132;
-      const x = event.clientX - box.left;
-      const y = event.clientY - box.top;
-      const above = y - width - 24;
-      const beside = x + 24 + width <= box.width ? x + 24 : x - 24 - width;
-      const left = above >= 0 ? x - width / 2 : beside;
-      loupe.style.left = `${Math.round(Math.min(Math.max(left, 0), Math.max(box.width - width, 0)))}px`;
-      loupe.style.top = `${Math.round(above >= 0 ? above : Math.max(y - width / 2, 0))}px`;
-    }
-
-    // Two fingers zoom the board, and the spot between them stays between them.
-    _pinch() {
-      const { svg, pinch } = this._gesture;
-      const [a, b] = [...this._touches.values()];
-      const scale = Math.min(
-        Math.max((pinch.scale * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)) / pinch.distance, 1),
-        PAD_ZOOM_MOST
-      );
-      const rect = svg.getBoundingClientRect();
-      const pixels = Math.min(rect.width, rect.height) / (PAD_VIEW / scale);
-      if (!pinch.anchor || !(pixels > 0)) return;
-      const middle = { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
-      this._padZoom =
-        scale > 1.02
-          ? {
-              scale,
-              x: pinch.anchor[0] - (middle.x - rect.left - rect.width / 2) / pixels,
-              y: pinch.anchor[1] - (middle.y - rect.top - rect.height / 2) / pixels,
-            }
-          : null;
-      svg.setAttribute("viewBox", viewBoxText(padViewBox(this._padZoom)));
-    }
-
-    _endGesture() {
-      this._gesture = null;
-      this._touches.clear();
-      this._el.loupe.hidden = true;
-      this._update();
-    }
-
-    _padAction(action, value) {
-      if (this.preview) return;
-      const pick = this._pick;
-      const data = (extra) => ({ ...(this._entry() ? { config_entry_id: this._entry() } : {}), ...extra });
-      if (action === "multiplier") {
-        if (pick) pick.multiplier = Number(value);
-        else this._multiplier = Number(value);
-      } else if (action === "bed" && pick) {
-        this._call("autodarts", "correct_dart", data({ dart: pick.dart, segment: value }));
-        this._pick = null;
-      } else if (action === "bed") {
-        this._call("autodarts", "throw_dart", data({ segment: value }));
-        this._multiplier = 1;
-      } else if (action === "spot") {
-        // The bed follows from the spot, in Home Assistant as on the board.
-        if (!value) return;
-        const [x, y] = value;
-        this._call("autodarts", pick ? "correct_dart" : "throw_dart", data({ ...(pick ? { dart: pick.dart } : {}), x, y }));
-        this._pick = null;
-      } else if (action === "board") {
-        this._padBoard = !this._padBoard;
-        this._padZoom = this._padBoard ? this._openZoom() : null;
-      } else if (action === "zoom") {
-        this._padZoom = padViewBox(this._padZoom).size < PAD_VIEW ? null : this._zoomAt(pick?.dart);
-      } else if (action === "cancel") {
-        this._pick = null;
-      } else if (this._confirmed(action)) {
-        // Passing the turn and undoing the last visit need a second tap.
-        this._call("autodarts", action === "next" ? "next_player" : "undo_visit", data({}));
-      }
-      this._update();
-    }
-
     // The pad while a dart is corrected, or the keypad while darts are entered
     // by hand; a single undo button where only that is possible.
     _pad(view, darts) {
       const c = this._config;
       const practice = this._state("practice")?.attributes ?? {};
-      const game = view.practice ?? view.cricket ?? view.party ?? null;
-      const thrower = view.bullOff?.throws.find((item) => item.player === view.bullOff.player);
-      // While the bot is at the board, its darts count; nobody enters any.
-      const disabled = Boolean((game ? upScore(game) : thrower)?.bot);
+      const disabled = botAtBoard(view);
       const undo = practice.undo === true && !darts.length;
       const confirm = ["next", "undo"].includes(this._confirm) ? this._confirm : null;
-      if (this._pick && !darts.some((dart) => dart.dart === this._pick.dart)) this._pick = null;
-      // On the board, the darts of the visit where they are; the dart being corrected where the board saw it.
-      const board = this._padBoard;
-      const pins = darts
-        .filter((dart) => Number.isFinite(dart.x) && Number.isFinite(dart.y))
-        .map((dart) => ({ x: dart.x, y: dart.y, seen: dart.dart === this._pick?.dart }));
-      const zoom = board ? this._padZoom : null;
-      if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled, board, zoom, pins };
+      const base = this._padBase(darts);
+      if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled, ...base };
       if (c.keypad && this._state("manualEntry")?.state === "on") {
-        return { dart: null, multiplier: this._multiplier, disabled, undo, confirm, board, zoom, pins };
+        return { dart: null, multiplier: this._multiplier, disabled, undo, confirm, ...base };
       }
       return c.corrections && undo ? { only: "undo", confirm } : null;
     }
@@ -10907,14 +11187,13 @@ function createElements(Base) {
       const pad = this.preview || away ? null : this._pad(view, darts);
       el.pad.hidden = !pad;
       el.board.classList.toggle("with-pad", Boolean(pad && !pad.only));
-      // Fingers on the board keep the pad as it is until they let go.
-      if (!(this._gesture && pad?.board)) {
+      if (!this._keepPad(pad)) {
         this._setHtml(
           el.pad,
           !pad
             ? ""
             : pad.only
-              ? `<button type="button" class="undo-only" data-pad="undo" data-focus="undo:">${UNDO_ICON} ${escapeHtml(
+              ? `<button type="button" class="undo-only${pad.confirm === "undo" ? " confirm" : ""}" data-pad="undo" data-focus="undo:">${UNDO_ICON} ${escapeHtml(
                   t(pad.confirm === "undo" ? "confirm" : "undo_visit")
                 )}</button>`
               : padHtml(pad, { t })
@@ -10936,8 +11215,8 @@ function createElements(Base) {
         // The label names the dart and what a tap does: "T20 60 – Correct dart 1".
         const spoken = `${bed} ${points} – ${fill(t("correct_title"), { dart: dart.dart })}`;
         return tappable && Number.isInteger(dart.dart) && !dart.bot
-          ? `<button type="button" class="${style}" data-dart="${dart.dart}" data-focus="dart-${dart.dart}"` +
-              ` aria-label="${escapeHtml(spoken)}">${content}</button>`
+          ? `<button type="button" class="${style} tappable" data-dart="${dart.dart}" data-focus="dart-${dart.dart}"` +
+              ` aria-label="${escapeHtml(spoken)}">${content}${EDIT_ICON}</button>`
           : `<div class="${style}">${content}</div>`;
       });
       const sum =
@@ -11010,6 +11289,14 @@ function createElements(Base) {
         export: root.querySelector(".export"),
       };
       this._el.export?.addEventListener("click", () => this._export());
+      // The players whose badge gallery shows all its badges.
+      this._openBadges = new Set();
+      root.querySelector(".badges-list")?.addEventListener("click", (event) => {
+        const name = event.target.closest("[data-badges]")?.dataset.badges;
+        if (name === undefined) return;
+        if (!this._openBadges.delete(name)) this._openBadges.add(name);
+        this._updateProgress();
+      });
     }
 
     // The action writes the file; it downloads through Home Assistant with the
@@ -11068,6 +11355,7 @@ function createElements(Base) {
       el.count.textContent = view.players.length ? String(view.players.length) : "";
       el.empty.hidden = view.players.length > 0;
       const html = playersHtml(view, this._ui());
+      el.profiles.className = `profiles balanced n${view.players.length}`;
       this._setHtml(el.profiles, html.players);
       if (el.h2hSection) {
         el.h2hSection.hidden = !view.headToHead.length;
@@ -11093,6 +11381,18 @@ function createElements(Base) {
       ].join("");
     }
 
+    // Below a player's badges, a link to all of them, or back to the earned ones and the
+    // next goals; none where all of them show anyway.
+    _moreBadgesHtml(player) {
+      if (!this._config.show_locked || shownBadges(player, true, false).length === player.badges.length) return "";
+      const open = this._openBadges.has(player.name);
+      const words = open ? this._t("badges_fewer") : fill(this._t("badges_all"), { count: this._format(player.badges.length) });
+      return (
+        `<button type="button" class="link more-badges" data-badges="${escapeHtml(player.name)}" aria-expanded="${open}">` +
+        `${escapeHtml(words)}${cueHtml("expand", true)}</button>`
+      );
+    }
+
     _updateProgress() {
       const c = this._config;
       const root = this.shadowRoot;
@@ -11112,7 +11412,9 @@ function createElements(Base) {
               (player) =>
                 `<div class="badge-player"><div class="badge-owner"><b>${escapeHtml(player.name)}</b>` +
                 `<span class="muted">${escapeHtml(count(player))}</span></div>` +
-                `<div class="badge-list">${badgesHtml(player, ui, c.show_locked)}</div></div>`
+                `<div class="badge-list">${badgesHtml(player, ui, c.show_locked, this._openBadges.has(player.name))}</div>` +
+                this._moreBadgesHtml(player) +
+                `</div>`
             )
             .join("")
         );
@@ -11524,6 +11826,7 @@ export {
   livePanel,
   lobbyChange,
   lobbyChoice,
+  lobbyHints,
   lobbyGames,
   lobbyHtml,
   lobbySuggestions,

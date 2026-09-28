@@ -658,7 +658,8 @@ test("the full-height scoreboard fits the screen, lays out a portrait tablet and
   // Accent text and fills are darkened for contrast; pressed buttons show in High Contrast.
   has(/--ad-accent-text: color-mix\(in srgb, var\(--ad-accent\) 60%, var\(--primary-text-color, #212121\)\);/);
   has(/--ad-accent-fill: color-mix\(in srgb, var\(--ad-accent\) 70%, #000\);/);
-  has(/\.bed:first-child \{ color: #fff; background: var\(--ad-accent-fill\); \}/);
+  // A route's bed is a tag, framed and never filled like a button; the next one is tinted.
+  has(/\.bed:first-child \{ font-weight: 800; background: color-mix\(in srgb, var\(--ad-accent\) 16%, transparent\); \}/);
   has(/@media \(forced-colors: active\) \{\s*\[aria-pressed="true"\], \[aria-checked="true"\] \{ outline: 3px solid Highlight;/);
   // The title keeps its words whole; the header's buttons follow below it where they must.
   has(/\.scoreboard > header \{ align-items: flex-start; flex-wrap: wrap; row-gap: 8px; \}/);

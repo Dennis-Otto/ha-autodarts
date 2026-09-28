@@ -14,6 +14,24 @@
 | `tests/e2e/` | Docker end-to-end test, demo instance, browser test and screenshot tool |
 | `docs/` | Documentation, with German translations in `docs/de/` |
 
+## UI building blocks
+
+The cards are made of shared building blocks in `autodarts-card.js`: a change to a block reaches every card, and `tests/frontend/building-blocks.test.mjs` fails where a card leaves one out. Use them instead of styling a part anew.
+
+| Block | Where | Rule |
+| --- | --- | --- |
+| Control | `BASE_CSS`, every `button` | Answers every pointer: a tint under a mouse, a slight press for a finger, a focus ring for a keyboard; a disabled one fades. The second tap that confirms (`confirm` class) is red on every card. |
+| Motion | `BASE_CSS`, `--ad-fast`, `--ad-slow`, `--ad-ease` | States glide; what appears as a whole fades in from a little below (`appear` class, with `@starting-style`). Parts drawn anew with every tap, such as the pad's keys, do not fade in, or they would flicker. `prefers-reduced-motion` turns motion off. |
+| Cue | `cueHtml("edit" \| "details" \| "expand", inline)` | What a tap edits shows a pencil at its top right, what a tap opens shows an arrow, what opens below it an arrow down that turns once open. Static parts show none. |
+| Tile | `.tappable` | A tile a tap does something with has a frame, which a pointer lights up, and a cue; a static tile is a tinted area without a frame. |
+| Status | `.pill` | A glowing dot and its words, never the shape of a button. |
+| Tag | `.bed` | A framed label such as a bed of a route, never filled like a button; the one that comes next is tinted and bold. |
+| Link | `.link` | A control that looks like text, with a cue after it, for the details of what stands above it or for more below it. |
+| Segmented control | `SEGMENTED_CSS`, in `BASE_CSS` | One of a few views at a time: the heatmap's mode, whose darts, the period, the pad's keys or board. |
+| Balanced grid | `balancedCss(selector, min, gap, padding)`, class `balanced n4` | Tiles in rows as even as they can be; a shorter last row stands in the middle or its last tile fills it. |
+| Pad | `PadCard`, `padHtml`, `PAD_CSS` | Correcting a dart of the visit on the live card and the scoreboard: keys or board, loupe, pinch and zoom. |
+| Icons | `ICON_PATHS` | Lines in the colour of their text. |
+
 ## Tests
 
 Python 3.14 and Node.js 24:
@@ -145,3 +163,4 @@ See the [release guide](releases.md).
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), for example `feat:`, `fix:` and `docs:`.
 - User-facing text goes into `strings.json` and every translation, card texts into every language of `TEXT`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text ([translations](../CONTRIBUTING.md#translations)).
 - New behavior needs tests, and new user-facing features need documentation in English and German.
+- A part of a card is built of the [UI building blocks](#ui-building-blocks): what a tap does shows before the tap.
