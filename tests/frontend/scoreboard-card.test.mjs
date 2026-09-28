@@ -660,6 +660,9 @@ test("the full-height scoreboard fits the screen, lays out a portrait tablet and
   has(/--ad-accent-fill: color-mix\(in srgb, var\(--ad-accent\) 70%, #000\);/);
   has(/\.bed:first-child \{ color: #fff; background: var\(--ad-accent-fill\); \}/);
   has(/@media \(forced-colors: active\) \{\s*\[aria-pressed="true"\], \[aria-checked="true"\] \{ outline: 3px solid Highlight;/);
+  // The title keeps its words whole; the header's buttons follow below it where they must.
+  has(/\.scoreboard > header \{ align-items: flex-start; flex-wrap: wrap; row-gap: 8px; \}/);
+  has(/\.scoreboard \.title \{[^}]*overflow-wrap: break-word;\s*\}/);
   // Every touch screen, also a large one beside a mouse, gets controls for a finger.
   has(/@media \(any-pointer: coarse\) \{ \.lobby-toggle, \.caller-toggle \{ min-height: 40px; \} \}/);
   assert.doesNotMatch(style, /\(pointer: coarse\)/);

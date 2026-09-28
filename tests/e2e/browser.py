@@ -1011,7 +1011,7 @@ def tournament(browser: Browser) -> None:
     page.evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
     )
-    page.locator(f"{card} .lobby-toggle").click()
+    page.locator(f"{card} .main .lobby-cta").click()
     page.locator(f"{card} [data-lobby='mode'][data-value='tournament']").click()
     groups = page.locator(f"{card} .lobby-group .section-label").all_text_contents()
     check(groups == ["X01", "Cricket"], f"Tournament games {groups}")
@@ -1258,7 +1258,7 @@ def tablet_screen(browser: Browser) -> None:
 
     # A round robin: its setup, a match and the table with the next match.
     open_screen("tournament")
-    page.locator(f"{card} .lobby-toggle").click()
+    page.locator(f"{card} .main .lobby-cta").click()
     page.locator(f"{card} [data-lobby='mode'][data-value='tournament']").click()
     choose(("Alex", "Sam", "Kim"), "101")
     fewer = page.locator(f"{card} [data-lobby='legs'][data-value='-1']")
@@ -1865,7 +1865,7 @@ LAYOUT_PROBLEMS = """
         const rect = el.getBoundingClientRect();
         // Controls only a keyboard reaches until they have the focus.
         if (rect.width <= 2 || rect.height <= 2 || getComputedStyle(el).clipPath === 'inset(50%)') continue;
-        if (rect.height < 36 || rect.width < 36) {
+        if (rect.height < 40 || rect.width < 40) {
           problems.push(`${label}: "${words(el) || el.getAttribute('aria-label') || el.tagName.toLowerCase()}" is ${Math.round(rect.width)}x${Math.round(rect.height)} for a finger`);
         }
       }

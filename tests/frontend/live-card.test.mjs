@@ -862,7 +862,7 @@ test("the bull-off shows who throws and how close each dart landed", () => {
   assert.equal(text(card, ".practice-remaining"), "Bull");
   assert.equal(text(card, ".practice-route"), "Closest to the bull starts");
   assert.deepEqual(scores(card), [
-    ["player-score", "Alex", "12.4 mm", "S20"],
+    ["player-score", "Alex", "12.4 mm", "S20"],
     ["player-score active", "Player 2", "", "–"],
   ]);
   assert.deepEqual(paths(card, "aim"), [bedPath("Bull"), bedPath("25")]);
@@ -886,7 +886,7 @@ test("the bull-off shows who throws and how close each dart landed", () => {
   );
   assert.equal(text(card, ".practice-route .note.rethrow"), "Tie – throw again");
   assert.deepEqual(scores(card), [
-    ["player-score active", "Kim", "10.2 mm", "25"],
+    ["player-score active", "Kim", "10.2 mm", "25"],
     ["player-score winner", "Alex Winner", "leads", "Bull"],
   ]);
 });

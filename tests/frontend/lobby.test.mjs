@@ -280,7 +280,8 @@ test("the state of the game decides when the screen and idle mode may come", () 
 
 test("between games a big button opens the new game screen with the board's settings", () => {
   const { card } = setup();
-  assert.equal($(card, ".lobby-toggle").hidden, false);
+  // The big button opens it between games; the header keeps no second one.
+  assert.equal($(card, ".lobby-toggle").hidden, true);
   assert.equal(text(card, ".lobby-toggle"), "＋New game");
   assert.equal(text(card, ".main .lobby-cta"), "New game");
   assert.equal(choosing(card), false);
@@ -365,7 +366,7 @@ test("a card that reaches the page before Home Assistant waits for it", () => {
 
 test("the new game screen starts the chosen game with players, format and rules", () => {
   const { hass, card } = setup();
-  tap(card, ".lobby-toggle");
+  tap(card, ".main .lobby-cta");
   lobbyTap(card, "game", "cricket");
   assert.deepEqual(chosenGame(card), ["Cricket"]);
   // Cricket has no double in or out.
@@ -396,7 +397,8 @@ test("the new game screen starts the chosen game with players, format and rules"
     ],
   ]);
   assert.equal(choosing(card), false);
-  assert.equal($(card, ".lobby-toggle").hidden, false);
+  assert.equal(text(card, ".main .lobby-cta"), "New game");
+  assert.equal($(card, ".lobby-toggle").hidden, true);
 });
 
 test("names are typed in, and a player can play only once and four at most", () => {

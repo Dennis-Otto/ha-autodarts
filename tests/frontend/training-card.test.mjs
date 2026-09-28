@@ -432,6 +432,15 @@ test("the history size keeps between five and sixty visits, with labels up to th
   assert.equal($$(invalid, ".visit-bar").length, 20);
   assert.equal($$(invalid, ".visit-bar .label").length, 7);
   assert.equal($(invalid, ".average-line"), null);
+  // A narrow chart shows the last ten slots, whose scores stay readable: the seven
+  // visits and three empty slots; with more visits than that, the newest ten.
+  const near = (card) => $$(card, ".visit-bar:not(.far)").map((bar) => (bar.classList.contains("empty") ? "·" : bar.title));
+  assert.deepEqual(near(invalid).filter((slot) => slot === "·").length, 3);
+  assert.equal(near(invalid).length, 10);
+  const full = chart({}, {}, rows.slice(-15));
+  assert.deepEqual(near(full), rows.slice(-10).map((row) => `S20 · S20 · S20 = ${row.a.score}`));
+  assert.equal($$(full, ".visit-bar.empty:not(.far)").length, 0);
+  assert.match($(full, "style").textContent, /@container \(max-width: 560px\) \{ \.visit-bar\.far \{ display: none; \} \}/);
 });
 
 test("past sessions list when they ended, how long they took and how they went", () => {

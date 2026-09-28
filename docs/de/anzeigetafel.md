@@ -55,7 +55,7 @@ Die Anzeigetafel passt sich der Form des Bildschirms an. Mit `full_height: true`
 
 ## Das nächste Spiel wählen
 
-Tippe zwischen den Spielen auf **Neues Spiel** unter dem Punktestand oder jederzeit oben rechts. Einige Sekunden nach dem Ende eines Matches oder Trainingsspiels öffnet sich die Auswahl auch von selbst, mit der letzten Wahl für eine Revanche; ein stattdessen geworfener Dart schließt sie wieder.
+Tippe zwischen den Spielen auf **Neues Spiel** unter dem Punktestand, während eines Spiels oben rechts. Einige Sekunden nach dem Ende eines Matches oder Trainingsspiels öffnet sich die Auswahl auch von selbst, mit der letzten Wahl für eine Revanche; ein stattdessen geworfener Dart schließt sie wieder.
 
 <img src="../images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
