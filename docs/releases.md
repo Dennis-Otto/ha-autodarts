@@ -234,8 +234,11 @@ Every release produced by **Release integration** carries three assets:
 | `autodarts.zip.intoto.jsonl` | The same signed SLSA provenance as an in-toto envelope, for SLSA tools |
 
 The provenance proves that GitHub Actions built the archive from this repository
-and commit. HACS keeps installing from the tagged source; the archive is for manual
-installations and for verification:
+and commit. HACS installs this archive (`zip_release` in `hacs.json`), so a HACS
+installation gets exactly the signed file, and the download count of
+`autodarts.zip` shows how often each release was installed. The archive also
+serves manual installations. Releases before 1.0.0 have no archive; HACS offers
+only recent releases. To verify a download:
 
 ```sh
 gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts
