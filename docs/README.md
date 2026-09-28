@@ -67,12 +67,13 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 | --- | --- | --- |
 | Board Manager 2: Autodarts 2 without a screen (headless) | 2.x | 2.0.0 and 2.0.2 |
 | Board Manager 1 (classic app) | 1.x | 1.0.7 |
-| Autodarts Desktop, for example on Windows | Not tested yet | – |
+| Autodarts Desktop on Linux | Works, as reported by a player | 2.0.2 on Ubuntu 24.04 ([report](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) |
+| Autodarts Desktop on Windows and other systems | Not tested yet | – |
 | Winmau Autodarts devices such as Autodarts X or Lens | Not tested yet | – |
 | Cameras | Any number supported by the Board Manager | 3 |
 | Home Assistant | 2026.8 or newer | 2026.8.0 and 2026.9.4 |
 
-Any board hardware that runs the Autodarts Board Manager works, because the integration talks to the Board Manager, not to the cameras.
+Any board hardware that runs the Autodarts Board Manager works, because the integration talks to the Board Manager, not to the cameras. Rows reported by a player were tested by a player on their own board, not by the project.
 
 Since September 2026, the Autodarts documentation describes the Board Manager as the browser interface of Autodarts 0.x that is not supported from version 2 on. The local interface on port 3180 that the integration uses still answers on Autodarts 2.0.2. If an update changes it, the integration shows a repair notice instead of failing silently (see [troubleshooting](troubleshooting.md#repairs)). If your setup is not in the table, a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, even when everything works.
 

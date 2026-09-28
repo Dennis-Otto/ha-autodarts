@@ -36,7 +36,7 @@ The words of darts and of this integration, as the documentation, the entities a
 
 | Term | Meaning | German |
 | --- | --- | --- |
-| **Board Manager** | The software of Autodarts on the board PC that detects the darts; generation 1 is the classic app, generation 2 is Autodarts 2 without a screen (headless). Autodarts Desktop and the Winmau Autodarts devices have not been tested yet | Board Manager |
+| **Board Manager** | The software of Autodarts on the board PC that detects the darts; generation 1 is the classic app, generation 2 is Autodarts 2 without a screen (headless). A player reports that Autodarts Desktop works on Linux; on Windows it has not been tested yet, nor have the Winmau Autodarts devices | Board Manager |
 | **Detection** | The Board Manager's dart detection with the cameras; it can be started, stopped, reset and calibrated | Erkennung |
 | **Detection status** | What the board does: ready to throw, takeout, stopped, calibrating and so on | Erkennungsstatus |
 | **Board events** | The moments of the game for automations, from a detected dart to a won match, through the *Events* entity | Board-Ereignisse, Entität *Ereignisse* |
