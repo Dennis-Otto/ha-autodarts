@@ -244,6 +244,7 @@ Eine Übersetzung verbessern oder eine Sprache hinzufügen: [Übersetzungen in C
 ## Hilfe und Mitmachen
 
 - **Fragen und Ideen:** [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), gern auf Deutsch. **Fehler:** [Issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), mit den Diagnosedaten deines Boards. [SUPPORT.md](../../SUPPORT.md) erklärt, wo du was fragst.
+- **Ausprobiert?** Ein [Erfahrungsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml) sagt uns, was geklappt hat, was nicht und was dir fehlt; kurze Antworten genügen, gern auf Deutsch.
 - **Sicherheit:** Melde Schwachstellen vertraulich, wie in [SECURITY.md](../../SECURITY.md) beschrieben.
 - **Zeigen:** Für Videos und Artikel gibt es ein [Creator-Kit](creator-kit.md) mit Fakten, Videos und Bildern zur freien Verwendung.
 - **Mitmachen:** Beiträge sind willkommen; [CONTRIBUTING.md](../../CONTRIBUTING.md) erklärt die Prüfungen. Die Mitarbeit folgt dem [Verhaltenskodex](../../CODE_OF_CONDUCT.md) und der [Governance](../../GOVERNANCE.md) des Projekts.

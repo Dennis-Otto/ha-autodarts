@@ -1,0 +1,76 @@
+name: Tester report
+description: Tried the integration at your board? Tell us what worked, what didn't and what you miss; short answers are fine.
+labels:
+  - feedback
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing! Reports from real boards decide what comes next. Short answers are fine, screenshots help, and German is welcome too (Antworten gern auf Deutsch).
+
+        Please leave out real board IDs, IP addresses and the names of people who didn't agree.
+  - type: dropdown
+    id: board_software
+    attributes:
+      label: Autodarts software on the board PC
+      options:
+        - Autodarts 2 without a screen (Board Manager 2, headless)
+        - Autodarts Desktop
+        - Winmau Autodarts device (Autodarts X, Lens, Vantage)
+        - Board Manager 1 (classic app)
+        - I don't know
+    validations:
+      required: true
+  - type: input
+    id: board_software_version
+    attributes:
+      label: Version of the Autodarts software
+      placeholder: "2.0.2"
+  - type: input
+    id: integration_version
+    attributes:
+      label: Integration version
+      placeholder: "1.7.0"
+    validations:
+      required: true
+  - type: input
+    id: home_assistant
+    attributes:
+      label: Home Assistant version and installation
+      placeholder: "2026.9.4, Home Assistant OS on a Raspberry Pi 5"
+    validations:
+      required: true
+  - type: checkboxes
+    id: tried
+    attributes:
+      label: What did you try?
+      options:
+        - label: Setup and finding the board
+        - label: The automatic dashboard
+        - label: The scoreboard on a tablet or TV
+        - label: A match or a practice game
+        - label: The bot
+        - label: A tournament
+        - label: Statistics, heatmaps or achievements
+        - label: Blueprints, such as the light show or the caller
+        - label: Online matches with Tools for Autodarts
+  - type: textarea
+    id: helped
+    attributes:
+      label: What worked well or helped you most?
+  - type: textarea
+    id: problems
+    attributes:
+      label: What didn't work or was unclear?
+      description: For a problem that you can repeat, a bug report with the diagnostics of the board helps most.
+  - type: textarea
+    id: missing
+    attributes:
+      label: What do you miss most?
+  - type: checkboxes
+    id: thanks
+    attributes:
+      label: Thanks
+      options:
+        - label: Thank me by my GitHub name in the release notes of the next version

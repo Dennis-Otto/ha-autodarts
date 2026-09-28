@@ -7,6 +7,7 @@ Where to go:
 | Ask a question, share your setup or dashboard | [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions) |
 | Report a reproducible bug | a [bug report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=bug_report.yml) |
 | Tell us whether your board works | a [board compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) |
+| Tell us how testing went: what worked, what didn't, what you miss | a [tester report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml) |
 | Suggest a feature | a [feature request](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=feature_request.yml) or an idea in Discussions |
 | Report a vulnerability | privately, as described in [SECURITY.md](SECURITY.md) |
 
