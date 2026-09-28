@@ -148,6 +148,10 @@ test("the doubles card has a configurable title and speaks German", () => {
   const { card } = setup(EVERYBODY, {}, { language: "de" });
   assert.equal(text(card, ".title"), "Doubles");
   assert.equal(text(card, ".meta"), "55 Doubles getroffen · 120 Darts aufs Double · 35,0 %");
+  // The long counts never cut the title short: they go below it on a narrow card.
+  const style = $(card, "style").textContent;
+  assert.match(style, /\.doubles-card > header \.title \{ flex-shrink: 0; \}/);
+  assert.match(style, /\.doubles-card > header \.meta \{ flex: 1 1 16em;/);
   assert.deepEqual(
     $$(card, ".muted:not(.meta)").map((note) => note.textContent),
     [

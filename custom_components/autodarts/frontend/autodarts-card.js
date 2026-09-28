@@ -8188,6 +8188,10 @@ const PLAYERS_CSS = `${BASE_CSS}
 
 const DOUBLES_CSS = `${BASE_CSS}
   .doubles-card { display: flex; flex-direction: column; gap: 14px; padding: 18px; box-sizing: border-box; }
+  /* The title keeps its word; the counts beside it go below it on a narrow card. */
+  .doubles-card > header { flex-wrap: wrap; align-items: baseline; row-gap: 4px; }
+  .doubles-card > header .title { flex-shrink: 0; }
+  .doubles-card > header .meta { flex: 1 1 16em; text-align: right; text-wrap: balance; }
   .doubles-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
   @container (max-width: 560px) { .doubles-body { grid-template-columns: minmax(0, 1fr); } }
   .doubles-board { max-width: 380px; width: 100%; margin: 0 auto; aspect-ratio: 1; }
