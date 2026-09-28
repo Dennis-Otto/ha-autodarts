@@ -164,6 +164,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](erste-schritte.md) führ
 | [Änderungen](../../CHANGELOG.md) | Was jede Version gebracht hat (auf Englisch) |
 | [Roadmap](roadmap.md) | Erschienene Versionen und was als Nächstes kommt |
 | [Development](../development.md), [Releases](../releases.md) | Die Entwickler-Dokumentation, auf Englisch |
+| [Creator-Kit](creator-kit.md) | Fakten, Beschreibungen, Videos, Animationen und Bilder für YouTuber, Streamer und Blogger, frei nutzbar |
 
 ## Anwendungsfälle
 
@@ -244,6 +245,7 @@ Eine Übersetzung verbessern oder eine Sprache hinzufügen: [Übersetzungen in C
 
 - **Fragen und Ideen:** [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), gern auf Deutsch. **Fehler:** [Issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), mit den Diagnosedaten deines Boards. [SUPPORT.md](../../SUPPORT.md) erklärt, wo du was fragst.
 - **Sicherheit:** Melde Schwachstellen vertraulich, wie in [SECURITY.md](../../SECURITY.md) beschrieben.
+- **Zeigen:** Für Videos und Artikel gibt es ein [Creator-Kit](creator-kit.md) mit Fakten, Videos und Bildern zur freien Verwendung.
 - **Mitmachen:** Beiträge sind willkommen; [CONTRIBUTING.md](../../CONTRIBUTING.md) erklärt die Prüfungen. Die Mitarbeit folgt dem [Verhaltenskodex](../../CODE_OF_CONDUCT.md) und der [Governance](../../GOVERNANCE.md) des Projekts.
 
 ## Qualität und Sicherheit

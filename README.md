@@ -183,6 +183,7 @@ Import a blueprint with one click, choose your board and you're done:
 
 - **Questions and ideas:** [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions). **Bugs:** [issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), with the diagnostics of your board. [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) explains where to ask what.
 - **Security:** report vulnerabilities privately as described in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md).
+- **Show it:** for videos and articles, the [creator kit](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/creator-kit.md) has facts, videos and pictures, free to use.
 - **Contributing:** contributions are welcome; [CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md) explains the checks. Participation follows the [code of conduct](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CODE_OF_CONDUCT.md) and the project's [governance](https://github.com/Dennis-Otto/ha-autodarts/blob/main/GOVERNANCE.md).
 
 ## Quality and security

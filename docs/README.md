@@ -42,6 +42,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 | [Roadmap](roadmap.md) | Released versions and what comes next |
 | [Development](development.md) | Tests, Docker end-to-end test, demo instance, screenshots and CI |
 | [Releases](releases.md) | How versions and release notes are produced |
+| [Creator kit](creator-kit.md) | Facts, descriptions, videos, animations and pictures for YouTubers, streamers and bloggers, free to use |
 
 ## Use cases
 
