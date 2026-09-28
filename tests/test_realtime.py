@@ -154,6 +154,15 @@ async def test_socket_handshake_rejected_otherwise_is_a_connection_error(hass):
             await anext(REAL_EVENTS(client))
 
 
+async def test_socket_after_home_assistant_closed_its_session_is_a_lost_connection():
+    """Home Assistant closes its shared session last when it stops (#107)."""
+    session = aiohttp.ClientSession()
+    await session.close()
+    client = AutodartsLocalClient("192.0.2.10", 3180, session)
+    with pytest.raises(AutodartsConnectionError, match="closed its HTTP session"):
+        await anext(REAL_EVENTS(client))
+
+
 async def test_malformed_and_unknown_push_messages_change_nothing(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local

@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import EVENT_HOMEASSISTANT_CLOSE
 from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -254,6 +255,23 @@ async def test_missed_poll_during_realtime_stream_is_no_outage(hass, aioclient_m
     assert coordinator.last_update_success
     assert state(hass, "binary_sensor", "local_connected") == "on"
     assert state(hass, "switch", "detection") == "off"
+
+
+async def test_poll_after_home_assistant_closed_its_session_is_no_error(
+    hass, aioclient_mock
+):
+    """A poll can still start after Home Assistant closed its session (#107)."""
+    entry = await setup_local(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    requests = aioclient_mock.call_count
+    # The last stage of a stop closes the shared session.
+    hass.bus.async_fire(EVENT_HOMEASSISTANT_CLOSE)
+    await hass.async_block_till_done()
+    await coordinator.async_refresh()
+    # The board is left alone and the last values stay, without an error in the log.
+    assert aioclient_mock.call_count == requests
+    assert coordinator.last_update_success
+    assert state(hass, "binary_sensor", "local_connected") == "on"
 
 
 @pytest.mark.expected_errors

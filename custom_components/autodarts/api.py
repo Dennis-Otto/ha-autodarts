@@ -15,6 +15,7 @@ import aiohttp
 from .errors import AutodartsApiError as AutodartsApiError
 from .errors import AutodartsAuthError as AutodartsAuthError
 from .errors import AutodartsConnectionError as AutodartsConnectionError
+from .errors import open_session
 
 DEFAULT_TIMEOUT = 10
 API_BASE = "https://api.autodarts.io"
@@ -59,7 +60,7 @@ async def _auth_request(
     """Send JSON to the new auth service, without logging tokens or responses."""
     try:
         async with asyncio.timeout(DEFAULT_TIMEOUT):
-            async with session.post(url, json=payload) as response:
+            async with open_session(session).post(url, json=payload) as response:
                 if response.status >= 500 or response.status == 429:
                     raise AutodartsConnectionError("Authentication service unavailable")
                 body = await response.json()
@@ -213,7 +214,7 @@ class AutodartsCloudClient:
         """Read once: whether the access token was rejected, otherwise the answer."""
         try:
             async with asyncio.timeout(DEFAULT_TIMEOUT):
-                async with self._session.get(
+                async with open_session(self._session).get(
                     f"{API_BASE}{path}",
                     headers={"Authorization": f"Bearer {access_token}"},
                 ) as response:

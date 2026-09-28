@@ -11,7 +11,7 @@ from typing import Any, cast
 import aiohttp
 from yarl import URL
 
-from .errors import AutodartsApiError, AutodartsConnectionError
+from .errors import AutodartsApiError, AutodartsConnectionError, open_session
 
 CONFIG_SWITCHES = ("auto_calibrate_on_start", "auto_calibrate", "auto_distortion")
 STANDBY_MINUTES = (5, 10, 15, 30, 60)
@@ -159,7 +159,7 @@ class AutodartsLocalClient:
     ) -> Any:
         try:
             async with asyncio.timeout(timeout):
-                async with self._session.request(
+                async with open_session(self._session).request(
                     method, f"{self.base_url}{path}", json=payload
                 ) as response:
                     if response.status in (404, 405):
@@ -307,7 +307,7 @@ class AutodartsLocalClient:
         """
         try:
             async with asyncio.timeout(10):
-                socket = await self._session.ws_connect(
+                socket = await open_session(self._session).ws_connect(
                     f"{self.base_url}/api/events",
                     heartbeat=30,
                     timeout=aiohttp.ClientWSTimeout(ws_close=5),
@@ -377,7 +377,7 @@ class AutodartsLocalClient:
         content counts as no stream.
         """
         try:
-            response = await self._session.get(
+            response = await open_session(self._session).get(
                 f"{self.base_url}/api/streams/cams/{index}",
                 timeout=aiohttp.ClientTimeout(
                     total=None, sock_connect=10, sock_read=30
