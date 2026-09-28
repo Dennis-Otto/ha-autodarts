@@ -73,9 +73,16 @@ Erschienen als 1.6.0 am 27. September 2026; die Details stehen im [Changelog](..
 | **Niederländisch, Französisch und Spanisch** | Die Integration, die Karten und der Caller in drei weiteren Sprachen, mit Tests, die jede Sprache vollständig halten | Fertig |
 | **Dokumentation** | Bebilderte Anleitungen zu Spielen, zur Anzeigetafel und zur Statistik, ein Glossar und ein Abschnitt zur Barrierefreiheit | Fertig |
 
+## Version 1.7: Dart-Positionen, auf die du dich verlassen kannst
+
+Erschienen als 1.7.0 am 28. September 2026; die Details stehen im [Changelog](../../CHANGELOG.md#170) (auf Englisch).
+
+- Das Positionen-Trefferbild der Trainingskarte folgt jedem Dart live.
+- Korrigierte Darts verlieren die falsch erkannte Position des Boards, oder sie bekommen die Stelle, die du auf der Scheibe der Anzeigetafel antippst, und damit gleich das Feld.
+
 ## Als Nächstes
 
-Ideen für die Versionen nach 1.6. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
+Ideen für die Versionen nach 1.7. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
 
 | Thema | Was es bringt | Voraussetzung |
 | --- | --- | --- |

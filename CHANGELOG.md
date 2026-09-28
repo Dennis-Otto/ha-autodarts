@@ -2,6 +2,17 @@
 
 All notable changes of the Autodarts integration. The complete notes of every version, with each pull request, are on the [releases page](https://github.com/Dennis-Otto/ha-autodarts/releases); what comes next is in the [roadmap](docs/roadmap.md). Versions follow [Semantic Versioning](https://semver.org/).
 
+## 1.7.0
+
+### New
+
+- **Where a corrected dart really is:** the scoreboard's pad has a new *🎯 Board* view. Tap the spot where the dart is, and the bed and the position come in one step; a dashed ring shows where the board saw the dart. The keypad for darts entered by hand uses it too. `autodarts.correct_dart` and `autodarts.throw_dart` take the position as `x` and `y`, and the bed follows from it.
+
+### Improved
+
+- **Live dart positions:** the positions heatmap of the training card shows the darts of the current visit the moment they land, as blue pins, and loads the logged darts again as soon as you pull them, instead of a visit later.
+- **Clean positions after corrections:** where the board misread a bed, it misread the spot as well. A dart corrected into another bed therefore leaves the board's position behind and stays out of the dart positions, the grouping and a bull-off by distance, unless the correction says where the dart is.
+
 ## 1.6.0
 
 ### New
