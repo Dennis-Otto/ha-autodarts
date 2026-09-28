@@ -187,7 +187,7 @@ async def test_rejected_access_token_is_refreshed_once(hass):
         context.__aenter__.return_value = result
         return context
 
-    session = Mock(spec=aiohttp.ClientSession)
+    session = Mock(spec=aiohttp.ClientSession, closed=False)
     session.get.side_effect = [response(401), response(200)]
     cloud = AutodartsCloudClient(
         session,
@@ -283,7 +283,7 @@ async def test_parallel_rejections_refresh_the_token_once(hass):
         context.__aenter__.side_effect = arrive
         return context
 
-    session = Mock(spec=aiohttp.ClientSession)
+    session = Mock(spec=aiohttp.ClientSession, closed=False)
     session.get.side_effect = lambda url, headers: response(headers)
     cloud = AutodartsCloudClient(
         session,
@@ -383,7 +383,7 @@ async def test_cloud_objects_must_be_objects(method):
     result.json = AsyncMock(return_value=["not", "an", "object"])
     context = AsyncMock()
     context.__aenter__.return_value = result
-    session = Mock(spec=aiohttp.ClientSession)
+    session = Mock(spec=aiohttp.ClientSession, closed=False)
     session.get.return_value = context
     fresh = {
         "access_token": "access",
@@ -391,7 +391,7 @@ async def test_cloud_objects_must_be_objects(method):
         "expires_at": time.time() + 900,
     }
     cloud = AutodartsCloudClient(session, fresh, CLIENT_ID)
-    with pytest.raises(AutodartsConnectionError):
+    with pytest.raises(AutodartsConnectionError, match="Invalid Autodarts response"):
         await getattr(cloud, method)("id-1")
 
 
@@ -416,3 +416,14 @@ async def test_missing_identifiers_send_nothing(hass, aioclient_mock, identifier
     with pytest.raises(AutodartsConnectionError, match="Invalid identifier"):
         await fresh_client(hass).get_match(identifier)
     assert not aioclient_mock.mock_calls
+
+
+async def test_requests_after_home_assistant_closed_its_session_are_lost_connections():
+    """Home Assistant closes its shared session last when it stops (#107)."""
+    session = aiohttp.ClientSession()
+    await session.close()
+    with pytest.raises(AutodartsConnectionError, match="closed its HTTP session"):
+        await request_device_code(session, CLIENT_ID)
+    fresh = {"access_token": "a", "refresh_token": "r", "expires_at": time.time() + 900}
+    with pytest.raises(AutodartsConnectionError, match="closed its HTTP session"):
+        await AutodartsCloudClient(session, fresh, CLIENT_ID).get_boards()
