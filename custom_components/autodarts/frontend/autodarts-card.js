@@ -6025,21 +6025,23 @@ const DENSITY_CELL = 8;
 const DENSITY_SIGMA = 8;
 // The newest darts are also drawn as dots, up to this many.
 const POSITION_DOTS = 300;
-// Positions further out than this are no darts on the board, as the integration logs them.
-const MAX_POSITION = 3;
+// The edge of the board with its number ring, as positions count: a dart beyond it
+// missed the board, and the board is all the drawing shows.
+const BOARD_EDGE = R.board / NORM;
 
+const onBoard = (x, y) => Number.isFinite(x) && Number.isFinite(y) && Math.hypot(x, y) <= BOARD_EDGE;
 const validPositions = (positions) =>
   (Array.isArray(positions) ? positions : []).filter(
-    (position) => Array.isArray(position) && Number.isFinite(position[0]) && Number.isFinite(position[1])
+    (position) => Array.isArray(position) && onBoard(position[0], position[1])
   );
 
 // The darts of the current visit that the session logs once the visit is booked: every
-// dart of the visit the board saw, not the bot's.
+// dart of the visit the board saw on it, not the bot's.
 const visitPositions = (throws) =>
   (Array.isArray(throws) ? throws : [])
     .filter((dart) => Number.isInteger(dart?.dart) && dart.bot !== true)
     .map((dart) => [dart.x, dart.y])
-    .filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y) && Math.hypot(x, y) <= MAX_POSITION);
+    .filter(([x, y]) => onBoard(x, y));
 // When the newest visit was booked; the visit sensor lists the recent visits newest first.
 const newestVisit = (state) => state?.attributes?.recent_visits?.[0]?.time;
 

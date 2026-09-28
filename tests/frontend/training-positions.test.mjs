@@ -396,3 +396,31 @@ test("the hits of every bed can be read and tapped, not only hovered", () => {
   click(card, '[data-mode="positions"]');
   assert.deepEqual($$(card, ".heat-list li"), []);
 });
+
+test("darts beyond the board and its number ring are not drawn, logged or live", async () => {
+  // The edge of the number ring is 225 mm from the bull, 1.32 as positions count.
+  const logged = [
+    [0, 1.3],
+    [0.95, 0.95],
+    [2.5, 0],
+  ];
+  const throws = [
+    { segment: "S20", dart: 1, x: 1.2, y: 0.5 },
+    { segment: "MISS", dart: 2, x: 1, y: 1 },
+  ];
+  const { card } = setup({ mode: "positions" }, board([], { "": { positions: logged, spread: [] } }), visit(throws));
+  await settle();
+  assert.deepEqual(
+    $$(card, ".heat-layer .position:not(.live)").map((dot) => [dot.getAttribute("cx"), dot.getAttribute("cy")]),
+    [["0", "-221"]]
+  );
+  assert.deepEqual(pins(card), [["204", "-85"]]);
+  // No density far off the board either.
+  const cells = $$(card, ".heat-layer .density rect").map((cell) => Math.hypot(Number(cell.getAttribute("x")), Number(cell.getAttribute("y"))));
+  assert.ok(Math.max(...cells) < 225 + 40);
+  // A board that only logged darts beyond its edge has no positions to show.
+  const { card: missed } = setup({ mode: "positions" }, board([], { "": { positions: [[2.5, 0]], spread: [] } }));
+  await settle();
+  assert.ok($$(missed, ".empty-hint").some((hint) => hint.textContent === "No dart positions yet."));
+  assert.equal($$(missed, ".heat-layer .position").length, 0);
+});

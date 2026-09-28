@@ -68,7 +68,7 @@ Das Trefferbild der Trainingskarte hat drei Modi, die die Umschalter über der S
 
 - **Felder:** jedes Feld danach eingefärbt, wie oft du es getroffen hast, von Blau (selten) bis Rot (am häufigsten). Fahre mit der Maus über ein Feld für Anzahl und Anteil.
 - **Zahlen:** Single, Double und Triple jeder Zahl zusammengefasst; das zeigt auf einen Blick, ob du zur 5 oder zur 1 abdriftest.
-- **Positionen:** wo die Darts wirklich gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte mit den neuesten 300 Darts als Punkten und unter der Scheibe die [Streuung](#trends-und-streuung) an bis zu drei Feldern, auf die du gezielt hast. Bei der Session erscheinen die Darts der aktuellen Aufnahme sofort als blaue Pins; beim Ziehen gehen sie in die gespeicherten Darts über.
+- **Positionen:** wo die Darts wirklich gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte mit den neuesten 300 Darts als Punkten und unter der Scheibe die [Streuung](#trends-und-streuung) an bis zu drei Feldern, auf die du gezielt hast. Bei der Session erscheinen die Darts der aktuellen Aufnahme sofort als blaue Pins; beim Ziehen gehen sie in die gespeicherten Darts über. Ein Dart neben der Scheibe samt Zahlenring wird nicht gezeichnet.
 
 <img src="../images/de/training-live-positions.png" alt="Die Dart-Positionen der Session: eine Dichte um die 20 und das Bull, dazu die drei Darts der aktuellen Aufnahme, T20, S5 und das Bullseye, als blaue Pins" width="620">
 
