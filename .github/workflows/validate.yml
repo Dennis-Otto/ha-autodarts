@@ -56,7 +56,7 @@ jobs:
           persist-credentials: false
       # hassfest also runs Home Assistant's current image, for the same reason.
       - name: Validate Home Assistant integration
-        uses: home-assistant/actions/hassfest@58bff37c8947f690ace498be413a9b78d6f30f93 # master
+        uses: home-assistant/actions/hassfest@06749dd8c0b54f350bc69c8752456cee498808a3 # master
 
   workflow-lint:
     runs-on: ubuntu-latest
