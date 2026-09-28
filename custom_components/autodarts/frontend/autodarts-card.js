@@ -348,6 +348,9 @@ const TEXT = {
     pad_double: "Double",
     pad_treble: "Treble",
     pad_cancel: "Cancel",
+    pad_board: "Board",
+    pad_spot: "Tap where the dart is",
+    pad_seen: "Where the board saw it",
     next_player: "Next player",
     undo_visit: "Undo last visit",
     corrections: "Correct darts with a tap",
@@ -887,6 +890,9 @@ const TEXT = {
     pad_double: "Double",
     pad_treble: "Triple",
     pad_cancel: "Abbrechen",
+    pad_board: "Scheibe",
+    pad_spot: "Tippe an, wo der Dart steckt",
+    pad_seen: "Wo das Board ihn erkannt hat",
     next_player: "Nächster Spieler",
     undo_visit: "Letzte Aufnahme zurück",
     corrections: "Darts per Tipp korrigieren",
@@ -1415,6 +1421,9 @@ const TEXT = {
     pad_double: "Doble",
     pad_treble: "Triple",
     pad_cancel: "Cancelar",
+    pad_board: "Diana",
+    pad_spot: "Toca donde está el dardo",
+    pad_seen: "Donde lo vio la diana",
     next_player: "Siguiente jugador",
     undo_visit: "Deshacer la última tirada",
     corrections: "Corregir dardos con un toque",
@@ -1942,6 +1951,9 @@ const TEXT = {
     pad_double: "Double",
     pad_treble: "Triple",
     pad_cancel: "Annuler",
+    pad_board: "Cible",
+    pad_spot: "Touchez l'endroit où se trouve la fléchette",
+    pad_seen: "Là où la cible l'a vue",
     next_player: "Joueur suivant",
     undo_visit: "Annuler la dernière volée",
     corrections: "Corriger les fléchettes d'un toucher",
@@ -2469,6 +2481,9 @@ const TEXT = {
     pad_double: "Dubbel",
     pad_treble: "Triple",
     pad_cancel: "Annuleren",
+    pad_board: "Bord",
+    pad_spot: "Tik aan waar de dart zit",
+    pad_seen: "Waar het bord hem zag",
     next_player: "Volgende speler",
     undo_visit: "Laatste beurt ongedaan maken",
     corrections: "Darts corrigeren met een tik",
@@ -5100,6 +5115,43 @@ function lobbyHints(choice, ui) {
 
 // The bed a pad button enters: S20, D16, T19, 25, BULL or MISS.
 const padBed = (multiplier, number) => `${"SDT"[multiplier - 1]}${number}`;
+// The pad's board: the dartboard with its surround, in millimetres.
+const PAD_VIEW = 2 * (R.board + 5);
+
+// Where a tap on the pad's board lands, as the board reports positions: 1 is the
+// outer edge of the double ring and y points to the 20. The board is drawn square
+// in the middle of its element; a board that is not laid out has no spot.
+function boardSpot(svg, event) {
+  const rect = svg.getBoundingClientRect();
+  const scale = Math.min(rect.width, rect.height) / PAD_VIEW;
+  if (!(scale > 0)) return null;
+  const round = (value) => Math.round(value * 1000) / 1000 || 0;
+  const x = (event.clientX - rect.left - rect.width / 2) / scale;
+  const y = (event.clientY - rect.top - rect.height / 2) / scale;
+  return [round(x / NORM), round(-y / NORM)];
+}
+
+// The pad's board: a tap says where the dart is, and the bed follows from it. The
+// darts of the visit show where they are; the dart being corrected, where the board
+// saw it.
+function padBoardHtml(pad, ui) {
+  const { t } = ui;
+  const pins = pad.pins
+    .map(({ x, y, seen }) => {
+      const at = `cx="${fmt(x * NORM)}" cy="${fmt(-y * NORM)}"`;
+      return seen
+        ? `<circle class="spot seen" ${at} r="13"><title>${escapeHtml(t("pad_seen"))}</title></circle>`
+        : `<circle class="spot" ${at} r="8"/>`;
+    })
+    .join("");
+  const half = PAD_VIEW / 2;
+  return (
+    `<svg class="pad-board${pad.disabled ? " disabled" : ""}"${pad.disabled ? "" : ` data-pad="spot"`}` +
+    ` viewBox="${-half} ${-half} ${PAD_VIEW} ${PAD_VIEW}" role="img" aria-label="${escapeHtml(t("pad_spot"))}">` +
+    `<g class="face">${boardSvg("classic")}</g><g class="numbers">${numbersSvg("classic")}</g>${pins}</svg>` +
+    `<div class="pad-hint" aria-hidden="true">${escapeHtml(t("pad_spot"))}</div>`
+  );
+}
 
 // The pad of the scoreboard: single, double or treble, the numbers, the bulls
 // and a miss. It corrects a dart of the visit, or enters darts by hand with
@@ -5138,10 +5190,15 @@ function padHtml(pad, ui) {
     ? button("cancel", undefined, escapeHtml(t("pad_cancel")), ` class="secondary"`)
     : button("next", undefined, confirm("next", "next_player"), ` class="secondary"`) +
       (pad.undo ? button("undo", undefined, `↶ ${confirm("undo", "undo_visit")}`, ` class="secondary"`) : "");
+  // The board instead of the keys, for the spot where the dart is.
+  const view = button("board", undefined, `🎯 ${escapeHtml(t("pad_board"))}`, ` class="view" aria-pressed="${pad.board === true}"`);
+  const body = pad.board
+    ? padBoardHtml(pad, ui)
+    : `<div class="pad-numbers">${numbers}</div>`;
   return (
-    `<section class="pad${pad.dart ? " correcting" : ""}" aria-label="${escapeHtml(title)}">` +
-    `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>${multipliers}</div>` +
-    `<div class="pad-numbers">${numbers}</div><div class="pad-extra">${bulls}${actions}</div></section>`
+    `<section class="pad${pad.dart ? " correcting" : ""}${pad.board ? " on-board" : ""}" aria-label="${escapeHtml(title)}">` +
+    `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>${pad.board ? "" : multipliers}${view}</div>` +
+    `${body}<div class="pad-extra">${pad.board ? "" : bulls}${actions}</div></section>`
   );
 }
 
@@ -7532,6 +7589,16 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
   .pad-extra button { flex: 1 1 5.5em; }
   .pad .secondary, .undo-only { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
+  /* The board instead of the keys: a tap says where the dart is. */
+  .pad .view { margin-left: auto; }
+  .pad-board {
+    width: min(100%, 420px, 52vh); height: auto; aspect-ratio: 1; margin-inline: auto;
+    cursor: crosshair; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .pad-board.disabled { opacity: .4; cursor: default; }
+  .pad-board .spot { fill: #3182ce; stroke: #fff; stroke-width: 3; pointer-events: none; }
+  .pad-board .spot.seen { fill: none; stroke: var(--ad-accent); stroke-width: 4; stroke-dasharray: 7 5; pointer-events: auto; }
+  .pad-hint { text-align: center; font-size: .8em; color: var(--ad-muted-text); }
   .undo-only { justify-self: start; align-self: flex-start; }
   .lobby-player.bot .bot-icon { font-size: 1.3em; }
   .sum .muted { color: inherit; }
@@ -9798,13 +9865,18 @@ function createElements(Base) {
       this._hints = "";
       this._pick = null;
       this._multiplier = 1;
+      // The pad shows the board instead of the keys.
+      this._padBoard = false;
       this._el.visit?.addEventListener("click", (event) => {
         const dart = event.target.closest("[data-dart]");
         if (dart) this._pickDart(Number(dart.dataset.dart));
       });
       this._el.pad.addEventListener("click", (event) => {
         const target = event.target.closest("[data-pad]");
-        if (target && !target.disabled) this._padAction(target.dataset.pad, target.dataset.value);
+        if (!target || target.disabled) return;
+        // A tap on the board says where the dart is.
+        const value = target.dataset.pad === "spot" ? boardSpot(target, event) : target.dataset.value;
+        this._padAction(target.dataset.pad, value);
       });
       this._callerState = null;
       this._followed = null;
@@ -10057,6 +10129,14 @@ function createElements(Base) {
       } else if (action === "bed") {
         this._call("autodarts", "throw_dart", data({ segment: value }));
         this._multiplier = 1;
+      } else if (action === "spot") {
+        // The bed follows from the spot, in Home Assistant as on the board.
+        if (!value) return;
+        const [x, y] = value;
+        this._call("autodarts", pick ? "correct_dart" : "throw_dart", data({ ...(pick ? { dart: pick.dart } : {}), x, y }));
+        this._pick = null;
+      } else if (action === "board") {
+        this._padBoard = !this._padBoard;
       } else if (action === "cancel") {
         this._pick = null;
       } else if (this._confirmed(action)) {
@@ -10078,9 +10158,14 @@ function createElements(Base) {
       const undo = practice.undo === true && !darts.length;
       const confirm = ["next", "undo"].includes(this._confirm) ? this._confirm : null;
       if (this._pick && !darts.some((dart) => dart.dart === this._pick.dart)) this._pick = null;
-      if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled };
+      // On the board, the darts of the visit where they are; the dart being corrected where the board saw it.
+      const board = this._padBoard;
+      const pins = darts
+        .filter((dart) => Number.isFinite(dart.x) && Number.isFinite(dart.y))
+        .map((dart) => ({ x: dart.x, y: dart.y, seen: dart.dart === this._pick?.dart }));
+      if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled, board, pins };
       if (c.keypad && this._state("manualEntry")?.state === "on") {
-        return { dart: null, multiplier: this._multiplier, disabled, undo, confirm };
+        return { dart: null, multiplier: this._multiplier, disabled, undo, confirm, board, pins };
       }
       return c.corrections && undo ? { only: "undo", confirm } : null;
     }
@@ -10919,6 +11004,7 @@ export {
   beds,
   bestsHtml,
   bestsView,
+  boardSpot,
   boardStatus,
   boardSvg,
   bullOffLeaders,

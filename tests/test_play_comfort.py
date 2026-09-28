@@ -169,6 +169,22 @@ async def test_darts_entered_by_hand_need_the_switch(hass, aioclient_mock):
     assert coordinator.records.darts_today == 3
 
 
+async def test_a_dart_entered_by_hand_can_say_where_it_is(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    await switch(hass, "practice_manual_entry", True)
+    await start(hass)
+    # The bed follows from the spot; a bed named with it must be the same.
+    await act(hass, "throw_dart", x=0.02, y=0.61)
+    await act(hass, "throw_dart", segment="bull", x="0.01", y="-0.02")
+    assert [(dart["segment"], dart["x"], dart["y"]) for dart in throws(hass)] == [
+        ("T20", 0.02, 0.61),
+        ("BULL", 0.01, -0.02),
+    ]
+    assert state(hass, "sensor", "practice_remaining") == "191"
+    assert coordinator.manual.extras[1].position == (0.01, -0.02)
+
+
 async def test_manual_entry_without_the_detection(hass, aioclient_mock):
     stopped = {**board(), "running": False, "status": "Stopped", "event": "Stopped"}
     entry = await setup_local(hass, aioclient_mock, state=stopped)

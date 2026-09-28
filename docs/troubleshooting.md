@@ -83,6 +83,9 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *Teams play from the start scores of players 1 and 2* | In a team match, the first start score is team 1's and the second team 2's. Give at most two. |
 | *A start score of 3 cannot be checked out with double in and double out* | The only opening double, D1, leaves 1, which no double can finish. Choose another start score, or switch off double in or double out. |
 | *… is not a bed of the board* | `segment` of `autodarts.correct_dart` or `autodarts.throw_dart` takes S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye or MISS. |
+| *Name the bed with segment, or where the dart is with x and y* | `autodarts.correct_dart` and `autodarts.throw_dart` need the bed, the position, or both. |
+| *Give the position with both x and y …* | A position needs `x` and `y`, each from -3 to 3: 0 is the center, 1 the outer edge of the double ring, and `y` points to the 20. |
+| *The position given is in …, not in …* | The bed follows from the position. Leave out `segment`, or give the bed at that spot. |
 | *The current visit has no dart …* | `autodarts.correct_dart` corrects dart 1, 2 or 3 of the current visit once it is on the board. A visit whose darts were pulled comes back with `autodarts.undo_visit`. |
 | *The darts of the bot cannot be corrected* | The bot's darts come from Home Assistant, not from the board. Only the darts of a player can be corrected. |
 | *Manual entry is off* | `autodarts.throw_dart` enters darts only while the *Practice manual entry* switch is on. Switch it on first. |

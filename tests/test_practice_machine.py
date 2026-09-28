@@ -495,15 +495,15 @@ class VisitMachine(RuleBasedStateMachine):
             self.manual.add(parse_bed(bed), None, "manual")
             self.observe()
 
-    @rule(index=st.integers(0, 2), bed=st.sampled_from(BEDS))
-    def correct(self, index, bed) -> None:
+    @rule(index=st.integers(0, 2), bed=st.sampled_from(BEDS), position=POSITIONS)
+    def correct(self, index, bed, position) -> None:
         slots = self.training.visit_slots()
         if index >= len(slots):
             return
         kind, place = self.manual.sources[slots[index]]
         if kind == "extra" and self.manual.extras[place].dart.get("bot"):
             return
-        self.manual.correct(slots[index], parse_bed(bed))
+        self.manual.correct(slots[index], parse_bed(bed), position)
         self.observe()
 
     @rule()
@@ -541,8 +541,17 @@ class VisitMachine(RuleBasedStateMachine):
         assert darts is not None and self.training._active == darts
         if self.effective["running"]:
             assert len(self.manual.sources) == len(darts)
-        for place, (reading, _) in self.manual.fixes.items():
-            assert self.manual._readings[place] == reading
+        for place, fix in self.manual.fixes.items():
+            assert self.manual._readings[place] == fix.reading
+
+    @invariant()
+    def a_corrected_dart_is_only_where_the_correction_puts_it(self) -> None:
+        throws = self.effective.get("throws", [])
+        for index, (kind, place) in enumerate(self.manual.sources):
+            if kind == "board" and place in self.manual.fixes:
+                position = self.manual.fixes[place].position
+                expected = None if position is None else dict(zip("xy", position))
+                assert throws[index].get("coords") == expected
 
     @invariant()
     def the_session_counts_every_dart_once(self) -> None:

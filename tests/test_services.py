@@ -355,6 +355,37 @@ async def test_a_wrong_bed_is_explained(hass, aioclient_mock):
         await call(hass, "throw_dart", segment="")
 
 
+async def test_a_wrong_position_is_explained(hass, aioclient_mock):
+    await setup_local(hass, aioclient_mock, state=board())
+    for service, data in (("correct_dart", {"dart": 1}), ("throw_dart", {})):
+        # Neither a bed nor a position.
+        error = await invalid(hass, service, **data)
+        assert error.translation_key == "no_bed"
+        # Half a position, one far off the board, or one that is no number.
+        for position in (
+            {"x": 0.1},
+            {"y": 0.1},
+            {"x": 3.5, "y": 0},
+            {"x": "nan", "y": 0},
+        ):
+            error = await invalid(hass, service, **data, **position)
+            assert (error.translation_key, error.translation_placeholders) == (
+                "invalid_position",
+                {"limit": "3"},
+            )
+        # A bed that is not where the position says.
+        error = await invalid(hass, service, **data, segment="d20", x=0.0, y=0.6)
+        assert (error.translation_key, error.translation_placeholders) == (
+            "bed_position",
+            {"segment": "D20", "found": "T20"},
+        )
+        # A wrong bed is named as such, with a position or without.
+        error = await invalid(hass, service, **data, segment="T21", x=0.0, y=0.6)
+        assert error.translation_key == "invalid_segment"
+    with pytest.raises(vol.Invalid):
+        await call(hass, "throw_dart", x="left", y=0.5)
+
+
 async def test_player_names_that_templates_would_run_are_refused(hass, aioclient_mock):
     """{ } % # in a name would run in the templates of automations."""
     entry = await setup_local(hass, aioclient_mock, state=board())

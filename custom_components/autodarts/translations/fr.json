@@ -820,6 +820,15 @@
     "invalid_segment": {
       "message": "{segment} n'est pas une zone de la cible. Saisissez S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS."
     },
+    "no_bed": {
+      "message": "Indiquez la zone avec segment, ou l'endroit de la fléchette avec x et y."
+    },
+    "invalid_position": {
+      "message": "Indiquez la position avec x et y, chacun de -{limit} à {limit}\u00a0: 1 est le bord extérieur de l'anneau des doubles, et y pointe vers le 20."
+    },
+    "bed_position": {
+      "message": "La position indiquée est dans {found}, pas dans {segment}."
+    },
     "too_many_start_scores": {
       "message": "Les scores de départ comptent {scores} valeurs, mais seuls {players} joueurs jouent. Indiquez au plus un score de départ par joueur, dans l'ordre de lancer."
     },
@@ -1103,7 +1112,7 @@
     },
     "correct_dart": {
       "name": "Corriger une fléchette",
-      "description": "Place une fléchette de la volée en cours dans une autre zone pour la partie et la session d'entraînement, comme si la cible l'y avait détectée. La cible conserve sa propre détection.",
+      "description": "Place une fléchette de la volée en cours dans une autre zone pour la partie et la session d'entraînement, comme si la cible l'y avait détectée. La cible conserve sa propre détection. La position vue par la cible est abandonnée\u00a0: avec x et y, la fléchette est à cet endroit, sinon elle n'a pas de position et reste hors des positions des fléchettes.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -1115,13 +1124,21 @@
         },
         "segment": {
           "name": "Zone",
-          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS."
+          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS. Nécessaire sans x et y\u00a0; avec eux, ce doit être la zone à cet endroit."
+        },
+        "x": {
+          "name": "Position x",
+          "description": "L'endroit où se trouve la fléchette, de gauche à droite\u00a0: 0 est le centre, 1 le bord extérieur de l'anneau des doubles. Avec y, elle donne la zone."
+        },
+        "y": {
+          "name": "Position y",
+          "description": "L'endroit où se trouve la fléchette, de bas en haut vers le 20\u00a0: 0 est le centre, 1 le bord extérieur de l'anneau des doubles."
         }
       }
     },
     "throw_dart": {
       "name": "Saisir une fléchette",
-      "description": "Ajoute une fléchette à la volée en cours comme si la cible l'avait détectée, marquée comme saisie à la main. Nécessite Saisie manuelle de la partie.",
+      "description": "Ajoute une fléchette à la volée en cours comme si la cible l'avait détectée, marquée comme saisie à la main. Nécessite Saisie manuelle de la partie. Avec x et y, la fléchette est enregistrée à cet endroit.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -1129,7 +1146,15 @@
         },
         "segment": {
           "name": "Zone",
-          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS."
+          "description": "L'endroit où se trouve la fléchette\u00a0: S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS. Nécessaire sans x et y\u00a0; avec eux, ce doit être la zone à cet endroit."
+        },
+        "x": {
+          "name": "Position x",
+          "description": "L'endroit où se trouve la fléchette, de gauche à droite\u00a0: 0 est le centre, 1 le bord extérieur de l'anneau des doubles. Avec y, elle donne la zone."
+        },
+        "y": {
+          "name": "Position y",
+          "description": "L'endroit où se trouve la fléchette, de bas en haut vers le 20\u00a0: 0 est le centre, 1 le bord extérieur de l'anneau des doubles."
         }
       }
     },

@@ -179,3 +179,51 @@ async def test_positions_need_a_loaded_board(hass, aioclient_mock, hass_ws_clien
     assert await hass.config_entries.async_unload(entry.entry_id)
     unloaded = await positions(hass, client, device_id=board_device)
     assert (unloaded["success"], unloaded["error"]["code"]) == (False, "not_found")
+
+
+async def test_corrected_darts_are_logged_only_where_the_correction_puts_them(
+    hass, aioclient_mock, hass_ws_client
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    coordinator.practice.set_name(0, "Alex")
+    await select_game(hass, "501")
+    coordinator.async_receive("state", placed(T20))
+    coordinator.async_receive("state", placed(T20, T20))
+    await hass.async_block_till_done()
+    # The board read a treble 20 where a single 20 is: the spot it saw is wrong too.
+    await hass.services.async_call(
+        DOMAIN, "correct_dart", {"dart": 2, "segment": "S20"}, blocking=True
+    )
+    coordinator.async_receive("state", placed(T20, T20, T20))
+    await hass.async_block_till_done()
+    # The third dart is corrected with the spot where it is; the bed follows from it.
+    await hass.services.async_call(
+        DOMAIN, "correct_dart", {"dart": 3, "x": 0.0, "y": 0.8}, blocking=True
+    )
+    await hass.async_block_till_done()
+    visit = hass.states.get(entity_id(hass, "sensor", "local_visit_score"))
+    assert [
+        (dart["segment"], dart.get("x"), dart.get("y"))
+        for dart in visit.attributes["throws"]
+    ] == [("T20", -0.02, 0.6), ("S20", None, None), ("S20", 0.0, 0.8)]
+    assert visit.state == "100"
+    coordinator.async_receive("state", board())
+    await hass.async_block_till_done()
+
+    client = await hass_ws_client(hass)
+    device = device_id(hass, entry)
+    logged = [[-0.02, 0.6], [0.0, 0.8]]
+    session = await positions(hass, client, device_id=device)
+    assert session["result"]["positions"] == logged
+    player = await positions(hass, client, device_id=device, player="Alex")
+    assert player["result"]["positions"] == logged
+
+    # An undone visit comes back with the positions it had.
+    await hass.services.async_call(DOMAIN, "undo_visit", {}, blocking=True)
+    await hass.async_block_till_done()
+    visit = hass.states.get(entity_id(hass, "sensor", "local_visit_score"))
+    assert [
+        (dart["segment"], dart.get("x")) for dart in visit.attributes["throws"]
+    ] == [("T20", -0.02), ("S20", None), ("S20", 0.0)]
+    assert len(coordinator.progress.session) == 0

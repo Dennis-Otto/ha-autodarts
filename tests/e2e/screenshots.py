@@ -713,6 +713,59 @@ def correct_animation(page: Page) -> None:
     game(page, "off")
 
 
+def tap_spot(
+    page: Page, recorder: Recorder, board, x: float, y: float, hold: int
+) -> None:
+    """Tap the pad's board where a dart is, at a position as the board reports it."""
+    box = board.bounding_box()
+    scale = min(box["width"], box["height"]) / 460
+    spot = {
+        "x": box["width"] / 2 + x * 170 * scale,
+        "y": box["height"] / 2 - y * 170 * scale,
+    }
+    page.evaluate(TAP, [box["x"] + spot["x"], box["y"] + spot["y"]])
+    recorder.shot(450)
+    page.evaluate(UNTAP)
+    board.click(position=spot)
+    page.wait_for_timeout(300)
+    recorder.shot(hold)
+
+
+def correct_board_animation(page: Page) -> None:
+    """A single 20 the board read as a treble 20, put where it is on the pad's board."""
+    pull_darts()
+    page.evaluate(SET_NAME, [0, "Alex"])
+    players(page, 1)
+    game(page, "501")
+    board = tablet(page)
+    wait_card(board, "r.querySelectorAll('.player').length === 1", SCOREBOARD, 60000)
+    board.wait_for_timeout(1500)
+    recorder = Recorder(board, SCOREBOARD)
+    # The board saw the second dart in the treble, below the single 20 where it is.
+    misread = {**at("T20"), "coords": {"x": 0.03, "y": 0.625}}
+    darts = [at("T20"), misread, at("T20")]
+    for count in range(1, 4):
+        control({"event": "Throw detected", "throws": darts[:count]})
+        board.wait_for_timeout(350)
+    wait_card(
+        board, "r.querySelector('.sum .value')?.textContent === '180'", SCOREBOARD
+    )
+    recorder.shot(1400)
+    card = board.locator(SCOREBOARD)
+    tap(board, recorder, card.locator("[data-dart='2']"), 900)
+    tap(board, recorder, card.locator("[data-pad='board']"), 1400)
+    tap_spot(board, recorder, card.locator(".pad-board"), 0.03, 0.8, 300)
+    wait_card(
+        board, "r.querySelector('.sum .value')?.textContent === '140'", SCOREBOARD
+    )
+    board.wait_for_timeout(300)
+    recorder.shot(2400)
+    recorder.save("correct-dart-board")
+    board.close()
+    pull_darts()
+    game(page, "off")
+
+
 def keypad_screen(page: Page) -> None:
     """The keypad for darts entered by hand, with two darts of the visit entered."""
     bot_match(page, 60, 2)
@@ -2131,6 +2184,7 @@ def main() -> None:
         bobs_27_animation(page)
         bot_animation(page)
         correct_animation(page)
+        correct_board_animation(page)
         games.close()
 
         # The new games and formats on the scoreboard.

@@ -6,6 +6,7 @@ import { $, $$, DEVICE, READY, loadCards, makeHass, mount, text, update, withLan
 
 const {
   aimBeds,
+  boardSpot,
   callerCalls,
   callerState,
   callerText,
@@ -260,6 +261,94 @@ test("a tap on a dart of the visit corrects it", () => {
   $(card, '[data-dart="3"]').click();
   card.hass = update(hass, visit(...throws.slice(0, 2)));
   assert.equal($(card, ".pad-area").hidden, true);
+});
+
+// A board laid out as a square of 460 pixels at (100, 50): a pixel is a millimetre.
+const laidOut = (element, width = 460, height = 460) => {
+  element.getBoundingClientRect = () => ({ left: 100, top: 50, width, height });
+  return element;
+};
+// A tap at a point of the board, in millimetres from its centre with y up.
+const tapAt = (element, x, y) =>
+  element.dispatchEvent(new window.MouseEvent("click", { bubbles: true, clientX: 330 + x, clientY: 280 - y }));
+
+test("a tap on the board of the pad says where the dart is", () => {
+  // A pixel of the square board is a millimetre; 170 mm is the edge of the double ring.
+  const svg = laidOut(document.createElement("div"));
+  assert.deepEqual(boardSpot(svg, { clientX: 330, clientY: 280 }), [0, 0]);
+  assert.deepEqual(boardSpot(svg, { clientX: 330 + 17, clientY: 280 - 102 }), [0.1, 0.6]);
+  // A wide element draws the board in its middle, as tall as the element.
+  laidOut(svg, 920, 460);
+  assert.deepEqual(boardSpot(svg, { clientX: 100 + 460 - 34, clientY: 280 + 170 }), [-0.2, -1]);
+  // A board that is not laid out has no spot.
+  assert.equal(boardSpot(laidOut(svg, 0, 0), { clientX: 1, clientY: 1 }), null);
+
+  const html = padHtml(
+    { dart: 2, multiplier: 1, board: true, pins: [{ x: 0, y: 0.6, seen: false }, { x: 0.02, y: 0.8, seen: true }] },
+    { t: T }
+  );
+  const pad = document.createElement("div");
+  pad.innerHTML = html;
+  // The board instead of the numbers, the multipliers and the bulls.
+  assert.equal(pad.querySelector(".pad-numbers"), null);
+  assert.equal(pad.querySelector('[data-pad="multiplier"]'), null);
+  assert.equal(pad.querySelector('[data-pad="board"]').getAttribute("aria-pressed"), "true");
+  assert.equal(pad.querySelector(".pad-board").dataset.pad, "spot");
+  assert.equal(pad.querySelector(".pad-board").getAttribute("aria-label"), "pad_spot");
+  assert.equal(pad.querySelector(".pad-hint").textContent, "pad_spot");
+  assert.deepEqual(
+    [...pad.querySelectorAll(".spot")].map((spot) => [spot.getAttribute("class"), spot.getAttribute("cy")]),
+    [
+      ["spot", "-102"],
+      ["spot seen", "-136"],
+    ]
+  );
+  assert.equal(pad.querySelector(".spot.seen title").textContent, "pad_seen");
+  assert.deepEqual(
+    [...pad.querySelectorAll(".pad-extra button")].map((button) => button.dataset.pad),
+    ["cancel"]
+  );
+  // While the bot throws, the board takes no taps.
+  pad.innerHTML = padHtml({ dart: null, multiplier: 1, board: true, pins: [], disabled: true }, { t: T });
+  assert.equal(pad.querySelector(".pad-board").dataset.pad, undefined);
+  assert.equal(pad.querySelector(".pad-board").classList.contains("disabled"), true);
+  assert.equal(pad.querySelector('[data-pad="board"]').disabled, true);
+});
+
+test("the pad's board corrects a dart or enters one where it is", () => {
+  const throws = [dart(20, 3, { dart: 1, x: 0, y: 0.6 }), dart(20, 3, { dart: 2, x: 0.02, y: 0.8 }), dart(5, 1, { dart: 3 })];
+  const { hass, card } = setup(visit(...throws));
+  $(card, '[data-dart="2"]').click();
+  assert.equal($(card, '[data-pad="board"]').getAttribute("aria-pressed"), "false");
+  $(card, '[data-pad="board"]').click();
+  // The darts with a position show; the dart being corrected where the board saw it.
+  assert.deepEqual(
+    $$(card, ".pad-board .spot").map((spot) => spot.getAttribute("class")),
+    ["spot", "spot seen"]
+  );
+  // Not laid out yet, a tap says nothing, and neither does a tap beside the board.
+  tapAt($(card, ".pad-board"), 0, 136);
+  $(card, ".pad-hint").click();
+  assert.deepEqual(actions(hass), []);
+  tapAt(laidOut($(card, ".pad-board")), 0, 136);
+  assert.deepEqual(actions(hass), [["correct_dart", { config_entry_id: ENTRY, dart: 2, x: 0, y: 0.8 }]]);
+  assert.equal($(card, ".pad-area").hidden, true);
+  // The board stays the pad's view for the next dart, and a tap on the seen spot counts too.
+  $(card, '[data-dart="1"]').click();
+  tapAt(laidOut($(card, ".pad-board")), 0, 102);
+  assert.deepEqual(actions(hass).at(-1), ["correct_dart", { config_entry_id: ENTRY, dart: 1, x: 0, y: 0.6 }]);
+  // Back to the keys.
+  $(card, '[data-dart="1"]').click();
+  $(card, '[data-pad="board"]').click();
+  assert.equal($(card, ".pad-board"), null);
+  assert.equal($$(card, ".pad-number").length, 20);
+
+  // The keypad enters darts where they are.
+  const keypad = setup({ "switch.practice_manual_entry": "on" }, { keypad: true });
+  $(keypad.card, '[data-pad="board"]').click();
+  tapAt(laidOut($(keypad.card, ".pad-board")), -34, -170);
+  assert.deepEqual(actions(keypad.hass), [["throw_dart", { config_entry_id: ENTRY, x: -0.2, y: -1 }]]);
+  assert.equal($(keypad.card, ".pad-board") !== null, true);
 });
 
 test("the bot's darts, darts of an ended visit and a preview stay as they are", () => {
