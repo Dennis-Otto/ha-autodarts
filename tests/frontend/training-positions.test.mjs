@@ -90,6 +90,100 @@ test("positions load again only when a visit was booked", async () => {
   assert.equal(asked.length, 2);
 });
 
+// The visit sensor: the darts on the board with their number in the visit, and the recent visits.
+const visit = (throws, recent = []) => ({
+  "sensor.local_visit_score": { state: "0", attributes: { throws, recent_visits: recent } },
+});
+const booked = (time) => ({ time, score: 60, darts: 3, segments: ["S20", "S20", "S20"] });
+const pins = (card) => $$(card, ".heat-layer .position.live").map((pin) => [pin.getAttribute("cx"), pin.getAttribute("cy")]);
+const dots = (card) => $$(card, ".heat-layer .position:not(.live)").length;
+
+test("the darts of the current visit show at once while the session logs them", async () => {
+  const asked = [];
+  const throws = [
+    { segment: "T20", dart: 1, x: 0, y: 0.6 },
+    // A dart the board no longer counts to the visit, the bot's, one far off the board,
+    // and darts without a position.
+    { segment: "S5", x: -0.1, y: 0.8 },
+    { segment: "S1", dart: 2, x: 0.1, y: 0.7, bot: true },
+    { segment: "MISS", dart: 2, x: 3.5, y: 0 },
+    { segment: "S19", dart: 2, manual: true },
+    { segment: "S3", dart: 2, x: 0.2 },
+  ];
+  const { hass, card } = setup({ mode: "positions" }, board(asked), visit(throws));
+  // The dart shows before the logged positions arrive, and counts for the density.
+  assert.deepEqual(pins(card), [["0", "-102"]]);
+  assert.ok($$(card, ".heat-layer .density rect").length > 10);
+  assert.equal(text(card, ".legend-max"), "many");
+  await settle();
+  assert.deepEqual([dots(card), pins(card).length], [2, 1]);
+  // The next dart joins the visit without asking the board again.
+  let next = update(hass, visit([...throws, { segment: "D16", dart: 3, x: -0.55, y: -0.8 }]));
+  card.hass = next;
+  await settle();
+  assert.deepEqual(pins(card), [["0", "-102"], ["-93.5", "136"]]);
+  assert.equal(asked.length, 1);
+  // Other darts change nothing: neither the drawing nor the questions.
+  const layer = $(card, ".heat-layer").firstElementChild;
+  next = update(next, { "sensor.local_visit_score": { state: "3", attributes: { throws: [...throws, { segment: "D16", dart: 3, x: -0.55, y: -0.8 }, { segment: "S7" }], recent_visits: [] } } });
+  card.hass = next;
+  assert.equal($(card, ".heat-layer").firstElementChild, layer);
+  // A player's darts count once their visit is booked, like their hits.
+  click(card, '[data-source="Alex"]');
+  await settle();
+  assert.deepEqual(pins(card), []);
+  click(card, '[data-source=""]');
+  await settle();
+  assert.equal(pins(card).length, 2);
+  // Outside a session nothing is logged, so nothing shows live.
+  card.hass = update(next, { "switch.training_session": "off" });
+  assert.deepEqual(pins(card), []);
+});
+
+test("a visit booked at the takeout loads again and keeps its darts on the board meanwhile", async () => {
+  const pending = [];
+  const asked = (message) => new Promise((resolve) => pending.push({ message, resolve }));
+  const darts = [
+    { segment: "T20", dart: 1, x: 0, y: 0.6 },
+    { segment: "T20", dart: 2, x: 0.02, y: 0.61 },
+    { segment: "S20", dart: 3, x: 0.05, y: 0.8 },
+  ];
+  const { hass, card } = setup({ mode: "positions" }, asked, {
+    ...visit(darts, [booked("2026-09-28T08:03:06+00:00")]),
+    "sensor.training_started": "2026-09-28T08:02:20+00:00",
+  });
+  pending[0].resolve({ positions: [[0.3, 0.3]], spread: [] });
+  await settle();
+  assert.deepEqual([dots(card), pins(card).length], [1, 3]);
+  // New darts and more visits leave the logged positions as they are.
+  let next = update(hass, { "sensor.training_visits": "3" });
+  card.hass = next;
+  assert.equal(pending.length, 1);
+  // The takeout books the visit: the recent visits list it, and the board is empty.
+  next = update(next, visit([], [booked("2026-09-28T08:03:31+00:00"), booked("2026-09-28T08:03:06+00:00")]));
+  card.hass = next;
+  assert.equal(pending.length, 2);
+  // Until the logged darts arrive, the visit stays on the board.
+  assert.deepEqual([dots(card), pins(card).length], [1, 3]);
+  pending[1].resolve({ positions: [[0.3, 0.3], [0, 0.6], [0.02, 0.61], [0.05, 0.8]], spread: [] });
+  await settle();
+  assert.deepEqual([dots(card), pins(card).length], [4, 0]);
+  // An undone visit leaves the recent visits and the log again; a new session starts empty.
+  next = update(next, visit(darts, [booked("2026-09-28T08:03:06+00:00")]));
+  card.hass = next;
+  assert.equal(pending.length, 3);
+  next = update(next, { "sensor.training_started": "2026-09-28T09:00:00+00:00", ...visit([], []) });
+  card.hass = next;
+  assert.equal(pending.length, 4);
+  // An answer for a key the card moved past is dropped; the newest one shows.
+  pending[3].resolve({ positions: [], spread: [] });
+  await settle();
+  assert.equal(text(card, ".heat .groups"), "No dart positions yet.");
+  pending[2].resolve({ positions: [[0.3, 0.3]], spread: [] });
+  await settle();
+  assert.equal(dots(card), 0);
+});
+
 test("the heatmap shows a player's own darts", async () => {
   const asked = [];
   const { card } = setup({}, board(asked));

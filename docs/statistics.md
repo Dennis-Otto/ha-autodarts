@@ -68,7 +68,9 @@ The heatmap of the training card has three modes, which the switches above the b
 
 - **Beds:** every bed colored by how often you hit it, from blue (rarely) to red (most often). Hover a bed for its count and share.
 - **Numbers:** the singles, doubles and triples of every number summed up, which shows at a glance whether you drift towards the 5 or the 1.
-- **Positions:** where the darts really landed, from the positions the board reports: a smoothed density with the newest 300 darts as dots, and below the board the [grouping](#trends-and-grouping) at up to three beds you aimed at.
+- **Positions:** where the darts really landed, from the positions the board reports: a smoothed density with the newest 300 darts as dots, and below the board the [grouping](#trends-and-grouping) at up to three beds you aimed at. For the session, the darts of the current visit appear the moment they land, as blue pins; when you pull them, they join the logged darts.
+
+<img src="images/en/training-live-positions.png" alt="The dart positions of the session: a density around the 20 and the bull, with the three darts of the current visit, T20, S5 and the bullseye, as blue pins" width="620">
 
 The second switch chooses whose darts it shows: the running session, or a named player with all their hits and the positions of their last 1000 darts. The most hit beds follow the choice.
 

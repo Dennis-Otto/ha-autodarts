@@ -211,7 +211,7 @@ Der Board Manager meldet, wo jeder Dart gelandet ist, relativ zum äußeren Rand
 - **Doppeltraining und Bob's 27:** das Double der Runde. **Checkout-Training:** der Weg wie bei X01. **Ausbullen:** das Bullseye.
 - **Around the Clock, Cricket und die Partyspiele:** kein Ziel, weil dort jedes Feld einer Zahl zählt.
 
-Positionen werden auf ein Zehntel Millimeter mit dem Training gespeichert. Sie sagen nur, wo Darts landen, und verlassen Home Assistant nie; die Diagnosedaten zählen sie nur. Die Karten lesen sie bei Bedarf über den WebSocket-Befehl `autodarts/positions` (`device_id`, optional `player`), weil Tausende Positionen zu viele für Attribute von Entitäten sind.
+Positionen werden auf ein Zehntel Millimeter mit dem Training gespeichert. Sie sagen nur, wo Darts landen, und verlassen Home Assistant nie; die Diagnosedaten zählen sie nur. Die Karten lesen sie bei Bedarf über den WebSocket-Befehl `autodarts/positions` (`device_id`, optional `player`), weil Tausende Positionen zu viele für Attribute von Entitäten sind. Eine Aufnahme wird gespeichert, wenn sie gebucht wird, also beim Ziehen der Darts; bis dahin zeichnet die Trainingskarte die Darts der aktuellen Aufnahme aus dem Aufnahme-Sensor.
 
 ### Streuung
 
