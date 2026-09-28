@@ -1,0 +1,49 @@
+name: Release on merge
+
+# A merged pull request that raises the version in manifest.json approves that
+# release: once every push check of main passed, Release integration publishes it
+# with the version's section of the changelog as its introduction. Dependency
+# releases publish themselves; prereleases and drafts go through Release
+# integration by hand. See docs/releases.md.
+on:
+  push:
+    branches: [main]
+    paths:
+      - custom_components/autodarts/manifest.json
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "Full SHA of the main commit that raised the version, to resume a failed publication"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-on-merge
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'Dennis-Otto/ha-autodarts' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # The end-to-end tests of main take a while; the script waits up to 45 minutes.
+    timeout-minutes: 75
+    permissions:
+      contents: read
+      # Start Release integration and read the checks of main.
+      actions: write
+      checks: read
+      # Keep the release PR out of its own notes with the release label.
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Publish the version the merge brought
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          COMMIT: ${{ inputs.commit || github.sha }}
+        run: python3 .github/scripts/dependency_release.py --release-commit "$COMMIT"

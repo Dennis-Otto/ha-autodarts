@@ -1,4 +1,5 @@
-"""Publish merged dependency updates through protected, fully checked release PRs.
+"""Publish merged dependency updates through protected, fully checked release PRs,
+and the version a merged release PR brings to main.
 
 Uses a repository-scoped GitHub App token for release branches and PRs so GitHub
 starts normal PR checks. No candidate code execution, main pushes or bypasses.
@@ -16,6 +17,11 @@ import time
 from pathlib import Path
 
 MANIFEST = "custom_components/autodarts/manifest.json"
+CHANGELOG = "CHANGELOG.md"
+# The version PRs of the dependency releases, which publish themselves.
+DEPENDENCY_BRANCH = "automation/dependency-release-v"
+# A merged release PR waits this long for the checks of main, the end-to-end tests too.
+MAIN_CHECKS_TIMEOUT = 2700
 MARKER = "<!-- autodarts-automated-dependency-release -->"
 WORKFLOWS = (
     "tests.yml",
@@ -85,6 +91,10 @@ class GitHub:
         result = self.api(f"contents/{MANIFEST}?ref={ref}")
         return json.loads(base64.b64decode(result["content"])), result["sha"]
 
+    def text(self, path, ref):
+        result = self.api(f"contents/{path}?ref={ref}")
+        return base64.b64decode(result["content"]).decode("utf-8")
+
     def dispatch(self, workflow, ref, inputs=None):
         self.api(
             f"actions/workflows/{workflow}/dispatches",
@@ -100,6 +110,11 @@ def version_tuple(version):
             f"Automatic maintenance releases require an x.y.z version: {version}"
         )
     return tuple(map(int, value.split(".")))
+
+
+def release_tuple(tag):
+    """The x.y.z of a release tag; a prerelease such as v1.8.0-rc.1 counts as 1.8.0."""
+    return version_tuple(tag.split("-", 1)[0])
 
 
 def next_version(version):
@@ -480,6 +495,11 @@ def publish(github, version, prerelease, dependencies):
             "introduction": introduction,
         },
     )
+    await_release(github, version, prerelease)
+
+
+def await_release(github, version, prerelease):
+    """Wait until the release workflow published the version from its manifest."""
     tag = f"v{version}"
 
     def published():
@@ -497,6 +517,104 @@ def publish(github, version, prerelease, dependencies):
 
     release = wait_until(published, f"publication of {tag}", timeout=900)
     summary(f"Published [{tag}]({release['html_url']}) with generated release notes.")
+
+
+def changelog_section(text, version):
+    """The notes of a version in the changelog: its section, without the heading."""
+    lines = text.splitlines()
+    heading = f"## {version}"
+    if heading not in lines:
+        return None
+    start = lines.index(heading) + 1
+    end = next(
+        (index for index in range(start, len(lines)) if lines[index].startswith("## ")),
+        len(lines),
+    )
+    return "\n".join(lines[start:end]).strip() or None
+
+
+def main_head(github):
+    return github.api("git/ref/heads/main")["object"]["sha"]
+
+
+def settled_main(github, timeout=MAIN_CHECKS_TIMEOUT):
+    """The head of main once all its push checks passed; main may move on meanwhile."""
+    deadline = time.monotonic() + timeout
+    head = main_head(github)
+    while True:
+        wait_until(
+            lambda sha=head: main_checks_ready(github, sha),
+            f"all main commit checks of {head[:7]}",
+            timeout=max(deadline - time.monotonic(), 1),
+        )
+        latest = main_head(github)
+        if latest == head:
+            return head
+        head = latest
+
+
+def release_commit(github, sha):
+    """Publish the version a merged release PR brought to main.
+
+    The merge is the approval: once every check of main passed, the release
+    workflow publishes the version with its changelog section. Dependency
+    releases publish themselves; prereleases and drafts stay manual.
+    """
+    version = github.manifest(sha)[0]["version"]
+    parent = github.api(f"commits/{sha}")["parents"][0]["sha"]
+    if github.manifest(parent)[0]["version"] == version:
+        summary(f"{sha[:7]} keeps version {version}. Nothing to publish.")
+        return
+    pulls = github.api(f"commits/{sha}/pulls") or []
+    if any(pr["head"]["ref"].startswith(DEPENDENCY_BRANCH) for pr in pulls):
+        summary(f"The dependency release of {version} publishes itself.")
+        return
+    try:
+        target = version_tuple(version)
+    except ValueError:
+        summary(f"{version} is a prerelease: publish it with Release integration.")
+        return
+    tag = f"v{version}"
+    releases = github.items("releases?per_page=100")
+    existing = [r for r in releases if r["tag_name"] == tag]
+    if any(not r["draft"] for r in existing):
+        summary(f"{tag} is already published.")
+        return
+    if existing:
+        raise RuntimeError(
+            f"A draft of {tag} is left from an earlier run; delete it and rerun."
+        )
+    if any(release_tuple(r["tag_name"]) > target for r in releases if not r["draft"]):
+        raise RuntimeError(
+            f"{tag} is older than a published release; refusing to publish."
+        )
+    notes = changelog_section(github.text(CHANGELOG, sha), version)
+    if notes is None:
+        raise RuntimeError(
+            f"{CHANGELOG} has no '## {version}' section; add it and rerun."
+        )
+    # The release PR stays out of its own notes, like the dependency version PRs.
+    for pr in pulls:
+        github.api(
+            f"issues/{pr['number']}/labels", method="POST", data={"labels": ["release"]}
+        )
+    head = settled_main(github)
+    if github.manifest(head)[0]["version"] != version:
+        raise RuntimeError(
+            f"Main moved on to another version than {version}; publish it by hand."
+        )
+    github.dispatch(
+        "release.yml",
+        "main",
+        {
+            "version": version,
+            "prerelease": False,
+            "draft": False,
+            "introduction": notes
+            + "\n\nThe generated changelog below lists every pull request.",
+        },
+    )
+    await_release(github, version, False)
 
 
 def run(github):
@@ -557,10 +675,18 @@ if __name__ == "__main__":
         "--verify-commit",
         help="Wait for all main-branch CI checks on this commit, without publishing.",
     )
+    parser.add_argument(
+        "--release-commit",
+        help="Publish the version this main commit brought, once main passed its checks.",
+    )
     args = parser.parse_args()
     try:
         github = GitHub(os.environ["GH_REPO"])
-        if args.verify_commit:
+        if args.release_commit:
+            if not re.fullmatch(r"[0-9a-f]{40}", args.release_commit):
+                parser.error("--release-commit requires a full commit SHA")
+            release_commit(github, args.release_commit)
+        elif args.verify_commit:
             if not re.fullmatch(r"[0-9a-f]{40}", args.verify_commit):
                 parser.error("--verify-commit requires a full commit SHA")
             wait_until(

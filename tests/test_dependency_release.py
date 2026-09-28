@@ -676,3 +676,219 @@ def test_release_job_requires_main_commit_gate():
     assert any(
         '--verify-commit "$GITHUB_SHA"' in step.get("run", "") for step in gate["steps"]
     )
+
+
+# -- a merged release PR publishes its version ------------------------------------
+
+CHANGELOG = """# Changelog
+
+Intro.
+
+## 1.7.0
+
+### New
+
+- **Where a dart really is:** tap it on the board.
+
+## 1.6.0
+
+### New
+
+- Tournaments.
+"""
+
+
+def release_pr(number=96, branch="release/1.7.0"):
+    return {"number": number, "head": {"ref": branch}}
+
+
+def published(tag, draft=False, prerelease=False):
+    return {"tag_name": tag, "draft": draft, "prerelease": prerelease}
+
+
+def merged_release(
+    monkeypatch,
+    *,
+    version="1.7.0",
+    before="1.6.0",
+    pulls=None,
+    releases=None,
+    changelog=CHANGELOG,
+    heads=("merge",),
+    later="1.7.0",
+):
+    """A repository where the commit merge raised the version, and main's checks pass."""
+    github = Mock()
+    versions = {"merge": version, "parent": before, "later": later}
+    github.manifest.side_effect = lambda ref: ({"version": versions[ref]}, "blob")
+    github.text.return_value = changelog
+    github.items.side_effect = lambda path: (
+        [published("v1.6.0")] if releases is None else releases
+    )
+    main = list(heads)
+
+    def api(path, **kwargs):
+        if path == "commits/merge":
+            return {"parents": [{"sha": "parent"}]}
+        if path == "commits/merge/pulls":
+            return [release_pr()] if pulls is None else pulls
+        if path == "git/ref/heads/main":
+            return {"object": {"sha": main.pop(0) if len(main) > 1 else main[0]}}
+        assert path.startswith("issues/"), path
+        return None
+
+    github.api.side_effect = api
+    checked = []
+    monkeypatch.setattr(
+        release, "main_checks_ready", lambda _, sha: checked.append(sha) or True
+    )
+    monkeypatch.setattr(release, "await_release", Mock())
+    return github, checked
+
+
+def test_the_changelog_section_is_the_introduction():
+    assert release.changelog_section(CHANGELOG, "1.7.0") == (
+        "### New\n\n- **Where a dart really is:** tap it on the board."
+    )
+    # The oldest version runs to the end of the file.
+    assert release.changelog_section(CHANGELOG, "1.6.0") == "### New\n\n- Tournaments."
+    assert release.changelog_section(CHANGELOG, "1.8.0") is None
+    assert release.changelog_section("## 1.8.0\n\n## 1.7.0\n", "1.8.0") is None
+    # A heading must match the whole line.
+    assert release.changelog_section("## 1.7.01\n\nOther.\n", "1.7.0") is None
+
+
+def test_a_merged_release_pr_publishes_its_version(monkeypatch):
+    github, checked = merged_release(monkeypatch)
+    release.release_commit(github, "merge")
+    # The release PR leaves its own notes, like the dependency version PRs.
+    github.api.assert_any_call(
+        "issues/96/labels", method="POST", data={"labels": ["release"]}
+    )
+    assert checked == ["merge"]
+    workflow, ref, inputs = github.dispatch.call_args.args
+    assert (workflow, ref) == ("release.yml", "main")
+    assert inputs == {
+        "version": "1.7.0",
+        "prerelease": False,
+        "draft": False,
+        "introduction": "### New\n\n- **Where a dart really is:** tap it on the board."
+        "\n\nThe generated changelog below lists every pull request.",
+    }
+    release.await_release.assert_called_once_with(github, "1.7.0", False)
+    github.text.assert_called_once_with("CHANGELOG.md", "merge")
+
+
+def test_a_prerelease_of_the_version_does_not_hold_it_back(monkeypatch):
+    releases = [published("v1.6.0"), published("v1.7.0-rc.1", prerelease=True)]
+    github, _ = merged_release(monkeypatch, releases=releases)
+    release.release_commit(github, "merge")
+    github.dispatch.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        # The commit keeps the version: nothing to publish.
+        {"before": "1.7.0"},
+        # The dependency release publishes its own version PR.
+        {"pulls": [release_pr(97, "automation/dependency-release-v1.6.1")]},
+        # Prereleases go through Release integration by hand.
+        {"version": "1.8.0-rc.1"},
+        # A published version is never published twice.
+        {"releases": [published("v1.6.0"), published("v1.7.0")]},
+    ],
+)
+def test_merges_that_publish_nothing(monkeypatch, changes):
+    github, checked = merged_release(monkeypatch, **changes)
+    release.release_commit(github, "merge")
+    github.dispatch.assert_not_called()
+    assert checked == []
+    assert not any(
+        item.args[0].startswith("issues/") for item in github.api.call_args_list
+    )
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"releases": [published("v1.7.0", draft=True)]}, "draft of v1.7.0"),
+        ({"releases": [published("v1.8.0")]}, "older than a published release"),
+        ({"changelog": "# Changelog\n\n## 1.6.0\n\n- Old.\n"}, "no '## 1.7.0' section"),
+    ],
+)
+def test_merges_that_cannot_be_published_stop_before_any_change(
+    monkeypatch, changes, message
+):
+    github, checked = merged_release(monkeypatch, **changes)
+    with pytest.raises(RuntimeError, match=message):
+        release.release_commit(github, "merge")
+    github.dispatch.assert_not_called()
+    assert checked == []
+
+
+def test_main_moving_on_waits_for_the_checks_of_its_new_head(monkeypatch):
+    github, checked = merged_release(monkeypatch, heads=("merge", "later", "later"))
+    release.release_commit(github, "merge")
+    assert checked == ["merge", "later"]
+    github.dispatch.assert_called_once()
+
+
+def test_main_moving_on_to_another_version_is_refused(monkeypatch):
+    github, _ = merged_release(
+        monkeypatch, heads=("merge", "later", "later"), later="1.7.1"
+    )
+    with pytest.raises(RuntimeError, match="another version"):
+        release.release_commit(github, "merge")
+    github.dispatch.assert_not_called()
+
+
+def test_failing_main_checks_block_the_release(monkeypatch):
+    github, _ = merged_release(monkeypatch)
+
+    def failing(_, sha):
+        raise RuntimeError("Main check test: failure; release blocked.")
+
+    monkeypatch.setattr(release, "main_checks_ready", failing)
+    with pytest.raises(RuntimeError, match="release blocked"):
+        release.release_commit(github, "merge")
+    github.dispatch.assert_not_called()
+
+
+def test_release_waits_for_publication_of_the_stable_channel():
+    github = Mock()
+    github.items.return_value = [
+        dict(published("v1.7.0"), html_url="https://example.test/release")
+    ]
+    github.manifest.return_value = ({"version": "1.7.0"}, "blob")
+    release.await_release(github, "1.7.0", False)
+    assert github.manifest.call_args == call("v1.7.0")
+    github.items.return_value = [dict(published("v1.7.0", prerelease=True))]
+    with pytest.raises(RuntimeError, match="channel"):
+        release.await_release(github, "1.7.0", False)
+
+
+def test_release_on_merge_workflow_runs_only_for_versions_on_main():
+    path = Path(__file__).parents[1] / ".github/workflows/release-on-merge.yml"
+    workflow = yaml.safe_load(path.read_text())
+    # PyYAML reads the key "on" as True.
+    triggers = workflow[True]
+    assert triggers["push"] == {
+        "branches": ["main"],
+        "paths": ["custom_components/autodarts/manifest.json"],
+    }
+    assert set(triggers) == {"push", "workflow_dispatch"}
+    assert workflow["permissions"] == {"contents": "read"}
+    assert workflow["concurrency"]["cancel-in-progress"] is False
+    job = workflow["jobs"]["publish"]
+    assert "refs/heads/main" in job["if"]
+    assert job["permissions"] == {
+        "contents": "read",
+        "actions": "write",
+        "checks": "read",
+        "pull-requests": "write",
+    }
+    steps = job["steps"]
+    assert steps[0]["with"] == {"persist-credentials": False}
+    assert steps[-1]["run"].endswith('--release-commit "$COMMIT"')
+    assert steps[-1]["env"]["COMMIT"] == "${{ inputs.commit || github.sha }}"
