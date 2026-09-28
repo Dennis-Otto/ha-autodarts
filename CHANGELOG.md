@@ -2,6 +2,39 @@
 
 All notable changes of the Autodarts integration. The complete notes of every version, with each pull request, are on the [releases page](https://github.com/Dennis-Otto/ha-autodarts/releases); what comes next is in the [roadmap](docs/roadmap.md). Versions follow [Semantic Versioning](https://semver.org/).
 
+## 1.8.0
+
+### New
+
+- **Correct darts on the live card:** a tap on a dart of the visit opens the scoreboard's pad below the darts, with its keys, its board, the loupe and the zoom. A pencil at the top right marks every dart a tap corrects. The new option `corrections` switches it off.
+- **Loupe and zoom on touch screens:** on a small screen, the board of a correction opens zoomed in on where the board saw the dart. A finger held on the board shows a loupe above it and sets the dart where it lets go; two fingers zoom and move the board. A round magnifier switches between the zoomed part and the whole board. The loupe and the fingers work on every touch screen, a 24 or 27 inch touch monitor too.
+- **Every double hit counts:** the doubles card counts every double any dart hits, in every game and in plain training, next to the rate where darts were aimed at a double. The doubles sensor carries them as `landed`.
+
+### Improved
+
+- **Phones, tablets and touch monitors:** every card fits and reads well from a 360 pixel phone to a 27 inch touch monitor, upright and on its side. The full-height scoreboard stays one screen high, the board to tap fills the room the scores leave, keys grow on large screens, and every control is at least 40 pixels for a finger on any touch screen, also with a mouse plugged in.
+- **Clear at a glance:** a pencil shows what a tap edits, an arrow what a tap opens; static parts such as the player tiles, the visit's total, the status and the beds of a route no longer look like buttons. The second tap that confirms is red on every card, the pad says why it waits while the bot throws, and the new game screen says why a player sits out. States change with calm animations, and not at all where the device asks for less motion.
+- **The badge gallery** shows each player's badges earned and the three nearest goals; *All 18 badges* opens the rest.
+- **Trends** run on through weeks without darts, and a figure without two halves to compare shows no arrow.
+- **Grids** keep a tile from standing alone in a last row: four players stand two by two rather than three and one.
+
+### Fixed
+
+- **The scoreboard on a phone** was cut off at the bottom, and the new game screen's start bar showed what scrolled beneath it.
+- **The positions heatmap** drew darts that landed beside the board; only darts on the board show (#112).
+- **The doubles card** stayed empty after a game with doubles in it.
+- **On a phone on its side,** the board to tap was only 160 pixels high, and a zoomed board drew over the keys.
+- **A finger on the board to tap** could outlast a pad that closed under it, and later boards no longer redrew.
+
+### Changed
+
+- **Shorter entity names** where Home Assistant's rows cut them: *Distortion correction* instead of *Automatic distortion correction* in every language, and in German *Übungsspiel neues Match*, *Übungsspiel neues Leg* and *Turnier Dauer der Zusammenfassung*. Existing entity ids stay; a new installation names the distortion switch `switch.<board>_distortion_correction`.
+- **Taps that opened details unannounced:** the training card's tiles open nothing any more, *Details* below them does; the live card's board is a picture. The status card's own calibration reads *Calibrate all*.
+
+### Documentation
+
+- The loupe, the zoom and touch monitors, correcting on the live card with a new animation, and the UI building blocks in the development guide.
+
 ## 1.7.1
 
 ### Fixed
