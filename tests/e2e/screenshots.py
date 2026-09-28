@@ -766,6 +766,90 @@ def correct_board_animation(page: Page) -> None:
     game(page, "off")
 
 
+# The part of the pad's board in sight, and where the board is on the screen.
+BOARD_VIEW = """
+(el) => {
+  const [x, y, size] = el.getAttribute('viewBox').split(' ').map(Number);
+  const rect = el.getBoundingClientRect();
+  return { x, y, size, left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+}
+"""
+
+
+def board_point(view: dict, x: float, y: float) -> tuple[float, float]:
+    """Where a position as the board reports it is on the screen, zoomed in or not."""
+    scale = min(view["width"], view["height"]) / view["size"]
+    middle = (view["x"] + view["size"] / 2, view["y"] + view["size"] / 2)
+    return (
+        view["left"] + view["width"] / 2 + (x * 170 - middle[0]) * scale,
+        view["top"] + view["height"] / 2 + (-y * 170 - middle[1]) * scale,
+    )
+
+
+def correct_loupe_animation(page: Page) -> None:
+    """The misread single 20 on a phone: the board opens zoomed in on where the board
+    saw the dart, and a finger slides the loupe up to the single 20 and lets go."""
+    pull_darts()
+    page.evaluate(SET_NAME, [0, "Alex"])
+    players(page, 1)
+    game(page, "501")
+    context = own_context(
+        page,
+        viewport={"width": 393, "height": 852},
+        device_scale_factor=2,
+        is_mobile=True,
+        has_touch=True,
+    )
+    phone = context.new_page()
+    phone.goto(f"{HA}/autodarts-auto/scoreboard")
+    wait_card(phone, "r.querySelectorAll('.player').length === 1", SCOREBOARD, 60000)
+    phone.wait_for_timeout(1500)
+    recorder = Recorder(phone, SCOREBOARD)
+    misread = {**at("T20"), "coords": {"x": 0.03, "y": 0.625}}
+    darts = [at("T20"), misread, at("T20")]
+    for count in range(1, 4):
+        control({"event": "Throw detected", "throws": darts[:count]})
+        phone.wait_for_timeout(350)
+    wait_card(
+        phone, "r.querySelector('.sum .value')?.textContent === '180'", SCOREBOARD
+    )
+    recorder.shot(1400)
+    card = phone.locator(SCOREBOARD)
+    tap(phone, recorder, card.locator("[data-dart='2']"), 900)
+    tap(phone, recorder, card.locator("[data-pad='board']"), 1600)
+    # The finger lands a little off and slides up to the single 20, where it rests
+    # and lets go: the loupe above it shows where the dart goes.
+    view = card.locator(".pad-board").evaluate(BOARD_VIEW)
+    path = [board_point(view, 0.06, y) for y in (0.66, 0.7, 0.75, 0.8)]
+    session = context.new_cdp_session(phone)
+
+    def finger(kind: str, point: tuple[float, float] | None) -> None:
+        points = [{"x": point[0], "y": point[1], "id": 0}] if point else []
+        session.send("Input.dispatchTouchEvent", {"type": kind, "touchPoints": points})
+        phone.evaluate(UNTAP)
+        if point:
+            phone.evaluate(TAP, list(point))
+
+    finger("touchStart", path[0])
+    phone.wait_for_timeout(200)
+    recorder.shot(900)
+    for index, point in enumerate(path[1:], 1):
+        finger("touchMove", point)
+        phone.wait_for_timeout(150)
+        recorder.shot(1600 if index == len(path) - 1 else 350)
+    finger("touchEnd", None)
+    session.detach()
+    wait_card(
+        phone, "r.querySelector('.sum .value')?.textContent === '140'", SCOREBOARD
+    )
+    phone.wait_for_timeout(300)
+    recorder.shot(2400)
+    recorder.save("correct-dart-loupe", width=480)
+    context.close()
+    pull_darts()
+    game(page, "off")
+
+
 def keypad_screen(page: Page) -> None:
     """The keypad for darts entered by hand, with two darts of the visit entered."""
     bot_match(page, 60, 2)
@@ -2185,6 +2269,7 @@ def main() -> None:
         bot_animation(page)
         correct_animation(page)
         correct_board_animation(page)
+        correct_loupe_animation(page)
         games.close()
 
         # The new games and formats on the scoreboard.

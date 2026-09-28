@@ -22,8 +22,9 @@ LOADS = 5
 GENERATION = int(os.environ.get("BOARD_MANAGER", "1"))
 # Writable folder for screenshots of a failed step, mounted by browser.sh.
 ARTIFACTS = os.environ.get("BROWSER_ARTIFACTS", "")
-# Steps to run instead of all, comma-separated, such as "phone screens" while working
-# on a screen; browser.sh passes BROWSER_STEPS on.
+# Steps to run instead of all, comma-separated, each a step's name or its beginning,
+# such as "touch screens" or "correcting" while working on a screen; browser.sh passes
+# BROWSER_STEPS on.
 ONLY = {
     name.strip()
     for name in os.environ.get("BROWSER_STEPS", "").split(",")
@@ -1302,13 +1303,15 @@ def tablet_screen(browser: Browser) -> None:
     page.close()
 
 
-# Phones as players hold them: the companion app on an iPhone passes the status bar and
-# the home indicator on as safe areas (top, bottom), a small Android phone shows the
-# dashboard in its browser, and an iPhone on its side keeps the home indicator below.
-PHONES = (
+# Touch screens as players use them: the companion app on an iPhone passes the status
+# bar and the home indicator on as safe areas (top, bottom), a small Android phone shows
+# the dashboard in its browser, an iPhone on its side keeps the home indicator below, and
+# a 24 inch touch monitor stands beside the board, as many players have it.
+TOUCH_SCREENS = (
     ("iPhone", {"width": 393, "height": 852}, (59, 34)),
     ("small Android phone", {"width": 360, "height": 640}, (0, 0)),
     ("iPhone in landscape", {"width": 852, "height": 393}, (0, 21)),
+    ("24-inch touch monitor", {"width": 1920, "height": 1080}, (0, 0)),
 )
 # Four players whose long names have to fit a phone.
 LONG_NAMES = ["Maximilian", "Anneliese-Charlotte", "Bartholomäus", "Konstantin"]
@@ -1394,25 +1397,97 @@ PHONE_WIDTH = """
   return { cards: cards.length, wide, cut };
 }
 """
-# The middle of the treble 20 on the board of the pad, in millimetres from the bull.
-TREBLE_20 = -102
+# The middle of the treble 20 and a spot in the single 20 beside it, in millimetres
+# from the bull with y up, as positions count.
+TREBLE_20_SPOT = (0, 102)
+SINGLE_20_SPOT = (15, 60)
+# The part of the board to tap in sight, and where the board is on the screen.
+BOARD_VIEW = """
+(el) => {
+  const [x, y, size] = el.getAttribute('viewBox').split(' ').map(Number);
+  const rect = el.getBoundingClientRect();
+  return { x, y, size, left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+}
+"""
+LOUPE_SHOWN = (
+    f"() => !({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector('.loupe').hidden"
+)
 
 
-def phone_screens(browser: Browser) -> None:
-    """The scoreboard, the new game screen, the keypad and the training card on phones,
-    driven by taps, in German with its long words."""
-    for phone, size, insets in PHONES:
-        phone_screen(browser, phone, size, insets)
+# What spoils the pad with its board: a key that something else covers where a
+# finger taps it, and a board that draws beyond its box when zoomed in, over the keys
+# and past the edge of the card.
+PAD_PROBLEMS = f"""
+() => {{
+  const root = ({SCOREBOARD_CARDS})()[0].shadowRoot;
+  const covered = [...root.querySelectorAll('.pad button')]
+    .filter((key) => {{
+      const rect = key.getBoundingClientRect();
+      const hit = root.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      return rect.width > 0 && !key.contains(hit);
+    }})
+    .map((key) => `covered: ${{key.textContent.trim()}}`);
+  const board = root.querySelector('.pad-board');
+  const overflow = board && getComputedStyle(board).overflow;
+  return [...covered, ...(board && !['hidden', 'clip'].includes(overflow) ? [`board drawn beyond its box: ${{overflow}}`] : [])];
+}}
+"""
 
 
-def phone_screen(
-    browser: Browser, phone: str, size: dict[str, int], insets: tuple[int, int]
+def board_point(view: dict, spot: tuple[float, float]) -> tuple[float, float]:
+    """Where a spot of the board in millimetres is on the screen, zoomed in or not."""
+    scale = min(view["width"], view["height"]) / view["size"]
+    middle_x = view["x"] + view["size"] / 2
+    middle_y = view["y"] + view["size"] / 2
+    return (
+        view["left"] + view["width"] / 2 + (spot[0] - middle_x) * scale,
+        view["top"] + view["height"] / 2 + (-spot[1] - middle_y) * scale,
+    )
+
+
+def fingers(page: Page, *moves: list[tuple[float, float]]) -> bool:
+    """Fingers on the touch screen, each from its first point to its last, as the
+    browser gets them from a real screen; whether the loupe showed on the way. They
+    rest on their last points before they let go, as a finger does that reads the
+    loupe: one that leaves still moving flings, and the next tap only stops the fling."""
+    session = page.context.new_cdp_session(page)
+
+    def send(kind: str, points: list[tuple[float, float]]) -> None:
+        session.send(
+            "Input.dispatchTouchEvent",
+            {
+                "type": kind,
+                "touchPoints": [
+                    {"x": x, "y": y, "id": index} for index, (x, y) in enumerate(points)
+                ],
+            },
+        )
+
+    send("touchStart", [move[0] for move in moves])
+    send("touchMove", [move[-1] for move in moves])
+    shown = bool(page.evaluate(LOUPE_SHOWN))
+    page.wait_for_timeout(120)
+    send("touchEnd", [])
+    session.detach()
+    return shown
+
+
+def touch_screens(browser: Browser) -> None:
+    """The scoreboard, the new game screen, the keypad and the training card on phones
+    and a touch monitor, driven by taps, in German with its long words."""
+    for device, size, insets in TOUCH_SCREENS:
+        touch_screen(browser, device, size, insets)
+
+
+def touch_screen(
+    browser: Browser, device: str, size: dict[str, int], insets: tuple[int, int]
 ) -> None:
+    phone = size["width"] < 1000
     context = browser.new_context(
         locale="de-DE",
         viewport=size,
-        device_scale_factor=3,
-        is_mobile=True,
+        device_scale_factor=3 if phone else 1,
+        is_mobile=phone,
         has_touch=True,
     )
     page = context.new_page()
@@ -1421,50 +1496,54 @@ def phone_screen(
     card = "autodarts-scoreboard-card"
 
     def fits(screen: str, targets: bool = True, high: bool = True) -> None:
-        """Nothing wider than the phone, every control big enough for a finger, and a
+        """Nothing wider than the screen, every control big enough for a finger, and a
         scoreboard one screen high above the home indicator; the new game screen
         scrolls instead."""
         layout = page.evaluate(TABLET_LAYOUT)
         check(
             layout["width"] <= layout["room"] + 1
             and layout["right"] <= layout["viewport"] + 1,
-            f"{phone}: {screen} is wider than the phone: {layout}",
+            f"{device}: {screen} is wider than the screen: {layout}",
         )
-        check(not targets or layout["targets"], f"{phone}: {screen} has no targets")
+        check(not targets or layout["targets"], f"{device}: {screen} has no targets")
         check(
             not layout["small"],
-            f"{phone}: {screen}: targets below 44 px {layout['small']}",
+            f"{device}: {screen}: targets below 44 px {layout['small']}",
         )
         fit = page.evaluate(PHONE_FIT)
         check(
             not high
             or (fit["bottom"] <= fit["free"] + 1 and fit["height"] <= fit["room"] + 1),
-            f"{phone}: {screen} runs below the screen: {fit}",
+            f"{device}: {screen} runs below the screen: {fit}",
         )
 
     def start_bar(screen: str, buttons: list[str]) -> None:
         bar = page.evaluate(START_BAR)
-        check(bar["sticky"] == "sticky", f"{phone}: {screen}: the bar scrolls away")
+        check(bar["sticky"] == "sticky", f"{device}: {screen}: the bar scrolls away")
         # The card's colour over the page's: nothing shines through a see-through card.
         check(
             "gradient" in bar["layers"] and not bar["base"].startswith("rgba("),
-            f"{phone}: {screen}: the bar shows what scrolls beneath it: {bar}",
+            f"{device}: {screen}: the bar shows what scrolls beneath it: {bar}",
         )
         check(
             max(bar["edges"]) <= 1,
-            f"{phone}: {screen}: the bar does not span the card: {bar}",
+            f"{device}: {screen}: the bar does not span the card: {bar}",
         )
         check(
             bar["start"][0] >= 0 and bar["start"][1] <= bar["free"] + 1,
-            f"{phone}: {screen}: the start is out of reach: {bar}",
+            f"{device}: {screen}: the start is out of reach: {bar}",
         )
-        check(bar["buttons"] == buttons, f"{phone}: {screen}: buttons {bar['buttons']}")
+        check(
+            bar["buttons"] == buttons, f"{device}: {screen}: buttons {bar['buttons']}"
+        )
 
     def wide(view: str) -> None:
         state = page.evaluate(PHONE_WIDTH)
-        check(state["cards"], f"{phone}: no cards in the {view} view")
-        check(not state["wide"], f"{phone}: {view} view wider than the phone: {state}")
-        check(not state["cut"], f"{phone}: {view} view cuts names short: {state}")
+        check(state["cards"], f"{device}: no cards in the {view} view")
+        check(
+            not state["wide"], f"{device}: {view} view wider than the screen: {state}"
+        )
+        check(not state["cut"], f"{device}: {view} view cuts names short: {state}")
 
     def wait_players(count: int) -> None:
         page.wait_for_function(
@@ -1497,7 +1576,7 @@ def phone_screen(
     for index in range(games.count()):
         games.nth(index).tap()
         pressed = games.nth(index).get_attribute("aria-pressed")
-        check(pressed == "true", f"{phone}: game {index} not chosen by a tap")
+        check(pressed == "true", f"{device}: game {index} not chosen by a tap")
     players = page.locator(f"{card} .lobby-player [data-lobby='remove']")
     while players.count():
         players.first.tap()
@@ -1537,8 +1616,10 @@ def phone_screen(
         control({"status": "Throw", "event": "Takeout finished", "throws": []})
     game_off()
 
-    # The keypad and its board: a tap on the treble 20 enters it. The keypad is a
-    # choice of the card; the demo's keypad view has it.
+    # The keypad and its board, which opens whole for darts entered by hand: two
+    # fingers zoom in, and a finger slides with the loupe from the single 20 to the
+    # treble 20 and enters it where it lets go. The keypad is a choice of the card; the
+    # demo's keypad view has it.
     page.goto(f"{HA}/autodarts-demo/keypad")
     page.locator(f"{card} .main").wait_for(timeout=30000)
     page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
@@ -1549,15 +1630,22 @@ def phone_screen(
     board = page.locator(f"{card} .pad-board")
     board.wait_for(timeout=15000)
     fits("the board to tap")
-    box = board.bounding_box()
-    check(box is not None, f"{phone}: the board to tap is not laid out")
-    scale = min(box["width"], box["height"]) / 460
-    board.tap(
-        position={
-            "x": box["width"] / 2,
-            "y": box["height"] / 2 + TREBLE_20 * scale,
-        }
+    view = board.evaluate(BOARD_VIEW)
+    check(view["size"] == 460, f"{device}: the keypad's board opens zoomed in: {view}")
+    middle = board_point(view, (0, 0))
+    fingers(
+        page,
+        [(middle[0] - 20, middle[1]), (middle[0] - 40, middle[1])],
+        [(middle[0] + 20, middle[1]), (middle[0] + 40, middle[1])],
     )
+    zoomed = board.evaluate(BOARD_VIEW)
+    check(zoomed["size"] < 300, f"{device}: two fingers did not zoom in: {zoomed}")
+    problems = page.evaluate(PAD_PROBLEMS)
+    check(not problems, f"{device}: the board zoomed in spoils the pad: {problems}")
+    shown = fingers(
+        page, [board_point(zoomed, SINGLE_20_SPOT), board_point(zoomed, TREBLE_20_SPOT)]
+    )
+    check(shown, f"{device}: no loupe while aiming")
     page.wait_for_function(
         f"() => ({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector('.sum .value')?.textContent === '60'",
         timeout=15000,
@@ -1565,7 +1653,40 @@ def phone_screen(
     page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
     game_off()
 
-    # The other views: every card as wide as the phone, the tiles' names whole.
+    # A dart the board read wrong: on a small screen its board opens zoomed in on where the
+    # board saw it, and a tap on the treble 20 corrects it.
+    page.evaluate(CALL_ACTION, ["start_game", {"game": "301", "players": ["Alex"]}])
+    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    # The game has booked both darts before a finger picks the second one.
+    page.wait_for_function(
+        f"""() => {{
+          const state = ({SCOREBOARD_STATE})();
+          return state.darts.join() === 'T20,S20,–' && state.players[0]?.[1] === '221';
+        }}""",
+        timeout=15000,
+    )
+    page.locator(f"{card} [data-dart='2']").tap()
+    board.wait_for(timeout=15000)
+    view = board.evaluate(BOARD_VIEW)
+    # A small screen: a narrow card, or a low screen as a phone on its side.
+    small = min(size["width"], size["height"]) < 600
+    check(
+        (view["size"] < 460) == small,
+        f"{device}: the board of a correction opens {view['size']} mm wide",
+    )
+    problems = page.evaluate(PAD_PROBLEMS)
+    check(
+        not problems, f"{device}: the board of a correction spoils the pad: {problems}"
+    )
+    x, y = board_point(view, TREBLE_20_SPOT)
+    page.touchscreen.tap(x, y)
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_STATE})().darts[1] === 'T20'", timeout=15000
+    )
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    game_off()
+
+    # The other views: every card as wide as the screen, the tiles' names whole.
     for view in ("live", "training", "players"):
         page.goto(f"{HA}/autodarts-auto/{view}")
         page.wait_for_function(
@@ -1575,7 +1696,7 @@ def phone_screen(
         page.wait_for_timeout(1500)
         wide(view)
     errors = page_errors(page, [])
-    check(not errors, f"{phone}: console problems: {errors}")
+    check(not errors, f"{device}: console problems: {errors}")
     context.close()
 
 
@@ -1589,7 +1710,9 @@ SCREENS = (
     ("tablet", {"width": 768, "height": 1024}, (24, 20), True),
     ("tablet on its side", {"width": 1024, "height": 768}, (24, 20), True),
     ("laptop", {"width": 1280, "height": 800}, (0, 0), False),
-    ("large monitor", {"width": 1920, "height": 1080}, (0, 0), False),
+    # Many players have a 24 or 27 inch touch screen beside the board.
+    ("24-inch touch monitor", {"width": 1920, "height": 1080}, (0, 0), True),
+    ("27-inch touch monitor", {"width": 2560, "height": 1440}, (0, 0), True),
 )
 # The views of the generated dashboard; those of the demo dashboard are read from it.
 AUTO_VIEWS = ("live", "scoreboard", "training", "players", "board")
@@ -1614,8 +1737,9 @@ CARDS_DRAWN = """
 }
 """
 # What a player would see as broken on this screen, card by card: a card wider than the
-# screen, text cut short or cut off, text on top of other text, a control too small for
-# a finger on a touch screen, and a full-height scoreboard running below the screen.
+# screen, text cut short or cut off, text on top of other text or running over the edge
+# of its tile or button, text too small to read, a control too small for a finger on a
+# touch screen, and a full-height scoreboard running below the screen.
 # Text beneath a bar that stays in place is hidden by it and does not count as covered.
 LAYOUT_PROBLEMS = """
 (touch) => {
@@ -1646,6 +1770,18 @@ LAYOUT_PROBLEMS = """
   });
   const area = (r) => Math.max(0, r.right - r.left) * Math.max(0, r.bottom - r.top);
   const words = (el) => el.textContent.trim().replace(/\\s+/g, ' ').slice(0, 40);
+  // The tile or button a text sits in: the nearest element with a frame or a fill that
+  // shows; a button plain as text has no edge to run over.
+  const boxOf = (el, frame) => {
+    for (let e = el; e && e !== frame; e = e.parentElement) {
+      const style = getComputedStyle(e);
+      const fill = style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.backgroundColor !== 'transparent';
+      const border = parseFloat(style.borderLeftWidth) > 0 && style.borderLeftStyle !== 'none'
+        && !style.borderLeftColor.endsWith(', 0)') && style.borderLeftColor !== 'transparent';
+      if (border || fill) return e;
+    }
+    return null;
+  };
   for (const card of cards) {
     const root = card.shadowRoot;
     const frame = root.querySelector('ha-card');
@@ -1685,11 +1821,18 @@ LAYOUT_PROBLEMS = """
       const style = getComputedStyle(el);
       // Text only for screen readers.
       if (style.clipPath === 'inset(50%)' || style.clip === 'rect(0px, 0px, 0px, 0px)') continue;
+      if (parseFloat(style.fontSize) < 11) {
+        problems.push(`${label}: "${words(el)}" is ${style.fontSize}, too small to read`);
+      }
+      const tile = boxOf(el, frame)?.getBoundingClientRect();
       range.selectNodeContents(node);
       for (const rect of range.getClientRects()) {
         if (rect.width < 2 || rect.height < 2) continue;
         const { visible, cut } = clip(el, rect);
         if (cut && style.textOverflow !== 'ellipsis') problems.push(`${label}: "${words(el)}" is cut off`);
+        if (tile && (rect.left < tile.left + 1 || rect.right > tile.right - 1)) {
+          problems.push(`${label}: "${words(el)}" runs over the edge of its box`);
+        }
         if (area(visible) < 4) continue;
         // The glyphs fill the middle of a text's box; large numbers have a box much
         // higher than what they show.
@@ -1817,7 +1960,26 @@ def screen_views(
     page.evaluate(f"() => {root}.querySelector(\"[data-pad='board']\").click()")
     page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
     look("scoreboard-board-to-tap")
+    found.extend(
+        f"{screen} · scoreboard-board-to-tap: {problem}"
+        for problem in page.evaluate(PAD_PROBLEMS)
+    )
     page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    # A dart the board read wrong and the board to correct it: zoomed in on where the
+    # board saw it on a small screen, whole on a large one.
+    page.evaluate(CALL_ACTION, ["start_game", {"game": "301", "players": ["Alex"]}])
+    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_STATE})().darts.join() === 'T20,S20,–'", timeout=15000
+    )
+    page.evaluate(f"() => {root}.querySelector(\"[data-dart='2']\").click()")
+    page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
+    look("scoreboard-correction-board")
+    found.extend(
+        f"{screen} · scoreboard-correction-board: {problem}"
+        for problem in page.evaluate(PAD_PROBLEMS)
+    )
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
     page.evaluate(
         CALL_ACTION, ["start_game", {"game": "cricket", "players": LONG_NAMES}]
@@ -2050,7 +2212,7 @@ def main() -> None:
             ("correcting, the keypad and the bot", lambda: play_comfort(browser)),
             ("tournament", lambda: tournament(browser)),
             ("tablet screen", lambda: tablet_screen(browser)),
-            ("phone screens", lambda: phone_screens(browser)),
+            ("touch screens", lambda: touch_screens(browser)),
             ("every screen size", lambda: screens(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
@@ -2085,8 +2247,14 @@ def main() -> None:
             ("light theme", lambda: light_theme(browser)),
             ("languages", lambda: languages(browser)),
         ]
+        unknown = {
+            wanted
+            for wanted in ONLY
+            if not any(name.startswith(wanted) for name, _ in steps)
+        }
+        check(not unknown, f"BROWSER_STEPS names no step: {sorted(unknown)}")
         for name, step in steps:
-            if ONLY and name not in ONLY:
+            if ONLY and not any(name.startswith(wanted) for wanted in ONLY):
                 continue
             # A failure then names the step, not only a timeout deep in Playwright.
             print(f"Browser step: {name}", flush=True)
@@ -2105,7 +2273,7 @@ def main() -> None:
         "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
         "match summary, its caller, new game screen, a corrected dart, the keypad "
         "and a match against the bot, a tournament, the screens on an 800 x 480 "
-        "tablet and idle mode with reduced motion, phones driven by taps, every "
+        "tablet and idle mode with reduced motion, touch screens driven by taps, every "
         "view on eight screen sizes both ways round, the generated "
         "dashboard, the players export, all seven card forms, the strategy editor, "
         "light theme and the cards and entity texts in Dutch, French and Spanish."

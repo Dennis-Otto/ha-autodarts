@@ -660,7 +660,12 @@ test("the full-height scoreboard fits the screen, lays out a portrait tablet and
   has(/--ad-accent-fill: color-mix\(in srgb, var\(--ad-accent\) 70%, #000\);/);
   has(/\.bed:first-child \{ color: #fff; background: var\(--ad-accent-fill\); \}/);
   has(/@media \(forced-colors: active\) \{\s*\[aria-pressed="true"\], \[aria-checked="true"\] \{ outline: 3px solid Highlight;/);
-  has(/@media \(pointer: coarse\) \{ \.lobby-toggle, \.caller-toggle \{ min-height: 40px; \} \}/);
+  // Every touch screen, also a large one beside a mouse, gets controls for a finger.
+  has(/@media \(any-pointer: coarse\) \{ \.lobby-toggle, \.caller-toggle \{ min-height: 40px; \} \}/);
+  assert.doesNotMatch(style, /\(pointer: coarse\)/);
+  // The darts of the visit grow with their own tiles, also when narrow beside a pad.
+  has(/\.visit \.dart \{ container-type: inline-size; \}/);
+  has(/\.dart \.segment \{ font-size: clamp\(16px, 24cqi, 48px\);/);
   assert.doesNotMatch(style, /opacity: \.85/);
 });
 
