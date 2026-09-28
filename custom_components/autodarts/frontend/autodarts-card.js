@@ -8194,7 +8194,7 @@ const DOUBLES_CSS = `${BASE_CSS}
   .ring path { stroke: var(--ha-card-background, var(--card-background-color, #1c1c1c)); stroke-width: 1.5; }
   .double-list { display: grid; gap: 6px; }
   .double {
-    display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto auto 3.4em; gap: 10px; align-items: center;
+    display: grid; grid-template-columns: 3.4em minmax(0, 1fr) 3.2em 4.4em 3.4em; gap: 10px; align-items: center;
     font-variant-numeric: tabular-nums;
   }
   .double .bed {
@@ -8210,8 +8210,9 @@ const DOUBLES_CSS = `${BASE_CSS}
     background: color-mix(in srgb, var(--primary-text-color) 10%, transparent);
   }
   .double .bar i { display: block; height: 100%; border-radius: inherit; }
-  .double .landed { font-size: 13px; font-weight: 700; }
-  .double .count { font-size: 12px; color: var(--secondary-text-color); }
+  /* Fixed columns keep the bars of every row equally long. */
+  .double .landed { font-size: 13px; font-weight: 700; text-align: right; }
+  .double .count { font-size: 12px; color: var(--secondary-text-color); text-align: right; }
   .double .rate { font-size: 13px; font-weight: 700; text-align: right; }
 `;
 
