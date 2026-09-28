@@ -7915,16 +7915,17 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     .scoreboard.full .pad.on-board > .pad-board { flex: 1 1 0; min-height: 160px; width: 100%; height: auto; aspect-ratio: auto; }
   }
   /* A phone on its side: the pad takes the right half from the top to the bottom, its
-     numbers in two rows of ten as on a large screen, or in more rows where ten keys
-     would be too narrow for a finger. */
-  @media (orientation: landscape) and (max-height: 500px) {
+     numbers in two rows of ten as on a large screen, or in three rows of seven where ten
+     keys would be too narrow for a finger. */
+  @media (orientation: landscape) and (max-height: 440px) {
     .scoreboard.full.with-pad {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       grid-template-areas: "header pad" "banner pad" "main pad" "visit pad";
     }
-    .scoreboard.full.with-pad > .pad-area { align-self: stretch; overflow-y: auto; }
+    .scoreboard.full.with-pad > .pad-area { align-self: stretch; overflow-y: auto; container-type: inline-size; }
     .scoreboard.full.with-pad .pad-head .section-label { flex-basis: 100%; }
-    .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); }
+    .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    @container (min-width: 396px) { .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
     .scoreboard.full.with-pad :is(.pad, .pad-numbers) { gap: 4px; }
     .scoreboard.full.with-pad .pad button { min-height: 40px; padding: 0 4px; }
     .scoreboard.full.with-pad .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
@@ -7938,7 +7939,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     .scoreboard.full.with-pad .pad.on-board > .pad-extra { grid-area: extra; grid-template-columns: minmax(0, 1fr); }
     .scoreboard.full.with-pad .pad.on-board > .pad-hint { grid-area: hint; text-align: start; }
     .scoreboard.full.with-pad .pad.on-board > .pad-board {
-      grid-area: board; width: min(calc(100dvh - var(--ad-taken) - 24px), 30cqi); margin: 0;
+      grid-area: board; width: min(calc(100dvh - var(--ad-taken) - 24px), 62cqi); margin: 0;
     }
   }
   /* Little room for the scores, as beside a pad on a phone: each player on one line, the

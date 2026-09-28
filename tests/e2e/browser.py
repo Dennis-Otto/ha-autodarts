@@ -1458,9 +1458,7 @@ def phone_screen(
             bar["start"][0] >= 0 and bar["start"][1] <= bar["free"] + 1,
             f"{phone}: {screen}: the start is out of reach: {bar}",
         )
-        check(
-            bar["buttons"] == buttons, f"{phone}: {screen}: buttons {bar['buttons']}"
-        )
+        check(bar["buttons"] == buttons, f"{phone}: {screen}: buttons {bar['buttons']}")
 
     def wide(view: str) -> None:
         state = page.evaluate(PHONE_WIDTH)
@@ -1527,7 +1525,9 @@ def phone_screen(
 
     # Four players with long names, in X01 and in Cricket.
     for game in ("501", "cricket"):
-        page.evaluate(CALL_ACTION, ["start_game", {"game": game, "players": LONG_NAMES}])
+        page.evaluate(
+            CALL_ACTION, ["start_game", {"game": game, "players": LONG_NAMES}]
+        )
         if game == "501":
             wait_players(4)
         else:
@@ -1819,7 +1819,9 @@ def screen_views(
     look("scoreboard-board-to-tap")
     page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
-    page.evaluate(CALL_ACTION, ["start_game", {"game": "cricket", "players": LONG_NAMES}])
+    page.evaluate(
+        CALL_ACTION, ["start_game", {"game": "cricket", "players": LONG_NAMES}]
+    )
     page.wait_for_function(f"() => {root}.querySelector('.cricket')", timeout=15000)
     control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
     look("scoreboard-cricket-four-players")
@@ -2103,7 +2105,8 @@ def main() -> None:
         "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
         "match summary, its caller, new game screen, a corrected dart, the keypad "
         "and a match against the bot, a tournament, the screens on an 800 x 480 "
-        "tablet and idle mode with reduced motion, the generated "
+        "tablet and idle mode with reduced motion, phones driven by taps, every "
+        "view on eight screen sizes both ways round, the generated "
         "dashboard, the players export, all seven card forms, the strategy editor, "
         "light theme and the cards and entity texts in Dutch, French and Spanish."
     )

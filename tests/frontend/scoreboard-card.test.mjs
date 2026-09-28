@@ -641,7 +641,7 @@ test("the full-height scoreboard fits the screen, lays out a portrait tablet and
   // Little room for the scores: a line per player; a phone on its side keeps the pad
   // beside them from the top to the bottom.
   has(/@container \(max-height: 200px\) \{\s*\.scoreboard\.full \.players \{ gap: 6px; \}/);
-  has(/@media \(orientation: landscape\) and \(max-height: 500px\) \{\s*\.scoreboard\.full\.with-pad \{/);
+  has(/@media \(orientation: landscape\) and \(max-height: 440px\) \{\s*\.scoreboard\.full\.with-pad \{/);
   has(/grid-template-areas: "header pad" "banner pad" "main pad" "visit pad";/);
   has(/\.scoreboard\.full:not\(\.choosing\) \.main \{\s*flex: 1 1 0; container-type: size; overflow-y: auto; justify-content: safe center;/);
   // The numbers take the width and the height left; the pad sits beside the scores in landscape.
