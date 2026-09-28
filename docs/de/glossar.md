@@ -36,7 +36,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 
 | Begriff | Bedeutung | Englisch |
 | --- | --- | --- |
-| **Board Manager** | Die Software von Autodarts auf dem Board-PC, die die Darts erkennt; Generation 1 ist die klassische App, Generation 2 ist Autodarts 2 ohne Bildschirm (headless). Autodarts Desktop und die Winmau-Autodarts-Geräte sind noch nicht getestet | Board Manager |
+| **Board Manager** | Die Software von Autodarts auf dem Board-PC, die die Darts erkennt; Generation 1 ist die klassische App, Generation 2 ist Autodarts 2 ohne Bildschirm (headless). Autodarts Desktop funktioniert laut dem Bericht eines Spielers unter Linux; unter Windows ist es noch nicht getestet, ebenso wenig die Winmau-Autodarts-Geräte | Board Manager |
 | **Erkennung** | Die Dart-Erkennung des Board Managers mit den Kameras; sie lässt sich starten, stoppen, zurücksetzen und kalibrieren | Detection |
 | **Erkennungsstatus** | Was das Board gerade tut: bereit zum Werfen, Entnahme, gestoppt, Kalibrierung und so weiter | Detection status |
 | **Board-Ereignisse** | Die Momente des Spiels für Automationen, vom erkannten Dart bis zum gewonnenen Match, über die Entität *Ereignisse* | Board events, *Events* entity |
