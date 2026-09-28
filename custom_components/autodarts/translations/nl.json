@@ -820,6 +820,15 @@
     "invalid_segment": {
       "message": "{segment} is geen vak van het bord. Voer S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS in."
     },
+    "no_bed": {
+      "message": "Noem het vak met segment, of waar de dart zit met x en y."
+    },
+    "invalid_position": {
+      "message": "Geef de positie met zowel x als y, elk van -{limit} tot {limit}: 1 is de buitenrand van de dubbelring en y wijst naar de 20."
+    },
+    "bed_position": {
+      "message": "De opgegeven positie ligt in {found}, niet in {segment}."
+    },
     "too_many_start_scores": {
       "message": "De startscores bevatten {scores} waarden, maar er spelen maar {players} spelers. Geef hoogstens één startscore per speler op, in gooivolgorde."
     },
@@ -1103,7 +1112,7 @@
     },
     "correct_dart": {
       "name": "Dart corrigeren",
-      "description": "Zet een dart van de huidige beurt in een ander vak voor het oefenspel en de trainingssessie, alsof het bord hem daar had gedetecteerd. Het bord houdt zijn eigen detectie.",
+      "description": "Zet een dart van de huidige beurt in een ander vak voor het oefenspel en de trainingssessie, alsof het bord hem daar had gedetecteerd. Het bord houdt zijn eigen detectie. De positie die het bord zag vervalt: met x en y zit de dart daar, anders heeft hij geen positie en blijft hij buiten de dartposities.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -1115,13 +1124,21 @@
         },
         "segment": {
           "name": "Vak",
-          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS."
+          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS. Nodig zonder x en y; met x en y moet het het vak op die plek zijn."
+        },
+        "x": {
+          "name": "Positie x",
+          "description": "Waar de dart zit, van links naar rechts: 0 is het midden, 1 de buitenrand van de dubbelring. Samen met y geeft dit het vak."
+        },
+        "y": {
+          "name": "Positie y",
+          "description": "Waar de dart zit, van onder naar boven richting de 20: 0 is het midden, 1 de buitenrand van de dubbelring."
         }
       }
     },
     "throw_dart": {
       "name": "Dart invoeren",
-      "description": "Voegt een dart aan de huidige beurt toe alsof het bord hem had gedetecteerd, gemarkeerd als handmatig ingevoerd. Vereist Oefenspel handmatige invoer.",
+      "description": "Voegt een dart aan de huidige beurt toe alsof het bord hem had gedetecteerd, gemarkeerd als handmatig ingevoerd. Vereist Oefenspel handmatige invoer. Met x en y wordt de dart op die plek opgeslagen.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -1129,7 +1146,15 @@
         },
         "segment": {
           "name": "Vak",
-          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS."
+          "description": "Waar de dart zit: S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS. Nodig zonder x en y; met x en y moet het het vak op die plek zijn."
+        },
+        "x": {
+          "name": "Positie x",
+          "description": "Waar de dart zit, van links naar rechts: 0 is het midden, 1 de buitenrand van de dubbelring. Samen met y geeft dit het vak."
+        },
+        "y": {
+          "name": "Positie y",
+          "description": "Waar de dart zit, van onder naar boven richting de 20: 0 is het midden, 1 de buitenrand van de dubbelring."
         }
       }
     },

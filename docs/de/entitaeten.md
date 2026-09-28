@@ -233,7 +233,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 
 <img src="../images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
 
-- **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](karten.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`.
+- **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](karten.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`. Ein Dart, der in ein anderes Feld korrigiert wird, hat keine Position, weil das Board auch die Stelle falsch gesehen hat, außer die Korrektur sagt, wo er steckt: die Ansicht *Scheibe* im Tastenfeld der Anzeigetafel oder `x` und `y` der Aktion.
 - **Dart eingeben:** Ist *Übungsspiel manuelle Eingabe* an, fügen [`autodarts.throw_dart`](#dart-eingeben-autodartsthrow_dart) oder das Tastenfeld der Anzeigetafel einen Dart hinzu, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras, als hätte das Board ihn erkannt, markiert mit `manual`. Die Erkennung muss nicht laufen: Ist sie gestoppt, bilden die eingegebenen Darts die Aufnahme allein.
 - **Weitergeben:** [`autodarts.next_player`](#weitergeben-autodartsnext_player) beendet die Aufnahme, ohne die Darts zu ziehen. Die Darts im Board gehören zu keiner Aufnahme, bis sie gezogen sind, und neue Darts zählen für den nächsten Spieler. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus.
 - **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Der Fortschritt der Spieler, der Wochenbericht und der Trainingskalender kehren mit zurück, damit die Aufnahme einmal zählt, wenn sie erneut endet. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
@@ -589,12 +589,13 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn
 
 ### Dart korrigieren: `autodarts.correct_dart`
 
-Legt einen Dart der aktuellen Aufnahme für Übungsspiel und Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung. [Korrekturen](#korrekturen-und-von-hand-eingegebene-darts).
+Legt einen Dart der aktuellen Aufnahme für Übungsspiel und Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung. Wo das Board das Feld falsch gelesen hat, lag es auch bei der Stelle daneben: Der korrigierte Dart verliert die Position des Boards und bleibt aus den [Dart-Positionen](funktionsweise.md#dart-positionen) heraus, außer `x` und `y` sagen, wo er steckt. [Korrekturen](#korrekturen-und-von-hand-eingegebene-darts).
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `dart` | 1–3 | Der Dart der aktuellen Aufnahme; Pflicht |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (äußeres Bull, auch `S25`, `SB` oder `OB`), `BULL` (Bullseye, auch `D25`, `DB` oder `50`), `MISS` | Das Feld, in beliebiger Groß- und Kleinschreibung; Pflicht |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (äußeres Bull, auch `S25`, `SB` oder `OB`), `BULL` (Bullseye, auch `D25`, `DB` oder `50`), `MISS` | Das Feld, in beliebiger Groß- und Kleinschreibung; Pflicht ohne `x` und `y` |
+| `x`, `y` | -3 bis 3 | Wo der Dart steckt, wie das Board Positionen meldet: 0 ist die Mitte, 1 der äußere Rand des Doppelrings, und `y` zeigt zur 20. Das Feld ergibt sich aus der Position; ein zusätzlich angegebenes `segment` muss dieses Feld sein |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -604,7 +605,17 @@ data:
   segment: T20
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, die bei einem unbekannten Feld die gültigen Felder nennt, und wenn die Aufnahme keinen solchen Dart hat oder der Dart dem Bot gehört.
+Mit der Stelle, an der der Dart steckt, ergibt sich das Feld daraus:
+
+```yaml
+action: autodarts.correct_dart
+data:
+  dart: 2
+  x: 0.02
+  y: 0.61
+```
+
+Die Aktion bricht mit einer klaren Meldung ab, die bei einem unbekannten Feld die gültigen Felder nennt, wenn weder Feld noch Position angegeben sind, wenn nur `x` oder `y` angegeben ist oder ein Wert außerhalb von -3 bis 3 liegt, wenn das Feld nicht das Feld an der Position ist, und wenn die Aufnahme keinen solchen Dart hat oder der Dart dem Bot gehört.
 
 ### Dart eingeben: `autodarts.throw_dart`
 
@@ -612,7 +623,8 @@ Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt,
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` und die anderen Namen der Bulls wie bei `autodarts.correct_dart` | Das Feld; Pflicht |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` und die anderen Namen der Bulls wie bei `autodarts.correct_dart` | Das Feld; Pflicht ohne `x` und `y` |
+| `x`, `y` | -3 bis 3 | Wo der Dart steckt, wie bei `autodarts.correct_dart`; das Feld ergibt sich daraus, und der Dart wird in den [Dart-Positionen](funktionsweise.md#dart-positionen) gespeichert |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -621,7 +633,7 @@ data:
   segment: D16
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn die manuelle Eingabe aus ist, wenn die Aufnahme schon drei Darts hat oder solange der Bot am Board ist.
+Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn weder Feld noch eine vollständige Position zwischen -3 und 3 angegeben ist, wenn das Feld nicht das Feld an der Position ist, wenn die manuelle Eingabe aus ist, wenn die Aufnahme schon drei Darts hat oder solange der Bot am Board ist.
 
 ### Weitergeben: `autodarts.next_player`
 

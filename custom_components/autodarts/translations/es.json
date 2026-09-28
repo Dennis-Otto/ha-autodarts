@@ -820,6 +820,15 @@
     "invalid_segment": {
       "message": "{segment} no es un segmento de la diana. Introduce S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS."
     },
+    "no_bed": {
+      "message": "Indica el segmento con segment, o dónde está el dardo con x e y."
+    },
+    "invalid_position": {
+      "message": "Indica la posición con x e y, cada una de -{limit} a {limit}: 1 es el borde exterior del anillo de dobles, e y apunta al 20."
+    },
+    "bed_position": {
+      "message": "La posición indicada está en {found}, no en {segment}."
+    },
     "too_many_start_scores": {
       "message": "Las puntuaciones iniciales tienen {scores} valores, pero solo juegan {players} jugadores. Indica como máximo una puntuación inicial por jugador, en orden de lanzamiento."
     },
@@ -1103,7 +1112,7 @@
     },
     "correct_dart": {
       "name": "Corregir dardo",
-      "description": "Coloca un dardo de la tirada actual en otro segmento para la partida y la sesión de entrenamiento, como si la diana lo hubiera detectado ahí. La diana conserva su propia lectura.",
+      "description": "Coloca un dardo de la tirada actual en otro segmento para la partida y la sesión de entrenamiento, como si la diana lo hubiera detectado ahí. La diana conserva su propia lectura. La posición que vio la diana se descarta: con x e y, el dardo está donde indican; si no, no tiene posición y queda fuera de las posiciones de los dardos.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -1115,13 +1124,21 @@
         },
         "segment": {
           "name": "Segmento",
-          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS."
+          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS. Necesario sin x e y; con ellos, debe ser el segmento de ese punto."
+        },
+        "x": {
+          "name": "Posición x",
+          "description": "Dónde está el dardo, de izquierda a derecha: 0 es el centro, 1 el borde exterior del anillo de dobles. Junto con y, da el segmento."
+        },
+        "y": {
+          "name": "Posición y",
+          "description": "Dónde está el dardo, de abajo arriba hacia el 20: 0 es el centro, 1 el borde exterior del anillo de dobles."
         }
       }
     },
     "throw_dart": {
       "name": "Introducir dardo",
-      "description": "Añade un dardo a la tirada actual como si la diana lo hubiera detectado, marcado como introducido a mano. Requiere Entrada manual de la partida.",
+      "description": "Añade un dardo a la tirada actual como si la diana lo hubiera detectado, marcado como introducido a mano. Requiere Entrada manual de la partida. Con x e y, el dardo se guarda en ese punto.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -1129,7 +1146,15 @@
         },
         "segment": {
           "name": "Segmento",
-          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS."
+          "description": "Dónde está el dardo: S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS. Necesario sin x e y; con ellos, debe ser el segmento de ese punto."
+        },
+        "x": {
+          "name": "Posición x",
+          "description": "Dónde está el dardo, de izquierda a derecha: 0 es el centro, 1 el borde exterior del anillo de dobles. Junto con y, da el segmento."
+        },
+        "y": {
+          "name": "Posición y",
+          "description": "Dónde está el dardo, de abajo arriba hacia el 20: 0 es el centro, 1 el borde exterior del anillo de dobles."
         }
       }
     },

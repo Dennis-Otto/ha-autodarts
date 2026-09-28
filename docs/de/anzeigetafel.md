@@ -98,6 +98,10 @@ Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte; ei
 <img src="../images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
 
 - **Ein falsch erkannter Dart:** Tippe ihn in der Aufnahme am unteren Rand an. Ein Tastenfeld öffnet sich mit S, D und T, den Zahlen 1 bis 20, 25, Bull und Fehlwurf; tippe den Multiplikator und die Zahl, und das Spiel zählt den Dart dort. Ein zweiter Tipp auf den Dart oder *Abbrechen* schließt das Tastenfeld.
+- **Wo er wirklich steckt:** Tippe im Tastenfeld auf *🎯 Scheibe* und dann auf die Stelle der Scheibe, an der der Dart steckt. Das Feld ergibt sich aus der Stelle, und der Dart zählt dort für die [Dart-Positionen](statistik.md#trefferbild-und-dart-positionen). Ein gestrichelter Ring zeigt, wo das Board ihn gesehen hat. Mit den Tasten korrigiert, hat der Dart keine Position, damit eine falsch erkannte Stelle nie die Streuung verfälscht.
+
+  <img src="../images/de/correct-dart-board.webp" alt="Animation: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf öffnet das Tastenfeld, 🎯 Scheibe zeigt die Scheibe mit einem gestrichelten Ring, wo das Board den Dart gesehen hat, und ein Tipp auf das Single 20 darüber korrigiert die Aufnahme auf 140" width="760">
+
 - **Zu spät bemerkt:** Nach der Entnahme nimmt *Letzte Aufnahme zurück* unter der Aufnahme die letzte Aufnahme zurück, mit einem zweiten Tippen zur Bestätigung. Korrigiere ihre Darts und beende sie dann mit *Nächster Spieler*.
 - **Von Hand eingegebene Darts:** Für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras schaltest du *Übungsspiel manuelle Eingabe* und die Option `keypad` der Karte ein. Das Tastenfeld gibt jedes angetippte Feld als Dart ein; *Nächster Spieler* beendet die Aufnahme. Im Querformat stehen Korrektur und Tastenfeld neben den Punkten, sodass beides auf den Bildschirm passt.
 - **Was du siehst:** Von Hand eingegebene oder korrigierte Darts haben einen gestrichelten Rahmen, die Darts des Bots einen hellen.

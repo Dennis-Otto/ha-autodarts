@@ -1716,8 +1716,14 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     # -- corrections, darts entered by hand and the bot ---------------------------
 
-    async def async_correct_dart(self, dart: int, segment: dict[str, Any]) -> None:
-        """Put a dart of the current visit into another bed."""
+    async def async_correct_dart(
+        self,
+        dart: int,
+        segment: dict[str, Any],
+        position: tuple[float, float] | None = None,
+    ) -> None:
+        """Put a dart of the current visit into another bed, at the position
+        given; without one, the dart has no position."""
         slots = self.training.visit_slots()
         if not 1 <= dart <= len(slots):
             raise ServiceValidationError(
@@ -1731,11 +1737,13 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="bot_dart"
             )
-        self.manual.correct(place, segment)
+        self.manual.correct(place, segment, position)
         self._refresh("manual")
 
-    async def async_throw_dart(self, segment: dict[str, Any]) -> None:
-        """A dart entered by hand, as if the board had detected it."""
+    async def async_throw_dart(
+        self, segment: dict[str, Any], position: tuple[float, float] | None = None
+    ) -> None:
+        """A dart entered by hand, as if the board had detected it there."""
         if not self.practice.manual_entry:
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="manual_entry_off"
@@ -1748,7 +1756,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="visit_full"
             )
-        self.manual.add(segment, None, "manual")
+        self.manual.add(segment, position, "manual")
         self._refresh("manual")
 
     async def async_next_player(self) -> None:

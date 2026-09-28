@@ -233,7 +233,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 
 <img src="images/en/correct-dart.webp" alt="Animation: the scoreboard shows T20, S20 and T20 for 140; a tap on the second dart opens the pad, a tap on T and on 20 corrects it, and the visit reads 180" width="760">
 
-- **Correct a dart:** when the board reads a dart wrong, [`autodarts.correct_dart`](#correct-a-dart-autodartscorrect_dart) or a tap on the dart on the [scoreboard](cards.md#correcting-and-entering-darts) puts it into the right bed. The practice game and the training session count the corrected dart at once: the remaining score, a bust or a win, the marks and the statistics follow. The board keeps its own reading; the correction holds until the darts are pulled or until the board corrects the dart itself. `dart_corrected` announces it with `previous` and `manual`.
+- **Correct a dart:** when the board reads a dart wrong, [`autodarts.correct_dart`](#correct-a-dart-autodartscorrect_dart) or a tap on the dart on the [scoreboard](cards.md#correcting-and-entering-darts) puts it into the right bed. The practice game and the training session count the corrected dart at once: the remaining score, a bust or a win, the marks and the statistics follow. The board keeps its own reading; the correction holds until the darts are pulled or until the board corrects the dart itself. `dart_corrected` announces it with `previous` and `manual`. A dart corrected into another bed has no position, because the board misread the spot as well, unless the correction says where it is: the *Board* view of the scoreboard's pad, or `x` and `y` of the action.
 - **Enter a dart:** with *Practice manual entry* on, [`autodarts.throw_dart`](#enter-a-dart-autodartsthrow_dart) or the scoreboard's keypad adds a dart the board missed, or the darts of a player without cameras, as if the board had detected it, marked `manual`. The detection need not run: while it is stopped, the darts entered make the visit on their own.
 - **Next player:** [`autodarts.next_player`](#pass-the-turn-autodartsnext_player) ends the visit without pulling the darts. The darts in the board belong to no visit until they are pulled, and new darts count for the next player. Without darts, the player at the board passes in X01 and the Cricket games.
 - **Undo a visit:** when the darts were pulled before a wrong reading was noticed, [`autodarts.undo_visit`](#undo-a-visit-autodartsundo_visit) takes the last visit back: the game returns to where it was before it, also after a won leg, and the visit's darts leave the training totals and become the current visit again, to correct them and end the visit with *Next player*. The players' progress, the weekly report and the training calendar return with it, so the visit counts once when it ends again. Visits of the [bot](#bot) after it are taken back with it. `visit_undone` announces it.
@@ -589,12 +589,13 @@ The action fails with a clear message when no board is loaded, when several boar
 
 ### Correct a dart: `autodarts.correct_dart`
 
-Puts a dart of the current visit into another bed, for the practice game and the training session, as if the board had detected it there. The board keeps its own reading. [Corrections](#corrections-and-darts-entered-by-hand).
+Puts a dart of the current visit into another bed, for the practice game and the training session, as if the board had detected it there. The board keeps its own reading. Where the board misread the bed, it misread the spot too: the corrected dart leaves the board's position behind and stays out of the [dart positions](how-it-works.md#dart-positions), unless `x` and `y` say where it is. [Corrections](#corrections-and-darts-entered-by-hand).
 
 | Field | Values | Description |
 | --- | --- | --- |
 | `dart` | 1–3 | The dart of the current visit; required |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (outer bull, also `S25`, `SB` or `OB`), `BULL` (bullseye, also `D25`, `DB` or `50`), `MISS` | The bed, in any upper and lower case; required |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25` (outer bull, also `S25`, `SB` or `OB`), `BULL` (bullseye, also `D25`, `DB` or `50`), `MISS` | The bed, in any upper and lower case; required without `x` and `y` |
+| `x`, `y` | -3 to 3 | Where the dart is, as the board reports positions: 0 is the center, 1 the outer edge of the double ring, and `y` points to the 20. The bed follows from the position; a `segment` given as well must be that bed |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml
@@ -604,7 +605,17 @@ data:
   segment: T20
 ```
 
-The action fails with a clear message, which names the accepted beds, when the bed is unknown, and when the visit has no such dart or the dart is the bot's.
+With the spot where the dart is, the bed follows from it:
+
+```yaml
+action: autodarts.correct_dart
+data:
+  dart: 2
+  x: 0.02
+  y: 0.61
+```
+
+The action fails with a clear message, which names the accepted beds, when the bed is unknown, when neither a bed nor a position is given, when only `x` or `y` is given or a value lies outside -3 to 3, when the bed is not the bed at the position, and when the visit has no such dart or the dart is the bot's.
 
 ### Enter a dart: `autodarts.throw_dart`
 
@@ -612,7 +623,8 @@ Adds a dart to the current visit as if the board had detected it, marked `manual
 
 | Field | Values | Description |
 | --- | --- | --- |
-| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` and the other names of the bulls, as for `autodarts.correct_dart` | The bed; required |
+| `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` and the other names of the bulls, as for `autodarts.correct_dart` | The bed; required without `x` and `y` |
+| `x`, `y` | -3 to 3 | Where the dart is, as for `autodarts.correct_dart`; the bed follows from it, and the dart is logged in the [dart positions](how-it-works.md#dart-positions) |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml
@@ -621,7 +633,7 @@ data:
   segment: D16
 ```
 
-The action fails with a clear message when the bed is unknown, when manual entry is off, when the visit already has three darts, or while the bot is at the board.
+The action fails with a clear message when the bed is unknown, when neither a bed nor a whole position between -3 and 3 is given, when the bed is not the bed at the position, when manual entry is off, when the visit already has three darts, or while the bot is at the board.
 
 ### Pass the turn: `autodarts.next_player`
 

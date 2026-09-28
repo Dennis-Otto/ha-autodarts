@@ -80,12 +80,12 @@ def test_a_correction_holds_while_the_board_keeps_its_reading():
     manual.correct(1, parse_bed("T20"))
     effective = manual.apply(with_coords(T20, S20))
     assert names(effective) == ["T20", "T20"]
-    # The dart stays where the board saw it, in the bed it was corrected to.
+    # Where the board misread the bed, it misread the spot: the dart has no position.
     assert effective["throws"][1] == {
         "segment": {"name": "T20", "number": 20, "multiplier": 3},
-        "coords": {"x": 0.2, "y": 0.4},
         "corrected": True,
     }
+    assert effective["throws"][0]["coords"] == {"x": 0.1, "y": 0.2}
     # A third dart does not disturb it.
     assert names(manual.apply(with_coords(T20, S20, S1))) == ["T20", "T20", "S1"]
     # Once the board corrects the dart itself, its reading counts again.
@@ -122,11 +122,39 @@ def test_darts_entered_by_hand_can_be_corrected_too():
         "manual": True,
         "corrected": True,
     }
-    # A replayed dart of the board is corrected like any other.
-    manual.replay([{"number": 20, "multiplier": 1, "name": "S20"}], [None])
+    # A replayed dart of the board is corrected like any other, and leaves the
+    # board's position behind.
+    manual.replay([{"number": 20, "multiplier": 1, "name": "S20"}], [(0.02, 0.8)])
     manual.correct(0, parse_bed("T20"))
     assert manual.extras[0].dart["corrected"] is True
     assert "manual" not in manual.extras[0].dart
+    assert manual.extras[0].position is None
+
+
+def test_a_correction_can_say_where_the_dart_is():
+    manual = ManualDarts()
+    manual.apply(with_coords(T20, S20))
+    manual.correct(1, parse_bed("T20"), (0.03, 0.6))
+    effective = manual.apply(with_coords(T20, S20))
+    assert effective["throws"][1] == {
+        "segment": {"name": "T20", "number": 20, "multiplier": 3},
+        "coords": {"x": 0.03, "y": 0.6},
+        "corrected": True,
+    }
+    # The bed the board read: the board's dart where the board saw it.
+    manual.correct(1, parse_bed("S20"), (0.02, 0.8))
+    assert not manual.fixes
+    assert manual.apply(with_coords(T20, S20)) == with_coords(T20, S20)
+    # A dart entered by hand gets the spot, in the same bed or another.
+    manual.add(parse_bed("S5"), None, "manual")
+    manual.apply(with_coords(T20, S20))
+    manual.correct(2, parse_bed("S5"), (-0.24, 0.76))
+    assert manual.extras[0].position == (-0.24, 0.76)
+    assert "corrected" not in manual.extras[0].dart
+    manual.correct(2, parse_bed("T5"), (-0.18, 0.57))
+    assert manual.extras[0].position == (-0.18, 0.57)
+    throw = manual.apply(with_coords(T20, S20))["throws"][2]
+    assert throw["coords"] == {"x": -0.18, "y": 0.57} and throw["corrected"] is True
 
 
 def test_pulling_the_darts_ends_the_visit_with_everything_of_home_assistant():

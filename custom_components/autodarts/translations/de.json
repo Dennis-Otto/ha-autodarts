@@ -820,6 +820,15 @@
     "invalid_segment": {
       "message": "{segment} ist kein Feld des Boards. Gib S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS ein."
     },
+    "no_bed": {
+      "message": "Nenne das Feld mit segment oder die Stelle des Darts mit x und y."
+    },
+    "invalid_position": {
+      "message": "Gib die Position mit x und y an, beide von -{limit} bis {limit}: 1 ist der äußere Rand des Doppelrings, und y zeigt zur 20."
+    },
+    "bed_position": {
+      "message": "Die angegebene Position liegt in {found}, nicht in {segment}."
+    },
     "too_many_start_scores": {
       "message": "Die Startpunkte nennen {scores} Werte, es spielen aber nur {players} Spieler. Gib höchstens einen Wert pro Spieler an, in Wurfreihenfolge."
     },
@@ -1103,7 +1112,7 @@
     },
     "correct_dart": {
       "name": "Dart korrigieren",
-      "description": "Legt einen Dart der aktuellen Aufnahme für das Übungsspiel und die Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung.",
+      "description": "Legt einen Dart der aktuellen Aufnahme für das Übungsspiel und die Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung. Die Position, die das Board erkannt hat, entfällt: Mit x und y steckt der Dart dort, sonst hat er keine Position und bleibt aus den Dart-Positionen heraus.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1115,13 +1124,21 @@
         },
         "segment": {
           "name": "Feld",
-          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS."
+          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS. Nötig ohne x und y; mit ihnen muss es das Feld an dieser Stelle sein."
+        },
+        "x": {
+          "name": "Position x",
+          "description": "Wo der Dart steckt, von links nach rechts: 0 ist die Mitte, 1 der äußere Rand des Doppelrings. Zusammen mit y ergibt sie das Feld."
+        },
+        "y": {
+          "name": "Position y",
+          "description": "Wo der Dart steckt, von unten nach oben zur 20: 0 ist die Mitte, 1 der äußere Rand des Doppelrings."
         }
       }
     },
     "throw_dart": {
       "name": "Dart eingeben",
-      "description": "Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt, markiert als von Hand eingegeben. Braucht Übungsspiel manuelle Eingabe.",
+      "description": "Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt, markiert als von Hand eingegeben. Braucht Übungsspiel manuelle Eingabe. Mit x und y wird der Dart an dieser Stelle gespeichert.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1129,7 +1146,15 @@
         },
         "segment": {
           "name": "Feld",
-          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS."
+          "description": "Wo der Dart steckt: S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS. Nötig ohne x und y; mit ihnen muss es das Feld an dieser Stelle sein."
+        },
+        "x": {
+          "name": "Position x",
+          "description": "Wo der Dart steckt, von links nach rechts: 0 ist die Mitte, 1 der äußere Rand des Doppelrings. Zusammen mit y ergibt sie das Feld."
+        },
+        "y": {
+          "name": "Position y",
+          "description": "Wo der Dart steckt, von unten nach oben zur 20: 0 ist die Mitte, 1 der äußere Rand des Doppelrings."
         }
       }
     },

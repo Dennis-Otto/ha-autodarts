@@ -3,6 +3,10 @@ correct and enter darts, pass the turn, undo a visit, and more."""
 
 from __future__ import annotations
 
+import math
+from collections.abc import Mapping
+from typing import Any
+
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_CONFIG_ENTRY_ID
@@ -20,13 +24,14 @@ from homeassistant.helpers.service import (
     async_register_admin_service,
 )
 
-from .bot import valid_level
+from .bot import BOARD_MM, bed_name, segment_at, valid_level
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES
 from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
 from .local_coordinator import AutodartsLocalCoordinator
 from .manual import parse_bed
 from .party import GOLF_HOLES, MAX_ROUNDS
+from .positions import MAX_DISTANCE
 from .practice import (
     GAME_OPTIONS,
     MAX_LEGS,
@@ -94,17 +99,25 @@ START_GAME_SCHEMA = vol.Schema(
     }
 )
 
+# Where a dart is, as the board reports it: 1 is the outer edge of the double
+# ring, and y points to the 20. The bed follows from it.
+POSITION: dict[vol.Marker, Any] = {
+    vol.Optional("x"): vol.Coerce(float),
+    vol.Optional("y"): vol.Coerce(float),
+}
 CORRECT_DART_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
         vol.Required("dart"): vol.All(vol.Coerce(int), vol.Range(min=1, max=3)),
-        vol.Required("segment"): BED,
+        vol.Optional("segment"): BED,
+        **POSITION,
     }
 )
 THROW_DART_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
-        vol.Required("segment"): BED,
+        vol.Optional("segment"): BED,
+        **POSITION,
     }
 )
 
@@ -221,6 +234,36 @@ def _bed(value: str) -> dict[str, object]:
         )
         raise _invalid("invalid_segment", segment=shown)
     return dart
+
+
+def _position(data: Mapping[str, Any]) -> tuple[float, float] | None:
+    """The position of an action, both coordinates or none, on the board or
+    around it."""
+    if "x" not in data and "y" not in data:
+        return None
+    x, y = data.get("x", math.nan), data.get("y", math.nan)
+    if not all(math.isfinite(value) and abs(value) <= MAX_DISTANCE for value in (x, y)):
+        raise _invalid("invalid_position", limit=f"{MAX_DISTANCE:g}")
+    return x, y
+
+
+def _dart_at(
+    data: Mapping[str, Any],
+) -> tuple[dict[str, object], tuple[float, float] | None]:
+    """The dart of an action and where it is: the named bed, the bed at the
+    position, or both when they agree."""
+    position = _position(data)
+    named = _bed(data["segment"]) if "segment" in data else None
+    if position is None:
+        if named is None:
+            raise _invalid("no_bed")
+        return named, None
+    found = _bed(bed_name(*segment_at(position[0] * BOARD_MM, position[1] * BOARD_MM)))
+    if named is not None and named["name"] != found["name"]:
+        raise _invalid(
+            "bed_position", segment=str(named["name"]), found=str(found["name"])
+        )
+    return found, position
 
 
 def _check_names(names: list[str] | None) -> None:
@@ -462,12 +505,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def correct_dart(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        dart = _bed(call.data["segment"])
-        await coordinator.async_correct_dart(call.data["dart"], dart)
+        dart, position = _dart_at(call.data)
+        await coordinator.async_correct_dart(call.data["dart"], dart, position)
 
     async def throw_dart(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        await coordinator.async_throw_dart(_bed(call.data["segment"]))
+        await coordinator.async_throw_dart(*_dart_at(call.data))
 
     async def next_player(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))

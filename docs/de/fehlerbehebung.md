@@ -84,6 +84,9 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Teams spielen von den Startpunkten der Spieler 1 und 2, ein Wert pro Team.* | Im Team-Match gilt der erste Wert für Team 1 und der zweite für Team 2. Gib höchstens zwei an. |
 | *Startpunkte von 3 lassen sich mit Double-In und Double-Out nicht auschecken: …* | Das einzige Eröffnungs-Double, D1, lässt 1 übrig, und die kann kein Double beenden. Wähle andere Startpunkte oder schalte Double-In oder Double-Out aus. |
 | *… ist kein Feld des Boards.* | `segment` von `autodarts.correct_dart` und `autodarts.throw_dart` nimmt S1 bis S20, D1 bis D20, T1 bis T20, 25 für das äußere Bull, BULL für das Bullseye oder MISS. |
+| *Nenne das Feld mit segment oder die Stelle des Darts mit x und y.* | `autodarts.correct_dart` und `autodarts.throw_dart` brauchen das Feld, die Position oder beides. |
+| *Gib die Position mit x und y an …* | Eine Position braucht `x` und `y`, beide von -3 bis 3: 0 ist die Mitte, 1 der äußere Rand des Doppelrings, und `y` zeigt zur 20. |
+| *Die angegebene Position liegt in …, nicht in …* | Das Feld ergibt sich aus der Position. Lass `segment` weg oder gib das Feld an dieser Stelle an. |
 | *Die aktuelle Aufnahme hat keinen Dart …* | `autodarts.correct_dart` korrigiert Dart 1, 2 oder 3 der aktuellen Aufnahme, sobald er im Board steckt. Eine Aufnahme, deren Darts gezogen sind, holst du mit `autodarts.undo_visit` zurück. |
 | *Die Darts des Bots lassen sich nicht korrigieren.* | Die Darts des Bots kommen von Home Assistant, nicht vom Board. Korrigieren lassen sich nur die Darts eines Spielers. |
 | *Die manuelle Eingabe ist aus.* | `autodarts.throw_dart` nimmt Darts nur an, solange der Schalter *Übungsspiel manuelle Eingabe* an ist. Schalte ihn zuerst ein. |

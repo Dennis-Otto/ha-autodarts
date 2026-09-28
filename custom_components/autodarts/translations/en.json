@@ -820,6 +820,15 @@
     "invalid_segment": {
       "message": "{segment} is not a bed of the board. Enter S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS."
     },
+    "no_bed": {
+      "message": "Name the bed with segment, or where the dart is with x and y."
+    },
+    "invalid_position": {
+      "message": "Give the position with both x and y, each from -{limit} to {limit}: 1 is the outer edge of the double ring, and y points to the 20."
+    },
+    "bed_position": {
+      "message": "The position given is in {found}, not in {segment}."
+    },
     "too_many_start_scores": {
       "message": "The start scores name {scores} values, but only {players} players play. Give at most one start score per player, in throwing order."
     },
@@ -1103,7 +1112,7 @@
     },
     "correct_dart": {
       "name": "Correct dart",
-      "description": "Puts a dart of the current visit into another bed for the practice game and the training session, as if the board had detected it there. The board keeps its own reading.",
+      "description": "Puts a dart of the current visit into another bed for the practice game and the training session, as if the board had detected it there. The board keeps its own reading. The board's position of the dart is left behind: with x and y, the dart is where they say, otherwise it has no position and stays out of the dart positions.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1115,13 +1124,21 @@
         },
         "segment": {
           "name": "Bed",
-          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS."
+          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS. Needed without x and y; with them, it must be the bed at that position."
+        },
+        "x": {
+          "name": "Position x",
+          "description": "Where the dart is, from left to right: 0 is the center, 1 the outer edge of the double ring. Together with y, it gives the bed."
+        },
+        "y": {
+          "name": "Position y",
+          "description": "Where the dart is, from bottom to top towards the 20: 0 is the center, 1 the outer edge of the double ring."
         }
       }
     },
     "throw_dart": {
       "name": "Enter dart",
-      "description": "Adds a dart to the current visit as if the board had detected it, marked as entered by hand. Needs Practice manual entry.",
+      "description": "Adds a dart to the current visit as if the board had detected it, marked as entered by hand. Needs Practice manual entry. With x and y, the dart is logged where they say.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1129,7 +1146,15 @@
         },
         "segment": {
           "name": "Bed",
-          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS."
+          "description": "Where the dart is: S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS. Needed without x and y; with them, it must be the bed at that position."
+        },
+        "x": {
+          "name": "Position x",
+          "description": "Where the dart is, from left to right: 0 is the center, 1 the outer edge of the double ring. Together with y, it gives the bed."
+        },
+        "y": {
+          "name": "Position y",
+          "description": "Where the dart is, from bottom to top towards the 20: 0 is the center, 1 the outer edge of the double ring."
         }
       }
     },

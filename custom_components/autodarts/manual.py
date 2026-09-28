@@ -68,14 +68,26 @@ class Extra:
     after: int
 
 
+@dataclass
+class Fix:
+    """A board dart put into another bed in Home Assistant."""
+
+    # What the board saw, to tell when the board changes its mind.
+    reading: dict[str, Any]
+    dart: dict[str, Any]
+    # Where the correction says the dart is. The board's position is left
+    # behind: where the board misread the bed, it misread the spot as well.
+    position: tuple[float, float] | None
+
+
 class ManualDarts:
     """The visit as Home Assistant knows it, from the board's darts."""
 
     def __init__(self) -> None:
         self.extras: list[Extra] = []
-        # Place among the board's darts of the visit -> (the board's reading,
-        # the correction), while the board keeps that reading.
-        self.fixes: dict[int, tuple[dict[str, Any], dict[str, Any]]] = {}
+        # Place among the board's darts of the visit -> the correction, while
+        # the board keeps its reading.
+        self.fixes: dict[int, Fix] = {}
         # Darts on the board that belong to an ended visit, until they are
         # pulled: the board's readings, told apart from new darts by content.
         self.hidden: list[dict[str, Any]] = []
@@ -163,7 +175,7 @@ class ManualDarts:
         self.fixes = {
             place: fix
             for place, fix in self.fixes.items()
-            if place < len(visible) and visible[place] == fix[0]
+            if place < len(visible) and visible[place] == fix.reading
         }
         throws = state.get("throws", [])
         return self._effective(state, [throws[place] for place in places])
@@ -199,7 +211,7 @@ class ManualDarts:
                     sources.append(("extra", index))
             if not last:
                 fix = self.fixes.get(place)
-                throws.append(self._fixed(raw[place], fix[1]) if fix else raw[place])
+                throws.append(self._fixed(raw[place], fix) if fix else raw[place])
                 sources.append(("board", place))
         self.sources = sources
         return {**state, "numThrows": len(throws), "throws": throws}
@@ -218,9 +230,13 @@ class ManualDarts:
         return throw
 
     @staticmethod
-    def _fixed(raw: dict[str, Any], dart: dict[str, Any]) -> dict[str, Any]:
-        """A board dart where it landed, in the bed it was corrected to."""
-        return {**raw, "segment": _segment(dart), "corrected": True}
+    def _fixed(raw: dict[str, Any], fix: Fix) -> dict[str, Any]:
+        """A board dart in the bed it was corrected to, at the position the
+        correction gives, if any."""
+        throw = {key: value for key, value in raw.items() if key != "coords"}
+        if fix.position is not None:
+            throw["coords"] = {"x": fix.position[0], "y": fix.position[1]}
+        return {**throw, "segment": _segment(fix.dart), "corrected": True}
 
     # -- changes -------------------------------------------------------------------
 
@@ -230,21 +246,31 @@ class ManualDarts:
         """A dart entered by hand (manual) or thrown by the bot (bot)."""
         self.extras.append(Extra({**dart, flag: True}, position, len(self._readings)))
 
-    def correct(self, place: int, dart: dict[str, Any]) -> None:
-        """Put the dart at this place of the last visit into another bed."""
+    def correct(
+        self,
+        place: int,
+        dart: dict[str, Any],
+        position: tuple[float, float] | None = None,
+    ) -> None:
+        """Put the dart at this place of the last visit into another bed, at
+        the position given, or without one."""
         kind, index = self.sources[place]
         if kind == "extra":
             extra = self.extras[index]
             if _key(extra.dart) != _key(dart):
                 manual = {"manual": True} if extra.dart.get("manual") else {}
                 extra.dart = {**dart, **manual, "corrected": True}
+                extra.position = position
+            elif position is not None:
+                # The same bed, now with the spot where the dart is.
+                extra.position = position
             return
         reading = self._readings[index]
         if _key(reading) == _key(dart):
-            # Back to what the board saw.
+            # Back to what the board saw, where the board saw it.
             self.fixes.pop(index, None)
         else:
-            self.fixes[index] = (reading, dict(dart))
+            self.fixes[index] = Fix(reading, dict(dart), position)
 
     def end_visit(self) -> None:
         """The visit ends in Home Assistant; its darts on the board stay hidden."""
