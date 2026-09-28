@@ -73,9 +73,16 @@ Released as 1.6.0 on 27 September 2026; the [changelog](../CHANGELOG.md#160) has
 | **Dutch, French and Spanish** | The integration, the cards and the caller in three more languages, with tests that keep every language complete | Done |
 | **Documentation** | Illustrated guides for games, the scoreboard and statistics, a glossary and an accessibility section | Done |
 
+## Version 1.7: dart positions you can trust
+
+Released as 1.7.0 on 28 September 2026; the [changelog](../CHANGELOG.md#170) has the details.
+
+- The positions heatmap of the training card follows every dart live.
+- Corrected darts leave the board's misread position behind, or take the spot you tap on the scoreboard's board, which gives the bed at the same time.
+
 ## Next
 
-Ideas for the versions after 1.6. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
+Ideas for the versions after 1.7. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
 
 | Topic | What it brings | Dependency |
 | --- | --- | --- |
