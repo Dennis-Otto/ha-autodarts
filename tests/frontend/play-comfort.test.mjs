@@ -233,10 +233,12 @@ test("a tap on a dart of the visit corrects it", () => {
   ];
   const { hass, card } = setup(visit(...throws));
   assert.deepEqual(chips(card), [
-    ["button", "dart", "1"],
-    ["button", "dart corrected", "2"],
-    ["button", "dart manual", "3"],
+    ["button", "dart tappable", "1"],
+    ["button", "dart corrected tappable", "2"],
+    ["button", "dart manual tappable", "3"],
   ]);
+  // Each shows a pencil at its top right: a tap edits it.
+  assert.equal($$(card, ".visit button.dart > .cue.edit").length, 3);
   assert.equal($(card, ".pad-area").hidden, true);
   // A screen reader hears the dart and what a tap does.
   assert.equal($(card, '[data-dart="2"]').getAttribute("aria-label"), "S20 20 – Correct dart 2");
@@ -334,8 +336,14 @@ test("the pad's board corrects a dart or enters one where it is", () => {
   const throws = [dart(20, 3, { dart: 1, x: 0, y: 0.6 }), dart(20, 3, { dart: 2, x: 0.02, y: 0.8 }), dart(5, 1, { dart: 3 })];
   const { hass, card } = setup(visit(...throws));
   $(card, '[data-dart="2"]').click();
-  assert.equal($(card, '[data-pad="board"]').getAttribute("aria-pressed"), "false");
+  // Keys or board: one of the two is chosen, the keys at first.
+  assert.deepEqual(
+    [$(card, '[data-pad="keys"]').getAttribute("aria-pressed"), $(card, '[data-pad="board"]').getAttribute("aria-pressed")],
+    ["true", "false"]
+  );
+  assert.equal($(card, ".pad .segmented.view").getAttribute("aria-label"), "Enter with");
   $(card, '[data-pad="board"]').click();
+  assert.equal($(card, '[data-pad="board"]').getAttribute("aria-pressed"), "true");
   // The darts with a position show; the dart being corrected where the board saw it.
   assert.deepEqual(
     $$(card, ".pad-board .spot").map((spot) => spot.getAttribute("class")),
@@ -354,7 +362,7 @@ test("the pad's board corrects a dart or enters one where it is", () => {
   assert.deepEqual(actions(hass).at(-1), ["correct_dart", { config_entry_id: ENTRY, dart: 1, x: 0, y: 0.6 }]);
   // Back to the keys.
   $(card, '[data-dart="1"]').click();
-  $(card, '[data-pad="board"]').click();
+  $(card, '[data-pad="keys"]').click();
   assert.equal($(card, ".pad-board"), null);
   assert.equal($$(card, ".pad-number").length, 20);
 
@@ -413,18 +421,18 @@ test("on a phone the board opens zoomed in on where the board saw the dart", () 
   $(card, '[data-pad="zoom"]').click();
   assert.equal(viewBox(card), "-92 -194 184 184");
   // Back to the keys and to the board: zoomed in again, while a wide card shows all of it.
-  $(card, '[data-pad="board"]').click();
+  $(card, '[data-pad="keys"]').click();
   $(card, '[data-pad="board"]').click();
   assert.equal(viewBox(card), "-92 -194 184 184");
   onScreen(card, 1000);
-  $(card, '[data-pad="board"]').click();
+  $(card, '[data-pad="keys"]').click();
   $(card, '[data-pad="board"]').click();
   assert.equal(viewBox(card), "-230 -230 460 460");
   // A phone on its side is wide but low: zoomed in, too.
   const height = Object.getOwnPropertyDescriptor(window, "innerHeight");
   Object.defineProperty(window, "innerHeight", { value: 393, configurable: true });
   try {
-    $(card, '[data-pad="board"]').click();
+    $(card, '[data-pad="keys"]').click();
     $(card, '[data-pad="board"]').click();
     assert.equal(viewBox(card), "-92 -194 184 184");
   } finally {

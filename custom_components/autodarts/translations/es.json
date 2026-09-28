@@ -419,7 +419,7 @@
         "name": "Recalibración automática"
       },
       "auto_distortion": {
-        "name": "Corrección automática de la distorsión"
+        "name": "Corrección de la distorsión"
       },
       "training_session": {
         "name": "Sesión de entrenamiento"

@@ -263,7 +263,8 @@ test("calibration, reset and restart need a second tap within four seconds", (t)
   assert.deepEqual(
     $$(card, ".controls button").map((item) => [item.textContent, item.hidden, item.disabled]),
     [
-      ["Calibrate", false, false],
+      // Beside each camera's own calibration, this one calibrates them all.
+      ["Calibrate all", false, false],
       ["Reset detection", false, false],
       ["Restart", false, false],
     ]
@@ -329,7 +330,7 @@ test("the status card speaks German", () => {
   assert.equal(cameraRows(card)[1][3], "30,0 fps");
   assert.deepEqual(
     $$(card, ".controls button").map((item) => item.textContent),
-    ["Kalibrieren", "Erkennung zurücksetzen", "Neu starten"]
+    ["Alle kalibrieren", "Erkennung zurücksetzen", "Neu starten"]
   );
   card.hass = withLanguage(hass, "en");
   assert.equal(text(card, ".update-badge"), "Update to 1.5.0");

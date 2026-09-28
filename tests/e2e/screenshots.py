@@ -278,6 +278,32 @@ def visit_animation(page: Page) -> None:
     wait_for_score(page, "115")
 
 
+def correct_live_animation(page: Page) -> None:
+    """A dart the board read wrong, corrected on the live card: a tap on the dart with its
+    pencil opens the pad below the darts, and T and 20 put it in the treble."""
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    wait_for_score(page, "0")
+    recorder = Recorder(page)
+    control({"event": "Throw detected", "throws": [at("T20")]})
+    control({"event": "Throw detected", "throws": [at("T20"), at("S20")]})
+    wait_for_score(page, "80")
+    page.wait_for_timeout(600)
+    recorder.shot(1400)
+    card = page.locator("autodarts-card").first
+    tap(page, recorder, card.locator(".slot[data-dart='2']"), 1200)
+    tap(page, recorder, card.locator("[data-pad='multiplier'][data-value='3']"), 700)
+    tap(page, recorder, card.locator(".pad-number[data-value='T20']"), 300)
+    wait_for_score(page, "120")
+    page.wait_for_timeout(400)
+    recorder.shot(2400)
+    recorder.save("correct-live")
+    # Restore the demo visit for the remaining screenshots.
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    for darts in ([T20], [T20, S5], [T20, S5, BULL]):
+        control({"event": "Throw detected", "throws": darts})
+    wait_for_score(page, "115")
+
+
 # Animations of the games -----------------------------------------------------------
 
 
@@ -2229,6 +2255,7 @@ def main() -> None:
         page = animation.new_page()
         open_dashboard(page, "board")
         visit_animation(page)
+        correct_live_animation(page)
         animation.close()
 
         # Last, because the practice leg adds visits to the demo session.

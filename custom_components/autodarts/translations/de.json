@@ -390,10 +390,10 @@
         "name": "Neue Trainingssession"
       },
       "practice_new_leg": {
-        "name": "Neues Leg im Übungsspiel"
+        "name": "Übungsspiel neues Leg"
       },
       "practice_new_match": {
-        "name": "Neues Match im Übungsspiel"
+        "name": "Übungsspiel neues Match"
       },
       "tournament_start": {
         "name": "Turnier starten"
@@ -419,7 +419,7 @@
         "name": "Automatisch nachkalibrieren"
       },
       "auto_distortion": {
-        "name": "Automatische Verzerrungskorrektur"
+        "name": "Verzerrungskorrektur"
       },
       "training_session": {
         "name": "Trainingssession"
@@ -561,7 +561,7 @@
         "name": "Turnierpause"
       },
       "tournament_summary": {
-        "name": "Anzeigedauer der Turnierzusammenfassung"
+        "name": "Turnier Dauer der Zusammenfassung"
       },
       "practice_bot_level": {
         "name": "Übungsspiel Bot-Stärke"

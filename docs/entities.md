@@ -461,7 +461,7 @@ Every action is sent **once**. If the board rejects it or does not answer, Home 
 | --- | --- | --- |
 | Calibrate on start | Switch, *Configuration* | Calibrates when the detection starts. |
 | Automatic recalibration | Switch, *Configuration* | Lets the Board Manager recalibrate by itself. |
-| Automatic distortion correction | Switch, *Configuration* | Corrects lens distortion during calibration. |
+| Distortion correction | Switch, *Configuration* | Corrects lens distortion during calibration. |
 | Camera standby | Select, *Configuration* | Puts the cameras on standby after 5, 10, 15, 30 or 60 idle minutes. |
 
 A change is written to the Board Manager configuration; only the changed setting is sent.
