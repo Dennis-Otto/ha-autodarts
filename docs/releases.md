@@ -120,10 +120,38 @@ from the Autodarts cloud application's Client ID.
   through the manual workflow first. Automatic version calculation supports
   numeric `x.y.z` tags; a suffix such as `-rc.1` needs a manual release strategy.
 
+## Release a new version
+
+A merged release PR is the approval of the release; nothing else needs to be started.
+
+1. Open a pull request titled `chore: release 1.8.0` that raises the version in
+   `custom_components/autodarts/manifest.json` and adds a `## 1.8.0` section with
+   the notes to `CHANGELOG.md`. The title gives it the `release` label, which keeps
+   it out of its own notes.
+2. Merge it after the required checks pass.
+3. **Release on merge** starts with the merge. It skips commits that keep the
+   version, the version PRs of the dependency releases and prereleases. It refuses
+   a version that is not newer than every published release, one that already has a
+   leftover draft, and one without a changelog section. It then waits up to 45
+   minutes until every push check of `main` passed; when `main` moves on in the
+   meantime, it waits for the new head as well.
+4. It starts **Release integration** with the version, the changelog section as the
+   introduction and **draft** off, and waits until the release is published with its
+   signed package.
+
+To stop a release before it is published, cancel the **Release on merge** run while
+it waits for the checks. A run that failed, for example on a missing changelog
+section, resumes after the fix with **Actions → Release on merge → Run workflow**
+and the full SHA of the commit that raised the version.
+
 ## Create a manual release
 
+A draft to review, a prerelease such as `1.8.0-rc.1`, or a release whose automatic
+run you stopped goes through the workflow by hand:
+
 1. Update `custom_components/autodarts/manifest.json` to the intended version in a
-   pull request and merge it after the required checks pass.
+   pull request and merge it after the required checks pass. A stable version is
+   published by **Release on merge** unless you cancel that run.
 2. Open **Actions → Release integration → Run workflow** on `main`.
 3. Enter the same version, without a `v` prefix, and optionally add your own
    introduction. Markdown is supported, including important migration notes.
@@ -182,16 +210,18 @@ the configuration in `.github/release.yml` then groups merged pull requests by l
 | `bug` | `fix: …`, `perf: …` | Bug fixes |
 | `documentation` | `docs: …` | Documentation |
 | `dependencies`, `maintenance` | `chore(deps): …`; `ci`, `build`, `test`, `refactor`, `chore` | Dependencies and maintenance |
-| `release` | the version-only release PR | left out |
+| `release` | `chore: release 1.8.0`, `chore(release): …`, a `release/…` branch, the version-only release PR | left out |
 | Other or no label | — | Other changes |
 
 Dependabot changes are included in the maintenance section. GitHub generates
 these notes from merged pull requests; it does not explain individual code changes
 or translate pull request titles. Include migration instructions in your own text.
 
-The optional introduction in the manual workflow remains available for release
-highlights or migration instructions. Automatic dependency releases use a short
-maintenance introduction followed by the same generated changelog.
+A release from a merged release PR starts with the version's section of
+`CHANGELOG.md`, so write highlights and migration instructions there. The optional
+introduction of the manual workflow serves the same purpose for manual releases.
+Automatic dependency releases use a short maintenance introduction followed by the
+same generated changelog.
 
 ## Signed release packages
 
