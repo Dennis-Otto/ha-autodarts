@@ -125,7 +125,7 @@
    Wähle **Boards im Netzwerk suchen** oder **Board-Adresse eingeben** und bestätige.
 4. **Karten hinzufügen.** Erzeuge in einem Schritt ein komplettes Dashboard: **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**. Oder bearbeite ein Dashboard, wähle **Karte hinzufügen** und suche nach *Autodarts*.
 
-Die [Installationsanleitung](installation.md) beschreibt die manuelle Installation, die Neukonfiguration, Updates und das Entfernen.
+Neu bei Home Assistant? [Von null bis zur Anzeigetafel](erste-schritte.md) führt dich von null bis zur Anzeigetafel neben deinem Board. Die [Installationsanleitung](installation.md) beschreibt die manuelle Installation, die Neukonfiguration, Updates und das Entfernen.
 
 ## Anleitungen
 
@@ -133,6 +133,7 @@ Die [Installationsanleitung](installation.md) beschreibt die manuelle Installati
 
 | Anleitung | Inhalt |
 | --- | --- |
+| [Von null bis zur Anzeigetafel](erste-schritte.md) | Für Autodarts-Spieler ohne Home Assistant: Home Assistant und HACS aufsetzen, die Integration installieren, das Board hinzufügen und das erste Spiel auf der Anzeigetafel |
 | [Installation und Einrichtung](installation.md) | Voraussetzungen, HACS und manuelle Installation, die drei Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen |
 
 ### Anleitungen
