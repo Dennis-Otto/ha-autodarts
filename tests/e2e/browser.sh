@@ -44,6 +44,9 @@ bash "${SCRIPT_DIR}/demo.sh"
 "${DOCKER_BIN}" run --rm --network "${PROJECT_NAME}_default" \
 	--env "BOARD_MANAGER=${BOARD_MANAGER:-1}" \
 	--env "BROWSER_ARTIFACTS=/artifacts" \
+	--env "BROWSER_STEPS=${BROWSER_STEPS:-}" \
+	--env "BROWSER_SCREENS=${BROWSER_SCREENS:-}" \
+	--env "BROWSER_SCREENSHOTS=${BROWSER_SCREENSHOTS:-}" \
 	--volume "${ROOT_MOUNT}:/repo:ro" \
 	--volume "${ARTIFACTS_MOUNT}:/artifacts" \
 	--workdir /repo/tests/e2e \

@@ -7004,6 +7004,8 @@ const BASE_CSS = `
   .chip.on { --chip: ${STATUS_COLORS.ready}; }
   .chip.off { --chip: #9e9e9e; }
   .chip.alert { --chip: ${STATUS_COLORS.problem}; color: var(--ad-error-text); }
+  /* A finger needs about 36 px, more than a mouse pointer. */
+  @media (pointer: coarse) { .chip { min-height: 36px; } }
   .controls { display: flex; flex-wrap: wrap; gap: 8px; }
   .controls button, button.action {
     flex: 1 1 auto; min-height: 40px; padding: 0 14px; border-radius: 12px; cursor: pointer;
@@ -7176,10 +7178,8 @@ const CSS = `${BASE_CSS}
     font-size: 18px; font-weight: 700; color: var(--primary-text-color);
     font-variant-numeric: tabular-nums; white-space: nowrap;
   }
-  .stat .name {
-    font-size: 11px; color: var(--secondary-text-color);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
+  /* A long name takes a second line in a narrow column instead of losing its end. */
+  .stat .name { font-size: 11px; line-height: 1.25; color: var(--secondary-text-color); overflow-wrap: break-word; hyphens: auto; }
   .section-head { display: flex; justify-content: space-between; gap: 8px; }
   .since { font-size: 11px; color: var(--secondary-text-color); }
   .board { display: flex; justify-content: center; }
@@ -7268,7 +7268,8 @@ const TRAINING_CSS = `${BASE_CSS}
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
   }
   .tile .value { font-size: 20px; font-weight: 800; color: var(--primary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .tile .name { font-size: 11px; color: var(--ad-muted-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* A long name takes a second line on a phone instead of losing its end. */
+  .tile .name { font-size: 11px; line-height: 1.25; color: var(--ad-muted-text); overflow-wrap: break-word; hyphens: auto; }
   .tile.hot .value { color: var(--ad-gold-text); }
   @container (max-width: 380px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   /* The details of the statistics for a keyboard: shown when it reaches the button. */
@@ -7386,29 +7387,48 @@ const STATUS_CSS = `${BASE_CSS}
   .camera.problem .dot { background: ${STATUS_COLORS.problem}; box-shadow: 0 0 6px ${STATUS_COLORS.problem}; }
   .camera .fps { font-size: 12px; color: var(--secondary-text-color); font-variant-numeric: tabular-nums; }
   .camera button.action { min-height: 32px; font-size: 12px; }
+  /* On a touch screen the small controls grow to a finger's size; the switch by a
+     transparent border, which keeps its look. */
+  @media (pointer: coarse) {
+    .toggle { box-sizing: content-box; border: 4px solid transparent; background-clip: padding-box; }
+    .info-tile .badge, .camera-name, .camera button.action { min-height: 36px; }
+  }
 `;
 
 const SCOREBOARD_CSS = `${BASE_CSS}
   /* Secondary text sits on tinted tiles here: its darker mix stays readable on them. */
   .scoreboard {
+    --ad-pad: clamp(14px, 2.4cqi, 32px);
     display: flex; flex-direction: column; gap: clamp(12px, 2cqi, 24px);
-    padding: clamp(14px, 2.4cqi, 32px); box-sizing: border-box;
+    padding: var(--ad-pad); box-sizing: border-box;
   }
   /* Full height is the screen below Home Assistant's header: a banner, the visit or the
      keypad make the numbers smaller instead of pushing the page past the screen. The
-     dynamic viewport leaves room for a phone's browser bar; older browsers use vh. */
+     dynamic viewport leaves room for a phone's browser bar; older browsers use vh. On a
+     phone the header also covers the status bar and the home indicator takes the bottom:
+     their safe areas count as Home Assistant counts them for its own views. */
   .scoreboard.full {
-    height: calc(100vh - var(--header-height, 56px) - 16px);
-    height: calc(100dvh - var(--header-height, 56px) - 16px);
+    --ad-taken: calc(
+      var(--header-height, 56px) + var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) +
+        var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 16px
+    );
+    height: calc(100vh - var(--ad-taken));
+    height: calc(100dvh - var(--ad-taken));
   }
   /* The new game screen scrolls with the page, its start button stays at the bottom. */
   .scoreboard.full.choosing {
     height: auto;
-    min-height: calc(100vh - var(--header-height, 56px) - 16px);
-    min-height: calc(100dvh - var(--header-height, 56px) - 16px);
+    min-height: calc(100vh - var(--ad-taken));
+    min-height: calc(100dvh - var(--ad-taken));
   }
   .heading { display: grid; gap: 2px; min-width: 0; }
-  .scoreboard .title { font-size: clamp(18px, 3cqi, 36px); font-weight: 700; }
+  /* The title breaks onto a second line beside the buttons of a phone instead of losing
+     its end. */
+  .scoreboard .title {
+    font-size: clamp(18px, 3cqi, 36px); font-weight: 700; line-height: 1.15;
+    white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: break-word; hyphens: auto;
+  }
+  .scoreboard > header { align-items: flex-start; }
   .scoreboard .meta { font-size: clamp(12px, 1.7cqi, 20px); }
   .scoreboard .pill { font-size: clamp(12px, 1.5cqi, 18px); }
   .banner {
@@ -7464,9 +7484,11 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .scorecard .total { font-weight: 800; color: var(--primary-text-color); }
   .scorecard tr.active th { color: var(--ad-accent-text); }
   .scorecard tr.winner > * { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
+  /* A long name takes a second line in a narrow tile instead of losing its end. */
   .player .name {
-    max-width: 100%; min-height: 1.2em; font-size: clamp(16px, 2.8cqi, 40px); font-weight: 700;
-    color: var(--primary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 100%; min-height: 1.2em; font-size: clamp(16px, 2.8cqi, 40px); font-weight: 700; line-height: 1.2;
+    text-align: center; color: var(--primary-text-color); overflow-wrap: anywhere; hyphens: auto;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
   }
   .player.active .name::before { content: "▶ "; content: "▶ " / ""; color: var(--ad-accent-text); }
   .big {
@@ -7495,9 +7517,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .details { font-size: clamp(12px, 1.9cqi, 24px); color: var(--ad-muted-text); font-variant-numeric: tabular-nums; }
   .cricket { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
   .cricket th, .cricket td { padding: .1em .3em; text-align: center; }
+  /* Names break onto a second line in a narrow column instead of losing their end. */
   .cricket thead th {
-    font-size: clamp(14px, min(2.6cqi, 3.4vh), 34px); font-weight: 700; color: var(--primary-text-color);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: clamp(12px, min(2.6cqi, 3.4vh), 34px); font-weight: 700; line-height: 1.1; color: var(--primary-text-color);
+    overflow-wrap: anywhere; hyphens: auto;
   }
   .cricket tr > :first-child { width: 20%; }
   .cricket tbody th {
@@ -7519,8 +7542,8 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .summary th, .summary td { padding: .12em .4em; line-height: 1.2; text-align: center; }
   .summary tr > :first-child { width: 26%; text-align: left; }
   .summary thead th {
-    font-size: clamp(14px, min(2.6cqi, 3.4vh), 34px); font-weight: 700; color: var(--primary-text-color);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: clamp(12px, min(2.6cqi, 3.4vh), 34px); font-weight: 700; line-height: 1.1; color: var(--primary-text-color);
+    overflow-wrap: anywhere; hyphens: auto;
   }
   .summary thead th.caption {
     font-size: clamp(11px, min(1.5cqi, 2vh), 18px); letter-spacing: .12em; text-transform: uppercase; color: var(--ad-accent-text);
@@ -7654,7 +7677,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .lobby-player.resting { color: var(--ad-muted-text); background: none; outline: 1px dashed var(--divider-color, rgba(127,127,127,.4)); }
   /* In a narrow column the moves go below the name and the start score. */
   .lobby-player { flex-wrap: wrap; row-gap: 4px; }
-  .lobby-player .who { flex: 1 1 6em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lobby-player .who { flex: 1 1 6em; min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
   .lobby-moves { display: inline-flex; gap: 6px; margin-left: auto; }
   .lobby-player button { min-width: 48px; padding: 0; }
   .lobby-start { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
@@ -7681,12 +7704,20 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .options { display: flex; flex-wrap: wrap; gap: 8px; }
   .options .section-label { flex-basis: 100%; margin-bottom: 0; }
   /* The start stays in reach at the bottom of the screen while the page scrolls, below
-     both columns. */
+     both columns and above a phone's home indicator, across the whole card. The card's
+     background lies on the page's, so the games scrolling beneath stay hidden with a
+     theme whose cards are see-through. */
   .lobby-actions {
+    --ad-card-fill: var(--ha-card-background, var(--card-background-color, #1c1c1c));
     grid-column: 1 / -1;
     position: sticky; bottom: 0; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
-    gap: 10px; padding: 8px 0; background: var(--ha-card-background, var(--card-background-color, #1c1c1c));
+    gap: 10px; margin: 0 calc(-1 * var(--ad-pad));
+    padding: 10px var(--ad-pad) calc(10px + var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)));
+    background: linear-gradient(var(--ad-card-fill), var(--ad-card-fill)), var(--primary-background-color, #111);
+    box-shadow: 0 -10px 12px -10px rgba(0, 0, 0, .45);
   }
+  /* On a phone the start fills the rest of the row, or a row of its own. */
+  @container (max-width: 560px) { .lobby-actions .start { flex: 1 1 10em; } }
   .lobby-hint { flex: 1 1 100%; font-weight: 700; color: var(--ad-warn-text); }
   .lobby-hint:empty { display: none; }
   .lobby .secondary { background: none; }
@@ -7835,7 +7866,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .scoreboard.full .banner { font-size: clamp(16px, min(3.4cqi, 5.5vh), 44px); padding: .3em 1em; }
   /* A small landscape screen, such as 800 × 480 or 1024 × 600: less room around the parts. */
   @media (max-height: 640px) {
-    .scoreboard.full { padding: 10px 16px; gap: 8px; }
+    .scoreboard.full { --ad-pad: 16px; padding: 10px var(--ad-pad); gap: 8px; }
     .scoreboard.full .visit :is(.dart, .sum) { padding: 4px 6px; flex-direction: row; gap: 8px; }
     .scoreboard.full .player { padding-block: 8px; }
   }
@@ -7869,6 +7900,83 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     .scoreboard.full .cricket td { font-size: clamp(14px, min(6cqi, 6.2cqh), 80px); }
     .scoreboard.full .cricket tr.total td { font-size: clamp(18px, min(7cqi, 7.2cqh), 90px); }
     .scoreboard.full .cricket tbody th { font-size: clamp(13px, min(4.4cqi, 5.4cqh), 56px); }
+  }
+  /* A phone: the pad's keys take less room so the scores stay in sight. Its label gets a
+     line of its own, the bulls, the miss and the actions share one row. */
+  @container (max-width: 560px) {
+    .scoreboard.full .pad-head .section-label { flex-basis: 100%; }
+    .scoreboard.full :is(.pad, .pad-numbers) { gap: 4px; }
+    .scoreboard.full .pad button { min-height: 42px; padding: 0 6px; }
+    .scoreboard.full .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
+    .scoreboard.full .pad-extra button { line-height: 1.1; }
+    .scoreboard.full .pad.on-board .pad-head .section-label { flex-basis: auto; }
+    /* The board to tap takes the room the scores leave; they keep two short lines. */
+    .scoreboard.full:has(.pad.on-board) > .main { flex: 1 1 0; min-height: 96px; }
+    .scoreboard.full:has(.pad.on-board) > .pad-area { flex: 4 1 0; min-height: 0; display: flex; flex-direction: column; }
+    .scoreboard.full .pad.on-board { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+    .scoreboard.full .pad.on-board > .pad-board { flex: 1 1 0; min-height: 160px; width: 100%; height: auto; aspect-ratio: auto; }
+  }
+  /* A phone on its side: the pad takes the right half from the top to the bottom, its
+     numbers in two rows of ten as on a large screen, or in three rows of seven where ten
+     keys would be too narrow for a finger. */
+  @media (orientation: landscape) and (max-height: 440px) {
+    .scoreboard.full.with-pad {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas: "header pad" "banner pad" "main pad" "visit pad";
+    }
+    .scoreboard.full.with-pad > .pad-area { align-self: stretch; overflow-y: auto; container-type: inline-size; }
+    .scoreboard.full.with-pad .pad-head .section-label { flex-basis: 100%; }
+    .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    @container (min-width: 396px) { .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+    .scoreboard.full.with-pad :is(.pad, .pad-numbers) { gap: 4px; }
+    .scoreboard.full.with-pad .pad button { min-height: 40px; padding: 0 4px; }
+    .scoreboard.full.with-pad .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
+    .scoreboard.full.with-pad .pad-extra button { line-height: 1.1; }
+    /* The board as high as the screen allows, its switch and actions beside it. */
+    .scoreboard.full.with-pad .pad.on-board {
+      grid-template-columns: auto minmax(0, 1fr); align-items: start;
+      grid-template-areas: "board head" "board extra" "board hint";
+    }
+    .scoreboard.full.with-pad .pad.on-board > .pad-head { grid-area: head; }
+    .scoreboard.full.with-pad .pad.on-board > .pad-extra { grid-area: extra; grid-template-columns: minmax(0, 1fr); }
+    .scoreboard.full.with-pad .pad.on-board > .pad-hint { grid-area: hint; text-align: start; }
+    .scoreboard.full.with-pad .pad.on-board > .pad-board {
+      grid-area: board; width: min(calc(100dvh - var(--ad-taken) - 24px), 62cqi); margin: 0;
+    }
+  }
+  /* Little room for the scores, as beside a pad on a phone: each player on one line, the
+     name beside the score, so that every score stays in sight. */
+  @container (max-height: 200px) {
+    .scoreboard.full .players { gap: 6px; }
+    .scoreboard.full .player {
+      flex-direction: row; justify-content: space-between; gap: 8px; padding: 4px 10px; border-radius: 14px;
+    }
+    .scoreboard.full .player .name { font-size: clamp(13px, 8cqh, 18px); text-align: left; min-height: 0; }
+    .scoreboard.full .players .big { font-size: clamp(20px, 16cqh, 36px); }
+    .scoreboard.full .player :is(.route, .members, .details) { display: none; }
+  }
+  /* Little room above the visit, as on a phone on its side: the visit without its
+     label, the facts smaller, and a smaller start of the next game; with even less
+     room, the number and the start alone. */
+  @container (max-height: 240px) {
+    .scoreboard.full .single { gap: 4px; }
+    .scoreboard.full .single .label { display: none; }
+    .scoreboard.full .single .facts { font-size: 13px; }
+    .scoreboard.full .single .big { font-size: clamp(28px, 100cqh - 64px, 320px); }
+    .scoreboard.full .main:has(.lobby-cta) .single .big { font-size: clamp(28px, 100cqh - 112px, 320px); }
+    .scoreboard.full .lobby-cta { min-height: 44px; font-size: 16px; }
+  }
+  @container (max-height: 150px) {
+    .scoreboard.full .single .facts { display: none; }
+    .scoreboard.full .main:has(.lobby-cta) .single .big { font-size: clamp(28px, 100cqh - 56px, 320px); }
+  }
+  /* A Cricket chalkboard with little room: rows as high as the room allows. */
+  @container (max-height: 260px) {
+    .scoreboard.full .cricket :is(th, td), .scoreboard.full .cricket.many :is(th, td) { padding-block: 0; line-height: 1.05; }
+    .scoreboard.full .cricket td, .scoreboard.full .cricket.many td { font-size: clamp(10px, min(4.4cqi, 8cqh), 60px); }
+    .scoreboard.full .cricket tbody th, .scoreboard.full .cricket.many tbody th { font-size: clamp(10px, min(3cqi, 7cqh), 42px); }
+    .scoreboard.full .cricket thead th, .scoreboard.full .cricket.many thead th { font-size: clamp(10px, min(2.6cqi, 6.5cqh), 34px); }
+    .scoreboard.full .cricket tr.total td, .scoreboard.full .cricket.many tr.total td { font-size: clamp(11px, min(4.2cqi, 9cqh), 56px); }
   }
 `;
 
@@ -7979,7 +8087,7 @@ const PROGRESS_CSS = `
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; align-items: center;
     padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
   }
-  .trend-label { font-size: 11px; color: var(--ad-muted-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .trend-label { font-size: 11px; line-height: 1.25; color: var(--ad-muted-text); overflow-wrap: break-word; hyphens: auto; }
   .trend-value { font-size: 14px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .trend .spark { grid-column: 1 / -1; height: 24px; }
   .spark polyline {

@@ -38,7 +38,7 @@ REPOSITORY_PATH = re.compile(
     r"`((?:tests|custom_components|blueprints|scripts|\.github|\.devcontainer|docs)"
     r"/[\w./-]*)`"
 )
-# Folders the tests create while they run.
+# Folders the tests create while they run, with everything in them.
 GENERATED = ("tests/e2e/artifacts/",)
 
 
@@ -119,7 +119,7 @@ def test_the_repository_paths_in_the_text_exist():
         f"{document.relative_to(ROOT).as_posix()}: {path}"
         for document in DOCUMENTS
         for path in REPOSITORY_PATH.findall(FENCE.sub("", document.read_text("utf-8")))
-        if path not in GENERATED and not (ROOT / path).exists()
+        if not path.startswith(GENERATED) and not (ROOT / path).exists()
     ]
     assert not missing, "\n".join(missing)
 

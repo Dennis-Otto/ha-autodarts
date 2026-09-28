@@ -20,7 +20,8 @@ jobs:
   e2e:
     name: e2e (${{ matrix.name }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The browser test checks every view on eight screen sizes.
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -64,7 +65,7 @@ jobs:
     name: e2e (Home Assistant beta)
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       BOARD_MANAGER: 2
       # The moving beta tag on purpose: this job tests what users get next.

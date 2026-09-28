@@ -34,7 +34,7 @@ The [card guide](cards.md#scoreboard-card) lists every option.
 
 ## Landscape, portrait and TV
 
-The scoreboard adapts to the shape of the screen. With `full_height: true` it is exactly the screen below the toolbar: a banner, the visit or the keypad make the numbers and tables smaller instead of pushing the page past the screen, so nothing needs scrolling, from a small 800 × 480 display to a TV. On a phone it leaves room for the browser's address bar.
+The scoreboard adapts to the shape of the screen. With `full_height: true` it is exactly the screen below the toolbar: a banner, the visit or the keypad make the numbers and tables smaller instead of pushing the page past the screen, so nothing needs scrolling, from a small 800 × 480 display to a TV. On a phone it leaves room for the browser's address bar, and in the companion app for the status bar and the home indicator.
 
 <table>
   <tr>
@@ -49,6 +49,7 @@ The scoreboard adapts to the shape of the screen. With `full_height: true` it is
 
 - **Landscape tablet or TV:** the best choice for X01 and the party games, whose player tiles sit side by side.
 - **Portrait tablet:** fine for Cricket, whose chalkboard is tall, and for X01: two players stand one above the other, three or four two by two, and the scores use the height of the screen.
+- **Phone:** everything fits one screen, upright or on its side. With the keypad or the board to tap, every player's score becomes one line, so all scores stay in sight; on its side, the keypad takes the right half of the screen from top to bottom.
 - **Distance:** the remaining score is the largest text on the screen and grows with it. The bigger the screen, the farther away it reads, so a TV also serves the people watching.
 
 ## Choose the next game

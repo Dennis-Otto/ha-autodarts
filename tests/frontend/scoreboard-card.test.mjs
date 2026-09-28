@@ -632,9 +632,17 @@ test("the status and the banner are written only when they change, and the playe
 test("the full-height scoreboard fits the screen, lays out a portrait tablet and keeps its contrast", () => {
   const style = $(setup({}, { full_height: true }).card, "style").textContent;
   const has = (pattern) => assert.match(style, pattern);
-  // The screen below the header, not more; the new game screen scrolls with the page.
-  has(/\.scoreboard\.full \{\s*height: calc\(100vh - var\(--header-height, 56px\) - 16px\);\s*height: calc\(100dvh/);
+  // The screen below the header and above a phone's home indicator, not more; the new
+  // game screen scrolls with the page.
+  has(
+    /--ad-taken: calc\(\s*var\(--header-height, 56px\) \+ var\(--safe-area-inset-top, env\(safe-area-inset-top, 0px\)\) \+\s*var\(--safe-area-inset-bottom, env\(safe-area-inset-bottom, 0px\)\) \+ 16px\s*\);\s*height: calc\(100vh - var\(--ad-taken\)\);\s*height: calc\(100dvh - var\(--ad-taken\)\);/
+  );
   has(/\.scoreboard\.full\.choosing \{\s*height: auto;/);
+  // Little room for the scores: a line per player; a phone on its side keeps the pad
+  // beside them from the top to the bottom.
+  has(/@container \(max-height: 200px\) \{\s*\.scoreboard\.full \.players \{ gap: 6px; \}/);
+  has(/@media \(orientation: landscape\) and \(max-height: 440px\) \{\s*\.scoreboard\.full\.with-pad \{/);
+  has(/grid-template-areas: "header pad" "banner pad" "main pad" "visit pad";/);
   has(/\.scoreboard\.full:not\(\.choosing\) \.main \{\s*flex: 1 1 0; container-type: size; overflow-y: auto; justify-content: safe center;/);
   // The numbers take the width and the height left; the pad sits beside the scores in landscape.
   has(/\.scoreboard\.full \.n2 \.big \{ font-size: clamp\(40px, min\(15cqi, 100cqh - 19cqi\), 240px\); \}/);
@@ -642,7 +650,11 @@ test("the full-height scoreboard fits the screen, lays out a portrait tablet and
   has(/@media \(orientation: portrait\) \{\s*\.scoreboard\.full \.players\.n2 \{ grid-template-columns: minmax\(0, 1fr\); \}/);
   // Sticky needs a card without a scroll container of its own.
   has(/ha-card \{ overflow: hidden; overflow: clip;/);
-  has(/\.lobby-actions \{\s*grid-column: 1 \/ -1;\s*position: sticky;/);
+  has(/\.lobby-actions \{\s*--ad-card-fill: [^;]+;\s*grid-column: 1 \/ -1;\s*position: sticky;/);
+  // The start bar covers what scrolls beneath it, also with a see-through card, and stays
+  // above a phone's home indicator.
+  has(/background: linear-gradient\(var\(--ad-card-fill\), var\(--ad-card-fill\)\), var\(--primary-background-color, #111\);/);
+  has(/padding: 10px var\(--ad-pad\) calc\(10px \+ var\(--safe-area-inset-bottom, env\(safe-area-inset-bottom, 0px\)\)\);/);
   // Accent text and fills are darkened for contrast; pressed buttons show in High Contrast.
   has(/--ad-accent-text: color-mix\(in srgb, var\(--ad-accent\) 60%, var\(--primary-text-color, #212121\)\);/);
   has(/--ad-accent-fill: color-mix\(in srgb, var\(--ad-accent\) 70%, #000\);/);
