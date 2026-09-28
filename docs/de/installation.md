@@ -24,7 +24,7 @@ Für die lokale Nutzung braucht die Integration **keine Autodarts-Anmeldung, kei
 3. Suche nach **Autodarts**, öffne es und wähle **Herunterladen**.
 4. Starte Home Assistant neu.
 
-Neue Versionen zeigt HACS als Update unter **Einstellungen → Updates** an, samt Versionshinweisen.
+Neue Versionen zeigt HACS als Update unter **Einstellungen → Updates** an, samt Versionshinweisen. HACS installiert das signierte Release-Paket `autodarts.zip`, dieselbe Datei wie bei der [manuellen Installation](#manuell).
 
 ### Manuell
 
