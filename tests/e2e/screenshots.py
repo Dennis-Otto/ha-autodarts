@@ -1444,6 +1444,25 @@ def training_card(page: Page, suffix: str) -> None:
     page.set_viewport_size(size)
 
 
+def live_positions(page: Page) -> None:
+    """The positions of the session, with the darts of the current visit as pins."""
+    size = page.viewport_size
+    page.set_viewport_size({"width": size["width"], "height": 1700})
+    tag = "autodarts-training-card"
+    # The card of Alex's positions, switched to the session.
+    page.goto(f"{HA}/autodarts-demo/positions")
+    page.locator(f"{tag} button[data-source='']").click()
+    page.wait_for_function(
+        f"() => ({find(tag)})().some((c) =>"
+        " c.shadowRoot.querySelectorAll('.heat-layer .position.live').length === 3"
+        " && c.shadowRoot.querySelectorAll('.heat-layer .position:not(.live)').length >= 15)",
+        timeout=60000,
+    )
+    page.wait_for_timeout(1200)
+    part_shot(page, "training-live-positions", tag, [".heat"])
+    page.set_viewport_size(size)
+
+
 def status_card(page: Page, suffix: str) -> None:
     page.goto(f"{HA}/autodarts-demo/status")
     page.wait_for_function(
@@ -2033,6 +2052,8 @@ def main() -> None:
             training_card(page, suffix)
             status_card(page, suffix)
             if scheme == "dark":
+                # While the current visit is on the board.
+                live_positions(page)
                 open_dashboard(page, "styles")
                 peak(page)
                 # The short card first, while the page is at the top: the tall one

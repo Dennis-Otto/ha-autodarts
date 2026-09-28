@@ -2924,6 +2924,7 @@ const TRAINING_KEYS = {
   misses: "sensor.training_misses",
   started: "sensor.training_started",
   events: "event.board_events",
+  visit: "sensor.local_visit_score",
   newSession: "button.reset_training",
   session: "switch.training_session",
   lastSession: "sensor.training_last_session",
@@ -5967,11 +5968,23 @@ const DENSITY_CELL = 8;
 const DENSITY_SIGMA = 8;
 // The newest darts are also drawn as dots, up to this many.
 const POSITION_DOTS = 300;
+// Positions further out than this are no darts on the board, as the integration logs them.
+const MAX_POSITION = 3;
 
 const validPositions = (positions) =>
   (Array.isArray(positions) ? positions : []).filter(
     (position) => Array.isArray(position) && Number.isFinite(position[0]) && Number.isFinite(position[1])
   );
+
+// The darts of the current visit that the session logs once the visit is booked: every
+// dart of the visit the board saw, not the bot's.
+const visitPositions = (throws) =>
+  (Array.isArray(throws) ? throws : [])
+    .filter((dart) => Number.isInteger(dart?.dart) && dart.bot !== true)
+    .map((dart) => [dart.x, dart.y])
+    .filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y) && Math.hypot(x, y) <= MAX_POSITION);
+// When the newest visit was booked; the visit sensor lists the recent visits newest first.
+const newestVisit = (state) => state?.attributes?.recent_visits?.[0]?.time;
 
 function positionsDensity(positions) {
   const cells = new Map();
@@ -5995,10 +6008,12 @@ function positionsDensity(positions) {
   return cells;
 }
 
-// The density in the heatmap colours, softened by a blur, and the newest darts as dots.
-function positionsHtml(positions) {
+// The density in the heatmap colours, softened by a blur, and the newest darts as dots;
+// the darts of the current visit count for the density and stand out as pins.
+function positionsHtml(positions, live) {
   const valid = validPositions(positions);
-  const cells = positionsDensity(valid);
+  const current = validPositions(live);
+  const cells = positionsDensity([...valid, ...current]);
   let max = 0;
   for (const value of cells.values()) max = Math.max(max, value);
   const half = DENSITY_CELL / 2;
@@ -6017,7 +6032,10 @@ function positionsHtml(positions) {
     .slice(-POSITION_DOTS)
     .map(([x, y]) => `<circle class="position" cx="${fmt(x * NORM)}" cy="${fmt(-y * NORM)}" r="2.2"/>`)
     .join("");
-  return `<g class="density" filter="url(#ad-density)">${density}</g><g class="positions">${dots}</g>`;
+  const pins = current
+    .map(([x, y]) => `<circle class="position live" cx="${fmt(x * NORM)}" cy="${fmt(-y * NORM)}" r="6"/>`)
+    .join("");
+  return `<g class="density" filter="url(#ad-density)">${density}</g><g class="positions">${dots}${pins}</g>`;
 }
 
 // Leaderboard ------------------------------------------------------------------
@@ -7242,6 +7260,8 @@ const TRAINING_CSS = `${BASE_CSS}
   .heat-head { width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
   .heat-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
   .position { fill: #fff; fill-opacity: .85; stroke: rgba(0,0,0,.55); stroke-width: .6; }
+  /* The darts of the current visit, like the pins of the live card. */
+  .position.live { fill: #3182ce; fill-opacity: 1; stroke: #fff; stroke-width: 2; }
   .heat .groups { width: 100%; display: grid; gap: 2px; }
   .group { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; gap: 10px; align-items: baseline; font-size: 13px; }
   .group-target {
@@ -8710,6 +8730,9 @@ function createElements(Base) {
       this._source = null;
       this._positions = null;
       this._positionsFor = null;
+      // The darts of the current visit last drawn, and the drawing of the positions.
+      this._live = [];
+      this._drawn = null;
     }
 
     // A new configuration shows its own mode and player again.
@@ -8739,7 +8762,11 @@ function createElements(Base) {
     }
 
     // Only visits and session starts change the card; other board events leave it alone.
+    // Of the current visit, only where its darts landed and the newest booked visit matter.
     _relevant(id, state) {
+      if (id === this._ids.visit) {
+        return `${newestVisit(state)}|${JSON.stringify(visitPositions(state?.attributes?.throws))}`;
+      }
       if (id !== this._ids.events) return state;
       const type = state?.attributes?.event_type;
       if (this._event?.id !== id || VISIT_EVENTS.includes(type)) {
@@ -9143,10 +9170,25 @@ function createElements(Base) {
       );
     }
 
-    // New positions come with every booked visit of the session or the player.
+    // New positions come with every booked visit: a player's with the darts of the profile,
+    // the session's with the newest recent visit, which an undone visit takes back, and
+    // with a new session. Without the visit sensor, the visits of the session count them.
+    // The recent visits change together with the darts of the visit, so its darts never
+    // leave the board before they come back logged.
     _positionsKey(source) {
-      const count = source ? finite(this._profile(source)?.darts_thrown) : this._number("visits");
+      const visit = this._state("visit");
+      const count = source
+        ? finite(this._profile(source)?.darts_thrown)
+        : visit
+          ? `${this._state("started")?.state}|${newestVisit(visit)}`
+          : this._number("visits");
       return `${this._deviceId}|${source}|${count ?? ""}`;
+    }
+
+    // The darts of the current visit, while the session logs them.
+    _livePositions(source) {
+      if (source || this._state("session")?.state !== "on") return [];
+      return visitPositions(this._state("visit")?.attributes?.throws);
     }
 
     async _loadPositions(source) {
@@ -9165,8 +9207,7 @@ function createElements(Base) {
       }
       if (this._positionsFor !== key) return;
       const positions = validPositions(result?.positions);
-      // The density is drawn once per answer, not with every update of the card.
-      this._positions = { source, positions, spread: spreadView(result?.spread), html: positionsHtml(positions) };
+      this._positions = { key, source, positions, spread: spreadView(result?.spread) };
       // An answer that arrives after a switch to beds or numbers waits for positions.
       if (this._heatMode() === "positions") this._drawPositions();
     }
@@ -9174,17 +9215,27 @@ function createElements(Base) {
     _drawPositions() {
       const el = this._el;
       if (!el.heat) return;
-      const shown = this._positions?.source === this._heatSource() ? this._positions : null;
+      const source = this._heatSource();
+      const shown = this._positions?.source === source ? this._positions : null;
+      // A visit booked just now keeps its darts on the board until they come back logged.
+      const live = shown && this._positionsFor !== shown.key ? this._live : this._livePositions(source);
+      this._live = live;
       const positions = shown?.positions ?? [];
-      this._setHtml(el.heat, shown ? shown.html : positionsHtml([]));
+      // The density is drawn once per answer and visit, not with every update of the card.
+      const drawn = JSON.stringify(live);
+      if (this._drawn?.shown !== shown || this._drawn.live !== drawn) {
+        this._drawn = { shown, live: drawn, html: positionsHtml(positions, live) };
+      }
+      this._setHtml(el.heat, this._drawn.html);
       this._setHtml(el.heatList, "");
+      const count = positions.length + live.length;
       el.legendMin.textContent = this._t("legend_few");
-      el.legendMax.textContent = positions.length ? this._t("legend_many") : "–";
+      el.legendMax.textContent = count ? this._t("legend_many") : "–";
       // Groupings need darts at a bed the game knows; without positions, the card says so.
-      el.groups.hidden = !shown || (positions.length > 0 && !shown.spread.length);
+      el.groups.hidden = !shown || (count > 0 && !shown.spread.length);
       this._setHtml(
         el.groups,
-        shown && !positions.length
+        shown && !count
           ? `<div class="empty-hint">${escapeHtml(this._t("positions_empty"))}</div>`
           : spreadHtml(shown?.spread ?? [], this._ui())
       );
@@ -9197,6 +9248,8 @@ function createElements(Base) {
         this._drawPositions();
         return;
       }
+      // Back in positions mode, no visit of long ago stays on the board.
+      this._live = [];
       el.groups.hidden = true;
       el.legendMin.textContent = "1";
       const levels = heatLevels(hits, this._heatMode());

@@ -211,7 +211,7 @@ The Board Manager reports where each dart landed, relative to the outer edge of 
 - **Doubles training and Bob's 27:** the double of the round. **Checkout training:** the route, as in X01. **Bull-off:** the bullseye.
 - **Around the Clock, Cricket and the party games:** no aim, because any bed of a number counts there.
 
-Positions are stored to a tenth of a millimeter with the training. They say where darts land and nothing else, and they never leave Home Assistant; diagnostics only count them. The cards read them on demand with the WebSocket command `autodarts/positions` (`device_id`, optional `player`), because thousands of positions are too many for entity attributes.
+Positions are stored to a tenth of a millimeter with the training. They say where darts land and nothing else, and they never leave Home Assistant; diagnostics only count them. The cards read them on demand with the WebSocket command `autodarts/positions` (`device_id`, optional `player`), because thousands of positions are too many for entity attributes. A visit is logged when it is booked, as you pull the darts; until then, the training card draws the darts of the current visit from the visit sensor.
 
 ### Grouping
 
