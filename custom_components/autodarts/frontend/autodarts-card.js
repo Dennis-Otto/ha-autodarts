@@ -350,6 +350,9 @@ const TEXT = {
     pad_cancel: "Cancel",
     pad_board: "Board",
     pad_spot: "Tap where the dart is",
+    pad_spot_hint: "Tap where the dart is. Hold and slide for a magnifier; two fingers zoom.",
+    pad_zoom: "Zoom",
+    pad_whole: "Whole board",
     pad_seen: "Where the board saw it",
     next_player: "Next player",
     undo_visit: "Undo last visit",
@@ -892,6 +895,9 @@ const TEXT = {
     pad_cancel: "Abbrechen",
     pad_board: "Scheibe",
     pad_spot: "Tippe an, wo der Dart steckt",
+    pad_spot_hint: "Tippe an, wo der Dart steckt. Halten und schieben zeigt eine Lupe, zwei Finger zoomen.",
+    pad_zoom: "Zoom",
+    pad_whole: "Ganze Scheibe",
     pad_seen: "Wo das Board ihn erkannt hat",
     next_player: "Nächster Spieler",
     undo_visit: "Letzte Aufnahme zurück",
@@ -1423,6 +1429,9 @@ const TEXT = {
     pad_cancel: "Cancelar",
     pad_board: "Diana",
     pad_spot: "Toca donde está el dardo",
+    pad_spot_hint: "Toca donde está el dardo. Mantén y desliza para ver una lupa; con dos dedos haces zoom.",
+    pad_zoom: "Zoom",
+    pad_whole: "Diana entera",
     pad_seen: "Donde lo vio la diana",
     next_player: "Siguiente jugador",
     undo_visit: "Deshacer la última tirada",
@@ -1953,6 +1962,9 @@ const TEXT = {
     pad_cancel: "Annuler",
     pad_board: "Cible",
     pad_spot: "Touchez l'endroit où se trouve la fléchette",
+    pad_spot_hint: "Touchez l'endroit où se trouve la fléchette. Maintenez et glissez pour une loupe\u00a0; deux doigts zooment.",
+    pad_zoom: "Zoom",
+    pad_whole: "Cible entière",
     pad_seen: "Là où la cible l'a vue",
     next_player: "Joueur suivant",
     undo_visit: "Annuler la dernière volée",
@@ -2483,6 +2495,9 @@ const TEXT = {
     pad_cancel: "Annuleren",
     pad_board: "Bord",
     pad_spot: "Tik aan waar de dart zit",
+    pad_spot_hint: "Tik aan waar de dart zit. Houd vast en schuif voor een vergrootglas; met twee vingers zoom je.",
+    pad_zoom: "Zoom",
+    pad_whole: "Heel bord",
     pad_seen: "Waar het bord hem zag",
     next_player: "Volgende speler",
     undo_visit: "Laatste beurt ongedaan maken",
@@ -5118,17 +5133,47 @@ const padBed = (multiplier, number) => `${"SDT"[multiplier - 1]}${number}`;
 // The pad's board: the dartboard with its surround, in millimetres.
 const PAD_VIEW = 2 * (R.board + 5);
 
-// Where a tap on the pad's board lands, as the board reports positions: 1 is the
-// outer edge of the double ring and y points to the 20. The board is drawn square
-// in the middle of its element; a board that is not laid out has no spot.
-function boardSpot(svg, event) {
+// On a small screen the board to tap opens this much larger around where the board
+// saw the dart being corrected; two fingers zoom up to the most. The loupe under a
+// finger shows the board that much larger again.
+const PAD_ZOOM = 2.5;
+const PAD_ZOOM_MOST = 5;
+const LOUPE_ZOOM = 2.5;
+// A card narrower than this, or a screen lower, as a phone on its side, is a small screen.
+const PAD_SMALL = 600;
+
+// The part of the pad's board in sight: all of it, or, zoomed in with `zoom` as
+// { scale, x, y }, the square of that scale around x and y in millimetres of the
+// drawing (y points down), kept on the board.
+function padViewBox(zoom) {
+  const half = PAD_VIEW / 2;
+  if (!(zoom?.scale > 1)) return { x: -half, y: -half, size: PAD_VIEW };
+  const size = PAD_VIEW / Math.min(zoom.scale, PAD_ZOOM_MOST);
+  const middle = (value) => Math.min(Math.max(Number.isFinite(value) ? value : 0, size / 2 - half), half - size / 2);
+  return { x: middle(zoom.x) - size / 2, y: middle(zoom.y) - size / 2, size };
+}
+const viewBoxText = (view) => [view.x, view.y, view.size, view.size].map(fmt).join(" ");
+
+// Where a point of the screen lies on the drawing of the pad's board, in millimetres.
+// The board is drawn square in the middle of its element; a board that is not laid
+// out has no point.
+function boardPoint(svg, event, view) {
   const rect = svg.getBoundingClientRect();
-  const scale = Math.min(rect.width, rect.height) / PAD_VIEW;
+  const scale = Math.min(rect.width, rect.height) / view.size;
   if (!(scale > 0)) return null;
+  return [
+    view.x + view.size / 2 + (event.clientX - rect.left - rect.width / 2) / scale,
+    view.y + view.size / 2 + (event.clientY - rect.top - rect.height / 2) / scale,
+  ];
+}
+
+// Where a tap on the pad's board lands, as the board reports positions: 1 is the
+// outer edge of the double ring and y points to the 20.
+function boardSpot(svg, event, view = padViewBox(null)) {
+  const point = boardPoint(svg, event, view);
+  if (!point) return null;
   const round = (value) => Math.round(value * 1000) / 1000 || 0;
-  const x = (event.clientX - rect.left - rect.width / 2) / scale;
-  const y = (event.clientY - rect.top - rect.height / 2) / scale;
-  return [round(x / NORM), round(-y / NORM)];
+  return [round(point[0] / NORM), round(-point[1] / NORM)];
 }
 
 // The pad's board: a tap says where the dart is, and the bed follows from it. The
@@ -5136,20 +5181,22 @@ function boardSpot(svg, event) {
 // saw it.
 function padBoardHtml(pad, ui) {
   const { t } = ui;
+  const view = padViewBox(pad.zoom);
+  // Pins keep their size on the screen when the board is zoomed in.
+  const size = view.size / PAD_VIEW;
   const pins = pad.pins
     .map(({ x, y, seen }) => {
       const at = `cx="${fmt(x * NORM)}" cy="${fmt(-y * NORM)}"`;
       return seen
-        ? `<circle class="spot seen" ${at} r="13"><title>${escapeHtml(t("pad_seen"))}</title></circle>`
-        : `<circle class="spot" ${at} r="8"/>`;
+        ? `<circle class="spot seen" ${at} r="${fmt(13 * size)}"><title>${escapeHtml(t("pad_seen"))}</title></circle>`
+        : `<circle class="spot" ${at} r="${fmt(8 * size)}"/>`;
     })
     .join("");
-  const half = PAD_VIEW / 2;
   return (
     `<svg class="pad-board${pad.disabled ? " disabled" : ""}"${pad.disabled ? "" : ` data-pad="spot"`}` +
-    ` viewBox="${-half} ${-half} ${PAD_VIEW} ${PAD_VIEW}" role="img" aria-label="${escapeHtml(t("pad_spot"))}">` +
+    ` viewBox="${viewBoxText(view)}" role="img" aria-label="${escapeHtml(t("pad_spot"))}">` +
     `<g class="face">${boardSvg("classic")}</g><g class="numbers">${numbersSvg("classic")}</g>${pins}</svg>` +
-    `<div class="pad-hint" aria-hidden="true">${escapeHtml(t("pad_spot"))}</div>`
+    `<div class="pad-hint" aria-hidden="true">${escapeHtml(t("pad_spot_hint"))}</div>`
   );
 }
 
@@ -5192,12 +5239,27 @@ function padHtml(pad, ui) {
       (pad.undo ? button("undo", undefined, `↶ ${confirm("undo", "undo_visit")}`, ` class="secondary"`) : "");
   // The board instead of the keys, for the spot where the dart is.
   const view = button("board", undefined, `🎯 ${escapeHtml(t("pad_board"))}`, ` class="view" aria-pressed="${pad.board === true}"`);
+  // On the board, a switch between the whole board and its part around the dart: a
+  // magnifier with a plus zooms in, one with a minus shows all of it.
+  const zoomed = padViewBox(pad.zoom).size < PAD_VIEW;
+  const magnifier =
+    `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/>` +
+    `<path d="M14.5 14.5 20 20M7 10h6${zoomed ? "" : "M10 7v6"}"/></svg>`;
+  const zoom = pad.board
+    ? button(
+        "zoom",
+        undefined,
+        magnifier,
+        ` class="zoom" aria-pressed="${zoomed}" aria-label="${escapeHtml(t("pad_zoom"))}"` +
+          ` title="${escapeHtml(t(zoomed ? "pad_whole" : "pad_zoom"))}"`
+      )
+    : "";
   const body = pad.board
     ? padBoardHtml(pad, ui)
     : `<div class="pad-numbers">${numbers}</div>`;
   return (
     `<section class="pad${pad.dart ? " correcting" : ""}${pad.board ? " on-board" : ""}" aria-label="${escapeHtml(title)}">` +
-    `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>${pad.board ? "" : multipliers}${view}</div>` +
+    `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>${pad.board ? "" : multipliers}${zoom}${view}</div>` +
     `${body}<div class="pad-extra">${pad.board ? "" : bulls}${actions}</div></section>`
   );
 }
@@ -7005,7 +7067,7 @@ const BASE_CSS = `
   .chip.off { --chip: #9e9e9e; }
   .chip.alert { --chip: ${STATUS_COLORS.problem}; color: var(--ad-error-text); }
   /* A finger needs about 36 px, more than a mouse pointer. */
-  @media (pointer: coarse) { .chip { min-height: 36px; } }
+  @media (any-pointer: coarse) { .chip { min-height: 36px; } }
   .controls { display: flex; flex-wrap: wrap; gap: 8px; }
   .controls button, button.action {
     flex: 1 1 auto; min-height: 40px; padding: 0 14px; border-radius: 12px; cursor: pointer;
@@ -7138,7 +7200,7 @@ const CSS = `${BASE_CSS}
   .summary th, .summary td { padding: 2px 6px; text-align: center; }
   .summary tr > :first-child { width: 36%; text-align: left; }
   .summary thead th { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .summary thead th.caption { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-accent-text); }
+  .summary thead th.caption { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ad-accent-text); }
   .summary tbody th { font-weight: 400; color: var(--secondary-text-color); }
   .summary td { font-weight: 700; color: var(--primary-text-color); }
   .summary tr.result td { font-size: 17px; font-weight: 800; color: var(--ad-accent-text); }
@@ -7218,7 +7280,7 @@ const SEGMENTED_CSS = `
   }
   .segmented button[aria-pressed="true"] { color: #fff; background: var(--ad-accent-fill); }
   /* Finger-sized at a touch screen. */
-  @media (pointer: coarse) { .segmented button { min-height: 40px; } }
+  @media (any-pointer: coarse) { .segmented button { min-height: 40px; } }
 `;
 
 const TRAINING_CSS = `${BASE_CSS}
@@ -7296,7 +7358,7 @@ const TRAINING_CSS = `${BASE_CSS}
     height: calc((100% - 16px) * var(--height));
   }
   .visit-bar .label {
-    font-size: 10px; font-weight: 700; line-height: 14px; margin-bottom: 2px;
+    font-size: 11px; font-weight: 700; line-height: 14px; margin-bottom: 2px;
     color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap;
   }
   .visit-bar.empty .fill { background: color-mix(in srgb, var(--primary-text-color) 7%, transparent); height: 3px; }
@@ -7389,9 +7451,10 @@ const STATUS_CSS = `${BASE_CSS}
   .camera button.action { min-height: 32px; font-size: 12px; }
   /* On a touch screen the small controls grow to a finger's size; the switch by a
      transparent border, which keeps its look. */
-  @media (pointer: coarse) {
+  @media (any-pointer: coarse) {
     .toggle { box-sizing: content-box; border: 4px solid transparent; background-clip: padding-box; }
     .info-tile .badge, .camera-name, .camera button.action { min-height: 36px; }
+    .system-info { display: flex; align-items: center; min-height: 36px; }
   }
 `;
 
@@ -7399,7 +7462,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   /* Secondary text sits on tinted tiles here: its darker mix stays readable on them. */
   .scoreboard {
     --ad-pad: clamp(14px, 2.4cqi, 32px);
-    display: flex; flex-direction: column; gap: clamp(12px, 2cqi, 24px);
+    position: relative; display: flex; flex-direction: column; gap: clamp(12px, 2cqi, 24px);
     padding: var(--ad-pad); box-sizing: border-box;
   }
   /* Full height is the screen below Home Assistant's header: a banner, the visit or the
@@ -7583,13 +7646,17 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     border: 1px solid var(--divider-color, rgba(127,127,127,.25));
     background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
   }
-  .dart .segment { font-size: clamp(18px, 3.6cqi, 48px); font-weight: 800; color: var(--primary-text-color); }
+  /* A dart's bed and points grow with its own tile, which is narrow beside a pad. */
+  .visit .dart { container-type: inline-size; }
+  .dart .segment { font-size: clamp(16px, 24cqi, 48px); font-weight: 800; color: var(--primary-text-color); }
   .dart.empty .segment { color: var(--ad-muted-text); }
-  .dart .points, .sum .muted { font-size: clamp(11px, 1.6cqi, 20px); min-height: 1.2em; }
+  .dart .points { font-size: clamp(11px, 7cqi, 20px); min-height: 1.2em; }
+  .sum .muted { font-size: clamp(11px, 1.6cqi, 20px); min-height: 1.2em; }
   .dart .points { color: var(--ad-muted-text); }
   .sum { min-width: 4.5em; color: #fff; background: var(--ad-accent-fill); }
   /* A dart of the visit corrects with a tap; entered, corrected and bot darts are marked. */
   button.dart { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  @media (any-pointer: coarse) { .visit button.dart { min-height: 44px; } }
   button.dart:focus-visible, .pad button:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
   .dart.picked { border-color: var(--ad-accent); box-shadow: inset 0 0 0 2px var(--ad-accent); }
   .dart.manual, .dart.corrected { border-style: dashed; }
@@ -7609,20 +7676,45 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill);
   }
   .pad .multiplier { min-width: 56px; }
+  .pad .zoom {
+    display: grid; place-items: center; width: 44px; height: 44px; min-height: 0; padding: 0; border-radius: 50%;
+    background: var(--ha-card-background, var(--card-background-color, #fff));
+  }
+  .pad .zoom[aria-pressed="true"] {
+    color: var(--ad-accent-text); border-color: var(--ad-accent); background: var(--ha-card-background, var(--card-background-color, #fff));
+  }
+  .pad .zoom svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
   .pad-numbers { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
   @container (max-width: 560px) { .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
   .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
   .pad-extra button { flex: 1 1 5.5em; }
   .pad .secondary, .undo-only { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
-  /* The board instead of the keys: a tap says where the dart is. */
+  /* The board instead of the keys: a tap says where the dart is. Zoomed in, it draws
+     only within its own box, never over the keys and the edge of the card. */
   .pad .view { margin-left: auto; }
   .pad-board {
-    width: min(100%, 420px, 52vh); height: auto; aspect-ratio: 1; margin-inline: auto;
+    width: min(100%, 420px, 52vh); height: auto; aspect-ratio: 1; margin-inline: auto; overflow: hidden;
     cursor: crosshair; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
   }
   .pad-board.disabled { opacity: .4; cursor: default; }
-  .pad-board .spot { fill: #3182ce; stroke: #fff; stroke-width: 3; pointer-events: none; }
-  .pad-board .spot.seen { fill: none; stroke: var(--ad-accent); stroke-width: 4; stroke-dasharray: 7 5; pointer-events: auto; }
+  /* Fingers on the board aim and zoom; the page does not scroll or zoom under them. */
+  .pad-board[data-pad="spot"] { touch-action: none; }
+  :is(.pad-board, .loupe) .spot { vector-effect: non-scaling-stroke; }
+  /* The loupe above the finger that aims: the board magnified, a cross on the spot. */
+  .loupe {
+    position: absolute; z-index: 3; width: 132px; height: 132px; border-radius: 50%; overflow: hidden; pointer-events: none;
+    border: 3px solid var(--ad-accent); box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+    background: var(--primary-background-color, #111);
+  }
+  .loupe svg { display: block; width: 100%; height: 100%; }
+  .loupe::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      linear-gradient(var(--ad-accent), var(--ad-accent)) center / 2px 34px no-repeat,
+      linear-gradient(var(--ad-accent), var(--ad-accent)) center / 34px 2px no-repeat;
+  }
+  :is(.pad-board, .loupe) .spot { fill: #3182ce; stroke: #fff; stroke-width: 3; pointer-events: none; }
+  :is(.pad-board, .loupe) .spot.seen { fill: none; stroke: var(--ad-accent); stroke-width: 4; stroke-dasharray: 7 5; pointer-events: auto; }
   .pad-hint { text-align: center; font-size: .8em; color: var(--ad-muted-text); }
   .undo-only { justify-self: start; align-self: flex-start; }
   .lobby-player.bot .bot-icon { font-size: 1.3em; }
@@ -7831,7 +7923,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .lobby .mode { flex: 1; font-size: clamp(15px, 2cqi, 22px); }
   .formats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   /* Finger-sized at a touch screen. */
-  @media (pointer: coarse) { .lobby-toggle, .caller-toggle { min-height: 40px; } }
+  @media (any-pointer: coarse) { .lobby-toggle, .caller-toggle { min-height: 40px; } }
 
   /* Full height: numbers and tables take the width (cqi) and the height (cqh) of the
      scores, less what the names, routes and details below them need. */
@@ -7868,6 +7960,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   @media (max-height: 640px) {
     .scoreboard.full { --ad-pad: 16px; padding: 10px var(--ad-pad); gap: 8px; }
     .scoreboard.full .visit :is(.dart, .sum) { padding: 4px 6px; flex-direction: row; gap: 8px; }
+    .scoreboard.full .visit .dart .segment { font-size: clamp(14px, 19cqi, 40px); }
     .scoreboard.full .player { padding-block: 8px; }
   }
   /* Darts entered or corrected on a landscape screen: the pad beside the scores, where
@@ -7909,12 +8002,25 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     .scoreboard.full .pad button { min-height: 42px; padding: 0 6px; }
     .scoreboard.full .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
     .scoreboard.full .pad-extra button { line-height: 1.1; }
-    .scoreboard.full .pad.on-board .pad-head .section-label { flex-basis: auto; }
-    /* The board to tap takes the room the scores leave; they keep two short lines. */
+    /* The board to tap takes the room the scores leave; they keep two short lines. Its
+       zoom switch sits on the board's corner, as on a map, so the head keeps one line. */
     .scoreboard.full:has(.pad.on-board) > .main { flex: 1 1 0; min-height: 96px; }
     .scoreboard.full:has(.pad.on-board) > .pad-area { flex: 4 1 0; min-height: 0; display: flex; flex-direction: column; }
-    .scoreboard.full .pad.on-board { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
-    .scoreboard.full .pad.on-board > .pad-board { flex: 1 1 0; min-height: 160px; width: 100%; height: auto; aspect-ratio: auto; }
+    .scoreboard.full .pad.on-board {
+      flex: 1 1 0; min-height: 0;
+      grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(160px, 1fr) auto auto;
+      grid-template-areas: "label view" "board board" "hint hint" "extra extra";
+    }
+    .scoreboard.full .pad.on-board > .pad-head { display: contents; }
+    .scoreboard.full .pad.on-board > .pad-head > .section-label { grid-area: label; align-self: center; }
+    .scoreboard.full .pad.on-board > .pad-head > .view { grid-area: view; }
+    .scoreboard.full .pad.on-board > .pad-head > .zoom {
+      grid-area: board; justify-self: end; align-self: start; z-index: 1; margin: 6px; min-height: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+    }
+    .scoreboard.full .pad.on-board > .pad-board { grid-area: board; width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; }
+    .scoreboard.full .pad.on-board > .pad-hint { grid-area: hint; }
+    .scoreboard.full .pad.on-board > .pad-extra { grid-area: extra; }
   }
   /* A phone on its side: the pad takes the right half from the top to the bottom, its
      numbers in two rows of ten as on a large screen, or in three rows of seven where ten
@@ -7932,17 +8038,13 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     .scoreboard.full.with-pad .pad button { min-height: 40px; padding: 0 4px; }
     .scoreboard.full.with-pad .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
     .scoreboard.full.with-pad .pad-extra button { line-height: 1.1; }
-    /* The board as high as the screen allows, its switch and actions beside it. */
+    /* The board fills the pad's half between its head and its actions; the hint gives
+       way, too long for the width of half a phone. */
+    .scoreboard.full.with-pad:has(.pad.on-board) > .pad-area { display: flex; flex-direction: column; }
     .scoreboard.full.with-pad .pad.on-board {
-      grid-template-columns: auto minmax(0, 1fr); align-items: start;
-      grid-template-areas: "board head" "board extra" "board hint";
+      grid-template-rows: auto minmax(120px, 1fr) auto; grid-template-areas: "label view" "board board" "extra extra";
     }
-    .scoreboard.full.with-pad .pad.on-board > .pad-head { grid-area: head; }
-    .scoreboard.full.with-pad .pad.on-board > .pad-extra { grid-area: extra; grid-template-columns: minmax(0, 1fr); }
-    .scoreboard.full.with-pad .pad.on-board > .pad-hint { grid-area: hint; text-align: start; }
-    .scoreboard.full.with-pad .pad.on-board > .pad-board {
-      grid-area: board; width: min(calc(100dvh - var(--ad-taken) - 24px), 62cqi); margin: 0;
-    }
+    .scoreboard.full.with-pad .pad.on-board > .pad-hint { display: none; }
   }
   /* Little room for the scores, as beside a pad on a phone: each player on one line, the
      name beside the score, so that every score stays in sight. */
@@ -7973,9 +8075,9 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   /* A Cricket chalkboard with little room: rows as high as the room allows. */
   @container (max-height: 260px) {
     .scoreboard.full .cricket :is(th, td), .scoreboard.full .cricket.many :is(th, td) { padding-block: 0; line-height: 1.05; }
-    .scoreboard.full .cricket td, .scoreboard.full .cricket.many td { font-size: clamp(10px, min(4.4cqi, 8cqh), 60px); }
-    .scoreboard.full .cricket tbody th, .scoreboard.full .cricket.many tbody th { font-size: clamp(10px, min(3cqi, 7cqh), 42px); }
-    .scoreboard.full .cricket thead th, .scoreboard.full .cricket.many thead th { font-size: clamp(10px, min(2.6cqi, 6.5cqh), 34px); }
+    .scoreboard.full .cricket td, .scoreboard.full .cricket.many td { font-size: clamp(11px, min(4.4cqi, 8cqh), 60px); }
+    .scoreboard.full .cricket tbody th, .scoreboard.full .cricket.many tbody th { font-size: clamp(11px, min(3cqi, 7cqh), 42px); }
+    .scoreboard.full .cricket thead th, .scoreboard.full .cricket.many thead th { font-size: clamp(11px, min(2.6cqi, 6.5cqh), 34px); }
     .scoreboard.full .cricket tr.total td, .scoreboard.full .cricket.many tr.total td { font-size: clamp(11px, min(4.2cqi, 9cqh), 56px); }
   }
 `;
@@ -8012,7 +8114,7 @@ const PLAYERS_CSS = `${BASE_CSS}
   .match b { color: var(--ad-ok-text); }
   .players-card header .export { flex: 0 0 auto; margin-left: auto; min-height: 32px; font-size: 13px; }
   /* Finger-sized at a touch screen. */
-  @media (pointer: coarse) { .players-card header .export { min-height: 40px; } }
+  @media (any-pointer: coarse) { .players-card header .export { min-height: 40px; } }
 `;
 
 const DOUBLES_CSS = `${BASE_CSS}
@@ -9951,6 +10053,7 @@ function createElements(Base) {
               <div class="main"></div>
               ${c.show_visit ? `<div class="visit"></div>` : ""}
               <div class="pad-area" hidden></div>
+              <div class="loupe" hidden aria-hidden="true"></div>
               <div class="visually-hidden said" role="status"></div>
             </div>
           </div>
@@ -9969,14 +10072,20 @@ function createElements(Base) {
         callerIcon: root.querySelector(".caller-icon"),
         lobby: root.querySelector(".lobby-toggle"),
         pad: root.querySelector(".pad-area"),
+        loupe: root.querySelector(".loupe"),
         // A live region outside the markup that is replaced, so what it says is heard.
         said: root.querySelector(".said"),
       };
       this._hints = "";
       this._pick = null;
       this._multiplier = 1;
-      // The pad shows the board instead of the keys.
+      // The pad shows the board instead of the keys, all of it or zoomed in.
       this._padBoard = false;
+      this._padZoom = null;
+      // The fingers on the board and what they do, and when the last one set a dart.
+      this._touches = new Map();
+      this._gesture = null;
+      this._touched = 0;
       this._el.visit?.addEventListener("click", (event) => {
         const dart = event.target.closest("[data-dart]");
         if (dart) this._pickDart(Number(dart.dataset.dart));
@@ -9984,10 +10093,16 @@ function createElements(Base) {
       this._el.pad.addEventListener("click", (event) => {
         const target = event.target.closest("[data-pad]");
         if (!target || target.disabled) return;
+        const spot = target.dataset.pad === "spot";
+        // A finger that let go of the board has set its dart already.
+        if (spot && Date.now() - this._touched < 800) return;
         // A tap on the board says where the dart is.
-        const value = target.dataset.pad === "spot" ? boardSpot(target, event) : target.dataset.value;
+        const value = spot ? boardSpot(target, event, padViewBox(this._padZoom)) : target.dataset.value;
         this._padAction(target.dataset.pad, value);
       });
+      for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel"]) {
+        this._el.pad.addEventListener(type, (event) => this._boardTouch(event));
+      }
       this._callerState = null;
       this._followed = null;
       this._el.caller?.addEventListener("click", () => this._toggleCaller());
@@ -10223,6 +10338,123 @@ function createElements(Base) {
       const shown = visitThrows(this._state("visit")).find((item) => item.dart === dart);
       this._pick =
         this._pick?.dart === dart || !shown ? null : { dart, multiplier: Math.min(Math.max(shown.multiplier, 1), 3) };
+      if (this._padBoard) this._padZoom = this._openZoom();
+      this._update();
+    }
+
+    // Where the board to tap opens: on a small screen, zoomed in on where the board saw
+    // the dart being corrected; for darts entered by hand, the whole board.
+    _openZoom() {
+      const width = this.getBoundingClientRect().width;
+      const small = Math.min(width, window.innerHeight) < PAD_SMALL;
+      return this._pick && width > 0 && small ? this._zoomAt(this._pick.dart) : null;
+    }
+
+    // Zoomed in on a dart of the visit, the one being corrected or else the last one;
+    // on the bull without a dart that has a position.
+    _zoomAt(dart) {
+      const darts = visitThrows(this._state("visit")).filter((item) => Number.isFinite(item.x) && Number.isFinite(item.y));
+      const at = darts.find((item) => item.dart === dart) ?? (dart === undefined ? darts.at(-1) : null);
+      if (dart !== undefined && !at) return null;
+      return { scale: PAD_ZOOM, x: (at?.x ?? 0) * NORM, y: -(at?.y ?? 0) * NORM };
+    }
+
+    // Fingers on the board to tap: one aims with the loupe and sets the dart where it
+    // lets go; a second finger turns aiming into zooming and moving the board. A mouse
+    // clicks instead.
+    _boardTouch(event) {
+      if (event.pointerType === "mouse") return;
+      const touches = this._touches;
+      if (event.type === "pointerdown") {
+        const svg = event.target.closest?.("svg.pad-board[data-pad='spot']");
+        if (!svg) return;
+        event.preventDefault();
+        svg.setPointerCapture?.(event.pointerId);
+        touches.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+        if (!this._gesture) {
+          this._gesture = { svg, aim: event.pointerId, pinch: null };
+          this._el.loupe.innerHTML = `<svg>${svg.innerHTML}</svg>`;
+        } else if (touches.size === 2) {
+          const [a, b] = [...touches.values()];
+          const middle = { clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 };
+          this._gesture.aim = null;
+          this._gesture.pinch = {
+            distance: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) || 1,
+            scale: this._padZoom?.scale ?? 1,
+            anchor: boardPoint(svg, middle, padViewBox(this._padZoom)),
+          };
+        }
+        this._aim(event);
+        return;
+      }
+      const gesture = this._gesture;
+      if (!gesture || !touches.has(event.pointerId)) return;
+      if (event.type === "pointermove") {
+        touches.set(event.pointerId, { clientX: event.clientX, clientY: event.clientY });
+        if (gesture.pinch && touches.size === 2) this._pinch();
+        else this._aim(event);
+        return;
+      }
+      touches.delete(event.pointerId);
+      if (event.type === "pointerup" && gesture.aim === event.pointerId) {
+        const spot = boardSpot(gesture.svg, event, padViewBox(this._padZoom));
+        this._touched = Date.now();
+        this._endGesture();
+        this._padAction("spot", spot);
+      } else if (!touches.size) {
+        this._endGesture();
+      }
+    }
+
+    // The loupe above the aiming finger, which would hide the spot itself, or beside it
+    // where there is no room above; it shows the board around the spot magnified.
+    _aim(event) {
+      const gesture = this._gesture;
+      const loupe = this._el.loupe;
+      const view = padViewBox(this._padZoom);
+      const point = gesture.aim === event.pointerId ? boardPoint(gesture.svg, event, view) : null;
+      loupe.hidden = !point;
+      if (!point) return;
+      const size = view.size / LOUPE_ZOOM;
+      loupe.firstElementChild.setAttribute("viewBox", viewBoxText({ x: point[0] - size / 2, y: point[1] - size / 2, size }));
+      const box = this._el.board.getBoundingClientRect();
+      const width = loupe.offsetWidth || 132;
+      const x = event.clientX - box.left;
+      const y = event.clientY - box.top;
+      const above = y - width - 24;
+      const beside = x + 24 + width <= box.width ? x + 24 : x - 24 - width;
+      const left = above >= 0 ? x - width / 2 : beside;
+      loupe.style.left = `${Math.round(Math.min(Math.max(left, 0), Math.max(box.width - width, 0)))}px`;
+      loupe.style.top = `${Math.round(above >= 0 ? above : Math.max(y - width / 2, 0))}px`;
+    }
+
+    // Two fingers zoom the board, and the spot between them stays between them.
+    _pinch() {
+      const { svg, pinch } = this._gesture;
+      const [a, b] = [...this._touches.values()];
+      const scale = Math.min(
+        Math.max((pinch.scale * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)) / pinch.distance, 1),
+        PAD_ZOOM_MOST
+      );
+      const rect = svg.getBoundingClientRect();
+      const pixels = Math.min(rect.width, rect.height) / (PAD_VIEW / scale);
+      if (!pinch.anchor || !(pixels > 0)) return;
+      const middle = { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+      this._padZoom =
+        scale > 1.02
+          ? {
+              scale,
+              x: pinch.anchor[0] - (middle.x - rect.left - rect.width / 2) / pixels,
+              y: pinch.anchor[1] - (middle.y - rect.top - rect.height / 2) / pixels,
+            }
+          : null;
+      svg.setAttribute("viewBox", viewBoxText(padViewBox(this._padZoom)));
+    }
+
+    _endGesture() {
+      this._gesture = null;
+      this._touches.clear();
+      this._el.loupe.hidden = true;
       this._update();
     }
 
@@ -10247,6 +10479,9 @@ function createElements(Base) {
         this._pick = null;
       } else if (action === "board") {
         this._padBoard = !this._padBoard;
+        this._padZoom = this._padBoard ? this._openZoom() : null;
+      } else if (action === "zoom") {
+        this._padZoom = padViewBox(this._padZoom).size < PAD_VIEW ? null : this._zoomAt(pick?.dart);
       } else if (action === "cancel") {
         this._pick = null;
       } else if (this._confirmed(action)) {
@@ -10273,9 +10508,10 @@ function createElements(Base) {
       const pins = darts
         .filter((dart) => Number.isFinite(dart.x) && Number.isFinite(dart.y))
         .map((dart) => ({ x: dart.x, y: dart.y, seen: dart.dart === this._pick?.dart }));
-      if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled, board, pins };
+      const zoom = board ? this._padZoom : null;
+      if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled, board, zoom, pins };
       if (c.keypad && this._state("manualEntry")?.state === "on") {
-        return { dart: null, multiplier: this._multiplier, disabled, undo, confirm, board, pins };
+        return { dart: null, multiplier: this._multiplier, disabled, undo, confirm, board, zoom, pins };
       }
       return c.corrections && undo ? { only: "undo", confirm } : null;
     }
@@ -10554,16 +10790,19 @@ function createElements(Base) {
       const pad = this.preview || away ? null : this._pad(view, darts);
       el.pad.hidden = !pad;
       el.board.classList.toggle("with-pad", Boolean(pad && !pad.only));
-      this._setHtml(
-        el.pad,
-        !pad
-          ? ""
-          : pad.only
-            ? `<button type="button" class="undo-only" data-pad="undo" data-focus="undo:">↶ ${escapeHtml(
-                t(pad.confirm === "undo" ? "confirm" : "undo_visit")
-              )}</button>`
-            : padHtml(pad, { t })
-      );
+      // Fingers on the board keep the pad as it is until they let go.
+      if (!(this._gesture && pad?.board)) {
+        this._setHtml(
+          el.pad,
+          !pad
+            ? ""
+            : pad.only
+              ? `<button type="button" class="undo-only" data-pad="undo" data-focus="undo:">↶ ${escapeHtml(
+                  t(pad.confirm === "undo" ? "confirm" : "undo_visit")
+                )}</button>`
+              : padHtml(pad, { t })
+        );
+      }
       if (!el.visit) return;
       el.visit.hidden = away;
       // Between games the big number already is the visit score.
@@ -11115,6 +11354,7 @@ export {
   bestsHtml,
   bestsView,
   boardSpot,
+  padViewBox,
   boardStatus,
   boardSvg,
   bullOffLeaders,

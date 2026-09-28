@@ -18,6 +18,7 @@ const {
   lobbyChoice,
   padBed,
   padHtml,
+  padViewBox,
   practiceView,
   setupView,
   startGameData,
@@ -282,6 +283,11 @@ test("a tap on the board of the pad says where the dart is", () => {
   assert.deepEqual(boardSpot(svg, { clientX: 100 + 460 - 34, clientY: 280 + 170 }), [-0.2, -1]);
   // A board that is not laid out has no spot.
   assert.equal(boardSpot(laidOut(svg, 0, 0), { clientX: 1, clientY: 1 }), null);
+  // Zoomed in, the view keeps to the board, five times larger at most, and a middle
+  // that is no number is the bull.
+  assert.deepEqual(padViewBox({ scale: 2, x: 500, y: -500 }), { x: 0, y: -230, size: 230 });
+  assert.deepEqual(padViewBox({ scale: 9, x: Number.NaN, y: "far" }), { x: -46, y: -46, size: 92 });
+  assert.deepEqual(padViewBox({ scale: 1 }), { x: -230, y: -230, size: 460 });
 
   const html = padHtml(
     { dart: 2, multiplier: 1, board: true, pins: [{ x: 0, y: 0.6, seen: false }, { x: 0.02, y: 0.8, seen: true }] },
@@ -295,7 +301,16 @@ test("a tap on the board of the pad says where the dart is", () => {
   assert.equal(pad.querySelector('[data-pad="board"]').getAttribute("aria-pressed"), "true");
   assert.equal(pad.querySelector(".pad-board").dataset.pad, "spot");
   assert.equal(pad.querySelector(".pad-board").getAttribute("aria-label"), "pad_spot");
-  assert.equal(pad.querySelector(".pad-hint").textContent, "pad_spot");
+  assert.equal(pad.querySelector(".pad-hint").textContent, "pad_spot_hint");
+  // The whole board, and a switch to zoom in.
+  assert.equal(pad.querySelector(".pad-board").getAttribute("viewBox"), "-230 -230 460 460");
+  const zoom = pad.querySelector('[data-pad="zoom"]');
+  assert.deepEqual(
+    [zoom.getAttribute("aria-label"), zoom.getAttribute("title"), zoom.getAttribute("aria-pressed"), zoom.textContent],
+    ["pad_zoom", "pad_zoom", "false", ""]
+  );
+  // A magnifier with a plus: a circle, its handle, and two strokes.
+  assert.equal(zoom.querySelector("path").getAttribute("d"), "M14.5 14.5 20 20M7 10h6M10 7v6");
   assert.deepEqual(
     [...pad.querySelectorAll(".spot")].map((spot) => [spot.getAttribute("class"), spot.getAttribute("cy")]),
     [
@@ -349,6 +364,212 @@ test("the pad's board corrects a dart or enters one where it is", () => {
   tapAt(laidOut($(keypad.card, ".pad-board")), -34, -170);
   assert.deepEqual(actions(keypad.hass), [["throw_dart", { config_entry_id: ENTRY, x: -0.2, y: -1 }]]);
   assert.equal($(keypad.card, ".pad-board") !== null, true);
+});
+
+// A card on a screen of this width.
+const onScreen = (card, width) => {
+  card.getBoundingClientRect = () => ({ left: 0, top: 0, width, height: 800 });
+  $(card, ".scoreboard").getBoundingClientRect = () => ({ left: 0, top: 0, width, height: 800 });
+  return card;
+};
+const viewBox = (card) => $(card, ".pad-board").getAttribute("viewBox");
+// The zoom switch: a magnifier, what it does next and whether it is zoomed in. Its name
+// stays the same, its state is pressed or not.
+const zoomSwitch = (card) => {
+  const zoom = $(card, '[data-pad="zoom"]');
+  assert.equal(zoom.getAttribute("aria-label"), "Zoom");
+  assert.equal(zoom.querySelectorAll("svg path").length, 1);
+  return [zoom.getAttribute("title"), zoom.getAttribute("aria-pressed")];
+};
+// A finger on the board: its id and where it is on the screen.
+const touch = (element, type, pointerId, clientX, clientY, pointerType = "touch") =>
+  element.dispatchEvent(new window.PointerEvent(type, { bubbles: true, cancelable: true, pointerId, pointerType, clientX, clientY }));
+
+test("on a phone the board opens zoomed in on where the board saw the dart", () => {
+  const throws = [dart(20, 3, { dart: 1, x: 0, y: 0.6 }), dart(20, 3, { dart: 2, x: 0.02, y: 0.8 }), dart(5, 1, { dart: 3 })];
+  const { hass, card } = setup(visit(...throws));
+  onScreen(card, 390);
+  $(card, '[data-dart="2"]').click();
+  $(card, '[data-pad="board"]').click();
+  // Two and a half times larger around the dart; its pins keep their size.
+  assert.equal(viewBox(card), "-88.6 -228 184 184");
+  assert.deepEqual(
+    $$(card, ".pad-board .spot").map((spot) => spot.getAttribute("r")),
+    ["3.2", "5.2"]
+  );
+  assert.deepEqual(zoomSwitch(card), ["Whole board", "true"]);
+  // A tap in the middle of the board is where the board saw the dart.
+  tapAt(laidOut($(card, ".pad-board")), 0, 0);
+  assert.deepEqual(actions(hass), [["correct_dart", { config_entry_id: ENTRY, dart: 2, x: 0.02, y: 0.8 }]]);
+  // Another dart opens around its own spot; one without a position shows all of it.
+  $(card, '[data-dart="1"]').click();
+  assert.equal(viewBox(card), "-92 -194 184 184");
+  $(card, '[data-dart="3"]').click();
+  assert.equal(viewBox(card), "-230 -230 460 460");
+  // The switch shows the whole board and zooms in again.
+  $(card, '[data-dart="1"]').click();
+  $(card, '[data-pad="zoom"]').click();
+  assert.deepEqual([viewBox(card), ...zoomSwitch(card)], ["-230 -230 460 460", "Zoom", "false"]);
+  $(card, '[data-pad="zoom"]').click();
+  assert.equal(viewBox(card), "-92 -194 184 184");
+  // Back to the keys and to the board: zoomed in again, while a wide card shows all of it.
+  $(card, '[data-pad="board"]').click();
+  $(card, '[data-pad="board"]').click();
+  assert.equal(viewBox(card), "-92 -194 184 184");
+  onScreen(card, 1000);
+  $(card, '[data-pad="board"]').click();
+  $(card, '[data-pad="board"]').click();
+  assert.equal(viewBox(card), "-230 -230 460 460");
+  // A phone on its side is wide but low: zoomed in, too.
+  const height = Object.getOwnPropertyDescriptor(window, "innerHeight");
+  Object.defineProperty(window, "innerHeight", { value: 393, configurable: true });
+  try {
+    $(card, '[data-pad="board"]').click();
+    $(card, '[data-pad="board"]').click();
+    assert.equal(viewBox(card), "-92 -194 184 184");
+  } finally {
+    if (height) Object.defineProperty(window, "innerHeight", height);
+    else delete window.innerHeight;
+  }
+
+  // The keypad opens the whole board also on a phone, and its switch zooms in on the
+  // last dart with a position, near the edge of the board as far as the board goes, or
+  // on the bull.
+  const keypad = setup(
+    { "switch.practice_manual_entry": "on", ...visit(dart(20, 3, { dart: 1, x: 0, y: 1.3 })) },
+    { keypad: true }
+  );
+  onScreen(keypad.card, 390);
+  $(keypad.card, '[data-pad="board"]').click();
+  assert.equal(viewBox(keypad.card), "-230 -230 460 460");
+  $(keypad.card, '[data-pad="zoom"]').click();
+  assert.equal(viewBox(keypad.card), "-92 -230 184 184");
+  keypad.card.hass = update(keypad.hass, visit());
+  $(keypad.card, '[data-pad="zoom"]').click();
+  $(keypad.card, '[data-pad="zoom"]').click();
+  assert.equal(viewBox(keypad.card), "-92 -92 184 184");
+});
+
+test("a finger aims with the loupe and sets the dart where it lets go", () => {
+  const throws = [dart(20, 1, { dart: 1, x: 0.02, y: 0.8 })];
+  const { hass, card } = setup(visit(...throws));
+  onScreen(card, 1000);
+  $(card, '[data-dart="1"]').click();
+  $(card, '[data-pad="board"]').click();
+  const board = laidOut($(card, ".pad-board"));
+  const loupe = $(card, ".loupe");
+  assert.equal(loupe.hidden, true);
+  // Beside the board nothing happens.
+  touch($(card, ".pad-hint"), "pointerdown", 1, 330, 280);
+  assert.equal(loupe.hidden, true);
+  // On the board, the loupe shows the spot under the finger two and a half times larger,
+  // above the finger.
+  touch(board, "pointerdown", 1, 330, 280);
+  assert.equal(loupe.hidden, false);
+  assert.equal(loupe.querySelector("svg").getAttribute("viewBox"), "-92 -92 184 184");
+  // It shows the pins of the board as the board does: the dashed ring where the board
+  // saw the dart, not a black disc. The board zoomed in never draws over the keys.
+  assert.equal(loupe.querySelectorAll(".spot.seen").length, 1);
+  const style = $(card, "style").textContent;
+  assert.match(style, /:is\(\.pad-board, \.loupe\) \.spot \{ fill: #3182ce;/);
+  assert.match(style, /:is\(\.pad-board, \.loupe\) \.spot\.seen \{ fill: none;/);
+  assert.match(style, /\.pad-board \{\s*width: [^;]+; height: auto; aspect-ratio: 1; margin-inline: auto; overflow: hidden;/);
+  assert.deepEqual([loupe.style.left, loupe.style.top], ["264px", "124px"]);
+  // It follows the finger; without room above, it goes beside the finger, to its left
+  // at the right edge.
+  touch(board, "pointermove", 1, 347, 100);
+  assert.equal(loupe.querySelector("svg").getAttribute("viewBox"), "-75 -272 184 184");
+  assert.deepEqual([loupe.style.left, loupe.style.top], ["371px", "34px"]);
+  touch(board, "pointermove", 1, 950, 100);
+  assert.deepEqual([loupe.style.left, loupe.style.top], ["794px", "34px"]);
+  touch(board, "pointermove", 1, 347, 100);
+  // New states leave the pad as it is while the finger is on it.
+  card.hass = update(hass, { ...visit(...throws), "sensor.training_darts": "7" });
+  assert.equal($(card, ".pad-board"), board);
+  // Where it lets go, the dart is; the click after it counts once.
+  touch(board, "pointerup", 1, 347, 178);
+  tapAt(board, 17, 102);
+  assert.deepEqual(actions(hass), [["correct_dart", { config_entry_id: ENTRY, dart: 1, x: 0.1, y: 0.6 }]]);
+  assert.equal(loupe.hidden, true);
+
+  // A finger taken away by the browser sets nothing; a mouse clicks as before.
+  $(card, '[data-dart="1"]').click();
+  const again = laidOut($(card, ".pad-board"));
+  touch(again, "pointerdown", 2, 330, 280);
+  touch(again, "pointercancel", 2, 330, 280);
+  assert.equal(loupe.hidden, true);
+  touch(again, "pointerup", 2, 330, 280);
+  touch(again, "pointermove", 3, 330, 280);
+  touch(again, "pointerdown", 4, 330, 280, "mouse");
+  assert.equal(loupe.hidden, true);
+  assert.equal(actions(hass).length, 1);
+  card._touched = 0;
+  tapAt(again, 0, 0);
+  assert.deepEqual(actions(hass).at(-1), ["correct_dart", { config_entry_id: ENTRY, dart: 1, x: 0, y: 0 }]);
+  // A board that is not laid out shows no loupe and sets nothing.
+  $(card, '[data-dart="1"]').click();
+  const hidden = $(card, ".pad-board");
+  touch(hidden, "pointerdown", 5, 330, 280);
+  assert.equal(loupe.hidden, true);
+  touch(hidden, "pointerup", 5, 330, 280);
+  assert.equal(actions(hass).length, 2);
+});
+
+test("two fingers zoom the board and move it, and set no dart", () => {
+  const { hass, card } = setup({ "switch.practice_manual_entry": "on" }, { keypad: true });
+  onScreen(card, 1000);
+  $(card, '[data-pad="board"]').click();
+  const board = laidOut($(card, ".pad-board"));
+  // One finger enters a dart where it lets go; the click the browser sends after it
+  // counts once.
+  touch(board, "pointerdown", 1, 330, 280);
+  touch(board, "pointerup", 1, 330, 280);
+  tapAt(board, 0, 0);
+  assert.deepEqual(actions(hass), [["throw_dart", { config_entry_id: ENTRY, x: 0, y: 0 }]]);
+  hass.calls.length = 0;
+  // Two fingers on the same spot, then apart: the board zooms from there.
+  touch(board, "pointerdown", 1, 330, 280);
+  touch(board, "pointerdown", 2, 330, 280);
+  touch(board, "pointermove", 2, 331, 280);
+  assert.equal(board.getAttribute("viewBox"), "-230 -230 460 460");
+  touch(board, "pointerup", 1, 330, 280);
+  touch(board, "pointerup", 2, 331, 280);
+  touch(board, "pointerdown", 1, 230, 280);
+  touch(board, "pointerdown", 2, 430, 280);
+  // A second finger ends aiming: no loupe.
+  assert.equal($(card, ".loupe").hidden, true);
+  // Twice as far apart is twice as large, and the spot between them stays between them.
+  touch(board, "pointermove", 2, 630, 280);
+  assert.equal(board.getAttribute("viewBox"), "-165 -115 230 230");
+  // A third finger changes nothing.
+  touch(board, "pointerdown", 3, 100, 100);
+  touch(board, "pointermove", 1, 230, 280);
+  assert.equal(board.getAttribute("viewBox"), "-165 -115 230 230");
+  touch(board, "pointerup", 1, 230, 280);
+  touch(board, "pointerup", 2, 630, 280);
+  touch(board, "pointerup", 3, 100, 100);
+  assert.deepEqual(actions(hass), []);
+  // The zoom stays, and the switch shows the whole board again.
+  assert.equal(viewBox(card), "-165 -115 230 230");
+  assert.deepEqual(zoomSwitch(card), ["Whole board", "true"]);
+  // Far apart, five times larger at most; close together, the whole board.
+  const next = laidOut($(card, ".pad-board"));
+  touch(next, "pointerdown", 1, 320, 280);
+  touch(next, "pointerdown", 2, 340, 280);
+  touch(next, "pointermove", 2, 1000, 280);
+  assert.equal(next.getAttribute("viewBox").split(" ")[2], "92");
+  touch(next, "pointermove", 2, 330, 280);
+  assert.equal(next.getAttribute("viewBox"), "-230 -230 460 460");
+  touch(next, "pointerup", 1, 320, 280);
+  touch(next, "pointerup", 2, 330, 280);
+  assert.deepEqual(zoomSwitch(card), ["Zoom", "false"]);
+  // A board that is not laid out does not zoom.
+  const flat = $(card, ".pad-board");
+  flat.getBoundingClientRect = () => ({ left: 0, top: 0, width: 0, height: 0 });
+  touch(flat, "pointerdown", 1, 320, 280);
+  touch(flat, "pointerdown", 2, 340, 280);
+  touch(flat, "pointermove", 2, 400, 280);
+  assert.equal(flat.getAttribute("viewBox"), "-230 -230 460 460");
 });
 
 test("the bot's darts, darts of an ended visit and a preview stay as they are", () => {

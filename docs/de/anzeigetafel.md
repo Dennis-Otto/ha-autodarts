@@ -49,7 +49,8 @@ Die Anzeigetafel passt sich der Form des Bildschirms an. Mit `full_height: true`
 
 - **Tablet im Querformat oder Fernseher:** die beste Wahl für X01 und die Partyspiele, deren Spielerkacheln nebeneinander stehen.
 - **Tablet im Hochformat:** gut für Cricket, dessen Kreidetafel hoch ist, und für X01: Zwei Spieler stehen übereinander, drei oder vier zu zweit nebeneinander, und die Punkte nutzen die Höhe des Bildschirms.
-- **Handy:** Alles passt auf einen Bildschirm, hochkant wie quer. Mit dem Tastenfeld oder der Scheibe zum Antippen wird der Punktestand jedes Spielers zu einer Zeile, sodass alle Punktestände sichtbar bleiben; quer nimmt das Tastenfeld die rechte Bildschirmhälfte von oben bis unten ein.
+- **Handy:** Alles passt auf einen Bildschirm, hochkant wie quer. Mit dem Tastenfeld oder der Scheibe zum Antippen wird der Punktestand jedes Spielers zu einer Zeile, sodass alle Punktestände sichtbar bleiben; quer nimmt das Tastenfeld die rechte Bildschirmhälfte von oben bis unten ein. Zum [Korrigieren eines Darts](#darts-korrigieren-und-eingeben) öffnet sich die Scheibe vergrößert, mit einer Lupe unter dem Finger.
+- **Touch-Monitor:** Auf einem 24- oder 27-Zoll-Touchscreen neben dem Board ist jede Taste groß genug für einen Finger, auch mit angeschlossener Maus, und die Scheibe zum Antippen hat die Lupe und den Zwei-Finger-Zoom eines Handys.
 - **Entfernung:** Der Rest ist der größte Text auf dem Bildschirm und wächst mit ihm. Je größer der Bildschirm, desto weiter weg ist er lesbar; ein Fernseher bedient also auch die Zuschauer.
 
 ## Das nächste Spiel wählen
@@ -102,6 +103,10 @@ Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte; ei
 - **Wo er wirklich steckt:** Tippe im Tastenfeld auf *🎯 Scheibe* und dann auf die Stelle der Scheibe, an der der Dart steckt. Das Feld ergibt sich aus der Stelle, und der Dart zählt dort für die [Dart-Positionen](statistik.md#trefferbild-und-dart-positionen). Ein gestrichelter Ring zeigt, wo das Board ihn gesehen hat. Mit den Tasten korrigiert, hat der Dart keine Position, damit eine falsch erkannte Stelle nie die Streuung verfälscht.
 
   <img src="../images/de/correct-dart-board.webp" alt="Animation: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf öffnet das Tastenfeld, 🎯 Scheibe zeigt die Scheibe mit einem gestrichelten Ring, wo das Board den Dart gesehen hat, und ein Tipp auf das Single 20 darüber korrigiert die Aufnahme auf 140" width="760">
+
+- **Auf dem Handy:** Die Scheibe öffnet sich vergrößert um die Stelle, an der das Board den Dart gesehen hat, damit die Fingerkuppe das richtige Feld trifft. Halte einen Finger auf die Scheibe und schiebe ihn: Eine Lupe über dem Finger zeigt die Stelle vergrößert mit einem Kreuz, und der Dart landet dort, wo du loslässt. Mit zwei Fingern zoomst du weiter und verschiebst die Scheibe; die runde Lupen-Taste in der Ecke der Scheibe zeigt sie mit ihrem Minus ganz und vergrößert mit ihrem Plus wieder.
+
+  <img src="../images/de/correct-dart-loupe.webp" alt="Animation auf einem Handy: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf und auf 🎯 Scheibe öffnet die Scheibe vergrößert um den gestrichelten Ring, wo das Board ihn gesehen hat; ein Finger schiebt vom Ring nach oben, die Lupe darüber zeigt das Single 20 unter einem Kreuz, und wo der Finger loslässt, wird die Aufnahme zu 140" width="360">
 
 - **Zu spät bemerkt:** Nach der Entnahme nimmt *Letzte Aufnahme zurück* unter der Aufnahme die letzte Aufnahme zurück, mit einem zweiten Tippen zur Bestätigung. Korrigiere ihre Darts und beende sie dann mit *Nächster Spieler*.
 - **Von Hand eingegebene Darts:** Für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras schaltest du *Übungsspiel manuelle Eingabe* und die Option `keypad` der Karte ein. Das Tastenfeld gibt jedes angetippte Feld als Dart ein; *Nächster Spieler* beendet die Aufnahme. Im Querformat stehen Korrektur und Tastenfeld neben den Punkten, sodass beides auf den Bildschirm passt.
