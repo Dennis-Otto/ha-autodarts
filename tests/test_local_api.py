@@ -150,3 +150,14 @@ async def test_other_commands_still_report_a_dropped_connection(client, aioclien
     aioclient_mock.put(f"{BASE}/api/start", exc=aiohttp.ServerDisconnectedError())
     with pytest.raises(AutodartsConnectionError):
         await client.command("start")
+
+
+async def test_requests_after_home_assistant_closed_its_session_are_lost_connections():
+    """Home Assistant closes its shared session last when it stops (#107)."""
+    session = aiohttp.ClientSession()
+    await session.close()
+    client = AutodartsLocalClient("192.0.2.10", 3180, session)
+    with pytest.raises(AutodartsConnectionError, match="closed its HTTP session"):
+        await client.get_state()
+    with pytest.raises(AutodartsConnectionError, match="closed its HTTP session"):
+        await client.open_camera_stream(1)
