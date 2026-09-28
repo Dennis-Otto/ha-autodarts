@@ -7,7 +7,7 @@
 | Voraussetzung | Details |
 | --- | --- |
 | Home Assistant | **2026.8** oder neuer |
-| Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2** (Headless, empfohlen) oder der klassische **Board Manager 1**. Boards mit **Autodarts Desktop** sind noch nicht getestet; [berichte](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) gern, wie es mit deinem funktioniert |
+| Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2**, also Autodarts 2 ohne Bildschirm (Headless, empfohlen, getestet bis 2.0.2), oder der klassische **Board Manager 1**. **Autodarts Desktop** und die **Winmau-Autodarts-Geräte** wie Autodarts X oder Lens sind noch nicht getestet; [berichte](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) gern, wie es mit deinem funktioniert |
 | Netzwerk | Home Assistant erreicht den Board-PC im lokalen Netzwerk, standardmäßig über TCP-Port **3180** |
 | Optional: Cloud-Spieldaten | Ein Autodarts-Konto und eine OAuth-Client-ID, die Autodarts für diese Integration vergibt (siehe [Cloud-Verknüpfung](#autodarts-cloud-verknüpfen-optional)) |
 
