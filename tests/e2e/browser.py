@@ -22,6 +22,13 @@ LOADS = 5
 GENERATION = int(os.environ.get("BOARD_MANAGER", "1"))
 # Writable folder for screenshots of a failed step, mounted by browser.sh.
 ARTIFACTS = os.environ.get("BROWSER_ARTIFACTS", "")
+# Steps to run instead of all, comma-separated, such as "phone screens" while working
+# on a screen; browser.sh passes BROWSER_STEPS on.
+ONLY = {
+    name.strip()
+    for name in os.environ.get("BROWSER_STEPS", "").split(",")
+    if name.strip()
+}
 # The integration as mounted by browser.sh, for the texts every language expects.
 INTEGRATION = Path(__file__).resolve().parents[2] / "custom_components" / "autodarts"
 
@@ -1295,6 +1302,537 @@ def tablet_screen(browser: Browser) -> None:
     page.close()
 
 
+# Phones as players hold them: the companion app on an iPhone passes the status bar and
+# the home indicator on as safe areas (top, bottom), a small Android phone shows the
+# dashboard in its browser, and an iPhone on its side keeps the home indicator below.
+PHONES = (
+    ("iPhone", {"width": 393, "height": 852}, (59, 34)),
+    ("small Android phone", {"width": 360, "height": 640}, (0, 0)),
+    ("iPhone in landscape", {"width": 852, "height": 393}, (0, 21)),
+)
+# Four players whose long names have to fit a phone.
+LONG_NAMES = ["Maximilian", "Anneliese-Charlotte", "Bartholomäus", "Konstantin"]
+
+
+def phone_style(top: int, bottom: int) -> str:
+    """Home Assistant's safe areas as the companion app sets them, and a theme whose
+    cards are see-through, as glass themes make them."""
+    return f"""
+const style = document.createElement('style');
+style.textContent = `html {{
+  --app-safe-area-inset-top: {top}px !important;
+  --app-safe-area-inset-bottom: {bottom}px !important;
+  --ha-card-background: rgba(60, 64, 80, 0.35) !important;
+}}`;
+// The script runs before the page has an element to hold the style.
+const add = () => document.documentElement.append(style);
+if (document.documentElement) add();
+else document.addEventListener('DOMContentLoaded', add, {{ once: true }});
+"""
+
+
+# The room a phone leaves: above the home indicator, the scoreboard's own height.
+PHONE_FIT = f"""
+() => {{
+  const card = ({SCOREBOARD_CARDS})()[0];
+  const frame = card.shadowRoot.querySelector('ha-card');
+  const inset = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom');
+  return {{
+    bottom: Math.round(card.getBoundingClientRect().bottom),
+    free: innerHeight - (parseFloat(inset) || 0),
+    height: frame.scrollHeight,
+    room: frame.clientHeight,
+  }};
+}}
+"""
+# The start bar of the new game screen: whether it stays at the bottom, covers what
+# scrolls beneath it with a background of its own, spans the card and keeps the start
+# above the home indicator.
+START_BAR = f"""
+() => {{
+  const root = ({SCOREBOARD_CARDS})()[0].shadowRoot;
+  const bar = root.querySelector('.lobby-actions');
+  const style = getComputedStyle(bar);
+  const frame = root.querySelector('ha-card').getBoundingClientRect();
+  const box = bar.getBoundingClientRect();
+  const start = root.querySelector('.lobby .start').getBoundingClientRect();
+  const inset = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom');
+  return {{
+    sticky: style.position,
+    layers: style.backgroundImage,
+    base: style.backgroundColor,
+    edges: [Math.round(box.left - frame.left), Math.round(frame.right - box.right)],
+    start: [Math.round(start.top), Math.round(start.bottom)],
+    free: innerHeight - (parseFloat(inset) || 0),
+    buttons: [...bar.querySelectorAll('button')].map((el) => el.dataset.lobby),
+    hints: root.querySelectorAll('.lobby-hint').length,
+  }};
+}}
+"""
+# Every card on the page against the width of the phone, and names cut short.
+PHONE_WIDTH = """
+() => {
+  const cards = [];
+  (function collect(root) {
+    root.querySelectorAll('*').forEach((el) => {
+      if (el.tagName.startsWith('AUTODARTS-') && el.shadowRoot) cards.push(el);
+      if (el.shadowRoot) collect(el.shadowRoot);
+    });
+  })(document);
+  const wide = [];
+  const cut = [];
+  for (const card of cards) {
+    const frame = card.shadowRoot.querySelector('ha-card');
+    if (!frame) continue;
+    if (frame.scrollWidth > frame.clientWidth + 1 || card.getBoundingClientRect().right > innerWidth + 1) {
+      wide.push(`${card.tagName.toLowerCase()} ${frame.scrollWidth}/${frame.clientWidth}`);
+    }
+    for (const el of card.shadowRoot.querySelectorAll('.tile .name')) {
+      if (el.scrollWidth > el.clientWidth + 1) cut.push(el.textContent);
+    }
+  }
+  return { cards: cards.length, wide, cut };
+}
+"""
+# The middle of the treble 20 on the board of the pad, in millimetres from the bull.
+TREBLE_20 = -102
+
+
+def phone_screens(browser: Browser) -> None:
+    """The scoreboard, the new game screen, the keypad and the training card on phones,
+    driven by taps, in German with its long words."""
+    for phone, size, insets in PHONES:
+        phone_screen(browser, phone, size, insets)
+
+
+def phone_screen(
+    browser: Browser, phone: str, size: dict[str, int], insets: tuple[int, int]
+) -> None:
+    context = browser.new_context(
+        locale="de-DE",
+        viewport=size,
+        device_scale_factor=3,
+        is_mobile=True,
+        has_touch=True,
+    )
+    page = context.new_page()
+    page.add_init_script(CAPTURE_ERRORS)
+    page.add_init_script(phone_style(*insets))
+    card = "autodarts-scoreboard-card"
+
+    def fits(screen: str, targets: bool = True, high: bool = True) -> None:
+        """Nothing wider than the phone, every control big enough for a finger, and a
+        scoreboard one screen high above the home indicator; the new game screen
+        scrolls instead."""
+        layout = page.evaluate(TABLET_LAYOUT)
+        check(
+            layout["width"] <= layout["room"] + 1
+            and layout["right"] <= layout["viewport"] + 1,
+            f"{phone}: {screen} is wider than the phone: {layout}",
+        )
+        check(not targets or layout["targets"], f"{phone}: {screen} has no targets")
+        check(
+            not layout["small"],
+            f"{phone}: {screen}: targets below 44 px {layout['small']}",
+        )
+        fit = page.evaluate(PHONE_FIT)
+        check(
+            not high
+            or (fit["bottom"] <= fit["free"] + 1 and fit["height"] <= fit["room"] + 1),
+            f"{phone}: {screen} runs below the screen: {fit}",
+        )
+
+    def start_bar(screen: str, buttons: list[str]) -> None:
+        bar = page.evaluate(START_BAR)
+        check(bar["sticky"] == "sticky", f"{phone}: {screen}: the bar scrolls away")
+        # The card's colour over the page's: nothing shines through a see-through card.
+        check(
+            "gradient" in bar["layers"] and not bar["base"].startswith("rgba("),
+            f"{phone}: {screen}: the bar shows what scrolls beneath it: {bar}",
+        )
+        check(
+            max(bar["edges"]) <= 1,
+            f"{phone}: {screen}: the bar does not span the card: {bar}",
+        )
+        check(
+            bar["start"][0] >= 0 and bar["start"][1] <= bar["free"] + 1,
+            f"{phone}: {screen}: the start is out of reach: {bar}",
+        )
+        check(
+            bar["buttons"] == buttons, f"{phone}: {screen}: buttons {bar['buttons']}"
+        )
+
+    def wide(view: str) -> None:
+        state = page.evaluate(PHONE_WIDTH)
+        check(state["cards"], f"{phone}: no cards in the {view} view")
+        check(not state["wide"], f"{phone}: {view} view wider than the phone: {state}")
+        check(not state["cut"], f"{phone}: {view} view cuts names short: {state}")
+
+    def wait_players(count: int) -> None:
+        page.wait_for_function(
+            f"() => ({SCOREBOARD_STATE})().players.length === {count}", timeout=15000
+        )
+
+    def game_off() -> None:
+        page.evaluate(
+            CALL_SERVICE,
+            ["select", "select_option", "practice_game", {"option": "off"}],
+        )
+        control({"status": "Throw", "event": "Takeout finished", "throws": []})
+
+    page.goto(f"{HA}/autodarts-auto/scoreboard")
+    page.locator(f"{card} .main").wait_for(timeout=30000)
+    game_off()
+    page.locator(f"{card} .lobby-cta").wait_for(timeout=15000)
+    fits("the scoreboard between games")
+
+    # The new game screen with the detection stopped, as at the board after a break:
+    # its hint and the start stay above the home indicator on a bar of their own, and
+    # every game can be tapped, none hides beneath the bar.
+    control({"running": False, "status": "Stopped", "event": "Stopped"})
+    page.locator(f"{card} .lobby-cta").tap()
+    page.locator(f"{card} .lobby").wait_for(timeout=15000)
+    page.locator(f"{card} .lobby-hint").first.wait_for(timeout=15000)
+    fits("the new game screen", high=False)
+    start_bar("the new game screen", ["close", "start"])
+    games = page.locator(f"{card} .lobby .game")
+    for index in range(games.count()):
+        games.nth(index).tap()
+        pressed = games.nth(index).get_attribute("aria-pressed")
+        check(pressed == "true", f"{phone}: game {index} not chosen by a tap")
+    players = page.locator(f"{card} .lobby-player [data-lobby='remove']")
+    while players.count():
+        players.first.tap()
+    for name in ("Alex", "Sam"):
+        page.locator(f"{card} .suggestion", has_text=name).tap()
+    page.locator(f"{card} .lobby .game", has_text="301").first.tap()
+    page.locator(f"{card} .lobby .start").tap()
+    wait_players(2)
+    control({"event": "Throw detected", "throws": [T20]})
+    fits("a match of two", targets=False)
+
+    # A running game adds its end to the bar; two taps end it.
+    page.locator(f"{card} .lobby-toggle").tap()
+    page.locator(f"{card} .lobby").wait_for(timeout=15000)
+    start_bar("the new game screen during a game", ["end", "close", "start"])
+    end = page.locator(f"{card} [data-lobby='end']")
+    end.tap()
+    end.tap()
+    page.wait_for_function(
+        f"() => !({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector(\"[data-lobby='end']\")",
+        timeout=15000,
+    )
+    page.locator(f"{card} [data-lobby='close']").tap()
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+
+    # Four players with long names, in X01 and in Cricket.
+    for game in ("501", "cricket"):
+        page.evaluate(CALL_ACTION, ["start_game", {"game": game, "players": LONG_NAMES}])
+        if game == "501":
+            wait_players(4)
+        else:
+            page.locator(f"{card} .cricket").wait_for(timeout=15000)
+        control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+        fits(f"four players with long names in {game}", targets=False)
+        control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    game_off()
+
+    # The keypad and its board: a tap on the treble 20 enters it. The keypad is a
+    # choice of the card; the demo's keypad view has it.
+    page.goto(f"{HA}/autodarts-demo/keypad")
+    page.locator(f"{card} .main").wait_for(timeout=30000)
+    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
+    page.evaluate(CALL_ACTION, ["start_game", {"game": "301", "players": ["Alex"]}])
+    page.locator(f"{card} .pad").wait_for(timeout=15000)
+    fits("the keypad")
+    page.locator(f"{card} [data-pad='board']").tap()
+    board = page.locator(f"{card} .pad-board")
+    board.wait_for(timeout=15000)
+    fits("the board to tap")
+    box = board.bounding_box()
+    check(box is not None, f"{phone}: the board to tap is not laid out")
+    scale = min(box["width"], box["height"]) / 460
+    board.tap(
+        position={
+            "x": box["width"] / 2,
+            "y": box["height"] / 2 + TREBLE_20 * scale,
+        }
+    )
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_CARDS})()[0].shadowRoot.querySelector('.sum .value')?.textContent === '60'",
+        timeout=15000,
+    )
+    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    game_off()
+
+    # The other views: every card as wide as the phone, the tiles' names whole.
+    for view in ("live", "training", "players"):
+        page.goto(f"{HA}/autodarts-auto/{view}")
+        page.wait_for_function(
+            "() => document.querySelector('home-assistant')?.hass",
+            timeout=30000,
+        )
+        page.wait_for_timeout(1500)
+        wide(view)
+    errors = page_errors(page, [])
+    check(not errors, f"{phone}: console problems: {errors}")
+    context.close()
+
+
+# Every size a dashboard is opened on, in both orientations: its viewport, the safe
+# areas at the top and the bottom, and whether it is a touch screen.
+SCREENS = (
+    ("small phone", {"width": 360, "height": 640}, (0, 0), True),
+    ("small phone on its side", {"width": 640, "height": 360}, (0, 0), True),
+    ("iPhone", {"width": 393, "height": 852}, (59, 34), True),
+    ("iPhone on its side", {"width": 852, "height": 393}, (0, 21), True),
+    ("tablet", {"width": 768, "height": 1024}, (24, 20), True),
+    ("tablet on its side", {"width": 1024, "height": 768}, (24, 20), True),
+    ("laptop", {"width": 1280, "height": 800}, (0, 0), False),
+    ("large monitor", {"width": 1920, "height": 1080}, (0, 0), False),
+)
+# The views of the generated dashboard; those of the demo dashboard are read from it.
+AUTO_VIEWS = ("live", "scoreboard", "training", "players", "board")
+DEMO_VIEWS = """
+async () => {
+  const hass = document.querySelector('home-assistant').hass;
+  const config = await hass.callWS({ type: 'lovelace/config', url_path: 'autodarts-demo' });
+  return config.views.map((view) => view.path);
+}
+"""
+# Whether every card on the page has drawn itself.
+CARDS_DRAWN = """
+() => {
+  const cards = [];
+  (function collect(root) {
+    root.querySelectorAll('*').forEach((el) => {
+      if (el.tagName.startsWith('AUTODARTS-') && !el.tagName.endsWith('-EDITOR')) cards.push(el);
+      if (el.shadowRoot) collect(el.shadowRoot);
+    });
+  })(document);
+  return cards.length > 0 && cards.every((card) => card.shadowRoot?.querySelector('ha-card'));
+}
+"""
+# What a player would see as broken on this screen, card by card: a card wider than the
+# screen, text cut short or cut off, text on top of other text, a control too small for
+# a finger on a touch screen, and a full-height scoreboard running below the screen.
+# Text beneath a bar that stays in place is hidden by it and does not count as covered.
+LAYOUT_PROBLEMS = """
+(touch) => {
+  const cards = [];
+  (function collect(root) {
+    root.querySelectorAll('*').forEach((el) => {
+      if (el.tagName.startsWith('AUTODARTS-') && !el.tagName.endsWith('-EDITOR') && el.shadowRoot) cards.push(el);
+      if (el.shadowRoot) collect(el.shadowRoot);
+    });
+  })(document);
+  const problems = [];
+  const inset = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom')
+  ) || 0;
+  // Shown on the screen: not hidden, and not only for screen readers.
+  const shown = (el, frame) => {
+    for (let e = el; e && e !== frame.parentNode; e = e.parentElement) {
+      if (e.hidden) return false;
+      const style = getComputedStyle(e);
+      if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) return false;
+      if (style.clipPath === 'inset(50%)') return false;
+    }
+    return true;
+  };
+  const within = (a, b) => ({
+    left: Math.max(a.left, b.left), top: Math.max(a.top, b.top),
+    right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom),
+  });
+  const area = (r) => Math.max(0, r.right - r.left) * Math.max(0, r.bottom - r.top);
+  const words = (el) => el.textContent.trim().replace(/\\s+/g, ' ').slice(0, 40);
+  for (const card of cards) {
+    const root = card.shadowRoot;
+    const frame = root.querySelector('ha-card');
+    if (!frame) continue;
+    const box = card.getBoundingClientRect();
+    if (box.width === 0 || box.height === 0) continue;
+    const label = card.tagName.toLowerCase();
+    if (frame.scrollWidth > frame.clientWidth + 1 || box.right > innerWidth + 1 || box.left < -1) {
+      problems.push(`${label} is wider than the screen (${frame.scrollWidth}/${frame.clientWidth}, right ${Math.round(box.right)} of ${innerWidth})`);
+    }
+    // The part of a text the overflow of its element and their ancestors leaves visible,
+    // and whether one cuts it off without letting it scroll.
+    // Glyph boxes stand a little above and below a tight line; only a text cut at its
+    // side or a line lost as a whole counts.
+    const clip = (el, rect) => {
+      let visible = rect;
+      let cut = false;
+      for (let e = el; e && e !== frame.parentNode; e = e.parentElement) {
+        const style = getComputedStyle(e);
+        if (style.overflowX === 'visible' && style.overflowY === 'visible') continue;
+        const next = within(visible, e.getBoundingClientRect());
+        const scrolls = /auto|scroll/.test(style.overflowX + style.overflowY);
+        const narrower = next.right - next.left < visible.right - visible.left - 2;
+        const lower = next.bottom - next.top < (visible.bottom - visible.top) * 0.6;
+        if (!scrolls && (narrower || lower)) cut = true;
+        visible = next;
+      }
+      return { visible, cut };
+    };
+    const texts = [];
+    const range = document.createRange();
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const el = node.parentElement;
+      if (!el || !node.textContent.trim() || el.closest('svg, style, script')) continue;
+      if (!shown(el, frame)) continue;
+      const style = getComputedStyle(el);
+      // Text only for screen readers.
+      if (style.clipPath === 'inset(50%)' || style.clip === 'rect(0px, 0px, 0px, 0px)') continue;
+      range.selectNodeContents(node);
+      for (const rect of range.getClientRects()) {
+        if (rect.width < 2 || rect.height < 2) continue;
+        const { visible, cut } = clip(el, rect);
+        if (cut && style.textOverflow !== 'ellipsis') problems.push(`${label}: "${words(el)}" is cut off`);
+        if (area(visible) < 4) continue;
+        // The glyphs fill the middle of a text's box; large numbers have a box much
+        // higher than what they show.
+        const inner = (visible.bottom - visible.top) * 0.2;
+        const core = { ...visible, top: visible.top + inner, bottom: visible.bottom - inner };
+        texts.push({ el, rect: core, fixed: Boolean(el.closest('.lobby-actions')) });
+      }
+    }
+    for (const el of root.querySelectorAll('*')) {
+      if (!shown(el, frame)) continue;
+      const style = getComputedStyle(el);
+      if (style.textOverflow === 'ellipsis' && el.scrollWidth > el.clientWidth + 1 && el.textContent.trim()) {
+        problems.push(`${label}: "${words(el)}" is cut short`);
+      }
+    }
+    for (let i = 0; i < texts.length; i += 1) {
+      for (let j = i + 1; j < texts.length; j += 1) {
+        const a = texts[i];
+        const b = texts[j];
+        if (a.el === b.el || a.el.contains(b.el) || b.el.contains(a.el) || a.fixed !== b.fixed) continue;
+        const both = within(a.rect, b.rect);
+        if (both.right - both.left > 3 && both.bottom - both.top > 3) {
+          problems.push(`${label}: "${words(a.el)}" lies on "${words(b.el)}"`);
+        }
+      }
+    }
+    if (touch) {
+      for (const el of root.querySelectorAll('button, input, select, textarea, a[href], [role="button"], [role="tab"], [tabindex="0"]')) {
+        if (!shown(el, frame) || el.closest('svg') || el.type === 'hidden') continue;
+        const rect = el.getBoundingClientRect();
+        // Controls only a keyboard reaches until they have the focus.
+        if (rect.width <= 2 || rect.height <= 2 || getComputedStyle(el).clipPath === 'inset(50%)') continue;
+        if (rect.height < 36 || rect.width < 36) {
+          problems.push(`${label}: "${words(el) || el.getAttribute('aria-label') || el.tagName.toLowerCase()}" is ${Math.round(rect.width)}x${Math.round(rect.height)} for a finger`);
+        }
+      }
+    }
+    const board = root.querySelector('.scoreboard.full:not(.choosing)');
+    if (board && box.bottom > innerHeight - inset + 1) {
+      problems.push(`${label} runs ${Math.round(box.bottom - innerHeight + inset)} px below the screen`);
+    }
+  }
+  return { cards: cards.length, problems: [...new Set(problems)] };
+}
+"""
+# Screenshots of every screen for a look by eye, when BROWSER_SCREENSHOTS is set.
+SCREENSHOTS = os.environ.get("BROWSER_SCREENSHOTS", "")
+
+
+def screens(browser: Browser) -> None:
+    """Every view of both dashboards and the scoreboard's screens on every size, in
+    German with its long words: nothing broken, whatever the screen and its side."""
+    found: list[str] = []
+    # A choice of screens for a local run, comma-separated, such as "iPhone".
+    chosen = {name.strip() for name in os.environ.get("BROWSER_SCREENS", "").split(",")}
+    for screen, size, insets, touch in SCREENS:
+        if chosen - {""} and screen not in chosen:
+            continue
+        problems = screen_views(browser, screen, size, insets, touch)
+        print(f"  {screen}: {len(problems)} problems", flush=True)
+        found += problems
+    check(not found, "Layout problems:\n" + "\n".join(found))
+
+
+def screen_views(
+    browser: Browser,
+    screen: str,
+    size: dict[str, int],
+    insets: tuple[int, int],
+    touch: bool,
+) -> list[str]:
+    context = browser.new_context(
+        locale="de-DE",
+        viewport=size,
+        device_scale_factor=2,
+        is_mobile=touch and size["width"] < 1000,
+        has_touch=touch,
+    )
+    page = context.new_page()
+    page.add_init_script(CAPTURE_ERRORS)
+    page.add_init_script(phone_style(*insets))
+    found: list[str] = []
+
+    def look(name: str) -> None:
+        page.wait_for_function(CARDS_DRAWN, timeout=30000)
+        # Positions, profiles and trends arrive over the websocket after the first draw.
+        page.wait_for_timeout(800)
+        state = page.evaluate(LAYOUT_PROBLEMS, touch)
+        found.extend(f"{screen} · {name}: {problem}" for problem in state["problems"])
+        if SCREENSHOTS and ARTIFACTS:
+            folder = Path(ARTIFACTS) / "screens" / screen.replace(" ", "-")
+            folder.mkdir(parents=True, exist_ok=True)
+            page.screenshot(path=str(folder / f"{name}.png"), full_page=True)
+
+    page.goto(f"{HA}/autodarts-auto/live")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    views = [f"autodarts-auto/{view}" for view in AUTO_VIEWS]
+    views += [f"autodarts-demo/{view}" for view in page.evaluate(DEMO_VIEWS)]
+    for view in views:
+        page.goto(f"{HA}/{view}")
+        look(view.replace("/", "-"))
+
+    # The scoreboard's own screens: the new game screen, four players with long names
+    # and the keypad, its board to tap, and Cricket for four.
+    page.goto(f"{HA}/autodarts-auto/scoreboard")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
+    page.evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
+    )
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    page.wait_for_function(f"() => {root}.querySelector('.lobby-cta')", timeout=15000)
+    page.evaluate(f"() => {root}.querySelector('.lobby-cta').click()")
+    page.wait_for_function(f"() => {root}.querySelector('.lobby')", timeout=15000)
+    look("scoreboard-new-game")
+    page.evaluate(f"() => {root}.querySelector(\"[data-lobby='close']\").click()")
+    # The keypad is a choice of the card; the demo's keypad view has it.
+    page.goto(f"{HA}/autodarts-demo/keypad")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
+    page.evaluate(CALL_ACTION, ["start_game", {"game": "501", "players": LONG_NAMES}])
+    page.wait_for_function(f"() => {root}.querySelector('.pad')", timeout=15000)
+    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    look("scoreboard-keypad-four-players")
+    page.evaluate(f"() => {root}.querySelector(\"[data-pad='board']\").click()")
+    page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
+    look("scoreboard-board-to-tap")
+    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    page.evaluate(CALL_ACTION, ["start_game", {"game": "cricket", "players": LONG_NAMES}])
+    page.wait_for_function(f"() => {root}.querySelector('.cricket')", timeout=15000)
+    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    look("scoreboard-cricket-four-players")
+    page.evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
+    )
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    errors = page_errors(page, [])
+    found.extend(f"{screen}: console problem {error}" for error in errors)
+    context.close()
+    return found
+
+
 def caller(browser: Browser) -> None:
     """The caller stays silent until a tap switches it on."""
     page, problems = open_view(
@@ -1510,6 +2048,8 @@ def main() -> None:
             ("correcting, the keypad and the bot", lambda: play_comfort(browser)),
             ("tournament", lambda: tournament(browser)),
             ("tablet screen", lambda: tablet_screen(browser)),
+            ("phone screens", lambda: phone_screens(browser)),
+            ("every screen size", lambda: screens(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
             ("live card editor", lambda: editor(browser, rows=7)),
@@ -1544,6 +2084,8 @@ def main() -> None:
             ("languages", lambda: languages(browser)),
         ]
         for name, step in steps:
+            if ONLY and name not in ONLY:
+                continue
             # A failure then names the step, not only a timeout deep in Playwright.
             print(f"Browser step: {name}", flush=True)
             try:

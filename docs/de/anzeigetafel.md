@@ -34,7 +34,7 @@ Die [Anleitung zu den Karten](karten.md#anzeigetafel) nennt jede Option.
 
 ## Quer, hochkant und Fernseher
 
-Die Anzeigetafel passt sich der Form des Bildschirms an. Mit `full_height: true` ist sie genau der Bildschirm unter der Werkzeugleiste: Ein Banner, die Aufnahme oder das Tastenfeld machen Zahlen und Tabellen kleiner, statt die Seite über den Bildschirm hinauszuschieben, sodass nichts gescrollt werden muss, vom kleinen 800 × 480-Display bis zum Fernseher. Auf einem Handy lässt sie Platz für die Adressleiste des Browsers.
+Die Anzeigetafel passt sich der Form des Bildschirms an. Mit `full_height: true` ist sie genau der Bildschirm unter der Werkzeugleiste: Ein Banner, die Aufnahme oder das Tastenfeld machen Zahlen und Tabellen kleiner, statt die Seite über den Bildschirm hinauszuschieben, sodass nichts gescrollt werden muss, vom kleinen 800 × 480-Display bis zum Fernseher. Auf einem Handy lässt sie Platz für die Adressleiste des Browsers und in der Companion-App für die Statusleiste und den Home-Balken.
 
 <table>
   <tr>
@@ -49,6 +49,7 @@ Die Anzeigetafel passt sich der Form des Bildschirms an. Mit `full_height: true`
 
 - **Tablet im Querformat oder Fernseher:** die beste Wahl für X01 und die Partyspiele, deren Spielerkacheln nebeneinander stehen.
 - **Tablet im Hochformat:** gut für Cricket, dessen Kreidetafel hoch ist, und für X01: Zwei Spieler stehen übereinander, drei oder vier zu zweit nebeneinander, und die Punkte nutzen die Höhe des Bildschirms.
+- **Handy:** Alles passt auf einen Bildschirm, hochkant wie quer. Mit dem Tastenfeld oder der Scheibe zum Antippen wird der Punktestand jedes Spielers zu einer Zeile, sodass alle Punktestände sichtbar bleiben; quer nimmt das Tastenfeld die rechte Bildschirmhälfte von oben bis unten ein.
 - **Entfernung:** Der Rest ist der größte Text auf dem Bildschirm und wächst mit ihm. Je größer der Bildschirm, desto weiter weg ist er lesbar; ein Fernseher bedient also auch die Zuschauer.
 
 ## Das nächste Spiel wählen

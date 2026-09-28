@@ -70,7 +70,11 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 - the scoreboard and its caller, the players card with badges and trends, the leaderboard, the doubles card, and the download of the players export;
 - the generated dashboard, the forms of all seven cards, the strategy editor and the light theme;
 - the new game screen, scoreboard, keypad and tournament on an 800 × 480 tablet, without sideways scrolling and with targets of at least 44 px, and idle mode on a device that asks for reduced motion;
+- phones driven by taps: an iPhone with the safe areas of its status bar and home indicator, a small Android phone and an iPhone on its side, with a theme of see-through cards. Every game of the new game screen is tapped, a match is started, played and ended there, four players with long names play X01 and Cricket, and a tap on the board of the keypad enters a treble 20. The scoreboard has to stay one screen high above the home indicator, and the start bar has to cover what scrolls beneath it;
+- every view of both dashboards and the scoreboard's own screens on eight sizes, from a small phone to a large monitor, both ways round and in German: no card wider than the screen, no text cut off or lying on other text, no control smaller than 36 px on a touch screen, and no full-height scoreboard below the screen;
 - a browser in Dutch, French and Spanish, which gets the cards and the entity texts of Home Assistant in its language.
+
+While working on a screen, `BROWSER_STEPS` runs only the named steps, such as `BROWSER_STEPS="phone screens,every screen size"`, and `BROWSER_SCREENS` only some of the sizes, such as `BROWSER_SCREENS=iPhone`. With `BROWSER_SCREENSHOTS=1` the size check keeps a full-page screenshot of every view and size in `tests/e2e/artifacts/screens/`, to look at by eye.
 
 When a step fails, the browser test saves a screenshot of every open page, and
 the scripts save the Home Assistant log, in `tests/e2e/artifacts/` or in the
