@@ -539,8 +539,8 @@ const TEXT = {
     unit_points: "{value} points",
     unit_day: "{value} day",
     unit_days: "{value} days",
-    unit_minutes: "{value} min",
-    under_a_minute: "<1 min",
+    unit_minutes: "{value} min",
+    under_a_minute: "<1 min",
     // Progress: badges, trends, grouping, dart positions and the leaderboard
     badges: "Badges",
     badge_count: "{count} badges",
@@ -607,7 +607,7 @@ const TEXT = {
     spread_tighter: "{value} tighter",
     spread_wider: "{value} wider",
     spread_hint: "Half of the darts land within the grouping around their mean point, 80 % within the second radius.",
-    unit_mm: "{value} mm",
+    unit_mm: "{value} mm",
     mode_positions: "Positions",
     heatmap_source: "Whose darts",
     heatmap_session: "Session",
@@ -1084,8 +1084,8 @@ const TEXT = {
     unit_points: "{value} Punkte",
     unit_day: "{value} Tag",
     unit_days: "{value} Tage",
-    unit_minutes: "{value} Min.",
-    under_a_minute: "<1 Min.",
+    unit_minutes: "{value} Min.",
+    under_a_minute: "<1 Min.",
     // Fortschritt: Abzeichen, Trends, Streuung, Dart-Positionen und die Bestenliste
     badges: "Abzeichen",
     badge_count: "{count} Abzeichen",
@@ -1152,7 +1152,7 @@ const TEXT = {
     spread_tighter: "{value} enger",
     spread_wider: "{value} weiter",
     spread_hint: "Die Hälfte der Darts landet innerhalb der Streuung um ihren Mittelpunkt, 80 % innerhalb des zweiten Radius.",
-    unit_mm: "{value} mm",
+    unit_mm: "{value} mm",
     mode_positions: "Positionen",
     heatmap_source: "Wessen Darts",
     heatmap_session: "Session",
@@ -1625,8 +1625,8 @@ const TEXT = {
     unit_points: "{value} puntos",
     unit_day: "{value} día",
     unit_days: "{value} días",
-    unit_minutes: "{value} min",
-    under_a_minute: "<1 min",
+    unit_minutes: "{value} min",
+    under_a_minute: "<1 min",
     badges: "Insignias",
     badge_count: "{count} insignias",
     badge_count_one: "1 insignia",
@@ -1692,7 +1692,7 @@ const TEXT = {
     spread_tighter: "{value} más cerrada",
     spread_wider: "{value} más abierta",
     spread_hint: "La mitad de los dardos cae dentro de la agrupación, alrededor de su punto medio, y el 80 % dentro del segundo radio.",
-    unit_mm: "{value} mm",
+    unit_mm: "{value} mm",
     mode_positions: "Posiciones",
     heatmap_source: "Dardos mostrados",
     heatmap_session: "Sesión",
@@ -2165,8 +2165,8 @@ const TEXT = {
     unit_points: "{value} points",
     unit_day: "{value} jour",
     unit_days: "{value} jours",
-    unit_minutes: "{value} min",
-    under_a_minute: "<1 min",
+    unit_minutes: "{value} min",
+    under_a_minute: "<1 min",
     badges: "Badges",
     badge_count: "{count} badges",
     badge_count_one: "1 badge",
@@ -2232,7 +2232,7 @@ const TEXT = {
     spread_tighter: "{value} plus serré",
     spread_wider: "{value} plus large",
     spread_hint: "La moitié des fléchettes atterrissent dans le rayon de groupement autour de leur point moyen, 80 % dans le second rayon.",
-    unit_mm: "{value} mm",
+    unit_mm: "{value} mm",
     mode_positions: "Positions",
     heatmap_source: "Fléchettes affichées",
     heatmap_session: "Session",
@@ -2705,8 +2705,8 @@ const TEXT = {
     unit_points: "{value} punten",
     unit_day: "{value} dag",
     unit_days: "{value} dagen",
-    unit_minutes: "{value} min",
-    under_a_minute: "<1 min",
+    unit_minutes: "{value} min",
+    under_a_minute: "<1 min",
     badges: "Badges",
     badge_count: "{count} badges",
     badge_count_one: "1 badge",
@@ -2772,7 +2772,7 @@ const TEXT = {
     spread_tighter: "{value} strakker",
     spread_wider: "{value} ruimer",
     spread_hint: "De helft van de darts komt binnen de spreiding rond hun gemiddelde trefpunt terecht, 80 % binnen de tweede straal.",
-    unit_mm: "{value} mm",
+    unit_mm: "{value} mm",
     mode_positions: "Posities",
     heatmap_source: "Wiens darts",
     heatmap_session: "Sessie",
@@ -3519,6 +3519,8 @@ function pastSessions(sessions, limit = 5) {
 // Board events that change the visits of the training card, and the most visits it shows.
 const VISIT_EVENTS = ["visit_completed", "visit_undone", "session_started"];
 const HISTORY_LIMIT = 60;
+// The slots a narrow chart of the last visits shows.
+const HISTORY_NARROW = 10;
 
 // The visits of the session after rows of the board events entity, as the recorder
 // or the history stream deliver them, on top of the visits known so far: a session
@@ -4142,7 +4144,7 @@ function bullOffPlayers(bullOff, ui) {
     state: item.player === bullOff.player ? "active" : item.player === leader ? "winner" : "",
     note: "",
     details: [
-      item.distance === null ? "" : `${ui.format(item.distance, 1)} mm`,
+      item.distance === null ? "" : `${ui.format(item.distance, 1)} mm`,
       item.player === leader ? ui.t("bull_off_leads") : "",
     ],
   }));
@@ -5176,6 +5178,8 @@ const PAD_ZOOM_MOST = 5;
 const LOUPE_ZOOM = 2.5;
 // A card narrower than this, or a screen lower, as a phone on its side, is a small screen.
 const PAD_SMALL = 600;
+// The arrow of the undo, apart from its words, which screen readers say alone.
+const UNDO_ICON = `<span class="undo-icon" aria-hidden="true">↶</span>`;
 
 // The part of the pad's board in sight: all of it, or, zoomed in with `zoom` as
 // { scale, x, y }, the square of that scale around x and y in millimetres of the
@@ -5271,7 +5275,7 @@ function padHtml(pad, ui) {
   const actions = pad.dart
     ? button("cancel", undefined, escapeHtml(t("pad_cancel")), ` class="secondary"`)
     : button("next", undefined, confirm("next", "next_player"), ` class="secondary"`) +
-      (pad.undo ? button("undo", undefined, `↶ ${confirm("undo", "undo_visit")}`, ` class="secondary"`) : "");
+      (pad.undo ? button("undo", undefined, `${UNDO_ICON} ${confirm("undo", "undo_visit")}`, ` class="secondary"`) : "");
   // The board instead of the keys, for the spot where the dart is.
   const view = button("board", undefined, `🎯 ${escapeHtml(t("pad_board"))}`, ` class="view" aria-pressed="${pad.board === true}"`);
   // On the board, a switch between the whole board and its part around the dart: a
@@ -6614,7 +6618,9 @@ function boardContext(hass, t, deviceId, number, count) {
 }
 
 const FULL = { grid_options: { columns: "full" } };
-const tile = (row) => ({ type: "tile", ...(typeof row === "string" ? { entity: row } : row) });
+// A tile as wide as its section, so that long names such as the detection's correction
+// rate stay whole on every screen.
+const tile = (row) => ({ type: "tile", ...FULL, ...(typeof row === "string" ? { entity: row } : row) });
 
 function liveDashboardView(board) {
   const { t } = board;
@@ -7125,6 +7131,9 @@ const BASE_CSS = `
     color: var(--ad-accent-text);
   }
   .muted { font-size: 11px; color: var(--ad-muted-text); }
+  /* No word alone on a line: titles and labels balance their lines, text avoids orphans. */
+  .title, .section-label, th { text-wrap: balance; }
+  .muted, .pad-hint, .lobby-hint, .hint, .empty-hint { text-wrap: pretty; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip {
     display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
@@ -7136,7 +7145,7 @@ const BASE_CSS = `
   .chip.off { --chip: #9e9e9e; }
   .chip.alert { --chip: ${STATUS_COLORS.problem}; color: var(--ad-error-text); }
   /* A finger needs about 36 px, more than a mouse pointer. */
-  @media (any-pointer: coarse) { .chip { min-height: 36px; } }
+  @media (any-pointer: coarse) { .chip { min-height: 40px; } }
   .controls { display: flex; flex-wrap: wrap; gap: 8px; }
   .controls button, button.action {
     flex: 1 1 auto; min-height: 40px; padding: 0 14px; border-radius: 12px; cursor: pointer;
@@ -7412,13 +7421,20 @@ const TRAINING_CSS = `${BASE_CSS}
   .bests dl > div { display: flex; justify-content: space-between; gap: 10px; min-width: 0; }
   .bests dt { font-size: 12px; color: var(--secondary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bests dd { margin: 0; font-size: 13px; font-weight: 700; color: var(--primary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .top { display: flex; flex-direction: column; gap: 6px; }
-  .top-row { display: grid; grid-template-columns: 3.2em 1fr auto; align-items: center; gap: 10px; font-size: 13px; }
+  /* The rows share their columns, so that every bar ends where the others do. */
+  .top { display: grid; grid-template-columns: 3.2em minmax(0, 1fr) auto; gap: 6px 10px; }
+  .top > .empty-hint { grid-column: 1 / -1; }
+  .top-row { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; font-size: 13px; }
+  .top-row .count { text-align: right; }
   .top-row .key { font-weight: 800; color: var(--primary-text-color); }
   .top-row .bar { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--primary-text-color) 8%, transparent); overflow: hidden; }
   .top-row .fill { height: 100%; border-radius: inherit; }
   .top-row .count { color: var(--secondary-text-color); font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .history-chart { position: relative; height: 104px; display: flex; align-items: stretch; gap: 4px; margin-top: 8px; }
+  .history-chart {
+    position: relative; height: 104px; display: flex; align-items: stretch; gap: 4px; margin-top: 8px;
+    container-type: inline-size;
+  }
+  @container (max-width: 560px) { .visit-bar.far { display: none; } }
   .visit-bar {
     flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
   }
@@ -7506,7 +7522,7 @@ const STATUS_CSS = `${BASE_CSS}
   }
   .metric .value { display: block; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary-text-color); }
   .metric .name { display: block; font-size: 11px; color: var(--secondary-text-color); }
-  .camera-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .camera-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
   .camera {
     display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px;
     border: 1px solid var(--divider-color, rgba(127,127,127,.25));
@@ -7522,8 +7538,8 @@ const STATUS_CSS = `${BASE_CSS}
      transparent border, which keeps its look. */
   @media (any-pointer: coarse) {
     .toggle { box-sizing: content-box; border: 4px solid transparent; background-clip: padding-box; }
-    .info-tile .badge, .camera-name, .camera button.action { min-height: 36px; }
-    .system-info { display: flex; align-items: center; min-height: 36px; }
+    .info-tile .badge, .camera-name, .camera button.action { min-height: 40px; }
+    .system-info { display: flex; align-items: center; min-height: 40px; }
   }
 `;
 
@@ -7554,13 +7570,15 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     min-height: calc(100dvh - var(--ad-taken));
   }
   .heading { display: grid; gap: 2px; min-width: 0; }
-  /* The title breaks onto a second line beside the buttons of a phone instead of losing
-     its end. */
+  /* The title keeps its words whole: where the buttons beside it leave too little room,
+     as on a phone, they follow in a row below it. */
   .scoreboard .title {
     font-size: clamp(18px, 3cqi, 36px); font-weight: 700; line-height: 1.15;
-    white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: break-word; hyphens: auto;
+    white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: break-word;
   }
-  .scoreboard > header { align-items: flex-start; }
+  .scoreboard > header { align-items: flex-start; flex-wrap: wrap; row-gap: 8px; }
+  .scoreboard > header > .heading { flex: 0 1 auto; max-width: 100%; }
+  .scoreboard > header > .header-actions { flex: 1 0 auto; }
   .scoreboard .meta { font-size: clamp(12px, 1.7cqi, 20px); }
   .scoreboard .pill { font-size: clamp(12px, 1.5cqi, 18px); }
   .banner {
@@ -7648,6 +7666,9 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .bed:first-child { color: #fff; background: var(--ad-accent-fill); }
   .details { font-size: clamp(12px, 1.9cqi, 24px); color: var(--ad-muted-text); font-variant-numeric: tabular-nums; }
   .cricket { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+  /* On a full screen the chalkboard's rows share its whole height, without bands above
+     and below it. */
+  .scoreboard.full .main > .cricket { height: 100%; }
   .cricket th, .cricket td { padding: .1em .3em; text-align: center; }
   /* Names break onto a second line in a narrow column instead of losing their end. */
   .cricket thead th {
@@ -7786,6 +7807,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   :is(.pad-board, .loupe) .spot.seen { fill: none; stroke: var(--ad-accent); stroke-width: 4; stroke-dasharray: 7 5; pointer-events: auto; }
   .pad-hint { text-align: center; font-size: .8em; color: var(--ad-muted-text); }
   .undo-only { justify-self: start; align-self: flex-start; }
+  .undo-icon { margin-inline-end: .2em; }
   .lobby-player.bot .bot-icon { font-size: 1.3em; }
   .sum .muted { color: inherit; }
   .sum .value { font-size: clamp(22px, 4.2cqi, 56px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -7803,6 +7825,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .choosing .main { justify-content: flex-start; }
   .lobby {
     display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: clamp(14px, 2.4cqi, 32px); align-items: start;
+    font-size: clamp(14px, 1.2cqi, 19px);
   }
   /* A portrait tablet or a phone stacks the games above the players; a small landscape
      screen keeps them side by side. */
@@ -7852,7 +7875,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   .name-entry { display: flex; gap: 8px; }
   .lobby-name {
     flex: 1; min-width: 0; min-height: 48px; box-sizing: border-box; padding: 0 14px; border-radius: 14px;
-    font: inherit; font-size: 16px; color: var(--primary-text-color); background: none;
+    font: inherit; font-size: max(16px, 1em); color: var(--primary-text-color); background: none;
     border: 2px solid var(--divider-color, rgba(127,127,127,.3));
   }
   .steppers { display: flex; flex-wrap: wrap; gap: 8px 24px; }
@@ -7879,6 +7902,11 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   }
   /* On a phone the start fills the rest of the row, or a row of its own. */
   @container (max-width: 560px) { .lobby-actions .start { flex: 1 1 10em; } }
+  /* On a screen higher than the choice, as a large monitor, the start bar stays at the
+     bottom of the card instead of right below the choice. */
+  .scoreboard.full.choosing .lobby { flex: 1 0 auto; grid-template-rows: auto minmax(0, 1fr); }
+  .scoreboard.full.choosing .lobby-actions { align-self: end; }
+  @container (max-width: 880px) { .scoreboard.full.choosing .lobby { grid-template-rows: auto auto minmax(0, 1fr); } }
   .lobby-hint { flex: 1 1 100%; font-weight: 700; color: var(--ad-warn-text); }
   .lobby-hint:empty { display: none; }
   .lobby .secondary { background: none; }
@@ -8029,7 +8057,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}
   @media (max-height: 640px) {
     .scoreboard.full { --ad-pad: 16px; padding: 10px var(--ad-pad); gap: 8px; }
     .scoreboard.full .visit :is(.dart, .sum) { padding: 4px 6px; flex-direction: row; gap: 8px; }
-    .scoreboard.full .visit .dart .segment { font-size: clamp(14px, 19cqi, 40px); }
+    .scoreboard.full .visit .dart .segment { font-size: clamp(14px, min(19cqi, 5vh), 40px); }
     .scoreboard.full .player { padding-block: 8px; }
   }
   /* Darts entered or corrected on a landscape screen: the pad beside the scores, where
@@ -8071,29 +8099,39 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     .scoreboard.full .pad button { min-height: 42px; padding: 0 6px; }
     .scoreboard.full .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
     .scoreboard.full .pad-extra button { line-height: 1.1; }
-    /* The board to tap takes the room the scores leave; they keep two short lines. Its
-       zoom switch sits on the board's corner, as on a map, so the head keeps one line. */
-    .scoreboard.full:has(.pad.on-board) > .main { flex: 1 1 0; min-height: 96px; }
-    .scoreboard.full:has(.pad.on-board) > .pad-area { flex: 4 1 0; min-height: 0; display: flex; flex-direction: column; }
-    .scoreboard.full .pad.on-board {
-      flex: 1 1 0; min-height: 0;
-      grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(160px, 1fr) auto auto;
-      grid-template-areas: "label view" "board board" "hint hint" "extra extra";
-    }
-    .scoreboard.full .pad.on-board > .pad-head { display: contents; }
-    .scoreboard.full .pad.on-board > .pad-head > .section-label { grid-area: label; align-self: center; }
-    .scoreboard.full .pad.on-board > .pad-head > .view { grid-area: view; }
-    .scoreboard.full .pad.on-board > .pad-head > .zoom {
-      grid-area: board; justify-self: end; align-self: start; z-index: 1; margin: 6px; min-height: 0;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
-    }
-    .scoreboard.full .pad.on-board > .pad-board { grid-area: board; width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; }
-    .scoreboard.full .pad.on-board > .pad-hint { grid-area: hint; }
-    .scoreboard.full .pad.on-board > .pad-extra { grid-area: extra; }
+  }
+  /* The board to tap fills the room the scores leave, on every screen: below them the
+     scores keep a short line each, beside them the board takes the pad's column from
+     the top to the bottom. Its zoom switch sits on the board's corner, as on a map, so
+     the head keeps one line. */
+  .scoreboard.full:has(.pad.on-board) > .main { flex: 1 1 0; min-height: 96px; }
+  .scoreboard.full:has(.pad.on-board) > .pad-area { flex: 4 1 0; min-height: 0; display: flex; flex-direction: column; }
+  .scoreboard.full.with-pad:has(.pad.on-board) > .pad-area { align-self: stretch; }
+  .scoreboard.full .pad.on-board {
+    flex: 1 1 0; min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(160px, 1fr) auto auto;
+    grid-template-areas: "label view" "board board" "hint hint" "extra extra";
+  }
+  .scoreboard.full .pad.on-board > .pad-head { display: contents; }
+  .scoreboard.full .pad.on-board > .pad-head > .section-label { grid-area: label; align-self: center; }
+  .scoreboard.full .pad.on-board > .pad-head > .view { grid-area: view; }
+  .scoreboard.full .pad.on-board > .pad-head > .zoom {
+    grid-area: board; justify-self: end; align-self: start; z-index: 1; margin: 6px; min-height: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+  }
+  .scoreboard.full .pad.on-board > .pad-board { grid-area: board; width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; }
+  .scoreboard.full .pad.on-board > .pad-hint { grid-area: hint; }
+  .scoreboard.full .pad.on-board > .pad-extra { grid-area: extra; }
+  .scoreboard.full .section-label { font-size: clamp(11px, 1cqi, 15px); }
+  /* A large landscape screen, as a touch monitor beside the board: the keys grow with
+     its height. */
+  @media (orientation: landscape) and (min-height: 641px) {
+    .scoreboard.full.with-pad .pad { font-size: clamp(14px, min(1.8cqi, 2.6vh), 28px); }
+    .scoreboard.full.with-pad .pad button:not(.zoom) { min-height: clamp(48px, 7vh, 88px); }
   }
   /* A phone on its side: the pad takes the right half from the top to the bottom, its
-     numbers in two rows of ten as on a large screen, or in three rows of seven where ten
-     keys would be too narrow for a finger. */
+     numbers in rows of ten as on a large screen, or of seven or five where ten keys
+     would be narrower than a finger, 40 px. */
   @media (orientation: landscape) and (max-height: 440px) {
     .scoreboard.full.with-pad {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -8101,15 +8139,15 @@ const SCOREBOARD_CSS = `${BASE_CSS}
     }
     .scoreboard.full.with-pad > .pad-area { align-self: stretch; overflow-y: auto; container-type: inline-size; }
     .scoreboard.full.with-pad .pad-head .section-label { flex-basis: 100%; }
-    .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(7, minmax(0, 1fr)); }
-    @container (min-width: 396px) { .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
-    .scoreboard.full.with-pad :is(.pad, .pad-numbers) { gap: 4px; }
+    .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    @container (min-width: 298px) { .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+    @container (min-width: 427px) { .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+    .scoreboard.full.with-pad .pad { gap: 4px; }
+    .scoreboard.full.with-pad .pad-numbers { gap: 3px; }
     .scoreboard.full.with-pad .pad button { min-height: 40px; padding: 0 4px; }
     .scoreboard.full.with-pad .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
     .scoreboard.full.with-pad .pad-extra button { line-height: 1.1; }
-    /* The board fills the pad's half between its head and its actions; the hint gives
-       way, too long for the width of half a phone. */
-    .scoreboard.full.with-pad:has(.pad.on-board) > .pad-area { display: flex; flex-direction: column; }
+    /* The board's hint gives way, too long for the width of half a phone. */
     .scoreboard.full.with-pad .pad.on-board {
       grid-template-rows: auto minmax(120px, 1fr) auto; grid-template-areas: "label view" "board board" "extra extra";
     }
@@ -9759,17 +9797,20 @@ function createElements(Base) {
       const size = this._historySize();
       const labels = size <= 30;
       const share = (score) => fmt(Math.min(180, Math.max(0, score)) / 180);
-      const bars = visits.map((visit) => {
+      // A narrow chart shows only the last slots, the rest marked far, so that every
+      // score above its bar stays readable.
+      const far = (index) => (index < visits.length - HISTORY_NARROW || index >= Math.max(HISTORY_NARROW, visits.length) ? " far" : "");
+      const bars = visits.map((visit, index) => {
         const tip = `${visit.segments.join(" · ")}${visit.segments.length ? " = " : ""}${visit.score}`;
         return (
-          `<div class="visit-bar" title="${escapeHtml(tip)}">` +
+          `<div class="visit-bar${far(index)}" title="${escapeHtml(tip)}">` +
           (labels ? `<span class="label">${visit.score}</span>` : "") +
           `<div class="fill" style="--height:${share(visit.score)};background:${VISIT_COLORS[visitBucket(visit.score)]}"></div></div>`
         );
       });
       // Empty slots keep the bar width steady while the session fills the chart.
       for (let index = visits.length; index < size; index += 1) {
-        bars.push(`<div class="visit-bar empty"><div class="fill"></div></div>`);
+        bars.push(`<div class="visit-bar empty${far(index)}"><div class="fill"></div></div>`);
       }
       const average = this._number("average");
       const line =
@@ -10828,7 +10869,8 @@ function createElements(Base) {
       } else if (view.mode === "idle" && games.length) {
         main += `<button type="button" class="lobby-cta" data-lobby="open">${escapeHtml(t("lobby_open"))}</button>`;
       }
-      el.lobby.hidden = !games.length || Boolean(this._lobby);
+      // Between games the big button opens the new game screen; the header needs none.
+      el.lobby.hidden = !games.length || Boolean(this._lobby) || main.includes('class="lobby-cta"');
       el.board.classList.toggle("choosing", Boolean(this._lobby));
       el.board.classList.toggle("idling", Boolean(panel));
       this._text(el.title, title);
@@ -10872,7 +10914,7 @@ function createElements(Base) {
           !pad
             ? ""
             : pad.only
-              ? `<button type="button" class="undo-only" data-pad="undo" data-focus="undo:">↶ ${escapeHtml(
+              ? `<button type="button" class="undo-only" data-pad="undo" data-focus="undo:">${UNDO_ICON} ${escapeHtml(
                   t(pad.confirm === "undo" ? "confirm" : "undo_visit")
                 )}</button>`
               : padHtml(pad, { t })

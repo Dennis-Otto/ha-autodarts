@@ -137,8 +137,8 @@ test("the training view adds the training settings, the board view the detection
   });
   const maintenance = config.views.find((view) => view.path === "board").sections[1].cards;
   assert.deepEqual(maintenance.slice(-2), [
-    { type: "tile", entity: "update.b_software" },
-    { type: "tile", entity: "sensor.b_corrected" },
+    { type: "tile", grid_options: { columns: "full" }, entity: "update.b_software" },
+    { type: "tile", grid_options: { columns: "full" }, entity: "sensor.b_corrected" },
   ]);
 });
 
@@ -206,7 +206,7 @@ test("rows leave out the board and the section they sit in", () => {
   assert.deepEqual(darts.entities, [{ entity: "sensor.b_darts", name: "Training: Darts" }]);
   const [, settings, software] = maintenance.sections[1].cards;
   assert.deepEqual(settings.entities, [{ entity: "switch.b_custom", name: "Nachkalibrieren im Keller" }]);
-  assert.deepEqual(software, { type: "tile", entity: "update.b_software", name: "Board-Software" });
+  assert.deepEqual(software, { type: "tile", grid_options: { columns: "full" }, entity: "update.b_software", name: "Board-Software" });
 });
 
 test("a renamed board is left out of the row names too", () => {
@@ -241,7 +241,7 @@ test("the live view sets up and starts tournaments, with the tournament's stage 
     column_span: 2,
     cards: [
       { type: "heading", heading: "Tournament" },
-      { type: "tile", entity: "sensor.b_tournament" },
+      { type: "tile", grid_options: { columns: "full" }, entity: "sensor.b_tournament" },
       {
         type: "entities",
         entities: [
