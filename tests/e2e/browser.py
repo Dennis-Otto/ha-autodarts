@@ -778,8 +778,8 @@ async ([service, data]) => {
 
 
 def play_comfort(browser: Browser) -> None:
-    """A tap corrects a dart, the keypad enters one and passes, the bot throws, and
-    the last visit comes back."""
+    """A tap corrects a dart, the keypad enters one and passes, the bot throws, the
+    last visit comes back, and the live card corrects a dart the same way."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 1000})
     page.add_init_script(CAPTURE_ERRORS)
     page.goto(f"{HA}/autodarts-demo/keypad")
@@ -842,6 +842,7 @@ def play_comfort(browser: Browser) -> None:
         }}""",
         timeout=15000,
     )
+
     page.evaluate(
         CALL_SERVICE, ["number", "set_value", "practice_bot_level", {"value": 0}]
     )
@@ -853,6 +854,35 @@ def play_comfort(browser: Browser) -> None:
     errors = page_errors(page, [])
     check(not errors, f"Console problems: {errors}")
     page.close()
+
+    # The live card corrects a dart of the visit the same way; a pencil shows which.
+    live = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 1000})
+    live.add_init_script(CAPTURE_ERRORS)
+    live.goto(f"{HA}/autodarts-auto/live")
+    live_card = live.locator("autodarts-card").first
+    live_card.locator(".slots").wait_for(timeout=30000)
+    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    slots = f"({CARDS})()[0].shadowRoot.querySelectorAll('.slot')"
+    live.wait_for_function(
+        f"() => [...{slots}].map((el) => el.querySelector('.segment').textContent).join() === 'T20,S20,–'",
+        timeout=15000,
+    )
+    pencils = live_card.locator(".slot.tappable .cue.edit").count()
+    check(pencils == 2, f"Pencils on the live card's darts: {pencils}")
+    live_card.locator(".slot[data-dart='2']").click()
+    title = live_card.locator(".pad .section-label").text_content()
+    check(title == "Correct dart 2", f"Live pad title {title!r}")
+    live_card.locator("[data-pad='multiplier'][data-value='3']").click()
+    live_card.locator(".pad-number[data-value='T20']").click()
+    live.wait_for_function(
+        f"() => [...{slots}].map((el) => el.querySelector('.segment').textContent).join() === 'T20,T20,–'",
+        timeout=15000,
+    )
+    check(live_card.locator(".pad-area").is_hidden(), "The live pad stays open")
+    errors = page_errors(live, [])
+    check(not errors, f"Console problems on the live card: {errors}")
+    live.close()
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
 
 
 def lobby(browser: Browser) -> None:

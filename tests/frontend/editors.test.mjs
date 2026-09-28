@@ -45,6 +45,7 @@ test("the live card form offers layout, board style, highlight, every switch and
       "show_connection",
       "show_controls",
       "show_summary",
+      "corrections",
     ],
     "summary_seconds",
     ["accent_color", "highlight_color"],

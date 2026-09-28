@@ -440,21 +440,19 @@ test("a card in the editor preview ignores taps", () => {
   assert.equal(text(card, '[data-action="reset"]'), "Reset detection");
 });
 
-test("the board opens the visit's more-info on click, Enter and Space", () => {
+test("the board is a picture: a tap opens nothing, the chips open their entity's details", () => {
   const { card } = setup({ "sensor.local_visit_score": visit([]) });
+  const svg = $(card, "svg");
+  assert.equal(svg.getAttribute("role"), "img");
+  assert.equal(svg.hasAttribute("tabindex"), false);
   const events = [];
   document.addEventListener("hass-more-info", (event) => events.push(event), { once: true });
   const opened = moreInfo(card);
-  const svg = $(card, "svg");
   svg.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-  const keys = ["Enter", " ", "a"].map((key) => {
-    const event = new window.KeyboardEvent("keydown", { key, cancelable: true });
-    svg.dispatchEvent(event);
-    return event.defaultPrevented;
-  });
-  assert.deepEqual(keys, [true, true, false]);
-  const id = "sensor.dartboard_local_visit_score";
-  assert.deepEqual(opened, [id, id, id]);
+  assert.deepEqual(opened, []);
+  $(card, ".chip").click();
+  const id = opened[0];
+  assert.equal(opened.length, 1);
   // The event leaves the shadow root for Home Assistant's dialog.
   assert.equal(events.length, 1);
   assert.deepEqual([events[0].bubbles, events[0].composed, events[0].detail], [true, true, { entityId: id }]);
