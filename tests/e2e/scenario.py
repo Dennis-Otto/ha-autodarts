@@ -1618,11 +1618,19 @@ class Scenario:
             and all(row["points"] == 2 for row in attributes["standings"]),
             f"Unexpected table: {attributes['standings']}",
         )
-        fired = [
-            item
-            for item in self.fired_board_events()
-            if item["event_type"].startswith("tournament_")
-        ]
+        # The websocket can deliver the last events after the state reads finished.
+        fired: list[dict] = []
+
+        async def tournament_events() -> list[dict] | None:
+            fired.extend(
+                item
+                for item in self.fired_board_events()
+                if item["event_type"].startswith("tournament_")
+            )
+            done = fired and fired[-1]["event_type"] == "tournament_finished"
+            return fired if done else None
+
+        await wait_for(tournament_events, "the tournament events")
         check(
             [item["event_type"] for item in fired]
             == [
