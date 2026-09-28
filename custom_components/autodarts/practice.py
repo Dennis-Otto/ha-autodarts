@@ -24,7 +24,7 @@ from .cricket import (
     next_target,
     play_visit,
 )
-from .doubles import DoubleStats, aimed_at, hits
+from .doubles import DoubleHits, DoubleStats, aimed_at, hits
 from .drills import DRILLS, CatchDrill, CheckoutDrill, Drill, make_drill
 from .party import (
     COUNT_UP_ROUNDS,
@@ -243,6 +243,7 @@ class PracticeGame:
         self.drills: dict[str, Drill] = {kind: make_drill(kind) for kind in DRILLS}
         self.profiles = Profiles()
         self.doubles = DoubleStats()
+        self.double_hits = DoubleHits()
         # A tournament keeps a finished match until its next match starts, and
         # leaves the settings from before it to come back with the next match
         # after it, or with the next change of a setting.
@@ -343,6 +344,7 @@ class PracticeGame:
         self.legs_total = total if type(total) is int and total >= 0 else 0
         self.profiles.restore(saved.get("profiles"))
         self.doubles.restore(saved.get("doubles"))
+        self.double_hits.restore(saved.get("double_hits"))
         drills = saved.get("drills")
         for drill_kind, drill in self.drills.items():
             state = drills.get(drill_kind) if isinstance(drills, dict) else None
@@ -400,6 +402,7 @@ class PracticeGame:
             "golf_holes": self.golf_holes,
             "count_up_rounds": self.count_up_rounds,
             "doubles": self.doubles.stored(),
+            "double_hits": self.double_hits.stored(),
             "party": self.party.stored() if self.party else None,
             "bulling": self.bulling.stored() if self.bulling else None,
             "legs_to_win": self.legs_to_win,
@@ -975,6 +978,10 @@ class PracticeGame:
         """
         decided = self.winner is not None
         events: list[tuple[str, dict[str, Any]]] = []
+        # Every double hit counts, in a game or not and whatever the dart was aimed
+        # at; the bot's darts count for nobody.
+        if not self.bot_up:
+            self.double_hits.record(self._thrown())
         if self.drill:
             self._record_doubles(self.drills[self.drill].double_attempts(), 0)
             events = self.drills[self.drill].finish_visit()
@@ -1681,6 +1688,7 @@ class PracticeGame:
         memo: dict[int, Any] = {
             id(self.profiles): Profiles(),
             id(self.doubles): DoubleStats(),
+            id(self.double_hits): DoubleHits(),
         }
         scratch = copy.deepcopy(self, memo)
         scratch.finish_visit()

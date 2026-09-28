@@ -47,6 +47,8 @@ async def test_profiles_the_last_match_and_deleting_a_player(hass, aioclient_moc
     assert doubles.attributes["doubles"] == [
         {"double": "D20", "attempts": 1, "hits": 1, "rate": 100.0}
     ]
+    # Every double hit, whatever the dart was aimed at.
+    assert doubles.attributes["landed"] == {"D20": 1}
     await switch(hass, "practice_personal_routes", True)
     assert coordinator.practice.personal_routes is True
     assert coordinator.practice.winner == 0

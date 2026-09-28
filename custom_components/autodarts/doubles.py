@@ -1,16 +1,19 @@
-"""Hit rates of every double, and the doubles a player finishes on best.
+"""Hit rates of every double, the doubles a player finishes on best, and how
+often every double was hit at all.
 
 A dart counts as an attempt at a double when that double is the target: in
 X01, the checkout training, 121 and Catch 40 when one double could finish the
 remaining score, in the doubles training and in Bob's 27 at the double of the
-round, and in the JDC Challenge at the double of the step.
+round, and in the JDC Challenge at the double of the step. A hit counts for
+every dart in a double, whatever it was aimed at.
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any
 
-from .scoring import BULL
+from .scoring import BULL, is_double
 
 DOUBLES = (*(f"D{number}" for number in range(1, 21)), "BULL")
 # A double needs this many attempts before it changes a checkout route.
@@ -32,6 +35,34 @@ def aimed_at(remaining: int) -> str | None:
 
 def hits(dart: dict[str, Any], double: str) -> bool:
     return bool(dart["multiplier"] == 2 and double_of(dart["number"]) == double)
+
+
+class DoubleHits:
+    """How often every double was hit, whatever the dart was aimed at."""
+
+    def __init__(self) -> None:
+        self.counts: dict[str, int] = {}
+
+    def record(self, darts: Iterable[dict[str, Any]]) -> None:
+        for dart in darts:
+            if is_double(dart) and not dart.get("bot"):
+                double = double_of(dart["number"])
+                self.counts[double] = self.counts.get(double, 0) + 1
+
+    def snapshot(self) -> dict[str, int]:
+        return {
+            double: self.counts[double] for double in DOUBLES if double in self.counts
+        }
+
+    def stored(self) -> dict[str, int]:
+        return dict(self.counts)
+
+    def restore(self, saved: object) -> None:
+        self.counts = {
+            double: count
+            for double, count in (saved if isinstance(saved, dict) else {}).items()
+            if double in DOUBLES and type(count) is int and count > 0
+        }
 
 
 class DoubleStats:
