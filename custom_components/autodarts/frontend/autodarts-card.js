@@ -553,6 +553,8 @@ const TEXT = {
     badge_count: "{count} badges",
     badge_count_one: "1 badge",
     badge_locked: "Locked",
+    badges_all: "All {count} badges",
+    badges_fewer: "Show fewer",
     badge_earned: "Earned {date}",
     badge_progress: "{value} of {goal}",
     badge_best: "Best so far: {value}",
@@ -1105,6 +1107,8 @@ const TEXT = {
     badge_count: "{count} Abzeichen",
     badge_count_one: "1 Abzeichen",
     badge_locked: "Noch nicht erreicht",
+    badges_all: "Alle {count} Abzeichen",
+    badges_fewer: "Weniger anzeigen",
     badge_earned: "Erreicht am {date}",
     badge_progress: "{value} von {goal}",
     badge_best: "Bestwert bisher: {value}",
@@ -1652,6 +1656,8 @@ const TEXT = {
     badge_count: "{count} insignias",
     badge_count_one: "1 insignia",
     badge_locked: "Bloqueada",
+    badges_all: "Las {count} insignias",
+    badges_fewer: "Mostrar menos",
     badge_earned: "Conseguida el {date}",
     badge_progress: "{value} de {goal}",
     badge_best: "Mejor hasta ahora: {value}",
@@ -2018,7 +2024,7 @@ const TEXT = {
     pad_whole: "Cible entière",
     pad_keys: "Touches",
     pad_view: "Saisir avec",
-    pad_bot_wait: "Le bot lance\u00a0; le pavé attend ton tour.",
+    pad_bot_wait: "Le bot lance\u00a0; le pavé attend votre tour.",
     pad_seen: "Là où la cible l'a vue",
     next_player: "Joueur suivant",
     undo_visit: "Annuler la dernière volée",
@@ -2199,6 +2205,8 @@ const TEXT = {
     badge_count: "{count} badges",
     badge_count_one: "1 badge",
     badge_locked: "Verrouillé",
+    badges_all: "Les {count} badges",
+    badges_fewer: "Afficher moins",
     badge_earned: "Obtenu le {date}",
     badge_progress: "{value} sur {goal}",
     badge_best: "Meilleur résultat\u00a0: {value}",
@@ -2746,6 +2754,8 @@ const TEXT = {
     badge_count: "{count} badges",
     badge_count_one: "1 badge",
     badge_locked: "Vergrendeld",
+    badges_all: "Alle {count} badges",
+    badges_fewer: "Minder tonen",
     badge_earned: "Behaald op {date}",
     badge_progress: "{value} van {goal}",
     badge_best: "Beste tot nu toe: {value}",
@@ -5228,6 +5238,7 @@ const PAD_SMALL = 600;
 const ICON_PATHS = {
   edit: "M4 20l1.2-4.8L15.6 4.8a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.8 18.8z M13.8 6.6l3.6 3.6",
   details: "M9 5l7 7-7 7",
+  expand: "M6 9l6 6 6-6",
 };
 // A cue says what a tap does: a pencil edits, an arrow opens the details. At the top right
 // of a tile, or inline after the words of a control that looks like text.
@@ -6002,10 +6013,23 @@ function badgesView(achievements) {
   return { players };
 }
 
-function badgesHtml(player, ui, locked = true) {
+// The badges a closed gallery shows: those earned, and the next goals, the locked badges
+// closest to being earned.
+const BADGE_GOALS = 3;
+function shownBadges(player, locked, open) {
+  if (!locked) return player.badges.filter((badge) => badge.tier);
+  if (open) return player.badges;
+  const goals = player.badges
+    .filter((badge) => !badge.tier)
+    .sort((a, b) => (b.share ?? -1) - (a.share ?? -1))
+    .slice(0, BADGE_GOALS);
+  return player.badges.filter((badge) => badge.tier || goals.includes(badge));
+}
+
+function badgesHtml(player, ui, locked = true, open = true) {
   const { t, format, date } = ui;
-  return player.badges
-    .filter((badge) => locked || badge.tier)
+  const before = open && locked ? shownBadges(player, true, false) : null;
+  return shownBadges(player, locked, open)
     .map((badge) => {
       const tier = badge.tier && badge.tiers > 1 ? t(`tier_${Math.min(badge.tier, 4)}`) : "";
       const title = `${t(`achievement_${badge.id}`)}${tier ? ` · ${tier}` : ""}`;
@@ -6017,7 +6041,8 @@ function badgesHtml(player, ui, locked = true) {
       const bar = badge.share === null ? "" : `<span class="badge-bar"><i style="width:${fmt(badge.share * 100)}%"></i></span>`;
       const color = tierColor(badge.tier, badge.tiers);
       return (
-        `<div class="badge${badge.tier ? "" : " locked"}" data-badge="${escapeHtml(badge.id)}"` +
+        `<div class="badge${badge.tier ? "" : " locked"}${before && !before.includes(badge) ? " appear" : ""}"` +
+        ` data-badge="${escapeHtml(badge.id)}"` +
         `${color ? ` style="--tier:${color}"` : ""}>` +
         `<span class="badge-icon"><ha-icon icon="${ACHIEVEMENT_ICONS[badge.id] ?? "mdi:medal-outline"}"></ha-icon></span>` +
         `<span class="badge-text"><b>${escapeHtml(title)}</b><span>${escapeHtml(goal)}</span>` +
@@ -6094,8 +6119,10 @@ function trendView(trend, size = 12) {
   return TREND_METRICS.map((metric) => {
     const before = metric.of(addWeeks(weeks.slice(0, half)));
     const after = metric.of(addWeeks(weeks.slice(half)));
-    let direction = "steady";
+    // Without both halves there is nothing to compare, and no arrow.
+    let direction = null;
     if (before !== null && after !== null) {
+      direction = "steady";
       const change = after - before;
       if (Math.abs(change) >= Math.max(0.5, Math.abs(before) * 0.02)) direction = change > 0 ? "up" : "down";
     }
@@ -6111,25 +6138,31 @@ function trendView(trend, size = 12) {
   });
 }
 
-// A small line of the weekly values; weeks without a value interrupt it.
+// A small line of the weekly values. It runs on through the weeks without a value, whose
+// stretch is dashed, so that it never breaks into pieces; a single value is a dot.
 function sparkline(values) {
-  const known = values.filter((value) => value !== null);
+  const known = values.map((value, index) => [index, value]).filter(([, value]) => value !== null);
   if (!known.length) return "";
-  const low = Math.min(...known);
-  const high = Math.max(...known);
+  const low = Math.min(...known.map(([, value]) => value));
+  const high = Math.max(...known.map(([, value]) => value));
   const x = (index) => fmt(values.length > 1 ? (index * 100) / (values.length - 1) : 50);
   const y = (value) => fmt(high === low ? 12 : 21 - ((value - low) / (high - low)) * 18);
-  const runs = [[]];
-  values.forEach((value, index) => {
-    if (value === null) runs.push([]);
-    else runs.at(-1).push(`${x(index)},${y(value)}`);
+  const point = ([index, value]) => `${x(index)},${y(value)}`;
+  const runs = [[known[0]]];
+  const gaps = [];
+  known.slice(1).forEach((item, at) => {
+    const before = known[at];
+    if (item[0] === before[0] + 1) runs.at(-1).push(item);
+    else {
+      gaps.push([before, item]);
+      runs.push([item]);
+    }
   });
-  const lines = runs
-    .filter((points) => points.length)
-    .map((points) =>
-      points.length > 1 ? `<polyline points="${points.join(" ")}"/>` : `<polyline class="dot" points="${points[0]} ${points[0]}"/>`
-    )
-    .join("");
+  const line = (points, style = "") => `<polyline${style ? ` class="${style}"` : ""} points="${points.map(point).join(" ")}"/>`;
+  const lines =
+    known.length === 1
+      ? line([known[0], known[0]], "dot")
+      : [...gaps.map((pair) => line(pair, "gap")), ...runs.filter((run) => run.length > 1).map((run) => line(run))].join("");
   const last = values.findLastIndex((value) => value !== null);
   const end = `${x(last)},${y(values[last])}`;
   return (
@@ -6148,17 +6181,22 @@ function trendsHtml(players, ui) {
         .map((metric) => {
           const shown =
             metric.value === null ? "–" : metric.percent ? percent(metric.value, metric.digits) : format(metric.value, metric.digits);
-          const trend = t(`trend_${metric.direction}`);
+          const trend = metric.direction ? t(`trend_${metric.direction}`) : "";
+          const arrow = metric.direction
+            ? ` <span class="arrow ${metric.direction}" role="img" title="${escapeHtml(trend)}" aria-label="${escapeHtml(trend)}">` +
+              `${TREND_ARROWS[metric.direction]}</span>`
+            : "";
           return (
             `<div class="trend" data-metric="${metric.key}"><span class="trend-label">${escapeHtml(t(metric.label))}</span>` +
-            `<span class="trend-value">${escapeHtml(shown)} <span class="arrow ${metric.direction}" role="img" title="${escapeHtml(
-              trend
-            )}" aria-label="${escapeHtml(trend)}">${TREND_ARROWS[metric.direction]}</span></span>` +
+            `<span class="trend-value">${escapeHtml(shown)}${arrow}</span>` +
             `${sparkline(metric.values)}</div>`
           );
         })
         .join("");
-      return `<div class="trend-player"><div class="trend-name">${escapeHtml(player.name)}</div><div class="trends">${metrics}</div></div>`;
+      return (
+        `<div class="trend-player"><div class="trend-name">${escapeHtml(player.name)}</div>` +
+        `<div class="trends balanced n${player.metrics.length}">${metrics}</div></div>`
+      );
     })
     .join("");
 }
@@ -7185,6 +7223,10 @@ const BASE_CSS = `
     /* The tint a control takes under a pointer, and when it is pressed. */
     --ad-hover: color-mix(in srgb, var(--primary-text-color, #212121) 7%, transparent);
     --ad-press: color-mix(in srgb, var(--primary-text-color, #212121) 14%, transparent);
+    /* How long a change of state takes, and how it moves: quick, and calm at its end. */
+    --ad-fast: 150ms;
+    --ad-slow: 240ms;
+    --ad-ease: cubic-bezier(.2, .7, .2, 1);
   }
   [hidden] { display: none !important; }
   /* Read by assistive technology, not shown. */
@@ -7236,6 +7278,9 @@ const BASE_CSS = `
   }
   .cue.inline { position: static; display: inline-block; width: .9em; height: .9em; margin-left: .3em; vertical-align: -.1em; }
   .picked .cue { color: var(--ad-accent-text); }
+  /* A link that opens more below it turns its arrow up once open. */
+  .cue.expand { transition: transform .2s; }
+  [aria-expanded="true"] > .cue.expand { transform: rotate(180deg); }
   /* Building block, tile: a static one is a tinted area without a frame; one a tap edits
      or opens has a frame, which the pointer lights up, and a cue. */
   .tappable { position: relative; border: 1px solid var(--divider-color, rgba(127,127,127,.3)); }
@@ -7274,10 +7319,28 @@ const BASE_CSS = `
   @media (hover: hover) {
     button:not(:disabled):hover { background-image: linear-gradient(var(--ad-hover), var(--ad-hover)); }
   }
-  button:not(:disabled):active { background-image: linear-gradient(var(--ad-press), var(--ad-press)); }
+  button:not(:disabled):active {
+    background-image: linear-gradient(var(--ad-press), var(--ad-press)); transform: scale(.97);
+  }
   button:disabled { opacity: .45; cursor: default; }
   :host button.confirm { color: #fff; background: ${STATUS_COLORS.problem}; border-color: ${STATUS_COLORS.problem}; }
   :is(button, [tabindex]):focus-visible { outline: 2px solid var(--ad-accent); outline-offset: 2px; }
+  /* Building block, motion: a change of state glides, what appears as a whole fades in from
+     a little below, and a device that asks for less motion gets none. Parts drawn anew
+     with every tap do not fade in, or they would flicker. */
+  button, .tappable {
+    transition: background-color var(--ad-fast) var(--ad-ease), border-color var(--ad-fast) var(--ad-ease),
+      color var(--ad-fast) var(--ad-ease), box-shadow var(--ad-fast) var(--ad-ease),
+      opacity var(--ad-fast) var(--ad-ease), transform var(--ad-fast) var(--ad-ease);
+  }
+  .appear { transition: opacity var(--ad-slow) var(--ad-ease), transform var(--ad-slow) var(--ad-ease); }
+  @starting-style { .appear { opacity: 0; transform: translateY(6px); } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0s !important; animation-duration: 0s !important; animation-iteration-count: 1 !important;
+    }
+    button:not(:disabled):active { transform: none; }
+  }
   svg { display: block; width: 100%; height: 100%; overflow: visible; }
   .number {
     font-size: 22px; font-weight: 700; line-height: 1; text-anchor: middle; dominant-baseline: central;
@@ -7308,6 +7371,43 @@ const BASE_CSS = `
   @media (hover: hover) { :is(.metric, .system-info, .camera-name):hover .opens { text-decoration: underline; } }
 `;
 
+// Building block, balanced grid: tiles in as many columns as fit, in rows as even as they
+// can be, four tiles as two by two rather than three and one; a shorter last row stands
+// in the middle, or its last tile fills it. A grid says how many tiles it has with a
+// class such as "balanced n4"; beyond eight tiles it fills its rows as they come. The
+// widths are those of the card, whose padding the tiles do not get.
+function balancedCss(selector, min, gap, padding, most = 8) {
+  const rules = [];
+  for (let count = 2; count <= most; count += 1) {
+    for (let fit = 1; fit <= count; fit += 1) {
+      const rows = Math.ceil(count / fit);
+      const columns = Math.ceil(count / rows);
+      const from = fit === 1 ? 0 : fit * min + (fit - 1) * gap + padding;
+      const to = fit === count ? 0 : (fit + 1) * min + fit * gap + padding - 0.02;
+      const query = [from && `(min-width: ${from}px)`, to && `(max-width: ${to}px)`].filter(Boolean).join(" and ");
+      const grid = `${selector}.balanced.n${count}`;
+      const last = count - (rows - 1) * columns;
+      const free = columns - last;
+      let place = "";
+      if (free > 0 && free % 2 === 0) place = ` ${grid} > :nth-child(${count - last + 1}) { grid-column-start: ${free / 2 + 1}; }`;
+      else if (free > 0) place = ` ${grid} > :last-child { grid-column-end: -1; }`;
+      rules.push(`  @container ${query} { ${grid} { grid-template-columns: repeat(${columns}, minmax(0, 1fr)); }${place} }`);
+    }
+  }
+  return rules.join("\n");
+}
+
+// Each player on one line, the name beside the score, where the scores have little room.
+const compactPlayers = (players, height) => `  @container (max-height: ${height}px) {
+    ${players} { gap: 6px; }
+    ${players} .player {
+      flex-direction: row; justify-content: space-between; gap: 8px; padding: 4px 10px; border-radius: 14px;
+    }
+    ${players} .player .name { font-size: clamp(13px, 8cqh, 18px); text-align: left; min-height: 0; }
+    ${players} .big { font-size: clamp(20px, 16cqh, 36px); }
+    ${players} .player :is(.route, .members, .details) { display: none; }
+  }`;
+
 // The pad that corrects a dart of the visit, on the live card and the scoreboard: the
 // keys, or the board to tap with its loupe.
 const PAD_CSS = `
@@ -7335,7 +7435,13 @@ const PAD_CSS = `
   }
   .pad .zoom svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
   .pad-numbers { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
-  @container (max-width: 560px) { .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  /* A narrow pad keeps S, D, T and its keys or board in one row. */
+  @container (max-width: 560px) {
+    .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .pad .multiplier { min-width: 44px; }
+    .pad .segmented.view { padding: 2px; }
+    .pad .segmented.view button { padding: 0 10px; }
+  }
   .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
   .pad-extra button { flex: 1 1 5.5em; }
   .pad .secondary, .undo-only { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
@@ -7360,6 +7466,8 @@ const PAD_CSS = `
     background: var(--primary-background-color, #111);
   }
   .loupe svg { display: block; width: 100%; height: 100%; }
+  .loupe { transition: opacity var(--ad-fast) var(--ad-ease), transform var(--ad-fast) var(--ad-ease); }
+  @starting-style { .loupe { opacity: 0; transform: scale(.8); } }
   .loupe::after {
     content: ""; position: absolute; inset: 0;
     background:
@@ -7507,7 +7615,8 @@ const CSS = `${BASE_CSS}${PAD_CSS}
   button.slot { width: 100%; font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
   button.slot:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
   .slot.picked { border-color: var(--ad-accent); box-shadow: inset 0 0 0 2px var(--ad-accent); }
-  .visit > .pad-area { margin-top: 2px; }
+  /* The pad below the darts fits their column, however wide the card is. */
+  .visit > .pad-area { margin-top: 2px; container-type: inline-size; }
   .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 8px; }
   .stat { min-width: 0; }
   .stat .value {
@@ -7678,6 +7787,7 @@ const STATUS_CSS = `${BASE_CSS}
   .toggle[aria-checked="true"]::after { transform: translateX(22px); }
   .toggle:disabled { opacity: .45; cursor: default; }
   .info { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+${balancedCss(".info", 150, 8, 36)}
   .info-tile {
     display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 12px; border-radius: 14px;
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
@@ -7699,6 +7809,7 @@ const STATUS_CSS = `${BASE_CSS}
   .metric .value { display: block; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--primary-text-color); }
   .metric .name { display: block; font-size: 11px; color: var(--secondary-text-color); }
   .camera-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+${balancedCss(".camera-grid", 130, 8, 36)}
   .camera {
     display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px;
     border: 1px solid var(--divider-color, rgba(127,127,127,.25));
@@ -8273,16 +8384,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     .scoreboard.full.with-pad .pad.on-board > .pad-hint { display: none; }
   }
   /* Little room for the scores, as beside a pad on a phone: each player on one line, the
-     name beside the score, so that every score stays in sight. */
-  @container (max-height: 200px) {
-    .scoreboard.full .players { gap: 6px; }
-    .scoreboard.full .player {
-      flex-direction: row; justify-content: space-between; gap: 8px; padding: 4px 10px; border-radius: 14px;
-    }
-    .scoreboard.full .player .name { font-size: clamp(13px, 8cqh, 18px); text-align: left; min-height: 0; }
-    .scoreboard.full .players .big { font-size: clamp(20px, 16cqh, 36px); }
-    .scoreboard.full .player :is(.route, .members, .details) { display: none; }
-  }
+     name beside the score, so that every score stays in sight. Three or four players in
+     two rows of tiles need their line sooner. */
+${compactPlayers(".scoreboard.full .players", 200)}
+${compactPlayers(".scoreboard.full .players:is(.n3, .n4)", 280)}
   /* Little room above the visit, as on a phone on its side: the visit without its
      label, the facts smaller, and a smaller start of the next game; with even less
      room, the number and the start alone. */
@@ -8311,6 +8416,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
 const PLAYERS_CSS = `${BASE_CSS}
   .players-card { display: flex; flex-direction: column; gap: 16px; padding: 18px; box-sizing: border-box; }
   .profiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+${balancedCss(".profiles", 210, 10, 36)}
   .profile {
     display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; min-width: 0;
     background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
@@ -8415,6 +8521,7 @@ const PROGRESS_CSS = `
   :is(.trend-player, .group-player):first-child { border-top: 0; }
   .trend-name { font-weight: 700; margin-bottom: 6px; color: var(--primary-text-color); }
   .trends { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+${balancedCss(".trends", 140, 8, 36)}
   .trend {
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; align-items: center;
     padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
@@ -8427,6 +8534,7 @@ const PROGRESS_CSS = `
     vector-effect: non-scaling-stroke;
   }
   .spark .dot { stroke-width: 5; }
+  .spark .gap { stroke-dasharray: 3 4; opacity: .55; }
   .arrow.up { color: var(--ad-ok-text); }
   .arrow.down { color: var(--ad-error-text); }
   .arrow.steady { color: var(--secondary-text-color); }
@@ -9105,7 +9213,7 @@ function createElements(Base) {
           </div>
           ${c.show_practice ? practice : ""}
           <div class="slots"></div>
-          <div class="pad-area" hidden></div>
+          <div class="pad-area appear" hidden></div>
           ${c.show_recent ? recent : ""}
         </div>`;
     }
@@ -10402,6 +10510,8 @@ function createElements(Base) {
         this._setHtml(this._el.systemInfo, `<span class="opens">${escapeHtml(info.join(" · "))}</span>${cueHtml("details", true)}`);
       }
       this._el.system.hidden = !markup && !info.length;
+      const tiles = this._el.system.parentElement;
+      tiles.className = `info balanced n${[...tiles.children].filter((tile) => !tile.hidden).length}`;
       this._setHtml(this._el.metrics, markup);
     }
 
@@ -10434,16 +10544,19 @@ function createElements(Base) {
           );
         })
         .join("");
+      this._el.cameras.className = `camera-grid balanced n${cameras.length}`;
       this._setHtml(this._el.cameras, markup);
     }
 
     _updateControls(status) {
       const controls = this._el.controls;
       if (!controls) return;
+      // Beside every camera's own calibration, this one calibrates them all.
+      const words = { calibrate: "calibrate_all", reset: "reset", restart: "restart" };
       for (const action of ["calibrate", "reset", "restart"]) {
         const button = controls.querySelector(`[data-action="${action}"]`);
         const confirming = this._confirm === action;
-        button.textContent = this._t(confirming ? "confirm" : action);
+        button.textContent = this._t(confirming ? "confirm" : words[action]);
         button.classList.toggle("confirm", confirming);
         button.hidden = !this._ids[action];
         button.disabled = status === "offline";
@@ -10534,10 +10647,10 @@ function createElements(Base) {
                   ${c.show_status ? `<div class="pill" role="status"></div>` : ""}
                 </div>
               </header>
-              <div class="banner" role="status" hidden></div>
+              <div class="banner appear" role="status" hidden></div>
               <div class="main"></div>
               ${c.show_visit ? `<div class="visit"></div>` : ""}
-              <div class="pad-area" hidden></div>
+              <div class="pad-area appear" hidden></div>
               <div class="loupe" hidden aria-hidden="true"></div>
               <div class="visually-hidden said" role="status"></div>
             </div>
@@ -11176,6 +11289,14 @@ function createElements(Base) {
         export: root.querySelector(".export"),
       };
       this._el.export?.addEventListener("click", () => this._export());
+      // The players whose badge gallery shows all its badges.
+      this._openBadges = new Set();
+      root.querySelector(".badges-list")?.addEventListener("click", (event) => {
+        const name = event.target.closest("[data-badges]")?.dataset.badges;
+        if (name === undefined) return;
+        if (!this._openBadges.delete(name)) this._openBadges.add(name);
+        this._updateProgress();
+      });
     }
 
     // The action writes the file; it downloads through Home Assistant with the
@@ -11234,6 +11355,7 @@ function createElements(Base) {
       el.count.textContent = view.players.length ? String(view.players.length) : "";
       el.empty.hidden = view.players.length > 0;
       const html = playersHtml(view, this._ui());
+      el.profiles.className = `profiles balanced n${view.players.length}`;
       this._setHtml(el.profiles, html.players);
       if (el.h2hSection) {
         el.h2hSection.hidden = !view.headToHead.length;
@@ -11259,6 +11381,18 @@ function createElements(Base) {
       ].join("");
     }
 
+    // Below a player's badges, a link to all of them, or back to the earned ones and the
+    // next goals; none where all of them show anyway.
+    _moreBadgesHtml(player) {
+      if (!this._config.show_locked || shownBadges(player, true, false).length === player.badges.length) return "";
+      const open = this._openBadges.has(player.name);
+      const words = open ? this._t("badges_fewer") : fill(this._t("badges_all"), { count: this._format(player.badges.length) });
+      return (
+        `<button type="button" class="link more-badges" data-badges="${escapeHtml(player.name)}" aria-expanded="${open}">` +
+        `${escapeHtml(words)}${cueHtml("expand", true)}</button>`
+      );
+    }
+
     _updateProgress() {
       const c = this._config;
       const root = this.shadowRoot;
@@ -11278,7 +11412,9 @@ function createElements(Base) {
               (player) =>
                 `<div class="badge-player"><div class="badge-owner"><b>${escapeHtml(player.name)}</b>` +
                 `<span class="muted">${escapeHtml(count(player))}</span></div>` +
-                `<div class="badge-list">${badgesHtml(player, ui, c.show_locked)}</div></div>`
+                `<div class="badge-list">${badgesHtml(player, ui, c.show_locked, this._openBadges.has(player.name))}</div>` +
+                this._moreBadgesHtml(player) +
+                `</div>`
             )
             .join("")
         );

@@ -419,7 +419,7 @@
         "name": "Automatisch herkalibreren"
       },
       "auto_distortion": {
-        "name": "Automatische vervormingscorrectie"
+        "name": "Vervormingscorrectie"
       },
       "training_session": {
         "name": "Trainingssessie"
@@ -561,7 +561,7 @@
         "name": "Toernooipauze"
       },
       "tournament_summary": {
-        "name": "Weergaveduur toernooisamenvatting"
+        "name": "Toernooi weergaveduur samenvatting"
       },
       "practice_bot_level": {
         "name": "Oefenspel botniveau"

@@ -23,7 +23,7 @@ The guides show the cards at work: [games and rules](games.md), [scoreboard at t
   <img src="images/en/card.png" alt="Live card with visit score, dart slots, the board with blinking beds, statistics, connection chips and controls" width="760">
 </picture>
 
-- **Visit:** score, the three dart slots and a progress indicator. The latest dart is outlined.
+- **Visit:** score, the three dart slots and a progress indicator. The latest dart is outlined. A dart with a pencil at its top right corrects with a tap: the [pad of the scoreboard](#correcting-and-entering-darts) opens below the slots, with its keys, its board, the loupe and the zoom. The bot's darts, and darts that older integrations report without their number, have no pencil.
 - **Last visits:** the scores of your last five visits, colored like the training card's chart. Hover one for its darts.
 - **Practice game:** while a [practice game](games.md) runs, the remaining score, the checkout route and busts appear above the dart slots, and the board outlines the bed to aim at next. Where no checkout exists, the [setup](entities.md#setup-hints) takes its place, for example *T20 T20 S17 leaves 32*, and the board outlines its first dart; "No checkout possible" appears only when no setup exists for a score that could be finished in one visit: up to 170 with double out, up to 180 without. The [bot](entities.md#bot) is listed as *Bot*. In a match, a list shows every player with the remaining score, legs, sets and average, and highlights the player at the board; [start scores](games.md#start-scores-handicap) of their own appear beside the names, and a team match lists the two teams. A won match shows its result in large type, for example 2 : 1, and the [match summary](#match-summary) instead of the list. In the [party games](games.md#party-games), the panel shows the round or hole, the target and every player's points or, in Killer, their number and lives, and who is out. The bull of Around the Clock and Halve-It, where the outer bull counts too, reads *Bull (25/50)*, and both bull beds are outlined. During a bull-off it lists the bed and the distance of every dart and who leads, and it says when a tie throws again. In the [Cricket games](games.md#cricket-games), a chalkboard shows the marks of every player or team on the numbers of the game, the points and the marks per round, dims the numbers everybody has closed and outlines the next open number on the board. Screen readers read the marks as words. In a [training game](games.md#training-games), the panel shows the target, the progress, darts and hit rate (Bob's 27: points and round; checkout training and 121 checkout: the route, or where the darts left cannot finish the score the [setup](entities.md#setup-hints) with the score it leaves, and the checkout rate; Catch 40, the JDC Challenge and the singles training: the round or part and the points), and the board outlines the beds of the target. The live card and the [scoreboard](#scoreboard-card) share how they show a game, so both always tell the same.
 - **Board:**
@@ -34,9 +34,11 @@ The guides show the cards at work: [games and rules](games.md), [scoreboard at t
 - **Connections:** Board Manager, realtime and cameras. Tap a chip for details.
 - **Controls:** start or stop detection, reset detection and calibrate. Resetting and calibrating need a second tap to confirm. Boards without a detection switch get the start or stop button that fits the board status.
 
-Tap the board, or press Enter or Space on it, to open the visit details. Numbers, dates and times follow your [profile settings](https://www.home-assistant.io/docs/organizing/users/#user-profile): number format, 12- or 24-hour clock and the time zone of the server or the browser.
+The board shows the visit; nothing on it reacts to a tap. Numbers, dates and times follow your [profile settings](https://www.home-assistant.io/docs/organizing/users/#user-profile): number format, 12- or 24-hour clock and the time zone of the server or the browser.
 
 <img src="images/en/card-visit.webp" alt="Animation: three darts land, their beds blink and the score adds up; the takeout empties the board" width="620">
+
+<img src="images/en/correct-live.webp" alt="Animation: the live card shows T20 and S20 for 80; a tap on the second dart with its pencil opens the pad below the darts, a tap on T and on 20 corrects it, and the visit reads 120" width="620">
 
 <img src="images/en/practice-checkout.webp" alt="Animation: a 141 checkout in a 501 leg. After each dart the remaining score, the route and the outlined bed change: T20 T19 D12, then game shot and a new leg" width="620">
 
@@ -67,6 +69,7 @@ On a phone, the live card stacks the visit, the board, the statistics and the co
 | `show_practice` | boolean | `true` | Show the practice game and the bed to aim at |
 | `show_summary` | boolean | `true` | Show the [match summary](#match-summary) when an X01 or Cricket match ends |
 | `summary_seconds` | 0–600 | `0` | How long the summary stays, in seconds; `0` keeps it until the next game starts |
+| `corrections` | boolean | `true` | Correct a dart of the visit with a tap on it |
 | `show_connection` | boolean | `true` | Show the connection chips |
 | `show_controls` | boolean | `true` | Show the controls |
 | `accent_color` | [color](#colors) | theme primary color | Labels and main button |
@@ -108,7 +111,7 @@ highlight_color: "#00e5ff"
   - In `numbers` mode, the heatmap sums each number's singles, doubles and triples instead.
   - In `positions` mode, it shows where the darts landed, from the positions the board reports: a smoothed density from blue (few darts) to red (many), with the newest 300 darts as dots. For the session, the darts of the current visit show the moment they land, as blue pins, and join the logged darts when you pull them. Below the board, the [grouping](how-it-works.md#grouping) at up to three beds aimed at, for example *T20: grouping 38 mm · 80 % within 61 mm · 6 mm left of center*, with *4 mm tighter* when the newer darts group closer.
   - The switches above the board choose the mode and whose darts it shows: the session, or a named player with all their hits and the positions of their last 1000 darts. The most hit beds follow the choice. [How positions are kept](how-it-works.md#dart-positions).
-- **Statistics:** highest visit, 100+, 140+ and 180 visits, triple rate, doubles, bulls and misses. 180s light up in gold. The 100+, 140+ and 180 counts grow when you pull the darts, once the visit is complete. Tap the tiles for the details of the session's darts; with a keyboard, the button *Training statistics, open the details* appears when you tab to it. Screen readers read every tile.
+- **Statistics:** highest visit, 100+, 140+ and 180 visits, triple rate, doubles, bulls and misses. 180s light up in gold. The 100+, 140+ and 180 counts grow when you pull the darts, once the visit is complete. *Details ›* below the tiles opens the details of the session's darts. Screen readers read every tile.
 - **Most hit beds:** the top five, with count and share: of the session's darts, or of the hits a player's profile counted.
 - **Personal bests:** every [personal best](entities.md#personal-bests-streak-and-daily-goal) that has a value: highest visit and checkout, the fewest darts for every start score, the best Cricket marks per round, the best session average, Around the Clock, the doubles training, Bob's 27, the 121 checkout, Catch 40, the JDC Challenge, the singles training and the longest training streak. The section appears with the first record.
 - **Recent visits:** a bar chart of your last visits with the session average as a dashed line.
@@ -171,11 +174,11 @@ show_reset: false
 </picture>
 
 - **Detection:** a switch with the current status, tinted in the status color. Boards without a detection switch start and stop detection with its buttons; the switch then follows the board status.
-- **Board Manager:** the installed version and, with Board Manager 2, a badge for an available update. Tap the badge for its details.
+- **Board Manager:** the installed version and, with Board Manager 2, a badge for an available update, *Update to 2.0.2 ›*. Tap it for its details.
 - **Connections:** Board Manager, realtime and the cloud connection of the board.
-- **Board PC** (Board Manager 2): CPU and memory load, the detection frame rate and the share of darts the board corrected, each if you enabled its sensor. Tap a value for its history. The tile stays hidden while it has nothing to show.
-- **Cameras:** a tile for every camera with its status and frame rate (if the frame-rate sensor is enabled) and its own calibration. A camera with a problem turns red. The keyboard focus stays on a calibration button while it asks for confirmation.
-- **Maintenance:** calibrate, reset detection and restart Board Manager. Each needs a second tap to confirm.
+- **Board PC** (Board Manager 2): CPU and memory load, the detection frame rate and the share of darts the board corrected, each if you enabled its sensor. A value with an arrow opens its history, and so does the system line. The tile stays hidden while it has nothing to show.
+- **Cameras:** a tile for every camera with its status and frame rate (if the frame-rate sensor is enabled) and its own calibration. Its name with an arrow opens the camera. A camera with a problem turns red. The keyboard focus stays on a calibration button while it asks for confirmation.
+- **Maintenance:** calibrate all cameras, reset detection and restart Board Manager. Each needs a second tap to confirm.
 
 ### Options
 
@@ -259,17 +262,17 @@ The darts of the visit along the bottom are buttons while `corrections` is on, w
 <img src="images/en/correct-dart.webp" alt="Animation: the scoreboard shows T20, S20 and T20 for 140; a tap on the second dart opens the pad, a tap on T and on 20 corrects it, and the visit reads 180" width="760">
 
 - **Correct a dart:** tap a dart the board read wrong. A pad opens with S, D and T, the numbers 1 to 20, 25, Bull and Miss; S, D or T is set to the dart's bed. Tap the multiplier, then the number, or 25, Bull or Miss, and [`autodarts.correct_dart`](entities.md#correct-a-dart-autodartscorrect_dart) puts the dart there. The remaining score and the visit follow at once. A second tap on the dart, or *Cancel*, closes the pad. The bot's darts cannot be corrected.
-- **Where the dart is:** *🎯 Board* in the pad shows the board instead of the keys. Tap the spot where the dart is: the bed follows from it, and the dart is logged there in the [dart positions](how-it-works.md#dart-positions). The dashed ring shows where the board saw the dart. A dart corrected with the keys has no position, because the board misread the spot as well. The board stays the pad's view until *🎯 Board* is tapped again, and the keypad uses it too.
+- **Where the dart is:** *Keys | Board* at the top of the pad switches from the keys to the board. Tap the spot where the dart is: the bed follows from it, and the dart is logged there in the [dart positions](how-it-works.md#dart-positions). The dashed ring shows where the board saw the dart. A dart corrected with the keys has no position, because the board misread the spot as well. The board stays the pad's view until *Keys* is chosen, and the keypad uses it too.
 
-  <img src="images/en/correct-dart-board.webp" alt="Animation: the board read the second dart as T20 for 180; a tap on it opens the pad, 🎯 Board shows the board with a dashed ring where the board saw the dart, and a tap on the single 20 above it corrects the visit to 140" width="760">
+  <img src="images/en/correct-dart-board.webp" alt="Animation: the board read the second dart as T20 for 180; a tap on it opens the pad, Board shows the board with a dashed ring where the board saw the dart, and a tap on the single 20 above it corrects the visit to 140" width="760">
 
 - **Small screens:** on a card narrower than 600 pixels or a screen lower than that, such as on a phone upright or on its side, the board of a correction opens two and a half times larger around where the board saw the dart; a dart without a position and the keypad open the whole board. A round magnifier switches between the two on every screen, on a phone from the board's corner as on a map: with its plus it zooms in around the dart being corrected or else the last dart with a position, with its minus it shows the whole board. A finger held on the board shows a loupe above it, or beside it near the top edge, with the spot under the finger enlarged and a cross on it; the dart goes where the finger lets go. Two fingers zoom up to five times and move the board, and set no dart. The loupe and the fingers work on every touch screen, also a large monitor; a mouse clicks as before.
 
-  <img src="images/en/correct-dart-loupe.webp" alt="Animation on a phone: the board read the second dart as T20 for 180; a tap on it and on 🎯 Board opens the board zoomed in around the dashed ring where the board saw it; a finger slides up from the ring, the loupe above it shows the single 20 under a cross, and where the finger lets go the visit becomes 140" width="360">
+  <img src="images/en/correct-dart-loupe.webp" alt="Animation on a phone: the board read the second dart as T20 for 180; a tap on it and on Board opens the board zoomed in around the dashed ring where the board saw it; a finger slides up from the ring, the loupe above it shows the single 20 under a cross, and where the finger lets go the visit becomes 140" width="360">
 
 - **Keypad:** with `keypad: true`, a keypad shows while *Practice manual entry* is on, for darts the board missed or a player without cameras: every tap on a bed enters a dart with [`autodarts.throw_dart`](entities.md#enter-a-dart-autodartsthrow_dart), and the next dart starts from S again. *Next player* ends the visit without a takeout, and *Undo last visit* takes the last visit back to correct it; both need a second tap. While the bot is at the board, the keypad waits.
 - **Undo:** without the keypad, *Undo last visit* shows below the visit while [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) can take the last visit back, for a wrong reading noticed after the darts were pulled. It needs a second tap; the visit comes back to correct its darts, and the keypad's *Next player* or [`autodarts.next_player`](entities.md#pass-the-turn-autodartsnext_player) ends it again.
-- **Marks:** darts entered or corrected by hand have a dashed frame, the bot's darts a light one.
+- **Marks:** a dart that a tap corrects has a frame and a pencil at its top right; one entered or corrected by hand has a dashed frame, and the bot's darts are tinted in the accent color.
 
 On a full-height scoreboard in landscape, the pad and the keypad sit beside the scores, so the players, the visit and the pad fit the screen together. The pad and the keypad make room for the new game screen, idle mode, the match summary and a tournament's table, and never react in the preview of the card editor.
 
@@ -380,8 +383,8 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 
 <img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="760">
 
-- **Badges:** every player's [achievements](entities.md#achievements). An earned badge shows its tier in bronze, silver, gold or platinum, the next goal and how far the player has come; a locked badge is grayed out, with its progress where it can be counted.
-- **Trends:** for every player who practiced in the weeks shown, a tile per figure: 3-dart average, first 9, checkout rate, doubles rate and darts over the weeks, a line of the weekly values, and an arrow that compares the newer half of the weeks with the older half (↗ better, ↘ worse, → about the same). Weeks without practice interrupt the line.
+- **Badges:** every player's [achievements](entities.md#achievements). An earned badge shows its tier in bronze, silver, gold or platinum, the next goal and how far the player has come; a locked badge is grayed out, with its progress where it can be counted. A player's gallery shows the badges earned and the three goals closest to being earned; *All 18 badges ▾* opens the rest, and *Show fewer* closes them again.
+- **Trends:** for every player who practiced in the weeks shown, a tile per figure: 3-dart average, first 9, checkout rate, doubles rate and darts over the weeks, a line of the weekly values, and an arrow that compares the newer half of the weeks with the older half (↗ better, ↘ worse, → about the same). Weeks without practice are a dashed stretch of the line; without both halves to compare, the tile shows no arrow.
 - **Grouping:** where each player's darts land around the beds they aimed at most, in millimeters, with the change of the newer darts. [How the grouping is measured](how-it-works.md#grouping).
 
 <img src="images/en/players-badges.png" alt="Badges of Alex: earned tiers in bronze, silver and gold, each with the next goal, the progress towards it and a progress bar" width="620">
@@ -397,7 +400,7 @@ Party games keep their scores on screen. The numbers come from the `summary` att
 | `show_head_to_head` | boolean | `true` | Show the head-to-head records |
 | `show_matches` | boolean | `true` | Show the recent matches |
 | `show_badges` | boolean | `true` | Show the badges |
-| `show_locked` | boolean | `true` | Show locked badges too; without them, players without a badge are left out |
+| `show_locked` | boolean | `true` | Show the next goals and, on demand, every locked badge; without them, players without a badge are left out |
 | `show_trends` | boolean | `true` | Show the trends |
 | `trend_weeks` | 4–12 | `12` | Weeks in the trends |
 | `show_spread` | boolean | `true` | Show the groupings |

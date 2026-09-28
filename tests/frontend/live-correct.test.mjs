@@ -60,6 +60,8 @@ test("the darts of the visit on the live card correct with a tap, and show a pen
   $(card, '[data-pad="bed"][data-value="T20"]').click();
   assert.deepEqual(actions(hass), [["correct_dart", { config_entry_id: ENTRY, dart: 2, segment: "T20" }]]);
   assert.equal($(card, ".pad-area").hidden, true);
+  // The pad fits the column of the darts, however wide the card is.
+  assert.match($(card, "style").textContent, /\.visit > \.pad-area \{ margin-top: 2px; container-type: inline-size; \}/);
   // A second tap on the dart, or Cancel, closes the pad without a correction.
   $(card, '.slot[data-dart="1"]').click();
   $(card, '.slot[data-dart="1"]').click();

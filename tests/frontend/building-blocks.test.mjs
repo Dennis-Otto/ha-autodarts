@@ -45,7 +45,11 @@ test("every card is built of the same blocks, so a change to a block reaches eve
       /\.bed \{ border-radius: 8px;/,
       /\.segmented \{/,
       /\.link \{/,
-      /button:not\(:disabled\):active \{ background-image: linear-gradient\(var\(--ad-press\), var\(--ad-press\)\); \}/,
+      /button:not\(:disabled\):active \{\s*background-image: linear-gradient\(var\(--ad-press\), var\(--ad-press\)\); transform: scale\(\.97\);\s*\}/,
+      /--ad-fast: 150ms;/,
+      /button, \.tappable \{\s*transition: background-color var\(--ad-fast\) var\(--ad-ease\)/,
+      /@starting-style \{ \.appear \{ opacity: 0; transform: translateY\(6px\); \} \}/,
+      /@media \(prefers-reduced-motion: reduce\) \{\s*\*, \*::before, \*::after \{\s*transition-duration: 0s !important;/,
       /:host button\.confirm \{ color: #fff;/,
       /button:disabled \{ opacity: \.45; cursor: default; \}/,
     ]) {
@@ -192,4 +196,46 @@ test("the pad chooses its keys or its board with the segmented control of every 
   // Updates keep the choice.
   root.hass = update(makeHass({ states: { ...READY, ...visit(dart(20, 3, { dart: 1 })) } }), {});
   assert.equal($(root, '[data-pad="keys"]').getAttribute("aria-pressed"), "true");
+});
+
+test("a balanced grid keeps a tile from standing alone in the last row", () => {
+  const style = $(card("autodarts-players-card"), "style").textContent;
+  const rule = (query, body) => assert.ok(style.includes(`@container ${query} { ${body}`), `${query} ${body}`);
+  // Where three player tiles fit, four stand two by two instead of three and one.
+  rule("(min-width: 686px) and (max-width: 905.98px)", ".profiles.balanced.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }");
+  // Where four fit, five stand three and two, the last tile filling its row.
+  rule(
+    "(min-width: 906px) and (max-width: 1125.98px)",
+    ".profiles.balanced.n5 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .profiles.balanced.n5 > :last-child { grid-column-end: -1; }"
+  );
+  // Seven in three columns: the last one stands in the middle.
+  rule(
+    "(min-width: 686px) and (max-width: 905.98px)",
+    ".profiles.balanced.n7 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .profiles.balanced.n7 > :nth-child(7) { grid-column-start: 2; }"
+  );
+  // A narrow card has one column, a wide one all tiles in a row.
+  rule("(max-width: 465.98px)", ".profiles.balanced.n2 { grid-template-columns: repeat(1, minmax(0, 1fr)); }");
+  rule("(min-width: 466px)", ".profiles.balanced.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }");
+  // The grids of the cards say how many tiles they have.
+  const players = card("autodarts-players-card", {
+    "sensor.player_profiles": { state: "3", attributes: { players: [{ name: "A" }, { name: "B" }, { name: "C" }] } },
+  });
+  assert.equal($(players, ".profiles").className, "profiles balanced n3");
+  const status = card("autodarts-status-card", {}, {}, { cameras: [camera(1), camera(2), camera(3)] });
+  assert.equal($(status, ".camera-grid").className, "camera-grid balanced n3");
+  assert.match($(status, ".info").className, /^info balanced n\d$/);
+});
+
+test("what appears as a whole fades in, and parts drawn with every tap do not", () => {
+  // The pad below the darts and a result's banner fade in when they appear.
+  for (const type of ["autodarts-card", "autodarts-scoreboard-card"]) {
+    assert.equal($(card(type), ".pad-area").classList.contains("appear"), true, type);
+  }
+  assert.equal($(card("autodarts-scoreboard-card"), ".banner").classList.contains("appear"), true);
+  // The keys of the pad are drawn with every tap: they do not fade in.
+  const root = card("autodarts-scoreboard-card", visit(dart(20, 3, { dart: 1 })));
+  $(root, "[data-dart='1']").click();
+  assert.equal($$(root, ".pad .appear").length, 0);
+  // The loupe grows out of the finger's spot.
+  assert.match($(root, "style").textContent, /@starting-style \{ \.loupe \{ opacity: 0; transform: scale\(\.8\); \} \}/);
 });

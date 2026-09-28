@@ -226,7 +226,10 @@ test("badges show the next goal, the progress and when they were earned", () => 
   assert.match(html, /<b>Streak · Platinum<\/b><span>Days in a row: 30<\/span><span class="muted">Earned on null<\/span>/);
   assert.match(html, /<ha-icon icon="mdi:crown">/);
   const locked = badgesHtml(players[1], ui);
-  assert.equal((locked.match(/class="badge locked"/g) ?? []).length, 4);
+  assert.equal((locked.match(/class="badge locked/g) ?? []).length, 4);
+  // Opened, the badges beyond the next three goals fade in; the goals stay as they were.
+  assert.equal((locked.match(/class="badge locked appear"/g) ?? []).length, 1);
+  assert.equal((badgesHtml(players[1], ui, true, false).match(/appear/g) ?? []).length, 0);
   assert.match(locked, /<span class="muted">Locked<\/span>/);
   assert.doesNotMatch(locked, /style=/);
   assert.equal(badgesHtml(players[1], ui, false), "");
@@ -275,16 +278,19 @@ test("trends give every figure over the weeks and where it is heading", () => {
   const steady = trendView({ ...TREND, x01_points: column([450, 0, 600, 900]) }, 4);
   assert.equal(steady[0].direction, "steady");
   // One week has no halves to compare.
-  assert.ok(trendView(TREND, 1).every((metric) => metric.direction === "steady"));
+  // A single week has nothing to compare with: no direction, and no arrow.
+  assert.ok(trendView(TREND, 1).every((metric) => metric.direction === null));
   assert.ok(trendView(undefined).every((metric) => metric.value === null && !metric.values.length));
 });
 
-test("sparklines draw the weeks and break where a week has no value", () => {
+test("sparklines draw the weeks and bridge a week without a value with a dashed stretch", () => {
   assert.equal(sparkline([]), "");
   assert.equal(sparkline([null, null]), "");
   const line = sparkline([40, null, 45, 50]);
-  assert.match(line, /<polyline class="dot" points="0,21 0,21"\/>/);
+  // The line never breaks into pieces: the week without darts is a dashed stretch.
+  assert.match(line, /<polyline class="gap" points="0,21 66.67,12"\/>/);
   assert.match(line, /<polyline points="66.67,12 100,3"\/>/);
+  assert.doesNotMatch(line, /class="dot" /);
   assert.match(line, /<polyline class="dot last" points="100,3 100,3"\/>/);
   // Equal values sit in the middle; a single week in the middle of the width.
   assert.match(sparkline([5, 5]), /points="0,12 100,12"/);
@@ -299,7 +305,11 @@ test("trends show a tile for every figure with its arrow", () => {
   assert.match(html, /data-metric="checkout_rate">.*?<span class="trend-value">25.0% /);
   assert.match(html, /data-metric="darts">.*?<span class="trend-value">270 /);
   const empty = trendsHtml([{ name: "Kim", metrics: trendView({ weeks: WEEKS }, 4) }], ui);
-  assert.match(empty, /<span class="trend-value">– <span class="arrow steady" role="img" title="steady" aria-label="steady">→<\/span>/);
+  // Without darts there is nothing to compare: a dash and no arrow.
+  assert.match(empty, /<span class="trend-value">–<\/span>/);
+  assert.doesNotMatch(empty, /class="arrow/);
+  // The five figures sit in a balanced grid.
+  assert.match(html, /<div class="trends balanced n5">/);
 });
 
 test("groupings read as millimetres and directions on the board", () => {
