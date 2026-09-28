@@ -87,7 +87,7 @@ Ideas for the versions after 1.7. Votes and reactions on the [feature requests](
 | Topic | What it brings | Dependency |
 | --- | --- | --- |
 | **Voice control with Assist** | "Start 501 for Alex and Sam", "What is my average today?" as sentences of their own, without an automation | Sentences in every language of the integration that feel natural at the board |
-| **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works | Test reports from players who use it |
+| **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works; a player reported 2.0.2 on Linux working ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Test reports from players who use it on Windows |
 | **Cloud link** | Cloud match data and cloud match events: leg and match won, bust, player change, remaining score | An OAuth client ID from Autodarts, which has been requested |
 | **HACS default repository** | Installation without adding a custom repository | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); the HACS review queue takes several months |
 | **Further languages** | The integration and the cards in more languages | Contributions from native speakers ([how to add a language](../CONTRIBUTING.md#translations)) |

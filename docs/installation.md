@@ -7,7 +7,7 @@
 | Requirement | Details |
 | --- | --- |
 | Home Assistant | **2026.8** or newer |
-| Autodarts board | Set up and working in the Autodarts Board Manager: **Board Manager 2**, Autodarts 2 without a screen (headless, recommended, tested up to 2.0.2), or the classic **Board Manager 1**. **Autodarts Desktop** and the **Winmau Autodarts devices** such as Autodarts X or Lens have not been tested yet; please [report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) how it works with yours |
+| Autodarts board | Set up and working in the Autodarts Board Manager: **Board Manager 2**, Autodarts 2 without a screen (headless, recommended, tested up to 2.0.2), or the classic **Board Manager 1**. A player reports that **Autodarts Desktop** 2.0.2 on Linux works too. Autodarts Desktop on Windows and the **Winmau Autodarts devices** such as Autodarts X or Lens have not been tested yet; please [report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) how it works with yours |
 | Network | Home Assistant reaches the board PC on the local network, TCP port **3180** by default |
 | Optional: cloud match data | An Autodarts account and an OAuth client ID that Autodarts issues for this integration (see [cloud link](#link-the-autodarts-cloud-optional)) |
 

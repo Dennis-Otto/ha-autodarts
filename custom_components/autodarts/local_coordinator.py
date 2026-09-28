@@ -1123,11 +1123,13 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             not self._metadata_updated
             or time.monotonic() - self._metadata_updated >= METADATA_SECONDS
         ):
+            # Marked before the read: a setting changed while the answer is on
+            # its way resets the mark, so the next poll reads it again.
+            self._metadata_updated = time.monotonic()
             reads["config"], reads["version"] = await asyncio.gather(
                 self._optional(self.client.get_config(), "/api/config"),
                 self._optional(self.client.get_version(), "/api/version"),
             )
-            self._metadata_updated = time.monotonic()
         return reads
 
     async def _reads(self) -> dict[str, Any]:
