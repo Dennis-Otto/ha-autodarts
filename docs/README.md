@@ -10,6 +10,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 
 | Guide | What you'll find |
 | --- | --- |
+| [From zero to the scoreboard](getting-started.md) | For Autodarts players without Home Assistant: set up Home Assistant and HACS, install the integration, add the board and play the first game on the scoreboard |
 | [Installation and setup](installation.md) | Requirements, HACS and manual installation, the three ways to add a board, the optional cloud link, reconfiguration, updating and removal |
 
 ## Guides

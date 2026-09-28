@@ -131,7 +131,7 @@
    Choose **Search for boards on this network** or **Enter board address** and confirm.
 4. **Add the cards.** Create a complete dashboard in one step: **Settings → Dashboards → Add dashboard → Autodarts**. Or edit a dashboard, choose **Add card** and search for *Autodarts*.
 
-The [installation guide](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) covers manual installation, reconfiguration, updates and removal.
+New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md) takes you from nothing to the scoreboard next to your board. The [installation guide](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) covers manual installation, reconfiguration, updates and removal.
 
 ## Blueprints
 
@@ -155,6 +155,7 @@ Import a blueprint with one click, choose your board and you're done:
 
 | Guide | Contents |
 | --- | --- |
+| [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md) | For Autodarts players without Home Assistant: from nothing to the first game on the scoreboard |
 | [Installation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) | Requirements, HACS and manual installation, the three ways to add a board, updates and removal |
 | [Games and rules](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md) | How to start a game, matches, teams, handicaps, the bull-off, the match summary, tournaments and the rules of every game |
 | [Scoreboard at the board](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md) | A tablet or TV at the board, the new game screen, tournaments, the caller and idle mode |
