@@ -108,7 +108,7 @@
 
 ## Voraussetzungen
 
-**Home Assistant ab 2026.8** mit [HACS](https://hacs.xyz) und ein Autodarts-Board in deinem Netzwerk mit **Board Manager 2** (empfohlen) oder **Board Manager 1**. Boards mit Autodarts Desktop sind noch nicht getestet. Ein Autodarts-Konto brauchst du nicht.
+**Home Assistant ab 2026.8** mit [HACS](https://hacs.xyz) und ein Autodarts-Board in deinem Netzwerk: **Board Manager 2**, also Autodarts 2 ohne Bildschirm (empfohlen, getestet bis 2.0.2), oder der klassische **Board Manager 1**. Autodarts Desktop und die Winmau-Autodarts-Geräte wie Autodarts X oder Lens sind noch nicht getestet; ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) hilft, ob es klappt oder nicht. Ein Autodarts-Konto brauchst du nicht.
 
 ## Schnellstart
 
@@ -210,13 +210,16 @@ Die Blueprints sind auf Englisch beschriftet; ihre Texte, etwa die Ansagen, wäh
 
 | | Unterstützt | Getestet mit |
 | --- | --- | --- |
-| Board Manager 2 (Headless) | 2.x | 2.0.0 |
+| Board Manager 2: Autodarts 2 ohne Bildschirm (Headless) | 2.x | 2.0.0 und 2.0.2 |
 | Board Manager 1 (klassische App) | 1.x | 1.0.7 |
-| Autodarts Desktop | Noch nicht getestet | – |
+| Autodarts Desktop, etwa unter Windows | Noch nicht getestet | – |
+| Winmau-Autodarts-Geräte wie Autodarts X oder Lens | Noch nicht getestet | – |
 | Kameras | Jede Anzahl, die der Board Manager unterstützt | 3 |
-| Home Assistant | ab 2026.8 | 2026.8.0 und 2026.9.3 |
+| Home Assistant | ab 2026.8 | 2026.8.0 und 2026.9.4 |
 
 Jede Board-Hardware, auf der der Autodarts Board Manager läuft, funktioniert, weil die Integration mit dem Board Manager spricht, nicht mit den Kameras.
+
+Seit September 2026 beschreibt die Doku von Autodarts den Board Manager als Browser-Oberfläche von Autodarts 0.x, die ab Version 2 nicht mehr unterstützt wird. Die lokale Schnittstelle auf Port 3180, die die Integration nutzt, antwortet mit Autodarts 2.0.2 weiterhin. Ändert ein Update sie, zeigt die Integration eine Reparaturmeldung, statt still auszufallen (siehe [Fehlerbehebung](fehlerbehebung.md#reparaturen)). Läuft dein Setup nicht in der Tabelle, hilft ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml), auch wenn alles klappt.
 
 ## Sprachen
 

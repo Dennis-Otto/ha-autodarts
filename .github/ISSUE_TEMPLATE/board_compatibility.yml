@@ -23,8 +23,9 @@ body:
     attributes:
       label: Autodarts software on the board PC
       options:
-        - Board Manager 2 (headless)
+        - Autodarts 2 without a screen (Board Manager 2, headless)
         - Autodarts Desktop
+        - Winmau Autodarts device (Autodarts X, Lens, Vantage)
         - Board Manager 1 (classic app)
         - I don't know
     validations:

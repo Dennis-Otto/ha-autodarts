@@ -114,7 +114,7 @@
 
 ## Requirements
 
-**Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network running **Board Manager 2** (recommended) or **Board Manager 1**. Boards run by Autodarts Desktop have not been tested yet. No Autodarts account is needed.
+**Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network: **Board Manager 2**, Autodarts 2 without a screen (recommended, tested up to 2.0.2), or the classic **Board Manager 1**. Autodarts Desktop and the Winmau Autodarts devices such as Autodarts X or Lens have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not. No Autodarts account is needed.
 
 ## Quick start
 
