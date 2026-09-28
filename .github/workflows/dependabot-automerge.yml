@@ -26,11 +26,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
-      # Actions without releases, pinned to a commit of their default branch.
+      # Actions pinned to a commit of their default branch instead of a release.
       # Dependabot moves such a pin from commit to commit, reports the update as
-      # major and skips the cooldown. hassfest only starts Home Assistant's
-      # current hassfest image, so its commit updates merge like patch updates.
-      COMMIT_PINNED_ACTIONS: '["home-assistant/actions/hassfest"]'
+      # major and skips the cooldown. Both only start the current image of HACS
+      # and hassfest, so their commit updates merge like patch updates.
+      COMMIT_PINNED_ACTIONS: '["hacs/action", "home-assistant/actions/hassfest"]'
     steps:
       # Do not check out or execute pull request code in this privileged workflow.
       - name: Read verified Dependabot metadata

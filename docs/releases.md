@@ -13,10 +13,11 @@ what users install**: the integration in `custom_components/` or `hacs.json`.
 Updates of test dependencies, GitHub Actions, the end-to-end containers and the
 browser tools never produce a release on their own; they reach users with the next
 regular release. Patch and minor dependency PRs merge after their required checks;
-major dependency PRs still need a maintainer to merge them. hassfest publishes no
-releases and follows a commit of its default branch; Dependabot reports each new
-commit as a major update, so the **Dependabot maintenance** workflow keeps a short
-list of such actions whose commit updates merge like patch updates. `main` only
+major dependency PRs still need a maintainer to merge them. The HACS and hassfest
+actions follow a commit of their default branch instead of a release; Dependabot
+reports each new commit as a major update, so the **Dependabot maintenance**
+workflow keeps a short list of such actions whose commit updates merge like patch
+updates. `main` only
 accepts branches that are up to date, and Dependabot rebases a PR only when it
 conflicts: when several updates arrive together, comment `@dependabot rebase` on
 the next one after a merge. Once merged, a qualifying update follows this release
