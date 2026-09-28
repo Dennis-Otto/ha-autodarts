@@ -2,6 +2,17 @@
 
 All notable changes of the Autodarts integration. The complete notes of every version, with each pull request, are on the [releases page](https://github.com/Dennis-Otto/ha-autodarts/releases); what comes next is in the [roadmap](docs/roadmap.md). Versions follow [Semantic Versioning](https://semver.org/).
 
+## 1.7.1
+
+### Fixed
+
+- **No error in the log when Home Assistant restarts:** a board poll that started after Home Assistant had closed its connections logged *Unexpected error fetching autodarts_local data* with a traceback. It now counts as an ordinary lost connection, like the event stream, the camera stream and the cloud requests. Reported by @JoeyAwwad in #107.
+- **Board settings show at once:** with Board Manager 1, a setting switched on or off, such as *Auto distortion*, could show its old value for up to 30 seconds when a poll was reading the settings at that moment.
+
+### Documentation
+
+- **Autodarts Desktop on Linux** is listed under the supported devices: a player reported version 2.0.2 on Ubuntu 24.04 working with every feature (#105). Autodarts Desktop on Windows is still untested; a compatibility report helps.
+
 ## 1.7.0
 
 ### New
