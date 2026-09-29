@@ -98,7 +98,7 @@ test("a match brings every player's score", () => {
   ]);
 });
 
-test("the live view offers the practice controls and player names", () => {
+test("the game settings offer the practice controls and player names, the live view the card alone", () => {
   const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev", platform: "autodarts" });
   const entities = [
     entity("select.board_practice_game", "practice_game"),
@@ -117,8 +117,18 @@ test("the live view offers the practice controls and player names", () => {
     devices: { dev: { id: "dev" } },
     states: {},
   };
-  const [live] = dashboardStrategy(hass).views;
-  assert.deepEqual(live.sections[1].cards, [
+  const views = dashboardStrategy(hass).views;
+  assert.deepEqual(views.map((view) => [view.path, view.title, view.icon]), [
+    ["live", "Live", "mdi:bullseye-arrow"],
+    ["scoreboard", "Anzeigetafel", "mdi:scoreboard-outline"],
+    ["training", "Training", "mdi:chart-box-outline"],
+    ["games", "Spieleinstellungen", "mdi:tune-variant"],
+    ["board", "Board", "mdi:cog-outline"],
+  ]);
+  assert.deepEqual(views[0].sections, [
+    { type: "grid", column_span: 2, cards: [{ type: "custom:autodarts-card", device_id: "dev", grid_options: { columns: "full" } }] },
+  ]);
+  assert.deepEqual(views[3].sections[0].cards, [
     { type: "heading", heading: "Übungsspiel" },
     {
       type: "entities",

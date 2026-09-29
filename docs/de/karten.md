@@ -451,19 +451,20 @@ Statt die Karten selbst anzuordnen, kann die Integration ein komplettes Dashboar
 1. Öffne **Einstellungen → Dashboards → Dashboard hinzufügen**.
 2. Wähle **Autodarts**.
 
-Pro Board entstehen bis zu fünf Ansichten. Sie aktualisieren sich selbst, wenn du ein Board hinzufügst oder Entitäten aktivierst:
+Pro Board entstehen bis zu sechs Ansichten. Sie aktualisieren sich selbst, wenn du ein Board hinzufügst oder Entitäten aktivierst:
 
 | Ansicht | Inhalt |
 | --- | --- |
-| **Live** | Die Live-Karte über die volle Breite, die Steuerung des Übungsspiels mit Teams und den Optionen für Golf und Count-Up, die Spielernamen, ihre Startpunkte und das [Turnier](entitaeten.md#turniere) mit seinen Einstellungen und Tasten |
+| **Live** | Die Live-Karte über die volle Breite, damit Board und Spiel auch auf dem Handy im Blick bleiben |
 | **Anzeigetafel** | Die [Anzeigetafel](#anzeigetafel) über den ganzen Bildschirm, für ein Tablet oder einen Fernseher am Board |
 | **Training** | Die Trainingskarte mit den Bestleistungen, die [Doubles-Karte](#doubles-karte), das Tagesziel mit den Darts von heute, die Serie und die letzte Bestleistung, Darts pro Tag der letzten 30 Tage (aus den Langzeitstatistiken, die Home Assistant stündlich berechnet), der 3-Dart-Average der letzten 7 Tage, Übungslegs pro Tag, First-9-Average, Checkout- und Doppelquote des Übungsspiels sowie die Trainingseinstellungen: Sessions automatisch starten und nach einer Pause beenden |
 | **Spieler** | Die [Spielerkarte](#spielerkarte) und die [Bestenliste](#bestenliste), sobald der erste benannte Spieler ein Profil hat |
+| **Spieleinstellungen** | Die Steuerung des Übungsspiels mit Teams und den Optionen für Golf und Count-Up, die Spielernamen, ihre Startpunkte und das [Turnier](entitaeten.md#turniere) mit seinen Einstellungen und Tasten, für alles, was die Spielauswahl der Anzeigetafel nicht einstellt |
 | **Board** | Der Board-Status, die Board-Einstellungen, das Board-Manager-Update und der Anteil der Darts, die das Board korrigiert hat |
 
 <img src="../images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards" width="760">
 
-Die Live-Ansicht hat außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Turnier Dauer der Zusammenfassung* bei den Turniereinstellungen.
+Die Spieleinstellungen haben außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Turnier Dauer der Zusammenfassung* bei den Turniereinstellungen. Die meisten Spiele brauchen nichts davon: Die [Spielauswahl](#spielauswahl) der Anzeigetafel stellt Spiel, Spieler und Regeln ein.
 
 In YAML ist das ganze Dashboard eine Zeile; `device_id`, `title` und `scoreboard` sind optional. `scoreboard` setzt Optionen der Karte in der Ansicht *Anzeigetafel*: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` und `idle_panels`, wie bei der [Anzeigetafel](#anzeigetafel) beschrieben. Was du weglässt, behält den Standard der Karte.
 

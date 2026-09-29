@@ -1,4 +1,4 @@
-// The dashboard strategy builds live, scoreboard, training and board views for every board.
+// The dashboard strategy builds live, scoreboard, training, players, game settings and board views for every board.
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -192,8 +192,8 @@ test("rows leave out the board and the section they sit in", () => {
       Object.entries(names).map(([id, name]) => [id, { entity_id: id, state: "on", attributes: { friendly_name: name } }])
     ),
   });
-  const [live, , training, maintenance] = config.views;
-  const [, practice, players] = live.sections[1].cards;
+  const [, , training, games, maintenance] = config.views;
+  const [, practice, players] = games.sections[0].cards;
   assert.deepEqual(practice.entities, [
     { entity: "select.b_game", name: "Spiel" },
     { entity: "number.b_players", name: "Spieler" },
@@ -216,10 +216,10 @@ test("a renamed board is left out of the row names too", () => {
     devices: { dev1: { name: "Autodarts Board", name_by_user: "Garage" } },
     states: { "number.b_players": { state: "2", attributes: { friendly_name: "Garage Practice players" } } },
   });
-  assert.deepEqual(config.views[0].sections[1].cards[1].entities, [{ entity: "number.b_players", name: "Players" }]);
+  assert.deepEqual(config.views.find((view) => view.path === "games").sections[0].cards[1].entities, [{ entity: "number.b_players", name: "Players" }]);
 });
 
-test("the live view sets up and starts tournaments, with the tournament's stage as a tile", () => {
+test("the game settings set up and start tournaments, with the tournament's stage as a tile", () => {
   const keys = [
     ["sensor.b_tournament", "tournament", "Autodarts Board Tournament"],
     ["select.b_format", "tournament_format", "Autodarts Board Tournament format"],
@@ -234,8 +234,8 @@ test("the live view sets up and starts tournaments, with the tournament's stage 
       states: Object.fromEntries(
         list.map(([id, , name]) => [id, { entity_id: id, state: "on", attributes: { friendly_name: name } }])
       ),
-    }).views[0].sections;
-  const [, tournament] = withEntities(keys);
+    }).views.find((view) => view.path === "games")?.sections ?? [];
+  const [tournament] = withEntities(keys);
   assert.deepEqual(tournament, {
     type: "grid",
     column_span: 2,
@@ -253,8 +253,8 @@ test("the live view sets up and starts tournaments, with the tournament's stage 
     ],
   });
   // Without the sensor, the settings stand alone; without any, there is no section.
-  assert.deepEqual(withEntities(keys.slice(1))[1].cards.map((card) => card.type), ["heading", "entities"]);
-  assert.equal(withEntities(keys.slice(0, 1)).length, 1);
+  assert.deepEqual(withEntities(keys.slice(1))[0].cards.map((card) => card.type), ["heading", "entities"]);
+  assert.equal(withEntities(keys.slice(0, 1)).length, 0);
 });
 
 test("rows leave out the section at the end of French and Spanish names, too", () => {
@@ -306,7 +306,7 @@ test("rows leave out the section at the end of French and Spanish names, too", (
         ])
       ),
     });
-    const [, practice, tournament] = config.views[0].sections;
+    const [practice, tournament] = config.views.find((view) => view.path === "games").sections;
     assert.deepEqual(
       practice.cards[1].entities.map((row) => row.name),
       rows,
@@ -357,7 +357,7 @@ test("the dashboard's settings choose the scoreboard's caller, keypad, games and
   }
 });
 
-test("the live view has every rule of the practice game and every setting of a tournament", () => {
+test("the game settings have every rule of the practice game and every setting of a tournament", () => {
   const keys = [
     ["select.b_game", "practice_game"],
     ["switch.b_bull_off", "practice_bull_off"],
@@ -368,7 +368,7 @@ test("the live view has every rule of the practice game and every setting of a t
     ["switch.b_third", "tournament_third_place"],
   ];
   const config = dashboardStrategy(hass(keys.map(([id, key]) => entity(id, key, "dev1"))));
-  const [, practice, tournament] = config.views[0].sections;
+  const [practice, tournament] = config.views.find((view) => view.path === "games").sections;
   assert.deepEqual(practice.cards[1].entities, ["select.b_game", "switch.b_bull_off", "switch.b_distance", "switch.b_teams"]);
   assert.deepEqual(tournament.cards[1].entities, ["number.b_pause", "number.b_summary", "switch.b_third"]);
 });
@@ -380,5 +380,5 @@ test("an entity named like its board alone keeps its own row", () => {
     devices: { dev1: { name: "Garage" } },
     states: { "number.b_players": { state: "2", attributes: { friendly_name: "Garage " } } },
   });
-  assert.deepEqual(config.views[0].sections[1].cards[1].entities, ["number.b_players"]);
+  assert.deepEqual(config.views.find((view) => view.path === "games").sections[0].cards[1].entities, ["number.b_players"]);
 });

@@ -668,6 +668,7 @@ const TEXT = {
     view_live: "Live",
     view_training: "Training",
     view_board: "Board",
+    view_games: "Game settings",
     darts_per_day: "Darts per day",
     average_trend: "3-dart average, last 7 days",
     board_settings: "Board settings",
@@ -1222,6 +1223,7 @@ const TEXT = {
     view_live: "Live",
     view_training: "Training",
     view_board: "Board",
+    view_games: "Spieleinstellungen",
     darts_per_day: "Darts pro Tag",
     average_trend: "3-Dart-Average, letzte 7 Tage",
     board_settings: "Board-Einstellungen",
@@ -1773,6 +1775,7 @@ const TEXT = {
     view_live: "En directo",
     view_training: "Entrenamiento",
     view_board: "Diana",
+    view_games: "Ajustes de juego",
     darts_per_day: "Dardos por día",
     average_trend: "Media de 3 dardos, últimos 7 días",
     board_settings: "Configuración de la diana",
@@ -2324,6 +2327,7 @@ const TEXT = {
     view_live: "En direct",
     view_training: "Entraînement",
     view_board: "Cible",
+    view_games: "Réglages des parties",
     darts_per_day: "Fléchettes par jour",
     average_trend: "Moyenne 3 fléchettes, 7 derniers jours",
     board_settings: "Paramètres de la cible",
@@ -2875,6 +2879,7 @@ const TEXT = {
     view_live: "Live",
     view_training: "Training",
     view_board: "Bord",
+    view_games: "Spelinstellingen",
     darts_per_day: "Darts per dag",
     average_trend: "3-dart-gemiddelde, laatste 7 dagen",
     board_settings: "Bordinstellingen",
@@ -6753,7 +6758,21 @@ const FULL = { grid_options: { columns: "full" } };
 // rate stay whole on every screen.
 const tile = (row) => ({ type: "tile", ...FULL, ...(typeof row === "string" ? { entity: row } : row) });
 
+// The live card alone, so the board and the game stay in sight on every screen.
 function liveDashboardView(board) {
+  return {
+    title: `${board.t("view_live")}${board.suffix}`,
+    path: `live${board.slug}`,
+    icon: "mdi:bullseye-arrow",
+    type: "sections",
+    max_columns: 2,
+    sections: [{ type: "grid", column_span: 2, cards: [board.card(CARD_TYPE, FULL)] }],
+  };
+}
+
+// The rules, players and start scores of the practice game and the settings of a
+// tournament, in a view of their own beside the live view.
+function gamesDashboardView(board) {
   const { t } = board;
   const practice = board.rows(PRACTICE_KEYS, "practice");
   const names = (board.index["text.practice_player"] ?? []).map((entity) => board.row(entity, "practice"));
@@ -6771,17 +6790,18 @@ function liveDashboardView(board) {
     ...(stage ? [tile(stage)] : []),
     { type: "entities", entities: tournament },
   ];
+  const sections = [
+    ...(practice.length ? [{ type: "grid", column_span: 2, cards: controls }] : []),
+    ...(tournament.length ? [{ type: "grid", column_span: 2, cards: tournamentCards }] : []),
+  ];
+  if (!sections.length) return null;
   return {
-    title: `${t("view_live")}${board.suffix}`,
-    path: `live${board.slug}`,
-    icon: "mdi:bullseye-arrow",
+    title: `${t("view_games")}${board.suffix}`,
+    path: `games${board.slug}`,
+    icon: "mdi:tune-variant",
     type: "sections",
     max_columns: 2,
-    sections: [
-      { type: "grid", column_span: 2, cards: [board.card(CARD_TYPE, FULL)] },
-      ...(practice.length ? [{ type: "grid", column_span: 2, cards: controls }] : []),
-      ...(tournament.length ? [{ type: "grid", column_span: 2, cards: tournamentCards }] : []),
-    ],
+    sections,
   };
 }
 
@@ -6911,6 +6931,7 @@ function dashboardStrategy(hass, config = {}) {
       scoreboardDashboardView(board, options),
       trainingDashboardView(board),
       playersDashboardView(board),
+      gamesDashboardView(board),
       boardDashboardView(board),
     ].filter(Boolean);
   });
