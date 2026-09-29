@@ -369,7 +369,7 @@ test("the history names the new games and both winners of a team match", () => {
   assert.match(html, /cricket_cut_throat<\/span><span><span>A 0<\/span>/);
 });
 
-test("the live view offers the team switch, the Golf and Count-Up options and the start scores", () => {
+test("the game settings offer the team switch, the Golf and Count-Up options and the start scores", () => {
   const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev", platform: "autodarts" });
   const entities = [
     entity("select.board_practice_game", "practice_game"),
@@ -385,8 +385,8 @@ test("the live view offers the team switch, the Golf and Count-Up options and th
     devices: { dev: { id: "dev" } },
     states: {},
   };
-  const [live] = dashboardStrategy(hass).views;
-  assert.deepEqual(live.sections[1].cards.slice(1), [
+  const games = dashboardStrategy(hass).views.find((view) => view.path === "games");
+  assert.deepEqual(games.sections[0].cards.slice(1), [
     {
       type: "entities",
       entities: [

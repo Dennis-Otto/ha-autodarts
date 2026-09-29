@@ -451,19 +451,20 @@ Instead of arranging the cards yourself, let the integration build a whole dashb
 1. Go to **Settings → Dashboards → Add dashboard**.
 2. Choose **Autodarts**.
 
-For every board, the dashboard gets up to five views, which update themselves when you add a board or enable entities:
+For every board, the dashboard gets up to six views, which update themselves when you add a board or enable entities:
 
 | View | Contents |
 | --- | --- |
-| **Live** | The live card across the full width, the practice game controls with teams and the Golf and Count-Up options, the player names, their start scores and the [tournament](entities.md#tournaments) with its settings and buttons |
+| **Live** | The live card across the full width, so the board and the game stay in sight on a phone too |
 | **Scoreboard** | The [scoreboard card](#scoreboard-card) across the whole screen, for a tablet or TV at the board |
 | **Training** | The training card with the personal bests, the [doubles card](#doubles-card), the daily goal with darts today, the streak and the last personal best, darts per day for the last 30 days (from long-term statistics, which Home Assistant compiles hourly), the 3-dart average of the last 7 days, practice legs per day, the first 9 average, checkout rate and doubles rate of the practice game, and the training settings: starting sessions automatically and ending them after a pause |
 | **Players** | The [players card](#players-card) and the [leaderboard](#leaderboard-card), once the first named player has a profile |
+| **Game settings** | The practice game controls with teams and the Golf and Count-Up options, the player names, their start scores and the [tournament](entities.md#tournaments) with its settings and buttons, for what the scoreboard's new game screen leaves out |
 | **Board** | The board status card, the board settings, the Board Manager update and the share of darts the board corrected |
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard" width="760">
 
-The live view also has *Bull-off by distance* among the practice rules and *Tournament summary duration* among the tournament settings.
+The game settings also have *Bull-off by distance* among the practice rules and *Tournament summary duration* among the tournament settings. Most games need none of them: the scoreboard's [new game screen](#new-game-screen) sets the game, the players and the rules.
 
 In YAML, the whole dashboard is one line; `device_id`, `title` and `scoreboard` are optional. `scoreboard` sets options of the scoreboard view's card: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` and `idle_panels`, as described for the [scoreboard card](#scoreboard-card). Options you leave out keep the card's defaults.
 

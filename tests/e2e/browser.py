@@ -2250,6 +2250,23 @@ def strategy(browser: Browser) -> None:
             f"() => ({cards})().some((card) => card.shadowRoot?.querySelector('{ready}'))",
             timeout=30000,
         )
+    # The live view is the live card alone; the game's rows have a view of their own.
+    page.goto(f"{HA}/autodarts-auto/live")
+    page.wait_for_function(f"() => ({CARDS})().length === 1", timeout=30000)
+    rows = find("hui-entities-card")
+    check(
+        page.evaluate(f"() => ({rows})().length") == 0, "Entity rows in the live view"
+    )
+    page.goto(f"{HA}/autodarts-auto/games")
+    page.wait_for_function(f"() => ({rows})().length >= 2", timeout=30000)
+    headings = page.evaluate(
+        f"() => ({find('hui-heading-card')})().map((card) => card.shadowRoot?.textContent.trim())"
+    )
+    check(
+        any("Practice" in text for text in headings)
+        and any("Tournament" in text for text in headings),
+        f"Game settings headings {headings}",
+    )
     errors = page_errors(page, [])
     check(not errors, f"Console problems: {errors}")
     page.close()
