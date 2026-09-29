@@ -80,13 +80,31 @@ Erschienen als 1.7.0 am 28. September 2026; die Details stehen im [Changelog](..
 - Das Positionen-Trefferbild der Trainingskarte folgt jedem Dart live.
 - Korrigierte Darts verlieren die falsch erkannte Position des Boards, oder sie bekommen die Stelle, die du auf der Scheibe der Anzeigetafel antippst, und damit gleich das Feld.
 
+## Version 1.8: jede Karte auf jedem Bildschirm
+
+Erschienen als 1.8.0 am 28. September 2026 und 1.8.1 am 29. September 2026; die Details stehen im [Changelog](../../CHANGELOG.md#180) (auf Englisch).
+
+- Jede Karte passt vom 360-Pixel-Handy bis zum 27-Zoll-Touch-Monitor, hoch und quer, mit Bedienelementen von mindestens 40 Pixeln für den Finger.
+- Korrekturen auch auf der Live-Karte, mit Lupe und Zoom auf jedem Touch-Bildschirm.
+- Ein Stift zeigt, was ein Tipp bearbeitet, ein Pfeil, was er öffnet; Zustände wechseln mit ruhigen Animationen.
+- Die Doppel-Karte zählt jeden Doppel-Treffer, in jedem Spiel.
+- Nichts auf den Karten ändert seine Höhe, solange ein Spiel läuft.
+
+## Version 1.9: Spiele per Sprache
+
+Erschienen als 1.9.0 am 29. September 2026; die Details stehen im [Changelog](../../CHANGELOG.md#190) (auf Englisch).
+
+- Ein Blueprint, der ein Spiel startet, wenn du es Assist sagst, zum Beispiel „Starte 501 für Alex und Sam“ oder „Starte das Spiel Cricket für Alex“, auf Deutsch und Englisch, mit einer Antwort in Worten.
+- Was die Maus als Tooltip zeigt, zeigt auch ein Tipp.
+- Die Spieleinstellungen des automatischen Dashboards in einer eigenen Ansicht.
+
 ## Als Nächstes
 
-Ideen für die Versionen nach 1.7. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
+Ideen für die Versionen nach 1.9. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
 
 | Thema | Was es bringt | Voraussetzung |
 | --- | --- | --- |
-| **Sprachsteuerung mit Assist** | „Starte 501 für Alex und Sam“, „Wie ist mein Average heute?“ als eigene Sätze, ohne Automation | Sätze in jeder Sprache der Integration, die sich am Board natürlich anfühlen |
+| **Fragen an Assist** | „Wie ist mein Average heute?“, „Wie viele 180er diese Woche?“ als eigene Sätze, und der Spielstart per Sprache in jeder Sprache der Integration | Sätze, die sich am Board natürlich anfühlen, von Spielern, die die Sprache sprechen |
 | **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert; ein Spieler hat 2.0.2 unter Linux als funktionierend gemeldet ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Testberichte von Spielern, die es unter Windows nutzen |
 | **Cloud-Verknüpfung** | Cloud-Spieldaten und Cloud-Spielereignisse: Leg und Match gewonnen, Überwerfen, Spielerwechsel, Restpunkte | Eine OAuth-Client-ID von Autodarts; sie ist beantragt |
 | **HACS-Standardkatalog** | Installation, ohne ein benutzerdefiniertes Repository hinzuzufügen | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |

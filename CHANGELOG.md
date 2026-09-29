@@ -2,6 +2,22 @@
 
 All notable changes of the Autodarts integration. The complete notes of every version, with each pull request, are on the [releases page](https://github.com/Dennis-Otto/ha-autodarts/releases); what comes next is in the [roadmap](docs/roadmap.md). Versions follow [Semantic Versioning](https://semver.org/).
 
+## 1.9.0
+
+### New
+
+- **Start a game by voice:** a new blueprint lets Assist start a practice game, for example "Starte 501 für Alex und Sam", "Start the game Cricket for Alex" or "Spiele 501 gegen den Bot", in German or English. Assist answers with the game and the players, or with what was wrong. Every sentence has a number from 101 to 1001 or the word "Spiel" or "game", so Assist's own commands, such as a timer, stay its own (#123).
+- **`autodarts.start_game` understands a voice:** a game by its name in any language of the integration, such as "Around the Clock" or "Doppeltraining", or by the beginning of a name that fits one game alone; a player's name in the spelling of the player's profile; and with `response_variable`, an answer in words to say instead of a failure (#123).
+- **Hints on a tap:** what a mouse shows as a tooltip, a tap with a finger or a pen now shows in a small bubble over the card, without moving anything: the darts of a last visit, a visit in the training chart, a trend arrow, a double, the columns of a tournament's table, a camera's dot and the hint of a setup (#122).
+
+### Changed
+
+- **Game settings in a view of their own:** the live view of the automatic dashboard shows the live card alone. The rows of the practice game, its players, start scores and the tournament moved to the new view *Game settings* (#121).
+
+### Documentation
+
+- The voice blueprint with its sentences, the names and the answer of the start action, the new view and the hint building block, in English and German, with the screenshots and animations recorded anew. The example of an automation of your own no longer catches "start a timer for 5 minutes".
+
 ## 1.8.1
 
 ### Fixed
