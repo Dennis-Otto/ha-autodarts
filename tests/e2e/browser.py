@@ -1733,9 +1733,52 @@ def touch_screen(
         )
         page.wait_for_timeout(1500)
         wide(view)
+    # What a mouse sees as a tooltip, a finger sees in a bubble over the card.
+    page.goto(f"{HA}/autodarts-auto/live")
+    page.wait_for_function(
+        f"() => ({CARDS})()[0]?.shadowRoot?.querySelector('.recent-visit')",
+        timeout=30000,
+    )
+    # The view before it fades out above the card for a moment.
+    page.wait_for_timeout(1500)
+    spot = page.evaluate(RECENT_VISIT_SPOT)
+    page.touchscreen.tap(*spot)
+    page.wait_for_timeout(300)
+    hint = page.evaluate(HINT_SHOWN)
+    check(
+        hint["shown"] and hint["inside"] and hint["text"] == hint["title"],
+        f"{device}: the hint of a last visit {hint}",
+    )
     errors = page_errors(page, [])
     check(not errors, f"{device}: console problems: {errors}")
     context.close()
+
+
+# The middle of the live card's first last visit, in sight.
+RECENT_VISIT_SPOT = f"""
+() => {{
+  const visit = ({CARDS})()[0].shadowRoot.querySelector('.recent-visit');
+  visit.scrollIntoView({{ block: 'center' }});
+  const box = visit.getBoundingClientRect();
+  return [box.x + box.width / 2, box.y + box.height / 2];
+}}
+"""
+# The hint after a tap on that visit: shown with its title, inside the card and the screen.
+HINT_SHOWN = f"""
+() => {{
+  const root = ({CARDS})()[0].shadowRoot;
+  const bubble = root.querySelector('.hint-bubble');
+  const card = root.querySelector('ha-card').getBoundingClientRect();
+  const box = bubble?.getBoundingClientRect();
+  return {{
+    shown: Boolean(bubble && !bubble.hidden),
+    text: bubble?.textContent ?? null,
+    title: root.querySelector('.recent-visit').getAttribute('title'),
+    inside: Boolean(box) && box.left >= Math.max(card.left, 0) - 1 && box.right <= Math.min(card.right, innerWidth) + 1
+      && box.top >= card.top - 1 && box.bottom <= card.bottom + 1,
+  }};
+}}
+"""
 
 
 # Every size a dashboard is opened on, in both orientations: its viewport, the safe

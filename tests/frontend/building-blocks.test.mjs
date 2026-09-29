@@ -39,6 +39,7 @@ test("every card is built of the same blocks, so a change to a block reaches eve
     const style = $(card(type), "style").textContent;
     for (const block of [
       /\.pill \{\s*display: inline-grid;[^}]*min-height: 28px;[^}]*\}/,
+      /\.hint-bubble \{\s*position: absolute;[^}]*pointer-events: none;/,
       /\.cue \{\s*position: absolute;/,
       /\.cue\.inline \{ position: static;/,
       /\.tappable \{ position: relative; border: 1px solid/,
@@ -132,6 +133,61 @@ test("the status keeps the width of its longest words during a game, so nothing 
   }
   const german = card("autodarts-scoreboard-card", {}, {}, { language: "de" });
   assert.deepEqual([text(german, ".pill"), $(german, ".pill").dataset.widest], ["Bereit – wirf!", "Darts werden entnommen"]);
+});
+
+test("what a tooltip tells shows on a tap with a finger too, in a bubble over the card", (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const tap = (element, pointerType = "touch") => {
+    element.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true, composed: true, pointerType }));
+    element.click();
+  };
+  const live = card("autodarts-card", {
+    "sensor.local_visit_score": {
+      state: "0",
+      attributes: { throws: [], recent_visits: [{ score: 85, segments: ["T20", "S20", "S5"] }] },
+    },
+  });
+  const bubble = () => $(live, ".root > .hint-bubble");
+  const shown = () => (bubble() && !bubble().hidden ? [bubble().textContent, bubble().getAttribute("role")] : null);
+  // A mouse keeps the browser's own tooltip.
+  tap($(live, ".recent-visit"), "mouse");
+  assert.equal(shown(), null);
+  tap($(live, ".recent-visit"));
+  assert.deepEqual(shown(), ["T20 · S20 · S5 = 85", "status"]);
+  // Without room above what was tapped, the bubble sits below it, inside the card's sides.
+  assert.deepEqual([bubble().style.left, bubble().style.top], ["8px", "8px"]);
+  const rect = (left, top, width, height) => () => ({ left, top, width, height, right: left + width, bottom: top + height });
+  $(live, ".root").getBoundingClientRect = rect(0, 0, 400, 300);
+  $(live, ".recent-visit").getBoundingClientRect = rect(180, 120, 40, 20);
+  Object.defineProperties(bubble(), { offsetWidth: { value: 120 }, offsetHeight: { value: 30 } });
+  tap($(live, ".recent-visit"));
+  assert.deepEqual([bubble().style.left, bubble().style.top], ["140px", "82px"]);
+  // Another tap elsewhere, Escape or a few seconds close it; a pen shows it as a finger does.
+  tap($(live, ".score"));
+  assert.equal(shown(), null);
+  tap($(live, ".recent-visit"), "pen");
+  $(live, ".recent-visit").dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }));
+  assert.equal(shown(), null);
+  tap($(live, ".recent-visit"));
+  $(live, ".recent-visit").dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }));
+  t.mock.timers.tick(4999);
+  assert.deepEqual(shown(), ["T20 · S20 · S5 = 85", "status"]);
+  t.mock.timers.tick(1);
+  assert.equal(shown(), null);
+  // A control with a title does what it does; the bubble stays away.
+  const scoreboard = card("autodarts-scoreboard-card", {}, { caller: true });
+  tap($(scoreboard, ".caller-toggle"));
+  assert.equal($(scoreboard, ".hint-bubble"), null);
+  // A click without a pointer before it, as from a keyboard, shows none either.
+  const board = card("autodarts-card", {
+    "sensor.local_visit_score": { state: "0", attributes: { throws: [], recent_visits: [{ score: 60, segments: ["T20"] }] } },
+  });
+  $(board, ".recent-visit").click();
+  assert.equal($(board, ".hint-bubble"), null);
+  // The card takes the bubble with it.
+  tap($(live, ".recent-visit"));
+  live.remove();
+  assert.equal(shown(), null);
 });
 
 test("the second tap that confirms is red on every card", () => {
