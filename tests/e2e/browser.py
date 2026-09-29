@@ -82,6 +82,7 @@ SCOREBOARD_STATE = f"""
       [...row.children].map((cell) => cell.textContent)
     ),
     sum: text('.sum .value'),
+    tile: text('.sum .muted'),
     full: root.querySelector('.scoreboard').classList.contains('full'),
   }};
 }}
@@ -691,12 +692,16 @@ def scoreboard(browser: Browser) -> None:
             ["select", "select_option", "practice_game", {"option": option}],
         )
 
-    # Between games, the visit score is the big number.
+    # Between games, the visit score is the big number, and the last visit is beside
+    # the darts.
     takeout()
     control({"event": "Throw detected", "throws": [T20]})
     state = wait("state.big === '60'")
     check(
-        state["full"] and state["darts"] == ["T20", "–", "–"] and state["sum"] is None,
+        state["full"]
+        and state["darts"] == ["T20", "–", "–"]
+        and state["tile"] == "Last"
+        and state["sum"] is not None,
         f"Scoreboard between games {state}",
     )
     takeout()
@@ -1109,7 +1114,9 @@ def tournament(browser: Browser) -> None:
 TABLET = {"width": 800, "height": 480}
 # Controls the card sizes for a finger; each is at least 44 px high, the keys of the
 # pad at least 40 px, so that the pad fits beside the scores of a short screen.
-FINGER_TARGETS = ".lobby-cta, .lobby button, .pad button, .undo-only, .start-next"
+FINGER_TARGETS = (
+    ".lobby-cta, .lobby button, .pad button, .visit button.sum, .start-next"
+)
 PAD_KEYS = ".pad button"
 # The width of the scoreboard against its room, and every control that is smaller
 # than the card means it to be: finger targets, and whatever has a minimum size of

@@ -843,7 +843,7 @@ const TEXT = {
     any_double: "Beliebiges Double",
     any_treble: "Beliebiges Triple",
     killer_choose: "Wirf um deine Zahl",
-    killer_hunt: "Killer – triff die Doubles der anderen",
+    killer_hunt: "Killer – triff fremde Doubles",
     killer_life: "1 Leben",
     killer_lives: "{count} Leben",
     needs_players: "Killer braucht mindestens zwei Spieler",
@@ -1396,7 +1396,7 @@ const TEXT = {
     any_double: "Cualquier doble",
     any_treble: "Cualquier triple",
     killer_choose: "Lanza para conseguir tu número",
-    killer_hunt: "Killer – acierta los dobles de los demás",
+    killer_hunt: "Killer – a por los dobles ajenos",
     killer_life: "1 vida",
     killer_lives: "{count} vidas",
     needs_players: "Killer necesita al menos dos jugadores",
@@ -1946,8 +1946,8 @@ const TEXT = {
     start_score: "Score de départ",
     any_double: "N'importe quel double",
     any_treble: "N'importe quel triple",
-    killer_choose: "Lancez pour obtenir votre numéro",
-    killer_hunt: "Killer – touchez les doubles des autres",
+    killer_choose: "Lancez pour votre numéro",
+    killer_hunt: "Killer – touchez leurs doubles",
     killer_life: "1 vie",
     killer_lives: "{count} vies",
     needs_players: "Il faut au moins deux joueurs pour Killer",
@@ -2498,7 +2498,7 @@ const TEXT = {
     any_double: "Willekeurige dubbel",
     any_treble: "Willekeurige triple",
     killer_choose: "Gooi voor je nummer",
-    killer_hunt: "Killer – raak de dubbels van de anderen",
+    killer_hunt: "Killer – raak andermans dubbels",
     killer_life: "1 leven",
     killer_lives: "{count} levens",
     needs_players: "Killer heeft minstens twee spelers nodig",
@@ -7978,7 +7978,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .4em; min-height: 1.8em;
     font-size: min(1em, 10cqi);
   }
-  @container (max-width: 18em) { .player .route-line { min-height: calc(3.28em + 10px); } }
+  @container (max-width: 15em) { .player .route-line { min-height: calc(3.28em + 10px); } }
   .route .bed, .setup .bed { padding: .12em .55em; border-radius: 10px; border-width: 2px; }
   .details { font-size: clamp(12px, 1.9cqi, 24px); color: var(--ad-muted-text); font-variant-numeric: tabular-nums; }
   .player .details { align-self: stretch; container-type: inline-size; text-align: center; line-height: 1.4; }
@@ -8078,7 +8078,9 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .sum.confirm .cue { color: inherit; }
   /* A dart of the visit corrects with a tap; entered, corrected and bot darts are marked. */
   button.dart { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
-  @media (any-pointer: coarse) { .visit button.dart { min-height: 44px; } }
+  /* Every tile of the visit is as high as one a finger taps, so the row keeps its height
+     whether its darts and the last visit can be tapped or not. */
+  @media (any-pointer: coarse) { .visit > :is(.dart, .sum) { min-height: 44px; } }
   button.dart:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
   .visit .dart .cue {
     top: clamp(3px, 4cqi, 10px); right: clamp(3px, 4cqi, 10px); width: clamp(11px, 9cqi, 20px); height: clamp(11px, 9cqi, 20px);
@@ -8336,6 +8338,8 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   @media (max-height: 640px) {
     .scoreboard.full { --ad-pad: 16px; padding: 10px var(--ad-pad); gap: 8px; }
     .scoreboard.full .visit :is(.dart, .sum) { padding: 4px 6px; flex-direction: row; gap: 8px; }
+    /* The words and the score of the tile beside the darts side by side need its room. */
+    .scoreboard.full .visit { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(8.5em, .8fr); }
     .scoreboard.full .visit .dart .segment { font-size: clamp(14px, min(19cqi, 5vh), 40px); }
     .scoreboard.full .player { padding-block: 8px; }
   }
