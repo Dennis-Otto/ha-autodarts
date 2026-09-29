@@ -31,6 +31,9 @@ services:
       - homeassistant_config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
       - ../../custom_components/autodarts:/config/custom_components/autodarts:ro
+      # The blueprints of the repository: the scenario starts a game by voice, the
+      # demo shows them on the blueprints page.
+      - ../../blueprints/automation/autodarts:/config/blueprints/automation/autodarts:ro
       - ./:/e2e:ro
     healthcheck:
       test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:8123/api/onboarding >/dev/null || exit 1"]

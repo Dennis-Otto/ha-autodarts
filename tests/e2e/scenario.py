@@ -80,7 +80,13 @@ EXPECTED_LOGS = (
     # The WebSocket API logs the refused export of the reports step.
     "The export folder ../outside must not be hidden",
 )
-EXPECTED_TRACEBACK = "[custom_components.autodarts.local_coordinator] Full error:"
+EXPECTED_TRACEBACKS = (
+    "[custom_components.autodarts.local_coordinator] Full error:",
+    # Home Assistant's own Assist reads the words of numbers from a file in the event
+    # loop the first time a sentence of the voice blueprint has a number, and warns
+    # about itself with a stack.
+    "site-packages/unicode_rbnf/rbnf/",
+)
 MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
 CARD = MANIFEST.parent / "frontend" / "autodarts-card.js"
 
@@ -1437,6 +1443,48 @@ class Scenario:
         await self.service("number", "set_value", "practice_bot_level", value=0)
         await self.expect_states({"practice_bot_level": "0"})
 
+    async def say(self, text: str) -> str:
+        """What Assist answers to a sentence."""
+        result = await self.ws("conversation/process", text=text, language="en")
+        return result["response"]["speech"]["plain"]["speech"]
+
+    async def voice(self) -> None:
+        """The blueprint starts games from sentences in English and German, Assist says
+        what started or what was wrong, and its own commands stay its own."""
+        spoken = [
+            ("Start 501 for Alex and Sam", "Game on: 501 with Alex and Sam."),
+            (
+                "Starte das Spiel Doppeltraining",
+                "Game on: Doubles training with Alex and Sam.",
+            ),
+            (
+                "Play 501 for alex against the bot",
+                "Game on: 501 with Alex and the bot.",
+            ),
+            (
+                "Starte das Spiel Cricket für Alex und Sam",
+                "Game on: Cricket with Alex and Sam.",
+            ),
+        ]
+        for text, answer in spoken:
+            said = await self.say(text)
+            check(said == answer, f"Assist answered {said!r} to {text!r}")
+        await self.expect_states(
+            {"practice_game": "cricket", "practice_bot_level": "0"}
+        )
+        said = await self.say("Start the game Golfball for Alex")
+        check(
+            said.startswith('No game is called "Golfball"'), f"Unknown game: {said!r}"
+        )
+        # Sentences of other commands never reach the blueprint.
+        said = await self.say("Start the vacuum for 5 minutes")
+        check(
+            "Game on" not in said and "game" not in said,
+            f"Another command went to the blueprint: {said!r}",
+        )
+        await self.service("select", "select_option", "practice_game", option="off")
+        await self.expect_states({"practice_game": "off"})
+
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
         version = json.loads(MANIFEST.read_text())["version"]
@@ -1696,7 +1744,8 @@ class Scenario:
         tracebacks = [
             record
             for record in records
-            if "Traceback" in record and EXPECTED_TRACEBACK not in record
+            if "Traceback" in record
+            and not any(expected in record for expected in EXPECTED_TRACEBACKS)
         ]
         check(not tracebacks, f"Home Assistant log contains tracebacks: {tracebacks}")
 
@@ -1744,6 +1793,7 @@ async def main() -> None:
         await scenario.achievements()
         await scenario.match_summary()
         await scenario.play_comfort()
+        await scenario.voice()
         await scenario.card()
         await scenario.people()
         await scenario.gallery()
@@ -1762,7 +1812,8 @@ async def main() -> None:
         "exports, Golf, Tactics and a team match with start scores, an achievement "
         "with dart positions, a match "
         "summary, double out from the next leg, a corrected dart, darts entered by "
-        "hand with an undone visit, a match against the bot, dashboard card, players linked to "
+        "hand with an undone visit, a match against the bot, games started by voice, "
+        "dashboard card, players linked to "
         "persons, the highlight gallery in the media browser, a round robin "
         "tournament, private diagnostics, clean logs and removal."
     )

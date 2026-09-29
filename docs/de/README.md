@@ -78,7 +78,7 @@
       <h3>Automatisieren</h3>
       <ul>
         <li>Board-Ereignisse für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match, jede Bestleistung und mehr</li>
-        <li>Elf Blueprints: Lichtshow, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen und Routinen</li>
+        <li>Zwölf Blueprints: Lichtshow, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen und ein Spielstart per Sprache</li>
         <li>Jedes Spiel mit einer Aktion starten, auch per Sprache</li>
         <li>Online-Matches auf play.autodarts.io über eine optionale Brücke <i>(experimentell)</i></li>
       </ul>
@@ -143,7 +143,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](erste-schritte.md) führ
 | [Spiele und Regeln](spiele.md) | Alle Spiele im Überblick, vier Wege, eines zu starten, Matches, Teams, Handicaps, das Ausbullen, die Match-Zusammenfassung, Turniere und die Regeln von X01, den Cricket-Spielen, den Partyspielen und den Trainingsspielen |
 | [Anzeigetafel am Board](anzeigetafel.md) | Ein Tablet oder Fernseher neben dem Board: Einrichtung, Quer- und Hochformat, Spielauswahl, Turniere, Caller und Ruhemodus |
 | [Statistik und Spieler](statistik.md) | Trainingssessions, Bestleistungen, Trefferbild und Dart-Positionen, Fortschritt über die Zeit, Doubles, Spielerprofile, Erfolge, Trends, Bestenliste, Wochenbericht, Trainingskalender und Exporte |
-| [Automationen](automationen.md) | Elf Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele |
+| [Automationen](automationen.md) | Zwölf Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele |
 | [Online-Matches](online-matches.md) | Überwerfen, gewonnene Legs und Matches von Online-Matches als Board-Ereignisse, mit der Browser-Erweiterung Tools for Autodarts *(experimentell)* |
 
 ### Nachschlagen
@@ -205,6 +205,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig:
 | **Weekly report.** Deine Trainingswoche mit dem Trend deines 3-Dart-Averages, als Benachrichtigung. | [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Training report.** Deine Tageszusammenfassung mit dem 3-Dart-Average. | [![Blueprint „Training report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
 | **Board problem alert**, wenn das Board offline geht oder eine Kamera ausfällt, mit optionaler Entwarnung. | [![Blueprint „Board problem alert“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml) |
+| **Start a game by voice.** Sag Assist „Starte 501 für Alex und Sam“, auf Deutsch oder Englisch. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
 
 Die Blueprints sind auf Englisch beschriftet; ihre Texte, etwa die Ansagen, wählst du beim Anlegen selbst. Die [Anleitung zu Automationen](automationen.md) enthält deutsche Beispiele.
 

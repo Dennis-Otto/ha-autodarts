@@ -33,7 +33,7 @@ Autodarts für Home Assistant ist eine kostenlose Open-Source-Integration, die e
 | Spielen | Bis zu vier Spieler oder zwei Teams zu zweit, Handicap-Startpunkte, ein Bot von Stufe 20 bis 120, Turniere für drei bis acht Spieler |
 | Anzeigetafel | Eine Vollbild-Ansicht für Tablet oder Fernseher, mit Spielauswahl, Korrekturen, Caller und Ruhemodus |
 | Statistik | Bestleistungen, Trefferbilder der echten Dart-Positionen, Trends, Erfolge, Bestenliste, Wochenbericht und Exporte |
-| Zuhause | Sieben Dashboard-Karten, ein automatisches Dashboard und elf Blueprints, etwa eine Licht-Show beim 180er |
+| Zuhause | Sieben Dashboard-Karten, ein automatisches Dashboard und zwölf Blueprints, etwa eine Licht-Show beim 180er |
 | Sprachen | Englisch, Deutsch, Niederländisch, Französisch und Spanisch |
 | Qualität | 100 % Testabdeckung, in Docker gegen beide Board-Manager-Generationen getestet; alle Regeln der Home-Assistant-Qualitätsskala bis Platin (Selbsteinschätzung) |
 | Voraussetzungen | Home Assistant ab 2026.8 mit HACS; die getesteten Setups stehen unter [Unterstützte Geräte](README.md#unterstützte-geräte) |

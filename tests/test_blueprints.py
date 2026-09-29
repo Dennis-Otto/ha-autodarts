@@ -34,6 +34,7 @@ from yaml import safe_load
 
 from custom_components.autodarts.bot import Bot
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
+from custom_components.autodarts.services import _game_key
 
 from .local_helpers import (
     BLUEPRINTS,
@@ -1980,26 +1981,31 @@ async def test_practice_caller_names_the_score_to_leave_without_a_checkout(hass)
     [("docs/automations.md", "en"), ("docs/de/automationen.md", "de")],
 )
 async def test_the_voice_example_starts_every_game(hass, document, language):
-    """Every game, spoken as the practice game select names it, becomes its option."""
+    """Every game, spoken as the practice game select names it, starts that game;
+    the names become the players, and Assist says what the action answers."""
     text = (ROOT / document).read_text(encoding="utf-8")
     (example,) = [
         safe_load(block)
         for block in re.findall(r"```yaml\n(.*?)```", text, re.DOTALL)
         if "trigger: conversation" in block
     ]
-    variables, start = example["actions"][0]["variables"], example["actions"][1]
+    start, answer = example["actions"]
+    assert start["response_variable"] == "result"
+    assert answer == {"set_conversation_response": "{{ result.message }}"}
     translation = json.loads(
         (
             ROOT / "custom_components/autodarts/translations" / f"{language}.json"
         ).read_text(encoding="utf-8")
     )
     games = translation["entity"]["select"]["practice_game"]["state"]
+    names = {"en": "Dennis and Lea", "de": "Dennis und Lea"}[language]
     for option, name in games.items():
         if option == "off":
             continue
-        run = {"trigger": {"slots": {"game": name, "names": "Dennis"}}}
-        said = Template(variables["said"], hass).async_render(run, parse_result=False)
+        run = {"trigger": {"slots": {"game": name, "names": names}}}
         game = Template(start["data"]["game"], hass).async_render(
-            {**run, "said": said, "spoken": variables["spoken"]}, parse_result=False
+            run, parse_result=False
         )
-        assert game == option, name
+        assert await _game_key(hass, game) == option, name
+    players = Template(start["data"]["players"], hass).async_render(run)
+    assert players == ["Dennis", "Lea"]

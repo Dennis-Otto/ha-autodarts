@@ -532,8 +532,8 @@ Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skript
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
-| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles` | Das Spiel; Pflichtfeld |
-| `players` | 1–4 Namen | Spieler in Wurfreihenfolge; die Zahl der Namen legt die Spielerzahl fest |
+| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles` oder der Name eines Spiels | Das Spiel; Pflichtfeld. Auch ein Name, wie ihn die Spielauswahl zeigt, in jeder Sprache der Integration, unabhängig von Groß- und Kleinschreibung, Leer- und Satzzeichen: `Around the Clock`, `Bobs 27`, `Doppeltraining`. Der Anfang eines Namens genügt, wo er nur zu einem Spiel passt, etwa `Cut Throat` |
+| `players` | 1–4 Namen | Spieler in Wurfreihenfolge; die Zahl der Namen legt die Spielerzahl fest. Ein Name, den ein Spielerprofil schon hat, behält dessen Schreibweise, `alex` spielt also als Alex |
 | `legs` | 1–11 | Legs, die einen Satz gewinnen |
 | `sets` | 1–7 | Sätze, die das Match gewinnen |
 | `double_out` | `true`, `false` | X01-Legs auf einem Double oder dem Bullseye beenden |
@@ -586,6 +586,16 @@ data:
 ```
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht oder geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält, wenn Killer weniger als zwei Spieler hätte, wenn `teams` Teams ohne vier Spieler oder in einem anderen Spiel als X01 und den Cricket-Spielen verlangt, wenn vier Spieler dem Bot keinen Platz lassen, wenn Startpunkte nicht `0` oder 2–1001 sind, wenn es mehr Startpunkte als Plätze gibt oder bei Teams mehr als zwei, wenn Startpunkte von 3 auf Double-In und Double-Out treffen oder wenn die Bot-Stärke 1–19 oder über 120 ist. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
+
+**Antwort:** Mit `response_variable` antwortet die Aktion, statt abzubrechen, damit ein Sprachassistent sagen kann, was passiert ist. `started` ist `true` mit dem Schlüssel des Spiels in `game`, den benannten `players`, `bot` und der `message` „Game on: 501 mit Alex und Sam.“; oder `started` ist `false`, und `message` sagt, was nicht gepasst hat, in der Sprache von Home Assistant. Der Blueprint [Start a game by voice](automationen.md#start-a-game-by-voice) spricht die Nachricht aus.
+
+```yaml
+action: autodarts.start_game
+data:
+  game: Around the Clock
+  players: [alex, sam]
+response_variable: result
+```
 
 ### Dart korrigieren: `autodarts.correct_dart`
 

@@ -23,10 +23,11 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 | **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `photo_url`, `photo`, `image`, `message`, `score`, `checkout` and `who`. | [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off, an achievement and the winner of a tournament, and optionally during the takeout and in [online matches](online-matches.md). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Start a game by voice** | Starts a practice game when you tell Assist, for example "Start 501 for Alex and Sam", "Start the game Cricket for Alex" or "Play 501 against the bot", in English or German. Assist answers with the game and the players, or with what was wrong. | [![Import the start a game by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](../blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
 
-<img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the eleven Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="760">
+<img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the twelve Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="760">
 
 ### Which caller?
 
@@ -210,6 +211,28 @@ Your actions can use:
 | Also react to online matches | off | Also plays the actions for a bust, a won leg and a won match of an [online match](online-matches.md). A 180 and the takeout of your own darts come from your board anyway. |
 
 The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` or `board_clear`), `who` (the player's name, the word for the bot, or "Player 2"), `player`, `score` (of a 180), `checkout` (of a won leg) and `trigger.to_state.attributes` for every detail of the [board event](entities.md#board-events). See [light show with WLED and other lights](#light-show-with-wled-and-other-lights).
+
+### Start a game by voice
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Sentences | German and English | What you say to Assist. `{game}` is the game and `{players}` the players; parts in [brackets] are optional, (a\|b) means a or b. |
+| Bot level | 60 | The 3-dart average the bot plays when a sentence ends in "bot". |
+| Board | | The board to play on. Needed only with more than one board. |
+
+Say for example:
+
+- "Start 501 for Alex and Sam", "Play 301 with Alex, Sam and Kim" or "Start five hundred one"
+- "Start the game Cricket for Alex and Sam", "Play a game of Around the Clock"
+- "Start 501 for Alex against the bot", "Play the game Cricket against the bot"
+- in German "Starte 501 für Alex und Sam", "Starte das Spiel Doppeltraining" or "Spiele 501 gegen den Bot"
+
+Assist answers "Game on: 501 with Alex and Sam." in the language of Home Assistant, or says what was wrong, such as a game it does not know or Killer with one player.
+
+- **The game:** X01 is a number from 101 to 1001, as digits or spoken. Every other game follows the word "Spiel" or "game" and is named as the game list shows it, in any language of the integration: "Around the Clock", "Bob's 27", "Doubles training", "Doppeltraining". The beginning of a name is enough where it fits one game alone, such as "Cut Throat".
+- **The players:** one word each, joined by "and", "und" or a comma. A player who already has a profile keeps its spelling, even when the voice assistant writes the name in lower case. Without players, the players stay as they are.
+- **The bot:** a sentence that ends in "bot" plays against the bot, which takes a seat after the players; any other sentence starts the game without the bot.
+- **Why a number or the word "game":** Assist hears the sentences of an automation before its own commands. A sentence such as "Start {game} for {players}" would also catch "Start a timer for 5 minutes", and the timer would never run. With a number or the word "game", your other commands stay as they are.
 
 ### Dart caller messages
 
@@ -691,29 +714,21 @@ mode: queued
 
 ### Start a game by voice
 
-With the Assist voice assistant, one sentence starts a game. `{names}` takes the rest of the sentence, for example "Dennis and Lea" or "Dennis, Lea and Sam". The game is spoken as words, so the automation turns "Halve it", "Around the Clock" or "Bob's 27" into the names of the action: `halve_it`, `around_the_clock` and `bobs_27`. Five games are named differently from how they are spoken; the automation looks them up in `spoken`.
+The blueprint [Start a game by voice](#start-a-game-by-voice) does this with sentences in English and German. For sentences of your own, let the action answer: it knows the games by their names in every language of the integration, and with `response_variable` it tells what started, or what was wrong, in words Assist can say. Keep a fixed word such as "game" before `{game}`, so the sentence never catches another command of Assist.
 
 ```yaml
 alias: Darts - start by voice
 triggers:
   - trigger: conversation
     command:
-      - "start {game} for {names}"
+      - "let's play [a] game [of] {game} with {names}"
 actions:
-  - variables:
-      said: >-
-        {{ trigger.slots.game | lower | replace("'", "") | replace("-", " ") }}
-      spoken:
-        cut throat cricket: cut_throat
-        doubles training: doubles
-        checkout training: checkout
-        singles training: singles
-        121 checkout: checkout_121
   - action: autodarts.start_game
     data:
-      game: "{{ spoken.get(said, said | replace(' ', '_')) }}"
-      players: "{{ (trigger.slots.names | replace(', ', ' and ')).split(' and ') }}"
-  - set_conversation_response: "Game on, {{ trigger.slots.names }}!"
+      game: "{{ trigger.slots.game }}"
+      players: "{{ trigger.slots.names | regex_replace(' and ', ' ') | regex_findall('[^ ]+') }}"
+    response_variable: result
+  - set_conversation_response: "{{ result.message }}"
 mode: single
 ```
 

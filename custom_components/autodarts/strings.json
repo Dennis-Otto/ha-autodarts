@@ -840,6 +840,21 @@
     },
     "export_limit": {
       "message": "{count} exports were written in the last hour, as many as the integration writes. Try again later."
+    },
+    "unknown_game": {
+      "message": "No game is called \"{game}\". Name one of the practice games, such as 501, Cricket or Around the Clock."
+    },
+    "voice_game_on": {
+      "message": "Game on: {game} with {players}."
+    },
+    "voice_game_on_alone": {
+      "message": "Game on: {game}."
+    },
+    "voice_and": {
+      "message": "and"
+    },
+    "voice_bot": {
+      "message": "the bot"
     }
   },
   "issues": {
@@ -900,7 +915,7 @@
         },
         "game": {
           "name": "Game",
-          "description": "X01 from 101 to 1001 points, a Cricket game, a party game or a training game."
+          "description": "X01 from 101 to 1001 points, a Cricket game, a party game or a training game. A name as the game list shows it, in any language of the integration, works too, such as \"Around the Clock\"."
         },
         "players": {
           "name": "Players",
