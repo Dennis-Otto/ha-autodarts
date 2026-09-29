@@ -68,11 +68,11 @@ test("a team match shows two teams with the partner at the board", () => {
   assert.match(html.main, /<div class="players n2 teams">/);
   assert.match(
     html.main,
-    /<div class="player active" aria-current="true"><div class="name">Alex &#38; Kim<\/div><div class="big">141<\/div><div class="route"><span class="bed">T20<\/span>/
+    /<div class="player active" aria-current="true"><div class="name">Alex &#38; Kim<\/div><div class="big">141<\/div><div class="route"><div class="route-line"><span class="bed">T20<\/span>/
   );
   assert.match(html.main, /<div class="members"><span>Alex Ø 60\.5<\/span> · <b>Kim Ø 45\.0<\/b><\/div>/);
   assert.match(html.main, /<div class="name">Sam &#38; score_player 4<\/div><div class="big">201<\/div>/);
-  assert.match(html.main, /<div class="details">score_legs 1<\/div>/);
+  assert.match(html.main, /<div class="details"><span class="details-line">score_legs 1<\/span><\/div>/);
   // Everybody starts from 301: no start scores to show.
   assert.doesNotMatch(html.main, /badge/);
   // The live card lists the teams and says who throws.
@@ -280,7 +280,7 @@ test("the new training games show their target, points and beds", () => {
     /drill_round <b>3 \/ 40<\/b><\/span><span>drill_visit <b>1 \/ 2<\/b><\/span><span><b>5<\/b> drill_points/
   );
   const caught = drill("unknown", { drill: "catch_40", finished: true, score: 88, progress: 40, targets: 40 });
-  assert.match(board(caught).main, /<div class="big">✓<\/div><div class="route"><span class="note won">drill_bobs_done<\/span>/);
+  assert.match(board(caught).main, /<div class="big">✓<\/div><div class="route"><div class="route-line"><span class="note won">drill_bobs_done<\/span>/);
   assert.match(board(caught).main, /<b>88<\/b> drill_points/);
   const empty = drill("unknown", { drill: "catch_40", finished: true });
   assert.match(board(empty).main, /<b>0<\/b> drill_points/);
@@ -429,13 +429,13 @@ test("a checkout training without a route shows the setup, aims at it and calls 
   assert.deepEqual(view.setup, { route: ["T20", "T19", "S10"], leave: 32 });
   assert.match(
     board(ladder).main,
-    /<div class="big">159<\/div><div class="route"><span class="setup" title="setup_hint"><span class="bed">T20<\/span><span class="bed">T19<\/span><span class="bed">S10<\/span><span class="leave">setup_leave<\/span><\/span><\/div>/
+    /<div class="big">159<\/div><div class="route"><div class="route-line"><span class="setup" title="setup_hint"><span class="bed">T20<\/span><span class="bed">T19<\/span><span class="bed">S10<\/span><span class="leave">setup_leave<\/span><\/span><\/div>/
   );
   // The board outlines the setup's first dart, as in X01.
   assert.deepEqual(drillBeds(view), ["T20"]);
   // A route wins over a setup, a bust over both; an unusable setup is none.
   const routed = drill("81", { drill: "checkout", remaining: 81, checkout: "T15 D18", setup: { route: "S1", leave: 80 } });
-  assert.match(board(routed).main, /<div class="route"><span class="bed">T15<\/span><span class="bed">D18<\/span><\/div>/);
+  assert.match(board(routed).main, /<div class="route"><div class="route-line"><span class="bed">T15<\/span><span class="bed">D18<\/span><\/div><\/div>/);
   const bust = drill("159", { drill: "checkout", remaining: 159, bust: true, setup: { route: "T20", leave: 99 } });
   assert.match(board(bust).main, /<span class="note bust">bust<\/span>/);
   assert.equal(drillView(drill("159", { drill: "checkout", setup: { route: "Z9", leave: 1 } }).drill).setup, null);

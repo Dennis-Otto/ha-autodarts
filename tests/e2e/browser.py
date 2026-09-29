@@ -6,6 +6,7 @@ Runs in the Playwright container on the demo's Compose network (see browser.sh).
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import urllib.request
@@ -81,6 +82,7 @@ SCOREBOARD_STATE = f"""
       [...row.children].map((cell) => cell.textContent)
     ),
     sum: text('.sum .value'),
+    tile: text('.sum .muted'),
     full: root.querySelector('.scoreboard').classList.contains('full'),
   }};
 }}
@@ -690,12 +692,16 @@ def scoreboard(browser: Browser) -> None:
             ["select", "select_option", "practice_game", {"option": option}],
         )
 
-    # Between games, the visit score is the big number.
+    # Between games, the visit score is the big number, and the last visit is beside
+    # the darts.
     takeout()
     control({"event": "Throw detected", "throws": [T20]})
     state = wait("state.big === '60'")
     check(
-        state["full"] and state["darts"] == ["T20", "–", "–"] and state["sum"] is None,
+        state["full"]
+        and state["darts"] == ["T20", "–", "–"]
+        and state["tile"] == "Last"
+        and state["sum"] is not None,
         f"Scoreboard between games {state}",
     )
     takeout()
@@ -1108,7 +1114,9 @@ def tournament(browser: Browser) -> None:
 TABLET = {"width": 800, "height": 480}
 # Controls the card sizes for a finger; each is at least 44 px high, the keys of the
 # pad at least 40 px, so that the pad fits beside the scores of a short screen.
-FINGER_TARGETS = ".lobby-cta, .lobby button, .pad button, .undo-only, .start-next"
+FINGER_TARGETS = (
+    ".lobby-cta, .lobby button, .pad button, .visit button.sum, .start-next"
+)
 PAD_KEYS = ".pad button"
 # The width of the scoreboard against its room, and every control that is smaller
 # than the card means it to be: finger targets, and whatever has a minimum size of
@@ -2027,6 +2035,184 @@ def screen_views(
     return found
 
 
+# The numbers clockwise from the top, to place a dart in the middle of its bed.
+ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5]
+
+
+def aimed(name: str) -> dict:
+    """A detected dart in the middle of the named bed: S17, D5, T20, 25 or BULL."""
+    if name in ("25", "BULL"):
+        return {
+            "segment": {
+                "name": "25" if name == "25" else "Bull",
+                "number": 25,
+                "multiplier": 1 if name == "25" else 2,
+                "bed": "Single" if name == "25" else "Double",
+            },
+            "coords": {"x": -0.06, "y": 0.07}
+            if name == "25"
+            else {"x": 0.01, "y": -0.02},
+        }
+    number, multiplier = int(name[1:]), "SDT".index(name[0]) + 1
+    radius = {1: 0.79, 2: 0.976, 3: 0.606}[multiplier]
+    angle = math.radians(90 - ORDER.index(number) * 18)
+    return {
+        "segment": {"name": name, "number": number, "multiplier": multiplier},
+        "coords": {
+            "x": round(radius * math.cos(angle), 3),
+            "y": round(radius * math.sin(angle), 3),
+        },
+    }
+
+
+# Heights of every card on the page and of the scoreboard's parts, which fill a
+# full-height screen whatever they show.
+HEIGHTS = """
+() => {
+  const cards = [];
+  (function collect(root) {
+    root.querySelectorAll('*').forEach((el) => {
+      if (el.tagName.startsWith('AUTODARTS-') && el.shadowRoot?.querySelector('ha-card')) cards.push(el);
+      if (el.shadowRoot) collect(el.shadowRoot);
+    });
+  })(document);
+  const height = (el) => Math.round(el.getBoundingClientRect().height);
+  const found = {};
+  cards.forEach((card, index) => {
+    const name = `${card.localName} ${index + 1}`;
+    found[name] = height(card);
+    // Parts by their first class and place, which stay while their state changes.
+    const root = card.shadowRoot;
+    for (const selector of ['.main > *', '.scoreboard > .visit', '.practice', '.player']) {
+      root.querySelectorAll(selector).forEach((part, place) => {
+        found[`${name} ${part.classList[0]} ${place + 1}`] = height(part);
+      });
+    }
+  });
+  return found;
+}
+"""
+STEADY_SCREENS = (
+    ("small phone", {"width": 360, "height": 640}),
+    ("tablet", {"width": 768, "height": 1024}),
+    ("laptop", {"width": 1280, "height": 800}),
+    ("27-inch touch monitor", {"width": 2560, "height": 1440}),
+)
+# The live card beside the scoreboard, the full-height scoreboard and the live card
+# with its game.
+STEADY_VIEWS = (
+    "autodarts-demo/hero",
+    "autodarts-auto/scoreboard",
+    "autodarts-auto/live",
+)
+# Games from their start to the last dart: the visits, dart by dart. X01 shows routes,
+# a setup with what it leaves, a bust and the game shot; a match of legs and sets
+# its details; Killer long notes on narrow tiles.
+STEADY_GAMES = (
+    ("off", [], {}, ["T20 S5 S1", "T19 T19"]),
+    (
+        "301",
+        ["Alex", "Sam"],
+        {},
+        ["T20 T20 T20", "T20 S20 S5", "T20 T20", "S20 S20 S7", "T20 S11", "S1", "BULL"],
+    ),
+    (
+        "501",
+        ["Alex", "Sam"],
+        {"legs": 3, "sets": 2},
+        ["T20 T20 T20", "T20 S20 S5", "S1 S1 S1"],
+    ),
+    ("cricket", ["Alex", "Sam"], {}, ["T20 T20 S20", "T19 T19 T19", "S18 S18 S18"]),
+    ("tactics", ["Alex", "Sam"], {}, ["T20 T19 T18", "S10 S11 S12"]),
+    (
+        "killer",
+        ["Alex", "Sam", "Kim"],
+        {},
+        ["D5 S5 S1", "D12 S12 S3", "D17 S1 S1", "D12 D12 S5"],
+    ),
+    ("checkout_121", ["Alex"], {}, ["T20 S11 BULL", "T20 T20 D20"]),
+)
+
+
+def steady_heights(browser: Browser) -> None:
+    """No card moves while a game goes on: from its start to its last dart, the cards
+    and the scoreboard's parts keep their heights on every screen, in German with its
+    long words. Only a new game and the match summary after it may change them."""
+    found: list[str] = []
+    for screen, size in STEADY_SCREENS:
+        context = browser.new_context(locale="de-DE", viewport=size)
+        pages = []
+        for view in STEADY_VIEWS:
+            page = context.new_page()
+            page.add_init_script(CAPTURE_ERRORS)
+            page.goto(f"{HA}/{view}")
+            page.wait_for_function(CARDS_DRAWN, timeout=30000)
+            pages.append((view, page))
+        control_page = pages[0][1]
+
+        def heights() -> dict[tuple[str, str], int]:
+            return {
+                (view, part): value
+                for view, page in pages
+                for part, value in page.evaluate(HEIGHTS).items()
+            }
+
+        for game, players, options, visits in STEADY_GAMES:
+            control({"status": "Takeout in progress", "event": "Takeout started"})
+            control({"status": "Throw", "event": "Takeout finished", "throws": []})
+            if players:
+                control_page.evaluate(
+                    CALL_ACTION,
+                    ["start_game", {"game": game, "players": players, **options}],
+                )
+            else:
+                control_page.evaluate(
+                    CALL_SERVICE,
+                    ["select", "select_option", "practice_game", {"option": "off"}],
+                )
+            control_page.wait_for_timeout(1500)
+            start = heights()
+
+            def compare(moment: str) -> None:
+                control_page.wait_for_timeout(800)
+                for key, value in heights().items():
+                    before = start.get(key)
+                    if before is None or abs(before - value) > 1:
+                        found.append(
+                            f"{screen} · {game} · {moment} · {key[0]} {key[1]}: {before} → {value}"
+                        )
+
+            for number, visit in enumerate(visits, 1):
+                darts = visit.split()
+                for count in range(1, len(darts) + 1):
+                    thrown = [aimed(name) for name in darts[:count]]
+                    control({"event": "Throw detected", "throws": thrown})
+                    compare(f"visit {number}: {' '.join(darts[:count])}")
+                # The takeout after the game shot shows the match summary.
+                if number < len(visits):
+                    control(
+                        {"status": "Takeout in progress", "event": "Takeout started"}
+                    )
+                    control(
+                        {"status": "Throw", "event": "Takeout finished", "throws": []}
+                    )
+                    compare(f"visit {number} pulled")
+        control({"status": "Takeout in progress", "event": "Takeout started"})
+        control({"status": "Throw", "event": "Takeout finished", "throws": []})
+        control_page.evaluate(
+            CALL_SERVICE,
+            ["select", "select_option", "practice_game", {"option": "off"}],
+        )
+        for view, page in pages:
+            errors = page_errors(page, [])
+            found.extend(
+                f"{screen} · {view}: console problem {error}" for error in errors
+            )
+        context.close()
+        print(f"  {screen}: {len(found)} changes so far", flush=True)
+    check(not found, "Heights that changed during a game:\n" + "\n".join(found[:40]))
+
+
 def caller(browser: Browser) -> None:
     """The caller stays silent until a tap switches it on."""
     page, problems = open_view(
@@ -2244,6 +2430,7 @@ def main() -> None:
             ("tablet screen", lambda: tablet_screen(browser)),
             ("touch screens", lambda: touch_screens(browser)),
             ("every screen size", lambda: screens(browser)),
+            ("steady heights", lambda: steady_heights(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
             ("live card editor", lambda: editor(browser, rows=7)),
@@ -2304,7 +2491,8 @@ def main() -> None:
         "match summary, its caller, new game screen, a corrected dart, the keypad "
         "and a match against the bot, a tournament, the screens on an 800 x 480 "
         "tablet and idle mode with reduced motion, touch screens driven by taps, every "
-        "view on eight screen sizes both ways round, the generated "
+        "view on eight screen sizes both ways round, cards that keep their heights "
+        "through a game, the generated "
         "dashboard, the players export, all seven card forms, the strategy editor, "
         "light theme and the cards and entity texts in Dutch, French and Spanish."
     )
