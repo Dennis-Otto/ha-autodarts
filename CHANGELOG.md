@@ -2,6 +2,23 @@
 
 All notable changes of the Autodarts integration. The complete notes of every version, with each pull request, are on the [releases page](https://github.com/Dennis-Otto/ha-autodarts/releases); what comes next is in the [roadmap](docs/roadmap.md). Versions follow [Semantic Versioning](https://semver.org/).
 
+## 1.8.1
+
+### Fixed
+
+- **Nothing moves while a game goes on:** the scoreboard's tiles grew and shrank with what they showed: the average after the first dart, a route or a setup that took another line on a narrow tile, the points under a thrown dart, and *Undo last visit* as a row of its own after every takeout, which also shrank the numbers of a full-height scoreboard. Every tile, the visit and the Cricket chalkboard now keep their height from the start of a game to its last dart, on every screen from a 360 pixel phone to a 27 inch monitor, and the new browser step *steady heights* keeps it so (#119).
+- **The status** keeps the width of its longest words during a game, so *Remove your darts* no longer pushes the scoreboard's buttons onto another line on a phone.
+- **Training games:** the checkout rate and the best show a dash until they are known, and a narrow screen lays the facts out in columns; the live card's training head has a line for the game and one for what it says.
+
+### Changed
+
+- **Undo the last visit:** the tile beside the darts shows the last visit while the board is empty, between games too, with a curved arrow where a tap can take it back; a second tap on the red *Undo?* does it. The button below the visit is gone.
+- **Killer notes** are shorter in German, Spanish, French and Dutch, so they fit one line.
+
+### Documentation
+
+- The README's animation is recorded anew with tiles that hold still, and the development guide has the rule that nothing moves during a game.
+
 ## 1.8.0
 
 ### New
