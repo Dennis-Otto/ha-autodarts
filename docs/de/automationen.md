@@ -23,12 +23,13 @@ Blueprints sind fertige Automationen. Importieren, Board und Geräte auswählen,
 | **Weekly report** | Schickt deine [Trainingswoche](entitaeten.md#wochenbericht), wenn das Board sie beendet, standardmäßig montags um Mitternacht: Darts, Trainingszeit, Sessions, den 3-Dart-Average und seine Veränderung zur Vorwoche, beste Aufnahme, 180er, Checkout-Quote, Serie und neue Bestleistungen. Die Nachricht ist eine Vorlage; ohne eigene Aktionen erscheint der Bericht in den Benachrichtigungen von Home Assistant. | [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Macht ein Bild mit einer Board-Kamera nach einer Aufnahme ab 180 Punkten (einstellbar) oder einem Checkout im Übungsspiel, solange die Darts noch im Board stecken. Es speichert das Bild in der [Highlight-Galerie](#highlight-galerie) und führt deine Aktionen aus, die `photo_url`, `photo`, `image`, `message`, `score`, `checkout` und `who` nutzen können. | [![Blueprint „Highlight photo“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel, einem gewonnenen Ausbullen, einem Erfolg und dem Sieger eines Turniers, auf Wunsch auch bei der Entnahme und in [Online-Matches](online-matches.md). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Start a game by voice** | Startet ein Übungsspiel, wenn du es Assist sagst, etwa „Starte 501 für Alex und Sam“, „Starte das Spiel Cricket für Alex“ oder „Spiele 501 gegen den Bot“, auf Deutsch oder Englisch. Assist antwortet mit Spiel und Spielern oder mit dem, was nicht gepasst hat. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
 
 Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](../../blueprints/automation/autodarts) ein. Um einen früher importierten Blueprint zu aktualisieren, importierst du ihn über sein Menü auf der Blueprint-Seite erneut; deine Automationen behalten ihre Einstellungen.
 
 Die Blueprints sind auf Englisch beschriftet; ihre Texte kannst du beim Anlegen frei wählen.
 
-<img src="../images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den elf Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
+<img src="../images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den zwölf Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
 
 ### Welcher Caller?
 
@@ -212,6 +213,28 @@ Deine Aktionen können nutzen:
 | Also react to online matches | aus | Spielt auch die Aktionen für Überwerfen, ein gewonnenes Leg und ein gewonnenes Match eines [Online-Matches](online-matches.md). Eine 180 und die Entnahme deiner eigenen Darts kommen sowieso von deinem Board. |
 
 Die Aktionen können `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` oder `board_clear`), `who` (der Name des Spielers, das Wort für den Bot oder „Player 2“), `player`, `score` (einer 180), `checkout` (eines gewonnenen Legs) und `trigger.to_state.attributes` für alle Details des [Board-Ereignisses](entitaeten.md#board-ereignisse) nutzen. Siehe [Lichtshow mit WLED und anderem Licht](#lichtshow-mit-wled-und-anderem-licht).
+
+### Start a game by voice
+
+| Einstellung | Standard | Was sie bewirkt |
+| --- | --- | --- |
+| Sentences | Deutsch und Englisch | Was du zu Assist sagst. `{game}` ist das Spiel und `{players}` die Spieler; Teile in [Klammern] sind optional, (a\|b) heißt a oder b. |
+| Bot level | 60 | Der 3-Dart-Average, den der Bot spielt, wenn ein Satz auf „Bot“ endet. |
+| Board | | Das Board, auf dem gespielt wird. Nur bei mehr als einem Board nötig. |
+
+Sag zum Beispiel:
+
+- „Starte 501 für Alex und Sam“, „Spiele 301 mit Alex, Sam und Kim“ oder „Starte fünfhunderteins“
+- „Starte das Spiel Cricket für Alex und Sam“, „Spiele das Spiel Around the Clock“
+- „Starte 501 für Alex gegen den Bot“, „Spiele das Spiel Cricket gegen den Bot“
+- auf Englisch „Start 501 for Alex and Sam“, „Start the game Doubles training“ oder „Play 501 against the bot“
+
+Assist antwortet „Game on: 501 mit Alex und Sam.“ in der Sprache von Home Assistant oder sagt, was nicht gepasst hat, etwa ein Spiel, das es nicht kennt, oder Killer mit einem Spieler.
+
+- **Das Spiel:** X01 ist eine Zahl von 101 bis 1001, als Ziffern oder gesprochen. Jedes andere Spiel folgt auf das Wort „Spiel“ oder „game“ und heißt so, wie die Spielauswahl es zeigt, in jeder Sprache der Integration: „Around the Clock“, „Bob's 27“, „Doppeltraining“, „Doubles training“. Der Anfang eines Namens genügt, wo er nur zu einem Spiel passt, etwa „Cut Throat“.
+- **Die Spieler:** je ein Wort, verbunden mit „und“, „and“ oder einem Komma. Ein Spieler, der schon ein Profil hat, behält dessen Schreibweise, auch wenn der Sprachassistent den Namen kleinschreibt. Ohne Spieler bleiben die Spieler, wie sie sind.
+- **Der Bot:** Ein Satz, der auf „Bot“ endet, spielt gegen den Bot, der nach den Spielern einen Platz bekommt; jeder andere Satz startet das Spiel ohne Bot.
+- **Warum eine Zahl oder das Wort „Spiel“:** Assist hört die Sätze einer Automation vor seinen eigenen Befehlen. Ein Satz wie „Starte {game} für {players}“ würde auch „Starte einen Timer für 5 Minuten“ abfangen, und der Timer liefe nie los. Mit einer Zahl oder dem Wort „Spiel“ bleiben deine anderen Befehle, wie sie sind.
 
 ### Deutscher Dart-Caller
 
@@ -693,29 +716,21 @@ mode: queued
 
 ### Spiel per Sprache starten
 
-Mit dem Sprachassistenten Assist startet ein Satz das Spiel. `{names}` nimmt den Rest des Satzes auf, etwa „Dennis und Lea“ oder „Dennis, Lea und Sam“. Das Spiel kommt als gesprochene Wörter an, deshalb macht die Automation aus „Halve it“, „Around the Clock“ oder „Bob's 27“ die Namen der Aktion: `halve_it`, `around_the_clock` und `bobs_27`. Fünf Spiele heißen in der Aktion anders, als man sie ausspricht; die schlägt die Automation in `spoken` nach.
+Der Blueprint [Start a game by voice](#start-a-game-by-voice) macht das mit Sätzen auf Deutsch und Englisch. Für eigene Sätze lass die Aktion antworten: Sie kennt die Spiele unter ihren Namen in jeder Sprache der Integration und sagt mit `response_variable`, was gestartet ist oder was nicht gepasst hat, in Worten, die Assist aussprechen kann. Setze ein festes Wort wie „Spiel“ vor `{game}`, damit der Satz nie einen anderen Befehl von Assist abfängt.
 
 ```yaml
 alias: Darts – per Sprache starten
 triggers:
   - trigger: conversation
     command:
-      - "starte {game} für {names}"
+      - "lass uns [das] Spiel {game} mit {names} spielen"
 actions:
-  - variables:
-      said: >-
-        {{ trigger.slots.game | lower | replace("'", "") | replace("-", " ") }}
-      spoken:
-        cut throat cricket: cut_throat
-        doppeltraining: doubles
-        checkout training: checkout
-        singles training: singles
-        121 checkout: checkout_121
   - action: autodarts.start_game
     data:
-      game: "{{ spoken.get(said, said | replace(' ', '_')) }}"
-      players: "{{ (trigger.slots.names | replace(', ', ' und ')).split(' und ') }}"
-  - set_conversation_response: "Game on, {{ trigger.slots.names }}!"
+      game: "{{ trigger.slots.game }}"
+      players: "{{ trigger.slots.names | regex_replace(' und ', ' ') | regex_findall('[^ ]+') }}"
+    response_variable: result
+  - set_conversation_response: "{{ result.message }}"
 mode: single
 ```
 

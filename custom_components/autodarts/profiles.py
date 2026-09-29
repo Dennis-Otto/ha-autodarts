@@ -150,6 +150,12 @@ class Profiles:
         # "a\x00b" with names in a fixed order -> wins of a and of b.
         self.head_to_head: dict[str, list[int]] = {}
 
+    def spelled(self, name: str) -> str:
+        """A name as its player's profile spells it, such as Alex for alex; a new
+        name as it is."""
+        profile = self.players.get(_key(name))
+        return profile.name if profile else name
+
     def _profile(self, name: str | None) -> Profile | None:
         name = clean_name(name) if name else ""
         if not name:

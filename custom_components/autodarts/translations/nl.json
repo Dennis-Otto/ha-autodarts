@@ -840,6 +840,21 @@
     },
     "export_limit": {
       "message": "In het afgelopen uur zijn {count} exports geschreven, meer schrijft de integratie niet. Probeer het later opnieuw."
+    },
+    "unknown_game": {
+      "message": "Geen spel heet ‘{game}’. Noem een van de oefenspellen, zoals 501, Cricket of Around the Clock."
+    },
+    "voice_game_on": {
+      "message": "Game on: {game} met {players}."
+    },
+    "voice_game_on_alone": {
+      "message": "Game on: {game}."
+    },
+    "voice_and": {
+      "message": "en"
+    },
+    "voice_bot": {
+      "message": "de bot"
     }
   },
   "issues": {
@@ -900,7 +915,7 @@
         },
         "game": {
           "name": "Spel",
-          "description": "X01 van 101 tot 1001 punten, een Cricket-spel, een partyspel of een trainingsspel."
+          "description": "X01 van 101 tot 1001 punten, een Cricket-spel, een partyspel of een trainingsspel. Ook een naam zoals de spellijst hem toont, in elke taal van de integratie, werkt, zoals ‘Around the Clock’."
         },
         "players": {
           "name": "Spelers",

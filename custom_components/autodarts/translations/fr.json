@@ -840,6 +840,21 @@
     },
     "export_limit": {
       "message": "{count} exports ont été écrits au cours de la dernière heure, le maximum pour l'intégration. Réessayez plus tard."
+    },
+    "unknown_game": {
+      "message": "Aucun jeu ne s'appelle «\u00a0{game}\u00a0». Nommez un des jeux d'entraînement, par exemple 501, Cricket ou Around the Clock."
+    },
+    "voice_game_on": {
+      "message": "Game on\u00a0: {game} avec {players}."
+    },
+    "voice_game_on_alone": {
+      "message": "Game on\u00a0: {game}."
+    },
+    "voice_and": {
+      "message": "et"
+    },
+    "voice_bot": {
+      "message": "le bot"
     }
   },
   "issues": {
@@ -900,7 +915,7 @@
         },
         "game": {
           "name": "Jeu",
-          "description": "X01 de 101 à 1001 points, un jeu de Cricket, un jeu de soirée ou un jeu d'entraînement."
+          "description": "X01 de 101 à 1001 points, un jeu de Cricket, un jeu de soirée ou un jeu d'entraînement. Un nom tel que la liste des jeux l'affiche, dans une langue de l'intégration, convient aussi, par exemple «\u00a0Around the Clock\u00a0»."
         },
         "players": {
           "name": "Joueurs",

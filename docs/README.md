@@ -20,7 +20,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 | [Games and rules](games.md) | Every game at a glance, four ways to start one, matches, the match summary, teams, handicaps, the bull-off, tournaments and the rules of X01, the Cricket games, the party games and the training games |
 | [Scoreboard at the board](scoreboard.md) | A tablet or TV next to the board: setup, landscape and portrait, the new game screen, tournaments, the caller and idle mode |
 | [Statistics and players](statistics.md) | Training sessions, personal bests, the heatmap and dart positions, progress over time, doubles, player profiles, achievements, trends and grouping, the leaderboard, the weekly report, the training calendar and exports |
-| [Automations](automations.md) | Eleven blueprints, their settings, board events and ready-to-use examples |
+| [Automations](automations.md) | Twelve blueprints, their settings, board events and ready-to-use examples |
 | [Online matches](online-matches.md) | Busts, won legs and matches of online matches as board events, with the browser extension Tools for Autodarts *(experimental)* |
 
 ## Reference

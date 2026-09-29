@@ -39,8 +39,6 @@ async def invalid(hass, service: str, **data) -> ServiceValidationError:
 @pytest.mark.parametrize(
     "data",
     [
-        {"game": "401"},
-        {"game": "Cricket"},
         {"game": "501", "players": []},
         {"game": "501", "players": ["A"] * (MAX_PLAYERS + 1)},
         {"game": "501", "players": [LONGEST + "x"]},

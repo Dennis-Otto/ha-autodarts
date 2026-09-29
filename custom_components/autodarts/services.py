@@ -4,6 +4,7 @@ correct and enter darts, pass the turn, undo a visit, and more."""
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Mapping
 from typing import Any
 
@@ -23,6 +24,7 @@ from homeassistant.helpers.service import (
     async_get_config_entry,
     async_register_admin_service,
 )
+from homeassistant.helpers.translation import async_get_translations
 
 from .bot import BOARD_MM, bed_name, segment_at, valid_level
 from .const import DOMAIN
@@ -74,10 +76,17 @@ START_SCORES = vol.All(cv.ensure_list, [vol.Coerce(int)])
 BED = vol.All(cv.string, vol.Length(min=1, max=255))
 
 
+# The languages of the integration: a game's name in any of them names the game.
+LANGUAGES = ("en", "de", "es", "fr", "nl")
+# A game's name as a voice assistant hears it is never longer.
+GAME_TEXT = 64
+
 START_GAME_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
-        vol.Required("game"): vol.All(cv.string, vol.In(GAME_OPTIONS)),
+        vol.Required("game"): vol.All(
+            vol.Coerce(str), vol.Length(min=1, max=GAME_TEXT)
+        ),
         vol.Optional("players"): vol.All(
             cv.ensure_list,
             [vol.All(cv.string, vol.Length(max=NAME_LENGTH))],
@@ -266,6 +275,65 @@ def _dart_at(
     return found, position
 
 
+def _plain(text: str) -> str:
+    """A name as it is spoken: without case, spaces and punctuation."""
+    return re.sub(r"[\W_]+", "", text.casefold())
+
+
+async def _game_key(hass: HomeAssistant, game: str) -> str:
+    """The game an action names: its key, such as 501 or around_the_clock, or its
+    name in a language of the integration as a voice assistant hears it, such as
+    "Around the Clock", "Bobs 27" or "Doppeltraining". The beginning of a name
+    is enough where it fits one game alone, such as "Cut Throat"."""
+    if game in GAME_OPTIONS:
+        return game
+    names = {key: {_plain(key)} for key in GAME_OPTIONS}
+    for language in LANGUAGES:
+        texts = await async_get_translations(hass, language, "entity", {DOMAIN})
+        for key in GAME_OPTIONS:
+            # Home Assistant fills a missing translation with the English one.
+            name = texts[f"component.{DOMAIN}.entity.select.practice_game.state.{key}"]
+            names[key].add(_plain(name))
+    wanted = _plain(game)
+    same = {key for key, spoken in names.items() if wanted in spoken}
+    begun = {
+        key
+        for key, spoken in names.items()
+        if len(wanted) >= 3 and any(name.startswith(wanted) for name in spoken)
+    }
+    for found in (same, begun):
+        if len(found) == 1:
+            return found.pop()
+    raise _invalid("unknown_game", game=game)
+
+
+async def _spoken(hass: HomeAssistant, key: str, **placeholders: str) -> str:
+    """A message of the integration in the language of Home Assistant, for a voice
+    assistant to say; English where the language lacks it."""
+    texts = await async_get_translations(
+        hass, hass.config.language, "exceptions", {DOMAIN}
+    )
+    text = texts.get(f"component.{DOMAIN}.exceptions.{key}.message", key)
+    return text.format(**placeholders) if placeholders else text
+
+
+async def _game_on(hass: HomeAssistant, key: str, practice: PracticeGame) -> str:
+    """What a voice assistant says when a game starts: the game and who plays it."""
+    texts = await async_get_translations(hass, hass.config.language, "entity", {DOMAIN})
+    game = texts.get(f"component.{DOMAIN}.entity.select.practice_game.state.{key}", key)
+    players = [name for name in practice.names[: practice.humans] if name]
+    if practice.bot_seat is not None:
+        players.append(await _spoken(hass, "voice_bot"))
+    if not players:
+        return await _spoken(hass, "voice_game_on_alone", game=game)
+    conjunction = await _spoken(hass, "voice_and")
+    last = f" {conjunction} "
+    together = last.join(
+        [", ".join(players[:-1]), players[-1]] if len(players) > 1 else players
+    )
+    return await _spoken(hass, "voice_game_on", game=game, players=together)
+
+
 def _check_names(names: list[str] | None) -> None:
     """Names without the characters no player name contains, such as { } % #,
     which templates of automations would run."""
@@ -356,11 +424,38 @@ def _doubles(call: ServiceCall, practice: PracticeGame) -> bool:
 
 @callback
 def async_setup_services(hass: HomeAssistant) -> None:
-    async def start_game(call: ServiceCall) -> None:
+    async def start_game(call: ServiceCall) -> ServiceResponse:
+        """Start a game. Asked for a response, as by a voice assistant, the action
+        answers what started or what was wrong in words to say, instead of failing."""
+        try:
+            key = await _start_game(call)
+        except ServiceValidationError as error:
+            if not call.return_response:
+                raise
+            placeholders = error.translation_placeholders or {}
+            message = await _spoken(hass, str(error.translation_key), **placeholders)
+            return {"started": False, "message": message}
+        if not call.return_response:
+            return None
+        practice = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID)).practice
+        return {
+            "started": True,
+            "game": key,
+            "players": [name for name in practice.names[: practice.humans] if name],
+            "bot": practice.bot_seat is not None,
+            "message": await _game_on(hass, key, practice),
+        }
+
+    async def _start_game(call: ServiceCall) -> str:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        game: str = call.data["game"]
-        names: list[str] | None = call.data.get("players")
+        game = await _game_key(hass, call.data["game"])
         practice = coordinator.practice
+        # A name a player already has keeps its spelling, as a voice may lower it.
+        names: list[str] | None = (
+            [practice.profiles.spelled(name) for name in call.data["players"]]
+            if call.data.get("players")
+            else None
+        )
         level: int = call.data.get("bot_level", practice.bot_level)
         _check_names(names)
         _check_level(level)
@@ -395,6 +490,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             rounds=call.data.get("rounds"),
             bot_level=call.data.get("bot_level"),
         )
+        return game
 
     async def delete_player(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
@@ -406,7 +502,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
             )
 
     hass.services.async_register(
-        DOMAIN, SERVICE_START_GAME, start_game, schema=START_GAME_SCHEMA
+        DOMAIN,
+        SERVICE_START_GAME,
+        start_game,
+        schema=START_GAME_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
     )
 
     async def export(call: ServiceCall) -> ServiceResponse:

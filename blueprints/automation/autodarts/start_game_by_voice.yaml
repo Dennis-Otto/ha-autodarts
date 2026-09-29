@@ -1,0 +1,96 @@
+blueprint:
+  name: "Autodarts: start a game by voice"
+  description: >-
+    Starts a practice game when you tell Assist, for example "Starte 501 für
+    Alex und Sam", "Start 501 for Alex and Sam", "Starte das Spiel Cricket für
+    Alex und Sam" or "Spiele 501 für Alex gegen den Bot". Assist answers with
+    the game and the players, or with what was wrong, in the language of
+    Home Assistant.
+
+
+    In the sentences, `{game}` is the game and `{players}` the players.
+    X01 is a number from 101 to 1001, spoken or as digits; any other game
+    follows the word "Spiel" or "game" and is named as the game list shows it,
+    in any language of the integration, such as "Around the Clock" or
+    "Doppeltraining". Players are named one word each, separated by "und",
+    "and" or a pause. Without players, the players stay as they are. A
+    sentence that ends in "bot" plays against the bot. Sentences with the bot
+    come first, so the players never take it for a name.
+
+
+    Assist hears these sentences before its own commands, so each needs a
+    number or the word "Spiel" or "game": "Starte einen Timer für 5 Minuten"
+    stays a timer.
+  domain: automation
+  author: Dennis Otto
+  source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/start_game_by_voice.yaml
+  homeassistant:
+    min_version: "2026.8.0"
+  input:
+    sentences:
+      name: Sentences
+      description: >-
+        What you say to Assist. `{game}` is the game and `{players}` the
+        players; parts in [brackets] are optional, (a|b) means a or b.
+      default:
+        - "(starte|spiele) [ein|eine] {101..1001,100:game} [(für|mit) {players}] gegen den Bot"
+        - "(starte|spiele) [das|ein] Spiel {game} [(für|mit) {players}] gegen den Bot"
+        - "(start|play) [a] {101..1001,100:game} [(for|with) {players}] against the bot"
+        - "(start|play) [the|a] game [of] {game} [(for|with) {players}] against the bot"
+        - "(starte|spiele) [ein|eine] {101..1001,100:game} (für|mit) {players}"
+        - "(starte|spiele) [das|ein] Spiel {game} (für|mit) {players}"
+        - "(start|play) [a] {101..1001,100:game} (for|with) {players}"
+        - "(start|play) [the|a] game [of] {game} (for|with) {players}"
+        - "(starte|spiele) [ein|eine] {101..1001,100:game}"
+        - "(starte|spiele) [das|ein] Spiel {game}"
+        - "(start|play) [a] {101..1001,100:game}"
+        - "(start|play) [the|a] game [of] {game}"
+      selector:
+        text:
+          multiple: true
+    bot_level:
+      name: Bot level
+      description: The 3-dart average the bot plays in X01 when a sentence ends in "bot".
+      default: 60
+      selector:
+        number:
+          min: 20
+          max: 120
+          step: 5
+          mode: slider
+    board:
+      name: Board
+      description: The Autodarts board to play on. Needed only with more than one board.
+      default: ""
+      selector:
+        config_entry:
+          integration: autodarts
+
+mode: queued
+
+triggers:
+  - trigger: conversation
+    command: !input sentences
+
+variables:
+  bot_level: !input bot_level
+  board: !input board
+  # A spoken number arrives as a number, a name as text.
+  game: >-
+    {% set spoken = trigger.slots.game %}
+    {{ (spoken | int) if spoken is number else spoken }}
+  # One name per word; "und" and "and" and the like only join them.
+  players: >-
+    {{ (trigger.slots.players | default('', true))
+       | regex_replace('(?i)(^| )(und|and|y|et|en|&)(?= |$)', ' ')
+       | regex_findall('[^ ]+') }}
+  bot: "{{ trigger.sentence is search('(^|[^a-z])bot[^a-z]*$', ignorecase=True) }}"
+
+actions:
+  - action: autodarts.start_game
+    data: >-
+      {{ dict(game=game, bot_level=(bot_level | int if bot else 0))
+         | combine(dict(players=players) if players else {})
+         | combine(dict(config_entry_id=board) if board else {}) }}
+    response_variable: result
+  - set_conversation_response: "{{ result.message }}"
