@@ -45,11 +45,11 @@ test("an X01 match shows every player, the player at the board and the route", (
   assert.match(match.main, /<div class="players n2">/);
   assert.match(
     match.main,
-    /<div class="player active" aria-current="true"><div class="name">Alex<\/div><div class="big">81<\/div><div class="route"><span class="bed">T15<\/span><span class="bed">D18<\/span><\/div><div class="details">score_legs 1 · Ø 84\.2<\/div>/
+    /<div class="player active" aria-current="true"><div class="name">Alex<\/div><div class="big">81<\/div><div class="route"><div class="route-line"><span class="bed">T15<\/span><span class="bed">D18<\/span><\/div><\/div><div class="details"><span class="details-line">score_legs 1 · Ø 84\.2<\/span><\/div>/
   );
   assert.match(
     match.main,
-    /<div class="player"><div class="name">score_player 2<\/div><div class="big">361<\/div><div class="route"><\/div>/
+    /<div class="player"><div class="name">score_player 2<\/div><div class="big">361<\/div><div class="route"><div class="route-line"><\/div><\/div>/
   );
 });
 
@@ -81,7 +81,7 @@ test("the winner gets the banner; alone, busts and missing routes show a note", 
   const bust = alone({ game: 301, bust: true, darts: 9, average: 56.33, scores: [player] });
   assert.match(bust, /<div class="player"><div class="name"><\/div><div class="big">32<\/div>/);
   assert.match(bust, /<span class="note bust">bust<\/span>/);
-  assert.match(bust, /<div class="details">9 leg_darts · Ø 56\.3<\/div>/);
+  assert.match(bust, /<div class="details"><span class="details-line">9 leg_darts · Ø 56\.3<\/span><\/div>/);
   const stuck = alone({ game: 501, scores: [{ ...player, remaining: 169 }] }, "169");
   assert.match(stuck, /<span class="note">no_checkout<\/span>/);
   const shot = alone({ game: 501, won: true, scores: [{ ...player, remaining: 0 }] }, "0");
@@ -153,7 +153,7 @@ test("training games show their target, between games the visit and the session"
       attributes: { drill: "bobs_27", finished: true, score: 77, progress: 21, targets: 21, results: [{ completed: true }] },
     },
   });
-  assert.match(bobs.main, /<div class="big">✓<\/div><div class="route"><span class="note won">drill_bobs_done<\/span>/);
+  assert.match(bobs.main, /<div class="big">✓<\/div><div class="route"><div class="route-line"><span class="note won">drill_bobs_done<\/span>/);
   assert.match(bobs.main, /<b>77<\/b> drill_points<\/span><span>drill_round <b>21 \/ 21<\/b>/);
   const lost = board({ drill: { state: "unknown", attributes: { drill: "bobs_27", finished: true, score: -3 } } });
   assert.match(lost.main, /<span class="note bust">drill_bobs_lost<\/span>/);
@@ -173,7 +173,7 @@ test("training games show their target, between games the visit and the session"
       },
     },
   });
-  assert.match(checkout.main, /<div class="big">81<\/div><div class="route"><span class="bed">T15<\/span><span class="bed">D18<\/span>/);
+  assert.match(checkout.main, /<div class="big">81<\/div><div class="route"><div class="route-line"><span class="bed">T15<\/span><span class="bed">D18<\/span>/);
   assert.match(checkout.main, /drill_visit <b>2 \/ 3<\/b>.*<b>1 \/ 4<\/b> drill_checked.*<b>25 %<\/b>/);
   const bust = board({ drill: { state: "81", attributes: { drill: "checkout", remaining: 81, bust: true } } });
   assert.match(bust.main, /<span class="note bust">bust<\/span>/);
@@ -214,7 +214,7 @@ test("party games and the bull-off have their own boards", () => {
   // Hearts read as the number of lives.
   assert.match(
     killer.main,
-    /<div class="big lives" role="img" aria-label="killer_lives">♥♥♥<\/div><div class="route"><span class="note">killer_hunt<\/span>/
+    /<div class="big lives" role="img" aria-label="killer_lives">♥♥♥<\/div><div class="route"><div class="route-line"><span class="note">killer_hunt<\/span>/
   );
   assert.match(killer.main, /<div class="player out"><div class="name">Sam<\/div><div class="big lives" role="img" aria-label="killer_lives">✕<\/div>/);
   const halve = board({
@@ -224,7 +224,7 @@ test("party games and the bull-off have their own boards", () => {
     },
   });
   assert.equal(halve.meta, "drill_round 3/9");
-  assert.match(halve.main, /<div class="big">80<\/div><div class="route"><span class="bed">any_double<\/span>/);
+  assert.match(halve.main, /<div class="big">80<\/div><div class="route"><div class="route-line"><span class="bed">any_double<\/span>/);
   const bullOff = board({
     practice: {
       state: "501",
@@ -238,7 +238,7 @@ test("party games and the bull-off have their own boards", () => {
   // Every dart shows its bed and how far from the centre it landed.
   assert.match(
     bullOff.main,
-    /<div class="player"><div class="name">Alex<\/div><div class="big">S20<\/div><div class="route"><\/div><div class="details">11\.4 mm<\/div>/
+    /<div class="player"><div class="name">Alex<\/div><div class="big">S20<\/div><div class="route"><div class="route-line"><\/div><\/div><div class="details"><span class="details-line">11\.4 mm<\/span><\/div>/
   );
   assert.match(bullOff.main, /<div class="player active" aria-current="true"><div class="name">Sam<\/div><div class="big">–<\/div>/);
 });

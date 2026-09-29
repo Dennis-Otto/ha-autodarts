@@ -120,13 +120,14 @@ test("between games the scoreboard shows the visit and the session", () => {
     "3 days in a row",
     "60 / 120 darts today",
   ]);
-  assert.equal($(card, ".visit").getAttribute("class"), "visit plain");
+  assert.equal($(card, ".visit").getAttribute("class"), "visit");
   assert.deepEqual(slots(card), [
     ["dart", "T20", "60"],
     ["dart empty", "–", ""],
     ["dart empty", "–", ""],
   ]);
-  assert.equal($(card, ".visit .sum"), null);
+  // The big number is the visit; beside the darts is the last one, still unknown here.
+  assert.deepEqual(sum(card), ["Last", "–"]);
   assert.equal(text(card, ".pill"), "Ready – throw!");
   assert.equal(card.style.getPropertyValue("--ad-status"), "var(--success-color, #43a047)");
 });
@@ -216,7 +217,7 @@ test("Cricket, party games, the bull-off and training games get their own boards
   card.hass = update(hass, {
     "sensor.practice_target": { state: "D5", attributes: { drill: "doubles", progress: 4, targets: 21, darts: 9 } },
   });
-  assert.deepEqual(sum(card), ["Visit", "0"]);
+  assert.deepEqual(sum(card), ["Last", "–"]);
 });
 
 test("status, visit and full height follow the options", () => {
@@ -238,7 +239,7 @@ test("the scoreboard speaks German", () => {
   const { card } = setup({ ...STATS, ...game({ remaining: 81, legs_to_win: 3 }) }, {}, { language: "de" });
   assert.equal(text(card, ".title"), "Übungsspiel 501");
   assert.equal(text(card, ".meta"), "3 Legs pro Satz");
-  assert.deepEqual(sum(card), ["Aufnahme", "0"]);
+  assert.deepEqual(sum(card), ["Zuletzt", "–"]);
   assert.equal(text(card, ".pill"), "Bereit – wirf!");
 });
 
@@ -246,7 +247,11 @@ test("an X01 leg alone explains double in, and the visit reads a dash while unkn
   const alone = (attributes) => game({ scores: [], name: null, ...attributes });
   const { hass, card } = setup({ ...alone({ remaining: 501, opened: false }), "sensor.local_visit_score": "unknown" });
   assert.equal(text(card, ".main .route"), "Start with a double");
+  assert.deepEqual(sum(card), ["Last", "–"]);
+  // Darts on the board with a score not known yet.
+  card.hass = update(hass, { "sensor.local_visit_score": { state: "unknown", attributes: { throws: [T20] } } });
   assert.deepEqual(sum(card), ["Visit", "–"]);
+  card.hass = update(hass, { "sensor.local_visit_score": "unknown" });
   card.hass = update(hass, alone({ game: null, remaining: 170 }));
   assert.equal(text(card, ".title"), "Practice");
   assert.equal(text(card, ".main .route"), "No checkout possible");

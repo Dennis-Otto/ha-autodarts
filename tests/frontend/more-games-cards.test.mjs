@@ -204,7 +204,7 @@ test("the 121 checkout shows the route and calls what the next attempt requires"
   assert.deepEqual(spoken, ["You require 122"]);
   assert.deepEqual(
     $$(card, ".main .facts span").map((fact) => fact.textContent),
-    ["Visit 1 / 3", "1 / 1 checked out", "Best 121"]
+    ["Visit 1 / 3", "1 / 1 checked out", "– % ", "Best 121"]
   );
   $(card, ".caller-toggle").click();
   delete window.speechSynthesis;

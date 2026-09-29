@@ -38,7 +38,7 @@ test("every card is built of the same blocks, so a change to a block reaches eve
   for (const type of CARDS) {
     const style = $(card(type), "style").textContent;
     for (const block of [
-      /\.pill \{\s*display: inline-flex;[^}]*min-height: 28px;[^}]*\}/,
+      /\.pill \{\s*display: inline-grid;[^}]*min-height: 28px;[^}]*\}/,
       /\.cue \{\s*position: absolute;/,
       /\.cue\.inline \{ position: static;/,
       /\.tappable \{ position: relative; border: 1px solid/,
@@ -124,6 +124,16 @@ test("what a tap opens shows an arrow, and static tiles show none", () => {
   assert.deepEqual(cues(scoreboard, ".sum").flat(), []);
 });
 
+test("the status keeps the width of its longest words during a game, so nothing beside it moves", () => {
+  for (const type of ["autodarts-card", "autodarts-status-card", "autodarts-scoreboard-card"]) {
+    const pill = $(card(type), ".pill");
+    assert.deepEqual([pill.textContent, pill.dataset.widest], ["Ready – throw!", "Remove your darts"], type);
+    assert.equal(pill.firstElementChild.localName, "span", type);
+  }
+  const german = card("autodarts-scoreboard-card", {}, {}, { language: "de" });
+  assert.deepEqual([text(german, ".pill"), $(german, ".pill").dataset.widest], ["Bereit – wirf!", "Darts werden entnommen"]);
+});
+
 test("the second tap that confirms is red on every card", () => {
   // The live card's controls, the scoreboard's keypad, its lone undo and the new game screen.
   const live = card("autodarts-card", { "button.reset_detection": "unknown" });
@@ -135,8 +145,8 @@ test("the second tap that confirms is red on every card", () => {
   const undo = card("autodarts-scoreboard-card", {
     "sensor.practice_remaining": { state: "301", attributes: { game: 301, player: 1, scores: [{ player: 1, remaining: 301 }], undo: true } },
   });
-  $(undo, ".undo-only").click();
-  assert.equal($(undo, ".undo-only").className, "undo-only confirm");
+  $(undo, '.visit [data-pad="undo"]').click();
+  assert.equal($(undo, '.visit [data-pad="undo"]').className, "sum last tappable confirm");
   const running = card("autodarts-scoreboard-card", {
     "select.practice_game": { state: "501", attributes: { options: ["off", "501"] } },
   });

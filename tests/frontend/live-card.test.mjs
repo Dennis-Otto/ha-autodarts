@@ -693,7 +693,7 @@ test("the checkout training shows the finish, the route and the attempts", () =>
   const { hass, card } = setup(finish({ attempt_visit: 2, attempt_visits: 3, rate: 25 }));
   assert.equal(text(card, ".practice-title"), "Checkout training");
   assert.equal(text(card, ".practice-remaining"), "81");
-  assert.equal(text(card, ".practice-meta"), "Visit 2 / 3 · 1 / 4 checked out · 25%");
+  assert.equal(text(card, ".practice-meta"), "Visit 2 / 3 · 1 / 4 checked out · 25% · Best –");
   assert.deepEqual(
     $$(card, ".practice-route .bed").map((bed) => bed.textContent),
     ["T15", "D18"]
@@ -701,7 +701,7 @@ test("the checkout training shows the finish, the route and the attempts", () =>
   assert.deepEqual(paths(card, "aim"), [bedPath("T15")]);
 
   card.hass = update(hass, finish({ bust: true, rate: null }));
-  assert.equal(text(card, ".practice-meta"), "Visit 1 / 3 · 1 / 4 checked out");
+  assert.equal(text(card, ".practice-meta"), "Visit 1 / 3 · 1 / 4 checked out · – % · Best –");
   assert.equal(text(card, ".practice-route .note.bust"), "Bust – the score stays");
   assert.equal($$(card, ".practice-route .bed").length, 0);
 

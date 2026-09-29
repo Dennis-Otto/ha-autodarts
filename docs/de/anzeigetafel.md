@@ -80,7 +80,7 @@ Die Anzeigetafel zeigt immer, was gespielt wird, und der Spieler am Board ist he
 | Ausbullen | Das Feld des Darts jedes Spielers und seinen Abstand zur Mitte, den führenden Dart und *Gleichstand – noch einmal werfen*, wenn ein Gleichstand neu wirft |
 | Trainingsspiele | Das Ziel in großer Schrift mit Runde, Punkten oder Trefferquote |
 
-Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte; ein Tipp auf einen Dart [korrigiert ihn](#darts-korrigieren-und-eingeben). Ist ein Match entschieden, nennt ein Banner den Sieger mit dem Ergebnis, etwa *Alex gewinnt das Match 3 : 2!*, und nach einem X01- oder Cricket-Match tritt die [Match-Zusammenfassung](spiele.md#match-zusammenfassung) an die Stelle der Spieler: Averages, Checkout-Quote, höchster Checkout, 180er und das beste Leg aller Spieler.
+Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte, und solange das Board leer ist, die letzte Aufnahme; ein Tipp auf einen Dart [korrigiert ihn](#darts-korrigieren-und-eingeben). Beim Spielen bewegt sich nichts: Die Kacheln behalten ihre Höhe vom ersten Dart bis zum Game Shot. Ist ein Match entschieden, nennt ein Banner den Sieger mit dem Ergebnis, etwa *Alex gewinnt das Match 3 : 2!*, und nach einem X01- oder Cricket-Match tritt die [Match-Zusammenfassung](spiele.md#match-zusammenfassung) an die Stelle der Spieler: Averages, Checkout-Quote, höchster Checkout, 180er und das beste Leg aller Spieler.
 
 <img src="../images/de/match-summary.png" alt="Anzeigetafel, nachdem Alex Sam in 301 mit 2 : 1 geschlagen hat: die Match-Zusammenfassung mit Legs, 3-Dart-Average, First 9, Checkout-Quote, höchstem Checkout, 180ern, 140+, 100+, bestem Leg, Darts aufs Double und Darts beider Spieler" width="760">
 
@@ -108,7 +108,7 @@ Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte; ei
 
   <img src="../images/de/correct-dart-loupe.webp" alt="Animation auf einem Handy: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf und auf Scheibe öffnet die Scheibe vergrößert um den gestrichelten Ring, wo das Board ihn gesehen hat; ein Finger schiebt vom Ring nach oben, die Lupe darüber zeigt das Single 20 unter einem Kreuz, und wo der Finger loslässt, wird die Aufnahme zu 140" width="360">
 
-- **Zu spät bemerkt:** Nach der Entnahme nimmt *Letzte Aufnahme zurück* unter der Aufnahme die letzte Aufnahme zurück, mit einem zweiten Tippen zur Bestätigung. Korrigiere ihre Darts und beende sie dann mit *Nächster Spieler*.
+- **Zu spät bemerkt:** Nach der Entnahme zeigt die Kachel *Zuletzt* neben den Darts die letzte Aufnahme mit einem gebogenen Pfeil; ein Tipp darauf und ein zweiter auf das rote *Zurück?* nehmen sie zurück. Korrigiere ihre Darts und beende sie dann mit *Nächster Spieler*.
 - **Von Hand eingegebene Darts:** Für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras schaltest du *Übungsspiel manuelle Eingabe* und die Option `keypad` der Karte ein. Das Tastenfeld gibt jedes angetippte Feld als Dart ein; *Nächster Spieler* beendet die Aufnahme. Im Querformat stehen Korrektur und Tastenfeld neben den Punkten, sodass beides auf den Bildschirm passt.
 - **Was du siehst:** Ein Stift zeigt jeden Dart, den ein Tipp korrigiert; von Hand eingegebene oder korrigierte Darts haben einen gestrichelten Rahmen, die Darts des Bots eine Tönung in der Akzentfarbe.
 

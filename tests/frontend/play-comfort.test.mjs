@@ -632,14 +632,17 @@ test("the keypad enters darts while manual entry is on", () => {
   $(card, '[data-pad="next"]').click();
   assert.deepEqual(actions(hass), [["next_player", { config_entry_id: ENTRY }]]);
   assert.equal(text(card, '[data-pad="next"]'), "Next player");
-  // Undo shows while the last visit can be undone and no dart is on the board.
+  // Undo shows while the last visit can be undone and no dart is on the board; the
+  // keypad has the key, so the last visit beside the darts is no second one.
   assert.equal($(card, '[data-pad="undo"]'), null);
-  card.hass = update(hass, practice({ undo: true }));
-  $(card, '[data-pad="undo"]').click();
-  assert.equal(text(card, '[data-pad="undo"]'), "↶ Confirm?");
-  $(card, '[data-pad="undo"]').click();
+  const entering = { "switch.practice_manual_entry": "on" };
+  card.hass = update(hass, { ...entering, ...practice({ undo: true }) });
+  assert.equal($(card, ".visit .sum").localName, "div");
+  $(card, '.pad [data-pad="undo"]').click();
+  assert.equal(text(card, '.pad [data-pad="undo"]'), "↶ Confirm?");
+  $(card, '.pad [data-pad="undo"]').click();
   assert.deepEqual(actions(hass).at(-1), ["undo_visit", { config_entry_id: ENTRY }]);
-  card.hass = update(hass, { ...practice({ undo: true }), ...visit(dart(20, 1, { dart: 1 })) });
+  card.hass = update(hass, { ...entering, ...practice({ undo: true }), ...visit(dart(20, 1, { dart: 1 })) });
   assert.equal($(card, '[data-pad="undo"]'), null);
 });
 
@@ -686,23 +689,41 @@ test("while the bot throws the keypad waits, and it makes room for the other scr
   assert.equal($(card, ".pad-area").hidden, false);
 });
 
-test("without the keypad, only the undo of the last visit shows", () => {
-  const { hass, card } = setup(practice({ undo: true }));
-  assert.equal(text(card, ".undo-only"), "↶ Undo last visit");
-  $(card, ".undo-only").click();
-  assert.equal(text(card, ".undo-only"), "↶ Confirm?");
-  $(card, ".undo-only").click();
+test("without the keypad, a tap on the last visit beside the darts undoes it", () => {
+  const last = {
+    "sensor.local_visit_score": {
+      state: "0",
+      attributes: { throws: [], recent_visits: [{ score: 85, segments: ["T20", "S20", "S5"] }] },
+    },
+  };
+  const { hass, card } = setup({ ...practice({ undo: true }), ...last });
+  const tile = () => $(card, '.visit [data-pad="undo"]');
+  const shown = () => [tile().className, text(card, ".visit .sum"), tile().getAttribute("aria-label")];
+  // It takes the place of a button of its own, so nothing below the darts appears.
+  assert.equal($(card, ".pad-area").hidden, true);
+  assert.deepEqual(shown(), ["sum last tappable", "Last85", "Undo last visit: 85"]);
+  assert.equal(tile().querySelectorAll(".cue.undo").length, 1);
+  tile().click();
+  assert.deepEqual(shown(), ["sum last tappable confirm", "Undo?85", "Confirm?"]);
+  assert.deepEqual(actions(hass), []);
+  tile().click();
   assert.deepEqual(actions(hass), [["undo_visit", { config_entry_id: ENTRY }]]);
+  // A dart on the board, or corrections switched off, leave the tile as it is.
+  card.hass = update(hass, { ...practice({ undo: true }), ...visit(dart(20, 1, { dart: 1 })) });
+  assert.equal(tile(), null);
   const off = mount("autodarts-scoreboard-card", hass, { corrections: false });
-  off.hass = update(hass, practice({ undo: true }));
-  assert.equal($(off, ".pad-area").hidden, true);
-  // A board without a config entry sends the actions without one.
+  off.hass = update(hass, { ...practice({ undo: true }), ...last });
+  assert.equal($(off, '[data-pad="undo"]'), null);
+  assert.equal(text(off, ".visit .sum"), "Last85");
+  // A board without a config entry sends the actions without one; an unknown last
+  // visit still undoes.
   const alone = mount(
     "autodarts-scoreboard-card",
     makeHass({ states: { ...READY, ...practice({ undo: true }), ...visit() } }),
   );
-  $(alone, ".undo-only").click();
-  $(alone, ".undo-only").click();
+  assert.equal(text(alone, ".visit .sum"), "Last–");
+  $(alone, '[data-pad="undo"]').click();
+  $(alone, '[data-pad="undo"]').click();
   assert.deepEqual(alone._hass.calls.at(-1), ["autodarts", "undo_visit", {}]);
 });
 
@@ -897,9 +918,8 @@ test("the pad sits beside the scores and keeps the focus on the button that was 
   assert.equal(pressedFocus('[data-pad="multiplier"][data-value="2"]'), "multiplier:2");
   assert.equal(pressedFocus('[data-pad="next"]'), "next:");
   assert.equal(pressedFocus('[data-pad="next"]'), "next:");
-  // A lone undo button is no pad beside the scores.
+  // The undo of the last visit beside the darts is no pad beside the scores.
   card.hass = update(hass, { ...practice({ undo: true }), "switch.practice_manual_entry": "off" });
-  assert.ok($(card, ".undo-only"));
-  assert.equal($(card, ".undo-only").dataset.focus, "undo:");
+  assert.equal(pressedFocus('.visit [data-pad="undo"]'), "undo:");
   assert.equal($(card, ".scoreboard").classList.contains("with-pad"), false);
 });

@@ -1900,9 +1900,22 @@ def hero_animation(page: Page) -> None:
     recorder = ClipRecorder(
         view, {"x": left, "y": top, "width": right - left, "height": bottom - top}
     )
+    heights = [round(box["height"]) for box in boxes]
     recorder.blink(1, hold=1400)
     darts_shown = "r.querySelectorAll('.visit .dart:not(.empty)').length === {0}"
     active = "r.querySelector('.player.active .name')?.textContent.includes('{0}')"
+
+    def steady() -> None:
+        # The cards keep their heights through the game; a card that grows would
+        # leave the clip and make the picture restless.
+        now = [
+            round(view.locator(tag).first.bounding_box()["height"])
+            for tag in ("autodarts-card", SCOREBOARD)
+        ]
+        if any(abs(a - b) > 1 for a, b in zip(now, heights, strict=True)):
+            raise AssertionError(
+                f"Hero cards changed their heights: {heights} -> {now}"
+            )
 
     def throw(names: list[str]) -> None:
         thrown: list[dict] = []
@@ -1910,6 +1923,7 @@ def hero_animation(page: Page) -> None:
             thrown.append(named_dart(name))
             control({"event": "Throw detected", "throws": thrown})
             wait_card(view, darts_shown.format(len(thrown)), SCOREBOARD)
+            steady()
             # The bed lights up, then holds at full strength.
             view.evaluate(SEEK, 250)
             recorder.shot(250)
@@ -1925,6 +1939,7 @@ def hero_animation(page: Page) -> None:
         pull_darts()
         wait_card(view, active.format(following), SCOREBOARD)
         view.wait_for_timeout(300)
+        steady()
         recorder.blink(1, hold=900)
     # Alex follows the route the cards show for 121; the game shot ends the
     # animation, before the match summary takes the place of the players.

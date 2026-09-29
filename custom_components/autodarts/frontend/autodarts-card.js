@@ -329,6 +329,8 @@ const TEXT = {
     legs_per_set: "legs per set",
     sets_to_win: "sets to win",
     visit_short: "Visit",
+    last_short: "Last",
+    undo_short: "Undo?",
     caller: "Caller",
     caller_on: "Caller on",
     caller_hint: "Tap to switch the caller on or off",
@@ -890,6 +892,8 @@ const TEXT = {
     legs_per_set: "Legs pro Satz",
     sets_to_win: "Sätze zum Sieg",
     visit_short: "Aufnahme",
+    last_short: "Zuletzt",
+    undo_short: "Zurück?",
     caller: "Caller",
     caller_on: "Caller an",
     caller_hint: "Tippen schaltet den Caller ein oder aus",
@@ -1441,6 +1445,8 @@ const TEXT = {
     legs_per_set: "legs por set",
     sets_to_win: "sets para ganar",
     visit_short: "Tirada",
+    last_short: "Última",
+    undo_short: "¿Deshacer?",
     caller: "Locutor",
     caller_on: "Locutor activado",
     caller_hint: "Toca para activar o desactivar el locutor",
@@ -1990,6 +1996,8 @@ const TEXT = {
     legs_per_set: "manches par set",
     sets_to_win: "sets pour gagner",
     visit_short: "Volée",
+    last_short: "Dernière",
+    undo_short: "Annuler\u00a0?",
     caller: "Annonceur",
     caller_on: "Annonceur activé",
     caller_hint: "Touchez pour activer ou désactiver l'annonceur",
@@ -2539,6 +2547,8 @@ const TEXT = {
     legs_per_set: "legs per set",
     sets_to_win: "sets om te winnen",
     visit_short: "Beurt",
+    last_short: "Vorige",
+    undo_short: "Terug?",
     caller: "Caller",
     caller_on: "Caller aan",
     caller_hint: "Tik om de caller aan of uit te zetten",
@@ -4226,9 +4236,9 @@ function playerTiles(players, ui = {}) {
       `<div class="player${player.state ? ` ${player.state}` : ""}"${turnMark(player)}><div class="name">` +
       `${avatarHtml(ui.avatar?.(player.name))}${escapeHtml(player.name)}${badge(player)}${winnerMark(player, ui)}</div>` +
       valueHtml("div", "big", player) +
-      `<div class="route">${player.note}</div>` +
+      `<div class="route"><div class="route-line">${player.note}</div></div>` +
       (player.members ? `<div class="members">${membersHtml(player.members)}</div>` : "") +
-      `<div class="details">${escapeHtml(player.details.filter(Boolean).join(" · "))}</div></div>`
+      `<div class="details"><span class="details-line">${escapeHtml(player.details.filter(Boolean).join(" · "))}</span></div></div>`
   );
   const teams = players.some((player) => player.members) ? " teams" : "";
   return `<div class="players n${Math.max(players.length, 1)}${teams}">${tiles.join("")}</div>`;
@@ -4395,8 +4405,10 @@ function drillParts(drill, ui) {
         : [
             visit,
             fact(`${drill.successes} / ${drill.attempts}`, t("drill_checked")),
-            ...(drill.rate === null ? [] : [fact(percent(drill.rate))]),
-            ...(drill.best === null ? [] : [fact(String(drill.best), t("drill_best"), true)]),
+            // The rate and the best show a dash until they are known, so the facts
+            // keep their lines from the first visit.
+            fact(drill.rate === null ? "– %" : percent(drill.rate)),
+            fact(drill.best === null ? "–" : String(drill.best), t("drill_best"), true),
           ];
     return {
       big: String(drill.remaining ?? drill.target ?? "–"),
@@ -4421,7 +4433,7 @@ function drillParts(drill, ui) {
       facts: [
         step,
         fact(String(drill.score ?? 0), t("drill_points")),
-        ...(drill.best === null ? [] : [fact(String(drill.best), t("drill_best"), true)]),
+        fact(drill.best === null ? "–" : String(drill.best), t("drill_best"), true),
       ],
     };
   }
@@ -4445,6 +4457,9 @@ const factsHtml = (facts) =>
     })
     .join("");
 
+// Facts in their box, which lays them out by its width.
+const factsBlock = (html) => `<div class="facts-box"><div class="facts">${html}</div></div>`;
+
 // Facts in a line of text.
 const factsText = (facts) =>
   facts.map(({ value, name, lead }) => (lead ? `${name} ${value}` : `${value} ${name}`).trim()).join(" · ");
@@ -4454,8 +4469,8 @@ function drillBoard(drill, ui) {
   // "Bull (25/50)" fits the screen in smaller type than a number.
   const long = parts.big.length > 4 ? " long" : "";
   return (
-    `<div class="single"><div class="big${long}">${escapeHtml(parts.big)}</div><div class="route">${parts.note}</div>` +
-    `<div class="facts">${factsHtml(parts.facts)}</div></div>`
+    `<div class="single"><div class="big${long}">${escapeHtml(parts.big)}</div><div class="route"><div class="route-line">${parts.note}</div></div>` +
+    `${factsBlock(factsHtml(parts.facts))}</div>`
   );
 }
 
@@ -4476,7 +4491,7 @@ function idleBoard(stats, ui) {
   }
   return (
     `<div class="single"><div class="label">${escapeHtml(t("visit"))}</div>` +
-    `<div class="big">${escapeHtml(stats.visit ?? "–")}</div><div class="facts">${factsHtml(facts)}</div></div>`
+    `<div class="big">${escapeHtml(stats.visit ?? "–")}</div>${factsBlock(factsHtml(facts))}</div>`
   );
 }
 
@@ -5239,12 +5254,15 @@ const ICON_PATHS = {
   edit: "M4 20l1.2-4.8L15.6 4.8a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.8 18.8z M13.8 6.6l3.6 3.6",
   details: "M9 5l7 7-7 7",
   expand: "M6 9l6 6 6-6",
+  undo: "M9 14L4 9l5-5 M4 9h10.5a5.5 5.5 0 0 1 0 11H11",
 };
-// A cue says what a tap does: a pencil edits, an arrow opens the details. At the top right
-// of a tile, or inline after the words of a control that looks like text.
+// A cue says what a tap does: a pencil edits, an arrow opens the details, a curved arrow
+// undoes. At the top right of a tile, or inline after the words of a control that looks
+// like text.
 const cueHtml = (kind, inline = false) =>
   `<svg class="cue ${kind}${inline ? " inline" : ""}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON_PATHS[kind]}"/></svg>`;
 const EDIT_ICON = cueHtml("edit");
+const UNDO_CUE = cueHtml("undo");
 // The arrow of the undo, apart from its words, which screen readers say alone.
 const UNDO_ICON = `<span class="undo-icon" aria-hidden="true">↶</span>`;
 
@@ -5445,7 +5463,7 @@ function todayHtml(data, ui) {
     `<div class="single"><div class="big">${escapeHtml(format(stats.today, 0))}</div>` +
     `<div class="label">${escapeHtml(goal ? fill(t("idle_goal"), { goal: format(stats.goal, 0) }) : t("darts_today"))}</div>` +
     (goal ? `<div class="goal${share >= 100 ? " reached" : ""}"><i style="width:${share}%"></i></div>` : "") +
-    `<div class="facts">${factsHtml(facts)}</div></div>`
+    `${factsBlock(factsHtml(facts))}</div>`
   );
 }
 
@@ -5482,7 +5500,7 @@ function clockHtml(data, ui) {
   const shown = ui.clock(data.now);
   return (
     `<div class="single clock"><div class="big">${escapeHtml(shown.time)}</div>` +
-    `<div class="facts"><span>${escapeHtml(shown.day)}</span></div></div>`
+    `${factsBlock(`<span>${escapeHtml(shown.day)}</span>`)}</div>`
   );
 }
 
@@ -6611,6 +6629,9 @@ function playFanfare() {
 }
 
 // Board status shared by the live and status cards.
+// What the status says while a game goes on; it keeps the width of the longest.
+const PLAY_STATUSES = ["status_ready", "status_full", "status_takeout", "status_hand"];
+
 function boardStatus(stateOf) {
   const on = (name) => stateOf(name)?.state === "on";
   const connected = stateOf("connected");
@@ -7249,17 +7270,21 @@ const BASE_CSS = `
     font-size: 16px; font-weight: 600; color: var(--primary-text-color);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  /* Building block, status: a glowing dot and its words, never the shape of a button. */
+  /* Building block, status: a glowing dot and its words, never the shape of a button. It
+     is as wide as the longest words it takes during a game, its dot and words at its end,
+     so nothing beside it moves while they change. */
   .pill {
-    display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 28px;
+    display: inline-grid; justify-items: end; align-items: center; flex-shrink: 0; min-height: 28px;
     font-size: 12px; font-weight: 600;
     color: color-mix(in srgb, var(--ad-status) 45%, var(--primary-text-color, #212121));
     transition: color .4s;
   }
-  .pill::before {
+  .pill > span { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 8px; }
+  .pill > span::before {
     content: ""; width: 8px; height: 8px; border-radius: 50%;
     background: var(--ad-status); box-shadow: 0 0 8px var(--ad-status);
   }
+  .pill::after { content: attr(data-widest); grid-area: 1 / 1; padding-inline-start: 16px; visibility: hidden; }
   .section-label {
     font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
     color: var(--ad-accent-text);
@@ -7411,11 +7436,11 @@ const compactPlayers = (players, height) => `  @container (max-height: ${height}
 // The pad that corrects a dart of the visit, on the live card and the scoreboard: the
 // keys, or the board to tap with its loupe.
 const PAD_CSS = `
-  .pad, .undo-only { font-size: clamp(14px, 1.8cqi, 22px); }
+  .pad { font-size: clamp(14px, 1.8cqi, 22px); }
   .pad { display: grid; gap: clamp(6px, 1cqi, 12px); }
   .pad-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .pad-head .section-label { flex: 1; min-width: 8em; }
-  .pad button, .undo-only {
+  .pad button {
     min-height: 48px; padding: 0 10px; border-radius: 12px; font: inherit; font-weight: 700; cursor: pointer;
     touch-action: manipulation; color: var(--primary-text-color);
     border: 2px solid var(--divider-color, rgba(127,127,127,.3));
@@ -7444,7 +7469,7 @@ const PAD_CSS = `
   }
   .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
   .pad-extra button { flex: 1 1 5.5em; }
-  .pad .secondary, .undo-only { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
+  .pad .secondary { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
   /* The board instead of the keys: a tap says where the dart is. Zoomed in, it draws
      only within its own box, never over the keys and the edge of the card. */
   .pad .view { margin-left: auto; }
@@ -7477,7 +7502,6 @@ const PAD_CSS = `
   :is(.pad-board, .loupe) .spot { fill: #3182ce; stroke: #fff; stroke-width: 3; pointer-events: none; }
   :is(.pad-board, .loupe) .spot.seen { fill: none; stroke: var(--ad-accent); stroke-width: 4; stroke-dasharray: 7 5; pointer-events: auto; }
   .pad-hint { text-align: center; font-size: .8em; color: var(--ad-muted-text); }
-  .undo-only { justify-self: start; align-self: flex-start; }
   .undo-icon { margin-inline-end: .2em; }
   .pad button:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
 `;
@@ -7529,7 +7553,10 @@ const CSS = `${BASE_CSS}${PAD_CSS}
     border: 1px solid color-mix(in srgb, var(--ad-accent) 45%, transparent);
     background: color-mix(in srgb, var(--ad-accent) 8%, transparent);
   }
-  .practice-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  /* The game and what it says of the game take a line each from the start, so a longer
+     line after the first visit moves nothing. */
+  .practice-head { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .practice-meta { line-height: 1.4; min-height: 1.4em; }
   .practice-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
   .practice-remaining {
     font-size: 34px; font-weight: 800; line-height: 1; letter-spacing: -0.03em;
@@ -7942,12 +7969,21 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     .players.n3, .players.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .n3 .big, .n4 .big { font-size: clamp(44px, min(15cqi, 14vh), 120px); }
   }
-  .route {
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .4em;
-    min-height: 1.8em; font-size: clamp(14px, 2.6cqi, 34px);
+  /* The route, a note and the details keep their lines while empty, so a tile stays as
+     high from the first dart to the game shot. A tile too narrow for a route with what it
+     leaves, or for a long note, keeps two lines for them from the start. */
+  .route { align-self: stretch; container-type: inline-size; font-size: clamp(14px, 2.6cqi, 34px); line-height: 1.2; }
+  /* Three beds always fit one line: a narrow tile takes smaller type for them. */
+  .route-line {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .4em; min-height: 1.8em;
+    font-size: min(1em, 10cqi);
   }
+  @container (max-width: 18em) { .player .route-line { min-height: calc(3.28em + 10px); } }
   .route .bed, .setup .bed { padding: .12em .55em; border-radius: 10px; border-width: 2px; }
   .details { font-size: clamp(12px, 1.9cqi, 24px); color: var(--ad-muted-text); font-variant-numeric: tabular-nums; }
+  .player .details { align-self: stretch; container-type: inline-size; text-align: center; line-height: 1.4; }
+  .details-line { display: block; min-height: 1.4em; }
+  @container (max-width: 13em) { .player .details-line { min-height: 2.8em; } }
   .cricket { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
   /* On a full screen the chalkboard's rows share its whole height, without bands above
      and below it. */
@@ -7963,6 +7999,8 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     font-size: clamp(16px, min(3cqi, 3vh), 42px); font-weight: 800; color: var(--ad-muted-text);
   }
   .cricket td { font-size: clamp(20px, min(4.4cqi, 3.6vh), 60px); font-weight: 800; line-height: 1.05; color: var(--ad-accent-text); }
+  /* A number without marks keeps the line of one with them, so the first mark moves nothing. */
+  .cricket td::after { content: "\\200b"; }
   .cricket th.aim { font-size: clamp(14px, min(2.4cqi, 3vh), 30px); }
   .cricket th.aim .bed { display: inline-block; }
   .cricket tr.closed > * { opacity: .3; }
@@ -7995,10 +8033,15 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     font-size: clamp(12px, 1.9cqi, 24px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
     color: var(--ad-accent-text);
   }
+  /* The facts keep their lines while their numbers grow: a narrow box lays them out in
+     columns, whose rows stay as many as the facts are. */
+  .facts-box { align-self: stretch; container-type: inline-size; font-size: clamp(14px, 2.4cqi, 32px); }
   .facts {
     display: flex; flex-wrap: wrap; justify-content: center; gap: .3em 1.2em;
-    font-size: clamp(14px, 2.4cqi, 32px); color: var(--ad-muted-text); font-variant-numeric: tabular-nums;
+    color: var(--ad-muted-text); font-variant-numeric: tabular-nums;
   }
+  @container (max-width: 48em) { .facts { display: grid; grid-template-columns: repeat(3, auto); justify-content: center; } }
+  @container (max-width: 30em) { .facts { grid-template-columns: repeat(2, auto); } }
   .facts b { color: var(--primary-text-color); }
   .caller-toggle {
     display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; cursor: pointer;
@@ -8009,8 +8052,9 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     color: #fff; background: var(--ad-accent-fill); border: 1px solid var(--ad-accent-fill);
   }
   .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-  .visit { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: clamp(6px, 1.2cqi, 16px); }
-  .visit.plain { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* The tile beside the darts has a width of its own, whatever it shows, so the darts
+     keep theirs: their beds are sized by it. */
+  .visit { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(5em, .6fr); gap: clamp(6px, 1.2cqi, 16px); }
   .dart, .sum {
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     padding: clamp(6px, 1.2cqi, 16px); border-radius: 14px;
@@ -8023,10 +8067,15 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .visit .dart { container-type: inline-size; }
   .dart .segment { font-size: clamp(16px, 24cqi, 48px); font-weight: 800; color: var(--primary-text-color); }
   .dart.empty .segment { color: var(--ad-muted-text); }
-  .dart .points { font-size: clamp(11px, 7cqi, 20px); min-height: 1.2em; }
+  .dart .points { font-size: clamp(11px, 7cqi, 20px); line-height: 1.2; min-height: 1.2em; }
   .sum .muted { font-size: clamp(11px, 1.6cqi, 20px); min-height: 1.2em; }
   .dart .points { color: var(--ad-muted-text); }
-  .sum { min-width: 4.5em; color: var(--ad-accent-text); background: color-mix(in srgb, var(--ad-accent) 14%, transparent); }
+  .sum { min-width: 0; border: 1px solid transparent; color: var(--ad-accent-text); background: color-mix(in srgb, var(--ad-accent) 14%, transparent); }
+  /* The last visit, which a tap undoes; the second tap that confirms is red. */
+  button.sum { position: relative; font: inherit; cursor: pointer; touch-action: manipulation; }
+  button.sum:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
+  .visit .sum .cue { top: clamp(4px, .8cqi, 10px); right: clamp(4px, .8cqi, 10px); width: clamp(12px, 1.6cqi, 20px); height: clamp(12px, 1.6cqi, 20px); }
+  .sum.confirm .cue { color: inherit; }
   /* A dart of the visit corrects with a tap; entered, corrected and bot darts are marked. */
   button.dart { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
   @media (any-pointer: coarse) { .visit button.dart { min-height: 44px; } }
@@ -8942,6 +8991,13 @@ function createElements(Base) {
     _text(element, text) {
       if (element.textContent !== text) element.textContent = text;
     }
+
+    // The status in words, as wide as the longest words it takes during a game.
+    _showStatus(pill, key) {
+      this._setHtml(pill, `<span>${escapeHtml(this._t(key))}</span>`);
+      const words = PLAY_STATUSES.map((name) => this._t(name));
+      pill.dataset.widest = words.reduce((longest, text) => (text.length > longest.length ? text : longest));
+    }
   }
 
   // Live visit card ------------------------------------------------------------
@@ -8970,6 +9026,9 @@ function createElements(Base) {
       darts?.addEventListener("click", (event) => {
         const dart = event.target.closest("[data-dart]");
         if (dart) this._pickDart(Number(dart.dataset.dart));
+        // The last visit beside the darts undoes it.
+        const action = event.target.closest("[data-pad]");
+        if (action) this._padAction(action.dataset.pad);
       });
       this._el.pad.addEventListener("click", (event) => {
         const target = event.target.closest("[data-pad]");
@@ -9345,7 +9404,7 @@ function createElements(Base) {
       this.style.setProperty("--ad-status", STATUS_COLORS[status]);
       this.style.setProperty("--ad-accent", cssColor(c.accent_color, "var(--primary-color)"));
       this.style.setProperty("--ad-highlight", cssColor(c.highlight_color, GOLD));
-      el.pill.textContent = t(statusText);
+      this._showStatus(el.pill, statusText);
 
       const darts = this._darts();
       const known = darts.filter(Boolean);
@@ -10432,7 +10491,7 @@ function createElements(Base) {
       const [status, statusText] = this._status();
       this.style.setProperty("--ad-status", STATUS_COLORS[status]);
       this.style.setProperty("--ad-accent", cssColor(c.accent_color, "var(--primary-color)"));
-      el.pill.textContent = t(statusText);
+      this._showStatus(el.pill, statusText);
 
       const running = detectionRunning((name) => this._state(name), status);
       el.toggle.setAttribute("aria-checked", String(running));
@@ -10896,20 +10955,45 @@ function createElements(Base) {
       return status !== "offline" && !detectionRunning((name) => this._state(name), status);
     }
 
-    // The pad while a dart is corrected, or the keypad while darts are entered
-    // by hand; a single undo button where only that is possible.
+    // The pad while a dart is corrected, or the keypad while darts are entered by hand.
     _pad(view, darts) {
       const c = this._config;
-      const practice = this._state("practice")?.attributes ?? {};
       const disabled = botAtBoard(view);
-      const undo = practice.undo === true && !darts.length;
       const confirm = ["next", "undo"].includes(this._confirm) ? this._confirm : null;
       const base = this._padBase(darts);
       if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled, ...base };
       if (c.keypad && this._state("manualEntry")?.state === "on") {
-        return { dart: null, multiplier: this._multiplier, disabled, undo, confirm, ...base };
+        return { dart: null, multiplier: this._multiplier, disabled, undo: this._undoable(darts), confirm, ...base };
       }
-      return c.corrections && undo ? { only: "undo", confirm } : null;
+      return null;
+    }
+
+    // The last visit can be undone while the board is empty.
+    _undoable(darts) {
+      return this._state("practice")?.attributes?.undo === true && !darts.length;
+    }
+
+    // The tile beside the darts: the score of the visit being thrown, or, while the board
+    // is empty and between games, the last visit, which a tap undoes where it can. It
+    // takes the place of a button of its own, so nothing moves when the darts are pulled.
+    _visitTile(view, visit, darts, undo) {
+      const t = (key) => this._t(key);
+      const last = recentVisits(visit?.attributes?.recent_visits, 1)[0];
+      if (view.mode !== "idle" && darts.length) {
+        return (
+          `<div class="sum"><span class="muted">${escapeHtml(t("visit_short"))}</span>` +
+          `<span class="value">${escapeHtml(usable(visit) ? visit.state : "–")}</span></div>`
+        );
+      }
+      const score = last ? String(last.score) : "–";
+      const content = (name) => `<span class="muted">${escapeHtml(t(name))}</span><span class="value">${escapeHtml(score)}</span>`;
+      if (!undo) return `<div class="sum last">${content("last_short")}</div>`;
+      const confirm = this._confirm === "undo";
+      const spoken = confirm ? t("confirm") : `${t("undo_visit")}: ${score}`;
+      return (
+        `<button type="button" class="sum last tappable${confirm ? " confirm" : ""}" data-pad="undo" data-focus="undo:"` +
+        ` aria-label="${escapeHtml(spoken)}">${content(confirm ? "undo_short" : "last_short")}${UNDO_CUE}</button>`
+      );
     }
 
     // Tournament ------------------------------------------------------------------
@@ -11095,7 +11179,7 @@ function createElements(Base) {
       const [status, statusText] = this._status();
       this.style.setProperty("--ad-status", STATUS_COLORS[status]);
       this.style.setProperty("--ad-accent", cssColor(c.accent_color, "var(--primary-color)"));
-      if (el.pill) this._text(el.pill, t(statusText));
+      if (el.pill) this._showStatus(el.pill, statusText);
 
       const visit = this._state("visit");
       const view = gameView((name) => this._state(name));
@@ -11186,23 +11270,12 @@ function createElements(Base) {
       const tappable = c.corrections && !this.preview && !away;
       const pad = this.preview || away ? null : this._pad(view, darts);
       el.pad.hidden = !pad;
-      el.board.classList.toggle("with-pad", Boolean(pad && !pad.only));
-      if (!this._keepPad(pad)) {
-        this._setHtml(
-          el.pad,
-          !pad
-            ? ""
-            : pad.only
-              ? `<button type="button" class="undo-only${pad.confirm === "undo" ? " confirm" : ""}" data-pad="undo" data-focus="undo:">${UNDO_ICON} ${escapeHtml(
-                  t(pad.confirm === "undo" ? "confirm" : "undo_visit")
-                )}</button>`
-              : padHtml(pad, { t })
-        );
-      }
+      el.board.classList.toggle("with-pad", Boolean(pad));
+      if (!this._keepPad(pad)) this._setHtml(el.pad, pad ? padHtml(pad, { t }) : "");
       if (!el.visit) return;
       el.visit.hidden = away;
-      // Between games the big number already is the visit score.
-      el.visit.classList.toggle("plain", view.mode === "idle");
+      // The keypad has an undo key of its own.
+      const undo = Boolean(c.corrections && !this.preview && !away && !pad && this._undoable(darts));
       const slots = [0, 1, 2].map((index) => {
         const dart = darts[index];
         if (!dart) return `<div class="dart empty"><span class="segment">–</span><span class="points"></span></div>`;
@@ -11219,12 +11292,7 @@ function createElements(Base) {
               ` aria-label="${escapeHtml(spoken)}">${content}${EDIT_ICON}</button>`
           : `<div class="${style}">${content}</div>`;
       });
-      const sum =
-        view.mode === "idle"
-          ? ""
-          : `<div class="sum"><span class="muted">${escapeHtml(t("visit_short"))}</span>` +
-            `<span class="value">${escapeHtml(usable(visit) ? visit.state : "–")}</span></div>`;
-      this._setHtml(el.visit, slots.join("") + sum);
+      this._setHtml(el.visit, slots.join("") + this._visitTile(view, visit, darts, undo));
     }
   }
 

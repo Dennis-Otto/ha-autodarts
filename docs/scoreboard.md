@@ -80,7 +80,7 @@ The scoreboard always shows what is being played, and the player at the board is
 | Bull-off | The bed of every player's dart and its distance from the center, the dart that leads, and *Tie – throw again* when a tie throws again |
 | Training games | The target in large type with the round, the points or the hit rate |
 
-Along the bottom it shows the three darts of the current visit and their score; a tap on a dart [corrects it](#correct-and-enter-darts). When a match is decided, a banner names the winner with the result, for example *Alex wins the match 3 : 2!*, and after an X01 or Cricket match the [match summary](games.md#match-summary) takes the place of the players: averages, checkout rate, highest checkout, 180s and the best leg of everybody.
+Along the bottom it shows the three darts of the current visit and their score, and while the board is empty the last visit; a tap on a dart [corrects it](#correct-and-enter-darts). Nothing moves while you play: the tiles keep their height from the first dart to the game shot. When a match is decided, a banner names the winner with the result, for example *Alex wins the match 3 : 2!*, and after an X01 or Cricket match the [match summary](games.md#match-summary) takes the place of the players: averages, checkout rate, highest checkout, 180s and the best leg of everybody.
 
 <img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="760">
 
@@ -108,7 +108,7 @@ Along the bottom it shows the three darts of the current visit and their score; 
 
   <img src="images/en/correct-dart-loupe.webp" alt="Animation on a phone: the board read the second dart as T20 for 180; a tap on it and on Board opens the board zoomed in around the dashed ring where the board saw it; a finger slides up from the ring, the loupe above it shows the single 20 under a cross, and where the finger lets go the visit becomes 140" width="360">
 
-- **A visit noticed too late:** after the takeout, *Undo last visit* below the visit takes the last visit back, with a second tap to confirm. Correct its darts, then end it with *Next player*.
+- **A visit noticed too late:** after the takeout, the tile *Last* beside the darts shows the last visit with a curved arrow; a tap on it and a second one on the red *Undo?* take it back. Correct its darts, then end it with *Next player*.
 - **Darts entered by hand:** for darts the board missed, or a player without cameras, switch on *Practice manual entry* and the card's `keypad` option. The keypad enters every tapped bed as a dart; *Next player* ends the visit. On a landscape screen, the pad and the keypad sit beside the scores, so both fit the screen.
 - **What you see:** a pencil marks every dart that a tap corrects; darts entered or corrected by hand get a dashed frame, and the bot's darts a tint of the accent color.
 
