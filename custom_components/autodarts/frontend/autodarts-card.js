@@ -6634,6 +6634,9 @@ function playFanfare() {
 }
 
 // Board status shared by the live and status cards.
+// How long a hint shows after a tap.
+const HINT_SECONDS = 5;
+
 // What the status says while a game goes on; it keeps the width of the longest.
 const PLAY_STATUSES = ["status_ready", "status_full", "status_takeout", "status_hand"];
 
@@ -7306,6 +7309,14 @@ const BASE_CSS = `
     background: var(--ad-status); box-shadow: 0 0 8px var(--ad-status);
   }
   .pill::after { content: attr(data-widest); grid-area: 1 / 1; padding-inline-start: 16px; visibility: hidden; }
+  /* Building block, hint: the words of a tooltip in a bubble over the card, after a tap. */
+  .hint-bubble {
+    position: absolute; z-index: 5; max-width: min(260px, calc(100% - 16px)); padding: 6px 10px; border-radius: 8px;
+    font-size: 12px; font-weight: 600; line-height: 1.35; text-align: center; pointer-events: none;
+    color: var(--card-background-color, #fff); background: color-mix(in srgb, var(--primary-text-color, #212121) 90%, transparent);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .3); transition: opacity var(--ad-fast) var(--ad-ease);
+  }
+  @starting-style { .hint-bubble { opacity: 0; } }
   .section-label {
     font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
     color: var(--ad-accent-text);
@@ -8771,6 +8782,54 @@ function createElements(Base) {
       this.attachShadow({ mode: "open" });
       this._watchedStates = [];
       this._confirm = null;
+      this._initHints();
+    }
+
+    // Building block, hint: what a pointer's tooltip tells shows on a tap too. A finger or a
+    // pen on anything with a title that does nothing else shows the title in a bubble over
+    // the card, so nothing moves; a mouse keeps the browser's own tooltip. Another tap,
+    // Escape or a few seconds close it.
+    _initHints() {
+      const root = this.shadowRoot;
+      root.addEventListener("pointerdown", (event) => (this._pointer = event.pointerType), true);
+      root.addEventListener("click", (event) => {
+        const target = event.target.closest("[title]");
+        const acts = target?.closest("button, a, input, select, label, [role=button], .tappable");
+        if (target && !acts && this._pointer && this._pointer !== "mouse") this._showHint(target);
+        else this._hideHint();
+      });
+      root.addEventListener("keydown", (event) => event.key === "Escape" && this._hideHint());
+    }
+
+    _showHint(target) {
+      // Every card with something to hint at is built in a root; a message is not.
+      const box = this.shadowRoot.querySelector(".root");
+      let bubble = box.querySelector(":scope > .hint-bubble");
+      if (!bubble) {
+        bubble = document.createElement("div");
+        bubble.className = "hint-bubble";
+        bubble.setAttribute("role", "status");
+        box.append(bubble);
+      }
+      bubble.textContent = target.getAttribute("title");
+      bubble.hidden = false;
+      // Above what was tapped, or below it where the card has no room above, and never
+      // beyond the card's sides.
+      const area = box.getBoundingClientRect();
+      const spot = target.getBoundingClientRect();
+      const { offsetWidth: width, offsetHeight: height } = bubble;
+      const middle = spot.left - area.left + spot.width / 2 - width / 2;
+      const above = spot.top - area.top - height - 8;
+      bubble.style.left = `${Math.max(8, Math.min(middle, area.width - width - 8))}px`;
+      bubble.style.top = `${above >= 4 ? above : spot.bottom - area.top + 8}px`;
+      clearTimeout(this._hintTimer);
+      this._hintTimer = setTimeout(() => this._hideHint(), HINT_SECONDS * 1000);
+    }
+
+    _hideHint() {
+      clearTimeout(this._hintTimer);
+      const bubble = this.shadowRoot.querySelector(".hint-bubble");
+      if (bubble) bubble.hidden = true;
     }
 
     setConfig(config) {
@@ -8799,6 +8858,7 @@ function createElements(Base) {
 
     // A pending confirmation ends with the card, so it shows no "Confirm?" when it returns.
     disconnectedCallback() {
+      this._hideHint();
       clearTimeout(this._confirmTimer);
       this._confirm = null;
       this._confirmChanged();
