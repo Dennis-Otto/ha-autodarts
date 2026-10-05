@@ -150,6 +150,14 @@ Dependencies are pinned:
 - Python tools with hashes, in `requirements-test.txt` (compiled from `requirements-test.in` with `pip-compile --generate-hashes`) and `tests/e2e/requirements-browser.txt`.
 - Node tools by `package-lock.json`.
 
+Home Assistant pins its own dependencies exactly, so the test environment can carry a
+version with a known advisory that no update here can raise. Such advisories are listed
+with their reason in `osv-scanner.toml`, which OSV-Scanner and the OpenSSF Scorecard
+read, and in `allow-ghsas` of the dependency review. Each reason starts with the pinned
+version, and a consistency test fails as soon as the test base moves past it, so an
+exception leaves with the update that fixes it. The integration itself ships no Python
+dependencies.
+
 Dependabot keeps the Python and Node tools, the Actions, the Compose images and the
 dev container's image and Features current, and waits seven days before it proposes
 a new version; security updates come at once, and so do new commits of the HACS

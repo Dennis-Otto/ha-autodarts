@@ -3,6 +3,7 @@ and tool versions kept in two places agree with each other."""
 
 import json
 import re
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -283,3 +284,22 @@ def test_the_playwright_image_matches_the_playwright_package(script):
     # The browsers of the image fit only the same version of the package.
     assert images == [pinned(E2E / "requirements-browser.in", "playwright")]
     assert images == [pinned(E2E / "requirements-browser.txt", "playwright")]
+
+
+def test_osv_exceptions_cover_only_the_pinned_versions():
+    ignored = tomllib.loads((ROOT / "osv-scanner.toml").read_text(encoding="utf-8"))
+    workflow = yaml.safe_load(
+        (ROOT / ".github" / "workflows" / "dependency-review.yml").read_text(
+            encoding="utf-8"
+        )
+    )
+    (review,) = workflow["jobs"]["dependency-review"]["steps"]
+    for vulnerability in ignored["IgnoredVulns"]:
+        package, version = re.match(r"(\S+) (\S+): ", vulnerability["reason"]).groups()
+        # Once the test base moves on, the exception has to go.
+        assert pinned(ROOT / "requirements-test.txt", package) == version, (
+            f"remove {vulnerability['id']} from osv-scanner.toml and dependency-review.yml"
+        )
+    assert re.split(r",\s*", review["with"]["allow-ghsas"]) == [
+        vulnerability["id"] for vulnerability in ignored["IgnoredVulns"]
+    ]
