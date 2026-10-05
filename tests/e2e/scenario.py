@@ -86,6 +86,10 @@ EXPECTED_TRACEBACKS = (
     # loop the first time a sentence of the voice blueprint has a number, and warns
     # about itself with a stack.
     "site-packages/unicode_rbnf/rbnf/",
+    # Home Assistant 2026.10.0b0 imports its schema codec in the event loop the first
+    # time a config flow answers, and warns about itself with a stack. Fixed upstream
+    # by home-assistant/core#183909 for 2026.10.0; drop this once beta has it.
+    "import_module with args ('probatio.codecs',)",
 )
 MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
 CARD = MANIFEST.parent / "frontend" / "autodarts-card.js"
