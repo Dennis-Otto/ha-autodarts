@@ -322,7 +322,9 @@ test("without the recorder, visits of the open dashboard are added once each", a
   assert.equal(text(noEvents, ".history-chart"), "Completed visits appear here.");
 });
 
-test("a new session starts an empty history and closes the stream of the old one", async () => {
+test("a new session starts an empty history and closes the stream of the old one", async (t) => {
+  // Both sessions lie within the week of history the card loads.
+  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-09-26T16:05:00Z") });
   const { streams, connection } = historyStream();
   const { hass, card } = setup({}, {}, { connection });
   send(streams[0], [visitRow("2026-09-26T14:31:00.000+00:00", 180)]);
