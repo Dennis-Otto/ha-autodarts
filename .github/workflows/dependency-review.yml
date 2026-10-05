@@ -34,7 +34,24 @@ jobs:
           fail-on-scopes: runtime, development, unknown
           show-patched-versions: true
           retry-on-snapshot-warnings: true
-          # Home Assistant 2026.9 pins cryptography 48.0.1, which only the test
-          # environment installs; the integration ships no Python dependencies.
-          # Remove these exceptions once the test base uses cryptography 50 or newer.
-          allow-ghsas: GHSA-g6cj-pr64-35w5, GHSA-jwv3-5hgf-82ww, GHSA-m2h6-j472-rp4c
+          # Home Assistant 2026.9 pins cryptography 48.0.1 and PyJWT 2.13.0, which
+          # only the test environment installs; the integration ships no Python
+          # dependencies. The same advisories as in osv-scanner.toml, which says
+          # when they go.
+          allow-ghsas: >-
+            GHSA-g6cj-pr64-35w5,
+            GHSA-jwv3-5hgf-82ww,
+            GHSA-m2h6-j472-rp4c,
+            GHSA-2gx3-rcp4-g85q,
+            GHSA-42vr-xj54-vc7v,
+            GHSA-8wjv-2p76-3863,
+            GHSA-9j54-fg26-wv3r,
+            GHSA-9v7f-9g4p-ffgj,
+            GHSA-ffc3-869f-jxw9,
+            GHSA-gvp8-978c-rx2q,
+            GHSA-hxm8-2xgr-2p9m,
+            GHSA-jwrc-g2q2-pq5p,
+            GHSA-p4g4-x82p-q773,
+            GHSA-r6x4-923q-g947,
+            GHSA-w2cx-738m-mc7w,
+            GHSA-w6j9-cwv2-h6wq

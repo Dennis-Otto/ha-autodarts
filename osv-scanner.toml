@@ -1,18 +1,74 @@
 # Advisories that OSV-Scanner (and the OpenSSF Scorecard) should not report.
 #
-# Home Assistant 2026.9.3 pins cryptography 48.0.1 exactly. Only the test
-# environment installs it (requirements-test.txt); the integration itself ships
-# no Python dependencies. Remove these entries once the Home Assistant test base
-# uses cryptography 50 or newer; dependency-review.yml lists the same advisories.
+# Home Assistant 2026.9 pins cryptography 48.0.1 and PyJWT 2.13.0 exactly. Only the
+# test environment installs them (requirements-test.txt); the integration itself
+# ships no Python dependencies and never handles tokens with PyJWT. Each reason
+# starts with the pinned version, and tests/test_consistency.py fails once the test
+# base moves past it, so an entry leaves with the update that fixes it.
+# dependency-review.yml lists the same advisories.
+#
+# Home Assistant's dev branch already uses PyJWT 2.15.1 (home-assistant/core#182659).
 
 [[IgnoredVulns]]
 id = "GHSA-g6cj-pr64-35w5"
-reason = "Test-only dependency pinned by Home Assistant 2026.9.3; not shipped with the integration."
+reason = "cryptography 48.0.1: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
 
 [[IgnoredVulns]]
 id = "GHSA-jwv3-5hgf-82ww"
-reason = "Test-only dependency pinned by Home Assistant 2026.9.3; not shipped with the integration."
+reason = "cryptography 48.0.1: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
 
 [[IgnoredVulns]]
 id = "GHSA-m2h6-j472-rp4c"
-reason = "Test-only dependency pinned by Home Assistant 2026.9.3; not shipped with the integration."
+reason = "cryptography 48.0.1: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-2gx3-rcp4-g85q"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-42vr-xj54-vc7v"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-8wjv-2p76-3863"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-9j54-fg26-wv3r"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-9v7f-9g4p-ffgj"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-ffc3-869f-jxw9"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-gvp8-978c-rx2q"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-hxm8-2xgr-2p9m"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-jwrc-g2q2-pq5p"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-p4g4-x82p-q773"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-r6x4-923q-g947"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-w2cx-738m-mc7w"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-w6j9-cwv2-h6wq"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
