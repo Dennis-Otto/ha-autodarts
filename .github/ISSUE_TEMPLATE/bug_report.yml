@@ -9,7 +9,7 @@ body:
       value: |
         Thanks for taking the time to report a problem. Please check the [troubleshooting guide](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/troubleshooting.md) first.
 
-        Within a few minutes, the issue assistant, Claude, posts a first analysis and may ask questions; the maintainer reads every issue as well ([what happens with your issue](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
+        Within a few minutes, an AI issue assistant posts a first analysis and may ask questions; the maintainer reads every issue as well ([what happens with your issue](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
 
         **Never post** access tokens, board API keys, public IP addresses or other personal data. Diagnostics downloaded from Home Assistant are already redacted.
   - type: textarea

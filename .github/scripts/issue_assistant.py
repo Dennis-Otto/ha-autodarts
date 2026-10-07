@@ -3,11 +3,13 @@
 The workflows issue-assistant.yml, issue-lifecycle.yml and labels.yml call this
 script; docs/development.md#issue-assistant describes what it does.
 
-Claude only reads: the checkout and a context folder that `context` writes. Its
-JSON answer reaches GitHub only through `apply`, which checks it against the schema,
+An AI engine from ENGINES writes the analysis; the repository variable
+ISSUE_ASSISTANT_ENGINE chooses it. The engine only reads: the checkout and a context
+folder that `context` writes, with the prompt and the JSON schema of its answer.
+The answer reaches GitHub only through `apply`, which checks it against the schema,
 the labels in .github/labels.toml and the issues that exist, and which runs in a job
-without Claude. Reminders, closing, reopening and the labels of the issue forms
-work without Claude.
+without the engine. Reminders, closing, reopening and the labels of the issue forms
+work without one.
 """
 
 from __future__ import annotations
@@ -19,7 +21,7 @@ import re
 import subprocess
 import sys
 import tomllib
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -55,7 +57,7 @@ MODES = ("triage", "follow-up", "maintainer-reply")
 # Kinds of issues the assistant may ask the reporter about; feature requests and
 # tester feedback are the maintainer's conversation.
 ASKING_KINDS = {"bug", "question", "compatibility", "documentation", "maintenance"}
-# Hosts that links in Claude's text may lead to; other links become plain text.
+# Hosts that links in the engine's text may lead to; other links become plain text.
 LINK_HOSTS = {
     "www.home-assistant.io",
     "home-assistant.io",
@@ -110,6 +112,49 @@ class AssistantError(Exception):
 
 class GitHubError(Exception):
     """A gh call failed."""
+
+
+# Engines
+
+
+@dataclass(frozen=True)
+class Engine:
+    """An AI engine that can write the analysis, named in its comments."""
+
+    name: str
+    vendor: str
+
+
+# The engines the analyze job of issue-assistant.yml has a step for; the repository
+# variable ISSUE_ASSISTANT_ENGINE chooses one. docs/development.md#engines describes
+# what an engine gets and returns, and how to add one.
+ENGINES = {"claude": Engine("Claude", "Anthropic")}
+DEFAULT_ENGINE = "claude"
+
+
+def engine_named(name: str | None) -> str:
+    """The key of a known engine; the default for an empty name."""
+    key = name or DEFAULT_ENGINE
+    if key not in ENGINES:
+        raise AssistantError(
+            f"Unknown engine {key}; known engines: {', '.join(sorted(ENGINES))}."
+        )
+    return key
+
+
+def check_engine(environment: Mapping[str, str]) -> tuple[str, bool]:
+    """The engine that ISSUE_ASSISTANT_ENGINE chooses, and whether it has credentials.
+
+    The workflow says for every engine in CREDENTIALS_<ENGINE> whether its secret exists.
+    """
+    key = engine_named(environment.get("ISSUE_ASSISTANT_ENGINE"))
+    ready = environment.get(f"CREDENTIALS_{key.upper()}") == "true"
+    if not ready:
+        print(
+            f"::notice::No credentials for {ENGINES[key].name} are configured; "
+            "the issue assistant only sets labels and keeps the lifecycle."
+        )
+    return key, ready
 
 
 # Labels
@@ -586,7 +631,7 @@ def follow_up_due(comments: list[dict[str, Any]], author: str) -> bool:
 
 @dataclass
 class Plan:
-    """What the event job did, and which task Claude gets next."""
+    """What the event job did, and which task the engine gets next."""
 
     issue: int | None = None
     mode: str = "none"
@@ -697,7 +742,7 @@ def reopen_if_answered(
     return plan
 
 
-# Context for Claude
+# Context for the engine
 
 
 def excerpt(text: str, limit: int) -> str:
@@ -765,7 +810,7 @@ def render_labels(labels: list[Label]) -> str:
 def write_context(
     github: GitHub, number: int, mode: str, labels: list[Label], folder: Path
 ) -> dict[str, str]:
-    """Write the files Claude reads and return the prompt and the schema."""
+    """Write the files the engine reads and return the prompt and the schema."""
     if mode not in MODES:
         raise AssistantError(f"Unknown mode {mode}.")
     issue = github.issue(number)
@@ -831,7 +876,7 @@ def write_context(
     return {"prompt": prompt, "schema": schema}
 
 
-# Claude's answer
+# The engine's answer
 
 
 def text(limit: int) -> dict[str, Any]:
@@ -856,7 +901,10 @@ def record(properties: dict[str, Any]) -> dict[str, Any]:
 
 
 def answer_schema(mode: str, labels: list[Label]) -> dict[str, Any]:
-    """The JSON schema of Claude's answer; Claude Code retries until its answer fits."""
+    """The JSON schema of the engine's answer.
+
+    Engines that can enforce a schema get it; `apply` checks every answer against it.
+    """
     if mode == "maintainer-reply":
         return record(
             {"waiting_for_reporter": {"type": "boolean"}, "reason": text(280)}
@@ -1002,24 +1050,29 @@ def looks_secret(text: str) -> bool:
 
 
 def parse_answer(mode: str, raw: str, labels: list[Label]) -> dict[str, Any]:
+    text = raw.strip()
+    # An engine that can't enforce the schema may wrap its JSON in a code fence.
+    if fenced := re.fullmatch(r"```(?:json)?[ \t]*\n(.*)\n```", text, re.DOTALL):
+        text = fenced[1]
     try:
-        answer = json.loads(raw)
+        answer = json.loads(text)
     except ValueError as error:
-        raise AssistantError(f"Claude's answer is no JSON: {error}") from error
+        raise AssistantError(f"The engine's answer is no JSON: {error}") from error
     problems = validate(answer_schema(mode, labels), answer)
     if problems:
         raise AssistantError(
-            "Claude's answer breaks the schema: " + "; ".join(problems)
+            "The engine's answer breaks the schema: " + "; ".join(problems)
         )
     if any(looks_secret(item) for item in all_text(answer)):
         raise AssistantError(
-            "Claude's answer contains text that looks like a token or key; nothing was posted."
+            "The engine's answer contains text that looks like a token or key; "
+            "nothing was posted."
         )
     result: dict[str, Any] = answer
     return result
 
 
-# Text that Claude wrote
+# Text that the engine wrote
 
 
 def allowed_url(url: str) -> bool:
@@ -1052,7 +1105,7 @@ def clean_prose(text: str, numbers: set[int]) -> str:
 
 
 def sanitize(text: str, numbers: Iterable[int] = ()) -> str:
-    """Claude's text without mentions, images, HTML, headings and foreign links.
+    """The engine's text without mentions, images, HTML, headings and foreign links.
 
     Code stays as it is; issue numbers stay links only when they were checked.
     """
@@ -1156,13 +1209,13 @@ TEXT: dict[str, dict[str, str]] = {
         "security": "> [!CAUTION]\n> This may describe a security vulnerability. Please report "
         "it privately, as described in [SECURITY.md]({blob}/main/SECURITY.md), and remove the "
         "details here.",
-        "footer": "<sub>🤖 Automated first analysis by Claude, based on the code, the "
+        "footer": "<sub>🤖 Automated first analysis by {engine}, based on the code, the "
         "documentation and earlier issues. It can be wrong; the maintainer decides.{labels}</sub>",
         "labels": " Labels: {labels}.",
         "follow-up.thanks": "Thanks for your answer, @{author}!",
         "follow-up.missing": "Still needed",
         "follow-up.missing.intro": "Please also add:",
-        "follow-up.footer": "<sub>🤖 Automated follow-up by Claude. It can be wrong; the "
+        "follow-up.footer": "<sub>🤖 Automated follow-up by {engine}. It can be wrong; the "
         "maintainer decides.</sub>",
         "reminder": "@{author}, a friendly reminder: this issue is still waiting for your "
         "answer to the questions above. Without an answer, it closes automatically on {date}. "
@@ -1211,14 +1264,14 @@ TEXT: dict[str, dict[str, str]] = {
         "security": "> [!CAUTION]\n> Das könnte eine Sicherheitslücke beschreiben. Bitte "
         "melde so etwas vertraulich, wie in [SECURITY.md]({blob}/main/SECURITY.md) "
         "beschrieben, und entferne die Details hier.",
-        "footer": "<sub>🤖 Automatische Erstanalyse von Claude auf Grundlage des Codes, der "
+        "footer": "<sub>🤖 Automatische Erstanalyse von {engine} auf Grundlage des Codes, der "
         "Dokumentation und früherer Issues. Sie kann falsch sein; der Maintainer "
         "entscheidet.{labels}</sub>",
         "labels": " Labels: {labels}.",
         "follow-up.thanks": "Danke für deine Antwort, @{author}!",
         "follow-up.missing": "Noch offen",
         "follow-up.missing.intro": "Bitte ergänze noch:",
-        "follow-up.footer": "<sub>🤖 Automatische Rückmeldung von Claude. Sie kann falsch "
+        "follow-up.footer": "<sub>🤖 Automatische Rückmeldung von {engine}. Sie kann falsch "
         "sein; der Maintainer entscheidet.</sub>",
         "reminder": "@{author}, eine freundliche Erinnerung: Dieses Issue wartet noch auf "
         "deine Antwort auf die Fragen oben. Ohne Antwort wird es am {date} automatisch "
@@ -1247,7 +1300,7 @@ def bullets(items: Iterable[str]) -> str:
 
 @dataclass
 class Findings:
-    """Claude's answer after the checks, ready to post."""
+    """The engine's answer after the checks, ready to post."""
 
     duplicate: dict[str, Any] | None = None
     duplicate_reason: str = ""
@@ -1262,6 +1315,7 @@ def render_analysis(
     findings: Findings,
     asks: list[str],
     labels: list[str],
+    engine: str = DEFAULT_ENGINE,
 ) -> str:
     language = answer["language"]
     numbers = findings.numbers
@@ -1274,6 +1328,7 @@ def render_analysis(
             "analysis",
             lang=language,
             questions=int(bool(asks)),
+            engine=engine,
             **(
                 {"duplicate": findings.duplicate["number"]}
                 if findings.duplicate
@@ -1324,17 +1379,24 @@ def render_analysis(
             language,
             "footer",
             labels=say(language, "labels", labels=shown) if labels else "",
+            engine=ENGINES[engine].name,
         )
     )
     return "\n\n".join(parts) + "\n"
 
 
 def render_follow_up(
-    answer: dict[str, Any], author: str, references: list[str], asks: list[str]
+    answer: dict[str, Any],
+    author: str,
+    references: list[str],
+    asks: list[str],
+    engine: str = DEFAULT_ENGINE,
 ) -> str:
     language = answer["language"]
     parts = [
-        render_marker("follow-up", lang=language, questions=int(bool(asks))),
+        render_marker(
+            "follow-up", lang=language, questions=int(bool(asks)), engine=engine
+        ),
         say(language, "follow-up.thanks", author=author),
     ]
     if answer["sensitive_data"]:
@@ -1348,7 +1410,7 @@ def render_follow_up(
         )
     if references:
         parts.append(f"### {say(language, 'references')}\n\n{bullets(references)}")
-    parts.append(say(language, "follow-up.footer"))
+    parts.append(say(language, "follow-up.footer", engine=ENGINES[engine].name))
     return "\n\n".join(parts) + "\n"
 
 
@@ -1375,7 +1437,7 @@ def render_reopened(author: str, language: str) -> str:
     return f"{render_marker('reopened')}\n{say(language, 'reopened', author=author)}\n"
 
 
-# Applying Claude's answer
+# Applying the engine's answer
 
 
 def other_issue(github: GitHub, number: int, current: int) -> dict[str, Any] | None:
@@ -1495,8 +1557,10 @@ def apply_answer(
     sha: str,
     *,
     repeat: bool = False,
+    engine: str = DEFAULT_ENGINE,
 ) -> list[str]:
-    """Check Claude's answer and post it; `repeat` allows another analysis by hand."""
+    """Check the engine's answer and post it; `repeat` allows another analysis by hand."""
+    engine = engine_named(engine)
     answer = parse_answer(mode, raw, labels)
     issue = github.issue(number)
     if "pull_request" in issue:
@@ -1522,6 +1586,7 @@ def apply_answer(
             author,
             references(answer["references"], sha, answer["language"]),
             asks,
+            engine,
         )
         github.comment(number, body)
         added = apply_labels(github, issue, answer, labels)
@@ -1539,7 +1604,9 @@ def apply_answer(
         for name in dict.fromkeys([answer["kind"], *answer["areas"], *answer["topics"]])
         if name not in label_names(issue)
     ]
-    github.comment(number, render_analysis(answer, author, findings, asks, planned))
+    github.comment(
+        number, render_analysis(answer, author, findings, asks, planned, engine)
+    )
     apply_labels(github, issue, answer, labels)
     lifecycle = []
     if asks and NEEDS_INFO not in label_names(issue):
@@ -1760,11 +1827,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("event", help="handle the GitHub event of this run")
-    context = commands.add_parser("context", help="write the files Claude reads")
+    commands.add_parser("engine", help="name the engine and whether it can run")
+    context = commands.add_parser("context", help="write the files the engine reads")
     context.add_argument("--issue", type=int, required=True)
     context.add_argument("--mode", choices=MODES, required=True)
     apply = commands.add_parser(
-        "apply", help="check Claude's answer in RESULT and apply it"
+        "apply", help="check the engine's answer in RESULT and apply it"
     )
     apply.add_argument("--issue", type=int, required=True)
     apply.add_argument("--mode", choices=MODES, required=True)
@@ -1776,6 +1844,11 @@ def main(argv: list[str] | None = None) -> int:
     github = GitHub(os.environ.get("GH_REPO", REPOSITORY), dry_run=dry_run)
     labels = load_labels()
     try:
+        if arguments.command == "engine":
+            key, ready = check_engine(os.environ)
+            output("engine", key)
+            output("ready", str(ready).lower())
+            return 0
         if arguments.command == "context":
             written = write_context(
                 github, arguments.issue, arguments.mode, labels, CONTEXT
@@ -1803,6 +1876,7 @@ def main(argv: list[str] | None = None) -> int:
                 labels,
                 os.environ.get("GITHUB_SHA", "main"),
                 repeat=os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch",
+                engine=os.environ.get("ISSUE_ASSISTANT_ENGINE", ""),
             )
             done += github.writes
         elif arguments.command == "sweep":

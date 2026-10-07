@@ -1,4 +1,4 @@
-"""The issue assistant: event handling, Claude's answer, the sweep and the labels.
+"""The issue assistant: event handling, the engine's answer, the sweep and the labels.
 
 A fake of the GitHub API answers the REST and GraphQL calls of the script, so the
 real request code runs; only `gh` itself is replaced.
@@ -771,7 +771,7 @@ def test_unknown_events_are_noted():
     assert plan.mode == "none" and "not handled" in plan.notes[0]
 
 
-# The context for Claude
+# The context for the engine
 
 
 def test_the_context_holds_the_issue_the_other_issues_and_discussions():
@@ -859,11 +859,11 @@ def test_excerpts_are_short_and_without_empty_answers():
     assert assistant.excerpt("a   b\n\n\n\nc", 100) == "a b\n\nc"
 
 
-# Claude's answer
+# The engine's answer
 
 
 @pytest.mark.parametrize("mode", assistant.MODES)
-def test_the_schemas_fit_into_the_claude_arguments(mode):
+def test_the_schemas_fit_into_the_engine_arguments(mode):
     schema = json.dumps(assistant.answer_schema(mode, LABELS), separators=(",", ":"))
     # The workflow wraps the schema in single quotes.
     assert "'" not in schema
@@ -919,6 +919,15 @@ def test_a_missing_field_is_refused():
     )
 
 
+def test_an_answer_in_a_code_fence_is_accepted():
+    # Engines that can't enforce the schema may wrap the JSON in a fence.
+    for fence in ("```json", "```"):
+        raw = "\n".join([fence, json.dumps(make_answer()), "```"])
+        assert assistant.parse_answer("triage", raw, LABELS) == make_answer()
+    with pytest.raises(assistant.AssistantError, match="no JSON"):
+        assistant.parse_answer("triage", "Here it is: {}", LABELS)
+
+
 def test_an_answer_that_is_no_json_is_refused():
     with pytest.raises(assistant.AssistantError, match="no JSON"):
         assistant.parse_answer("triage", "", LABELS)
@@ -965,7 +974,7 @@ def test_ordinary_long_words_are_no_secrets(harmless):
     assert not assistant.looks_secret(harmless)
 
 
-# Cleaning Claude's text
+# Cleaning the engine's text
 
 
 def test_mentions_images_html_and_headings_are_removed():
@@ -1097,7 +1106,9 @@ def test_the_first_analysis_is_posted_with_labels_and_a_rationale():
         "abc",
     )
     (body,) = github.posted(12)
-    assert body.startswith("<!-- issue-assistant:analysis lang=en questions=0 -->")
+    assert body.startswith(
+        "<!-- issue-assistant:analysis lang=en questions=0 engine=claude -->"
+    )
     assert "Thanks for the report, @reporter!" in body
     assert "### Summary\n\nThe live card stays empty after a throw." in body
     assert "### Worth trying\n\n- Reload the dashboard." in body
@@ -1356,6 +1367,43 @@ def test_an_answer_for_a_pull_request_is_refused():
         )
 
 
+def test_the_engine_signs_its_comments():
+    github = FakeGitHub(make_issue())
+    assistant.apply_answer(
+        github, "triage", 12, json.dumps(make_answer()), LABELS, "abc", engine=""
+    )
+    (body,) = github.posted(12)
+    assert "engine=claude" in body.splitlines()[0]
+    assert "Automated first analysis by Claude," in body
+    with pytest.raises(assistant.AssistantError, match="Unknown engine gemini"):
+        assistant.apply_answer(
+            github,
+            "triage",
+            12,
+            json.dumps(make_answer()),
+            LABELS,
+            "abc",
+            engine="gemini",
+        )
+
+
+def test_the_chosen_engine_runs_only_with_its_credentials(capsys):
+    assert assistant.check_engine({"CREDENTIALS_CLAUDE": "true"}) == ("claude", True)
+    assert capsys.readouterr().out == ""
+    environment = {"ISSUE_ASSISTANT_ENGINE": "claude", "CREDENTIALS_CLAUDE": "false"}
+    assert assistant.check_engine(environment) == ("claude", False)
+    assert "No credentials for Claude are configured" in capsys.readouterr().out
+    with pytest.raises(assistant.AssistantError, match="known engines: claude"):
+        assistant.check_engine({"ISSUE_ASSISTANT_ENGINE": "unknown"})
+
+
+def test_every_engine_has_a_name_and_a_vendor():
+    assert assistant.DEFAULT_ENGINE in assistant.ENGINES
+    for key, engine in assistant.ENGINES.items():
+        assert re.fullmatch(r"[a-z][a-z0-9]*", key)
+        assert engine.name and engine.vendor
+
+
 def test_a_dry_run_only_previews_the_comment():
     github = FakeGitHub(make_issue(), dry_run=True)
     assistant.apply_answer(
@@ -1392,7 +1440,9 @@ def test_a_follow_up_thanks_and_asks_what_is_still_missing():
     )
     assistant.apply_answer(github, "follow-up", 12, json.dumps(answer), LABELS, "abc")
     (body,) = github.posted(12)
-    assert body.startswith("<!-- issue-assistant:follow-up lang=en questions=1 -->")
+    assert body.startswith(
+        "<!-- issue-assistant:follow-up lang=en questions=1 engine=claude -->"
+    )
     assert "Thanks for your answer, @reporter!" in body
     assert "The log shows that the event arrives." in body
     assert "### Still needed\n\nPlease also add:\n\n- The diagnostics, please." in body
@@ -1816,6 +1866,22 @@ def run_main(monkeypatch, tmp_path, github, *argv, **env):
     return code, text, summary.read_text("utf-8") if summary.exists() else ""
 
 
+def test_the_engine_command_names_the_engine(monkeypatch, tmp_path):
+    code, outputs, _ = run_main(
+        monkeypatch,
+        tmp_path,
+        FakeGitHub(),
+        "engine",
+        ISSUE_ASSISTANT_ENGINE="",
+        CREDENTIALS_CLAUDE="true",
+    )
+    assert (code, outputs) == (0, "engine=claude\nready=true\n")
+    code, _, _ = run_main(
+        monkeypatch, tmp_path, FakeGitHub(), "engine", ISSUE_ASSISTANT_ENGINE="other"
+    )
+    assert code == 1
+
+
 def test_the_event_command_writes_the_next_task(monkeypatch, tmp_path):
     issue = make_issue(labels=("bug",))
     payload = tmp_path / "event.json"
@@ -1894,7 +1960,7 @@ def test_the_apply_command_fails_on_a_bad_answer(monkeypatch, tmp_path, capsys):
         RESULT="{}",
     )
     assert code == 1
-    assert "::error::Claude's answer breaks the schema" in capsys.readouterr().out
+    assert "::error::The engine's answer breaks the schema" in capsys.readouterr().out
     assert not github.writes_made()
 
 
