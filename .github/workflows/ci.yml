@@ -1,0 +1,102 @@
+name: CI (home-assistant)
+
+# Home Assistant integration: the hash-pinned test tools of requirements-test.txt and
+# the checks of scripts/check.sh, plus the validation of HACS and of hassfest.
+# https://github.com/Dennis-Otto/repo-blueprint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # HACS and hassfest apply new rules without a release of this repository.
+    - cron: "30 4 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: check (home-assistant)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: requirements-test.txt
+      - name: Install the hash-pinned test tools
+        run: pip install --require-hashes -r requirements-test.txt
+      # The frontend of the integration, such as its cards, if it has one; its tests
+      # belong in scripts/check-project.sh.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: hashFiles('package.json') != ''
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install the locked packages of the frontend
+        if: hashFiles('package.json') != ''
+        run: npm ci --ignore-scripts
+      - name: Run the checks
+        run: bash scripts/check.sh
+      - name: Show the coverage
+        if: always() && hashFiles('.coverage') != ''
+        run: |
+          coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+          coverage xml -o "$RUNNER_TEMP/coverage.xml"
+      - name: Keep the coverage report
+        if: always() && hashFiles('.coverage') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage
+          path: ${{ runner.temp }}/coverage.xml
+          retention-days: 14
+
+  hacs:
+    name: hacs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate the HACS metadata
+        # The action runs HACS' moving ghcr.io/hacs/action:main image on purpose: it
+        # always validates against the rules HACS applies to new submissions today.
+        uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
+        with:
+          category: integration
+          comment: false
+
+  hassfest:
+    name: hassfest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # hassfest runs Home Assistant's current image, for the same reason.
+      - name: Validate the integration
+        uses: home-assistant/actions/hassfest@06749dd8c0b54f350bc69c8752456cee498808a3 # master

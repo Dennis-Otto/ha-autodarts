@@ -1,28 +1,33 @@
 {
-  "name": "ha-autodarts",
+  "name": "Autodarts",
   "build": { "dockerfile": "Dockerfile" },
   "features": {
-    "ghcr.io/devcontainers/features/node:2": { "version": "24" },
-    "ghcr.io/devcontainers/features/docker-in-docker:4": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {},
+    "ghcr.io/devcontainers/features/node:2": { "version": "24" }
   },
-  "postCreateCommand": "pip install --require-hashes -r requirements-test.txt && npm ci --ignore-scripts",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
   "forwardPorts": [18124],
   "portsAttributes": {
     "18124": { "label": "Demo Home Assistant", "onAutoForward": "notify" }
   },
+  "remoteEnv": { "PATH": "${containerWorkspaceFolder}/.venv/bin:${containerEnv:PATH}" },
   "customizations": {
     "vscode": {
-      "extensions": [
-        "charliermarsh.ruff",
-        "ms-python.python",
-        "ms-python.mypy-type-checker",
-        "redhat.vscode-yaml",
-        "editorconfig.editorconfig"
-      ],
       "settings": {
+        "python.defaultInterpreterPath": ".venv/bin/python",
         "python.testing.pytestEnabled": true,
         "[python]": { "editor.defaultFormatter": "charliermarsh.ruff" }
-      }
+      },
+      "extensions": [
+        "editorconfig.editorconfig",
+        "github.vscode-github-actions",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "timonwong.shellcheck",
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "ms-python.mypy-type-checker"
+      ]
     }
   }
 }

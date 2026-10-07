@@ -21,6 +21,8 @@ show_missing = true
 skip_covered = true
 
 [tool.ruff]
+# The settings tool of the blueprint, which the blueprint keeps current.
+extend-exclude = [".github/blueprint.py"]
 target-version = "py313"
 
 [tool.ruff.lint]

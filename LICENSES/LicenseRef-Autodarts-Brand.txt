@@ -1,0 +1,6 @@
+The Autodarts name, logo and symbol belong to their owner. The brand artwork in
+custom_components/autodarts/brand/ and docs/branding/ comes from the official
+Autodarts website and only identifies the product that this integration supports,
+as described in docs/branding/README.md. It is not covered by the MIT license of
+this project and grants no rights to the marks. This is an unofficial community
+integration and is not affiliated with Autodarts.

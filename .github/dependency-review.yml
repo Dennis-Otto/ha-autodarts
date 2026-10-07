@@ -1,0 +1,71 @@
+# Rules of the dependency review of pull requests (.github/workflows/dependency-review.yml).
+# An advisory that this repository accepts, for example in a dependency that only
+# the tests install and that a pinned upstream can't move yet, goes into
+# allow-ghsas with its reason.
+fail-on-severity: moderate
+fail-on-scopes:
+  - runtime
+  - development
+  - unknown
+show-patched-versions: true
+retry-on-snapshot-warnings: true
+# Home Assistant 2026.9 pins cryptography 48.0.1 and PyJWT 2.13.0, which only the
+# test environment installs; the integration ships no Python dependencies. The
+# same advisories as in osv-scanner.toml, which says when they go.
+allow-ghsas:
+  - GHSA-g6cj-pr64-35w5
+  - GHSA-jwv3-5hgf-82ww
+  - GHSA-m2h6-j472-rp4c
+  - GHSA-2gx3-rcp4-g85q
+  - GHSA-42vr-xj54-vc7v
+  - GHSA-8wjv-2p76-3863
+  - GHSA-9j54-fg26-wv3r
+  - GHSA-9v7f-9g4p-ffgj
+  - GHSA-ffc3-869f-jxw9
+  - GHSA-gvp8-978c-rx2q
+  - GHSA-hxm8-2xgr-2p9m
+  - GHSA-jwrc-g2q2-pq5p
+  - GHSA-p4g4-x82p-q773
+  - GHSA-r6x4-923q-g947
+  - GHSA-w2cx-738m-mc7w
+  - GHSA-w6j9-cwv2-h6wq
+  - GHSA-x33g-cr3x-6449
+
+# The licenses a new dependency may have: free licenses that the MIT
+# license of this project can carry.
+allow-licenses:
+  - 0BSD
+  - Apache-2.0
+  - BlueOak-1.0.0
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - BSL-1.0
+  - CC-BY-3.0
+  - CC-BY-4.0
+  - CC0-1.0
+  - ISC
+  - LGPL-2.1-only
+  - LGPL-2.1-or-later
+  - LGPL-3.0-only
+  - LGPL-3.0-or-later
+  - MIT
+  - MIT-0
+  - MPL-2.0
+  - OFL-1.1
+  - PSF-2.0
+  - Python-2.0
+  - Unicode-3.0
+  - Unicode-DFS-2016
+  - Unlicense
+  - Zlib
+# The cloud parts of Home Assistant's test base, which the integration never ships.
+allow-dependencies-licenses:
+  # The tools of the blueprint bot (.github/copier-requirements.txt), which no release
+  # ships: Copier's Jinja filters (GPL-3.0-only) and typing-extensions, whose
+  # license the review reads wrongly.
+  - pkg:pypi/jinja2-ansible-filters
+  - pkg:pypi/typing-extensions
+  - pkg:pypi/hass-nabucasa
+  - pkg:pypi/snitun
+  - pkg:pypi/pyric
+  - pkg:pypi/text-unidecode
