@@ -2,6 +2,7 @@ name: Labels
 
 # Creates and updates the repository's labels from .github/labels.toml. It never
 # deletes a label; one that is missing from the file is reported in the summary.
+# https://github.com/Dennis-Otto/issue-assistant
 
 on:
   push:
@@ -24,7 +25,7 @@ concurrency:
 jobs:
   sync:
     name: Synchronize labels
-    if: github.repository == 'Dennis-Otto/ha-autodarts'
+    if: ${{ !github.event.repository.fork }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -35,8 +36,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Create and update the labels
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          DRY_RUN: ${{ inputs.dry_run || false }}
-        run: python3 .github/scripts/issue_assistant.py sync-labels
+        uses: Dennis-Otto/issue-assistant@80508cea4e88564345d389baad677b1593e6e673 # v1.0.1
+        with:
+          command: sync-labels
+          dry-run: ${{ inputs.dry_run || false }}

@@ -13,7 +13,7 @@
 | `tests/frontend/` | Node tests of the card logic and of every card element in a browser DOM, including property-based tests with fast-check |
 | `tests/e2e/` | Docker end-to-end test, demo instance, browser test and screenshot tool |
 | `docs/` | Documentation, with German translations in `docs/de/` |
-| `.github/` | Workflows, issue forms, the labels in `labels.toml` and the [issue assistant](#issue-assistant) with its prompts in `issue-assistant/` |
+| `.github/` | Workflows, issue forms, the labels in `labels.toml` and the settings of the [issue assistant](#issue-assistant) in `issue-assistant/` |
 
 ## UI building blocks
 
@@ -169,76 +169,31 @@ Assistant use for new submissions today, and the weekly beta run uses the beta t
 
 ## Issue assistant
 
-Three workflows look after the issues; the maintainer still reads every issue and has the last word.
+The [issue assistant](https://github.com/Dennis-Otto/issue-assistant), a GitHub Action of its own, looks after the issues; the maintainer still reads every issue and has the last word.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/issue-lifecycle-dark.png">
   <img src="images/en/issue-lifecycle-light.png" alt="Life of an issue: the form sets the kind, the area and needs-triage; an AI engine posts a first analysis. Missing information marks it needs-info: an answer hands it to the maintainer, after 15 days a reminder follows, after 30 days it closes and an answer reopens it. A sure duplicate gets a notice and closes after 3 days unless someone comments or reacts with a thumbs down." width="640">
 </picture>
 
-- **Issue assistant** (`issue-assistant.yml`) runs on new issues, edits of their reporters and new comments:
-  - It sets the area label from the *Area* field of the bug report, and `needs-triage` when a form didn't.
-  - An AI [engine](#engines), today Claude, writes a first analysis of every issue opened by someone other than a maintainer: a summary, the likely cause or the code and documentation involved, what the reporter can try, the information still missing, and related issues and discussions. It chooses the kind, areas and topics from [`.github/labels.toml`](../.github/labels.toml); GitHub shows its reason on each of these labels. While an issue has `needs-triage`, the assistant may correct the kind the form chose.
-  - Questions for the reporter mark the issue `needs-info`. When the reporter answers, by a comment or an edit, the label goes, and the engine follows up on its own questions up to twice, unless the maintainer has joined the conversation.
-  - When the maintainer comments on someone else's issue, the engine decides whether the comment waits for the reporter and sets `needs-info` then.
-  - A sure duplicate of an older, open issue gets a notice and `possible-duplicate`. Any human comment, or a 👎 of the reporter or the maintainer on the notice, stops the closing. A less sure candidate becomes a suggestion in GitHub's panel for agent suggestions (search `has:suggestions`), which the maintainer accepts or declines.
-- **Issue lifecycle** (`issue-lifecycle.yml`) runs every morning without an engine. An issue that has waited for its reporter for 15 days, counted from `needs-info` or the maintainer's last comment, gets a reminder and `stale`; 15 days after the reminder, at the earliest 30 days after the question, it closes as not planned. An answer of the reporter reopens it. A possible duplicate closes as a duplicate of its original 3 days after the notice, linked to it.
-- **Labels** (`labels.yml`) creates and updates the labels from `.github/labels.toml` when the file changes on `main`. It never deletes a label.
+- **New issues** get the area label from the *Area* field of the bug report and a first analysis by an AI that only reads: a summary, the likely cause with links to the code and the documentation, what to try, the information still missing, and related issues and discussions, in the reporter's language. It chooses the kind, areas and topics from `.github/labels.toml`, with its reason on each label, and may correct the kind while an issue has `needs-triage`.
+- **Questions** of the assistant, or a comment of the maintainer that asks the reporter something, mark an issue `needs-info`. An answer, by a comment or an edit, ends the wait, and the assistant follows up on its own questions. After 15 days the reporter gets a reminder, after 30 days the issue closes as not planned, and an answer reopens it.
+- **A sure duplicate** of an older, open issue gets a notice and closes, linked to the original, 3 days later unless someone comments or the reporter or maintainer reacts with 👎; a less sure candidate becomes a suggestion in GitHub's panel (`has:suggestions`).
+- **Labels** are code: the Labels workflow creates and updates them from `.github/labels.toml` when it changes on `main`.
 
-The assistant writes in the reporter's language, English or German, and never comments on spam (it gets `invalid`) or on details of a possible vulnerability, which it points to [SECURITY.md](../SECURITY.md).
+The three workflows `issue-assistant.yml`, `issue-lifecycle.yml` and `labels.yml` are copies of the action's templates, pinned to a release; Dependabot proposes new releases, and its routine updates merge on their own. The AI's secret `CLAUDE_CODE_OAUTH_TOKEN` belongs to the environment `issue-assistant`, which only `main` may use. The action's [README](https://github.com/Dennis-Otto/issue-assistant#security) describes the security design: the AI runs with read-only tools and token on the egress-firewall runner, and only checked code writes to GitHub.
 
-### Security
+What is set here:
 
-Issues come from anyone, so the workflow assumes that an issue tries to steer the engine:
+| File | Contents |
+| --- | --- |
+| `.github/issue-assistant/project.md` | What the AI reads about the project before every task: where code, documentation and changelog are, and what matters in a bug report |
+| `.github/issue-assistant/config.toml` | The engine (Claude), the hosts links may lead to, the *Area* field of the bug report, and the files that tell reporters which AI reads their issue (`SUPPORT.md` and `docs/de/fehlerbehebung.md`) |
+| `.github/labels.toml` | Every label: the kinds, with `ask = false` for feature requests and tester feedback, the areas with the options of the *Area* field, and the lifecycle labels |
 
-- The engine runs in the `analyze` job, which has only read permissions and runs on GitHub's [egress-firewall runner](https://github.com/github-early-access/actions-native-egress-firewall) with the allow list in `.github/egress-firewall.yaml`. It may only read files of the checkout; Claude Code, for example, runs with `--restricted` and only the tools `Read`, `Grep` and `Glob`, so it can't run commands, open web pages or read files elsewhere. The issue, the other issues and the discussions reach it as files in `.issue-assistant/`, which the prompt calls data, not instructions.
-- The engine's answer is JSON with a fixed schema. The `apply` job, which runs no engine and never sees its secret, checks the answer against the schema, the labels in `.github/labels.toml` and the issues that exist, and refuses to post anything that looks like a token or key. It turns mentions into code, drops images, HTML and links to other sites, and links files only when they exist in the repository, code lines to the analyzed commit. Only it writes to GitHub, and only to the issue of the event.
-- The engine's secret belongs to the `issue-assistant` environment, which only `main` may use. `tests/test_issue_assistant_workflows.py` fails when a change weakens one of these rules, or when an engine has no rules there.
+The job *issue-assistant* of the **Integration validation** workflow runs the action's `check`: it fails when a workflow differs from the template of its release, a label or an option of the *Area* field doesn't fit, or the notice to reporters doesn't name the engine. The repository variable `ISSUE_ASSISTANT_AI` set to `off` switches the AI off; labels and the lifecycle keep working.
 
-### Engines
-
-Everything except one step of the `analyze` job is independent of the AI: the context, the prompts in `.github/issue-assistant/`, the checks and every write. An engine gets:
-
-- the read-only checkout, with the context in `.issue-assistant/`;
-- the prompt, in `.issue-assistant/prompt.md` and the step output `prompt`;
-- the JSON schema of its answer, in `.issue-assistant/schema.json` and the step output `schema`;
-
-and returns the JSON answer as a step output. `apply` validates it whether or not the engine could enforce the schema, and also accepts it in a code fence.
-
-| Engine | Step | Secret | Restrictions |
-| --- | --- | --- | --- |
-| `claude` (default) | `anthropics/claude-code-action` | `CLAUDE_CODE_OAUTH_TOKEN` (subscription, `claude setup-token`) or `ANTHROPIC_API_KEY` | `--restricted --tools "Read,Grep,Glob"`, the schema with `--json-schema` |
-
-The repository variable `ISSUE_ASSISTANT_ENGINE` chooses the engine. To add one, for example OpenAI Codex with `openai/codex-action` (`prompt-file`, `output-schema-file` and a read-only sandbox) or the GitHub Copilot CLI in programmatic mode (only reading tools allowed, the JSON asked for in the prompt):
-
-1. Add it to `ENGINES` in `.github/scripts/issue_assistant.py`, with the name its comments are signed with.
-2. Add a step with the engine's key as `id` to the `analyze` job, with the same `if` as the Claude step, only reading tools, no shell and no network tools. Add its secret to the step *Choose the engine and check its credentials* as `CREDENTIALS_<ENGINE>`, and its answer to the job output `answer`.
-3. Add its hosts to `.github/egress-firewall.yaml`, in a block of their own.
-4. Add its rules to `ENGINE_RULES` in `tests/test_issue_assistant_workflows.py`, the test that keeps it read-only.
-5. Before it becomes the default, name it in `SUPPORT.md` and `docs/de/fehlerbehebung.md`, where reporters learn who reads their issue; a test checks that.
-
-### Set up
-
-1. Create a token with your Claude subscription by running `claude setup-token`, or use an API key of the Anthropic Console, best in a workspace with a spending limit.
-2. Create the environment `issue-assistant` under *Settings → Environments*, limit its deployment branches to `main`, and add the token as the secret `CLAUDE_CODE_OAUTH_TOKEN`, or the API key as `ANTHROPIC_API_KEY`.
-3. Optional repository variables: `ISSUE_ASSISTANT_ENGINE` chooses the [engine](#engines) (default `claude`), `ISSUE_ASSISTANT_MODEL` its model (default `claude-opus-5-5` for Claude), and `ISSUE_ASSISTANT_AI` set to `off` switches the engine off.
-
-Without the engine's secret, the labels, reminders, closing and reopening keep working; only the analysis, the follow-ups and the duplicate search pause. An analysis takes about a minute.
-
-### Run it by hand
-
-*Actions → Issue assistant → Run workflow* analyzes an issue again, for example after the prompt changed, or runs a follow-up or the check of the maintainer's comment. The run starts as a dry run: its summary shows the comment and labels it would post. *Issue lifecycle* and *Labels* have a dry run as well.
-
-The prompts are in `.github/issue-assistant/`. To try a change locally with Claude Code, without posting anything:
-
-```sh
-export GH_REPO=Dennis-Otto/ha-autodarts DRY_RUN=true
-python3 .github/scripts/issue_assistant.py context --issue 106 --mode triage
-claude -p "$(cat .issue-assistant/prompt.md)" --restricted --tools "Read,Grep,Glob" \
-  --json-schema "$(cat .issue-assistant/schema.json)" --output-format json > answer.json
-RESULT="$(jq -c .structured_output answer.json)" \
-  python3 .github/scripts/issue_assistant.py apply --issue 106 --mode triage
-```
+*Actions → Issue assistant → Run workflow* analyzes an issue again, or runs a follow-up or the check of the maintainer's comment. The run starts as a dry run: its summary shows the comment and labels it would post. To try a change of `project.md` or the action's prompts locally, see the action's [README](https://github.com/Dennis-Otto/issue-assistant#try-a-prompt-locally).
 
 ## Releases
 

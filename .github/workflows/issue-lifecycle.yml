@@ -1,9 +1,9 @@
 name: Issue lifecycle
 
-# Once a day, without Claude: reminds reporters who were asked for information
-# after 15 days, closes their issue after 30 days without an answer, and closes a
-# possible duplicate 3 days after the notice unless someone objected.
-# See docs/development.md#issue-assistant.
+# Once a day, without AI: reminds reporters who were asked for information after
+# 15 days, closes their issue after 30 days without an answer, and closes a possible
+# duplicate 3 days after the notice unless someone objected.
+# https://github.com/Dennis-Otto/issue-assistant
 
 on:
   schedule:
@@ -24,7 +24,7 @@ concurrency:
 jobs:
   sweep:
     name: Remind and close
-    if: github.repository == 'Dennis-Otto/ha-autodarts'
+    if: ${{ !github.event.repository.fork }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -35,8 +35,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Remind reporters and close unanswered issues and duplicates
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          DRY_RUN: ${{ inputs.dry_run || false }}
-        run: python3 .github/scripts/issue_assistant.py sweep
+        uses: Dennis-Otto/issue-assistant@80508cea4e88564345d389baad677b1593e6e673 # v1.0.1
+        with:
+          command: sweep
+          dry-run: ${{ inputs.dry_run || false }}
