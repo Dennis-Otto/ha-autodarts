@@ -2,7 +2,7 @@
 
 [← Dokumentation](README.md) · [English](../roadmap.md)
 
-Diese Roadmap zeigt, was jede Version gebracht hat, was das nächste Release bringt und was danach kommt. Sie ist eine Richtung, kein Versprechen: Die Prioritäten richten sich nach den Rückmeldungen der Spieler, die Termine nach der verfügbaren Freizeit. Ideen und Stimmen sind als [Funktionswunsch](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) willkommen.
+Diese Roadmap zeigt, was jede Version gebracht hat, was das nächste Release bringt und was danach kommt. *Als Nächstes* und *Später* blicken mindestens ein Jahr voraus, bis Oktober 2027, und *Nicht geplant* sagt, was die Integration nicht tun wird. Sie ist eine Richtung, kein Versprechen: Die Prioritäten richten sich nach den Rückmeldungen der Spieler, die Termine nach der verfügbaren Freizeit. Ideen und Stimmen sind als [Funktionswunsch](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) willkommen.
 
 ## Version 1.0: das lokale Fundament
 
@@ -115,6 +115,12 @@ Ideen für die Versionen nach 1.9. Stimmen und Reaktionen auf die [Feature-Wüns
 | Thema | Voraussetzung |
 | --- | --- |
 | **Protokoll-Bibliothek auf PyPI** (`aioautodarts`) | Eine eigene Bibliothek für das Board-Manager-Protokoll, Voraussetzung für einen möglichen Weg in den Home-Assistant-Kern; zurückgestellt, bis das Protokoll sich gesetzt hat |
+
+## Nicht geplant
+
+- **Ein Cloud-Konto für das lokale Spiel.** Alles, was mit dem Board Manager in deinem Netzwerk funktioniert, funktioniert weiter ohne Autodarts-Konto; Cloud-Funktionen bleiben optional.
+- **Telemetrie.** Die Integration sendet nichts über deine Spiele oder dein Zuhause irgendwohin, und im lokalen Betrieb verlässt nichts dein Netzwerk.
+- **Brechende Änderungen ohne Weg nach vorn.** Bestehende Integrationseinträge, Entitäts-IDs und Automationen funktionieren weiter, oder ein Release migriert sie und seine Notes sagen, was sich ändert.
 
 ## So werden Prioritäten gesetzt
 
