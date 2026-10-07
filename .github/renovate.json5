@@ -5,4 +5,36 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["local>Dennis-Otto/ha-autodarts//.github/renovate-blueprint.json5"],
+  packageRules: [
+    {
+      // The end-to-end tests run the oldest Home Assistant that the integration
+      // supports (hacs.json), and their required check is named after it; only
+      // the digest of its image moves.
+      matchFileNames: [".github/workflows/e2e.yml"],
+      matchDepNames: ["ghcr.io/home-assistant/home-assistant"],
+      matchUpdateTypes: ["major", "minor", "patch"],
+      enabled: false,
+    },
+    {
+      // Playwright must match the browsers of the pinned Playwright image.
+      matchFileNames: ["tests/e2e/**"],
+      matchDepNames: ["playwright"],
+      enabled: false,
+    },
+    {
+      matchFileNames: ["tests/e2e/requirements-browser.txt"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "the tools of the browser tests",
+    },
+    {
+      // The tools of the tests of the cards; nothing of it is shipped.
+      matchManagers: ["npm"],
+      semanticCommitType: "chore",
+    },
+    {
+      matchManagers: ["npm"],
+      matchUpdateTypes: ["minor", "patch"],
+      groupName: "the tools of the tests of the cards",
+    },
+  ],
 }

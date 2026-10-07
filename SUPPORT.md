@@ -6,15 +6,10 @@ Where to go:
 | --- | --- |
 | Ask a question, share your setup or dashboard | [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions) |
 | Report a reproducible bug | a [bug report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=bug_report.yml) |
-<<<<<<< before updating
 | Tell us whether your board works | a [board compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) |
 | Tell us how testing went: what worked, what didn't, what you miss | a [tester report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml) |
-| Suggest a feature | a [feature request](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=feature_request.yml) or an idea in Discussions |
-=======
 | Suggest a feature | a [feature request](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=feature_request.yml) |
-| Ask a question or share an idea | the [discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions) |
 | Hear of every new release | the [announcements](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/announcements), or *Watch* → *Custom* → *Releases* |
->>>>>>> after updating
 | Report a vulnerability | privately, as described in [SECURITY.md](SECURITY.md) |
 
 Please check the [documentation](docs/README.md) and the [troubleshooting guide](docs/troubleshooting.md) first. For bugs, include the integration version, the Home Assistant version, the Board Manager version, the diagnostics file and the steps to reproduce.
