@@ -161,9 +161,9 @@ logger:
 
 Open an [issue](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) with the Home Assistant version, the Board Manager version, the diagnostics file and the relevant log lines. Report security problems privately as described in [SECURITY.md](../SECURITY.md).
 
-Within a few minutes, an AI issue assistant posts a first analysis, often with a fix or the part of the documentation that helps, and asks for anything that's missing. The maintainer reads every issue as well. If questions stay unanswered, a reminder follows after 15 days and the issue closes after 30 days; an answer reopens it. A likely duplicate closes 3 days after a notice unless you object ([details](../SUPPORT.md#what-happens-with-your-issue)).
+Within a few minutes, an AI issue assistant posts a first analysis, often with a fix or the part of the documentation that helps, and asks for anything that's missing. The maintainer reads every issue as well. If questions stay unanswered, a reminder follows after 15 days and the issue closes after 30 days; an answer reopens it. A likely duplicate closes 3 days after a notice unless you object. A fixed issue stays open until a release ships the fix and then closes with a link to the release ([details](../SUPPORT.md#what-happens-with-your-issue)).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/issue-lifecycle-dark.png">
-  <img src="images/en/issue-lifecycle-light.png" alt="Life of an issue: labels and a first AI analysis; missing information marks it needs-info, with a reminder on day 15 and closing on day 30, and an answer hands it to the maintainer or reopens it; a sure duplicate gets a notice and closes on day 3 unless someone comments or reacts with a thumbs down." width="640">
+  <img src="images/en/issue-lifecycle-light.png" alt="Life of an issue: labels and a first AI analysis; missing information marks it needs-info, with a reminder on day 15 and closing on day 30, and an answer hands it to the maintainer or reopens it; a sure duplicate gets a notice and closes on day 3 unless someone comments or reacts with a thumbs down. A merged fix marks it fixed-in-next-release; the release closes it with a link, and if it's still broken, it goes back to the maintainer." width="640">
 </picture>

@@ -15,3 +15,9 @@ flowchart TB
     NOTICE["Notice and<br/>possible-duplicate"] -- "day 3" --> DUP["Closed as<br/>a duplicate"]
   end
   NOTICE -- "comment or thumbs down" --> MAINT
+  MAINT -- "fix merged" --> FIX
+  subgraph RELEASE[" "]
+    direction TB
+    FIX["fixed-in-next-release:<br/>waiting for the release"] -- "release" --> SHIPPED["Closed with a link<br/>to the release"]
+  end
+  SHIPPED -- "still broken" --> MAINT
