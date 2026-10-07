@@ -13,6 +13,13 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - The accessibility check of the cards, which axe-core runs in the browser test on a laptop and a phone in both themes.
 
+## [1.9.1](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.0...v1.9.1) (2026-10-07)
+
+
+### Bug fixes
+
+* **cards:** pass an axe-core accessibility check ([#147](https://github.com/Dennis-Otto/ha-autodarts/issues/147)) ([b283c22](https://github.com/Dennis-Otto/ha-autodarts/commit/b283c222affb70fbfdc435e36c3d77d8d583719a))
+
 ## 1.9.0
 
 ### New
