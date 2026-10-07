@@ -7,6 +7,7 @@ and the changelog of its releases.
     python3 blueprint.py checklist          the steps outside the API, and which are done
     python3 blueprint.py changelog ...      the changelog of a release (the release bot)
     python3 blueprint.py unreleased ...     an entry under Unreleased (the other bots)
+    python3 blueprint.py notices ...        the licenses of the third-party components
 
 Run it in the root of a repository made from the blueprint, with the GitHub CLI `gh`
 signed in as an administrator. It needs Python 3.12 and nothing else. It never reads,
@@ -29,6 +30,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree
 
 CONFIG = Path(".github/repository.toml")
 # The GitHub Actions app, which reports the checks of the workflows.
@@ -481,6 +483,32 @@ def apply_environments(api: Api, repo: str, drift: list[Drift]) -> None:
             )
 
 
+# --------------------------------------------------------------------------- community
+
+
+def check_community(api: Api, repo: str) -> list[Drift]:
+    """GitHub's community standards: every file that the profile of the repository
+    counts. The blueprint brings them all, so a gap is one that a person made."""
+    profile = api.get(f"repos/{repo}/community/profile") or {}
+    health = profile.get("health_percentage", 0)
+    if health == 100:
+        return []
+    missing = sorted(
+        name for name, file in (profile.get("files") or {}).items() if file is None
+    )
+    if not profile.get("description"):
+        missing.append("description")
+    what = ", ".join(missing) or "what the profile counts"
+    return [
+        Drift(
+            "community profile",
+            100,
+            health,
+            manual=f"add {what}: https://github.com/{repo}/community",
+        )
+    ]
+
+
 # --------------------------------------------------------------------------- labels
 
 
@@ -600,6 +628,7 @@ def check(api: Api, repo: str, settings: Settings) -> list[Drift]:
         + check_variables(api, repo, settings.variables)
         + check_environments(api, repo, settings.environments)
         + check_labels(api, repo, settings.labels)
+        + check_community(api, repo)
     )
 
 
@@ -869,6 +898,22 @@ def release_notes(version: str, changelog: str, generated: str) -> str:
     return "\n".join([*lines, ""])
 
 
+def beta_notes(version: str, changelog: str) -> str:
+    """The notes of a beta of the next release: what main holds, from the text of
+    Unreleased, for the testers who take prereleases."""
+    release = version.split("-", 1)[0]
+    log = Changelog.parse(changelog)
+    found = log.find(UNRELEASED)
+    text = "" if found is None else log.sections[found][1].strip("\n")
+    lines = [
+        f"A beta of the next release, {release}, with what `main` holds now, for the "
+        "testers who take prereleases. The release itself follows when it is ready.",
+        "",
+        text or "The changes of this beta are not described yet.",
+    ]
+    return "\n".join([*lines, ""])
+
+
 def add_unreleased(changelog: str, heading: str, entry: str) -> str:
     """The changelog with the entry under its heading in Unreleased; both are added
     when they are missing, and an entry that is there already stays once."""
@@ -902,12 +947,196 @@ def changelog_command(arguments: argparse.Namespace) -> int:
             add_unreleased(text, arguments.heading, arguments.entry), encoding="utf-8"
         )
         return 0
+    if arguments.command == "beta":
+        text = Path(arguments.file).read_text(encoding="utf-8")
+        sys.stdout.write(beta_notes(arguments.version, text))
+        return 0
+    if arguments.command == "vex":
+        accepted = Path(arguments.file)
+        text = accepted.read_text(encoding="utf-8") if accepted.is_file() else ""
+        document = openvex(arguments.repo, arguments.tag, arguments.timestamp, text)
+        if document is not None:
+            sys.stdout.write(document)
+        return 0
+    if arguments.command == "notices":
+        sbom = json.loads(Path(arguments.sbom).read_text(encoding="utf-8"))
+        sys.stdout.write(third_party_notices(arguments.version, sbom))
+        return 0
     read = [Path(name).read_text(encoding="utf-8") for name in arguments.files]
     if arguments.action == "release":
         sys.stdout.write(release_changelog(arguments.version, *read))
     else:
         sys.stdout.write(release_notes(arguments.version, *read))
     return 0
+
+
+# --------------------------------------------------------------------------- notices
+
+UNNAMED = "Without a license in the dependency graph"
+
+
+def third_party_notices(version: str, sbom: Json) -> str:
+    """The third-party components of a release and their licenses, from the SPDX SBOM
+    of GitHub's dependency graph, grouped by license."""
+    document = sbom.get("sbom", sbom)
+    root = {
+        relation["relatedSpdxElement"]
+        for relation in document.get("relationships", [])
+        if relation.get("relationshipType") == "DESCRIBES"
+    }
+    groups: dict[str, list[tuple[str, str, str]]] = {}
+    for package in document.get("packages", []):
+        if package.get("SPDXID") in root:
+            continue
+        purl = next(
+            (
+                ref["referenceLocator"]
+                for ref in package.get("externalRefs", [])
+                if ref.get("referenceType") == "purl"
+            ),
+            "",
+        )
+        ecosystem = purl.removeprefix("pkg:").split("/", 1)[0] if purl else ""
+        license_name = package.get("licenseConcluded") or UNNAMED
+        if license_name == "NOASSERTION":
+            license_name = UNNAMED
+        groups.setdefault(license_name, []).append(
+            (package.get("name", ""), package.get("versionInfo") or "", ecosystem)
+        )
+    lines = [
+        "# Third-party components",
+        "",
+        f"The components that the repository uses at {version}, as GitHub's dependency"
+        " graph lists them, each with the license that the graph names: what the code"
+        " needs to run and the tools of its checks, tests and workflows. The package of"
+        " the release contains only what its own build puts into it.",
+    ]
+    for license_name in sorted(
+        groups, key=lambda name: (name == UNNAMED, name.lower())
+    ):
+        lines += ["", f"## {license_name}", "", "| Component | Version | Ecosystem |"]
+        lines.append("| --- | --- | --- |")
+        lines += [
+            f"| {name} | {release} | {ecosystem} |"
+            for name, release, ecosystem in sorted(set(groups[license_name]))
+        ]
+    if not groups:
+        lines += ["", "The repository uses no third-party components."]
+    return "\n".join(lines) + "\n"
+
+
+# ------------------------------------------------------------------------- coverage
+
+COVERAGE_MARKER = "<!-- coverage-bot -->"
+
+
+@dataclass(frozen=True)
+class Coverage:
+    """The lines of each file that the tests run, from a Cobertura report."""
+
+    files: dict[str, tuple[int, int]]
+
+    @classmethod
+    def parse(cls, report: str) -> Coverage:
+        files: dict[str, tuple[int, int]] = {}
+        for element in ElementTree.fromstring(report).iter("class"):
+            name = element.get("filename", "")
+            lines = element.findall("./lines/line")
+            covered = sum(1 for line in lines if int(line.get("hits", "0")) > 0)
+            have = files.get(name, (0, 0))
+            files[name] = (have[0] + covered, have[1] + len(lines))
+        return cls(files)
+
+    @property
+    def total(self) -> tuple[int, int]:
+        return (
+            sum(covered for covered, _ in self.files.values()),
+            sum(lines for _, lines in self.files.values()),
+        )
+
+
+def percent(covered: int, lines: int) -> float:
+    return 100.0 if lines == 0 else 100 * covered / lines
+
+
+def coverage_comment(head: Coverage, base: Coverage | None) -> str:
+    """The comment of the coverage bot: the coverage of a pull request, compared with
+    that of main, and every file whose coverage differs."""
+    covered, lines = head.total
+    now = percent(covered, lines)
+    rows = [
+        COVERAGE_MARKER,
+        "### Coverage",
+        "",
+        "| | Lines | Covered |",
+        "| --- | ---: | ---: |",
+        f"| This pull request | {lines} | {now:.2f} % |",
+    ]
+    if base is None:
+        rows += ["", "main has no coverage report yet to compare with."]
+        return "\n".join([*rows, ""])
+    before = percent(*base.total)
+    rows.append(f"| main | {base.total[1]} | {before:.2f} % ({now - before:+.2f}) |")
+    changed = []
+    for name in sorted(set(head.files) | set(base.files)):
+        old = base.files.get(name)
+        new = head.files.get(name)
+        old_text = "new" if old is None else f"{percent(*old):.2f} %"
+        new_text = "removed" if new is None else f"{percent(*new):.2f} %"
+        if old_text != new_text:
+            changed.append(f"| `{name}` | {old_text} | {new_text} |")
+    if changed:
+        rows += ["", "| File | main | This pull request |", "| --- | ---: | ---: |"]
+        rows += changed
+    else:
+        rows += ["", "No file changes its coverage."]
+    return "\n".join([*rows, ""])
+
+
+def coverage_command(arguments: argparse.Namespace) -> int:
+    head = Coverage.parse(Path(arguments.head).read_text(encoding="utf-8"))
+    base_file = Path(arguments.base)
+    base = (
+        Coverage.parse(base_file.read_text(encoding="utf-8"))
+        if base_file.is_file()
+        else None
+    )
+    sys.stdout.write(coverage_comment(head, base))
+    return 0
+
+
+# ----------------------------------------------------------------------------- vex
+
+OPENVEX = "https://openvex.dev/ns/v0.2.0"
+
+
+def openvex(repo: str, tag: str, timestamp: str, accepted: str) -> str | None:
+    """An OpenVEX document of the release: every advisory that osv-scanner.toml
+    accepts, each with its reason, is not one that affects the release. None when it
+    accepts none."""
+    entries = tomllib.loads(accepted).get("IgnoredVulns", [])
+    if not entries:
+        return None
+    product = f"pkg:github/{repo}@{tag}"
+    name = repo.rsplit("/", 1)[-1]
+    document = {
+        "@context": OPENVEX,
+        "@id": f"https://github.com/{repo}/releases/download/{tag}/{name}.openvex.json",
+        "author": f"The release bot of {repo}",
+        "timestamp": timestamp,
+        "version": 1,
+        "statements": [
+            {
+                "vulnerability": {"name": entry["id"]},
+                "products": [{"@id": product}],
+                "status": "not_affected",
+                "impact_statement": entry.get("reason", "").strip()
+                or "The project accepts this advisory; see its osv-scanner.toml.",
+            }
+            for entry in entries
+        ],
+    }
+    return json.dumps(document, indent=2, ensure_ascii=False) + "\n"
 
 
 # --------------------------------------------------------------------------- command line
@@ -925,9 +1154,18 @@ def current_repo(api: Api) -> str:
     return result.stdout.strip()
 
 
+def utf8_output() -> None:
+    """Windows consoles default to a code page without the marks of the checklist."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
+
+
 def main(
     argv: Sequence[str] | None = None, api: Api | None = None, root: Path = Path()
 ) -> int:
+    utf8_output()
     parser = argparse.ArgumentParser(
         prog="blueprint.py", description=__doc__.split("\n\n")[0]
     )
@@ -971,9 +1209,44 @@ def main(
     unreleased_parser.add_argument("heading", help="such as Changed, without ###")
     unreleased_parser.add_argument("entry", help="the line, such as '- Supports ...'")
     unreleased_parser.add_argument("--file", default="CHANGELOG.md")
+    beta_parser = commands.add_parser(
+        "beta", help="the notes of a beta of the next release, for the release bot"
+    )
+    beta_parser.add_argument(
+        "version", help="the version of the beta, such as 1.3.0-beta.2"
+    )
+    beta_parser.add_argument("--file", default="CHANGELOG.md")
+    coverage_parser = commands.add_parser(
+        "coverage",
+        help="the comment of the coverage bot: a Cobertura report against that of main",
+    )
+    coverage_parser.add_argument("head", help="the report of the pull request")
+    coverage_parser.add_argument(
+        "base", nargs="?", default="", help="the report of main, if there is one"
+    )
+    vex_parser = commands.add_parser(
+        "vex",
+        help="the OpenVEX document of a release from osv-scanner.toml, for the release "
+        "bot; nothing when it accepts no advisory",
+    )
+    vex_parser.add_argument("repo", help="owner/name")
+    vex_parser.add_argument("tag", help="the tag of the release")
+    vex_parser.add_argument("timestamp", help="when the release is made, RFC 3339")
+    vex_parser.add_argument("--file", default="osv-scanner.toml")
+    notices_parser = commands.add_parser(
+        "notices", help="the third-party components and their licenses, for releases"
+    )
+    notices_parser.add_argument("version", help="the tag of the release")
+    notices_parser.add_argument("sbom", help="the SBOM of GitHub's dependency graph")
     arguments = parser.parse_args(argv)
 
-    if arguments.command in ("changelog", "unreleased"):
+    if arguments.command == "coverage":
+        try:
+            return coverage_command(arguments)
+        except (OSError, ElementTree.ParseError) as error:
+            print(f"blueprint.py: {error}", file=sys.stderr)
+            return 2
+    if arguments.command in ("changelog", "unreleased", "beta", "vex", "notices"):
         try:
             return changelog_command(arguments)
         except OSError as error:
