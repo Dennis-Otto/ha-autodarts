@@ -12,8 +12,9 @@
 [![Tests](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/tests.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/tests.yml)
 [![Coverage 100 %](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/development.md#tests)
 [![Docker end-to-end test](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/e2e.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/e2e.yml)
+[![Sponsor](https://img.shields.io/badge/sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Dennis-Otto)
 
-[**Documentation**](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md) · [**Deutsche Anleitung**](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/de/README.md) · [Quick start](#quick-start) · [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md)
+[**Documentation**](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md) · [**Deutsche Anleitung**](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/de/README.md) · [Quick start](#quick-start) · [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) · [💛 Sponsor](https://github.com/sponsors/Dennis-Otto)
 
 <img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, the beds light up and the scoreboard counts down to 121; Sam scores 85; Alex checks out 121 with T20, outer bull and D18 for the game shot" width="880">
 
