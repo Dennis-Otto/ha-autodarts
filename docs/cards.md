@@ -34,7 +34,7 @@ The guides show the cards at work: [games and rules](games.md), [scoreboard at t
 - **Connections:** Board Manager, realtime and cameras. Tap a chip for details.
 - **Controls:** start or stop detection, reset detection and calibrate. Resetting and calibrating need a second tap to confirm. Boards without a detection switch get the start or stop button that fits the board status.
 
-The board shows the visit; nothing on it reacts to a tap. Numbers, dates and times follow your [profile settings](https://www.home-assistant.io/docs/organizing/users/#user-profile): number format, 12- or 24-hour clock and the time zone of the server or the browser.
+The board shows the visit; nothing on it reacts to a tap. Numbers, dates and times follow your [profile settings](https://www.home-assistant.io/docs/configuration/user-configuration/): number format, 12- or 24-hour clock and the time zone of the server or the browser.
 
 <img src="images/en/card-visit.webp" alt="Animation: three darts land, their beds blink and the score adds up; the takeout empties the board" width="620">
 
