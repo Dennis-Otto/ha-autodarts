@@ -71,7 +71,7 @@ In der Demo mit simuliertem Board aufgenommen. MP4 funktioniert in Schnittprogra
 
 ## Bilder
 
-Alle Screenshots der Dokumentation liegen in [`docs/images/de`](../images/de) und [`docs/images/en`](../images/en), alle in der Demo aufgenommen. Einige, die die Integration auf einen Blick zeigen:
+Alle Screenshots der Dokumentation liegen in [`docs/images/de`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/docs/images/de) und [`docs/images/en`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/docs/images/en), alle in der Demo aufgenommen. Einige, die die Integration auf einen Blick zeigen:
 
 | | |
 | --- | --- |

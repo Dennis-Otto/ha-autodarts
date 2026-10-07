@@ -2,7 +2,7 @@
 
 [← Documentation](README.md) · [Deutsch](de/sicherheit.md)
 
-This page explains how the integration protects your data and your board, what it trusts, and which risks remain. Report vulnerabilities privately as described in [SECURITY.md](../SECURITY.md).
+This page explains how the integration protects your data and your board, what it trusts, and which risks remain. Report vulnerabilities privately as described in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md).
 
 ## What is protected
 

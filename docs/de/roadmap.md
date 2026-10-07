@@ -53,7 +53,7 @@ Enthalten, alles ohne Autodarts-Cloud:
 
 ## Version 1.6: mehr Spiele, eine Spielauswahl, Berichte und Online-Matches
 
-Erschienen als 1.6.0 am 27. September 2026; die Details stehen im [Changelog](../../CHANGELOG.md#160) (auf Englisch).
+Erschienen als 1.6.0 am 27. September 2026; die Details stehen im [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#160) (auf Englisch).
 
 | Thema | Was es bringt | Stand |
 | --- | --- | --- |
@@ -75,14 +75,14 @@ Erschienen als 1.6.0 am 27. September 2026; die Details stehen im [Changelog](..
 
 ## Version 1.7: Dart-Positionen, auf die du dich verlassen kannst
 
-Erschienen als 1.7.0 am 28. September 2026; die Details stehen im [Changelog](../../CHANGELOG.md#170) (auf Englisch).
+Erschienen als 1.7.0 am 28. September 2026; die Details stehen im [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#170) (auf Englisch).
 
 - Das Positionen-Trefferbild der Trainingskarte folgt jedem Dart live.
 - Korrigierte Darts verlieren die falsch erkannte Position des Boards, oder sie bekommen die Stelle, die du auf der Scheibe der Anzeigetafel antippst, und damit gleich das Feld.
 
 ## Version 1.8: jede Karte auf jedem Bildschirm
 
-Erschienen als 1.8.0 am 28. September 2026 und 1.8.1 am 29. September 2026; die Details stehen im [Changelog](../../CHANGELOG.md#180) (auf Englisch).
+Erschienen als 1.8.0 am 28. September 2026 und 1.8.1 am 29. September 2026; die Details stehen im [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#180) (auf Englisch).
 
 - Jede Karte passt vom 360-Pixel-Handy bis zum 27-Zoll-Touch-Monitor, hoch und quer, mit Bedienelementen von mindestens 40 Pixeln für den Finger.
 - Korrekturen auch auf der Live-Karte, mit Lupe und Zoom auf jedem Touch-Bildschirm.
@@ -92,7 +92,7 @@ Erschienen als 1.8.0 am 28. September 2026 und 1.8.1 am 29. September 2026; die 
 
 ## Version 1.9: Spiele per Sprache
 
-Erschienen als 1.9.0 am 29. September 2026; die Details stehen im [Changelog](../../CHANGELOG.md#190) (auf Englisch).
+Erschienen als 1.9.0 am 29. September 2026; die Details stehen im [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#190) (auf Englisch).
 
 - Ein Blueprint, der ein Spiel startet, wenn du es Assist sagst, zum Beispiel „Starte 501 für Alex und Sam“ oder „Starte das Spiel Cricket für Alex“, auf Deutsch und Englisch, mit einer Antwort in Worten.
 - Was die Maus als Tooltip zeigt, zeigt auch ein Tipp.
@@ -108,7 +108,7 @@ Ideen für die Versionen nach 1.9. Stimmen und Reaktionen auf die [Feature-Wüns
 | **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert; ein Spieler hat 2.0.2 unter Linux als funktionierend gemeldet ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Testberichte von Spielern, die es unter Windows nutzen |
 | **Cloud-Verknüpfung** | Cloud-Spieldaten und Cloud-Spielereignisse: Leg und Match gewonnen, Überwerfen, Spielerwechsel, Restpunkte | Eine OAuth-Client-ID von Autodarts; sie ist beantragt |
 | **HACS-Standardkatalog** | Installation, ohne ein benutzerdefiniertes Repository hinzuzufügen | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |
-| **Weitere Sprachen** | Integration und Karten in weiteren Sprachen | Beiträge von Muttersprachlern ([so kommt eine Sprache dazu](../../CONTRIBUTING.md#translations)) |
+| **Weitere Sprachen** | Integration und Karten in weiteren Sprachen | Beiträge von Muttersprachlern ([so kommt eine Sprache dazu](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 
 ## Später
 
