@@ -356,8 +356,8 @@ export function render(result, links) {
   }
   const files = [...new Set(items.map((item) => item.source))].map((id) =>
     id === "integration"
-      ? `   - [\`${TRANSLATIONS}/${language}.json\`](${links.edit}/${TRANSLATIONS}/${language}.json) for the texts of the integration: setup, entities, actions and messages;`
-      : `   - [\`${CARD}\`](${links.edit}/${CARD}) for the texts of the dashboard cards, in the block \`${language}: {\` of \`const TEXT = {\`;`
+      ? `   - [\`${TRANSLATIONS}/${language}.json\`](${links.edit}/${TRANSLATIONS}/${language}.json) for the texts of the integration: setup, entities, actions and messages`
+      : `   - [\`${CARD}\`](${links.edit}/${CARD}) for the texts of the dashboard cards, in the block \`${language}: {\` of \`const TEXT = {\``
   );
   parts.push(
     "## How to help",
