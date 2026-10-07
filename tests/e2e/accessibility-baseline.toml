@@ -1,0 +1,12 @@
+# Violations of WCAG 2.1 AA that axe-core finds in the cards and that are accepted for
+# now, each with its reason. The browser step "accessibility" (browser.py) fails on
+# every other serious or critical violation, and names an entry here that no longer
+# occurs, so that it goes. An entry matches a violation of its rule on its card when
+# its target is part of the selector of the element axe-core names:
+#
+# [[accepted]]
+# rule = "color-contrast"
+# card = "autodarts-players-card"
+# target = ".badge-text"
+# reason = "Why it can't be fixed yet, and what would fix it."
+accepted = []

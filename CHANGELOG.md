@@ -4,6 +4,15 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### Fixed
+
+- **Readable badges:** the words under a badge of the players card, such as when it was earned, had too little contrast on the gold of the badge in the dark theme. They now take the muted text of every other card and reach the contrast that WCAG 2.1 AA asks for.
+- **The keyboard reaches the scores:** when the pad leaves a full-height scoreboard on a phone too little room, its scores scroll. A keyboard can now reach and scroll them as well, and a screen reader names them *Scoreboard*.
+
+### Documentation
+
+- The accessibility check of the cards, which axe-core runs in the browser test on a laptop and a phone in both themes.
+
 ## 1.9.0
 
 ### New
