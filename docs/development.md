@@ -167,6 +167,11 @@ images in the scripts under `tests/e2e/` and `scripts/` are updated by hand. Two
 images: HACS validation and hassfest always apply the rules that HACS and Home
 Assistant use for new submissions today, and the weekly beta run uses the beta tag.
 
+`main` only takes pull requests that are up to date with it, and auto-merge doesn't
+update a branch by itself. So after every change of `main`, the branch bot
+(`update-branches.yml`) brings each pull request that waits for auto-merge up to date,
+as the release app, so that its checks run again and it merges once they pass.
+
 ## Issue assistant
 
 The [issue assistant](https://github.com/Dennis-Otto/issue-assistant), a GitHub Action of its own, looks after the issues; the maintainer still reads every issue and has the last word.
