@@ -305,3 +305,11 @@ test("what appears as a whole fades in, and parts drawn with every tap do not", 
   // The loupe grows out of the finger's spot.
   assert.match($(root, "style").textContent, /@starting-style \{ \.loupe \{ opacity: 0; transform: scale\(\.8\); \} \}/);
 });
+
+test("muted words on the tint of a badge take the muted text of the blocks, readable at WCAG AA", () => {
+  // The secondary text of the theme alone falls below a contrast of 4.5 : 1 on the
+  // gold tint in the dark theme; the muted text mixes in some of the primary text.
+  const style = $(card("autodarts-players-card"), "style").textContent;
+  assert.match(style, /\.badge-text > span \{ color: var\(--ad-muted-text\); \}/);
+  assert.match(style, /--ad-muted-text: color-mix\(in srgb, var\(--secondary-text-color\) 80%, var\(--primary-text-color/);
+});

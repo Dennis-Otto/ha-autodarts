@@ -54,6 +54,22 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 | Eine kompromittierte Abhängigkeit oder ein manipulierter Build | Abhängigkeiten per Hash, gepinnte Actions und Images, Dependabot, Dependency Review, CodeQL, Gitleaks, OpenSSF Scorecard | [Development](../development.md#continuous-integration) |
 | Ein manipuliertes Release | Release-Pakete tragen eine mit Sigstore signierte SLSA-Provenance | [Releases](../releases.md#signed-release-packages) |
 
+## Häufige Schwachstellen
+
+Wie die Integration den Schwachstellen der [CWE Top 25](https://cwe.mitre.org/top25/) begegnet, die für sie zählen. CodeQL sucht bei jedem Pull Request im Python- und JavaScript-Code nach ihnen.
+
+| Schwachstelle | Gegenmaßnahme |
+| --- | --- |
+| Cross-Site-Scripting (CWE-79) | Jeder Text vom Board, aus der Entitätsverwaltung oder von einem Spieler wird maskiert, bevor er zu HTML wird, und Zahlen werden geprüft, bevor sie zu SVG-Geometrie werden |
+| Pfadmanipulation (CWE-22) | Exporte lösen ihren Ordner vor dem Schreiben auf, sodass weder `..` noch ein symbolischer Link woandershin führt; die Kopien der Highlights liefern nur einfache Dateinamen von Fotos im Highlight-Ordner aus |
+| Unzureichende Eingabeprüfung (CWE-20) | Jede Antwort des Board Managers, jede Echtzeitnachricht und jeder Aufruf der Online-Brücke wird gegen bekannte Typen, Wertebereiche und Längen geprüft |
+| Preisgabe vertraulicher Daten (CWE-200, CWE-532) | Der API-Schlüssel des Boards wird direkt beim Lesen verworfen und nie gespeichert, protokolliert oder angezeigt; OAuth-Token werden nie protokolliert; die Diagnosedaten schwärzen Board-IDs, Adressen und Spielernamen |
+| Fehlende Berechtigungsprüfung (CWE-862) | Aktionen, Downloads, Highlight-Kopien und der WebSocket-Befehl brauchen eine Anmeldung bei Home Assistant; Löschen, Neuverknüpfen und Exportieren der Daten von Spielern brauchen einen Administrator |
+| Serverseitige Anfragefälschung (CWE-918) | Die Erkennung spricht nur die Adressen an, von denen eine Meldung kommt, nie Loopback-, Link-local- oder Multicast-Adressen; IDs aus der Cloud werden als einzelner Pfadabschnitt kodiert |
+| Unkontrollierter Ressourcenverbrauch (CWE-400) | Höchstens zwei Livestreams pro Kamera, 20 Exporte pro Stunde und für die Online-Brücke 20 Aufrufe pro Sekunde und 120 pro Minute |
+| Formel-Injektion in Exporten (CWE-1236) | CSV-Zellen, die wie eine Formel beginnen, bekommen einen Apostroph vorangestellt |
+| Befehls- und Code-Injektion (CWE-78, CWE-94) | Die Integration führt keine Befehle aus und wertet keinen Code aus, und zur Laufzeit hat sie keine Python-Abhängigkeiten |
+
 ## Grundsätze
 
 - **Minimale Rechte:** GitHub-Workflows laufen mit Lese-Token, außer ein Job braucht mehr. Die Integration liest den Board Manager und schreibt nur, wenn du oder eine Automation es verlangt. Die Aktionen, die Daten der Spieler löschen, neu verknüpfen oder exportieren, sind Administratoren vorbehalten.
