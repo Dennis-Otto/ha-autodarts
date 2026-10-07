@@ -180,8 +180,9 @@ Englisch und Deutsch sind beide willkommen. Nach wenigen Minuten setzt der Issue
 
 - **Rückfragen** markieren das Issue als wartend auf dich. Antworte als Kommentar oder indem du das Issue bearbeitest. Ohne Antwort folgt nach 15 Tagen eine Erinnerung, nach 30 Tagen wird das Issue geschlossen; eine Antwort öffnet es wieder.
 - **Ein wahrscheinliches Duplikat** eines offenen Issues bekommt einen Hinweis und wird 3 Tage später geschlossen, damit alles an einer Stelle bleibt. Geht es um etwas anderes, schreib einen Kommentar oder reagiere auf den Hinweis mit 👎, dann bleibt es offen.
+- **Ein Fix** auf `main` markiert das Issue mit `fixed-in-next-release`. Es bleibt offen, bis ein Release den Fix ausliefert, und wird dann mit einem Link auf das Release geschlossen. Besteht das Problem nach dem Update weiter, schreib innerhalb von 30 Tagen einen Kommentar, dann wird das Issue wieder geöffnet.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="../images/de/issue-lifecycle-dark.png">
-  <img src="../images/de/issue-lifecycle-light.png" alt="Lebenslauf eines Issues: Labels und KI-Erstanalyse; fehlen Informationen, wartet es mit needs-info auf den Melder, mit einer Erinnerung an Tag 15 und dem Schließen an Tag 30, und eine Antwort gibt es an den Maintainer oder öffnet es wieder; ein sicheres Duplikat bekommt einen Hinweis und wird an Tag 3 geschlossen, wenn niemand kommentiert oder mit Daumen runter reagiert." width="640">
+  <img src="../images/de/issue-lifecycle-light.png" alt="Lebenslauf eines Issues: Labels und KI-Erstanalyse; fehlen Informationen, wartet es mit needs-info auf den Melder, mit einer Erinnerung an Tag 15 und dem Schließen an Tag 30, und eine Antwort gibt es an den Maintainer oder öffnet es wieder; ein sicheres Duplikat bekommt einen Hinweis und wird an Tag 3 geschlossen, wenn niemand kommentiert oder mit Daumen runter reagiert. Ein gemergter Fix markiert es mit fixed-in-next-release; das Release schließt es mit einem Link, und ist es noch nicht behoben, geht es zurück an den Maintainer." width="640">
 </picture>
