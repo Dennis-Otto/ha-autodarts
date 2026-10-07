@@ -1,0 +1,21 @@
+# Hosts that jobs on GitHub's egress-firewall runner (runs-on: ubuntu-24.04-firewall)
+# may reach; GitHub blocks all others, apart from its own defaults (github.com,
+# codeload.github.com and the Actions endpoints). Only the analyze job of
+# issue-assistant.yml, the one that runs Claude, uses that runner. Add a host only
+# when a step needs it, name it in full and say what uses it.
+mode: enforce
+allow:
+  # Claude API
+  - api.anthropic.com
+  # GitHub API: the context step and the Claude Code action
+  - api.github.com
+  # Claude Code and Bun, installed by the Claude Code action
+  - claude.ai
+  - downloads.claude.ai
+  - release-assets.githubusercontent.com
+  - registry.npmjs.org
+  # bubblewrap and socat, which the action installs to isolate subprocesses
+  # because issues come from people without write access
+  - archive.ubuntu.com
+  - azure.archive.ubuntu.com
+  - security.ubuntu.com

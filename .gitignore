@@ -14,3 +14,4 @@ coverage.xml
 /tests/e2e/artifacts/
 /e2e-artifacts/
 /tests/e2e/*.png
+/.issue-assistant/

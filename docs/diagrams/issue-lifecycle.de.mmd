@@ -1,0 +1,17 @@
+flowchart TB
+  NEW["Neues Issue"] --> AI["Labels und Erstanalyse<br/>von Claude"]
+  AI --> MAINT["Der Maintainer<br/>übernimmt"]
+  AI -- "Informationen fehlen" --> WAIT
+  ASK["Der Maintainer fragt<br/>beim Melder nach"] --> WAIT
+  subgraph LIFE[" "]
+    direction TB
+    WAIT["needs-info:<br/>wartet auf den Melder"] -- "Tag 15" --> REMIND["Erinnerung<br/>und stale"]
+    REMIND -- "Tag 30" --> CLOSED["Geschlossen als nicht geplant;<br/>eine Antwort öffnet es wieder"]
+  end
+  LIFE -- "Antwort" --> MAINT
+  AI -- "sicheres Duplikat" --> NOTICE
+  subgraph DUPLICATES[" "]
+    direction TB
+    NOTICE["Hinweis und<br/>possible-duplicate"] -- "Tag 3" --> DUP["Als Duplikat<br/>geschlossen"]
+  end
+  NOTICE -- "Kommentar oder Daumen runter" --> MAINT

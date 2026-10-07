@@ -20,7 +20,7 @@ Every change reaches `main` through a pull request that passes all required chec
 
 ## Contributions and maintainership
 
-Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md). Sustained contributors may be invited to help triage issues or review changes. Maintainer access is granted only after a history of constructive, security-conscious contributions and may be removed when it is no longer needed.
+Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md). An automated [issue assistant](docs/development.md#issue-assistant) posts a first analysis of new issues, labels them, closes likely duplicates after a notice and issues that wait for their reporter for 30 days; it never decides on behalf of the maintainer, who reads every issue. Sustained contributors may be invited to help triage issues or review changes. Maintainer access is granted only after a history of constructive, security-conscious contributions and may be removed when it is no longer needed.
 
 ## Continuity
 
