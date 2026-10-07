@@ -60,6 +60,11 @@ allow-licenses:
   - Zlib
 # The cloud parts of Home Assistant's test base, which the integration never ships.
 allow-dependencies-licenses:
+  # The tools of the blueprint bot (.github/copier-requirements.txt), which no release
+  # ships: Copier's Jinja filters (GPL-3.0-only) and typing-extensions, whose
+  # license the review reads wrongly.
+  - pkg:pypi/jinja2-ansible-filters
+  - pkg:pypi/typing-extensions
   - pkg:pypi/hass-nabucasa
   - pkg:pypi/snitun
   - pkg:pypi/pyric
