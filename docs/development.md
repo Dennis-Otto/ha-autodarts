@@ -182,7 +182,7 @@ The [issue assistant](https://github.com/Dennis-Otto/issue-assistant), a GitHub 
 - **A fix** names its issue in the pull request with `Fixes #123`. When the pull request is merged, the issue gets `fixed-in-next-release` and a comment, and stays open: users only get the fix with a release. The first published release that contains it closes the issue as completed, with a link to the release; drafts and pre-releases don't count. The label also works by hand, for a fix without a pull request. If the reporter writes within 30 days that the problem persists, the AI reads the comment and the issue reopens. *Auto-close issues with merged linked pull requests* is off in the repository settings, so that GitHub doesn't close the issue at the merge.
 - **Labels** are code: the Labels workflow creates and updates them from `.github/labels.toml` when it changes on `main`.
 
-The three workflows `issue-assistant.yml`, `issue-lifecycle.yml` and `labels.yml` are copies of the action's templates, pinned to a release; Dependabot proposes new releases, and its routine updates merge on their own. The AI's secret `CLAUDE_CODE_OAUTH_TOKEN` belongs to the environment `issue-assistant`, which only `main` may use. The action's [README](https://github.com/Dennis-Otto/issue-assistant#security) describes the security design: the AI runs with read-only tools and token on the egress-firewall runner, and only checked code writes to GitHub.
+The four workflows `issue-assistant.yml`, `issue-lifecycle.yml`, `labels.yml` and `findings.yml` are copies of the action's templates, pinned to a release; Dependabot proposes new releases, and its routine updates merge on their own. The AI's secret `CLAUDE_CODE_OAUTH_TOKEN` belongs to the environment `issue-assistant`, which only `main` may use. The action's [README](https://github.com/Dennis-Otto/issue-assistant#security) describes the security design: the AI runs with read-only tools and token on the egress-firewall runner, and only checked code writes to GitHub.
 
 What is set here:
 
@@ -191,6 +191,9 @@ What is set here:
 | `.github/issue-assistant/project.md` | What the AI reads about the project before every task: where code, documentation and changelog are, and what matters in a bug report |
 | `.github/issue-assistant/config.toml` | The engine (Claude), the hosts links may lead to, the *Area* field of the bug report, and the files that tell reporters which AI reads their issue (`SUPPORT.md` and `docs/de/fehlerbehebung.md`) |
 | `.github/labels.toml` | Every label: the kinds, with `ask = false` for feature requests and tester feedback, the areas with the options of the *Area* field, and the lifecycle labels |
+| `.github/findings.toml` | The findings of code scanning that the repository accepts, each with its reason: Scorecard's *Code-Review*, *Branch-Protection* and *Maintained*, which one maintainer of a young repository can't change |
+
+The **Findings** workflow dismisses the accepted findings of code scanning (CodeQL and OpenSSF Scorecard) with their reason and fails while any other finding is open. It names an open finding only by the number and link of its alert, which only maintainers can open, so nothing about a possible vulnerability reaches a public log or issue. A finding is fixed, or accepted in `.github/findings.toml` through a pull request.
 
 The job *issue-assistant* of the **Integration validation** workflow runs the action's `check`: it fails when a workflow differs from the template of its release, a label or an option of the *Area* field doesn't fit, or the notice to reporters doesn't name the engine. The repository variable `ISSUE_ASSISTANT_AI` set to `off` switches the AI off; labels and the lifecycle keep working.
 
