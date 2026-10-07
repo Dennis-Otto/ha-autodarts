@@ -1,6 +1,7 @@
-# Every label of the repository. The Labels workflow (.github/workflows/labels.yml)
-# creates missing labels and updates color and description from this file when it
-# changes on main; it never deletes a label. Rename a label on GitHub first, then here.
+# Every label of the repository. The Labels workflow of the issue assistant
+# (https://github.com/Dennis-Otto/issue-assistant) creates missing labels and updates
+# color and description from this file when it changes on main; it never deletes a
+# label. Rename a label on GitHub first, then here.
 #
 # group decides who sets a label:
 #   type       the kind of an issue; the issue forms set one, the issue assistant may correct it
@@ -10,6 +11,8 @@
 #   decision   set by the maintainer only
 #   release    set on pull requests by the Pull request labels workflow, they sort the release notes
 #   dependabot set by Dependabot on its pull requests
+#
+# ask = false keeps the assistant from asking reporters of that kind for information.
 
 # Types
 
@@ -24,6 +27,7 @@ name = "enhancement"
 color = "a2eeef"
 description = "New feature or improvement"
 group = "type"
+ask = false
 
 [[label]]
 name = "question"
@@ -49,6 +53,7 @@ name = "feedback"
 color = "0e8a16"
 description = "Tester reports and experiences from real boards"
 group = "type"
+ask = false
 
 [[label]]
 name = "maintenance"
