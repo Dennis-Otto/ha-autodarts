@@ -2,7 +2,7 @@
 
 [← Documentation](README.md) · [Deutsch](de/roadmap.md)
 
-This roadmap shows what each version brought, what the next release brings and what comes after it. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose).
+This roadmap shows what each version brought, what the next release brings and what comes after it. *Next* and *Later* look at least a year ahead, until October 2027, and *Not planned* says what the integration won't do. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose).
 
 ## Version 1.0: the local foundation
 
@@ -115,6 +115,12 @@ Ideas for the versions after 1.9. Votes and reactions on the [feature requests](
 | Topic | Dependency |
 | --- | --- |
 | **Protocol library on PyPI** (`aioautodarts`) | A separate library for the Board Manager protocol, a prerequisite for a possible Home Assistant core integration; postponed until the protocol settles |
+
+## Not planned
+
+- **A cloud account for local play.** Everything that works with the Board Manager in your network keeps working without an Autodarts account; cloud features stay optional.
+- **Telemetry.** The integration sends nothing about your games or your home anywhere, and in local mode nothing leaves your network.
+- **Breaking changes without a way forward.** Existing config entries, entity IDs and automations keep working, or a release migrates them and its notes say what changes.
 
 ## How priorities are set
 
