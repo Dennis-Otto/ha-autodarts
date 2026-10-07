@@ -274,7 +274,7 @@ Zum Beispiel:
 | Leg won | `Game shot und das Leg{{ ' für ' ~ (team or who) if team or who }}!` |
 | Match won | `Game shot und das Match für {{ team or who }}!` |
 | Bull-off throw | `{{ who }}, dein Wurf aufs Bull` |
-| Bull-off won | `{{ who }} beginnt. Game on!`, oder `{{ who }} gewinnt das Ausbullen{{ ' mit ' ~ (distance | round | int) ~ ' Millimetern' if distance is number }}` |
+| Bull-off won | `{{ who }} beginnt. Game on!`, oder `{{ who }} gewinnt das Ausbullen{{ ' mit ' ~ (distance \| round \| int) ~ ' Millimetern' if distance is number }}` |
 | Word for a player without a name | `Spieler` |
 
 ### Deutscher Wochenbericht
