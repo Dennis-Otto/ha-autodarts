@@ -22,8 +22,9 @@ PR_URL = "https://github.com/Dennis-Otto/ha-autodarts/pull/91"
 
 
 def test_privileged_job_runs_no_repository_code():
+    # Harden-Runner records the network traffic; no step checks out the pull request.
     actions = [step["uses"].split("@")[0] for step in JOB["steps"] if "uses" in step]
-    assert actions == ["dependabot/fetch-metadata"]
+    assert actions == ["step-security/harden-runner", "dependabot/fetch-metadata"]
 
 
 def test_every_merge_is_bound_to_the_checked_head_commit():

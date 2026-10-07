@@ -1,0 +1,17 @@
+# The settings of this repository on top of .github/repository.toml, which the
+# blueprint keeps current. blueprint.py and the settings bot add them: tables merge,
+# lists gain their new items, and values replace those of repository.toml.
+# https://github.com/Dennis-Otto/repo-blueprint#settings-as-code
+
+# The end-to-end tests in Docker: with Board Manager 1 and 2, and with the oldest
+# supported Home Assistant (e2e.yml).
+[branch]
+required_checks = [
+  "e2e (Board Manager 1)",
+  "e2e (Board Manager 2)",
+  "e2e (Home Assistant 2026.8.0)",
+]
+
+# An environment of this project and the secrets it needs:
+# [environments.deploy]
+# secrets = ["DEPLOY_TOKEN"]

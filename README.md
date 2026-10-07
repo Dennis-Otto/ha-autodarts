@@ -9,7 +9,7 @@
 [![HACS custom repository](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 [![Latest release](https://img.shields.io/github/v/release/Dennis-Otto/ha-autodarts?label=release)](https://github.com/Dennis-Otto/ha-autodarts/releases)
 [![Home Assistant 2026.8 or newer](https://img.shields.io/badge/Home%20Assistant-2026.8%2B-41BDF5.svg?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
-[![Tests](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/tests.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/tests.yml)
+[![CI](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/ci.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/ci.yml)
 [![Coverage 100 %](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/development.md#tests)
 [![Docker end-to-end test](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/e2e.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/e2e.yml)
 [![Sponsor](https://img.shields.io/badge/sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Dennis-Otto)

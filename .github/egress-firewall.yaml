@@ -1,12 +1,12 @@
 # Hosts that jobs on GitHub's egress-firewall runner (runs-on: ubuntu-24.04-firewall)
 # may reach; GitHub blocks all others, apart from its own defaults (github.com,
-# codeload.github.com and the Actions endpoints). Only the analyze job of
-# issue-assistant.yml, the one that runs the AI engine, uses that runner. Add a host
-# only when a step needs it, name it in full and say what uses it; keep the hosts of
-# an engine in its own block.
+# codeload.github.com and the Actions endpoints). The analyze job of the issue
+# assistant (https://github.com/Dennis-Otto/issue-assistant) uses that runner.
+# Add a host only when a step needs it, name it in full and say what uses it; keep
+# the hosts of an engine in its own block.
 mode: enforce
 allow:
-  # GitHub API: the context step and the engine actions
+  # GitHub API: the issue assistant and the engine actions
   - api.github.com
   # Engine claude: the Claude API, and Claude Code and Bun, which the Claude Code
   # action installs

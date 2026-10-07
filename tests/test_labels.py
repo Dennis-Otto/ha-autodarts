@@ -1,8 +1,8 @@
-"""Every label that the issue forms, the release notes and the pull request labels use is
+"""Every label that the issue forms, the pull request title check and the bots use is
 defined in .github/labels.toml, which the issue assistant's Labels workflow applies.
 
-The issue assistant's check in the Integration validation workflow covers the issue
-forms and its own labels; this test covers the release notes and pull requests.
+The issue assistant's check in the Lint workflow covers the issue forms and its own
+labels; this test covers the pull requests and the bots of the blueprint.
 """
 
 import re
@@ -20,12 +20,11 @@ def test_every_label_in_use_is_defined():
     used = set()
     for path in (ROOT / ".github/ISSUE_TEMPLATE").glob("*.yml"):
         used |= set(yaml.safe_load(path.read_text("utf-8")).get("labels", []))
-    notes = yaml.safe_load((ROOT / ".github/release.yml").read_text("utf-8"))
-    used |= set(notes["changelog"]["exclude"]["labels"])
-    for category in notes["changelog"]["categories"]:
-        used |= set(category["labels"]) - {"*"}
-    pr_labels = (ROOT / ".github/workflows/pr-labels.yml").read_text("utf-8")
-    used |= set(re.search(r"managed=\(([^)]*)\)", pr_labels)[1].split())
+    titles = (ROOT / ".github/workflows/pull-request-title.yml").read_text("utf-8")
+    used |= set(re.search(r"managed=\(([^)]*)\)", titles)[1].split())
+    # The release bot, the branch bot and Dependabot.
+    used |= {"autorelease: pending", "autorelease: tagged", "merge-conflict"}
+    used |= {"dependencies", "github_actions", "python", "docker", "javascript"}
     assert used <= defined, used - defined
 
 

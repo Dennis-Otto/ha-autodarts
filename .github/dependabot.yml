@@ -1,77 +1,9 @@
+# Dependabot keeps the actions and the dependencies current. Routine updates merge on
+# their own once every check passes (dependabot-automerge.yml). Updates of what the
+# users run are committed as fix(deps) and lead to a patch release; updates of the
+# tools are chore(deps) and wait for the next release.
 version: 2
 updates:
-  - package-ecosystem: pip
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "04:00"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 5
-    # Let a fresh release settle for a week; security updates skip the wait.
-    cooldown:
-      default-days: 7
-    groups:
-      python-routine:
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
-      python-major:
-        patterns:
-          - "*"
-        update-types:
-          - major
-    commit-message:
-      prefix: chore
-      include: scope
-
-  # Tools of the browser test and screenshots in the Playwright image.
-  - package-ecosystem: pip
-    directory: /tests/e2e
-    schedule:
-      interval: weekly
-      day: monday
-      time: "04:10"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 3
-    # Let a fresh release settle for a week; security updates skip the wait.
-    cooldown:
-      default-days: 7
-    ignore:
-      # Playwright must match the browsers of the pinned Playwright image.
-      - dependency-name: playwright
-    groups:
-      browser-tools:
-        patterns:
-          - "*"
-    commit-message:
-      prefix: chore
-      include: scope
-
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "04:15"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 3
-    # Let a fresh release settle for a week; security updates skip the wait.
-    cooldown:
-      default-days: 7
-    groups:
-      npm-routine:
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
-    commit-message:
-      prefix: chore
-      include: scope
-
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -99,6 +31,115 @@ updates:
       prefix: chore
       include: scope
 
+  # The browser of scripts/social-preview.sh and the image of the dev container.
+  - package-ecosystem: docker
+    directories:
+      - /.github/social-preview
+      - /.devcontainer
+    schedule:
+      interval: monthly
+      timezone: Europe/Berlin
+    cooldown:
+      default-days: 7
+    # The dev container keeps the Python, PHP or Node of the project, as the CI does;
+    # only its digest moves.
+    ignore:
+      - dependency-name: "devcontainers/*"
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # The Features of the dev container, locked in .devcontainer/devcontainer-lock.json.
+  - package-ecosystem: devcontainers
+    directory: /
+    schedule:
+      interval: monthly
+      timezone: Europe/Berlin
+    cooldown:
+      default-days: 7
+    groups:
+      dev-container-features:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # The hash-pinned tools of the checks.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    groups:
+      python-routine:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      python-major:
+        patterns:
+          - "*"
+        update-types:
+          - major
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # The browser test and the screenshot tool of the end-to-end tests.
+  - package-ecosystem: pip
+    directory: /tests/e2e
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:10"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    ignore:
+      # Playwright must match the browsers of the pinned Playwright image.
+      - dependency-name: playwright
+    groups:
+      browser-tools:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # The tools of the tests of the cards; nothing of it is shipped.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:15"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    groups:
+      npm-routine:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: chore
+      include: scope
+
+  # The Home Assistant and the board mock of the end-to-end tests.
   - package-ecosystem: docker-compose
     directory: /tests/e2e
     schedule:
@@ -107,7 +148,6 @@ updates:
       time: "04:40"
       timezone: Europe/Berlin
     open-pull-requests-limit: 5
-    # Let a fresh release settle for a week; security updates skip the wait.
     cooldown:
       default-days: 7
     groups:
@@ -122,52 +162,6 @@ updates:
           - "*"
         update-types:
           - major
-    commit-message:
-      prefix: chore
-      include: scope
-
-  # The base image of the dev container, pinned by digest in .devcontainer/Dockerfile.
-  - package-ecosystem: docker
-    directory: /.devcontainer
-    schedule:
-      interval: weekly
-      day: monday
-      time: "04:45"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 2
-    # Let a fresh release settle for a week; security updates skip the wait.
-    cooldown:
-      default-days: 7
-    ignore:
-      # Python moves with CI by hand; only new digests of the same tag come in.
-      - dependency-name: "*"
-        update-types:
-          - version-update:semver-major
-          - version-update:semver-minor
-    groups:
-      dev-container-image:
-        patterns:
-          - "*"
-    commit-message:
-      prefix: chore
-      include: scope
-
-  # The Features of the dev container, locked in .devcontainer/devcontainer-lock.json.
-  - package-ecosystem: devcontainers
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      time: "04:50"
-      timezone: Europe/Berlin
-    open-pull-requests-limit: 2
-    # Let a fresh release settle for a week; security updates skip the wait.
-    cooldown:
-      default-days: 7
-    groups:
-      dev-container-features:
-        patterns:
-          - "*"
     commit-message:
       prefix: chore
       include: scope

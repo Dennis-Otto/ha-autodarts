@@ -288,18 +288,16 @@ def test_the_playwright_image_matches_the_playwright_package(script):
 
 def test_osv_exceptions_cover_only_the_pinned_versions():
     ignored = tomllib.loads((ROOT / "osv-scanner.toml").read_text(encoding="utf-8"))
-    workflow = yaml.safe_load(
-        (ROOT / ".github" / "workflows" / "dependency-review.yml").read_text(
-            encoding="utf-8"
-        )
+    # The rules of the dependency review, which the workflow reads.
+    review = yaml.safe_load(
+        (ROOT / ".github" / "dependency-review.yml").read_text(encoding="utf-8")
     )
-    (review,) = workflow["jobs"]["dependency-review"]["steps"]
     for vulnerability in ignored["IgnoredVulns"]:
         package, version = re.match(r"(\S+) (\S+): ", vulnerability["reason"]).groups()
         # Once the test base moves on, the exception has to go.
         assert pinned(ROOT / "requirements-test.txt", package) == version, (
-            f"remove {vulnerability['id']} from osv-scanner.toml and dependency-review.yml"
+            f"remove {vulnerability['id']} from osv-scanner.toml and .github/dependency-review.yml"
         )
-    assert re.split(r",\s*", review["with"]["allow-ghsas"]) == [
+    assert review["allow-ghsas"] == [
         vulnerability["id"] for vulnerability in ignored["IgnoredVulns"]
     ]

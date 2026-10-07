@@ -43,13 +43,11 @@ Python 3.14 and Node.js 24:
 ```sh
 python3.14 -m venv .venv
 .venv/bin/pip install --require-hashes -r requirements-test.txt
-.venv/bin/pytest --cov          # fails below 100 % line and branch coverage
-.venv/bin/ruff check custom_components tests .github/scripts
-.venv/bin/ruff format --check custom_components tests .github/scripts
-.venv/bin/mypy                  # strict typing of the integration
 npm ci
-npm test                        # fuzzing with fast-check; fails below 100 % lines, branches and functions
+. .venv/bin/activate && bash scripts/check.sh
 ```
+
+`scripts/check.sh` runs what the CI runs: the text checks, the version of every file, ShellCheck, Ruff, strict mypy and pytest, failing below 100 % line and branch coverage; then `scripts/check-project.sh` checks the MIT terms of both licenses and runs `npm test`, the tests of the cards with fuzzing by fast-check, failing below 100 % lines, branches and functions. `git config core.hooksPath .githooks` runs it before every push. The [repository blueprint](https://github.com/Dennis-Otto/repo-blueprint) keeps `scripts/check.sh` and the workflows the same in every repository; what only this integration needs belongs in `scripts/check-project.sh` and `e2e.yml`.
 
 Without a local Python, run the same in Docker:
 
@@ -141,9 +139,9 @@ state-machine tests with a new random seed. Its summary names the seed, and
 running the workflow with that seed replays a failure. OpenSSF Scorecard evaluates
 the repository weekly and on every push to `main`.
 
-Pull request titles follow Conventional Commits. The **Pull request labels**
-workflow checks the title and sets the label that sorts the change into the
-release notes (see the [release guide](releases.md#keep-generated-notes-useful)).
+Pull request titles follow Conventional Commits. The **Pull request title**
+workflow checks the title and sets its label; the title decides the next version
+(see the [release guide](releases.md)).
 
 Dependencies are pinned:
 
@@ -200,7 +198,7 @@ What is set here:
 
 The **Findings** workflow dismisses the accepted findings of code scanning (CodeQL and OpenSSF Scorecard) with their reason and fails while any other finding is open. It names an open finding only by the number and link of its alert, which only maintainers can open, so nothing about a possible vulnerability reaches a public log or issue. A finding is fixed, or accepted in `.github/findings.toml` through a pull request.
 
-The job *issue-assistant* of the **Integration validation** workflow runs the action's `check`: it fails when a workflow differs from the template of its release, a label or an option of the *Area* field doesn't fit, or the notice to reporters doesn't name the engine. The repository variable `ISSUE_ASSISTANT_AI` set to `off` switches the AI off; labels and the lifecycle keep working.
+The job *issue-assistant* of the **Lint** workflow runs the action's `check`: it fails when a workflow differs from the template of its release, a label or an option of the *Area* field doesn't fit, or the notice to reporters doesn't name the engine. The repository variable `ISSUE_ASSISTANT_AI` set to `off` switches the AI off; labels and the lifecycle keep working.
 
 *Actions → Issue assistant → Run workflow* analyzes an issue again, or runs a follow-up, the check of the maintainer's comment or the check of a comment after the release. The run starts as a dry run: its summary shows the comment and labels it would post. To try a change of `project.md` or the action's prompts locally, see the action's [README](https://github.com/Dennis-Otto/issue-assistant#try-a-prompt-locally).
 
