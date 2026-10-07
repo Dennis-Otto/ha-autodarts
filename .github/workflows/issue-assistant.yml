@@ -1,0 +1,164 @@
+name: Issue assistant
+
+# The first analysis of new issues, the labels of the issue forms and the answers
+# that the assistant or the maintainer waits for; see docs/development.md#issue-assistant.
+#
+# event    no Claude: labels and the next task, from trusted code of main
+# analyze  Claude reads the checkout and a context folder; read-only token,
+#          restricted tools, egress-firewall runner (.github/egress-firewall.yaml)
+# apply    no Claude: checks Claude's JSON answer and is the only job that writes
+#
+# Without the secret CLAUDE_CODE_OAUTH_TOKEN (or ANTHROPIC_API_KEY), or with the
+# repository variable ISSUE_ASSISTANT_AI set to "off", only the event job runs.
+
+on:
+  issues:
+    types: [opened, edited]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Number of the issue
+        required: true
+        type: number
+      mode:
+        description: Task of the assistant
+        type: choice
+        options: [triage, follow-up, maintainer-reply]
+        default: triage
+      dry_run:
+        description: Only show what the assistant would do
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: issue-assistant-${{ github.event.issue.number || inputs.issue }}
+  cancel-in-progress: false
+
+jobs:
+  event:
+    name: Handle the event
+    if: >-
+      github.repository == 'Dennis-Otto/ha-autodarts' &&
+      (github.event_name == 'workflow_dispatch' ||
+        (!github.event.issue.pull_request &&
+         github.event.sender.type != 'Bot' &&
+         (github.event.action != 'edited' ||
+          github.event.sender.login == github.event.issue.user.login)))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    outputs:
+      issue: ${{ steps.event.outputs.issue }}
+      mode: ${{ steps.event.outputs.mode }}
+    steps:
+      # Issue events always run the workflow and the script of main.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set labels and choose the next task
+        id: event
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+        run: python3 .github/scripts/issue_assistant.py event
+
+  analyze:
+    name: Analyze with Claude
+    needs: event
+    if: >-
+      needs.event.outputs.mode != '' &&
+      needs.event.outputs.mode != 'none' &&
+      vars.ISSUE_ASSISTANT_AI != 'off'
+    runs-on: ubuntu-24.04-firewall
+    timeout-minutes: 20
+    # Keep the Claude token as a secret of this environment, limited to main;
+    # no deployment is recorded for a run.
+    environment:
+      name: issue-assistant
+      deployment: false
+    permissions:
+      contents: read
+      issues: read
+      discussions: read
+    outputs:
+      answer: ${{ steps.claude.outputs.structured_output }}
+    steps:
+      - name: Check for a Claude token
+        id: token
+        env:
+          CONFIGURED: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [[ "$CONFIGURED" != true ]]; then
+            echo "::notice::No Claude token is configured; the issue assistant only set labels."
+          fi
+          echo "configured=$CONFIGURED" >> "$GITHUB_OUTPUT"
+      - if: steps.token.outputs.configured == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Collect the issue, earlier issues and discussions
+        id: context
+        if: steps.token.outputs.configured == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ needs.event.outputs.issue }}
+          MODE: ${{ needs.event.outputs.mode }}
+        run: python3 .github/scripts/issue_assistant.py context --issue "$ISSUE" --mode "$MODE"
+      - name: Analyze the issue
+        id: claude
+        if: steps.token.outputs.configured == 'true'
+        uses: anthropics/claude-code-action@58985842b834ed26087302ba27d07bc24ca8697a # v1.0.244
+        env:
+          DISABLE_TELEMETRY: "1"
+          DISABLE_ERROR_REPORTING: "1"
+          CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Issues come from people without write access. The token is the job's
+          # read-only GITHUB_TOKEN, and Claude can only read files of the checkout.
+          github_token: ${{ github.token }}
+          allowed_non_write_users: "*"
+          prompt: ${{ steps.context.outputs.prompt }}
+          # --restricted removes every tool that runs code or reaches the network,
+          # ignores settings files and confines the file tools to the checkout;
+          # --tools leaves only the reading tools, and nothing ever prompts.
+          claude_args: |
+            --restricted
+            --tools "Read,Grep,Glob"
+            --permission-prompts none
+            --model ${{ vars.ISSUE_ASSISTANT_MODEL || 'claude-opus-5-5' }}
+            --max-turns 40
+            --json-schema '${{ steps.context.outputs.schema }}'
+
+  apply:
+    name: Check and post the analysis
+    needs: [event, analyze]
+    if: needs.analyze.outputs.answer != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      discussions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check Claude's answer and post it
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ needs.event.outputs.issue }}
+          MODE: ${{ needs.event.outputs.mode }}
+          RESULT: ${{ needs.analyze.outputs.answer }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+        run: python3 .github/scripts/issue_assistant.py apply --issue "$ISSUE" --mode "$MODE"

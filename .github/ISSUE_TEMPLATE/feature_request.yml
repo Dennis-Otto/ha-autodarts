@@ -8,6 +8,8 @@ body:
     attributes:
       value: |
         Please check the [roadmap](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/roadmap.md) first. For a loose idea, [Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/ideas) are a good place to start.
+
+        Within a few minutes, the issue assistant, Claude, posts a first analysis and may ask questions; the maintainer reads every issue as well ([what happens with your issue](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
   - type: textarea
     id: need
     attributes:

@@ -1,0 +1,279 @@
+# Every label of the repository. The Labels workflow (.github/workflows/labels.yml)
+# creates missing labels and updates color and description from this file when it
+# changes on main; it never deletes a label. Rename a label on GitHub first, then here.
+#
+# group decides who sets a label:
+#   type       the kind of an issue; the issue forms set one, the issue assistant may correct it
+#   area       the part of the integration; set from the Area field of the bug report and by the assistant
+#   topic      cross-cutting topics the assistant may add
+#   lifecycle  set and removed by the issue assistant's rules (docs/development.md#issue-assistant)
+#   decision   set by the maintainer only
+#   release    set on pull requests by the Pull request labels workflow, they sort the release notes
+#   dependabot set by Dependabot on its pull requests
+
+# Types
+
+[[label]]
+name = "bug"
+color = "d73a4a"
+description = "Something isn't working"
+group = "type"
+
+[[label]]
+name = "enhancement"
+color = "a2eeef"
+description = "New feature or improvement"
+group = "type"
+
+[[label]]
+name = "question"
+color = "d876e3"
+description = "A question about setup or use"
+group = "type"
+
+[[label]]
+name = "documentation"
+color = "0075ca"
+description = "Improvements or additions to documentation"
+group = "type"
+form_options = ["Documentation"]
+
+[[label]]
+name = "compatibility"
+color = "1d76db"
+description = "Board and Board Manager compatibility reports"
+group = "type"
+
+[[label]]
+name = "feedback"
+color = "0e8a16"
+description = "Tester reports and experiences from real boards"
+group = "type"
+
+[[label]]
+name = "maintenance"
+color = "6f42c1"
+description = "CI, repository maintenance and release tooling"
+group = "type"
+
+# Areas: each option of the Area field of the bug report belongs to one label,
+# an area, translations or documentation, except "Other".
+
+[[label]]
+name = "area: setup"
+color = "bfdadc"
+description = "Setup, discovery, reconfiguration and the connection to the board"
+group = "area"
+form_options = [
+  "Setup, discovery or reconfiguration",
+  "Connection to the board",
+]
+
+[[label]]
+name = "area: entities"
+color = "bfdadc"
+description = "Entities, board events and the autodarts.* actions"
+group = "area"
+form_options = [
+  "Entities or board events",
+  "Actions (autodarts.*)",
+]
+
+[[label]]
+name = "area: games"
+color = "bfdadc"
+description = "Practice games, matches, tournaments, the bot and corrections"
+group = "area"
+form_options = [
+  "X01 practice game or match",
+  "Teams, start scores or bull-off",
+  "Cricket games (Cricket, Cut-Throat, Tactics)",
+  "Party games (Shanghai, Halve-It, Killer, Golf, Baseball, Count-Up)",
+  "Training games (Around the Clock, doubles, checkout, Bob's 27, 121 checkout, Catch 40, JDC Challenge, singles)",
+  "Match summary or tournaments",
+  "Bot, corrections, keypad or undo",
+]
+
+[[label]]
+name = "area: statistics"
+color = "bfdadc"
+description = "Training sessions, statistics, profiles, records and reports"
+group = "area"
+form_options = [
+  "Training sessions and statistics",
+  "Player profiles, personal bests or doubles analysis",
+  "Achievements, trends, dart positions or leaderboard card",
+  "Weekly report, training calendar or export",
+  "Highlight gallery",
+]
+
+[[label]]
+name = "area: cards"
+color = "bfdadc"
+description = "Dashboard cards, the scoreboard and the automatic dashboard"
+group = "area"
+form_options = [
+  "Live card",
+  "Training card",
+  "Board status card",
+  "Scoreboard card, new game screen, idle mode or caller",
+  "Players or doubles card",
+  "Automatic dashboard",
+]
+
+[[label]]
+name = "area: blueprints"
+color = "bfdadc"
+description = "Blueprints and automations"
+group = "area"
+form_options = ["Blueprints"]
+
+[[label]]
+name = "area: online"
+color = "bfdadc"
+description = "Online matches through the online bridge"
+group = "area"
+form_options = ["Online matches (online bridge)"]
+
+# Topics
+
+[[label]]
+name = "accessibility"
+color = "f143ab"
+description = "Barrier affecting people with disabilities"
+group = "topic"
+
+[[label]]
+name = "translations"
+color = "c5def5"
+description = "User interface or documentation translations"
+group = "topic"
+form_options = ["Translations"]
+
+# Lifecycle
+
+[[label]]
+name = "needs-triage"
+color = "fbca04"
+description = "Not yet reviewed by a maintainer"
+group = "lifecycle"
+
+[[label]]
+name = "needs-info"
+color = "fef2c0"
+description = "Waiting for the reporter: reminder after 15 days, closed after 30 days"
+group = "lifecycle"
+
+[[label]]
+name = "stale"
+color = "f9d0c4"
+description = "Reminder sent; closes 15 days later without an answer"
+group = "lifecycle"
+
+[[label]]
+name = "possible-duplicate"
+color = "e4e4e4"
+description = "Closes as a duplicate 3 days after the notice unless someone objects"
+group = "lifecycle"
+
+[[label]]
+name = "duplicate"
+color = "cfd3d7"
+description = "This issue or pull request already exists"
+group = "lifecycle"
+
+[[label]]
+name = "invalid"
+color = "e4e669"
+description = "Spam, or not about this integration"
+group = "lifecycle"
+
+# Decisions
+
+[[label]]
+name = "confirmed"
+color = "0e8a16"
+description = "Reproduced and accepted"
+group = "decision"
+
+[[label]]
+name = "upstream"
+color = "d4c5f9"
+description = "Caused by Autodarts, the Board Manager or Home Assistant"
+group = "decision"
+
+[[label]]
+name = "wontfix"
+color = "ffffff"
+description = "This will not be worked on"
+group = "decision"
+
+[[label]]
+name = "help wanted"
+color = "008672"
+description = "Extra attention is needed"
+group = "decision"
+
+[[label]]
+name = "good first issue"
+color = "7057ff"
+description = "Good for newcomers"
+group = "decision"
+
+# Release notes
+
+[[label]]
+name = "breaking-change"
+color = "b60205"
+description = "Changes requiring migration or user action"
+group = "release"
+
+[[label]]
+name = "security"
+color = "ee0701"
+description = "Fixes a vulnerability or hardens security"
+group = "release"
+
+[[label]]
+name = "dependencies"
+color = "0366d6"
+description = "Dependency updates"
+group = "release"
+
+[[label]]
+name = "release"
+color = "5319e7"
+description = "Automated version-only release preparation"
+group = "release"
+
+[[label]]
+name = "skip-changelog"
+color = "ededed"
+description = "Leave out of the release notes"
+group = "release"
+
+# Dependabot
+
+[[label]]
+name = "python"
+color = "2b67c6"
+description = "Pull requests that update python code"
+group = "dependabot"
+
+[[label]]
+name = "github_actions"
+color = "000000"
+description = "Pull requests that update GitHub Actions code"
+group = "dependabot"
+
+[[label]]
+name = "docker_compose"
+color = "e5f2fc"
+description = "Pull requests that update docker_compose code"
+group = "dependabot"
+
+[[label]]
+name = "devcontainers_package_manager"
+color = "2753e3"
+description = "Pull requests that update devcontainers_package_manager code"
+group = "dependabot"
