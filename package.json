@@ -11,6 +11,7 @@
     "test": "node --test --experimental-test-coverage --test-coverage-include=custom_components/autodarts/frontend/autodarts-card.js --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \"tests/frontend/*.test.mjs\" \"tests/frontend/*.test.js\""
   },
   "devDependencies": {
+    "axe-core": "4.13.0",
     "fast-check": "4.10.2",
     "happy-dom": "20.14.5"
   }
