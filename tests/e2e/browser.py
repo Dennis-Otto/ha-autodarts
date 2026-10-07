@@ -9,6 +9,7 @@ import json
 import math
 import os
 import re
+import tomllib
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -2078,6 +2079,214 @@ def screen_views(
     return found
 
 
+# Accessibility -----------------------------------------------------------------------
+
+# axe-core of package.json (npm ci), the engine of browser accessibility checks.
+AXE = Path(__file__).resolve().parents[2] / "node_modules" / "axe-core" / "axe.min.js"
+# Violations of the cards that are accepted for now, each with its reason.
+AXE_BASELINE = Path(__file__).resolve().parent / "accessibility-baseline.toml"
+# The rules of WCAG 2.1 at levels A and AA.
+WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]
+# A violation of these fails the step; lesser ones are listed.
+FAILING = ("serious", "critical")
+# Desktop and phone, as players use them, in both themes.
+ACCESSIBILITY_SCREENS = (
+    ("laptop", {"width": 1280, "height": 800}, False, "dark"),
+    ("laptop, light theme", {"width": 1280, "height": 800}, False, "light"),
+    ("iPhone", {"width": 393, "height": 852}, True, "dark"),
+    ("iPhone, light theme", {"width": 393, "height": 852}, True, "light"),
+)
+# axe-core over every card on the page, each with its shadow root, for WCAG 2.1 AA.
+AXE_CARDS = """
+async (tags) => {
+  const cards = [];
+  (function collect(root) {
+    root.querySelectorAll('*').forEach((el) => {
+      if (el.tagName.startsWith('AUTODARTS-') && !el.tagName.endsWith('-EDITOR') && el.shadowRoot) cards.push(el);
+      if (el.shadowRoot) collect(el.shadowRoot);
+    });
+  })(document);
+  const found = [];
+  for (const card of cards) {
+    const result = await axe.run(card, {
+      runOnly: { type: 'tag', values: tags },
+      resultTypes: ['violations'],
+    });
+    for (const violation of result.violations) {
+      for (const node of violation.nodes) {
+        const path = node.target.flat();
+        found.push({
+          card: card.tagName.toLowerCase(),
+          rule: violation.id,
+          impact: node.impact || violation.impact,
+          target: path[path.length - 1],
+          html: node.html.slice(0, 120),
+          summary: (node.failureSummary || violation.help).replace(/\\s+/g, ' ').slice(0, 240),
+        });
+      }
+    }
+  }
+  return found;
+}
+"""
+
+
+def accepted_violations() -> list[dict[str, str]]:
+    """The accepted violations: a rule of a card, where its selector names the target."""
+    entries = tomllib.loads(AXE_BASELINE.read_text(encoding="utf-8")).get(
+        "accepted", []
+    )
+    for entry in entries:
+        check(
+            set(entry) == {"rule", "card", "target", "reason"}
+            and entry["reason"].strip(),
+            f"{AXE_BASELINE.name}: every entry names rule, card, target and its reason",
+        )
+    return entries
+
+
+def accessibility(browser: Browser) -> None:
+    """axe-core over every card view of both dashboards and the scoreboard's screens,
+    on a laptop and a phone in both themes: no serious or critical violation of
+    WCAG 2.1 AA beyond the accepted ones of accessibility-baseline.toml."""
+    check(AXE.exists(), f"{AXE} is missing; npm ci installs axe-core")
+    accepted = accepted_violations()
+    used: set[int] = set()
+    failing: list[str] = []
+    lesser: set[str] = set()
+    report: dict[str, list] = {"scanned": [], "violations": []}
+    for screen, size, touch, scheme in ACCESSIBILITY_SCREENS:
+        for view, violations in accessibility_views(browser, size, touch, scheme):
+            report["scanned"].append(f"{screen} · {view}")
+            for violation in violations:
+                report["violations"].append(
+                    {"screen": screen, "view": view, **violation}
+                )
+                line = (
+                    f"{violation['card']} · {violation['rule']} ({violation['impact']}): "
+                    f"{violation['target']} {violation['summary']}"
+                )
+                matches = [
+                    index
+                    for index, entry in enumerate(accepted)
+                    if entry["rule"] == violation["rule"]
+                    and entry["card"] == violation["card"]
+                    and entry["target"] in violation["target"]
+                ]
+                used.update(matches)
+                if matches:
+                    continue
+                if violation["impact"] in FAILING:
+                    failing.append(f"{screen} · {view} · {line}")
+                else:
+                    lesser.add(line)
+    print(f"  {len(report['scanned'])} views checked", flush=True)
+    if ARTIFACTS:
+        Path(ARTIFACTS, "accessibility.json").write_text(json.dumps(report, indent=1))
+    for line in sorted(lesser):
+        print(f"  moderate or minor: {line}", flush=True)
+    for index, entry in enumerate(accepted):
+        if index not in used:
+            print(
+                f"  {AXE_BASELINE.name}: {entry['card']} {entry['rule']} {entry['target']}"
+                " no longer occurs; remove it",
+                flush=True,
+            )
+    check(not failing, "Accessibility violations:\n" + "\n".join(failing))
+
+
+def accessibility_views(
+    browser: Browser, size: dict[str, int], touch: bool, scheme: str
+) -> list[tuple[str, list[dict]]]:
+    """The violations of every card view, and of the scoreboard's own screens."""
+    context = browser.new_context(
+        locale="en-US",
+        viewport=size,
+        device_scale_factor=2 if touch else 1,
+        is_mobile=touch,
+        has_touch=touch,
+        color_scheme=scheme,
+    )
+    page = context.new_page()
+    axe = AXE.read_text(encoding="utf-8")
+    found: list[tuple[str, list[dict]]] = []
+
+    def scan(name: str) -> None:
+        page.wait_for_function(CARDS_DRAWN, timeout=30000)
+        # Positions, profiles and trends arrive over the websocket after the first draw.
+        page.wait_for_timeout(800)
+        if not page.evaluate("() => Boolean(window.axe)"):
+            page.evaluate(axe)
+        found.append((name, page.evaluate(AXE_CARDS, WCAG_TAGS)))
+
+    page.goto(f"{HA}/autodarts-auto/live")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    views = [f"autodarts-auto/{view}" for view in AUTO_VIEWS]
+    views += [f"autodarts-demo/{view}" for view in page.evaluate(DEMO_VIEWS)]
+    for view in views:
+        page.goto(f"{HA}/{view}")
+        scan(view)
+
+    # The idle screen of the scoreboard, once nobody threw for a while; a practice
+    # match on the live card; and the scoreboard's own screens: the new game screen,
+    # the keypad with its board, the board of a correction and Cricket.
+    root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
+    page.goto(f"{HA}/autodarts-demo/idle")
+    page.wait_for_function(
+        f"() => ({SCOREBOARD_CARDS})()[0]?.shadowRoot?.querySelector('.idle-panel')",
+        timeout=30000,
+    )
+    scan("autodarts-demo/idle · idle screen")
+    page.goto(f"{HA}/autodarts-demo/board")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    page.evaluate(
+        CALL_ACTION, ["start_game", {"game": "501", "players": ["Alex", "Sam"]}]
+    )
+    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    page.wait_for_function(
+        f"() => ({CARDS})()[0]?.shadowRoot.querySelector('.practice')", timeout=15000
+    )
+    scan("autodarts-demo/board · practice match")
+    page.goto(f"{HA}/autodarts-auto/scoreboard")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    scan("autodarts-auto/scoreboard · practice match")
+    page.evaluate(f"() => {root}.querySelector(\"[data-dart='2']\").click()")
+    page.wait_for_function(f"() => {root}.querySelector('.pad')", timeout=15000)
+    scan("autodarts-auto/scoreboard · correcting a dart")
+    page.evaluate(f"() => {root}.querySelector(\"[data-pad='board']\").click()")
+    page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
+    scan("autodarts-auto/scoreboard · the board of a correction")
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    page.evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
+    )
+    page.wait_for_function(f"() => {root}.querySelector('.lobby-cta')", timeout=15000)
+    page.evaluate(f"() => {root}.querySelector('.lobby-cta').click()")
+    page.wait_for_function(f"() => {root}.querySelector('.lobby')", timeout=15000)
+    scan("autodarts-auto/scoreboard · new game screen")
+    page.evaluate(f"() => {root}.querySelector(\"[data-lobby='close']\").click()")
+    page.goto(f"{HA}/autodarts-demo/keypad")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
+    page.evaluate(
+        CALL_ACTION, ["start_game", {"game": "cricket", "players": LONG_NAMES}]
+    )
+    page.wait_for_function(f"() => {root}.querySelector('.pad')", timeout=15000)
+    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    scan("autodarts-demo/keypad · Cricket with the keypad")
+    page.evaluate(f"() => {root}.querySelector(\"[data-pad='board']\").click()")
+    page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
+    scan("autodarts-demo/keypad · the board to tap")
+    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    page.evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
+    )
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    context.close()
+    return found
+
+
 # The numbers clockwise from the top, to place a dart in the middle of its bed.
 ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5]
 
@@ -2490,6 +2699,7 @@ def main() -> None:
             ("tablet screen", lambda: tablet_screen(browser)),
             ("touch screens", lambda: touch_screens(browser)),
             ("every screen size", lambda: screens(browser)),
+            ("accessibility", lambda: accessibility(browser)),
             ("steady heights", lambda: steady_heights(browser)),
             ("automatic dashboard", lambda: strategy(browser)),
             ("players export", lambda: players_export(browser)),
@@ -2552,7 +2762,8 @@ def main() -> None:
         "and a match against the bot, a tournament, the screens on an 800 x 480 "
         "tablet and idle mode with reduced motion, touch screens driven by taps, every "
         "view on eight screen sizes both ways round, cards that keep their heights "
-        "through a game, the generated "
+        "through a game, no serious or critical violation of WCAG 2.1 AA in any card "
+        "on a laptop and a phone in both themes, the generated "
         "dashboard, the players export, all seven card forms, the strategy editor, "
         "light theme and the cards and entity texts in Dutch, French and Spanish."
     )

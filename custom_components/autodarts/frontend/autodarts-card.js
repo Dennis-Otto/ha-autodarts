@@ -7940,6 +7940,8 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .scoreboard.full:not(.choosing) .main {
     flex: 1 1 0; container-type: size; overflow-y: auto; justify-content: safe center;
   }
+  /* The keyboard scrolls the scores too; its ring stays inside what scrolls. */
+  .scoreboard.full .main:focus-visible { outline-offset: -2px; border-radius: 20px; }
   .players { display: grid; gap: clamp(8px, 1.6cqi, 24px); }
   .players.n1 { grid-template-columns: minmax(0, 1fr); }
   .players.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -8587,7 +8589,7 @@ const PROGRESS_CSS = `
   }
   .badge-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: 12px; line-height: 1.3; }
   .badge-text b { font-size: 13px; color: var(--primary-text-color); }
-  .badge-text > span { color: var(--secondary-text-color); }
+  .badge-text > span { color: var(--ad-muted-text); }
   .badge.locked {
     background: none; border: 1px dashed color-mix(in srgb, var(--primary-text-color) 22%, transparent);
     padding: 7px 9px;
@@ -10792,7 +10794,9 @@ function createElements(Base) {
                 </div>
               </header>
               <div class="banner appear" role="status" hidden></div>
-              <div class="main"></div>
+              <div class="main"${
+                c.full_height ? ` tabindex="0" role="region" aria-label="${t("view_scoreboard")}"` : ""
+              }></div>
               ${c.show_visit ? `<div class="visit"></div>` : ""}
               <div class="pad-area appear" hidden></div>
               <div class="loupe" hidden aria-hidden="true"></div>
