@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- What changes for users, and why? Link related issues with "Fixes #123". -->
+<!-- What changes for users, and why? Name the issues this fixes with "Fixes #123": they stay open until the next release and then close with a link to it. -->
 
 ## Type
 
