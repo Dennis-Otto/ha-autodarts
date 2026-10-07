@@ -1,0 +1,35 @@
+name: Firewall probe
+
+# Temporary: checks the egress-firewall runner and its allow list before the
+# issue assistant is merged. Removed again in the same pull request.
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04-firewall
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Reach an allowed and a blocked host
+        run: |
+          curl -sS -o /dev/null -w "api.anthropic.com: HTTP %{http_code}\n" https://api.anthropic.com/v1/models || echo "api.anthropic.com: blocked"
+          curl -sS -o /dev/null -w "example.com: HTTP %{http_code}\n" https://example.com || echo "example.com: blocked, as expected"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install and start the Claude Code action without a token
+        continue-on-error: true
+        uses: anthropics/claude-code-action@58985842b834ed26087302ba27d07bc24ca8697a # v1.0.244
+        with:
+          github_token: ${{ github.token }}
+          allowed_non_write_users: "*"
+          prompt: Say hello.
+          claude_args: |
+            --restricted
+            --tools "Read,Grep,Glob"
+            --permission-prompts none
