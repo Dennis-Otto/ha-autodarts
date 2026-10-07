@@ -54,4 +54,5 @@ jobs:
             GHSA-p4g4-x82p-q773,
             GHSA-r6x4-923q-g947,
             GHSA-w2cx-738m-mc7w,
-            GHSA-w6j9-cwv2-h6wq
+            GHSA-w6j9-cwv2-h6wq,
+            GHSA-x33g-cr3x-6449

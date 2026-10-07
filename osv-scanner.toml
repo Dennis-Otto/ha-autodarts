@@ -72,3 +72,7 @@ reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; no
 [[IgnoredVulns]]
 id = "GHSA-w6j9-cwv2-h6wq"
 reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
+
+[[IgnoredVulns]]
+id = "GHSA-x33g-cr3x-6449"
+reason = "PyJWT 2.13.0: test-only dependency pinned by Home Assistant 2026.9; not shipped with the integration."
