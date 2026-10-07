@@ -52,6 +52,14 @@ jobs:
           persist-credentials: false
       - name: Run Home Assistant end-to-end tests
         run: bash tests/e2e/run.sh
+      # axe-core of package-lock.json checks the accessibility of the cards.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: matrix.browser
+        with:
+          node-version: 24
+      - name: Install the locked packages of the frontend
+        if: matrix.browser
+        run: npm ci --ignore-scripts
       - name: Check the dashboard cards in a real browser
         if: matrix.browser
         run: bash tests/e2e/browser.sh
@@ -85,6 +93,11 @@ jobs:
           persist-credentials: false
       - name: Run Home Assistant end-to-end tests
         run: bash tests/e2e/run.sh
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+      - name: Install the locked packages of the frontend
+        run: npm ci --ignore-scripts
       - name: Check the dashboard cards in a real browser
         run: bash tests/e2e/browser.sh
       - name: Keep logs and screenshots of a failed run
