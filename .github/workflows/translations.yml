@@ -1,0 +1,56 @@
+name: Translations
+
+# The translation bot of this integration: for each language with texts that are
+# missing or older than their English source, it keeps one issue open, labeled
+# translations and help wanted for native speakers to find, and closes it with thanks
+# once the language is up to date. scripts/translations.mjs reads the history of main;
+# docs/development.md describes it.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - custom_components/autodarts/translations/**
+      - custom_components/autodarts/frontend/autodarts-card.js
+      - scripts/translations.mjs
+      - .github/workflows/translations.yml
+  schedule:
+    # Weekly, also for a "Translations-checked:" line in a commit that changed no text.
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: translations
+  cancel-in-progress: false
+
+jobs:
+  issues:
+    name: Translation issues
+    # The issues follow main alone, also when someone runs the workflow on a branch.
+    if: ${{ !github.event.repository.fork && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # the history of the texts
+      issues: write # one issue per language: open, update and close it
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      # The whole history: when each text last changed is what the bot reads.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Node alone: the bot needs no packages, and a job that writes restores no cache.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Open, update and close the translation issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/translations.mjs --sync
