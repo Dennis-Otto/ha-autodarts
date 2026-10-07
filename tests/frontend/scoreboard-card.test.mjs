@@ -226,8 +226,15 @@ test("status, visit and full height follow the options", () => {
   assert.equal($(plain, ".visit"), null);
   assert.equal($(plain, ".scoreboard").getAttribute("class"), "scoreboard");
   assert.equal(text(plain, ".title"), "Dartboard");
+  // Only scores of a full-height scoreboard scroll; then a keyboard can scroll them too.
+  assert.equal($(plain, ".main").getAttribute("tabindex"), null);
   const full = setup({}, { full_height: true }).card;
   assert.equal($(full, ".scoreboard").getAttribute("class"), "scoreboard full");
+  const scores = $(full, ".main");
+  assert.deepEqual(
+    ["tabindex", "role", "aria-label"].map((name) => scores.getAttribute(name)),
+    ["0", "region", "Scoreboard"]
+  );
   assert.equal(full.getCardSize(), 8);
   assert.deepEqual(full.getGridOptions(), { columns: "full", min_columns: 6 });
   // A phone's browser bar must not cut off the bottom of a full-height scoreboard.
