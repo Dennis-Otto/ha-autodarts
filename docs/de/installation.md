@@ -26,6 +26,10 @@ Für die lokale Nutzung braucht die Integration **keine Autodarts-Anmeldung, kei
 
 Neue Versionen zeigt HACS als Update unter **Einstellungen → Updates** an, samt Versionshinweisen. HACS installiert das signierte Release-Paket `autodarts.zip`, dieselbe Datei wie bei der [manuellen Installation](#manuell).
 
+#### Betas für Tester
+
+Jede Änderung für Nutzer wird wenige Minuten, nachdem sie in `main` ankommt, zu einer Beta des nächsten Releases, etwa `1.10.0-beta.2`. Um sie zu testen, öffne **Einstellungen → Geräte & Dienste → HACS**, wähle das Gerät **Autodarts**, aktiviere seine Entität **Pre-release** (Vorabversion), die HACS ausgeschaltet und deaktiviert anlegt, und schalte sie ein. HACS bietet dann jede Beta als Update an, samt ihren Hinweisen; schaltest du sie wieder aus, bringt dich das nächste Release zurück. Eine Beta kann Fehler haben, die das Release nicht hat: Bitte melde sie in einem [Testerbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml).
+
 ### Manuell
 
 1. Lade `autodarts.zip` der neuesten Version von [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases) herunter. Die Datei enthält die Dateien der Integration ohne umgebenden Ordner.
