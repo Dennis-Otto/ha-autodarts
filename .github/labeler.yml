@@ -1,0 +1,87 @@
+# The area labels of pull requests by the files they change, for the Area labels
+# workflow; each label is an area of .github/labels.toml.
+"area: setup":
+  - changed-files:
+      - any-glob-to-any-file:
+          - custom_components/autodarts/config_flow.py
+          - custom_components/autodarts/discovery.py
+          - custom_components/autodarts/api.py
+          - custom_components/autodarts/local_api.py
+          - custom_components/autodarts/coordinator.py
+          - custom_components/autodarts/local_coordinator.py
+          - custom_components/autodarts/repairs.py
+          - custom_components/autodarts/diagnostics.py
+          - custom_components/autodarts/manifest.json
+          - tests/test_config_flow*.py
+          - tests/test_discovery.py
+          - tests/test_local_*.py
+          - tests/test_connection.py
+          - tests/test_diagnostics.py
+"area: entities":
+  - changed-files:
+      - any-glob-to-any-file:
+          - custom_components/autodarts/entity.py
+          - custom_components/autodarts/binary_sensor.py
+          - custom_components/autodarts/button.py
+          - custom_components/autodarts/calendar.py
+          - custom_components/autodarts/camera*.py
+          - custom_components/autodarts/event.py
+          - custom_components/autodarts/number.py
+          - custom_components/autodarts/select.py
+          - custom_components/autodarts/sensor.py
+          - custom_components/autodarts/switch.py
+          - custom_components/autodarts/text.py
+          - custom_components/autodarts/time.py
+          - custom_components/autodarts/update.py
+          - custom_components/autodarts/services.*
+          - custom_components/autodarts/icons.json
+          - tests/test_camera_*.py
+"area: games":
+  - changed-files:
+      - any-glob-to-any-file:
+          - custom_components/autodarts/bot.py
+          - custom_components/autodarts/checkout.py
+          - custom_components/autodarts/cricket.py
+          - custom_components/autodarts/doubles.py
+          - custom_components/autodarts/drills.py
+          - custom_components/autodarts/manual.py
+          - custom_components/autodarts/party.py
+          - custom_components/autodarts/practice.py
+          - custom_components/autodarts/scoring.py
+          - custom_components/autodarts/tournament.py
+          - tests/test_bot*.py
+          - tests/test_checkout.py
+          - tests/test_cricket*.py
+          - tests/test_doubles.py
+          - tests/test_*drills.py
+          - tests/test_manual_darts.py
+          - tests/test_party.py
+"area: statistics":
+  - changed-files:
+      - any-glob-to-any-file:
+          - custom_components/autodarts/achievements.py
+          - custom_components/autodarts/export.py
+          - custom_components/autodarts/journal.py
+          - custom_components/autodarts/profiles.py
+          - custom_components/autodarts/progress.py
+          - custom_components/autodarts/quality.py
+          - custom_components/autodarts/records.py
+          - custom_components/autodarts/report.py
+          - custom_components/autodarts/summary.py
+          - custom_components/autodarts/training.py
+          - tests/test_journal.py
+          - tests/test_match_summary*.py
+          - tests/test_persons.py
+"area: cards":
+  - changed-files:
+      - any-glob-to-any-file:
+          - custom_components/autodarts/frontend/**
+          - custom_components/autodarts/card.py
+          - tests/frontend/**
+          - tests/test_card.py
+"area: blueprints":
+  - changed-files:
+      - any-glob-to-any-file: ["blueprints/**", "tests/test_blueprint*.py"]
+"area: online":
+  - changed-files:
+      - any-glob-to-any-file: ["custom_components/autodarts/online.py", "tests/test_online.py"]
