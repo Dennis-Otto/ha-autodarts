@@ -9,7 +9,7 @@ body:
       value: |
         Thank you for testing! Reports from real boards decide what comes next. Short answers are fine, screenshots help, and German is welcome too (Antworten gern auf Deutsch).
 
-        Within a few minutes, the issue assistant, Claude, posts a first analysis and may ask questions; the maintainer reads every issue as well ([what happens with your issue](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
+        Within a few minutes, an AI issue assistant posts a first analysis and may ask questions; the maintainer reads every issue as well ([what happens with your issue](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
 
         Please leave out real board IDs, IP addresses and the names of people who didn't agree.
   - type: dropdown

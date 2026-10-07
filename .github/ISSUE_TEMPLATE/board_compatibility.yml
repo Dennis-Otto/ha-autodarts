@@ -9,7 +9,7 @@ body:
       value: |
         Reports of working setups help other players choose, and reports of problems help support more boards.
 
-        Within a few minutes, the issue assistant, Claude, posts a first analysis and may ask questions; the maintainer reads every issue as well ([what happens with your issue](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
+        Within a few minutes, an AI issue assistant posts a first analysis and may ask questions; the maintainer reads every issue as well ([what happens with your issue](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
   - type: dropdown
     id: result
     attributes:

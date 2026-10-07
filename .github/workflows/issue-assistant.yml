@@ -3,13 +3,16 @@ name: Issue assistant
 # The first analysis of new issues, the labels of the issue forms and the answers
 # that the assistant or the maintainer waits for; see docs/development.md#issue-assistant.
 #
-# event    no Claude: labels and the next task, from trusted code of main
-# analyze  Claude reads the checkout and a context folder; read-only token,
-#          restricted tools, egress-firewall runner (.github/egress-firewall.yaml)
-# apply    no Claude: checks Claude's JSON answer and is the only job that writes
+# event    no AI: labels and the next task, from trusted code of main
+# analyze  an AI engine reads the checkout and a context folder and answers with
+#          JSON; read-only token, read-only tools, egress-firewall runner
+#          (.github/egress-firewall.yaml)
+# apply    no AI: checks the engine's answer and is the only job that writes
 #
-# Without the secret CLAUDE_CODE_OAUTH_TOKEN (or ANTHROPIC_API_KEY), or with the
-# repository variable ISSUE_ASSISTANT_AI set to "off", only the event job runs.
+# The repository variable ISSUE_ASSISTANT_ENGINE chooses the engine (default
+# claude); docs/development.md#engines describes how to add one. Without the
+# engine's secret, or with ISSUE_ASSISTANT_AI set to "off", only labels and the
+# lifecycle work.
 
 on:
   issues:
@@ -70,7 +73,7 @@ jobs:
         run: python3 .github/scripts/issue_assistant.py event
 
   analyze:
-    name: Analyze with Claude
+    name: Analyze with the AI engine
     needs: event
     if: >-
       needs.event.outputs.mode != '' &&
@@ -78,8 +81,8 @@ jobs:
       vars.ISSUE_ASSISTANT_AI != 'off'
     runs-on: ubuntu-24.04-firewall
     timeout-minutes: 20
-    # Keep the Claude token as a secret of this environment, limited to main;
-    # no deployment is recorded for a run.
+    # Keep the engine's secret in this environment, limited to main; no deployment
+    # is recorded for a run.
     environment:
       name: issue-assistant
       deployment: false
@@ -88,33 +91,37 @@ jobs:
       issues: read
       discussions: read
     outputs:
+      engine: ${{ steps.engine.outputs.engine }}
+      # One answer per engine step; only the chosen engine runs.
       answer: ${{ steps.claude.outputs.structured_output }}
     steps:
-      - name: Check for a Claude token
-        id: token
-        env:
-          CONFIGURED: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
-        run: |
-          if [[ "$CONFIGURED" != true ]]; then
-            echo "::notice::No Claude token is configured; the issue assistant only set labels."
-          fi
-          echo "configured=$CONFIGURED" >> "$GITHUB_OUTPUT"
-      - if: steps.token.outputs.configured == 'true'
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Choose the engine and check its credentials
+        id: engine
+        env:
+          ISSUE_ASSISTANT_ENGINE: ${{ vars.ISSUE_ASSISTANT_ENGINE }}
+          # One line per engine: whether its secret exists.
+          CREDENTIALS_CLAUDE: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' || secrets.ANTHROPIC_API_KEY != '' }}
+        run: python3 .github/scripts/issue_assistant.py engine
       - name: Collect the issue, earlier issues and discussions
         id: context
-        if: steps.token.outputs.configured == 'true'
+        if: steps.engine.outputs.ready == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           ISSUE: ${{ needs.event.outputs.issue }}
           MODE: ${{ needs.event.outputs.mode }}
+        # Writes .issue-assistant/prompt.md and schema.json for every engine.
         run: python3 .github/scripts/issue_assistant.py context --issue "$ISSUE" --mode "$MODE"
-      - name: Analyze the issue
+
+      # The engines. Each one gets the prompt and the JSON schema, may only read
+      # files of the checkout and returns the JSON answer.
+
+      - name: Analyze with Claude
         id: claude
-        if: steps.token.outputs.configured == 'true'
+        if: steps.engine.outputs.ready == 'true' && steps.engine.outputs.engine == 'claude'
         uses: anthropics/claude-code-action@58985842b834ed26087302ba27d07bc24ca8697a # v1.0.244
         env:
           DISABLE_TELEMETRY: "1"
@@ -153,12 +160,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Check Claude's answer and post it
+      - name: Check the engine's answer and post it
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           ISSUE: ${{ needs.event.outputs.issue }}
           MODE: ${{ needs.event.outputs.mode }}
+          ISSUE_ASSISTANT_ENGINE: ${{ needs.analyze.outputs.engine }}
           RESULT: ${{ needs.analyze.outputs.answer }}
           DRY_RUN: ${{ inputs.dry_run || false }}
         run: python3 .github/scripts/issue_assistant.py apply --issue "$ISSUE" --mode "$MODE"

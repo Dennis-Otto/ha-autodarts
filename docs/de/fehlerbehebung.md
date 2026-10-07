@@ -176,12 +176,12 @@ logger:
 
 Sicherheitsprobleme meldest du bitte vertraulich, wie in [SECURITY.md](../../SECURITY.md) beschrieben.
 
-Englisch und Deutsch sind beide willkommen. Nach wenigen Minuten setzt der Issue-Assistent die Labels und schreibt eine Erstanalyse: eine Zusammenfassung, die wahrscheinliche Ursache oder die passende Stelle der Dokumentation, verwandte Issues und, wenn nötig, Rückfragen. Der Assistent ist Claude, eine KI von Anthropic; er liest den Text des Issues und das öffentliche Repository und kann sich irren. Der Maintainer liest jedes Issue ebenfalls und entscheidet.
+Englisch und Deutsch sind beide willkommen. Nach wenigen Minuten setzt der Issue-Assistent die Labels und schreibt eine Erstanalyse: eine Zusammenfassung, die wahrscheinliche Ursache oder die passende Stelle der Dokumentation, verwandte Issues und, wenn nötig, Rückfragen. Der Assistent nutzt derzeit Claude, eine KI von Anthropic; er liest den Text des Issues und das öffentliche Repository und kann sich irren. Der Maintainer liest jedes Issue ebenfalls und entscheidet.
 
 - **Rückfragen** markieren das Issue als wartend auf dich. Antworte als Kommentar oder indem du das Issue bearbeitest. Ohne Antwort folgt nach 15 Tagen eine Erinnerung, nach 30 Tagen wird das Issue geschlossen; eine Antwort öffnet es wieder.
 - **Ein wahrscheinliches Duplikat** eines offenen Issues bekommt einen Hinweis und wird 3 Tage später geschlossen, damit alles an einer Stelle bleibt. Geht es um etwas anderes, schreib einen Kommentar oder reagiere auf den Hinweis mit 👎, dann bleibt es offen.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="../images/de/issue-lifecycle-dark.png">
-  <img src="../images/de/issue-lifecycle-light.png" alt="Lebenslauf eines Issues: Labels und Erstanalyse von Claude; fehlen Informationen, wartet es mit needs-info auf den Melder, mit einer Erinnerung an Tag 15 und dem Schließen an Tag 30, und eine Antwort gibt es an den Maintainer oder öffnet es wieder; ein sicheres Duplikat bekommt einen Hinweis und wird an Tag 3 geschlossen, wenn niemand kommentiert oder mit Daumen runter reagiert." width="640">
+  <img src="../images/de/issue-lifecycle-light.png" alt="Lebenslauf eines Issues: Labels und KI-Erstanalyse; fehlen Informationen, wartet es mit needs-info auf den Melder, mit einer Erinnerung an Tag 15 und dem Schließen an Tag 30, und eine Antwort gibt es an den Maintainer oder öffnet es wieder; ein sicheres Duplikat bekommt einen Hinweis und wird an Tag 3 geschlossen, wenn niemand kommentiert oder mit Daumen runter reagiert." width="640">
 </picture>
