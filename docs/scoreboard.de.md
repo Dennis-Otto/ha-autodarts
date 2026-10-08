@@ -75,7 +75,7 @@ Die Anzeigetafel zeigt immer, was gespielt wird, und der Spieler am Board ist he
 | Spiel | Die Anzeigetafel zeigt |
 | --- | --- |
 | X01 | Rest, Legs, Sätze und Average jedes Spielers oder Teams; Checkout-Weg, Überwerfen oder Game shot des Spielers am Board und, wo kein Checkout möglich ist, der [Stellwurf](games.de.md#x01) mit dem Rest, den er stellt |
-| Cricket-Spiele | Eine große Kreidetafel mit den Marks jedes Spielers oder Teams, den Punkten und den Marks pro Runde; die nächste offene Zahl oben links |
+| Cricket-Spiele | Eine große Kreidetafel mit den Marks jedes Spielers oder Teams, den Punkten und den Marks pro Runde; die nächste offene Zahl oben links und [Rahmen](games.de.md#cricket-spiele), wo der Spieler am Board punktet oder besser schließt |
 | Partyspiele | Runde und Ziel, die Punkte jedes Spielers, bei Killer Zahl und Leben, bei Golf und Baseball eine Scorekarte jedes Lochs oder Innings |
 | Ausbullen | Das Feld des Darts jedes Spielers und seinen Abstand zur Mitte, den führenden Dart und *Gleichstand – noch einmal werfen*, wenn ein Gleichstand neu wirft |
 | Trainingsspiele | Das Ziel in großer Schrift mit Runde, Punkten oder Trefferquote |

@@ -92,6 +92,8 @@ def test_a_cut_throat_leg_goes_to_the_player_with_the_fewest_points():
     assert [score["points"] for score in scores] == [0, 60, 60]
     # While the visit runs, the others' points follow the darts.
     practice.track(darts("T20", "T20"))
+    # Every dart says what it counted for: both gave points to the others.
+    assert practice.snapshot()["counted"] == ["20", "20"]
     assert [score["points"] for score in practice.snapshot()["scores"]] == [
         0,
         60,

@@ -11,6 +11,7 @@ import {
   cricketTable,
   cricketView,
   dashboardStrategy,
+  deadDarts,
   drillBeds,
   drillView,
   gameView,
@@ -198,9 +199,60 @@ test("Wild Mouse closes doubles, triples and three in a bed besides the numbers"
   assert.deepEqual(count, { kind: "marks", marks: 5 });
   // Other Cricket games know nothing of these targets.
   const cricket = cricketView({ ...wild, attributes: { ...wild.attributes, game: "cricket", scores: [] } });
-  assert.deepEqual([cricket.targets, cricket.targetRow, cricket.counted, cricket.bed, cricket.target], [[], null, [], false, null]);
+  assert.deepEqual([cricket.targets, cricket.targetRow, cricket.bed, cricket.target], [[], null, false, null]);
   const plain = cricketView({ ...wild, attributes: { game: "wild_mouse", scores: [] } });
   assert.deepEqual([plain.targets, plain.counted], [[], []]);
+});
+
+test("the chalkboard shows the player at the board where to score and what to close", () => {
+  const cricket = (player, extra = {}) =>
+    cricketView({
+      state: "unknown",
+      attributes: {
+        game: "cricket",
+        player,
+        target: "T19",
+        scores: [
+          { player: 1, marks: [3, 0, 3, 0, 0, 0, 0], points: 20 },
+          { player: 2, marks: [0, 3, 3, 1, 0, 0, 0], points: 0 },
+        ],
+        ...extra,
+      },
+    });
+  const cells = (html) =>
+    [...html.matchAll(/<tr class="[^"]*"><th>([^<]*)<\/th>(.*?)<\/tr>/g)].map(([, heading, row]) => [
+      heading,
+      [...row.matchAll(/<td class="([^"]*)"( title="([^"]*)")?/g)].map(([, style, , title]) => `${style}|${title ?? ""}`),
+    ]);
+  const rows = cells(cricketTable(cricket(1), ui));
+  // Alex scores on the 20 Sam still needs and had better close the 19; the 18 is dead.
+  assert.deepEqual(rows.slice(0, 4), [
+    ["20", ["active aim-score|cricket_aim_score", "|"]],
+    ["19", ["active aim-close|cricket_aim_close", "|"]],
+    ["18", ["active|", "|"]],
+    ["17", ["active|", "|"]],
+  ]);
+  // Points and marks per round have no hints, and the other player at the board gets them.
+  assert.deepEqual(rows.at(-1), ["cricket_mpr", ["active|", "|"]]);
+  assert.deepEqual(cells(cricketTable(cricket(2), ui)).slice(0, 2), [
+    ["20", ["|", "active aim-close|cricket_aim_close"]],
+    ["19", ["|", "active aim-score|cricket_aim_score"]],
+  ]);
+  // Alone, or once the match is won, nobody is told where to aim.
+  const alone = { ...cricket(1), scores: cricket(1).scores.slice(0, 1) };
+  assert.doesNotMatch(cricketTable(alone, ui), /aim-/);
+  assert.doesNotMatch(cricketTable(cricket(1, { winner: 1 }), ui), /aim-/);
+});
+
+test("darts that counted nothing in a Cricket game are the last of the visit", () => {
+  const game = (counted, visit) => ({ mode: "cricket", cricket: { counted, visit } });
+  const darts = [{}, {}, {}];
+  assert.deepEqual(deadDarts(game(["20", null, null], ["T20", "S14", "T20"]), darts), [false, true, true]);
+  // A dart before the leg began counts for no game; the game's darts are the last ones.
+  assert.deepEqual(deadDarts(game([null, "19"], ["S2", "T19"]), darts), [false, true, false]);
+  // Darts beyond a won leg are not the game's.
+  assert.deepEqual(deadDarts(game([null], ["S1", "S2"]), darts.slice(0, 2)), [false, false]);
+  assert.deepEqual(deadDarts({ mode: "x01" }, darts), [false, false, false]);
 });
 
 test("team Cricket shows a column per team, the partner at the board in bold", () => {
