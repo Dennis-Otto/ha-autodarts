@@ -1,6 +1,6 @@
 # Troubleshooting
 
-[← Documentation](README.md) · [Deutsch](de/fehlerbehebung.md)
+[← Documentation](README.md) · [Deutsch](troubleshooting.de.md)
 
 ## Quick checks
 

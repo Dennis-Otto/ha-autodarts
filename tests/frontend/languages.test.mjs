@@ -220,6 +220,6 @@ test("card forms and the card picker speak the language of the last Home Assista
     const scoreboard = window.customCards.find((card) => card.type === "autodarts-scoreboard-card");
     assert.equal(scoreboard.name, words.scoreboard, lang);
     // The documentation is English and German; other languages link the English one.
-    assert.match(scoreboard.documentationURL, /\/docs\/cards\.md#scoreboard-card$/, lang);
+    assert.equal(scoreboard.documentationURL, "https://dennis-otto.github.io/ha-autodarts/cards.html#scoreboard-card", lang);
   }
 });

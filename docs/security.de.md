@@ -1,6 +1,6 @@
 # Sicherheit
 
-[← Dokumentation](README.md) · [English](../security.md)
+[← Dokumentation](README.de.md) · [English](security.md)
 
 Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, wem sie vertraut und welche Risiken bleiben. Sicherheitslücken meldest du bitte vertraulich, wie in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md) beschrieben.
 
@@ -11,7 +11,7 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 | API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade | Konfiguration des Board Managers | Werden direkt beim Lesen verworfen; nie gespeichert, protokolliert, angezeigt oder in Diagnosedaten übernommen |
 | Autodarts-OAuth-Token (optionale Cloud-Verknüpfung) | Integrationseintrag in Home Assistant | Nur dort gespeichert, automatisch erneuert, nie protokolliert; das Passwort sieht die Integration nie |
 | Board-ID, Board-Adresse, Client-ID | Integrationseintrag in Home Assistant | In Diagnosedaten geschwärzt; der Verbindungsverlauf in den Diagnosedaten enthält Zähler, Fehlerarten und Dauern, nie Adressen oder Fehlermeldungen |
-| Trainingssessions, Übungsspiele und Turniere, Bestleistungen, Spielernamen und -profile mit direkten Vergleichen, Match-Verlauf, Doppelanalyse, Fortschritt samt Dart-Positionen, Erfolgen und verknüpften Personen, Wochenbericht und Trainingskalender | `.storage` von Home Assistant ([gespeicherte Daten](funktionsweise.md#gespeicherte-daten)) | Nur lokal; wird mit der Integration gelöscht; Spielernamen sind in Diagnosedaten geschwärzt |
+| Trainingssessions, Übungsspiele und Turniere, Bestleistungen, Spielernamen und -profile mit direkten Vergleichen, Match-Verlauf, Doppelanalyse, Fortschritt samt Dart-Positionen, Erfolgen und verknüpften Personen, Wochenbericht und Trainingskalender | `.storage` von Home Assistant ([gespeicherte Daten](how-it-works.de.md#gespeicherte-daten)) | Nur lokal; wird mit der Integration gelöscht; Spielernamen sind in Diagnosedaten geschwärzt |
 | Exporte mit Spielernamen | Standardmäßig `autodarts/exports` im Medienordner; auf Wunsch `www`, ein anderer Medienordner oder ein Ordner aus `allowlist_external_dirs` | Nur von Administratoren und Automationen geschrieben, höchstens 20 pro Stunde; nur in Ordner, in die Home Assistant schreiben lässt, nie in versteckte; unerratbare Dateinamen; Downloads nur für Administratoren |
 | Steuerung des Boards | Board-Manager-API | Aktionen nur auf Wunsch eines Nutzers oder einer Automation, genau einmal gesendet |
 | Adresse der Online-Brücke (optional) | Optionen des Integrationseintrags in Home Assistant | Ein zufälliges Geheimnis aus 64 Hexadezimalzeichen, nur in den Optionen angezeigt; von der Integration nie protokolliert und nie in Diagnosedaten; in den Optionen durch eine neue ersetzbar, die die alte sofort abschaltet, auch während die Brücke aus ist |
@@ -32,7 +32,7 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 2. **Integration → Dashboard.** Die Karten zeigen Board-Daten im Browser. Jeder Text vom Board oder aus der Entitätsverwaltung wird maskiert, Zahlen werden geprüft, bevor sie zu SVG-Geometrie werden.
 3. **Integration → Internet.** Im lokalen Betrieb verlässt nichts das Heimnetz. *Boards im Netzwerk suchen* fragt einmalig und nur auf Wunsch den öffentlichen Suchdienst von Autodarts; von sich aus fragt die Integration ihn nie. Die optionale Cloud-Verknüpfung nutzt die OAuth-Geräteanmeldung über HTTPS mit der gemeinsamen Verbindung von Home Assistant, und Board- und Match-IDs aus der Cloud werden als einzelner Pfadabschnitt kodiert.
 4. **Netzwerk → Integration (mDNS).** Jedes Gerät im Netzwerk kann ein Autodarts-Board melden. Die Integration spricht nur die Adressen an, von denen die Meldung kommt, nie Loopback-, Link-local- oder Multicast-Adressen und nie eine Adresse, die nur in den Eigenschaften der Meldung steht. Ein eingerichtetes Board zieht nie von selbst um: Antwortet es unter seiner eingerichteten Adresse nicht mehr mit seiner Board-ID, bietet ein Reparaturhinweis die neue Adresse an, und der Eintrag zieht erst um, wenn du bestätigst, nachdem das Board dort erneut erkannt wurde.
-5. **Browser → Integration (Online-Brücke, optional).** Standardmäßig aus. Eingeschaltet nimmt Home Assistant die Aufrufe der Browser-Erweiterung Tools for Autodarts unter einer geheimen Webhook-Adresse an, standardmäßig nur aus dem Heimnetz. Die Integration nimmt nur die bekannten Trigger an, Felder begrenzter Länge und höchstens 20 Aufrufe pro Sekunde und 120 pro Minute. Ein Aufruf kann nur ein Board-Ereignis `online_*` auslösen: Er steuert nie das Board und ändert keine gespeicherten Daten. [Online-Matches](online-matches.md).
+5. **Browser → Integration (Online-Brücke, optional).** Standardmäßig aus. Eingeschaltet nimmt Home Assistant die Aufrufe der Browser-Erweiterung Tools for Autodarts unter einer geheimen Webhook-Adresse an, standardmäßig nur aus dem Heimnetz. Die Integration nimmt nur die bekannten Trigger an, Felder begrenzter Länge und höchstens 20 Aufrufe pro Sekunde und 120 pro Minute. Ein Aufruf kann nur ein Board-Ereignis `online_*` auslösen: Er steuert nie das Board und ändert keine gespeicherten Daten. [Online-Matches](online-matches.de.md).
 
 ## Bedrohungen und Gegenmaßnahmen
 
@@ -51,8 +51,8 @@ Diese Seite erklärt, wie die Integration deine Daten und dein Board schützt, w
 | Der Benutzer eines gemeinsamen Wandtablets löscht, verknüpft oder exportiert die Daten der Spieler | `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player` und `autodarts.export` sind Aktionen für Administratoren, die Automationen weiterhin ausführen; nur Administratoren laden Exporte herunter | `tests/test_services.py`, `tests/test_reports_setup.py` |
 | Ein Spielername läuft in einer Tabellenkalkulation als Formel | CSV-Zellen, die wie eine Formel beginnen, bekommen einen Apostroph vorangestellt | `tests/test_reports_setup.py` |
 | Eine Aktion läuft doppelt, etwa Neustart oder Zurücksetzen | Aktionen werden genau einmal gesendet und nie automatisch wiederholt | `tests/test_local_api.py` |
-| Eine kompromittierte Abhängigkeit oder ein manipulierter Build | Abhängigkeiten per Hash, gepinnte Actions und Images, Dependabot, Dependency Review, CodeQL, Gitleaks, OpenSSF Scorecard | [Development](../development.md#continuous-integration) |
-| Ein manipuliertes Release | Release-Pakete tragen eine mit Sigstore signierte SLSA-Provenance | [Releases](../releases.md#signed-release-packages) |
+| Eine kompromittierte Abhängigkeit oder ein manipulierter Build | Abhängigkeiten per Hash, gepinnte Actions und Images, Dependabot, Dependency Review, CodeQL, Gitleaks, OpenSSF Scorecard | [Development](development.md#continuous-integration) |
+| Ein manipuliertes Release | Release-Pakete tragen eine mit Sigstore signierte SLSA-Provenance | [Releases](releases.md#signed-release-packages) |
 
 ## Häufige Schwachstellen
 

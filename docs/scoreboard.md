@@ -1,6 +1,6 @@
 # Scoreboard at the board
 
-[← Documentation](README.md) · [Deutsch](de/anzeigetafel.md)
+[← Documentation](README.md) · [Deutsch](scoreboard.de.md)
 
 A tablet or a TV next to the board turns your darts room into a stage: the score large enough to read from the oche, the checkout route of the player at the board, the next game or a whole tournament chosen right there, a caller, and between games a leaderboard. Everything runs in Home Assistant; the screen only needs a browser.
 

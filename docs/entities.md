@@ -1,6 +1,6 @@
 # Entities and events
 
-[← Documentation](README.md) · [Deutsch](de/entitaeten.md)
+[← Documentation](README.md) · [Deutsch](entities.de.md)
 
 Every board is one device with the entities below. Its name is the one the board has in Autodarts when the board search or the cloud found it, otherwise *Autodarts Board*. The entity names follow your Home Assistant language and do not repeat the device name. Entity IDs are derived from both when an entity is created, for example `sensor.autodarts_board_training_3_dart_average`, and stay as they are when a later version renames an entity.
 

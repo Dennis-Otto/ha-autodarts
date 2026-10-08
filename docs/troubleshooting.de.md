@@ -1,6 +1,6 @@
 # Fehlerbehebung
 
-[← Dokumentation](README.md) · [English](../troubleshooting.md)
+[← Dokumentation](README.de.md) · [English](troubleshooting.md)
 
 ## Schnelle Prüfung
 
@@ -23,7 +23,7 @@
 | *Das im Netzwerk gemeldete Board antwortet nicht.* | Ein entdecktes Board hat unter der gemeldeten Adresse nicht geantwortet, etwa weil der Board Manager inzwischen gestoppt ist. Starte den Board Manager und füge das Board erneut hinzu oder gib seine Adresse ein. |
 | *Die Einrichtung dieses Boards läuft bereits.* | Ein anderer Einrichtungsdialog für dasselbe Board ist offen, etwa der des entdeckten Boards. Schließe die Einrichtung ab oder brich sie ab. |
 | Das Board wird nicht automatisch gefunden | Die automatische Erkennung braucht Board Manager 2 und mDNS im Netzwerk. Home Assistant in Docker braucht dafür `network_mode: host`; über VLAN-Grenzen hinweg funktioniert mDNS nur mit einem Repeater. Nutze sonst die Suche oder die Adresse. |
-| *Diese Client-ID ist ungültig oder nicht für die Geräteanmeldung freigeschaltet.* | Die Cloud-Verknüpfung braucht eine Client-ID, die Autodarts für diese Integration vergibt. Sie gibt es noch nicht; siehe [Cloud-Verknüpfung](installation.md#autodarts-cloud-verknüpfen-optional). Die lokale Einrichtung funktioniert ohne sie. |
+| *Diese Client-ID ist ungültig oder nicht für die Geräteanmeldung freigeschaltet.* | Die Cloud-Verknüpfung braucht eine Client-ID, die Autodarts für diese Integration vergibt. Sie gibt es noch nicht; siehe [Cloud-Verknüpfung](installation.de.md#autodarts-cloud-verknüpfen-optional). Die lokale Einrichtung funktioniert ohne sie. |
 
 ## Reparaturen
 
@@ -34,7 +34,7 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | **Autodarts-Board-Adresse zeigt auf ein anderes Board** | Unter der eingerichteten Adresse antwortet ein Board mit anderer Board-ID, etwa nach vertauschten IP-Adressen. Die Entitäten bleiben nicht verfügbar, damit sie nie Daten eines fremden Boards zeigen. Öffne die Integration, wähle **Neu konfigurieren** und das richtige Board. Der Hinweis verschwindet dann von selbst. |
 | **Autodarts-Board kalibrieren** | Mindestens 20 % der letzten 100 Darts, bei mindestens 50 Darts insgesamt, mussten korrigiert werden, vom Board, auf der Anzeigetafel oder mit `autodarts.correct_dart`, siehe *Korrekturquote der Erkennung*. Zieh alle Darts, öffne den Hinweis und bestätige: Die Integration kalibriert alle Kameras und zählt wieder bei null. Der Hinweis verschwindet auch, sobald die Quote unter 10 % fällt. |
 | **Board auf den neuen Autodarts Board Manager umstellen** | Das Board nutzt noch den klassischen Board Manager 1, den Autodarts abschalten wird. Installiere Board Manager 2 auf dem Board-PC; die Integration stellt sich selbst um, und der Hinweis verschwindet. |
-| **Autodarts-Board unter neuer Adresse gefunden** | Das Board antwortet seit fünf Minuten nicht unter seiner Adresse, aber die Autodarts-Cloud meldet eine andere Adresse, unter der es mit seiner Board-ID antwortet, etwa nach einer DHCP-Änderung. Öffne den Hinweis und bestätige: Die Integration prüft die Adresse noch einmal, wechselt zu ihr und lädt neu. Entitäten, Training und Einstellungen bleiben erhalten. Diesen Hinweis bekommen nur Einträge mit Autodarts-Cloud-Verknüpfung; Board Manager 2 meldet eine neue Adresse selbst, siehe [Adresswechsel](funktionsweise.md#adresswechsel). |
+| **Autodarts-Board unter neuer Adresse gefunden** | Das Board antwortet seit fünf Minuten nicht unter seiner Adresse, aber die Autodarts-Cloud meldet eine andere Adresse, unter der es mit seiner Board-ID antwortet, etwa nach einer DHCP-Änderung. Öffne den Hinweis und bestätige: Die Integration prüft die Adresse noch einmal, wechselt zu ihr und lädt neu. Entitäten, Training und Einstellungen bleiben erhalten. Diesen Hinweis bekommen nur Einträge mit Autodarts-Cloud-Verknüpfung; Board Manager 2 meldet eine neue Adresse selbst, siehe [Adresswechsel](how-it-works.de.md#adresswechsel). |
 | **Autodarts-Board verweigert den Zugriff** | Das Board antwortet mit HTTP 401 oder 403. Der Board Manager braucht keine Anmeldung, also blockiert ein Reverse Proxy, eine Firewall oder eine Anmeldung vor Port 3180 Home Assistant. Lass Home Assistant auf das Board zugreifen; der Hinweis verschwindet beim nächsten erfolgreichen Lesen. |
 | **Autodarts-Board antwortet in einem unbekannten Format** | Eine nötige Abfrage (Zustand, Einstellungen oder `/api/system`) hat dreimal hintereinander in einem Format geantwortet, das diese Version nicht versteht, meist nach einem Board-Manager-Update. Aktualisiere die Integration. Bleibt der Hinweis, [melde ihn](#fehler-melden) mit den Diagnosedaten; das Protokoll nennt die betroffenen Abfragen. |
 
@@ -133,11 +133,11 @@ Neu beginnen: **Neue Trainingssession** oder *Neue Session* auf der Trainingskar
 
 ### Momente von Online-Matches kommen nicht an
 
-Gehe die [Online-Brücke](online-matches.md) Schritt für Schritt durch und beobachte den Sensor *Letztes Ereignis der Online-Brücke*:
+Gehe die [Online-Brücke](online-matches.de.md) Schritt für Schritt durch und beobachte den Sensor *Letztes Ereignis der Online-Brücke*:
 
 - **Kein Sensor:** Die Brücke ist aus. Schalte sie in den Optionen des Boards (**Konfigurieren**) ein.
 - **Die Adresse selbst:** Öffne sie mit angehängtem `?event=gameon` in einem Browser in deinem Heimnetz. Ändert sich der Sensor nicht, erreicht der Browser Home Assistant unter dieser Adresse nicht: Nimm die Adresse, mit der du Home Assistant öffnest. Eine Adresse von außerhalb deines Heimnetzes braucht *Aufrufe von außerhalb deines Heimnetzes annehmen*.
-- **Nur von der Autodarts-Seite nicht:** Prüfe, ob die WLED-Funktion von Tools for Autodarts an ist, die Effekte aktiviert sind und die Autodarts-Seite offen ist. Die Entwicklertools des Browsers (F12, *Konsole*) zeigen Aufrufe, die der Browser blockiert hat, etwa als *Mixed Content*; siehe [gemischte Inhalte](online-matches.md#grenzen).
+- **Nur von der Autodarts-Seite nicht:** Prüfe, ob die WLED-Funktion von Tools for Autodarts an ist, die Effekte aktiviert sind und die Autodarts-Seite offen ist. Die Entwicklertools des Browsers (F12, *Konsole*) zeigen Aufrufe, die der Browser blockiert hat, etwa als *Mixed Content*; siehe [gemischte Inhalte](online-matches.de.md#grenzen).
 - **Nur manche Momente:** Einen Trigger, den die Brücke nicht kennt, nennt einmalig eine Warnung im Log von Home Assistant. Tools for Autodarts spielt pro Trigger einen Effekt, entferne also andere Effekte mit demselben Trigger.
 
 ## Diagnose und Logs
@@ -182,6 +182,6 @@ Englisch und Deutsch sind beide willkommen. Nach wenigen Minuten setzt der Issue
 - **Ein Fix** auf `main` markiert das Issue mit `fixed-in-next-release`. Es bleibt offen, bis ein Release den Fix ausliefert, und wird dann mit einem Link auf das Release geschlossen. Besteht das Problem nach dem Update weiter, schreib innerhalb von 30 Tagen einen Kommentar, dann wird das Issue wieder geöffnet.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../images/de/issue-lifecycle-dark.png">
-  <img src="../images/de/issue-lifecycle-light.png" alt="Lebenslauf eines Issues: Labels und KI-Erstanalyse; fehlen Informationen, wartet es mit needs-info auf den Melder, mit einer Erinnerung an Tag 15 und dem Schließen an Tag 30, und eine Antwort gibt es an den Maintainer oder öffnet es wieder; ein sicheres Duplikat bekommt einen Hinweis und wird an Tag 3 geschlossen, wenn niemand kommentiert oder mit Daumen runter reagiert. Ein gemergter Fix markiert es mit fixed-in-next-release; das Release schließt es mit einem Link, und ist es noch nicht behoben, geht es zurück an den Maintainer." width="640">
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/issue-lifecycle-dark.png">
+  <img src="images/de/issue-lifecycle-light.png" alt="Lebenslauf eines Issues: Labels und KI-Erstanalyse; fehlen Informationen, wartet es mit needs-info auf den Melder, mit einer Erinnerung an Tag 15 und dem Schließen an Tag 30, und eine Antwort gibt es an den Maintainer oder öffnet es wieder; ein sicheres Duplikat bekommt einen Hinweis und wird an Tag 3 geschlossen, wenn niemand kommentiert oder mit Daumen runter reagiert. Ein gemergter Fix markiert es mit fixed-in-next-release; das Release schließt es mit einem Link, und ist es noch nicht behoben, geht es zurück an den Maintainer." width="640">
 </picture>

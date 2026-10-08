@@ -1,6 +1,6 @@
 # How it works
 
-[← Documentation](README.md) · [Deutsch](de/funktionsweise.md)
+[← Documentation](README.md) · [Deutsch](how-it-works.de.md)
 
 ## Architecture
 

@@ -29,8 +29,6 @@ theme:
         name: Switch to light mode
   features:
     # Pages load without a full reload, with a bar while they do.
-    - navigation.instant
-    - navigation.instant.progress
     - navigation.tracking
     # The sections of the menu as tabs in the header, and the path above a page.
     - navigation.tabs
@@ -57,6 +55,9 @@ plugins:
   social: {}
   # A picture opens enlarged with a click.
   glightbox: {}
+  i18n:
+    enabled: false
+    docs_structure: suffix
   # The date of the last change of a page, from the history of git.
   git-revision-date-localized:
     type: date

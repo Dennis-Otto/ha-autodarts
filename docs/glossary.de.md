@@ -1,8 +1,8 @@
 # Glossar
 
-[← Dokumentation](README.md) · [English](../glossary.md)
+[← Dokumentation](README.de.md) · [English](glossary.md)
 
-Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, die Entitäten und die Karten verwenden. Die letzte Spalte nennt den englischen Begriff der [englischen Dokumentation](../glossary.md) und der englischen Oberfläche.
+Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, die Entitäten und die Karten verwenden. Die letzte Spalte nennt den englischen Begriff der [englischen Dokumentation](glossary.md) und der englischen Oberfläche.
 
 ## Darts
 

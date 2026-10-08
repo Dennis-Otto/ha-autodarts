@@ -24,7 +24,7 @@ unmapped_options = ["Other"]
 
 [transparency]
 # Files that tell reporters which AI reads their issue.
-files = ["SUPPORT.md", "docs/de/fehlerbehebung.md"]
+files = ["SUPPORT.md", "docs/troubleshooting.de.md"]
 
 [releases]
 # A merged pull request that fixes an issue labels it fixed-in-next-release; the

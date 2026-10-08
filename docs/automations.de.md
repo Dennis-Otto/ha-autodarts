@@ -1,6 +1,6 @@
 # Automationen
 
-[← Dokumentation](README.md) · [English](../automations.md)
+[← Dokumentation](README.de.md) · [English](automations.md)
 
 Dein Board ist schnell genug für Automationen, die *während* des Spiels passieren. Das Licht flackert in dem Moment, in dem der dritte Dart einer 180 landet, und der Lautsprecher ruft die Punkte, bevor du am Board bist.
 
@@ -18,30 +18,30 @@ Blueprints sind fertige Automationen. Importieren, Board und Geräte auswählen,
 | **Start and stop detection automatically** | Startet die Erkennung, sobald jemand am Board ist, und stoppt sie nach einer frei wählbaren Pause. Kameras und Board-PC können so ruhen. | [![Blueprint „Start and stop detection automatically“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fauto_detection.yaml) |
 | **Board problem alert** | Warnt nach einer Karenzzeit, wenn das Board offline geht oder eine Kamera ausfällt. Eine Entwarnung kommt nur nach einer echten Warnung. Die Aktionen können `problem` und `recovered` nutzen. | [![Blueprint „Board problem alert“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml) |
 | **Training report** | Tägliche Zusammenfassung mit Darts, 3-Dart-Average, höchster Aufnahme und 180ern; Tage ohne Darts werden übersprungen. Die Variable `summary` enthält den fertigen Satz. | [![Blueprint „Training report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
-| **Training session routine** | Beginnt eine [Trainingssession](entitaeten.md#trainingssession), führt sie deine Aktionen aus, schaltet die Erkennung ein und kalibriert nach kurzer Wartezeit die Kameras. Endet sie, schaltet sie die Erkennung aus und führt deine Aktionen mit `reason`, `darts`, `average` und `duration_minutes` aus. Erkennungsschalter und Kalibrierungstaste sind optional. | [![Blueprint „Training session routine“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
-| **Practice caller** | Sagt das [Übungsspiel](entitaeten.md#übungsspiel) auf deinen Lautsprechern an: "Sam, you require 81", wenn ein Checkout möglich ist, "No score" nach dem Überwerfen, den Game shot eines Legs oder Matches und auf Wunsch den Rest, den ein Stellwurf stellt, wenn kein Checkout möglich ist, und das Ausbullen. Die Texte sind Vorlagen. | [![Blueprint „Practice caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
-| **Weekly report** | Schickt deine [Trainingswoche](entitaeten.md#wochenbericht), wenn das Board sie beendet, standardmäßig montags um Mitternacht: Darts, Trainingszeit, Sessions, den 3-Dart-Average und seine Veränderung zur Vorwoche, beste Aufnahme, 180er, Checkout-Quote, Serie und neue Bestleistungen. Die Nachricht ist eine Vorlage; ohne eigene Aktionen erscheint der Bericht in den Benachrichtigungen von Home Assistant. | [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
+| **Training session routine** | Beginnt eine [Trainingssession](entities.de.md#trainingssession), führt sie deine Aktionen aus, schaltet die Erkennung ein und kalibriert nach kurzer Wartezeit die Kameras. Endet sie, schaltet sie die Erkennung aus und führt deine Aktionen mit `reason`, `darts`, `average` und `duration_minutes` aus. Erkennungsschalter und Kalibrierungstaste sind optional. | [![Blueprint „Training session routine“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
+| **Practice caller** | Sagt das [Übungsspiel](entities.de.md#übungsspiel) auf deinen Lautsprechern an: "Sam, you require 81", wenn ein Checkout möglich ist, "No score" nach dem Überwerfen, den Game shot eines Legs oder Matches und auf Wunsch den Rest, den ein Stellwurf stellt, wenn kein Checkout möglich ist, und das Ausbullen. Die Texte sind Vorlagen. | [![Blueprint „Practice caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
+| **Weekly report** | Schickt deine [Trainingswoche](entities.de.md#wochenbericht), wenn das Board sie beendet, standardmäßig montags um Mitternacht: Darts, Trainingszeit, Sessions, den 3-Dart-Average und seine Veränderung zur Vorwoche, beste Aufnahme, 180er, Checkout-Quote, Serie und neue Bestleistungen. Die Nachricht ist eine Vorlage; ohne eigene Aktionen erscheint der Bericht in den Benachrichtigungen von Home Assistant. | [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Macht ein Bild mit einer Board-Kamera nach einer Aufnahme ab 180 Punkten (einstellbar) oder einem Checkout im Übungsspiel, solange die Darts noch im Board stecken. Es speichert das Bild in der [Highlight-Galerie](#highlight-galerie) und führt deine Aktionen aus, die `photo_url`, `photo`, `image`, `message`, `score`, `checkout` und `who` nutzen können. | [![Blueprint „Highlight photo“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
-| **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel, einem gewonnenen Ausbullen, einem Erfolg und dem Sieger eines Turniers, auf Wunsch auch bei der Entnahme und in [Online-Matches](online-matches.md). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel, einem gewonnenen Ausbullen, einem Erfolg und dem Sieger eines Turniers, auf Wunsch auch bei der Entnahme und in [Online-Matches](online-matches.de.md). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 | **Start a game by voice** | Startet ein Übungsspiel, wenn du es Assist sagst, etwa „Starte 501 für Alex und Sam“, „Starte das Spiel Cricket für Alex“ oder „Spiele 501 gegen den Bot“, auf Deutsch oder Englisch. Assist antwortet mit Spiel und Spielern oder mit dem, was nicht gepasst hat. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
 
 Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Um einen früher importierten Blueprint zu aktualisieren, importierst du ihn über sein Menü auf der Blueprint-Seite erneut; deine Automationen behalten ihre Einstellungen.
 
 Die Blueprints sind auf Englisch beschriftet; ihre Texte kannst du beim Anlegen frei wählen.
 
-<img src="../images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den zwölf Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
+<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den zwölf Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
 
 ### Welcher Caller?
 
-- **Dart caller:** sagt jede Aufnahme an, in jedem Spiel am Board, etwa auch bei einem Online-Match. Während ein [Übungsspiel](entitaeten.md#übungsspiel) der Integration läuft, schweigt er, damit er dem Übungs-Caller nie ins Wort fällt. Schalte *Stay silent in practice games* aus, wenn du den Übungs-Caller nicht nutzt.
+- **Dart caller:** sagt jede Aufnahme an, in jedem Spiel am Board, etwa auch bei einem Online-Match. Während ein [Übungsspiel](entities.de.md#übungsspiel) der Integration läuft, schweigt er, damit er dem Übungs-Caller nie ins Wort fällt. Schalte *Stay silent in practice games* aus, wenn du den Übungs-Caller nicht nutzt.
 - **Practice caller:** sagt an, worauf es im Übungsspiel ankommt: Rest, Überwerfen, Game shot und auf Wunsch das Ausbullen.
-- **Caller der Anzeigetafel:** Die [Anzeigetafel](anzeigetafel.md#der-caller) sagt Aufnahmen und Übungsspiel mit einer Stimme an, über den Browser des Bildschirms am Board. Dafür brauchst du keine Lautsprecher in Home Assistant.
+- **Caller der Anzeigetafel:** Die [Anzeigetafel](scoreboard.de.md#der-caller) sagt Aufnahmen und Übungsspiel mit einer Stimme an, über den Browser des Bildschirms am Board. Dafür brauchst du keine Lautsprecher in Home Assistant.
 
 ## Einstellungen der Blueprints
 
 Jeder Blueprint zeigt diese Einstellungen, wenn du eine Automation daraus anlegst: Wähle den Blueprint auf der Blueprint-Seite, fülle das Formular aus und speichere. Einstellungen mit Standardwert sind optional.
 
-<img src="../images/de/blueprint-light-show.png" alt="Eine neue Automation aus dem Blueprint Light show: seine Beschreibung, die Entität Ereignisse des Boards und ein Abschnitt für jeden Moment, etwa eine 180, ein High Finish und Überwerfen" width="760">
+<img src="images/de/blueprint-light-show.png" alt="Eine neue Automation aus dem Blueprint Light show: seine Beschreibung, die Entität Ereignisse des Boards und ein Abschnitt für jeden Moment, etwa eine 180, ein High Finish und Überwerfen" width="760">
 
 ### Celebrate a visit score
 
@@ -50,7 +50,7 @@ Jeder Blueprint zeigt diese Einstellungen, wenn du eine Automation daraus anlegs
 | Board events | | Die Entität *Ereignisse* deines Boards. |
 | Minimum score | 180 | Die niedrigste Punktzahl einer Aufnahme, die die Aktionen auslöst. Eine Aufnahme aus drei Darts zählt, sobald ihr dritter Dart landet, eine kürzere beim Ziehen der Darts. |
 | Actions | | Was nach einer solchen Aufnahme passiert. Nutzbar sind `score`, `darts`, `segments` und `game` (das Übungsspiel oder leer). |
-| Also for the bot | aus | Führt die Aktionen auch für die Aufnahmen des [Bots](entitaeten.md#bot) im Übungsspiel aus. Seine Darts stecken nicht im Board, deshalb bleiben seine Aufnahmen standardmäßig außen vor. |
+| Also for the bot | aus | Führt die Aktionen auch für die Aufnahmen des [Bots](entities.de.md#bot) im Übungsspiel aus. Seine Darts stecken nicht im Board, deshalb bleiben seine Aufnahmen standardmäßig außen vor. |
 
 ### Dart caller
 
@@ -144,9 +144,9 @@ Lass die Kalibrierungstaste leer, wenn die Board-Einstellung *Beim Start kalibri
 | Bull-off throw | leer | Wird gesagt, wenn der nächste Spieler zum Ausbullen wirft, etwa `{{ who }}, throw for the bull`. Der erste Spieler des Ausbullens wird nicht aufgerufen. Leer nutzt den Text von *Next player*. |
 | Bull-off won | leer | Wird gesagt, wenn das Ausbullen entscheidet, wer beginnt, zusammen mit der ersten Ansage des Matches, etwa `{{ who }} to throw first. Game on!`. Leer bleibt stumm. |
 | Word for a player without a name | `Player` | Ergibt „Player 2“ in einem Match ohne Namen. |
-| Word for the bot | `Bot` | Der Name des [Bots](entitaeten.md#bot) im Übungsspiel in `who`, so wie die Anzeigetafel ihn zeigt, etwa „Bot, you require 40“. |
+| Word for the bot | `Bot` | Der Name des [Bots](entities.de.md#bot) im Übungsspiel in `who`, so wie die Anzeigetafel ihn zeigt, etwa „Bot, you require 40“. |
 
-Die erste Aufnahme eines Spiels wird nicht angesagt, weil ein Spiel ohne Spielerwechsel beginnt. Mit [Ausbullen](spiele.md#ausbullen) eröffnet stattdessen die Ansage des Siegers das Spiel.
+Die erste Aufnahme eines Spiels wird nicht angesagt, weil ein Spiel ohne Spielerwechsel beginnt. Mit [Ausbullen](games.de.md#ausbullen) eröffnet stattdessen die Ansage des Siegers das Spiel.
 
 ### Weekly report
 
@@ -194,15 +194,15 @@ Deine Aktionen können nutzen:
 | Actions for a bust | keine | Laufen, wenn ein Dart im Übungsspiel die Aufnahme überwirft. |
 | Actions for a won leg | keine | Laufen, wenn ein Dart ein Übungsleg gewinnt. Das Leg, das ein Match entscheidet, spielt stattdessen die Aktionen für das Match. |
 | Actions for a won match | keine | Laufen, wenn ein Dart ein Übungsmatch entscheidet. |
-| Actions for a personal best | keine | Laufen, wenn ein Wert deine [Bestleistung](entitaeten.md#bestleistungen-serie-und-tagesziel) übertrifft. |
+| Actions for a personal best | keine | Laufen, wenn ein Wert deine [Bestleistung](entities.de.md#bestleistungen-serie-und-tagesziel) übertrifft. |
 | Actions for the daily goal | keine | Laufen, wenn die Darts von heute das Tagesziel erreichen. |
 | Actions for a won bull-off | keine | Laufen, wenn das Ausbullen entscheidet, wer beginnt. |
-| Actions for an achievement | keine | Laufen, wenn ein benannter Spieler eine neue Stufe eines [Erfolgs](entitaeten.md#erfolge) erreicht. |
-| Actions for a won tournament | keine | Laufen, wenn das letzte Match eines [Turniers](entitaeten.md#turniere) zählt, nach den Aktionen für das gewonnene Match; `who` ist der Turniersieger. |
+| Actions for an achievement | keine | Laufen, wenn ein benannter Spieler eine neue Stufe eines [Erfolgs](entities.de.md#erfolge) erreicht. |
+| Actions for a won tournament | keine | Laufen, wenn das letzte Match eines [Turniers](entities.de.md#turniere) zählt, nach den Aktionen für das gewonnene Match; `who` ist der Turniersieger. |
 | React to the takeout | aus | Führt die beiden folgenden Aktionen aus, während du die Darts ziehst. Lass die Einstellung ohne solche Aktionen aus, damit eine Entnahme nie hinter einem Effekt wartet. |
 | When the takeout starts | keine | Läuft, wenn eine Hand zum Board greift. Wird nicht wiederhergestellt. |
 | When the board is clear | keine | Läuft, wenn alle Darts aus dem Board sind. Wird nicht wiederhergestellt. |
-| Also for the bot | aus | Spielt auch die Momente des [Bots](entitaeten.md#bot) im Übungsspiel: seine 180, sein Überwerfen, sein gewonnenes Leg oder Match und sein gewonnenes Ausbullen. Ein Leg oder Match, das der Bot im Team-Match gewinnt, spielt immer, weil sein Partner am Board es mitgewinnt. |
+| Also for the bot | aus | Spielt auch die Momente des [Bots](entities.de.md#bot) im Übungsspiel: seine 180, sein Überwerfen, sein gewonnenes Leg oder Match und sein gewonnenes Ausbullen. Ein Leg oder Match, das der Bot im Team-Match gewinnt, spielt immer, weil sein Partner am Board es mitgewinnt. |
 | Word for the bot | `Bot` | Der Name des Bots in `who`. |
 | Word for a player without a name | `Player` | Ergibt „Player 2“ in `who`. |
 | Moments with an effect | keine | Die Momente, deren Aktionen einen Effekt starten. Nur für sie wird das Licht wiederhergestellt und die Erkennung pausiert. |
@@ -210,9 +210,9 @@ Deine Aktionen können nutzen:
 | Effect duration | 10 Sekunden | Wie lange ein Effekt spielt, bevor das Licht wiederhergestellt wird und die Erkennung wieder startet. |
 | Pause the detection during effects | aus | Schaltet die Erkennung während eines Effekts aus und danach wieder ein, wenn sie an war. Das Tagesziel pausiert sie nie, weil es mitten in einer Aufnahme erreicht wird. |
 | Detection switch | keiner | Der Schalter *Erkennung* deines Boards, zum Pausieren. |
-| Also react to online matches | aus | Spielt auch die Aktionen für Überwerfen, ein gewonnenes Leg und ein gewonnenes Match eines [Online-Matches](online-matches.md). Eine 180 und die Entnahme deiner eigenen Darts kommen sowieso von deinem Board. |
+| Also react to online matches | aus | Spielt auch die Aktionen für Überwerfen, ein gewonnenes Leg und ein gewonnenes Match eines [Online-Matches](online-matches.de.md). Eine 180 und die Entnahme deiner eigenen Darts kommen sowieso von deinem Board. |
 
-Die Aktionen können `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` oder `board_clear`), `who` (der Name des Spielers, das Wort für den Bot oder „Player 2“), `player`, `score` (einer 180), `checkout` (eines gewonnenen Legs) und `trigger.to_state.attributes` für alle Details des [Board-Ereignisses](entitaeten.md#board-ereignisse) nutzen. Siehe [Lichtshow mit WLED und anderem Licht](#lichtshow-mit-wled-und-anderem-licht).
+Die Aktionen können `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` oder `board_clear`), `who` (der Name des Spielers, das Wort für den Bot oder „Player 2“), `player`, `score` (einer 180), `checkout` (eines gewonnenen Legs) und `trigger.to_state.attributes` für alle Details des [Board-Ereignisses](entities.de.md#board-ereignisse) nutzen. Siehe [Lichtshow mit WLED und anderem Licht](#lichtshow-mit-wled-und-anderem-licht).
 
 ### Start a game by voice
 
@@ -252,14 +252,14 @@ Die Texte des Übungs-Callers sind Vorlagen mit diesen Variablen:
 
 | Variable | Inhalt |
 | --- | --- |
-| `who` | Der Name des Spielers, „Bot“ für den [Bot](entitaeten.md#bot) (siehe *Word for the bot*), „Spieler 2“ in einem Match ohne Namen, leer, wenn du allein spielst |
-| `team` | Das Team des Spielers im [Team-Match](entitaeten.md#teams-und-startpunkte), etwa `Alex & Kim`, wenn beide Partner einen Namen haben; sonst leer |
+| `who` | Der Name des Spielers, „Bot“ für den [Bot](entities.de.md#bot) (siehe *Word for the bot*), „Spieler 2“ in einem Match ohne Namen, leer, wenn du allein spielst |
+| `team` | Das Team des Spielers im [Team-Match](entities.de.md#teams-und-startpunkte), etwa `Alex & Kim`, wenn beide Partner einen Namen haben; sonst leer |
 | `remaining` | Der Rest |
 | `checkout` | Der Weg, wenn ein Checkout möglich ist, etwa `T20 T20 BULL`; bei *Leg won* die ausgecheckten Punkte, etwa `121` |
 | `darts`, `average` | Darts und 3-Dart-Average des Legs, bei *Leg won* |
 | `points` | Punkte bei den Cricket- und Partyspielen; Schläge beim Golf, Runs beim Baseball. Killer zählt keine Punkte: Seine Ereignisse bringen die `lives` des Spielers mit und ob er `killer` ist, etwa `trigger.to_state.attributes.lives` |
 | `target` | Das nächste Ziel eines Partyspiels, etwa `20`, `D` oder `D16`; das Loch beim Golf und das Inning beim Baseball |
-| `leave`, `setup` | Wo kein Checkout möglich ist: der Rest, den ein [Stellwurf](entitaeten.md#stellwürfe) stellt, etwa `32`, und seine Darts, etwa `T20 T20 S17`; sonst leer |
+| `leave`, `setup` | Wo kein Checkout möglich ist: der Rest, den ein [Stellwurf](entities.de.md#stellwürfe) stellt, etwa `32`, und seine Darts, etwa `T20 T20 S17`; sonst leer |
 | `hit` | Das Feld des siegreichen Darts beim Ausbullen, bei *Bull-off won*: `BULL`, `25` oder etwa `S20` |
 | `distance` | Wie weit der siegreiche Dart beim Ausbullen von der Mitte entfernt landete, in Millimetern, bei *Bull-off won*; leer, wenn das Board für ihn keine Position gemeldet hat, nie `None` |
 
@@ -293,7 +293,7 @@ use_blueprint:
 
 Daraus wird etwa: *312 Darts in 95 Minuten, 3-Dart-Average 54,2 (+2,1), 1 × 180, 4 Tage in Folge.* Teile ohne Wert, etwa ohne 180er, lässt die Vorlage weg.
 
-<img src="../images/de/weekly-report-notification.png" alt="Benachrichtigung „Deine Dartwoche“ in Home Assistant mit Darts, 3-Dart-Average und Trainingsserie der Woche" width="468">
+<img src="images/de/weekly-report-notification.png" alt="Benachrichtigung „Deine Dartwoche“ in Home Assistant mit Darts, 3-Dart-Average und Trainingsserie der Woche" width="468">
 
 Aufs Handy kommt der Bericht, wenn du unter *Notification actions* eine Benachrichtigung der Home-Assistant-App einträgst:
 
@@ -322,9 +322,9 @@ Die App lädt das gespeicherte Foto, aufgenommen, als die Darts noch im Board st
 
 Das Highlight-Foto speichert jedes Bild als Datei, benannt nach Zeitpunkt, Spieler und Punkten, etwa `2026-09-26_21-05-33_Alex_180.jpg` oder `2026-09-26_21-07-10_Alex_checkout-121.jpg`. Öffne **Medien → Autodarts** in der Seitenleiste: Die Galerie listet die Monate, die neuesten zuerst, und jedes Foto mit einem Titel wie *180 · Alex · 26.09.*
 
-<img src="../images/de/media-gallery.png" alt="Die Highlight-Galerie in der Medienansicht von Home Assistant: September 2026 mit einem Checkout von 121 durch Sam, einer 180 von Alex und einer 140 von Kim" width="760">
+<img src="images/de/media-gallery.png" alt="Die Highlight-Galerie in der Medienansicht von Home Assistant: September 2026 mit einem Checkout von 121 durch Sam, einer 180 von Alex und einer 140 von Kim" width="760">
 
-- Die Galerie zeigt den Ordner `autodarts/highlights` im Medienordner von Home Assistant, also `/media/autodarts/highlights` unter Home Assistant OS und im Container. [So funktioniert die Galerie](funktionsweise.md#highlight-galerie).
+- Die Galerie zeigt den Ordner `autodarts/highlights` im Medienordner von Home Assistant, also `/media/autodarts/highlights` unter Home Assistant OS und im Container. [So funktioniert die Galerie](how-it-works.de.md#highlight-galerie).
 - Fotos, die du selbst dorthin kopierst, erscheinen auch; ohne einen solchen Namen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
 - Um ein Foto zu löschen, öffne **Medien → Meine Medien → autodarts → highlights**.
 - Die Galerie braucht die Medienansicht, die zur Standardkonfiguration von Home Assistant gehört.
@@ -372,9 +372,9 @@ data:
 
 ## Board-Ereignisse
 
-Alle Echtzeitmomente kommen über die Entität **Ereignisse** des Boards. Jedes Ereignis hat einen `event_type` und seine Details, siehe [Ereignisse](entitaeten.md#board-ereignisse). Die Beispiele nutzen `event.autodarts_board_ereignisse`, die Entitäts-ID eines Boards namens *Autodarts Board* in einem deutschsprachigen Home Assistant. Home Assistant bildet die Entitäts-IDs aus den Namen in seiner Sprache, auf Englisch heißt dieselbe Entität etwa `event.autodarts_board_events`. Ein mit einer früheren Version eingerichtetes Board behält die ID von damals, etwa `event.autodarts_board_board_ereignisse`.
+Alle Echtzeitmomente kommen über die Entität **Ereignisse** des Boards. Jedes Ereignis hat einen `event_type` und seine Details, siehe [Ereignisse](entities.de.md#board-ereignisse). Die Beispiele nutzen `event.autodarts_board_ereignisse`, die Entitäts-ID eines Boards namens *Autodarts Board* in einem deutschsprachigen Home Assistant. Home Assistant bildet die Entitäts-IDs aus den Namen in seiner Sprache, auf Englisch heißt dieselbe Entität etwa `event.autodarts_board_events`. Ein mit einer früheren Version eingerichtetes Board behält die ID von damals, etwa `event.autodarts_board_board_ereignisse`.
 
-<img src="../images/de/board-events.png" alt="Die Entität Ereignisse des Boards in Home Assistant: das letzte Ereignis Aufnahme geworfen, sein Verlauf und die Aktivität mit jedem erkannten Dart, der Aufnahme und der Entnahme" width="760">
+<img src="images/de/board-events.png" alt="Die Entität Ereignisse des Boards in Home Assistant: das letzte Ereignis Aufnahme geworfen, sein Verlauf und die Aktivität mit jedem erkannten Dart, der Aufnahme und der Entnahme" width="760">
 
 Öffne die Entität auf der Geräteseite, um die Ereignisse beim Werfen ankommen zu sehen; ihre Aktivität listet jedes Ereignis mit seiner Uhrzeit.
 
@@ -392,7 +392,7 @@ triggers:
 
 Eine Aufnahme aus drei Darts kommt als `visit_thrown`, sobald ihr dritter Dart landet, und als `visit_completed`, wenn die Darts gezogen werden. Für Feiern und Ansagen nutzt du `visit_thrown` und für Aufnahmen mit weniger Darts zusätzlich `visit_completed`, dessen Attribut `thrown` gleich `false` ist.
 
-In Home Assistant eingegebene oder korrigierte Darts tragen `manual: true`, die Ereignisse des [Bots](entitaeten.md#bot) `bot: true`; siehe [Den Bot auslassen](#den-bot-auslassen).
+In Home Assistant eingegebene oder korrigierte Darts tragen `manual: true`, die Ereignisse des [Bots](entities.de.md#bot) `bot: true`; siehe [Den Bot auslassen](#den-bot-auslassen).
 
 Lies die Details aus `trigger.to_state.attributes`, nicht aus dem aktuellen Zustand der Entität. Zwei Ereignisse können innerhalb von Millisekunden aufeinander folgen, etwa `visit_completed` und `takeout_finished`. Der aktuelle Zustand zeigt dann womöglich schon das zweite.
 
@@ -584,7 +584,7 @@ mode: single
 
 ### Game shot im Übungsspiel ansagen
 
-Sagt ein gewonnenes Leg und ein Überwerfen im [Übungsspiel](entitaeten.md#übungsspiel) mit dem Namen des Spielers auf deinen Lautsprechern an.
+Sagt ein gewonnenes Leg und ein Überwerfen im [Übungsspiel](entities.de.md#übungsspiel) mit dem Namen des Spielers auf deinen Lautsprechern an.
 
 ```yaml
 alias: Darts – Ansage im Übungsspiel
@@ -616,7 +616,7 @@ mode: queued
 
 ### Die Zusammenfassung eines Matches senden
 
-Schickt nach einem Übungsmatch mehrerer Spieler die Zahlen jedes Spielers aufs Handy. `match_won` bringt die [Match-Zusammenfassung](entitaeten.md#übungsspiel) in `summary` mit; X01 hat Averages und Checkouts, Cricket `mpr` und `marks`.
+Schickt nach einem Übungsmatch mehrerer Spieler die Zahlen jedes Spielers aufs Handy. `match_won` bringt die [Match-Zusammenfassung](entities.de.md#übungsspiel) in `summary` mit; X01 hat Averages und Checkouts, Cricket `mpr` und `marks`.
 
 ```yaml
 alias: Darts – Match-Zusammenfassung
@@ -670,7 +670,7 @@ mode: queued
 
 ### Trainingssessions des Monats zählen
 
-Der [Trainingskalender](entitaeten.md#trainingskalender) beantwortet Fragen zur Vergangenheit, etwa in einem Skript:
+Der [Trainingskalender](entities.de.md#trainingskalender) beantwortet Fragen zur Vergangenheit, etwa in einem Skript:
 
 ```yaml
 sequence:
@@ -689,7 +689,7 @@ sequence:
 
 ### Einen Erfolg feiern
 
-Eine Benachrichtigung mit Spieler, Erfolg und Stufe. Das Attribut `achievement` ist der Schlüssel des [Erfolgs](entitaeten.md#erfolge), etwa `maximum` oder `short_leg`; die Tabelle dort nennt jeden.
+Eine Benachrichtigung mit Spieler, Erfolg und Stufe. Das Attribut `achievement` ist der Schlüssel des [Erfolgs](entities.de.md#erfolge), etwa `maximum` oder `short_leg`; die Tabelle dort nennt jeden.
 
 ```yaml
 alias: Darts – Erfolg
@@ -736,7 +736,7 @@ mode: single
 
 ### Ergebnisse eines Turniers ansagen
 
-Sag jedes Ergebnis eines [Turniers](entitaeten.md#turniere), das nächste Match und den Sieger auf deinen Lautsprechern an.
+Sag jedes Ergebnis eines [Turniers](entities.de.md#turniere), das nächste Match und den Sieger auf deinen Lautsprechern an.
 
 ```yaml
 alias: Darts – Turnieransage
@@ -791,7 +791,7 @@ script:
     mode: single
 ```
 
-Eine Taste im Dashboard nimmt die letzte Aufnahme zurück, für eine falsche Erkennung, die erst nach dem Ziehen der Darts auffällt; die [Anzeigetafel](karten.md#darts-korrigieren-und-eingeben) hat eine eingebaut:
+Eine Taste im Dashboard nimmt die letzte Aufnahme zurück, für eine falsche Erkennung, die erst nach dem Ziehen der Darts auffällt; die [Anzeigetafel](cards.de.md#darts-korrigieren-und-eingeben) hat eine eingebaut:
 
 ```yaml
 type: button
@@ -806,7 +806,7 @@ tap_action:
 
 ### Den Bot auslassen
 
-Die Darts des [Bots](entitaeten.md#bot) lösen die üblichen Ereignisse mit `bot: true` aus, und sein Platz hat keinen Namen. Die Blueprints kennen ihn:
+Die Darts des [Bots](entities.de.md#bot) lösen die üblichen Ereignisse mit `bot: true` aus, und sein Platz hat keinen Namen. Die Blueprints kennen ihn:
 
 - Celebrate a visit score und die Light show lassen den Bot aus; mit *Also for the bot* nehmen sie ihn mit.
 - Der Highlight-Foto-Blueprint macht kein Foto von den Darts des Bots, die nicht im Board stecken.
@@ -822,7 +822,7 @@ conditions:
 
 ## Online-Matches (experimentell)
 
-In Online-Matches auf play.autodarts.io kommen deine eigenen Darts wie gewohnt an. Überwerfen, gewonnene Legs und Matches und die Darts deiner Gegner bringt die optionale Online-Brücke mit der Browser-Erweiterung Tools for Autodarts, als Board-Ereignisse, deren Typ mit `online_` beginnt. Die [Anleitung zu Online-Matches](online-matches.md) erklärt die Einrichtung.
+In Online-Matches auf play.autodarts.io kommen deine eigenen Darts wie gewohnt an. Überwerfen, gewonnene Legs und Matches und die Darts deiner Gegner bringt die optionale Online-Brücke mit der Browser-Erweiterung Tools for Autodarts, als Board-Ereignisse, deren Typ mit `online_` beginnt. Die [Anleitung zu Online-Matches](online-matches.de.md) erklärt die Einrichtung.
 
 ## Automationen älterer Versionen anpassen
 

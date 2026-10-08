@@ -1,10 +1,12 @@
 """Every link of the documentation leads to a file and a heading that exist.
 
-Relative links and the repository's own absolute GitHub links are checked against
-the working tree; other external links are not fetched. The README is also what
-HACS shows, so it may only use absolute links and plain images.
+Relative links, the repository's own absolute GitHub links and the links to its
+documentation website are checked against the working tree; other external links
+are not fetched. The README is also what HACS shows, so it may only use absolute
+links and plain images.
 """
 
+import json
 import re
 from pathlib import Path
 from urllib.parse import unquote
@@ -24,6 +26,10 @@ OWN = re.compile(
     r"^https://(?:github\.com/Dennis-Otto/ha-autodarts/(?:blob|tree)/main"
     r"|raw\.githubusercontent\.com/Dennis-Otto/ha-autodarts/main)/"
 )
+# The documentation website (mkdocs.yml): docs/<page>.md is <page>.html, and its
+# German page docs/<page>.de.md is de/<page>.html; index.md is the start page.
+WEBSITE = "https://dennis-otto.github.io/ha-autodarts/"
+WEBSITE_PAGE = re.compile(r"^(?:(de)/)?([^#?]*)")
 FENCE = re.compile(r"^(```|~~~).*?^\1", re.MULTILINE | re.DOTALL)
 CODE = re.compile(r"`[^`\n]*`")
 MARKDOWN_LINK = re.compile(
@@ -76,8 +82,18 @@ def targets(path: Path) -> list[str]:
     return links
 
 
+def website_page(address: str) -> tuple[Path, str]:
+    """The file of docs/ and the anchor of an address of the documentation website."""
+    german, page = WEBSITE_PAGE.match(address).groups()
+    name = (page or "index.html").removesuffix(".html")
+    anchor = address.partition("#")[2]
+    return ROOT / "docs" / f"{name}{'.de' if german else ''}.md", unquote(anchor)
+
+
 def resolve(document: Path, target: str) -> tuple[Path, str] | None:
     """The local file and anchor a link points to, or None for a foreign link."""
+    if target.startswith(WEBSITE):
+        return website_page(target.removeprefix(WEBSITE))
     if match := OWN.match(target):
         target = target[match.end() :]
         base = ROOT
@@ -93,7 +109,12 @@ def resolve(document: Path, target: str) -> tuple[Path, str] | None:
 
 def test_the_documents_are_found():
     names = {path.relative_to(ROOT).as_posix() for path in DOCUMENTS}
-    assert {"README.md", "docs/README.md", "docs/de/README.md"} <= names
+    assert {
+        "README.md",
+        "docs/README.md",
+        "docs/README.de.md",
+        "docs/index.md",
+    } <= names
 
 
 @pytest.mark.parametrize(
@@ -170,11 +191,28 @@ def test_every_image_is_shown_in_both_languages():
 
 
 def test_the_card_picker_links_to_the_card_guide():
-    """Each card in the card picker opens its section of the card guide."""
-    pages = re.findall(
-        r'"((?:de/)?[a-z-]+\.md#[^"]+)"', CARD.read_text(encoding="utf-8")
-    )
-    assert len(pages) >= 14
+    """Each card in the card picker opens its section of the card guide on the website."""
+    text = CARD.read_text(encoding="utf-8")
+    assert f'const DOCUMENTATION = "{WEBSITE.rstrip("/")}";' in text
+    pages = re.findall(r'"((?:de/)?[a-z-]+\.html#[^"]+)"', text)
+    assert len(pages) >= 16
     for page in pages:
-        file, _, anchor = page.partition("#")
-        assert anchor in anchors(ROOT / "docs" / file), page
+        file, anchor = website_page(page)
+        assert file.exists() and anchor in anchors(file), page
+
+
+def test_the_manifest_links_to_the_website():
+    manifest = json.loads((CARD.parent.parent / "manifest.json").read_text("utf-8"))
+    assert manifest["documentation"] == WEBSITE
+
+
+def test_every_german_page_sits_next_to_its_english_page():
+    """A German page is named like its English page with .de (decision 0009)."""
+    german = sorted((ROOT / "docs").glob("**/*.de.md"))
+    assert len(german) >= 18
+    lonely = [
+        path.relative_to(ROOT).as_posix()
+        for path in german
+        if not path.with_name(path.name.removesuffix(".de.md") + ".md").exists()
+    ]
+    assert not lonely, lonely

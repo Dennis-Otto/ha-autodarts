@@ -1,6 +1,6 @@
 # Creator kit
 
-[← Documentation](README.md) · [Deutsch](de/creator-kit.md)
+[← Documentation](README.md) · [Deutsch](creator-kit.de.md)
 
 For YouTubers, streamers, bloggers and everyone who wants to show the Autodarts integration for Home Assistant. Everything on this page is free to use in videos, articles and posts about the integration; no need to ask.
 

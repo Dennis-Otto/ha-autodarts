@@ -13,15 +13,15 @@ import {
   register,
 } from "../../custom_components/autodarts/frontend/autodarts-card.js";
 
-const DOCS = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs";
+const DOCS = "https://dennis-otto.github.io/ha-autodarts";
 const CARDS = [
-  ["autodarts-card", "Autodarts", "cards.md#live-card"],
-  ["autodarts-training-card", "Autodarts training", "cards.md#training-card"],
-  ["autodarts-status-card", "Autodarts board status", "cards.md#board-status-card"],
-  ["autodarts-scoreboard-card", "Autodarts scoreboard", "cards.md#scoreboard-card"],
-  ["autodarts-players-card", "Autodarts players", "cards.md#players-card"],
-  ["autodarts-doubles-card", "Autodarts doubles", "cards.md#doubles-card"],
-  ["autodarts-leaderboard-card", "Autodarts leaderboard", "cards.md#leaderboard-card"],
+  ["autodarts-card", "Autodarts", "cards.html#live-card"],
+  ["autodarts-training-card", "Autodarts training", "cards.html#training-card"],
+  ["autodarts-status-card", "Autodarts board status", "cards.html#board-status-card"],
+  ["autodarts-scoreboard-card", "Autodarts scoreboard", "cards.html#scoreboard-card"],
+  ["autodarts-players-card", "Autodarts players", "cards.html#players-card"],
+  ["autodarts-doubles-card", "Autodarts doubles", "cards.html#doubles-card"],
+  ["autodarts-leaderboard-card", "Autodarts leaderboard", "cards.html#leaderboard-card"],
 ];
 const ELEMENTS = [
   "ll-strategy-dashboard-autodarts",
@@ -39,7 +39,7 @@ const STRATEGY = {
   strategyType: "dashboard",
   name: "Autodarts",
   description: "Live, scoreboard, training, players and board views for every Autodarts board, built automatically.",
-  documentationURL: `${DOCS}/cards.md#automatic-dashboard`,
+  documentationURL: `${DOCS}/cards.html#automatic-dashboard`,
 };
 // Entries as Home Assistant reads them when it opens a picker.
 const read = (entries) => entries.map((entry) => ({ ...entry }));
@@ -68,11 +68,11 @@ test("the card picker speaks the language Home Assistant has when it opens", () 
     [live.name, training.name, scoreboard.name, doubles.name, leaderboard.name],
     ["Autodarts", "Autodarts-Training", "Autodarts-Anzeigetafel", "Autodarts-Doubles", "Autodarts-Bestenliste"]
   );
-  assert.equal(training.documentationURL, `${DOCS}/de/karten.md#trainingskarte`);
-  assert.equal(leaderboard.documentationURL, `${DOCS}/de/karten.md#bestenliste`);
+  assert.equal(training.documentationURL, `${DOCS}/de/cards.html#trainingskarte`);
+  assert.equal(leaderboard.documentationURL, `${DOCS}/de/cards.html#bestenliste`);
   assert.match(scoreboard.description, /^Eine große Anzeigetafel/);
   const [strategy] = read(page.customStrategies);
-  assert.equal(strategy.documentationURL, `${DOCS}/de/karten.md#automatisches-dashboard`);
+  assert.equal(strategy.documentationURL, `${DOCS}/de/cards.html#automatisches-dashboard`);
   assert.match(strategy.description, /^Live-, Anzeigetafel-, Trainings-, Spieler- und Board-Ansicht/);
   page.document.documentElement.lang = "en";
 });

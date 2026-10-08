@@ -12,7 +12,7 @@
 | `tests/` | Unit and integration tests with `pytest-homeassistant-custom-component` |
 | `tests/frontend/` | Node tests of the card logic and of every card element in a browser DOM, including property-based tests with fast-check, and of the translation bot |
 | `tests/e2e/` | Docker end-to-end test, demo instance, browser test and screenshot tool |
-| `docs/` | Documentation, with German translations in `docs/de/` |
+| `docs/` | Documentation and the [website](https://dennis-otto.github.io/ha-autodarts/), each German translation next to its page as `<name>.de.md` |
 | `scripts/` | The checks, the [translation bot](#translation-bot) and the tools for media and diagrams |
 | `.github/` | Workflows, issue forms, the labels in `labels.toml` and the settings of the [issue assistant](#issue-assistant) in `issue-assistant/` |
 
@@ -243,7 +243,7 @@ What is set here:
 | File | Contents |
 | --- | --- |
 | `.github/issue-assistant/project.md` | What the AI reads about the project before every task: where code, documentation and changelog are, and what matters in a bug report |
-| `.github/issue-assistant/config.toml` | The engine (Claude), the hosts links may lead to, the *Area* field of the bug report, and the files that tell reporters which AI reads their issue (`SUPPORT.md` and `docs/de/fehlerbehebung.md`) |
+| `.github/issue-assistant/config.toml` | The engine (Claude), the hosts links may lead to, the *Area* field of the bug report, and the files that tell reporters which AI reads their issue (`SUPPORT.md` and `docs/troubleshooting.de.md`) |
 | `.github/labels.toml` | Every label: the kinds, with `ask = false` for feature requests and tester feedback, the areas with the options of the *Area* field, and the lifecycle labels |
 | `.github/findings.toml` | The findings of code scanning that the repository accepts, each with its reason: Scorecard's *Code-Review*, *Branch-Protection* and *Maintained*, which one maintainer of a young repository can't change |
 
