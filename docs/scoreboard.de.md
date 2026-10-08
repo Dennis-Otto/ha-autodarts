@@ -82,6 +82,8 @@ Die Anzeigetafel zeigt immer, was gespielt wird, und der Spieler am Board ist he
 
 Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte, und solange das Board leer ist, die letzte Aufnahme; ein Tipp auf einen Dart [korrigiert ihn](#darts-korrigieren-und-eingeben). Beim Spielen bewegt sich nichts: Die Kacheln behalten ihre Höhe vom ersten Dart bis zum Game Shot. Große Momente werden darüber gefeiert, ohne etwas zu verschieben und nach zweieinhalb Sekunden wieder weg: Konfetti und ein goldenes Leuchten bei einer 180, Konfetti beim Game Shot und beim Match, ein Leuchten bei einer Aufnahme ab 100 und bei neun Marks in Cricket; `celebrations: false` schaltet sie ab, und mit reduzierter Bewegung im System bleiben sie aus. Ist ein Match entschieden, nennt ein Banner den Sieger mit dem Ergebnis, etwa *Alex gewinnt das Match 3 : 2!*, und nach einem X01- oder Cricket-Match tritt die [Match-Zusammenfassung](games.de.md#match-zusammenfassung) an die Stelle der Spieler: Averages, Checkout-Quote, höchster Checkout, 180er und das beste Leg aller Spieler.
 
+<img src="images/de/celebration.webp" alt="Animation: eine 180 auf der Anzeigetafel. Alex wirft drei Triple 20, ein goldenes Leuchten erhellt die Anzeigetafel und Konfetti fliegt aus ihrer Mitte, dann zeigt die Anzeigetafel 321 wie zuvor" width="760">
+
 <img src="images/de/match-summary.png" alt="Anzeigetafel, nachdem Alex Sam in 301 mit 2 : 1 geschlagen hat: die Match-Zusammenfassung mit Legs, 3-Dart-Average, First 9, Checkout-Quote, höchstem Checkout, 180ern, 140+, 100+, bestem Leg, Darts aufs Double und Darts beider Spieler" width="760">
 
 <table>

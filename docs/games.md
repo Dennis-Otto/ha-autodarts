@@ -220,6 +220,8 @@ The live card and the scoreboard show a chalkboard with the marks of every playe
 
 In a match, the column of the player at the board helps like a dart machine: a green frame where a dart scores, because you have closed the number and somebody still needs it, and an amber frame where somebody else has closed it and scores on you, so you had better close it. A dart of the visit that counted nothing, on a number nobody needs any more or on none of the game, is struck through. A mouse over a frame or a struck-through dart, or a tap on it, says what it means.
 
+<img src="images/en/cricket-hints.webp" alt="Animation: Cricket between Alex and Sam on the scoreboard. Alex closes the 20 and the 19, and an S5 is struck through as it counted nothing; at Sam's turn the 20 and the 19 are framed in amber, to close; Sam closes the 20, marks the 19 once, and an S1 counts nothing; at Alex's turn the 19 is framed in green, to score" width="760">
+
 ### Cricket
 
 - **Marks:** only 20 to 15 and the bull count. A single is one mark, a double two, a triple three; the outer bull is one mark, the bullseye two. Three marks close a number.
@@ -245,6 +247,8 @@ In a match, the column of the player at the board helps like a dart machine: a g
 
 Also known as Minnesota Cricket. Besides 20 to 15 and the bull, every player closes three more targets: **Doubles**, **Triples** and **3 in a bed**. The chalkboard has a row for each.
 
+<img src="images/en/wild-mouse.webp" alt="Animation: Wild Mouse between Alex and Sam on the scoreboard. Alex's first T20 closes the 20, the next two count for Triples and, three in one bed, close 3 in a bed; Sam closes the 19, marks the 16 twice, and an S14 counts nothing and is struck through; Alex's next T20 closes Triples, a D19 marks the 19 twice and an S20 scores 20" width="760">
+
 - **Every dart counts once:** a dart marks its number while you still have it open, as in Cricket: a T20 is three marks on the 20. Otherwise a double is one mark on Doubles and a triple one mark on Triples, on any number and with the bullseye as a double. Three marks close Doubles and Triples.
 - **3 in a bed:** three darts of a visit in the same bed, such as three single 18s or three T20s, close it at once; the darts count for their targets as well. To play without it, as casual players often do, switch off *Three in a bed* on the new game screen or *Practice Wild Mouse three in a bed*; a change starts the game anew.
 - **Points:** a target you have closed scores while another player still has it open: a number its value per mark, as in Cricket, Doubles and Triples the dart's whole score (32 points for a D16), and 3 in a bed the three darts together (180 for three T20s).
@@ -252,9 +256,16 @@ Also known as Minnesota Cricket. Besides 20 to 15 and the bull, every player clo
 - **Target:** the board outlines the next open target: 20 down to 15, then any double, any triple, for 3 in a bed the single 20 and after the first dart its bed, and the bull last.
 - **Marks per round:** every mark that closed or scored counts, on the numbers as on Doubles and Triples; 3 in a bed counts one.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/wild-mouse-dark.png">
+  <img src="images/en/wild-mouse-light.png" alt="Where a dart counts in Wild Mouse: its number while it is open for you, a triple three times; otherwise one mark on Doubles or Triples while they are open; otherwise it scores on a target you closed that others still need; otherwise it counts nothing and is struck through. The third dart: all three in one bed close 3 in a bed, or score once it is closed" width="560">
+</picture>
+
 ## Party games
 
-Six pub classics for one to eight players, a whole party; Killer needs two. With five to eight, the scoreboard shows two rows of four tiles. They book a visit when you pull the darts and win legs and sets like any match. The cards show the round, the target and every player's points or lives, and outline the beds to aim at. Party games do not count for the X01 statistics.
+Six pub classics for one to eight players, a whole party; Killer needs two. With five to eight, the scoreboard shows two rows of four tiles.
+
+<img src="images/en/scoreboard-party.png" alt="Scoreboard in Killer for a party of eight, Alex to Ben, in two rows of four tiles: Alex at the board as a killer, Sam with two lives left" width="760"> They book a visit when you pull the darts and win legs and sets like any match. The cards show the round, the target and every player's points or lives, and outline the beds to aim at. Party games do not count for the X01 statistics.
 
 ### Shanghai
 
