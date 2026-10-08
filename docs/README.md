@@ -1,8 +1,8 @@
 # Autodarts for Home Assistant: documentation
 
-[← Project page](https://github.com/Dennis-Otto/ha-autodarts) · [Deutsche Dokumentation](de/README.md)
+[← Project page](https://github.com/Dennis-Otto/ha-autodarts) · [Deutsche Dokumentation](README.de.md)
 
-Everything about the Autodarts integration: how to set it up, play and train with it, put a scoreboard next to the board, follow your statistics and let your home join in.
+Everything about the Autodarts integration: how to set it up, play and train with it, put a scoreboard next to the board, follow your statistics and let your home join in. The [website of the documentation](https://dennis-otto.github.io/ha-autodarts/) has the same pages, with a search and a switch to German.
 
 <img src="images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, Sam scores 85, and Alex checks out 121 for the game shot" width="760">
 
@@ -61,6 +61,8 @@ Everything about the Autodarts integration: how to set it up, play and train wit
   </tr>
 </table>
 
+<!-- --8<-- [start:devices-and-languages] -->
+
 ## Supported devices
 
 | | Supported | Tested with |
@@ -86,3 +88,5 @@ The integration speaks English, German, Dutch, French and Spanish: setup, option
 - The documentation is in English and German, the blueprints in English because Home Assistant does not translate blueprints.
 
 Texts that are missing in a language, or older than their English original, are listed in that language's [translation issue](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations), which a bot keeps up to date. It explains how to fix them right on GitHub, without programming. To improve a translation or add a language, see [translations in CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations).
+
+<!-- --8<-- [end:devices-and-languages] -->

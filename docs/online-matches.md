@@ -1,6 +1,6 @@
 # Online matches (experimental)
 
-[← Documentation](README.md) · [Deutsch](de/online-matches.md)
+[← Documentation](README.md) · [Deutsch](online-matches.de.md)
 
 Play online on play.autodarts.io and let Home Assistant celebrate with you: busts, won legs and matches, and the darts of your opponents arrive as board events, for the light show, a caller or a notification when your tournament match is ready.
 

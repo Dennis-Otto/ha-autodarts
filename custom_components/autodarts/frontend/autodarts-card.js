@@ -29,7 +29,8 @@ const LEADERBOARD_TYPE = "autodarts-leaderboard-card";
 const STRATEGY_TYPE = "autodarts";
 const STRATEGY_ELEMENT = `ll-strategy-dashboard-${STRATEGY_TYPE}`;
 const STRATEGY_EDITOR_TYPE = "autodarts-strategy-editor";
-const REPOSITORY = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs";
+// The documentation website, in English and in German under de/.
+const DOCUMENTATION = "https://dennis-otto.github.io/ha-autodarts";
 // Files of the action autodarts.export, downloaded with the user's login.
 const EXPORT_DOWNLOADS = "/api/autodarts/export/";
 
@@ -11845,17 +11846,17 @@ function createElements(Base) {
 
 // Card picker entries with their documentation in both languages.
 const CARDS = [
-  { type: CARD_TYPE, key: "live", docs: ["cards.md#live-card", "de/karten.md#live-karte"] },
-  { type: TRAINING_TYPE, key: "training", docs: ["cards.md#training-card", "de/karten.md#trainingskarte"] },
-  { type: STATUS_TYPE, key: "status", docs: ["cards.md#board-status-card", "de/karten.md#board-status"] },
-  { type: SCOREBOARD_TYPE, key: "scoreboard", docs: ["cards.md#scoreboard-card", "de/karten.md#anzeigetafel"] },
-  { type: PLAYERS_TYPE, key: "players", docs: ["cards.md#players-card", "de/karten.md#spielerkarte"] },
-  { type: DOUBLES_TYPE, key: "doubles", docs: ["cards.md#doubles-card", "de/karten.md#doubles-karte"] },
-  { type: LEADERBOARD_TYPE, key: "leaderboard", docs: ["cards.md#leaderboard-card", "de/karten.md#bestenliste"] },
+  { type: CARD_TYPE, key: "live", docs: ["cards.html#live-card", "de/cards.html#live-karte"] },
+  { type: TRAINING_TYPE, key: "training", docs: ["cards.html#training-card", "de/cards.html#trainingskarte"] },
+  { type: STATUS_TYPE, key: "status", docs: ["cards.html#board-status-card", "de/cards.html#board-status"] },
+  { type: SCOREBOARD_TYPE, key: "scoreboard", docs: ["cards.html#scoreboard-card", "de/cards.html#anzeigetafel"] },
+  { type: PLAYERS_TYPE, key: "players", docs: ["cards.html#players-card", "de/cards.html#spielerkarte"] },
+  { type: DOUBLES_TYPE, key: "doubles", docs: ["cards.html#doubles-card", "de/cards.html#doubles-karte"] },
+  { type: LEADERBOARD_TYPE, key: "leaderboard", docs: ["cards.html#leaderboard-card", "de/cards.html#bestenliste"] },
 ];
-const STRATEGY_DOCS = ["cards.md#automatic-dashboard", "de/karten.md#automatisches-dashboard"];
+const STRATEGY_DOCS = ["cards.html#automatic-dashboard", "de/cards.html#automatisches-dashboard"];
 
-const documentation = ([en, de]) => `${REPOSITORY}/${pageLanguage() === "de" ? de : en}`;
+const documentation = ([en, de]) => `${DOCUMENTATION}/${pageLanguage() === "de" ? de : en}`;
 
 // Home Assistant reads the entries when it opens its card picker, so the
 // getters answer in the language of that moment.

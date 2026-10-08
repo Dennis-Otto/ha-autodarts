@@ -183,7 +183,7 @@ def test_blueprints_listen_to_events_of_the_integration(path):
 
 
 @pytest.mark.parametrize(
-    "document", ["README.md", "docs/automations.md", "docs/de/automationen.md"]
+    "document", ["README.md", "docs/automations.md", "docs/automations.de.md"]
 )
 def test_documents_import_every_blueprint(document):
     """Each import button opens the blueprint file on the main branch."""
@@ -199,7 +199,7 @@ def test_documents_import_every_blueprint(document):
     assert imported == {path.name for path in PATHS}
 
 
-@pytest.mark.parametrize("document", ["docs/automations.md", "docs/de/automationen.md"])
+@pytest.mark.parametrize("document", ["docs/automations.md", "docs/automations.de.md"])
 def test_the_documentation_lists_every_setting(document):
     """Each input of each blueprint has a row in the tables of the settings."""
     text = (ROOT / document).read_text(encoding="utf-8")
@@ -1978,7 +1978,7 @@ async def test_practice_caller_names_the_score_to_leave_without_a_checkout(hass)
 
 @pytest.mark.parametrize(
     ("document", "language"),
-    [("docs/automations.md", "en"), ("docs/de/automationen.md", "de")],
+    [("docs/automations.md", "en"), ("docs/automations.de.md", "de")],
 )
 async def test_the_voice_example_starts_every_game(hass, document, language):
     """Every game, spoken as the practice game select names it, starts that game;

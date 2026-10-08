@@ -1,6 +1,6 @@
 # Installation und Einrichtung
 
-[← Dokumentation](README.md) · [English](../installation.md)
+[← Dokumentation](README.de.md) · [English](installation.md)
 
 ## Voraussetzungen
 
@@ -44,7 +44,7 @@ Der Release-Workflow signiert jedes Paket: `gh attestation verify autodarts.zip 
 
 Es gibt drei Wege; alle führen zum selben, vollständig lokalen Board.
 
-<img src="../images/de/setup-menu.png" alt="Das Einrichtungsmenü: Boards im Netzwerk suchen oder Board-Adresse eingeben" width="520">
+<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü: Boards im Netzwerk suchen oder Board-Adresse eingeben" width="520">
 
 ### 1. Automatische Erkennung (Board Manager 2)
 
@@ -62,7 +62,7 @@ Wähle **Boards im Netzwerk suchen**. Die Integration fragt den öffentlichen Au
 
 Wähle **Board-Adresse eingeben** und trage die IP-Adresse oder den Hostnamen des Board-PCs ein, zum Beispiel `192.0.2.10` oder `autodarts.local`. Lass `http://` und den Port weg. Der Port ist normalerweise **3180**.
 
-<img src="../images/de/setup-local.png" alt="Das Formular für Adresse und Port des Board Managers" width="520">
+<img src="images/de/setup-local.png" alt="Das Formular für Adresse und Port des Board Managers" width="520">
 
 Die Board-ID liest die Integration selbst aus. Nicht erreichbare Adressen und Boards ohne abgeschlossene Einrichtung werden abgelehnt.
 
@@ -70,7 +70,7 @@ Die Board-ID liest die Integration selbst aus. Nicht erreichbare Adressen und Bo
 
 ### Nach der Einrichtung
 
-Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entitaeten.md) an. Für ein Dashboard mit allem öffnest du **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**, wie es auch der Dialog am Ende der Einrichtung sagt: Das [automatische Dashboard](karten.md#automatisches-dashboard) baut seine Ansichten aus deinen Boards. Auf einem eigenen Dashboard findest du die Karten unter **Karte hinzufügen → Autodarts**; siehe [Dashboard-Karten](karten.md).
+Home Assistant legt ein Gerät mit dem Namen deines Boards und allen [Entitäten](entities.de.md) an. Für ein Dashboard mit allem öffnest du **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**, wie es auch der Dialog am Ende der Einrichtung sagt: Das [automatische Dashboard](cards.de.md#automatisches-dashboard) baut seine Ansichten aus deinen Boards. Auf einem eigenen Dashboard findest du die Karten unter **Karte hinzufügen → Autodarts**; siehe [Dashboard-Karten](cards.de.md).
 
 ## Autodarts-Cloud verknüpfen (optional)
 
@@ -116,7 +116,7 @@ Einträge der ersten Version, die eine Adresse oder ein Kontopasswort gespeicher
 
 ## Entfernen
 
-1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, im Menü des Boards (⋮) wählst du **Löschen**. Dabei wird auch alles gelöscht, was die Integration für das Board gespeichert hat: die Trainingssessions, das Übungsspiel, die Bestleistungen, die Spielerprofile mit Match-Verlauf und Doubles, der Wochenbericht, der Trainingskalender und die Reparaturhinweise. Sichere vorher, was du behalten willst, mit [`autodarts.export`](entitaeten.md#trainingsdaten-exportieren-autodartsexport). Highlight-Fotos und Exporte bleiben, wo sie sind.
+1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, im Menü des Boards (⋮) wählst du **Löschen**. Dabei wird auch alles gelöscht, was die Integration für das Board gespeichert hat: die Trainingssessions, das Übungsspiel, die Bestleistungen, die Spielerprofile mit Match-Verlauf und Doubles, der Wochenbericht, der Trainingskalender und die Reparaturhinweise. Sichere vorher, was du behalten willst, mit [`autodarts.export`](entities.de.md#trainingsdaten-exportieren-autodartsexport). Highlight-Fotos und Exporte bleiben, wo sie sind.
 2. Um den Code zu deinstallieren, öffnest du **Autodarts** in HACS und wählst **Entfernen**. Bei einer manuellen Installation löschst du `config/custom_components/autodarts`.
 3. Starte Home Assistant neu. Die Dashboard-Karten verschwinden mit der Integration. Entferne Karten und Automationen, die sie verwenden.
 

@@ -1,8 +1,8 @@
 # Entwicklung: Bilder und Prüfungen der Karten
 
-[← Dokumentation](README.md)
+[← Dokumentation](README.de.md)
 
-Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](../development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, und wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden.
+Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, und wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden.
 
 **Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit)
 

@@ -13,7 +13,7 @@ All changes, including the releases, reach the protected `main` branch through p
 - The JavaScript of the cards and of their tests must pass ESLint with the rules of `eslint.config.mjs`. Dashboard card changes need Node tests in `tests/frontend/` and, for visible changes, the browser test in `tests/e2e/browser.py`.
 - Blueprint changes need tests in `tests/test_blueprints.py`, which run the blueprints through Home Assistant's automation engine. The import buttons and the `source_url` of every blueprint point to `main`, so whoever imports or re-imports a blueprint between two releases gets the one on `main`, while HACS installs the latest release of the integration. A blueprint on `main` therefore keeps working with the latest release: a change that needs events, attributes or actions of an unreleased version is merged together with its release, or the blueprint's description names the version it needs. New inputs get defaults that keep existing automations working as before.
 - User-facing text belongs in `strings.json` and every translation, card texts in every language of `TEXT`; see [Translations](#translations).
-- Update the README and `docs/` when behavior, setup, or supported versions change. The documentation is English, with a German translation in `docs/de/`; update both. Regenerate screenshots with `bash tests/e2e/screenshots.sh` when a visible card or dialog changes.
+- Update the README and `docs/` when behavior, setup, or supported versions change. The documentation is English, with a German translation next to each page (`docs/games.de.md` next to `docs/games.md`); update both. Regenerate screenshots with `bash tests/e2e/screenshots.sh` when a visible card or dialog changes.
 - Local Board Manager communication must not log, store, or expose the board API key. Cloud tokens remain in the config entry.
 - Every commit carries a [Developer Certificate of Origin](https://developercertificate.org/) sign-off, `Signed-off-by: Your Name <you@example.com>`, which `git commit -s` adds.
 - Name the issue that a pull request fixes with `Fixes #123` in its description. The issue stays open until a release ships the fix and then closes with a link to the release.
@@ -81,11 +81,11 @@ Style of the languages:
 - The `say_*` texts are spoken by the caller; write them as a caller would say them.
 - `practice_entity` and `tournament_entity` in `TEXT` say how the names of the practice and tournament entities read, for example `Practice {name}` or `{name} de la partie`, so the automatic dashboard can show them without the section they sit in. Keep them in line with the entity names of the translation file.
 
-The documentation is English with a complete German translation in `docs/de/`. A pull request that changes a page changes both languages. Keep the terms of the [glossary](docs/glossary.md) ([German](docs/de/glossar.md)), for example "Übungsspiel", "Aufnahme" for a visit and "Doppelquote". `tests/test_docs_links.py` checks that every link, heading anchor and image resolves.
+The documentation is English with a complete German translation. Each German page sits next to its English page, with the English name and `.de`, such as `docs/games.de.md` next to `docs/games.md`, and links to German pages by those names. A pull request that changes a page changes both languages. Keep the terms of the [glossary](docs/glossary.md) ([German](docs/glossary.de.md)), for example "Übungsspiel", "Aufnahme" for a visit and "Doppelquote". `tests/test_docs_links.py` checks that every link, heading anchor and image resolves.
 
 ## Website
 
-MkDocs builds the website from `mkdocs.yml` and the pages in `docs/`. The check *docs* builds it strictly in every pull request, so that a broken link fails, and every change of `main` publishes it on GitHub Pages. To see it while you write, at <http://127.0.0.1:8000>:
+MkDocs builds the website from `mkdocs.yml` and the pages in `docs/`, the English one at <https://dennis-otto.github.io/ha-autodarts/> and the German one from the `.de` pages under `/de/`, with a switch between the two on every page. It starts with `docs/index.md` and `docs/index.de.md`; `docs/README.md` and `docs/README.de.md` are the overviews on GitHub. The check *docs* builds it strictly in every pull request, so that a broken link fails, and every change of `main` publishes it on GitHub Pages. To see it while you write, at <http://127.0.0.1:8000>:
 
 ```sh
 python3 -m venv .venv-docs

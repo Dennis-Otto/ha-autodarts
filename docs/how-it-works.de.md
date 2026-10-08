@@ -1,12 +1,12 @@
 # Funktionsweise
 
-[← Dokumentation](README.md) · [English](../how-it-works.md)
+[← Dokumentation](README.de.md) · [English](how-it-works.md)
 
 ## Architektur
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="../images/de/architecture-dark.png">
-  <img src="../images/de/architecture-light.png" alt="Architektur: Der Board Manager auf dem Board-PC sendet Echtzeitereignisse an die Autodarts-Integration in Home Assistant. Sie liest und steuert das Board per HTTP, speichert die Trainingssession lokal und stellt Entitäten, Board-Ereignisse, Karten und Automationen bereit; die Autodarts-Cloud liefert optional Spieldaten." width="560">
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/architecture-dark.png">
+  <img src="images/de/architecture-light.png" alt="Architektur: Der Board Manager auf dem Board-PC sendet Echtzeitereignisse an die Autodarts-Integration in Home Assistant. Sie liest und steuert das Board per HTTP, speichert die Trainingssession lokal und stellt Entitäten, Board-Ereignisse, Karten und Automationen bereit; die Autodarts-Cloud liefert optional Spieldaten." width="560">
 </picture>
 
 Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen:
@@ -132,7 +132,7 @@ Stellwürfe gehen auf Singles, Triples und das äußere Bull, nie auf ein Double
 
 ## Regeln
 
-Die Regeln jedes Spiels, von X01 und dem Ausbullen bis zu den Party- und Trainingsspielen, stehen in der [Anleitung zu Spielen und Regeln](spiele.md). Die Grundsätze der Checkout-Wege oben und die Bestleistungen unten zeigen, wie die Integration sie anwendet.
+Die Regeln jedes Spiels, von X01 und dem Ausbullen bis zu den Party- und Trainingsspielen, stehen in der [Anleitung zu Spielen und Regeln](games.de.md). Die Grundsätze der Checkout-Wege oben und die Bestleistungen unten zeigen, wie die Integration sie anwendet.
 
 ## Match-Zusammenfassung
 
@@ -145,13 +145,13 @@ Endet ein Match mehrerer Spieler, fasst das Übungsspiel es für jeden Spieler z
 - **Höchster Checkout:** der höchste Rest, mit dem ein Spieler ein Leg beendet hat, auch in einem Leg ohne Double-Out.
 - **100+, 140+ und 180:** Aufnahmen mit 100 bis 139, 140 bis 179 und 180 Punkten, die gezählt haben; Überwerfen zählt nichts.
 - **Bestes Leg:** die wenigsten Darts eines Legs, das der Spieler gewonnen hat.
-- **Cricket:** Marks pro Runde und die Marks, die gezählt haben, wie bei den [Cricket-Regeln](spiele.md#cricket), und das beste Leg.
+- **Cricket:** Marks pro Runde und die Marks, die gezählt haben, wie bei den [Cricket-Regeln](games.de.md#cricket), und das beste Leg.
 - **Partyspiele:** Legs, Sätze und Darts.
 - **Teams:** Beide Partner gewinnen die Legs, und ihr bestes Leg zählt die Darts beider; ein Checkout zählt für den Spieler, der ihn geworfen hat.
 
 ## Bestleistungen und Statistik
 
-- **Höchste Aufnahme:** Der Sensor *Training höchste Aufnahme* und die Bestleistung `highest_visit` nehmen die Punkte der Darts im Board in einer Aufnahme mit bis zu drei Darts, egal in welchem Spiel: Eine überworfene Aufnahme oder eine Cricket-Aufnahme zählt mit ihren Board-Punkten, wie bei den Stufen 100+, 140+ und 180. Die `highest_visit` eines [Spielerprofils](entitaeten.md#spielerprofile) ist dagegen die höchste X01-Aufnahme dieses Spielers: Überwerfen zählt nichts, und mit Double-In auch keine Darts vor dem öffnenden Double.
+- **Höchste Aufnahme:** Der Sensor *Training höchste Aufnahme* und die Bestleistung `highest_visit` nehmen die Punkte der Darts im Board in einer Aufnahme mit bis zu drei Darts, egal in welchem Spiel: Eine überworfene Aufnahme oder eine Cricket-Aufnahme zählt mit ihren Board-Punkten, wie bei den Stufen 100+, 140+ und 180. Die `highest_visit` eines [Spielerprofils](entities.de.md#spielerprofile) ist dagegen die höchste X01-Aufnahme dieses Spielers: Überwerfen zählt nichts, und mit Double-In auch keine Darts vor dem öffnenden Double.
 - **Höchster Checkout und wenigste Darts:** Die Bestleistungen `highest_checkout` und `fewest_darts_*` und dieselben Werte der Spielerprofile kommen nur aus gewonnenen X01-Legs mit Double-Out, mit oder ohne Double-In. Ein Leg ohne Double-Out ist leichter zu beenden und setzt keine Bestleistung; Double-In macht ein Leg nur schwerer.
 - **Startpunkte und Teams:** Die wenigsten Darts zählen für die Punkte, mit denen ein Leg wirklich begonnen hat: Ein Leg ab 301 Startpunkten zählt für `fewest_darts_301`, ein Leg ab 401 für keine Bestleistung, weil 401 kein X01-Spiel ist. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Marks pro Runde; sein Checkout und höchster Checkout zählen für den Partner, der ihn geworfen hat.
 - **Verbuchte Legs:** Die Bestleistungen eines Legs sowie die Legs und Matches des Wochenberichts zählen, wenn das Übungsspiel das Leg verbucht, also wenn die Darts gezogen werden. `leg_won` und `match_won` werden schon mit dem Siegdart gemeldet; eine Korrektur, die den Sieg zurücknimmt, bevor die Darts gezogen werden, hinterlässt keine Bestleistung.
@@ -184,7 +184,7 @@ Der Wochenbericht zählt, was das Board erkennt, wie bei den Darts des Tages, un
 
 ## Highlight-Galerie
 
-Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint](automationen.md#highlight-galerie) speichert:
+Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint](automations.de.md#highlight-galerie) speichert:
 
 - **Ordner:** `autodarts/highlights` im Medienordner von Home Assistant. Das ist der Medienordner `local`: `/media` unter Home Assistant OS und im Container, sonst der Ordner `media` im Konfigurationsordner. Hast du `media_dirs` ohne `local` gesetzt, der erste davon.
 - **Namen:** `JJJJ-MM-TT_HH-MM-SS_<Spieler>_<Punkte>.jpg`; Uhrzeit und Spieler sind optional, ein Checkout heißt `checkout-121`. Andere Bilder (`.jpg`, `.jpeg`, `.png`, `.webp`) erscheinen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
@@ -194,14 +194,14 @@ Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint]
 
 ## Fortschritt der Spieler
 
-Jeder benannte Spieler eines Übungs- oder Trainingsspiels hat neben dem [Spielerprofil](entitaeten.md#spielerprofile) einen eigenen Fortschritt. Er zählt die Darts jeder Aufnahme, die das Spiel für den Spieler am Board bucht, wenn die Darts gezogen werden; Trainingsspiele zählen für Spieler 1. Ein Spieler ohne Namen zählt für niemanden.
+Jeder benannte Spieler eines Übungs- oder Trainingsspiels hat neben dem [Spielerprofil](entities.de.md#spielerprofile) einen eigenen Fortschritt. Er zählt die Darts jeder Aufnahme, die das Spiel für den Spieler am Board bucht, wenn die Darts gezogen werden; Trainingsspiele zählen für Spieler 1. Ein Spieler ohne Namen zählt für niemanden.
 
 - **Wochen.** Summen jeder Woche ab Montag für die letzten 12 Wochen: Darts, X01-Darts und -Punkte, die ersten neun Darts jedes Legs und ihre Punkte, Darts aufs Double und Checkouts, Darts auf Doubles und Treffer in allen Spielen, Cricket-Darts und -Marks, gespielte und gewonnene Legs und 180er, dazu der höchste Checkout, die wenigsten Darts eines 501-Legs und die beste Cricket-MPR der Woche. Wie bei den Bestleistungen zählen die wenigsten Darts nur für ein Leg ab 501, und weder sie noch die beste MPR für ein Team-Leg. Legs und die Zahlen eines Legs zählen in der Woche, in der das Leg endet. Averages und Quoten entstehen aus den Summen, mehrere Wochen addieren sich also genau. Ältere Wochen fallen weg.
 - **Treffer pro Feld** jedes Darts des Spielers, wie das Trefferbild der Session.
 - **Tagesserie:** Tage in Folge mit mindestens einem Dart in einem Übungs- oder Trainingsspiel. Sie bleibt, bis ein ganzer Tag ohne Darts vergeht.
 - **Zähler für die Erfolge:** geworfene Darts, X01-Aufnahmen mit 100 oder mehr, 140 oder mehr und 180 Punkten, Hattricks, Cricket-Aufnahmen mit neun Marks, Shanghai-Siege, das beste Finish im Checkout-Training, die wenigsten Darts bei Around the Clock und das beste abgeschlossene Bob's 27. Alles andere kommt aus dem Spielerprofil.
 
-Eine Aufnahme zählt für die Erfolge so, wie das Spiel sie zählt: Überwerfen bringt nichts, ebenso Darts vor dem öffnenden Double bei Double-In. Die Erfolge werden nach jeder gebuchten Aufnahme geprüft; die [Übersicht der Erfolge](entitaeten.md#erfolge) nennt, woran jeder gemessen wird.
+Eine Aufnahme zählt für die Erfolge so, wie das Spiel sie zählt: Überwerfen bringt nichts, ebenso Darts vor dem öffnenden Double bei Double-In. Die Erfolge werden nach jeder gebuchten Aufnahme geprüft; die [Übersicht der Erfolge](entities.de.md#erfolge) nennt, woran jeder gemessen wird.
 
 ### Dart-Positionen
 
@@ -235,7 +235,7 @@ Die Kamera-Entitäten geben den Livestream von Board Manager 2 an höchstens zwe
 - **Lokaler Betrieb:** Die Integration spricht nur mit dem Board Manager in deinem Netzwerk; ins Internet geht nichts.
 - **Boards im Netzwerk suchen:** Fragt einmalig bei Benutzung `discover.autodarts.com`, den öffentlichen Suchdienst von Autodarts. Er sieht deine öffentliche IP-Adresse und liefert die von dort registrierten Boards.
 - **Die optionale Cloud-Verknüpfung** nutzt die Geräteanmeldung von Autodarts. Home Assistant speichert OAuth-Token, nie dein Passwort.
-- **Die optionale Online-Brücke** empfängt nur: Die Browser-Erweiterung Tools for Autodarts ruft Home Assistant mit den Momenten eines Online-Matches auf, standardmäßig nur aus deinem Heimnetz. Sie sendet nirgendwohin. [Online-Matches](online-matches.md).
+- **Die optionale Online-Brücke** empfängt nur: Die Browser-Erweiterung Tools for Autodarts ruft Home Assistant mit den Momenten eines Online-Matches auf, standardmäßig nur aus deinem Heimnetz. Sie sendet nirgendwohin. [Online-Matches](online-matches.de.md).
 - **Board-Geheimnisse** wie der API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade und ähnliche Konfiguration werden direkt beim Lesen verworfen. Sie werden nie gespeichert, protokolliert oder angezeigt.
 - **Diagnosedaten** schwärzen Board-ID, Adresse, Client-ID, Token und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
 - **Exporte** enthalten Spielernamen. Die Aktion schreibt sie nur auf Anforderung; Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung aus, siehe [Exporte](#trainingskalender-und-exporte).

@@ -1,6 +1,6 @@
 # Games and rules
 
-[← Documentation](README.md) · [Deutsch](de/spiele.md)
+[← Documentation](README.md) · [Deutsch](games.de.md)
 
 Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, three Cricket games, six party games and eight training games, alone, as a match of up to four players or as a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
 

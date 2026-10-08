@@ -3,7 +3,7 @@ The Autodarts integration connects Home Assistant with Autodarts dartboards: it 
 Where things are:
 
 - The integration is in `custom_components/autodarts/`, its dashboard cards in `custom_components/autodarts/frontend/autodarts-card.js`, the blueprints in `blueprints/automation/autodarts/`.
-- The documentation is in `docs/` in English and in `docs/de/` in German; the troubleshooting guide is `docs/troubleshooting.md` (German: `docs/de/fehlerbehebung.md`), the plans are in `docs/roadmap.md`.
+- The documentation is in `docs/` in English, with each German page next to its English one as `<name>.de.md`, and on the website <https://dennis-otto.github.io/ha-autodarts/> (German: `/de/`); the troubleshooting guide is `docs/troubleshooting.md` (German: `docs/troubleshooting.de.md`), the plans are in `docs/roadmap.md`.
 - `CHANGELOG.md` lists the changes of every release with the numbers of their pull requests; `custom_components/autodarts/manifest.json` has the version on main.
 - The tests are in `tests/`, the card tests in `tests/frontend/`.
 

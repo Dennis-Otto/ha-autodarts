@@ -1,6 +1,6 @@
 # Automations
 
-[← Documentation](README.md) · [Deutsch](de/automationen.md)
+[← Documentation](README.md) · [Deutsch](automations.de.md)
 
 Your board is fast enough for automations that happen *while* you play. The light flashes the moment the third dart of a 180 lands, and the speaker calls the score before you reach the board.
 
@@ -244,7 +244,7 @@ The messages of the dart caller are templates. For example:
 | Message for 180 | `One hundred and eighty!` |
 | Dart message | `{{ dart_name }}` says "Treble 20", "5", "Bull" or "Miss"; `{{ dart_score }}` says the points |
 
-For a German caller, see the [German guide](de/automationen.md#deutscher-dart-caller).
+For a German caller, see the [German guide](automations.de.md#deutscher-dart-caller).
 
 ### Practice caller messages
 

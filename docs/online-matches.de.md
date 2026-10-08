@@ -1,6 +1,6 @@
 # Online-Matches (experimentell)
 
-[← Dokumentation](README.md) · [English](../online-matches.md)
+[← Dokumentation](README.de.md) · [English](online-matches.md)
 
 Spiel online auf play.autodarts.io und lass Home Assistant mitfeiern: Überwerfen, gewonnene Legs und Matches und die Darts deiner Gegner kommen als Board-Ereignisse an, für die Lichtshow, einen Caller oder eine Benachrichtigung, wenn dein Turnier-Match bereit ist.
 
@@ -10,7 +10,7 @@ Spiel online auf play.autodarts.io und lass Home Assistant mitfeiern: Überwerfe
 
 Die Integration sieht die Darts auf deinem Board auch in einem Online-Match auf play.autodarts.io: `dart_detected`, `visit_thrown` und die Entnahme kommen wie gewohnt. Das Spiel selbst sieht sie nicht: Überwerfen, ein gewonnenes Leg oder Match und die Darts deiner Gegner passieren im Browser. Autodarts teilt sie nur über seine Cloud, und dafür fehlt noch eine Client-ID.
 
-Die optionale **Online-Brücke** bringt diese Momente mit der Browser-Erweiterung [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) nach Home Assistant. Deren WLED-Funktion ruft für jeden Moment des Spiels eine Adresse deiner Wahl auf. Die Brücke bietet dafür eine geheime Adresse von Home Assistant an und macht aus jedem Aufruf ein [Board-Ereignis](entitaeten.md#board-ereignisse), dessen Typ mit `online_` beginnt und dessen `source` `online` ist. Standardmäßig ist sie aus.
+Die optionale **Online-Brücke** bringt diese Momente mit der Browser-Erweiterung [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) nach Home Assistant. Deren WLED-Funktion ruft für jeden Moment des Spiels eine Adresse deiner Wahl auf. Die Brücke bietet dafür eine geheime Adresse von Home Assistant an und macht aus jedem Aufruf ein [Board-Ereignis](entities.de.md#board-ereignisse), dessen Typ mit `online_` beginnt und dessen `source` `online` ist. Standardmäßig ist sie aus.
 
 ## Brücke einrichten
 
@@ -19,7 +19,7 @@ Die optionale **Online-Brücke** bringt diese Momente mit der Browser-Erweiterun
 3. Öffne im Browser am Board die Einstellungen von Tools for Autodarts, schalte **WLED** ein, wähle **Import CSV**, füge die Zeilen ein und speichere. Jede Zeile ist ein Effekt vom Typ **URL** für einen Trigger; lösche die, die du nicht brauchst.
 4. Prüfe, ob die Momente ankommen: Öffne die Adresse mit angehängtem `?event=gameon` in einem Browser in deinem Heimnetz, oder spiele ein Match. Der Sensor **Letztes Ereignis der Online-Brücke** auf der Geräteseite unter *Diagnose* zeigt, wann der letzte Moment ankam, und seinen Trigger.
 
-<img src="../images/de/online-bridge.png" alt="Die Optionen des Autodarts-Boards in Home Assistant: die geheime Adresse für Tools for Autodarts, hier verdeckt, und die Zeilen zum Import in dessen WLED-Einstellungen, eine für jeden Trigger" width="760">
+<img src="images/de/online-bridge.png" alt="Die Optionen des Autodarts-Boards in Home Assistant: die geheime Adresse für Tools for Autodarts, hier verdeckt, und die Zeilen zum Import in dessen WLED-Einstellungen, eine für jeden Trigger" width="760">
 
 Für einen Effekt von Hand gibst du ihm einen Trigger, den Typ **URL** und die Adresse mit `?event=` und demselben Trigger, zum Beispiel `…/api/webhook/<geheim>?event=busted`. Der Name eines Spielers kann als `&player=Lea` folgen. Ein Effekt vom Typ **JSON API** geht auch, mit einem Body wie `{"event": "busted", "player": "Lea"}`.
 
@@ -44,7 +44,7 @@ Jedes Online-Ereignis hat `trigger` (wie gesendet, kleingeschrieben), `source` (
 
 - **Deine eigenen Darts** kommen sowieso vom Board: `dart_detected`, `visit_thrown` und die Entnahme sind schneller als die Erweiterung und funktionieren ohne sie. Nutze die Online-Ereignisse für das, was nur das Match weiß: Überwerfen, gewonnene Legs und Matches und die Darts deiner Gegner.
 - **Nur dein Board:** Tools for Autodarts meldet die Momente aller Spieler im Match, auch die deiner Gegner. Um nur auf dein Board zu reagieren, trägst du in den WLED-Einstellungen unter **Board IDs** deine Board-ID ein und behältst die Zeile `other`: Momente auf anderen Boards senden dann stattdessen `other`.
-- **Lichtshow:** Schalte in der [Lichtshow](automationen.md#light-show) *Also react to online matches* ein, damit sie Überwerfen, gewonnene Legs und gewonnene Matches in Online-Matches spielt.
+- **Lichtshow:** Schalte in der [Lichtshow](automations.de.md#light-show) *Also react to online matches* ein, damit sie Überwerfen, gewonnene Legs und gewonnene Matches in Online-Matches spielt.
 
 Eine Benachrichtigung, wenn ein Turniermatch bereit ist:
 

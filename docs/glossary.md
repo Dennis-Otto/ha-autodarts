@@ -1,8 +1,8 @@
 # Glossary
 
-[← Documentation](README.md) · [Deutsch](de/glossar.md)
+[← Documentation](README.md) · [Deutsch](glossary.de.md)
 
-The words of darts and of this integration, as the documentation, the entities and the cards use them. The last column names the German term of the [German documentation](de/glossar.md) and the German user interface.
+The words of darts and of this integration, as the documentation, the entities and the cards use them. The last column names the German term of the [German documentation](glossary.de.md) and the German user interface.
 
 ## Darts
 

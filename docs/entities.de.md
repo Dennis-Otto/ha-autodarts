@@ -1,6 +1,6 @@
 # Entitäten und Ereignisse
 
-[← Dokumentation](README.md) · [English](../entities.md)
+[← Dokumentation](README.de.md) · [English](entities.md)
 
 Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Board in Autodarts, wenn die Board-Suche oder die Cloud es gefunden hat, sonst *Autodarts Board*. Die Namen der Entitäten folgen der Sprache von Home Assistant und wiederholen den Gerätenamen nicht. Die Entitäts-IDs leiten sich beim Anlegen einer Entität aus beiden ab, zum Beispiel `sensor.autodarts_board_training_3_dart_average`, und bleiben erhalten, wenn eine spätere Version eine Entität umbenennt.
 
@@ -12,7 +12,7 @@ Jedes Board ist ein Gerät mit den folgenden Entitäten. Es heißt so wie das Bo
 | *Deaktiviert* | Wird deaktiviert angelegt; bei Bedarf aktivierst du sie in den Entitätseinstellungen |
 | *Diagnose*, *Konfiguration* | Die Entitätskategorie; solche Entitäten stehen auf der Geräteseite in eigenen Bereichen |
 
-<img src="../images/de/device.png" alt="Geräteseite eines Autodarts-Boards in Home Assistant" width="760">
+<img src="images/de/device.png" alt="Geräteseite eines Autodarts-Boards in Home Assistant" width="760">
 
 ## Aktuelle Aufnahme
 
@@ -29,7 +29,7 @@ Die Aufnahmepunkte sind die reine Summe der Darts, ohne Spielregeln wie Überwer
 
 ## Board-Ereignisse
 
-Die Entität **Ereignisse** (etwa `event.autodarts_board_ereignisse` in einem deutschsprachigen Home Assistant, `event.autodarts_board_events` in einem englischen, bei einem mit einer früheren Version eingerichteten Board etwa `event.autodarts_board_board_ereignisse`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht, `manual` für [Korrekturen, von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts) und was daraus folgt, `bot` für die Darts des [Bots](#bot) und `online` für die Momente von [Online-Matches](online-matches.md), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
+Die Entität **Ereignisse** (etwa `event.autodarts_board_ereignisse` in einem deutschsprachigen Home Assistant, `event.autodarts_board_events` in einem englischen, bei einem mit einer früheren Version eingerichteten Board etwa `event.autodarts_board_board_ereignisse`) löst native Home-Assistant-Ereignisse aus. Das Attribut `event_type` sagt, was passiert ist; weitere Attribute enthalten die Details. Jedes Ereignis hat zusätzlich `source`: `websocket` für Echtzeit, `poll` beim Abgleich per HTTP, `training` für Session-Ereignisse und den Start eines Turniers, `schedule` für den Wochenbericht, `manual` für [Korrekturen, von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts) und was daraus folgt, `bot` für die Darts des [Bots](#bot) und `online` für die Momente von [Online-Matches](online-matches.de.md), die die optionale Online-Brücke von der Browser-Erweiterung Tools for Autodarts empfängt. Die Entität bleibt verfügbar, während das Board fehlt; Ereignisse von Home Assistant selbst wie `session_ended` oder `personal_best` kommen also immer an.
 
 | `event_type` | Wann | Attribute |
 | --- | --- | --- |
@@ -57,7 +57,7 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_ereignisse` in einem de
 | `daily_goal_reached` | Die Darts von heute erreichen das [Tagesziel](#bestleistungen-serie-und-tagesziel), einmal pro Tag | `goal`, `darts`, `streak` |
 | `weekly_report` | Die [Berichtswoche](#wochenbericht) endet, standardmäßig montags um Mitternacht | `week_start`, `week_end`, `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `darts_at_double`, `checkouts`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` |
 | `achievement_unlocked` | Ein Spieler mit Namen erreicht eine neue Stufe eines [Erfolgs](#erfolge) | `player` (der Platz 1–4 des Spielers am Board oder keiner), `name`, `achievement` (etwa `maximum`), `tier` (1–4), `tiers` (wie viele Stufen der Erfolg hat) und `threshold` (der Wert der Stufe, etwa 10 für zehn 180er) |
-| `online_game_on` | [Online-Match](online-matches.md): Eine Aufnahme beginnt, oder ein Moment ohne eigenen Effekt | `trigger`, `name` |
+| `online_game_on` | [Online-Match](online-matches.de.md): Eine Aufnahme beginnt, oder ein Moment ohne eigenen Effekt | `trigger`, `name` |
 | `online_visit` | Online-Match: eine Aufnahme | `trigger`, `score`; bei drei Darts auch `darts` und `segments`; bei einem Bereich `score_min` und `score_max` statt `score` |
 | `online_dart` | Online-Match: ein Dart | `trigger`, `segment` (`T20`, `D16`, `S5`, `25`, `BULL` oder `MISS`), `score` |
 | `online_busted` | Online-Match: überworfen | `trigger`, `name` |
@@ -67,9 +67,9 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_ereignisse` in einem de
 | `online_tournament_ready` | Ein Turniermatch von dir ist bereit | `trigger` |
 | `online_match_left` | Du hast das Online-Match verlassen | `trigger` |
 
-`game` ist das [Übungsspiel](#übungsspiel), das beim Landen des Darts läuft, etwa `501`, `cricket` oder `shanghai`, und leer ohne Übungsspiel und bei [Trainingsspielen](#trainingsspiele). `name` ist der Name des Spielers am Board in diesem Spiel, auch beim Ausbullen; leer ohne Spiel oder Namen. Eine Aufnahme aus drei Darts wird zweimal gemeldet: mit `visit_thrown`, sobald ihr dritter Dart landet, für 180-Feiern und Caller, und mit `visit_completed`, wenn sie endet, mit den Punkten nach allen Korrekturen. Um auf jede Aufnahme genau einmal und so früh wie möglich zu reagieren, nutze `visit_thrown` und `visit_completed` mit `thrown` gleich `false`; die [Blueprints](automationen.md#blueprints) machen es so.
+`game` ist das [Übungsspiel](#übungsspiel), das beim Landen des Darts läuft, etwa `501`, `cricket` oder `shanghai`, und leer ohne Übungsspiel und bei [Trainingsspielen](#trainingsspiele). `name` ist der Name des Spielers am Board in diesem Spiel, auch beim Ausbullen; leer ohne Spiel oder Namen. Eine Aufnahme aus drei Darts wird zweimal gemeldet: mit `visit_thrown`, sobald ihr dritter Dart landet, für 180-Feiern und Caller, und mit `visit_completed`, wenn sie endet, mit den Punkten nach allen Korrekturen. Um auf jede Aufnahme genau einmal und so früh wie möglich zu reagieren, nutze `visit_thrown` und `visit_completed` mit `thrown` gleich `false`; die [Blueprints](automations.de.md#blueprints) machen es so.
 
-Ereignisse des Platzes des [Bots](#bot) tragen `bot: true` und keinen `name`, von seinen Darts bis zu einem Leg oder Match, das er gewinnt. Nach einem Neustart oder Verbindungsabbruch werden Ereignisse nie wiederholt. Beispiele stehen unter [Automationen](automationen.md).
+Ereignisse des Platzes des [Bots](#bot) tragen `bot: true` und keinen `name`, von seinen Darts bis zu einem Leg oder Match, das er gewinnt. Nach einem Neustart oder Verbindungsabbruch werden Ereignisse nie wiederholt. Beispiele stehen unter [Automationen](automations.de.md).
 
 ## Trainingssession
 
@@ -104,7 +104,7 @@ Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt je
 | Session-Timeout | Zahl, *Konfiguration* | Minuten ohne Darts, 0–240, nach denen eine Session von selbst endet. `0`, der Standard, lässt sie weiterlaufen. |
 | Average der letzten Session | Sensor, Punkte | 3-Dart-Average der letzten beendeten Session. Attribute: `started`, `ended`, `duration_minutes`, die Summen, `manual_darts` (von Hand eingegebene Darts) und `sessions` mit den letzten 20 Sessions, die der Recorder nicht speichert. |
 
-Die Summen nutzen die Zustandsklasse *total* mit dem Start der Session als `last_reset`: Die Statistik von Home Assistant summiert sie pro Session, und eine Korrektur oder eine zurückgenommene Aufnahme kann sie senken. Die Aufnahmen mit 100+, 140+ und 180 zählen, sobald eine Aufnahme abgeschlossen ist, wenn ihre Darts gezogen werden. [So wird gezählt](funktionsweise.md#trainingssession).
+Die Summen nutzen die Zustandsklasse *total* mit dem Start der Session als `last_reset`: Die Statistik von Home Assistant summiert sie pro Session, und eine Korrektur oder eine zurückgenommene Aufnahme kann sie senken. Die Aufnahmen mit 100+, 140+ und 180 zählen, sobald eine Aufnahme abgeschlossen ist, wenn ihre Darts gezogen werden. [So wird gezählt](how-it-works.de.md#trainingssession).
 
 ## Bestleistungen, Serie und Tagesziel
 
@@ -131,7 +131,7 @@ Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert ha
 
 ## Wochenbericht
 
-Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, mit oder ohne Session, wie bei den Darts des Tages. Endet die Woche, standardmäßig montags um Mitternacht in der Zeitzone von Home Assistant, meldet das Ereignis `weekly_report` die Woche, und die nächste Woche beginnt bei null. Der [Blueprint Weekly report](automationen.md#weekly-report) schickt ihn auf dein Handy.
+Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, mit oder ohne Session, wie bei den Darts des Tages. Endet die Woche, standardmäßig montags um Mitternacht in der Zeitzone von Home Assistant, meldet das Ereignis `weekly_report` die Woche, und die nächste Woche beginnt bei null. Der [Blueprint Weekly report](automations.de.md#weekly-report) schickt ihn auf dein Handy.
 
 | Wert | Bedeutung |
 | --- | --- |
@@ -153,13 +153,13 @@ Home Assistant fasst deine Trainingswoche zusammen. Jeder erkannte Dart zählt, 
 | Tag des Wochenberichts | Auswahl, *Konfiguration* | Der Tag, der die Woche beendet, `monday` bis `sunday`; standardmäßig `monday`. |
 | Uhrzeit des Wochenberichts | Uhrzeit, *Konfiguration* | Die Uhrzeit an diesem Tag, auf die Minute; standardmäßig Mitternacht. |
 
-Ein neuer Tag oder eine neue Uhrzeit beendet die laufende Woche bei ihrem nächsten Eintreten. Ein Bericht, der fällig wurde, während Home Assistant aus war, folgt beim nächsten Start; die Wochen dazwischen hatten keine Darts und entfallen. [Wie die Woche gezählt wird](funktionsweise.md#wochenbericht).
+Ein neuer Tag oder eine neue Uhrzeit beendet die laufende Woche bei ihrem nächsten Eintreten. Ein Bericht, der fällig wurde, während Home Assistant aus war, folgt beim nächsten Start; die Wochen dazwischen hatten keine Darts und entfallen. [Wie die Woche gezählt wird](how-it-works.de.md#wochenbericht).
 
 ## Trainingskalender
 
 Der **Trainingskalender** (`calendar.*_trainingskalender`) zeigt deine beendeten Trainingssessions und Übungsmatches im Kalender von Home Assistant, etwa *Training · 312 Darts · Ø 54,2* oder *501 · Alex 3:2 Sam*. Er ist nur lesbar. Seine Titel folgen auf Deutsch, Niederländisch, Französisch und Spanisch der Sprache von Home Assistant, mit dem Dezimalkomma; andere Sprachen lesen sich wie Englisch, etwa *Training · 312 Darts · Ø 54.2*.
 
-<img src="../images/de/training-calendar.png" alt="Der Kalender von Home Assistant mit einer Woche voller Trainingssessions und Übungsmatches von Alex, Sam und Kim" width="760">
+<img src="images/de/training-calendar.png" alt="Der Kalender von Home Assistant mit einer Woche voller Trainingssessions und Übungsmatches von Alex, Sam und Kim" width="760">
 
 - **Sessions** reichen von ihrem Beginn bis zu ihrem Ende. Die Beschreibung nennt die 180er, die 140+- und 100+-Aufnahmen und die höchste Aufnahme (*Max*).
 - **Matches** mehrerer Spieler, in jedem Spiel, reichen vom ersten bis zum entscheidenden Dart. Der Titel zeigt die gewonnenen Sätze, oder die Legs, wenn ein Satz das Match entscheidet; Spieler ohne Namen erscheinen als `#1` bis `#4` und der Bot als *Bot*, und ein Team-Match nennt beide Teams, etwa *501 · Alex & Kim 1:0 Sam & Lea*. Die Beschreibung nennt Average, Marks pro Runde oder Punkte jedes Spielers. Matches von vor Version 1.6 kennen ihren ersten Dart nicht und erscheinen als eine Minute.
@@ -170,18 +170,18 @@ Kalender-Auslöser und die Aktion `calendar.get_events` funktionieren wie bei je
 
 ## Übungsspiel
 
-Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen Board ohne Autodarts-Spiel. Home Assistant zählt herunter, erkennt Überwerfen und zeigt den Checkout-Weg. Das Spiel braucht keine Cloud und übersteht Neustarts. Die [Anleitung zu Spielen und Regeln](spiele.md) erklärt, wie du ein Spiel startest, und die Regeln jedes Spiels; dieser Abschnitt ist die Referenz seiner Entitäten.
+Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen Board ohne Autodarts-Spiel. Home Assistant zählt herunter, erkennt Überwerfen und zeigt den Checkout-Weg. Das Spiel braucht keine Cloud und übersteht Neustarts. Die [Anleitung zu Spielen und Regeln](games.de.md) erklärt, wie du ein Spiel startest, und die Regeln jedes Spiels; dieser Abschnitt ist die Referenz seiner Entitäten.
 
-<img src="../images/de/practice-checkout.webp" alt="Animation: ein 141er-Checkout in einem 501-Leg. Nach jedem Dart ändern sich Rest, Weg und umrandetes Feld: T20 T19 D12, dann Game shot und ein neues Leg" width="620">
+<img src="images/de/practice-checkout.webp" alt="Animation: ein 141er-Checkout in einem 501-Leg. Nach jedem Dart ändern sich Rest, Weg und umrandetes Feld: T20 T19 D12, dann Game shot und ein neues Leg" width="620">
 
 - **Starten:** Wähle 101, 301, 501, 701, 901 oder 1001 in *Übungsspiel*. Darts, die schon im Board stecken, zählen nicht. *Übungsspiel neues Leg* beginnt das Leg wieder beim vollen Rest.
 - **Startpunkte und Teams:** Jeder Spieler kann mit eigenen Startpunkten beginnen, und vier Spieler können als zwei Teams spielen; siehe [Teams und Startpunkte](#teams-und-startpunkte).
 - **Double-In:** Mit *Übungsspiel Double-In* beginnt die Zählung eines Spielers mit dem ersten Double oder Bullseye des Legs; Darts davor zählen nichts, und ein Überwerfen nimmt die Öffnung zurück. Die Karte fordert ein Double und umrandet den Doppelring.
-- **Ausbullen:** Mit *Übungsspiel Ausbullen* und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull. Wie in den offiziellen Regeln schlägt das Bullseye das Single-Bull und dieses jedes andere Feld; zwei Darts im selben Bull-Feld werfen noch einmal, in umgekehrter Reihenfolge. Außerhalb des Bulls, und mit *Übungsspiel Ausbullen nach Abstand* auch darin, gewinnt der Dart, der der Mitte am nächsten ist, gemessen an den Dart-Positionen, die das Board meldet; ein Dart ohne Position schlägt nie einen gemessenen. [Die Regeln fürs Ausbullen](spiele.md#ausbullen).
+- **Ausbullen:** Mit *Übungsspiel Ausbullen* und zwei oder mehr Spielern beginnt ein Match mit einem Dart pro Spieler aufs Bull. Wie in den offiziellen Regeln schlägt das Bullseye das Single-Bull und dieses jedes andere Feld; zwei Darts im selben Bull-Feld werfen noch einmal, in umgekehrter Reihenfolge. Außerhalb des Bulls, und mit *Übungsspiel Ausbullen nach Abstand* auch darin, gewinnt der Dart, der der Mitte am nächsten ist, gemessen an den Dart-Positionen, die das Board meldet; ein Dart ohne Position schlägt nie einen gemessenen. [Die Regeln fürs Ausbullen](games.de.md#ausbullen).
 - **Aufnahmen:** Eine Aufnahme endet, wenn du die Darts ziehst. Nach dem Überwerfen bleibt der Rest vom Beginn der Aufnahme. Darts nach dem Überwerfen oder nach dem Checkout zählen nicht.
-- **Checkout:** der Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170. [So wird der Weg gewählt](funktionsweise.md#übungsspiel).
-- **Matches:** Stelle *Übungsspiel Spielerzahl* auf 2, 3 oder 4. Nach einer Aufnahme wirft der nächste Spieler; auch beim Überwerfen ist der Nächste dran. Wer zuerst *Übungsspiel Legs pro Satz* Legs gewinnt, holt den Satz, und wer zuerst *Übungsspiel Sätze zum Sieg* Sätze holt, gewinnt das Match. Der Anwurf wechselt innerhalb eines Satzes jedes Leg, und jeder Satz beginnt mit dem nächsten Spieler. Das Ergebnis mit den Legs des entscheidenden Satzes bleibt in der Karte stehen, bis der nächste Dart ein neues Match beginnt. Mit einem Spieler zählen die Legs hoch; es gibt keine Sätze und kein Match. [Die Regeln für Matches](spiele.md#matches-legs-und-sätze).
-- **Match-Zusammenfassung:** Ein beendetes Match mehrerer Spieler wird für jeden Spieler zusammengefasst: Legs, Sätze und Darts; bei X01 3-Dart- und First-9-Average, Checkout-Quote, höchster Checkout, Aufnahmen mit 100+, 140+ und 180, bestes Leg und Darts aufs Double; bei Cricket Marks pro Runde und Marks. Die [Anzeigetafel](karten.md#match-zusammenfassung) zeigt sie nach einem X01- oder Cricket-Match, `match_won` meldet sie, und *Übungsspiel Restpunkte* behält sie in `summary`, bis das nächste Match endet. [Wie die Zahlen gezählt werden](funktionsweise.md#match-zusammenfassung).
+- **Checkout:** der Weg für die restlichen Darts der Aufnahme, etwa `T20 T20 BULL` für 170. [So wird der Weg gewählt](how-it-works.de.md#übungsspiel).
+- **Matches:** Stelle *Übungsspiel Spielerzahl* auf 2, 3 oder 4. Nach einer Aufnahme wirft der nächste Spieler; auch beim Überwerfen ist der Nächste dran. Wer zuerst *Übungsspiel Legs pro Satz* Legs gewinnt, holt den Satz, und wer zuerst *Übungsspiel Sätze zum Sieg* Sätze holt, gewinnt das Match. Der Anwurf wechselt innerhalb eines Satzes jedes Leg, und jeder Satz beginnt mit dem nächsten Spieler. Das Ergebnis mit den Legs des entscheidenden Satzes bleibt in der Karte stehen, bis der nächste Dart ein neues Match beginnt. Mit einem Spieler zählen die Legs hoch; es gibt keine Sätze und kein Match. [Die Regeln für Matches](games.de.md#matches-legs-und-sätze).
+- **Match-Zusammenfassung:** Ein beendetes Match mehrerer Spieler wird für jeden Spieler zusammengefasst: Legs, Sätze und Darts; bei X01 3-Dart- und First-9-Average, Checkout-Quote, höchster Checkout, Aufnahmen mit 100+, 140+ und 180, bestes Leg und Darts aufs Double; bei Cricket Marks pro Runde und Marks. Die [Anzeigetafel](cards.de.md#match-zusammenfassung) zeigt sie nach einem X01- oder Cricket-Match, `match_won` meldet sie, und *Übungsspiel Restpunkte* behält sie in `summary`, bis das nächste Match endet. [Wie die Zahlen gezählt werden](how-it-works.de.md#match-zusammenfassung).
 - **Sessions:** Übungsspiel und [Trainingssessions](#trainingssession) sind unabhängig. Ein Dart zählt in beiden.
 - **Korrekturen und von Hand eingegebene Darts:** Einen falsch erkannten Dart korrigierst du mit einer Aktion oder einem Tipp auf der Anzeigetafel, übersehene Darts gibst du von Hand ein, und die letzte Aufnahme lässt sich zurücknehmen; siehe [Korrekturen und von Hand eingegebene Darts](#korrekturen-und-von-hand-eingegebene-darts).
 - **Bot:** X01 und die Cricket-Spiele lassen sich gegen den Computer in einer Stärke deiner Wahl spielen; siehe [Bot](#bot).
@@ -218,49 +218,49 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 
 ## Teams und Startpunkte
 
-<img src="../images/de/scoreboard-teams.png" alt="Anzeigetafel eines 501-Team-Matches: Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216, Sam am Board fett mit seinem Average" width="760">
+<img src="images/de/scoreboard-teams.png" alt="Anzeigetafel eines 501-Team-Matches: Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216, Sam am Board fett mit seinem Average" width="760">
 
 - **Teams:** Schalte *Übungsspiel Teams* ein und stelle *Übungsspiel Spielerzahl* auf 4. Spieler 1 und 3 spielen gegen Spieler 2 und 4, in X01 und den [Cricket-Spielen](#cricket); geworfen wird in der Reihenfolge der Plätze, die Teams wechseln sich also ab. Partner teilen sich einen Stand: den Rest in X01, Marks und Punkte bei Cricket. Die Anzeigetafel zeigt zwei Team-Kacheln, *Alex & Kim* gegen *Sam & Lea*, mit dem Partner am Board in Fettschrift. Beide Partner gewinnen Leg und Match; die Ereignisse ergänzen `team` und `team_name`.
 - **Statistik:** Averages, First 9 und Checkout-Quote bleiben pro Person, und die [Spielerprofile](#spielerprofile) zählen Leg und Match für beide Partner. Direkte Vergleiche zählen nur zwischen Gegnern. Ein Team-Leg setzt keine Bestleistung für die wenigsten Darts und für Marks pro Runde, weder in den Bestleistungen noch in den Profilen oder im Wochenfortschritt; sein Checkout zählt für den Partner, der ihn geworfen hat.
 - **Startpunkte:** Für ein Handicap stellst du *Übungsspiel Startpunkte Spieler N* ein, etwa 301 für eine Anfängerin gegen 501. `0` spielt die Startpunkte des Spiels. Die Anzeigetafel zeigt eigene Startpunkte neben den Namen, und `leg_won` nennt sie in `start`. Ein Team spielt mit den Startpunkten seines ersten Spielers. Ein Leg zählt für die Bestleistung der wenigsten Darts der Punkte, mit denen es begann: ab 301 für `fewest_darts_301`, ab 401 für keine.
 - Party- und Trainingsspiele spielt jeder für sich; mit weniger oder mehr als vier Spielern bewirkt *Übungsspiel Teams* nichts.
 
-<img src="../images/de/scoreboard-handicap.png" alt="Anzeigetafel eines 501-Matches mit eigenen Startpunkten: Alex ab 501 mit Rest 361, Sam ab 301 mit Rest 241 und am Board" width="760">
+<img src="images/de/scoreboard-handicap.png" alt="Anzeigetafel eines 501-Matches mit eigenen Startpunkten: Alex ab 501 mit Rest 361, Sam ab 301 mit Rest 241 und am Board" width="760">
 
-[Die Regeln für Teams und Startpunkte](spiele.md#teams).
+[Die Regeln für Teams und Startpunkte](games.de.md#teams).
 
 ## Korrekturen und von Hand eingegebene Darts
 
-<img src="../images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
+<img src="images/de/correct-dart.webp" alt="Animation: Die Anzeigetafel zeigt T20, S20 und T20 für 140; ein Tipp auf den zweiten Dart öffnet das Tastenfeld, ein Tipp auf T und auf 20 korrigiert ihn, und die Aufnahme zeigt 180" width="760">
 
-- **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](karten.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`. Ein Dart, der in ein anderes Feld korrigiert wird, hat keine Position, weil das Board auch die Stelle falsch gesehen hat, außer die Korrektur sagt, wo er steckt: die Ansicht *Scheibe* im Tastenfeld der Anzeigetafel oder `x` und `y` der Aktion.
+- **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](cards.de.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`. Ein Dart, der in ein anderes Feld korrigiert wird, hat keine Position, weil das Board auch die Stelle falsch gesehen hat, außer die Korrektur sagt, wo er steckt: die Ansicht *Scheibe* im Tastenfeld der Anzeigetafel oder `x` und `y` der Aktion.
 - **Dart eingeben:** Ist *Übungsspiel manuelle Eingabe* an, fügen [`autodarts.throw_dart`](#dart-eingeben-autodartsthrow_dart) oder das Tastenfeld der Anzeigetafel einen Dart hinzu, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras, als hätte das Board ihn erkannt, markiert mit `manual`. Die Erkennung muss nicht laufen: Ist sie gestoppt, bilden die eingegebenen Darts die Aufnahme allein.
 - **Weitergeben:** [`autodarts.next_player`](#weitergeben-autodartsnext_player) beendet die Aufnahme, ohne die Darts zu ziehen. Die Darts im Board gehören zu keiner Aufnahme, bis sie gezogen sind, und neue Darts zählen für den nächsten Spieler. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus.
 - **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Der Fortschritt der Spieler, der Wochenbericht und der Trainingskalender kehren mit zurück, damit die Aufnahme einmal zählt, wenn sie erneut endet. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
 
-[Die Regeln für Korrekturen und von Hand eingegebene Darts](funktionsweise.md#korrekturen-und-von-hand-eingegebene-darts).
+[Die Regeln für Korrekturen und von Hand eingegebene Darts](how-it-works.de.md#korrekturen-und-von-hand-eingegebene-darts).
 
 ## Bot
 
-<img src="../images/de/bot-match.webp" alt="Animation: ein 301-Match auf der Anzeigetafel. Alex wirft und zieht die Darts, die drei Darts des Bots landen nacheinander, und Alex ist wieder am Board" width="760">
+<img src="images/de/bot-match.webp" alt="Animation: ein 301-Match auf der Anzeigetafel. Alex wirft und zieht die Darts, die drei Darts des Bots landen nacheinander, und Alex ist wieder am Board" width="760">
 
-- **Gegen den Computer spielen** in X01 und den Cricket-Spielen: Stell *Übungsspiel Bot-Stärke* auf den 3-Dart-Average, den er spielen soll, von 20 bis 120, starte ein Spiel mit `bot_level` oder setz ihn in der [Spielauswahl](karten.md#spielauswahl) der Anzeigetafel dazu. `0` spielt ohne ihn.
+- **Gegen den Computer spielen** in X01 und den Cricket-Spielen: Stell *Übungsspiel Bot-Stärke* auf den 3-Dart-Average, den er spielen soll, von 20 bis 120, starte ein Spiel mit `bot_level` oder setz ihn in der [Spielauswahl](cards.de.md#spielauswahl) der Anzeigetafel dazu. `0` spielt ohne ihn.
 - **Sein Platz:** Der Bot sitzt nach den Spielern; mit *Übungsspiel Spielerzahl* auf 1 spielt also einer gegen den Bot, und mit dem Bot spielen bis zu drei Spieler. Partyspiele, Trainingsspiele und Turniere laufen ohne ihn.
 - **Sein Zug:** Der Bot wirft *Übungsspiel Bot-Pause* Sekunden, nachdem die Darts des Spielers vor ihm gezogen sind, Dart für Dart, und beendet seine Aufnahme nach derselben Pause. Seine Darts erscheinen auf den Karten wie erkannte, mit ihren Positionen, und lösen die üblichen Ereignisse mit `bot: true` aus. Wirft ein Spieler, während der Bot noch am Board ist, wirft der Bot den Rest seiner Aufnahme sofort, und die neuen Darts zählen für den Spieler.
-- **Wohin er zielt:** wie ein Spieler auf die Triple 20 zum Punkten, entlang des Checkout-Wegs und auf den [Stellwurf](#stellwürfe), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Seine Darts streuen um den Zielpunkt, sodass sein Average seiner Stärke entspricht. [Wie der Bot spielt](funktionsweise.md#bot).
+- **Wohin er zielt:** wie ein Spieler auf die Triple 20 zum Punkten, entlang des Checkout-Wegs und auf den [Stellwurf](#stellwürfe), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Seine Darts streuen um den Zielpunkt, sodass sein Average seiner Stärke entspricht. [Wie der Bot spielt](how-it-works.de.md#bot).
 - **Seine Darts zählen für niemanden:** nicht für die Trainingssession, die Statistik, die Bestleistungen, die Spielerprofile, die Erfolge, den Wochenbericht oder die Korrekturquote, und sie starten keine Trainingssession. Das Ergebnis eines Matches gegen den Bot zählt in den Profilen der Spieler.
 
 ## Stellwürfe
 
-<img src="../images/de/scoreboard-bot.png" alt="Anzeigetafel eines 301-Matches gegen den Bot: Alex spielt mit 169 Startpunkten und hat noch 169, und statt eines Checkouts zeigt die Karte T20 T20 S17 Rest 32; die Kachel des Bots heißt Bot Stärke 80" width="760">
+<img src="images/de/scoreboard-bot.png" alt="Anzeigetafel eines 301-Matches gegen den Bot: Alex spielt mit 169 Startpunkten und hat noch 169, und statt eines Checkouts zeigt die Karte T20 T20 S17 Rest 32; die Kachel des Bots heißt Bot Stärke 80" width="760">
 
-Können die übrigen Darts einer Aufnahme nicht checken, bei 169, über 170 oder bei 100 mit einem Dart, nennt *Übungsspiel Restpunkte* in `setup` einen Stellwurf: seine Darts in `route`, etwa `T20 T20 S17`, und den Rest, den sie für die nächste Aufnahme stellen, in `leave`, etwa `32`. Die [Anzeigetafel](karten.md#anzeigetafel) und die [Live-Karte](karten.md#live-karte) zeigen ihn, wo sonst der Checkout steht, und umranden seinen ersten Dart; `turn_changed` enthält ihn, und der Caller der Anzeigetafel sagt *Stell dir die 32*. Über 170 mit drei Darts lohnt nur ein Double; darunter auch ein Finish mit zwei Darts. Mit *Übungsspiel persönliche Checkout-Wege* kommen die stärksten Doubles des Spielers zuerst. [Wie der Stellwurf gewählt wird](funktionsweise.md#stellwürfe).
+Können die übrigen Darts einer Aufnahme nicht checken, bei 169, über 170 oder bei 100 mit einem Dart, nennt *Übungsspiel Restpunkte* in `setup` einen Stellwurf: seine Darts in `route`, etwa `T20 T20 S17`, und den Rest, den sie für die nächste Aufnahme stellen, in `leave`, etwa `32`. Die [Anzeigetafel](cards.de.md#anzeigetafel) und die [Live-Karte](cards.de.md#live-karte) zeigen ihn, wo sonst der Checkout steht, und umranden seinen ersten Dart; `turn_changed` enthält ihn, und der Caller der Anzeigetafel sagt *Stell dir die 32*. Über 170 mit drei Darts lohnt nur ein Double; darunter auch ein Finish mit zwei Darts. Mit *Übungsspiel persönliche Checkout-Wege* kommen die stärksten Doubles des Spielers zuerst. [Wie der Stellwurf gewählt wird](how-it-works.de.md#stellwürfe).
 
 ## Cricket
 
 Wähle `cricket` in *Übungsspiel*, allein oder als Match mit bis zu vier Spielern, Legs und Sätzen wie bei X01.
 
-<img src="../images/de/cricket.webp" alt="Animation: Cricket zwischen Alex und Sam. Alex schließt die 20, punktet 60 und trifft eine 19; nach der Entnahme schließt Sam die 19, punktet 57 und trifft ein Double 18" width="620">
+<img src="images/de/cricket.webp" alt="Animation: Cricket zwischen Alex und Sam. Alex schließt die 20, punktet 60 und trifft eine 19; nach der Entnahme schließt Sam die 19, punktet 57 und trifft ein Double 18" width="620">
 
 - **Marks:** Nur 20 bis 15 und das Bull zählen. Ein Single ist ein Mark, ein Double zwei, ein Triple drei; das Single-Bull ist ein Mark, das Bullseye zwei. Drei Marks schließen eine Zahl.
 - **Punkte:** Treffer auf einer geschlossenen Zahl bringen ihren Wert (25 beim Bull), solange ein anderer Spieler sie noch offen hat.
@@ -275,7 +275,7 @@ Zwei Varianten zählen dieselben Treffer:
 | **Cut-Throat Cricket** (`cut_throat`) | Marks auf einer geschlossenen Zahl geben ihren Wert jedem anderen Spieler, der sie noch offen hat. Wer alle Zahlen mit den wenigsten Punkten schließt, gewinnt. |
 | **Tactics** (`tactics`) | Cricket auf 20 bis 10 und das Bull, zwölf Zahlen insgesamt. |
 
-<img src="../images/de/scoreboard-tactics.png" alt="Anzeigetafel bei Tactics zwischen Alex und Sam: die Kreidetafel von 20 bis 10 und dem Bull, Alex mit 94 Punkten, Sam am Board mit T15 als nächstem Ziel" width="760">
+<img src="images/de/scoreboard-tactics.png" alt="Anzeigetafel bei Tactics zwischen Alex und Sam: die Kreidetafel von 20 bis 10 und dem Bull, Alex mit 94 Punkten, Sam am Board mit T15 als nächstem Ziel" width="760">
 
 Die Karte zeigt eine Kreidetafel mit den Marks aller Spieler (`/`, `X`, `Ⓧ`), den Punkten und der MPR, mit den Zahlen des Spiels. *Übungsspiel Restpunkte* bleibt bei den Cricket-Spielen *unbekannt*; seine Attribute tragen das Spiel: `game` ist `cricket`, `cut_throat` oder `tactics`, dazu `points`, `mpr`, `target`, `numbers` (20 bis 15 und 25, bei Tactics 20 bis 10 und 25) und `scores` mit `marks`, `points`, `legs`, `sets` und `mpr` jedes Spielers. Cricket-Legs zählen nicht für die X01-Statistik; die MPR der [Spielerprofile](#spielerprofile) und `best_cricket_mpr` kommen nur aus Cricket.
 
@@ -288,13 +288,13 @@ Jeder Spieler eines Übungsspiels mit Namen bekommt ein Profil mit Gesamtwerten.
 | Spielerprofile | Sensor, Spieler | Die Zahl der Profile. Attribut `players` mit, für jeden Spieler: `name`, `legs_played`, `legs_won`, `matches_played`, `matches_won`, `average`, `first_9_average`, `checkout_rate`, `mpr`, `highest_visit`, `highest_checkout`, `best_mpr`, `fewest_darts` (Startwert → wenigste Darts für ein gewonnenes Leg), `last_played` und `person` (die [verknüpfte Person](#spieler-mit-einer-person-verknüpfen-autodartslink_player) oder keine), dazu der [Fortschritt](#fortschritt-der-spieler) des Spielers: `darts_thrown`, `maximums`, `streak`, `best_streak`, `hits`, `spread` und `trend`. `highest_visit` ist die höchste X01-Aufnahme des Spielers; `highest_checkout` und `fewest_darts` kommen nur aus Legs mit Double-Out. Der Recorder speichert die Liste nicht. |
 | Letztes Match | Sensor, Zeitstempel | Wann das letzte Match mehrerer Spieler endete. Attribute: `game` und `winner` dieses Matches, `matches` mit den letzten 20 Matches (`ended`, `game`, `legs_to_win`, `sets_to_win`, `winner`, im Team-Match `winners` mit beiden Gewinnern, und `name`, `legs` und `sets` am Ende, `match_legs` sowie `average`, `mpr` oder `points` und im Team-Match `team` jedes Spielers) und `head_to_head` mit den Siegen jedes Paars benannter Gegner. Der Recorder speichert keine der Listen. |
 
-Die [Spielerkarte](karten.md#spielerkarte) zeigt alles davon. Um ein Profil zu entfernen, etwa nach einem Tippfehler im Namen, nutze [`autodarts.delete_player`](#spielerprofil-löschen-autodartsdelete_player).
+Die [Spielerkarte](cards.de.md#spielerkarte) zeigt alles davon. Um ein Profil zu entfernen, etwa nach einem Tippfehler im Namen, nutze [`autodarts.delete_player`](#spielerprofil-löschen-autodartsdelete_player).
 
-**Spieler und Personen:** Verknüpfe einen Spieler mit [`autodarts.link_player`](#spieler-mit-einer-person-verknüpfen-autodartslink_player) mit einer Person von Home Assistant. Anzeigetafel, Spielerkarte und [Spielauswahl](karten.md#spielauswahl) zeigen dann das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Die Verknüpfung wird mit dem Profil gespeichert und übersteht Neustarts.
+**Spieler und Personen:** Verknüpfe einen Spieler mit [`autodarts.link_player`](#spieler-mit-einer-person-verknüpfen-autodartslink_player) mit einer Person von Home Assistant. Anzeigetafel, Spielerkarte und [Spielauswahl](cards.de.md#spielauswahl) zeigen dann das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Die Verknüpfung wird mit dem Profil gespeichert und übersteht Neustarts.
 
 ### Fortschritt der Spieler
 
-Neben den Gesamtwerten trägt der Eintrag jedes benannten Spielers in *Spielerprofile* seinen Fortschritt. Er zählt, was der Spieler in Übungs- und Trainingsspielen wirft; Trainingsspiele zählen für *Übungsspiel Spieler 1*. [Wie der Fortschritt zählt](funktionsweise.md#fortschritt-der-spieler).
+Neben den Gesamtwerten trägt der Eintrag jedes benannten Spielers in *Spielerprofile* seinen Fortschritt. Er zählt, was der Spieler in Übungs- und Trainingsspielen wirft; Trainingsspiele zählen für *Übungsspiel Spieler 1*. [Wie der Fortschritt zählt](how-it-works.de.md#fortschritt-der-spieler).
 
 | Attribut | Inhalt |
 | --- | --- |
@@ -302,16 +302,16 @@ Neben den Gesamtwerten trägt der Eintrag jedes benannten Spielers in *Spielerpr
 | `maximums` | X01-Aufnahmen mit 180 Punkten |
 | `streak`, `best_streak` | Tage in Folge mit Darts in einem Übungs- oder Trainingsspiel, aktuell und am längsten; `streak` bleibt, bis ein ganzer Tag ohne Darts vergeht |
 | `hits` | Treffer pro Feld, wie `hits` von *Training Darts*, für das Trefferbild des Spielers |
-| `spread` | Die [Streuung](funktionsweise.md#streuung) auf bis zu sechs Zielfeldern, die mit den meisten Darts zuerst: `target`, `darts`, `offset_x` und `offset_y` (Millimeter von der Mitte des Felds, nach rechts und oben), `r50` und `r80` (Radien mit 50 und 80 % der Darts) und `change` (der Radius der neueren Hälfte der Darts minus der älteren; negativ ist enger) |
+| `spread` | Die [Streuung](how-it-works.de.md#streuung) auf bis zu sechs Zielfeldern, die mit den meisten Darts zuerst: `target`, `darts`, `offset_x` und `offset_y` (Millimeter von der Mitte des Felds, nach rechts und oben), `r50` und `r80` (Radien mit 50 und 80 % der Darts) und `change` (der Radius der neueren Hälfte der Darts minus der älteren; negativ ist enger) |
 | `trend` | Die letzten 12 Wochen, die älteste zuerst: `weeks` mit dem Montag jeder Woche und eine Liste pro Summe mit einem Wert für jede Woche: `darts`, `x01_darts`, `x01_points`, `first9_points`, `first9_darts`, `at_double`, `checkouts`, `double_attempts`, `double_hits`, `cricket_darts`, `cricket_marks`, `legs`, `legs_won`, `maximums` sowie `highest_checkout`, `best_501` (wenigste Darts eines 501-Legs) und `best_mpr` der Woche, die ohne ein solches Leg leer sind |
 
 Aus den Summen lässt sich jeder Durchschnitt über beliebige Wochen berechnen, etwa der 3-Dart-Average der letzten vier Wochen als dreimal die Summe von `x01_points` geteilt durch die Summe von `x01_darts`.
 
 ## Erfolge
 
-Spieler mit Namen schalten Erfolge frei, die meisten in Stufen: Bronze, Silber, Gold und bei der Serie Platin. Sie kommen aus dem, was der Spieler in Übungs- und Trainingsspielen wirft; ein Spieler ohne Namen schaltet nichts frei. Jede neue Stufe löst [`achievement_unlocked`](#board-ereignisse) aus, und die [Spielerkarte](karten.md#spielerkarte) zeigt die Abzeichen.
+Spieler mit Namen schalten Erfolge frei, die meisten in Stufen: Bronze, Silber, Gold und bei der Serie Platin. Sie kommen aus dem, was der Spieler in Übungs- und Trainingsspielen wirft; ein Spieler ohne Namen schaltet nichts frei. Jede neue Stufe löst [`achievement_unlocked`](#board-ereignisse) aus, und die [Spielerkarte](cards.de.md#spielerkarte) zeigt die Abzeichen.
 
-<img src="../images/de/players-badges.png" alt="Abzeichen von Alex auf der Spielerkarte: erreichte Stufen in Bronze, Silber und Gold mit dem nächsten Ziel und einem Fortschrittsbalken" width="620">
+<img src="images/de/players-badges.png" alt="Abzeichen von Alex auf der Spielerkarte: erreichte Stufen in Bronze, Silber und Gold mit dem nächsten Ziel und einem Fortschrittsbalken" width="620">
 
 | Erfolg | `achievement` | Stufen | Gemessen an |
 | --- | --- | --- | --- |
@@ -351,13 +351,13 @@ Home Assistant zählt jeden Dart, der auf ein Double geworfen wurde, und ob er t
 | Lieblingsdouble | Sensor | Das Double mit der besten Quote unter denen mit mindestens 10 Darts, etwa `D16`; vorher *unbekannt*. Attribute: `attempts`, `hits`, `rate` (Prozent), `doubles` mit `double`, `attempts`, `hits` und `rate` jedes geworfenen Doubles und `landed` damit, wie oft jedes Double von irgendeinem Dart getroffen wurde, etwa `{"D16": 12}`. Der Recorder speichert beides nicht. |
 | Übungsspiel persönliche Checkout-Wege | Schalter, *Konfiguration* | Checkout-Wege bevorzugen die stärksten Doubles des Spielers am Board (sein Profil, sonst die Darts aller): Ein Weg mit gleich vielen Darts zu einem Double mit besserer Quote gewinnt, ohne Double als Stellwurf; es zählen nur Doubles mit mindestens 10 Darts. Standardmäßig aus. |
 
-Die [Doubles-Karte](karten.md#doubles-karte) zeichnet die Quote jedes Doubles auf die Scheibe.
+Die [Doubles-Karte](cards.de.md#doubles-karte) zeichnet die Quote jedes Doubles auf die Scheibe.
 
 ## Partyspiele
 
-<img src="../images/de/killer.webp" alt="Animation: Killer für Alex, Sam und Kim auf der Anzeigetafel. Alle werfen für eine Zahl, Alex wird Killer und nimmt Sam die Leben, Kim wird ebenfalls Killer, und Alex nimmt das letzte Leben zum Sieg" width="760">
+<img src="images/de/killer.webp" alt="Animation: Killer für Alex, Sam und Kim auf der Anzeigetafel. Alle werfen für eine Zahl, Alex wird Killer und nimmt Sam die Leben, Kim wird ebenfalls Killer, und Alex nimmt das letzte Leben zum Sieg" width="760">
 
-Sechs Kneipenklassiker für einen bis vier Spieler, gewählt in *Übungsspiel*. Sie folgen den Darts wie X01, verbuchen eine Aufnahme beim Ziehen der Darts und gewinnen Legs und Sätze wie jedes Match. Live-Karte und [Anzeigetafel](karten.md#anzeigetafel) zeigen Runde, Ziel, Punkte oder Leben aller Spieler und umranden die Felder, auf die es ankommt; bei Golf und Baseball führt die Anzeigetafel eine Scorekarte aller Löcher und Innings.
+Sechs Kneipenklassiker für einen bis vier Spieler, gewählt in *Übungsspiel*. Sie folgen den Darts wie X01, verbuchen eine Aufnahme beim Ziehen der Darts und gewinnen Legs und Sätze wie jedes Match. Live-Karte und [Anzeigetafel](cards.de.md#anzeigetafel) zeigen Runde, Ziel, Punkte oder Leben aller Spieler und umranden die Felder, auf die es ankommt; bei Golf und Baseball führt die Anzeigetafel eine Scorekarte aller Löcher und Innings.
 
 | Spiel | Regeln |
 | --- | --- |
@@ -368,15 +368,15 @@ Sechs Kneipenklassiker für einen bis vier Spieler, gewählt in *Übungsspiel*. 
 | **Baseball** (`baseball`) | Neun Innings, Inning *n* auf die Zahl *n*. Jeder Dart in einem Feld der Zahl bringt Runs: ein Single 1, ein Double 2, ein Triple 3. Die meisten Runs gewinnen. |
 | **Count-Up** (`count_up`) | Jeder Dart bringt seinen Wert, über 1 bis 20 Runden (*Übungsspiel Count-Up-Runden*, standardmäßig 8). Die meisten Punkte gewinnen. |
 
-<img src="../images/de/golf.webp" alt="Animation: Golf für Alex und Sam auf der Anzeigetafel. Nach jeder Aufnahme füllt sich die Scorekarte: Alex spielt 1, 3 und 2, Sam 4, 5 und 5, und das vierte Loch läuft" width="760">
+<img src="images/de/golf.webp" alt="Animation: Golf für Alex und Sam auf der Anzeigetafel. Nach jeder Aufnahme füllt sich die Scorekarte: Alex spielt 1, 3 und 2, Sam 4, 5 und 5, und das vierte Loch läuft" width="760">
 
-Bei Shanghai und Halve-It entscheidet bei Punktgleichheit die Zahl der Treffer; ist auch die gleich, wird das Leg neu gespielt. Bei Golf, Baseball und Count-Up spielen die Gleichauf-Liegenden an der Spitze Zusatzrunden, bis einer von ihnen nach einer Runde vorn liegt. Shanghai und Killer gewinnt ein einzelner Dart; spätere Darts der Aufnahme zählen nicht. [Alle Regeln](spiele.md#partyspiele). *Übungsspiel Restpunkte* bleibt *unbekannt*; seine Attribute tragen `game`, `round`, `rounds`, `target` (`D` und `T` stehen für ein beliebiges Double und Triple), `phase` (bei Killer `choose` oder `play`), `playoff` (die Spieler der Zusatzrunden nach einem Gleichstand, sonst keins), `points` und `scores` mit `points`, `legs`, `sets`, bei Killer `number`, `lives` und `killer` und bei Golf und Baseball der `scorecard` mit dem Ergebnis jeder Runde jedes Spielers. *Übungsspiel Ziel* zeigt das Ziel, bei Killer das eigene Double, bis du Killer bist. Partyspiele zählen nicht für die X01-Statistik.
+Bei Shanghai und Halve-It entscheidet bei Punktgleichheit die Zahl der Treffer; ist auch die gleich, wird das Leg neu gespielt. Bei Golf, Baseball und Count-Up spielen die Gleichauf-Liegenden an der Spitze Zusatzrunden, bis einer von ihnen nach einer Runde vorn liegt. Shanghai und Killer gewinnt ein einzelner Dart; spätere Darts der Aufnahme zählen nicht. [Alle Regeln](games.de.md#partyspiele). *Übungsspiel Restpunkte* bleibt *unbekannt*; seine Attribute tragen `game`, `round`, `rounds`, `target` (`D` und `T` stehen für ein beliebiges Double und Triple), `phase` (bei Killer `choose` oder `play`), `playoff` (die Spieler der Zusatzrunden nach einem Gleichstand, sonst keins), `points` und `scores` mit `points`, `legs`, `sets`, bei Killer `number`, `lives` und `killer` und bei Golf und Baseball der `scorecard` mit dem Ergebnis jeder Runde jedes Spielers. *Übungsspiel Ziel* zeigt das Ziel, bei Killer das eigene Double, bis du Killer bist. Partyspiele zählen nicht für die X01-Statistik.
 
 ## Trainingsspiele
 
 Acht klassische Übungen, gewählt in *Übungsspiel*. Jede folgt den Darts der aktuellen Aufnahme und verbucht die Aufnahme, wenn du die Darts ziehst. Darts, die beim Start schon im Board stecken, zählen nicht. Ein beendetes Spiel bleibt in der Karte stehen, bis der nächste Dart es neu startet; *Übungsspiel neues Leg* startet es sofort neu. Jedes Spiel behält seine letzten 10 Ergebnisse.
 
-<img src="../images/de/training-game.webp" alt="Animation: Around the Clock. Jeder Treffer bringt das Ziel von 1 bis 6 weiter und umrandet alle Felder der nächsten Zahl" width="620">
+<img src="images/de/training-game.webp" alt="Animation: Around the Clock. Jeder Treffer bringt das Ziel von 1 bis 6 weiter und umrandet alle Felder der nächsten Zahl" width="620">
 
 | Spiel | Ziel |
 | --- | --- |
@@ -389,19 +389,19 @@ Acht klassische Übungen, gewählt in *Übungsspiel*. Jede folgt den Darts der a
 | **JDC Challenge** (`jdc_challenge`) | Das 57-Dart-Programm der Junior Darts Corporation: Shanghai-Aufnahmen auf 10 bis 15, ein Dart auf jedes Double und das Bullseye, Shanghai-Aufnahmen auf 15 bis 20. Höchstens 3.380 Punkte. |
 | **Singles-Training** (`singles`) | Eine Aufnahme auf jede Zahl von 1 bis 20 und das Bull; ein Single bringt 1 Punkt, ein Double 2, ein Triple 3. Höchstens 186 Punkte. |
 
-<img src="../images/de/checkout-121.webp" alt="Animation: der 121-Checkout auf der Live-Karte. T20, S1 und S20 lassen 40, D20 in der zweiten Aufnahme ist der Game shot, und das Ziel steigt auf 122" width="620">
+<img src="images/de/checkout-121.webp" alt="Animation: der 121-Checkout auf der Live-Karte. T20, S1 und S20 lassen 40, D20 in der zweiten Aufnahme ist der Game shot, und das Ziel steigt auf 122" width="620">
 
-[Alle Regeln der Trainingsspiele](spiele.md#trainingsspiele).
+[Alle Regeln der Trainingsspiele](games.de.md#trainingsspiele).
 
 Trainingsspiele sind für einen Spieler; *Übungsspiel Spielerzahl* gilt für X01, die Cricket-Spiele und die Partyspiele.
 
 ## Turniere
 
-Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen jeden**, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, oder das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen. Jedes Match ist ein [Übungsmatch](#übungsspiel) zwischen zwei Spielern mit den Legs, Sätzen und Regeln des Turniers: X01, bei dem jeder Spieler als Handicap von eigenen Startpunkten beginnen kann, oder [Cricket](#cricket), Cut-Throat Cricket oder Tactics. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](#spielerprofile), den Match-Verlauf und die direkten Vergleiche. [Regeln und Entscheidung bei Gleichstand](spiele.md#turniere).
+Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen jeden**, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, oder das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen. Jedes Match ist ein [Übungsmatch](#übungsspiel) zwischen zwei Spielern mit den Legs, Sätzen und Regeln des Turniers: X01, bei dem jeder Spieler als Handicap von eigenen Startpunkten beginnen kann, oder [Cricket](#cricket), Cut-Throat Cricket oder Tactics. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](#spielerprofile), den Match-Verlauf und die direkten Vergleiche. [Regeln und Entscheidung bei Gleichstand](games.de.md#turniere).
 
-<img src="../images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
+<img src="images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
 
-- **Start:** Tippe in der [Spielauswahl](karten.md#turniere) der Anzeigetafel auf *Turnier* und wähle Spieler, Format und Spiel; oder stelle die *Turnier*-Entitäten unten ein und drücke *Turnier starten*; oder rufe die Aktion [`autodarts.start_tournament`](#turnier-starten-autodartsstart_tournament) auf:
+- **Start:** Tippe in der [Spielauswahl](cards.de.md#turniere) der Anzeigetafel auf *Turnier* und wähle Spieler, Format und Spiel; oder stelle die *Turnier*-Entitäten unten ein und drücke *Turnier starten*; oder rufe die Aktion [`autodarts.start_tournament`](#turnier-starten-autodartsstart_tournament) auf:
 
   ```yaml
   action: autodarts.start_tournament
@@ -414,7 +414,7 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen j
   ```
 
 - **Matches:** Das Turnier richtet das Übungsspiel für jedes Match ein: das Spiel, die beiden Spieler mit ihren Startpunkten, Legs und Sätze, Double-Out, Double-In und das Ausbullen. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet; der Spielplan verteilt den Anwurf möglichst gleichmäßig.
-- **Zwischen den Matches:** Das Ergebnis zählt, wenn die Darts der entscheidenden Aufnahme gezogen sind. Zuerst steht die [Zusammenfassung](karten.md#match-zusammenfassung) des Matches für die *Turnier Dauer der Zusammenfassung*, standardmäßig 8 Sekunden; dann beginnt die *Turnierpause*, standardmäßig 10 Sekunden, in der die Anzeigetafel Tabelle oder Turnierbaum mit dem nächsten Match zeigt. Das nächste Match beginnt also 18 Sekunden nach dem Ende des letzten, aber nie, solange Darts im Board stecken: Dann beginnt es, sobald sie gezogen sind. Mit einer Pause von 0 wartet es auf *Nächstes Turniermatch*. Darts, die in der Pause geworfen werden, zählen für kein Match; die Trainingssession zählt sie wie immer.
+- **Zwischen den Matches:** Das Ergebnis zählt, wenn die Darts der entscheidenden Aufnahme gezogen sind. Zuerst steht die [Zusammenfassung](cards.de.md#match-zusammenfassung) des Matches für die *Turnier Dauer der Zusammenfassung*, standardmäßig 8 Sekunden; dann beginnt die *Turnierpause*, standardmäßig 10 Sekunden, in der die Anzeigetafel Tabelle oder Turnierbaum mit dem nächsten Match zeigt. Das nächste Match beginnt also 18 Sekunden nach dem Ende des letzten, aber nie, solange Darts im Board stecken: Dann beginnt es, sobald sie gezogen sind. Mit einer Pause von 0 wartet es auf *Nächstes Turniermatch*. Darts, die in der Pause geworfen werden, zählen für kein Match; die Trainingssession zählt sie wie immer.
 - **Andere Spiele:** Ein Spiel, das während eines Turniers gewählt wird, läuft wie gewohnt und zählt nicht fürs Turnier. Nach der Pause wartet das nächste Match, bis dieses Spiel entschieden oder beendet ist; *Nächstes Turniermatch* startet es sofort und richtet während eines Turniermatches dieses Match wieder ein. *Turnier beenden* beendet das Turnier; das laufende Match geht als Übungsmatch weiter.
 - **Neustarts:** Turnier, Ergebnisse und Pause überstehen einen Neustart von Home Assistant. Ist die Pause inzwischen abgelaufen, beginnt das nächste Match sofort.
 
@@ -437,7 +437,7 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen j
 - Ein **Match** hat `match` (seine Nummer im Spielplan; keine bei einem Freilos), `round`, `stage`, `players`, `winner`, `bye`, `legs` (des ganzen Matches) und `sets` beider Spieler, `ended` und, sobald gespielt, den `average` (X01) oder `mpr` (Cricket) beider Spieler.
 - Eine Zeile der **Tabelle** (`standings`) hat `position`, `name`, `played`, `won`, `lost`, `legs_for`, `legs_against`, `leg_difference`, `points` und `average` oder `mpr`.
 
-Der Recorder speichert weder `fixtures`, `standings`, `bracket`, `current`, `next` noch `last_result`. Die [Anzeigetafel](karten.md#turniere) zeigt während eines Matches die Runde und zwischen den Matches die Tabelle oder den Turnierbaum.
+Der Recorder speichert weder `fixtures`, `standings`, `bracket`, `current`, `next` noch `last_result`. Die [Anzeigetafel](cards.de.md#turniere) zeigt während eines Matches die Runde und zwischen den Matches die Tabelle oder den Turnierbaum.
 
 ## Steuerung
 
@@ -478,7 +478,7 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 | Kamerastörung | Binärsensor, *Diagnose* | An, wenn eine Kamera bei laufender Erkennung 15 Sekunden lang keine Bilder liefert. Normales Stoppen, Kalibrieren und Standby zählen nicht. |
 | Störung Kamera *N* | Binärsensor, *Diagnose* | Dasselbe für eine einzelne Kamera. |
 | Erkennungsbildrate | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde der Erkennung. |
-| Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die nachträglich korrigiert wurden: vom Board, auf der Anzeigetafel oder mit `autodarts.correct_dart`. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](fehlerbehebung.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
+| Korrekturquote der Erkennung | Sensor, %, *Diagnose* | Anteil der letzten 100 erkannten Darts, die nachträglich korrigiert wurden: vom Board, auf der Anzeigetafel oder mit `autodarts.correct_dart`. Ab 20 % bei mindestens 50 Darts schlägt eine [Reparatur](troubleshooting.de.md#reparaturen) das Nachkalibrieren vor. Attribute: `darts`, `corrected`. |
 | Bildrate Kamera *N* | Sensor, fps, *Diagnose*, *Deaktiviert* | Bilder pro Sekunde einer Kamera. |
 | CPU-Auslastung | Sensor, %, **BM 2**, *Diagnose*, *Deaktiviert* | CPU-Last des Board-PCs. |
 | Speichernutzung | Sensor, **BM 2**, *Diagnose*, *Deaktiviert* | Speichernutzung laut Board Manager 2. |
@@ -486,9 +486,9 @@ Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antworte
 | Prozessor | Sensor, **BM 2**, *Diagnose* | Prozessormodell des Board-PCs. Attribut: `cores`. |
 | Version der Erkennungssoftware | Sensor, **BM 2**, *Diagnose* | Version der Autodarts-Erkennungssoftware. Attribut: `opencv_version`. |
 | Software | Update, **BM 2** | Installierte und neueste Board-Manager-Version. Updates installierst du auf dem Board-PC. |
-| Letztes Ereignis der Online-Brücke | Sensor, Zeitstempel, *Diagnose* | Wann der letzte Moment eines [Online-Matches](online-matches.md) ankam; vor dem ersten *unbekannt*. Nur, solange die Online-Brücke an ist. Attribute: `trigger`, `event_type`. |
+| Letztes Ereignis der Online-Brücke | Sensor, Zeitstempel, *Diagnose* | Wann der letzte Moment eines [Online-Matches](online-matches.de.md) ankam; vor dem ersten *unbekannt*. Nur, solange die Online-Brücke an ist. Attribute: `trigger`, `event_type`. |
 
-Die Entitäten einer einzelnen Kamera tragen das Attribut `camera` mit der Kameranummer. Die [Board-Status-Karte](karten.md#board-status) nutzt es.
+Die Entitäten einer einzelnen Kamera tragen das Attribut `camera` mit der Kameranummer. Die [Board-Status-Karte](cards.de.md#board-status) nutzt es.
 
 ## Bewegung
 
@@ -509,7 +509,7 @@ Während die Erkennung gestoppt ist, startet, stoppt oder kalibriert, sind diese
 
 ## Cloud-Spieldaten (optional)
 
-Diese Entitäten gibt es nur mit [verknüpftem Autodarts-Konto](installation.md#autodarts-cloud-verknüpfen-optional). Sie werden während eines Matches alle 5 Sekunden gelesen, sonst einmal pro Minute.
+Diese Entitäten gibt es nur mit [verknüpftem Autodarts-Konto](installation.de.md#autodarts-cloud-verknüpfen-optional). Sie werden während eines Matches alle 5 Sekunden gelesen, sonst einmal pro Minute.
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
@@ -587,7 +587,7 @@ data:
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn kein Board geladen ist, wenn mehrere Boards eingerichtet sind und keines gewählt ist, wenn der gewählte Eintrag unbekannt ist, zu einer anderen Integration gehört oder nicht geladen ist, wenn ein Name zweimal unter den Spielern steht oder geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält, wenn Killer weniger als zwei Spieler hätte, wenn `teams` Teams ohne vier Spieler oder in einem anderen Spiel als X01 und den Cricket-Spielen verlangt, wenn vier Spieler dem Bot keinen Platz lassen, wenn Startpunkte nicht `0` oder 2–1001 sind, wenn es mehr Startpunkte als Plätze gibt oder bei Teams mehr als zwei, wenn Startpunkte von 3 auf Double-In und Double-Out treffen oder wenn die Bot-Stärke 1–19 oder über 120 ist. Werte außerhalb der Grenzen oben werden abgelehnt, bevor sich etwas ändert.
 
-**Antwort:** Mit `response_variable` antwortet die Aktion, statt abzubrechen, damit ein Sprachassistent sagen kann, was passiert ist. `started` ist `true` mit dem Schlüssel des Spiels in `game`, den benannten `players`, `bot` und der `message` „Game on: 501 mit Alex und Sam.“; oder `started` ist `false`, und `message` sagt, was nicht gepasst hat, in der Sprache von Home Assistant. Der Blueprint [Start a game by voice](automationen.md#start-a-game-by-voice) spricht die Nachricht aus.
+**Antwort:** Mit `response_variable` antwortet die Aktion, statt abzubrechen, damit ein Sprachassistent sagen kann, was passiert ist. `started` ist `true` mit dem Schlüssel des Spiels in `game`, den benannten `players`, `bot` und der `message` „Game on: 501 mit Alex und Sam.“; oder `started` ist `false`, und `message` sagt, was nicht gepasst hat, in der Sprache von Home Assistant. Der Blueprint [Start a game by voice](automations.de.md#start-a-game-by-voice) spricht die Nachricht aus.
 
 ```yaml
 action: autodarts.start_game
@@ -599,7 +599,7 @@ response_variable: result
 
 ### Dart korrigieren: `autodarts.correct_dart`
 
-Legt einen Dart der aktuellen Aufnahme für Übungsspiel und Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung. Wo das Board das Feld falsch gelesen hat, lag es auch bei der Stelle daneben: Der korrigierte Dart verliert die Position des Boards und bleibt aus den [Dart-Positionen](funktionsweise.md#dart-positionen) heraus, außer `x` und `y` sagen, wo er steckt. [Korrekturen](#korrekturen-und-von-hand-eingegebene-darts).
+Legt einen Dart der aktuellen Aufnahme für Übungsspiel und Trainingssession in ein anderes Feld, als hätte das Board ihn dort erkannt. Das Board behält seine eigene Erkennung. Wo das Board das Feld falsch gelesen hat, lag es auch bei der Stelle daneben: Der korrigierte Dart verliert die Position des Boards und bleibt aus den [Dart-Positionen](how-it-works.de.md#dart-positionen) heraus, außer `x` und `y` sagen, wo er steckt. [Korrekturen](#korrekturen-und-von-hand-eingegebene-darts).
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
@@ -634,7 +634,7 @@ Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt,
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` und die anderen Namen der Bulls wie bei `autodarts.correct_dart` | Das Feld; Pflicht ohne `x` und `y` |
-| `x`, `y` | -3 bis 3 | Wo der Dart steckt, wie bei `autodarts.correct_dart`; das Feld ergibt sich daraus, und der Dart wird in den [Dart-Positionen](funktionsweise.md#dart-positionen) gespeichert |
+| `x`, `y` | -3 bis 3 | Wo der Dart steckt, wie bei `autodarts.correct_dart`; das Feld ergibt sich daraus, und der Dart wird in den [Dart-Positionen](how-it-works.de.md#dart-positionen) gespeichert |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -709,7 +709,7 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn der Ordner nicht erlaubt ist
 
 ### Spieler mit einer Person verknüpfen: `autodarts.link_player`
 
-Macht einen Spieler zu einer Person von Home Assistant. [Anzeigetafel](karten.md#anzeigetafel), [Spielerkarte](karten.md#spielerkarte) und [Spielauswahl](karten.md#spielauswahl) zeigen das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Ein Spieler ohne Profil bekommt eines. Eine Person ist ein Spieler: Verknüpfst du die Person mit einem anderen Spieler, wandert die Verknüpfung dorthin. Nur für Administratoren.
+Macht einen Spieler zu einer Person von Home Assistant. [Anzeigetafel](cards.de.md#anzeigetafel), [Spielerkarte](cards.de.md#spielerkarte) und [Spielauswahl](cards.de.md#spielauswahl) zeigen das Bild der Person, und die Spielauswahl nennt die Spieler, die zu Hause sind, zuerst. Ein Spieler ohne Profil bekommt eines. Eine Person ist ein Spieler: Verknüpfst du die Person mit einem anderen Spieler, wandert die Verknüpfung dorthin. Nur für Administratoren.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |

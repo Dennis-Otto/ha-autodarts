@@ -14,3 +14,4 @@ Copy [the template](0000-template.md) to the next free number and describe the d
 | [0006](0006-a-protocol-library-later.md) | Keep the protocol of the Board Manager in the integration for now | accepted |
 | [0007](0007-the-repository-blueprint.md) | Follow the repository blueprint | accepted |
 | [0008](0008-betas-for-testers.md) | Give testers a beta after every change for users | accepted |
+| [0009](0009-german-pages-next-to-the-english-ones.md) | Put each German page next to its English page, for the language switch of the website | accepted |

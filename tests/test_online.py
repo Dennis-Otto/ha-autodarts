@@ -182,7 +182,7 @@ def test_unknown_triggers(trigger):
 def test_every_event_type_is_a_board_event_and_documented():
     assert set(MOMENTS.values()) <= set(ONLINE_EVENT_TYPES)
     assert EVENT_TYPES[-len(ONLINE_EVENT_TYPES) :] == ONLINE_EVENT_TYPES
-    for document in ("docs/entities.md", "docs/de/entitaeten.md"):
+    for document in ("docs/entities.md", "docs/entities.de.md"):
         text = (ROOT / document).read_text(encoding="utf-8")
         for kind in ONLINE_EVENT_TYPES:
             assert f"`{kind}`" in text, (document, kind)

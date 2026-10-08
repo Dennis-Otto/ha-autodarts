@@ -14,7 +14,7 @@ SPEC = importlib.util.spec_from_file_location(
 )
 media = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(media)
-KITS = (ROOT / "docs" / "creator-kit.md", ROOT / "docs" / "de" / "creator-kit.md")
+KITS = (ROOT / "docs" / "creator-kit.md", ROOT / "docs" / "creator-kit.de.md")
 FILES = sorted(
     f"{name}-{language}.{kind}"
     for name in media.ANIMATIONS

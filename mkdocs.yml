@@ -14,18 +14,51 @@ repo_url: https://github.com/Dennis-Otto/ha-autodarts
 repo_name: Dennis-Otto/ha-autodarts
 copyright: "© 2026 Trkal and HACSAutodarts contributors; 2026 Dennis Otto"
 
+# The website starts with index.md and index.de.md. README.md and README.de.md are
+# the overviews of the folder on GitHub, and docs/de/ only keeps the old addresses
+# of the German pages that released versions link to.
+exclude_docs: |
+  /README.md
+  /README.de.md
+  /de/
+
 plugins:
   search:
     lang: [en, de]
+  # English and German. The German pages sit next to the English ones, named like
+  # them with .de, such as games.de.md next to games.md, and make the German website
+  # in de/, with German menus, search and dates, and a switch between the languages
+  # in the header that keeps the page. A page without German version is shown in
+  # English there. https://ultrabug.github.io/mkdocs-static-i18n/
+  i18n:
+    enabled: true
+    languages:
+      - locale: en
+        name: English
+        default: true
+        build: true
+      - locale: de
+        name: Deutsch
+        build: true
+        site_description: "Autodarts für Home Assistant: lokale Echtzeit-Steuerung des Boards, X01, Cricket, Party- und Trainingsspiele, Turniere und ein Bot, Spielerstatistik mit Trefferbildern, sieben Dashboard-Karten und zwölf Blueprints, Spiele per Sprache starten. Kein Cloud-Konto nötig."
+        nav_translations:
+          Home: Start
+          Get started: Erste Schritte
+          Guides: Anleitungen
+          Reference: Referenz
+          Project: Projekt
+          Changelog: Änderungen
+          Decisions: Entscheidungen
 
-# Links in the HTML of a page, such as those of the tables of the start pages,
-# lead to the pages of the website, as the links of the Markdown do.
+# Links in the HTML of a page, links to the start pages of GitHub and links to the
+# other language lead to the pages of the website, as the links of the Markdown do.
 hooks:
   - scripts/mkdocs_hooks.py
 
-# The menu. A tab in the header for each section.
+# The menu, a tab in the header for each section. The German website has the same
+# one, with the German pages and the titles of nav_translations above.
 nav:
-  - Home: README.md
+  - Home: index.md
   - Get started:
       - getting-started.md
       - installation.md
@@ -49,34 +82,3 @@ nav:
       - releases.md
       - creator-kit.md
       - Decisions: decisions/README.md
-  - Deutsch:
-      - de/README.md
-      - Erste Schritte:
-          - de/erste-schritte.md
-          - de/installation.md
-      - Anleitungen:
-          - de/spiele.md
-          - de/anzeigetafel.md
-          - de/statistik.md
-          - de/automationen.md
-          - de/online-matches.md
-      - Referenz:
-          - de/karten.md
-          - de/entitaeten.md
-          - de/funktionsweise.md
-          - de/fehlerbehebung.md
-          - de/sicherheit.md
-          - de/glossar.md
-      - Projekt:
-          - de/roadmap.md
-          - de/entwicklung.md
-          - de/creator-kit.md
-
-extra:
-  alternate:
-    - name: English
-      link: /ha-autodarts/
-      lang: en
-    - name: Deutsch
-      link: /ha-autodarts/de/
-      lang: de

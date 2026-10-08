@@ -1,6 +1,6 @@
 # Dashboard cards
 
-[← Documentation](README.md) · [Deutsch](de/karten.md)
+[← Documentation](README.md) · [Deutsch](cards.de.md)
 
 The integration includes seven cards. Home Assistant loads them automatically, so no dashboard resource and no separate HACS download are needed. Each card:
 

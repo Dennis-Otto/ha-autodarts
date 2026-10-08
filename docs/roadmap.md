@@ -1,6 +1,6 @@
 # Roadmap
 
-[← Documentation](README.md) · [Deutsch](de/roadmap.md)
+[← Documentation](README.md) · [Deutsch](roadmap.de.md)
 
 This roadmap shows what each version brought, what the next release brings and what comes after it. *Next* and *Later* look at least a year ahead, until October 2027, and *Not planned* says what the integration won't do. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose).
 

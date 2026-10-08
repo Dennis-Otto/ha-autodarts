@@ -1,6 +1,6 @@
 # Installation and setup
 
-[← Documentation](README.md) · [Deutsch](de/installation.md)
+[← Documentation](README.md) · [Deutsch](installation.de.md)
 
 ## Requirements
 

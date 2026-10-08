@@ -129,7 +129,7 @@ async def test_a_quiet_week_reads_short_or_is_skipped(hass):
     ]
 
 
-# The German message of the documentation (docs/de/automationen.md).
+# The German message of the documentation (docs/automations.de.md).
 GERMAN_MESSAGE = (
     "{{ darts }} Darts{{ ' in ' ~ training_minutes ~ ' Minuten' if training_minutes else '' }}"
     "{{ ', 3-Dart-Average ' ~ (average | replace('.', ',')) ~ (' (' ~ ('+' if average_change > 0 else '')"
@@ -195,7 +195,7 @@ async def test_the_report_of_a_real_week(hass, aioclient_mock, freezer):
     ]
 
 
-@pytest.mark.parametrize("document", ["docs/automations.md", "docs/de/automationen.md"])
+@pytest.mark.parametrize("document", ["docs/automations.md", "docs/automations.de.md"])
 def test_the_documentation_shows_the_tested_german_message(document):
     text = (Path(__file__).parents[1] / document).read_text(encoding="utf-8")
     assert GERMAN_MESSAGE in text

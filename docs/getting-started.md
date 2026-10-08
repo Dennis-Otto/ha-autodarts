@@ -1,6 +1,6 @@
 # From zero to the scoreboard
 
-[← Documentation](README.md) · [Deutsch](de/erste-schritte.md)
+[← Documentation](README.md) · [Deutsch](getting-started.de.md)
 
 You play on an Autodarts board and have never used Home Assistant? This guide takes you from nothing to the scoreboard on a tablet next to your board. Home Assistant, HACS and the integration are free. Plan about an hour; most of it is setting up Home Assistant itself.
 

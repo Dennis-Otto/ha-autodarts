@@ -1,6 +1,6 @@
 # Statistics and players
 
-[← Documentation](README.md) · [Deutsch](de/statistik.md)
+[← Documentation](README.md) · [Deutsch](statistics.de.md)
 
 Every dart the board detects becomes a number in Home Assistant: your 3-dart average, where your darts land, your personal bests, your doubles, and for every named player a profile with badges, weekly trends and head-to-head records. It all stays in your home, survives restarts and fills Home Assistant's long-term statistics, so you see your progress over weeks and months.
 
