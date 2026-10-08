@@ -6,7 +6,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### New
 
-- **Free a stuck takeout:** Board Manager 2.0.2 sometimes starts a takeout again on the empty board right after one and keeps it, so darts thrown then are not counted and `takeout_finished` never comes. After ten seconds without darts and without a hand at the board, the integration now resets the board, at most three times in a row, and the takeout ends. The new switch *Free a stuck takeout*, on by default, turns it off; the automatic dashboard shows it with the board settings ([how it works](docs/entities.md#a-takeout-the-board-never-finishes)). Found by @JoeyAwwad.
+- **Free a stuck takeout:** Board Manager 2.0.2 sometimes starts a takeout again on the empty board right after one and keeps it, so darts thrown then are not counted and `takeout_finished` never comes. After ten seconds without darts and without a hand at the board, the integration now resets the board, at most three times in a row, and the takeout ends. The new switch *Free a stuck takeout*, on by default, turns it off; the automatic dashboard shows it with the board settings ([how it works](docs/entities.md#a-takeout-the-board-never-finishes)). Found by @JoeyAwwad (#172).
 
 ## [1.9.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)
 
