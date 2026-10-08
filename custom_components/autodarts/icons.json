@@ -337,6 +337,9 @@
       "auto_distortion": {
         "default": "mdi:auto-fix"
       },
+      "free_stuck_takeout": {
+        "default": "mdi:restore"
+      },
       "training_session": {
         "default": "mdi:target-account",
         "state": {

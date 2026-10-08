@@ -446,6 +446,7 @@ Der Recorder speichert weder `fixtures`, `standings`, `bracket`, `current`, `nex
 | Erkennung | Schalter | Startet oder stoppt die Dart-Erkennung. |
 | Erkennung starten, Erkennung stoppen | Tasten | Dieselben Aktionen als Tasten, für Skripte und Dashboards. |
 | Erkennung zurücksetzen | Taste | Verwirft die im Board erkannten Darts. |
+| Hängende Entnahme lösen | Schalter, *Konfiguration* | Setzt das Board zurück, wenn es eine Entnahme bei leerem Board nicht beendet, siehe [unten](#eine-entnahme-die-das-board-nie-beendet). Standardmäßig an. |
 | Automatische Kalibrierung starten | Taste, *Konfiguration* | Kalibriert alle Kameras. |
 | Kamera *N* kalibrieren | Taste, *Konfiguration* | Kalibriert eine Kamera. |
 | Board Manager neu starten | Taste, *Konfiguration* | Startet den Board-Manager-Dienst neu. |
@@ -454,6 +455,16 @@ Der Recorder speichert weder `fixtures`, `standings`, `bracket`, `current`, `nex
 | Cloud-Verbindung herstellen, Cloud-Verbindung trennen | Tasten, **BM 1**, *Deaktiviert* | Dasselbe als Tasten. |
 
 Jede Aktion wird **genau einmal** gesendet. Lehnt das Board sie ab oder antwortet es nicht, meldet Home Assistant einen Fehler, statt es erneut zu versuchen. So wird keine Aktion doppelt ausgeführt.
+
+### Eine Entnahme, die das Board nie beendet
+
+Board Manager 2.0.2 beginnt manchmal direkt nach einer Entnahme eine neue und bleibt bei leerem Board darin hängen, wie ein Spieler berichtet hat: Der Status bleibt *Darts werden entnommen*, danach geworfene Darts zählen nicht, und `takeout_finished` kommt nie, sodass auch Automationen hängen, die darauf warten. Ein Zurücksetzen löst das Board, und solange *Hängende Entnahme lösen* an ist, schickt die Integration es von selbst, als einzigen Befehl, den sie je ungefragt sendet:
+
+- **Wann:** Die Erkennung läuft, das Board zeigt eine Entnahme ohne Darts und meldet keine Hand davor, zehn Sekunden lang ab dem ersten Zustand, der das zeigt. Eine echte Entnahme dauert höchstens ein paar Sekunden. Jeder andere Zustand, eine Hand am Board, ein fehlgeschlagener Lesevorgang oder das Ausschalten des Schalters beendet das Warten.
+- **Dann:** Das Board wartet wieder auf Darts, und mit seinem leeren Zustand folgt `takeout_finished`.
+- **Ein Board, das hängen bleibt,** wird zehn Sekunden später erneut zurückgesetzt, höchstens dreimal in Folge. Nach einem Dart im Board bekommt die nächste hängende Entnahme wieder drei Versuche.
+
+Jedes Zurücksetzen steht auf Stufe Info im Protokoll, und die [Diagnosedaten](troubleshooting.de.md#diagnosedaten-herunterladen) zählen es. Schalte den Schalter aus, um das Board in Ruhe zu lassen, etwa während du dem Fehler mit Autodarts nachgehst.
 
 ## Board-Einstellungen
 

@@ -105,6 +105,7 @@ ENTITIES = {
     "auto_calibrate_on_start": "switch",
     "auto_calibrate": "switch",
     "auto_distortion": "switch",
+    "free_stuck_takeout": "switch",
     "standby_minutes": "select",
     "board_events": "event",
     "local_status": "sensor",
@@ -489,6 +490,7 @@ class Scenario:
             "auto_calibrate_on_start": "on",
             "auto_calibrate": "on",
             "auto_distortion": "off",
+            "free_stuck_takeout": "on",
             "standby_minutes": "15",
             "local_status": "stopped",
             "training_darts": "0",
@@ -823,6 +825,38 @@ class Scenario:
         check(
             realtime["ignored_frames"] >= 2 and realtime["connects"] >= 4,
             f"Diagnostics do not show the faults: {realtime}",
+        )
+
+        # 6. The board keeps a takeout on the empty board, as Board Manager 2.0.2
+        # sometimes does: after ten seconds, a reset frees it and the takeout ends.
+        self.fired_board_events()
+        await self.fault(stuck_takeout=True)
+        await self.expect_states({"local_status": "takeout_in_progress"})
+
+        async def freed():
+            requests = await self.board("GET", "/control/requests")
+            return [
+                command
+                for command in requests["commands"]
+                if command["path"] == "/api/reset"
+            ] or None
+
+        resets = await wait_for(freed, "the reset of the stuck takeout", timeout=40)
+        await self.expect_states({"local_status": "throw", "num_throws": "0"})
+        takeouts = [
+            item["event_type"]
+            for item in self.fired_board_events()
+            if item["event_type"] in ("takeout_started", "takeout_finished")
+        ]
+        check(
+            len(resets) == 1 and takeouts == ["takeout_started", "takeout_finished"],
+            f"The stuck takeout did not end once: {resets}, {takeouts}",
+        )
+        report = await self.api("GET", f"/api/diagnostics/config_entry/{entry_id}")
+        stuck = report["data"]["connection"]["stuck_takeout"]
+        check(
+            stuck["resets"] == 1 and not stuck["waiting"],
+            f"Diagnostics do not show the reset of the stuck takeout: {stuck}",
         )
 
     async def options(
@@ -1812,7 +1846,8 @@ async def main() -> None:
         + "local config flow and validation, registries, "
         "controls, realtime darts/corrections/takeouts with positions, persistence, "
         "dropped sockets mid-visit, outages, failing and slow reads, malformed "
-        "frames, a restart, the online bridge, weekly report, training calendar, "
+        "frames, a restart, a stuck takeout freed, the online bridge, weekly report, "
+        "training calendar, "
         "exports, Golf, Tactics and a team match with start scores, an achievement "
         "with dart positions, a match "
         "summary, double out from the next leg, a corrected dart, darts entered by "

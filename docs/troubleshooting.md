@@ -121,6 +121,13 @@ Home Assistant shows these notices under **Settings → Repairs**:
 
 To start over, press **New training session** or *New session* on the training card. To stop counting, turn off the **Training session** switch and *Start sessions automatically*.
 
+### Darts are not counted after a takeout
+
+The status stays *Takeout in progress* although the board is empty, and new darts are not counted. Board Manager 2.0.2 sometimes starts a takeout again right after one and keeps it, as a player reported. While *Free a stuck takeout* is on, the integration [resets the board](entities.md#a-takeout-the-board-never-finishes) after ten seconds and play goes on; the log names every reset at info level.
+
+- To free the board at once, press **Reset detection**.
+- If the board is still stuck after three resets, stop and start the detection, or restart the Board Manager.
+
 ### A camera is reported as a problem
 
 *Camera problem* turns on when a camera delivers no frames for 15 seconds during active detection. Check the camera's cable and USB port, and whether the camera appears in the Board Manager. Calibrating once more often helps as well.
@@ -144,7 +151,7 @@ Follow the [online bridge](online-matches.md) step by step and watch the *Online
 
 ### Download diagnostics
 
-**Settings → Devices & services → Autodarts →** the board's menu (⋮) → **Download diagnostics**. The file contains the board state, the settings summary, the Board Manager generation, connection states and the poll interval, whether a cloud connection is set up, the practice game with its rules and whether a bull-off runs, and the numbers of stored sessions, personal bests, player profiles, matches and darts at a double. Under `connection`, it also shows the connection history: failed reads in a row, the kind of the last error, the last successful read, how long the board has been away, the duration of the last read, reads answered in an unknown format and, for the realtime connection, connects, failed attempts, the current back-off, why it last ended and how many frames were skipped. The board ID, the board name, addresses, tokens and player names are redacted; error messages are not included.
+**Settings → Devices & services → Autodarts →** the board's menu (⋮) → **Download diagnostics**. The file contains the board state, the settings summary, the Board Manager generation, connection states and the poll interval, whether a cloud connection is set up, the practice game with its rules and whether a bull-off runs, and the numbers of stored sessions, personal bests, player profiles, matches and darts at a double. Under `connection`, it also shows the connection history: failed reads in a row, the kind of the last error, the last successful read, how long the board has been away, the duration of the last read, reads answered in an unknown format and, for the realtime connection, connects, failed attempts, the current back-off, why it last ended and how many frames were skipped, and under `stuck_takeout` whether stuck takeouts are freed, whether one is being timed, and how many resets the board took or refused. The board ID, the board name, addresses, tokens and player names are redacted; error messages are not included.
 
 ### Enable debug logging
 

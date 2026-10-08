@@ -446,6 +446,7 @@ The recorder stores neither `fixtures`, `standings`, `bracket`, `current`, `next
 | Detection | Switch | Starts or stops the dart detection. |
 | Start detection, Stop detection | Buttons | The same actions as buttons, for scripts and dashboards. |
 | Reset detection | Button | Discards the darts detected on the board. |
+| Free a stuck takeout | Switch, *Configuration* | Resets the board when it keeps a takeout on the empty board, see [below](#a-takeout-the-board-never-finishes). On by default. |
 | Start automatic calibration | Button, *Configuration* | Calibrates all cameras. |
 | Calibrate camera *N* | Button, *Configuration* | Calibrates one camera. |
 | Restart Board Manager | Button, *Configuration* | Restarts the Board Manager service. |
@@ -454,6 +455,16 @@ The recorder stores neither `fixtures`, `standings`, `bracket`, `current`, `next
 | Connect cloud link, Disconnect cloud link | Buttons, **BM 1**, *Disabled* | The same as buttons. |
 
 Every action is sent **once**. If the board rejects it or does not answer, Home Assistant shows an error message instead of retrying, so an action is never executed twice.
+
+### A takeout the board never finishes
+
+Board Manager 2.0.2 sometimes starts a takeout again right after a takeout and keeps it on the empty board, as a player reported: the status stays *Takeout in progress*, darts thrown then are not counted, and `takeout_finished` never comes, so automations that wait for it wait as well. A reset frees the board, and while *Free a stuck takeout* is on, the integration sends it by itself, the only command it ever sends without being asked:
+
+- **When:** the detection runs, the board shows a takeout without darts, and the board reports no hand in front of it, for ten seconds from the first state that shows it. A real takeout lasts a few seconds at most. Any other state, a hand at the board, a read that fails or turning the switch off ends the wait.
+- **Then:** the board waits for darts again, and `takeout_finished` follows with its empty state.
+- **A board that stays stuck** is reset again ten seconds later, three times in a row at most. After a dart on the board, the next stuck takeout gets three resets again.
+
+Each reset is logged at info level, and the [diagnostics](troubleshooting.md#download-diagnostics) count them. Turn the switch off to leave the board alone, for example while you look into the fault with Autodarts.
 
 ## Board settings
 

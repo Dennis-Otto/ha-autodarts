@@ -421,6 +421,9 @@
       "auto_distortion": {
         "name": "Vervormingscorrectie"
       },
+      "free_stuck_takeout": {
+        "name": "Vastgelopen verwijderen van darts oplossen"
+      },
       "training_session": {
         "name": "Trainingssessie"
       },

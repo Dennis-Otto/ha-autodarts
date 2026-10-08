@@ -421,6 +421,9 @@
       "auto_distortion": {
         "name": "Verzerrungskorrektur"
       },
+      "free_stuck_takeout": {
+        "name": "Hängende Entnahme lösen"
+      },
       "training_session": {
         "name": "Trainingssession"
       },

@@ -421,6 +421,9 @@
       "auto_distortion": {
         "name": "Distortion correction"
       },
+      "free_stuck_takeout": {
+        "name": "Free a stuck takeout"
+      },
       "training_session": {
         "name": "Training session"
       },

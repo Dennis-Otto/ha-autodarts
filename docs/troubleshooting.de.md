@@ -121,6 +121,13 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 
 Neu beginnen: **Neue Trainingssession** oder *Neue Session* auf der Trainingskarte. Soll nichts mehr gezählt werden, schalte **Trainingssession** und *Sessions automatisch starten* aus.
 
+### Nach einer Entnahme zählen keine Darts
+
+Der Status bleibt *Darts werden entnommen*, obwohl das Board leer ist, und neue Darts zählen nicht. Board Manager 2.0.2 beginnt manchmal direkt nach einer Entnahme eine neue und bleibt darin hängen, wie ein Spieler berichtet hat. Solange *Hängende Entnahme lösen* an ist, [setzt die Integration das Board](entities.de.md#eine-entnahme-die-das-board-nie-beendet) nach zehn Sekunden zurück, und es geht weiter; das Protokoll nennt jedes Zurücksetzen auf Stufe Info.
+
+- Um das Board sofort zu lösen, drücke **Erkennung zurücksetzen**.
+- Hängt das Board nach drei Versuchen noch, stoppe und starte die Erkennung oder starte den Board Manager neu.
+
 ### Eine Kamera wird als gestört gemeldet
 
 *Kamerastörung* geht an, wenn eine Kamera bei laufender Erkennung 15 Sekunden lang keine Bilder liefert. Prüfe Kabel und USB-Anschluss der Kamera und ob sie im Board Manager erscheint. Oft hilft auch eine neue Kalibrierung.
@@ -150,7 +157,7 @@ Gehe die [Online-Brücke](online-matches.de.md) Schritt für Schritt durch und b
 - die Board-Manager-Generation, die Verbindungen und das Leseintervall;
 - ob eine Cloud-Verbindung eingerichtet ist, das Übungsspiel mit seinen Regeln und ob gerade ausgebullt wird;
 - die Zahl der gespeicherten Sessions, Bestleistungen, Spielerprofile, Matches und Darts aufs Double;
-- unter `connection` den Verlauf der Verbindung: verpasste Lesevorgänge in Folge, die Art des letzten Fehlers, das letzte erfolgreiche Lesen, wie lange das Board schon fehlt, die Dauer des letzten Lesens, Abfragen mit unbekanntem Format und für die Echtzeitverbindung Verbindungsaufbauten, fehlgeschlagene Versuche, den aktuellen Abstand bis zum nächsten Versuch, den Grund des letzten Abbruchs und die Zahl übersprungener Nachrichten.
+- unter `connection` den Verlauf der Verbindung: verpasste Lesevorgänge in Folge, die Art des letzten Fehlers, das letzte erfolgreiche Lesen, wie lange das Board schon fehlt, die Dauer des letzten Lesens, Abfragen mit unbekanntem Format und für die Echtzeitverbindung Verbindungsaufbauten, fehlgeschlagene Versuche, den aktuellen Abstand bis zum nächsten Versuch, den Grund des letzten Abbruchs und die Zahl übersprungener Nachrichten, außerdem unter `stuck_takeout`, ob hängende Entnahmen gelöst werden, ob gerade eine abgewartet wird und wie viele Zurücksetzungen das Board angenommen oder abgelehnt hat.
 
 Board-ID, Board-Name, Adressen, Token und Spielernamen sind geschwärzt; Fehlermeldungen sind nicht enthalten.
 
