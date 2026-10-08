@@ -103,7 +103,7 @@ Autodarts ersetzt den klassischen Board Manager durch den Headless **Board Manag
 2. An der Integration musst du nichts ändern. Sie erkennt die neue Generation beim nächsten Lesen, lädt sich neu und ergänzt die neuen Entitäten: die Cloud-Verbindung, CPU und Speicher, Betriebssystem, Prozessor und Erkennungssoftware des Board-PCs und das Board-Manager-Update. Aktivierte Kamera-Entitäten zeigen statt Standbildern den Livestream.
 3. Entitäten, die es nur bei Board Manager 1 gibt, der Schalter für die Cloud-Verbindung und seine Tasten zum Herstellen und Trennen, werden automatisch entfernt.
 
-Trainingssession, Entitäts-IDs und Dashboards bleiben erhalten.
+Trainingssession, Entitäts-IDs und Dashboards bleiben erhalten. Was ein Spieler dabei am Board-PC selbst bemerkt hat, etwa Kameras, die neu auszuwählen sind, steht unter [Von Autodarts 1.x auf 2.x](troubleshooting.de.md#von-autodarts-1x-auf-2x).
 
 ## Von der ursprünglichen Integration umsteigen
 
