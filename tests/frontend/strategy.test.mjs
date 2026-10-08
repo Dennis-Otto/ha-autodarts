@@ -17,6 +17,7 @@ function board(device, prefix) {
     entity(`sensor.${prefix}_average`, "training_average", device),
     entity(`switch.${prefix}_calibrate_on_start`, "auto_calibrate_on_start", device),
     entity(`select.${prefix}_standby`, "standby_minutes", device),
+    entity(`switch.${prefix}_free_stuck_takeout`, "free_stuck_takeout", device),
     entity(`update.${prefix}_software`, "board_software", device),
   ];
 }
@@ -57,7 +58,11 @@ test("one board gets a live, a scoreboard, a training and a board view", () => {
   );
   assert.equal(trends[0].stat_types[0], "change");
   const settings = maintenance.sections[1].cards;
-  assert.deepEqual(settings[1].entities, ["switch.b_calibrate_on_start", "select.b_standby"]);
+  assert.deepEqual(settings[1].entities, [
+    "switch.b_calibrate_on_start",
+    "select.b_standby",
+    "switch.b_free_stuck_takeout",
+  ]);
   assert.equal(settings[2].entity, "update.b_software");
 });
 

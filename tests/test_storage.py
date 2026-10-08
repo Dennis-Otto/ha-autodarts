@@ -40,7 +40,7 @@ async def setup(hass, aioclient_mock, entry_id="stored-entry"):
 def test_the_store_is_private_and_named_after_the_entry(hass):
     store = TrainingStore(hass, "some-entry")
     assert store.key == storage_key("some-entry") == "autodarts.some-entry.training"
-    assert (store.version, store.minor_version) == (1, 2)
+    assert (store.version, store.minor_version) == (1, 3)
     # Player names are stored, so the file is readable by Home Assistant only.
     assert store._private is True
 
