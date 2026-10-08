@@ -26,6 +26,10 @@ The integration needs **no Autodarts login, password or API key** for local use.
 
 HACS shows new versions as an update in **Settings → Updates**. The update dialog shows the release notes. HACS installs the signed release package `autodarts.zip`, the same file as a [manual installation](#manually).
 
+#### Betas for testers
+
+Every change for users becomes a beta of the next release a few minutes after it reaches `main`, such as `1.10.0-beta.2`. To test them, open **Settings → Devices & services → HACS**, select the device **Autodarts**, enable its entity **Pre-release**, which HACS adds switched off and disabled, and turn it on. HACS then offers every beta as an update, with its notes; turn the switch off, and the next release brings you back. A beta may have faults that the release won't: please report them in a [tester report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml).
+
 ### Manually
 
 1. Download `autodarts.zip` of the latest release from [GitHub](https://github.com/Dennis-Otto/ha-autodarts/releases). It holds the files of the integration, without a folder around them.
