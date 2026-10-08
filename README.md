@@ -26,7 +26,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 ## Why
 
 - **Instant and local.** Darts appear in Home Assistant a fraction of a second after they land, straight from the Board Manager in your network. No account, no cloud, no client ID.
-- **A whole darts evening.** X01 from 101 to 1001, three Cricket games, six party games and eight training games, alone, as a match of up to four or as a tournament of up to eight, with a scoreboard for the tablet at the board.
+- **A whole darts evening.** X01 from 101 to 1001, four Cricket games, six party games and eight training games, alone, as a match of up to four or as a tournament of up to eight, with a scoreboard for the tablet at the board.
 - **Your progress in numbers.** Averages, heatmaps of the real dart positions, personal bests, badges, weekly trends, player profiles, a weekly report and a year of history, all kept in your home.
 - **Your home plays along.** Lights for a 180, a caller on your speakers, the board light for the takeout, a photo of your best checkout.
 
@@ -38,7 +38,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
       <h3>Play</h3>
       <ul>
         <li>X01 from 101 to 1001 with double out, double in and the checkout route after every dart</li>
-        <li>Cricket, Cut-Throat Cricket and Tactics on a chalkboard</li>
+        <li>Cricket, Cut-Throat Cricket, Tactics and Wild Mouse on a chalkboard</li>
         <li>Party games: Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up</li>
         <li>Matches of up to four players with legs and sets, two teams of two, handicap start scores and a bull-off, and a summary of every match</li>
         <li>Tournaments of three to eight players: a round robin with a table or a knockout with a bracket</li>

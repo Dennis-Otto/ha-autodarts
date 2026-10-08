@@ -456,6 +456,9 @@
       },
       "practice_manual_entry": {
         "name": "Oefenspel handmatige invoer"
+      },
+      "practice_three_in_a_bed": {
+        "name": "Oefenspel Wild Mouse three in a bed"
       }
     },
     "select": {
@@ -489,6 +492,7 @@
           "killer": "Killer",
           "cut_throat": "Cut-Throat Cricket",
           "tactics": "Tactics",
+          "wild_mouse": "Wild Mouse",
           "golf": "Golf",
           "baseball": "Baseball",
           "count_up": "Count-Up",
@@ -531,7 +535,8 @@
           "1001": "1001",
           "cricket": "Cricket",
           "cut_throat": "Cut-Throat Cricket",
-          "tactics": "Tactics"
+          "tactics": "Tactics",
+          "wild_mouse": "Wild Mouse"
         }
       }
     },
@@ -949,6 +954,10 @@
           "name": "Teams",
           "description": "Vier spelers spelen X01 of een Cricket-spel als twee teams: spelers 1 en 3 tegen spelers 2 en 4."
         },
+        "three_in_a_bed": {
+          "name": "Three in a bed",
+          "description": "Wild Mouse: drie darts van een beurt in hetzelfde vak sluiten een eigen doel, zoals de regels het willen. Uit laat het weg."
+        },
         "start_scores": {
           "name": "Startscores",
           "description": "X01-startscores van de spelers in gooivolgorde, voor een handicap, bijvoorbeeld 501 en 301; ook de plaats van de bot na de spelers heeft er een. Bij 0 of een ontbrekende score geldt de startscore van het spel. Teams spelen vanaf de startscores van speler 1 en 2."
@@ -1213,6 +1222,7 @@
         "killer": "Killer",
         "cut_throat": "Cut-Throat Cricket",
         "tactics": "Tactics",
+        "wild_mouse": "Wild Mouse",
         "golf": "Golf",
         "baseball": "Baseball",
         "count_up": "Count-Up",

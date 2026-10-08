@@ -42,7 +42,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Board-Ereignisse** | Die Momente des Spiels für Automationen, vom erkannten Dart bis zum gewonnenen Match, über die Entität *Ereignisse* | Board events, *Events* entity |
 | **Trainingssession** | Die Darts eines Trainings, gezählt von seinem Beginn bis zu seinem Ende, egal was du spielst | Training session |
 | **Übungsspiel** | Ein Spiel, das Home Assistant am lokalen Board zählt: X01, ein Cricket-Spiel, ein Partyspiel oder ein Trainingsspiel | Practice game |
-| **Cricket-Spiele** | Cricket, Cut-Throat Cricket und Tactics | Cricket games |
+| **Cricket-Spiele** | Cricket, Cut-Throat Cricket, Tactics und Wild Mouse | Cricket games |
 | **Partyspiele** | Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up | Party games |
 | **Trainingsspiele** | Around the Clock, Doppeltraining, Checkout-Training, Bob's 27, 121-Checkout, Catch 40, JDC Challenge und Singles-Training | Training games |
 | **Team-Match** | Vier Spieler bei X01 oder einem Cricket-Spiel als zwei Teams: 1 und 3 gegen 2 und 4 | Team match |
