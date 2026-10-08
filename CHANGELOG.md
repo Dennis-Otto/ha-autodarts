@@ -6,6 +6,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### New
 
+- **Aim hints in Cricket:** as on a dart machine, the chalkboard frames the cells of the player at the board: green where a dart scores, because they have closed the number and somebody still needs it, amber where somebody else has closed it and scores on them. A dart that counted nothing is struck through on the live card and the scoreboard, and a tap or a mouse tells why ([how](docs/games.md#cricket-games)).
 - **Wild Mouse:** a fourth Cricket game, also known as Minnesota Cricket. Besides 20 to 15 and the bull, every player closes three doubles, three triples and three in a bed. A dart counts for its number while it is open, otherwise for doubles or triples; the chalkboard has a row for each, the board outlines the next target, and teams, the bot and tournaments play it too. *Three in a bed* on the new game screen, or *Practice Wild Mouse three in a bed*, leaves the bed out ([rules](docs/games.md#wild-mouse)).
 
 ## [1.9.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)

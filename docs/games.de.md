@@ -218,6 +218,8 @@ Die [Referenz der Entitäten](entities.de.md#turniere) nennt Einstellungen, Tast
 
 Live-Karte und Anzeigetafel zeigen eine Kreidetafel mit den Marks jedes Spielers oder Teams (`/`, `X`, `Ⓧ`), den Punkten und den Marks pro Runde (MPR). Zahlen, die alle geschlossen haben, werden abgedunkelt, und die Scheibe umrandet die nächste offene Zahl, von 20 abwärts bis zum Bull. Hast du alles geschlossen, reichen die Punkte aber noch nicht zum Sieg, umrandet sie die höchste Zahl, die ein Gegner noch offen hat, zum Punkten; bei Cut-Throat eine, die ein Spieler mit den wenigsten Punkten offen hat. Screenreader lesen die Marks als Wörter vor.
 
+In einem Match hilft die Spalte des Spielers am Board wie ein Dartautomat: ein grüner Rahmen, wo ein Dart punktet, weil du die Zahl geschlossen hast und jemand sie noch braucht, und ein gelber Rahmen, wo jemand anderes sie geschlossen hat und auf dich punktet, du sie also besser schließt. Ein Dart der Aufnahme, der nichts gezählt hat, auf einer Zahl, die niemand mehr braucht, oder auf keiner des Spiels, wird durchgestrichen. Die Maus über einem Rahmen oder einem durchgestrichenen Dart, oder ein Tipp darauf, sagt, was er bedeutet.
+
 ### Cricket
 
 - **Marks:** Nur 20 bis 15 und das Bull zählen. Ein Single ist ein Mark, ein Double zwei, ein Triple drei; das Single-Bull ist ein Mark, das Bullseye zwei. Drei Marks schließen eine Zahl.

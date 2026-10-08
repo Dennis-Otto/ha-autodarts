@@ -45,8 +45,9 @@ class CricketVisit(NamedTuple):
     # In Cut-Throat, the other player, by their place in the others, whom the
     # points of this visit left with everything closed and the fewest points.
     other_won: int | None = None
-    # In Wild Mouse, what every dart counted for: a number, doubles or triples,
-    # or None; and whether the visit was three in a bed that counted.
+    # What every dart counted for: its number, in Wild Mouse also doubles or
+    # triples, or None for a dart that counted nothing; and in Wild Mouse
+    # whether the visit was three in a bed that counted.
     targets: tuple[str | None, ...] = ()
     bed: bool = False
 
@@ -85,9 +86,10 @@ def play_visit(
     closed everything the one with the fewest: that player wins at once.
     """
     marks, others = list(marks), list(others_points)
-    counted = 0
+    counted, chosen = 0, []
     for count, dart in enumerate(darts, 1):
         slot, add = _marks(dart, numbers)
+        before = counted
         if add:
             closing = min(MARKS_TO_CLOSE - marks[slot], add)
             marks[slot] += closing
@@ -107,13 +109,20 @@ def play_visit(
                 counted += add
             else:
                 counted += closing
+        chosen.append(str(numbers[slot]) if counted > before else None)
         if all(mark >= MARKS_TO_CLOSE for mark in marks) and all(
             points <= other if cut_throat else points >= other for other in others
         ):
-            return CricketVisit(marks, points, count, True, counted, others)
+            return CricketVisit(
+                marks, points, count, True, counted, others, targets=tuple(chosen)
+            )
         if cut_throat and (winner := _lowest_closed(others_marks, others, points)):
-            return CricketVisit(marks, points, count, False, counted, others, winner[0])
-    return CricketVisit(marks, points, len(darts), False, counted, others)
+            return CricketVisit(
+                marks, points, count, False, counted, others, winner[0], tuple(chosen)
+            )
+    return CricketVisit(
+        marks, points, len(darts), False, counted, others, targets=tuple(chosen)
+    )
 
 
 def _lowest_closed(
