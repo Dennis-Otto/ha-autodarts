@@ -173,7 +173,7 @@ logger:
 - den Diagnosedaten;
 - den passenden Protokollzeilen.
 
-Sicherheitsprobleme meldest du bitte vertraulich, wie in [SECURITY.md](../../SECURITY.md) beschrieben.
+Sicherheitsprobleme meldest du bitte vertraulich, wie in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md) beschrieben.
 
 Englisch und Deutsch sind beide willkommen. Nach wenigen Minuten setzt der Issue-Assistent die Labels und schreibt eine Erstanalyse: eine Zusammenfassung, die wahrscheinliche Ursache oder die passende Stelle der Dokumentation, verwandte Issues und, wenn nötig, Rückfragen. Der Assistent nutzt derzeit Claude, eine KI von Anthropic; er liest den Text des Issues und das öffentliche Repository und kann sich irren. Der Maintainer liest jedes Issue ebenfalls und entscheidet.
 

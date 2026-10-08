@@ -1,6 +1,6 @@
 # Autodarts for Home Assistant: documentation
 
-[← Project page](../README.md) · [Deutsche Dokumentation](de/README.md)
+[← Project page](https://github.com/Dennis-Otto/ha-autodarts) · [Deutsche Dokumentation](de/README.md)
 
 Everything about the Autodarts integration: how to set it up, play and train with it, put a scoreboard next to the board, follow your statistics and let your home join in.
 
@@ -38,7 +38,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 
 | Page | What you'll find |
 | --- | --- |
-| [Changelog](../CHANGELOG.md) | What every version brought |
+| [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) | What every version brought |
 | [Roadmap](roadmap.md) | Released versions and what comes next |
 | [Development](development.md) | Tests, Docker end-to-end test, demo instance, screenshots and CI |
 | [Releases](releases.md) | How versions and release notes are produced |
@@ -85,4 +85,4 @@ The integration speaks English, German, Dutch, French and Spanish: setup, option
 - The caller speaks the card's language with a voice of your browser or tablet for that language.
 - The documentation is in English and German, the blueprints in English because Home Assistant does not translate blueprints.
 
-To improve a translation or add a language, see [translations in CONTRIBUTING.md](../CONTRIBUTING.md#translations).
+To improve a translation or add a language, see [translations in CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations).
