@@ -22,20 +22,20 @@ def darts(*names: str) -> list[dict]:
 
 
 def test_marks_close_a_number_and_extra_marks_score_while_others_need_it():
-    marks, points, count, won, counted, _, _ = play_visit(
+    marks, points, count, won, counted, *_ = play_visit(
         OPEN, 0, darts("T20", "T20"), [OPEN], [0]
     )
     assert marks == [3, 0, 0, 0, 0, 0, 0] and points == 60
     assert (count, won, counted) == (2, False, 6)
     # Nobody else needs the 20 any more: extra marks neither score nor count.
-    marks, points, _, _, counted, _, _ = play_visit(
+    marks, points, _, _, counted, *_ = play_visit(
         OPEN, 0, darts("T20", "T20"), [[3, 0, 0, 0, 0, 0, 0]], [0]
     )
     assert points == 0 and counted == 3
 
 
 def test_the_bull_counts_two_marks_and_other_beds_none():
-    marks, points, _, _, counted, _, _ = play_visit(
+    marks, points, _, _, counted, *_ = play_visit(
         [0, 0, 0, 0, 0, 0, 2], 0, darts("BULL", "25", "S14", "MISS"), [OPEN], [0]
     )
     assert marks[6] == 3 and points == 50 and counted == 3
@@ -45,7 +45,7 @@ def test_closing_everything_wins_only_without_fewer_points():
     almost = [3, 3, 3, 3, 3, 3, 2]
     assert play_visit(almost, 0, darts("25"), [OPEN], [40])[3] is False
     # Scoring on the 20, which the other player still needs, catches up.
-    marks, points, count, won, _, _, _ = play_visit(
+    marks, points, count, won, *_ = play_visit(
         almost, 0, darts("S20", "T20", "25", "S19"), [OPEN], [40]
     )
     assert (points, count, won) == (80, 3, True) and marks == CLOSED

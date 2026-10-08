@@ -456,6 +456,9 @@
       },
       "practice_manual_entry": {
         "name": "Übungsspiel manuelle Eingabe"
+      },
+      "practice_three_in_a_bed": {
+        "name": "Übungsspiel Wild Mouse Three in a Bed"
       }
     },
     "select": {
@@ -489,6 +492,7 @@
           "killer": "Killer",
           "cut_throat": "Cut-Throat Cricket",
           "tactics": "Tactics",
+          "wild_mouse": "Wild Mouse",
           "golf": "Golf",
           "baseball": "Baseball",
           "count_up": "Count-Up",
@@ -531,7 +535,8 @@
           "1001": "1001",
           "cricket": "Cricket",
           "cut_throat": "Cut-Throat Cricket",
-          "tactics": "Tactics"
+          "tactics": "Tactics",
+          "wild_mouse": "Wild Mouse"
         }
       }
     },
@@ -949,6 +954,10 @@
           "name": "Teams",
           "description": "Vier Spieler spielen X01 oder ein Cricket-Spiel als zwei Teams: Spieler 1 und 3 gegen Spieler 2 und 4."
         },
+        "three_in_a_bed": {
+          "name": "Three in a Bed",
+          "description": "Wild Mouse: Drei Darts einer Aufnahme im selben Feld schließen ein eigenes Ziel, wie es die Regeln vorsehen. Aus lässt es weg."
+        },
         "start_scores": {
           "name": "Startpunkte",
           "description": "X01-Startpunkte der Spieler in Wurfreihenfolge, für ein Handicap, zum Beispiel 501 und 301; auch der Platz des Bots nach den Spielern hat welche. 0 oder ein fehlender Wert spielt die Startpunkte des Spiels. Teams spielen von den Startpunkten der Spieler 1 und 2."
@@ -1213,6 +1222,7 @@
         "killer": "Killer",
         "cut_throat": "Cut-Throat Cricket",
         "tactics": "Tactics",
+        "wild_mouse": "Wild Mouse",
         "golf": "Golf",
         "baseball": "Baseball",
         "count_up": "Count-Up",

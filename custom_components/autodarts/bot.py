@@ -2,7 +2,8 @@
 
 The bot aims like a player: in X01 at the treble 20 to score, along the
 checkout route when it can finish, and at the setup shot when it cannot; in
-the Cricket games it closes numbers and scores where it pays. Its darts land
+the Cricket games it closes numbers and scores where it pays, and in Wild
+Mouse also doubles, triples and three in a bed. Its darts land
 with a Gaussian scatter in millimetres around the aim point. In X01, the
 scatter of a level is calibrated so that the bot's 3-dart average in legs of
 501 with double out matches the level; in the Cricket games, so that its marks
@@ -17,7 +18,14 @@ from bisect import bisect_left
 from typing import Any
 
 from .checkout import BEDS, FINISH_ORDER, FINISHING_SCORE, checkout, setup
-from .cricket import CRICKET_NUMBERS, MARKS_TO_CLOSE, play_visit
+from .cricket import (
+    CRICKET_NUMBERS,
+    MARKS_TO_CLOSE,
+    WILD_MOUSE,
+    play_visit,
+    wild_mouse_bed,
+    wild_mouse_order,
+)
 from .scoring import evaluate_visit
 
 # 0 plays without the bot; otherwise the 3-dart average it plays, 20 to 120.
@@ -265,6 +273,75 @@ def cricket_aim(
     return _target(numbers[open_slots[0] if open_slots else 0])
 
 
+def _wild_mouse_bed(
+    slot: int,
+    marks: list[int],
+    numbers: tuple[int, ...],
+    targets: tuple[str, ...],
+    visit: list[dict[str, Any]],
+) -> str | None:
+    """A bed of the board for a Wild Mouse target: any double or triple becomes
+    the highest one whose number the bot has closed or that is no Cricket
+    number, so that the dart counts for doubles or triples."""
+    bed = wild_mouse_bed(slot, numbers, targets, visit)
+    if bed not in ("D", "T"):
+        return bed
+    free = next(
+        number
+        for number in range(20, 0, -1)
+        if number not in numbers or marks[numbers.index(number)] >= MARKS_TO_CLOSE
+    )
+    return f"{bed}{free}"
+
+
+def wild_mouse_aim(
+    marks: list[int],
+    points: int,
+    others_marks: list[list[int]],
+    others_points: list[int],
+    numbers: tuple[int, ...],
+    targets: tuple[str, ...],
+    visit: list[dict[str, Any]],
+) -> str:
+    """Close what others score on, score while behind, else close in order.
+
+    As in Cricket, but over every target of Wild Mouse in the order players
+    close them; three in a bed follows the first dart of the visit, and once the
+    visit's darts can no longer make a bed, the next target takes over.
+    """
+    order = wild_mouse_order(numbers, targets)
+    closed = {slot: marks[slot] >= MARKS_TO_CLOSE for slot in order}
+    open_slots = [slot for slot in order if not closed[slot]]
+    threats = [
+        slot
+        for slot in open_slots
+        if any(other[slot] >= MARKS_TO_CLOSE for other in others_marks)
+    ]
+    scoring = [
+        slot
+        for slot in order
+        if closed[slot] and any(other[slot] < MARKS_TO_CLOSE for other in others_marks)
+    ]
+    behind = bool(others_points) and max(others_points) > points
+    if threats and not (behind and scoring):
+        wanted = [*threats, *open_slots, *scoring]
+    elif scoring and (behind or not open_slots):
+        wanted = [*scoring, *open_slots]
+    else:
+        wanted = [*open_slots, *scoring]
+    beds = (_wild_mouse_bed(slot, marks, numbers, targets, visit) for slot in wanted)
+    return next((bed for bed in beds if bed), "T20")
+
+
+def _dart(key: str) -> dict[str, Any]:
+    """A dart of the snapshot's visit, such as T20, 25, BULL or MISS."""
+    if key in ("25", "BULL"):
+        return {"number": 25, "multiplier": 1 if key == "25" else 2}
+    if key == "MISS":
+        return {"number": 0, "multiplier": 0}
+    return {"number": int(key[1:]), "multiplier": "SDT".index(key[0]) + 1}
+
+
 def aim(snapshot: dict[str, Any]) -> str:
     """Where the bot aims next, from the practice game's snapshot."""
     if snapshot.get("bull_off"):
@@ -281,6 +358,16 @@ def aim(snapshot: dict[str, Any]) -> str:
             for score in scores
             if score["player"] != player and (team is None or score.get("team") != team)
         ]
+        if snapshot["game"] == WILD_MOUSE:
+            return wild_mouse_aim(
+                own["marks"],
+                own["points"],
+                [score["marks"] for score in others],
+                [score["points"] for score in others],
+                numbers,
+                tuple(snapshot["targets"]),
+                [_dart(key) for key in snapshot["visit"]],
+            )
         return cricket_aim(
             own["marks"],
             own["points"],

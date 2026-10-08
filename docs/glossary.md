@@ -42,7 +42,7 @@ The words of darts and of this integration, as the documentation, the entities a
 | **Board events** | The moments of the game for automations, from a detected dart to a won match, through the *Events* entity | Board-Ereignisse, Entität *Ereignisse* |
 | **Training session** | The darts of one training, counted from its start to its end, whatever you play | Trainingssession |
 | **Practice game** | A game Home Assistant counts on the local board: X01, a Cricket game, a party game or a training game | Übungsspiel |
-| **Cricket games** | Cricket, Cut-Throat Cricket and Tactics | Cricket-Spiele |
+| **Cricket games** | Cricket, Cut-Throat Cricket, Tactics and Wild Mouse | Cricket-Spiele |
 | **Party games** | Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up | Partyspiele |
 | **Training games** | Around the Clock, doubles training, checkout training, Bob's 27, 121 checkout, Catch 40, JDC Challenge and singles training | Trainingsspiele |
 | **Team match** | Four players of X01 or a Cricket game as two teams: 1 and 3 against 2 and 4 | Team-Match |

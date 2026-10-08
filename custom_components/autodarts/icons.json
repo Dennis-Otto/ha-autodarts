@@ -378,6 +378,9 @@
       },
       "practice_manual_entry": {
         "default": "mdi:keyboard-outline"
+      },
+      "practice_three_in_a_bed": {
+        "default": "mdi:bed"
       }
     },
     "text": {

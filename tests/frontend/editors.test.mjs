@@ -195,8 +195,8 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
     "Cricket",
     "Cut-Throat Cricket",
     "Tactics",
+    "Wild Mouse",
     "Shanghai",
-    "Halve-It",
   ]);
   assert.equal(labels(games).at(-1), "Singles training");
   assert.equal(form.computeLabel(games), "Games offered");
@@ -245,7 +245,7 @@ test("the editor offers the games of the board on the page", () => {
   ]);
   // A board without the practice game leaves the list of every game the card knows.
   mount("autodarts-scoreboard-card", makeHass({ states: READY })).remove();
-  assert.equal(formOf("autodarts-scoreboard-card").schema[5].schema[1].selector.select.options.length, 23);
+  assert.equal(formOf("autodarts-scoreboard-card").schema[5].schema[1].selector.select.options.length, 24);
 });
 
 test("the doubles form offers the named players and takes any other name", () => {

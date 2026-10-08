@@ -254,7 +254,12 @@ const TEXT = {
     cricket: "Cricket",
     cricket_cut_throat: "Cut-Throat Cricket",
     cricket_tactics: "Tactics",
+    cricket_wild_mouse: "Wild Mouse",
     cut_throat_hint: "Fewest points win",
+    wild_mouse_hint: "Doubles and triples close too",
+    wild_doubles: "Doubles",
+    wild_triples: "Triples",
+    wild_bed: "3 in a bed",
     cricket_mpr: "MPR",
     cricket_points: "Points",
     mark_0: "No marks",
@@ -416,6 +421,7 @@ const TEXT = {
     lobby_start_lower: "Lower start score: {name}",
     lobby_start_raise: "Higher start score: {name}",
     teams: "Teams (1 + 3 against 2 + 4)",
+    three_in_a_bed: "Three in a bed",
     double_out: "Double out",
     double_in: "Double in",
     bull_off_distance: "Bull-off by distance",
@@ -819,7 +825,12 @@ const TEXT = {
     cricket: "Cricket",
     cricket_cut_throat: "Cut-Throat Cricket",
     cricket_tactics: "Tactics",
+    cricket_wild_mouse: "Wild Mouse",
     cut_throat_hint: "Die wenigsten Punkte gewinnen",
+    wild_mouse_hint: "Auch Doubles und Triples schließen",
+    wild_doubles: "Doubles",
+    wild_triples: "Triples",
+    wild_bed: "3 in a Bed",
     cricket_mpr: "MPR",
     cricket_points: "Punkte",
     mark_0: "Keine Marks",
@@ -979,6 +990,7 @@ const TEXT = {
     lobby_start_lower: "Weniger Startpunkte: {name}",
     lobby_start_raise: "Mehr Startpunkte: {name}",
     teams: "Teams (1 + 3 gegen 2 + 4)",
+    three_in_a_bed: "Three in a Bed",
     double_out: "Double-Out",
     double_in: "Double-In",
     bull_off_distance: "Ausbullen nach Abstand",
@@ -1373,7 +1385,12 @@ const TEXT = {
     cricket: "Cricket",
     cricket_cut_throat: "Cut-Throat Cricket",
     cricket_tactics: "Tactics",
+    cricket_wild_mouse: "Wild Mouse",
     cut_throat_hint: "Gana quien tenga menos puntos",
+    wild_mouse_hint: "Dobles y triples también se cierran",
+    wild_doubles: "Dobles",
+    wild_triples: "Triples",
+    wild_bed: "3 in a bed",
     cricket_mpr: "MPR",
     cricket_points: "Puntos",
     mark_0: "Sin marcas",
@@ -1532,6 +1549,7 @@ const TEXT = {
     lobby_start_lower: "Bajar puntuación inicial: {name}",
     lobby_start_raise: "Subir puntuación inicial: {name}",
     teams: "Equipos (1 + 3 contra 2 + 4)",
+    three_in_a_bed: "Three in a bed",
     double_out: "Double out",
     double_in: "Double in",
     bull_off_distance: "Bull-off por distancia",
@@ -1925,7 +1943,12 @@ const TEXT = {
     cricket: "Cricket",
     cricket_cut_throat: "Cut-Throat Cricket",
     cricket_tactics: "Tactics",
+    cricket_wild_mouse: "Wild Mouse",
     cut_throat_hint: "Le moins de points gagne",
+    wild_mouse_hint: "Doubles et triples se ferment aussi",
+    wild_doubles: "Doubles",
+    wild_triples: "Triples",
+    wild_bed: "3 in a bed",
     cricket_mpr: "MPR",
     cricket_points: "Points",
     mark_0: "Aucune marque",
@@ -2084,6 +2107,7 @@ const TEXT = {
     lobby_start_lower: "Baisser le score de départ\u00a0: {name}",
     lobby_start_raise: "Augmenter le score de départ\u00a0: {name}",
     teams: "Équipes (1 + 3 contre 2 + 4)",
+    three_in_a_bed: "Three in a bed",
     double_out: "Double out",
     double_in: "Double in",
     bull_off_distance: "Bull-off départagé à la distance",
@@ -2477,7 +2501,12 @@ const TEXT = {
     cricket: "Cricket",
     cricket_cut_throat: "Cut-Throat Cricket",
     cricket_tactics: "Tactics",
+    cricket_wild_mouse: "Wild Mouse",
     cut_throat_hint: "Laagste score wint",
+    wild_mouse_hint: "Ook doubles en triples sluiten",
+    wild_doubles: "Doubles",
+    wild_triples: "Triples",
+    wild_bed: "3 in a bed",
     cricket_mpr: "MPR",
     cricket_points: "Punten",
     mark_0: "Geen marks",
@@ -2636,6 +2665,7 @@ const TEXT = {
     lobby_start_lower: "Lagere startscore: {name}",
     lobby_start_raise: "Hogere startscore: {name}",
     teams: "Teams (1 + 3 tegen 2 + 4)",
+    three_in_a_bed: "Three in a bed",
     double_out: "Double out",
     double_in: "Double in",
     bull_off_distance: "Bullen: gemeten afstand beslist",
@@ -3114,6 +3144,7 @@ const SCOREBOARD_KEYS = {
   bullOff: "switch.practice_bull_off",
   bullOffDistance: "switch.practice_bull_off_distance",
   teams: "switch.practice_teams",
+  threeInABed: "switch.practice_three_in_a_bed",
   // The bot for the new game screen, and whether darts can be entered by hand.
   botLevel: "number.practice_bot_level",
   manualEntry: "switch.practice_manual_entry",
@@ -3805,7 +3836,9 @@ function drillBeds(drill) {
 }
 
 const CRICKET_NUMBERS = [20, 19, 18, 17, 16, 15, 25];
-const CRICKET_GAMES = ["cricket", "cut_throat", "tactics"];
+const CRICKET_GAMES = ["cricket", "cut_throat", "tactics", "wild_mouse"];
+// What Wild Mouse closes besides the numbers, in the order of its rows.
+const WILD_TARGETS = ["doubles", "triples", "bed"];
 // No mark, one, two, and a closed number, as on a Cricket chalkboard.
 const CRICKET_MARKS = ["", "/", "X", "Ⓧ"];
 
@@ -3813,15 +3846,18 @@ const CRICKET_MARKS = ["", "/", "X", "Ⓧ"];
 function cricketView(state) {
   const attributes = state?.attributes || {};
   if (!state || state.state === "unavailable" || !CRICKET_GAMES.includes(attributes.game)) return null;
-  // Tactics adds the numbers 14 to 10.
+  // Tactics adds the numbers 14 to 10, Wild Mouse doubles, triples and three in a bed.
   const numbers =
     Array.isArray(attributes.numbers) && attributes.numbers.length && attributes.numbers.every(Number.isInteger)
       ? attributes.numbers
       : CRICKET_NUMBERS;
+  const wild = attributes.game === "wild_mouse";
+  const targets =
+    wild && Array.isArray(attributes.targets) ? attributes.targets.filter((key) => WILD_TARGETS.includes(key)) : [];
+  const slots = numbers.length + targets.length;
   const scores = (Array.isArray(attributes.scores) ? attributes.scores : [])
     .filter(
-      (score) =>
-        score && Number.isInteger(score.player) && Array.isArray(score.marks) && score.marks.length === numbers.length
+      (score) => score && Number.isInteger(score.player) && Array.isArray(score.marks) && score.marks.length === slots
     )
     .map((score) => ({
       player: score.player,
@@ -3834,11 +3870,19 @@ function cricketView(state) {
       sets: finite(score.sets) ?? 0,
       mpr: finite(score.mpr),
     }));
+  // Wild Mouse aims at any double or triple, too.
+  const aim = (target) => hitBeds(target).length || (wild && ["D", "T"].includes(target));
   return {
     kind: attributes.game,
     numbers,
+    targets,
+    // The row to aim at, as a triple can also count for triples in Wild Mouse.
+    targetRow: wild && typeof attributes.target_row === "string" ? attributes.target_row : null,
+    // What every dart of the visit counted for in Wild Mouse.
+    counted: wild && Array.isArray(attributes.counted) ? attributes.counted : [],
+    bed: wild && attributes.bed === true,
     teams: teamsView(attributes.teams),
-    target: typeof attributes.target === "string" && hitBeds(attributes.target).length ? attributes.target : null,
+    target: typeof attributes.target === "string" && aim(attributes.target) ? attributes.target : null,
     won: attributes.won === true,
     darts: finite(attributes.darts) ?? 0,
     points: finite(attributes.points) ?? 0,
@@ -3854,10 +3898,12 @@ function cricketView(state) {
 }
 
 // Beds to aim at in Cricket: the treble of the next open number, or the whole
-// bull, whose beds both mark.
+// bull, whose beds both mark; in Wild Mouse also every double or triple.
 function cricketBeds(cricket) {
   if (!cricket || cricket.won || cricket.winner !== null || !cricket.target) return [];
-  return cricket.target === "BULL" ? targetBeds("25") : hitBeds(cricket.target);
+  return ["BULL", "D", "T"].includes(cricket.target)
+    ? targetBeds(cricket.target === "BULL" ? "25" : cricket.target)
+    : hitBeds(cricket.target);
 }
 
 const PARTY_GAMES = ["shanghai", "halve_it", "killer", "golf", "baseball", "count_up"];
@@ -4307,14 +4353,14 @@ function cricketTable(cricket, ui, { aim = true } = {}) {
       .join("")}</tr>`;
   const marks = (count) =>
     `<span role="img" aria-label="${escapeHtml(t(`mark_${count}`))}">${CRICKET_MARKS[count]}</span>`;
-  const rows = cricket.numbers.map((number, slot) => {
-    const bed = number === 25 ? "BULL" : `T${number}`;
-    const style = columns.every((column) => column.marks[slot] >= 3)
-      ? "closed"
-      : bed === cricket.target
-        ? "target"
-        : "";
-    return row(style, number === 25 ? "Bull" : String(number), (column) => marks(column.marks[slot]));
+  // The numbers, then what Wild Mouse closes besides them.
+  const keys = [...cricket.numbers.map(String), ...cricket.targets];
+  const rows = keys.map((key, slot) => {
+    const bed = key === "25" ? "BULL" : `T${key}`;
+    const aimed = cricket.targetRow === null ? bed === cricket.target : key === cricket.targetRow;
+    const style = columns.every((column) => column.marks[slot] >= 3) ? "closed" : aimed ? "target" : "";
+    const heading = key === "25" ? "Bull" : WILD_TARGETS.includes(key) ? t(`wild_${key}`) : key;
+    return row(style, heading, (column) => marks(column.marks[slot]));
   });
   const text = (value) => (column) => escapeHtml(value(column));
   if (match) rows.push(row("total", t("cricket_points"), text((column) => String(column.points))));
@@ -4328,8 +4374,8 @@ function cricketTable(cricket, ui, { aim = true } = {}) {
   const next = aim && cricket.target && !cricket.won && cricket.winner === null ? bedChips(ui, [cricket.target]) : "";
   const shot = aim && cricket.won && cricket.winner === null ? note(t("game_shot"), "won") : "";
   const corner = shot || next;
-  // Tactics has twelve numbers; they fit the screen in smaller type.
-  const size = cricket.numbers.length > CRICKET_NUMBERS.length ? " many" : "";
+  // Tactics has twelve numbers and Wild Mouse ten rows; they fit the screen in smaller type.
+  const size = keys.length > CRICKET_NUMBERS.length ? " many" : "";
   // The next number sits above the numbers, so the chalkboard fits a landscape screen.
   return (
     `<table class="cricket${size}">${
@@ -4646,7 +4692,7 @@ function scoreboardHtml(view, ui) {
   const game = { cricket: view.cricket, party: view.party }[view.mode] ?? view.practice;
   const round = view.mode === "party" ? partyRound(game, t) : "";
   // Cut-Throat turns the points round, and Golf's players stop by pulling their darts.
-  const hint = { cut_throat: "cut_throat_hint", golf: "golf_hint" }[game.kind];
+  const hint = { cut_throat: "cut_throat_hint", wild_mouse: "wild_mouse_hint", golf: "golf_hint" }[game.kind];
   const scorecard = view.mode === "party" && SCORECARD_GAMES.includes(game.kind);
   // The summary of a won match takes the place of the players.
   const main = view.summary
@@ -4836,7 +4882,7 @@ const LOBBY_LIMITS = { players: 4, name: 20, legs: 11, sets: 7 };
 const KNOWN_GAMES = ["101", "301", "501", "701", "901", "1001", ...CRICKET_GAMES, ...PARTY_GAMES, ...DRILLS];
 // A game that ended opens the new game screen after this pause, so the result shows first.
 const LOBBY_DELAY = 8000;
-const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance", "teams"];
+const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance", "teams", "three_in_a_bed"];
 // Teams are two pairs of players; start scores of their own go in steps of 100.
 const TEAM_SIZE = 4;
 // The bot's level: its 3-dart average, set in steps of 10.
@@ -4910,6 +4956,7 @@ function lobbyChoice(board, games) {
     double_in: board.double_in === true,
     bull_off: board.bull_off === true,
     bull_off_distance: board.bull_off_distance === true,
+    three_in_a_bed: board.three_in_a_bed !== false,
     // The bot's level, where the board has a bot.
     ...(Number.isInteger(board.bot) && board.bot >= BOT_LEVELS[0] ? { bot: Math.min(board.bot, BOT_LEVELS[1]) } : {}),
     // A tournament instead of a match, with the settings of the next tournament.
@@ -5004,7 +5051,7 @@ function lobbySuggestions(profiles, names, links, chosen) {
 }
 
 // The start_game action for a choice; rules the game or the board does not have stay out.
-function startGameData(choice, { entry = null, distance = false } = {}) {
+function startGameData(choice, { entry = null, distance = false, bed = false } = {}) {
   const rules = gameRules(choice.game);
   const players = choice.players.slice(0, rules.maxPlayers - Number(botSeat(choice)));
   const data = { game: choice.game, players: players.length ? players : [""] };
@@ -5022,6 +5069,7 @@ function startGameData(choice, { entry = null, distance = false } = {}) {
   const bot = botSeat(choice);
   if (rules.bot && "bot" in choice) data.bot_level = bot ? choice.bot : 0;
   if (rules.teams && players.length + Number(bot) === TEAM_SIZE) data.teams = choice.teams === true;
+  if (bed && choice.game === "wild_mouse") data.three_in_a_bed = choice.three_in_a_bed !== false;
   return data;
 }
 
@@ -5141,6 +5189,7 @@ function lobbyHtml(choice, ui) {
     ...(!choice.tournament && rules.teams && ui.teams && choice.players.length + Number(bot) === TEAM_SIZE
       ? ["teams"]
       : []),
+    ...(!choice.tournament && ui.bed && choice.game === "wild_mouse" ? ["three_in_a_bed"] : []),
     ...(choice.tournament && choice.format === "knockout" && choice.players.length >= THIRD_PLACE_PLAYERS
       ? ["third_place"]
       : []),
@@ -6489,7 +6538,16 @@ function visitCount(view, keys, start) {
     return { kind: "score", score: start - practice.remaining };
   }
   if (view.mode === "cricket" && !view.cricket.won) {
-    return { kind: "marks", marks: keys.reduce((sum, key) => sum + cricketMarks(key, view.cricket.numbers), 0) };
+    const { cricket } = view;
+    // In Wild Mouse a dart marks its number, or doubles or triples once, and a bed once more.
+    const marks =
+      cricket.kind === "wild_mouse"
+        ? keys.reduce((sum, key, index) => {
+            const counted = cricket.counted[index];
+            return sum + (WILD_TARGETS.includes(counted) ? 1 : cricketMarks(key, counted ? [Number(counted)] : []));
+          }, Number(cricket.bed))
+        : keys.reduce((sum, key) => sum + cricketMarks(key, cricket.numbers), 0);
+    return { kind: "marks", marks };
   }
   // Killer counts lives, and in Golf the last dart counts, whenever the darts are pulled.
   const { party } = view;
@@ -6683,6 +6741,7 @@ const PRACTICE_KEYS = [
   "switch.practice_bull_off",
   "switch.practice_bull_off_distance",
   "switch.practice_teams",
+  "switch.practice_three_in_a_bed",
   "switch.practice_personal_routes",
   "select.practice_golf_holes",
   "number.practice_count_up_rounds",
@@ -10919,6 +10978,7 @@ function createElements(Base) {
         bull_off: on("bullOff"),
         bull_off_distance: on("bullOffDistance"),
         teams: on("teams"),
+        three_in_a_bed: !this._state("threeInABed") || on("threeInABed"),
         starts: this._startIds().map((id) => {
           const start = Number(this._hass.states[id]?.state);
           return Number.isInteger(start) ? start : 0;
@@ -11016,7 +11076,11 @@ function createElements(Base) {
     // Darts count only while the board detects them: the start switches detection on,
     // which the new game screen says beforehand.
     _startGame(choice) {
-      const options = { entry: this._entry(), distance: Boolean(this._ids.bullOffDistance) };
+      const options = {
+        entry: this._entry(),
+        distance: Boolean(this._ids.bullOffDistance),
+        bed: Boolean(this._ids.threeInABed),
+      };
       if (this._detectionOff()) this._toggleDetection();
       if (choice.tournament) this._startTournament(tournamentStartData(choice, options));
       else this._call("autodarts", "start_game", startGameData(choice, options));
@@ -11295,6 +11359,7 @@ function createElements(Base) {
           suggestions: lobbySuggestions(this._state("profiles"), this._board().names, ui.links, choice.players),
           distance: Boolean(this._ids.bullOffDistance),
           teams: Boolean(this._ids.teams),
+          bed: Boolean(this._ids.threeInABed),
           running: ![undefined, "off", "unknown", "unavailable"].includes(this._state("game")?.state),
           confirmEnd: this._confirm === "end",
           confirmStart: this._confirm === "start",

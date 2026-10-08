@@ -1598,6 +1598,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         bull_off: bool | None = None,
         bull_off_distance: bool | None = None,
         teams: bool | None = None,
+        three_in_a_bed: bool | None = None,
         start_scores: list[int] | None = None,
         holes: int | None = None,
         rounds: int | None = None,
@@ -1615,6 +1616,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ("bull_off", bull_off),
             ("bull_off_distance", bull_off_distance),
             ("teams", teams),
+            ("three_in_a_bed", three_in_a_bed),
         ):
             if value is not None:
                 practice.set_option(option, value)
