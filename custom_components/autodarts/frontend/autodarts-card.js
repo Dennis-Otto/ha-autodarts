@@ -5027,8 +5027,10 @@ function personLinks(hass, profiles) {
 // The new game screen ------------------------------------------------------------
 
 const LOBBY_GROUPS = ["x01", "cricket", "party", "training", "more"];
-// Limits of the start_game action.
+// Limits of the start_game action: four players in X01, the Cricket and the training
+// games, and a party of eight in a party game.
 const LOBBY_LIMITS = { players: 4, name: 20, legs: 11, sets: 7 };
+const PARTY_PLAYERS = 8;
 // Every game of the practice select this card knows, for the editor before a board is seen.
 const KNOWN_GAMES = ["101", "301", "501", "701", "901", "1001", ...CRICKET_GAMES, ...PARTY_GAMES, ...DRILLS];
 // A game that ended opens the new game screen after this pause, so the result shows first.
@@ -5062,7 +5064,7 @@ function gameRules(game) {
     teams: group === "x01" || group === "cricket",
     bot: group === "x01" || group === "cricket",
     minPlayers: game === "killer" ? 2 : 1,
-    maxPlayers: drill ? 1 : LOBBY_LIMITS.players,
+    maxPlayers: drill ? 1 : group === "party" ? PARTY_PLAYERS : LOBBY_LIMITS.players,
   };
 }
 
@@ -5084,7 +5086,7 @@ const within = (value, max, fallback) =>
 // rules as the board has them now. A name twice becomes a guest.
 function lobbyChoice(board, games) {
   const game = games.includes(board.game) ? board.game : games.includes("501") ? "501" : games[0];
-  const count = within(board.players, LOBBY_LIMITS.players, 1);
+  const count = within(board.players, PARTY_PLAYERS, 1);
   const players = [];
   for (let index = 0; index < count; index += 1) {
     const name = String(board.names[index] ?? "").trim();
@@ -5125,7 +5127,9 @@ const botSeat = (choice) => Boolean(choice.bot) && !choice.tournament && gameRul
 // How many players a choice takes: up to four in a match, eight in a tournament;
 // the bot takes a seat of its own.
 const playerLimit = (choice) =>
-  choice.tournament ? TOURNAMENT_LIMITS.players : LOBBY_LIMITS.players - Number(botSeat(choice));
+  choice.tournament
+    ? TOURNAMENT_LIMITS.players
+    : (gameGroup(choice.game) === "party" ? PARTY_PLAYERS : LOBBY_LIMITS.players) - Number(botSeat(choice));
 
 // The choice after a tap: a game, a player added, moved or removed, the format or a rule.
 function lobbyChange(choice, action, value) {
@@ -5276,6 +5280,7 @@ function lobbyHtml(choice, ui) {
         )
         .join("")}</div>`
     : "";
+  // How the chosen game is played shows right below its group, where the eyes are.
   const games = offered
     .map(
       ({ group, games: list }) =>
@@ -8261,6 +8266,13 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .players.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .players.n3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .players.n4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* A party of five to eight in two rows of four, on tiles with less room around the
+     score, so that all of them fit a screen. */
+  .players:is(.n5, .n6, .n7, .n8) { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(6px, 1.2cqi, 16px); }
+  :is(.n5, .n6, .n7, .n8) > .player { padding: clamp(6px, 1.2cqi, 18px) 8px; gap: clamp(2px, .5cqi, 8px); }
+  :is(.n5, .n6, .n7, .n8) > .player .name { font-size: clamp(14px, 2cqi, 30px); }
+  :is(.n5, .n6, .n7, .n8) > .player .route { font-size: clamp(12px, 1.6cqi, 22px); }
+  :is(.n5, .n6, .n7, .n8) > .player .details { font-size: clamp(11px, 1.4cqi, 18px); }
   .player {
     display: flex; flex-direction: column; align-items: center; gap: clamp(4px, .8cqi, 12px); min-width: 0;
     padding: clamp(12px, 2.2cqi, 32px) 12px; border-radius: 20px; border: 2px solid transparent;
@@ -8313,9 +8325,11 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .n2 .big { font-size: clamp(64px, min(15cqi, 26vh), 240px); }
   .n3 .big { font-size: clamp(48px, min(10cqi, 22vh), 170px); }
   .n4 .big { font-size: clamp(44px, min(8cqi, 20vh), 140px); }
+  :is(.n5, .n6, .n7, .n8) .big { font-size: clamp(36px, min(7cqi, 13vh), 120px); }
   @container (max-width: 640px) {
-    .players.n3, .players.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .players.n3, .players.n4, .players:is(.n5, .n6, .n7, .n8) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .n3 .big, .n4 .big { font-size: clamp(44px, min(15cqi, 14vh), 120px); }
+    :is(.n5, .n6, .n7, .n8) .big { font-size: clamp(32px, min(12cqi, 9vh), 96px); }
   }
   /* The route, a note and the details keep their lines while empty, so a tile stays as
      high from the first dart to the game shot. A tile too narrow for a route with what it
@@ -8670,9 +8684,11 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .scoreboard.full .n2 .big { font-size: clamp(40px, min(15cqi, 100cqh - 19cqi), 240px); }
   .scoreboard.full .n3 .big { font-size: clamp(36px, min(10cqi, 100cqh - 19cqi), 170px); }
   .scoreboard.full .n4 .big { font-size: clamp(36px, min(8cqi, 100cqh - 19cqi), 140px); }
+  .scoreboard.full :is(.n5, .n6, .n7, .n8) .big { font-size: clamp(24px, min(6cqi, 50cqh - 14cqi), 110px); }
   .scoreboard.full .players.teams .big { font-size: clamp(36px, min(15cqi, 100cqh - 23cqi), 240px); }
   @container (max-width: 640px) {
     .scoreboard.full :is(.n3, .n4) .big { font-size: clamp(32px, min(15cqi, 50cqh - 21cqi), 120px); }
+    .scoreboard.full :is(.n5, .n6, .n7, .n8) .big { font-size: clamp(24px, min(12cqi, 25cqh - 20cqi), 96px); }
   }
   .scoreboard.full .cricket td { font-size: clamp(13px, min(4.4cqi, 6.2cqh), 60px); }
   .scoreboard.full .cricket tbody th { font-size: clamp(12px, min(3cqi, 5.4cqh), 42px); }
@@ -8720,10 +8736,14 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   /* A portrait tablet: the tiles fill the height, two players one above the other. */
   @media (orientation: portrait) {
     .scoreboard.full .players.n2 { grid-template-columns: minmax(0, 1fr); }
-    .scoreboard.full .players:is(.n3, .n4) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .scoreboard.full .players:is(.n3, .n4, .n5, .n6, .n7, .n8) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .scoreboard.full .n1 .big { font-size: clamp(80px, min(36cqi, 100cqh - 19cqi), 420px); }
     .scoreboard.full .n2 .big { font-size: clamp(64px, min(30cqi, 50cqh - 21cqi), 360px); }
     .scoreboard.full :is(.n3, .n4) .big { font-size: clamp(48px, min(17cqi, 50cqh - 21cqi), 220px); }
+    .scoreboard.full :is(.n5, .n6, .n7, .n8) .big { font-size: clamp(28px, min(12cqi, 25cqh - 20cqi), 140px); }
+    .scoreboard.full :is(.n5, .n6, .n7, .n8) > .player .name { font-size: clamp(14px, 3.4cqi, 34px); }
+    .scoreboard.full :is(.n5, .n6, .n7, .n8) > .player .route { font-size: clamp(12px, 2.6cqi, 26px); }
+    .scoreboard.full :is(.n5, .n6, .n7, .n8) > .player .details { font-size: clamp(11px, 2.4cqi, 22px); }
     .scoreboard.full .players.teams .big { font-size: clamp(48px, min(26cqi, 50cqh - 25cqi), 320px); }
     .scoreboard.full .single .big { font-size: clamp(80px, min(36cqi, 100cqh - 13cqi), 420px); }
     .scoreboard.full .cricket td { font-size: clamp(14px, min(6cqi, 6.2cqh), 80px); }

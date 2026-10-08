@@ -822,6 +822,9 @@
     "bot_seat": {
       "message": "Con el bot juegan hasta tres jugadores: el bot ocupa el cuarto puesto."
     },
+    "too_many_players": {
+      "message": "Este juego admite como máximo {count} jugadores; los juegos de fiesta, hasta ocho."
+    },
     "invalid_segment": {
       "message": "{segment} no es un segmento de la diana. Introduce S1 a S20, D1 a D20, T1 a T20, 25 (o S25, SB, OB) para el bull exterior, BULL (o D25, DB, 50) para el bullseye o MISS."
     },

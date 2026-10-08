@@ -7,7 +7,7 @@ from homeassistant.exceptions import ServiceValidationError, Unauthorized
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.practice import MAX_LEGS, MAX_PLAYERS, MAX_SETS
+from custom_components.autodarts.practice import MAX_LEGS, MAX_SETS, PARTY_PLAYERS
 from custom_components.autodarts.profiles import NAME_LENGTH
 
 from .local_helpers import board, entry_data, mock_cloud, setup_local
@@ -40,7 +40,7 @@ async def invalid(hass, service: str, **data) -> ServiceValidationError:
     "data",
     [
         {"game": "501", "players": []},
-        {"game": "501", "players": ["A"] * (MAX_PLAYERS + 1)},
+        {"game": "killer", "players": ["A"] * (PARTY_PLAYERS + 1)},
         {"game": "501", "players": [LONGEST + "x"]},
         {"game": "501", "legs": 0},
         {"game": "501", "legs": MAX_LEGS + 1},
@@ -64,7 +64,7 @@ async def test_start_game_rejects_values_beyond_its_limits(hass, aioclient_mock,
     [
         (
             {"game": "501", "players": ["A", "B", "C", LONGEST]},
-            lambda practice: practice.names == ["A", "B", "C", LONGEST],
+            lambda practice: practice.names[:5] == ["A", "B", "C", LONGEST, ""],
         ),
         # One name is a list of one.
         (

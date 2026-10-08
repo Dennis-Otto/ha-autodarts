@@ -941,7 +941,7 @@ def test_the_practice_settings_come_back_after_the_tournament():
         sets=1,
         rules={"double_in": False},
     )
-    assert practice.bot_level == 0 and practice.names[2:] == ["", ""]
+    assert practice.bot_level == 0 and practice.names[2:] == [""] * 6
     # Storage keeps what comes back.
     copy = TournamentDirector()
     copy.restore(stored(tournament))
@@ -972,8 +972,8 @@ def test_stopping_brings_the_settings_back_after_the_match_being_played():
     assert practice.names[:2] == playing and practice.resume == before
     # A deleted player does not come back with the settings.
     practice.forget("EVA")
-    assert practice.resume["names"] == ["Zoe", "Mia", "Leo", ""]
-    before["names"] = ["Zoe", "Mia", "Leo", ""]
+    assert practice.resume["names"] == ["Zoe", "Mia", "Leo"] + [""] * 5
+    before["names"] = ["Zoe", "Mia", "Leo"] + [""] * 5
     # A change of a setting brings the others back first.
     practice.set_format(legs=5)
     assert practice.settings() == {**before, "legs_to_win": 5}
@@ -1061,7 +1061,7 @@ def test_a_deleted_player_leaves_the_next_tournament_but_not_one_being_played():
     assert error.value.translation_placeholders == {"name": "sam"}
     # A player from before the tournament does not come back after it.
     tournament.forget("ZOE")
-    assert tournament.saved["names"] == ["", "", "", ""]
+    assert tournament.saved["names"] == [""] * 8
     tournament.stop(practice)
     tournament.forget("Sam")
     assert tournament.setup.players == ["Alex", "Kim"]

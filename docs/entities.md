@@ -200,10 +200,10 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 | Practice checkout rate | Sensor, % | Legs won per dart thrown at a double, over the last 10 legs. A dart counts at a double when one double could finish the score: 2 to 40 when even, or 50. Only with double out. |
 | Practice doubles rate | Sensor, % | The same darts at a double together with the last 10 results of the doubles training and Bob's 27. |
 | Practice legs played | Sensor, total | Legs finished in X01, the Cricket games and the party games; its long-term statistics show the legs per day. An undone visit that won a leg takes the leg back. |
-| Practice players | Number, *Configuration* | 1–4 players; with the [bot](#bot), 1–3 besides it. A change starts a new match. |
+| Practice players | Number, *Configuration* | 1–4 players, in a [party game](#party-games) and before a game is chosen 1–8; with the [bot](#bot), 1–3 besides it. Choosing X01, a Cricket or a training game leaves the first four. A change starts a new match. |
 | Practice legs per set | Number, *Configuration* | 1–11 legs win a set. A change starts a new match. |
 | Practice sets to win | Number, *Configuration* | 1–7 sets win the match. A change starts a new match. |
-| Practice player *N* | Text, *Configuration* | Name of player 1–4, at most 20 characters, for the scoreboard and the events. Without a name, the card shows *Player N*. |
+| Practice player *N* | Text, *Configuration* | Name of player 1–8, at most 20 characters, for the scoreboard and the events. Without a name, the card shows *Player N*. |
 | Practice double out | Switch, *Configuration* | Finish on a double or the bullseye. On by default. Before the first dart of a leg a change applies at once; during a leg it applies from the next leg, so the leg in progress keeps its rules. |
 | Practice double in | Switch, *Configuration* | Start scoring with a double or the bullseye. Off by default; a change starts a new match. |
 | Practice bull-off | Switch, *Configuration* | A bull-off decides who starts a match of several players. Off by default; a change starts a new match. |
@@ -359,7 +359,7 @@ The [doubles card](cards.md#doubles-card) draws the hit rate of every double on 
 
 <img src="images/en/killer.webp" alt="Animation: Killer for Alex, Sam and Kim on the scoreboard. Everybody throws for a number, Alex becomes a killer and takes Sam's lives, Kim becomes a killer too, and Alex takes the last life to win" width="760">
 
-Six pub classics for one to four players, chosen in *Practice game*. They follow the darts like X01, book a visit when you pull the darts, and win legs and sets like any match. The live card and the [scoreboard](cards.md#scoreboard-card) show the round, the target, every player's points or lives, and outline the beds to aim at; in Golf and Baseball, the scoreboard keeps a scorecard of every hole and inning.
+Six pub classics for one to eight players, chosen in *Practice game*. They follow the darts like X01, book a visit when you pull the darts, and win legs and sets like any match. The live card and the [scoreboard](cards.md#scoreboard-card) show the round, the target, every player's points or lives, and outline the beds to aim at; in Golf and Baseball, the scoreboard keeps a scorecard of every hole and inning.
 
 | Game | Rules |
 | --- | --- |
@@ -535,7 +535,7 @@ Sets up and starts a game in one call, for automations, scripts, dashboard butto
 | Field | Values | Description |
 | --- | --- | --- |
 | `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles`, or a game's name | The game; required. A name as the game list shows it, in any language of the integration, works too, without regard to case, spaces and punctuation: `Around the Clock`, `Bobs 27`, `Doppeltraining`. The beginning of a name is enough where it fits one game alone, such as `Cut Throat` |
-| `players` | 1–4 names | Players in throwing order; the number of names sets the number of players. A name a player's profile already has keeps the profile's spelling, so `alex` plays as Alex |
+| `players` | 1–4 names, 1–8 in a party game | Players in throwing order; the number of names sets the number of players. A name a player's profile already has keeps the profile's spelling, so `alex` plays as Alex |
 | `legs` | 1–11 | Legs that win a set |
 | `sets` | 1–7 | Sets that win the match |
 | `double_out` | `true`, `false` | Finish X01 legs on a double or the bullseye |
