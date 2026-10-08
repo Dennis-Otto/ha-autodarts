@@ -12,6 +12,11 @@ required_checks = [
   "e2e (Home Assistant 2026.8.0)",
 ]
 
+# A beta of the next release after every change for users, for the testers
+# (release.yml of the blueprint).
+[variables]
+BETA_CHANNEL = "true"
+
 # An environment of this project and the secrets it needs:
 # [environments.deploy]
 # secrets = ["DEPLOY_TOKEN"]

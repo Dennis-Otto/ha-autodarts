@@ -4,6 +4,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### New
+
+- **Betas for testers:** every change for users becomes a beta of the next release within minutes, which HACS offers to those who turn on the switch *Pre-release* of the integration ([how](docs/installation.md#betas-for-testers)).
+
 ## [1.9.1](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.0...v1.9.1) (2026-10-07)
 
 ### Fixed
