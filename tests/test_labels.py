@@ -2,7 +2,8 @@
 defined in .github/labels.toml, which the issue assistant's Labels workflow applies.
 
 The issue assistant's check in the Lint workflow covers the issue forms and its own
-labels; this test covers the pull requests and the bots of the blueprint.
+labels; this test covers the pull requests, the bots of the blueprint and the
+translation bot.
 """
 
 import re
@@ -22,6 +23,12 @@ def test_every_label_in_use_is_defined():
         used |= set(yaml.safe_load(path.read_text("utf-8")).get("labels", []))
     titles = (ROOT / ".github/workflows/pull-request-title.yml").read_text("utf-8")
     used |= set(re.search(r"managed=\(([^)]*)\)", titles)[1].split())
+    # The labels of the translation bot's issues.
+    bot = (ROOT / "scripts/translations.mjs").read_text("utf-8")
+    listed = re.search(r"^export const LABELS = \[(.*)\];$", bot, re.M)[1]
+    bot_labels = set(re.findall(r'"([^"]+)"', listed))
+    assert {"translations", "help wanted"} <= bot_labels
+    used |= bot_labels
     # The release bot, the branch bot and Dependabot.
     used |= {"autorelease: pending", "autorelease: tagged", "merge-conflict"}
     used |= {"dependencies", "github_actions", "python", "docker", "javascript"}

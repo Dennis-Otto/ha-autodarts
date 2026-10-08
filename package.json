@@ -1,14 +1,14 @@
 {
   "name": "hacs-autodarts-development",
   "private": true,
-  "description": "Development tooling for the Autodarts dashboard cards. Nothing here is published or shipped.",
+  "description": "Development tooling for the Autodarts dashboard cards and the translation bot. Nothing here is published or shipped.",
   "license": "MIT",
   "type": "module",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "test": "node --test --experimental-test-coverage --test-coverage-include=custom_components/autodarts/frontend/autodarts-card.js --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \"tests/frontend/*.test.mjs\" \"tests/frontend/*.test.js\""
+    "test": "node --test --experimental-test-coverage --test-coverage-include=custom_components/autodarts/frontend/autodarts-card.js --test-coverage-include=scripts/translations.mjs --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 \"tests/frontend/*.test.mjs\" \"tests/frontend/*.test.js\""
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

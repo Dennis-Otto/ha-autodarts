@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The checks of this integration alone, which scripts/check.sh runs last: the license
-# terms, the rules of ESLint for the JavaScript (eslint.config.mjs), and the tests of
-# the dashboard cards with Node (100 % of lines, branches and functions covered).
+# terms, the rules of ESLint for the JavaScript (eslint.config.mjs), and the tests
+# of the dashboard cards and of the translation bot with Node (100 % of lines,
+# branches and functions covered).
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -22,7 +23,7 @@ for path in ("LICENSE", "custom_components/autodarts/LICENSE"):
 print("LICENSE and the copy in the integration carry the MIT terms.")
 PYTHON
 
-printf '\n== %s\n' "The cards"
+printf '\n== %s\n' "The cards and the translation bot"
 if ! command -v node >/dev/null 2>&1 || [[ ! -d node_modules ]]; then
 	# The CI sets up Node and runs npm ci, so there a missing one is an error.
 	if [[ -n "${CI:-}" ]]; then

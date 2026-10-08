@@ -1,5 +1,5 @@
 // The rules of the JavaScript of this repository: ESLint's recommended rules, for the
-// dashboard cards in the browser and for their tests in Node.
+// dashboard cards in the browser and for their tests and the scripts in Node.
 // https://eslint.org/docs/latest/use/configure/
 import js from "@eslint/js";
 import globals from "globals";
@@ -26,7 +26,7 @@ export default [
     },
   },
   {
-    files: ["tests/**/*.js", "tests/**/*.mjs", "eslint.config.mjs"],
+    files: ["tests/**/*.js", "tests/**/*.mjs", "scripts/**/*.mjs", "eslint.config.mjs"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
