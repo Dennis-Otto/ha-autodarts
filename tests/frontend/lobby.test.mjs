@@ -295,7 +295,7 @@ test("between games a big button opens the new game screen with the board's sett
   assert.equal($(card, ".scoreboard").classList.contains("choosing"), true);
   assert.equal($(card, ".lobby").getAttribute("aria-label"), "Choose the game, the players and the format");
   assert.deepEqual(
-    $$(card, ".lobby-group .section-label").map((label) => label.textContent),
+    $$(card, ".lobby-group > .section-label").map((label) => label.textContent),
     ["X01", "Cricket", "Party games", "Training games"]
   );
   assert.equal($$(card, ".game").length, 14);
@@ -533,6 +533,38 @@ test("Wild Mouse offers three in a bed, which goes with its start", () => {
   assert.equal(startGameData({ game: "wild_mouse", players: ["A"] }, { bed: true }).three_in_a_bed, true);
 });
 
+test("the screen says how the chosen game is played and links to all its rules", () => {
+  const site = "https://dennis-otto.github.io/ha-autodarts/";
+  const rules = (card) => [$(card, ".lobby-rules p").textContent, $(card, ".lobby-rules a").getAttribute("href")];
+  const { card } = setup();
+  tap(card, ".lobby-toggle");
+  lobbyTap(card, "game", "501");
+  assert.equal(text(card, ".lobby-rules .section-label"), "How to play");
+  assert.deepEqual(rules(card), [
+    "Count down to exactly zero; with double out, the last dart hits a double or the bullseye. A dart that goes too far busts the visit.",
+    `${site}games.html#x01`,
+  ]);
+  assert.equal($(card, ".lobby-rules a").getAttribute("target"), "_blank");
+  assert.equal(text(card, ".lobby-rules a"), "All rules");
+  lobbyTap(card, "game", "doubles");
+  assert.equal(rules(card)[1], `${site}games.html#doubles-training`);
+  lobbyTap(card, "game", "halve_it");
+  assert.equal(rules(card)[1], `${site}games.html#halve-it`);
+  // In German, the German page and its heading.
+  const german = setup({}, {}, { language: "de" }).card;
+  tap(german, ".lobby-toggle");
+  lobbyTap(german, "game", "doubles");
+  assert.equal(text(german, ".lobby-rules .section-label"), "So wird gespielt");
+  assert.deepEqual(rules(german), [
+    "Triff D1 bis D20 und dann das Bullseye der Reihe nach, mit so wenigen Darts wie möglich.",
+    `${site}de/games.html#doppeltraining`,
+  ]);
+  // A game the card does not know has no rules to show.
+  const odd = setup({ "select.practice_game": { state: "off", attributes: { options: ["off", "bingo"] } } }).card;
+  tap(odd, ".lobby-toggle");
+  assert.equal($(odd, ".lobby-rules"), null);
+});
+
 test("during a game the screen opens with it chosen and can end it with a second tap", (t) => {
   t.mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: 0 });
   const running = {
@@ -691,7 +723,7 @@ test("the new game screen speaks German and names newer games as Home Assistant 
   tap(card, ".lobby-toggle");
   assert.equal(text(card, ".title"), "Neues Spiel");
   assert.deepEqual(
-    $$(card, ".lobby-group .section-label").map((label) => label.textContent),
+    $$(card, ".lobby-group > .section-label").map((label) => label.textContent),
     ["X01", "Cricket", "Partyspiele", "Trainingsspiele", "Weitere Spiele"]
   );
   assert.equal($$(card, ".game").at(-1).textContent, "Bingo");
