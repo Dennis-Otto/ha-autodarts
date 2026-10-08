@@ -98,9 +98,21 @@ Released as 1.9.0 on 29 September 2026; the [changelog](https://github.com/Denni
 - What a mouse shows as a tooltip, a tap shows too.
 - The game settings of the automatic dashboard in a view of their own.
 
+## Version 1.10: like a dart machine
+
+Released as 1.10.0 on 8 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1100-2026-10-08) has the details.
+
+- Wild Mouse, also known as Minnesota Cricket: Cricket plus doubles, triples and three in a bed.
+- Aim hints on the chalkboard of every Cricket game, and darts that counted nothing struck through.
+- Confetti and a golden glow for a 180, a game shot and the match on the scoreboard.
+- How to play every game on the new game screen.
+- Party games for up to eight players.
+- A takeout that Board Manager 2.0.2 never finishes is freed by itself.
+- Animations and diagrams of the new games, and what changes on the way from Autodarts 1.x to 2.x.
+
 ## Next
 
-Ideas for the versions after 1.9. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
+Ideas for the versions after 1.10. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
 
 | Topic | What it brings | Dependency |
 | --- | --- | --- |

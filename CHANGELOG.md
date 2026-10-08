@@ -19,6 +19,11 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **The scoreboard's header on a phone:** during a game, the *New game* button, the caller and the status kept to one row wider than the card, which cut off the end of the status, such as *Ready – throw!*, on a small phone in every language and on an iPhone in German and French. Where they do not fit beside each other, they now wrap below the title, and the status still keeps its width, so nothing moves while it changes.
 
+### Documentation
+
+- Animations of Wild Mouse, of the aim hints in Cricket and of a 180 on the scoreboard, pictures of the Wild Mouse chalkboard and of Killer for a party of eight, and diagrams of where a dart counts in Wild Mouse and of how a stuck takeout is freed ([games](docs/games.md#wild-mouse)).
+- What changes on the way from Autodarts 1.x to 2.x, as a player reported it: the cameras to choose again in their old order, the first contact with the Autodarts server, the port and the stuck takeout ([troubleshooting](docs/troubleshooting.md#from-autodarts-1x-to-2x)).
+
 ## [1.9.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)
 
 ### New

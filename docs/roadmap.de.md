@@ -98,9 +98,21 @@ Erschienen als 1.9.0 am 29. September 2026; die Details stehen im [Changelog](ht
 - Was die Maus als Tooltip zeigt, zeigt auch ein Tipp.
 - Die Spieleinstellungen des automatischen Dashboards in einer eigenen Ansicht.
 
+## Version 1.10: wie am Dartautomaten
+
+Erschienen als 1.10.0 am 8. Oktober 2026; die Details stehen im [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1100-2026-10-08) (auf Englisch).
+
+- Wild Mouse, auch als Minnesota Cricket bekannt: Cricket plus Doubles, Triples und Three in a Bed.
+- Zielhilfen auf der Kreidetafel jedes Cricket-Spiels, und Darts ohne Wirkung werden durchgestrichen.
+- Konfetti und ein goldenes Leuchten bei 180, Game Shot und Match auf der Anzeigetafel.
+- So wird gespielt: jedes Spiel kurz erklärt auf dem Bildschirm für ein neues Spiel.
+- Partyspiele für bis zu acht Spieler.
+- Eine Entnahme, die Board Manager 2.0.2 nie beendet, löst sich von selbst.
+- Animationen und Diagramme der neuen Spiele, und was sich beim Umstieg von Autodarts 1.x auf 2.x ändert.
+
 ## Als Nächstes
 
-Ideen für die Versionen nach 1.9. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
+Ideen für die Versionen nach 1.10. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
 
 | Thema | Was es bringt | Voraussetzung |
 | --- | --- | --- |
