@@ -71,7 +71,7 @@ Recorded in the demo with a simulated board. MP4 works in video editors, on Redd
 
 ## Pictures
 
-Every screenshot of the documentation is in [`docs/images/en`](images/en) and [`docs/images/de`](images/de), all taken in the demo. A few that show the integration at a glance:
+Every screenshot of the documentation is in [`docs/images/en`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/docs/images/en) and [`docs/images/de`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/docs/images/de), all taken in the demo. A few that show the integration at a glance:
 
 | | |
 | --- | --- |
