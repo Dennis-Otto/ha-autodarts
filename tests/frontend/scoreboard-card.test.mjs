@@ -380,6 +380,31 @@ test("the checkout training shows a dash without a target, and the game shot", (
 // An X01 visit as the practice sensor counts it: the remaining score after the darts it counted.
 const x01 = (remaining, keys = [], attributes = {}) => game({ remaining, visit: keys, ...attributes });
 
+test("a 180 brings confetti over the scoreboard, also without the caller, unless switched off", () => {
+  const { hass, card } = setup(x01(501));
+  const moment = () => $(card, ".celebrate .moment");
+  assert.equal($(card, ".celebrate").getAttribute("aria-hidden"), "true");
+  assert.equal(moment(), null);
+  let next = update(hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
+  card.hass = next;
+  assert.deepEqual([moment().className, moment().dataset.round, $$(card, ".celebrate i").length], ["moment max", "1", 36]);
+  // The next 180 starts afresh.
+  next = update(next, { ...visit(), ...x01(321, []) });
+  card.hass = next;
+  card.hass = update(next, { ...visit(T20, T20, T20), ...x01(141, ["T20", "T20", "T20"]) });
+  assert.equal(moment().dataset.round, "2");
+  // Switched off, and in the preview of the card picker, nothing is celebrated.
+  for (const [config, preview] of [
+    [{ celebrations: false }, false],
+    [{}, true],
+  ]) {
+    const other = setup(x01(501), config);
+    other.card.preview = preview;
+    other.card.hass = update(other.hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
+    assert.equal($(other.card, ".celebrate").children.length, 0);
+  }
+});
+
 test("the caller is off by default and says nothing", () => {
   const { hass, card } = setup(game({ remaining: 501 }));
   assert.equal($(card, ".caller-toggle"), null);
