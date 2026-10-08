@@ -579,13 +579,16 @@ test("labels that GitHub dropped from a new issue are added afterwards", async (
   assert.deepEqual(log, ["French: 1 update, opened #101"]);
 });
 
+// The addresses of the links of a Markdown text.
+const links = (markdown) => [...markdown.matchAll(/\]\(([^)\s]+)\)/g)].map((match) => match[1]);
+
 test("without --sync the bot prints its issues; with it, it needs a token and writes to GitHub", async () => {
   const repository = history();
   const log = [];
   await main([], {}, { cwd: repository.dir, log: (line) => log.push(line) });
   assert.equal(log.length, 2);
   assert.ok(log[0].startsWith("# Translation: German needs 1 update · Deutsch: 1 Text zu aktualisieren\n\n<!-- translation-bot: de -->"));
-  assert.ok(log[0].includes("https://github.com/Dennis-Otto/ha-autodarts/edit/main/"));
+  assert.ok(links(log[0]).some((link) => link.startsWith("https://github.com/Dennis-Otto/ha-autodarts/edit/main/")));
   assert.ok(log[1].startsWith("# Translation: French needs 3 updates"));
   await assert.rejects(main(["--sync"], {}, { cwd: repository.dir }), /--sync needs GITHUB_TOKEN/);
   const github = fakeGitHub();
@@ -599,7 +602,8 @@ test("without --sync the bot prints its issues; with it, it needs a token and wr
   await main(["--sync"], env, { cwd: repository.dir, fetch: github.fetch, log: (line) => log.push(line) });
   assert.deepEqual(log, ["German: 1 update, opened #101", "French: 3 updates, opened #102"]);
   assert.ok(github.requests.every((sent) => sent.url.startsWith("https://api.github.example/repos/someone/fork/")));
-  assert.ok(github.requests.at(-1).body.body.includes("https://github.example/someone/fork/blob/main/"));
+  const fork = links(github.requests.at(-1).body.body);
+  assert.ok(fork.length > 3 && fork.every((link) => link.startsWith("https://github.example/someone/fork/")), fork);
   // Without the variables of a workflow, the API of github.com.
   const plain = fakeGitHub();
   await main(["--sync"], { GITHUB_TOKEN: "token" }, { cwd: repository.dir, fetch: plain.fetch, log() {} });
