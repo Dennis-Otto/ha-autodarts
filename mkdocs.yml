@@ -54,6 +54,8 @@ plugins:
 # other language lead to the pages of the website, as the links of the Markdown do.
 hooks:
   - scripts/mkdocs_hooks.py
+  # The hooks of the blueprint, such as the sitemap of every language.
+  - .github/mkdocs_blueprint.py
 
 # The menu, a tab in the header for each section. The German website has the same
 # one, with the German pages and the titles of nav_translations above.
