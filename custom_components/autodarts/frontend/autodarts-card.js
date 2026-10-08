@@ -412,6 +412,27 @@ const TEXT = {
     lobby_decrease: "Fewer: {name}",
     lobby_increase: "More: {name}",
     lobby_options: "Options",
+    lobby_rules: "How to play",
+    lobby_rules_more: "All rules",
+    rules_x01: "Count down to exactly zero; with double out, the last dart hits a double or the bullseye. A dart that goes too far busts the visit.",
+    rules_cricket: "Close 20 to 15 and the bull with three marks each. Marks on a number another player still has open score its value. Close everything with no fewer points to win.",
+    rules_cut_throat: "Like Cricket, but your marks on a closed number give its value to every player who still has it open. Close everything with the fewest points to win.",
+    rules_tactics: "Cricket on 20 down to 10 and the bull: twelve numbers to close.",
+    rules_wild_mouse: "Cricket plus three doubles, three triples and three darts in one bed. A dart marks its open number first, otherwise doubles or triples.",
+    rules_shanghai: "Seven rounds at 1 to 7: every dart on the round's number scores. A single, double and triple of it in one visit win at once.",
+    rules_halve_it: "Start with 40 points; nine rounds at 15, 16, any double, 17, 18, any triple, 19, 20 and the bull. A visit without a hit halves your points.",
+    rules_killer: "Throw for a number, hit its double to become a killer, then take the others' lives on their doubles. The last player with a life wins.",
+    rules_golf: "Hole n on the number n: the last of up to three darts counts, a double 1 stroke, a triple 2, singles 3 or 4, anything else 5. The fewest strokes win.",
+    rules_baseball: "Nine innings on the numbers 1 to 9: a single scores 1 run, a double 2, a triple 3. The most runs win.",
+    rules_count_up: "Every dart scores its value; the most points after the last round win.",
+    rules_around_the_clock: "Hit 1 to 20 and then the bull in order, in as few darts as you can.",
+    rules_doubles: "Hit D1 to D20 and then the bullseye in order, in as few darts as you can.",
+    rules_checkout: "A random finish from 2 to 170, checked out on a double within three visits.",
+    rules_bobs_27: "Start with 27 and throw a visit at each double: a hit adds its value, a visit without one subtracts it. Zero or less loses.",
+    rules_checkout_121: "Check out 121 in nine darts: a finish raises the target, a miss lowers it, never below 121.",
+    rules_catch_40: "Check out 61 to 100 within six darts each: 3 points in two darts, 2 in three, 1 in up to six.",
+    rules_jdc_challenge: "The 57-dart routine of the Junior Darts Corporation: 10 to 15, every double and the bullseye, then 15 to 20.",
+    rules_singles: "One visit at each number from 1 to 20 and the bull: a point per mark.",
     lobby_one_player: "Training games are for one player: {name} plays.",
     lobby_resting: "{game} is for {count}: the others sit out.",
     lobby_full: "{count} players at most.",
@@ -984,6 +1005,27 @@ const TEXT = {
     lobby_decrease: "Weniger: {name}",
     lobby_increase: "Mehr: {name}",
     lobby_options: "Optionen",
+    lobby_rules: "So wird gespielt",
+    lobby_rules_more: "Alle Regeln",
+    rules_x01: "Zähle auf genau null herunter; mit Double-Out trifft der letzte Dart ein Double oder das Bullseye. Ein Dart zu viel überwirft die Aufnahme.",
+    rules_cricket: "Schließe 20 bis 15 und das Bull mit je drei Marks. Marks auf einer Zahl, die ein anderer noch offen hat, punkten ihren Wert. Wer alles schließt und nicht weniger Punkte hat, gewinnt.",
+    rules_cut_throat: "Wie Cricket, aber deine Marks auf einer geschlossenen Zahl geben ihren Wert jedem, der sie noch offen hat. Wer alles mit den wenigsten Punkten schließt, gewinnt.",
+    rules_tactics: "Cricket auf 20 bis 10 und das Bull: zwölf Zahlen zum Schließen.",
+    rules_wild_mouse: "Cricket plus drei Doubles, drei Triples und drei Darts in einem Feld. Ein Dart markiert zuerst seine offene Zahl, sonst Doubles oder Triples.",
+    rules_shanghai: "Sieben Runden auf 1 bis 7: Jeder Dart auf die Zahl der Runde punktet. Single, Double und Triple davon in einer Aufnahme gewinnen sofort.",
+    rules_halve_it: "Start mit 40 Punkten; neun Runden auf 15, 16, ein Double, 17, 18, ein Triple, 19, 20 und das Bull. Eine Aufnahme ohne Treffer halbiert deine Punkte.",
+    rules_killer: "Wirf um eine Zahl, triff ihr Double und werde Killer, dann nimm den anderen auf ihren Doubles Leben. Wer als Letzter ein Leben hat, gewinnt.",
+    rules_golf: "Loch n auf der Zahl n: Der letzte von bis zu drei Darts zählt, ein Double 1 Schlag, ein Triple 2, Singles 3 oder 4, sonst 5. Die wenigsten Schläge gewinnen.",
+    rules_baseball: "Neun Innings auf die Zahlen 1 bis 9: Ein Single bringt 1 Run, ein Double 2, ein Triple 3. Die meisten Runs gewinnen.",
+    rules_count_up: "Jeder Dart punktet seinen Wert; die meisten Punkte nach der letzten Runde gewinnen.",
+    rules_around_the_clock: "Triff 1 bis 20 und dann das Bull der Reihe nach, mit so wenigen Darts wie möglich.",
+    rules_doubles: "Triff D1 bis D20 und dann das Bullseye der Reihe nach, mit so wenigen Darts wie möglich.",
+    rules_checkout: "Ein zufälliger Rest von 2 bis 170, auf ein Double gecheckt in drei Aufnahmen.",
+    rules_bobs_27: "Start mit 27 und je eine Aufnahme auf jedes Double: Ein Treffer addiert seinen Wert, eine Aufnahme ohne zieht ihn ab. Null oder weniger verliert.",
+    rules_checkout_121: "Checke 121 in neun Darts: Ein Finish erhöht das Ziel, ein Fehlversuch senkt es, nie unter 121.",
+    rules_catch_40: "Checke 61 bis 100 in je sechs Darts: 3 Punkte mit zwei Darts, 2 mit drei, 1 mit bis zu sechs.",
+    rules_jdc_challenge: "Die 57-Dart-Routine der Junior Darts Corporation: 10 bis 15, jedes Double und das Bullseye, dann 15 bis 20.",
+    rules_singles: "Je eine Aufnahme auf jede Zahl von 1 bis 20 und das Bull: ein Punkt pro Mark.",
     lobby_one_player: "Trainingsspiele sind für einen Spieler: {name} spielt.",
     lobby_resting: "{game} ist für {count}: Die übrigen setzen aus.",
     lobby_full: "Höchstens {count} Spieler.",
@@ -1546,6 +1588,27 @@ const TEXT = {
     lobby_decrease: "Menos: {name}",
     lobby_increase: "Más: {name}",
     lobby_options: "Opciones",
+    lobby_rules: "Cómo se juega",
+    lobby_rules_more: "Todas las reglas",
+    rules_x01: "Cuenta hacia atrás hasta cero exacto; con double out, el último dardo da en un doble o en el bullseye. Un dardo que se pasa anula la tirada.",
+    rules_cricket: "Cierra del 20 al 15 y el bull con tres marcas cada uno. Las marcas en un número que otro aún tiene abierto puntúan su valor. Gana quien lo cierra todo sin tener menos puntos.",
+    rules_cut_throat: "Como Cricket, pero tus marcas en un número cerrado dan su valor a cada jugador que aún lo tiene abierto. Gana quien lo cierra todo con menos puntos.",
+    rules_tactics: "Cricket del 20 al 10 y el bull: doce números que cerrar.",
+    rules_wild_mouse: "Cricket más tres dobles, tres triples y tres dardos en un mismo segmento. Un dardo marca primero su número abierto; si no, dobles o triples.",
+    rules_shanghai: "Siete rondas del 1 al 7: cada dardo en el número de la ronda puntúa. Simple, doble y triple de él en una tirada ganan al instante.",
+    rules_halve_it: "Empiezas con 40 puntos; nueve rondas al 15, 16, cualquier doble, 17, 18, cualquier triple, 19, 20 y el bull. Una tirada sin acierto divide tus puntos a la mitad.",
+    rules_killer: "Lanza por un número, acierta su doble para ser killer y quita vidas a los demás en sus dobles. Gana el último con vida.",
+    rules_golf: "Hoyo n en el número n: cuenta el último de hasta tres dardos; un doble 1 golpe, un triple 2, simples 3 o 4, lo demás 5. Gana quien tenga menos golpes.",
+    rules_baseball: "Nueve entradas en los números 1 a 9: un simple vale 1 carrera, un doble 2, un triple 3. Gana quien tenga más carreras.",
+    rules_count_up: "Cada dardo puntúa su valor; gana quien tenga más puntos tras la última ronda.",
+    rules_around_the_clock: "Acierta del 1 al 20 y luego el bull en orden, con los menos dardos posibles.",
+    rules_doubles: "Acierta del D1 al D20 y luego el bullseye en orden, con los menos dardos posibles.",
+    rules_checkout: "Un cierre aleatorio de 2 a 170, terminado en un doble en tres tiradas.",
+    rules_bobs_27: "Empiezas con 27 y lanzas una tirada a cada doble: un acierto suma su valor, una tirada sin acierto lo resta. Cero o menos pierde.",
+    rules_checkout_121: "Cierra 121 en nueve dardos: un cierre sube el objetivo, un fallo lo baja, nunca por debajo de 121.",
+    rules_catch_40: "Cierra del 61 al 100 en seis dardos cada uno: 3 puntos con dos dardos, 2 con tres, 1 con hasta seis.",
+    rules_jdc_challenge: "La rutina de 57 dardos de la Junior Darts Corporation: del 10 al 15, cada doble y el bullseye, luego del 15 al 20.",
+    rules_singles: "Una tirada a cada número del 1 al 20 y al bull: un punto por marca.",
     lobby_one_player: "Los juegos de entrenamiento son para un jugador: juega {name}.",
     lobby_resting: "{game} es para {count}: los demás descansan.",
     lobby_full: "{count} jugadores como máximo.",
@@ -2107,6 +2170,27 @@ const TEXT = {
     lobby_decrease: "Moins\u00a0: {name}",
     lobby_increase: "Plus\u00a0: {name}",
     lobby_options: "Options",
+    lobby_rules: "Comment jouer",
+    lobby_rules_more: "Toutes les règles",
+    rules_x01: "Comptez à rebours jusqu'à zéro exactement\u00a0; avec le double out, la dernière fléchette touche un double ou le bullseye. Une fléchette de trop annule la volée.",
+    rules_cricket: "Fermez du 20 au 15 et le bull avec trois marques chacun. Les marques sur un numéro qu'un autre a encore ouvert rapportent sa valeur. Fermez tout sans avoir moins de points pour gagner.",
+    rules_cut_throat: "Comme le Cricket, mais vos marques sur un numéro fermé donnent sa valeur à chaque joueur qui l'a encore ouvert. Fermez tout avec le moins de points pour gagner.",
+    rules_tactics: "Cricket du 20 au 10 et le bull\u00a0: douze numéros à fermer.",
+    rules_wild_mouse: "Cricket plus trois doubles, trois triples et trois fléchettes dans la même zone. Une fléchette marque d'abord son numéro ouvert, sinon doubles ou triples.",
+    rules_shanghai: "Sept manches du 1 au 7\u00a0: chaque fléchette sur le numéro de la manche marque. Simple, double et triple de ce numéro dans une volée gagnent aussitôt.",
+    rules_halve_it: "Départ à 40 points\u00a0; neuf manches sur 15, 16, un double, 17, 18, un triple, 19, 20 et le bull. Une volée sans touche divise vos points par deux.",
+    rules_killer: "Tirez pour un numéro, touchez son double pour devenir killer, puis prenez des vies aux autres sur leurs doubles. Le dernier en vie gagne.",
+    rules_golf: "Trou n sur le numéro n\u00a0: la dernière de trois fléchettes au plus compte, un double 1 coup, un triple 2, les simples 3 ou 4, sinon 5. Le moins de coups gagne.",
+    rules_baseball: "Neuf manches sur les numéros 1 à 9\u00a0: un simple vaut 1 point, un double 2, un triple 3. Le plus de points gagne.",
+    rules_count_up: "Chaque fléchette marque sa valeur\u00a0; le plus de points après la dernière manche gagne.",
+    rules_around_the_clock: "Touchez du 1 au 20 puis le bull dans l'ordre, avec le moins de fléchettes possible.",
+    rules_doubles: "Touchez du D1 au D20 puis le bullseye dans l'ordre, avec le moins de fléchettes possible.",
+    rules_checkout: "Un score aléatoire de 2 à 170 à finir sur un double en trois volées.",
+    rules_bobs_27: "Départ à 27 et une volée sur chaque double\u00a0: une touche ajoute sa valeur, une volée sans touche la retire. Zéro ou moins perd.",
+    rules_checkout_121: "Finissez 121 en neuf fléchettes\u00a0: une réussite monte la cible, un échec la baisse, jamais sous 121.",
+    rules_catch_40: "Finissez de 61 à 100 en six fléchettes chacun\u00a0: 3 points en deux fléchettes, 2 en trois, 1 en six au plus.",
+    rules_jdc_challenge: "La routine de 57 fléchettes de la Junior Darts Corporation\u00a0: du 10 au 15, chaque double et le bullseye, puis du 15 au 20.",
+    rules_singles: "Une volée sur chaque numéro de 1 à 20 et sur le bull\u00a0: un point par marque.",
     lobby_one_player: "Les jeux d'entraînement se jouent seul\u00a0: c'est {name} qui joue.",
     lobby_resting: "{game} se joue à {count}\u00a0: les autres attendent.",
     lobby_full: "{count} joueurs au maximum.",
@@ -2668,6 +2752,27 @@ const TEXT = {
     lobby_decrease: "Minder: {name}",
     lobby_increase: "Meer: {name}",
     lobby_options: "Opties",
+    lobby_rules: "Zo speel je",
+    lobby_rules_more: "Alle regels",
+    rules_x01: "Tel af naar precies nul; met double out raakt de laatste dart een double of de bullseye. Een dart te veel maakt de beurt ongeldig.",
+    rules_cricket: "Sluit 20 tot 15 en de bull met elk drie marks. Marks op een getal dat een ander nog open heeft, scoren de waarde ervan. Wie alles sluit zonder minder punten, wint.",
+    rules_cut_throat: "Als Cricket, maar je marks op een gesloten getal geven de waarde aan iedereen die het nog open heeft. Wie alles sluit met de minste punten, wint.",
+    rules_tactics: "Cricket op 20 tot 10 en de bull: twaalf getallen om te sluiten.",
+    rules_wild_mouse: "Cricket plus drie doubles, drie triples en drie darts in één vak. Een dart telt eerst voor zijn open getal, anders voor doubles of triples.",
+    rules_shanghai: "Zeven rondes op 1 tot 7: elke dart op het getal van de ronde scoort. Single, double en triple ervan in één beurt winnen meteen.",
+    rules_halve_it: "Start met 40 punten; negen rondes op 15, 16, een double, 17, 18, een triple, 19, 20 en de bull. Een beurt zonder treffer halveert je punten.",
+    rules_killer: "Gooi om een getal, raak de double ervan om killer te worden en neem dan de anderen levens af op hun doubles. Wie als laatste een leven heeft, wint.",
+    rules_golf: "Hole n op het getal n: de laatste van maximaal drie darts telt, een double 1 slag, een triple 2, singles 3 of 4, anders 5. De minste slagen winnen.",
+    rules_baseball: "Negen innings op de getallen 1 tot 9: een single is 1 run, een double 2, een triple 3. De meeste runs winnen.",
+    rules_count_up: "Elke dart scoort zijn waarde; de meeste punten na de laatste ronde winnen.",
+    rules_around_the_clock: "Raak 1 tot 20 en dan de bull op volgorde, met zo min mogelijk darts.",
+    rules_doubles: "Raak D1 tot D20 en dan de bullseye op volgorde, met zo min mogelijk darts.",
+    rules_checkout: "Een willekeurige finish van 2 tot 170, op een double uitgegooid in drie beurten.",
+    rules_bobs_27: "Start met 27 en gooi een beurt op elke double: een treffer telt zijn waarde op, een beurt zonder treffer trekt die af. Nul of minder verliest.",
+    rules_checkout_121: "Gooi 121 uit in negen darts: een finish verhoogt het doel, een misser verlaagt het, nooit onder 121.",
+    rules_catch_40: "Gooi 61 tot 100 uit in elk zes darts: 3 punten met twee darts, 2 met drie, 1 met maximaal zes.",
+    rules_jdc_challenge: "De routine van 57 darts van de Junior Darts Corporation: 10 tot 15, elke double en de bullseye, dan 15 tot 20.",
+    rules_singles: "Eén beurt op elk getal van 1 tot 20 en op de bull: een punt per mark.",
     lobby_one_player: "Trainingsspellen zijn voor één speler: {name} speelt.",
     lobby_resting: "{game} is voor {count}: de rest wacht.",
     lobby_full: "Maximaal {count} spelers.",
@@ -5112,6 +5217,33 @@ function startGameData(choice, { entry = null, distance = false, bed = false } =
   return data;
 }
 
+// The rules of every game in a sentence or two; the headings of the games page in
+// English and in German link to all of them, where the anchor is not the game's own.
+const RULES_DOCS = {
+  cut_throat: "cut-throat-cricket",
+  doubles: ["doubles-training", "doppeltraining"],
+  checkout: "checkout-training",
+  bobs_27: "bobs-27",
+  checkout_121: "121-checkout",
+  singles: "singles-training",
+};
+
+// How the chosen game is played, and a link to all its rules; nothing for a game the
+// card does not know.
+function lobbyRulesHtml(game, ui) {
+  const key = gameGroup(game) === "x01" ? "x01" : game;
+  if (!Object.hasOwn(TEXT.en, `rules_${key}`)) return "";
+  const anchor = RULES_DOCS[key] ?? key.replaceAll("_", "-");
+  const [en, de] = Array.isArray(anchor) ? anchor : [anchor, anchor];
+  const link = documentation([`games.html#${en}`, `de/games.html#${de}`]);
+  return (
+    `<div class="lobby-rules"><div class="section-label">${escapeHtml(ui.t("lobby_rules"))}</div>` +
+    `<p>${escapeHtml(ui.t(`rules_${key}`))}</p>` +
+    `<a class="link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">` +
+    `${escapeHtml(ui.t("lobby_rules_more"))}${cueHtml("details", true)}</a></div>`
+  );
+}
+
 // The new game screen: the games by group, the players, the format, the rules and the start.
 function lobbyHtml(choice, ui) {
   const { t } = ui;
@@ -5145,7 +5277,7 @@ function lobbyHtml(choice, ui) {
           .map((game) =>
             button("game", game, escapeHtml(ui.name(game)), ` class="game" aria-pressed="${game === choice.game}"`)
           )
-          .join("")}</div></div>`
+          .join("")}</div>${list.includes(choice.game) ? lobbyRulesHtml(choice.game, ui) : ""}</div>`
     )
     .join("");
   const shown = (name, index) => name || `${t("score_player")} ${index + 1}`;
@@ -5267,7 +5399,8 @@ function lobbyHtml(choice, ui) {
     ) +
     `</div>`;
   return (
-    `<section class="lobby" aria-label="${text("lobby_label")}"><div class="lobby-games">${modes}${games}</div>` +
+    `<section class="lobby" aria-label="${text("lobby_label")}">` +
+    `<div class="lobby-games">${modes}${games}</div>` +
     `<div class="lobby-setup">${block(
       "lobby_players",
       (players || botRow
@@ -8261,6 +8394,9 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(12px, 1.8cqi, 22px); align-content: start;
   }
   .lobby .section-label { margin-bottom: 8px; font-size: clamp(11px, 1.4cqi, 15px); }
+  /* How the chosen game is played, below its group. */
+  .lobby-rules { margin-top: 10px; }
+  .lobby-rules p { margin: 0 0 4px; line-height: 1.4; max-width: 60ch; }
   .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(112px, 15cqi, 180px), 1fr)); gap: 8px; }
   .lobby button {
     min-height: 48px; padding: 0 14px; border-radius: 14px; font-weight: 700; color: var(--primary-text-color);

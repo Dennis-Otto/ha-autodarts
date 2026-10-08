@@ -766,7 +766,7 @@ test("the new game screen starts a tournament of up to eight players", () => {
   lobbyTap(card, "mode", "tournament");
   // X01 and Cricket only; a party game gives way to 501.
   assert.deepEqual(
-    $$(card, ".lobby-group .section-label").map((label) => label.textContent),
+    $$(card, ".lobby-group > .section-label").map((label) => label.textContent),
     ["X01", "Cricket"]
   );
   assert.deepEqual($$(card, '.game[aria-pressed="true"]').map((button) => button.textContent), ["501"]);

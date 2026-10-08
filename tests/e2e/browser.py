@@ -1050,7 +1050,7 @@ def tournament(browser: Browser) -> None:
     )
     page.locator(f"{card} .main .lobby-cta").click()
     page.locator(f"{card} [data-lobby='mode'][data-value='tournament']").click()
-    groups = page.locator(f"{card} .lobby-group .section-label").all_text_contents()
+    groups = page.locator(f"{card} .lobby-group > .section-label").all_text_contents()
     check(groups == ["X01", "Cricket"], f"Tournament games {groups}")
     players = page.locator(f"{card} .lobby-player .who")
     while players.count():
