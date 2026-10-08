@@ -2070,6 +2070,12 @@ def phone_languages(
             f"{screen} · {locale}: console problem {error}"
             for error in page_errors(page, [])
         )
+        # The next screen finds the board between games, as it was.
+        page.evaluate(
+            CALL_SERVICE,
+            ["select", "select_option", "practice_game", {"option": "off"}],
+        )
+        control({"status": "Throw", "event": "Takeout finished", "throws": []})
         context.close()
     return found
 
