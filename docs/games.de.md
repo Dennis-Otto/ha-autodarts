@@ -2,7 +2,7 @@
 
 [← Dokumentation](README.de.md) · [English](games.md)
 
-Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, vier Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
+Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, vier Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
 
 <img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet am Board öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
@@ -17,12 +17,12 @@ Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 100
 | [**Cut-Throat Cricket**](#cut-throat-cricket) | 1–4 oder zwei Teams zu zwei | Alles schließen, mit den wenigsten Punkten: Deine Punkte bekommen die anderen |
 | [**Tactics**](#tactics) | 1–4 oder zwei Teams zu zwei | Cricket auf 20 bis 10 und das Bull |
 | [**Wild Mouse**](#wild-mouse) | 1–4 oder zwei Teams zu zwei | Cricket plus drei Doubles, drei Triples und drei Darts in einem Feld |
-| [**Shanghai**](#shanghai) | 1–4 | Auf die Zahlen 1 bis 7 punkten; Single, Double und Triple in einer Aufnahme gewinnen sofort |
-| [**Halve-It**](#halve-it) | 1–4 | Das Ziel der Runde treffen, sonst halbieren sich die Punkte |
-| [**Killer**](#killer) | 2–4 | Die eigene Zahl erobern, Killer werden und den anderen die Leben nehmen |
-| [**Golf**](#golf) | 1–4 | Neun oder 18 Löcher mit den wenigsten Schlägen |
-| [**Baseball**](#baseball) | 1–4 | Die meisten Runs in neun Innings |
-| [**Count-Up**](#count-up) | 1–4 | Die meisten Punkte in 1 bis 20 Runden |
+| [**Shanghai**](#shanghai) | 1–8 | Auf die Zahlen 1 bis 7 punkten; Single, Double und Triple in einer Aufnahme gewinnen sofort |
+| [**Halve-It**](#halve-it) | 1–8 | Das Ziel der Runde treffen, sonst halbieren sich die Punkte |
+| [**Killer**](#killer) | 2–8 | Die eigene Zahl erobern, Killer werden und den anderen die Leben nehmen |
+| [**Golf**](#golf) | 1–8 | Neun oder 18 Löcher mit den wenigsten Schlägen |
+| [**Baseball**](#baseball) | 1–8 | Die meisten Runs in neun Innings |
+| [**Count-Up**](#count-up) | 1–8 | Die meisten Punkte in 1 bis 20 Runden |
 | [**Around the Clock**](#around-the-clock) | 1 | 1 bis 20 und das Bull mit den wenigsten Darts |
 | [**Doppeltraining**](#doppeltraining) | 1 | D1 bis D20 und das Bullseye mit den wenigsten Darts |
 | [**Checkout-Training**](#checkout-training) | 1 | Zufällige Reste von 2 bis 170 in drei Aufnahmen checken |
@@ -254,7 +254,7 @@ Auch als Minnesota Cricket bekannt. Neben 20 bis 15 und dem Bull schließt jeder
 
 ## Partyspiele
 
-Sechs Kneipenklassiker für einen bis vier Spieler; Killer braucht zwei. Sie verbuchen eine Aufnahme, wenn du die Darts ziehst, und gewinnen Legs und Sätze wie jedes Match. Die Karten zeigen die Runde, das Ziel und die Punkte oder Leben jedes Spielers und umranden die Felder, auf die du zielst. Partyspiele zählen nicht für die X01-Statistik.
+Sechs Kneipenklassiker für einen bis acht Spieler, eine ganze Runde; Killer braucht zwei. Mit fünf bis acht zeigt die Anzeigetafel zwei Reihen mit je vier Kacheln. Sie verbuchen eine Aufnahme, wenn du die Darts ziehst, und gewinnen Legs und Sätze wie jedes Match. Die Karten zeigen die Runde, das Ziel und die Punkte oder Leben jedes Spielers und umranden die Felder, auf die du zielst. Partyspiele zählen nicht für die X01-Statistik.
 
 ### Shanghai
 

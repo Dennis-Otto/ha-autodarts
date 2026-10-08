@@ -822,6 +822,9 @@
     "bot_seat": {
       "message": "Mit dem Bot spielen bis zu drei Spieler: Der Bot nimmt den vierten Platz ein."
     },
+    "too_many_players": {
+      "message": "Dieses Spiel nimmt höchstens {count} Spieler; Partyspiele bis zu acht."
+    },
     "invalid_segment": {
       "message": "{segment} ist kein Feld des Boards. Gib S1 bis S20, D1 bis D20, T1 bis T20, 25 (oder S25, SB, OB) für das äußere Bull, BULL (oder D25, DB, 50) für das Bullseye oder MISS ein."
     },

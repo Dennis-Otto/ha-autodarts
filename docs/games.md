@@ -2,7 +2,7 @@
 
 [← Documentation](README.md) · [Deutsch](games.de.md)
 
-Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, four Cricket games, six party games and eight training games, alone, as a match of up to four players or as a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
+Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, four Cricket games, six party games and eight training games, alone, as a match of up to four players, a party game of up to eight or a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
 
 <img src="images/en/lobby.webp" alt="Animation: on the tablet at the board, New game opens the game screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
@@ -17,12 +17,12 @@ Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001,
 | [**Cut-Throat Cricket**](#cut-throat-cricket) | 1–4, or two teams of two | Close everything with the fewest points: your points go to the others |
 | [**Tactics**](#tactics) | 1–4, or two teams of two | Cricket on 20 to 10 and the bull |
 | [**Wild Mouse**](#wild-mouse) | 1–4, or two teams of two | Cricket plus three doubles, three triples and three darts in one bed |
-| [**Shanghai**](#shanghai) | 1–4 | Score on the numbers 1 to 7; single, double and triple in one visit win at once |
-| [**Halve-It**](#halve-it) | 1–4 | Hit the target of the round, or your points are halved |
-| [**Killer**](#killer) | 2–4 | Win your number, become a killer and take the others' lives |
-| [**Golf**](#golf) | 1–4 | Nine or 18 holes in the fewest strokes |
-| [**Baseball**](#baseball) | 1–4 | Score the most runs in nine innings |
-| [**Count-Up**](#count-up) | 1–4 | Score the most points in 1 to 20 rounds |
+| [**Shanghai**](#shanghai) | 1–8 | Score on the numbers 1 to 7; single, double and triple in one visit win at once |
+| [**Halve-It**](#halve-it) | 1–8 | Hit the target of the round, or your points are halved |
+| [**Killer**](#killer) | 2–8 | Win your number, become a killer and take the others' lives |
+| [**Golf**](#golf) | 1–8 | Nine or 18 holes in the fewest strokes |
+| [**Baseball**](#baseball) | 1–8 | Score the most runs in nine innings |
+| [**Count-Up**](#count-up) | 1–8 | Score the most points in 1 to 20 rounds |
 | [**Around the Clock**](#around-the-clock) | 1 | 1 to 20 and the bull in the fewest darts |
 | [**Doubles training**](#doubles-training) | 1 | D1 to D20 and the bullseye in the fewest darts |
 | [**Checkout training**](#checkout-training) | 1 | Random finishes from 2 to 170 within three visits |
@@ -254,7 +254,7 @@ Also known as Minnesota Cricket. Besides 20 to 15 and the bull, every player clo
 
 ## Party games
 
-Six pub classics for one to four players; Killer needs two. They book a visit when you pull the darts and win legs and sets like any match. The cards show the round, the target and every player's points or lives, and outline the beds to aim at. Party games do not count for the X01 statistics.
+Six pub classics for one to eight players, a whole party; Killer needs two. With five to eight, the scoreboard shows two rows of four tiles. They book a visit when you pull the darts and win legs and sets like any match. The cards show the round, the target and every player's points or lives, and outline the beds to aim at. Party games do not count for the X01 statistics.
 
 ### Shanghai
 

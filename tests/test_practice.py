@@ -4,7 +4,12 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from custom_components.autodarts.checkout import checkout
-from custom_components.autodarts.practice import GAMES, MAX_PLAYERS, PracticeGame
+from custom_components.autodarts.practice import (
+    GAMES,
+    MAX_PLAYERS,
+    PARTY_PLAYERS,
+    PracticeGame,
+)
 
 from .local_helpers import PLAYER_1, dart, match, playing, throw, win_leg
 
@@ -141,7 +146,7 @@ def test_restore_keeps_valid_data_only():
             "scores_180": 0,
         }
     ]
-    assert stored["double_out"] is False and stored["names"] == [""] * MAX_PLAYERS
+    assert stored["double_out"] is False and stored["names"] == [""] * PARTY_PLAYERS
     game.restore({"game": 401, "remaining": 600, "legs": [{"game": 501, "darts": 0}]})
     assert game.game == 501 and game.snapshot()["remaining"] == 501
     assert game.legs == []

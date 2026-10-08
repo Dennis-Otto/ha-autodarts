@@ -9,7 +9,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import DOMAIN
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
-from .practice import MAX_PLAYERS
+from .practice import PARTY_PLAYERS
 from .profiles import NAME_LENGTH
 from .runtime import AutodartsConfigEntry
 from .tournament import MAX_ENTRANTS, check_names, parse_players, split_players
@@ -27,7 +27,7 @@ async def async_setup_entry(
             [
                 *(
                     AutodartsPlayerName(coordinator, index)
-                    for index in range(MAX_PLAYERS)
+                    for index in range(PARTY_PLAYERS)
                 ),
                 AutodartsTournamentPlayers(coordinator),
             ]

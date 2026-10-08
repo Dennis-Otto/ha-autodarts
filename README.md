@@ -26,7 +26,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 ## Why
 
 - **Instant and local.** Darts appear in Home Assistant a fraction of a second after they land, straight from the Board Manager in your network. No account, no cloud, no client ID.
-- **A whole darts evening.** X01 from 101 to 1001, four Cricket games, six party games and eight training games, alone, as a match of up to four or as a tournament of up to eight, with a scoreboard for the tablet at the board.
+- **A whole darts evening.** X01 from 101 to 1001, four Cricket games, six party games and eight training games, alone, as a match of up to four, a party game of up to eight or a tournament of up to eight, with a scoreboard for the tablet at the board.
 - **Your progress in numbers.** Averages, heatmaps of the real dart positions, personal bests, badges, weekly trends, player profiles, a weekly report and a year of history, all kept in your home.
 - **Your home plays along.** Lights for a 180, a caller on your speakers, the board light for the takeout, a photo of your best checkout.
 
