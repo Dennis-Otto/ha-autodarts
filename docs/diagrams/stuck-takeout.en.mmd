@@ -1,0 +1,7 @@
+flowchart TB
+  STUCK["Takeout in progress,<br/>no darts, no hand"] --> WAIT{"Still the same<br/>after 10 s?"}
+  WAIT -- "no: a dart, a hand,<br/>a stop or a status" --> FINE["Nothing to do"]
+  WAIT -- "yes" --> RESET["Reset of the board<br/>POST /api/reset"]
+  RESET --> THROW["Throw, the board<br/>is empty"]
+  THROW --> EVENT["takeout_finished,<br/>the game goes on"]
+  RESET -- "still stuck" --> AGAIN["Again after 10 s,<br/>three times at most"]
