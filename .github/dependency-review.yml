@@ -74,3 +74,6 @@ allow-dependencies-licenses:
   - pkg:pypi/snitun
   - pkg:pypi/pyric
   - pkg:pypi/text-unidecode
+  # The URI parser of ESLint, a tool of the checks that no release ships: BSD-2-Clause,
+  # which the review reads as BSD-2-Clause AND BSD-2-Clause-Views.
+  - pkg:npm/uri-js
