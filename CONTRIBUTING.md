@@ -69,6 +69,8 @@ The integration speaks English, German, Dutch, French and Spanish. Its texts liv
 
 `tests/test_consistency.py` keeps every language complete. It fails when a translation file or a `TEXT` language misses a key, has one too many, loses a placeholder such as `{name}`, uses the wrong form of address, or when a translation file has no `TEXT` language or the other way round. So a pull request that adds a text adds it to every language, and one that removes a text removes it everywhere. If you do not speak a language, ask in the pull request; a maintainer or a native speaker adds the missing texts before the merge.
 
+When an English text changes, change its translations in the same pull request. If you can't, the [translation bot](docs/development.md#translation-bot) opens an issue for each language with outdated or missing texts and asks native speakers for them. A translation that stays right after an English change is marked with a line such as `Translations-checked: de fr status_ready` in the description of the pull request: the languages first, then the keys, or no keys for every text of the languages.
+
 A new language needs its translation file, its `TEXT` entry, the language in the list of `test_the_cards_speak_every_language_of_the_integration`, its month names and date format for the highlight gallery in `media_source.py` and a line in the documentation's [language section](docs/README.md#languages). The card picks a language by Home Assistant's language code, so `es` also serves `es-419`. The blueprints stay English because Home Assistant does not translate blueprints.
 
 Style of the languages:
