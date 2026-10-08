@@ -4206,7 +4206,7 @@ function bullOffPlayers(bullOff, ui) {
     state: item.player === bullOff.player ? "active" : item.player === leader ? "winner" : "",
     note: "",
     details: [
-      item.distance === null ? "" : `${ui.format(item.distance, 1)} mm`,
+      item.distance === null ? "" : `${ui.format(item.distance, 1)}\u00a0mm`,
       item.player === leader ? ui.t("bull_off_leads") : "",
     ],
   }));
@@ -8752,7 +8752,7 @@ async function loadForm() {
     const helpers = await window.loadCardHelpers();
     const card = await helpers.createCardElement({ type: "entities", entities: [] });
     await card.constructor.getConfigElement?.();
-  } catch (error) {
+  } catch {
     // The editor shows its form as soon as Home Assistant defines it.
   }
 }
@@ -9481,7 +9481,6 @@ function createElements(Base) {
     }
 
     _update() {
-      const hass = this._hass;
       const c = this._config;
       const el = this._el;
       const t = (key) => this._t(key);
@@ -10210,7 +10209,7 @@ function createElements(Base) {
           device_id: this._deviceId,
           ...(source ? { player: source } : {}),
         });
-      } catch (error) {
+      } catch {
         // A board that is being removed has no positions to show.
       }
       if (this._positionsFor !== key) return;
@@ -11031,7 +11030,7 @@ function createElements(Base) {
         const entry = this._entry();
         try {
           await this._hass.callService("autodarts", "stop_tournament", entry ? { config_entry_id: entry } : {});
-        } catch (error) {
+        } catch {
           return;
         }
       }

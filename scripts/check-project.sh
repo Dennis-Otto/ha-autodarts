@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The checks of this integration alone, which scripts/check.sh runs last: the license
-# terms, and the tests of the dashboard cards with Node (100 % of lines, branches and
-# functions covered).
+# terms, the rules of ESLint for the JavaScript (eslint.config.mjs), and the tests of
+# the dashboard cards with Node (100 % of lines, branches and functions covered).
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -33,4 +33,5 @@ if ! command -v node >/dev/null 2>&1 || [[ ! -d node_modules ]]; then
 	exit 0
 fi
 node --check custom_components/autodarts/frontend/autodarts-card.js
+npx --no-install eslint .
 npm test

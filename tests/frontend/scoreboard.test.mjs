@@ -238,7 +238,7 @@ test("party games and the bull-off have their own boards", () => {
   // Every dart shows its bed and how far from the centre it landed.
   assert.match(
     bullOff.main,
-    /<div class="player"><div class="name">Alex<\/div><div class="big">S20<\/div><div class="route"><div class="route-line"><\/div><\/div><div class="details"><span class="details-line">11\.4 mm<\/span><\/div>/
+    /<div class="player"><div class="name">Alex<\/div><div class="big">S20<\/div><div class="route"><div class="route-line"><\/div><\/div><div class="details"><span class="details-line">11\.4\u00a0mm<\/span><\/div>/
   );
   assert.match(bullOff.main, /<div class="player active" aria-current="true"><div class="name">Sam<\/div><div class="big">–<\/div>/);
 });

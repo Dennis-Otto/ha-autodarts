@@ -331,7 +331,7 @@ test("positions stay unloaded without a heatmap, and a late answer waits for its
   assert.equal($$(card, ".heat-layer .position").length, 1);
   // An answer after the heatmap was switched off is kept, and drawn nowhere.
   const late = [];
-  const off = setup({ mode: "positions" }, (message) => new Promise((resolve) => late.push(resolve))).card;
+  const off = setup({ mode: "positions" }, () => new Promise((resolve) => late.push(resolve))).card;
   off.setConfig({ type: "custom:autodarts-training-card", mode: "positions", show_heatmap: false });
   off.hass = makeHass({ states: { ...SESSION, ...PROFILES }, callWS: () => new Promise(() => {}) });
   late[0]({ positions: [[0, 0.6]], spread: [] });
