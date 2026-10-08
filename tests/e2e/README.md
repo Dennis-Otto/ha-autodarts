@@ -25,6 +25,8 @@ The scenario uses only Home Assistant's public REST and WebSocket APIs and verif
   of a visit, an outage while darts are pulled and thrown again, failing and slow
   reads, malformed frames and a restart; visits, practice scores and entities
   must come through them
+- a takeout the board keeps on the empty board, as Board Manager 2.0.2 sometimes
+  does, which the integration frees with one reset after ten seconds
 - the online bridge: switched on in the options, calls of Tools for Autodarts
   become board events and the diagnostic sensor, and switched off it is gone
 - the weekly report and its settings, the training calendar through

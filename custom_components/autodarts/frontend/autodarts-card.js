@@ -6955,6 +6955,7 @@ const SETTING_KEYS = [
   "switch.auto_calibrate",
   "switch.auto_distortion",
   "select.standby_minutes",
+  "switch.free_stuck_takeout",
 ];
 
 const PRACTICE_KEYS = [

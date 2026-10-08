@@ -421,6 +421,9 @@
       "auto_distortion": {
         "name": "Correction de la distorsion"
       },
+      "free_stuck_takeout": {
+        "name": "Débloquer un retrait bloqué"
+      },
       "training_session": {
         "name": "Session d'entraînement"
       },

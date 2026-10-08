@@ -12,8 +12,9 @@ from .const import DOMAIN
 STORAGE_VERSION = 1
 # Raised with each change of the stored layout; every part restores older
 # layouts itself, see _async_migrate_func. 2: version 1.6 added the progress,
-# the tournament, the match summary and the bot.
-STORAGE_MINOR_VERSION = 2
+# the tournament, the match summary and the bot. 3: the switch that frees a
+# stuck takeout.
+STORAGE_MINOR_VERSION = 3
 
 
 def storage_key(entry_id: str) -> str:

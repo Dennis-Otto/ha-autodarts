@@ -6,7 +6,8 @@ BOARD_MANAGER=2 switches to the headless Board Manager 2: /api/system, no
 upstream routes, and an mDNS announcement like the real board.
 
 POST /control/fault injects the faults of a real network and board: dropped or
-refused sockets, failing or slow reads, malformed frames and restarts.
+refused sockets, failing or slow reads, malformed frames, restarts and the takeout
+that Board Manager 2.0.2 sometimes never finishes.
 """
 
 from __future__ import annotations
@@ -32,7 +33,6 @@ V1_ONLY = {("PUT", "/api/upstream/connect"), ("PUT", "/api/upstream/disconnect")
 COMMANDS = {
     ("PUT", "/api/start"): {"running": True, "status": "Throw", "event": "Started"},
     ("PUT", "/api/stop"): {"running": False, "status": "Stopped", "event": "Stopped"},
-    ("POST", "/api/reset"): {"numThrows": 0, "throws": []},
     ("POST", "/api/restart"): {},
     ("POST", "/api/config/calibration/auto"): {},
     ("PUT", "/api/upstream/connect"): {"connected": True},
@@ -171,6 +171,17 @@ def routes(board: Board) -> web.RouteTableDef:
             }
         )
 
+    @api.post("/api/reset")
+    async def reset(request):
+        await board.record(request)
+        # The darts go, and a running detection waits for darts again, also after
+        # a takeout it never finished.
+        changes = {"throws": [], "event": "Manual reset"}
+        if board.state["running"]:
+            changes["status"] = "Throw"
+        await board.publish(changes)
+        return web.json_response({})
+
     @api.post("/api/config/calibration/auto/{index:\\d+}")
     async def calibrate_camera(request):
         await board.record(request)
@@ -273,6 +284,16 @@ def routes(board: Board) -> web.RouteTableDef:
             board.down_until = time.monotonic() + restart
         if fault.get("drop_sockets") or fault.get("restart"):
             await board.drop_sockets()
+        if fault.get("stuck_takeout"):
+            # Like Board Manager 2.0.2 right after a takeout: a takeout again, on
+            # the empty board, which only a reset ends.
+            await board.publish(
+                {
+                    "status": "Takeout in progress",
+                    "event": "Takeout started",
+                    "throws": [],
+                }
+            )
         if "frame" in fault:
             await board.send_raw(fault["frame"])
         if fault.get("binary"):
