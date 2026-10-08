@@ -25,7 +25,6 @@
 | Das Board wird nicht automatisch gefunden | Die automatische Erkennung braucht Board Manager 2 und mDNS im Netzwerk. Home Assistant in Docker braucht dafür `network_mode: host`; über VLAN-Grenzen hinweg funktioniert mDNS nur mit einem Repeater. Nutze sonst die Suche oder die Adresse. |
 | *Diese Client-ID ist ungültig oder nicht für die Geräteanmeldung freigeschaltet.* | Die Cloud-Verknüpfung braucht eine Client-ID, die Autodarts für diese Integration vergibt. Sie gibt es noch nicht; siehe [Cloud-Verknüpfung](installation.md#autodarts-cloud-verknüpfen-optional). Die lokale Einrichtung funktioniert ohne sie. |
 
-
 ## Reparaturen
 
 Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzeigen:
