@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.9.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)
+
 ### New
 
 - **Betas for testers:** every change for users becomes a beta of the next release within minutes, which HACS offers to those who turn on the switch *Pre-release* of the integration ([how](docs/installation.md#betas-for-testers)).
@@ -15,13 +17,6 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 ### Documentation
 
 - The website switches between English and German on every page, with German menus, search and dates, and starts with a page of its own for each language. The German pages moved next to the English ones, such as `docs/games.de.md` next to `docs/games.md`; the old addresses of the German overview and card guide lead there.
-
-## [1.9.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)
-
-
-### Bug fixes
-
-* **cards:** open the help of the cards on the documentation website ([#167](https://github.com/Dennis-Otto/ha-autodarts/issues/167)) ([ca8b5e5](https://github.com/Dennis-Otto/ha-autodarts/commit/ca8b5e519135d76c6b9273e2091080245aca72b6))
 
 ## [1.9.1](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.0...v1.9.1) (2026-10-07)
 
