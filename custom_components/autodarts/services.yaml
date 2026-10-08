@@ -34,6 +34,7 @@ start_game:
             - cricket
             - cut_throat
             - tactics
+            - wild_mouse
             - shanghai
             - halve_it
             - killer
@@ -85,6 +86,10 @@ start_game:
       selector:
         boolean: {}
     teams:
+      required: false
+      selector:
+        boolean: {}
+    three_in_a_bed:
       required: false
       selector:
         boolean: {}
@@ -229,6 +234,7 @@ start_tournament:
             - cricket
             - cut_throat
             - tactics
+            - wild_mouse
     legs:
       required: false
       selector:

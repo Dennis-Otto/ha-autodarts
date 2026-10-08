@@ -99,6 +99,7 @@ START_GAME_SCHEMA = vol.Schema(
         vol.Optional("bull_off"): cv.boolean,
         vol.Optional("bull_off_distance"): cv.boolean,
         vol.Optional("teams"): cv.boolean,
+        vol.Optional("three_in_a_bed"): cv.boolean,
         vol.Optional("start_scores"): START_SCORES,
         vol.Optional("holes"): vol.All(vol.Coerce(int), vol.In(GOLF_HOLES)),
         vol.Optional("rounds"): vol.All(
@@ -485,6 +486,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             bull_off=call.data.get("bull_off"),
             bull_off_distance=call.data.get("bull_off_distance"),
             teams=call.data.get("teams"),
+            three_in_a_bed=call.data.get("three_in_a_bed"),
             start_scores=call.data.get("start_scores"),
             holes=call.data.get("holes"),
             rounds=call.data.get("rounds"),

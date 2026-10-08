@@ -222,6 +222,7 @@
       'sets_to_win': 1,
       'stored_legs': 0,
       'teams': False,
+      'three_in_a_bed': True,
     }),
     'progress': dict({
       'achievements': True,
@@ -432,6 +433,7 @@
       'sets_to_win': 1,
       'stored_legs': 0,
       'teams': False,
+      'three_in_a_bed': True,
     }),
     'progress': dict({
       'achievements': True,
