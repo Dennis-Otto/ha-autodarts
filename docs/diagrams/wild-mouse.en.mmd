@@ -1,0 +1,10 @@
+flowchart TB
+  DART["A dart lands"] --> NUMBER{"Its number open<br/>for you?"}
+  NUMBER -- "yes" --> MARK["It marks the number,<br/>a triple three times"]
+  NUMBER -- "no" --> CATEGORY{"A double or triple,<br/>that group open?"}
+  CATEGORY -- "yes" --> ONE["One mark on<br/>Doubles or Triples"]
+  CATEGORY -- "no" --> SCORE{"A target you closed<br/>that others need?"}
+  SCORE -- "yes" --> POINTS["It scores"]
+  SCORE -- "no" --> NOTHING["It counts nothing,<br/>struck through"]
+  THIRD["The third dart"] --> BED{"All three darts<br/>in one bed?"}
+  BED -- "yes" --> CLOSED["3 in a bed closes,<br/>or scores once closed"]

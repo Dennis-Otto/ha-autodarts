@@ -26,7 +26,7 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
       <ul>
         <li>X01 von 101 bis 1001 mit Double-Out, Double-In und dem Checkout-Weg nach jedem Dart</li>
         <li>Cricket, Cut-Throat Cricket, Tactics und Wild Mouse auf einer Kreidetafel</li>
-        <li>Partyspiele: Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up</li>
+        <li>Partyspiele für bis zu acht: Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up</li>
         <li>Matches mit bis zu vier Spielern, Legs und Sätzen, zwei Teams zu zwei, Startpunkten als Handicap und Ausbullen, und eine Zusammenfassung jedes Matches</li>
         <li>Turniere mit drei bis acht Spielern: jeder gegen jeden mit Tabelle oder K.-o.-System mit Turnierbaum</li>
         <li>Ein Bot mit Stärke 20 bis 120 als Gegner bei X01 und Cricket</li>
@@ -36,6 +36,20 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
       <p><a href="games.de.md">Spiele und Regeln →</a></p>
     </td>
     <td width="45%"><img src="images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel; die Sieger rücken in die nächste Runde, bis Alex das Finale gewinnt" width="100%"></td>
+  </tr>
+  <tr>
+    <td width="55%" valign="top">
+      <h3>Wie am Dartautomaten</h3>
+      <ul>
+        <li>Wild Mouse, auch als Minnesota Cricket bekannt, mit Doubles, Triples und Three in a Bed</li>
+        <li>Zielhilfen auf der Kreidetafel: grün, wo ein Dart punktet, gelb, was zu schließen ist, und ein Dart ohne Wirkung durchgestrichen</li>
+        <li>Konfetti und ein goldenes Leuchten bei 180, Game Shot und Match, ein Leuchten bei einem Ton</li>
+        <li>So wird gespielt: jedes Spiel kurz erklärt auf dem Bildschirm für ein neues Spiel, für Gäste, die es noch nie gespielt haben</li>
+        <li>Partyspiele für bis zu acht Spieler</li>
+      </ul>
+      <p><a href="games.de.md#wild-mouse">Wild Mouse →</a></p>
+    </td>
+    <td width="45%"><img src="images/de/celebration.webp" alt="Animation: eine 180 auf der Anzeigetafel. Alex wirft drei Triple 20, ein goldenes Leuchten erhellt die Anzeigetafel und Konfetti fliegt aus ihrer Mitte, dann zeigt die Anzeigetafel 321 wie zuvor" width="100%"></td>
   </tr>
   <tr>
     <td width="55%" valign="top">

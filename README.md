@@ -39,7 +39,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
       <ul>
         <li>X01 from 101 to 1001 with double out, double in and the checkout route after every dart</li>
         <li>Cricket, Cut-Throat Cricket, Tactics and Wild Mouse on a chalkboard</li>
-        <li>Party games: Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up</li>
+        <li>Party games for up to eight: Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up</li>
         <li>Matches of up to four players with legs and sets, two teams of two, handicap start scores and a bull-off, and a summary of every match</li>
         <li>Tournaments of three to eight players: a round robin with a table or a knockout with a bracket</li>
         <li>A bot from level 20 to 120 to play X01 and Cricket against</li>
@@ -49,6 +49,20 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
       <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md">Games and rules →</a></p>
     </td>
     <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/tournament-bracket.webp" alt="Animation: the knockout bracket of five players on the scoreboard; the winners slide into the next round until Alex wins the final" width="100%"></td>
+  </tr>
+  <tr>
+    <td width="55%" valign="top">
+      <h3>Like a dart machine</h3>
+      <ul>
+        <li>Wild Mouse, also known as Minnesota Cricket, with doubles, triples and three in a bed</li>
+        <li>Aim hints on the chalkboard: green where a dart scores, amber what to close, and a dart that counted nothing struck through</li>
+        <li>Confetti and a golden glow for a 180, a game shot and the match, a glow for a ton</li>
+        <li>How to play every game on the new game screen, for guests who never played it</li>
+        <li>Party games for up to eight players</li>
+      </ul>
+      <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md#wild-mouse">Wild Mouse →</a></p>
+    </td>
+    <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/celebration.webp" alt="Animation: a 180 on the scoreboard. Alex throws three triple 20s, a golden glow lights up the scoreboard and confetti flies from its middle, then the scoreboard shows 321 as before" width="100%"></td>
   </tr>
   <tr>
     <td width="55%" valign="top">
