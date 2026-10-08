@@ -21,7 +21,15 @@ from PIL import Image, ImageSequence
 ROOT = Path(__file__).parents[1]
 IMAGES = ROOT / "docs" / "images"
 MEDIA = ROOT / "docs" / "media"
-ANIMATIONS = ("hero", "scoreboard", "bot-match", "lobby", "tournament-bracket")
+ANIMATIONS = (
+    "hero",
+    "scoreboard",
+    "celebration",
+    "wild-mouse",
+    "bot-match",
+    "lobby",
+    "tournament-bracket",
+)
 LANGUAGES = ("en", "de")
 FPS = 30
 BACKGROUND = (255, 255, 255)
