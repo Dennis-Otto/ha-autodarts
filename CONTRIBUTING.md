@@ -18,6 +18,19 @@ All changes, including the releases, reach the protected `main` branch through p
 - Every commit carries a [Developer Certificate of Origin](https://developercertificate.org/) sign-off, `Signed-off-by: Your Name <you@example.com>`, which `git commit -s` adds.
 - Name the issue that a pull request fixes with `Fixes #123` in its description. The issue stays open until a release ships the fix and then closes with a link to the release.
 
+## Tests
+
+New functionality comes with tests in the automated test suite, in the same pull request, and so does every change of behavior. A bug fix comes with a test that fails without the fix, so that the bug can't return unnoticed. `scripts/check.sh` fails when a line or a branch of the code runs in no test. A pull request without the tests it needs is not merged.
+
+## Coding standards
+
+- **Python** follows [PEP 8](https://peps.python.org/pep-0008/) in the format of [Ruff](https://docs.astral.sh/ruff/), which matches Black, with the rules of Ruff that `pyproject.toml` selects. The code has type hints, which mypy checks in its strict mode.
+- **The integration** keeps the rules that hassfest checks for Home Assistant and the HACS action for HACS, such as those of its manifest, translations and services.
+- **Shell scripts** pass [ShellCheck](https://www.shellcheck.net/), **workflows** pass actionlint and zizmor's audit of their security, and **Markdown** follows the rules of markdownlint in `.markdownlint.jsonc`.
+- **Every text file** has LF line endings, no trailing whitespace and a line break at its end; `.editorconfig` sets up most editors for it.
+
+`scripts/check.sh` and the Lint workflow check these standards on every pull request, which merges only when they pass. An exception to a rule is rare and is marked at its place in the code, with its reason in a comment.
+
 ## Workflow
 
 1. Open an issue or a discussion first for anything larger than a small fix, so we can agree on the approach.
@@ -67,6 +80,16 @@ Style of the languages:
 - `practice_entity` and `tournament_entity` in `TEXT` say how the names of the practice and tournament entities read, for example `Practice {name}` or `{name} de la partie`, so the automatic dashboard can show them without the section they sit in. Keep them in line with the entity names of the translation file.
 
 The documentation is English with a complete German translation in `docs/de/`. A pull request that changes a page changes both languages. Keep the terms of the [glossary](docs/glossary.md) ([German](docs/de/glossar.md)), for example "Übungsspiel", "Aufnahme" for a visit and "Doppelquote". `tests/test_docs_links.py` checks that every link, heading anchor and image resolves.
+
+## Website
+
+MkDocs builds the website from `mkdocs.yml` and the pages in `docs/`. The check *docs* builds it strictly in every pull request, so that a broken link fails, and every change of `main` publishes it on GitHub Pages. To see it while you write, at <http://127.0.0.1:8000>:
+
+```sh
+python3 -m venv .venv-docs
+.venv-docs/bin/pip install --require-hashes -r .github/docs-requirements.txt
+.venv-docs/bin/mkdocs serve
+```
 
 ## Releases
 
