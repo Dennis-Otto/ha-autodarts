@@ -32,13 +32,14 @@ from .cricket import CRICKET_GAMES
 from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
 from .local_coordinator import AutodartsLocalCoordinator
 from .manual import parse_bed
-from .party import GOLF_HOLES, MAX_ROUNDS
+from .party import GOLF_HOLES, MAX_ROUNDS, PARTY_GAMES
 from .positions import MAX_DISTANCE
 from .practice import (
     GAME_OPTIONS,
     MAX_LEGS,
     MAX_PLAYERS,
     MAX_SETS,
+    PARTY_PLAYERS,
     TEAM_PLAYERS,
     UNWINNABLE_START,
     PracticeGame,
@@ -90,7 +91,7 @@ START_GAME_SCHEMA = vol.Schema(
         vol.Optional("players"): vol.All(
             cv.ensure_list,
             [vol.All(cv.string, vol.Length(max=NAME_LENGTH))],
-            vol.Length(min=1, max=MAX_PLAYERS),
+            vol.Length(min=1, max=PARTY_PLAYERS),
         ),
         vol.Optional("legs"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_LEGS)),
         vol.Optional("sets"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SETS)),
@@ -380,8 +381,9 @@ def _check_players(
     teams: bool = False,
     bot: bool = False,
 ) -> None:
-    """Every player needs a name of their own, Killer two players and teams
-    four players of X01 or a Cricket game; the bot takes a seat of its own."""
+    """Every player needs a name of their own, party games take eight players
+    and the others four, Killer needs two players and teams four players of X01
+    or a Cricket game; the bot takes a seat of its own."""
     seen: set[str] = set()
     for name in names or []:
         key = name.strip().casefold()
@@ -393,7 +395,14 @@ def _check_players(
             )
         if key:
             seen.add(key)
-    count = len(names) if names else players
+    seats = PARTY_PLAYERS if game in PARTY_GAMES else MAX_PLAYERS
+    if names and len(names) > seats:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="too_many_players",
+            translation_placeholders={"count": str(seats)},
+        )
+    count = len(names) if names else min(players, seats)
     if bot and (game.isdigit() or game in CRICKET_GAMES):
         if count >= MAX_PLAYERS:
             raise ServiceValidationError(

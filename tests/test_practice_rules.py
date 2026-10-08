@@ -281,7 +281,10 @@ def test_player_names_lose_template_and_control_characters():
     game.set_name(0, "Kim{{x}}")
     assert game.names[0] == "Kimx"
     game.restore({"game": 501, "names": ["{%Lea%}", 5, "#"]})
-    assert game.names == ["Lea", "", "", ""]
+    assert game.names == ["Lea"] + [""] * 7
+    # A seat beyond the eight of a party has no name.
+    game.set_name(8, "Sam")
+    assert "Sam" not in game.names
 
 
 @pytest.mark.parametrize("kind", [["cricket"], {"cricket": 1}, 5.5, None])

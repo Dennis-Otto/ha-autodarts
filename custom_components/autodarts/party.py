@@ -1,4 +1,4 @@
-"""Party games for one to four players and the bull-off.
+"""Party games for one to eight players and the bull-off.
 
 Shanghai, Halve-It and Killer, and Golf, Baseball and Count-Up, which play a
 fixed number of rounds and settle a tie at the top in extra rounds.

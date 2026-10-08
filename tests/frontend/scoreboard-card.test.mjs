@@ -264,6 +264,17 @@ test("an X01 leg alone explains double in, and the visit reads a dash while unkn
   assert.equal(text(card, ".main .route"), "No checkout possible");
 });
 
+test("a party of eight fills two rows of four tiles", () => {
+  const names = ["Alex", "Sam", "Kim", "Lea", "Mia", "Leo", "Zoe", "Ben"];
+  const scores = names.map((name, index) => ({ player: index + 1, name, points: 10 * index, hits: index }));
+  const { card } = setup(game({ game: "count_up", round: 1, rounds: 8, scores }));
+  assert.equal($(card, ".main .players").className, "players n8");
+  assert.deepEqual(
+    $$(card, ".main .player .name").map((name) => name.textContent),
+    names
+  );
+});
+
 test("party games on the scoreboard show lives, targets and the winner", () => {
   const killers = [
     { player: 1, name: "Alex", number: 7, lives: 3, killer: true, legs: 1, sets: 0 },

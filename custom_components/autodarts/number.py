@@ -20,6 +20,7 @@ from .practice import (
     MAX_PLAYERS,
     MAX_SETS,
     MAX_START,
+    PARTY_PLAYERS,
     PracticeGame,
     valid_start,
 )
@@ -32,7 +33,7 @@ PARALLEL_UPDATES = 0
 
 # Practice setting -> largest value. Every setting starts a new match.
 PRACTICE_NUMBERS = {
-    "practice_players": MAX_PLAYERS,
+    "practice_players": PARTY_PLAYERS,
     "practice_legs": MAX_LEGS,
     "practice_sets": MAX_SETS,
 }
@@ -66,7 +67,14 @@ async def async_setup_entry(
 
 
 def _check_seat(practice: PracticeGame, humans: int, level: int) -> None:
-    """The bot takes a seat of its own in X01 and the Cricket games."""
+    """Party games take eight players, the others four; the bot takes a seat of
+    its own in X01 and the Cricket games."""
+    if humans > practice.seats:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="too_many_players",
+            translation_placeholders={"count": str(practice.seats)},
+        )
     if level and humans >= MAX_PLAYERS and (practice.game or practice.cricket):
         raise ServiceValidationError(
             translation_domain=DOMAIN, translation_key="bot_seat"

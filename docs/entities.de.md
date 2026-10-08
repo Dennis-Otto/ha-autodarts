@@ -200,10 +200,10 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel Checkout-Quote | Sensor, % | Gewonnene Legs pro Dart auf ein Double, über die letzten 10 Legs. Ein Dart zählt als Dart aufs Double, wenn ein Double den Rest checken könnte: 2 bis 40 bei geraden Zahlen oder 50. Nur mit Double-Out. |
 | Übungsspiel Doppelquote | Sensor, % | Dieselben Darts aufs Double zusammen mit den letzten 10 Ergebnissen aus Doppeltraining und Bob's 27. |
 | Übungsspiel gespielte Legs | Sensor, Summe | Beendete Legs in X01, den Cricket-Spielen und den Partyspielen; die Langzeitstatistik zeigt die Legs pro Tag. Eine zurückgenommene Aufnahme, die ein Leg gewonnen hat, nimmt das Leg mit zurück. |
-| Übungsspiel Spielerzahl | Zahl, *Konfiguration* | 1–4 Spieler; mit dem [Bot](#bot) 1–3 neben ihm. Eine Änderung startet ein neues Match. |
+| Übungsspiel Spielerzahl | Zahl, *Konfiguration* | 1–4 Spieler, bei einem [Partyspiel](#partyspiele) und bevor ein Spiel gewählt ist 1–8; mit dem [Bot](#bot) 1–3 neben ihm. Wer X01, ein Cricket- oder ein Trainingsspiel wählt, behält die ersten vier. Eine Änderung startet ein neues Match. |
 | Übungsspiel Legs pro Satz | Zahl, *Konfiguration* | 1–11 Legs gewinnen einen Satz. Eine Änderung startet ein neues Match. |
 | Übungsspiel Sätze zum Sieg | Zahl, *Konfiguration* | 1–7 Sätze gewinnen das Match. Eine Änderung startet ein neues Match. |
-| Übungsspiel Spieler *N* | Text, *Konfiguration* | Name von Spieler 1–4, höchstens 20 Zeichen, für Anzeigetafel und Ereignisse. Ohne Namen zeigt die Karte *Spieler N*. |
+| Übungsspiel Spieler *N* | Text, *Konfiguration* | Name von Spieler 1–8, höchstens 20 Zeichen, für Anzeigetafel und Ereignisse. Ohne Namen zeigt die Karte *Spieler N*. |
 | Übungsspiel Double-Out | Schalter, *Konfiguration* | Checkout auf einem Double oder dem Bullseye. Standardmäßig an. Vor dem ersten Dart eines Legs gilt eine Änderung sofort, während eines Legs ab dem nächsten Leg; das laufende Leg behält seine Regeln. |
 | Übungsspiel Double-In | Schalter, *Konfiguration* | Die Zählung beginnt mit einem Double oder dem Bullseye. Standardmäßig aus; eine Änderung startet ein neues Match. |
 | Übungsspiel Ausbullen | Schalter, *Konfiguration* | Ausbullen entscheidet, wer ein Match mehrerer Spieler beginnt. Standardmäßig aus; eine Änderung startet ein neues Match. |
@@ -359,7 +359,7 @@ Die [Doubles-Karte](cards.de.md#doubles-karte) zeichnet die Quote jedes Doubles 
 
 <img src="images/de/killer.webp" alt="Animation: Killer für Alex, Sam und Kim auf der Anzeigetafel. Alle werfen für eine Zahl, Alex wird Killer und nimmt Sam die Leben, Kim wird ebenfalls Killer, und Alex nimmt das letzte Leben zum Sieg" width="760">
 
-Sechs Kneipenklassiker für einen bis vier Spieler, gewählt in *Übungsspiel*. Sie folgen den Darts wie X01, verbuchen eine Aufnahme beim Ziehen der Darts und gewinnen Legs und Sätze wie jedes Match. Live-Karte und [Anzeigetafel](cards.de.md#anzeigetafel) zeigen Runde, Ziel, Punkte oder Leben aller Spieler und umranden die Felder, auf die es ankommt; bei Golf und Baseball führt die Anzeigetafel eine Scorekarte aller Löcher und Innings.
+Sechs Kneipenklassiker für einen bis acht Spieler, gewählt in *Übungsspiel*. Sie folgen den Darts wie X01, verbuchen eine Aufnahme beim Ziehen der Darts und gewinnen Legs und Sätze wie jedes Match. Live-Karte und [Anzeigetafel](cards.de.md#anzeigetafel) zeigen Runde, Ziel, Punkte oder Leben aller Spieler und umranden die Felder, auf die es ankommt; bei Golf und Baseball führt die Anzeigetafel eine Scorekarte aller Löcher und Innings.
 
 | Spiel | Regeln |
 | --- | --- |
@@ -546,7 +546,7 @@ Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skript
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles` oder der Name eines Spiels | Das Spiel; Pflichtfeld. Auch ein Name, wie ihn die Spielauswahl zeigt, in jeder Sprache der Integration, unabhängig von Groß- und Kleinschreibung, Leer- und Satzzeichen: `Around the Clock`, `Bobs 27`, `Doppeltraining`. Der Anfang eines Namens genügt, wo er nur zu einem Spiel passt, etwa `Cut Throat` |
-| `players` | 1–4 Namen | Spieler in Wurfreihenfolge; die Zahl der Namen legt die Spielerzahl fest. Ein Name, den ein Spielerprofil schon hat, behält dessen Schreibweise, `alex` spielt also als Alex |
+| `players` | 1–4 Namen, 1–8 bei einem Partyspiel | Spieler in Wurfreihenfolge; die Zahl der Namen legt die Spielerzahl fest. Ein Name, den ein Spielerprofil schon hat, behält dessen Schreibweise, `alex` spielt also als Alex |
 | `legs` | 1–11 | Legs, die einen Satz gewinnen |
 | `sets` | 1–7 | Sätze, die das Match gewinnen |
 | `double_out` | `true`, `false` | X01-Legs auf einem Double oder dem Bullseye beenden |
