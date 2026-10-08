@@ -8,6 +8,15 @@ This repository is an independent, community-oriented fork of [Trkal/HACSAutodar
 | --- | --- | --- |
 | [@Dennis-Otto](https://github.com/Dennis-Otto) | Maintainer | Repository administration, releases and the release automation's GitHub App, security advisories, the OpenSSF Best Practices entry and the HACS listing |
 
+## Roles and responsibilities
+
+| Role | Who | Responsibilities |
+| --- | --- | --- |
+| Maintainer | the people in the table above | Reads every issue and has the last word on it. Reviews the pull requests of others and merges pull requests. Answers vulnerability reports within the times of [SECURITY.md](SECURITY.md) and publishes their advisories. Merges the release pull requests that wait for a person. Keeps the secrets, the settings as code and the accepted findings current, and the documentation true to the latest release. |
+| Contributor | everybody who opens a pull request | Follows [CONTRIBUTING.md](CONTRIBUTING.md): tests for every new function and every fix, the coding standards, a sign-off on every commit and an entry under *Unreleased* for every change for users. |
+| Reporter | everybody who opens an issue or reports a vulnerability | Names the release, the set-up and the steps to reproduce, answers the questions in the issue, and reports a vulnerability only privately. |
+| Bots | the workflows in `.github/workflows/` | Do the routine work that [Automation](#automation) describes, each with the least permissions it needs. What they don't merge or publish on their own waits for the maintainer. |
+
 ## Decisions
 
 Feature, compatibility and maintenance decisions are discussed in public GitHub issues, discussions and pull requests whenever they do not contain security-sensitive information. Decisions prioritize local control without cloud dependencies, secure handling of tokens and board credentials, compatibility with current Home Assistant releases, backward compatibility of existing config entries and entity IDs, and maintainability. The [roadmap](docs/roadmap.md) records what comes next.
@@ -35,6 +44,13 @@ Contributions follow [CONTRIBUTING.md](CONTRIBUTING.md). An automated [issue ass
 ## Continuity
 
 If the current maintainer can no longer maintain the project, the preferred outcome is a transparent handover to a trusted active contributor, announced in the repository. Until that handover is complete, the repository should be archived rather than presented as actively maintained, so that users are not left with an unmaintained integration that still looks active.
+
+Today, the maintainer is the only person with access to the repository, so the bus factor of the project is 1. Until a second person has that access, these keep the project able to continue:
+
+- Everything that builds, tests, releases and protects the project is in this repository: the code and its tests, the workflows, the settings as code and the documentation. Anyone can fork it under its license and carry on.
+- The bots keep the dependencies current and publish releases of dependency updates, as long as every check passes.
+
+A successor is planned: a second person with administrator access to the repository, who can close issues, accept pull requests and publish releases within a week once the maintainer can no longer do so. They are named in the table of maintainers once they have agreed.
 
 ## Security
 
