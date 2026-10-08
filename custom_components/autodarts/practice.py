@@ -1333,7 +1333,6 @@ class PracticeGame:
             ) or (None, None)
             wild = {
                 "targets": list(self._targets()),
-                "counted": list(visit.targets),
                 "bed": visit.bed,
                 "target_row": None if done else row,
             }
@@ -1359,6 +1358,8 @@ class PracticeGame:
             "bust": False,
             "won": visit.won,
             "visit": [hit_key(dart) for dart in self._scoring()],
+            # What every dart of the visit counted for, None for nothing.
+            "counted": list(visit.targets),
             "darts": darts,
             "average": None,
             "points": visit.points,

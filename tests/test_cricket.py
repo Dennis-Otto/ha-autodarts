@@ -225,3 +225,18 @@ def test_any_cricket_match_keeps_marks_and_points_consistent(players, visits):
         if players > 1 and before["winner"] is None and not won:
             # Every visit passes the turn, unless it won a leg.
             assert snapshot["player"] == before["player"] % players + 1
+
+
+def test_every_dart_says_what_it_counted_for():
+    # The second T20 hits a number nobody needs any more, the S14 no number at all.
+    visit = play_visit(
+        OPEN, 0, darts("T20", "S14", "T20"), [[3, 0, 0, 0, 0, 0, 0]], [0]
+    )
+    assert visit.targets == ("20", None, None)
+    assert play_visit(OPEN, 0, darts("T20", "T20"), [OPEN], [0]).targets == ("20", "20")
+    # Points given away in Cut-Throat count, and a win ends the list.
+    almost = [3, 3, 3, 3, 3, 3, 2]
+    visit = play_visit(
+        almost, 0, darts("T20", "25", "T19"), [OPEN], [0], cut_throat=True
+    )
+    assert visit.won and visit.targets == ("20", "25")

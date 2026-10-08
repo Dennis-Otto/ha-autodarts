@@ -218,6 +218,8 @@ The [entity reference](entities.md#tournaments) lists the tournament's settings,
 
 The live card and the scoreboard show a chalkboard with the marks of every player or team (`/`, `X`, `Ⓧ`), the points and the marks per round (MPR). Numbers everybody has closed are dimmed, and the board outlines the next open number, from 20 down to the bull. Once you have closed everything but the points are not yet enough to win, it outlines the highest number an opponent still has open, to score on; in Cut-Throat, one that a player with the fewest points has open. Screen readers read the marks as words.
 
+In a match, the column of the player at the board helps like a dart machine: a green frame where a dart scores, because you have closed the number and somebody still needs it, and an amber frame where somebody else has closed it and scores on you, so you had better close it. A dart of the visit that counted nothing, on a number nobody needs any more or on none of the game, is struck through. A mouse over a frame or a struck-through dart, or a tap on it, says what it means.
+
 ### Cricket
 
 - **Marks:** only 20 to 15 and the bull count. A single is one mark, a double two, a triple three; the outer bull is one mark, the bullseye two. Three marks close a number.
