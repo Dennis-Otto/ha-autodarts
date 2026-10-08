@@ -2378,7 +2378,9 @@ def dashboard_trends(page: Page) -> None:
     section = view.locator("hui-section").last
     section.scroll_into_view_if_needed()
     settle(view)
-    section.screenshot(path=str(OUTPUT / "dashboard-trends.png"))
+    # The page clock runs here, so the switches of the settings may still glide when
+    # the picture is taken; nothing in this view blinks on purpose.
+    section.screenshot(path=str(OUTPUT / "dashboard-trends.png"), animations="disabled")
     saved(OUTPUT / "dashboard-trends.png")
     context.close()
 
