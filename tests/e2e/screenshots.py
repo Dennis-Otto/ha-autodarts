@@ -1849,6 +1849,22 @@ def strategy_dashboard(page: Page) -> None:
     page.set_viewport_size(size)
 
 
+# Takes the focus from where a click left it, deep in the shadow roots.
+BLUR = """
+() => {
+  let element = document.activeElement;
+  while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement;
+  element?.blur?.();
+}
+"""
+
+
+def rest_pointer(page: Page) -> None:
+    """No row lit up by the pointer or the focus, whichever way the page came about."""
+    page.mouse.move(0, 0)
+    page.evaluate(BLUR)
+
+
 def config_flow(page: Page) -> None:
     page.goto(f"{HA}/config/integrations/dashboard/add?domain=autodarts")
     # An integration that is already set up asks before adding another entry.
@@ -1865,11 +1881,15 @@ def config_flow(page: Page) -> None:
         exact=True,
     )
     menu.wait_for(timeout=30000)
+    # The question before may or may not have come, and its button left the
+    # pointer over the menu.
+    rest_pointer(page)
     page.wait_for_timeout(800)
     page_shot(page, "setup-menu")
     menu.click()
     title = "Connect local board" if LANGUAGE == "en" else "Lokales Board verbinden"
     page.get_by_text(title, exact=True).wait_for(timeout=15000)
+    rest_pointer(page)
     page.wait_for_timeout(800)
     page_shot(page, "setup-local")
     # Leave the unfinished flow; the demo instance is discarded afterwards.
