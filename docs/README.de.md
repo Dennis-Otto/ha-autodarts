@@ -13,7 +13,7 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
 ## Warum
 
 - **Sofort und lokal.** Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direkt vom Board Manager in deinem Netzwerk. Kein Konto, keine Cloud, keine Client-ID.
-- **Ein ganzer Dartabend.** X01 von 101 bis 1001, drei Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern oder als Turnier mit bis zu acht, mit einer Anzeigetafel für das Tablet am Board.
+- **Ein ganzer Dartabend.** X01 von 101 bis 1001, vier Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern oder als Turnier mit bis zu acht, mit einer Anzeigetafel für das Tablet am Board.
 - **Deine Entwicklung in Zahlen.** Averages, Trefferbilder der echten Dart-Positionen, Bestleistungen, Abzeichen, Wochentrends, Spielerprofile, ein Wochenbericht und ein Jahr Verlauf, alles bei dir zu Hause.
 - **Dein Zuhause spielt mit.** Licht für eine 180, ein Caller auf deinen Lautsprechern, das Boardlicht bei der Entnahme, ein Foto deines besten Checkouts.
 
@@ -25,7 +25,7 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
       <h3>Spielen</h3>
       <ul>
         <li>X01 von 101 bis 1001 mit Double-Out, Double-In und dem Checkout-Weg nach jedem Dart</li>
-        <li>Cricket, Cut-Throat Cricket und Tactics auf einer Kreidetafel</li>
+        <li>Cricket, Cut-Throat Cricket, Tactics und Wild Mouse auf einer Kreidetafel</li>
         <li>Partyspiele: Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up</li>
         <li>Matches mit bis zu vier Spielern, Legs und Sätzen, zwei Teams zu zwei, Startpunkten als Handicap und Ausbullen, und eine Zusammenfassung jedes Matches</li>
         <li>Turniere mit drei bis acht Spielern: jeder gegen jeden mit Tabelle oder K.-o.-System mit Turnierbaum</li>

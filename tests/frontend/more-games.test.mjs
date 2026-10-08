@@ -151,6 +151,58 @@ test("Tactics and Cut-Throat Cricket play their own numbers and rules", () => {
   assert.equal(livePanel(gameView((name) => ({ practice: cut })[name]), ui).title, "cricket_cut_throat");
 });
 
+test("Wild Mouse closes doubles, triples and three in a bed besides the numbers", () => {
+  const open = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const wild = {
+    state: "unknown",
+    attributes: {
+      game: "wild_mouse",
+      target: "D",
+      target_row: "doubles",
+      numbers: [20, 19, 18, 17, 16, 15, 25],
+      targets: ["doubles", "triples", "bed", "eggs"],
+      counted: ["20", "triples", null],
+      bed: true,
+      visit: ["T20", "T20", "T20"],
+      scores: [
+        { player: 1, marks: [3, 3, 3, 3, 3, 3, 0, 1, 2, 3], points: 0 },
+        { player: 2, marks: open, points: 0 },
+        { player: 3, marks: [0, 0, 0, 0, 0, 0, 0], points: 0 },
+      ],
+    },
+  };
+  const view = cricketView(wild);
+  assert.deepEqual(view.targets, ["doubles", "triples", "bed"]);
+  assert.deepEqual([view.targetRow, view.target, view.bed], ["doubles", "D", true]);
+  assert.deepEqual(view.counted, ["20", "triples", null]);
+  // Marks of another length are no player of this game.
+  assert.equal(view.scores.length, 2);
+  const html = board({ practice: wild });
+  assert.equal(html.title, "cricket_wild_mouse");
+  assert.equal(html.meta, "wild_mouse_hint");
+  assert.match(html.main, /<table class="cricket many">/);
+  assert.equal((html.main.match(/<tr/g) ?? []).length, 1 + 10 + 2);
+  assert.match(html.main, /<tr class="target"><th>wild_doubles<\/th>/);
+  assert.match(html.main, /<tr class=""><th>wild_triples<\/th>/);
+  assert.match(html.main, /<tr class=""><th>wild_bed<\/th>/);
+  // Any double, any triple, or the bed of the visit.
+  const beds = (target, row) =>
+    aimBeds(gameView((name) => ({ practice: { ...wild, attributes: { ...wild.attributes, target, target_row: row } } })[name]));
+  assert.equal(beds("D", "doubles").length, 21);
+  assert.equal(beds("T", "triples").length, 20);
+  assert.deepEqual(beds("S20", "bed"), ["SI20", "SO20"]);
+  assert.deepEqual(beds("BULL", "25"), ["Bull", "25"]);
+  assert.equal(cricketView({ ...wild, attributes: { ...wild.attributes, target: "X", target_row: 7 } }).target, null);
+  // A T20 marked the 20 three times, a second one triples once, and the bed once more.
+  const count = visitCount({ mode: "cricket", cricket: view }, ["T20", "T20", "T20"], null);
+  assert.deepEqual(count, { kind: "marks", marks: 5 });
+  // Other Cricket games know nothing of these targets.
+  const cricket = cricketView({ ...wild, attributes: { ...wild.attributes, game: "cricket", scores: [] } });
+  assert.deepEqual([cricket.targets, cricket.targetRow, cricket.counted, cricket.bed, cricket.target], [[], null, [], false, null]);
+  const plain = cricketView({ ...wild, attributes: { game: "wild_mouse", scores: [] } });
+  assert.deepEqual([plain.targets, plain.counted], [[], []]);
+});
+
 test("team Cricket shows a column per team, the partner at the board in bold", () => {
   const marks = [3, 1, 0, 0, 0, 0, 0];
   const scores = [

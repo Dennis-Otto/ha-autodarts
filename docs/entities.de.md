@@ -190,10 +190,10 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Übungsspiel | Auswahl | `off` (*Aus*), `101`, `301`, `501`, `701`, `901`, `1001`, ein Cricket-Spiel (`cricket`, `cut_throat`, `tactics`), ein Partyspiel (`shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`) oder ein Trainingsspiel: `around_the_clock`, `doubles` (*Doppeltraining*), `checkout` (*Checkout-Training*), `bobs_27`, `checkout_121` (*121-Checkout*), `catch_40`, `jdc_challenge`, `singles` (*Singles-Training*). Die Wahl startet ein neues Match oder Spiel. |
+| Übungsspiel | Auswahl | `off` (*Aus*), `101`, `301`, `501`, `701`, `901`, `1001`, ein Cricket-Spiel (`cricket`, `cut_throat`, `tactics`, `wild_mouse`), ein Partyspiel (`shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`) oder ein Trainingsspiel: `around_the_clock`, `doubles` (*Doppeltraining*), `checkout` (*Checkout-Training*), `bobs_27`, `checkout_121` (*121-Checkout*), `catch_40`, `jdc_challenge`, `singles` (*Singles-Training*). Die Wahl startet ein neues Match oder Spiel. |
 | Übungsspiel Restpunkte | Sensor | Restpunkte des Spielers am Board; ohne Spiel *unbekannt*. Attribute: `game`, `double_out`, `double_in`, `opened` (der Spieler am Board hat mit Double-In geöffnet oder spielt ohne), `player` und `name` des Spielers am Board, `checkout`, `bust`, `won`, `visit` (die Felder der aktuellen Aufnahme), `darts` und `average` des Legs, `players`, `legs_to_win`, `sets_to_win`, `winner` (der Matchgewinner bis zum nächsten Dart), `start` (die Startpunkte des Spielers am Board), `teams` im [Team-Match](#teams-und-startpunkte) (`team`, `name` und `players` beider Teams, sonst keins), `scores` mit `player`, `name`, `remaining`, `opened`, `start`, `legs` (im laufenden Satz oder im entscheidenden Satz eines beendeten Matches), `sets`, `match_legs` (Legs des ganzen Matches), dem Match-`average` und im Team-Match dem `team` jedes Spielers, `bull_off` beim Ausbullen (der `player` am Board, `rethrow`, `by_distance` und `throws` mit `player`, `name`, `hit` und `distance`) sowie `legs` mit den letzten 10 Legs (`game`, `player`, `name`, `darts`, `average`, `checkout`, `ended`) sowie `summary` mit dem letzten beendeten Match mehrerer Spieler: `game`, `ended`, `winner`, `legs_to_win`, `sets_to_win`, `double_out` und `players` mit `player`, `name`, `legs` (im ganzen Match gewonnen), `sets` und `darts` aller Spieler; X01 ergänzt `average`, `first_9_average`, `checkouts`, `darts_at_double`, `checkout_rate`, `highest_checkout`, `scores_100`, `scores_140`, `scores_180` und `best_leg` (wenigste Darts eines gewonnenen Legs), Cricket `mpr`, `marks` und `best_leg`. `double_out` ist die Regel des laufenden Legs. Mit dem [Bot](#bot) nennt `bot` dessen `player` und `level` (sonst keins), und seine Einträge in `scores`, in den `throws` des Ausbullens und in den `players` der Zusammenfassung tragen `bot: true`. `setup` enthält den [Stellwurf](#stellwürfe), wo kein Checkout möglich ist, und `undo` ist `true`, solange [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurücknehmen kann. Der Recorder speichert weder `visit`, `scores`, `legs` noch `summary`. |
 | Übungsspiel Checkout-Weg | Sensor | Der Checkout-Weg, etwa `T20 25 D18`; *unbekannt*, wenn es keinen gibt. |
-| Übungsspiel Ziel | Sensor | Das Ziel des [Trainingsspiels](#trainingsspiele), etwa `7`, `D16`, `BULL` oder der Checkout-Rest `81`, oder bei [Cricket](#cricket) die nächste offene Zahl, etwa `T19`; ohne Ziel *unbekannt*. Attribute: `drill`, `finished`, `visit`, `progress` und `targets`, `darts`, `hits`, `hit_rate`, das beste Ergebnis als `best` und `results` mit den letzten 10 Ergebnissen, die der Recorder nicht speichert. Bob's 27 ergänzt `score`; Checkout-Training und 121-Checkout ergänzen `remaining`, `checkout`, `bust`, `won`, `attempt_visit`, `attempt_visits`, `attempts`, `successes` und `rate`; Catch 40 ergänzt `score`, `checkouts` und dieselben Werte des Rests, der gerade gecheckt wird; die JDC Challenge ergänzt `part`, `score` und `parts`, das Singles-Training `score`. |
+| Übungsspiel Ziel | Sensor | Das Ziel des [Trainingsspiels](#trainingsspiele), etwa `7`, `D16`, `BULL` oder der Checkout-Rest `81`, oder bei [Cricket](#cricket) die nächste offene Zahl, etwa `T19`, bei Wild Mouse auch `D` oder `T` für jedes Double oder Triple; ohne Ziel *unbekannt*. Attribute: `drill`, `finished`, `visit`, `progress` und `targets`, `darts`, `hits`, `hit_rate`, das beste Ergebnis als `best` und `results` mit den letzten 10 Ergebnissen, die der Recorder nicht speichert. Bob's 27 ergänzt `score`; Checkout-Training und 121-Checkout ergänzen `remaining`, `checkout`, `bust`, `won`, `attempt_visit`, `attempt_visits`, `attempts`, `successes` und `rate`; Catch 40 ergänzt `score`, `checkouts` und dieselben Werte des Rests, der gerade gecheckt wird; die JDC Challenge ergänzt `part`, `score` und `parts`, das Singles-Training `score`. |
 | Übungsspiel neues Leg | Taste | Beginnt das Leg wieder beim vollen Rest; Legs und Sätze bleiben. Nach einem beendeten Match beginnt es das nächste Match. |
 | Übungsspiel neues Match | Taste | Beginnt das Match wieder bei null Legs und Sätzen. |
 | Übungsspiel First-9-Average | Sensor, Punkte | 3-Dart-Average der ersten neun Darts jedes Legs, über die letzten 10 Legs aller Spieler am Board. |
@@ -209,6 +209,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel Ausbullen | Schalter, *Konfiguration* | Ausbullen entscheidet, wer ein Match mehrerer Spieler beginnt. Standardmäßig aus; eine Änderung startet ein neues Match. |
 | Übungsspiel Ausbullen nach Abstand | Schalter, *Konfiguration* | Zwei Darts im selben Bull-Feld entscheidet der Abstand, den das Board gemessen hat, statt eines neuen Wurfs. Standardmäßig aus, wie es die offiziellen Regeln wollen; gilt sofort. |
 | Übungsspiel Teams | Schalter, *Konfiguration* | Vier Spieler spielen X01 oder ein Cricket-Spiel als zwei Teams. Standardmäßig aus; eine Änderung startet ein neues Match. |
+| Übungsspiel Wild Mouse Three in a Bed | Schalter, *Konfiguration* | [Wild Mouse](games.de.md#wild-mouse) mit 3 in a Bed, wie es die Regeln vorsehen. Standardmäßig an; eine Änderung startet Wild Mouse neu. |
 | Übungsspiel Startpunkte Spieler *N* | Zahl, *Konfiguration* | Die X01-Startpunkte von Spieler 1–4 für ein Handicap, 2–1001; `0`, der Standard, spielt die Startpunkte des Spiels. Eine Änderung startet ein neues Match. |
 | Übungsspiel Golf-Löcher | Auswahl, *Konfiguration* | `9` oder `18` Löcher [Golf](#partyspiele); standardmäßig `9`. Eine Änderung startet eine Runde Golf neu. |
 | Übungsspiel Count-Up-Runden | Zahl, *Konfiguration* | 1–20 Runden [Count-Up](#partyspiele); standardmäßig `8`. Eine Änderung startet ein Count-Up neu. |
@@ -268,16 +269,17 @@ Wähle `cricket` in *Übungsspiel*, allein oder als Match mit bis zu vier Spiele
 - **Ziel:** *Übungsspiel Ziel* zeigt die nächste offene Zahl von 20 abwärts bis zum Bull, etwa `T19` oder `BULL`, und die Karte umrandet sie auf der Scheibe.
 - **Marks pro Runde (MPR):** gezählte Marks pro drei Darts, die übliche Cricket-Statistik. Marks auf einer Zahl, die niemand mehr braucht, zählen nicht.
 
-Zwei Varianten zählen dieselben Treffer:
+Drei Varianten zählen dieselben Treffer:
 
 | Spiel | Regeln |
 | --- | --- |
 | **Cut-Throat Cricket** (`cut_throat`) | Marks auf einer geschlossenen Zahl geben ihren Wert jedem anderen Spieler, der sie noch offen hat. Wer alle Zahlen mit den wenigsten Punkten schließt, gewinnt. |
 | **Tactics** (`tactics`) | Cricket auf 20 bis 10 und das Bull, zwölf Zahlen insgesamt. |
+| **Wild Mouse** (`wild_mouse`) | Cricket plus Doubles, Triples und 3 in a Bed: Ein Dart markiert seine Zahl, solange sie offen ist, sonst Doubles oder Triples; drei Darts in einem Feld schließen 3 in a Bed sofort. [Regeln](games.de.md#wild-mouse) |
 
 <img src="images/de/scoreboard-tactics.png" alt="Anzeigetafel bei Tactics zwischen Alex und Sam: die Kreidetafel von 20 bis 10 und dem Bull, Alex mit 94 Punkten, Sam am Board mit T15 als nächstem Ziel" width="760">
 
-Die Karte zeigt eine Kreidetafel mit den Marks aller Spieler (`/`, `X`, `Ⓧ`), den Punkten und der MPR, mit den Zahlen des Spiels. *Übungsspiel Restpunkte* bleibt bei den Cricket-Spielen *unbekannt*; seine Attribute tragen das Spiel: `game` ist `cricket`, `cut_throat` oder `tactics`, dazu `points`, `mpr`, `target`, `numbers` (20 bis 15 und 25, bei Tactics 20 bis 10 und 25) und `scores` mit `marks`, `points`, `legs`, `sets` und `mpr` jedes Spielers. Cricket-Legs zählen nicht für die X01-Statistik; die MPR der [Spielerprofile](#spielerprofile) und `best_cricket_mpr` kommen nur aus Cricket.
+Die Karte zeigt eine Kreidetafel mit den Marks aller Spieler (`/`, `X`, `Ⓧ`), den Punkten und der MPR, mit den Zahlen des Spiels. *Übungsspiel Restpunkte* bleibt bei den Cricket-Spielen *unbekannt*; seine Attribute tragen das Spiel: `game` ist `cricket`, `cut_throat`, `tactics` oder `wild_mouse`, dazu `points`, `mpr`, `target`, `numbers` (20 bis 15 und 25, bei Tactics 20 bis 10 und 25) und `scores` mit `marks`, `points`, `legs`, `sets` und `mpr` jedes Spielers. Wild Mouse ergänzt `targets`, die Ziele nach den Zahlen (`doubles`, `triples` und mit Three in a Bed `bed`), deren Marks in `marks` auf die der Zahlen folgen; `target_row`, die Zeile des Ziels; `counted`, wofür jeder Dart der Aufnahme gezählt hat (`20` bis `15`, `25`, `doubles`, `triples` oder `null`); und `bed`, ob die Aufnahme ein Bed war, das gezählt hat. Cricket-Legs zählen nicht für die X01-Statistik; die MPR der [Spielerprofile](#spielerprofile) und `best_cricket_mpr` kommen nur aus Cricket.
 
 ## Spielerprofile
 
@@ -422,7 +424,7 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen j
 | --- | --- | --- |
 | Turnier | Sensor (Aufzählung) | Die Runde, die gespielt wird, während einer Pause die nächste: `no_tournament`, `round_1` bis `round_7`, `quarter_final`, `semi_final`, `third_place`, `final` oder `finished`. Die Attribute stehen unten. |
 | Turnierformat | Auswahl, *Konfiguration* | `round_robin` (jeder gegen jeden, Standard) oder `knockout` (K.-o.-System). |
-| Turnierspiel | Auswahl, *Konfiguration* | `101` bis `1001`, `cricket`, `cut_throat` oder `tactics`; standardmäßig `501`. |
+| Turnierspiel | Auswahl, *Konfiguration* | `101` bis `1001`, `cricket`, `cut_throat`, `tactics` oder `wild_mouse`; standardmäßig `501`. |
 | Turnierspieler | Text, *Konfiguration* | Drei bis acht Namen, durch Kommas getrennt, etwa `Dennis, Lea, Max`. |
 | Turnierpause | Zahl, Sekunden, *Konfiguration* | 0–600 Sekunden zwischen zwei Matches nach der Zusammenfassung, standardmäßig 10; 0 wartet auf *Nächstes Turniermatch*. Eine Änderung gilt sofort. |
 | Turnier Dauer der Zusammenfassung | Zahl, Sekunden, *Konfiguration* | 0–60 Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt, standardmäßig 8. Eine Änderung gilt sofort. |
@@ -543,7 +545,7 @@ Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skript
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
-| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles` oder der Name eines Spiels | Das Spiel; Pflichtfeld. Auch ein Name, wie ihn die Spielauswahl zeigt, in jeder Sprache der Integration, unabhängig von Groß- und Kleinschreibung, Leer- und Satzzeichen: `Around the Clock`, `Bobs 27`, `Doppeltraining`. Der Anfang eines Namens genügt, wo er nur zu einem Spiel passt, etwa `Cut Throat` |
+| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles` oder der Name eines Spiels | Das Spiel; Pflichtfeld. Auch ein Name, wie ihn die Spielauswahl zeigt, in jeder Sprache der Integration, unabhängig von Groß- und Kleinschreibung, Leer- und Satzzeichen: `Around the Clock`, `Bobs 27`, `Doppeltraining`. Der Anfang eines Namens genügt, wo er nur zu einem Spiel passt, etwa `Cut Throat` |
 | `players` | 1–4 Namen | Spieler in Wurfreihenfolge; die Zahl der Namen legt die Spielerzahl fest. Ein Name, den ein Spielerprofil schon hat, behält dessen Schreibweise, `alex` spielt also als Alex |
 | `legs` | 1–11 | Legs, die einen Satz gewinnen |
 | `sets` | 1–7 | Sätze, die das Match gewinnen |
@@ -552,6 +554,7 @@ Richtet ein Spiel mit einem Aufruf ein und startet es, für Automationen, Skript
 | `bull_off` | `true`, `false` | Ausbullen entscheidet, wer ein Match mehrerer Spieler beginnt |
 | `bull_off_distance` | `true`, `false` | Zwei Darts im selben Bull-Feld entscheidet der gemessene Abstand statt eines neuen Wurfs |
 | `teams` | `true`, `false` | Vier Spieler spielen X01 oder ein Cricket-Spiel als zwei Teams: Spieler 1 und 3 gegen 2 und 4 |
+| `three_in_a_bed` | `true`, `false` | Wild Mouse mit 3 in a Bed |
 | `start_scores` | bis zu 4 Zahlen, `0` oder 2–1001 | X01-Startpunkte in Wurfreihenfolge, für ein Handicap: einer pro Spieler und einer für den Platz des Bots nach ihnen. Teams spielen von den Startpunkten der Spieler 1 und 2, gib also höchstens zwei an. `0` oder ein fehlender Wert spielt die Startpunkte des Spiels. Mit Double-In und Double-Out lassen sich Startpunkte von 3 nicht gewinnen und werden abgelehnt. |
 | `holes` | `9`, `18` | Löcher beim Golf |
 | `rounds` | 1–20 | Runden beim Count-Up |
@@ -757,7 +760,7 @@ Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du w
 | `players` | 3–8 Namen | Die Spieler, in der Reihenfolge der Auslosung |
 | `format` | `round_robin`, `knockout` | Jeder gegen jeden oder ein Turnierbaum bis ins Finale |
 | `start_scores` | 0 oder 2–1001 pro Spieler | X01-Startpunkte der Spieler in der Reihenfolge von `players`, für ein Handicap, höchstens einer pro Spieler; 0 oder ein fehlender Wert spielt die Startpunkte des Spiels. Mit Double-In und Double-Out lassen sich Startpunkte von 3 nicht gewinnen und werden abgelehnt. |
-| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics` | Das Spiel jedes Matches |
+| `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse` | Das Spiel jedes Matches |
 | `legs` | 1–11 | Legs, die einen Satz gewinnen |
 | `sets` | 1–7 | Sätze, die ein Match gewinnen |
 | `double_out` | `true`, `false` | X01-Legs auf einem Double oder dem Bullseye beenden |

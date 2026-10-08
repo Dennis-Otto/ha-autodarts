@@ -1,9 +1,9 @@
 """Practice games on the local board for up to four players, and training games.
 
-X01 with a start score of its own for every player, Cricket, Cut-Throat and
-Tactics, the party games, and the training games; X01 and the Cricket games
-also as two teams of two, and against the bot. With several players, a
-bull-off can decide who starts.
+X01 with a start score of its own for every player, Cricket, Cut-Throat,
+Tactics and Wild Mouse, the party games, and the training games; X01 and the
+Cricket games also as two teams of two, and against the bot. With several
+players, a bull-off can decide who starts.
 """
 
 from __future__ import annotations
@@ -17,12 +17,17 @@ from homeassistant.util import dt as dt_util
 from .bot import DEFAULT_DELAY, MAX_DELAY, valid_level
 from .checkout import checkout, setup
 from .cricket import (
+    BED,
     CRICKET_GAMES,
     CRICKET_NUMBERS,
+    WILD_MOUSE,
+    WILD_MOUSE_TARGETS,
     CricketVisit,
     marks_per_round,
     next_target,
     play_visit,
+    play_wild_mouse_visit,
+    wild_mouse_target,
 )
 from .doubles import DoubleHits, DoubleStats, aimed_at, hits
 from .drills import DRILLS, CatchDrill, CheckoutDrill, Drill, make_drill
@@ -66,6 +71,7 @@ OPTIONS = (
     "personal_routes",
     "teams",
     "manual_entry",
+    "three_in_a_bed",
 )
 # The games to choose from, as the practice game select and start_game offer them.
 GAME_OPTIONS = (*(str(game) for game in GAMES), *CRICKET_GAMES, *PARTY_GAMES, *DRILLS)
@@ -210,6 +216,9 @@ class PracticeGame:
         self.teams = False
         # Darts entered by hand in Home Assistant, for missed detections.
         self.manual_entry = False
+        # Wild Mouse with three in a bed, as its rules have it; casual players
+        # often leave it out.
+        self.three_in_a_bed = True
         # The bot's 3-dart average, 0 without it, and the seconds between its
         # darts. In X01 and the Cricket games, it takes the last seat.
         self.bot_level = 0
@@ -291,7 +300,7 @@ class PracticeGame:
                 clean_name(name) if isinstance(name, str) else ""
                 for name in [*names, *[""] * MAX_PLAYERS][:MAX_PLAYERS]
             ]
-        slots = len(self._numbers())
+        slots = self._slots()
         players = saved.get("players")
         if isinstance(players, list) and 0 < len(players) <= MAX_PLAYERS:
             self.players = [Player.restored(player, slots) for player in players]
@@ -397,6 +406,7 @@ class PracticeGame:
             "teams": self.teams,
             "starts": list(self.starts),
             "manual_entry": self.manual_entry,
+            "three_in_a_bed": self.three_in_a_bed,
             "bot_level": self.bot_level,
             "bot_delay": self.bot_delay,
             "golf_holes": self.golf_holes,
@@ -509,15 +519,19 @@ class PracticeGame:
 
         Double out changes a leg only before its first dart; once darts count,
         it applies from the next leg. A leg keeps its rules, so none becomes
-        unwinnable, as for a player on 1 when double out comes on.
+        unwinnable, as for a player on 1 when double out comes on. Three in a
+        bed changes the targets to close, so Wild Mouse starts anew.
         """
         self._resume()
         if option == "double_out" and self._leg_begun():
             self.double_out_next = None if enabled == self.double_out else enabled
             return
+        changed = enabled != getattr(self, option)
         setattr(self, option, enabled)
         if option == "double_out":
             self.double_out_next = None
+        if option == "three_in_a_bed" and changed and self.cricket == WILD_MOUSE:
+            self.new_match()
 
     def unwinnable(
         self, starts: list[int] | None = None, rules: dict[str, bool] | None = None
@@ -630,7 +644,7 @@ class PracticeGame:
             self.double_out, self.double_out_next = self.double_out_next, None
         if self.drill:
             self.drills[self.drill].reset(len(self._visit))
-        slots = len(self._numbers())
+        slots = self._slots()
         for index, player in enumerate(self.players):
             player.new_leg(self._start(index), slots)
         if self.party:
@@ -676,6 +690,18 @@ class PracticeGame:
     def _numbers(self) -> tuple[int, ...]:
         """The numbers of the Cricket game: 20 to 15 and the bull, or Tactics'."""
         return CRICKET_GAMES[self.cricket] if self.cricket else CRICKET_NUMBERS
+
+    def _targets(self) -> tuple[str, ...]:
+        """What Wild Mouse closes besides the numbers; the others close nothing more."""
+        if self.cricket != WILD_MOUSE:
+            return ()
+        if self.three_in_a_bed:
+            return WILD_MOUSE_TARGETS
+        return tuple(target for target in WILD_MOUSE_TARGETS if target != BED)
+
+    def _slots(self) -> int:
+        """The marks every player keeps: one per number and Wild Mouse target."""
+        return len(self._numbers()) + len(self._targets())
 
     def _rounds(self, kind: object) -> int | None:
         return {"golf": self.golf_holes, "count_up": self.count_up_rounds}.get(
@@ -1183,6 +1209,16 @@ class PracticeGame:
     def _cricket_visit(self) -> CricketVisit:
         player = self.players[self.current]
         opponents = [self.players[index] for index in self._opponents()]
+        if self.cricket == WILD_MOUSE:
+            return play_wild_mouse_visit(
+                player.marks,
+                player.points,
+                self._scoring(),
+                [item.marks for item in opponents],
+                [item.points for item in opponents],
+                self._numbers(),
+                self._targets(),
+            )
         return play_visit(
             player.marks,
             player.points,
@@ -1287,14 +1323,29 @@ class PracticeGame:
                 return visit.points
             return visit.others[opponents.index(index)]
 
-        # With everything closed, the target is a number to score on.
-        target = next_target(
-            visit.marks,
-            self._numbers(),
-            [self.players[index].marks for index in opponents],
-            list(visit.others),
-            self.cricket == "cut_throat",
-        )
+        others = [self.players[index].marks for index in opponents]
+        wild: dict[str, Any] = {}
+        if self.cricket == WILD_MOUSE:
+            # Where every dart of the visit counted, and the row to aim at with
+            # its bed, as a triple counts for its number or for triples.
+            row, target = wild_mouse_target(
+                visit.marks, self._numbers(), self._targets(), others, self._scoring()
+            ) or (None, None)
+            wild = {
+                "targets": list(self._targets()),
+                "counted": list(visit.targets),
+                "bed": visit.bed,
+                "target_row": None if done else row,
+            }
+        else:
+            # With everything closed, the target is a number to score on.
+            target = next_target(
+                visit.marks,
+                self._numbers(),
+                others,
+                list(visit.others),
+                self.cricket == "cut_throat",
+            )
 
         return {
             "game": self.cricket,
@@ -1334,6 +1385,7 @@ class PracticeGame:
                 }
                 for index, item in enumerate(self.players)
             ],
+            **wild,
         }
 
     # -- party games ---------------------------------------------------------------

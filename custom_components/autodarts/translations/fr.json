@@ -459,6 +459,9 @@
       },
       "practice_manual_entry": {
         "name": "Saisie manuelle de la partie"
+      },
+      "practice_three_in_a_bed": {
+        "name": "Three in a bed de la partie Wild Mouse"
       }
     },
     "select": {
@@ -492,6 +495,7 @@
           "killer": "Killer",
           "cut_throat": "Cut-Throat Cricket",
           "tactics": "Tactics",
+          "wild_mouse": "Wild Mouse",
           "golf": "Golf",
           "baseball": "Baseball",
           "count_up": "Count-Up",
@@ -534,7 +538,8 @@
           "1001": "1001",
           "cricket": "Cricket",
           "cut_throat": "Cut-Throat Cricket",
-          "tactics": "Tactics"
+          "tactics": "Tactics",
+          "wild_mouse": "Wild Mouse"
         }
       }
     },
@@ -952,6 +957,10 @@
           "name": "Équipes",
           "description": "Quatre joueurs de X01 ou d'un jeu de Cricket jouent en deux équipes\u00a0: les joueurs 1 et 3 contre les joueurs 2 et 4."
         },
+        "three_in_a_bed": {
+          "name": "Three in a bed",
+          "description": "Wild Mouse\u00a0: trois fléchettes d'une volée dans la même zone ferment une cible à part, comme le veulent les règles. Désactivé, elle est omise."
+        },
         "start_scores": {
           "name": "Scores de départ",
           "description": "Scores de départ X01 des joueurs dans l'ordre de lancer, pour un handicap, par exemple 501 et 301\u00a0; la place du bot après les joueurs en a un aussi. Avec 0 ou sans score, le joueur part du score de départ du jeu. Les équipes partent des scores de départ des joueurs 1 et 2."
@@ -1216,6 +1225,7 @@
         "killer": "Killer",
         "cut_throat": "Cut-Throat Cricket",
         "tactics": "Tactics",
+        "wild_mouse": "Wild Mouse",
         "golf": "Golf",
         "baseball": "Baseball",
         "count_up": "Count-Up",

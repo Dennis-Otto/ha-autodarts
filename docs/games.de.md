@@ -2,7 +2,7 @@
 
 [← Dokumentation](README.de.md) · [English](games.md)
 
-Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, drei Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
+Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, vier Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
 
 <img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet am Board öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
@@ -16,6 +16,7 @@ Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 100
 | [**Cricket**](#cricket) | 1–4 oder zwei Teams zu zwei | 20 bis 15 und das Bull schließen und auf Zahlen punkten, die die anderen noch offen haben |
 | [**Cut-Throat Cricket**](#cut-throat-cricket) | 1–4 oder zwei Teams zu zwei | Alles schließen, mit den wenigsten Punkten: Deine Punkte bekommen die anderen |
 | [**Tactics**](#tactics) | 1–4 oder zwei Teams zu zwei | Cricket auf 20 bis 10 und das Bull |
+| [**Wild Mouse**](#wild-mouse) | 1–4 oder zwei Teams zu zwei | Cricket plus drei Doubles, drei Triples und drei Darts in einem Feld |
 | [**Shanghai**](#shanghai) | 1–4 | Auf die Zahlen 1 bis 7 punkten; Single, Double und Triple in einer Aufnahme gewinnen sofort |
 | [**Halve-It**](#halve-it) | 1–4 | Das Ziel der Runde treffen, sonst halbieren sich die Punkte |
 | [**Killer**](#killer) | 2–4 | Die eigene Zahl erobern, Killer werden und den anderen die Leben nehmen |
@@ -237,6 +238,17 @@ Live-Karte und Anzeigetafel zeigen eine Kreidetafel mit den Marks jedes Spielers
 - Cricket auf die Zahlen 20 bis 10 und das Bull, zwölf Zahlen insgesamt. Marks, Punkte und Sieg folgen den Regeln von Cricket.
 
 <img src="images/de/scoreboard-tactics.png" alt="Anzeigetafel bei Tactics zwischen Alex und Sam: die Kreidetafel von 20 bis 10 und dem Bull, Alex mit 94 Punkten, Sam am Board mit T15 als nächstem Ziel" width="760">
+
+### Wild Mouse
+
+Auch als Minnesota Cricket bekannt. Neben 20 bis 15 und dem Bull schließt jeder Spieler drei weitere Ziele: **Doubles**, **Triples** und **3 in a Bed**. Die Kreidetafel hat für jedes eine Zeile.
+
+- **Jeder Dart zählt einmal:** Ein Dart markiert seine Zahl, solange du sie noch offen hast, wie bei Cricket: Eine T20 sind drei Marks auf der 20. Sonst ist ein Double eine Mark auf Doubles und ein Triple eine Mark auf Triples, auf jeder Zahl und mit dem Bullseye als Double. Drei Marks schließen Doubles und Triples.
+- **3 in a Bed:** Drei Darts einer Aufnahme im selben Feld, etwa drei Single 18 oder drei T20, schließen es sofort; die Darts zählen zusätzlich für ihre Ziele. Um ohne zu spielen, wie es Freizeitspieler oft tun, schalte auf dem Bildschirm für ein neues Spiel *Three in a Bed* oder *Übungsspiel Wild Mouse Three in a Bed* aus; eine Änderung startet das Spiel neu.
+- **Punkte:** Ein Ziel, das du geschlossen hast, punktet, solange ein anderer Spieler es noch offen hat: eine Zahl ihren Wert pro Mark wie bei Cricket, Doubles und Triples die ganze Punktzahl des Darts (32 Punkte für eine D16) und 3 in a Bed die drei Darts zusammen (180 für drei T20).
+- **Sieg:** Schließe alle Ziele mit mindestens so vielen Punkten wie alle anderen, wie bei Cricket.
+- **Ziel:** Das Board umrandet das nächste offene Ziel: 20 abwärts bis 15, dann jedes Double, jedes Triple, für 3 in a Bed die Single 20 und nach dem ersten Dart dessen Feld, zuletzt das Bull.
+- **Marks pro Runde:** Jede Mark, die geschlossen oder gepunktet hat, zählt, auf den Zahlen wie auf Doubles und Triples; 3 in a Bed zählt eine.
 
 ## Partyspiele
 
