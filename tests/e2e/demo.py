@@ -7,8 +7,10 @@ The resulting instance is used for previews and documentation screenshots.
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import json
 import os
+import time
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -21,6 +23,21 @@ from scenario import HA, Scenario, wait_for
 
 DASHBOARD = "autodarts-demo"
 STRATEGY_DASHBOARD = "autodarts-auto"
+
+# The frozen clock of the screenshots (compose.frozen.yaml), which stands still at
+# DEMO_TIME in this container; without DEMO_TIME the demo runs on the real clock.
+_SPEC = importlib.util.spec_from_file_location(
+    "demo_clock", Path(__file__).resolve().parent / "frozen" / "sitecustomize.py"
+)
+demo_clock = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(demo_clock)
+FROZEN = bool(os.environ.get("DEMO_TIME") and os.environ.get("DEMO_CLOCK"))
+
+
+def tick() -> None:
+    """A move at the board takes two seconds on the frozen clock, as at a real board."""
+    if FROZEN:
+        demo_clock.move(os.environ["DEMO_CLOCK"], time.time() + demo_clock.STEP)
 
 
 def dart(name: str, number: int, multiplier: int, bed: str, x: float, y: float):
@@ -509,6 +526,7 @@ def gallery() -> None:
 
 async def throw(demo: Scenario, darts: list[dict]) -> None:
     for count in range(1, len(darts) + 1):
+        tick()
         await demo.board("POST", "/control/state", json={"throws": darts[:count]})
         await asyncio.sleep(0.4)
 
@@ -517,11 +535,13 @@ async def play(demo: Scenario, visits: list[list[dict]]) -> None:
     """Throw each visit and pull the darts, as a player does."""
     for visit in visits:
         await throw(demo, visit)
+        tick()
         await demo.board(
             "POST",
             "/control/state",
             json={"status": "Takeout in progress", "event": "Takeout started"},
         )
+        tick()
         await demo.board(
             "POST",
             "/control/state",
@@ -554,6 +574,13 @@ async def main() -> None:
             result = await demo.local_flow("board-mock", PORT)
         entry_id = result["result"]["entry_id"]
         await demo.registries(entry_id)
+        if FROZEN:
+            # Every change comes over the board socket, in the order the board sends
+            # it, never first from a poll whose moment depends on the run.
+            await demo.ws(
+                "config_entries/update", entry_id=entry_id, pref_disable_polling=True
+            )
+            await wait_for(lambda: demo.entry_is("loaded"), "the entry without polling")
         await seed_journal(demo, entry_id)
         await seed_statistics(demo)
         await weekly_report(demo)

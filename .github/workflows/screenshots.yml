@@ -1,0 +1,238 @@
+name: Screenshot bot
+
+# Keeps the images of the documentation in step with the cards. After a change of
+# the cards or of the screenshot tool reaches main, every week, and on demand, it
+# renders every image of docs/images anew from the demo, with its frozen clock
+# (tests/e2e/visual.sh). When the pixels of any image changed, it opens or updates
+# one pull request, "docs: update the screenshots of the cards", as the release app,
+# and turns on auto-merge, so that the images follow once the checks pass. An image
+# whose pixels stayed the same keeps its file; a pull request that main has caught
+# up with in the meantime closes.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - custom_components/autodarts/frontend/**
+      - tests/e2e/**
+      - "!tests/e2e/browser.py"
+      - "!tests/e2e/browser.sh"
+      - "!tests/e2e/run.sh"
+      - "!tests/e2e/configuration.yaml"
+      - "!tests/e2e/README.md"
+      - "!tests/e2e/accessibility-baseline.toml"
+      - .github/workflows/screenshots.yml
+  schedule:
+    - cron: "17 3 * * 4"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: screenshot-bot
+  cancel-in-progress: false
+
+jobs:
+  render:
+    name: render (${{ matrix.language }})
+    if: ${{ !github.event.repository.fork }}
+    runs-on: ubuntu-latest
+    # The demo takes about three minutes, the images of one language about seven.
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        language: [en, de]
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Render the images with the frozen clock and compare them
+        env:
+          LANGUAGES: ${{ matrix.language }}
+          RESTORE: "1"
+        run: bash tests/e2e/visual.sh
+      - name: List the images that changed
+        run: cat tests/e2e/artifacts/visual/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the images
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: images-${{ matrix.language }}
+          path: docs/images/${{ matrix.language }}/
+          if-no-files-found: error
+          retention-days: 3
+      - name: Keep the report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-${{ matrix.language }}
+          path: tests/e2e/artifacts/visual/report.json
+          if-no-files-found: error
+          retention-days: 3
+      - name: Keep the screenshots of a failed run
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: failure-${{ matrix.language }}-${{ github.run_attempt }}
+          path: tests/e2e/artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
+  pull-request:
+    name: pull request
+    needs: render
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The environment holds the private key of the release app; only main may use it.
+    environment:
+      name: release
+      deployment: false
+    permissions:
+      contents: read
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Take the rendered images and their reports
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: ${{ runner.temp }}/rendered
+      - name: Put the rendered images in place
+        run: |
+          set -euo pipefail
+          for language in en de; do
+            rm -rf "docs/images/$language"
+            cp -R "$RUNNER_TEMP/rendered/images-$language" "docs/images/$language"
+          done
+          git status --short -- docs/images
+      - name: Create a token of the release app
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_AUTOMATION_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_AUTOMATION_PRIVATE_KEY }}
+          # Only what the branch and the pull request of the images need.
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Open or update the pull request of the images
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          APP_SLUG: ${{ steps.app.outputs.app-slug }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          branch="bot/screenshots"
+          title="docs: update the screenshots of the cards"
+          number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          git add --all docs/images
+          if git diff --cached --quiet; then
+            echo "Every image looks as committed."
+            if [[ -n "$number" ]]; then
+              gh pr close "$number" --repo "$GITHUB_REPOSITORY" --delete-branch \
+                --comment "The images on main look as rendered from $SHA; nothing is left to update."
+            fi
+            exit 0
+          fi
+
+          # The commits go through GitHub's API as the release app: GitHub signs them,
+          # as main requires, and the pull request of the app starts the checks. The
+          # sign-off names the app's account, which is the author of the commits.
+          user_id="$(gh api "users/${APP_SLUG}[bot]" --jq .id)"
+          export SIGN_OFF="Signed-off-by: ${APP_SLUG}[bot] <${user_id}+${APP_SLUG}[bot]@users.noreply.github.com>"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" >/dev/null 2>&1; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch" \
+              -f sha="$SHA" -F force=true >/dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref="refs/heads/$branch" -f sha="$SHA" >/dev/null
+          fi
+          python3 - "$branch" "$SHA" "$RUNNER_TEMP" <<'PYTHON'
+          import base64
+          import json
+          import os
+          import subprocess
+          import sys
+
+          branch, head, folder = sys.argv[1:]
+          paths = subprocess.run(
+              ["git", "diff", "--cached", "--name-only", "--no-renames", "-z", "HEAD"],
+              capture_output=True, check=True,
+          ).stdout.decode().split("\0")
+          paths = [path for path in paths if path]
+          # A request of the API takes a few megabytes; larger sets of images go in parts.
+          parts, part, size = [], [], 0
+          for path in paths:
+              length = os.path.getsize(path) if os.path.exists(path) else 0
+              if part and size + length > 8_000_000:
+                  parts.append(part)
+                  part, size = [], 0
+              part.append(path)
+              size += length
+          parts.append(part)
+          for index, part in enumerate(parts, 1):
+              additions = [
+                  {"path": path, "contents": base64.b64encode(open(path, "rb").read()).decode()}
+                  for path in part if os.path.exists(path)
+              ]
+              deletions = [{"path": path} for path in part if not os.path.exists(path)]
+              headline = "docs: update the screenshots of the cards"
+              if len(parts) > 1:
+                  headline += f" ({index} of {len(parts)})"
+              body = (
+                  "Rendered from the demo with its frozen clock (tests/e2e/visual.sh).\n\n"
+                  + os.environ["SIGN_OFF"]
+              )
+              request = {
+                  "query": "mutation($input: CreateCommitOnBranchInput!) "
+                           "{ createCommitOnBranch(input: $input) { commit { oid } } }",
+                  "variables": {"input": {
+                      "branch": {"repositoryNameWithOwner": os.environ["GITHUB_REPOSITORY"], "branchName": branch},
+                      "expectedHeadOid": head,
+                      "message": {"headline": headline, "body": body},
+                      "fileChanges": {"additions": additions, "deletions": deletions},
+                  }},
+              }
+              with open(f"{folder}/commit.json", "w") as file:
+                  json.dump(request, file)
+              head = subprocess.run(
+                  ["gh", "api", "graphql", "--input", f"{folder}/commit.json",
+                   "--jq", ".data.createCommitOnBranch.commit.oid"],
+                  capture_output=True, check=True, text=True,
+              ).stdout.strip()
+              print(f"Committed {len(part)} image(s): {head}")
+
+          # The description: every image whose pixels changed, with how much.
+          rows = []
+          for language in ("en", "de"):
+              with open(f"{folder}/rendered/report-{language}/report.json") as file:
+                  for entry in json.load(file)["images"]:
+                      share = entry["share"]
+                      shown = "100 %" if share >= 1 else "< 0.01 %" if share < 0.0001 else f"{share * 100:.2f} %"
+                      rows.append(f"| `docs/images/{entry['path']}` | {entry['status']} | {shown} |")
+          with open(f"{folder}/body.md", "w") as file:
+              file.write(
+                  "The screenshot bot rendered the images of the documentation anew from the demo, "
+                  f"with its frozen clock, on {os.environ['SHA']}. These look different:\n\n"
+                  "| Image | Change | Pixels changed |\n| --- | --- | ---: |\n"
+                  + "\n".join(rows)
+                  + "\n\nThe workflow run keeps the images before and after with their differences "
+                  f"for three days: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+                  f"/actions/runs/{os.environ['GITHUB_RUN_ID']}\n"
+              )
+          PYTHON
+
+          if [[ -n "$number" ]]; then
+            gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$RUNNER_TEMP/body.md"
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" \
+              --title "$title" --body-file "$RUNNER_TEMP/body.md"
+          fi
+          gh pr merge "$branch" --repo "$GITHUB_REPOSITORY" --auto --squash

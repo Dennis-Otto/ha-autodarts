@@ -40,7 +40,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 | --- | --- |
 | [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) | What every version brought |
 | [Roadmap](roadmap.md) | Released versions and what comes next |
-| [Development](development.md) | Tests, Docker end-to-end test, demo instance, screenshots and CI |
+| [Development](development.md) | Tests, Docker end-to-end test, demo instance, accessibility check, screenshots, the screenshot bot, the visual check and CI |
 | [Releases](releases.md) | How versions and release notes are produced |
 | [Creator kit](creator-kit.md) | Facts, descriptions, videos, animations and pictures for YouTubers, streamers and bloggers, free to use |
 

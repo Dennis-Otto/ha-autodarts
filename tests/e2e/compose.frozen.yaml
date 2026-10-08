@@ -1,0 +1,11 @@
+# Overlay for the demo of the screenshots, which demo.sh adds when DEMO_TIME is set:
+# Home Assistant and every script in its container run on the frozen clock and the
+# fixed random numbers of frozen/sitecustomize.py, so that two runs render the same
+# images. demo.py and the screenshot tool move the clock on through DEMO_CLOCK in
+# the config volume, which the screenshot tool mounts as well.
+services:
+  homeassistant:
+    environment:
+      PYTHONPATH: /e2e/frozen
+      DEMO_TIME: ${DEMO_TIME:?the moment the clock stands at}
+      DEMO_CLOCK: /config/.demo_clock

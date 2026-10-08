@@ -164,6 +164,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](erste-schritte.md) führ
 | [Änderungen](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) | Was jede Version gebracht hat (auf Englisch) |
 | [Roadmap](roadmap.md) | Erschienene Versionen und was als Nächstes kommt |
 | [Development](../development.md), [Releases](../releases.md) | Die Entwickler-Dokumentation, auf Englisch |
+| [Bilder und Prüfungen der Karten](entwicklung.md) | Wie die Bilder der Dokumentation entstehen, der Screenshot-Bot, der Bildvergleich und die Prüfung der Barrierefreiheit, auf Deutsch |
 | [Creator-Kit](creator-kit.md) | Fakten, Beschreibungen, Videos, Animationen und Bilder für YouTuber, Streamer und Blogger, frei nutzbar |
 
 ## Anwendungsfälle

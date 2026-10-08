@@ -6,19 +6,23 @@ Every image shows the synthetic demo board, so no personal data can appear.
 
 from __future__ import annotations
 
+import importlib.util
 import io
 import json
 import math
 import os
 import re
+import shutil
+import subprocess
 import sys
 import urllib.request
 from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from PIL import Image
-from playwright.sync_api import Browser, Page, sync_playwright
+from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 HA = "http://homeassistant:8123"
@@ -28,6 +32,17 @@ OUTPUT = Path(os.environ.get("OUTPUT", "/repo/docs/images")) / LANGUAGE
 LOCALE = {"en": "en-US", "de": "de-DE"}[LANGUAGE]
 # Screenshots of a failed run, never next to the scripts (ignored by Git).
 ARTIFACTS = Path(__file__).resolve().parent / "artifacts"
+# The frozen clock of the demo (compose.frozen.yaml): the moment it stands at, and the
+# file in Home Assistant's config volume that moves it on. screenshots.sh sets them,
+# so that two runs render the same images; without them, the clock runs as usual.
+DEMO_TIME = os.environ.get("DEMO_TIME", "")
+DEMO_CLOCK = Path(os.environ.get("DEMO_CLOCK", "/ha-config/.demo_clock"))
+_SPEC = importlib.util.spec_from_file_location(
+    "demo_clock", Path(__file__).resolve().parent / "frozen" / "sitecustomize.py"
+)
+demo_clock = importlib.util.module_from_spec(_SPEC)
+_SPEC.loader.exec_module(demo_clock)
+CLOCK = demo_clock.Clock(DEMO_TIME, str(DEMO_CLOCK)) if DEMO_TIME else None
 
 # Demo darts as the Board Manager reports them (see demo.py).
 T20 = {
@@ -123,6 +138,8 @@ EDIT_CARD = (
 
 
 def control(changes: dict) -> None:
+    """What the board sends: darts, a takeout or a new status."""
+    tick()
     request = urllib.request.Request(
         f"{BOARD}/control/state",
         data=json.dumps(changes).encode(),
@@ -153,12 +170,182 @@ def peak(page: Page) -> None:
     page.evaluate(SEEK, 800)
 
 
+def demo_now() -> datetime | None:
+    """The time on the frozen clock of Home Assistant, or None when its clock runs."""
+    return None if CLOCK is None else datetime.fromtimestamp(CLOCK(), UTC)
+
+
+def move_clock(moment: datetime) -> None:
+    """Move the frozen clock of Home Assistant to a moment."""
+    demo_clock.move(DEMO_CLOCK, moment.timestamp())
+
+
+def tick() -> None:
+    """A move at the board takes two seconds on the frozen clock, as at a real board:
+    the history of the board, the length of a session and the training time of the
+    weekly report come out the same in every run."""
+    if CLOCK is not None:
+        demo_clock.move(DEMO_CLOCK, CLOCK() + demo_clock.STEP)
+
+
+# The toolbar of a dashboard casts no shadow on what scrolls beneath it: Home
+# Assistant fades the shadow in at a moment of its own, which no two runs share.
+QUIET_TOOLBAR = """
+document.addEventListener('DOMContentLoaded', () => {
+  const style = document.createElement('style');
+  style.textContent = 'html { --bar-box-shadow: none !important; }';
+  document.head.append(style);
+});
+"""
+
+
+def new_context(
+    browser: Browser, flowing: bool = False, **options: object
+) -> BrowserContext:
+    """A browser context whose clock shows the time of Home Assistant's.
+
+    The clock stands still like Home Assistant's, so relative times, the idle
+    screen's clock and countdowns read the same in every run. A context that
+    needs time to pass in the page, such as the hold of a tournament result,
+    gets a clock that starts at that time and runs.
+    """
+    context = browser.new_context(**options)
+    context.add_init_script(QUIET_TOOLBAR)
+    if (now := demo_now()) is not None:
+        if flowing:
+            context.clock.install(time=now)
+        else:
+            context.clock.set_fixed_time(now)
+    return context
+
+
+# Holds what still moves, so that every image comes out the same in every run:
+# pictures still loading are awaited, running transitions and fade-ins jump to
+# their end, and endless animations, such as blinking beds, stop at a fixed time.
+# Animations a step paused itself, at the moment it wants, stay as they are. While
+# Home Assistant still changes the page, it goes on until two looks a tenth of a
+# second apart find nothing moving and nothing changed, for three seconds at most.
+SETTLE = """
+async ([time, wait]) => {
+  const roots = () => {
+    const found = [document];
+    for (let index = 0; index < found.length; index++) {
+      found[index].querySelectorAll('*').forEach((el) => el.shadowRoot && found.push(el.shadowRoot));
+    }
+    return found;
+  };
+  const loading = roots()
+    .flatMap((root) => [...root.querySelectorAll('img')])
+    .filter((img) => !img.complete)
+    .map((img) => Promise.race([img.decode().catch(() => {}), new Promise((done) => setTimeout(done, 3000))]));
+  await Promise.all(loading);
+  let changed = 0;
+  const observer = new MutationObserver((records) => { changed += records.length; });
+  for (const root of roots()) {
+    observer.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
+  }
+  const hold = () => {
+    let moving = 0;
+    for (const animation of new Set(roots().flatMap((root) => root.getAnimations()))) {
+      if (animation.playState !== 'running') continue;
+      moving++;
+      try {
+        if (animation.effect?.getComputedTiming().endTime === Infinity) {
+          animation.pause();
+          animation.currentTime = time;
+        } else {
+          animation.finish();
+        }
+      } catch (error) {
+        animation.cancel();
+      }
+    }
+    return moving;
+  };
+  let quiet = 0;
+  for (let round = 0; round < 30 && quiet < 2; round++) {
+    const moving = hold() + changed;
+    changed = 0;
+    quiet = moving ? 0 : quiet + 1;
+    if (!wait) break;
+    await new Promise((done) => setTimeout(done, 100));
+  }
+  observer.disconnect();
+}
+"""
+
+
+# Chromium draws every picture whole and sharp, and animates on its main thread, so
+# that nothing it draws depends on the timing of its other threads.
+STEADY_CHROMIUM = [
+    "--disable-checker-imaging",
+    "--disable-partial-raster",
+    "--disable-threaded-animation",
+    "--disable-threaded-scrolling",
+    "--run-all-compositor-stages-before-draw",
+]
+
+
+def settle(page: Page, wait: bool = True) -> None:
+    """Hold the page still for a picture; without waiting for a frame of a series."""
+    page.evaluate(SETTLE, [800, wait])
+
+
+# pngquant of Ubuntu 24.04, which pngquant.sh installs at its pinned version; on one
+# thread, so that nothing in its palettes can depend on the order of threads.
+PNGQUANT = ["pngquant", "--force", "--skip-if-larger", "--strip", "--quality=80-95"]
+
+
+def compress(path: Path) -> None:
+    """Shrink a screenshot to about a fifth without visible loss."""
+    if not shutil.which("pngquant"):
+        return
+    result = subprocess.run(
+        [*PNGQUANT, "--ext", ".png", str(path)],
+        env={**os.environ, "OMP_NUM_THREADS": "1"},
+        check=False,
+    )
+    # 98 and 99: the file would not get smaller or better and stays as it is.
+    if result.returncode not in (0, 98, 99):
+        raise RuntimeError(f"pngquant failed on {path}: {result.returncode}")
+
+
+# With KEEP_RAW set, every image and every frame of an animation is also kept as
+# taken, before compression, in tests/e2e/artifacts/raw/<language>/, to find out
+# what differs between two runs.
+RAW = ARTIFACTS / "raw" / LANGUAGE if os.environ.get("KEEP_RAW") else None
+
+
+def keep_raw(name: str, image: bytes) -> None:
+    if RAW is not None:
+        RAW.mkdir(parents=True, exist_ok=True)
+        (RAW / name).write_bytes(image)
+
+
+def saved(path: Path) -> None:
+    keep_raw(path.name, path.read_bytes())
+    compress(path)
+    print(f"saved {path}", flush=True)
+
+
 def card_shot(
     page: Page, name: str, index: int = 0, tag: str = "autodarts-card"
 ) -> None:
     card = page.locator(tag).nth(index)
-    card.screenshot(path=str(OUTPUT / f"{name}.png"), animations="allow")
-    print(f"saved {OUTPUT / name}.png")
+    path = OUTPUT / f"{name}.png"
+    if card.bounding_box()["height"] > page.viewport_size["height"]:
+        # Taller than the screen: the whole page from its top, where the toolbar
+        # neither covers the card nor casts a shadow on it.
+        page.evaluate("() => window.scrollTo(0, 0)")
+        settle(page)
+        clip = card.bounding_box()
+        page.screenshot(path=str(path), clip=clip, full_page=True, animations="allow")
+    else:
+        # In sight before the page holds still: a scroll lets the toolbar cast a shadow.
+        card.scroll_into_view_if_needed()
+        settle(page)
+        card.screenshot(path=str(path), animations="allow")
+    saved(path)
 
 
 def tall_card_shot(page: Page, name: str, index: int = 0) -> None:
@@ -172,8 +359,9 @@ def tall_card_shot(page: Page, name: str, index: int = 0) -> None:
 
 
 def page_shot(page: Page, name: str) -> None:
+    settle(page)
     page.screenshot(path=str(OUTPUT / f"{name}.png"))
-    print(f"saved {OUTPUT / name}.png")
+    saved(OUTPUT / f"{name}.png")
 
 
 @contextmanager
@@ -209,18 +397,26 @@ class Recorder:
         self.frames: list[Image.Image] = []
         self.durations: list[int] = []
 
-    def shot(self, duration: int) -> None:
+    def shot(self, duration: int, wait: bool = True) -> None:
+        self.element.scroll_into_view_if_needed()
+        settle(self.page, wait)
         image = self.element.screenshot(animations="allow")
         self.frames.append(Image.open(io.BytesIO(image)))
         self.durations.append(duration)
 
     def blink(self, count: int = 1, step: int = 100, hold: int | None = None) -> None:
         """The blinking beds of the live card, frame by frame; the last frame holds."""
+        settle(self.page)
         for index in range(count):
             self.page.evaluate(SEEK, index * step)
-            self.shot(hold if hold and index == count - 1 else step)
+            self.shot(hold if hold and index == count - 1 else step, wait=False)
 
     def save(self, name: str, width: int = 760) -> None:
+        for index, frame in enumerate(self.frames):
+            if RAW is not None:
+                raw = io.BytesIO()
+                frame.save(raw, "PNG")
+                keep_raw(f"{name}-{index:02}.png", raw.getvalue())
         # Animated WebP keeps the colours of every frame at a fraction of a GIF's size.
         resized = [
             frame.convert("RGB").resize(
@@ -249,7 +445,7 @@ class Recorder:
             method=6,
         )
         size = target.stat().st_size // 1024
-        print(f"saved {target} ({size} KiB, {len(self.frames)} frames)")
+        print(f"saved {target} ({size} KiB, {len(self.frames)} frames)", flush=True)
 
 
 def visit_animation(page: Page) -> None:
@@ -1357,8 +1553,9 @@ PARTS = """
 def part_shot(page: Page, name: str, tag: str, selectors: list[str]) -> None:
     """A part of a card, such as one of its sections, across the card's width."""
     clip = page.evaluate(PARTS, [tag, selectors])
+    settle(page)
     page.screenshot(path=str(OUTPUT / f"{name}.png"), clip=clip)
-    print(f"saved {OUTPUT / name}.png")
+    saved(OUTPUT / f"{name}.png")
 
 
 def progress_cards(page: Page) -> None:
@@ -1652,6 +1849,22 @@ def strategy_dashboard(page: Page) -> None:
     page.set_viewport_size(size)
 
 
+# Takes the focus from where a click left it, deep in the shadow roots.
+BLUR = """
+() => {
+  let element = document.activeElement;
+  while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement;
+  element?.blur?.();
+}
+"""
+
+
+def rest_pointer(page: Page) -> None:
+    """No row lit up by the pointer or the focus, whichever way the page came about."""
+    page.mouse.move(0, 0)
+    page.evaluate(BLUR)
+
+
 def config_flow(page: Page) -> None:
     page.goto(f"{HA}/config/integrations/dashboard/add?domain=autodarts")
     # An integration that is already set up asks before adding another entry.
@@ -1668,15 +1881,28 @@ def config_flow(page: Page) -> None:
         exact=True,
     )
     menu.wait_for(timeout=30000)
+    # The question before may or may not have come, and its button left the
+    # pointer over the menu.
+    rest_pointer(page)
     page.wait_for_timeout(800)
     page_shot(page, "setup-menu")
     menu.click()
     title = "Connect local board" if LANGUAGE == "en" else "Lokales Board verbinden"
     page.get_by_text(title, exact=True).wait_for(timeout=15000)
+    rest_pointer(page)
     page.wait_for_timeout(800)
     page_shot(page, "setup-local")
     # Leave the unfinished flow; the demo instance is discarded afterwards.
     page.goto(f"{HA}/autodarts-demo/board")
+
+
+# Opens a path of Home Assistant within the app, as its links do.
+NAVIGATE = """
+(path) => {
+  history.pushState(null, '', path);
+  window.dispatchEvent(new CustomEvent('location-changed', { detail: { replace: false } }));
+}
+"""
 
 
 def device_page(page: Page) -> None:
@@ -1685,15 +1911,39 @@ def device_page(page: Page) -> None:
         "() => Object.values(document.querySelector('home-assistant').hass.devices)"
         ".find((d) => d.identifiers.some((i) => i[0] === 'autodarts')).id"
     )
-    page.goto(f"{HA}/config/devices/device/{device_id}")
+    # The device page names the button to the Board Manager once, when it opens,
+    # and gets no words when the texts of the settings have not arrived yet. So the
+    # list of devices comes first, with those texts, and the device opens from there
+    # within the app, again if it still has to.
+    page.goto(f"{HA}/config/devices/dashboard")
     page.get_by_text("Autodarts Board").first.wait_for(timeout=30000)
+    page.wait_for_timeout(1500)
+    visit = page.locator("ha-device-info-card ha-button[target='_blank']").filter(
+        has_text=re.compile(r"\w")
+    )
+    for attempt in range(4):
+        page.evaluate(NAVIGATE, f"/config/devices/device/{device_id}")
+        try:
+            visit.first.wait_for(timeout=10000)
+            break
+        except PlaywrightTimeoutError:
+            if attempt == 3:
+                raise
+            page.evaluate(NAVIGATE, "/config/devices/dashboard")
+            page.wait_for_timeout(2000)
     page.wait_for_timeout(2500)
     page_shot(page, "device")
 
 
 def editor(page: Page) -> None:
     page.goto(f"{HA}/autodarts-demo/board?edit=1")
-    page.wait_for_timeout(2500)
+    # The dashboard turns to edit mode once it has loaded, the card drawn its board.
+    page.wait_for_function(
+        f"() => ({find('hui-root')})()[0]?.lovelace?.editMode === true"
+        f" && ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
+        timeout=60000,
+    )
+    page.wait_for_timeout(1500)
     page.evaluate(EDIT_CARD)
     # Home Assistant builds the form of the card from getConfigForm.
     page.locator("hui-form-editor ha-form").first.wait_for(timeout=15000)
@@ -1745,7 +1995,8 @@ SHOW_NOTIFICATIONS = """
 
 def local_page(page: Page) -> Page:
     """A page in the demo's time zone, so that times read as the board saw them."""
-    context = page.context.browser.new_context(
+    context = new_context(
+        page.context.browser,
         viewport={"width": 1280, "height": 900},
         device_scale_factor=2,
         locale=LOCALE,
@@ -1783,6 +2034,12 @@ def weekly_report_notification(page: Page) -> None:
     report.evaluate(
         CALL_SERVICE, ["time", "set_value", "weekly_report_time", {"time": time}]
     )
+    if (now := demo_now()) is not None:
+        # The frozen clock moves on to the report time, as the minute would pass;
+        # Home Assistant sends the report when it checks the time again.
+        due = (now + timedelta(minutes=1)).replace(second=0, microsecond=0)
+        move_clock(due)
+        report.clock.set_fixed_time(due)
     for _ in range(90):
         if report.evaluate(REPORTED):
             break
@@ -1794,8 +2051,10 @@ def weekly_report_notification(page: Page) -> None:
     report.get_by_text(title).wait_for(timeout=15000)
     report.wait_for_timeout(1500)
     notification = report.locator("persistent-notification-item").first
+    notification.scroll_into_view_if_needed()
+    settle(report)
     notification.screenshot(path=str(OUTPUT / "weekly-report-notification.png"))
-    print(f"saved {OUTPUT / 'weekly-report-notification'}.png")
+    saved(OUTPUT / "weekly-report-notification.png")
     report.context.close()
 
 
@@ -1838,7 +2097,8 @@ class ClipRecorder(Recorder):
         super().__init__(page)
         self.clip = clip
 
-    def shot(self, duration: int) -> None:
+    def shot(self, duration: int, wait: bool = True) -> None:
+        settle(self.page, wait)
         image = self.page.screenshot(clip=self.clip, animations="allow")
         self.frames.append(Image.open(io.BytesIO(image)))
         self.durations.append(duration)
@@ -1851,8 +2111,11 @@ def named_dart(name: str) -> dict:
 
 def own_context(page: Page, **options):
     """A browser context of its own, for a device of another size."""
-    return page.context.browser.new_context(
-        locale=LOCALE, color_scheme="dark", **{"device_scale_factor": 1, **options}
+    return new_context(
+        page.context.browser,
+        locale=LOCALE,
+        color_scheme="dark",
+        **{"device_scale_factor": 1, **options},
     )
 
 
@@ -2125,8 +2388,13 @@ def scoreboard_portrait(page: Page) -> None:
 
 def dashboard_trends(page: Page) -> None:
     """The graphs of the generated training view, from four weeks of statistics."""
+    # Home Assistant draws the lines of its graphs at once, without the animation
+    # that the standing clock would stop, for a device that asks for less motion.
     context = own_context(
-        page, viewport={"width": 1280, "height": 2400}, device_scale_factor=2
+        page,
+        viewport={"width": 1280, "height": 2400},
+        device_scale_factor=2,
+        reduced_motion="reduce",
     )
     view = context.new_page()
     view.goto(f"{HA}/autodarts-auto/training")
@@ -2134,8 +2402,10 @@ def dashboard_trends(page: Page) -> None:
     # The graphs draw a moment after their data arrives.
     view.wait_for_timeout(5000)
     section = view.locator("hui-section").last
+    section.scroll_into_view_if_needed()
+    settle(view)
     section.screenshot(path=str(OUTPUT / "dashboard-trends.png"))
-    print(f"saved {OUTPUT / 'dashboard-trends'}.png")
+    saved(OUTPUT / "dashboard-trends.png")
     context.close()
 
 
@@ -2147,6 +2417,10 @@ def blueprints_page(page: Page) -> None:
     view = context.new_page()
     view.goto(f"{HA}/config/blueprint/dashboard")
     view.get_by_text("Autodarts: light show").first.wait_for(timeout=60000)
+    # The list shows before the texts of the settings, such as its tabs, arrive.
+    view.get_by_text(
+        "Automations" if LANGUAGE == "en" else "Automationen", exact=True
+    ).first.wait_for(timeout=30000)
     view.wait_for_timeout(1500)
     page_shot(view, "blueprints")
     # A blueprint opens a new automation with its form.
@@ -2168,11 +2442,30 @@ def board_events_dialog(page: Page) -> None:
     for darts in ([T20], [T20, S5], [T20, S5, BULL]):
         control({"event": "Throw detected", "throws": darts})
         view.wait_for_timeout(500)
+    if (now := demo_now()) is not None:
+        # The dialog opens a few seconds after the visit, when Home Assistant has
+        # every event of it in its history.
+        move_clock(now + timedelta(seconds=6))
+        view.clock.set_fixed_time(now + timedelta(seconds=6))
+    # The recorder writes the history every five seconds; the dialog reads it from there.
+    view.wait_for_timeout(6000)
     entity = view.evaluate(
         "() => Object.values(document.querySelector('home-assistant').hass.entities)"
         ".find((item) => item.platform === 'autodarts' && item.translation_key === 'board_events')"
         ".entity_id"
     )
+    # Home Assistant gives every state of the history a colour, in the order they
+    # are drawn first. The history page draws them all in their order of time, so the
+    # dialog finds them coloured, whether its history or its activity comes first.
+    view.evaluate(NAVIGATE, f"/history?entity_id={entity}")
+    view.locator("state-history-chart-timeline").first.wait_for(timeout=30000)
+    view.wait_for_timeout(3000)
+    view.evaluate(NAVIGATE, "/autodarts-demo/board")
+    view.wait_for_function(
+        f"() => ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
+        timeout=30000,
+    )
+    view.wait_for_timeout(1000)
     view.evaluate(
         "(entityId) => document.querySelector('home-assistant').dispatchEvent("
         "new CustomEvent('hass-more-info', {bubbles: true, composed: true, detail: {entityId}}))",
@@ -2213,10 +2506,11 @@ def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     # The inner context saves the open pages while the browser still runs.
     with sync_playwright() as playwright, failure_screenshots() as browsers:
-        browser = playwright.chromium.launch()
+        browser = playwright.chromium.launch(args=STEADY_CHROMIUM)
         browsers.append(browser)
         for scheme, suffix in (("dark", ""), ("light", "-light")):
-            context = browser.new_context(
+            context = new_context(
+                browser,
                 viewport={"width": 1280, "height": 820},
                 device_scale_factor=2,
                 locale=LOCALE,
@@ -2246,7 +2540,8 @@ def main() -> None:
                 dashboard_trends(page)
             context.close()
 
-        mobile = browser.new_context(
+        mobile = new_context(
+            browser,
             viewport={"width": 412, "height": 915},
             device_scale_factor=3,
             is_mobile=True,
@@ -2261,8 +2556,10 @@ def main() -> None:
         training_card(page, "-mobile")
         mobile.close()
 
-        animation = browser.new_context(
-            viewport={"width": 1100, "height": 700},
+        animation = new_context(
+            browser,
+            # High enough for the whole card: a tap never scrolls it under the toolbar.
+            viewport={"width": 1100, "height": 1000},
             device_scale_factor=1,
             locale=LOCALE,
             color_scheme="dark",
@@ -2274,7 +2571,8 @@ def main() -> None:
         animation.close()
 
         # Last, because the practice leg adds visits to the demo session.
-        practice = browser.new_context(
+        practice = new_context(
+            browser,
             viewport={"width": 1280, "height": 820},
             device_scale_factor=2,
             locale=LOCALE,
@@ -2286,7 +2584,10 @@ def main() -> None:
         practice.close()
 
         # The games as animations, at the size the documentation shows them.
-        games = browser.new_context(
+        games = new_context(
+            browser,
+            # The hold of a tournament result needs the time in the page to pass.
+            flowing=True,
             viewport={"width": 1100, "height": 1100},
             device_scale_factor=1,
             locale=LOCALE,
@@ -2315,7 +2616,8 @@ def main() -> None:
         games.close()
 
         # The new games and formats on the scoreboard.
-        formats = browser.new_context(
+        formats = new_context(
+            browser,
             viewport={"width": 1280, "height": 1000},
             device_scale_factor=2,
             locale=LOCALE,
@@ -2333,7 +2635,8 @@ def main() -> None:
         keypad_screen(page)
         formats.close()
 
-        people = browser.new_context(
+        people = new_context(
+            browser,
             viewport={"width": 1280, "height": 1000},
             device_scale_factor=2,
             locale=LOCALE,

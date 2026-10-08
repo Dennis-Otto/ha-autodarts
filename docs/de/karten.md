@@ -514,7 +514,7 @@ Die Karten funktionieren mit Tastatur, mit Screenreader und ohne Animationen:
 - **Touch:** Auf einem Touchscreen sind die kleinen Tasten wie *Neues Spiel*, der Caller, der Zeitraum-Umschalter und *Exportieren* mindestens 40 Pixel hoch.
 - **Hinweise per Tipp:** Was die Maus als Tooltip zeigt, zeigt ein Tipp mit Finger oder Stift in einer kleinen Blase über der Karte, ohne dass sich etwas verschiebt: die Darts einer vorigen Aufnahme auf der Live-Karte, eine Aufnahme im Trainingsdiagramm und seine Average-Linie, ein Trendpfeil der Spielerkarte, die Spaltennamen der Turniertabelle, ein Double auf der Doubles-Karte, der Punkt einer Kamera auf der Statuskarte und der Hinweis eines Stellwurfs. Ein weiterer Tipp, Escape oder fünf Sekunden schließen sie. Bedienelemente wie der Caller tun, was sie tun; ihr Tooltip bleibt der Maus.
 - **Sprache:** Die Karten folgen der Sprache deines Home-Assistant-Profils, Zahlen, Daten und Uhrzeiten seinen Formaten.
-- **Bei jeder Änderung geprüft:** [axe-core](https://github.com/dequelabs/axe-core) prüft jede Karte in einem echten Browser nach WCAG 2.1 in den Stufen A und AA, auf Laptop und Handy, im hellen und im dunklen Design ([Prüfung der Barrierefreiheit](../development.md#accessibility-check), auf Englisch).
+- **Bei jeder Änderung geprüft:** [axe-core](https://github.com/dequelabs/axe-core) prüft jede Karte in einem echten Browser nach WCAG 2.1 in den Stufen A und AA, auf Laptop und Handy, im hellen und im dunklen Design ([Prüfung der Barrierefreiheit](entwicklung.md#prüfung-der-barrierefreiheit)).
 
 ## Tipps
 
