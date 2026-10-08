@@ -166,7 +166,7 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
   assert.deepEqual(names(form.schema), [
     "device_id",
     "title",
-    ["full_height", "show_visit", "show_status", "caller", "show_summary"],
+    ["full_height", "show_visit", "show_status", "caller", "show_summary", "celebrations"],
     "summary_seconds",
     [["call_scores", "call_checkouts", "call_results", "call_sounds"]],
     [["lobby"], "lobby_games"],

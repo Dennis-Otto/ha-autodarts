@@ -334,6 +334,7 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `idle_panels` | list of panels | every panel | The panels of idle mode, in this order: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `show_summary` | boolean | `true` | Show the [match summary](#match-summary) when an X01 or Cricket match ends |
 | `summary_seconds` | 0–600 | `0` | How long the summary stays, in seconds; `0` keeps it until the next game starts |
+| `celebrations` | boolean | `true` | Celebrate a 180, a visit of 100 or more, nine marks, a game shot and the match with confetti and a glow ([scoreboard](scoreboard.md#during-the-game)) |
 | `corrections` | boolean | `true` | A tap on a dart of the visit [corrects it](#correcting-and-entering-darts); a tap on the last visit beside the darts takes it back while possible |
 | `keypad` | boolean | `false` | Show the [keypad](#correcting-and-entering-darts) for darts entered by hand while *Practice manual entry* is on |
 | `accent_color` | [color](#colors) | theme primary color | The player at the board, routes and the visit score |
