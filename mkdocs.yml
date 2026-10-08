@@ -122,7 +122,7 @@ nav:
       - development.md
       - releases.md
       - creator-kit.md
-      # Once the blueprint has brought them: - Decisions: decisions/README.md
+      - Decisions: decisions/README.md
   - Deutsch:
       - de/README.md
       - Erste Schritte:
