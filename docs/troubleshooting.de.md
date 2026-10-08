@@ -147,6 +147,20 @@ Gehe die [Online-Brücke](online-matches.de.md) Schritt für Schritt durch und b
 - **Nur von der Autodarts-Seite nicht:** Prüfe, ob die WLED-Funktion von Tools for Autodarts an ist, die Effekte aktiviert sind und die Autodarts-Seite offen ist. Die Entwicklertools des Browsers (F12, *Konsole*) zeigen Aufrufe, die der Browser blockiert hat, etwa als *Mixed Content*; siehe [gemischte Inhalte](online-matches.de.md#grenzen).
 - **Nur manche Momente:** Einen Trigger, den die Brücke nicht kennt, nennt einmalig eine Warnung im Log von Home Assistant. Tools for Autodarts spielt pro Trigger einen Effekt, entferne also andere Effekte mit demselben Trigger.
 
+## Von Autodarts 1.x auf 2.x
+
+Ein Spieler hat einen Board-PC mit Ubuntu 24.04 und drei Kameras von Autodarts 1.x auf Autodarts Desktop 2.0.2 umgestellt und berichtet, was sich dabei geändert hat. Andere Systeme und Versionen können sich anders verhalten. Die Integration selbst braucht keine Änderung: Sie erkennt Board Manager 2 von selbst, lädt neu und ergänzt die Entitäten von Board Manager 2, und Training, Spiele und Statistiken bleiben erhalten ([Board-Manager-Generationen](how-it-works.de.md#board-manager-generationen)).
+
+| Was du bemerkst | Ursache und Lösung |
+| --- | --- |
+| Die Erkennung startet nicht, und das Protokoll von Autodarts meldet, dass keine Kamera streamt | 2.x übernimmt die Anmeldung des Boards, aber nicht seine Liste der Kameras. Wähle die Kameras neu aus, in derselben Reihenfolge wie vorher: Die Kalibrierung gehört zum Platz der Kamera, nicht zur Kamera. Kameras desselben Modells können dieselbe Seriennummer haben; der USB-Anschluss, an dem sie stecken, unterscheidet sie. |
+| Die Erkennung startet nicht, solange der Board-PC offline ist | Nach jedem Start wartet 2.x, bis es den Autodarts-Server einmal erreicht hat. Danach antwortet das Board im lokalen Netz, und die Integration arbeitet wie vorher. |
+| 2.x kann Port 3180 beim ersten Start nicht öffnen | Der alte Board Manager oder ein Browser-Tab, der noch mit ihm verbunden ist, kann den Port kurz belegen. Schließe den Tab und starte die App neu, sobald der Port frei ist. |
+| Nach einer Entnahme zählen keine Darts | Board Manager 2.0.2 bleibt manchmal bei leerem Board in einer Entnahme hängen. Ist [*Hängende Entnahme lösen*](entities.de.md#eine-entnahme-die-das-board-nie-beendet) an, löst die Integration sie nach zehn Sekunden, siehe [Nach einer Entnahme zählen keine Darts](#nach-einer-entnahme-zählen-keine-darts). |
+| Die Erkennung stoppt nach einigen Minuten ohne Darts | Das ist der Standby des Boards. [*Kamera-Standby*](entities.de.md#board-einstellungen) stellt die Minuten ein, 5, 10, 15, 30 oder 60, und der Schalter [*Erkennung*](entities.de.md#steuerung) startet die Erkennung wieder, auch aus einer Automation. |
+
+**Home Assistant mit HTTPS:** Die Karten dieser Integration zeigen, was Home Assistant weiß, und rufen seine Aktionen auf; mit dem Board verbinden sie sich nie selbst. Ein Browser, der Home Assistant über HTTPS öffnet, blockiert deshalb nichts von ihnen, mit 1.x wie mit 2.x. Nur die Integration spricht mit dem Board, über HTTP im lokalen Netz.
+
 ## Diagnose und Logs
 
 ### Diagnosedaten herunterladen
