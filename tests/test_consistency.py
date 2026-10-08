@@ -272,7 +272,7 @@ def test_pre_commit_runs_the_ruff_of_the_test_requirements():
     assert version == pinned(ROOT / "requirements-test.txt", "ruff")
 
 
-@pytest.mark.parametrize("script", ["browser.sh", "screenshots.sh"])
+@pytest.mark.parametrize("script", ["browser.sh", "screenshots.sh", "visual.sh"])
 def test_the_playwright_image_matches_the_playwright_package(script):
     text = (E2E / script).read_text(encoding="utf-8")
     images = re.findall(

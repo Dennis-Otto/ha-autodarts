@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 # Regenerate the documentation images in docs/images from fresh demo instances.
+# The demo's clock stands still at DEMO_TIME and its random numbers are fixed, so
+# that two runs render the same images, byte for byte.
 
 set -euo pipefail
 
@@ -10,7 +12,8 @@ DOCKER_BIN="${DOCKER_BIN:-docker}"
 PROJECT_NAME="${E2E_PROJECT_NAME:-autodarts_demo}"
 # Keep the image version equal to playwright in requirements-browser.in.
 PLAYWRIGHT_IMAGE="mcr.microsoft.com/playwright/python:v1.63.0-noble@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0"
-ALPINE_IMAGE="alpine:3.22@sha256:5291449c3df73caf6ed85e649dec1b9e818b39a5d8c871e97afc13e9cd5e8fa8"
+# A Tuesday evening, three days after the highlight photos of the demo.
+export DEMO_TIME="${DEMO_TIME:-2026-09-29T20:30:00+02:00}"
 
 export E2E_PROJECT_NAME="${PROJECT_NAME}"
 # Keep container paths unchanged and mount the Windows path when running from Git Bash.
@@ -28,15 +31,15 @@ cd "${SCRIPT_DIR}"
 
 for language in ${LANGUAGES:-en de}; do
 	DEMO_LANGUAGE="${language}" bash "${SCRIPT_DIR}/demo.sh"
+	# The config volume of the demo holds the file that moves its frozen clock on.
 	"${DOCKER_BIN}" run --rm --network "${PROJECT_NAME}_default" \
 		--env "DEMO_LANGUAGE=${language}" \
+		--env "DEMO_TIME=${DEMO_TIME}" \
+		--env "DEMO_CLOCK=/ha-config/.demo_clock" \
+		--env "KEEP_RAW=${KEEP_RAW:-}" \
 		--volume "${ROOT_MOUNT}:/repo" \
+		--volume "${PROJECT_NAME}_homeassistant_config:/ha-config" \
 		--workdir /repo/tests/e2e \
 		"${PLAYWRIGHT_IMAGE}" \
-		sh -c "pip install --quiet --disable-pip-version-check --root-user-action=ignore --break-system-packages --require-hashes -r requirements-browser.txt && python screenshots.py"
+		sh -c "bash pngquant.sh && pip install --quiet --disable-pip-version-check --root-user-action=ignore --break-system-packages --require-hashes -r requirements-browser.txt && python screenshots.py"
 done
-
-# Shrink the screenshots to about a fifth without visible loss. pngquant exits
-# with 98 or 99 when it keeps a file that would not get smaller or better.
-"${DOCKER_BIN}" run --rm --volume "${ROOT_MOUNT}:/repo" "${ALPINE_IMAGE}" \
-	sh -c "apk add --no-cache pngquant >/dev/null && { pngquant --force --skip-if-larger --strip --quality=80-95 --ext .png /repo/docs/images/*/*.png; status=\$?; [ \$status -eq 0 ] || [ \$status -eq 98 ] || [ \$status -eq 99 ]; }"

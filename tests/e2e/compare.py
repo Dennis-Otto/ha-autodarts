@@ -1,0 +1,206 @@
+"""Compare two folders of documentation images pixel by pixel.
+
+visual.sh runs it after rendering the images anew: the images committed before
+the run against those rendered. It writes, into the output folder:
+
+- report.json: every image whose pixels changed, was added or removed, with the
+  share of its pixels that changed, for the screenshot bot and the comment of the
+  visual check;
+- summary.md: the same as a table, for the summary of the workflow run;
+- for every changed image, the image before and after and a picture of the
+  difference: the image after in grey, every changed pixel in red.
+
+Animated WebP images compare frame by frame, with the time each frame shows.
+An image whose file changed but whose pixels did not counts as unchanged; with
+--restore, its committed file comes back, so that only real changes remain.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+from PIL import Image, ImageChops, ImageSequence
+
+SUFFIXES = (".png", ".webp")
+# The colour of a changed pixel in the picture of the difference.
+CHANGED = (255, 0, 85)
+
+
+@dataclass
+class Picture:
+    """The frames of an image, each with the milliseconds it shows."""
+
+    size: tuple[int, int]
+    frames: list[tuple[Image.Image, int]]
+
+    @classmethod
+    def open(cls, path: Path) -> Picture:
+        with Image.open(path) as image:
+            frames = [
+                (frame.convert("RGBA"), int(frame.info.get("duration", 0)))
+                for frame in ImageSequence.Iterator(image)
+            ]
+            return cls(image.size, frames)
+
+
+def changed_mask(before: Image.Image, after: Image.Image) -> Image.Image:
+    """White where two frames of the same size differ in any channel, else black."""
+    channels = ImageChops.difference(before, after).split()
+    mask = channels[0]
+    for channel in channels[1:]:
+        mask = ImageChops.lighter(mask, channel)
+    return mask.point(lambda value: 255 if value else 0)
+
+
+def difference_picture(after: Image.Image, mask: Image.Image) -> Image.Image:
+    """The frame after in faint grey, with every changed pixel in red."""
+    grey = after.convert("L").point(lambda value: 40 + value * 35 // 100)
+    base = Image.merge("RGB", (grey, grey, grey))
+    return Image.composite(Image.new("RGB", after.size, CHANGED), base, mask)
+
+
+def compare(before: Picture, after: Picture) -> tuple[float, Image.Image | None]:
+    """The share of pixels that changed, and a picture of the first difference."""
+    if before.size != after.size:
+        return 1.0, None
+    area = after.size[0] * after.size[1]
+    changed, picture = 0, None
+    for (old, old_duration), (new, duration) in zip(
+        before.frames, after.frames, strict=False
+    ):
+        mask = changed_mask(old, new)
+        count = mask.histogram()[255]
+        if count and picture is None:
+            picture = difference_picture(new, mask)
+        # The same picture, shown for another time, counts as one changed pixel.
+        changed += count or int(duration != old_duration)
+    # Frames that one image has and the other has not changed as a whole.
+    changed += abs(len(before.frames) - len(after.frames)) * area
+    return changed / (area * max(len(before.frames), len(after.frames))), picture
+
+
+def images(folder: Path, languages: list[str]) -> dict[str, Path]:
+    """The images of the folder by their path below it, in these languages."""
+    found = {}
+    for language in languages:
+        for path in sorted((folder / language).glob("*")):
+            if path.suffix in SUFFIXES and path.is_file():
+                found[f"{language}/{path.name}"] = path
+    return found
+
+
+def keep(source: Path, output: Path, name: str, kind: str) -> str:
+    """Copy an image into the output folder; its name there."""
+    stem, suffix = name.rsplit(".", 1)
+    kept = f"{stem}.{kind}.{suffix}"
+    target = output / kept
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, target)
+    return kept
+
+
+def run(
+    before_folder: Path,
+    after_folder: Path,
+    output: Path,
+    languages: list[str],
+    restore: bool = False,
+) -> dict:
+    before, after = images(before_folder, languages), images(after_folder, languages)
+    report: dict = {"languages": languages, "images": [], "unchanged": 0}
+    output.mkdir(parents=True, exist_ok=True)
+    for name in sorted(before.keys() | after.keys()):
+        entry: dict = {"path": name}
+        if name not in after:
+            entry |= {"status": "removed", "share": 1.0}
+        elif name not in before:
+            entry |= {"status": "added", "share": 1.0}
+            entry["after"] = keep(after[name], output, name, "after")
+        else:
+            if before[name].read_bytes() == after[name].read_bytes():
+                report["unchanged"] += 1
+                continue
+            share, picture = compare(
+                Picture.open(before[name]), Picture.open(after[name])
+            )
+            if share == 0:
+                if restore:
+                    shutil.copyfile(before[name], after[name])
+                report["unchanged"] += 1
+                continue
+            entry |= {"status": "changed", "share": share}
+            entry["before"] = keep(before[name], output, name, "before")
+            entry["after"] = keep(after[name], output, name, "after")
+            if picture is not None:
+                entry["difference"] = f"{name.rsplit('.', 1)[0]}.difference.png"
+                picture.save(output / entry["difference"])
+        report["images"].append(entry)
+    (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+    (output / "summary.md").write_text(summary(report))
+    return report
+
+
+def percent(share: float) -> str:
+    if share >= 1:
+        return "100 %"
+    if share < 0.0001:
+        return "< 0.01 %"
+    return f"{share * 100:.2f} %"
+
+
+def summary(report: dict) -> str:
+    """The report as Markdown, for the summary of a workflow run."""
+    languages = ", ".join(report["languages"])
+    entries = report["images"]
+    if not entries:
+        return (
+            f"### Visual check ({languages})\n\n"
+            f"All {report['unchanged']} images look as committed.\n"
+        )
+    lines = [
+        f"### Visual check ({languages})",
+        "",
+        f"{len(entries)} of {len(entries) + report['unchanged']} images look different "
+        "from the committed ones:",
+        "",
+        "| Image | Change | Pixels changed |",
+        "| --- | --- | ---: |",
+    ]
+    for entry in entries:
+        lines.append(
+            f"| `{entry['path']}` | {entry['status']} | {percent(entry['share'])} |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("before", type=Path, help="the committed images")
+    parser.add_argument("after", type=Path, help="the images rendered anew")
+    parser.add_argument("output", type=Path, help="where the report goes")
+    parser.add_argument("--languages", default="en,de")
+    parser.add_argument(
+        "--restore",
+        action="store_true",
+        help="put back the committed file of an image whose pixels did not change",
+    )
+    arguments = parser.parse_args(argv)
+    report = run(
+        arguments.before,
+        arguments.after,
+        arguments.output,
+        [language for language in arguments.languages.split(",") if language],
+        arguments.restore,
+    )
+    print(summary(report))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

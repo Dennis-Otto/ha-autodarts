@@ -1,0 +1,72 @@
+name: Visual check
+
+# Renders every image of the documentation from the demo, with its frozen clock, for
+# each pull request that changes the cards or the screenshot tool, and compares them
+# with the committed ones pixel by pixel (tests/e2e/visual.sh). It only reports: the
+# summary lists every image that looks different with the share of its pixels that
+# changed, the artifact holds the images before and after with their differences,
+# and visual-comment.yml writes the list into one comment on the pull request. An
+# intended change reaches docs/images through the screenshot bot after the merge.
+# An image that can't be rendered fails the check.
+
+on:
+  pull_request:
+    paths:
+      - custom_components/autodarts/frontend/**
+      - tests/e2e/**
+      - "!tests/e2e/browser.py"
+      - "!tests/e2e/browser.sh"
+      - "!tests/e2e/run.sh"
+      - "!tests/e2e/configuration.yaml"
+      - "!tests/e2e/README.md"
+      - "!tests/e2e/accessibility-baseline.toml"
+      - .github/workflows/visual.yml
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  visual:
+    name: visual (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    # The demo takes about three minutes, the images of one language about seven.
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [en, de]
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Render the images with the frozen clock and compare them
+        env:
+          LANGUAGES: ${{ matrix.language }}
+        run: bash tests/e2e/visual.sh
+      - name: List the images that look different
+        run: cat tests/e2e/artifacts/visual/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the images before and after, with their differences
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-${{ matrix.language }}
+          path: tests/e2e/artifacts/visual/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Keep the screenshots of a failed run
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-failure-${{ matrix.language }}-${{ github.run_attempt }}
+          path: tests/e2e/artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 14

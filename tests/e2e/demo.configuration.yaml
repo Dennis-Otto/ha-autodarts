@@ -11,6 +11,8 @@ homeassistant:
   latitude: 0
   longitude: 0
   elevation: 0
+  # The address the online bridge shows, the same in every run of the screenshots.
+  internal_url: http://homeassistant.local:8123
   auth_providers:
     - type: trusted_networks
       trusted_networks:

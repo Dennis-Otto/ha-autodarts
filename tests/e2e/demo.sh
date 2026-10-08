@@ -9,6 +9,12 @@ DOCKER_BIN="${DOCKER_BIN:-docker}"
 E2E_PORT="${E2E_PORT:-18124}"
 PROJECT_NAME="${E2E_PROJECT_NAME:-autodarts_demo}"
 COMPOSE=("${DOCKER_BIN}" compose --project-name "${PROJECT_NAME}" --file compose.yaml --file compose.demo.yaml)
+# The screenshots freeze the clock at DEMO_TIME, such as 2026-09-29T20:30:00+02:00
+# (see frozen/sitecustomize.py).
+if [[ -n "${DEMO_TIME:-}" ]]; then
+	COMPOSE+=(--file compose.frozen.yaml)
+	export DEMO_TIME
+fi
 
 export E2E_PORT
 export DEMO_LANGUAGE="${DEMO_LANGUAGE:-en}"
