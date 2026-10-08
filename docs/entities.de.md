@@ -468,6 +468,11 @@ Board Manager 2.0.2 beginnt manchmal direkt nach einer Entnahme eine neue und bl
 - **Dann:** Das Board wartet wieder auf Darts, und mit seinem leeren Zustand folgt `takeout_finished`.
 - **Ein Board, das hängen bleibt,** wird zehn Sekunden später erneut zurückgesetzt, höchstens dreimal in Folge. Nach einem Dart im Board bekommt die nächste hängende Entnahme wieder drei Versuche.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/stuck-takeout-dark.png">
+  <img src="images/de/stuck-takeout-light.png" alt="Wie eine hängende Entnahme gelöst wird: Läuft die Entnahme ohne Darts und ohne Hand am Board, wartet Home Assistant 10 s. Ein Dart, eine Hand, ein Stopp oder ein anderer Status lassen nichts zu tun; sonst setzt es das Board mit POST /api/reset zurück, das Board meldet Throw ohne Darts, und takeout_finished folgt, das Spiel geht weiter. Ein Board, das weiter hängt, wird nach 10 s erneut zurückgesetzt, höchstens dreimal" width="420">
+</picture>
+
 Jedes Zurücksetzen steht auf Stufe Info im Protokoll, und die [Diagnosedaten](troubleshooting.de.md#diagnosedaten-herunterladen) zählen es. Schalte den Schalter aus, um das Board in Ruhe zu lassen, etwa während du dem Fehler mit Autodarts nachgehst.
 
 ## Board-Einstellungen

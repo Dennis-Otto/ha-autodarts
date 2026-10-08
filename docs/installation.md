@@ -103,7 +103,7 @@ Autodarts replaces the classic Board Manager with the headless **Board Manager 2
 2. Keep the integration as it is. It detects the new generation on the next read, reloads itself and adds the new entities: the cloud link, CPU and memory, the operating system, processor and detection software of the board PC, and the Board Manager update. Enabled camera entities switch from snapshots to the live stream.
 3. Entities that only Board Manager 1 has, the cloud link switch and its connect and disconnect buttons, are removed automatically.
 
-Your training session, entity IDs and dashboards are kept.
+Your training session, entity IDs and dashboards are kept. What a player noticed on the board PC itself on the way, such as cameras to choose again, is under [From Autodarts 1.x to 2.x](troubleshooting.md#from-autodarts-1x-to-2x).
 
 ## Update from the original integration
 
