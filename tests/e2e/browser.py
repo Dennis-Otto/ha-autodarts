@@ -1797,7 +1797,7 @@ SCREENS = (
     ("27-inch touch monitor", {"width": 2560, "height": 1440}, (0, 0), True),
 )
 # Screens narrower than this are phones held upright.
-PHONE_WIDTH = 500
+UPRIGHT_PHONE_WIDTH = 500
 # The languages of the cards besides German, whose words take other room.
 OTHER_LOCALES = ("en-US", "es-ES", "fr-FR", "nl-NL")
 # The views of the generated dashboard; those of the demo dashboard are read from it.
@@ -1997,7 +1997,7 @@ def screens(browser: Browser) -> None:
         if chosen - {""} and screen not in chosen:
             continue
         problems = screen_views(browser, screen, size, insets, touch)
-        if touch and size["width"] < PHONE_WIDTH:
+        if touch and size["width"] < UPRIGHT_PHONE_WIDTH:
             problems += phone_languages(browser, screen, size, insets)
         print(f"  {screen}: {len(problems)} problems", flush=True)
         found += problems
