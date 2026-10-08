@@ -118,8 +118,10 @@ test("games are grouped, filtered and ruled like the practice game", () => {
     teams: false,
     bot: false,
     minPlayers: 2,
-    maxPlayers: 4,
+    maxPlayers: 8,
   });
+  // A party game seats eight, X01 and the Cricket games four.
+  assert.deepEqual([gameRules("501").maxPlayers, gameRules("wild_mouse").maxPlayers], [4, 4]);
   assert.deepEqual(gameRules("doubles"), {
     x01: false,
     drill: true,
@@ -436,6 +438,25 @@ test("names are typed in, and a player can play only once and four at most", () 
   $(card, ".lobby-player .who").dispatchEvent(new window.Event("input", { bubbles: true }));
   lobbyTap(card, "start");
   assert.deepEqual(started(hass)[0][2].players, ["Alex", "Sam", "Tom", ""]);
+});
+
+test("a party game takes eight players, and in X01 the others sit out", () => {
+  const { hass, card } = setup();
+  tap(card, ".lobby-toggle");
+  lobbyTap(card, "game", "killer");
+  for (let index = 0; index < 6; index += 1) lobbyTap(card, "guest");
+  assert.deepEqual(players(card), ["Alex", "Sam", ...[3, 4, 5, 6, 7, 8].map((index) => `Player ${index}`)]);
+  assert.equal($(card, ".lobby-name").disabled, true);
+  assert.equal(text(card, ".lobby-hint"), "8 players at most.");
+  // X01 is for four: the others sit out, and the start takes the first four.
+  lobbyTap(card, "game", "501");
+  assert.equal(text(card, ".lobby-hint"), "501 is for 4: the others sit out.");
+  lobbyTap(card, "start");
+  assert.deepEqual(started(hass)[0][2].players, ["Alex", "Sam", "", ""]);
+  // The board's party comes back on the screen, all eight of them.
+  const party = setup({ "number.practice_players": "8" });
+  tap(party.card, ".lobby-toggle");
+  assert.equal(players(party.card).length, 8);
 });
 
 test("Killer asks for two players, and training games take the first player only", () => {

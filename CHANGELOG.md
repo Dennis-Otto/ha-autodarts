@@ -6,6 +6,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### New
 
+- **Party games for up to eight:** Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up take a whole party of up to eight players, on the new game screen, in `autodarts.start_game` and in *Practice players*, with four more name fields; the scoreboard shows them in two rows of four. X01, the Cricket and the training games stay at four ([games](docs/games.md#party-games)).
 - **Big moments on the scoreboard:** confetti and a golden glow for a 180, confetti for a game shot and the match, and a glow for a ton and for nine marks in Cricket, on top of the scoreboard without moving anything. `celebrations: false` switches them off ([how](docs/scoreboard.md#during-the-game)).
 - **How to play:** the new game screen explains the chosen game in a sentence or two, in every language of the cards, for guests who have never played Halve-It or Killer, with a link to all its rules on the documentation website ([how](docs/scoreboard.md#choose-the-next-game)).
 - **Aim hints in Cricket:** as on a dart machine, the chalkboard frames the cells of the player at the board: green where a dart scores, because they have closed the number and somebody still needs it, amber where somebody else has closed it and scores on them. A dart that counted nothing is struck through on the live card and the scoreboard, and a tap or a mouse tells why ([how](docs/games.md#cricket-games)).

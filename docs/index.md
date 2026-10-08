@@ -32,7 +32,7 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    X01 from 101 to 1001 with the checkout route after every dart, Cricket, Cut-Throat Cricket, Tactics and Wild Mouse, and six party games, alone or as a match of up to four with legs, sets, teams and handicaps.
+    X01 from 101 to 1001 with the checkout route after every dart, Cricket, Cut-Throat Cricket, Tactics and Wild Mouse, and six party games for up to eight, alone or as a match of up to four with legs, sets, teams and handicaps.
 
     [:octicons-arrow-right-24: Games and rules](games.md)
 

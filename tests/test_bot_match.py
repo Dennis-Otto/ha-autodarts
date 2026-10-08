@@ -265,7 +265,7 @@ async def test_the_bot_settings(hass, aioclient_mock):
     with pytest.raises(ServiceValidationError) as error:
         await set_number(hass, "practice_bot_level", 60)
     assert error.value.translation_key == "bot_seat"
-    # Party games have room for four players: the bot does not play them.
+    # The bot does not play party games, which have room for eight players.
     await start(hass, "shanghai")
     await set_number(hass, "practice_bot_level", 60)
     assert practice.bot_level == 60 and practice.bot_seat is None

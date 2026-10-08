@@ -1,4 +1,5 @@
-"""Practice games on the local board for up to four players, and training games.
+"""Practice games on the local board for up to four players, party games for up
+to eight, and training games.
 
 X01 with a start score of its own for every player, Cricket, Cut-Throat,
 Tactics and Wild Mouse, the party games, and the training games; X01 and the
@@ -56,6 +57,8 @@ LEG_HISTORY = 10
 STATS_LEGS = 10
 STATS_KEYS = ("first9_points", "first9_darts", "at_double", "checkouts")
 MAX_PLAYERS = 4
+# A party game takes a party: as many players as a tournament, each with a name.
+PARTY_PLAYERS = 8
 MAX_LEGS = 11
 MAX_SETS = 7
 # A start score of its own: 0 plays the game's, otherwise 2 to 1001.
@@ -103,10 +106,11 @@ def valid_settings(saved: object) -> dict[str, Any] | None:
     if not isinstance(saved, dict):
         return None
     names, starts = saved.get("names"), saved.get("starts")
+    # Up to version 1.9, four players had a name.
     if not (
-        _count(saved.get("players"), 1, MAX_PLAYERS, 0)
+        _count(saved.get("players"), 1, PARTY_PLAYERS, 0)
         and isinstance(names, list)
-        and len(names) == MAX_PLAYERS
+        and MAX_PLAYERS <= len(names) <= PARTY_PLAYERS
         and all(isinstance(name, str) for name in names)
         and isinstance(starts, list)
         and len(starts) == MAX_PLAYERS
@@ -120,7 +124,8 @@ def valid_settings(saved: object) -> dict[str, Any] | None:
     kept = ("players", "bot_level", "legs_to_win", "sets_to_win", *MATCH_RULES)
     return {
         **{key: saved[key] for key in kept},
-        "names": [clean_name(name) for name in names],
+        "names": [clean_name(name) for name in names]
+        + [""] * (PARTY_PLAYERS - len(names)),
         "starts": list(starts),
     }
 
@@ -231,7 +236,7 @@ class PracticeGame:
         self.bulling: BullOff | None = None
         self.legs_to_win = 1
         self.sets_to_win = 1
-        self.names = [""] * MAX_PLAYERS
+        self.names = [""] * PARTY_PLAYERS
         self.players = [Player()]
         self.current = 0
         # Who throws first in the current leg, and in the current set: the
@@ -298,11 +303,11 @@ class PracticeGame:
         if isinstance(names, list):
             self.names = [
                 clean_name(name) if isinstance(name, str) else ""
-                for name in [*names, *[""] * MAX_PLAYERS][:MAX_PLAYERS]
+                for name in [*names, *[""] * PARTY_PLAYERS][:PARTY_PLAYERS]
             ]
         slots = self._slots()
         players = saved.get("players")
-        if isinstance(players, list) and 0 < len(players) <= MAX_PLAYERS:
+        if isinstance(players, list) and 0 < len(players) <= PARTY_PLAYERS:
             self.players = [Player.restored(player, slots) for player in players]
         else:
             # Version 1.2 stored a single player at the top level.
@@ -462,11 +467,17 @@ class PracticeGame:
         """The players at the board without the bot."""
         return len(self.players) - (self.bot_seat is not None)
 
+    @property
+    def seats(self) -> int:
+        """The players the game takes: eight in a party game and before a game
+        is chosen, four in the other games."""
+        return MAX_PLAYERS if self.game or self.cricket or self.drill else PARTY_PLAYERS
+
     def set_players(self, count: int) -> None:
         """Players besides the bot; the bot takes a seat of its own after them."""
         self._resume()
         bot = int(self._bot_plays())
-        humans = min(_count(count, 1, MAX_PLAYERS, 1), MAX_PLAYERS - bot)
+        humans = min(_count(count, 1, PARTY_PLAYERS, 1), self.seats - bot)
         self.players = [Player() for _ in range(humans + bot)]
         self.new_match()
 
@@ -561,7 +572,7 @@ class PracticeGame:
     def set_name(self, index: int, name: str) -> None:
         """A player's name, without the characters no name contains."""
         self._resume()
-        if 0 <= index < MAX_PLAYERS:
+        if 0 <= index < PARTY_PLAYERS:
             self.names[index] = clean_name(name)
 
     def forget(self, name: str) -> None:
