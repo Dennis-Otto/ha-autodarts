@@ -240,6 +240,38 @@ test("checks name languages first, then keys, separated by spaces or commas", ()
   ]);
 });
 
+test("a line of checks that GitHub wrapped at 72 characters goes on in the lines of names after it", () => {
+  // As GitHub writes the description of a pull request into the commit of its squash.
+  const wrapped = [
+    "docs: point native speakers to the translation issues (#159)",
+    "",
+    "Translations-checked: de config.step.cloud.data_description.client_id",
+    "config.progress.wait_for_device entity.sensor.favourite_double.name",
+    "heatmap_label",
+    "",
+    // A wrapped line of other words ends the names, though its first word didn't fit.
+    "Translations-checked: fr config.step.cloud.data_description.client_id",
+    "Generated-by: [Claude Code](https://claude.com/claude-code)",
+    // A short line was not wrapped: the names below it are words of their own.
+    "Translations-checked: nl status_ready",
+    "of dart points",
+  ].join("\r\n");
+  assert.deepEqual(checks([{ message: wrapped }], ["de", "fr", "nl"]), [
+    {
+      index: 0,
+      languages: new Set(["de"]),
+      keys: new Set([
+        "config.step.cloud.data_description.client_id",
+        "config.progress.wait_for_device",
+        "entity.sensor.favourite_double.name",
+        "heatmap_label",
+      ]),
+    },
+    { index: 0, languages: new Set(["fr"]), keys: new Set(["config.step.cloud.data_description.client_id"]) },
+    { index: 0, languages: new Set(["nl"]), keys: new Set(["status_ready"]) },
+  ]);
+});
+
 test("languages come from the translation files and from TEXT, and a translation may be older than its English text", () => {
   const repository = new Repository();
   // Spanish has a text before English has it; Dutch has no translation file.

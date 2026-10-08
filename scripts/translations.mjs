@@ -23,7 +23,12 @@ export const SOURCE = "en";
 export const BOT = "github-actions[bot]";
 export const LABELS = ["translations", "help wanted", "good first issue"];
 const MARKER = /^<!-- translation-bot: ([\w-]+) -->/;
-const CHECKED = /^Translations?-checked:[ \t]*(.*)$/gim;
+const CHECKED = /^Translations?-checked:[ \t]*(.*)$/i;
+// GitHub wraps the description of a pull request at 72 characters when it squashes it
+// into the commit message. A line of names alone continues a line of checks when its
+// first word didn't fit on that line.
+const WRAP = 72;
+const NAMES = /^[\w.,-]+(?:[ \t]+[\w.,-]+)*$/;
 // GitHub takes 65,536 characters in an issue; longer lists end with the keys alone.
 const TEXTS_BUDGET = 40_000;
 const KEYS_BUDGET = 8_000;
@@ -211,16 +216,28 @@ function textAt(timeline, key, index) {
 export function checks(chain, languages) {
   const found = [];
   chain.forEach(({ message }, index) => {
-    for (const [, value] of message.matchAll(CHECKED)) {
+    const lines = message.split(/\r?\n/);
+    lines.forEach((line, number) => {
+      const match = CHECKED.exec(line);
+      if (!match) return;
+      let value = match[1];
+      for (let next = number + 1; next < lines.length && continues(lines[next - 1], lines[next]); next += 1) {
+        value += ` ${lines[next]}`;
+      }
       const tokens = value.split(/[\s,]+/).filter(Boolean);
       const count = tokens.findIndex((token) => !languages.includes(token));
       const listed = count < 0 ? tokens : tokens.slice(0, count);
-      if (listed.length === 0) continue;
+      if (listed.length === 0) return;
       const keys = count < 0 ? [] : tokens.slice(count);
       found.push({ index, languages: new Set(listed), keys: keys.length > 0 ? new Set(keys) : null });
-    }
+    });
   });
   return found;
+}
+
+function continues(previous, line) {
+  const word = line.split(/[ \t]/, 1)[0];
+  return NAMES.test(line) && [...previous].length + 1 + [...word].length > WRAP;
 }
 
 function checkedAt(found, language, key) {
