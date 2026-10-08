@@ -133,6 +133,9 @@ test("the status keeps the width of its longest words during a game, so nothing 
   }
   const german = card("autodarts-scoreboard-card", {}, {}, { language: "de" });
   assert.deepEqual([text(german, ".pill"), $(german, ".pill").dataset.widest], ["Bereit – wirf!", "Darts werden entnommen"]);
+  // On a card narrower than those words, they wrap instead of running over the edge.
+  const pill = $(german, "style").textContent.match(/\.pill \{[^}]*\}/)[0];
+  assert.match(pill, /flex-shrink: 0; max-width: 100%;/);
 });
 
 test("what a tooltip tells shows on a tap with a finger too, in a bubble over the card", (t) => {

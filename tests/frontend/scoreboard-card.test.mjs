@@ -712,6 +712,10 @@ test("the full-height scoreboard fits the screen, lays out a portrait tablet and
   // The title keeps its words whole; the header's buttons follow below it where they must.
   has(/\.scoreboard > header \{ align-items: flex-start; flex-wrap: wrap; row-gap: 8px; \}/);
   has(/\.scoreboard \.title \{[^}]*overflow-wrap: break-word;\s*\}/);
+  // Their row is never wider than the card: the new game button, the caller and the
+  // status wrap in it on a phone instead of running over the edge.
+  has(/\.scoreboard > header > \.header-actions \{ flex: 1 0 auto; max-width: 100%; \}/);
+  has(/\.header-actions \{ display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; \}/);
   // Every touch screen, also a large one beside a mouse, gets controls for a finger.
   has(/@media \(any-pointer: coarse\) \{ \.lobby-toggle, \.caller-toggle \{ min-height: 40px; \} \}/);
   assert.doesNotMatch(style, /\(pointer: coarse\)/);

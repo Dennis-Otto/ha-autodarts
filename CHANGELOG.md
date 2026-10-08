@@ -13,6 +13,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 - **Wild Mouse:** a fourth Cricket game, also known as Minnesota Cricket. Besides 20 to 15 and the bull, every player closes three doubles, three triples and three in a bed. A dart counts for its number while it is open, otherwise for doubles or triples; the chalkboard has a row for each, the board outlines the next target, and teams, the bot and tournaments play it too. *Three in a bed* on the new game screen, or *Practice Wild Mouse three in a bed*, leaves the bed out ([rules](docs/games.md#wild-mouse)).
 - **Free a stuck takeout:** Board Manager 2.0.2 sometimes starts a takeout again on the empty board right after one and keeps it, so darts thrown then are not counted and `takeout_finished` never comes. After ten seconds without darts and without a hand at the board, the integration now resets the board, at most three times in a row, and the takeout ends. The new switch *Free a stuck takeout*, on by default, turns it off; the automatic dashboard shows it with the board settings ([how it works](docs/entities.md#a-takeout-the-board-never-finishes)). Found by @JoeyAwwad (#172).
 
+### Fixed
+
+- **The scoreboard's header on a phone:** during a game, the *New game* button, the caller and the status kept to one row wider than the card, which cut off the end of the status, such as *Ready – throw!*, on a small phone in every language and on an iPhone in German and French. Where they do not fit beside each other, they now wrap below the title, and the status still keeps its width, so nothing moves while it changes.
+
 ## [1.9.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)
 
 ### New
