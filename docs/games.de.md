@@ -220,6 +220,8 @@ Live-Karte und Anzeigetafel zeigen eine Kreidetafel mit den Marks jedes Spielers
 
 In einem Match hilft die Spalte des Spielers am Board wie ein Dartautomat: ein grüner Rahmen, wo ein Dart punktet, weil du die Zahl geschlossen hast und jemand sie noch braucht, und ein gelber Rahmen, wo jemand anderes sie geschlossen hat und auf dich punktet, du sie also besser schließt. Ein Dart der Aufnahme, der nichts gezählt hat, auf einer Zahl, die niemand mehr braucht, oder auf keiner des Spiels, wird durchgestrichen. Die Maus über einem Rahmen oder einem durchgestrichenen Dart, oder ein Tipp darauf, sagt, was er bedeutet.
 
+<img src="images/de/cricket-hints.webp" alt="Animation: Cricket zwischen Alex und Sam auf der Anzeigetafel. Alex schließt die 20 und die 19, eine S5 wird durchgestrichen, weil sie nichts gezählt hat; als Sam dran ist, sind die 20 und die 19 gelb gerahmt, zum Schließen; Sam schließt die 20, markiert die 19 einmal, und eine S1 zählt nichts; als Alex dran ist, ist die 19 grün gerahmt, zum Punkten" width="760">
+
 ### Cricket
 
 - **Marks:** Nur 20 bis 15 und das Bull zählen. Ein Single ist ein Mark, ein Double zwei, ein Triple drei; das Single-Bull ist ein Mark, das Bullseye zwei. Drei Marks schließen eine Zahl.
@@ -245,6 +247,8 @@ In einem Match hilft die Spalte des Spielers am Board wie ein Dartautomat: ein g
 
 Auch als Minnesota Cricket bekannt. Neben 20 bis 15 und dem Bull schließt jeder Spieler drei weitere Ziele: **Doubles**, **Triples** und **3 in a Bed**. Die Kreidetafel hat für jedes eine Zeile.
 
+<img src="images/de/wild-mouse.webp" alt="Animation: Wild Mouse zwischen Alex und Sam auf der Anzeigetafel. Die erste T20 von Alex schließt die 20, die nächsten beiden zählen für Triples und schließen, alle drei im selben Feld, 3 in a Bed; Sam schließt die 19, markiert die 16 zweimal, und eine S14 zählt nichts und wird durchgestrichen; die nächste T20 von Alex schließt Triples, eine D19 markiert die 19 zweimal und eine S20 punktet 20" width="760">
+
 - **Jeder Dart zählt einmal:** Ein Dart markiert seine Zahl, solange du sie noch offen hast, wie bei Cricket: Eine T20 sind drei Marks auf der 20. Sonst ist ein Double eine Mark auf Doubles und ein Triple eine Mark auf Triples, auf jeder Zahl und mit dem Bullseye als Double. Drei Marks schließen Doubles und Triples.
 - **3 in a Bed:** Drei Darts einer Aufnahme im selben Feld, etwa drei Single 18 oder drei T20, schließen es sofort; die Darts zählen zusätzlich für ihre Ziele. Um ohne zu spielen, wie es Freizeitspieler oft tun, schalte auf dem Bildschirm für ein neues Spiel *Three in a Bed* oder *Übungsspiel Wild Mouse Three in a Bed* aus; eine Änderung startet das Spiel neu.
 - **Punkte:** Ein Ziel, das du geschlossen hast, punktet, solange ein anderer Spieler es noch offen hat: eine Zahl ihren Wert pro Mark wie bei Cricket, Doubles und Triples die ganze Punktzahl des Darts (32 Punkte für eine D16) und 3 in a Bed die drei Darts zusammen (180 für drei T20).
@@ -252,9 +256,16 @@ Auch als Minnesota Cricket bekannt. Neben 20 bis 15 und dem Bull schließt jeder
 - **Ziel:** Das Board umrandet das nächste offene Ziel: 20 abwärts bis 15, dann jedes Double, jedes Triple, für 3 in a Bed die Single 20 und nach dem ersten Dart dessen Feld, zuletzt das Bull.
 - **Marks pro Runde:** Jede Mark, die geschlossen oder gepunktet hat, zählt, auf den Zahlen wie auf Doubles und Triples; 3 in a Bed zählt eine.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/wild-mouse-dark.png">
+  <img src="images/de/wild-mouse-light.png" alt="Wofür ein Dart bei Wild Mouse zählt: für seine Zahl, solange sie für dich offen ist, ein Triple dreimal; sonst eine Mark auf Doubles oder Triples, solange sie offen sind; sonst punktet er auf einem Ziel, das du geschlossen hast und andere noch brauchen; sonst zählt er nichts und wird durchgestrichen. Der dritte Dart: Alle drei im selben Feld schließen 3 in a Bed oder punkten, wenn es schon geschlossen ist" width="560">
+</picture>
+
 ## Partyspiele
 
-Sechs Kneipenklassiker für einen bis acht Spieler, eine ganze Runde; Killer braucht zwei. Mit fünf bis acht zeigt die Anzeigetafel zwei Reihen mit je vier Kacheln. Sie verbuchen eine Aufnahme, wenn du die Darts ziehst, und gewinnen Legs und Sätze wie jedes Match. Die Karten zeigen die Runde, das Ziel und die Punkte oder Leben jedes Spielers und umranden die Felder, auf die du zielst. Partyspiele zählen nicht für die X01-Statistik.
+Sechs Kneipenklassiker für einen bis acht Spieler, eine ganze Runde; Killer braucht zwei. Mit fünf bis acht zeigt die Anzeigetafel zwei Reihen mit je vier Kacheln.
+
+<img src="images/de/scoreboard-party.png" alt="Anzeigetafel bei Killer für eine Runde von acht, Alex bis Ben, in zwei Reihen mit je vier Kacheln: Alex am Board als Killer, Sam mit noch zwei Leben" width="760"> Sie verbuchen eine Aufnahme, wenn du die Darts ziehst, und gewinnen Legs und Sätze wie jedes Match. Die Karten zeigen die Runde, das Ziel und die Punkte oder Leben jedes Spielers und umranden die Felder, auf die du zielst. Partyspiele zählen nicht für die X01-Statistik.
 
 ### Shanghai
 

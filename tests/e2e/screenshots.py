@@ -87,7 +87,7 @@ async ([domain, service, key, data]) => {
 }
 """
 
-# Names a practice player; the four name fields share one translation key.
+# Names a practice player; the name fields share one translation key.
 SET_NAME = """
 async ([index, name]) => {
   const hass = document.querySelector('home-assistant').hass;
@@ -698,6 +698,103 @@ def scoreboard_animation(page: Page) -> None:
     board.close()
     players(page, 1)
     game(page, "off")
+
+
+def scoreboard_match(page: Page, option: str) -> tuple[Page, "Recorder"]:
+    """Alex against Sam in one leg of a game on the scoreboard, with its recorder."""
+    pull_darts()
+    page.evaluate(SET_NAME, [0, "Alex"])
+    page.evaluate(SET_NAME, [1, "Sam"])
+    players(page, 2)
+    for key in ("practice_legs", "practice_sets"):
+        page.evaluate(CALL_SERVICE, ["number", "set_value", key, {"value": 1}])
+    game(page, option)
+    board = page.context.new_page()
+    board.set_viewport_size({"width": 1280, "height": 800})
+    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    wait_card(
+        board, "!!r.querySelector('.main .player, .main table')", SCOREBOARD, 60000
+    )
+    board.wait_for_timeout(1500)
+    return board, Recorder(board, SCOREBOARD)
+
+
+def visit_shots(board: Page, recorder: "Recorder", visits: list[list[str]]) -> None:
+    """Every dart of the visits shown on its own, then the next player after the takeout."""
+    for names in visits:
+        darts: list[dict] = []
+        for name in names:
+            darts.append(at(name))
+            control({"event": "Throw detected", "throws": darts})
+            wait_card(
+                board,
+                f"r.querySelectorAll('.visit .dart:not(.empty)').length === {len(darts)}",
+                SCOREBOARD,
+            )
+            board.wait_for_timeout(300)
+            recorder.shot(1100)
+        recorder.shot(700)
+        # While the board is empty, the scoreboard shows the last visit.
+        pull_darts()
+        board.wait_for_timeout(900)
+        recorder.shot(1400)
+
+
+def wild_mouse_animation(page: Page) -> None:
+    """Wild Mouse on the scoreboard: a T20 closes the 20, the next ones count for
+    triples, three of them in one bed close 3 in a bed, and a dart that counts
+    nothing is struck through."""
+    board, recorder = scoreboard_match(page, "wild_mouse")
+    recorder.shot(1400)
+    visit_shots(
+        board,
+        recorder,
+        [["T20", "T20", "T20"], ["T19", "D16", "S14"], ["T20", "D19", "S20"]],
+    )
+    recorder.save("wild-mouse")
+    board.close()
+    end_match(page)
+
+
+def cricket_hints_animation(page: Page) -> None:
+    """Cricket on the scoreboard: the column of the player at the board frames where
+    a dart scores in green and what to close in amber; a dart that counted nothing
+    is struck through."""
+    board, recorder = scoreboard_match(page, "cricket")
+    recorder.shot(1200)
+    visit_shots(board, recorder, [["T20", "T19", "S5"], ["T20", "S19", "S1"]])
+    recorder.save("cricket-hints")
+    board.close()
+    end_match(page)
+
+
+def celebration_animation(page: Page) -> None:
+    """A 180 on the scoreboard: a golden glow and confetti, gone again by itself."""
+    board, recorder = scoreboard_match(page, "501")
+    recorder.shot(1000)
+    darts: list[dict] = []
+    for name in ("T20", "T20"):
+        darts.append(at(name))
+        control({"event": "Throw detected", "throws": darts})
+        wait_card(
+            board,
+            f"r.querySelectorAll('.visit .dart:not(.empty)').length === {len(darts)}",
+            SCOREBOARD,
+        )
+        board.wait_for_timeout(300)
+        recorder.shot(700)
+    darts.append(at("T20"))
+    control({"event": "Throw detected", "throws": darts})
+    wait_card(board, "!!r.querySelector('.celebrate .moment.max')", SCOREBOARD)
+    # The confetti frame by frame: the scoreboard's animations stand at each moment in
+    # turn, before anything lets them run to their end.
+    seek = SEEK.replace("'autodarts-card'", f"'{SCOREBOARD}'")
+    for index in range(18):
+        board.evaluate(seek, index * 140)
+        recorder.shot(140 if index < 17 else 1600, wait=False)
+    recorder.save("celebration")
+    board.close()
+    end_match(page)
 
 
 def killer_animation(page: Page) -> None:
@@ -1386,6 +1483,63 @@ def tactics_scoreboard(page: Page) -> None:
     )
     board.wait_for_timeout(800)
     page_shot(board, "scoreboard-tactics")
+    board.close()
+    end_match(page)
+
+
+def wild_mouse_scoreboard(page: Page) -> None:
+    """Wild Mouse on the scoreboard: doubles, triples and three in a bed below the
+    numbers, and the frames of where the player at the board scores or closes."""
+    board = match_of(page, ["Alex", "Sam"], "wild_mouse")
+    throw_visits(
+        board,
+        [
+            [at("T20"), at("T20"), at("T20")],
+            [at("T19"), at("D16"), at("S18")],
+            [at("T19"), at("D5"), at("S14")],
+            [at("T20"), at("S17"), at("D3")],
+        ],
+    )
+    control({"event": "Throw detected", "throws": [at("T18")]})
+    wait_card(
+        board,
+        "r.querySelectorAll('.cricket tbody tr')[2]?.children[1]?.textContent === 'Ⓧ'",
+        SCOREBOARD,
+    )
+    board.wait_for_timeout(800)
+    page_shot(board, "scoreboard-wild-mouse")
+    board.close()
+    end_match(page)
+
+
+def party_scoreboard(page: Page) -> None:
+    """Killer for a party of eight on the scoreboard, in two rows of four tiles."""
+    pull_darts()
+    game(page, "killer")
+    names = ["Alex", "Sam", "Kim", "Lea", "Mia", "Leo", "Zoe", "Ben"]
+    for index, name in enumerate(names):
+        page.evaluate(SET_NAME, [index, name])
+    players(page, len(names))
+    for key in ("practice_legs", "practice_sets"):
+        page.evaluate(CALL_SERVICE, ["number", "set_value", key, {"value": 1}])
+    board = page.context.new_page()
+    board.set_viewport_size({"width": 1280, "height": 800})
+    board.goto(f"{HA}/autodarts-auto/scoreboard")
+    wait_card(
+        board, "r.querySelectorAll('.main .player').length === 8", SCOREBOARD, 60000
+    )
+    board.wait_for_timeout(1500)
+    # Everybody throws for a number, then Alex becomes a killer and takes a life.
+    numbers = ["S7", "S12", "S3", "S18", "S9", "S14", "S20", "S5"]
+    throw_visits(board, [[at(number)] for number in numbers])
+    control({"event": "Throw detected", "throws": [at("D7"), at("D12")]})
+    wait_card(
+        board,
+        "r.querySelectorAll('.main .player')[1]?.querySelector('.big')?.textContent === '♥♥'",
+        SCOREBOARD,
+    )
+    board.wait_for_timeout(800)
+    page_shot(board, "scoreboard-party")
     board.close()
     end_match(page)
 
@@ -2600,6 +2754,9 @@ def main() -> None:
         cricket_animation(page)
         training_game_animation(page)
         scoreboard_animation(page)
+        celebration_animation(page)
+        cricket_hints_animation(page)
+        wild_mouse_animation(page)
         killer_animation(page)
         lobby_animation(page)
         golf_animation(page)
@@ -2626,6 +2783,8 @@ def main() -> None:
         page = formats.new_page()
         open_dashboard(page, "board")
         tactics_scoreboard(page)
+        wild_mouse_scoreboard(page)
+        party_scoreboard(page)
         teams_scoreboard(page)
         handicap_scoreboard(page)
         baseball_scoreboard(page)

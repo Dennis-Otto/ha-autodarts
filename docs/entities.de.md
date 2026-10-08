@@ -279,6 +279,8 @@ Drei Varianten zählen dieselben Treffer:
 
 <img src="images/de/scoreboard-tactics.png" alt="Anzeigetafel bei Tactics zwischen Alex und Sam: die Kreidetafel von 20 bis 10 und dem Bull, Alex mit 94 Punkten, Sam am Board mit T15 als nächstem Ziel" width="760">
 
+<img src="images/de/scoreboard-wild-mouse.png" alt="Anzeigetafel bei Wild Mouse zwischen Alex und Sam: die Kreidetafel mit 20 bis 15, dem Bull, Doubles, Triples und 3 in a Bed; Alex am Board, mit grünen Rahmen auf 18 und 3 in a Bed, wo ein Dart punktet, solange Sam sie noch braucht, und T17 als nächstem Ziel" width="760">
+
 Die Karte zeigt eine Kreidetafel mit den Marks aller Spieler (`/`, `X`, `Ⓧ`), den Punkten und der MPR, mit den Zahlen des Spiels. *Übungsspiel Restpunkte* bleibt bei den Cricket-Spielen *unbekannt*; seine Attribute tragen das Spiel: `game` ist `cricket`, `cut_throat`, `tactics` oder `wild_mouse`, dazu `points`, `mpr`, `target`, `numbers` (20 bis 15 und 25, bei Tactics 20 bis 10 und 25) und `scores` mit `marks`, `points`, `legs`, `sets` und `mpr` jedes Spielers; `counted` sagt, wofür jeder Dart der Aufnahme gezählt hat, seine Zahl oder `null` für nichts. Wild Mouse ergänzt `targets`, die Ziele nach den Zahlen (`doubles`, `triples` und mit Three in a Bed `bed`), deren Marks in `marks` auf die der Zahlen folgen; `target_row`, die Zeile des Ziels; `doubles` und `triples` in `counted`; und `bed`, ob die Aufnahme ein Bed war, das gezählt hat. Cricket-Legs zählen nicht für die X01-Statistik; die MPR der [Spielerprofile](#spielerprofile) und `best_cricket_mpr` kommen nur aus Cricket.
 
 ## Spielerprofile

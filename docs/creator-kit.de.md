@@ -65,6 +65,8 @@ In der Demo mit simuliertem Board aufgenommen. MP4 funktioniert in Schnittprogra
 | --- | --- | --- |
 | Ein 301-Match auf der Live-Karte und der Anzeigetafel | [MP4](media/hero-de.mp4) · [GIF](media/hero-de.gif) | [MP4](media/hero-en.mp4) · [GIF](media/hero-en.gif) |
 | Die Anzeigetafel in einem 501-Match | [MP4](media/scoreboard-de.mp4) · [GIF](media/scoreboard-de.gif) | [MP4](media/scoreboard-en.mp4) · [GIF](media/scoreboard-en.gif) |
+| Konfetti für eine 180 auf der Anzeigetafel | [MP4](media/celebration-de.mp4) · [GIF](media/celebration-de.gif) | [MP4](media/celebration-en.mp4) · [GIF](media/celebration-en.gif) |
+| Wild Mouse mit Doubles, Triples und Three in a Bed | [MP4](media/wild-mouse-de.mp4) · [GIF](media/wild-mouse-de.gif) | [MP4](media/wild-mouse-en.mp4) · [GIF](media/wild-mouse-en.gif) |
 | Ein Match gegen den Bot | [MP4](media/bot-match-de.mp4) · [GIF](media/bot-match-de.gif) | [MP4](media/bot-match-en.mp4) · [GIF](media/bot-match-en.gif) |
 | Das nächste Spiel auf dem Tablet wählen | [MP4](media/lobby-de.mp4) · [GIF](media/lobby-de.gif) | [MP4](media/lobby-en.mp4) · [GIF](media/lobby-en.gif) |
 | Ein Turnier mit Turnierbaum | [MP4](media/tournament-bracket-de.mp4) · [GIF](media/tournament-bracket-de.gif) | [MP4](media/tournament-bracket-en.mp4) · [GIF](media/tournament-bracket-en.gif) |
