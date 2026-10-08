@@ -2085,10 +2085,11 @@ def named_dart(name: str) -> dict:
     return {"BULL": BULL, "25": OUTER_BULL}.get(name) or at(name)
 
 
-def own_context(page: Page, **options):
+def own_context(page: Page, flowing: bool = False, **options):
     """A browser context of its own, for a device of another size."""
     return new_context(
         page.context.browser,
+        flowing,
         locale=LOCALE,
         color_scheme="dark",
         **{"device_scale_factor": 1, **options},
@@ -2364,8 +2365,12 @@ def scoreboard_portrait(page: Page) -> None:
 
 def dashboard_trends(page: Page) -> None:
     """The graphs of the generated training view, from four weeks of statistics."""
+    # The graphs draw their lines as an animation, which needs time to pass.
     context = own_context(
-        page, viewport={"width": 1280, "height": 2400}, device_scale_factor=2
+        page,
+        flowing=True,
+        viewport={"width": 1280, "height": 2400},
+        device_scale_factor=2,
     )
     view = context.new_page()
     view.goto(f"{HA}/autodarts-auto/training")
