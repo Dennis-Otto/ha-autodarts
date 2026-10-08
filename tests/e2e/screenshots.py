@@ -223,8 +223,8 @@ def new_context(
 # pictures still loading are awaited, running transitions and fade-ins jump to
 # their end, and endless animations, such as blinking beds, stop at a fixed time.
 # Animations a step paused itself, at the moment it wants, stay as they are. While
-# Home Assistant still changes a card, or a scroll lets the toolbar cast a shadow,
-# it goes on until two looks a tenth of a second apart find nothing moving.
+# Home Assistant still changes the page, it goes on until two looks a tenth of a
+# second apart find nothing moving and nothing changed, for three seconds at most.
 SETTLE = """
 async ([time, wait]) => {
   const roots = () => {
@@ -242,9 +242,7 @@ async ([time, wait]) => {
   let changed = 0;
   const observer = new MutationObserver((records) => { changed += records.length; });
   for (const root of roots()) {
-    if (root.host?.tagName.startsWith('AUTODARTS-')) {
-      observer.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
-    }
+    observer.observe(root, { subtree: true, childList: true, attributes: true, characterData: true });
   }
   const hold = () => {
     let moving = 0;
@@ -2393,6 +2391,10 @@ def blueprints_page(page: Page) -> None:
     view = context.new_page()
     view.goto(f"{HA}/config/blueprint/dashboard")
     view.get_by_text("Autodarts: light show").first.wait_for(timeout=60000)
+    # The list shows before the texts of the settings, such as its tabs, arrive.
+    view.get_by_text(
+        "Automations" if LANGUAGE == "en" else "Automationen", exact=True
+    ).first.wait_for(timeout=30000)
     view.wait_for_timeout(1500)
     page_shot(view, "blueprints")
     # A blueprint opens a new automation with its form.
