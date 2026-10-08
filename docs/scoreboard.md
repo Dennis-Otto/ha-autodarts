@@ -82,6 +82,8 @@ The scoreboard always shows what is being played, and the player at the board is
 
 Along the bottom it shows the three darts of the current visit and their score, and while the board is empty the last visit; a tap on a dart [corrects it](#correct-and-enter-darts). Nothing moves while you play: the tiles keep their height from the first dart to the game shot. Big moments are celebrated on top, without moving anything and gone after two seconds and a half: confetti and a golden glow for a 180, confetti for a game shot and the match, and a glow for a visit of 100 or more and for nine marks in Cricket; `celebrations: false` switches them off, and with reduced motion in the system they stay away. When a match is decided, a banner names the winner with the result, for example *Alex wins the match 3 : 2!*, and after an X01 or Cricket match the [match summary](games.md#match-summary) takes the place of the players: averages, checkout rate, highest checkout, 180s and the best leg of everybody.
 
+<img src="images/en/celebration.webp" alt="Animation: a 180 on the scoreboard. Alex throws three triple 20s, a golden glow lights up the scoreboard and confetti flies from its middle, then the scoreboard shows 321 as before" width="760">
+
 <img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="760">
 
 <table>
