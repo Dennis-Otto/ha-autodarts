@@ -147,6 +147,20 @@ Follow the [online bridge](online-matches.md) step by step and watch the *Online
 - **Only from the Autodarts page:** check that the WLED feature of Tools for Autodarts is on, the effects are enabled and the Autodarts page is open. The developer tools of the browser (F12, *Console*) show calls that the browser blocked, for example as *Mixed Content*; see [mixed content](online-matches.md#limitations).
 - **Some moments only:** a trigger the bridge does not know is named once in a warning in the Home Assistant log. Tools for Autodarts plays one effect per trigger, so remove other effects with the same trigger.
 
+## From Autodarts 1.x to 2.x
+
+A player moved a board PC with Ubuntu 24.04 and three cameras from Autodarts 1.x to Autodarts Desktop 2.0.2 and reported what changed on the way. Other systems and versions may behave differently. The integration itself needs no change: it notices Board Manager 2 by itself, reloads and adds the entities of Board Manager 2, and the training, the games and the statistics stay ([Board Manager generations](how-it-works.md#board-manager-generations)).
+
+| What you notice | Cause and solution |
+| --- | --- |
+| The detection does not start, and the log of Autodarts says that no camera is streaming | 2.x takes over the sign-in of the board, but not its list of cameras. Choose the cameras again, in the same order as before: the calibration belongs to the camera's slot, not to the camera. Cameras of the same model can share one serial number; the USB port they are plugged into tells them apart. |
+| The detection does not start while the board PC is offline | After every start, 2.x waits until it has reached the Autodarts server once. From then on, the board answers in the local network, and the integration works as before. |
+| 2.x cannot open port 3180 at its first start | The old Board Manager, or a browser tab still connected to it, can keep the port busy for a moment. Close the tab, and start the app again once the port is free. |
+| Darts are not counted after a takeout | Board Manager 2.0.2 sometimes keeps a takeout on the empty board. With [*Free a stuck takeout*](entities.md#a-takeout-the-board-never-finishes) on, the integration frees it after ten seconds, see [Darts are not counted after a takeout](#darts-are-not-counted-after-a-takeout). |
+| The detection stops after some minutes without darts | That is the standby of the board. [*Camera standby*](entities.md#board-settings) sets the idle minutes, 5, 10, 15, 30 or 60, and the [*Detection*](entities.md#controls) switch starts the detection again, also from an automation. |
+
+**Home Assistant on HTTPS:** the cards of this integration show what Home Assistant knows and call its actions; they never contact the board themselves. A browser that opens Home Assistant over HTTPS therefore blocks nothing of them, with 1.x as with 2.x. Only the integration talks to the board, over HTTP in the local network.
+
 ## Diagnostics and logs
 
 ### Download diagnostics

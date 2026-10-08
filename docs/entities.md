@@ -468,6 +468,11 @@ Board Manager 2.0.2 sometimes starts a takeout again right after a takeout and k
 - **Then:** the board waits for darts again, and `takeout_finished` follows with its empty state.
 - **A board that stays stuck** is reset again ten seconds later, three times in a row at most. After a dart on the board, the next stuck takeout gets three resets again.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/stuck-takeout-dark.png">
+  <img src="images/en/stuck-takeout-light.png" alt="How a stuck takeout is freed: while the takeout runs with no darts and no hand at the board, Home Assistant waits 10 s. A dart, a hand, a stop or another status leave nothing to do; otherwise it resets the board with POST /api/reset, the board reports Throw with no darts, and takeout_finished follows so the game goes on. A board still stuck is reset again after 10 s, three times at most" width="420">
+</picture>
+
 Each reset is logged at info level, and the [diagnostics](troubleshooting.md#download-diagnostics) count them. Turn the switch off to leave the board alone, for example while you look into the fault with Autodarts.
 
 ## Board settings
