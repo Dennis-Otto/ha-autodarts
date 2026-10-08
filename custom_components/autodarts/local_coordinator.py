@@ -111,6 +111,14 @@ FIXTURE_RETRY = timedelta(seconds=5)
 # A board away this long is looked for at the addresses the Autodarts cloud reports.
 REDISCOVER_SECONDS = 300
 REDISCOVER_INTERVAL = 1800
+# Board Manager 2.0.2 may start a takeout again right after one ends and keep it
+# on the empty board, counting no darts until a reset. Real takeouts last 0.3 to
+# 2.5 seconds, so one that holds ten seconds without a hand at the board is
+# stuck, while a player who waits for the board hardly notices the delay.
+STUCK_TAKEOUT_SECONDS = 10
+# Resets in a row, a period apart, before a board that stays stuck is left to
+# its player; a dart on the board allows them again.
+STUCK_TAKEOUT_RESETS = 3
 MOTION_FLAGS = (
     "isWaiting",
     "isStable",
@@ -220,6 +228,10 @@ class ConnectionStats:
     stream_failures: int = 0
     reconnect_delay: float = RECONNECT_MIN
     last_close: str | None = None
+    # Stuck takeouts freed with a reset, and resets the board did not accept.
+    takeout_resets: int = 0
+    failed_takeout_resets: int = 0
+    last_takeout_reset: datetime | None = None
 
 
 @dataclass
@@ -324,6 +336,11 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._observed_state: dict[str, Any] | None = None
         self._observed_motion: dict[str, Any] | None = None
         self._taking_out = False
+        # Reset the board when it keeps a takeout without darts; a stored setting.
+        self.free_stuck_takeout = True
+        self._takeout_unsub: CALLBACK_TYPE | None = None
+        # Resets of a stuck takeout since the last dart on the board.
+        self._takeout_resets = 0
         self._positions: list[tuple[float, float] | None] = []
         # Corrections, darts entered by hand and the bot's darts in the visit.
         self.manual = ManualDarts()
@@ -381,6 +398,10 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.tournament.restore(stored.get("tournament"))
         self.practice.hold = self.tournament.waiting
+        takeout = stored.get("takeout")
+        self.free_stuck_takeout = not (
+            isinstance(takeout, dict) and takeout.get("free_stuck") is False
+        )
         # Parts that a newer release stored stay after a downgrade.
         known = self._stored()
         self._unknown = {
@@ -402,6 +423,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "records": self.records.stored(),
             "progress": self.progress.stored(),
             "tournament": self.tournament.stored(),
+            "takeout": {"free_stuck": self.free_stuck_takeout},
         }
 
     def _save_training(self) -> None:
@@ -445,6 +467,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._midnight_unsub()
             self._midnight_unsub = None
         self._cancel_bot()
+        self._cancel_takeout()
         # A store that was never restored is never written.
         if self._loaded and self._training_dirty:
             await self._store.async_save(self._stored())
@@ -564,9 +587,11 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return POLL_INTERVAL
 
     def _suspend_tracking(self) -> None:
-        """Changes may be missed; the next state tells how the visit went on."""
+        """Changes may be missed; the next state tells how the visit went on,
+        and times a stuck takeout anew."""
         self.training.suspend()
         self._observed_motion = None
+        self._cancel_takeout()
 
     def _message(
         self, kind: str, payload: dict[str, Any]
@@ -722,6 +747,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._observed_state = state
         if "motion" in fields:
             self._observe_motion(data.get("motion", {}), state, source)
+        self._watch_takeout(data)
         data["camera_problems"] = self._health.update(data, time.monotonic())
 
     def _guarded(self, action: Callable[[], None]) -> None:
@@ -907,6 +933,86 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ):
                 self._finish_takeout(source)
         self._observed_motion = motion
+
+    # -- stuck takeouts ----------------------------------------------------------
+
+    def _takeout_stuck(self, data: dict[str, Any]) -> bool:
+        """The board shows a takeout without darts and no hand at it, and the
+        switch to free such a takeout is on."""
+        state = data.get("local") or {}
+        status = str(state.get("status", "")).lower()
+        count = state.get("numThrows")
+        return (
+            self.free_stuck_takeout
+            and state.get("running") is True
+            and status not in LIFECYCLE_STATUSES
+            and "takeout in progress" in (status, str(state.get("event", "")).lower())
+            and type(count) is int
+            and count == 0
+            and (data.get("motion") or {}).get("isHand") is not True
+        )
+
+    @callback
+    def _watch_takeout(self, data: dict[str, Any]) -> None:
+        """Time a stuck takeout from the state that first shows it; any other
+        state, a hand at the board or the switch turned off ends the wait."""
+        count = (data.get("local") or {}).get("numThrows")
+        if type(count) is int and count > 0:
+            # The board counts darts again, so a later takeout may be freed anew.
+            self._takeout_resets = 0
+        if not self._takeout_stuck(data):
+            self._cancel_takeout()
+        elif (
+            self._takeout_unsub is None
+            and self._takeout_resets < STUCK_TAKEOUT_RESETS
+            and not self._shutdown_requested
+        ):
+            self._takeout_unsub = async_call_later(
+                self.hass, STUCK_TAKEOUT_SECONDS, self._async_free_takeout
+            )
+
+    @callback
+    def _cancel_takeout(self) -> None:
+        if self._takeout_unsub:
+            self._takeout_unsub()
+            self._takeout_unsub = None
+
+    async def _async_free_takeout(self, _now: datetime) -> None:
+        """The takeout held a whole period: reset the board once. The state it
+        reports next ends the takeout; a board still stuck gets another period."""
+        self._takeout_unsub = None
+        self._takeout_resets += 1
+        connection = self.connection
+        try:
+            await self.client.command("reset")
+        except AutodartsApiError as err:
+            connection.failed_takeout_resets += 1
+            _LOGGER.debug(
+                "The board did not take the reset of a stuck takeout: %s",
+                _error_name(err),
+            )
+        else:
+            connection.takeout_resets += 1
+            connection.last_takeout_reset = dt_util.utcnow()
+            _LOGGER.info(
+                "Board Manager kept a takeout on the empty board for %s seconds, "
+                "counting no darts; reset the board (%s of %s in a row)",
+                STUCK_TAKEOUT_SECONDS,
+                self._takeout_resets,
+                STUCK_TAKEOUT_RESETS,
+            )
+            # Read the board at once, as after every action.
+            await self.async_request_refresh()
+        self._watch_takeout(self.data or {})
+
+    @callback
+    def async_set_free_stuck_takeout(self, enabled: bool) -> None:
+        """Free stuck takeouts, or leave them to the player; kept across restarts."""
+        self.free_stuck_takeout = enabled
+        self._takeout_resets = 0
+        self._watch_takeout(self.data or {})
+        self._save_training()
+        self.async_update_listeners()
 
     # -- repair issues -----------------------------------------------------------
 
@@ -1444,6 +1550,16 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "reconnect_delay_seconds": connection.reconnect_delay,
                 "last_close": connection.last_close,
                 "ignored_frames": self.client.ignored_frames,
+            },
+            "stuck_takeout": {
+                "free": self.free_stuck_takeout,
+                "waiting": self._takeout_unsub is not None,
+                "resets": connection.takeout_resets,
+                "failed_resets": connection.failed_takeout_resets,
+                "resets_in_a_row": self._takeout_resets,
+                "last_reset": connection.last_takeout_reset.isoformat()
+                if connection.last_takeout_reset
+                else None,
             },
         }
 

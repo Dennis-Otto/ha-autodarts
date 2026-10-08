@@ -1,5 +1,5 @@
-"""Local detection, upstream connection, settings, training, practice games and
-tournaments."""
+"""Local detection, upstream connection, settings, stuck takeouts, training,
+practice games and tournaments."""
 
 from functools import partial
 from typing import Any
@@ -34,6 +34,7 @@ async def async_setup_entry(
                     AutodartsSwitch(coordinator, key)
                     for key in ("detection", *upstream, *CONFIG_SWITCHES)
                 ),
+                AutodartsStuckTakeoutSwitch(coordinator),
                 AutodartsTrainingSwitch(coordinator, "training_session"),
                 AutodartsTrainingSwitch(coordinator, "training_auto_start"),
                 *(
@@ -84,6 +85,31 @@ class AutodartsSwitch(AutodartsLocalEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._async_set(False)
+
+
+class AutodartsStuckTakeoutSwitch(AutodartsLocalEntity, SwitchEntity):
+    """Reset the board when it keeps a takeout without darts, which Board
+    Manager 2.0.2 sometimes does."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "free_stuck_takeout")
+
+    @property
+    def available(self) -> bool:
+        # A setting of Home Assistant, which can change while the board is away.
+        return True
+
+    @property
+    def is_on(self) -> bool:
+        return self.coordinator.free_stuck_takeout
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self.coordinator.async_set_free_stuck_takeout(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self.coordinator.async_set_free_stuck_takeout(False)
 
 
 class AutodartsTrainingSwitch(AutodartsLocalEntity, SwitchEntity):
