@@ -825,6 +825,9 @@
     "bot_seat": {
       "message": "With the bot, up to three players play: the bot takes the fourth seat."
     },
+    "too_many_players": {
+      "message": "This game takes {count} players at most; party games take up to eight."
+    },
     "invalid_segment": {
       "message": "{segment} is not a bed of the board. Enter S1 to S20, D1 to D20, T1 to T20, 25 (or S25, SB, OB) for the outer bull, BULL (or D25, DB, 50) for the bullseye, or MISS."
     },

@@ -825,6 +825,9 @@
     "bot_seat": {
       "message": "Met de bot spelen maximaal drie spelers: de bot neemt de vierde plaats in."
     },
+    "too_many_players": {
+      "message": "Dit spel neemt maximaal {count} spelers; partyspellen tot acht."
+    },
     "invalid_segment": {
       "message": "{segment} is geen vak van het bord. Voer S1 tot S20, D1 tot D20, T1 tot T20, 25 (of S25, SB, OB) voor de outer bull, BULL (of D25, DB, 50) voor de bullseye of MISS in."
     },

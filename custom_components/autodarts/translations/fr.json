@@ -825,6 +825,9 @@
     "bot_seat": {
       "message": "Avec le bot, trois joueurs au maximum peuvent jouer\u00a0: le bot prend la quatrième place."
     },
+    "too_many_players": {
+      "message": "Ce jeu accepte {count} joueurs au maximum\u00a0; les jeux de soirée jusqu'à huit."
+    },
     "invalid_segment": {
       "message": "{segment} n'est pas une zone de la cible. Saisissez S1 à S20, D1 à D20, T1 à T20, 25 (ou S25, SB, OB) pour le bull extérieur, BULL (ou D25, DB, 50) pour le bullseye, ou MISS."
     },
