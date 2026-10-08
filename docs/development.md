@@ -227,7 +227,7 @@ A translation that stays right after an English change is checked by a line in t
 Translations-checked: de fr config.step.user.title status_ready
 ```
 
-Languages come first, then keys, separated by spaces or commas; without keys, the line checks every text of the languages.
+Languages come first, then keys, separated by spaces or commas; without keys, the line checks every text of the languages. GitHub wraps the description at 72 characters when it squashes it into the commit, so the bot reads a line of keys alone whose first key didn't fit on the line before as part of it.
 
 Each issue lists the keys with a link to their line, the English text now and when the language last changed, and the translation, followed by the steps for someone who doesn't program: edit the file on GitHub, open a pull request titled like `fix(i18n): update the French texts`, and find their GitHub name in the changelog. The bot reads `TEXT` of each version of the card module by evaluating its object literal alone, without the rest of the module. It finds its issues by a hidden marker among the open issues of `github-actions[bot]`, and its job may only read the repository and write issues.
 
