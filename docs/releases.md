@@ -16,6 +16,8 @@ The release pull request needs the same required checks as every other one, the 
 
 ## Betas
 
+Every pull request of the types `feat`, `fix` and `perf` that reaches `main` also becomes a beta of the next release (the repository variable `BETA_CHANNEL` in `.github/repository.project.toml`): the version of the release pull request with `-beta.N`, such as `1.10.0-beta.2`, with the text of *Unreleased* as its notes. It is built, signed and verified like a release, and published as a prerelease that HACS offers only to those who turn on the beta switch ([Betas for testers](installation.md#betas-for-testers)); it announces nothing in the discussions. Updates of dependencies make no beta.
+
 A line `Release-As: 2.0.0-beta.1` in the description of a pull request sets the version of the next release. A version with a suffix such as `-beta.1` becomes a prerelease, which HACS offers only to those who turn on its beta switch for the integration. A beta keeps the text of *Unreleased* for the release that follows it, so the final release names everything again.
 
 ## Publication
