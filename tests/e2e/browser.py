@@ -14,7 +14,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-from playwright.sync_api import Browser, Page, sync_playwright
+from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
 HA = "http://homeassistant:8123"
@@ -1796,6 +1796,10 @@ SCREENS = (
     ("24-inch touch monitor", {"width": 1920, "height": 1080}, (0, 0), True),
     ("27-inch touch monitor", {"width": 2560, "height": 1440}, (0, 0), True),
 )
+# Screens narrower than this are phones held upright.
+PHONE_WIDTH = 500
+# The languages of the cards besides German, whose words take other room.
+OTHER_LOCALES = ("en-US", "es-ES", "fr-FR", "nl-NL")
 # The views of the generated dashboard; those of the demo dashboard are read from it.
 AUTO_VIEWS = ("live", "scoreboard", "training", "players", "board")
 DEMO_VIEWS = """
@@ -1820,8 +1824,9 @@ CARDS_DRAWN = """
 """
 # What a player would see as broken on this screen, card by card: a card wider than the
 # screen, text cut short or cut off, text on top of other text or running over the edge
-# of its tile or button, text too small to read, a control too small for a finger on a
-# touch screen, and a full-height scoreboard running below the screen.
+# of its tile or button, a row of buttons running over its edge, text too small to read,
+# a control too small for a finger on a touch screen, and a full-height scoreboard
+# running below the screen.
 # Text beneath a bar that stays in place is hidden by it and does not count as covered.
 LAYOUT_PROBLEMS = """
 (touch) => {
@@ -1930,6 +1935,23 @@ LAYOUT_PROBLEMS = """
         problems.push(`${label}: "${words(el)}" is cut short`);
       }
     }
+    // A row that wraps has room for each of its items; one running over its edge cannot
+    // wrap, as buttons and a status that keep to a row wider than the card.
+    for (const row of root.querySelectorAll('*')) {
+      const style = getComputedStyle(row);
+      if (!style.display.endsWith('flex') || style.flexWrap === 'nowrap' || style.flexDirection.startsWith('column')) continue;
+      if (/auto|scroll/.test(style.overflowX) || !shown(row, frame)) continue;
+      const rect = row.getBoundingClientRect();
+      const left = rect.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+      const right = rect.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight);
+      for (const item of row.children) {
+        if (!shown(item, frame) || /absolute|fixed/.test(getComputedStyle(item).position)) continue;
+        const edges = item.getBoundingClientRect();
+        if (edges.width > 0 && (edges.left < left - 1 || edges.right > right + 1)) {
+          problems.push(`${label}: "${words(item) || item.className}" runs out of its row`);
+        }
+      }
+    }
     for (let i = 0; i < texts.length; i += 1) {
       for (let j = i + 1; j < texts.length; j += 1) {
         const a = texts[i];
@@ -1966,7 +1988,8 @@ SCREENSHOTS = os.environ.get("BROWSER_SCREENSHOTS", "")
 
 def screens(browser: Browser) -> None:
     """Every view of both dashboards and the scoreboard's screens on every size, in
-    German with its long words: nothing broken, whatever the screen and its side."""
+    German with its long words, and on a phone the scoreboard during a game in the
+    other languages: nothing broken, whatever the screen and its side."""
     found: list[str] = []
     # A choice of screens for a local run, comma-separated, such as "iPhone".
     chosen = {name.strip() for name in os.environ.get("BROWSER_SCREENS", "").split(",")}
@@ -1974,9 +1997,81 @@ def screens(browser: Browser) -> None:
         if chosen - {""} and screen not in chosen:
             continue
         problems = screen_views(browser, screen, size, insets, touch)
+        if touch and size["width"] < PHONE_WIDTH:
+            problems += phone_languages(browser, screen, size, insets)
         print(f"  {screen}: {len(problems)} problems", flush=True)
         found += problems
     check(not found, "Layout problems:\n" + "\n".join(found))
+
+
+def screen_page(
+    browser: Browser,
+    size: dict[str, int],
+    insets: tuple[int, int],
+    touch: bool,
+    locale: str = "de-DE",
+) -> tuple[BrowserContext, Page]:
+    context = browser.new_context(
+        locale=locale,
+        viewport=size,
+        device_scale_factor=2,
+        is_mobile=touch and size["width"] < 1000,
+        has_touch=touch,
+    )
+    page = context.new_page()
+    page.add_init_script(CAPTURE_ERRORS)
+    page.add_init_script(phone_style(*insets))
+    return context, page
+
+
+def screen_problems(page: Page, screen: str, name: str, touch: bool) -> list[str]:
+    """What is broken in the view on this page, and its screenshot when wanted."""
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    # Positions, profiles and trends arrive over the websocket after the first draw.
+    page.wait_for_timeout(800)
+    state = page.evaluate(LAYOUT_PROBLEMS, touch)
+    if SCREENSHOTS and ARTIFACTS:
+        folder = Path(ARTIFACTS) / "screens" / screen.replace(" ", "-")
+        folder.mkdir(parents=True, exist_ok=True)
+        page.screenshot(path=str(folder / f"{name}.png"), full_page=True)
+    return [f"{screen} · {name}: {problem}" for problem in state["problems"]]
+
+
+def scoreboard_in_game(page: Page) -> None:
+    """The scoreboard of the demo, not full height, during a practice game: the new
+    game button and the caller beside the status, which reads "ready"."""
+    page.goto(f"{HA}/autodarts-demo/scoreboard")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    page.evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "301"}]
+    )
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
+    page.wait_for_function(
+        f"() => !{root}.querySelector('.lobby-toggle').hidden"
+        f" && {root}.querySelector('.caller-toggle')",
+        timeout=15000,
+    )
+
+
+def phone_languages(
+    browser: Browser, screen: str, size: dict[str, int], insets: tuple[int, int]
+) -> list[str]:
+    """The scoreboard during a game on a phone in the other languages: its buttons and
+    status take a width of their own in each."""
+    found: list[str] = []
+    for locale in OTHER_LOCALES:
+        context, page = screen_page(browser, size, insets, True, locale)
+        scoreboard_in_game(page)
+        found += screen_problems(
+            page, screen, f"scoreboard-during-a-game-{locale}", True
+        )
+        found.extend(
+            f"{screen} · {locale}: console problem {error}"
+            for error in page_errors(page, [])
+        )
+        context.close()
+    return found
 
 
 def screen_views(
@@ -1986,28 +2081,11 @@ def screen_views(
     insets: tuple[int, int],
     touch: bool,
 ) -> list[str]:
-    context = browser.new_context(
-        locale="de-DE",
-        viewport=size,
-        device_scale_factor=2,
-        is_mobile=touch and size["width"] < 1000,
-        has_touch=touch,
-    )
-    page = context.new_page()
-    page.add_init_script(CAPTURE_ERRORS)
-    page.add_init_script(phone_style(*insets))
+    context, page = screen_page(browser, size, insets, touch)
     found: list[str] = []
 
     def look(name: str) -> None:
-        page.wait_for_function(CARDS_DRAWN, timeout=30000)
-        # Positions, profiles and trends arrive over the websocket after the first draw.
-        page.wait_for_timeout(800)
-        state = page.evaluate(LAYOUT_PROBLEMS, touch)
-        found.extend(f"{screen} · {name}: {problem}" for problem in state["problems"])
-        if SCREENSHOTS and ARTIFACTS:
-            folder = Path(ARTIFACTS) / "screens" / screen.replace(" ", "-")
-            folder.mkdir(parents=True, exist_ok=True)
-            page.screenshot(path=str(folder / f"{name}.png"), full_page=True)
+        found.extend(screen_problems(page, screen, name, touch))
 
     page.goto(f"{HA}/autodarts-auto/live")
     page.wait_for_function(CARDS_DRAWN, timeout=30000)
@@ -2016,6 +2094,11 @@ def screen_views(
     for view in views:
         page.goto(f"{HA}/{view}")
         look(view.replace("/", "-"))
+
+    # The views show the scoreboard between games; during one, the new game button
+    # and the caller stand beside the status.
+    scoreboard_in_game(page)
+    look("scoreboard-during-a-game")
 
     # The scoreboard's own screens: the new game screen, four players with long names
     # and the keypad, its board to tap, and Cricket for four.

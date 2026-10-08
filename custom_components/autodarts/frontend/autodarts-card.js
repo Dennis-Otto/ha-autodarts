@@ -7395,9 +7395,10 @@ const BASE_CSS = `
   }
   /* Building block, status: a glowing dot and its words, never the shape of a button. It
      is as wide as the longest words it takes during a game, its dot and words at its end,
-     so nothing beside it moves while they change. */
+     so nothing beside it moves while they change. On a card narrower than that, its words
+     wrap instead of running over the edge. */
   .pill {
-    display: inline-grid; justify-items: end; align-items: center; flex-shrink: 0; min-height: 28px;
+    display: inline-grid; justify-items: end; align-items: center; flex-shrink: 0; max-width: 100%; min-height: 28px;
     font-size: 12px; font-weight: 600;
     color: color-mix(in srgb, var(--ad-status) 45%, var(--primary-text-color, #212121));
     transition: color .4s;
@@ -8021,14 +8022,15 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   }
   .heading { display: grid; gap: 2px; min-width: 0; }
   /* The title keeps its words whole: where the buttons beside it leave too little room,
-     as on a phone, they follow in a row below it. */
+     as on a phone, they follow in a row below it. That row is never wider than the card;
+     where the buttons and the status do not fit in it, they wrap. */
   .scoreboard .title {
     font-size: clamp(18px, 3cqi, 36px); font-weight: 700; line-height: 1.15;
     white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: break-word;
   }
   .scoreboard > header { align-items: flex-start; flex-wrap: wrap; row-gap: 8px; }
   .scoreboard > header > .heading { flex: 0 1 auto; max-width: 100%; }
-  .scoreboard > header > .header-actions { flex: 1 0 auto; }
+  .scoreboard > header > .header-actions { flex: 1 0 auto; max-width: 100%; }
   .scoreboard .meta { font-size: clamp(12px, 1.7cqi, 20px); }
   .scoreboard .pill { font-size: clamp(12px, 1.5cqi, 18px); }
   .banner {
