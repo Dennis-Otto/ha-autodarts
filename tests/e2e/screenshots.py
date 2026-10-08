@@ -1893,16 +1893,26 @@ def device_page(page: Page) -> None:
         "() => Object.values(document.querySelector('home-assistant').hass.devices)"
         ".find((d) => d.identifiers.some((i) => i[0] === 'autodarts')).id"
     )
-    page.goto(f"{HA}/config/devices/device/{device_id}")
+    # The device page names the button to the Board Manager once, when it opens,
+    # and gets no words when the texts of the settings have not arrived yet. So the
+    # list of devices comes first, with those texts, and the device opens from there
+    # within the app, again if it still has to.
+    page.goto(f"{HA}/config/devices/dashboard")
     page.get_by_text("Autodarts Board").first.wait_for(timeout=30000)
-    # The page names the button to the Board Manager once, maybe before the texts of
-    # the settings arrived; opened again within the app, it has them.
-    page.evaluate(NAVIGATE, "/config/devices/dashboard")
-    page.wait_for_timeout(1000)
-    page.evaluate(NAVIGATE, f"/config/devices/device/{device_id}")
-    page.locator("ha-device-info-card ha-button[target='_blank']").filter(
+    page.wait_for_timeout(1500)
+    visit = page.locator("ha-device-info-card ha-button[target='_blank']").filter(
         has_text=re.compile(r"\w")
-    ).first.wait_for(timeout=30000)
+    )
+    for attempt in range(4):
+        page.evaluate(NAVIGATE, f"/config/devices/device/{device_id}")
+        try:
+            visit.first.wait_for(timeout=10000)
+            break
+        except PlaywrightTimeoutError:
+            if attempt == 3:
+                raise
+            page.evaluate(NAVIGATE, "/config/devices/dashboard")
+            page.wait_for_timeout(2000)
     page.wait_for_timeout(2500)
     page_shot(page, "device")
 
