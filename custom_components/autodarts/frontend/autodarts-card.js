@@ -529,6 +529,7 @@ const TEXT = {
     summary_checkout: "Checkout rate",
     summary_at_double: "Darts at a double",
     show_summary: "Show the match summary",
+    celebrations: "Celebrate 180s, tons and game shots",
     summary_seconds: "Match summary (seconds)",
     summary_seconds_helper: "How long the summary stays after a match; 0 keeps it until the next game starts.",
     // Training card
@@ -1117,6 +1118,7 @@ const TEXT = {
     summary_checkout: "Checkout-Quote",
     summary_at_double: "Darts aufs Double",
     show_summary: "Match-Zusammenfassung anzeigen",
+    celebrations: "180er, Tons und Game shots feiern",
     summary_seconds: "Match-Zusammenfassung (Sekunden)",
     summary_seconds_helper: "Wie lange die Zusammenfassung nach einem Match bleibt; 0 zeigt sie bis zum nächsten Spiel.",
     training: "Training",
@@ -1700,6 +1702,7 @@ const TEXT = {
     summary_checkout: "Porcentaje de cierre",
     summary_at_double: "Dardos a doble",
     show_summary: "Mostrar resumen del partido",
+    celebrations: "Celebrar los 180, tons y game shots",
     summary_seconds: "Resumen del partido (segundos)",
     summary_seconds_helper: "Cuánto tiempo se muestra el resumen tras un partido; 0 lo mantiene hasta que empiece la siguiente partida.",
     training: "Entrenamiento",
@@ -2282,6 +2285,7 @@ const TEXT = {
     summary_checkout: "Taux de finish",
     summary_at_double: "Fléchettes sur double",
     show_summary: "Afficher le résumé du match",
+    celebrations: "Célébrer les 180, tons et game shots",
     summary_seconds: "Résumé du match (secondes)",
     summary_seconds_helper: "Durée d'affichage du résumé après un match\u00a0; 0 le garde jusqu'au début de la partie suivante.",
     training: "Entraînement",
@@ -2864,6 +2868,7 @@ const TEXT = {
     summary_checkout: "Uitgooipercentage",
     summary_at_double: "Darts op een dubbel",
     show_summary: "Wedstrijdoverzicht tonen",
+    celebrations: "180's, tons en game shots vieren",
     summary_seconds: "Wedstrijdoverzicht (seconden)",
     summary_seconds_helper: "Hoe lang het overzicht na een wedstrijd blijft staan; 0 houdt het tot het volgende spel begint.",
     training: "Training",
@@ -3148,6 +3153,8 @@ const SCOREBOARD_DEFAULTS = {
   idle_interval: 10,
   show_summary: true,
   summary_seconds: 0,
+  // Confetti and a glow for a 180, a ton, nine marks, a game shot and the match.
+  celebrations: true,
   // A tap on a dart of the visit corrects it; the keypad enters darts by hand
   // while Practice manual entry is on.
   corrections: true,
@@ -6845,6 +6852,48 @@ function callerText(call, t) {
 // One audio context for every card; browsers allow sound only after a tap.
 const callerAudio = { unlocked: false, context: null };
 
+// Big moments at the board, celebrated without a word, as the banner and the caller say
+// what happened: a glow in the colour of the moment, and confetti for a 180, a game shot and
+// the match. Nothing of it moves the scoreboard, and it fades out by itself.
+const CELEBRATION_GLOW = {
+  max: GOLD,
+  match: GOLD,
+  leg: VISIT_COLORS.ton,
+  ton40: VISIT_COLORS.high,
+  ton: VISIT_COLORS.ton,
+  nine: GOLD,
+};
+const CONFETTI = { max: 36, match: 48, leg: 28 };
+const CONFETTI_COLORS = [GOLD, VISIT_COLORS.high, VISIT_COLORS.ton, "var(--ad-accent)", "#e5484d"];
+
+// What the change from one caller state to the next celebrates, if anything: the match, a
+// leg, or a finished visit of a 180, 140 or more, 100 or more, or nine marks in Cricket.
+function celebrationOf(previous, current) {
+  if (!previous) return null;
+  if (current.winner !== null && previous.winner === null) return "match";
+  if (current.won && !previous.won) return "leg";
+  const finished = current.darts === 3 && (previous.darts !== 3 || previous.visit !== current.visit);
+  const count = finished ? current.count : null;
+  if (count?.kind === "marks") return count.marks >= 9 ? "nine" : null;
+  if (count?.kind !== "score" || count.score < 100) return null;
+  return count.score === 180 ? "max" : count.score >= 140 ? "ton40" : "ton";
+}
+
+// The glow and the confetti of a moment; every piece flies its own way, the same in every run.
+function celebrationHtml(kind, round) {
+  const count = CONFETTI[kind] ?? 0;
+  const pieces = Array.from({ length: count }, (_, index) => {
+    const angle = Math.round((index * 360) / count + (index % 3) * 11);
+    const reach = 26 + ((index * 37) % 24);
+    const color = CONFETTI_COLORS[index % CONFETTI_COLORS.length];
+    return `<i style="--a:${angle}deg;--r:${reach}cqi;--d:${(index % 6) * 50}ms;--c:${color}"></i>`;
+  });
+  return (
+    `<div class="moment ${kind}" data-round="${round}" style="--c:${CELEBRATION_GLOW[kind]}">` +
+    `<div class="glow"></div>${pieces.join("")}</div>`
+  );
+}
+
 function playFanfare() {
   const context = callerAudio.context;
   if (!context) return;
@@ -7354,7 +7403,10 @@ const FORMS = {
   scoreboard: () => [
     deviceField,
     titleField,
-    toggles(["full_height", "show_visit", "show_status", "caller", "show_summary"], SCOREBOARD_DEFAULTS),
+    toggles(
+      ["full_height", "show_visit", "show_status", "caller", "show_summary", "celebrations"],
+      SCOREBOARD_DEFAULTS
+    ),
     secondsField("summary_seconds", 0, 600),
     // The calls matter only with the caller on, so they wait in a closed section.
     {
@@ -8128,6 +8180,31 @@ ${balancedCss(".camera-grid", 130, 8, 36)}
 `;
 
 const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
+  /* Big moments: a glow around the scoreboard and confetti from its middle, over everything
+     and in nobody's way, gone after two seconds and a half. */
+  .celebrate {
+    position: absolute; inset: 0; z-index: 4; overflow: hidden; pointer-events: none; border-radius: inherit;
+  }
+  .moment, .moment .glow { position: absolute; inset: 0; }
+  .moment .glow {
+    border-radius: inherit; opacity: 0;
+    box-shadow: inset 0 0 clamp(40px, 9cqi, 140px) clamp(6px, 1.4cqi, 20px) var(--c);
+    animation: moment-glow 1.8s ease-out forwards;
+  }
+  .moment i {
+    position: absolute; left: 50%; top: 45%; width: clamp(6px, 1.1cqi, 14px); height: clamp(10px, 1.9cqi, 24px);
+    border-radius: 2px; background: var(--c); opacity: 0;
+    animation: moment-confetti 2.5s var(--d) cubic-bezier(.15, .75, .35, 1) forwards;
+  }
+  @keyframes moment-glow { 15% { opacity: 1; } 100% { opacity: 0; } }
+  @keyframes moment-confetti {
+    0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--a)) translateY(0) rotate(0deg); }
+    75% { opacity: 1; }
+    100% {
+      opacity: 0; transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(-1 * var(--r))) rotate(600deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) { .moment { display: none; } }
   /* Secondary text sits on tinted tiles here: its darker mix stays readable on them. */
   .scoreboard {
     --ad-pad: clamp(14px, 2.4cqi, 32px);
@@ -11052,6 +11129,7 @@ function createElements(Base) {
               ${c.show_visit ? `<div class="visit"></div>` : ""}
               <div class="pad-area appear" hidden></div>
               <div class="loupe" hidden aria-hidden="true"></div>
+              <div class="celebrate" aria-hidden="true"></div>
               <div class="visually-hidden said" role="status"></div>
             </div>
           </div>
@@ -11071,6 +11149,7 @@ function createElements(Base) {
         lobby: root.querySelector(".lobby-toggle"),
         pad: root.querySelector(".pad-area"),
         loupe: root.querySelector(".loupe"),
+        celebrate: root.querySelector(".celebrate"),
         // A live region outside the markup that is replaced, so what it says is heard.
         said: root.querySelector(".said"),
       };
@@ -11120,6 +11199,14 @@ function createElements(Base) {
       this._el.callerIcon.textContent = callerAudio.unlocked ? "🔊" : "🔇";
     }
 
+    // A big moment shows at once, with or without the caller; a new one starts afresh.
+    _celebrate(previous, current) {
+      const kind = celebrationOf(previous, current);
+      if (!kind || this._config.celebrations === false || this.preview) return;
+      this._moments = (this._moments ?? 0) + 1;
+      this._setHtml(this._el.celebrate, celebrationHtml(kind, this._moments));
+    }
+
     _speak(text) {
       const speech = window.speechSynthesis;
       if (!text || !speech || typeof SpeechSynthesisUtterance === "undefined") return;
@@ -11133,6 +11220,7 @@ function createElements(Base) {
       const current = callerState(visit, view, this._callerState);
       const previous = this._callerState;
       this._callerState = current;
+      this._celebrate(previous, current);
       const followed = tournamentCallState(tournament);
       const before = this._tournamentCall;
       this._tournamentCall = followed;
@@ -12207,6 +12295,8 @@ export {
   callerCalls,
   callerState,
   callerText,
+  celebrationHtml,
+  celebrationOf,
   cameraEntities,
   cardForm,
   createElements,

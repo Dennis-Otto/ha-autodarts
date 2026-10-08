@@ -6,6 +6,8 @@ import {
   callerCalls,
   callerState,
   callerText,
+  celebrationHtml,
+  celebrationOf,
   dartKey,
   visitCount,
 } from "../../custom_components/autodarts/frontend/autodarts-card.js";
@@ -220,4 +222,37 @@ test("calls read like a caller in the card's language", () => {
   assert.equal(callerText({ kind: "match", name: "Alex" }, t), "Game shot, and the match, Alex!");
   assert.equal(callerText({ kind: "match", name: null }, t), "Game shot, and the match!");
   assert.equal(callerText({ kind: "fanfare" }, t), "");
+});
+
+test("the scoreboard celebrates a 180, a ton, nine marks, a game shot and the match", () => {
+  const state = (overrides) => ({ darts: 0, visit: "", count: null, won: false, winner: null, ...overrides });
+  const visit = (count) => state({ darts: 3, visit: "T20 T20 T20", count });
+  const score = (value) => ({ kind: "score", score: value });
+  assert.equal(celebrationOf(null, visit(score(180))), null);
+  assert.equal(celebrationOf(state(), visit(score(180))), "max");
+  assert.equal(celebrationOf(state(), visit(score(140))), "ton40");
+  assert.equal(celebrationOf(state(), visit(score(100))), "ton");
+  assert.equal(celebrationOf(state(), visit(score(99))), null);
+  assert.equal(celebrationOf(state(), visit({ kind: "marks", marks: 9 })), "nine");
+  assert.equal(celebrationOf(state(), visit({ kind: "marks", marks: 8 })), null);
+  assert.equal(celebrationOf(state(), visit({ kind: "runs", runs: 9 })), null);
+  // The same visit once more is no new moment, nor is a visit of fewer darts.
+  assert.equal(celebrationOf(visit(score(180)), visit(score(180))), null);
+  assert.equal(celebrationOf(state(), state({ darts: 2, count: score(120) })), null);
+  // A game shot, and the match before the leg that decided it.
+  assert.equal(celebrationOf(state(), state({ won: true })), "leg");
+  assert.equal(celebrationOf(state(), state({ won: true, winner: 1 })), "match");
+  assert.equal(celebrationOf(state({ won: true }), state({ won: true })), null);
+
+  // Confetti flies its own way for every piece, the same in every run.
+  const html = celebrationHtml("max", 3);
+  assert.match(html, /^<div class="moment max" data-round="3" style="--c:#ffd60a"><div class="glow"><\/div><i /);
+  assert.equal((html.match(/<i /g) ?? []).length, 36);
+  assert.equal(html, celebrationHtml("max", 3));
+  assert.equal((celebrationHtml("match", 1).match(/<i /g) ?? []).length, 48);
+  assert.equal((celebrationHtml("leg", 1).match(/<i /g) ?? []).length, 28);
+  // A ton glows in the colour of its visits, without confetti.
+  assert.equal(celebrationHtml("ton", 1), '<div class="moment ton" data-round="1" style="--c:#43b581"><div class="glow"></div></div>');
+  assert.match(celebrationHtml("ton40", 1), /--c:#ff8c42/);
+  assert.match(celebrationHtml("nine", 1), /--c:#ffd60a/);
 });

@@ -334,6 +334,7 @@ Seiten ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `idle_panels` | Liste von Seiten | jede Seite | Die Seiten des Ruhemodus in dieser Reihenfolge: `tournament`, `leaderboard`, `records`, `today`, `last_match`, `clock` |
 | `show_summary` | Wahrheitswert | `true` | Die [Match-Zusammenfassung](#match-zusammenfassung) anzeigen, wenn ein X01- oder Cricket-Match endet |
 | `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
+| `celebrations` | Wahrheitswert | `true` | Eine 180, eine Aufnahme ab 100, neun Marks, ein Game Shot und das Match mit Konfetti und einem Leuchten feiern ([Anzeigetafel](scoreboard.de.md#während-des-spiels)) |
 | `corrections` | Wahrheitswert | `true` | Ein Tipp auf einen Dart der Aufnahme [korrigiert ihn](#darts-korrigieren-und-eingeben); ein Tipp auf die letzte Aufnahme neben den Darts nimmt sie zurück, solange es geht |
 | `keypad` | Wahrheitswert | `false` | Das [Tastenfeld](#darts-korrigieren-und-eingeben) für von Hand eingegebene Darts zeigen, solange *Übungsspiel manuelle Eingabe* an ist |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Spieler am Board, Wege und Aufnahmepunkte |
