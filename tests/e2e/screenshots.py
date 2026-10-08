@@ -1917,7 +1917,13 @@ def device_page(page: Page) -> None:
 
 def editor(page: Page) -> None:
     page.goto(f"{HA}/autodarts-demo/board?edit=1")
-    page.wait_for_timeout(2500)
+    # The dashboard turns to edit mode once it has loaded, the card drawn its board.
+    page.wait_for_function(
+        f"() => ({find('hui-root')})()[0]?.lovelace?.editMode === true"
+        f" && ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
+        timeout=60000,
+    )
+    page.wait_for_timeout(1500)
     page.evaluate(EDIT_CARD)
     # Home Assistant builds the form of the card from getConfigForm.
     page.locator("hui-form-editor ha-form").first.wait_for(timeout=15000)
@@ -2083,11 +2089,10 @@ def named_dart(name: str) -> dict:
     return {"BULL": BULL, "25": OUTER_BULL}.get(name) or at(name)
 
 
-def own_context(page: Page, flowing: bool = False, **options):
+def own_context(page: Page, **options):
     """A browser context of its own, for a device of another size."""
     return new_context(
         page.context.browser,
-        flowing,
         locale=LOCALE,
         color_scheme="dark",
         **{"device_scale_factor": 1, **options},
@@ -2363,12 +2368,13 @@ def scoreboard_portrait(page: Page) -> None:
 
 def dashboard_trends(page: Page) -> None:
     """The graphs of the generated training view, from four weeks of statistics."""
-    # The graphs draw their lines as an animation, which needs time to pass.
+    # Home Assistant draws the lines of its graphs at once, without the animation
+    # that the standing clock would stop, for a device that asks for less motion.
     context = own_context(
         page,
-        flowing=True,
         viewport={"width": 1280, "height": 2400},
         device_scale_factor=2,
+        reduced_motion="reduce",
     )
     view = context.new_page()
     view.goto(f"{HA}/autodarts-auto/training")
@@ -2378,9 +2384,7 @@ def dashboard_trends(page: Page) -> None:
     section = view.locator("hui-section").last
     section.scroll_into_view_if_needed()
     settle(view)
-    # The page clock runs here, so the switches of the settings may still glide when
-    # the picture is taken; nothing in this view blinks on purpose.
-    section.screenshot(path=str(OUTPUT / "dashboard-trends.png"), animations="disabled")
+    section.screenshot(path=str(OUTPUT / "dashboard-trends.png"))
     saved(OUTPUT / "dashboard-trends.png")
     context.close()
 
