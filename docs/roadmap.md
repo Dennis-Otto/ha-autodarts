@@ -53,7 +53,7 @@ Released features, all of them working without the Autodarts cloud:
 
 ## Version 1.6: more games, a game lobby, reports and online matches
 
-Released as 1.6.0 on 27 September 2026; the [changelog](../CHANGELOG.md#160) has the details.
+Released as 1.6.0 on 27 September 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#160) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
@@ -75,14 +75,14 @@ Released as 1.6.0 on 27 September 2026; the [changelog](../CHANGELOG.md#160) has
 
 ## Version 1.7: dart positions you can trust
 
-Released as 1.7.0 on 28 September 2026; the [changelog](../CHANGELOG.md#170) has the details.
+Released as 1.7.0 on 28 September 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#170) has the details.
 
 - The positions heatmap of the training card follows every dart live.
 - Corrected darts leave the board's misread position behind, or take the spot you tap on the scoreboard's board, which gives the bed at the same time.
 
 ## Version 1.8: every card on every screen
 
-Released as 1.8.0 on 28 September 2026 and 1.8.1 on 29 September 2026; the [changelog](../CHANGELOG.md#180) has the details.
+Released as 1.8.0 on 28 September 2026 and 1.8.1 on 29 September 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#180) has the details.
 
 - Every card fits from a 360 pixel phone to a 27 inch touch monitor, upright and on its side, with controls of at least 40 pixels for a finger.
 - Corrections on the live card too, with a loupe and a zoom on every touch screen.
@@ -92,7 +92,7 @@ Released as 1.8.0 on 28 September 2026 and 1.8.1 on 29 September 2026; the [chan
 
 ## Version 1.9: games by voice
 
-Released as 1.9.0 on 29 September 2026; the [changelog](../CHANGELOG.md#190) has the details.
+Released as 1.9.0 on 29 September 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#190) has the details.
 
 - A blueprint that starts a game when you tell Assist, for example "Start 501 for Alex and Sam" or "Starte das Spiel Cricket für Alex", in English and German, with an answer in words.
 - What a mouse shows as a tooltip, a tap shows too.
@@ -108,7 +108,7 @@ Ideas for the versions after 1.9. Votes and reactions on the [feature requests](
 | **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works; a player reported 2.0.2 on Linux working ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Test reports from players who use it on Windows |
 | **Cloud link** | Cloud match data and cloud match events: leg and match won, bust, player change, remaining score | An OAuth client ID from Autodarts, which has been requested |
 | **HACS default repository** | Installation without adding a custom repository | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); the HACS review queue takes several months |
-| **Further languages** | The integration and the cards in more languages | Contributions from native speakers ([how to add a language](../CONTRIBUTING.md#translations)) |
+| **Further languages** | The integration and the cards in more languages | Contributions from native speakers ([how to add a language](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 
 ## Later
 

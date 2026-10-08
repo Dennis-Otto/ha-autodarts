@@ -71,7 +71,7 @@ The card logic is also fuzzed with [fast-check](https://fast-check.dev/): thousa
 
 ## Docker end-to-end test
 
-The [end-to-end test](../tests/e2e/README.md) starts a real Home Assistant container with this integration and a simulated Board Manager. It runs onboarding, setup, all controls, realtime darts, persistence, diagnostics and removal. The simulated Board Manager also injects faults on request (`POST /control/fault`): dropped or refused sockets, failing or slow reads, malformed frames and a restart; the test checks that visits and entities come through them:
+The [end-to-end test](https://github.com/Dennis-Otto/ha-autodarts/blob/main/tests/e2e/README.md) starts a real Home Assistant container with this integration and a simulated Board Manager. It runs onboarding, setup, all controls, realtime darts, persistence, diagnostics and removal. The simulated Board Manager also injects faults on request (`POST /control/fault`): dropped or refused sockets, failing or slow reads, malformed frames and a restart; the test checks that visits and entities come through them:
 
 ```sh
 BOARD_MANAGER=1 bash tests/e2e/run.sh
@@ -240,6 +240,6 @@ See the [release guide](releases.md).
 ## Conventions
 
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), for example `feat:`, `fix:` and `docs:`.
-- User-facing text goes into `strings.json` and every translation, card texts into every language of `TEXT`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text ([translations](../CONTRIBUTING.md#translations)). When an English text changes, change its translations in the same pull request, or the [translation bot](#translation-bot) asks native speakers for them.
+- User-facing text goes into `strings.json` and every translation, card texts into every language of `TEXT`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text ([translations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)). When an English text changes, change its translations in the same pull request, or the [translation bot](#translation-bot) asks native speakers for them.
 - New behavior needs tests, and new user-facing features need documentation in English and German.
 - A part of a card is built of the [UI building blocks](#ui-building-blocks): what a tap does shows before the tap.
