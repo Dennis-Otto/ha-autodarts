@@ -2454,6 +2454,18 @@ def board_events_dialog(page: Page) -> None:
         ".find((item) => item.platform === 'autodarts' && item.translation_key === 'board_events')"
         ".entity_id"
     )
+    # Home Assistant gives every state of the history a colour, in the order they
+    # are drawn first. The history page draws them all in their order of time, so the
+    # dialog finds them coloured, whether its history or its activity comes first.
+    view.evaluate(NAVIGATE, f"/history?entity_id={entity}")
+    view.locator("state-history-chart-timeline").first.wait_for(timeout=30000)
+    view.wait_for_timeout(3000)
+    view.evaluate(NAVIGATE, "/autodarts-demo/board")
+    view.wait_for_function(
+        f"() => ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
+        timeout=30000,
+    )
+    view.wait_for_timeout(1000)
     view.evaluate(
         "(entityId) => document.querySelector('home-assistant').dispatchEvent("
         "new CustomEvent('hass-more-info', {bubbles: true, composed: true, detail: {entityId}}))",
