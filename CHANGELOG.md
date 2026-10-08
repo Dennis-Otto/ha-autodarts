@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.10.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.2...v1.10.0) (2026-10-08)
+
 ### New
 
 - **Party games for up to eight:** Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up take a whole party of up to eight players, on the new game screen, in `autodarts.start_game` and in *Practice players*, with four more name fields; the scoreboard shows them in two rows of four. X01, the Cricket and the training games stay at four ([games](docs/games.md#party-games)).
@@ -16,23 +18,6 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 ### Fixed
 
 - **The scoreboard's header on a phone:** during a game, the *New game* button, the caller and the status kept to one row wider than the card, which cut off the end of the status, such as *Ready – throw!*, on a small phone in every language and on an iPhone in German and French. Where they do not fit beside each other, they now wrap below the title, and the status still keeps its width, so nothing moves while it changes.
-
-## [1.10.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.2...v1.10.0) (2026-10-08)
-
-
-### Features
-
-* **cards:** aim hints on the Cricket chalkboard, as on a dart machine ([#174](https://github.com/Dennis-Otto/ha-autodarts/issues/174)) ([09e6284](https://github.com/Dennis-Otto/ha-autodarts/commit/09e6284b0427f0237cdce5355aee86e30e781040))
-* **cards:** celebrate 180s, tons and game shots on the scoreboard ([#179](https://github.com/Dennis-Otto/ha-autodarts/issues/179)) ([d35f6ff](https://github.com/Dennis-Otto/ha-autodarts/commit/d35f6ff4b42e7c9b38e26db3c19e6f3bbc6ae1b2))
-* **cards:** say how the chosen game is played on the new game screen ([#176](https://github.com/Dennis-Otto/ha-autodarts/issues/176)) ([0b556da](https://github.com/Dennis-Otto/ha-autodarts/commit/0b556da6b17ce7028370fb01880d885300205472))
-* **connection:** free a takeout the board never finishes ([#172](https://github.com/Dennis-Otto/ha-autodarts/issues/172)) ([995ffab](https://github.com/Dennis-Otto/ha-autodarts/commit/995ffab6acd5fe5b9256eba3623fa4df54b3d6a0))
-* **games:** party games for up to eight players ([#180](https://github.com/Dennis-Otto/ha-autodarts/issues/180)) ([086fa06](https://github.com/Dennis-Otto/ha-autodarts/commit/086fa06a432c90bfcd79183517234f13c8845c9c))
-* **games:** Wild Mouse, Cricket with doubles, triples and three in a bed ([#171](https://github.com/Dennis-Otto/ha-autodarts/issues/171)) ([d678887](https://github.com/Dennis-Otto/ha-autodarts/commit/d6788877e8cd1d1016469273f12984d116918033))
-
-
-### Bug fixes
-
-* **cards:** wrap the scoreboard's header buttons on a phone ([#178](https://github.com/Dennis-Otto/ha-autodarts/issues/178)) ([4158cb3](https://github.com/Dennis-Otto/ha-autodarts/commit/4158cb390ddfbc3ab79ecb3ae3528e368f1649cc))
 
 ## [1.9.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)
 
