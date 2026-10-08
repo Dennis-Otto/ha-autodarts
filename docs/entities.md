@@ -279,6 +279,8 @@ Three variants play by the same marks:
 
 <img src="images/en/scoreboard-tactics.png" alt="Scoreboard in Tactics between Alex and Sam: the chalkboard from 20 down to 10 and the bull, Alex with 94 points, Sam at the board with T15 as the next target" width="760">
 
+<img src="images/en/scoreboard-wild-mouse.png" alt="Scoreboard in Wild Mouse between Alex and Sam: the chalkboard with 20 to 15, the bull, Doubles, Triples and 3 in a bed; Alex at the board, with green frames on 18 and 3 in a bed, where a dart scores while Sam still needs them, and T17 as the next target" width="760">
+
 The card shows a chalkboard with the marks of every player (`/`, `X`, `Ⓧ`), the points and the MPR, and the numbers of the game. *Practice remaining score* stays *unknown* in the Cricket games; its attributes carry the game: `game` is `cricket`, `cut_throat`, `tactics` or `wild_mouse`, plus `points`, `mpr`, `target`, `numbers` (20 to 15 and 25, in Tactics 20 to 10 and 25) and `scores` with `marks`, `points`, `legs`, `sets` and `mpr` of every player; `counted` says what every dart of the visit counted for, its number or `null` for nothing. Wild Mouse adds `targets`, the targets after the numbers (`doubles`, `triples` and, with three in a bed, `bed`), whose marks follow those of the numbers in `marks`; `target_row`, the row of the target; `doubles` and `triples` in `counted`; and `bed`, whether the visit was a bed that counted. Cricket legs do not count for the X01 statistics; the MPR of the [player profiles](#player-profiles) and `best_cricket_mpr` come from Cricket only.
 
 ## Player profiles
