@@ -343,7 +343,6 @@ data:
 - **Takeout and board clear** set a look of their own, for example a bright board light while you pull the darts and your normal light afterwards. Turn on *React to the takeout* for them. They are not restored and don't pause the detection; while the setting is off, takeouts never wait in the queue.
 - **The bot:** its darts are not in the board, so its moments stay dark unless you turn on *Also for the bot*. A leg or match it wins in a team match plays anyway.
 
-
 ### Weekly report on your phone
 
 Replace the *Notification actions* of the weekly report with a notification of the Home Assistant app:
