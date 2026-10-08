@@ -261,6 +261,9 @@ const TEXT = {
     wild_triples: "Triples",
     wild_bed: "3 in a bed",
     cricket_mpr: "MPR",
+    cricket_aim_score: "Scores here: another player still has it open",
+    cricket_aim_close: "Close it: another player scores here",
+    cricket_dead: "Counted nothing",
     cricket_points: "Points",
     mark_0: "No marks",
     mark_1: "1 mark",
@@ -832,6 +835,9 @@ const TEXT = {
     wild_triples: "Triples",
     wild_bed: "3 in a Bed",
     cricket_mpr: "MPR",
+    cricket_aim_score: "Punktet hier: Ein anderer Spieler hat sie noch offen",
+    cricket_aim_close: "Schließen: Ein anderer Spieler punktet hier",
+    cricket_dead: "Hat nichts gezählt",
     cricket_points: "Punkte",
     mark_0: "Keine Marks",
     mark_1: "1 Mark",
@@ -1392,6 +1398,9 @@ const TEXT = {
     wild_triples: "Triples",
     wild_bed: "3 in a bed",
     cricket_mpr: "MPR",
+    cricket_aim_score: "Puntúa aquí: otro jugador aún lo tiene abierto",
+    cricket_aim_close: "Ciérralo: otro jugador puntúa aquí",
+    cricket_dead: "No ha contado nada",
     cricket_points: "Puntos",
     mark_0: "Sin marcas",
     mark_1: "1 marca",
@@ -1950,6 +1959,9 @@ const TEXT = {
     wild_triples: "Triples",
     wild_bed: "3 in a bed",
     cricket_mpr: "MPR",
+    cricket_aim_score: "Marque ici\u00a0: un autre joueur l'a encore ouvert",
+    cricket_aim_close: "À fermer\u00a0: un autre joueur marque ici",
+    cricket_dead: "N'a rien compté",
     cricket_points: "Points",
     mark_0: "Aucune marque",
     mark_1: "1 marque",
@@ -2508,6 +2520,9 @@ const TEXT = {
     wild_triples: "Triples",
     wild_bed: "3 in a bed",
     cricket_mpr: "MPR",
+    cricket_aim_score: "Scoort hier: een andere speler heeft het nog open",
+    cricket_aim_close: "Sluiten: een andere speler scoort hier",
+    cricket_dead: "Telde niets",
     cricket_points: "Punten",
     mark_0: "Geen marks",
     mark_1: "1 mark",
@@ -3878,8 +3893,8 @@ function cricketView(state) {
     targets,
     // The row to aim at, as a triple can also count for triples in Wild Mouse.
     targetRow: wild && typeof attributes.target_row === "string" ? attributes.target_row : null,
-    // What every dart of the visit counted for in Wild Mouse.
-    counted: wild && Array.isArray(attributes.counted) ? attributes.counted : [],
+    // What every dart of the visit counted for, null for nothing.
+    counted: Array.isArray(attributes.counted) ? attributes.counted : [],
     bed: wild && attributes.bed === true,
     teams: teamsView(attributes.teams),
     target: typeof attributes.target === "string" && aim(attributes.target) ? attributes.target : null,
@@ -3895,6 +3910,16 @@ function cricketView(state) {
     visit: gameVisit(attributes),
     scores,
   };
+}
+
+// The darts on the board that counted nothing in a Cricket game: on a number nobody
+// needs any more, or none of the game. The game's darts are the last ones of the visit.
+function deadDarts(view, darts) {
+  if (view?.mode !== "cricket") return darts.map(() => false);
+  const { counted, visit } = view.cricket;
+  const offset = darts.length - counted.length;
+  const known = counted.length === visit.length;
+  return darts.map((_, index) => known && index >= offset && counted[index - offset] === null);
 }
 
 // Beds to aim at in Cricket: the treble of the next open number, or the whole
@@ -4347,9 +4372,23 @@ function cricketTable(cricket, ui, { aim = true } = {}) {
   const columns = cricketColumns(cricket, ui);
   const match = columns.length > 1;
   const kind = (column) => (column.winner ? "winner" : match && column.active ? "active" : "");
-  const row = (style, heading, content) =>
+  // As on a dart machine, the player at the board sees where a dart scores, because they
+  // have closed and somebody still needs it, and what to close, because somebody scores on it.
+  const up = match ? columns.find((column) => column.active) : undefined;
+  const others = columns.filter((column) => column !== up);
+  const hintOf = (column, slot) => {
+    if (column !== up || slot === undefined) return "";
+    if (up.marks[slot] >= 3) return others.some((other) => other.marks[slot] < 3) ? "score" : "";
+    return others.some((other) => other.marks[slot] >= 3) ? "close" : "";
+  };
+  const cell = (column, slot) => {
+    const hint = hintOf(column, slot);
+    const style = [kind(column), hint && `aim-${hint}`].filter(Boolean).join(" ");
+    return `<td class="${style}"${hint ? ` title="${escapeHtml(t(`cricket_aim_${hint}`))}"` : ""}>`;
+  };
+  const row = (style, heading, content, slot) =>
     `<tr class="${style}"><th>${escapeHtml(heading)}</th>${columns
-      .map((column) => `<td class="${kind(column)}">${content(column)}</td>`)
+      .map((column) => `${cell(column, slot)}${content(column)}</td>`)
       .join("")}</tr>`;
   const marks = (count) =>
     `<span role="img" aria-label="${escapeHtml(t(`mark_${count}`))}">${CRICKET_MARKS[count]}</span>`;
@@ -4360,7 +4399,7 @@ function cricketTable(cricket, ui, { aim = true } = {}) {
     const aimed = cricket.targetRow === null ? bed === cricket.target : key === cricket.targetRow;
     const style = columns.every((column) => column.marks[slot] >= 3) ? "closed" : aimed ? "target" : "";
     const heading = key === "25" ? "Bull" : WILD_TARGETS.includes(key) ? t(`wild_${key}`) : key;
-    return row(style, heading, (column) => marks(column.marks[slot]));
+    return row(style, heading, (column) => marks(column.marks[slot]), slot);
   });
   const text = (value) => (column) => escapeHtml(value(column));
   if (match) rows.push(row("total", t("cricket_points"), text((column) => String(column.points))));
@@ -7690,6 +7729,9 @@ const CSS = `${BASE_CSS}${PAD_CSS}
   }
   .cricket tr.detail td { font-size: 12px; font-weight: 600; color: var(--secondary-text-color); }
   .cricket .active { background: color-mix(in srgb, var(--ad-accent) 18%, transparent); }
+  /* Where the player at the board scores, and what they had better close. */
+  .cricket td.aim-score { box-shadow: inset 0 0 0 2px ${STATUS_COLORS.ready}; }
+  .cricket td.aim-close { box-shadow: inset 0 0 0 2px ${STATUS_COLORS.takeout}; }
   .cricket .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 20%, transparent); }
   .summary { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12px; font-variant-numeric: tabular-nums; }
   .summary th, .summary td { padding: 2px 6px; text-align: center; }
@@ -7730,6 +7772,8 @@ const CSS = `${BASE_CSS}${PAD_CSS}
   .slot.double .segment { color: color-mix(in srgb, #43b581 70%, var(--primary-text-color)); }
   .slot.bull .segment, .slot.outer-bull .segment { color: color-mix(in srgb, #e5484d 80%, var(--primary-text-color)); }
   .slot.miss .segment { color: var(--secondary-text-color); }
+  /* A dart that counted nothing in a Cricket game. */
+  .slot.dead .segment { color: var(--ad-muted-text); text-decoration: line-through 2px; }
   .slot > span { display: block; }
   button.slot { width: 100%; font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
   button.slot:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
@@ -8105,6 +8149,9 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     font-size: clamp(12px, min(1.9cqi, 2.4vh), 24px); font-weight: 600; color: var(--ad-muted-text);
   }
   .cricket .active { background: color-mix(in srgb, var(--ad-accent) 14%, transparent); }
+  /* Where the player at the board scores, and what they had better close. */
+  .cricket td.aim-score { box-shadow: inset 0 0 0 clamp(2px, .35cqi, 4px) ${STATUS_COLORS.ready}; }
+  .cricket td.aim-close { box-shadow: inset 0 0 0 clamp(2px, .35cqi, 4px) ${STATUS_COLORS.takeout}; }
   .cricket .winner { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
   .summary { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
   .summary th, .summary td { padding: .12em .4em; line-height: 1.2; text-align: center; }
@@ -8183,6 +8230,8 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .dart.manual, .dart.corrected { border-style: dashed; }
   .dart.manual, .dart.corrected { border-color: var(--divider-color, rgba(127,127,127,.4)); }
   .dart.bot { background: color-mix(in srgb, var(--ad-accent) 10%, transparent); }
+  /* A dart that counted nothing in a Cricket game. */
+  .dart.dead .segment { color: var(--ad-muted-text); text-decoration: line-through clamp(2px, 2cqi, 4px); }
   .lobby-player.bot .bot-icon { font-size: 1.3em; }
   .sum .muted { color: inherit; }
   .sum .value { font-size: clamp(22px, 4.2cqi, 56px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -9579,11 +9628,14 @@ function createElements(Base) {
       // also while the board is offline; the bot's darts do not.
       const tappable = c.corrections && !this.preview;
       if (!tappable) this._pick = null;
-      this._setHtml(el.slots, [0, 1, 2].map((index) => this._slotHtml(darts[index], index, darts.length, tappable)).join(""));
-      this._updatePad(darts);
-
       // The practice sensor carries one game at a time; a training game comes first.
       const view = c.show_practice ? gameView((name) => this._state(name)) : { mode: "idle" };
+      const dead = deadDarts(view, darts);
+      this._setHtml(
+        el.slots,
+        [0, 1, 2].map((index) => this._slotHtml(darts[index], index, darts.length, tappable, dead[index])).join("")
+      );
+      this._updatePad(darts);
       this._updatePractice(view);
       this._updateBoard(darts, view);
       this._updateStats();
@@ -9591,8 +9643,9 @@ function createElements(Base) {
       this._updateControls(status);
     }
 
-    // A dart of the visit: its bed and points, and a pencil where a tap corrects it.
-    _slotHtml(dart, index, count, tappable) {
+    // A dart of the visit: its bed and points, and a pencil where a tap corrects it. A dart
+    // that counted nothing in a Cricket game is struck through.
+    _slotHtml(dart, index, count, tappable, dead = false) {
       const t = (key) => escapeHtml(this._t(key));
       const head = `<span class="index">${t("dart")} ${index + 1}</span>`;
       if (!dart) {
@@ -9604,16 +9657,19 @@ function createElements(Base) {
       }
       const correctable = tappable && Number.isInteger(dart.dart) && !dart.bot;
       const picked = correctable && this._pick?.dart === dart.dart;
-      const style = `slot ${kind(dart)}${index === count - 1 ? " latest" : ""}${picked ? " picked" : ""}`;
+      const marks = [kind(dart), index === count - 1 && "latest", picked && "picked", dead && "dead"];
+      const style = ["slot", ...marks.filter(Boolean)].join(" ");
       const bed = label(this._hass, dart);
       const points = dart.number * dart.multiplier;
       const content = `${head}<span class="segment">${escapeHtml(bed)}</span><span class="value">${points} ${t("points")}</span>`;
-      if (!correctable) return `<div class="${style}">${content}</div>`;
+      const nothing = dead ? this._t("cricket_dead") : "";
+      const title = nothing ? ` title="${escapeHtml(nothing)}"` : "";
+      if (!correctable) return `<div class="${style}"${title}>${content}</div>`;
       // The label names the dart and what a tap does: "T20 60 – Correct dart 1".
-      const spoken = `${bed} ${points} – ${fill(this._t("correct_title"), { dart: dart.dart })}`;
+      const spoken = [`${bed} ${points}`, nothing, fill(this._t("correct_title"), { dart: dart.dart })];
       return (
         `<button type="button" class="${style} tappable" data-dart="${dart.dart}" data-focus="dart-${dart.dart}"` +
-        ` aria-label="${escapeHtml(spoken)}">${content}${EDIT_ICON}</button>`
+        `${title} aria-label="${escapeHtml(spoken.filter(Boolean).join(" – "))}">${content}${EDIT_ICON}</button>`
       );
     }
 
@@ -11430,21 +11486,26 @@ function createElements(Base) {
       el.visit.hidden = away;
       // The keypad has an undo key of its own.
       const undo = Boolean(c.corrections && !this.preview && !away && !pad && this._undoable(darts));
+      // A dart that counted nothing in a Cricket game is struck through.
+      const dead = deadDarts(view, darts);
       const slots = [0, 1, 2].map((index) => {
         const dart = darts[index];
         if (!dart) return `<div class="dart empty"><span class="segment">–</span><span class="points"></span></div>`;
         const flags = ["manual", "corrected", "bot"].filter((flag) => dart[flag] === true);
         const picked = Boolean(this._pick) && this._pick.dart === dart.dart;
-        const style = ["dart", ...flags, ...(picked ? ["picked"] : [])].join(" ");
+        const style = ["dart", ...flags, ...(picked ? ["picked"] : []), ...(dead[index] ? ["dead"] : [])].join(" ");
         const bed = label(this._hass, dart);
         const points = dart.number * dart.multiplier;
         const content = `<span class="segment">${escapeHtml(bed)}</span><span class="points">${points}</span>`;
+        const nothing = dead[index] ? t("cricket_dead") : "";
+        const title = nothing ? ` title="${escapeHtml(nothing)}"` : "";
         // The label names the dart and what a tap does: "T20 60 – Correct dart 1".
-        const spoken = `${bed} ${points} – ${fill(t("correct_title"), { dart: dart.dart })}`;
+        const spoken = [`${bed} ${points}`, nothing, fill(t("correct_title"), { dart: dart.dart })];
         return tappable && Number.isInteger(dart.dart) && !dart.bot
           ? `<button type="button" class="${style} tappable" data-dart="${dart.dart}" data-focus="dart-${dart.dart}"` +
-              ` aria-label="${escapeHtml(spoken)}">${content}${EDIT_ICON}</button>`
-          : `<div class="${style}">${content}</div>`;
+              `${title} aria-label="${escapeHtml(spoken.filter(Boolean).join(" – "))}">` +
+              `${content}${EDIT_ICON}</button>`
+          : `<div class="${style}"${title}>${content}</div>`;
       });
       this._setHtml(el.visit, slots.join("") + this._visitTile(view, visit, darts, undo));
     }
@@ -12018,6 +12079,7 @@ export {
   cssColor,
   dartKey,
   dashboardStrategy,
+  deadDarts,
   detectionRunning,
   doubleColor,
   doublesHtml,

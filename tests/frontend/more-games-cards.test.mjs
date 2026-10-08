@@ -129,6 +129,53 @@ test("Tactics fills the chalkboard with the numbers down to 10, in German too", 
   assert.equal(text(cut, ".meta"), "Fewest points win");
 });
 
+test("a dart that counted nothing in Cricket is struck through on both cards", () => {
+  const throws = [
+    { number: 20, multiplier: 3, segment: "x", dart: 1 },
+    { number: 14, multiplier: 1, segment: "x", dart: 2 },
+  ];
+  const states = {
+    ...practice("unknown", {
+      game: "cricket",
+      player: 1,
+      target: "T19",
+      visit: ["T20", "S14"],
+      counted: ["20", null],
+      scores: [
+        { player: 1, name: "Alex", marks: [3, 0, 0, 0, 0, 0, 0], points: 0 },
+        { player: 2, name: "Sam", marks: [0, 0, 0, 0, 0, 0, 0], points: 0 },
+      ],
+    }),
+    "sensor.local_visit_score": { state: "74", attributes: { throws, recent_visits: [] } },
+  };
+  const board = setup("autodarts-scoreboard-card", states).card;
+  assert.deepEqual(
+    $$(board, ".visit .dart:not(.empty)").map((dart) => [dart.className, dart.getAttribute("title")]),
+    [
+      ["dart tappable", null],
+      ["dart dead tappable", "Counted nothing"],
+    ]
+  );
+  assert.match($$(board, ".visit .dart")[1].getAttribute("aria-label"), /^S14 14 – Counted nothing – Correct dart 2$/);
+  assert.equal($(board, ".main td.aim-score").getAttribute("title"), "Scores here: another player still has it open");
+  const live = setup("autodarts-card", states).card;
+  assert.deepEqual(
+    $$(live, ".slot").map((slot) => [slot.className, slot.getAttribute("title")]),
+    [
+      ["slot triple tappable", null],
+      ["slot single latest dead tappable", "Counted nothing"],
+      ["slot empty", null],
+    ]
+  );
+  // Without corrections, the darts are no buttons and keep the hint.
+  const still = setup("autodarts-card", states, { corrections: false }).card;
+  assert.equal($$(still, ".slot")[1].tagName, "DIV");
+  assert.equal($$(still, ".slot")[1].getAttribute("title"), "Counted nothing");
+  const plain = setup("autodarts-scoreboard-card", states, { corrections: false }).card;
+  assert.equal($$(plain, ".visit .dart")[1].tagName, "DIV");
+  assert.equal($$(plain, ".visit .dart")[1].getAttribute("title"), "Counted nothing");
+});
+
 test("Golf shows the scorecard and outlines the hole", () => {
   const golf = (attributes) =>
     practice("unknown", {

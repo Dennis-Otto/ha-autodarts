@@ -75,7 +75,7 @@ The scoreboard always shows what is being played, and the player at the board is
 | Game | The scoreboard shows |
 | --- | --- |
 | X01 | Every player's or team's remaining score, legs, sets and average; the checkout route, a bust or the game shot of the player at the board, and where no checkout exists the [setup](games.md#x01) with the score it leaves |
-| Cricket games | A large chalkboard with the marks of every player or team, the points and the marks per round; the next open number in the top-left corner |
+| Cricket games | A large chalkboard with the marks of every player or team, the points and the marks per round; the next open number in the top-left corner, and [frames](games.md#cricket-games) where the player at the board scores or had better close |
 | Party games | The round and the target, every player's points, in Killer their number and lives, in Golf and Baseball a scorecard of every hole or inning |
 | Bull-off | The bed of every player's dart and its distance from the center, the dart that leads, and *Tie – throw again* when a tie throws again |
 | Training games | The target in large type with the round, the points or the hit rate |
