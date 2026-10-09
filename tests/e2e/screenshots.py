@@ -2718,8 +2718,9 @@ def manual_setup(page: Page) -> None:
     rest_pointer(page)
     page.wait_for_timeout(800)
     page_shot(page, "setup-manual")
-    # The board itself is added below, the same way in every run.
-    page.goto(f"{HA}/autodarts-demo/board")
+    # The board itself is added below, the same way in every run, once the frontend
+    # is connected again.
+    open_dashboard(page, "board")
 
 
 def keypad_dart(page: Page, recorder: Recorder, multiplier: str, bed: str) -> None:

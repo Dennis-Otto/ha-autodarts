@@ -5570,6 +5570,16 @@ const EDIT_ICON = cueHtml("edit");
 const UNDO_CUE = cueHtml("undo");
 // The arrow of the undo, apart from its words, which screen readers say alone.
 const UNDO_ICON = `<span class="undo-icon" aria-hidden="true">↶</span>`;
+// The views of the keypad as icons, which a narrow pad shows instead of their names: the
+// keys as the dots of a keypad, the board as its rings and the score of a visit as a sum.
+const VIEW_ICONS = {
+  keys:
+    `<svg viewBox="0 0 24 24" aria-hidden="true"><g class="dots">` +
+    [6, 12, 18].flatMap((y) => [6, 12, 18].map((x) => `<circle cx="${x}" cy="${y}" r="2"/>`)).join("") +
+    `</g></svg>`,
+  board: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle class="dots" cx="12" cy="12" r="1.3"/></svg>`,
+  score: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 7V4.5h-11l6.5 7.5-6.5 7.5h11V17"/></svg>`,
+};
 
 // The part of the pad's board in sight: all of it, or, zoomed in with `zoom` as
 // { scale, x, y }, the square of that scale around x and y in millimetres of the
@@ -5777,13 +5787,21 @@ function padHtml(pad, ui) {
   // The board instead of the keys, for the spot where the dart is.
   // The keys or the board, one of the two, as the segmented control of every card.
   // In an X01 leg, the keypad also takes the score of a visit.
+  // A narrow pad shows the views as icons, so they keep a line with S, D and T.
+  const viewButton = (action, label, pressed) => {
+    const name = escapeHtml(t(label));
+    return button(
+      action,
+      undefined,
+      `${VIEW_ICONS[action]}<span class="view-name">${name}</span>`,
+      ` aria-pressed="${pressed}" aria-label="${name}"`
+    );
+  };
   const view =
     `<div class="segmented view" role="group" aria-label="${escapeHtml(t("pad_view"))}">` +
-    button("keys", undefined, escapeHtml(t("pad_keys")), ` aria-pressed="${pad.board !== true && !pad.score}"`) +
-    button("board", undefined, escapeHtml(t("pad_board")), ` aria-pressed="${pad.board === true}"`) +
-    (pad.scoreable
-      ? button("score", undefined, escapeHtml(t("pad_score")), ` aria-pressed="${Boolean(pad.score)}"`)
-      : "") +
+    viewButton("keys", "pad_keys", pad.board !== true && !pad.score) +
+    viewButton("board", "pad_board", pad.board === true) +
+    (pad.scoreable ? viewButton("score", "pad_score", Boolean(pad.score)) : "") +
     `</div>`;
   // On the board, a switch between the whole board and its part around the dart: a
   // magnifier with a plus zooms in, one with a minus shows all of it.
@@ -8000,6 +8018,18 @@ const PAD_CSS = `
   .pad .view { margin-left: auto; }
   .pad .segmented button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; font-size: inherit; color: var(--ad-muted-text); background: none; }
   .pad .segmented button[aria-pressed="true"] { color: #fff; background: var(--ad-accent-fill); }
+  .pad .segmented.view svg {
+    display: none; width: 22px; height: 22px; margin: auto; fill: none;
+    stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .pad .segmented.view svg .dots { fill: currentColor; stroke: none; }
+  /* A pad narrower than S, D, T and the three names of the views, as on a 360 pixel
+     phone, shows the views as icons. */
+  @container (max-width: 369px) {
+    .pad .segmented.view svg { display: block; }
+    .pad .segmented.view .view-name { display: none; }
+    .pad .segmented.view button { min-width: 40px; }
+  }
   .pad-wait { margin: 0; font-weight: 700; color: var(--ad-warn-text); }
   .pad-board {
     width: min(100%, 420px, 52vh); height: auto; aspect-ratio: 1; margin-inline: auto; overflow: hidden;
@@ -8968,8 +8998,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     .scoreboard.full .cricket tbody th { font-size: clamp(13px, min(4.4cqi, 5.4cqh), 56px); }
   }
   /* A phone: the pad's keys take less room so the scores stay in sight. Its label gets a
-     line of its own, the bulls, the miss and the actions share one row. */
+     line of its own, S, D, T and the three views share the next one, and the bulls, the
+     miss and the actions share one row. */
   @container (max-width: 560px) {
+    .scoreboard.full .pad-head .section-label { flex-basis: 100%; }
     .scoreboard.full :is(.pad, .pad-numbers, .pad-score) { gap: 4px; }
     .scoreboard.full .pad button { min-height: 42px; padding: 0 6px; }
     .scoreboard.full .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
@@ -9013,6 +9045,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
       grid-template-areas: "header pad" "banner pad" "main pad" "visit pad";
     }
     .scoreboard.full.with-pad > .pad-area { align-self: stretch; overflow-y: auto; container-type: inline-size; }
+    .scoreboard.full.with-pad .pad-head .section-label { flex-basis: 100%; }
     .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     @container (min-width: 298px) {
       .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(7, minmax(0, 1fr)); }

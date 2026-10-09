@@ -115,6 +115,18 @@ test("the scoreboard's keypad takes the score of a visit", () => {
     $$(card, ".pad .segmented button").map((button) => button.textContent),
     ["Keys", "Board", "Score"]
   );
+  // Each view has an icon for a narrow pad, and keeps its name as its label.
+  assert.deepEqual(
+    $$(card, ".pad .segmented button").map((button) => [
+      button.getAttribute("aria-label"),
+      button.querySelectorAll("svg[aria-hidden='true']").length,
+    ]),
+    [
+      ["Keys", 1],
+      ["Board", 1],
+      ["Score", 1],
+    ]
+  );
   tap(card, '.pad [data-pad="score"]');
   assert.equal(text(card, ".pad .section-label"), "Enter the visit's score");
   assert.equal($(card, '.pad [data-pad="score"]').getAttribute("aria-pressed"), "true");
