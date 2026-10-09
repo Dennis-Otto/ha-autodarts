@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.11.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.10.0...v1.11.0) (2026-10-09)
+
 ### New
 
 - **Play without Autodarts:** any dartboard can be set up as a board of its own, under *Dartboard without Autodarts: enter every dart yourself*. Its darts are entered on the keypad, which the live card and the scoreboard show without an option to switch on, and every game, the training sessions and all statistics work as with Autodarts. It has the entities of the games, without detection, cameras or a board PC, and the automatic dashboard leaves out its *Board* view ([guide](docs/without-autodarts.md)).
