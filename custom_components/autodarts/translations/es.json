@@ -902,6 +902,69 @@
     },
     "voice_bot": {
       "message": "el bot"
+    },
+    "not_their_turn": {
+      "message": "Le toca a {name}, no a {player}."
+    },
+    "visit_no_score": {
+      "message": "Indica los puntos de la tirada, o checkout para una tirada que cierra lo que queda."
+    },
+    "checkout_score": {
+      "message": "Un checkout suma lo que queda, {remaining}, no {score}."
+    },
+    "voice_visit": {
+      "message": "{score} para {name}, quedan {left}."
+    },
+    "voice_bust": {
+      "message": "Sin puntos: {name} sigue con {left}."
+    },
+    "voice_leg": {
+      "message": "¡Game shot, y el leg, {name}!"
+    },
+    "voice_match": {
+      "message": "¡Game shot, y el partido, {name}!"
+    },
+    "voice_game_shot": {
+      "message": "¡Game shot!"
+    },
+    "voice_next": {
+      "message": "Le toca a {name}."
+    },
+    "voice_next_left": {
+      "message": "{name}, te quedan {left}."
+    },
+    "voice_dart": {
+      "message": "{bed}."
+    },
+    "voice_dart_left": {
+      "message": "{bed}, quedan {left}."
+    },
+    "voice_dart_bust": {
+      "message": "{bed}: ¡sin puntos!"
+    },
+    "voice_undone": {
+      "message": "Deshecho: {score} de {name}."
+    },
+    "voice_player": {
+      "message": "Jugador {number}"
+    },
+    "voice_bed_single": {
+      "message": "Simple {number}"
+    },
+    "voice_bed_double": {
+      "message": "Doble {number}"
+    },
+    "voice_bed_triple": {
+      "message": "Triple {number}"
+    },
+    "voice_bed_bull": {
+      "message": "Bull"
+    },
+    "voice_bed_outer": {
+      "message": "25"
+    },
+    "voice_bed_miss": {
+      "message": "Fallo"
     }
   },
   "issues": {
@@ -1204,7 +1267,7 @@
     },
     "throw_dart": {
       "name": "Introducir dardo",
-      "description": "Añade un dardo a la tirada actual como si la diana lo hubiera detectado, marcado como introducido a mano. Requiere Entrada manual de la partida. Con x e y, el dardo se guarda en ese punto.",
+      "description": "Añade un dardo a la tirada actual como si la diana lo hubiera detectado, marcado como introducido a mano. Requiere Entrada manual de la partida. Con x e y, el dardo se guarda en ese punto. Si se le pide una respuesta, como hace un asistente de voz, dice con palabras lo que hizo o por qué no.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -1221,12 +1284,16 @@
         "y": {
           "name": "Posición y",
           "description": "Dónde está el dardo, de abajo arriba hacia el 20: 0 es el centro, 1 el borde exterior del anillo de dobles."
+        },
+        "player": {
+          "name": "Jugador",
+          "description": "El nombre del jugador al que corresponde el dardo, tal como lo oye un asistente de voz. La acción rechaza el dardo mientras otro jugador está en la diana."
         }
       }
     },
     "enter_visit": {
       "name": "Introducir puntos de la tirada",
-      "description": "Introduce una tirada de X01 por sus puntos, como 140, en lugar de tres dardos, y pasa el turno. Los dardos ya introducidos a mano en la tirada le dejan su lugar. Requiere Entrada manual de la partida; las casillas quedan sin conocer, así que para las estadísticas solo cuentan los puntos.",
+      "description": "Introduce una tirada de X01 por sus puntos, como 140, en lugar de tres dardos, y pasa el turno. Los dardos ya introducidos a mano en la tirada le dejan su lugar. Requiere Entrada manual de la partida; las casillas quedan sin conocer, así que para las estadísticas solo cuentan los puntos. Si se le pide una respuesta, como hace un asistente de voz, dice con palabras lo que hizo o por qué no.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -1234,7 +1301,11 @@
         },
         "score": {
           "name": "Puntos",
-          "description": "Los puntos de la tirada, de 0 a 180. Lo que le queda al jugador cierra, más es pasarse."
+          "description": "Los puntos de la tirada, de 0 a 180. Lo que le queda al jugador cierra, más es pasarse. Necesario sin checkout."
+        },
+        "checkout": {
+          "name": "Checkout",
+          "description": "La tirada cierra lo que le queda al jugador, en lugar de unos puntos."
         },
         "darts": {
           "name": "Dardos",
@@ -1243,12 +1314,16 @@
         "darts_at_double": {
           "name": "Dardos a un doble",
           "description": "Cuántos se lanzaron a un doble, para el porcentaje de cierre. Por defecto: 1 al cerrar, si no 0."
+        },
+        "player": {
+          "name": "Jugador",
+          "description": "El nombre del jugador al que corresponde la tirada, tal como lo oye un asistente de voz. La acción rechaza la tirada mientras otro jugador está en la diana."
         }
       }
     },
     "next_player": {
       "name": "Siguiente jugador",
-      "description": "Termina la tirada actual sin retirar los dardos, para que lance el siguiente jugador. Sin dardos, el jugador en la diana pasa turno en X01, los juegos de Cricket y los juegos de fiesta, donde el pase cuenta como tres fallos.",
+      "description": "Termina la tirada actual sin retirar los dardos, para que lance el siguiente jugador. Sin dardos, el jugador en la diana pasa turno en X01, los juegos de Cricket y los juegos de fiesta, donde el pase cuenta como tres fallos. Si se le pide una respuesta, como hace un asistente de voz, dice con palabras lo que hizo o por qué no.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -1258,7 +1333,7 @@
     },
     "undo_visit": {
       "name": "Deshacer tirada",
-      "description": "Recupera la última tirada completada: la partida vuelve a como estaba antes, y los dardos de esa tirada vuelven a ser la tirada actual, para corregirlos y terminar la tirada con Siguiente jugador. También se deshacen las tiradas posteriores del bot.",
+      "description": "Recupera la última tirada completada: la partida vuelve a como estaba antes, y los dardos de esa tirada vuelven a ser la tirada actual, para corregirlos y terminar la tirada con Siguiente jugador. También se deshacen las tiradas posteriores del bot. Si se le pide una respuesta, como hace un asistente de voz, dice con palabras lo que hizo o por qué no.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",

@@ -902,6 +902,69 @@
     },
     "voice_bot": {
       "message": "dem Bot"
+    },
+    "not_their_turn": {
+      "message": "{name} ist dran, nicht {player}."
+    },
+    "visit_no_score": {
+      "message": "Gib die Punkte der Aufnahme an, oder Checkout für eine Aufnahme, die den Rest checkt."
+    },
+    "checkout_score": {
+      "message": "Ein Checkout wirft den Rest, {remaining}, nicht {score}."
+    },
+    "voice_visit": {
+      "message": "{score} für {name}, noch {left}."
+    },
+    "voice_bust": {
+      "message": "Überworfen: {name} bleibt bei {left}."
+    },
+    "voice_leg": {
+      "message": "Game shot, und das Leg, {name}!"
+    },
+    "voice_match": {
+      "message": "Game shot, und das Match, {name}!"
+    },
+    "voice_game_shot": {
+      "message": "Game shot!"
+    },
+    "voice_next": {
+      "message": "{name} ist dran."
+    },
+    "voice_next_left": {
+      "message": "{name}, du brauchst {left}."
+    },
+    "voice_dart": {
+      "message": "{bed}."
+    },
+    "voice_dart_left": {
+      "message": "{bed}, noch {left}."
+    },
+    "voice_dart_bust": {
+      "message": "{bed}: überworfen!"
+    },
+    "voice_undone": {
+      "message": "Zurückgenommen: {score} von {name}."
+    },
+    "voice_player": {
+      "message": "Spieler {number}"
+    },
+    "voice_bed_single": {
+      "message": "Single {number}"
+    },
+    "voice_bed_double": {
+      "message": "Doppel {number}"
+    },
+    "voice_bed_triple": {
+      "message": "Triple {number}"
+    },
+    "voice_bed_bull": {
+      "message": "Bull"
+    },
+    "voice_bed_outer": {
+      "message": "25"
+    },
+    "voice_bed_miss": {
+      "message": "Fehlwurf"
     }
   },
   "issues": {
@@ -1204,7 +1267,7 @@
     },
     "throw_dart": {
       "name": "Dart eingeben",
-      "description": "Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt, markiert als von Hand eingegeben. Braucht Übungsspiel manuelle Eingabe. Mit x und y wird der Dart an dieser Stelle gespeichert.",
+      "description": "Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt, markiert als von Hand eingegeben. Braucht Übungsspiel manuelle Eingabe. Mit x und y wird der Dart an dieser Stelle gespeichert. Nach einer Antwort gefragt, etwa von einem Sprachassistenten, sagt sie in Worten, was sie getan hat oder warum nicht.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1221,12 +1284,16 @@
         "y": {
           "name": "Position y",
           "description": "Wo der Dart steckt, von unten nach oben zur 20: 0 ist die Mitte, 1 der äußere Rand des Doppelrings."
+        },
+        "player": {
+          "name": "Spieler",
+          "description": "Der Name des Spielers, für den der Dart ist, wie ein Sprachassistent ihn hört. Die Aktion lehnt den Dart ab, während ein anderer Spieler am Board ist."
         }
       }
     },
     "enter_visit": {
       "name": "Aufnahmepunkte eingeben",
-      "description": "Gibt eine X01-Aufnahme mit ihrer Punktzahl ein, etwa 140, statt dreier Darts, und gibt weiter. Schon von Hand eingegebene Darts der Aufnahme weichen ihr. Braucht Übungsspiel manuelle Eingabe; die Felder bleiben unbekannt, deshalb zählt für die Statistik nur die Punktzahl.",
+      "description": "Gibt eine X01-Aufnahme mit ihrer Punktzahl ein, etwa 140, statt dreier Darts, und gibt weiter. Schon von Hand eingegebene Darts der Aufnahme weichen ihr. Braucht Übungsspiel manuelle Eingabe; die Felder bleiben unbekannt, deshalb zählt für die Statistik nur die Punktzahl. Nach einer Antwort gefragt, etwa von einem Sprachassistenten, sagt sie in Worten, was sie getan hat oder warum nicht.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1234,7 +1301,11 @@
         },
         "score": {
           "name": "Punkte",
-          "description": "Die Punkte der Aufnahme, 0 bis 180. Was der Spieler noch hat, checkt aus, mehr ist Überworfen."
+          "description": "Die Punkte der Aufnahme, 0 bis 180. Was der Spieler noch hat, checkt aus, mehr ist Überworfen. Nötig ohne Checkout."
+        },
+        "checkout": {
+          "name": "Checkout",
+          "description": "Die Aufnahme checkt den Rest des Spielers, statt Punkten."
         },
         "darts": {
           "name": "Darts",
@@ -1243,12 +1314,16 @@
         "darts_at_double": {
           "name": "Darts auf ein Doppel",
           "description": "Wie viele davon auf ein Doppel gingen, für die Checkout-Quote. Standard: 1 beim Checkout, sonst 0."
+        },
+        "player": {
+          "name": "Spieler",
+          "description": "Der Name des Spielers, für den die Aufnahme ist, wie ein Sprachassistent ihn hört. Die Aktion lehnt die Aufnahme ab, während ein anderer Spieler am Board ist."
         }
       }
     },
     "next_player": {
       "name": "Nächster Spieler",
-      "description": "Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft. Ohne Darts setzt der Spieler am Board in X01, den Cricket- und den Partyspielen aus; in Partyspielen zählt das als drei Fehlwürfe.",
+      "description": "Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft. Ohne Darts setzt der Spieler am Board in X01, den Cricket- und den Partyspielen aus; in Partyspielen zählt das als drei Fehlwürfe. Nach einer Antwort gefragt, etwa von einem Sprachassistenten, sagt sie in Worten, was sie getan hat oder warum nicht.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1258,7 +1333,7 @@
     },
     "undo_visit": {
       "name": "Aufnahme zurücknehmen",
-      "description": "Nimmt die letzte abgeschlossene Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, und die Darts der Aufnahme werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit Nächster Spieler zu beenden. Die Aufnahmen des Bots danach werden ebenfalls zurückgenommen.",
+      "description": "Nimmt die letzte abgeschlossene Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, und die Darts der Aufnahme werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit Nächster Spieler zu beenden. Die Aufnahmen des Bots danach werden ebenfalls zurückgenommen. Nach einer Antwort gefragt, etwa von einem Sprachassistenten, sagt sie in Worten, was sie getan hat oder warum nicht.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

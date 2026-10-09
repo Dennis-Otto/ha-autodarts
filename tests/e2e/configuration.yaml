@@ -11,12 +11,18 @@ homeassistant:
   elevation: 0
 
 api:
-# The blueprint that starts a game by voice, and Assist to talk to it.
+# The blueprints that start a game and enter its darts by voice, and Assist to talk
+# to them.
 automation:
   - id: start_game_by_voice
     alias: Start a game by voice
     use_blueprint:
       path: autodarts/start_game_by_voice.yaml
+      input: {}
+  - id: enter_darts_by_voice
+    alias: Enter darts by voice
+    use_blueprint:
+      path: autodarts/enter_darts_by_voice.yaml
       input: {}
 config:
 conversation:

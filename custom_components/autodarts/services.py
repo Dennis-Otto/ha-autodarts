@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import math
 import re
-from collections.abc import Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -56,6 +56,10 @@ from .tournament import (
     RULES,
     TOURNAMENT_GAMES,
 )
+from .voice import Turn, passed, spoken, undone
+from .voice import dart as dart_said
+from .voice import name as voice_name
+from .voice import visit as visit_said
 
 SERVICE_START_GAME = "start_game"
 SERVICE_DELETE_PLAYER = "delete_player"
@@ -125,20 +129,31 @@ CORRECT_DART_SCHEMA = vol.Schema(
         **POSITION,
     }
 )
+# The player an entry is for, as a voice assistant names them: the action refuses
+# the entry while another player is at the board.
+TURN: dict[vol.Marker, Any] = {
+    vol.Optional("player"): vol.All(
+        cv.string, vol.Strip, vol.Length(min=1, max=NAME_LENGTH)
+    ),
+}
 THROW_DART_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
         vol.Optional("segment"): BED,
         **POSITION,
+        **TURN,
     }
 )
 
 
-# An X01 visit by its score: the darts it took and those at a double.
+# An X01 visit by its score, or as the checkout of what the player has left: the
+# darts it took and those at a double.
 ENTER_VISIT_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
-        vol.Required("score"): vol.All(vol.Coerce(int), vol.Range(min=0, max=180)),
+        vol.Optional("score"): vol.All(vol.Coerce(int), vol.Range(min=0, max=180)),
+        vol.Optional("checkout"): cv.boolean,
+        **TURN,
         vol.Optional("darts"): vol.All(vol.Coerce(int), vol.Range(min=1, max=3)),
         vol.Optional("darts_at_double"): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=3)
@@ -323,31 +338,52 @@ async def _game_key(hass: HomeAssistant, game: str) -> str:
     raise _invalid("unknown_game", game=game)
 
 
-async def _spoken(hass: HomeAssistant, key: str, **placeholders: str) -> str:
-    """A message of the integration in the language of Home Assistant, for a voice
-    assistant to say; English where the language lacks it."""
-    texts = await async_get_translations(
-        hass, hass.config.language, "exceptions", {DOMAIN}
-    )
-    text = texts.get(f"component.{DOMAIN}.exceptions.{key}.message", key)
-    return text.format(**placeholders) if placeholders else text
-
-
 async def _game_on(hass: HomeAssistant, key: str, practice: PracticeGame) -> str:
     """What a voice assistant says when a game starts: the game and who plays it."""
     texts = await async_get_translations(hass, hass.config.language, "entity", {DOMAIN})
     game = texts.get(f"component.{DOMAIN}.entity.select.practice_game.state.{key}", key)
     players = [name for name in practice.names[: practice.humans] if name]
     if practice.bot_seat is not None:
-        players.append(await _spoken(hass, "voice_bot"))
+        players.append(await spoken(hass, "voice_bot"))
     if not players:
-        return await _spoken(hass, "voice_game_on_alone", game=game)
-    conjunction = await _spoken(hass, "voice_and")
+        return await spoken(hass, "voice_game_on_alone", game=game)
+    conjunction = await spoken(hass, "voice_and")
     last = f" {conjunction} "
     together = last.join(
         [", ".join(players[:-1]), players[-1]] if len(players) > 1 else players
     )
-    return await _spoken(hass, "voice_game_on", game=game, players=together)
+    return await spoken(hass, "voice_game_on", game=game, players=together)
+
+
+async def _check_turn(
+    hass: HomeAssistant, practice: PracticeGame, player: str | None
+) -> None:
+    """An entry for a named player only while they are at the board, as a voice
+    assistant may hear the wrong one; without a game, the entry says why itself."""
+    if player is None or practice.kind is None or practice.bot_up:
+        return
+    who = practice.thrower
+    if who is None or _plain(who) != _plain(player):
+        raise _invalid(
+            "not_their_turn",
+            player=player,
+            name=await voice_name(hass, practice, practice.current),
+        )
+
+
+def _visit_score(data: Mapping[str, Any], practice: PracticeGame) -> int:
+    """The score of a visit an action enters: its score, or for a checkout what the
+    player has left."""
+    score: int | None = data.get("score")
+    if not data.get("checkout"):
+        if score is None:
+            raise _invalid("visit_no_score")
+        return score
+    player = practice.players[practice.current] if practice.players else None
+    remaining = player.remaining if player is not None and practice.game else 0
+    if score is not None and score != remaining:
+        raise _invalid("checkout_score", score=str(score), remaining=str(remaining))
+    return remaining
 
 
 def _check_names(names: list[str] | None) -> None:
@@ -457,7 +493,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             if not call.return_response:
                 raise
             placeholders = error.translation_placeholders or {}
-            message = await _spoken(hass, str(error.translation_key), **placeholders)
+            message = await spoken(hass, str(error.translation_key), **placeholders)
             return {"started": False, "message": message}
         if not call.return_response:
             return None
@@ -633,29 +669,83 @@ def async_setup_services(hass: HomeAssistant) -> None:
         dart, position = _dart_at(call.data)
         await coordinator.async_correct_dart(call.data["dart"], dart, position)
 
-    async def throw_dart(call: ServiceCall) -> None:
-        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        await coordinator.async_throw_dart(*_dart_at(call.data))
+    async def answered(
+        call: ServiceCall, done: str, act: Callable[[bool], Awaitable[str | None]]
+    ) -> ServiceResponse:
+        """Run an action at the board. Asked for a response, as by a voice assistant,
+        it answers what happened or what was wrong in words to say, instead of
+        failing."""
+        try:
+            message = await act(call.return_response)
+        except ServiceValidationError as error:
+            if not call.return_response:
+                raise
+            placeholders = error.translation_placeholders or {}
+            message = await spoken(hass, str(error.translation_key), **placeholders)
+            return {done: False, "message": message}
+        return {done: True, "message": message} if call.return_response else None
 
-    async def enter_visit(call: ServiceCall) -> None:
-        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        await coordinator.async_enter_visit(
-            call.data["score"], call.data.get("darts"), call.data.get("darts_at_double")
-        )
+    async def throw_dart(call: ServiceCall) -> ServiceResponse:
+        async def act(answer: bool) -> str | None:
+            coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+            practice = coordinator.practice
+            await _check_turn(hass, practice, call.data.get("player"))
+            bed, position = _dart_at(call.data)
+            await coordinator.async_throw_dart(bed, position)
+            return await dart_said(hass, practice, str(bed["name"])) if answer else None
 
-    async def next_player(call: ServiceCall) -> None:
-        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        await coordinator.async_next_player()
+        return await answered(call, "entered", act)
 
-    async def undo_visit(call: ServiceCall) -> None:
-        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        await coordinator.async_undo_visit()
+    async def enter_visit(call: ServiceCall) -> ServiceResponse:
+        async def act(answer: bool) -> str | None:
+            coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+            practice = coordinator.practice
+            await _check_turn(hass, practice, call.data.get("player"))
+            score = _visit_score(call.data, practice)
+            turn = Turn.of(practice)
+            await coordinator.async_enter_visit(
+                score, call.data.get("darts"), call.data.get("darts_at_double")
+            )
+            return await visit_said(hass, practice, turn, score) if answer else None
 
+        return await answered(call, "entered", act)
+
+    async def next_player(call: ServiceCall) -> ServiceResponse:
+        async def act(answer: bool) -> str | None:
+            coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+            turn = Turn.of(coordinator.practice)
+            await coordinator.async_next_player()
+            return await passed(hass, coordinator.practice, turn) if answer else None
+
+        return await answered(call, "passed", act)
+
+    async def undo_visit(call: ServiceCall) -> ServiceResponse:
+        async def act(answer: bool) -> str | None:
+            coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+            await coordinator.async_undo_visit()
+            if not answer:
+                return None
+            score = sum(
+                dart["number"] * dart["multiplier"]
+                for dart in coordinator.training.visit()
+            )
+            return await undone(hass, coordinator.practice, score)
+
+        return await answered(call, "undone", act)
+
+    hass.services.async_register(
+        DOMAIN, SERVICE_CORRECT_DART, correct_dart, schema=CORRECT_DART_SCHEMA
+    )
     for name, handler, schema in (
-        (SERVICE_CORRECT_DART, correct_dart, CORRECT_DART_SCHEMA),
         (SERVICE_THROW_DART, throw_dart, THROW_DART_SCHEMA),
         (SERVICE_ENTER_VISIT, enter_visit, ENTER_VISIT_SCHEMA),
         (SERVICE_NEXT_PLAYER, next_player, BOARD_SCHEMA),
         (SERVICE_UNDO_VISIT, undo_visit, BOARD_SCHEMA),
     ):
-        hass.services.async_register(DOMAIN, name, handler, schema=schema)
+        hass.services.async_register(
+            DOMAIN,
+            name,
+            handler,
+            schema=schema,
+            supports_response=SupportsResponse.OPTIONAL,
+        )

@@ -80,9 +80,11 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Sag Assist „Starte 501 für Alex und Sam“, auf Deutsch oder Englisch, und das Spiel beginnt. Jedes Spiel startet auch mit einer Aktion einer Automation.
+    Sag Assist „Starte 501 für Alex und Sam“, auf Deutsch oder Englisch, und das Spiel beginnt; dann gibt „Alex hat 140“ oder „Triple 20“ die Darts ein, wie am Dartautomaten. Jedes Spiel startet auch mit einer Aktion einer Automation.
 
     [:octicons-arrow-right-24: Spiel per Sprache starten](automations.de.md#spiel-per-sprache-starten)
+
+    [:octicons-arrow-right-24: Darts per Sprache eingeben](automations.de.md#enter-darts-by-voice)
 
 </div>
 

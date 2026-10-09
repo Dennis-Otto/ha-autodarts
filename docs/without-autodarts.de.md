@@ -44,6 +44,10 @@ An einer Dartscheibe ohne Autodarts zeigen die Live-Karte und die Anzeigetafel d
 
 Die [Aktionen](entities.de.md#dart-eingeben-autodartsthrow_dart) `autodarts.throw_dart`, [`autodarts.enter_visit`](entities.de.md#aufnahmepunkte-eingeben-autodartsenter_visit), `autodarts.next_player` und `autodarts.undo_visit` tun dasselbe aus einer Automation, einem Skript oder einem eigenen Knopf; bei mehreren Boards nennst du die `config_entry_id` des Boards.
 
+**Per Sprache:** Mit dem Blueprint [Enter darts by voice](automations.de.md#enter-darts-by-voice) sagst du Assist deine Darts, wie am Dartautomaten: „Alex hat 140“, „Checkout mit zwei Darts“, „Triple 20“, „Nächster Spieler“ oder „Rückgängig“, auf Deutsch oder Englisch. Assist antwortet in den Worten des Callers der Anzeigetafel, etwa „140 für Alex, noch 361. Sam, du brauchst 501.“, und lehnt eine Aufnahme für einen Spieler ab, der nicht am Board ist.
+
+<img src="images/de/manual-voice.webp" alt="Animation: die Anzeigetafel einer Dartscheibe ohne Autodarts mit Assist darüber; Alex hat 140, Triple 20 und Single Bull werden Assist eingetippt, das 140 für Alex, noch 361. Sam, du brauchst 501 antwortet, dann Triple 20, noch 441, und 25, noch 416; der Dialog schließt bei Alex mit 361 und Sam mit 416, mit Triple 20 und 25 in seiner Aufnahme" width="760">
+
 ## Was alles funktioniert
 
 Alles, was die Integration mit Darts macht, denn dafür hat sie die Kameras nie gebraucht:

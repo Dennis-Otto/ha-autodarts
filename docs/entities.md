@@ -656,6 +656,7 @@ Adds a dart to the current visit as if the board had detected it, marked `manual
 | --- | --- | --- |
 | `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` and the other names of the bulls, as for `autodarts.correct_dart` | The bed; required without `x` and `y` |
 | `x`, `y` | -3 to 3 | Where the dart is, as for `autodarts.correct_dart`; the bed follows from it, and the dart is logged in the [dart positions](how-it-works.md#dart-positions) |
+| `player` | Name | The player the dart is for, as a voice assistant hears it, in any upper and lower case; the action refuses the dart while another player is at the board |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml
@@ -664,7 +665,9 @@ data:
   segment: D16
 ```
 
-The action fails with a clear message when the bed is unknown, when neither a bed nor a whole position between -3 and 3 is given, when the bed is not the bed at the position, when manual entry is off, when the visit already has three darts, or while the bot is at the board.
+The action fails with a clear message when the bed is unknown, when neither a bed nor a whole position between -3 and 3 is given, when the bed is not the bed at the position, when manual entry is off, when the visit already has three darts, while the bot is at the board, or when `player` is not at the board.
+
+**Response:** with `response_variable`, the action answers instead of failing, so a voice assistant can say what happened: `entered` is `true` and `message` names the bed, in X01 with what is left, a bust or the game shot, such as "Triple 20, 441 left." or "Double 20. Game shot!"; or `entered` is `false` and `message` says why, in the language of Home Assistant. The blueprint [Enter darts by voice](automations.md#enter-darts-by-voice) says the message.
 
 ### Enter a visit's score: `autodarts.enter_visit`
 
@@ -672,9 +675,11 @@ Enters an X01 visit by its score instead of its darts, as the keypad's *Score* d
 
 | Field | Values | Description |
 | --- | --- | --- |
-| `score` | 0–180 | The points of the visit; required |
+| `score` | 0–180 | The points of the visit; required without `checkout` |
+| `checkout` | `true` | The visit checks out what the player has left, instead of a `score`; a `score` given as well must be that |
 | `darts` | 1–3 | The darts it took, fewer than 3 only for a checkout; default 3 |
 | `darts_at_double` | 0–3 | How many of them were thrown at a double, for the checkout rate; default 1 for a checkout with double out, otherwise 0. Without double out, none counts |
+| `player` | Name | The player the visit is for, as for `autodarts.throw_dart`; the action refuses the visit while another player is at the board |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
 ```yaml
@@ -685,7 +690,18 @@ data:
   darts_at_double: 2
 ```
 
-The visit is announced with `visit_thrown` and `visit_completed`, both with `total` and empty `segments`, but its darts are not: an automation that calls every dart, such as the [dart caller](automations.md#dart-caller), stays silent and calls the visit. The action fails with a clear message outside an X01 leg being played and in the bull-off, when no visit of these darts can score this from what the player has left (such as 179, or 159 from 159 with double out), when more darts were at a double than the visit had or none for a checkout, while a dart of the visit is on the board, when manual entry is off, or while the bot is at the board.
+The visit is announced with `visit_thrown` and `visit_completed`, both with `total` and empty `segments`, but its darts are not: an automation that calls every dart, such as the [dart caller](automations.md#dart-caller), stays silent and calls the visit. The action fails with a clear message outside an X01 leg being played and in the bull-off, when no visit of these darts can score this from what the player has left (such as 179, or 159 from 159 with double out), when more darts were at a double than the visit had or none for a checkout, while a dart of the visit is on the board, when manual entry is off, while the bot is at the board, when neither `score` nor `checkout` is given, when a `score` with `checkout` is not what the player has left, or when `player` is not at the board.
+
+A checkout of what is left, with two darts, for the player at the board:
+
+```yaml
+action: autodarts.enter_visit
+data:
+  checkout: true
+  darts: 2
+```
+
+**Response:** with `response_variable`, the action answers instead of failing: `entered` is `true` and `message` says, in the words of the scoreboard's caller, what the visit scored and left and who throws next, such as "140 for Alex, 361 left. Sam, you require 501.", a bust, "No score: Alex stays at 40.", or the leg or the match, "Game shot, and the match, Alex!"; or `entered` is `false` and `message` says why, in the language of Home Assistant.
 
 ### Pass the turn: `autodarts.next_player`
 
@@ -695,7 +711,7 @@ Ends the current visit without pulling the darts, so the next player throws; the
 action: autodarts.next_player
 ```
 
-Takes `config_entry_id` when there is more than one board.
+Takes `config_entry_id` when there is more than one board. **Response:** with `response_variable`, `passed` and a `message` say who throws now, in X01 what they require, such as "Sam, you require 501.", and after a game shot the leg or the match.
 
 ### Undo a visit: `autodarts.undo_visit`
 
@@ -705,7 +721,7 @@ Takes the last completed visit back: the game returns to where it was before it,
 action: autodarts.undo_visit
 ```
 
-Takes `config_entry_id` when there is more than one board.
+Takes `config_entry_id` when there is more than one board. **Response:** with `response_variable`, `undone` and a `message` say whose visit and how many points were taken back, such as "Taken back: 140 of Alex."
 
 ### Delete a player profile: `autodarts.delete_player`
 

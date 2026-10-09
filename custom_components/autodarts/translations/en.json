@@ -902,6 +902,69 @@
     },
     "voice_bot": {
       "message": "the bot"
+    },
+    "not_their_turn": {
+      "message": "It is {name}'s turn, not {player}'s."
+    },
+    "visit_no_score": {
+      "message": "Give the score of the visit, or checkout for a visit that checks out what is left."
+    },
+    "checkout_score": {
+      "message": "A checkout scores what is left, {remaining}, not {score}."
+    },
+    "voice_visit": {
+      "message": "{score} for {name}, {left} left."
+    },
+    "voice_bust": {
+      "message": "No score: {name} stays at {left}."
+    },
+    "voice_leg": {
+      "message": "Game shot, and the leg, {name}!"
+    },
+    "voice_match": {
+      "message": "Game shot, and the match, {name}!"
+    },
+    "voice_game_shot": {
+      "message": "Game shot!"
+    },
+    "voice_next": {
+      "message": "{name} to throw."
+    },
+    "voice_next_left": {
+      "message": "{name}, you require {left}."
+    },
+    "voice_dart": {
+      "message": "{bed}."
+    },
+    "voice_dart_left": {
+      "message": "{bed}, {left} left."
+    },
+    "voice_dart_bust": {
+      "message": "{bed}: no score!"
+    },
+    "voice_undone": {
+      "message": "Taken back: {score} of {name}."
+    },
+    "voice_player": {
+      "message": "Player {number}"
+    },
+    "voice_bed_single": {
+      "message": "Single {number}"
+    },
+    "voice_bed_double": {
+      "message": "Double {number}"
+    },
+    "voice_bed_triple": {
+      "message": "Triple {number}"
+    },
+    "voice_bed_bull": {
+      "message": "Bull"
+    },
+    "voice_bed_outer": {
+      "message": "25"
+    },
+    "voice_bed_miss": {
+      "message": "Miss"
     }
   },
   "issues": {
@@ -1204,7 +1267,7 @@
     },
     "throw_dart": {
       "name": "Enter dart",
-      "description": "Adds a dart to the current visit as if the board had detected it, marked as entered by hand. Needs Practice manual entry. With x and y, the dart is logged where they say.",
+      "description": "Adds a dart to the current visit as if the board had detected it, marked as entered by hand. Needs Practice manual entry. With x and y, the dart is logged where they say. Asked for a response, as by a voice assistant, it answers in words what it did or why not.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1221,12 +1284,16 @@
         "y": {
           "name": "Position y",
           "description": "Where the dart is, from bottom to top towards the 20: 0 is the center, 1 the outer edge of the double ring."
+        },
+        "player": {
+          "name": "Player",
+          "description": "The name of the player the dart is for, as a voice assistant hears it. The action refuses the dart while another player is at the board."
         }
       }
     },
     "enter_visit": {
       "name": "Enter visit score",
-      "description": "Enters an X01 visit by its score, such as 140, and passes the turn, instead of three darts. Darts already entered by hand in the visit give way to it. Needs Practice manual entry; the beds stay unknown, so only the score counts for the statistics.",
+      "description": "Enters an X01 visit by its score, such as 140, and passes the turn, instead of three darts. Darts already entered by hand in the visit give way to it. Needs Practice manual entry; the beds stay unknown, so only the score counts for the statistics. Asked for a response, as by a voice assistant, it answers in words what it did or why not.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1234,7 +1301,11 @@
         },
         "score": {
           "name": "Score",
-          "description": "The points of the visit, 0 to 180. What the player has left checks out, more busts."
+          "description": "The points of the visit, 0 to 180. What the player has left checks out, more busts. Needed without checkout."
+        },
+        "checkout": {
+          "name": "Checkout",
+          "description": "The visit checks out what the player has left, instead of a score."
         },
         "darts": {
           "name": "Darts",
@@ -1243,12 +1314,16 @@
         "darts_at_double": {
           "name": "Darts at a double",
           "description": "How many of them were thrown at a double, for the checkout rate. Default: 1 for a checkout, otherwise 0."
+        },
+        "player": {
+          "name": "Player",
+          "description": "The name of the player the visit is for, as a voice assistant hears it. The action refuses the visit while another player is at the board."
         }
       }
     },
     "next_player": {
       "name": "Next player",
-      "description": "Ends the current visit without pulling the darts, so the next player throws. Without darts, the player at the board passes in X01, the Cricket and the party games, where the pass counts as three misses.",
+      "description": "Ends the current visit without pulling the darts, so the next player throws. Without darts, the player at the board passes in X01, the Cricket and the party games, where the pass counts as three misses. Asked for a response, as by a voice assistant, it answers in words what it did or why not.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1258,7 +1333,7 @@
     },
     "undo_visit": {
       "name": "Undo visit",
-      "description": "Takes the last completed visit back: the game returns to where it was before, and the darts of the visit become the current visit again, to correct them and end the visit with Next player. The visits of the bot after it are undone, too.",
+      "description": "Takes the last completed visit back: the game returns to where it was before, and the darts of the visit become the current visit again, to correct them and end the visit with Next player. The visits of the bot after it are undone, too. Asked for a response, as by a voice assistant, it answers in words what it did or why not.",
       "fields": {
         "config_entry_id": {
           "name": "Board",

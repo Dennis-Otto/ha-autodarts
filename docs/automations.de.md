@@ -24,12 +24,13 @@ Blueprints sind fertige Automationen. Importieren, Board und Geräte auswählen,
 | **Highlight photo** | Macht ein Bild mit einer Board-Kamera nach einer Aufnahme ab 180 Punkten (einstellbar) oder einem Checkout im Übungsspiel, solange die Darts noch im Board stecken. Es speichert das Bild in der [Highlight-Galerie](#highlight-galerie) und führt deine Aktionen aus, die `photo_url`, `photo`, `image`, `message`, `score`, `checkout` und `who` nutzen können. | [![Blueprint „Highlight photo“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel, einem gewonnenen Ausbullen, einem Erfolg und dem Sieger eines Turniers, auf Wunsch auch bei der Entnahme und in [Online-Matches](online-matches.de.md). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
 | **Start a game by voice** | Startet ein Übungsspiel, wenn du es Assist sagst, etwa „Starte 501 für Alex und Sam“, „Starte das Spiel Cricket für Alex“ oder „Spiele 501 gegen den Bot“, auf Deutsch oder Englisch. Assist antwortet mit Spiel und Spielern oder mit dem, was nicht gepasst hat. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
+| **Enter darts by voice** | Gibt die Darts eines Spiels ein, wenn du sie Assist sagst, wie am Dartautomaten: die Punkte einer Aufnahme, etwa „Alex hat 140“ oder „140 Punkte“, einen Checkout, einen einzelnen Dart wie „Triple 20“, den nächsten Spieler und Rückgängig, auf Deutsch oder Englisch. Assist antwortet in den Worten des Callers der Anzeigetafel: was die Aufnahme übrig lässt und wer als Nächstes wirft, oder warum es nicht ging. | [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
 
 Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Um einen früher importierten Blueprint zu aktualisieren, importierst du ihn über sein Menü auf der Blueprint-Seite erneut; deine Automationen behalten ihre Einstellungen.
 
 Die Blueprints sind auf Englisch beschriftet; ihre Texte kannst du beim Anlegen frei wählen.
 
-<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den zwölf Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
+<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den dreizehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
 
 ### Welcher Caller?
 
@@ -235,6 +236,37 @@ Assist antwortet „Game on: 501 mit Alex und Sam.“ in der Sprache von Home As
 - **Die Spieler:** je ein Wort, verbunden mit „und“, „and“ oder einem Komma. Ein Spieler, der schon ein Profil hat, behält dessen Schreibweise, auch wenn der Sprachassistent den Namen kleinschreibt. Ohne Spieler bleiben die Spieler, wie sie sind.
 - **Der Bot:** Ein Satz, der auf „Bot“ endet, spielt gegen den Bot, der nach den Spielern einen Platz bekommt; jeder andere Satz startet das Spiel ohne Bot.
 - **Warum eine Zahl oder das Wort „Spiel“:** Assist hört die Sätze einer Automation vor seinen eigenen Befehlen. Ein Satz wie „Starte {game} für {players}“ würde auch „Starte einen Timer für 5 Minuten“ abfangen, und der Timer liefe nie los. Mit einer Zahl oder dem Wort „Spiel“ bleiben deine anderen Befehle, wie sie sind.
+
+### Enter darts by voice
+
+| Einstellung | Standard | Was sie bewirkt |
+| --- | --- | --- |
+| Score of a visit | Deutsch und Englisch | Sätze mit den Punkten einer Aufnahme, `{score}` von 0 bis 180, und auf Wunsch dem Spieler, `{player}`; Teile in [Klammern] sind optional, (a\|b) heißt a oder b. |
+| Checkout | Deutsch und Englisch | Sätze für eine Aufnahme, die den Rest des Spielers checkt, auf Wunsch mit ihren Darts, `{darts}`, und dem Spieler. |
+| Single dart | Deutsch und Englisch | Sätze für einen Dart, mit der Zahl seines Felds, `{number}`, oder einem Bull oder Fehlwurf. |
+| Next player | Deutsch und Englisch | Sätze, die die Aufnahme beenden, damit der nächste Spieler wirft. |
+| Undo | Deutsch und Englisch | Sätze, die die letzte Aufnahme zurücknehmen, um sie neu einzugeben. |
+| Board | | Das Board, auf dem die Darts eingegeben werden. Nur bei mehr als einem Board nötig. |
+
+Sag zum Beispiel:
+
+- „Alex hat 140“, „Sam wirft 100“, „140 Punkte“ oder nur „hundertvierzig“ für die Punkte einer Aufnahme
+- „Checkout mit zwei Darts“, „Game Shot in drei Darts“ oder „Alex checkt“
+- „Triple 20“, „Doppel 16“, „Single 5“, „Bull“, „Single Bull“ oder „Fehlwurf“
+- „Nächster Spieler“ und „Rückgängig“
+- auf Englisch „Alex has 140“, „140 points“, „Checkout with two darts“, „Double 16“, „Miss“, „Next player“ oder „Undo“
+
+<img src="images/de/manual-voice.webp" alt="Animation: die Anzeigetafel einer Dartscheibe ohne Autodarts mit Assist darüber; Alex hat 140, Triple 20 und Single Bull werden Assist eingetippt, das 140 für Alex, noch 361. Sam, du brauchst 501 antwortet, dann Triple 20, noch 441, und 25, noch 416; der Dialog schließt bei Alex mit 361 und Sam mit 416, mit Triple 20 und 25 in seiner Aufnahme" width="760">
+
+Assist antwortet in den Worten des Callers der Anzeigetafel, in der Sprache von Home Assistant: „140 für Alex, noch 361. Sam, du brauchst 501.“ nach einer Aufnahme, „Triple 20, noch 441.“ nach einem Dart, „Überworfen: Alex bleibt bei 40.“ nach einem Überwerfen, „Game shot, und das Match, Alex!“ nach der letzten Aufnahme, „Zurückgenommen: 140 von Alex.“ nach Rückgängig, oder warum es nicht ging.
+
+- **Manuelle Eingabe:** Die Darts brauchen *Übungsspiel manuelle Eingabe*, die eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) immer an hat. An einem Board mit Autodarts schaltest du sie ein für einen Spieler ohne Kameras oder für Darts, die das Board übersehen hat.
+- **Der Spieler:** Ein Satz mit Namen gibt die Aufnahme nur ein, solange dieser Spieler am Board ist. „Sam wirft 100“, während Alex wirft, wird mit „Alex ist dran, nicht Sam.“ abgelehnt, damit eine falsch verstandene Aufnahme nie für den falschen Spieler zählt. Ohne Namen ist die Aufnahme für den Spieler am Board.
+- **Der Checkout** wirft den Rest des Spielers, mit drei Darts, wenn der Satz nicht weniger sagt, einer davon auf ein Doppel. Was sich nicht checken lässt, etwa 169, wird erklärt.
+- **Ein Dart:** Die Darts einer Aufnahme enden mit „Nächster Spieler“, wie im Tastenfeld. Ein Dart, der checkt, sagt „Game shot!“, und der nächste Spieler sagt dann das Leg oder das Match an.
+- **Eine Zahl allein** sind die Punkte einer Aufnahme, kein Dart: „zwanzig“ gibt eine Aufnahme mit 20 ein; für einen Dart sag „Single 20“.
+- **Andere Befehle:** Jeder Satz ist eine Zahl oder hat Wörter des Darts, damit Assists eigene Befehle wie „Wie spät ist es“ seine eigenen bleiben.
+- **Andere Sprachen:** Die Sätze sind auf Deutsch und Englisch. Auf Niederländisch, Französisch oder Spanisch ersetzt du sie durch eigene und behältst die Wörter der Felder: triple, double, doble oder dubbel, single bull, bull und miss, raté, fallo oder mis.
 
 ### Deutscher Dart-Caller
 
@@ -732,6 +764,26 @@ actions:
     response_variable: result
   - set_conversation_response: "{{ result.message }}"
 mode: single
+```
+
+### Eine Aufnahme per Sprache eingeben
+
+Der Blueprint [Enter darts by voice](#enter-darts-by-voice) macht das mit Sätzen auf Deutsch und Englisch. Für eigene Sätze, etwa in einer anderen Sprache, lass die Aktion antworten: Mit `response_variable` sagt sie, was die Aufnahme erzielt hat und was bleibt und wer als Nächstes wirft, oder warum es nicht ging. Mit `player` bekommt ein falsch verstandener Name die Aufnahme nie.
+
+```yaml
+alias: Darts - eine Aufnahme per Sprache
+triggers:
+  - trigger: conversation
+    command:
+      - "{name} warf {0..180:score}"
+actions:
+  - action: autodarts.enter_visit
+    data:
+      score: "{{ trigger.slots.score }}"
+      player: "{{ trigger.slots.name }}"
+    response_variable: result
+  - set_conversation_response: "{{ result.message }}"
+mode: queued
 ```
 
 ### Ergebnisse eines Turniers ansagen

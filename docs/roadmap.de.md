@@ -120,9 +120,17 @@ In Arbeit; jeder Teil kommt in die [Betas](installation.de.md#betas-für-tester)
 | **Autodarts später** | Eine Dartscheibe ohne Autodarts wird zum Autodarts-Board, wenn eins kommt, und behält ihre Statistiken ([wie](without-autodarts.de.md#autodarts-später)) | Fertig |
 | **Die Punkte einer Aufnahme** | X01-Aufnahmen als Punktzahl eingegeben, etwa 140, mit den Darts auf ein Doppel beim Checkout ([wie](without-autodarts.de.md#darts-eingeben)) | Fertig |
 
+## Version 1.12: Darts per Sprache
+
+In Arbeit; jeder Teil kommt in die [Betas](installation.de.md#betas-für-tester), sobald er fertig ist.
+
+| Thema | Was es bringt | Stand |
+| --- | --- | --- |
+| **Darts per Sprache** | „Alex hat 140“, „Checkout mit zwei Darts“, „Triple 20“, „Nächster Spieler“ und „Rückgängig“ zu Assist, auf Deutsch und Englisch, mit einer Antwort in den Worten des Callers ([Blueprint](automations.de.md#enter-darts-by-voice)) | Fertig |
+
 ## Als Nächstes
 
-Ideen für die Versionen nach 1.11. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
+Ideen für die Versionen nach 1.12. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
 
 | Thema | Was es bringt | Voraussetzung |
 | --- | --- | --- |

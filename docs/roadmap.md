@@ -120,9 +120,17 @@ In the works; every part reaches the [betas](installation.md#betas-for-testers) 
 | **Autodarts later** | A dartboard without Autodarts becomes an Autodarts board when one arrives, and keeps its statistics ([how](without-autodarts.md#autodarts-later)) | Done |
 | **The score of a visit** | X01 visits entered as a score, such as 140, with the darts at a double on a checkout ([how](without-autodarts.md#enter-your-darts)) | Done |
 
+## Version 1.12: darts by voice
+
+In the works; every part reaches the [betas](installation.md#betas-for-testers) as soon as it is done.
+
+| Topic | What it brings | Status |
+| --- | --- | --- |
+| **Darts by voice** | "Alex has 140", "Checkout with two darts", "Triple 20", "Next player" and "Undo" to Assist, in English and German, with an answer in the caller's words ([blueprint](automations.md#enter-darts-by-voice)) | Done |
+
 ## Next
 
-Ideas for the versions after 1.11. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
+Ideas for the versions after 1.12. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
 
 | Topic | What it brings | Dependency |
 | --- | --- | --- |

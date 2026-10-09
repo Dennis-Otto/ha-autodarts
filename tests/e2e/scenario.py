@@ -1524,6 +1524,49 @@ class Scenario:
         await self.service("select", "select_option", "practice_game", option="off")
         await self.expect_states({"practice_game": "off"})
 
+    async def voice_entry(self) -> None:
+        """The blueprint enters darts from sentences in English and German, as at a
+        dart machine: a visit's score, a dart, the next player, a visit taken back,
+        and a player who is not at the board; Assist answers in the caller's words."""
+        await self.service("switch", "turn_on", "practice_manual_entry")
+        await self.expect_states({"practice_manual_entry": "on"})
+        said = await self.say("Start 501 for Alex and Sam")
+        check(said == "Game on: 501 with Alex and Sam.", f"No game by voice: {said!r}")
+        spoken = [
+            ("Alex hat 140", "140 for Alex, 361 left. Sam, you require 501."),
+            ("Triple 20", "Triple 20, 441 left."),
+            ("single bull", "25, 416 left."),
+            ("next player", "Alex, you require 361."),
+            ("Sam scored 100", "It is Alex's turn, not Sam's."),
+            ("100 Punkte", "100 for Alex, 261 left. Sam, you require 416."),
+            ("Rückgängig", "Taken back: 100 of Alex."),
+            # The visit taken back gives way to the score entered for it.
+            ("60", "60 for Alex, 301 left. Sam, you require 416."),
+            ("Doppel 8", "Double 8, 400 left."),
+            (
+                "Checkout with two darts",
+                "No visit scores 416 from 416 with these rules and darts. "
+                "Check the score.",
+            ),
+            ("miss", "Miss, 400 left."),
+        ]
+        for text, answer in spoken:
+            said = await self.say(text)
+            check(said == answer, f"Assist answered {said!r} to {text!r}")
+        scores = (await self.state("practice_remaining"))["attributes"]["scores"]
+        check(
+            [item["remaining"] for item in scores] == [301, 400],
+            f"The darts by voice left {scores}",
+        )
+        # Its sentences need the words of darts: other commands stay Assist's own.
+        said = await self.say("What is the time")
+        check("left" not in said and "turn" not in said, f"Caught: {said!r}")
+        await self.service("select", "select_option", "practice_game", option="off")
+        await self.service("switch", "turn_off", "practice_manual_entry")
+        await self.expect_states(
+            {"practice_game": "off", "practice_manual_entry": "off"}
+        )
+
     async def card(self) -> None:
         """The bundled dashboard card is served and loaded without a resource."""
         version = json.loads(MANIFEST.read_text())["version"]
@@ -1916,6 +1959,7 @@ async def main() -> None:
         await scenario.match_summary()
         await scenario.play_comfort()
         await scenario.voice()
+        await scenario.voice_entry()
         await scenario.card()
         await scenario.people()
         await scenario.gallery()
@@ -1937,6 +1981,7 @@ async def main() -> None:
         "with dart positions, a match "
         "summary, double out from the next leg, a corrected dart, darts entered by "
         "hand with an undone visit, a match against the bot, games started by voice, "
+        "darts entered by voice, "
         "dashboard card, players linked to "
         "persons, the highlight gallery in the media browser, a round robin "
         "tournament, a dartboard without Autodarts beside the board, private "

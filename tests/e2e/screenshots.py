@@ -2779,6 +2779,91 @@ def manual_score_animation(page: Page, board: dict) -> None:
     tablet_page.close()
 
 
+# What the voice animation says to Assist, and what Assist answers.
+VOICE_SENTENCES = {
+    "en": [
+        ("Alex has 140", "140 for Alex, 361 left. Sam, you require 501."),
+        ("Triple 20", "Triple 20, 441 left."),
+        ("Single bull", "25, 416 left."),
+    ],
+    "de": [
+        ("Alex hat 140", "140 für Alex, noch 361. Sam, du brauchst 501."),
+        ("Triple 20", "Triple 20, noch 441."),
+        ("Single Bull", "25, noch 416."),
+    ],
+}
+ASSIST = "ha-voice-command-dialog"
+# Home Assistant's sidebar stays out of the picture of a dialog over the scoreboard.
+NO_SIDEBAR = "localStorage.setItem('dockedSidebar', JSON.stringify('always_hidden'))"
+
+
+def manual_voice_animation(page: Page, entry: str) -> None:
+    """Darts by voice: on the tablet at a dartboard without Autodarts, Alex's visit
+    and two darts of Sam's go in through Assist, which answers in the words of the
+    caller, and the scoreboard shows them once the dialog closes."""
+    automation = {
+        "id": "autodarts_voice_darts",
+        "alias": "Darts by voice",
+        "use_blueprint": {
+            "path": "autodarts/enter_darts_by_voice.yaml",
+            "input": {"board": entry},
+        },
+    }
+    folder = DEMO_CLOCK.parent / "automations"
+    folder.mkdir(exist_ok=True)
+    (folder / "voice_darts.yaml").write_text(json.dumps([automation]))
+    reload = (
+        "async () => document.querySelector('home-assistant').hass"
+        ".callService('automation', 'reload', {})"
+    )
+    page.evaluate(reload)
+    page.wait_for_function(
+        "() => document.querySelector('home-assistant').hass"
+        ".states['automation.darts_by_voice']?.state === 'on'",
+        timeout=30000,
+    )
+    page.evaluate(
+        CALL_ACTION,
+        [
+            "start_game",
+            {"config_entry_id": entry, "game": "501", "players": ["Alex", "Sam"]},
+        ],
+    )
+    board = page.context.new_page()
+    board.add_init_script(NO_SIDEBAR)
+    board.set_viewport_size({"width": 1280, "height": 800})
+    board.goto(f"{HA}/{MANUAL_DASHBOARD}/scoreboard")
+    wait_card(board, "!!r.querySelector('.pad')", SCOREBOARD, 60000)
+    board.wait_for_timeout(1500)
+    recorder = Recorder(board, "home-assistant")
+    recorder.shot(1600)
+    board.locator("body").press("a")
+    dialog = board.locator(ASSIST)
+    field = dialog.get_by_role("textbox")
+    field.wait_for(timeout=15000)
+    board.wait_for_timeout(800)
+    recorder.shot(700)
+    for sentence, answer in VOICE_SENTENCES[LANGUAGE]:
+        field.fill(sentence)
+        recorder.shot(900)
+        field.press("Enter")
+        said = dialog.get_by_text(answer, exact=True)
+        said.wait_for(timeout=20000)
+        # The chat does not always follow its answer down; the picture does.
+        said.scroll_into_view_if_needed()
+        board.wait_for_timeout(900)
+        recorder.shot(2200)
+    board.keyboard.press("Escape")
+    dialog.get_by_role("textbox").wait_for(state="hidden", timeout=15000)
+    board.wait_for_timeout(1200)
+    recorder.shot(2600)
+    recorder.save("manual-voice")
+    board.evaluate("localStorage.removeItem('dockedSidebar')")
+    board.close()
+    (folder / "voice_darts.yaml").unlink()
+    page.evaluate(reload)
+
+
 def manual_board(page: Page) -> None:
     """A dartboard without Autodarts beside the demo board: the setup form, a visit
     entered with taps on the scoreboard's keypad, and the live card with the keypad
@@ -2824,6 +2909,7 @@ def manual_board(page: Page) -> None:
     # darts' beds anew, so they show at full strength in every run.
     tall_card_shot(page, "manual-live")
     manual_score_animation(page, board)
+    manual_voice_animation(page, entry)
     page.evaluate(
         """async ([path, entry]) => {
           const hass = document.querySelector('home-assistant').hass;

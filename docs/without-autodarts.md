@@ -44,6 +44,10 @@ On a dartboard without Autodarts, the live card and the scoreboard show the keyp
 
 The [actions](entities.md#enter-a-dart-autodartsthrow_dart) `autodarts.throw_dart`, [`autodarts.enter_visit`](entities.md#enter-a-visits-score-autodartsenter_visit), `autodarts.next_player` and `autodarts.undo_visit` do the same from an automation, a script or a button of your own; with several boards, name the board's `config_entry_id`.
 
+**By voice:** with the blueprint [Enter darts by voice](automations.md#enter-darts-by-voice), you tell Assist your darts, as at a dart machine: "Alex has 140", "Checkout with two darts", "Triple 20", "Next player" or "Undo", in English or German. Assist answers in the words of the scoreboard's caller, such as "140 for Alex, 361 left. Sam, you require 501.", and refuses a visit for a player who is not at the board.
+
+<img src="images/en/manual-voice.webp" alt="Animation: the scoreboard of a dartboard without Autodarts with Assist open on top; Alex has 140, Triple 20 and Single bull are typed to Assist, which answers 140 for Alex, 361 left. Sam, you require 501, then Triple 20, 441 left, and 25, 416 left; the dialog closes on Alex at 361 and Sam at 416 with Triple 20 and 25 in his visit" width="760">
+
 ## What works
 
 Everything the integration does with darts, because it never needed the cameras for it:

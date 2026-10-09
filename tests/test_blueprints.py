@@ -50,6 +50,7 @@ from .local_helpers import (
     setup_bridge,
 )
 from .local_helpers import WEBHOOK_PATH as ONLINE_BRIDGE
+from .test_manual_board import setup_manual
 
 pytestmark = pytest.mark.usefixtures("blueprint_folder")
 
@@ -1976,6 +1977,20 @@ async def test_practice_caller_names_the_score_to_leave_without_a_checkout(hass)
 # -- examples of the documentation -------------------------------------------------------
 
 
+def _voice_examples(document: str, action: str) -> list[dict]:
+    """The examples of a guide that answer a sentence to Assist with an action."""
+    text = (ROOT / document).read_text(encoding="utf-8")
+    return [
+        example
+        for example in (
+            safe_load(block)
+            for block in re.findall(r"```yaml\n(.*?)```", text, re.DOTALL)
+            if "trigger: conversation" in block
+        )
+        if example["actions"][0]["action"] == action
+    ]
+
+
 @pytest.mark.parametrize(
     ("document", "language"),
     [("docs/automations.md", "en"), ("docs/automations.de.md", "de")],
@@ -1983,12 +1998,7 @@ async def test_practice_caller_names_the_score_to_leave_without_a_checkout(hass)
 async def test_the_voice_example_starts_every_game(hass, document, language):
     """Every game, spoken as the practice game select names it, starts that game;
     the names become the players, and Assist says what the action answers."""
-    text = (ROOT / document).read_text(encoding="utf-8")
-    (example,) = [
-        safe_load(block)
-        for block in re.findall(r"```yaml\n(.*?)```", text, re.DOTALL)
-        if "trigger: conversation" in block
-    ]
+    (example,) = _voice_examples(document, "autodarts.start_game")
     start, answer = example["actions"]
     assert start["response_variable"] == "result"
     assert answer == {"set_conversation_response": "{{ result.message }}"}
@@ -2009,3 +2019,46 @@ async def test_the_voice_example_starts_every_game(hass, document, language):
         assert await _game_key(hass, game) == option, name
     players = Template(start["data"]["players"], hass).async_render(run)
     assert players == ["Dennis", "Lea"]
+
+
+@pytest.mark.parametrize(
+    ("document", "language", "message"),
+    [
+        (
+            "docs/automations.md",
+            "en",
+            "140 for Alex, 361 left. Sam, you require 501.",
+        ),
+        (
+            "docs/automations.de.md",
+            "de",
+            "140 für Alex, noch 361. Sam, du brauchst 501.",
+        ),
+    ],
+)
+async def test_the_voice_example_enters_a_visit(hass, document, language, message):
+    """The example's sentence enters the visit for the player it names, and Assist
+    says what the action answers."""
+    (example,) = _voice_examples(document, "autodarts.enter_visit")
+    enter, answer = example["actions"]
+    assert enter["response_variable"] == "result"
+    assert answer == {"set_conversation_response": "{{ result.message }}"}
+    (sentence,) = example["triggers"][0]["command"]
+    assert "{0..180:score}" in sentence and "{name}" in sentence
+    await setup_manual(hass)
+    hass.config.language = language
+    await hass.services.async_call(
+        "autodarts",
+        "start_game",
+        {"game": "501", "players": ["Alex", "Sam"]},
+        blocking=True,
+    )
+    run = {"trigger": {"slots": {"score": 140, "name": "alex"}}}
+    data = {
+        key: Template(value, hass).async_render(run)
+        for key, value in enter["data"].items()
+    }
+    result = await hass.services.async_call(
+        "autodarts", "enter_visit", data, blocking=True, return_response=True
+    )
+    assert result == {"entered": True, "message": message}
