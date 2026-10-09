@@ -117,7 +117,7 @@ In Arbeit; jeder Teil kommt in die [Betas](installation.de.md#betas-für-tester)
 | Thema | Was es bringt | Stand |
 | --- | --- | --- |
 | **Dartscheibe ohne Autodarts** | Jede Dartscheibe als eigenes Board, jeder Dart auf dem Tastenfeld der Live-Karte und der Anzeigetafel eingegeben, mit allen Spielen, dem Training und den Statistiken ([Anleitung](without-autodarts.de.md)) | Fertig |
-| **Autodarts später** | Eine Dartscheibe ohne Autodarts wird zum Autodarts-Board, wenn eins kommt, und behält ihre Statistiken | Geplant |
+| **Autodarts später** | Eine Dartscheibe ohne Autodarts wird zum Autodarts-Board, wenn eins kommt, und behält ihre Statistiken ([wie](without-autodarts.de.md#autodarts-später)) | Fertig |
 | **Die Punkte einer Aufnahme** | X01-Aufnahmen als Punktzahl eingegeben, etwa 140, mit den Darts auf ein Doppel beim Checkout | Geplant |
 
 ## Als Nächstes

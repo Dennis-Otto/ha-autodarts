@@ -66,6 +66,14 @@
           "cloud": "Cloudaccount koppelen"
         }
       },
+      "reconfigure_manual": {
+        "title": "Een Autodarts-bord verbinden",
+        "description": "Heeft je dartbord Autodarts gekregen? Verbind het bord: het dartbord houdt zijn spellen, statistieken, entiteiten en dashboards en krijgt de detectie, de camera's en de bediening van het bord.",
+        "menu_options": {
+          "discover": "Borden zoeken in dit netwerk",
+          "local": "Bordadres invoeren"
+        }
+      },
       "local": {
         "title": "Lokaal bord verbinden",
         "description": "Voer het IP-adres of de hostnaam van Board Manager in, zonder http:// of poort. Het bord moet al in Board Manager zijn ingesteld.",
@@ -130,7 +138,7 @@
       "board_not_configured": "Er is geen bord-ID ingesteld in Board Manager. Rond daar eerst het instellen van het bord af.",
       "already_in_progress": "Dit bord wordt al ingesteld.",
       "address_updated": "Dit Autodarts-bord is al ingesteld. Het adres is bijgewerkt en de integratie wordt opnieuw geladen.",
-      "manual_board": "Een dartbord zonder Autodarts heeft niets om opnieuw in te stellen. Hernoem het in de instellingen van zijn apparaat."
+      "board_connected": "Het Autodarts-bord is verbonden. Het dartbord houdt zijn spellen, statistieken en dashboards, en de integratie herlaadt."
     },
     "flow_title": "{name}",
     "create_entry": {

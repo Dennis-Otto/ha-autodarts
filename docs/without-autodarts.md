@@ -6,7 +6,7 @@ No Autodarts at your board? The integration works for any steel dartboard: you e
 
 <img src="images/en/manual-entry.webp" alt="Animation: the scoreboard of a dartboard without Autodarts on a tablet. Alex taps T and 20 twice and T and 19, the visit reads 177 and the status Visit complete; two taps on Next player pass the turn to Sam" width="760">
 
-**On this page:** [Who it is for](#who-it-is-for) · [Set up](#set-up) · [Enter your darts](#enter-your-darts) · [What works](#what-works) · [What is different](#what-is-different) · [Several boards](#several-boards)
+**On this page:** [Who it is for](#who-it-is-for) · [Set up](#set-up) · [Enter your darts](#enter-your-darts) · [What works](#what-works) · [What is different](#what-is-different) · [Several boards](#several-boards) · [Autodarts later](#autodarts-later)
 
 ## Who it is for
 
@@ -70,3 +70,13 @@ A screen that only shows the scoreboard, such as a TV without touch, hides the k
 Each dartboard without Autodarts is an entry and a device of its own, with its own entities, games and statistics, and so is each Autodarts board beside them. The automatic dashboard gives every board its views. The actions of the integration then need the board's `config_entry_id`, as with several Autodarts boards.
 
 To remove a board and its statistics, delete its entry in **Settings → Devices & services → Autodarts**.
+
+## Autodarts later
+
+When your dartboard gets Autodarts, connect the board to it instead of adding a new one, and everything stays: the games, the training sessions, the players, their badges and every statistic, the entity IDs and your dashboards.
+
+1. Set up the Autodarts board in its Board Manager as usual.
+2. Open **Settings → Devices & services → Autodarts**, the menu (⋮) of the dartboard → **Reconfigure**.
+3. Choose **Search for boards on this network** or **Enter board address**, as when [adding a board](installation.md#add-your-board).
+
+The dartboard then has the board's ID, the detection, the cameras, the board settings and the controls, and the automatic dashboard its *Board* view. *Practice manual entry* stays on, so the keypad's darts keep counting, and turning it off leaves the darts to the cameras. If Home Assistant finds the board on its own and offers *Autodarts board found*, ignore that offer and reconfigure the dartboard: added as a new entry, the board would start with statistics of its own.

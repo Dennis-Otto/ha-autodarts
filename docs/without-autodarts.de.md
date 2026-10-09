@@ -6,7 +6,7 @@ Kein Autodarts an deinem Board? Die Integration funktioniert mit jeder Steeldart
 
 <img src="images/de/manual-entry.webp" alt="Animation: die Anzeigetafel einer Dartscheibe ohne Autodarts auf einem Tablet. Alex tippt zweimal T und 20 und dann T und 19, die Aufnahme zeigt 177 und der Status Aufnahme komplett; zwei Tipps auf Nächster Spieler geben an Sam weiter" width="760">
 
-**Auf dieser Seite:** [Für wen](#für-wen) · [Einrichten](#einrichten) · [Darts eingeben](#darts-eingeben) · [Was alles funktioniert](#was-alles-funktioniert) · [Was anders ist](#was-anders-ist) · [Mehrere Boards](#mehrere-boards)
+**Auf dieser Seite:** [Für wen](#für-wen) · [Einrichten](#einrichten) · [Darts eingeben](#darts-eingeben) · [Was alles funktioniert](#was-alles-funktioniert) · [Was anders ist](#was-anders-ist) · [Mehrere Boards](#mehrere-boards) · [Autodarts später](#autodarts-später)
 
 ## Für wen
 
@@ -70,3 +70,13 @@ Ein Bildschirm, der nur die Anzeigetafel zeigt, etwa ein Fernseher ohne Touch, b
 Jede Dartscheibe ohne Autodarts ist ein eigener Eintrag und ein eigenes Gerät, mit eigenen Entitäten, Spielen und Statistiken, ebenso jedes Autodarts-Board daneben. Das automatische Dashboard gibt jedem Board seine Ansichten. Die Aktionen der Integration brauchen dann die `config_entry_id` des Boards, wie bei mehreren Autodarts-Boards.
 
 Um ein Board samt seinen Statistiken zu entfernen, lösche seinen Eintrag unter **Einstellungen → Geräte & Dienste → Autodarts**.
+
+## Autodarts später
+
+Bekommt deine Dartscheibe Autodarts, schließe das Board an sie an, statt ein neues hinzuzufügen, und alles bleibt: die Spiele, die Trainingseinheiten, die Spieler, ihre Abzeichen und jede Statistik, die Entitäts-IDs und deine Dashboards.
+
+1. Richte das Autodarts-Board wie gewohnt in seinem Board Manager ein.
+2. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, das Menü (⋮) der Dartscheibe → **Neu konfigurieren**.
+3. Wähle **Boards im Netzwerk suchen** oder **Board-Adresse eingeben**, wie beim [Hinzufügen eines Boards](installation.de.md#board-hinzufügen).
+
+Die Dartscheibe hat danach die ID des Boards, die Erkennung, die Kameras, die Board-Einstellungen und die Steuerung, und das automatische Dashboard ihre Ansicht *Board*. *Übungsspiel manuelle Eingabe* bleibt an, sodass die Darts des Tastenfelds weiter zählen; schaltest du sie aus, zählen die Kameras. Findet Home Assistant das Board von selbst und bietet *Autodarts-Board gefunden* an, ignoriere das Angebot und konfiguriere die Dartscheibe neu: Als neuer Eintrag hinzugefügt, finge das Board mit eigenen Statistiken an.

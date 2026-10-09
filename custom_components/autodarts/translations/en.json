@@ -66,6 +66,14 @@
           "cloud": "Link cloud account"
         }
       },
+      "reconfigure_manual": {
+        "title": "Connect an Autodarts board",
+        "description": "Your dartboard got Autodarts? Connect its board: the dartboard keeps its games, statistics, entities and dashboards, and gets the detection, the cameras and the controls of the board.",
+        "menu_options": {
+          "discover": "Search for boards on this network",
+          "local": "Enter board address"
+        }
+      },
       "local": {
         "title": "Connect local board",
         "description": "Enter the Board Manager IP address or hostname, without http:// or a port. The board must already be configured in Board Manager.",
@@ -130,7 +138,7 @@
       "board_not_configured": "No board ID is configured in Board Manager. Complete board setup there first.",
       "already_in_progress": "Setup of this board is already in progress.",
       "address_updated": "This Autodarts board is already set up. Its address was updated, and the integration reloads.",
-      "manual_board": "A dartboard without Autodarts has nothing to set up again. Rename it in the settings of its device."
+      "board_connected": "The Autodarts board is connected. The dartboard keeps its games, statistics and dashboards, and the integration reloads."
     },
     "flow_title": "{name}",
     "create_entry": {
