@@ -71,7 +71,7 @@ The integration reads the board ID from the Board Manager. It rejects addresses 
 
 ### 4. A dartboard without Autodarts
 
-Choose **Dartboard without Autodarts: enter every dart yourself** and give the board a name, such as *Garage*. You enter its darts on the keypad of the live card and the scoreboard, and the games, the training and the statistics work as with Autodarts; [Play without Autodarts](without-autodarts.md) explains it all. A home may have several of them, beside Autodarts boards.
+Choose **Dartboard without Autodarts: enter every dart yourself** and give the board a name, such as *Garage*. You enter its darts on the keypad of the live card and the scoreboard, and the games, the training and the statistics work as with Autodarts; [Play without Autodarts](without-autodarts.md) explains it all. A home may have several of them, beside Autodarts boards, and each can [get its Autodarts board later](without-autodarts.md#autodarts-later).
 
 <img src="images/en/setup-manual.png" alt="The setup form for a dartboard without Autodarts, with the name Dartboard filled in" width="520">
 
@@ -98,7 +98,8 @@ Home Assistant never sees your password. Tokens refresh automatically. If a logi
 Open **Settings → Devices & services → Autodarts**, select the board's menu (⋮) → **Reconfigure**. You can:
 
 - search for the board again or enter a new address, for example after a network change;
-- add or renew the cloud link, once it is available.
+- add or renew the cloud link, once it is available;
+- connect the Autodarts board that a [dartboard without Autodarts](without-autodarts.md#autodarts-later) got, which keeps its games and statistics.
 
 The board, its entities, their history and your dashboards stay as they are. The integration refuses an address or account that belongs to a different board.
 

@@ -7,6 +7,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 ### New
 
 - **Play without Autodarts:** any dartboard can be set up as a board of its own, under *Dartboard without Autodarts: enter every dart yourself*. Its darts are entered on the keypad, which the live card and the scoreboard show without an option to switch on, and every game, the training sessions and all statistics work as with Autodarts. It has the entities of the games, without detection, cameras or a board PC, and the automatic dashboard leaves out its *Board* view ([guide](docs/without-autodarts.md)).
+- **Autodarts later:** *Reconfigure* of a dartboard without Autodarts connects the Autodarts board it got, found on the network or by its address. The dartboard keeps its games, statistics, entity IDs and dashboards, and gets the detection, the cameras and the controls ([how](docs/without-autodarts.md#autodarts-later)).
 - **The keypad on the live card:** the option `keypad` of the live card shows the scoreboard's keypad below the darts while *Practice manual entry* is on, with *Next player* and *Undo last visit* ([cards](docs/cards.md#live-card)).
 
 ### Changed

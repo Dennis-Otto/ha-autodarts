@@ -71,7 +71,7 @@ Die Board-ID liest die Integration selbst aus. Nicht erreichbare Adressen und Bo
 
 ### 4. Eine Dartscheibe ohne Autodarts
 
-Wähle **Dartscheibe ohne Autodarts: jeden Dart selbst eingeben** und gib dem Board einen Namen, etwa *Keller*. Seine Darts gibst du auf dem Tastenfeld der Live-Karte und der Anzeigetafel ein, und die Spiele, das Training und die Statistiken funktionieren wie mit Autodarts; [Spielen ohne Autodarts](without-autodarts.de.md) erklärt alles. Ein Zuhause kann mehrere davon haben, neben Autodarts-Boards.
+Wähle **Dartscheibe ohne Autodarts: jeden Dart selbst eingeben** und gib dem Board einen Namen, etwa *Keller*. Seine Darts gibst du auf dem Tastenfeld der Live-Karte und der Anzeigetafel ein, und die Spiele, das Training und die Statistiken funktionieren wie mit Autodarts; [Spielen ohne Autodarts](without-autodarts.de.md) erklärt alles. Ein Zuhause kann mehrere davon haben, neben Autodarts-Boards, und jede kann [später ihr Autodarts-Board bekommen](without-autodarts.de.md#autodarts-später).
 
 <img src="images/de/setup-manual.png" alt="Das Formular der Einrichtung für eine Dartscheibe ohne Autodarts, mit dem eingetragenen Namen Dartboard" width="520">
 
@@ -98,7 +98,8 @@ Dein Passwort sieht Home Assistant nie. Die Token erneuern sich automatisch. Lä
 Öffne **Einstellungen → Geräte & Dienste → Autodarts** und im Menü des Boards (⋮) **Neu konfigurieren**. Du kannst dort:
 
 - das Board neu suchen oder eine neue Adresse eintragen, etwa nach einer Netzwerkänderung;
-- die Cloud-Verknüpfung hinzufügen oder erneuern, sobald sie verfügbar ist.
+- die Cloud-Verknüpfung hinzufügen oder erneuern, sobald sie verfügbar ist;
+- das Autodarts-Board anschließen, das eine [Dartscheibe ohne Autodarts](without-autodarts.de.md#autodarts-später) bekommen hat, die dabei ihre Spiele und Statistiken behält.
 
 Board, Entitäten, Verlauf und Dashboards bleiben erhalten. Eine Adresse oder ein Konto, das zu einem anderen Board gehört, lehnt die Integration ab.
 

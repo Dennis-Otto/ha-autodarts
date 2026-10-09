@@ -16,6 +16,7 @@ from pytest_homeassistant_custom_component.common import (
 )
 
 from custom_components.autodarts.config_flow import AutodartsConfigFlow
+from custom_components.autodarts.const import DISCOVERY_URL
 from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
 from custom_components.autodarts.local_coordinator import (
     MANUAL_STATE,
@@ -23,7 +24,7 @@ from custom_components.autodarts.local_coordinator import (
 )
 from custom_components.autodarts.storage import storage_key
 
-from .local_helpers import entity_summary, record
+from .local_helpers import entity_summary, mock_board, mock_board_v2, record
 
 BOARD_ID = "manual_0123456789abcdef0123456789abcdef"
 DATA = {
@@ -244,14 +245,162 @@ async def test_diagnostics_of_a_dartboard_without_autodarts(hass):
     assert diagnostics["board_manager_generation"] is None
 
 
-async def test_a_dartboard_without_autodarts_has_nothing_to_set_up_again(hass):
-    entry = await setup_manual(hass)
+async def reconfigure(hass, entry, step: str) -> dict:
     result = await hass.config_entries.flow.async_init(
         "autodarts",
         context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id},
     )
+    assert result["type"] is FlowResultType.MENU
+    assert result["step_id"] == "reconfigure_manual"
+    assert result["menu_options"] == ["discover", "local"]
+    return await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"next_step_id": step}
+    )
+
+
+async def play_a_visit(hass) -> None:
+    await act(hass, "start_game", game="301", players=["Alex"])
+    for bed in ("T20", "T20", "S20"):
+        await act(hass, "throw_dart", segment=bed)
+    await act(hass, "next_player")
+
+
+def board_state(hass, platform: str, key: str) -> str:
+    entity_id = er.async_get(hass).async_get_entity_id(
+        platform, "autodarts", f"board-1_{key}"
+    )
+    assert entity_id is not None, key
+    return hass.states.get(entity_id).state
+
+
+async def test_an_autodarts_board_joins_a_dartboard_without_autodarts(
+    hass, aioclient_mock
+):
+    entry = await setup_manual(hass)
+    await play_a_visit(hass)
+    registry = er.async_get(hass)
+    darts = entity(hass, "sensor", "training_darts")
+    result = await reconfigure(hass, entry, "local")
+    assert result["step_id"] == "local"
+    mock_board(aioclient_mock)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"host": "192.0.2.10", "port": 3180}
+    )
+    await hass.async_block_till_done()
     assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "manual_board"
+    assert result["reason"] == "board_connected"
+    assert entry.unique_id == "board-1"
+    assert entry.title == "Autodarts (Garage)"
+    assert entry.data == {
+        "board_id": "board-1",
+        "local_only": True,
+        "name": "Garage",
+        "host": "192.0.2.10",
+        "port": 3180,
+        "api_generation": 1,
+    }
+    assert not entry.runtime_data.local.manual_board
+    # Every entity keeps its entity ID, with the board's ID in its unique ID.
+    assert (
+        registry.async_get_entity_id("sensor", "autodarts", "board-1_training_darts")
+        == darts
+    )
+    assert not [
+        item.unique_id
+        for item in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if item.unique_id.startswith("manual_")
+    ]
+    # The games and the statistics stay; the board brings what was missing.
+    assert hass.states.get(darts).state == "3"
+    assert board_state(hass, "sensor", "practice_remaining") == "161"
+    assert board_state(hass, "binary_sensor", "local_connected") == "on"
+    assert board_state(hass, "sensor", "local_status") == "stopped"
+    assert board_state(hass, "switch", "practice_manual_entry") == "on"
+    devices = dr.async_entries_for_config_entry(dr.async_get(hass), entry.entry_id)
+    assert [(device.name, device.identifiers) for device in devices] == [
+        ("Garage", {("autodarts", "board-1")})
+    ]
+    assert devices[0].manufacturer == "Autodarts"
+
+
+async def test_the_board_search_finds_the_board_of_a_dartboard_without_autodarts(
+    hass, aioclient_mock
+):
+    entry = await setup_manual(hass)
+    aioclient_mock.get(
+        DISCOVERY_URL,
+        json=[
+            {
+                "boardId": "board-1",
+                "name": "Garage",
+                "ip": "192.0.2.10",
+                "port": "3180",
+                "insecurePort": "3180",
+                "version": "2.0.0",
+            }
+        ],
+    )
+    mock_board_v2(aioclient_mock)
+    result = await reconfigure(hass, entry, "discover")
+    assert result["step_id"] == "discover"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"board_id": "board-1"}
+    )
+    await hass.async_block_till_done()
+    assert result["reason"] == "board_connected"
+    assert entry.data["api_generation"] == 2
+    assert entry.runtime_data.local.board_manager_2
+
+
+async def test_an_entity_left_behind_by_the_board_gives_way(hass, aioclient_mock):
+    entry = await setup_manual(hass)
+    registry = er.async_get(hass)
+    # An entity of the board's earlier entry, which the registry kept.
+    left = registry.async_get_or_create(
+        "sensor", "autodarts", "board-1_training_darts", suggested_object_id="old"
+    )
+    darts = entity(hass, "sensor", "training_darts")
+    result = await reconfigure(hass, entry, "local")
+    # A board whose version does not tell its generation yet.
+    mock_board(aioclient_mock, version="")
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"host": "192.0.2.10", "port": 3180}
+    )
+    await hass.async_block_till_done()
+    assert result["reason"] == "board_connected"
+    assert "api_generation" not in entry.data
+    assert registry.async_get(left.entity_id) is None
+    assert (
+        registry.async_get_entity_id("sensor", "autodarts", "board-1_training_darts")
+        == darts
+    )
+
+
+async def test_a_board_of_another_entry_stays_where_it_is(hass, aioclient_mock):
+    mock_board(aioclient_mock)
+    other = MockConfigEntry(
+        domain="autodarts",
+        version=2,
+        unique_id="board-1",
+        data={"board_id": "board-1", "host": "192.0.2.10", "port": 3180},
+    )
+    other.add_to_hass(hass)
+    entry = await setup_manual(hass)
+    result = await reconfigure(hass, entry, "local")
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"host": "192.0.2.10", "port": 3180}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+    assert entry.unique_id == BOARD_ID and entry.data == DATA
+    # A board that does not answer leaves the dartboard as it is, too.
+    aioclient_mock.get("http://192.0.2.99:3180/api/state", status=503)
+    result = await reconfigure(hass, entry, "local")
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"host": "192.0.2.99", "port": 3180}
+    )
+    assert result["errors"] == {"base": "cannot_connect_local"}
+    assert entry.data == DATA
 
 
 async def test_removing_a_dartboard_without_autodarts_removes_its_training(

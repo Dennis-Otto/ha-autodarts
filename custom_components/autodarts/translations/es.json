@@ -66,6 +66,14 @@
           "cloud": "Vincular cuenta en la nube"
         }
       },
+      "reconfigure_manual": {
+        "title": "Conectar una diana Autodarts",
+        "description": "¿Tu diana tiene ya Autodarts? Conéctala: la diana conserva sus juegos, estadísticas, entidades y paneles, y recibe la detección, las cámaras y los controles de la diana.",
+        "menu_options": {
+          "discover": "Buscar dianas en esta red",
+          "local": "Introducir la dirección de la diana"
+        }
+      },
       "local": {
         "title": "Conectar diana local",
         "description": "Introduce la dirección IP o el nombre de host de Board Manager, sin http:// ni puerto. La diana ya debe estar configurada en Board Manager.",
@@ -130,7 +138,7 @@
       "board_not_configured": "No hay ningún ID de diana configurado en Board Manager. Termina primero allí la configuración de la diana.",
       "already_in_progress": "La configuración de esta diana ya está en curso.",
       "address_updated": "Esta diana Autodarts ya está configurada. Se ha actualizado su dirección y la integración se vuelve a cargar.",
-      "manual_board": "Una diana sin Autodarts no tiene nada que volver a configurar. Cambia su nombre en los ajustes de su dispositivo."
+      "board_connected": "La diana Autodarts está conectada. La diana conserva sus juegos, estadísticas y paneles, y la integración se recarga."
     },
     "flow_title": "{name}",
     "create_entry": {
