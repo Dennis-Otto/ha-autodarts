@@ -2820,7 +2820,9 @@ def manual_board(page: Page) -> None:
     page.goto(f"{HA}/{MANUAL_DASHBOARD}/live")
     wait_card(page, "r.querySelector('.score')?.textContent === '79'", timeout=60000)
     page.wait_for_timeout(800)
-    card_shot(page, "manual-live")
+    # Taller than the window: without a scroll, which would start the blink of the
+    # darts' beds anew, so they show at full strength in every run.
+    tall_card_shot(page, "manual-live")
     manual_score_animation(page, board)
     page.evaluate(
         """async ([path, entry]) => {
