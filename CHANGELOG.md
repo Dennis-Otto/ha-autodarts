@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.12.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.11.0...v1.12.0) (2026-10-09)
+
 ### New
 
 - **Darts by voice:** the new blueprint *Enter darts by voice* enters the darts of a game when you tell Assist, as at a dart machine: the score of a visit, such as "Alex hat 140" or "140 points", a checkout, such as "Checkout mit zwei Darts", a single dart, such as "Triple 20" or "Fehlwurf", "Next player" and "Undo", in English and German. Assist answers in the words of the scoreboard's caller: "140 for Alex, 361 left. Sam, you require 501." A sentence that names a player who is not at the board is refused, so a misheard visit never counts for the wrong player ([blueprint](docs/automations.md#enter-darts-by-voice)).
