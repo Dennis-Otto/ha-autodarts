@@ -371,7 +371,8 @@ class Scenario:
     async def local_flow(self, host: str, port: int) -> dict:
         menu = await self.flow()
         check(
-            menu["type"] == "menu" and menu["menu_options"] == ["discover", "local"],
+            menu["type"] == "menu"
+            and menu["menu_options"] == ["discover", "local", "manual"],
             f"Unexpected setup menu: {menu}",
         )
         form = await self.flow(menu["flow_id"], next_step_id="local")
@@ -1738,6 +1739,70 @@ class Scenario:
         await self.api("POST", "/api/services/autodarts/stop_tournament", json={})
         await self.expect_states({"tournament": "no_tournament"})
 
+    async def manual_board(self) -> None:
+        """A dartboard without Autodarts beside the board: set up from the menu,
+        played with darts entered by hand, and removed again."""
+        menu = await self.flow()
+        form = await self.flow(menu["flow_id"], next_step_id="manual")
+        check(
+            form["step_id"] == "manual",
+            f"No form for a board without Autodarts: {form}",
+        )
+        result = await self.flow(form["flow_id"], name="Garage")
+        check(
+            result["type"] == "create_entry"
+            and result["title"] == "Autodarts (Garage)",
+            f"A board without Autodarts was not set up: {result}",
+        )
+        entry_id = result["result"]["entry_id"]
+
+        async def loaded():
+            entries = await self.api(
+                "GET", "/api/config/config_entries/entry?domain=autodarts"
+            )
+            return any(
+                entry["entry_id"] == entry_id and entry["state"] == "loaded"
+                for entry in entries
+            )
+
+        await wait_for(loaded, "the board without Autodarts to load")
+        entities = {
+            item["translation_key"]: item["entity_id"]
+            for item in await self.ws("config/entity_registry/list")
+            if item["config_entry_id"] == entry_id
+        }
+        for key in ("local_status", "practice_remaining", "training_darts"):
+            check(key in entities, f"The board without Autodarts lacks {key}")
+        for key in ("local_connected", "detection", "practice_manual_entry"):
+            check(key not in entities, f"The board without Autodarts has {key}")
+
+        async def states(expected: dict[str, str]):
+            async def probe():
+                actual = {
+                    key: (await self.api("GET", f"/api/states/{entities[key]}"))[
+                        "state"
+                    ]
+                    for key in expected
+                }
+                return actual == expected or None
+
+            await wait_for(probe, f"states {expected} of the board without Autodarts")
+
+        await states({"local_status": "manual"})
+        board = {"config_entry_id": entry_id}
+        await self.action("start_game", game="501", players=["Alex", "Sam"], **board)
+        await states({"practice_remaining": "501"})
+        for segment in ("T20", "T20", "T19"):
+            await self.action("throw_dart", segment=segment, **board)
+        await states({"practice_remaining": "324", "local_visit_score": "177"})
+        await self.action("next_player", **board)
+        await states({"practice_remaining": "501", "training_darts": "3"})
+        await self.api("DELETE", f"/api/config/config_entries/entry/{entry_id}")
+        check(
+            not Path(f"/config/.storage/autodarts.{entry_id}.training").exists(),
+            "The training of the board without Autodarts was not deleted",
+        )
+
     async def diagnostics(self, entry_id: str) -> None:
         report = await self.api("GET", f"/api/diagnostics/config_entry/{entry_id}")
         data = report["data"]
@@ -1836,6 +1901,7 @@ async def main() -> None:
         await scenario.people()
         await scenario.gallery()
         await scenario.tournament()
+        await scenario.manual_board()
         await scenario.diagnostics(entry_id)
         await scenario.logs()
         await scenario.remove(entry_id)
@@ -1854,7 +1920,8 @@ async def main() -> None:
         "hand with an undone visit, a match against the bot, games started by voice, "
         "dashboard card, players linked to "
         "persons, the highlight gallery in the media browser, a round robin "
-        "tournament, private diagnostics, clean logs and removal."
+        "tournament, a dartboard without Autodarts beside the board, private "
+        "diagnostics, clean logs and removal."
     )
 
 

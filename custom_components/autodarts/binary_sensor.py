@@ -32,7 +32,10 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
+    coordinator = entry.runtime_data.local
+    # The connection, the motion and the cameras of a board; a dartboard
+    # without Autodarts has none of them.
+    if coordinator and not coordinator.manual_board:
         async_add_entities(
             [AutodartsLocalConnectivity(coordinator)]
             + [

@@ -33,6 +33,7 @@ Die Anleitungen zeigen die Karten im Einsatz: [Spiele und Regeln](games.de.md), 
 - **Trainingsstatistik:** Darts, 3-Dart-Average, Triple, Bulls und 180er der Session.
 - **Verbindungen:** Board Manager, Echtzeit und Kameras; ein Tipp öffnet die Details.
 - **Steuerung:** Erkennung starten oder stoppen, zurücksetzen und kalibrieren. Zurücksetzen und Kalibrieren brauchen einen zweiten Tipp zur Bestätigung. Boards ohne Erkennungsschalter bekommen die Start- oder Stopp-Taste, die zum Board-Status passt.
+- **Tastenfeld:** An einer [Dartscheibe ohne Autodarts](without-autodarts.de.md) steht das Tastenfeld der [Anzeigetafel](#darts-korrigieren-und-eingeben) unter den Darts, und Verbindungen und Steuerung fallen weg. Sein *Letzte Aufnahme zurück* behält seinen Platz und wartet, solange keine Aufnahme zurückgenommen werden kann. Mit `keypad: true` bekommt es auch ein Board mit Autodarts, solange *Übungsspiel manuelle Eingabe* an ist.
 
 Die Scheibe zeigt die Aufnahme; ein Tipp darauf bewirkt nichts. Zahlen, Daten und Uhrzeiten folgen deinen [Profileinstellungen](https://www.home-assistant.io/docs/configuration/user-configuration/): Zahlenformat, 12- oder 24-Stunden-Uhr und die Zeitzone des Servers oder des Browsers.
 
@@ -70,6 +71,7 @@ Auf dem Handy stapelt die Live-Karte Aufnahme, Scheibe, Statistik und Steuerung:
 | `show_summary` | Wahrheitswert | `true` | Die [Match-Zusammenfassung](#match-zusammenfassung) anzeigen, wenn ein X01- oder Cricket-Match endet |
 | `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
 | `corrections` | Wahrheitswert | `true` | Einen Dart der Aufnahme mit einem Tipp darauf korrigieren |
+| `keypad` | Wahrheitswert | `false` | Das [Tastenfeld](#darts-korrigieren-und-eingeben) für von Hand eingegebene Darts zeigen, solange *Übungsspiel manuelle Eingabe* an ist; an einer [Dartscheibe ohne Autodarts](without-autodarts.de.md) erscheint es, außer `false` ist gesetzt |
 | `show_connection` | Wahrheitswert | `true` | Verbindungen anzeigen |
 | `show_controls` | Wahrheitswert | `true` | Steuerung anzeigen |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Haupttaste |
@@ -180,6 +182,8 @@ show_reset: false
 - **Kameras:** eine Kachel pro Kamera mit Status, Bildrate (wenn der Bildraten-Sensor aktiv ist) und eigener Kalibrierung. Ihr Name mit Pfeil öffnet die Kamera. Eine gestörte Kamera wird rot. Der Tastaturfokus bleibt auf der Kalibrieren-Taste, während sie um Bestätigung bittet.
 - **Wartung:** Alle kalibrieren, Erkennung zurücksetzen und Board Manager neu starten, jeweils mit zweitem Tipp zur Bestätigung.
 
+Eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat nichts davon; die Karte sagt es in einem Satz unter ihrem Status.
+
 ### Optionen
 
 | Option | Werte | Standard | Beschreibung |
@@ -270,9 +274,9 @@ Die Darts der Aufnahme unten sind Tasten, solange `corrections` an ist, und das 
 
   <img src="images/de/correct-dart-loupe.webp" alt="Animation auf einem Handy: Das Board hat den zweiten Dart als T20 erkannt, 180 Punkte; ein Tipp darauf und auf Scheibe öffnet die Scheibe vergrößert um den gestrichelten Ring, wo das Board ihn gesehen hat; ein Finger schiebt vom Ring nach oben, die Lupe darüber zeigt das Single 20 unter einem Kreuz, und wo der Finger loslässt, wird die Aufnahme zu 140" width="360">
 
-- **Tastenfeld:** Mit `keypad: true` erscheint ein Tastenfeld, solange *Übungsspiel manuelle Eingabe* an ist, für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras: Jeder Tipp auf ein Feld gibt mit [`autodarts.throw_dart`](entities.de.md#dart-eingeben-autodartsthrow_dart) einen Dart ein, und der nächste Dart beginnt wieder bei S. *Nächster Spieler* beendet die Aufnahme ohne Entnahme, und *Letzte Aufnahme zurück* nimmt die letzte Aufnahme zurück, um sie zu korrigieren; beides braucht einen zweiten Tipp. Solange der Bot am Board ist, wartet das Tastenfeld.
-- **Zurücknehmen:** Ohne Tastenfeld zeigt die Kachel *Zuletzt* neben den Darts die letzte Aufnahme mit einem gebogenen Pfeil, solange [`autodarts.undo_visit`](entities.de.md#aufnahme-zurücknehmen-autodartsundo_visit) sie zurücknehmen kann, für eine falsche Erkennung, die erst nach dem Ziehen der Darts auffällt. Ein Tipp färbt sie rot und fragt *Zurück?*, ein zweiter Tipp nimmt die Aufnahme zurück; sie kommt zurück, um ihre Darts zu korrigieren, und *Nächster Spieler* des Tastenfelds oder [`autodarts.next_player`](entities.de.md#weitergeben-autodartsnext_player) beendet sie wieder.
-- **Markierungen:** Ein Dart, den ein Tipp korrigiert, hat einen Rahmen und einen Stift oben rechts; ein von Hand eingegebener oder korrigierter einen gestrichelten Rahmen, und die Darts des Bots sind in der Akzentfarbe getönt.
+- **Tastenfeld:** Mit `keypad: true` erscheint ein Tastenfeld, solange *Übungsspiel manuelle Eingabe* an ist, für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras; an einer [Dartscheibe ohne Autodarts](without-autodarts.de.md) erscheint es immer, außer die Karte setzt `keypad: false`, etwa auf einem Fernseher ohne Touch. Jeder Tipp auf ein Feld gibt mit [`autodarts.throw_dart`](entities.de.md#dart-eingeben-autodartsthrow_dart) einen Dart ein, und der nächste Dart beginnt wieder bei S. *Nächster Spieler* beendet die Aufnahme ohne Entnahme; er braucht einen zweiten Tipp. Solange der Bot am Board ist, wartet das Tastenfeld.
+- **Zurücknehmen:** Die Kachel *Zuletzt* neben den Darts zeigt die letzte Aufnahme mit einem gebogenen Pfeil, solange [`autodarts.undo_visit`](entities.de.md#aufnahme-zurücknehmen-autodartsundo_visit) sie zurücknehmen kann, für eine falsche Erkennung, die erst nach dem Ziehen der Darts auffällt, oder einen Vertipper auf dem Tastenfeld. Ein Tipp färbt sie rot und fragt *Zurück?*, ein zweiter Tipp nimmt die Aufnahme zurück; sie kommt zurück, um ihre Darts zu korrigieren, und *Nächster Spieler* des Tastenfelds oder [`autodarts.next_player`](entities.de.md#weitergeben-autodartsnext_player) beendet sie wieder. Auch mit dem Tastenfeld ist die Kachel das Zurücknehmen, sodass das Tastenfeld nach jeder Aufnahme dieselben Tasten behält.
+- **Markierungen:** Ein Dart, den ein Tipp korrigiert, hat einen Rahmen und einen Stift oben rechts; ein von Hand eingegebener oder korrigierter einen gestrichelten Rahmen, und die Darts des Bots sind in der Akzentfarbe getönt. An einer Dartscheibe ohne Autodarts, wo jeder Dart von Hand kommt, bekommen nur korrigierte Darts den gestrichelten Rahmen.
 
 Auf einer bildschirmfüllenden Anzeigetafel im Querformat stehen Tastenfeld und Korrektur neben den Punkten, sodass Spieler, Aufnahme und Tastenfeld zusammen auf den Bildschirm passen. Tastenfeld und Korrektur machen Platz für die Spielauswahl, den Ruhemodus, die Match-Zusammenfassung und die Tabelle eines Turniers und reagieren in der Vorschau des Karteneditors nie.
 
@@ -336,7 +340,7 @@ Seiten ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `summary_seconds` | 0–600 | `0` | Wie lange die Zusammenfassung bleibt, in Sekunden; `0` zeigt sie bis zum nächsten Spiel |
 | `celebrations` | Wahrheitswert | `true` | Eine 180, eine Aufnahme ab 100, neun Marks, ein Game Shot und das Match mit Konfetti und einem Leuchten feiern ([Anzeigetafel](scoreboard.de.md#während-des-spiels)) |
 | `corrections` | Wahrheitswert | `true` | Ein Tipp auf einen Dart der Aufnahme [korrigiert ihn](#darts-korrigieren-und-eingeben); ein Tipp auf die letzte Aufnahme neben den Darts nimmt sie zurück, solange es geht |
-| `keypad` | Wahrheitswert | `false` | Das [Tastenfeld](#darts-korrigieren-und-eingeben) für von Hand eingegebene Darts zeigen, solange *Übungsspiel manuelle Eingabe* an ist |
+| `keypad` | Wahrheitswert | `false` | Das [Tastenfeld](#darts-korrigieren-und-eingeben) für von Hand eingegebene Darts zeigen, solange *Übungsspiel manuelle Eingabe* an ist; an einer [Dartscheibe ohne Autodarts](without-autodarts.de.md) erscheint es, außer `false` ist gesetzt |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Spieler am Board, Wege und Aufnahmepunkte |
 
 Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl, Ruhemodus sowie Darts korrigieren und eingeben haben eigene eingeklappte Abschnitte.
@@ -461,7 +465,7 @@ Pro Board entstehen bis zu sechs Ansichten. Sie aktualisieren sich selbst, wenn 
 | **Training** | Die Trainingskarte mit den Bestleistungen, die [Doubles-Karte](#doubles-karte), das Tagesziel mit den Darts von heute, die Serie und die letzte Bestleistung, Darts pro Tag der letzten 30 Tage (aus den Langzeitstatistiken, die Home Assistant stündlich berechnet), der 3-Dart-Average der letzten 7 Tage, Übungslegs pro Tag, First-9-Average, Checkout- und Doppelquote des Übungsspiels sowie die Trainingseinstellungen: Sessions automatisch starten und nach einer Pause beenden |
 | **Spieler** | Die [Spielerkarte](#spielerkarte) und die [Bestenliste](#bestenliste), sobald der erste benannte Spieler ein Profil hat |
 | **Spieleinstellungen** | Die Steuerung des Übungsspiels mit Teams und den Optionen für Golf und Count-Up, die Spielernamen, ihre Startpunkte und das [Turnier](entities.de.md#turniere) mit seinen Einstellungen und Tasten, für alles, was die Spielauswahl der Anzeigetafel nicht einstellt |
-| **Board** | Der Board-Status, die Board-Einstellungen, das Board-Manager-Update und der Anteil der Darts, die das Board korrigiert hat |
+| **Board** | Der Board-Status, die Board-Einstellungen, das Board-Manager-Update und der Anteil der Darts, die das Board korrigiert hat; eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat diese Ansicht nicht |
 
 <img src="images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards" width="760">
 

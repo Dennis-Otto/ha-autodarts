@@ -24,6 +24,8 @@ CONF_PORT: Final = "port"
 CONF_API_GENERATION: Final = "api_generation"
 # Board Manager version found without /api/system; it runs as Board Manager 1.
 CONF_NO_SYSTEM_API: Final = "no_system_api"
+# A dartboard without Autodarts: every dart is entered in Home Assistant.
+CONF_MANUAL_BOARD: Final = "manual_board"
 
 # Detection states around a start or stop; the cameras open or close meanwhile.
 LIFECYCLE_STATUSES: Final = ("starting", "stopping", "stopped", "calibrating", "error")

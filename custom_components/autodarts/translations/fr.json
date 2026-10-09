@@ -49,11 +49,12 @@
       },
       "user": {
         "title": "Configurer Autodarts",
-        "description": "Recherchez des cibles Autodarts sur votre réseau ou saisissez l'adresse d'une cible.",
+        "description": "Recherchez des cibles Autodarts sur votre réseau, saisissez l'adresse d'une cible ou configurez une cible sans Autodarts.",
         "menu_options": {
           "discover": "Rechercher des cibles sur ce réseau",
           "local": "Saisir l'adresse de la cible",
-          "cloud": "Associer un compte cloud"
+          "cloud": "Associer un compte cloud",
+          "manual": "Cible sans Autodarts\u00a0: saisir soi-même chaque fléchette"
         }
       },
       "reconfigure": {
@@ -75,6 +76,16 @@
         "data_description": {
           "host": "Adresse IP ou nom d'hôte du PC sur lequel tourne Autodarts Board Manager, par exemple 192.168.1.50. Sans http:// ni numéro de port.",
           "port": "Port de l'API Board Manager, en général 3180."
+        }
+      },
+      "manual": {
+        "title": "Cible sans Autodarts",
+        "description": "Pour une cible sans comptage automatique\u00a0: vous saisissez chaque fléchette sur le pavé des cartes, et les jeux, les séances d'entraînement et toutes les statistiques fonctionnent comme avec Autodarts.",
+        "data": {
+          "name": "Nom"
+        },
+        "data_description": {
+          "name": "Nomme la cible, son appareil et ses entités, par exemple Cible ou Garage."
         }
       },
       "discover": {
@@ -118,7 +129,8 @@
       "cannot_connect_local": "La cible annoncée sur votre réseau ne répond pas. Vérifiez que Board Manager est bien lancé.",
       "board_not_configured": "Aucun ID de cible n'est configuré dans Board Manager. Commencez par y terminer la configuration de la cible.",
       "already_in_progress": "La configuration de cette cible est déjà en cours.",
-      "address_updated": "Cette cible Autodarts est déjà configurée. Son adresse a été mise à jour et l'intégration est rechargée."
+      "address_updated": "Cette cible Autodarts est déjà configurée. Son adresse a été mise à jour et l'intégration est rechargée.",
+      "manual_board": "Une cible sans Autodarts n'a rien à reconfigurer. Renommez-la dans les paramètres de son appareil."
     },
     "flow_title": "{name}",
     "create_entry": {
@@ -196,7 +208,8 @@
           "takeout": "Retrait",
           "takeout_in_progress": "Retrait des fléchettes",
           "calibrating": "Calibrage en cours",
-          "error": "Erreur"
+          "error": "Erreur",
+          "manual": "Saisie à la main"
         }
       },
       "last_throw_score": {
@@ -764,6 +777,9 @@
     },
     "not_supported": {
       "message": "Cette cible ne prend pas en charge l'action."
+    },
+    "no_board_manager": {
+      "message": "Cette cible n'a pas d'Autodarts\u00a0: il n'y a rien à y piloter."
     },
     "export_folder": {
       "message": "Le dossier d'export {folder} ne doit pas être masqué, et Home Assistant doit y autoriser l'écriture\u00a0: www, les dossiers multimédias et les dossiers de allowlist_external_dirs sont autorisés."

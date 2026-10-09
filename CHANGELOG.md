@@ -4,6 +4,15 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### New
+
+- **Play without Autodarts:** any dartboard can be set up as a board of its own, under *Dartboard without Autodarts: enter every dart yourself*. Its darts are entered on the keypad, which the live card and the scoreboard show without an option to switch on, and every game, the training sessions and all statistics work as with Autodarts. It has the entities of the games, without detection, cameras or a board PC, and the automatic dashboard leaves out its *Board* view ([guide](docs/without-autodarts.md)).
+- **The keypad on the live card:** the option `keypad` of the live card shows the scoreboard's keypad below the darts while *Practice manual entry* is on, with *Next player* and *Undo last visit* ([cards](docs/cards.md#live-card)).
+
+### Changed
+
+- **Undo with the keypad:** on the scoreboard, the tile *Last* beside the darts takes the last visit back with the keypad too, as without it, so the keypad keeps the same keys after every visit; on a phone, its keys used to run over their edges in German. The curved arrow of *Last* keeps to its corner, clear of the words and the score, and on a short screen, such as a phone on its side, the score of the visit is as high as the beds of the darts beside it.
+
 ## [1.10.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.2...v1.10.0) (2026-10-08)
 
 ### New

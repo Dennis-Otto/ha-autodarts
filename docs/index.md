@@ -100,7 +100,13 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    Requirements, HACS and manual installation, the three ways to add a board, the optional cloud link, reconfiguration, updating and removal.
+    Requirements, HACS and manual installation, the ways to add a board, the optional cloud link, reconfiguration, updating and removal.
+
+- :material-pencil:{ .lg .middle } [**Play without Autodarts**](without-autodarts.md)
+
+    ---
+
+    Any dartboard, with every game, the training and the statistics: you enter the darts on a keypad.
 
 - :material-bullseye-arrow:{ .lg .middle } [**Games and rules**](games.md)
 

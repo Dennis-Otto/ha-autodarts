@@ -249,10 +249,13 @@ class Checkpoint:
 class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Keep controls local and reconcile push notifications with periodic reads."""
 
+    # A dartboard without Autodarts, see AutodartsManualCoordinator.
+    manual_board = False
+
     def __init__(
         self,
         hass: HomeAssistant,
-        client: AutodartsLocalClient,
+        client: AutodartsLocalClient | None,
         board_id: str,
         entry: ConfigEntry,
     ) -> None:
@@ -271,7 +274,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ),
         )
         self._entry: ConfigEntry = entry
-        self.client = client
+        self._client = client
         self.board_id = board_id
         self.device_name = "Autodarts Board"
         self.event_signal = f"{DOMAIN}_{entry.entry_id}_event"
@@ -349,6 +352,15 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # The game and the statistics before the last visit of a player was
         # booked, to undo the visit.
         self._undo: Checkpoint | None = None
+
+    @property
+    def client(self) -> AutodartsLocalClient:
+        """The Board Manager; a dartboard without Autodarts has none to control."""
+        if self._client is None:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="no_board_manager"
+            )
+        return self._client
 
     async def async_load(self) -> None:
         """Restore the stored training, games and reports; before the first poll.
@@ -443,12 +455,16 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._midnight_unsub = async_track_time_change(
                 self.hass, self._async_new_day, hour=0, minute=0, second=1
             )
+        self._start_realtime()
+        # The bot goes on with its turn after a restart.
+        self._schedule_bot()
+
+    @callback
+    def _start_realtime(self) -> None:
         if self._stream_task is None:
             self._stream_task = self._entry.async_create_background_task(
                 self.hass, self._listen(), f"{DOMAIN} local events"
             )
-        # The bot goes on with its turn after a restart.
-        self._schedule_bot()
 
     async def async_shutdown(self) -> None:
         await super().async_shutdown()
@@ -2065,3 +2081,43 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 ) from err
             self._metadata_updated = 0
             await self.async_request_refresh()
+
+
+# A dartboard without Autodarts stands like a board whose detection is stopped:
+# the darts entered by hand make every visit on their own, see ManualDarts.
+MANUAL_STATE = {"running": False, "status": "Manual", "numThrows": 0, "throws": []}
+
+
+class AutodartsManualCoordinator(AutodartsLocalCoordinator):
+    """A dartboard without Autodarts: every dart is entered in Home Assistant.
+
+    The training, the games and the statistics work as they do with a board.
+    There is no Board Manager to read or to control, so nothing is polled.
+    """
+
+    manual_board = True
+
+    def __init__(self, hass: HomeAssistant, board_id: str, entry: ConfigEntry) -> None:
+        super().__init__(hass, None, board_id, entry)
+        self.update_interval = None
+
+    def _restore(self, saved: object) -> None:
+        super()._restore(saved)
+        # Without detection, the darts entered by hand are the only darts.
+        self.practice.manual_entry = True
+
+    @callback
+    def _start_realtime(self) -> None:
+        """No board sends anything."""
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """The board as it stands, from the start: darts only come by hand."""
+        data = dict(self.data or {})
+        if "local" not in data:
+            data["local"] = dict(MANUAL_STATE)
+            self._process(data, {"local"}, "manual")
+        return data
+
+    def diagnostics(self) -> dict[str, Any]:
+        """A board without Autodarts connects to nothing."""
+        return {"manual_board": True}

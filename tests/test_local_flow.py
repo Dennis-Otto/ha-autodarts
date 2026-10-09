@@ -165,9 +165,13 @@ async def test_menus_offer_no_cloud_link_without_a_client_id(hass):
         domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
     )
     entry.add_to_hass(hass)
-    for context in (
-        {"source": SOURCE_USER},
-        {"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id},
+    for context, options in (
+        ({"source": SOURCE_USER}, ["discover", "local", "manual"]),
+        # A board being set up again stays a board with Autodarts.
+        (
+            {"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id},
+            ["discover", "local"],
+        ),
     ):
         result = await hass.config_entries.flow.async_init("autodarts", context=context)
-        assert result["menu_options"] == ["discover", "local"]
+        assert result["menu_options"] == options

@@ -35,11 +35,12 @@ async def async_setup_entry(
 ) -> None:
     if coordinator := entry.runtime_data.local:
         unsupported = V1_BUTTONS if coordinator.board_manager_2 else ()
+        # A dartboard without Autodarts has nothing to start, reset or calibrate.
         async_add_entities(
             [
                 AutodartsButton(coordinator, key)
                 for key in BUTTONS
-                if key not in unsupported
+                if key not in unsupported and not coordinator.manual_board
             ]
             + [
                 AutodartsTrainingReset(coordinator),
@@ -66,8 +67,9 @@ async def async_setup_entry(
                     ]
                 )
 
-        discover_cameras()
-        entry.async_on_unload(coordinator.async_add_listener(discover_cameras))
+        if not coordinator.manual_board:
+            discover_cameras()
+            entry.async_on_unload(coordinator.async_add_listener(discover_cameras))
 
 
 class AutodartsButton(AutodartsLocalEntity, ButtonEntity):

@@ -28,18 +28,28 @@ async def async_setup_entry(
     if coordinator := entry.runtime_data.local:
         # Board Manager 2 manages its cloud link itself; it offers no toggle.
         upstream = () if coordinator.board_manager_2 else ("upstream",)
-        async_add_entities(
-            [
+        # A dartboard without Autodarts has no detection, settings or takeouts,
+        # and every dart is entered by hand.
+        board: list[SwitchEntity] = (
+            []
+            if coordinator.manual_board
+            else [
                 *(
                     AutodartsSwitch(coordinator, key)
                     for key in ("detection", *upstream, *CONFIG_SWITCHES)
                 ),
                 AutodartsStuckTakeoutSwitch(coordinator),
+            ]
+        )
+        async_add_entities(
+            [
+                *board,
                 AutodartsTrainingSwitch(coordinator, "training_session"),
                 AutodartsTrainingSwitch(coordinator, "training_auto_start"),
                 *(
                     AutodartsPracticeSwitch(coordinator, option)
                     for option in PRACTICE_OPTIONS
+                    if not (coordinator.manual_board and option == "manual_entry")
                 ),
                 AutodartsAchievementsSwitch(coordinator),
                 AutodartsTournamentSwitch(coordinator, "third_place"),

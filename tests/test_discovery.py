@@ -329,7 +329,7 @@ async def test_search_lists_new_boards_and_connects_locally(hass, aioclient_mock
     aioclient_mock.get(DISCOVERY_URL, json=LISTED)
     mock_board_v2(aioclient_mock)
     result = await start(hass)
-    assert result["menu_options"] == ["discover", "local"]
+    assert result["menu_options"] == ["discover", "local", "manual"]
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"next_step_id": "discover"}
     )

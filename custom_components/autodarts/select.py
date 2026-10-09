@@ -27,9 +27,13 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     if coordinator := entry.runtime_data.local:
+        # A dartboard without Autodarts has no cameras to send to standby.
+        standby = (
+            [] if coordinator.manual_board else [AutodartsStandbySelect(coordinator)]
+        )
         async_add_entities(
             [
-                AutodartsStandbySelect(coordinator),
+                *standby,
                 AutodartsPracticeGame(coordinator),
                 AutodartsGolfHoles(coordinator),
                 AutodartsReportDay(coordinator),

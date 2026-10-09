@@ -2656,6 +2656,139 @@ def online_bridge_options(page: Page) -> None:
     context.close()
 
 
+# A dartboard without Autodarts -------------------------------------------------------
+
+MANUAL_DASHBOARD = "autodarts-manual"
+ADD_MANUAL_BOARD = """
+async (name) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const flow = (path, data) => hass.callApi('POST', `config/config_entries/flow${path}`, data);
+  const menu = await flow('', { handler: 'autodarts' });
+  const form = await flow(`/${menu.flow_id}`, { next_step_id: 'manual' });
+  const done = await flow(`/${form.flow_id}`, { name });
+  return done.result.entry_id;
+}
+"""
+MANUAL_DEVICE = """
+(entry) => Object.values(document.querySelector('home-assistant').hass.devices ?? {})
+  .find((device) => device.config_entries.includes(entry))?.id ?? null
+"""
+# The live card and the scoreboard of the board without Autodarts, in a dashboard of
+# their own: the cards of the demo dashboard show its first board.
+SAVE_MANUAL_DASHBOARD = """
+async ([path, device]) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const card = (type, options = {}) => ({ type: `custom:${type}`, device_id: device, ...options });
+  await hass.callWS({
+    type: 'lovelace/dashboards/create', url_path: path, title: 'Garage', mode: 'storage',
+    show_in_sidebar: false, require_admin: false,
+  });
+  await hass.callWS({
+    type: 'lovelace/config/save', url_path: path,
+    config: { views: [
+      {
+        title: 'Live', path: 'live', type: 'sections', max_columns: 2,
+        sections: [{ type: 'grid', column_span: 2, cards: [card('autodarts-card')] }],
+      },
+      { title: 'Scoreboard', path: 'scoreboard', panel: true, cards: [card('autodarts-scoreboard-card', { full_height: true })] },
+    ] },
+  });
+}
+"""
+MANUAL_MENU = {
+    "en": "Dartboard without Autodarts: enter every dart yourself",
+    "de": "Dartscheibe ohne Autodarts: jeden Dart selbst eingeben",
+}
+MANUAL_TITLE = {"en": "Dartboard without Autodarts", "de": "Dartscheibe ohne Autodarts"}
+
+
+def manual_setup(page: Page) -> None:
+    """The form of the setup that adds a dartboard without Autodarts."""
+    page.goto(f"{HA}/config/integrations/dashboard/add?domain=autodarts")
+    confirm = page.get_by_role("button", name="OK", exact=True)
+    try:
+        confirm.wait_for(timeout=10000)
+        confirm.click()
+    except PlaywrightTimeoutError:
+        pass
+    menu = page.get_by_text(MANUAL_MENU[LANGUAGE], exact=True)
+    menu.wait_for(timeout=30000)
+    menu.click()
+    page.get_by_text(MANUAL_TITLE[LANGUAGE], exact=True).wait_for(timeout=15000)
+    rest_pointer(page)
+    page.wait_for_timeout(800)
+    page_shot(page, "setup-manual")
+    # The board itself is added below, the same way in every run.
+    page.goto(f"{HA}/autodarts-demo/board")
+
+
+def keypad_dart(page: Page, recorder: Recorder, multiplier: str, bed: str) -> None:
+    """A dart on the keypad: its multiplier, then its number."""
+    card = page.locator(SCOREBOARD)
+    if multiplier != "1":
+        tap(
+            page,
+            recorder,
+            card.locator(f"[data-pad='multiplier'][data-value='{multiplier}']"),
+            350,
+        )
+    tap(page, recorder, card.locator(f".pad-number[data-value='{bed}']"), 600)
+
+
+def manual_board(page: Page) -> None:
+    """A dartboard without Autodarts beside the demo board: the setup form, a visit
+    entered with taps on the scoreboard's keypad, and the live card with the keypad
+    while the next player enters darts. It leaves the demo again afterwards."""
+    open_dashboard(page, "board")
+    manual_setup(page)
+    entry = page.evaluate(ADD_MANUAL_BOARD, "Garage")
+    page.wait_for_function(f"() => ({MANUAL_DEVICE})('{entry}')", timeout=30000)
+    device = page.evaluate(MANUAL_DEVICE, entry)
+    page.evaluate(SAVE_MANUAL_DASHBOARD, [MANUAL_DASHBOARD, device])
+    board = {"config_entry_id": entry}
+    page.evaluate(
+        CALL_ACTION,
+        ["start_game", {**board, "game": "501", "players": ["Alex", "Sam"], "legs": 1}],
+    )
+    tablet_page = tablet(page, f"{MANUAL_DASHBOARD}/scoreboard")
+    wait_card(tablet_page, "!!r.querySelector('.pad')", SCOREBOARD, 60000)
+    tablet_page.wait_for_timeout(1500)
+    recorder = Recorder(tablet_page, SCOREBOARD)
+    recorder.shot(1400)
+    keypad_dart(tablet_page, recorder, "3", "T20")
+    keypad_dart(tablet_page, recorder, "3", "T20")
+    keypad_dart(tablet_page, recorder, "3", "T19")
+    wait_card(
+        tablet_page, "r.querySelector('.sum .value')?.textContent === '177'", SCOREBOARD
+    )
+    recorder.shot(1600)
+    card = tablet_page.locator(SCOREBOARD)
+    tap(tablet_page, recorder, card.locator("[data-pad='next']"), 700)
+    tap(tablet_page, recorder, card.locator("[data-pad='next']"), 300)
+    wait_card(tablet_page, "!!r.querySelector('.player.active')", SCOREBOARD)
+    tablet_page.wait_for_timeout(600)
+    recorder.shot(2600)
+    recorder.save("manual-entry")
+    tablet_page.close()
+    # Sam enters two darts; the live card shows them on its board.
+    for segment in ("T20", "S19"):
+        page.evaluate(CALL_ACTION, ["throw_dart", {**board, "segment": segment}])
+    page.goto(f"{HA}/{MANUAL_DASHBOARD}/live")
+    wait_card(page, "r.querySelector('.score')?.textContent === '79'", timeout=60000)
+    page.wait_for_timeout(800)
+    card_shot(page, "manual-live")
+    page.evaluate(
+        """async ([path, entry]) => {
+          const hass = document.querySelector('home-assistant').hass;
+          const dashboards = await hass.callWS({ type: 'lovelace/dashboards/list' });
+          const dashboard = dashboards.find((item) => item.url_path === path);
+          await hass.callWS({ type: 'lovelace/dashboards/delete', dashboard_id: dashboard.id });
+          await hass.callApi('DELETE', `config/config_entries/entry/${entry}`);
+        }""",
+        [MANUAL_DASHBOARD, entry],
+    )
+
+
 def main() -> None:
     OUTPUT.mkdir(parents=True, exist_ok=True)
     # The inner context saves the open pages while the browser still runs.
@@ -2836,6 +2969,17 @@ def main() -> None:
         training_calendar(page)
         weekly_report_notification(page)
         page.close()
+
+        # Last: a second board would be the first of the cards without one.
+        manual = new_context(
+            browser,
+            viewport={"width": 1280, "height": 1000},
+            device_scale_factor=2,
+            locale=LOCALE,
+            color_scheme="dark",
+        )
+        manual_board(manual.new_page())
+        manual.close()
         browser.close()
 
 

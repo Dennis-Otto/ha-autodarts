@@ -10,7 +10,7 @@ You play on an Autodarts board and have never used Home Assistant? This guide ta
 
 ## What you need
 
-- **Your Autodarts board,** set up and working. [Supported devices](README.md#supported-devices) lists the tested setups.
+- **Your Autodarts board,** set up and working. [Supported devices](README.md#supported-devices) lists the tested setups. No Autodarts? [Play without Autodarts](without-autodarts.md) on any dartboard, entering your darts on a keypad.
 - **A device for Home Assistant** that stays on, in the same network as the board: a Raspberry Pi 4 or 5, a mini PC, or a virtual machine on a computer that runs all the time. Home Assistant also sells ready-made devices. Use a device of its own: the board PC needs its power for the detection.
 - **A free GitHub account,** which HACS uses to download integrations.
 - **A screen for the scoreboard,** if you want one: a tablet, a TV with a browser or an old phone.
@@ -41,9 +41,9 @@ With Board Manager 2, Home Assistant usually finds the board by itself: **Settin
 
 Otherwise, select the button above and choose **Search for boards on this network**, or **Enter board address** with the IP address of the board PC. You need no Autodarts account.
 
-<img src="images/en/setup-menu.png" alt="The Autodarts setup menu: search for boards on this network or enter a board address" width="520">
+<img src="images/en/setup-menu.png" alt="The Autodarts setup menu: search for boards on this network, enter a board address, or a dartboard without Autodarts" width="520">
 
-The [installation guide](installation.md#add-your-board) explains the three ways in detail.
+The [installation guide](installation.md#add-your-board) explains the ways in detail. Without Autodarts, choose **Dartboard without Autodarts: enter every dart yourself** and give the board a name; [Play without Autodarts](without-autodarts.md) shows the rest.
 
 ## 5. Create the dashboard
 

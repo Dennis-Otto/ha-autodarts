@@ -78,6 +78,8 @@ LOCAL_STATES = [
     "takeout_in_progress",
     "calibrating",
     "error",
+    # A dartboard without Autodarts, whose darts are entered by hand.
+    "manual",
 ]
 MATCH_STATES = ["no_match", "active", "finished"]
 BOARD_STATES = ["connected", "disconnected"]
@@ -361,7 +363,9 @@ async def async_setup_entry(
             AutodartsPracticeStatistic(runtime.local, key)
             for key in PRACTICE_STATISTICS
         )
-        entities.append(AutodartsCorrectionRate(runtime.local))
+        # A dartboard without Autodarts detects nothing to correct.
+        if not runtime.local.manual_board:
+            entities.append(AutodartsCorrectionRate(runtime.local))
         entities.extend(
             (
                 AutodartsPersonalBest(runtime.local),
@@ -375,10 +379,12 @@ async def async_setup_entry(
                 AutodartsTournament(runtime.local),
             )
         )
+        # Without a board, nothing counts the darts in it or reports its events.
+        board_keys = {SENSOR_LAST_THROW} if runtime.local.manual_board else local_keys
         entities.extend(
             AutodartsLocalSensor(runtime.local, _local_description(description))
             for description in STATIC_SENSORS
-            if description.key in local_keys
+            if description.key in board_keys
         )
         if runtime.local.board_manager_2:
             entities.extend(
@@ -392,11 +398,12 @@ async def async_setup_entry(
                 else AutodartsLocalSensor
             )(runtime.local, description)
             for description in LOCAL_SENSORS
+            if not (runtime.local.manual_board and description.key == "detection_fps")
         )
         if runtime.bridge:
             entities.append(AutodartsOnlineBridgeSensor(runtime.local, runtime.bridge))
     async_add_entities(entities)
-    if coordinator := runtime.local:
+    if (coordinator := runtime.local) and not coordinator.manual_board:
         known: set[int] = set()
 
         @callback

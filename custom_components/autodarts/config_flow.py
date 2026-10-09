@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import uuid
 from collections.abc import Mapping
 from ipaddress import IPv4Address, ip_address
 from typing import Any
@@ -38,6 +39,7 @@ from .const import (
     CONF_CLIENT_ID,
     CONF_HOST,
     CONF_LOCAL_ONLY,
+    CONF_MANUAL_BOARD,
     CONF_PORT,
     CONF_TOKEN,
     DEFAULT_PORT,
@@ -103,11 +105,18 @@ def _announced_port(discovery_info: ZeroconfServiceInfo) -> int:
     return DEFAULT_PORT
 
 
-def _menu_options() -> list[str]:
-    """Offer the cloud link only while a client ID can actually be obtained."""
+# The name a dartboard without Autodarts gets unless the user chooses another.
+MANUAL_BOARD_NAME = "Dartboard"
+
+
+def _menu_options(manual: bool = False) -> list[str]:
+    """Offer the cloud link only while a client ID can actually be obtained,
+    and a dartboard without Autodarts when one is set up."""
     options = ["discover", "local"]
     if const.CLOUD_LINK_AVAILABLE:
         options.append("cloud")
+    if manual:
+        options.append("manual")
     return options
 
 
@@ -152,8 +161,43 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Search the network, enter a board address or link a cloud account."""
-        return self.async_show_menu(step_id="user", menu_options=_menu_options())
+        """Search the network, enter a board address, link a cloud account or
+        set up a dartboard without Autodarts."""
+        return self.async_show_menu(
+            step_id="user", menu_options=_menu_options(manual=True)
+        )
+
+    async def async_step_manual(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """A dartboard without Autodarts, whose darts are all entered by hand.
+
+        It has no board ID of its own, so every one gets a new one: a home
+        may have several.
+        """
+        if user_input is not None:
+            name = user_input[CONF_NAME]
+            board_id = f"manual_{uuid.uuid4().hex}"
+            await self.async_set_unique_id(board_id)
+            return self.async_create_entry(
+                title=f"Autodarts ({name})",
+                data={
+                    CONF_BOARD_ID: board_id,
+                    CONF_MANUAL_BOARD: True,
+                    CONF_LOCAL_ONLY: True,
+                    CONF_NAME: name,
+                },
+            )
+        return self.async_show_form(
+            step_id="manual",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_NAME, default=MANUAL_BOARD_NAME): vol.All(
+                        str, vol.Strip, vol.Length(min=1, max=50)
+                    )
+                }
+            ),
+        )
 
     async def _async_identify(self, host: str, port: int) -> dict[str, Any]:
         client = AutodartsLocalClient(host, port, async_get_clientsession(self.hass))
@@ -304,6 +348,8 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         entry = self._get_reconfigure_entry()
+        if entry.data.get(CONF_MANUAL_BOARD):
+            return self.async_abort(reason="manual_board")
         self._user_input = {
             key: entry.data[key]
             for key in (CONF_HOST, CONF_PORT, CONF_CLIENT_ID)

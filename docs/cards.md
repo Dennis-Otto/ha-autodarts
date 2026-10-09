@@ -33,6 +33,7 @@ The guides show the cards at work: [games and rules](games.md), [scoreboard at t
 - **Training statistics:** darts, 3-dart average, triples, bulls and 180s of the session.
 - **Connections:** Board Manager, realtime and cameras. Tap a chip for details.
 - **Controls:** start or stop detection, reset detection and calibrate. Resetting and calibrating need a second tap to confirm. Boards without a detection switch get the start or stop button that fits the board status.
+- **Keypad:** on a [dartboard without Autodarts](without-autodarts.md), the keypad of the [scoreboard](#correcting-and-entering-darts) sits below the darts, and the connections and controls are left out. Its *Undo last visit* keeps its place and waits while no visit can be undone. With `keypad: true`, a board with Autodarts gets it too while *Practice manual entry* is on.
 
 The board shows the visit; nothing on it reacts to a tap. Numbers, dates and times follow your [profile settings](https://www.home-assistant.io/docs/configuration/user-configuration/): number format, 12- or 24-hour clock and the time zone of the server or the browser.
 
@@ -70,6 +71,7 @@ On a phone, the live card stacks the visit, the board, the statistics and the co
 | `show_summary` | boolean | `true` | Show the [match summary](#match-summary) when an X01 or Cricket match ends |
 | `summary_seconds` | 0–600 | `0` | How long the summary stays, in seconds; `0` keeps it until the next game starts |
 | `corrections` | boolean | `true` | Correct a dart of the visit with a tap on it |
+| `keypad` | boolean | `false` | Show the [keypad](#correcting-and-entering-darts) for darts entered by hand while *Practice manual entry* is on; on a [dartboard without Autodarts](without-autodarts.md) it shows unless `false` is set |
 | `show_connection` | boolean | `true` | Show the connection chips |
 | `show_controls` | boolean | `true` | Show the controls |
 | `accent_color` | [color](#colors) | theme primary color | Labels and main button |
@@ -180,6 +182,8 @@ show_reset: false
 - **Cameras:** a tile for every camera with its status and frame rate (if the frame-rate sensor is enabled) and its own calibration. Its name with an arrow opens the camera. A camera with a problem turns red. The keyboard focus stays on a calibration button while it asks for confirmation.
 - **Maintenance:** calibrate all cameras, reset detection and restart Board Manager. Each needs a second tap to confirm.
 
+A [dartboard without Autodarts](without-autodarts.md) has none of these; the card says so in a sentence below its status.
+
 ### Options
 
 | Option | Values | Default | Description |
@@ -270,9 +274,9 @@ The darts of the visit along the bottom are buttons while `corrections` is on, w
 
   <img src="images/en/correct-dart-loupe.webp" alt="Animation on a phone: the board read the second dart as T20 for 180; a tap on it and on Board opens the board zoomed in around the dashed ring where the board saw it; a finger slides up from the ring, the loupe above it shows the single 20 under a cross, and where the finger lets go the visit becomes 140" width="360">
 
-- **Keypad:** with `keypad: true`, a keypad shows while *Practice manual entry* is on, for darts the board missed or a player without cameras: every tap on a bed enters a dart with [`autodarts.throw_dart`](entities.md#enter-a-dart-autodartsthrow_dart), and the next dart starts from S again. *Next player* ends the visit without a takeout, and *Undo last visit* takes the last visit back to correct it; both need a second tap. While the bot is at the board, the keypad waits.
-- **Undo:** without the keypad, the tile *Last* beside the darts shows the last visit with a curved arrow while [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) can take it back, for a wrong reading noticed after the darts were pulled. A tap turns it red and asks *Undo?*, a second tap takes the visit back; it comes back to correct its darts, and the keypad's *Next player* or [`autodarts.next_player`](entities.md#pass-the-turn-autodartsnext_player) ends it again.
-- **Marks:** a dart that a tap corrects has a frame and a pencil at its top right; one entered or corrected by hand has a dashed frame, and the bot's darts are tinted in the accent color.
+- **Keypad:** with `keypad: true`, a keypad shows while *Practice manual entry* is on, for darts the board missed or a player without cameras; on a [dartboard without Autodarts](without-autodarts.md) it always shows, unless the card sets `keypad: false`, for example on a TV without touch. Every tap on a bed enters a dart with [`autodarts.throw_dart`](entities.md#enter-a-dart-autodartsthrow_dart), and the next dart starts from S again. *Next player* ends the visit without a takeout; it needs a second tap. While the bot is at the board, the keypad waits.
+- **Undo:** the tile *Last* beside the darts shows the last visit with a curved arrow while [`autodarts.undo_visit`](entities.md#undo-a-visit-autodartsundo_visit) can take it back, for a wrong reading noticed after the darts were pulled or a typo on the keypad. A tap turns it red and asks *Undo?*, a second tap takes the visit back; it comes back to correct its darts, and the keypad's *Next player* or [`autodarts.next_player`](entities.md#pass-the-turn-autodartsnext_player) ends it again. With the keypad too, the tile is the undo, so the keypad keeps the same keys after every visit.
+- **Marks:** a dart that a tap corrects has a frame and a pencil at its top right; one entered or corrected by hand has a dashed frame, and the bot's darts are tinted in the accent color. On a dartboard without Autodarts, where every dart is entered by hand, only corrected darts get the dashed frame.
 
 On a full-height scoreboard in landscape, the pad and the keypad sit beside the scores, so the players, the visit and the pad fit the screen together. The pad and the keypad make room for the new game screen, idle mode, the match summary and a tournament's table, and never react in the preview of the card editor.
 
@@ -336,7 +340,7 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `summary_seconds` | 0–600 | `0` | How long the summary stays, in seconds; `0` keeps it until the next game starts |
 | `celebrations` | boolean | `true` | Celebrate a 180, a visit of 100 or more, nine marks, a game shot and the match with confetti and a glow ([scoreboard](scoreboard.md#during-the-game)) |
 | `corrections` | boolean | `true` | A tap on a dart of the visit [corrects it](#correcting-and-entering-darts); a tap on the last visit beside the darts takes it back while possible |
-| `keypad` | boolean | `false` | Show the [keypad](#correcting-and-entering-darts) for darts entered by hand while *Practice manual entry* is on |
+| `keypad` | boolean | `false` | Show the [keypad](#correcting-and-entering-darts) for darts entered by hand while *Practice manual entry* is on; on a [dartboard without Autodarts](without-autodarts.md) it shows unless `false` is set |
 | `accent_color` | [color](#colors) | theme primary color | The player at the board, routes and the visit score |
 
 In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen, idle mode, and correcting and entering darts have collapsed sections of their own.
@@ -461,7 +465,7 @@ For every board, the dashboard gets up to six views, which update themselves whe
 | **Training** | The training card with the personal bests, the [doubles card](#doubles-card), the daily goal with darts today, the streak and the last personal best, darts per day for the last 30 days (from long-term statistics, which Home Assistant compiles hourly), the 3-dart average of the last 7 days, practice legs per day, the first 9 average, checkout rate and doubles rate of the practice game, and the training settings: starting sessions automatically and ending them after a pause |
 | **Players** | The [players card](#players-card) and the [leaderboard](#leaderboard-card), once the first named player has a profile |
 | **Game settings** | The practice game controls with teams and the Golf and Count-Up options, the player names, their start scores and the [tournament](entities.md#tournaments) with its settings and buttons, for what the scoreboard's new game screen leaves out |
-| **Board** | The board status card, the board settings, the Board Manager update and the share of darts the board corrected |
+| **Board** | The board status card, the board settings, the Board Manager update and the share of darts the board corrected; a [dartboard without Autodarts](without-autodarts.md) has no such view |
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard" width="760">
 

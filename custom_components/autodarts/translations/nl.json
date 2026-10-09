@@ -49,11 +49,12 @@
       },
       "user": {
         "title": "Autodarts instellen",
-        "description": "Zoek in je netwerk naar Autodarts-borden of voer een bordadres in.",
+        "description": "Zoek in je netwerk naar Autodarts-borden, voer een bordadres in of stel een dartbord zonder Autodarts in.",
         "menu_options": {
           "discover": "Borden zoeken in dit netwerk",
           "local": "Bordadres invoeren",
-          "cloud": "Cloudaccount koppelen"
+          "cloud": "Cloudaccount koppelen",
+          "manual": "Dartbord zonder Autodarts: elke dart zelf invoeren"
         }
       },
       "reconfigure": {
@@ -75,6 +76,16 @@
         "data_description": {
           "host": "IP-adres of hostnaam van de pc waarop Autodarts Board Manager draait, bijvoorbeeld 192.168.1.50. Zonder http:// en zonder poort.",
           "port": "API-poort van Board Manager, meestal 3180."
+        }
+      },
+      "manual": {
+        "title": "Dartbord zonder Autodarts",
+        "description": "Voor een dartbord zonder automatische telling: je voert elke dart in op het toetsenblok van de kaarten, en de spellen, de trainingssessies en alle statistieken werken zoals met Autodarts.",
+        "data": {
+          "name": "Naam"
+        },
+        "data_description": {
+          "name": "Geeft het bord, zijn apparaat en zijn entiteiten een naam, bijvoorbeeld Dartbord of Garage."
         }
       },
       "discover": {
@@ -118,7 +129,8 @@
       "cannot_connect_local": "Het bord dat zich in je netwerk heeft gemeld, reageert niet. Controleer of Board Manager draait.",
       "board_not_configured": "Er is geen bord-ID ingesteld in Board Manager. Rond daar eerst het instellen van het bord af.",
       "already_in_progress": "Dit bord wordt al ingesteld.",
-      "address_updated": "Dit Autodarts-bord is al ingesteld. Het adres is bijgewerkt en de integratie wordt opnieuw geladen."
+      "address_updated": "Dit Autodarts-bord is al ingesteld. Het adres is bijgewerkt en de integratie wordt opnieuw geladen.",
+      "manual_board": "Een dartbord zonder Autodarts heeft niets om opnieuw in te stellen. Hernoem het in de instellingen van zijn apparaat."
     },
     "flow_title": "{name}",
     "create_entry": {
@@ -196,7 +208,8 @@
           "takeout": "Darts verwijderen",
           "takeout_in_progress": "Darts worden verwijderd",
           "calibrating": "Bezig met kalibreren",
-          "error": "Fout"
+          "error": "Fout",
+          "manual": "Handmatige invoer"
         }
       },
       "last_throw_score": {
@@ -764,6 +777,9 @@
     },
     "not_supported": {
       "message": "Dit bord ondersteunt deze actie niet."
+    },
+    "no_board_manager": {
+      "message": "Dit dartbord heeft geen Autodarts, er valt dus niets aan te sturen."
     },
     "export_folder": {
       "message": "De exportmap {folder} mag niet verborgen zijn, en Home Assistant moet er schrijven toestaan: www, de mediamappen en de mappen uit allowlist_external_dirs zijn toegestaan."
