@@ -66,6 +66,14 @@
           "cloud": "Cloud-Konto verknüpfen"
         }
       },
+      "reconfigure_manual": {
+        "title": "Autodarts-Board anschließen",
+        "description": "Deine Dartscheibe hat Autodarts bekommen? Schließe das Board an: Die Dartscheibe behält ihre Spiele, Statistiken, Entitäten und Dashboards und bekommt die Erkennung, die Kameras und die Steuerung des Boards.",
+        "menu_options": {
+          "discover": "Boards im Netzwerk suchen",
+          "local": "Board-Adresse eingeben"
+        }
+      },
       "local": {
         "title": "Lokales Board verbinden",
         "description": "Gib die IP-Adresse oder den Hostnamen des Board Managers ein, ohne http:// und ohne Port. Das Board muss bereits im Board Manager eingerichtet sein.",
@@ -130,7 +138,7 @@
       "board_not_configured": "Im Board Manager ist noch keine Board-ID eingerichtet. Schließe dort zuerst die Einrichtung des Boards ab.",
       "already_in_progress": "Die Einrichtung dieses Boards läuft bereits.",
       "address_updated": "Dieses Autodarts-Board ist bereits eingerichtet. Seine Adresse wurde aktualisiert, und die Integration wird neu geladen.",
-      "manual_board": "Bei einer Dartscheibe ohne Autodarts gibt es nichts neu einzurichten. Umbenennen kannst du sie in den Einstellungen ihres Geräts."
+      "board_connected": "Das Autodarts-Board ist angeschlossen. Die Dartscheibe behält ihre Spiele, Statistiken und Dashboards, und die Integration lädt neu."
     },
     "flow_title": "{name}",
     "create_entry": {

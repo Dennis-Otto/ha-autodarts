@@ -1797,6 +1797,25 @@ class Scenario:
         await states({"practice_remaining": "324", "local_visit_score": "177"})
         await self.action("next_player", **board)
         await states({"practice_remaining": "501", "training_darts": "3"})
+        # Its Autodarts board can be connected later, but not one that another
+        # entry has already.
+        menu = await self.api(
+            "POST",
+            "/api/config/config_entries/flow",
+            json={"handler": "autodarts", "entry_id": entry_id},
+        )
+        check(
+            menu["step_id"] == "reconfigure_manual"
+            and menu["menu_options"] == ["discover", "local"],
+            f"No way to connect an Autodarts board: {menu}",
+        )
+        form = await self.flow(menu["flow_id"], next_step_id="local")
+        stored = self.board_ip if GENERATION >= 2 else "board-mock"
+        result = await self.flow(form["flow_id"], host=stored, port=PORT)
+        check(
+            result.get("reason") == "already_configured",
+            f"The board of another entry was connected: {result}",
+        )
         await self.api("DELETE", f"/api/config/config_entries/entry/{entry_id}")
         check(
             not Path(f"/config/.storage/autodarts.{entry_id}.training").exists(),

@@ -66,6 +66,14 @@
           "cloud": "Associer un compte cloud"
         }
       },
+      "reconfigure_manual": {
+        "title": "Connecter une cible Autodarts",
+        "description": "Votre cible a désormais Autodarts\u00a0? Connectez-la\u00a0: la cible garde ses jeux, ses statistiques, ses entités et ses tableaux de bord, et reçoit la détection, les caméras et les commandes de la cible.",
+        "menu_options": {
+          "discover": "Rechercher des cibles sur ce réseau",
+          "local": "Saisir l'adresse de la cible"
+        }
+      },
       "local": {
         "title": "Connecter une cible locale",
         "description": "Saisissez l'adresse IP ou le nom d'hôte de Board Manager, sans http:// ni numéro de port. La cible doit déjà être configurée dans Board Manager.",
@@ -130,7 +138,7 @@
       "board_not_configured": "Aucun ID de cible n'est configuré dans Board Manager. Commencez par y terminer la configuration de la cible.",
       "already_in_progress": "La configuration de cette cible est déjà en cours.",
       "address_updated": "Cette cible Autodarts est déjà configurée. Son adresse a été mise à jour et l'intégration est rechargée.",
-      "manual_board": "Une cible sans Autodarts n'a rien à reconfigurer. Renommez-la dans les paramètres de son appareil."
+      "board_connected": "La cible Autodarts est connectée. La cible garde ses jeux, ses statistiques et ses tableaux de bord, et l'intégration est rechargée."
     },
     "flow_title": "{name}",
     "create_entry": {

@@ -21,6 +21,8 @@ from homeassistant.config_entries import (
 )
 from homeassistant.const import CONF_NAME
 from homeassistant.core import callback
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
@@ -348,14 +350,22 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         entry = self._get_reconfigure_entry()
-        if entry.data.get(CONF_MANUAL_BOARD):
-            return self.async_abort(reason="manual_board")
         self._user_input = {
             key: entry.data[key]
             for key in (CONF_HOST, CONF_PORT, CONF_CLIENT_ID)
             if key in entry.data
         }
+        if entry.data.get(CONF_MANUAL_BOARD):
+            return await self.async_step_reconfigure_manual()
         return self.async_show_menu(step_id="reconfigure", menu_options=_menu_options())
+
+    async def async_step_reconfigure_manual(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """The Autodarts board that a dartboard without Autodarts gets."""
+        return self.async_show_menu(
+            step_id="reconfigure_manual", menu_options=["discover", "local"]
+        )
 
     async def async_step_local(
         self, user_input: dict[str, Any] | None = None, error: str | None = None
@@ -380,6 +390,8 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
                         errors["base"] = "board_not_configured"
                     elif self.source == SOURCE_RECONFIGURE:
                         entry = self._get_reconfigure_entry()
+                        if entry.data.get(CONF_MANUAL_BOARD):
+                            return self._connect_board(entry, host, port, identity)
                         if board_id != entry.data[CONF_BOARD_ID]:
                             return self.async_abort(reason="wrong_board")
                         return self.async_update_reload_and_abort(
@@ -415,6 +427,48 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
+        )
+
+    def _connect_board(
+        self, entry: ConfigEntry, host: str, port: int, identity: dict[str, Any]
+    ) -> ConfigFlowResult:
+        """A dartboard without Autodarts gets its Autodarts board.
+
+        The board's ID takes the place of the entry's own in the entry, its device
+        and its entities, so the games, the statistics, the entity IDs and the
+        dashboards stay; the entities of the board come with the reload.
+        """
+        board_id = identity[CONF_BOARD_ID]
+        known = self.hass.config_entries.async_entry_for_domain_unique_id(
+            DOMAIN, board_id
+        )
+        if known is not None:
+            return self.async_abort(reason="already_configured")
+        old = entry.data[CONF_BOARD_ID]
+        entities = er.async_get(self.hass)
+        for item in er.async_entries_for_config_entry(entities, entry.entry_id):
+            unique_id = board_id + item.unique_id.removeprefix(old)
+            # An entity left behind by an earlier entry of the board gives way.
+            if taken := entities.async_get_entity_id(item.domain, DOMAIN, unique_id):
+                entities.async_remove(taken)
+            entities.async_update_entity(item.entity_id, new_unique_id=unique_id)
+        devices = dr.async_get(self.hass)
+        for device in dr.async_entries_for_config_entry(devices, entry.entry_id):
+            devices.async_update_device(device.id, new_identifiers={(DOMAIN, board_id)})
+        data = {
+            **{
+                key: value
+                for key, value in entry.data.items()
+                if key != CONF_MANUAL_BOARD
+            },
+            CONF_BOARD_ID: board_id,
+            CONF_HOST: host,
+            CONF_PORT: port,
+        }
+        if generation := board_generation(identity.get("version")):
+            data[CONF_API_GENERATION] = generation
+        return self.async_update_reload_and_abort(
+            entry, unique_id=board_id, data=data, reason="board_connected"
         )
 
     async def async_step_reauth(
