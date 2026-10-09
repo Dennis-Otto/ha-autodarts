@@ -118,7 +118,7 @@ In the works; every part reaches the [betas](installation.md#betas-for-testers) 
 | --- | --- | --- |
 | **Dartboard without Autodarts** | Any dartboard as a board of its own, every dart entered on the keypad of the live card and the scoreboard, with every game, the training and the statistics ([guide](without-autodarts.md)) | Done |
 | **Autodarts later** | A dartboard without Autodarts becomes an Autodarts board when one arrives, and keeps its statistics ([how](without-autodarts.md#autodarts-later)) | Done |
-| **The score of a visit** | X01 visits entered as a score, such as 140, with the darts at a double on a checkout | Planned |
+| **The score of a visit** | X01 visits entered as a score, such as 140, with the darts at a double on a checkout ([how](without-autodarts.md#enter-your-darts)) | Done |
 
 ## Next
 

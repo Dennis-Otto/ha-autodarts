@@ -33,12 +33,16 @@ An einer Dartscheibe ohne Autodarts zeigen die Live-Karte und die Anzeigetafel d
 
 - **Ein Dart:** Tippe **S**, **D** oder **T**, dann die Zahl. **25**, **Bull** und **Fehlwurf** haben eigene Tasten. Jeder Dart beginnt wieder als Single.
 - **Wo er steckt:** **Scheibe** oben im Tastenfeld zeigt die Scheibe statt der Tasten. Tippe, wo der Dart steckt, und das Feld ergibt sich aus der Stelle. So eingegebene Darts zählen auch für die [Dart-Positionen und ihre Streuung](statistics.de.md#trefferbild-und-dart-positionen). Auf dem Handy zielt ein Finger mit einer Lupe, und zwei Finger zoomen, wie beim [Korrigieren eines Darts](scoreboard.de.md#darts-korrigieren-und-eingeben).
+- **Die Punkte einer Aufnahme:** In X01 nimmt **Punkte** oben im Tastenfeld die Aufnahme mit ihrer Punktzahl statt mit ihren Darts, wie am Dartautomaten: Tippe 140 und **OK**. Das Tastenfeld sagt, welchen Rest die Punkte lassen. Ein Checkout fragt nach seinen Darts und den Darts auf ein Doppel, und eine Aufnahme, die ein Doppel in Reichweite ließ, fragt nach den Darts darauf, für die Checkout-Quote; ein Tipp antwortet. Mehr Punkte, als der Spieler noch hat, sind überworfen. Die Felder einer solchen Aufnahme bleiben unbekannt, deshalb zählt sie für die Averages, die 180er, die Checkouts und die Bestleistungen, aber nicht für das Trefferbild, die Doppel oder die Triple.
+
+  <img src="images/de/manual-score.webp" alt="Animation: die Anzeigetafel einer Dartscheibe ohne Autodarts in einem 101-Leg; Alex hat noch 40, tippt Punkte, 4, 0 und OK; das Tastenfeld fragt nach den Darts für den Checkout, 2, und den Darts auf ein Doppel, 1; Alex gewinnt das Match gegen Sam, und die Match-Zusammenfassung zählt den Checkout und einen Dart auf ein Doppel" width="760">
+
 - **Die Aufnahme:** Nach dem dritten Dart sagt der Status *Aufnahme komplett*. **Nächster Spieler** beendet die Aufnahme; er braucht einen zweiten Tipp, damit ein versehentlicher Tipp nie weitergibt. Ohne Dart gibt er weiter, was als Aufnahme mit drei Fehlwürfen zählt.
 - **Ein Fehler:** Tippe auf einen Dart der Aufnahme, um ihn in ein anderes Feld zu legen. Solange kein Dart der nächsten Aufnahme eingegeben ist, nimmt der gebogene Pfeil von **Letzte Aufnahme zurück** die letzte Aufnahme zurück, samt dem Spiel, wie es war.
 
 <img src="images/de/manual-live.png" alt="Die Live-Karte der Dartscheibe ohne Autodarts namens Garage: Sam hat T20 und S19 für 79 eingegeben, in einem 501-Match gegen Alex, der noch 324 braucht; die Scheibe zeigt beide Felder, das Tastenfeld steht unter den Darts, und es gibt keine Fußzeile mit Verbindungen oder Erkennung" width="760">
 
-Die [Aktionen](entities.de.md#dart-eingeben-autodartsthrow_dart) `autodarts.throw_dart`, `autodarts.next_player` und `autodarts.undo_visit` tun dasselbe aus einer Automation, einem Skript oder einem eigenen Knopf; bei mehreren Boards nennst du die `config_entry_id` des Boards.
+Die [Aktionen](entities.de.md#dart-eingeben-autodartsthrow_dart) `autodarts.throw_dart`, [`autodarts.enter_visit`](entities.de.md#aufnahmepunkte-eingeben-autodartsenter_visit), `autodarts.next_player` und `autodarts.undo_visit` tun dasselbe aus einer Automation, einem Skript oder einem eigenen Knopf; bei mehreren Boards nennst du die `config_entry_id` des Boards.
 
 ## Was alles funktioniert
 
@@ -61,6 +65,7 @@ Alles, was die Integration mit Darts macht, denn dafür hat sie die Kameras nie 
 | Automatisches Dashboard | Ansichten *Live*, *Anzeigetafel*, *Training*, *Spieler*, *Spieleinstellungen* und *Board* | Keine Ansicht *Board*: Es gibt keine Erkennung, Kamera oder Board-PC |
 | Board-Status-Karte | Erkennung, Verbindungen, Board-PC, Kameras und Wartung | Ein Hinweis, dass das Board nichts davon hat |
 | Dart-Positionen | Für jeden erkannten Dart | Für Darts, die auf der Scheibe des Tastenfelds eingegeben sind |
+| Punkte einer Aufnahme | Mit *Übungsspiel manuelle Eingabe*, solange kein Dart der Aufnahme im Board steckt | In jedem X01-Leg |
 | Erkennungsqualität, Kalibrierung, Online-Matches | Ja | Nein |
 
 Ein Bildschirm, der nur die Anzeigetafel zeigt, etwa ein Fernseher ohne Touch, blendet das Tastenfeld mit der Option `keypad: false` der Karte aus; siehe [Dashboard-Karten](cards.de.md#darts-korrigieren-und-eingeben).

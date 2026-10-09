@@ -837,6 +837,18 @@
     "visit_full": {
       "message": "La volée compte déjà trois fléchettes. Passez la main avec Joueur suivant."
     },
+    "visit_not_x01": {
+      "message": "Les points d'une volée se saisissent pendant un leg de X01\u00a0; dans les autres jeux et pour le bull-off, saisissez ses fléchettes."
+    },
+    "visit_impossible": {
+      "message": "Aucune volée ne fait {score} à partir de {remaining} avec ces règles et ces fléchettes. Vérifiez les points."
+    },
+    "visit_at_double": {
+      "message": "Les fléchettes sur un double sont au plus les {darts} fléchettes de la volée, et au moins une pour un checkout."
+    },
+    "visit_on_board": {
+      "message": "La cible a des fléchettes de cette volée. Corrigez-les, ou retirez-les avant de saisir les points de la volée."
+    },
     "empty_visit": {
       "message": "La volée ne contient aucune fléchette à terminer. Au X01, aux jeux de Cricket et aux jeux de soirée, on peut passer son tour sans fléchette, mais pas aux jeux d'entraînement, pendant le bull-off ni pendant le choix des numéros au Killer."
     },
@@ -1209,6 +1221,28 @@
         "y": {
           "name": "Position y",
           "description": "L'endroit où se trouve la fléchette, de bas en haut vers le 20\u00a0: 0 est le centre, 1 le bord extérieur de l'anneau des doubles."
+        }
+      }
+    },
+    "enter_visit": {
+      "name": "Saisir les points de la volée",
+      "description": "Saisit une volée de X01 par ses points, comme 140, au lieu de trois fléchettes, et passe la main. Les fléchettes déjà saisies à la main dans la volée lui cèdent la place. Nécessite Saisie manuelle de la partie\u00a0; les cases restent inconnues, seuls les points comptent donc pour les statistiques.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Cible",
+          "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        },
+        "score": {
+          "name": "Points",
+          "description": "Les points de la volée, de 0 à 180. Ce qu'il reste au joueur termine, davantage est un bust."
+        },
+        "darts": {
+          "name": "Fléchettes",
+          "description": "Les fléchettes de la volée, de 1 à 3\u00a0; moins de 3 seulement pour un checkout. Par défaut\u00a0: 3."
+        },
+        "darts_at_double": {
+          "name": "Fléchettes sur un double",
+          "description": "Combien ont été lancées sur un double, pour le taux de checkout. Par défaut\u00a0: 1 pour un checkout, sinon 0."
         }
       }
     },

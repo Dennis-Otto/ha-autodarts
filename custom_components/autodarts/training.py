@@ -31,8 +31,10 @@ COUNTERS = (
 # Visit scores are bucketed like darts statistics: 100-139, 140-179 and 180.
 SCORE_BUCKETS = (("scores_100", 100, 140), ("scores_140", 140, 180))
 # Where a dart came from, besides the board: entered or corrected by hand in
-# Home Assistant, or thrown by the practice game's bot.
-DART_FLAGS = ("manual", "corrected", "bot")
+# Home Assistant, or thrown by the practice game's bot. The darts of a visit
+# entered as its score are made up, `total`: only their score counts, and
+# `at_double` says which of them the player threw at a double.
+DART_FLAGS = ("manual", "corrected", "bot", "total", "at_double")
 
 
 def segments(state: dict[str, Any]) -> list[dict[str, Any]] | None:
@@ -80,7 +82,14 @@ def dart_flags(darts: list[dict[str, Any]]) -> dict[str, bool]:
         flags["manual"] = True
     if any(dart.get("bot") for dart in darts):
         flags["bot"] = True
+    if any(dart.get("total") for dart in darts):
+        flags["total"] = True
     return flags
+
+
+def beds(darts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The darts whose bed is known: not those of a visit entered as its score."""
+    return [dart for dart in darts if not dart.get("total")]
 
 
 def hit_key(dart: dict[str, Any]) -> str:
@@ -98,7 +107,7 @@ def _visit_details(darts: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "score": sum(d["number"] * d["multiplier"] for d in darts),
         "darts": len(darts),
-        "segments": [d["name"] or hit_key(d) for d in darts],
+        "segments": [d["name"] or hit_key(d) for d in beds(darts)],
     }
 
 
@@ -151,7 +160,7 @@ def _summarize(started: str, ended: str, totals: dict[str, Any]) -> dict[str, An
     """Counts, 3-dart average and duration of a finished session."""
     counts = {
         key: _count(totals.get(key))
-        for key in (*COUNTERS, "highest_visit", "manual_darts")
+        for key in (*COUNTERS, "highest_visit", "manual_darts", "total_darts")
     }
     begin, end = dt_util.parse_datetime(started), dt_util.parse_datetime(ended)
     seconds = (end - begin).total_seconds() if begin and end else 0
@@ -187,7 +196,7 @@ def _restored_visit(saved: object) -> dict[str, Any] | None:
         "score": _count(saved.get("score")),
         "darts": _count(saved.get("darts")),
         "segments": list(names),
-        **({"manual": True} if saved.get("manual") is True else {}),
+        **{flag: True for flag in ("manual", "total") if saved.get(flag) is True},
     }
 
 
@@ -210,8 +219,10 @@ class TrainingSession:
         self.recent_visits: list[dict[str, Any]] = []
         self._committed = dict.fromkeys(COUNTERS, 0)
         self._highest_visit = 0
-        # Darts of the session entered by hand.
+        # Darts of the session entered by hand, and those of visits entered
+        # as their score.
         self._manual = 0
+        self._total = 0
         self._hits: Counter[str] = Counter()
         self._completed: list[tuple[str, dict[str, Any]]] = []
         self._active: list[dict[str, Any]] = []
@@ -233,6 +244,7 @@ class TrainingSession:
         self._committed = {key: _count(saved.get(key)) for key in COUNTERS}
         self._highest_visit = _count(saved.get("highest_visit"))
         self._manual = _count(saved.get("manual_darts"))
+        self._total = _count(saved.get("total_darts"))
         hits = saved.get("hits")
         self._hits = Counter(
             {
@@ -287,19 +299,20 @@ class TrainingSession:
         """What the counted darts of the active visit add to the totals; the
         score of the visit only once it is complete, if scores is False."""
         darts = self._counted()
+        known = beds(darts)
         return {
             "darts": len(darts),
             "points": sum(d["number"] * d["multiplier"] for d in darts),
             "doubles": sum(
-                d["multiplier"] == 2 and 1 <= d["number"] <= 20 for d in darts
+                d["multiplier"] == 2 and 1 <= d["number"] <= 20 for d in known
             ),
             "triples": sum(
-                d["multiplier"] == 3 and 1 <= d["number"] <= 20 for d in darts
+                d["multiplier"] == 3 and 1 <= d["number"] <= 20 for d in known
             ),
             "bulls": sum(
-                d["number"] == 25 and d["multiplier"] in (1, 2) for d in darts
+                d["number"] == 25 and d["multiplier"] in (1, 2) for d in known
             ),
-            "misses": sum(hit_key(d) == "MISS" for d in darts),
+            "misses": sum(hit_key(d) == "MISS" for d in known),
             "visits": int(bool(darts)),
             **_visit_summary(darts if scores else []),
         }
@@ -307,12 +320,19 @@ class TrainingSession:
     def _manual_darts(self) -> int:
         return sum(bool(dart.get("manual")) for dart in self._counted())
 
+    def _total_darts(self) -> int:
+        return sum(bool(dart.get("total")) for dart in self._counted())
+
+    def _hit_counts(self) -> Counter[str]:
+        """The beds the counted darts of the active visit hit, where known."""
+        return Counter(map(hit_key, beds(self._counted())))
+
     def snapshot(self, scores: bool = False) -> dict[str, Any]:
         """The session's totals. A visit counts for the 100+, 140+ and 180
         visits once complete, unless scores: two trebles would be a 100+
         visit until the third makes it a 180."""
         current = self._contribution(scores)
-        hits = self._hits + Counter(map(hit_key, self._counted()))
+        hits = self._hits + self._hit_counts()
         return {
             "started": self.started,
             "ended": self.ended,
@@ -320,6 +340,7 @@ class TrainingSession:
             **{key: self._committed[key] + current[key] for key in COUNTERS},
             "highest_visit": max(self._highest_visit, current["points"]),
             "manual_darts": self._manual + self._manual_darts(),
+            "total_darts": self._total + self._total_darts(),
             "hits": dict(sorted(hits.items())),
         }
 
@@ -330,7 +351,8 @@ class TrainingSession:
             self._committed[key] += current[key]
         self._highest_visit = max(self._highest_visit, current["points"])
         self._manual += self._manual_darts()
-        self._hits.update(map(hit_key, self._counted()))
+        self._total += self._total_darts()
+        self._hits.update(self._hit_counts())
         self._counting = [False] * len(self._active)
 
     def visit(self) -> list[dict[str, Any]]:
@@ -364,7 +386,11 @@ class TrainingSession:
                     {
                         "time": dt_util.utcnow().isoformat(),
                         **visit,
-                        **({"manual": True} if flags.get("manual") else {}),
+                        **{
+                            flag: True
+                            for flag in ("manual", "total")
+                            if flags.get(flag)
+                        },
                     },
                 )
                 del self.recent_visits[RECENT_VISITS:]
@@ -379,9 +405,10 @@ class TrainingSession:
             "darts": [dict(self._active[slot]) for slot in slots],
             "counting": [self._counting[slot] for slot in slots],
             "contribution": self._contribution(),
-            "hits": Counter(map(hit_key, self._counted())),
+            "hits": self._hit_counts(),
             "highest": self._highest_visit,
             "manual": self._manual_darts(),
+            "total": self._total_darts(),
             "full": self._full,
         }
 
@@ -406,6 +433,7 @@ class TrainingSession:
         self._hits -= last["hits"]
         self._highest_visit = last["highest"]
         self._manual -= last["manual"]
+        self._total -= last["total"]
         del self.recent_visits[:1]
         darts: list[dict[str, Any]] = last["darts"]
         self._active = [dict(dart) for dart in darts]
@@ -455,6 +483,7 @@ class TrainingSession:
         self._committed = dict.fromkeys(COUNTERS, 0)
         self._highest_visit = 0
         self._manual = 0
+        self._total = 0
         self._hits = Counter()
         self._last = None
         # Darts already on the board belong to no session.

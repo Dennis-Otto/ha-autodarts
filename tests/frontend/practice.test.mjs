@@ -22,6 +22,7 @@ test("the practice view reads the remaining score sensor", () => {
     {
       game: 501,
       remaining: 121,
+      from: 121,
       teams: [],
       route: ["T20", "25", "D18"],
       bust: false,

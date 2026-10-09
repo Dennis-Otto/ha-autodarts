@@ -436,6 +436,9 @@
     "throw_dart": {
       "service": "mdi:keyboard-outline"
     },
+    "enter_visit": {
+      "service": "mdi:numeric"
+    },
     "next_player": {
       "service": "mdi:skip-next"
     },

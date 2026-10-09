@@ -112,6 +112,7 @@ Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte, un
 
 - **Zu spät bemerkt:** Nach der Entnahme zeigt die Kachel *Zuletzt* neben den Darts die letzte Aufnahme mit einem gebogenen Pfeil; ein Tipp darauf und ein zweiter auf das rote *Zurück?* nehmen sie zurück. Korrigiere ihre Darts und beende sie dann mit *Nächster Spieler*.
 - **Von Hand eingegebene Darts:** Für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras schaltest du *Übungsspiel manuelle Eingabe* und die Option `keypad` der Karte ein. Das Tastenfeld gibt jedes angetippte Feld als Dart ein; *Nächster Spieler* beendet die Aufnahme. Im Querformat stehen Korrektur und Tastenfeld neben den Punkten, sodass beides auf den Bildschirm passt. Eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat das Tastenfeld ohne beides.
+- **Die Punkte einer Aufnahme:** In X01 nimmt *Punkte* oben im Tastenfeld eine Aufnahme mit ihrer Punktzahl, etwa 140, mit **OK**; ein Checkout fragt nach seinen Darts und den Darts auf ein Doppel. [Wie sie zählt](without-autodarts.de.md#darts-eingeben).
 - **Was du siehst:** Ein Stift zeigt jeden Dart, den ein Tipp korrigiert; von Hand eingegebene oder korrigierte Darts haben einen gestrichelten Rahmen, die Darts des Bots eine Tönung in der Akzentfarbe.
 
 <img src="images/de/scoreboard-keypad.png" alt="Die Anzeigetafel mit dem Tastenfeld: Alex hat T20 und S19 von Hand eingegeben, gestrichelt umrandet; darunter S, D und T, die Zahlen 1 bis 20, 25, Bull, Miss und Nächster Spieler" width="760">

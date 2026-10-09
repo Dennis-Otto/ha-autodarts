@@ -65,6 +65,7 @@ SERVICE_STOP_TOURNAMENT = "stop_tournament"
 SERVICE_NEXT_TOURNAMENT_MATCH = "next_tournament_match"
 SERVICE_CORRECT_DART = "correct_dart"
 SERVICE_THROW_DART = "throw_dart"
+SERVICE_ENTER_VISIT = "enter_visit"
 SERVICE_NEXT_PLAYER = "next_player"
 SERVICE_UNDO_VISIT = "undo_visit"
 
@@ -129,6 +130,19 @@ THROW_DART_SCHEMA = vol.Schema(
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
         vol.Optional("segment"): BED,
         **POSITION,
+    }
+)
+
+
+# An X01 visit by its score: the darts it took and those at a double.
+ENTER_VISIT_SCHEMA = vol.Schema(
+    {
+        vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
+        vol.Required("score"): vol.All(vol.Coerce(int), vol.Range(min=0, max=180)),
+        vol.Optional("darts"): vol.All(vol.Coerce(int), vol.Range(min=1, max=3)),
+        vol.Optional("darts_at_double"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=3)
+        ),
     }
 )
 
@@ -623,6 +637,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         await coordinator.async_throw_dart(*_dart_at(call.data))
 
+    async def enter_visit(call: ServiceCall) -> None:
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        await coordinator.async_enter_visit(
+            call.data["score"], call.data.get("darts"), call.data.get("darts_at_double")
+        )
+
     async def next_player(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         await coordinator.async_next_player()
@@ -634,6 +654,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     for name, handler, schema in (
         (SERVICE_CORRECT_DART, correct_dart, CORRECT_DART_SCHEMA),
         (SERVICE_THROW_DART, throw_dart, THROW_DART_SCHEMA),
+        (SERVICE_ENTER_VISIT, enter_visit, ENTER_VISIT_SCHEMA),
         (SERVICE_NEXT_PLAYER, next_player, BOARD_SCHEMA),
         (SERVICE_UNDO_VISIT, undo_visit, BOARD_SCHEMA),
     ):

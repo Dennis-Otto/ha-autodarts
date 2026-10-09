@@ -2718,8 +2718,9 @@ def manual_setup(page: Page) -> None:
     rest_pointer(page)
     page.wait_for_timeout(800)
     page_shot(page, "setup-manual")
-    # The board itself is added below, the same way in every run.
-    page.goto(f"{HA}/autodarts-demo/board")
+    # The board itself is added below, the same way in every run, once the frontend
+    # is connected again.
+    open_dashboard(page, "board")
 
 
 def keypad_dart(page: Page, recorder: Recorder, multiplier: str, bed: str) -> None:
@@ -2733,6 +2734,49 @@ def keypad_dart(page: Page, recorder: Recorder, multiplier: str, bed: str) -> No
             350,
         )
     tap(page, recorder, card.locator(f".pad-number[data-value='{bed}']"), 600)
+
+
+def manual_score_animation(page: Page, board: dict) -> None:
+    """The score of a visit on the keypad: Alex switches to it, checks out 40 of 101
+    with two darts, one of them at a double, and wins the match against Sam, whose
+    summary counts the checkout."""
+    page.evaluate(
+        CALL_ACTION,
+        ["start_game", {**board, "game": "101", "players": ["Alex", "Sam"], "legs": 1}],
+    )
+    for score in (61, 45):
+        page.evaluate(CALL_ACTION, ["enter_visit", {**board, "score": score}])
+    tablet_page = tablet(page, f"{MANUAL_DASHBOARD}/scoreboard")
+    wait_card(tablet_page, "!!r.querySelector('.pad')", SCOREBOARD, 60000)
+    tablet_page.wait_for_timeout(1500)
+    recorder = Recorder(tablet_page, SCOREBOARD)
+    recorder.shot(1400)
+    card = tablet_page.locator(SCOREBOARD)
+    tap(tablet_page, recorder, card.locator(".pad [data-pad='score']"), 900)
+    for digit in "40":
+        tap(
+            tablet_page,
+            recorder,
+            card.locator(f".pad-score [data-value='{digit}']"),
+            500,
+        )
+    recorder.shot(800)
+    tap(tablet_page, recorder, card.locator("[data-pad='enter']"), 1200)
+    tap(
+        tablet_page, recorder, card.locator("[data-pad='answer'][data-value='2']"), 1200
+    )
+    tap(tablet_page, recorder, card.locator("[data-pad='answer'][data-value='1']"), 300)
+    wait_card(
+        tablet_page,
+        "!r.querySelector('.banner').hidden && !!r.querySelector('table.summary')",
+        SCOREBOARD,
+    )
+    # No key under the finger stays lit at the end.
+    tablet_page.mouse.move(0, 0)
+    tablet_page.wait_for_timeout(1200)
+    recorder.shot(3000)
+    recorder.save("manual-score")
+    tablet_page.close()
 
 
 def manual_board(page: Page) -> None:
@@ -2777,6 +2821,7 @@ def manual_board(page: Page) -> None:
     wait_card(page, "r.querySelector('.score')?.textContent === '79'", timeout=60000)
     page.wait_for_timeout(800)
     card_shot(page, "manual-live")
+    manual_score_animation(page, board)
     page.evaluate(
         """async ([path, entry]) => {
           const hass = document.querySelector('home-assistant').hass;

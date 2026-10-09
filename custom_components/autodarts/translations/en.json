@@ -837,6 +837,18 @@
     "visit_full": {
       "message": "The visit already has three darts. Pass the turn with Next player."
     },
+    "visit_not_x01": {
+      "message": "A visit's score can be entered while an X01 leg is played; in other games, and in the bull-off, enter its darts."
+    },
+    "visit_impossible": {
+      "message": "No visit scores {score} from {remaining} with these rules and darts. Check the score."
+    },
+    "visit_at_double": {
+      "message": "The darts at a double must be at most the {darts} darts of the visit, and at least one for a checkout."
+    },
+    "visit_on_board": {
+      "message": "The board has darts of this visit. Correct them, or pull them before entering the visit's score."
+    },
     "empty_visit": {
       "message": "The visit has no darts to end. A turn passes without darts in X01, the Cricket and the party games, but not in the training games, a bull-off or while the Killer numbers are chosen."
     },
@@ -1209,6 +1221,28 @@
         "y": {
           "name": "Position y",
           "description": "Where the dart is, from bottom to top towards the 20: 0 is the center, 1 the outer edge of the double ring."
+        }
+      }
+    },
+    "enter_visit": {
+      "name": "Enter visit score",
+      "description": "Enters an X01 visit by its score, such as 140, and passes the turn, instead of three darts. Darts already entered by hand in the visit give way to it. Needs Practice manual entry; the beds stay unknown, so only the score counts for the statistics.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "The Autodarts board. Needed only with more than one board."
+        },
+        "score": {
+          "name": "Score",
+          "description": "The points of the visit, 0 to 180. What the player has left checks out, more busts."
+        },
+        "darts": {
+          "name": "Darts",
+          "description": "The darts the visit took, 1 to 3; fewer than 3 only for a checkout. Default: 3."
+        },
+        "darts_at_double": {
+          "name": "Darts at a double",
+          "description": "How many of them were thrown at a double, for the checkout rate. Default: 1 for a checkout, otherwise 0."
         }
       }
     },

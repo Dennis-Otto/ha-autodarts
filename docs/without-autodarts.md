@@ -33,12 +33,16 @@ On a dartboard without Autodarts, the live card and the scoreboard show the keyp
 
 - **A dart:** tap **S**, **D** or **T**, then the number. **25**, **Bull** and **Miss** have keys of their own. Every dart starts as a single again.
 - **Where it is:** **Board** at the top of the keypad shows the board instead of the keys. Tap where the dart is, and the bed follows from the spot. Darts entered this way also count for the [dart positions and their grouping](statistics.md#heatmap-and-dart-positions). On a phone, a finger aims with a loupe and two fingers zoom, as when [correcting a dart](scoreboard.md#correct-and-enter-darts).
+- **The score of a visit:** in X01, **Score** at the top of the keypad takes the visit as its score instead of its darts, as on a dart machine: type 140 and **OK**. The keypad says what the score leaves. A checkout asks for its darts and for the darts at a double, and a visit that left a double in reach asks for the darts at it, for the checkout rate; one tap answers. A score of more than the player has left busts. The beds of such a visit stay unknown, so it counts for the averages, the 180s, the checkouts and the records, but not for the heatmap, the doubles or the triples.
+
+  <img src="images/en/manual-score.webp" alt="Animation: the scoreboard of a dartboard without Autodarts in a 101 leg; Alex has 40 left, taps Score, 4, 0 and OK; the keypad asks for the darts of the checkout, 2, and for the darts at a double, 1; Alex wins the match against Sam, and the match summary counts the checkout and one dart at a double" width="760">
+
 - **The visit:** after the third dart the status says *Visit complete*. **Next player** ends the visit; it takes a second tap, so a stray tap never passes the turn. Without a dart, it passes, which counts as a visit of three misses.
 - **A mistake:** tap a dart of the visit to put it into another bed. While no dart of the next visit is in, the curved arrow of **Undo** takes the last visit back, with the game as it was.
 
 <img src="images/en/manual-live.png" alt="The live card of the dartboard without Autodarts, named Garage: Sam has entered T20 and S19 for 79 in a 501 match against Alex, who needs 324; the board shows both beds, the keypad below the darts and no footer with connections or detection" width="760">
 
-The [actions](entities.md#enter-a-dart-autodartsthrow_dart) `autodarts.throw_dart`, `autodarts.next_player` and `autodarts.undo_visit` do the same from an automation, a script or a button of your own; with several boards, name the board's `config_entry_id`.
+The [actions](entities.md#enter-a-dart-autodartsthrow_dart) `autodarts.throw_dart`, [`autodarts.enter_visit`](entities.md#enter-a-visits-score-autodartsenter_visit), `autodarts.next_player` and `autodarts.undo_visit` do the same from an automation, a script or a button of your own; with several boards, name the board's `config_entry_id`.
 
 ## What works
 
@@ -61,6 +65,7 @@ Everything the integration does with darts, because it never needed the cameras 
 | Automatic dashboard | Views *Live*, *Scoreboard*, *Training*, *Players*, *Game settings* and *Board* | No *Board* view: there is no detection, camera or board PC |
 | Board status card | Detection, connections, board PC, cameras and maintenance | A note that the board has none of them |
 | Dart positions | For every detected dart | For darts entered on the keypad's board |
+| A visit's score | Possible with *Practice manual entry*, while no dart of the visit is on the board | Possible in every X01 leg |
 | Detection quality, calibration, online matches | Yes | No |
 
 A screen that only shows the scoreboard, such as a TV without touch, hides the keypad with the card's option `keypad: false`; see the [card guide](cards.md#correcting-and-entering-darts).

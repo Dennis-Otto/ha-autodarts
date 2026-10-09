@@ -112,6 +112,7 @@ Along the bottom it shows the three darts of the current visit and their score, 
 
 - **A visit noticed too late:** after the takeout, the tile *Last* beside the darts shows the last visit with a curved arrow; a tap on it and a second one on the red *Undo?* take it back. Correct its darts, then end it with *Next player*.
 - **Darts entered by hand:** for darts the board missed, or a player without cameras, switch on *Practice manual entry* and the card's `keypad` option. The keypad enters every tapped bed as a dart; *Next player* ends the visit. On a landscape screen, the pad and the keypad sit beside the scores, so both fit the screen. A [dartboard without Autodarts](without-autodarts.md) has the keypad without either.
+- **The score of a visit:** in X01, *Score* at the top of the keypad takes a visit as its score, such as 140, with **OK**; a checkout asks for its darts and the darts at a double. [How it counts](without-autodarts.md#enter-your-darts).
 - **What you see:** a pencil marks every dart that a tap corrects; darts entered or corrected by hand get a dashed frame, and the bot's darts a tint of the accent color.
 
 <img src="images/en/scoreboard-keypad.png" alt="The scoreboard with the keypad: Alex has entered T20 and S19 by hand, marked with dashed frames; below, S, D and T, the numbers 1 to 20, 25, Bull, Miss and Next player" width="760">

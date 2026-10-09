@@ -837,6 +837,18 @@
     "visit_full": {
       "message": "La tirada ya tiene tres dardos. Pasa el turno con Siguiente jugador."
     },
+    "visit_not_x01": {
+      "message": "Los puntos de una tirada se pueden introducir mientras se juega un leg de X01; en otros juegos y en el bull-off, introduce sus dardos."
+    },
+    "visit_impossible": {
+      "message": "Ninguna tirada suma {score} desde {remaining} con estas reglas y dardos. Comprueba los puntos."
+    },
+    "visit_at_double": {
+      "message": "Los dardos a un doble deben ser como mucho los {darts} dardos de la tirada, y al menos uno al cerrar."
+    },
+    "visit_on_board": {
+      "message": "La diana tiene dardos de esta tirada. Corrígelos o retíralos antes de introducir los puntos de la tirada."
+    },
     "empty_visit": {
       "message": "La tirada no tiene dardos que terminar. En X01, los juegos de Cricket y los juegos de fiesta se puede pasar el turno sin dardos, pero no en los juegos de entrenamiento, durante el bull-off ni mientras se eligen los números en Killer."
     },
@@ -1209,6 +1221,28 @@
         "y": {
           "name": "Posición y",
           "description": "Dónde está el dardo, de abajo arriba hacia el 20: 0 es el centro, 1 el borde exterior del anillo de dobles."
+        }
+      }
+    },
+    "enter_visit": {
+      "name": "Introducir puntos de la tirada",
+      "description": "Introduce una tirada de X01 por sus puntos, como 140, en lugar de tres dardos, y pasa el turno. Los dardos ya introducidos a mano en la tirada le dejan su lugar. Requiere Entrada manual de la partida; las casillas quedan sin conocer, así que para las estadísticas solo cuentan los puntos.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Diana",
+          "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        },
+        "score": {
+          "name": "Puntos",
+          "description": "Los puntos de la tirada, de 0 a 180. Lo que le queda al jugador cierra, más es pasarse."
+        },
+        "darts": {
+          "name": "Dardos",
+          "description": "Los dardos de la tirada, de 1 a 3; menos de 3 solo al cerrar. Por defecto: 3."
+        },
+        "darts_at_double": {
+          "name": "Dardos a un doble",
+          "description": "Cuántos se lanzaron a un doble, para el porcentaje de cierre. Por defecto: 1 al cerrar, si no 0."
         }
       }
     },
