@@ -95,8 +95,8 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
       <h3>Automatisieren</h3>
       <ul>
         <li>Board-Ereignisse für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match, jede Bestleistung und mehr</li>
-        <li>Zwölf Blueprints: Lichtshow, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen und ein Spielstart per Sprache</li>
-        <li>Jedes Spiel mit einer Aktion starten, auch per Sprache</li>
+        <li>Dreizehn Blueprints: Lichtshow, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen sowie Spielstart und Darts per Sprache</li>
+        <li>Jedes Spiel mit einer Aktion starten, auch per Sprache, und Assist deine Darts sagen, wie am Dartautomaten</li>
         <li>Online-Matches auf play.autodarts.io über eine optionale Brücke <i>(experimentell)</i></li>
       </ul>
       <p><a href="automations.de.md">Automationen →</a></p>
@@ -225,6 +225,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig:
 | **Training report.** Deine Tageszusammenfassung mit dem 3-Dart-Average. | [![Blueprint „Training report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
 | **Board problem alert**, wenn das Board offline geht oder eine Kamera ausfällt, mit optionaler Entwarnung. | [![Blueprint „Board problem alert“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml) |
 | **Start a game by voice.** Sag Assist „Starte 501 für Alex und Sam“, auf Deutsch oder Englisch. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
+| **Enter darts by voice.** Sag Assist „Alex hat 140“, „Triple 20“ oder „Nächster Spieler“, wie am Dartautomaten, auf Deutsch oder Englisch. | [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
 
 Die Blueprints sind auf Englisch beschriftet; ihre Texte, etwa die Ansagen, wählst du beim Anlegen selbst. Die [Anleitung zu Automationen](automations.de.md) enthält deutsche Beispiele.
 

@@ -382,6 +382,11 @@ throw_dart:
           max: 3
           step: 0.001
           mode: box
+    player:
+      required: false
+      example: "Alex"
+      selector:
+        text:
 
 enter_visit:
   fields:
@@ -391,13 +396,18 @@ enter_visit:
         config_entry:
           integration: autodarts
     score:
-      required: true
+      required: false
       example: "140"
       selector:
         number:
           min: 0
           max: 180
           mode: box
+    checkout:
+      required: false
+      example: "true"
+      selector:
+        boolean:
     darts:
       required: false
       example: "2"
@@ -414,6 +424,11 @@ enter_visit:
           min: 0
           max: 3
           mode: box
+    player:
+      required: false
+      example: "Alex"
+      selector:
+        text:
 
 next_player:
   fields:

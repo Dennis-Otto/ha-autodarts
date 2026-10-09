@@ -902,6 +902,69 @@
     },
     "voice_bot": {
       "message": "de bot"
+    },
+    "not_their_turn": {
+      "message": "{name} is aan de beurt, niet {player}."
+    },
+    "visit_no_score": {
+      "message": "Geef de score van de beurt, of checkout voor een beurt die uitgooit wat er over is."
+    },
+    "checkout_score": {
+      "message": "Een checkout gooit wat er over is, {remaining}, niet {score}."
+    },
+    "voice_visit": {
+      "message": "{score} voor {name}, nog {left}."
+    },
+    "voice_bust": {
+      "message": "Geen score: {name} blijft op {left}."
+    },
+    "voice_leg": {
+      "message": "Game shot, en de leg, {name}!"
+    },
+    "voice_match": {
+      "message": "Game shot, en de wedstrijd, {name}!"
+    },
+    "voice_game_shot": {
+      "message": "Game shot!"
+    },
+    "voice_next": {
+      "message": "{name} is aan de beurt."
+    },
+    "voice_next_left": {
+      "message": "{name}, je hebt nog {left} nodig."
+    },
+    "voice_dart": {
+      "message": "{bed}."
+    },
+    "voice_dart_left": {
+      "message": "{bed}, nog {left}."
+    },
+    "voice_dart_bust": {
+      "message": "{bed}: geen score!"
+    },
+    "voice_undone": {
+      "message": "Teruggenomen: {score} van {name}."
+    },
+    "voice_player": {
+      "message": "Speler {number}"
+    },
+    "voice_bed_single": {
+      "message": "Enkel {number}"
+    },
+    "voice_bed_double": {
+      "message": "Dubbel {number}"
+    },
+    "voice_bed_triple": {
+      "message": "Triple {number}"
+    },
+    "voice_bed_bull": {
+      "message": "Bull"
+    },
+    "voice_bed_outer": {
+      "message": "25"
+    },
+    "voice_bed_miss": {
+      "message": "Mis"
     }
   },
   "issues": {
@@ -1204,7 +1267,7 @@
     },
     "throw_dart": {
       "name": "Dart invoeren",
-      "description": "Voegt een dart aan de huidige beurt toe alsof het bord hem had gedetecteerd, gemarkeerd als handmatig ingevoerd. Vereist Oefenspel handmatige invoer. Met x en y wordt de dart op die plek opgeslagen.",
+      "description": "Voegt een dart aan de huidige beurt toe alsof het bord hem had gedetecteerd, gemarkeerd als handmatig ingevoerd. Vereist Oefenspel handmatige invoer. Met x en y wordt de dart op die plek opgeslagen. Gevraagd om een antwoord, zoals door een spraakassistent, zegt ze in woorden wat ze deed of waarom niet.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -1221,12 +1284,16 @@
         "y": {
           "name": "Positie y",
           "description": "Waar de dart zit, van onder naar boven richting de 20: 0 is het midden, 1 de buitenrand van de dubbelring."
+        },
+        "player": {
+          "name": "Speler",
+          "description": "De naam van de speler voor wie de dart is, zoals een spraakassistent hem hoort. De actie weigert de dart zolang een andere speler aan het bord staat."
         }
       }
     },
     "enter_visit": {
       "name": "Beurtscore invoeren",
-      "description": "Voert een X01-beurt in met zijn score, zoals 140, in plaats van drie darts, en geeft de beurt door. Darts die al met de hand in de beurt zijn ingevoerd, maken plaats. Vereist Oefenspel handmatige invoer; de vakken blijven onbekend, dus voor de statistieken telt alleen de score.",
+      "description": "Voert een X01-beurt in met zijn score, zoals 140, in plaats van drie darts, en geeft de beurt door. Darts die al met de hand in de beurt zijn ingevoerd, maken plaats. Vereist Oefenspel handmatige invoer; de vakken blijven onbekend, dus voor de statistieken telt alleen de score. Gevraagd om een antwoord, zoals door een spraakassistent, zegt ze in woorden wat ze deed of waarom niet.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -1234,7 +1301,11 @@
         },
         "score": {
           "name": "Score",
-          "description": "De punten van de beurt, 0 tot 180. Wat de speler nog heeft, gooit uit; meer is een bust."
+          "description": "De punten van de beurt, 0 tot 180. Wat de speler nog heeft, gooit uit; meer is een bust. Nodig zonder checkout."
+        },
+        "checkout": {
+          "name": "Checkout",
+          "description": "De beurt gooit uit wat de speler over heeft, in plaats van een score."
         },
         "darts": {
           "name": "Darts",
@@ -1243,12 +1314,16 @@
         "darts_at_double": {
           "name": "Darts op een dubbel",
           "description": "Hoeveel ervan op een dubbel gegooid zijn, voor het uitgooipercentage. Standaard: 1 bij een uitgooi, anders 0."
+        },
+        "player": {
+          "name": "Speler",
+          "description": "De naam van de speler voor wie de beurt is, zoals een spraakassistent hem hoort. De actie weigert de beurt zolang een andere speler aan het bord staat."
         }
       }
     },
     "next_player": {
       "name": "Volgende speler",
-      "description": "Beëindigt de huidige beurt zonder de darts te verwijderen, zodat de volgende speler gooit. Zonder darts slaat de speler aan het bord in X01, de Cricket-spellen en de partyspellen een beurt over; in partyspellen telt dat als drie missers.",
+      "description": "Beëindigt de huidige beurt zonder de darts te verwijderen, zodat de volgende speler gooit. Zonder darts slaat de speler aan het bord in X01, de Cricket-spellen en de partyspellen een beurt over; in partyspellen telt dat als drie missers. Gevraagd om een antwoord, zoals door een spraakassistent, zegt ze in woorden wat ze deed of waarom niet.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -1258,7 +1333,7 @@
     },
     "undo_visit": {
       "name": "Beurt ongedaan maken",
-      "description": "Neemt de laatste afgeronde beurt terug: het spel keert terug naar de stand van daarvoor, en de darts van die beurt worden weer de huidige beurt, zodat je ze kunt corrigeren en de beurt met Volgende speler kunt beëindigen. De beurten van de bot daarna worden ook ongedaan gemaakt.",
+      "description": "Neemt de laatste afgeronde beurt terug: het spel keert terug naar de stand van daarvoor, en de darts van die beurt worden weer de huidige beurt, zodat je ze kunt corrigeren en de beurt met Volgende speler kunt beëindigen. De beurten van de bot daarna worden ook ongedaan gemaakt. Gevraagd om een antwoord, zoals door een spraakassistent, zegt ze in woorden wat ze deed of waarom niet.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",

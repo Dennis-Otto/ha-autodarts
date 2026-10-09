@@ -656,6 +656,7 @@ Fügt der aktuellen Aufnahme einen Dart hinzu, als hätte das Board ihn erkannt,
 | --- | --- | --- |
 | `segment` | `S1`–`S20`, `D1`–`D20`, `T1`–`T20`, `25`, `BULL`, `MISS` und die anderen Namen der Bulls wie bei `autodarts.correct_dart` | Das Feld; Pflicht ohne `x` und `y` |
 | `x`, `y` | -3 bis 3 | Wo der Dart steckt, wie bei `autodarts.correct_dart`; das Feld ergibt sich daraus, und der Dart wird in den [Dart-Positionen](how-it-works.de.md#dart-positionen) gespeichert |
+| `player` | Name | Der Spieler, für den der Dart ist, wie ein Sprachassistent ihn hört, in beliebiger Groß- und Kleinschreibung; die Aktion lehnt den Dart ab, solange ein anderer Spieler am Board ist |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -664,7 +665,9 @@ data:
   segment: D16
 ```
 
-Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn weder Feld noch eine vollständige Position zwischen -3 und 3 angegeben ist, wenn das Feld nicht das Feld an der Position ist, wenn die manuelle Eingabe aus ist, wenn die Aufnahme schon drei Darts hat oder solange der Bot am Board ist.
+Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn weder Feld noch eine vollständige Position zwischen -3 und 3 angegeben ist, wenn das Feld nicht das Feld an der Position ist, wenn die manuelle Eingabe aus ist, wenn die Aufnahme schon drei Darts hat, solange der Bot am Board ist oder wenn `player` nicht am Board ist.
+
+**Antwort:** Mit `response_variable` antwortet die Aktion, statt abzubrechen, damit ein Sprachassistent sagen kann, was passiert ist: `entered` ist `true`, und `message` nennt das Feld, in X01 mit dem Rest, einem Überwerfen oder dem Game Shot, etwa „Triple 20, noch 441.“ oder „Doppel 20. Game shot!“; oder `entered` ist `false`, und `message` sagt, warum, in der Sprache von Home Assistant. Der Blueprint [Enter darts by voice](automations.de.md#enter-darts-by-voice) spricht die Nachricht aus.
 
 ### Aufnahmepunkte eingeben: `autodarts.enter_visit`
 
@@ -672,9 +675,11 @@ Gibt eine X01-Aufnahme mit ihrer Punktzahl statt mit ihren Darts ein, wie *Punkt
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
-| `score` | 0–180 | Die Punkte der Aufnahme; Pflicht |
+| `score` | 0–180 | Die Punkte der Aufnahme; Pflicht ohne `checkout` |
+| `checkout` | `true` | Die Aufnahme checkt den Rest des Spielers, statt `score`; ein `score` dazu muss genau der Rest sein |
 | `darts` | 1–3 | Die Darts der Aufnahme, weniger als 3 nur beim Checkout; Standard 3 |
 | `darts_at_double` | 0–3 | Wie viele davon auf ein Doppel gingen, für die Checkout-Quote; Standard 1 beim Checkout mit Double-Out, sonst 0. Ohne Double-Out zählt keiner |
+| `player` | Name | Der Spieler, für den die Aufnahme ist, wie bei `autodarts.throw_dart`; die Aktion lehnt die Aufnahme ab, solange ein anderer Spieler am Board ist |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
 ```yaml
@@ -685,7 +690,18 @@ data:
   darts_at_double: 2
 ```
 
-Die Aufnahme meldet sich mit `visit_thrown` und `visit_completed`, beide mit `total` und leeren `segments`, ihre Darts aber nicht: Eine Automation, die jeden Dart ansagt, etwa der [Dart-Caller](automations.de.md#dart-caller), schweigt und sagt die Aufnahme an. Die Aktion bricht mit einer klaren Meldung ab außerhalb eines laufenden X01-Legs und beim Ausbullen, wenn keine Aufnahme mit diesen Darts die Punkte von dem Rest des Spielers erreichen kann (etwa 179, oder 159 von 159 mit Double-Out), wenn mehr Darts auf ein Doppel gingen, als die Aufnahme hatte, oder beim Checkout keiner, solange ein Dart der Aufnahme im Board steckt, wenn die manuelle Eingabe aus ist oder solange der Bot am Board ist.
+Die Aufnahme meldet sich mit `visit_thrown` und `visit_completed`, beide mit `total` und leeren `segments`, ihre Darts aber nicht: Eine Automation, die jeden Dart ansagt, etwa der [Dart-Caller](automations.de.md#dart-caller), schweigt und sagt die Aufnahme an. Die Aktion bricht mit einer klaren Meldung ab außerhalb eines laufenden X01-Legs und beim Ausbullen, wenn keine Aufnahme mit diesen Darts die Punkte von dem Rest des Spielers erreichen kann (etwa 179, oder 159 von 159 mit Double-Out), wenn mehr Darts auf ein Doppel gingen, als die Aufnahme hatte, oder beim Checkout keiner, solange ein Dart der Aufnahme im Board steckt, wenn die manuelle Eingabe aus ist, solange der Bot am Board ist, wenn weder `score` noch `checkout` angegeben ist, wenn ein `score` mit `checkout` nicht der Rest des Spielers ist oder wenn `player` nicht am Board ist.
+
+Ein Checkout des Rests mit zwei Darts für den Spieler am Board:
+
+```yaml
+action: autodarts.enter_visit
+data:
+  checkout: true
+  darts: 2
+```
+
+**Antwort:** Mit `response_variable` antwortet die Aktion, statt abzubrechen: `entered` ist `true`, und `message` sagt in den Worten des Callers der Anzeigetafel, was die Aufnahme erzielt hat und was bleibt und wer als Nächstes wirft, etwa „140 für Alex, noch 361. Sam, du brauchst 501.“, ein Überwerfen, „Überworfen: Alex bleibt bei 40.“, oder das Leg oder das Match, „Game shot, und das Match, Alex!“; oder `entered` ist `false`, und `message` sagt, warum, in der Sprache von Home Assistant.
 
 ### Weitergeben: `autodarts.next_player`
 
@@ -695,7 +711,7 @@ Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spie
 action: autodarts.next_player
 ```
 
-Nimmt `config_entry_id`, wenn es mehr als ein Board gibt.
+Nimmt `config_entry_id`, wenn es mehr als ein Board gibt. **Antwort:** Mit `response_variable` sagen `passed` und eine `message`, wer jetzt wirft, in X01, was er braucht, etwa „Sam, du brauchst 501.“, und nach einem Game Shot das Leg oder das Match.
 
 ### Aufnahme zurücknehmen: `autodarts.undo_visit`
 
@@ -705,7 +721,7 @@ Nimmt die letzte abgeschlossene Aufnahme zurück: Das Spiel kehrt zum Stand davo
 action: autodarts.undo_visit
 ```
 
-Nimmt `config_entry_id`, wenn es mehr als ein Board gibt.
+Nimmt `config_entry_id`, wenn es mehr als ein Board gibt. **Antwort:** Mit `response_variable` sagen `undone` und eine `message`, wessen Aufnahme mit wie vielen Punkten zurückgenommen ist, etwa „Zurückgenommen: 140 von Alex.“
 
 ### Spielerprofil löschen: `autodarts.delete_player`
 

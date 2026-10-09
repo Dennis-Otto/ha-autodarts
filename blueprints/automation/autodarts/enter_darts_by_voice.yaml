@@ -1,0 +1,173 @@
+blueprint:
+  name: "Autodarts: enter darts by voice"
+  description: >-
+    Enters the darts of a game when you tell Assist, as at a dart machine: the
+    score of a visit, for example "Alex hat 140", "140 Punkte" or "Sam scored
+    100", a checkout, such as "Checkout mit zwei Darts" or "game shot in two
+    darts", a single dart, such as "Triple 20", "Doppel 16", "Bull" or "miss",
+    and "Nächster Spieler" or "next player" and "Rückgängig" or "undo". Assist
+    answers in the words of the scoreboard's caller, in the language of Home
+    Assistant: what the visit scored and left and who throws next, the bed of a
+    dart, or why it was refused.
+
+
+    It needs Practice manual entry, which a dartboard without Autodarts has on
+    always. The score and the checkout take an X01 leg; the darts take every
+    game. A named player is checked: "Sam hat 100" while Alex is at the board
+    is refused, so a misheard visit never goes to the wrong player. A score
+    alone, such as "hundertvierzig", is the score of a visit, not a dart.
+
+
+    In the sentences, `{score}` is the score from 0 to 180, `{darts}` the darts
+    of a checkout, `{number}` the number of a dart's bed and `{player}` the
+    player. A dart's bed follows from the words of the sentence: triple,
+    treble or dreifach make a triple, double, doppel, doble or dubbel a double,
+    single bull, outer bull or 25 the outer bull, bull the bullseye, and miss,
+    fehlwurf, daneben, raté, fallo or mis a miss.
+  domain: automation
+  author: Dennis Otto
+  source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/enter_darts_by_voice.yaml
+  homeassistant:
+    min_version: "2026.8.0"
+  input:
+    score_sentences:
+      name: Score of a visit
+      description: >-
+        Sentences with the score of a visit, `{score}`, and optionally the
+        player, `{player}`. Parts in [brackets] are optional, (a|b) means a or b.
+      default:
+        - "{player} (hat|wirft|warf) {0..180:score} [Punkte]"
+        - "{0..180:score} [Punkte] für {player}"
+        - "{0..180:score} Punkte"
+        - "Aufnahme {0..180:score}"
+        - "{player} (scored|scores|has|throws|threw) {0..180:score} [points]"
+        - "{0..180:score} [points] for {player}"
+        - "{0..180:score} points"
+        - "visit {0..180:score}"
+        - "{0..180:score}"
+      selector:
+        text:
+          multiple: true
+    checkout_sentences:
+      name: Checkout
+      description: >-
+        Sentences for a visit that checks out what the player has left,
+        optionally with its darts, `{darts}`, and the player, `{player}`.
+      default:
+        - "(Checkout|Check out|Game Shot) [(mit|in) {1..3:darts} Darts]"
+        - "{player} checkt [(mit|in) {1..3:darts} Darts]"
+        - "(checkout|check out|game shot) [(with|in) {1..3:darts} darts]"
+        - "{player} checks out [(with|in) {1..3:darts} darts]"
+      selector:
+        text:
+          multiple: true
+    dart_sentences:
+      name: Single dart
+      description: >-
+        Sentences for one dart, with the number of its bed, `{number}`, or a
+        bull or a miss.
+      default:
+        - "(Single|Einfach|Doppel|Triple|Dreifach) {1..20:number}"
+        - "(single|double|triple|treble) {1..20:number}"
+        - "(Bull|Bullseye|Doppel Bull|Single Bull|Fehlwurf|Daneben)"
+        - "(bull|bullseye|double bull|single bull|outer bull|miss|missed)"
+      selector:
+        text:
+          multiple: true
+    next_sentences:
+      name: Next player
+      description: Sentences that end the visit, so the next player throws.
+      default:
+        - "Nächster Spieler"
+        - "next player"
+      selector:
+        text:
+          multiple: true
+    undo_sentences:
+      name: Undo
+      description: Sentences that take the last visit back, to enter it anew.
+      default:
+        - "(Rückgängig|Letzte Aufnahme zurück|Aufnahme zurück)"
+        - "(undo|undo [the] last visit|take back [the] last visit)"
+      selector:
+        text:
+          multiple: true
+    board:
+      name: Board
+      description: The Autodarts board to enter the darts on. Needed only with more than one board.
+      default: ""
+      selector:
+        config_entry:
+          integration: autodarts
+
+mode: queued
+
+triggers:
+  - trigger: conversation
+    id: score
+    command: !input score_sentences
+  - trigger: conversation
+    id: checkout
+    command: !input checkout_sentences
+  - trigger: conversation
+    id: dart
+    command: !input dart_sentences
+  - trigger: conversation
+    id: next
+    command: !input next_sentences
+  - trigger: conversation
+    id: undo
+    command: !input undo_sentences
+
+variables:
+  board: !input board
+  target: "{{ dict(config_entry_id=board) if board else {} }}"
+  # The player as Assist heard them, checked by the integration.
+  who: >-
+    {% set player = trigger.slots.player | default('', true) | trim %}
+    {{ dict(player=player) if player else {} }}
+  # The bed of a dart, from the words of the sentence: S20, D16, T19, 25, BULL or MISS.
+  bed: >-
+    {% set words = trigger.sentence | lower %}
+    {% set number = trigger.slots.number | default(0) | int %}
+    {% if words is search('miss|fehlwurf|daneben|raté|fallo|(^| )mis( |$)') %}MISS
+    {% elif words is search('single bull|outer bull|25') %}25
+    {% elif words is search('bull') %}BULL
+    {% elif words is search('tripl|trebl|dreifach') %}T{{ number }}
+    {% elif words is search('doppel|doubl|doble|dubbel') %}D{{ number }}
+    {% else %}S{{ number }}{% endif %}
+
+actions:
+  - choose:
+      - conditions: "{{ trigger.id == 'score' }}"
+        sequence:
+          - action: autodarts.enter_visit
+            data: "{{ dict(score=trigger.slots.score | int) | combine(who, target) }}"
+            response_variable: result
+          - set_conversation_response: "{{ result.message }}"
+      - conditions: "{{ trigger.id == 'checkout' }}"
+        sequence:
+          - action: autodarts.enter_visit
+            data: >-
+              {{ dict(checkout=true)
+                 | combine(dict(darts=trigger.slots.darts | int)
+                           if trigger.slots.darts is defined else {}, who, target) }}
+            response_variable: result
+          - set_conversation_response: "{{ result.message }}"
+      - conditions: "{{ trigger.id == 'dart' }}"
+        sequence:
+          - action: autodarts.throw_dart
+            data: "{{ dict(segment=bed | trim) | combine(target) }}"
+            response_variable: result
+          - set_conversation_response: "{{ result.message }}"
+      - conditions: "{{ trigger.id == 'next' }}"
+        sequence:
+          - action: autodarts.next_player
+            data: "{{ target }}"
+            response_variable: result
+          - set_conversation_response: "{{ result.message }}"
+    default:
+      - action: autodarts.undo_visit
+        data: "{{ target }}"
+        response_variable: result
+      - set_conversation_response: "{{ result.message }}"

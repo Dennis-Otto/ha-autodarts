@@ -902,6 +902,69 @@
     },
     "voice_bot": {
       "message": "le bot"
+    },
+    "not_their_turn": {
+      "message": "C'est à {name} de lancer, pas à {player}."
+    },
+    "visit_no_score": {
+      "message": "Indiquez les points de la volée, ou checkout pour une volée qui finit ce qui reste."
+    },
+    "checkout_score": {
+      "message": "Un checkout marque ce qui reste, {remaining}, pas {score}."
+    },
+    "voice_visit": {
+      "message": "{score} pour {name}, reste {left}."
+    },
+    "voice_bust": {
+      "message": "Aucun point\u00a0: {name} reste à {left}."
+    },
+    "voice_leg": {
+      "message": "Game shot, et la manche, {name}\u00a0!"
+    },
+    "voice_match": {
+      "message": "Game shot, et le match, {name}\u00a0!"
+    },
+    "voice_game_shot": {
+      "message": "Game shot\u00a0!"
+    },
+    "voice_next": {
+      "message": "À {name} de lancer."
+    },
+    "voice_next_left": {
+      "message": "{name}, il vous reste {left}."
+    },
+    "voice_dart": {
+      "message": "{bed}."
+    },
+    "voice_dart_left": {
+      "message": "{bed}, reste {left}."
+    },
+    "voice_dart_bust": {
+      "message": "{bed}\u00a0: aucun point\u00a0!"
+    },
+    "voice_undone": {
+      "message": "Annulé\u00a0: {score} de {name}."
+    },
+    "voice_player": {
+      "message": "Joueur {number}"
+    },
+    "voice_bed_single": {
+      "message": "Simple {number}"
+    },
+    "voice_bed_double": {
+      "message": "Double {number}"
+    },
+    "voice_bed_triple": {
+      "message": "Triple {number}"
+    },
+    "voice_bed_bull": {
+      "message": "Bull"
+    },
+    "voice_bed_outer": {
+      "message": "25"
+    },
+    "voice_bed_miss": {
+      "message": "Raté"
     }
   },
   "issues": {
@@ -1204,7 +1267,7 @@
     },
     "throw_dart": {
       "name": "Saisir une fléchette",
-      "description": "Ajoute une fléchette à la volée en cours comme si la cible l'avait détectée, marquée comme saisie à la main. Nécessite Saisie manuelle de la partie. Avec x et y, la fléchette est enregistrée à cet endroit.",
+      "description": "Ajoute une fléchette à la volée en cours comme si la cible l'avait détectée, marquée comme saisie à la main. Nécessite Saisie manuelle de la partie. Avec x et y, la fléchette est enregistrée à cet endroit. Si on lui demande une réponse, comme le fait un assistant vocal, elle dit en mots ce qu'elle a fait ou pourquoi pas.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -1221,12 +1284,16 @@
         "y": {
           "name": "Position y",
           "description": "L'endroit où se trouve la fléchette, de bas en haut vers le 20\u00a0: 0 est le centre, 1 le bord extérieur de l'anneau des doubles."
+        },
+        "player": {
+          "name": "Joueur",
+          "description": "Le nom du joueur à qui revient la fléchette, tel qu'un assistant vocal l'entend. L'action refuse la fléchette tant qu'un autre joueur est à la cible."
         }
       }
     },
     "enter_visit": {
       "name": "Saisir les points de la volée",
-      "description": "Saisit une volée de X01 par ses points, comme 140, au lieu de trois fléchettes, et passe la main. Les fléchettes déjà saisies à la main dans la volée lui cèdent la place. Nécessite Saisie manuelle de la partie\u00a0; les cases restent inconnues, seuls les points comptent donc pour les statistiques.",
+      "description": "Saisit une volée de X01 par ses points, comme 140, au lieu de trois fléchettes, et passe la main. Les fléchettes déjà saisies à la main dans la volée lui cèdent la place. Nécessite Saisie manuelle de la partie\u00a0; les cases restent inconnues, seuls les points comptent donc pour les statistiques. Si on lui demande une réponse, comme le fait un assistant vocal, elle dit en mots ce qu'elle a fait ou pourquoi pas.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -1234,7 +1301,11 @@
         },
         "score": {
           "name": "Points",
-          "description": "Les points de la volée, de 0 à 180. Ce qu'il reste au joueur termine, davantage est un bust."
+          "description": "Les points de la volée, de 0 à 180. Ce qu'il reste au joueur termine, davantage est un bust. Nécessaire sans checkout."
+        },
+        "checkout": {
+          "name": "Checkout",
+          "description": "La volée finit ce qui reste au joueur, au lieu de points."
         },
         "darts": {
           "name": "Fléchettes",
@@ -1243,12 +1314,16 @@
         "darts_at_double": {
           "name": "Fléchettes sur un double",
           "description": "Combien ont été lancées sur un double, pour le taux de checkout. Par défaut\u00a0: 1 pour un checkout, sinon 0."
+        },
+        "player": {
+          "name": "Joueur",
+          "description": "Le nom du joueur à qui revient la volée, tel qu'un assistant vocal l'entend. L'action refuse la volée tant qu'un autre joueur est à la cible."
         }
       }
     },
     "next_player": {
       "name": "Joueur suivant",
-      "description": "Termine la volée en cours sans retirer les fléchettes, pour que le joueur suivant lance. Sans fléchette, le joueur à la cible passe son tour en X01, dans les jeux de Cricket et dans les jeux de soirée, où cela compte comme trois fléchettes manquées.",
+      "description": "Termine la volée en cours sans retirer les fléchettes, pour que le joueur suivant lance. Sans fléchette, le joueur à la cible passe son tour en X01, dans les jeux de Cricket et dans les jeux de soirée, où cela compte comme trois fléchettes manquées. Si on lui demande une réponse, comme le fait un assistant vocal, elle dit en mots ce qu'elle a fait ou pourquoi pas.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -1258,7 +1333,7 @@
     },
     "undo_visit": {
       "name": "Annuler la volée",
-      "description": "Reprend la dernière volée terminée\u00a0: la partie revient à son état précédent, et les fléchettes de cette volée redeviennent la volée en cours, pour les corriger et terminer la volée avec Joueur suivant. Les volées du bot qui ont suivi sont également annulées.",
+      "description": "Reprend la dernière volée terminée\u00a0: la partie revient à son état précédent, et les fléchettes de cette volée redeviennent la volée en cours, pour les corriger et terminer la volée avec Joueur suivant. Les volées du bot qui ont suivi sont également annulées. Si on lui demande une réponse, comme le fait un assistant vocal, elle dit en mots ce qu'elle a fait ou pourquoi pas.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",

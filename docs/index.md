@@ -80,9 +80,11 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    Say "Start 501 for Alex and Sam" to Assist, in English or German, and the game starts. Any game also starts with one action of an automation.
+    Say "Start 501 for Alex and Sam" to Assist, in English or German, and the game starts; then "Alex has 140" or "Triple 20" enters the darts, as at a dart machine. Any game also starts with one action of an automation.
 
     [:octicons-arrow-right-24: Start a game by voice](automations.md#start-a-game-by-voice)
+
+    [:octicons-arrow-right-24: Enter darts by voice](automations.md#enter-darts-by-voice)
 
 </div>
 
