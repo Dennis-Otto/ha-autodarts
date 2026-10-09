@@ -15,6 +15,15 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **Undo with the keypad:** on the scoreboard, the tile *Last* beside the darts takes the last visit back with the keypad too, as without it, so the keypad keeps the same keys after every visit; on a phone, its keys used to run over their edges in German. The curved arrow of *Last* keeps to its corner, clear of the words and the score, and on a short screen, such as a phone on its side, the score of the visit is as high as the beds of the darts beside it.
 
+## [1.11.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.10.0...v1.11.0) (2026-10-09)
+
+
+### Features
+
+* connect the Autodarts board that a dartboard got later ([#186](https://github.com/Dennis-Otto/ha-autodarts/issues/186)) ([2182758](https://github.com/Dennis-Otto/ha-autodarts/commit/2182758c5953de240f007f462a35ae210af63bf2))
+* enter the score of a visit on the keypad ([#189](https://github.com/Dennis-Otto/ha-autodarts/issues/189)) ([740eac5](https://github.com/Dennis-Otto/ha-autodarts/commit/740eac570444e84fb2a2d47ad74ea71834b18ac6))
+* play on a dartboard without Autodarts ([#185](https://github.com/Dennis-Otto/ha-autodarts/issues/185)) ([6dbb9f7](https://github.com/Dennis-Otto/ha-autodarts/commit/6dbb9f731e110ff0135a02dba8b3e6f0ef6a1198))
+
 ## [1.10.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.2...v1.10.0) (2026-10-08)
 
 ### New
