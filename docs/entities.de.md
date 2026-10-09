@@ -102,7 +102,7 @@ Mit den Standardwerten, automatischer Start an und keine Pausengrenze, zählt je
 | Neue Trainingssession | Taste | Beendet die laufende Session und startet die nächste; das Board selbst bleibt unberührt. |
 | Sessions automatisch starten | Schalter, *Konfiguration* | Der erste Dart startet eine Session, wenn keine läuft. Standardmäßig an. |
 | Session-Timeout | Zahl, *Konfiguration* | Minuten ohne Darts, 0–240, nach denen eine Session von selbst endet. `0`, der Standard, lässt sie weiterlaufen. |
-| Average der letzten Session | Sensor, Punkte | 3-Dart-Average der letzten beendeten Session. Attribute: `started`, `ended`, `duration_minutes`, die Summen, `manual_darts` (von Hand eingegebene Darts) und `sessions` mit den letzten 20 Sessions, die der Recorder nicht speichert. |
+| Average der letzten Session | Sensor, Punkte | 3-Dart-Average der letzten beendeten Session. Attribute: `started`, `ended`, `duration_minutes`, die Summen, `manual_darts` (von Hand eingegebene Darts), `total_darts` (Darts von Aufnahmen, die mit ihren Punkten eingegeben wurden) und `sessions` mit den letzten 20 Sessions, die der Recorder nicht speichert. |
 
 Die Summen nutzen die Zustandsklasse *total* mit dem Start der Session als `last_reset`: Die Statistik von Home Assistant summiert sie pro Session, und eine Korrektur oder eine zurückgenommene Aufnahme kann sie senken. Die Aufnahmen mit 100+, 140+ und 180 zählen, sobald eine Aufnahme abgeschlossen ist, wenn ihre Darts gezogen werden. [So wird gezählt](how-it-works.de.md#trainingssession).
 
@@ -665,6 +665,27 @@ data:
 ```
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn weder Feld noch eine vollständige Position zwischen -3 und 3 angegeben ist, wenn das Feld nicht das Feld an der Position ist, wenn die manuelle Eingabe aus ist, wenn die Aufnahme schon drei Darts hat oder solange der Bot am Board ist.
+
+### Aufnahmepunkte eingeben: `autodarts.enter_visit`
+
+Gibt eine X01-Aufnahme mit ihrer Punktzahl statt mit ihren Darts ein, wie *Punkte* im Tastenfeld, und gibt weiter: Der nächste Spieler wirft. Braucht *Übungsspiel manuelle Eingabe*. Schon von Hand eingegebene Darts der Aufnahme weichen ihr; Darts im Board lehnen sie ab. Die Aufnahme hat eigene Darts, markiert mit `total`, deren Felder ausgedacht sind und unbekannt bleiben: Sie zählen für die Punkte, die Averages, die 180er, die Checkouts und die Bestleistungen, aber für kein Feld, also nicht für das Trefferbild, die Doppel, die Triple oder die Bulls. Die Punkte, die der Spieler noch hat, checken aus, mehr ist überworfen.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `score` | 0–180 | Die Punkte der Aufnahme; Pflicht |
+| `darts` | 1–3 | Die Darts der Aufnahme, weniger als 3 nur beim Checkout; Standard 3 |
+| `darts_at_double` | 0–3 | Wie viele davon auf ein Doppel gingen, für die Checkout-Quote; Standard 1 beim Checkout mit Double-Out, sonst 0. Ohne Double-Out zählt keiner |
+| `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
+
+```yaml
+action: autodarts.enter_visit
+data:
+  score: 40
+  darts: 2
+  darts_at_double: 2
+```
+
+Die Aufnahme meldet sich mit `visit_thrown` und `visit_completed`, beide mit `total` und leeren `segments`, ihre Darts aber nicht: Eine Automation, die jeden Dart ansagt, etwa der [Dart-Caller](automations.de.md#dart-caller), schweigt und sagt die Aufnahme an. Die Aktion bricht mit einer klaren Meldung ab außerhalb eines laufenden X01-Legs und beim Ausbullen, wenn keine Aufnahme mit diesen Darts die Punkte von dem Rest des Spielers erreichen kann (etwa 179, oder 159 von 159 mit Double-Out), wenn mehr Darts auf ein Doppel gingen, als die Aufnahme hatte, oder beim Checkout keiner, solange ein Dart der Aufnahme im Board steckt, wenn die manuelle Eingabe aus ist oder solange der Bot am Board ist.
 
 ### Weitergeben: `autodarts.next_player`
 

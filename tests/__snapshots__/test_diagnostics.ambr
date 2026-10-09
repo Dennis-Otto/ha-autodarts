@@ -154,6 +154,7 @@
         'undo': True,
         'visit': list([
         ]),
+        'visit_from': 501,
         'winner': None,
         'won': False,
       }),
@@ -194,6 +195,7 @@
         'scores_100': 0,
         'scores_140': 0,
         'scores_180': 1,
+        'total_darts': 0,
         'triples': 3,
         'visits': 3,
       }),
@@ -405,6 +407,7 @@
         'scores_100': 0,
         'scores_140': 0,
         'scores_180': 0,
+        'total_darts': 0,
         'triples': 0,
         'visits': 0,
       }),

@@ -102,7 +102,7 @@ The defaults, automatic start on and no pause limit, count every dart as version
 | New training session | Button | Ends the running session and starts the next one. The board itself is not touched. |
 | Start sessions automatically | Switch, *Configuration* | The first dart starts a session when none runs. On by default. |
 | Session idle timeout | Number, *Configuration* | Minutes without darts, 0–240, after which a session ends by itself. `0`, the default, keeps it running. |
-| Last session average | Sensor, points | 3-dart average of the last finished session. Attributes: `started`, `ended`, `duration_minutes`, the totals, `manual_darts` (darts entered by hand), and `sessions` with the last 20 sessions, which the recorder does not store. |
+| Last session average | Sensor, points | 3-dart average of the last finished session. Attributes: `started`, `ended`, `duration_minutes`, the totals, `manual_darts` (darts entered by hand), `total_darts` (darts of visits entered as their score), and `sessions` with the last 20 sessions, which the recorder does not store. |
 
 Totals use the state class *total*, with the start of the session as `last_reset`: Home Assistant's statistics sum them per session, and a correction or an undone visit may lower them. The 100+, 140+ and 180 visits count once a visit is complete, when its darts are pulled. [How the counting works](how-it-works.md#training-session).
 
@@ -665,6 +665,27 @@ data:
 ```
 
 The action fails with a clear message when the bed is unknown, when neither a bed nor a whole position between -3 and 3 is given, when the bed is not the bed at the position, when manual entry is off, when the visit already has three darts, or while the bot is at the board.
+
+### Enter a visit's score: `autodarts.enter_visit`
+
+Enters an X01 visit by its score instead of its darts, as the keypad's *Score* does, and passes the turn: the next player throws. Needs *Practice manual entry*. Darts already entered by hand in the visit give way to it; darts on the board refuse it. The visit has darts of its own, marked `total`, whose beds are made up and stay unknown: they count for the score, the averages, the 180s, the checkouts and the records, but for no bed, so not for the heatmap, the doubles, the triples or the bulls. A score of what the player has left checks out, more busts.
+
+| Field | Values | Description |
+| --- | --- | --- |
+| `score` | 0–180 | The points of the visit; required |
+| `darts` | 1–3 | The darts it took, fewer than 3 only for a checkout; default 3 |
+| `darts_at_double` | 0–3 | How many of them were thrown at a double, for the checkout rate; default 1 for a checkout with double out, otherwise 0. Without double out, none counts |
+| `config_entry_id` | Autodarts entry | Only needed with more than one board |
+
+```yaml
+action: autodarts.enter_visit
+data:
+  score: 40
+  darts: 2
+  darts_at_double: 2
+```
+
+The visit is announced with `visit_thrown` and `visit_completed`, both with `total` and empty `segments`, but its darts are not: an automation that calls every dart, such as the [dart caller](automations.md#dart-caller), stays silent and calls the visit. The action fails with a clear message outside an X01 leg being played and in the bull-off, when no visit of these darts can score this from what the player has left (such as 179, or 159 from 159 with double out), when more darts were at a double than the visit had or none for a checkout, while a dart of the visit is on the board, when manual entry is off, or while the bot is at the board.
 
 ### Pass the turn: `autodarts.next_player`
 

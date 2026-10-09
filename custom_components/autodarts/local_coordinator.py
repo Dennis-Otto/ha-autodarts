@@ -61,7 +61,7 @@ from .local_api import (
 )
 from .manual import ManualDarts
 from .online import ONLINE_EVENT_TYPES
-from .practice import PracticeGame
+from .practice import PracticeGame, VisitRefused
 from .profiles import valid_name
 from .progress import Progress
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
@@ -163,6 +163,7 @@ EVENT_TYPES = [
 # Dart and visit events name the practice game being played, so that callers
 # can leave the game to the practice caller.
 PLAY_EVENTS = ("dart_detected", "dart_corrected", "visit_thrown", "visit_completed")
+DART_EVENTS = ("dart_detected", "dart_corrected")
 # Results announced with the dart that decides them, which a correction can
 # take back; statistics take them from the booking instead.
 RESULT_EVENTS = ("leg_won", "match_won")
@@ -792,6 +793,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         for kind, attributes in self._recorded(observed):
             announced = True
             self.quality.record(kind, attributes)
+            if kind in DART_EVENTS and attributes.get("total"):
+                # A visit entered as its score announces itself, not its made-up darts.
+                continue
             if kind in PLAY_EVENTS:
                 attributes = {
                     **attributes,
@@ -1893,6 +1897,40 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_domain=DOMAIN, translation_key="visit_full"
             )
         self.manual.add(segment, position, "manual")
+        self._refresh("manual")
+
+    async def async_enter_visit(
+        self, points: int, darts: int | None = None, at_double: int | None = None
+    ) -> None:
+        """An X01 visit entered as its score: the darts entered by hand in the
+        visit so far give way to it, and the next player throws."""
+        if not self.practice.manual_entry:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="manual_entry_off"
+            )
+        if self.practice.bot_up:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="bot_turn"
+            )
+        if self.manual.board_darts((self.data or {}).get("local") or {}):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="visit_on_board"
+            )
+        try:
+            visit = self.practice.score_visit(points, darts, at_double)
+        except VisitRefused as err:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key=err.key,
+                translation_placeholders=err.placeholders or None,
+            ) from err
+        # Replaced at once: without darts, the visit of a dartboard without
+        # Autodarts would end before its score is in.
+        self.manual.extras = []
+        for dart in visit:
+            self.manual.add(dart, None, "manual")
+        self._refresh("manual")
+        self.manual.end_visit()
         self._refresh("manual")
 
     async def async_next_player(self) -> None:

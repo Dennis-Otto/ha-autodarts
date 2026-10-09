@@ -46,7 +46,14 @@ from .party import (
 )
 from .positions import x01_aims
 from .profiles import Profiles, clean_name
-from .scoring import VISIT_DARTS, evaluate_visit, is_double, rate, score
+from .scoring import (
+    VISIT_DARTS,
+    evaluate_visit,
+    is_double,
+    rate,
+    score,
+    visit_darts,
+)
 from .scoring import average as _average
 from .summary import HIGH_VISITS, Tally
 from .training import hit_key
@@ -128,6 +135,16 @@ def valid_settings(saved: object) -> dict[str, Any] | None:
         + [""] * (PARTY_PLAYERS - len(names)),
         "starts": list(starts),
     }
+
+
+class VisitRefused(ValueError):
+    """A visit entered as its score that the game cannot take: the key of the
+    message that says why, and what the message names."""
+
+    def __init__(self, key: str, **placeholders: str) -> None:
+        super().__init__(key)
+        self.key = key
+        self.placeholders = placeholders
 
 
 @dataclass
@@ -993,6 +1010,48 @@ class PracticeGame:
             )
         return events
 
+    def score_visit(
+        self, points: int, darts: int | None = None, at_double: int | None = None
+    ) -> list[dict[str, Any]]:
+        """The darts of an X01 visit entered as its score, `points`.
+
+        The darts are made up but for their score, and marked `total`; the last
+        `at_double` of them were thrown at a double, by default the one that
+        checks out. Without `darts`, the visit has three. A score that is more
+        than the player has left, or leaves 1 with double out, busts.
+        """
+        if not self.game or self.bulling or self.winner is not None or self.hold:
+            raise VisitRefused("visit_not_x01")
+        player = self.players[self.current]
+        start = player.remaining
+        count = VISIT_DARTS if darts is None else darts
+        made = visit_darts(
+            start,
+            points,
+            count,
+            self.double_out,
+            opening=self.double_in and not player.opened,
+        )
+        if made is None:
+            raise VisitRefused(
+                "visit_impossible", score=str(points), remaining=str(start)
+            )
+        checkout = points == start
+        if at_double is None:
+            at_double = int(checkout)
+        if not self.double_out:
+            at_double = 0
+        elif at_double > count or (checkout and not at_double):
+            raise VisitRefused("visit_at_double", darts=str(count))
+        return [
+            {
+                **dart,
+                "total": True,
+                **({"at_double": True} if index >= count - at_double else {}),
+            }
+            for index, dart in enumerate(made)
+        ]
+
     def passes(self) -> bool:
         """Whether a visit without darts can end, so the next player throws:
         in X01, the Cricket and the party games, where it counts as a visit of
@@ -1154,10 +1213,18 @@ class PracticeGame:
         running = player.remaining
         for index, dart in enumerate(self._thrown()[:darts]):
             points = score(dart) if index >= opening else 0
-            # A dart is thrown at a double when that double alone finishes.
-            double = aimed_at(running) if self.double_out and index >= opening else None
-            if double:
+            counts = self.double_out and index >= opening
+            if dart.get("total"):
+                # A visit entered as its score says itself which darts were
+                # thrown at a double, though not at which.
+                double, aimed = None, counts and dart.get("at_double") is True
+            else:
+                # A dart is thrown at a double when that double alone finishes.
+                double = aimed_at(running) if counts else None
+                aimed = double is not None
+            if aimed:
                 player.at_double += 1
+            if double:
                 attempts.append((double, hits(dart, double)))
             if player.first9_darts < 9:
                 player.first9_darts += 1
@@ -1867,6 +1934,8 @@ class PracticeGame:
             "name": self._name(self.current),
             "winner": None if self.winner is None else self.winner + 1,
             "remaining": remaining,
+            # What the player had before the visit, for its score entered on the cards.
+            "visit_from": player.remaining,
             "checkout": " ".join(route) or None,
             "setup": self._setup(remaining, left) if left and not route else None,
             "bust": outcome == "bust",

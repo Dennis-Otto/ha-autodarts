@@ -837,6 +837,18 @@
     "visit_full": {
       "message": "Die Aufnahme hat schon drei Darts. Gib mit Nächster Spieler weiter."
     },
+    "visit_not_x01": {
+      "message": "Die Punkte einer Aufnahme lassen sich eingeben, solange ein X01-Leg läuft; in anderen Spielen und beim Ausbullen gibst du die Darts ein."
+    },
+    "visit_impossible": {
+      "message": "Keine Aufnahme ergibt {score} von {remaining} mit diesen Regeln und Darts. Prüfe die Punkte."
+    },
+    "visit_at_double": {
+      "message": "Die Darts auf ein Doppel dürfen höchstens die {darts} Darts der Aufnahme sein, und beim Checkout mindestens einer."
+    },
+    "visit_on_board": {
+      "message": "Das Board hat Darts dieser Aufnahme. Korrigiere sie, oder ziehe sie, bevor du die Punkte der Aufnahme eingibst."
+    },
     "empty_visit": {
       "message": "Die Aufnahme hat keine Darts zum Beenden. Ohne Darts gibst du in X01, den Cricket- und den Partyspielen weiter, nicht aber in Trainingsspielen, beim Ausbullen und während bei Killer die Zahlen gewählt werden."
     },
@@ -1209,6 +1221,28 @@
         "y": {
           "name": "Position y",
           "description": "Wo der Dart steckt, von unten nach oben zur 20: 0 ist die Mitte, 1 der äußere Rand des Doppelrings."
+        }
+      }
+    },
+    "enter_visit": {
+      "name": "Aufnahmepunkte eingeben",
+      "description": "Gibt eine X01-Aufnahme mit ihrer Punktzahl ein, etwa 140, statt dreier Darts, und gibt weiter. Schon von Hand eingegebene Darts der Aufnahme weichen ihr. Braucht Übungsspiel manuelle Eingabe; die Felder bleiben unbekannt, deshalb zählt für die Statistik nur die Punktzahl.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Board",
+          "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        },
+        "score": {
+          "name": "Punkte",
+          "description": "Die Punkte der Aufnahme, 0 bis 180. Was der Spieler noch hat, checkt aus, mehr ist Überworfen."
+        },
+        "darts": {
+          "name": "Darts",
+          "description": "Die Darts der Aufnahme, 1 bis 3; weniger als 3 nur beim Checkout. Standard: 3."
+        },
+        "darts_at_double": {
+          "name": "Darts auf ein Doppel",
+          "description": "Wie viele davon auf ein Doppel gingen, für die Checkout-Quote. Standard: 1 beim Checkout, sonst 0."
         }
       }
     },

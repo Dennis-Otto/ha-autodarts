@@ -368,11 +368,17 @@ const TEXT = {
     // Correcting and entering darts on the scoreboard
     correct_title: "Correct dart {dart}",
     enter_title: "Enter a dart",
+    score_title: "Enter the visit's score",
+    score_erase: "Delete the last digit",
+    score_enter: "OK",
+    score_darts: "Darts for the checkout",
+    score_doubles: "Darts at a double",
     pad_single: "Single",
     pad_double: "Double",
     pad_treble: "Treble",
     pad_cancel: "Cancel",
     pad_board: "Board",
+    pad_score: "Score",
     pad_spot: "Tap where the dart is",
     pad_spot_hint: "Tap where the dart is. Hold and slide for a magnifier; two fingers zoom.",
     pad_zoom: "Zoom",
@@ -968,11 +974,17 @@ const TEXT = {
     // Darts auf der Anzeigetafel korrigieren und eingeben
     correct_title: "Dart {dart} korrigieren",
     enter_title: "Dart eingeben",
+    score_title: "Punkte der Aufnahme",
+    score_erase: "Letzte Ziffer löschen",
+    score_enter: "OK",
+    score_darts: "Darts für den Checkout",
+    score_doubles: "Darts auf ein Doppel",
     pad_single: "Single",
     pad_double: "Double",
     pad_treble: "Triple",
     pad_cancel: "Abbrechen",
     pad_board: "Scheibe",
+    pad_score: "Punkte",
     pad_spot: "Tippe an, wo der Dart steckt",
     pad_spot_hint: "Tippe an, wo der Dart steckt. Halten und schieben zeigt eine Lupe, zwei Finger zoomen.",
     pad_zoom: "Zoom",
@@ -1558,11 +1570,17 @@ const TEXT = {
     say_setup_alone: "Déjate {leave}",
     correct_title: "Corregir el dardo {dart}",
     enter_title: "Introducir un dardo",
+    score_title: "Puntos de la tirada",
+    score_erase: "Borrar la última cifra",
+    score_enter: "OK",
+    score_darts: "Dardos para el cierre",
+    score_doubles: "Dardos a un doble",
     pad_single: "Simple",
     pad_double: "Doble",
     pad_treble: "Triple",
     pad_cancel: "Cancelar",
     pad_board: "Diana",
+    pad_score: "Puntos",
     pad_spot: "Toca donde está el dardo",
     pad_spot_hint: "Toca donde está el dardo. Mantén y desliza para ver una lupa; con dos dedos haces zoom.",
     pad_zoom: "Zoom",
@@ -2147,11 +2165,17 @@ const TEXT = {
     say_setup_alone: "Laissez {leave}",
     correct_title: "Corriger la fléchette {dart}",
     enter_title: "Saisir une fléchette",
+    score_title: "Points de la volée",
+    score_erase: "Effacer le dernier chiffre",
+    score_enter: "OK",
+    score_darts: "Fléchettes du finish",
+    score_doubles: "Fléchettes sur un double",
     pad_single: "Simple",
     pad_double: "Double",
     pad_treble: "Triple",
     pad_cancel: "Annuler",
     pad_board: "Cible",
+    pad_score: "Points",
     pad_spot: "Touchez l'endroit où se trouve la fléchette",
     pad_spot_hint: "Touchez l'endroit où se trouve la fléchette. Maintenez et glissez pour une loupe\u00a0; deux doigts zooment.",
     pad_zoom: "Zoom",
@@ -2736,11 +2760,17 @@ const TEXT = {
     say_setup_alone: "Laat {leave} over",
     correct_title: "Dart {dart} corrigeren",
     enter_title: "Dart invoeren",
+    score_title: "Score van de beurt",
+    score_erase: "Laatste cijfer wissen",
+    score_enter: "OK",
+    score_darts: "Darts voor de uitgooi",
+    score_doubles: "Darts op een dubbel",
     pad_single: "Single",
     pad_double: "Dubbel",
     pad_treble: "Triple",
     pad_cancel: "Annuleren",
     pad_board: "Bord",
+    pad_score: "Score",
     pad_spot: "Tik aan waar de dart zit",
     pad_spot_hint: "Tik aan waar de dart zit. Houd vast en schuif voor een vergrootglas; met twee vingers zoom je.",
     pad_zoom: "Zoom",
@@ -3616,6 +3646,8 @@ function kind(dart) {
 }
 
 function label(hass, dart) {
+  // A dart of a visit entered as its score has no bed of its own, only its points.
+  if (dart.total) return String(dart.number * dart.multiplier);
   if (dart.number === 25) return dart.multiplier >= 2 ? "Bull" : "25";
   if (kind(dart) === "miss") return translate(hass, "miss");
   return `${{ 3: "T", 2: "D" }[dart.multiplier] || "S"}${dart.number}`;
@@ -3916,6 +3948,8 @@ function practiceView(state) {
   return {
     game: finite(attributes.game),
     remaining,
+    // What the player had before the visit, for its score entered on the keypad.
+    from: finite(attributes.visit_from) ?? remaining,
     teams: teamsView(attributes.teams),
     route: route.filter((bed) => hitBeds(bed).length),
     ...(setupView(attributes.setup) ? { setup: setupView(attributes.setup) } : {}),
@@ -5595,6 +5629,104 @@ function padBoardHtml(pad, ui) {
   );
 }
 
+// Score of a visit -------------------------------------------------------------------
+
+const DART_SCORES = [
+  ...new Set([0, 25, 50, ...[...Array(20)].flatMap((_, index) => [1, 2, 3].map((times) => (index + 1) * times))]),
+];
+const DOUBLE_SCORES = new Set([50, ...[...Array(20)].map((_, index) => (index + 1) * 2)]);
+
+// The fewest darts that check this score out, or null where no visit can.
+function checkoutDarts(left, doubleOut) {
+  const ends = doubleOut ? DOUBLE_SCORES : new Set(DART_SCORES.filter(Boolean));
+  if (ends.has(left)) return 1;
+  if (DART_SCORES.some((first) => ends.has(left - first))) return 2;
+  if (DART_SCORES.some((first) => DART_SCORES.some((second) => ends.has(left - first - second)))) return 3;
+  return null;
+}
+
+// The keypad takes the score of a visit in an X01 leg being played: what the player had
+// before the visit and whether the leg ends on a double.
+function scoreEntry(view) {
+  const practice = view.mode === "x01" ? view.practice : null;
+  if (!practice || practice.winner !== null) return null;
+  return { from: practice.from, doubleOut: practice.doubleOut };
+}
+
+// What a score says before it goes in: what it leaves, a checkout or a bust.
+function scoreHint(entry, points, t) {
+  if (points === entry.from && checkoutDarts(points, entry.doubleOut) !== null) return t("checkout");
+  const left = entry.from - points;
+  if (left < 0 || (entry.doubleOut && left <= 1)) return t("bust");
+  return fill(t("setup_leave"), { leave: left });
+}
+
+const counting = (from, to) => [...Array(to - from + 1)].map((_, index) => from + index);
+
+// What a score takes besides itself: the darts of a checkout and the darts at a double,
+// asked where they can differ. With the answers so far, the next question, or the data
+// of autodarts.enter_visit once nothing is left to ask.
+function scoreAnswer(entry, points, answers = {}) {
+  const data = { score: points };
+  const least = points === entry.from ? checkoutDarts(points, entry.doubleOut) : null;
+  if (least !== null) {
+    if (answers.darts === undefined && least < 3) return { ask: "darts", choices: counting(least, 3) };
+    data.darts = answers.darts ?? 3;
+    if (!entry.doubleOut) return { data };
+    if (answers.doubles === undefined && data.darts > 1) return { ask: "doubles", choices: counting(1, data.darts) };
+    data.darts_at_double = answers.doubles ?? 1;
+    return { data };
+  }
+  // A visit that left a double in reach may have thrown at it; what no visit can score from
+  // where the player stands goes in as it is, for the integration to say why it can't.
+  if (entry.doubleOut && entry.from - points <= 50 && points !== entry.from) {
+    if (answers.doubles === undefined) return { ask: "doubles", choices: counting(0, 3) };
+    data.darts_at_double = answers.doubles;
+  }
+  return { data };
+}
+
+// The score view of the keypad, in the pad's head the score typed so far with what it
+// leaves, or the question after it; below, the digits in four rows of three, as tall as
+// the numbers of the keys, or the answers and Cancel in the same four rows, so the pad
+// keeps its height whatever it shows.
+function padScoreHtml(pad, ui, button) {
+  const { t } = ui;
+  const score = pad.score;
+  if (score.ask) {
+    const span = 12 / score.ask.choices.length;
+    const answers = score.ask.choices
+      .map((count) => button("answer", count, String(count), ` class="digit answer" style="--span:${span}"`))
+      .join("");
+    return (
+      `<div class="pad-score">${answers}` +
+      `${button("cancel", undefined, escapeHtml(t("pad_cancel")), ` class="secondary ask-cancel" style="--span:12"`)}</div>`
+    );
+  }
+  const digit = (value) => button("digit", value, value, ` class="digit"`);
+  const keys = [
+    ..."123456789".split("").map(digit),
+    button("erase", undefined, "⌫", ` class="digit" aria-label="${escapeHtml(t("score_erase"))}"`, !score.typed),
+    digit("0"),
+    button("enter", undefined, escapeHtml(t("score_enter")), ` class="digit enter"`, !score.typed),
+  ].join("");
+  return `<div class="pad-score">${keys}</div>`;
+}
+
+// What the head of the score view says: the score typed and what it leaves, or the
+// question after it.
+function padScoreLine(pad, ui) {
+  const { t } = ui;
+  const score = pad.score;
+  if (score.ask) {
+    return `<span class="score-line ask">${escapeHtml(t(score.ask.ask === "darts" ? "score_darts" : "score_doubles"))}</span>`;
+  }
+  return (
+    `<span class="score-line"><span class="typed">${escapeHtml(score.typed || "–")}</span>` +
+    `<span class="muted">${escapeHtml(score.hint)}</span></span>`
+  );
+}
+
 // The pad of the scoreboard: single, double or treble, the numbers, the bulls
 // and a miss. It corrects a dart of the visit, or enters darts by hand with
 // the next player and, on the live card, the undo of the last visit, which need a
@@ -5605,7 +5737,7 @@ function padHtml(pad, ui) {
     `<button type="button" data-pad="${action}"${value === undefined ? "" : ` data-value="${escapeHtml(value)}"`}` +
     ` data-focus="${escapeHtml(`${action}:${value ?? ""}`)}"` +
     `${(pad.disabled && action !== "cancel") || off ? " disabled" : ""}${extra}>${content}</button>`;
-  const title = pad.dart ? fill(t("correct_title"), { dart: pad.dart }) : t("enter_title");
+  const title = pad.dart ? fill(t("correct_title"), { dart: pad.dart }) : pad.score ? t("score_title") : t("enter_title");
   const multipliers = [
     [1, "pad_single"],
     [2, "pad_double"],
@@ -5644,10 +5776,14 @@ function padHtml(pad, ui) {
           ));
   // The board instead of the keys, for the spot where the dart is.
   // The keys or the board, one of the two, as the segmented control of every card.
+  // In an X01 leg, the keypad also takes the score of a visit.
   const view =
     `<div class="segmented view" role="group" aria-label="${escapeHtml(t("pad_view"))}">` +
-    button("keys", undefined, escapeHtml(t("pad_keys")), ` aria-pressed="${pad.board !== true}"`) +
+    button("keys", undefined, escapeHtml(t("pad_keys")), ` aria-pressed="${pad.board !== true && !pad.score}"`) +
     button("board", undefined, escapeHtml(t("pad_board")), ` aria-pressed="${pad.board === true}"`) +
+    (pad.scoreable
+      ? button("score", undefined, escapeHtml(t("pad_score")), ` aria-pressed="${Boolean(pad.score)}"`)
+      : "") +
     `</div>`;
   // On the board, a switch between the whole board and its part around the dart: a
   // magnifier with a plus zooms in, one with a minus shows all of it.
@@ -5666,12 +5802,16 @@ function padHtml(pad, ui) {
     : "";
   const body = pad.board
     ? padBoardHtml(pad, ui)
-    : `<div class="pad-numbers">${numbers}</div>`;
+    : pad.score
+      ? padScoreHtml(pad, ui, button)
+      : `<div class="pad-numbers">${numbers}</div>`;
+  const keys = !pad.board && !pad.score;
   return (
-    `<section class="pad${pad.dart ? " correcting" : ""}${pad.board ? " on-board" : ""}" aria-label="${escapeHtml(title)}">` +
-    `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>${pad.board ? "" : multipliers}${zoom}${view}</div>` +
+    `<section class="pad${pad.dart ? " correcting" : ""}${pad.board ? " on-board" : ""}${pad.score ? " on-score" : ""}" aria-label="${escapeHtml(title)}">` +
+    `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>` +
+    `${keys ? multipliers : ""}${pad.score ? padScoreLine(pad, ui) : ""}${zoom}${view}</div>` +
     (pad.disabled ? `<p class="pad-hint pad-wait">${escapeHtml(t("pad_bot_wait"))}</p>` : "") +
-    `${body}<div class="pad-extra">${pad.board ? "" : bulls}${actions}</div></section>`
+    `${body}<div class="pad-extra">${keys ? bulls : ""}${actions}</div></section>`
   );
 }
 
@@ -7834,10 +7974,24 @@ const PAD_CSS = `
   /* A narrow pad keeps S, D, T and its keys or board in one row. */
   @container (max-width: 560px) {
     .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .pad-score { --digit-span: 4; --answer-rows: 3; }
     .pad .multiplier { min-width: 44px; }
     .pad .segmented.view { padding: 2px; }
     .pad .segmented.view button { padding: 0 10px; }
   }
+  /* The score view: the digits in as many rows as the numbers of the keys, two rows of
+     six on a wide pad and four of three on a narrow one, which the answers to a question
+     after the score and Cancel keep, so the pad keeps its height: the rows share it
+     equally, so answers spanning three rows are as tall as three rows of digits. */
+  .pad-score { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 6px; }
+  .pad-score > button { grid-column: span var(--digit-span, 2); }
+  .pad-score > :is(.answer, .ask-cancel) { grid-column: span var(--span); }
+  .pad-score > .answer { grid-row: span var(--answer-rows, 1); }
+  .pad-score .enter { color: #fff; background: var(--ad-accent-fill); border-color: var(--ad-accent-fill); }
+  /* A question takes the line of the score typed, as tall as its large digits. */
+  .score-line { display: flex; align-items: baseline; gap: .5em; flex: 1; min-width: 6em; min-height: 1.68em; }
+  .score-line .typed { min-width: 1.8em; font-size: 1.4em; line-height: 1.2; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .score-line.ask { align-items: center; font-weight: 700; }
   .pad-extra { display: flex; flex-wrap: wrap; gap: 6px; }
   .pad-extra button { flex: 1 1 5.5em; }
   .pad .secondary { color: var(--ad-accent-text); border-color: var(--ad-accent); background: none; }
@@ -8790,9 +8944,10 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     .scoreboard.full.with-pad > .visit { grid-area: visit; }
     .scoreboard.full.with-pad > .pad-area { grid-area: pad; align-self: end; min-height: 0; }
     .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .scoreboard.full.with-pad .pad-score { --digit-span: 4; --answer-rows: 3; }
     @media (max-height: 640px) {
       .scoreboard.full.with-pad .pad button { min-height: 40px; }
-      .scoreboard.full.with-pad :is(.pad, .pad-numbers, .pad-extra) { gap: 4px; }
+      .scoreboard.full.with-pad :is(.pad, .pad-numbers, .pad-score, .pad-extra) { gap: 4px; }
     }
   }
   /* A portrait tablet: the tiles fill the height, two players one above the other. */
@@ -8815,8 +8970,7 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   /* A phone: the pad's keys take less room so the scores stay in sight. Its label gets a
      line of its own, the bulls, the miss and the actions share one row. */
   @container (max-width: 560px) {
-    .scoreboard.full .pad-head .section-label { flex-basis: 100%; }
-    .scoreboard.full :is(.pad, .pad-numbers) { gap: 4px; }
+    .scoreboard.full :is(.pad, .pad-numbers, .pad-score) { gap: 4px; }
     .scoreboard.full .pad button { min-height: 42px; padding: 0 6px; }
     .scoreboard.full .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
     .scoreboard.full .pad-extra button { line-height: 1.1; }
@@ -8859,12 +9013,17 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
       grid-template-areas: "header pad" "banner pad" "main pad" "visit pad";
     }
     .scoreboard.full.with-pad > .pad-area { align-self: stretch; overflow-y: auto; container-type: inline-size; }
-    .scoreboard.full.with-pad .pad-head .section-label { flex-basis: 100%; }
     .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-    @container (min-width: 298px) { .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
-    @container (min-width: 427px) { .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+    @container (min-width: 298px) {
+      .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+      .scoreboard.full.with-pad .pad-score { --digit-span: 3; --answer-rows: 2; }
+    }
+    @container (min-width: 427px) {
+      .scoreboard.full.with-pad .pad-numbers { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+      .scoreboard.full.with-pad .pad-score { --digit-span: 2; --answer-rows: 1; }
+    }
     .scoreboard.full.with-pad .pad { gap: 4px; }
-    .scoreboard.full.with-pad .pad-numbers { gap: 3px; }
+    .scoreboard.full.with-pad :is(.pad-numbers, .pad-score) { gap: 3px; }
     .scoreboard.full.with-pad .pad button { min-height: 40px; padding: 0 4px; }
     .scoreboard.full.with-pad .pad-extra { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.2em, 1fr)); gap: 4px; }
     .scoreboard.full.with-pad .pad-extra button { line-height: 1.1; }
@@ -9525,6 +9684,10 @@ function createElements(Base) {
       this._pick = null;
       this._multiplier = 1;
       this._padBoard = false;
+      // The score view of the keypad, what is typed there and the question after it.
+      this._padScore = false;
+      this._typed = "";
+      this._asking = null;
       this._padZoom = null;
       this._touches = new Map();
       this._gesture = null;
@@ -9549,6 +9712,57 @@ function createElements(Base) {
       for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel"]) {
         this._el.pad.addEventListener(type, (event) => this._boardTouch(event));
       }
+      // A keyboard types the score: digits, Backspace, Enter and Escape.
+      this._el.pad.addEventListener("keydown", (event) => {
+        if (!this._el.pad.querySelector(".pad-score")) return;
+        const key = /^[0-9]$/.test(event.key)
+          ? ["digit", event.key]
+          : { Backspace: ["erase"], Enter: ["enter"], Escape: ["cancel"] }[event.key];
+        if (!key || (key[0] === "enter" && event.target.closest?.("button"))) return;
+        event.preventDefault();
+        this._padAction(...key);
+      });
+    }
+
+    // The keypad of darts entered by hand, and in an X01 leg its score view.
+    _keypadPad(view, disabled, base, extra) {
+      const entry = scoreEntry(view);
+      const scoring = Boolean(entry && this._padScore) && !this._pick;
+      const score = scoring
+        ? {
+            typed: this._typed,
+            hint: this._typed ? scoreHint(entry, Number(this._typed), (key) => this._t(key)) : "",
+            ask: this._asking,
+          }
+        : null;
+      return { dart: null, multiplier: this._multiplier, disabled, scoreable: Boolean(entry), score, ...extra, ...base };
+    }
+
+    // A score typed on the keypad goes in with what it takes besides itself.
+    _scoreAction(action, value) {
+      const entry = scoreEntry(gameView((name) => this._state(name)));
+      if (!entry) return;
+      if (action === "digit") {
+        const typed = this._typed === "0" ? value : this._typed + value;
+        if (Number(typed) <= 180) this._typed = typed;
+        return;
+      }
+      if (action === "erase") {
+        this._typed = this._typed.slice(0, -1);
+        return;
+      }
+      const points = Number(this._typed);
+      const answers = this._asking?.answers ?? {};
+      if (action === "answer") answers[this._asking.ask] = Number(value);
+      const next = scoreAnswer(entry, points, answers);
+      if (next.ask) {
+        this._asking = { ...next, answers };
+        return;
+      }
+      const config = this._entry() ? { config_entry_id: this._entry() } : {};
+      this._call("autodarts", "enter_visit", { ...config, ...next.data });
+      this._typed = "";
+      this._asking = null;
     }
 
     // What the pad shows of the darts of the visit, for any pad: the board instead of
@@ -9720,13 +9934,19 @@ function createElements(Base) {
         const [x, y] = value;
         this._call("autodarts", pick ? "correct_dart" : "throw_dart", data({ ...(pick ? { dart: pick.dart } : {}), x, y }));
         this._pick = null;
-      } else if (action === "board" || action === "keys") {
+      } else if (["digit", "erase", "enter", "answer"].includes(action)) {
+        this._scoreAction(action, value);
+      } else if (action === "board" || action === "keys" || action === "score") {
         this._padBoard = action === "board";
+        this._padScore = action === "score";
+        this._asking = null;
         this._padZoom = this._padBoard ? this._openZoom() : null;
       } else if (action === "zoom") {
         this._padZoom = padViewBox(this._padZoom).size < PAD_VIEW ? null : this._zoomAt(pick?.dart);
       } else if (action === "cancel") {
-        this._pick = null;
+        // The question after a score goes, and the score stays to be changed.
+        if (this._asking) this._asking = null;
+        else this._pick = null;
       } else if (this._confirmed(action)) {
         // Passing the turn and undoing the last visit need a second tap.
         this._call("autodarts", action === "next" ? "next_player" : "undo_visit", data({}));
@@ -9929,7 +10149,7 @@ function createElements(Base) {
             .map(
               (item) =>
                 `<span class="recent-visit" style="--bucket:${VISIT_COLORS[visitBucket(item.score)]}" ` +
-                `title="${escapeHtml(`${item.segments.join(" · ")} = ${item.score}`)}">${item.score}</span>`
+                `title="${escapeHtml(item.segments.length ? `${item.segments.join(" · ")} = ${item.score}` : String(item.score))}">${item.score}</span>`
             )
             .join("")
         );
@@ -9970,7 +10190,7 @@ function createElements(Base) {
       }
       const correctable = tappable && Number.isInteger(dart.dart) && !dart.bot;
       const picked = correctable && this._pick?.dart === dart.dart;
-      const marks = [kind(dart), index === count - 1 && "latest", picked && "picked", dead && "dead"];
+      const marks = [dart.total ? "total" : kind(dart), index === count - 1 && "latest", picked && "picked", dead && "dead"];
       const style = ["slot", ...marks.filter(Boolean)].join(" ");
       const bed = label(this._hass, dart);
       const points = dart.number * dart.multiplier;
@@ -9994,7 +10214,8 @@ function createElements(Base) {
       const known = darts.filter(Boolean);
       const base = this._padBase(known);
       const pick = this._pick;
-      const disabled = botAtBoard(gameView((name) => this._state(name)));
+      const view = gameView((name) => this._state(name));
+      const disabled = botAtBoard(view);
       let pad = null;
       if (pick) {
         pad = { dart: pick.dart, multiplier: pick.multiplier, disabled, ...base };
@@ -10002,7 +10223,7 @@ function createElements(Base) {
         // The last visit can be undone while no dart of the next one is in.
         const undo = this._state("practice")?.attributes?.undo === true && !known.length;
         const confirm = ["next", "undo"].includes(this._confirm) ? this._confirm : null;
-        pad = { dart: null, multiplier: this._multiplier, disabled, undo, confirm, ...base };
+        pad = this._keypadPad(view, disabled, base, { undo, confirm });
       }
       el.pad.hidden = !pad;
       if (!this._keepPad(pad)) this._setHtml(el.pad, pad ? padHtml(pad, { t: (key) => this._t(key) }) : "");
@@ -10031,7 +10252,8 @@ function createElements(Base) {
           ? []
           : darts
               .map((dart, index) => (dart && (c.highlight !== "last" || index === latest) ? dart : null))
-              .filter(Boolean);
+              // The made-up darts of a visit entered as its score light no bed.
+              .filter((dart) => dart && !dart.total);
       const paths = new Set(highlighted.flatMap(beds));
       this._setHtml(
         this._el.hits,
@@ -11517,7 +11739,7 @@ function createElements(Base) {
       if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled, ...base };
       if (this._keypad()) {
         const confirm = this._confirm === "next" ? "next" : null;
-        return { dart: null, multiplier: this._multiplier, disabled, confirm, ...base };
+        return this._keypadPad(view, disabled, base, { confirm });
       }
       return null;
     }
@@ -12390,6 +12612,10 @@ if (globalThis.window?.customElements) frontendReady().then(register);
 
 export {
   addWeeks,
+  checkoutDarts,
+  scoreAnswer,
+  scoreEntry,
+  scoreHint,
   aimBeds,
   badgesHtml,
   badgesView,

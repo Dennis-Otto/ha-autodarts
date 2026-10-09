@@ -2878,6 +2878,33 @@ def manual_board(browser: Browser) -> None:
             scores == [["Alex", "324", False], ["Sam", "501", True]],
             f"The scoreboard of a board without Autodarts: {scores}",
         )
+        # Sam's visit goes in as its score.
+        page.evaluate(f"() => {board}.querySelector('[data-pad=\"score\"]').click()")
+        for digit in "100":
+            page.evaluate(
+                f"() => {board}.querySelector('.pad-score [data-value=\"{digit}\"]').click()"
+            )
+        hint = page.evaluate(f"() => {board}.querySelector('.score-line').textContent")
+        check(hint == "100leaves 401", f"The score of a visit says {hint!r}")
+        page.evaluate(f"() => {board}.querySelector('[data-pad=\"enter\"]').click()")
+        page.wait_for_function(
+            f"() => {board}.querySelectorAll('.player .big')[1]?.textContent === '401'",
+            timeout=15000,
+        )
+        # Alex and Sam score on, which leaves Alex 144, from where 100 leaves a double.
+        for score, player, left in (("180", 0, "144"), ("100", 1, "301")):
+            for digit in score:
+                page.evaluate(
+                    f"() => {board}.querySelector('.pad-score [data-value=\"{digit}\"]').click()"
+                )
+            page.evaluate(
+                f"() => {board}.querySelector('[data-pad=\"enter\"]').click()"
+            )
+            page.wait_for_function(
+                f"() => {board}.querySelectorAll('.player .big')[{player}]?.textContent"
+                f" === '{left}'",
+                timeout=15000,
+            )
         page.goto(f"{HA}/{MANUAL_DASHBOARD}/status")
         note = f"({STATUS_CARDS})()[0]?.shadowRoot.querySelector('.manual-note')"
         page.wait_for_function(f"() => {note} && !{note}.hidden", timeout=30000)
@@ -2889,6 +2916,38 @@ def manual_board(browser: Browser) -> None:
             for name in ("live", "scoreboard", "status"):
                 view.goto(f"{HA}/{MANUAL_DASHBOARD}/{name}")
                 found += screen_problems(view, screen, f"manual-{name}", touch)
+            # The score view of the scoreboard's keypad.
+            view.goto(f"{HA}/{MANUAL_DASHBOARD}/scoreboard")
+            view.wait_for_function(CARDS_DRAWN, timeout=30000)
+            root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
+            view.evaluate(f"() => {root}.querySelector('[data-pad=\"score\"]').click()")
+            found += screen_problems(view, screen, "manual-scoreboard-score", touch)
+            # The question after a score keeps the pad's height, and so does Cancel.
+            pad = f"() => {root}.querySelector('.pad').getBoundingClientRect().height"
+            for digit in "100":
+                view.evaluate(
+                    f"() => {root}.querySelector('.pad-score [data-value=\"{digit}\"]')"
+                    ".click()"
+                )
+            typed = view.evaluate(pad)
+            view.evaluate(f"() => {root}.querySelector('[data-pad=\"enter\"]').click()")
+            view.wait_for_function(
+                f"() => {root}.querySelector('[data-pad=\"answer\"]')", timeout=15000
+            )
+            found += screen_problems(view, screen, "manual-scoreboard-ask", touch)
+            asked = view.evaluate(pad)
+            view.evaluate(
+                f"() => {root}.querySelector('[data-pad=\"cancel\"]').click()"
+            )
+            view.wait_for_function(
+                f"() => {root}.querySelector('[data-pad=\"enter\"]')", timeout=15000
+            )
+            back = view.evaluate(pad)
+            found.extend(
+                f"{screen}: the pad is {height:.0f} px tall {moment}, {typed:.0f} px with the score"
+                for moment, height in (("asking", asked), ("after Cancel", back))
+                if abs(height - typed) > 1
+            )
             found.extend(
                 f"{screen}: console problem {error}" for error in page_errors(view, [])
             )

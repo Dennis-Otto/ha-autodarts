@@ -45,7 +45,8 @@ class DoubleHits:
 
     def record(self, darts: Iterable[dict[str, Any]]) -> None:
         for dart in darts:
-            if is_double(dart) and not dart.get("bot"):
+            # The made-up darts of a visit entered as its score hit no bed.
+            if is_double(dart) and not dart.get("bot") and not dart.get("total"):
                 double = double_of(dart["number"])
                 self.counts[double] = self.counts.get(double, 0) + 1
 

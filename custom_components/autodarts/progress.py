@@ -21,7 +21,7 @@ from .doubles import DOUBLES
 from .positions import DartLog
 from .practice import GAMES, Booking, PracticeGame
 from .profiles import Profile, Profiles
-from .training import hit_key
+from .training import beds, hit_key
 
 TREND_WEEKS = 12
 PLAYER_DARTS = 1000
@@ -322,7 +322,7 @@ class Progress:
         counters["darts"] += len(darts)
         week = player.week(today)
         week[WEEK["darts"]] += len(darts)
-        player.hits.update(hit_key(dart) for dart in darts)
+        player.hits.update(hit_key(dart) for dart in beds(darts))
         for position, aim in zip(
             booking.booked_positions, booking.booked_aims, strict=True
         ):
@@ -334,7 +334,7 @@ class Progress:
         if scored == 180:
             counters["maximums"] += 1
             week[WEEK["maximums"]] += 1
-        if len(darts) == 3:
+        if len(beds(darts)) == 3:
             counters["hat_tricks"] += all(
                 dart["number"] == 25 and dart["multiplier"] in (1, 2) for dart in darts
             )

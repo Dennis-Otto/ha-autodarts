@@ -837,6 +837,18 @@
     "visit_full": {
       "message": "De beurt heeft al drie darts. Geef de beurt door met Volgende speler."
     },
+    "visit_not_x01": {
+      "message": "De score van een beurt kun je invoeren zolang er een X01-leg loopt; voer in andere spellen en bij de bull-off de darts in."
+    },
+    "visit_impossible": {
+      "message": "Geen beurt scoort {score} vanaf {remaining} met deze regels en darts. Controleer de score."
+    },
+    "visit_at_double": {
+      "message": "De darts op een dubbel zijn hoogstens de {darts} darts van de beurt, en minstens één bij een uitgooi."
+    },
+    "visit_on_board": {
+      "message": "Het bord heeft darts van deze beurt. Corrigeer ze, of haal ze eruit voordat je de score van de beurt invoert."
+    },
     "empty_visit": {
       "message": "De beurt heeft geen darts om te beëindigen. In X01, de Cricket-spellen en de partyspellen geef je een beurt zonder darts door, maar niet in trainingsspellen, bij het bullen of terwijl bij Killer de nummers worden gekozen."
     },
@@ -1209,6 +1221,28 @@
         "y": {
           "name": "Positie y",
           "description": "Waar de dart zit, van onder naar boven richting de 20: 0 is het midden, 1 de buitenrand van de dubbelring."
+        }
+      }
+    },
+    "enter_visit": {
+      "name": "Beurtscore invoeren",
+      "description": "Voert een X01-beurt in met zijn score, zoals 140, in plaats van drie darts, en geeft de beurt door. Darts die al met de hand in de beurt zijn ingevoerd, maken plaats. Vereist Oefenspel handmatige invoer; de vakken blijven onbekend, dus voor de statistieken telt alleen de score.",
+      "fields": {
+        "config_entry_id": {
+          "name": "Bord",
+          "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        },
+        "score": {
+          "name": "Score",
+          "description": "De punten van de beurt, 0 tot 180. Wat de speler nog heeft, gooit uit; meer is een bust."
+        },
+        "darts": {
+          "name": "Darts",
+          "description": "De darts van de beurt, 1 tot 3; minder dan 3 alleen bij een uitgooi. Standaard: 3."
+        },
+        "darts_at_double": {
+          "name": "Darts op een dubbel",
+          "description": "Hoeveel ervan op een dubbel gegooid zijn, voor het uitgooipercentage. Standaard: 1 bij een uitgooi, anders 0."
         }
       }
     },
