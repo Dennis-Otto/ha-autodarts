@@ -13,6 +13,13 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - The page about security lists `autodarts.enter_visit` among the actions a login can call.
 
+## [1.12.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.11.0...v1.12.0) (2026-10-09)
+
+
+### Features
+
+* enter darts by voice ([#194](https://github.com/Dennis-Otto/ha-autodarts/issues/194)) ([d851272](https://github.com/Dennis-Otto/ha-autodarts/commit/d8512720186253589c4478ea0ff4d7e9ae871de2))
+
 ## [1.11.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.10.0...v1.11.0) (2026-10-09)
 
 ### New
