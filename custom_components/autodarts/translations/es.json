@@ -49,11 +49,12 @@
       },
       "user": {
         "title": "Configurar Autodarts",
-        "description": "Busca dianas Autodarts en tu red o introduce la dirección de una diana.",
+        "description": "Busca dianas Autodarts en tu red, introduce la dirección de una diana o configura una diana sin Autodarts.",
         "menu_options": {
           "discover": "Buscar dianas en esta red",
           "local": "Introducir la dirección de la diana",
-          "cloud": "Vincular cuenta en la nube"
+          "cloud": "Vincular cuenta en la nube",
+          "manual": "Diana sin Autodarts: introduce tú cada dardo"
         }
       },
       "reconfigure": {
@@ -75,6 +76,16 @@
         "data_description": {
           "host": "Dirección IP o nombre de host del PC en el que se ejecuta Autodarts Board Manager, por ejemplo 192.168.1.50. Sin http:// ni puerto.",
           "port": "Puerto de la API de Board Manager, normalmente 3180."
+        }
+      },
+      "manual": {
+        "title": "Diana sin Autodarts",
+        "description": "Para una diana sin puntuación automática: introduces cada dardo en el teclado de las tarjetas, y los juegos, las sesiones de entrenamiento y todas las estadísticas funcionan igual que con Autodarts.",
+        "data": {
+          "name": "Nombre"
+        },
+        "data_description": {
+          "name": "Da nombre a la diana, a su dispositivo y a sus entidades, por ejemplo Diana o Garaje."
         }
       },
       "discover": {
@@ -118,7 +129,8 @@
       "cannot_connect_local": "La diana anunciada en tu red no responde. Comprueba que Board Manager esté en ejecución.",
       "board_not_configured": "No hay ningún ID de diana configurado en Board Manager. Termina primero allí la configuración de la diana.",
       "already_in_progress": "La configuración de esta diana ya está en curso.",
-      "address_updated": "Esta diana Autodarts ya está configurada. Se ha actualizado su dirección y la integración se vuelve a cargar."
+      "address_updated": "Esta diana Autodarts ya está configurada. Se ha actualizado su dirección y la integración se vuelve a cargar.",
+      "manual_board": "Una diana sin Autodarts no tiene nada que volver a configurar. Cambia su nombre en los ajustes de su dispositivo."
     },
     "flow_title": "{name}",
     "create_entry": {
@@ -196,7 +208,8 @@
           "takeout": "Retirada de dardos",
           "takeout_in_progress": "Retirando dardos",
           "calibrating": "Calibrando",
-          "error": "Error"
+          "error": "Error",
+          "manual": "Entrada a mano"
         }
       },
       "last_throw_score": {
@@ -764,6 +777,9 @@
     },
     "not_supported": {
       "message": "Esta diana no admite la acción."
+    },
+    "no_board_manager": {
+      "message": "Esta diana no tiene Autodarts, así que no hay nada en ella que controlar."
     },
     "export_folder": {
       "message": "La carpeta de exportación {folder} no puede estar oculta, y Home Assistant debe permitir escribir en ella: www, las carpetas multimedia y las carpetas de allowlist_external_dirs están permitidas."

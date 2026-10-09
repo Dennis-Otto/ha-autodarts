@@ -10,7 +10,7 @@ Du spielst auf einem Autodarts-Board und hast noch nie Home Assistant benutzt? D
 
 ## Was du brauchst
 
-- **Dein Autodarts-Board,** eingerichtet und funktionsfähig. Die getesteten Setups stehen unter [Unterstützte Geräte](README.de.md#unterstützte-geräte).
+- **Dein Autodarts-Board,** eingerichtet und funktionsfähig. Die getesteten Setups stehen unter [Unterstützte Geräte](README.de.md#unterstützte-geräte). Kein Autodarts? [Spiele ohne Autodarts](without-autodarts.de.md) an jeder Dartscheibe und gib deine Darts auf einem Tastenfeld ein.
 - **Ein Gerät für Home Assistant,** das ständig läuft, im selben Netzwerk wie das Board: ein Raspberry Pi 4 oder 5, ein Mini-PC oder eine virtuelle Maschine auf einem Rechner, der immer an ist. Home Assistant verkauft auch fertige Geräte. Nimm ein eigenes Gerät: Der Board-PC braucht seine Leistung für die Erkennung.
 - **Ein kostenloses GitHub-Konto,** über das HACS Integrationen herunterlädt.
 - **Einen Bildschirm für die Anzeigetafel,** wenn du einen möchtest: ein Tablet, einen Fernseher mit Browser oder ein altes Handy.
@@ -41,9 +41,9 @@ Mit Board Manager 2 findet Home Assistant das Board meist von selbst: **Einstell
 
 Sonst wählst du die Schaltfläche oben und dann **Boards im Netzwerk suchen** oder **Board-Adresse eingeben** mit der IP-Adresse des Board-PCs. Ein Autodarts-Konto brauchst du nicht.
 
-<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü von Autodarts: Boards im Netzwerk suchen oder eine Board-Adresse eingeben" width="520">
+<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü von Autodarts: Boards im Netzwerk suchen, eine Board-Adresse eingeben oder eine Dartscheibe ohne Autodarts" width="520">
 
-Die [Installationsanleitung](installation.de.md#board-hinzufügen) erklärt die drei Wege im Detail.
+Die [Installationsanleitung](installation.de.md#board-hinzufügen) erklärt die Wege im Detail. Ohne Autodarts wählst du **Dartscheibe ohne Autodarts: jeden Dart selbst eingeben** und gibst dem Board einen Namen; [Spielen ohne Autodarts](without-autodarts.de.md) zeigt den Rest.
 
 ## 5. Dashboard anlegen
 

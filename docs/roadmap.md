@@ -110,9 +110,19 @@ Released as 1.10.0 on 8 October 2026; the [changelog](https://github.com/Dennis-
 - A takeout that Board Manager 2.0.2 never finishes is freed by itself.
 - Animations and diagrams of the new games, and what changes on the way from Autodarts 1.x to 2.x.
 
+## Version 1.11: play without Autodarts
+
+In the works; every part reaches the [betas](installation.md#betas-for-testers) as soon as it is done.
+
+| Topic | What it brings | Status |
+| --- | --- | --- |
+| **Dartboard without Autodarts** | Any dartboard as a board of its own, every dart entered on the keypad of the live card and the scoreboard, with every game, the training and the statistics ([guide](without-autodarts.md)) | Done |
+| **Autodarts later** | A dartboard without Autodarts becomes an Autodarts board when one arrives, and keeps its statistics | Planned |
+| **The score of a visit** | X01 visits entered as a score, such as 140, with the darts at a double on a checkout | Planned |
+
 ## Next
 
-Ideas for the versions after 1.10. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
+Ideas for the versions after 1.11. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
 
 | Topic | What it brings | Dependency |
 | --- | --- | --- |

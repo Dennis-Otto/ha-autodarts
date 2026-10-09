@@ -31,6 +31,7 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
         <li>Turniere mit drei bis acht Spielern: jeder gegen jeden mit Tabelle oder K.-o.-System mit Turnierbaum</li>
         <li>Ein Bot mit Stärke 20 bis 120 als Gegner bei X01 und Cricket</li>
         <li>Ein Tipp korrigiert einen falsch erkannten Dart; ein Tastenfeld gibt Darts von Hand ein, und die letzte Aufnahme lässt sich zurücknehmen</li>
+        <li>Kein Autodarts? Jede Dartscheibe spielt mit, jeder Dart auf dem Tastenfeld eingegeben</li>
         <li>Stellwürfe, wo kein Checkout möglich ist, etwa T20 T20 S17 für Rest 32</li>
       </ul>
       <p><a href="games.de.md">Spiele und Regeln →</a></p>
@@ -150,7 +151,8 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 | Anleitung | Inhalt |
 | --- | --- |
 | [Von null bis zur Anzeigetafel](getting-started.de.md) | Für Autodarts-Spieler ohne Home Assistant: Home Assistant und HACS aufsetzen, die Integration installieren, das Board hinzufügen und das erste Spiel auf der Anzeigetafel |
-| [Installation und Einrichtung](installation.de.md) | Voraussetzungen, HACS und manuelle Installation, die drei Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen |
+| [Installation und Einrichtung](installation.de.md) | Voraussetzungen, HACS und manuelle Installation, die Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen |
+| [Spielen ohne Autodarts](without-autodarts.de.md) | Jede Dartscheibe mit allen Spielen, dem Training und den Statistiken: einrichten, die Darts auf einem Tastenfeld eingeben, und was anders ist |
 
 ### Anleitungen
 

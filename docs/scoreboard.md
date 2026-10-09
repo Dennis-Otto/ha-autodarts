@@ -111,7 +111,7 @@ Along the bottom it shows the three darts of the current visit and their score, 
   <img src="images/en/correct-dart-loupe.webp" alt="Animation on a phone: the board read the second dart as T20 for 180; a tap on it and on Board opens the board zoomed in around the dashed ring where the board saw it; a finger slides up from the ring, the loupe above it shows the single 20 under a cross, and where the finger lets go the visit becomes 140" width="360">
 
 - **A visit noticed too late:** after the takeout, the tile *Last* beside the darts shows the last visit with a curved arrow; a tap on it and a second one on the red *Undo?* take it back. Correct its darts, then end it with *Next player*.
-- **Darts entered by hand:** for darts the board missed, or a player without cameras, switch on *Practice manual entry* and the card's `keypad` option. The keypad enters every tapped bed as a dart; *Next player* ends the visit. On a landscape screen, the pad and the keypad sit beside the scores, so both fit the screen.
+- **Darts entered by hand:** for darts the board missed, or a player without cameras, switch on *Practice manual entry* and the card's `keypad` option. The keypad enters every tapped bed as a dart; *Next player* ends the visit. On a landscape screen, the pad and the keypad sit beside the scores, so both fit the screen. A [dartboard without Autodarts](without-autodarts.md) has the keypad without either.
 - **What you see:** a pencil marks every dart that a tap corrects; darts entered or corrected by hand get a dashed frame, and the bot's darts a tint of the accent color.
 
 <img src="images/en/scoreboard-keypad.png" alt="The scoreboard with the keypad: Alex has entered T20 and S19 by hand, marked with dashed frames; below, S, D and T, the numbers 1 to 20, 25, Bull, Miss and Next player" width="760">
@@ -179,7 +179,7 @@ A dart, a new game or a tap anywhere ends idle mode; a new game screen you had o
 | The screen shows an old version of the card after an update | Reload the page. In the Home Assistant app, use *Settings → Companion app → Debugging → Reset frontend cache*. |
 | Idle mode starts during a game | Idle mode waits for `idle_after` seconds without darts and taps, and only when no game runs or the game is decided. Raise `idle_after`, or set `idle: false`. |
 | A tap on a dart does nothing | The dart belongs to the bot, the card has `corrections: false`, or it is the preview of the card editor. |
-| The keypad does not show | It needs the card's `keypad: true` (in the automatic dashboard: its settings, *Scoreboard view*) and *Practice manual entry* on, and it waits while the bot is at the board. |
+| The keypad does not show | It needs the card's `keypad: true` (in the automatic dashboard: its settings, *Scoreboard view*) and *Practice manual entry* on, and it waits while the bot is at the board. On a [dartboard without Autodarts](without-autodarts.md) it always shows, unless the card sets `keypad: false`. |
 | No picture next to a name | The player is not linked to a person, or the person has no picture. See [players and persons](statistics.md#players-and-persons). |
 
 More help: [troubleshooting](troubleshooting.md).

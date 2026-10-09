@@ -110,9 +110,19 @@ Erschienen als 1.10.0 am 8. Oktober 2026; die Details stehen im [Changelog](http
 - Eine Entnahme, die Board Manager 2.0.2 nie beendet, löst sich von selbst.
 - Animationen und Diagramme der neuen Spiele, und was sich beim Umstieg von Autodarts 1.x auf 2.x ändert.
 
+## Version 1.11: Spielen ohne Autodarts
+
+In Arbeit; jeder Teil kommt in die [Betas](installation.de.md#betas-für-tester), sobald er fertig ist.
+
+| Thema | Was es bringt | Stand |
+| --- | --- | --- |
+| **Dartscheibe ohne Autodarts** | Jede Dartscheibe als eigenes Board, jeder Dart auf dem Tastenfeld der Live-Karte und der Anzeigetafel eingegeben, mit allen Spielen, dem Training und den Statistiken ([Anleitung](without-autodarts.de.md)) | Fertig |
+| **Autodarts später** | Eine Dartscheibe ohne Autodarts wird zum Autodarts-Board, wenn eins kommt, und behält ihre Statistiken | Geplant |
+| **Die Punkte einer Aufnahme** | X01-Aufnahmen als Punktzahl eingegeben, etwa 140, mit den Darts auf ein Doppel beim Checkout | Geplant |
+
 ## Als Nächstes
 
-Ideen für die Versionen nach 1.10. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
+Ideen für die Versionen nach 1.11. Stimmen und Reaktionen auf die [Feature-Wünsche](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) bestimmen die Reihenfolge.
 
 | Thema | Was es bringt | Voraussetzung |
 | --- | --- | --- |

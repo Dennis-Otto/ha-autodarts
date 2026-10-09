@@ -171,7 +171,11 @@ const TEXT = {
     status_hand: "Hand at the board",
     status_full: "Remove your darts",
     status_ready: "Ready – throw!",
+    status_manual: "Enter your darts",
+    status_manual_full: "Visit complete",
     no_board: "No Autodarts board found. Select a device in the card settings.",
+    manual_board:
+      "This dartboard has no Autodarts: its darts are entered on the keypad of the cards, so there is no detection, camera or board PC to show.",
     board_label: "Dartboard with the current visit",
     // Card editors
     device_id: "Board",
@@ -379,9 +383,10 @@ const TEXT = {
     pad_seen: "Where the board saw it",
     next_player: "Next player",
     undo_visit: "Undo last visit",
+    undo_hint: "Takes back the last visit until a dart of the next one is entered",
     corrections: "Correct darts with a tap",
     keypad: "Keypad for darts entered by hand",
-    keypad_helper: "Shows while Practice manual entry is on.",
+    keypad_helper: "Shows while Practice manual entry is on, and always on a dartboard without Autodarts.",
     input_section: "Correcting and entering darts",
     input_section_helper:
       "Tap a dart of the visit to put it into another bed; the keypad enters darts the board missed, passes the turn and undoes the last visit.",
@@ -769,7 +774,11 @@ const TEXT = {
     status_hand: "Hand am Board",
     status_full: "Darts entnehmen",
     status_ready: "Bereit – wirf!",
+    status_manual: "Darts eingeben",
+    status_manual_full: "Aufnahme komplett",
     no_board: "Kein Autodarts-Board gefunden. Wähle ein Gerät in den Karteneinstellungen.",
+    manual_board:
+      "Diese Dartscheibe hat kein Autodarts: Die Darts werden auf dem Tastenfeld der Karten eingegeben, es gibt also keine Erkennung, Kamera oder Board-PC zu zeigen.",
     board_label: "Dartscheibe mit der aktuellen Aufnahme",
     device_id: "Board",
     device_helper: "Optional. Ohne Auswahl nutzt die Karte das erste Autodarts-Board.",
@@ -974,9 +983,11 @@ const TEXT = {
     pad_seen: "Wo das Board ihn erkannt hat",
     next_player: "Nächster Spieler",
     undo_visit: "Letzte Aufnahme zurück",
+    undo_hint: "Nimmt die letzte Aufnahme zurück, bis ein Dart der nächsten eingegeben ist",
     corrections: "Darts per Tipp korrigieren",
     keypad: "Tastenfeld für von Hand eingegebene Darts",
-    keypad_helper: "Erscheint, solange Übungsspiel manuelle Eingabe an ist.",
+    keypad_helper:
+      "Erscheint, solange Übungsspiel manuelle Eingabe an ist, und immer an einer Dartscheibe ohne Autodarts.",
     input_section: "Darts korrigieren und eingeben",
     input_section_helper:
       "Tippe auf einen Dart der Aufnahme, um ihn in ein anderes Feld zu legen; das Tastenfeld gibt Darts ein, die das Board übersehen hat, gibt weiter und nimmt die letzte Aufnahme zurück.",
@@ -1354,7 +1365,11 @@ const TEXT = {
     status_hand: "Mano en la diana",
     status_full: "Retira tus dardos",
     status_ready: "Todo listo – ¡lanza!",
+    status_manual: "Introduce tus dardos",
+    status_manual_full: "Tirada completa",
     no_board: "No se ha encontrado ninguna diana Autodarts. Selecciona un dispositivo en la configuración de la tarjeta.",
+    manual_board:
+      "Esta diana no tiene Autodarts: sus dardos se introducen en el teclado de las tarjetas, así que no hay detección, cámaras ni PC de la diana que mostrar.",
     board_label: "Diana con la tirada actual",
     device_id: "Diana",
     device_helper: "Opcional. Sin selección, la tarjeta usa la primera diana Autodarts.",
@@ -1558,9 +1573,11 @@ const TEXT = {
     pad_seen: "Donde lo vio la diana",
     next_player: "Siguiente jugador",
     undo_visit: "Deshacer la última tirada",
+    undo_hint: "Deshace la última tirada hasta que se introduce un dardo de la siguiente",
     corrections: "Corregir dardos con un toque",
     keypad: "Teclado para dardos introducidos a mano",
-    keypad_helper: "Se muestra mientras Entrada manual de la partida está activada.",
+    keypad_helper:
+      "Se muestra mientras Entrada manual de la partida está activada, y siempre en una diana sin Autodarts.",
     input_section: "Corregir e introducir dardos",
     input_section_helper:
       "Toca un dardo de la tirada para ponerlo en otro segmento; el teclado introduce los dardos que la diana no detectó, pasa el turno y deshace la última tirada.",
@@ -1937,7 +1954,11 @@ const TEXT = {
     status_hand: "Main devant la cible",
     status_full: "Retirez vos fléchettes",
     status_ready: "Prêt – lancez\u00a0!",
+    status_manual: "Saisissez vos fléchettes",
+    status_manual_full: "Volée complète",
     no_board: "Aucune cible Autodarts trouvée. Sélectionnez un appareil dans les paramètres de la carte.",
+    manual_board:
+      "Cette cible n'a pas d'Autodarts\u00a0: ses fléchettes se saisissent sur le pavé des cartes, il n'y a donc ni détection, ni caméra, ni PC de la cible à afficher.",
     board_label: "Cible avec la volée en cours",
     device_id: "Cible",
     device_helper: "Facultatif. Sans sélection, la carte utilise la première cible Autodarts.",
@@ -2141,9 +2162,11 @@ const TEXT = {
     pad_seen: "Là où la cible l'a vue",
     next_player: "Joueur suivant",
     undo_visit: "Annuler la dernière volée",
+    undo_hint: "Annule la dernière volée jusqu'à la saisie d'une fléchette de la suivante",
     corrections: "Corriger les fléchettes d'un toucher",
     keypad: "Pavé pour les fléchettes saisies à la main",
-    keypad_helper: "Affiché tant que Saisie manuelle de la partie est activée.",
+    keypad_helper:
+      "Affiché tant que Saisie manuelle de la partie est activée, et toujours sur une cible sans Autodarts.",
     input_section: "Corriger et saisir des fléchettes",
     input_section_helper:
       "Touchez une fléchette de la volée pour la placer dans une autre zone\u00a0; le pavé saisit les fléchettes que la cible n'a pas détectées, passe la main et annule la dernière volée.",
@@ -2520,7 +2543,11 @@ const TEXT = {
     status_hand: "Hand bij het bord",
     status_full: "Haal je darts eruit",
     status_ready: "Klaar – gooi!",
+    status_manual: "Voer je darts in",
+    status_manual_full: "Beurt compleet",
     no_board: "Geen Autodarts-bord gevonden. Selecteer een apparaat in de kaartinstellingen.",
+    manual_board:
+      "Dit dartbord heeft geen Autodarts: de darts worden op het toetsenblok van de kaarten ingevoerd, er is dus geen detectie, camera of bord-pc om te tonen.",
     board_label: "Dartbord met de huidige beurt",
     device_id: "Bord",
     device_helper: "Optioneel. Zonder selectie gebruikt de kaart het eerste Autodarts-bord.",
@@ -2724,9 +2751,11 @@ const TEXT = {
     pad_seen: "Waar het bord hem zag",
     next_player: "Volgende speler",
     undo_visit: "Laatste beurt ongedaan maken",
+    undo_hint: "Neemt de laatste beurt terug tot er een dart van de volgende is ingevoerd",
     corrections: "Darts corrigeren met een tik",
     keypad: "Toetsenblok voor handmatig ingevoerde darts",
-    keypad_helper: "Zichtbaar zolang Oefenspel handmatige invoer aanstaat.",
+    keypad_helper:
+      "Zichtbaar zolang Oefenspel handmatige invoer aanstaat, en altijd bij een dartbord zonder Autodarts.",
     input_section: "Darts corrigeren en invoeren",
     input_section_helper:
       "Tik op een dart van de beurt om hem in een ander vak te zetten; het toetsenblok voert darts in die het bord heeft gemist, geeft de beurt door en maakt de laatste beurt ongedaan.",
@@ -3083,8 +3112,10 @@ const DEFAULTS = {
   show_controls: true,
   show_recent: true,
   show_practice: true,
-  // A tap on a dart of the visit corrects it.
+  // A tap on a dart of the visit corrects it; the keypad enters darts by hand while
+  // Practice manual entry is on, and on a dartboard without Autodarts.
   corrections: true,
+  keypad: false,
   // The summary of a finished match stays until the next game, or this many seconds.
   show_summary: true,
   summary_seconds: 0,
@@ -3156,7 +3187,7 @@ const SCOREBOARD_DEFAULTS = {
   // Confetti and a glow for a 180, a ton, nine marks, a game shot and the match.
   celebrations: true,
   // A tap on a dart of the visit corrects it; the keypad enters darts by hand
-  // while Practice manual entry is on.
+  // while Practice manual entry is on, and on a dartboard without Autodarts.
   corrections: true,
   keypad: false,
 };
@@ -3192,6 +3223,7 @@ const KEYS = {
   started: "sensor.training_started",
   practice: "sensor.practice_remaining",
   drill: "sensor.practice_target",
+  manualEntry: "switch.practice_manual_entry",
 };
 
 const TRAINING_KEYS = {
@@ -5565,13 +5597,14 @@ function padBoardHtml(pad, ui) {
 
 // The pad of the scoreboard: single, double or treble, the numbers, the bulls
 // and a miss. It corrects a dart of the visit, or enters darts by hand with
-// the next player and the undo of the last visit, which need a second tap.
+// the next player and, on the live card, the undo of the last visit, which need a
+// second tap. The undo key keeps its place while there is nothing to undo.
 function padHtml(pad, ui) {
   const { t } = ui;
-  const button = (action, value, content, extra = "") =>
+  const button = (action, value, content, extra = "", off = false) =>
     `<button type="button" data-pad="${action}"${value === undefined ? "" : ` data-value="${escapeHtml(value)}"`}` +
     ` data-focus="${escapeHtml(`${action}:${value ?? ""}`)}"` +
-    `${pad.disabled && action !== "cancel" ? " disabled" : ""}${extra}>${content}</button>`;
+    `${(pad.disabled && action !== "cancel") || off ? " disabled" : ""}${extra}>${content}</button>`;
   const title = pad.dart ? fill(t("correct_title"), { dart: pad.dart }) : t("enter_title");
   const multipliers = [
     [1, "pad_single"],
@@ -5600,9 +5633,15 @@ function padHtml(pad, ui) {
   const actions = pad.dart
     ? button("cancel", undefined, escapeHtml(t("pad_cancel")), ` class="secondary"`)
     : button("next", undefined, confirm("next", "next_player"), ` class="secondary${confirming("next")}"`) +
-      (pad.undo
-        ? button("undo", undefined, `${UNDO_ICON} ${confirm("undo", "undo_visit")}`, ` class="secondary${confirming("undo")}"`)
-        : "");
+      (pad.undo === undefined
+        ? ""
+        : button(
+            "undo",
+            undefined,
+            `${UNDO_ICON} ${confirm("undo", "undo_visit")}`,
+            ` class="secondary${confirming("undo")}" title="${escapeHtml(t("undo_hint"))}"`,
+            !pad.undo
+          ));
   // The board instead of the keys, for the spot where the dart is.
   // The keys or the board, one of the two, as the segmented control of every card.
   const view =
@@ -6924,12 +6963,18 @@ const HINT_SECONDS = 5;
 
 // What the status says while a game goes on; it keeps the width of the longest.
 const PLAY_STATUSES = ["status_ready", "status_full", "status_takeout", "status_hand"];
+// The same on a dartboard without Autodarts.
+const MANUAL_STATUSES = ["status_manual", "status_manual_full"];
 
 function boardStatus(stateOf) {
   const on = (name) => stateOf(name)?.state === "on";
   const connected = stateOf("connected");
   const detection = stateOf("detection")?.state;
   const status = String(stateOf("status")?.state || "").toLowerCase();
+  // A dartboard without Autodarts waits for darts entered by hand; three make a visit.
+  if (status === "manual") {
+    return visitThrows(stateOf("visit")).length >= 3 ? ["takeout", "status_manual_full"] : ["ready", "status_manual"];
+  }
   if (!connected || connected.state !== "on") return ["offline", "status_offline"];
   if (on("calibrating") || status === "calibrating") return ["calibrating", "status_calibrating"];
   if (on("cameraProblem")) return ["problem", "status_problem"];
@@ -7182,8 +7227,10 @@ function playersDashboardView(board) {
   };
 }
 
-// The status card, the board settings, the software update and the detection quality.
+// The status card, the board settings, the software update and the detection quality;
+// a dartboard without Autodarts has none of them.
 function boardDashboardView(board) {
+  if (board.state("sensor.local_status")?.state === "manual") return null;
   const settings = board.rows(SETTING_KEYS);
   const maintenance = [{ type: "heading", heading: board.t("board_settings") }];
   if (settings.length) maintenance.push({ type: "entities", entities: settings });
@@ -7363,6 +7410,7 @@ const FORMS = {
         "show_controls",
         "show_summary",
         "corrections",
+        "keypad",
       ],
       DEFAULTS
     ),
@@ -7848,6 +7896,12 @@ const CSS = `${BASE_CSS}${PAD_CSS}
   }
   .layout.board-only { grid-template-columns: minmax(0, 1fr); grid-template-areas: "header" "board"; }
   .layout.board-only :is(.visit, .session, .footer) { display: none; }
+  @container (max-width: 560px) {
+    .pad-extra { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .pad-extra > :is(.bull, .miss) { grid-column: span 2; }
+    .pad-extra > .secondary { grid-column: span 3; line-height: 1.15; }
+    .pad-extra > :is(.secondary:only-child, :not(.secondary) + .secondary:last-child) { grid-column: 1 / -1; }
+  }
   @container (max-width: 520px) {
     .layout.auto {
       grid-template-columns: minmax(0, 1fr);
@@ -8123,6 +8177,7 @@ const TRAINING_CSS = `${BASE_CSS}
 
 const STATUS_CSS = `${BASE_CSS}
   .status-card { display: flex; flex-direction: column; gap: 16px; padding: 18px; box-sizing: border-box; }
+  .manual-note { margin: 0; font-size: 13px; line-height: 1.45; }
   .detection {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
     padding: 12px 14px; border-radius: 16px;
@@ -8442,7 +8497,8 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   /* The last visit, which a tap undoes; the second tap that confirms is red. */
   button.sum { position: relative; font: inherit; cursor: pointer; touch-action: manipulation; }
   button.sum:focus-visible { outline: 3px solid var(--ad-accent); outline-offset: 2px; }
-  .visit .sum .cue { top: clamp(4px, .8cqi, 10px); right: clamp(4px, .8cqi, 10px); width: clamp(12px, 1.6cqi, 20px); height: clamp(12px, 1.6cqi, 20px); }
+  /* The undo arrow keeps to the very corner, clear of the words and the score of the last visit. */
+  .visit .sum .cue { top: clamp(2px, .4cqi, 8px); right: clamp(2px, .4cqi, 8px); width: clamp(10px, .9cqi, 18px); height: clamp(10px, .9cqi, 18px); }
   .sum.confirm .cue { color: inherit; }
   /* A dart of the visit corrects with a tap; entered, corrected and bot darts are marked. */
   button.dart { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
@@ -8713,6 +8769,9 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   @media (max-height: 640px) {
     .scoreboard.full { --ad-pad: 16px; padding: 10px var(--ad-pad); gap: 8px; }
     .scoreboard.full .visit :is(.dart, .sum) { padding: 4px 6px; flex-direction: row; gap: 8px; }
+    /* The score of the visit as high as the darts' beds, and the undo arrow a corner of its own. */
+    .scoreboard.full .visit .sum .value { font-size: clamp(16px, min(4.2cqi, 5.5vh), 56px); }
+    .scoreboard.full .visit button.sum { padding-inline-end: calc(6px + clamp(10px, .9cqi, 18px)); }
     /* The words and the score of the tile beside the darts side by side need its room. */
     .scoreboard.full .visit { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(8.5em, .8fr); }
     .scoreboard.full .visit .dart .segment { font-size: clamp(14px, min(19cqi, 5vh), 40px); }
@@ -9182,6 +9241,8 @@ function createElements(Base) {
     setConfig(config) {
       if (!config || typeof config !== "object") throw new Error("Invalid configuration");
       this._config = { ...this.constructor.defaults, ...config };
+      // What the card's settings say themselves, without the defaults.
+      this._ownConfig = config;
       this._built = false;
       this._message = null;
       this._watchedStates = [];
@@ -9355,6 +9416,19 @@ function createElements(Base) {
       return boardStatus((name) => this._state(name));
     }
 
+    // A dartboard without Autodarts, whose darts are all entered by hand.
+    _manualBoard() {
+      return this._state("status")?.state === "manual";
+    }
+
+    // The keypad for darts entered by hand: on a dartboard without Autodarts, unless the
+    // card's own settings switch it off; on a board with Autodarts, with the keypad option
+    // while Practice manual entry is on.
+    _keypad() {
+      if (this._manualBoard()) return this._ownConfig?.keypad !== false;
+      return Boolean(this._config.keypad) && this._state("manualEntry")?.state === "on";
+    }
+
     _call(domain, service, data) {
       // Home Assistant already shows failures as a toast.
       Promise.resolve(this._hass.callService(domain, service, data)).catch(() => {});
@@ -9427,7 +9501,7 @@ function createElements(Base) {
     // The status in words, as wide as the longest words it takes during a game.
     _showStatus(pill, key) {
       this._setHtml(pill, `<span>${escapeHtml(this._t(key))}</span>`);
-      const words = PLAY_STATUSES.map((name) => this._t(name));
+      const words = (MANUAL_STATUSES.includes(key) ? MANUAL_STATUSES : PLAY_STATUSES).map((name) => this._t(name));
       pill.dataset.widest = words.reduce((longest, text) => (text.length > longest.length ? text : longest));
     }
   }
@@ -9800,6 +9874,7 @@ function createElements(Base) {
         stats: Object.fromEntries(
           [...root.querySelectorAll(".stat")].map((el) => [el.dataset.stat, el.querySelector(".value")])
         ),
+        footer: root.querySelector(".footer"),
         chips: root.querySelector(".chips"),
         controls: root.querySelector(".controls"),
         hits: root.querySelector(".hits"),
@@ -9875,6 +9950,8 @@ function createElements(Base) {
       this._updatePractice(view);
       this._updateBoard(darts, view);
       this._updateStats();
+      // A dartboard without Autodarts has no connections and no detection to control.
+      if (el.footer) el.footer.hidden = this._manualBoard();
       this._updateChips();
       this._updateControls(status);
     }
@@ -9909,15 +9986,24 @@ function createElements(Base) {
       );
     }
 
-    // The pad of the dart being corrected, below the darts; fingers on its board keep it
-    // as it is until they let go. While the bot is at the board, it waits.
+    // The pad of the dart being corrected, or the keypad while darts are entered by hand,
+    // below the darts; fingers on its board keep it as it is until they let go. While the
+    // bot is at the board, it waits.
     _updatePad(darts) {
       const el = this._el;
-      const base = this._padBase(darts.filter(Boolean));
+      const known = darts.filter(Boolean);
+      const base = this._padBase(known);
       const pick = this._pick;
-      const pad = pick
-        ? { dart: pick.dart, multiplier: pick.multiplier, disabled: botAtBoard(gameView((name) => this._state(name))), ...base }
-        : null;
+      const disabled = botAtBoard(gameView((name) => this._state(name)));
+      let pad = null;
+      if (pick) {
+        pad = { dart: pick.dart, multiplier: pick.multiplier, disabled, ...base };
+      } else if (this._keypad() && !this.preview) {
+        // The last visit can be undone while no dart of the next one is in.
+        const undo = this._state("practice")?.attributes?.undo === true && !known.length;
+        const confirm = ["next", "undo"].includes(this._confirm) ? this._confirm : null;
+        pad = { dart: null, multiplier: this._multiplier, disabled, undo, confirm, ...base };
+      }
       el.pad.hidden = !pad;
       if (!this._keepPad(pad)) this._setHtml(el.pad, pad ? padHtml(pad, { t: (key) => this._t(key) }) : "");
     }
@@ -10052,7 +10138,10 @@ function createElements(Base) {
     }
 
     _confirmChanged() {
-      if (this._el) this._updateControls(this._status()[0]);
+      if (!this._el) return;
+      this._updateControls(this._status()[0]);
+      // The keypad's second taps, for the next player and the undo.
+      this._updatePad(this._darts());
     }
 
     _onControl(event) {
@@ -10851,6 +10940,7 @@ function createElements(Base) {
                 <div class="title"></div>
                 <div class="pill" role="status"></div>
               </header>
+              <p class="manual-note muted" hidden>${t("manual_board")}</p>
               <div class="detection">
                 <div>
                   <div class="name">${t("detection")}</div>
@@ -10876,6 +10966,9 @@ function createElements(Base) {
       this._el = {
         title: root.querySelector(".title"),
         pill: root.querySelector(".pill"),
+        manual: root.querySelector(".manual-note"),
+        detection: root.querySelector(".detection"),
+        info: root.querySelector(".info"),
         detectionState: root.querySelector(".detection .state"),
         toggle: root.querySelector(".toggle"),
         version: root.querySelector(".version"),
@@ -10930,6 +11023,11 @@ function createElements(Base) {
       this.style.setProperty("--ad-status", STATUS_COLORS[status]);
       this.style.setProperty("--ad-accent", cssColor(c.accent_color, "var(--primary-color)"));
       this._showStatus(el.pill, statusText);
+      // A dartboard without Autodarts has no detection, connections, board PC or cameras.
+      const manual = this._manualBoard();
+      el.manual.hidden = !manual;
+      for (const part of [el.detection, el.info, el.controls]) if (part) part.hidden = manual;
+      if (manual) return;
 
       const running = detectionRunning((name) => this._state(name), status);
       el.toggle.setAttribute("aria-checked", String(running));
@@ -11412,14 +11510,14 @@ function createElements(Base) {
     }
 
     // The pad while a dart is corrected, or the keypad while darts are entered by hand.
+    // The undo of the last visit is the tile beside the darts, so the keypad keeps its keys.
     _pad(view, darts) {
-      const c = this._config;
       const disabled = botAtBoard(view);
-      const confirm = ["next", "undo"].includes(this._confirm) ? this._confirm : null;
       const base = this._padBase(darts);
       if (this._pick) return { dart: this._pick.dart, multiplier: this._pick.multiplier, disabled, ...base };
-      if (c.keypad && this._state("manualEntry")?.state === "on") {
-        return { dart: null, multiplier: this._multiplier, disabled, undo: this._undoable(darts), confirm, ...base };
+      if (this._keypad()) {
+        const confirm = this._confirm === "next" ? "next" : null;
+        return { dart: null, multiplier: this._multiplier, disabled, confirm, ...base };
       }
       return null;
     }
@@ -11731,14 +11829,15 @@ function createElements(Base) {
       if (!this._keepPad(pad)) this._setHtml(el.pad, pad ? padHtml(pad, { t }) : "");
       if (!el.visit) return;
       el.visit.hidden = away;
-      // The keypad has an undo key of its own.
-      const undo = Boolean(c.corrections && !this.preview && !away && !pad && this._undoable(darts));
+      const undo = Boolean(c.corrections && !this.preview && !away && this._undoable(darts));
       // A dart that counted nothing in a Cricket game is struck through.
       const dead = deadDarts(view, darts);
+      // On a dartboard without Autodarts every dart is entered by hand; only corrections stand out.
+      const marked = this._manualBoard() ? ["corrected", "bot"] : ["manual", "corrected", "bot"];
       const slots = [0, 1, 2].map((index) => {
         const dart = darts[index];
         if (!dart) return `<div class="dart empty"><span class="segment">–</span><span class="points"></span></div>`;
-        const flags = ["manual", "corrected", "bot"].filter((flag) => dart[flag] === true);
+        const flags = marked.filter((flag) => dart[flag] === true);
         const picked = Boolean(this._pick) && this._pick.dart === dart.dart;
         const style = ["dart", ...flags, ...(picked ? ["picked"] : []), ...(dead[index] ? ["dead"] : [])].join(" ");
         const bed = label(this._hass, dart);

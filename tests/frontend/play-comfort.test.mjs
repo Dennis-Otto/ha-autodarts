@@ -632,15 +632,15 @@ test("the keypad enters darts while manual entry is on", () => {
   $(card, '[data-pad="next"]').click();
   assert.deepEqual(actions(hass), [["next_player", { config_entry_id: ENTRY }]]);
   assert.equal(text(card, '[data-pad="next"]'), "Next player");
-  // Undo shows while the last visit can be undone and no dart is on the board; the
-  // keypad has the key, so the last visit beside the darts is no second one.
+  // The last visit beside the darts undoes it, as without the keypad, while no dart
+  // is on the board; the keypad keeps its keys whatever happened before.
   assert.equal($(card, '[data-pad="undo"]'), null);
   const entering = { "switch.practice_manual_entry": "on" };
   card.hass = update(hass, { ...entering, ...practice({ undo: true }) });
-  assert.equal($(card, ".visit .sum").localName, "div");
-  $(card, '.pad [data-pad="undo"]').click();
-  assert.equal(text(card, '.pad [data-pad="undo"]'), "↶ Confirm?");
-  $(card, '.pad [data-pad="undo"]').click();
+  assert.equal($(card, '.pad [data-pad="undo"]'), null);
+  $(card, '.visit [data-pad="undo"]').click();
+  assert.equal(text(card, ".visit .sum"), "Undo?–");
+  $(card, '.visit [data-pad="undo"]').click();
   assert.deepEqual(actions(hass).at(-1), ["undo_visit", { config_entry_id: ENTRY }]);
   card.hass = update(hass, { ...entering, ...practice({ undo: true }), ...visit(dart(20, 1, { dart: 1 })) });
   assert.equal($(card, '[data-pad="undo"]'), null);
@@ -752,7 +752,10 @@ test("the editor has a section for correcting and entering darts", () => {
   assert.match(form.computeHelper(section), /^Tap a dart of the visit/);
   const [corrections, keypad] = section.schema[0].schema;
   assert.deepEqual([corrections.default, keypad.default], [true, false]);
-  assert.equal(form.computeHelper(keypad), "Shows while Practice manual entry is on.");
+  assert.equal(
+    form.computeHelper(keypad),
+    "Shows while Practice manual entry is on, and always on a dartboard without Autodarts.",
+  );
   assert.equal(typeof cardForm, "function");
 });
 

@@ -49,11 +49,12 @@
       },
       "user": {
         "title": "Autodarts einrichten",
-        "description": "Suche Autodarts-Boards im Netzwerk oder gib eine Board-Adresse ein.",
+        "description": "Suche Autodarts-Boards im Netzwerk, gib eine Board-Adresse ein oder richte eine Dartscheibe ohne Autodarts ein.",
         "menu_options": {
           "discover": "Boards im Netzwerk suchen",
           "local": "Board-Adresse eingeben",
-          "cloud": "Cloud-Konto verknüpfen"
+          "cloud": "Cloud-Konto verknüpfen",
+          "manual": "Dartscheibe ohne Autodarts: jeden Dart selbst eingeben"
         }
       },
       "reconfigure": {
@@ -75,6 +76,16 @@
         "data_description": {
           "host": "IP-Adresse oder Hostname des PCs mit dem Autodarts Board Manager, zum Beispiel 192.168.1.50. Ohne http:// und ohne Port.",
           "port": "API-Port des Board Managers, normalerweise 3180."
+        }
+      },
+      "manual": {
+        "title": "Dartscheibe ohne Autodarts",
+        "description": "Für eine Dartscheibe ohne automatische Erkennung: Du gibst jeden Dart auf dem Tastenfeld der Karten ein, und die Spiele, die Trainingseinheiten und alle Statistiken funktionieren wie mit Autodarts.",
+        "data": {
+          "name": "Name"
+        },
+        "data_description": {
+          "name": "Benennt das Board, sein Gerät und seine Entitäten, zum Beispiel Dartscheibe oder Keller."
         }
       },
       "discover": {
@@ -118,7 +129,8 @@
       "cannot_connect_local": "Das im Netzwerk gemeldete Board antwortet nicht. Prüfe, ob der Board Manager läuft.",
       "board_not_configured": "Im Board Manager ist noch keine Board-ID eingerichtet. Schließe dort zuerst die Einrichtung des Boards ab.",
       "already_in_progress": "Die Einrichtung dieses Boards läuft bereits.",
-      "address_updated": "Dieses Autodarts-Board ist bereits eingerichtet. Seine Adresse wurde aktualisiert, und die Integration wird neu geladen."
+      "address_updated": "Dieses Autodarts-Board ist bereits eingerichtet. Seine Adresse wurde aktualisiert, und die Integration wird neu geladen.",
+      "manual_board": "Bei einer Dartscheibe ohne Autodarts gibt es nichts neu einzurichten. Umbenennen kannst du sie in den Einstellungen ihres Geräts."
     },
     "flow_title": "{name}",
     "create_entry": {
@@ -196,7 +208,8 @@
           "takeout": "Entnahme",
           "takeout_in_progress": "Darts werden entnommen",
           "calibrating": "Kalibrierung läuft",
-          "error": "Fehler"
+          "error": "Fehler",
+          "manual": "Eingabe von Hand"
         }
       },
       "last_throw_score": {
@@ -764,6 +777,9 @@
     },
     "not_supported": {
       "message": "Dieses Board unterstützt die Aktion nicht."
+    },
+    "no_board_manager": {
+      "message": "Diese Dartscheibe hat kein Autodarts, an ihr gibt es nichts zu steuern."
     },
     "export_folder": {
       "message": "Der Exportordner {folder} darf nicht versteckt sein, und Home Assistant muss dort Schreiben erlauben: in www, den Medienordnern und den Ordnern aus allowlist_external_dirs."

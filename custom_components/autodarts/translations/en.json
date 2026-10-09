@@ -49,11 +49,12 @@
       },
       "user": {
         "title": "Set up Autodarts",
-        "description": "Search your network for Autodarts boards or enter a board address.",
+        "description": "Search your network for Autodarts boards, enter a board address, or set up a dartboard without Autodarts.",
         "menu_options": {
           "discover": "Search for boards on this network",
           "local": "Enter board address",
-          "cloud": "Link cloud account"
+          "cloud": "Link cloud account",
+          "manual": "Dartboard without Autodarts: enter every dart yourself"
         }
       },
       "reconfigure": {
@@ -75,6 +76,16 @@
         "data_description": {
           "host": "IP address or host name of the PC running Autodarts Board Manager, for example 192.168.1.50. Without http:// and without a port.",
           "port": "Board Manager API port, normally 3180."
+        }
+      },
+      "manual": {
+        "title": "Dartboard without Autodarts",
+        "description": "For a dartboard without automatic scoring: you enter every dart on the keypad of the cards, and the games, the training sessions and all statistics work as they do with Autodarts.",
+        "data": {
+          "name": "Name"
+        },
+        "data_description": {
+          "name": "Names the board, its device and its entities, for example Dartboard or Garage."
         }
       },
       "discover": {
@@ -118,7 +129,8 @@
       "cannot_connect_local": "The board announced on your network does not answer. Check that Board Manager is running.",
       "board_not_configured": "No board ID is configured in Board Manager. Complete board setup there first.",
       "already_in_progress": "Setup of this board is already in progress.",
-      "address_updated": "This Autodarts board is already set up. Its address was updated, and the integration reloads."
+      "address_updated": "This Autodarts board is already set up. Its address was updated, and the integration reloads.",
+      "manual_board": "A dartboard without Autodarts has nothing to set up again. Rename it in the settings of its device."
     },
     "flow_title": "{name}",
     "create_entry": {
@@ -196,7 +208,8 @@
           "takeout": "Takeout",
           "takeout_in_progress": "Removing darts",
           "calibrating": "Calibrating",
-          "error": "Error"
+          "error": "Error",
+          "manual": "Entered by hand"
         }
       },
       "last_throw_score": {
@@ -764,6 +777,9 @@
     },
     "not_supported": {
       "message": "This board does not support the action."
+    },
+    "no_board_manager": {
+      "message": "This dartboard has no Autodarts, so there is nothing on it to control."
     },
     "export_folder": {
       "message": "The export folder {folder} must not be hidden, and Home Assistant must allow writing to it: www, the media folders and the folders listed in allowlist_external_dirs are allowed."

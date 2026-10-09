@@ -44,6 +44,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
         <li>Tournaments of three to eight players: a round robin with a table or a knockout with a bracket</li>
         <li>A bot from level 20 to 120 to play X01 and Cricket against</li>
         <li>A tap corrects a dart the board read wrong; a keypad enters darts by hand, and the last visit can be undone</li>
+        <li>No Autodarts? Any dartboard plays along, with every dart entered on the keypad</li>
         <li>Setup hints where no checkout is possible, such as T20 T20 S17 to leave 32</li>
       </ul>
       <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md">Games and rules →</a></p>
@@ -132,7 +133,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 
 ## Requirements
 
-**Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network: **Board Manager 2**, Autodarts 2 without a screen (recommended, tested up to 2.0.2), or the classic **Board Manager 1**. A player reports that **Autodarts Desktop** 2.0.2 on Linux works too. Autodarts Desktop on Windows and the Winmau Autodarts devices such as Autodarts X or Lens have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not. No Autodarts account is needed.
+**Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network, or any dartboard whose darts you enter on a keypad ([play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md)). The Autodarts board runs **Board Manager 2**, Autodarts 2 without a screen (recommended, tested up to 2.0.2), or the classic **Board Manager 1**. A player reports that **Autodarts Desktop** 2.0.2 on Linux works too. Autodarts Desktop on Windows and the Winmau Autodarts devices such as Autodarts X or Lens have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not. No Autodarts account is needed.
 
 ## Quick start
 
@@ -146,7 +147,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 
    [![Open your Home Assistant instance and start setting up Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
 
-   Choose **Search for boards on this network** or **Enter board address** and confirm.
+   Choose **Search for boards on this network** or **Enter board address** and confirm. Without Autodarts, choose **Dartboard without Autodarts: enter every dart yourself**.
 4. **Add the cards.** Create a complete dashboard in one step: **Settings → Dashboards → Add dashboard → Autodarts**. Or edit a dashboard, choose **Add card** and search for *Autodarts*.
 
 New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md) takes you from nothing to the scoreboard next to your board. The [installation guide](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) covers manual installation, reconfiguration, updates and removal.
@@ -175,7 +176,8 @@ Import a blueprint with one click, choose your board and you're done:
 | Guide | Contents |
 | --- | --- |
 | [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md) | For Autodarts players without Home Assistant: from nothing to the first game on the scoreboard |
-| [Installation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) | Requirements, HACS and manual installation, the three ways to add a board, updates and removal |
+| [Installation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) | Requirements, HACS and manual installation, the ways to add a board, updates and removal |
+| [Play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md) | Any dartboard with every game, the training and the statistics, its darts entered on a keypad |
 | [Games and rules](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md) | How to start a game, matches, teams, handicaps, the bull-off, the match summary, tournaments and the rules of every game |
 | [Scoreboard at the board](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md) | A tablet or TV at the board, the new game screen, tournaments, the caller and idle mode |
 | [Statistics and players](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md) | Sessions, personal bests, heatmaps and dart positions, doubles, player profiles, achievements, trends, the leaderboard, reports, calendar and export |

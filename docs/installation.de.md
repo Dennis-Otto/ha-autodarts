@@ -9,6 +9,7 @@
 | Home Assistant | **2026.8** oder neuer |
 | Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2**, also Autodarts 2 ohne Bildschirm (Headless, empfohlen, getestet bis 2.0.2), oder der klassische **Board Manager 1**. Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux. Autodarts Desktop unter Windows und die **Winmau-Autodarts-Geräte** wie Autodarts X oder Lens sind noch nicht getestet; [berichte](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) gern, wie es mit deinem funktioniert |
 | Netzwerk | Home Assistant erreicht den Board-PC im lokalen Netzwerk, standardmäßig über TCP-Port **3180** |
+| Ohne Autodarts | Jede Dartscheibe: Du gibst die Darts auf einem Tastenfeld ein, siehe [Spielen ohne Autodarts](without-autodarts.de.md); dafür braucht es weder einen Board-PC noch ein Netzwerk zum Board |
 | Optional: Cloud-Spieldaten | Ein Autodarts-Konto und eine OAuth-Client-ID, die Autodarts für diese Integration vergibt (siehe [Cloud-Verknüpfung](#autodarts-cloud-verknüpfen-optional)) |
 
 Für die lokale Nutzung braucht die Integration **keine Autodarts-Anmeldung, kein Passwort und keinen API-Schlüssel**. Die Registrierung deines Boards bei Autodarts bleibt unverändert.
@@ -42,9 +43,9 @@ Der Release-Workflow signiert jedes Paket: `gh attestation verify autodarts.zip 
 
 [![Home Assistant öffnen und Autodarts einrichten.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
 
-Es gibt drei Wege; alle führen zum selben, vollständig lokalen Board.
+Es gibt drei Wege für ein Autodarts-Board; alle führen zum selben, vollständig lokalen Board. Ein vierter fügt eine [Dartscheibe ohne Autodarts](#4-eine-dartscheibe-ohne-autodarts) hinzu.
 
-<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü: Boards im Netzwerk suchen oder Board-Adresse eingeben" width="520">
+<img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü: Boards im Netzwerk suchen, Board-Adresse eingeben oder eine Dartscheibe ohne Autodarts" width="520">
 
 ### 1. Automatische Erkennung (Board Manager 2)
 
@@ -67,6 +68,12 @@ Wähle **Board-Adresse eingeben** und trage die IP-Adresse oder den Hostnamen de
 Die Board-ID liest die Integration selbst aus. Nicht erreichbare Adressen und Boards ohne abgeschlossene Einrichtung werden abgelehnt.
 
 > **Tipp:** Gib dem Board-PC in deinem Router eine feste IP-Adresse. Mit Board Manager 2 hält die automatische Erkennung die Adresse ohnehin aktuell.
+
+### 4. Eine Dartscheibe ohne Autodarts
+
+Wähle **Dartscheibe ohne Autodarts: jeden Dart selbst eingeben** und gib dem Board einen Namen, etwa *Keller*. Seine Darts gibst du auf dem Tastenfeld der Live-Karte und der Anzeigetafel ein, und die Spiele, das Training und die Statistiken funktionieren wie mit Autodarts; [Spielen ohne Autodarts](without-autodarts.de.md) erklärt alles. Ein Zuhause kann mehrere davon haben, neben Autodarts-Boards.
+
+<img src="images/de/setup-manual.png" alt="Das Formular der Einrichtung für eine Dartscheibe ohne Autodarts, mit dem eingetragenen Namen Dartboard" width="520">
 
 ### Nach der Einrichtung
 

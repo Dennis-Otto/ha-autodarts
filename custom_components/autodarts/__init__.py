@@ -29,6 +29,7 @@ from .const import (
     CONF_CLIENT_ID,
     CONF_HOST,
     CONF_LOCAL_ONLY,
+    CONF_MANUAL_BOARD,
     CONF_PORT,
     CONF_TOKEN,
     DEFAULT_PORT,
@@ -39,7 +40,11 @@ from .coordinator import AutodartsDataUpdateCoordinator
 from .discovery import cloud_addresses
 from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
-from .local_coordinator import ISSUES, AutodartsLocalCoordinator
+from .local_coordinator import (
+    ISSUES,
+    AutodartsLocalCoordinator,
+    AutodartsManualCoordinator,
+)
 from .online import async_setup_bridge
 from .repairs import address_title
 from .report import BoardReports
@@ -110,7 +115,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
             )
             return
 
-    if host := entry.data.get(CONF_HOST):
+    if entry.data.get(CONF_MANUAL_BOARD):
+        # A dartboard without Autodarts: nothing to reach, only the store to read.
+        runtime.local = AutodartsManualCoordinator(
+            hass, entry.data[CONF_BOARD_ID], entry
+        )
+        await runtime.local.async_load()
+        await runtime.local.async_config_entry_first_refresh()
+    elif host := entry.data.get(CONF_HOST):
         runtime.local = local_coordinator(host, entry.data.get(CONF_PORT, DEFAULT_PORT))
         # A store that cannot be read stops the setup, unlike a board that is
         # switched off: nothing may overwrite the training with empty data.

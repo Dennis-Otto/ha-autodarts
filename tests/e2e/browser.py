@@ -2768,6 +2768,137 @@ def keep_screenshots(browser: Browser, step: str) -> None:
             print(f"No screenshot of {step}: {error}", flush=True)
 
 
+# A dartboard without Autodarts beside the demo board, on a dashboard of its own.
+MANUAL_DASHBOARD = "autodarts-manual"
+ADD_MANUAL_BOARD = """
+async (name) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const flow = (path, data) => hass.callApi('POST', `config/config_entries/flow${path}`, data);
+  const menu = await flow('', { handler: 'autodarts' });
+  const form = await flow(`/${menu.flow_id}`, { next_step_id: 'manual' });
+  const done = await flow(`/${form.flow_id}`, { name });
+  return done.result.entry_id;
+}
+"""
+MANUAL_DEVICE = """
+(entry) => Object.values(document.querySelector('home-assistant').hass.devices ?? {})
+  .find((device) => device.config_entries.includes(entry))?.id ?? null
+"""
+SAVE_MANUAL_DASHBOARD = """
+async ([path, device]) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const card = (type, options = {}) => ({ type: `custom:${type}`, device_id: device, ...options });
+  const section = (cards) => ({ type: 'sections', max_columns: 2, sections: [{ type: 'grid', column_span: 2, cards }] });
+  await hass.callWS({
+    type: 'lovelace/dashboards/create', url_path: path, title: 'Garage', mode: 'storage',
+    show_in_sidebar: false, require_admin: false,
+  });
+  await hass.callWS({
+    type: 'lovelace/config/save', url_path: path,
+    config: { views: [
+      { title: 'Live', path: 'live', ...section([card('autodarts-card', { grid_options: { columns: 'full' } })]) },
+      { title: 'Scoreboard', path: 'scoreboard', panel: true, cards: [card('autodarts-scoreboard-card', { full_height: true })] },
+      { title: 'Status', path: 'status', ...section([card('autodarts-status-card')]) },
+    ] },
+  });
+}
+"""
+REMOVE_MANUAL_BOARD = """
+async ([path, entry]) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const dashboards = await hass.callWS({ type: 'lovelace/dashboards/list' });
+  const dashboard = dashboards.find((item) => item.url_path === path);
+  if (dashboard) await hass.callWS({ type: 'lovelace/dashboards/delete', dashboard_id: dashboard.id });
+  await hass.callApi('DELETE', `config/config_entries/entry/${entry}`);
+}
+"""
+
+
+def manual_board(browser: Browser) -> None:
+    """A dartboard without Autodarts: set up from the menu, its darts entered with
+    taps on the keypad of the live card and the scoreboard, its status card with
+    nothing to show, and every view on every screen size; removed again after."""
+    page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 1000})
+    page.add_init_script(CAPTURE_ERRORS)
+    page.goto(f"{HA}/autodarts-demo/board")
+    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    entry = page.evaluate(ADD_MANUAL_BOARD, "Garage")
+    page.wait_for_function(f"() => ({MANUAL_DEVICE})('{entry}')", timeout=30000)
+    device = page.evaluate(MANUAL_DEVICE, entry)
+    try:
+        page.evaluate(SAVE_MANUAL_DASHBOARD, [MANUAL_DASHBOARD, device])
+        page.evaluate(
+            CALL_ACTION,
+            [
+                "start_game",
+                {"config_entry_id": entry, "game": "501", "players": ["Alex", "Sam"]},
+            ],
+        )
+        live = f"({CARDS})()[0]?.shadowRoot"
+        page.goto(f"{HA}/{MANUAL_DASHBOARD}/live")
+        page.wait_for_function(f"() => {live}?.querySelector('.pad')", timeout=30000)
+        shown = page.evaluate(
+            f"""() => ({{
+              pill: {live}.querySelector('.pill').textContent,
+              footer: {live}.querySelector('.footer').hidden,
+            }})"""
+        )
+        check(
+            shown == {"pill": "Enter your darts", "footer": True},
+            f"The live card of a board without Autodarts: {shown}",
+        )
+        # Three darts with taps on the keypad; the live card counts the visit.
+        for bed, multiplier in (("T20", "3"), ("T20", "3"), ("T19", "3")):
+            page.evaluate(
+                f'() => {live}.querySelector(\'[data-pad="multiplier"]'
+                f'[data-value="{multiplier}"]\').click()'
+            )
+            page.evaluate(
+                f"() => {live}.querySelector('.pad-number[data-value=\"{bed}\"]').click()"
+            )
+        page.wait_for_function(
+            f"() => {live}.querySelector('.score')?.textContent === '177'"
+            f" && {live}.querySelector('.pill').textContent === 'Visit complete'",
+            timeout=15000,
+        )
+        # The next player takes a second tap.
+        for _ in range(2):
+            page.evaluate(f"() => {live}.querySelector('[data-pad=\"next\"]').click()")
+        page.wait_for_function(
+            f"() => {live}.querySelector('.practice-remaining')?.textContent === '501'"
+            f" && {live}.querySelector('.pill').textContent === 'Enter your darts'",
+            timeout=15000,
+        )
+        # The scoreboard has the keypad without its option, and shows Alex's 324.
+        board = f"({SCOREBOARD_CARDS})()[0]?.shadowRoot"
+        page.goto(f"{HA}/{MANUAL_DASHBOARD}/scoreboard")
+        page.wait_for_function(f"() => {board}?.querySelector('.pad')", timeout=30000)
+        scores = page.evaluate(SCOREBOARD_STATE)["players"]
+        check(
+            scores == [["Alex", "324", False], ["Sam", "501", True]],
+            f"The scoreboard of a board without Autodarts: {scores}",
+        )
+        page.goto(f"{HA}/{MANUAL_DASHBOARD}/status")
+        note = f"({STATUS_CARDS})()[0]?.shadowRoot.querySelector('.manual-note')"
+        page.wait_for_function(f"() => {note} && !{note}.hidden", timeout=30000)
+        errors = page_errors(page, [])
+        check(not errors, f"Console problems: {errors}")
+        found: list[str] = []
+        for screen, size, insets, touch in SCREENS:
+            context, view = screen_page(browser, size, insets, touch)
+            for name in ("live", "scoreboard", "status"):
+                view.goto(f"{HA}/{MANUAL_DASHBOARD}/{name}")
+                found += screen_problems(view, screen, f"manual-{name}", touch)
+            found.extend(
+                f"{screen}: console problem {error}" for error in page_errors(view, [])
+            )
+            context.close()
+        check(not found, "Layout problems:\n" + "\n".join(found))
+    finally:
+        page.evaluate(REMOVE_MANUAL_BOARD, [MANUAL_DASHBOARD, entry])
+        page.close()
+
+
 def main() -> None:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
@@ -2822,6 +2953,8 @@ def main() -> None:
             ("dashboard strategy editor", lambda: strategy_editor(browser)),
             ("light theme", lambda: light_theme(browser)),
             ("languages", lambda: languages(browser)),
+            # Last: a second board would be the first of the cards without one.
+            ("a dartboard without Autodarts", lambda: manual_board(browser)),
         ]
         unknown = {
             wanted
@@ -2854,7 +2987,8 @@ def main() -> None:
         "through a game, no serious or critical violation of WCAG 2.1 AA in any card "
         "on a laptop and a phone in both themes, the generated "
         "dashboard, the players export, all seven card forms, the strategy editor, "
-        "light theme and the cards and entity texts in Dutch, French and Spanish."
+        "light theme, the cards and entity texts in Dutch, French and Spanish, and a "
+        "dartboard without Autodarts with its keypad on every screen size."
     )
 
 

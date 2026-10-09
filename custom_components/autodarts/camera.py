@@ -26,7 +26,8 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
+    coordinator = entry.runtime_data.local
+    if coordinator and not coordinator.manual_board:
         known: set[int] = set()
 
         @callback

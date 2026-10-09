@@ -100,7 +100,13 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Voraussetzungen, HACS und manuelle Installation, die drei Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen.
+    Voraussetzungen, HACS und manuelle Installation, die Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen.
+
+- :material-pencil:{ .lg .middle } [**Spielen ohne Autodarts**](without-autodarts.de.md)
+
+    ---
+
+    Jede Dartscheibe, mit allen Spielen, dem Training und den Statistiken: Du gibst die Darts auf einem Tastenfeld ein.
 
 - :material-bullseye-arrow:{ .lg .middle } [**Spiele und Regeln**](games.de.md)
 

@@ -9,6 +9,7 @@
 | Home Assistant | **2026.8** or newer |
 | Autodarts board | Set up and working in the Autodarts Board Manager: **Board Manager 2**, Autodarts 2 without a screen (headless, recommended, tested up to 2.0.2), or the classic **Board Manager 1**. A player reports that **Autodarts Desktop** 2.0.2 on Linux works too. Autodarts Desktop on Windows and the **Winmau Autodarts devices** such as Autodarts X or Lens have not been tested yet; please [report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) how it works with yours |
 | Network | Home Assistant reaches the board PC on the local network, TCP port **3180** by default |
+| Without Autodarts | Any dartboard: you enter the darts on a keypad, see [Play without Autodarts](without-autodarts.md); it needs neither a board PC nor a network to the board |
 | Optional: cloud match data | An Autodarts account and an OAuth client ID that Autodarts issues for this integration (see [cloud link](#link-the-autodarts-cloud-optional)) |
 
 The integration needs **no Autodarts login, password or API key** for local use. It never changes your board's registration with Autodarts.
@@ -42,9 +43,9 @@ The release workflow signs every package: `gh attestation verify autodarts.zip -
 
 [![Open your Home Assistant instance and start setting up Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
 
-There are three ways to add a board. All of them end with the same, fully local board.
+There are three ways to add an Autodarts board. All of them end with the same, fully local board. A fourth adds a [dartboard without Autodarts](#4-a-dartboard-without-autodarts).
 
-<img src="images/en/setup-menu.png" alt="The Autodarts setup menu: search for boards on this network or enter a board address" width="520">
+<img src="images/en/setup-menu.png" alt="The Autodarts setup menu: search for boards on this network, enter a board address, or a dartboard without Autodarts" width="520">
 
 ### 1. Automatic discovery (Board Manager 2)
 
@@ -67,6 +68,12 @@ Choose **Enter board address** and enter the IP address or host name of the boar
 The integration reads the board ID from the Board Manager. It rejects addresses that are not reachable or that have no board set up yet.
 
 > **Tip:** give the board PC a fixed IP address in your router. With Board Manager 2, discovery keeps the address up to date anyway.
+
+### 4. A dartboard without Autodarts
+
+Choose **Dartboard without Autodarts: enter every dart yourself** and give the board a name, such as *Garage*. You enter its darts on the keypad of the live card and the scoreboard, and the games, the training and the statistics work as with Autodarts; [Play without Autodarts](without-autodarts.md) explains it all. A home may have several of them, beside Autodarts boards.
+
+<img src="images/en/setup-manual.png" alt="The setup form for a dartboard without Autodarts, with the name Dartboard filled in" width="520">
 
 ### After setup
 
