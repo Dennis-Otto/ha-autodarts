@@ -14,7 +14,13 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
+from playwright.sync_api import (
+    Browser,
+    BrowserContext,
+    Page,
+    Playwright,
+    sync_playwright,
+)
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
 HA = "http://homeassistant:8123"
@@ -1411,6 +1417,28 @@ START_BAR = f"""
   }};
 }}
 """
+# Where on the screen the scoreboard's control of every tap was as it was tapped.
+TAP_PLACE = f"""
+() => {{
+  const root = ({SCOREBOARD_CARDS})()[0].shadowRoot;
+  root.addEventListener('click', (event) => {{
+    const control = event.target.closest('[data-focus]');
+    window.__tapped = control && [control.dataset.focus, control.getBoundingClientRect().top];
+  }}, true);
+}}
+"""
+# How far the control of the last tap moved on the screen since, and the page's scroll.
+TAP_MOVED = f"""
+() => {{
+  const [key, top] = window.__tapped;
+  const root = ({SCOREBOARD_CARDS})()[0].shadowRoot;
+  const control = [...root.querySelectorAll('[data-focus]')].find((item) => item.dataset.focus === key);
+  return {{
+    moved: Math.round(control.getBoundingClientRect().top - top),
+    scrolled: Math.round(scrollY),
+  }};
+}}
+"""
 # Every card on the page against the width of the phone, and names cut short.
 PHONE_WIDTH = """
 () => {
@@ -1509,6 +1537,49 @@ def fingers(page: Page, *moves: list[tuple[float, float]]) -> bool:
     send("touchEnd", [])
     session.detach()
     return shown
+
+
+def steady_games(page: Page, device: str, card: str) -> None:
+    """Every game of the new game screen is chosen by a tap and stays under the finger:
+    where the rules of the game before leave above it, the page follows, unless it is at
+    its top already."""
+    page.evaluate(TAP_PLACE)
+    games = page.locator(f"{card} .lobby .game")
+    for index in range(games.count()):
+        games.nth(index).tap()
+        pressed = games.nth(index).get_attribute("aria-pressed")
+        check(pressed == "true", f"{device}: game {index} not chosen by a tap")
+        place = page.evaluate(TAP_MOVED)
+        check(
+            abs(place["moved"]) <= 1 or place["scrolled"] == 0,
+            f"{device}: game {index} moved after its tap: {place}",
+        )
+
+
+def safari(playwright: Playwright) -> None:
+    """The new game screen in an iPhone's Safari, which scrolled the page to its top when
+    a tap drew the screen anew: a game far down stays where it was tapped."""
+    browser = playwright.webkit.launch()
+    try:
+        context = browser.new_context(**playwright.devices["iPhone 13"], locale="de-DE")
+        page = context.new_page()
+        page.add_init_script(CAPTURE_ERRORS)
+        card = "autodarts-scoreboard-card"
+        page.goto(f"{HA}/autodarts-auto/scoreboard")
+        page.locator(f"{card} .main").wait_for(timeout=30000)
+        page.evaluate(
+            CALL_SERVICE,
+            ["select", "select_option", "practice_game", {"option": "off"}],
+        )
+        control({"status": "Throw", "event": "Takeout finished", "throws": []})
+        page.locator(f"{card} .lobby-cta").tap()
+        page.locator(f"{card} .lobby").wait_for(timeout=15000)
+        steady_games(page, "iPhone with Safari", card)
+        page.locator(f"{card} [data-lobby='close']").tap()
+        errors = page_errors(page, [])
+        check(not errors, f"Console problems: {errors}")
+    finally:
+        browser.close()
 
 
 def touch_screens(browser: Browser) -> None:
@@ -1611,11 +1682,7 @@ def touch_screen(
     page.locator(f"{card} .lobby-hint").first.wait_for(timeout=15000)
     fits("the new game screen", high=False)
     start_bar("the new game screen", ["close", "start"])
-    games = page.locator(f"{card} .lobby .game")
-    for index in range(games.count()):
-        games.nth(index).tap()
-        pressed = games.nth(index).get_attribute("aria-pressed")
-        check(pressed == "true", f"{device}: game {index} not chosen by a tap")
+    steady_games(page, device, card)
     players = page.locator(f"{card} .lobby-player [data-lobby='remove']")
     while players.count():
         players.first.tap()
@@ -2977,6 +3044,7 @@ def main() -> None:
             ("tournament", lambda: tournament(browser)),
             ("tablet screen", lambda: tablet_screen(browser)),
             ("touch screens", lambda: touch_screens(browser)),
+            ("Safari on an iPhone", lambda: safari(playwright)),
             ("every screen size", lambda: screens(browser)),
             ("accessibility", lambda: accessibility(browser)),
             ("steady heights", lambda: steady_heights(browser)),
@@ -3041,7 +3109,8 @@ def main() -> None:
         "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
         "match summary, its caller, new game screen, a corrected dart, the keypad "
         "and a match against the bot, a tournament, the screens on an 800 x 480 "
-        "tablet and idle mode with reduced motion, touch screens driven by taps, every "
+        "tablet and idle mode with reduced motion, touch screens driven by taps, "
+        "games that stay under the finger in an iPhone's Safari, every "
         "view on eight screen sizes both ways round, cards that keep their heights "
         "through a game, no serious or critical violation of WCAG 2.1 AA in any card "
         "on a laptop and a phone in both themes, the generated "

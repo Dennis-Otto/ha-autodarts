@@ -146,9 +146,12 @@ test("a player's gallery shows the badges earned and the next goals, and opens t
   const more = () => $(card, ".more-badges");
   assert.deepEqual([more().textContent, more().getAttribute("aria-expanded")], ["All 6 badges", "false"]);
   assert.equal(more().querySelectorAll(".cue.expand.inline").length, 1);
+  more().focus();
   click(card, ".more-badges");
   assert.deepEqual(shown(), ids);
   assert.deepEqual([more().textContent, more().getAttribute("aria-expanded")], ["Show fewer", "true"]);
+  // The link keeps the focus and its place, for keyboards and fingers.
+  assert.equal(card.shadowRoot.activeElement.dataset.focus, "badges:Alex");
   click(card, ".more-badges");
   assert.deepEqual(shown(), ["maximum", "hat_trick", "ton_plus", "ton_forty"]);
   // A tap beside the link changes nothing.

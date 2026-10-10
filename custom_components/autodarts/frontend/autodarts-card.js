@@ -9353,6 +9353,20 @@ async function loadForm() {
   }
 }
 
+// The control in a part that takes the focus and its place by this key.
+function withFocus(element, key) {
+  return [...element.querySelectorAll("[data-focus]")].find((item) => item.dataset.focus === key);
+}
+
+// What scrolls a node: the nearest part around it, across shadow roots, whose content
+// runs over and may scroll, else the page.
+function scrollerOf(node) {
+  for (let item = node.parentElement; item; item = item.parentElement ?? item.getRootNode().host) {
+    if (/auto|scroll/.test(window.getComputedStyle(item).overflowY) && item.scrollHeight > item.clientHeight) return item;
+  }
+  return document.scrollingElement;
+}
+
 // Elements ------------------------------------------------------------------
 
 // Elements are created on demand: Home Assistant replaces HTMLElement while it boots.
@@ -9381,6 +9395,8 @@ function createElements(Base) {
       this._watchedStates = [];
       this._confirm = null;
       this._initHints();
+      // The control of the last tap, which keeps its place when it is drawn anew.
+      this.shadowRoot.addEventListener("click", (event) => (this._tapped = event.target.closest("[data-focus]")), true);
     }
 
     // Building block, hint: what a pointer's tooltip tells shows on a tap too. A finger or a
@@ -9668,21 +9684,38 @@ function createElements(Base) {
 
     // Replace markup only when it changes, so animations and focus survive updates.
     // A focused element with data-focus gets the focus back after a change, and a
-    // text field what was typed in it and where the caret was.
+    // text field what was typed in it and where the caret was. The markup is parsed
+    // apart and swapped in at once: Safari scrolls the page to its top when innerHTML
+    // empties a part that holds most of it, as the new game screen does.
     _setHtml(element, html) {
       if (!element || element._adHtml === html) return;
       const active = this.shadowRoot.activeElement;
       const focus = active && element.contains(active) ? active.dataset.focus : undefined;
       const typed = active?.tagName === "INPUT" ? [active.value, active.selectionStart, active.selectionEnd] : null;
-      element.innerHTML = html;
+      const tapped = this._tapped && element.contains(this._tapped) ? this._tapped : null;
+      const top = tapped?.getBoundingClientRect().top;
+      const parsed = element.cloneNode(false);
+      parsed.innerHTML = html;
+      element.replaceChildren(...parsed.childNodes);
       element._adHtml = html;
+      if (top >= 0 && top < window.innerHeight) this._keepPlace(element, tapped.dataset.focus, top);
       if (!focus) return;
-      const target = [...element.querySelectorAll("[data-focus]")].find((item) => item.dataset.focus === focus);
+      const target = withFocus(element, focus);
       if (!target) return;
-      target.focus();
+      // The control stays where it is; the page does not scroll to it.
+      target.focus({ preventScroll: true });
       if (!typed) return;
       target.value = typed[0];
       target.setSelectionRange(typed[1], typed[2]);
+    }
+
+    // Building block, steady place: a control in sight that the next render after its
+    // tap draws anew stays under the finger. Where a part above it grew or shrank, as
+    // the rules of the game chosen before, what scrolls the card moves along by as much.
+    _keepPlace(element, key, top) {
+      const control = withFocus(element, key);
+      const moved = control ? control.getBoundingClientRect().top - top : 0;
+      if (moved) scrollerOf(control).scrollTop += moved;
     }
 
     // Text that is the same stays, so a status region does not announce it again.
@@ -10865,7 +10898,7 @@ function createElements(Base) {
         ["", ...names]
           .map(
             (name) =>
-              `<button type="button" data-source="${escapeHtml(name)}" aria-pressed="${
+              `<button type="button" data-source="${escapeHtml(name)}" data-focus="${escapeHtml(`source:${name}`)}" aria-pressed="${
                 name.toLowerCase() === source.toLowerCase()
               }">${escapeHtml(name || this._t("heatmap_session"))}</button>`
           )
@@ -12272,7 +12305,8 @@ function createElements(Base) {
       const open = this._openBadges.has(player.name);
       const words = open ? this._t("badges_fewer") : fill(this._t("badges_all"), { count: this._format(player.badges.length) });
       return (
-        `<button type="button" class="link more-badges" data-badges="${escapeHtml(player.name)}" aria-expanded="${open}">` +
+        `<button type="button" class="link more-badges" data-badges="${escapeHtml(player.name)}"` +
+        ` data-focus="${escapeHtml(`badges:${player.name}`)}" aria-expanded="${open}">` +
         `${escapeHtml(words)}${cueHtml("expand", true)}</button>`
       );
     }
