@@ -31,7 +31,7 @@ def test_every_label_in_use_is_defined():
     used |= bot_labels
     # The release bot, the branch bot and Dependabot.
     used |= {"autorelease: pending", "autorelease: tagged", "merge-conflict"}
-    used |= {"dependencies", "github_actions", "python", "docker", "javascript"}
+    used |= {"dependencies"}
     assert used <= defined, used - defined
 
 
