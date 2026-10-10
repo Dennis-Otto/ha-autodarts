@@ -4,16 +4,11 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.12.1](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.0...v1.12.1) (2026-10-10)
+
 ### Fixed
 
 - **Nothing jumps after a tap:** on a phone, choosing a game far down the new game screen scrolled the page back up, so the next one had to be scrolled to again. In Safari, as in the Home Assistant app on an iPhone, the page jumped to its top; in every browser the rules of the game chosen before left above the tapped game and moved it away from the finger. A tapped button now stays where it is, on every card: the same jump hit *All badges* of the players card and the calibration of a camera on the status card in Safari. The heatmap's choice of whose darts and *All badges* keep the focus of a keyboard too.
-
-## [1.12.1](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.0...v1.12.1) (2026-10-10)
-
-
-### Bug fixes
-
-* keep a tapped control where it is instead of jumping the page ([#198](https://github.com/Dennis-Otto/ha-autodarts/issues/198)) ([515e792](https://github.com/Dennis-Otto/ha-autodarts/commit/515e7920308732776b7b436c0f40f0091642ee9d))
 
 ## [1.12.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.11.0...v1.12.0) (2026-10-09)
 
