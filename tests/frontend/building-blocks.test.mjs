@@ -193,6 +193,55 @@ test("what a tooltip tells shows on a tap with a finger too, in a bubble over th
   assert.equal(shown(), null);
 });
 
+test("a control drawn anew after a tap stays under the finger, and the page keeps its place", (t) => {
+  const root = card("autodarts-scoreboard-card", {
+    "sensor.local_visit_score": { state: "0", attributes: { throws: [] } },
+    "select.practice_game": { state: "off", attributes: { options: ["off", "501", "cricket", "bobs_27", "singles"] } },
+  });
+  $(root, ".lobby-cta").click();
+  const page = document.scrollingElement;
+  page.scrollTop = 500;
+  // Safari scrolls the page to its top when innerHTML empties a part that holds most of it.
+  const main = $(root, ".main");
+  Object.defineProperty(main, "innerHTML", {
+    set() {
+      throw new Error("innerHTML scrolls Safari's page to the top");
+    },
+  });
+  const focus = t.mock.method(window.HTMLElement.prototype, "focus");
+  // On a phone the training games are far down: the rules of 501 above them go when
+  // Bob's 27 is chosen, and the page follows, so the button stays under the finger.
+  const game = (value) => $(root, `.game[data-value="${value}"]`);
+  const at = (element, top) => Object.assign(element, { getBoundingClientRect: () => ({ top }) });
+  at(game("bobs_27"), 140).focus();
+  game("bobs_27").click();
+  assert.equal($(root, ".main"), main);
+  assert.equal(game("bobs_27").getAttribute("aria-pressed"), "true");
+  assert.equal(page.scrollTop, 360);
+  // The focus comes back without scrolling the page to the button.
+  assert.deepEqual(focus.mock.calls.at(-1).arguments, [{ preventScroll: true }]);
+  assert.equal(root.shadowRoot.activeElement.dataset.focus, "game:bobs_27");
+  // A control out of sight keeps no place.
+  for (const [value, top] of [["singles", -20], ["501", 900]]) {
+    at(game(value), top).click();
+    assert.equal(game(value).getAttribute("aria-pressed"), "true");
+    assert.equal(page.scrollTop, 360);
+  }
+  // Nothing moves for a control the tap took away.
+  $(root, '[data-lobby="close"]').click();
+  assert.equal(page.scrollTop, 360);
+  // In a part that scrolls on its own, that part follows instead of the page.
+  const box = document.createElement("div");
+  box.style.overflowY = "auto";
+  Object.defineProperties(box, { scrollHeight: { value: 2000 }, clientHeight: { value: 600 } });
+  document.body.append(box);
+  box.append(root);
+  $(root, ".lobby-cta").click();
+  box.scrollTop = 300;
+  at(game("cricket"), 200).click();
+  assert.deepEqual([box.scrollTop, page.scrollTop], [100, 360]);
+});
+
 test("the second tap that confirms is red on every card", () => {
   // The live card's controls, the scoreboard's keypad, its lone undo and the new game screen.
   const live = card("autodarts-card", { "button.reset_detection": "unknown" });

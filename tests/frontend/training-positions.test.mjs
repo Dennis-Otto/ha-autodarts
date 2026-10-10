@@ -293,7 +293,10 @@ test("the heatmap switches speak German", () => {
 test("a new configuration shows its own mode and player", () => {
   const { hass, card } = setup({ mode: "numbers" });
   click(card, '[data-mode="beds"]');
+  $(card, '[data-source="Alex"]').focus();
   click(card, '[data-source="Alex"]');
+  // The button keeps the focus and its place, for keyboards and fingers.
+  assert.equal(card.shadowRoot.activeElement.dataset.focus, "source:Alex");
   card.setConfig({ type: "custom:autodarts-training-card", mode: "numbers" });
   card.hass = hass;
   assert.equal($(card, '[data-mode="numbers"]').getAttribute("aria-pressed"), "true");
