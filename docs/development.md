@@ -30,6 +30,7 @@ Nothing may move while a game goes on. A line that comes and goes, such as a rou
 | Tile | `.tappable` | A tile a tap does something with has a frame, which a pointer lights up, and a cue; a static tile is a tinted area without a frame. |
 | Status | `.pill` | A glowing dot and its words, never the shape of a button. It keeps the width of the longest words it takes during a game. |
 | Hint | `CardBase._initHints`, `.hint-bubble` | A `title` is the tooltip for a mouse; a tap with a finger or a pen on the same element shows it in a bubble over the card, unless the element is a control. Give information a `title` and nothing else. |
+| Steady place | `CardBase._setHtml`, `_keepPlace`, `data-focus` | A control drawn anew keeps the focus and, after a tap, its place under the finger: where a part above it grows or shrinks, the page or the part that scrolls it follows. The markup is swapped in with `replaceChildren`, never `innerHTML`, which scrolls Safari's page to the top. Give every control that a render draws anew a `data-focus` key. |
 | Tag | `.bed` | A framed label such as a bed of a route, never filled like a button; the one that comes next is tinted and bold. |
 | Link | `.link` | A control that looks like text, with a cue after it, for the details of what stands above it or for more below it. |
 | Segmented control | `SEGMENTED_CSS`, in `BASE_CSS` | One of a few views at a time: the heatmap's mode, whose darts, the period, the pad's keys or board. |
