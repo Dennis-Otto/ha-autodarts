@@ -10,7 +10,6 @@
 #   lifecycle  set and removed by the issue assistant's rules (docs/development.md#issue-assistant)
 #   decision   set by the maintainer only
 #   release    set on pull requests by the Pull request labels workflow, they sort the release notes
-#   dependabot set by Dependabot on its pull requests
 #
 # ask = false keeps the assistant from asking reporters of that kind for information.
 
@@ -263,32 +262,6 @@ color = "ededed"
 description = "Leave out of the release notes"
 group = "release"
 
-# Dependabot
-
-[[label]]
-name = "python"
-color = "2b67c6"
-description = "Pull requests that update python code"
-group = "dependabot"
-
-[[label]]
-name = "github_actions"
-color = "000000"
-description = "Pull requests that update GitHub Actions code"
-group = "dependabot"
-
-[[label]]
-name = "docker_compose"
-color = "e5f2fc"
-description = "Pull requests that update docker_compose code"
-group = "dependabot"
-
-[[label]]
-name = "devcontainers_package_manager"
-color = "2753e3"
-description = "Pull requests that update devcontainers_package_manager code"
-group = "dependabot"
-
 [[label]]
 name = "autorelease: pending"
 color = "ededed"
@@ -306,15 +279,3 @@ name = "merge-conflict"
 color = "b60205"
 description = "Conflicts with main; the branch bot can't bring it up to date"
 group = "release"
-
-[[label]]
-name = "docker"
-color = "21ceff"
-description = "Pull requests that update docker code"
-group = "dependabot"
-
-[[label]]
-name = "javascript"
-color = "168700"
-description = "Pull requests that update javascript code"
-group = "dependabot"

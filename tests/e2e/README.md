@@ -51,5 +51,5 @@ Optional environment variables:
 - `HOME_ASSISTANT_IMAGE`: pinned Home Assistant image override
 - `KEEP_E2E=1`: keep containers and the disposable volume after the suite
 
-All users, passwords, board IDs and API keys are synthetic. Dependabot keeps the
+All users, passwords, board IDs and API keys are synthetic. Renovate keeps the
 pinned Home Assistant image up to date.

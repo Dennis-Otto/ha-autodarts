@@ -208,11 +208,13 @@ version, and a consistency test fails as soon as the test base moves past it, so
 exception leaves with the update that fixes it. The integration itself ships no Python
 dependencies.
 
-Dependabot keeps the Python and Node tools, the Actions, the Compose images and the
-dev container's image and Features current, and waits seven days before it proposes
-a new version; security updates come at once, and so do new commits of the HACS
-and hassfest actions, which follow a branch instead of releases. The Playwright and Mermaid
-images in the scripts under `tests/e2e/` and `scripts/`, and the pngquant packages of `tests/e2e/pngquant.sh`, are updated by hand. Two checks deliberately run moving
+Renovate keeps the Python and Node tools, the Actions, the new commits of the HACS
+and hassfest actions, which follow a branch instead of releases, and the images
+current, also the Playwright and Mermaid images that the scripts under `tests/e2e/`
+and `scripts/` start, and the digest of the dev container's image. It waits seven days
+after a release before it proposes a new version; security updates come at once.
+Dependabot keeps the dev container's Features. The pngquant packages of
+`tests/e2e/pngquant.sh` are updated by hand. Two checks deliberately run moving
 images: HACS validation and hassfest always apply the rules that HACS and Home
 Assistant use for new submissions today, and the weekly beta run uses the beta tag.
 
@@ -236,7 +238,7 @@ The [issue assistant](https://github.com/Dennis-Otto/issue-assistant), a GitHub 
 - **A fix** names its issue in the pull request with `Fixes #123`. When the pull request is merged, the issue gets `fixed-in-next-release` and a comment, and stays open: users only get the fix with a release. The first published release that contains it closes the issue as completed, with a link to the release; drafts and pre-releases don't count. The label also works by hand, for a fix without a pull request. If the reporter writes within 30 days that the problem persists, the AI reads the comment and the issue reopens. *Auto-close issues with merged linked pull requests* is off in the repository settings, so that GitHub doesn't close the issue at the merge.
 - **Labels** are code: the Labels workflow creates and updates them from `.github/labels.toml` when it changes on `main`.
 
-The four workflows `issue-assistant.yml`, `issue-lifecycle.yml`, `labels.yml` and `findings.yml` are copies of the action's templates, pinned to a release; Dependabot proposes new releases, and its routine updates merge on their own. The AI's secret `CLAUDE_CODE_OAUTH_TOKEN` belongs to the environment `issue-assistant`, which only `main` may use. The action's [README](https://github.com/Dennis-Otto/issue-assistant#security) describes the security design: the AI runs with read-only tools and token on the egress-firewall runner, and only checked code writes to GitHub.
+The four workflows `issue-assistant.yml`, `issue-lifecycle.yml`, `labels.yml` and `findings.yml` are copies of the action's templates, pinned to a release; Renovate proposes new releases, and its routine updates merge on their own. The AI's secret `CLAUDE_CODE_OAUTH_TOKEN` belongs to the environment `issue-assistant`, which only `main` may use. The action's [README](https://github.com/Dennis-Otto/issue-assistant#security) describes the security design: the AI runs with read-only tools and token on the egress-firewall runner, and only checked code writes to GitHub.
 
 What is set here:
 
