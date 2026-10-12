@@ -2585,6 +2585,84 @@ def blueprints_page(page: Page) -> None:
     context.close()
 
 
+# Waits until the recorder has written the last event of an entity: the dialog of
+# the entity reads its history and activity from there, and the recorder writes
+# only every five seconds.
+RECORDED = """
+async (entityId) => {
+  for (let round = 0; round < 120; round++) {
+    const hass = document.querySelector('home-assistant').hass;
+    const events = await hass.callWS({
+      type: 'logbook/get_events',
+      start_time: new Date(Date.now() - 86400 * 1000).toISOString(),
+      entity_ids: [entityId],
+    });
+    if (events.length && events[events.length - 1].state === hass.states[entityId].state) {
+      return;
+    }
+    await new Promise((done) => setTimeout(done, 250));
+  }
+  throw new Error(`The recorder has not written the last event of ${entityId}`);
+}
+"""
+
+# Home Assistant gives every state it draws in a history or an activity list a
+# colour of its own, the next of its palette, in the order it draws them first,
+# for as long as the page lives. The events entity has a new state with every
+# event. The timeline of a history draws one state per pixel, the one that lasts
+# longest there, so which states it colours depends on its width the moment its
+# data arrives; and the history and the activity of the dialog arrive in either
+# order. So an activity list of the entity, as the dialog has it but out of sight,
+# draws every event of the last 24 hours first, newest first: the dialog finds them
+# all coloured, and the newest events always get the first colours of the palette.
+COLOUR_EVENTS = """
+async (entityId) => {
+  if (!customElements.get('ha-logbook')) {
+    throw new Error('Home Assistant has not loaded its activity list');
+  }
+  const logbook = document.createElement('ha-logbook');
+  Object.assign(logbook, {
+    hass: document.querySelector('home-assistant').hass,
+    time: { recent: 86400 },
+    entityIds: [entityId],
+    narrow: true,
+    noIcon: true,
+    graphColor: true,
+    nameDetail: 'none',
+  });
+  const box = document.createElement('div');
+  box.style.cssText = 'position: fixed; top: 0; left: -10000px; width: 600px;';
+  box.append(logbook);
+  document.body.append(box);
+  const rows = () => {
+    const found = [];
+    const roots = [logbook.shadowRoot];
+    for (let index = 0; index < roots.length; index++) {
+      roots[index]?.querySelectorAll('*').forEach((el) => {
+        if (el.localName === 'ha-logbook-entry') found.push(el);
+        if (el.shadowRoot) roots.push(el.shadowRoot);
+      });
+    }
+    return found;
+  };
+  try {
+    // Done when two looks a tenth of a second apart find the same rows, all drawn.
+    let count = 0;
+    for (let round = 0; round < 300; round++) {
+      await new Promise((done) => setTimeout(done, 100));
+      const drawn = logbook.getEntries().length ? rows() : [];
+      await Promise.all(drawn.map((row) => row.updateComplete));
+      if (drawn.length && drawn.length === count) return count;
+      count = drawn.length;
+    }
+    throw new Error(`No activity of ${entityId} to colour`);
+  } finally {
+    box.remove();
+  }
+}
+"""
+
+
 def board_events_dialog(page: Page) -> None:
     """The events entity after a visit: the last event, its history and the activity."""
     pull_darts()
@@ -2597,37 +2675,26 @@ def board_events_dialog(page: Page) -> None:
         control({"event": "Throw detected", "throws": darts})
         view.wait_for_timeout(500)
     if (now := demo_now()) is not None:
-        # The dialog opens a few seconds after the visit, when Home Assistant has
-        # every event of it in its history.
+        # The dialog opens a few seconds after the visit.
         move_clock(now + timedelta(seconds=6))
         view.clock.set_fixed_time(now + timedelta(seconds=6))
-    # The recorder writes the history every five seconds; the dialog reads it from there.
-    view.wait_for_timeout(6000)
     entity = view.evaluate(
         "() => Object.values(document.querySelector('home-assistant').hass.entities)"
         ".find((item) => item.platform === 'autodarts' && item.translation_key === 'board_events')"
         ".entity_id"
     )
-    # Home Assistant gives every state of the history a colour, in the order they
-    # are drawn first. The history page draws them all in their order of time, so the
-    # dialog finds them coloured, whether its history or its activity comes first.
-    view.evaluate(NAVIGATE, f"/history?entity_id={entity}")
-    view.locator("state-history-chart-timeline").first.wait_for(timeout=30000)
-    view.wait_for_timeout(3000)
-    view.evaluate(NAVIGATE, "/autodarts-demo/board")
-    view.wait_for_function(
-        f"() => ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
-        timeout=30000,
-    )
-    view.wait_for_timeout(1000)
+    view.evaluate(RECORDED, entity)
+    view.evaluate(COLOUR_EVENTS, entity)
     view.evaluate(
         "(entityId) => document.querySelector('home-assistant').dispatchEvent("
         "new CustomEvent('hass-more-info', {bubbles: true, composed: true, detail: {entityId}}))",
         entity,
     )
-    view.locator("ha-more-info-dialog").wait_for(state="attached", timeout=30000)
-    # The history and the activity load a moment after the dialog opens.
-    view.wait_for_timeout(4000)
+    dialog = view.locator("ha-more-info-dialog")
+    dialog.locator("ha-logbook-entry").first.wait_for(timeout=30000)
+    dialog.locator("state-history-chart-timeline canvas").first.wait_for(timeout=30000)
+    # The chart draws its timeline a moment after it has its data.
+    view.wait_for_timeout(1500)
     page_shot(view, "board-events")
     context.close()
 
