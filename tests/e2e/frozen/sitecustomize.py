@@ -17,16 +17,24 @@ time.monotonic() stays real, so timers, timeouts and sleeps keep working.
 
 Random numbers without a seed of their own, such as the darts of the bot, start
 from the same seed in every run.
+
+Home Assistant shows the version of the integration on its page, and every release
+changes it. The demo's Home Assistant reports only the major version, 1 for every
+1.x release, so that a release changes no image.
 """
 
 from __future__ import annotations
 
 import datetime
+import importlib.abc
+import importlib.machinery
 import os
 import random
+import sys
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 # The time a move at the board takes on the frozen clock, in seconds.
@@ -38,6 +46,10 @@ REREAD = 0.05
 # How long a move waits before and after it: what Home Assistant does keeps the time
 # it began at, and every process has read the new time once the move returns.
 SETTLE = 0.1
+# The integration whose version the demo reports, and the module of Home Assistant
+# that reads it from the manifest.
+DOMAIN = "autodarts"
+LOADER = "homeassistant.loader"
 
 
 class Clock:
@@ -154,13 +166,63 @@ def fix_random(seed: int = SEED) -> None:
     random.seed(seed)
 
 
+class AfterImport(importlib.abc.MetaPathFinder):
+    """Changes a module right after Python imports it, before anything uses it."""
+
+    def __init__(self, name: str, change: Callable[[ModuleType], None]) -> None:
+        self.name = name
+        self.change = change
+
+    def find_spec(
+        self,
+        fullname: str,
+        path: Sequence[str] | None,
+        target: ModuleType | None = None,
+    ) -> importlib.machinery.ModuleSpec | None:
+        if fullname != self.name:
+            return None
+        spec = importlib.machinery.PathFinder.find_spec(fullname, path, target)
+        if spec is None or spec.loader is None:
+            return spec
+        execute = spec.loader.exec_module
+
+        def exec_module(module: ModuleType) -> None:
+            execute(module)
+            self.change(module)
+
+        spec.loader.exec_module = exec_module  # type: ignore[method-assign]
+        return spec
+
+
+def major_version(loader: ModuleType, domain: str = DOMAIN) -> None:
+    """Home Assistant's loader reads only the major version of the integration."""
+    integration = loader.Integration
+    setup = integration.__init__
+
+    def __init__(
+        self: Any,
+        hass: Any,
+        pkg_path: str,
+        file_path: Any,
+        manifest: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        if manifest.get("domain") == domain and "version" in manifest:
+            manifest["version"] = str(manifest["version"]).split(".", 1)[0]
+        setup(self, hass, pkg_path, file_path, manifest, *args, **kwargs)
+
+    integration.__init__ = __init__
+
+
 def install(environ: Mapping[str, str] = os.environ) -> bool:
-    """Freeze the clock and fix the random numbers when DEMO_TIME asks for it."""
+    """Freeze the clock, the random numbers and the version when DEMO_TIME asks."""
     start = environ.get("DEMO_TIME")
     if not start:
         return False
     freeze_time(Clock(start, environ.get("DEMO_CLOCK")))
     fix_random()
+    sys.meta_path.insert(0, AfterImport(LOADER, major_version))
     return True
 
 
