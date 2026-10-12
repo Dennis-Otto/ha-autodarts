@@ -198,7 +198,7 @@ workflow checks the title and sets its label; the title decides the next version
 Dependencies are pinned:
 
 - Actions by commit hash, and container images by digest, including the base image of the dev container in `.devcontainer/Dockerfile`; its Features are locked by digest in `.devcontainer/devcontainer-lock.json`.
-- Python tools with hashes, in `requirements-test.txt` (compiled from `requirements-test.in` with `pip-compile --generate-hashes`) and `tests/e2e/requirements-browser.txt`.
+- Python tools with hashes, in `requirements-test.txt` (compiled from `requirements-test.in` with `pip-compile --generate-hashes`) and `tests/e2e/requirements-browser.txt`. The browser tests run on the Python 3.12 of the Playwright image, so their file is compiled with `uv pip compile --generate-hashes --python-version 3.12.3`: Renovate installs pip-tools once per run, for the Python of the first lock file it compiles, and would build a second pip-compile file for the wrong Python.
 - Node tools by `package-lock.json`.
 
 Home Assistant pins its own dependencies exactly, so the test environment can carry a
