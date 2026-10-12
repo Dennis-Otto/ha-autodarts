@@ -2563,6 +2563,37 @@ def dashboard_trends(page: Page) -> None:
     context.close()
 
 
+# Home Assistant loads the texts of its settings, such as the names of their tabs,
+# apart from its other texts. It merges every load into the texts it holds, but
+# shows only what its newest load put together, and it counts on its timers of no
+# delay to run in the order they were asked for. They need not: Chrome holds back
+# a timer asked for deep inside other timers, and the frozen clock one asked for
+# during a tick. A later load that overtakes the settings' shows the texts without
+# theirs, for as long as the page lives. So once the settings' texts are merged,
+# one more update shows everything Home Assistant holds.
+SETTINGS_TEXTS = """
+async () => {
+  const app = document.querySelector('home-assistant');
+  if (typeof app._updateResources !== 'function') {
+    throw new Error('Home Assistant no longer updates its texts with _updateResources');
+  }
+  await app.hass.loadFragmentTranslation('config');
+  await app._updateResources(app.hass.language, {});
+}
+"""
+
+
+def settings_texts(page: Page) -> None:
+    """Show the texts of the settings, even when a later load hid them."""
+    app = "document.querySelector('home-assistant')"
+    page.wait_for_function(f"() => {app}?.hass?.loadFragmentTranslation")
+    page.evaluate(SETTINGS_TEXTS)
+    # A load that overtook this update shows the same texts a moment later.
+    page.wait_for_function(
+        f"() => {app}.hass.localize('ui.panel.config.automation.caption') !== ''"
+    )
+
+
 def blueprints_page(page: Page) -> None:
     """The blueprints of the integration in Home Assistant, and the light show's form."""
     context = own_context(
@@ -2571,7 +2602,8 @@ def blueprints_page(page: Page) -> None:
     view = context.new_page()
     view.goto(f"{HA}/config/blueprint/dashboard")
     view.get_by_text("Autodarts: light show").first.wait_for(timeout=60000)
-    # The list shows before the texts of the settings, such as its tabs, arrive.
+    # The list shows before the texts of the settings, such as its tabs.
+    settings_texts(view)
     view.get_by_text(
         "Automations" if LANGUAGE == "en" else "Automationen", exact=True
     ).first.wait_for(timeout=30000)
@@ -2710,6 +2742,8 @@ def online_bridge_options(page: Page) -> None:
     )
     view = context.new_page()
     view.goto(f"{HA}/config/integrations/integration/autodarts")
+    # The label of the button is one of the texts of the settings.
+    settings_texts(view)
     label = "Configure" if LANGUAGE == "en" else "Konfigurieren"
     view.locator(f"button[aria-label='{label}']").first.click()
     dialog = view.locator("dialog-data-entry-flow")
