@@ -76,7 +76,7 @@ Wie die Integration den Schwachstellen der [CWE Top 25](https://cwe.mitre.org/to
 - **Sicher im Fehlerfall:** Unbekannte Daten werden zu *unbekannt*, ein unerreichbares Board macht Entitäten nicht verfügbar, und ein falsches Board zeigt nie seine Daten.
 - **Lokal zuerst:** Die Cloud ist optional; die lokale Steuerung hängt nie von ihr ab.
 - **Kleine Angriffsfläche:** Keine Python-Abhängigkeiten zur Laufzeit und keine eigenen offenen Ports. Was die Integration dem Webserver von Home Assistant hinzufügt:
-  - die Kartendatei unter `/autodarts/autodarts-card.js`, ohne Anmeldung ausgeliefert wie jede andere Frontend-Datei; sie enthält Code, keine Daten;
+  - die Kartendateien unter `/autodarts/autodarts-card.js` und `/autodarts/autodarts-strategy.js`, ohne Anmeldung ausgeliefert wie jede andere Frontend-Datei; sie enthalten Code, keine Daten;
   - die dreizehn Aktionen `autodarts.*`, die wie jede Aktion eine Anmeldung brauchen: `start_game`, `correct_dart`, `throw_dart`, `enter_visit`, `next_player`, `undo_visit`, `start_tournament`, `next_tournament_match` und `stop_tournament` für alle Benutzer, `delete_player`, `link_player`, `unlink_player` und `export` für Administratoren, Automationen und von ihnen gestartete Skripte;
   - die Downloads der Exporte seit dem letzten Start unter `/api/autodarts/export/`, für Administratoren oder mit ihrem signierten Link, der nach einer Minute abläuft;
   - kleine Kopien der Highlight-Fotos unter `/api/autodarts/highlights/`, für angemeldete Benutzer wie die Fotos selbst; ausgeliefert werden nur einfache Dateinamen von Fotos im Highlight-Ordner;

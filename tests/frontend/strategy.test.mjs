@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { dashboardStrategy } from "../../custom_components/autodarts/frontend/autodarts-card.js";
+import { CARD_MODULE } from "../../custom_components/autodarts/frontend/autodarts-strategy.js";
 
 const entity = (entity_id, translation_key, device_id) => ({
   entity_id,
@@ -386,4 +387,9 @@ test("an entity named like its board alone keeps its own row", () => {
     states: { "number.b_players": { state: "2", attributes: { friendly_name: "Garage " } } },
   });
   assert.deepEqual(config.views.find((view) => view.path === "games").sections[0].cards[1].entities, ["number.b_players"]);
+});
+
+test("without a browser the strategy's own module only loads", () => {
+  assert.equal(globalThis.window, undefined);
+  assert.equal(CARD_MODULE, new URL("../../custom_components/autodarts/frontend/autodarts-card.js", import.meta.url).href);
 });
