@@ -93,6 +93,7 @@ EXPECTED_TRACEBACKS = (
 )
 MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
 CARD = MANIFEST.parent / "frontend" / "autodarts-card.js"
+STRATEGY = MANIFEST.parent / "frontend" / "autodarts-strategy.js"
 
 # Unique ID suffix -> platform of the entities a three-camera board must create.
 ENTITIES = {
@@ -1568,17 +1569,30 @@ class Scenario:
         )
 
     async def card(self) -> None:
-        """The bundled dashboard card is served and loaded without a resource."""
+        """The bundled dashboard card and the strategy's own small module are served
+        and loaded without a resource, with one version in both addresses."""
         version = json.loads(MANIFEST.read_text())["version"]
-        digest = hashlib.sha256(CARD.read_bytes()).hexdigest()[:8]
-        url = f"/autodarts/autodarts-card.js?v={version}-{digest}"
-        async with self.session.get(f"{HA}{url}") as response:
-            source = await response.text()
-            check(response.status == 200, f"Card not served: HTTP {response.status}")
-            check(
-                "javascript" in response.headers.get("Content-Type", ""),
-                f"Card served as {response.headers.get('Content-Type')}",
-            )
+        digest = hashlib.sha256(CARD.read_bytes() + STRATEGY.read_bytes()).hexdigest()
+        query = f"?v={version}-{digest[:8]}"
+        url = f"/autodarts/autodarts-card.js{query}"
+        strategy_url = f"/autodarts/autodarts-strategy.js{query}"
+        sources = {}
+        for address in (url, strategy_url):
+            async with self.session.get(f"{HA}{address}") as response:
+                sources[address] = await response.text()
+                check(
+                    response.status == 200,
+                    f"{address} not served: HTTP {response.status}",
+                )
+                check(
+                    "javascript" in response.headers.get("Content-Type", ""),
+                    f"{address} served as {response.headers.get('Content-Type')}",
+                )
+        source = sources[url]
+        check(
+            '"ll-strategy-dashboard-autodarts"' in sources[strategy_url],
+            "The strategy module defines no strategy",
+        )
         for element in (
             "autodarts-card",
             "autodarts-training-card",
@@ -1592,6 +1606,7 @@ class Scenario:
         async with self.session.get(f"{HA}/") as response:
             page = await response.text()
         check(url in page, "Dashboards do not load the Autodarts card")
+        check(strategy_url in page, "Dashboards do not load the strategy module")
 
     async def people(self) -> None:
         """A player becomes a person of Home Assistant, and stops being one."""
