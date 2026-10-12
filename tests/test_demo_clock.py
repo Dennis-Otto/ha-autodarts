@@ -2,11 +2,12 @@
 
 tests/e2e/frozen/sitecustomize.py freezes the clock of every Python process in the
 demo's Home Assistant container, so that two runs of the screenshots render the same
-images. Its Clock is tested here directly; what it does to a whole process, in a
-process of its own.
+images, and holds the version of the integration at its major one. Its Clock is
+tested here directly; what it does to a whole process, in a process of its own.
 """
 
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -16,6 +17,7 @@ from pathlib import Path
 import pytest
 
 FROZEN = Path(__file__).parent / "e2e" / "frozen"
+INTEGRATIONS = Path(__file__).parents[1] / "custom_components"
 SPEC = importlib.util.spec_from_file_location("demo_clock", FROZEN / "sitecustomize.py")
 demo_clock = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(demo_clock)
@@ -131,3 +133,31 @@ def test_a_process_without_demo_time_keeps_the_real_clock():
     assert lines[0].split()[0] == str(year)
     other = run("import time, random; print(time.gmtime().tm_year, random.random())")
     assert lines[0].split()[1] != other[0].split()[1]
+
+
+# Home Assistant's loader reads the integration, as at startup, and another one.
+LOADER = """
+import os, types
+from homeassistant import loader
+hass = types.SimpleNamespace(data={
+    loader.DATA_PRELOAD_PLATFORMS: [],
+    loader.DATA_COMPONENTS: {},
+    loader.DATA_MISSING_PLATFORMS: {},
+})
+root = types.SimpleNamespace(__name__='custom_components', __path__=[os.environ['INTEGRATIONS']])
+ours = loader.Integration.resolve_from_root(hass, root, 'autodarts')
+other = loader.Integration(hass, 'custom_components.other', None, {'domain': 'other', 'version': '2.3.4'})
+print(ours.version, ours.manifest['version'], other.version)
+"""
+
+
+def test_the_demo_reports_the_major_version_of_the_integration():
+    version = json.loads((INTEGRATIONS / "autodarts" / "manifest.json").read_text())[
+        "version"
+    ]
+    major = version.split(".")[0]
+    # A release changes no image: Home Assistant shows the same version on its page.
+    lines = run(LOADER, DEMO_TIME=START, INTEGRATIONS=str(INTEGRATIONS))
+    assert lines == [f"{major} {major} 2.3.4"]
+    lines = run(LOADER, INTEGRATIONS=str(INTEGRATIONS))
+    assert lines == [f"{version} {version} 2.3.4"]
