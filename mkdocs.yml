@@ -8,7 +8,7 @@
 # https://squidfunk.github.io/mkdocs-material/
 INHERIT: .github/mkdocs-blueprint.yml
 site_name: "Autodarts"
-site_description: "Autodarts for Home Assistant: local realtime board control, X01, Cricket, party and training games, tournaments and a bot, player statistics with heatmaps, seven dashboard cards and twelve blueprints, games started by voice. No cloud account needed."
+site_description: "Autodarts for Home Assistant: local realtime board control, X01, Cricket, party and training games, tournaments and a bot, player statistics with heatmaps, seven dashboard cards and thirteen blueprints, games started by voice. No cloud account needed."
 site_url: https://dennis-otto.github.io/ha-autodarts/
 repo_url: https://github.com/Dennis-Otto/ha-autodarts
 repo_name: Dennis-Otto/ha-autodarts
