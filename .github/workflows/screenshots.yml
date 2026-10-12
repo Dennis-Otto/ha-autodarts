@@ -160,29 +160,16 @@ jobs:
           export SIGN_OFF="Signed-off-by: ${APP_SLUG}[bot] <${user_id}+${APP_SLUG}[bot]@users.noreply.github.com>"
           # A branch whose workflows differ from those of main counts as a change of
           # workflows, which GitHub refuses to the app: it has no permission for them.
-          # So the branch starts from main as it is now. Moving the branch of an open
-          # pull request onto main still meets this when main changed workflows since;
-          # then the branch starts anew, which closes that pull request.
-          create=1
-          if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" >/dev/null 2>&1; then
-            if gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch" \
-              -f sha="$base" -F force=true >/dev/null; then
-              create=""
-            else
-              echo "The branch can't move onto main; it starts anew."
-              if [[ -n "$number" ]]; then
-                gh pr comment "$number" --repo "$GITHUB_REPOSITORY" --body \
-                  "main changed workflows since this branch began, so the bot can't move it onto main; a new pull request takes over the images rendered from $SHA."
-              fi
-              gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch"
-              number=""
-            fi
-          fi
-          if [[ -n "$create" ]]; then
-            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
-              -f ref="refs/heads/$branch" -f sha="$base" >/dev/null
-          fi
-          python3 - "$branch" "$base" "$RUNNER_TEMP" <<'PYTHON'
+          # So the images are committed onto main as it is now, first on a branch of
+          # their own, and the branch of the pull request moves onto them in one step
+          # afterwards. Moved onto main itself, it would hold nothing that main doesn't,
+          # and GitHub would close its pull request.
+          scratch="$branch-next"
+          refs="repos/$GITHUB_REPOSITORY/git/refs"
+          trap 'gh api --method DELETE "$refs/heads/$scratch" >/dev/null 2>&1 || true' EXIT
+          gh api --method DELETE "$refs/heads/$scratch" >/dev/null 2>&1 || true
+          gh api --method POST "$refs" -f ref="refs/heads/$scratch" -f sha="$base" >/dev/null
+          python3 - "$scratch" "$base" "$RUNNER_TEMP" <<'PYTHON'
           import base64
           import json
           import os
@@ -236,6 +223,8 @@ jobs:
                   capture_output=True, check=True, text=True,
               ).stdout.strip()
               print(f"Committed {len(part)} image(s): {head}")
+          with open(f"{folder}/head", "w") as file:
+              file.write(head)
 
           # The description: every image whose pixels changed, with how much.
           rows = []
@@ -256,6 +245,27 @@ jobs:
                   f"/actions/runs/{os.environ['GITHUB_RUN_ID']}\n"
               )
           PYTHON
+
+          # The branch of an open pull request can't move either when main changed
+          # workflows since it began; then it starts anew, which closes that pull request.
+          head="$(cat "$RUNNER_TEMP/head")"
+          create=1
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" >/dev/null 2>&1; then
+            if gh api --method PATCH "$refs/heads/$branch" -f sha="$head" -F force=true >/dev/null; then
+              create=""
+            else
+              echo "The branch can't move onto main; it starts anew."
+              if [[ -n "$number" ]]; then
+                gh pr comment "$number" --repo "$GITHUB_REPOSITORY" --body \
+                  "main changed workflows since this branch began, so the bot can't move it onto main; a new pull request takes over the images rendered from $SHA."
+              fi
+              gh api --method DELETE "$refs/heads/$branch"
+              number=""
+            fi
+          fi
+          if [[ -n "$create" ]]; then
+            gh api --method POST "$refs" -f ref="refs/heads/$branch" -f sha="$head" >/dev/null
+          fi
 
           if [[ -n "$number" ]]; then
             gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$RUNNER_TEMP/body.md"
