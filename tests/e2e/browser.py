@@ -9,6 +9,7 @@ import json
 import math
 import os
 import re
+import time
 import tomllib
 import urllib.request
 import zipfile
@@ -26,6 +27,9 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout
 HA = "http://homeassistant:8123"
 BOARD = "http://board-mock:3180"
 LOADS = 5
+# Seconds that each request of autodarts-card.js waits in Safari: longer than the five
+# seconds Home Assistant waits for the element of a dashboard strategy.
+CARD_MODULE_DELAY = 6
 # Board Manager generation of the demo board, passed on by browser.sh.
 GENERATION = int(os.environ.get("BOARD_MANAGER", "1"))
 # Writable folder for screenshots of a failed step, mounted by browser.sh.
@@ -1557,16 +1561,27 @@ def steady_games(page: Page, device: str, card: str) -> None:
 
 
 def safari(playwright: Playwright) -> None:
-    """The new game screen in an iPhone's Safari, which scrolled the page to its top when
-    a tap drew the screen anew: a game far down stays where it was tapped."""
+    """The automatic dashboard in an iPhone's Safari whose cards load slowly, which
+    showed "Timeout waiting for strategy element" instead; and its new game screen, which
+    scrolled the page to its top when a tap drew the screen anew: a game far down stays
+    where it was tapped."""
     browser = playwright.webkit.launch()
     try:
         context = browser.new_context(**playwright.devices["iPhone 13"], locale="de-DE")
         page = context.new_page()
         page.add_init_script(CAPTURE_ERRORS)
         card = "autodarts-scoreboard-card"
+
+        # A phone with an empty cache on slow Wi-Fi: the cards come after Home
+        # Assistant stopped waiting for the strategy, which registered on its own.
+        def slow_card(route) -> None:
+            time.sleep(CARD_MODULE_DELAY)
+            route.continue_()
+
+        page.route("**/autodarts-card.js*", slow_card)
         page.goto(f"{HA}/autodarts-auto/scoreboard")
-        page.locator(f"{card} .main").wait_for(timeout=30000)
+        page.locator(f"{card} .main").wait_for(timeout=60000)
+        page.unroute("**/autodarts-card.js*")
         page.evaluate(
             CALL_SERVICE,
             ["select", "select_option", "practice_game", {"option": "off"}],
@@ -1578,6 +1593,10 @@ def safari(playwright: Playwright) -> None:
         page.locator(f"{card} [data-lobby='close']").tap()
         errors = page_errors(page, [])
         check(not errors, f"Console problems: {errors}")
+    except Exception:
+        # The pages of this browser, which the screenshots of main() don't see.
+        keep_screenshots(browser, "Safari on an iPhone, WebKit")
+        raise
     finally:
         browser.close()
 

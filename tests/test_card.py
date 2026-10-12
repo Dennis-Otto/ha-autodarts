@@ -8,7 +8,13 @@ from unittest.mock import AsyncMock, Mock, patch
 
 from homeassistant.setup import async_setup_component
 
-from custom_components.autodarts.card import CARD_PATH, CARD_URL, async_register_card
+from custom_components.autodarts.card import (
+    CARD_PATH,
+    CARD_URL,
+    STRATEGY_PATH,
+    STRATEGY_URL,
+    async_register_card,
+)
 from custom_components.autodarts.sensor import AutodartsVisitSensor
 
 from .local_helpers import STATE, entity_id, setup_local
@@ -149,16 +155,21 @@ async def test_card_is_served_and_loaded_on_dashboards(hass):
     hass.http = Mock(async_register_static_paths=AsyncMock())
     with patch("custom_components.autodarts.card.add_extra_js_url") as add_js:
         await async_register_card(hass)
-    (config,) = hass.http.async_register_static_paths.call_args.args[0]
-    assert (config.url_path, config.path, config.cache_headers) == (
-        CARD_URL,
-        str(CARD_PATH),
-        True,
-    )
+    configs = hass.http.async_register_static_paths.call_args.args[0]
+    assert [(c.url_path, c.path, c.cache_headers) for c in configs] == [
+        (CARD_URL, str(CARD_PATH), True),
+        (STRATEGY_URL, str(STRATEGY_PATH), True),
+    ]
     assert CARD_PATH.is_file()
+    assert STRATEGY_PATH.is_file()
     version = json.loads(MANIFEST.read_text())["version"]
-    digest = hashlib.sha256(CARD_PATH.read_bytes()).hexdigest()[:8]
-    add_js.assert_called_once_with(hass, f"{CARD_URL}?v={version}-{digest}")
+    content = CARD_PATH.read_bytes() + STRATEGY_PATH.read_bytes()
+    digest = hashlib.sha256(content).hexdigest()[:8]
+    # The strategy comes first and imports the card by the same query.
+    assert [call.args for call in add_js.call_args_list] == [
+        (hass, f"{STRATEGY_URL}?v={version}-{digest}"),
+        (hass, f"{CARD_URL}?v={version}-{digest}"),
+    ]
 
 
 async def test_card_is_skipped_without_web_frontend(hass):

@@ -8,6 +8,7 @@
 | --- | --- |
 | `custom_components/autodarts/` | The integration |
 | `custom_components/autodarts/frontend/autodarts-card.js` | The seven dashboard cards, served by the integration |
+| `custom_components/autodarts/frontend/autodarts-strategy.js` | The automatic dashboard's strategy element alone, registered before Home Assistant's five seconds run out; it loads the rest from `autodarts-card.js` |
 | `blueprints/automation/autodarts/` | Automation blueprints |
 | `tests/` | Unit and integration tests with `pytest-homeassistant-custom-component` |
 | `tests/frontend/` | Node tests of the card logic and of every card element in a browser DOM, including property-based tests with fast-check, and of the translation bot |
