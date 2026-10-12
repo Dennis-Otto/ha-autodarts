@@ -4,16 +4,11 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.12.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.1...v1.12.2) (2026-10-12)
+
 ### Fixed
 
 - **The automatic dashboard opens on a slow phone too:** Home Assistant waits five seconds for the dashboard strategy of the integration, and on a phone with an empty cache or slow Wi-Fi the file with all the cards took longer, so the automatic dashboard showed *Error loading the dashboard strategy: Timeout waiting for strategy element* until the page was loaded again. A small file of its own now registers the strategy at once and builds the dashboard as soon as the cards are there.
-
-## [1.12.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.1...v1.12.2) (2026-10-12)
-
-
-### Bug fixes
-
-* open the automatic dashboard on a slow phone too ([#214](https://github.com/Dennis-Otto/ha-autodarts/issues/214)) ([9aa8abe](https://github.com/Dennis-Otto/ha-autodarts/commit/9aa8abe3a6945d64fcebc55b2202448c549818dc))
 
 ## [1.12.1](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.0...v1.12.1) (2026-10-10)
 
