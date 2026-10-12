@@ -1,19 +1,24 @@
 name: Screenshot bot
 
 # Keeps the images of the documentation in step with the cards. After a change of
-# the cards or of the screenshot tool reaches main, every week, and on demand, it
-# renders every image of docs/images anew from the demo, with its frozen clock
-# (tests/e2e/visual.sh). When the pixels of any image changed, it opens or updates
-# one pull request, "docs: update the screenshots of the cards", as the release app,
-# and turns on auto-merge, so that the images follow once the checks pass. An image
-# whose pixels stayed the same keeps its file; a pull request that main has caught
-# up with in the meantime closes.
+# the cards or of the screenshot tool reaches main, after a release, every week, and
+# on demand, it renders every image of docs/images anew from the demo, with its
+# frozen clock (tests/e2e/visual.sh). A release writes its version into the
+# manifest; the frozen demo shows only its major version, in online-bridge.png, so a
+# new major version changes that image. The maintainer or the release app merges a
+# release, so its push starts the bot like any other, and the visual checks of later
+# pull requests don't report the image as changed for days. When the pixels of any
+# image changed, it opens or updates one pull request, "docs: update the screenshots
+# of the cards", as the release app, and turns on auto-merge, so that the images
+# follow once the checks pass. An image whose pixels stayed the same keeps its file;
+# a pull request that main has caught up with in the meantime closes.
 
 on:
   push:
     branches: [main]
     paths:
       - custom_components/autodarts/frontend/**
+      - custom_components/autodarts/manifest.json
       - tests/e2e/**
       - "!tests/e2e/browser.py"
       - "!tests/e2e/browser.sh"
