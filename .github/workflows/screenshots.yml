@@ -103,8 +103,12 @@ jobs:
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
           egress-policy: audit
+      # The images go onto main as it is now, not as it was when the rendering began:
+      # main may have moved on in the meantime, and it only takes pull requests that
+      # are up to date with it.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: main
           persist-credentials: false
       - name: Take the rendered images and their reports
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -134,6 +138,8 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
+          # The images were rendered from $SHA; the branch starts from main as checked out.
+          base="$(git rev-parse HEAD)"
           branch="bot/screenshots"
           title="docs: update the screenshots of the cards"
           number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number // empty')"
@@ -152,14 +158,31 @@ jobs:
           # sign-off names the app's account, which is the author of the commits.
           user_id="$(gh api "users/${APP_SLUG}[bot]" --jq .id)"
           export SIGN_OFF="Signed-off-by: ${APP_SLUG}[bot] <${user_id}+${APP_SLUG}[bot]@users.noreply.github.com>"
+          # A branch whose workflows differ from those of main counts as a change of
+          # workflows, which GitHub refuses to the app: it has no permission for them.
+          # So the branch starts from main as it is now. Moving the branch of an open
+          # pull request onto main still meets this when main changed workflows since;
+          # then the branch starts anew, which closes that pull request.
+          create=1
           if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" >/dev/null 2>&1; then
-            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch" \
-              -f sha="$SHA" -F force=true >/dev/null
-          else
-            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
-              -f ref="refs/heads/$branch" -f sha="$SHA" >/dev/null
+            if gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch" \
+              -f sha="$base" -F force=true >/dev/null; then
+              create=""
+            else
+              echo "The branch can't move onto main; it starts anew."
+              if [[ -n "$number" ]]; then
+                gh pr comment "$number" --repo "$GITHUB_REPOSITORY" --body \
+                  "main changed workflows since this branch began, so the bot can't move it onto main; a new pull request takes over the images rendered from $SHA."
+              fi
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch"
+              number=""
+            fi
           fi
-          python3 - "$branch" "$SHA" "$RUNNER_TEMP" <<'PYTHON'
+          if [[ -n "$create" ]]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref="refs/heads/$branch" -f sha="$base" >/dev/null
+          fi
+          python3 - "$branch" "$base" "$RUNNER_TEMP" <<'PYTHON'
           import base64
           import json
           import os
