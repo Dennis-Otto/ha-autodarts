@@ -759,6 +759,44 @@ async def test_local_board_is_never_looked_up_elsewhere(hass, aioclient_mock, fr
     assert issue(hass, "board_moved", entry) is None
 
 
+async def test_board_found_elsewhere_during_the_unload_is_not_offered(
+    hass, aioclient_mock, freezer
+):
+    entry = await setup_cloud_board(hass, aioclient_mock, OTHER)
+    coordinator = entry.runtime_data.local
+    aioclient_mock.clear_requests()
+    # The cloud keeps answering while the board is away.
+    mock_cloud(aioclient_mock, OTHER)
+    aioclient_mock.get(BASE + "/api/state", status=503)
+    await fail_through_mock(coordinator)
+    freezer.tick(timedelta(minutes=5))
+    # A notice of the board, which the unload deletes.
+    ir.async_create_issue(
+        hass,
+        "autodarts",
+        f"wrong_board_{entry.entry_id}",
+        is_fixable=False,
+        severity=ir.IssueSeverity.ERROR,
+        translation_key="wrong_board",
+    )
+    looking = asyncio.Event()
+
+    async def identify():
+        # The board answers at the other address once the unload has deleted
+        # the board's notices.
+        looking.set()
+        while issue(hass, "wrong_board", entry) is not None:
+            await asyncio.sleep(0)
+        return {"board_id": "board-1", "version": "1.0.7", "camera_count": 3}
+
+    with patch.object(AutodartsLocalClient, "identify", side_effect=identify):
+        await coordinator.async_refresh()
+        await looking.wait()
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        await hass.async_block_till_done()
+    assert issue(hass, "board_moved", entry) is None
+
+
 async def test_board_back_at_its_address_withdraws_the_offer(
     hass, aioclient_mock, freezer
 ):
