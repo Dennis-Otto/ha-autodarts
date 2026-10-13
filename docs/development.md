@@ -322,6 +322,76 @@ oldest Home Assistant of `e2e.yml` differs from that of `hacs.json`.
 `tests/test_e2e_workflow.py` runs the steps of *changes* and of the gate in bash,
 with a stand-in for `gh`.
 
+### Mutation tests
+
+Tests can run a line without checking what it does. Every Saturday the **Mutation**
+workflow (`mutation.yml`, which the blueprint keeps) finds such lines:
+[mutmut](https://github.com/boxed/mutmut) changes the code in thousands of small ways,
+the mutants, such as `<=` for `<` or another number, and runs against each mutant the
+tests that call the function it changed. A test that fails kills the mutant; a mutant
+that every test lets through survives and points to a line that the tests run but
+don't check. The summary of the run shows the score, the share of the mutants that a
+test killed, and the surviving mutants; a low score fails nothing. The workflow also
+runs on demand from the Actions tab.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/mutation-tests-dark.png">
+  <img src="images/en/mutation-tests-light.png" alt="How the mutation tests run: every Saturday and on demand, mutmut copies the repository to mutants/ and changes the game rules in thousands of small ways. It runs every test once and records which functions each test calls; the tests marked mutation_unsafe are skipped, because they read the code as text or ask Git. The tests of the mutants must then pass without any mutant. Each mutant runs the tests that call its function, in a process forked from the first run, and every test starts with the caches of the integration empty. A mutant that makes a test fail is killed; one that every test lets through survives." width="560">
+</picture>
+
+`[tool.mutmut]` in `pyproject.toml` decides what changes. `only_mutate` lists seven
+modules of the game rules: the checkouts, the scores of the darts, the doubles, the
+positions, Cricket, the bot and the party games. Most tests check them directly, and
+one run on the four cores of a runner reaches all of their roughly 2,800 mutants. The X01
+practice game, the training games and the tournaments would add about 5,900 mutants,
+more than the 320 minutes of a run allow; they join once the workflow splits the run
+into parts. A first run on a development machine in October 2026 killed 2,503 of the
+2,804 mutants and let 294 survive, a score of 89 %; 7 ran into the time limit. Most of
+the survivors are in the party games, the bot and the positions.
+
+Four rules keep the tests right under mutmut, and `tests/test_mutation.py` checks
+each of them:
+
+- **The copy.** mutmut runs the tests in its copy of the repository, `mutants/`, with
+  the changed code, the files and folders of `also_copy` and without Git. A test that
+  reads the code as text, such as the check that every message is raised, or asks
+  Git fails there whatever the mutant. It gets `@pytest.mark.mutation_unsafe`, and
+  `tests/conftest.py` skips it whenever mutmut has set `MUTANT_UNDER_TEST`.
+  `also_copy` lists every file and folder at the top of the repository that Git
+  tracks, apart from the integration; a test fails when a new one is missing.
+- **The caches.** mutmut first runs every test once to record the functions that it
+  calls, then runs the tests of each mutant in a process forked from that first run.
+  A result that a functools cache kept there comes from the code without the mutant
+  and hides it, and a test that finds its result in the cache isn't recorded. So the
+  fixture `fresh_caches` empties the caches of the integration, such as those of
+  `checkout.py`, before every test; it costs no time that shows.
+- **The decorators.** mutmut leaves a decorated function unchanged, apart from
+  static and class methods. So a functools cache wraps its function instead of
+  decorating it, `checkout = lru_cache(maxsize=8192)(_uncached_checkout)`, and a test
+  fails when a module of `only_mutate` decorates a function with anything other than
+  those, `property` or `abstractmethod`. The properties stay unchanged.
+- **The parameters.** mutmut runs every test several times in its first process, to
+  record the functions that it calls and then without any mutant, and forks the
+  process of each mutant from it, so a parameter that one run changed reaches every
+  later run, as it does when an IDE runs a failed test again. A test that changes its
+  `parametrize` values fails at once; change a copy instead (`setup = dict(setup)`).
+
+To run them yourself on Linux or macOS (mutmut forks, so on Windows in WSL or Docker):
+
+```sh
+.venv/bin/pip install --require-hashes --no-deps -r .github/mutation-requirements.txt
+.venv/bin/mutmut run "custom_components.autodarts.checkout*"
+.venv/bin/mutmut results
+.venv/bin/mutmut show <name of a mutant>
+```
+
+Under mutmut the property tests draw the same examples as in CI, so a mutant is
+killed or survives the same way on every machine, and every test gets ten times its
+time limit: each call of a changed function passes a trampoline of mutmut, which makes
+the slowest tests several times slower, and mutmut stops a mutant that hangs by a limit
+of its own. mutmut keeps its copy and its results in `mutants/`; delete the folder
+when you are done.
+
 ## Issue assistant
 
 The [issue assistant](https://github.com/Dennis-Otto/issue-assistant), a GitHub Action of its own, looks after the issues; the maintainer still reads every issue and has the last word.

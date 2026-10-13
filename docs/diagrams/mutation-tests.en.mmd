@@ -1,0 +1,27 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How the mutation tests run
+  accDescr: Every Saturday and on demand, mutmut copies the repository to mutants/ and changes the game rules in thousands of small ways. It runs every test once and records which functions each test calls; the tests marked mutation_unsafe are skipped, because they read the code as text or ask Git. The tests of the mutants must then pass without any mutant. Each mutant runs the tests that call its function, in a process forked from the first run, and every test starts with the caches of the integration empty. A mutant that makes a test fail is killed; one that every test lets through survives and points to a line that the tests run but don't check.
+
+  START["Every Saturday, on demand"] --> COPY["mutmut copies the repository to mutants/<br/>and changes the game rules<br/>in thousands of small ways"]
+  COPY --> STATS["Every test runs once; mutmut records<br/>the functions that each one calls"]
+  STATS --> CLEAN["The tests of the mutants pass<br/>without any mutant"]
+  CLEAN --> MUTANT["Each mutant: the tests that call its function,<br/>in a process forked from the first run"]
+  MUTANT -- "a test fails" --> KILLED["Killed"]
+  MUTANT -- "every test passes" --> SURVIVED["Survived: a line that the tests<br/>run but don't check"]
+  UNSAFE["mutation_unsafe: a test that reads the<br/>code as text or asks Git is skipped"] -.-> STATS
+  CACHES["fresh_caches: every test starts<br/>with the caches empty"] -.-> MUTANT
+  PARAMS["A test that changes its<br/>parameters fails"] -.-> MUTANT
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef rule fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class COPY,STATS,CLEAN,MUTANT bot
+  class UNSAFE,CACHES,PARAMS rule
+  class KILLED done
+  class SURVIVED failed

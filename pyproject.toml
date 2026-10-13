@@ -9,6 +9,67 @@ timeout = 30
 filterwarnings = ['error:::custom_components\.autodarts']
 markers = [
     "expected_errors: the test logs errors of the integration on purpose",
+    "mutation_unsafe: fails in mutmut's copy of the repository, which has no Git and holds every mutant in the code; skipped under mutmut",
+]
+
+# The weekly mutation tests (.github/workflows/mutation.yml) with mutmut. They change
+# the modules of the game rules whose roughly 2,800 mutants one run reaches on the four
+# cores of a runner; practice.py, drills.py and tournament.py, with about 5,900 more,
+# join once the run is split into parts. See docs/development.md#mutation-tests.
+[tool.mutmut]
+source_paths = ["custom_components"]
+only_mutate = [
+    "custom_components/autodarts/bot.py",
+    "custom_components/autodarts/checkout.py",
+    "custom_components/autodarts/cricket.py",
+    "custom_components/autodarts/doubles.py",
+    "custom_components/autodarts/party.py",
+    "custom_components/autodarts/positions.py",
+    "custom_components/autodarts/scoring.py",
+]
+# mutmut runs the tests in its copy of the repository, mutants/, which gets the
+# integration and every other file and folder of the repository that a test may read.
+also_copy = [
+    ".copier-answers.yml",
+    ".devcontainer",
+    ".editorconfig",
+    ".gitattributes",
+    ".githooks",
+    ".github",
+    ".gitignore",
+    ".lycheeignore",
+    ".markdownlint-cli2.jsonc",
+    ".markdownlint.jsonc",
+    ".pre-commit-config.yaml",
+    ".python-version",
+    ".release-please-manifest.json",
+    ".vale.ini",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "GOVERNANCE.md",
+    "LICENSE",
+    "LICENSES",
+    "README.md",
+    "REUSE.toml",
+    "SECURITY.md",
+    "SUPPORT.md",
+    "blueprints",
+    "docs",
+    "eslint.config.mjs",
+    "hacs.json",
+    "lychee.toml",
+    "mkdocs.yml",
+    "osv-scanner.toml",
+    "package-lock.json",
+    "package.json",
+    "pyproject.toml",
+    "release-please-config.json",
+    "requirements-test.in",
+    "requirements-test.txt",
+    "scripts",
+    "tests",
+    "version.txt",
 ]
 
 [tool.coverage.run]
