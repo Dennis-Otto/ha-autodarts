@@ -57,6 +57,7 @@ Home Assistant keeps the best value of every record and fires `personal_best` wh
 - **Training streak:** the days in a row with at least one dart. Today does not break it; a whole day without darts does.
 - **Daily goal:** set *Daily goal* to the darts you want to throw every day. The training card shows a bar towards it, and `daily_goal_reached` fires once a day when you reach it.
 - The first value of each record sets it quietly; equal values do not count as new bests.
+- An [undone visit](games.md#corrections-and-darts-entered-by-hand) takes back the personal bests it set, so a misread 180 is no record once corrected; its darts still count for the day, the streak and the daily goal.
 
 [The records in detail](entities.md#personal-bests-streak-and-daily-goal) · [Which legs count for which record](how-it-works.md#records-and-statistics)
 
@@ -121,7 +122,7 @@ With *Practice personal checkout routes* on, the checkout route prefers the stro
 
 Every named player of a practice game gets a profile with lifetime numbers: legs and matches played and won, 3-dart average, first 9 average, checkout rate, marks per round, the highest visit and checkout, the best marks per round and the fewest darts for every start score. The [players card](cards.md#players-card) shows them with the head-to-head records of every pair of opponents and the recent matches.
 
-- **Names:** a name is the same player whatever the upper and lower case; players without a name count for nobody. Give your regular players names, on the [new game screen](scoreboard.md#choose-the-next-game) or in *Practice player N*.
+- **Names:** a name is the same player whatever the upper and lower case; players without a name count for nobody. Give your regular players names, on the [new game screen](scoreboard.md#choose-the-next-game) or in *Practice player N*. Every player in the game needs a name of their own: *Practice player N* refuses a name that another player in the game has, in any case, so a player never plays against themselves. A player slot outside the game, beyond *Practice players* or on the bot's seat, gives such a name up.
 - **What counts:** every leg of X01, the Cricket games and the party games. X01 legs add the averages and the checkout rate, Cricket legs the marks per round. In a [team match](games.md#teams), both partners win the leg and the match; the checkout counts for the partner who threw it, and a team leg sets no fewest darts and no best marks per round.
 - **Match history:** the last 20 matches of several players, with every player's legs, sets and average.
 - **Tournaments** count like every match: their legs, matches and head-to-head records go into the profiles. [Tournaments](games.md#tournaments).
@@ -179,7 +180,7 @@ When the week ends, by default on Monday at midnight, `weekly_report` sums it up
 
 <img src="images/en/training-calendar.png" alt="Home Assistant's calendar with a week of training sessions and practice matches of Alex, Sam and Kim" width="760">
 
-The **Training calendar** shows your finished sessions and practice matches of every game of the last 365 days in Home Assistant's calendar, for example *Training · 312 Darts · Ø 54.2* or *501 · Alex 3:2 Sam*, in German *Training · 312 Darts · Ø 54,2*. Open **Calendar** in the sidebar, or ask it in an automation with `calendar.get_events`, for example to [count the sessions of a month](automations.md#count-the-training-sessions-of-the-month).
+The **Training calendar** shows your finished sessions and practice matches of every game of the last 365 days, party games of up to eight players included, in Home Assistant's calendar, for example *Training · 312 Darts · Ø 54.2* or *501 · Alex 3:2 Sam*, in German *Training · 312 Darts · Ø 54,2*. Open **Calendar** in the sidebar, or ask it in an automation with `calendar.get_events`, for example to [count the sessions of a month](automations.md#count-the-training-sessions-of-the-month).
 
 ## Export
 

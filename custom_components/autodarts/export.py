@@ -40,13 +40,13 @@ from .journal import (
     player_results,
 )
 from .local_coordinator import AutodartsLocalCoordinator
+from .practice import PARTY_PLAYERS
 
 EXPORT_FORMATS = ("csv", "json")
 EXPORT_TABLES = ("sessions", "matches", "profiles")
 EXPORT_CONTENTS = (*EXPORT_TABLES, "all")
 # Inside the media folder, which Home Assistant serves only with a login.
 DEFAULT_FOLDER = Path("autodarts", "exports")
-MATCH_PLAYERS = 4
 SESSION_COLUMNS = (
     "started",
     "ended",
@@ -63,6 +63,8 @@ MATCH_COLUMNS = (
     "winner",
     "winner_name",
 )
+# A CSV row has columns for every seat of a match, a party game's eight:
+# player_1_name to player_8_points.
 PLAYER_COLUMNS = ("name", "legs", "sets", "match_legs", "average", "mpr", "points")
 # Spreadsheets run cells that start like a formula; names must stay text.
 FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
@@ -204,7 +206,7 @@ def _cell(value: Any) -> Any:
 
 def _flat_match(row: dict[str, Any]) -> dict[str, Any]:
     flat = {key: row[key] for key in MATCH_COLUMNS}
-    for index in range(MATCH_PLAYERS):
+    for index in range(PARTY_PLAYERS):
         player = row["players"][index] if index < len(row["players"]) else {}
         for key in PLAYER_COLUMNS:
             flat[f"player_{index + 1}_{key}"] = player.get(key)
@@ -237,7 +239,7 @@ def csv_text(table: str, rows: list[dict[str, Any]]) -> str:
             *MATCH_COLUMNS,
             *(
                 f"player_{index + 1}_{key}"
-                for index in range(MATCH_PLAYERS)
+                for index in range(PARTY_PLAYERS)
                 for key in PLAYER_COLUMNS
             ),
         ]
