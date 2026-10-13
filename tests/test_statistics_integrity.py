@@ -12,6 +12,7 @@ from custom_components.autodarts.progress import WEEK
 from .local_helpers import MISS, S20, T20, board, entity_id, record, setup_local
 from .test_bot_match import against_the_bot, pass_time
 from .test_play_comfort import act, kinds, receive, start
+from .test_practice_setup import set_number
 
 S1 = ("S1", 1, 1)
 D10 = ("D10", 10, 2)
@@ -323,6 +324,7 @@ async def test_two_seats_never_share_a_name(hass, aioclient_mock):
     """The name of each seat, as the games view enters it, is a player of its own."""
     entry = await setup_local(hass, aioclient_mock, state=board())
     practice = entry.runtime_data.local.practice
+    await set_number(hass, "practice_players", 8)
     await name_seat(hass, 1, "Alex")
     await name_seat(hass, 8, "Sam")
     for seat, name in ((2, " alex "), (2, "SAM")):
@@ -335,6 +337,46 @@ async def test_two_seats_never_share_a_name(hass, aioclient_mock):
     await name_seat(hass, 8, "")
     await name_seat(hass, 2, "")
     assert practice.names == ["ALEX", *[""] * 7]
+
+
+async def test_a_resting_seat_gives_its_name_up(hass, aioclient_mock):
+    """Sam trains alone after a match with Alex: the seat Sam sat on before
+    rests, and its name goes to the seat Sam takes now."""
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    practice = entry.runtime_data.local.practice
+    await start(hass, "501", players=["Alex", "Sam"])
+    await set_number(hass, "practice_players", 1)
+    await name_seat(hass, 1, "sam")
+    assert practice.names[:2] == ["sam", ""]
+    assert hass.states.get(entity_id(hass, "text", "practice_player_2")).state == ""
+    # A resting seat cannot take the name of a seat in play.
+    with pytest.raises(ServiceValidationError):
+        await name_seat(hass, 2, "Sam")
+    assert practice.names[:2] == ["sam", ""]
+
+
+async def test_the_bots_seat_gives_its_name_up(hass, aioclient_mock):
+    """The bot plays under no name; its seat keeps the name of whoever sat
+    there before."""
+    entry, coordinator = await against_the_bot(hass, aioclient_mock)
+    practice = coordinator.practice
+    await name_seat(hass, 2, "Sam")
+    await name_seat(hass, 1, "SAM")
+    assert practice.bot_seat == 1 and practice.names[:2] == ["SAM", ""]
+
+
+async def test_a_refused_name_brings_the_practice_players_back(hass, aioclient_mock):
+    """After a tournament, the players from before come back with the first
+    change of a setting, also with a name they refuse."""
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    practice = entry.runtime_data.local.practice
+    await start(hass, "501", players=["Zoe", "Sam"])
+    await act(hass, "start_tournament", players=["Tom", "Ida", "Ben"], game="101")
+    await act(hass, "stop_tournament")
+    with pytest.raises(ServiceValidationError):
+        await name_seat(hass, 1, "Sam")
+    assert practice.names[:2] == ["Zoe", "Sam"]
+    assert hass.states.get(entity_id(hass, "text", "practice_player_1")).state == "Zoe"
 
 
 async def test_the_bull_off_darts_are_training_darts(hass, aioclient_mock):

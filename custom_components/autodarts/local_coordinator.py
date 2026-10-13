@@ -1724,9 +1724,15 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.practice.set_format(legs, sets)
         await self._async_training([])
 
-    async def async_set_player_name(self, index: int, name: str) -> None:
-        self.practice.set_name(index, name)
-        await self._async_training([])
+    async def async_set_player_name(self, index: int, name: str) -> bool:
+        """Name a seat, see PracticeGame.rename; whether it took the name. A
+        refused name changes nothing but the practice settings from before a
+        tournament, which come back with any change of a setting."""
+        resumes = self.practice.resume is not None
+        named = self.practice.rename(index, name)
+        if named or resumes:
+            await self._async_training([])
+        return named
 
     async def async_start_game(
         self,

@@ -149,6 +149,13 @@ def test_a_player_in_two_seats_plays_the_match_once_and_not_against_oneself():
     ]
 
 
+def test_a_stored_head_to_head_against_oneself_is_dropped():
+    """Earlier versions stored one for a player in two seats."""
+    profiles = Profiles()
+    profiles.restore({"head_to_head": {"alex\x00alex": [1, 0], "alex\x00sam": [1, 0]}})
+    assert profiles.head_to_head == {"alex\x00sam": [1, 0]}
+
+
 def test_in_a_team_the_checkout_counts_for_the_player_who_threw_it():
     game = teams()
     for player in game.players:

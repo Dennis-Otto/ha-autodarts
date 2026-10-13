@@ -57,22 +57,16 @@ class AutodartsPlayerName(AutodartsLocalEntity, TextEntity):
         return self.coordinator.practice.names[self._index]
 
     async def async_set_value(self, value: str) -> None:
-        """Every seat needs a name of its own, as in start_game and tournaments:
-        two seats of one name would be one player, playing against themselves."""
+        """Every seat in play needs a name of its own, as in start_game and
+        tournaments: two seats of one name would be one player, playing against
+        themselves. A resting seat gives its name up, see PracticeGame.rename."""
         check_names([value])
-        name = clean_name(value)
-        others = self.coordinator.practice.names
-        if name and any(
-            other.casefold() == name.casefold()
-            for index, other in enumerate(others)
-            if index != self._index
-        ):
+        if not await self.coordinator.async_set_player_name(self._index, value):
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="duplicate_player",
-                translation_placeholders={"name": name},
+                translation_placeholders={"name": clean_name(value)},
             )
-        await self.coordinator.async_set_player_name(self._index, value)
 
 
 class AutodartsTournamentPlayers(AutodartsLocalEntity, TextEntity):

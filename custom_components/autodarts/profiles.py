@@ -338,11 +338,13 @@ class Profiles:
             and isinstance(match.get("players"), list)
         ][:MATCH_HISTORY]
         pairs = saved.get("head_to_head")
+        # Earlier versions stored a player in two seats against themselves.
         self.head_to_head = {
             pair: list(wins)
             for pair, wins in (pairs if isinstance(pairs, dict) else {}).items()
             if isinstance(pair, str)
             and pair.count("\x00") == 1
+            and len(set(pair.split("\x00"))) == 2
             and isinstance(wins, list)
             and len(wins) == 2
             and all(type(win) is int and win >= 0 for win in wins)
