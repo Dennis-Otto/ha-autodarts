@@ -13,6 +13,7 @@ import math
 import re
 import socket
 import time
+from collections.abc import Awaitable
 from pathlib import Path
 
 import aiohttp
@@ -1976,34 +1977,43 @@ class Scenario:
             )
 
 
+async def phase[T](name: str, run: Awaitable[T]) -> T:
+    """Run a phase of the scenario and print its seconds, which tell where its time
+    goes: "Scenario phase: resilience (46.3 s)"."""
+    started = time.monotonic()
+    result = await run
+    print(f"Scenario phase: {name} ({time.monotonic() - started:.1f} s)", flush=True)
+    return result
+
+
 async def main() -> None:
     timeout = aiohttp.ClientTimeout(total=60)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         scenario = Scenario(session)
-        await scenario.onboard()
+        await phase("onboarding", scenario.onboard())
         await scenario.connect()
-        entry_id = await scenario.setup()
-        await scenario.registries(entry_id)
-        await scenario.initial_state()
-        await scenario.controls()
-        await scenario.realtime(entry_id)
-        await scenario.resilience(entry_id)
-        await scenario.online_bridge(entry_id)
-        await scenario.reports(entry_id)
-        await scenario.games()
-        await scenario.achievements()
-        await scenario.match_summary()
-        await scenario.play_comfort()
-        await scenario.voice()
-        await scenario.voice_entry()
-        await scenario.card()
-        await scenario.people()
-        await scenario.gallery()
-        await scenario.tournament()
-        await scenario.manual_board()
-        await scenario.diagnostics(entry_id)
-        await scenario.logs()
-        await scenario.remove(entry_id)
+        entry_id = await phase("setup", scenario.setup())
+        await phase("registries", scenario.registries(entry_id))
+        await phase("initial state", scenario.initial_state())
+        await phase("controls", scenario.controls())
+        await phase("realtime", scenario.realtime(entry_id))
+        await phase("resilience", scenario.resilience(entry_id))
+        await phase("online bridge", scenario.online_bridge(entry_id))
+        await phase("reports", scenario.reports(entry_id))
+        await phase("games", scenario.games())
+        await phase("achievements", scenario.achievements())
+        await phase("match summary", scenario.match_summary())
+        await phase("play comfort", scenario.play_comfort())
+        await phase("voice", scenario.voice())
+        await phase("voice entry", scenario.voice_entry())
+        await phase("card", scenario.card())
+        await phase("people", scenario.people())
+        await phase("gallery", scenario.gallery())
+        await phase("tournament", scenario.tournament())
+        await phase("manual board", scenario.manual_board())
+        await phase("diagnostics", scenario.diagnostics(entry_id))
+        await phase("logs", scenario.logs())
+        await phase("removal", scenario.remove(entry_id))
         await scenario.socket.close()
     print(
         f"Docker E2E passed for Board Manager {GENERATION}: onboarding, "

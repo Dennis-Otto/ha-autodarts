@@ -1,11 +1,13 @@
 name: Docker E2E
 
 # The end-to-end tests in Docker: Home Assistant with the integration and a simulated
-# Board Manager (tests/e2e/run.sh), and the cards in a real browser (browser.sh).
-# Every push to main, every night and every manual run tests everything. A pull
-# request runs the tests only when it changes what they run or mount; one that
-# changes only the documentation or other workflows skips them. Either way the job
-# "e2e" reports the result, and it is the check that main requires.
+# Board Manager (tests/e2e/run.sh, the jobs "scenario"), and the cards in a real
+# browser (browser.sh, the jobs "browser", each running two of the four shards of the
+# steps at once). They all run side by side. Every push to main, every night and every
+# manual run tests everything. A pull request runs the tests only when it changes what
+# they run or mount; one that changes only the documentation or other workflows skips
+# them. Either way the job "e2e" reports the result, and it is the check that main
+# requires.
 
 on:
   push:
@@ -17,6 +19,11 @@ on:
   workflow_dispatch:
 
 permissions: {}
+
+env:
+  # The oldest release that hacs.json and the blueprints promise to support, for the
+  # scenario and the browser; only its digest moves (.github/renovate.json5).
+  OLDEST_HOME_ASSISTANT: ghcr.io/home-assistant/home-assistant:2026.8.0@sha256:a21689ef0510df9760ee11bab4d6b2fef3ed5c1a29ed9c3224271597a23729eb
 
 concurrency:
   group: e2e-${{ github.event.pull_request.number || github.run_id }}
@@ -77,13 +84,14 @@ jobs:
           echo "run=$run" >> "$GITHUB_OUTPUT"
           echo "$reason" >> "$GITHUB_STEP_SUMMARY"
 
-  e2e:
-    name: e2e (${{ matrix.name }})
+  # The scenario of tests/e2e/run.sh, on each Board Manager and the oldest supported
+  # Home Assistant, beside the browser jobs.
+  scenario:
+    name: scenario (${{ matrix.name }})
     needs: changes
     if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
-    # The browser test checks every view on eight screen sizes.
-    timeout-minutes: 45
+    timeout-minutes: 10
     permissions:
       contents: read
     strategy:
@@ -95,16 +103,11 @@ jobs:
             board_manager: 1
           - name: Board Manager 2
             board_manager: 2
-            browser: true
-          # The oldest release hacs.json and the blueprints promise to support,
-          # also in the browser: its native card forms and dashboard strategy.
           - name: Home Assistant 2026.8.0
             board_manager: 2
-            browser: true
-            image: ghcr.io/home-assistant/home-assistant:2026.8.0@sha256:a21689ef0510df9760ee11bab4d6b2fef3ed5c1a29ed9c3224271597a23729eb
+            oldest: true
     env:
       BOARD_MANAGER: ${{ matrix.board_manager }}
-      HOME_ASSISTANT_IMAGE: ${{ matrix.image }}
       E2E_ARTIFACTS: ${{ github.workspace }}/e2e-artifacts
     steps:
       - name: Record the network traffic of the job
@@ -115,23 +118,66 @@ jobs:
         with:
           persist-credentials: false
       - name: Run Home Assistant end-to-end tests
+        env:
+          HOME_ASSISTANT_IMAGE: ${{ matrix.oldest && env.OLDEST_HOME_ASSISTANT || '' }}
         run: bash tests/e2e/run.sh
+      - name: Keep logs of a failed run
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-scenario-${{ strategy.job-index }}-${{ github.run_attempt }}
+          path: e2e-artifacts
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # The cards in a real browser, against the current and the oldest supported Home
+  # Assistant: its native card forms and dashboard strategy. Each runner starts two
+  # demo instances, each with a browser and a shard of the steps, so the four shards of
+  # a version run at once (BROWSER_SHARD and BROWSER_WORKERS in tests/e2e/browser.sh).
+  browser:
+    name: browser (${{ matrix.home_assistant.name }}, ${{ matrix.runner }}/2)
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        home_assistant:
+          - name: current Home Assistant
+          - name: Home Assistant 2026.8.0
+            oldest: true
+        runner: [1, 2]
+    env:
+      BOARD_MANAGER: 2
+      BROWSER_SHARD: ${{ matrix.runner }}/2
+      BROWSER_WORKERS: 2
+      E2E_ARTIFACTS: ${{ github.workspace }}/e2e-artifacts
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # axe-core of package-lock.json checks the accessibility of the cards.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        if: matrix.browser
         with:
           node-version: 24
       - name: Install the locked packages of the frontend
-        if: matrix.browser
         run: npm ci --ignore-scripts
       - name: Check the dashboard cards in a real browser
-        if: matrix.browser
+        env:
+          HOME_ASSISTANT_IMAGE: ${{ matrix.home_assistant.oldest && env.OLDEST_HOME_ASSISTANT || '' }}
         run: bash tests/e2e/browser.sh
       - name: Keep logs and screenshots of a failed run
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: e2e-${{ matrix.board_manager }}-${{ strategy.job-index }}-${{ github.run_attempt }}
+          name: e2e-browser-${{ strategy.job-index }}-${{ github.run_attempt }}
           path: e2e-artifacts
           if-no-files-found: ignore
           retention-days: 14
@@ -143,7 +189,7 @@ jobs:
   gate:
     name: e2e
     if: always()
-    needs: [changes, e2e]
+    needs: [changes, scenario, browser]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -177,7 +223,7 @@ jobs:
     name: e2e (Home Assistant beta)
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 25
     permissions:
       contents: read
     env:
@@ -201,6 +247,9 @@ jobs:
       - name: Install the locked packages of the frontend
         run: npm ci --ignore-scripts
       - name: Check the dashboard cards in a real browser
+        env:
+          # All four shards, two at a time.
+          BROWSER_WORKERS: 2
         run: bash tests/e2e/browser.sh
       - name: Keep logs and screenshots of a failed run
         if: failure()

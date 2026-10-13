@@ -9,7 +9,7 @@ flowchart TB
 
   PR["Pull Request"] --> CHANGES{{"changes: ändert er, was<br/>die Tests nutzen?"}}
   MAIN["Push auf main,<br/>jede Nacht, auf Abruf"] --> TESTS
-  CHANGES -- "ja, oder unbekannt" --> TESTS["Test-Jobs, etwa 10 Minuten:<br/>Board Manager 1 und 2,<br/>das älteste unterstützte<br/>Home Assistant"]
+  CHANGES -- "ja, oder unbekannt" --> TESTS["Test-Jobs nebeneinander,<br/>etwa 5 Minuten:<br/>Szenario und Browsertest,<br/>auch auf dem ältesten<br/>unterstützten Home Assistant"]
   CHANGES -- "nein" --> SKIPPED["Test-Jobs übersprungen,<br/>in Sekunden"]
   TESTS -- "alle bestanden" --> PASS["Pflichtprüfung<br/>e2e besteht"]
   SKIPPED --> PASS

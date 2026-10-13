@@ -1,0 +1,40 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: The end-to-end tests side by side
+  accDescr: Once the job changes finds something to test, seven test jobs start at the same time. Three run the scenario, for Board Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Four run the browser test, two for the current and two for the oldest supported Home Assistant. Each browser job starts two demo instances, each with a browser and one of the four shards of the steps, so all four shards of a version run at once. The required check e2e waits for all of them.
+
+  CHANGES{{"changes: does the pull request<br/>change what the tests use?"}}
+  CHANGES --> SCENARIO
+  CHANGES --> CURRENT
+  CHANGES --> OLDEST
+
+  subgraph SCENARIO["scenario (run.sh)"]
+    direction LR
+    S1["Board Manager 1"] ~~~ S2["Board Manager 2"] ~~~ S3["Home Assistant<br/>2026.8.0"]
+  end
+
+  subgraph CURRENT["browser, current"]
+    direction LR
+    C1["runner 1<br/>shard 1/4: cards, games, forms, Safari<br/>shard 2/4: steady heights"]
+    C2["runner 2<br/>shard 3/4: tablet, every screen size,<br/>dartboard without Autodarts<br/>shard 4/4: touch screens, accessibility"]
+  end
+
+  subgraph OLDEST["browser, 2026.8.0"]
+    direction LR
+    O1["runner 1<br/>shards 1/4 and 2/4"]
+    O2["runner 2<br/>shards 3/4 and 4/4"]
+  end
+
+  SCENARIO --> GATE["Required check e2e:<br/>passes when every job passed"]
+  CURRENT --> GATE
+  OLDEST --> GATE
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class CHANGES bot
+  class S1,S2,S3,C1,C2,O1,O2 bot
+  class GATE done
