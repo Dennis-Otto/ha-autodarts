@@ -128,8 +128,35 @@ async def test_camera_jitter_keeps_positions_until_a_dart_changes(hass, aioclien
     ]
 
 
+async def test_a_dart_that_moved_in_its_bed_is_drawn_at_its_new_spot(
+    hass, aioclient_mock
+):
+    """Only camera jitter keeps a position: a reading farther away than about
+    1.7 mm, or a dart that takes another dart's place, is drawn where it is."""
+    first = dart("T20", 20, 3, "Triple", 0.01, 0.6)
+    second = dart("T20", 20, 3, "Triple", 0.05, 0.62)
+    entry = await setup_local(hass, aioclient_mock, state=visit(first, second))
+    coordinator = entry.runtime_data.local
+    # The board takes the first dart back; the second is now the first.
+    coordinator.async_receive("state", visit(second))
+    await hass.async_block_till_done()
+    assert [(item["x"], item["y"]) for item in throws(hass)] == [(0.05, 0.62)]
+    # The camera sees the dart 2 mm away: it moved.
+    moved = dart("T20", 20, 3, "Triple", 0.05, 0.632)
+    coordinator.async_receive("state", visit(moved))
+    await hass.async_block_till_done()
+    assert [(item["x"], item["y"]) for item in throws(hass)] == [(0.05, 0.632)]
+    # A reading without a position shows none instead of the last one.
+    coordinator.async_receive("state", visit(dart("T20", 20, 3, "Triple")))
+    await hass.async_block_till_done()
+    assert "x" not in throws(hass)[0]
+    coordinator.async_receive("state", visit(second))
+    await hass.async_block_till_done()
+    assert [(item["x"], item["y"]) for item in throws(hass)] == [(0.05, 0.62)]
+
+
 async def test_invalid_darts_are_not_exposed(hass, aioclient_mock):
-    await setup_local(
+    entry = await setup_local(
         hass,
         aioclient_mock,
         state=visit(
@@ -144,6 +171,19 @@ async def test_invalid_darts_are_not_exposed(hass, aioclient_mock):
         {"segment": "T20", "number": 20, "multiplier": 3, "score": 60, "bed": None},
         {"segment": None, "number": 5, "multiplier": 1, "score": 5, "bed": None},
     ]
+    # A bed that is no text, as a proxy might send it, is no bed either, and
+    # the sensors keep updating without an error in the log.
+    entry.runtime_data.local.async_receive(
+        "state",
+        visit(dart("S5", 5, 1, ["Single"]), dart("D1", 1, 2, {"bed": "Double"})),
+    )
+    await hass.async_block_till_done()
+    assert [(item["segment"], item["bed"]) for item in throws(hass)] == [
+        ("S5", None),
+        ("D1", None),
+    ]
+    assert hass.states.get(entity_id(hass, "sensor", "last_throw")).state == "D1"
+    assert hass.states.get(entity_id(hass, "sensor", "last_throw_score")).state == "2"
 
 
 async def test_visit_without_darts_and_positions_stay_out_of_history(

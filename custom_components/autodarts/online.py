@@ -33,6 +33,7 @@ from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 
 from .const import CONF_BOARD_ID, DOMAIN
+from .profiles import clean_name
 
 if TYPE_CHECKING:
     from .local_coordinator import AutodartsLocalCoordinator
@@ -119,8 +120,9 @@ def dart(name: str) -> tuple[str, int]:
     return "MISS", 0
 
 
-def _moment(trigger: str, attributes: dict[str, Any]) -> str | None:
-    """The event type of a trigger, adding its details; "" for another board."""
+def _moment(trigger: str, attributes: dict[str, Any], sent: str) -> str | None:
+    """The event type of a trigger in lower case, adding its details; "" for
+    another board. A player's name comes from the trigger as it was sent."""
     if trigger in MOMENTS:
         return MOMENTS[trigger]
     if trigger == OTHER_BOARD:
@@ -129,7 +131,9 @@ def _moment(trigger: str, attributes: dict[str, Any]) -> str | None:
         shot, bed, name = match.groups()
         if bed:
             attributes["segment"] = dart(bed)[0]
-        if name:
+        # The name follows the first "_" in either case, but only the trigger
+        # as sent spells it as the player does: Lea, not lea.
+        if name and (name := clean_name(sent.partition("_")[2])):
             attributes["name"] = name
         return "online_game_shot" if shot == "gameshot" else "online_match_shot"
     if _VISIT.fullmatch(trigger):
@@ -156,12 +160,15 @@ def parse(trigger: str, player: str | None = None) -> tuple[str, dict[str, Any]]
     """The board event of a trigger of Tools for Autodarts, None if unknown.
 
     The event type is empty for a moment on another board, which is ignored.
+    Names lose the characters no player name contains: notifications and file
+    names render them again, where they would be a template.
     """
-    trigger = " ".join(trigger.split()).lower()
+    sent = " ".join(trigger.split())
+    trigger = sent.lower()
     attributes: dict[str, Any] = {"trigger": trigger}
-    if player:
-        attributes["name"] = player
-    kind = _moment(trigger, attributes)
+    if player and (name := clean_name(player)):
+        attributes["name"] = name
+    kind = _moment(trigger, attributes, sent)
     return None if kind is None else (kind, attributes)
 
 
@@ -353,6 +360,10 @@ class OnlineBridge:
         if not kind:
             self.counts["ignored"] += 1
             return Response(text="ignored")
+        if "name" in attributes:
+            # As the player's profile spells the name: Dennis for dennis.
+            profiles = self._coordinator.practice.profiles
+            attributes["name"] = profiles.spelled(attributes["name"])
         self._fire(kind, attributes)
         return Response(text="ok")
 

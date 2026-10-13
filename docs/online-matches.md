@@ -29,7 +29,7 @@ To add an effect by hand, give it one trigger, the type **URL** and the address 
 | --- | --- | --- |
 | `gameon`, `bot_throw` | `online_game_on` | Tools for Autodarts sends `gameon` at the start of every turn and after every moment without an effect of its own: a good moment to return to your normal light. |
 | `busted` | `online_busted` | A bust. |
-| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | A won leg, with the `segment` of the winning dart or the `name` of the player when the trigger names them. The name arrives in lower case: `gameshot_Lea` gives `lea`. |
+| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | A won leg, with the `segment` of the winning dart or the `name` of the player when the trigger names them. The name keeps its case, `gameshot_Lea` gives `Lea`, and a player of your [profiles](entities.md#player-profiles) arrives as the profile spells the name: `gameshot_lea` gives `Lea` too. |
 | `matchshot`, `matchshot+bull`, `matchshot_<name>` | `online_match_shot` | A won match, with the same details. |
 | `0` to `180` | `online_visit` | The `score` of a visit. |
 | `range_100_140` or `100-140` | `online_visit` | A visit in the range, with `score_min` and `score_max`. |
@@ -40,7 +40,7 @@ To add an effect by hand, give it one trigger, the type **URL** and the address 
 | `idle` | `online_match_left` | You left the match. |
 | `other` | none | A moment on another board; the bridge ignores it. |
 
-Every online event has `trigger` (as sent, in lowercase), `source` (`online`) and `name` when the address has `&player=`. A plain number is always the score of a visit, so `25` is a visit of 25 points and `s25` a dart in the outer bull. The board triggers of Tools for Autodarts, such as `board_started`, `throw` or `takeout`, are not accepted: the board events report them directly from your board, faster and without a browser.
+Every online event has `trigger` (as sent, in lowercase), `source` (`online`) and `name` when the address has `&player=`. Like every player name, `name` is at most 20 characters long and never contains `{`, `}`, `%` or `#`, which notifications and file names would read as a template: `&player={{ 6*7 }}` gives `6*7`. A plain number is always the score of a visit, so `25` is a visit of 25 points and `s25` a dart in the outer bull. The board triggers of Tools for Autodarts, such as `board_started`, `throw` or `takeout`, are not accepted: the board events report them directly from your board, faster and without a browser.
 
 - **Your own darts** come from the board anyway: `dart_detected`, `visit_thrown` and the takeout are faster than the extension and work without it. Use the online events for what only the match knows: busts, won legs and matches, and the darts of your opponents.
 - **Only your board:** Tools for Autodarts reports the moments of every player in the match, your opponents' as well. To react to your own board only, enter your board ID under **Board IDs** in its WLED settings and keep the `other` line: moments on other boards then send `other` instead.
