@@ -103,6 +103,8 @@ BOARD_MANAGER=1 bash tests/e2e/run.sh
 BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 ```
 
+The log shows the seconds of every phase, such as `Scenario phase: resilience (46.3 s)`.
+
 ## Demo instance and browser test
 
 `tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session, twelve weeks of practice of three made-up players, a week of sessions and matches in the training calendar, four weeks of long-term statistics for the graphs, players linked to persons with pictures, highlight photos, an automation from the weekly report blueprint and a dashboard with all cards at <http://127.0.0.1:18124/autodarts-demo/board>. Login is not needed from the local network.
@@ -123,9 +125,25 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 - accessibility: every card meets WCAG 2.1 at levels A and AA, checked by [axe-core](https://github.com/dequelabs/axe-core) on a laptop and an iPhone in the dark and the light theme (see [Accessibility check](#accessibility-check));
 - a browser in Dutch, French and Spanish, which gets the cards and the entity texts of Home Assistant in its language.
 
-While working on a screen, `BROWSER_STEPS` runs only the steps whose names begin with one of the given ones, such as `BROWSER_STEPS="touch screens,every screen size,correcting"`, and fails on a name that begins no step; `BROWSER_SCREENS` only some of the sizes, such as `BROWSER_SCREENS=iPhone`, and fails on a name that is no size. With `BROWSER_SCREENSHOTS=1` the size check keeps a full-page screenshot of every view and size in `tests/e2e/artifacts/screens/`, to look at by eye.
+While working on a screen, `BROWSER_STEPS` runs only the steps it names, comma-separated: the whole name of a step runs that step alone, such as `BROWSER_STEPS="training card"` without the *training card editor*, and the beginning of names every step it begins, such as `BROWSER_STEPS="touch,every screen size,correcting"`; a name that begins no step fails. `BROWSER_SCREENS` runs only some of the sizes, such as `BROWSER_SCREENS=iPhone`, and fails on a name that is no size. With `BROWSER_SCREENSHOTS=1` the size check keeps a full-page screenshot of every view and size in `tests/e2e/artifacts/screens/`, to look at by eye.
 
 After each step the log shows its seconds, such as `Browser step: steady heights (74.2 s)`, and `browser-steps-table.md` among the artifacts lists every step with its seconds; in CI the summary of the job shows that table.
+
+### The browser test in shards
+
+The steps take five minutes in a row, too long for one job. Each step belongs to one of four groups of about the same seconds (`steps()` in `tests/e2e/browser.py`), and `BROWSER_SHARD=k/n` runs the groups `g` with `(g - 1) % n = k - 1`: `1/1`, the default, every group, `1/2` the groups 1 and 3, `2/4` the group 2. `BROWSER_WORKERS=W` splits the shard of the machine once more: worker w runs the shard `(k - 1) * W + w` of `n * W` on a demo instance of its own, side by side, so `1/2` alone runs the groups 1 and 3, but `1/2` with two workers the shards `1/4` and `2/4`, the groups 1 and 2. Each worker has its browser, a Compose project of its own (`autodarts_browser_1`, …), the next port from 18125 on and a folder of its own among the artifacts (`shard-3-of-4`). Each line of a worker in the log begins with its shard, such as `[3/4]`. `browser.sh` refuses more shards than groups before it starts anything, such as `BROWSER_SHARD=2/4` with `BROWSER_WORKERS=2`.
+
+```sh
+BROWSER_WORKERS=4 bash tests/e2e/browser.sh                   # every step, four shards at once
+BROWSER_SHARD=2/4 bash tests/e2e/browser.sh                   # one shard: the steady heights
+BROWSER_SHARD=1/2 BROWSER_WORKERS=2 bash tests/e2e/browser.sh # the first runner in CI: groups 1 and 2
+```
+
+Every step starts from the board between games, whatever the step before it left: `Board.between_games()` in `browser.py` stops a tournament, turns off the keypad, the game and the teams, sets one player, one leg and one set without the bot, starts the detection, clears the board and waits until Home Assistant shows all of it. It does that through a page of its own that shows no card. A card that showed a game opens its new game screen by itself eight seconds after the game ends, so a game left running would open that screen in the middle of the next step. Only the training card and the live card read the demo as `demo.py` left it, its session and the visit on the board; they come first in group 1, and nothing is reset before them. So every shard, and every step on its own, passes as the whole run does.
+
+`tests/test_e2e_shards.py` checks the groups without a browser: every step has one, every number of shards from one to four runs every step once and in its order, the steps that read the demo as it started come first, and the dartboard without Autodarts comes last. It also runs `browser.sh` with a stand-in for `docker`, which shows the shard, project and artifacts of every worker, and that a failed worker fails the run and keeps its logs alone.
+
+The seconds of its steps make a group slower or faster. When a step grows, `browser-steps-table.md` of its shard shows it, and moving a step to another group in `steps()` balances the shards again.
 
 ### How the browser test waits
 
@@ -230,9 +248,10 @@ bash scripts/render_diagrams.sh
 Every pull request, and every push to `main`, runs:
 
 - pytest on every core with a coverage gate, Ruff, strict mypy and the Node tests, with the coverage report in the job summary;
-- the Docker end-to-end test against both Board Manager generations, the browser test,
-  and both again against Home Assistant 2026.8.0, the oldest supported release, when a
-  pull request changes what they use (see [When the end-to-end tests run](#when-the-end-to-end-tests-run));
+- the Docker end-to-end test against both Board Manager generations and the browser test
+  in four shards, side by side, and both again against Home Assistant 2026.8.0, the oldest
+  supported release, when a pull request changes what they use (see
+  [When the end-to-end tests run](#when-the-end-to-end-tests-run));
 - the [visual check](#visual-check) of the documentation images, when a pull request changes the cards or the screenshot tool;
 - HACS validation and hassfest;
 - actionlint, CodeQL for Python, the card JavaScript and the workflows, and dependency review;
@@ -283,8 +302,8 @@ as the release app, so that its checks run again and it merges once they pass.
 
 ### When the end-to-end tests run
 
-The end-to-end tests take about 10 minutes, longer than most other checks, and
-most pull requests change nothing they test. So the **Docker E2E** workflow
+The end-to-end tests take about five minutes with their jobs side by side, longer
+than most other checks, and most pull requests change nothing they test. So the **Docker E2E** workflow
 (`e2e.yml`) first asks the API which files a pull request changes, in the job
 *changes*, without a checkout and without an action of a third party. It runs the
 test jobs only when one of the files is something the tests run or mount:
@@ -303,7 +322,7 @@ every night and every manual run tests everything.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/e2e-gate-dark.png">
-  <img src="images/en/e2e-gate-light.png" alt="When the end-to-end tests run: a push to main, the nightly run and a manual run always run the test jobs. For a pull request the job changes asks the API for its files; when the tests use one of them, or the files are unknown, the test jobs run for about 10 minutes, otherwise they are skipped in seconds. The required check e2e passes when every test job passed or none had to run, and fails when a job failed or was cancelled." width="560">
+  <img src="images/en/e2e-gate-light.png" alt="When the end-to-end tests run: a push to main, the nightly run and a manual run always run the test jobs. For a pull request the job changes asks the API for its files; when the tests use one of them, or the files are unknown, the test jobs run side by side for about 5 minutes, otherwise they are skipped in seconds. The required check e2e passes when every test job passed or none had to run, and fails when a job failed or was cancelled." width="560">
 </picture>
 
 `main` requires one check of the end-to-end tests, `e2e`, from the job *gate*. A
@@ -316,9 +335,33 @@ the push. As the check doesn't carry the names of the test jobs, a new oldest
 Home Assistant changes no required check. When a test job fails and the flaky-test
 bot runs it again, the gate runs again with it.
 
+The test jobs run side by side. Three *scenario* jobs run `tests/e2e/run.sh`, on Board
+Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Six *browser* jobs run the
+browser test, three for the current and three for the oldest supported Home Assistant.
+Each browser job pulls the images of Home Assistant and Playwright at once. The first
+runs two workers, `BROWSER_SHARD=1/2` with `BROWSER_WORKERS=2`, the cards, games and
+forms beside the steady heights; the second runs `BROWSER_SHARD=3/4`, the third
+`BROWSER_SHARD=4/4`, so the four [shards](#the-browser-test-in-shards) of a version run
+at the same time. The touch screens, Safari and accessibility have a runner of their
+own: twice, Safari's WebKit failed to load the scripts of Home Assistant itself while a
+second browser beside it opened the nine screens of *every screen size* at once on the
+four cores of a runner. `tests/test_e2e_shards.py` fails when the job with Safari runs a
+second worker. A step that fails fails only its job, and the flaky-test bot runs only
+that job and the gate again. The job names the shard and the step that failed in an
+annotation and in its summary, with the command that runs the step alone, such as
+`BROWSER_STEPS='steady heights' bash tests/e2e/browser.sh`. The nightly beta job runs
+the scenario and then every group of steps, one after another on one demo instance, for
+the same reason.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/e2e-shards-dark.png">
+  <img src="images/en/e2e-shards-light.png" alt="The end-to-end tests side by side: once the job changes finds something to test, nine test jobs start at the same time. Three run the scenario, for Board Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Six run the browser test, three for the current and three for the oldest supported Home Assistant, so all four shards of a version run at once, each on a demo instance of its own. The first runner of a version runs two workers, the cards, games and forms beside the steady heights; the second runs the tablet, every screen size and the dartboard without Autodarts; the third runs the touch screens, Safari and accessibility alone, so that Safari's WebKit shares its CPU with no other browser. The required check e2e waits for all of them." width="640">
+</picture>
+
 `tests/test_consistency.py` fails when a compose file mounts, or the browser test
 reads, a file of the repository that is missing from the table above, and when the
-oldest Home Assistant of `e2e.yml` differs from that of `hacs.json`.
+oldest Home Assistant of `e2e.yml`, `OLDEST_HOME_ASSISTANT` of the scenario and the
+browser jobs, differs from that of `hacs.json`.
 `tests/test_e2e_workflow.py` runs the steps of *changes* and of the gate in bash,
 with a stand-in for `gh`.
 
