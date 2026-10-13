@@ -1,5 +1,6 @@
 """A match against the bot in Home Assistant: its turns, its darts and its settings."""
 
+import asyncio
 import random
 from datetime import timedelta
 from unittest.mock import patch
@@ -235,6 +236,36 @@ async def test_the_bot_goes_on_after_a_restart(
     await pass_time(hass, freezer, 0.6)
     assert len(bot_darts(events)) == 1
     assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_the_bot_stops_before_the_unload_waits_for_a_read(
+    hass, aioclient_mock, freezer
+):
+    entry, coordinator = await against_the_bot(hass, aioclient_mock)
+    receive(coordinator, board(T20), board())
+    await hass.async_block_till_done()
+    assert coordinator.practice.bot_up
+    events = record(hass, coordinator)
+    reading = asyncio.Event()
+
+    async def slow_board(*_args):
+        reading.set()
+        while not coordinator._shutdown_requested:
+            await asyncio.sleep(0)
+        for _ in range(100):
+            await asyncio.sleep(0)
+        # The bot's delay passes while the unload still waits for this read.
+        freezer.tick(timedelta(seconds=1.1))
+        async_fire_time_changed_exact(hass)
+        return board()
+
+    with patch.object(coordinator.client, "get_state", side_effect=slow_board):
+        polling = hass.async_create_task(coordinator.async_refresh())
+        await reading.wait()
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        await polling
+    await hass.async_block_till_done()
+    assert events == []
 
 
 async def test_the_bot_settings(hass, aioclient_mock):
