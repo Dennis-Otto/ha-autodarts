@@ -1,7 +1,8 @@
 """Compare two folders of documentation images pixel by pixel.
 
-visual.sh runs it after rendering the images anew: the images committed before
-the run against those rendered. It writes, into the output folder:
+visual.sh runs it after rendering the images anew, and collect.sh after putting
+together the groups of images that rendered on runners of their own: the images
+committed before the run against those rendered. It writes, into the output folder:
 
 - report.json: every image whose pixels changed, was added or removed, with the
   share of its pixels that changed, for the screenshot bot and the comment of the

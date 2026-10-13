@@ -4,9 +4,11 @@
 # them with the committed ones, pixel by pixel. Afterwards docs/images holds the new
 # images, and tests/e2e/artifacts/visual/ the report of compare.py: report.json,
 # summary.md and every changed image before and after, with its difference. With
-# RESTORE=1, an image whose pixels did not change keeps its committed file. The
-# visual check of pull requests (visual.yml) and the screenshot bot (screenshots.yml)
-# run it; LANGUAGES chooses the languages, as for screenshots.sh.
+# RESTORE=1, an image whose pixels did not change keeps its committed file.
+# LANGUAGES chooses the languages and SCREENSHOT_GROUP one group of the images, as
+# for screenshots.sh. The visual check of pull requests (visual.yml) and the
+# screenshot bot (screenshots.yml) do the same with one runner per group and
+# language: screenshots.sh renders each group, and collect.sh puts them together.
 
 set -euo pipefail
 

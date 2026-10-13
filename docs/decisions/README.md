@@ -16,3 +16,4 @@ Copy [the template](0000-template.md) to the next free number and describe the d
 | [0008](0008-betas-for-testers.md) | Give testers a beta after every change for users | accepted |
 | [0009](0009-german-pages-next-to-the-english-ones.md) | Put each German page next to its English page, for the language switch of the website | accepted |
 | [0010](0010-end-to-end-tests-behind-one-check.md) | Run the end-to-end tests only for the changes they test, behind one required check | accepted |
+| [0011](0011-images-in-groups-from-fresh-demos.md) | Render the images of the documentation in fixed groups, each from a fresh demo | accepted |

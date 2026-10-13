@@ -3,9 +3,11 @@ name: Visual check comment
 # The second half of the visual check (visual.yml). When the check of a pull request
 # ends, this workflow posts or updates one comment on the pull request: the images
 # that look different, with the share of their pixels that changed, and links to the
-# images before and after. It may comment, so it never checks out or runs the code
-# of the pull request: it reads only the reports of the check, takes nothing from
-# them but image names and numbers it checks, and writes the comment itself.
+# images before and after. When one language failed to render, the comment still
+# lists the images of the other one and names the language that failed. It may
+# comment, so it never checks out or runs the code of the pull request: it reads only
+# the reports of the check, takes nothing from them but image names and numbers it
+# checks, and writes the comment itself.
 
 on:
   workflow_run: # zizmor: ignore[dangerous-triggers] reads the reports of the check only, never the code of the pull request
@@ -57,11 +59,12 @@ jobs:
 
           folder="$RUNNER_TEMP/visual"
           mkdir -p "$folder"
-          if [[ "$CONCLUSION" == success ]]; then
-            gh run download "$RUN_ID" --pattern 'visual-??' --dir "$folder"
-          fi
           gh api "repos/$GH_REPO/actions/runs/$RUN_ID/artifacts" --paginate \
             --jq '.artifacts[] | "\(.name) \(.id)"' > "$folder/artifacts.txt"
+          # The report of every language that rendered, also when the other one failed.
+          if grep -qE '^visual-(en|de) ' "$folder/artifacts.txt"; then
+            gh run download "$RUN_ID" --pattern 'visual-??' --dir "$folder"
+          fi
 
           python3 - "$folder" > "$folder/post" <<'PYTHON'
           import json
@@ -90,56 +93,62 @@ jobs:
               return "< 0.01 %" if share < 0.0001 else f"{share * 100:.2f} %"
 
           lines = ["<!-- visual-check -->", "### Visual check", ""]
-          if os.environ["CONCLUSION"] != "success":
-              lines.append(f"The images could not be rendered for {sha}; the [run]({run}) shows why.")
-              post = "always"
-          else:
-              rows, unchanged, read = [], 0, 0
-              for code in languages:
-                  try:
-                      with open(f"{folder}/visual-{code}/report.json") as file:
-                          report = json.load(file)
-                  except (OSError, ValueError):
+          rows, unchanged, read, missing = [], 0, [], []
+          for code in languages:
+              try:
+                  with open(f"{folder}/visual-{code}/report.json") as file:
+                      report = json.load(file)
+              except (OSError, ValueError):
+                  report = None
+              if not isinstance(report, dict) or not isinstance(report.get("images"), list):
+                  missing.append(code)
+                  continue
+              read.append(code)
+              if isinstance(report.get("unchanged"), int):
+                  unchanged += report["unchanged"]
+              for entry in report["images"]:
+                  if not isinstance(entry, dict):
                       continue
-                  if not isinstance(report, dict) or not isinstance(report.get("images"), list):
-                      continue
-                  read += 1
-                  if isinstance(report.get("unchanged"), int):
-                      unchanged += report["unchanged"]
-                  for entry in report["images"]:
-                      if not isinstance(entry, dict):
-                          continue
-                      path, status, share = entry.get("path"), entry.get("status"), entry.get("share")
-                      if (
-                          isinstance(path, str) and path_pattern.match(path)
-                          and status in statuses
-                          and isinstance(share, (int, float)) and 0 <= share <= 1
-                      ):
-                          rows.append(f"| `docs/images/{path}` | {status} | {percent(share)} |")
-              if not read:
+                  path, status, share = entry.get("path"), entry.get("status"), entry.get("share")
+                  if (
+                      isinstance(path, str) and path_pattern.match(path)
+                      and status in statuses
+                      and isinstance(share, (int, float)) and 0 <= share <= 1
+                  ):
+                      rows.append(f"| `docs/images/{path}` | {status} | {percent(share)} |")
+          # A language whose report is missing failed to render; the other one still
+          # gets its report, named by its language.
+          which = f"{languages[read[0]]} " if read and missing else ""
+          post = "always"
+          if not read:
+              if os.environ["CONCLUSION"] == "success":
                   lines.append(f"The [run]({run}) left no report for {sha}.")
-                  post = "always"
-              elif not rows:
-                  lines.append(f"Rendered from the demo with its frozen clock for {sha}: every image looks as committed.")
-                  post = "existing"
               else:
-                  lines += [
-                      f"Rendered from the demo with its frozen clock for {sha}: {len(rows)} of "
-                      f"{len(rows) + unchanged} images look different from the committed ones.",
-                      "",
-                      "| Image | Change | Pixels changed |",
-                      "| --- | --- | ---: |",
-                      *rows,
-                      "",
-                  ]
-                  if links:
-                      shown = " · ".join(f"[{languages[code]}]({link})" for code, link in sorted(links.items()))
-                      lines.append(f"The images before and after, with every changed pixel in red: {shown}.")
-                  lines.append(
-                      "This check only reports. When the change is intended, the screenshot bot "
-                      "updates `docs/images` after the merge."
-                  )
-                  post = "always"
+                  lines.append(f"The images could not be rendered for {sha}; the [run]({run}) shows why.")
+          elif not rows:
+              lines.append(f"Rendered from the demo with its frozen clock for {sha}: every {which}image looks as committed.")
+              if not missing:
+                  post = "existing"
+          else:
+              lines += [
+                  f"Rendered from the demo with its frozen clock for {sha}: {len(rows)} of "
+                  f"{len(rows) + unchanged} {which}images look different from the committed ones.",
+                  "",
+                  "| Image | Change | Pixels changed |",
+                  "| --- | --- | ---: |",
+                  *rows,
+                  "",
+              ]
+              if links:
+                  shown = " · ".join(f"[{languages[code]}]({link})" for code, link in sorted(links.items()))
+                  lines.append(f"The images before and after, with every changed pixel in red: {shown}.")
+              lines.append(
+                  "This check only reports. When the change is intended, the screenshot bot "
+                  "updates `docs/images` after the merge."
+              )
+          if read and missing:
+              names = " and ".join(languages[code] for code in missing)
+              lines += ["", f"The {names} images could not be rendered for {sha}; the [run]({run}) shows why."]
           with open(f"{folder}/comment.md", "w") as file:
               file.write("\n".join(lines) + "\n")
           print(post)
