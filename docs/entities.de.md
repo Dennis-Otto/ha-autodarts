@@ -671,14 +671,19 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn
 
 ### Aufnahmepunkte eingeben: `autodarts.enter_visit`
 
-Gibt eine X01-Aufnahme mit ihrer Punktzahl statt mit ihren Darts ein, wie *Punkte* im Tastenfeld, und gibt weiter: Der nächste Spieler wirft. Braucht *Übungsspiel manuelle Eingabe*. Schon von Hand eingegebene Darts der Aufnahme weichen ihr; Darts im Board lehnen sie ab. Die Aufnahme hat eigene Darts, markiert mit `total`, deren Felder ausgedacht sind und unbekannt bleiben: Sie zählen für die Punkte, die Averages, die 180er, die Checkouts und die Bestleistungen, aber für kein Feld, also nicht für das Trefferbild, die Doppel, die Triple oder die Bulls. Die Punkte, die der Spieler noch hat, checken aus, mehr ist überworfen.
+Gibt eine X01-Aufnahme mit ihrer Punktzahl statt mit ihren Darts ein, wie *Punkte* im Tastenfeld, und gibt weiter: Der nächste Spieler wirft. Braucht *Übungsspiel manuelle Eingabe*. Schon von Hand eingegebene Darts der Aufnahme weichen ihr; Darts im Board lehnen sie ab. Die Aufnahme hat eigene Darts, markiert mit `total`, deren Felder ausgedacht sind und unbekannt bleiben: Sie zählen für die Punkte, die Averages, die 180er, die Checkouts und die Bestleistungen, aber für kein Feld, also nicht für das Trefferbild, die Doppel, die Triple oder die Bulls. Die Punkte, die der Spieler noch hat, checken aus oder sind überworfen, wo keine Aufnahme mit diesen Darts sie checken kann, etwa 159 mit Double-Out. Mehr ist überworfen, ebenso ein Rest von 1 mit Double-Out, auch wo keine Aufnahme alle Punkte vor dem Überwerfen werfen kann, etwa 100 von 32: Die Darts nach dem Dart, der überwirft, zählen nicht.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/visit-score-dark.png">
+  <img src="images/de/visit-score-light.png" alt="Wie die Punkte einer Aufnahme zählen: Punkte, die ihre Darts nicht ergeben können, etwa 179, werden abgelehnt, zum Prüfen der Punkte. Der Rest des Spielers checkt aus, wo die Darts ihn checken können, und ist überworfen, wo nicht, etwa 159 mit Double-Out. Mehr als der Rest ist überworfen, etwa 100 von 32, ebenso Punkte, die mit Double-Out 1 lassen; der Rest bleibt, wie er war. Alle anderen Punkte lassen den Rest. Nach dem Überwerfen oder dem Rest wirft der nächste Spieler" width="460">
+</picture>
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `score` | 0–180 | Die Punkte der Aufnahme; Pflicht ohne `checkout` |
 | `checkout` | `true` | Die Aufnahme checkt den Rest des Spielers, statt `score`; ein `score` dazu muss genau der Rest sein |
 | `darts` | 1–3 | Die Darts der Aufnahme, weniger als 3 nur beim Checkout; Standard 3 |
-| `darts_at_double` | 0–3 | Wie viele davon auf ein Doppel gingen, für die Checkout-Quote; Standard 1 beim Checkout mit Double-Out, sonst 0. Ohne Double-Out zählt keiner |
+| `darts_at_double` | 0–3 | Wie viele davon auf ein Doppel gingen, für die Checkout-Quote; Standard 1 beim Checkout mit Double-Out, sonst 0. Ohne Double-Out zählt keiner, und beim Überwerfen nur die bis zu dem Dart, der überwirft |
 | `player` | Name | Der Spieler, für den die Aufnahme ist, wie bei `autodarts.throw_dart`; die Aktion lehnt die Aufnahme ab, solange ein anderer Spieler am Board ist |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
@@ -690,7 +695,7 @@ data:
   darts_at_double: 2
 ```
 
-Die Aufnahme meldet sich mit `visit_thrown` und `visit_completed`, beide mit `total` und leeren `segments`, ihre Darts aber nicht: Eine Automation, die jeden Dart ansagt, etwa der [Dart-Caller](automations.de.md#dart-caller), schweigt und sagt die Aufnahme an. Die Aktion bricht mit einer klaren Meldung ab außerhalb eines laufenden X01-Legs und beim Ausbullen, wenn keine Aufnahme mit diesen Darts die Punkte von dem Rest des Spielers erreichen kann (etwa 179, oder 159 von 159 mit Double-Out), wenn mehr Darts auf ein Doppel gingen, als die Aufnahme hatte, oder beim Checkout keiner, solange ein Dart der Aufnahme im Board steckt, wenn die manuelle Eingabe aus ist, solange der Bot am Board ist, wenn weder `score` noch `checkout` angegeben ist, wenn ein `score` mit `checkout` nicht der Rest des Spielers ist oder wenn `player` nicht am Board ist.
+Die Aufnahme meldet sich mit `visit_thrown` und `visit_completed`, beide mit `total` und leeren `segments`, ihre Darts aber nicht: Eine Automation, die jeden Dart ansagt, etwa der [Dart-Caller](automations.de.md#dart-caller), schweigt und sagt die Aufnahme an. Die Aktion bricht mit einer klaren Meldung ab außerhalb eines laufenden X01-Legs und beim Ausbullen, wenn keine Aufnahme mit diesen Darts die Punkte von dem Rest des Spielers erreichen kann (etwa 179, das keine drei Darts ergeben, 180 von 60 ohne Double-Out, dessen erstes Triple 20 auscheckt, oder 180 vor dem Eröffnungs-Double mit Double-In), wenn `checkout` angegeben ist, aber keine Aufnahme mit diesen Darts den Rest checken kann (etwa 159 mit Double-Out), wenn mehr Darts auf ein Doppel gingen, als die Aufnahme hatte, oder beim Checkout keiner, solange ein Dart der Aufnahme im Board steckt, wenn die manuelle Eingabe aus ist, solange der Bot am Board ist, wenn weder `score` noch `checkout` angegeben ist, wenn ein `score` mit `checkout` nicht der Rest des Spielers ist oder wenn `player` nicht am Board ist.
 
 Ein Checkout des Rests mit zwei Darts für den Spieler am Board:
 

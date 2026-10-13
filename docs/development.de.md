@@ -2,9 +2,9 @@
 
 [← Dokumentation](README.de.md)
 
-Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, und wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden.
+Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden und wann die End-to-End-Tests laufen.
 
-**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit)
+**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen)
 
 ## Bilder der Dokumentation
 
@@ -64,3 +64,14 @@ Der Schritt *accessibility* des Browsertests (`tests/e2e/browser.py`) lässt [ax
 - Der Schritt behält jeden Verstoß und jede geprüfte Ansicht in `accessibility.json`, bei den übrigen Artefakten des Browsertests.
 
 axe-core kommt aus `package.json`, festgelegt in `package-lock.json`; führe also vor `browser.sh` `npm ci` aus, wie es die CI tut. `BROWSER_STEPS=accessibility` führt die Prüfung allein aus. Behebe einen Verstoß lieber in der Karte, als ihn hinzunehmen: Gedämpfte Wörter nehmen `--ad-muted-text` aus den Bausteinen, das den Kontrast in beiden Designs und auf einer getönten Kachel hält, jedes Bedienelement hat Wörter oder ein `aria-label`, und was scrollt, erreicht auch die Tastatur.
+
+## Wann die End-to-End-Tests laufen
+
+Der Browsertest mit der Prüfung der Barrierefreiheit gehört zu den End-to-End-Tests in Docker, dem Workflow **Docker E2E** (`e2e.yml`). Sie dauern etwa 20 Minuten, viel länger als jede andere Prüfung, und die meisten Pull Requests ändern nichts, was sie testen. Deshalb fragt der Job *changes* zuerst die API, welche Dateien ein Pull Request ändert, ohne Checkout und ohne Action eines Dritten. Die Test-Jobs laufen nur, wenn eine davon zu dem gehört, was die Tests ausführen oder einbinden: die Integration in `custom_components/`, die Blueprints in `blueprints/`, die Tests selbst in `tests/e2e/`, `package.json` und `package-lock.json` mit axe-core und der Workflow `.github/workflows/e2e.yml`. Eine umbenannte Datei zählt auch mit ihrem alten Namen. Scheitert die API oder ändert ein Pull Request mehr Dateien, als die API auflistet (3000), laufen die Tests. Jeder Push auf `main`, jede Nacht und jeder Lauf auf Abruf testen alles, nachts auch gegen die Beta von Home Assistant.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/e2e-gate-dark.png">
+  <img src="images/de/e2e-gate-light.png" alt="Wann die End-to-End-Tests laufen: Ein Push auf main, der nächtliche Lauf und ein Lauf auf Abruf führen die Test-Jobs immer aus. Für einen Pull Request fragt der Job changes die API nach seinen Dateien; nutzen die Tests eine davon oder sind die Dateien unbekannt, laufen die Test-Jobs etwa 20 Minuten, sonst werden sie in Sekunden übersprungen. Die Pflichtprüfung e2e besteht, wenn jeder Test-Job bestanden hat oder keiner laufen musste, und schlägt fehl, wenn ein Job fehlschlug oder abgebrochen wurde." width="560">
+</picture>
+
+`main` verlangt eine einzige Prüfung der End-to-End-Tests, `e2e`, vom Job *gate*. Eine Matrix, die eine Bedingung überspringt, meldet keinen ihrer Job-Namen, und ein übersprungener Job zählt als bestanden. Deshalb läuft das Gate immer und entscheidet selbst: Es besteht, wenn jeder Test-Job bestanden hat oder *changes* nichts zu testen fand, und schlägt fehl, wenn ein Test-Job fehlschlug, abgebrochen oder übersprungen wurde, obwohl er laufen musste. Ein Pull Request, der nur die Dokumentation oder andere Workflows ändert, bekommt `e2e` etwa eine Minute nach dem Push. `tests/test_consistency.py` schlägt fehl, wenn eine Compose-Datei eine Datei des Repositorys einbindet oder der Browsertest eine liest, die in dieser Liste fehlt.

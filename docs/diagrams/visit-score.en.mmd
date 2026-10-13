@@ -1,0 +1,18 @@
+flowchart TB
+  accTitle: How a visit's score counts
+  accDescr: A score its darts can't make, such as 179, is refused. What is left checks out where the darts can finish it and busts where they can't, such as 159 with double out. More than is left busts, such as 100 from 32, as does 1 left with double out. Any other score leaves the rest. After a bust or the rest, the next player throws.
+  SCORE["A visit's score"] --> MADE{"Can its darts<br/>make it?"}
+  MADE -- "no, such as 179" --> REFUSED["Refused:<br/>check the score"]
+  MADE -- "yes" --> LEFT{"Exactly what<br/>is left?"}
+  LEFT -- "yes" --> FINISH{"Can the darts<br/>finish it?"}
+  FINISH -- "yes" --> CHECKOUT["Checkout:<br/>the leg is won"]
+  FINISH -- "no, such as 159<br/>with double out" --> BUST["Bust: the score<br/>stays as it was"]
+  LEFT -- "no" --> MORE{"More, or 1 left<br/>with double out?"}
+  MORE -- "yes, such as<br/>100 from 32" --> BUST
+  MORE -- "no" --> REST["It leaves the rest"]
+  BUST --> NEXT["The next player throws"]
+  REST --> NEXT
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class CHECKOUT,REST done
+  class BUST,REFUSED warn

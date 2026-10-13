@@ -8,8 +8,8 @@
   packageRules: [
     {
       // The end-to-end tests run the oldest Home Assistant that the integration
-      // supports (hacs.json), and their required check is named after it; only
-      // the digest of its image moves.
+      // supports (hacs.json), which tests/test_consistency.py compares; only the
+      // digest of its image moves.
       matchFileNames: [".github/workflows/e2e.yml"],
       matchDepNames: ["ghcr.io/home-assistant/home-assistant"],
       matchUpdateTypes: ["major", "minor", "patch"],

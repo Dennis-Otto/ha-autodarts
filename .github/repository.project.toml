@@ -3,14 +3,12 @@
 # lists gain their new items, and values replace those of repository.toml.
 # https://github.com/Dennis-Otto/repo-blueprint#settings-as-code
 
-# The end-to-end tests in Docker: with Board Manager 1 and 2, and with the oldest
-# supported Home Assistant (e2e.yml).
+# The end-to-end tests in Docker (e2e.yml): one check for all of them, with Board
+# Manager 1 and 2 and with the oldest supported Home Assistant. It passes when they
+# all pass, or when a pull request changes nothing they test, so the check keeps its
+# name when the tests change or the oldest Home Assistant moves on.
 [branch]
-required_checks = [
-  "e2e (Board Manager 1)",
-  "e2e (Board Manager 2)",
-  "e2e (Home Assistant 2026.8.0)",
-]
+required_checks = ["e2e"]
 
 # A beta of the next release after every change for users, for the testers
 # (release.yml of the blueprint).

@@ -671,14 +671,19 @@ The action fails with a clear message when the bed is unknown, when neither a be
 
 ### Enter a visit's score: `autodarts.enter_visit`
 
-Enters an X01 visit by its score instead of its darts, as the keypad's *Score* does, and passes the turn: the next player throws. Needs *Practice manual entry*. Darts already entered by hand in the visit give way to it; darts on the board refuse it. The visit has darts of its own, marked `total`, whose beds are made up and stay unknown: they count for the score, the averages, the 180s, the checkouts and the records, but for no bed, so not for the heatmap, the doubles, the triples or the bulls. A score of what the player has left checks out, more busts.
+Enters an X01 visit by its score instead of its darts, as the keypad's *Score* does, and passes the turn: the next player throws. Needs *Practice manual entry*. Darts already entered by hand in the visit give way to it; darts on the board refuse it. The visit has darts of its own, marked `total`, whose beds are made up and stay unknown: they count for the score, the averages, the 180s, the checkouts and the records, but for no bed, so not for the heatmap, the doubles, the triples or the bulls. A score of what the player has left checks out, or busts where no visit of these darts can finish it, such as 159 with double out. A score of more busts, and so does one that leaves 1 with double out, also where no visit throws all of it before the bust, such as 100 from 32: the darts after the dart that busts do not count.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/visit-score-dark.png">
+  <img src="images/en/visit-score-light.png" alt="How a visit's score counts: a score its darts can't make, such as 179, is refused, to check the score. What the player has left checks out where the darts can finish it, and busts where they can't, such as 159 with double out. More than is left busts, such as 100 from 32, as does a score that leaves 1 with double out; the score stays as it was. Any other score leaves the rest. After a bust or the rest, the next player throws" width="460">
+</picture>
 
 | Field | Values | Description |
 | --- | --- | --- |
 | `score` | 0–180 | The points of the visit; required without `checkout` |
 | `checkout` | `true` | The visit checks out what the player has left, instead of a `score`; a `score` given as well must be that |
 | `darts` | 1–3 | The darts it took, fewer than 3 only for a checkout; default 3 |
-| `darts_at_double` | 0–3 | How many of them were thrown at a double, for the checkout rate; default 1 for a checkout with double out, otherwise 0. Without double out, none counts |
+| `darts_at_double` | 0–3 | How many of them were thrown at a double, for the checkout rate; default 1 for a checkout with double out, otherwise 0. Without double out, none counts, and in a bust only those up to the dart that busts |
 | `player` | Name | The player the visit is for, as for `autodarts.throw_dart`; the action refuses the visit while another player is at the board |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
@@ -690,7 +695,7 @@ data:
   darts_at_double: 2
 ```
 
-The visit is announced with `visit_thrown` and `visit_completed`, both with `total` and empty `segments`, but its darts are not: an automation that calls every dart, such as the [dart caller](automations.md#dart-caller), stays silent and calls the visit. The action fails with a clear message outside an X01 leg being played and in the bull-off, when no visit of these darts can score this from what the player has left (such as 179, or 159 from 159 with double out), when more darts were at a double than the visit had or none for a checkout, while a dart of the visit is on the board, when manual entry is off, while the bot is at the board, when neither `score` nor `checkout` is given, when a `score` with `checkout` is not what the player has left, or when `player` is not at the board.
+The visit is announced with `visit_thrown` and `visit_completed`, both with `total` and empty `segments`, but its darts are not: an automation that calls every dart, such as the [dart caller](automations.md#dart-caller), stays silent and calls the visit. The action fails with a clear message outside an X01 leg being played and in the bull-off, when no visit of these darts can score this from what the player has left (such as 179, which no three darts make, 180 from 60 without double out, whose first treble 20 checks out, or 180 before the opening double with double in), when `checkout` is given but no visit of these darts can finish what is left (such as 159 with double out), when more darts were at a double than the visit had or none for a checkout, while a dart of the visit is on the board, when manual entry is off, while the bot is at the board, when neither `score` nor `checkout` is given, when a `score` with `checkout` is not what the player has left, or when `player` is not at the board.
 
 A checkout of what is left, with two darts, for the player at the board:
 

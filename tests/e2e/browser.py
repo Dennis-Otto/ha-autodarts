@@ -2964,8 +2964,23 @@ def manual_board(browser: Browser) -> None:
             scores == [["Alex", "324", False], ["Sam", "501", True]],
             f"The scoreboard of a board without Autodarts: {scores}",
         )
-        # Sam's visit goes in as its score.
+        # Sam's visit goes in as its score; one that no visit scores keeps OK off.
         page.evaluate(f"() => {board}.querySelector('[data-pad=\"score\"]').click()")
+        line = f"() => {board}.querySelector('.score-line').textContent"
+        ok_off = f"() => {board}.querySelector('[data-pad=\"enter\"]').disabled"
+        for digit in "179":
+            page.evaluate(
+                f"() => {board}.querySelector('.pad-score [data-value=\"{digit}\"]').click()"
+            )
+        shown = [page.evaluate(line), page.evaluate(ok_off)]
+        check(
+            shown == ["179No visit scores 179", True],
+            f"A score no visit makes: {shown}",
+        )
+        for _ in "179":
+            page.evaluate(
+                f"() => {board}.querySelector('[data-pad=\"erase\"]').click()"
+            )
         for digit in "100":
             page.evaluate(
                 f"() => {board}.querySelector('.pad-score [data-value=\"{digit}\"]').click()"
@@ -2991,6 +3006,40 @@ def manual_board(browser: Browser) -> None:
                 f" === '{left}'",
                 timeout=15000,
             )
+        # 180 is more than Alex's 144 and busts: Alex keeps 144 while Sam throws, and
+        # Sam's 0 brings Alex back.
+        for digit in "180":
+            page.evaluate(
+                f"() => {board}.querySelector('.pad-score [data-value=\"{digit}\"]').click()"
+            )
+        shown = [page.evaluate(line), page.evaluate(ok_off)]
+        check(shown == ["180Bust – the score stays", False], f"A bust says {shown}")
+        page.evaluate(f"() => {board}.querySelector('[data-pad=\"enter\"]').click()")
+        page.wait_for_function(
+            f'() => {board}.querySelector(\'[data-pad="answer"][data-value="0"]\')',
+            timeout=15000,
+        )
+        page.evaluate(
+            f'() => {board}.querySelector(\'[data-pad="answer"][data-value="0"]\')'
+            ".click()"
+        )
+        page.wait_for_function(
+            f"() => {board}.querySelectorAll('.player')[1]?.classList.contains('active')",
+            timeout=15000,
+        )
+        scores = page.evaluate(SCOREBOARD_STATE)["players"]
+        check(
+            scores == [["Alex", "144", False], ["Sam", "301", True]],
+            f"After Alex's bust: {scores}",
+        )
+        page.evaluate(
+            f"() => {board}.querySelector('.pad-score [data-value=\"0\"]').click()"
+        )
+        page.evaluate(f"() => {board}.querySelector('[data-pad=\"enter\"]').click()")
+        page.wait_for_function(
+            f"() => {board}.querySelectorAll('.player')[0]?.classList.contains('active')",
+            timeout=15000,
+        )
         page.goto(f"{HA}/{MANUAL_DASHBOARD}/status")
         note = f"({STATUS_CARDS})()[0]?.shadowRoot.querySelector('.manual-note')"
         page.wait_for_function(f"() => {note} && !{note}.hidden", timeout=30000)
