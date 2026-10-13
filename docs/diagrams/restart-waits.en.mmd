@@ -1,0 +1,17 @@
+flowchart TB
+  accTitle: What the automatic detection and the board problem alert do when Home Assistant starts
+  accDescr: When Home Assistant starts, the automatic detection checks whether the detection runs while nobody is there. If so, it waits for Stop after and stops the detection if still nobody is there; someone who arrives meanwhile keeps it running. The board problem alert checks whether the board is offline or has a camera problem. If so, it waits for the Grace period and runs the Alert actions if the problem is still the same; a problem that ended or came back meanwhile is left to the usual triggers.
+  START["Home Assistant starts"] --> NOBODY{"Detection running<br/>while nobody is there?"}
+  START --> PROBLEM{"Board offline or<br/>a camera problem?"}
+  NOBODY -- "yes" --> WAIT["Wait for <i>Stop after</i>"]
+  WAIT --> GONE{"Still nobody there?"}
+  GONE -- "yes" --> STOP["Stop the detection"]
+  GONE -- "someone came" --> RUN["The detection keeps running"]
+  PROBLEM -- "yes" --> GRACE["Wait for the <i>Grace period</i>"]
+  GRACE --> SAME{"Still the same problem?"}
+  SAME -- "yes" --> ALERT["Run the <i>Alert actions</i>"]
+  SAME -- "ended or came back" --> USUAL["The usual triggers<br/>take over"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class STOP done
+  class ALERT warn
