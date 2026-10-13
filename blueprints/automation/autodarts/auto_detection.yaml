@@ -4,7 +4,8 @@ blueprint:
     Starts the dart detection when someone is at the board and stops it
     after the presence has been off for a while. The cameras and the board PC
     rest in between. A detection you start by hand while the presence is off
-    keeps running.
+    keeps running, also when you save this automation, until Home Assistant
+    restarts: then it stops after "Stop after".
 
 
     Use any on/off entity as presence, such as an occupancy sensor in the
@@ -55,6 +56,38 @@ triggers:
     entity_id: !input presence
     to: "off"
     for: !input stop_after
+  # A restart of Home Assistant, or saving this automation, forgets the
+  # waiting of "left": it starts over then.
+  - trigger: homeassistant
+    id: resumed
+    event: start
+  - trigger: event
+    id: resumed
+    event_type: automation_reloaded
+
+variables:
+  presence: !input presence
+  detection: !input detection
+
+conditions:
+  # Nobody is there and the detection runs. A reload, which also comes when
+  # another automation is saved, only counts when it set up this automation
+  # anew while the presence was off, and only if the presence turned off after
+  # the detection started: a detection started by hand keeps running. Checked
+  # here rather than in the actions, so that a reload that does not count
+  # leaves a waiting run alone.
+  - alias: Resumed only while the detection waits for its stop
+    condition: template
+    value_template: >-
+      {%- set setup = as_timestamp(this.last_changed) %}
+      {%- set ran = this.attributes.get('last_triggered') %}
+      {{- trigger.id != 'resumed'
+          or is_state(presence, 'off') and is_state(detection, 'on')
+             and (trigger.platform == 'homeassistant'
+                  or as_timestamp(states[detection].last_changed)
+                     < as_timestamp(states[presence].last_changed)
+                     and as_timestamp(states[presence].last_changed) < setup
+                     and (ran is none or as_timestamp(ran) < setup)) }}
 
 actions:
   - choose:
@@ -75,6 +108,19 @@ actions:
             entity_id: !input detection
             state: "on"
         sequence:
+          - action: switch.turn_off
+            target:
+              entity_id: !input detection
+      # Someone who arrives meanwhile restarts the automation, which ends the
+      # waiting.
+      - conditions:
+          - condition: trigger
+            id: resumed
+        sequence:
+          - delay: !input stop_after
+          - condition: state
+            entity_id: !input detection
+            state: "on"
           - action: switch.turn_off
             target:
               entity_id: !input detection
