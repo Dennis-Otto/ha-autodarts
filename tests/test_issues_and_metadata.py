@@ -1,27 +1,37 @@
 """Repair issues, translated states, entity metadata and quiet cloud logging."""
 
+import asyncio
 import logging
 from copy import deepcopy
 from datetime import timedelta
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.components.button import ButtonDeviceClass
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import EntityCategory
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.autodarts import async_unload_entry
 from custom_components.autodarts.coordinator import AutodartsDataUpdateCoordinator
 from custom_components.autodarts.errors import AutodartsConnectionError
+from custom_components.autodarts.local_api import AutodartsLocalAuthError
 from custom_components.autodarts.local_coordinator import ISSUES
 
 from .local_helpers import (
+    BASE,
     CONFIG,
+    HOST,
     STATE,
+    T20,
+    board,
     entity_id,
     local_entry_data,
     mock_board,
+    mock_board_v2,
+    record,
     setup_local,
     setup_v2,
     state,
@@ -30,6 +40,65 @@ from .local_helpers import (
 
 def issue(hass, name, entry):
     return ir.async_get(hass).async_get_issue("autodarts", f"{name}_{entry.entry_id}")
+
+
+def create_every_issue(hass, entry):
+    for name in ISSUES:
+        ir.async_create_issue(
+            hass,
+            "autodarts",
+            f"{name}_{entry.entry_id}",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key=name,
+        )
+
+
+def another_board():
+    """The settings of a board with another board ID."""
+    config = deepcopy(CONFIG)
+    config["auth"]["board_id"] = "another-board"
+    return config
+
+
+def problems(caplog) -> list[str]:
+    """The warnings and errors of the integration."""
+    return [
+        logged.getMessage()
+        for logged in caplog.records
+        if logged.levelno >= logging.WARNING
+        and logged.name.startswith("custom_components.autodarts")
+    ]
+
+
+async def unload_while_reading(hass, aioclient_mock, entry, method, answer):
+    """Unload the entry while a poll waits for the board. The board answers
+    the read well after the coordinator began to shut down, as a slow board
+    may: by then, an unload that did not wait for it would be over."""
+    coordinator = entry.runtime_data.local
+    reading = asyncio.Event()
+    reads_at_the_answer = []
+
+    async def slow_board(*_args):
+        reading.set()
+        while not coordinator._shutdown_requested:
+            await asyncio.sleep(0)
+        for _ in range(100):
+            await asyncio.sleep(0)
+        reads_at_the_answer.append(aioclient_mock.call_count)
+        if isinstance(answer, Exception):
+            raise answer
+        return deepcopy(answer)
+
+    with patch.object(coordinator.client, method, side_effect=slow_board):
+        polling = hass.async_create_task(coordinator.async_refresh())
+        await reading.wait()
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        await polling
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.NOT_LOADED
+    # Nothing more is read from a board that unloads.
+    assert [aioclient_mock.call_count] == reads_at_the_answer
 
 
 async def test_classic_board_manager_asks_to_update(hass, aioclient_mock):
@@ -68,10 +137,8 @@ async def test_wrong_board_raises_and_clears_a_repair_issue(
 ):
     entry = await setup_local(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
-    other = deepcopy(CONFIG)
-    other["auth"]["board_id"] = "another-board"
     aioclient_mock.clear_requests()
-    mock_board(aioclient_mock, config=other)
+    mock_board(aioclient_mock, config=another_board())
     # Board Manager 1 reports its board ID with the settings, every 30 seconds.
     freezer.tick(timedelta(seconds=30))
     await coordinator.async_refresh()
@@ -90,17 +157,103 @@ async def test_wrong_board_raises_and_clears_a_repair_issue(
 
 async def test_removing_the_entry_removes_every_repair_issue(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock)
-    for name in ISSUES:
-        ir.async_create_issue(
-            hass,
-            "autodarts",
-            f"{name}_{entry.entry_id}",
-            is_fixable=False,
-            severity=ir.IssueSeverity.WARNING,
-            translation_key=name,
-        )
+    create_every_issue(hass, entry)
     assert await hass.config_entries.async_remove(entry.entry_id)
     assert all(issue(hass, name, entry) is None for name in ISSUES)
+
+
+async def test_a_failed_unload_keeps_the_board_and_its_repair_issues(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock)
+    create_every_issue(hass, entry)
+    with patch.object(
+        hass.config_entries, "async_unload_platforms", return_value=False
+    ):
+        assert not await async_unload_entry(hass, entry)
+    assert all(issue(hass, name, entry) is not None for name in ISSUES)
+    # The board is still read, so its issues still apply.
+    reads = aioclient_mock.call_count
+    await entry.runtime_data.local.async_refresh()
+    assert aioclient_mock.call_count > reads
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    assert all(issue(hass, name, entry) is None for name in ISSUES)
+
+
+@pytest.mark.parametrize(
+    "method,answer",
+    [
+        # The state arrives; the settings read next name another board.
+        ("get_state", STATE),
+        # Something between Home Assistant and the board refuses the read.
+        ("get_state", AutodartsLocalAuthError("HTTP 403")),
+        # The settings name another board.
+        ("get_config", {"board_id": "another-board"}),
+    ],
+    ids=["state", "refused", "settings"],
+)
+async def test_a_poll_that_ends_during_the_unload_reports_nothing(
+    hass, aioclient_mock, freezer, caplog, method, answer
+):
+    entry = await setup_local(hass, aioclient_mock)
+    aioclient_mock.clear_requests()
+    mock_board(aioclient_mock, config=another_board())
+    # Board Manager 1 reports its board ID with the settings, every 30 seconds.
+    freezer.tick(timedelta(seconds=30))
+    caplog.clear()
+    await unload_while_reading(hass, aioclient_mock, entry, method, answer)
+    assert all(issue(hass, name, entry) is None for name in ISSUES)
+    assert problems(caplog) == []
+
+
+async def test_darts_read_during_the_unload_are_not_announced(
+    hass, aioclient_mock, freezer
+):
+    entry = await setup_v2(hass, aioclient_mock)
+    events = record(hass, entry.runtime_data.local)
+    aioclient_mock.clear_requests()
+    mock_board_v2(aioclient_mock, state=board(T20))
+    # The details of the board PC are read again every hour.
+    freezer.tick(timedelta(hours=1))
+    await unload_while_reading(hass, aioclient_mock, entry, "get_host", HOST)
+    assert events == []
+
+
+async def test_a_board_away_at_the_unload_does_not_recover_in_the_log(
+    hass, aioclient_mock, caplog
+):
+    entry = await setup_local(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    aioclient_mock.clear_requests()
+    aioclient_mock.get(f"{BASE}/api/state", status=503)
+    for _ in range(3):
+        await coordinator.async_refresh()
+    assert not coordinator.last_update_success
+    aioclient_mock.clear_requests()
+    mock_board(aioclient_mock)
+    caplog.clear()
+    with caplog.at_level(logging.INFO):
+        await unload_while_reading(hass, aioclient_mock, entry, "get_state", STATE)
+    assert not coordinator.last_update_success
+    assert "recovered" not in caplog.text
+
+
+async def test_a_poll_during_the_unload_brings_back_no_unknown_format_notice(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    aioclient_mock.clear_requests()
+    # No running flag: this is no Board Manager state this integration knows.
+    mock_board(aioclient_mock, state={"status": "Throw"})
+    for _ in range(3):
+        await coordinator.async_refresh()
+    assert issue(hass, "unsupported_response", entry) is not None
+    # Every poll reports the reads that keep failing as it ends, after the
+    # shutdown too; the unload deletes the notice only after that.
+    await unload_while_reading(hass, aioclient_mock, entry, "get_state", STATE)
+    assert issue(hass, "unsupported_response", entry) is None
 
 
 @pytest.mark.parametrize(

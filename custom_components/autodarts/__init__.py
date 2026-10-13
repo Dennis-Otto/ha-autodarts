@@ -263,10 +263,18 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> bool:
+    if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        # The board stays loaded, and its repair issues still apply.
+        return False
+    if local := entry.runtime_data.local:
+        # Home Assistant shuts the coordinator down only after the unload. A
+        # read still in flight ends here first, so that it cannot bring back
+        # an issue deleted below.
+        await local.async_shutdown()
     # The board's repair issues come back with its next setup, where they
     # still apply; their fixes need a loaded board.
     _delete_issues(hass, entry)
-    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    return True
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> None:

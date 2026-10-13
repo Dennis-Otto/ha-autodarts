@@ -471,6 +471,11 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def async_shutdown(self) -> None:
         await super().async_shutdown()
+        # A poll still in flight ends first, without effect (see _unchanged),
+        # before the stores are saved and the unload deletes the repair
+        # issues. Each read of the board gives up after 10 seconds.
+        async with self._poll_lock:
+            pass
         if self._stream_task:
             self._stream_task.cancel()
             with suppress(asyncio.CancelledError):
@@ -1378,10 +1383,16 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except TimeoutError as err:
                 raise AutodartsConnectionError("Board Manager is slow") from err
         except AutodartsApiError as err:
+            if self._shutdown_requested:
+                return self._unchanged()
             self._protocol_result("/api/state", err)
             return self._poll_failed(err)
+        if self._shutdown_requested:
+            return self._unchanged()
         self._protocol_result("/api/state", None)
         reads = await self._reads()
+        if self._shutdown_requested:
+            return self._unchanged()
         config, version = reads["config"], reads["version"]
         if config:
             self._identity_valid = (
@@ -1411,6 +1422,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ):
             # Boards without the endpoint answer {} and are asked again later.
             host = await self._optional(self.client.get_host(), "/api/host")
+            if self._shutdown_requested:
+                return self._unchanged()
             if host is not None:
                 self._host, self._host_updated = host, time.monotonic()
         data = dict(self.data or {})
@@ -1477,6 +1490,16 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             key = "board_unavailable"
         raise UpdateFailed(translation_domain=DOMAIN, translation_key=key) from error
 
+    def _unchanged(self) -> dict[str, Any]:
+        """The end of a poll whose read finished after async_shutdown began:
+        nothing changes, so no repair issue, event or error outlives the unload."""
+        if not self.last_update_success:
+            # A board that was away stays away, without another error.
+            raise UpdateFailed(
+                translation_domain=DOMAIN, translation_key="board_unavailable"
+            )
+        return dict(self.data or {})
+
     @callback
     def _poll_succeeded(self) -> None:
         connection = self.connection
@@ -1530,6 +1553,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 identity = await client.identify()
             except AutodartsApiError:
                 continue
+            if self._shutdown_requested:
+                # An unloading board offers nothing: the unload deletes its issues.
+                return
             if identity["board_id"] != self.board_id:
                 continue
             ir.async_create_issue(
