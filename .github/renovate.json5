@@ -19,7 +19,7 @@
       // Assist's packages in the tests are those of the conversation manifest of
       // the Home Assistant that pytest-homeassistant-custom-component pins, which
       // tests/test_voice_blueprints.py compares: they move with that Home
-      // Assistant, never on their own.
+      // Assistant, by scripts/pin_assist.py, never on their own.
       matchDepNames: ["hassil", "home-assistant-intents", "gazetteer-matcher"],
       enabled: false,
     },

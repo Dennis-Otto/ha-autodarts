@@ -270,7 +270,7 @@ Assist answers in the words of the scoreboard's caller, in the language of Home 
 
 Both voice blueprints understand numbers as digits in every language. Numbers in words follow the language of Home Assistant and are written out in full, as Assist knows them:
 
-| Home Assistant in | Says | Not |
+| Home Assistant in | Say | Not |
 | --- | --- | --- |
 | English | "one hundred forty", "five hundred one", "two darts" | "one hundred and forty" |
 | German | "einhundertvierzig", "fünfhunderteins", "zwei Darts" | "hundertvierzig" |

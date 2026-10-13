@@ -4,14 +4,13 @@ German, reaches the action with the right data, and Assist says what the action
 answers, also why it refused a sentence. The end-to-end test says a few of them to
 a real Home Assistant as well."""
 
-import json
+import importlib.util
 import logging
 import re
 from importlib.metadata import version
 from pathlib import Path
 
 import pytest
-from homeassistant import loader
 from homeassistant.components import conversation
 from homeassistant.const import EVENT_CALL_SERVICE
 from homeassistant.const import __version__ as HA_VERSION
@@ -25,6 +24,11 @@ from .test_manual_board import setup_manual
 pytestmark = pytest.mark.usefixtures("blueprint_folder")
 
 ROOT = Path(__file__).parents[1]
+SPEC = importlib.util.spec_from_file_location(
+    "pin_assist", ROOT / "scripts" / "pin_assist.py"
+)
+pin_assist = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(pin_assist)
 # A game's name that no voice assistant hears: 70 characters.
 LONG_GAME = "Around the Clock and the longest name of a game anyone ever thought of"
 # A name longer than a player's, as Assist hears a sentence it took apart wrongly.
@@ -473,6 +477,51 @@ async def test_assist_runs_every_sentence_through_the_blueprints(
     ]
 
 
+# Sentences of one's own in French, Spanish and Dutch, as the guides suggest for
+# those languages: the blueprint knows their words that join the names and their
+# articles before the bot.
+OWN_SENTENCES = [
+    "(joue|juega|speel) {101..1001,100:game} (pour|para|voor) {players}",
+]
+OWN_LANGUAGES = [
+    ("joue 501 pour Alex et le bot", ["Alex"], 60),
+    ("joue 501 pour Alex et un bot", ["Alex"], 60),
+    ("juega 501 para Alex y el bot", ["Alex"], 60),
+    ("juega 501 para Alex y un bot", ["Alex"], 60),
+    ("speel 501 voor Alex en de bot", ["Alex"], 60),
+    ("speel 501 voor Alex en een bot", ["Alex"], 60),
+    ("speel 501 voor Alex en het bot", ["Alex"], 60),
+    ("speel 501 voor Alex & bot", ["Alex"], 60),
+    ("joue 501 pour Alex et Sam", ["Alex", "Sam"], 0),
+    ("juega 501 para Alex y Sam", ["Alex", "Sam"], 0),
+    ("speel 501 voor Alex en Sam", ["Alex", "Sam"], 0),
+    ("speel 501 voor Alex & Sam", ["Alex", "Sam"], 0),
+]
+
+
+async def test_the_bot_and_the_names_in_sentences_of_ones_own(hass):
+    """In sentences of one's own, the French, Spanish and Dutch words that join the
+    names only join them, and the bot at the end with its article is the bot."""
+    assert await async_setup_component(hass, "homeassistant", {})
+    assert await async_setup_component(hass, "conversation", {})
+    await setup_manual(hass)
+    await automate_all(hass, [("start_game_by_voice", {"sentences": OWN_SENTENCES})])
+    calls = async_capture_events(hass, EVENT_CALL_SERVICE)
+    for text, players, bot_level in OWN_LANGUAGES:
+        calls.clear()
+        said = await say(hass, text)
+        made = [
+            call.data["service_data"]
+            for call in calls
+            if call.data["domain"] == "autodarts"
+        ]
+        others = " and ".join(players[1:] + ["the bot"] * (bot_level > 0))
+        assert (made, said) == (
+            [{"game": 501, "bot_level": bot_level, "players": players}],
+            f"Game on: 501 with {players[0]} and {others}.",
+        ), text
+
+
 # Where a guide gives sentences that need Home Assistant in the other language.
 OTHER_LANGUAGE = re.compile(
     r"- (?:with Home Assistant )?in German|- (?:mit Home Assistant )?auf Englisch"
@@ -515,13 +564,9 @@ def test_every_example_of_the_guides_is_said_to_assist(page):
 def test_assist_has_the_versions_of_home_assistant():
     """Assist runs in the tests with the packages Home Assistant installs for it:
     those of the conversation manifest of the Home Assistant the test plugin pins.
-    When the test plugin brings a new Home Assistant, the message has the lines."""
-    manifest = json.loads(
-        (
-            Path(loader.__file__).parent / "components/conversation/manifest.json"
-        ).read_text(encoding="utf-8")
-    )
-    wanted = dict(requirement.split("==") for requirement in manifest["requirements"])
+    When the test plugin brings a new Home Assistant, scripts/pin_assist.py pins
+    them again."""
+    wanted = pin_assist.manifest_pins()
     pinned = dict(
         re.findall(
             r"^([\w.-]+)==(\S+)$",
@@ -531,9 +576,9 @@ def test_assist_has_the_versions_of_home_assistant():
     )
     lines = "\n".join(f"{name}=={pin}" for name, pin in sorted(wanted.items()))
     assert {name: pinned.get(name) for name in wanted} == wanted, (
-        f"Home Assistant {HA_VERSION} installs these for Assist; pin them in"
-        f" requirements-test.in:\n{lines}\nand compile requirements-test.txt again"
-        " with the command in its header."
+        f"Home Assistant {HA_VERSION} installs these for Assist:\n{lines}\nRun"
+        " python scripts/pin_assist.py, which pins them in requirements-test.in and"
+        " compiles requirements-test.txt again."
     )
     assert {name: version(name) for name in wanted} == wanted, (
         "Install requirements-test.txt again: pip install --require-hashes -r"
