@@ -22,11 +22,18 @@ ROOT_MOUNT="$(cd "${REPOSITORY_ROOT}" && (pwd -W 2>/dev/null || pwd))"
 ARTIFACTS="${E2E_ARTIFACTS:-${SCRIPT_DIR}/artifacts}"
 mkdir -p "${ARTIFACTS}"
 ARTIFACTS_MOUNT="$(cd "${ARTIFACTS}" && (pwd -W 2>/dev/null || pwd))"
+# The seconds of every step, which browser.py writes after each one.
+STEP_TIMES="${ARTIFACTS}/browser-steps-table.md"
+rm -f "${STEP_TIMES}"
 COMPOSE=("${DOCKER_BIN}" compose --project-name "${PROJECT_NAME}" --file compose.yaml)
 
 cleanup() {
 	status=$?
 	trap - EXIT
+	# In CI, the summary of the job shows them, also after a failed step.
+	if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -s "${STEP_TIMES}" ]]; then
+		cat "${STEP_TIMES}" >>"${GITHUB_STEP_SUMMARY}" || true
+	fi
 	if [[ "${status}" -ne 0 ]]; then
 		"${COMPOSE[@]}" logs --no-color --tail 200 || true
 		"${COMPOSE[@]}" exec -T homeassistant cat /config/home-assistant.log \
