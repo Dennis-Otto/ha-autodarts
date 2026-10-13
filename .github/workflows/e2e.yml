@@ -1,27 +1,85 @@
 name: Docker E2E
 
+# The end-to-end tests in Docker: Home Assistant with the integration and a simulated
+# Board Manager (tests/e2e/run.sh), and the cards in a real browser (browser.sh).
+# Every push to main, every night and every manual run tests everything. A pull
+# request runs the tests only when it changes what they run or mount; one that
+# changes only the documentation or other workflows skips them. Either way the job
+# "e2e" reports the result, and it is the check that main requires.
+
 on:
   push:
     branches: [main]
   pull_request:
   schedule:
-    # Weekly, also as an early warning against the next Home Assistant release.
-    - cron: "23 5 * * 1"
+    # Every night, also as an early warning against the next Home Assistant release.
+    - cron: "23 1 * * *"
   workflow_dispatch:
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: e2e-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read # the list of the files that a pull request changes
+    outputs:
+      run: ${{ steps.files.outputs.run }}
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      # No checkout and no action of a third party: the files of the pull request
+      # come from the API, as in pull-request-title.yml.
+      - name: Decide whether the tests have to run
+        id: files
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          CHANGED: ${{ github.event.pull_request.changed_files }}
+        run: |
+          # What the tests run or mount: the integration, the blueprints, the tests
+          # with the demo and the browser test, axe-core of the npm packages, and this
+          # workflow. tests/test_consistency.py keeps it in step with the mounts.
+          tested='^(custom_components/|blueprints/|tests/e2e/|package(-lock)?\.json$|\.github/workflows/e2e\.yml$)'
+          # When in doubt, the tests run.
+          run=true
+          if [[ "$EVENT" != pull_request ]]; then
+            reason="A run of $EVENT tests everything."
+          elif ((${CHANGED:-0} >= 3000)); then
+            reason="The pull request changes $CHANGED files, more than the API lists; the tests run."
+          # A renamed file counts by its old name too: moving a file away runs the tests.
+          elif ! files="$(gh api "repos/$GH_REPO/pulls/$NUMBER/files" --paginate \
+            --jq '.[] | .filename, (.previous_filename // empty)')"; then
+            reason="The files of the pull request are unknown; the tests run."
+            echo "::warning::$reason"
+          elif first="$(grep -E -m 1 "$tested" <<<"$files")"; then
+            reason="The pull request changes $first, which the tests run or mount; they run."
+          else
+            run=false
+            reason="The pull request changes nothing that the tests run or mount; they are skipped."
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "$reason" >> "$GITHUB_STEP_SUMMARY"
+
   e2e:
     name: e2e (${{ matrix.name }})
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
     # The browser test checks every view on eight screen sizes.
     timeout-minutes: 45
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -72,12 +130,50 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  # The one check of the end-to-end tests that main requires. A matrix skipped by its
+  # condition reports none of its names, and a skipped job counts as passed, so this
+  # job always runs: it passes when every test passed, or when the pull request had
+  # nothing for them to test, and fails when one failed, was cancelled or didn't run.
+  gate:
+    name: e2e
+    if: always()
+    needs: [changes, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - name: Pass when every test that had to run passed
+        env:
+          WANTED: ${{ needs.changes.outputs.run }}
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          results="$(jq -r 'to_entries[] | "- \(.key): \(.value.result)"' <<<"$NEEDS")"
+          echo "$results"
+          echo "$results" >> "$GITHUB_STEP_SUMMARY"
+          # Skipped tests pass only when the changes job decided they had nothing to do.
+          if ! jq -e --arg wanted "$WANTED" '.changes.result == "success" and
+            ([to_entries[] | select(.key != "changes") | .value.result]
+              | all(. == "success" or ($wanted != "true" and . == "skipped")))' <<<"$NEEDS" >/dev/null; then
+            echo "::error::An end-to-end test that had to run didn't pass; the jobs above show which."
+            exit 1
+          fi
+          if [[ "$WANTED" == true ]]; then
+            echo "Every end-to-end test passed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Nothing that the end-to-end tests run or mount changed; none had to run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   # Not required: warns a week or two before a Home Assistant release breaks anything.
   beta:
     name: e2e (Home Assistant beta)
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
     env:
       BOARD_MANAGER: 2
       # The moving beta tag on purpose: this job tests what users get next.

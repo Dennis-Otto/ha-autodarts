@@ -1,5 +1,6 @@
 """Translations, action descriptions, icons and card texts agree with the code,
-and tool versions kept in two places agree with each other."""
+tool versions kept in two places agree with each other, and pull requests run the
+end-to-end tests for every file that they use."""
 
 import json
 import re
@@ -284,6 +285,90 @@ def test_the_playwright_image_matches_the_playwright_package(script):
     # The browsers of the image fit only the same version of the package.
     assert images == [pinned(E2E / "requirements-browser.in", "playwright")]
     assert images == [pinned(E2E / "requirements-browser.txt", "playwright")]
+
+
+# A pull request runs the end-to-end tests only when it changes what they use.
+E2E_WORKFLOW = yaml.safe_load(
+    (ROOT / ".github" / "workflows" / "e2e.yml").read_text(encoding="utf-8")
+)
+
+
+def e2e_pattern() -> re.Pattern[str]:
+    """The paths whose change runs the end-to-end tests in a pull request."""
+    steps = E2E_WORKFLOW["jobs"]["changes"]["steps"]
+    (run,) = [step["run"] for step in steps if "run" in step]
+    patterns = re.findall(r"^tested='(.+)'$", run, re.M)
+    assert len(patterns) == 1, patterns
+    return re.compile(patterns[0])
+
+
+def mounted() -> set[str]:
+    """The files and folders of the repository that the compose files mount."""
+    root = ROOT.resolve()
+    paths = set()
+    for compose in sorted(E2E.glob("compose*.yaml")):
+        services = yaml.safe_load(compose.read_text(encoding="utf-8"))["services"]
+        for service in services.values():
+            for volume in service.get("volumes", []):
+                if isinstance(volume, dict):
+                    source = volume["source"]
+                else:
+                    source = volume.split(":")[0]
+                # A named volume holds what Home Assistant writes, not the repository.
+                if source.startswith("."):
+                    paths.add((E2E / source).resolve().relative_to(root).as_posix())
+    return paths
+
+
+def read_from_the_root() -> set[str]:
+    """What the scripts of tests/e2e read from the root of the repository, such as
+    browser.py in the repository that browser.sh mounts."""
+    paths = set()
+    for script in sorted(E2E.glob("*.py")):
+        text = script.read_text(encoding="utf-8")
+        for parts in re.findall(r'parents\[2\]((?:\s*/\s*"[^"]+")+)', text):
+            paths.add("/".join(re.findall(r'"([^"]+)"', parts)))
+    return paths
+
+
+def test_pull_requests_run_the_end_to_end_tests_for_every_file_they_use():
+    # Both finders know the integration, so this test can't pass on nothing.
+    assert "custom_components/autodarts" in mounted()
+    assert "custom_components/autodarts" in read_from_the_root()
+    used = mounted() | read_from_the_root() | {".github/workflows/e2e.yml"}
+    # npm ci installs node_modules, with axe-core, from the package files.
+    if any(path.startswith("node_modules/") for path in used):
+        used = {path for path in used if not path.startswith("node_modules/")}
+        used |= {"package.json", "package-lock.json"}
+    pattern = e2e_pattern()
+    for path in sorted(used):
+        # A folder counts with every file in it, also one added later.
+        sample = f"{path}/new.file" if (ROOT / path).is_dir() else path
+        assert pattern.match(sample), f"e2e.yml must run the tests for {path}"
+
+
+def test_the_browser_test_mounts_only_the_repository_and_its_artifacts():
+    # browser.py reads from the repository what read_from_the_root() finds; a new
+    # mount needs its files among those that run the tests in e2e.yml.
+    script = (E2E / "browser.sh").read_text(encoding="utf-8")
+    assert re.findall(r'--volume "([^"]+)"', script) == [
+        "${ROOT_MOUNT}:/repo:ro",
+        "${ARTIFACTS_MOUNT}:/artifacts",
+    ]
+
+
+def test_the_end_to_end_tests_run_the_oldest_supported_home_assistant():
+    hacs = json.loads((ROOT / "hacs.json").read_text(encoding="utf-8"))
+    oldest = hacs["homeassistant"]
+    include = E2E_WORKFLOW["jobs"]["e2e"]["strategy"]["matrix"]["include"]
+    # The other jobs run the current release, the default of compose.yaml.
+    (job,) = [job for job in include if "image" in job]
+    assert job["name"] == f"Home Assistant {oldest}"
+    assert re.fullmatch(
+        rf"ghcr\.io/home-assistant/home-assistant:{re.escape(oldest)}"
+        r"@sha256:[0-9a-f]{64}",
+        job["image"],
+    )
 
 
 def test_each_lock_file_is_compiled_for_its_own_python():

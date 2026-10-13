@@ -1,0 +1,23 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: When the end-to-end tests run
+  accDescr: A push to main, the nightly run and a manual run always run the test jobs. For a pull request, the job changes asks the API for its files; when the tests use one of them, or the files are unknown, the test jobs run, otherwise they are skipped in seconds. The required check e2e passes when every test job passed or none had to run, and fails when a job failed or was cancelled.
+
+  PR["Pull request"] --> CHANGES{{"changes: does it change<br/>what the tests use?"}}
+  MAIN["Push to main,<br/>every night, on demand"] --> TESTS
+  CHANGES -- "yes, or unknown" --> TESTS["Test jobs, about 20 minutes:<br/>Board Manager 1 and 2,<br/>Home Assistant 2026.8.0"]
+  CHANGES -- "no" --> SKIPPED["Test jobs skipped<br/>in seconds"]
+  TESTS -- "all passed" --> PASS["Required check<br/>e2e passes"]
+  SKIPPED --> PASS
+  TESTS -- "failed or cancelled" --> FAIL["e2e fails"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class CHANGES,TESTS,SKIPPED bot
+  class PASS done
+  class FAIL failed
