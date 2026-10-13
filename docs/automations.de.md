@@ -90,6 +90,8 @@ Fülle mindestens eines der beiden Felder aus.
 
 Kombiniere diesen Blueprint nicht mit einem Erkennungsschalter in der *Training session routine*: Beide würden die Erkennung schalten.
 
+Eine Erkennung, die du von Hand startest, während die Präsenz aus ist, läuft weiter. Ein Neustart von Home Assistant vergisst, wie lange die Präsenz schon aus ist: Ist niemand da und läuft die Erkennung, wenn Home Assistant startet, stoppt die Erkennung nach *Stop after*, auch eine von Hand gestartete. Auch das Speichern der Automation startet die Wartezeit neu, lässt eine von Hand gestartete Erkennung aber laufen; das Speichern anderer Automationen ändert nichts.
+
 ### Board problem alert
 
 | Einstellung | Standard | Was sie bewirkt |
@@ -101,6 +103,15 @@ Kombiniere diesen Blueprint nicht mit einem Erkennungsschalter in der *Training 
 | Recovery actions | keine | Laufen, wenn ein Problem vorbei ist, vor dem gewarnt wurde; `recovered` ist dann `true`. |
 
 Ein Problem zählt auch, wenn es beginnt, während der Sensor nicht verfügbar ist, etwa eine Kamera, die beim Neustart des Boards ausfällt. Endet ein Problem, während das Board offline ist, gibt es dafür keine eigene Entwarnung. War das Board länger als die Karenzzeit offline, folgt die Entwarnung der Verbindung; nach einem kürzeren Neustart bleibt eine Kamerastörung, die der Neustart behoben hat, ohne Entwarnung.
+
+Ein Neustart von Home Assistant vergisst die Karenzzeiten: Ein Problem, das das Board beim Start von Home Assistant hat, warnt nach der Karenzzeit, auch wenn es vor dem Neustart schon gewarnt hat, und seine Entwarnung folgt wie gewohnt. Das Speichern der Automation behält ein Problem, dessen Karenzzeit lief, und es warnt nach einer neuen Karenzzeit; ein Problem, das schon gewarnt hat, bleibt still. Das Speichern anderer Automationen ändert nichts.
+
+Was dieser Blueprint und die [automatische Erkennung](#start-and-stop-detection-automatically) tun, wenn Home Assistant startet:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/restart-waits-dark.png">
+  <img src="images/de/restart-waits-light.png" alt="Was die automatische Erkennung und der Board problem alert tun, wenn Home Assistant startet: Läuft die Erkennung, während niemand da ist, wartet die automatische Erkennung Stop after ab und stoppt die Erkennung, wenn immer noch niemand da ist; wer währenddessen kommt, lässt sie laufen. Ist das Board offline oder hat eine Kamerastörung, wartet der Board problem alert die Grace period ab und führt die Alert actions aus, wenn es noch dasselbe Problem ist; ein Problem, das währenddessen endet oder wiederkommt, übernehmen die gewohnten Auslöser" width="640">
+</picture>
 
 ### Training report
 
@@ -208,8 +219,8 @@ Deine Aktionen können nutzen:
 | Word for a player without a name | `Player` | Ergibt „Player 2“ in `who`. |
 | Moments with an effect | keine | Die Momente, deren Aktionen einen Effekt starten. Nur für sie wird das Licht wiederhergestellt und die Erkennung pausiert. |
 | Restore these lights | keine | Ihr Zustand wird vor einem Effekt gespeichert und danach wiederhergestellt. |
-| Effect duration | 10 Sekunden | Wie lange ein Effekt spielt, bevor das Licht wiederhergestellt wird und die Erkennung wieder startet. |
-| Pause the detection during effects | aus | Schaltet die Erkennung während eines Effekts aus und danach wieder ein, wenn sie an war. Das Tagesziel pausiert sie nie, weil es mitten in einer Aufnahme erreicht wird. |
+| Effect duration | 10 Sekunden | Wie lange ein Effekt spielt, bevor das Licht wiederhergestellt wird und die Erkennung wieder startet. Eine Trainingssession, die währenddessen endet, beendet den Effekt sofort und lässt die Erkennung aus. |
+| Pause the detection during effects | aus | Schaltet die Erkennung während eines Effekts aus und danach wieder ein, wenn sie an war. Das Tagesziel pausiert sie nie, weil es mitten in einer Aufnahme erreicht wird, und ebenso wenig ein neuer bester Schnitt einer Session, der kommt, wenn eine Trainingssession endet. |
 | Detection switch | keiner | Der Schalter *Erkennung* deines Boards, zum Pausieren. |
 | Also react to online matches | aus | Spielt auch die Aktionen für Überwerfen, ein gewonnenes Leg und ein gewonnenes Match eines [Online-Matches](online-matches.de.md). Eine 180 und die Entnahme deiner eigenen Darts kommen sowieso von deinem Board. |
 
@@ -417,8 +428,14 @@ data:
 - **Erkennung pausieren:** Blinkendes Licht neben dem Board kann die Kameras Darts sehen lassen, die nicht da sind. Schalte *Pause the detection during effects* ein und wähle den Schalter *Erkennung*: Die Erkennung stoppt für die Effekte der gewählten Momente und startet danach wieder, aber nur, wenn sie lief. Stoppt die Erkennung, gilt die Aufnahme im Board als beendet, wie nach einer Entnahme: Das Übungsspiel verbucht sie, und der nächste Spieler ist dran.
 - **Einer nach dem anderen:** Ein Moment, der während eines Effekts passiert, wartet auf ihn, und jeder Effekt stellt das Licht wieder her, das er vorgefunden hat. Bis zu neun Momente warten, genug für das Match, das ein Turnier entscheidet, mit seinen Bestleistungen und Erfolgen. Die Automation läuft im Modus „queued“, weil ein neu gestarteter Effekt das Licht nie wiederherstellen würde und parallele Effekte sich auf denselben Lampen mischen würden.
 - **Das Tagesziel** erreicht ein Dart mitten in einer Aufnahme, deshalb pausiert sein Effekt die Erkennung nie: Der Rest der Aufnahme zählt weiter.
+- **Das Ende einer Trainingssession** hält das Board an: Die [Training session routine](#training-session-routine) schaltet die Erkennung aus. Endet eine Session, während ein Effekt spielt, endet der Effekt sofort, das Licht kommt also vor den Aktionen der Routine für das Ende der Session zurück, und die Erkennung bleibt aus. Eine neue Session lässt das Board weiterlaufen: Der Effekt spielt zu Ende, und die Erkennung startet wieder. Ein neuer bester Schnitt einer Session kommt, wenn eine Session endet; sein Effekt spielt, pausiert die Erkennung aber nie, weil er sie danach wieder starten würde.
 - **Entnahme und freies Board** setzen ein eigenes Licht, etwa helles Boardlicht beim Ziehen der Darts und danach dein normales Licht. Schalte dafür *React to the takeout* ein. Sie werden nicht wiederhergestellt und pausieren die Erkennung nicht; solange die Einstellung aus ist, wartet keine Entnahme in der Warteschlange.
 - **Der Bot:** Seine Darts stecken nicht im Board, deshalb bleiben seine Momente dunkel, bis du *Also for the bot* einschaltest. Ein Leg oder Match, das er im Team-Match gewinnt, spielt trotzdem.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/light-show-effect-dark.png">
+  <img src="images/de/light-show-effect-light.png" alt="Wie ein Effekt der Lichtshow abläuft: Ein Moment mit Effekt speichert das Licht und pausiert die Erkennung, wenn sie läuft, außer beim Tagesziel und beim neuen besten Schnitt einer Session. Seine Aktionen starten den Effekt, der für die Effektdauer läuft. Endet währenddessen eine Trainingssession, endet der Effekt sofort: Das Licht kommt zurück, und die Erkennung bleibt aus. Eine neue Session lässt den Effekt zu Ende laufen. Nach dem Effekt kommt das Licht zurück, und eine pausierte Erkennung startet wieder" width="460">
+</picture>
 
 ## Board-Ereignisse
 

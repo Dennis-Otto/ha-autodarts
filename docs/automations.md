@@ -88,6 +88,8 @@ Fill in at least one of the two.
 
 Don't combine this blueprint with a detection switch in the *training session routine*: both would switch the detection.
 
+A detection you start by hand while the presence is off keeps running. A restart of Home Assistant forgets how long the presence has been off: if nobody is there and the detection runs when Home Assistant starts, the detection stops after *Stop after*, also one you started by hand. Saving the automation starts the wait over, too, but leaves a detection you started by hand running; saving other automations changes nothing.
+
 ### Board problem alert
 
 | Setting | Default | What it does |
@@ -99,6 +101,15 @@ Don't combine this blueprint with a detection switch in the *training session ro
 | Recovery actions | none | Run when a problem you were alerted about is gone, with `recovered` set to `true`. |
 
 A problem also counts when it starts while the sensor is unavailable, for example a camera that fails while the board restarts. A problem that ends while the board is offline gets no all-clear of its own. If the board was offline for longer than the grace period, the all-clear of the connection follows; after a shorter restart, a camera problem that the restart solved stays without an all-clear.
+
+A restart of Home Assistant forgets the grace periods: a problem the board has when Home Assistant starts alerts after the grace period, even if it alerted before the restart, and its all-clear follows as usual. Saving the automation keeps a problem whose grace period was running, and it alerts after a new grace period; a problem that alerted already stays quiet. Saving other automations changes nothing.
+
+What this blueprint and the [automatic detection](#start-and-stop-detection-automatically) do when Home Assistant starts:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/restart-waits-dark.png">
+  <img src="images/en/restart-waits-light.png" alt="What the automatic detection and the board problem alert do when Home Assistant starts: if the detection runs while nobody is there, the automatic detection waits for Stop after and stops the detection if still nobody is there; someone who arrives meanwhile keeps it running. If the board is offline or has a camera problem, the board problem alert waits for the Grace period and runs the Alert actions if the problem is still the same; a problem that ended or came back meanwhile is left to the usual triggers" width="640">
+</picture>
 
 ### Training report
 
@@ -206,8 +217,8 @@ Your actions can use:
 | Word for a player without a name | `Player` | Makes "Player 2" in `who`. |
 | Moments with an effect | none | The moments whose actions start an effect. Only for them are the lights restored and the detection paused. |
 | Restore these lights | none | Their state is saved before an effect and restored after it. |
-| Effect duration | 10 seconds | How long an effect plays before the lights are restored and the detection starts again. |
-| Pause the detection during effects | off | Turns the detection off while an effect plays and on again afterwards, if it was on. The daily goal never pauses it, because it is reached in the middle of a visit. |
+| Effect duration | 10 seconds | How long an effect plays before the lights are restored and the detection starts again. A training session that ends meanwhile ends the effect at once and leaves the detection off. |
+| Pause the detection during effects | off | Turns the detection off while an effect plays and on again afterwards, if it was on. The daily goal never pauses it, because it is reached in the middle of a visit, and neither does a new best session average, which comes when a training session ends. |
 | Detection switch | none | The *Detection* switch of your board, for pausing it. |
 | Also react to online matches | off | Also plays the actions for a bust, a won leg and a won match of an [online match](online-matches.md). A 180 and the takeout of your own darts come from your board anyway. |
 
@@ -390,8 +401,14 @@ data:
 - **Pause the detection:** flashing light next to the board can make the cameras see darts that are not there. Turn on *Pause the detection during effects* and choose the *Detection* switch: the detection stops for the effects of the chosen moments and starts again afterwards, but only if it was running. When the detection stops, the visit on the board counts as finished, as after a takeout: the practice game books it and the next player is up.
 - **One after the other:** a moment that happens while an effect plays waits for it, and each effect restores the lights it found. Up to nine moments wait, enough for the match that wins a tournament with its personal bests and achievements. The automation runs in queued mode, because a restarted effect would never restore the lights and parallel effects would mix on the same lights.
 - **The daily goal** is reached with a dart in the middle of a visit, so its effect never pauses the detection: the rest of the visit still counts.
+- **The end of a training session** stops the board: the [training session routine](#training-session-routine) turns the detection off. A session that ends while an effect plays ends the effect at once, so the lights come back before the routine's actions for the end of the session, and the detection stays off. A new session keeps the board running: the effect plays to its end, and the detection starts again. A new best session average comes when a session ends; its effect plays, but never pauses the detection, because the pause would start it again afterwards.
 - **Takeout and board clear** set a look of their own, for example a bright board light while you pull the darts and your normal light afterwards. Turn on *React to the takeout* for them. They are not restored and don't pause the detection; while the setting is off, takeouts never wait in the queue.
 - **The bot:** its darts are not in the board, so its moments stay dark unless you turn on *Also for the bot*. A leg or match it wins in a team match plays anyway.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/light-show-effect-dark.png">
+  <img src="images/en/light-show-effect-light.png" alt="How an effect of the light show plays: a moment with an effect saves the lights and pauses the detection if it runs, unless the moment is the daily goal or a new best session average. Its actions start the effect, which plays for the effect duration. If a training session ends meanwhile, the effect ends at once: the lights are restored and the detection stays off. A new session lets the effect play to its end. After the effect, the lights are restored and a paused detection starts again" width="460">
+</picture>
 
 ### Weekly report on your phone
 
