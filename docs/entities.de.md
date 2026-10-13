@@ -108,7 +108,7 @@ Die Summen nutzen die Zustandsklasse *total* mit dem Start der Session als `last
 
 ## Bestleistungen, Serie und Tagesziel
 
-Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert hast, und deine Darts pro Tag. Jeder erkannte Dart zählt für den Tag, mit oder ohne Session. Der erste Wert eines Rekords setzt ihn still; wer ihn übertrifft, löst `personal_best` aus, gleiche Werte zählen nicht. Die Rekorde eines Legs zählen, wenn das Leg verbucht wird, also wenn seine Darts gezogen werden; ein Sieg, den eine Korrektur zurücknimmt, setzt also keinen.
+Home Assistant merkt sich deine besten Werte, die Tage, an denen du trainiert hast, und deine Darts pro Tag. Jeder erkannte Dart zählt für den Tag, mit oder ohne Session. Der erste Wert eines Rekords setzt ihn still; wer ihn übertrifft, löst `personal_best` aus, gleiche Werte zählen nicht. Die Rekorde eines Legs zählen, wenn das Leg verbucht wird, also wenn seine Darts gezogen werden; ein Sieg, den eine Korrektur zurücknimmt, setzt also keinen. Eine [zurückgenommene Aufnahme](#aufnahme-zurücknehmen-autodartsundo_visit) nimmt die Rekorde zurück, die sie aufgestellt hat; ihre Darts zählen weiter für den Tag, die Serie und das Tagesziel.
 
 | Rekord | Bester Wert | Aus |
 | --- | --- | --- |
@@ -203,7 +203,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel Spielerzahl | Zahl, *Konfiguration* | 1–4 Spieler, bei einem [Partyspiel](#partyspiele) und bevor ein Spiel gewählt ist 1–8; mit dem [Bot](#bot) 1–3 neben ihm. Wer X01, ein Cricket- oder ein Trainingsspiel wählt, behält die ersten vier. Eine Änderung startet ein neues Match. |
 | Übungsspiel Legs pro Satz | Zahl, *Konfiguration* | 1–11 Legs gewinnen einen Satz. Eine Änderung startet ein neues Match. |
 | Übungsspiel Sätze zum Sieg | Zahl, *Konfiguration* | 1–7 Sätze gewinnen das Match. Eine Änderung startet ein neues Match. |
-| Übungsspiel Spieler *N* | Text, *Konfiguration* | Name von Spieler 1–8, höchstens 20 Zeichen, für Anzeigetafel und Ereignisse. Ohne Namen zeigt die Karte *Spieler N*. |
+| Übungsspiel Spieler *N* | Text, *Konfiguration* | Name von Spieler 1–8, höchstens 20 Zeichen, für Anzeigetafel und Ereignisse. Ohne Namen zeigt die Karte *Spieler N*. Einen Namen, den ein anderer Spieler im Spiel schon hat, in welcher Schreibung auch immer, lehnt es ab; ein Spielerplatz außerhalb des Spiels, jenseits von *Übungsspiel Spielerzahl* oder auf dem Platz des Bots, gibt einen solchen Namen ab. |
 | Übungsspiel Double-Out | Schalter, *Konfiguration* | Checkout auf einem Double oder dem Bullseye. Standardmäßig an. Vor dem ersten Dart eines Legs gilt eine Änderung sofort, während eines Legs ab dem nächsten Leg; das laufende Leg behält seine Regeln. |
 | Übungsspiel Double-In | Schalter, *Konfiguration* | Die Zählung beginnt mit einem Double oder dem Bullseye. Standardmäßig aus; eine Änderung startet ein neues Match. |
 | Übungsspiel Ausbullen | Schalter, *Konfiguration* | Ausbullen entscheidet, wer ein Match mehrerer Spieler beginnt. Standardmäßig aus; eine Änderung startet ein neues Match. |
@@ -236,8 +236,8 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 
 - **Dart korrigieren:** Erkennt das Board einen Dart falsch, legt [`autodarts.correct_dart`](#dart-korrigieren-autodartscorrect_dart) oder ein Tipp auf den Dart auf der [Anzeigetafel](cards.de.md#darts-korrigieren-und-eingeben) ihn ins richtige Feld. Übungsspiel und Trainingssession zählen den korrigierten Dart sofort: Restpunkte, Überwerfen oder Sieg, die Marks und die Statistik folgen. Das Board behält seine eigene Erkennung; die Korrektur gilt, bis die Darts gezogen sind oder das Board den Dart selbst korrigiert. `dart_corrected` meldet sie mit `previous` und `manual`. Ein Dart, der in ein anderes Feld korrigiert wird, hat keine Position, weil das Board auch die Stelle falsch gesehen hat, außer die Korrektur sagt, wo er steckt: die Ansicht *Scheibe* im Tastenfeld der Anzeigetafel oder `x` und `y` der Aktion.
 - **Dart eingeben:** Ist *Übungsspiel manuelle Eingabe* an, fügen [`autodarts.throw_dart`](#dart-eingeben-autodartsthrow_dart) oder das Tastenfeld der Anzeigetafel einen Dart hinzu, den das Board übersehen hat, oder die Darts eines Spielers ohne Kameras, als hätte das Board ihn erkannt, markiert mit `manual`. Die Erkennung muss nicht laufen: Ist sie gestoppt, bilden die eingegebenen Darts die Aufnahme allein. Eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat keinen Schalter dafür, weil alle ihre Darts eingegeben werden.
-- **Weitergeben:** [`autodarts.next_player`](#weitergeben-autodartsnext_player) beendet die Aufnahme, ohne die Darts zu ziehen. Die Darts im Board gehören zu keiner Aufnahme, bis sie gezogen sind, und neue Darts zählen für den nächsten Spieler. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus.
-- **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Der Fortschritt der Spieler, der Wochenbericht und der Trainingskalender kehren mit zurück, damit die Aufnahme einmal zählt, wenn sie erneut endet. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
+- **Weitergeben:** [`autodarts.next_player`](#weitergeben-autodartsnext_player) beendet die Aufnahme, ohne die Darts zu ziehen. Die Darts im Board gehören zu keiner Aufnahme, bis sie gezogen sind, und neue Darts zählen für den nächsten Spieler. Ohne Darts setzt der Spieler am Board in X01, den Cricket- und den Partyspielen aus; ein Aussetzen, das die letzte Runde eines Partyspiels beendet, verbucht Leg und Match wie eine Aufnahme mit Darts.
+- **Aufnahme zurücknehmen:** Wurden die Darts gezogen, bevor jemand die falsche Erkennung bemerkt hat, nimmt [`autodarts.undo_visit`](#aufnahme-zurücknehmen-autodartsundo_visit) die letzte Aufnahme zurück: Das Spiel kehrt zum Stand davor zurück, auch nach einem gewonnenen Leg, und die Darts der Aufnahme verlassen die Trainingssummen und werden wieder die aktuelle Aufnahme, um sie zu korrigieren und die Aufnahme mit *Nächster Spieler* zu beenden. Die Bestleistungen, der Fortschritt der Spieler, der Wochenbericht und der Trainingskalender kehren mit zurück, damit die Aufnahme einmal zählt, wenn sie erneut endet. Aufnahmen des [Bots](#bot) danach werden mit zurückgenommen. `visit_undone` meldet es.
 
 [Die Regeln für Korrekturen und von Hand eingegebene Darts](how-it-works.de.md#korrekturen-und-von-hand-eingegebene-darts).
 
@@ -671,14 +671,19 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn das Feld unbekannt ist, wenn
 
 ### Aufnahmepunkte eingeben: `autodarts.enter_visit`
 
-Gibt eine X01-Aufnahme mit ihrer Punktzahl statt mit ihren Darts ein, wie *Punkte* im Tastenfeld, und gibt weiter: Der nächste Spieler wirft. Braucht *Übungsspiel manuelle Eingabe*. Schon von Hand eingegebene Darts der Aufnahme weichen ihr; Darts im Board lehnen sie ab. Die Aufnahme hat eigene Darts, markiert mit `total`, deren Felder ausgedacht sind und unbekannt bleiben: Sie zählen für die Punkte, die Averages, die 180er, die Checkouts und die Bestleistungen, aber für kein Feld, also nicht für das Trefferbild, die Doppel, die Triple oder die Bulls. Die Punkte, die der Spieler noch hat, checken aus, mehr ist überworfen.
+Gibt eine X01-Aufnahme mit ihrer Punktzahl statt mit ihren Darts ein, wie *Punkte* im Tastenfeld, und gibt weiter: Der nächste Spieler wirft. Braucht *Übungsspiel manuelle Eingabe*. Schon von Hand eingegebene Darts der Aufnahme weichen ihr; Darts im Board lehnen sie ab. Die Aufnahme hat eigene Darts, markiert mit `total`, deren Felder ausgedacht sind und unbekannt bleiben: Sie zählen für die Punkte, die Averages, die 180er, die Checkouts und die Bestleistungen, aber für kein Feld, also nicht für das Trefferbild, die Doppel, die Triple oder die Bulls. Die Punkte, die der Spieler noch hat, checken aus oder sind überworfen, wo keine Aufnahme mit diesen Darts sie checken kann, etwa 159 mit Double-Out. Mehr ist überworfen, ebenso ein Rest von 1 mit Double-Out, auch wo keine Aufnahme alle Punkte vor dem Überwerfen werfen kann, etwa 100 von 32: Die Darts nach dem Dart, der überwirft, zählen nicht.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/visit-score-dark.png">
+  <img src="images/de/visit-score-light.png" alt="Wie die Punkte einer Aufnahme zählen: Punkte, die ihre Darts nicht ergeben können, etwa 179, werden abgelehnt, zum Prüfen der Punkte. Der Rest des Spielers checkt aus, wo die Darts ihn checken können, und ist überworfen, wo nicht, etwa 159 mit Double-Out. Mehr als der Rest ist überworfen, etwa 100 von 32, ebenso Punkte, die mit Double-Out 1 lassen; der Rest bleibt, wie er war. Alle anderen Punkte lassen den Rest. Nach dem Überwerfen oder dem Rest wirft der nächste Spieler" width="460">
+</picture>
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
 | `score` | 0–180 | Die Punkte der Aufnahme; Pflicht ohne `checkout` |
 | `checkout` | `true` | Die Aufnahme checkt den Rest des Spielers, statt `score`; ein `score` dazu muss genau der Rest sein |
 | `darts` | 1–3 | Die Darts der Aufnahme, weniger als 3 nur beim Checkout; Standard 3 |
-| `darts_at_double` | 0–3 | Wie viele davon auf ein Doppel gingen, für die Checkout-Quote; Standard 1 beim Checkout mit Double-Out, sonst 0. Ohne Double-Out zählt keiner |
+| `darts_at_double` | 0–3 | Wie viele davon auf ein Doppel gingen, für die Checkout-Quote; Standard 1 beim Checkout mit Double-Out, sonst 0. Ohne Double-Out zählt keiner, und beim Überwerfen nur die bis zu dem Dart, der überwirft |
 | `player` | Name | Der Spieler, für den die Aufnahme ist, wie bei `autodarts.throw_dart`; die Aktion lehnt die Aufnahme ab, solange ein anderer Spieler am Board ist |
 | `config_entry_id` | Autodarts-Eintrag | Nur bei mehreren Boards nötig |
 
@@ -690,7 +695,7 @@ data:
   darts_at_double: 2
 ```
 
-Die Aufnahme meldet sich mit `visit_thrown` und `visit_completed`, beide mit `total` und leeren `segments`, ihre Darts aber nicht: Eine Automation, die jeden Dart ansagt, etwa der [Dart-Caller](automations.de.md#dart-caller), schweigt und sagt die Aufnahme an. Die Aktion bricht mit einer klaren Meldung ab außerhalb eines laufenden X01-Legs und beim Ausbullen, wenn keine Aufnahme mit diesen Darts die Punkte von dem Rest des Spielers erreichen kann (etwa 179, oder 159 von 159 mit Double-Out), wenn mehr Darts auf ein Doppel gingen, als die Aufnahme hatte, oder beim Checkout keiner, solange ein Dart der Aufnahme im Board steckt, wenn die manuelle Eingabe aus ist, solange der Bot am Board ist, wenn weder `score` noch `checkout` angegeben ist, wenn ein `score` mit `checkout` nicht der Rest des Spielers ist oder wenn `player` nicht am Board ist.
+Die Aufnahme meldet sich mit `visit_thrown` und `visit_completed`, beide mit `total` und leeren `segments`, ihre Darts aber nicht: Eine Automation, die jeden Dart ansagt, etwa der [Dart-Caller](automations.de.md#dart-caller), schweigt und sagt die Aufnahme an. Die Aktion bricht mit einer klaren Meldung ab außerhalb eines laufenden X01-Legs und beim Ausbullen, wenn keine Aufnahme mit diesen Darts die Punkte von dem Rest des Spielers erreichen kann (etwa 179, das keine drei Darts ergeben, 180 von 60 ohne Double-Out, dessen erstes Triple 20 auscheckt, oder 180 vor dem Eröffnungs-Double mit Double-In), wenn `checkout` angegeben ist, aber keine Aufnahme mit diesen Darts den Rest checken kann (etwa 159 mit Double-Out), wenn mehr Darts auf ein Doppel gingen, als die Aufnahme hatte, oder beim Checkout keiner, solange ein Dart der Aufnahme im Board steckt, wenn die manuelle Eingabe aus ist, solange der Bot am Board ist, wenn weder `score` noch `checkout` angegeben ist, wenn ein `score` mit `checkout` nicht der Rest des Spielers ist oder wenn `player` nicht am Board ist.
 
 Ein Checkout des Rests mit zwei Darts für den Spieler am Board:
 
@@ -705,7 +710,7 @@ data:
 
 ### Weitergeben: `autodarts.next_player`
 
-Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft; die Darts im Board zählen für niemanden, bis sie gezogen sind. Ohne Darts setzt der Spieler am Board in X01 und den Cricket-Spielen aus; in anderen Spielen bricht die Aktion dann mit einer klaren Meldung ab.
+Beendet die aktuelle Aufnahme, ohne die Darts zu ziehen, damit der nächste Spieler wirft; die Darts im Board zählen für niemanden, bis sie gezogen sind. Ohne Darts setzt der Spieler am Board in X01, den Cricket- und den Partyspielen aus; in einem Partyspiel zählt das Aussetzen als Aufnahme aus drei Fehlwürfen, und ein Aussetzen, das die letzte Runde beendet, verbucht Leg und Match. In Trainingsspielen, beim Ausbullen und bei Killer, solange die Zahlen gewählt werden, bricht die Aktion dann mit einer klaren Meldung ab.
 
 ```yaml
 action: autodarts.next_player
@@ -758,7 +763,7 @@ Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der
 | Tabelle | Spalten |
 | --- | --- |
 | Sessions | `started`, `ended`, `duration_minutes`, `average`, `darts`, `points`, `visits`, `highest_visit`, `scores_100`, `scores_140`, `scores_180`, `triples`, `doubles`, `bulls`, `misses` |
-| Matches | `started` (der erste Dart, falls bekannt), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (Spielernummer), `winner_name` und für jeden Spieler `name`, `legs` (im entscheidenden Satz gewonnen), `sets`, `match_legs` (im ganzen Match gewonnen; leer bei Matches vor Version 1.6) und `average`, `mpr` oder `points`; in CSV als `player_1_name` bis `player_4_points` |
+| Matches | `started` (der erste Dart, falls bekannt), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (Spielernummer), `winner_name` und für jeden Spieler `name`, `legs` (im entscheidenden Satz gewonnen), `sets`, `match_legs` (im ganzen Match gewonnen; leer bei Matches vor Version 1.6) und `average`, `mpr` oder `points`; in CSV als `player_1_name` bis `player_8_points` |
 | Profile | Die Werte von *Spielerprofile*; in CSV ist jeder einfache Wert eine Spalte, und die wenigsten Darts pro Startwert heißen `fewest_darts_101` bis `fewest_darts_1001` |
 
 > **Datenschutz:** Exporte enthalten Spielernamen. Der Medienordner, in dem sie standardmäßig landen, braucht eine Anmeldung. Dateien in `www` liefert Home Assistant unter `/local/` **ohne Anmeldung** an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; der zufällige Teil des Namens macht ihn unerratbar. Exportiere nur bewusst nach `www` und lösche Exporte dort, die du nicht mehr brauchst.

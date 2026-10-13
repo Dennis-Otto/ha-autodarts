@@ -843,6 +843,9 @@
     "visit_impossible": {
       "message": "Keine Aufnahme ergibt {score} von {remaining} mit diesen Regeln und Darts. Prüfe die Punkte."
     },
+    "checkout_impossible": {
+      "message": "Keine Aufnahme checkt {remaining} mit diesen Regeln und Darts aus."
+    },
     "visit_at_double": {
       "message": "Die Darts auf ein Doppel dürfen höchstens die {darts} Darts der Aufnahme sein, und beim Checkout mindestens einer."
     },
@@ -1301,7 +1304,7 @@
         },
         "score": {
           "name": "Punkte",
-          "description": "Die Punkte der Aufnahme, 0 bis 180. Was der Spieler noch hat, checkt aus, mehr ist Überworfen. Nötig ohne Checkout."
+          "description": "Die Punkte der Aufnahme, 0 bis 180. Was der Spieler noch hat, checkt aus, oder ist Überworfen, wo keine Aufnahme es auschecken kann; mehr ist Überworfen, ebenso ein Rest von 1 bei Double-Out. Nötig ohne Checkout."
         },
         "checkout": {
           "name": "Checkout",

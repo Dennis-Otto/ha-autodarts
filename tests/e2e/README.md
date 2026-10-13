@@ -3,7 +3,11 @@
 The suite mounts `custom_components/autodarts` read-only into a real Home Assistant
 container and connects it to a deterministic Board Manager double. The double runs
 from the same pinned Home Assistant image, so it needs no additional image. CI runs
-the scenario on every push and pull request.
+the scenario on every push to `main`, every night, and in every pull request that
+changes what it runs or mounts: the integration, the blueprints, this folder, the
+npm packages or `e2e.yml`. The required check `e2e` passes once these tests pass,
+or at once when a pull request changes none of these files; see
+[Continuous integration](../../docs/development.md#continuous-integration).
 
 Run locally with Docker and Compose:
 

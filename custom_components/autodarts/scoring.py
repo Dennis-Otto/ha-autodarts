@@ -82,11 +82,14 @@ def visit_darts(
 ) -> list[dict[str, Any]] | None:
     """Darts that make an X01 visit of `points` from `start`, or None.
 
-    The visit checks out when the points are what is left, busts when they are
-    more or leave 1 with double out, and otherwise leaves the rest; it has
-    `darts` darts, and a checkout or a bust ends with its last one. With
-    `opening`, the leg still needs a double to open, and the first dart that
-    scores is one. The beds are made up: only the score of the visit is known.
+    The visit checks out when the points are what is left and a finish exists,
+    busts when they are more, leave 1 with double out or are what is left
+    without a finish, and otherwise leaves the rest. It has `darts` darts, and a
+    checkout or a bust ends with its last one, so that every dart counts; a bust
+    that can't, such as 100 from 32, comes as late as it can, and the darts after
+    it do not count. With `opening`, the leg still needs a double to open, and
+    the first dart that scores is one. The beds are made up: only the score of
+    the visit is known.
     """
     if points == start:
         wanted = "won"
@@ -94,28 +97,38 @@ def visit_darts(
         wanted = "bust"
     else:
         wanted = None
+    # The outcomes looked for, with the darts that count, the best first: what is
+    # left without a finish busts, and a bust may come before the last dart.
+    endings = [(wanted, darts)]
+    if wanted is not None:
+        endings += [("bust", counted) for counted in range(darts, 0, -1)]
 
-    def fits(visit: list[dict[str, Any]]) -> bool:
+    def fits(visit: list[dict[str, Any]], ending: tuple[str | None, int]) -> bool:
         first = next((dart for dart in visit if score(dart)), None)
         if opening and first is not None and not is_double(first):
             return False
-        return evaluate_visit(start, visit, double_out)[1:] == (wanted, darts)
+        return evaluate_visit(start, visit, double_out)[1:] == ending
 
-    def search(chosen: list[dict[str, Any]], left: int) -> list[dict[str, Any]] | None:
+    def search(
+        chosen: list[dict[str, Any]], left: int, ending: tuple[str | None, int]
+    ) -> list[dict[str, Any]] | None:
         if len(chosen) == darts - 1:
             return next(
                 (
                     [*chosen, dart]
                     for dart in _BEDS_BY_SCORE.get(left, [])
-                    if fits([*chosen, dart])
+                    if fits([*chosen, dart], ending)
                 ),
                 None,
             )
         for dart in SCORE_BEDS:
             if score(dart) <= left and (
-                found := search([*chosen, dart], left - score(dart))
+                found := search([*chosen, dart], left - score(dart), ending)
             ):
                 return found
         return None
 
-    return search([], points)
+    for ending in dict.fromkeys(endings):
+        if found := search([], points, ending):
+            return found
+    return None

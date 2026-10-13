@@ -843,6 +843,9 @@
     "visit_impossible": {
       "message": "Aucune volée ne fait {score} à partir de {remaining} avec ces règles et ces fléchettes. Vérifiez les points."
     },
+    "checkout_impossible": {
+      "message": "Aucune volée ne finit {remaining} avec ces règles et ces fléchettes."
+    },
     "visit_at_double": {
       "message": "Les fléchettes sur un double sont au plus les {darts} fléchettes de la volée, et au moins une pour un checkout."
     },
@@ -1301,7 +1304,7 @@
         },
         "score": {
           "name": "Points",
-          "description": "Les points de la volée, de 0 à 180. Ce qu'il reste au joueur termine, davantage est un bust. Nécessaire sans checkout."
+          "description": "Les points de la volée, de 0 à 180. Ce qu'il reste au joueur termine, ou est un bust là où aucune volée ne peut le finir\u00a0; davantage est un bust, tout comme laisser 1 en double out. Nécessaire sans checkout."
         },
         "checkout": {
           "name": "Checkout",

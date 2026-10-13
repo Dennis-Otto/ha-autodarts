@@ -843,6 +843,9 @@
     "visit_impossible": {
       "message": "No visit scores {score} from {remaining} with these rules and darts. Check the score."
     },
+    "checkout_impossible": {
+      "message": "No visit checks out {remaining} with these rules and darts."
+    },
     "visit_at_double": {
       "message": "The darts at a double must be at most the {darts} darts of the visit, and at least one for a checkout."
     },
@@ -1301,7 +1304,7 @@
         },
         "score": {
           "name": "Score",
-          "description": "The points of the visit, 0 to 180. What the player has left checks out, more busts. Needed without checkout."
+          "description": "The points of the visit, 0 to 180. What the player has left checks out, or busts where no visit can check it out; more busts, and so does leaving 1 with double out. Needed without checkout."
         },
         "checkout": {
           "name": "Checkout",

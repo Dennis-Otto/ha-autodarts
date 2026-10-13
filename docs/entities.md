@@ -108,7 +108,7 @@ Totals use the state class *total*, with the start of the session as `last_reset
 
 ## Personal bests, streak and daily goal
 
-Home Assistant keeps your best values, the days you trained and your darts per day. Every detected dart counts for the day, in a session or not. The first value of each record sets it quietly; beating it fires `personal_best`, and equal values do not count. The records of a leg count when the leg is booked, as its darts are pulled, so a win that a correction takes back sets none.
+Home Assistant keeps your best values, the days you trained and your darts per day. Every detected dart counts for the day, in a session or not. The first value of each record sets it quietly; beating it fires `personal_best`, and equal values do not count. The records of a leg count when the leg is booked, as its darts are pulled, so a win that a correction takes back sets none. An [undone visit](#undo-a-visit-autodartsundo_visit) takes back the records it set; its darts still count for the day, the streak and the daily goal.
 
 | Record | Best value | From |
 | --- | --- | --- |
@@ -203,7 +203,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 | Practice players | Number, *Configuration* | 1–4 players, in a [party game](#party-games) and before a game is chosen 1–8; with the [bot](#bot), 1–3 besides it. Choosing X01, a Cricket or a training game leaves the first four. A change starts a new match. |
 | Practice legs per set | Number, *Configuration* | 1–11 legs win a set. A change starts a new match. |
 | Practice sets to win | Number, *Configuration* | 1–7 sets win the match. A change starts a new match. |
-| Practice player *N* | Text, *Configuration* | Name of player 1–8, at most 20 characters, for the scoreboard and the events. Without a name, the card shows *Player N*. |
+| Practice player *N* | Text, *Configuration* | Name of player 1–8, at most 20 characters, for the scoreboard and the events. Without a name, the card shows *Player N*. A name that another player in the game already has, in any case, is refused; a player slot outside the game, beyond *Practice players* or on the bot's seat, gives such a name up. |
 | Practice double out | Switch, *Configuration* | Finish on a double or the bullseye. On by default. Before the first dart of a leg a change applies at once; during a leg it applies from the next leg, so the leg in progress keeps its rules. |
 | Practice double in | Switch, *Configuration* | Start scoring with a double or the bullseye. Off by default; a change starts a new match. |
 | Practice bull-off | Switch, *Configuration* | A bull-off decides who starts a match of several players. Off by default; a change starts a new match. |
@@ -236,8 +236,8 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 
 - **Correct a dart:** when the board reads a dart wrong, [`autodarts.correct_dart`](#correct-a-dart-autodartscorrect_dart) or a tap on the dart on the [scoreboard](cards.md#correcting-and-entering-darts) puts it into the right bed. The practice game and the training session count the corrected dart at once: the remaining score, a bust or a win, the marks and the statistics follow. The board keeps its own reading; the correction holds until the darts are pulled or until the board corrects the dart itself. `dart_corrected` announces it with `previous` and `manual`. A dart corrected into another bed has no position, because the board misread the spot as well, unless the correction says where it is: the *Board* view of the scoreboard's pad, or `x` and `y` of the action.
 - **Enter a dart:** with *Practice manual entry* on, [`autodarts.throw_dart`](#enter-a-dart-autodartsthrow_dart) or the scoreboard's keypad adds a dart the board missed, or the darts of a player without cameras, as if the board had detected it, marked `manual`. The detection need not run: while it is stopped, the darts entered make the visit on their own. A [dartboard without Autodarts](without-autodarts.md) has no switch for it, because all its darts are entered.
-- **Next player:** [`autodarts.next_player`](#pass-the-turn-autodartsnext_player) ends the visit without pulling the darts. The darts in the board belong to no visit until they are pulled, and new darts count for the next player. Without darts, the player at the board passes in X01 and the Cricket games.
-- **Undo a visit:** when the darts were pulled before a wrong reading was noticed, [`autodarts.undo_visit`](#undo-a-visit-autodartsundo_visit) takes the last visit back: the game returns to where it was before it, also after a won leg, and the visit's darts leave the training totals and become the current visit again, to correct them and end the visit with *Next player*. The players' progress, the weekly report and the training calendar return with it, so the visit counts once when it ends again. Visits of the [bot](#bot) after it are taken back with it. `visit_undone` announces it.
+- **Next player:** [`autodarts.next_player`](#pass-the-turn-autodartsnext_player) ends the visit without pulling the darts. The darts in the board belong to no visit until they are pulled, and new darts count for the next player. Without darts, the player at the board passes in X01, the Cricket and the party games; a pass that ends the last round of a party game books the leg and the match like a visit with darts.
+- **Undo a visit:** when the darts were pulled before a wrong reading was noticed, [`autodarts.undo_visit`](#undo-a-visit-autodartsundo_visit) takes the last visit back: the game returns to where it was before it, also after a won leg, and the visit's darts leave the training totals and become the current visit again, to correct them and end the visit with *Next player*. The personal bests, the players' progress, the weekly report and the training calendar return with it, so the visit counts once when it ends again. Visits of the [bot](#bot) after it are taken back with it. `visit_undone` announces it.
 
 [The rules of corrections and darts entered by hand](how-it-works.md#corrections-and-darts-entered-by-hand).
 
@@ -671,14 +671,19 @@ The action fails with a clear message when the bed is unknown, when neither a be
 
 ### Enter a visit's score: `autodarts.enter_visit`
 
-Enters an X01 visit by its score instead of its darts, as the keypad's *Score* does, and passes the turn: the next player throws. Needs *Practice manual entry*. Darts already entered by hand in the visit give way to it; darts on the board refuse it. The visit has darts of its own, marked `total`, whose beds are made up and stay unknown: they count for the score, the averages, the 180s, the checkouts and the records, but for no bed, so not for the heatmap, the doubles, the triples or the bulls. A score of what the player has left checks out, more busts.
+Enters an X01 visit by its score instead of its darts, as the keypad's *Score* does, and passes the turn: the next player throws. Needs *Practice manual entry*. Darts already entered by hand in the visit give way to it; darts on the board refuse it. The visit has darts of its own, marked `total`, whose beds are made up and stay unknown: they count for the score, the averages, the 180s, the checkouts and the records, but for no bed, so not for the heatmap, the doubles, the triples or the bulls. A score of what the player has left checks out, or busts where no visit of these darts can finish it, such as 159 with double out. A score of more busts, and so does one that leaves 1 with double out, also where no visit throws all of it before the bust, such as 100 from 32: the darts after the dart that busts do not count.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/visit-score-dark.png">
+  <img src="images/en/visit-score-light.png" alt="How a visit's score counts: a score its darts can't make, such as 179, is refused, to check the score. What the player has left checks out where the darts can finish it, and busts where they can't, such as 159 with double out. More than is left busts, such as 100 from 32, as does a score that leaves 1 with double out; the score stays as it was. Any other score leaves the rest. After a bust or the rest, the next player throws" width="460">
+</picture>
 
 | Field | Values | Description |
 | --- | --- | --- |
 | `score` | 0–180 | The points of the visit; required without `checkout` |
 | `checkout` | `true` | The visit checks out what the player has left, instead of a `score`; a `score` given as well must be that |
 | `darts` | 1–3 | The darts it took, fewer than 3 only for a checkout; default 3 |
-| `darts_at_double` | 0–3 | How many of them were thrown at a double, for the checkout rate; default 1 for a checkout with double out, otherwise 0. Without double out, none counts |
+| `darts_at_double` | 0–3 | How many of them were thrown at a double, for the checkout rate; default 1 for a checkout with double out, otherwise 0. Without double out, none counts, and in a bust only those up to the dart that busts |
 | `player` | Name | The player the visit is for, as for `autodarts.throw_dart`; the action refuses the visit while another player is at the board |
 | `config_entry_id` | Autodarts entry | Only needed with more than one board |
 
@@ -690,7 +695,7 @@ data:
   darts_at_double: 2
 ```
 
-The visit is announced with `visit_thrown` and `visit_completed`, both with `total` and empty `segments`, but its darts are not: an automation that calls every dart, such as the [dart caller](automations.md#dart-caller), stays silent and calls the visit. The action fails with a clear message outside an X01 leg being played and in the bull-off, when no visit of these darts can score this from what the player has left (such as 179, or 159 from 159 with double out), when more darts were at a double than the visit had or none for a checkout, while a dart of the visit is on the board, when manual entry is off, while the bot is at the board, when neither `score` nor `checkout` is given, when a `score` with `checkout` is not what the player has left, or when `player` is not at the board.
+The visit is announced with `visit_thrown` and `visit_completed`, both with `total` and empty `segments`, but its darts are not: an automation that calls every dart, such as the [dart caller](automations.md#dart-caller), stays silent and calls the visit. The action fails with a clear message outside an X01 leg being played and in the bull-off, when no visit of these darts can score this from what the player has left (such as 179, which no three darts make, 180 from 60 without double out, whose first treble 20 checks out, or 180 before the opening double with double in), when `checkout` is given but no visit of these darts can finish what is left (such as 159 with double out), when more darts were at a double than the visit had or none for a checkout, while a dart of the visit is on the board, when manual entry is off, while the bot is at the board, when neither `score` nor `checkout` is given, when a `score` with `checkout` is not what the player has left, or when `player` is not at the board.
 
 A checkout of what is left, with two darts, for the player at the board:
 
@@ -705,7 +710,7 @@ data:
 
 ### Pass the turn: `autodarts.next_player`
 
-Ends the current visit without pulling the darts, so the next player throws; the darts in the board count for nobody until they are pulled. Without darts, the player at the board passes in X01 and the Cricket games; in other games, the action then fails with a clear message.
+Ends the current visit without pulling the darts, so the next player throws; the darts in the board count for nobody until they are pulled. Without darts, the player at the board passes in X01, the Cricket and the party games; in a party game the pass counts as a visit of three misses, and a pass that ends the last round books the leg and the match. In a training game, a bull-off and Killer while the numbers are chosen, the action then fails with a clear message.
 
 ```yaml
 action: autodarts.next_player
@@ -758,7 +763,7 @@ The response has `path` (the file), `url` (its `/local/` address when the folder
 | Table | Columns |
 | --- | --- |
 | Sessions | `started`, `ended`, `duration_minutes`, `average`, `darts`, `points`, `visits`, `highest_visit`, `scores_100`, `scores_140`, `scores_180`, `triples`, `doubles`, `bulls`, `misses` |
-| Matches | `started` (the first dart, if known), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (player number), `winner_name` and every player's `name`, `legs` (won in the deciding set), `sets`, `match_legs` (won in the whole match; empty for matches before version 1.6) and `average`, `mpr` or `points`; in CSV as `player_1_name` to `player_4_points` |
+| Matches | `started` (the first dart, if known), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (player number), `winner_name` and every player's `name`, `legs` (won in the deciding set), `sets`, `match_legs` (won in the whole match; empty for matches before version 1.6) and `average`, `mpr` or `points`; in CSV as `player_1_name` to `player_8_points` |
 | Profiles | The values of *Player profiles*; in CSV every plain value is a column, and the fewest darts per start score are `fewest_darts_101` to `fewest_darts_1001` |
 
 > **Privacy:** exports contain player names. The media folder, where they go by default, needs a login. Files in `www` are served at `/local/` **without a login** to anyone who can reach Home Assistant and knows the file name; the random part of the name keeps it from being guessed. Export to `www` only on purpose, and delete exports there that you no longer need.

@@ -592,6 +592,28 @@ class PracticeGame:
         if 0 <= index < PARTY_PLAYERS:
             self.names[index] = clean_name(name)
 
+    def rename(self, index: int, name: str) -> bool:
+        """Name one seat, as *Practice player N* does; whether it took the name.
+
+        A name is one player, in any upper and lower case: a seat in play
+        keeps a name it has, so another seat cannot take it, while a resting
+        seat or the bot's seat, which keeps the name of whoever sat there
+        before, gives it up.
+        """
+        self._resume()
+        key = clean_name(name).casefold()
+        twins = [
+            seat
+            for seat, other in enumerate(self.names)
+            if key and seat != index and other.casefold() == key
+        ]
+        if any(seat < len(self.players) and seat != self.bot_seat for seat in twins):
+            return False
+        for seat in twins:
+            self.names[seat] = ""
+        self.set_name(index, name)
+        return True
+
     def forget(self, name: str) -> None:
         """Clear the player slots with this name, in any upper and lower case,
         also in the settings a tournament left to come back to."""
@@ -1011,14 +1033,20 @@ class PracticeGame:
         return events
 
     def score_visit(
-        self, points: int, darts: int | None = None, at_double: int | None = None
+        self,
+        points: int,
+        darts: int | None = None,
+        at_double: int | None = None,
+        checkout: bool = False,
     ) -> list[dict[str, Any]]:
         """The darts of an X01 visit entered as its score, `points`.
 
         The darts are made up but for their score, and marked `total`; the last
-        `at_double` of them were thrown at a double, by default the one that
-        checks out. Without `darts`, the visit has three. A score that is more
-        than the player has left, or leaves 1 with double out, busts.
+        `at_double` of those that count were thrown at a double, by default the
+        one that checks out. Without `darts`, the visit has three. A score that is
+        more than the player has left, leaves 1 with double out, or is what is
+        left where no double finishes it, busts; with `checkout`, the visit must
+        check out instead.
         """
         if not self.game or self.bulling or self.winner is not None or self.hold:
             raise VisitRefused("visit_not_x01")
@@ -1032,22 +1060,30 @@ class PracticeGame:
             self.double_out,
             opening=self.double_in and not player.opened,
         )
+        # Asked for as a checkout, what is left without a finish is no bust.
+        if checkout and (
+            made is None or evaluate_visit(start, made, self.double_out)[1] != "won"
+        ):
+            raise VisitRefused("checkout_impossible", remaining=str(start))
         if made is None:
             raise VisitRefused(
                 "visit_impossible", score=str(points), remaining=str(start)
             )
-        checkout = points == start
+        _, outcome, counted = evaluate_visit(start, made, self.double_out)
+        won = outcome == "won"
         if at_double is None:
-            at_double = int(checkout)
+            at_double = int(won)
         if not self.double_out:
             at_double = 0
-        elif at_double > count or (checkout and not at_double):
+        elif at_double > count or (won and not at_double):
             raise VisitRefused("visit_at_double", darts=str(count))
+        # The darts after a bust do not count, nor do their darts at a double.
+        first = counted - min(at_double, counted)
         return [
             {
                 **dart,
                 "total": True,
-                **({"at_double": True} if index >= count - at_double else {}),
+                **({"at_double": True} if first <= index < counted else {}),
             }
             for index, dart in enumerate(made)
         ]

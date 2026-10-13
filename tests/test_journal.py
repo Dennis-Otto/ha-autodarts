@@ -21,6 +21,7 @@ from custom_components.autodarts.journal import (
     session_title,
 )
 from custom_components.autodarts.party import PARTY_GAMES
+from custom_components.autodarts.practice import PARTY_PLAYERS
 
 NOW = datetime(2026, 9, 27, 20, 0, tzinfo=dt_util.UTC)
 
@@ -115,9 +116,32 @@ def test_matches_keep_players_results_and_a_plausible_start():
         match(0, game=0),
         match(0, players="Alex"),
         match(0, players=[]),
-        match(0, players=[{}] * 5),
+        match(0, players=[{}] * (PARTY_PLAYERS + 1)),
     ):
         assert match_entry(broken) is None
+
+
+def party(end: float, players: int = PARTY_PLAYERS) -> dict:
+    """A Count-Up match of a party, which Alex wins."""
+    names = ["Alex", "Sam", "Kim", "Lea", "Mia", "Leo", "Zoe", "Ben"][:players]
+    return match(
+        end,
+        game="count_up",
+        legs_to_win=1,
+        players=[
+            {"name": name, "legs": 0, "sets": 0, "points": 60 if name == "Alex" else 1}
+            for name in names
+        ],
+    )
+
+
+def test_a_party_match_keeps_all_of_its_eight_players():
+    entry = match_entry(party(0))
+    assert len(entry["players"]) == PARTY_PLAYERS
+    assert match_title(entry) == (
+        "Count-Up · Alex 1 · Sam 0 · Kim 0 · Lea 0 · Mia 0 · Leo 0 · Zoe 0 · Ben 0"
+    )
+    assert match_description(entry).splitlines()[-1] == "Ben: 1"
 
 
 def test_the_winner_of_a_set_gets_the_legs_it_needed():
@@ -300,6 +324,22 @@ def test_only_new_sessions_and_matches_are_taken_over():
     assert journal.latest().uid == f"match-{at(-2)}"
     # Broken entries of the sources are skipped.
     assert journal.sync([None, {"ended": "x"}], [{"game": 501}], NOW) is False
+
+
+def test_the_first_look_takes_over_the_matches_the_journal_missed():
+    """Up to version 1.12.2, the journal left out the party matches of more than
+    four players. The profiles keep their last matches, which come back once."""
+    year = 365 * 24 * 60
+    journal = TrainingJournal()
+    journal.restore({"matches": [match_entry(match(-40)), match_entry(match(-10))]})
+    profiles = [match(-10), party(-20, players=5), match(-40), party(-year - 5)]
+    assert journal.sync([], profiles, NOW) is True
+    # In their place; a match older than a year stays out.
+    assert [entry["ended"] for entry in journal.matches] == [at(-40), at(-20), at(-10)]
+    assert journal.matches[1]["players"][4]["name"] == "Mia"
+    assert journal.sync([], profiles, NOW) is False
+    assert journal.sync([], [party(-5), *profiles], NOW) is True
+    assert journal.matches[-1]["ended"] == at(-5)
 
 
 def test_the_journal_keeps_a_year_and_a_bounded_number_of_entries():
