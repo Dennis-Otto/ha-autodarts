@@ -72,10 +72,12 @@ variables:
 conditions:
   # Nobody is there and the detection runs. A reload, which also comes when
   # another automation is saved, only counts when it set up this automation
-  # anew while the presence was off, and only if the presence turned off after
-  # the detection started: a detection started by hand keeps running. Checked
-  # here rather than in the actions, so that a reload that does not count
-  # leaves a waiting run alone.
+  # anew while the presence was off, and only if the detection was on before
+  # the later of the presence turning off and the last run of this automation,
+  # such as the wait after a restart, when the order in which the sensors came
+  # up says nothing: a detection started by hand after both keeps running.
+  # Checked here rather than in the actions, so that a reload that does not
+  # count leaves a waiting run alone.
   - alias: Resumed only while the detection waits for its stop
     condition: template
     value_template: >-
@@ -85,7 +87,7 @@ conditions:
           or is_state(presence, 'off') and is_state(detection, 'on')
              and (trigger.platform == 'homeassistant'
                   or as_timestamp(states[detection].last_changed)
-                     < as_timestamp(states[presence].last_changed)
+                     < [as_timestamp(states[presence].last_changed), as_timestamp(ran, 0)] | max
                      and as_timestamp(states[presence].last_changed) < setup
                      and (ran is none or as_timestamp(ran) < setup)) }}
 

@@ -68,6 +68,7 @@ from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
 from .records import PersonalRecords
 from .report import BoardReports
 from .storage import TrainingStore
+from .topics import BoardTopics, Topic
 from .tournament import TOURNAMENT_EVENTS, TournamentDirector
 from .training import TrainingSession, hit_key, segments
 
@@ -127,13 +128,19 @@ MOTION_FLAGS = (
     "isTakeoutPartial",
     "isTakeoutFull",
 )
-# High-rate values that change no entity by themselves, except the camera alarm.
+# High-rate push values: their sensors show them with the next poll, and only a
+# camera alarm they raise or clear shows at once.
 TELEMETRY = ("stats", "camera_stats")
-# Values of the board PC's load in data["system"] that change with every read.
+# Values of the board PC's load in /api/system that change with every read.
 SYSTEM_TELEMETRY = ("cpu_percent", "memory_bytes")
-# The listener context of the entities that show telemetry: a poll that only
-# changes telemetry updates them alone, not every entity of the board.
-TELEMETRY_LISTENERS = "telemetry"
+# The readings of each topic, kept in readings beside the data: a change of
+# them alone updates only the entities that show them, see BoardTopics.
+# "system" holds the load of the board PC, data["system"] the rest.
+READINGS: dict[Topic, tuple[str, ...]] = {
+    Topic.TELEMETRY: (*TELEMETRY, "system"),
+    Topic.MOTION: ("motion",),
+    Topic.CAMERA_STATE: ("camera_state",),
+}
 EVENT_TYPES = [
     "dart_detected",
     "dart_corrected",
@@ -199,16 +206,6 @@ def _lifecycle(state: dict[str, Any]) -> tuple[object, str]:
     """Whether the detection runs and where it is in starting or stopping."""
     status = str(state.get("status", "")).lower()
     return state.get("running"), status if status in LIFECYCLE_STATUSES else "running"
-
-
-def _without_telemetry(data: dict[str, Any]) -> dict[str, Any]:
-    """The data without frame rates and the board PC's load."""
-    result = {key: value for key, value in data.items() if key not in TELEMETRY}
-    if isinstance(system := data.get("system"), dict):
-        result["system"] = {
-            key: value for key, value in system.items() if key not in SYSTEM_TELEMETRY
-        }
-    return result
 
 
 def _error_name(error: BaseException) -> str:
@@ -337,8 +334,12 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._stream_error_logged = False
         self._reconnect_now = asyncio.Event()
         self._revisions: dict[str, int] = {}
-        # The poll being published changed only telemetry.
-        self._telemetry_only = False
+        # The motion flags, the cameras' state, the frame rates and the board
+        # PC's load, see READINGS; each topic tells the entities that show it.
+        self.readings: dict[str, Any] = {}
+        self.topics = BoardTopics()
+        # async_shutdown began: a read that ends later changes nothing.
+        self._shutting_down = False
         self._observed_state: dict[str, Any] | None = None
         self._observed_motion: dict[str, Any] | None = None
         self._taking_out = False
@@ -470,6 +471,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
 
     async def async_shutdown(self) -> None:
+        self._shutting_down = True
         await super().async_shutdown()
         if self._stream_task:
             self._stream_task.cancel()
@@ -551,7 +553,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.update_interval = self._poll_interval()
             if connected_at is not None:
                 self._suspend_tracking()
-            if not self._shutdown_requested:
+            if not self._shutting_down:
                 self.async_update_listeners()
         lasted = None if connected_at is None else time.monotonic() - connected_at
         if connected_at is not None:
@@ -638,7 +640,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         count = self._settings.get("camera_count", 0)
         if type(index) is not int or not 0 <= index < count or fps is None:
             return None
-        current = (self.data or {}).get("camera_stats", {}).get("fps")
+        current = self.readings.get("camera_stats", {}).get("fps")
         frames = list(current) if isinstance(current, list) else []
         frames.extend([None] * max(0, count - len(frames)))
         frames[index] = fps
@@ -646,11 +648,12 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     @callback
     def async_receive(self, kind: str, payload: dict[str, Any]) -> None:
-        """Merge a push message; high-rate telemetry only updates the camera alarm."""
+        """Merge a push message: a state updates every entity, a reading only
+        those of its topic, see _receive_reading."""
         if (
             not isinstance(payload, dict)
             or not self._identity_valid
-            or self._shutdown_requested
+            or self._shutting_down
         ):
             return
         message = self._message(kind, payload)
@@ -659,36 +662,61 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         field, value = message
         self._stream_active()
         self._revisions[field] = self._revisions.get(field, 0) + 1
+        if field != "local":
+            self._receive_reading(field, value)
+            return
         data = dict(self.data or {})
         previous = data.get(field)
         data[field] = value
-        if field in TELEMETRY:
-            problems = self._health.update(data, time.monotonic())
-            alarm = problems != data.get("camera_problems")
-            data["camera_problems"] = problems
-            self.data = data
-            if alarm:
-                self.async_update_listeners()
-            return
         self._process(data, {field}, "websocket")
         self.data = data
-        recovered = field == "local" and not self.last_update_success
+        recovered = not self.last_update_success
         if recovered:
             _LOGGER.info("Local Board Manager is available again")
-        if field == "local":
-            self.last_update_success = True
+        self.last_update_success = True
         if previous != value or recovered:
             self.async_update_listeners()
-        if (
-            field == "local"
-            and isinstance(previous, dict)
-            and _lifecycle(previous) != _lifecycle(value)
-        ):
+        if isinstance(previous, dict) and _lifecycle(previous) != _lifecycle(value):
             # Board Manager 2 announces no camera changes; read them right after a
             # start or stop instead of waiting for the next slow poll.
             self._entry.async_create_task(
                 self.hass, self.async_request_refresh(), f"{DOMAIN} camera state"
             )
+
+    @callback
+    def _receive_reading(self, field: str, value: dict[str, Any]) -> None:
+        """A reading of a push message. It updates the entities of its topic
+        alone; a camera alarm it raises or clears updates every entity."""
+        changed = self._read({**self.readings, field: value})
+        data = dict(self.data or {})
+        if field in TELEMETRY:
+            data["camera_problems"] = self._health.update(
+                data, self.readings, time.monotonic()
+            )
+        else:
+            self._process(data, {field}, "websocket")
+        if data.get("camera_problems") != (self.data or {}).get("camera_problems"):
+            self.data = data
+            self.async_update_listeners()
+        elif field not in TELEMETRY:
+            # Frame rates arrive several times a second: the next poll shows them.
+            self._publish(changed)
+
+    def _read(self, readings: dict[str, Any]) -> set[Topic]:
+        """Keep new readings; the topics whose readings they change."""
+        previous, self.readings = self.readings, readings
+        return {
+            topic
+            for topic, keys in READINGS.items()
+            if any(previous.get(key) != readings.get(key) for key in keys)
+        }
+
+    @callback
+    def _publish(self, topics: set[Topic]) -> None:
+        """Update the entities of the topics, in the same order every time."""
+        for topic in READINGS:
+            if topic in topics:
+                self.topics.async_publish(topic)
 
     # -- training, games and events ----------------------------------------------
 
@@ -771,9 +799,11 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self._observe_status(self._observed_state, state, source)
             self._observed_state = state
         if "motion" in fields:
-            self._observe_motion(data.get("motion", {}), state, source)
+            self._observe_motion(self.readings.get("motion", {}), state, source)
         self._watch_takeout(data)
-        data["camera_problems"] = self._health.update(data, time.monotonic())
+        data["camera_problems"] = self._health.update(
+            data, self.readings, time.monotonic()
+        )
 
     def _guarded(self, action: Callable[[], None]) -> None:
         """A fault in the games must never cost the connection to the board."""
@@ -980,7 +1010,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             and "takeout in progress" in (status, str(state.get("event", "")).lower())
             and type(count) is int
             and count == 0
-            and (data.get("motion") or {}).get("isHand") is not True
+            and (self.readings.get("motion") or {}).get("isHand") is not True
         )
 
     @callback
@@ -996,7 +1026,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         elif (
             self._takeout_unsub is None
             and self._takeout_resets < STUCK_TAKEOUT_RESETS
-            and not self._shutdown_requested
+            and not self._shutting_down
         ):
             self._takeout_unsub = async_call_later(
                 self.hass, STUCK_TAKEOUT_SECONDS, self._async_free_takeout
@@ -1333,44 +1363,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 self.connection.poll_seconds = round(time.monotonic() - started, 3)
                 self._report_protocol()
                 self.update_interval = self._poll_interval()
-        # Frame rates and the load change with nearly every poll; alone, they
-        # only update the entities that show them.
-        self._telemetry_only = (
-            self.last_update_success
-            and self.data is not None
-            and _without_telemetry(data) == _without_telemetry(self.data)
-        )
         return data
-
-    async def _async_refresh(
-        self,
-        log_failures: bool = True,
-        raise_on_auth_failed: bool = False,
-        scheduled: bool = False,
-        raise_on_entry_error: bool = False,
-    ) -> None:
-        try:
-            await super()._async_refresh(
-                log_failures, raise_on_auth_failed, scheduled, raise_on_entry_error
-            )
-        finally:
-            self._telemetry_only = False
-
-    @callback
-    def async_update_listeners(self) -> None:
-        """Update every entity, or only those showing telemetry after a poll
-        that changed nothing else."""
-        if not self._telemetry_only:
-            super().async_update_listeners()
-            return
-        self._telemetry_only = False
-        for update_callback, context in list(self._listeners.values()):
-            if context != TELEMETRY_LISTENERS:
-                continue
-            try:
-                update_callback()
-            except Exception:
-                _LOGGER.exception("Unexpected error updating a telemetry entity")
 
     async def _poll(self) -> dict[str, Any]:
         revisions = dict(self._revisions)
@@ -1384,15 +1377,15 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             except TimeoutError as err:
                 raise AutodartsConnectionError("Board Manager is slow") from err
         except AutodartsApiError as err:
-            if self._shutdown_requested:
+            if self._shutting_down:
                 return self._unchanged()
             self._protocol_result("/api/state", err)
             return self._poll_failed(err)
-        if self._shutdown_requested:
+        if self._shutting_down:
             return self._unchanged()
         self._protocol_result("/api/state", None)
         reads = await self._reads()
-        if self._shutdown_requested:
+        if self._shutting_down:
             return self._unchanged()
         config, version = reads["config"], reads["version"]
         if config:
@@ -1423,13 +1416,20 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ):
             # Boards without the endpoint answer {} and are asked again later.
             host = await self._optional(self.client.get_host(), "/api/host")
-            if self._shutdown_requested:
+            if self._shutting_down:
                 return self._unchanged()
             if host is not None:
                 self._host, self._host_updated = host, time.monotonic()
-        data = dict(self.data or {})
-        if reads.get("system") is not None:
-            data["system"] = reads["system"]
+        data, readings = dict(self.data or {}), dict(self.readings)
+        if (system := reads.get("system")) is not None:
+            data["system"] = {
+                key: value
+                for key, value in system.items()
+                if key not in SYSTEM_TELEMETRY
+            }
+            readings["system"] = {
+                key: value for key, value in system.items() if key in SYSTEM_TELEMETRY
+            }
         if self._host is not None:
             data["board_pc"] = self._host
         fields = set()
@@ -1441,14 +1441,21 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "motion": None if motion is None else self._motion(motion),
             "camera_state": reads["camera_state"],
         }.items():
-            if value is None and field in data:
+            values = data if field == "local" else readings
+            if value is None and field in values:
                 continue  # A failed optional read keeps the last known value.
             # A completed HTTP read must not roll back a newer socket message.
             if self._revisions.get(field, 0) == revisions.get(field, 0):
-                data[field] = value or {}
+                values[field] = value or {}
                 fields.add(field)
         data.update(settings=self._settings, version=self._version)
+        changed = self._read(readings)
         self._process(data, fields, "poll")
+        if self.last_update_success and data == self.data:
+            # Every entity updates when anything else changed; without such a
+            # change only those of the readings do. Each poll reports the
+            # frame rates and the load anew.
+            self._publish({Topic.TELEMETRY, *changed})
         return data
 
     @callback
@@ -1554,7 +1561,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 identity = await client.identify()
             except AutodartsApiError:
                 continue
-            if self._shutdown_requested:
+            if self._shutting_down:
                 # An unloading board offers nothing: the unload deletes its issues.
                 return
             if identity["board_id"] != self.board_id:

@@ -18,13 +18,21 @@ A board is one config entry with up to two independent connections:
 
 | Source | How | Interval |
 | --- | --- | --- |
-| Board state, dart positions, motion, cameras, frame rates | WebSocket `/api/events` of the Board Manager | Immediately |
+| Board state, dart positions, motion, cameras | WebSocket `/api/events` of the Board Manager | Immediately |
+| Frame rates | WebSocket `/api/events` and every HTTP read | Their sensors show them with each read; a camera alarm they raise shows at once |
 | Reconciliation while realtime events arrive | HTTP read | Every 30 seconds; every 10 seconds with Board Manager 2, which announces no camera changes |
 | Fallback without realtime events | HTTP read | Every 2 seconds; every 15 seconds once the board has been away for about half a minute |
 | Board Manager 2 | One combined read of `/api/system` per interval | As above |
 | Board PC details, Board Manager 2 | HTTP read of `/api/host`; only the system, processor and software versions are kept | At start, every hour and after a Board Manager update |
 | Board Manager 1 settings and version | HTTP read | Every 30 seconds, and after every action |
 | Cloud match data | Autodarts API | Every 5 seconds during a match, otherwise every minute |
+
+Each message and each read updates only the entities that show what changed. A hand at the board, which comes and goes several times per visit, updates the motion sensors alone, not the more than a hundred entities of a board with its games and statistics.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/entity-updates-dark.png">
+  <img src="images/en/entity-updates-light.png" alt="Which entities a message of the board updates: a new state, a dart, a setting or a camera alarm updates every entity of the board. A hand or a takeout updates only the motion sensors, cameras that start or stop only Cameras active. Frame rates and the load of the board PC update only their sensors, with the next read" width="560">
+</picture>
 
 ## Connection behavior
 
@@ -36,7 +44,7 @@ A board is one config entry with up to two independent connections:
 - **Visits across interruptions.** While the board is out of sight, the visit in progress is kept. If the board still shows its darts first afterwards, the visit continues and new darts are detected. Otherwise, the darts were pulled meanwhile: the visit is completed with `visit_completed`, and the practice game books it. Darts thrown after that during the interruption are not counted, because they cannot be told apart from corrected darts. A status change during the interruption is announced with the first state afterwards.
 - **One read at a time.** Reads never overlap, so an older answer never replaces a newer one, and a slow HTTP read never overwrites a newer realtime message.
 - **Unloading.** When the entry is unloaded, disabled or reloaded, the integration first stops the bot, its timers and the realtime connection. It then waits for a read still under way and discards its answer, so no repair notice, board event or error comes from the board afterwards.
-- **High-rate values.** Frame rates and detection statistics only update their data and the camera alarm; they never recompute the training or the practice game. A read that changes nothing but frame rates and the load of the board PC updates only the entities that show them.
+- **High-rate values.** The motion, the cameras, frame rates and the load of the board PC update only the entities that show them and never recompute the training or the practice game. Frame rates arrive several times a second, so their sensors show them with each read; a camera alarm they raise or clear shows at once, on every entity.
 - **Faults stay contained.** An error in the training or a game rule is logged once and never cuts the connection to the board.
 - **A takeout that never ends.** Board Manager 2.0.2 sometimes keeps a takeout on the empty board and counts no darts until a reset. Ten seconds after the first state that shows a takeout without darts and without a hand at the board, the integration resets the board: at most once in ten seconds, three times in a row at most. It waits with a timer, not by reading the board more often, and a change, a hand, a failed read or the switch *Free a stuck takeout* ends the wait ([details](entities.md#a-takeout-the-board-never-finishes)).
 - **Unexpected answers.** An answer in an unknown format is logged once per read. If a required read (state, settings or `/api/system`) answers like that three times in a row, a repair notice asks to update the integration. A board that answers with HTTP 401 or 403 gets a notice of its own; the Board Manager needs no login. The notices of a board go when its entry is unloaded, disabled or reloaded, and its next setup raises again those that still apply.

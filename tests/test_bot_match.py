@@ -250,7 +250,7 @@ async def test_the_bot_stops_before_the_unload_waits_for_a_read(
 
     async def slow_board(*_args):
         reading.set()
-        while not coordinator._shutdown_requested:
+        while not coordinator._shutting_down:
             await asyncio.sleep(0)
         for _ in range(100):
             await asyncio.sleep(0)

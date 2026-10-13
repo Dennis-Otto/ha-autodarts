@@ -15,6 +15,7 @@
     }),
     'local': None,
     'local_available': False,
+    'local_readings': None,
     'online_bridge': dict({
       'enabled': False,
     }),
@@ -77,17 +78,6 @@
         False,
         False,
       ]),
-      'camera_state': dict({
-        'isOpened': False,
-        'isRunning': False,
-      }),
-      'camera_stats': dict({
-        'fps': list([
-          29.9,
-          30,
-          29.8,
-        ]),
-      }),
       'local': dict({
         'connected': True,
         'event': 'Throw',
@@ -96,12 +86,6 @@
         'status': 'Throw',
         'throws': list([
         ]),
-      }),
-      'motion': dict({
-        'isHand': False,
-        'isStable': True,
-        'isTakeoutFull': False,
-        'isTakeoutPartial': False,
       }),
       'practice': dict({
         'average': None,
@@ -177,9 +161,6 @@
         'camera_count': 3,
         'standby_minutes': 15,
       }),
-      'stats': dict({
-        'fps': 12.5,
-      }),
       'throws': list([
       ]),
       'training': dict({
@@ -207,6 +188,28 @@
       'version': '1.0.7',
     }),
     'local_available': True,
+    'local_readings': dict({
+      'camera_state': dict({
+        'isOpened': False,
+        'isRunning': False,
+      }),
+      'camera_stats': dict({
+        'fps': list([
+          29.9,
+          30,
+          29.8,
+        ]),
+      }),
+      'motion': dict({
+        'isHand': False,
+        'isStable': True,
+        'isTakeoutFull': False,
+        'isTakeoutPartial': False,
+      }),
+      'stats': dict({
+        'fps': 12.5,
+      }),
+    }),
     'online_bridge': dict({
       'enabled': False,
     }),
@@ -336,29 +339,12 @@
         False,
         False,
       ]),
-      'camera_state': dict({
-        'isOpened': True,
-        'isRunning': True,
-      }),
-      'camera_stats': dict({
-        'fps': list([
-          29.9,
-          30,
-          29.8,
-        ]),
-      }),
       'local': dict({
         'connected': True,
         'event': 'Stopped',
         'numThrows': 0,
         'running': False,
         'status': 'Stopped',
-      }),
-      'motion': dict({
-        'isHand': False,
-        'isStable': True,
-        'isTakeoutFull': False,
-        'isTakeoutPartial': False,
       }),
       'practice': dict({
         'bot': None,
@@ -394,13 +380,8 @@
         'camera_count': 3,
         'standby_minutes': 15,
       }),
-      'stats': dict({
-        'fps': 12.5,
-      }),
       'system': dict({
         'cloud_link': 'connected',
-        'cpu_percent': 12.5,
-        'memory_bytes': 314363904,
         'update_available': '2.0.2',
       }),
       'throws': list([
@@ -427,6 +408,32 @@
       'version': '2.0.0',
     }),
     'local_available': True,
+    'local_readings': dict({
+      'camera_state': dict({
+        'isOpened': True,
+        'isRunning': True,
+      }),
+      'camera_stats': dict({
+        'fps': list([
+          29.9,
+          30,
+          29.8,
+        ]),
+      }),
+      'motion': dict({
+        'isHand': False,
+        'isStable': True,
+        'isTakeoutFull': False,
+        'isTakeoutPartial': False,
+      }),
+      'stats': dict({
+        'fps': 12.5,
+      }),
+      'system': dict({
+        'cpu_percent': 12.5,
+        'memory_bytes': 314363904,
+      }),
+    }),
     'online_bridge': dict({
       'enabled': False,
     }),

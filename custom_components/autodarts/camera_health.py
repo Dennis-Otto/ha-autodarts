@@ -12,11 +12,15 @@ class CameraHealth:
     def __init__(self) -> None:
         self._zero_since: dict[int, float] = {}
 
-    def update(self, data: dict[str, Any], now: float) -> list[bool | None]:
+    def update(
+        self, data: dict[str, Any], readings: dict[str, Any], now: float
+    ) -> list[bool | None]:
+        """Whether each camera has a problem, from the board's data and the
+        readings of its cameras; None where that is unknown."""
         count = data.get("settings", {}).get("camera_count", 0)
         state = data.get("local", {})
-        camera_state = data.get("camera_state", {})
-        fps = data.get("camera_stats", {}).get("fps", [])
+        camera_state = readings.get("camera_state", {})
+        fps = readings.get("camera_stats", {}).get("fps", [])
         expected = (
             state.get("running") is True and camera_state.get("isRunning") is True
         )

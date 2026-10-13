@@ -25,6 +25,10 @@ async def async_get_config_entry_diagnostics(
             "data": async_redact_data(dict(entry.data), TO_REDACT),
         },
         "local": async_redact_data(local.data if local else None, TO_REDACT),
+        # The motion flags, the cameras' state, frame rates and the board PC's load.
+        "local_readings": async_redact_data(
+            local.readings if local else None, TO_REDACT
+        ),
         "local_available": bool(local and local.last_update_success),
         # Set up with a cloud client, not merely asked for one.
         "cloud_configured": runtime.cloud is not None,

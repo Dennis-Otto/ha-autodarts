@@ -90,7 +90,7 @@ Fülle mindestens eines der beiden Felder aus.
 
 Kombiniere diesen Blueprint nicht mit einem Erkennungsschalter in der *Training session routine*: Beide würden die Erkennung schalten.
 
-Eine Erkennung, die du von Hand startest, während die Präsenz aus ist, läuft weiter. Ein Neustart von Home Assistant vergisst, wie lange die Präsenz schon aus ist: Ist niemand da und läuft die Erkennung, wenn Home Assistant startet, stoppt die Erkennung nach *Stop after*, auch eine von Hand gestartete. Auch das Speichern der Automation startet die Wartezeit neu, lässt eine von Hand gestartete Erkennung aber laufen; das Speichern anderer Automationen ändert nichts.
+Eine Erkennung, die du von Hand startest, während die Präsenz aus ist, läuft weiter. Ein Neustart von Home Assistant vergisst, wie lange die Präsenz schon aus ist: Ist niemand da und läuft die Erkennung, wenn Home Assistant startet, stoppt die Erkennung nach *Stop after*, auch eine von Hand gestartete. Auch das Speichern der Automation startet die Wartezeit neu, auch die nach einem Neustart, lässt eine von Hand gestartete Erkennung aber laufen; das Speichern anderer Automationen ändert nichts.
 
 ### Board problem alert
 
@@ -104,7 +104,7 @@ Eine Erkennung, die du von Hand startest, während die Präsenz aus ist, läuft 
 
 Ein Problem zählt auch, wenn es beginnt, während der Sensor nicht verfügbar ist, etwa eine Kamera, die beim Neustart des Boards ausfällt. Endet ein Problem, während das Board offline ist, gibt es dafür keine eigene Entwarnung. War das Board länger als die Karenzzeit offline, folgt die Entwarnung der Verbindung; nach einem kürzeren Neustart bleibt eine Kamerastörung, die der Neustart behoben hat, ohne Entwarnung.
 
-Ein Neustart von Home Assistant vergisst die Karenzzeiten: Ein Problem, das das Board beim Start von Home Assistant hat, warnt nach der Karenzzeit, auch wenn es vor dem Neustart schon gewarnt hat, und seine Entwarnung folgt wie gewohnt. Das Speichern der Automation behält ein Problem, dessen Karenzzeit lief, und es warnt nach einer neuen Karenzzeit; ein Problem, das schon gewarnt hat, bleibt still. Das Speichern anderer Automationen ändert nichts.
+Ein Neustart von Home Assistant vergisst die Karenzzeiten: Ein Problem, das das Board beim Start von Home Assistant hat, warnt nach der Karenzzeit, auch wenn es vor dem Neustart schon gewarnt hat, und seine Entwarnung folgt wie gewohnt. Das Speichern der Automation behält ein Problem, das noch nicht gewarnt hat, weil seine Karenzzeit lief oder ein früheres Speichern noch auf seine Warnung wartete, und es warnt nach einer neuen Karenzzeit; ein Problem, das schon gewarnt hat, bleibt still. Das Speichern anderer Automationen ändert nichts.
 
 Was dieser Blueprint und die [automatische Erkennung](#start-and-stop-detection-automatically) tun, wenn Home Assistant startet:
 
