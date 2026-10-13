@@ -219,7 +219,7 @@ Import a blueprint with one click, choose your board and you're done:
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14935/badge)](https://www.bestpractices.dev/projects/14935)
 
 - Meets every rule of the [Home Assistant integration quality scale](https://developers.home-assistant.io/docs/core/integration-quality-scale/) up to Platinum ([self-assessment](https://github.com/Dennis-Otto/ha-autodarts/blob/main/custom_components/autodarts/quality_scale.yaml)), including strict typing.
-- 100 % line and branch coverage of the integration, fuzzed cards, a Docker end-to-end test against both Board Manager generations and the oldest supported Home Assistant, and a real browser test of every card. [Development](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/development.md).
+- 100 % line and branch coverage of the integration, fuzzed cards, a Docker end-to-end test against both Board Manager generations and the oldest supported Home Assistant, a real browser test of every card, and weekly [mutation tests](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/development.md#mutation-tests) of the game rules. [Development](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/development.md).
 - Signed release packages with SLSA provenance. [Releases](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/releases.md#signed-release-packages).
 
 ## Credits and license

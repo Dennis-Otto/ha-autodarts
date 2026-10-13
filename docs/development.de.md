@@ -2,9 +2,9 @@
 
 [← Dokumentation](README.de.md)
 
-Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden, wie ihre Tests die Timer der Karten prüfen und wann die End-to-End-Tests laufen.
+Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden, wie ihre Tests die Timer der Karten prüfen, wann die End-to-End-Tests laufen und wie die Mutationstests zeigen, was die Tests nicht prüfen.
 
-**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Timer der Karten](#timer-der-karten) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen)
+**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Timer der Karten](#timer-der-karten) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen) · [Mutationstests](#mutationstests)
 
 ## Bilder der Dokumentation
 
@@ -98,3 +98,31 @@ Der Browsertest mit der Prüfung der Barrierefreiheit gehört zu den End-to-End-
 </picture>
 
 `main` verlangt eine einzige Prüfung der End-to-End-Tests, `e2e`, vom Job *gate*. Eine Matrix, die eine Bedingung überspringt, meldet keinen ihrer Job-Namen, und ein übersprungener Job zählt als bestanden. Deshalb läuft das Gate immer und entscheidet selbst: Es besteht, wenn jeder Test-Job bestanden hat oder *changes* nichts zu testen fand, und schlägt fehl, wenn ein Test-Job fehlschlug, abgebrochen oder übersprungen wurde, obwohl er laufen musste. Ein Pull Request, der nur die Dokumentation oder andere Workflows ändert, bekommt `e2e` etwa eine Minute nach dem Push. `tests/test_consistency.py` schlägt fehl, wenn eine Compose-Datei eine Datei des Repositorys einbindet oder der Browsertest eine liest, die in dieser Liste fehlt.
+
+## Mutationstests
+
+Tests können eine Zeile ausführen, ohne zu prüfen, was sie tut. Jeden Samstag findet der Workflow **Mutation** (`mutation.yml`, den der Blueprint pflegt) solche Zeilen: [mutmut](https://github.com/boxed/mutmut) ändert den Code auf Tausende kleine Arten, die Mutanten, etwa `<=` statt `<` oder eine andere Zahl, und führt gegen jeden Mutanten die Tests aus, die die geänderte Funktion aufrufen. Ein Test, der scheitert, erledigt den Mutanten; ein Mutant, den jeder Test durchlässt, überlebt und zeigt auf eine Zeile, die die Tests ausführen, aber nicht prüfen. Die Zusammenfassung des Laufs zeigt den Wert, den Anteil der Mutanten, die ein Test erledigt hat, und die überlebenden Mutanten; ein niedriger Wert lässt nichts fehlschlagen. Der Workflow läuft auch auf Abruf über den Reiter Actions.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/mutation-tests-dark.png">
+  <img src="images/de/mutation-tests-light.png" alt="Wie die Mutationstests laufen: Jeden Samstag und auf Abruf kopiert mutmut das Repository nach mutants/ und ändert die Spielregeln auf Tausende kleine Arten. Es führt jeden Test einmal aus und merkt sich, welche Funktionen jeder Test aufruft; die mit mutation_unsafe markierten Tests werden übersprungen, weil sie den Code als Text lesen oder Git fragen. Die Tests der Mutanten müssen dann ohne jeden Mutanten bestehen. Jeder Mutant führt die Tests aus, die seine Funktion aufrufen, in einem Prozess, der vom ersten Lauf abzweigt, und jeder Test beginnt mit leeren Caches der Integration. Ein Mutant, der einen Test scheitern lässt, ist erledigt; einer, den jeder Test durchlässt, überlebt." width="560">
+</picture>
+
+`[tool.mutmut]` in `pyproject.toml` legt fest, was sich ändert. `only_mutate` nennt sieben Module der Spielregeln: die Checkouts, die Punkte der Darts, die Doubles, die Positionen, Cricket, den Bot und die Partyspiele. Die meisten Tests prüfen sie direkt, und ein Lauf auf den vier Kernen eines Runners erreicht alle ihre rund 2.650 Mutanten. Das X01-Übungsspiel, die Trainingsspiele und die Turniere kämen mit etwa 5.900 Mutanten dazu, mehr, als die 320 Minuten eines Laufs erlauben; sie folgen, sobald der Workflow den Lauf in Teile aufteilt. Ein erster Lauf auf einem Entwicklungsrechner im Oktober 2026 hat 2.375 der 2.654 Mutanten erledigt, 89 %; die meisten der 279 Überlebenden stecken in den Partyspielen, im Bot und in den Positionen.
+
+Drei Regeln halten die Tests unter mutmut richtig, und `tests/test_mutation.py` prüft jede davon:
+
+- **Die Kopie.** mutmut führt die Tests in seiner Kopie des Repositorys aus, `mutants/`, mit dem geänderten Code, den Dateien und Ordnern aus `also_copy` und ohne Git. Ein Test, der den Code als Text liest, etwa die Prüfung, dass jede Meldung ausgelöst wird, oder Git fragt, scheitert dort bei jedem Mutanten. Er bekommt `@pytest.mark.mutation_unsafe`, und `tests/conftest.py` überspringt ihn, sobald mutmut `MUTANT_UNDER_TEST` gesetzt hat. Eine neue Datei oder ein neuer Ordner oben im Repository, den ein Test liest, kommt in `also_copy`.
+- **Die Caches.** mutmut führt zuerst jeden Test einmal aus und merkt sich die Funktionen, die er aufruft, dann die Tests jedes Mutanten in einem Prozess, der von diesem ersten Lauf abzweigt. Ein Ergebnis, das ein functools-Cache dort behalten hat, stammt aus dem Code ohne den Mutanten und verdeckt ihn, und ein Test, der sein Ergebnis im Cache findet, wird nicht gemerkt. Deshalb leert die Fixture `fresh_caches` vor jedem Test die Caches der Integration, etwa die von `checkout.py`; das kostet keine Zeit, die sich zeigt.
+- **Die Parameter.** mutmut führt einen Test im selben Prozess wieder und wieder aus, einmal für jeden Mutanten, so wie eine IDE einen gescheiterten Test noch einmal ausführt. Ein Test, der seine `parametrize`-Werte ändert, bekäme beim nächsten Mal die geänderten, deshalb scheitert er sofort. Ändere stattdessen eine Kopie (`setup = dict(setup)`).
+
+Selbst ausführen lassen sie sich unter Linux oder macOS (mutmut nutzt fork, unter Windows also in WSL oder Docker):
+
+```sh
+.venv/bin/pip install --require-hashes --no-deps -r .github/mutation-requirements.txt
+.venv/bin/mutmut run "custom_components.autodarts.checkout*"
+.venv/bin/mutmut results
+.venv/bin/mutmut show <Name eines Mutanten>
+```
+
+mutmut behält seine Kopie und seine Ergebnisse in `mutants/`; lösche den Ordner danach.

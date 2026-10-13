@@ -1,11 +1,16 @@
 """Home Assistant fixtures for Autodarts."""
 
 import asyncio
+import functools
 import logging
 import os
 import re
 import shutil
+import sys
+from collections.abc import Callable
 from pathlib import Path
+from types import ModuleType
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -28,6 +33,81 @@ custom_components.__path__.insert(
 settings.register_profile("local", deadline=None)
 settings.register_profile("ci", deadline=None, derandomize=True, print_blob=True)
 settings.load_profile("ci" if os.environ.get("CI") else "local")
+
+# The modules of the integration, by the names they are imported with.
+INTEGRATION = Path(__file__).parents[1] / "custom_components" / "autodarts"
+MODULES = tuple(
+    "custom_components.autodarts" + ("" if path.stem == "__init__" else f".{path.stem}")
+    for path in sorted(INTEGRATION.glob("*.py"))
+)
+
+
+def pytest_collection_modifyitems(config, items):
+    """Under mutmut the tests marked mutation_unsafe are skipped.
+
+    mutmut runs the tests in its copy of the repository, `mutants/`, which has no Git
+    and holds every mutant in the code: a test that reads the code as text or asks
+    Git fails there whatever the mutant. mutmut sets MUTANT_UNDER_TEST in each of its
+    runs, to an empty value in the run without a mutant.
+    """
+    if "MUTANT_UNDER_TEST" not in os.environ:
+        return
+    skip = pytest.mark.skip(reason="fails in mutmut's copy of the repository")
+    for item in items:
+        if item.get_closest_marker("mutation_unsafe"):
+            item.add_marker(skip)
+
+
+@pytest.hookimpl(wrapper=True)
+def pytest_runtest_call(item):
+    """A test that changes its parameters fails.
+
+    Run again in the same process, as mutmut runs every test once per mutant and an
+    IDE runs a failed test again, it would get the changed ones.
+    """
+    callspec = getattr(item, "callspec", None)
+    before = repr(callspec.params) if callspec else ""
+    result = yield
+    if callspec and repr(callspec.params) != before:
+        pytest.fail(
+            f"The test changed its parameters from {before} to {callspec.params!r}; "
+            "change a copy of them instead.",
+            pytrace=False,
+        )
+    return result
+
+
+@functools.cache
+def module_caches(module: ModuleType) -> tuple[Callable[..., Any], ...]:
+    """The functions with a functools cache that a module defines, such as those
+    of the checkouts."""
+    return tuple(
+        value
+        for value in vars(module).values()
+        if not isinstance(value, type)
+        and callable(getattr(value, "cache_clear", None))
+        and getattr(value, "__module__", None) == module.__name__
+    )
+
+
+def clear_integration_caches() -> None:
+    """Empties the functools caches of every module of the integration loaded so far."""
+    for name in MODULES:
+        if (module := sys.modules.get(name)) is not None:
+            for cached in module_caches(module):
+                cached.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def fresh_caches():
+    """Every test starts with the caches of the integration empty, as if it ran alone.
+
+    mutmut runs the tests of a mutant in a process that it forks from the one that
+    ran all the tests first: a result cached there, from the code without the mutant,
+    would hide the mutant. And while that first run records which tests call a
+    function, a test that finds its result in the cache would not count.
+    """
+    clear_integration_caches()
 
 
 @pytest.fixture
