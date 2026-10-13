@@ -526,6 +526,29 @@
           "singles": "Singles-Training"
         }
       },
+      "practice_in_mode": {
+        "name": "Übungsspiel In-Modus",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_out_mode": {
+        "name": "Übungsspiel Out-Modus",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_bull_mode": {
+        "name": "Übungsspiel Bull-Modus",
+        "state": {
+          "25_50": "25/50",
+          "50_50": "50/50"
+        }
+      },
       "weekly_report_day": {
         "name": "Tag des Wochenberichts",
         "state": {
@@ -582,6 +605,9 @@
       },
       "practice_start": {
         "name": "Übungsspiel Startpunkte Spieler {number}"
+      },
+      "practice_max_rounds": {
+        "name": "Übungsspiel maximale Runden"
       },
       "practice_count_up_rounds": {
         "name": "Übungsspiel Count-Up-Runden"
@@ -889,7 +915,7 @@
       "message": "Teams spielen von den Startpunkten der Spieler 1 und 2, ein Wert pro Team. Gib höchstens zwei Werte an."
     },
     "unwinnable_start": {
-      "message": "Startpunkte von 3 lassen sich mit Double-In und Double-Out nicht auschecken: Das einzige Eröffnungs-Double, D1, lässt 1 übrig. Wähle andere Startpunkte, oder schalte Double-In oder Double-Out aus."
+      "message": "Startpunkte von 3 lassen sich mit Double- oder Master-In und Double- oder Master-Out nicht auschecken, außer beide sind Master: Die einzigen Darts, die eröffnen, D1 und T1, lassen 1 übrig oder enden auf einem Triple. Wähle andere Startpunkte oder andere In- und Out-Modi."
     },
     "export_limit": {
       "message": "In der letzten Stunde wurden {count} Exporte geschrieben, mehr schreibt die Integration nicht. Versuche es später erneut."
@@ -1045,13 +1071,29 @@
           "name": "Sätze zum Sieg",
           "description": "Sätze, die das Match gewinnen."
         },
+        "in_mode": {
+          "name": "In-Modus",
+          "description": "Wie X01-Legs beginnen: mit jedem Dart (Straight), mit einem Double oder dem Bullseye (Double) oder mit einem Double, einem Triple oder dem Bullseye (Master)."
+        },
+        "out_mode": {
+          "name": "Out-Modus",
+          "description": "Wie X01-Legs enden: auf jedem Dart (Straight), auf einem Double oder dem Bullseye (Double) oder auf einem Double, einem Triple oder dem Bullseye (Master)."
+        },
+        "bull_mode": {
+          "name": "Bull-Modus",
+          "description": "Was das Bull in X01 zählt: 25 das Single-Bull und 50 das Bullseye (25/50) oder 50 beide (50/50). Nur das Bullseye zählt als Double."
+        },
+        "max_rounds": {
+          "name": "Maximale Runden",
+          "description": "Runden, nach denen die niedrigste Restpunktzahl ein X01-Leg gewinnt, 1 bis 50; bei Gleichstand geht es Runde um Runde weiter. 0 spielt ohne Grenze."
+        },
         "double_out": {
           "name": "Double-Out",
-          "description": "X01-Legs enden auf einem Double oder dem Bullseye."
+          "description": "Ersetzt durch den Out-Modus: an ist Double, aus ist Straight. X01-Legs enden auf einem Double oder dem Bullseye."
         },
         "double_in": {
           "name": "Double-In",
-          "description": "X01-Legs beginnen mit einem Double oder dem Bullseye."
+          "description": "Ersetzt durch den In-Modus: an ist Double, aus ist Straight. X01-Legs beginnen mit einem Double oder dem Bullseye."
         },
         "bull_off": {
           "name": "Ausbullen",
@@ -1375,6 +1417,19 @@
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Singles-Training"
+      }
+    },
+    "x01_mode": {
+      "options": {
+        "straight": "Straight",
+        "double": "Double",
+        "master": "Master"
+      }
+    },
+    "bull_mode": {
+      "options": {
+        "25_50": "25/50",
+        "50_50": "50/50"
       }
     },
     "export_format": {

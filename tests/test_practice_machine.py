@@ -26,8 +26,10 @@ from custom_components.autodarts.practice import (
     MAX_PLAYERS,
     MAX_SETS,
     OPTIONS,
+    X01_RULES,
     PracticeGame,
 )
+from custom_components.autodarts.scoring import BULL_MODES, MODES, STRAIGHT
 from custom_components.autodarts.training import TrainingSession, segments
 
 from .local_helpers import dart
@@ -45,6 +47,16 @@ BEDS = [
 POSITIONS = st.one_of(
     st.none(),
     st.tuples(st.floats(-0.1, 0.1), st.floats(-0.1, 0.1)),
+)
+# Round limits short enough to end legs, and none.
+ROUNDS = [0, 0, 1, 2, 3]
+RULES = st.fixed_dictionaries(
+    {
+        "in_mode": st.sampled_from(MODES),
+        "out_mode": st.sampled_from(MODES),
+        "bull_mode": st.sampled_from(BULL_MODES),
+        "max_rounds": st.sampled_from(ROUNDS),
+    }
 )
 
 
@@ -76,10 +88,13 @@ class PracticeMachine(RuleBasedStateMachine):
         bull_off=st.booleans(),
         teams=st.booleans(),
         starts=st.lists(st.sampled_from(STARTS), min_size=4, max_size=4),
+        rules=RULES,
     )
-    def start(self, kind, players, legs, sets, bull_off, teams, starts) -> None:
+    def start(self, kind, players, legs, sets, bull_off, teams, starts, rules) -> None:
         self.game.bull_off = bull_off
         self.game.teams = teams
+        for key, value in rules.items():
+            self.game.set_rule(key, value)
         for index, start in enumerate(starts):
             self.game.set_start(index, start)
         self.game.set_players(players)
@@ -197,7 +212,9 @@ class PracticeMachine(RuleBasedStateMachine):
         self._track()
 
     @rule(
-        change=st.sampled_from(["option", "format", "game", "leg", "start", "rounds"]),
+        change=st.sampled_from(
+            ["option", "rule", "format", "game", "leg", "start", "rounds"]
+        ),
         option=st.sampled_from(OPTIONS),
         enabled=st.booleans(),
         kind=st.sampled_from(KINDS),
@@ -205,11 +222,19 @@ class PracticeMachine(RuleBasedStateMachine):
         sets=st.integers(0, MAX_SETS + 1),
         players=st.integers(0, MAX_PLAYERS + 1),
         start=st.sampled_from([*STARTS, 1, 1002]),
+        name=st.sampled_from(X01_RULES),
+        rules=RULES,
     )
-    def change(self, change, option, enabled, kind, legs, sets, players, start) -> None:
+    def change(
+        self, change, option, enabled, kind, legs, sets, players, start, name, rules
+    ) -> None:
         """A rule, the format, the game or a new leg, as the entities set them."""
         game = self.game
-        if change == "option":
+        if change == "rule":
+            # As the coordinator does: but for the Out mode, a rule starts anew.
+            if game.set_rule(name, rules[name]) and name != "out_mode":
+                game.new_match()
+        elif change == "option":
             # As the coordinator does: double in, the bull-off and teams start anew.
             game.set_option(option, enabled)
             if option in ("double_in", "bull_off", "teams"):
@@ -272,14 +297,17 @@ class PracticeMachine(RuleBasedStateMachine):
             assert won == (players > 1 and score["sets"] == game.sets_to_win)
             if snapshot["game"] in GAMES:
                 assert 0 <= score["remaining"] <= score["start"]
-                # Every leg can still be won: nobody stands on 1 with double out.
-                open_leg = winner is None and snapshot["double_out"]
+                # Every leg can still be won: nobody stands on 1 with double or
+                # master out.
+                open_leg = winner is None and snapshot["out_mode"] != STRAIGHT
                 assert not (open_leg and score["remaining"] == 1)
-                # Nothing is left for the winners, or for a checkout on the board.
+                # Nothing is left for the winners, but those of a round limit,
+                # or for a checkout on the board.
                 checkout = snapshot["won"] and partners(
                     snapshot["player"], score["player"]
                 )
-                assert (score["remaining"] == 0) == (won or checkout)
+                limited = bool(game.legs and game.legs[0].get("rounds"))
+                assert (score["remaining"] == 0) == (won and not limited or checkout)
             elif snapshot["game"] in CRICKET_GAMES:
                 assert len(score["marks"]) == len(snapshot["numbers"])
                 assert all(0 <= mark <= 3 for mark in score["marks"])
@@ -338,6 +366,24 @@ class PracticeMachine(RuleBasedStateMachine):
                 assert player.match_points >= player.points
             for key in ("scores_100", "scores_140", "scores_180"):
                 assert getattr(tally, key) >= getattr(player, key)
+
+    @invariant()
+    def the_round_limit_ends_a_leg_unless_the_lowest_score_is_a_tie(self) -> None:
+        """Past the last round, a complete round leaves sides that share the
+        lowest score; the leg goes on until one side alone has it."""
+        game = self.game
+        players = len(game.players)
+        if not game.game or not game.max_rounds or game.winner is not None:
+            return
+        if game.leg_visits < game.max_rounds * players or game.leg_visits % players:
+            return
+        lowest = min(player.remaining for player in game.players)
+        sides = {
+            tuple(game._side(index))
+            for index, player in enumerate(game.players)
+            if player.remaining == lowest
+        }
+        assert len(sides) > 1
 
     @invariant()
     def a_drill_keeps_its_results(self) -> None:

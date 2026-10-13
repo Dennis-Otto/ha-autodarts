@@ -35,7 +35,12 @@ test("the practice view reads the remaining score sensor", () => {
       legsToWin: 1,
       setsToWin: 1,
       opened: true,
-      doubleOut: true,
+      inMode: "straight",
+      outMode: "double",
+      bullMode: "25_50",
+      maxRounds: 0,
+      round: null,
+      limit: null,
       visit: [],
       scores: [],
     }
@@ -45,9 +50,27 @@ test("the practice view reads the remaining score sensor", () => {
     attributes: { checkout: "<b> D16", bust: true, darts: "x", double_out: false, visit: ["T20", 5, null, "S1"] },
   });
   assert.deepEqual(
-    [bust.route, bust.bust, bust.darts, bust.average, bust.game, bust.doubleOut, bust.visit],
-    [["D16"], true, 0, null, null, false, ["T20", "S1"]]
+    [bust.route, bust.bust, bust.darts, bust.average, bust.game, bust.outMode, bust.visit],
+    [["D16"], true, 0, null, null, "straight", ["T20", "S1"]]
   );
+  // The X01 rules, and the leg the round limit decided last; double in from before the modes.
+  const ruled = practiceView({
+    state: "132",
+    attributes: {
+      in_mode: "master",
+      out_mode: "master",
+      bull_mode: "50_50",
+      max_rounds: 10,
+      round: 3,
+      legs: [{ rounds: 10, ended: "2026-10-14T20:00:00", name: "Alex" }, { rounds: 9 }],
+    },
+  });
+  assert.deepEqual(
+    [ruled.inMode, ruled.outMode, ruled.bullMode, ruled.maxRounds, ruled.round, ruled.limit],
+    ["master", "master", "50_50", 10, 3, { ended: "2026-10-14T20:00:00", name: "Alex" }]
+  );
+  const older = practiceView({ state: "40", attributes: { double_in: true, out_mode: "triple", legs: [{ checkout: 40 }] } });
+  assert.deepEqual([older.inMode, older.outMode, older.limit], ["double", "double", null]);
   assert.deepEqual(practiceView({ state: "0", attributes: { won: true, checkout: null } }).route, []);
 });
 
@@ -108,6 +131,7 @@ test("the game settings offer the practice controls and player names, the live v
     entity("number.board_sets", "practice_sets"),
     entity("button.board_new_leg", "practice_new_leg"),
     entity("button.board_new_match", "practice_new_match"),
+    entity("select.board_out_mode", "practice_out_mode"),
     entity("switch.board_double_out", "practice_double_out"),
     entity("text.board_player_1", "practice_player"),
     entity("text.board_player_2", "practice_player"),
@@ -138,7 +162,7 @@ test("the game settings offer the practice controls and player names, the live v
         "number.board_players",
         "number.board_legs",
         "number.board_sets",
-        "switch.board_double_out",
+        "select.board_out_mode",
         "button.board_new_leg",
         "button.board_new_match",
       ],

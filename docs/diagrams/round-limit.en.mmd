@@ -1,0 +1,15 @@
+flowchart TB
+  accTitle: How a leg with a round limit ends
+  accDescr: A dart that checks out wins the leg at any time. Otherwise, once every player has thrown the last round, the one player or team with the lowest score wins the leg; on a tie, the players throw another round.
+  VISIT["A visit is booked"] --> CHECKOUT{"Did a dart<br/>check out?"}
+  CHECKOUT -- "yes" --> WON["Game shot:<br/>the leg is won"]
+  CHECKOUT -- "no" --> ROUND{"Is the last round<br/>complete?"}
+  ROUND -- "no" --> NEXT["The next player throws"]
+  ROUND -- "yes" --> LOWEST{"One player or team<br/>alone on the lowest score?"}
+  LOWEST -- "yes" --> LIMIT["Round limit: the lowest<br/>score wins the leg"]
+  LOWEST -- "no, a tie" --> EXTRA["Another round:<br/>the play-off"]
+  EXTRA --> NEXT
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class WON,LIMIT done
+  class EXTRA warn

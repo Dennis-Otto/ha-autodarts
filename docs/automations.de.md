@@ -153,6 +153,8 @@ Lass die Kalibrierungstaste leer, wenn die Board-Einstellung *Beim Start kalibri
 | Bust | `No score` | Wird gesagt, wenn ein Dart die Aufnahme überwirft. |
 | Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Wird gesagt, wenn ein Dart ein Leg gewinnt, das nicht das Match entscheidet; im Team-Match mit dem Namen des Teams. |
 | Match won | `Game shot, and the match, {{ team or who }}!` | Wird gesagt, wenn ein Dart das Match entscheidet; im Team-Match mit dem Namen des Teams. |
+| Leg won on the round limit | `Round limit, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Wird gesagt, wenn die letzte Runde eines X01-Legs mit [Rundengrenze](games.de.md#x01) ohne Checkout endet und die niedrigste Restpunktzahl ein Leg gewinnt, das nicht das Match entscheidet, mit `rounds` und dem Rest des Gewinners in `remaining`. |
+| Match won on the round limit | `Round limit, and the match{{ ', ' ~ (team or who) if team or who }}!` | Wird gesagt, wenn die Rundengrenze das Match entscheidet. |
 | Bull-off throw | leer | Wird gesagt, wenn der nächste Spieler zum Ausbullen wirft, etwa `{{ who }}, throw for the bull`. Der erste Spieler des Ausbullens wird nicht aufgerufen. Leer nutzt den Text von *Next player*. |
 | Bull-off won | leer | Wird gesagt, wenn das Ausbullen entscheidet, wer beginnt, zusammen mit der ersten Ansage des Matches, etwa `{{ who }} to throw first. Game on!`. Leer bleibt stumm. |
 | Word for a player without a name | `Player` | Ergibt „Player 2“ in einem Match ohne Namen. |
@@ -318,6 +320,7 @@ Die Texte des Übungs-Callers sind Vorlagen mit diesen Variablen:
 | `remaining` | Der Rest |
 | `checkout` | Der Weg, wenn ein Checkout möglich ist, etwa `T20 T20 BULL`; bei *Leg won* die ausgecheckten Punkte, etwa `121` |
 | `darts`, `average` | Darts und 3-Dart-Average des Legs, bei *Leg won* |
+| `rounds` | Die Runden eines Legs, das die [Rundengrenze](games.de.md#x01) entschieden hat, bei *Leg won on the round limit* und *Match won on the round limit*, mit dem Rest des Gewinners in `remaining`; `0` bei einem Checkout |
 | `points` | Punkte bei den Cricket- und Partyspielen; Schläge beim Golf, Runs beim Baseball. Killer zählt keine Punkte: Seine Ereignisse bringen die `lives` des Spielers mit und ob er `killer` ist, etwa `trigger.to_state.attributes.lives` |
 | `target` | Das nächste Ziel eines Partyspiels, etwa `20`, `D` oder `D16`; das Loch beim Golf und das Inning beim Baseball |
 | `leave`, `setup` | Wo kein Checkout möglich ist: der Rest, den ein [Stellwurf](entities.de.md#stellwürfe) stellt, etwa `32`, und seine Darts, etwa `T20 T20 S17`; sonst leer |
@@ -334,6 +337,8 @@ Zum Beispiel:
 | Bust | `Überworfen` |
 | Leg won | `Game shot und das Leg{{ ' für ' ~ (team or who) if team or who }}!` |
 | Match won | `Game shot und das Match für {{ team or who }}!` |
+| Leg won on the round limit | `Rundengrenze, das Leg geht an {{ team or who }} mit {{ remaining }} Rest!` |
+| Match won on the round limit | `Rundengrenze, das Match geht an {{ team or who }}!` |
 | Bull-off throw | `{{ who }}, dein Wurf aufs Bull` |
 | Bull-off won | `{{ who }} beginnt. Game on!`, oder `{{ who }} gewinnt das Ausbullen{{ ' mit ' ~ (distance \| round \| int) ~ ' Millimetern' if distance is number }}` |
 | Word for a player without a name | `Spieler` |

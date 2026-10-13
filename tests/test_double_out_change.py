@@ -18,7 +18,7 @@ def test_double_out_switched_on_while_a_player_stands_on_1_waits_for_the_next_le
     events = throw(game, "S1")
     assert events[0][0] == "leg_won" and events[0][1]["double_out"] is False
     # The next leg is played with double out.
-    assert game.double_out is True and game.double_out_next is None
+    assert game.double_out is True and game.out_mode_next is None
     assert game.snapshot()["double_out"] is True
     game.players[0].remaining = 21
     assert throw(game, "S20") == [("bust", {**PLAYER_1, "remaining": 21})]
@@ -31,20 +31,20 @@ def test_double_out_switched_off_during_a_leg_also_waits():
     assert game.setting("double_out") is False and game.double_out is True
     # Switching back before the leg ends leaves nothing to change.
     game.set_option("double_out", True)
-    assert game.double_out_next is None and game.setting("double_out") is True
+    assert game.out_mode_next is None and game.setting("double_out") is True
     game.set_option("double_out", False)
     game.new_leg()
-    assert game.double_out is False and game.double_out_next is None
+    assert game.double_out is False and game.out_mode_next is None
 
 
 def test_double_out_applies_at_once_before_the_first_dart_and_between_matches():
     game = playing(301)
     game.set_option("double_out", False)
-    assert game.double_out is False and game.double_out_next is None
+    assert game.double_out is False and game.out_mode_next is None
     # A dart on the board before it counts starts the leg as well.
     game.track([dart("S5")])
     game.set_option("double_out", True)
-    assert game.double_out is False and game.double_out_next is True
+    assert game.double_out is False and game.out_mode_next == "double"
     game.play(301)
     assert game.double_out is True
     # A finished match, Cricket and the training games have no leg to keep.

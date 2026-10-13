@@ -526,6 +526,29 @@
           "singles": "Entrenamiento de simples"
         }
       },
+      "practice_in_mode": {
+        "name": "Modo de entrada de la partida",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_out_mode": {
+        "name": "Modo de salida de la partida",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_bull_mode": {
+        "name": "Modo de bull de la partida",
+        "state": {
+          "25_50": "25/50",
+          "50_50": "50/50"
+        }
+      },
       "weekly_report_day": {
         "name": "Día del informe semanal",
         "state": {
@@ -582,6 +605,9 @@
       },
       "practice_start": {
         "name": "Puntuación inicial del jugador {number} de la partida"
+      },
+      "practice_max_rounds": {
+        "name": "Rondas máximas de la partida"
       },
       "practice_count_up_rounds": {
         "name": "Rondas de Count-Up de la partida"
@@ -889,7 +915,7 @@
       "message": "Los equipos juegan con las puntuaciones iniciales de los jugadores 1 y 2, una por equipo. Indica como máximo dos puntuaciones iniciales."
     },
     "unwinnable_start": {
-      "message": "Una puntuación inicial de 3 no se puede cerrar con double in y double out: el único doble de apertura, D1, deja 1. Elige otra puntuación inicial, o desactiva el double in o el double out."
+      "message": "Una puntuación inicial de 3 no se puede cerrar con entrada y salida double o master, salvo que ambas sean master: los únicos dardos que abren, D1 y T1, dejan 1 o terminan en un triple. Elige otra puntuación inicial u otros modos de entrada y salida."
     },
     "export_limit": {
       "message": "En la última hora se escribieron {count} exportaciones, el máximo de la integración. Inténtalo de nuevo más tarde."
@@ -1045,13 +1071,29 @@
           "name": "Sets para ganar",
           "description": "Sets necesarios para ganar el partido."
         },
+        "in_mode": {
+          "name": "Modo de entrada",
+          "description": "Cómo empiezan los legs de X01: con cualquier dardo (straight), con un doble o el bullseye (double), o con un doble, un triple o el bullseye (master)."
+        },
+        "out_mode": {
+          "name": "Modo de salida",
+          "description": "Cómo terminan los legs de X01: con cualquier dardo (straight), en un doble o el bullseye (double), o en un doble, un triple o el bullseye (master)."
+        },
+        "bull_mode": {
+          "name": "Modo de bull",
+          "description": "Lo que vale el bull en X01: 25 el bull exterior y 50 el bullseye (25/50), o 50 ambos (50/50). Solo el bullseye cuenta como doble."
+        },
+        "max_rounds": {
+          "name": "Rondas máximas",
+          "description": "Rondas tras las que la puntuación más baja gana un leg de X01, de 1 a 50; un empate sigue ronda a ronda. 0 juega sin límite."
+        },
         "double_out": {
           "name": "Double out",
-          "description": "Los legs de X01 terminan en un doble o en el bullseye."
+          "description": "Sustituido por el modo de salida: activado es double, desactivado es straight. Los legs de X01 terminan en un doble o en el bullseye."
         },
         "double_in": {
           "name": "Double in",
-          "description": "Los legs de X01 empiezan con un doble o con el bullseye."
+          "description": "Sustituido por el modo de entrada: activado es double, desactivado es straight. Los legs de X01 empiezan con un doble o con el bullseye."
         },
         "bull_off": {
           "name": "Bull-off",
@@ -1375,6 +1417,19 @@
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Entrenamiento de simples"
+      }
+    },
+    "x01_mode": {
+      "options": {
+        "straight": "Straight",
+        "double": "Double",
+        "master": "Master"
+      }
+    },
+    "bull_mode": {
+      "options": {
+        "25_50": "25/50",
+        "50_50": "50/50"
       }
     },
     "export_format": {

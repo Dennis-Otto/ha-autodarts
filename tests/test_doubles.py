@@ -9,6 +9,7 @@ from custom_components.autodarts.doubles import (
     aimed_at,
 )
 from custom_components.autodarts.practice import PracticeGame
+from custom_components.autodarts.scoring import DOUBLE
 
 from .local_helpers import dart, throw
 
@@ -50,7 +51,7 @@ def test_a_double_is_preferred_only_when_it_is_a_strong_one():
     # is never hit, so the usual routes stay.
     stats.record([("D1", False)] * 10 + [("D20", True)] * 5 + [("D20", False)] * 4)
     assert stats.preferred() == () and stats.snapshot()["favourite"] is None
-    assert checkout(62, 3, True, stats.preferred()) == checkout(62) == ("T10", "D16")
+    assert checkout(62, 3, DOUBLE, stats.preferred()) == checkout(62) == ("T10", "D16")
     # Once D20 has its attempts, it leads; D1 never does.
     stats.record([("D20", False)])
     assert stats.preferred() == ("D20",)
@@ -62,9 +63,9 @@ def test_a_double_is_preferred_only_when_it_is_a_strong_one():
 
 def test_preferred_doubles_rank_first_among_equal_routes():
     assert checkout(70) == ("T18", "D8")
-    assert checkout(70, 3, True, ("D20",)) == ("T10", "D20")
+    assert checkout(70, 3, DOUBLE, ("D20",)) == ("T10", "D20")
     # Fewer darts still come first.
-    assert checkout(40, 3, True, ("D8",)) == ("D20",)
+    assert checkout(40, 3, DOUBLE, ("D8",)) == ("D20",)
 
 
 def test_x01_drills_and_bobs_record_darts_at_doubles():

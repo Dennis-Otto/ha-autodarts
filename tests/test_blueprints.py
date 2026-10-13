@@ -550,6 +550,25 @@ async def test_blueprints_follow_the_real_board_events(
     ]
     assert (len(light), len(celebrate), len(snapshots)) == shown
 
+    # A round limit of one round decides the match without a checkout: the
+    # lowest score wins, and the caller names the winner.
+    heard = len(speak)
+    with patch.object(coordinator.client, "get_state", side_effect=unchanged_board):
+        await coordinator.async_start_game(
+            301,
+            names=["Dennis", "Lea"],
+            legs=1,
+            sets=1,
+            bull_off=False,
+            teams=False,
+            bot_level=0,
+            start_scores=[],
+            max_rounds=1,
+        )
+        await visit(hass, coordinator, S1, S1, S1)
+        await visit(hass, coordinator, T20, S1, S1)
+    assert spoken(speak)[heard:][-1] == "Round limit, and the match, Lea!"
+
     # Whatever a blueprint reads is in the events it listens to.
     for path in PATHS:
         kinds = listened(path)
@@ -828,6 +847,34 @@ async def test_practice_caller_names_the_team_of_a_team_match(hass):
         "Game shot, and the leg, Alex & Kim!",
         "Game shot, and the leg, Kim!",
         "Game shot, and the match, Alex & Kim!",
+    ]
+
+
+async def test_practice_caller_names_the_winner_of_the_round_limit(hass):
+    calls = async_mock_service(hass, "tts", "speak")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "practice_caller",
+        {**VOICE, "round_limit_leg_message": "{{ who }} wins on {{ remaining }}"},
+    )
+    match = {"game": 501, "players": 2, "player": 1, "name": "Lea", "checkout": None}
+    teams = {"game": 501, "players": 4, "player": 3, "name": "Kim", "team": 1}
+    await fire_all(
+        hass,
+        [
+            ("leg_won", {**match, "rounds": 10, "remaining": 132, "match": False}),
+            ("leg_won", {**match, "rounds": 10, "remaining": 40, "match": True}),
+            ("match_won", {**match, "rounds": 10}),
+            ("match_won", {**teams, "team_name": "Alex & Kim", "rounds": 3}),
+            ("leg_won", {**match, "name": None, "players": 1, "match": False}),
+        ],
+    )
+    assert spoken(calls) == [
+        "Lea wins on 132",
+        "Round limit, and the match, Lea!",
+        "Round limit, and the match, Alex & Kim!",
+        "Game shot, and the leg!",
     ]
 
 

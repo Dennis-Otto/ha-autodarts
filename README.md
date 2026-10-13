@@ -37,7 +37,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
     <td width="55%" valign="top">
       <h3>Play</h3>
       <ul>
-        <li>X01 from 101 to 1001 with double out, double in and the checkout route after every dart</li>
+        <li>X01 from 101 to 1001 with straight, double and master in and out, the 50/50 bull, a round limit and the checkout route after every dart</li>
         <li>Cricket, Cut-Throat Cricket, Tactics and Wild Mouse on a chalkboard</li>
         <li>Party games for up to eight: Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up</li>
         <li>Matches of up to four players with legs and sets, two teams of two, handicap start scores and a bull-off, and a summary of every match</li>

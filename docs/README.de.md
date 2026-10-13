@@ -24,7 +24,7 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
     <td width="55%" valign="top">
       <h3>Spielen</h3>
       <ul>
-        <li>X01 von 101 bis 1001 mit Double-Out, Double-In und dem Checkout-Weg nach jedem Dart</li>
+        <li>X01 von 101 bis 1001 mit Straight, Double und Master In und Out, dem 50/50-Bull, einer Rundengrenze und dem Checkout-Weg nach jedem Dart</li>
         <li>Cricket, Cut-Throat Cricket, Tactics und Wild Mouse auf einer Kreidetafel</li>
         <li>Partyspiele für bis zu acht: Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up</li>
         <li>Matches mit bis zu vier Spielern, Legs und Sätzen, zwei Teams zu zwei, Startpunkten als Handicap und Ausbullen, und eine Zusammenfassung jedes Matches</li>

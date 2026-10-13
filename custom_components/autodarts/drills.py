@@ -19,7 +19,7 @@ from homeassistant.util import dt as dt_util
 from .checkout import checkout, setup
 from .doubles import aimed_at, double_of
 from .doubles import hits as hits_double
-from .scoring import BULL, VISIT_DARTS, evaluate_visit, is_double, score
+from .scoring import BULL, DOUBLE, VISIT_DARTS, evaluate_visit, is_double, score
 from .training import hit_key
 
 DRILLS = (
@@ -70,7 +70,7 @@ def _double_attempts(start: int, darts: list[dict[str, Any]]) -> list[tuple[str,
     those at a score one double finishes, up to a bust or the finish."""
     attempts: list[tuple[str, bool]] = []
     running = start
-    for dart in darts[: evaluate_visit(start, darts, True)[2]]:
+    for dart in darts[: evaluate_visit(start, darts, DOUBLE)[2]]:
         if double := aimed_at(running):
             attempts.append((double, hits_double(dart, double)))
         running -= score(dart)
@@ -412,7 +412,7 @@ class CheckoutDrill(Drill):
         return _double_attempts(self.start, self._thrown())
 
     def _book(self) -> list[tuple[str, dict[str, Any]]]:
-        remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), True)
+        remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), DOUBLE)
         self.visits += 1
         self.attempt_darts += darts
         if outcome != "won" and self.visits < CHECKOUT_VISITS:
@@ -456,7 +456,7 @@ class CheckoutDrill(Drill):
         }
 
     def snapshot(self) -> dict[str, Any]:
-        remaining, outcome, _ = evaluate_visit(self.start, self._thrown(), True)
+        remaining, outcome, _ = evaluate_visit(self.start, self._thrown(), DOUBLE)
         thrown = len(self._thrown())
         return {
             **super().snapshot(),
@@ -568,7 +568,7 @@ class CatchDrill(Drill):
         return [] if self.finished else _double_attempts(self.start, self._thrown())
 
     def _book(self) -> list[tuple[str, dict[str, Any]]]:
-        remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), True)
+        remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), DOUBLE)
         self.visits += 1
         # A bust ends the visit: a finish can only come with the next one.
         self.target_darts += VISIT_DARTS if outcome == "bust" else darts
@@ -633,7 +633,7 @@ class CatchDrill(Drill):
                 "checkouts": self.checkouts,
                 "darts": self.darts,
             }
-        remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), True)
+        remaining, outcome, darts = evaluate_visit(self.start, self._thrown(), DOUBLE)
         won = outcome == "won"
         thrown = len(self._thrown())
         return {

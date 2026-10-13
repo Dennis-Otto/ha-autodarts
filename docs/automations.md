@@ -151,6 +151,8 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | Bust | `No score` | Said when a dart busts the visit. |
 | Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Said when a dart wins a leg that does not decide the match; in a team match with the team's name. |
 | Match won | `Game shot, and the match, {{ team or who }}!` | Said when a dart decides the match; in a team match with the team's name. |
+| Leg won on the round limit | `Round limit, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Said when the last round of an X01 leg with a [round limit](games.md#x01) ends without a checkout and the lowest score wins a leg that does not decide the match, with `rounds` and the `remaining` score of the winner. |
+| Match won on the round limit | `Round limit, and the match{{ ', ' ~ (team or who) if team or who }}!` | Said when the round limit decides the match. |
 | Bull-off throw | empty | Said when the next player throws for the bull, for example `{{ who }}, throw for the bull`. The first player of the bull-off is not called. Empty uses the *Next player* message. |
 | Bull-off won | empty | Said when the bull-off decides who starts, in one call with the first call of the match, for example `{{ who }} to throw first. Game on!`. Empty stays silent. |
 | Word for a player without a name | `Player` | Makes "Player 2" in a match without names. |
@@ -318,6 +320,7 @@ The practice caller's messages are templates with these variables:
 | `remaining` | The score left |
 | `checkout` | The route when a checkout is possible, for example `T20 T20 BULL`; in *Leg won*, the score checked out, for example `121` |
 | `darts`, `average` | Darts and 3-dart average of the leg, in *Leg won* |
+| `rounds` | The rounds of a leg the [round limit](games.md#x01) decided, in *Leg won on the round limit* and *Match won on the round limit*, with the winner's score left in `remaining`; `0` for a checkout |
 | `points` | Points in the Cricket and party games; strokes in Golf, runs in Baseball. Killer keeps no points: its events carry the player's `lives` and whether they are a `killer`, for example `trigger.to_state.attributes.lives` |
 | `target` | The next target of a party game, for example `20`, `D` or `D16`; the hole in Golf and the inning in Baseball |
 | `leave`, `setup` | Where no checkout is possible: the score a [setup](entities.md#setup-hints) leaves, for example `32`, and its darts, for example `T20 T20 S17`; empty otherwise |
@@ -334,6 +337,7 @@ For example:
 | Bust | `No score` |
 | Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}! {{ checkout }} checkout in {{ darts }} darts.` |
 | Match won | `Game shot, and the match, {{ team or who }}!` |
+| Leg won on the round limit | `After {{ rounds }} rounds, the leg goes to {{ team or who }} on {{ remaining }}!` |
 | Bull-off throw | `{{ who }}, throw for the bull` |
 | Bull-off won | `{{ who }} to throw first. Game on!`, or `{{ who }} wins the bull{{ ' by ' ~ distance ~ ' millimeters' if distance is number }}` |
 | Word for a player without a name | `Player` |
