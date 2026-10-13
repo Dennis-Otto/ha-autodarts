@@ -30,6 +30,25 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **The README reads well on a phone:** on GitHub, in its app and in HACS, every feature had a narrow column of text next to a tiny picture. Each feature now has a few short points with its picture at full width below them, the quick start in three steps follows the first animation, and the longer lists, the blueprints and the guides open with a tap. The overviews of the documentation on GitHub, in English and German, follow the same layout (#268, #270).
 
+## [1.12.3](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.2...v1.12.3) (2026-10-13)
+
+
+### Bug fixes
+
+* accept every bust entered as a visit score, and never offer an impossible score on the keypad ([#232](https://github.com/Dennis-Otto/ha-autodarts/issues/232)) ([eecede6](https://github.com/Dennis-Otto/ha-autodarts/commit/eecede672a3aec92c2cbfd12b99b75404d3a89f8))
+* **blueprints:** auto detection and board alert keep their waits when you save them again ([#265](https://github.com/Dennis-Otto/ha-autodarts/issues/265)) ([91489c0](https://github.com/Dennis-Otto/ha-autodarts/commit/91489c02a308c5cfa3c7fbf85c5e03e81de983ed))
+* **blueprints:** the light show keeps a stopped board stopped, and auto detection and board alert survive restarts ([#252](https://github.com/Dennis-Otto/ha-autodarts/issues/252)) ([8dfc92a](https://github.com/Dennis-Otto/ha-autodarts/commit/8dfc92a311e2159730d04e98ae8f0f980901f634))
+* **cards:** stop the countdown and the history stream of a card that left the page ([#241](https://github.com/Dennis-Otto/ha-autodarts/issues/241)) ([bf2aab6](https://github.com/Dennis-Otto/ha-autodarts/commit/bf2aab622016044067ea0e3aa5b5c55884008c8c))
+* keep statistics true after an undo, a pass, an 8-player party match and duplicate names ([#231](https://github.com/Dennis-Otto/ha-autodarts/issues/231)) ([5b40f44](https://github.com/Dennis-Otto/ha-autodarts/commit/5b40f44b073f79385676efeec5b99165f9f296b5))
+* unloading a board no longer brings back its repair issues ([#236](https://github.com/Dennis-Otto/ha-autodarts/issues/236)) ([ae047e1](https://github.com/Dennis-Otto/ha-autodarts/commit/ae047e1d966c84177d7d0c49e28f218b50dad38c))
+* **voice:** understand 'and the bot', say why a sentence was refused, and test the voice blueprints in pytest ([#253](https://github.com/Dennis-Otto/ha-autodarts/issues/253)) ([92a20b1](https://github.com/Dennis-Otto/ha-autodarts/commit/92a20b122ebaccfd62412dd5d3594536652c1862))
+
+
+### Performance
+
+* **cards:** send the card module compressed, a quarter of its size ([#243](https://github.com/Dennis-Otto/ha-autodarts/issues/243)) ([a35a5a3](https://github.com/Dennis-Otto/ha-autodarts/commit/a35a5a3b33fe5966298b8e4ec8d027cede94c137))
+* update only the entities a board message changes, without Home Assistant's private coordinator internals ([#266](https://github.com/Dennis-Otto/ha-autodarts/issues/266)) ([7ca30ec](https://github.com/Dennis-Otto/ha-autodarts/commit/7ca30ec0070482a73dcf4e4fbf4fcad24e4b5079))
+
 ## [1.12.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.1...v1.12.2) (2026-10-12)
 
 ### Fixed
