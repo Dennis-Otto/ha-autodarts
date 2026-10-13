@@ -1911,10 +1911,15 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._refresh("manual")
 
     async def async_enter_visit(
-        self, points: int, darts: int | None = None, at_double: int | None = None
+        self,
+        points: int,
+        darts: int | None = None,
+        at_double: int | None = None,
+        checkout: bool = False,
     ) -> None:
-        """An X01 visit entered as its score: the darts entered by hand in the
-        visit so far give way to it, and the next player throws."""
+        """An X01 visit entered as its score, or with `checkout` as the checkout
+        of what is left: the darts entered by hand in the visit so far give way to
+        it, and the next player throws."""
         if not self.practice.manual_entry:
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="manual_entry_off"
@@ -1928,7 +1933,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 translation_domain=DOMAIN, translation_key="visit_on_board"
             )
         try:
-            visit = self.practice.score_visit(points, darts, at_double)
+            visit = self.practice.score_visit(points, darts, at_double, checkout)
         except VisitRefused as err:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,

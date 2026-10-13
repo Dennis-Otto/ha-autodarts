@@ -5,9 +5,15 @@ import { test } from "node:test";
 
 import { $, $$, READY, loadCards, makeHass, mount, text, update, withLanguage } from "./dom.mjs";
 
-const { checkoutDarts, scoreAnswer, scoreEntry, scoreHint, gameView } = await loadCards();
+const { checkoutDarts, scorable, scoreAnswer, scoreEntry, scoreHint, scoreReady, gameView } = await loadCards();
 
-const T = (key) => ({ checkout: "Checkout", bust: "Bust", setup_leave: "leaves {leave}" })[key] ?? key;
+const T = (key) =>
+  ({ checkout: "Checkout", bust: "Bust", setup_leave: "leaves {leave}", score_impossible: "No visit scores {score}" })[key] ??
+  key;
+// The totals no three darts make.
+const IMPOSSIBLE = [163, 166, 169, 172, 173, 175, 176, 178, 179];
+// And those whose first dart that scores can't open a leg that waits for a double.
+const UNOPENED = [1, 159, 162, 165, 168, 171, 174, 177, 180];
 const ENTRY = "01JSCORE";
 const practice = (remaining, attributes = {}) => ({
   "sensor.practice_remaining": {
@@ -44,26 +50,40 @@ const type = (card, digits) => {
 // -- helpers ---------------------------------------------------------------------------
 
 test("the fewest darts of a checkout follow the doubles", () => {
-  assert.equal(checkoutDarts(40, true), 1);
-  assert.equal(checkoutDarts(50, true), 1);
-  assert.equal(checkoutDarts(41, true), 2);
-  assert.equal(checkoutDarts(100, true), 2);
-  assert.equal(checkoutDarts(170, true), 3);
-  for (const bogey of [159, 162, 163, 165, 166, 168, 169, 171, 1]) assert.equal(checkoutDarts(bogey, true), null, bogey);
+  const darts = (from, doubleOut = true, opening = false) => checkoutDarts({ from, doubleOut, opening });
+  assert.equal(darts(40), 1);
+  assert.equal(darts(50), 1);
+  assert.equal(darts(41), 2);
+  assert.equal(darts(100), 2);
+  assert.equal(darts(170), 3);
+  for (const bogey of [159, 162, 163, 165, 166, 168, 169, 171, 1]) assert.equal(darts(bogey), null, bogey);
   // Without double out, any bed ends the leg.
-  assert.equal(checkoutDarts(57, false), 1);
-  assert.equal(checkoutDarts(180, false), 3);
-  assert.equal(checkoutDarts(179, false), null);
+  assert.equal(darts(57, false), 1);
+  assert.equal(darts(180, false), 3);
+  assert.equal(darts(179, false), null);
+  // A leg that waits for a double opens with the first dart that scores.
+  assert.equal(darts(101, true, true), 3);
+  assert.equal(darts(100, true, true), 2);
+  assert.equal(darts(170, true, true), null);
+  assert.equal(darts(57, false, true), 2);
+  assert.equal(darts(180, false, true), null);
 });
 
 test("the score view is there in an X01 leg being played", () => {
   const view = (states) => gameView((name) => ({ practice: states["sensor.practice_remaining"] })[name]);
-  assert.deepEqual(scoreEntry(view(practice(321, { remaining: 300, visit_from: 361 }))), { from: 361, doubleOut: true });
+  assert.deepEqual(scoreEntry(view(practice(321, { remaining: 300, visit_from: 361 }))), {
+    from: 361,
+    doubleOut: true,
+    opening: false,
+  });
   // Without the visit's start, its remaining score.
   assert.deepEqual(scoreEntry(view({ "sensor.practice_remaining": { state: "40", attributes: { game: 501, double_out: false } } })), {
     from: 40,
     doubleOut: false,
+    opening: false,
   });
+  // A leg with double in waits for a double until the player opens it.
+  assert.deepEqual(scoreEntry(view(practice(501, { opened: false }))), { from: 501, doubleOut: true, opening: true });
   assert.equal(scoreEntry(view(practice(0, { winner: 1 }))), null);
   assert.equal(scoreEntry({ mode: "cricket" }), null);
   assert.equal(scoreEntry({ mode: "idle" }), null);
@@ -78,6 +98,46 @@ test("a score says what it leaves, a checkout or a bust", () => {
   // No dart finishes 159, so scoring it busts.
   assert.equal(scoreHint({ from: 159, doubleOut: true }, 159, T), "Bust");
   assert.equal(scoreHint({ from: 40, doubleOut: false }, 39, T), "leaves 1");
+  // From 32, 100 busts though no visit throws all of it before the bust.
+  assert.equal(scoreHint({ from: 32, doubleOut: true }, 100, T), "Bust");
+});
+
+test("only the nine totals no three darts make are no visit's score", () => {
+  const scores = [...Array(182).keys()];
+  const refused = (entry) => scores.filter((points) => !scorable(entry, points));
+  const entry = { from: 501, doubleOut: true, opening: false };
+  assert.deepEqual(refused(entry), [...IMPOSSIBLE, 181]);
+  for (const points of IMPOSSIBLE) {
+    assert.equal(scoreHint(entry, points, T), `No visit scores ${points}`);
+    assert.equal(scoreReady(entry, String(points)), false);
+  }
+  // Neither as what is left nor as a bust, with double out or without.
+  assert.equal(scoreHint({ from: 179, doubleOut: false }, 179, T), "No visit scores 179");
+  assert.equal(scoreHint({ from: 32, doubleOut: true }, 163, T), "No visit scores 163");
+  assert.deepEqual(refused({ from: 32, doubleOut: true }), [...IMPOSSIBLE, 181]);
+  // Every other score goes in, once something is typed.
+  assert.ok(scores.filter((points) => points <= 180 && !IMPOSSIBLE.includes(points)).every((points) => scoreReady(entry, String(points))));
+  assert.equal(scoreReady(entry, ""), false);
+});
+
+test("a score the integration refuses from where the player stands is no visit's score either", () => {
+  const scores = [...Array(181).keys()];
+  const refused = (entry) => scores.filter((points) => !scorable(entry, points));
+  // Without double out, the first treble 20 of 180 checks out 60 or 120 before it busts.
+  for (const from of [60, 120]) {
+    assert.deepEqual(refused({ from, doubleOut: false }), [...IMPOSSIBLE, 180]);
+    assert.equal(scoreHint({ from, doubleOut: false }, 180, T), "No visit scores 180");
+    assert.equal(scoreReady({ from, doubleOut: false }, "180"), false);
+  }
+  assert.equal(scoreHint({ from: 61, doubleOut: false }, 180, T), "Bust");
+  // While the leg waits for a double, what its first dart that scores can't open is refused.
+  const unopened = { from: 501, doubleOut: true, opening: true };
+  assert.deepEqual(refused(unopened), [...IMPOSSIBLE, ...UNOPENED].sort((a, b) => a - b));
+  assert.equal(scoreHint(unopened, 180, T), "No visit scores 180");
+  assert.equal(scoreHint(unopened, 170, T), "leaves 331");
+  // From 170 with double in, no visit opens and checks out, so all of it busts.
+  assert.equal(scoreHint({ from: 170, doubleOut: true, opening: true }, 170, T), "Bust");
+  assert.equal(scoreHint({ from: 101, doubleOut: true, opening: true }, 101, T), "Checkout");
 });
 
 test("a score asks for the darts of a checkout and the darts at a double where they can differ", () => {
@@ -85,16 +145,18 @@ test("a score asks for the darts of a checkout and the darts at a double where t
   assert.deepEqual(scoreAnswer(entry, 100), { ask: "darts", choices: [2, 3] });
   assert.deepEqual(scoreAnswer(entry, 100, { darts: 2 }), { ask: "doubles", choices: [1, 2] });
   assert.deepEqual(scoreAnswer(entry, 100, { darts: 3, doubles: 2 }), {
-    data: { score: 100, darts: 3, darts_at_double: 2 },
+    data: { score: 100, checkout: true, darts: 3, darts_at_double: 2 },
   });
   // A checkout of three darts asks only for the darts at a double, one of one dart for nothing.
   assert.deepEqual(scoreAnswer({ from: 170, doubleOut: true }, 170), { ask: "doubles", choices: [1, 2, 3] });
   assert.deepEqual(scoreAnswer({ from: 40, doubleOut: true }, 40, { darts: 1 }), {
-    data: { score: 40, darts: 1, darts_at_double: 1 },
+    data: { score: 40, checkout: true, darts: 1, darts_at_double: 1 },
   });
   // Without double out, a checkout asks for its darts only.
-  assert.deepEqual(scoreAnswer({ from: 60, doubleOut: false }, 60, { darts: 1 }), { data: { score: 60, darts: 1 } });
-  assert.deepEqual(scoreAnswer({ from: 180, doubleOut: false }, 180), { data: { score: 180, darts: 3 } });
+  assert.deepEqual(scoreAnswer({ from: 60, doubleOut: false }, 60, { darts: 1 }), { data: { score: 60, checkout: true, darts: 1 } });
+  assert.deepEqual(scoreAnswer({ from: 180, doubleOut: false }, 180), { data: { score: 180, checkout: true, darts: 3 } });
+  // A leg that waits for a double asks only for the darts that can open it and check out.
+  assert.deepEqual(scoreAnswer({ from: 101, doubleOut: true, opening: true }, 101), { ask: "doubles", choices: [1, 2, 3] });
   // A visit that left a double in reach asks for the darts at it, others for nothing.
   assert.deepEqual(scoreAnswer({ from: 60, doubleOut: true }, 20), { ask: "doubles", choices: [0, 1, 2, 3] });
   assert.deepEqual(scoreAnswer({ from: 60, doubleOut: true }, 20, { doubles: 2 }), {
@@ -176,7 +238,7 @@ test("a checkout asks for its darts and the darts at a double, and Cancel goes b
   assert.equal(text(card, ".score-line.ask"), "Darts at a double");
   tap(card, '[data-pad="answer"][data-value="2"]');
   assert.deepEqual(actions(hass), [
-    ["enter_visit", { config_entry_id: ENTRY, score: 100, darts: 2, darts_at_double: 2 }],
+    ["enter_visit", { config_entry_id: ENTRY, score: 100, checkout: true, darts: 2, darts_at_double: 2 }],
   ]);
   // A visit that leaves a double in reach asks for the darts at it.
   card.hass = update(hass, practice(60));
@@ -214,6 +276,31 @@ test("a keyboard types the score", () => {
   assert.equal(text(card, ".score-line .typed"), "0");
 });
 
+test("a score no visit makes keeps OK and Enter off, and any bust goes in", () => {
+  const hass = board(practice(32));
+  const card = mount("autodarts-scoreboard-card", hass);
+  const key = (name) => $(card, ".pad-area").dispatchEvent(new window.KeyboardEvent("keydown", { key: name, bubbles: true }));
+  tap(card, '.pad [data-pad="score"]');
+  // Enter waits for a score, as OK does.
+  key("Enter");
+  assert.deepEqual(actions(hass), []);
+  for (const points of IMPOSSIBLE) {
+    type(card, String(points));
+    assert.equal(text(card, ".score-line .muted"), `No visit scores ${points}`);
+    assert.equal($(card, '[data-pad="enter"]').disabled, true);
+    key("Enter");
+    for (const _ of String(points)) tap(card, '[data-pad="erase"]');
+  }
+  assert.deepEqual(actions(hass), []);
+  // 100 from 32 busts, and goes in as any score: the darts at the double in reach first.
+  type(card, "100");
+  assert.equal(text(card, ".score-line .muted"), "Bust – the score stays");
+  assert.equal($(card, '[data-pad="enter"]').disabled, false);
+  key("Enter");
+  tap(card, '[data-pad="answer"][data-value="1"]');
+  assert.deepEqual(actions(hass), [["enter_visit", { config_entry_id: ENTRY, score: 100, darts_at_double: 1 }]]);
+});
+
 test("the score view leaves with an X01 leg, waits for the bot and speaks German", () => {
   const hass = board();
   const card = mount("autodarts-scoreboard-card", hass);
@@ -239,6 +326,8 @@ test("the score view leaves with an X01 leg, waits for the bot and speaks German
   assert.equal(text(german, ".pad .section-label"), "Punkte der Aufnahme");
   assert.equal(text(german, '[data-pad="enter"]'), "OK");
   assert.equal($(german, '[data-pad="erase"]').getAttribute("aria-label"), "Letzte Ziffer löschen");
+  type(german, "179");
+  assert.equal(text(german, ".score-line .muted"), "Keine Aufnahme ergibt 179");
 });
 
 // -- the live card ----------------------------------------------------------------------
@@ -250,7 +339,9 @@ test("the live card's keypad takes the score of a visit too", () => {
   type(card, "40");
   tap(card, '[data-pad="enter"]');
   tap(card, '[data-pad="answer"][data-value="1"]');
-  assert.deepEqual(actions(hass), [["enter_visit", { config_entry_id: ENTRY, score: 40, darts: 1, darts_at_double: 1 }]]);
+  assert.deepEqual(actions(hass), [
+    ["enter_visit", { config_entry_id: ENTRY, score: 40, checkout: true, darts: 1, darts_at_double: 1 }],
+  ]);
   // A board without a config entry sends the action without one.
   const alone = mount("autodarts-card", makeHass({ states: { "sensor.local_status": "manual", ...practice(501), ...visit() } }));
   tap(alone, '.pad [data-pad="score"]');

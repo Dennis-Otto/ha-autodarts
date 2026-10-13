@@ -1546,8 +1546,7 @@ class Scenario:
             ("Doppel 8", "Double 8, 400 left."),
             (
                 "Checkout with two darts",
-                "No visit scores 416 from 416 with these rules and darts. "
-                "Check the score.",
+                "No visit checks out 416 with these rules and darts.",
             ),
             ("miss", "Miss, 400 left."),
         ]

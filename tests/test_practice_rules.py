@@ -1,10 +1,13 @@
 """Rules of the practice game: the bull-off dart, teams with the bot, an
-aborted leg, the Cricket target, Cut-Throat, Killer, the bot's level and
-routes, and player names."""
+aborted leg, a visit entered as its score, the Cricket target, Cut-Throat,
+Killer, the bot's level and routes, and player names."""
 
+import itertools
 import json
 
 import pytest
+from hypothesis import example, given
+from hypothesis import strategies as st
 
 from custom_components.autodarts.checkout import checkout
 from custom_components.autodarts.cricket import (
@@ -12,8 +15,9 @@ from custom_components.autodarts.cricket import (
     next_target,
     play_visit,
 )
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.autodarts.practice import PracticeGame, VisitRefused
 from custom_components.autodarts.profiles import clean_name, valid_name
+from custom_components.autodarts.scoring import SCORE_BEDS, score
 
 from .local_helpers import dart, throw
 from .test_party import game_of, kinds
@@ -132,6 +136,59 @@ def test_a_new_leg_takes_back_what_the_aborted_leg_added_to_the_match():
     throw(cricket, "T20", "T19")
     cricket.new_leg()
     assert cricket.players[0].match_marks == 0 and cricket.players[0].match_darts == 0
+
+
+# -- a visit entered as its score ---------------------------------------------------
+
+# Every score three darts make; 163, 166, 169, 172, 173, 175, 176, 178 and 179 are
+# not among them.
+VISIT_TOTALS = frozenset(
+    sum(map(score, visit))
+    for visit in itertools.combinations_with_replacement(SCORE_BEDS, 3)
+)
+
+
+@given(st.integers(2, 250), st.integers(0, 180), st.booleans())
+@example(32, 100, True)
+@example(2, 180, True)
+@example(159, 159, True)
+@example(170, 170, True)
+@example(41, 40, True)
+@example(60, 180, False)
+@example(501, 179, True)
+def test_a_visit_score_counts_as_the_rules_say(start, points, double_out):
+    """What is left checks out where a finish exists and busts otherwise; more
+    busts, as does 1 left with double out, and less leaves the rest. Only a score
+    no three darts make is refused, and without double out a 180, whose trebles
+    20 check out 60 or 120 before it could bust."""
+    game = PracticeGame()
+    game.set_players(2)
+    game.set_option("double_out", double_out)
+    game.play(501)
+    game.players[0].remaining = start
+    try:
+        darts = game.score_visit(points)
+    except VisitRefused as refused:
+        assert refused.key == "visit_impossible"
+        assert points not in VISIT_TOTALS or (
+            not double_out and points == 180 and start in (60, 120)
+        )
+        return
+    assert points in VISIT_TOTALS and sum(map(score, darts)) == points
+    events = []
+    for count in range(1, len(darts) + 1):
+        events += game.track(darts[:count])
+    events += game.finish_visit()
+    kinds = [kind for kind, _ in events]
+    if points == start and checkout(start, 3, double_out):
+        assert "leg_won" in kinds
+        return
+    # The turn passes, with the score of a bust as it was.
+    assert game.current == 1
+    if points >= start or (double_out and start - points == 1):
+        assert "bust" in kinds and game.players[0].remaining == start
+    else:
+        assert "bust" not in kinds and game.players[0].remaining == start - points
 
 
 # -- Cricket and Cut-Throat ---------------------------------------------------------
