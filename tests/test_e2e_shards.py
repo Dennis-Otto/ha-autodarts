@@ -1,8 +1,8 @@
 """The browser test in shards, checked without a browser.
 
-CI runs the steps of tests/e2e/browser.py in four shards side by side: two runners for
-each Home Assistant version, each with two workers (BROWSER_SHARD and BROWSER_WORKERS
-of browser.sh). shards.py decides which steps a shard runs. browser.py imports
+CI runs the steps of tests/e2e/browser.py in four shards side by side: three runners for
+each Home Assistant version, one with two workers and two with one (BROWSER_SHARD and
+BROWSER_WORKERS of browser.sh). shards.py decides which steps a shard runs. browser.py imports
 Playwright, so its list of steps is read here from its source, and browser.sh runs
 here with a stand-in for docker that only notes what it is asked to do.
 """
@@ -452,20 +452,79 @@ WORKFLOW = yaml.safe_load(
 )
 
 
-def test_the_browser_jobs_of_each_home_assistant_run_every_shard_once():
+def groups_of(shard: str, workers: int) -> list[list[int]]:
+    """The groups that each worker of a job runs, split as browser.sh splits them:
+    worker w of BROWSER_SHARD=k/n takes the shard (k - 1) * W + w of n * W."""
+    part, parts = shards.shard(shard)
+    count = parts * workers
+    return [
+        [
+            group
+            for group in range(1, shards.GROUPS + 1)
+            if (group - 1) % count == (part - 1) * workers + worker - 1
+        ]
+        for worker in range(1, workers + 1)
+    ]
+
+
+def browser_jobs() -> list[dict]:
+    """The parts of the matrix of the jobs "browser", one runner of a version each."""
     job = WORKFLOW["jobs"]["browser"]
-    runners = job["strategy"]["matrix"]["runner"]
-    workers = int(job["env"]["BROWSER_WORKERS"])
-    assert runners == list(range(1, len(runners) + 1))
-    assert job["env"]["BROWSER_SHARD"] == f"${{{{ matrix.runner }}}}/{len(runners)}"
-    # Every runner's workers take shards of their own, which together are the groups.
-    assert len(runners) * workers == shards.GROUPS
+    assert job["env"]["BROWSER_SHARD"] == "${{ matrix.part.shard }}"
+    assert job["env"]["BROWSER_WORKERS"] == "${{ matrix.part.workers }}"
+    return job["strategy"]["matrix"]["part"]
 
 
-def test_the_nightly_beta_runs_every_shard():
+def test_groups_of_follows_browser_sh():
+    assert groups_of("1/1", 1) == [[1, 2, 3, 4]]
+    assert groups_of("1/1", 2) == [[1, 3], [2, 4]]
+    assert groups_of("1/2", 2) == [[1], [2]]
+    assert groups_of("2/2", 2) == [[3], [4]]
+    assert groups_of("3/4", 1) == [[3]]
+
+
+def test_the_browser_jobs_of_each_home_assistant_run_every_group_once():
+    ran = [
+        group
+        for part in browser_jobs()
+        for worker in groups_of(part["shard"], int(part["workers"]))
+        for group in worker
+    ]
+    assert sorted(ran) == list(range(1, shards.GROUPS + 1))
+    # The names of the jobs say which groups they run.
+    for part in browser_jobs():
+        groups = sorted(
+            group
+            for worker in groups_of(part["shard"], int(part["workers"]))
+            for group in worker
+        )
+        words = " and ".join(str(group) for group in groups)
+        assert part["name"] == ("group " if len(groups) == 1 else "groups ") + words
+
+
+def safari_group() -> int:
+    (group,) = [step.group for step in STEPS if step.name == "Safari on an iPhone"]
+    return group
+
+
+def test_safari_shares_its_runner_with_no_other_browser():
+    """WebKit failed to load Home Assistant's own scripts while a second browser opened
+    nine screens beside it on the same four cores, so its job runs one worker."""
+    (part,) = [
+        part
+        for part in browser_jobs()
+        if any(
+            safari_group() in worker
+            for worker in groups_of(part["shard"], int(part["workers"]))
+        )
+    ]
+    assert int(part["workers"]) == 1
+
+
+def test_the_nightly_beta_runs_every_group_with_one_browser():
     job = WORKFLOW["jobs"]["beta"]
     browser = [step for step in job["steps"] if "browser.sh" in step.get("run", "")]
     (step,) = browser
     env = {**job.get("env", {}), **step.get("env", {})}
     assert "BROWSER_SHARD" not in env
-    assert int(env["BROWSER_WORKERS"]) >= 1
+    assert int(env.get("BROWSER_WORKERS", 1)) == 1

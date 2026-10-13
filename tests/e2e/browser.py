@@ -3393,9 +3393,10 @@ class Board:
 def steps(browser: Browser, playwright: Playwright) -> list[Step]:
     """Every step in its order, each in one of four groups of about the same seconds,
     which browser-steps-table.md lists after a run. In CI the groups 1 and 2 share a
-    runner, and so do 3 and 4 (BROWSER_WORKERS=2): the steady heights, the longest
-    step, run beside the short steps of group 1, and Safari's WebKit beside the
-    others, so that both runners have about the same work."""
+    runner (BROWSER_WORKERS=2): the steady heights, the longest step, run beside the
+    short steps of group 1. The groups 3 and 4 have a runner each, so that Safari's
+    WebKit in group 4 shares the CPU with no other browser: it failed to load the
+    scripts of Home Assistant while every screen size opened nine screens beside it."""
     return [
         # Both read the demo as demo.py left it: the training card its session before
         # any control changes it, the live card the visit on the board.

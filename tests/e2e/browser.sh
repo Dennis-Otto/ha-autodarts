@@ -6,7 +6,8 @@
 # BROWSER_WORKERS=W runs that part on W demo instances side by side, each with a
 # browser and a shard of its own: worker w takes the shard (k - 1) * W + w of n * W.
 # So BROWSER_WORKERS=4 runs every step on one machine in about a quarter of the time,
-# and BROWSER_SHARD=2/2 with BROWSER_WORKERS=2, as in CI, the shards 3/4 and 4/4.
+# and BROWSER_SHARD=1/2 with BROWSER_WORKERS=2, as on the first runner in CI, the
+# shards 1/4 and 2/4.
 # A shard that fails names the step that failed and the command that runs it alone,
 # in GitHub Actions also as an annotation of the job and in its summary.
 

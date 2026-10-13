@@ -136,7 +136,7 @@ The steps take five minutes in a row, too long for one job. Each step belongs to
 ```sh
 BROWSER_WORKERS=4 bash tests/e2e/browser.sh                   # every step, four shards at once
 BROWSER_SHARD=2/4 bash tests/e2e/browser.sh                   # one shard: the steady heights
-BROWSER_SHARD=2/2 BROWSER_WORKERS=2 bash tests/e2e/browser.sh # the second runner in CI: 3/4 and 4/4
+BROWSER_SHARD=1/2 BROWSER_WORKERS=2 bash tests/e2e/browser.sh # the first runner in CI: 1/4 and 2/4
 ```
 
 Every step starts from the board between games, whatever the step before it left: `Board.between_games()` in `browser.py` stops a tournament, turns off the keypad, the game and the teams, sets one player, one leg and one set without the bot, starts the detection, clears the board and waits until Home Assistant shows all of it. It does that through a page of its own that shows no card. A card that showed a game opens its new game screen by itself eight seconds after the game ends, so a game left running would open that screen in the middle of the next step. Only the training card and the live card read the demo as `demo.py` left it, its session and the visit on the board; they come first in group 1, and nothing is reset before them. So every shard, and every step on its own, passes as the whole run does.
@@ -335,22 +335,27 @@ the push. As the check doesn't carry the names of the test jobs, a new oldest
 Home Assistant changes no required check. When a test job fails and the flaky-test
 bot runs it again, the gate runs again with it.
 
-The test jobs run side by side. Three *scenario* jobs run `tests/e2e/run.sh`, on
-Board Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Four *browser* jobs run
-the browser test, two for the current and two for the oldest supported Home Assistant.
-Each browser job pulls the images of Home Assistant and Playwright at once and starts
-two workers, with `BROWSER_SHARD=1/2` or `2/2` and `BROWSER_WORKERS=2`, so the four
-[shards](#the-browser-test-in-shards) of a version run at the same time. A step that
-fails fails only its job, and the flaky-test bot runs only that job and the gate again.
-The job names the shard and the step that failed in an annotation and in its summary,
-with the command that runs the step alone, such as
-`BROWSER_STEPS='steady heights' bash tests/e2e/browser.sh`.
-The nightly beta job runs the scenario and then every group of steps, in two shards
-side by side, `1/2` and `2/2`.
+The test jobs run side by side. Three *scenario* jobs run `tests/e2e/run.sh`, on Board
+Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Six *browser* jobs run the
+browser test, three for the current and three for the oldest supported Home Assistant.
+Each browser job pulls the images of Home Assistant and Playwright at once. The first
+runs two workers, `BROWSER_SHARD=1/2` with `BROWSER_WORKERS=2`, the cards, games and
+forms beside the steady heights; the second runs `BROWSER_SHARD=3/4`, the third
+`BROWSER_SHARD=4/4`, so the four [shards](#the-browser-test-in-shards) of a version run
+at the same time. The touch screens, Safari and accessibility have a runner of their
+own: twice, Safari's WebKit failed to load the scripts of Home Assistant itself while a
+second browser beside it opened the nine screens of *every screen size* at once on the
+four cores of a runner. `tests/test_e2e_shards.py` fails when the job with Safari runs a
+second worker. A step that fails fails only its job, and the flaky-test bot runs only
+that job and the gate again. The job names the shard and the step that failed in an
+annotation and in its summary, with the command that runs the step alone, such as
+`BROWSER_STEPS='steady heights' bash tests/e2e/browser.sh`. The nightly beta job runs
+the scenario and then every group of steps, one after another on one demo instance, for
+the same reason.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/e2e-shards-dark.png">
-  <img src="images/en/e2e-shards-light.png" alt="The end-to-end tests side by side: once the job changes finds something to test, seven test jobs start at the same time. Three run the scenario, for Board Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Four run the browser test, two for the current and two for the oldest supported Home Assistant. Each browser job starts two demo instances, each with a browser and one of the four shards of the steps: the first runner the cards, games and forms, and the steady heights; the second the tablet, every screen size and the dartboard without Autodarts, and the touch screens, Safari and accessibility. The required check e2e waits for all of them." width="640">
+  <img src="images/en/e2e-shards-light.png" alt="The end-to-end tests side by side: once the job changes finds something to test, nine test jobs start at the same time. Three run the scenario, for Board Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Six run the browser test, three for the current and three for the oldest supported Home Assistant, so all four shards of a version run at once, each on a demo instance of its own. The first runner of a version runs two workers, the cards, games and forms beside the steady heights; the second runs the tablet, every screen size and the dartboard without Autodarts; the third runs the touch screens, Safari and accessibility alone, so that Safari's WebKit shares its CPU with no other browser. The required check e2e waits for all of them." width="640">
 </picture>
 
 `tests/test_consistency.py` fails when a compose file mounts, or the browser test

@@ -2,8 +2,8 @@ name: Docker E2E
 
 # The end-to-end tests in Docker: Home Assistant with the integration and a simulated
 # Board Manager (tests/e2e/run.sh, the jobs "scenario"), and the cards in a real
-# browser (browser.sh, the jobs "browser", each running two of the four shards of the
-# steps at once). They all run side by side. Every push to main, every night and every
+# browser (browser.sh, the jobs "browser", each running one or two of the four shards
+# of the steps). They all run side by side. Every push to main, every night and every
 # manual run tests everything. A pull request runs the tests only when it changes what
 # they run or mount; one that changes only the documentation or other workflows skips
 # them. Either way the job "e2e" reports the result, and it is the check that main
@@ -131,11 +131,15 @@ jobs:
           retention-days: 14
 
   # The cards in a real browser, against the current and the oldest supported Home
-  # Assistant: its native card forms and dashboard strategy. Each runner starts two
-  # demo instances, each with a browser and a shard of the steps, so the four shards of
-  # a version run at once (BROWSER_SHARD and BROWSER_WORKERS in tests/e2e/browser.sh).
+  # Assistant: its native card forms and dashboard strategy. The four shards of the
+  # steps of a version run at once, each on a demo instance of its own (BROWSER_SHARD
+  # and BROWSER_WORKERS in tests/e2e/browser.sh), on three runners: the groups 1 and 2
+  # share one, and the groups 3 and 4 have one each. Safari's WebKit, in group 4,
+  # twice failed to load the scripts of Home Assistant itself while a second browser
+  # beside it opened the nine screens of group 3 at once on the four cores of a runner,
+  # so it shares the CPU with no other browser.
   browser:
-    name: browser (${{ matrix.home_assistant.name }}, ${{ matrix.runner }}/2)
+    name: browser (${{ matrix.home_assistant.name }}, ${{ matrix.part.name }})
     needs: changes
     if: needs.changes.outputs.run == 'true'
     runs-on: ubuntu-latest
@@ -149,11 +153,23 @@ jobs:
           - name: current Home Assistant
           - name: Home Assistant 2026.8.0
             oldest: true
-        runner: [1, 2]
+        part:
+          # The cards, games and forms beside the steady heights: two workers.
+          - name: groups 1 and 2
+            shard: 1/2
+            workers: 2
+          # The tablet, every screen size and the dartboard without Autodarts.
+          - name: group 3
+            shard: 3/4
+            workers: 1
+          # The touch screens, Safari and the accessibility check.
+          - name: group 4
+            shard: 4/4
+            workers: 1
     env:
       BOARD_MANAGER: 2
-      BROWSER_SHARD: ${{ matrix.runner }}/2
-      BROWSER_WORKERS: 2
+      BROWSER_SHARD: ${{ matrix.part.shard }}
+      BROWSER_WORKERS: ${{ matrix.part.workers }}
       E2E_ARTIFACTS: ${{ github.workspace }}/e2e-artifacts
     steps:
       - name: Record the network traffic of the job
@@ -246,10 +262,9 @@ jobs:
           node-version: 24
       - name: Install the locked packages of the frontend
         run: npm ci --ignore-scripts
+      # Every group of steps, one after another, so that Safari's WebKit shares the
+      # CPU with no other browser, as in the jobs "browser".
       - name: Check the dashboard cards in a real browser
-        env:
-          # Every group of steps, in two shards side by side: 1/2 and 2/2.
-          BROWSER_WORKERS: 2
         run: bash tests/e2e/browser.sh
       - name: Keep logs and screenshots of a failed run
         if: failure()
