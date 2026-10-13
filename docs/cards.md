@@ -528,3 +528,4 @@ The cards work with a keyboard, with a screen reader and without animations:
 - **Combine:** put the live card and the training card next to each other in a sections view with two columns.
 - **Several boards:** add one card per board and choose the board in each card's editor.
 - **Cached old version:** after an update, the card URL changes automatically. If a browser still shows an old card, reload the page. In the companion app, use *Settings → Companion app → Debugging → Reset frontend cache*.
+- **Download size:** all cards come in one file, compressed to about 150 KB. A browser downloads it on its first visit and after an update and keeps it until the next one, so only the first load of a dashboard waits for it on a slow connection.

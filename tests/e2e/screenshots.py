@@ -2090,13 +2090,17 @@ def device_page(page: Page) -> None:
 
 
 def editor(page: Page) -> None:
-    page.goto(f"{HA}/autodarts-demo/board?edit=1")
-    # The dashboard turns to edit mode once it has loaded, the card drawn its board.
+    page.goto(f"{HA}/autodarts-demo/board")
+    root = f"({find('hui-root')})()[0]"
+    # The dashboard has loaded once the card has drawn its board.
     page.wait_for_function(
-        f"() => ({find('hui-root')})()[0]?.lovelace?.editMode === true"
-        f" && ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
+        f"() => ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
         timeout=60000,
     )
+    # Then it turns to edit mode, as ?edit=1 would. The address alone is not enough:
+    # Home Assistant drops ?edit=1 when the dashboard draws before it knows the user.
+    page.evaluate(f"() => {root}.lovelace.setEditMode(true)")
+    page.wait_for_function(f"() => {root}.lovelace.editMode === true", timeout=15000)
     page.wait_for_timeout(1500)
     page.evaluate(EDIT_CARD)
     # Home Assistant builds the form of the card from getConfigForm.
