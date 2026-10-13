@@ -13,9 +13,10 @@ markers = [
 ]
 
 # The weekly mutation tests (.github/workflows/mutation.yml) with mutmut. They change
-# the modules of the game rules whose roughly 2,800 mutants one run reaches on the four
-# cores of a runner; practice.py, drills.py and tournament.py, with about 5,900 more,
-# join once the run is split into parts. See docs/development.md#mutation-tests.
+# the modules of the game rules whose roughly 2,800 mutants one run should reach on
+# the four cores of a runner; practice.py, drills.py and tournament.py, with about
+# 5,900 more, join once the run is split into parts. See
+# docs/development.md#mutation-tests.
 [tool.mutmut]
 source_paths = ["custom_components"]
 only_mutate = [
@@ -29,7 +30,10 @@ only_mutate = [
 ]
 # mutmut runs the tests in its copy of the repository, mutants/, which gets the
 # integration and every other file and folder of the repository that a test may read.
+# It skips a path that doesn't exist, so the list also names the files that coming
+# blueprint updates add (.bestpractices.json, AGENTS.md, CITATION.cff, CLAUDE.md).
 also_copy = [
+    ".bestpractices.json",
     ".copier-answers.yml",
     ".devcontainer",
     ".editorconfig",
@@ -44,7 +48,10 @@ also_copy = [
     ".python-version",
     ".release-please-manifest.json",
     ".vale.ini",
+    "AGENTS.md",
     "CHANGELOG.md",
+    "CITATION.cff",
+    "CLAUDE.md",
     "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "GOVERNANCE.md",

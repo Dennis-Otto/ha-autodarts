@@ -385,7 +385,8 @@ runs on demand from the Actions tab.
 `[tool.mutmut]` in `pyproject.toml` decides what changes. `only_mutate` lists seven
 modules of the game rules: the checkouts, the scores of the darts, the doubles, the
 positions, Cricket, the bot and the party games. Most tests check them directly, and
-one run on the four cores of a runner reaches all of their roughly 2,800 mutants. The X01
+one run on the four cores of a runner should reach all of their roughly 2,800 mutants,
+in about two hours by the times measured on a development machine. The X01
 practice game, the training games and the tournaments would add about 5,900 mutants,
 more than the 320 minutes of a run allow; they join once the workflow splits the run
 into parts. A first run on a development machine in October 2026 killed 2,503 of the
@@ -401,7 +402,9 @@ each of them:
   Git fails there whatever the mutant. It gets `@pytest.mark.mutation_unsafe`, and
   `tests/conftest.py` skips it whenever mutmut has set `MUTANT_UNDER_TEST`.
   `also_copy` lists every file and folder at the top of the repository that Git
-  tracks, apart from the integration; a test fails when a new one is missing.
+  tracks, apart from the integration, and the files that coming blueprint updates
+  add, because mutmut skips a path that doesn't exist. When a new one is missing, a
+  test fails and names the entries to add.
 - **The caches.** mutmut first runs every test once to record the functions that it
   calls, then runs the tests of each mutant in a process forked from that first run.
   A result that a functools cache kept there comes from the code without the mutant

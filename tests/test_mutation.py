@@ -92,6 +92,27 @@ def test_mutmut_gives_every_test_ten_times_its_time_limit(monkeypatch):
     assert time_limit() == 0
 
 
+@pytest.mark.parametrize(
+    ("marker", "limit"),
+    [
+        (pytest.mark.timeout(60, "thread"), ((600, "thread"), {})),
+        (pytest.mark.timeout(timeout=60), ((600,), {})),
+        (
+            pytest.mark.timeout(timeout=60, method="thread"),
+            ((600,), {"method": "thread"}),
+        ),
+        (pytest.mark.timeout(60, func_only=True), ((600,), {"func_only": True})),
+        # Without a limit of its own a test has the one of pyproject.toml.
+        (pytest.mark.timeout(method="thread"), ((300,), {"method": "thread"})),
+        (pytest.mark.timeout(timeout=None), ((300,), {})),
+    ],
+)
+def test_mutmut_reads_every_form_of_a_time_limit(monkeypatch, marker, limit):
+    monkeypatch.setenv("MUTANT_UNDER_TEST", "stats")
+    closest = collected(marker).get_closest_marker("timeout")
+    assert (closest.args, closest.kwargs) == limit
+
+
 def run(params, test) -> None:
     """Runs a test with these parameters as pytest does, with the check of the
     parameters around it."""
@@ -126,13 +147,15 @@ def test_every_test_starts_with_the_caches_of_the_integration_empty():
     assert [function.cache_info().currsize for function in cached] == [0, 0, 0]
 
 
-def test_mutmut_mutates_and_copies_files_that_exist():
+def test_mutmut_mutates_files_that_exist_and_copies_the_top_of_the_repository():
     assert MUTMUT["source_paths"] == ["custom_components"]
     assert MUTMUT["only_mutate"] == sorted(MUTMUT["only_mutate"])
     for path in MUTMUT["only_mutate"]:
         assert (ROOT / path).is_file(), path
-    for path in MUTMUT["also_copy"]:
-        assert (ROOT / path).exists(), path
+    # also_copy names files and folders at the top of the repository. It may name one
+    # that a blueprint update is about to add: mutmut skips a path that doesn't exist.
+    assert all("/" not in path for path in MUTMUT["also_copy"])
+    assert MUTMUT["also_copy"] == sorted(MUTMUT["also_copy"])
     # mutmut copies the integration as the code it mutates, before the other files.
     assert "custom_components" not in MUTMUT["also_copy"]
     assert "tests" in MUTMUT["also_copy"]
@@ -146,8 +169,14 @@ def test_mutmut_copies_every_file_and_folder_of_the_repository():
         ["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, check=True, text=True
     ).stdout
     top_level = {path.split("/")[0] for path in tracked.split("\0") if path}
-    assert set(MUTMUT["also_copy"]) == top_level - {"custom_components"}
-    assert MUTMUT["also_copy"] == sorted(MUTMUT["also_copy"])
+    missing = sorted(top_level - {"custom_components"} - set(MUTMUT["also_copy"]))
+    assert not missing, (
+        f"Add {', '.join(repr(path) for path in missing)} to also_copy under "
+        "[tool.mutmut] in pyproject.toml, in sorted order. mutmut runs the tests in "
+        "its copy of the repository, mutants/, which holds only the files and folders "
+        "of that list, so a test that reads a missing one fails the weekly mutation "
+        "run before its first mutant."
+    )
 
 
 def decorators(path: Path) -> set[str]:

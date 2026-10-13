@@ -73,9 +73,17 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if item.get_closest_marker("mutation_unsafe"):
             item.add_marker(skip)
+        # pytest-timeout takes the limit as the first argument or as `timeout=`, and
+        # the method after it or as `method=`; the new marker keeps all but the limit.
         limit = item.get_closest_marker("timeout")
-        seconds = float(limit.args[0] if limit else config.getini("timeout") or 0)
-        item.add_marker(pytest.mark.timeout(seconds * MUTMUT_SLOWDOWN), append=False)
+        args, kwargs = (limit.args, dict(limit.kwargs)) if limit else ((), {})
+        seconds = kwargs.pop("timeout", args[0] if args else None)
+        if seconds is None:
+            seconds = config.getini("timeout") or 0
+        item.add_marker(
+            pytest.mark.timeout(float(seconds) * MUTMUT_SLOWDOWN, *args[1:], **kwargs),
+            append=False,
+        )
 
 
 @pytest.hookimpl(wrapper=True)
