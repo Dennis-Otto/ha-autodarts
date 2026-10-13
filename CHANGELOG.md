@@ -4,6 +4,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### Improved
+
+- **The cards load four times faster on a slow connection:** every phone, tablet and browser downloaded the file with all the cards, 590 KB, as it was, on its first visit and after every update of the integration. It now comes compressed, about 150 KB, so the cards and the automatic dashboard appear sooner, above all on a phone with an empty cache or slow Wi-Fi. A browser that asks whether its copy is still current, as Safari does on every reload, gets a short answer instead of the file again.
+
 ### Fixed
 
 - **An undone visit takes back its personal bests:** a 180 that the board misread, that you undid and corrected to 140 stayed your highest visit for good, and an undone checkout kept its highest checkout and fewest darts. The personal bests now go back with the visit, like the statistics and the weekly report; its darts still count for the day, the streak and the daily goal.
