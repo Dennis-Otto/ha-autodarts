@@ -102,7 +102,24 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 
 While working on a screen, `BROWSER_STEPS` runs only the steps whose names begin with one of the given ones, such as `BROWSER_STEPS="touch screens,every screen size,correcting"`, and fails on a name that begins no step; `BROWSER_SCREENS` only some of the sizes, such as `BROWSER_SCREENS=iPhone`. With `BROWSER_SCREENSHOTS=1` the size check keeps a full-page screenshot of every view and size in `tests/e2e/artifacts/screens/`, to look at by eye.
 
-The browser test waits with `page.wait_for_timeout`, never with `time.sleep`: Playwright's sync API handles the events of the browser, such as a request that a route holds back, only inside its own calls, so a sleep stops all of them. The Safari step holds the request of `autodarts-card.js` back for six seconds and then lets it go; `tests/test_e2e_waits.py` checks that no script that drives a browser sleeps.
+After each step the log shows its seconds, such as `Browser step: steady heights (74.2 s)`, and `browser-steps-table.md` among the artifacts lists every step with its seconds; in CI the summary of the job shows that table.
+
+### How the browser test waits
+
+The browser test waits for what it checks, never for a fixed time, which would be too short on a slow runner and too long everywhere else. `tests/e2e/pages.py` holds its waits:
+
+- `show()` opens a view on several pages at once: with a load of the page the first time, and then within the app, as its links do. That keeps the frontend and its websocket and takes a tenth of a second instead of a load of the whole app. It waits until the cards of the view have replaced those of the view before and have drawn.
+- `expect_state()` waits until every page shows the states that a move at the board sets, such as `num_throws` 2 after the second dart of a visit, or `local_status` `takeout_in_progress` while the darts are pulled.
+- `settle()` waits until a page has come to rest: its cards have drawn, no request of the frontend on Home Assistant's websocket waits for its answer, no frame came for 100 ms, no animation of a card is running, and the browser has drawn two frames since. A script that every page runs before Home Assistant's own follows the websocket for it.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/browser-waits-dark.png">
+  <img src="images/en/browser-waits-light.png" alt="How the browser test waits: all screens of a step are open at once. After a move at the board, such as a dart, or a view opened within the app, the test waits until every page shows the state the move sets, such as two darts in the visit, and until every page has settled: its cards drawn, no request on the websocket waiting for its answer, no frame for 100 ms, no animation of a card running, and two frames drawn. Then it checks every page, the layout, the heights or the accessibility, and goes on with the next move. A page that does not get there in time fails the step with what it waited for and what it shows." width="560">
+</picture>
+
+The steps that look at many screens open them side by side and play every game once for all of them: *every screen size* its nine screens, and then the phones in four more languages; *steady heights* its four screens with three views each; *accessibility* its four screens and themes, where axe-core scans all of them at the same time; and *a dartboard without Autodarts* its nine screens. A wait that runs out names what it waited for and what the page showed instead, such as the request that got no answer or the state of each entity.
+
+`tests/test_e2e_waits.py` fails when the browser test waits a fixed time with `page.wait_for_timeout`, except for the two waits it lists with their reasons: a finger that rests on the loupe for 120 ms before it lets go, and the six seconds for which the Safari step holds back `autodarts-card.js`. No script that drives a browser may call `time.sleep`: Playwright's sync API handles the events of the browser, such as a request that a route holds back, only inside its own calls, so a sleep stops all of them.
 
 ### Accessibility check
 

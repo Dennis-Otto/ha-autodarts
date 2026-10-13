@@ -2,9 +2,9 @@
 
 [← Dokumentation](README.de.md)
 
-Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden und wann die End-to-End-Tests laufen.
+Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden, wie der Browsertest dabei wartet und wann die End-to-End-Tests laufen.
 
-**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen)
+**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Wie der Browsertest wartet](#wie-der-browsertest-wartet) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen)
 
 ## Bilder der Dokumentation
 
@@ -54,6 +54,25 @@ Derselbe Vergleich läuft auch lokal; er lässt die neuen Bilder in `docs/images
 LANGUAGES=de bash tests/e2e/visual.sh
 git checkout -- docs/images   # zurück zu den eingecheckten Bildern
 ```
+
+## Wie der Browsertest wartet
+
+Der Browsertest (`tests/e2e/browser.py`) wartet auf das, was er prüft, nie eine feste Zeit, die auf einem langsamen Runner zu kurz und überall sonst zu lang wäre. `tests/e2e/pages.py` enthält seine Wartefunktionen:
+
+- `show()` öffnet eine Ansicht auf mehreren Seiten zugleich: beim ersten Mal mit einem Laden der Seite, danach in der App, wie es ihre Links tun. So bleiben das Frontend und sein Websocket erhalten, und eine Ansicht braucht eine Zehntelsekunde statt eines Ladens der ganzen App. Es wartet, bis die Karten der Ansicht die der Ansicht davor ersetzt und sich gezeichnet haben.
+- `expect_state()` wartet, bis jede Seite die Zustände zeigt, die ein Zug am Board setzt, etwa `num_throws` 2 nach dem zweiten Dart einer Aufnahme oder `local_status` `takeout_in_progress`, während die Darts herausgezogen werden.
+- `settle()` wartet, bis eine Seite zur Ruhe gekommen ist: Ihre Karten haben sich gezeichnet, keine Anfrage des Frontends am Websocket von Home Assistant wartet auf ihre Antwort, 100 ms kam kein Frame, keine Animation einer Karte läuft, und der Browser hat seitdem zwei Frames gezeichnet. Ein Skript, das jede Seite vor dem von Home Assistant ausführt, verfolgt dafür den Websocket.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/browser-waits-dark.png">
+  <img src="images/de/browser-waits-light.png" alt="Wie der Browsertest wartet: Alle Bildschirme eines Schritts sind zugleich offen. Nach einem Zug am Board, etwa einem Dart, oder einer Ansicht, die in der App geöffnet wird, wartet der Test, bis jede Seite den Zustand zeigt, den der Zug setzt, etwa zwei Darts in der Aufnahme, und bis jede Seite zur Ruhe gekommen ist: ihre Karten gezeichnet, keine Anfrage am Websocket wartet auf ihre Antwort, 100 ms kein Frame, keine Animation einer Karte läuft und zwei Frames gezeichnet. Dann prüft er jede Seite, das Layout, die Höhen oder die Barrierefreiheit, und macht mit dem nächsten Zug weiter. Eine Seite, die nicht rechtzeitig dahin kommt, lässt den Schritt mit dem fehlschlagen, worauf sie wartete und was sie zeigt." width="560">
+</picture>
+
+Die Schritte, die viele Bildschirme ansehen, öffnen sie nebeneinander und spielen jedes Spiel einmal für alle: *every screen size* seine neun Bildschirme und danach die Telefone in vier weiteren Sprachen, *steady heights* seine vier Bildschirme mit je drei Ansichten, *accessibility* seine vier Bildschirme und Designs, auf denen axe-core zugleich prüft, und *a dartboard without Autodarts* seine neun Bildschirme. Eine Wartezeit, die abläuft, nennt, worauf sie wartete und was die Seite stattdessen zeigte, etwa die Anfrage ohne Antwort oder den Zustand jeder Entität.
+
+`tests/test_e2e_waits.py` schlägt fehl, wenn der Browsertest mit `page.wait_for_timeout` eine feste Zeit wartet, außer bei den zwei Wartezeiten, die er mit ihren Gründen nennt: ein Finger, der 120 ms auf der Lupe ruht, bevor er loslässt, und die sechs Sekunden, die der Safari-Schritt `autodarts-card.js` zurückhält. Kein Skript, das einen Browser steuert, darf `time.sleep` aufrufen: Die synchrone API von Playwright verarbeitet die Ereignisse des Browsers, etwa eine Anfrage, die eine Route zurückhält, nur in ihren eigenen Aufrufen, also hielte ein Schlaf sie alle an.
+
+Nach jedem Schritt zeigt das Protokoll seine Sekunden, etwa `Browser step: steady heights (74.2 s)`, und `browser-steps-table.md` bei den Artefakten führt jeden Schritt mit seinen Sekunden auf; in der CI zeigt die Zusammenfassung des Jobs diese Tabelle.
 
 ## Prüfung der Barrierefreiheit
 
