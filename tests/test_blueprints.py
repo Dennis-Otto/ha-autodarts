@@ -15,13 +15,14 @@ import pytest
 import voluptuous as vol
 from homeassistant.components.blueprint import models
 from homeassistant.components.blueprint.schemas import BLUEPRINT_SCHEMA
-from homeassistant.core import callback
+from homeassistant.core import CoreState, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.template import Template
+from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 from homeassistant.util.yaml import load_yaml
 from pytest_homeassistant_custom_component.common import (
@@ -30,7 +31,7 @@ from pytest_homeassistant_custom_component.common import (
     async_mock_service,
     get_scheduled_timer_handles,
 )
-from yaml import safe_load
+from yaml import safe_dump, safe_load
 
 from custom_components.autodarts.bot import Bot
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
@@ -111,6 +112,41 @@ async def settle(hass) -> None:
     """Let triggered runs start, or join the queue behind a run that waits."""
     for _ in range(20):
         await asyncio.sleep(0)
+
+
+async def saved(hass, name: str, inputs: dict, note: str = "") -> None:
+    """Save an automation of the blueprint as the automation editor does.
+
+    The first save sets it up; a later one sets it up anew if it changed,
+    which forgets its waiting triggers, and every automation hears the
+    automation_reloaded event.
+    """
+    config = {
+        "automation": [
+            {
+                "id": name,
+                "description": note,
+                "use_blueprint": {"path": f"autodarts/{name}.yaml", "input": inputs},
+            }
+        ]
+    }
+    Path(hass.config.path("configuration.yaml")).write_text(
+        safe_dump(config), encoding="utf-8"
+    )
+    if "automation" in hass.config.components:
+        await hass.services.async_call(
+            "automation", "reload", {"id": name}, blocking=True
+        )
+    else:
+        assert await async_setup_component(hass, "automation", config)
+    await settle(hass)
+
+
+async def reloaded(hass) -> None:
+    """Reload every automation, as saving another one does: unchanged
+    automations keep running, with their waiting triggers."""
+    await hass.services.async_call("automation", "reload", blocking=True)
+    await settle(hass)
 
 
 async def photo_taken(hass, freezer) -> None:
@@ -992,6 +1028,103 @@ async def test_detection_follows_presence(hass):
     ]
 
 
+DETECTION = {
+    "presence": "binary_sensor.dartroom",
+    "detection": "switch.autodarts_detection",
+    "stop_after": {"minutes": 10},
+}
+
+
+async def test_detection_stops_after_a_restart_while_nobody_is_there(hass, freezer):
+    """A restart forgets the waiting for the presence: it starts over."""
+    turned_off = async_mock_service(hass, "switch", "turn_off")
+    hass.set_state(CoreState.not_running)
+    hass.states.async_set("binary_sensor.dartroom", "off")
+    hass.states.async_set("switch.autodarts_detection", "on")
+    await saved(hass, "auto_detection", DETECTION)
+    await hass.async_start()
+    await until_waiting(hass, 600)
+    # Saving another automation meanwhile changes nothing.
+    freezer.tick(timedelta(minutes=1))
+    await reloaded(hass)
+    freezer.tick(timedelta(minutes=8))
+    async_fire_time_changed(hass)
+    await settle(hass)
+    assert not turned_off
+    await pass_time(hass, freezer, 60)
+    assert [call.data["entity_id"] for call in turned_off] == [
+        ["switch.autodarts_detection"]
+    ]
+
+
+async def test_detection_after_a_restart_stays_for_someone_who_arrives(hass, freezer):
+    turned_off = async_mock_service(hass, "switch", "turn_off")
+    hass.set_state(CoreState.not_running)
+    hass.states.async_set("binary_sensor.dartroom", "off")
+    hass.states.async_set("switch.autodarts_detection", "on")
+    await saved(hass, "auto_detection", DETECTION)
+    await hass.async_start()
+    await until_waiting(hass, 600)
+    hass.states.async_set("binary_sensor.dartroom", "on")
+    await hass.async_block_till_done()
+    await pass_time(hass, freezer, 8 * 3600)
+    assert not turned_off
+
+
+async def test_detection_stops_after_its_automation_was_saved(hass, freezer):
+    """Saving the automation sets it up anew; the waiting starts over."""
+    turned_off = async_mock_service(hass, "switch", "turn_off")
+    hass.states.async_set("switch.autodarts_detection", "on")
+    hass.states.async_set("binary_sensor.dartroom", "on")
+    await saved(hass, "auto_detection", DETECTION)
+    freezer.tick(timedelta(minutes=1))
+    hass.states.async_set("binary_sensor.dartroom", "off")
+    await hass.async_block_till_done()
+    freezer.tick(timedelta(minutes=3))
+    await saved(hass, "auto_detection", DETECTION, note="Saved again")
+    await until_waiting(hass, 600)
+    freezer.tick(timedelta(minutes=9))
+    async_fire_time_changed(hass)
+    await settle(hass)
+    assert not turned_off
+    await pass_time(hass, freezer, 60)
+    assert len(turned_off) == 1
+
+
+async def test_detection_started_by_hand_survives_a_reload(hass, freezer):
+    """A detection started while nobody is there keeps running when an
+    automation is saved; a reload that keeps this automation leaves its
+    waiting alone."""
+    turned_off = async_mock_service(hass, "switch", "turn_off")
+    hass.states.async_set("binary_sensor.dartroom", "off")
+    hass.states.async_set("switch.autodarts_detection", "off")
+    await saved(hass, "auto_detection", DETECTION)
+    freezer.tick(timedelta(minutes=1))
+    hass.states.async_set("switch.autodarts_detection", "on")
+    await hass.async_block_till_done()
+    await saved(hass, "auto_detection", DETECTION, note="Saved again")
+    await reloaded(hass)
+    await hass.async_block_till_done()
+    await pass_time(hass, freezer, 8 * 3600)
+    assert not turned_off
+
+    # Someone came and went: the presence decides again.
+    hass.states.async_set("binary_sensor.dartroom", "on")
+    await hass.async_block_till_done()
+    freezer.tick(timedelta(minutes=1))
+    hass.states.async_set("binary_sensor.dartroom", "off")
+    await hass.async_block_till_done()
+    freezer.tick(timedelta(minutes=4))
+    await reloaded(hass)
+    await hass.async_block_till_done()
+    await pass_time(hass, freezer, 5 * 60)
+    assert not turned_off
+    await pass_time(hass, freezer, 60)
+    assert len(turned_off) == 1
+    await pass_time(hass, freezer, 8 * 3600)
+    assert len(turned_off) == 1
+
+
 async def test_board_alert_waits_for_the_grace_period(hass, freezer):
     alerts = async_mock_service(hass, "test", "alert")
     recoveries = async_mock_service(hass, "test", "recovered")
@@ -1055,6 +1188,109 @@ async def test_board_alert_waits_for_the_grace_period(hass, freezer):
     await hass.async_block_till_done()
     assert recoveries[-1].data == {"problem": "offline", "recovered": True}
     assert (len(alerts), len(recoveries)) == (3, 2)
+
+
+ALERT = {
+    "connection": "binary_sensor.board_connection",
+    "camera_problem": "binary_sensor.camera_problem",
+    "alert_actions": [{"action": "test.alert", "data": {"problem": "{{ problem }}"}}],
+    "recovery_actions": [
+        {"action": "test.recovered", "data": {"problem": "{{ problem }}"}}
+    ],
+}
+
+
+async def test_board_alert_for_a_problem_at_startup(hass, freezer):
+    """A restart forgets the grace periods: a problem the board has when Home
+    Assistant starts alerts after one, and its all-clear follows."""
+    alerts = async_mock_service(hass, "test", "alert")
+    recoveries = async_mock_service(hass, "test", "recovered")
+    hass.set_state(CoreState.not_running)
+    hass.states.async_set("binary_sensor.board_connection", "off")
+    hass.states.async_set("binary_sensor.camera_problem", "on")
+    await saved(hass, "board_alert", ALERT)
+    await hass.async_start()
+    await until_waiting(hass, 120)
+    assert not alerts
+    await pass_time(hass, freezer, 120)
+    assert [call.data for call in alerts] == [
+        {"problem": "offline"},
+        {"problem": "cameras"},
+    ]
+    await pass_time(hass, freezer, 8 * 3600)
+    assert len(alerts) == 2
+    hass.states.async_set("binary_sensor.board_connection", "on")
+    await hass.async_block_till_done()
+    assert [call.data for call in recoveries] == [{"problem": "offline"}]
+
+
+async def test_board_alert_at_startup_stays_quiet_for_a_short_problem(hass, freezer):
+    alerts = async_mock_service(hass, "test", "alert")
+    recoveries = async_mock_service(hass, "test", "recovered")
+    hass.set_state(CoreState.not_running)
+    hass.states.async_set("binary_sensor.board_connection", "off")
+    hass.states.async_set("binary_sensor.camera_problem", "off")
+    await saved(hass, "board_alert", ALERT)
+    await hass.async_start()
+    await until_waiting(hass, 120)
+    freezer.tick(timedelta(seconds=30))
+    hass.states.async_set("binary_sensor.board_connection", "on")
+    await settle(hass)
+    # It goes offline again: its own grace period starts then.
+    freezer.tick(timedelta(seconds=30))
+    hass.states.async_set("binary_sensor.board_connection", "off")
+    await settle(hass)
+    await pass_time(hass, freezer, 60)
+    assert not alerts and not recoveries
+    await pass_time(hass, freezer, 60)
+    assert [call.data for call in alerts] == [{"problem": "offline"}]
+    await pass_time(hass, freezer, 8 * 3600)
+    assert len(alerts) == 1 and not recoveries
+
+
+async def test_board_alert_after_its_automation_was_saved(hass, freezer):
+    """Saving the automation sets it up anew: a problem whose grace period was
+    running alerts after a new one; one that already alerted stays quiet."""
+    alerts = async_mock_service(hass, "test", "alert")
+    hass.states.async_set("binary_sensor.board_connection", "on")
+    hass.states.async_set("binary_sensor.camera_problem", "off")
+    await saved(hass, "board_alert", ALERT)
+    hass.states.async_set("binary_sensor.board_connection", "off")
+    await hass.async_block_till_done()
+    freezer.tick(timedelta(seconds=90))
+    await saved(hass, "board_alert", ALERT, note="Saved again")
+    await until_waiting(hass, 120)
+    # Saving another automation meanwhile changes nothing.
+    freezer.tick(timedelta(seconds=10))
+    await reloaded(hass)
+    assert not alerts
+    await pass_time(hass, freezer, 110)
+    assert [call.data for call in alerts] == [{"problem": "offline"}]
+    await saved(hass, "board_alert", ALERT, note="Saved once more")
+    await hass.async_block_till_done()
+    await pass_time(hass, freezer, 8 * 3600)
+    assert len(alerts) == 1
+
+
+async def test_board_alert_ignores_the_reload_of_other_automations(hass, freezer):
+    """A reload that keeps this automation keeps its grace periods, too: no
+    second alert for the same problem."""
+    alerts = async_mock_service(hass, "test", "alert")
+    hass.states.async_set("binary_sensor.board_connection", "on")
+    hass.states.async_set("binary_sensor.camera_problem", "off")
+    await saved(hass, "board_alert", ALERT)
+    freezer.tick(timedelta(seconds=1))
+    hass.states.async_set("binary_sensor.board_connection", "off")
+    await hass.async_block_till_done()
+    freezer.tick(timedelta(seconds=60))
+    await reloaded(hass)
+    await hass.async_block_till_done()
+    await pass_time(hass, freezer, 60)
+    assert [call.data for call in alerts] == [{"problem": "offline"}]
+    await reloaded(hass)
+    await hass.async_block_till_done()
+    await pass_time(hass, freezer, 8 * 3600)
+    assert len(alerts) == 1
 
 
 # -- training ------------------------------------------------------------------------
@@ -1867,6 +2103,97 @@ async def test_light_show_never_pauses_the_detection_in_the_middle_of_a_visit(
     assert [call.data["entity_id"] for call in turn_off] == [[detection]]
     await pass_time(hass, freezer, 5)
     assert len(light) == len(restore) == 2
+
+
+def stopping_board(hass, light_show: dict) -> list[tuple[str, dict]]:
+    """The light show pausing the detection next to the training session
+    routine, which stops it when a session ends."""
+    detection = SESSION["detection"]
+    hass.states.async_set(EVENTS, "unknown")
+    hass.states.async_set(detection, "on")
+    return [
+        ("training_session", {**SESSION, "calibration": []}),
+        (
+            "light_show",
+            {
+                "board_events": EVENTS,
+                **moment_actions(),
+                "restore_lights": ["light.wled"],
+                "effect_duration": {"seconds": 10},
+                "pause_detection": True,
+                "detection": detection,
+                **light_show,
+            },
+        ),
+    ]
+
+
+async def test_light_show_keeps_the_board_stopped_after_a_session(hass, freezer):
+    """A new best session average comes right after the end of its session,
+    while the switch still shows the detection running."""
+    light = async_mock_service(hass, "test", "light")
+    async_mock_service(hass, "scene", "create")
+    restore = async_mock_service(hass, "scene", "turn_on")
+    turn_off = async_mock_service(hass, "switch", "turn_off")
+    turn_on = async_mock_service(hass, "switch", "turn_on")
+    await automate_all(
+        hass, stopping_board(hass, {"effect_moments": ["personal_best", "match"]})
+    )
+    session = {"reason": "manual", "darts": 60, "average": 52.4, "duration_minutes": 9}
+    fire(hass, "session_ended", **session)
+    fire(hass, "personal_best", record="best_session_average", value=52.4)
+    await until_waiting(hass, 10)
+    # The board stops the detection after the routine asked it to.
+    hass.states.async_set(SESSION["detection"], "off")
+    await pass_time(hass, freezer, 10)
+    assert [call.data["moment"] for call in light] == ["personal_best"]
+    assert len(restore) == 1
+    assert [call.data["entity_id"] for call in turn_off] == [[SESSION["detection"]]]
+    assert not turn_on
+
+
+async def test_light_show_ends_its_effect_with_the_session(hass, freezer):
+    """A session that ends while an effect plays has stopped the board: the
+    lights come back at once, and the detection stays off."""
+    async_mock_service(hass, "test", "light")
+    async_mock_service(hass, "scene", "create")
+    restore = async_mock_service(hass, "scene", "turn_on")
+    turn_off = async_mock_service(hass, "switch", "turn_off")
+    turn_on = async_mock_service(hass, "switch", "turn_on")
+    await automate_all(hass, stopping_board(hass, {"effect_moments": ["match"]}))
+    fire(hass, "match_won", game=501, players=2, player=1, name="Lea")
+    await until_waiting(hass, 10)
+    hass.states.async_set(SESSION["detection"], "off")
+    freezer.tick(timedelta(seconds=3))
+    fire(hass, "session_ended", reason="manual", darts=30, average=40.1)
+    await settle(hass)
+    assert len(restore) == 1
+    await pass_time(hass, freezer, 10)
+    assert len(turn_off) == 2 and len(restore) == 1
+    assert not turn_on
+
+
+async def test_light_show_plays_on_into_a_new_session(hass, freezer):
+    """A new session keeps the board running: the effect plays to its end, and
+    the detection starts again."""
+    async_mock_service(hass, "test", "light")
+    async_mock_service(hass, "scene", "create")
+    restore = async_mock_service(hass, "scene", "turn_on")
+    turn_on = async_mock_service(hass, "switch", "turn_on")
+    async_mock_service(hass, "switch", "turn_off")
+    await automate_all(hass, stopping_board(hass, {"effect_moments": ["match"]}))
+    fire(hass, "match_won", game=501, players=2, player=1, name="Lea")
+    await until_waiting(hass, 10)
+    hass.states.async_set(SESSION["detection"], "off")
+    freezer.tick(timedelta(seconds=4))
+    async_fire_time_changed(hass)
+    fire(hass, "session_ended", reason="new_session", darts=30, average=40.1)
+    fire(hass, "session_started", reason="new_session")
+    await until_waiting(hass, 6)
+    assert not restore and not turn_on
+    await pass_time(hass, freezer, 6)
+    assert len(restore) == 1
+    assert [call.data["entity_id"] for call in turn_on] == [[SESSION["detection"]]]
 
 
 async def test_light_show_leaves_the_bot_out_unless_asked(hass):
