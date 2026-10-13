@@ -11,7 +11,6 @@ from pathlib import Path
 from aiohttp import hdrs, web
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import HomeAssistantView, StaticPathConfig
-from homeassistant.components.http.static import CACHE_HEADER
 from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_integration
 
@@ -24,6 +23,8 @@ CARD_PATH = FRONTEND / "autodarts-card.js"
 # stops waiting for it; it loads the strategy of the card module.
 STRATEGY_URL = f"/{DOMAIN}/autodarts-strategy.js"
 STRATEGY_PATH = FRONTEND / "autodarts-strategy.js"
+# A month, as Home Assistant sends its own static files; the tests compare the two.
+CACHE_CONTROL = "public, max-age=2678400"
 # One content coding of Accept-Encoding with its optional weight, a number from 0 to 1
 # with up to three decimals (RFC 9110, sections 12.4.2 and 12.5.3).
 _CODING = re.compile(
@@ -70,7 +71,7 @@ class CardModuleView(HomeAssistantView):
         # The headers of the static files; the weak tag stands for both encodings, as
         # the content is the same, and lets a browser revalidate its copy for free.
         self._headers = {
-            hdrs.CACHE_CONTROL: CACHE_HEADER,
+            hdrs.CACHE_CONTROL: CACHE_CONTROL,
             hdrs.ETAG: f'W/"{tag}"',
             hdrs.VARY: hdrs.ACCEPT_ENCODING,
         }

@@ -6,7 +6,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### Improved
 
-- **The cards load four times faster on a slow connection:** every phone, tablet and browser downloaded the file with all the cards, 590 KB, as it was, on its first visit and after every update of the integration. It now comes compressed, about 150 KB, so the cards and the automatic dashboard appear sooner, above all on a phone with an empty cache or slow Wi-Fi. A browser that asks whether its copy is still current, as Safari does on every reload, gets a short answer instead of the file again (#243).
+- **The cards load four times faster on a slow connection:** every phone, tablet and browser downloaded the file with all the cards, 590 KB, as it was, on its first visit and after every update of the integration. It now comes compressed, about 150 KB, so the cards and the automatic dashboard appear sooner, above all on a phone with an empty cache or slow Wi-Fi (#243).
 
 ### Fixed
 

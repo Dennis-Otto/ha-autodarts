@@ -188,7 +188,9 @@ async def test_card_is_served_and_loaded_on_dashboards(hass, hass_client_no_auth
     ]
     response = await client.get(f"{STRATEGY_URL}?v={tag()}")
     assert response.status == 200
-    assert response.headers["Cache-Control"] == "public, max-age=2678400"
+    # Home Assistant's own header for static files, which the card module copies.
+    static_cache_control = response.headers["Cache-Control"]
+    assert static_cache_control == "public, max-age=2678400"
     assert await response.read() == STRATEGY_PATH.read_bytes()
 
     # Every browser accepts gzip, as the test client does: a quarter of the module.
@@ -197,6 +199,7 @@ async def test_card_is_served_and_loaded_on_dashboards(hass, hass_client_no_auth
     assert response.headers["Content-Type"] == "text/javascript; charset=utf-8"
     assert response.headers["Content-Encoding"] == "gzip"
     assert_cached(response)
+    assert response.headers["Cache-Control"] == static_cache_control
     sent = await response.read()
     assert gzip.decompress(sent) == CARD_PATH.read_bytes()
     assert len(sent) < CARD_PATH.stat().st_size * 0.3
