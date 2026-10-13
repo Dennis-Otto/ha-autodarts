@@ -7,7 +7,7 @@ from homeassistant.exceptions import ServiceValidationError, Unauthorized
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.practice import MAX_LEGS, MAX_SETS, PARTY_PLAYERS
+from custom_components.autodarts.practice import MAX_LEGS, MAX_SETS
 from custom_components.autodarts.profiles import NAME_LENGTH
 
 from .local_helpers import board, entry_data, mock_cloud, setup_local
@@ -39,9 +39,6 @@ async def invalid(hass, service: str, **data) -> ServiceValidationError:
 @pytest.mark.parametrize(
     "data",
     [
-        {"game": "501", "players": []},
-        {"game": "killer", "players": ["A"] * (PARTY_PLAYERS + 1)},
-        {"game": "501", "players": [LONGEST + "x"]},
         {"game": "501", "legs": 0},
         {"game": "501", "legs": MAX_LEGS + 1},
         {"game": "501", "sets": 0},
@@ -70,6 +67,11 @@ async def test_start_game_rejects_values_beyond_its_limits(hass, aioclient_mock,
         (
             {"game": "301", "players": "Alex"},
             lambda practice: practice.names[0] == "Alex",
+        ),
+        # No names, as a cleared field of the action sends them, keep the players.
+        (
+            {"game": "301", "players": []},
+            lambda practice: practice.names[:2] == ["", ""],
         ),
         (
             {"game": "501", "legs": MAX_LEGS, "sets": MAX_SETS},
@@ -191,6 +193,17 @@ async def test_actions_on_the_players_data_are_for_administrators(
     [
         ({"bot_level": 10}, "invalid_bot_level", None),
         ({"bot_level": 121}, "invalid_bot_level", None),
+        # Lengths and counts are explained, so a voice assistant can say them.
+        (
+            {"players": ["A", "B", "C", "D", "E"]},
+            "too_many_players",
+            {"count": "4"},
+        ),
+        (
+            {"players": [LONGEST + "x"]},
+            "name_too_long",
+            {"name": LONGEST + "…", "limit": str(NAME_LENGTH)},
+        ),
         ({"start_scores": [501, 1]}, "invalid_start_score", None),
         ({"start_scores": ["1002"]}, "invalid_start_score", None),
         (
@@ -228,6 +241,8 @@ async def test_actions_on_the_players_data_are_for_administrators(
 async def test_start_game_explains_a_wrong_value(
     hass, aioclient_mock, data, key, placeholders
 ):
+    """A wrong value is refused before anything changes, with a translated reason
+    that names it."""
     entry = await setup_local(hass, aioclient_mock, state=board())
     await entry.runtime_data.local.async_set_players(2)
     error = await invalid(hass, "start_game", game="501", **data)
@@ -346,7 +361,7 @@ async def test_a_wrong_bed_is_explained(hass, aioclient_mock):
         )
     # Only the start of a long text is repeated.
     error = await invalid(hass, "throw_dart", segment="X" * 40)
-    assert error.translation_placeholders == {"segment": "X" * 20}
+    assert error.translation_placeholders == {"segment": "X" * 20 + "…"}
     error = await invalid(hass, "throw_dart", segment="T\x0020")
     assert error.translation_placeholders == {"segment": "T?20"}
     with pytest.raises(vol.Invalid):

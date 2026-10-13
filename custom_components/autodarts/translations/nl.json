@@ -759,6 +759,9 @@
     "invalid_player_name": {
       "message": "Een spelersnaam mag geen accolades, procentteken, hekje (#) of stuurtekens bevatten."
     },
+    "name_too_long": {
+      "message": "‘{name}’ is te lang voor een spelersnaam, die hoogstens {limit} tekens heeft."
+    },
     "killer_players": {
       "message": "Killer heeft minstens twee spelers nodig."
     },

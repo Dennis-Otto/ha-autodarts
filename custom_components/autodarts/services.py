@@ -56,7 +56,7 @@ from .tournament import (
     RULES,
     TOURNAMENT_GAMES,
 )
-from .voice import Turn, passed, spoken, undone
+from .voice import Turn, passed, refusal, spoken, undone
 from .voice import dart as dart_said
 from .voice import name as voice_name
 from .voice import visit as visit_said
@@ -87,17 +87,15 @@ LANGUAGES = ("en", "de", "es", "fr", "nl")
 # A game's name as a voice assistant hears it is never longer.
 GAME_TEXT = 64
 
+# The game, the players and their names are checked in the handler, as a voice
+# assistant may hear anything: a schema would refuse the call before the action
+# could say why, and Assist would answer "Done". Without names, as an empty list,
+# the players stay as they are.
 START_GAME_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
-        vol.Required("game"): vol.All(
-            vol.Coerce(str), vol.Length(min=1, max=GAME_TEXT)
-        ),
-        vol.Optional("players"): vol.All(
-            cv.ensure_list,
-            [vol.All(cv.string, vol.Length(max=NAME_LENGTH))],
-            vol.Length(min=1, max=PARTY_PLAYERS),
-        ),
+        vol.Required("game"): vol.All(vol.Coerce(str), vol.Length(min=1)),
+        vol.Optional("players"): vol.All(cv.ensure_list, [cv.string]),
         vol.Optional("legs"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_LEGS)),
         vol.Optional("sets"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SETS)),
         vol.Optional("double_out"): cv.boolean,
@@ -130,11 +128,10 @@ CORRECT_DART_SCHEMA = vol.Schema(
     }
 )
 # The player an entry is for, as a voice assistant names them: the action refuses
-# the entry while another player is at the board.
+# the entry while another player is at the board, and a name longer than a
+# player's in words to say.
 TURN: dict[vol.Marker, Any] = {
-    vol.Optional("player"): vol.All(
-        cv.string, vol.Strip, vol.Length(min=1, max=NAME_LENGTH)
-    ),
+    vol.Optional("player"): vol.All(cv.string, vol.Strip, vol.Length(min=1)),
 }
 THROW_DART_SCHEMA = vol.Schema(
     {
@@ -265,14 +262,19 @@ def _invalid(key: str, **placeholders: str) -> ServiceValidationError:
     )
 
 
+def _echo(value: str, limit: int) -> str:
+    """A value as an error message repeats it: printable, and its beginning with an
+    ellipsis where it is longer than the limit."""
+    value = value.strip()
+    shown = "".join(char if char.isprintable() else "?" for char in value[:limit])
+    return f"{shown}\N{HORIZONTAL ELLIPSIS}" if len(value) > limit else shown
+
+
 def _bed(value: str) -> dict[str, object]:
     """The dart in the named bed, or a translated error naming the bed."""
     dart = parse_bed(value)
     if dart is None:
-        shown = "".join(
-            char if char.isprintable() else "?" for char in value.strip()[:BED_ECHO]
-        )
-        raise _invalid("invalid_segment", segment=shown)
+        raise _invalid("invalid_segment", segment=_echo(value, BED_ECHO))
     return dart
 
 
@@ -318,6 +320,8 @@ async def _game_key(hass: HomeAssistant, game: str) -> str:
     is enough where it fits one game alone, such as "Cut Throat"."""
     if game in GAME_OPTIONS:
         return game
+    if len(game) > GAME_TEXT:
+        raise _invalid("unknown_game", game=_echo(game, GAME_TEXT))
     names = {key: {_plain(key)} for key in GAME_OPTIONS}
     for language in LANGUAGES:
         texts = await async_get_translations(hass, language, "entity", {DOMAIN})
@@ -335,7 +339,7 @@ async def _game_key(hass: HomeAssistant, game: str) -> str:
     for found in (same, begun):
         if len(found) == 1:
             return found.pop()
-    raise _invalid("unknown_game", game=game)
+    raise _invalid("unknown_game", game=_echo(game, GAME_TEXT))
 
 
 async def _game_on(hass: HomeAssistant, key: str, practice: PracticeGame) -> str:
@@ -360,7 +364,10 @@ async def _check_turn(
 ) -> None:
     """An entry for a named player only while they are at the board, as a voice
     assistant may hear the wrong one; without a game, the entry says why itself."""
-    if player is None or practice.kind is None or practice.bot_up:
+    if player is None:
+        return
+    _check_length(player)
+    if practice.kind is None or practice.bot_up:
         return
     who = practice.thrower
     if who is None or _plain(who) != _plain(player):
@@ -386,11 +393,22 @@ def _visit_score(data: Mapping[str, Any], practice: PracticeGame) -> int:
     return remaining
 
 
+def _check_length(name: str) -> None:
+    """A name no longer than a player's, which a voice assistant may hear in a
+    sentence it took apart wrongly."""
+    if len(name.strip()) > NAME_LENGTH:
+        raise _invalid(
+            "name_too_long", name=_echo(name, NAME_LENGTH), limit=str(NAME_LENGTH)
+        )
+
+
 def _check_names(names: list[str] | None) -> None:
     """Names without the characters no player name contains, such as { } % #,
-    which templates of automations would run."""
+    which templates of automations would run, and no longer than a player's."""
     if not all(valid_name(name) for name in names or []):
         raise _invalid("invalid_player_name")
+    for name in names or []:
+        _check_length(name)
 
 
 def _check_level(level: int) -> None:
@@ -492,9 +510,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         except ServiceValidationError as error:
             if not call.return_response:
                 raise
-            placeholders = error.translation_placeholders or {}
-            message = await spoken(hass, str(error.translation_key), **placeholders)
-            return {"started": False, "message": message}
+            return {"started": False, "message": await refusal(hass, error)}
         if not call.return_response:
             return None
         practice = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID)).practice
@@ -510,14 +526,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         game = await _game_key(hass, call.data["game"])
         practice = coordinator.practice
+        said: list[str] = call.data.get("players", [])
+        _check_names(said)
         # A name a player already has keeps its spelling, as a voice may lower it.
-        names: list[str] | None = (
-            [practice.profiles.spelled(name) for name in call.data["players"]]
-            if call.data.get("players")
-            else None
-        )
+        names = [practice.profiles.spelled(name) for name in said] or None
         level: int = call.data.get("bot_level", practice.bot_level)
-        _check_names(names)
         _check_level(level)
         _check_players(
             game, names, practice.humans, call.data.get("teams") is True, level > 0
@@ -680,9 +693,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
         except ServiceValidationError as error:
             if not call.return_response:
                 raise
-            placeholders = error.translation_placeholders or {}
-            message = await spoken(hass, str(error.translation_key), **placeholders)
-            return {done: False, "message": message}
+            return {done: False, "message": await refusal(hass, error)}
         return {done: True, "message": message} if call.return_response else None
 
     async def throw_dart(call: ServiceCall) -> ServiceResponse:
