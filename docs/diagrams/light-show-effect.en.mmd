@@ -1,0 +1,18 @@
+flowchart TB
+  accTitle: How an effect of the light show plays
+  accDescr: A moment with an effect saves the lights and pauses the detection if it runs, unless the moment is the daily goal or a new best session average. Its actions start the effect, which plays for the effect duration. If a training session ends meanwhile, the effect ends at once and the detection stays off. A new session lets the effect play to its end. Then the lights are restored and a paused detection starts again.
+  MOMENT["A moment with an effect"] --> SAVE["Save the lights"]
+  SAVE --> PAUSE{"Detection running,<br/>not the daily goal or a<br/>best session average?"}
+  PAUSE -- "yes" --> STOP["Pause the detection"]
+  PAUSE -- "no" --> ACTIONS["Your actions<br/>start the effect"]
+  STOP --> ACTIONS
+  ACTIONS --> PLAY{"Effect duration over,<br/>or the session ended?"}
+  PLAY -- "duration over" --> RESTORE["Restore the lights"]
+  PLAY -- "new session" --> REST["Play to the end"]
+  REST --> RESTORE
+  PLAY -- "session ended" --> ENDED["Lights back at once,<br/>detection stays off"]
+  RESTORE --> RESUME["Start a paused<br/>detection again"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class RESUME done
+  class ENDED warn
