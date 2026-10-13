@@ -48,6 +48,8 @@ New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-O
 
 ## Features
 
+[Play](#play) · [Like a dart machine](#like-a-dart-machine) · [Train](#train) · [Analyze](#analyze) · [Screen at the board](#screen-at-the-board) · [Automate](#automate) · [Local and private](#local-and-private)
+
 ### Play
 
 - X01 from 101 to 1001 with double out, double in and the checkout route after every dart
@@ -139,7 +141,7 @@ New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-O
 - Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish ([languages](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md#languages))
 - Every rule of the Home Assistant quality scale up to Platinum, 100 % test coverage
 
-<p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/architecture-light.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which provides entities, board events, cards and automations; the Autodarts cloud is optional" width="480"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/architecture-dark.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which provides entities, board events, cards and automations; the Autodarts cloud is optional" width="480"></p>
 
 [How it works →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md)
 
@@ -219,13 +221,13 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 <details>
 <summary>Every guide, one line each</summary>
 
-**Get started**
+### Get started
 
 - [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md): for Autodarts players without Home Assistant, from nothing to the first game on the scoreboard
 - [Installation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md): requirements, HACS and manual installation, the ways to add a board, updates and removal
 - [Play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md): any dartboard with every game, the training and the statistics, its darts entered on a keypad
 
-**Guides**
+### Guides
 
 - [Games and rules](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md): how to start a game, matches, teams, handicaps, the bull-off, the match summary, tournaments and the rules of every game
 - [Scoreboard at the board](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md): a tablet or TV at the board, the new game screen, tournaments, the caller and idle mode
@@ -233,7 +235,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 - [Automations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md): thirteen blueprints, board events and ready-to-use examples
 - [Online matches](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/online-matches.md): moments of online matches on play.autodarts.io in Home Assistant *(experimental)*
 
-**Reference**
+### Reference
 
 - [Dashboard cards](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/cards.md): all seven cards, the automatic dashboard, every option and accessibility
 - [Entities and events](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/entities.md): every entity, event, attribute and action
@@ -242,7 +244,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 - [Security design](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/security.md): what is protected, trust boundaries, threats and countermeasures
 - [Glossary](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/glossary.md): the words of darts and of this integration, in English and German
 
-**Project**
+### Project
 
 - [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) and [releases](https://github.com/Dennis-Otto/ha-autodarts/releases): what every version brought; the [roadmap](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/roadmap.md) shows what comes next
 - [Deutsche Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/): die komplette Anleitung auf Deutsch
