@@ -390,7 +390,32 @@ def test_each_lock_file_is_compiled_for_its_own_python():
 
 # Folders that hold no lock file of the project: those Renovate ignores
 # (ignorePaths in .github/renovate-blueprint.json5), Git's own and what tools write.
+# Renovate reads only committed files, so lock_files() also skips every folder that
+# is a checkout of its own, such as a worktree in .claude/worktrees.
 NO_LOCK_FILES = {".git", "node_modules", "vendor", "site", "mutants"}
+
+# The options that Renovate reads only as --option=value: optionsWithArguments in
+# lib/modules/manager/pip-compile/common.ts of Renovate. Written with a space, the
+# option makes Renovate throw for the whole file.
+OPTIONS_WITH_VALUES = {
+    "--output-file",
+    "--extra",
+    "--extra-index-url",
+    "--resolver",
+    "--constraint",
+    "--constraints",
+    "--python-version",
+    "--no-emit-package",
+    "--prerelease",
+    "--format",
+    "--resolution",
+    "--fork-strategy",
+    "--exclude-newer",
+    "--exclude-newer-package",
+    "--group",
+    "--override",
+    "--overrides",
+}
 
 
 def lock_files() -> list[Path]:
@@ -401,7 +426,10 @@ def lock_files() -> list[Path]:
         folders[:] = [
             name
             for name in folders
-            if name not in NO_LOCK_FILES and not name.startswith(".venv")
+            if name not in NO_LOCK_FILES
+            and not name.startswith(".venv")
+            # another checkout, such as .claude/worktrees/*
+            and not (Path(folder) / name / ".git").exists()
         ]
         found += [
             Path(folder) / name
@@ -414,8 +442,8 @@ def lock_files() -> list[Path]:
 def test_renovate_can_run_the_command_of_every_lock_file_again():
     # Renovate updates a lock file by running the command in its header again. It
     # reads an option with a value only as --option=value; for "--option value" it
-    # logs a warning in its own run and never updates the file. uv and pip-compile
-    # write the command into the header as it was typed.
+    # logs a warning in its own run and never updates the file. uv writes the command
+    # into the header as it was typed (pip-compile writes --option=value itself).
     paths = {path.relative_to(ROOT).as_posix(): path for path in lock_files()}
     assert {"requirements-test.txt", "tests/e2e/requirements-browser.txt"} <= set(paths)
     for name, path in paths.items():
@@ -426,6 +454,9 @@ def test_renovate_can_run_the_command_of_every_lock_file_again():
         )
         assert len(commands) == 1, f"{name} needs the command that compiled it"
         arguments = shlex.split(commands[0])
+        assert not set(arguments) & OPTIONS_WITH_VALUES, (
+            f"{name}: join each value to its option with '=' in the header"
+        )
         assert f"--output-file={path.name}" in arguments, name
         # Every argument without a dash is a source file next to the lock file, such
         # as its .in file; the value of an option after a space would read as one.
