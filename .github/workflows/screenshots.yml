@@ -30,6 +30,7 @@ on:
       - custom_components/autodarts/manifest.json
       - tests/e2e/**
       - "!tests/e2e/browser.py"
+      - "!tests/e2e/shards.py"
       - "!tests/e2e/browser.sh"
       - "!tests/e2e/run.sh"
       - "!tests/e2e/configuration.yaml"
