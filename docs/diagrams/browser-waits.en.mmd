@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How the browser test waits
+  accDescr: All screens of a step are open at once. A move at the board, such as a dart, or a view opened within the app comes first. The test then waits until every page shows the state the move sets, such as two darts in the visit, and until every page has settled - its cards drawn, no request on the websocket waiting for its answer, no frame for 100 ms, no animation of a card running, and two frames drawn. Then it checks every page at once - the layout, the heights or the accessibility - and goes on with the next move. A page that does not get there fails the step with what it waited for.
+
+  MOVE["A move for all screens at once:<br/>a dart, a takeout, a new game,<br/>or a view opened within the app"] --> STATE{{"expect_state: every page shows<br/>what the move sets, such as<br/>num_throws 2 after the second dart"}}
+  STATE --> SETTLE{{"settle: the cards have drawn,<br/>no request waits for its answer,<br/>no frame for 100 ms, no animation<br/>of a card runs, two frames drawn"}}
+  SETTLE --> CHECK["Check every page:<br/>layout, heights or accessibility"]
+  CHECK -- "next move" --> MOVE
+  STATE -- "not in time" --> FAIL["The step fails with what the<br/>page waited for and what it shows"]
+  SETTLE -- "not in time" --> FAIL
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class STATE,SETTLE bot
+  class CHECK done
+  class FAIL failed

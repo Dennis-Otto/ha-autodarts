@@ -15,6 +15,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+from pages import CARDS_DRAWN, expect_state, probe, settle, show, wait_for
 from playwright.sync_api import (
     Browser,
     BrowserContext,
@@ -1661,6 +1662,7 @@ def touch_screen(
         is_mobile=phone,
         has_touch=True,
     )
+    probe(context)
     page = context.new_page()
     page.add_init_script(CAPTURE_ERRORS)
     page.add_init_script(phone_style(*insets))
@@ -1853,26 +1855,26 @@ def touch_screen(
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
     game_off()
 
-    # The other views: every card as wide as the screen, the tiles' names whole.
+    # The other views: every card as wide as the screen, the tiles' names whole, once
+    # the view before has faded out and what the cards show has arrived.
     for view in ("live", "training", "players"):
-        page.goto(f"{HA}/autodarts-auto/{view}")
-        page.wait_for_function(
-            "() => document.querySelector('home-assistant')?.hass",
-            timeout=30000,
-        )
-        page.wait_for_timeout(1500)
+        show(page, f"{HA}/autodarts-auto/{view}")
+        settle(page, scope="page")
         wide(view)
     # What a mouse sees as a tooltip, a finger sees in a bubble over the card.
-    page.goto(f"{HA}/autodarts-auto/live")
+    show(page, f"{HA}/autodarts-auto/live")
     page.wait_for_function(
         f"() => ({CARDS})()[0]?.shadowRoot?.querySelector('.recent-visit')",
         timeout=30000,
     )
-    # The view before it fades out above the card for a moment.
-    page.wait_for_timeout(1500)
+    # The view before fades out above the card for a moment and would take the tap.
+    settle(page, scope="page")
     spot = page.evaluate(RECENT_VISIT_SPOT)
     page.touchscreen.tap(*spot)
-    page.wait_for_timeout(300)
+    try:
+        page.wait_for_function(f"() => ({HINT_SHOWN})().shown", timeout=15000)
+    except PlaywrightTimeout:
+        pass  # The check below names the screen and what the hint shows instead.
     hint = page.evaluate(HINT_SHOWN)
     check(
         hint["shown"] and hint["inside"] and hint["text"] == hint["title"],
@@ -1935,19 +1937,6 @@ async () => {
   const hass = document.querySelector('home-assistant').hass;
   const config = await hass.callWS({ type: 'lovelace/config', url_path: 'autodarts-demo' });
   return config.views.map((view) => view.path);
-}
-"""
-# Whether every card on the page has drawn itself.
-CARDS_DRAWN = """
-() => {
-  const cards = [];
-  (function collect(root) {
-    root.querySelectorAll('*').forEach((el) => {
-      if (el.tagName.startsWith('AUTODARTS-') && !el.tagName.endsWith('-EDITOR')) cards.push(el);
-      if (el.shadowRoot) collect(el.shadowRoot);
-    });
-  })(document);
-  return cards.length > 0 && cards.every((card) => card.shadowRoot?.querySelector('ha-card'));
 }
 """
 # What a player would see as broken on this screen, card by card: a card wider than the
@@ -2117,17 +2106,36 @@ SCREENSHOTS = os.environ.get("BROWSER_SCREENSHOTS", "")
 def screens(browser: Browser) -> None:
     """Every view of both dashboards and the scoreboard's screens on every size, in
     German with its long words, and on a phone the scoreboard during a game in the
-    other languages: nothing broken, whatever the screen and its side."""
-    found: list[str] = []
+    other languages: nothing broken, whatever the screen and its side. The screens are
+    open side by side and go through every view and every game together."""
     # A choice of screens for a local run, comma-separated, such as "iPhone".
-    chosen = {name.strip() for name in os.environ.get("BROWSER_SCREENS", "").split(",")}
-    for screen, size, insets, touch in SCREENS:
-        if chosen - {""} and screen not in chosen:
-            continue
-        problems = screen_views(browser, screen, size, insets, touch)
-        if touch and size["width"] < UPRIGHT_PHONE_WIDTH:
-            problems += phone_languages(browser, screen, size, insets)
-        print(f"  {screen}: {len(problems)} problems", flush=True)
+    chosen = {
+        name.strip() for name in os.environ.get("BROWSER_SCREENS", "").split(",")
+    } - {""}
+    sizes = [size for size in SCREENS if not chosen or size[0] in chosen]
+    unknown = chosen - {size[0] for size in SCREENS}
+    check(not unknown, f"BROWSER_SCREENS names no screen: {sorted(unknown)}")
+    opened = [Screen(browser, *size) for size in sizes]
+    screen_views(opened)
+    for screen in opened:
+        screen.close()
+    phones = [
+        Screen(browser, name, size, insets, touch, locale)
+        for name, size, insets, touch in sizes
+        if touch and size["width"] < UPRIGHT_PHONE_WIDTH
+        for locale in OTHER_LOCALES
+    ]
+    if phones:
+        phone_languages(phones)
+    found: list[str] = []
+    for screen in opened:
+        problems = screen.problems + [
+            problem
+            for phone in phones
+            if phone.name == screen.name
+            for problem in phone.problems
+        ]
+        print(f"  {screen.name}: {len(problems)} problems", flush=True)
         found += problems
     check(not found, "Layout problems:\n" + "\n".join(found))
 
@@ -2146,6 +2154,7 @@ def screen_page(
         is_mobile=touch and size["width"] < 1000,
         has_touch=touch,
     )
+    probe(context)
     page = context.new_page()
     page.add_init_script(CAPTURE_ERRORS)
     page.add_init_script(phone_style(*insets))
@@ -2153,10 +2162,8 @@ def screen_page(
 
 
 def screen_problems(page: Page, screen: str, name: str, touch: bool) -> list[str]:
-    """What is broken in the view on this page, and its screenshot when wanted."""
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
-    # Positions, profiles and trends arrive over the websocket after the first draw.
-    page.wait_for_timeout(800)
+    """What is broken in the view on this page, which has settled, and its screenshot
+    when wanted."""
     state = page.evaluate(LAYOUT_PROBLEMS, touch)
     if SCREENSHOTS and ARTIFACTS:
         folder = Path(ARTIFACTS) / "screens" / screen.replace(" ", "-")
@@ -2165,135 +2172,166 @@ def screen_problems(page: Page, screen: str, name: str, touch: bool) -> list[str
     return [f"{screen} · {name}: {problem}" for problem in state["problems"]]
 
 
-def scoreboard_in_game(page: Page) -> None:
+class Screen:
+    """A screen size in a browser context of its own, with its page and what is broken
+    on it."""
+
+    def __init__(
+        self,
+        browser: Browser,
+        name: str,
+        size: dict[str, int],
+        insets: tuple[int, int],
+        touch: bool,
+        locale: str = "de-DE",
+    ) -> None:
+        self.name = name
+        self.touch = touch
+        self.locale = locale
+        self.context, self.page = screen_page(browser, size, insets, touch, locale)
+        self.problems: list[str] = []
+
+    def look(self, view: str) -> None:
+        """Note what is broken in the view this screen shows."""
+        self.problems += screen_problems(self.page, self.name, view, self.touch)
+
+    def close(self) -> None:
+        """Note the console problems of the page and close it."""
+        where = self.name if self.locale == "de-DE" else f"{self.name} · {self.locale}"
+        self.problems.extend(
+            f"{where}: console problem {error}" for error in page_errors(self.page, [])
+        )
+        self.context.close()
+
+
+def look(screens: list[Screen], view: str) -> None:
+    """Note what is broken in the view on every screen, once each has settled."""
+    settle(*[screen.page for screen in screens])
+    for screen in screens:
+        screen.look(view)
+
+
+def pulled(pages: list[Page]) -> None:
+    """The darts are pulled and the board throws again, which every page shows."""
+    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    expect_state(pages, {"local_status": "throw", "num_throws": "0"})
+
+
+def thrown(pages: list[Page], darts: list[dict]) -> None:
+    """Darts on the board after a takeout, which every page shows."""
+    control({"event": "Throw detected", "throws": darts})
+    expect_state(pages, {"num_throws": str(len(darts))})
+
+
+def scoreboard_in_game(pages: list[Page]) -> None:
     """The scoreboard of the demo, not full height, during a practice game: the new
     game button and the caller beside the status, which reads "ready"."""
-    page.goto(f"{HA}/autodarts-demo/scoreboard")
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
-    page.evaluate(
+    show(pages, f"{HA}/autodarts-demo/scoreboard")
+    pages[0].evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "301"}]
     )
-    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    pulled(pages)
     root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
-    page.wait_for_function(
+    wait_for(
+        pages,
         f"() => !{root}.querySelector('.lobby-toggle').hidden"
         f" && {root}.querySelector('.caller-toggle')",
-        timeout=15000,
     )
 
 
-def phone_languages(
-    browser: Browser, screen: str, size: dict[str, int], insets: tuple[int, int]
-) -> list[str]:
-    """The scoreboard during a game on a phone in the other languages: its buttons and
-    status take a width of their own in each."""
-    found: list[str] = []
-    for locale in OTHER_LOCALES:
-        context, page = screen_page(browser, size, insets, True, locale)
-        scoreboard_in_game(page)
-        found += screen_problems(
-            page, screen, f"scoreboard-during-a-game-{locale}", True
-        )
-        found.extend(
-            f"{screen} · {locale}: console problem {error}"
-            for error in page_errors(page, [])
-        )
-        # The next screen finds the board between games, as it was.
-        page.evaluate(
-            CALL_SERVICE,
-            ["select", "select_option", "practice_game", {"option": "off"}],
-        )
-        control({"status": "Throw", "event": "Takeout finished", "throws": []})
-        context.close()
-    return found
+def phone_languages(phones: list[Screen]) -> None:
+    """The scoreboard during a game on the phones in the other languages: its buttons
+    and status take a width of their own in each."""
+    pages = [phone.page for phone in phones]
+    scoreboard_in_game(pages)
+    settle(*pages)
+    for phone in phones:
+        phone.look(f"scoreboard-during-a-game-{phone.locale}")
+    # The next step finds the board between games, as it was.
+    pages[0].evaluate(
+        CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
+    )
+    pulled(pages)
+    for phone in phones:
+        phone.close()
 
 
-def screen_views(
-    browser: Browser,
-    screen: str,
-    size: dict[str, int],
-    insets: tuple[int, int],
-    touch: bool,
-) -> list[str]:
-    context, page = screen_page(browser, size, insets, touch)
-    found: list[str] = []
+def screen_views(screens: list[Screen]) -> None:
+    """Every view and the scoreboard's own screens on every screen at once: the board
+    plays each game once, and every screen shows it."""
+    pages = [screen.page for screen in screens]
+    first = pages[0]
+    root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
 
-    def look(name: str) -> None:
-        found.extend(screen_problems(page, screen, name, touch))
+    def click(selector: str) -> None:
+        """A tap of the scoreboard's own, on every screen."""
+        for page in pages:
+            page.evaluate(f"() => {root}.querySelector({selector!r}).click()")
 
-    page.goto(f"{HA}/autodarts-auto/live")
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    def pad_problems(view: str) -> None:
+        for screen in screens:
+            screen.problems.extend(
+                f"{screen.name} · {view}: {problem}"
+                for problem in screen.page.evaluate(PAD_PROBLEMS)
+            )
+
+    show(pages, f"{HA}/autodarts-auto/live")
     views = [f"autodarts-auto/{view}" for view in AUTO_VIEWS]
-    views += [f"autodarts-demo/{view}" for view in page.evaluate(DEMO_VIEWS)]
+    views += [f"autodarts-demo/{view}" for view in first.evaluate(DEMO_VIEWS)]
     for view in views:
-        page.goto(f"{HA}/{view}")
-        look(view.replace("/", "-"))
+        show(pages, f"{HA}/{view}")
+        look(screens, view.replace("/", "-"))
 
     # The views show the scoreboard between games; during one, the new game button
     # and the caller stand beside the status.
-    scoreboard_in_game(page)
-    look("scoreboard-during-a-game")
+    scoreboard_in_game(pages)
+    look(screens, "scoreboard-during-a-game")
 
     # The scoreboard's own screens: the new game screen, four players with long names
     # and the keypad, its board to tap, and Cricket for four.
-    page.goto(f"{HA}/autodarts-auto/scoreboard")
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
-    root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
-    page.evaluate(
+    show(pages, f"{HA}/autodarts-auto/scoreboard")
+    first.evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
     )
-    control({"status": "Throw", "event": "Takeout finished", "throws": []})
-    page.wait_for_function(f"() => {root}.querySelector('.lobby-cta')", timeout=15000)
-    page.evaluate(f"() => {root}.querySelector('.lobby-cta').click()")
-    page.wait_for_function(f"() => {root}.querySelector('.lobby')", timeout=15000)
-    look("scoreboard-new-game")
-    page.evaluate(f"() => {root}.querySelector(\"[data-lobby='close']\").click()")
+    pulled(pages)
+    wait_for(pages, f"() => {root}.querySelector('.lobby-cta')")
+    click(".lobby-cta")
+    wait_for(pages, f"() => {root}.querySelector('.lobby')")
+    look(screens, "scoreboard-new-game")
+    click("[data-lobby='close']")
     # The keypad is a choice of the card; the demo's keypad view has it.
-    page.goto(f"{HA}/autodarts-demo/keypad")
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
-    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
-    page.evaluate(CALL_ACTION, ["start_game", {"game": "501", "players": LONG_NAMES}])
-    page.wait_for_function(f"() => {root}.querySelector('.pad')", timeout=15000)
-    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
-    look("scoreboard-keypad-four-players")
-    page.evaluate(f"() => {root}.querySelector(\"[data-pad='board']\").click()")
-    page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
-    look("scoreboard-board-to-tap")
-    found.extend(
-        f"{screen} · scoreboard-board-to-tap: {problem}"
-        for problem in page.evaluate(PAD_PROBLEMS)
-    )
-    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
-    control({"status": "Throw", "event": "Takeout finished", "throws": []})
+    show(pages, f"{HA}/autodarts-demo/keypad")
+    first.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
+    first.evaluate(CALL_ACTION, ["start_game", {"game": "501", "players": LONG_NAMES}])
+    wait_for(pages, f"() => {root}.querySelector('.pad')")
+    thrown(pages, [T20, SINGLE_20])
+    look(screens, "scoreboard-keypad-four-players")
+    click("[data-pad='board']")
+    wait_for(pages, f"() => {root}.querySelector('.pad-board')")
+    look(screens, "scoreboard-board-to-tap")
+    pad_problems("scoreboard-board-to-tap")
+    first.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    pulled(pages)
     # A dart the board read wrong and the board to correct it: zoomed in on where the
     # board saw it on a small screen, whole on a large one.
-    page.evaluate(CALL_ACTION, ["start_game", {"game": "301", "players": ["Alex"]}])
+    first.evaluate(CALL_ACTION, ["start_game", {"game": "301", "players": ["Alex"]}])
     control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
-    page.wait_for_function(
-        f"() => ({SCOREBOARD_STATE})().darts.join() === 'T20,S20,–'", timeout=15000
-    )
-    page.evaluate(f"() => {root}.querySelector(\"[data-dart='2']\").click()")
-    page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
-    look("scoreboard-correction-board")
-    found.extend(
-        f"{screen} · scoreboard-correction-board: {problem}"
-        for problem in page.evaluate(PAD_PROBLEMS)
-    )
-    control({"status": "Throw", "event": "Takeout finished", "throws": []})
-    page.evaluate(
+    wait_for(pages, f"() => ({SCOREBOARD_STATE})().darts.join() === 'T20,S20,–'")
+    click("[data-dart='2']")
+    wait_for(pages, f"() => {root}.querySelector('.pad-board')")
+    look(screens, "scoreboard-correction-board")
+    pad_problems("scoreboard-correction-board")
+    pulled(pages)
+    first.evaluate(
         CALL_ACTION, ["start_game", {"game": "cricket", "players": LONG_NAMES}]
     )
-    page.wait_for_function(f"() => {root}.querySelector('.cricket')", timeout=15000)
-    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
-    look("scoreboard-cricket-four-players")
-    page.evaluate(
+    wait_for(pages, f"() => {root}.querySelector('.cricket')")
+    thrown(pages, [T20, SINGLE_20])
+    look(screens, "scoreboard-cricket-four-players")
+    first.evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
     )
-    control({"status": "Throw", "event": "Takeout finished", "throws": []})
-    errors = page_errors(page, [])
-    found.extend(f"{screen}: console problem {error}" for error in errors)
-    context.close()
-    return found
+    pulled(pages)
 
 
 # Accessibility -----------------------------------------------------------------------
@@ -2372,31 +2410,28 @@ def accessibility(browser: Browser) -> None:
     failing: list[str] = []
     lesser: set[str] = set()
     report: dict[str, list] = {"scanned": [], "violations": []}
-    for screen, size, touch, scheme in ACCESSIBILITY_SCREENS:
-        for view, violations in accessibility_views(browser, size, touch, scheme):
-            report["scanned"].append(f"{screen} · {view}")
-            for violation in violations:
-                report["violations"].append(
-                    {"screen": screen, "view": view, **violation}
-                )
-                line = (
-                    f"{violation['card']} · {violation['rule']} ({violation['impact']}): "
-                    f"{violation['target']} {violation['summary']}"
-                )
-                matches = [
-                    index
-                    for index, entry in enumerate(accepted)
-                    if entry["rule"] == violation["rule"]
-                    and entry["card"] == violation["card"]
-                    and entry["target"] in violation["target"]
-                ]
-                used.update(matches)
-                if matches:
-                    continue
-                if violation["impact"] in FAILING:
-                    failing.append(f"{screen} · {view} · {line}")
-                else:
-                    lesser.add(line)
+    for screen, view, violations in accessibility_views(browser):
+        report["scanned"].append(f"{screen} · {view}")
+        for violation in violations:
+            report["violations"].append({"screen": screen, "view": view, **violation})
+            line = (
+                f"{violation['card']} · {violation['rule']} ({violation['impact']}): "
+                f"{violation['target']} {violation['summary']}"
+            )
+            matches = [
+                index
+                for index, entry in enumerate(accepted)
+                if entry["rule"] == violation["rule"]
+                and entry["card"] == violation["card"]
+                and entry["target"] in violation["target"]
+            ]
+            used.update(matches)
+            if matches:
+                continue
+            if violation["impact"] in FAILING:
+                failing.append(f"{screen} · {view} · {line}")
+            else:
+                lesser.add(line)
     print(f"  {len(report['scanned'])} views checked", flush=True)
     if ARTIFACTS:
         Path(ARTIFACTS, "accessibility.json").write_text(json.dumps(report, indent=1))
@@ -2412,95 +2447,119 @@ def accessibility(browser: Browser) -> None:
     check(not failing, "Accessibility violations:\n" + "\n".join(failing))
 
 
-def accessibility_views(
-    browser: Browser, size: dict[str, int], touch: bool, scheme: str
-) -> list[tuple[str, list[dict]]]:
-    """The violations of every card view, and of the scoreboard's own screens."""
-    context = browser.new_context(
-        locale="en-US",
-        viewport=size,
-        device_scale_factor=2 if touch else 1,
-        is_mobile=touch,
-        has_touch=touch,
-        color_scheme=scheme,
-    )
-    page = context.new_page()
+# Starts axe-core over the cards of the page; its violations, or why it failed, come
+# into window.__axeFound, so that the scans of several pages run at the same time.
+START_AXE = f"""
+(tags) => {{
+  window.__axeFound = null;
+  ({AXE_CARDS})(tags).then(
+    (violations) => {{ window.__axeFound = {{ violations }}; }},
+    (error) => {{ window.__axeFound = {{ error: String(error) }}; }},
+  );
+}}
+"""
+
+
+def accessibility_views(browser: Browser) -> list[tuple[str, str, list[dict]]]:
+    """The violations of every card view, and of the scoreboard's own screens, on every
+    screen and theme: all of them open at once, the board playing each game once."""
+    opened: list[tuple[str, Page]] = []
+    for screen, size, touch, scheme in ACCESSIBILITY_SCREENS:
+        context = browser.new_context(
+            locale="en-US",
+            viewport=size,
+            device_scale_factor=2 if touch else 1,
+            is_mobile=touch,
+            has_touch=touch,
+            color_scheme=scheme,
+        )
+        probe(context)
+        opened.append((screen, context.new_page()))
+    pages = [page for _, page in opened]
+    first = pages[0]
     axe = AXE.read_text(encoding="utf-8")
-    found: list[tuple[str, list[dict]]] = []
+    found: list[tuple[str, str, list[dict]]] = []
+    root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
 
     def scan(name: str) -> None:
-        page.wait_for_function(CARDS_DRAWN, timeout=30000)
-        # Positions, profiles and trends arrive over the websocket after the first draw.
-        page.wait_for_timeout(800)
-        if not page.evaluate("() => Boolean(window.axe)"):
-            page.evaluate(axe)
-        found.append((name, page.evaluate(AXE_CARDS, WCAG_TAGS)))
+        settle(*pages)
+        for page in pages:
+            if not page.evaluate("() => Boolean(window.axe)"):
+                page.evaluate(axe)
+            page.evaluate(START_AXE, WCAG_TAGS)
+        for screen, page in opened:
+            page.wait_for_function("() => window.__axeFound", timeout=60000)
+            result = page.evaluate("() => window.__axeFound")
+            check(
+                "error" not in result, f"axe-core failed on {screen} · {name}: {result}"
+            )
+            found.append((screen, name, result["violations"]))
 
-    page.goto(f"{HA}/autodarts-auto/live")
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    def click(selector: str) -> None:
+        """A tap of the scoreboard's own, on every screen."""
+        for page in pages:
+            page.evaluate(f"() => {root}.querySelector({selector!r}).click()")
+
+    show(pages, f"{HA}/autodarts-auto/live")
     views = [f"autodarts-auto/{view}" for view in AUTO_VIEWS]
-    views += [f"autodarts-demo/{view}" for view in page.evaluate(DEMO_VIEWS)]
+    views += [f"autodarts-demo/{view}" for view in first.evaluate(DEMO_VIEWS)]
     for view in views:
-        page.goto(f"{HA}/{view}")
+        show(pages, f"{HA}/{view}")
         scan(view)
 
     # The idle screen of the scoreboard, once nobody threw for a while; a practice
     # match on the live card; and the scoreboard's own screens: the new game screen,
     # the keypad with its board, the board of a correction and Cricket.
-    root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
-    page.goto(f"{HA}/autodarts-demo/idle")
-    page.wait_for_function(
+    show(pages, f"{HA}/autodarts-demo/idle")
+    wait_for(
+        pages,
         f"() => ({SCOREBOARD_CARDS})()[0]?.shadowRoot?.querySelector('.idle-panel')",
         timeout=30000,
     )
     scan("autodarts-demo/idle · idle screen")
-    page.goto(f"{HA}/autodarts-demo/board")
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
-    control({"status": "Throw", "event": "Takeout finished", "throws": []})
-    page.evaluate(
+    show(pages, f"{HA}/autodarts-demo/board")
+    pulled(pages)
+    first.evaluate(
         CALL_ACTION, ["start_game", {"game": "501", "players": ["Alex", "Sam"]}]
     )
-    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
-    page.wait_for_function(
-        f"() => ({CARDS})()[0]?.shadowRoot.querySelector('.practice')", timeout=15000
-    )
+    thrown(pages, [T20, SINGLE_20])
+    wait_for(pages, f"() => ({CARDS})()[0]?.shadowRoot.querySelector('.practice')")
     scan("autodarts-demo/board · practice match")
-    page.goto(f"{HA}/autodarts-auto/scoreboard")
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
+    show(pages, f"{HA}/autodarts-auto/scoreboard")
     scan("autodarts-auto/scoreboard · practice match")
-    page.evaluate(f"() => {root}.querySelector(\"[data-dart='2']\").click()")
-    page.wait_for_function(f"() => {root}.querySelector('.pad')", timeout=15000)
+    click("[data-dart='2']")
+    wait_for(pages, f"() => {root}.querySelector('.pad')")
     scan("autodarts-auto/scoreboard · correcting a dart")
-    page.evaluate(f"() => {root}.querySelector(\"[data-pad='board']\").click()")
-    page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
+    click("[data-pad='board']")
+    wait_for(pages, f"() => {root}.querySelector('.pad-board')")
     scan("autodarts-auto/scoreboard · the board of a correction")
-    control({"status": "Throw", "event": "Takeout finished", "throws": []})
-    page.evaluate(
+    pulled(pages)
+    first.evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
     )
-    page.wait_for_function(f"() => {root}.querySelector('.lobby-cta')", timeout=15000)
-    page.evaluate(f"() => {root}.querySelector('.lobby-cta').click()")
-    page.wait_for_function(f"() => {root}.querySelector('.lobby')", timeout=15000)
+    wait_for(pages, f"() => {root}.querySelector('.lobby-cta')")
+    click(".lobby-cta")
+    wait_for(pages, f"() => {root}.querySelector('.lobby')")
     scan("autodarts-auto/scoreboard · new game screen")
-    page.evaluate(f"() => {root}.querySelector(\"[data-lobby='close']\").click()")
-    page.goto(f"{HA}/autodarts-demo/keypad")
-    page.wait_for_function(CARDS_DRAWN, timeout=30000)
-    page.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
-    page.evaluate(
+    click("[data-lobby='close']")
+    show(pages, f"{HA}/autodarts-demo/keypad")
+    first.evaluate(CALL_SERVICE, ["switch", "turn_on", "practice_manual_entry"])
+    first.evaluate(
         CALL_ACTION, ["start_game", {"game": "cricket", "players": LONG_NAMES}]
     )
-    page.wait_for_function(f"() => {root}.querySelector('.pad')", timeout=15000)
-    control({"event": "Throw detected", "throws": [T20, SINGLE_20]})
+    wait_for(pages, f"() => {root}.querySelector('.pad')")
+    thrown(pages, [T20, SINGLE_20])
     scan("autodarts-demo/keypad · Cricket with the keypad")
-    page.evaluate(f"() => {root}.querySelector(\"[data-pad='board']\").click()")
-    page.wait_for_function(f"() => {root}.querySelector('.pad-board')", timeout=15000)
+    click("[data-pad='board']")
+    wait_for(pages, f"() => {root}.querySelector('.pad-board')")
     scan("autodarts-demo/keypad · the board to tap")
-    page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
-    page.evaluate(
+    first.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+    first.evaluate(
         CALL_SERVICE, ["select", "select_option", "practice_game", {"option": "off"}]
     )
-    control({"status": "Throw", "event": "Takeout finished", "throws": []})
-    context.close()
+    pulled(pages)
+    for page in pages:
+        page.context.close()
     return found
 
 
@@ -2606,79 +2665,83 @@ STEADY_GAMES = (
 def steady_heights(browser: Browser) -> None:
     """No card moves while a game goes on: from its start to its last dart, the cards
     and the scoreboard's parts keep their heights on every screen, in German with its
-    long words. Only a new game and the match summary after it may change them."""
+    long words. Only a new game and the match summary after it may change them. Every
+    screen and view is open at once, and the board plays each game once for all."""
     found: list[str] = []
+    opened: list[tuple[str, str, Page]] = []
+    contexts: list[BrowserContext] = []
     for screen, size in STEADY_SCREENS:
         context = browser.new_context(locale="de-DE", viewport=size)
-        pages = []
+        probe(context)
+        contexts.append(context)
         for view in STEADY_VIEWS:
             page = context.new_page()
             page.add_init_script(CAPTURE_ERRORS)
-            page.goto(f"{HA}/{view}")
-            page.wait_for_function(CARDS_DRAWN, timeout=30000)
-            pages.append((view, page))
-        control_page = pages[0][1]
+            opened.append((screen, view, page))
+    pages = [page for _, _, page in opened]
+    for view in STEADY_VIEWS:
+        show([page for _, shown, page in opened if shown == view], f"{HA}/{view}")
+    control_page = pages[0]
 
-        def heights() -> dict[tuple[str, str], int]:
-            return {
-                (view, part): value
-                for view, page in pages
-                for part, value in page.evaluate(HEIGHTS).items()
-            }
+    def heights() -> dict[tuple[str, str, str], int]:
+        return {
+            (screen, view, part): value
+            for screen, view, page in opened
+            for part, value in page.evaluate(HEIGHTS).items()
+        }
 
-        for game, players, options, visits in STEADY_GAMES:
-            control({"status": "Takeout in progress", "event": "Takeout started"})
-            control({"status": "Throw", "event": "Takeout finished", "throws": []})
-            if players:
-                control_page.evaluate(
-                    CALL_ACTION,
-                    ["start_game", {"game": game, "players": players, **options}],
-                )
-            else:
-                control_page.evaluate(
-                    CALL_SERVICE,
-                    ["select", "select_option", "practice_game", {"option": "off"}],
-                )
-            control_page.wait_for_timeout(1500)
-            start = heights()
-
-            def compare(moment: str) -> None:
-                control_page.wait_for_timeout(800)
-                for key, value in heights().items():
-                    before = start.get(key)
-                    if before is None or abs(before - value) > 1:
-                        found.append(
-                            f"{screen} · {game} · {moment} · {key[0]} {key[1]}: {before} → {value}"
-                        )
-
-            for number, visit in enumerate(visits, 1):
-                darts = visit.split()
-                for count in range(1, len(darts) + 1):
-                    thrown = [aimed(name) for name in darts[:count]]
-                    control({"event": "Throw detected", "throws": thrown})
-                    compare(f"visit {number}: {' '.join(darts[:count])}")
-                # The takeout after the game shot shows the match summary.
-                if number < len(visits):
-                    control(
-                        {"status": "Takeout in progress", "event": "Takeout started"}
-                    )
-                    control(
-                        {"status": "Throw", "event": "Takeout finished", "throws": []}
-                    )
-                    compare(f"visit {number} pulled")
+    def pull() -> None:
+        """The takeout: every page shows it start and end, as the board reports it."""
         control({"status": "Takeout in progress", "event": "Takeout started"})
-        control({"status": "Throw", "event": "Takeout finished", "throws": []})
-        control_page.evaluate(
-            CALL_SERVICE,
-            ["select", "select_option", "practice_game", {"option": "off"}],
-        )
-        for view, page in pages:
-            errors = page_errors(page, [])
-            found.extend(
-                f"{screen} · {view}: console problem {error}" for error in errors
+        expect_state(pages, {"local_status": "takeout_in_progress"})
+        pulled(pages)
+
+    for game, players, options, visits in STEADY_GAMES:
+        pull()
+        if players:
+            control_page.evaluate(
+                CALL_ACTION,
+                ["start_game", {"game": game, "players": players, **options}],
             )
+        else:
+            control_page.evaluate(
+                CALL_SERVICE,
+                ["select", "select_option", "practice_game", {"option": "off"}],
+            )
+        expect_state(pages, {"practice_game": game})
+        settle(*pages)
+        start = heights()
+
+        def compare(moment: str) -> None:
+            settle(*pages)
+            for key, value in heights().items():
+                before = start.get(key)
+                if before is None or abs(before - value) > 1:
+                    screen, view, part = key
+                    found.append(
+                        f"{screen} · {game} · {moment} · {view} {part}: {before} → {value}"
+                    )
+
+        for number, visit in enumerate(visits, 1):
+            darts = visit.split()
+            for count in range(1, len(darts) + 1):
+                thrown(pages, [aimed(name) for name in darts[:count]])
+                compare(f"visit {number}: {' '.join(darts[:count])}")
+            # The takeout after the game shot shows the match summary.
+            if number < len(visits):
+                pull()
+                compare(f"visit {number} pulled")
+        print(f"  {game}: {len(found)} changes so far", flush=True)
+    pull()
+    control_page.evaluate(
+        CALL_SERVICE,
+        ["select", "select_option", "practice_game", {"option": "off"}],
+    )
+    for screen, view, page in opened:
+        errors = page_errors(page, [])
+        found.extend(f"{screen} · {view}: console problem {error}" for error in errors)
+    for context in contexts:
         context.close()
-        print(f"  {screen}: {len(found)} changes so far", flush=True)
     check(not found, "Heights that changed during a game:\n" + "\n".join(found[:40]))
 
 
@@ -2902,6 +2965,37 @@ def keep_screenshots(browser: Browser, step: str) -> None:
             page.screenshot(path=path, full_page=True)
         except Exception as error:  # A screenshot must never hide the real failure.
             print(f"No screenshot of {step}: {error}", flush=True)
+
+
+class StepTimes:
+    """The seconds of every step, kept as a table in browser-steps-table.md with the
+    other artifacts after each step, failed or not: browser.sh adds it to the summary
+    of the job in CI, which shows what to make faster and how to split the steps."""
+
+    def __init__(self) -> None:
+        self.steps: list[tuple[str, float]] = []
+        self.path = artifact("browser steps", "table.md")
+
+    def add(self, name: str, seconds: float) -> float:
+        self.steps.append((name, seconds))
+        if self.path is not None:
+            rows = [f"| {step} | {taken:.1f} |" for step, taken in self.steps]
+            total = sum(taken for _, taken in self.steps)
+            self.path.write_text(
+                "\n".join(
+                    [
+                        "### Browser steps",
+                        "",
+                        "| Step | Seconds |",
+                        "| --- | ---: |",
+                        *rows,
+                        f"| All steps | {total:.1f} |",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+        return seconds
 
 
 class Timeline:
@@ -3169,48 +3263,47 @@ def manual_board(browser: Browser) -> None:
         page.wait_for_function(f"() => {note} && !{note}.hidden", timeout=30000)
         errors = page_errors(page, [])
         check(not errors, f"Console problems: {errors}")
+        # Every view on every screen at once.
+        screens = [Screen(browser, *size) for size in SCREENS]
+        views = [screen.page for screen in screens]
+        for name in ("live", "scoreboard", "status"):
+            show(views, f"{HA}/{MANUAL_DASHBOARD}/{name}")
+            look(screens, f"manual-{name}")
+        # The score view of the scoreboard's keypad.
+        show(views, f"{HA}/{MANUAL_DASHBOARD}/scoreboard")
+        root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
+
+        def click(selector: str) -> None:
+            """A tap of the scoreboard's own, on every screen."""
+            for view in views:
+                view.evaluate(f"() => {root}.querySelector({selector!r}).click()")
+
+        click('[data-pad="score"]')
+        look(screens, "manual-scoreboard-score")
+        # The question after a score keeps the pad's height, and so does Cancel.
+        pad = f"() => {root}.querySelector('.pad').getBoundingClientRect().height"
+        for digit in "100":
+            click(f'.pad-score [data-value="{digit}"]')
+        typed = [view.evaluate(pad) for view in views]
+        click('[data-pad="enter"]')
+        wait_for(views, f"() => {root}.querySelector('[data-pad=\"answer\"]')")
+        look(screens, "manual-scoreboard-ask")
+        asked = [view.evaluate(pad) for view in views]
+        click('[data-pad="cancel"]')
+        wait_for(views, f"() => {root}.querySelector('[data-pad=\"enter\"]')")
+        back = [view.evaluate(pad) for view in views]
         found: list[str] = []
-        for screen, size, insets, touch in SCREENS:
-            context, view = screen_page(browser, size, insets, touch)
-            for name in ("live", "scoreboard", "status"):
-                view.goto(f"{HA}/{MANUAL_DASHBOARD}/{name}")
-                found += screen_problems(view, screen, f"manual-{name}", touch)
-            # The score view of the scoreboard's keypad.
-            view.goto(f"{HA}/{MANUAL_DASHBOARD}/scoreboard")
-            view.wait_for_function(CARDS_DRAWN, timeout=30000)
-            root = f"({SCOREBOARD_CARDS})()[0].shadowRoot"
-            view.evaluate(f"() => {root}.querySelector('[data-pad=\"score\"]').click()")
-            found += screen_problems(view, screen, "manual-scoreboard-score", touch)
-            # The question after a score keeps the pad's height, and so does Cancel.
-            pad = f"() => {root}.querySelector('.pad').getBoundingClientRect().height"
-            for digit in "100":
-                view.evaluate(
-                    f"() => {root}.querySelector('.pad-score [data-value=\"{digit}\"]')"
-                    ".click()"
+        for screen, score, *after in zip(screens, typed, asked, back, strict=True):
+            screen.problems.extend(
+                f"{screen.name}: the pad is {height:.0f} px tall {moment}, "
+                f"{score:.0f} px with the score"
+                for moment, height in zip(
+                    ("asking", "after Cancel"), after, strict=True
                 )
-            typed = view.evaluate(pad)
-            view.evaluate(f"() => {root}.querySelector('[data-pad=\"enter\"]').click()")
-            view.wait_for_function(
-                f"() => {root}.querySelector('[data-pad=\"answer\"]')", timeout=15000
+                if abs(height - score) > 1
             )
-            found += screen_problems(view, screen, "manual-scoreboard-ask", touch)
-            asked = view.evaluate(pad)
-            view.evaluate(
-                f"() => {root}.querySelector('[data-pad=\"cancel\"]').click()"
-            )
-            view.wait_for_function(
-                f"() => {root}.querySelector('[data-pad=\"enter\"]')", timeout=15000
-            )
-            back = view.evaluate(pad)
-            found.extend(
-                f"{screen}: the pad is {height:.0f} px tall {moment}, {typed:.0f} px with the score"
-                for moment, height in (("asking", asked), ("after Cancel", back))
-                if abs(height - typed) > 1
-            )
-            found.extend(
-                f"{screen}: console problem {error}" for error in page_errors(view, [])
-            )
-            context.close()
+            screen.close()
+            found += screen.problems
         check(not found, "Layout problems:\n" + "\n".join(found))
     finally:
         page.evaluate(REMOVE_MANUAL_BOARD, [MANUAL_DASHBOARD, entry])
@@ -3281,16 +3374,21 @@ def main() -> None:
             if not any(name.startswith(wanted) for name, _ in steps)
         }
         check(not unknown, f"BROWSER_STEPS names no step: {sorted(unknown)}")
+        times = StepTimes()
         for name, step in steps:
             if ONLY and not any(name.startswith(wanted) for wanted in ONLY):
                 continue
             # A failure then names the step, not only a timeout deep in Playwright.
             print(f"Browser step: {name}", flush=True)
+            started = time.monotonic()
             try:
                 step()
             except Exception:
+                times.add(f"{name} (failed)", time.monotonic() - started)
                 keep_screenshots(browser, name)
                 raise
+            seconds = times.add(name, time.monotonic() - started)
+            print(f"Browser step: {name} ({seconds:.1f} s)", flush=True)
         browser.close()
     print(
         "Browser check passed: card registration on every load, visit, highlights, "

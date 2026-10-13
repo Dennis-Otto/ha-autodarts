@@ -2,6 +2,7 @@
 tool versions kept in two places agree with each other, and pull requests run the
 end-to-end tests for every file that they use."""
 
+import ast
 import json
 import os
 import re
@@ -357,6 +358,45 @@ def test_the_browser_test_mounts_only_the_repository_and_its_artifacts():
         "${ROOT_MOUNT}:/repo:ro",
         "${ARTIFACTS_MOUNT}:/artifacts",
     ]
+
+
+def skipped_by(workflow: str) -> set[str]:
+    """The files of the end-to-end tests whose change alone does not start a workflow
+    of the screenshot tool."""
+    path = ROOT / ".github" / "workflows" / workflow
+    # PyYAML reads the key "on" as True.
+    trigger = yaml.safe_load(path.read_text(encoding="utf-8"))[True]
+    (event,) = [event for event in ("push", "pull_request") if event in trigger]
+    return {path[1:] for path in trigger[event]["paths"] if path.startswith("!")}
+
+
+def imports(script: Path) -> set[str]:
+    """The modules a script imports, by the first part of their names."""
+    tree = ast.parse(script.read_text(encoding="utf-8"))
+    names = {
+        alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Import)
+        for alias in node.names
+    } | {
+        node.module
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and node.module and not node.level
+    }
+    return {name.partition(".")[0] for name in names}
+
+
+@pytest.mark.parametrize("workflow", ["screenshots.yml", "visual.yml"])
+def test_the_screenshot_tool_runs_again_for_every_script_it_uses(workflow):
+    # The screenshot bot and the visual check skip the browser test, but a module
+    # of the browser test that the screenshot tool starts to import counts for it.
+    skipped = skipped_by(workflow)
+    assert {"tests/e2e/browser.py", "tests/e2e/pages.py"} <= skipped
+    for script in sorted(E2E.glob("*.py")):
+        if f"tests/e2e/{script.name}" in skipped:
+            continue
+        used = {f"tests/e2e/{name}.py" for name in imports(script)} & skipped
+        assert not used, f"{script.name} imports {sorted(used)}, which {workflow} skips"
 
 
 def test_the_end_to_end_tests_run_the_oldest_supported_home_assistant():
