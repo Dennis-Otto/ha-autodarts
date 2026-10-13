@@ -12,16 +12,32 @@
 [![Documentation](https://img.shields.io/badge/docs-website-526CFE.svg?logo=materialformkdocs&logoColor=white)](https://dennis-otto.github.io/ha-autodarts/)
 [![CI](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/ci.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/ci.yml)
 [![Coverage 100 %](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/development.md#tests)
-[![Docker end-to-end test](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/e2e.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/e2e.yml)
-[![Sponsor](https://img.shields.io/badge/sponsor-%E2%99%A5-db61a2?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Dennis-Otto)
 
 [**Documentation**](https://dennis-otto.github.io/ha-autodarts/) · [**Deutsche Anleitung**](https://dennis-otto.github.io/ha-autodarts/de/) · [Quick start](#quick-start) · [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) · [💛 Sponsor](https://github.com/sponsors/Dennis-Otto)
 
-<img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, the beds light up and the scoreboard counts down to 121; Sam scores 85; Alex checks out 121 with T20, outer bull and D18 for the game shot" width="880">
-
 </div>
 
-Every guide is on the [documentation website](https://dennis-otto.github.io/ha-autodarts/), in English and [German](https://dennis-otto.github.io/ha-autodarts/de/), with a search.
+<img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, the beds light up and the scoreboard counts down to 121; Sam scores 85; Alex checks out 121 with T20, outer bull and D18 for the game shot" width="100%">
+
+## Quick start
+
+You need Home Assistant 2026.8 or newer with [HACS](https://hacs.xyz), and an Autodarts board in your network or any dartboard whose darts you enter on a keypad ([requirements](#requirements)).
+
+1. **Install with HACS, then restart Home Assistant.**
+
+   [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
+
+   Or add `https://github.com/Dennis-Otto/ha-autodarts` in HACS as a custom repository of the type **Integration**, then download **Autodarts**.
+
+2. **Add your board.** With Board Manager 2, Home Assistant usually shows it under **Settings → Devices & services → Discovered** already. Otherwise:
+
+   [![Open your Home Assistant instance and start setting up Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
+
+   Choose **Search for boards on this network** or **Enter board address** and confirm. Without Autodarts, choose **Dartboard without Autodarts: enter every dart yourself**.
+
+3. **Add the cards.** Create a complete dashboard in one step: **Settings → Dashboards → Add dashboard → Autodarts**. Or edit a dashboard, choose **Add card** and search for *Autodarts*.
+
+New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md) takes you from nothing to the scoreboard next to your board. The [installation guide](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) covers manual installation, reconfiguration, updates and removal.
 
 ## Why
 
@@ -32,167 +48,209 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 
 ## Features
 
-<table>
-  <tr>
-    <td width="55%" valign="top">
-      <h3>Play</h3>
-      <ul>
-        <li>X01 from 101 to 1001 with double out, double in and the checkout route after every dart</li>
-        <li>Cricket, Cut-Throat Cricket, Tactics and Wild Mouse on a chalkboard</li>
-        <li>Party games for up to eight: Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up</li>
-        <li>Matches of up to four players with legs and sets, two teams of two, handicap start scores and a bull-off, and a summary of every match</li>
-        <li>Tournaments of three to eight players: a round robin with a table or a knockout with a bracket</li>
-        <li>A bot from level 20 to 120 to play X01 and Cricket against</li>
-        <li>A tap corrects a dart the board read wrong; a keypad enters darts by hand, and the last visit can be undone</li>
-        <li>No Autodarts? Any dartboard plays along, with every dart entered on the keypad</li>
-        <li>Setup hints where no checkout is possible, such as T20 T20 S17 to leave 32</li>
-      </ul>
-      <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md">Games and rules →</a></p>
-    </td>
-    <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/tournament-bracket.webp" alt="Animation: the knockout bracket of five players on the scoreboard; the winners slide into the next round until Alex wins the final" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="55%" valign="top">
-      <h3>Like a dart machine</h3>
-      <ul>
-        <li>Wild Mouse, also known as Minnesota Cricket, with doubles, triples and three in a bed</li>
-        <li>Aim hints on the chalkboard: green where a dart scores, amber what to close, and a dart that counted nothing struck through</li>
-        <li>Confetti and a golden glow for a 180, a game shot and the match, a glow for a ton</li>
-        <li>How to play every game on the new game screen, for guests who never played it</li>
-        <li>Party games for up to eight players</li>
-      </ul>
-      <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md#wild-mouse">Wild Mouse →</a></p>
-    </td>
-    <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/celebration.webp" alt="Animation: a 180 on the scoreboard. Alex throws three triple 20s, a golden glow lights up the scoreboard and confetti flies from its middle, then the scoreboard shows 321 as before" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="55%" valign="top">
-      <h3>Train</h3>
-      <ul>
-        <li>Training sessions that start with the first dart and keep your last 20 sessions</li>
-        <li>Eight training games: Around the Clock, doubles training, checkout training, Bob's 27, the 121 checkout, Catch 40, the JDC Challenge and the singles training</li>
-        <li>A daily goal, a training streak and personal bests with an event when you beat one</li>
-      </ul>
-      <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md#training-games">Training games →</a></p>
-    </td>
-    <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/training-game.webp" alt="Animation: Around the Clock on the live card; every hit moves the target and outlines the beds of the next number" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="55%" valign="top">
-      <h3>Analyze</h3>
-      <ul>
-        <li>3-dart average, first 9 average, checkout and doubles rate, and a heatmap of every bed or of the real dart positions, with the grouping in millimeters</li>
-        <li>Player profiles with badges in bronze, silver, gold and platinum, weekly trends, head-to-head records, the match history and a leaderboard</li>
-        <li>The hit rate of every double, a weekly report, a training calendar and exports to CSV or JSON</li>
-        <li>Long-term statistics for graphs over weeks and months</li>
-      </ul>
-      <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md">Statistics and players →</a></p>
-    </td>
-    <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/heatmap-modes.webp" alt="Animation: the heatmap of the training card switches from beds to numbers and the real dart positions, then to one player's darts" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="55%" valign="top">
-      <h3>Screen at the board</h3>
-      <ul>
-        <li>A scoreboard for a tablet or TV, readable from the oche</li>
-        <li>A new game screen to choose the game, the players and the format at the board, or to start a tournament</li>
-        <li>A caller that calls the game through the screen's browser</li>
-        <li>Idle mode with a leaderboard, personal bests, today's darts and a clock</li>
-      </ul>
-      <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md">Scoreboard at the board →</a></p>
-    </td>
-    <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/lobby.webp" alt="Animation: on the tablet, New game opens the game screen, Cricket and a second player are chosen and the game starts" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="55%" valign="top">
-      <h3>Automate</h3>
-      <ul>
-        <li>Board events for every dart, visit, takeout, bust, won leg and match, personal best and more</li>
-        <li>Thirteen blueprints: light show, dart and practice callers, highlight photos, reports, alerts, routines, and games started and darts entered by voice</li>
-        <li>Start any game with one action, also by voice, and tell Assist your darts, as at a dart machine</li>
-        <li>Online matches on play.autodarts.io through an optional bridge <i>(experimental)</i></li>
-      </ul>
-      <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md">Automations →</a></p>
-    </td>
-    <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/media-gallery.png" alt="The highlight gallery in the media browser of Home Assistant: photos of a checkout of 121, a 180 and a 140" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="55%" valign="top">
-      <h3>Local and private</h3>
-      <ul>
-        <li>Found automatically with Board Manager 2; Board Manager 1 works too</li>
-        <li>Nothing leaves your network unless you use the board search, the cloud link or the online bridge; board secrets are never stored</li>
-        <li>Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish (<a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md#languages">languages</a>)</li>
-        <li>Light on a Raspberry Pi: a message of the board updates only the entities that show what changed (<a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md#data-updates">data updates</a>)</li>
-        <li>Every rule of the Home Assistant quality scale up to Platinum, 100 % test coverage</li>
-      </ul>
-      <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md">How it works →</a></p>
-    </td>
-    <td width="45%"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/architecture-light.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which provides entities, board events, cards and automations; the Autodarts cloud is optional" width="100%"></td>
-  </tr>
-</table>
+[Play](#play) · [Like a dart machine](#like-a-dart-machine) · [Train](#train) · [Analyze](#analyze) · [Screen at the board](#screen-at-the-board) · [Automate](#automate) · [Local and private](#local-and-private)
+
+### Play
+
+- X01 from 101 to 1001 with double out, double in and the checkout route after every dart
+- Cricket, Cut-Throat Cricket, Tactics and Wild Mouse on a chalkboard
+- Party games for up to eight: Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up
+- Tournaments of three to eight players: a round robin with a table or a knockout with a bracket
+
+<details>
+<summary>Matches, the bot, corrections and more</summary>
+
+- Matches of up to four players with legs and sets, two teams of two, handicap start scores and a bull-off, and a summary of every match
+- A bot from level 20 to 120 to play X01 and Cricket against
+- A tap corrects a dart the board read wrong; a keypad enters darts by hand, and the last visit can be undone
+- No Autodarts? Any dartboard plays along, with every dart entered on the keypad
+- Setup hints where no checkout is possible, such as T20 T20 S17 to leave 32
+
+</details>
+
+<img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/tournament-bracket.webp" alt="Animation: the knockout bracket of five players on the scoreboard; the winners slide into the next round until Alex wins the final" width="100%">
+
+[Games and rules →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md)
+
+### Like a dart machine
+
+- Wild Mouse, also known as Minnesota Cricket, with doubles, triples and three in a bed
+- Aim hints on the chalkboard: green where a dart scores, amber what to close, and a dart that counted nothing struck through
+- Confetti and a golden glow for a 180, a game shot and the match, a glow for a ton
+- How to play every game on the new game screen, for guests who never played it, and party games for up to eight players
+
+<img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/celebration.webp" alt="Animation: a 180 on the scoreboard. Alex throws three triple 20s, a golden glow lights up the scoreboard and confetti flies from its middle, then the scoreboard shows 321 as before" width="100%">
+
+[Wild Mouse →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md#wild-mouse)
+
+### Train
+
+- Training sessions that start with the first dart and keep your last 20 sessions
+- Eight training games: Around the Clock, doubles training, checkout training, Bob's 27, the 121 checkout, Catch 40, the JDC Challenge and the singles training
+- A daily goal, a training streak and personal bests with an event when you beat one
+
+<img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/training-game.webp" alt="Animation: Around the Clock on the live card; every hit moves the target and outlines the beds of the next number" width="100%">
+
+[Training games →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md#training-games)
+
+### Analyze
+
+- 3-dart average, first 9 average, checkout and doubles rate
+- A heatmap of every bed or of the real dart positions, with the grouping in millimeters
+- Player profiles with badges in bronze, silver, gold and platinum, and a leaderboard
+
+<details>
+<summary>Trends, reports, the calendar and exports</summary>
+
+- Weekly trends, head-to-head records and the match history of every player
+- The hit rate of every double, a weekly report, a training calendar and exports to CSV or JSON
+- Long-term statistics for graphs over weeks and months
+
+</details>
+
+<p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/heatmap-modes.webp" alt="Animation: the heatmap of the training card switches from beds to numbers and the real dart positions, then to one player's darts" width="520"></p>
+
+[Statistics and players →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md)
+
+### Screen at the board
+
+- A scoreboard for a tablet or TV, readable from the oche
+- A new game screen to choose the game, the players and the format at the board, or to start a tournament
+- A caller that calls the game through the screen's browser
+- Idle mode with a leaderboard, personal bests, today's darts and a clock
+
+<p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/lobby.webp" alt="Animation: on the tablet, New game opens the game screen, Cricket and a second player are chosen and the game starts" width="600"></p>
+
+[Scoreboard at the board →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md)
+
+### Automate
+
+- Board events for every dart, visit, takeout, bust, won leg and match, personal best and more
+- Thirteen blueprints: light show, dart and practice callers, highlight photos, reports, alerts, routines, and games started and darts entered by voice ([import them](#blueprints))
+- Start any game with one action, also by voice, and tell Assist your darts, as at a dart machine
+- Online matches on play.autodarts.io through an optional bridge *(experimental)*
+
+<img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/media-gallery.png" alt="The highlight gallery in the media browser of Home Assistant: photos of a checkout of 121, a 180 and a 140" width="100%">
+
+[Automations →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md)
+
+### Local and private
+
+- Found automatically with Board Manager 2; Board Manager 1 works too
+- Nothing leaves your network unless you use the board search, the cloud link or the online bridge; board secrets are never stored
+- Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish ([languages](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md#languages))
+- Light on a Raspberry Pi: a message of the board updates only the entities that show what changed ([data updates](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md#data-updates))
+- Every rule of the Home Assistant quality scale up to Platinum, 100 % test coverage
+
+<p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/architecture-dark.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which provides entities, board events, cards and automations; the Autodarts cloud is optional" width="480"></p>
+
+[How it works →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md)
 
 ## Requirements
 
-**Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network, or any dartboard whose darts you enter on a keypad ([play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md)). The Autodarts board runs **Board Manager 2**, Autodarts 2 without a screen (recommended, tested up to 2.0.2), or the classic **Board Manager 1**. A player reports that **Autodarts Desktop** 2.0.2 on Linux works too. Autodarts Desktop on Windows and the Winmau Autodarts devices such as Autodarts X or Lens have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not. No Autodarts account is needed.
+**Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network, or any dartboard whose darts you enter on a keypad ([play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md)). No Autodarts account is needed.
 
-## Quick start
-
-1. **Install with HACS.**
-
-   [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
-
-   Or add `https://github.com/Dennis-Otto/ha-autodarts` in HACS as a custom repository of the type **Integration**, then download **Autodarts**.
-2. **Restart Home Assistant.**
-3. **Add your board.** With Board Manager 2, Home Assistant usually shows it under **Settings → Devices & services → Discovered** already. Otherwise:
-
-   [![Open your Home Assistant instance and start setting up Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
-
-   Choose **Search for boards on this network** or **Enter board address** and confirm. Without Autodarts, choose **Dartboard without Autodarts: enter every dart yourself**.
-4. **Add the cards.** Create a complete dashboard in one step: **Settings → Dashboards → Add dashboard → Autodarts**. Or edit a dashboard, choose **Add card** and search for *Autodarts*.
-
-New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md) takes you from nothing to the scoreboard next to your board. The [installation guide](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) covers manual installation, reconfiguration, updates and removal.
+- **Board Manager 2**, Autodarts 2 without a screen, is recommended and tested up to 2.0.2; the classic **Board Manager 1** works too.
+- A player reports that **Autodarts Desktop** 2.0.2 on Linux works too.
+- Autodarts Desktop on Windows and the Winmau Autodarts devices such as Autodarts X or Lens have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not.
 
 ## Blueprints
 
-Import a blueprint with one click, choose your board and you're done:
+Import a blueprint with one click, choose your board and you're done.
 
-| Blueprint | Import |
-| --- | --- |
-| **Light show.** Your WLED presets or room lights for a 180, a high finish, a bust, a won leg or match, a personal best, an achievement, the winner of a tournament and more, and back to your normal light afterwards. | [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
-| **Celebrate a visit score.** Your actions for every 180, every ton, or any score you choose, the moment the third dart lands. | [![Import the visit score blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
-| **Dart caller.** Every visit announced on your speakers, with a special call for 180. | [![Import the dart caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml) |
-| **Practice caller.** Who needs what, busts and game shots of the practice game on your speakers. | [![Import the practice caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
-| **Highlight photo.** A picture of the board after a 180 or a checkout, on your phone and in a gallery of the media browser. | [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
-| **Takeout actions.** Light up the board while you pull your darts. | [![Import the takeout actions blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftakeout.yaml) |
-| **Start and stop detection automatically**, based on presence in the darts room. | [![Import the automatic detection blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fauto_detection.yaml) |
-| **Training session routine.** Light, detection and calibration follow your training sessions. | [![Import the training session routine blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
-| **Weekly report.** Your training week with the trend of your 3-dart average, as a notification. | [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
-| **Training report.** Your daily summary with the 3-dart average. | [![Import the training report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
-| **Board problem alert** when the board goes offline or a camera fails, with an optional all-clear. | [![Import the board problem alert blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml) |
-| **Start a game by voice.** Say "Start 501 for Alex and Sam" to Assist, in English or German. | [![Import the start a game by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
-| **Enter darts by voice.** Say "Alex has 140", "Triple 20" or "next player" to Assist, as at a dart machine, in English or German. | [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
+- **Light show.** Your WLED presets or room lights for a 180, a high finish, a bust, a won leg or match, a personal best, an achievement, the winner of a tournament and more, and back to your normal light afterwards.
+
+  [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml)
+
+- **Dart caller.** Every visit announced on your speakers, with a special call for 180.
+
+  [![Import the dart caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml)
+
+- **Highlight photo.** A picture of the board after a 180 or a checkout, on your phone and in a gallery of the media browser.
+
+  [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml)
+
+<details>
+<summary>Ten more: visit score, practice caller, takeout, detection, routines, reports, alerts and voice</summary>
+
+- **Celebrate a visit score.** Your actions for every 180, every ton, or any score you choose, the moment the third dart lands.
+
+  [![Import the visit score blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml)
+
+- **Practice caller.** Who needs what, busts and game shots of the practice game on your speakers.
+
+  [![Import the practice caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml)
+
+- **Takeout actions.** Light up the board while you pull your darts.
+
+  [![Import the takeout actions blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftakeout.yaml)
+
+- **Start and stop detection automatically**, based on presence in the darts room.
+
+  [![Import the automatic detection blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fauto_detection.yaml)
+
+- **Training session routine.** Light, detection and calibration follow your training sessions.
+
+  [![Import the training session routine blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml)
+
+- **Weekly report.** Your training week with the trend of your 3-dart average, as a notification.
+
+  [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml)
+
+- **Training report.** Your daily summary with the 3-dart average.
+
+  [![Import the training report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml)
+
+- **Board problem alert** when the board goes offline or a camera fails, with an optional all-clear.
+
+  [![Import the board problem alert blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml)
+
+- **Start a game by voice.** Say "Start 501 for Alex and Sam" to Assist, in English or German.
+
+  [![Import the start a game by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml)
+
+- **Enter darts by voice.** Say "Alex has 140", "Triple 20" or "next player" to Assist, as at a dart machine, in English or German.
+
+  [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml)
+
+</details>
 
 ## Documentation
 
-| Guide | Contents |
-| --- | --- |
-| [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md) | For Autodarts players without Home Assistant: from nothing to the first game on the scoreboard |
-| [Installation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) | Requirements, HACS and manual installation, the ways to add a board, updates and removal |
-| [Play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md) | Any dartboard with every game, the training and the statistics, its darts entered on a keypad |
-| [Games and rules](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md) | How to start a game, matches, teams, handicaps, the bull-off, the match summary, tournaments and the rules of every game |
-| [Scoreboard at the board](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md) | A tablet or TV at the board, the new game screen, tournaments, the caller and idle mode |
-| [Statistics and players](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md) | Sessions, personal bests, heatmaps and dart positions, doubles, player profiles, achievements, trends, the leaderboard, reports, calendar and export |
-| [Dashboard cards](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/cards.md) | All seven cards, the automatic dashboard, every option and accessibility |
-| [Automations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md) | Twelve blueprints, board events and ready-to-use examples |
-| [Online matches](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/online-matches.md) | Moments of online matches on play.autodarts.io in Home Assistant *(experimental)* |
-| [Entities and events](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/entities.md) | Every entity, event, attribute and action |
-| [How it works](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md) | Data flow, update intervals, connection behavior, stored data and privacy |
-| [Troubleshooting](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/troubleshooting.md) | Messages, repairs, diagnostics and logs |
-| [Security design](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/security.md) | What is protected, trust boundaries, threats and countermeasures |
-| [Glossary](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/glossary.md) | The words of darts and of this integration, in English and German |
-| [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) and [releases](https://github.com/Dennis-Otto/ha-autodarts/releases) | What every version brought; the [roadmap](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/roadmap.md) shows what comes next |
-| [Deutsche Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) | Die komplette Anleitung auf Deutsch |
+Every guide is on the [documentation website](https://dennis-otto.github.io/ha-autodarts/), in English and [German](https://dennis-otto.github.io/ha-autodarts/de/), with a search.
+
+<details>
+<summary>Every guide, one line each</summary>
+
+### Get started
+
+- [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md): for Autodarts players without Home Assistant, from nothing to the first game on the scoreboard
+- [Installation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md): requirements, HACS and manual installation, the ways to add a board, updates and removal
+- [Play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md): any dartboard with every game, the training and the statistics, its darts entered on a keypad
+
+### Guides
+
+- [Games and rules](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md): how to start a game, matches, teams, handicaps, the bull-off, the match summary, tournaments and the rules of every game
+- [Scoreboard at the board](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md): a tablet or TV at the board, the new game screen, tournaments, the caller and idle mode
+- [Statistics and players](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md): sessions, personal bests, heatmaps and dart positions, doubles, player profiles, achievements, trends, the leaderboard, reports, calendar and export
+- [Automations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md): thirteen blueprints, board events and ready-to-use examples
+- [Online matches](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/online-matches.md): moments of online matches on play.autodarts.io in Home Assistant *(experimental)*
+
+### Reference
+
+- [Dashboard cards](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/cards.md): all seven cards, the automatic dashboard, every option and accessibility
+- [Entities and events](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/entities.md): every entity, event, attribute and action
+- [How it works](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md): data flow, update intervals, connection behavior, stored data and privacy
+- [Troubleshooting](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/troubleshooting.md): messages, repairs, diagnostics and logs
+- [Security design](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/security.md): what is protected, trust boundaries, threats and countermeasures
+- [Glossary](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/glossary.md): the words of darts and of this integration, in English and German
+
+### Project
+
+- [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) and [releases](https://github.com/Dennis-Otto/ha-autodarts/releases): what every version brought; the [roadmap](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/roadmap.md) shows what comes next
+- [Deutsche Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/): die komplette Anleitung auf Deutsch
+
+</details>
 
 ## Known limitations
 
@@ -213,6 +271,7 @@ Import a blueprint with one click, choose your board and you're done:
 
 ## Quality and security
 
+[![Docker end-to-end test](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/e2e.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/e2e.yml)
 [![CodeQL](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/codeql.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/codeql.yml)
 [![Secret scan](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/secret-scan.yml)
 [![SBOM](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/sbom.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/sbom.yml)
