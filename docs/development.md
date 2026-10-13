@@ -182,16 +182,17 @@ Every pull request, and every push to `main`, runs:
 
 - pytest on every core with a coverage gate, Ruff, strict mypy and the Node tests, with the coverage report in the job summary;
 - the Docker end-to-end test against both Board Manager generations, the browser test,
-  and both again against Home Assistant 2026.8.0, the oldest supported release;
+  and both again against Home Assistant 2026.8.0, the oldest supported release, when a
+  pull request changes what they use (see [When the end-to-end tests run](#when-the-end-to-end-tests-run));
 - the [visual check](#visual-check) of the documentation images, when a pull request changes the cards or the screenshot tool;
 - HACS validation and hassfest;
 - actionlint, CodeQL for Python, the card JavaScript and the workflows, and dependency review;
 - Gitleaks and an SPDX SBOM.
 
 A new commit to a pull request cancels the older, still running checks of that
-pull request; runs on `main` are never canceled. Every Monday the end-to-end tests
-also run against the current Home Assistant beta, as an early warning before the
-next release. Pull requests replay the same derandomized Hypothesis examples on
+pull request; runs on `main` are never canceled. Every night the end-to-end tests
+run in full, also against the current Home Assistant beta, as an early warning
+before the next release. Pull requests replay the same derandomized Hypothesis examples on
 every run; every night the **Property tests** workflow runs the property and
 state-machine tests with a new random seed. Its summary names the seed, and
 running the workflow with that seed replays a failure. OpenSSF Scorecard evaluates
@@ -223,12 +224,53 @@ after a release before it proposes a new version; security updates come at once.
 Dependabot keeps the dev container's Features. The pngquant packages of
 `tests/e2e/pngquant.sh` are updated by hand. Two checks deliberately run moving
 images: HACS validation and hassfest always apply the rules that HACS and Home
-Assistant use for new submissions today, and the weekly beta run uses the beta tag.
+Assistant use for new submissions today, and the nightly beta run uses the beta tag.
 
 `main` only takes pull requests that are up to date with it, and auto-merge doesn't
 update a branch by itself. So after every change of `main`, the branch bot
 (`update-branches.yml`) brings each pull request that waits for auto-merge up to date,
 as the release app, so that its checks run again and it merges once they pass.
+
+### When the end-to-end tests run
+
+The end-to-end tests take about 20 minutes, far longer than every other check, and
+most pull requests change nothing they test. So the **Docker E2E** workflow
+(`e2e.yml`) first asks the API which files a pull request changes, in the job
+*changes*, without a checkout and without an action of a third party. It runs the
+test jobs only when one of the files is something the tests run or mount:
+
+| Path | Why the tests use it |
+| --- | --- |
+| `custom_components/` | the integration, mounted into Home Assistant |
+| `blueprints/` | the blueprints, which the scenario and the demo use |
+| `tests/e2e/` | the scenario, the demo, the browser test and the simulated Board Manager |
+| `package.json`, `package-lock.json` | axe-core of the accessibility check |
+| `.github/workflows/e2e.yml` | the workflow itself |
+
+A renamed file counts by its old name too. When the API fails, or a pull request
+changes more files than the API lists (3000), the tests run. Every push to `main`,
+every night and every manual run tests everything.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/e2e-gate-dark.png">
+  <img src="images/en/e2e-gate-light.png" alt="When the end-to-end tests run: a push to main, the nightly run and a manual run always run the test jobs. For a pull request the job changes asks the API for its files; when the tests use one of them, or the files are unknown, the test jobs run for about 20 minutes, otherwise they are skipped in seconds. The required check e2e passes when every test job passed or none had to run, and fails when a job failed or was cancelled." width="560">
+</picture>
+
+`main` requires one check of the end-to-end tests, `e2e`, from the job *gate*. A
+matrix that a condition skips reports none of its job names, and a skipped job counts
+as passed, so the gate always runs and decides itself: it passes when every test job
+passed, or when *changes* found nothing for them to test, and fails when a test job
+failed, was cancelled or was skipped although it had to run. A pull request that
+changes only the documentation or other workflows gets `e2e` about a minute after
+the push. As the check doesn't carry the names of the test jobs, a new oldest
+Home Assistant changes no required check. When a test job fails and the flaky-test
+bot runs it again, the gate runs again with it.
+
+`tests/test_consistency.py` fails when a compose file mounts, or the browser test
+reads, a file of the repository that is missing from the table above, and when the
+oldest Home Assistant of `e2e.yml` differs from that of `hacs.json`.
+`tests/test_e2e_workflow.py` runs the steps of *changes* and of the gate in bash,
+with a stand-in for `gh`.
 
 ## Issue assistant
 
