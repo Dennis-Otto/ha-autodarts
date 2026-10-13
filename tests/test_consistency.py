@@ -177,6 +177,8 @@ def test_icons_cover_every_entity_and_action():
     assert set(MOTION_SENSORS) <= set(ICONS["entity"]["binary_sensor"])
 
 
+# Reads the code as text, which holds every mutant in mutmut's copy.
+@pytest.mark.mutation_unsafe
 def test_every_message_is_raised_and_every_raised_message_exists():
     for key in STRINGS["exceptions"]:
         assert f'"{key}"' in SOURCES, f"exception {key} is never raised"
@@ -192,6 +194,8 @@ def test_every_message_is_raised_and_every_raised_message_exists():
             assert f'"{key}"' in flow or key in HOME_ASSISTANT_ABORTS, key
 
 
+# Reads the code as text, which holds every mutant in mutmut's copy.
+@pytest.mark.mutation_unsafe
 def test_every_repair_issue_is_translated():
     # Issue names are those of the translation, except the calibration.
     translated = set(STRINGS["issues"])
