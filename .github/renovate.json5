@@ -16,6 +16,14 @@
       enabled: false,
     },
     {
+      // Assist's packages in the tests are those of the conversation manifest of
+      // the Home Assistant that pytest-homeassistant-custom-component pins, which
+      // tests/test_voice_blueprints.py compares: they move with that Home
+      // Assistant, never on their own.
+      matchDepNames: ["hassil", "home-assistant-intents", "gazetteer-matcher"],
+      enabled: false,
+    },
+    {
       matchFileNames: ["tests/e2e/requirements-browser.txt"],
       matchUpdateTypes: ["minor", "patch"],
       groupName: "the tools of the browser tests",

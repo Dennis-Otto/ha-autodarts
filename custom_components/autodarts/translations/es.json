@@ -759,6 +759,9 @@
     "invalid_player_name": {
       "message": "Un nombre de jugador no puede contener llaves, el signo de porcentaje, la almohadilla (#) ni caracteres de control."
     },
+    "name_too_long": {
+      "message": "«{name}» es demasiado largo para un nombre de jugador, que tiene como máximo {limit} caracteres."
+    },
     "killer_players": {
       "message": "Killer necesita al menos dos jugadores."
     },

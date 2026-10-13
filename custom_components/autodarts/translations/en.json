@@ -759,6 +759,9 @@
     "invalid_player_name": {
       "message": "A player name cannot contain curly brackets, a percent sign, a number sign (#) or control characters."
     },
+    "name_too_long": {
+      "message": "\"{name}\" is too long for a player name, which has at most {limit} characters."
+    },
     "killer_players": {
       "message": "Killer needs at least two players."
     },

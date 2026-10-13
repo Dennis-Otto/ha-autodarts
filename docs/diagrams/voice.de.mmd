@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: So antwortet Assist auf einen Satz der Sprach-Blueprints
+  accDescr: Passt ein Satz zu einem Satz eines Sprach-Blueprints, mit Zahlen als Ziffern oder als Wörter in der Sprache von Home Assistant, macht der Blueprint daraus die Daten der Aktion, etwa das Spiel 501 und den Spieler Alex, wobei der Bot am Ende des Satzes der Bot ist. Die Aktion prüft die Daten. Passen sie, startet das Spiel oder die Darts werden eingegeben, und Assist sagt, was passiert ist; sonst sagt Assist, warum nicht. Ein Satz, der zu keinem Blueprint passt, bleibt einer von Assists eigenen Befehlen.
+
+  SAY["Du sagst: Spiele 501 für Alex und den Bot"] --> MATCH{{"Ein Satz eines Sprach-Blueprints?<br/>Zahlen als Ziffern oder als Wörter<br/>in der Sprache von Home Assistant"}}
+  MATCH -- "nein" --> OWN["Einer von Assists eigenen Befehlen,<br/>etwa ein Timer"]
+  MATCH -- "ja" --> DATA["Der Blueprint macht die Daten:<br/>Spiel 501, Spieler Alex,<br/>und der Bot am Ende ist der Bot"]
+  DATA --> CHECK{{"Die Aktion prüft das Spiel,<br/>die Spieler, ihre Namen und wer dran ist"}}
+  CHECK -- "passt" --> DONE["Assist: Game on: 501<br/>mit Alex und dem Bot."]
+  CHECK -- "abgelehnt" --> WHY["Assist sagt, warum, etwa:<br/>Dieses Spiel nimmt höchstens 4 Spieler."]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class MATCH,DATA,CHECK bot
+  class DONE done
+  class WHY failed
