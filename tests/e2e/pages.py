@@ -158,23 +158,51 @@ def probe(target: Page | BrowserContext) -> None:
     target.add_init_script(WS_PROBE)
 
 
+def where(page: Page) -> str:
+    """The address of a page, the size of its screen and its language: the screens of a
+    step show the same address, so a wait that runs out names its screen too."""
+    size = page.viewport_size
+    screen = f" at {size['width']}x{size['height']}" if size else ""
+    try:
+        language = f" in {page.evaluate('() => navigator.language')}"
+    except Exception:  # A page that broke still names its address and screen.
+        language = ""
+    return f"{page.url}{screen}{language}"
+
+
 def wait_for(
-    pages: Iterable[Page], expression: str, arg: object = None, timeout: int = 15000
+    pages: Iterable[Page],
+    expression: str,
+    arg: object = None,
+    timeout: int = 15000,
+    what: str = "",
 ) -> None:
-    """Wait until a page function returns something true on every page."""
+    """Wait until a page function returns something true on every page. A page that
+    does not get there names itself and what it waited for: the given words, or the
+    end of the function, where its selector or comparison is."""
     for page in pages:
-        page.wait_for_function(expression, arg=arg, timeout=timeout, polling=POLL)
+        try:
+            page.wait_for_function(expression, arg=arg, timeout=timeout, polling=POLL)
+        except PlaywrightTimeout as error:
+            waited = what or " ".join(expression.split())
+            if len(waited) > 120:
+                waited = f"...{waited[-117:]}"
+            raise Unsettled(
+                f"{where(page)}: {waited} did not become true in {timeout} ms"
+            ) from error
 
 
 def show(pages: Page | Iterable[Page], url: str) -> None:
     """Open a view on every page at once, until its cards have drawn: loaded on a page
     that shows nothing of Home Assistant yet, and within the app on one that does, as
     its links do. That keeps the frontend and its websocket, and takes a tenth of a
-    second instead of a load of the whole app."""
+    second instead of a load of the whole app. An address with a query or a fragment,
+    such as ?edit=1, always loads: the app reads them when it starts."""
     pages = [pages] if isinstance(pages, Page) else list(pages)
     target = urlsplit(url)
+    within = not (target.query or target.fragment)
     for page in pages:
-        if urlsplit(page.url).netloc == target.netloc:
+        if within and urlsplit(page.url).netloc == target.netloc:
             page.evaluate(NAVIGATE, target.path)
         else:
             # Only until the page is there: its cards are what the next lines wait for.
@@ -184,8 +212,8 @@ def show(pages: Page | Iterable[Page], url: str) -> None:
             page.wait_for_function(SHOWN, arg=target.path, timeout=30000, polling=POLL)
         except PlaywrightTimeout as error:
             raise Unsettled(
-                f"{page.url}: the view of {target.path} did not replace the one before"
-                " or its cards did not draw"
+                f"{where(page)}: the view of {target.path} did not replace the one"
+                " before or its cards did not draw"
             ) from error
 
 
@@ -193,7 +221,7 @@ def settle(*pages: Page, scope: str = "cards") -> None:
     """Wait until every page is settled: its cards drawn, its websocket quiet, the
     animations of its cards (or with scope "page", of the whole page) ended, and two
     frames drawn since."""
-    wait_for(pages, CARDS_DRAWN, timeout=30000)
+    wait_for(pages, CARDS_DRAWN, timeout=30000, what="every card drawn")
     for page in pages:
         try:
             page.wait_for_function(
@@ -202,7 +230,8 @@ def settle(*pages: Page, scope: str = "cards") -> None:
         except PlaywrightTimeout as error:
             waiting = page.evaluate(WEBSOCKET_WAITING)
             raise Unsettled(
-                f"{page.url}: the websocket does not get quiet; waiting for {waiting}"
+                f"{where(page)}: the websocket does not get quiet;"
+                f" waiting for {waiting}"
             ) from error
     for page in pages:
         try:
@@ -213,7 +242,9 @@ def settle(*pages: Page, scope: str = "cards") -> None:
             )
         except PlaywrightTimeout as error:
             running = page.evaluate(ANIMATIONS, scope)
-            raise Unsettled(f"{page.url}: animations do not end: {running}") from error
+            raise Unsettled(
+                f"{where(page)}: animations do not end: {running}"
+            ) from error
     for page in pages:
         page.evaluate(FRAMES)
 
@@ -229,5 +260,5 @@ def expect_state(pages: Iterable[Page], expected: Mapping[str, str]) -> None:
         except PlaywrightTimeout as error:
             shown = page.evaluate(STATES, list(expected))
             raise Unsettled(
-                f"{page.url}: expected {dict(expected)}, the page shows {shown}"
+                f"{where(page)}: expected {dict(expected)}, the page shows {shown}"
             ) from error

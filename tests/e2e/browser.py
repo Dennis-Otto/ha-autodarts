@@ -1871,7 +1871,10 @@ def touch_screen(
     settle(page, scope="page")
     spot = page.evaluate(RECENT_VISIT_SPOT)
     page.touchscreen.tap(*spot)
-    page.wait_for_function(f"() => ({HINT_SHOWN})().shown", timeout=15000)
+    try:
+        page.wait_for_function(f"() => ({HINT_SHOWN})().shown", timeout=15000)
+    except PlaywrightTimeout:
+        pass  # The check below names the screen and what the hint shows instead.
     hint = page.evaluate(HINT_SHOWN)
     check(
         hint["shown"] and hint["inside"] and hint["text"] == hint["title"],
@@ -2110,6 +2113,8 @@ def screens(browser: Browser) -> None:
         name.strip() for name in os.environ.get("BROWSER_SCREENS", "").split(",")
     } - {""}
     sizes = [size for size in SCREENS if not chosen or size[0] in chosen]
+    unknown = chosen - {size[0] for size in SCREENS}
+    check(not unknown, f"BROWSER_SCREENS names no screen: {sorted(unknown)}")
     opened = [Screen(browser, *size) for size in sizes]
     screen_views(opened)
     for screen in opened:
@@ -2963,9 +2968,9 @@ def keep_screenshots(browser: Browser, step: str) -> None:
 
 
 class StepTimes:
-    """The seconds of every step, kept as a table in browser-steps.md with the other
-    artifacts after each step, failed or not: browser.sh adds it to the summary of the
-    job in CI, which shows what to make faster and how to split the steps."""
+    """The seconds of every step, kept as a table in browser-steps-table.md with the
+    other artifacts after each step, failed or not: browser.sh adds it to the summary
+    of the job in CI, which shows what to make faster and how to split the steps."""
 
     def __init__(self) -> None:
         self.steps: list[tuple[str, float]] = []

@@ -14,6 +14,7 @@ everywhere else; the few that the test needs are listed here with their reasons.
 """
 
 import ast
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -27,14 +28,15 @@ PLAYWRIGHT_SCRIPTS = sorted(
 )
 # The scripts of the browser test, which waits for what it checks.
 BROWSER_TEST = ("browser.py", "pages.py")
-# The fixed waits the browser test needs, by their function and time, with reasons.
+# The fixed waits the browser test needs, by their function and time, with how often
+# each one is called and why.
 FIXED_WAITS = {
     # A finger rests on the loupe before it lets go, as one does that reads it; one
     # that leaves still moving flings instead of entering the dart.
-    ("fingers", "120"),
+    ("fingers", "120"): 1,
     # Safari's requests of the cards are held back for longer than Home Assistant
     # waits for the element of its dashboard strategy, as on a slow network.
-    ("safari", "CARD_MODULE_DELAY * 1000"),
+    ("safari", "CARD_MODULE_DELAY * 1000"): 1,
 }
 
 
@@ -145,24 +147,58 @@ def test_every_fixed_wait_is_found_with_its_function():
     ]
 
 
-@pytest.mark.parametrize("script", BROWSER_TEST)
-def test_the_browser_test_waits_for_what_it_checks(script):
-    unknown = [
-        f"line {line}: {function or 'module'}() waits {time or 'a fixed time'}"
-        for function, time, line in fixed_waits((E2E / script).read_text("utf-8"))
-        if (function, time) not in FIXED_WAITS
+def unexpected_waits(sources: dict[str, str]) -> list[str]:
+    """The fixed waits of the scripts beyond FIXED_WAITS: a new one, or an allowed one
+    called more often than allowed."""
+    allowed = Counter(FIXED_WAITS)
+    unexpected = []
+    for script, source in sources.items():
+        for function, time, line in fixed_waits(source):
+            if allowed[(function, time)] > 0:
+                allowed[(function, time)] -= 1
+            else:
+                unexpected.append(
+                    f"{script} line {line}: {function or 'module'}() waits "
+                    f"{time or 'a fixed time'}"
+                )
+    return unexpected
+
+
+def test_a_new_fixed_wait_is_found_also_beside_an_allowed_one():
+    source = "\n".join(
+        [
+            "def fingers(page):",
+            "    page.wait_for_timeout(120)",
+            "    page.wait_for_timeout(120)",
+            "def safari(page):",
+            "    page.wait_for_timeout(CARD_MODULE_DELAY * 1000)",
+            "def look(page):",
+            "    page.wait_for_timeout(800)",
+        ]
+    )
+    assert unexpected_waits({"a.py": source, "b.py": "page.wait_for_timeout(120)"}) == [
+        "a.py line 3: fingers() waits 120",
+        "a.py line 7: look() waits 800",
+        "b.py line 1: module() waits 120",
     ]
-    assert unknown == [], (
-        f"{script} waits a fixed time ({'; '.join(unknown)}): wait for what the step "
-        "checks instead, such as settle(), expect_state() or wait_for() of pages.py, "
-        "or add the wait to FIXED_WAITS with its reason"
+
+
+def test_the_browser_test_waits_for_what_it_checks():
+    unexpected = unexpected_waits(
+        {script: (E2E / script).read_text("utf-8") for script in BROWSER_TEST}
+    )
+    assert unexpected == [], (
+        f"The browser test waits a fixed time ({'; '.join(unexpected)}): wait for "
+        "what the step checks instead, such as settle(), expect_state() or wait_for() "
+        "of pages.py, or add the wait to FIXED_WAITS with its reason"
     )
 
 
 def test_every_allowed_fixed_wait_is_still_needed():
-    waits = {
+    waits = Counter(
         (function, time)
         for script in BROWSER_TEST
         for function, time, _ in fixed_waits((E2E / script).read_text("utf-8"))
-    }
-    assert FIXED_WAITS <= waits, f"No longer waited: {sorted(FIXED_WAITS - waits)}"
+    )
+    unused = {wait: count for wait, count in FIXED_WAITS.items() if waits[wait] < count}
+    assert unused == {}, f"Waited less often than allowed: {unused}"
