@@ -88,7 +88,7 @@ Fill in at least one of the two.
 
 Don't combine this blueprint with a detection switch in the *training session routine*: both would switch the detection.
 
-A detection you start by hand while the presence is off keeps running. A restart of Home Assistant forgets how long the presence has been off: if nobody is there and the detection runs when Home Assistant starts, the detection stops after *Stop after*, also one you started by hand. Saving the automation starts the wait over, too, but leaves a detection you started by hand running; saving other automations changes nothing.
+A detection you start by hand while the presence is off keeps running. A restart of Home Assistant forgets how long the presence has been off: if nobody is there and the detection runs when Home Assistant starts, the detection stops after *Stop after*, also one you started by hand. Saving the automation starts the wait over, too, also the wait after a restart, but leaves a detection you started by hand running; saving other automations changes nothing.
 
 ### Board problem alert
 
@@ -102,7 +102,7 @@ A detection you start by hand while the presence is off keeps running. A restart
 
 A problem also counts when it starts while the sensor is unavailable, for example a camera that fails while the board restarts. A problem that ends while the board is offline gets no all-clear of its own. If the board was offline for longer than the grace period, the all-clear of the connection follows; after a shorter restart, a camera problem that the restart solved stays without an all-clear.
 
-A restart of Home Assistant forgets the grace periods: a problem the board has when Home Assistant starts alerts after the grace period, even if it alerted before the restart, and its all-clear follows as usual. Saving the automation keeps a problem whose grace period was running, and it alerts after a new grace period; a problem that alerted already stays quiet. Saving other automations changes nothing.
+A restart of Home Assistant forgets the grace periods: a problem the board has when Home Assistant starts alerts after the grace period, even if it alerted before the restart, and its all-clear follows as usual. Saving the automation keeps a problem that has not alerted yet, whose grace period was running or whose alert an earlier save was waiting for, and it alerts after a new grace period; a problem that alerted already stays quiet. Saving other automations changes nothing.
 
 What this blueprint and the [automatic detection](#start-and-stop-detection-automatically) do when Home Assistant starts:
 

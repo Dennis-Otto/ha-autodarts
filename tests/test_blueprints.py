@@ -1091,6 +1091,30 @@ async def test_detection_stops_after_its_automation_was_saved(hass, freezer):
     assert len(turned_off) == 1
 
 
+async def test_detection_stops_after_a_save_during_the_wait_of_a_restart(hass, freezer):
+    """After a restart the sensors change in the order their integrations
+    start, which says nothing about who started the detection: saving the
+    automation while it waits starts the wait over."""
+    turned_off = async_mock_service(hass, "switch", "turn_off")
+    hass.set_state(CoreState.not_running)
+    hass.states.async_set("binary_sensor.dartroom", "off")
+    freezer.tick(timedelta(seconds=5))
+    hass.states.async_set("switch.autodarts_detection", "on")
+    freezer.tick(timedelta(seconds=5))
+    await saved(hass, "auto_detection", DETECTION)
+    await hass.async_start()
+    await until_waiting(hass, 600)
+    freezer.tick(timedelta(minutes=4))
+    await saved(hass, "auto_detection", DETECTION, note="Saved again")
+    await until_waiting(hass, 600)
+    freezer.tick(timedelta(minutes=9))
+    async_fire_time_changed(hass)
+    await settle(hass)
+    assert not turned_off
+    await pass_time(hass, freezer, 60)
+    assert len(turned_off) == 1
+
+
 async def test_detection_started_by_hand_survives_a_reload(hass, freezer):
     """A detection started while nobody is there keeps running when an
     automation is saved; a reload that keeps this automation leaves its
@@ -1267,6 +1291,35 @@ async def test_board_alert_after_its_automation_was_saved(hass, freezer):
     await pass_time(hass, freezer, 110)
     assert [call.data for call in alerts] == [{"problem": "offline"}]
     await saved(hass, "board_alert", ALERT, note="Saved once more")
+    await hass.async_block_till_done()
+    await pass_time(hass, freezer, 8 * 3600)
+    assert len(alerts) == 1
+
+
+async def test_board_alert_after_its_automation_was_saved_twice(hass, freezer):
+    """A second save, after the grace period of the problem, keeps the alert
+    that the first save was waiting for; once it alerted, a save stays quiet."""
+    alerts = async_mock_service(hass, "test", "alert")
+    hass.states.async_set("binary_sensor.board_connection", "on")
+    hass.states.async_set("binary_sensor.camera_problem", "off")
+    await saved(hass, "board_alert", ALERT)
+    freezer.tick(timedelta(seconds=1))
+    hass.states.async_set("binary_sensor.board_connection", "off")
+    await hass.async_block_till_done()
+    freezer.tick(timedelta(seconds=90))
+    await saved(hass, "board_alert", ALERT, note="Saved again")
+    await until_waiting(hass, 120)
+    freezer.tick(timedelta(seconds=40))
+    await saved(hass, "board_alert", ALERT, note="Saved once more")
+    await until_waiting(hass, 120)
+    freezer.tick(timedelta(seconds=119))
+    async_fire_time_changed(hass)
+    await settle(hass)
+    assert not alerts
+    await pass_time(hass, freezer, 1)
+    assert [call.data for call in alerts] == [{"problem": "offline"}]
+    freezer.tick(timedelta(seconds=10))
+    await saved(hass, "board_alert", ALERT, note="Saved after the alert")
     await hass.async_block_till_done()
     await pass_time(hass, freezer, 8 * 3600)
     assert len(alerts) == 1

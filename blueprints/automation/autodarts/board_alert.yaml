@@ -116,8 +116,9 @@ variables:
   # The problems a start forgot: every problem at the start of Home Assistant.
   # A reload, which also comes when another automation is saved, only forgets
   # the problems of this automation when it was saved: those that started
-  # before it was set up anew and were still in their grace period, unless an
-  # earlier reload took care of them already.
+  # before it was set up anew and were still in their grace period, or whose
+  # alert the last run, from a start or an earlier save, was still waiting
+  # for; unless an earlier reload took care of them already.
   forgotten: >-
     {%- set found = namespace(problems=[]) %}
     {%- if trigger.id == 'startup' %}
@@ -128,7 +129,10 @@ variables:
         {%- if sensor is not none and sensor.state == state
               and (trigger.platform == 'homeassistant'
                    or as_timestamp(sensor.last_changed) < setup
-                      and (now() - sensor.last_changed).total_seconds() < grace_seconds
+                      and ((now() - sensor.last_changed).total_seconds() < grace_seconds
+                           or ran is not none
+                              and as_timestamp(sensor.last_changed) < as_timestamp(ran)
+                              and as_timestamp(now()) < as_timestamp(ran) + grace_seconds)
                       and (ran is none or as_timestamp(ran) < setup)) %}
           {%- set found.problems = found.problems
                 + [{'problem': name, 'entity': entity, 'since': as_timestamp(sensor.last_changed)}] %}
