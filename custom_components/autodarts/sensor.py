@@ -40,10 +40,11 @@ from .const import (
 )
 from .coordinator import AutodartsDataUpdateCoordinator
 from .entity import AutodartsEntity, AutodartsLocalEntity
-from .local_coordinator import TELEMETRY_LISTENERS, AutodartsLocalCoordinator
+from .local_coordinator import AutodartsLocalCoordinator
 from .online import SENSOR_KEY as ONLINE_SENSOR_KEY
 from .online import OnlineBridge
 from .runtime import AutodartsConfigEntry
+from .topics import Topic
 from .tournament import STATES as TOURNAMENT_STATES
 from .training import COUNTERS, DART_FLAGS
 
@@ -253,7 +254,8 @@ class AutodartsSensorEntityDescription(SensorEntityDescription):
 
     value_fn: Callable[[dict[str, Any]], Any]
     attr_fn: Callable[[dict[str, Any]], dict[str, Any]] | None = None
-    # A frame rate or load of the board PC, see TELEMETRY_LISTENERS.
+    # A frame rate or load of the board PC: value_fn reads the readings of
+    # Topic.TELEMETRY instead of the data.
     telemetry: bool = False
 
 
@@ -607,17 +609,23 @@ class AutodartsLocalSensor(AutodartsLocalEntity, SensorEntity):
         self.entity_description = description
         self._attr_translation_key = description.translation_key
         if description.telemetry:
-            # Updated by every poll that changes only the frame rates and load.
-            self.coordinator_context = TELEMETRY_LISTENERS
+            # Updated by every poll, without the other entities of the board.
+            self._topic = Topic.TELEMETRY
+
+    def _values(self) -> dict[str, Any]:
+        """The readings for a frame rate or the load, otherwise the data."""
+        if self.entity_description.telemetry:
+            return self.coordinator.readings
+        return self.coordinator.data or {}
 
     @property
     def native_value(self) -> Any:
-        return self.entity_description.value_fn(self.coordinator.data or {})
+        return self.entity_description.value_fn(self._values())
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
         if attr_fn := self.entity_description.attr_fn:
-            return attr_fn(self.coordinator.data or {})
+            return attr_fn(self._values())
         # Such as the camera number of a camera's sensor.
         return super().extra_state_attributes
 
@@ -717,9 +725,16 @@ class AutodartsTrainingSensor(AutodartsLocalEntity, SensorEntity):
             return None
         return dt_util.parse_datetime(self.coordinator.training.started)
 
+    def _session(self) -> dict[str, Any]:
+        """The snapshot the coordinator published; computed only before the first."""
+        session = (self.coordinator.data or {}).get("training")
+        if isinstance(session, dict):
+            return session
+        return self.coordinator.training.snapshot()
+
     @property
     def native_value(self) -> datetime | float | int | None:
-        session = self.coordinator.training.snapshot()
+        session = self._session()
         if self._key == "started":
             return dt_util.parse_datetime(session["started"])
         if self._key == "average":
@@ -737,7 +752,7 @@ class AutodartsTrainingDartsSensor(AutodartsTrainingSensor):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        return {"hits": self.coordinator.training.snapshot()["hits"]}
+        return {"hits": self._session()["hits"]}
 
 
 class AutodartsLastSessionSensor(AutodartsLocalEntity, SensorEntity):
@@ -1029,6 +1044,7 @@ class AutodartsLastMatch(AutodartsLocalEntity, SensorEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "last_match")
+        self._cache = RevisionCache()
 
     @property
     def available(self) -> bool:
@@ -1041,6 +1057,9 @@ class AutodartsLastMatch(AutodartsLocalEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
+        return self._cache.get(self.coordinator, self._matches)
+
+    def _matches(self) -> dict[str, Any]:
         snapshot = self.coordinator.practice.profiles.snapshot()
         last = snapshot["matches"][0] if snapshot["matches"] else {}
         winner = last.get("winner")

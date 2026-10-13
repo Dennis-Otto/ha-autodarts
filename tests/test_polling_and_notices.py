@@ -15,12 +15,13 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.const import DOMAIN
 from custom_components.autodarts.local_api import AutodartsLocalClient
-from custom_components.autodarts.local_coordinator import TELEMETRY_LISTENERS
+from custom_components.autodarts.topics import Topic
 
 from .local_helpers import (
     BASE,
     STATE,
     SYSTEM,
+    board,
     entity_id,
     local_entry_data,
     mock_board,
@@ -28,6 +29,7 @@ from .local_helpers import (
     setup_local,
     setup_v2,
     state,
+    written,
 )
 
 
@@ -128,8 +130,8 @@ async def test_a_failing_telemetry_entity_leaves_the_others(
 ):
     entry = await setup_v2(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
-    coordinator.async_add_listener(
-        Mock(side_effect=RuntimeError("broken")), TELEMETRY_LISTENERS
+    coordinator.topics.async_add_listener(
+        Topic.TELEMETRY, Mock(side_effect=RuntimeError("broken"))
     )
     system = deepcopy(SYSTEM)
     system["stats"]["cpuPercent"] = 60
@@ -138,7 +140,27 @@ async def test_a_failing_telemetry_entity_leaves_the_others(
     freezer.tick(timedelta(seconds=10))
     await coordinator.async_refresh()
     assert state(hass, "sensor", "cpu_usage") == "60"
-    assert "Unexpected error updating a telemetry entity" in caplog.text
+    assert "Unexpected error updating an entity of telemetry" in caplog.text
+
+
+async def test_a_poll_that_only_brings_motion_updates_only_its_entities(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    hand = {"isStable": False, "isHand": True}
+    with (
+        patch.object(coordinator.client, "get_motion_state", return_value=hand),
+        written(hass) as entities,
+    ):
+        await coordinator.async_refresh()
+        await hass.async_block_till_done()
+    assert entities == {
+        entity_id(hass, "binary_sensor", key)
+        for key in ("hand_detected", "takeout_partial")
+    }
+    assert state(hass, "binary_sensor", "hand_detected") == "on"
+    assert coordinator.readings["motion"] == hand
 
 
 async def test_an_unloaded_board_withdraws_its_repair_notices(hass, aioclient_mock):

@@ -247,7 +247,7 @@ async def test_failed_reads_keep_settings_and_motion(hass, aioclient_mock, freez
         await coordinator.async_refresh()
     assert state(hass, "switch", "auto_calibrate") == "on"
     assert state(hass, "select", "standby_minutes") == "15"
-    assert coordinator.data["motion"]["isStable"] is True
+    assert coordinator.readings["motion"]["isStable"] is True
     assert coordinator.data["settings"]["camera_count"] == 3
 
 

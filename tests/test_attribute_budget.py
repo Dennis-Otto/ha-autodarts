@@ -1,13 +1,17 @@
-"""Attributes stay small where it matters: in the recorder, for a busy home with
-eight players, a full history and a tournament."""
+"""Attributes stay small where it matters, in the recorder, and a reading of the
+board updates only the entities that show it, for a busy home with eight
+players, a full history and a tournament."""
 
 from datetime import timedelta
 
+import pytest
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.json import json_bytes
 from homeassistant.util import dt as dt_util
 
 from custom_components.autodarts.achievements import CATALOGUE
+from custom_components.autodarts.binary_sensor import MOTION_SENSORS
+from custom_components.autodarts.const import DOMAIN
 from custom_components.autodarts.doubles import DOUBLES
 from custom_components.autodarts.positions import AIMS
 from custom_components.autodarts.practice import GAMES
@@ -16,7 +20,7 @@ from custom_components.autodarts.records import RECORDS
 from custom_components.autodarts.report import REPORT_BESTS
 from custom_components.autodarts.training import COUNTERS
 
-from .local_helpers import board, setup_local
+from .local_helpers import board, entity_id, setup_local, written
 
 # What the recorder keeps of a state, at most; Home Assistant drops more than
 # 16 KiB, and a state is written with every change.
@@ -202,7 +206,8 @@ def within_budget(measured: dict[str, tuple[int, int]]) -> dict:
     }
 
 
-async def test_recorded_attributes_stay_small_in_a_busy_home(hass, aioclient_mock):
+async def busy_home(hass, aioclient_mock):
+    """A board with eight players, a full history and a tournament of them all."""
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     coordinator.training.restore(
@@ -252,6 +257,12 @@ async def test_recorded_attributes_stay_small_in_a_busy_home(hass, aioclient_moc
         blocking=True,
     )
     await hass.async_block_till_done()
+    return entry
+
+
+async def test_recorded_attributes_stay_small_in_a_busy_home(hass, aioclient_mock):
+    entry = await busy_home(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
     measured = sizes(hass, entry)
     assert not within_budget(measured), within_budget(measured)
     # The big attributes are there, but not in the recorder.
@@ -270,3 +281,26 @@ async def test_recorded_attributes_stay_small_in_a_busy_home(hass, aioclient_moc
     measured = sizes(hass, entry)
     assert not within_budget(measured), within_budget(measured)
     assert measured["board-1_practice_remaining"][1] > RECORDED_BYTES
+
+
+@pytest.fixture
+def every_motion_sensor(hass):
+    """The motion sensors that start disabled, switched on as a user would."""
+    registry = er.async_get(hass)
+    for key in MOTION_SENSORS:
+        registry.async_get_or_create("binary_sensor", DOMAIN, f"board-1_{key}")
+
+
+@pytest.mark.usefixtures("every_motion_sensor")
+async def test_motion_updates_only_the_motion_sensors_in_a_busy_home(
+    hass, aioclient_mock
+):
+    entry = await busy_home(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    flags = dict.fromkeys(MOTION_SENSORS.values(), False)
+    with written(hass) as entities:
+        # A hand comes to the board and leaves it again.
+        for hand in (True, False):
+            coordinator.async_receive("motion_state", {**flags, "isHand": hand})
+        await hass.async_block_till_done()
+    assert entities == {entity_id(hass, "binary_sensor", key) for key in MOTION_SENSORS}
