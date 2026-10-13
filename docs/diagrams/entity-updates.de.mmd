@@ -1,0 +1,10 @@
+flowchart TB
+  accTitle: Welche Entitäten eine Nachricht des Boards aktualisiert
+  accDescr: Eine Echtzeitnachricht oder ein Lesevorgang des Boards aktualisiert die Entitäten, die zeigen, was sich geändert hat. Ein neuer Zustand, ein Dart, eine Einstellung oder ein Kameraalarm aktualisiert jede Entität des Boards. Eine Hand oder eine Entnahme aktualisiert nur die Bewegungssensoren, Kameras, die starten oder stoppen, nur Kameras aktiv. Bildraten und die Last des Board-PCs aktualisieren nur ihre Sensoren, mit dem nächsten Lesevorgang.
+  MESSAGE["Eine Nachricht oder<br/>ein Lesevorgang<br/>des Boards"] --> WHAT{"Was hat sich<br/>geändert?"}
+  WHAT -- "Zustand, Dart,<br/>Einstellung, Alarm" --> ALL["Jede Entität<br/>des Boards"]
+  WHAT -- "eine Hand,<br/>eine Entnahme" --> MOTION["Nur die<br/>Bewegungssensoren"]
+  WHAT -- "Kameras starten<br/>oder stoppen" --> CAMERAS["Nur<br/>Kameras aktiv"]
+  WHAT -- "Bildraten,<br/>Last des PCs" --> TELEMETRY["Nur ihre Sensoren,<br/>mit dem nächsten<br/>Lesevorgang"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class MOTION,CAMERAS,TELEMETRY done
