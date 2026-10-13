@@ -12,6 +12,7 @@ from .const import LIFECYCLE_STATUSES
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
+from .topics import Topic
 
 PARALLEL_UPDATES = 0
 
@@ -99,11 +100,14 @@ class AutodartsLocalState(AutodartsLocalEntity, BinarySensorEntity):
         if key in MOTION_SENSORS:
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
             self._attr_entity_registry_enabled_default = key not in MOTION_DISABLED
+            self._topic = Topic.MOTION
         elif key == "camera_problem":
             self._attr_device_class = BinarySensorDeviceClass.PROBLEM
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
         elif key in ("cameras_active", "calibrating"):
             self._attr_device_class = BinarySensorDeviceClass.RUNNING
+            if key == "cameras_active":
+                self._topic = Topic.CAMERA_STATE
         else:  # realtime_connected and cloud_link
             self._attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
             self._attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -128,10 +132,11 @@ class AutodartsLocalState(AutodartsLocalEntity, BinarySensorEntity):
                 or str(state.get("status", "")).lower() in LIFECYCLE_STATUSES
             ):
                 return False
-            motion = data.get("motion", {}).get(MOTION_SENSORS[self._key])
+            readings = self.coordinator.readings
+            motion = readings.get("motion", {}).get(MOTION_SENSORS[self._key])
             return motion if isinstance(motion, bool) else None
         if self._key == "cameras_active":
-            running = data.get("camera_state", {}).get("isRunning")
+            running = self.coordinator.readings.get("camera_state", {}).get("isRunning")
             return running if isinstance(running, bool) else None
         if self._key == "calibrating":
             status = state.get("status")

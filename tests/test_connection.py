@@ -333,8 +333,33 @@ async def test_telemetry_leaves_training_and_games_alone(hass, aioclient_mock):
         # Practice sensors show the published snapshot instead of computing it.
         assert practice.call_count == 1
     assert coordinator.data["revision"] == revision + 1
-    assert coordinator.data["stats"] == {"fps": 25.0}
-    assert coordinator.data["camera_state"] == {"isRunning": True}
+    assert coordinator.readings["stats"] == {"fps": 25.0}
+    assert coordinator.readings["camera_state"] == {"isRunning": True}
+
+
+async def test_an_update_of_every_entity_reuses_the_published_snapshots(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    with (
+        patch.object(
+            coordinator.training, "snapshot", wraps=coordinator.training.snapshot
+        ) as training,
+        patch.object(
+            coordinator.practice.profiles,
+            "snapshot",
+            wraps=coordinator.practice.profiles.snapshot,
+        ) as profiles,
+    ):
+        coordinator.async_update_listeners()
+        coordinator.async_update_listeners()
+        # The training sensors show the published session, the players and
+        # the matches are worked out once per change.
+        assert training.call_count == 0
+        assert profiles.call_count == 0
+        coordinator.async_receive("state", board(T20))
+        assert training.call_count == 1
 
 
 async def test_poll_keeps_only_known_values(hass, aioclient_mock):
@@ -344,10 +369,10 @@ async def test_poll_keeps_only_known_values(hass, aioclient_mock):
     )
     aioclient_mock.get(BASE + "/api/cams/stats", json={"fps": [30, "fast", None]})
     entry = await setup_local(hass, aioclient_mock)
-    data = entry.runtime_data.local.data
-    assert data["stats"] == {"fps": 9}
-    assert data["camera_state"] == {"isRunning": True}
-    assert data["camera_stats"] == {"fps": [30, None, None]}
+    readings = entry.runtime_data.local.readings
+    assert readings["stats"] == {"fps": 9}
+    assert readings["camera_state"] == {"isRunning": True}
+    assert readings["camera_stats"] == {"fps": [30, None, None]}
 
 
 async def test_board_that_stays_away_is_polled_less_often(hass, aioclient_mock):
