@@ -238,14 +238,14 @@ Sag zum Beispiel:
 
 - „Starte 501 für Alex und Sam“, „Spiele 301 mit Alex, Sam und Kim“ oder „Starte fünfhunderteins“
 - „Starte das Spiel Cricket für Alex und Sam“, „Spiele das Spiel Around the Clock“
-- „Starte 501 für Alex gegen den Bot“, „Spiele das Spiel Cricket gegen den Bot“
+- „Starte 501 für Alex gegen den Bot“, „Spiele 501 für Alex und den Bot“, „Spiele das Spiel Cricket gegen den Bot“
 - auf Englisch „Start 501 for Alex and Sam“, „Start the game Doubles training“ oder „Play 501 against the bot“
 
-Assist antwortet „Game on: 501 mit Alex und Sam.“ in der Sprache von Home Assistant oder sagt, was nicht gepasst hat, etwa ein Spiel, das es nicht kennt, oder Killer mit einem Spieler.
+Assist antwortet „Game on: 501 mit Alex und Sam.“ in der Sprache von Home Assistant oder sagt, was nicht gepasst hat, etwa ein Spiel, das es nicht kennt, Killer mit einem Spieler, mehr Spieler, als das Spiel nimmt, oder ein Name mit mehr als 20 Zeichen.
 
-- **Das Spiel:** X01 ist eine Zahl von 101 bis 1001, als Ziffern oder gesprochen. Jedes andere Spiel folgt auf das Wort „Spiel“ oder „game“ und heißt so, wie die Spielauswahl es zeigt, in jeder Sprache der Integration: „Around the Clock“, „Bob's 27“, „Doppeltraining“, „Doubles training“. Der Anfang eines Namens genügt, wo er nur zu einem Spiel passt, etwa „Cut Throat“.
+- **Das Spiel:** X01 ist eine Zahl von 101 bis 1001, als Ziffern oder als Wörter in der Sprache von Home Assistant (siehe [Zahlen](#zahlen-per-sprache)). Jedes andere Spiel folgt auf das Wort „Spiel“ oder „game“ und heißt so, wie die Spielauswahl es zeigt, in jeder Sprache der Integration: „Around the Clock“, „Bob's 27“, „Doppeltraining“, „Doubles training“. Der Anfang eines Namens genügt, wo er nur zu einem Spiel passt, etwa „Cut Throat“.
 - **Die Spieler:** je ein Wort, verbunden mit „und“, „and“ oder einem Komma. Ein Spieler, der schon ein Profil hat, behält dessen Schreibweise, auch wenn der Sprachassistent den Namen kleinschreibt. Ohne Spieler bleiben die Spieler, wie sie sind.
-- **Der Bot:** Ein Satz, der auf „Bot“ endet, spielt gegen den Bot, der nach den Spielern einen Platz bekommt; jeder andere Satz startet das Spiel ohne Bot.
+- **Der Bot:** Ein Satz, der auf „Bot“ endet, spielt gegen den Bot, der nach den Spielern einen Platz bekommt; jeder andere Satz startet das Spiel ohne Bot. Der Bot ist nie ein Spieler, auch nicht in „Spiele 501 für Alex und den Bot“ oder „Play 501 for Alex and the bot“.
 - **Warum eine Zahl oder das Wort „Spiel“:** Assist hört die Sätze einer Automation vor seinen eigenen Befehlen. Ein Satz wie „Starte {game} für {players}“ würde auch „Starte einen Timer für 5 Minuten“ abfangen, und der Timer liefe nie los. Mit einer Zahl oder dem Wort „Spiel“ bleiben deine anderen Befehle, wie sie sind.
 
 ### Enter darts by voice
@@ -261,11 +261,11 @@ Assist antwortet „Game on: 501 mit Alex und Sam.“ in der Sprache von Home As
 
 Sag zum Beispiel:
 
-- „Alex hat 140“, „Sam wirft 100“, „140 Punkte“ oder nur „hundertvierzig“ für die Punkte einer Aufnahme
+- „Alex hat 140“, „Sam wirft 100“, „140 Punkte“ oder nur „einhundertvierzig“ für die Punkte einer Aufnahme
 - „Checkout mit zwei Darts“, „Game Shot in drei Darts“ oder „Alex checkt“
 - „Triple 20“, „Doppel 16“, „Single 5“, „Bull“, „Single Bull“ oder „Fehlwurf“
 - „Nächster Spieler“ und „Rückgängig“
-- auf Englisch „Alex has 140“, „140 points“, „Checkout with two darts“, „Double 16“, „Miss“, „Next player“ oder „Undo“
+- mit Home Assistant auf Englisch „Alex has 140“, „140 points“, „Checkout with two darts“, „Double 16“, „Miss“, „Next player“ oder „Undo“
 
 <img src="images/de/manual-voice.webp" alt="Animation: die Anzeigetafel einer Dartscheibe ohne Autodarts mit Assist darüber; Alex hat 140, Triple 20 und Single Bull werden Assist eingetippt, das 140 für Alex, noch 361. Sam, du brauchst 501 antwortet, dann Triple 20, noch 441, und 25, noch 416; der Dialog schließt bei Alex mit 361 und Sam mit 416, mit Triple 20 und 25 in seiner Aufnahme" width="760">
 
@@ -278,6 +278,24 @@ Assist antwortet in den Worten des Callers der Anzeigetafel, in der Sprache von 
 - **Eine Zahl allein** sind die Punkte einer Aufnahme, kein Dart: „zwanzig“ gibt eine Aufnahme mit 20 ein; für einen Dart sag „Single 20“.
 - **Andere Befehle:** Jeder Satz ist eine Zahl oder hat Wörter des Darts, damit Assists eigene Befehle wie „Wie spät ist es“ seine eigenen bleiben.
 - **Andere Sprachen:** Die Sätze sind auf Deutsch und Englisch. Auf Niederländisch, Französisch oder Spanisch ersetzt du sie durch eigene und behältst die Wörter der Felder: triple, double, doble oder dubbel, single bull, bull und miss, raté, fallo oder mis.
+
+#### Zahlen per Sprache
+
+Beide Sprach-Blueprints verstehen Zahlen als Ziffern in jeder Sprache. Zahlen in Worten folgen der Sprache von Home Assistant und werden ganz ausgeschrieben, so wie Assist sie kennt:
+
+| Home Assistant auf | Sag | Nicht |
+| --- | --- | --- |
+| Deutsch | „einhundertvierzig“, „fünfhunderteins“, „zwei Darts“ | „hundertvierzig“ |
+| Englisch | „one hundred forty“, „five hundred one“, „two darts“ | „one hundred and forty“ |
+
+„Checkout mit zwei Darts“ braucht also Home Assistant auf Deutsch und „Checkout with two darts“ Home Assistant auf Englisch, während „Checkout mit 2 Darts“ und „Checkout with 2 darts“ in beiden gehen.
+
+So antwortet Assist auf einen Satz der Sprach-Blueprints:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/voice-dark.png">
+  <img src="images/de/voice-light.png" alt="So antwortet Assist auf einen Satz der Sprach-Blueprints: Passt ein Satz zu einem Satz eines Blueprints, mit Zahlen als Ziffern oder als Wörter in der Sprache von Home Assistant, macht der Blueprint daraus die Daten der Aktion, etwa das Spiel 501 und den Spieler Alex, wobei der Bot am Ende des Satzes der Bot ist. Die Aktion prüft die Daten: Passen sie, startet das Spiel oder die Darts werden eingegeben, und Assist sagt, was passiert ist; sonst sagt Assist, warum nicht, etwa dass das Spiel höchstens vier Spieler nimmt. Ein Satz, der zu keinem Blueprint passt, bleibt einer von Assists eigenen Befehlen, etwa ein Timer." width="560">
+</picture>
 
 ### Deutscher Dart-Caller
 

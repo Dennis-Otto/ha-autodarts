@@ -1,12 +1,14 @@
 """What a voice assistant says after an action at the board: a visit, a dart, the
 next player or a visit taken back, in the language of Home Assistant, in the words
-of the scoreboard's caller."""
+of the scoreboard's caller, or why the action was refused."""
 
 from __future__ import annotations
 
+from contextlib import suppress
 from dataclasses import dataclass
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 
 from .const import DOMAIN
@@ -21,14 +23,32 @@ OTHER_BEDS = {
 }
 
 
+async def _message(hass: HomeAssistant, domain: str, key: str) -> str | None:
+    """A message of an integration in the language of Home Assistant; English where
+    the language lacks it."""
+    texts = await async_get_translations(
+        hass, hass.config.language, "exceptions", {domain}
+    )
+    return texts.get(f"component.{domain}.exceptions.{key}.message")
+
+
 async def spoken(hass: HomeAssistant, key: str, **placeholders: str) -> str:
     """A message of the integration in the language of Home Assistant, for a voice
     assistant to say; English where the language lacks it."""
-    texts = await async_get_translations(
-        hass, hass.config.language, "exceptions", {DOMAIN}
-    )
-    text = texts.get(f"component.{DOMAIN}.exceptions.{key}.message", key)
+    text = await _message(hass, DOMAIN, key) or key
     return text.format(**placeholders) if placeholders else text
+
+
+async def refusal(hass: HomeAssistant, error: ServiceValidationError) -> str:
+    """Why an action was refused, for a voice assistant to say instead of the key of
+    a message: the message of the integration, or of Home Assistant itself for a
+    board's entry it does not know, in the language of Home Assistant."""
+    domain, key = error.translation_domain, error.translation_key
+    if domain and key and (text := await _message(hass, domain, key)):
+        # A message whose placeholders are missing is said as the error tells it.
+        with suppress(KeyError, IndexError):
+            return text.format(**(error.translation_placeholders or {}))
+    return str(error)
 
 
 def _sentence(text: str) -> str:

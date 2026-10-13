@@ -236,14 +236,14 @@ Say for example:
 
 - "Start 501 for Alex and Sam", "Play 301 with Alex, Sam and Kim" or "Start five hundred one"
 - "Start the game Cricket for Alex and Sam", "Play a game of Around the Clock"
-- "Start 501 for Alex against the bot", "Play the game Cricket against the bot"
+- "Start 501 for Alex against the bot", "Play 501 for Alex and the bot", "Play the game Cricket against the bot"
 - in German "Starte 501 für Alex und Sam", "Starte das Spiel Doppeltraining" or "Spiele 501 gegen den Bot"
 
-Assist answers "Game on: 501 with Alex and Sam." in the language of Home Assistant, or says what was wrong, such as a game it does not know or Killer with one player.
+Assist answers "Game on: 501 with Alex and Sam." in the language of Home Assistant, or says what was wrong, such as a game it does not know, Killer with one player, more players than the game takes or a name longer than 20 characters.
 
-- **The game:** X01 is a number from 101 to 1001, as digits or spoken. Every other game follows the word "Spiel" or "game" and is named as the game list shows it, in any language of the integration: "Around the Clock", "Bob's 27", "Doubles training", "Doppeltraining". The beginning of a name is enough where it fits one game alone, such as "Cut Throat".
+- **The game:** X01 is a number from 101 to 1001, as digits or as words in the language of Home Assistant (see [numbers](#numbers-by-voice)). Every other game follows the word "Spiel" or "game" and is named as the game list shows it, in any language of the integration: "Around the Clock", "Bob's 27", "Doubles training", "Doppeltraining". The beginning of a name is enough where it fits one game alone, such as "Cut Throat".
 - **The players:** one word each, joined by "and", "und" or a comma. A player who already has a profile keeps its spelling, even when the voice assistant writes the name in lower case. Without players, the players stay as they are.
-- **The bot:** a sentence that ends in "bot" plays against the bot, which takes a seat after the players; any other sentence starts the game without the bot.
+- **The bot:** a sentence that ends in "bot" plays against the bot, which takes a seat after the players; any other sentence starts the game without the bot. The bot is never a player, also not in "Play 501 for Alex and the bot" or "Spiele 501 für Alex und den Bot".
 - **Why a number or the word "game":** Assist hears the sentences of an automation before its own commands. A sentence such as "Start {game} for {players}" would also catch "Start a timer for 5 minutes", and the timer would never run. With a number or the word "game", your other commands stay as they are.
 
 ### Enter darts by voice
@@ -259,11 +259,11 @@ Assist answers "Game on: 501 with Alex and Sam." in the language of Home Assista
 
 Say for example:
 
-- "Alex has 140", "Sam scored 100", "140 points" or just "one hundred and forty", for the score of a visit
+- "Alex has 140", "Sam scored 100", "140 points" or just "one hundred forty", for the score of a visit
 - "Checkout with two darts", "Game shot in three darts" or "Alex checks out"
 - "Triple 20", "Double 16", "Single 5", "Bull", "Single bull" or "Miss"
 - "Next player" and "Undo"
-- in German "Alex hat 140", "Aufnahme 100", "Checkout mit zwei Darts", "Doppel 16", "Fehlwurf", "Nächster Spieler" or "Rückgängig"
+- with Home Assistant in German "Alex hat 140", "Aufnahme 100", "Checkout mit zwei Darts", "Doppel 16", "Fehlwurf", "Nächster Spieler" or "Rückgängig"
 
 <img src="images/en/manual-voice.webp" alt="Animation: the scoreboard of a dartboard without Autodarts with Assist open on top; Alex has 140, Triple 20 and Single bull are typed to Assist, which answers 140 for Alex, 361 left. Sam, you require 501, then Triple 20, 441 left, and 25, 416 left; the dialog closes on Alex at 361 and Sam at 416 with Triple 20 and 25 in his visit" width="760">
 
@@ -276,6 +276,24 @@ Assist answers in the words of the scoreboard's caller, in the language of Home 
 - **A number alone** is the score of a visit, not a dart: "twenty" enters a visit of 20; say "Single 20" for a dart.
 - **Other commands:** each sentence is a number or has words of darts, so Assist's own commands, such as "What time is it", stay its own.
 - **Other languages:** the sentences are in German and English. In Dutch, French or Spanish, replace them with your own and keep the words of the beds: triple, double, doble or dubbel, single bull, bull, and miss, raté, fallo or mis.
+
+#### Numbers by voice
+
+Both voice blueprints understand numbers as digits in every language. Numbers in words follow the language of Home Assistant and are written out in full, as Assist knows them:
+
+| Home Assistant in | Say | Not |
+| --- | --- | --- |
+| English | "one hundred forty", "five hundred one", "two darts" | "one hundred and forty" |
+| German | "einhundertvierzig", "fünfhunderteins", "zwei Darts" | "hundertvierzig" |
+
+So "Checkout mit zwei Darts" needs Home Assistant in German and "Checkout with two darts" Home Assistant in English, while "Checkout mit 2 Darts" and "Checkout with 2 darts" work in both.
+
+How Assist answers a sentence of the voice blueprints:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/voice-dark.png">
+  <img src="images/en/voice-light.png" alt="How Assist answers a sentence of the voice blueprints: when a sentence matches one of a blueprint, with numbers as digits or as words in the language of Home Assistant, the blueprint makes the data of the action, such as the game 501 and the player Alex, with the bot at the end of the sentence taken as the bot. The action checks the data: when it fits, the game starts or the darts are entered and Assist says what happened; otherwise Assist says why, for example that the game takes four players at most. A sentence that matches no blueprint stays one of Assist's own commands, such as a timer." width="560">
+</picture>
 
 ### Dart caller messages
 
