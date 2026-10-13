@@ -18,13 +18,21 @@ Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen
 
 | Quelle | Wie | Intervall |
 | --- | --- | --- |
-| Board-Zustand, Dart-Positionen, Bewegung, Kameras, Bildraten | WebSocket `/api/events` des Board Managers | Sofort |
+| Board-Zustand, Dart-Positionen, Bewegung, Kameras | WebSocket `/api/events` des Board Managers | Sofort |
+| Bildraten | WebSocket `/api/events` und jedes HTTP-Lesen | Ihre Sensoren zeigen sie mit jedem Lesevorgang; einen Kameraalarm, den sie auslösen, sofort |
 | Abgleich, solange Echtzeitereignisse ankommen | HTTP-Lesen | Alle 30 Sekunden; alle 10 Sekunden bei Board Manager 2, der Kameraänderungen nicht meldet |
 | Ersatz ohne Echtzeitereignisse | HTTP-Lesen | Alle 2 Sekunden; alle 15 Sekunden, wenn das Board seit etwa einer halben Minute fehlt |
 | Board Manager 2 | Ein gemeinsamer Aufruf von `/api/system` pro Intervall | Wie oben |
 | Board-PC-Details bei Board Manager 2 | HTTP-Lesen von `/api/host`; übernommen werden nur System, Prozessor und Softwareversionen | Beim Start, stündlich und nach einem Board-Manager-Update |
 | Einstellungen und Version bei Board Manager 1 | HTTP-Lesen | Alle 30 Sekunden und nach jeder Aktion |
 | Cloud-Spieldaten | Autodarts-API | Während eines Matches alle 5 Sekunden, sonst jede Minute |
+
+Jede Nachricht und jeder Lesevorgang aktualisiert nur die Entitäten, die zeigen, was sich geändert hat. Eine Hand am Board, die in jeder Aufnahme mehrmals kommt und geht, aktualisiert nur die Bewegungssensoren, nicht die über hundert Entitäten eines Boards mit seinen Spielen und Statistiken.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/entity-updates-dark.png">
+  <img src="images/de/entity-updates-light.png" alt="Welche Entitäten eine Nachricht des Boards aktualisiert: Ein neuer Zustand, ein Dart, eine Einstellung oder ein Kameraalarm aktualisiert jede Entität des Boards. Eine Hand oder eine Entnahme aktualisiert nur die Bewegungssensoren, Kameras, die starten oder stoppen, nur Kameras aktiv. Bildraten und die Last des Board-PCs aktualisieren nur ihre Sensoren, mit dem nächsten Lesevorgang" width="560">
+</picture>
 
 ## Verbindungsverhalten
 
@@ -36,7 +44,7 @@ Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen
 - **Aufnahmen über Unterbrechungen.** Solange das Board nicht erreichbar ist, bleibt die laufende Aufnahme erhalten. Zeigt das Board danach zuerst noch ihre Darts, geht die Aufnahme weiter, und neue Darts werden erkannt. Sonst wurden die Darts inzwischen gezogen: Die Aufnahme wird mit `visit_completed` abgeschlossen, und das Übungsspiel verbucht sie. Darts, die danach noch während der Unterbrechung geworfen wurden, zählen nicht, weil sie sich nicht von korrigierten Darts unterscheiden lassen. Eine Statusänderung während der Unterbrechung wird mit dem ersten Zustand danach gemeldet.
 - **Ein Lesevorgang nach dem anderen.** Lesevorgänge überschneiden sich nie, eine ältere Antwort ersetzt also nie eine neuere, und ein langsames HTTP-Lesen überschreibt nie eine neuere Echtzeitnachricht.
 - **Entladen.** Wird der Eintrag entladen, deaktiviert oder neu geladen, hält die Integration zuerst den Bot, ihre Timer und die Echtzeitverbindung an. Danach wartet sie auf einen noch laufenden Lesevorgang und verwirft seine Antwort; vom Board kommt also kein Reparaturhinweis, kein Board-Ereignis und kein Fehler mehr.
-- **Schnell wechselnde Werte.** Bildraten und Erkennungsstatistik aktualisieren nur ihre Daten und den Kameraalarm; Training und Übungsspiel werden dafür nie neu berechnet. Ein Lesevorgang, der nur Bildraten und die Last des Board-PCs ändert, aktualisiert nur die Entitäten, die sie zeigen.
+- **Schnell wechselnde Werte.** Die Bewegung, die Kameras, Bildraten und die Last des Board-PCs aktualisieren nur die Entitäten, die sie zeigen; Training und Übungsspiel werden dafür nie neu berechnet. Bildraten kommen mehrmals pro Sekunde, deshalb zeigen ihre Sensoren sie mit jedem Lesevorgang; einen Kameraalarm, den sie auslösen oder beenden, zeigt jede Entität sofort.
 - **Fehler bleiben begrenzt.** Ein Fehler im Training oder in einer Spielregel wird einmal protokolliert und trennt nie die Verbindung zum Board.
 - **Eine Entnahme, die nie endet.** Board Manager 2.0.2 bleibt manchmal bei leerem Board in einer Entnahme hängen und zählt bis zu einem Zurücksetzen keine Darts. Zehn Sekunden nach dem ersten Zustand, der eine Entnahme ohne Darts und ohne Hand am Board zeigt, setzt die Integration das Board zurück: höchstens einmal in zehn Sekunden und höchstens dreimal in Folge. Sie wartet dafür mit einem Timer, nicht mit häufigerem Lesen, und eine Änderung, eine Hand, ein fehlgeschlagener Lesevorgang oder der Schalter *Hängende Entnahme lösen* beendet das Warten ([Details](entities.de.md#eine-entnahme-die-das-board-nie-beendet)).
 - **Unerwartete Antworten.** Eine Antwort in unbekanntem Format wird pro Abfrage einmal protokolliert. Antwortet eine nötige Abfrage (Zustand, Einstellungen oder `/api/system`) dreimal hintereinander so, bittet ein Reparaturhinweis um ein Update der Integration. Ein Board, das mit HTTP 401 oder 403 antwortet, bekommt einen eigenen Hinweis; der Board Manager braucht keine Anmeldung. Die Hinweise eines Boards verschwinden, wenn sein Eintrag entladen, deaktiviert oder neu geladen wird, und die nächste Einrichtung meldet die wieder, die noch zutreffen.

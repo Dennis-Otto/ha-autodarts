@@ -168,6 +168,7 @@ Ein Spieler hat einen Board-PC mit Ubuntu 24.04 und drei Kameras von Autodarts 1
 **Einstellungen → Geräte & Dienste → Autodarts →** Menü des Boards (⋮) → **Diagnosedaten herunterladen**. Die Datei enthält:
 
 - den Board-Zustand und die Zusammenfassung der Einstellungen;
+- unter `local_readings` die Bewegung, ob die Kameras laufen, die Bildraten und die Last des Board-PCs;
 - die Board-Manager-Generation, die Verbindungen und das Leseintervall;
 - ob eine Cloud-Verbindung eingerichtet ist, das Übungsspiel mit seinen Regeln und ob gerade ausgebullt wird;
 - die Zahl der gespeicherten Sessions, Bestleistungen, Spielerprofile, Matches und Darts aufs Double;

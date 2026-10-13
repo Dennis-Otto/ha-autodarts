@@ -1,0 +1,10 @@
+flowchart TB
+  accTitle: Which entities a message of the board updates
+  accDescr: A realtime message or a read of the board updates the entities that show what changed. A new state, a dart, a setting or a camera alarm updates every entity of the board. A hand or a takeout updates only the motion sensors, cameras that start or stop only Cameras active. Frame rates and the load of the board PC update only their sensors, with the next read.
+  MESSAGE["A realtime message<br/>or a read of the board"] --> WHAT{"What<br/>changed?"}
+  WHAT -- "the state, a dart,<br/>a setting, an alarm" --> ALL["Every entity<br/>of the board"]
+  WHAT -- "a hand,<br/>a takeout" --> MOTION["Only the<br/>motion sensors"]
+  WHAT -- "the cameras<br/>start or stop" --> CAMERAS["Only<br/>Cameras active"]
+  WHAT -- "frame rates,<br/>the PC's load" --> TELEMETRY["Only their sensors,<br/>with the next read"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class MOTION,CAMERAS,TELEMETRY done

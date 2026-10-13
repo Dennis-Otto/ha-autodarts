@@ -123,6 +123,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
         <li>Found automatically with Board Manager 2; Board Manager 1 works too</li>
         <li>Nothing leaves your network unless you use the board search, the cloud link or the online bridge; board secrets are never stored</li>
         <li>Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish (<a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md#languages">languages</a>)</li>
+        <li>Light on a Raspberry Pi: a message of the board updates only the entities that show what changed (<a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md#data-updates">data updates</a>)</li>
         <li>Every rule of the Home Assistant quality scale up to Platinum, 100 % test coverage</li>
       </ul>
       <p><a href="https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md">How it works →</a></p>

@@ -6,6 +6,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### Improved
 
+- **A hand at the board updates only the motion sensors:** the motion the detection sees, a hand at the board or a takeout, changes several times per visit, and every change updated all of a board's more than a hundred entities and worked out the training and the statistics of the players again: about 4 ms on a desktop, several times as long on a Raspberry Pi, each time between two darts. It now updates the motion sensors alone, in under a tenth of a millisecond, and cameras that start or stop update *Cameras active* alone. An update of every entity does less work too: the training sensors and *Last match* reuse what the board already worked out instead of working it out again each. The integration also no longer depends on internals of Home Assistant that any update of Home Assistant could change and so make every board unavailable. The diagnostics list the motion, the cameras, the frame rates and the load of the board PC under `local_readings` ([data updates](docs/how-it-works.md#data-updates), #266).
 - **The cards load four times faster on a slow connection:** every phone, tablet and browser downloaded the file with all the cards, 590 KB, as it was, on its first visit and after every update of the integration. It now comes compressed, about 150 KB, so the cards and the automatic dashboard appear sooner, above all on a phone with an empty cache or slow Wi-Fi (#243).
 
 ### Fixed

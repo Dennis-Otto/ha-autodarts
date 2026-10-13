@@ -3,12 +3,15 @@ that set a board up in Home Assistant, and those the tests of the practice
 games and of the blueprints share."""
 
 import itertools
+from collections.abc import Iterator
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import timedelta
 from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.core import callback
+from homeassistant.const import EVENT_STATE_CHANGED, EVENT_STATE_REPORTED
+from homeassistant.core import Event, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.setup import async_setup_component
@@ -320,6 +323,30 @@ def entity_summary(hass, entry) -> dict[str, str]:
             key=lambda item: item.unique_id,
         )
     }
+
+
+@contextmanager
+def written(hass) -> Iterator[set[str]]:
+    """The entities whose state is written meanwhile, changed or reported anew."""
+    entities: set[str] = set()
+
+    @callback
+    def write(event: Event) -> None:
+        entities.add(event.data["entity_id"])
+
+    @callback
+    def every(_data) -> bool:
+        return True
+
+    unsubscribe = [
+        hass.bus.async_listen(kind, write, every)
+        for kind in (EVENT_STATE_CHANGED, EVENT_STATE_REPORTED)
+    ]
+    try:
+        yield entities
+    finally:
+        for remove in unsubscribe:
+            remove()
 
 
 # -- practice games, played without Home Assistant -------------------------------
