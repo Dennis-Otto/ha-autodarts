@@ -9555,7 +9555,8 @@ function createElements(Base) {
       if (this._summarySeen?.ended !== summary.ended) this._summarySeen = { ended: summary.ended, at: Date.now() };
       const left = this._summarySeen.at + seconds * 1000 - Date.now();
       if (left <= 0) return null;
-      this._summaryTimer = setTimeout(() => this._update(), left);
+      // Only leaving the page stops the timer, so a card away from the page sets it when it comes back.
+      if (this.isConnected) this._summaryTimer = setTimeout(() => this._update(), left);
       return summary;
     }
 
@@ -11120,6 +11121,8 @@ function createElements(Base) {
         this._closeHistory();
         return;
       }
+      // Only leaving the page closes the stream, so a card away from the page opens it when it comes back.
+      if (!this.isConnected) return;
       const since = this._sessionStart();
       const key = `${this._ids.events}|${since}`;
       if (this._historyFor !== key) this._openHistory(since, key);
@@ -11925,10 +11928,11 @@ function createElements(Base) {
         (tournament.status === "waiting" ||
           (tournament.status === "finished" && this._tournamentDismissed !== tournament.started));
       this._tournamentOwned = playing || between;
-      // The summary time of the tournament, after which its pause begins.
+      // The summary time of the tournament, after which its pause begins; timed on the page only,
+      // as nothing but leaving it stops the timer.
       const summary = tournament.summary * 1000;
       const wait = this._tournamentResult.at + summary - Date.now();
-      if (between && wait > 0) this._tournamentTimer = setTimeout(() => this._update(), wait);
+      if (between && wait > 0 && this.isConnected) this._tournamentTimer = setTimeout(() => this._update(), wait);
       // The match view names the round, also with the result of the match.
       const labelled = playing ? tournament.current : between && wait > 0 ? tournament.last : null;
       // The bracket animates the places filled since it last changed.
@@ -12156,8 +12160,10 @@ function createElements(Base) {
       this._hints = hints;
       const field = this._lobby ? el.main.querySelector(".lobby-name") : null;
       if (field && field !== this.shadowRoot.activeElement) field.value = this._lobby.draft;
-      // The countdown to the next match changes every second, the rest stays.
-      const counting = tournament.shown && !this._lobby && !panel && tournament.tournament.status === "waiting";
+      // The countdown to the next match changes every second, the rest stays; on the page only,
+      // because nothing but leaving it stops the countdown.
+      const counting =
+        this.isConnected && tournament.shown && !this._lobby && !panel && tournament.tournament.status === "waiting";
       const countdown = el.main.querySelector(".countdown");
       if (countdown) countdown.textContent = tournamentCountdown(tournament.tournament, Date.now(), t);
       if (counting !== Boolean(this._tournamentTick)) {

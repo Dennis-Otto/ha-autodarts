@@ -1,4 +1,5 @@
 // A browser for the card elements: a happy-dom window as globals and a fake Home Assistant.
+import { basename } from "node:path";
 import { after } from "node:test";
 
 import { Window } from "happy-dom";
@@ -124,9 +125,6 @@ export async function loadCards() {
   return module;
 }
 
-// The cards leave the page after the tests of a file, which ends their timers.
-after(() => document.body.replaceChildren());
-
 export function mount(type, hass, config = {}) {
   const card = document.createElement(type);
   card.setConfig({ type: `custom:${type}`, ...config });
@@ -148,3 +146,45 @@ export function moreInfo(card) {
 
 // Lets pending promises of the card settle.
 export const settle = () => new Promise((resolve) => setImmediate(resolve));
+
+// The real timers that the cards and the tests set and that still run, with what they
+// call. Mocked timers, happy-dom's and those of the test runner do not pass through here.
+const running = new Map();
+for (const name of ["setTimeout", "setInterval"]) {
+  const set = globalThis[name];
+  globalThis[name] = (callback, delay, ...args) => {
+    const timer = set(
+      (...given) => {
+        if (name === "setTimeout") running.delete(timer);
+        callback(...given);
+      },
+      delay,
+      ...args
+    );
+    running.set(timer, `${name}(${String(callback).replace(/\s+/g, " ").slice(0, 80)}, ${delay})`);
+    return timer;
+  };
+}
+for (const name of ["clearTimeout", "clearInterval"]) {
+  const clear = globalThis[name];
+  globalThis[name] = (timer) => {
+    running.delete(timer);
+    clear(timer);
+  };
+}
+
+export const timers = () => running.size;
+
+// The cards leave the page after the tests of a file, which ends their timers. A timer that
+// still runs then would keep the file running for ever: it ends, and the file fails with
+// its name and what the timer calls.
+after(async () => {
+  document.body.replaceChildren();
+  await settle();
+  if (running.size === 0) return;
+  const left = [...running.values()];
+  for (const timer of running.keys()) clearTimeout(timer);
+  const plural = left.length === 1 ? "" : "s";
+  const file = basename(process.argv[1]);
+  throw new Error(`${file} left ${left.length} timer${plural} running after its cards left the page:\n${left.join("\n")}`);
+});
