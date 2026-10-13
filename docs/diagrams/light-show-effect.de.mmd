@@ -1,0 +1,18 @@
+flowchart TB
+  accTitle: Wie ein Effekt der Lichtshow abläuft
+  accDescr: Ein Moment mit Effekt speichert das Licht und pausiert die Erkennung, wenn sie läuft, außer beim Tagesziel und beim neuen besten Schnitt einer Session. Seine Aktionen starten den Effekt, der für die Effektdauer läuft. Endet währenddessen eine Trainingssession, endet der Effekt sofort, und die Erkennung bleibt aus. Eine neue Session lässt den Effekt zu Ende laufen. Danach kommt das Licht zurück, und eine pausierte Erkennung startet wieder.
+  MOMENT["Ein Moment mit Effekt"] --> SAVE["Licht speichern"]
+  SAVE --> PAUSE{"Erkennung läuft, nicht<br/>Tagesziel oder bester<br/>Schnitt einer Session?"}
+  PAUSE -- "ja" --> STOP["Erkennung pausieren"]
+  PAUSE -- "nein" --> ACTIONS["Deine Aktionen<br/>starten den Effekt"]
+  STOP --> ACTIONS
+  ACTIONS --> PLAY{"Effektdauer vorbei<br/>oder Session beendet?"}
+  PLAY -- "Dauer vorbei" --> RESTORE["Licht wiederherstellen"]
+  PLAY -- "neue Session" --> REST["Bis zum Ende spielen"]
+  REST --> RESTORE
+  PLAY -- "Session beendet" --> ENDED["Licht sofort zurück,<br/>Erkennung bleibt aus"]
+  RESTORE --> RESUME["Pausierte Erkennung<br/>wieder starten"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class RESUME done
+  class ENDED warn
