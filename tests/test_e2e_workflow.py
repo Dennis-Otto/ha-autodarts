@@ -199,56 +199,68 @@ def test_more_files_than_the_api_lists_run_the_tests(tmp_path):
     assert calls == ""
 
 
-def needs(wanted: str, changes: str, e2e: str) -> dict[str, str]:
-    """The environment of the gate, as GitHub fills toJSON(needs)."""
+def needs(
+    wanted: str, changes: str, scenario: str, browser: str = ""
+) -> dict[str, str]:
+    """The environment of the gate, as GitHub fills toJSON(needs): a matrix, such as
+    the jobs of the browser test, has one result, which is failure when one of its
+    jobs failed. Without its own, the browser has the result of the scenario."""
     jobs = {
         "changes": {"result": changes, "outputs": {"run": wanted} if wanted else {}},
-        "e2e": {"result": e2e, "outputs": {}},
+        "scenario": {"result": scenario, "outputs": {}},
+        "browser": {"result": browser or scenario, "outputs": {}},
     }
     return {"WANTED": wanted, "NEEDS": json.dumps(jobs)}
 
 
 @needs_jq
 @pytest.mark.parametrize(
-    ("wanted", "changes", "e2e", "summary"),
+    ("wanted", "changes", "tests", "summary"),
     [
         ("true", "success", "success", "Every end-to-end test passed."),
         ("false", "success", "skipped", "none had to run"),
     ],
 )
 def test_the_required_check_passes_when_every_test_that_had_to_run_passed(
-    tmp_path, wanted, changes, e2e, summary
+    tmp_path, wanted, changes, tests, summary
 ):
-    result, _, written, _ = run_step(tmp_path, "gate", needs(wanted, changes, e2e))
+    result, _, written, _ = run_step(tmp_path, "gate", needs(wanted, changes, tests))
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert f"- e2e: {e2e}" in result.stdout
+    assert f"- scenario: {tests}\n- browser: {tests}\n" in result.stdout
     assert summary in written
 
 
 @needs_jq
 @pytest.mark.parametrize(
-    ("wanted", "changes", "e2e"),
+    ("wanted", "changes", "scenario", "browser"),
     [
         # The tests had to run but were skipped.
-        ("true", "success", "skipped"),
-        ("true", "success", "failure"),
+        ("true", "success", "skipped", ""),
+        ("true", "success", "failure", ""),
+        # A shard of the browser test failed, the scenario passed, or the other way.
+        ("true", "success", "success", "failure"),
+        ("true", "success", "failure", "success"),
         # A newer push, a person or the time limit cancelled them.
-        ("true", "success", "cancelled"),
+        ("true", "success", "cancelled", ""),
+        ("true", "success", "success", "cancelled"),
         # Without a decision nothing may count as passed.
-        ("", "failure", "skipped"),
-        ("", "cancelled", "skipped"),
-        ("false", "success", "failure"),
+        ("", "failure", "skipped", ""),
+        ("", "cancelled", "skipped", ""),
+        ("false", "success", "failure", ""),
     ],
 )
 def test_the_required_check_fails_when_a_test_that_had_to_run_did_not_pass(
-    tmp_path, wanted, changes, e2e
+    tmp_path, wanted, changes, scenario, browser
 ):
-    result, _, written, _ = run_step(tmp_path, "gate", needs(wanted, changes, e2e))
+    environment = needs(wanted, changes, scenario, browser)
+    result, _, written, _ = run_step(tmp_path, "gate", environment)
 
     assert result.returncode == 1
     assert "::error::An end-to-end test that had to run didn't pass" in result.stdout
-    assert f"- changes: {changes}\n- e2e: {e2e}\n" in written
+    browser = browser or scenario
+    results = f"- changes: {changes}\n- scenario: {scenario}\n- browser: {browser}\n"
+    assert results in written
 
 
 def test_the_required_check_waits_for_every_test_of_a_pull_request():
@@ -265,5 +277,5 @@ def test_the_required_check_waits_for_every_test_of_a_pull_request():
         for name, job in JOBS.items()
         if name != "gate" and "github.event_name == 'schedule'" not in job.get("if", "")
     }
-    assert "e2e" in tests
+    assert {"scenario", "browser"} <= tests
     assert set(gate["needs"]) == tests

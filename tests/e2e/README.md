@@ -5,8 +5,11 @@ container and connects it to a deterministic Board Manager double. The double ru
 from the same pinned Home Assistant image, so it needs no additional image. CI runs
 the scenario on every push to `main`, every night, and in every pull request that
 changes what it runs or mounts: the integration, the blueprints, this folder, the
-npm packages or `e2e.yml`. The required check `e2e` passes once these tests pass,
-or at once when a pull request changes none of these files; see
+npm packages or `e2e.yml`, in jobs of its own for each Board Manager and the oldest
+supported Home Assistant, beside the browser test of the cards in four shards
+(`browser.sh`, see [The browser test in shards](../../docs/development.md#the-browser-test-in-shards)).
+The required check `e2e` passes once these tests pass, or at once when a pull request
+changes none of these files; see
 [Continuous integration](../../docs/development.md#continuous-integration).
 
 Run locally with Docker and Compose:
@@ -14,6 +17,9 @@ Run locally with Docker and Compose:
 ```bash
 bash tests/e2e/run.sh
 ```
+
+The log shows the seconds of every phase of the scenario, such as
+`Scenario phase: resilience (46.3 s)`.
 
 The scenario uses only Home Assistant's public REST and WebSocket APIs and verifies:
 
