@@ -759,6 +759,9 @@
     "invalid_player_name": {
       "message": "Un nom de joueur ne peut pas contenir d'accolades, de signe pour cent, de croisillon (#) ni de caractères de contrôle."
     },
+    "name_too_long": {
+      "message": "« {name} » est trop long pour un nom de joueur, qui compte au plus {limit} caractères."
+    },
     "killer_players": {
       "message": "Il faut au moins deux joueurs pour Killer."
     },

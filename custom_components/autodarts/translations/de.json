@@ -759,6 +759,9 @@
     "invalid_player_name": {
       "message": "Ein Spielername darf keine geschweiften Klammern, kein Prozentzeichen, keine Raute (#) und keine Steuerzeichen enthalten."
     },
+    "name_too_long": {
+      "message": "„{name}“ ist zu lang für einen Spielernamen, der höchstens {limit} Zeichen hat."
+    },
     "killer_players": {
       "message": "Killer braucht mindestens zwei Spieler."
     },
