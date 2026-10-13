@@ -128,11 +128,7 @@ def _single_out_rank(route: tuple[Bed, ...]) -> tuple[object, ...]:
     )
 
 
-# A bot of the lowest level asks for about 2,800 different checkouts and 1,200
-# setups: smaller caches keep evicting what it needs again, and every miss
-# costs milliseconds in the event loop.
-@lru_cache(maxsize=8192)
-def checkout(
+def _uncached_checkout(
     remaining: int,
     darts: int = 3,
     double_out: bool = True,
@@ -166,6 +162,14 @@ def checkout(
             best = min(routes, key=_single_out_rank)
         return tuple(bed.name for bed in best)
     return ()
+
+
+# A bot of the lowest level asks for about 2,800 different checkouts and 1,200
+# setups: smaller caches keep evicting what it needs again, and every miss
+# costs milliseconds in the event loop. The caches wrap their functions instead
+# of decorating them, because mutmut leaves decorated functions unchanged (see
+# docs/development.md#mutation-tests).
+checkout = lru_cache(maxsize=8192)(_uncached_checkout)
 
 
 # Scores to leave for the next visit, best first: 32 halves down to D1 when a
@@ -204,8 +208,7 @@ _SETUP = sorted(
 )
 
 
-@lru_cache(maxsize=16)
-def _leave_ranks(preferred: tuple[str, ...]) -> dict[int, tuple[int, int]]:
+def _uncached_leave_ranks(preferred: tuple[str, ...]) -> dict[int, tuple[int, int]]:
     """How good every score is to start the next visit with.
 
     Tier 0 are the preferred doubles, the player's strongest and then 32, 40,
@@ -227,8 +230,10 @@ def _leave_ranks(preferred: tuple[str, ...]) -> dict[int, tuple[int, int]]:
     return ranks
 
 
-@lru_cache(maxsize=4096)
-def setup(
+_leave_ranks = lru_cache(maxsize=16)(_uncached_leave_ranks)
+
+
+def _uncached_setup(
     remaining: int, darts: int = 3, preferred: tuple[str, ...] = ()
 ) -> Setup | None:
     """Where to aim when the darts left cannot check out with double out.
@@ -260,3 +265,6 @@ def setup(
         if best is None or key < best[0]:
             best = (key, tuple(bed[3] for bed in beds), leave)
     return None if best is None else Setup(best[1], best[2])
+
+
+setup = lru_cache(maxsize=4096)(_uncached_setup)
