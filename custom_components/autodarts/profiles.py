@@ -236,14 +236,21 @@ class Profiles:
         """A finished match of several players: history and head-to-head.
 
         In a team match, both players of the winning team win it, and each of
-        them beats both opponents; partners play no head-to-head. The match
+        them beats both opponents; partners play no head-to-head. A player in
+        two seats, by names kept from before each seat needed a name of its
+        own, plays the match once and never against themselves. The match
         started with its first dart, for the training calendar.
         """
         side = winners or [winner]
+        # Every named player, and whether one of their seats won.
+        won: dict[str, bool] = {}
         for index, entry in enumerate(players):
             if profile := self._profile(entry.get("name")):
-                profile.matches_played += 1
-                profile.matches_won += int(index in side)
+                key = _key(profile.name)
+                won[key] = won.get(key, False) or index in side
+        for key, victory in won.items():
+            self.players[key].matches_played += 1
+            self.players[key].matches_won += int(victory)
         match: dict[str, Any] = {
             "started": started,
             "ended": dt_util.utcnow().isoformat(),
@@ -257,21 +264,16 @@ class Profiles:
             match["winners"] = [index + 1 for index in side]
         self.matches.insert(0, match)
         del self.matches[MATCH_HISTORY:]
-        for index in side:
-            self._beat(players[index].get("name"), players, side)
+        losers = [key for key, victory in won.items() if not victory]
+        for champion in [key for key, victory in won.items() if victory]:
+            for other in losers:
+                self._beat(champion, other)
 
-    def _beat(
-        self, champion: str | None, players: list[dict[str, Any]], side: list[int]
-    ) -> None:
-        """A win of the champion over every named opponent."""
-        for index, entry in enumerate(players):
-            other = entry.get("name")
-            if index in side or not champion or not other:
-                continue
-            first, second = sorted((champion.strip(), other.strip()), key=_key)
-            pair = f"{_key(first)}\x00{_key(second)}"
-            wins = self.head_to_head.setdefault(pair, [0, 0])
-            wins[0 if _key(first) == _key(champion) else 1] += 1
+    def _beat(self, champion: str, other: str) -> None:
+        """A win of the champion over another player, both by their keys."""
+        first, second = sorted((champion, other))
+        wins = self.head_to_head.setdefault(f"{first}\x00{second}", [0, 0])
+        wins[0 if first == champion else 1] += 1
 
     def delete(self, name: str) -> bool:
         """Forget a player and their head-to-head records; matches stay."""
@@ -336,11 +338,13 @@ class Profiles:
             and isinstance(match.get("players"), list)
         ][:MATCH_HISTORY]
         pairs = saved.get("head_to_head")
+        # Earlier versions stored a player in two seats against themselves.
         self.head_to_head = {
             pair: list(wins)
             for pair, wins in (pairs if isinstance(pairs, dict) else {}).items()
             if isinstance(pair, str)
             and pair.count("\x00") == 1
+            and len(set(pair.split("\x00"))) == 2
             and isinstance(wins, list)
             and len(wins) == 2
             and all(type(win) is int and win >= 0 for win in wins)

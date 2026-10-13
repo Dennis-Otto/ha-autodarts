@@ -1,5 +1,6 @@
 """The weekly report: its week in local time, what it counts and what it keeps."""
 
+import copy
 from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
@@ -306,3 +307,22 @@ def test_a_deleted_player_leaves_the_bests_of_the_report():
     assert [best["name"] for best in report.bests] == ["Sam", None]
     assert [best["name"] for best in report.last["personal_bests"]] == ["Sam", None]
     WeeklyReport().forget("Alex")
+
+
+def test_a_deleted_player_leaves_the_published_report_as_it_was():
+    """The weekly_report event and the sensor keep the report they published:
+    the name goes from a new report, so the sensor sees the change."""
+    report = WeeklyReport()
+    report.begin(local("2026-09-30 12:00"))
+    report.observe(
+        "personal_best",
+        {"record": "highest_visit", "value": 100, "name": "Alex"},
+        local("2026-09-30"),
+    )
+    published = report.rollover(local("2026-10-05 00:00"), 0)
+    kept = copy.deepcopy(published)
+    report.forget("Alex")
+    assert published == kept and report.last is not published
+    assert report.last["personal_bests"] == [
+        {"record": "highest_visit", "value": 100, "name": None}
+    ]

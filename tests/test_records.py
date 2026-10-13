@@ -165,6 +165,32 @@ def test_a_deleted_player_leaves_the_records_without_a_name():
     assert records.stored()["latest"] is None
 
 
+def test_an_undone_visit_takes_back_its_bests_but_not_its_darts():
+    records, day = PersonalRecords(), MONDAY.date()
+    records.set_goal(3, day)
+    leg = {"game": 501, "name": "Alex", "darts": 24, "checkout": 40, "double_out": True}
+    records.observe("visit_completed", {"darts": 3, "score": 100}, MONDAY)
+    records.observe("leg_won", leg, MONDAY)
+    checkpoint = records.checkpoint()
+    # The checkpoint is a copy, which a change of the records leaves alone.
+    records.forget("Alex")
+    # A misread visit and a winning visit that the players undo.
+    darts(records, 3)
+    records.observe("visit_completed", {"darts": 3, "score": 180}, MONDAY)
+    records.observe("leg_won", {**leg, "darts": 9, "checkout": 121}, MONDAY)
+    assert records.latest["record"] == "fewest_darts_501"
+    records.rewind(checkpoint)
+    assert records.snapshot(day)["bests"] == {
+        "highest_visit": 100,
+        "highest_checkout": 40,
+        "fewest_darts_501": 24,
+    }
+    assert records.bests["highest_checkout"]["name"] == "Alex"
+    assert records.latest is None
+    # The darts were thrown: the day, the streak and the goal keep them.
+    assert (records.darts_today, records.streak, records.goal_day) == (3, 1, day)
+
+
 def test_darts_count_per_day_and_the_goal_is_announced_once():
     records = PersonalRecords()
     records.set_goal(3, MONDAY.date())

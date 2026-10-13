@@ -239,6 +239,22 @@ class PersonalRecords:
         self.latest = {**details, "date": now.isoformat()}
         return "personal_best", details
 
+    # -- undo and deleted players ----------------------------------------------
+
+    def checkpoint(self) -> dict[str, Any]:
+        """The personal bests before a visit counts, to undo it."""
+        return {
+            "bests": {record: dict(best) for record, best in self.bests.items()},
+            "latest": dict(self.latest) if self.latest else None,
+        }
+
+    def rewind(self, checkpoint: dict[str, Any]) -> None:
+        """Back to the personal bests of the checkpoint, as when the undone visit
+        never counted. Its darts were thrown: they stay darts of the day, of the
+        streak and of the daily goal."""
+        self.bests = checkpoint["bests"]
+        self.latest = checkpoint["latest"]
+
     def forget(self, name: str) -> None:
         """Remove a player's name from the records; the values stay."""
         key = name.strip().casefold()
