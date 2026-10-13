@@ -3,9 +3,9 @@ blueprint:
   description: >-
     Enters the darts of a game when you tell Assist, as at a dart machine: the
     score of a visit, for example "Alex hat 140", "140 Punkte" or "Sam scored
-    100", a checkout, such as "Checkout mit zwei Darts" or "game shot in two
-    darts", a single dart, such as "Triple 20", "Doppel 16", "Bull" or "miss",
-    and "Nächster Spieler" or "next player" and "Rückgängig" or "undo". Assist
+    100", a checkout, such as "Checkout mit 2 Darts" or "game shot in 2 darts",
+    a single dart, such as "Triple 20", "Doppel 16", "Bull" or "miss", and
+    "Nächster Spieler" or "next player" and "Rückgängig" or "undo". Assist
     answers in the words of the scoreboard's caller, in the language of Home
     Assistant: what the visit scored and left and who throws next, the bed of a
     dart, or why it was refused.
@@ -15,7 +15,12 @@ blueprint:
     always. The score and the checkout take an X01 leg; the darts take every
     game. A named player is checked: "Sam hat 100" while Alex is at the board
     is refused, so a misheard visit never goes to the wrong player. A score
-    alone, such as "hundertvierzig", is the score of a visit, not a dart.
+    alone, such as "140", is the score of a visit, not a dart.
+
+
+    Numbers are digits, which work in every language, or words in the language
+    of Home Assistant, written out in full: "one hundred forty" and "two" in
+    English, "einhundertvierzig" and "zwei" in German.
 
 
     In the sentences, `{score}` is the score from 0 to 180, `{darts}` the darts

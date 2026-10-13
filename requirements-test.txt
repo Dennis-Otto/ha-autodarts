@@ -1331,6 +1331,15 @@ frozenlist==1.8.0 \
     # via
     #   aiohttp
     #   aiosignal
+gazetteer-matcher==1.1.0 \
+    --hash=sha256:0fb123e88528f9862608efd858b386c43332549a6aa4afdcb7611d6d3645b7f0 \
+    --hash=sha256:844d11cb781302aded70f0a8eae8a2d1601e6e2aaa006745a667b500097635cc \
+    --hash=sha256:9460da761c68ba57679ee773462bcbf708743c44e92197009def43ac5ac5dd86 \
+    --hash=sha256:ab3749cd1a2498302aecd0fa1d159d467ad17067a279f7dda83ff9a596111701 \
+    --hash=sha256:c6c28513c3689768ec1a75fb1b2c3153ab424a65f6992579b311c57652523c5a \
+    --hash=sha256:edd1c12a3bd8e30ea6f4da8e4554fc1386e21606f08901bf7a24a998602b6105 \
+    --hash=sha256:f81042403497db23862e2dfa4915100a896a097a45ef5f834ef2a75afbd912e3
+    # via -r requirements-test.in
 greenlet==3.5.6 \
     --hash=sha256:0616b8f878098c5681fd8f0dc92d887551717402342a70f0abcbfea5f5ad8a44 \
     --hash=sha256:06c0e933290fba8ffe53ead4ae1b8044b0e9754b75cebf381aa2bc3e50d82fac \
@@ -1545,10 +1554,20 @@ hass-nabucasa==2.7.0 \
     --hash=sha256:a07f0dba540e53204363c1ad762967c715ca7bcebc175fa2a50a4d8721c7ce43 \
     --hash=sha256:fb741a2b6447250e5fc6ff07c09184e3afaf8b1d0028833e58b6a652b26965e3
     # via homeassistant
+hassil==3.12.1 \
+    --hash=sha256:d12553cccf2548a86cfedd28c8f3171690f5e8c064470c2b66170cc5848ecdef \
+    --hash=sha256:dad08f2525ad0246cfd6cc072e2c3015f1b15f918ac49a7b8e9dd07bd6ef8f5a
+    # via -r requirements-test.in
 home-assistant-bluetooth==2.0.0 \
     --hash=sha256:3febd16b194812b156024d9bc8ce8ec7622cdd8d159047cac504cc77ca034ea1 \
     --hash=sha256:8d7c2ac48c303adacad73cb6cdfe7710f2fccd2a367d4c3106acf301b0d22b91
     # via homeassistant
+home-assistant-intents==2026.8.28 \
+    --hash=sha256:0bbdf1992e87868404614ff9433e92780dfd53561d7db19f6651415d17cdc2dd \
+    --hash=sha256:d69d2070d933614a5263a9d83ac388d1ffb7056f85231ec15751bc5afa14e298
+    # via
+    #   -r requirements-test.in
+    #   gazetteer-matcher
 homeassistant==2026.9.4 \
     --hash=sha256:2a0ab1910af7b701cf1c8e5ed1d4b7caaa010f89e807c25d824a5805c91abb2c \
     --hash=sha256:30a6fd7b63499c9959be9567c4b7dfb8c1731466de67ab26e5598abad1abbff7
@@ -3188,6 +3207,8 @@ pyyaml==6.0.3 \
     --hash=sha256:fc09d0aa354569bc501d4e787133afc08552722d3ab34836a80547331bb5d4a0
     # via
     #   annotatedyaml
+    #   gazetteer-matcher
+    #   hassil
     #   homeassistant
 regex==2026.9.29 \
     --hash=sha256:01000ddf0e3ffef97f2413ceb514f6313040106b6d18a03ee00a4fe35c1eb1db \
@@ -3539,6 +3560,12 @@ ulid-transform==2.2.9 \
     --hash=sha256:fcbef4c1c537da14fa098529167f64f7d351e7aebeeeafd6779ed2ffe10f4649 \
     --hash=sha256:fed352965a8682a156000d29e0efff8b85e7c2b8cb74f2e953a1e6d0157648b9
     # via homeassistant
+unicode-rbnf==2.4.1 \
+    --hash=sha256:17621d76cb9dd22eac493f667317b8563820b3d674374af130017ab281ca8648 \
+    --hash=sha256:545a10c40316b49a6f14a1470e51a217c75438569c352abdbc5da11fef273498
+    # via
+    #   gazetteer-matcher
+    #   hassil
 unidiff==1.0.0 \
     --hash=sha256:2e1fb4eebe2354a26a1f3d51efe2e5d504cae5764b98ed8bdbb4e7a000baff28 \
     --hash=sha256:5e5d5cfab2dc98be819b74747ab7d9f5af8695369ec8710b93f9ab0f0ae6a449

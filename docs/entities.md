@@ -553,7 +553,7 @@ Sets up and starts a game in one call, for automations, scripts, dashboard butto
 | Field | Values | Description |
 | --- | --- | --- |
 | `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `shanghai`, `halve_it`, `killer`, `golf`, `baseball`, `count_up`, `around_the_clock`, `doubles`, `checkout`, `bobs_27`, `checkout_121`, `catch_40`, `jdc_challenge`, `singles`, or a game's name | The game; required. A name as the game list shows it, in any language of the integration, works too, without regard to case, spaces and punctuation: `Around the Clock`, `Bobs 27`, `Doppeltraining`. The beginning of a name is enough where it fits one game alone, such as `Cut Throat` |
-| `players` | 1–4 names, 1–8 in a party game | Players in throwing order; the number of names sets the number of players. A name a player's profile already has keeps the profile's spelling, so `alex` plays as Alex |
+| `players` | 1–4 names, 1–8 in a party game, each up to 20 characters | Players in throwing order; the number of names sets the number of players, and no names keep the players as they are. A name a player's profile already has keeps the profile's spelling, so `alex` plays as Alex |
 | `legs` | 1–11 | Legs that win a set |
 | `sets` | 1–7 | Sets that win the match |
 | `double_out` | `true`, `false` | Finish X01 legs on a double or the bullseye |
@@ -606,9 +606,9 @@ data:
   start_scores: [501, 301]
 ```
 
-The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when a name appears twice among the players or contains curly brackets, a percent sign, a number sign or control characters, when Killer would have fewer than two players, when `teams` asks for teams without four players or in a game other than X01 and the Cricket games, when four players leave no seat for the bot, when a start score is not `0` or 2–1001, when there are more start scores than seats or, for teams, more than two, when a start score of 3 meets double in and double out, or when the bot level is 1–19 or above 120. Values beyond the limits above are rejected before anything changes.
+The action fails with a clear message when no board is loaded, when several boards are set up and none is chosen, when the chosen entry is unknown, belongs to another integration or is not loaded, when the game is unknown, when there are more players than the game takes, when a name appears twice among the players, is longer than 20 characters or contains curly brackets, a percent sign, a number sign or control characters, when Killer would have fewer than two players, when `teams` asks for teams without four players or in a game other than X01 and the Cricket games, when four players leave no seat for the bot, when a start score is not `0` or 2–1001, when there are more start scores than seats or, for teams, more than two, when a start score of 3 meets double in and double out, or when the bot level is 1–19 or above 120. Values beyond the limits above are rejected before anything changes.
 
-**Response:** with `response_variable`, the action answers instead of failing, so a voice assistant can say what happened. `started` is `true` with the `game` as its key, the named `players`, `bot` and the `message` "Game on: 501 with Alex and Sam."; or `started` is `false` and `message` says what was wrong, in the language of Home Assistant. The blueprint [Start a game by voice](automations.md#start-a-game-by-voice) says the message.
+**Response:** with `response_variable`, the action answers instead of failing, so a voice assistant can say what happened. `started` is `true` with the `game` as its key, the named `players`, `bot` and the `message` "Game on: 501 with Alex and Sam."; or `started` is `false` and `message` says what was wrong, in the language of Home Assistant, also when Home Assistant itself refuses the call, such as for an entry it does not know. The blueprint [Start a game by voice](automations.md#start-a-game-by-voice) says the message.
 
 ```yaml
 action: autodarts.start_game

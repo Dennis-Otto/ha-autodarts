@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How Assist answers a sentence of the voice blueprints
+  accDescr: When a sentence matches one of a voice blueprint, with numbers as digits or as words in the language of Home Assistant, the blueprint makes the data of the action, such as the game 501 and the player Alex, with the bot at the end of the sentence taken as the bot. The action checks the data. When it fits, the game starts or the darts are entered and Assist says what happened; otherwise Assist says why. A sentence that matches no blueprint stays one of Assist's own commands.
+
+  SAY["You say: Play 501 for Alex and the bot"] --> MATCH{{"A sentence of a voice blueprint?<br/>Numbers as digits, or as words<br/>in the language of Home Assistant"}}
+  MATCH -- "no" --> OWN["One of Assist's own commands,<br/>such as a timer"]
+  MATCH -- "yes" --> DATA["The blueprint makes the data:<br/>game 501, player Alex,<br/>and the bot at the end is the bot"]
+  DATA --> CHECK{{"The action checks the game,<br/>the players, their names and the turn"}}
+  CHECK -- "fits" --> DONE["Assist: Game on: 501<br/>with Alex and the bot."]
+  CHECK -- "refused" --> WHY["Assist says why, for example:<br/>This game takes 4 players at most."]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class MATCH,DATA,CHECK bot
+  class DONE done
+  class WHY failed
