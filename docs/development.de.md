@@ -2,9 +2,9 @@
 
 [← Dokumentation](README.de.md)
 
-Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden, wie der Browsertest dabei wartet und wann die End-to-End-Tests laufen.
+Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden, wie der Browsertest dabei wartet, wie ihre Tests die Timer der Karten prüfen und wann die End-to-End-Tests laufen.
 
-**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Wie der Browsertest wartet](#wie-der-browsertest-wartet) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen)
+**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Wie der Browsertest wartet](#wie-der-browsertest-wartet) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Timer der Karten](#timer-der-karten) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen)
 
 ## Bilder der Dokumentation
 
@@ -83,6 +83,29 @@ Der Schritt *accessibility* des Browsertests (`tests/e2e/browser.py`) lässt [ax
 - Der Schritt behält jeden Verstoß und jede geprüfte Ansicht in `accessibility.json`, bei den übrigen Artefakten des Browsertests.
 
 axe-core kommt aus `package.json`, festgelegt in `package-lock.json`; führe also vor `browser.sh` `npm ci` aus, wie es die CI tut. `BROWSER_STEPS=accessibility` führt die Prüfung allein aus. Behebe einen Verstoß lieber in der Karte, als ihn hinzunehmen: Gedämpfte Wörter nehmen `--ad-muted-text` aus den Bausteinen, das den Kontrast in beiden Designs und auf einer getönten Kachel hält, jedes Bedienelement hat Wörter oder ein `aria-label`, und was scrollt, erreicht auch die Tastatur.
+
+## Timer der Karten
+
+Eine Karte auf einem Dashboard hat Timer: den Countdown bis zum nächsten Match eines Turniers, die Zeit, die das Ergebnis oder die Zusammenfassung eines Matches zeigt, und den Ruhemodus; die Trainingskarte folgt den Ereignissen des Boards über den History-Stream von Home Assistant. Nur das Verlassen der Seite hält sie an, in `disconnectedCallback`. Home Assistant kann einer Karte auch danach noch neue Zustände geben, deshalb startet eine Karte einen Timer oder einen Stream nur, solange sie auf der Seite ist (`isConnected`). Kommt sie zurück, aktualisiert `connectedCallback` sie, und das startet beides neu.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/card-timers-dark.png">
+  <img src="images/de/card-timers-light.png" alt="Die Timer einer Karte und die Seite: Home Assistant gibt einer Karte neue Zustände. Eine Karte auf der Seite startet, was sie braucht, etwa den Countdown eines Turniers, die Zeit der Zusammenfassung, den Ruhemodus und den History-Stream; eine Karte, die die Seite verlassen hat, startet nichts. Das Verlassen der Seite hält jeden Timer und den Stream an, und eine Karte, die zurückkommt, wird aktualisiert und startet sie neu. Läuft nach den Tests einer Datei noch ein Timer, schlägt die Datei mit ihrem Namen und dem fehl, was der Timer aufruft, und der Timer hält an." width="560">
+</picture>
+
+`npm test` hält jede Karte daran:
+
+- `tests/frontend/dom.mjs` verfolgt die echten Timer, die die Karten und die Tests stellen. Ein Timer, der noch läuft, wenn die Tests einer Datei fertig sind und ihre Karten die Seite verlassen haben, würde die Datei für immer laufen lassen. Stattdessen hält er an, und die Datei schlägt fehl, mit ihrem Namen und dem, was der Timer aufruft:
+
+  ```text
+  ✖ tests/frontend/dom.mjs
+    Error: tournament.test.mjs left 1 timer running after its cards left the page:
+    setInterval(() => this._update(), 1000)
+  ```
+
+- Ein Test, der nie endet, schlägt nach 60 Sekunden mit seinem Namen fehl (`--test-timeout=60000` in `package.json`), und die übrigen Dateien laufen weiter.
+
+Simulierte Timer (`context.mock.timers`) enden mit ihrem Test und zählen nicht. Um zu prüfen, dass eine Karte keinen Timer startet, vergleicht ein Test `timers()` aus `dom.mjs` davor und danach, wie es *a scoreboard that left the page starts no countdown and no timer of the tournament* in `tests/frontend/tournament.test.mjs` tut.
 
 ## Wann die End-to-End-Tests laufen
 
