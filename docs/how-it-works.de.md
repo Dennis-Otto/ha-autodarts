@@ -18,7 +18,8 @@ Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen
 
 | Quelle | Wie | Intervall |
 | --- | --- | --- |
-| Board-Zustand, Dart-Positionen, Bewegung, Kameras, Bildraten | WebSocket `/api/events` des Board Managers | Sofort |
+| Board-Zustand, Dart-Positionen, Bewegung, Kameras | WebSocket `/api/events` des Board Managers | Sofort |
+| Bildraten | WebSocket `/api/events` und jedes HTTP-Lesen | Ihre Sensoren zeigen sie mit jedem Lesevorgang; einen Kameraalarm, den sie auslösen, sofort |
 | Abgleich, solange Echtzeitereignisse ankommen | HTTP-Lesen | Alle 30 Sekunden; alle 10 Sekunden bei Board Manager 2, der Kameraänderungen nicht meldet |
 | Ersatz ohne Echtzeitereignisse | HTTP-Lesen | Alle 2 Sekunden; alle 15 Sekunden, wenn das Board seit etwa einer halben Minute fehlt |
 | Board Manager 2 | Ein gemeinsamer Aufruf von `/api/system` pro Intervall | Wie oben |

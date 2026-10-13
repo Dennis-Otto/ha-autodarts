@@ -6,11 +6,12 @@ import logging
 from pathlib import Path
 
 import pytest
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from custom_components.autodarts.topics import BoardTopics, Topic
 
-from .local_helpers import setup_local, written
+from .local_helpers import entity_id, setup_local, written
 
 INTEGRATION = Path(__file__).parents[1] / "custom_components" / "autodarts"
 # The methods that Home Assistant documents for a coordinator to override.
@@ -27,6 +28,8 @@ def test_a_topic_calls_only_its_own_listeners_until_they_leave():
     leave()
     # Leaving twice changes nothing more.
     leave()
+    assert topics.listeners(Topic.MOTION) == 0
+    assert topics.listeners(Topic.TELEMETRY) == 1
     topics.async_publish(Topic.MOTION)
     # A topic nobody listens to.
     topics.async_publish(Topic.CAMERA_STATE)
@@ -35,15 +38,25 @@ def test_a_topic_calls_only_its_own_listeners_until_they_leave():
     assert calls == ["motion", "telemetry"]
 
 
-async def test_an_unloaded_board_leaves_no_listener_of_its_readings(
+async def test_an_entity_that_leaves_stops_listening_to_its_readings(
     hass, aioclient_mock
 ):
     entry = await setup_local(hass, aioclient_mock)
-    coordinator = entry.runtime_data.local
+    topics = entry.runtime_data.local.topics
+    motion = topics.listeners(Topic.MOTION)
+    assert motion > 1
+    assert topics.listeners(Topic.CAMERA_STATE) == 1
+    # One entity leaves while the board stays loaded.
+    er.async_get(hass).async_remove(entity_id(hass, "binary_sensor", "hand_detected"))
+    await hass.async_block_till_done()
+    assert topics.listeners(Topic.MOTION) == motion - 1
+    assert topics.listeners(Topic.CAMERA_STATE) == 1
+    # An unloaded board leaves no listener, and its readings write nothing.
     assert await hass.config_entries.async_unload(entry.entry_id)
+    assert not any(topics.listeners(topic) for topic in Topic)
     with written(hass) as entities:
         for topic in Topic:
-            coordinator.topics.async_publish(topic)
+            topics.async_publish(topic)
         await hass.async_block_till_done()
     assert not entities
 

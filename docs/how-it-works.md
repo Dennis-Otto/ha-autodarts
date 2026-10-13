@@ -18,7 +18,8 @@ A board is one config entry with up to two independent connections:
 
 | Source | How | Interval |
 | --- | --- | --- |
-| Board state, dart positions, motion, cameras, frame rates | WebSocket `/api/events` of the Board Manager | Immediately |
+| Board state, dart positions, motion, cameras | WebSocket `/api/events` of the Board Manager | Immediately |
+| Frame rates | WebSocket `/api/events` and every HTTP read | Their sensors show them with each read; a camera alarm they raise shows at once |
 | Reconciliation while realtime events arrive | HTTP read | Every 30 seconds; every 10 seconds with Board Manager 2, which announces no camera changes |
 | Fallback without realtime events | HTTP read | Every 2 seconds; every 15 seconds once the board has been away for about half a minute |
 | Board Manager 2 | One combined read of `/api/system` per interval | As above |

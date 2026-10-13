@@ -52,6 +52,10 @@ class BoardTopics:
 
         return remove
 
+    def listeners(self, topic: Topic) -> int:
+        """How many listeners topic has."""
+        return len(self._callbacks.get(topic, {}))
+
     @callback
     def async_publish(self, topic: Topic) -> None:
         """Tell the listeners of topic that its readings changed; one that
