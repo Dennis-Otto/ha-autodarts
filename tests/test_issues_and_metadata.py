@@ -81,7 +81,7 @@ async def unload_while_reading(hass, aioclient_mock, entry, method, answer):
 
     async def slow_board(*_args):
         reading.set()
-        while not coordinator._shutdown_requested:
+        while not coordinator._shutting_down:
             await asyncio.sleep(0)
         for _ in range(100):
             await asyncio.sleep(0)

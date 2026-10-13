@@ -110,6 +110,7 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
         <li>Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch</li>
         <li>Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche, die Cloud-Verknüpfung oder die Online-Brücke; Geheimnisse des Boards werden nie gespeichert</li>
         <li>Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch (<a href="#sprachen">Sprachen</a>)</li>
+        <li>Leicht für einen Raspberry Pi: Eine Nachricht des Boards aktualisiert nur die Entitäten, die zeigen, was sich geändert hat (<a href="how-it-works.de.md#aktualisierung">Aktualisierung</a>)</li>
         <li>Alle Regeln der Qualitätsskala von Home Assistant bis Platin, 100 % Testabdeckung</li>
       </ul>
       <p><a href="how-it-works.de.md">Funktionsweise →</a></p>

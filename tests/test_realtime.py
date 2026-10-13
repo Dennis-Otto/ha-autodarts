@@ -31,9 +31,12 @@ from .local_helpers import (
     entity_id,
     setup_local,
     state,
+    written,
 )
 
 REAL_EVENTS = AutodartsLocalClient.events
+# The motion flags of a board with a hand at it.
+HAND = {"isStable": False, "isHand": True, "isTakeoutPartial": False}
 
 
 class Socket:
@@ -188,12 +191,42 @@ async def test_detection_rate_pushes_do_not_update_entities_each_time(
     updates = []
     unsubscribe = coordinator.async_add_listener(lambda: updates.append(True))
     coordinator.async_receive("stats", {"fps": 25.0})
-    assert coordinator.data["stats"] == {"fps": 25.0}
+    assert coordinator.readings["stats"] == {"fps": 25.0}
     # High-rate telemetry is published by the poll, not per message.
     assert updates == []
     coordinator.async_receive("state", board(T20))
     assert updates == [True]
     unsubscribe()
+
+
+async def test_a_motion_message_updates_only_the_motion_entities(hass, aioclient_mock):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    with written(hass) as entities:
+        coordinator.async_receive("motion_state", {**HAND, "isTakeoutFull": False})
+        await hass.async_block_till_done()
+    assert entities == {
+        entity_id(hass, "binary_sensor", key)
+        for key in ("hand_detected", "takeout_partial")
+    }
+    assert state(hass, "binary_sensor", "hand_detected") == "on"
+    # The same flags again change nothing, and nothing is written.
+    with written(hass) as entities:
+        coordinator.async_receive("motion_state", {**HAND, "isTakeoutFull": False})
+        await hass.async_block_till_done()
+    assert not entities
+
+
+async def test_a_camera_message_updates_only_whether_the_cameras_run(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    with written(hass) as entities:
+        coordinator.async_receive("cam_state", {"isRunning": True, "isOpened": True})
+        await hass.async_block_till_done()
+    assert entities == {entity_id(hass, "binary_sensor", "cameras_active")}
+    assert state(hass, "binary_sensor", "cameras_active") == "on"
 
 
 async def test_socket_handshake_failure_is_recoverable(hass):
@@ -477,7 +510,7 @@ async def test_camera_stats_push_merges_individual_camera_and_raises_alarm(
     coordinator.async_receive("cam_state", {"isRunning": True, "isOpened": True})
     updates.clear()
     coordinator.async_receive("cam_stats", {"id": 1, "fps": 0})
-    assert coordinator.data["camera_stats"]["fps"] == [29.9, 0, 29.8]
+    assert coordinator.readings["camera_stats"]["fps"] == [29.9, 0, 29.8]
     freezer.tick(timedelta(seconds=14))
     coordinator.async_receive("cam_stats", {"id": 1, "fps": 0})
     assert not updates
