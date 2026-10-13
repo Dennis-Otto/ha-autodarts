@@ -50,8 +50,7 @@ async def test_any_busting_score_says_the_score_stays_and_passes_the_turn(hass):
     answer = await say(hass, "enter_visit", checkout=True)
     assert answer == {
         "entered": False,
-        "message": "No visit scores 159 from 159 with these rules and darts. "
-        "Check the score.",
+        "message": "No visit checks out 159 with these rules and darts.",
     }
     answer = await say(hass, "enter_visit", score=159)
     assert answer["message"] == "No score: Sam stays at 159. Alex, you require 32."
@@ -99,8 +98,8 @@ async def test_a_checkout_scores_what_is_left_and_wins_the_leg(hass):
         ),
         (
             {"checkout": True, "darts": 1},
-            "visit_impossible",
-            "No visit scores 101 from 101 with these rules and darts. Check the score.",
+            "checkout_impossible",
+            "No visit checks out 101 with these rules and darts.",
         ),
     ],
 )

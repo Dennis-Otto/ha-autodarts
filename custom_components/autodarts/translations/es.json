@@ -843,6 +843,9 @@
     "visit_impossible": {
       "message": "Ninguna tirada suma {score} desde {remaining} con estas reglas y dardos. Comprueba los puntos."
     },
+    "checkout_impossible": {
+      "message": "Ninguna tirada cierra {remaining} con estas reglas y dardos."
+    },
     "visit_at_double": {
       "message": "Los dardos a un doble deben ser como mucho los {darts} dardos de la tirada, y al menos uno al cerrar."
     },
@@ -1301,7 +1304,7 @@
         },
         "score": {
           "name": "Puntos",
-          "description": "Los puntos de la tirada, de 0 a 180. Lo que le queda al jugador cierra, más es pasarse. Necesario sin checkout."
+          "description": "Los puntos de la tirada, de 0 a 180. Lo que le queda al jugador cierra, o es pasarse donde ninguna tirada puede cerrarlo; más es pasarse, igual que dejar 1 con double out. Necesario sin checkout."
         },
         "checkout": {
           "name": "Checkout",

@@ -153,9 +153,14 @@ def test_a_checkout_asked_for_where_none_exists_is_refused():
     game = playing(501, remaining=159)
     with pytest.raises(VisitRefused) as error:
         game.score_visit(159, checkout=True)
-    assert error.value.key == "visit_impossible"
-    assert error.value.placeholders == {"score": "159", "remaining": "159"}
+    assert error.value.key == "checkout_impossible"
+    assert error.value.placeholders == {"remaining": "159"}
     assert evaluate_visit(159, game.score_visit(159), True)[1] == "bust"
+    # Nor is a checkout that no darts score, or none of these darts.
+    for start, darts in ((179, None), (100, 1)):
+        with pytest.raises(VisitRefused) as error:
+            playing(501, remaining=start).score_visit(start, darts, checkout=True)
+        assert error.value.key == "checkout_impossible"
     darts = playing(501, remaining=40).score_visit(40, 2, checkout=True)
     assert evaluate_visit(40, darts, True) == (0, "won", 2)
 
@@ -303,7 +308,7 @@ async def test_every_busting_score_busts_and_passes_the_turn(hass):
     await act(hass, "enter_visit", score=0)
     with pytest.raises(ServiceValidationError) as error:
         await act(hass, "enter_visit", checkout=True)
-    assert error.value.translation_key == "visit_impossible"
+    assert error.value.translation_key == "checkout_impossible"
     assert remaining_scores(hass) == [32, 159]
     assert not any(kind == "leg_won" for kind, _ in events)
 

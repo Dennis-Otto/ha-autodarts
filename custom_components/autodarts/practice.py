@@ -1038,16 +1038,17 @@ class PracticeGame:
             self.double_out,
             opening=self.double_in and not player.opened,
         )
-        impossible = VisitRefused(
-            "visit_impossible", score=str(points), remaining=str(start)
-        )
-        if made is None:
-            raise impossible
-        _, outcome, counted = evaluate_visit(start, made, self.double_out)
         # Asked for as a checkout, what is left without a finish is no bust.
+        if checkout and (
+            made is None or evaluate_visit(start, made, self.double_out)[1] != "won"
+        ):
+            raise VisitRefused("checkout_impossible", remaining=str(start))
+        if made is None:
+            raise VisitRefused(
+                "visit_impossible", score=str(points), remaining=str(start)
+            )
+        _, outcome, counted = evaluate_visit(start, made, self.double_out)
         won = outcome == "won"
-        if checkout and not won:
-            raise impossible
         if at_double is None:
             at_double = int(won)
         if not self.double_out:

@@ -843,6 +843,9 @@
     "visit_impossible": {
       "message": "Geen beurt scoort {score} vanaf {remaining} met deze regels en darts. Controleer de score."
     },
+    "checkout_impossible": {
+      "message": "Geen beurt gooit {remaining} uit met deze regels en darts."
+    },
     "visit_at_double": {
       "message": "De darts op een dubbel zijn hoogstens de {darts} darts van de beurt, en minstens één bij een uitgooi."
     },
@@ -1301,7 +1304,7 @@
         },
         "score": {
           "name": "Score",
-          "description": "De punten van de beurt, 0 tot 180. Wat de speler nog heeft, gooit uit; meer is een bust. Nodig zonder checkout."
+          "description": "De punten van de beurt, 0 tot 180. Wat de speler nog heeft, gooit uit, of is een bust waar geen beurt het kan uitgooien; meer is een bust, net als 1 over laten bij double out. Nodig zonder checkout."
         },
         "checkout": {
           "name": "Checkout",

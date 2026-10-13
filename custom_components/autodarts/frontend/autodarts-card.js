@@ -5646,41 +5646,79 @@ function padBoardHtml(pad, ui) {
 
 // Score of a visit -------------------------------------------------------------------
 
-const DART_SCORES = [
-  ...new Set([0, 25, 50, ...[...Array(20)].flatMap((_, index) => [1, 2, 3].map((times) => (index + 1) * times))]),
+// The beds a dart of a visit entered as its score can hit, as the integration makes its
+// darts up: their points and whether they are a double. A miss, the bulls, and the
+// single, double and treble of every number.
+const SCORE_BEDS = [
+  { points: 0, double: false },
+  { points: 25, double: false },
+  { points: 50, double: true },
+  ...[...Array(20)].flatMap((_, index) => [1, 2, 3].map((times) => ({ points: (index + 1) * times, double: times === 2 }))),
 ];
-const DOUBLE_SCORES = new Set([50, ...[...Array(20)].map((_, index) => (index + 1) * 2)]);
-// What one more dart makes of these scores. Three darts make every score from 0 to 180
-// but 163, 166, 169, 172, 173, 175, 176, 178 and 179, which no visit scores.
-const withDart = (scores) => new Set([...scores].flatMap((sum) => DART_SCORES.map((dart) => sum + dart)));
-const VISIT_TOTALS = withDart(withDart(DART_SCORES));
+const BEDS_BY_POINTS = SCORE_BEDS.reduce(
+  (beds, bed) => beds.set(bed.points, [...(beds.get(bed.points) ?? []), bed]),
+  new Map()
+);
 
-// Whether the score typed can go in: OK and Enter wait for one that a visit scores.
-const scoreReady = (typed) => typed !== "" && VISIT_TOTALS.has(Number(typed));
-
-// The fewest darts that check this score out, or null where no visit can.
-function checkoutDarts(left, doubleOut) {
-  const ends = doubleOut ? DOUBLE_SCORES : new Set(DART_SCORES.filter(Boolean));
-  if (ends.has(left)) return 1;
-  if (DART_SCORES.some((first) => ends.has(left - first))) return 2;
-  if (DART_SCORES.some((first) => DART_SCORES.some((second) => ends.has(left - first - second)))) return 3;
+// How the darts of a visit end from what the player had, as the integration counts them:
+// "bust" at a dart that goes below zero, leaves 1 with double out or reaches zero without
+// the double it needs, "won" at zero, and null where they leave the rest.
+function visitOutcome(from, darts, doubleOut) {
+  let left = from;
+  for (const dart of darts) {
+    left -= dart.points;
+    if (left < 0 || (doubleOut && left === 1) || (left === 0 && doubleOut && !dart.double)) return "bust";
+    if (left === 0) return "won";
+  }
   return null;
 }
 
+// Whether some visit of `count` darts scores `points` and `fits`, which tells by its darts.
+function someVisit(count, points, fits, chosen = []) {
+  if (chosen.length === count - 1) return (BEDS_BY_POINTS.get(points) ?? []).some((dart) => fits([...chosen, dart]));
+  return SCORE_BEDS.some((dart) => dart.points <= points && someVisit(count, points - dart.points, fits, [...chosen, dart]));
+}
+
+// Whether these darts can open the leg: while it waits for a double, the first that
+// scores is one.
+const opens = (entry, darts) => !entry.opening || darts.find((dart) => dart.points)?.double !== false;
+
+// The fewest darts that check out what the player has left, or null where no visit can.
+function checkoutDarts(entry) {
+  const wins = (darts) => opens(entry, darts) && visitOutcome(entry.from, darts, entry.doubleOut) === "won";
+  return [1, 2, 3].find((count) => someVisit(count, entry.from, wins)) ?? null;
+}
+
+// Whether a visit scores this from where the player stands, as the integration takes it:
+// no three darts make 163, 166, 169, 172, 173, 175, 176, 178 or 179; while the leg waits
+// for a double, the first dart that scores is one, so 1 or 180 don't open it; and more than
+// is left busts only where no dart checks out on the way, as the first treble 20 of 180
+// from 60 does without double out.
+function scorable(entry, points) {
+  return someVisit(
+    3,
+    points,
+    (darts) => opens(entry, darts) && (points === entry.from || visitOutcome(entry.from, darts, entry.doubleOut) !== "won")
+  );
+}
+
+// Whether the score typed can go in: OK and Enter wait for one that a visit scores.
+const scoreReady = (entry, typed) => typed !== "" && scorable(entry, Number(typed));
+
 // The keypad takes the score of a visit in an X01 leg being played: what the player had
-// before the visit and whether the leg ends on a double.
+// before the visit, whether the leg ends on a double and whether it waits for one to open.
 function scoreEntry(view) {
   const practice = view.mode === "x01" ? view.practice : null;
   if (!practice || practice.winner !== null) return null;
-  return { from: practice.from, doubleOut: practice.doubleOut };
+  return { from: practice.from, doubleOut: practice.doubleOut, opening: !practice.opened };
 }
 
 // What a score says before it goes in: what it leaves, a checkout or a bust, or that no
 // visit scores it. What the player has left busts where no checkout exists, such as 159
 // with double out.
 function scoreHint(entry, points, t) {
-  if (!VISIT_TOTALS.has(points)) return fill(t("score_impossible"), { score: points });
-  if (points === entry.from && checkoutDarts(points, entry.doubleOut) !== null) return t("checkout");
+  if (!scorable(entry, points)) return fill(t("score_impossible"), { score: points });
+  if (points === entry.from && checkoutDarts(entry) !== null) return t("checkout");
   const left = entry.from - points;
   if (left < 0 || (entry.doubleOut && left <= 1)) return t("bust");
   return fill(t("setup_leave"), { leave: left });
@@ -5690,11 +5728,13 @@ const counting = (from, to) => [...Array(to - from + 1)].map((_, index) => from 
 
 // What a score takes besides itself: the darts of a checkout and the darts at a double,
 // asked where they can differ. With the answers so far, the next question, or the data
-// of autodarts.enter_visit once nothing is left to ask.
+// of autodarts.enter_visit once nothing is left to ask. A checkout goes in as one, so
+// that the integration refuses it rather than book a bust where it can't check out.
 function scoreAnswer(entry, points, answers = {}) {
   const data = { score: points };
-  const least = points === entry.from ? checkoutDarts(points, entry.doubleOut) : null;
+  const least = points === entry.from ? checkoutDarts(entry) : null;
   if (least !== null) {
+    data.checkout = true;
     if (answers.darts === undefined && least < 3) return { ask: "darts", choices: counting(least, 3) };
     data.darts = answers.darts ?? 3;
     if (!entry.doubleOut) return { data };
@@ -5702,8 +5742,8 @@ function scoreAnswer(entry, points, answers = {}) {
     data.darts_at_double = answers.doubles ?? 1;
     return { data };
   }
-  // A visit that left a double in reach may have thrown at it; what no visit can score from
-  // where the player stands goes in as it is, for the integration to say why it can't.
+  // A visit that left a double in reach may have thrown at it; what is left where no double
+  // finishes it, such as 159, goes in as it is and busts.
   if (entry.doubleOut && entry.from - points <= 50 && points !== entry.from) {
     if (answers.doubles === undefined) return { ask: "doubles", choices: counting(0, 3) };
     data.darts_at_double = answers.doubles;
@@ -9813,7 +9853,7 @@ function createElements(Base) {
         ? {
             typed: this._typed,
             hint: this._typed ? scoreHint(entry, Number(this._typed), (key) => this._t(key)) : "",
-            ready: scoreReady(this._typed),
+            ready: scoreReady(entry, this._typed),
             ask: this._asking,
           }
         : null;
@@ -9834,7 +9874,7 @@ function createElements(Base) {
         return;
       }
       // Enter on a keyboard waits, as OK does, for a score that a visit scores.
-      if (action === "enter" && !scoreReady(this._typed)) return;
+      if (action === "enter" && !scoreReady(entry, this._typed)) return;
       const points = Number(this._typed);
       const answers = this._asking?.answers ?? {};
       if (action === "answer") answers[this._asking.ask] = Number(value);
@@ -12702,7 +12742,7 @@ export {
   scoreEntry,
   scoreHint,
   scoreReady,
-  VISIT_TOTALS,
+  scorable,
   aimBeds,
   badgesHtml,
   badgesView,
