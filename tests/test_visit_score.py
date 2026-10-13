@@ -182,6 +182,8 @@ def test_a_checkout_asked_for_where_none_exists_is_refused():
 def test_a_score_visit_the_game_cannot_take_is_refused(
     setup, points, darts, at_double, key
 ):
+    # A copy: the parameters stay the same for the next run in this process.
+    setup = dict(setup)
     game = playing(301, remaining=setup.pop("remaining", None))
     for name, value_ in setup.items():
         setattr(game, name, value_)

@@ -12,6 +12,7 @@ All changes, including the releases, reach the protected `main` branch through p
 - Code must pass Ruff (lint and format) and strict mypy with the rules configured in `pyproject.toml`, keep the test coverage of every line and branch at 100 %, and remain compatible with the Home Assistant version used by the tests.
 - The JavaScript of the cards and of their tests must pass ESLint with the rules of `eslint.config.mjs`. Dashboard card changes need Node tests in `tests/frontend/` and, for visible changes, the browser test in `tests/e2e/browser.py`.
 - Blueprint changes need tests in `tests/test_blueprints.py`, which run the blueprints through Home Assistant's automation engine. The import buttons and the `source_url` of every blueprint point to `main`, so whoever imports or re-imports a blueprint between two releases gets the one on `main`, while HACS installs the latest release of the integration. A blueprint on `main` therefore keeps working with the latest release: a change that needs events, attributes or actions of an unreleased version is merged together with its release, or the blueprint's description names the version it needs. New inputs get defaults that keep existing automations working as before.
+- Tests keep working under the weekly [mutation tests](docs/development.md#mutation-tests), which run them several times in one process and in processes forked from it, against changed code in a copy of the repository: a test leaves its parameters unchanged, and one that reads the code as text or asks Git is marked `@pytest.mark.mutation_unsafe`.
 - User-facing text belongs in `strings.json` and every translation, card texts in every language of `TEXT`; see [Translations](#translations).
 - Update the README and `docs/` when behavior, setup, or supported versions change. The documentation is English, with a German translation next to each page (`docs/games.de.md` next to `docs/games.md`); update both. Regenerate screenshots with `bash tests/e2e/screenshots.sh` when a visible card or dialog changes.
 - Local Board Manager communication must not log, store, or expose the board API key. Cloud tokens remain in the config entry.
@@ -56,6 +57,8 @@ bash tests/e2e/browser.sh
 
 `scripts/check.sh` runs the text checks, Ruff, strict mypy, pytest with every line and branch covered, and in `scripts/check-project.sh` the tests of the cards with Node. To run it before every push on its own, turn on the hook of the repository once: `git config core.hooksPath .githooks`. The end-to-end and browser tests require Docker with Compose. The [development guide](docs/development.md) describes every tool, including the demo instance.
 
+Git runs the hook only when its file is executable. Windows has no such mode and adds the file as a plain one, which `scripts/check.sh` reports; `git update-index --chmod=+x .githooks/pre-push` and a commit make it executable.
+
 Do not include real credentials, board IDs, API keys, private network addresses, or logs containing personal data. Use reserved documentation addresses such as `192.0.2.10` and clearly synthetic values in tests and documentation.
 
 The development container in `.devcontainer/` sets up Python 3.14, Node.js 24 and Docker in one step, for VS Code and GitHub Codespaces, and `bash scripts/check.sh` runs in it. Optional pre-commit hooks run Ruff and basic file checks before each commit: `pip install pre-commit && pre-commit install`.
@@ -94,6 +97,24 @@ python3 -m venv .venv-docs
 ```
 
 On Windows, use `py -3` in place of `python3` and `.venv-docs/Scripts/` in place of `.venv-docs/bin/`; the dev container sets these tools up on its own. With them, `bash scripts/check.sh` builds the website strictly as well, as the check *docs* does, and without them it leaves that to the CI. The preview cards for social media come from the CI alone, because they need the Cairo library, which Windows doesn't have; where it is installed, `CI=true` before the command draws them too.
+
+## Diagrams
+
+The GitHub app, the stores of the projects and other renderers of Markdown show a `mermaid` block as code, so a diagram is a picture of its source. The source is Mermaid in `docs/diagrams/<name>.mmd`, and `bash scripts/diagrams.sh` draws it, with Docker, as `docs/images/diagrams/<name>.svg` on a white card and `<name>.dark.svg` for a dark theme. The Markdown shows them with paths from its own folder, and the website draws the source itself:
+
+```html
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/diagrams/<name>.dark.svg">
+  <img src="docs/images/diagrams/<name>.svg" alt="The title of the diagram: its description">
+</picture>
+```
+
+- A diagram runs from top to bottom (`flowchart TB`), so that it keeps its size in a narrow column and on a phone, and has `accTitle` and `accDescr` for screen readers, which the `alt` of its picture repeats.
+- Labels are text in the pictures: `<br>` breaks a line, and a label in `` "`…`" `` takes `**bold**` and `*italic*`.
+- A diagram of a German page is `<name>.de.mmd`.
+- `bash scripts/diagrams.sh --extract` turns every `mermaid` block of the Markdown into a source and its picture. `scripts/check.sh` fails on a `mermaid` block once a page shows a picture of a diagram, and on a source or a picture without the other.
+- The check *diagrams* draws the pictures anew when a pull request changes a diagram or adds a `mermaid` block. On a branch of this repository, the diagram bot commits the sources and pictures that it made, with a comment that names the pages it changed, so you need no Docker for a diagram: change its source and push. For a fork, the summary of the check lists the files and the command, and the run keeps them as its artifact.
+- On `main`, the Diagrams workflow draws every diagram after each change of a diagram or a new `mermaid` block, and every week, and keeps one pull request from the branch `bot/diagrams` with what is left, which merges itself once every check passes. A failed run opens an issue, which the weekly run closes once the bot passes again.
 
 ## Releases
 
