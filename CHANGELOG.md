@@ -26,6 +26,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 - **Automatic detection stops after a restart, too:** the blueprint *Start and stop detection automatically* lost its waiting when Home Assistant restarted or when you saved the automation, so a detection that was waiting for its stop ran on, overnight included. If nobody is there and the detection runs when Home Assistant starts, it now stops after *Stop after*; saving the automation starts the wait over, also the wait after a restart, while a detection you started by hand keeps running then (#247, #252, #265).
 - **The board alert warns about a problem at startup:** the blueprint *Board problem alert* never warned about a board that was offline, or had a camera problem, when Home Assistant started, and saving the automation during a grace period swallowed that alert. Both now alert after the grace period, also when you save the automation more than once before the alert; saving other automations changes nothing (#247, #252, #265).
 
+### Documentation
+
+- **The README reads well on a phone:** on GitHub, in its app and in HACS, every feature had a narrow column of text next to a tiny picture. Each feature now has a few short points with its picture at full width below them, the quick start in three steps follows the first animation, and the longer lists, the blueprints and the guides open with a tap. The overviews of the documentation on GitHub, in English and German, follow the same layout (#268, #270).
+
 ## [1.12.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.1...v1.12.2) (2026-10-12)
 
 ### Fixed
