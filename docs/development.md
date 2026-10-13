@@ -131,7 +131,7 @@ After each step the log shows its seconds, such as `Browser step: steady heights
 
 ### The browser test in shards
 
-The steps take five minutes in a row, too long for one job. Each step belongs to one of four groups of about the same seconds (`steps()` in `tests/e2e/browser.py`), and `BROWSER_SHARD=k/n` runs the groups `g` with `(g - 1) % n = k - 1`: `1/1`, the default, every group, `1/2` the groups 1 and 3, `2/4` the group 2. `BROWSER_WORKERS=W` runs the shard of the machine on W demo instances side by side, each with its browser, a Compose project of its own (`autodarts_browser_1`, …), the next port from 18125 on and a folder of its own among the artifacts (`shard-3-of-4`). Each line of a worker in the log begins with its shard, such as `[3/4]`.
+The steps take five minutes in a row, too long for one job. Each step belongs to one of four groups of about the same seconds (`steps()` in `tests/e2e/browser.py`), and `BROWSER_SHARD=k/n` runs the groups `g` with `(g - 1) % n = k - 1`: `1/1`, the default, every group, `1/2` the groups 1 and 3, `2/4` the group 2. `BROWSER_WORKERS=W` runs the shard of the machine on W demo instances side by side, each with its browser, a Compose project of its own (`autodarts_browser_1`, …), the next port from 18125 on and a folder of its own among the artifacts (`shard-3-of-4`). Each line of a worker in the log begins with its shard, such as `[3/4]`. `browser.sh` refuses more shards than groups before it starts anything, such as `BROWSER_SHARD=2/4` with `BROWSER_WORKERS=2`.
 
 ```sh
 BROWSER_WORKERS=4 bash tests/e2e/browser.sh                   # every step, four shards at once
@@ -341,7 +341,11 @@ Each browser job pulls the images of Home Assistant and Playwright at once and s
 two workers, with `BROWSER_SHARD=1/2` or `2/2` and `BROWSER_WORKERS=2`, so the four
 [shards](#the-browser-test-in-shards) of a version run at the same time. A step that
 fails fails only its job, and the flaky-test bot runs only that job and the gate again.
-The nightly beta job runs the scenario and then every shard, two at a time.
+The job names the shard and the step that failed in an annotation and in its summary,
+with the command that runs the step alone, such as
+`BROWSER_STEPS='steady heights' bash tests/e2e/browser.sh`.
+The nightly beta job runs the scenario and then every group of steps, in two shards
+side by side, `1/2` and `2/2`.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/e2e-shards-dark.png">

@@ -248,7 +248,7 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Check the dashboard cards in a real browser
         env:
-          # All four shards, two at a time.
+          # Every group of steps, in two shards side by side: 1/2 and 2/2.
           BROWSER_WORKERS: 2
         run: bash tests/e2e/browser.sh
       - name: Keep logs and screenshots of a failed run

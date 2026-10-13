@@ -10,6 +10,7 @@ here with a stand-in for docker that only notes what it is asked to do.
 import ast
 import importlib.util
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -67,8 +68,9 @@ def test_the_steps_are_read_from_browser_py():
 
 def test_every_step_can_be_asked_for_by_its_name():
     assert len(set(NAMES)) == len(NAMES), "two steps share a name"
-    # BROWSER_STEPS separates the names with commas.
-    assert [name for name in NAMES if "," in name] == []
+    # BROWSER_STEPS separates the names with commas, and browser.sh puts a name that
+    # failed in single quotes in the command that runs it alone.
+    assert [name for name in NAMES if "," in name or "'" in name] == []
     for name in NAMES:
         assert names(choose(STEPS, name)) == [name]
 
@@ -195,10 +197,16 @@ needs_bash = pytest.mark.skipif(
 )
 
 # Notes every call; a call whose words contain $FAIL fails, as a browser that finds
-# a problem does.
+# a problem does, and notes $FAILED_STEP in the table of its steps as browser.py does.
 DOCKER = """#!/usr/bin/env bash
 printf '%s\\n' "$*" >> "$CALLS"
 if [[ -n "${FAIL:-}" && "$*" == *"$FAIL"* ]]; then
+  for word in "$@"; do
+    if [[ -n "${FAILED_STEP:-}" && "$word" == *:/artifacts ]]; then
+      printf '| live card | 1.0 |\\n| %s (failed) | 2.0 |\\n' "$FAILED_STEP" \\
+        > "${word%:/artifacts}/browser-steps-table.md"
+    fi
+  done
   echo "failed: $FAIL"
   exit 1
 fi
@@ -222,7 +230,19 @@ def browser_sh(
         "E2E_ARTIFACTS": str(tmp_path / "artifacts"),
         **env,
     }
-    environment.pop("GITHUB_STEP_SUMMARY", None)
+    # Only what a test asks for, also in CI: GitHub Actions with its annotations and
+    # summary, another Home Assistant or board, shards and steps.
+    for name in (
+        "GITHUB_ACTIONS",
+        "GITHUB_STEP_SUMMARY",
+        "HOME_ASSISTANT_IMAGE",
+        "BOARD_MANAGER",
+        "BROWSER_SHARD",
+        "BROWSER_WORKERS",
+        "BROWSER_STEPS",
+    ):
+        if name not in env:
+            environment.pop(name, None)
     result = subprocess.run(
         ["bash", str(E2E / "browser.sh")],
         env=environment,
@@ -295,13 +315,91 @@ def test_a_failed_worker_fails_the_run_and_keeps_its_logs_alone(tmp_path):
     # The other worker ran to its end.
     assert "[1/2] ran: " in result.stdout
     assert "[2/2] failed: BROWSER_SHARD=2/2" in result.stdout
-    assert "The browser check failed in shard 2/2;" in result.stdout
+    # Last, what failed and how to run it alone: without a step that failed, such as
+    # when its demo didn't start, the whole shard.
+    assert result.stdout.endswith(
+        "The browser check failed in shard 2/2. Its lines in the log begin with [2/2]."
+        " Run it alone: BROWSER_SHARD=2/2 bash tests/e2e/browser.sh\n"
+    )
     assert "failed in shard 1/2" not in result.stdout
+    # Outside GitHub Actions, no annotation.
+    assert "::error" not in result.stdout
     logs = [call for call in calls if " logs " in call]
     assert logs == [
         "compose --project-name autodarts_browser_2 --file compose.yaml logs "
         "--no-color --tail 200"
     ]
+
+
+@needs_bash
+def test_a_failed_shard_explains_itself_in_github_actions(tmp_path):
+    summary = tmp_path / "summary.md"
+    result, _ = browser_sh(
+        tmp_path,
+        BROWSER_SHARD="2/2",
+        BROWSER_WORKERS="2",
+        FAIL="BROWSER_SHARD=4/4",
+        FAILED_STEP="steady heights",
+        GITHUB_ACTIONS="true",
+        GITHUB_STEP_SUMMARY=str(summary),
+        HOME_ASSISTANT_IMAGE="example.org/home-assistant:2026.8.0",
+    )
+
+    assert result.returncode == 1
+    command = (
+        "HOME_ASSISTANT_IMAGE=example.org/home-assistant:2026.8.0"
+        " BROWSER_STEPS='steady heights' bash tests/e2e/browser.sh"
+    )
+    # The annotation begins its line, unlike the labelled lines of the workers, and
+    # only the shard that failed has one.
+    annotations = [
+        line for line in result.stdout.splitlines() if line.startswith("::error")
+    ]
+    assert annotations == [
+        "::error title=Browser check failed in shard 4/4::The browser check failed"
+        ' in shard 4/4 at the step "steady heights": a card doesn\'t look or behave'
+        " in a real browser as the test expects. Its lines in the log begin with"
+        " [4/4]. The artifact of this job keeps the screenshots and the logs."
+        f" Run it alone: {command}"
+    ]
+    text = summary.read_text(encoding="utf-8")
+    # The seconds of the steps, and then what failed and how to run it alone.
+    assert "| steady heights (failed) | 2.0 |" in text
+    assert text.endswith(
+        '### The browser check failed in shard 4/4 at the step "steady heights"\n\n'
+        "That means a card doesn't look or behave in a real browser as the test"
+        " expects. Its lines in the log begin with [4/4]. The artifact of this job"
+        " keeps the screenshots and the logs. Run it alone:\n\n"
+        f"~~~sh\n{command}\n~~~\n\n"
+    )
+
+
+@needs_bash
+def test_one_worker_names_the_step_that_failed(tmp_path):
+    result, calls = browser_sh(
+        tmp_path,
+        BOARD_MANAGER="1",
+        FAIL="BROWSER_SHARD=1/1",
+        FAILED_STEP="live card editor",
+    )
+
+    assert result.returncode == 1
+    # A run without shards names none, and its lines carry none.
+    assert result.stdout.endswith(
+        'The browser check failed at the step "live card editor".'
+        " Run it alone: BOARD_MANAGER=1 BROWSER_STEPS='live card editor'"
+        " bash tests/e2e/browser.sh\n"
+    )
+    assert any(" logs " in call for call in calls)
+
+
+@needs_bash
+def test_images_that_fail_to_pull_are_no_failed_shard(tmp_path):
+    result, calls = browser_sh(tmp_path, FAIL=" pull ")
+
+    assert result.returncode != 0
+    assert "The browser check failed" not in result.stdout
+    assert not any(" up " in call for call in calls)
 
 
 @needs_bash
@@ -313,6 +411,14 @@ def test_a_failed_worker_fails_the_run_and_keeps_its_logs_alone(tmp_path):
         ({"BROWSER_SHARD": "3/2"}, "BROWSER_SHARD is k/n with 1 <= k <= n"),
         ({"BROWSER_SHARD": "0/2"}, "BROWSER_SHARD is k/n with 1 <= k <= n"),
         ({"BROWSER_SHARD": "2"}, "BROWSER_SHARD is k/n with 1 <= k <= n"),
+        # More shards than groups, which shards.py would refuse only in the browsers,
+        # after the images and the demos.
+        ({"BROWSER_SHARD": "1/5"}, "makes 5 shards, but the steps have only 4 groups"),
+        (
+            {"BROWSER_SHARD": "2/4", "BROWSER_WORKERS": "2"},
+            "BROWSER_SHARD=2/4 with BROWSER_WORKERS=2 makes 8 shards",
+        ),
+        ({"BROWSER_WORKERS": "5"}, "makes 5 shards, but the steps have only 4 groups"),
     ],
 )
 def test_browser_sh_refuses_what_it_cannot_split(tmp_path, env, message):
@@ -321,6 +427,12 @@ def test_browser_sh_refuses_what_it_cannot_split(tmp_path, env, message):
     assert result.returncode == 2
     assert message in result.stderr
     assert calls == []
+
+
+def test_browser_sh_knows_the_groups_of_shards_py():
+    script = (E2E / "browser.sh").read_text(encoding="utf-8")
+    (groups,) = re.findall(r"^STEP_GROUPS=(\d+)$", script, re.MULTILINE)
+    assert int(groups) == shards.GROUPS
 
 
 @needs_bash

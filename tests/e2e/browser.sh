@@ -7,6 +7,8 @@
 # browser and a shard of its own: worker w takes the shard (k - 1) * W + w of n * W.
 # So BROWSER_WORKERS=4 runs every step on one machine in about a quarter of the time,
 # and BROWSER_SHARD=2/2 with BROWSER_WORKERS=2, as in CI, the shards 3/4 and 4/4.
+# A shard that fails names the step that failed and the command that runs it alone,
+# in GitHub Actions also as an annotation of the job and in its summary.
 
 set -euo pipefail
 
@@ -32,6 +34,13 @@ if [[ ! "${SHARD}" =~ ^([1-9][0-9]*)/([1-9][0-9]*)$ ]] || ((BASH_REMATCH[1] > BA
 fi
 PART="${BASH_REMATCH[1]}"
 PARTS="${BASH_REMATCH[2]}"
+# No more shards than groups of steps, before anything starts. STEP_GROUPS is GROUPS
+# of shards.py, which tests/test_e2e_shards.py keeps equal.
+STEP_GROUPS=4
+if ((PARTS * WORKERS > STEP_GROUPS)); then
+	echo "BROWSER_SHARD=${SHARD} with BROWSER_WORKERS=${WORKERS} makes $((PARTS * WORKERS)) shards, but the steps have only ${STEP_GROUPS} groups" >&2
+	exit 2
+fi
 # Keep container paths unchanged and mount the Windows path when running from Git Bash.
 export MSYS_NO_PATHCONV=1
 ROOT_MOUNT="$(cd "${REPOSITORY_ROOT}" && (pwd -W 2>/dev/null || pwd))"
@@ -51,8 +60,60 @@ artifacts_of() {
 }
 compose_of() { "${DOCKER_BIN}" compose --project-name "$(project_of "$1")" --file compose.yaml "${@:2}"; }
 
-# The workers that failed, when several run side by side.
+# The workers that failed, or the one worker while it runs.
 FAILED=()
+
+# The step that failed in a worker, from the table of its steps that browser.py writes
+# after each one; nothing when no step failed, such as when its demo didn't start.
+failed_step() {
+	local table line failed='^[|] (.+) [(]failed[)] [|]'
+	table="$(artifacts_of "$1")/browser-steps-table.md"
+	if [[ -s "${table}" ]]; then
+		while IFS= read -r line; do
+			if [[ "${line}" =~ ${failed} ]]; then echo "${BASH_REMATCH[1]}"; fi
+		done <"${table}"
+	fi
+}
+
+# The command that runs what failed in a worker alone, on the same Home Assistant: the
+# step that failed, which passes alone as every step does, or else the worker's shard.
+alone() {
+	local words=()
+	if [[ -n "${HOME_ASSISTANT_IMAGE:-}" ]]; then words+=("HOME_ASSISTANT_IMAGE=${HOME_ASSISTANT_IMAGE}"); fi
+	if [[ "${BOARD_MANAGER}" != 2 ]]; then words+=("BOARD_MANAGER=${BOARD_MANAGER}"); fi
+	if [[ -n "$2" ]]; then
+		words+=("BROWSER_STEPS='$2'")
+	elif ((PARTS * WORKERS > 1)); then
+		words+=("BROWSER_SHARD=$(shard_of "$1")")
+	fi
+	words+=(bash tests/e2e/browser.sh)
+	echo "${words[*]}"
+}
+
+# A failed worker explains itself at the end: its shard, its step and the command that
+# runs it alone. In GitHub Actions also as an annotation of the job and in its summary.
+# An annotation has to begin its line, so it comes from here and not from the labelled
+# lines of a worker.
+explain() {
+	local shard step command title what lines=""
+	shard="$(shard_of "$1")"
+	step="$(failed_step "$1")"
+	command="$(alone "$1" "${step}")"
+	title="Browser check failed"
+	if ((PARTS * WORKERS > 1)); then title+=" in shard ${shard}"; fi
+	what="The ${title,}"
+	if [[ -n "${step}" ]]; then what+=" at the step \"${step}\""; fi
+	if ((WORKERS > 1)); then lines=" Its lines in the log begin with [${shard}]."; fi
+	echo "${what}.${lines} Run it alone: ${command}"
+	if [[ "${GITHUB_ACTIONS:-}" != true ]]; then return 0; fi
+	local why="a card doesn't look or behave in a real browser as the test expects"
+	local kept="The artifact of this job keeps the screenshots and the logs."
+	echo "::error title=${title}::${what}: ${why}.${lines} ${kept} Run it alone: ${command}"
+	if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+		printf '\n### %s\n\nThat means %s.%s %s Run it alone:\n\n~~~sh\n%s\n~~~\n\n' \
+			"${what}" "${why}" "${lines}" "${kept}" "${command}" >>"${GITHUB_STEP_SUMMARY}" || true
+	fi
+}
 
 cleanup() {
 	status=$?
@@ -65,13 +126,16 @@ cleanup() {
 		if [[ -n "${GITHUB_STEP_SUMMARY:-}" && -s "${folder}/browser-steps-table.md" ]]; then
 			cat "${folder}/browser-steps-table.md" >>"${GITHUB_STEP_SUMMARY}" || true
 		fi
-		if ((status != 0)) && { ((WORKERS == 1)) || [[ " ${FAILED[*]} " == *" ${worker} "* ]]; }; then
+		if ((status != 0)) && [[ " ${FAILED[*]} " == *" ${worker} "* ]]; then
 			compose_of "${worker}" logs --no-color --tail 200 || true
 			compose_of "${worker}" exec -T homeassistant cat /config/home-assistant.log \
 				>"${folder}/home-assistant-browser.log" 2>/dev/null || true
 		fi
 		compose_of "${worker}" down --volumes --remove-orphans >/dev/null 2>&1 || true
 	done
+	if ((status != 0)); then
+		for worker in "${FAILED[@]}"; do explain "${worker}" || true; done
+	fi
 	exit "${status}"
 }
 trap cleanup EXIT
@@ -122,6 +186,8 @@ wait "${pulling}"
 echo "Images ready in $((SECONDS - started)) s"
 
 if ((WORKERS == 1)); then
+	# Until it passes, a failure is the worker's, which cleanup explains.
+	FAILED=(1)
 	worker 1
 	exit 0
 fi
@@ -134,9 +200,5 @@ done
 for ((w = 1; w <= WORKERS; w++)); do
 	wait "${workers[w - 1]}" || FAILED+=("${w}")
 done
-if ((${#FAILED[@]} > 0)); then
-	for w in "${FAILED[@]}"; do
-		echo "The browser check failed in shard $(shard_of "${w}"); its lines begin with [$(shard_of "${w}")]."
-	done
-	exit 1
-fi
+# cleanup explains every shard that failed.
+if ((${#FAILED[@]} > 0)); then exit 1; fi
