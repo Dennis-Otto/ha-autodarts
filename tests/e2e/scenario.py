@@ -328,6 +328,17 @@ class Scenario:
         check(result["success"], f"{command} failed: {result.get('error')}")
         return result["result"]
 
+    async def caught_up(self) -> None:
+        """Wait until the WebSocket brought the events fired before this call.
+
+        The states come over REST and the events over the WebSocket, and the
+        integration fires an event just after it wrote the states that go with it.
+        A state can therefore show a change before its event arrived here. Home
+        Assistant answers a ping on the WebSocket after the events it sent before.
+        """
+        if self.socket is not None:
+            await self.ws_result("ping")
+
     # Home Assistant helpers
 
     def entity(self, key: str) -> str:
@@ -346,6 +357,8 @@ class Scenario:
         except E2EFailure:
             actual = {key: (await self.state(key))["state"] for key in expected}
             raise E2EFailure(f"Expected {expected}, got {actual}") from None
+        # The events of these states, for the checks that read them next.
+        await self.caught_up()
 
     async def service(self, domain: str, service: str, key: str, **data) -> None:
         await self.api(
