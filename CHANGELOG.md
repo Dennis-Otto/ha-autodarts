@@ -4,6 +4,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### Improved
+
+- **The cards load four times faster on a slow connection:** every phone, tablet and browser downloaded the file with all the cards, 590 KB, as it was, on its first visit and after every update of the integration. It now comes compressed, about 150 KB, so the cards and the automatic dashboard appear sooner, above all on a phone with an empty cache or slow Wi-Fi (#243).
+
 ### Fixed
 
 - **A card you left lets go of its timers:** Home Assistant can still update a card after you left its dashboard or view. A scoreboard then started the countdown to the next match of a tournament again, and nothing stopped it, so the card went on redrawing itself every second in the background. The scoreboard and the live card also started the time their match summary shows, and the training card opened its history stream again and kept it open. A card now starts its timers and its stream only while it is on the page, and starts them again when you come back (#241).

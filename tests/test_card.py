@@ -1,18 +1,23 @@
 """The dashboard card: dart details for the board view and automatic loading."""
 
+import gzip
 import hashlib
 import json
 from copy import deepcopy
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
 from homeassistant.setup import async_setup_component
+from hypothesis import given
+from hypothesis import strategies as st
 
 from custom_components.autodarts.card import (
     CARD_PATH,
     CARD_URL,
     STRATEGY_PATH,
     STRATEGY_URL,
+    _accepts_gzip,
     async_register_card,
 )
 from custom_components.autodarts.sensor import AutodartsVisitSensor
@@ -150,26 +155,125 @@ async def test_visit_without_darts_and_positions_stay_out_of_history(
     assert "throws" in AutodartsVisitSensor._unrecorded_attributes
 
 
-async def test_card_is_served_and_loaded_on_dashboards(hass):
-    hass.config.components.add("frontend")
-    hass.http = Mock(async_register_static_paths=AsyncMock())
-    with patch("custom_components.autodarts.card.add_extra_js_url") as add_js:
-        await async_register_card(hass)
-    configs = hass.http.async_register_static_paths.call_args.args[0]
-    assert [(c.url_path, c.path, c.cache_headers) for c in configs] == [
-        (CARD_URL, str(CARD_PATH), True),
-        (STRATEGY_URL, str(STRATEGY_PATH), True),
-    ]
-    assert CARD_PATH.is_file()
-    assert STRATEGY_PATH.is_file()
+def tag():
+    """Version and digest of both modules, as in their addresses."""
     version = json.loads(MANIFEST.read_text())["version"]
     content = CARD_PATH.read_bytes() + STRATEGY_PATH.read_bytes()
-    digest = hashlib.sha256(content).hexdigest()[:8]
+    return f"{version}-{hashlib.sha256(content).hexdigest()[:8]}"
+
+
+async def serve_card(hass, hass_client_no_auth):
+    """Register the card as Home Assistant does and return a client without a login."""
+    assert await async_setup_component(hass, "http", {})
+    hass.config.components.add("frontend")
+    with patch("custom_components.autodarts.card.add_extra_js_url") as add_js:
+        await async_register_card(hass)
+    return await hass_client_no_auth(), add_js
+
+
+def assert_cached(response):
+    # A month, as Home Assistant's own frontend files; the address changes with every
+    # version and content.
+    assert response.headers["Cache-Control"] == "public, max-age=2678400"
+    assert response.headers["ETag"] == f'W/"{tag()}"'
+    assert response.headers["Vary"] == "Accept-Encoding"
+
+
+async def test_card_is_served_and_loaded_on_dashboards(hass, hass_client_no_auth):
+    client, add_js = await serve_card(hass, hass_client_no_auth)
     # The strategy comes first and imports the card by the same query.
     assert [call.args for call in add_js.call_args_list] == [
-        (hass, f"{STRATEGY_URL}?v={version}-{digest}"),
-        (hass, f"{CARD_URL}?v={version}-{digest}"),
+        (hass, f"{STRATEGY_URL}?v={tag()}"),
+        (hass, f"{CARD_URL}?v={tag()}"),
     ]
+    response = await client.get(f"{STRATEGY_URL}?v={tag()}")
+    assert response.status == 200
+    # Home Assistant's own header for static files, which the card module copies.
+    static_cache_control = response.headers["Cache-Control"]
+    assert static_cache_control == "public, max-age=2678400"
+    assert await response.read() == STRATEGY_PATH.read_bytes()
+
+    # Every browser accepts gzip, as the test client does: a quarter of the module.
+    response = await client.get(f"{CARD_URL}?v={tag()}", auto_decompress=False)
+    assert response.status == 200
+    assert response.headers["Content-Type"] == "text/javascript; charset=utf-8"
+    assert response.headers["Content-Encoding"] == "gzip"
+    assert_cached(response)
+    assert response.headers["Cache-Control"] == static_cache_control
+    sent = await response.read()
+    assert gzip.decompress(sent) == CARD_PATH.read_bytes()
+    assert len(sent) < CARD_PATH.stat().st_size * 0.3
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"Accept-Encoding": "identity"},
+        {"Accept-Encoding": "br;q=1.0, gzip;q=0"},
+        {},
+    ],
+    ids=["identity", "gzip refused", "no Accept-Encoding"],
+)
+async def test_card_is_plain_for_clients_without_gzip(
+    hass, hass_client_no_auth, headers
+):
+    client, _ = await serve_card(hass, hass_client_no_auth)
+    response = await client.get(
+        CARD_URL,
+        headers=headers,
+        skip_auto_headers=[] if headers else ["Accept-Encoding"],
+        auto_decompress=False,
+    )
+    assert response.status == 200
+    assert response.headers["Content-Type"] == "text/javascript; charset=utf-8"
+    assert "Content-Encoding" not in response.headers
+    assert_cached(response)
+    assert await response.read() == CARD_PATH.read_bytes()
+
+
+async def test_a_browser_keeps_its_copy_of_the_card(hass, hass_client_no_auth):
+    client, _ = await serve_card(hass, hass_client_no_auth)
+    # A browser asks again after a month, Safari also on every reload.
+    for known in (f'W/"{tag()}"', f'"{tag()}"', f'"0.1.0-00000000", W/"{tag()}"', "*"):
+        response = await client.get(CARD_URL, headers={"If-None-Match": known})
+        assert response.status == 304
+        assert_cached(response)
+        assert await response.read() == b""
+    # A copy of another version gets the module served now.
+    response = await client.get(CARD_URL, headers={"If-None-Match": 'W/"0.1.0-0"'})
+    assert response.status == 200
+    assert await response.read() == CARD_PATH.read_bytes()
+
+
+@pytest.mark.parametrize(
+    ("accept_encoding", "gzip_accepted"),
+    [
+        ("gzip, deflate, br, zstd", True),
+        ("GZIP", True),
+        ("br;q=1.0, gzip;q=0.8, *;q=0.1", True),
+        ("gzip ; Q = 0.001", True),
+        ("x-gzip", True),
+        ("*", True),
+        ("deflate, *;q=0.5", True),
+        ("", False),
+        ("identity", False),
+        ("br, zstd", False),
+        ("gzip;q=0", False),
+        ("gzip;q=0.000, *", False),
+        ("*;q=0", False),
+        ("gzip;q=high", False),
+        ("gzip;q=2", False),
+        ("gzipped", False),
+    ],
+)
+def test_accept_encoding_is_read_with_its_weights(accept_encoding, gzip_accepted):
+    assert _accepts_gzip(accept_encoding) is gzip_accepted
+
+
+@given(st.text())
+def test_the_first_weight_of_gzip_counts(rest):
+    assert _accepts_gzip(f"gzip, {rest}")
+    assert not _accepts_gzip(f"gzip;q=0, {rest}")
 
 
 async def test_card_is_skipped_without_web_frontend(hass):
@@ -177,4 +281,5 @@ async def test_card_is_skipped_without_web_frontend(hass):
     with patch("custom_components.autodarts.card.add_extra_js_url") as add_js:
         assert await async_setup_component(hass, "autodarts", {})
     hass.http.async_register_static_paths.assert_not_called()
+    hass.http.register_view.assert_not_called()
     add_js.assert_not_called()
