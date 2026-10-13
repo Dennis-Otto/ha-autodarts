@@ -500,12 +500,67 @@ async def test_an_empty_export_still_has_its_columns(hass, aioclient_mock, tmp_p
     assert Path(result["path"]).read_text("utf-8-sig") == "name\n"
     result = await export(hass, what="matches")
     header = Path(result["path"]).read_text("utf-8-sig").splitlines()
-    assert header[0].endswith("player_4_points")
+    # Columns are only ever added after the others, for tables that read them.
+    assert header[0].split(",") == [
+        "started",
+        "ended",
+        "game",
+        "legs_to_win",
+        "sets_to_win",
+        "winner",
+        "winner_name",
+        *(
+            f"player_{number}_{key}"
+            for number in range(1, 9)
+            for key in (
+                "name",
+                "legs",
+                "sets",
+                "match_legs",
+                "average",
+                "mpr",
+                "points",
+            )
+        ),
+    ]
     # The action also runs without asking for its response.
     await hass.services.async_call(
         "autodarts", "export", {"what": "sessions"}, blocking=True
     )
     assert len(list(default.iterdir())) == 3
+
+
+async def test_a_party_of_eight_reaches_the_calendar_and_the_export(
+    hass, aioclient_mock, freezer, tmp_path
+):
+    freezer.move_to("2026-09-27 18:00:00+00:00")
+    folders(hass, tmp_path)
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    names = ["Alex", "Sam", "Kim", "Lea", "Mia", "Leo", "Zoe", "Ben"]
+    await coordinator.async_start_game("count_up", names=names, rounds=1)
+    await throw(hass, coordinator, T20)
+    for _ in names[1:]:
+        await throw(hass, coordinator, S1)
+    assert coordinator.practice.winner == 0
+    (event,) = [
+        event
+        for event in await calendar_events(
+            hass, "2026-09-27T17:00:00+00:00", "2026-09-27T19:00:00+00:00"
+        )
+        if event["summary"].startswith("Count-Up")
+    ]
+    assert event["summary"] == (
+        "Count-Up · Alex 1 · Sam 0 · Kim 0 · Lea 0 · Mia 0 · Leo 0 · Zoe 0 · Ben 0"
+    )
+    assert event["description"].splitlines()[-1] == "Ben: 1"
+    result = await export(hass, what="matches")
+    (row,) = csv.DictReader(io.StringIO(Path(result["path"]).read_text("utf-8-sig")))
+    assert [row[f"player_{number}_name"] for number in range(1, 9)] == names
+    assert (row["player_8_points"], row["winner_name"]) == ("1", "Alex")
+    result = await export(hass, what="matches", format="json")
+    (match,) = json.loads(Path(result["path"]).read_text("utf-8"))["matches"]
+    assert [player["name"] for player in match["players"]] == names
 
 
 @pytest.mark.parametrize(

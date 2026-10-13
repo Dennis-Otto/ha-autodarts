@@ -18,6 +18,7 @@ from homeassistant.util import dt as dt_util
 
 from .cricket import CRICKET_GAMES
 from .party import PARTY_GAMES
+from .practice import PARTY_PLAYERS
 
 JOURNAL_DAYS = 365
 # At most this many sessions and as many matches, the newest.
@@ -157,7 +158,8 @@ def match_entry(saved: object) -> dict[str, Any] | None:
     )
     if ended is None or _game(game) is None or not isinstance(players, list):
         return None
-    if not 1 <= len(players) <= 4:
+    # A party game seats the most players of any match.
+    if not 1 <= len(players) <= PARTY_PLAYERS:
         return None
     started = _moment(saved.get("started"))
     winner = saved.get("winner")
@@ -340,6 +342,8 @@ class TrainingJournal:
         self.matches: list[dict[str, Any]] = []
         # The language of the calendar, as Home Assistant's may change.
         self._language = language
+        # Whether the first look for matches the journal missed is done.
+        self._caught_up = False
 
     def sync(
         self,
@@ -350,13 +354,17 @@ class TrainingJournal:
         """Take over sessions and matches that ended since the last entries.
 
         Both sources list the newest first; a match knows when its first dart
-        landed. Returns whether anything changed.
+        landed. The first look also takes over the older matches of the source
+        that the journal lacks: earlier versions left out the party matches of
+        more than four players. Returns whether anything changed.
         """
         sessions = self._fresh(self.sessions, map(session_entry, history))
         new = self._fresh(self.matches, map(match_entry, matches))
         self.sessions.extend(sessions)
         self.matches.extend(new)
-        return self._prune(now) or bool(sessions or new)
+        missed = not self._caught_up and self._catch_up(matches, now)
+        self._caught_up = True
+        return self._prune(now) or bool(sessions or new or missed)
 
     def last_match(self) -> str | None:
         """When the newest match ended, to rewind to it."""
@@ -388,6 +396,26 @@ class TrainingJournal:
             fresh.append(entry)
         fresh.reverse()
         return fresh
+
+    def _catch_up(self, matches: list[dict[str, Any]], now: datetime) -> bool:
+        """Put the matches of the last year that the journal lacks in their
+        place; whether there were any."""
+        oldest = dt_util.as_utc(now) - timedelta(days=JOURNAL_DAYS)
+        known = {_utc(entry["ended"]) for entry in self.matches}
+        missed = []
+        for entry in map(match_entry, matches):
+            if (
+                entry
+                and oldest <= (ended := _utc(entry["ended"]))
+                and ended not in known
+            ):
+                known.add(ended)
+                missed.append(entry)
+        if missed:
+            self.matches = sorted(
+                [*self.matches, *missed], key=lambda entry: _utc(entry["ended"])
+            )
+        return bool(missed)
 
     def _prune(self, now: datetime) -> bool:
         """Forget entries older than a year, and the oldest beyond the limit."""

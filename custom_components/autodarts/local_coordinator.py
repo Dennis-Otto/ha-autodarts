@@ -239,12 +239,14 @@ class ConnectionStats:
 class Checkpoint:
     """Everything a player's visit changes when it is booked, as it was before,
     to undo the visit: the practice game, where the visit's darts landed, the
-    progress of the players at the board, the weekly report and the journal."""
+    progress of the players at the board, the weekly report and the journal,
+    and the personal bests."""
 
     practice: dict[str, Any]
     positions: list[tuple[float, float] | None]
     progress: dict[str, Any]
     reports: dict[str, Any]
+    records: dict[str, Any]
 
 
 class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
@@ -784,12 +786,11 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Training, practice game and records follow the darts on the board."""
         announced = False
         observed = self.training.observe(state)
-        # The weekly report before it counts a completed visit, to undo it.
-        reports = (
-            self.reports.checkpoint()
-            if any(kind == "visit_completed" for kind, _ in observed)
-            else {}
-        )
+        completed = any(kind == "visit_completed" for kind, _ in observed)
+        # The weekly report and the personal bests before they count a
+        # completed visit, to undo it.
+        reports = self.reports.checkpoint() if completed else {}
+        records = self.records.checkpoint() if completed else {}
         for kind, attributes in self._recorded(observed):
             announced = True
             self.quality.record(kind, attributes)
@@ -804,7 +805,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 }
             self._emit(kind, attributes, source)
             if kind == "visit_completed":
-                self._checkpoint(attributes, reports)
+                self._checkpoint(attributes, reports, records)
                 self._book_visit(source, bot=attributes.get("bot") is True)
         if (positions := _throw_positions(state)) is not None:
             self._positions = positions
@@ -819,14 +820,15 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._emit(kind, attributes, source)
         self._publish_game(data, announced)
 
-    def _book_visit(self, source: str, bot: bool = False) -> None:
-        """Book the pulled darts in the practice game and the players' progress."""
+    def _book_visit(self, source: str, bot: bool = False, empty: bool = False) -> None:
+        """Book the pulled darts in the practice game and the players' progress;
+        with empty, the player at the board passes, see PracticeGame.finish_visit."""
         pending = self.progress.before(self.practice)
         # The bot's darts are nobody's training.
         if self.training.active and not bot:
             self.progress.session_visit(pending.booking)
         decided = self.practice.winner is not None
-        events = self.practice.finish_visit()
+        events = self.practice.finish_visit(empty)
         booked = self._booked(pending.legs_total, decided)
         events += self.progress.after(pending, self.practice, dt_util.now())
         # A tournament takes the result once the practice game booked it.
@@ -875,7 +877,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         undo = self._undo is not None and self.training.can_undo()
         return {**self.practice.snapshot(), "undo": undo}
 
-    def _checkpoint(self, visit: dict[str, Any], reports: dict[str, Any]) -> None:
+    def _checkpoint(
+        self, visit: dict[str, Any], reports: dict[str, Any], records: dict[str, Any]
+    ) -> None:
         """The game before a player's visit is booked, to undo the visit; the
         bot's visits are undone together with the visit before them."""
         if visit.get("bot"):
@@ -890,6 +894,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # The visit, a leg it ends and training games book for these players.
             progress=self.progress.checkpoint(self.practice.names),
             reports=reports,
+            records=records,
         )
 
     def _publish_game(self, data: dict[str, Any], announced: bool) -> None:
@@ -1719,9 +1724,15 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.practice.set_format(legs, sets)
         await self._async_training([])
 
-    async def async_set_player_name(self, index: int, name: str) -> None:
-        self.practice.set_name(index, name)
-        await self._async_training([])
+    async def async_set_player_name(self, index: int, name: str) -> bool:
+        """Name a seat, see PracticeGame.rename; whether it took the name. A
+        refused name changes nothing but the practice settings from before a
+        tournament, which come back with any change of a setting."""
+        resumes = self.practice.resume is not None
+        named = self.practice.rename(index, name)
+        if named or resumes:
+            await self._async_training([])
+        return named
 
     async def async_start_game(
         self,
@@ -1943,10 +1954,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if self.training.visit() or self.manual.extras:
             self.manual.end_visit()
         elif self.practice.passes():
-            for kind, attributes in self._recorded(
-                self.practice.finish_visit(empty=True)
-            ):
-                self._emit(kind, attributes, "manual")
+            # Booked like a visit: a pass can end a party game's last round.
+            self._book_visit("manual", empty=True)
         else:
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="empty_visit"
@@ -1967,6 +1976,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Booked again once it ends, the visit must not count twice.
         self.progress.rewind(checkpoint.progress)
         self.reports.rewind(checkpoint.reports)
+        self.records.rewind(checkpoint.records)
         self.practice.rewind(checkpoint.practice, darts, checkpoint.positions)
         self.manual.replay(darts, checkpoint.positions)
         self._emit(

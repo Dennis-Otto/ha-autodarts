@@ -592,6 +592,28 @@ class PracticeGame:
         if 0 <= index < PARTY_PLAYERS:
             self.names[index] = clean_name(name)
 
+    def rename(self, index: int, name: str) -> bool:
+        """Name one seat, as *Practice player N* does; whether it took the name.
+
+        A name is one player, in any upper and lower case: a seat in play
+        keeps a name it has, so another seat cannot take it, while a resting
+        seat or the bot's seat, which keeps the name of whoever sat there
+        before, gives it up.
+        """
+        self._resume()
+        key = clean_name(name).casefold()
+        twins = [
+            seat
+            for seat, other in enumerate(self.names)
+            if key and seat != index and other.casefold() == key
+        ]
+        if any(seat < len(self.players) and seat != self.bot_seat for seat in twins):
+            return False
+        for seat in twins:
+            self.names[seat] = ""
+        self.set_name(index, name)
+        return True
+
     def forget(self, name: str) -> None:
         """Clear the player slots with this name, in any upper and lower case,
         also in the settings a tournament left to come back to."""

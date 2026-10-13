@@ -358,11 +358,28 @@ class WeeklyReport:
         return True
 
     def forget(self, name: str) -> None:
-        """Remove a player's name from the bests of this and the last week."""
+        """Remove a player's name from the bests of this and the last week.
+
+        The bests are replaced, never changed: the sensor and the event
+        weekly_report published the last week's report, and the sensor sees a
+        change only against the report it published.
+        """
         key = name.strip().casefold()
-        for best in [*self.bests, *(self.last or {}).get("personal_bests", [])]:
-            if (best.get("name") or "").strip().casefold() == key:
-                best["name"] = None
+
+        def unnamed(bests: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            return [
+                {**best, "name": None}
+                if (best.get("name") or "").strip().casefold() == key
+                else best
+                for best in bests
+            ]
+
+        self.bests = unnamed(self.bests)
+        if self.last:
+            self.last = {
+                **self.last,
+                "personal_bests": unnamed(self.last["personal_bests"]),
+            }
 
 
 def _store(hass: HomeAssistant, entry_id: str, name: str) -> Store[dict[str, Any]]:
