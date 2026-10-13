@@ -297,7 +297,9 @@ blueprint:
           name: Effect duration
           description: >-
             How long an effect plays after your actions started it, before the
-            lights are restored and the detection starts again.
+            lights are restored and the detection starts again. A training
+            session that ends meanwhile ends the effect at once and leaves the
+            detection off.
           default:
             seconds: 10
           selector:
@@ -309,7 +311,8 @@ blueprint:
             it, if it was on. Use it when the effect disturbs the cameras; the
             visit on the board counts as finished when the detection stops.
             The daily goal, which is reached in the middle of a visit, never
-            pauses the detection.
+            pauses the detection, and neither does a new best session average,
+            which comes when a training session ends.
           default: false
           selector:
             boolean: {}
@@ -426,11 +429,16 @@ conditions:
 actions:
   - variables:
       restoring: "{{ effect and restore_lights | length > 0 }}"
+      # Whether a training session ended while the effect played.
+      session_over: false
       # The daily goal is reached in the middle of a visit, which a pause
-      # would end.
+      # would end. A new best session average comes with the end of its
+      # session, while the switch may still show the detection running that
+      # the training session routine is stopping: a pause would start it again.
       pausing: >-
         {{ effect and moment != 'daily_goal' and pause_detection
-           and detection | length > 0 and is_state(detection, 'on') }}
+           and detection | length > 0 and is_state(detection, 'on')
+           and trigger.to_state.attributes.get('record') != 'best_session_average' }}
   - if:
       - condition: template
         value_template: "{{ restoring }}"
@@ -478,7 +486,25 @@ actions:
       - condition: template
         value_template: "{{ restoring or pausing }}"
     then:
-      - delay: !input effect_duration
+      # A training session that ends while the effect plays ends the effect,
+      # too: the lights come back at once, before the actions of the training
+      # session routine for its end, and the detection that the routine stops
+      # stays off. A new session keeps the board running and lets the effect
+      # play to its end.
+      - wait_for_trigger:
+          - trigger: event.received
+            target:
+              entity_id: !input board_events
+            options:
+              event_type:
+                - session_ended
+        timeout: !input effect_duration
+        continue_on_timeout: true
+      - variables:
+          session_over: >-
+            {{ wait.trigger is not none
+               and wait.trigger.to_state.attributes.get('reason') != 'new_session' }}
+      - delay: "{{ 0 if session_over else wait.remaining }}"
   - if:
       - condition: template
         value_template: "{{ restoring }}"
@@ -489,7 +515,7 @@ actions:
           entity_id: "{{ snapshot }}"
   - if:
       - condition: template
-        value_template: "{{ pausing and is_state(detection, 'off') }}"
+        value_template: "{{ pausing and not session_over and is_state(detection, 'off') }}"
     then:
       - action: switch.turn_on
         continue_on_error: true
