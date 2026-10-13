@@ -38,6 +38,25 @@ async def test_a_bust_says_the_score_stays(hass):
     assert answer["message"] == "0 for Alex, 40 left."
 
 
+async def test_any_busting_score_says_the_score_stays_and_passes_the_turn(hass):
+    await setup_manual(hass)
+    await act(hass, "start_game", game="301", players=["Alex", "Sam"])
+    for points in (180, 60, 89, 82):
+        await act(hass, "enter_visit", score=points)
+    # No visit throws all of 100 from 32 before it busts, yet it busts.
+    answer = await say(hass, "enter_visit", score=100)
+    assert answer["message"] == "No score: Alex stays at 32. Sam, you require 159."
+    # No double finishes 159: scoring it busts, but it checks nothing out.
+    answer = await say(hass, "enter_visit", checkout=True)
+    assert answer == {
+        "entered": False,
+        "message": "No visit scores 159 from 159 with these rules and darts. "
+        "Check the score.",
+    }
+    answer = await say(hass, "enter_visit", score=159)
+    assert answer["message"] == "No score: Sam stays at 159. Alex, you require 32."
+
+
 async def test_a_checkout_scores_what_is_left_and_wins_the_leg(hass):
     await setup_manual(hass)
     await act(hass, "start_game", game="101", players=["Alex", "Sam"], legs=2)

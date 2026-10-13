@@ -5,9 +5,13 @@ import { test } from "node:test";
 
 import { $, $$, READY, loadCards, makeHass, mount, text, update, withLanguage } from "./dom.mjs";
 
-const { checkoutDarts, scoreAnswer, scoreEntry, scoreHint, gameView } = await loadCards();
+const { checkoutDarts, scoreAnswer, scoreEntry, scoreHint, scoreReady, VISIT_TOTALS, gameView } = await loadCards();
 
-const T = (key) => ({ checkout: "Checkout", bust: "Bust", setup_leave: "leaves {leave}" })[key] ?? key;
+const T = (key) =>
+  ({ checkout: "Checkout", bust: "Bust", setup_leave: "leaves {leave}", score_impossible: "No visit scores {score}" })[key] ??
+  key;
+// The totals no three darts make.
+const IMPOSSIBLE = [163, 166, 169, 172, 173, 175, 176, 178, 179];
 const ENTRY = "01JSCORE";
 const practice = (remaining, attributes = {}) => ({
   "sensor.practice_remaining": {
@@ -78,6 +82,27 @@ test("a score says what it leaves, a checkout or a bust", () => {
   // No dart finishes 159, so scoring it busts.
   assert.equal(scoreHint({ from: 159, doubleOut: true }, 159, T), "Bust");
   assert.equal(scoreHint({ from: 40, doubleOut: false }, 39, T), "leaves 1");
+  // From 32, 100 busts though no visit throws all of it before the bust.
+  assert.equal(scoreHint({ from: 32, doubleOut: true }, 100, T), "Bust");
+});
+
+test("only the nine totals no three darts make are no visit's score", () => {
+  const scores = [...Array(181).keys()];
+  assert.deepEqual(
+    scores.filter((points) => !VISIT_TOTALS.has(points)),
+    IMPOSSIBLE
+  );
+  assert.equal(Math.max(...VISIT_TOTALS), 180);
+  for (const points of IMPOSSIBLE) {
+    assert.equal(scoreHint({ from: 501, doubleOut: true }, points, T), `No visit scores ${points}`);
+    assert.equal(scoreReady(String(points)), false);
+  }
+  // Neither as what is left nor as a bust, with double out or without.
+  assert.equal(scoreHint({ from: 179, doubleOut: false }, 179, T), "No visit scores 179");
+  assert.equal(scoreHint({ from: 32, doubleOut: true }, 163, T), "No visit scores 163");
+  // Every other score goes in, once something is typed.
+  assert.ok(scores.filter((points) => !IMPOSSIBLE.includes(points)).every((points) => scoreReady(String(points))));
+  assert.equal(scoreReady(""), false);
 });
 
 test("a score asks for the darts of a checkout and the darts at a double where they can differ", () => {
@@ -214,6 +239,31 @@ test("a keyboard types the score", () => {
   assert.equal(text(card, ".score-line .typed"), "0");
 });
 
+test("a score no visit makes keeps OK and Enter off, and any bust goes in", () => {
+  const hass = board(practice(32));
+  const card = mount("autodarts-scoreboard-card", hass);
+  const key = (name) => $(card, ".pad-area").dispatchEvent(new window.KeyboardEvent("keydown", { key: name, bubbles: true }));
+  tap(card, '.pad [data-pad="score"]');
+  // Enter waits for a score, as OK does.
+  key("Enter");
+  assert.deepEqual(actions(hass), []);
+  for (const points of IMPOSSIBLE) {
+    type(card, String(points));
+    assert.equal(text(card, ".score-line .muted"), `No visit scores ${points}`);
+    assert.equal($(card, '[data-pad="enter"]').disabled, true);
+    key("Enter");
+    for (const _ of String(points)) tap(card, '[data-pad="erase"]');
+  }
+  assert.deepEqual(actions(hass), []);
+  // 100 from 32 busts, and goes in as any score: the darts at the double in reach first.
+  type(card, "100");
+  assert.equal(text(card, ".score-line .muted"), "Bust – the score stays");
+  assert.equal($(card, '[data-pad="enter"]').disabled, false);
+  key("Enter");
+  tap(card, '[data-pad="answer"][data-value="1"]');
+  assert.deepEqual(actions(hass), [["enter_visit", { config_entry_id: ENTRY, score: 100, darts_at_double: 1 }]]);
+});
+
 test("the score view leaves with an X01 leg, waits for the bot and speaks German", () => {
   const hass = board();
   const card = mount("autodarts-scoreboard-card", hass);
@@ -239,6 +289,8 @@ test("the score view leaves with an X01 leg, waits for the bot and speaks German
   assert.equal(text(german, ".pad .section-label"), "Punkte der Aufnahme");
   assert.equal(text(german, '[data-pad="enter"]'), "OK");
   assert.equal($(german, '[data-pad="erase"]').getAttribute("aria-label"), "Letzte Ziffer löschen");
+  type(german, "179");
+  assert.equal(text(german, ".score-line .muted"), "Keine Aufnahme ergibt 179");
 });
 
 // -- the live card ----------------------------------------------------------------------

@@ -704,7 +704,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
             score = _visit_score(call.data, practice)
             turn = Turn.of(practice)
             await coordinator.async_enter_visit(
-                score, call.data.get("darts"), call.data.get("darts_at_double")
+                score,
+                call.data.get("darts"),
+                call.data.get("darts_at_double"),
+                checkout=call.data.get("checkout") is True,
             )
             return await visit_said(hass, practice, turn, score) if answer else None
 

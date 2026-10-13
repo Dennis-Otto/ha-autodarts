@@ -1011,14 +1011,20 @@ class PracticeGame:
         return events
 
     def score_visit(
-        self, points: int, darts: int | None = None, at_double: int | None = None
+        self,
+        points: int,
+        darts: int | None = None,
+        at_double: int | None = None,
+        checkout: bool = False,
     ) -> list[dict[str, Any]]:
         """The darts of an X01 visit entered as its score, `points`.
 
         The darts are made up but for their score, and marked `total`; the last
-        `at_double` of them were thrown at a double, by default the one that
-        checks out. Without `darts`, the visit has three. A score that is more
-        than the player has left, or leaves 1 with double out, busts.
+        `at_double` of those that count were thrown at a double, by default the
+        one that checks out. Without `darts`, the visit has three. A score that is
+        more than the player has left, leaves 1 with double out, or is what is
+        left where no double finishes it, busts; with `checkout`, the visit must
+        check out instead.
         """
         if not self.game or self.bulling or self.winner is not None or self.hold:
             raise VisitRefused("visit_not_x01")
@@ -1032,22 +1038,29 @@ class PracticeGame:
             self.double_out,
             opening=self.double_in and not player.opened,
         )
+        impossible = VisitRefused(
+            "visit_impossible", score=str(points), remaining=str(start)
+        )
         if made is None:
-            raise VisitRefused(
-                "visit_impossible", score=str(points), remaining=str(start)
-            )
-        checkout = points == start
+            raise impossible
+        _, outcome, counted = evaluate_visit(start, made, self.double_out)
+        # Asked for as a checkout, what is left without a finish is no bust.
+        won = outcome == "won"
+        if checkout and not won:
+            raise impossible
         if at_double is None:
-            at_double = int(checkout)
+            at_double = int(won)
         if not self.double_out:
             at_double = 0
-        elif at_double > count or (checkout and not at_double):
+        elif at_double > count or (won and not at_double):
             raise VisitRefused("visit_at_double", darts=str(count))
+        # The darts after a bust do not count, nor do their darts at a double.
+        first = counted - min(at_double, counted)
         return [
             {
                 **dart,
                 "total": True,
-                **({"at_double": True} if index >= count - at_double else {}),
+                **({"at_double": True} if first <= index < counted else {}),
             }
             for index, dart in enumerate(made)
         ]

@@ -373,6 +373,7 @@ const TEXT = {
     score_enter: "OK",
     score_darts: "Darts for the checkout",
     score_doubles: "Darts at a double",
+    score_impossible: "No visit scores {score}",
     pad_single: "Single",
     pad_double: "Double",
     pad_treble: "Treble",
@@ -979,6 +980,7 @@ const TEXT = {
     score_enter: "OK",
     score_darts: "Darts für den Checkout",
     score_doubles: "Darts auf ein Doppel",
+    score_impossible: "Keine Aufnahme ergibt {score}",
     pad_single: "Single",
     pad_double: "Double",
     pad_treble: "Triple",
@@ -1575,6 +1577,7 @@ const TEXT = {
     score_enter: "OK",
     score_darts: "Dardos para el cierre",
     score_doubles: "Dardos a un doble",
+    score_impossible: "Ninguna tirada suma {score}",
     pad_single: "Simple",
     pad_double: "Doble",
     pad_treble: "Triple",
@@ -2170,6 +2173,7 @@ const TEXT = {
     score_enter: "OK",
     score_darts: "Fléchettes du finish",
     score_doubles: "Fléchettes sur un double",
+    score_impossible: "Aucune volée ne fait {score}",
     pad_single: "Simple",
     pad_double: "Double",
     pad_treble: "Triple",
@@ -2765,6 +2769,7 @@ const TEXT = {
     score_enter: "OK",
     score_darts: "Darts voor de uitgooi",
     score_doubles: "Darts op een dubbel",
+    score_impossible: "Geen beurt scoort {score}",
     pad_single: "Single",
     pad_double: "Dubbel",
     pad_treble: "Triple",
@@ -5645,6 +5650,13 @@ const DART_SCORES = [
   ...new Set([0, 25, 50, ...[...Array(20)].flatMap((_, index) => [1, 2, 3].map((times) => (index + 1) * times))]),
 ];
 const DOUBLE_SCORES = new Set([50, ...[...Array(20)].map((_, index) => (index + 1) * 2)]);
+// What one more dart makes of these scores. Three darts make every score from 0 to 180
+// but 163, 166, 169, 172, 173, 175, 176, 178 and 179, which no visit scores.
+const withDart = (scores) => new Set([...scores].flatMap((sum) => DART_SCORES.map((dart) => sum + dart)));
+const VISIT_TOTALS = withDart(withDart(DART_SCORES));
+
+// Whether the score typed can go in: OK and Enter wait for one that a visit scores.
+const scoreReady = (typed) => typed !== "" && VISIT_TOTALS.has(Number(typed));
 
 // The fewest darts that check this score out, or null where no visit can.
 function checkoutDarts(left, doubleOut) {
@@ -5663,8 +5675,11 @@ function scoreEntry(view) {
   return { from: practice.from, doubleOut: practice.doubleOut };
 }
 
-// What a score says before it goes in: what it leaves, a checkout or a bust.
+// What a score says before it goes in: what it leaves, a checkout or a bust, or that no
+// visit scores it. What the player has left busts where no checkout exists, such as 159
+// with double out.
 function scoreHint(entry, points, t) {
+  if (!VISIT_TOTALS.has(points)) return fill(t("score_impossible"), { score: points });
   if (points === entry.from && checkoutDarts(points, entry.doubleOut) !== null) return t("checkout");
   const left = entry.from - points;
   if (left < 0 || (entry.doubleOut && left <= 1)) return t("bust");
@@ -5718,7 +5733,7 @@ function padScoreHtml(pad, ui, button) {
     ..."123456789".split("").map(digit),
     button("erase", undefined, "⌫", ` class="digit" aria-label="${escapeHtml(t("score_erase"))}"`, !score.typed),
     digit("0"),
-    button("enter", undefined, escapeHtml(t("score_enter")), ` class="digit enter"`, !score.typed),
+    button("enter", undefined, escapeHtml(t("score_enter")), ` class="digit enter"`, !score.ready),
   ].join("");
   return `<div class="pad-score">${keys}</div>`;
 }
@@ -9798,6 +9813,7 @@ function createElements(Base) {
         ? {
             typed: this._typed,
             hint: this._typed ? scoreHint(entry, Number(this._typed), (key) => this._t(key)) : "",
+            ready: scoreReady(this._typed),
             ask: this._asking,
           }
         : null;
@@ -9817,6 +9833,8 @@ function createElements(Base) {
         this._typed = this._typed.slice(0, -1);
         return;
       }
+      // Enter on a keyboard waits, as OK does, for a score that a visit scores.
+      if (action === "enter" && !scoreReady(this._typed)) return;
       const points = Number(this._typed);
       const answers = this._asking?.answers ?? {};
       if (action === "answer") answers[this._asking.ask] = Number(value);
@@ -12683,6 +12701,8 @@ export {
   scoreAnswer,
   scoreEntry,
   scoreHint,
+  scoreReady,
+  VISIT_TOTALS,
   aimBeds,
   badgesHtml,
   badgesView,

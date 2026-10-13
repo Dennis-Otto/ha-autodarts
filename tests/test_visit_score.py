@@ -33,10 +33,12 @@ def names(darts) -> list[str]:
     return [dart["name"] for dart in darts]
 
 
-def outcome(start: int, points: int, double_out: bool) -> str | None:
-    if points == start:
+def outcome(start: int, points: int, double_out: bool, finish: bool) -> str | None:
+    """What a visit of these points does by the rules: what is left checks out where
+    a finish exists and otherwise busts, as do more and, with double out, 1 left."""
+    if points == start and finish:
         return "won"
-    if points > start or (double_out and start - points == 1):
+    if points >= start or (double_out and start - points == 1):
         return "bust"
     return None
 
@@ -54,11 +56,20 @@ def test_a_score_becomes_the_darts_players_throw_for_it():
     assert names(visit_darts(100, 100, 2, True)) == ["T20", "D20"]
     assert names(visit_darts(170, 170, 3, True)) == ["T20", "T20", "BULL"]
     assert names(visit_darts(60, 60, 1, False)) == ["T20"]
-    assert visit_darts(159, 159, 3, True) is None
     assert visit_darts(100, 100, 1, True) is None
     # A bust ends with the dart that busts.
     assert evaluate_visit(32, visit_darts(32, 40, 3, True), True) == (32, "bust", 3)
     assert evaluate_visit(41, visit_darts(41, 40, 3, True), True) == (41, "bust", 3)
+    # What is left busts where no double finishes it, with the last dart if it can.
+    assert names(visit_darts(159, 159, 3, True)) == ["T20", "T20", "T13"]
+    assert evaluate_visit(159, visit_darts(159, 159, 3, True), True)[1:] == ("bust", 3)
+    assert names(visit_darts(60, 60, 1, True)) == ["T20"]
+    # A bust that can't wait for the last dart comes as late as it can: from 32, the
+    # first two darts of 100 leave 2 at most, and no third dart scores 70 or more.
+    assert names(visit_darts(32, 100, 3, True)) == ["S20", "T20", "S20"]
+    assert evaluate_visit(32, visit_darts(32, 100, 3, True), True) == (32, "bust", 2)
+    assert evaluate_visit(2, visit_darts(2, 180, 3, True), True) == (2, "bust", 1)
+    assert visit_darts(32, 100, 1, True) is None
     # A leg that still needs a double opens with the first dart that scores.
     opened = visit_darts(501, 60, 3, True, opening=True)
     assert is_double(opened[0])
@@ -72,24 +83,24 @@ def test_a_score_becomes_the_darts_players_throw_for_it():
 @pytest.mark.parametrize("double_out", [True, False])
 def test_every_score_has_darts_exactly_when_three_darts_can_throw_it(start, double_out):
     """Every visit of three darts from the start, compared with the darts made up
-    for its score: there are some exactly when one exists, and they keep the
-    rules. The darts must not leave the visit before its last one."""
-    possible: set[int] = set()
+    for its score: there are some exactly when one does what the rules say of the
+    score, and they keep the rules. A checkout, and a bust where it can, ends
+    with the last dart, so that every dart counts; any other bust comes as late
+    as it can."""
+    latest: dict[tuple[int, str | None], int] = {}
     for visit in itertools.product(SCORE_BEDS, repeat=3):
         points = sum(map(score, visit))
-        if evaluate_visit(start, list(visit), double_out)[1:] == (
-            outcome(start, points, double_out),
-            3,
-        ):
-            possible.add(points)
+        result, counted = evaluate_visit(start, list(visit), double_out)[1:]
+        latest[points, result] = max(latest.get((points, result), 0), counted)
     for points in range(181):
         darts = visit_darts(start, points, 3, double_out)
-        assert (darts is not None) == (points in possible), points
+        wanted = outcome(start, points, double_out, (points, "won") in latest)
+        assert (darts is not None) == ((points, wanted) in latest), points
         if darts:
             assert sum(map(score, darts)) == points
             assert evaluate_visit(start, darts, double_out)[1:] == (
-                outcome(start, points, double_out),
-                3,
+                wanted,
+                latest[points, wanted],
             )
 
 
@@ -114,6 +125,41 @@ def test_a_score_visit_marks_its_darts_and_those_at_a_double():
     assert not any(dart.get("at_double") for dart in game.score_visit(40, 1, 1))
 
 
+def test_the_darts_at_a_double_of_a_bust_are_darts_that_count():
+    """The darts after a bust do not count, so a bust before the last dart has its
+    darts at a double among those before."""
+    game = playing(501, remaining=32)
+    darts = game.score_visit(100, at_double=3)
+    assert names(darts) == ["S20", "T20", "S20"]
+    assert [bool(dart.get("at_double")) for dart in darts] == [True, True, False]
+    assert [bool(dart.get("at_double")) for dart in game.score_visit(100, 3, 1)] == [
+        False,
+        True,
+        False,
+    ]
+    # A bust throws no dart at a double unless told otherwise, nor does what is
+    # left without a finish.
+    assert not any(dart.get("at_double") for dart in game.score_visit(100))
+    assert not any(dart.get("at_double") for dart in playing(501, 159).score_visit(159))
+    for count in range(1, 4):
+        game.track(darts[:count])
+    game.finish_visit()
+    player = game.players[0]
+    assert (player.remaining, player.darts, player.at_double) == (32, 2, 2)
+
+
+def test_a_checkout_asked_for_where_none_exists_is_refused():
+    """What is left without a finish busts as a score, but is no checkout."""
+    game = playing(501, remaining=159)
+    with pytest.raises(VisitRefused) as error:
+        game.score_visit(159, checkout=True)
+    assert error.value.key == "visit_impossible"
+    assert error.value.placeholders == {"score": "159", "remaining": "159"}
+    assert evaluate_visit(159, game.score_visit(159), True)[1] == "bust"
+    darts = playing(501, remaining=40).score_visit(40, 2, checkout=True)
+    assert evaluate_visit(40, darts, True) == (0, "won", 2)
+
+
 @pytest.mark.parametrize(
     "setup,points,darts,at_double,key",
     [
@@ -121,6 +167,9 @@ def test_a_score_visit_marks_its_darts_and_those_at_a_double():
         ({"winner": 0}, 60, None, None, "visit_not_x01"),
         ({"hold": True}, 60, None, None, "visit_not_x01"),
         ({}, 179, None, None, "visit_impossible"),
+        ({"remaining": 32}, 179, None, None, "visit_impossible"),
+        ({"remaining": 32}, 100, 1, None, "visit_impossible"),
+        ({"remaining": 32}, 100, None, 4, "visit_at_double"),
         ({"remaining": 40}, 40, 3, 0, "visit_at_double"),
         ({}, 60, 2, 3, "visit_at_double"),
     ],
@@ -224,6 +273,39 @@ async def test_a_score_visit_checks_out_and_busts(hass):
     statistics = coordinator.practice.statistics()
     assert statistics["darts_at_double"] == 4
     assert statistics["checkout_rate"] == 25.0
+
+
+def remaining_scores(hass) -> list[int]:
+    practice = hass.states.get(entity(hass, "sensor", "practice_remaining"))
+    return [score["remaining"] for score in practice.attributes["scores"]]
+
+
+async def test_every_busting_score_busts_and_passes_the_turn(hass):
+    """More than is left busts, also where no visit throws all of it before the
+    bust, and so does what is left where no double finishes it."""
+    entry = await setup_manual(hass)
+    coordinator = entry.runtime_data.local
+    await act(hass, "start_game", game="301", players=["Alex", "Sam"])
+    for points in (180, 60, 89, 82):
+        await act(hass, "enter_visit", score=points)
+    assert remaining_scores(hass) == [32, 159]
+    events = record(hass, coordinator)
+    await act(hass, "enter_visit", score=100)
+    await act(hass, "enter_visit", score=159)
+    assert remaining_scores(hass) == [32, 159]
+    busts = [item for kind, item in events if kind == "bust"]
+    assert [(item["name"], item["remaining"]) for item in busts] == [
+        ("Alex", 32),
+        ("Sam", 159),
+    ]
+    assert value(hass, "sensor", "practice_remaining") == "32"
+    # Asked for as a checkout, it is refused: no visit checks out 159.
+    await act(hass, "enter_visit", score=0)
+    with pytest.raises(ServiceValidationError) as error:
+        await act(hass, "enter_visit", checkout=True)
+    assert error.value.translation_key == "visit_impossible"
+    assert remaining_scores(hass) == [32, 159]
+    assert not any(kind == "leg_won" for kind, _ in events)
 
 
 async def test_darts_entered_by_hand_give_way_to_the_visit_score(hass):

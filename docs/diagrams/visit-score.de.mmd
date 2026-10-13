@@ -1,0 +1,18 @@
+flowchart TB
+  accTitle: Wie die Punkte einer Aufnahme zählen
+  accDescr: Punkte, die ihre Darts nicht ergeben können, etwa 179, werden abgelehnt. Der Rest checkt aus, wo die Darts ihn checken können, und ist überworfen, wo nicht, etwa 159 mit Double-Out. Mehr als der Rest ist überworfen, etwa 100 von 32, ebenso ein Rest von 1 mit Double-Out. Alle anderen Punkte lassen den Rest. Nach dem Überwerfen oder dem Rest wirft der nächste Spieler.
+  SCORE["Die Punkte<br/>einer Aufnahme"] --> MADE{"Können ihre Darts<br/>sie ergeben?"}
+  MADE -- "nein, etwa 179" --> REFUSED["Abgelehnt:<br/>Prüfe die Punkte"]
+  MADE -- "ja" --> LEFT{"Genau<br/>der Rest?"}
+  LEFT -- "ja" --> FINISH{"Können die Darts<br/>ihn checken?"}
+  FINISH -- "ja" --> CHECKOUT["Checkout:<br/>Das Leg ist gewonnen"]
+  FINISH -- "nein, etwa 159<br/>mit Double-Out" --> BUST["Überworfen: Der Rest<br/>bleibt, wie er war"]
+  LEFT -- "nein" --> MORE{"Mehr, oder Rest 1<br/>mit Double-Out?"}
+  MORE -- "ja, etwa<br/>100 von 32" --> BUST
+  MORE -- "nein" --> REST["Sie lässt den Rest"]
+  BUST --> NEXT["Der nächste Spieler wirft"]
+  REST --> NEXT
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class CHECKOUT,REST done
+  class BUST,REFUSED warn

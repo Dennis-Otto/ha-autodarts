@@ -4,6 +4,11 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### Fixed
+
+- **Every bust goes in as its score:** a visit entered as its score, on the keypad or with `autodarts.enter_visit`, was refused as impossible when no visit could throw all of it before the bust, such as 100 with 32 left, or when it was what the player had left but no double could finish it, such as 159 with double out, although the keypad had just said *Bust*. Such a score now busts: the player keeps the score from before the visit, and the next player throws. The darts after the dart that busts don't count, and neither do their darts at a double. A checkout where none exists, such as `checkout: true` on 159, is still refused.
+- **The keypad offers only scores a visit can make:** no three darts score 163, 166, 169, 172, 173, 175, 176, 178 or 179. Typed on the keypad, such a score said what it would leave, and OK sent it only to fail with an error. It now says *No visit scores 179*, and OK and the Enter key wait for another score.
+
 ## [1.12.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.1...v1.12.2) (2026-10-12)
 
 ### Fixed
