@@ -1,0 +1,25 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: The timers of a card and the page
+  accDescr: Home Assistant hands a card new states. A card on the page starts what it needs, such as the countdown of a tournament, the time a summary shows, idle mode and the history stream. A card that left the page starts nothing. Leaving the page stops every timer and the stream; when the card comes back, it is updated and starts them again. After the tests of a file, a timer that still runs fails the file with its name and what the timer calls, and stops.
+
+  STATES["Home Assistant hands<br/>the card new states"] --> ON{{"Is the card<br/>on the page?"}}
+  ON -- "yes" --> START["It starts what it needs:<br/>countdown, summary time,<br/>idle mode, history stream"]
+  ON -- "no" --> NOTHING["It starts nothing"]
+  START --> LEAVE["The card leaves the page:<br/>every timer and the stream stop"]
+  LEAVE --> BACK["Back on the page, the card<br/>is updated and starts them again"]
+  NOTHING --> BACK
+  LEAVE --> CHECK{{"npm test: a timer still<br/>running after the tests of a file?"}}
+  CHECK -- "no" --> PASS["The file passes"]
+  CHECK -- "yes" --> FAIL["The file fails with its name and<br/>what the timer calls; the timer stops"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class ON,START,LEAVE,BACK,CHECK bot
+  class NOTHING,PASS done
+  class FAIL failed

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { $, $$, READY, loadCards, makeHass, mount, text, update } from "./dom.mjs";
+import { $, $$, READY, loadCards, makeHass, mount, text, timers, update } from "./dom.mjs";
 
 await loadCards();
 
@@ -125,6 +125,23 @@ test("the summary can stay for some seconds only, or not show at all", (t) => {
   const off = mount("autodarts-scoreboard-card", hass, { show_summary: false });
   assert.equal($(off, ".summary"), null);
   assert.equal(text(off, ".banner"), "Alex wins the match 2 : 1!");
+});
+
+test("a card that left the page starts no timer for the summary when it gets a new state", () => {
+  const hass = makeHass({ states: { ...READY, ...finished() } });
+  for (const type of ["autodarts-scoreboard-card", "autodarts-card"]) {
+    // Without idle mode, the time of the summary is the only timer of the card.
+    const card = mount(type, hass, { summary_seconds: 30, idle: false });
+    card.remove();
+    const running = timers();
+    // Home Assistant can still hand a card new states after it left the page.
+    card.hass = update(hass, { "sensor.num_throws": "1" });
+    assert.equal(timers(), running, type);
+    // Back on the page, the time of the summary runs again.
+    document.body.append(card);
+    assert.equal(timers(), running + 1, type);
+    card.remove();
+  }
 });
 
 test("the live card shows the result and the summary of a won match", (t) => {
