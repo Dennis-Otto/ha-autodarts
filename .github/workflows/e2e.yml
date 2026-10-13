@@ -22,6 +22,12 @@ concurrency:
   group: e2e-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# With pipefail, as tests/test_e2e_workflow.py runs the steps: a command that fails
+# inside a pipeline fails its step too, instead of passing unnoticed.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   changes:
     name: changes

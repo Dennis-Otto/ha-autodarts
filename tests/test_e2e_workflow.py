@@ -15,9 +15,10 @@ import pytest
 import yaml
 
 ROOT = Path(__file__).parents[1]
-JOBS = yaml.safe_load(
+WORKFLOW = yaml.safe_load(
     (ROOT / ".github" / "workflows" / "e2e.yml").read_text(encoding="utf-8")
-)["jobs"]
+)
+JOBS = WORKFLOW["jobs"]
 
 pytestmark = pytest.mark.skipif(
     shutil.which("bash") is None, reason="the steps run in bash"
@@ -64,7 +65,7 @@ def run_step(
         "PAGES": str(tmp_path / "pages"),
         **env,
     }
-    # As GitHub runs a step of bash.
+    # As GitHub runs a step of `shell: bash`, the default of every step of e2e.yml.
     result = subprocess.run(
         ["bash", "--noprofile", "--norc", "-eo", "pipefail", "step.sh"],
         cwd=tmp_path,
@@ -84,6 +85,15 @@ def run_step(
         files["summary"].read_text(encoding="utf-8"),
         files["calls"].read_text(encoding="utf-8"),
     )
+
+
+def test_the_steps_run_in_the_shell_of_these_tests():
+    # Without `shell: bash`, GitHub runs `bash -e {0}`: no pipefail, so a gh that
+    # fails inside a pipeline would pass here and go unnoticed in CI.
+    assert WORKFLOW["defaults"]["run"]["shell"] == "bash"
+    tested = [JOBS["changes"], JOBS["gate"]]
+    assert not any("defaults" in job for job in tested)
+    assert not any("shell" in step for job in tested for step in job["steps"])
 
 
 def decide(
