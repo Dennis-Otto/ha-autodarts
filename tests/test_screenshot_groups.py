@@ -424,7 +424,7 @@ BOT = workflow("screenshots.yml")["jobs"]["pull-request"]["steps"]
 GH = """#!/usr/bin/env bash
 printf '%s\\n' "$*" >> "$CALLS"
 case "$*" in
-  "pr list "*) echo "${PR_NUMBER:-}" ;;
+  "pr list "*) echo "${PR_LIST:-[]}" ;;
   "api --paginate repos/"*"/files "*) cat "$PR_FILES" ;;
   "api users/"*) echo 4242 ;;
   "api graphql "*)
@@ -433,6 +433,19 @@ case "$*" in
     ;;
 esac
 """
+
+
+# The open pull request of the bot, as gh pr list shows it.
+OWN = {
+    "isCrossRepository": False,
+    "author": {"login": "app/release-app", "is_bot": True},
+}
+
+
+def pulls(*numbers: int, **more: dict) -> str:
+    """The open pull requests of the bot's branch: the bot's own ones by number,
+    and others as given."""
+    return json.dumps([*more.values(), *({"number": n, **OWN} for n in numbers)])
 
 
 def step(name: str) -> str:
@@ -468,6 +481,7 @@ def bot(tmp_path):
     git(clone, "switch", "--quiet", "-c", "bot")
     picture(clone / "docs/images/de/card.png", colour=(1, 2, 3))
     git(clone, "commit", "--quiet", "-am", "earlier images")
+    git(clone, "push", "--quiet", "origin", "bot:refs/heads/bot/screenshots")
     git(clone, "push", "--quiet", "origin", "bot:refs/pull/7/head")
     git(clone, "switch", "--quiet", "main")
 
@@ -609,7 +623,7 @@ def test_the_pull_request_keeps_its_images_of_a_language_that_did_not_render(bot
     clone, env = bot
     place(clone, env)
 
-    result, calls = publish(clone, env, MISSING="de", PR_NUMBER="7")
+    result, calls = publish(clone, env, MISSING="de", PR_LIST=pulls(7))
 
     assert result.returncode == 0, result.stderr
     (commit,) = commits(env)
@@ -629,6 +643,101 @@ def test_the_pull_request_keeps_its_images_of_a_language_that_did_not_render(bot
     assert "pr close" not in calls
 
 
+def fork(clone: Path, number: int) -> dict:
+    """A pull request from a fork's branch of the same name, which changed every
+    German image and added a page of its own to the website."""
+    git(clone, "switch", "--quiet", "-c", "fork", "main")
+    picture(clone / "docs/images/de/card.png", colour=(66, 66, 66))
+    picture(clone / "docs/images/de/other.png", colour=(66, 66, 66))
+    (clone / "docs/images/de/page.svg").write_text("<svg/>")
+    git(clone, "add", "--all")
+    git(clone, "commit", "--quiet", "-m", "a stranger's images")
+    git(clone, "push", "--quiet", "origin", f"fork:refs/pull/{number}/head")
+    git(clone, "switch", "--quiet", "main")
+    return {
+        "number": number,
+        "isCrossRepository": True,
+        "author": {"login": "stranger", "is_bot": False},
+    }
+
+
+@needs_jq
+def test_the_pull_request_of_a_fork_gives_the_bot_nothing(bot):
+    clone, env = bot
+    stranger = fork(clone, 8)
+    Path(env["PR_FILES"]).write_text(
+        "docs/images/de/card.png\ndocs/images/de/other.png\ndocs/images/de/page.svg\n"
+    )
+    place(clone, env)
+
+    # The fork's pull request is the newest; the bot has none of its own.
+    result, calls = publish(clone, env, MISSING="de", PR_LIST=pulls(fork=stranger))
+
+    assert result.returncode == 0, result.stderr
+    (commit,) = commits(env)
+    assert {item["path"] for item in commit["fileChanges"]["additions"]} == {
+        "docs/images/en/card.png"
+    }
+    assert "/pulls/8/files" not in calls
+    assert "pr edit" not in calls
+    assert "pr create " in calls
+    assert git(clone, "status", "--short", "--", "docs/images/de") == ""
+
+
+@needs_jq
+def test_the_bot_keeps_the_images_of_its_own_pull_request_not_of_a_fork(bot):
+    clone, env = bot
+    stranger = fork(clone, 8)
+    place(clone, env)
+
+    result, calls = publish(clone, env, MISSING="de", PR_LIST=pulls(7, fork=stranger))
+
+    assert result.returncode == 0, result.stderr
+    assert "api --paginate repos/owner/repo/pulls/7/files " in calls
+    assert "pr edit 7 " in calls
+    # The German image of the bot's own branch, not the fork's.
+    assert Image.open(clone / "docs/images/de/card.png").getpixel((0, 0)) == (1, 2, 3)
+    assert not (clone / "docs/images/de/page.svg").exists()
+
+
+@needs_jq
+def test_the_bot_keeps_only_rendered_images_of_its_pull_request(bot):
+    clone, env = bot
+    # main has a newer diagram than the pull request of the bot, which replaced
+    # whole folders before it took only the rendered images.
+    (clone / "docs/diagrams").mkdir(parents=True)
+    (clone / "docs/diagrams/flow.de.mmd").write_text("flowchart TB\n")
+    picture(clone / "docs/images/de/flow-dark.png", colour=(7, 7, 7))
+    git(clone, "add", "--all")
+    git(clone, "commit", "--quiet", "-m", "a newer diagram")
+    git(clone, "switch", "--quiet", "bot")
+    picture(clone / "docs/images/de/flow-dark.png", colour=(3, 3, 3))
+    (clone / "docs/images/de/notes.html").write_text("<p>notes</p>")
+    git(clone, "add", "--all")
+    git(clone, "commit", "--quiet", "-m", "an older diagram and a page")
+    git(clone, "push", "--quiet", "--force", "origin", "bot:refs/heads/bot/screenshots")
+    git(clone, "switch", "--quiet", "main")
+    Path(env["PR_FILES"]).write_text(
+        "docs/images/de/card.png\ndocs/images/de/flow-dark.png\n"
+        "docs/images/de/notes.html\ndocs/images/de/../../README.md\n"
+    )
+    place(clone, env)
+
+    result, _ = publish(clone, env, MISSING="de", PR_LIST=pulls(7))
+
+    assert result.returncode == 0, result.stderr
+    (commit,) = commits(env)
+    assert {item["path"] for item in commit["fileChanges"]["additions"]} == {
+        "docs/images/en/card.png",
+        "docs/images/de/card.png",
+    }
+    diagram = Image.open(clone / "docs/images/de/flow-dark.png")
+    assert diagram.getpixel((0, 0)) == (7, 7, 7)
+    assert not (clone / "docs/images/de/notes.html").exists()
+    message = commit["message"]["body"]
+    assert "in groups (tests/e2e/screenshots.sh, tests/e2e/collect.sh)" in message
+
+
 @needs_jq
 def test_a_pull_request_stays_open_while_a_language_did_not_render(bot):
     clone, env = bot
@@ -639,7 +748,7 @@ def test_a_pull_request_stays_open_while_a_language_did_not_render(bot):
     place(clone, env)
     Path(env["PR_FILES"]).write_text("")
 
-    result, calls = publish(clone, env, MISSING="de", PR_NUMBER="7")
+    result, calls = publish(clone, env, MISSING="de", PR_LIST=pulls(7))
 
     assert result.returncode == 0, result.stderr
     assert (
@@ -661,7 +770,7 @@ def test_a_pull_request_closes_when_every_language_looks_as_committed(bot):
     (temp / "report-de/report.json").write_text('{"images": []}')
     place(clone, env)
 
-    result, calls = publish(clone, env, MISSING="", PR_NUMBER="7")
+    result, calls = publish(clone, env, MISSING="", PR_LIST=pulls(7))
 
     assert result.returncode == 0, result.stderr
     assert "pr close 7 " in calls

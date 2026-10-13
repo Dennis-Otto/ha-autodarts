@@ -19,7 +19,8 @@ name: Screenshot bot
 # diagrams in docs/images, which main may have anew by then, stay as they are, and an
 # image that the tool no longer renders goes. A language that fails to render
 # doesn't hold back the other: the pull request takes the language that rendered and
-# keeps what it had for the other.
+# keeps the rendered images it had for the other, from the app's own branch of this
+# repository; a pull request from a fork's branch of the same name gives it nothing.
 
 on:
   push:
@@ -182,6 +183,8 @@ jobs:
       - name: Take the rendered images and their reports
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
+          # Not the images of the groups or the screenshots of a failed run.
+          pattern: "{images,report}-*"
           path: ${{ runner.temp }}/rendered
       - name: Put the rendered images in place
         id: images
@@ -234,20 +237,31 @@ jobs:
           base="$(git rev-parse HEAD)"
           branch="bot/screenshots"
           title="docs: update the screenshots of the cards"
-          number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          # Only the app's own pull request from the branch of this repository: a fork
+          # may open one from a branch of the same name.
+          number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open \
+            --json number,isCrossRepository,author |
+            jq -r --arg login "app/$APP_SLUG" \
+              '[.[] | select(.isCrossRepository == false and .author.login == $login)][0].number // empty')"
           if [[ -n "$MISSING" && -n "$number" ]]; then
             # A language that did not render this time keeps the images that the open
-            # pull request has for it.
-            git fetch --quiet --no-tags --depth=1 origin "refs/pull/$number/head"
+            # pull request has for it, from the branch of this repository: only the
+            # rendered images, not the diagrams, which main may have anew by now.
+            git fetch --quiet --no-tags --depth=1 origin "refs/heads/$branch"
             gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$number/files" --jq '.[].filename' |
               while read -r path; do
                 for language in $MISSING; do
-                  if [[ "$path" == "docs/images/$language/"* ]]; then
-                    if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
-                      git checkout FETCH_HEAD -- "$path"
-                    else
-                      git rm --quiet --ignore-unmatch -- "$path"
-                    fi
+                  if [[ ! "$path" =~ ^docs/images/$language/([a-z0-9][a-z0-9-]*)\.(png|webp)$ ]]; then
+                    continue
+                  fi
+                  name="${BASH_REMATCH[1]}"
+                  if [[ "$name" =~ ^(.+)-(light|dark)$ && -f "docs/diagrams/${BASH_REMATCH[1]}.$language.mmd" ]]; then
+                    continue
+                  fi
+                  if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
+                    git checkout FETCH_HEAD -- "$path"
+                  else
+                    git rm --quiet --ignore-unmatch -- "$path"
                   fi
                 done
               done
@@ -313,7 +327,8 @@ jobs:
               if len(parts) > 1:
                   headline += f" ({index} of {len(parts)})"
               body = (
-                  "Rendered from the demo with its frozen clock (tests/e2e/visual.sh).\n\n"
+                  "Rendered from the demo with its frozen clock, in groups "
+                  "(tests/e2e/screenshots.sh, tests/e2e/collect.sh).\n\n"
                   + os.environ["SIGN_OFF"]
               )
               request = {
