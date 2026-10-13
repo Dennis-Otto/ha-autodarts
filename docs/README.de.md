@@ -130,6 +130,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 - Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch
 - Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche, die Cloud-Verknüpfung oder die Online-Brücke; Geheimnisse des Boards werden nie gespeichert
 - Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch ([Sprachen](#sprachen))
+- Leicht für einen Raspberry Pi: Eine Nachricht des Boards aktualisiert nur die Entitäten, die zeigen, was sich geändert hat ([Aktualisierung](how-it-works.de.md#aktualisierung))
 - Alle Regeln der Qualitätsskala von Home Assistant bis Platin, 100 % Testabdeckung
 
 <p align="center">

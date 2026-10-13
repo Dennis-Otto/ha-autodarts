@@ -8,6 +8,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import AutodartsDataUpdateCoordinator
 from .local_coordinator import AutodartsLocalCoordinator
+from .topics import Topic
 
 
 class AutodartsEntity(CoordinatorEntity[AutodartsDataUpdateCoordinator]):
@@ -35,6 +36,9 @@ class AutodartsLocalEntity(CoordinatorEntity[AutodartsLocalCoordinator]):
     """All local entities remain independent of cloud availability."""
 
     _attr_has_entity_name = True
+    # The readings the entity shows, see AutodartsLocalCoordinator.readings: a
+    # change of them alone updates it without the other entities of the board.
+    _topic: Topic | None = None
 
     def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
         super().__init__(coordinator)
@@ -56,3 +60,12 @@ class AutodartsLocalEntity(CoordinatorEntity[AutodartsLocalCoordinator]):
             configuration_url=coordinator.client.base_url,
             sw_version=(coordinator.data or {}).get("version"),
         )
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        if self._topic is not None:
+            self.async_on_remove(
+                self.coordinator.topics.async_add_listener(
+                    self._topic, self.async_write_ha_state
+                )
+            )

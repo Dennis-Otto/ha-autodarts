@@ -139,6 +139,7 @@ New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-O
 - Found automatically with Board Manager 2; Board Manager 1 works too
 - Nothing leaves your network unless you use the board search, the cloud link or the online bridge; board secrets are never stored
 - Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish ([languages](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.md#languages))
+- Light on a Raspberry Pi: a message of the board updates only the entities that show what changed ([data updates](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md#data-updates))
 - Every rule of the Home Assistant quality scale up to Platinum, 100 % test coverage
 
 <p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/architecture-dark.png" alt="Architecture: the Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which provides entities, board events, cards and automations; the Autodarts cloud is optional" width="480"></p>
