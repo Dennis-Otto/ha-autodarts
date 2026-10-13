@@ -76,12 +76,12 @@ Nach jedem Schritt zeigt das Protokoll seine Sekunden, etwa `Browser step: stead
 
 ## Der Browsertest in Teilen
 
-Nacheinander brauchen die Schritte fünf Minuten, zu lang für einen Job. Jeder Schritt gehört zu einer von vier Gruppen mit etwa gleich vielen Sekunden (`steps()` in `tests/e2e/browser.py`), und `BROWSER_SHARD=k/n` führt die Gruppen `g` mit `(g - 1) % n = k - 1` aus: `1/1`, die Vorgabe, jede Gruppe, `1/2` die Gruppen 1 und 3, `2/4` die Gruppe 2. `BROWSER_WORKERS=W` verteilt den Teil des Rechners auf W Demo-Instanzen nebeneinander, jede mit ihrem Browser, einem eigenen Compose-Projekt (`autodarts_browser_1`, …), dem nächsten Port ab 18125 und einem eigenen Ordner bei den Artefakten (`shard-3-of-4`). Jede Zeile eines Workers im Protokoll beginnt mit seinem Teil, etwa `[3/4]`. Mehr Teile als Gruppen lehnt `browser.sh` ab, bevor es irgendetwas startet, etwa `BROWSER_SHARD=2/4` mit `BROWSER_WORKERS=2`.
+Nacheinander brauchen die Schritte fünf Minuten, zu lang für einen Job. Jeder Schritt gehört zu einer von vier Gruppen mit etwa gleich vielen Sekunden (`steps()` in `tests/e2e/browser.py`), und `BROWSER_SHARD=k/n` führt die Gruppen `g` mit `(g - 1) % n = k - 1` aus: `1/1`, die Vorgabe, jede Gruppe, `1/2` die Gruppen 1 und 3, `2/4` die Gruppe 2. `BROWSER_WORKERS=W` teilt den Teil des Rechners noch einmal: Worker w führt den Teil `(k - 1) * W + w` von `n * W` auf einer eigenen Demo-Instanz aus, alle nebeneinander, sodass `1/2` allein die Gruppen 1 und 3 ausführt, `1/2` mit zwei Workern aber die Teile `1/4` und `2/4`, die Gruppen 1 und 2. Jeder Worker hat seinen Browser, einem eigenen Compose-Projekt (`autodarts_browser_1`, …), dem nächsten Port ab 18125 und einem eigenen Ordner bei den Artefakten (`shard-3-of-4`). Jede Zeile eines Workers im Protokoll beginnt mit seinem Teil, etwa `[3/4]`. Mehr Teile als Gruppen lehnt `browser.sh` ab, bevor es irgendetwas startet, etwa `BROWSER_SHARD=2/4` mit `BROWSER_WORKERS=2`.
 
 ```sh
 BROWSER_WORKERS=4 bash tests/e2e/browser.sh                   # alle Schritte, vier Teile zugleich
 BROWSER_SHARD=2/4 bash tests/e2e/browser.sh                   # ein Teil: die gleichbleibenden Höhen
-BROWSER_SHARD=1/2 BROWSER_WORKERS=2 bash tests/e2e/browser.sh # der erste Runner der CI: 1/4 und 2/4
+BROWSER_SHARD=1/2 BROWSER_WORKERS=2 bash tests/e2e/browser.sh # der erste Runner der CI: Gruppen 1 und 2
 ```
 
 `BROWSER_STEPS` führt nur die genannten Schritte aus, durch Kommas getrennt: Der ganze Name eines Schritts führt diesen allein aus, etwa `BROWSER_STEPS="training card"` ohne den *training card editor*, der Anfang von Namen jeden Schritt, mit dem sie beginnen, etwa `BROWSER_STEPS="touch"`.
