@@ -471,11 +471,6 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def async_shutdown(self) -> None:
         await super().async_shutdown()
-        # A poll still in flight ends first, without effect (see _unchanged),
-        # before the stores are saved and the unload deletes the repair
-        # issues. Each read of the board gives up after 10 seconds.
-        async with self._poll_lock:
-            pass
         if self._stream_task:
             self._stream_task.cancel()
             with suppress(asyncio.CancelledError):
@@ -492,6 +487,12 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._midnight_unsub = None
         self._cancel_bot()
         self._cancel_takeout()
+        # Nothing throws, resets or listens any more. A poll still in flight
+        # ends now, without effect (see _unchanged), before the stores are
+        # saved and the unload deletes the repair issues. Each read of the
+        # board gives up after 10 seconds.
+        async with self._poll_lock:
+            pass
         # A store that was never restored is never written.
         if self._loaded and self._training_dirty:
             await self._store.async_save(self._stored())
