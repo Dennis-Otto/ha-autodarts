@@ -3393,8 +3393,9 @@ class Board:
 def steps(browser: Browser, playwright: Playwright) -> list[Step]:
     """Every step in its order, each in one of four groups of about the same seconds,
     which browser-steps-table.md lists after a run. In CI the groups 1 and 2 share a
-    runner, and so do 3 and 4 (BROWSER_WORKERS=2), so the long steps of the groups 2
-    and 4 each run beside shorter ones."""
+    runner, and so do 3 and 4 (BROWSER_WORKERS=2): the steady heights, the longest
+    step, run beside the short steps of group 1, and Safari's WebKit beside the
+    others, so that both runners have about the same work."""
     return [
         # Both read the demo as demo.py left it: the training card its session before
         # any control changes it, the live card the visit on the board.
@@ -3414,7 +3415,7 @@ def steps(browser: Browser, playwright: Playwright) -> list[Step]:
         Step("tournament", 1, lambda: tournament(browser)),
         Step("tablet screen", 3, lambda: tablet_screen(browser)),
         Step("touch screens", 4, lambda: touch_screens(browser)),
-        Step("Safari on an iPhone", 1, lambda: safari(playwright)),
+        Step("Safari on an iPhone", 4, lambda: safari(playwright)),
         Step("every screen size", 3, lambda: screens(browser)),
         Step("accessibility", 4, lambda: accessibility(browser)),
         Step("steady heights", 2, lambda: steady_heights(browser)),

@@ -345,7 +345,7 @@ The nightly beta job runs the scenario and then every shard, two at a time.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/e2e-shards-dark.png">
-  <img src="images/en/e2e-shards-light.png" alt="The end-to-end tests side by side: once the job changes finds something to test, seven test jobs start at the same time. Three run the scenario, for Board Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Four run the browser test, two for the current and two for the oldest supported Home Assistant. Each browser job starts two demo instances, each with a browser and one of the four shards of the steps: the first runner the cards, games, forms and Safari, and the steady heights; the second the tablet, every screen size and the dartboard without Autodarts, and the touch screens and accessibility. The required check e2e waits for all of them." width="640">
+  <img src="images/en/e2e-shards-light.png" alt="The end-to-end tests side by side: once the job changes finds something to test, seven test jobs start at the same time. Three run the scenario, for Board Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Four run the browser test, two for the current and two for the oldest supported Home Assistant. Each browser job starts two demo instances, each with a browser and one of the four shards of the steps: the first runner the cards, games and forms, and the steady heights; the second the tablet, every screen size and the dartboard without Autodarts, and the touch screens, Safari and accessibility. The required check e2e waits for all of them." width="640">
 </picture>
 
 `tests/test_consistency.py` fails when a compose file mounts, or the browser test
