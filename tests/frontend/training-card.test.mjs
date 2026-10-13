@@ -400,6 +400,22 @@ test("the stream ends with the card and starts again when it returns", async () 
   assert.equal(streams.length, 4);
 });
 
+test("a card that left the page opens no history stream when it gets a new state", async () => {
+  const { streams, connection } = historyStream();
+  const { hass, card } = setup({}, {}, { connection });
+  card.remove();
+  await settle();
+  assert.equal(streams[0].closed, true);
+  // Home Assistant can still hand a card new states after it left the page.
+  card.hass = update(hass, {
+    "event.board_events": { state: "2026-09-26T14:31:00.000+00:00", attributes: { event_type: "visit_completed", score: 60 } },
+  });
+  assert.equal(streams.length, 1);
+  // Back on the page, the history follows the board again.
+  document.body.append(card);
+  assert.equal(streams.length, 2);
+});
+
 test("a new configuration keeps the history, also for a larger chart", () => {
   const { streams, connection } = historyStream();
   const { card } = setup({}, { history_size: 5 }, { connection });

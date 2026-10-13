@@ -71,6 +71,29 @@ The test suite covers:
 
 The card logic is also fuzzed with [fast-check](https://fast-check.dev/): thousands of random and hostile inputs per run check that escaping, bed geometry, the heatmap and the history parser never break.
 
+### Timers of the cards
+
+A card on a dashboard runs timers: the countdown to the next match of a tournament, the time the result or the summary of a match shows, and idle mode; the training card follows the board events through Home Assistant's history stream. Only leaving the page stops them, in `disconnectedCallback`. Home Assistant can still hand a card new states after it left the page, so a card starts a timer or a stream only while it is on the page (`isConnected`). When it comes back, `connectedCallback` updates it, and that starts them again.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/card-timers-dark.png">
+  <img src="images/en/card-timers-light.png" alt="The timers of a card and the page: Home Assistant hands a card new states. A card on the page starts what it needs, such as the countdown of a tournament, the time a summary shows, idle mode and the history stream; a card that left the page starts nothing. Leaving the page stops every timer and the stream, and a card that comes back is updated and starts them again. After the tests of a file, a timer that still runs fails the file with its name and what the timer calls, and stops." width="560">
+</picture>
+
+`npm test` holds every card to that:
+
+- `tests/frontend/dom.mjs` follows the real timers that the cards and the tests set. A timer that still runs once the tests of a file are done and their cards left the page would keep the file running for ever. Instead, the timer stops and the file fails with its name and what the timer calls:
+
+  ```text
+  ✖ tests/frontend/dom.mjs
+    Error: tournament.test.mjs left 1 timer running after its cards left the page:
+    setInterval(() => this._update(), 1000)
+  ```
+
+- A test that never ends fails after 60 seconds with its name (`--test-timeout=60000` in `package.json`), and the other files still run.
+
+Mocked timers (`context.mock.timers`) end with their test and do not count. To check that a card starts no timer, a test compares `timers()` of `dom.mjs` before and after, as *a scoreboard that left the page starts no countdown and no timer of the tournament* in `tests/frontend/tournament.test.mjs` does.
+
 ## Docker end-to-end test
 
 The [end-to-end test](https://github.com/Dennis-Otto/ha-autodarts/blob/main/tests/e2e/README.md) starts a real Home Assistant container with this integration and a simulated Board Manager. It runs onboarding, setup, all controls, realtime darts, persistence, diagnostics and removal. The simulated Board Manager also injects faults on request (`POST /control/fault`): dropped or refused sockets, failing or slow reads, malformed frames, a restart and the takeout Board Manager 2.0.2 sometimes never finishes; the test checks that visits and entities come through them and that the integration frees the takeout:

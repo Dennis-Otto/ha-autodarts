@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { $, $$, DEVICE, READY, entityId, loadCards, makeHass, mount, settle, text, update, window } from "./dom.mjs";
+import { $, $$, DEVICE, READY, entityId, loadCards, makeHass, mount, settle, text, timers, update, window } from "./dom.mjs";
 
 const {
   bracketSlots,
@@ -648,6 +648,27 @@ test("a screen that comes to a waiting tournament shows it at once, and taps els
   assert.equal(shown(card), false);
   card.remove();
   assert.equal(card._tournamentTick, null);
+});
+
+// Home Assistant can still hand a card new states after it left the page; a timer started
+// then would run for ever, since only leaving the page stops it.
+test("a scoreboard that left the page starts no countdown and no timer of the tournament", () => {
+  const { hass, card } = setup({ ...tournament({ pause: 0, next_at: null }), ...practice(["Kim", "Sam"], 2) });
+  assert.notEqual(card._tournamentTick, null);
+  card.remove();
+  const running = timers();
+  card.hass = update(hass, { "sensor.num_throws": "1" });
+  assert.equal(card._tournamentTick, null);
+  assert.equal(timers(), running);
+  // Back on the page, the countdown runs again.
+  document.body.append(card);
+  assert.notEqual(card._tournamentTick, null);
+  card.remove();
+  // A match that ends meanwhile starts no timer for the time its result shows either.
+  const playing = setup({ ...OPENING, ...practice(["Kim", "Sam"]) });
+  playing.card.remove();
+  playing.card.hass = update(playing.hass, { ...summarized(practice(["Kim", "Sam"], 2)), ...tournament() });
+  assert.equal(timers(), running);
 });
 
 test("the champion shows until a new match begins after the final", (context) => {
