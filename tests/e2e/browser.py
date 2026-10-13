@@ -18,8 +18,11 @@ from pathlib import Path
 from playwright.sync_api import (
     Browser,
     BrowserContext,
+    Frame,
     Page,
     Playwright,
+    Request,
+    Route,
     sync_playwright,
 )
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
@@ -27,12 +30,16 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout
 HA = "http://homeassistant:8123"
 BOARD = "http://board-mock:3180"
 LOADS = 5
-# Seconds that each request of autodarts-card.js waits in Safari: longer than the five
-# seconds Home Assistant waits for the element of a dashboard strategy.
+# Every request of autodarts-card.js, the module with all cards.
+CARD_MODULE = "**/autodarts-card.js*"
+# Seconds for which Safari's requests of autodarts-card.js are held back and then let
+# go together, as on a slow network: longer than the five seconds Home Assistant
+# waits for the element of a dashboard strategy.
 CARD_MODULE_DELAY = 6
 # Board Manager generation of the demo board, passed on by browser.sh.
 GENERATION = int(os.environ.get("BOARD_MANAGER", "1"))
-# Writable folder for screenshots of a failed step, mounted by browser.sh.
+# Writable folder for screenshots, traces and timelines of a failed step, mounted by
+# browser.sh.
 ARTIFACTS = os.environ.get("BROWSER_ARTIFACTS", "")
 # Steps to run instead of all, comma-separated, each a step's name or its beginning,
 # such as "touch screens" or "correcting" while working on a screen; browser.sh passes
@@ -172,6 +179,8 @@ CHECKOUT_101 = [
         "coords": {"x": 0.0, "y": 0.976},
     },
 ]
+# Whether the frontend is signed in and connected to Home Assistant.
+SIGNED_IN = "() => Boolean(document.querySelector('home-assistant')?.hass?.connected)"
 # Calls a service for an Autodarts entity through the logged-in frontend.
 CALL_SERVICE = """
 async ([domain, service, key, data]) => {
@@ -1565,23 +1574,55 @@ def safari(playwright: Playwright) -> None:
     showed "Timeout waiting for strategy element" instead; and its new game screen, which
     scrolled the page to its top when a tap drew the screen anew: a game far down stays
     where it was tapped."""
+    step = "Safari on an iPhone, WebKit"
+    timeline = Timeline()
     browser = playwright.webkit.launch()
     try:
         context = browser.new_context(**playwright.devices["iPhone 13"], locale="de-DE")
+        # Kept only when the step fails, for Playwright's trace viewer. Its snapshot
+        # of the page at every action costs next to nothing; a film of the screen
+        # would cost about two seconds.
+        context.tracing.start(snapshots=True)
         page = context.new_page()
         page.add_init_script(CAPTURE_ERRORS)
+        timeline.follow(page)
         card = "autodarts-scoreboard-card"
 
-        # A phone with an empty cache on slow Wi-Fi: the cards come after Home
-        # Assistant stopped waiting for the strategy, which registered on its own.
-        def slow_card(route) -> None:
-            time.sleep(CARD_MODULE_DELAY)
-            route.continue_()
-
-        page.route("**/autodarts-card.js*", slow_card)
+        # Signed in first, as a phone that opened Home Assistant before. The login
+        # of a new browser loads the page a second time, which cancels the requests
+        # of the first, and Home Assistant starts to wait for the strategy only on
+        # the second: cards held from the first would no longer come too late.
         page.goto(f"{HA}/autodarts-auto/scoreboard")
+        page.wait_for_function(SIGNED_IN, timeout=30000)
+        timeline.note("signed in")
+
+        # Then with an empty cache on slow Wi-Fi: the cards come after Home Assistant
+        # stopped waiting for the strategy, which registered on its own. The request
+        # is held and let go, not answered after a sleep in the route: a sleep stops
+        # Playwright, and every further request would wait for it.
+        held: list[Route] = []
+
+        # A function of its own: the sync API takes no built-in such as held.append.
+        def hold(route: Route) -> None:
+            held.append(route)
+
+        page.route(CARD_MODULE, hold)
+        # A route turns the browser's cache off, so the page loads the module anew.
+        page.reload(wait_until="commit")
+        page.wait_for_timeout(CARD_MODULE_DELAY * 1000)
+        timeline.note(f"lets {len(held)} held request(s) go")
+        # Once: the strategy's import finds the module that Home Assistant loads.
+        check(
+            len(held) == 1,
+            f"autodarts-card.js loaded {len(held)} times instead of once",
+        )
+        for route in held:
+            route.continue_()
+        # Removed only now: Playwright counts the held requests of a removed route as
+        # handled, and letting them go then fails.
+        page.unroute(CARD_MODULE)
         page.locator(f"{card} .main").wait_for(timeout=60000)
-        page.unroute("**/autodarts-card.js*")
+        timeline.note("scoreboard shown")
         page.evaluate(
             CALL_SERVICE,
             ["select", "select_option", "practice_game", {"option": "off"}],
@@ -1595,7 +1636,8 @@ def safari(playwright: Playwright) -> None:
         check(not errors, f"Console problems: {errors}")
     except Exception:
         # The pages of this browser, which the screenshots of main() don't see.
-        keep_screenshots(browser, "Safari on an iPhone, WebKit")
+        keep_screenshots(browser, step)
+        keep_trace(browser, step, timeline)
         raise
     finally:
         browser.close()
@@ -2840,18 +2882,100 @@ def languages(browser: Browser) -> None:
         page.close()
 
 
+def artifact(step: str, name: str) -> Path | None:
+    """Where a file of a failed step goes for the CI artifact, or None without the
+    folder of the artifacts."""
+    if not ARTIFACTS or not os.path.isdir(ARTIFACTS):
+        return None
+    slug = "".join(char if char.isalnum() else "-" for char in step)
+    return Path(ARTIFACTS, f"{slug}-{name}")
+
+
 def keep_screenshots(browser: Browser, step: str) -> None:
     """Save every page still open after a failed step for the CI artifact."""
-    if not ARTIFACTS or not os.path.isdir(ARTIFACTS):
-        return
-    slug = "".join(char if char.isalnum() else "-" for char in step)
     pages = [page for context in browser.contexts for page in context.pages]
     for number, page in enumerate(pages, start=1):
-        path = os.path.join(ARTIFACTS, f"{slug}-{number}.png")
+        path = artifact(step, f"{number}.png")
+        if path is None:
+            return
         try:
             page.screenshot(path=path, full_page=True)
         except Exception as error:  # A screenshot must never hide the real failure.
             print(f"No screenshot of {step}: {error}", flush=True)
+
+
+class Timeline:
+    """What happened when in a step, in seconds from its start: the pages it opened,
+    the requests of the integration's files, sent, done or failed, and what the step
+    noted."""
+
+    def __init__(self) -> None:
+        self.start = time.monotonic()
+        self.events: list[str] = []
+
+    def note(self, event: str) -> None:
+        self.events.append(f"{time.monotonic() - self.start:6.2f} s  {event}")
+
+    def follow(self, page: Page) -> None:
+        def requested(what: str, request: Request) -> None:
+            # The files of the integration, such as autodarts-card.js.
+            if "/autodarts/" in request.url:
+                self.note(f"{what} {request.resource_type} {request.url}")
+
+        def opened(frame: Frame) -> None:
+            # Without the query, which holds the code of a login.
+            if frame == page.main_frame:
+                self.note(f"page {frame.url.partition('?')[0]}")
+
+        page.on("framenavigated", opened)
+        page.on("request", lambda sent: requested("sent", sent))
+        page.on("requestfinished", lambda done: requested("done", done))
+        page.on(
+            "requestfailed",
+            lambda failed: requested(f"failed ({failed.failure})", failed),
+        )
+
+
+# The text of the page's panel, in shadow roots too: what Home Assistant shows, such
+# as "Error loading the dashboard strategy: Timeout waiting for strategy element".
+PANEL_TEXT = f"""
+() => {{
+  const text = (node) => node.nodeType === Node.TEXT_NODE
+    ? node.textContent
+    : ['STYLE', 'SCRIPT'].includes(node.nodeName)
+      ? ''
+      : [...(node.shadowRoot?.childNodes ?? []), ...node.childNodes].map(text).join(' ');
+  const panel = ({find("partial-panel-resolver")})()[0] ?? document.body;
+  return text(panel).replace(/\\s+/g, ' ').trim().slice(0, 1000);
+}}
+"""
+
+
+def keep_trace(browser: Browser, step: str, timeline: Timeline) -> None:
+    """Print the timeline of a failed step with what its pages show and their errors,
+    and save it and the step's Playwright trace for the CI artifact: together they
+    tell a bug of the cards, such as "Timeout waiting for strategy element", from one
+    of the test."""
+    for context in browser.contexts:
+        for page in context.pages:
+            try:
+                timeline.note(f"shown: {page.evaluate(PANEL_TEXT)}")
+                timeline.note(f"page errors: {page_errors(page, [])}")
+            except Exception as error:  # The page may be gone with the failure.
+                reason = str(error).partition("\n")[0]
+                timeline.note(f"page not readable: {reason}")
+    events = "\n".join(timeline.events)
+    print(f"Timeline of {step}:\n{events}", flush=True)
+    path = artifact(step, "timeline.txt")
+    if path is None:
+        return
+    try:
+        path.write_text(events + "\n", encoding="utf-8")
+        for number, context in enumerate(browser.contexts, start=1):
+            name = "trace.zip" if number == 1 else f"trace-{number}.zip"
+            context.tracing.stop(path=artifact(step, name))
+    except Exception as error:  # A trace must never hide the real failure.
+        print(f"No trace of {step}: {error}", flush=True)
 
 
 # A dartboard without Autodarts beside the demo board, on a dashboard of its own.

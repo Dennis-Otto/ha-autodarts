@@ -84,7 +84,7 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 
 `tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session, twelve weeks of practice of three made-up players, a week of sessions and matches in the training calendar, four weeks of long-term statistics for the graphs, players linked to persons with pictures, highlight photos, an automation from the weekly report blueprint and a dashboard with all cards at <http://127.0.0.1:18124/autodarts-demo/board>. Login is not needed from the local network.
 
-`tests/e2e/browser.sh` checks the cards in Chromium against the demo:
+`tests/e2e/browser.sh` checks the cards in Chromium, and in WebKit for Safari, against the demo:
 
 - the cards are registered on every load;
 - the live visit, highlights and controls with confirmation;
@@ -94,12 +94,15 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 - the generated dashboard, the forms of all seven cards, the strategy editor and the light theme;
 - the new game screen, scoreboard, keypad and tournament on an 800 × 480 tablet, without sideways scrolling and with targets of at least 44 px, and idle mode on a device that asks for reduced motion;
 - touch screens driven by taps: an iPhone with the safe areas of its status bar and home indicator, a small Android phone, an iPhone on its side and a 24 inch touch monitor, with a theme of see-through cards. Every game of the new game screen is tapped, a match is started, played and ended there, and four players with long names play X01 and Cricket. On the board of the keypad two fingers zoom in and a finger aims with the loupe and enters a treble 20 where it lets go; the board to correct a dart opens zoomed in on a small screen, and a tap corrects it. The scoreboard has to stay one screen high above the home indicator, the start bar has to cover what scrolls beneath it, and the board may neither cover a key nor draw beyond its box;
+- Safari on an iPhone, in WebKit, signed in as a phone that opened Home Assistant before: the automatic dashboard has to open although `autodarts-card.js` comes six seconds late, after Home Assistant stopped waiting for the element of the strategy, and the page has to load the module once. Then every game of the new game screen has to stay under the finger that taps it;
 - every view of both dashboards and the scoreboard's own screens, with the scoreboard during a game, the keypad's board and the board of a correction, on nine sizes, from a small phone to a 27 inch touch monitor, both ways round and in German, and on the phones the scoreboard during a game in English, Spanish, French and Dutch too: no card wider than the screen, no text cut off, lying on other text, running over the edge of its tile or smaller than 11 px, no row of buttons running over its edge, no control smaller than 40 px on a touch screen, and no full-height scoreboard below the screen;
 - steady heights: X01 with routes, setups, a bust and the game shot, a match of legs and sets, Cricket, Tactics, Killer and 121 checkout, dart by dart on four sizes in German. From the start of a game to its last dart, no card and no part of the scoreboard may change its height, on the live card beside the scoreboard, the full-height scoreboard and the live card with its game;
 - accessibility: every card meets WCAG 2.1 at levels A and AA, checked by [axe-core](https://github.com/dequelabs/axe-core) on a laptop and an iPhone in the dark and the light theme (see [Accessibility check](#accessibility-check));
 - a browser in Dutch, French and Spanish, which gets the cards and the entity texts of Home Assistant in its language.
 
 While working on a screen, `BROWSER_STEPS` runs only the steps whose names begin with one of the given ones, such as `BROWSER_STEPS="touch screens,every screen size,correcting"`, and fails on a name that begins no step; `BROWSER_SCREENS` only some of the sizes, such as `BROWSER_SCREENS=iPhone`. With `BROWSER_SCREENSHOTS=1` the size check keeps a full-page screenshot of every view and size in `tests/e2e/artifacts/screens/`, to look at by eye.
+
+The browser test waits with `page.wait_for_timeout`, never with `time.sleep`: Playwright's sync API handles the events of the browser, such as a request that a route holds back, only inside its own calls, so a sleep stops all of them. The Safari step holds the request of `autodarts-card.js` back for six seconds and then lets it go; `tests/test_e2e_waits.py` checks that no script that drives a browser sleeps.
 
 ### Accessibility check
 
@@ -113,7 +116,13 @@ axe-core comes from `package.json`, pinned in `package-lock.json`, so run `npm c
 
 When a step fails, the browser test saves a screenshot of every open page, and
 the scripts save the Home Assistant log, in `tests/e2e/artifacts/` or in the
-folder named by `E2E_ARTIFACTS`. CI keeps them as a workflow artifact for 14 days.
+folder named by `E2E_ARTIFACTS`. The Safari step also saves its Playwright trace,
+`…-trace.zip`, which `playwright show-trace` or <https://trace.playwright.dev>
+opens, and its timeline, `…-timeline.txt`, which the log shows as well: when each
+page opened, when each request of the integration's files was sent and done, and
+the text the page showed, such as *Timeout waiting for strategy element*. They
+tell a bug of the cards from one of the test. CI keeps them as a workflow
+artifact for 14 days.
 
 ## Screenshots
 
