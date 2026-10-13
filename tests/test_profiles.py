@@ -135,6 +135,20 @@ def test_the_history_keeps_the_last_matches():
     assert profiles.snapshot()["head_to_head"][0]["wins"] == [13, 12]
 
 
+def test_a_player_in_two_seats_plays_the_match_once_and_not_against_oneself():
+    """Names kept from before every seat needed a name of its own."""
+    profiles = Profiles()
+    seats = [{"name": "Alex"}, {"name": "Sam"}, {"name": " alex "}]
+    profiles.match(501, seats, 2, 1, 1)
+    profiles.match(501, seats, 1, 1, 1)
+    players = {player["name"]: player for player in profiles.snapshot()["players"]}
+    assert (players["Alex"]["matches_played"], players["Alex"]["matches_won"]) == (2, 1)
+    assert (players["Sam"]["matches_played"], players["Sam"]["matches_won"]) == (2, 1)
+    assert profiles.snapshot()["head_to_head"] == [
+        {"players": ["Alex", "Sam"], "wins": [1, 1]}
+    ]
+
+
 def test_in_a_team_the_checkout_counts_for_the_player_who_threw_it():
     game = teams()
     for player in game.players:

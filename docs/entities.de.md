@@ -203,7 +203,7 @@ Spiele X01, [Cricket](#cricket) oder ein [Partyspiel](#partyspiele) am lokalen B
 | Übungsspiel Spielerzahl | Zahl, *Konfiguration* | 1–4 Spieler, bei einem [Partyspiel](#partyspiele) und bevor ein Spiel gewählt ist 1–8; mit dem [Bot](#bot) 1–3 neben ihm. Wer X01, ein Cricket- oder ein Trainingsspiel wählt, behält die ersten vier. Eine Änderung startet ein neues Match. |
 | Übungsspiel Legs pro Satz | Zahl, *Konfiguration* | 1–11 Legs gewinnen einen Satz. Eine Änderung startet ein neues Match. |
 | Übungsspiel Sätze zum Sieg | Zahl, *Konfiguration* | 1–7 Sätze gewinnen das Match. Eine Änderung startet ein neues Match. |
-| Übungsspiel Spieler *N* | Text, *Konfiguration* | Name von Spieler 1–8, höchstens 20 Zeichen, für Anzeigetafel und Ereignisse. Ohne Namen zeigt die Karte *Spieler N*. |
+| Übungsspiel Spieler *N* | Text, *Konfiguration* | Name von Spieler 1–8, höchstens 20 Zeichen, für Anzeigetafel und Ereignisse. Ohne Namen zeigt die Karte *Spieler N*. Einen Namen, den ein anderer Spieler schon hat, in welcher Schreibung auch immer, lehnt es ab. |
 | Übungsspiel Double-Out | Schalter, *Konfiguration* | Checkout auf einem Double oder dem Bullseye. Standardmäßig an. Vor dem ersten Dart eines Legs gilt eine Änderung sofort, während eines Legs ab dem nächsten Leg; das laufende Leg behält seine Regeln. |
 | Übungsspiel Double-In | Schalter, *Konfiguration* | Die Zählung beginnt mit einem Double oder dem Bullseye. Standardmäßig aus; eine Änderung startet ein neues Match. |
 | Übungsspiel Ausbullen | Schalter, *Konfiguration* | Ausbullen entscheidet, wer ein Match mehrerer Spieler beginnt. Standardmäßig aus; eine Änderung startet ein neues Match. |
@@ -758,7 +758,7 @@ Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der
 | Tabelle | Spalten |
 | --- | --- |
 | Sessions | `started`, `ended`, `duration_minutes`, `average`, `darts`, `points`, `visits`, `highest_visit`, `scores_100`, `scores_140`, `scores_180`, `triples`, `doubles`, `bulls`, `misses` |
-| Matches | `started` (der erste Dart, falls bekannt), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (Spielernummer), `winner_name` und für jeden Spieler `name`, `legs` (im entscheidenden Satz gewonnen), `sets`, `match_legs` (im ganzen Match gewonnen; leer bei Matches vor Version 1.6) und `average`, `mpr` oder `points`; in CSV als `player_1_name` bis `player_4_points` |
+| Matches | `started` (der erste Dart, falls bekannt), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (Spielernummer), `winner_name` und für jeden Spieler `name`, `legs` (im entscheidenden Satz gewonnen), `sets`, `match_legs` (im ganzen Match gewonnen; leer bei Matches vor Version 1.6) und `average`, `mpr` oder `points`; in CSV als `player_1_name` bis `player_8_points` |
 | Profile | Die Werte von *Spielerprofile*; in CSV ist jeder einfache Wert eine Spalte, und die wenigsten Darts pro Startwert heißen `fewest_darts_101` bis `fewest_darts_1001` |
 
 > **Datenschutz:** Exporte enthalten Spielernamen. Der Medienordner, in dem sie standardmäßig landen, braucht eine Anmeldung. Dateien in `www` liefert Home Assistant unter `/local/` **ohne Anmeldung** an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; der zufällige Teil des Namens macht ihn unerratbar. Exportiere nur bewusst nach `www` und lösche Exporte dort, die du nicht mehr brauchst.

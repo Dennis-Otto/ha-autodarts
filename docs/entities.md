@@ -203,7 +203,7 @@ Play X01, [Cricket](#cricket) or a [party game](#party-games) on the local board
 | Practice players | Number, *Configuration* | 1–4 players, in a [party game](#party-games) and before a game is chosen 1–8; with the [bot](#bot), 1–3 besides it. Choosing X01, a Cricket or a training game leaves the first four. A change starts a new match. |
 | Practice legs per set | Number, *Configuration* | 1–11 legs win a set. A change starts a new match. |
 | Practice sets to win | Number, *Configuration* | 1–7 sets win the match. A change starts a new match. |
-| Practice player *N* | Text, *Configuration* | Name of player 1–8, at most 20 characters, for the scoreboard and the events. Without a name, the card shows *Player N*. |
+| Practice player *N* | Text, *Configuration* | Name of player 1–8, at most 20 characters, for the scoreboard and the events. Without a name, the card shows *Player N*. A name that another player already has, in any case, is refused. |
 | Practice double out | Switch, *Configuration* | Finish on a double or the bullseye. On by default. Before the first dart of a leg a change applies at once; during a leg it applies from the next leg, so the leg in progress keeps its rules. |
 | Practice double in | Switch, *Configuration* | Start scoring with a double or the bullseye. Off by default; a change starts a new match. |
 | Practice bull-off | Switch, *Configuration* | A bull-off decides who starts a match of several players. Off by default; a change starts a new match. |
@@ -758,7 +758,7 @@ The response has `path` (the file), `url` (its `/local/` address when the folder
 | Table | Columns |
 | --- | --- |
 | Sessions | `started`, `ended`, `duration_minutes`, `average`, `darts`, `points`, `visits`, `highest_visit`, `scores_100`, `scores_140`, `scores_180`, `triples`, `doubles`, `bulls`, `misses` |
-| Matches | `started` (the first dart, if known), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (player number), `winner_name` and every player's `name`, `legs` (won in the deciding set), `sets`, `match_legs` (won in the whole match; empty for matches before version 1.6) and `average`, `mpr` or `points`; in CSV as `player_1_name` to `player_4_points` |
+| Matches | `started` (the first dart, if known), `ended`, `game`, `legs_to_win`, `sets_to_win`, `winner` (player number), `winner_name` and every player's `name`, `legs` (won in the deciding set), `sets`, `match_legs` (won in the whole match; empty for matches before version 1.6) and `average`, `mpr` or `points`; in CSV as `player_1_name` to `player_8_points` |
 | Profiles | The values of *Player profiles*; in CSV every plain value is a column, and the fewest darts per start score are `fewest_darts_101` to `fewest_darts_1001` |
 
 > **Privacy:** exports contain player names. The media folder, where they go by default, needs a login. Files in `www` are served at `/local/` **without a login** to anyone who can reach Home Assistant and knows the file name; the random part of the name keeps it from being guessed. Export to `www` only on purpose, and delete exports there that you no longer need.

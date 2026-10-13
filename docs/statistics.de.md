@@ -57,6 +57,7 @@ Home Assistant behält den besten Wert jeder Bestleistung und meldet `personal_b
 - **Trainingsserie:** die Tage in Folge mit mindestens einem Dart. Der heutige Tag unterbricht sie nicht; ein ganzer Tag ohne Darts schon.
 - **Tagesziel:** Stelle *Tagesziel* auf die Darts, die du jeden Tag werfen willst. Die Trainingskarte zeigt einen Balken bis dorthin, und `daily_goal_reached` meldet einmal am Tag, wenn du es erreichst.
 - Der erste Wert jeder Bestleistung setzt sie still; gleiche Werte zählen nicht als neue Bestleistung.
+- Eine [zurückgenommene Aufnahme](games.de.md#korrekturen-und-von-hand-eingegebene-darts) nimmt die Bestleistungen zurück, die sie aufgestellt hat, eine falsch erkannte 180 ist nach der Korrektur also kein Rekord; ihre Darts zählen weiter für den Tag, die Serie und das Tagesziel.
 
 [Die Bestleistungen im Detail](entities.de.md#bestleistungen-serie-und-tagesziel) · [Welche Legs für welche Bestleistung zählen](how-it-works.de.md#bestleistungen-und-statistik)
 
@@ -121,7 +122,7 @@ Mit *Übungsspiel persönliche Checkout-Wege* bevorzugt der Checkout-Weg die st�
 
 Jeder Spieler mit Namen bekommt im Übungsspiel ein Profil mit Werten über seine ganze Zeit: gespielte und gewonnene Legs und Matches, 3-Dart-Average, First-9-Average, Checkout-Quote, Marks pro Runde, die höchste Aufnahme und der höchste Checkout, die besten Marks pro Runde und die wenigsten Darts für jede Startpunktzahl. Die [Spielerkarte](cards.de.md#spielerkarte) zeigt sie mit den direkten Vergleichen jedes Gegnerpaars und den letzten Matches.
 
-- **Namen:** Ein Name ist derselbe Spieler, egal in welcher Groß- und Kleinschreibung; Spieler ohne Namen zählen für niemanden. Gib deinen Stammspielern Namen, in der [Spielauswahl](scoreboard.de.md#das-nächste-spiel-wählen) oder in *Übungsspiel Spieler N*.
+- **Namen:** Ein Name ist derselbe Spieler, egal in welcher Groß- und Kleinschreibung; Spieler ohne Namen zählen für niemanden. Gib deinen Stammspielern Namen, in der [Spielauswahl](scoreboard.de.md#das-nächste-spiel-wählen) oder in *Übungsspiel Spieler N*. Jeder Platz braucht einen eigenen Namen: *Übungsspiel Spieler N* lehnt einen Namen ab, den ein anderer Platz schon hat, in welcher Schreibung auch immer, damit niemand gegen sich selbst spielt.
 - **Was zählt:** jedes Leg von X01, den Cricket-Spielen und den Partyspielen. X01-Legs bringen die Averages und die Checkout-Quote, Cricket-Legs die Marks pro Runde. In einem [Team-Match](games.de.md#teams) gewinnen beide Partner Leg und Match; der Checkout zählt für den Partner, der ihn geworfen hat, und ein Team-Leg setzt keine wenigsten Darts und keine besten Marks pro Runde.
 - **Match-Verlauf:** die letzten 20 Matches mehrerer Spieler, mit Legs, Sätzen und Average jedes Spielers.
 - **Turniere** zählen wie jedes Match: Ihre Legs, Matches und direkten Vergleiche fließen in die Profile. [Turniere](games.de.md#turniere).
@@ -179,7 +180,7 @@ Endet die Woche, standardmäßig montags um Mitternacht, fasst `weekly_report` s
 
 <img src="images/de/training-calendar.png" alt="Der Kalender von Home Assistant mit einer Woche Trainingssessions und Übungsmatches von Alex, Sam und Kim" width="760">
 
-Der **Trainingskalender** zeigt deine beendeten Sessions und Übungsmatches jedes Spiels der letzten 365 Tage im Kalender von Home Assistant, etwa *Training · 312 Darts · Ø 54,2* oder *501 · Alex 3:2 Sam*. Öffne **Kalender** in der Seitenleiste oder frage ihn in einer Automation mit `calendar.get_events` ab, etwa um [die Trainingssessions eines Monats zu zählen](automations.de.md#trainingssessions-des-monats-zählen).
+Der **Trainingskalender** zeigt deine beendeten Sessions und Übungsmatches jedes Spiels der letzten 365 Tage, auch Partyspiele mit bis zu acht Spielern, im Kalender von Home Assistant, etwa *Training · 312 Darts · Ø 54,2* oder *501 · Alex 3:2 Sam*. Öffne **Kalender** in der Seitenleiste oder frage ihn in einer Automation mit `calendar.get_events` ab, etwa um [die Trainingssessions eines Monats zu zählen](automations.de.md#trainingssessions-des-monats-zählen).
 
 ## Export
 
