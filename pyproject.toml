@@ -13,7 +13,7 @@ markers = [
 ]
 
 # The weekly mutation tests (.github/workflows/mutation.yml) with mutmut. They change
-# the modules of the game rules whose roughly 2,650 mutants one run reaches on the four
+# the modules of the game rules whose roughly 2,800 mutants one run reaches on the four
 # cores of a runner; practice.py, drills.py and tournament.py, with about 5,900 more,
 # join once the run is split into parts. See docs/development.md#mutation-tests.
 [tool.mutmut]

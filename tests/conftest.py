@@ -7,7 +7,7 @@ import os
 import re
 import shutil
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -32,7 +32,16 @@ custom_components.__path__.insert(
 # examples on every run, so a failure shows up again on a retry.
 settings.register_profile("local", deadline=None)
 settings.register_profile("ci", deadline=None, derandomize=True, print_blob=True)
-settings.load_profile("ci" if os.environ.get("CI") else "local")
+
+
+def hypothesis_profile(environ: Mapping[str, str]) -> str:
+    """The profile of the property tests: the same examples in every run in CI
+    and under mutmut, which sets MUTANT_UNDER_TEST before it imports the tests,
+    so that a mutant is killed or survives the same way on every machine."""
+    return "ci" if environ.get("CI") or "MUTANT_UNDER_TEST" in environ else "local"
+
+
+settings.load_profile(hypothesis_profile(os.environ))
 
 # The modules of the integration, by the names they are imported with.
 INTEGRATION = Path(__file__).parents[1] / "custom_components" / "autodarts"
@@ -42,13 +51,21 @@ MODULES = tuple(
 )
 
 
+# How much longer a test may take under mutmut than its time limit allows.
+MUTMUT_SLOWDOWN = 10
+
+
 def pytest_collection_modifyitems(config, items):
-    """Under mutmut the tests marked mutation_unsafe are skipped.
+    """Under mutmut the tests marked mutation_unsafe are skipped, and every test
+    gets ten times its time limit.
 
     mutmut runs the tests in its copy of the repository, `mutants/`, which has no Git
     and holds every mutant in the code: a test that reads the code as text or asks
-    Git fails there whatever the mutant. mutmut sets MUTANT_UNDER_TEST in each of its
-    runs, to an empty value in the run without a mutant.
+    Git fails there whatever the mutant. Every call of a function that mutmut
+    changes passes its trampoline, which records the caller in the first run, so
+    the slowest tests take several times as long; mutmut stops a mutant that hangs
+    by a time limit of its own. mutmut sets MUTANT_UNDER_TEST in each of its runs,
+    to an empty value in the run without a mutant.
     """
     if "MUTANT_UNDER_TEST" not in os.environ:
         return
@@ -56,14 +73,18 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if item.get_closest_marker("mutation_unsafe"):
             item.add_marker(skip)
+        limit = item.get_closest_marker("timeout")
+        seconds = float(limit.args[0] if limit else config.getini("timeout") or 0)
+        item.add_marker(pytest.mark.timeout(seconds * MUTMUT_SLOWDOWN), append=False)
 
 
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_call(item):
     """A test that changes its parameters fails.
 
-    Run again in the same process, as mutmut runs every test once per mutant and an
-    IDE runs a failed test again, it would get the changed ones.
+    Run again in the same process, it would get the changed ones: mutmut runs every
+    test several times in its first process and forks the process of each mutant
+    from it, and an IDE runs a failed test again.
     """
     callspec = getattr(item, "callspec", None)
     before = repr(callspec.params) if callspec else ""
