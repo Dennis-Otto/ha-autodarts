@@ -528,3 +528,4 @@ Die Karten funktionieren mit Tastatur, mit Screenreader und ohne Animationen:
 - **Kombinieren:** Setze Live-Karte und Trainingskarte in einer Abschnittsansicht mit zwei Spalten nebeneinander.
 - **Mehrere Boards:** Lege pro Board eine Karte an und wähle das Board im Editor der Karte.
 - **Alte Version im Cache:** Nach einem Update ändert sich die Adresse der Karte automatisch. Zeigt ein Browser trotzdem eine alte Karte, lade die Seite neu. In der Companion-App hilft *Einstellungen → Companion-App → Fehlerbehebung → Frontend-Cache zurücksetzen*.
+- **Download-Größe:** Alle Karten kommen in einer Datei, komprimiert auf etwa 150 KB. Ein Browser lädt sie beim ersten Besuch und nach einem Update und behält sie bis zum nächsten; bei einer langsamen Verbindung wartet daher nur das erste Laden eines Dashboards auf sie.

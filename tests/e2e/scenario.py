@@ -1582,7 +1582,8 @@ class Scenario:
 
     async def card(self) -> None:
         """The bundled dashboard card and the strategy's own small module are served
-        and loaded without a resource, with one version in both addresses."""
+        and loaded without a resource, with one version in both addresses, and the
+        card module is compressed."""
         version = json.loads(MANIFEST.read_text())["version"]
         digest = hashlib.sha256(CARD.read_bytes() + STRATEGY.read_bytes()).hexdigest()
         query = f"?v={version}-{digest[:8]}"
@@ -1601,6 +1602,14 @@ class Scenario:
                     f"{address} served as {response.headers.get('Content-Type')}",
                 )
         source = sources[url]
+        # Compressed, as for every browser: aiohttp accepts gzip too.
+        async with self.session.get(f"{HA}{url}", auto_decompress=False) as response:
+            sent = len(await response.read())
+            encoding = response.headers.get("Content-Encoding")
+        check(
+            encoding == "gzip" and sent < len(source.encode()) * 0.3,
+            f"{url} sent with {sent} bytes, encoded as {encoding}",
+        )
         check(
             '"ll-strategy-dashboard-autodarts"' in sources[strategy_url],
             "The strategy module defines no strategy",
