@@ -3,3 +3,8 @@ ruff==0.16.10
 PyTurboJPEG==2.5.0
 mypy==2.4.0
 hypothesis==6.168.4
+# Assist, which the voice blueprints talk to in tests/test_voice_blueprints.py, at
+# the versions of the conversation manifest of the Home Assistant above.
+hassil==3.12.1
+home-assistant-intents==2026.8.28
+gazetteer-matcher==1.1.0
