@@ -9854,14 +9854,16 @@ function createElements(Base) {
         const key = this._scoreKey(event);
         if (!key) return;
         event.preventDefault();
-        this._padAction(key.dataset.pad, key.dataset.value);
+        if (key !== true) this._padAction(key.dataset.pad, key.dataset.value);
       });
     }
 
     // The key of the score view that a key of a keyboard presses, if the view offers it.
     // During the question after a score, a digit answers it, and Backspace goes back to
     // the score as Escape does. Enter takes the score on the pad and on a digit, as on a
-    // calculator; on any other key of the pad it presses that key, as everywhere.
+    // calculator; on any other key of the pad it presses that key, as everywhere. While OK
+    // is off, Enter there does nothing at all (true): the browser must not press the
+    // focused digit again.
     _scoreKey(event) {
       const view = this._el.pad.querySelector(".pad-score");
       if (!view || event.ctrlKey || event.altKey || event.metaKey) return null;
@@ -9875,7 +9877,8 @@ function createElements(Base) {
             Escape: '[data-pad="cancel"]',
           }[event.key];
       const key = selector ? view.querySelector(selector) : null;
-      return key && !key.disabled ? key : null;
+      if (key && !key.disabled) return key;
+      return event.key === "Enter" && Boolean(selector);
     }
 
     // Keys of a keyboard reach the pad where the focus is. When the score view opens, a
@@ -11587,6 +11590,12 @@ function createElements(Base) {
       this._activity = Date.now();
       this._rejoin();
       this._update();
+      // Home Assistant hands a view it shows again its new states within its own update.
+      // When none have come a moment later (a new leave or return cancels the wait),
+      // nothing changed while the card was away: the caller still knows the game and
+      // calls the very next dart again.
+      clearTimeout(this._rejoinTimer);
+      if (this._away) this._rejoinTimer = setTimeout(() => (this._away = null));
     }
 
     disconnectedCallback() {
@@ -11611,6 +11620,7 @@ function createElements(Base) {
     // hears nothing: what changed meanwhile is history, not news. It keeps the states it
     // saw last, to know the first new ones after its return.
     _leave() {
+      clearTimeout(this._rejoinTimer);
       this._away ??= { states: this._hass?.states };
     }
 
@@ -11621,6 +11631,7 @@ function createElements(Base) {
       const hass = this._hass;
       if (!this._away || !this.isConnected || hass.connected === false || hass.states === this._away.states) return;
       this._away = null;
+      clearTimeout(this._rejoinTimer);
       this._callerState = callerState(this._state("visit"), gameView((name) => this._state(name)));
       this._tournamentCall = tournamentCallState(tournamentView(this._state("tournament")));
     }

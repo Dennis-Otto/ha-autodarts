@@ -622,6 +622,21 @@ test("a connection that drops while nothing changes loses no call", () => {
   assert.ok($(bare, ".main"));
 });
 
+test("a scoreboard that comes back to an unchanged game calls the very next dart", async () => {
+  const { hass, card } = setup(x01(40, [], { checkout: "D20" }), { caller: true });
+  tap(card);
+  said();
+  // Away on another view and back between two darts: Home Assistant has no new states.
+  card.remove();
+  document.body.append(card);
+  await new Promise((resolve) => setTimeout(resolve));
+  card.hass = update(hass, { ...visit(dart(20, 2)), ...x01(0, ["D20"], { won: true, winner: 1 }) });
+  assert.deepEqual(said(), ["Game shot, and the match, Alex!"]);
+  assert.ok($(card, ".celebrate").children.length > 0);
+  tap(card);
+  said();
+});
+
 test("before the opening double a visit is no score, and without double out 180 can be required", () => {
   const { hass, card } = setup(x01(501, [], { opened: false }), { caller: true });
   tap(card);

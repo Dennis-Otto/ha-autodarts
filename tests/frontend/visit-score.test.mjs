@@ -289,6 +289,11 @@ test("a keyboard types the score where the focus is, and keeps typing after each
   assert.equal(press(card, "Enter"), true);
   assert.deepEqual(actions(hass).at(-1), ["enter_visit", { config_entry_id: ENTRY, score: 45 }]);
   assert.equal(focused(card), "pad");
+  // With nothing typed OK is off: Enter on a digit does nothing, and never types it again.
+  $(card, '[data-pad="digit"][data-value="1"]').focus();
+  assert.equal(press(card, "Enter"), true);
+  assert.equal(text(card, ".score-line .typed"), "–");
+  assert.equal(actions(hass).length, 2);
   // On any other key, Enter presses that key, as the browser does.
   for (const name of "26") press(card, name);
   $(card, '[data-pad="next"]').focus();
@@ -364,7 +369,7 @@ test("a score no visit makes keeps OK and Enter off, and any bust goes in", () =
   tap(card, '.pad [data-pad="score"]');
   $(card, ".pad").focus();
   // Enter waits for a score, as OK does.
-  assert.equal(press(card, "Enter"), false);
+  assert.equal(press(card, "Enter"), true);
   assert.deepEqual(actions(hass), []);
   for (const points of IMPOSSIBLE) {
     type(card, String(points));
