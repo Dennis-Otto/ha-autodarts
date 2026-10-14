@@ -166,12 +166,13 @@ A tournament for three to eight named players at one board, one match at a time:
 3. **Winner:** after the last match, a banner names the winner, and the table or the bracket stays until a new match begins. `tournament_finished` can start the [light show](automations.md#light-show) or [announce the results](automations.md#announce-the-results-of-a-tournament).
 4. **Afterwards:** the practice game goes back to the players, names, start scores, legs, sets, rules and bot level it had before the tournament, with the first dart of the next match or the first change of a practice setting. After *Stop tournament*, a match being played is played to its end first. A new tournament starts only when none is being played: stop the one being played first.
 
-<table>
-  <tr>
-    <td width="50%"><img src="images/en/tournament-lobby.png" alt="The new game screen in tournament mode: X01 and the Cricket games, six players with their start scores, knockout with the match for third place, and the start button" width="100%"></td>
-    <td width="50%"><img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="100%"></td>
-  </tr>
-</table>
+**Tournament** on the new game screen of the scoreboard sets up the players, the game, the format and the rules:
+
+<img src="images/en/tournament-lobby.png" alt="The new game screen in tournament mode: X01 and the Cricket games, six players with their start scores, knockout with the match for third place, and the start button" width="560">
+
+Between two matches, the scoreboard shows the next match with its countdown, and the table of a round robin:
+
+<img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="760">
 
 The [entity reference](entities.md#tournaments) lists the tournament's settings, buttons and actions, and the [scoreboard guide](scoreboard.md#tournaments) what the screen shows.
 
