@@ -160,6 +160,26 @@ BEDS = frozenset(
     {"Single", "SingleInner", "SingleOuter", "Double", "Triple", "Outside"}
 )
 SEGMENT_KEYS = ("segment", "number", "multiplier", "bed")
+# Camera jitter moves a dart by a millimetre or so from one reading to the next.
+# In board radii, the double ring's 170 mm: 0.01 is about 1.7 mm.
+JITTER = 0.01
+# Darts that Home Assistant placed, entered or corrected by hand or thrown by the
+# bot, are where they were put; no camera makes them jitter.
+PLACED_FLAGS = ("manual", "corrected", "bot")
+
+
+def _jitter(previous: dict[str, Any], dart: dict[str, Any]) -> bool:
+    """Whether a camera's dart is the previous reading of the same dart, moved
+    by jitter rather than to another spot."""
+    return (
+        all(previous.get(key) == dart[key] for key in SEGMENT_KEYS)
+        and not any(
+            item.get(flag) for item in (previous, dart) for flag in PLACED_FLAGS
+        )
+        and "x" in previous
+        and "x" in dart
+        and math.dist((previous["x"], previous["y"]), (dart["x"], dart["y"])) < JITTER
+    )
 
 
 def _dart(dart: Any) -> dict[str, Any] | None:
@@ -170,13 +190,15 @@ def _dart(dart: Any) -> dict[str, Any] | None:
     number, multiplier = segment.get("number"), segment.get("multiplier")
     if type(number) is not int or type(multiplier) is not int:
         return None
+    # Only text can name a bed; a list or a dict would not even fit into a set.
+    bed = segment.get("bed")
     result = {
         # Like any board text, short enough for the state of Last dart.
         "segment": _text(segment.get("name")),
         "number": number,
         "multiplier": multiplier,
         "score": number * multiplier,
-        "bed": segment["bed"] if segment.get("bed") in BEDS else None,
+        "bed": bed if isinstance(bed, str) and bed in BEDS else None,
     }
     coords = dart.get("coords")
     if isinstance(coords, dict) and all(
@@ -672,11 +694,11 @@ class AutodartsVisitSensor(AutodartsLocalSensor):
             previous = (
                 self._throws[len(throws)] if len(throws) < len(self._throws) else {}
             )
-            if all(previous.get(key) == dart[key] for key in SEGMENT_KEYS):
+            if _jitter(previous, dart):
                 # Camera jitter moves an unchanged dart slightly; keep it steady.
-                dart |= {
-                    axis: previous[axis] for axis in ("x", "y") if axis in previous
-                }
+                # A dart moved in its bed, or the dart after one the board took
+                # back, is drawn where it is now.
+                dart |= {"x": previous["x"], "y": previous["y"]}
             throws.append(dart)
         self._throws = throws
 
