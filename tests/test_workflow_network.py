@@ -54,17 +54,23 @@ HOSTS = {
     ("e2e.yml", "scenario"): {"github.com", *HOME_ASSISTANT},
     ("e2e.yml", "browser"): BROWSER_TEST,
     ("e2e.yml", "gate"): set(),
+    ("e2e.yml", "live-demo"): {"github.com", *PLAYWRIGHT, *PYTHON_PACKAGES},
     ("e2e.yml", "beta"): BROWSER_TEST,
     ("screenshots.yml", "render"): IMAGES,
     ("screenshots.yml", "collect"): COMPARISON,
     ("screenshots.yml", "pull-request"): GITHUB,
+    # The recording of the live demo, by the integration in the Home Assistant of
+    # the tests, whose packages it installs.
+    ("screenshots.yml", "timeline"): {"github.com", *PYTHON_PACKAGES},
     ("translations.yml", "issues"): GITHUB,
     ("visual-comment.yml", "comment"): {"api.github.com"},
     ("visual.yml", "render"): IMAGES,
     ("visual.yml", "compare"): COMPARISON,
 }
 # The scripts that start containers: Home Assistant, the simulated board, Playwright.
-CONTAINERS = re.compile(r"\bbash tests/e2e/(run|browser|screenshots|visual|demo)\.sh\b")
+CONTAINERS = re.compile(
+    r"\bbash tests/e2e/(run|browser|screenshots|visual|demo|live_demo)\.sh\b"
+)
 
 
 def jobs() -> dict[tuple[str, str], dict]:

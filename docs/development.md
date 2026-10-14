@@ -228,6 +228,8 @@ The **Screenshot bot** workflow (`.github/workflows/screenshots.yml`) keeps the 
 
 A release starts the bot as well. It writes its version into `custom_components/autodarts/manifest.json`, and the integration page in `online-bridge.png` shows the major version of it ([a fixed version](#the-same-images-in-every-run)): a release of the same major version renders every image as it was, a new major version, such as 2.0.0, changes that image. The maintainer or the release app merges the release pull request, so its push to `main` starts workflows like any other; only a merge with the `GITHUB_TOKEN` of a workflow would start none. So the image follows a new major version within the hour rather than on Thursday, and the visual check of later pull requests doesn't report it as changed for days.
 
+Its job *timeline* records the games of the [live demo](#live-demo-of-the-website) anew at the same time, and the pull request brings a recording that changed along with the images.
+
 When any image changed, the bot opens one pull request, *docs: update the screenshots of the cards*, or updates the one still open, and turns on auto-merge, so the images follow once every check passes. The description lists every changed image with the share of its pixels that changed; the workflow run keeps the images before and after, with their differences, for three days. The pull request comes from the release app, so its checks run, and its commits go through GitHub's API: GitHub signs them, as `main` requires, and they carry the app's `Signed-off-by:`. The branch of the pull request starts from `main` as it stands once the images are rendered, not from the commit they were rendered from: GitHub counts a branch whose workflows differ from those on `main` as a change of the workflows, which the app has no permission for. The images go onto a branch of their own first, and the branch of the pull request moves onto them in one step: pointed at a commit `main` already has, even for a moment, it would close its pull request. When the branch of an open pull request can't move for the workflows that changed on `main` since, it starts anew, and a new pull request takes over from the old one. When `main` already has the images of a pull request still open, the bot closes it. A group that fails to render holds back only its language: the pull request takes the images of the language that rendered and keeps the rendered images it had for the other, from the app's own branch in this repository or as on `main`: a diagram comes from `main`, and a pull request from a fork's branch of the same name gives it nothing, and the bot closes no pull request while a language is missing. When no language rendered, the job fails and the pull request stays as it is. The rendering runs without any secret; only the last job, which writes the pull request, uses the key of the release app in the environment `release`.
 
 ### Visual check
@@ -251,6 +253,29 @@ git checkout -- docs/images   # back to the committed images
 `scripts/creator_media.py` turns five of the animations into the MP4 and GIF files of the [creator kit](creator-kit.md#videos-and-animations) in `docs/media/`, for Reddit, Discord, forums and video editors, which don't all show animated WebP. Run it after the screenshots whenever one of those animations changes; it needs Pillow and ffmpeg, and a test fails when a video no longer has the length of its animation.
 
 Keep animations short, below about 20 seconds and 1 MB, and give every image a descriptive `alt` text in both languages. The README uses absolute `raw.githubusercontent.com` addresses and plain `<img>` tags, because HACS shows it outside GitHub; the pages in `docs/` use relative paths and may use `<picture>` for light and dark variants.
+
+## Live demo of the website
+
+The [live demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html) plays the cards on the website, without Home Assistant: a 501 against the bot, a Cricket game and a tournament, in the five languages of the cards, on a desktop and a phone. Nobody records it by hand, and nothing in it is made up.
+
+- `scripts/record_demo.py` lets the integration play the games in the Home Assistant of the tests, at a simulated board, on a clock that moves only with the games (`tests/demo_timeline.py` describes them). After every move it keeps the states of the entities that changed and the answers to the positions command of the training card, in `docs/demo/timeline.json`, one line per step. Two recordings of the same code are the same, byte for byte. `tests/test_demo_timeline.py` plays the games in every run of the tests, so a change that breaks them fails there.
+- `docs/demo/index.html` and `docs/demo/demo.js` are the page. A small stand-in for Home Assistant hands the cards the states of each step, as Home Assistant would, with every date and time in them moved to the moment of the replay, so a countdown counts and "since" reads today. A button of a card, or a tap on an entity, only shows a note that this is a recording; nothing leaves the page. The website takes the cards from the integration as they are (`on_post_build` in `scripts/mkdocs_hooks.py`), so the demo always shows the cards of its version.
+- The [screenshot bot](#screenshot-bot) records the games anew with the images, in its job *timeline*, and its pull request brings the new recording to `main`. So the demo follows the integration and the cards as the images do.
+- `tests/frontend/demo.test.mjs` tests the page with the cards in happy-dom, and the job *live demo* of the [end-to-end tests](#when-the-end-to-end-tests-run) plays it in Chromium (`bash tests/e2e/live_demo.sh`): in every language, on a desktop and a phone, every step, without an error in the console and without a page wider than the screen.
+
+To record anew and see the result, with the packages of the tests and of the website installed:
+
+```sh
+python scripts/record_demo.py
+mkdocs serve
+```
+
+Then open <http://127.0.0.1:8000/demo/index.html>; `?lang=de` at its end opens it in German.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/live-demo-dark.png">
+  <img src="images/en/live-demo-light.png" alt="How the live demo of the website plays the cards: scripts/record_demo.py lets the integration play a 501 against the bot, a Cricket game and a tournament in the Home Assistant of the tests, at a simulated board on a clock that moves only with the games. After every move it keeps the states that changed and the positions of the darts in docs/demo/timeline.json. The screenshot bot records it anew with the images, and its pull request brings it to main. The website builds from main and puts the cards of the integration next to the page of the demo. In the browser, demo.js replays the steps and hands the states to the cards as Home Assistant would, at the time of the replay; a button of a card only says that this is a recording. The live demo job of the end-to-end tests plays it in every language on a desktop and a phone." width="480">
+</picture>
 
 ## Diagrams
 
@@ -330,6 +355,7 @@ test jobs only when one of the files is something the tests run or mount:
 | `custom_components/` | the integration, mounted into Home Assistant |
 | `blueprints/` | the blueprints, which the scenario and the demo use |
 | `tests/e2e/` | the scenario, the demo, the browser test and the simulated Board Manager |
+| `docs/demo/`, `docs/branding/`, `scripts/mkdocs_hooks.py` | the [live demo of the website](#live-demo-of-the-website) and what the website gives it |
 | `package.json`, `package-lock.json` | axe-core of the accessibility check |
 | `.github/workflows/e2e.yml` | the workflow itself |
 
@@ -401,6 +427,8 @@ GitHub's own services of Actions itself, such as the storage of artifacts and ca
 | *browser* and the nightly beta | the same, `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org` | the Playwright image, axe-core and the Python packages of the browser test |
 | *render* of the visual check and of the screenshot bot | as *browser* without npm, and `launchpad.net`, `launchpadlibrarian.net`, `brands.home-assistant.io` | pngquant, and the icons of Home Assistant's other integrations, which the images show |
 | *compare* and *collect* | `github.com`, `pypi.org`, `files.pythonhosted.org` | Pillow for the comparison |
+| *live demo* of the end-to-end tests | `github.com`, `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, `pypi.org`, `files.pythonhosted.org` | the Playwright image and the Python packages of the browser test |
+| *timeline* of the screenshot bot | `github.com`, `pypi.org`, `files.pythonhosted.org` | the packages of the tests, whose Home Assistant plays the games of the live demo; Python comes from the runner |
 | the gate *e2e* | none | It only reads the results of the other jobs. Its run shows the warning that both `allowed-endpoints` and `denied-endpoints` are empty: that is expected, because an empty list blocks every host apart from GitHub's services of Actions. |
 
 <picture>

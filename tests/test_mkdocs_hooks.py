@@ -138,3 +138,16 @@ def test_a_link_of_the_html_to_no_page_warns(caplog):
         html = '<a href="nothing.md">'
         assert hooks.on_page_content(html, ENGLISH, CONFIG, Files()) == html
     assert "cards.md links in its HTML to nothing.md, which isn't a page" in caplog.text
+
+
+def test_the_live_demo_gets_the_cards_of_the_integration(tmp_path):
+    (tmp_path / "demo").mkdir()
+    (tmp_path / "demo" / "index.html").write_text("<!doctype html>", encoding="utf-8")
+    hooks.on_post_build(SimpleNamespace(site_dir=str(tmp_path)))
+    cards = ROOT / "custom_components" / "autodarts" / "frontend" / "autodarts-card.js"
+    assert (tmp_path / "demo" / "autodarts-card.js").read_bytes() == cards.read_bytes()
+
+
+def test_a_website_without_the_demo_gets_no_cards(tmp_path):
+    hooks.on_post_build(SimpleNamespace(site_dir=str(tmp_path)))
+    assert list(tmp_path.iterdir()) == []

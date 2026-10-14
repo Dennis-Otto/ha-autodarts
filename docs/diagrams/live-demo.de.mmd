@@ -1,0 +1,13 @@
+flowchart TB
+  accTitle: Wie die Live-Demo der Website die Karten spielt
+  accDescr: scripts/record_demo.py lässt die Integration ein 501 gegen den Bot, ein Cricket-Spiel und ein Turnier im Home Assistant der Tests spielen, an einem simulierten Board mit einer Uhr, die nur mit den Spielen weitergeht. Nach jedem Zug hält es die Zustände, die sich geändert haben, und die Positionen der Darts in docs/demo/timeline.json fest. Der Screenshot-Bot zeichnet sie mit den Bildern neu auf, und sein Pull Request bringt sie auf main. Die Website entsteht aus main und legt die Karten der Integration neben die Seite der Demo. Im Browser spielt demo.js die Schritte ab und gibt die Zustände an die Karten wie Home Assistant, zur Zeit der Wiedergabe; eine Schaltfläche einer Karte sagt nur, dass das eine Aufzeichnung ist. Der Job live demo der End-to-End-Tests spielt sie in jeder Sprache auf einem Desktop und einem Handy.
+  RECORD["scripts/record_demo.py:<br/>die Integration spielt<br/>501, Cricket und ein Turnier<br/>im Home Assistant der Tests"] --> TIMELINE[("docs/demo/timeline.json:<br/>die Zustände nach jedem Zug<br/>und die Positionen der Darts")]
+  BOT["Screenshot-Bot:<br/>zeichnet sie mit<br/>den Bildern neu auf"] --> RECORD
+  TIMELINE --> SITE["Bau der Website:<br/>die Seite der Demo<br/>mit den Karten der Integration"]
+  SITE --> BROWSER["Browser der Leser:<br/>demo.js spielt die Schritte ab,<br/>die Karten zeichnen sie"]
+  BROWSER -. "eine Schaltfläche einer Karte" .-> NOTE["Der Hinweis:<br/>das ist eine Aufzeichnung"]
+  CHECK["e2e-Job live demo:<br/>jede Sprache,<br/>Desktop und Handy"] -. "prüft" .-> SITE
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef data fill:#0075c92e,stroke:#0075c9,stroke-width:2px
+  class BROWSER done
+  class TIMELINE data

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="The Autodarts cards for Home Assistant, live in your browser: a 501 against the bot, a Cricket game and a tournament, played by the integration at a simulated board.">
+    <meta name="color-scheme" content="light dark">
+    <title>Live demo of the cards – Autodarts for Home Assistant</title>
+    <link rel="icon" href="../branding/icon.svg" type="image/svg+xml">
+    <style>
+      /* The colours of Home Assistant's default theme, which the cards are made for,
+         and the blue of the project for the page around them. */
+      :root {
+        color-scheme: light;
+        --primary-color: #03a9f4;
+        --accent-color: #ff9800;
+        --primary-text-color: #212121;
+        --secondary-text-color: #727272;
+        --disabled-text-color: #bdbdbd;
+        --divider-color: rgba(0, 0, 0, 0.12);
+        --primary-background-color: #fafafa;
+        --card-background-color: #ffffff;
+        --error-color: #db4437;
+        --warning-color: #ffa600;
+        --success-color: #43a047;
+        --amber-color: #ffc107;
+        --purple-color: #926bc7;
+        --ha-card-border-radius: 12px;
+        --header-height: 0px;
+        --brand: #0075c9;
+        --page: #eef3f8;
+        --control: #ffffff;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --primary-text-color: #e1e1e1;
+          --secondary-text-color: #9b9b9b;
+          --disabled-text-color: #6f6f6f;
+          --divider-color: rgba(225, 225, 225, 0.12);
+          --primary-background-color: #111111;
+          --card-background-color: #1c1c1c;
+          --brand: #00b8f0;
+          --page: #0d1117;
+          --control: #1c1c1c;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--primary-text-color);
+        font: 16px/1.5 Roboto, "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      a { color: var(--brand); }
+      .wrap { max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+      header.top { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 16px 0 0; }
+      .brand { display: flex; gap: 10px; align-items: center; color: inherit; text-decoration: none; font-weight: 500; }
+      .brand img { width: 32px; height: 32px; }
+      nav.links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+      h1 { margin: 24px 0 4px; font-size: clamp(1.6rem, 4vw, 2.4rem); line-height: 1.2; }
+      .lead { margin: 0 0 16px; max-width: 70ch; color: var(--secondary-text-color); }
+      .controls {
+        display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;
+        margin: 0 -16px; padding: 10px 16px;
+        background: color-mix(in srgb, var(--page) 88%, transparent);
+        backdrop-filter: blur(8px);
+      }
+      .chapters { display: flex; flex-wrap: wrap; gap: 6px; }
+      button, select {
+        font: inherit; color: inherit; min-height: 40px; padding: 6px 14px;
+        border: 1px solid var(--divider-color); border-radius: 20px; background: var(--control); cursor: pointer;
+      }
+      button:focus-visible, select:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+      #play { min-width: 112px; background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 500; }
+      .chapters button[aria-current="true"] { border-color: var(--brand); color: var(--brand); font-weight: 500; }
+      label { display: inline-flex; gap: 6px; align-items: center; color: var(--secondary-text-color); }
+      label select { color: var(--primary-text-color); }
+      progress { flex: 1 1 100%; width: 100%; height: 4px; border: 0; border-radius: 2px; background: var(--divider-color); accent-color: var(--brand); }
+      progress::-webkit-progress-bar { background: var(--divider-color); border-radius: 2px; }
+      progress::-webkit-progress-value { background: var(--brand); border-radius: 2px; }
+      progress::-moz-progress-bar { background: var(--brand); border-radius: 2px; }
+      #status:empty { display: none; }
+      #status { padding: 16px; border-radius: 12px; background: var(--control); }
+      /* The scoreboard and the live card side by side on a wide screen, the training and
+         the players card below them; one below the other on a phone. */
+      .stage {
+        display: grid; gap: 16px; padding: 12px 0 32px;
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .stage > div { min-width: 0; }
+      /* On a wide screen, the controls stay at the top while the cards scroll. */
+      @media (min-width: 960px) {
+        .controls { position: sticky; top: 0; z-index: 2; }
+        .stage { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); align-items: start; }
+      }
+      #notice {
+        position: fixed; left: 50%; bottom: 24px; z-index: 3; transform: translateX(-50%);
+        width: max-content; max-width: calc(100% - 32px); padding: 12px 18px; border-radius: 12px;
+        background: #323232; color: #fff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      }
+      footer { padding: 0 0 32px; color: var(--secondary-text-color); font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <a class="brand" href="../index.html"><img src="../branding/icon.svg" alt=""> Autodarts for Home Assistant</a>
+        <nav class="links">
+          <a href="../installation.html" data-text="install">Install the integration</a>
+          <a href="../cards.html" data-text="docs">Documentation</a>
+        </nav>
+      </header>
+      <main>
+        <h1 data-text="title">Try the cards</h1>
+        <p class="lead" data-text="lead">Games at a simulated board, played by the integration and shown by its cards, right here in your browser. Nothing to install.</p>
+        <div class="controls" role="toolbar" data-label="games" aria-label="Games">
+          <button id="play" type="button" aria-pressed="false" data-text="play">Play</button>
+          <div id="chapters" class="chapters" role="group" data-label="games" aria-label="Games"></div>
+          <label><span data-text="speed">Speed</span> <select id="speed"></select></label>
+          <label><span data-text="language">Language</span> <select id="language"></select></label>
+          <progress id="progress" max="1" value="0" data-label="progress" aria-label="Progress of the games"></progress>
+        </div>
+        <p id="status" role="status"></p>
+        <div class="stage">
+          <div data-card="autodarts-scoreboard-card"></div>
+          <div data-card="autodarts-card"></div>
+          <div data-card="autodarts-training-card"></div>
+          <div data-card="autodarts-players-card"></div>
+        </div>
+      </main>
+      <footer>
+        <a href="https://github.com/Dennis-Otto/ha-autodarts">github.com/Dennis-Otto/ha-autodarts</a>
+      </footer>
+    </div>
+    <div id="notice" role="status" aria-live="polite" hidden></div>
+    <noscript>The demo plays the cards with JavaScript.</noscript>
+    <script type="module">
+      import { boot } from "./demo.js";
+
+      // The replay, for a look at it in the browser's console.
+      window.autodartsDemo = await boot({ window, load: () => import("./autodarts-card.js") });
+    </script>
+  </body>
+</html>

@@ -68,7 +68,7 @@ jobs:
           # What the tests run or mount: the integration, the blueprints, the tests
           # with the demo and the browser test, axe-core of the npm packages, and this
           # workflow. tests/test_consistency.py keeps it in step with the mounts.
-          tested='^(custom_components/|blueprints/|tests/e2e/|package(-lock)?\.json$|\.github/workflows/e2e\.yml$)'
+          tested='^(custom_components/|blueprints/|tests/e2e/|docs/demo/|docs/branding/|scripts/mkdocs_hooks\.py$|package(-lock)?\.json$|\.github/workflows/e2e\.yml$)'
           # When in doubt, the tests run.
           run=true
           if [[ "$EVENT" != pull_request ]]; then
@@ -229,10 +229,49 @@ jobs:
   # condition reports none of its names, and a skipped job counts as passed, so this
   # job always runs: it passes when every test passed, or when the pull request had
   # nothing for them to test, and fails when one failed, was cancelled or didn't run.
+  # The live demo of the website in a real browser: the page of docs/demo/ plays the
+  # recorded games with the cards of this pull request, in every language, on a desktop
+  # and a phone, without an error in the console (tests/e2e/live_demo.sh). It needs
+  # no Home Assistant, only the Playwright image and its locked packages.
+  live-demo:
+    name: live demo
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      E2E_ARTIFACTS: ${{ github.workspace }}/e2e-artifacts
+    steps:
+      - name: Block every host that the job doesn't need
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            mcr.microsoft.com:443
+            *.data.mcr.microsoft.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Play the live demo in a real browser
+        run: bash tests/e2e/live_demo.sh
+      - name: Keep the screenshots of a failed run
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-live-demo-${{ github.run_attempt }}
+          path: e2e-artifacts
+          if-no-files-found: ignore
+          retention-days: 14
+
   gate:
     name: e2e
     if: always()
-    needs: [changes, scenario, browser]
+    needs: [changes, scenario, browser, live-demo]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

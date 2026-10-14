@@ -158,6 +158,9 @@ def test_a_pull_request_that_changes_nothing_the_tests_use_skips_them(tmp_path, 
         "tests/e2e/scenario.py",
         "tests/e2e/demo_progress.py",
         "tests/e2e/requirements-browser.txt",
+        "docs/demo/demo.js",
+        "docs/demo/timeline.json",
+        "scripts/mkdocs_hooks.py",
         "package.json",
         "package-lock.json",
         ".github/workflows/e2e.yml",
@@ -277,5 +280,5 @@ def test_the_required_check_waits_for_every_test_of_a_pull_request():
         for name, job in JOBS.items()
         if name != "gate" and "github.event_name == 'schedule'" not in job.get("if", "")
     }
-    assert {"scenario", "browser"} <= tests
+    assert {"scenario", "browser", "live-demo"} <= tests
     assert set(gate["needs"]) == tests

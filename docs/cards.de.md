@@ -8,6 +8,8 @@ Die Integration bringt sieben Karten mit. Home Assistant lädt sie automatisch; 
 - passt sich ihrer Breite an, vom Handy bis zum Wandtablet;
 - findet dein Board selbst. Bei mehreren Boards wählst du eines im Editor aus.
 
+**[Probier sie live aus](https://dennis-otto.github.io/ha-autodarts/demo/index.html?lang=de)**: Die Anzeigetafel, die Live-, Trainings- und Spielerkarte spielen ein 501 gegen den Bot, ein Cricket-Spiel und ein Turnier in deinem Browser, ohne Home Assistant.
+
 Zum Hinzufügen bearbeitest du ein Dashboard, wählst **Karte hinzufügen** und suchst nach **Autodarts**. Die Kartenauswahl nennt die Karten in deiner Sprache und verlinkt jede auf ihren Abschnitt unten.
 
 **Auf dieser Seite:** [Live-Karte](#live-karte) · [Trainingskarte](#trainingskarte) · [Board-Status](#board-status) · [Anzeigetafel](#anzeigetafel) · [Doubles-Karte](#doubles-karte) · [Spielerkarte](#spielerkarte) · [Bestenliste](#bestenliste) · [Automatisches Dashboard](#automatisches-dashboard) · [Karteneditor](#karteneditor) · [Barrierefreiheit](#barrierefreiheit) · [Tipps](#tipps)

@@ -21,6 +21,10 @@ name: Screenshot bot
 # doesn't hold back the other: the pull request takes the language that rendered and
 # keeps the rendered images it had for the other, from the app's own branch of this
 # repository; a pull request from a fork's branch of the same name gives it nothing.
+# The same pull request brings the recording that the live demo of the website plays,
+# docs/demo/timeline.json: the timeline job lets the integration play the games of
+# the demo anew (scripts/record_demo.py), so that the demo follows the integration and
+# the cards as the images do.
 
 on:
   push:
@@ -36,6 +40,8 @@ on:
       - "!tests/e2e/configuration.yaml"
       - "!tests/e2e/README.md"
       - "!tests/e2e/accessibility-baseline.toml"
+      - tests/demo_timeline.py
+      - scripts/record_demo.py
       - .github/workflows/screenshots.yml
   schedule:
     - cron: "17 3 * * 4"
@@ -181,9 +187,46 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+  # The games of the live demo, played by the integration in the Home Assistant of
+  # the tests with its locked packages; Python comes from the runner's tool cache.
+  timeline:
+    name: timeline
+    if: ${{ !github.event.repository.fork }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Block every host that the job doesn't need
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            pypi.org:443
+            files.pythonhosted.org:443
+          disable-sudo-and-containers: true
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version-file: .python-version
+      - name: Install the packages of the tests
+        run: pip install --quiet --disable-pip-version-check --require-hashes -r requirements-test.txt
+      - name: Record the games of the live demo
+        run: python scripts/record_demo.py "$RUNNER_TEMP/timeline/timeline.json"
+      - name: Keep the recording
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: timeline
+          path: ${{ runner.temp }}/timeline/
+          if-no-files-found: error
+          retention-days: 1
+
   pull-request:
     name: pull request
-    needs: collect
+    needs: [collect, timeline]
     # Also when one language failed: the other one still reaches its pull request.
     if: ${{ !cancelled() && !github.event.repository.fork }}
     runs-on: ubuntu-latest
@@ -218,7 +261,7 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           # Not the images of the groups or the screenshots of a failed run.
-          pattern: "{images,report}-*"
+          pattern: "{images-*,report-*,timeline}"
           path: ${{ runner.temp }}/rendered
       - name: Put the rendered images in place
         id: images
@@ -241,6 +284,12 @@ jobs:
               missing="${missing:+$missing }$language"
             fi
           done
+          # The recording of the live demo, when the timeline job made one.
+          if [[ -f "$RUNNER_TEMP/rendered/timeline/timeline.json" ]]; then
+            cp "$RUNNER_TEMP/rendered/timeline/timeline.json" docs/demo/timeline.json
+          else
+            echo "::warning::The games of the live demo were not recorded; it keeps the recording it has."
+          fi
           if [[ "$missing" == "en de" ]]; then
             echo "::error::No language rendered, so the images and their pull request stay as they are; the render jobs show why."
             exit 1
@@ -249,7 +298,7 @@ jobs:
             echo "::warning::The images in $missing did not render; the pull request keeps what it had for them."
           fi
           echo "missing=$missing" >> "$GITHUB_OUTPUT"
-          git status --short -- docs/images
+          git status --short -- docs/images docs/demo/timeline.json
       - name: Create a token of the release app
         id: app
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
@@ -300,7 +349,7 @@ jobs:
                 done
               done
           fi
-          git add --all docs/images
+          git add --all docs/images docs/demo/timeline.json
           if git diff --cached --quiet; then
             echo "Every image looks as committed."
             if [[ -n "$MISSING" ]]; then
@@ -398,9 +447,14 @@ jobs:
                       shown = "100 %" if share >= 1 else "< 0.01 %" if share < 0.0001 else f"{share * 100:.2f} %"
                       rows.append(f"| `docs/images/{entry['path']}` | {entry['status']} | {shown} |")
           kept = ""
+          if "docs/demo/timeline.json" in paths:
+              kept += (
+                  "\n\nThe games of the live demo were recorded anew, too "
+                  "(`docs/demo/timeline.json`, scripts/record_demo.py)."
+              )
           if missing:
               names = " and ".join({"en": "English", "de": "German"}[code] for code in missing)
-              kept = f"\n\nThe {names} images did not render in this run; the pull request keeps what it had for them."
+              kept += f"\n\nThe {names} images did not render in this run; the pull request keeps what it had for them."
           with open(f"{folder}/body.md", "w") as file:
               file.write(
                   "The screenshot bot rendered the images of the documentation anew from the demo, "
