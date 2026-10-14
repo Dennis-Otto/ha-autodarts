@@ -119,7 +119,7 @@ test("every card has the form of its own options", () => {
     "accent_color",
   ]);
   const [mode, style] = training.schema[2].schema;
-  assert.deepEqual(labels(mode), ["Beds", "Numbers", "Positions"]);
+  assert.deepEqual(labels(mode), ["Beds", "Numbers", "Positions", "Aim"]);
   assert.deepEqual(labels(style), ["Muted", "Classic", "Autodarts"]);
   // The heatmap's player has help of its own.
   assert.match(training.computeHelper(training.schema[3]), /this player's darts instead of the session's/);

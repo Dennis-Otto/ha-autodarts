@@ -52,6 +52,7 @@ test("the heatmap switches between beds, numbers and positions", async () => {
     ["Beds", "true"],
     ["Numbers", "false"],
     ["Positions", "false"],
+    ["Aim", "false"],
   ]);
   assert.ok($(card, '.heat-layer path[d]'));
   assert.equal($(card, ".heat .groups").hidden, true);
@@ -283,7 +284,7 @@ test("the heatmap switches speak German", () => {
   const card = mount("autodarts-training-card", hass, {});
   assert.deepEqual(
     pressed(card, "modes").map(([name]) => name),
-    ["Felder", "Zahlen", "Positionen"]
+    ["Felder", "Zahlen", "Positionen", "Zielpunkt"]
   );
   assert.equal(pressed(card, "sources")[0][0], "Session");
   assert.equal($(card, ".modes").getAttribute("aria-label"), "Trefferbild");

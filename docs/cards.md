@@ -109,6 +109,7 @@ highlight_color: "#00e5ff"
   - Hover or tap a bed for its count and share. Screen readers get the counts of all hit beds as a list, the most hit first.
   - In `numbers` mode, the heatmap sums each number's singles, doubles and triples instead.
   - In `positions` mode, it shows where the darts landed, from the positions the board reports: a smoothed density from blue (few darts) to red (many), with the newest 300 darts as dots. For the session, the darts of the current visit show the moment they land, as blue pins, and join the logged darts when you pull them. Below the board, the [grouping](how-it-works.md#grouping) at up to three beds aimed at, for example *T20: grouping 38 mm · 80 % within 61 mm · 6 mm left of center*, with *4 mm tighter* when the newer darts group closer.
+  - In `aim` mode, it shows where the player scores the most points per dart with their own spread, from 30 darts aimed at a treble: every aim point colored by its points per dart, a ring at the best aim, and below the board the best aim against the treble 20, the treble 19 and the bull, for example *T19: best aim · 18.3 points per dart* and *T20: 17.3 points per dart -1.0*. With fewer darts, the card says how many are missing. [Where to aim](statistics.md#where-to-aim).
   - The switches above the board choose the mode and whose darts it shows: the session, or a named player with all their hits and the positions of their last 1000 darts. The most hit beds follow the choice. [How positions are kept](how-it-works.md#dart-positions).
 - **Statistics:** highest visit, 100+, 140+ and 180 visits, triple rate, doubles, bulls and misses. 180s light up in gold. The 100+, 140+ and 180 counts grow when you pull the darts, once the visit is complete. *Details ›* below the tiles opens the details of the session's darts. Screen readers read every tile.
 - **Most hit beds:** the top five, with count and share: of the session's darts, or of the hits a player's profile counted.
@@ -129,7 +130,7 @@ highlight_color: "#00e5ff"
 | --- | --- | --- | --- |
 | `device_id` | device | first board | The board to show |
 | `title` | text | *Training · board name* | Card title |
-| `mode` | `beds`, `numbers`, `positions` | `beds` | Heatmap per bed, per number or of the dart positions |
+| `mode` | `beds`, `numbers`, `positions`, `aim` | `beds` | Heatmap per bed, per number, of the dart positions or of where to aim |
 | `player` | text | the session | A player name: the heatmap starts with that player's darts. The editor lists the named players and takes any other name |
 | `board_style` | `muted`, `classic`, `autodarts` | `muted` | The muted board lets the heatmap stand out |
 | `history_size` | 5–60 | `20` | Visits in the chart; labels are shown up to 30 |

@@ -1,0 +1,16 @@
+flowchart TB
+  accTitle: How the aim map comes about
+  accDescr: The logged darts of a player that were aimed at a treble become offsets from the center of their treble, in the directions of the board. From 30 of them, the error model is their mean offset and spread, without the darts that lie beyond 99 % of a normal spread. Home Assistant searches the aim point with the most points per dart, for the player profile and the cards; in the browser, the training card computes the points per dart of every aim point and draws the map with the best aim.
+  DARTS["Darts aimed at a treble<br/>of the last 1000"] --> OFFSETS["Offsets from the<br/>center of the treble,<br/>x right, y up"]
+  OFFSETS --> ENOUGH{"At least 30?"}
+  ENOUGH -- "no" --> HINT["The card says how<br/>many are missing"]
+  ENOUGH -- "yes" --> MODEL["Error model:<br/>mean offset, spread<br/>and correlation,<br/>without the darts<br/>beyond 99 %"]
+  MODEL --> SEARCH["Home Assistant:<br/>the best aim on<br/>a 2 mm grid,<br/>1000 draws"]
+  SEARCH --> PROFILE["best_aim and<br/>expected_ppd in<br/>the player profile"]
+  MODEL --> WORKER["Training card:<br/>the points per dart<br/>of every aim point,<br/>in a Web Worker"]
+  SEARCH --> MAP["The aim map:<br/>the best aim against<br/>the treble 20, the<br/>treble 19 and the bull"]
+  WORKER --> MAP
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class PROFILE,MAP done
+  class HINT warn

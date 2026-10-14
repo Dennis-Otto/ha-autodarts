@@ -95,6 +95,12 @@ def _day(value: object) -> date | None:
         return None
 
 
+def _aim(log: DartLog) -> dict[str, Any]:
+    """The error model of the aim map with the best aim, for the cards."""
+    best = log.best_aim()
+    return {**log.aim_model(), **({"best": best} if best else {})}
+
+
 def _profile_counts(profiles: Profiles) -> dict[str, list[int]]:
     """The lifetime numbers of every profile that weeks collect."""
     counts = {}
@@ -535,6 +541,7 @@ class Progress:
         player = self.players.get(_key(name))
         if player is None:
             return {}
+        best = player.log.best_aim()
         return {
             "darts_thrown": player.counters["darts"],
             "maximums": player.counters["maximums"],
@@ -542,6 +549,8 @@ class Progress:
             "best_streak": player.best_streak,
             "hits": dict(sorted(player.hits.items())),
             "spread": player.log.spread(),
+            "best_aim": best["bed"] if best else None,
+            "expected_ppd": round(best["expected"], 1) if best else None,
             "trend": player.trend(today),
         }
 
@@ -572,13 +581,15 @@ class Progress:
         }
 
     def positions(self, name: str | None = None) -> dict[str, Any]:
-        """The logged positions and their grouping, of a player or the session."""
+        """The logged positions, their grouping and the error model of the aim
+        map, of a player or the session."""
         if not name or not name.strip():
             return {
                 "player": None,
                 "known": True,
                 "positions": self.session.positions(),
                 "spread": self.session.spread(),
+                "aim": _aim(self.session),
             }
         player = self.players.get(_key(name))
         log = player.log if player else DartLog(0)
@@ -587,4 +598,5 @@ class Progress:
             "known": player is not None,
             "positions": log.positions(),
             "spread": log.spread(),
+            "aim": _aim(log),
         }

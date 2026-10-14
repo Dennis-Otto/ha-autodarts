@@ -542,7 +542,8 @@ def practice(browser: Browser) -> None:
 
 
 def progress(browser: Browser) -> None:
-    """Badges, trends, the positions heatmap and the leaderboard after the practice games."""
+    """Badges, trends, the positions heatmap, the aim map and the leaderboard after the
+    practice games."""
     page, problems = open_view(browser, "players", PLAYERS_CARDS, ".profile")
     page.wait_for_function(
         f"() => ({PLAYERS_CARDS})()[0].shadowRoot.querySelector('.badges-section:not([hidden])')",
@@ -576,6 +577,14 @@ def progress(browser: Browser) -> None:
     )
     page.wait_for_function(
         f"() => ({TRAINING_CARDS})()[0].shadowRoot.querySelectorAll('.heat-layer .position').length > 0",
+        timeout=15000,
+    )
+    # Alex's aim map, from the worker of the card, or how many darts at a treble it needs.
+    page.locator("autodarts-training-card button[data-mode='aim']").click()
+    page.wait_for_function(
+        f"() => {{ const root = ({TRAINING_CARDS})()[0].shadowRoot;"
+        " return root.querySelector('.heat-layer .aim-best')"
+        " || root.querySelector('.heat .groups:not([hidden]) .empty-hint'); }",
         timeout=15000,
     )
     errors = page_errors(page, problems)

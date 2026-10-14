@@ -4,6 +4,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### New
+
+- **Where to aim, from your own spread:** the heatmap of the training card has a fourth mode, *Aim*, that shows where on the board you score the most points per dart with the spread of your own darts. The treble 20 pays only when your darts land close together: from a spread of about 17 mm the treble 19 scores more, and with a wide spread a spot left of the bull, as Tibshirani, Price and Taylor showed in *A statistician plays darts*. From 30 darts aimed at a treble, the map colors every spot of the board by the points per dart you would score aiming there, rings the best aim and compares it with the treble 20, the treble 19 and the bull; with fewer darts it says how many are missing. The player profile has the best aim and its points per dart as `best_aim` and `expected_ppd`, for automations and Assist. The browser draws the map beside the page, in a worker of its own, and Home Assistant only searches the best aim, in some 20 milliseconds per change of your spread ([where to aim](docs/statistics.md#where-to-aim)).
+
 ### Fixed
 
 - **The local checks pass after a preview of the website:** once you had set up the preview of the website as the contributing guide describes, or built the website, `bash scripts/check.sh` failed with thousands of ESLint errors, because ESLint checked the JavaScript of MkDocs in `.venv-docs/` and the scripts that the build of the website keeps in `.cache/`. ESLint now skips every folder that Git ignores, and still checks every JavaScript file that Git keeps (#282, #284).

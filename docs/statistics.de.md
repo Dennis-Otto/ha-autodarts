@@ -6,13 +6,13 @@ Jeder Dart, den das Board erkennt, wird in Home Assistant zu einer Zahl: dein 3-
 
 <img src="images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards: die Trainingskarte mit 3-Dart-Average, Trefferbild, Statistik, Bestleistungen und letzten Aufnahmen, die Doubles-Karte und die Grafiken der Darts pro Tag und des 3-Dart-Averages" width="760">
 
-**Auf dieser Seite:** [Wo du was findest](#wo-du-was-findest) · [Trainingssessions](#trainingssessions) · [Bestleistungen, Serie und Tagesziel](#bestleistungen-serie-und-tagesziel) · [Trefferbild und Dart-Positionen](#trefferbild-und-dart-positionen) · [Fortschritt über die Zeit](#fortschritt-über-die-zeit) · [Doppelanalyse](#doppelanalyse) · [Spielerprofile](#spielerprofile) · [Erfolge](#erfolge) · [Trends und Streuung](#trends-und-streuung) · [Bestenliste](#bestenliste) · [Spieler und Personen](#spieler-und-personen) · [Wochenbericht](#wochenbericht) · [Trainingskalender](#trainingskalender) · [Export](#export) · [Deine Daten](#deine-daten)
+**Auf dieser Seite:** [Wo du was findest](#wo-du-was-findest) · [Trainingssessions](#trainingssessions) · [Bestleistungen, Serie und Tagesziel](#bestleistungen-serie-und-tagesziel) · [Trefferbild und Dart-Positionen](#trefferbild-und-dart-positionen) · [Wohin zielen](#wohin-zielen) · [Fortschritt über die Zeit](#fortschritt-über-die-zeit) · [Doppelanalyse](#doppelanalyse) · [Spielerprofile](#spielerprofile) · [Erfolge](#erfolge) · [Trends und Streuung](#trends-und-streuung) · [Bestenliste](#bestenliste) · [Spieler und Personen](#spieler-und-personen) · [Wochenbericht](#wochenbericht) · [Trainingskalender](#trainingskalender) · [Export](#export) · [Deine Daten](#deine-daten)
 
 ## Wo du was findest
 
 | Wo | Was es zeigt |
 | --- | --- |
-| [Trainingskarte](cards.de.md#trainingskarte) | Die laufende Session: 3-Dart-Average, Trefferbild nach Feldern, Zahlen oder Dart-Positionen für die Session oder jeden Spieler, Statistik, Bestleistungen, letzte Aufnahmen und vergangene Sessions |
+| [Trainingskarte](cards.de.md#trainingskarte) | Die laufende Session: 3-Dart-Average, Trefferbild nach Feldern, Zahlen oder Dart-Positionen für die Session oder jeden Spieler, die Zielkarte, Statistik, Bestleistungen, letzte Aufnahmen und vergangene Sessions |
 | [Spielerkarte](cards.de.md#spielerkarte) | Statistik und Bestleistungen jedes Spielers mit Namen, Abzeichen, Wochentrends und Streuung, direkte Vergleiche, letzte Matches und der Export |
 | [Bestenliste](cards.de.md#bestenliste) | Die Rekorde aller Spieler, insgesamt, in den letzten vier Wochen oder in dieser Woche |
 | [Doubles-Karte](cards.de.md#doubles-karte) | Die Quote jedes Doubles, für alle oder einen Spieler |
@@ -65,11 +65,12 @@ Home Assistant behält den besten Wert jeder Bestleistung und meldet `personal_b
 
 <img src="images/de/heatmap-modes.webp" alt="Animation: Das Trefferbild der Trainingskarte wechselt von Feldern zu Zahlen und den Dart-Positionen der Session, dann zu den Positionen und Feldern von Alex" width="620">
 
-Das Trefferbild der Trainingskarte hat drei Modi, die die Umschalter über der Scheibe wählen:
+Das Trefferbild der Trainingskarte hat vier Modi, die die Umschalter über der Scheibe wählen:
 
 - **Felder:** jedes Feld danach eingefärbt, wie oft du es getroffen hast, von Blau (selten) bis Rot (am häufigsten). Fahre mit der Maus über ein Feld für Anzahl und Anteil.
 - **Zahlen:** Single, Double und Triple jeder Zahl zusammengefasst; das zeigt auf einen Blick, ob du zur 5 oder zur 1 abdriftest.
 - **Positionen:** wo die Darts wirklich gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte mit den neuesten 300 Darts als Punkten und unter der Scheibe die [Streuung](#trends-und-streuung) an bis zu drei Feldern, auf die du gezielt hast. Bei der Session erscheinen die Darts der aktuellen Aufnahme sofort als blaue Pins; beim Ziehen gehen sie in die gespeicherten Darts über. Ein Dart neben der Scheibe samt Zahlenring wird nicht gezeichnet.
+- **Zielpunkt:** wo du mit deiner eigenen Streuung die meisten Punkte pro Dart machst, siehe [Wohin zielen](#wohin-zielen).
 
 <img src="images/de/training-live-positions.png" alt="Die Dart-Positionen der Session: eine Dichte um die 20 und das Bull, dazu die drei Darts der aktuellen Aufnahme, T20, S5 und das Bullseye, als blaue Pins" width="620">
 
@@ -81,6 +82,38 @@ Der zweite Umschalter wählt, wessen Darts es zeigt: die laufende Session oder e
 type: custom:autodarts-training-card
 mode: positions
 player: Alex
+```
+
+## Wohin zielen
+
+Die Triple 20 bringt nur dann die meisten Punkte, wenn deine Darts eng beieinander landen. Je weiter sie streuen, desto mehr kostet ein Fehlwurf neben der 20, wo die 1 und die 5 liegen, und desto besser ist ein Punkt, dessen Felder ringsum mehr wert sind: die Triple 19 mit der 7 und der 16 daneben und bei weiter Streuung ein Punkt links vom Bull. Tibshirani, Price und Taylor haben das in *A statistician plays darts* (Journal of the Royal Statistical Society, Series A 174, 2011) ausgerechnet; die Zielkarte rechnet es mit deinen eigenen Darts.
+
+<img src="images/de/training-aim.png" alt="Die Zielkarte von Alex: die Scheibe von Blau bis Rot nach den Punkten pro Dart an jedem Zielpunkt eingefärbt, am hellsten um die Triple 19, mit einem Ring am besten Zielpunkt; darunter der beste Zielpunkt, T19 mit 18,3 Punkten pro Dart, gegen die Triple 20 mit 17,3 und das Bull mit 15,7, und die Streuung, aus der sie stammt" width="620">
+
+- **Aus deinen Darts:** Die Karte braucht 30 Darts, die du auf ein Triple geworfen hast, unter deinen letzten 1000 gespeicherten Darts. In X01 zielt jeder Dart einer Aufnahme zum Punkten auf die Triple 20; Checkout-Wege zielen auf andere Triples. Bis dahin sagt die Karte, wie viele Darts noch fehlen.
+- **Die Karte:** jede Stelle der Scheibe nach den Punkten pro Dart eingefärbt, die du machst, wenn du dorthin zielst, von 60 % des Besten (Blau) bis zum Besten (Rot). Ein Ring markiert den besten Zielpunkt.
+- **Unter der Scheibe:** der beste Zielpunkt mit seinen Punkten pro Dart, die Punkte pro Dart der Triple 20, der Triple 19 und des Bulls mit dem, was sie weniger bringen, und die Streuung, aus der die Karte stammt: seitlich, in der Höhe und wo deine Darts im Mittel landen.
+- **Für die Session oder einen Spieler,** wie der zweite Umschalter es wählt.
+
+| Streuung (Standardabweichung) | Bester Zielpunkt bei runder Streuung |
+| --- | --- |
+| bis etwa 16 mm | die Triple 20 |
+| etwa 17 bis 30 mm | die Triple 19 |
+| ab etwa 35 mm | die inneren Singles links unterhalb des Bulls, um die 7, 16 und 8, umso näher am Bull, je weiter die Streuung |
+
+Eine Streuung nach oben und unten hält die 20 länger als eine zur Seite, und Darts, die im Mittel zu tief landen, zielst du am besten um so viel höher. [Wie die Zielkarte gerechnet wird](how-it-works.de.md#zielkarte).
+
+```yaml
+type: custom:autodarts-training-card
+mode: aim
+player: Alex
+```
+
+Das Spielerprofil hat den besten Zielpunkt als `best_aim`, etwa `T19`, und seine Punkte pro Dart als `expected_ppd`, für Automationen und Assist. Der beste Zielpunkt von Alex in einem Template:
+
+```jinja
+{{ state_attr('sensor.autodarts_board_player_profiles', 'players')
+   | selectattr('name', 'eq', 'Alex') | map(attribute='best_aim') | first }}
 ```
 
 ## Fortschritt über die Zeit

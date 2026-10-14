@@ -1,0 +1,16 @@
+flowchart TB
+  accTitle: Wie die Zielkarte entsteht
+  accDescr: Die gespeicherten Darts eines Spielers, die auf ein Triple gezielt waren, werden zu Abweichungen von der Mitte ihres Triples, in den Richtungen der Scheibe. Ab 30 davon ist das Fehlermodell ihre mittlere Abweichung und Streuung, ohne die Darts jenseits von 99 % einer Normalverteilung. Home Assistant sucht den Zielpunkt mit den meisten Punkten pro Dart, für das Spielerprofil und die Karten; im Browser berechnet die Trainingskarte die Punkte pro Dart jedes Zielpunkts und zeichnet die Karte mit dem besten Zielpunkt.
+  DARTS["Darts auf ein Triple<br/>aus den letzten 1000"] --> OFFSETS["Abweichung von<br/>der Mitte des Triples,<br/>x rechts, y oben"]
+  OFFSETS --> ENOUGH{"Mindestens 30?"}
+  ENOUGH -- "nein" --> HINT["Die Karte sagt,<br/>wie viele fehlen"]
+  ENOUGH -- "ja" --> MODEL["Fehlermodell:<br/>mittlere Abweichung,<br/>Streuung und<br/>Korrelation, ohne die<br/>Darts jenseits 99 %"]
+  MODEL --> SEARCH["Home Assistant:<br/>der beste Zielpunkt<br/>im 2-mm-Raster,<br/>1000 Würfe"]
+  SEARCH --> PROFILE["best_aim und<br/>expected_ppd im<br/>Spielerprofil"]
+  MODEL --> WORKER["Trainingskarte:<br/>die Punkte pro Dart<br/>jedes Zielpunkts,<br/>in einem Web Worker"]
+  SEARCH --> MAP["Die Zielkarte:<br/>der beste Zielpunkt<br/>gegen die Triple 20,<br/>die Triple 19<br/>und das Bull"]
+  WORKER --> MAP
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class PROFILE,MAP done
+  class HINT warn

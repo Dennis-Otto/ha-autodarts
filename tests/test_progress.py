@@ -1,5 +1,6 @@
 """Progress of named players: visits, legs, training games, weeks, streaks and badges."""
 
+import random
 from datetime import UTC, datetime, timedelta
 
 from custom_components.autodarts.achievements import ACHIEVEMENTS, CATALOGUE
@@ -14,7 +15,7 @@ from custom_components.autodarts.progress import (
 )
 
 from .local_helpers import dart
-from .test_positions import around
+from .test_positions import around, normal
 
 # A Wednesday; its week starts on Monday, 21 September.
 NOW = datetime(2026, 9, 23, 20, 0, tzinfo=UTC)
@@ -177,7 +178,36 @@ def test_positions_and_aims_make_the_grouping():
         "known": False,
         "positions": [],
         "spread": [],
+        "aim": {"darts": 0, "needed": 30},
     }
+    # Twelve darts at the treble 20 are not enough for the aim map.
+    summary = progress.summary("Alex", NOW.date())
+    assert (summary["best_aim"], summary["expected_ppd"]) == (None, None)
+    assert positions["aim"] == {"darts": 12, "needed": 30}
+
+
+def test_darts_at_the_trebles_make_the_aim_map():
+    """Scoring visits aim at the treble 20; from 30 darts, the profile knows where
+    the player scores the most, and so do the cards."""
+    game, progress = practice(1001, "Alex"), Progress()
+    scatter = normal(random.Random(4), ["T20"], 36, sd=(22, 22))
+    for start in range(0, 36, 3):
+        play(
+            game,
+            progress,
+            "S20",
+            "S20",
+            "S20",
+            positions=[(x, y) for x, y, _ in scatter[start : start + 3]],
+        )
+    summary = progress.summary("Alex", NOW.date())
+    aim = progress.positions("Alex")["aim"]
+    assert aim["darts"] == 36 and aim["best"]["bed"] == summary["best_aim"]
+    assert summary["expected_ppd"] == round(aim["best"]["expected"], 1)
+    assert 10 < summary["expected_ppd"] < 25
+    assert set(aim["best"]["compared"]) == {"T20", "T19", "BULL"}
+    # The session's darts have their aim map too.
+    assert progress.positions()["aim"]["best"] == aim["best"]
 
 
 def test_cricket_nine_marks_and_a_hat_trick():

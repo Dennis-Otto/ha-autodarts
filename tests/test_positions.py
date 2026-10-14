@@ -1,10 +1,14 @@
-"""Aimed beds, dart positions and the grouping around a bed, with synthetic scatter."""
+"""Aimed beds, dart positions, the grouping around a bed and the error model of the
+aim map, with synthetic scatter."""
 
 import math
 import random
+from copy import deepcopy
 
 import pytest
 
+from custom_components.autodarts import positions
+from custom_components.autodarts.aim import MIN_DARTS, ErrorModel
 from custom_components.autodarts.checkout import checkout
 from custom_components.autodarts.positions import (
     AIMS,
@@ -12,7 +16,9 @@ from custom_components.autodarts.positions import (
     GROUPS,
     MIN_GROUP,
     DartLog,
+    aim_model,
     aim_point,
+    error_model,
     spread,
     x01_aims,
 )
@@ -240,3 +246,120 @@ def test_the_log_works_out_its_grouping_once_per_dart():
     assert log.spread()[0]["darts"] == MIN_GROUP
     log.add((0.0, 0.6), "T20")
     assert log.spread()[0]["darts"] == MIN_GROUP + 1
+
+
+def normal(
+    generator: random.Random,
+    aims: list[str],
+    count: int,
+    offset=(0.0, 0.0),
+    sd=(20.0, 20.0),
+    correlation=0.0,
+):
+    """Darts scattered normally around the centres of beds, in the board's directions."""
+    darts = []
+    for index in range(count):
+        first, second = generator.gauss(0, 1), generator.gauss(0, 1)
+        dx = offset[0] + sd[0] * first
+        dy = offset[1] + sd[1] * (
+            correlation * first + math.sqrt(1 - correlation**2) * second
+        )
+        darts.append(around(aims[index % len(aims)], dx, dy))
+    return darts
+
+
+def test_the_aim_model_needs_darts_at_a_treble():
+    darts = [*ring("T20", 5, MIN_DARTS - 1), *ring("D16", 5, 40), *ring("BULL", 5, 40)]
+    darts += [(x, y, None) for x, y, _ in ring("T19", 5, 40)]
+    assert aim_model(darts) == {"darts": MIN_DARTS - 1, "needed": MIN_DARTS}
+    assert error_model(aim_model(darts)) is None
+    model = aim_model([*darts, *ring("T5", 5, 1)])
+    assert model["darts"] == MIN_DARTS
+    assert error_model(model) == ErrorModel(0.0, 0.0, 3.5, 3.5, 0.0)
+
+
+def test_the_aim_model_pools_every_treble_in_the_board_directions():
+    """A miss to the left stays one to the left at the treble 3, 6 and 11 too."""
+    generator = random.Random(5)
+    trebles = [f"T{number}" for number in (20, 3, 6, 11, 19)]
+    darts = normal(generator, trebles, 3000, (-6, 3), (12, 24), 0.3)
+    model = aim_model(darts)
+    assert model["darts"] == 3000
+    assert model["offset_x"] == pytest.approx(-6, abs=1)
+    assert model["offset_y"] == pytest.approx(3, abs=1.5)
+    assert model["sd_x"] == pytest.approx(12, rel=0.05)
+    assert model["sd_y"] == pytest.approx(24, rel=0.05)
+    assert model["correlation"] == pytest.approx(0.3, abs=0.05)
+    # Half millimetres and twentieths, which a new dart mostly leaves as they are.
+    assert all((model[key] * 2).is_integer() for key in ("offset_x", "sd_x", "sd_y"))
+    assert (model["correlation"] * 20) == pytest.approx(
+        round(model["correlation"] * 20)
+    )
+
+
+def test_darts_aimed_elsewhere_do_not_widen_the_model():
+    """A player who goes for the treble 19 in a scoring visit, which the game takes
+    for one at the treble 20, keeps their own spread."""
+    generator = random.Random(8)
+    darts = normal(generator, ["T20"], 300)
+    elsewhere = normal(generator, ["T19"], 30)
+    darts += [(x, y, "T20") for x, y, _ in elsewhere]
+    model = aim_model(darts)
+    assert model["darts"] == 330
+    assert model["sd_x"] == pytest.approx(20, rel=0.12)
+    assert model["sd_y"] == pytest.approx(20, rel=0.12)
+    assert abs(model["offset_x"]) < 4 and abs(model["offset_y"]) < 4
+    # All of them would make it twice as wide up and down.
+    xs, ys = zip(*((x * 170, y * 170) for x, y, _ in darts), strict=True)
+    mean = sum(ys) / len(ys)
+    assert math.sqrt(sum((y - mean) ** 2 for y in ys) / len(ys)) > 50
+
+
+def test_the_aim_model_never_collapses():
+    # Every dart on one spot: the spread is half a millimetre.
+    spot = [around("T20", 2, -1)] * MIN_DARTS
+    assert aim_model(spot) | {"darts": 0} == {
+        "darts": 0,
+        "needed": MIN_DARTS,
+        "offset_x": 2.0,
+        "offset_y": -1.0,
+        "sd_x": 0.5,
+        "sd_y": 0.5,
+        "correlation": 0.0,
+    }
+    # Darts on a line: the correlation stops short of one.
+    line = [around("T20", step, step) for step in range(-20, 20)]
+    model = aim_model(line)
+    assert model["correlation"] == 0.95
+    assert model["sd_x"] == model["sd_y"] > 5
+
+
+def test_the_log_searches_the_best_aim_only_for_a_new_model(monkeypatch):
+    log = DartLog(1000)
+    assert log.aim_model() == {"darts": 0, "needed": MIN_DARTS}
+    assert log.best_aim() is None
+    for x, y, aim in normal(random.Random(2), ["T20"], 200):
+        log.add((x, y), aim)
+    searched = []
+    original = positions.best_aim
+    monkeypatch.setattr(
+        positions, "best_aim", lambda model: searched.append(model) or original(model)
+    )
+    best = log.best_aim()
+    assert best["bed"] == "T19" and set(best["compared"]) == {"T20", "T19", "BULL"}
+    best["compared"]["T20"] = 0
+    # Darts at a double leave the model, and the best aim, as they were.
+    for _ in range(2):
+        log.add(around("D16", 3, 4)[:2], "D16")
+    assert len(log) == 202
+    assert log.best_aim()["compared"]["T20"] > 0
+    assert len(searched) == 1
+    copy = deepcopy(log)
+    assert copy.best_aim() == log.best_aim() and len(searched) == 1
+    for _ in range(2):
+        log.add(around("T20", 30, -30)[:2], "T20")
+    assert log.aim_model()["darts"] == 202
+    log.best_aim()
+    assert len(searched) == 2
+    log.clear()
+    assert log.best_aim() is None

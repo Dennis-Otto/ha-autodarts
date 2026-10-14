@@ -162,7 +162,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 
 - [Spiele und Regeln](games.de.md): alle Spiele im Überblick, vier Wege, eines zu starten, Matches, Teams, Handicaps, das Ausbullen, die Match-Zusammenfassung, Turniere und die Regeln von X01, den Cricket-Spielen, den Partyspielen und den Trainingsspielen
 - [Anzeigetafel am Board](scoreboard.de.md): ein Tablet oder Fernseher neben dem Board: Einrichtung, Quer- und Hochformat, Spielauswahl, Turniere, Caller und Ruhemodus
-- [Statistik und Spieler](statistics.de.md): Trainingssessions, Bestleistungen, Trefferbild und Dart-Positionen, Fortschritt über die Zeit, Doubles, Spielerprofile, Erfolge, Trends, Bestenliste, Wochenbericht, Trainingskalender und Exporte
+- [Statistik und Spieler](statistics.de.md): Trainingssessions, Bestleistungen, Trefferbild und Dart-Positionen, wohin zielen, Fortschritt über die Zeit, Doubles, Spielerprofile, Erfolge, Trends, Bestenliste, Wochenbericht, Trainingskalender und Exporte
 - [Automationen](automations.de.md): dreizehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele
 - [Online-Matches](online-matches.de.md): Überwerfen, gewonnene Legs und Matches von Online-Matches als Board-Ereignisse, mit der Browser-Erweiterung Tools for Autodarts *(experimentell)*
 
