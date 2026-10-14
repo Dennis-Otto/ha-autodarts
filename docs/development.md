@@ -77,22 +77,25 @@ A card on a dashboard runs timers: the countdown to the next match of a tourname
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/card-timers-dark.png">
-  <img src="images/en/card-timers-light.png" alt="The timers of a card and the page: Home Assistant hands a card new states. A card on the page starts what it needs, such as the countdown of a tournament, the time a summary shows, idle mode and the history stream; a card that left the page starts nothing. Leaving the page stops every timer and the stream, and a card that comes back is updated and starts them again. After the tests of a file, a timer that still runs fails the file with its name and what the timer calls, and stops." width="560">
+  <img src="images/en/card-timers-light.png" alt="The timers of a card and the page: Home Assistant hands a card new states. A card on the page starts what it needs, such as the countdown of a tournament, the time a summary shows, idle mode and the history stream; a card that left the page starts nothing. Leaving the page stops every timer and the stream, and a card that comes back is updated and starts them again. In npm test, the cards of a test leave the page when it ends; a timer that still runs then fails the test with its name and what the timer calls, and stops." width="560">
 </picture>
 
 `npm test` holds every card to that:
 
-- `tests/frontend/dom.mjs` follows the real timers that the cards and the tests set. A timer that still runs once the tests of a file are done and their cards left the page would keep the file running for ever. Instead, the timer stops and the file fails with its name and what the timer calls:
+- `tests/frontend/dom.mjs` follows the real timers that the cards and the tests set. When a test ends, its mocked timers end and its cards leave the page, so the next test starts with no card and no timer of it. A timer that still runs then would keep the file running for ever. Instead, the timer stops and the test fails with its name and what the timer calls:
 
   ```text
-  ✖ tests/frontend/dom.mjs
-    Error: tournament.test.mjs left 1 timer running after its cards left the page:
+  ✖ a scoreboard of a waiting tournament counts down with real timers
+    Error: The test "a scoreboard of a waiting tournament counts down with real timers" left 1 timer running after its cards left the page:
     setInterval(() => this._update(), 1000)
   ```
 
+  Cards that a file puts on the page outside its tests leave after its last test, and the file fails the same way with its name.
 - A test that never ends fails after 60 seconds with its name (`--test-timeout=60000` in `package.json`), and the other files still run.
 
 Mocked timers (`context.mock.timers`) end with their test and do not count. To check that a card starts no timer, a test compares `timers()` of `dom.mjs` before and after, as *a scoreboard that left the page starts no countdown and no timer of the tournament* in `tests/frontend/tournament.test.mjs` does.
+
+The cards of a test leave the page with it because a card that stayed made `npm test` fail at random on a slow machine (#106). The countdown of a waiting tournament redrew a card of an earlier test every second, also while a later test mocked `setTimeout`. The card then cleared its idle timer with the mock, which clears nothing, so the real timer ran on after the cards had left the page. `dom.mjs` ends the mocks before the cards leave, so they clear their real timers with the real `clearTimeout`.
 
 ## Docker end-to-end test
 
@@ -378,6 +381,52 @@ oldest Home Assistant of `e2e.yml`, `OLDEST_HOME_ASSISTANT` of the scenario and 
 browser jobs, differs from that of `hacs.json`.
 `tests/test_e2e_workflow.py` runs the steps of *changes* and of the gate in bash,
 with a stand-in for `gh`.
+
+### Network of the jobs
+
+Every job begins with [Harden-Runner](https://github.com/step-security/harden-runner).
+In the project's own workflows, the end-to-end tests, the visual check and its comment,
+the screenshot bot and the translation bot, it blocks every host that the steps of the
+job don't need (`egress-policy: block`), so that a compromised action, package or test
+can't send a token or data anywhere else. A job that starts no container also runs
+without sudo and Docker, so that no step can lift the block. Harden-Runner allows
+GitHub's own services of Actions itself, such as the storage of artifacts and caches.
+
+| Jobs | Hosts | What for |
+| --- | --- | --- |
+| translation bot, *pull request* of the screenshot bot | `api.github.com`, `github.com` | They may write issues and branches, so they reach GitHub alone. |
+| comment of the visual check | `api.github.com` | It reads the reports of the check and writes the comment, nothing else. |
+| *changes* of the end-to-end tests | `api.github.com` | the files of the pull request |
+| *scenario* | `github.com`, `ghcr.io`, `pkg-containers.githubusercontent.com` | the code and the Home Assistant image |
+| *browser* and the nightly beta | the same, `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org` | the Playwright image, axe-core and the Python packages of the browser test |
+| *render* of the visual check and of the screenshot bot | as *browser* without npm, and `launchpad.net`, `launchpadlibrarian.net`, `brands.home-assistant.io` | pngquant, and the icons of Home Assistant's other integrations, which the images show |
+| *compare* and *collect* | `github.com`, `pypi.org`, `files.pythonhosted.org` | Pillow for the comparison |
+| the gate *e2e* | none | It only reads the results of the other jobs. Its run shows the warning that both `allowed-endpoints` and `denied-endpoints` are empty: that is expected, because an empty list blocks every host apart from GitHub's services of Actions. |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/job-network-dark.png">
+  <img src="images/en/job-network-light.png" alt="Which hosts the jobs reach: Harden-Runner, the first step of every job of the project's own workflows, lets a job reach only the hosts it lists. The bots that may write, the translation bot, the pull request of the screenshot bot and the comment of the visual check, reach GitHub alone and run without sudo and Docker. The end-to-end tests and the images reach the code, the images of Home Assistant and Playwright and their packages. The Home Assistant they start has no Radio Browser and calls nothing on the internet, apart from the icons that the images show. Every other host is blocked, and the log of the job's last step names it." width="640">
+</picture>
+
+The Home Assistant of the tests calls nothing on the internet itself. Its onboarding
+sets up Radio Browser, which looks up radio stations on the internet as soon as it
+starts, before a test could remove it. So `tests/e2e/offline/radio_browser` takes its
+place as a custom integration in the container, and its config flow turns the offer
+down; the scenario checks that no entry of Radio Browser exists. Only the demo of the
+images loads the icons of the built-in integrations that the integrations page shows,
+through Home Assistant's own proxy from its CDN.
+
+A host that a job doesn't list fails its step with an error such as a failed DNS lookup
+or a refused connection. The host itself appears as `domain not allowed: <host>` in the
+log of the job's last step, *Post Block every host that the job doesn't need*, and on
+the page of StepSecurity's insights that Harden-Runner links in its first step. A new host goes into `allowed-endpoints` of the job together with the step
+that needs it, with a comment that says why, and into `tests/test_workflow_network.py`.
+That test fails for a job of these workflows that it doesn't know, a host that a job
+doesn't need, a job back in audit mode, a job without containers that keeps sudo, and a
+job that may write and reaches more than GitHub. Harden-Runner filters the addresses of
+the runner and of Docker's default network; the containers of the Compose networks get
+their addresses from its DNS, which resolves only the hosts of the job. The
+workflows that the blueprint keeps follow its own rules.
 
 ### Mutation tests
 

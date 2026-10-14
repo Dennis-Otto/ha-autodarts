@@ -114,7 +114,7 @@ Every game brings a screen of its own:
 
 - **A visit noticed too late:** after the takeout, the tile *Last* beside the darts shows the last visit with a curved arrow; a tap on it and a second one on the red *Undo?* take it back. Correct its darts, then end it with *Next player*.
 - **Darts entered by hand:** for darts the board missed, or a player without cameras, switch on *Practice manual entry* and the card's `keypad` option. The keypad enters every tapped bed as a dart; *Next player* ends the visit. On a landscape screen, the pad and the keypad sit beside the scores, so both fit the screen. A [dartboard without Autodarts](without-autodarts.md) has the keypad without either.
-- **The score of a visit:** in X01, *Score* at the top of the keypad takes a visit as its score, such as 140, with **OK**; a checkout asks for its darts and the darts at a double. [How it counts](without-autodarts.md#enter-your-darts).
+- **The score of a visit:** in X01, *Score* at the top of the keypad takes a visit as its score, such as 140, with **OK**; a checkout asks for its darts and the darts at a double. With a keyboard, type the score and press Enter, and a digit answers a question; the pad keeps the keys for the next visit. [How it counts](without-autodarts.md#enter-your-darts).
 - **What you see:** a pencil marks every dart that a tap corrects; darts entered or corrected by hand get a dashed frame, and the bot's darts a tint of the accent color.
 
 <img src="images/en/scoreboard-keypad.png" alt="The scoreboard with the keypad: Alex has entered T20 and S19 by hand, marked with dashed frames; below, S, D and T, the numbers 1 to 20, 25, Bull, Miss and Next player" width="760">
@@ -154,6 +154,8 @@ It calls only what counts, in the language of the screen's user: English, German
 - **Checkout training, 121 checkout and Catch 40:** what the next attempt requires.
 - **Tournaments:** every match as it starts, "Next match: Alex against Sam", and the winner of the tournament.
 - Darts after a bust or a game shot are not called. Killer, Golf and the other training games get no score calls.
+
+A screen that was away, on another view or without its connection to Home Assistant, calls and celebrates nothing that happened meanwhile, such as a match that ended in the minutes before; it calls the game again from its return.
 
 `call_scores`, `call_checkouts`, `call_results` and `call_sounds` switch each kind of call on or off. Which voice speaks depends on the browser and the operating system: offline voices of the operating system keep the calls in your home; some browsers use online voices that send the text to their provider. For speakers in the room, use the [dart caller and practice caller blueprints](automations.md#which-caller) instead.
 

@@ -812,12 +812,16 @@ test("the new game screen starts a tournament of up to eight players", () => {
       ["Knockout", "false"],
     ]
   );
+  // A tournament plays straight or double in and out, with no bull mode or round limit.
   assert.deepEqual(options(card).slice(2), [
-    ["double_out", "true"],
-    ["double_in", "false"],
+    ["straight", "true"],
+    ["double", "false"],
+    ["straight", "false"],
+    ["double", "true"],
     ["bull_off", "false"],
     ["random_draw", "false"],
   ]);
+  assert.equal($(card, '[data-lobby="max_rounds"]'), null);
   lobbyTap(card, "format", "knockout");
   lobbyTap(card, "toggle", "third_place");
   lobbyTap(card, "toggle", "random_draw");
@@ -941,6 +945,22 @@ function typeName(card, name) {
   input.dispatchEvent(new window.Event("input", { bubbles: true }));
   lobbyTap(card, "add-name");
 }
+
+// The cards of a test leave the page when it ends. A scoreboard of a waiting tournament that
+// stayed counted down into the next tests: when its countdown redrew it while the next test
+// mocked setTimeout, it cleared its idle timer with the mock, which clears nothing, and the
+// real timer ran on after the cards had left the page (#106).
+test("a scoreboard of a waiting tournament counts down with real timers", () => {
+  const { card } = setup({ ...tournament({ pause: 0, next_at: null }), ...practice(["Kim", "Sam"], 2) });
+  assert.notEqual(card._tournamentTick, null);
+  // The countdown and the idle timer.
+  assert.equal(timers(), 2);
+});
+
+test("the next test starts without the cards and the timers of the one before", () => {
+  assert.equal(document.body.childElementCount, 0);
+  assert.equal(timers(), 0);
+});
 
 test("a new tournament stops the one being played first, after a second tap", async (context) => {
   context.mock.timers.enable({ apis: ["setTimeout"] });

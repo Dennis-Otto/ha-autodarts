@@ -17,7 +17,7 @@ from custom_components.autodarts.cricket import (
 )
 from custom_components.autodarts.practice import PracticeGame, VisitRefused
 from custom_components.autodarts.profiles import clean_name, valid_name
-from custom_components.autodarts.scoring import SCORE_BEDS, score
+from custom_components.autodarts.scoring import DOUBLE, SCORE_BEDS, STRAIGHT, score
 
 from .local_helpers import dart, throw
 from .test_party import game_of, kinds
@@ -79,7 +79,7 @@ def test_the_bull_off_dart_does_not_begin_the_leg():
     game.track([dart("BULL")], [(0.0, 0.0)])
     # Double out still changes the leg at once.
     game.set_option("double_out", False)
-    assert game.double_out is False and game.double_out_next is None
+    assert game.double_out is False and game.out_mode_next is None
 
 
 # -- teams ------------------------------------------------------------------------
@@ -180,7 +180,7 @@ def test_a_visit_score_counts_as_the_rules_say(start, points, double_out):
         events += game.track(darts[:count])
     events += game.finish_visit()
     kinds = [kind for kind, _ in events]
-    if points == start and checkout(start, 3, double_out):
+    if points == start and checkout(start, 3, DOUBLE if double_out else STRAIGHT):
         assert "leg_won" in kinds
         return
     # The turn passes, with the score of a bust as it was.

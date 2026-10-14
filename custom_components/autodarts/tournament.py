@@ -34,7 +34,7 @@ from .practice import (
     valid_start,
 )
 from .profiles import clean_name, valid_name
-from .scoring import average
+from .scoring import BULL_25_50, average
 
 ROUND_ROBIN = "round_robin"
 KNOCKOUT = "knockout"
@@ -684,7 +684,7 @@ class TournamentDirector:
             sets=practice.sets_to_win if sets is None else sets,
             rules={
                 # A double out waiting for the next leg is the one players set.
-                rule: practice.setting(rule)
+                rule: practice.tournament_setting(rule)
                 if given.get(rule) is None
                 else bool(given[rule])
                 for rule in RULES
@@ -772,8 +772,10 @@ class TournamentDirector:
         names = self._current_names()
         for rule, value in tournament.rules.items():
             setattr(practice, rule, value)
-        # The rules of the tournament, not a double out left for the next leg.
-        practice.double_out_next = None
+        # The rules of the tournament, not an Out mode left for the next leg;
+        # its matches count the outer bull 25 and have no round limit.
+        practice.out_mode_next = None
+        practice.bull_mode, practice.max_rounds = BULL_25_50, 0
         for slot in range(len(practice.names)):
             practice.set_name(slot, names[slot] if slot < len(names) else "")
             entrant = entrants[slot] if slot < len(entrants) else None
@@ -817,6 +819,7 @@ class TournamentDirector:
             and all(
                 practice.setting(rule) == on for rule, on in tournament.rules.items()
             )
+            and practice.plain_rules()
         )
 
     def booked(

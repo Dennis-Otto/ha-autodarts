@@ -1,5 +1,6 @@
 """Actions of the integration: start a practice game or a tournament with one call,
-correct and enter darts, pass the turn, undo a visit, and more."""
+correct and enter darts, pass the turn, undo a visit, save a highlight photo, and
+more."""
 
 from __future__ import annotations
 
@@ -30,6 +31,7 @@ from .bot import BOARD_MM, bed_name, segment_at, valid_level
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES
 from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
+from .highlights import async_save_highlight
 from .local_coordinator import AutodartsLocalCoordinator
 from .manual import parse_bed
 from .party import GOLF_HOLES, MAX_ROUNDS, PARTY_GAMES
@@ -39,13 +41,17 @@ from .practice import (
     MAX_LEGS,
     MAX_PLAYERS,
     MAX_SETS,
+    MODE_ALIASES,
     PARTY_PLAYERS,
+    ROUND_LIMIT,
     TEAM_PLAYERS,
     UNWINNABLE_START,
     PracticeGame,
+    unwinnable_rules,
     valid_start,
 )
 from .profiles import NAME_LENGTH, valid_name
+from .scoring import BULL_MODES, DOUBLE, MODES, STRAIGHT
 from .tournament import (
     FORMATS,
     MAX_ENTRANTS,
@@ -72,6 +78,7 @@ SERVICE_THROW_DART = "throw_dart"
 SERVICE_ENTER_VISIT = "enter_visit"
 SERVICE_NEXT_PLAYER = "next_player"
 SERVICE_UNDO_VISIT = "undo_visit"
+SERVICE_SAVE_HIGHLIGHT = "save_highlight"
 
 
 # The longest bed name an error message repeats.
@@ -90,7 +97,8 @@ GAME_TEXT = 64
 # The game, the players and their names are checked in the handler, as a voice
 # assistant may hear anything: a schema would refuse the call before the action
 # could say why, and Assist would answer "Done". Without names, as an empty list,
-# the players stay as they are.
+# the players stay as they are. Double in and double out are the In and Out mode
+# double or straight, from before the modes; a call sets a mode one way.
 START_GAME_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string,
@@ -98,8 +106,14 @@ START_GAME_SCHEMA = vol.Schema(
         vol.Optional("players"): vol.All(cv.ensure_list, [cv.string]),
         vol.Optional("legs"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_LEGS)),
         vol.Optional("sets"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SETS)),
-        vol.Optional("double_out"): cv.boolean,
-        vol.Optional("double_in"): cv.boolean,
+        vol.Exclusive("in_mode", "in_mode"): vol.In(MODES),
+        vol.Exclusive("double_in", "in_mode"): cv.boolean,
+        vol.Exclusive("out_mode", "out_mode"): vol.In(MODES),
+        vol.Exclusive("double_out", "out_mode"): cv.boolean,
+        vol.Optional("bull_mode"): vol.In(BULL_MODES),
+        vol.Optional("max_rounds"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=ROUND_LIMIT)
+        ),
         vol.Optional("bull_off"): cv.boolean,
         vol.Optional("bull_off_distance"): cv.boolean,
         vol.Optional("teams"): cv.boolean,
@@ -222,6 +236,25 @@ EXPORT_SCHEMA = vol.Schema(
         vol.Optional("what", default="all"): vol.In(EXPORT_CONTENTS),
         # Without a folder, the export goes to autodarts/exports of the media folder.
         vol.Optional("folder"): vol.All(cv.string, vol.Length(min=1, max=255)),
+    }
+)
+
+
+def _text(value: Any) -> str:
+    """A player or a label as text: a template renders a name such as 180, None
+    or [1] as a number, as nothing or as a list, which must not fail the call."""
+    return "" if value is None else str(value)
+
+
+# Any camera, also one that is no board camera. The player and the label become
+# part of the file name, which leaves out what a file name cannot have; an empty
+# folder, as the highlight photo blueprint passes its default, is the gallery.
+SAVE_HIGHLIGHT_SCHEMA = vol.Schema(
+    {
+        vol.Required("camera"): cv.entity_domain("camera"),
+        vol.Optional("folder"): vol.All(cv.string, vol.Strip, vol.Length(max=255)),
+        vol.Optional("player"): _text,
+        vol.Optional("label"): _text,
     }
 )
 
@@ -421,11 +454,12 @@ def _check_starts(
     seats: int,
     teams: bool = False,
     x01: bool = False,
-    doubles: bool = False,
+    unwinnable: bool = False,
     current: list[int] | None = None,
 ) -> None:
     """Start scores of 0 or 2 to 1001, one per seat or, for teams, one per team;
-    a start score of 3 cannot be won with double in and double out."""
+    with unwinnable In and Out modes, such as double in and double out, a start
+    score of 3 cannot be won."""
     for start in starts or []:
         if not valid_start(start):
             raise _invalid("invalid_start_score")
@@ -438,7 +472,7 @@ def _check_starts(
     # Unset start scores stay as they are; a team plays from its first player's.
     playing = (current or []) if starts is None else starts
     used = playing[: TEAM_PLAYERS // 2 if teams else seats]
-    if x01 and doubles and UNWINNABLE_START in used:
+    if x01 and unwinnable and UNWINNABLE_START in used:
         raise _invalid("unwinnable_start")
 
 
@@ -491,13 +525,28 @@ def _check_players(
         )
 
 
-def _doubles(call: ServiceCall, practice: PracticeGame) -> bool:
-    """Whether double in and double out both apply, as the call sets them or
-    as they are."""
-    return all(
-        call.data.get(rule, getattr(practice, rule))
-        for rule in ("double_in", "double_out")
-    )
+def _modes(call: ServiceCall) -> dict[str, str]:
+    """The In and Out mode as the call sets them, by name or as double in and
+    double out."""
+    modes = {
+        rule: DOUBLE if call.data[alias] else STRAIGHT
+        for alias, rule in MODE_ALIASES.items()
+        if alias in call.data
+    }
+    return {
+        **modes,
+        **{
+            rule: call.data[rule] for rule in MODE_ALIASES.values() if rule in call.data
+        },
+    }
+
+
+def _unwinnable(call: ServiceCall, practice: PracticeGame) -> bool:
+    """Whether the In and Out mode, as the call sets them or as they are,
+    cannot win a start score of 3."""
+    modes = {"in_mode": practice.rule("in_mode"), "out_mode": practice.rule("out_mode")}
+    modes.update(_modes(call))
+    return unwinnable_rules(modes["in_mode"], modes["out_mode"])
 
 
 @callback
@@ -546,15 +595,18 @@ def async_setup_services(hass: HomeAssistant) -> None:
             and bool(call.data.get("teams", practice.teams)),
             x01=game.isdigit(),
             current=list(practice.starts),
-            doubles=_doubles(call, practice),
+            unwinnable=_unwinnable(call, practice),
         )
+        modes = _modes(call)
         await coordinator.async_start_game(
             int(game) if game.isdigit() else game,
             names=names,
             legs=call.data.get("legs"),
             sets=call.data.get("sets"),
-            double_out=call.data.get("double_out"),
-            double_in=call.data.get("double_in"),
+            in_mode=modes.get("in_mode"),
+            out_mode=modes.get("out_mode"),
+            bull_mode=call.data.get("bull_mode"),
+            max_rounds=call.data.get("max_rounds"),
             bull_off=call.data.get("bull_off"),
             bull_off_distance=call.data.get("bull_off_distance"),
             teams=call.data.get("teams"),
@@ -643,7 +695,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
             call.data.get("start_scores"),
             len(call.data.get("players", setup.players)),
             x01=str(call.data.get("game", setup.game)).isdigit(),
-            doubles=_doubles(call, coordinator.practice),
+            # A tournament plays double or straight in and out.
+            unwinnable=all(
+                call.data.get(alias, coordinator.practice.tournament_setting(alias))
+                for alias in MODE_ALIASES
+            ),
         )
         options = {
             key: value
@@ -746,6 +802,27 @@ def async_setup_services(hass: HomeAssistant) -> None:
             return await undone(hass, coordinator.practice, score)
 
         return await answered(call, "undone", act)
+
+    async def save_highlight(call: ServiceCall) -> ServiceResponse:
+        saved = await async_save_highlight(
+            hass,
+            call.data["camera"],
+            call.data.get("folder"),
+            call.data.get("player", ""),
+            call.data.get("label", ""),
+        )
+        return saved if call.return_response else None
+
+    # It writes files, like autodarts.export, so it is for administrators, too;
+    # the highlight photo blueprint runs it as an automation, without a user.
+    async_register_admin_service(
+        hass,
+        DOMAIN,
+        SERVICE_SAVE_HIGHLIGHT,
+        save_highlight,
+        schema=SAVE_HIGHLIGHT_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
 
     hass.services.async_register(
         DOMAIN, SERVICE_CORRECT_DART, correct_dart, schema=CORRECT_DART_SCHEMA

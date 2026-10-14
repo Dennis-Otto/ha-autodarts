@@ -60,6 +60,10 @@ const BOARD = {
   "number.practice_players": "2",
   "number.practice_legs": "3",
   "number.practice_sets": "1",
+  "select.practice_in_mode": "straight",
+  "select.practice_out_mode": "double",
+  "select.practice_bull_mode": "25_50",
+  "number.practice_max_rounds": "0",
   "switch.practice_double_out": "on",
   "switch.practice_double_in": "off",
   "switch.practice_bull_off": "off",
@@ -100,8 +104,16 @@ const lobbyTap = (card, action, value) =>
 const chosenGame = (card) => $$(card, '.game[aria-pressed="true"]').map((button) => button.textContent);
 const players = (card) => $$(card, ".lobby-player .who").map((name) => name.textContent);
 const suggestions = (card) => $$(card, ".suggestion").map((button) => [button.className, button.textContent]);
+// The switches among the options; the X01 rules are choices of their own.
 const options = (card) =>
-  $$(card, ".option").map((button) => [button.dataset.value, button.getAttribute("aria-pressed")]);
+  $$(card, ".lobby-block.options > .option").map((button) => [button.dataset.value, button.getAttribute("aria-pressed")]);
+const choices = (card) =>
+  $$(card, ".choice").map((row) => [
+    row.getAttribute("aria-label"),
+    ...[...row.querySelectorAll(".option")].map(
+      (button) => `${button.textContent}${button.getAttribute("aria-pressed") === "true" ? "*" : ""}`
+    ),
+  ]);
 const steppers = (card) => $$(card, ".stepper").map((row) => row.textContent);
 const started = (hass) => hass.calls.filter(([domain]) => domain === "autodarts");
 
@@ -158,8 +170,10 @@ test("the choice starts from what the board has set, with every name once", () =
     teams: false,
     legs: 11,
     sets: 1,
-    double_out: false,
-    double_in: false,
+    in_mode: "straight",
+    out_mode: "straight",
+    bull_mode: "25_50",
+    max_rounds: 0,
     bull_off: false,
     bull_off_distance: false,
     three_in_a_bed: true,
@@ -171,7 +185,24 @@ test("the choice starts from what the board has set, with every name once", () =
   });
   const plain = lobbyChoice({ game: "off", players: null, names: [], legs: 2.5, sets: null }, ["301", "501"]);
   // Players without names need not be chosen.
-  assert.deepEqual([plain.game, plain.players, plain.legs, plain.sets, plain.double_out], ["501", [], 1, 1, true]);
+  assert.deepEqual([plain.game, plain.players, plain.legs, plain.sets, plain.out_mode], ["501", [], 1, 1, "double"]);
+  // The modes win over the switches of double in and double out; the round limit stays within 0 and 50.
+  const ruled = (board) => {
+    const { in_mode, out_mode, bull_mode, max_rounds } = lobbyChoice({ game: "501", names: [], ...board }, ["501"]);
+    return [in_mode, out_mode, bull_mode, max_rounds];
+  };
+  assert.deepEqual(ruled({ in_mode: "master", out_mode: "master", bull_mode: "50_50", max_rounds: 99, double_in: true }), [
+    "master",
+    "master",
+    "50_50",
+    50,
+  ]);
+  assert.deepEqual(ruled({ in_mode: "sometimes", double_in: true, double_out: false, max_rounds: -3 }), [
+    "double",
+    "straight",
+    "25_50",
+    0,
+  ]);
   assert.equal(lobbyChoice({ game: undefined, names: [] }, ["cricket", "killer"]).game, "cricket");
 });
 
@@ -198,11 +229,31 @@ test("taps change the choice within the limits of the action", () => {
   choice = lobbyChange(choice, "sets", "1");
   choice = lobbyChange(choice, "legs", "x");
   assert.deepEqual([choice.legs, choice.sets], [1, 7]);
+  choice = lobbyChange(choice, "in_mode", "master");
+  choice = lobbyChange(choice, "out_mode", "triple");
+  choice = lobbyChange(choice, "bull_mode", "50_50");
+  choice = lobbyChange(choice, "bull_mode", "75");
   choice = lobbyChange(choice, "toggle", "double_in");
   choice = lobbyChange(choice, "toggle", "profiles");
   choice = lobbyChange(choice, "game", "killer");
   choice = lobbyChange(choice, "unknown", "1");
-  assert.deepEqual([choice.double_in, choice.profiles, choice.game], [true, undefined, "killer"]);
+  assert.deepEqual(
+    [choice.in_mode, choice.out_mode, choice.bull_mode, choice.double_in, choice.profiles, choice.game],
+    ["master", "double", "50_50", undefined, undefined, "killer"]
+  );
+  // The round limit goes in steps up to 50; a limit between steps goes to its neighbours.
+  const rounds = (start, ...steps) =>
+    steps.reduce((next, step) => lobbyChange(next, "max_rounds", step), { ...choice, max_rounds: start }).max_rounds;
+  assert.deepEqual(
+    [rounds(0, "1"), rounds(0, "1", "1", "1"), rounds(0, "-1"), rounds(12, "1"), rounds(12, "-1"), rounds(50, "1")],
+    [5, 15, 0, 15, 10, 50]
+  );
+  // A tournament plays straight or double in and out: master comes closest to double.
+  const tournament = lobbyChange({ ...choice, out_mode: "master" }, "mode", "tournament");
+  assert.deepEqual([tournament.in_mode, tournament.out_mode], ["double", "double"]);
+  assert.equal(lobbyChange(tournament, "out_mode", "master").out_mode, "double");
+  assert.equal(lobbyChange(tournament, "out_mode", "straight").out_mode, "straight");
+  assert.equal(lobbyChange({ ...choice, in_mode: "straight" }, "mode", "match").in_mode, "straight");
 });
 
 test("suggestions put players at home first and leave out who plays already", () => {
@@ -242,8 +293,7 @@ test("the action carries only what the game and the board have", () => {
     sets: 2,
     bull_off: true,
     bull_off_distance: true,
-    double_out: true,
-    double_in: false,
+    in_mode: "straight", out_mode: "double", bull_mode: "25_50", max_rounds: 0,
   });
   // A board before bull-off by distance does not know the field.
   assert.equal("bull_off_distance" in startGameData(choice, { distance: false }), false);
@@ -259,8 +309,7 @@ test("the action carries only what the game and the board have", () => {
   assert.deepEqual(startGameData({ ...choice, players: [] }), {
     game: "501",
     players: [""],
-    double_out: true,
-    double_in: false,
+    in_mode: "straight", out_mode: "double", bull_mode: "25_50", max_rounds: 0,
   });
 });
 
@@ -317,14 +366,17 @@ test("between games a big button opens the new game screen with the board's sett
     ["suggestion bot", "+ Bot"],
   ]);
   assert.equal($(card, ".suggestion.home .home").getAttribute("aria-label"), "at home");
-  assert.deepEqual(steppers(card), ["Legs per set−3+", "Sets to win−1+"]);
+  assert.deepEqual(steppers(card), ["Legs per set−3+", "Sets to win−1+", "Max rounds−No limit+"]);
   assert.equal($(card, '[data-lobby="sets"][data-value="-1"]').disabled, true);
   assert.equal($(card, '[data-lobby="legs"][data-value="-1"]').getAttribute("aria-label"), "Fewer: Legs per set");
-  assert.deepEqual(options(card), [
-    ["double_out", "true"],
-    ["double_in", "false"],
-    ["bull_off", "false"],
+  assert.deepEqual(choices(card), [
+    ["In", "Straight*", "Double", "Master"],
+    ["Out", "Straight", "Double*", "Master"],
+    ["Bull", "25/50*", "50/50"],
   ]);
+  assert.equal($(card, '[data-lobby="max_rounds"][data-value="-1"]').disabled, true);
+  assert.equal($(card, '[data-lobby="max_rounds"][data-value="1"]').getAttribute("aria-label"), "More: Max rounds");
+  assert.deepEqual(options(card), [["bull_off", "false"]]);
   assert.equal(text(card, ".lobby .start"), "Start 501");
   // Without a game there is nothing to end.
   assert.equal($(card, '[data-lobby="end"]'), null);
@@ -339,11 +391,11 @@ test("with nobody chosen, one player throws without a name", () => {
   assert.equal($(card, ".lobby-players"), null);
   assert.equal(text(card, ".lobby-nobody"), "Nobody chosen: one player throws without a name.");
   lobbyTap(card, "start");
-  assert.deepEqual(started(hass)[0][2], { game: "501", players: [""], double_out: true, double_in: false });
+  assert.deepEqual(started(hass)[0][2], { game: "501", players: [""], in_mode: "straight", out_mode: "double", bull_mode: "25_50", max_rounds: 0 });
 });
 
 test("the format stops at the limits of a match, and a name field without a state is empty", () => {
-  const { card } = setup({ "number.practice_legs": "11", "number.practice_sets": "7" });
+  const { card } = setup({ "number.practice_legs": "11", "number.practice_sets": "7", "number.practice_max_rounds": "50" });
   card.hass = {
     ...card._hass,
     states: {
@@ -356,7 +408,9 @@ test("the format stops at the limits of a match, and a name field without a stat
   assert.equal($(card, '[data-lobby="legs"][data-value="1"]').disabled, true);
   assert.equal($(card, '[data-lobby="sets"][data-value="1"]').disabled, true);
   assert.equal($(card, '[data-lobby="legs"][data-value="1"]').getAttribute("aria-label"), "More: Legs per set");
-  assert.deepEqual(steppers(card), ["Legs per set−11+", "Sets to win−7+"]);
+  assert.deepEqual(steppers(card), ["Legs per set−11+", "Sets to win−7+", "Max rounds−50+"]);
+  assert.equal($(card, '[data-lobby="max_rounds"][data-value="1"]').disabled, true);
+  assert.equal($(card, '[data-lobby="max_rounds"][data-value="-1"]').disabled, false);
 });
 
 test("a card that reaches the page before Home Assistant waits for it", () => {
@@ -492,15 +546,23 @@ test("X01 rules, bull-off by distance and the board's config entry go with the s
   );
   tap(card, ".lobby-toggle");
   assert.deepEqual(options(card), [
-    ["double_out", "true"],
-    ["double_in", "false"],
     ["bull_off", "true"],
     ["bull_off_distance", "false"],
   ]);
   assert.equal(text(card, '[data-value="bull_off_distance"]'), "Bull-off by distance");
   lobbyTap(card, "toggle", "bull_off_distance");
-  lobbyTap(card, "toggle", "double_in");
-  lobbyTap(card, "toggle", "double_out");
+  lobbyTap(card, "in_mode", "double");
+  lobbyTap(card, "out_mode", "master");
+  lobbyTap(card, "bull_mode", "50_50");
+  lobbyTap(card, "max_rounds", "1");
+  lobbyTap(card, "max_rounds", "1");
+  assert.deepEqual(choices(card), [
+    ["In", "Straight", "Double*", "Master"],
+    ["Out", "Straight", "Double", "Master*"],
+    ["Bull", "25/50", "50/50*"],
+  ]);
+  assert.equal(steppers(card).at(-1), "Max rounds−10+");
+  assert.equal(text(card, ".said"), "Max rounds 10");
   lobbyTap(card, "game", "301");
   lobbyTap(card, "start");
   assert.deepEqual(started(hass)[0][2], {
@@ -511,8 +573,10 @@ test("X01 rules, bull-off by distance and the board's config entry go with the s
     sets: 1,
     bull_off: true,
     bull_off_distance: true,
-    double_out: false,
-    double_in: true,
+    in_mode: "double",
+    out_mode: "master",
+    bull_mode: "50_50",
+    max_rounds: 10,
   });
   // Without a primary entry, the first entry of the device.
   const other = setup({}, {}, { device: { config_entries: ["entry-9"] } });
@@ -749,11 +813,9 @@ test("the new game screen speaks German and names newer games as Home Assistant 
   );
   assert.equal($$(card, ".game").at(-1).textContent, "Bingo");
   assert.equal(text(card, ".lobby .start"), "501 starten");
-  assert.deepEqual(options(card).map(([option]) => text(card, `[data-value="${option}"]`)), [
-    "Double-Out",
-    "Double-In",
-    "Ausbullen",
-  ]);
+  assert.deepEqual(options(card).map(([option]) => text(card, `[data-value="${option}"]`)), ["Ausbullen"]);
+  assert.deepEqual(choices(card)[0], ["In", "Straight*", "Double", "Master"]);
+  assert.equal(steppers(card).at(-1), "Maximale Runden−Keine Grenze+");
   assert.deepEqual(
     suggestions(card)
       .slice(-2)
@@ -800,8 +862,7 @@ test("in X01 every player can start from a score of their own, in steps of 100",
     legs: 1,
     sets: 1,
     bull_off: false,
-    double_out: true,
-    double_in: false,
+    in_mode: "straight", out_mode: "double", bull_mode: "25_50", max_rounds: 0,
     start_scores: [1001, 0],
   });
   // Once the board had start scores, the game's start goes back with the start.
@@ -865,8 +926,6 @@ test("the new game screen offers teams and start scores of their own", () => {
     [true, true]
   );
   assert.deepEqual(options(card), [
-    ["double_out", "true"],
-    ["double_in", "false"],
     ["bull_off", "false"],
     ["teams", "false"],
   ]);

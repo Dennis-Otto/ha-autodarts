@@ -526,6 +526,29 @@
           "singles": "Singles training"
         }
       },
+      "practice_in_mode": {
+        "name": "Practice in mode",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_out_mode": {
+        "name": "Practice out mode",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_bull_mode": {
+        "name": "Practice bull mode",
+        "state": {
+          "25_50": "25/50",
+          "50_50": "50/50"
+        }
+      },
       "weekly_report_day": {
         "name": "Weekly report day",
         "state": {
@@ -582,6 +605,9 @@
       },
       "practice_start": {
         "name": "Practice start score player {number}"
+      },
+      "practice_max_rounds": {
+        "name": "Practice max rounds"
       },
       "practice_count_up_rounds": {
         "name": "Practice Count-Up rounds"
@@ -798,6 +824,21 @@
     "export_failed": {
       "message": "The export could not be written: {error}"
     },
+    "highlight_camera_missing": {
+      "message": "The camera {camera} does not exist or is disabled. The cameras of an Autodarts board are disabled until you enable them on the page of the board."
+    },
+    "highlight_camera_unavailable": {
+      "message": "The camera {camera} is unavailable."
+    },
+    "highlight_no_picture": {
+      "message": "The camera {camera} gave no picture."
+    },
+    "highlight_folder": {
+      "message": "The highlight folder {folder} must not be hidden, and Home Assistant must allow writing to it: www, the media folders and the folders listed in allowlist_external_dirs are allowed."
+    },
+    "highlight_failed": {
+      "message": "The highlight photo could not be saved: {error}"
+    },
     "unknown_person": {
       "message": "There is no person {person} in Home Assistant."
     },
@@ -889,7 +930,7 @@
       "message": "Teams play from the start scores of players 1 and 2, one per team. Give at most two start scores."
     },
     "unwinnable_start": {
-      "message": "A start score of 3 cannot be checked out with double in and double out: the only opening double, D1, leaves 1. Choose another start score, or switch off double in or double out."
+      "message": "A start score of 3 cannot be checked out with double or master in and double or master out, unless both are master: the only darts that open it, D1 and T1, leave 1 or end on a treble. Choose another start score, or other in and out modes."
     },
     "export_limit": {
       "message": "{count} exports were written in the last hour, as many as the integration writes. Try again later."
@@ -1045,13 +1086,29 @@
           "name": "Sets to win",
           "description": "Sets that win the match."
         },
+        "in_mode": {
+          "name": "In mode",
+          "description": "How X01 legs start: with any dart (straight), with a double or the bullseye (double), or with a double, a treble or the bullseye (master)."
+        },
+        "out_mode": {
+          "name": "Out mode",
+          "description": "How X01 legs finish: on any dart (straight), on a double or the bullseye (double), or on a double, a treble or the bullseye (master)."
+        },
+        "bull_mode": {
+          "name": "Bull mode",
+          "description": "What the bull scores in X01: 25 for the outer bull and 50 for the bullseye (25/50), or 50 for both (50/50). Only the bullseye counts as a double."
+        },
+        "max_rounds": {
+          "name": "Max rounds",
+          "description": "Rounds after which the lowest score wins an X01 leg, 1 to 50; a tie plays on round by round. 0 plays without a limit."
+        },
         "double_out": {
           "name": "Double out",
-          "description": "X01 legs finish on a double or the bullseye."
+          "description": "Replaced by the out mode: on is double, off is straight. X01 legs finish on a double or the bullseye."
         },
         "double_in": {
           "name": "Double in",
-          "description": "X01 legs start with a double or the bullseye."
+          "description": "Replaced by the in mode: on is double, off is straight. X01 legs start with a double or the bullseye."
         },
         "bull_off": {
           "name": "Bull-off",
@@ -1120,6 +1177,28 @@
         "folder": {
           "name": "Folder",
           "description": "Optional. A folder relative to the configuration folder, or an absolute path, where Home Assistant allows writing: www, a media folder or a folder listed in allowlist_external_dirs. Files in www are available at /local/ without a login. Without a folder: autodarts/exports in the media folder."
+        }
+      }
+    },
+    "save_highlight": {
+      "name": "Save highlight photo",
+      "description": "Saves the picture of a camera as a photo named by the moment, the player and what it shows, by default in the highlight gallery, autodarts/highlights in the media folder, and returns the file and its address. It fails, and so returns nothing, when the camera is disabled or unavailable or gives no picture, or when the folder is not allowed. For administrators; automations can use it, too.",
+      "fields": {
+        "camera": {
+          "name": "Camera",
+          "description": "The camera that takes the photo, for example a board camera. The cameras of a board are disabled until you enable them."
+        },
+        "folder": {
+          "name": "Folder",
+          "description": "Optional. A folder relative to the configuration folder, or an absolute path, where Home Assistant allows writing: www, a media folder or a folder listed in allowlist_external_dirs. Without a folder: the highlight gallery, autodarts/highlights in the media folder."
+        },
+        "player": {
+          "name": "Player",
+          "description": "Optional. The player in the photo, for its name and its title in the gallery."
+        },
+        "label": {
+          "name": "Label",
+          "description": "Optional. What the photo shows, at the end of its name, such as 180 or checkout-121. The gallery shows a number as the score."
         }
       }
     },
@@ -1375,6 +1454,19 @@
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Singles training"
+      }
+    },
+    "x01_mode": {
+      "options": {
+        "straight": "Straight",
+        "double": "Double",
+        "master": "Master"
+      }
+    },
+    "bull_mode": {
+      "options": {
+        "25_50": "25/50",
+        "50_50": "50/50"
       }
     },
     "export_format": {

@@ -50,7 +50,7 @@ const type = (card, digits) => {
 // -- helpers ---------------------------------------------------------------------------
 
 test("the fewest darts of a checkout follow the doubles", () => {
-  const darts = (from, doubleOut = true, opening = false) => checkoutDarts({ from, doubleOut, opening });
+  const darts = (from, out = "double", opening = null) => checkoutDarts({ from, out, opening });
   assert.equal(darts(40), 1);
   assert.equal(darts(50), 1);
   assert.equal(darts(41), 2);
@@ -58,63 +58,90 @@ test("the fewest darts of a checkout follow the doubles", () => {
   assert.equal(darts(170), 3);
   for (const bogey of [159, 162, 163, 165, 166, 168, 169, 171, 1]) assert.equal(darts(bogey), null, bogey);
   // Without double out, any bed ends the leg.
-  assert.equal(darts(57, false), 1);
-  assert.equal(darts(180, false), 3);
-  assert.equal(darts(179, false), null);
+  assert.equal(darts(57, "straight"), 1);
+  assert.equal(darts(180, "straight"), 3);
+  assert.equal(darts(179, "straight"), null);
   // A leg that waits for a double opens with the first dart that scores.
-  assert.equal(darts(101, true, true), 3);
-  assert.equal(darts(100, true, true), 2);
-  assert.equal(darts(170, true, true), null);
-  assert.equal(darts(57, false, true), 2);
-  assert.equal(darts(180, false, true), null);
+  assert.equal(darts(101, "double", "double"), 3);
+  assert.equal(darts(100, "double", "double"), 2);
+  assert.equal(darts(170, "double", "double"), null);
+  assert.equal(darts(57, "straight", "double"), 2);
+  assert.equal(darts(180, "straight", "double"), null);
+  // Master out ends on a treble too, and master in opens with one.
+  assert.equal(darts(60, "master"), 1);
+  assert.equal(darts(180, "master"), 3);
+  assert.equal(darts(60, "master", "master"), 1);
+  assert.equal(darts(60, "double", "master"), 2);
+  assert.equal(darts(3, "master", "master"), 1);
+  assert.equal(darts(3, "double", "master"), null);
+  // With the bull mode 50/50, no dart scores 25, and the bull 50.
+  assert.equal(checkoutDarts({ from: 25, out: "straight", bull: "50_50" }), 2);
+  assert.equal(checkoutDarts({ from: 25, out: "straight" }), 1);
+  assert.equal(checkoutDarts({ from: 50, out: "straight", bull: "50_50" }), 1);
 });
 
 test("the score view is there in an X01 leg being played", () => {
   const view = (states) => gameView((name) => ({ practice: states["sensor.practice_remaining"] })[name]);
   assert.deepEqual(scoreEntry(view(practice(321, { remaining: 300, visit_from: 361 }))), {
     from: 361,
-    doubleOut: true,
-    opening: false,
+    out: "double",
+    opening: null,
+    bull: "25_50",
   });
   // Without the visit's start, its remaining score.
   assert.deepEqual(scoreEntry(view({ "sensor.practice_remaining": { state: "40", attributes: { game: 501, double_out: false } } })), {
     from: 40,
-    doubleOut: false,
-    opening: false,
+    out: "straight",
+    opening: null,
+    bull: "25_50",
   });
   // A leg with double in waits for a double until the player opens it.
-  assert.deepEqual(scoreEntry(view(practice(501, { opened: false }))), { from: 501, doubleOut: true, opening: true });
+  assert.deepEqual(scoreEntry(view(practice(501, { opened: false, in_mode: "double" }))), {
+    from: 501,
+    out: "double",
+    opening: "double",
+    bull: "25_50",
+  });
+  assert.deepEqual(
+    scoreEntry(view(practice(501, { opened: false, in_mode: "master", out_mode: "master", bull_mode: "50_50" }))),
+    { from: 501, out: "master", opening: "master", bull: "50_50" }
+  );
   assert.equal(scoreEntry(view(practice(0, { winner: 1 }))), null);
   assert.equal(scoreEntry({ mode: "cricket" }), null);
   assert.equal(scoreEntry({ mode: "idle" }), null);
 });
 
 test("a score says what it leaves, a checkout or a bust", () => {
-  const entry = { from: 40, doubleOut: true };
+  const entry = { from: 40, out: "double" };
   assert.equal(scoreHint(entry, 40, T), "Checkout");
   assert.equal(scoreHint(entry, 20, T), "leaves 20");
   assert.equal(scoreHint(entry, 39, T), "Bust");
   assert.equal(scoreHint(entry, 60, T), "Bust");
   // No dart finishes 159, so scoring it busts.
-  assert.equal(scoreHint({ from: 159, doubleOut: true }, 159, T), "Bust");
-  assert.equal(scoreHint({ from: 40, doubleOut: false }, 39, T), "leaves 1");
+  assert.equal(scoreHint({ from: 159, out: "double" }, 159, T), "Bust");
+  assert.equal(scoreHint({ from: 40, out: "straight" }, 39, T), "leaves 1");
   // From 32, 100 busts though no visit throws all of it before the bust.
-  assert.equal(scoreHint({ from: 32, doubleOut: true }, 100, T), "Bust");
+  assert.equal(scoreHint({ from: 32, out: "double" }, 100, T), "Bust");
+  // Master out checks out on a treble, and leaves 1 for a bust.
+  assert.equal(scoreHint({ from: 60, out: "master" }, 60, T), "Checkout");
+  assert.equal(scoreHint({ from: 61, out: "master" }, 60, T), "Bust");
+  assert.equal(scoreHint({ from: 60, out: "double" }, 60, T), "Checkout");
+  assert.equal(scoreHint({ from: 61, out: "master", opening: "master" }, 1, T), "No visit scores 1");
 });
 
 test("only the nine totals no three darts make are no visit's score", () => {
   const scores = [...Array(182).keys()];
   const refused = (entry) => scores.filter((points) => !scorable(entry, points));
-  const entry = { from: 501, doubleOut: true, opening: false };
+  const entry = { from: 501, out: "double", opening: null };
   assert.deepEqual(refused(entry), [...IMPOSSIBLE, 181]);
   for (const points of IMPOSSIBLE) {
     assert.equal(scoreHint(entry, points, T), `No visit scores ${points}`);
     assert.equal(scoreReady(entry, String(points)), false);
   }
   // Neither as what is left nor as a bust, with double out or without.
-  assert.equal(scoreHint({ from: 179, doubleOut: false }, 179, T), "No visit scores 179");
-  assert.equal(scoreHint({ from: 32, doubleOut: true }, 163, T), "No visit scores 163");
-  assert.deepEqual(refused({ from: 32, doubleOut: true }), [...IMPOSSIBLE, 181]);
+  assert.equal(scoreHint({ from: 179, out: "straight" }, 179, T), "No visit scores 179");
+  assert.equal(scoreHint({ from: 32, out: "double" }, 163, T), "No visit scores 163");
+  assert.deepEqual(refused({ from: 32, out: "double" }), [...IMPOSSIBLE, 181]);
   // Every other score goes in, once something is typed.
   assert.ok(scores.filter((points) => points <= 180 && !IMPOSSIBLE.includes(points)).every((points) => scoreReady(entry, String(points))));
   assert.equal(scoreReady(entry, ""), false);
@@ -125,47 +152,49 @@ test("a score the integration refuses from where the player stands is no visit's
   const refused = (entry) => scores.filter((points) => !scorable(entry, points));
   // Without double out, the first treble 20 of 180 checks out 60 or 120 before it busts.
   for (const from of [60, 120]) {
-    assert.deepEqual(refused({ from, doubleOut: false }), [...IMPOSSIBLE, 180]);
-    assert.equal(scoreHint({ from, doubleOut: false }, 180, T), "No visit scores 180");
-    assert.equal(scoreReady({ from, doubleOut: false }, "180"), false);
+    assert.deepEqual(refused({ from, out: "straight" }), [...IMPOSSIBLE, 180]);
+    assert.equal(scoreHint({ from, out: "straight" }, 180, T), "No visit scores 180");
+    assert.equal(scoreReady({ from, out: "straight" }, "180"), false);
   }
-  assert.equal(scoreHint({ from: 61, doubleOut: false }, 180, T), "Bust");
+  assert.equal(scoreHint({ from: 61, out: "straight" }, 180, T), "Bust");
   // While the leg waits for a double, what its first dart that scores can't open is refused.
-  const unopened = { from: 501, doubleOut: true, opening: true };
+  const unopened = { from: 501, out: "double", opening: "double" };
   assert.deepEqual(refused(unopened), [...IMPOSSIBLE, ...UNOPENED].sort((a, b) => a - b));
   assert.equal(scoreHint(unopened, 180, T), "No visit scores 180");
   assert.equal(scoreHint(unopened, 170, T), "leaves 331");
   // From 170 with double in, no visit opens and checks out, so all of it busts.
-  assert.equal(scoreHint({ from: 170, doubleOut: true, opening: true }, 170, T), "Bust");
-  assert.equal(scoreHint({ from: 101, doubleOut: true, opening: true }, 101, T), "Checkout");
+  assert.equal(scoreHint({ from: 170, out: "double", opening: "double" }, 170, T), "Bust");
+  assert.equal(scoreHint({ from: 101, out: "double", opening: "double" }, 101, T), "Checkout");
 });
 
 test("a score asks for the darts of a checkout and the darts at a double where they can differ", () => {
-  const entry = { from: 100, doubleOut: true };
+  const entry = { from: 100, out: "double" };
   assert.deepEqual(scoreAnswer(entry, 100), { ask: "darts", choices: [2, 3] });
   assert.deepEqual(scoreAnswer(entry, 100, { darts: 2 }), { ask: "doubles", choices: [1, 2] });
   assert.deepEqual(scoreAnswer(entry, 100, { darts: 3, doubles: 2 }), {
     data: { score: 100, checkout: true, darts: 3, darts_at_double: 2 },
   });
   // A checkout of three darts asks only for the darts at a double, one of one dart for nothing.
-  assert.deepEqual(scoreAnswer({ from: 170, doubleOut: true }, 170), { ask: "doubles", choices: [1, 2, 3] });
-  assert.deepEqual(scoreAnswer({ from: 40, doubleOut: true }, 40, { darts: 1 }), {
+  assert.deepEqual(scoreAnswer({ from: 170, out: "double" }, 170), { ask: "doubles", choices: [1, 2, 3] });
+  assert.deepEqual(scoreAnswer({ from: 40, out: "double" }, 40, { darts: 1 }), {
     data: { score: 40, checkout: true, darts: 1, darts_at_double: 1 },
   });
-  // Without double out, a checkout asks for its darts only.
-  assert.deepEqual(scoreAnswer({ from: 60, doubleOut: false }, 60, { darts: 1 }), { data: { score: 60, checkout: true, darts: 1 } });
-  assert.deepEqual(scoreAnswer({ from: 180, doubleOut: false }, 180), { data: { score: 180, checkout: true, darts: 3 } });
+  // Without double out, a checkout asks for its darts only, as with master out.
+  assert.deepEqual(scoreAnswer({ from: 57, out: "master" }, 57, { darts: 1 }), { data: { score: 57, checkout: true, darts: 1 } });
+  assert.deepEqual(scoreAnswer({ from: 60, out: "master" }, 20), { data: { score: 20 } });
+  assert.deepEqual(scoreAnswer({ from: 60, out: "straight" }, 60, { darts: 1 }), { data: { score: 60, checkout: true, darts: 1 } });
+  assert.deepEqual(scoreAnswer({ from: 180, out: "straight" }, 180), { data: { score: 180, checkout: true, darts: 3 } });
   // A leg that waits for a double asks only for the darts that can open it and check out.
-  assert.deepEqual(scoreAnswer({ from: 101, doubleOut: true, opening: true }, 101), { ask: "doubles", choices: [1, 2, 3] });
+  assert.deepEqual(scoreAnswer({ from: 101, out: "double", opening: "double" }, 101), { ask: "doubles", choices: [1, 2, 3] });
   // A visit that left a double in reach asks for the darts at it, others for nothing.
-  assert.deepEqual(scoreAnswer({ from: 60, doubleOut: true }, 20), { ask: "doubles", choices: [0, 1, 2, 3] });
-  assert.deepEqual(scoreAnswer({ from: 60, doubleOut: true }, 20, { doubles: 2 }), {
+  assert.deepEqual(scoreAnswer({ from: 60, out: "double" }, 20), { ask: "doubles", choices: [0, 1, 2, 3] });
+  assert.deepEqual(scoreAnswer({ from: 60, out: "double" }, 20, { doubles: 2 }), {
     data: { score: 20, darts_at_double: 2 },
   });
-  assert.deepEqual(scoreAnswer({ from: 501, doubleOut: true }, 140), { data: { score: 140 } });
-  assert.deepEqual(scoreAnswer({ from: 40, doubleOut: false }, 20), { data: { score: 20 } });
+  assert.deepEqual(scoreAnswer({ from: 501, out: "double" }, 140), { data: { score: 140 } });
+  assert.deepEqual(scoreAnswer({ from: 40, out: "straight" }, 20), { data: { score: 20 } });
   // A score that is no checkout, such as 159 from 159, goes in as it is.
-  assert.deepEqual(scoreAnswer({ from: 159, doubleOut: true }, 159), { data: { score: 159 } });
+  assert.deepEqual(scoreAnswer({ from: 159, out: "double" }, 159), { data: { score: 159 } });
 });
 
 // -- the scoreboard ---------------------------------------------------------------------
@@ -252,37 +281,124 @@ test("a checkout asks for its darts and the darts at a double, and Cancel goes b
   assert.deepEqual(actions(hass).at(-1), ["enter_visit", { config_entry_id: ENTRY, score: 20, darts_at_double: 0 }]);
 });
 
-test("a keyboard types the score", () => {
+// Keys of a keyboard reach the pad as in a browser: at the element that has the focus.
+// A card whose focus went nowhere gets none of them.
+const press = (card, name, options = {}) => {
+  const event = new window.KeyboardEvent("keydown", { key: name, bubbles: true, cancelable: true, ...options });
+  (card.shadowRoot.activeElement ?? card).dispatchEvent(event);
+  return event.defaultPrevented;
+};
+// The control with the focus, by the key it keeps the focus with.
+const focused = (card) => card.shadowRoot.activeElement?.dataset.focus ?? null;
+
+test("a keyboard types the score where the focus is, and keeps typing after each score", () => {
   const hass = board();
   const card = mount("autodarts-scoreboard-card", hass);
-  const key = (name, target = $(card, ".pad-area")) =>
-    target.dispatchEvent(new window.KeyboardEvent("keydown", { key: name, bubbles: true }));
   // The keys view takes no digits.
-  key("6");
+  $(card, '.pad [data-value="S20"]').focus();
+  assert.equal(press(card, "6"), false);
+  // The score view takes the focus from its button, so that the keys reach it.
+  $(card, '.pad [data-pad="score"]').focus();
   tap(card, '.pad [data-pad="score"]');
-  for (const name of ["6", "0", "x", "Backspace", "0"]) key(name);
+  assert.equal(focused(card), "pad");
+  assert.equal($(card, ".pad").getAttribute("tabindex"), "-1");
+  for (const name of ["6", "0", "x", "Backspace", "0"]) press(card, name);
   assert.equal(text(card, ".score-line .typed"), "60");
-  // Enter on a key of the pad presses that key, not the score.
-  key("Enter", $(card, '[data-pad="digit"][data-value="1"]'));
-  assert.deepEqual(actions(hass), []);
-  key("Enter");
+  // Keys with Ctrl, Alt or the Command key stay the browser's.
+  for (const modifier of ["ctrlKey", "altKey", "metaKey"]) assert.equal(press(card, "1", { [modifier]: true }), false);
+  assert.equal(text(card, ".score-line .typed"), "60");
+  assert.equal(press(card, "Enter"), true);
   assert.deepEqual(actions(hass), [["enter_visit", { config_entry_id: ENTRY, score: 60 }]]);
+  // The pad keeps the focus after the score went in, though OK is off now.
+  assert.equal(focused(card), "pad");
+  for (const name of "45") press(card, name);
+  assert.equal(text(card, ".score-line .typed"), "45");
+  // Enter on a digit takes the score, as a calculator does, and the pad keeps the focus.
+  $(card, '[data-pad="digit"][data-value="1"]').focus();
+  assert.equal(press(card, "Enter"), true);
+  assert.deepEqual(actions(hass).at(-1), ["enter_visit", { config_entry_id: ENTRY, score: 45 }]);
+  assert.equal(focused(card), "pad");
+  // With nothing typed OK is off: Enter on a digit does nothing, and never types it again.
+  $(card, '[data-pad="digit"][data-value="1"]').focus();
+  assert.equal(press(card, "Enter"), true);
+  assert.equal(text(card, ".score-line .typed"), "–");
+  assert.equal(actions(hass).length, 2);
+  // On any other key, Enter presses that key, as the browser does.
+  for (const name of "26") press(card, name);
+  $(card, '[data-pad="next"]').focus();
+  assert.equal(press(card, "Enter"), false);
+  assert.equal(actions(hass).length, 2);
+  assert.equal(text(card, ".score-line .typed"), "26");
+  // Without a question to leave, Escape stays the browser's, as for a dialog around the card.
+  $(card, ".pad").focus();
+  assert.equal(press(card, "Escape"), false);
+  assert.equal(text(card, ".score-line .typed"), "26");
+});
+
+test("during the question after a score, a digit only answers it", () => {
+  const hass = board(practice(4));
+  const card = mount("autodarts-scoreboard-card", hass);
+  $(card, '.pad [data-pad="score"]').focus();
+  tap(card, '.pad [data-pad="score"]');
+  press(card, "4");
+  press(card, "Enter");
+  assert.equal(text(card, ".score-line.ask"), "Darts for the checkout");
+  // The question took the focus from OK, which is gone.
+  assert.equal(focused(card), "pad");
+  // 4 is no number of darts, and Enter has nothing to take; the score stays 4.
+  assert.equal(press(card, "4"), false);
+  press(card, "Enter");
+  assert.equal(text(card, ".score-line.ask"), "Darts for the checkout");
+  press(card, "2");
+  assert.equal(text(card, ".score-line.ask"), "Darts at a double");
+  assert.equal(focused(card), "pad");
+  press(card, "3");
+  press(card, "1");
+  assert.deepEqual(actions(hass), [
+    ["enter_visit", { config_entry_id: ENTRY, score: 4, checkout: true, darts: 2, darts_at_double: 1 }],
+  ]);
+  // Backspace and Escape go back from the question to the score, to change it.
   card.hass = update(hass, practice(32));
-  key("0");
-  key("Enter");
+  press(card, "0");
+  press(card, "Enter");
   assert.ok($(card, '[data-pad="answer"]'));
-  key("Escape");
+  press(card, "Backspace");
   assert.equal($(card, '[data-pad="answer"]'), null);
   assert.equal(text(card, ".score-line .typed"), "0");
+  press(card, "Enter");
+  press(card, "Escape");
+  assert.equal($(card, '[data-pad="answer"]'), null);
+  assert.equal(text(card, ".score-line .typed"), "0");
+  assert.equal(focused(card), "pad");
+  // While the bot throws, the keys wait as the pad does.
+  card.hass = update(hass, practice(501, { player: 2, bot: { player: 2, level: 60 }, scores: [{ player: 2, remaining: 501, bot: true }] }));
+  assert.equal(press(card, "5"), false);
+  assert.equal(text(card, ".score-line .typed"), "0");
+  assert.equal(actions(hass).length, 1);
+});
+
+test("the score view takes the focus after a mouse, and not after a finger that gave it none", () => {
+  for (const [pointerType, takes] of [
+    ["mouse", true],
+    ["touch", false],
+  ]) {
+    const card = mount("autodarts-scoreboard-card", board());
+    const button = $(card, '.pad [data-pad="score"]');
+    // Safari gives a button that a mouse clicks no focus; the pad takes it all the same.
+    button.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true, composed: true, pointerType }));
+    button.click();
+    assert.equal(focused(card) === "pad", takes, pointerType);
+  }
 });
 
 test("a score no visit makes keeps OK and Enter off, and any bust goes in", () => {
   const hass = board(practice(32));
   const card = mount("autodarts-scoreboard-card", hass);
-  const key = (name) => $(card, ".pad-area").dispatchEvent(new window.KeyboardEvent("keydown", { key: name, bubbles: true }));
+  const key = (name) => press(card, name);
   tap(card, '.pad [data-pad="score"]');
+  $(card, ".pad").focus();
   // Enter waits for a score, as OK does.
-  key("Enter");
+  assert.equal(press(card, "Enter"), true);
   assert.deepEqual(actions(hass), []);
   for (const points of IMPOSSIBLE) {
     type(card, String(points));

@@ -171,6 +171,10 @@ ENTITIES = {
     "practice_start_4": "number",
     "practice_golf_holes": "select",
     "practice_count_up_rounds": "number",
+    "practice_in_mode": "select",
+    "practice_out_mode": "select",
+    "practice_bull_mode": "select",
+    "practice_max_rounds": "number",
     "achievements": "sensor",
     "achievements_enabled": "switch",
 }
@@ -1369,6 +1373,42 @@ class Scenario:
         leg = (await self.state("practice_remaining"))["attributes"]
         check(leg["double_out"] is True, f"Double out missing in the next leg: {leg}")
 
+        # The rules of play.autodarts.io: master out ends a leg on a treble, and
+        # after the last round of a round limit the lowest score wins the leg.
+        self.fired_board_events()
+        await self.start_game(
+            game="301",
+            players=["Alex", "Sam"],
+            legs=2,
+            out_mode="master",
+            max_rounds=1,
+            bull_off=False,
+            bot_level=0,
+        )
+        await self.expect_states(
+            {
+                "practice_remaining": "301",
+                "practice_out_mode": "master",
+                "practice_max_rounds": "1",
+                "practice_double_out": "off",
+            }
+        )
+        await self.visit(T20)
+        await self.visit(S20)
+        won = [
+            item
+            for item in await self.events_until("leg_won")
+            if item["event_type"] == "leg_won"
+        ]
+        check(
+            (won[-1]["name"], won[-1]["rounds"], won[-1]["remaining"])
+            == ("Alex", 1, 241)
+            and won[-1]["checkout"] is None,
+            f"The round limit did not decide the leg: {won}",
+        )
+        await self.start_game(game="301", max_rounds=0, out_mode="double")
+        await self.expect_states({"practice_max_rounds": "0"})
+
     async def action(self, service: str, **data) -> None:
         await self.api("POST", f"/api/services/autodarts/{service}", json=data)
 
@@ -1726,6 +1766,25 @@ class Scenario:
                 media_content_id="media-source://autodarts/../..",
             )
             check(not unknown["success"], f"Browsing outside: {unknown}")
+            # A board camera starts disabled: it saves no photo, and the action
+            # says why instead of answering with a file that was never written.
+            camera = self.entity("camera_0")
+            error = await self.refused(
+                "call_service",
+                domain="autodarts",
+                service="save_highlight",
+                service_data={"camera": camera, "player": "E2E Player", "label": 180},
+                return_response=True,
+            )
+            check(
+                error["code"] == "service_validation_error"
+                and error.get("translation_key") == "highlight_camera_missing"
+                and f"The camera {camera} does not exist or is disabled"
+                in error["message"],
+                f"save_highlight with a disabled camera: {error}",
+            )
+            photos = sorted(path.name for path in GALLERY.iterdir())
+            check(photos == [PHOTO], f"Photos in the gallery: {photos}")
         finally:
             (GALLERY / PHOTO).unlink()
             outside.unlink()
@@ -1920,6 +1979,25 @@ class Scenario:
             f"Unexpected diagnostics summary: {data}",
         )
 
+    async def offline(self) -> None:
+        """Home Assistant stays off the internet. Onboarding sets up Radio Browser,
+        which looks up radio stations on the internet as soon as it starts; the
+        stand-in of offline/radio_browser takes its place and turns that down, also
+        through the restarts of the scenario."""
+        manifest = await self.ws("manifest/get", integration="radio_browser")
+        check(
+            manifest["is_built_in"] is False,
+            "Home Assistant has its own Radio Browser instead of the stand-in of "
+            "offline/radio_browser, which keeps it off the internet",
+        )
+        entries = await self.api(
+            "GET", "/api/config/config_entries/entry?domain=radio_browser"
+        )
+        check(
+            not entries,
+            f"Onboarding set up Radio Browser, which reaches the internet: {entries}",
+        )
+
     async def logs(self) -> None:
         problems = [
             item
@@ -2012,6 +2090,7 @@ async def main() -> None:
         await phase("tournament", scenario.tournament())
         await phase("manual board", scenario.manual_board())
         await phase("diagnostics", scenario.diagnostics(entry_id))
+        await phase("offline", scenario.offline())
         await phase("logs", scenario.logs())
         await phase("removal", scenario.remove(entry_id))
         await scenario.socket.close()
@@ -2031,7 +2110,7 @@ async def main() -> None:
         "dashboard card, players linked to "
         "persons, the highlight gallery in the media browser, a round robin "
         "tournament, a dartboard without Autodarts beside the board, private "
-        "diagnostics, clean logs and removal."
+        "diagnostics, no Radio Browser to reach the internet, clean logs and removal."
     )
 
 

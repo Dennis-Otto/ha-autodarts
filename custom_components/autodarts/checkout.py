@@ -9,6 +9,11 @@ on 20 or 19 also any double whose single still leaves a one-dart finish);
 then any setup towards one of the first five; fewer trebles; bigger trebles;
 and the finishing double in the order below.
 
+With master out, a route finishes on a double as with double out wherever
+that takes no more darts, and on a treble only where it saves a dart. Without
+double out, the biggest bed wins. With the bull mode 50/50, the whole bull
+scores 50: routes aim at the bull for 50, though only the bullseye is a double.
+
 When the darts left cannot finish, a setup leaves the next visit a finish of
 one or two darts, a preferred double first; see `setup`.
 """
@@ -19,27 +24,37 @@ from functools import lru_cache
 from itertools import combinations_with_replacement, product
 from typing import NamedTuple
 
+from .scoring import BULL, BULL_25_50, BULL_50_50, DOUBLE, MASTER, STRAIGHT
+
 
 class Bed(NamedTuple):
     name: str
     score: int
     multiplier: int
-
-    @property
-    def number(self) -> int:
-        """The number of the bed: 20 for T20, 25 for the bull."""
-        return self.score // self.multiplier
+    # The number of the bed: 20 for T20, 25 for the bulls.
+    number: int
 
 
-SINGLES = [Bed(f"S{number}", number, 1) for number in range(1, 21)] + [Bed("25", 25, 1)]
-DOUBLES = [Bed(f"D{number}", 2 * number, 2) for number in range(1, 21)] + [
-    Bed("BULL", 50, 2)
+SINGLES = [Bed(f"S{number}", number, 1, number) for number in range(1, 21)] + [
+    Bed("25", BULL, 1, BULL)
 ]
-TREBLES = [Bed(f"T{number}", 3 * number, 3) for number in range(1, 21)]
+DOUBLES = [Bed(f"D{number}", 2 * number, 2, number) for number in range(1, 21)] + [
+    Bed("BULL", 2 * BULL, 2, BULL)
+]
+TREBLES = [Bed(f"T{number}", 3 * number, 3, number) for number in range(1, 21)]
 BEDS = [*SINGLES, *DOUBLES, *TREBLES]
+# With the bull mode 50/50, the outer bull scores 50 as well: a dart at the bull,
+# which sets up and, without double out, finishes, though it is no double.
+BULL_SINGLE = Bed("BULL", 2 * BULL, 1, BULL)
+BEDS_BY_BULL = {
+    BULL_25_50: BEDS,
+    BULL_50_50: [BULL_SINGLE if bed.name == "25" else bed for bed in BEDS],
+}
 # Every score a double finishes, with that double, and the other way round.
 FINISHING = {bed.score: bed for bed in DOUBLES}
 FINISHING_SCORE = {bed.name: bed.score for bed in DOUBLES}
+# The trebles a master out finishes on, by their score.
+TREBLE_FINISHING = {bed.score: bed for bed in TREBLES}
 
 # Doubles that halve into further doubles come first, the bull last.
 FINISH_ORDER = (
@@ -53,7 +68,17 @@ GOOD_DOUBLES = frozenset(FINISH_ORDER[:5])
 ACCEPTED_DOUBLES = frozenset(FINISH_ORDER[:7])
 BIG_TREBLES = (20, 19)
 # Highest possible checkout: two trebles 20 and the bull, or three trebles 20.
-HIGHEST = {True: 170, False: 180}
+HIGHEST = {DOUBLE: 170, MASTER: 180, STRAIGHT: 180}
+
+
+def finishes(need: int, out_mode: str, beds: list[Bed]) -> list[Bed]:
+    """The beds a dart finishes `need` on with this Out mode."""
+    if out_mode == STRAIGHT:
+        return [bed for bed in beds if bed.score == need]
+    found = [FINISHING[need]] if need in FINISHING else []
+    if out_mode == MASTER and need in TREBLE_FINISHING:
+        found.append(TREBLE_FINISHING[need])
+    return found
 
 
 def _setup_rank(
@@ -87,7 +112,12 @@ def _setup_rank(
 
 
 def _double_out_rank(
-    route: tuple[Bed, ...], remaining: int, darts: int, preferred: tuple[str, ...]
+    route: tuple[Bed, ...],
+    remaining: int,
+    darts: int,
+    preferred: tuple[str, ...],
+    out_mode: str = DOUBLE,
+    bull_mode: str = BULL_25_50,
 ) -> tuple[object, ...]:
     *setup, finish = route
     first: tuple[object, ...] = ()
@@ -98,7 +128,7 @@ def _double_out_rank(
         missed = (
             darts == 3
             and dart.multiplier == 3
-            and not checkout(remaining - dart.number, 2)
+            and not checkout(remaining - dart.number, 2, out_mode, (), bull_mode)
         )
         first = (missed, -dart.score)
         remaining, darts = remaining - dart.score, darts - 1
@@ -113,6 +143,19 @@ def _double_out_rank(
         personal,
         *first[1:],
         *_setup_rank(remaining, tuple(setup), finish, darts),
+    )
+
+
+def _treble_out_rank(route: tuple[Bed, ...]) -> tuple[object, ...]:
+    """With master out, where only a treble finishes in as few darts: no
+    double to set up, fewer trebles to set up, the bigger setup darts first,
+    then the bigger treble to finish on: T20 T20 T17 for 171."""
+    *setup, finish = route
+    return (
+        sum(bed.multiplier == 2 for bed in setup),
+        sum(bed.multiplier == 3 for bed in setup),
+        *(-bed.score for bed in setup),
+        -finish.score,
     )
 
 
@@ -131,35 +174,39 @@ def _single_out_rank(route: tuple[Bed, ...]) -> tuple[object, ...]:
 def _uncached_checkout(
     remaining: int,
     darts: int = 3,
-    double_out: bool = True,
+    out_mode: str = DOUBLE,
     preferred: tuple[str, ...] = (),
+    bull_mode: str = BULL_25_50,
 ) -> tuple[str, ...]:
     """The preferred way to finish, or an empty tuple when none exists.
 
     Fewer darts always come first. Preferred doubles, a player's strongest,
     win over the usual route whenever the same number of darts reaches them
-    without a double to set up.
+    without a double to set up. With master out, a route on a double comes
+    before one on a treble with as many darts.
     """
-    if not 0 < remaining <= HIGHEST[double_out] or not 0 < darts <= 3:
+    if not 0 < remaining <= HIGHEST[out_mode] or not 0 < darts <= 3:
         return ()
+    beds = BEDS_BY_BULL[bull_mode]
     for count in range(darts):
         routes: list[tuple[Bed, ...]] = []
-        for setup in product(BEDS, repeat=count):
+        for setup in product(beds, repeat=count):
             need = remaining - sum(bed.score for bed in setup)
-            if double_out:
-                finishes = [FINISHING[need]] if need in FINISHING else []
-            else:
-                finishes = [bed for bed in BEDS if bed.score == need]
-            routes.extend((*setup, finish) for finish in finishes)
-        if not routes:
-            continue
-        if double_out:
+            routes.extend((*setup, bed) for bed in finishes(need, out_mode, beds))
+        doubles = [route for route in routes if route[-1].multiplier == 2]
+        if out_mode != STRAIGHT and doubles:
             best = min(
-                routes,
-                key=lambda route: _double_out_rank(route, remaining, darts, preferred),
+                doubles,
+                key=lambda route: _double_out_rank(
+                    route, remaining, darts, preferred, out_mode, bull_mode
+                ),
             )
-        else:
+        elif out_mode == MASTER and routes:
+            best = min(routes, key=_treble_out_rank)
+        elif out_mode == STRAIGHT and routes:
             best = min(routes, key=_single_out_rank)
+        else:
+            continue
         return tuple(bed.name for bed in best)
     return ()
 
@@ -197,35 +244,51 @@ class Setup(NamedTuple):
 
 def _hard(bed: Bed) -> bool:
     """Small beds a setup rather avoids: the outer bull and the small trebles."""
-    return bed.score == 25 or (bed.multiplier == 3 and bed.number not in BIG_TREBLES)
+    return (bed.number == BULL and bed.multiplier == 1) or (
+        bed.multiplier == 3 and bed.number not in BIG_TREBLES
+    )
 
 
-# Setup beds as the search needs them: score, small or not, treble or not;
-# trebles first and bigger beds first, the order a setup is thrown in.
-_SETUP = sorted(
-    ((bed.score, _hard(bed), bed.multiplier == 3, bed.name) for bed in SETUP_BEDS),
-    key=lambda bed: (not bed[2], -bed[0]),
-)
+# Setup beds as the search needs them, for every bull mode: score, small or
+# not, treble or not; trebles first and bigger beds first, the order a setup is
+# thrown in.
+_SETUP = {
+    mode: sorted(
+        (
+            (bed.score, _hard(bed), bed.multiplier == 3, bed.name)
+            for bed in beds
+            if bed.multiplier != 2
+        ),
+        key=lambda bed: (not bed[2], -bed[0]),
+    )
+    for mode, beds in BEDS_BY_BULL.items()
+}
 
 
-def _uncached_leave_ranks(preferred: tuple[str, ...]) -> dict[int, tuple[int, int]]:
+def _uncached_leave_ranks(
+    preferred: tuple[str, ...],
+    out_mode: str = DOUBLE,
+    bull_mode: str = BULL_25_50,
+) -> dict[int, tuple[int, int]]:
     """How good every score is to start the next visit with.
 
     Tier 0 are the preferred doubles, the player's strongest and then 32, 40,
-    36 and 16, in that order; tier 1 the other doubles. Tier 2 are the finishes
-    of two darts and the bull, the smaller the better. Scores that need three
-    darts are missing.
+    36 and 16, in that order; tier 1 the other doubles and, with master out,
+    the trebles, the bigger first. Tier 2 are the finishes of two darts and
+    the bull, the smaller the better. Scores that need three darts are missing.
     """
     first = tuple(
         FINISHING_SCORE[name] for name in preferred if name in FINISHING_SCORE
     )
     order = (*first, *(score for score in LEAVE_ORDER if score not in first))
     ranks: dict[int, tuple[int, int]] = {}
-    for leave in range(2, HIGHEST[True]):
+    for leave in range(2, HIGHEST[out_mode]):
         if leave in FINISHING and leave != FINISHING_SCORE["BULL"]:
             tier = 0 if leave in (*first, *PREFERRED_LEAVES) else 1
             ranks[leave] = (tier, order.index(leave))
-        elif checkout(leave, 2):
+        elif out_mode == MASTER and leave in TREBLE_FINISHING:
+            ranks[leave] = (1, len(order) + 60 - leave)
+        elif checkout(leave, 2, out_mode, (), bull_mode):
             ranks[leave] = (2, leave)
     return ranks
 
@@ -234,24 +297,35 @@ _leave_ranks = lru_cache(maxsize=16)(_uncached_leave_ranks)
 
 
 def _uncached_setup(
-    remaining: int, darts: int = 3, preferred: tuple[str, ...] = ()
+    remaining: int,
+    darts: int = 3,
+    preferred: tuple[str, ...] = (),
+    out_mode: str = DOUBLE,
+    bull_mode: str = BULL_25_50,
 ) -> Setup | None:
-    """Where to aim when the darts left cannot check out with double out.
+    """Where to aim when the darts left cannot check out with double or master out.
 
-    Above 170, at a score without a route such as 169, or with too few darts
-    left, the darts in hand set up the next visit. They leave the best score to
-    finish from (see `_leave_ranks`) with as few small beds as possible, then
-    the better leave, then fewer and bigger trebles. The trebles come first,
-    the single that sets up the double last. Above 170 with three darts, only
-    a double is worth setting up; below, a finish of two darts, too. None when
-    a checkout exists, or when nothing worth setting up can be left.
+    Above the highest checkout, at a score without a route such as 169, or
+    with too few darts left, the darts in hand set up the next visit. They
+    leave the best score to finish from (see `_leave_ranks`) with as few small
+    beds as possible, then the better leave, then fewer and bigger trebles. The
+    trebles come first, the single that sets up the double last. Above the
+    highest checkout with three darts, only a finish of one dart is worth
+    setting up; below, a finish of two darts, too. None without double or
+    master out, when a checkout exists, or when nothing worth setting up can be
+    left.
     """
-    if remaining < 2 or not 0 < darts <= 3 or checkout(remaining, darts):
+    if (
+        remaining < 2
+        or not 0 < darts <= 3
+        or out_mode == STRAIGHT
+        or checkout(remaining, darts, out_mode, (), bull_mode)
+    ):
         return None
-    ranks = _leave_ranks(preferred)
-    tiers = 1 if darts == 3 and remaining > HIGHEST[True] else 2
+    ranks = _leave_ranks(preferred, out_mode, bull_mode)
+    tiers = 1 if darts == 3 and remaining > HIGHEST[out_mode] else 2
     best: tuple[tuple[object, ...], tuple[str, ...], int] | None = None
-    for beds in combinations_with_replacement(_SETUP, darts):
+    for beds in combinations_with_replacement(_SETUP[bull_mode], darts):
         leave = remaining - sum(bed[0] for bed in beds)
         if (rank := ranks.get(leave)) is None or rank[0] > tiers:
             continue

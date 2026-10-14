@@ -138,6 +138,33 @@ test("a visit joined halfway is not called, since its start is unknown", () => {
   assert.equal(callerState(visit(), x01({ player: 2, remaining: 301 }), three).start, 301);
 });
 
+test("in X01 a visit counts from where the integration says it started, also after a state the card missed", () => {
+  // Alex alone scores 140; the takeout goes by unseen, and the next visit scores 3, not 143.
+  const states = play([
+    [visit(), x01({ remaining: 501, visitFrom: 501 })],
+    [
+      visit(dart(20, 3), dart(20, 3), dart(20, 1)),
+      x01({ remaining: 361, visitFrom: 501, visit: ["T20", "T20", "S20"] }),
+    ],
+    [visit(dart(1, 1), dart(1, 1), dart(1, 1)), x01({ remaining: 358, visitFrom: 361, visit: ["S1", "S1", "S1"] })],
+  ]);
+  assert.deepEqual(callerCalls(states[0], states[1], all), [{ kind: "score", score: 140 }]);
+  assert.deepEqual(callerCalls(states[1], states[2], all), [{ kind: "score", score: 3 }]);
+  // A visit first seen with two darts is called when its third dart lands.
+  const sam = play([
+    [visit(), x01({ remaining: 358, visitFrom: 358 })],
+    [
+      visit(dart(20, 1), dart(20, 1)),
+      x01({ player: 2, name: "Sam", remaining: 261, visitFrom: 301, visit: ["S20", "S20"] }),
+    ],
+    [
+      visit(dart(20, 1), dart(20, 1), dart(20, 1)),
+      x01({ player: 2, name: "Sam", remaining: 241, visitFrom: 301, visit: ["S20", "S20", "S20"] }),
+    ],
+  ]);
+  assert.deepEqual(callerCalls(sam[1], sam[2], all), [{ kind: "score", score: 60 }]);
+});
+
 test("Cricket calls the marks of the visit, party games their points, Killer and training games nothing", () => {
   const numbers = [20, 19, 18, 17, 16, 15, 25];
   const cricket = (keys, won = false) => ({
@@ -255,4 +282,24 @@ test("the scoreboard celebrates a 180, a ton, nine marks, a game shot and the ma
   assert.equal(celebrationHtml("ton", 1), '<div class="moment ton" data-round="1" style="--c:#43b581"><div class="glow"></div></div>');
   assert.match(celebrationHtml("ton40", 1), /--c:#ff8c42/);
   assert.match(celebrationHtml("nine", 1), /--c:#ffd60a/);
+});
+
+test("the caller names the winner of a leg or a match the round limit decides", () => {
+  const limit = (name) => ({ ended: "2026-10-14T20:00:00", name });
+  const before = callerState(visit(), x01({ limit: null }));
+  const leg = callerState(visit(), x01({ limit: limit("Sam") }), before);
+  assert.deepEqual(callerCalls(before, leg, all), [{ kind: "limit_leg", name: "Sam" }]);
+  // Once called, and not when results are not called.
+  assert.deepEqual(calls(leg, callerState(visit(), x01({ limit: limit("Sam") }), leg)), []);
+  assert.deepEqual(calls(before, leg, { ...all, call_results: false }), []);
+  const won = callerState(visit(), x01({ winner: 2, limit: limit("Sam") }), before);
+  assert.deepEqual(callerCalls(before, won, all), [{ kind: "limit_match", name: "Sam" }]);
+  const t = (key) =>
+    ({
+      say_limit_leg: "Round limit, and the leg, {name}!",
+      say_limit_match: "Round limit, and the match, {name}!",
+    })[key] ?? key;
+  assert.equal(callerText({ kind: "limit_leg", name: "Sam" }, t), "Round limit, and the leg, Sam!");
+  assert.equal(callerText({ kind: "limit_leg", name: null }, t), "Round limit, and the leg!");
+  assert.equal(callerText({ kind: "limit_match", name: "Sam" }, t), "Round limit, and the match, Sam!");
 });

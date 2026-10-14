@@ -319,6 +319,44 @@ test("a decided game in German, a full daily goal and a single day of streak", (
   assert.equal(text(card, ".clock .facts"), "Samstag, 26. September");
 });
 
+test("after a team match both partners of the winning team carry the trophy", (t) => {
+  clock(t);
+  const player = (name, legs, average) => ({ name, legs, sets: 0, match_legs: legs, average });
+  const { card } = setup(
+    {
+      "sensor.last_match": {
+        state: "2026-09-26T18:40:00+00:00",
+        attributes: {
+          matches: [
+            {
+              ended: "2026-09-26T18:40:00+00:00",
+              game: 501,
+              legs_to_win: 2,
+              sets_to_win: 1,
+              // Alex and Kim against Sam and Tom, who take turns at the board.
+              winner: 1,
+              winners: [1, 3],
+              players: [player("Alex", 2, 50.2), player("Sam", 1, 47.5), player("Kim", 2, 44.1), player("Tom", 1, 39.9)],
+            },
+          ],
+        },
+      },
+    },
+    { idle_panels: ["last_match"] }
+  );
+  t.mock.timers.tick(180000);
+  assert.equal(text(card, ".meta"), "Last match");
+  assert.deepEqual(
+    $$(card, ".result li").map((row) => [row.className, row.textContent]),
+    [
+      ["winner", "Alex2Ø 50.2🏆"],
+      ["", "Sam1Ø 47.5"],
+      ["winner", "Kim2Ø 44.1🏆"],
+      ["", "Tom1Ø 39.9"],
+    ]
+  );
+});
+
 test("the panels read what the sensors leave out, and the clock can follow the browser", () => {
   const ui = {
     t: (key) => key,

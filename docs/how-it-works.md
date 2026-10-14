@@ -103,10 +103,12 @@ The practice game follows the darts of the current visit, including corrections,
   6. Then any setup towards the good doubles D20, D16, D8, D18 or D12, then everything else; fewer triples, bigger triples, and the finishing double in the order D20, D16, D8, D18, D12, D10, D4, D14, D6, D2 and the odd doubles.
 
   So 144 is T20 T20 D12, 136 T20 T20 D8, 130 T20 T20 D5, 127 T20 T17 D8, 73 T19 D8 and 64 T16 D8. The scores 159, 162, 163, 165, 166, 168, 169 and everything above 170 have no route with double out. Without double out, the biggest bed finishes: a single before a double or a triple.
+
+  With master out, a route on a double comes first wherever one takes as few darts, by the principles above; a triple finishes only where it saves a dart, with no double to set up, fewer and bigger triples before it and the biggest triple last: 60 is T20, 117 T20 T19, 171 T20 T20 T17 and 100 still T20 D20. With the bull mode 50/50, the bull scores 50 also outside the bullseye: a dart at it sets up a double like a single, so 90 is BULL D20 and 70 BULL D10, while only the bullseye finishes. A test tries every score from 1 to 190 with one to three darts in every out mode and bull mode: a route exists exactly where the darts can finish, adds up, ends on a bed the out mode takes and needs the fewest darts.
 - **Setup:** where the darts left cannot check out, the game suggests a [setup](#setup-hints) instead.
 - **Personal routes:** with *Practice personal checkout routes*, the strong doubles of the player at the board, best hit rate first, win over the usual route whenever a route with the same number of darts reaches them without a double to set up; among routes to the same double, the principles above decide. A double is strong with at least 10 darts at it and a hit rate at least as high as the player's rate on all doubles; a double never hit is never preferred.
 - **New practice leg** starts the leg again; the darts of the aborted leg leave the match averages and the match summary.
-- **Statistics:** each finished X01 leg adds one record for everybody at the board: the points and darts of the first nine darts, the darts thrown at a double and the checkout. Bust visits score nothing, also in the first nine. The statistics sensors use the last 10 records, so their history shows how you improve. *Practice legs played* counts every finished leg of X01, the Cricket games and the party games.
+- **Statistics:** each finished X01 leg adds one record for everybody at the board: the points and darts of the first nine darts, the darts thrown at a double and the checkout. Darts at a double and checkouts count with double out; a leg the round limit decided has no checkout. Bust visits score nothing, also in the first nine. The statistics sensors use the last 10 records, so their history shows how you improve. *Practice legs played* counts every finished leg of X01, the Cricket games and the party games.
 - **Storage:** the game, the rules, the teams and start scores, the players with their scores and marks, the match format, the last 10 legs and the [match summary](#match-summary) with the numbers it counts are saved together with the training session, and so is every player's [progress](#player-progress). So are *Practice manual entry* and the bot's level and delay.
 
 ### Setup hints
@@ -194,10 +196,10 @@ The weekly report counts what the board detects, like the darts of the day, and 
 
 ## Highlight gallery
 
-The media source *Autodarts* shows the photos that the [highlight photo blueprint](automations.md#highlight-gallery) saves:
+The media source *Autodarts* shows the photos that the [highlight photo blueprint](automations.md#highlight-gallery) saves with [`autodarts.save_highlight`](entities.md#save-a-highlight-photo-autodartssave_highlight):
 
 - **Folder:** `autodarts/highlights` in the media folder of Home Assistant. That is the media folder `local`: `/media` on Home Assistant OS and in a container, otherwise the `media` folder in the configuration folder. If you set `media_dirs` without `local`, the first of them.
-- **Names:** `YYYY-MM-DD_HH-MM-SS_<player>_<score>.jpg`; the time and the player are optional, and a checkout reads `checkout-121`. Other pictures (`.jpg`, `.jpeg`, `.png`, `.webp`) show by their file name and the time they were saved.
+- **Names:** `YYYY-MM-DD_HH-MM-SS_<player>_<score>.jpg`; the time and the player are optional, a checkout reads `checkout-121`, and a second photo of the same second with the same name ends in a space and `(2)`. Other pictures (`.jpg`, `.jpeg`, `.png`, `.webp`) show by their file name and the time they were saved.
 - **Order:** the months newest first, each with its newest photo as the cover; the photos of a month newest first.
 - **Titles:** in the language of Home Assistant's server, for example *September 2026* and *180 · Alex · Sep 26* in English, *26.09.* in German, *26-09* in Dutch and *26/09* in French and Spanish.
 - **Safety:** only plain file names of that folder open, and only pictures; hidden files, subfolders and links out of the folder are ignored. Home Assistant's own media view serves the photos, to logged-in users or with a signed address.

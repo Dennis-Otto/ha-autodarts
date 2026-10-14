@@ -1,0 +1,7 @@
+{
+  "config": {
+    "abort": {
+      "left_out": "This test instance leaves Radio Browser out, because it looks up radio stations on the internet."
+    }
+  }
+}

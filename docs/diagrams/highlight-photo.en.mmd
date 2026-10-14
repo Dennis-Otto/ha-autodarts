@@ -1,0 +1,19 @@
+flowchart TB
+  accTitle: How the highlight photo saves a photo and what your actions get
+  accDescr: After a big visit or a checkout, the highlight photo waits half a second. With Save to the gallery on, autodarts.save_highlight saves the photo only when the camera entity is enabled and available, the camera gives a picture and Home Assistant may write to the folder; then photo is the saved file and photo_url its address in the media folder. Otherwise nothing is saved, the log says why, and photo and photo_url stay empty, as they do with Save to the gallery off. Your actions run either way, and photo_url or image is the saved photo or the live picture of the camera.
+  MOMENT["A big visit<br/>or a checkout"] --> SAVE{"<i>Save to the gallery</i>?"}
+  SAVE -- "yes" --> CAMERA{"Camera enabled<br/>and available?"}
+  CAMERA -- "yes" --> PICTURE{"Does the camera<br/>give a picture?"}
+  PICTURE -- "yes" --> FOLDER{"May Home Assistant<br/>write to the folder?"}
+  FOLDER -- "yes" --> SAVED["Saved by<br/>autodarts.save_highlight:<br/>photo is the file,<br/>photo_url its address"]
+  CAMERA -- "no" --> FAILED["Nothing saved,<br/>the log says why"]
+  PICTURE -- "no" --> FAILED
+  FOLDER -- "no" --> FAILED
+  SAVE -- "no" --> EMPTY["photo and photo_url<br/>stay empty"]
+  FAILED --> EMPTY
+  SAVED --> ACTIONS["Your actions run:<br/>photo_url or image is<br/>the photo or the<br/>live picture"]
+  EMPTY --> ACTIONS
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class SAVED done
+  class FAILED warn

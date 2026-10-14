@@ -879,6 +879,26 @@ def play_comfort(browser: Browser) -> None:
         timeout=15000,
     )
 
+    # A keyboard types the score of a visit into the score view, Enter sends it with
+    # autodarts.enter_visit, and the pad keeps the keys for the next one.
+    page.evaluate(
+        CALL_ACTION,
+        ["start_game", {"game": "301", "players": ["Alex"], "bot_level": 0}],
+    )
+    left = (
+        f"[...({SCOREBOARD_CARDS})()[0].shadowRoot.querySelectorAll('.player .big')]"
+        ".map((el) => el.textContent).join()"
+    )
+    page.wait_for_function(f"() => {left} === '301'", timeout=15000)
+    card.locator("[data-pad='score']").click()
+    for score, remaining in (("60", "241"), ("45", "196")):
+        page.keyboard.type(score)
+        page.keyboard.press("Enter")
+        try:
+            page.wait_for_function(f"() => {left} === '{remaining}'", timeout=15000)
+        except PlaywrightTimeout:
+            check(False, f"{score} and Enter left {page.evaluate(f'() => {left}')}")
+
     page.evaluate(
         CALL_SERVICE, ["number", "set_value", "practice_bot_level", {"value": 0}]
     )

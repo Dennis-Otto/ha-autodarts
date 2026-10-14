@@ -22,6 +22,7 @@ from custom_components.autodarts.positions import (
     spread,
     x01_aims,
 )
+from custom_components.autodarts.scoring import DOUBLE, STRAIGHT
 
 from .local_helpers import dart
 
@@ -35,7 +36,7 @@ def routes(remaining: int, left: int) -> tuple[str, ...]:
 
 
 def single_out(remaining: int, left: int) -> tuple[str, ...]:
-    return checkout(remaining, left, False)
+    return checkout(remaining, left, STRAIGHT)
 
 
 def around(aim: str, dx: float, dy: float) -> tuple[float, float, str]:
@@ -71,7 +72,7 @@ def test_aim_points_follow_the_board():
 
 
 def test_x01_scoring_visits_aim_at_the_treble_20():
-    assert x01_aims(501, darts("T20", "S20", "S1"), True, None, routes) == [
+    assert x01_aims(501, darts("T20", "S20", "S1"), DOUBLE, None, routes) == [
         "T20",
         "T20",
         "T20",
@@ -80,21 +81,21 @@ def test_x01_scoring_visits_aim_at_the_treble_20():
 
 def test_x01_finishes_aim_at_the_double_or_the_route():
     # 100: T20 D20; after a single 20, 80 is T20 D10 with two darts.
-    assert x01_aims(100, darts("S20", "T20", "D10"), True, None, routes) == [
+    assert x01_aims(100, darts("S20", "T20", "D10"), DOUBLE, None, routes) == [
         "T20",
         "T20",
         "D10",
     ]
     # One dart at 40 is thrown at D20; a miss leaves 40, a single 20 leaves D10.
-    assert x01_aims(40, darts("MISS", "S20", "D10"), True, None, routes) == [
+    assert x01_aims(40, darts("MISS", "S20", "D10"), DOUBLE, None, routes) == [
         "D20",
         "D20",
         "D10",
     ]
-    assert x01_aims(50, darts("BULL"), True, None, routes) == ["BULL"]
+    assert x01_aims(50, darts("BULL"), DOUBLE, None, routes) == ["BULL"]
     # 60 is S20 D20: a single has no aim. Two darts cannot finish 140.
-    assert x01_aims(60, darts("S20"), True, None, routes) == [None]
-    assert x01_aims(200, darts("T20", "T20", "T20"), True, None, routes) == [
+    assert x01_aims(60, darts("S20"), DOUBLE, None, routes) == [None]
+    assert x01_aims(200, darts("T20", "T20", "T20"), DOUBLE, None, routes) == [
         "T20",
         "T20",
         "T20",
@@ -102,41 +103,41 @@ def test_x01_finishes_aim_at_the_double_or_the_route():
 
 
 def test_x01_darts_after_the_finish_or_a_bust_have_no_aim():
-    assert x01_aims(40, darts("D20", "S1", "S1"), True, None, routes) == [
+    assert x01_aims(40, darts("D20", "S1", "S1"), DOUBLE, None, routes) == [
         "D20",
         None,
         None,
     ]
     # 20 minus a treble 20 busts: the rest of the visit does not count.
-    assert x01_aims(20, darts("T20", "S1", "S1"), True, None, routes) == [
+    assert x01_aims(20, darts("T20", "S1", "S1"), DOUBLE, None, routes) == [
         "D10",
         None,
         None,
     ]
     # Leaving one busts with double out, as does a finish on a single.
-    assert x01_aims(21, darts("S20", "S1"), True, None, routes)[1] is None
-    assert x01_aims(20, darts("S20", "S1"), True, None, routes)[1] is None
+    assert x01_aims(21, darts("S20", "S1"), DOUBLE, None, routes)[1] is None
+    assert x01_aims(20, darts("S20", "S1"), DOUBLE, None, routes)[1] is None
 
 
 def test_without_double_out_the_route_can_end_on_a_single():
-    assert x01_aims(20, darts("S20"), False, None, single_out) == [None]
-    assert x01_aims(501, darts("T20"), False, None, single_out) == ["T20"]
-    assert x01_aims(20, darts("S19", "S1"), False, None, single_out) == [None, None]
+    assert x01_aims(20, darts("S20"), STRAIGHT, None, single_out) == [None]
+    assert x01_aims(501, darts("T20"), STRAIGHT, None, single_out) == ["T20"]
+    assert x01_aims(20, darts("S19", "S1"), STRAIGHT, None, single_out) == [None, None]
 
 
 def test_double_in_aims_after_the_opening_double():
     # Before the opening double, any double will do.
-    assert x01_aims(501, darts("S20", "D5", "T20"), True, 1, routes) == [
+    assert x01_aims(501, darts("S20", "D5", "T20"), DOUBLE, 1, routes) == [
         None,
         None,
         "T20",
     ]
-    assert x01_aims(501, darts("S20", "S5", "T20"), True, 3, routes) == [
+    assert x01_aims(501, darts("S20", "S5", "T20"), DOUBLE, 3, routes) == [
         None,
         None,
         None,
     ]
-    assert x01_aims(501, darts("D20", "T20"), True, 0, routes) == [None, "T20"]
+    assert x01_aims(501, darts("D20", "T20"), DOUBLE, 0, routes) == [None, "T20"]
 
 
 def test_the_grouping_of_rings_is_exact():

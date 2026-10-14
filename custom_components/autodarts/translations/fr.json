@@ -526,6 +526,29 @@
           "singles": "Entraînement aux simples"
         }
       },
+      "practice_in_mode": {
+        "name": "Mode d'entrée de la partie",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_out_mode": {
+        "name": "Mode de sortie de la partie",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_bull_mode": {
+        "name": "Mode du bull de la partie",
+        "state": {
+          "25_50": "25/50",
+          "50_50": "50/50"
+        }
+      },
       "weekly_report_day": {
         "name": "Jour du rapport hebdomadaire",
         "state": {
@@ -582,6 +605,9 @@
       },
       "practice_start": {
         "name": "Score de départ du joueur {number} de la partie"
+      },
+      "practice_max_rounds": {
+        "name": "Tours maximum de la partie"
       },
       "practice_count_up_rounds": {
         "name": "Tours de Count-Up de la partie"
@@ -760,7 +786,7 @@
       "message": "Un nom de joueur ne peut pas contenir d'accolades, de signe pour cent, de croisillon (#) ni de caractères de contrôle."
     },
     "name_too_long": {
-      "message": "« {name} » est trop long pour un nom de joueur, qui compte au plus {limit} caractères."
+      "message": "«\u00a0{name}\u00a0» est trop long pour un nom de joueur, qui compte au plus {limit} caractères."
     },
     "killer_players": {
       "message": "Il faut au moins deux joueurs pour Killer."
@@ -797,6 +823,21 @@
     },
     "export_failed": {
       "message": "Impossible d'écrire l'export\u00a0: {error}"
+    },
+    "highlight_camera_missing": {
+      "message": "La caméra {camera} n'existe pas ou est désactivée. Les caméras d'une cible Autodarts sont désactivées tant que vous ne les activez pas sur la page de la cible."
+    },
+    "highlight_camera_unavailable": {
+      "message": "La caméra {camera} est indisponible."
+    },
+    "highlight_no_picture": {
+      "message": "La caméra {camera} n'a donné aucune image."
+    },
+    "highlight_folder": {
+      "message": "Le dossier des temps forts {folder} ne doit pas être masqué, et Home Assistant doit y autoriser l'écriture\u00a0: www, les dossiers multimédias et les dossiers de allowlist_external_dirs sont autorisés."
+    },
+    "highlight_failed": {
+      "message": "Impossible d'enregistrer la photo de temps fort\u00a0: {error}"
     },
     "unknown_person": {
       "message": "Il n'existe aucune personne {person} dans Home Assistant."
@@ -889,7 +930,7 @@
       "message": "Les équipes partent des scores de départ des joueurs 1 et 2, un par équipe. Indiquez au plus deux scores de départ."
     },
     "unwinnable_start": {
-      "message": "Un score de départ de 3 ne peut pas être fini en double in et double out\u00a0: le seul double d'ouverture, D1, laisse 1. Choisissez un autre score de départ, ou désactivez le double in ou le double out."
+      "message": "Un score de départ de 3 ne peut pas être fini avec une entrée et une sortie double ou master, sauf si les deux sont master\u00a0: les seules fléchettes qui l'ouvrent, D1 et T1, laissent 1 ou finissent sur un triple. Choisissez un autre score de départ, ou d'autres modes d'entrée et de sortie."
     },
     "export_limit": {
       "message": "{count} exports ont été écrits au cours de la dernière heure, le maximum pour l'intégration. Réessayez plus tard."
@@ -1045,13 +1086,29 @@
           "name": "Sets pour gagner",
           "description": "Sets à gagner pour remporter le match."
         },
+        "in_mode": {
+          "name": "Mode d'entrée",
+          "description": "Comment commencent les manches de X01\u00a0: avec n'importe quelle fléchette (straight), avec un double ou le bullseye (double), ou avec un double, un triple ou le bullseye (master)."
+        },
+        "out_mode": {
+          "name": "Mode de sortie",
+          "description": "Comment se terminent les manches de X01\u00a0: sur n'importe quelle fléchette (straight), sur un double ou le bullseye (double), ou sur un double, un triple ou le bullseye (master)."
+        },
+        "bull_mode": {
+          "name": "Mode du bull",
+          "description": "Ce que vaut le bull en X01\u00a0: 25 pour le bull extérieur et 50 pour le bullseye (25/50), ou 50 pour les deux (50/50). Seul le bullseye compte comme double."
+        },
+        "max_rounds": {
+          "name": "Tours maximum",
+          "description": "Tours après lesquels le score le plus bas gagne une manche de X01, de 1 à 50\u00a0; en cas d'égalité, la manche continue tour par tour. 0 joue sans limite."
+        },
         "double_out": {
           "name": "Double out",
-          "description": "Les manches de X01 se terminent sur un double ou le bullseye."
+          "description": "Remplacé par le mode de sortie\u00a0: activé correspond à double, désactivé à straight. Les manches de X01 se terminent sur un double ou le bullseye."
         },
         "double_in": {
           "name": "Double in",
-          "description": "Les manches de X01 commencent par un double ou le bullseye."
+          "description": "Remplacé par le mode d'entrée\u00a0: activé correspond à double, désactivé à straight. Les manches de X01 commencent par un double ou le bullseye."
         },
         "bull_off": {
           "name": "Bull-off",
@@ -1120,6 +1177,28 @@
         "folder": {
           "name": "Dossier",
           "description": "Facultatif. Un dossier relatif au dossier de configuration, ou un chemin absolu, dans lequel Home Assistant autorise l'écriture\u00a0: www, un dossier multimédia ou un dossier de allowlist_external_dirs. Les fichiers placés dans www sont accessibles sous /local/ sans connexion. Sans dossier\u00a0: autodarts/exports dans le dossier multimédia."
+        }
+      }
+    },
+    "save_highlight": {
+      "name": "Enregistrer une photo de temps fort",
+      "description": "Enregistre l'image d'une caméra comme photo nommée d'après le moment, le joueur et ce qu'elle montre, par défaut dans la galerie des temps forts, autodarts/highlights du dossier multimédia, et renvoie le fichier et son adresse. L'action échoue, et ne renvoie rien, si la caméra est désactivée ou indisponible, si elle ne donne aucune image ou si le dossier n'est pas autorisé. Réservée aux administrateurs ; les automatisations peuvent aussi l'utiliser.",
+      "fields": {
+        "camera": {
+          "name": "Caméra",
+          "description": "La caméra qui prend la photo, par exemple une caméra de la cible. Les caméras d'une cible sont désactivées tant que vous ne les activez pas."
+        },
+        "folder": {
+          "name": "Dossier",
+          "description": "Facultatif. Un dossier relatif au dossier de configuration, ou un chemin absolu, dans lequel Home Assistant autorise l'écriture\u00a0: www, un dossier multimédia ou un dossier de allowlist_external_dirs. Sans dossier\u00a0: la galerie des temps forts, autodarts/highlights dans le dossier multimédia."
+        },
+        "player": {
+          "name": "Joueur",
+          "description": "Facultatif. Le joueur sur la photo, pour son nom et son titre dans la galerie."
+        },
+        "label": {
+          "name": "Libellé",
+          "description": "Facultatif. Ce que montre la photo, à la fin de son nom, par exemple 180 ou checkout-121. La galerie affiche un nombre comme le score."
         }
       }
     },
@@ -1375,6 +1454,19 @@
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Entraînement aux simples"
+      }
+    },
+    "x01_mode": {
+      "options": {
+        "straight": "Straight",
+        "double": "Double",
+        "master": "Master"
+      }
+    },
+    "bull_mode": {
+      "options": {
+        "25_50": "25/50",
+        "50_50": "50/50"
       }
     },
     "export_format": {

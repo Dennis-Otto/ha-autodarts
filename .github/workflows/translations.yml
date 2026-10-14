@@ -36,10 +36,17 @@ jobs:
       contents: read # the history of the texts
       issues: write # one issue per language: open, update and close it
     steps:
-      - name: Record the network traffic of the job
+      # The bot may write issues, so it reaches GitHub alone: the history from
+      # github.com and the issues through its API; Node is on the runner already.
+      # Without sudo and Docker no step can lift the block.
+      - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+          disable-sudo-and-containers: true
       # The whole history: when each text last changed is what the bot reads.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

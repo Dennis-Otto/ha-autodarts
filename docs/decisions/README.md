@@ -18,3 +18,4 @@ Copy [the template](0000-template.md) to the next free number and describe the d
 | [0010](0010-end-to-end-tests-behind-one-check.md) | Run the end-to-end tests only for the changes they test, behind one required check | accepted |
 | [0011](0011-entities-by-topic-without-coordinator-internals.md) | Update the entities of fast readings by topic, without the internals of Home Assistant's coordinator | accepted |
 | [0012](0012-images-in-groups-from-fresh-demos.md) | Render the images of the documentation in fixed groups, each from a fresh demo | accepted |
+| [0013](0013-jobs-reach-only-the-hosts-they-need.md) | Let the jobs of the project's workflows reach only the hosts they need, and the Home Assistant under test none | accepted |

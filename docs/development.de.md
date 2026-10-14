@@ -2,9 +2,9 @@
 
 [← Dokumentation](README.de.md)
 
-Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden, wie der Browsertest dabei wartet und in vier Teilen nebeneinander läuft, wie ihre Tests die Timer der Karten prüfen, wann die End-to-End-Tests laufen und wie die Mutationstests zeigen, was die Tests nicht prüfen.
+Die vollständige Entwickler-Dokumentation ist auf Englisch: [Development](development.md). Diese Seite beschreibt auf Deutsch, wie die Bilder der Dokumentation entstehen und wie sie aktuell bleiben, wie die Karten bei jeder Änderung auf ihr Aussehen und ihre Barrierefreiheit geprüft werden, wie der Browsertest dabei wartet und in vier Teilen nebeneinander läuft, wie ihre Tests die Timer der Karten prüfen, wann die End-to-End-Tests laufen, welche Hosts die Jobs erreichen und wie die Mutationstests zeigen, was die Tests nicht prüfen.
 
-**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Gruppen nebeneinander](#gruppen-nebeneinander) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Wie der Browsertest wartet](#wie-der-browsertest-wartet) · [Der Browsertest in Teilen](#der-browsertest-in-teilen) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Timer der Karten](#timer-der-karten) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen) · [Mutationstests](#mutationstests)
+**Auf dieser Seite:** [Bilder der Dokumentation](#bilder-der-dokumentation) · [In jedem Lauf dieselben Bilder](#in-jedem-lauf-dieselben-bilder) · [Gruppen nebeneinander](#gruppen-nebeneinander) · [Screenshot-Bot](#screenshot-bot) · [Bildvergleich](#bildvergleich) · [Wie der Browsertest wartet](#wie-der-browsertest-wartet) · [Der Browsertest in Teilen](#der-browsertest-in-teilen) · [Prüfung der Barrierefreiheit](#prüfung-der-barrierefreiheit) · [Timer der Karten](#timer-der-karten) · [Wann die End-to-End-Tests laufen](#wann-die-end-to-end-tests-laufen) · [Netzwerk der Jobs](#netzwerk-der-jobs) · [Mutationstests](#mutationstests)
 
 ## Bilder der Dokumentation
 
@@ -120,22 +120,25 @@ Eine Karte auf einem Dashboard hat Timer: den Countdown bis zum nächsten Match 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/card-timers-dark.png">
-  <img src="images/de/card-timers-light.png" alt="Die Timer einer Karte und die Seite: Home Assistant gibt einer Karte neue Zustände. Eine Karte auf der Seite startet, was sie braucht, etwa den Countdown eines Turniers, die Zeit der Zusammenfassung, den Ruhemodus und den History-Stream; eine Karte, die die Seite verlassen hat, startet nichts. Das Verlassen der Seite hält jeden Timer und den Stream an, und eine Karte, die zurückkommt, wird aktualisiert und startet sie neu. Läuft nach den Tests einer Datei noch ein Timer, schlägt die Datei mit ihrem Namen und dem fehl, was der Timer aufruft, und der Timer hält an." width="560">
+  <img src="images/de/card-timers-light.png" alt="Die Timer einer Karte und die Seite: Home Assistant gibt einer Karte neue Zustände. Eine Karte auf der Seite startet, was sie braucht, etwa den Countdown eines Turniers, die Zeit der Zusammenfassung, den Ruhemodus und den History-Stream; eine Karte, die die Seite verlassen hat, startet nichts. Das Verlassen der Seite hält jeden Timer und den Stream an, und eine Karte, die zurückkommt, wird aktualisiert und startet sie neu. In npm test verlassen die Karten eines Tests die Seite, wenn er endet; läuft dann noch ein Timer, schlägt der Test mit seinem Namen und dem fehl, was der Timer aufruft, und der Timer hält an." width="560">
 </picture>
 
 `npm test` hält jede Karte daran:
 
-- `tests/frontend/dom.mjs` verfolgt die echten Timer, die die Karten und die Tests stellen. Ein Timer, der noch läuft, wenn die Tests einer Datei fertig sind und ihre Karten die Seite verlassen haben, würde die Datei für immer laufen lassen. Stattdessen hält er an, und die Datei schlägt fehl, mit ihrem Namen und dem, was der Timer aufruft:
+- `tests/frontend/dom.mjs` verfolgt die echten Timer, die die Karten und die Tests stellen. Endet ein Test, enden seine simulierten Timer, und seine Karten verlassen die Seite, sodass der nächste Test ohne eine Karte und einen Timer von ihm beginnt. Ein Timer, der dann noch läuft, würde die Datei für immer laufen lassen. Stattdessen hält er an, und der Test schlägt fehl, mit seinem Namen und dem, was der Timer aufruft:
 
   ```text
-  ✖ tests/frontend/dom.mjs
-    Error: tournament.test.mjs left 1 timer running after its cards left the page:
+  ✖ a scoreboard of a waiting tournament counts down with real timers
+    Error: The test "a scoreboard of a waiting tournament counts down with real timers" left 1 timer running after its cards left the page:
     setInterval(() => this._update(), 1000)
   ```
 
+  Karten, die eine Datei außerhalb ihrer Tests auf die Seite stellt, verlassen sie nach ihrem letzten Test, und die Datei schlägt genauso mit ihrem Namen fehl.
 - Ein Test, der nie endet, schlägt nach 60 Sekunden mit seinem Namen fehl (`--test-timeout=60000` in `package.json`), und die übrigen Dateien laufen weiter.
 
 Simulierte Timer (`context.mock.timers`) enden mit ihrem Test und zählen nicht. Um zu prüfen, dass eine Karte keinen Timer startet, vergleicht ein Test `timers()` aus `dom.mjs` davor und danach, wie es *a scoreboard that left the page starts no countdown and no timer of the tournament* in `tests/frontend/tournament.test.mjs` tut.
+
+Die Karten eines Tests verlassen die Seite mit ihm, weil eine Karte, die blieb, `npm test` auf einem langsamen Rechner zufällig scheitern ließ (#106). Der Countdown eines wartenden Turniers zeichnete eine Karte eines früheren Tests jede Sekunde neu, auch während ein späterer Test `setTimeout` simulierte. Die Karte löschte ihren Timer des Ruhemodus dann mit der Simulation, die nichts löscht, und der echte Timer lief weiter, nachdem die Karten die Seite verlassen hatten. `dom.mjs` beendet die Simulation, bevor die Karten gehen, sodass sie ihre echten Timer mit dem echten `clearTimeout` löschen.
 
 ## Wann die End-to-End-Tests laufen
 
@@ -154,6 +157,30 @@ Die Test-Jobs laufen nebeneinander. Drei Jobs *scenario* führen `tests/e2e/run.
   <source media="(prefers-color-scheme: dark)" srcset="images/de/e2e-shards-dark.png">
   <img src="images/de/e2e-shards-light.png" alt="Die End-to-End-Tests nebeneinander: Findet der Job changes etwas zu testen, starten neun Test-Jobs zugleich. Drei führen das Szenario aus, für Board Manager 1, Board Manager 2 und Home Assistant 2026.8.0. Sechs führen den Browsertest aus, drei für das aktuelle und drei für das älteste unterstützte Home Assistant, sodass alle vier Teile einer Version zugleich laufen, jeder auf einer eigenen Demo-Instanz. Der erste Runner einer Version führt zwei Worker aus, die Karten, Spiele und Formulare neben den gleichbleibenden Höhen; der zweite das Tablet, jede Bildschirmgröße und die Dartscheibe ohne Autodarts; der dritte die Touchscreens, Safari und die Barrierefreiheit allein, damit sich WebKit von Safari die CPU mit keinem anderen Browser teilt. Die Pflichtprüfung e2e wartet auf alle." width="640">
 </picture>
+
+## Netzwerk der Jobs
+
+Jeder Job beginnt mit [Harden-Runner](https://github.com/step-security/harden-runner). In den projekteigenen Workflows, den End-to-End-Tests, dem Bildvergleich und seinem Kommentar, dem Screenshot-Bot und dem Übersetzungsbot, sperrt er jeden Host, den die Schritte des Jobs nicht brauchen (`egress-policy: block`), damit eine kompromittierte Action, ein Paket oder ein Test kein Token und keine Daten anderswohin schicken kann. Ein Job, der keinen Container startet, läuft außerdem ohne sudo und Docker, damit kein Schritt die Sperre aufheben kann. Die Dienste von GitHub Actions selbst, etwa den Speicher der Artefakte und Caches, lässt Harden-Runner von sich aus zu.
+
+| Jobs | Hosts | Wofür |
+| --- | --- | --- |
+| Übersetzungsbot, *pull request* des Screenshot-Bots | `api.github.com`, `github.com` | Sie dürfen Issues und Branches schreiben, also erreichen sie nur GitHub. |
+| Kommentar des Bildvergleichs | `api.github.com` | Er liest die Berichte der Prüfung und schreibt den Kommentar, sonst nichts. |
+| *changes* der End-to-End-Tests | `api.github.com` | die Dateien des Pull Requests |
+| *scenario* | `github.com`, `ghcr.io`, `pkg-containers.githubusercontent.com` | der Code und das Image von Home Assistant |
+| *browser* und die nächtliche Beta | dieselben, `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org` | das Image von Playwright, axe-core und die Python-Pakete des Browsertests |
+| *render* des Bildvergleichs und des Screenshot-Bots | wie *browser* ohne npm, dazu `launchpad.net`, `launchpadlibrarian.net`, `brands.home-assistant.io` | pngquant und die Symbole der anderen Integrationen von Home Assistant, die die Bilder zeigen |
+| *compare* und *collect* | `github.com`, `pypi.org`, `files.pythonhosted.org` | Pillow für den Vergleich |
+| das Gate *e2e* | keine | Es liest nur die Ergebnisse der anderen Jobs. Sein Lauf zeigt die Warnung, dass `allowed-endpoints` und `denied-endpoints` leer sind: Das ist gewollt, denn eine leere Liste sperrt jeden Host außer den Diensten von GitHub Actions. |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/job-network-dark.png">
+  <img src="images/de/job-network-light.png" alt="Welche Hosts die Jobs erreichen: Harden-Runner, der erste Schritt jedes Jobs der projekteigenen Workflows, lässt einen Job nur die Hosts erreichen, die er nennt. Die Bots, die schreiben dürfen, der Übersetzungsbot, der Pull Request des Screenshot-Bots und der Kommentar des Bildvergleichs, erreichen nur GitHub und laufen ohne sudo und Docker. Die End-to-End-Tests und die Bilder erreichen den Code, die Images von Home Assistant und Playwright und ihre Pakete. Das Home Assistant, das sie starten, hat kein Radio Browser und ruft nichts im Internet auf, außer den Symbolen, die die Bilder zeigen. Jeder andere Host ist gesperrt, und das Protokoll des letzten Schritts des Jobs nennt ihn." width="640">
+</picture>
+
+Das Home Assistant der Tests ruft selbst nichts im Internet auf. Sein Onboarding richtet Radio Browser ein, das gleich beim Start Radiosender im Internet nachschlägt, bevor ein Test es entfernen könnte. Deshalb nimmt `tests/e2e/offline/radio_browser` als benutzerdefinierte Integration im Container seinen Platz ein, und sein Konfigurationsablauf lehnt das Angebot ab; das Szenario prüft, dass kein Eintrag von Radio Browser existiert. Nur die Demo der Bilder lädt die Symbole der eingebauten Integrationen, die die Integrationsseite zeigt, über den Proxy von Home Assistant aus dessen CDN.
+
+Ein Host, den ein Job nicht nennt, lässt seinen Schritt fehlschlagen, etwa mit einer DNS-Abfrage, die scheitert, oder einer abgewiesenen Verbindung. Den Host selbst nennt das Protokoll des letzten Schritts des Jobs, *Post Block every host that the job doesn't need*, als `domain not allowed: <host>`, und die Seite der Insights von StepSecurity, die Harden-Runner in seinem ersten Schritt verlinkt. Ein neuer Host kommt mit dem Schritt, der ihn braucht, in `allowed-endpoints` des Jobs, mit einem Kommentar, der sagt, wofür, und in `tests/test_workflow_network.py`. Dieser Test schlägt fehl für einen Job dieser Workflows, den er nicht kennt, einen Host, den ein Job nicht braucht, einen Job, der wieder nur aufzeichnet (`audit`), einen Job ohne Container, der sudo behält, und einen Job, der schreiben darf und mehr als GitHub erreicht. Harden-Runner filtert die Adressen des Runners und des Standardnetzes von Docker; die Container der Compose-Netze bekommen ihre Adressen von seinem DNS, das nur die Hosts des Jobs auflöst. Die Workflows, die der Blueprint pflegt, folgen dessen eigenen Regeln.
 
 ## Mutationstests
 
