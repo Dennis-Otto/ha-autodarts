@@ -1,0 +1,19 @@
+flowchart TB
+  accTitle: Wie das Highlight-Foto ein Foto speichert und was deine Aktionen bekommen
+  accDescr: Nach einer hohen Aufnahme oder einem Checkout wartet das Highlight-Foto eine halbe Sekunde. Mit Save to the gallery speichert autodarts.save_highlight das Foto nur, wenn die Kamera-Entität aktiviert und verfügbar ist, die Kamera ein Bild liefert und Home Assistant in den Ordner schreiben darf; dann ist photo die gespeicherte Datei und photo_url ihre Adresse im Medienordner. Sonst wird nichts gespeichert, das Log sagt warum, und photo und photo_url bleiben leer, wie ohne Save to the gallery. Deine Aktionen laufen in jedem Fall, und photo_url or image ist das gespeicherte Foto oder das Live-Bild der Kamera.
+  MOMENT["Eine hohe Aufnahme<br/>oder ein Checkout"] --> SAVE{"<i>Save to the gallery</i>?"}
+  SAVE -- "ja" --> CAMERA{"Kamera aktiviert<br/>und verfügbar?"}
+  CAMERA -- "ja" --> PICTURE{"Liefert die Kamera<br/>ein Bild?"}
+  PICTURE -- "ja" --> FOLDER{"Darf Home Assistant in<br/>den Ordner schreiben?"}
+  FOLDER -- "ja" --> SAVED["Gespeichert von<br/>autodarts.save_highlight:<br/>photo ist die Datei,<br/>photo_url ihre Adresse"]
+  CAMERA -- "nein" --> FAILED["Nichts gespeichert,<br/>das Log sagt warum"]
+  PICTURE -- "nein" --> FAILED
+  FOLDER -- "nein" --> FAILED
+  SAVE -- "nein" --> EMPTY["photo und photo_url<br/>bleiben leer"]
+  FAILED --> EMPTY
+  SAVED --> ACTIONS["Deine Aktionen laufen:<br/>photo_url or image ist<br/>das Foto oder Live-Bild"]
+  EMPTY --> ACTIONS
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class SAVED done
+  class FAILED warn

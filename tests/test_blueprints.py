@@ -6,7 +6,7 @@ import logging
 import random
 import re
 from collections import defaultdict
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 from urllib.parse import parse_qs, quote, urlsplit
@@ -34,21 +34,26 @@ from pytest_homeassistant_custom_component.common import (
 from yaml import safe_dump, safe_load
 
 from custom_components.autodarts.bot import Bot
+from custom_components.autodarts.highlights import photo_stem
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
 from custom_components.autodarts.services import _game_key
 
 from .local_helpers import (
+    BASE,
     BLUEPRINTS,
     BULL,
     EVENTS,
+    JPEG,
     S20,
     T20,
     automate,
     automate_all,
     board,
+    camera_picture,
     entity_id,
     fire,
     setup_bridge,
+    setup_cameras,
 )
 from .local_helpers import WEBHOOK_PATH as ONLINE_BRIDGE
 from .test_manual_board import setup_manual
@@ -255,13 +260,29 @@ def test_the_documentation_lists_every_setting(document):
     assert not missing, missing
 
 
+def saves(hass) -> list:
+    """The photos the blueprint has autodarts.save_highlight save, which answers
+    as for a photo it saved."""
+    return async_mock_service(
+        hass,
+        "autodarts",
+        "save_highlight",
+        response={
+            "photo": "/media/autodarts/highlights/2026-09-26_21-05-33_180.jpg",
+            "photo_url": "/media/local/autodarts/highlights/2026-09-26_21-05-33_180.jpg",
+        },
+    )
+
+
 def photo_name(call) -> str:
-    """The file a snapshot saves, without the folder and the moment it was taken."""
-    folder, _, name = str(call.data["filename"]).rpartition("/")
-    assert folder == "/media/autodarts/highlights", folder
-    assert call.data["entity_id"] == ["camera.autodarts_board_camera_1"]
-    assert re.match(r"^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_", name), name
-    return name[20:]
+    """The name of the photo the blueprint has saved to the gallery, without the
+    moment it was taken."""
+    assert call.data["folder"] == "", call.data["folder"]
+    assert call.data["camera"] == "camera.autodarts_board_camera_1"
+    stem = photo_stem(
+        datetime(2026, 9, 26), call.data["player"], str(call.data["label"])
+    )
+    return stem[20:] + ".jpg"
 
 
 PHOTO = {
@@ -345,7 +366,7 @@ async def test_blueprints_follow_the_real_board_events(
     celebrate = async_mock_service(hass, "test", "celebrate")
     light = async_mock_service(hass, "test", "light")
     photos = async_mock_service(hass, "test", "photo")
-    snapshots = async_mock_service(hass, "camera", "snapshot")
+    snapshots = saves(hass)
     switch_on = async_mock_service(hass, "switch", "turn_on")
     reports = async_mock_service(hass, "test", "report")
     voice = {**VOICE, "board_events": events}
@@ -1593,7 +1614,7 @@ async def test_training_session_prepares_the_board_despite_a_failing_action(hass
 
 async def test_highlight_photo_for_a_180_and_a_checkout(hass, freezer):
     photos = async_mock_service(hass, "test", "photo")
-    snapshots = async_mock_service(hass, "camera", "snapshot")
+    snapshots = saves(hass)
     hass.states.async_set(EVENTS, "unknown")
     await automate(hass, "highlight_photo", PHOTO)
     fire(hass, "visit_thrown", score=140, darts=3)
@@ -1628,7 +1649,7 @@ async def test_highlight_photo_for_a_180_and_a_checkout(hass, freezer):
 async def test_highlight_photo_of_a_checkout_by_the_third_dart(hass, freezer):
     """The visit and the leg arrive together; the leg gets one photo."""
     photos = async_mock_service(hass, "test", "photo")
-    snapshots = async_mock_service(hass, "camera", "snapshot")
+    snapshots = saves(hass)
     hass.states.async_set(EVENTS, "unknown")
     await automate(hass, "highlight_photo", {**PHOTO, "minimum_score": 100})
     fire(hass, "visit_thrown", score=170, darts=3)
@@ -1640,7 +1661,7 @@ async def test_highlight_photo_of_a_checkout_by_the_third_dart(hass, freezer):
 
 async def test_highlight_photo_can_skip_checkouts_and_lower_the_score(hass, freezer):
     photos = async_mock_service(hass, "test", "photo")
-    async_mock_service(hass, "camera", "snapshot")
+    saves(hass)
     hass.states.async_set(EVENTS, "unknown")
     # Saved before the visit came from the board events: the old input is ignored.
     await automate(
@@ -1662,7 +1683,7 @@ async def test_highlight_photo_can_skip_checkouts_and_lower_the_score(hass, free
 
 async def test_highlight_photo_gallery_folder_and_saving_can_change(hass, freezer):
     photos = async_mock_service(hass, "test", "photo")
-    snapshots = async_mock_service(hass, "camera", "snapshot")
+    snapshots = saves(hass)
     hass.states.async_set(EVENTS, "unknown")
     await automate_all(
         hass,
@@ -1689,106 +1710,143 @@ async def test_highlight_photo_gallery_folder_and_saving_can_change(hass, freeze
     )
     fire(hass, "visit_thrown", score=180, darts=3, name="Lea")
     await photo_taken(hass, freezer)
-    folders = sorted(
-        (str(call.data["filename"]).rsplit("/", 1)[0], call.data["entity_id"])
+    # Without a folder of its own, the photo goes to the gallery, wherever the
+    # media folder is.
+    assert sorted(
+        (call.data["folder"], call.data["camera"], call.data["player"])
         for call in snapshots
-    )
-    assert folders == [
-        ("/config/media/darts", ["camera.autodarts_board_camera_1"]),
-        ("/media/autodarts/highlights", ["camera.autodarts_board_camera_2"]),
+    ) == [
+        ("", "camera.autodarts_board_camera_2", "Lea"),
+        ("/config/media/darts/", "camera.autodarts_board_camera_1", "Lea"),
     ]
-    assert all(
-        str(call.data["filename"]).endswith("_Lea_180.jpg") for call in snapshots
-    )
     assert len(photos) == 2
 
 
-async def test_a_photo_that_cannot_be_saved_is_still_sent(hass, freezer):
-    photos = async_mock_service(hass, "test", "photo")
-
-    async def refuse(call) -> None:
-        raise HomeAssistantError("Cannot write, no access to path")
-
-    hass.services.async_register("camera", "snapshot", refuse)
-    hass.states.async_set(EVENTS, "unknown")
-    await automate(hass, "highlight_photo", SAVED)
-    fire(hass, "visit_thrown", score=180, darts=3)
-    await photo_taken(hass, freezer)
-    # The live picture instead of a file that was never written.
-    assert [call.data for call in photos] == [
-        {
-            "image": "/api/camera_proxy/camera.autodarts_board_camera_1",
-            "message": "180!",
-            "photo": "",
-            "photo_url": "",
-        }
-    ]
-
-
-async def test_highlight_photo_hands_the_saved_file_to_the_actions(hass, freezer):
+@pytest.mark.parametrize(
+    "layout",
+    # /media on Home Assistant OS and in a container, /config/media elsewhere.
+    ["home_assistant_os", "core"],
+)
+async def test_highlight_photo_hands_the_saved_file_to_the_actions(
+    hass, aioclient_mock, freezer, tmp_path, tmp_path_factory, layout
+):
     """The app loads the saved photo instead of the camera seconds later."""
+    # tmp_path is the configuration folder (blueprint_folder), so the media
+    # folder of Core is inside it, the one of Home Assistant OS outside.
+    assert hass.config.config_dir == str(tmp_path)
+    media = (
+        tmp_path_factory.mktemp("media")
+        if layout == "home_assistant_os"
+        else tmp_path / "media"
+    )
+    share = tmp_path_factory.mktemp("share")
+    hass.config.media_dirs = {"local": str(media)}
+    hass.config.allowlist_external_dirs = {str(media), str(share)}
     photos = async_mock_service(hass, "test", "photo")
-    async_mock_service(hass, "camera", "snapshot")
-    hass.states.async_set(EVENTS, "unknown")
+    cameras = await setup_cameras(hass, aioclient_mock, 0, 1, 2)
+    for index in range(3):
+        camera_picture(aioclient_mock, index)
     await automate_all(
         hass,
         [
+            ("highlight_photo", {**SAVED, "camera": cameras[0]}),
+            (
+                "highlight_photo",
+                {**SAVED, "camera": cameras[1], "gallery_folder": f"{media}/darts"},
+            ),
+            (
+                "highlight_photo",
+                {**SAVED, "camera": cameras[2], "gallery_folder": f"{share}/darts"},
+            ),
             (
                 "highlight_photo",
                 {
                     **SAVED,
-                    "camera": f"camera.autodarts_board_camera_{number}",
-                    "gallery_folder": folder,
-                    "save_photo": save,
+                    "camera": "camera.autodarts_board_camera_4",
+                    "save_photo": False,
                 },
-            )
-            for number, folder, save in (
-                (1, "/media/autodarts/highlights", True),
-                (2, "/config/media/darts", True),
-                (3, "/share/darts", True),
-                (4, "/media/autodarts/highlights", False),
-            )
+            ),
         ],
     )
     fire(hass, "visit_thrown", score=180, darts=3, name="Alex Bee")
     await photo_taken(hass, freezer)
     sent = {call.data["image"][-1]: call.data for call in photos}
-    file = sent["1"]["photo"].rsplit("/", 1)[1]
+    file = Path(sent["1"]["photo"]).name
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_Alex Bee_180\.jpg", file)
-    assert "Alex%20Bee" in quote(file)
     assert [
         (sent[camera]["photo"], sent[camera]["photo_url"]) for camera in "1234"
     ] == [
         (
-            f"/media/autodarts/highlights/{file}",
+            str(media.resolve() / "autodarts" / "highlights" / file),
             f"/media/local/autodarts/highlights/{quote(file)}",
         ),
-        (f"/config/media/darts/{file}", f"/media/local/darts/{quote(file)}"),
+        (str(media.resolve() / "darts" / file), f"/media/local/darts/{quote(file)}"),
         # Outside the media folder, Home Assistant has no address for the file.
-        (f"/share/darts/{file}", ""),
+        (str(share.resolve() / "darts" / file), ""),
         # Nothing saved, nothing to load: the actions fall back to `image`.
         ("", ""),
     ]
+    # Every photo the actions get is on disk.
+    assert [Path(sent[camera]["photo"]).read_bytes() for camera in "123"] == [JPEG] * 3
+
+
+async def test_a_photo_that_was_not_saved_gets_no_file_and_no_address(
+    hass, aioclient_mock, freezer, tmp_path, caplog
+):
+    """A disabled, an unavailable and a failing camera save nothing: the actions
+    still run, with the live picture instead of a file that was never written."""
+    media = tmp_path / "media"
+    hass.config.media_dirs = {"local": str(media)}
+    hass.config.allowlist_external_dirs = {str(media)}
+    photos = async_mock_service(hass, "test", "photo")
+    failing, unplugged, disabled = await setup_cameras(hass, aioclient_mock, 0, 1)
+    aioclient_mock.get(f"{BASE}/api/img/cams/0", status=500, text="error")
+    # The board has one camera less: its entity stays, unavailable.
+    coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
+    with patch.object(
+        coordinator.client, "get_config", return_value={"camera_count": 1}
+    ):
+        # The settings of Board Manager 1 are read again after 30 seconds.
+        freezer.tick(timedelta(seconds=30))
+        await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get(unplugged).state == "unavailable"
+    assert entity_id(hass, "event", "board_events") == EVENTS
+    await automate_all(
+        hass,
+        [
+            ("highlight_photo", {**SAVED, "camera": camera})
+            for camera in (failing, unplugged, disabled)
+        ],
+    )
+    fire(hass, "visit_thrown", score=180, darts=3, name="Alex")
+    await photo_taken(hass, freezer)
+    assert sorted(call.data["image"] for call in photos) == [
+        f"/api/camera_proxy/{camera}" for camera in (failing, unplugged, disabled)
+    ]
+    assert {(call.data["photo"], call.data["photo_url"]) for call in photos} == {
+        ("", "")
+    }
+    assert not (media / "autodarts").exists()
+    # The log says why each photo is missing.
+    for camera, reason in (
+        (failing, "gave no picture"),
+        (unplugged, "is unavailable"),
+        (disabled, "does not exist or is disabled"),
+    ):
+        assert f"The camera {camera} {reason}" in caplog.text
 
 
 async def test_names_never_become_templates(hass, freezer, caplog):
     """A name is text, also in the fields Home Assistant renders once more."""
     hass.states.async_set("sensor.secret", "s3cr3t")
-    files, messages = [], []
-
-    async def snapshot(call) -> None:
-        files.append(call.data["filename"].async_render(parse_result=False))
+    messages = []
 
     async def notify(call) -> None:
         messages.append(call.data["message"].async_render(parse_result=False))
 
-    # Like camera.snapshot and the notify services, which take templates.
-    hass.services.async_register(
-        "camera",
-        "snapshot",
-        snapshot,
-        schema=cv.make_entity_service_schema({vol.Required("filename"): cv.template}),
-    )
+    # Like the notify services, which take templates.
+    snapshots = saves(hass)
     hass.services.async_register(
         "test",
         "notify",
@@ -1829,10 +1887,12 @@ async def test_names_never_become_templates(hass, freezer, caplog):
         f"Checkout 40 by {who}!" for who in shown
     ]
     assert spoken(speak) == [f"Game shot, and the leg, {who}!" for who in shown]
-    assert [file.split("_", 2)[2] for file in files] == [
+    # The photo gets the name as text, part of its file name.
+    assert [call.data["player"] for call in snapshots] == shown
+    assert [photo_name(call) for call in snapshots] == [
         "6 7_checkout-40.jpg",
-        "Kim  if_checkout-40.jpg",
-        "states('sensor.secret')_checkout-40.jpg",
+        "Kim if_checkout-40.jpg",
+        "states('sensor.secre_checkout-40.jpg",
         "note Lea_checkout-40.jpg",
     ]
     assert not [record for record in caplog.records if record.levelno >= logging.ERROR]

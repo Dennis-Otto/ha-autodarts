@@ -798,6 +798,21 @@
     "export_failed": {
       "message": "Impossible d'écrire l'export\u00a0: {error}"
     },
+    "highlight_camera_missing": {
+      "message": "La caméra {camera} n'existe pas ou est désactivée. Les caméras d'une cible Autodarts sont désactivées tant que vous ne les activez pas sur la page de la cible."
+    },
+    "highlight_camera_unavailable": {
+      "message": "La caméra {camera} est indisponible."
+    },
+    "highlight_no_picture": {
+      "message": "La caméra {camera} n'a donné aucune image."
+    },
+    "highlight_folder": {
+      "message": "Le dossier des temps forts {folder} ne doit pas être masqué, et Home Assistant doit y autoriser l'écriture\u00a0: www, les dossiers multimédias et les dossiers de allowlist_external_dirs sont autorisés."
+    },
+    "highlight_failed": {
+      "message": "Impossible d'enregistrer la photo de temps fort\u00a0: {error}"
+    },
     "unknown_person": {
       "message": "Il n'existe aucune personne {person} dans Home Assistant."
     },
@@ -1120,6 +1135,28 @@
         "folder": {
           "name": "Dossier",
           "description": "Facultatif. Un dossier relatif au dossier de configuration, ou un chemin absolu, dans lequel Home Assistant autorise l'écriture\u00a0: www, un dossier multimédia ou un dossier de allowlist_external_dirs. Les fichiers placés dans www sont accessibles sous /local/ sans connexion. Sans dossier\u00a0: autodarts/exports dans le dossier multimédia."
+        }
+      }
+    },
+    "save_highlight": {
+      "name": "Enregistrer une photo de temps fort",
+      "description": "Enregistre l'image d'une caméra comme photo nommée d'après le moment, le joueur et ce qu'elle montre, par défaut dans la galerie des temps forts, autodarts/highlights du dossier multimédia, et renvoie le fichier et son adresse. L'action échoue, et ne renvoie rien, si la caméra est désactivée ou indisponible, si elle ne donne aucune image ou si le dossier n'est pas autorisé. Réservée aux administrateurs ; les automatisations peuvent aussi l'utiliser.",
+      "fields": {
+        "camera": {
+          "name": "Caméra",
+          "description": "La caméra qui prend la photo, par exemple une caméra de la cible. Les caméras d'une cible sont désactivées tant que vous ne les activez pas."
+        },
+        "folder": {
+          "name": "Dossier",
+          "description": "Facultatif. Un dossier relatif au dossier de configuration, ou un chemin absolu, dans lequel Home Assistant autorise l'écriture\u00a0: www, un dossier multimédia ou un dossier de allowlist_external_dirs. Sans dossier\u00a0: la galerie des temps forts, autodarts/highlights dans le dossier multimédia."
+        },
+        "player": {
+          "name": "Joueur",
+          "description": "Facultatif. Le joueur sur la photo, pour son nom et son titre dans la galerie."
+        },
+        "label": {
+          "name": "Libellé",
+          "description": "Facultatif. Ce que montre la photo, à la fin de son nom, par exemple 180 ou checkout-121. La galerie affiche un nombre comme le score."
         }
       }
     },

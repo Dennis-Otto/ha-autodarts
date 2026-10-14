@@ -798,6 +798,21 @@
     "export_failed": {
       "message": "Der Export konnte nicht geschrieben werden: {error}"
     },
+    "highlight_camera_missing": {
+      "message": "Die Kamera {camera} gibt es nicht, oder sie ist deaktiviert. Die Kameras eines Autodarts-Boards sind deaktiviert, bis du sie auf der Seite des Boards aktivierst."
+    },
+    "highlight_camera_unavailable": {
+      "message": "Die Kamera {camera} ist nicht verfügbar."
+    },
+    "highlight_no_picture": {
+      "message": "Die Kamera {camera} hat kein Bild geliefert."
+    },
+    "highlight_folder": {
+      "message": "Der Highlight-Ordner {folder} darf nicht versteckt sein, und Home Assistant muss dort Schreiben erlauben: in www, den Medienordnern und den Ordnern aus allowlist_external_dirs."
+    },
+    "highlight_failed": {
+      "message": "Das Highlight-Foto konnte nicht gespeichert werden: {error}"
+    },
     "unknown_person": {
       "message": "Es gibt keine Person {person} in Home Assistant."
     },
@@ -1120,6 +1135,28 @@
         "folder": {
           "name": "Ordner",
           "description": "Optional. Ein Ordner relativ zum Konfigurationsordner oder ein absoluter Pfad, in den Home Assistant schreiben darf: www, ein Medienordner oder ein Ordner aus allowlist_external_dirs. Dateien in www sind ohne Anmeldung unter /local/ erreichbar. Ohne Ordner: autodarts/exports im Medienordner."
+        }
+      }
+    },
+    "save_highlight": {
+      "name": "Highlight-Foto speichern",
+      "description": "Speichert das Bild einer Kamera als Foto, benannt nach dem Zeitpunkt, dem Spieler und dem, was es zeigt, standardmäßig in der Highlight-Galerie unter autodarts/highlights im Medienordner, und gibt die Datei und ihre Adresse zurück. Ist die Kamera deaktiviert oder nicht verfügbar, liefert sie kein Bild oder ist der Ordner nicht erlaubt, schlägt die Aktion fehl und gibt nichts zurück. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
+      "fields": {
+        "camera": {
+          "name": "Kamera",
+          "description": "Die Kamera, die das Foto macht, etwa eine Board-Kamera. Die Kameras eines Boards sind deaktiviert, bis du sie aktivierst."
+        },
+        "folder": {
+          "name": "Ordner",
+          "description": "Optional. Ein Ordner relativ zum Konfigurationsordner oder ein absoluter Pfad, in den Home Assistant schreiben darf: www, ein Medienordner oder ein Ordner aus allowlist_external_dirs. Ohne Ordner: die Highlight-Galerie, autodarts/highlights im Medienordner."
+        },
+        "player": {
+          "name": "Spieler",
+          "description": "Optional. Der Spieler auf dem Foto, für seinen Namen und seinen Titel in der Galerie."
+        },
+        "label": {
+          "name": "Bezeichnung",
+          "description": "Optional. Was das Foto zeigt, am Ende seines Namens, etwa 180 oder checkout-121. Eine Zahl zeigt die Galerie als Punkte."
         }
       }
     },

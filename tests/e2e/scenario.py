@@ -1726,6 +1726,25 @@ class Scenario:
                 media_content_id="media-source://autodarts/../..",
             )
             check(not unknown["success"], f"Browsing outside: {unknown}")
+            # A board camera starts disabled: it saves no photo, and the action
+            # says why instead of answering with a file that was never written.
+            camera = self.entity("camera_0")
+            error = await self.refused(
+                "call_service",
+                domain="autodarts",
+                service="save_highlight",
+                service_data={"camera": camera, "player": "E2E Player", "label": 180},
+                return_response=True,
+            )
+            check(
+                error["code"] == "service_validation_error"
+                and error.get("translation_key") == "highlight_camera_missing"
+                and f"The camera {camera} does not exist or is disabled"
+                in error["message"],
+                f"save_highlight with a disabled camera: {error}",
+            )
+            photos = sorted(path.name for path in GALLERY.iterdir())
+            check(photos == [PHOTO], f"Photos in the gallery: {photos}")
         finally:
             (GALLERY / PHOTO).unlink()
             outside.unlink()
