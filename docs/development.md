@@ -399,13 +399,13 @@ runs on demand from the Actions tab.
 `[tool.mutmut]` in `pyproject.toml` decides what changes. `only_mutate` lists seven
 modules of the game rules: the checkouts, the scores of the darts, the doubles, the
 positions, Cricket, the bot and the party games. Most tests check them directly, and
-one run on the four cores of a runner should reach all of their roughly 2,800 mutants,
-in about two hours by the times measured on a development machine. The X01
-practice game, the training games and the tournaments would add about 5,900 mutants,
-more than the 320 minutes of a run allow; they join once the workflow splits the run
-into parts. A first run on a development machine in October 2026 killed 2,503 of the
-2,804 mutants and let 294 survive, a score of 89 %; 7 ran into the time limit. Most of
-the survivors are in the party games, the bot and the positions.
+one run on the four cores of a runner reaches all of their 2,804 mutants in under
+two hours. The X01 practice game, the training games and the tournaments would add
+about 5,900 mutants, more than the 320 minutes of a run allow; they join once the
+workflow splits the run into parts. The [Mutation run of 13 October 2026](https://github.com/Dennis-Otto/ha-autodarts/actions/runs/38461492820)
+took 1 h 51 min: it killed 2,503 of the 2,804 mutants, let 294 survive and stopped 7
+at the time limit, a score of 89 %. Most of the survivors are in the party games, the
+bot and the positions.
 
 Four rules keep the tests right under mutmut, and `tests/test_mutation.py` checks
 each of them:
@@ -416,9 +416,9 @@ each of them:
   Git fails there whatever the mutant. It gets `@pytest.mark.mutation_unsafe`, and
   `tests/conftest.py` skips it whenever mutmut has set `MUTANT_UNDER_TEST`.
   `also_copy` lists every file and folder at the top of the repository that Git
-  tracks, apart from the integration, and the files that coming blueprint updates
-  add, because mutmut skips a path that doesn't exist. When a new one is missing, a
-  test fails and names the entries to add.
+  tracks, apart from the integration, and the files and folders that coming
+  blueprint updates add, because mutmut skips a path that doesn't exist. When a new
+  one is missing, a test fails and names the entries to add.
 - **The caches.** mutmut first runs every test once to record the functions that it
   calls, then runs the tests of each mutant in a process forked from that first run.
   A result that a functools cache kept there comes from the code without the mutant
