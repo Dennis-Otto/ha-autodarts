@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.13.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.4...v1.13.0) (2026-10-14)
+
 ### New
 
 - **X01 with the rules of play.autodarts.io:** the in and out mode is now *Straight*, *Double* or *Master*. Master in opens a leg with a double, a triple or the bullseye, and master out finishes on one: a master-out 501 takes `T20` for 60, while the route keeps the double of the checkout chart wherever that needs no more darts. With the bull mode *50/50*, the outer bull scores 50 like the bullseye, and the routes aim at the bull for 50, such as `BULL D20` for 90; with double out only the bullseye finishes. *Max rounds*, from 1 to 50, ends a leg after its last round: the lowest score wins, a tie plays on round by round, the scoreboard shows the round, such as *Round 3/10*, and the caller of the cards and the blueprint *Autodarts: practice caller* name the winner. Choose the rules on the new game screen of the scoreboard, with the new entities *Practice in mode*, *Practice out mode*, *Practice bull mode* and *Practice max rounds*, or with `in_mode`, `out_mode`, `bull_mode` and `max_rounds` of `autodarts.start_game`. The bot opens on the triple 20 with master in and plays the out mode and the bull mode of the leg. `double_in` and `double_out` of the action and the switches *Practice double in* and *Practice double out* keep working as the modes double or straight, and a saved game keeps its rules. Checkouts, the checkout rate and the personal bests count legs with double out that a dart checked out; a leg the round limit decided counts for the legs and sets of the match. Tournaments play straight or double in and out, with master as double. For the new messages of the caller, choose **Re-import blueprint** for *Autodarts: practice caller* on the blueprints page (#272).
@@ -11,19 +13,6 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 ### Fixed
 
 - **`npm test` no longer fails at random in `tournament.test.mjs`:** on a slow or busy machine, such as a Linux container with little CPU, `npm test` failed with *tournament.test.mjs left 1 timer running after its cards left the page* and the idle timer of a scoreboard, while it passed on a fast one. The cards of a test stayed on the page for the rest of its file, and the countdown of a waiting tournament redrew a scoreboard of an earlier test every second. When that happened while a later test mocked the timers, the scoreboard cleared its idle timer with the mock, which clears nothing, and the real timer ran on. The cards of a test now leave the page when it ends, so no test runs into the timers of another, and a test that leaves a timer running fails with its own name. The cards on your dashboards were not affected. Thanks to @JoeyAwwad for the report (#106, #294).
-
-## [1.13.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.4...v1.13.0) (2026-10-14)
-
-
-### Features
-
-* **x01:** master in and out, a round limit and the bull mode ([#272](https://github.com/Dennis-Otto/ha-autodarts/issues/272)) ([7fe244a](https://github.com/Dennis-Otto/ha-autodarts/commit/7fe244a072f5d751890c0bd6217da27d58094398))
-
-
-### Bug fixes
-
-* **cards:** keyboard score entry, exact caller scores, no replays after a return, and both team winners ([#293](https://github.com/Dennis-Otto/ha-autodarts/issues/293)) ([9ec3b85](https://github.com/Dennis-Otto/ha-autodarts/commit/9ec3b85e4f8f4711e41639a4608394d44d2ab99d))
-* the highlight photo blueprint passes only photos that were really saved ([#286](https://github.com/Dennis-Otto/ha-autodarts/issues/286)) ([0ec48b0](https://github.com/Dennis-Otto/ha-autodarts/commit/0ec48b0b7308fe2739e2b93a0304639116eee09f))
 
 ## [1.12.4](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.3...v1.12.4) (2026-10-14)
 
