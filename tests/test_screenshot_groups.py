@@ -461,8 +461,9 @@ def git(cwd: Path, *arguments: str) -> str:
 
 @pytest.fixture
 def bot(tmp_path):
-    """main with images in both languages, an open pull request of the bot that
-    changed a German image, and the rendered English images of a run."""
+    """main with images in both languages and the recording of the live demo, an
+    open pull request of the bot that changed a German image, and the rendered
+    English images of a run."""
     origin, clone = tmp_path / "origin.git", tmp_path / "clone"
     git(tmp_path, "init", "--quiet", "--bare", "--initial-branch=main", str(origin))
     git(tmp_path, "clone", "--quiet", str(origin), str(clone))
@@ -474,6 +475,8 @@ def bot(tmp_path):
     picture(clone / "docs/images/en/card.png")
     picture(clone / "docs/images/de/card.png")
     picture(clone / "docs/images/de/other.png")
+    (clone / "docs/demo").mkdir(parents=True)
+    (clone / "docs/demo/timeline.json").write_text('{"steps":[]}\n')
     git(clone, "add", "--all")
     git(clone, "commit", "--quiet", "-m", "main")
     git(clone, "push", "--quiet", "origin", "main")
@@ -605,6 +608,61 @@ def test_a_language_that_did_not_render_stays_as_it_is(bot):
     assert "::warning::The images in de did not render" in result.stdout
     assert Image.open(clone / "docs/images/en/card.png").getpixel((0, 0)) == (9, 9, 9)
     assert git(clone, "status", "--short", "--", "docs/images/de") == ""
+
+
+@needs_jq
+def test_the_bot_brings_a_new_recording_of_the_live_demo(bot):
+    clone, env = bot
+    recording = Path(env["RUNNER_TEMP"]) / "rendered/timeline/timeline.json"
+    recording.parent.mkdir(parents=True)
+    recording.write_text('{"steps":[1]}\n')
+
+    result, _ = place(clone, env)
+
+    assert result.returncode == 0, result.stderr
+    assert (clone / "docs/demo/timeline.json").read_text() == '{"steps":[1]}\n'
+    result, _ = publish(clone, env, MISSING="de", PR_LIST=pulls(7))
+    assert result.returncode == 0, result.stderr
+    (commit,) = commits(env)
+    added = {item["path"] for item in commit["fileChanges"]["additions"]}
+    assert "docs/demo/timeline.json" in added
+    body = (Path(env["RUNNER_TEMP"]) / "body.md").read_text(encoding="utf-8")
+    assert "The games of the live demo were recorded anew, too" in body
+    assert "The German images did not render in this run" in body
+
+
+@needs_jq
+def test_a_new_recording_alone_has_no_table_of_images(bot):
+    clone, env = bot
+    temp = Path(env["RUNNER_TEMP"])
+    # The English images look as before, only the recording changed.
+    picture(temp / "rendered/images-en/card.png")
+    (temp / "rendered/report-en/report.json").write_text(json.dumps({"images": []}))
+    recording = temp / "rendered/timeline/timeline.json"
+    recording.parent.mkdir(parents=True)
+    recording.write_text('{"steps":[1]}\n')
+
+    result, _ = place(clone, env)
+    assert result.returncode == 0, result.stderr
+    result, _ = publish(clone, env, MISSING="de", PR_LIST=pulls(7))
+
+    assert result.returncode == 0, result.stderr
+    body = (temp / "body.md").read_text(encoding="utf-8")
+    assert "No image changed." in body
+    assert "These look different" not in body
+    assert "| Image |" not in body
+    assert "The games of the live demo were recorded anew, too" in body
+
+
+@needs_jq
+def test_the_live_demo_keeps_its_recording_when_none_was_made(bot):
+    clone, env = bot
+
+    result, _ = place(clone, env)
+
+    assert result.returncode == 0, result.stderr
+    assert "::warning::The games of the live demo were not recorded" in result.stdout
+    assert git(clone, "status", "--short", "--", "docs/demo") == ""
 
 
 def test_the_bot_stops_when_no_language_rendered(bot):

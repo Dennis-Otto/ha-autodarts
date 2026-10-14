@@ -85,6 +85,9 @@ def targets(path: Path) -> list[str]:
 def website_page(address: str) -> tuple[Path, str]:
     """The file of docs/ and the anchor of an address of the documentation website."""
     german, page = WEBSITE_PAGE.match(address).groups()
+    # A file that the website serves as it is, such as the page of the live demo.
+    if not german and page.endswith(".html") and (ROOT / "docs" / page).is_file():
+        return ROOT / "docs" / page, ""
     name = (page or "index.html").removesuffix(".html")
     anchor = address.partition("#")[2]
     return ROOT / "docs" / f"{name}{'.de' if german else ''}.md", unquote(anchor)
