@@ -106,17 +106,17 @@
   <body>
     <div class="wrap">
       <header class="top">
-        <a class="brand" href="../index.html"><img src="../branding/icon.svg" alt=""> Autodarts for Home Assistant</a>
+        <a class="brand" href="../index.html" data-page="index"><img src="../branding/icon.svg" alt=""> Autodarts for Home Assistant</a>
         <nav class="links">
-          <a href="../installation.html" data-text="install">Install the integration</a>
-          <a href="../cards.html" data-text="docs">Documentation</a>
+          <a href="../installation.html" data-page="installation" data-text="install">Install the integration</a>
+          <a href="../cards.html" data-page="cards" data-text="docs">Documentation</a>
         </nav>
       </header>
       <main>
         <h1 data-text="title">Try the cards</h1>
         <p class="lead" data-text="lead">Games at a simulated board, played by the integration and shown by its cards, right here in your browser. Nothing to install.</p>
-        <div class="controls" role="toolbar" data-label="games" aria-label="Games">
-          <button id="play" type="button" aria-pressed="false" data-text="play">Play</button>
+        <div class="controls">
+          <button id="play" type="button" data-text="play">Play</button>
           <div id="chapters" class="chapters" role="group" data-label="games" aria-label="Games"></div>
           <label><span data-text="speed">Speed</span> <select id="speed"></select></label>
           <label><span data-text="language">Language</span> <select id="language"></select></label>

@@ -35,8 +35,6 @@ async def test_the_demo_plays_every_game_to_its_end(hass, aioclient_mock, freeze
     # scripts/record_demo.py runs this test to write the timeline of the website.
     text = dump(timeline)
     assert json.loads(text) == timeline
-    if target := os.environ.get("DEMO_TIMELINE"):
-        Path(target).write_text(text, encoding="utf-8", newline="\n")
     assert timeline["format"] == FORMAT
     assert [chapter["key"] for chapter in timeline["chapters"]] == [
         "start",
@@ -78,6 +76,11 @@ async def test_the_demo_plays_every_game_to_its_end(hass, aioclient_mock, freeze
     # The training card's positions come with the steps, for the session and players.
     answers = [step["positions"] for step in steps if "positions" in step]
     assert {player for answer in answers for player in answer} >= {"", "Alex", "Kim"}
+    # With the aim model, as the aim map of the training card asks for it.
+    assert all("aim" in found for answer in answers for found in answer.values())
+    # Only a recording that passed every check above replaces the website's.
+    if target := os.environ.get("DEMO_TIMELINE"):
+        Path(target).write_text(text, encoding="utf-8", newline="\n")
 
 
 def test_the_website_has_a_recording_of_this_format():

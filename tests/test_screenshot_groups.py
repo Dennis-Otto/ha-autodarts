@@ -632,6 +632,29 @@ def test_the_bot_brings_a_new_recording_of_the_live_demo(bot):
 
 
 @needs_jq
+def test_a_new_recording_alone_has_no_table_of_images(bot):
+    clone, env = bot
+    temp = Path(env["RUNNER_TEMP"])
+    # The English images look as before, only the recording changed.
+    picture(temp / "rendered/images-en/card.png")
+    (temp / "rendered/report-en/report.json").write_text(json.dumps({"images": []}))
+    recording = temp / "rendered/timeline/timeline.json"
+    recording.parent.mkdir(parents=True)
+    recording.write_text('{"steps":[1]}\n')
+
+    result, _ = place(clone, env)
+    assert result.returncode == 0, result.stderr
+    result, _ = publish(clone, env, MISSING="de", PR_LIST=pulls(7))
+
+    assert result.returncode == 0, result.stderr
+    body = (temp / "body.md").read_text(encoding="utf-8")
+    assert "No image changed." in body
+    assert "These look different" not in body
+    assert "| Image |" not in body
+    assert "The games of the live demo were recorded anew, too" in body
+
+
+@needs_jq
 def test_the_live_demo_keeps_its_recording_when_none_was_made(bot):
     clone, env = bot
 

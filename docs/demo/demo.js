@@ -19,6 +19,9 @@ export const AGAIN = 8000;
 // How long the note about the buttons shows.
 export const NOTICE = 4000;
 
+// The languages of the website besides English; the others read the English pages.
+export const WEBSITE_LANGUAGES = ["de"];
+
 export const TEXT = {
   en: {
     name: "English",
@@ -347,6 +350,11 @@ export async function boot({ window, load, timeline = "timeline.json" }) {
     for (const element of document.querySelectorAll("[data-label]")) {
       element.setAttribute("aria-label", text(element.dataset.label));
     }
+    // The links of the header lead to the pages of the website in this language.
+    const folder = WEBSITE_LANGUAGES.includes(language) ? `${language}/` : "";
+    for (const element of document.querySelectorAll("[data-page]")) {
+      element.setAttribute("href", `../${folder}${element.dataset.page}.html`);
+    }
   };
   write();
   status.textContent = text("loading");
@@ -423,7 +431,6 @@ export async function boot({ window, load, timeline = "timeline.json" }) {
     for (const card of cards) card.hass = hass;
     play.dataset.text = replay.playing ? "pause" : "play";
     play.textContent = text(play.dataset.text);
-    play.setAttribute("aria-pressed", String(replay.playing));
     for (const button of chapters.children) {
       button.setAttribute("aria-current", String(button.dataset.chapter === replay.chapter()));
     }

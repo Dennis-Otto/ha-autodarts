@@ -44,6 +44,7 @@ jobs:
       pull-requests: read # the list of the files that a pull request changes
     outputs:
       run: ${{ steps.files.outputs.run }}
+      demo: ${{ steps.files.outputs.demo }}
     steps:
       # The files of the pull request come from GitHub's API; no step needs sudo or
       # Docker.
@@ -68,9 +69,16 @@ jobs:
           # What the tests run or mount: the integration, the blueprints, the tests
           # with the demo and the browser test, axe-core of the npm packages, and this
           # workflow. tests/test_consistency.py keeps it in step with the mounts.
-          tested='^(custom_components/|blueprints/|tests/e2e/|docs/demo/|docs/branding/|scripts/mkdocs_hooks\.py$|package(-lock)?\.json$|\.github/workflows/e2e\.yml$)'
+          tested='^(custom_components/|blueprints/|tests/e2e/|package(-lock)?\.json$|\.github/workflows/e2e\.yml$)'
+          # What the live demo plays: the cards, the page of the website with its
+          # branding and hook, its browser test and this workflow. A pull request that
+          # changes only these, such as one of the screenshot bot with a new recording,
+          # starts the one job of the live demo, not the Home Assistant jobs.
+          demo='^(custom_components/autodarts/frontend/|docs/demo/|docs/branding/|scripts/mkdocs_hooks\.py$|tests/e2e/(live_demo\.(py|sh)|requirements-browser\.txt)$|\.github/workflows/e2e\.yml$)'
           # When in doubt, the tests run.
           run=true
+          demo_run=true
+          demo_reason=""
           if [[ "$EVENT" != pull_request ]]; then
             reason="A run of $EVENT tests everything."
           elif ((${CHANGED:-0} >= 3000)); then
@@ -80,14 +88,26 @@ jobs:
             --jq '.[] | .filename, (.previous_filename // empty)')"; then
             reason="The files of the pull request are unknown; the tests run."
             echo "::warning::$reason"
-          elif first="$(grep -E -m 1 "$tested" <<<"$files")"; then
-            reason="The pull request changes $first, which the tests run or mount; they run."
           else
-            run=false
-            reason="The pull request changes nothing that the tests run or mount; they are skipped."
+            if first="$(grep -E -m 1 "$tested" <<<"$files")"; then
+              reason="The pull request changes $first, which the tests run or mount; they run."
+            else
+              run=false
+              reason="The pull request changes nothing that the tests run or mount; they are skipped."
+            fi
+            if first="$(grep -E -m 1 "$demo" <<<"$files")"; then
+              demo_reason="The pull request changes $first, which the live demo plays; it runs."
+            else
+              demo_run=false
+              demo_reason="The pull request changes nothing that the live demo plays; it is skipped."
+            fi
           fi
           echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "demo=$demo_run" >> "$GITHUB_OUTPUT"
           echo "$reason" >> "$GITHUB_STEP_SUMMARY"
+          if [[ -n "$demo_reason" ]]; then
+            echo "$demo_reason" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
   # The scenario of tests/e2e/run.sh, on each Board Manager and the oldest supported
   # Home Assistant, beside the browser jobs.
@@ -225,10 +245,6 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  # The one check of the end-to-end tests that main requires. A matrix skipped by its
-  # condition reports none of its names, and a skipped job counts as passed, so this
-  # job always runs: it passes when every test passed, or when the pull request had
-  # nothing for them to test, and fails when one failed, was cancelled or didn't run.
   # The live demo of the website in a real browser: the page of docs/demo/ plays the
   # recorded games with the cards of this pull request, in every language, on a desktop
   # and a phone, without an error in the console (tests/e2e/live_demo.sh). It needs
@@ -236,7 +252,7 @@ jobs:
   live-demo:
     name: live demo
     needs: changes
-    if: needs.changes.outputs.run == 'true'
+    if: needs.changes.outputs.demo == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -268,6 +284,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  # The one check of the end-to-end tests that main requires. A matrix skipped by its
+  # condition reports none of its names, and a skipped job counts as passed, so this
+  # job always runs: it passes when every test passed, or when the pull request had
+  # nothing for them to test, and fails when one failed, was cancelled or didn't run.
   gate:
     name: e2e
     if: always()
@@ -286,20 +306,24 @@ jobs:
       - name: Pass when every test that had to run passed
         env:
           WANTED: ${{ needs.changes.outputs.run }}
+          DEMO: ${{ needs.changes.outputs.demo }}
           NEEDS: ${{ toJSON(needs) }}
         run: |
           results="$(jq -r 'to_entries[] | "- \(.key): \(.value.result)"' <<<"$NEEDS")"
           echo "$results"
           echo "$results" >> "$GITHUB_STEP_SUMMARY"
-          # Skipped tests pass only when the changes job decided they had nothing to do.
-          if ! jq -e --arg wanted "$WANTED" '.changes.result == "success" and
-            ([to_entries[] | select(.key != "changes") | .value.result]
-              | all(. == "success" or ($wanted != "true" and . == "skipped")))' <<<"$NEEDS" >/dev/null; then
+          # Skipped tests pass only when the changes job decided they had nothing to do:
+          # the live demo by its own decision, the Home Assistant jobs by theirs.
+          if ! jq -e --arg wanted "$WANTED" --arg demo "$DEMO" '.changes.result == "success" and
+            ([to_entries[] | select(.key != "changes")
+              | (if .key == "live-demo" then $demo else $wanted end) as $job
+              | .value.result
+              | . == "success" or ($job != "true" and . == "skipped")] | all)' <<<"$NEEDS" >/dev/null; then
             echo "::error::An end-to-end test that had to run didn't pass; the jobs above show which."
             exit 1
           fi
-          if [[ "$WANTED" == true ]]; then
-            echo "Every end-to-end test passed." >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$WANTED" == true || "$DEMO" == true ]]; then
+            echo "Every end-to-end test that had to run passed." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Nothing that the end-to-end tests run or mount changed; none had to run." >> "$GITHUB_STEP_SUMMARY"
           fi

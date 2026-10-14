@@ -455,12 +455,20 @@ jobs:
           if missing:
               names = " and ".join({"en": "English", "de": "German"}[code] for code in missing)
               kept += f"\n\nThe {names} images did not render in this run; the pull request keeps what it had for them."
+          # A run that only recorded the live demo anew has no table of images.
+          if rows:
+              changes = (
+                  "These look different:\n\n"
+                  "| Image | Change | Pixels changed |\n| --- | --- | ---: |\n"
+                  + "\n".join(rows)
+              )
+          else:
+              changes = "No image changed."
           with open(f"{folder}/body.md", "w") as file:
               file.write(
                   "The screenshot bot rendered the images of the documentation anew from the demo, "
-                  f"with its frozen clock, on {os.environ['SHA']}. These look different:\n\n"
-                  "| Image | Change | Pixels changed |\n| --- | --- | ---: |\n"
-                  + "\n".join(rows)
+                  f"with its frozen clock, on {os.environ['SHA']}. "
+                  + changes
                   + kept
                   + "\n\nThe workflow run keeps the images before and after with their differences "
                   f"for three days: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"

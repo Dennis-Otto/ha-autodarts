@@ -178,7 +178,7 @@ class Recorder:
         """Milliseconds since the start of the recording."""
         return round((dt_util.utcnow() - START).total_seconds() * 1000)
 
-    def snap(self) -> None:
+    async def snap(self) -> None:
         """A step of the timeline with every state and answer that changed."""
         states: dict[str, list[Any] | None] = {}
         for entity in sorted(self.entities):
@@ -195,7 +195,14 @@ class Recorder:
         positions = {}
         progress = self.coordinator.progress
         for player in ["", *sorted(self.players)]:
-            answer = plain(progress.positions(player or None))
+            # The answer of autodarts/positions with its aim model, as the aim map
+            # of the training card asks for it.
+            answer = plain(
+                {
+                    **progress.positions(player or None),
+                    "aim": await self.coordinator.async_aim(player or None),
+                }
+            )
             if self.answers.get(player) != answer:
                 positions[player] = self.answers[player] = answer
         if not states and not positions:
@@ -214,7 +221,7 @@ class Recorder:
         await self.wait(seconds)
         self.coordinator.async_receive("state", state)
         await self.hass.async_block_till_done()
-        self.snap()
+        await self.snap()
 
     async def visit(self, names: list[str], pull: bool = True) -> None:
         """A player throws the darts one by one, then pulls them."""
@@ -232,15 +239,15 @@ class Recorder:
         """The bot throws its three darts, each after its delay."""
         for _ in range(3):
             await self.wait(1.05)
-            self.snap()
+            await self.snap()
         await self.wait(0.5)
-        self.snap()
+        await self.snap()
 
     async def action(self, service: str, seconds: float = LOOK, **data: Any) -> None:
         await self.wait(seconds)
         await self.hass.services.async_call(DOMAIN, service, data, blocking=True)
         await self.hass.async_block_till_done()
-        self.snap()
+        await self.snap()
 
     async def number(self, key: str, value: float) -> None:
         await self.hass.services.async_call(
@@ -272,7 +279,7 @@ async def x01_against_the_bot(demo: Recorder) -> None:
         if index < len(X01_VISITS) - 1:
             await demo.bot_visit()
     await demo.wait(LOOK)
-    demo.snap()
+    await demo.snap()
 
 
 async def cricket(demo: Recorder) -> None:
@@ -284,7 +291,7 @@ async def cricket(demo: Recorder) -> None:
     for visit in CRICKET_VISITS:
         await demo.visit(visit)
     await demo.wait(LOOK)
-    demo.snap()
+    await demo.snap()
 
 
 async def tournament(demo: Recorder) -> None:
@@ -307,9 +314,9 @@ async def tournament(demo: Recorder) -> None:
         # The summary, then the pause, which counts down on the scoreboard.
         for _ in range(SUMMARY + PAUSE):
             await demo.wait(1)
-            demo.snap()
+            await demo.snap()
     await demo.wait(LOOK)
-    demo.snap()
+    await demo.snap()
 
 
 async def connected(_client: Any) -> AsyncIterator[tuple[str, Any]]:
@@ -333,7 +340,7 @@ async def record(hass: HomeAssistant, aioclient_mock: Any, freezer: Any) -> dict
         demo = Recorder(hass, freezer, entry)
         await switch(hass, "training_session", True)
         demo.chapter("start")
-        demo.snap()
+        await demo.snap()
         await x01_against_the_bot(demo)
         await cricket(demo)
         await tournament(demo)

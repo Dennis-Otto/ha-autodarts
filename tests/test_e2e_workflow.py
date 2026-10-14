@@ -99,7 +99,8 @@ def test_the_steps_run_in_the_shell_of_these_tests():
 def decide(
     tmp_path: Path, pages: list[list[dict[str, str]]], **env: str
 ) -> tuple[str, str, str]:
-    """Whether the tests have to run, with the summary and the calls of gh."""
+    """Whether the Home Assistant tests have to run, with the summary and the calls
+    of gh. The decision for the live demo goes to the file "demo" of tmp_path."""
     (tmp_path / "pages").mkdir()
     for number, page in enumerate(pages):
         (tmp_path / "pages" / f"{number}.json").write_text(
@@ -113,7 +114,13 @@ def decide(
     }
     result, outputs, summary, calls = run_step(tmp_path, "changes", event | env)
     assert result.returncode == 0, result.stderr
+    (tmp_path / "demo").write_text(outputs["demo"], encoding="utf-8")
     return outputs["run"], summary, calls
+
+
+def demo_decision(tmp_path: Path) -> str:
+    """Whether the live demo has to run, as the last call of decide() found."""
+    return (tmp_path / "demo").read_text(encoding="utf-8")
 
 
 def changed(*names: str) -> list[list[dict[str, str]]]:
@@ -125,6 +132,7 @@ def test_main_the_night_and_a_manual_run_test_everything(tmp_path, event):
     run, summary, calls = decide(tmp_path, [], EVENT=event, NUMBER="", CHANGED="")
 
     assert run == "true"
+    assert demo_decision(tmp_path) == "true"
     assert f"A run of {event} tests everything." in summary
     assert calls == ""
 
@@ -144,7 +152,9 @@ def test_a_pull_request_that_changes_nothing_the_tests_use_skips_them(tmp_path, 
     run, summary, calls = decide(tmp_path, changed(*names))
 
     assert run == "false"
+    assert demo_decision(tmp_path) == "false"
     assert "changes nothing that the tests run or mount; they are skipped" in summary
+    assert "changes nothing that the live demo plays; it is skipped" in summary
     assert calls.startswith("api repos/o/r/pulls/7/files --paginate --jq ")
 
 
@@ -158,9 +168,7 @@ def test_a_pull_request_that_changes_nothing_the_tests_use_skips_them(tmp_path, 
         "tests/e2e/scenario.py",
         "tests/e2e/demo_progress.py",
         "tests/e2e/requirements-browser.txt",
-        "docs/demo/demo.js",
-        "docs/demo/timeline.json",
-        "scripts/mkdocs_hooks.py",
+        "tests/e2e/live_demo.py",
         "package.json",
         "package-lock.json",
         ".github/workflows/e2e.yml",
@@ -171,6 +179,48 @@ def test_a_pull_request_that_changes_what_the_tests_use_runs_them(tmp_path, name
 
     assert run == "true"
     assert f"changes {name}, which the tests run or mount; they run." in summary
+
+
+@needs_jq
+@pytest.mark.parametrize(
+    "name",
+    [
+        "docs/demo/demo.js",
+        # The screenshot bot brings a new recording without a change of the code.
+        "docs/demo/timeline.json",
+        "docs/branding/logo.svg",
+        "scripts/mkdocs_hooks.py",
+    ],
+)
+def test_a_pull_request_that_changes_only_the_live_demo_runs_only_its_job(
+    tmp_path, name
+):
+    run, summary, _ = decide(tmp_path, changed("README.md", name))
+
+    assert run == "false"
+    assert demo_decision(tmp_path) == "true"
+    assert f"changes {name}, which the live demo plays; it runs." in summary
+
+
+@needs_jq
+@pytest.mark.parametrize(
+    ("name", "demo"),
+    [
+        # The cards play in the live demo, the rest of the integration doesn't.
+        ("custom_components/autodarts/frontend/autodarts-card.js", "true"),
+        ("custom_components/autodarts/sensor.py", "false"),
+        ("tests/e2e/live_demo.sh", "true"),
+        ("tests/e2e/requirements-browser.txt", "true"),
+        ("tests/e2e/scenario.py", "false"),
+        ("blueprints/automation/autodarts/weekly_report.yaml", "false"),
+        ("package.json", "false"),
+        (".github/workflows/e2e.yml", "true"),
+    ],
+)
+def test_the_live_demo_runs_for_what_it_plays(tmp_path, name, demo):
+    decide(tmp_path, changed("README.md", name))
+
+    assert demo_decision(tmp_path) == demo
 
 
 @needs_jq
@@ -190,6 +240,7 @@ def test_unknown_files_run_the_tests(tmp_path):
     run, summary, calls = decide(tmp_path, changed("README.md"), GH_FAILS="1")
 
     assert run == "true"
+    assert demo_decision(tmp_path) == "true"
     assert "The files of the pull request are unknown; the tests run." in summary
     assert calls.startswith("api repos/o/r/pulls/7/files")
 
@@ -198,29 +249,39 @@ def test_more_files_than_the_api_lists_run_the_tests(tmp_path):
     run, summary, calls = decide(tmp_path, changed("README.md"), CHANGED="3000")
 
     assert run == "true"
+    assert demo_decision(tmp_path) == "true"
     assert "changes 3000 files, more than the API lists" in summary
     assert calls == ""
 
 
 def needs(
-    wanted: str, changes: str, scenario: str, browser: str = ""
+    wanted: str,
+    changes: str,
+    scenario: str,
+    browser: str = "",
+    demo: str | None = None,
+    live_demo: str = "",
 ) -> dict[str, str]:
     """The environment of the gate, as GitHub fills toJSON(needs): a matrix, such as
     the jobs of the browser test, has one result, which is failure when one of its
-    jobs failed. Without its own, the browser has the result of the scenario."""
+    jobs failed. Without their own, the browser and the live demo have the result of
+    the scenario, and the live demo has the decision of the Home Assistant tests."""
+    demo = wanted if demo is None else demo
+    outputs = {"run": wanted, "demo": demo} if wanted else {}
     jobs = {
-        "changes": {"result": changes, "outputs": {"run": wanted} if wanted else {}},
+        "changes": {"result": changes, "outputs": outputs},
         "scenario": {"result": scenario, "outputs": {}},
         "browser": {"result": browser or scenario, "outputs": {}},
+        "live-demo": {"result": live_demo or scenario, "outputs": {}},
     }
-    return {"WANTED": wanted, "NEEDS": json.dumps(jobs)}
+    return {"WANTED": wanted, "DEMO": demo, "NEEDS": json.dumps(jobs)}
 
 
 @needs_jq
 @pytest.mark.parametrize(
     ("wanted", "changes", "tests", "summary"),
     [
-        ("true", "success", "success", "Every end-to-end test passed."),
+        ("true", "success", "success", "Every end-to-end test that had to run passed."),
         ("false", "success", "skipped", "none had to run"),
     ],
 )
@@ -232,6 +293,38 @@ def test_the_required_check_passes_when_every_test_that_had_to_run_passed(
     assert result.returncode == 0, result.stdout + result.stderr
     assert f"- scenario: {tests}\n- browser: {tests}\n" in result.stdout
     assert summary in written
+
+
+@needs_jq
+def test_the_required_check_passes_when_only_the_live_demo_had_to_run(tmp_path):
+    environment = needs("false", "success", "skipped", demo="true", live_demo="success")
+    result, _, written, _ = run_step(tmp_path, "gate", environment)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "- live-demo: success\n" in result.stdout
+    assert "Every end-to-end test that had to run passed." in written
+
+
+@needs_jq
+@pytest.mark.parametrize(
+    ("wanted", "demo", "scenario", "live_demo"),
+    [
+        # The live demo had to run but was skipped, failed or was cancelled.
+        ("false", "true", "skipped", "skipped"),
+        ("false", "true", "skipped", "failure"),
+        ("true", "true", "success", "cancelled"),
+        # The Home Assistant tests had to run, the live demo not.
+        ("true", "false", "skipped", "skipped"),
+    ],
+)
+def test_the_required_check_judges_each_job_by_its_own_decision(
+    tmp_path, wanted, demo, scenario, live_demo
+):
+    environment = needs(wanted, "success", scenario, demo=demo, live_demo=live_demo)
+    result, _, _, _ = run_step(tmp_path, "gate", environment)
+
+    assert result.returncode == 1
+    assert "::error::An end-to-end test that had to run didn't pass" in result.stdout
 
 
 @needs_jq

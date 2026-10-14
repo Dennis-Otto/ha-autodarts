@@ -300,11 +300,12 @@ E2E_WORKFLOW = yaml.safe_load(
 )
 
 
-def e2e_pattern() -> re.Pattern[str]:
-    """The paths whose change runs the end-to-end tests in a pull request."""
+def e2e_pattern(name: str = "tested") -> re.Pattern[str]:
+    """The paths whose change runs the end-to-end tests in a pull request: the Home
+    Assistant tests ("tested") or the live demo ("demo")."""
     steps = E2E_WORKFLOW["jobs"]["changes"]["steps"]
     (run,) = [step["run"] for step in steps if "run" in step]
-    patterns = re.findall(r"^tested='(.+)'$", run, re.M)
+    patterns = re.findall(rf"^{name}='(.+)'$", run, re.M)
     assert len(patterns) == 1, patterns
     return re.compile(patterns[0])
 
@@ -327,11 +328,18 @@ def mounted() -> set[str]:
     return paths
 
 
-def read_from_the_root() -> set[str]:
+# The live demo has a job of its own, which runs for what it plays.
+LIVE_DEMO = "live_demo.py"
+
+
+def read_from_the_root(live_demo: bool = False) -> set[str]:
     """What the scripts of tests/e2e read from the root of the repository, such as
-    browser.py in the repository that browser.sh mounts."""
+    browser.py in the repository that browser.sh mounts: those of the Home
+    Assistant tests, or with live_demo those of the live demo."""
     paths = set()
     for script in sorted(E2E.glob("*.py")):
+        if (script.name == LIVE_DEMO) != live_demo:
+            continue
         text = script.read_text(encoding="utf-8")
         for parts in re.findall(r'parents\[2\]((?:\s*/\s*"[^"]+")+)', text):
             paths.add("/".join(re.findall(r'"([^"]+)"', parts)))
@@ -352,6 +360,24 @@ def test_pull_requests_run_the_end_to_end_tests_for_every_file_they_use():
         # A folder counts with every file in it, also one added later.
         sample = f"{path}/new.file" if (ROOT / path).is_dir() else path
         assert pattern.match(sample), f"e2e.yml must run the tests for {path}"
+
+
+def test_pull_requests_run_the_live_demo_for_every_file_it_plays():
+    used = read_from_the_root(live_demo=True)
+    assert {
+        "docs/demo",
+        "custom_components/autodarts/frontend/autodarts-card.js",
+    } <= used
+    used |= {
+        ".github/workflows/e2e.yml",
+        "tests/e2e/live_demo.py",
+        "tests/e2e/live_demo.sh",
+        "tests/e2e/requirements-browser.txt",
+    }
+    pattern = e2e_pattern("demo")
+    for path in sorted(used):
+        sample = f"{path}/new.file" if (ROOT / path).is_dir() else path
+        assert pattern.match(sample), f"e2e.yml must run the live demo for {path}"
 
 
 def test_the_browser_test_mounts_only_the_repository_and_its_artifacts():

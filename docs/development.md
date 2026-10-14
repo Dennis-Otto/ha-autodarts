@@ -355,8 +355,18 @@ test jobs only when one of the files is something the tests run or mount:
 | `custom_components/` | the integration, mounted into Home Assistant |
 | `blueprints/` | the blueprints, which the scenario and the demo use |
 | `tests/e2e/` | the scenario, the demo, the browser test and the simulated Board Manager |
-| `docs/demo/`, `docs/branding/`, `scripts/mkdocs_hooks.py` | the [live demo of the website](#live-demo-of-the-website) and what the website gives it |
 | `package.json`, `package-lock.json` | axe-core of the accessibility check |
+| `.github/workflows/e2e.yml` | the workflow itself |
+
+The job *live demo* decides on its own, so a pull request that changes only the
+[live demo of the website](#live-demo-of-the-website), such as one of the screenshot
+bot with a new recording, starts that one job and none of Home Assistant:
+
+| Path | Why the live demo uses it |
+| --- | --- |
+| `custom_components/autodarts/frontend/` | the cards that it plays |
+| `docs/demo/`, `docs/branding/`, `scripts/mkdocs_hooks.py` | the page, its recording and what the website gives it |
+| `tests/e2e/live_demo.py`, `tests/e2e/live_demo.sh`, `tests/e2e/requirements-browser.txt` | its browser test |
 | `.github/workflows/e2e.yml` | the workflow itself |
 
 A renamed file counts by its old name too. When the API fails, or a pull request

@@ -242,6 +242,10 @@ test("the page plays the recorded games with the cards, in the reader's language
     assert.equal($("h1").textContent, TEXT.de.title);
     assert.equal($("#status").textContent, "");
     assert.equal($("#progress").getAttribute("aria-label"), TEXT.de.progress);
+    // The header leads to the German pages of the website.
+    assert.equal($("[data-page='installation']").getAttribute("href"), "../de/installation.html");
+    assert.equal($("[data-page='cards']").getAttribute("href"), "../de/cards.html");
+    assert.equal($("[data-page='index']").getAttribute("href"), "../de/index.html");
     // A reader who asked for less motion starts the games with the button.
     assert.equal(replay.playing, false);
     assert.equal($("#play").textContent, TEXT.de.play);
@@ -261,7 +265,8 @@ test("the page plays the recorded games with the cards, in the reader's language
     $("#play").click();
     assert.equal(replay.playing, true);
     assert.equal($("#play").textContent, TEXT.de.pause);
-    assert.equal($("#play").getAttribute("aria-pressed"), "true");
+    // The label carries the state; a toggle state would announce it twice.
+    assert.equal($("#play").hasAttribute("aria-pressed"), false);
     chapters[2].click();
     assert.equal(replay.chapter(), "tournament");
     assert.equal(chapters[2].getAttribute("aria-current"), "true");
@@ -288,6 +293,8 @@ test("the page plays the recorded games with the cards, in the reader's language
     assert.equal($("h1").textContent, TEXT.fr.title);
     assert.equal(chapters[1].textContent, TEXT.fr.cricket);
     assert.match(view.location.href, /\?lang=fr$/);
+    // The website has no French pages; the header leads to the English ones.
+    assert.equal($("[data-page='cards']").getAttribute("href"), "../cards.html");
     assert.equal($("autodarts-scoreboard-card")._hass.language, "fr");
     // A dark theme of the system reaches the cards.
     changes[0]();
