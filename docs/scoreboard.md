@@ -36,19 +36,14 @@ The [card guide](cards.md#scoreboard-card) lists every option.
 
 The scoreboard adapts to the shape of the screen. With `full_height: true` it is exactly the screen below the toolbar: a banner, the visit or the keypad make the numbers and tables smaller instead of pushing the page past the screen, so nothing needs scrolling, from a small 800 × 480 display to a TV. On a phone it leaves room for the browser's address bar, and in the companion app for the status bar and the home indicator.
 
-<table>
-  <tr>
-    <td width="62%"><img src="images/en/scoreboard-teams.png" alt="The scoreboard on a landscape tablet: a 501 team match of Alex and Kim with 45 left against Sam and Lea with 216" width="100%"></td>
-    <td width="38%"><img src="images/en/scoreboard-portrait.png" alt="The scoreboard on a portrait tablet: the Cricket chalkboard of Alex and Sam with T19 as the next target and the current visit along the bottom" width="100%"></td>
-  </tr>
-  <tr>
-    <td align="center">Landscape tablet or TV</td>
-    <td align="center">Portrait tablet</td>
-  </tr>
-</table>
-
 - **Landscape tablet or TV:** the best choice for X01 and the party games, whose player tiles sit side by side.
+
+  <img src="images/en/scoreboard-teams.png" alt="The scoreboard on a landscape tablet: a 501 team match of Alex and Kim with 45 left against Sam and Lea with 216" width="760">
+
 - **Portrait tablet:** fine for Cricket, whose chalkboard is tall, and for X01: two players stand one above the other, three or four two by two, and the scores use the height of the screen.
+
+  <img src="images/en/scoreboard-portrait.png" alt="The scoreboard on a portrait tablet: the Cricket chalkboard of Alex and Sam with T19 as the next target and the current visit along the bottom" width="400">
+
 - **Phone:** everything fits one screen, upright or on its side. With the keypad or the board to tap, every player's score becomes one line, so all scores stay in sight; on its side, the keypad takes the right half of the screen from top to bottom. To [correct a dart](#correct-and-enter-darts), the board opens zoomed in, with a loupe under the finger.
 - **Touch monitor:** on a 24 or 27 inch touch screen beside the board, every button is large enough for a finger, also with a mouse plugged in, and the board to tap has the loupe and the two-finger zoom of a phone.
 - **Distance:** the remaining score is the largest text on the screen and grows with it. The bigger the screen, the farther away it reads, so a TV also serves the people watching.
@@ -86,16 +81,23 @@ Along the bottom it shows the three darts of the current visit and their score, 
 
 <img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="760">
 
-<table>
-  <tr>
-    <td width="50%"><img src="images/en/killer.webp" alt="Animation: Killer for Alex, Sam and Kim on the scoreboard. Everybody throws for a number, Alex becomes a killer and takes Sam's lives, Kim becomes a killer too, and Alex takes the last life to win" width="100%"></td>
-    <td width="50%"><img src="images/en/scoreboard-cricket.png" alt="Scoreboard in Cricket between Alex and Sam: the chalkboard with marks, points and marks per round, and T19 as the next target" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="images/en/golf.webp" alt="Animation: Golf for Alex and Sam on the scoreboard. After every visit the scorecard fills: Alex plays 1, 3 and 2, Sam 4, 5 and 5, and the fourth hole is under way" width="100%"></td>
-    <td width="50%"><img src="images/en/scoreboard-catch-40.png" alt="Catch 40 on the scoreboard: in the second round a single 12 leaves 50 of 62, the route is the bull, and the first checkout scored 3 points" width="100%"></td>
-  </tr>
-</table>
+Every game brings a screen of its own:
+
+- **Killer:** every player's lives as hearts, with their number and whether they are a killer, until one player is left.
+
+  <img src="images/en/killer.webp" alt="Animation: Killer for Alex, Sam and Kim on the scoreboard. Everybody throws for a number, Alex becomes a killer and takes Sam's lives, Kim becomes a killer too, and Alex takes the last life to win" width="760">
+
+- **Cricket:** the chalkboard with the marks, the points and the marks per round, and the next target in the top-left corner.
+
+  <img src="images/en/scoreboard-cricket.png" alt="Scoreboard in Cricket between Alex and Sam: the chalkboard with marks, points and marks per round, and T19 as the next target" width="760">
+
+- **Golf:** the hole being played and every player's strokes.
+
+  <img src="images/en/golf.webp" alt="Animation: Golf for Alex and Sam on the scoreboard. After every visit the scorecard fills: Alex plays 2, 3 and 1, Sam 4, 5 and 5, and the fourth hole is under way" width="760">
+
+- **Catch 40:** the score to check out in large type, with the route, the round and the points so far.
+
+  <img src="images/en/scoreboard-catch-40.png" alt="Catch 40 on the scoreboard: in the second round a single 12 leaves 50 of 62, the route is the bull, and the first checkout scored 3 points" width="760">
 
 ## Correct and enter darts
 
@@ -128,12 +130,13 @@ For a [tournament](games.md#tournaments) of three to eight players, the screen a
 3. **Between the matches,** the summary of the match stays for a few seconds, then the table of a round robin or the bracket of a knockout shows, with the next match and a countdown. **Start now** starts it at once; otherwise it starts by itself as soon as the darts are out of the board.
 4. **At the end,** a banner names the winner of the tournament, and the table or the bracket stays until a new match begins. *Stop tournament* on the new game screen ends a tournament early. Starting a new tournament while one is played stops that one first, after a second tap.
 
-<table>
-  <tr>
-    <td width="50%"><img src="images/en/tournament-lobby.png" alt="The new game screen in tournament mode: X01 and the Cricket games, six players with their start scores, knockout with the match for third place, and the start button" width="100%"></td>
-    <td width="50%"><img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="100%"></td>
-  </tr>
-</table>
+**Tournament** on the new game screen sets up the players, the game, the format and the rules:
+
+<img src="images/en/tournament-lobby.png" alt="The new game screen in tournament mode: X01 and the Cricket games, six players with their start scores, knockout with the match for third place, and the start button" width="560">
+
+Between two matches, the next match waits with its countdown above the table of a round robin:
+
+<img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="760">
 
 The table ranks by points, two for a win, then by the tie-breakers of the [tournament rules](games.md#tournament-rules). In the bracket, a player who goes on slides into the next round. [All details](cards.md#tournaments).
 

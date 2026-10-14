@@ -77,16 +77,13 @@ On a phone, the live card stacks the visit, the board, the statistics and the co
 | `accent_color` | [color](#colors) | theme primary color | Labels and main button |
 | `highlight_color` | [color](#colors) | `#ffd60a` (gold) | Hit beds and the latest dart |
 
-<table>
-  <tr>
-    <td><img src="images/en/card-autodarts-style.png" alt="Vertical layout with the Autodarts board style" width="360"></td>
-    <td><img src="images/en/card-board-only.png" alt="Board-only layout" width="360"></td>
-  </tr>
-  <tr>
-    <td align="center"><code>layout: vertical</code>, <code>board_style: autodarts</code></td>
-    <td align="center"><code>layout: board</code></td>
-  </tr>
-</table>
+With `layout: vertical` and `board_style: autodarts`, the board sits below the visit, in the flat look of Autodarts:
+
+<img src="images/en/card-autodarts-style.png" alt="The live card in the vertical layout with the Autodarts board style: the visit of T20, S5 and Bull for 115 points above the board, the training session and the controls below it" width="400">
+
+With `layout: board`, the card shows the board alone:
+
+<img src="images/en/card-board-only.png" alt="The live card in the board layout: only the board, with the three darts of the visit and the beds they hit lit up" width="400">
 
 ```yaml
 type: custom:autodarts-card
@@ -153,18 +150,17 @@ history_size: 40
 show_reset: false
 ```
 
-<img src="images/en/training-card-mobile.png" alt="Training card on a phone" width="320">
+On a phone, the training card stacks its sections, from the average down to the session controls:
 
-<table>
-  <tr>
-    <td><img src="images/en/training-positions.png" alt="The heatmap in positions mode with Alex's darts: a density around the treble 20, the doubles 16 and 8 and the bull, and the grouping of each below" width="380"></td>
-    <td><img src="images/en/heatmap-modes.webp" alt="Animation: the heatmap switches from beds to numbers and positions of the session, then to Alex's positions and beds" width="380"></td>
-  </tr>
-  <tr>
-    <td align="center"><code>mode: positions</code>, <code>player: Alex</code></td>
-    <td align="center">The switches above the board</td>
-  </tr>
-</table>
+<img src="images/en/training-card-mobile.png" alt="The training card on a phone: the 3-dart average with the streak and today's darts, the heatmap, the statistics tiles, the most hit beds, the personal bests, the recent visits, the past sessions and the session controls" width="320">
+
+With `mode: positions` and `player: Alex`, the heatmap shows where Alex's darts landed, and below the board the grouping at each bed aimed at:
+
+<img src="images/en/training-positions.png" alt="The heatmap in positions mode with Alex's darts: a density around the treble 20, the doubles 16 and 8 and the bull, and below the board the grouping at each bed aimed at" width="440">
+
+The switches above the board choose the mode and whose darts the heatmap shows:
+
+<img src="images/en/heatmap-modes.webp" alt="Animation: the heatmap switches from beds to numbers and positions of the session, then to Alex's positions and beds" width="400">
 
 ## Board status card
 
