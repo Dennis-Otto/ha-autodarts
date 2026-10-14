@@ -6,7 +6,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### Fixed
 
-- **The local checks pass after a preview of the website:** once you had set up the preview of the website as the contributing guide describes, or built the website, `bash scripts/check.sh` failed with thousands of ESLint errors, because ESLint checked the JavaScript of MkDocs in `.venv-docs/` and the scripts that the build of the website keeps in `.cache/`. ESLint now skips every folder that Git ignores, and still checks every JavaScript file that Git keeps (#282).
+- **The local checks pass after a preview of the website:** once you had set up the preview of the website as the contributing guide describes, or built the website, `bash scripts/check.sh` failed with thousands of ESLint errors, because ESLint checked the JavaScript of MkDocs in `.venv-docs/` and the scripts that the build of the website keeps in `.cache/`. ESLint now skips every folder that Git ignores, and still checks every JavaScript file that Git keeps (#282, #284).
 
 ### Documentation
 
