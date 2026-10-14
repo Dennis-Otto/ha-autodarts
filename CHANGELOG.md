@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.12.4](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.3...v1.12.4) (2026-10-14)
+
 ### Improved
 
 - **The pictures of the documentation keep up with the cards:** a change of a card shows how its pictures change in about eight minutes instead of twenty, because the pictures now render in three groups side by side. A language whose pictures fail to render no longer keeps the other language's new pictures out of the documentation or out of the comment on the pull request, and new pictures no longer put a diagram that changed in the meantime back to its earlier version. The pictures of the players, their badges, doubles and progress, the leaderboard and the weekly report now show the games of their own group, so their numbers change once (#259, #269).
@@ -18,19 +20,6 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 ### Documentation
 
 - **Every guide reads well on a phone:** the guides to the cards, the games and the scoreboard set their pictures side by side in tables, which the GitHub app and a phone squeezed into narrow columns, with pictures of 90 to 164 pixels. Each picture now has a sentence that says what it shows and sits at full width below it, in English and German, as in the README (#277, #279).
-
-## [1.12.4](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.3...v1.12.4) (2026-10-14)
-
-
-### Bug fixes
-
-* corrected darts move on the visit sensor, and malformed board or bridge data never breaks an entity ([#271](https://github.com/Dennis-Otto/ha-autodarts/issues/271)) ([620a439](https://github.com/Dennis-Otto/ha-autodarts/commit/620a439940435596dbd9eb22e163fb238c893724))
-* let the local checks skip the website cache and the docs venv ([#284](https://github.com/Dennis-Otto/ha-autodarts/issues/284)) ([4c608c7](https://github.com/Dennis-Otto/ha-autodarts/commit/4c608c73a65243fd59fd2f4e270da3b1dfb140b9))
-
-
-### Performance
-
-* **ci:** render the visual check and the screenshots in shards, with deterministic waits ([#269](https://github.com/Dennis-Otto/ha-autodarts/issues/269)) ([5e80977](https://github.com/Dennis-Otto/ha-autodarts/commit/5e809774d81b16eea8f1e0fa36639827174a6875))
 
 ## [1.12.3](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.2...v1.12.3) (2026-10-13)
 
