@@ -4,18 +4,12 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.14.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.13.0...v1.14.0) (2026-10-14)
+
 ### New
 
 - **Where to aim, from your own spread:** the heatmap of the training card has a fourth mode, *Aim*, that shows where on the board you score the most points per dart with the spread of your own darts. The treble 20 pays only when your darts land close together: from a spread of about 17 mm the treble 19 scores more, and with a wide spread a spot left of the bull, as Tibshirani, Price and Taylor showed in *A statistician plays darts*. From 30 darts aimed at a treble, the map colors every spot of the board by the points per dart you would score aiming there, rings the best aim and compares it with the treble 20, the treble 19 and the bull; with fewer darts it says how many are missing. The player profile has the best aim and its points per dart as `best_aim` and `expected_ppd`, for automations and Assist. The browser draws the map beside the page, in a worker of its own. Home Assistant works out your spread and the best aim after each visit, in some tens of milliseconds and beside its event loop, so nothing waits for it, and the spread of the session only when the map shows it ([where to aim](docs/statistics.md#where-to-aim), #276, #292).
 - **Voice in Spanish, French and Dutch:** the blueprints *Autodarts: start a game by voice* and *Autodarts: enter darts by voice* now understand Spanish, French and Dutch as well as English and German, for example "Juega 501 para Alex y Sam", "Lance la partie Cricket pour Alex", "Speel 501 tegen de bot", "Alex hace 140", "Alex a fait 140", "Dubbel 16", "Joueur suivant" or "Ongedaan maken", and Assist answers in the language of Home Assistant. Numbers work as digits or, in the language of Home Assistant, as words such as "ciento cuarenta", "cent quarante" or "honderdveertig". The description of every blueprint now ends with a link to its settings and examples in the guide. For the new sentences, choose **Re-import blueprint** for both voice blueprints on the blueprints page; sentences you saved in an automation stay as they are (#301).
-
-## [1.14.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.13.0...v1.14.0) (2026-10-14)
-
-
-### Features
-
-* **statistics:** a map of where each player should aim, from their own spread ([#292](https://github.com/Dennis-Otto/ha-autodarts/issues/292)) ([2c99d09](https://github.com/Dennis-Otto/ha-autodarts/commit/2c99d09d33a98cb3a7bbe961f8dcb51447b1e5a4))
-* **voice:** start games and enter darts by voice in Spanish, French and Dutch ([#301](https://github.com/Dennis-Otto/ha-autodarts/issues/301)) ([9d1caed](https://github.com/Dennis-Otto/ha-autodarts/commit/9d1caed2b5f77e936a296b88c667e4af80ef40cb))
 
 ## [1.13.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.4...v1.13.0) (2026-10-14)
 
