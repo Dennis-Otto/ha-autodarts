@@ -171,6 +171,10 @@ ENTITIES = {
     "practice_start_4": "number",
     "practice_golf_holes": "select",
     "practice_count_up_rounds": "number",
+    "practice_in_mode": "select",
+    "practice_out_mode": "select",
+    "practice_bull_mode": "select",
+    "practice_max_rounds": "number",
     "achievements": "sensor",
     "achievements_enabled": "switch",
 }
@@ -1368,6 +1372,42 @@ class Scenario:
         await self.expect_states({"practice_remaining": "301"})
         leg = (await self.state("practice_remaining"))["attributes"]
         check(leg["double_out"] is True, f"Double out missing in the next leg: {leg}")
+
+        # The rules of play.autodarts.io: master out ends a leg on a treble, and
+        # after the last round of a round limit the lowest score wins the leg.
+        self.fired_board_events()
+        await self.start_game(
+            game="301",
+            players=["Alex", "Sam"],
+            legs=2,
+            out_mode="master",
+            max_rounds=1,
+            bull_off=False,
+            bot_level=0,
+        )
+        await self.expect_states(
+            {
+                "practice_remaining": "301",
+                "practice_out_mode": "master",
+                "practice_max_rounds": "1",
+                "practice_double_out": "off",
+            }
+        )
+        await self.visit(T20)
+        await self.visit(S20)
+        won = [
+            item
+            for item in await self.events_until("leg_won")
+            if item["event_type"] == "leg_won"
+        ]
+        check(
+            (won[-1]["name"], won[-1]["rounds"], won[-1]["remaining"])
+            == ("Alex", 1, 241)
+            and won[-1]["checkout"] is None,
+            f"The round limit did not decide the leg: {won}",
+        )
+        await self.start_game(game="301", max_rounds=0, out_mode="double")
+        await self.expect_states({"practice_max_rounds": "0"})
 
     async def action(self, service: str, **data) -> None:
         await self.api("POST", f"/api/services/autodarts/{service}", json=data)

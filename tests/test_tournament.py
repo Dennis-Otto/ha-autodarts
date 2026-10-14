@@ -846,10 +846,10 @@ def test_the_tournament_rules_win_over_a_double_out_for_the_next_leg():
     practice.track([dart("T20")])
     # Switched off during the leg: it would apply from the next one.
     practice.set_option("double_out", False)
-    assert practice.double_out_next is False
+    assert practice.out_mode_next == "straight"
     tournament = TournamentDirector()
     tournament.start(practice, NOW, players=NAMES[:3], rules={"double_out": True})
-    assert practice.double_out is True and practice.double_out_next is None
+    assert practice.double_out is True and practice.out_mode_next is None
 
 
 # -- the settings of a match, the end of a tournament, names ----------------------
@@ -911,7 +911,7 @@ def test_the_tournament_takes_a_double_out_waiting_for_the_next_leg():
     tournament = TournamentDirector()
     tournament.start(practice, NOW, players=NAMES[:3])
     assert tournament.tournament.rules["double_out"] is False
-    assert practice.double_out is False and practice.double_out_next is None
+    assert practice.double_out is False and practice.out_mode_next is None
 
 
 def casual_practice() -> PracticeGame:

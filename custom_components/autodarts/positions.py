@@ -14,7 +14,7 @@ from collections.abc import Callable, Iterable
 from typing import Any
 
 from .doubles import aimed_at
-from .scoring import VISIT_DARTS, is_double, score
+from .scoring import BULL_25_50, DOUBLE, STRAIGHT, VISIT_DARTS, fits, score
 
 BOARD_RADIUS_MM = 170
 # Board Manager geometry in millimetres, as the cards draw it.
@@ -49,33 +49,36 @@ def aim_point(aim: str) -> tuple[float, float]:
 def x01_aims(
     start: int,
     darts: list[dict[str, Any]],
-    double_out: bool,
+    out_mode: str,
     opening: int | None,
     route: Callable[[int, int], tuple[str, ...]],
+    bull_mode: str = BULL_25_50,
 ) -> list[str | None]:
     """The bed each dart of an X01 visit was aimed at, where it is known.
 
-    A score one double finishes aims at that double; a score no checkout can
-    finish with the darts left is a scoring visit at the treble 20; otherwise
-    the first bed of the route. `opening` is the place of the double that
-    opens the leg with double in, while the leg still needs one: darts up to
-    it aim at any double. Darts at a single, and darts after a bust or the
-    finish, have no aim either.
+    With double out, a score one double finishes aims at that double; a score
+    no checkout can finish with the darts left is a scoring visit at the treble
+    20; otherwise the first bed of the route. `opening` is the place of the
+    double or treble that opens the leg with double or master in, while the leg
+    still needs one: darts up to it aim at any. Darts at a single, and darts
+    after a bust or the finish, have no aim either.
     """
     aims: list[str | None] = []
     remaining: int | None = start
     for index, dart in enumerate(darts[:VISIT_DARTS]):
         aim: str | None = None
         if remaining is not None and (opening is None or index > opening):
-            finish = aimed_at(remaining) if double_out else None
+            finish = aimed_at(remaining) if out_mode == DOUBLE else None
             path = route(remaining, VISIT_DARTS - index)
             aim = finish or (path[0] if path else SCORING_AIM)
         aims.append(aim if aim in AIMS else None)
         if remaining is None or (opening is not None and index < opening):
             continue
-        left = remaining - score(dart)
-        busted = left < 0 or (
-            double_out and (left == 1 or (left == 0 and not is_double(dart)))
+        left = remaining - score(dart, bull_mode)
+        busted = (
+            left < 0
+            or (out_mode != STRAIGHT and left == 1)
+            or (left == 0 and not fits(dart, out_mode))
         )
         remaining = None if busted or left == 0 else left
     return aims

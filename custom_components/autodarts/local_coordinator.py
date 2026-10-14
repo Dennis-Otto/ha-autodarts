@@ -1726,6 +1726,14 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.practice.new_match()
         await self._async_training([])
 
+    async def async_set_x01_rule(self, rule: str, value: str | int) -> None:
+        """An X01 rule: the Out mode until the first dart of a leg, otherwise
+        from the next leg; another In mode, bull mode or round limit starts
+        the match anew."""
+        if self.practice.set_rule(rule, value) and rule != "out_mode":
+            self.practice.new_match()
+        await self._async_training([])
+
     async def async_set_start_score(self, index: int, start: int) -> None:
         """A player's own X01 start score, 0 for the game's; a new match."""
         self.practice.set_start(index, start)
@@ -1784,8 +1792,13 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         holes: int | None = None,
         rounds: int | None = None,
         bot_level: int | None = None,
+        in_mode: str | None = None,
+        out_mode: str | None = None,
+        bull_mode: str | None = None,
+        max_rounds: int | None = None,
     ) -> None:
-        """Set up a practice game in one step; unset values stay as they are."""
+        """Set up a practice game in one step; unset values stay as they are.
+        Double in and double out set the In and Out mode to double or straight."""
         practice = self.practice
         if names and not all(valid_name(name) for name in names):
             raise ServiceValidationError(
@@ -1801,6 +1814,14 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         ):
             if value is not None:
                 practice.set_option(option, value)
+        for rule, setting in (
+            ("in_mode", in_mode),
+            ("out_mode", out_mode),
+            ("bull_mode", bull_mode),
+            ("max_rounds", max_rounds),
+        ):
+            if setting is not None:
+                practice.set_rule(rule, setting)
         if names:
             for index in range(len(practice.names)):
                 practice.set_name(index, names[index] if index < len(names) else "")

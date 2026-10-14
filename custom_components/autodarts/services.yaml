@@ -69,6 +69,39 @@ start_game:
           min: 1
           max: 7
           mode: box
+    in_mode:
+      required: false
+      selector:
+        select:
+          translation_key: x01_mode
+          options:
+            - straight
+            - double
+            - master
+    out_mode:
+      required: false
+      selector:
+        select:
+          translation_key: x01_mode
+          options:
+            - straight
+            - double
+            - master
+    bull_mode:
+      required: false
+      selector:
+        select:
+          translation_key: bull_mode
+          options:
+            - "25_50"
+            - "50_50"
+    max_rounds:
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 50
+          mode: box
     double_out:
       required: false
       selector:

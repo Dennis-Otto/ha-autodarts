@@ -242,3 +242,21 @@ test("party games and the bull-off have their own boards", () => {
   );
   assert.match(bullOff.main, /<div class="player active" aria-current="true"><div class="name">Sam<\/div><div class="big">–<\/div>/);
 });
+
+test("an X01 game names the rules besides double out, and the round of a round limit", () => {
+  const leg = (attributes) =>
+    board({
+      practice: {
+        state: "301",
+        attributes: { game: 501, player: 1, scores: [{ player: 1, name: "Alex", remaining: 301 }], ...attributes },
+      },
+    });
+  const ruled = leg({ in_mode: "master", out_mode: "straight", bull_mode: "50_50", max_rounds: 10, round: 3, opened: false });
+  assert.equal(ruled.meta, "master_in · straight_out · bull_50_50 · drill_round 3/10");
+  assert.match(ruled.main, /master_in_needed/);
+  // Past the limit, a tie plays extra rounds; double in and master out read as such.
+  assert.equal(leg({ in_mode: "double", out_mode: "master", max_rounds: 10, round: 11 }).meta, "double_in · master_out · playoff · drill_round 11");
+  assert.match(leg({ in_mode: "double", opened: false }).main, /double_in_needed/);
+  // The usual rules and a limit without a round say nothing.
+  assert.equal(leg({ max_rounds: 10 }).meta, "");
+});

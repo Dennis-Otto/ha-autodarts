@@ -28,6 +28,7 @@ from custom_components.autodarts.bot import (
 )
 from custom_components.autodarts.cricket import TACTICS_NUMBERS
 from custom_components.autodarts.manual import BEDS
+from custom_components.autodarts.scoring import DOUBLE, STRAIGHT
 
 # The averages the bot plays over this many legs of 501 with double out may
 # stray this far from its level: the calibration holds within 1.5 % over
@@ -130,7 +131,9 @@ def test_bed_names():
     ],
 )
 def test_where_the_bot_aims_in_x01(remaining, darts, double_out, opened, bed):
-    assert x01_aim(remaining, darts, double_out, opened) == bed
+    out_mode = DOUBLE if double_out else STRAIGHT
+    opening = STRAIGHT if opened else DOUBLE
+    assert x01_aim(remaining, darts, out_mode, opening) == bed
 
 
 OPEN = [0] * 7
@@ -322,7 +325,8 @@ def test_a_leg_of_the_bot_ends_on_a_double_or_with_single_out(
     for _ in range(20):
         bot.darts.clear()
         # Every dart thrown counts, those of a bust as well.
-        assert play_leg(bot, level, start, double_out) == len(bot.darts) >= fewest
+        out_mode = DOUBLE if double_out else STRAIGHT
+        assert play_leg(bot, level, start, out_mode) == len(bot.darts) >= fewest
         finishes.append(bot.darts[-1]["multiplier"])
     if double_out:
         assert set(finishes) == {2}

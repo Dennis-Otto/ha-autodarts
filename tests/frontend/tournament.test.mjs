@@ -812,12 +812,16 @@ test("the new game screen starts a tournament of up to eight players", () => {
       ["Knockout", "false"],
     ]
   );
+  // A tournament plays straight or double in and out, with no bull mode or round limit.
   assert.deepEqual(options(card).slice(2), [
-    ["double_out", "true"],
-    ["double_in", "false"],
+    ["straight", "true"],
+    ["double", "false"],
+    ["straight", "false"],
+    ["double", "true"],
     ["bull_off", "false"],
     ["random_draw", "false"],
   ]);
+  assert.equal($(card, '[data-lobby="max_rounds"]'), null);
   lobbyTap(card, "format", "knockout");
   lobbyTap(card, "toggle", "third_place");
   lobbyTap(card, "toggle", "random_draw");

@@ -1,7 +1,7 @@
 """The pause that ends a session, the daily goal and the practice match format.
 
-Also the start scores of the players, the rounds of Count-Up, the pause
-between tournament matches and the bot.
+Also the start scores of the players, the round limit of X01, the rounds of
+Count-Up, the pause between tournament matches and the bot.
 """
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
@@ -21,6 +21,7 @@ from .practice import (
     MAX_SETS,
     MAX_START,
     PARTY_PLAYERS,
+    ROUND_LIMIT,
     PracticeGame,
     valid_start,
 )
@@ -57,6 +58,7 @@ async def async_setup_entry(
                     AutodartsStartScore(coordinator, index)
                     for index in range(MAX_PLAYERS)
                 ),
+                AutodartsMaxRounds(coordinator),
                 AutodartsCountUpRounds(coordinator),
                 AutodartsTournamentSeconds(coordinator, "pause"),
                 AutodartsTournamentSeconds(coordinator, "summary"),
@@ -208,6 +210,31 @@ class AutodartsStartScore(AutodartsLocalEntity, NumberEntity):
                 translation_domain=DOMAIN, translation_key="unwinnable_start"
             )
         await self.coordinator.async_set_start_score(self._index, start)
+
+
+class AutodartsMaxRounds(AutodartsLocalEntity, NumberEntity):
+    """The round limit of X01: after it, the lowest score wins the leg; 0 for
+    none. A change starts the match anew."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_native_min_value = 0
+    _attr_native_max_value = ROUND_LIMIT
+    _attr_native_step = 1
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "practice_max_rounds")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.practice.max_rounds
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.async_set_x01_rule("max_rounds", int(value))
 
 
 class AutodartsCountUpRounds(AutodartsLocalEntity, NumberEntity):

@@ -4,15 +4,46 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.checkout import BEDS, DOUBLES, Setup, checkout, setup
+from custom_components.autodarts.checkout import (
+    BEDS,
+    BEDS_BY_BULL,
+    DOUBLES,
+    Setup,
+    checkout,
+    setup,
+)
+from custom_components.autodarts.scoring import (
+    BULL_25_50,
+    BULL_50_50,
+    DOUBLE,
+    MASTER,
+    MODES,
+    STRAIGHT,
+)
 
 BY_NAME = {bed.name: bed for bed in BEDS}
 
 
-def reachable(darts: int, double_out: bool) -> set[int]:
+def ends(name: str, out_mode: str) -> bool:
+    """Whether a dart at this bed may finish with the Out mode: the route's
+    BULL is the bullseye, a double."""
+    double = name[0] == "D" or name == "BULL"
+    return out_mode == STRAIGHT or double or (out_mode == MASTER and name[0] == "T")
+
+
+def reachable(
+    darts: int, out_mode: str = DOUBLE, bull_mode: str = BULL_25_50
+) -> set[int]:
     """Every score that can be finished with up to this many darts."""
-    finishes = {bed.score for bed in (DOUBLES if double_out else BEDS)}
-    scores = {bed.score for bed in BEDS}
+    beds = BEDS_BY_BULL[bull_mode]
+    finishes = {
+        bed.score
+        for bed in beds
+        if out_mode == STRAIGHT
+        or bed.multiplier == 2
+        or (out_mode == MASTER and bed.multiplier == 3)
+    }
+    scores = {bed.score for bed in beds}
     result, setups = set(), {0}
     for _ in range(darts):
         result |= {setup + finish for setup in setups for finish in finishes}
@@ -158,36 +189,101 @@ def test_bogey_numbers_limits_and_darts_left():
 
 
 def test_preferred_doubles_win_among_routes_of_the_same_darts():
-    assert checkout(70, 3, True, ("D20",)) == ("T10", "D20")
-    assert checkout(70, 2, True, ("D8",)) == ("T18", "D8")
-    assert checkout(90, 3, True, ("D15",)) == ("T20", "D15")
+    assert checkout(70, 3, DOUBLE, ("D20",)) == ("T10", "D20")
+    assert checkout(70, 2, DOUBLE, ("D8",)) == ("T18", "D8")
+    assert checkout(90, 3, DOUBLE, ("D15",)) == ("T20", "D15")
     # Fewer darts still come first, and a double never sets up.
-    assert checkout(40, 3, True, ("D8",)) == ("D20",)
-    assert checkout(60, 3, True, ("D16",)) == ("S20", "D20")
+    assert checkout(40, 3, DOUBLE, ("D8",)) == ("D20",)
+    assert checkout(60, 3, DOUBLE, ("D16",)) == ("S20", "D20")
     # The bull comes last, even for a player who hits it best.
-    assert checkout(100, 3, True, ("BULL", "D5")) == ("T20", "D20")
+    assert checkout(100, 3, DOUBLE, ("BULL", "D5")) == ("T20", "D20")
 
 
 def test_single_out_finishes_on_any_bed():
-    assert checkout(20, 1, double_out=False) == ("S20",)
-    assert checkout(60, 3, double_out=False) == ("T20",)
-    assert checkout(180, 3, double_out=False) == ("T20", "T20", "T20")
-    assert checkout(181, 3, double_out=False) == ()
+    assert checkout(20, 1, STRAIGHT) == ("S20",)
+    assert checkout(60, 3, STRAIGHT) == ("T20",)
+    assert checkout(180, 3, STRAIGHT) == ("T20", "T20", "T20")
+    assert checkout(181, 3, STRAIGHT) == ()
 
 
-@given(st.integers(-5, 190), st.integers(1, 3), st.booleans())
+def test_master_out_finishes_on_a_treble_only_where_it_saves_a_dart():
+    # A treble finishes with one dart where a double takes two.
+    assert checkout(60, 1, MASTER) == ("T20",)
+    assert checkout(57, 3, MASTER) == ("T19",)
+    assert checkout(117, 3, MASTER) == ("T20", "T19")
+    # Up to 180, the trebles 20 first and the treble that finishes last.
+    assert checkout(180, 3, MASTER) == ("T20", "T20", "T20")
+    assert checkout(171, 3, MASTER) == ("T20", "T20", "T17")
+    assert checkout(159, 3, MASTER) == ("T20", "T20", "T13")
+    # With as many darts, the route of the checkout chart on a double.
+    assert checkout(100, 3, MASTER) == checkout(100) == ("T20", "D20")
+    assert checkout(40, 3, MASTER) == ("D20",)
+    assert checkout(36, 1, MASTER) == ("D18",)
+    assert checkout(1, 3, MASTER) == checkout(181, 3, MASTER) == ()
+
+
+def test_the_bull_mode_50_50_routes_50_through_the_whole_bull():
+    rules = (DOUBLE, (), BULL_50_50)
+    # The bull scores 50 wherever it lands: a dart at it sets up the double.
+    assert checkout(90, 3, *rules) == ("BULL", "D20")
+    assert checkout(90) == ("T18", "D18")
+    assert checkout(70, 3, *rules) == ("BULL", "D10")
+    # Only the bullseye is a double: 50 finishes on it.
+    assert checkout(50, 1, *rules) == ("BULL",)
+    # No dart scores 25, and the outer bull sets up no 61.
+    assert checkout(25, 1, STRAIGHT, (), BULL_50_50) == ()
+    assert checkout(61, 3, *rules) == ("T15", "D8")
+    # Without double out, the bull finishes 50 with one dart, as a single.
+    assert checkout(50, 1, STRAIGHT, (), BULL_50_50) == ("BULL",)
+    assert checkout(100, 2, STRAIGHT, (), BULL_50_50) == ("T20", "D20")
+
+
+@given(st.integers(-5, 190), st.integers(1, 3), st.sampled_from(MODES))
 def test_a_route_adds_up_ends_right_and_exists_whenever_possible(
-    remaining, darts, double_out
+    remaining, darts, out_mode
 ):
-    route = checkout(remaining, darts, double_out)
-    assert bool(route) == (remaining in reachable(darts, double_out))
+    route = checkout(remaining, darts, out_mode)
+    assert bool(route) == (remaining in reachable(darts, out_mode))
     if route:
         beds = [BY_NAME[name] for name in route]
         assert sum(bed.score for bed in beds) == remaining
         assert len(beds) <= darts
-        assert not double_out or beds[-1].multiplier == 2
+        assert ends(route[-1], out_mode)
         # No route with fewer darts exists.
-        assert remaining not in reachable(len(beds) - 1, double_out)
+        assert remaining not in reachable(len(beds) - 1, out_mode)
+
+
+@pytest.mark.parametrize(
+    ("out_mode", "bull_mode"),
+    [
+        (MASTER, BULL_25_50),
+        (MASTER, BULL_50_50),
+        (DOUBLE, BULL_50_50),
+        (STRAIGHT, BULL_50_50),
+    ],
+)
+def test_every_route_of_the_master_out_and_the_50_50_bull_is_right(out_mode, bull_mode):
+    """Every score from 1 to 190 with one to three darts in hand: a route
+    exactly where the darts can finish, adding up, ending on a bed the Out mode
+    takes, with the fewest darts; with master out on a treble only where no
+    double finishes with as few."""
+    scores = {bed.name: bed.score for bed in BEDS_BY_BULL[bull_mode]}
+    reach = {darts: reachable(darts, out_mode, bull_mode) for darts in range(4)}
+    doubles = {darts: reachable(darts, DOUBLE, bull_mode) for darts in range(4)}
+    checked = 0
+    for remaining in range(1, 191):
+        for darts in (1, 2, 3):
+            route = checkout(remaining, darts, out_mode, (), bull_mode)
+            assert bool(route) == (remaining in reach[darts]), (remaining, darts)
+            if not route:
+                continue
+            checked += 1
+            assert sum(scores[name] for name in route) == remaining
+            assert ends(route[-1], out_mode)
+            assert remaining not in reach[len(route) - 1]
+            if out_mode == MASTER and route[-1][0] == "T":
+                assert remaining not in doubles[len(route)]
+    assert checked == sum(len(reach[darts] & set(range(1, 191))) for darts in (1, 2, 3))
 
 
 @given(
@@ -196,7 +292,7 @@ def test_a_route_adds_up_ends_right_and_exists_whenever_possible(
     st.lists(st.sampled_from([bed.name for bed in DOUBLES]), unique=True),
 )
 def test_preferred_doubles_never_change_what_is_possible(remaining, darts, preferred):
-    route = checkout(remaining, darts, True, tuple(preferred))
+    route = checkout(remaining, darts, DOUBLE, tuple(preferred))
     usual = checkout(remaining, darts)
     assert len(route) == len(usual)
     if route:
@@ -214,3 +310,19 @@ def test_the_outer_bull_sets_up_a_double_in_a_route_but_not_the_next_visit():
     assert checkout(61) == ("25", "D18") and checkout(121) == ("T20", "25", "D18")
     # A setup avoids it: a dart next to it leaves no finish for the next visit.
     assert setup(57, 1) == Setup(("S17",), 40)
+
+
+def test_setups_follow_the_out_mode_and_the_bull_mode():
+    # Without double or master out, any bed finishes: nothing to set up.
+    assert setup(250, 3, (), STRAIGHT) is None
+    # Master out sets up a double as well, where no three darts finish.
+    assert setup(200, 3, (), MASTER) == setup(200) == Setup(("T20", "T20", "T16"), 32)
+    assert setup(169, 3, (), MASTER) == Setup(("T20", "T20", "S17"), 32)
+    # One dart at 59 leaves 40 with the single 19; master out also takes a
+    # treble to finish the next visit, though a double comes first.
+    assert setup(59, 1, (), MASTER) == Setup(("S19",), 40)
+    assert setup(181, 1, (), MASTER) is None
+    # With the bull mode 50/50, the bull sets up 50, a small bed though.
+    assert setup(82, 1, (), DOUBLE, BULL_50_50) == Setup(("BULL",), 32)
+    assert setup(82, 1) == Setup(("T14",), 40)
+    assert setup(169, 3, (), DOUBLE, BULL_50_50) == Setup(("T20", "T20", "S17"), 32)
