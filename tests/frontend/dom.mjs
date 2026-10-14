@@ -1,6 +1,6 @@
 // A browser for the card elements: a happy-dom window as globals and a fake Home Assistant.
 import { basename } from "node:path";
-import { after } from "node:test";
+import { after, afterEach } from "node:test";
 
 import { Window } from "happy-dom";
 
@@ -175,16 +175,28 @@ for (const name of ["clearTimeout", "clearInterval"]) {
 
 export const timers = () => running.size;
 
-// The cards leave the page after the tests of a file, which ends their timers. A timer that
-// still runs then would keep the file running for ever: it ends, and the file fails with
-// its name and what the timer calls.
-after(async () => {
+// The cards leave the page, which ends their timers. A timer that still runs then would keep
+// the file running for ever: it ends, and the test or the file that left it fails with its
+// name and what the timer calls.
+async function leaveThePage(where) {
   document.body.replaceChildren();
   await settle();
   if (running.size === 0) return;
   const left = [...running.values()];
   for (const timer of running.keys()) clearTimeout(timer);
   const plural = left.length === 1 ? "" : "s";
-  const file = basename(process.argv[1]);
-  throw new Error(`${file} left ${left.length} timer${plural} running after its cards left the page:\n${left.join("\n")}`);
+  throw new Error(`${where} left ${left.length} timer${plural} running after its cards left the page:\n${left.join("\n")}`);
+}
+
+// The cards of a test leave the page when it ends. A card that stayed would go on in the next
+// tests with its real timers: the countdown of a tournament redrew it every second, and when
+// that happened while a later test mocked setTimeout, the card cleared its idle timer with
+// the mock, which clears nothing, and the real one ran on (#106). The mocks end first, so the
+// cards clear their real timers with the real clearTimeout.
+afterEach(async (context) => {
+  context.mock.timers.reset();
+  await leaveThePage(`The test "${context.name}"`);
 });
+
+// Cards that a file puts on the page outside its tests leave after the last one.
+after(() => leaveThePage(basename(process.argv[1])));
