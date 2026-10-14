@@ -12,6 +12,9 @@ blueprint:
     the board keeps running then, unless you choose otherwise. Don't combine
     this routine with the blueprint that starts and stops the detection
     automatically: both would switch the detection.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#training-session-routine)
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/training_session.yaml

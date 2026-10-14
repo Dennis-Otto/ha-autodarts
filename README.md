@@ -205,11 +205,11 @@ Import a blueprint with one click, choose your board and you're done.
 
   [![Import the board problem alert blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml)
 
-- **Start a game by voice.** Say "Start 501 for Alex and Sam" to Assist, in English or German.
+- **Start a game by voice.** Say "Start 501 for Alex and Sam" to Assist, in English, German, Spanish, French or Dutch.
 
   [![Import the start a game by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml)
 
-- **Enter darts by voice.** Say "Alex has 140", "Triple 20" or "next player" to Assist, as at a dart machine, in English or German.
+- **Enter darts by voice.** Say "Alex has 140", "Triple 20" or "next player" to Assist, as at a dart machine, in English, German, Spanish, French or Dutch.
 
   [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml)
 

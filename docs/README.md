@@ -121,7 +121,7 @@ The integration speaks English, German, Dutch, French and Spanish: setup, option
 
 - Home Assistant names the entities in the language of the server (**Settings → System → General**); states and cards follow the language of your user profile.
 - The caller speaks the card's language with a voice of your browser or tablet for that language.
-- The documentation is in English and German, the blueprints in English because Home Assistant does not translate blueprints.
+- The documentation is in English and German, the blueprints in English because Home Assistant does not translate blueprints. The voice blueprints understand sentences in all five languages, and Assist answers in the language of Home Assistant.
 
 Texts that are missing in a language, or older than their English original, are listed in that language's [translation issue](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations), which a bot keeps up to date. It explains how to fix them right on GitHub, without programming. To improve a translation or add a language, see [translations in CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations).
 

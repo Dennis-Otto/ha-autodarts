@@ -56,6 +56,7 @@ from .local_helpers import (
     setup_cameras,
 )
 from .local_helpers import WEBHOOK_PATH as ONLINE_BRIDGE
+from .test_docs_links import slug
 from .test_manual_board import setup_manual
 
 pytestmark = pytest.mark.usefixtures("blueprint_folder")
@@ -66,6 +67,9 @@ SOURCE = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/autom
 IMPORT = re.compile(
     r"https://my\.home-assistant\.io/redirect/blueprint_import/\?blueprint_url=[^)\s\"']+"
 )
+# The guide's section of a blueprint, which the end of its description links to.
+GUIDE = "https://dennis-otto.github.io/ha-autodarts/automations.html#"
+GUIDE_LINK = re.compile(r"\n\n\[Settings and examples in the guide\]\((\S+)\)$")
 # Attributes a blueprint reads from a board event.
 READS = re.compile(r"(?:attributes|event)\.get\('(\w+)'|attributes\.(?!get\b)(\w+)")
 S1 = ("S1", 1, 1)
@@ -217,6 +221,24 @@ def test_blueprint_metadata(path):
     # Every input explains itself in the blueprint editor.
     for key, entry in blueprint.inputs.items():
         assert entry and entry.get("description"), f"{path.stem}: {key}"
+
+
+def test_every_blueprint_links_its_section_of_the_guide():
+    """The description of each blueprint ends with a link to its own section of the
+    blueprint settings in the guide, so the blueprint editor leads to the settings
+    and examples on the website."""
+    guide = (ROOT / "docs" / "automations.md").read_text(encoding="utf-8")
+    settings = guide.split("\n## Blueprint settings\n", 1)[1].split("\n## ", 1)[0]
+    sections = {slug(heading) for heading in re.findall(r"^### (.+)$", settings, re.M)}
+    linked = {}
+    for path in PATHS:
+        description = load_yaml(path)["blueprint"]["description"]
+        link = GUIDE_LINK.search(description)
+        assert link and link[1].startswith(GUIDE), path.stem
+        linked[path.stem] = link[1].removeprefix(GUIDE)
+    # A section of the blueprint settings, and one of its own.
+    assert set(linked.values()) <= sections, linked
+    assert len(set(linked.values())) == len(PATHS), linked
 
 
 @pytest.mark.parametrize("path", PATHS, ids=lambda p: p.stem)

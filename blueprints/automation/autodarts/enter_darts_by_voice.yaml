@@ -1,14 +1,17 @@
 blueprint:
   name: "Autodarts: enter darts by voice"
   description: >-
-    Enters the darts of a game when you tell Assist, as at a dart machine: the
-    score of a visit, for example "Alex hat 140", "140 Punkte" or "Sam scored
-    100", a checkout, such as "Checkout mit 2 Darts" or "game shot in 2 darts",
-    a single dart, such as "Triple 20", "Doppel 16", "Bull" or "miss", and
-    "Nächster Spieler" or "next player" and "Rückgängig" or "undo". Assist
-    answers in the words of the scoreboard's caller, in the language of Home
-    Assistant: what the visit scored and left and who throws next, the bed of a
-    dart, or why it was refused.
+    Enters the darts of a game when you tell Assist, as at a dart machine, in
+    English, German, Spanish, French or Dutch: the score of a visit, for
+    example "Alex has 140", "Sam hat 100", "Alex hace 140", "Alex a fait 140"
+    or "Sam heeft 100", a checkout, such as "game shot in 2 darts" or
+    "Checkout mit 2 Darts", a single dart, such as "Triple 20", "Doppel 16",
+    "Doble 16", "Bull" or "miss", the next player, such as "next player",
+    "Nächster Spieler", "Siguiente jugador", "Joueur suivant" or "Volgende
+    speler", and "undo", "Rückgängig", "Deshacer", "Annule la dernière volée"
+    or "Ongedaan maken". Assist answers in the words of the scoreboard's
+    caller, in the language of Home Assistant: what the visit scored and left
+    and who throws next, the bed of a dart, or why it was refused.
 
 
     It needs Practice manual entry, which a dartboard without Autodarts has on
@@ -19,16 +22,25 @@ blueprint:
 
 
     Numbers are digits, which work in every language, or words in the language
-    of Home Assistant, written out in full: "one hundred forty" and "two" in
-    English, "einhundertvierzig" and "zwei" in German.
+    of Home Assistant, written out in full: "one hundred forty" in English,
+    "einhundertvierzig" in German, "ciento cuarenta" in Spanish, "cent
+    quarante" in French and "honderdveertig" in Dutch.
 
 
     In the sentences, `{score}` is the score from 0 to 180, `{darts}` the darts
     of a checkout, `{number}` the number of a dart's bed and `{player}` the
     player. A dart's bed follows from the words of the sentence: triple,
     treble or dreifach make a triple, double, doppel, doble or dubbel a double,
-    single bull, outer bull or 25 the outer bull, bull the bullseye, and miss,
-    fehlwurf, daneben, raté, fallo or mis a miss.
+    single bull, outer bull, simple bull, bull simple, enkel bull or 25 the
+    outer bull, bull the bullseye, and miss, fehlwurf, daneben, fallo, raté or
+    mis a miss.
+
+
+    Sentences saved in an automation stay as they are: re-import the blueprint
+    and leave the sentences at their default to get those of a new version.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#enter-darts-by-voice)
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/enter_darts_by_voice.yaml
@@ -49,6 +61,18 @@ blueprint:
         - "{0..180:score} [points] for {player}"
         - "{0..180:score} points"
         - "visit {0..180:score}"
+        - "{player} (hace|ha hecho|tira|tiene) {0..180:score} [puntos]"
+        - "{0..180:score} [puntos] para {player}"
+        - "{0..180:score} puntos"
+        - "tirada [de] {0..180:score}"
+        - "{player} (a fait|fait|a marqué|marque) {0..180:score} [points]"
+        - "{player} a {0..180:score} points"
+        - "{0..180:score} [points] pour {player}"
+        - "volée [de] {0..180:score}"
+        - "{player} (heeft|gooit|gooide|scoort) {0..180:score} [punten]"
+        - "{0..180:score} [punten] voor {player}"
+        - "{0..180:score} punten"
+        - "beurt {0..180:score}"
         - "{0..180:score}"
       selector:
         text:
@@ -63,6 +87,12 @@ blueprint:
         - "{player} checkt [(mit|in) {1..3:darts} Darts]"
         - "(checkout|check out|game shot) [(with|in) {1..3:darts} darts]"
         - "{player} checks out [(with|in) {1..3:darts} darts]"
+        - "(cierre|checkout|game shot) [(con|en) {1..3:darts} (dardo|dardos)]"
+        - "{player} cierra [(con|en) {1..3:darts} (dardo|dardos)]"
+        - "(checkout|finish|game shot) [(avec|en) {1..3:darts} (fléchette|fléchettes|dart|darts)]"
+        - "{player} (finit|termine) [(avec|en) {1..3:darts} (fléchette|fléchettes|dart|darts)]"
+        - "(uitgooi|checkout|game shot) [(met|in) {1..3:darts} (dart|darts|pijl|pijlen)]"
+        - "{player} gooit uit [(met|in) {1..3:darts} (dart|darts|pijl|pijlen)]"
       selector:
         text:
           multiple: true
@@ -76,6 +106,12 @@ blueprint:
         - "(single|double|triple|treble) {1..20:number}"
         - "(Bull|Bullseye|Doppel Bull|Single Bull|Fehlwurf|Daneben)"
         - "(bull|bullseye|double bull|single bull|outer bull|miss|missed)"
+        - "(simple|sencillo|doble|triple) {1..20:number}"
+        - "(bull|bullseye|doble bull|bull simple|fallo)"
+        - "(simple|double|triple) {1..20:number}"
+        - "(bull|bullseye|double bull|simple bull|raté)"
+        - "(enkel|dubbel|triple) {1..20:number}"
+        - "(bull|bullseye|dubbel bull|enkel bull|mis)"
       selector:
         text:
           multiple: true
@@ -85,6 +121,9 @@ blueprint:
       default:
         - "Nächster Spieler"
         - "next player"
+        - "siguiente jugador"
+        - "joueur suivant"
+        - "volgende speler"
       selector:
         text:
           multiple: true
@@ -94,6 +133,9 @@ blueprint:
       default:
         - "(Rückgängig|Letzte Aufnahme zurück|Aufnahme zurück)"
         - "(undo|undo [the] last visit|take back [the] last visit)"
+        - "(deshacer|deshaz [la última tirada]|anula la última tirada)"
+        - "(annule|annulez|annuler) la dernière volée"
+        - "(ongedaan maken|maak ongedaan|laatste beurt terug)"
       selector:
         text:
           multiple: true
@@ -136,7 +178,7 @@ variables:
     {% set words = trigger.sentence | lower %}
     {% set number = trigger.slots.number | default(0) | int %}
     {% if words is search('miss|fehlwurf|daneben|raté|fallo|(^| )mis( |$)') %}MISS
-    {% elif words is search('single bull|outer bull|25') %}25
+    {% elif words is search('single bull|outer bull|simple bull|bull simple|enkel bull|25') %}25
     {% elif words is search('bull') %}BULL
     {% elif words is search('tripl|trebl|dreifach') %}T{{ number }}
     {% elif words is search('doppel|doubl|doble|dubbel') %}D{{ number }}
