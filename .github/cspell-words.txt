@@ -20,6 +20,7 @@ Kamerastreams
 Lautsprechersymbol
 Liveansicht
 Matchergebnis
+Medianpunkt
 Primärfarbe
 Primärfarben
 Präsenzmelder
@@ -35,6 +36,7 @@ Spielernummer
 Spielerprofil
 Spielerprofilen
 Teamnamen
+Tibshirani
 Trainingsentitäten
 Trefferbild
 Trefferbilder

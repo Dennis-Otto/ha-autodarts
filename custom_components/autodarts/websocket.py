@@ -39,17 +39,23 @@ def _board(hass: HomeAssistant, device_id: str) -> AutodartsLocalCoordinator | N
         vol.Required("type"): f"{DOMAIN}/positions",
         vol.Required("device_id"): str,
         vol.Optional("player"): vol.All(str, vol.Length(max=NAME_LENGTH)),
+        # Only the aim map asks for the aim model, the positions alone cost nothing.
+        vol.Optional("aim", default=False): bool,
     }
 )
-@callback
-def ws_positions(
+@websocket_api.async_response
+async def ws_positions(
     hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
 ) -> None:
-    """The positions of the session's darts, or of a player's last darts."""
+    """The positions of the session's darts, or of a player's last darts, and
+    their aim model when asked."""
     board = _board(hass, msg["device_id"])
     if board is None:
         connection.send_error(
             msg["id"], websocket_api.ERR_NOT_FOUND, "No loaded Autodarts board"
         )
         return
-    connection.send_result(msg["id"], board.progress.positions(msg.get("player")))
+    player = msg.get("player")
+    aim = await board.async_aim(player) if msg["aim"] else None
+    result = board.progress.positions(player)
+    connection.send_result(msg["id"], result if aim is None else {**result, "aim": aim})

@@ -537,6 +537,9 @@ class Progress:
         player = self.players.get(_key(name))
         if player is None:
             return {}
+        # The best aim of the newest aim model, which the coordinator works out
+        # off the event loop after a visit.
+        best = player.log.best_aim()
         return {
             "darts_thrown": player.counters["darts"],
             "maximums": player.counters["maximums"],
@@ -544,6 +547,8 @@ class Progress:
             "best_streak": player.best_streak,
             "hits": dict(sorted(player.hits.items())),
             "spread": player.log.spread(),
+            "best_aim": best["bed"] if best else None,
+            "expected_ppd": round(best["expected"], 1) if best else None,
             "trend": player.trend(today),
         }
 
@@ -572,6 +577,17 @@ class Progress:
             "catalogue": [achievement.described() for achievement in CATALOGUE],
             "players": players,
         }
+
+    def log(self, name: str | None = None) -> DartLog:
+        """The logged darts of a player, or of the session without a name."""
+        if not name or not name.strip():
+            return self.session
+        player = self.players.get(_key(name))
+        return player.log if player else DartLog(0)
+
+    def stale_aims(self) -> list[DartLog]:
+        """The players' logs with darts that their aim model does not know yet."""
+        return [player.log for player in self.players.values() if player.log.aim_stale]
 
     def positions(self, name: str | None = None) -> dict[str, Any]:
         """The logged positions and their grouping, of a player or the session."""

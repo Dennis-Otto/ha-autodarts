@@ -56,7 +56,7 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    3-dart average, first 9 average, checkout and doubles rate, and a heatmap of every bed or of the real dart positions. Player profiles with badges, weekly trends, a leaderboard, a weekly report and a training calendar.
+    3-dart average, first 9 average, checkout and doubles rate, a heatmap of every bed or of the real dart positions, and where each player scores the most per dart. Player profiles with badges, weekly trends, a leaderboard, a weekly report and a training calendar.
 
     [:octicons-arrow-right-24: Statistics and players](statistics.md)
 
@@ -126,7 +126,7 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    Training sessions, personal bests, the heatmap and dart positions, progress over time, doubles, player profiles, achievements, the leaderboard and exports.
+    Training sessions, personal bests, the heatmap and dart positions, where to aim, progress over time, doubles, player profiles, achievements, the leaderboard and exports.
 
 - :material-home-automation:{ .lg .middle } [**Automations**](automations.md)
 

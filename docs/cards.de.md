@@ -109,6 +109,7 @@ highlight_color: "#00e5ff"
   - Mit dem Mauszeiger oder einem Tipp auf ein Feld siehst du Anzahl und Anteil. Screenreader bekommen die Anzahlen aller getroffenen Felder als Liste, das häufigste zuerst.
   - Im Modus `numbers` werden Single, Double und Triple jeder Zahl zusammengefasst.
   - Im Modus `positions` zeigt es, wo die Darts gelandet sind, aus den Positionen, die das Board meldet: eine geglättete Dichte von Blau (wenige Darts) bis Rot (viele), dazu die neuesten 300 Darts als Punkte. Bei der Session erscheinen die Darts der aktuellen Aufnahme sofort als blaue Pins und gehen beim Ziehen in die gespeicherten Darts über. Unter der Scheibe steht die [Streuung](how-it-works.de.md#streuung) auf bis zu drei Zielfeldern, etwa *T20: Streuung 38 mm · 80 % innerhalb 61 mm · 6 mm links der Mitte*, mit *4 mm enger*, wenn die neueren Darts enger liegen.
+  - Im Modus `aim` zeigt es, wo der Spieler mit seiner eigenen Streuung die meisten Punkte pro Dart macht, ab 30 Darts auf ein Triple: jeder Zielpunkt nach seinen Punkten pro Dart eingefärbt, ein Ring am besten Zielpunkt und unter der Scheibe der beste Zielpunkt gegen die Triple 20, die Triple 19 und das Bull, etwa *T19: Bester Zielpunkt · 18,3 Punkte pro Dart* und *T20: 17,3 Punkte pro Dart -1,0*. Mit weniger Darts sagt die Karte, wie viele fehlen. [Wohin zielen](statistics.de.md#wohin-zielen).
   - Die Umschalter über der Scheibe wählen den Modus und wessen Darts es zeigt: die der Session oder die eines benannten Spielers mit allen seinen Treffern und den Positionen seiner letzten 1000 Darts. Die häufigsten Felder folgen der Wahl. [Wie Positionen gespeichert werden](how-it-works.de.md#dart-positionen).
 - **Statistik:** höchste Aufnahme, 100+, 140+ und 180er, Triple-Quote, Doubles, Bulls und Fehlwürfe. 180er leuchten golden. Die Zahlen für 100+, 140+ und 180er wachsen, wenn du die Darts ziehst und die Aufnahme damit abgeschlossen ist. *Details ›* unter den Kacheln öffnet die Details der Darts der Session. Screenreader lesen jede Kachel vor.
 - **Häufigste Felder:** die fünf meistgetroffenen Felder mit Anzahl und Anteil: an den Darts der Session oder an den Treffern, die das Profil eines Spielers gezählt hat.
@@ -129,7 +130,7 @@ highlight_color: "#00e5ff"
 | --- | --- | --- | --- |
 | `device_id` | Gerät | erstes Board | Das angezeigte Board |
 | `title` | Text | *Training · Board-Name* | Kartentitel |
-| `mode` | `beds`, `numbers`, `positions` | `beds` | Trefferbild pro Feld, pro Zahl oder der Dart-Positionen |
+| `mode` | `beds`, `numbers`, `positions`, `aim` | `beds` | Trefferbild pro Feld, pro Zahl, der Dart-Positionen oder wohin zielen |
 | `player` | Text | die Session | Ein Spielername: Das Trefferbild beginnt mit den Darts dieses Spielers. Der Editor listet die benannten Spieler und nimmt auch jeden anderen Namen |
 | `board_style` | `muted`, `classic`, `autodarts` | `muted` | Die dezente Scheibe lässt das Trefferbild hervortreten |
 | `history_size` | 5–60 | `20` | Aufnahmen im Diagramm; Zahlen stehen bis 30 Aufnahmen darüber |

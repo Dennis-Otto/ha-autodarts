@@ -906,15 +906,18 @@ class RevisionCache:
     """
 
     def __init__(self) -> None:
-        self._key: tuple[object, object] | None = None
+        self._key: tuple[object, ...] | None = None
         self._value: dict[str, Any] = {}
 
     def get(
         self,
         coordinator: AutodartsLocalCoordinator,
         compute: Callable[[], dict[str, Any]],
+        *changes: object,
     ) -> dict[str, Any]:
-        key = ((coordinator.data or {}).get("revision"), dt_util.now().date())
+        """The attributes, worked out anew with the revision, the date or any of
+        the further changes."""
+        key = ((coordinator.data or {}).get("revision"), dt_util.now().date(), *changes)
         if key != self._key:
             self._key, self._value = key, compute()
         return self._value
@@ -1017,7 +1020,10 @@ class AutodartsPlayerProfiles(AutodartsLocalEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        return self._cache.get(self.coordinator, self._players)
+        # The best aims follow a visit, once they are worked out.
+        return self._cache.get(
+            self.coordinator, self._players, self.coordinator.aim_revision
+        )
 
     def _players(self) -> dict[str, Any]:
         # Each profile with the player's progress: trend, hits and grouping.

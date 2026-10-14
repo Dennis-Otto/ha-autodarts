@@ -6,13 +6,13 @@ Every dart the board detects becomes a number in Home Assistant: your 3-dart ave
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard: the training card with 3-dart average, heatmap, statistics, personal bests and recent visits, the doubles card, and the graphs of darts per day and the 3-dart average" width="760">
 
-**On this page:** [Where to find what](#where-to-find-what) · [Training sessions](#training-sessions) · [Personal bests, streak and daily goal](#personal-bests-streak-and-daily-goal) · [Heatmap and dart positions](#heatmap-and-dart-positions) · [Progress over time](#progress-over-time) · [Doubles analysis](#doubles-analysis) · [Player profiles](#player-profiles) · [Achievements](#achievements) · [Trends and grouping](#trends-and-grouping) · [Leaderboard](#leaderboard) · [Players and persons](#players-and-persons) · [Weekly report](#weekly-report) · [Training calendar](#training-calendar) · [Export](#export) · [Your data](#your-data)
+**On this page:** [Where to find what](#where-to-find-what) · [Training sessions](#training-sessions) · [Personal bests, streak and daily goal](#personal-bests-streak-and-daily-goal) · [Heatmap and dart positions](#heatmap-and-dart-positions) · [Where to aim](#where-to-aim) · [Progress over time](#progress-over-time) · [Doubles analysis](#doubles-analysis) · [Player profiles](#player-profiles) · [Achievements](#achievements) · [Trends and grouping](#trends-and-grouping) · [Leaderboard](#leaderboard) · [Players and persons](#players-and-persons) · [Weekly report](#weekly-report) · [Training calendar](#training-calendar) · [Export](#export) · [Your data](#your-data)
 
 ## Where to find what
 
 | Where | What it shows |
 | --- | --- |
-| [Training card](cards.md#training-card) | The running session: 3-dart average, heatmap of beds, numbers or dart positions for the session or any player, statistics, personal bests, recent visits and past sessions |
+| [Training card](cards.md#training-card) | The running session: 3-dart average, heatmap of beds, numbers or dart positions for the session or any player, the aim map, statistics, personal bests, recent visits and past sessions |
 | [Players card](cards.md#players-card) | Every named player's statistics and personal bests, badges, weekly trends and grouping, head-to-head records, recent matches and the export |
 | [Leaderboard card](cards.md#leaderboard-card) | The records of all players, for all time, the last four weeks or this week |
 | [Doubles card](cards.md#doubles-card) | The hit rate of every double, for everybody or one player |
@@ -65,11 +65,12 @@ Home Assistant keeps the best value of every record and fires `personal_best` wh
 
 <img src="images/en/heatmap-modes.webp" alt="Animation: the heatmap of the training card switches from beds to numbers and the dart positions of the session, then to Alex's positions and beds" width="620">
 
-The heatmap of the training card has three modes, which the switches above the board choose:
+The heatmap of the training card has four modes, which the switches above the board choose:
 
 - **Beds:** every bed colored by how often you hit it, from blue (rarely) to red (most often). Hover a bed for its count and share.
 - **Numbers:** the singles, doubles and triples of every number summed up, which shows at a glance whether you drift towards the 5 or the 1.
 - **Positions:** where the darts really landed, from the positions the board reports: a smoothed density with the newest 300 darts as dots, and below the board the [grouping](#trends-and-grouping) at up to three beds you aimed at. For the session, the darts of the current visit appear the moment they land, as blue pins; when you pull them, they join the logged darts. A dart that misses the board, number ring included, is not drawn.
+- **Aim:** where you score the most points per dart with your own spread, see [Where to aim](#where-to-aim).
 
 <img src="images/en/training-live-positions.png" alt="The dart positions of the session: a density around the 20 and the bull, with the three darts of the current visit, T20, S5 and the bullseye, as blue pins" width="620">
 
@@ -81,6 +82,39 @@ The second switch chooses whose darts it shows: the running session, or a named 
 type: custom:autodarts-training-card
 mode: positions
 player: Alex
+```
+
+## Where to aim
+
+The treble 20 scores the most only for a player whose darts land close together. The wider your darts spread, the more a miss costs next to the 20, where the 1 and the 5 lie, and the better a spot does where the beds around it are worth more: the treble 19 with the 7 and the 16 next to it, and for a wide spread a spot left of the bull. Tibshirani, Price and Taylor worked this out in *A statistician plays darts* (Journal of the Royal Statistical Society, Series A 174, 2011); the aim map does it with your own darts.
+
+<img src="images/en/training-aim.png" alt="The aim map of Alex: the board colored from blue to red by the points per dart at each aim point, brightest around the treble 19, with a ring at the best aim; below it the best aim, T19 with 18.3 points per dart, against the treble 20 with 17.3 and the bull with 15.7, and the spread it comes from" width="620">
+
+- **From your darts:** the map needs 30 darts that you aimed at a treble, among your last 1000 logged darts. In X01, every dart of a scoring visit aims at the treble 20; checkout routes aim at other trebles. Until then, the card says how many darts are missing.
+- **The map:** every spot of the board colored by the points per dart you would score aiming there, from 60 % of the best (blue) to the best (red). A ring marks the best aim.
+- **Below the board:** the best aim with its points per dart, the points per dart of the treble 20, the treble 19 and the bull with how many fewer they score, and the spread the map comes from: across, up and down, and where your darts land on average.
+- **For the session or a player,** as the second switch chooses.
+
+| Spread (standard deviation) | Best aim with a round spread |
+| --- | --- |
+| up to about 16 mm | the treble 20 |
+| about 17 to 34 mm | the treble 19, from about 30 mm also the treble 7 or the 7 next to it |
+| about 35 to 50 mm | the singles of the 7 and the 16, left of and below the bull |
+| from about 55 mm | the singles left of the bull, level with it, or the bull itself: the wider the spread, the closer to the bull |
+
+A spread up and down keeps the 20 longer than one to the sides, and darts that land low on average are best aimed that much higher. [How the aim map is computed](how-it-works.md#aim-map).
+
+```yaml
+type: custom:autodarts-training-card
+mode: aim
+player: Alex
+```
+
+The player profile has the best aim as `best_aim`, such as `T19`, and its points per dart as `expected_ppd`, for automations and Assist. Alex's best aim, in a template:
+
+```jinja
+{{ state_attr('sensor.autodarts_board_player_profiles', 'players')
+   | selectattr('name', 'eq', 'Alex') | map(attribute='best_aim') | first }}
 ```
 
 ## Progress over time

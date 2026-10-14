@@ -679,6 +679,7 @@ const TEXT = {
     spread_hint: "Half of the darts land within the grouping around their mean point, 80 % within the second radius.",
     unit_mm: "{value} mm",
     mode_positions: "Positions",
+    mode_aim: "Aim",
     heatmap_source: "Whose darts",
     heatmap_session: "Session",
     show_heatmap_controls: "Show the heatmap switches",
@@ -686,6 +687,11 @@ const TEXT = {
       "Optional. The heatmap starts with this player's darts instead of the session's; the switches above the board change it.",
     positions_label: "Dartboard with the positions of the darts",
     positions_empty: "No dart positions yet.",
+    aim_label: "Dartboard colored by the points per dart at each aim point, with a ring at the best aim",
+    aim_best: "Best aim · {points} points per dart",
+    aim_points: "{points} points per dart",
+    aim_more: "The aim map needs {needed} darts aimed at a treble, {missing} more to go.",
+    aim_model: "From {darts} darts at a treble: spread {across} across, {up} up and down",
     legend_few: "few",
     legend_many: "many",
     leaderboard: "Leaderboard",
@@ -1295,6 +1301,7 @@ const TEXT = {
     spread_hint: "Die Hälfte der Darts landet innerhalb der Streuung um ihren Mittelpunkt, 80 % innerhalb des zweiten Radius.",
     unit_mm: "{value} mm",
     mode_positions: "Positionen",
+    mode_aim: "Zielpunkt",
     heatmap_source: "Wessen Darts",
     heatmap_session: "Session",
     show_heatmap_controls: "Umschalter des Trefferbilds anzeigen",
@@ -1302,6 +1309,11 @@ const TEXT = {
       "Optional. Das Trefferbild zeigt zuerst die Darts dieses Spielers statt der Session; die Umschalter über der Scheibe wechseln das.",
     positions_label: "Dartscheibe mit den Positionen der Darts",
     positions_empty: "Noch keine Dart-Positionen.",
+    aim_label: "Dartscheibe, eingefärbt nach den Punkten pro Dart an jedem Zielpunkt, mit einem Ring am besten Zielpunkt",
+    aim_best: "Bester Zielpunkt · {points} Punkte pro Dart",
+    aim_points: "{points} Punkte pro Dart",
+    aim_more: "Die Zielkarte braucht {needed} Darts auf ein Triple, noch {missing}.",
+    aim_model: "Aus {darts} Darts auf ein Triple: Streuung {across} seitlich, {up} in der Höhe",
     legend_few: "wenige",
     legend_many: "viele",
     leaderboard: "Bestenliste",
@@ -1906,6 +1918,7 @@ const TEXT = {
     spread_hint: "La mitad de los dardos cae dentro de la agrupación, alrededor de su punto medio, y el 80 % dentro del segundo radio.",
     unit_mm: "{value} mm",
     mode_positions: "Posiciones",
+    mode_aim: "Puntería",
     heatmap_source: "Dardos mostrados",
     heatmap_session: "Sesión",
     show_heatmap_controls: "Mostrar los selectores del mapa de calor",
@@ -1913,6 +1926,11 @@ const TEXT = {
       "Opcional. El mapa de calor empieza con los dardos de este jugador en lugar de los de la sesión; los selectores encima de la diana lo cambian.",
     positions_label: "Diana con las posiciones de los dardos",
     positions_empty: "Aún no hay posiciones de dardos.",
+    aim_label: "Diana coloreada según los puntos por dardo en cada punto de mira, con un anillo en el mejor punto de mira",
+    aim_best: "Mejor punto de mira · {points} puntos por dardo",
+    aim_points: "{points} puntos por dardo",
+    aim_more: "El mapa de puntería necesita {needed} dardos a un triple, faltan {missing}.",
+    aim_model: "Con {darts} dardos a un triple: dispersión de {across} a los lados y {up} en altura",
     legend_few: "pocos",
     legend_many: "muchos",
     leaderboard: "Clasificación",
@@ -2517,6 +2535,7 @@ const TEXT = {
     spread_hint: "La moitié des fléchettes atterrissent dans le rayon de groupement autour de leur point moyen, 80 % dans le second rayon.",
     unit_mm: "{value} mm",
     mode_positions: "Positions",
+    mode_aim: "Visée",
     heatmap_source: "Fléchettes affichées",
     heatmap_session: "Session",
     show_heatmap_controls: "Afficher les sélecteurs de la carte de chaleur",
@@ -2524,6 +2543,11 @@ const TEXT = {
       "Facultatif. La carte de chaleur affiche d'abord les fléchettes de ce joueur plutôt que celles de la session\u00a0; les sélecteurs au-dessus de la cible permettent d'en changer.",
     positions_label: "Cible avec la position des fléchettes",
     positions_empty: "Aucune position de fléchette pour l'instant.",
+    aim_label: "Cible colorée selon les points par fléchette à chaque point visé, avec un anneau sur la meilleure visée",
+    aim_best: "Meilleure visée · {points} points par fléchette",
+    aim_points: "{points} points par fléchette",
+    aim_more: "La carte de visée a besoin de {needed} fléchettes visant un triple, encore {missing}.",
+    aim_model: "D'après {darts} fléchettes visant un triple\u00a0: dispersion de {across} sur les côtés, {up} en hauteur",
     legend_few: "peu",
     legend_many: "beaucoup",
     leaderboard: "Classement",
@@ -3128,6 +3152,7 @@ const TEXT = {
     spread_hint: "De helft van de darts komt binnen de spreiding rond hun gemiddelde trefpunt terecht, 80 % binnen de tweede straal.",
     unit_mm: "{value} mm",
     mode_positions: "Posities",
+    mode_aim: "Mikpunt",
     heatmap_source: "Wiens darts",
     heatmap_session: "Sessie",
     show_heatmap_controls: "Schakelaars van de heatmap tonen",
@@ -3135,6 +3160,11 @@ const TEXT = {
       "Optioneel. De heatmap begint met de darts van deze speler in plaats van die van de sessie; met de schakelaars boven het bord wissel je dat.",
     positions_label: "Dartbord met de posities van de darts",
     positions_empty: "Nog geen dartposities.",
+    aim_label: "Dartbord, gekleurd naar de punten per dart op elk mikpunt, met een ring op het beste mikpunt",
+    aim_best: "Beste mikpunt · {points} punten per dart",
+    aim_points: "{points} punten per dart",
+    aim_more: "De mikkaart heeft {needed} darts op een triple nodig, nog {missing} te gaan.",
+    aim_model: "Uit {darts} darts op een triple: spreiding {across} opzij, {up} in de hoogte",
     legend_few: "weinig",
     legend_many: "veel",
     leaderboard: "Ranglijst",
@@ -3245,8 +3275,8 @@ const TRAINING_DEFAULTS = {
   show_heatmap_controls: true,
 };
 
-// Hits per bed, per number, or where the darts landed.
-const HEAT_MODES = ["beds", "numbers", "positions"];
+// Hits per bed, per number, where the darts landed, or where to aim.
+const HEAT_MODES = ["beds", "numbers", "positions", "aim"];
 
 const STATUS_DEFAULTS = {
   show_connection: true,
@@ -7063,6 +7093,275 @@ function positionsHtml(positions, live) {
   return `<g class="density" filter="url(#ad-density)">${density}</g><g class="positions">${dots}${pins}</g>`;
 }
 
+// The aim map -------------------------------------------------------------------
+
+// Where a player scores the most per dart, from their own spread, as aim.py of the
+// integration has it (Tibshirani, Price and Taylor, "A statistician plays darts", 2011):
+// the points per dart at an aim point are the mean score of 1,000 fixed draws of the
+// player's error, each landing point rounded to the millimetre, on a 2 mm grid over the
+// board. Home Assistant finds the best aim and its points; the card draws the points of
+// every aim point, to the last digit those of Home Assistant. aimSegment, aimDraws and
+// aimField also run in a Web Worker, so they take the geometry with the request and use
+// nothing else of this module.
+const AIM_DRAWS = 1000;
+const AIM_GRID = 2;
+const AIM_MODEL_KEYS = ["offset_x", "offset_y", "sd_x", "sd_y", "correlation"];
+// The beds the best aim is compared with, as Home Assistant sends them.
+const AIM_COMPARED = ["T20", "T19", "BULL"];
+// Every third point of the grid is drawn, a cell of 6 mm, softened by the blur of the
+// density; the colors run from this share of the most points per dart to the most.
+const AIM_CELL = 3;
+const AIM_FLOOR = 0.6;
+
+// The number and multiplier of the bed at a point in whole millimetres, as aim.py has
+// it: the rings compared by the square of the distance, which is exact, and a point
+// exactly between two sectors in the one that rounding half to even picks, as Python does.
+function aimSegment(x, y, geometry) {
+  const [bull, outerBull, trebleIn, trebleOut, doubleIn, doubleOut] = geometry.rings;
+  const square = x * x + y * y;
+  if (square <= bull * bull) return [25, 2];
+  if (square <= outerBull * outerBull) return [25, 1];
+  if (square > doubleOut * doubleOut) return [0, 0];
+  const sector = (Math.atan2(x, y) * (180 / Math.PI)) / 18;
+  let index = Math.round(sector);
+  if (index - sector === 0.5 && index % 2 !== 0) index -= 1;
+  const number = geometry.numbers[((index % 20) + 20) % 20];
+  if (square > trebleIn * trebleIn && square <= trebleOut * trebleOut) return [number, 3];
+  return [number, square > doubleIn * doubleIn ? 2 : 1];
+}
+
+// Pairs of standard normal numbers, spread evenly: a Fibonacci lattice of the unit square,
+// mapped by the Box-Muller transform.
+function aimDraws(count) {
+  const golden = (Math.sqrt(5) - 1) / 2;
+  const draws = new Float64Array(2 * count);
+  for (let index = 0; index < count; index += 1) {
+    const radius = Math.sqrt(-2 * Math.log((index + 0.5) / count));
+    const angle = 2 * Math.PI * ((index * golden) % 1);
+    draws[2 * index] = radius * Math.cos(angle);
+    draws[2 * index + 1] = radius * Math.sin(angle);
+  }
+  return draws;
+}
+
+// The points per dart at every aim point of the grid, row by row from the bottom, -1 off
+// the board, and the most of them.
+function aimField(request) {
+  const { model, geometry, draws: count, grid } = request;
+  const board = geometry.rings[5];
+  const reach = 2 * board;
+  const edge = board + reach;
+  const width = 2 * edge + 1;
+  // The points of every millimetre around the board.
+  const cells = new Uint8Array(width * width);
+  for (let y = -board; y <= board; y += 1) {
+    for (let x = -board; x <= board; x += 1) {
+      const [number, multiplier] = aimSegment(x, y, geometry);
+      cells[(y + edge) * width + x + edge] = number * multiplier;
+    }
+  }
+  // Where the draws land, as offsets in those cells; a draw beyond the reach misses the
+  // board from every aim point on it and scores nothing.
+  const draws = aimDraws(count);
+  const spread = Math.sqrt(1 - model.correlation * model.correlation);
+  const landing = [];
+  for (let index = 0; index < count; index += 1) {
+    const first = draws[2 * index];
+    const second = draws[2 * index + 1];
+    const x = Math.floor(model.offset_x + model.sd_x * first + 0.5);
+    const y = Math.floor(model.offset_y + model.sd_y * (model.correlation * first + spread * second) + 0.5);
+    if (Math.abs(x) <= reach && Math.abs(y) <= reach) landing.push(y * width + x);
+  }
+  const offsets = Int32Array.from(landing);
+  const side = Math.floor(board / grid);
+  const size = 2 * side + 1;
+  const field = new Float32Array(size * size).fill(-1);
+  let high = 0;
+  for (let row = 0; row < size; row += 1) {
+    const y = (row - side) * grid;
+    for (let column = 0; column < size; column += 1) {
+      const x = (column - side) * grid;
+      if (x * x + y * y > board * board) continue;
+      const base = (y + edge) * width + x + edge;
+      let sum = 0;
+      for (let index = 0; index < offsets.length; index += 1) sum += cells[base + offsets[index]];
+      field[row * size + column] = sum / count;
+      high = Math.max(high, sum / count);
+    }
+  }
+  return { size, grid, field, high };
+}
+
+// The error model of a player or the session with the best aim of Home Assistant, or how
+// many darts at a treble it has and needs.
+function aimView(aim) {
+  const count = (value, otherwise) => (Number.isInteger(value) && value >= 0 ? value : otherwise);
+  const darts = count(aim?.darts, 0);
+  const needed = count(aim?.needed, 30);
+  const best = aim?.best;
+  const valid =
+    AIM_MODEL_KEYS.every((key) => Number.isFinite(aim?.[key])) &&
+    aim.sd_x > 0 &&
+    aim.sd_y > 0 &&
+    Math.abs(aim.correlation) < 1 &&
+    typeof best?.bed === "string" &&
+    [best.x, best.y].every(Number.isInteger) &&
+    Number.isFinite(best.expected);
+  if (!valid) return { darts, needed, model: null, key: null, best: null, compared: [] };
+  const model = Object.fromEntries(AIM_MODEL_KEYS.map((key) => [key, aim[key]]));
+  const compared = AIM_COMPARED.filter((bed) => bed !== best.bed && Number.isFinite(best.compared?.[bed])).map(
+    (bed) => ({ bed, expected: best.compared[bed] })
+  );
+  return {
+    darts,
+    needed,
+    model,
+    key: AIM_MODEL_KEYS.map((key) => model[key]).join("|"),
+    best: { bed: best.bed, x: best.x, y: best.y, expected: best.expected },
+    compared,
+  };
+}
+
+// What the worker needs for a model: the draws, the grid and the board.
+const aimRequest = (model) => ({
+  model,
+  geometry: { rings: [R.bull, R.outerBull, R.trebleIn, R.trebleOut, R.doubleIn, R.doubleOut], numbers: NUMBERS },
+  draws: AIM_DRAWS,
+  grid: AIM_GRID,
+});
+
+// The script of the worker: the functions above and an answer to every request.
+const aimWorkerSource = () =>
+  `${[aimSegment, aimDraws, aimField].map(String).join("\n")}\n` +
+  "self.onmessage = (event) => {\n" +
+  "  const field = aimField(event.data.request);\n" +
+  "  self.postMessage({ id: event.data.id, field }, [field.field.buffer]);\n" +
+  "};\n";
+
+// The aim maps of a training card, from a Web Worker of its own, which starts with the first
+// map and ends with the card. Where the page has no workers or allows none of its own, as
+// with a strict content security policy, the card computes the maps itself.
+class AimFields {
+  constructor() {
+    // undefined until the first map, null without a worker.
+    this.worker = undefined;
+    this.jobs = new Map();
+    this.next = 0;
+  }
+
+  _worker() {
+    if (this.worker !== undefined) return this.worker;
+    this.worker = null;
+    if (typeof window.Worker !== "function" || typeof window.URL?.createObjectURL !== "function") return null;
+    try {
+      const url = window.URL.createObjectURL(new window.Blob([aimWorkerSource()], { type: "text/javascript" }));
+      const worker = new window.Worker(url);
+      // The worker holds on to its script; the address is needed no longer.
+      window.URL.revokeObjectURL(url);
+      worker.onmessage = ({ data }) => {
+        const job = this.jobs.get(data.id);
+        this.jobs.delete(data.id);
+        job.resolve(data.field);
+      };
+      // A worker that can't start leaves its maps, and every later one, to the card.
+      worker.onerror = () => {
+        worker.terminate();
+        this.worker = null;
+        const jobs = [...this.jobs.values()];
+        this.jobs.clear();
+        for (const job of jobs) job.resolve(aimField(job.request));
+      };
+      this.worker = worker;
+    } catch {
+      // The card computes the maps.
+    }
+    return this.worker;
+  }
+
+  // The points per dart of a request.
+  compute(request) {
+    return new Promise((resolve) => {
+      const worker = this._worker();
+      if (!worker) {
+        resolve(aimField(request));
+        return;
+      }
+      this.next += 1;
+      this.jobs.set(this.next, { request, resolve });
+      worker.postMessage({ id: this.next, request });
+    });
+  }
+
+  // The card left the page: the worker ends, and maps on their way come to nothing.
+  stop() {
+    this.worker?.terminate();
+    this.worker = undefined;
+    const jobs = [...this.jobs.values()];
+    this.jobs.clear();
+    for (const job of jobs) job.resolve(null);
+  }
+}
+
+// The points per dart in the heatmap colors, from AIM_FLOOR of the most to the most, with
+// the best aim as a ring.
+function aimHtml(field, best) {
+  const low = field.high * AIM_FLOOR;
+  const side = (field.size - 1) / 2;
+  const half = (AIM_CELL * field.grid) / 2;
+  const cells = [];
+  for (let row = side % AIM_CELL; row < field.size; row += AIM_CELL) {
+    for (let column = side % AIM_CELL; column < field.size; column += AIM_CELL) {
+      const value = field.field[row * field.size + column];
+      if (!(value > low)) continue;
+      const ratio = (value - low) / (field.high - low);
+      const x = (column - side) * field.grid;
+      const y = -(row - side) * field.grid;
+      cells.push(
+        `<rect x="${fmt(x - half)}" y="${fmt(y - half)}" width="${2 * half}" height="${2 * half}" ` +
+          `fill="${heatColor(ratio)}" fill-opacity="${fmt(0.35 + 0.55 * ratio)}"/>`
+      );
+    }
+  }
+  const at = `cx="${best.x}" cy="${-best.y}"`;
+  return (
+    `<g class="density" filter="url(#ad-density)">${cells.join("")}</g>` +
+    `<g class="aim"><circle class="aim-shadow" ${at} r="7"/><circle class="aim-best" ${at} r="7"/>` +
+    `<circle class="aim-dot" ${at} r="2"/></g>`
+  );
+}
+
+// The best aim and the beds compared with it: the bed, its points per dart and how many
+// fewer than the best, for the list below the board and for screen readers.
+function aimRows(view, ui) {
+  const { t, format } = ui;
+  return [
+    { bed: view.best.bed, text: fill(t("aim_best"), { points: format(view.best.expected, 1) }), change: "" },
+    ...view.compared.map(({ bed, expected }) => {
+      // To the tenth that the card shows; a bed as good as the best shows no difference.
+      const change = Math.round((expected - view.best.expected) * 10) / 10;
+      return { bed, text: fill(t("aim_points"), { points: format(expected, 1) }), change: change ? format(change, 1) : "" };
+    }),
+  ];
+}
+
+function aimSummaryHtml(view, ui) {
+  const { t, format, label } = ui;
+  const rows = aimRows(view, ui).map(
+    ({ bed, text, change }) =>
+      `<div class="group" data-target="${escapeHtml(bed)}"><span class="group-target">${escapeHtml(label(bed))}</span>` +
+      `<span class="group-text">${escapeHtml(text)}</span>` +
+      `${change ? `<span class="group-change worse">${escapeHtml(change)}</span>` : ""}</div>`
+  );
+  // Whole millimetres, as the groupings show them.
+  const mm = (value) => fill(t("unit_mm"), { value: format(value) });
+  const model = fill(t("aim_model"), {
+    darts: format(view.darts),
+    across: mm(view.model.sd_x),
+    up: mm(view.model.sd_y),
+  });
+  return `${rows.join("")}<p class="muted aim-model">${escapeHtml(`${model} · ${offsetText(ui, view.model)}`)}</p>`;
+}
+
 // Leaderboard ------------------------------------------------------------------
 
 // Records across all players: all time from the profiles, a period from the weeks.
@@ -8628,6 +8927,11 @@ const TRAINING_CSS = `${BASE_CSS}
   .position { fill: #fff; fill-opacity: .85; stroke: rgba(0,0,0,.55); stroke-width: .6; }
   /* The darts of the current visit, like the pins of the live card. */
   .position.live { fill: #3182ce; fill-opacity: 1; stroke: #fff; stroke-width: 2; }
+  /* The best aim of the aim map: a white ring on a dark one stands out on every color. */
+  .aim-shadow { fill: none; stroke: rgba(0,0,0,.55); stroke-width: 5; }
+  .aim-best { fill: none; stroke: #fff; stroke-width: 2.5; }
+  .aim-dot { fill: #fff; stroke: rgba(0,0,0,.55); stroke-width: .8; }
+  .aim-model { margin: 6px 0 0; font-size: 12px; }
   .heat .groups { width: 100%; display: grid; gap: 2px; }
   .group { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; gap: 10px; align-items: baseline; font-size: 13px; }
   .group-target {
@@ -10799,6 +11103,12 @@ function createElements(Base) {
       // The darts of the current visit last drawn, and the drawing of the positions.
       this._live = [];
       this._drawn = null;
+      // The points per dart of the aim map last drawn, the model of the map computed or
+      // on its way, and who computes them.
+      this._aimField = null;
+      this._aimFor = null;
+      this._aimFields = new AimFields();
+      this._aimDrawn = null;
     }
 
     // A new configuration shows its own mode and player again.
@@ -10816,10 +11126,14 @@ function createElements(Base) {
       return TRAINING_CSS;
     }
 
-    // The history stream ends with the card and starts again when it returns.
+    // The history stream and the worker of the aim map end with the card; the stream
+    // starts again when it returns, and the worker with the next map.
     disconnectedCallback() {
       super.disconnectedCallback();
       this._closeHistory();
+      // A map on its way comes to nothing, and comes anew when the card returns.
+      this._aimFields.stop();
+      this._aimFor = this._aimField?.key ?? null;
     }
 
     connectedCallback() {
@@ -11200,7 +11514,7 @@ function createElements(Base) {
       const profile = source ? this._profile(source) : null;
       const hits = source ? profile?.hits : this._state("darts")?.attributes?.hits;
       this._updateHeatControls(source);
-      if (this._el.heat && this._heatMode() === "positions") this._loadPositions(source);
+      if (this._el.heat && ["positions", "aim"].includes(this._heatMode())) this._loadPositions(source);
       this._updateHeat(hits);
       // A player's shares are of the hits the profile counted; darts of older versions have no hits.
       const counted = validHits(hits).reduce((sum, [, count]) => sum + count, 0);
@@ -11210,7 +11524,8 @@ function createElements(Base) {
     _updateHeatControls(source) {
       const el = this._el;
       if (el.heatSvg) {
-        el.heatSvg.setAttribute("aria-label", this._t(this._heatMode() === "positions" ? "positions_label" : "heatmap_label"));
+        const labels = { positions: "positions_label", aim: "aim_label" };
+        el.heatSvg.setAttribute("aria-label", this._t(labels[this._heatMode()] ?? "heatmap_label"));
       }
       if (!el.modes) return;
       for (const button of el.modes.querySelectorAll("button")) {
@@ -11257,9 +11572,14 @@ function createElements(Base) {
       return visitPositions(this._state("visit")?.attributes?.throws);
     }
 
+    // Only the aim map asks for the aim model, which Home Assistant works out anew for new
+    // darts; an answer with it serves the positions, too.
     async _loadPositions(source) {
-      const key = this._positionsKey(source);
-      if (this._positionsFor === key || typeof this._hass.callWS !== "function") return;
+      const aim = this._heatMode() === "aim";
+      const darts = this._positionsKey(source);
+      const key = aim ? `${darts}|aim` : darts;
+      const asked = this._positionsFor;
+      if (asked === key || asked === `${darts}|aim` || typeof this._hass.callWS !== "function") return;
       this._positionsFor = key;
       let result = null;
       try {
@@ -11267,15 +11587,76 @@ function createElements(Base) {
           type: "autodarts/positions",
           device_id: this._deviceId,
           ...(source ? { player: source } : {}),
+          ...(aim ? { aim: true } : {}),
         });
       } catch {
         // A board that is being removed has no positions to show.
       }
       if (this._positionsFor !== key) return;
       const positions = validPositions(result?.positions);
-      this._positions = { key, source, positions, spread: spreadView(result?.spread) };
-      // An answer that arrives after a switch to beds or numbers waits for positions.
+      this._positions = {
+        key,
+        source,
+        positions,
+        spread: spreadView(result?.spread),
+        aim: aim ? aimView(result?.aim) : null,
+      };
+      // An answer that arrives after a switch to beds or numbers waits for positions or the aim map.
       if (this._heatMode() === "positions") this._drawPositions();
+      if (this._heatMode() === "aim") this._drawAim();
+    }
+
+    // Where the player or the session scores the most per dart: the points of every aim
+    // point, which the worker computes once per model, with the best aim of Home Assistant.
+    // Without enough darts at a treble, the card says how many are missing.
+    _drawAim() {
+      const el = this._el;
+      const source = this._heatSource();
+      const shown = this._positions?.source === source ? this._positions.aim : null;
+      const view = shown?.model ? shown : null;
+      if (view && this._aimFor !== view.key) this._loadAim(view.key, view.model);
+      const ready = view && this._aimField?.key === view.key ? this._aimField : null;
+      this._live = [];
+      el.heatCaption.textContent = "";
+      // The map is drawn once per field and best aim, not with every update of the card.
+      if (ready && (this._aimDrawn?.field !== ready || this._aimDrawn.best !== view.best)) {
+        this._aimDrawn = { source, field: ready, best: view.best, html: aimHtml(ready, view.best) };
+      }
+      // While the field of a new model is on its way, the last map of the same darts stays.
+      const drawn = view && (ready || this._aimDrawn?.source === source) ? this._aimDrawn : null;
+      const field = drawn?.field;
+      this._setHtml(el.heat, drawn ? drawn.html : "");
+      const ui = this._ui();
+      this._setHtml(
+        el.heatList,
+        view
+          ? aimRows(view, ui)
+              .map(({ bed, text }) => `<li>${escapeHtml(`${ui.label(bed)}: ${text}`)}</li>`)
+              .join("")
+          : ""
+      );
+      el.legendMin.textContent = field ? this._format(field.high * AIM_FLOOR, 1) : "–";
+      el.legendMax.textContent = field ? this._format(field.high, 1) : "–";
+      el.groups.hidden = !shown;
+      // Without a model, how many darts at a treble are missing: at least one.
+      const more = () =>
+        fill(this._t("aim_more"), {
+          needed: this._format(shown.needed),
+          missing: this._format(Math.max(shown.needed - shown.darts, 1)),
+        });
+      this._setHtml(
+        el.groups,
+        view ? aimSummaryHtml(view, ui) : shown ? `<div class="empty-hint">${escapeHtml(more())}</div>` : ""
+      );
+    }
+
+    async _loadAim(key, model) {
+      this._aimFor = key;
+      const field = await this._aimFields.compute(aimRequest(model));
+      // A newer model is on its way, or the card left the page.
+      if (!field || this._aimFor !== key) return;
+      this._aimField = { key, ...field };
+      if (this._heatMode() === "aim") this._drawAim();
     }
 
     _drawPositions() {
@@ -11312,6 +11693,10 @@ function createElements(Base) {
       if (!el.heat) return;
       if (this._heatMode() === "positions") {
         this._drawPositions();
+        return;
+      }
+      if (this._heatMode() === "aim") {
+        this._drawAim();
         return;
       }
       // Back in positions mode, no visit of long ago stays on the board.
@@ -13062,6 +13447,14 @@ export {
   scoreReady,
   scorable,
   aimBeds,
+  aimDraws,
+  aimField,
+  aimHtml,
+  aimRequest,
+  aimRows,
+  aimSegment,
+  aimSummaryHtml,
+  aimView,
   badgesHtml,
   badgesView,
   bracketSlots,

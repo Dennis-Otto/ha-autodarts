@@ -1,9 +1,12 @@
 """Achievements, the players' progress and dart positions in Home Assistant."""
 
+import random
+
 from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.const import DOMAIN
+from custom_components.autodarts.positions import AIMS, BOARD_RADIUS_MM
 
 from .local_helpers import (
     BULL,
@@ -18,6 +21,7 @@ from .local_helpers import (
     state,
     switch,
 )
+from .test_positions import normal
 from .test_practice_setup import select_game
 
 # Where the darts land: T20 slightly left of the centre of the bed, the bulls
@@ -179,6 +183,79 @@ async def test_positions_need_a_loaded_board(hass, aioclient_mock, hass_ws_clien
     assert await hass.config_entries.async_unload(entry.entry_id)
     unloaded = await positions(hass, client, device_id=board_device)
     assert (unloaded["success"], unloaded["error"]["code"]) == (False, "not_found")
+
+
+async def test_the_aim_map_is_worked_out_beside_the_event_loop(
+    hass, aioclient_mock, hass_storage, hass_ws_client
+):
+    """The restored darts of a player give the profile its best aim, worked out in
+    an executor, and so does every visit; the cards ask for the aim model only
+    for the aim map."""
+    scale = BOARD_RADIUS_MM * 10
+    log = [
+        value
+        for x, y, aim in normal(random.Random(1), ["T20"], 40, sd=(5, 5))
+        for value in (round(x * scale), round(y * scale), AIMS.index(aim) + 1)
+    ]
+    hass_storage["autodarts.aim-entry.training"] = {
+        "version": 1,
+        "key": "autodarts.aim-entry.training",
+        "data": {
+            "practice": {"profiles": {"players": [{"name": "Alex"}]}},
+            "progress": {"players": [{"name": "Alex", "log": log}]},
+        },
+    }
+    mock_board(aioclient_mock, state=board())
+    entry = MockConfigEntry(
+        domain=DOMAIN, version=2, data=local_entry_data(), entry_id="aim-entry"
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data.local
+    assert coordinator.progress.stale_aims() == []
+    profiles = hass.states.get(entity_id(hass, "sensor", "player_profiles"))
+    [alex] = profiles.attributes["players"]
+    assert alex["best_aim"] == "T20" and alex["expected_ppd"] > 40
+    first = alex["expected_ppd"]
+
+    client = await hass_ws_client(hass)
+    board_device = device_id(hass, entry)
+    plain = await positions(hass, client, device_id=board_device, player="alex")
+    assert len(plain["result"]["positions"]) == 40 and "aim" not in plain["result"]
+    asked = await positions(
+        hass, client, device_id=board_device, player="alex", aim=True
+    )
+    assert asked["result"]["aim"]["darts"] == 40
+    assert asked["result"]["aim"]["best"]["bed"] == "T20"
+    # The session's model is worked out when the map asks for it, and once.
+    session = coordinator.progress.session
+    assert session.aim_stale
+    empty = await positions(hass, client, device_id=board_device, aim=True)
+    assert empty["result"]["aim"] == {"darts": 0, "needed": 30}
+    assert not session.aim_stale
+    again = await positions(hass, client, device_id=board_device, aim=True)
+    assert again["result"]["aim"] == empty["result"]["aim"]
+    unknown = await positions(
+        hass, client, device_id=board_device, player="Kim", aim=True
+    )
+    assert unknown["result"]["known"] is False
+    assert unknown["result"]["aim"] == {"darts": 0, "needed": 30}
+
+    # A visit of Alex: the profile follows once the new model is worked out.
+    coordinator.practice.set_name(0, "Alex")
+    await select_game(hass, "501")
+    await throw(hass, coordinator, T20, T20, T20)
+    assert coordinator.progress.stale_aims() == []
+    assert coordinator.progress.log("alex").aim()["darts"] == 43
+    profiles = hass.states.get(entity_id(hass, "sensor", "player_profiles"))
+    [alex] = profiles.attributes["players"]
+    best = coordinator.progress.log("alex").best_aim()
+    assert (alex["best_aim"], alex["expected_ppd"]) == (
+        best["bed"],
+        round(best["expected"], 1),
+    )
+    assert abs(alex["expected_ppd"] - first) < 1
 
 
 async def test_corrected_darts_are_logged_only_where_the_correction_puts_them(

@@ -43,7 +43,7 @@ New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-O
 
 - **Instant and local.** Darts appear in Home Assistant a fraction of a second after they land, straight from the Board Manager in your network. No account, no cloud, no client ID.
 - **A whole darts evening.** X01 from 101 to 1001, four Cricket games, six party games and eight training games, alone, as a match of up to four, a party game of up to eight or a tournament of up to eight, with a scoreboard for the tablet at the board.
-- **Your progress in numbers.** Averages, heatmaps of the real dart positions, personal bests, badges, weekly trends, player profiles, a weekly report and a year of history, all kept in your home.
+- **Your progress in numbers.** Averages, heatmaps of the real dart positions, where to aim with your own spread, personal bests, badges, weekly trends, player profiles, a weekly report and a year of history, all kept in your home.
 - **Your home plays along.** Lights for a 180, a caller on your speakers, the board light for the takeout, a photo of your best checkout.
 
 ## Features
@@ -97,6 +97,7 @@ New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-O
 
 - 3-dart average, first 9 average, checkout and doubles rate
 - A heatmap of every bed or of the real dart positions, with the grouping in millimeters
+- An aim map: where each player scores the most points per dart with their own spread, the treble 20, the treble 19 or a spot near the bull
 - Player profiles with badges in bronze, silver, gold and platinum, and a leaderboard
 
 <details>
@@ -232,7 +233,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 
 - [Games and rules](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md): how to start a game, matches, teams, handicaps, the bull-off, the match summary, tournaments and the rules of every game
 - [Scoreboard at the board](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md): a tablet or TV at the board, the new game screen, tournaments, the caller and idle mode
-- [Statistics and players](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md): sessions, personal bests, heatmaps and dart positions, doubles, player profiles, achievements, trends, the leaderboard, reports, calendar and export
+- [Statistics and players](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md): sessions, personal bests, heatmaps and dart positions, where to aim, doubles, player profiles, achievements, trends, the leaderboard, reports, calendar and export
 - [Automations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md): thirteen blueprints, board events and ready-to-use examples
 - [Online matches](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/online-matches.md): moments of online matches on play.autodarts.io in Home Assistant *(experimental)*
 

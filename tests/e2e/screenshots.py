@@ -1724,7 +1724,8 @@ def part_shot(page: Page, name: str, tag: str, selectors: list[str]) -> None:
 
 
 def progress_cards(page: Page) -> None:
-    """Badges, trends and groupings of the demo players, Alex's darts and the records."""
+    """Badges, trends and groupings of the demo players, Alex's darts and aim map,
+    and the records."""
     size = page.viewport_size
     page.set_viewport_size({"width": size["width"], "height": 2000})
     players = "autodarts-players-card"
@@ -1754,6 +1755,16 @@ def progress_cards(page: Page) -> None:
     )
     ready(page)
     part_shot(page, "training-positions", training, [".heat"])
+    # Alex's aim map, which the worker of the card draws from Alex's spread.
+    page.locator(f"{training} button[data-mode='aim']").click()
+    page.wait_for_function(
+        f"() => ({find(training)})().some((c) =>"
+        " c.shadowRoot.querySelector('.heat-layer .aim-best')"
+        " && c.shadowRoot.querySelectorAll('.heat .group').length >= 2)",
+        timeout=60000,
+    )
+    ready(page)
+    part_shot(page, "training-aim", training, [".heat"])
     page.goto(f"{HA}/autodarts-demo/leaderboard")
     page.wait_for_function(
         f"() => ({find('autodarts-leaderboard-card')})().some((c) =>"
