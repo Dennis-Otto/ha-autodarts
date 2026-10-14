@@ -25,6 +25,9 @@ blueprint:
 
     The first visit of a game is not called: a practice game starts without a
     turn change, unless a bull-off decides who starts.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#practice-caller)
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/practice_caller.yaml

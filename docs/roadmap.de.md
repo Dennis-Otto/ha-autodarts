@@ -134,7 +134,7 @@ Ideen für die Versionen nach 1.12. Stimmen und Reaktionen auf die [Feature-Wün
 
 | Thema | Was es bringt | Voraussetzung |
 | --- | --- | --- |
-| **Fragen an Assist** | „Wie ist mein Average heute?“, „Wie viele 180er diese Woche?“ als eigene Sätze, und der Spielstart per Sprache in jeder Sprache der Integration | Sätze, die sich am Board natürlich anfühlen, von Spielern, die die Sprache sprechen |
+| **Fragen an Assist** | „Wie ist mein Average heute?“, „Wie viele 180er diese Woche?“ als eigene Sätze | Sätze, die sich am Board natürlich anfühlen, von Spielern, die die Sprache sprechen |
 | **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert; ein Spieler hat 2.0.2 unter Linux als funktionierend gemeldet ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Testberichte von Spielern, die es unter Windows nutzen |
 | **Cloud-Verknüpfung** | Cloud-Spieldaten und Cloud-Spielereignisse: Leg und Match gewonnen, Überwerfen, Spielerwechsel, Restpunkte | Eine OAuth-Client-ID von Autodarts; sie ist beantragt |
 | **HACS-Standardkatalog** | Installation, ohne ein benutzerdefiniertes Repository hinzuzufügen | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |

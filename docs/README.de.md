@@ -292,11 +292,11 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 
   [![Blueprint „Board problem alert“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml)
 
-- **Start a game by voice.** Sag Assist „Starte 501 für Alex und Sam“, auf Deutsch oder Englisch.
+- **Start a game by voice.** Sag Assist „Starte 501 für Alex und Sam“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch.
 
   [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml)
 
-- **Enter darts by voice.** Sag Assist „Alex hat 140“, „Triple 20“ oder „Nächster Spieler“, wie am Dartautomaten, auf Deutsch oder Englisch.
+- **Enter darts by voice.** Sag Assist „Alex hat 140“, „Triple 20“ oder „Nächster Spieler“, wie am Dartautomaten, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch.
 
   [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml)
 
@@ -328,7 +328,7 @@ Die Integration spricht Deutsch, Englisch, Niederländisch, Französisch und Spa
 
 - Die Namen der Entitäten legt Home Assistant in der Sprache des Servers fest (**Einstellungen → System → Allgemein**), Zustände und Karten folgen der Sprache deines Benutzerprofils.
 - Der Caller spricht die Sprache der Karte mit einer Stimme deines Browsers oder Tablets für diese Sprache.
-- Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints auf Englisch, weil Home Assistant Blueprints nicht übersetzt.
+- Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints auf Englisch, weil Home Assistant Blueprints nicht übersetzt. Die Sprach-Blueprints verstehen Sätze in allen fünf Sprachen, und Assist antwortet in der Sprache von Home Assistant.
 
 Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original, stehen im [Übersetzungs-Issue](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) dieser Sprache, das ein Bot aktuell hält. Es erklärt, wie du sie direkt auf GitHub korrigierst, ganz ohne Programmierkenntnisse. Eine Übersetzung verbessern oder eine Sprache hinzufügen: [Übersetzungen in CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations).
 

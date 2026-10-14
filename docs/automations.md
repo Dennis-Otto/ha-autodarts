@@ -23,8 +23,8 @@ Blueprints are ready-made automations. Import one, choose your board and the dev
 | **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `photo_url`, `photo`, `image`, `message`, `score`, `checkout` and `who`. | [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off, an achievement and the winner of a tournament, and optionally during the takeout and in [online matches](online-matches.md). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
-| **Start a game by voice** | Starts a practice game when you tell Assist, for example "Start 501 for Alex and Sam", "Start the game Cricket for Alex" or "Play 501 against the bot", in English or German. Assist answers with the game and the players, or with what was wrong. | [![Import the start a game by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
-| **Enter darts by voice** | Enters the darts of a game when you tell Assist, as at a dart machine: the score of a visit, such as "Alex has 140" or "140 points", a checkout, a single dart such as "Triple 20", the next player and undo, in English or German. Assist answers in the words of the scoreboard's caller: what the visit left and who throws next, or why it was refused. | [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
+| **Start a game by voice** | Starts a practice game when you tell Assist, for example "Start 501 for Alex and Sam", "Start the game Cricket for Alex" or "Play 501 against the bot", in English, German, Spanish, French or Dutch. Assist answers with the game and the players, or with what was wrong. | [![Import the start a game by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
+| **Enter darts by voice** | Enters the darts of a game when you tell Assist, as at a dart machine: the score of a visit, such as "Alex has 140" or "140 points", a checkout, a single dart such as "Triple 20", the next player and undo, in English, German, Spanish, French or Dutch. Assist answers in the words of the scoreboard's caller: what the visit left and who throws next, or why it was refused. | [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
 
@@ -237,7 +237,7 @@ The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, 
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Sentences | German and English | What you say to Assist. `{game}` is the game and `{players}` the players; parts in [brackets] are optional, (a\|b) means a or b. |
+| Sentences | In five languages | What you say to Assist. `{game}` is the game and `{players}` the players; parts in [brackets] are optional, (a\|b) means a or b. |
 | Bot level | 60 | The 3-dart average the bot plays when a sentence ends in "bot". |
 | Board | | The board to play on. Needed only with more than one board. |
 
@@ -247,23 +247,27 @@ Say for example:
 - "Start the game Cricket for Alex and Sam", "Play a game of Around the Clock"
 - "Start 501 for Alex against the bot", "Play 501 for Alex and the bot", "Play the game Cricket against the bot"
 - in German "Starte 501 für Alex und Sam", "Starte das Spiel Doppeltraining" or "Spiele 501 gegen den Bot"
+- in Spanish "Juega 501 para Alex y Sam", "Juega una partida de Around the Clock" or "Juega 501 contra el bot"
+- in French "Lance 501 pour Alex et Sam", "Lance la partie Cricket pour Alex" or "Joue 501 contre le bot"
+- in Dutch "Speel 501 voor Alex en Sam", "Start het spel Dubbeltraining" or "Speel 501 tegen de bot"
 
 Assist answers "Game on: 501 with Alex and Sam." in the language of Home Assistant, or says what was wrong, such as a game it does not know, Killer with one player, more players than the game takes or a name longer than 20 characters.
 
-- **The game:** X01 is a number from 101 to 1001, as digits or as words in the language of Home Assistant (see [numbers](#numbers-by-voice)). Every other game follows the word "Spiel" or "game" and is named as the game list shows it, in any language of the integration: "Around the Clock", "Bob's 27", "Doubles training", "Doppeltraining". The beginning of a name is enough where it fits one game alone, such as "Cut Throat".
-- **The players:** one word each, joined by "and", "und" or a comma. A player who already has a profile keeps its spelling, even when the voice assistant writes the name in lower case. Without players, the players stay as they are.
-- **The bot:** a sentence that ends in "bot" plays against the bot, which takes a seat after the players; any other sentence starts the game without the bot. The bot is never a player, also not in "Play 501 for Alex and the bot" or "Spiele 501 für Alex und den Bot".
-- **Why a number or the word "game":** Assist hears the sentences of an automation before its own commands. A sentence such as "Start {game} for {players}" would also catch "Start a timer for 5 minutes", and the timer would never run. With a number or the word "game", your other commands stay as they are.
+- **The game:** X01 is a number from 101 to 1001, as digits or as words in the language of Home Assistant (see [numbers](#numbers-by-voice)). Every other game follows the word "game", "Spiel", "partida", "partie" or "spel" and is named as the game list shows it, in any language of the integration: "Around the Clock", "Bob's 27", "Doubles training", "Doppeltraining". The beginning of a name is enough where it fits one game alone, such as "Cut Throat".
+- **The players:** one word each, joined by "and", "und", "y", "et", "en" or a comma. A player who already has a profile keeps its spelling, even when the voice assistant writes the name in lower case. Without players, the players stay as they are.
+- **The bot:** a sentence that ends in "bot" plays against the bot, which takes a seat after the players; any other sentence starts the game without the bot. The bot is never a player, also not in "Play 501 for Alex and the bot", "Spiele 501 für Alex und den Bot", "Juega 501 para Alex y el bot", "Joue 501 pour Alex et le bot" or "Speel 501 voor Alex en de bot".
+- **Why a number or the word "game":** Assist hears the sentences of an automation before its own commands. A sentence such as "Start {game} for {players}" would also catch "Start a timer for 5 minutes", and the timer would never run. With a number or the word for a game, your other commands stay as they are, in every language.
+- **New sentences:** Home Assistant keeps the blueprint you imported, and an automation keeps the sentences you saved in it. For the sentences of a new version, choose **Re-import blueprint** on the blueprints page and leave *Sentences* at its default; sentences of your own stay as they are.
 
 ### Enter darts by voice
 
 | Setting | Default | What it does |
 | --- | --- | --- |
-| Score of a visit | German and English | Sentences with the score of a visit, `{score}` from 0 to 180, and optionally the player, `{player}`; parts in [brackets] are optional, (a\|b) means a or b. |
-| Checkout | German and English | Sentences for a visit that checks out what the player has left, optionally with its darts, `{darts}`, and the player. |
-| Single dart | German and English | Sentences for one dart, with the number of its bed, `{number}`, or a bull or a miss. |
-| Next player | German and English | Sentences that end the visit, so the next player throws. |
-| Undo | German and English | Sentences that take the last visit back, to enter it anew. |
+| Score of a visit | In five languages | Sentences with the score of a visit, `{score}` from 0 to 180, and optionally the player, `{player}`; parts in [brackets] are optional, (a\|b) means a or b. |
+| Checkout | In five languages | Sentences for a visit that checks out what the player has left, optionally with its darts, `{darts}`, and the player. |
+| Single dart | In five languages | Sentences for one dart, with the number of its bed, `{number}`, or a bull or a miss. |
+| Next player | In five languages | Sentences that end the visit, so the next player throws. |
+| Undo | In five languages | Sentences that take the last visit back, to enter it anew. |
 | Board | | The board to enter the darts on. Needed only with more than one board. |
 
 Say for example:
@@ -273,6 +277,9 @@ Say for example:
 - "Triple 20", "Double 16", "Single 5", "Bull", "Single bull" or "Miss"
 - "Next player" and "Undo"
 - with Home Assistant in German "Alex hat 140", "Aufnahme 100", "Checkout mit zwei Darts", "Doppel 16", "Fehlwurf", "Nächster Spieler" or "Rückgängig"
+- with Home Assistant in Spanish "Alex hace 140", "Tirada 100", "Cierre con dos dardos", "Doble 16", "Fallo", "Siguiente jugador" or "Deshacer"
+- with Home Assistant in French "Alex a fait 140", "Volée 100", "Checkout en deux fléchettes", "Double 16", "Raté", "Joueur suivant" or "Annule la dernière volée"
+- with Home Assistant in Dutch "Alex heeft 140", "Beurt 100", "Uitgooi met twee darts", "Dubbel 16", "Mis", "Volgende speler" or "Ongedaan maken"
 
 <img src="images/en/manual-voice.webp" alt="Animation: the scoreboard of a dartboard without Autodarts with Assist open on top; Alex has 140, Triple 20 and Single bull are typed to Assist, which answers 140 for Alex, 361 left. Sam, you require 501, then Triple 20, 441 left, and 25, 416 left; the dialog closes on Alex at 361 and Sam at 416 with Triple 20 and 25 in his visit" width="760">
 
@@ -284,7 +291,8 @@ Assist answers in the words of the scoreboard's caller, in the language of Home 
 - **A dart:** the darts of a visit end with "Next player", as on the keypad. A dart that checks out says "Game shot!", and the next player then calls the leg or the match.
 - **A number alone** is the score of a visit, not a dart: "twenty" enters a visit of 20; say "Single 20" for a dart.
 - **Other commands:** each sentence is a number or has words of darts, so Assist's own commands, such as "What time is it", stay its own.
-- **Other languages:** the sentences are in German and English. In Dutch, French or Spanish, replace them with your own and keep the words of the beds: triple, double, doble or dubbel, single bull, bull, and miss, raté, fallo or mis.
+- **Languages:** the sentences are in English, German, Spanish, French and Dutch, and Assist answers in the language of Home Assistant. In another language, replace them with your own and keep the words of the beds: triple, double, doble or dubbel, single bull, bull, and miss, raté, fallo or mis.
+- **New sentences:** an automation keeps the sentences you saved in it. For those of a new version, choose **Re-import blueprint** on the blueprints page and leave the sentences at their default.
 
 #### Numbers by voice
 
@@ -294,6 +302,9 @@ Both voice blueprints understand numbers as digits in every language. Numbers in
 | --- | --- | --- |
 | English | "one hundred forty", "five hundred one", "two darts" | "one hundred and forty" |
 | German | "einhundertvierzig", "fünfhunderteins", "zwei Darts" | "hundertvierzig" |
+| Spanish | "ciento cuarenta", "quinientos uno", "dos dardos" | "ciento y cuarenta" |
+| French | "cent quarante", "cinq cent un", "deux fléchettes" | "cinq cent et un" |
+| Dutch | "honderdveertig", "vijfhonderdeen", "twee darts" | "honderd veertig" |
 
 So "Checkout mit zwei Darts" needs Home Assistant in German and "Checkout with two darts" Home Assistant in English, while "Checkout mit 2 Darts" and "Checkout with 2 darts" work in both.
 
@@ -791,7 +802,7 @@ mode: queued
 
 ### Start a game by voice
 
-The blueprint [Start a game by voice](#start-a-game-by-voice) does this with sentences in English and German. For sentences of your own, let the action answer: it knows the games by their names in every language of the integration, and with `response_variable` it tells what started, or what was wrong, in words Assist can say. Keep a fixed word such as "game" before `{game}`, so the sentence never catches another command of Assist.
+The blueprint [Start a game by voice](#start-a-game-by-voice) does this with sentences in English, German, Spanish, French and Dutch. For sentences of your own, let the action answer: it knows the games by their names in every language of the integration, and with `response_variable` it tells what started, or what was wrong, in words Assist can say. Keep a fixed word such as "game" before `{game}`, so the sentence never catches another command of Assist.
 
 ```yaml
 alias: Darts - start by voice
@@ -811,7 +822,7 @@ mode: single
 
 ### Enter a visit by voice
 
-The blueprint [Enter darts by voice](#enter-darts-by-voice) does this with sentences in English and German. For sentences of your own, in another language for example, let the action answer: with `response_variable` it says what the visit scored and left and who throws next, or why it was refused. With `player`, a misheard name never gets the visit.
+The blueprint [Enter darts by voice](#enter-darts-by-voice) does this with sentences in English, German, Spanish, French and Dutch. For sentences of your own, in another language for example, let the action answer: with `response_variable` it says what the visit scored and left and who throws next, or why it was refused. With `player`, a misheard name never gets the visit.
 
 ```yaml
 alias: Darts - a visit by voice

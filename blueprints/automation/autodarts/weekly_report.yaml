@@ -15,6 +15,9 @@ blueprint:
     `daily_goals`, `personal_bests` (how many were set), `week_start`,
     `week_end` and `summary`, a ready-made summary in English. Without your
     own actions, the report appears in the notifications of Home Assistant.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#weekly-report)
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/weekly_report.yaml

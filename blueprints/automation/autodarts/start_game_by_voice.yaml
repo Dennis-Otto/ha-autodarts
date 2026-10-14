@@ -1,27 +1,37 @@
 blueprint:
   name: "Autodarts: start a game by voice"
   description: >-
-    Starts a practice game when you tell Assist, for example "Starte 501 für
-    Alex und Sam", "Start 501 for Alex and Sam", "Starte das Spiel Cricket für
-    Alex und Sam" or "Spiele 501 für Alex gegen den Bot". Assist answers with
-    the game and the players, or with what was wrong, in the language of
-    Home Assistant.
+    Starts a practice game when you tell Assist, for example "Start 501 for
+    Alex and Sam", "Starte das Spiel Cricket für Alex und Sam", "Juega 501 para
+    Alex y Sam", "Lance la partie Cricket pour Alex et Sam" or "Speel 501 voor
+    Alex tegen de bot", in English, German, Spanish, French or Dutch. Assist
+    answers with the game and the players, or with what was wrong, in the
+    language of Home Assistant.
 
 
     In the sentences, `{game}` is the game and `{players}` the players.
     X01 is a number from 101 to 1001, as digits or as words in the language of
-    Home Assistant, such as "five hundred one" or "fünfhunderteins"; any other
-    game follows the word "Spiel" or "game" and is named as the game list shows
-    it, in any language of the integration, such as "Around the Clock" or
-    "Doppeltraining". Players are named one word each, separated by "und",
-    "and" or a pause. Without players, the players stay as they are. A
-    sentence that ends in "bot", such as "… gegen den Bot" or "… for Alex and
-    the bot", plays against the bot, which is never taken for a player.
+    Home Assistant, such as "five hundred one", "fünfhunderteins", "quinientos
+    uno", "cinq cent un" or "vijfhonderdeen"; any other game follows the word
+    "game", "Spiel", "partida", "partie" or "spel" and is named as the game
+    list shows it, in any language of the integration, such as "Around the
+    Clock" or "Doppeltraining". Players are named one word each, separated by
+    "and", "und", "y", "et", "en" or a pause. Without players, the players stay
+    as they are. A sentence that ends in "bot", such as "… for Alex and the
+    bot", "… gegen den Bot", "… contra el bot", "… contre le bot" or "… tegen de
+    bot", plays against the bot, which is never taken for a player.
 
 
     Assist hears these sentences before its own commands, so each needs a
-    number or the word "Spiel" or "game": "Starte einen Timer für 5 Minuten"
-    stays a timer.
+    number or the word for a game: "Start a timer for 5 minutes" stays a
+    timer.
+
+
+    Sentences saved in an automation stay as they are: re-import the blueprint
+    and leave the sentences at their default to get those of a new version.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#start-a-game-by-voice)
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/start_game_by_voice.yaml
@@ -38,14 +48,32 @@ blueprint:
         - "(starte|spiele) [das|ein] Spiel {game} [(für|mit) {players}] gegen den Bot"
         - "(start|play) [a] {101..1001,100:game} [(for|with) {players}] against the bot"
         - "(start|play) [the|a] game [of] {game} [(for|with) {players}] against the bot"
+        - "(empieza|inicia|juega) [un|una partida de] {101..1001,100:game} [(para|con) {players}] contra el bot"
+        - "(empieza|inicia|juega) [la|una] partida [de] {game} [(para|con) {players}] contra el bot"
+        - "(démarre|démarrez|lance|lancez|joue|jouez) [une partie de] {101..1001,100:game} [(pour|avec) {players}] contre le bot"
+        - "(démarre|démarrez|lance|lancez|joue|jouez) [la|une] partie [de] {game} [(pour|avec) {players}] contre le bot"
+        - "(start|speel) [een] {101..1001,100:game} [(voor|met) {players}] tegen de bot"
+        - "(start|speel) [het|een] spel {game} [(voor|met) {players}] tegen de bot"
         - "(starte|spiele) [ein|eine] {101..1001,100:game} (für|mit) {players}"
         - "(starte|spiele) [das|ein] Spiel {game} (für|mit) {players}"
         - "(start|play) [a] {101..1001,100:game} (for|with) {players}"
         - "(start|play) [the|a] game [of] {game} (for|with) {players}"
+        - "(empieza|inicia|juega) [un|una partida de] {101..1001,100:game} (para|con) {players}"
+        - "(empieza|inicia|juega) [la|una] partida [de] {game} (para|con) {players}"
+        - "(démarre|démarrez|lance|lancez|joue|jouez) [une partie de] {101..1001,100:game} (pour|avec) {players}"
+        - "(démarre|démarrez|lance|lancez|joue|jouez) [la|une] partie [de] {game} (pour|avec) {players}"
+        - "(start|speel) [een] {101..1001,100:game} (voor|met) {players}"
+        - "(start|speel) [het|een] spel {game} (voor|met) {players}"
         - "(starte|spiele) [ein|eine] {101..1001,100:game}"
         - "(starte|spiele) [das|ein] Spiel {game}"
         - "(start|play) [a] {101..1001,100:game}"
         - "(start|play) [the|a] game [of] {game}"
+        - "(empieza|inicia|juega) [un|una partida de] {101..1001,100:game}"
+        - "(empieza|inicia|juega) [la|una] partida [de] {game}"
+        - "(démarre|démarrez|lance|lancez|joue|jouez) [une partie de] {101..1001,100:game}"
+        - "(démarre|démarrez|lance|lancez|joue|jouez) [la|une] partie [de] {game}"
+        - "(start|speel) [een] {101..1001,100:game}"
+        - "(start|speel) [het|een] spel {game}"
       selector:
         text:
           multiple: true

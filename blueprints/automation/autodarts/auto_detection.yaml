@@ -12,6 +12,9 @@ blueprint:
     darts room, the room light or an input boolean. Don't combine this with a
     detection switch in the training session routine: both would switch the
     detection.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#start-and-stop-detection-automatically)
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/auto_detection.yaml
