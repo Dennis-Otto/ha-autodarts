@@ -14,8 +14,12 @@ everywhere else; the few that the test needs are listed here with their reasons.
 """
 
 import ast
+import importlib.util
+import sys
+import types
 from collections import Counter
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -238,3 +242,44 @@ def test_the_screenshot_tool_waits_for_a_page_until_it_has_loaded():
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
         }
         assert "ready" in calls, f"{name}() does not wait with ready()"
+
+
+def load_pages() -> types.ModuleType:
+    """pages.py without Playwright, which only the browser test installs: what show()
+    decides needs none of it."""
+    sync_api = types.ModuleType("playwright.sync_api")
+    vars(sync_api).update(BrowserContext=object, Page=object, TimeoutError=TimeoutError)
+    playwright = types.ModuleType("playwright")
+    vars(playwright).update(sync_api=sync_api)
+    spec = importlib.util.spec_from_file_location("e2e_pages", E2E / "pages.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    stubs = {"playwright": playwright, "playwright.sync_api": sync_api}
+    with patch.dict(sys.modules, stubs):
+        spec.loader.exec_module(module)
+    return module
+
+
+HA = "http://127.0.0.1:8123"
+
+
+@pytest.mark.parametrize(
+    ("current", "url", "within"),
+    [
+        # A view of the app opens the next one as its links do.
+        (f"{HA}/autodarts-auto/live", f"{HA}/autodarts-demo/scoreboard", True),
+        (f"{HA}/autodarts-auto/live", f"{HA}/autodarts-auto/live", True),
+        # A page that shows nothing of Home Assistant yet loads it.
+        ("about:blank", f"{HA}/autodarts-auto/live", False),
+        ("http://127.0.0.1:8124/x", f"{HA}/autodarts-auto/live", False),
+        # The app reads a query or a fragment only when it starts.
+        (f"{HA}/autodarts-auto/live", f"{HA}/autodarts-demo/board?edit=1", False),
+        (f"{HA}/autodarts-auto/live", f"{HA}/autodarts-demo/board#card", False),
+        # And keeps what they set, such as edit mode, in the views it opens after.
+        (f"{HA}/autodarts-demo/board?edit=1", f"{HA}/autodarts-demo/board", False),
+        (f"{HA}/autodarts-demo/board?edit=1", f"{HA}/autodarts-auto/live", False),
+        (f"{HA}/autodarts-demo/board#card", f"{HA}/autodarts-auto/live", False),
+    ],
+)
+def test_show_opens_a_view_within_the_app_only_from_a_plain_one(current, url, within):
+    assert load_pages().within_app(current, url) is within
