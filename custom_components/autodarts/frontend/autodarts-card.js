@@ -4049,8 +4049,11 @@ function practiceView(state) {
   return {
     game: finite(attributes.game),
     remaining,
-    // What the player had before the visit, for its score entered on the keypad.
+    // What the player had before the visit: for its score entered on the keypad, where
+    // the remaining score stands in for it, and for the caller, which counts the visit
+    // from it where the integration says it.
     from: finite(attributes.visit_from) ?? remaining,
+    visitFrom: finite(attributes.visit_from),
     teams: teamsView(attributes.teams),
     route: route.filter((bed) => hitBeds(bed).length),
     ...(setupView(attributes.setup) ? { setup: setupView(attributes.setup) } : {}),
@@ -5951,6 +5954,9 @@ function scoreAnswer(entry, points, answers = {}) {
   return { data };
 }
 
+// What the score view does, and Cancel, after which the pad keeps the keys of a keyboard.
+const SCORE_ACTIONS = ["score", "digit", "erase", "enter", "answer", "cancel"];
+
 // The score view of the keypad, in the pad's head the score typed so far with what it
 // leaves, or the question after it; below, the digits in four rows of three, as tall as
 // the numbers of the keys, or the answers and Cancel in the same four rows, so the pad
@@ -6079,8 +6085,11 @@ function padHtml(pad, ui) {
       ? padScoreHtml(pad, ui, button)
       : `<div class="pad-numbers">${numbers}</div>`;
   const keys = !pad.board && !pad.score;
+  // The pad itself takes the focus where a key that had it goes away, so that the keys
+  // of a keyboard keep reaching it; the Tab key passes it by.
   return (
-    `<section class="pad${pad.dart ? " correcting" : ""}${pad.board ? " on-board" : ""}${pad.score ? " on-score" : ""}" aria-label="${escapeHtml(title)}">` +
+    `<section class="pad${pad.dart ? " correcting" : ""}${pad.board ? " on-board" : ""}${pad.score ? " on-score" : ""}"` +
+    ` tabindex="-1" data-focus="pad" aria-label="${escapeHtml(title)}">` +
     `<div class="pad-head"><span class="section-label">${escapeHtml(title)}</span>` +
     `${keys ? multipliers : ""}${pad.score ? padScoreLine(pad, ui) : ""}${zoom}${view}</div>` +
     (pad.disabled ? `<p class="pad-hint pad-wait">${escapeHtml(t("pad_bot_wait"))}</p>` : "") +
@@ -6166,7 +6175,8 @@ function lastMatchHtml(data, ui) {
   const rows = match.players
     .map((player, index) => {
       const name = named(player.name) ?? `${t("score_player")} ${index + 1}`;
-      const winner = index + 1 === match.winner;
+      // Both partners of the team that won, as in the players card.
+      const winner = match.winners.includes(index + 1);
       const numbers = [
         // Legs, or sets in a match of sets, as in the players card.
         String(historyScore(match, player, index)),
@@ -7211,12 +7221,16 @@ function callerState(visit, view, previous = null) {
   const remaining = current.practice?.remaining ?? current.drill?.remaining ?? null;
   const player = game?.player ?? null;
   const up = game ? upScore(game) : null;
-  // The remaining score before the visit, which the visit's score is counted from.
-  const start = !keys.length
-    ? remaining
-    : previous?.mode === current.mode && previous?.player === player
-      ? previous.start
-      : null;
+  // The remaining score before the visit, which the visit's score is counted from: in
+  // X01 as the integration says, so a state the card missed, such as the takeout between
+  // two visits of a player alone, never adds the visit before to this one.
+  const start =
+    current.practice?.visitFrom ??
+    (!keys.length
+      ? remaining
+      : previous?.mode === current.mode && previous?.player === player
+        ? previous.start
+        : null);
   return {
     darts: keys.length,
     visit: keys.join(" "),
@@ -10052,16 +10066,53 @@ function createElements(Base) {
       for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel"]) {
         this._el.pad.addEventListener(type, (event) => this._boardTouch(event));
       }
-      // A keyboard types the score: digits, Backspace, Enter and Escape.
+      // A keyboard types the score: digits, Backspace, Enter and Escape press the keys of
+      // the score view, and only those it offers, so a bot at the board holds them too.
       this._el.pad.addEventListener("keydown", (event) => {
-        if (!this._el.pad.querySelector(".pad-score")) return;
-        const key = /^[0-9]$/.test(event.key)
-          ? ["digit", event.key]
-          : { Backspace: ["erase"], Enter: ["enter"], Escape: ["cancel"] }[event.key];
-        if (!key || (key[0] === "enter" && event.target.closest?.("button"))) return;
+        const key = this._scoreKey(event);
+        if (!key) return;
         event.preventDefault();
-        this._padAction(...key);
+        if (key !== true) this._padAction(key.dataset.pad, key.dataset.value);
       });
+    }
+
+    // The key of the score view that a key of a keyboard presses, if the view offers it.
+    // During the question after a score, a digit answers it, and Backspace goes back to
+    // the score as Escape does. Enter takes the score on the pad and on a digit, as on a
+    // calculator; on any other key of the pad it presses that key, as everywhere. While OK
+    // is off, Enter there does nothing at all (true): the browser must not press the
+    // focused digit again.
+    _scoreKey(event) {
+      const view = this._el.pad.querySelector(".pad-score");
+      if (!view || event.ctrlKey || event.altKey || event.metaKey) return null;
+      const asking = Boolean(this._asking);
+      const other = event.target.closest?.('button:not([data-pad="digit"], [data-pad="erase"])');
+      const selector = /^[0-9]$/.test(event.key)
+        ? `[data-pad="${asking ? "answer" : "digit"}"][data-value="${event.key}"]`
+        : {
+            Backspace: asking ? '[data-pad="cancel"]' : '[data-pad="erase"]',
+            Enter: other ? null : '[data-pad="enter"]',
+            Escape: '[data-pad="cancel"]',
+          }[event.key];
+      const key = selector ? view.querySelector(selector) : null;
+      if (key && !key.disabled) return key;
+      return event.key === "Enter" && Boolean(selector);
+    }
+
+    // Keys of a keyboard reach the pad where the focus is. When the score view opens, a
+    // score goes in or a question is answered or left, the pad itself takes the focus, as
+    // the key that had it may be gone or off; after a digit only when the focus left the
+    // pad. A mouse gives it the focus too, since Safari gives a clicked button none; a
+    // finger only when the focus was in the card already, so a tablet keeps its page.
+    _padFocus(action) {
+      if (!SCORE_ACTIONS.includes(action)) return null;
+      if (!this.shadowRoot.activeElement && this._pointer !== "mouse") return null;
+      return () => {
+        const pad = this._el.pad.querySelector(".pad");
+        const active = this.shadowRoot.activeElement;
+        const stays = ["digit", "erase"].includes(action) && active && pad?.contains(active);
+        if (pad && !stays) pad.focus({ preventScroll: true });
+      };
     }
 
     // The keypad of darts entered by hand, and in an X01 leg its score view.
@@ -10092,8 +10143,8 @@ function createElements(Base) {
         this._typed = this._typed.slice(0, -1);
         return;
       }
-      // Enter on a keyboard waits, as OK does, for a score that a visit scores.
-      if (action === "enter" && !scoreReady(entry, this._typed)) return;
+      // OK, and Enter on a keyboard with it, waits for a score that a visit scores: it is
+      // off until then, and the pad takes no key that is off.
       const points = Number(this._typed);
       const answers = this._asking?.answers ?? {};
       if (action === "answer") answers[this._asking.ask] = Number(value);
@@ -10260,6 +10311,7 @@ function createElements(Base) {
 
     _padAction(action, value) {
       if (this.preview) return;
+      const focus = this._padFocus(action);
       const pick = this._pick;
       const data = (extra) => ({ ...(this._entry() ? { config_entry_id: this._entry() } : {}), ...extra });
       if (action === "multiplier") {
@@ -10295,6 +10347,7 @@ function createElements(Base) {
         this._call("autodarts", action === "next" ? "next_player" : "undo_visit", data({}));
       }
       this._update();
+      focus?.();
     }
 
   }
@@ -11753,17 +11806,52 @@ function createElements(Base) {
     connectedCallback() {
       if (!this._el) return;
       this._activity = Date.now();
+      this._rejoin();
       this._update();
+      // Home Assistant hands a view it shows again its new states within its own update.
+      // When none have come a moment later (a new leave or return cancels the wait),
+      // nothing changed while the card was away: the caller still knows the game and
+      // calls the very next dart again.
+      clearTimeout(this._rejoinTimer);
+      if (this._away) this._rejoinTimer = setTimeout(() => (this._away = null));
     }
 
     disconnectedCallback() {
       super.disconnectedCallback();
+      this._leave();
       clearTimeout(this._lobbyTimer);
       clearTimeout(this._idleTimer);
       clearTimeout(this._tournamentTimer);
       clearInterval(this._tournamentTick);
       this._tournamentTick = null;
       this._idleOff();
+    }
+
+    // A connection to Home Assistant that drops is time away from the board, too.
+    set hass(hass) {
+      if (hass.connected === false) this._leave();
+      super.hass = hass;
+      this._rejoin();
+    }
+
+    // Away from the page, or from Home Assistant while the connection is down, the caller
+    // hears nothing: what changed meanwhile is history, not news. It keeps the states it
+    // saw last, to know the first new ones after its return.
+    _leave() {
+      clearTimeout(this._rejoinTimer);
+      this._away ??= { states: this._hass?.states };
+    }
+
+    // Back on the page with new states, the caller follows the game from them: it calls
+    // and celebrates only what changes after its return, never a visit or a match that
+    // ended while it was away.
+    _rejoin() {
+      const hass = this._hass;
+      if (!this._away || !this.isConnected || hass.connected === false || hass.states === this._away.states) return;
+      this._away = null;
+      clearTimeout(this._rejoinTimer);
+      this._callerState = callerState(this._state("visit"), gameView((name) => this._state(name)));
+      this._tournamentCall = tournamentCallState(tournamentView(this._state("tournament")));
     }
 
     // The four player name fields, in their order.
@@ -11904,6 +11992,7 @@ function createElements(Base) {
     }
 
     _announce(visit, view, tournament) {
+      if (this._away) return;
       const current = callerState(visit, view, this._callerState);
       const previous = this._callerState;
       this._callerState = current;
