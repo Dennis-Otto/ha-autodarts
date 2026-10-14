@@ -202,3 +202,39 @@ def test_every_allowed_fixed_wait_is_still_needed():
     )
     unused = {wait: count for wait, count in FIXED_WAITS.items() if waits[wait] < count}
     assert unused == {}, f"Waited less often than allowed: {unused}"
+
+
+# The screenshot tool times the frames of its animations with fixed waits, but waits
+# for a page that opens or changes its size with ready(), which waits for loaded() of
+# pages.py: a fixed wait after a load is too short on a slow runner, and an image
+# taken too early differs from the committed one. Its fixed waits only get fewer.
+SCREENSHOT_TOOL = "screenshots.py"
+SCREENSHOT_WAITS = 100
+# The steps that open a page for a picture or change its size.
+SCREENSHOT_LOADS = ("open_dashboard", "tall_card_shot")
+
+
+def test_the_screenshot_tool_waits_no_more_often_for_a_fixed_time():
+    waits = fixed_waits((E2E / SCREENSHOT_TOOL).read_text("utf-8"))
+    assert len(waits) <= SCREENSHOT_WAITS, (
+        f"{SCREENSHOT_TOOL} waits a fixed time {len(waits)} times, more than the "
+        f"{SCREENSHOT_WAITS} it did: wait for a page with ready() instead"
+    )
+
+
+def test_the_screenshot_tool_waits_for_a_page_until_it_has_loaded():
+    source = (E2E / SCREENSHOT_TOOL).read_text("utf-8")
+    fixed = {function for function, _, _ in fixed_waits(source)}
+    assert not fixed & set(SCREENSHOT_LOADS)
+    functions = {
+        node.name: node
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.FunctionDef)
+    }
+    for name in SCREENSHOT_LOADS:
+        calls = {
+            node.func.id
+            for node in ast.walk(functions[name])
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+        assert "ready" in calls, f"{name}() does not wait with ready()"

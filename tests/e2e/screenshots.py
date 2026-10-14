@@ -16,11 +16,13 @@ import shutil
 import subprocess
 import sys
 import urllib.request
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from time import monotonic
 
+from pages import FRAMES, loaded, probe
 from PIL import Image
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
@@ -156,13 +158,20 @@ def wait_for_score(page: Page, score: str) -> None:
     )
 
 
+def ready(page: Page) -> None:
+    """Wait until the page has loaded what Home Assistant sends it, and two frames
+    since. Its animations go on: every picture holds them itself (settle)."""
+    loaded(page)
+    page.evaluate(FRAMES)
+
+
 def open_dashboard(page: Page, view: str) -> None:
     page.goto(f"{HA}/autodarts-demo/{view}")
     page.wait_for_function(
         f"() => ({FIND_CARDS})().some((c) => c.shadowRoot.querySelector('.board svg'))",
         timeout=60000,
     )
-    page.wait_for_timeout(1200)
+    ready(page)
 
 
 def peak(page: Page) -> None:
@@ -211,6 +220,8 @@ def new_context(
     """
     context = browser.new_context(**options)
     context.add_init_script(QUIET_TOOLBAR)
+    # ready() follows the requests of the frontend on its websocket.
+    probe(context)
     if (now := demo_now()) is not None:
         if flowing:
             context.clock.install(time=now)
@@ -352,7 +363,7 @@ def tall_card_shot(page: Page, name: str, index: int = 0) -> None:
     """A card taller than the window, which would scroll under the toolbar."""
     size = page.viewport_size
     page.set_viewport_size({"width": size["width"], "height": 2000})
-    page.wait_for_timeout(800)
+    ready(page)
     peak(page)
     card_shot(page, name, index)
     page.set_viewport_size(size)
@@ -654,7 +665,7 @@ def scoreboard_animation(page: Page) -> None:
     tag = "autodarts-scoreboard-card"
     # The first load of the dashboard takes a while.
     wait_card(board, "r.querySelectorAll('.player').length === 2", tag, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     recorder = Recorder(board, tag)
     recorder.shot(1400)
     active = "r.querySelector('.player.active .name')?.textContent === '{name}'"
@@ -715,7 +726,7 @@ def scoreboard_match(page: Page, option: str) -> tuple[Page, "Recorder"]:
     wait_card(
         board, "!!r.querySelector('.main .player, .main table')", SCOREBOARD, 60000
     )
-    board.wait_for_timeout(1500)
+    ready(board)
     return board, Recorder(board, SCOREBOARD)
 
 
@@ -811,7 +822,7 @@ def killer_animation(page: Page) -> None:
     board.goto(f"{HA}/autodarts-auto/scoreboard")
     tag = "autodarts-scoreboard-card"
     wait_card(board, "r.querySelectorAll('.player').length === 3", tag, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     recorder = Recorder(board, tag)
     recorder.shot(1400)
     detail = "r.querySelectorAll('.player .details')[{0}]?.textContent.includes('{1}')"
@@ -895,7 +906,7 @@ def lobby_animation(page: Page) -> None:
     players(page, 1)
     board = tablet(page)
     wait_card(board, "!!r.querySelector('.lobby-cta')", SCOREBOARD, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     recorder = Recorder(board, SCOREBOARD)
     recorder.shot(1200)
     card = board.locator(SCOREBOARD)
@@ -964,7 +975,7 @@ def bot_animation(page: Page) -> None:
     board = tablet(page)
     active = "r.querySelector('.player.active .name')?.textContent.startsWith('{name}')"
     wait_card(board, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     recorder = Recorder(board, SCOREBOARD)
     recorder.shot(1400)
     bot = "Bot"
@@ -1007,7 +1018,7 @@ def correct_animation(page: Page) -> None:
     game(page, "501")
     board = tablet(page)
     wait_card(board, "r.querySelectorAll('.player').length === 1", SCOREBOARD, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     recorder = Recorder(board, SCOREBOARD)
     darts = [at("T20"), at("S20"), at("T20")]
     for count in range(1, 4):
@@ -1058,7 +1069,7 @@ def correct_board_animation(page: Page) -> None:
     game(page, "501")
     board = tablet(page)
     wait_card(board, "r.querySelectorAll('.player').length === 1", SCOREBOARD, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     recorder = Recorder(board, SCOREBOARD)
     # The board saw the second dart in the treble, below the single 20 where it is.
     misread = {**at("T20"), "coords": {"x": 0.03, "y": 0.625}}
@@ -1122,7 +1133,7 @@ def correct_loupe_animation(page: Page) -> None:
     phone = context.new_page()
     phone.goto(f"{HA}/autodarts-auto/scoreboard")
     wait_card(phone, "r.querySelectorAll('.player').length === 1", SCOREBOARD, 60000)
-    phone.wait_for_timeout(1500)
+    ready(phone)
     recorder = Recorder(phone, SCOREBOARD)
     misread = {**at("T20"), "coords": {"x": 0.03, "y": 0.625}}
     darts = [at("T20"), misread, at("T20")]
@@ -1262,7 +1273,7 @@ def tournament_bracket_animation(page: Page) -> None:
     )
     board = tablet(page, "autodarts-demo/tournament")
     wait_card(board, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     recorder = Recorder(board, SCOREBOARD)
     recorder.shot(1600)
     # Lea, Alex, Kim after Sam's miss, Lea for third place and Alex win.
@@ -1321,7 +1332,7 @@ def tournament_table(page: Page) -> None:
     )
     board = tablet(page, "autodarts-demo/tournament")
     wait_card(board, "!!r.querySelector('.standings')", SCOREBOARD, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     page_shot(board, "tournament-table")
     board.close()
     page.evaluate(CALL_ACTION, ["stop_tournament", {}])
@@ -1439,7 +1450,7 @@ def match_of(page: Page, names: list[str], option: str) -> Page:
     wait_card(
         board, "!!r.querySelector('.main .player, .main table')", SCOREBOARD, 60000
     )
-    board.wait_for_timeout(1500)
+    ready(board)
     return board
 
 
@@ -1661,7 +1672,7 @@ def doubles_card(page: Page) -> None:
         " c.shadowRoot.querySelectorAll('.double').length >= 10)",
         timeout=60000,
     )
-    page.wait_for_timeout(1200)
+    ready(page)
     card_shot(page, "doubles-card", tag="autodarts-doubles-card")
 
 
@@ -1678,7 +1689,7 @@ def players_card(page: Page) -> None:
         f"() => ({find('autodarts-players-card')})().forEach((card) => card.setConfig("
         "{...card._config, show_badges: false, show_trends: false, show_spread: false}))"
     )
-    page.wait_for_timeout(1200)
+    ready(page)
     card_shot(page, "players-card", tag="autodarts-players-card")
 
 
@@ -1725,7 +1736,7 @@ def progress_cards(page: Page) -> None:
         " && c.shadowRoot.querySelectorAll('.group').length >= 3)",
         timeout=60000,
     )
-    page.wait_for_timeout(1500)
+    ready(page)
     part_shot(
         page,
         "players-badges",
@@ -1741,7 +1752,7 @@ def progress_cards(page: Page) -> None:
         " && c.shadowRoot.querySelectorAll('.heat .group').length >= 2)",
         timeout=60000,
     )
-    page.wait_for_timeout(1500)
+    ready(page)
     part_shot(page, "training-positions", training, [".heat"])
     page.goto(f"{HA}/autodarts-demo/leaderboard")
     page.wait_for_function(
@@ -1749,7 +1760,7 @@ def progress_cards(page: Page) -> None:
         " c.shadowRoot.querySelectorAll('.record').length >= 7)",
         timeout=60000,
     )
-    page.wait_for_timeout(1200)
+    ready(page)
     card_shot(page, "leaderboard-card", tag="autodarts-leaderboard-card")
     page.set_viewport_size(size)
 
@@ -1817,7 +1828,7 @@ def scoreboard_page(page: Page) -> Page:
         " c.shadowRoot.querySelectorAll('.player').length === 2)",
         timeout=60000,
     )
-    board.wait_for_timeout(1500)
+    ready(board)
     return board
 
 
@@ -1953,7 +1964,7 @@ def training_card(page: Page, suffix: str) -> None:
         " c.shadowRoot.querySelectorAll('.history-chart .visit-bar:not(.empty)').length >= 5)",
         timeout=60000,
     )
-    page.wait_for_timeout(1200)
+    ready(page)
     card_shot(page, f"training-card{suffix}", tag="autodarts-training-card")
     page.set_viewport_size(size)
 
@@ -1972,7 +1983,7 @@ def live_positions(page: Page) -> None:
         " && c.shadowRoot.querySelectorAll('.heat-layer .position:not(.live)').length >= 15)",
         timeout=60000,
     )
-    page.wait_for_timeout(1200)
+    ready(page)
     part_shot(page, "training-live-positions", tag, [".heat"])
     page.set_viewport_size(size)
 
@@ -1984,7 +1995,7 @@ def status_card(page: Page, suffix: str) -> None:
         " c.shadowRoot.querySelectorAll('.camera').length === 3)",
         timeout=60000,
     )
-    page.wait_for_timeout(1200)
+    ready(page)
     card_shot(page, f"status-card{suffix}", tag="autodarts-status-card")
 
 
@@ -2310,7 +2321,7 @@ def hero_animation(page: Page) -> None:
     view.set_viewport_size({"width": 1280, "height": 720})
     view.goto(f"{HA}/autodarts-demo/hero")
     wait_card(view, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
-    view.wait_for_timeout(1500)
+    ready(view)
     boxes = [
         view.locator(tag).first.bounding_box() for tag in ("autodarts-card", SCOREBOARD)
     ]
@@ -2383,7 +2394,7 @@ def scoreboard_game(page: Page, names: list[str], option: str) -> Page:
     wait_card(
         board, "!!r.querySelector('.main .player, .main .single')", SCOREBOARD, 60000
     )
-    board.wait_for_timeout(1500)
+    ready(board)
     return board
 
 
@@ -2853,7 +2864,7 @@ def manual_score_animation(page: Page, board: dict) -> None:
         page.evaluate(CALL_ACTION, ["enter_visit", {**board, "score": score}])
     tablet_page = tablet(page, f"{MANUAL_DASHBOARD}/scoreboard")
     wait_card(tablet_page, "!!r.querySelector('.pad')", SCOREBOARD, 60000)
-    tablet_page.wait_for_timeout(1500)
+    ready(tablet_page)
     recorder = Recorder(tablet_page, SCOREBOARD)
     recorder.shot(1400)
     card = tablet_page.locator(SCOREBOARD)
@@ -2939,7 +2950,7 @@ def manual_voice_animation(page: Page, entry: str) -> None:
     board.set_viewport_size({"width": 1280, "height": 800})
     board.goto(f"{HA}/{MANUAL_DASHBOARD}/scoreboard")
     wait_card(board, "!!r.querySelector('.pad')", SCOREBOARD, 60000)
-    board.wait_for_timeout(1500)
+    ready(board)
     recorder = Recorder(board, "home-assistant")
     recorder.shot(1600)
     board.locator("body").press("a")
@@ -2986,7 +2997,7 @@ def manual_board(page: Page) -> None:
     )
     tablet_page = tablet(page, f"{MANUAL_DASHBOARD}/scoreboard")
     wait_card(tablet_page, "!!r.querySelector('.pad')", SCOREBOARD, 60000)
-    tablet_page.wait_for_timeout(1500)
+    ready(tablet_page)
     recorder = Recorder(tablet_page, SCOREBOARD)
     recorder.shot(1400)
     keypad_dart(tablet_page, recorder, "3", "T20")
@@ -3027,198 +3038,315 @@ def manual_board(page: Page) -> None:
     )
 
 
-def main() -> None:
-    OUTPUT.mkdir(parents=True, exist_ok=True)
-    # The inner context saves the open pages while the browser still runs.
-    with sync_playwright() as playwright, failure_screenshots() as browsers:
-        browser = playwright.chromium.launch(args=STEADY_CHROMIUM)
-        browsers.append(browser)
-        for scheme, suffix in (("dark", ""), ("light", "-light")):
-            context = new_context(
-                browser,
-                viewport={"width": 1280, "height": 820},
-                device_scale_factor=2,
-                locale=LOCALE,
-                color_scheme=scheme,
-            )
-            page = context.new_page()
-            open_dashboard(page, "board")
-            wait_for_score(page, "115")
-            peak(page)
-            card_shot(page, f"card{suffix}")
-            training_card(page, suffix)
-            status_card(page, suffix)
-            if scheme == "dark":
-                # While the current visit is on the board.
-                live_positions(page)
-                open_dashboard(page, "styles")
-                peak(page)
-                # The short card first, while the page is at the top: the tall one
-                # scrolls it under the toolbar.
-                card_shot(page, "card-board-only", 1)
-                tall_card_shot(page, "card-autodarts-style", 0)
-                editor(page)
-                strategy_editor(page)
-                config_flow(page)
-                device_page(page)
-                # Before the games, whose legs would end the graphs of the week.
-                dashboard_trends(page)
-            context.close()
+# The groups of images --------------------------------------------------------------
 
-        mobile = new_context(
-            browser,
-            viewport={"width": 412, "height": 915},
-            device_scale_factor=3,
-            is_mobile=True,
-            has_touch=True,
-            locale=LOCALE,
-            color_scheme="dark",
-        )
-        page = mobile.new_page()
-        open_dashboard(page, "board")
-        peak(page)
-        card_shot(page, "card-mobile")
-        training_card(page, "-mobile")
-        mobile.close()
 
-        animation = new_context(
-            browser,
-            # High enough for the whole card: a tap never scrolls it under the toolbar.
-            viewport={"width": 1100, "height": 1000},
-            device_scale_factor=1,
-            locale=LOCALE,
-            color_scheme="dark",
-        )
-        page = animation.new_page()
-        open_dashboard(page, "board")
-        visit_animation(page)
-        correct_live_animation(page)
-        animation.close()
-
-        # Last, because the practice leg adds visits to the demo session.
-        practice = new_context(
+def cards(browser: Browser) -> None:
+    """The cards in both colour schemes and on a phone, their editors, the setup and
+    the device page."""
+    for scheme, suffix in (("dark", ""), ("light", "-light")):
+        context = new_context(
             browser,
             viewport={"width": 1280, "height": 820},
             device_scale_factor=2,
             locale=LOCALE,
-            color_scheme="dark",
+            color_scheme=scheme,
         )
-        page = practice.new_page()
+        page = context.new_page()
         open_dashboard(page, "board")
-        practice_card(page)
-        practice.close()
+        wait_for_score(page, "115")
+        peak(page)
+        card_shot(page, f"card{suffix}")
+        training_card(page, suffix)
+        status_card(page, suffix)
+        if scheme == "dark":
+            # While the current visit is on the board.
+            live_positions(page)
+            open_dashboard(page, "styles")
+            peak(page)
+            # The short card first, while the page is at the top: the tall one
+            # scrolls it under the toolbar.
+            card_shot(page, "card-board-only", 1)
+            tall_card_shot(page, "card-autodarts-style", 0)
+            editor(page)
+            strategy_editor(page)
+            config_flow(page)
+            device_page(page)
+            # Before the games, whose legs would end the graphs of the week.
+            dashboard_trends(page)
+        context.close()
 
-        # The games as animations, at the size the documentation shows them.
-        games = new_context(
-            browser,
-            # The hold of a tournament result needs the time in the page to pass.
-            flowing=True,
-            viewport={"width": 1100, "height": 1100},
-            device_scale_factor=1,
-            locale=LOCALE,
-            color_scheme="dark",
-        )
-        page = games.new_page()
+    mobile = new_context(
+        browser,
+        viewport={"width": 412, "height": 915},
+        device_scale_factor=3,
+        is_mobile=True,
+        has_touch=True,
+        locale=LOCALE,
+        color_scheme="dark",
+    )
+    page = mobile.new_page()
+    open_dashboard(page, "board")
+    peak(page)
+    card_shot(page, "card-mobile")
+    training_card(page, "-mobile")
+    mobile.close()
+
+
+def live(browser: Browser) -> None:
+    """The live card as the darts of a visit land and as a dart is corrected."""
+    context = new_context(
+        browser,
+        # High enough for the whole card: a tap never scrolls it under the toolbar.
+        viewport={"width": 1100, "height": 1000},
+        device_scale_factor=1,
+        locale=LOCALE,
+        color_scheme="dark",
+    )
+    page = context.new_page()
+    open_dashboard(page, "board")
+    visit_animation(page)
+    correct_live_animation(page)
+    context.close()
+
+
+def practice(browser: Browser) -> None:
+    """A practice leg on the live card. After the cards and the live card, because
+    the leg adds visits to the demo session."""
+    context = new_context(
+        browser,
+        viewport={"width": 1280, "height": 820},
+        device_scale_factor=2,
+        locale=LOCALE,
+        color_scheme="dark",
+    )
+    page = context.new_page()
+    open_dashboard(page, "board")
+    practice_card(page)
+    context.close()
+
+
+def games_context(browser: Browser) -> tuple[BrowserContext, Page]:
+    """For the games as animations, at the size the documentation shows them: a
+    context and its page on the board's dashboard."""
+    context = new_context(
+        browser,
+        # The hold of a tournament result needs the time in the page to pass.
+        flowing=True,
+        viewport={"width": 1100, "height": 1100},
+        device_scale_factor=1,
+        locale=LOCALE,
+        color_scheme="dark",
+    )
+    page = context.new_page()
+    open_dashboard(page, "board")
+    return context, page
+
+
+def games(browser: Browser) -> None:
+    """The first picture of the README, and games on the live card and the
+    scoreboard."""
+    context, page = games_context(browser)
+    hero_animation(page)
+    checkout_animation(page)
+    cricket_animation(page)
+    training_game_animation(page)
+    scoreboard_animation(page)
+    celebration_animation(page)
+    cricket_hints_animation(page)
+    wild_mouse_animation(page)
+    killer_animation(page)
+    lobby_animation(page)
+    golf_animation(page)
+    context.close()
+
+
+def later_games(browser: Browser) -> tuple[BrowserContext, Page]:
+    """A context for games as after the first picture of the README: the pages that
+    open from now on show no sidebar, as that picture leaves it; the dashboard,
+    already open, keeps it."""
+    context, page = games_context(browser)
+    page.evaluate(HIDE_SIDEBAR)
+    return context, page
+
+
+def more_games(browser: Browser) -> None:
+    """More games and a tournament of five, whose matches fill the players card."""
+    context, page = later_games(browser)
+    checkout_121_animation(page)
+    tournament_bracket_animation(page)
+    shanghai_animation(page)
+    halve_it_animation(page)
+    bull_off_animation(page)
+    bobs_27_animation(page)
+    context.close()
+
+
+def corrections(browser: Browser) -> None:
+    """A match against the bot, and a dart corrected on the scoreboard, on its board
+    and with the loupe."""
+    context, page = later_games(browser)
+    bot_animation(page)
+    correct_animation(page)
+    correct_board_animation(page)
+    correct_loupe_animation(page)
+    context.close()
+
+
+def formats(browser: Browser) -> None:
+    """The new games and formats on the scoreboard."""
+    context = new_context(
+        browser,
+        viewport={"width": 1280, "height": 1000},
+        device_scale_factor=2,
+        locale=LOCALE,
+        color_scheme="dark",
+    )
+    page = context.new_page()
+    open_dashboard(page, "board")
+    tactics_scoreboard(page)
+    wild_mouse_scoreboard(page)
+    party_scoreboard(page)
+    teams_scoreboard(page)
+    handicap_scoreboard(page)
+    baseball_scoreboard(page)
+    catch_40_scoreboard(page)
+    scoreboard_portrait(page)
+    bot_scoreboard(page)
+    keypad_screen(page)
+    context.close()
+
+
+def people(browser: Browser) -> None:
+    """The players and their progress, the lobby, the tournaments, the media, the
+    blueprints and the match summary."""
+    context = new_context(
+        browser,
+        viewport={"width": 1280, "height": 1000},
+        device_scale_factor=2,
+        locale=LOCALE,
+        color_scheme="dark",
+    )
+
+    def on_board() -> Page:
+        """A new page on the board's dashboard, for steps that call actions."""
+        page = context.new_page()
         open_dashboard(page, "board")
-        hero_animation(page)
-        checkout_animation(page)
-        cricket_animation(page)
-        training_game_animation(page)
-        scoreboard_animation(page)
-        celebration_animation(page)
-        cricket_hints_animation(page)
-        wild_mouse_animation(page)
-        killer_animation(page)
-        lobby_animation(page)
-        golf_animation(page)
-        checkout_121_animation(page)
-        tournament_bracket_animation(page)
-        shanghai_animation(page)
-        halve_it_animation(page)
-        bull_off_animation(page)
-        bobs_27_animation(page)
-        bot_animation(page)
-        correct_animation(page)
-        correct_board_animation(page)
-        correct_loupe_animation(page)
-        games.close()
+        return page
 
-        # The new games and formats on the scoreboard.
-        formats = new_context(
-            browser,
-            viewport={"width": 1280, "height": 1000},
-            device_scale_factor=2,
-            locale=LOCALE,
-            color_scheme="dark",
+    players_card(context.new_page())
+    doubles_card(context.new_page())
+    lobby_screen(on_board())
+    lobby_bot(on_board())
+    tournament_lobby(on_board())
+    tournament_table(on_board())
+    idle_screen(on_board())
+    media_gallery(context.new_page())
+    # After the doubles training, so the training view shows its doubles.
+    strategy_dashboard(context.new_page())
+    blueprints_page(context.new_page())
+    board_events_dialog(context.new_page())
+    online_bridge_options(context.new_page())
+    progress_cards(context.new_page())
+    # Recorded sharp at twice the size, shown at the size of the card.
+    heatmap_animation(context.new_page())
+    # Last: the match adds to the players and doubles of the cards above.
+    page = context.new_page()
+    open_dashboard(page, "board")
+    match_summary(page)
+    context.close()
+
+
+def calendar(browser: Browser) -> None:
+    """The training calendar and the weekly report. Each opens a page in the demo's
+    time zone; the report comes last, because it starts a new week."""
+    page = browser.new_page()
+    training_calendar(page)
+    weekly_report_notification(page)
+    page.close()
+
+
+def manual(browser: Browser) -> None:
+    """A dartboard without Autodarts. Last of its group: a second board would be the
+    first of the cards without one."""
+    context = new_context(
+        browser,
+        viewport={"width": 1280, "height": 1000},
+        device_scale_factor=2,
+        locale=LOCALE,
+        color_scheme="dark",
+    )
+    manual_board(context.new_page())
+    context.close()
+
+
+SECTIONS: dict[str, Callable[[Browser], None]] = {
+    "cards": cards,
+    "live": live,
+    "practice": practice,
+    "games": games,
+    "more games": more_games,
+    "corrections": corrections,
+    "formats": formats,
+    "people": people,
+    "calendar": calendar,
+    "manual": manual,
+}
+# The images come in fixed groups of sections. Each group starts from a fresh demo,
+# so that the visual check and the screenshot bot render the groups side by side,
+# one runner each, and a group renders the same images on its own as after the
+# others. The sections of a group run in their order: a later one sees what the
+# earlier ones played. The groups take about the same time; screenshots.sh,
+# visual.yml and screenshots.yml know how many there are.
+GROUPS = (
+    ("cards", "live", "practice", "games"),
+    # The players card shows the five players of the tournament.
+    ("more games", "people"),
+    # The bot plays its first match in the corrections, as it did before the groups.
+    ("corrections", "formats", "calendar", "manual"),
+)
+
+
+def chosen_group(value: str) -> int:
+    """The group that SCREENSHOT_GROUP, such as 2/3, chooses, counted from 1."""
+    match = re.fullmatch(r"([1-9][0-9]*)/([1-9][0-9]*)", value.strip())
+    if not match:
+        raise SystemExit(
+            f"SCREENSHOT_GROUP={value!r}: give the group and the number of groups,"
+            f" such as 1/{len(GROUPS)}"
         )
-        page = formats.new_page()
-        open_dashboard(page, "board")
-        tactics_scoreboard(page)
-        wild_mouse_scoreboard(page)
-        party_scoreboard(page)
-        teams_scoreboard(page)
-        handicap_scoreboard(page)
-        baseball_scoreboard(page)
-        catch_40_scoreboard(page)
-        scoreboard_portrait(page)
-        bot_scoreboard(page)
-        keypad_screen(page)
-        formats.close()
-
-        people = new_context(
-            browser,
-            viewport={"width": 1280, "height": 1000},
-            device_scale_factor=2,
-            locale=LOCALE,
-            color_scheme="dark",
+    group, count = int(match[1]), int(match[2])
+    if count != len(GROUPS) or group > count:
+        raise SystemExit(
+            f"SCREENSHOT_GROUP={value}: the screenshot tool has {len(GROUPS)} groups"
+            f" of images, 1/{len(GROUPS)} to {len(GROUPS)}/{len(GROUPS)}"
         )
+    return group
 
-        def on_board() -> Page:
-            """A new page on the board's dashboard, for steps that call actions."""
-            page = people.new_page()
-            open_dashboard(page, "board")
-            return page
 
-        players_card(people.new_page())
-        doubles_card(people.new_page())
-        lobby_screen(on_board())
-        lobby_bot(on_board())
-        tournament_lobby(on_board())
-        tournament_table(on_board())
-        idle_screen(on_board())
-        media_gallery(people.new_page())
-        # After the doubles training, so the training view shows its doubles.
-        strategy_dashboard(people.new_page())
-        blueprints_page(people.new_page())
-        board_events_dialog(people.new_page())
-        online_bridge_options(people.new_page())
-        progress_cards(people.new_page())
-        # Recorded sharp at twice the size, shown at the size of the card.
-        heatmap_animation(people.new_page())
-        # Last: the match adds to the players and doubles of the cards above.
-        page = people.new_page()
-        open_dashboard(page, "board")
-        match_summary(page)
-        people.close()
-
-        # Each opens a page in the demo's time zone; the report comes last,
-        # because it starts a new week.
-        page = browser.new_page()
-        training_calendar(page)
-        weekly_report_notification(page)
-        page.close()
-
-        # Last: a second board would be the first of the cards without one.
-        manual = new_context(
-            browser,
-            viewport={"width": 1280, "height": 1000},
-            device_scale_factor=2,
-            locale=LOCALE,
-            color_scheme="dark",
-        )
-        manual_board(manual.new_page())
-        manual.close()
+def main() -> None:
+    group = chosen_group(os.environ.get("SCREENSHOT_GROUP", f"1/{len(GROUPS)}"))
+    OUTPUT.mkdir(parents=True, exist_ok=True)
+    timings: list[tuple[str, float]] = []
+    # The inner context saves the open pages while the browser still runs.
+    with sync_playwright() as playwright, failure_screenshots() as browsers:
+        browser = playwright.chromium.launch(args=STEADY_CHROMIUM)
+        browsers.append(browser)
+        for name in GROUPS[group - 1]:
+            began = monotonic()
+            SECTIONS[name](browser)
+            timings.append((name, monotonic() - began))
+            print(f"Screenshot section: {name} ({timings[-1][1]:.1f} s)", flush=True)
         browser.close()
+    # For the summary of the workflow run, to keep the groups about equally long.
+    ARTIFACTS.mkdir(parents=True, exist_ok=True)
+    (ARTIFACTS / f"screenshots-{LANGUAGE}-{group}.md").write_text(
+        f"### Screenshots: group {group} of {len(GROUPS)} ({LANGUAGE})\n\n"
+        "| Section | Seconds |\n| --- | ---: |\n"
+        + "".join(f"| {name} | {seconds:.1f} |\n" for name, seconds in timings)
+        + f"| all | {sum(seconds for _, seconds in timings):.1f} |\n",
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":

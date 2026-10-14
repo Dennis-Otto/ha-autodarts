@@ -393,9 +393,11 @@ def imports(script: Path) -> set[str]:
 @pytest.mark.parametrize("workflow", ["screenshots.yml", "visual.yml"])
 def test_the_screenshot_tool_runs_again_for_every_script_it_uses(workflow):
     # The screenshot bot and the visual check skip the browser test, but a module
-    # of the browser test that the screenshot tool starts to import counts for it.
+    # of the browser test that the screenshot tool imports counts for it, such as
+    # pages.py, whose waits both use.
     skipped = skipped_by(workflow)
-    assert {"tests/e2e/browser.py", "tests/e2e/pages.py"} <= skipped
+    assert "tests/e2e/browser.py" in skipped
+    assert "tests/e2e/screenshots.py" not in skipped
     for script in sorted(E2E.glob("*.py")):
         if f"tests/e2e/{script.name}" in skipped:
             continue
