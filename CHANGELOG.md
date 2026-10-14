@@ -4,6 +4,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### Fixed
+
+- **The local checks pass after a preview of the website:** once you had set up the preview of the website as the contributing guide describes, or built the website, `bash scripts/check.sh` failed with thousands of ESLint errors, because ESLint checked the JavaScript of MkDocs in `.venv-docs/` and the scripts that the build of the website keeps in `.cache/`. ESLint now skips every folder that Git ignores, and still checks every JavaScript file that Git keeps (#282, #284).
+
 ### Documentation
 
 - **Every guide reads well on a phone:** the guides to the cards, the games and the scoreboard set their pictures side by side in tables, which the GitHub app and a phone squeezed into narrow columns, with pictures of 90 to 164 pixels. Each picture now has a sentence that says what it shows and sits at full width below it, in English and German, as in the README (#277, #279).
