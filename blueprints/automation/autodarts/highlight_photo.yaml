@@ -14,8 +14,13 @@ blueprint:
     or image }}"}` in a notification of the Home Assistant app), `photo` (the
     saved file), `image` (the live camera picture), `message`, `score`,
     `checkout` and `who`. `photo` and `photo_url` are empty when no photo was
-    saved. Turn on the camera entity first; camera entities are disabled by
-    default.
+    saved: the camera entity is disabled or unavailable, the camera gives no
+    picture, or Home Assistant may not write to the folder. Turn on the camera
+    entity first; camera entities are disabled by default.
+
+
+    Needs version 1.12.4 or later of the Autodarts integration, whose action
+    `autodarts.save_highlight` saves the photo.
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/highlight_photo.yaml
@@ -79,12 +84,13 @@ blueprint:
         gallery_folder:
           name: Folder
           description: >-
-            The highlight gallery of the media browser shows the folder
-            autodarts/highlights of your media folder: /media on Home Assistant
-            OS and in a container. Other installations use the media folder in
-            the configuration folder, for example
-            /config/media/autodarts/highlights.
-          default: /media/autodarts/highlights
+            Empty for the highlight gallery of the media browser: the folder
+            autodarts/highlights of your media folder, which is
+            /media/autodarts/highlights on Home Assistant OS and in a container.
+            Another folder must be one Home Assistant may write to, for example
+            /share/darts; outside the media folder, the photos get no
+            `photo_url`.
+          default: ""
           selector:
             text: {}
     photo:
@@ -143,22 +149,13 @@ variables:
   checkout: >-
     {{ trigger.to_state.attributes.get('checkout') | int(0) if trigger.id == 'checkout' else 0 }}
   # The player at the board: the winner of a leg, or who threw the visit.
-  # Template characters leave the name: some fields, such as the file name of
-  # a snapshot and the message of a notification, are rendered once more.
+  # Template characters leave the name: some fields, such as the message of a
+  # notification, are rendered once more.
   who: >-
     {{ (trigger.to_state.attributes.get('name') or '')
        | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
   save_photo: !input save_photo
   gallery_folder: !input gallery_folder
-  # Characters that file names and addresses do not allow, and the separator
-  # _, leave the name.
-  photo_who: >-
-    {{ who | regex_replace('[\\\\/:*?"<>|_{}%#\x00-\x1f]+', ' ') | trim }}
-  # 2026-09-26_21-05-33_Alex_180.jpg or 2026-09-26_21-07-10_Alex_checkout-121.jpg
-  photo: >-
-    {{ gallery_folder | trim | regex_replace('/+$', '') }}/{{ now().strftime('%Y-%m-%d_%H-%M-%S') }}
-    {{- '_' ~ photo_who if photo_who else '' }}
-    {{- '_checkout-' ~ checkout if trigger.id == 'checkout' else '_' ~ score }}.jpg
   score_text: !input score_message
   checkout_text: !input checkout_message
   message: "{{ checkout_text if trigger.id == 'checkout' else score_text }}"
@@ -177,24 +174,24 @@ actions:
   - delay:
       milliseconds: 500
   - variables:
-      saved: false
+      highlight: {}
   - alias: Save the photo to the gallery
     if: "{{ save_photo }}"
     then:
-      # A folder Home Assistant may not write to must not stop the actions.
-      - continue_on_error: true
-        sequence:
-          - action: camera.snapshot
-            target:
-              entity_id: !input camera
-            data:
-              filename: "{{ photo }}"
-          - variables:
-              saved: true
-  # Only a saved photo has a file, and an address when it is in the media folder.
+      # The action answers only for a photo it wrote, named like
+      # 2026-09-26_21-05-33_Alex_180.jpg or 2026-09-26_21-07-10_Alex_checkout-121.jpg.
+      # A camera that is off or gives no picture, or a folder Home Assistant may
+      # not write to, must not stop the actions: they get the live picture.
+      - action: autodarts.save_highlight
+        continue_on_error: true
+        data:
+          camera: !input camera
+          folder: "{{ gallery_folder }}"
+          player: "{{ who }}"
+          label: "{{ 'checkout-' ~ checkout if trigger.id == 'checkout' else score }}"
+        response_variable: highlight
+  # Only a saved photo has a file, and an address when it is in a media folder.
   - variables:
-      photo: "{{ photo if saved else '' }}"
-      photo_url: >-
-        {{ '/media/local/' ~ (photo | regex_replace('^.*?/media/', '') | urlencode)
-           if '/media/' in photo else '' }}
+      photo: "{{ highlight.get('photo', '') }}"
+      photo_url: "{{ highlight.get('photo_url', '') }}"
   - sequence: !input photo_actions

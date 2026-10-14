@@ -798,6 +798,21 @@
     "export_failed": {
       "message": "No se ha podido escribir la exportación: {error}"
     },
+    "highlight_camera_missing": {
+      "message": "La cámara {camera} no existe o está desactivada. Las cámaras de una diana Autodarts están desactivadas hasta que las activas en la página de la diana."
+    },
+    "highlight_camera_unavailable": {
+      "message": "La cámara {camera} no está disponible."
+    },
+    "highlight_no_picture": {
+      "message": "La cámara {camera} no ha dado ninguna imagen."
+    },
+    "highlight_folder": {
+      "message": "La carpeta de fotos destacadas {folder} no puede estar oculta, y Home Assistant debe permitir escribir en ella: www, las carpetas multimedia y las carpetas de allowlist_external_dirs están permitidas."
+    },
+    "highlight_failed": {
+      "message": "No se ha podido guardar la foto destacada: {error}"
+    },
     "unknown_person": {
       "message": "No hay ninguna persona {person} en Home Assistant."
     },
@@ -1120,6 +1135,28 @@
         "folder": {
           "name": "Carpeta",
           "description": "Opcional. Una carpeta relativa a la carpeta de configuración, o una ruta absoluta, en la que Home Assistant permite escribir: www, una carpeta multimedia o una carpeta de allowlist_external_dirs. Los archivos de www están disponibles en /local/ sin iniciar sesión. Sin carpeta: autodarts/exports en la carpeta multimedia."
+        }
+      }
+    },
+    "save_highlight": {
+      "name": "Guardar foto destacada",
+      "description": "Guarda la imagen de una cámara como foto con el momento, el jugador y lo que muestra en su nombre, por defecto en la galería de momentos destacados, autodarts/highlights de la carpeta multimedia, y devuelve el archivo y su dirección. Falla, y no devuelve nada, si la cámara está desactivada o no disponible, si no da ninguna imagen o si la carpeta no está permitida.",
+      "fields": {
+        "camera": {
+          "name": "Cámara",
+          "description": "La cámara que hace la foto, por ejemplo una cámara de la diana. Las cámaras de una diana están desactivadas hasta que las activas."
+        },
+        "folder": {
+          "name": "Carpeta",
+          "description": "Opcional. Una carpeta relativa a la carpeta de configuración, o una ruta absoluta, en la que Home Assistant permite escribir: www, una carpeta multimedia o una carpeta de allowlist_external_dirs. Sin carpeta: la galería de momentos destacados, autodarts/highlights en la carpeta multimedia."
+        },
+        "player": {
+          "name": "Jugador",
+          "description": "Opcional. El jugador de la foto, para su nombre y su título en la galería."
+        },
+        "label": {
+          "name": "Etiqueta",
+          "description": "Opcional. Lo que muestra la foto, al final de su nombre, como 180 o checkout-121. La galería muestra un número como la puntuación."
         }
       }
     },

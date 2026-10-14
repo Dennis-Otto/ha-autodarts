@@ -798,6 +798,21 @@
     "export_failed": {
       "message": "The export could not be written: {error}"
     },
+    "highlight_camera_missing": {
+      "message": "The camera {camera} does not exist or is disabled. The cameras of an Autodarts board are disabled until you enable them on the page of the board."
+    },
+    "highlight_camera_unavailable": {
+      "message": "The camera {camera} is unavailable."
+    },
+    "highlight_no_picture": {
+      "message": "The camera {camera} gave no picture."
+    },
+    "highlight_folder": {
+      "message": "The highlight folder {folder} must not be hidden, and Home Assistant must allow writing to it: www, the media folders and the folders listed in allowlist_external_dirs are allowed."
+    },
+    "highlight_failed": {
+      "message": "The highlight photo could not be saved: {error}"
+    },
     "unknown_person": {
       "message": "There is no person {person} in Home Assistant."
     },
@@ -1120,6 +1135,28 @@
         "folder": {
           "name": "Folder",
           "description": "Optional. A folder relative to the configuration folder, or an absolute path, where Home Assistant allows writing: www, a media folder or a folder listed in allowlist_external_dirs. Files in www are available at /local/ without a login. Without a folder: autodarts/exports in the media folder."
+        }
+      }
+    },
+    "save_highlight": {
+      "name": "Save highlight photo",
+      "description": "Saves the picture of a camera as a photo named by the moment, the player and what it shows, by default in the highlight gallery, autodarts/highlights in the media folder, and returns the file and its address. It fails, and so returns nothing, when the camera is disabled or unavailable or gives no picture, or when the folder is not allowed.",
+      "fields": {
+        "camera": {
+          "name": "Camera",
+          "description": "The camera that takes the photo, for example a board camera. The cameras of a board are disabled until you enable them."
+        },
+        "folder": {
+          "name": "Folder",
+          "description": "Optional. A folder relative to the configuration folder, or an absolute path, where Home Assistant allows writing: www, a media folder or a folder listed in allowlist_external_dirs. Without a folder: the highlight gallery, autodarts/highlights in the media folder."
+        },
+        "player": {
+          "name": "Player",
+          "description": "Optional. The player in the photo, for its name and its title in the gallery."
+        },
+        "label": {
+          "name": "Label",
+          "description": "Optional. What the photo shows, at the end of its name, such as 180 or checkout-121. The gallery shows a number as the score."
         }
       }
     },

@@ -1,5 +1,6 @@
 """Actions of the integration: start a practice game or a tournament with one call,
-correct and enter darts, pass the turn, undo a visit, and more."""
+correct and enter darts, pass the turn, undo a visit, save a highlight photo, and
+more."""
 
 from __future__ import annotations
 
@@ -30,6 +31,7 @@ from .bot import BOARD_MM, bed_name, segment_at, valid_level
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES
 from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
+from .highlights import async_save_highlight
 from .local_coordinator import AutodartsLocalCoordinator
 from .manual import parse_bed
 from .party import GOLF_HOLES, MAX_ROUNDS, PARTY_GAMES
@@ -72,6 +74,7 @@ SERVICE_THROW_DART = "throw_dart"
 SERVICE_ENTER_VISIT = "enter_visit"
 SERVICE_NEXT_PLAYER = "next_player"
 SERVICE_UNDO_VISIT = "undo_visit"
+SERVICE_SAVE_HIGHLIGHT = "save_highlight"
 
 
 # The longest bed name an error message repeats.
@@ -222,6 +225,25 @@ EXPORT_SCHEMA = vol.Schema(
         vol.Optional("what", default="all"): vol.In(EXPORT_CONTENTS),
         # Without a folder, the export goes to autodarts/exports of the media folder.
         vol.Optional("folder"): vol.All(cv.string, vol.Length(min=1, max=255)),
+    }
+)
+
+
+def _text(value: Any) -> str:
+    """A player or a label as text: a template renders a name such as 180, None
+    or [1] as a number, as nothing or as a list, which must not fail the call."""
+    return "" if value is None else str(value)
+
+
+# Any camera, also one that is no board camera. The player and the label become
+# part of the file name, which leaves out what a file name cannot have; an empty
+# folder, as the highlight photo blueprint passes its default, is the gallery.
+SAVE_HIGHLIGHT_SCHEMA = vol.Schema(
+    {
+        vol.Required("camera"): cv.entity_domain("camera"),
+        vol.Optional("folder"): vol.All(cv.string, vol.Strip, vol.Length(max=255)),
+        vol.Optional("player"): _text,
+        vol.Optional("label"): _text,
     }
 )
 
@@ -746,6 +768,24 @@ def async_setup_services(hass: HomeAssistant) -> None:
             return await undone(hass, coordinator.practice, score)
 
         return await answered(call, "undone", act)
+
+    async def save_highlight(call: ServiceCall) -> ServiceResponse:
+        saved = await async_save_highlight(
+            hass,
+            call.data["camera"],
+            call.data.get("folder"),
+            call.data.get("player", ""),
+            call.data.get("label", ""),
+        )
+        return saved if call.return_response else None
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SAVE_HIGHLIGHT,
+        save_highlight,
+        schema=SAVE_HIGHLIGHT_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
 
     hass.services.async_register(
         DOMAIN, SERVICE_CORRECT_DART, correct_dart, schema=CORRECT_DART_SCHEMA
