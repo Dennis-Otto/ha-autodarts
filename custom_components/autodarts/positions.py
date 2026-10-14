@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import math
 from collections import deque
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass
 from statistics import median
 from typing import Any
 
@@ -220,8 +221,8 @@ def aim_model(darts: Iterable[tuple[float, float, str | None]]) -> dict[str, Any
         ]
         mean, (xx, xy, yy) = _moments(kept)
         model = _model(mean, (xx / TRIMMED, xy / TRIMMED, yy / TRIMMED))
-    # Half millimetres are finer than a few hundred darts can tell, and a new dart
-    # mostly leaves them as they were, and with them the best aim.
+    # Half millimetres are finer than a few hundred darts can tell; a model that
+    # stays the same needs no new search for the best aim.
     offset_x, offset_y, sd_x, sd_y, correlation = model
     return {
         **result,
@@ -246,6 +247,45 @@ def error_model(model: dict[str, Any]) -> ErrorModel | None:
     )
 
 
+@dataclass(frozen=True)
+class Aim:
+    """The aim model of a log's darts with its best aim, and the version of the
+    darts it was worked out for."""
+
+    version: int
+    model: dict[str, Any]
+    errors: ErrorModel | None = None
+    best: dict[str, Any] | None = None
+
+    def view(self) -> dict[str, Any]:
+        """The model with its best aim, for the cards."""
+        best = self.best_aim()
+        return {**self.model, **({"best": best} if best else {})}
+
+    def best_aim(self) -> dict[str, Any] | None:
+        best = self.best
+        return {**best, "compared": dict(best["compared"])} if best else None
+
+
+# What a log knows before its first aim model is worked out.
+NO_AIM = Aim(-1, {"darts": 0, "needed": MIN_DARTS})
+
+
+def work_out_aim(
+    version: int, darts: Sequence[tuple[float, float, str | None]], previous: Aim
+) -> Aim:
+    """The aim model of the darts, with the best aim searched anew only when the
+    model differs from the previous one. It takes some milliseconds, the search
+    some tens, so it runs in an executor, never on the event loop."""
+    model = aim_model(darts)
+    errors = error_model(model)
+    if errors is None:
+        return Aim(version, model)
+    if errors == previous.errors:
+        return Aim(version, model, errors, previous.best)
+    return Aim(version, model, errors, best_aim(errors))
+
+
 class DartLog:
     """The newest dart positions with the bed aimed at, oldest first.
 
@@ -257,9 +297,10 @@ class DartLog:
         self.darts: deque[tuple[float, float, str | None]] = deque(maxlen=size)
         # The grouping changes only with a new dart; the sensors ask often.
         self._spread: list[dict[str, Any]] | None = None
-        # So does the aim model; the best aim only with the model.
-        self._aim: dict[str, Any] | None = None
-        self._best: tuple[ErrorModel, dict[str, Any]] | None = None
+        # Every change of the darts counts, so that an aim model worked out off
+        # the event loop is known to belong to the darts as they are.
+        self.version = 0
+        self._aim = NO_AIM
 
     def __len__(self) -> int:
         return len(self.darts)
@@ -269,8 +310,8 @@ class DartLog:
         log = DartLog(self.darts.maxlen or 0)
         log.darts.extend(self.darts)
         log._spread = self._spread
+        log.version = self.version
         log._aim = self._aim
-        log._best = self._best
         return log
 
     def add(self, position: tuple[float, float] | None, aim: str | None) -> None:
@@ -279,12 +320,12 @@ class DartLog:
         x, y = position
         self.darts.append((x, y, aim if aim in AIMS else None))
         self._spread = None
-        self._aim = None
+        self.version += 1
 
     def clear(self) -> None:
         self.darts.clear()
         self._spread = None
-        self._aim = None
+        self.version += 1
 
     def positions(self) -> list[list[float]]:
         """Normalised positions like the visit sensor's, for the cards."""
@@ -295,21 +336,33 @@ class DartLog:
             self._spread = spread(self.darts)
         return [dict(group) for group in self._spread]
 
-    def aim_model(self) -> dict[str, Any]:
-        if self._aim is None:
-            self._aim = aim_model(self.darts)
-        return dict(self._aim)
+    @property
+    def aim_stale(self) -> bool:
+        """Whether darts came or went since the newest aim model."""
+        return self._aim.version != self.version
+
+    def aim_job(self) -> Callable[[], Aim]:
+        """Work out the aim model of the darts as they are now, in an executor;
+        they are copied here, on the event loop."""
+        version, darts, previous = self.version, tuple(self.darts), self._aim
+        return lambda: work_out_aim(version, darts, previous)
+
+    def store_aim(self, aim: Aim) -> bool:
+        """Keep an aim model unless a newer one is kept; whether the best aim
+        changed with it."""
+        if aim.version <= self._aim.version:
+            return False
+        changed = aim.best != self._aim.best
+        self._aim = aim
+        return changed
+
+    def aim(self) -> dict[str, Any]:
+        """The newest aim model worked out, with its best aim, for the cards."""
+        return self._aim.view()
 
     def best_aim(self) -> dict[str, Any] | None:
-        """The best aim of the model, searched anew only when the model changed;
-        a dart at a double or the bull leaves it as it was."""
-        model = error_model(self.aim_model())
-        if model is None:
-            return None
-        if self._best is None or self._best[0] != model:
-            self._best = (model, best_aim(model))
-        best = self._best[1]
-        return {**best, "compared": dict(best["compared"])}
+        """The best aim of the newest aim model; it stays until the next one."""
+        return self._aim.best_aim()
 
     def stored(self) -> list[int]:
         scale = BOARD_RADIUS_MM * 10

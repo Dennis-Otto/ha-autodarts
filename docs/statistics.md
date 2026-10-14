@@ -98,8 +98,9 @@ The treble 20 scores the most only for a player whose darts land close together.
 | Spread (standard deviation) | Best aim with a round spread |
 | --- | --- |
 | up to about 16 mm | the treble 20 |
-| about 17 to 30 mm | the treble 19 |
-| from about 35 mm | the inner singles left of and below the bull, around the 7, 16 and 8, closer to the bull the wider the spread |
+| about 17 to 34 mm | the treble 19, from about 30 mm also the treble 7 or the 7 next to it |
+| about 35 to 50 mm | the singles of the 7 and the 16, left of and below the bull |
+| from about 55 mm | the singles left of the bull, level with it, or the bull itself: the wider the spread, the closer to the bull |
 
 A spread up and down keeps the 20 longer than one to the sides, and darts that land low on average are best aimed that much higher. [How the aim map is computed](how-it-works.md#aim-map).
 

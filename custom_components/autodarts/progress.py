@@ -95,12 +95,6 @@ def _day(value: object) -> date | None:
         return None
 
 
-def _aim(log: DartLog) -> dict[str, Any]:
-    """The error model of the aim map with the best aim, for the cards."""
-    best = log.best_aim()
-    return {**log.aim_model(), **({"best": best} if best else {})}
-
-
 def _profile_counts(profiles: Profiles) -> dict[str, list[int]]:
     """The lifetime numbers of every profile that weeks collect."""
     counts = {}
@@ -541,6 +535,8 @@ class Progress:
         player = self.players.get(_key(name))
         if player is None:
             return {}
+        # The best aim of the newest aim model, which the coordinator works out
+        # off the event loop after a visit.
         best = player.log.best_aim()
         return {
             "darts_thrown": player.counters["darts"],
@@ -580,16 +576,25 @@ class Progress:
             "players": players,
         }
 
+    def log(self, name: str | None = None) -> DartLog:
+        """The logged darts of a player, or of the session without a name."""
+        if not name or not name.strip():
+            return self.session
+        player = self.players.get(_key(name))
+        return player.log if player else DartLog(0)
+
+    def stale_aims(self) -> list[DartLog]:
+        """The players' logs with darts that their aim model does not know yet."""
+        return [player.log for player in self.players.values() if player.log.aim_stale]
+
     def positions(self, name: str | None = None) -> dict[str, Any]:
-        """The logged positions, their grouping and the error model of the aim
-        map, of a player or the session."""
+        """The logged positions and their grouping, of a player or the session."""
         if not name or not name.strip():
             return {
                 "player": None,
                 "known": True,
                 "positions": self.session.positions(),
                 "spread": self.session.spread(),
-                "aim": _aim(self.session),
             }
         player = self.players.get(_key(name))
         log = player.log if player else DartLog(0)
@@ -598,5 +603,4 @@ class Progress:
             "known": player is not None,
             "positions": log.positions(),
             "spread": log.spread(),
-            "aim": _aim(log),
         }

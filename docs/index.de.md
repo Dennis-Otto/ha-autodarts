@@ -56,7 +56,7 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    3-Dart-Average, First-9-Average, Checkout- und Doppelquote ein Trefferbild jedes Feldes oder der echten Dart-Positionen und wohin jeder Spieler für die meisten Punkte pro Dart zielt. Spielerprofile mit Abzeichen, Wochentrends, eine Bestenliste, ein Wochenbericht und ein Trainingskalender.
+    3-Dart-Average, First-9-Average, Checkout- und Doppelquote, ein Trefferbild jedes Feldes oder der echten Dart-Positionen und wohin jeder Spieler für die meisten Punkte pro Dart zielt. Spielerprofile mit Abzeichen, Wochentrends, eine Bestenliste, ein Wochenbericht und ein Trainingskalender.
 
     [:octicons-arrow-right-24: Statistik und Spieler](statistics.de.md)
 

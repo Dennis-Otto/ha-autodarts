@@ -255,7 +255,8 @@ test("the summary names the best aim and how much less the other beds score", ()
 
 test("the training card draws the aim map of a player", async () => {
   const { asked, card } = setup();
-  assert.deepEqual(asked, [{ type: "autodarts/positions", device_id: DEVICE, player: "Alex" }]);
+  // Only the aim map asks for the aim model.
+  assert.deepEqual(asked, [{ type: "autodarts/positions", device_id: DEVICE, player: "Alex", aim: true }]);
   assert.equal($(card, '[data-mode="aim"]').getAttribute("aria-pressed"), "true");
   await drawn(card);
   assert.equal(
@@ -276,7 +277,8 @@ test("the training card draws the aim map of a player", async () => {
     $$(card, ".heat-list li").map((item) => item.textContent),
     ["T19: Best aim · 18.9 points per dart", "T20: 18.0 points per dart", "Bull: 16.4 points per dart"]
   );
-  // Back to positions and beds, and to the aim map again, which keeps its field.
+  // Back to positions and beds, and to the aim map again, which keeps its field; the answer
+  // with the aim model serves the positions, too.
   $(card, '[data-mode="positions"]').dispatchEvent(new window.Event("click", { bubbles: true }));
   assert.equal($(card, ".heat-layer .aim-best"), null);
   $(card, '[data-mode="beds"]').dispatchEvent(new window.Event("click", { bubbles: true }));
@@ -382,6 +384,43 @@ test("a newer model replaces a map that was still on its way", async () => {
     await worker.answer(1);
     await drawn(card);
     assert.equal($(card, ".aim-best").getAttribute("cx"), "-40");
+  });
+});
+
+test("the last map stays until the map of a new model arrives", async () => {
+  await withWorkers(HeldWorker, async () => {
+    let aim = AIM;
+    const hass = makeHass({
+      states: { ...SESSION, ...PROFILES },
+      callWS: async () => ({ player: "Alex", known: true, positions: [], spread: [], aim }),
+    });
+    const card = mount("autodarts-training-card", hass, { mode: "aim", player: "Alex" });
+    await settle();
+    const [worker] = workers.slice(-1);
+    await worker.answer(0);
+    await drawn(card);
+    const before = $(card, ".heat-layer").innerHTML;
+    const legend = text(card, ".legend-max");
+    // The next visit changes the model: the old map stays while the worker works.
+    aim = { ...AIM, sd_x: 30, sd_y: 30, best: { ...AIM.best, x: -40, y: -90, expected: 15.5 } };
+    card.hass = nextDarts(hass, 406);
+    await settle();
+    assert.equal(worker.held.length, 2);
+    assert.equal($(card, ".heat-layer").innerHTML, before);
+    assert.equal(text(card, ".legend-max"), legend);
+    assert.equal(text(card, ".group-text"), "Best aim · 15.5 points per dart");
+    await worker.answer(1);
+    await settle();
+    assert.equal($(card, ".aim-best").getAttribute("cx"), "-40");
+    // The session has a map of its own: the map of Alex does not stay for it.
+    aim = { ...AIM, sd_x: 40, sd_y: 40, best: { ...AIM.best, x: -20, y: 0 } };
+    $(card, '[data-source=""]').dispatchEvent(new window.Event("click", { bubbles: true }));
+    await settle();
+    assert.equal(worker.held.length, 3);
+    assert.equal($(card, ".heat-layer .aim-best"), null);
+    await worker.answer(2);
+    await drawn(card);
+    assert.equal($(card, ".aim-best").getAttribute("cx"), "-20");
   });
 });
 

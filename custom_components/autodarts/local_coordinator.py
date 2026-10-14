@@ -61,6 +61,7 @@ from .local_api import (
 )
 from .manual import ManualDarts
 from .online import ONLINE_EVENT_TYPES
+from .positions import Aim
 from .practice import PracticeGame, VisitRefused
 from .profiles import valid_name
 from .progress import Progress
@@ -213,6 +214,11 @@ def _error_name(error: BaseException) -> str:
     return type(error.__cause__ or error).__name__
 
 
+def _work_out(jobs: list[Callable[[], Aim]]) -> list[Aim]:
+    """Aim models, in an executor."""
+    return [job() for job in jobs]
+
+
 @dataclass
 class ConnectionStats:
     """Connection history for diagnostics; no addresses, messages or payloads."""
@@ -284,6 +290,10 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.records = PersonalRecords()
         self.reports = BoardReports(hass, entry.entry_id, self)
         self.progress = Progress()
+        # The players' aim models are worked out off the event loop; the count
+        # rises when a best aim changed, for the attributes of the profiles.
+        self._aim_task: asyncio.Task[None] | None = None
+        self.aim_revision = 0
         self.tournament = TournamentDirector()
         self._fixture_unsub: CALLBACK_TYPE | None = None
         self._midnight_unsub: CALLBACK_TYPE | None = None
@@ -462,6 +472,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._start_realtime()
         # The bot goes on with its turn after a restart.
         self._schedule_bot()
+        # The best aims of the restored darts.
+        self._schedule_aim()
 
     @callback
     def _start_realtime(self) -> None:
@@ -867,10 +879,46 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         events = self.practice.finish_visit(empty)
         booked = self._booked(pending.legs_total, decided)
         events += self.progress.after(pending, self.practice, dt_util.now())
+        self._schedule_aim()
         # A tournament takes the result once the practice game booked it.
         events += self._fixture()
         for kind, details in self._recorded(events, booked):
             self._emit(kind, details, source)
+
+    @callback
+    def _schedule_aim(self) -> None:
+        """Work out the aim models of the players whose darts changed. A model
+        takes some milliseconds and the search for its best aim some tens, which
+        never run on the event loop."""
+        if self._aim_task is None and self.progress.stale_aims():
+            self._aim_task = self._entry.async_create_task(
+                self.hass, self._async_players_aim(), f"{DOMAIN} aim"
+            )
+
+    async def _async_players_aim(self) -> None:
+        """The players' aim models, until every one knows the newest darts; the
+        profiles show a changed best aim."""
+        try:
+            while logs := self.progress.stale_aims():
+                aims = await self.hass.async_add_executor_job(
+                    _work_out, [log.aim_job() for log in logs]
+                )
+                changed = [
+                    log.store_aim(aim) for log, aim in zip(logs, aims, strict=True)
+                ]
+                if any(changed):
+                    self.aim_revision += 1
+                    self.async_update_listeners()
+        finally:
+            self._aim_task = None
+
+    async def async_aim(self, name: str | None = None) -> dict[str, Any]:
+        """The aim model of a player's darts or the session's, for the cards;
+        worked out off the event loop when darts came or went since the last."""
+        log = self.progress.log(name)
+        if log.aim_stale:
+            log.store_aim(await self.hass.async_add_executor_job(log.aim_job()))
+        return log.aim()
 
     def _follow_visit(
         self, data: dict[str, Any], state: dict[str, Any], source: str
@@ -2009,6 +2057,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._cancel_bot()
         # Booked again once it ends, the visit must not count twice.
         self.progress.rewind(checkpoint.progress)
+        self._schedule_aim()
         self.reports.rewind(checkpoint.reports)
         self.records.rewind(checkpoint.records)
         self.practice.rewind(checkpoint.practice, darts, checkpoint.positions)

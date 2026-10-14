@@ -334,32 +334,55 @@ def test_the_aim_model_never_collapses():
     assert model["sd_x"] == model["sd_y"] > 5
 
 
+def work_out(log: DartLog) -> bool:
+    """The aim model of a log, as the coordinator works it out in an executor."""
+    return log.store_aim(log.aim_job()())
+
+
 def test_the_log_searches_the_best_aim_only_for_a_new_model(monkeypatch):
     log = DartLog(1000)
-    assert log.aim_model() == {"darts": 0, "needed": MIN_DARTS}
+    # Before the first aim model, the log knows nothing of one.
+    assert log.aim_stale
+    assert log.aim() == {"darts": 0, "needed": MIN_DARTS}
+    assert work_out(log) is False and not log.aim_stale
     assert log.best_aim() is None
     for x, y, aim in normal(random.Random(2), ["T20"], 200):
         log.add((x, y), aim)
+    assert log.aim_stale
     searched = []
     original = positions.best_aim
     monkeypatch.setattr(
         positions, "best_aim", lambda model: searched.append(model) or original(model)
     )
+    # The darts are copied for the executor; a dart that comes meanwhile waits
+    # for the next model.
+    job = log.aim_job()
+    log.add(around("D16", 3, 4)[:2], "D16")
+    first = job()
+    assert log.store_aim(first) is True and log.aim_stale
     best = log.best_aim()
     assert best["bed"] == "T19" and set(best["compared"]) == {"T20", "T19", "BULL"}
     best["compared"]["T20"] = 0
+    aim = log.aim()
+    assert aim["darts"] == 200 and aim["best"]["compared"]["T20"] > 0
+    aim["best"]["compared"]["T20"] = 0
     # Darts at a double leave the model, and the best aim, as they were.
-    for _ in range(2):
-        log.add(around("D16", 3, 4)[:2], "D16")
+    log.add(around("D16", 3, 4)[:2], "D16")
     assert len(log) == 202
+    assert work_out(log) is False and not log.aim_stale
     assert log.best_aim()["compared"]["T20"] > 0
     assert len(searched) == 1
+    # A model worked out for older darts never replaces a newer one.
+    assert log.store_aim(first) is False and not log.aim_stale
     copy = deepcopy(log)
-    assert copy.best_aim() == log.best_aim() and len(searched) == 1
+    assert copy.best_aim() == log.best_aim() and not copy.aim_stale
+    assert work_out(copy) is False and len(searched) == 1
     for _ in range(2):
         log.add(around("T20", 30, -30)[:2], "T20")
-    assert log.aim_model()["darts"] == 202
-    log.best_aim()
+    work_out(log)
+    assert log.aim()["darts"] == 202
     assert len(searched) == 2
     log.clear()
-    assert log.best_aim() is None
+    assert log.aim_stale and log.best_aim() is not None
+    assert work_out(log) is True
+    assert log.best_aim() is None and "best" not in log.aim()

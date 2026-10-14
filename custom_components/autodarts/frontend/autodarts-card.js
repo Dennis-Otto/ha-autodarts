@@ -11301,9 +11301,14 @@ function createElements(Base) {
       return visitPositions(this._state("visit")?.attributes?.throws);
     }
 
+    // Only the aim map asks for the aim model, which Home Assistant works out anew for new
+    // darts; an answer with it serves the positions, too.
     async _loadPositions(source) {
-      const key = this._positionsKey(source);
-      if (this._positionsFor === key || typeof this._hass.callWS !== "function") return;
+      const aim = this._heatMode() === "aim";
+      const darts = this._positionsKey(source);
+      const key = aim ? `${darts}|aim` : darts;
+      const asked = this._positionsFor;
+      if (asked === key || asked === `${darts}|aim` || typeof this._hass.callWS !== "function") return;
       this._positionsFor = key;
       let result = null;
       try {
@@ -11311,13 +11316,20 @@ function createElements(Base) {
           type: "autodarts/positions",
           device_id: this._deviceId,
           ...(source ? { player: source } : {}),
+          ...(aim ? { aim: true } : {}),
         });
       } catch {
         // A board that is being removed has no positions to show.
       }
       if (this._positionsFor !== key) return;
       const positions = validPositions(result?.positions);
-      this._positions = { key, source, positions, spread: spreadView(result?.spread), aim: aimView(result?.aim) };
+      this._positions = {
+        key,
+        source,
+        positions,
+        spread: spreadView(result?.spread),
+        aim: aim ? aimView(result?.aim) : null,
+      };
       // An answer that arrives after a switch to beds or numbers waits for positions or the aim map.
       if (this._heatMode() === "positions") this._drawPositions();
       if (this._heatMode() === "aim") this._drawAim();
@@ -11332,14 +11344,17 @@ function createElements(Base) {
       const shown = this._positions?.source === source ? this._positions.aim : null;
       const view = shown?.model ? shown : null;
       if (view && this._aimFor !== view.key) this._loadAim(view.key, view.model);
-      const field = view && this._aimField?.key === view.key ? this._aimField : null;
+      const ready = view && this._aimField?.key === view.key ? this._aimField : null;
       this._live = [];
       el.heatCaption.textContent = "";
       // The map is drawn once per field and best aim, not with every update of the card.
-      if (field && (this._aimDrawn?.field !== field || this._aimDrawn.best !== view.best)) {
-        this._aimDrawn = { field, best: view.best, html: aimHtml(field, view.best) };
+      if (ready && (this._aimDrawn?.field !== ready || this._aimDrawn.best !== view.best)) {
+        this._aimDrawn = { source, field: ready, best: view.best, html: aimHtml(ready, view.best) };
       }
-      this._setHtml(el.heat, field ? this._aimDrawn.html : "");
+      // While the field of a new model is on its way, the last map of the same darts stays.
+      const drawn = view && (ready || this._aimDrawn?.source === source) ? this._aimDrawn : null;
+      const field = drawn?.field;
+      this._setHtml(el.heat, drawn ? drawn.html : "");
       const ui = this._ui();
       this._setHtml(
         el.heatList,

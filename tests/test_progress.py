@@ -178,12 +178,15 @@ def test_positions_and_aims_make_the_grouping():
         "known": False,
         "positions": [],
         "spread": [],
-        "aim": {"darts": 0, "needed": 30},
     }
     # Twelve darts at the treble 20 are not enough for the aim map.
+    log = progress.log("alex")
+    assert log.store_aim(log.aim_job()()) is False
     summary = progress.summary("Alex", NOW.date())
     assert (summary["best_aim"], summary["expected_ppd"]) == (None, None)
-    assert positions["aim"] == {"darts": 12, "needed": 30}
+    assert log.aim() == {"darts": 12, "needed": 30}
+    assert progress.log() is progress.session and progress.log(" ") is progress.session
+    assert progress.log("Kim").aim_stale and len(progress.log("Kim")) == 0
 
 
 def test_darts_at_the_trebles_make_the_aim_map():
@@ -200,14 +203,23 @@ def test_darts_at_the_trebles_make_the_aim_map():
             "S20",
             positions=[(x, y) for x, y, _ in scatter[start : start + 3]],
         )
+    # The coordinator works out the models of the players whose darts changed.
+    [log] = progress.stale_aims()
+    assert log is progress.log("Alex")
+    # Until then, the profile has no best aim yet.
+    assert progress.summary("Alex", NOW.date())["best_aim"] is None
+    assert log.store_aim(log.aim_job()()) is True
+    assert progress.stale_aims() == []
     summary = progress.summary("Alex", NOW.date())
-    aim = progress.positions("Alex")["aim"]
+    aim = log.aim()
     assert aim["darts"] == 36 and aim["best"]["bed"] == summary["best_aim"]
     assert summary["expected_ppd"] == round(aim["best"]["expected"], 1)
     assert 10 < summary["expected_ppd"] < 25
     assert set(aim["best"]["compared"]) == {"T20", "T19", "BULL"}
-    # The session's darts have their aim map too.
-    assert progress.positions()["aim"]["best"] == aim["best"]
+    # The session's darts have their aim map too, when the card asks for it.
+    session = progress.log()
+    assert session.store_aim(session.aim_job()()) is True
+    assert session.aim()["best"] == aim["best"]
 
 
 def test_cricket_nine_marks_and_a_hat_trick():

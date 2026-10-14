@@ -98,8 +98,9 @@ Die Triple 20 bringt nur dann die meisten Punkte, wenn deine Darts eng beieinand
 | Streuung (Standardabweichung) | Bester Zielpunkt bei runder Streuung |
 | --- | --- |
 | bis etwa 16 mm | die Triple 20 |
-| etwa 17 bis 30 mm | die Triple 19 |
-| ab etwa 35 mm | die inneren Singles links unterhalb des Bulls, um die 7, 16 und 8, umso näher am Bull, je weiter die Streuung |
+| etwa 17 bis 34 mm | die Triple 19, ab etwa 30 mm auch die Triple 7 oder die 7 daneben |
+| etwa 35 bis 50 mm | die Singles der 7 und der 16, links unterhalb des Bulls |
+| ab etwa 55 mm | die Singles links vom Bull auf seiner Höhe oder das Bull selbst: je weiter die Streuung, desto näher am Bull |
 
 Eine Streuung nach oben und unten hält die 20 länger als eine zur Seite, und Darts, die im Mittel zu tief landen, zielst du am besten um so viel höher. [Wie die Zielkarte gerechnet wird](how-it-works.de.md#zielkarte).
 

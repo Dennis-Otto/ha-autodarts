@@ -139,6 +139,40 @@ def test_a_wide_spread_aims_towards_the_middle_left_of_the_bull():
     assert best["compared"]["BULL"] > best["compared"]["T20"]
 
 
+@pytest.mark.parametrize(
+    ("sd", "beds"),
+    [
+        (10, {"T20"}),
+        (16, {"T20"}),
+        (17, {"T19"}),
+        (28, {"T19"}),
+        (30, {"T19", "T7", "S7"}),
+        (33, {"T19", "T7", "S7"}),
+        (34, {"T19", "T7", "S7"}),
+        (35, {"S7", "S16"}),
+        (45, {"S7", "S16"}),
+        (50, {"S7", "S16"}),
+    ],
+)
+def test_the_table_of_the_statistics_page(sd, beds):
+    """The rows of the table of best aims for a round spread on the statistics
+    page; the 7 and the 16 lie left of and below the bull."""
+    best = best_aim(circle(sd))
+    assert best["bed"] in beds
+    if best["bed"][0] == "S":
+        assert best["x"] < 0 and best["y"] < 0
+
+
+def test_a_very_wide_spread_aims_level_with_the_bull():
+    """From about 55 mm: the singles left of the bull, or the bull itself, the
+    closer to it the wider the spread."""
+    aims = [best_aim(circle(sd)) for sd in (60, 80, 100)]
+    assert [best["bed"] for best in aims] == ["S11", "BULL", "S11"]
+    assert all(best["x"] < 0 and abs(best["y"]) <= 4 for best in aims)
+    distances = [math.hypot(best["x"], best["y"]) for best in (aims[0], aims[2])]
+    assert distances[1] < distances[0]
+
+
 def test_the_points_per_dart_fall_as_the_spread_grows():
     values = [best_aim(circle(sd))["expected"] for sd in (3, 10, 20, 40, 80)]
     assert values == sorted(values, reverse=True)
