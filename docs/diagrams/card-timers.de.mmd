@@ -5,7 +5,7 @@ config:
 ---
 flowchart TB
   accTitle: Die Timer einer Karte und die Seite
-  accDescr: Home Assistant gibt einer Karte neue Zustände. Eine Karte auf der Seite startet, was sie braucht, etwa den Countdown eines Turniers, die Zeit der Zusammenfassung, den Ruhemodus und den History-Stream. Eine Karte, die die Seite verlassen hat, startet nichts. Das Verlassen der Seite hält jeden Timer und den Stream an; kommt die Karte zurück, wird sie aktualisiert und startet sie neu. Läuft nach den Tests einer Datei noch ein Timer, schlägt die Datei mit ihrem Namen und dem fehl, was der Timer aufruft, und der Timer hält an.
+  accDescr: Home Assistant gibt einer Karte neue Zustände. Eine Karte auf der Seite startet, was sie braucht, etwa den Countdown eines Turniers, die Zeit der Zusammenfassung, den Ruhemodus und den History-Stream. Eine Karte, die die Seite verlassen hat, startet nichts. Das Verlassen der Seite hält jeden Timer und den Stream an; kommt die Karte zurück, wird sie aktualisiert und startet sie neu. In npm test verlassen die Karten eines Tests die Seite, wenn er endet; läuft dann noch ein Timer, schlägt der Test mit seinem Namen und dem fehl, was der Timer aufruft, und der Timer hält an.
 
   STATES["Home Assistant gibt der<br/>Karte neue Zustände"] --> ON{{"Ist die Karte<br/>auf der Seite?"}}
   ON -- "ja" --> START["Sie startet, was sie braucht:<br/>Countdown, Zeit der Zusammenfassung,<br/>Ruhemodus, History-Stream"]
@@ -13,9 +13,9 @@ flowchart TB
   START --> LEAVE["Die Karte verlässt die Seite:<br/>jeder Timer und der Stream halten an"]
   LEAVE --> BACK["Zurück auf der Seite wird die Karte<br/>aktualisiert und startet sie neu"]
   NOTHING --> BACK
-  LEAVE --> CHECK{{"npm test: Läuft nach den Tests<br/>einer Datei noch ein Timer?"}}
-  CHECK -- "nein" --> PASS["Die Datei besteht"]
-  CHECK -- "ja" --> FAIL["Die Datei schlägt mit ihrem Namen und<br/>dem Aufruf des Timers fehl; er hält an"]
+  LEAVE --> CHECK{{"npm test: Läuft noch ein Timer, wenn ein<br/>Test endet und seine Karten gingen?"}}
+  CHECK -- "nein" --> PASS["Der nächste Test beginnt<br/>ohne seine Karten und Timer"]
+  CHECK -- "ja" --> FAIL["Der Test schlägt mit seinem Namen und<br/>dem Aufruf des Timers fehl; er hält an"]
 
   classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px

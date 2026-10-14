@@ -77,22 +77,25 @@ A card on a dashboard runs timers: the countdown to the next match of a tourname
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/card-timers-dark.png">
-  <img src="images/en/card-timers-light.png" alt="The timers of a card and the page: Home Assistant hands a card new states. A card on the page starts what it needs, such as the countdown of a tournament, the time a summary shows, idle mode and the history stream; a card that left the page starts nothing. Leaving the page stops every timer and the stream, and a card that comes back is updated and starts them again. After the tests of a file, a timer that still runs fails the file with its name and what the timer calls, and stops." width="560">
+  <img src="images/en/card-timers-light.png" alt="The timers of a card and the page: Home Assistant hands a card new states. A card on the page starts what it needs, such as the countdown of a tournament, the time a summary shows, idle mode and the history stream; a card that left the page starts nothing. Leaving the page stops every timer and the stream, and a card that comes back is updated and starts them again. In npm test, the cards of a test leave the page when it ends; a timer that still runs then fails the test with its name and what the timer calls, and stops." width="560">
 </picture>
 
 `npm test` holds every card to that:
 
-- `tests/frontend/dom.mjs` follows the real timers that the cards and the tests set. A timer that still runs once the tests of a file are done and their cards left the page would keep the file running for ever. Instead, the timer stops and the file fails with its name and what the timer calls:
+- `tests/frontend/dom.mjs` follows the real timers that the cards and the tests set. When a test ends, its mocked timers end and its cards leave the page, so the next test starts with no card and no timer of it. A timer that still runs then would keep the file running for ever. Instead, the timer stops and the test fails with its name and what the timer calls:
 
   ```text
-  ✖ tests/frontend/dom.mjs
-    Error: tournament.test.mjs left 1 timer running after its cards left the page:
+  ✖ a scoreboard of a waiting tournament counts down with real timers
+    Error: The test "a scoreboard of a waiting tournament counts down with real timers" left 1 timer running after its cards left the page:
     setInterval(() => this._update(), 1000)
   ```
 
+  Cards that a file puts on the page outside its tests leave after its last test, and the file fails the same way with its name.
 - A test that never ends fails after 60 seconds with its name (`--test-timeout=60000` in `package.json`), and the other files still run.
 
 Mocked timers (`context.mock.timers`) end with their test and do not count. To check that a card starts no timer, a test compares `timers()` of `dom.mjs` before and after, as *a scoreboard that left the page starts no countdown and no timer of the tournament* in `tests/frontend/tournament.test.mjs` does.
+
+The cards of a test leave the page with it because a card that stayed made `npm test` fail at random on a slow machine (#106). The countdown of a waiting tournament redrew a card of an earlier test every second, also while a later test mocked `setTimeout`. The card then cleared its idle timer with the mock, which clears nothing, so the real timer ran on after the cards had left the page. `dom.mjs` ends the mocks before the cards leave, so they clear their real timers with the real `clearTimeout`.
 
 ## Docker end-to-end test
 
