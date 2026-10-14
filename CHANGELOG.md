@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.12.4](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.3...v1.12.4) (2026-10-14)
+
 ### Improved
 
 - **The pictures of the documentation keep up with the cards:** a change of a card shows how its pictures change in about eight minutes instead of twenty, because the pictures now render in three groups side by side. A language whose pictures fail to render no longer keeps the other language's new pictures out of the documentation or out of the comment on the pull request, and new pictures no longer put a diagram that changed in the meantime back to its earlier version. The pictures of the players, their badges, doubles and progress, the leaderboard and the weekly report now show the games of their own group, so their numbers change once (#259, #269).
