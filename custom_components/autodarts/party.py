@@ -1,7 +1,8 @@
 """Party games for one to eight players and the bull-off.
 
 Shanghai, Halve-It and Killer, and Golf, Baseball and Count-Up, which play a
-fixed number of rounds and settle a tie at the top in extra rounds.
+fixed number of rounds and settle a tie at the top in extra rounds; Bermuda,
+Round the World and Gotcha as play.autodarts.io plays them.
 
 A party game follows the darts of the visit for the player at the board and
 books the visit when the darts are pulled, like X01. It knows its own rules:
@@ -11,18 +12,42 @@ who throws next, when a player wins at once, and who wins at the end.
 from __future__ import annotations
 
 import math
+import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
-from .scoring import score
+from .scoring import BULL, MODES, STRAIGHT, fits, score
 from .training import hit_key
 
-PARTY_GAMES = ("shanghai", "halve_it", "killer", "golf", "baseball", "count_up")
+PARTY_GAMES = (
+    "shanghai",
+    "halve_it",
+    "killer",
+    "golf",
+    "baseball",
+    "count_up",
+    "bermuda",
+    "round_the_world",
+    "gotcha",
+)
 SHANGHAI_ROUNDS = 7
 # Halve-It: a number, any double (D), any treble (T) or the bull (25) per round.
 HALVE_IT_TARGETS = ("15", "16", "D", "17", "18", "T", "19", "20", "25")
 HALVE_IT_START = 40
+# Bermuda as play.autodarts.io plays it: any double or the bullseye in round 4,
+# any treble in round 8, the bull (25 or 50) in round 12 and the bullseye (50)
+# alone in round 13.
+BERMUDA_TARGETS = (
+    "12", "13", "14", "D", "15", "16", "17", "T", "18", "19", "20", "25", "50",
+)  # fmt: skip
+# Round the World: the numbers 1 to 20 in an order, then the bull.
+ASCENDING, DESCENDING, RANDOM_ORDER = "ascending", "descending", "random"
+WORLD_ORDERS = (ASCENDING, DESCENDING, RANDOM_ORDER)
+WORLD_NUMBERS = 20
+# Gotcha counts up to a target score of 101 to 1001, 301 unless players choose.
+GOTCHA_TARGETS = (101, 1001)
+GOTCHA_TARGET = 301
 KILLER_LIVES = 3
 # Board Manager positions are relative to the outer edge of the double ring.
 BOARD_RADIUS_MM = 170
@@ -184,6 +209,10 @@ class Visit:
     hits: int = 0
     # Darts that count: all of the visit, or up to the dart that won the leg.
     darts: int = 0
+    # Round the World: how many targets every player has completed.
+    progress: list[int] = field(default_factory=list)
+    # Gotcha: a visit that overshot the target score and counts nothing.
+    bust: bool = False
 
 
 class PartyGame(ABC):
@@ -260,6 +289,14 @@ class PartyGame(ABC):
     def details(self, player: int) -> dict[str, Any]:
         return {}
 
+    def live_target(self, player: int, result: Visit) -> str | None:
+        """What the player aims at after the darts of the visit so far."""
+        return self.target(player)
+
+    def live_details(self, player: int, result: Visit) -> dict[str, Any]:
+        """The details of a player with the darts of the visit so far."""
+        return self.details(player)
+
     def stored(self) -> dict[str, Any]:
         return {
             "starter": self.starter,
@@ -323,15 +360,18 @@ class HalveIt(PartyGame):
 
     kind = "halve_it"
     start = HALVE_IT_START
+    targets: tuple[str, ...] = HALVE_IT_TARGETS
     rounds = len(HALVE_IT_TARGETS)
+    halves = True
 
     def target(self, player: int) -> str | None:
-        return HALVE_IT_TARGETS[min(self.round, len(HALVE_IT_TARGETS)) - 1]
+        return self.targets[min(self.round, len(self.targets)) - 1]
 
     @staticmethod
     def hit(dart: dict[str, Any], target: str) -> bool:
         """Any bed of the number counts; D and T mean any double or treble,
-        the bullseye included, and 25 the outer bull or the bullseye."""
+        the bullseye included, 25 the outer bull or the bullseye, and 50 the
+        bullseye alone."""
         number, multiplier = dart["number"], dart["multiplier"]
         if number == 0 or multiplier == 0:
             return False
@@ -339,6 +379,8 @@ class HalveIt(PartyGame):
             return bool(multiplier == 2)
         if target == "T":
             return bool(multiplier == 3)
+        if target == "50":
+            return bool(number == BULL and multiplier == 2)
         return bool(number == int(target))
 
     def visit(self, player: int, darts: list[dict[str, Any]]) -> Visit:
@@ -346,7 +388,7 @@ class HalveIt(PartyGame):
         hits = [dart for dart in darts if self.hit(dart, target)]
         points = list(self.points)
         points[player] += sum(score(dart) for dart in hits)
-        if not hits and len(darts) >= 3:
+        if self.halves and not hits and len(darts) >= 3:
             # Halving rounds down.
             points[player] //= 2
         return Visit(points, hits=len(hits), darts=len(darts))
@@ -361,8 +403,23 @@ class HalveIt(PartyGame):
         return result
 
     def _decided(self) -> int | None:
-        done = self.turns >= len(HALVE_IT_TARGETS) * self.players
+        done = self.turns >= len(self.targets) * self.players
         return self._best() if done else None
+
+
+class Bermuda(HalveIt):
+    """Thirteen targets from 0 points, as play.autodarts.io plays them: the
+    beds hit score their points, and a visit without a hit halves the score,
+    unless players play without halving."""
+
+    kind = "bermuda"
+    start = 0
+    targets = BERMUDA_TARGETS
+    rounds = len(BERMUDA_TARGETS)
+
+    def __init__(self, players: int, halve: bool = True) -> None:
+        self.halves = halve
+        super().__init__(players)
 
 
 class Killer(PartyGame):
@@ -459,6 +516,18 @@ class Killer(PartyGame):
             "killer": self.killers[player],
         }
 
+    def live_target(self, player: int, result: Visit) -> str | None:
+        # A killer made in this visit hunts the others from the next dart.
+        number = result.numbers[player]
+        return None if number is None or result.killers[player] else f"D{number}"
+
+    def live_details(self, player: int, result: Visit) -> dict[str, Any]:
+        return {
+            "number": result.numbers[player],
+            "lives": result.lives[player],
+            "killer": result.killers[player],
+        }
+
     def stored(self) -> dict[str, Any]:
         return {
             **super().stored(),
@@ -496,6 +565,156 @@ class Killer(PartyGame):
             self.lives = list(lives)
         if isinstance(killers, list) and len(killers) == size:
             self.killers = [killer is True for killer in killers]
+
+
+class RoundTheWorld(PartyGame):
+    """The numbers 1 to 20 in an order, then the bull: a dart in any bed of
+    its target completes it and scores its points, and the next dart aims at
+    the next target. Whoever completes the bull first wins."""
+
+    kind = "round_the_world"
+
+    def __init__(self, players: int, order: str = ASCENDING) -> None:
+        self.order = order if order in WORLD_ORDERS else ASCENDING
+        super().__init__(players)
+
+    def new_leg(self, players: int, starter: int) -> None:
+        super().new_leg(players, starter)
+        numbers = list(range(1, WORLD_NUMBERS + 1))
+        if self.order == DESCENDING:
+            numbers.reverse()
+        elif self.order == RANDOM_ORDER:
+            # Not for security: a new order for every leg.
+            random.shuffle(numbers)
+        self.sequence = [*numbers, BULL]
+        self.progress = [0] * players
+
+    def _name(self, done: int) -> str | None:
+        return str(self.sequence[done]) if done < len(self.sequence) else None
+
+    def target(self, player: int) -> str | None:
+        return self._name(self.progress[player])
+
+    def visit(self, player: int, darts: list[dict[str, Any]]) -> Visit:
+        points, progress, hits = list(self.points), list(self.progress), 0
+        for count, dart in enumerate(darts, 1):
+            done = progress[player]
+            if dart["multiplier"] == 0 or dart["number"] != self.sequence[done]:
+                continue
+            points[player] += score(dart)
+            progress[player] = done + 1
+            hits += 1
+            if progress[player] == len(self.sequence):
+                return Visit(points, player, hits=hits, darts=count, progress=progress)
+        return Visit(points, hits=hits, darts=len(darts), progress=progress)
+
+    def book(self, player: int, darts: list[dict[str, Any]]) -> Visit:
+        result = super().book(player, darts)
+        self.progress = result.progress
+        return result
+
+    def details(self, player: int) -> dict[str, Any]:
+        return {"progress": self.progress[player]}
+
+    def live_target(self, player: int, result: Visit) -> str | None:
+        return self._name(result.progress[player])
+
+    def live_details(self, player: int, result: Visit) -> dict[str, Any]:
+        return {"progress": result.progress[player]}
+
+    def stored(self) -> dict[str, Any]:
+        return {
+            **super().stored(),
+            "sequence": list(self.sequence),
+            "progress": list(self.progress),
+        }
+
+    def restore(self, saved: object) -> None:
+        super().restore(saved)
+        if not isinstance(saved, dict):
+            return
+        sequence, progress = saved.get("sequence"), saved.get("progress")
+        if (
+            isinstance(sequence, list)
+            and all(type(number) is int for number in sequence)
+            and sequence[-1:] == [BULL]
+            and sorted(sequence[:-1]) == list(range(1, WORLD_NUMBERS + 1))
+        ):
+            self.sequence = list(sequence)
+        if (
+            isinstance(progress, list)
+            and len(progress) == self.players
+            and all(
+                type(done) is int and 0 <= done <= len(self.sequence)
+                for done in progress
+            )
+        ):
+            self.progress = list(progress)
+
+
+class Gotcha(PartyGame):
+    """Count up from 0 to the target score and finish it as the Out mode
+    asks, as in X01 the other way round. A dart that overshoots, leaves 1
+    with double or master out, or reaches the target with a dart that does
+    not fit the Out mode busts the visit, which then counts nothing. A dart
+    that brings the player to exactly another player's score sends that
+    player back to 0: gotcha."""
+
+    kind = "gotcha"
+
+    def __init__(
+        self, players: int, target: int = GOTCHA_TARGET, out_mode: str = STRAIGHT
+    ) -> None:
+        self.goal = target if valid_gotcha_target(target) else GOTCHA_TARGET
+        self.out_mode = out_mode if out_mode in MODES else STRAIGHT
+        super().__init__(players)
+
+    def target(self, player: int) -> str | None:
+        return None
+
+    def left(self, points: int) -> int:
+        """What a player with these points has left to score."""
+        return self.goal - points
+
+    def visit(self, player: int, darts: list[dict[str, Any]]) -> Visit:
+        points, hits = list(self.points), 0
+        for count, dart in enumerate(darts, 1):
+            scored = score(dart)
+            left = self.left(points[player] + scored)
+            if (
+                left < 0
+                or (self.out_mode != STRAIGHT and left == 1)
+                or (left == 0 and not fits(dart, self.out_mode))
+            ):
+                return Visit(list(self.points), bust=True, darts=count)
+            if not scored:
+                continue
+            points[player] += scored
+            hits += 1
+            if left == 0:
+                return Visit(points, player, hits=hits, darts=count)
+            for other in range(self.players):
+                if other != player and points[other] == points[player]:
+                    points[other] = 0
+        return Visit(points, hits=hits, darts=len(darts))
+
+    def details(self, player: int) -> dict[str, Any]:
+        return {"left": self.left(self.points[player])}
+
+    def live_details(self, player: int, result: Visit) -> dict[str, Any]:
+        return {"left": self.left(result.points[player])}
+
+    def restore(self, saved: object) -> None:
+        super().restore(saved)
+        # Points beyond the target belong to another target score.
+        if any(points > self.goal for points in self.points):
+            self.points = [self.start] * self.players
+
+
+def valid_gotcha_target(target: object) -> bool:
+    """A target score of Gotcha: a whole number from 101 to 1001."""
+    low, high = GOTCHA_TARGETS
+    return type(target) is int and low <= target <= high
 
 
 class RoundsGame(PartyGame):
@@ -691,12 +910,19 @@ GAME_RULES: dict[str, type[PartyGame]] = {
     "golf": Golf,
     "baseball": Baseball,
     "count_up": CountUp,
+    "bermuda": Bermuda,
+    "round_the_world": RoundTheWorld,
+    "gotcha": Gotcha,
 }
 
 
-def make_party(kind: str, players: int, rounds: int | None = None) -> PartyGame:
-    """The rules of a party game; Golf and Count-Up take their number of rounds."""
+def make_party(
+    kind: str, players: int, rounds: int | None = None, **options: Any
+) -> PartyGame:
+    """The rules of a party game; Golf and Count-Up take their number of
+    rounds, Bermuda whether a miss halves, Round the World its order and
+    Gotcha its target score and Out mode."""
     rules = GAME_RULES[kind]
     if issubclass(rules, RoundsGame):
         return rules(players, rounds)
-    return rules(players)
+    return rules(players, **options)

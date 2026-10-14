@@ -483,6 +483,9 @@
       },
       "practice_three_in_a_bed": {
         "name": "Practice Wild Mouse three in a bed"
+      },
+      "practice_bermuda_halve_on_miss": {
+        "name": "Practice Bermuda halving on a miss"
       }
     },
     "select": {
@@ -520,6 +523,9 @@
           "golf": "Golf",
           "baseball": "Baseball",
           "count_up": "Count-Up",
+          "bermuda": "Bermuda",
+          "round_the_world": "Round the World",
+          "gotcha": "Gotcha",
           "checkout_121": "121 checkout",
           "catch_40": "Catch 40",
           "jdc_challenge": "JDC Challenge",
@@ -563,6 +569,14 @@
       },
       "practice_golf_holes": {
         "name": "Practice Golf holes"
+      },
+      "practice_round_the_world_order": {
+        "name": "Practice Round the World order",
+        "state": {
+          "ascending": "1 to 20, bull",
+          "descending": "20 to 1, bull",
+          "random": "Random, bull"
+        }
       },
       "tournament_format": {
         "name": "Tournament format",
@@ -611,6 +625,9 @@
       },
       "practice_count_up_rounds": {
         "name": "Practice Count-Up rounds"
+      },
+      "practice_gotcha_target": {
+        "name": "Practice Gotcha target score"
       },
       "tournament_pause": {
         "name": "Tournament pause"
@@ -1138,6 +1155,18 @@
           "name": "Count-Up rounds",
           "description": "Rounds of Count-Up, 1 to 20."
         },
+        "halve_on_miss": {
+          "name": "Bermuda halving",
+          "description": "Bermuda: a visit without a hit halves the score, as on play.autodarts.io. Off keeps the score."
+        },
+        "order": {
+          "name": "Round the World order",
+          "description": "The order of the numbers in Round the World before the bull: 1 to 20, 20 to 1 or random."
+        },
+        "target_score": {
+          "name": "Gotcha target score",
+          "description": "The score Gotcha counts up to, 101 to 1001; the out mode decides how it ends."
+        },
         "bot_level": {
           "name": "Bot level",
           "description": "Play against the bot in X01 and the Cricket games: the 3-dart average it plays, 20 to 120; 0 plays without the bot. The bot takes the seat after the players."
@@ -1450,10 +1479,20 @@
         "golf": "Golf",
         "baseball": "Baseball",
         "count_up": "Count-Up",
+        "bermuda": "Bermuda",
+        "round_the_world": "Round the World",
+        "gotcha": "Gotcha",
         "checkout_121": "121 checkout",
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Singles training"
+      }
+    },
+    "world_order": {
+      "options": {
+        "ascending": "1 to 20, bull",
+        "descending": "20 to 1, bull",
+        "random": "Random, bull"
       }
     },
     "x01_mode": {

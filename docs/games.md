@@ -2,7 +2,7 @@
 
 [← Documentation](README.md) · [Deutsch](games.de.md)
 
-Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, four Cricket games, six party games and eight training games, alone, as a match of up to four players, a party game of up to eight or a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
+Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, four Cricket games, nine party games and eight training games, alone, as a match of up to four players, a party game of up to eight or a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
 
 <img src="images/en/lobby.webp" alt="Animation: on the tablet at the board, New game opens the game screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
@@ -23,6 +23,9 @@ Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001,
 | [**Golf**](#golf) | 1–8 | Nine or 18 holes in the fewest strokes |
 | [**Baseball**](#baseball) | 1–8 | Score the most runs in nine innings |
 | [**Count-Up**](#count-up) | 1–8 | Score the most points in 1 to 20 rounds |
+| [**Bermuda**](#bermuda) | 1–8 | Thirteen targets as on play.autodarts.io; a visit without a hit halves your points |
+| [**Round the World**](#round-the-world) | 1–8 | 1 to 20 in an order of your choice, then the bull; the first to hit the bull wins |
+| [**Gotcha**](#gotcha) | 1–8 | Count up to the target score, and send others back to 0 by reaching their score |
 | [**Around the Clock**](#around-the-clock) | 1 | 1 to 20 and the bull in the fewest darts |
 | [**Doubles training**](#doubles-training) | 1 | D1 to D20 and the bullseye in the fewest darts |
 | [**Checkout training**](#checkout-training) | 1 | Random finishes from 2 to 170 within three visits |
@@ -273,7 +276,7 @@ Also known as Minnesota Cricket. Besides 20 to 15 and the bull, every player clo
 
 ## Party games
 
-Six pub classics for one to eight players, a whole party; Killer needs two. With five to eight, the scoreboard shows two rows of four tiles.
+Six pub classics and three games of play.autodarts.io for one to eight players, a whole party; Killer needs two. With five to eight, the scoreboard shows two rows of four tiles.
 
 <img src="images/en/scoreboard-party.png" alt="Scoreboard in Killer for a party of eight, Alex to Ben, in two rows of four tiles: Alex at the board as a killer, Sam with two lives left" width="760"> They book a visit when you pull the darts and win legs and sets like any match. The cards show the round, the target and every player's points or lives, and outline the beds to aim at. Party games do not count for the X01 statistics.
 
@@ -328,6 +331,39 @@ Six pub classics for one to eight players, a whole party; Killer needs two. With
 
 - 1 to 20 rounds, set in *Practice Count-Up rounds*, 8 by default. Every dart scores its value.
 - The most points win. A tie at the top plays extra rounds among the tied players until one of them leads after a round.
+
+### Bermuda
+
+<img src="images/en/bermuda.webp" alt="Animation: Bermuda for Alex and Sam on the scoreboard. Both score on the 12, Sam misses the 13 and falls from 48 to 24 points, and Alex climbs to 167 on the 14" width="760">
+
+- Thirteen rounds from 0 points, as [play.autodarts.io](https://play.autodarts.io) plays them: 12, 13, 14, any double, 15, 16, 17, any triple, 18, 19, 20, the bull and the bullseye.
+- Hits score their points. *Any double* includes the bullseye. In the twelfth round, *Bull (25/50)*, both bulls count; in the last, *Bullseye (50)*, only the bullseye.
+- A visit without a hit on the target halves the points, rounded down, also when fewer than three darts were thrown. *Practice Bermuda halving on a miss* turns this off, so that a miss just scores nothing; a change starts a game of Bermuda anew.
+- The most points after 13 rounds win; ties are decided as in Shanghai.
+
+### Round the World
+
+<img src="images/en/round-the-world.webp" alt="Animation: Round the World for Alex and Sam on the scoreboard. Alex hits 1, 2 and 3 in one visit, Sam 1 and 2, and every tile shows how many of the 21 targets the player has done" width="760">
+
+- Every player goes round the board on their own: the numbers 1 to 20, then the bull. *Practice Round the World order* plays 1 to 20 (`ascending`, the default), 20 to 1 (`descending`) or the numbers in a new random order for every leg (`random`); the bull always comes last. A change starts a game of Round the World anew.
+- Any bed of the target completes it, and the next dart aims at the next target, also within a visit. The outer bull and the bullseye both complete the bull.
+- Every hit adds its points, a triple 3 nine of them. The tiles show the points and how many of the 21 targets each player has done.
+- The first to complete the bull wins at once; later darts of the visit do not count.
+
+### Gotcha
+
+<img src="images/en/gotcha.webp" alt="Animation: Gotcha up to 101 for Alex and Sam on the scoreboard. Sam reaches Alex's 75 and sends Alex back to 0, Alex climbs to 86, and Sam checks out on double 10" width="760">
+
+- Everybody counts up from 0 to the target score: 301 by default, 101 to 1001 in *Practice Gotcha target score*. A change starts a game of Gotcha anew.
+- The leg ends as the *Practice out mode* asks, as X01 does the other way round: on any dart (straight), on a double or the bullseye (double), or also on a triple (master). A new out mode changes a leg only before its first dart.
+- A dart that goes past the target score, leaves 1 with double or master out, or reaches the target with a dart the out mode does not take busts the visit: it counts nothing.
+- **Gotcha:** a dart that brings you to exactly another player's score sends that player back to 0. A visit that busts takes its gotchas back.
+- The tiles show every player's points and the points to go. The first to finish wins at once.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/gotcha-rules-dark.png">
+  <img src="images/en/gotcha-rules-light.png" alt="What a dart does in Gotcha: a dart adds its points. Past the target score, on 1 left with double or master out, or on the target with a dart that does not fit the out mode, the visit busts and counts nothing, its gotchas included. On the target with a fitting dart, the player wins the leg. Below the target, every other player on exactly the new score goes back to 0, and the next dart follows" width="460">
+</picture>
 
 ## Training games
 

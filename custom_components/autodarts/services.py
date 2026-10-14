@@ -34,7 +34,7 @@ from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
 from .highlights import async_save_highlight
 from .local_coordinator import AutodartsLocalCoordinator
 from .manual import parse_bed
-from .party import GOLF_HOLES, MAX_ROUNDS, PARTY_GAMES
+from .party import GOLF_HOLES, GOTCHA_TARGETS, MAX_ROUNDS, PARTY_GAMES, WORLD_ORDERS
 from .positions import MAX_DISTANCE
 from .practice import (
     GAME_OPTIONS,
@@ -122,6 +122,11 @@ START_GAME_SCHEMA = vol.Schema(
         vol.Optional("holes"): vol.All(vol.Coerce(int), vol.In(GOLF_HOLES)),
         vol.Optional("rounds"): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=MAX_ROUNDS)
+        ),
+        vol.Optional("halve_on_miss"): cv.boolean,
+        vol.Optional("order"): vol.In(WORLD_ORDERS),
+        vol.Optional("target_score"): vol.All(
+            vol.Coerce(int), vol.Range(min=GOTCHA_TARGETS[0], max=GOTCHA_TARGETS[1])
         ),
         vol.Optional("bot_level"): vol.Coerce(int),
     }
@@ -615,6 +620,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
             holes=call.data.get("holes"),
             rounds=call.data.get("rounds"),
             bot_level=call.data.get("bot_level"),
+            halve_on_miss=call.data.get("halve_on_miss"),
+            order=call.data.get("order"),
+            target_score=call.data.get("target_score"),
         )
         return game
 

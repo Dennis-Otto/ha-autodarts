@@ -483,6 +483,9 @@
       },
       "practice_three_in_a_bed": {
         "name": "Übungsspiel Wild Mouse Three in a Bed"
+      },
+      "practice_bermuda_halve_on_miss": {
+        "name": "Übungsspiel Bermuda halbieren ohne Treffer"
       }
     },
     "select": {
@@ -520,6 +523,9 @@
           "golf": "Golf",
           "baseball": "Baseball",
           "count_up": "Count-Up",
+          "bermuda": "Bermuda",
+          "round_the_world": "Round the World",
+          "gotcha": "Gotcha",
           "checkout_121": "121-Checkout",
           "catch_40": "Catch 40",
           "jdc_challenge": "JDC Challenge",
@@ -563,6 +569,14 @@
       },
       "practice_golf_holes": {
         "name": "Übungsspiel Golf-Löcher"
+      },
+      "practice_round_the_world_order": {
+        "name": "Übungsspiel Round-the-World-Reihenfolge",
+        "state": {
+          "ascending": "1 bis 20, Bull",
+          "descending": "20 bis 1, Bull",
+          "random": "Zufällig, Bull"
+        }
       },
       "tournament_format": {
         "name": "Turnierformat",
@@ -611,6 +625,9 @@
       },
       "practice_count_up_rounds": {
         "name": "Übungsspiel Count-Up-Runden"
+      },
+      "practice_gotcha_target": {
+        "name": "Übungsspiel Gotcha-Zielpunktzahl"
       },
       "tournament_pause": {
         "name": "Turnierpause"
@@ -1138,6 +1155,18 @@
           "name": "Count-Up-Runden",
           "description": "Runden von Count-Up, 1 bis 20."
         },
+        "halve_on_miss": {
+          "name": "Bermuda halbieren",
+          "description": "Bermuda: Eine Aufnahme ohne Treffer halbiert die Punkte, wie bei play.autodarts.io. Aus behält die Punkte."
+        },
+        "order": {
+          "name": "Round-the-World-Reihenfolge",
+          "description": "Die Reihenfolge der Zahlen in Round the World vor dem Bull: 1 bis 20, 20 bis 1 oder zufällig."
+        },
+        "target_score": {
+          "name": "Gotcha-Zielpunktzahl",
+          "description": "Die Punktzahl, bis zu der Gotcha zählt, 101 bis 1001; der Out-Modus entscheidet, wie es endet."
+        },
         "bot_level": {
           "name": "Bot-Stärke",
           "description": "Gegen den Bot spielen, in X01 und den Cricket-Spielen: der 3-Dart-Average, den er spielt, 20 bis 120; 0 spielt ohne Bot. Der Bot wirft nach den Spielern."
@@ -1450,10 +1479,20 @@
         "golf": "Golf",
         "baseball": "Baseball",
         "count_up": "Count-Up",
+        "bermuda": "Bermuda",
+        "round_the_world": "Round the World",
+        "gotcha": "Gotcha",
         "checkout_121": "121-Checkout",
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Singles-Training"
+      }
+    },
+    "world_order": {
+      "options": {
+        "ascending": "1 bis 20, Bull",
+        "descending": "20 bis 1, Bull",
+        "random": "Zufällig, Bull"
       }
     },
     "x01_mode": {

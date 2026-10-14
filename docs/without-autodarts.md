@@ -52,7 +52,7 @@ The [actions](entities.md#enter-a-dart-autodartsthrow_dart) `autodarts.throw_dar
 
 Everything the integration does with darts, because it never needed the cameras for it:
 
-- **Every game:** X01 from 101 to 1001 with legs, sets, double in and out, the checkout route and setup hints, the bull-off, teams and handicaps; the four Cricket games; the six party games for up to eight; the eight training games; the [bot](games.md#playing-against-the-bot) and [tournaments](games.md#tournaments).
+- **Every game:** X01 from 101 to 1001 with legs, sets, double in and out, the checkout route and setup hints, the bull-off, teams and handicaps; the four Cricket games; the nine party games for up to eight; the eight training games; the [bot](games.md#playing-against-the-bot) and [tournaments](games.md#tournaments).
 - **Every statistic:** training sessions, personal bests, the daily goal and the streak, player profiles with their badges, achievements, trends, doubles, the leaderboard, the weekly report, the training calendar and the export. Darts entered by hand count for all of them like detected ones.
 - **The screen at the board:** the [scoreboard](scoreboard.md) with the new game screen, the caller, celebrations and idle mode.
 - **Automations:** the board events, such as `visit_completed` or `leg_won`, come as with a board, with `manual: true` and the source `manual`, so the light show, the callers and the reports [blueprints](automations.md#blueprints) work as they are.

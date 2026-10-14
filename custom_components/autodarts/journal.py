@@ -50,6 +50,9 @@ GAME_NAMES = {
     "golf": "Golf",
     "baseball": "Baseball",
     "count_up": "Count-Up",
+    "bermuda": "Bermuda",
+    "round_the_world": "Round the World",
+    "gotcha": "Gotcha",
 }
 GAME_KINDS = frozenset((*CRICKET_GAMES, *PARTY_GAMES))
 # The bot of a practice match has no name of its own.

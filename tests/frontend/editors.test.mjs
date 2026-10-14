@@ -246,7 +246,7 @@ test("the editor offers the games of the board on the page", () => {
   ]);
   // A board without the practice game leaves the list of every game the card knows.
   mount("autodarts-scoreboard-card", makeHass({ states: READY })).remove();
-  assert.equal(formOf("autodarts-scoreboard-card").schema[5].schema[1].selector.select.options.length, 24);
+  assert.equal(formOf("autodarts-scoreboard-card").schema[5].schema[1].selector.select.options.length, 27);
 });
 
 test("the doubles form offers the named players and takes any other name", () => {

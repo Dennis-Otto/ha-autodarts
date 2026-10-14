@@ -483,6 +483,9 @@
       },
       "practice_three_in_a_bed": {
         "name": "Three in a bed de la partie Wild Mouse"
+      },
+      "practice_bermuda_halve_on_miss": {
+        "name": "Division sans touche de la partie Bermuda"
       }
     },
     "select": {
@@ -520,6 +523,9 @@
           "golf": "Golf",
           "baseball": "Baseball",
           "count_up": "Count-Up",
+          "bermuda": "Bermuda",
+          "round_the_world": "Round the World",
+          "gotcha": "Gotcha",
           "checkout_121": "121 checkout",
           "catch_40": "Catch 40",
           "jdc_challenge": "JDC Challenge",
@@ -563,6 +569,14 @@
       },
       "practice_golf_holes": {
         "name": "Trous de Golf de la partie"
+      },
+      "practice_round_the_world_order": {
+        "name": "Ordre de Round the World de la partie",
+        "state": {
+          "ascending": "1 à 20, bull",
+          "descending": "20 à 1, bull",
+          "random": "Au hasard, bull"
+        }
       },
       "tournament_format": {
         "name": "Format du tournoi",
@@ -611,6 +625,9 @@
       },
       "practice_count_up_rounds": {
         "name": "Tours de Count-Up de la partie"
+      },
+      "practice_gotcha_target": {
+        "name": "Score cible de Gotcha de la partie"
       },
       "tournament_pause": {
         "name": "Pause du tournoi"
@@ -1138,6 +1155,18 @@
           "name": "Tours de Count-Up",
           "description": "Nombre de tours de Count-Up, de 1 à 20."
         },
+        "halve_on_miss": {
+          "name": "Division Bermuda",
+          "description": "Bermuda\u00a0: une volée sans touche divise les points par deux, comme sur play.autodarts.io. Désactivé, les points restent."
+        },
+        "order": {
+          "name": "Ordre de Round the World",
+          "description": "L'ordre des numéros de Round the World avant le bull\u00a0: 1 à 20, 20 à 1 ou au hasard."
+        },
+        "target_score": {
+          "name": "Score cible de Gotcha",
+          "description": "Le score jusqu'auquel Gotcha compte, de 101 à 1001\u00a0; le mode de sortie décide de la fin."
+        },
         "bot_level": {
           "name": "Niveau du bot",
           "description": "Jouez contre le bot en X01 et dans les jeux de Cricket\u00a0: la moyenne 3 fléchettes qu'il joue, de 20 à 120\u00a0; 0 joue sans le bot. Le bot prend la place après les joueurs."
@@ -1450,10 +1479,20 @@
         "golf": "Golf",
         "baseball": "Baseball",
         "count_up": "Count-Up",
+        "bermuda": "Bermuda",
+        "round_the_world": "Round the World",
+        "gotcha": "Gotcha",
         "checkout_121": "121 checkout",
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Entraînement aux simples"
+      }
+    },
+    "world_order": {
+      "options": {
+        "ascending": "1 à 20, bull",
+        "descending": "20 à 1, bull",
+        "random": "Au hasard, bull"
       }
     },
     "x01_mode": {

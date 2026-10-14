@@ -215,6 +215,7 @@
     }),
     'poll_interval_seconds': 2.0,
     'practice_game': dict({
+      'bermuda_halve_on_miss': True,
       'bot_delay': 2.0,
       'bot_level': 0,
       'bull_mode': '25_50',
@@ -439,6 +440,7 @@
     }),
     'poll_interval_seconds': 2.0,
     'practice_game': dict({
+      'bermuda_halve_on_miss': True,
       'bot_delay': 2.0,
       'bot_level': 0,
       'bull_mode': '25_50',

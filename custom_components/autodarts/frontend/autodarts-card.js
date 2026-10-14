@@ -281,6 +281,9 @@ const TEXT = {
     party_golf: "Golf",
     party_baseball: "Baseball",
     party_count_up: "Count-Up",
+    party_bermuda: "Bermuda",
+    party_round_the_world: "Round the World",
+    party_gotcha: "Gotcha",
     golf_hole: "Hole",
     baseball_inning: "Inning",
     playoff: "Play-off",
@@ -293,6 +296,7 @@ const TEXT = {
     any_treble: "Any treble",
     killer_choose: "Throw for your number",
     killer_hunt: "Killer – hit the others' doubles",
+    gotcha_left: "{points} to go",
     killer_life: "1 life",
     killer_lives: "{count} lives",
     needs_players: "Killer needs at least two players",
@@ -452,6 +456,9 @@ const TEXT = {
     rules_golf: "Hole n on the number n: the last of up to three darts counts, a double 1 stroke, a triple 2, singles 3 or 4, anything else 5. The fewest strokes win.",
     rules_baseball: "Nine innings on the numbers 1 to 9: a single scores 1 run, a double 2, a triple 3. The most runs win.",
     rules_count_up: "Every dart scores its value; the most points after the last round win.",
+    rules_bermuda: "Thirteen rounds from 0 points: 12, 13, 14, any double, 15, 16, 17, any triple, 18, 19, 20, the bull and the bullseye. Hits score their points; a visit without a hit halves your points, unless the board plays without halving.",
+    rules_round_the_world: "Hit 1 to 20 in order, or 20 to 1 or at random, then the bull; any bed counts and scores its points. The first to hit the bull wins.",
+    rules_gotcha: "Count up from 0 to the target score and finish as the out mode asks; a dart that goes too far busts the visit. Reach another player's score exactly and they start again from 0.",
     rules_around_the_clock: "Hit 1 to 20 and then the bull in order, in as few darts as you can.",
     rules_doubles: "Hit D1 to D20 and then the bullseye in order, in as few darts as you can.",
     rules_checkout: "A random finish from 2 to 170, checked out on a double within three visits.",
@@ -545,6 +552,7 @@ const TEXT = {
     idle_section_helper: "When no game runs and nobody throws or taps, the scoreboard shows these panels in turn.",
     // Bull targets, the bull-off and the result of a match
     bull_target: "Bull (25/50)",
+    bullseye_target: "Bullseye (50)",
     bull_off_rethrow: "Tie – throw again",
     bull_off_leads: "leads",
     score_winner_by: "wins the match {result}!",
@@ -910,6 +918,9 @@ const TEXT = {
     party_golf: "Golf",
     party_baseball: "Baseball",
     party_count_up: "Count-Up",
+    party_bermuda: "Bermuda",
+    party_round_the_world: "Round the World",
+    party_gotcha: "Gotcha",
     golf_hole: "Loch",
     baseball_inning: "Inning",
     playoff: "Stechen",
@@ -922,6 +933,7 @@ const TEXT = {
     any_treble: "Beliebiges Triple",
     killer_choose: "Wirf um deine Zahl",
     killer_hunt: "Killer – triff fremde Doubles",
+    gotcha_left: "noch {points}",
     killer_life: "1 Leben",
     killer_lives: "{count} Leben",
     needs_players: "Killer braucht mindestens zwei Spieler",
@@ -1080,6 +1092,9 @@ const TEXT = {
     rules_golf: "Loch n auf der Zahl n: Der letzte von bis zu drei Darts zählt, ein Double 1 Schlag, ein Triple 2, Singles 3 oder 4, sonst 5. Die wenigsten Schläge gewinnen.",
     rules_baseball: "Neun Innings auf die Zahlen 1 bis 9: Ein Single bringt 1 Run, ein Double 2, ein Triple 3. Die meisten Runs gewinnen.",
     rules_count_up: "Jeder Dart punktet seinen Wert; die meisten Punkte nach der letzten Runde gewinnen.",
+    rules_bermuda: "Dreizehn Runden ab 0 Punkten: 12, 13, 14, ein Double, 15, 16, 17, ein Triple, 18, 19, 20, das Bull und das Bullseye. Treffer punkten ihren Wert; eine Aufnahme ohne Treffer halbiert deine Punkte, außer das Board spielt ohne Halbieren.",
+    rules_round_the_world: "Triff 1 bis 20 der Reihe nach, oder 20 bis 1 oder zufällig, dann das Bull; jedes Feld zählt und punktet seinen Wert. Wer zuerst das Bull trifft, gewinnt.",
+    rules_gotcha: "Zähle von 0 bis zur Zielpunktzahl hoch und beende, wie es der Out-Modus verlangt; ein Dart zu viel überwirft die Aufnahme. Triffst du genau die Punktzahl eines anderen, fängt er wieder bei 0 an.",
     rules_around_the_clock: "Triff 1 bis 20 und dann das Bull der Reihe nach, mit so wenigen Darts wie möglich.",
     rules_doubles: "Triff D1 bis D20 und dann das Bullseye der Reihe nach, mit so wenigen Darts wie möglich.",
     rules_checkout: "Ein zufälliger Rest von 2 bis 170, auf ein Double gecheckt in drei Aufnahmen.",
@@ -1169,6 +1184,7 @@ const TEXT = {
     idle_section: "Ruhemodus",
     idle_section_helper: "Läuft kein Spiel und wirft oder tippt niemand, zeigt die Anzeigetafel diese Seiten im Wechsel.",
     bull_target: "Bull (25/50)",
+    bullseye_target: "Bullseye (50)",
     bull_off_rethrow: "Gleichstand – noch einmal werfen",
     bull_off_leads: "führt",
     score_winner_by: "gewinnt das Match {result}!",
@@ -1529,6 +1545,9 @@ const TEXT = {
     party_golf: "Golf",
     party_baseball: "Baseball",
     party_count_up: "Count-Up",
+    party_bermuda: "Bermuda",
+    party_round_the_world: "Round the World",
+    party_gotcha: "Gotcha",
     golf_hole: "Hoyo",
     baseball_inning: "Entrada",
     playoff: "Desempate",
@@ -1541,6 +1560,7 @@ const TEXT = {
     any_treble: "Cualquier triple",
     killer_choose: "Lanza para conseguir tu número",
     killer_hunt: "Killer – a por los dobles ajenos",
+    gotcha_left: "faltan {points}",
     killer_life: "1 vida",
     killer_lives: "{count} vidas",
     needs_players: "Killer necesita al menos dos jugadores",
@@ -1698,6 +1718,9 @@ const TEXT = {
     rules_golf: "Hoyo n en el número n: cuenta el último de hasta tres dardos; un doble 1 golpe, un triple 2, simples 3 o 4, lo demás 5. Gana quien tenga menos golpes.",
     rules_baseball: "Nueve entradas en los números 1 a 9: un simple vale 1 carrera, un doble 2, un triple 3. Gana quien tenga más carreras.",
     rules_count_up: "Cada dardo puntúa su valor; gana quien tenga más puntos tras la última ronda.",
+    rules_bermuda: "Trece rondas desde 0 puntos: 12, 13, 14, cualquier doble, 15, 16, 17, cualquier triple, 18, 19, 20, el bull y el bullseye. Los aciertos puntúan su valor; una tirada sin acierto divide tus puntos a la mitad, salvo que la diana juegue sin dividir.",
+    rules_round_the_world: "Acierta del 1 al 20 en orden, o del 20 al 1 o al azar, y luego el bull; cualquier segmento cuenta y puntúa su valor. Gana quien acierte primero el bull.",
+    rules_gotcha: "Cuenta desde 0 hasta la puntuación objetivo y cierra como pide el modo de salida; un dardo que se pasa anula la tirada. Si alcanzas exactamente la puntuación de otro jugador, vuelve a empezar desde 0.",
     rules_around_the_clock: "Acierta del 1 al 20 y luego el bull en orden, con los menos dardos posibles.",
     rules_doubles: "Acierta del D1 al D20 y luego el bullseye en orden, con los menos dardos posibles.",
     rules_checkout: "Un cierre aleatorio de 2 a 170, terminado en un doble en tres tiradas.",
@@ -1787,6 +1810,7 @@ const TEXT = {
     idle_section: "Modo de espera",
     idle_section_helper: "Cuando no hay ninguna partida en curso y nadie lanza ni toca la pantalla, el marcador muestra estos paneles por turnos.",
     bull_target: "Bull (25/50)",
+    bullseye_target: "Bullseye (50)",
     bull_off_rethrow: "Empate – lanza de nuevo",
     bull_off_leads: "lidera",
     score_winner_by: "gana el partido {result}",
@@ -2146,6 +2170,9 @@ const TEXT = {
     party_golf: "Golf",
     party_baseball: "Baseball",
     party_count_up: "Count-Up",
+    party_bermuda: "Bermuda",
+    party_round_the_world: "Round the World",
+    party_gotcha: "Gotcha",
     golf_hole: "Trou",
     baseball_inning: "Inning",
     playoff: "Barrage",
@@ -2158,6 +2185,7 @@ const TEXT = {
     any_treble: "N'importe quel triple",
     killer_choose: "Lancez pour votre numéro",
     killer_hunt: "Killer – touchez leurs doubles",
+    gotcha_left: "encore {points}",
     killer_life: "1 vie",
     killer_lives: "{count} vies",
     needs_players: "Il faut au moins deux joueurs pour Killer",
@@ -2315,6 +2343,9 @@ const TEXT = {
     rules_golf: "Trou n sur le numéro n\u00a0: la dernière de trois fléchettes au plus compte, un double 1 coup, un triple 2, les simples 3 ou 4, sinon 5. Le moins de coups gagne.",
     rules_baseball: "Neuf manches sur les numéros 1 à 9\u00a0: un simple vaut 1 point, un double 2, un triple 3. Le plus de points gagne.",
     rules_count_up: "Chaque fléchette marque sa valeur\u00a0; le plus de points après la dernière manche gagne.",
+    rules_bermuda: "Treize manches à partir de 0 point\u00a0: 12, 13, 14, un double, 15, 16, 17, un triple, 18, 19, 20, le bull et le bullseye. Les touches marquent leur valeur\u00a0; une volée sans touche divise vos points par deux, sauf si la cible joue sans division.",
+    rules_round_the_world: "Touchez 1 à 20 dans l'ordre, ou 20 à 1 ou au hasard, puis le bull\u00a0; chaque zone compte et marque sa valeur. Le premier à toucher le bull gagne.",
+    rules_gotcha: "Comptez de 0 jusqu'au score cible et finissez comme le veut le mode de sortie\u00a0; une fléchette de trop annule la volée. Atteignez exactement le score d'un autre joueur et il repart de 0.",
     rules_around_the_clock: "Touchez du 1 au 20 puis le bull dans l'ordre, avec le moins de fléchettes possible.",
     rules_doubles: "Touchez du D1 au D20 puis le bullseye dans l'ordre, avec le moins de fléchettes possible.",
     rules_checkout: "Un score aléatoire de 2 à 170 à finir sur un double en trois volées.",
@@ -2404,6 +2435,7 @@ const TEXT = {
     idle_section: "Mode veille",
     idle_section_helper: "Quand aucune partie n'est en cours et que personne ne lance ni ne touche l'écran, le tableau des scores affiche ces panneaux à tour de rôle.",
     bull_target: "Bull (25/50)",
+    bullseye_target: "Bullseye (50)",
     bull_off_rethrow: "Égalité – relancez",
     bull_off_leads: "en tête",
     score_winner_by: "remporte le match {result}\u00a0!",
@@ -2763,6 +2795,9 @@ const TEXT = {
     party_golf: "Golf",
     party_baseball: "Baseball",
     party_count_up: "Count-Up",
+    party_bermuda: "Bermuda",
+    party_round_the_world: "Round the World",
+    party_gotcha: "Gotcha",
     golf_hole: "Hole",
     baseball_inning: "Inning",
     playoff: "Barrage",
@@ -2775,6 +2810,7 @@ const TEXT = {
     any_treble: "Willekeurige triple",
     killer_choose: "Gooi voor je nummer",
     killer_hunt: "Killer – raak andermans dubbels",
+    gotcha_left: "nog {points}",
     killer_life: "1 leven",
     killer_lives: "{count} levens",
     needs_players: "Killer heeft minstens twee spelers nodig",
@@ -2932,6 +2968,9 @@ const TEXT = {
     rules_golf: "Hole n op het getal n: de laatste van maximaal drie darts telt, een double 1 slag, een triple 2, singles 3 of 4, anders 5. De minste slagen winnen.",
     rules_baseball: "Negen innings op de getallen 1 tot 9: een single is 1 run, een double 2, een triple 3. De meeste runs winnen.",
     rules_count_up: "Elke dart scoort zijn waarde; de meeste punten na de laatste ronde winnen.",
+    rules_bermuda: "Dertien rondes vanaf 0 punten: 12, 13, 14, een double, 15, 16, 17, een triple, 18, 19, 20, de bull en de bullseye. Treffers scoren hun waarde; een beurt zonder treffer halveert je punten, tenzij het bord zonder halveren speelt.",
+    rules_round_the_world: "Raak 1 tot 20 op volgorde, of 20 tot 1 of willekeurig, en dan de bull; elk vak telt en scoort zijn waarde. Wie als eerste de bull raakt, wint.",
+    rules_gotcha: "Tel op van 0 tot de doelscore en gooi uit zoals de out-modus vraagt; een dart te veel maakt de beurt bust. Raak je precies de score van een andere speler, dan begint die weer bij 0.",
     rules_around_the_clock: "Raak 1 tot 20 en dan de bull op volgorde, met zo min mogelijk darts.",
     rules_doubles: "Raak D1 tot D20 en dan de bullseye op volgorde, met zo min mogelijk darts.",
     rules_checkout: "Een willekeurige finish van 2 tot 170, op een double uitgegooid in drie beurten.",
@@ -3021,6 +3060,7 @@ const TEXT = {
     idle_section: "Rustmodus",
     idle_section_helper: "Als er geen spel loopt en niemand gooit of tikt, toont het scorebord deze panelen afwisselend.",
     bull_target: "Bull (25/50)",
+    bullseye_target: "Bullseye (50)",
     bull_off_rethrow: "Gelijkstand – gooi opnieuw",
     bull_off_leads: "leidt",
     score_winner_by: "wint de wedstrijd met {result}!",
@@ -4249,7 +4289,19 @@ function cricketBeds(cricket) {
     : hitBeds(cricket.target);
 }
 
-const PARTY_GAMES = ["shanghai", "halve_it", "killer", "golf", "baseball", "count_up"];
+const PARTY_GAMES = [
+  "shanghai",
+  "halve_it",
+  "killer",
+  "golf",
+  "baseball",
+  "count_up",
+  "bermuda",
+  "round_the_world",
+  "gotcha",
+];
+// Round the World: the numbers 1 to 20, then the bull.
+const WORLD_TARGETS = 21;
 // Party games with a scorecard of every round.
 const SCORECARD_GAMES = ["golf", "baseball"];
 const BOARD_NUMBERS = Array.from({ length: 20 }, (_, index) => index + 1);
@@ -4270,6 +4322,9 @@ function partyView(state) {
       lives: Number.isInteger(score.lives) ? score.lives : null,
       killer: score.killer === true,
       scorecard: Array.isArray(score.scorecard) ? score.scorecard.filter(Number.isInteger) : [],
+      // Round the World: the targets done; Gotcha: the points left to the target score.
+      progress: Number.isInteger(score.progress) ? score.progress : null,
+      left: Number.isInteger(score.left) ? score.left : null,
     }));
   return {
     kind: attributes.game,
@@ -4281,6 +4336,9 @@ function partyView(state) {
     phase: attributes.phase === "choose" ? "choose" : "play",
     needsPlayers: finite(attributes.needs_players),
     points: finite(attributes.points) ?? 0,
+    // What the visit so far scored, and a Gotcha visit that went too far.
+    scored: finite(attributes.scored),
+    bust: attributes.bust === true,
     won: attributes.won === true,
     darts: finite(attributes.darts) ?? 0,
     player: finite(attributes.player) ?? 1,
@@ -4332,11 +4390,12 @@ function bullOffLeaders(bullOff) {
   return leaders.filter((item) => item.distance === nearest).map((item) => item.player);
 }
 
-// Beds of a target: a number, any double (with the bull) or treble, or the
-// whole bull, which games name 25.
+// Beds of a target: a number, any double (with the bull) or treble, the
+// whole bull, which games name 25, or the bullseye alone, 50 in Bermuda.
 function targetBeds(target) {
   if (!target) return [];
   if (target === "BULL" || target === "25") return [...hitBeds("BULL"), ...hitBeds("25")];
+  if (target === "50") return hitBeds("BULL");
   if (target === "D") return [...BOARD_NUMBERS.flatMap((n) => hitBeds(`D${n}`)), ...hitBeds("BULL")];
   if (target === "T") return BOARD_NUMBERS.flatMap((n) => hitBeds(`T${n}`));
   return ["S", "T", "D"].flatMap((bed) => hitBeds(`${bed}${target}`));
@@ -4357,11 +4416,13 @@ function partyBeds(party) {
 }
 
 // How a target reads: "Any double" for D, "Bull (25/50)" for the bull where
-// both beds count, "Bull" for the bullseye, D7 for D7.
+// both beds count, "Bullseye (50)" where only the bullseye does, "Bull" for the
+// bullseye, D7 for D7.
 function targetText(ui, target) {
   if (target === "D") return ui.t("any_double");
   if (target === "T") return ui.t("any_treble");
   if (target === "25") return ui.t("bull_target");
+  if (target === "50") return ui.t("bullseye_target");
   return ui.label(target);
 }
 
@@ -4552,6 +4613,7 @@ function partyNote(party, ui) {
   if (party.needsPlayers) return note(t("needs_players"));
   if (killer && party.phase === "choose") return note(t("killer_choose"));
   if (party.target) return `<span class="bed">${escapeHtml(targetText(ui, party.target))}</span>`;
+  if (current?.left !== null && current?.left !== undefined) return note(fill(t("gotcha_left"), { points: current.left }));
   if (killer && current?.killer) return note(t("killer_hunt"));
   return "";
 }
@@ -4578,6 +4640,9 @@ function partyPlayers(party, ui) {
         killer && score.number ? String(score.number) : "",
         killer && score.killer ? t("party_killer") : "",
         killer && out ? t("out") : "",
+        score.progress === null ? "" : `${score.progress}/${WORLD_TARGETS}`,
+        // The points to go of the others; the winner has none.
+        !score.left || active ? "" : fill(t("gotcha_left"), { points: score.left }),
       ],
     };
   });
@@ -7500,6 +7565,10 @@ function visitCount(view, keys, start) {
   const { party } = view;
   if (view.mode !== "party" || party.won || ["killer", "golf"].includes(party.kind)) return null;
   if (party.kind === "count_up") return { kind: "score", score: points(keys) };
+  // Round the World moves on with every hit and Gotcha may bust: the integration counts.
+  if (["round_the_world", "gotcha"].includes(party.kind)) {
+    return party.bust || party.scored === null ? null : { kind: "score", score: party.scored };
+  }
   if (party.kind === "baseball") {
     const inning = [Number(party.target)];
     return { kind: "runs", runs: keys.reduce((sum, key) => sum + cricketMarks(key, inning), 0) };
@@ -7754,6 +7823,9 @@ const PRACTICE_KEYS = [
   "switch.practice_personal_routes",
   "select.practice_golf_holes",
   "number.practice_count_up_rounds",
+  "switch.practice_bermuda_halve_on_miss",
+  "select.practice_round_the_world_order",
+  "number.practice_gotcha_target",
   "number.practice_bot_level",
   "number.practice_bot_delay",
   "switch.practice_manual_entry",

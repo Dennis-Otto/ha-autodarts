@@ -115,6 +115,9 @@
       "practice_count_up_rounds": {
         "default": "mdi:counter"
       },
+      "practice_gotcha_target": {
+        "default": "mdi:flag-checkered"
+      },
       "tournament_pause": {
         "default": "mdi:timer-sand"
       },
@@ -149,6 +152,9 @@
       },
       "practice_golf_holes": {
         "default": "mdi:golf"
+      },
+      "practice_round_the_world_order": {
+        "default": "mdi:earth"
       },
       "tournament_format": {
         "default": "mdi:tournament"
@@ -396,6 +402,9 @@
       },
       "practice_three_in_a_bed": {
         "default": "mdi:bed"
+      },
+      "practice_bermuda_halve_on_miss": {
+        "default": "mdi:division"
       }
     },
     "text": {
