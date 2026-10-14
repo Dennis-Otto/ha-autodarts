@@ -126,7 +126,7 @@ In the works; every part reaches the [betas](installation.md#betas-for-testers) 
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
-| **Darts by voice** | "Alex has 140", "Checkout with two darts", "Triple 20", "Next player" and "Undo" to Assist, in English and German, with an answer in the caller's words ([blueprint](automations.md#enter-darts-by-voice)) | Done |
+| **Darts by voice** | "Alex has 140", "Checkout with two darts", "Triple 20", "Next player" and "Undo" to Assist, in English, German, Spanish, French and Dutch, with an answer in the caller's words ([blueprint](automations.md#enter-darts-by-voice)) | Done |
 
 ## Next
 

@@ -724,7 +724,7 @@ FRENCH = [
         "Game on\xa0: 101 avec Alex et Sam.",
     ),
     (
-        "Alex a 61",
+        "Alex a 61 points",
         "enter_visit",
         {"score": 61, "player": "Alex"},
         "61 pour Alex, reste 40. Sam, il vous reste 101.",
@@ -1053,6 +1053,14 @@ OWN_COMMANDS = {
     "nl": ["Start een timer van 5 minuten", "Hoe laat is het", "Annuleer"],
 }
 
+# Commands for the volume, the heating or a light, with a number after a few words.
+OTHER_DEVICES = {
+    "en": ["Set the volume to 50", "Set the temperature to 21"],
+    "de": ["Stelle die Lautstärke auf 50", "Stelle die Temperatur auf 21"],
+    "es": ["Pon el volumen a 50", "Pon la temperatura a 21", "Sube el volumen a 30"],
+    "fr": ["Mets le volume a 50", "Mets le volume à 50", "Règle la température à 21"],
+    "nl": ["Zet het volume op 50", "Zet de temperatuur op 21"],
+}
 
 @pytest.mark.parametrize("language", SPOKEN)
 async def test_assist_keeps_its_own_commands(hass, language):
@@ -1063,6 +1071,11 @@ async def test_assist_keeps_its_own_commands(hass, language):
         result = await conversation.async_converse(hass, text, None, Context())
         # Assist knew the command, and no action of the integration ran for it.
         assert result.response.error_code != NO_INTENT_MATCH, text
+        assert not actions(calls), text
+    # Commands for other devices that hold a number are not darts either, even when
+    # Assist has no such device to act on.
+    for text in OTHER_DEVICES[language]:
+        await conversation.async_converse(hass, text, None, Context())
         assert not actions(calls), text
 
 

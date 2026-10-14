@@ -126,7 +126,7 @@ In Arbeit; jeder Teil kommt in die [Betas](installation.de.md#betas-für-tester)
 
 | Thema | Was es bringt | Stand |
 | --- | --- | --- |
-| **Darts per Sprache** | „Alex hat 140“, „Checkout mit zwei Darts“, „Triple 20“, „Nächster Spieler“ und „Rückgängig“ zu Assist, auf Deutsch und Englisch, mit einer Antwort in den Worten des Callers ([Blueprint](automations.de.md#enter-darts-by-voice)) | Fertig |
+| **Darts per Sprache** | „Alex hat 140“, „Checkout mit zwei Darts“, „Triple 20“, „Nächster Spieler“ und „Rückgängig“ zu Assist, auf Deutsch, Englisch, Spanisch, Französisch und Niederländisch, mit einer Antwort in den Worten des Callers ([Blueprint](automations.de.md#enter-darts-by-voice)) | Fertig |
 
 ## Als Nächstes
 
