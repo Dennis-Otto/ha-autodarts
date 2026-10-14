@@ -120,22 +120,25 @@ Eine Karte auf einem Dashboard hat Timer: den Countdown bis zum nächsten Match 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/card-timers-dark.png">
-  <img src="images/de/card-timers-light.png" alt="Die Timer einer Karte und die Seite: Home Assistant gibt einer Karte neue Zustände. Eine Karte auf der Seite startet, was sie braucht, etwa den Countdown eines Turniers, die Zeit der Zusammenfassung, den Ruhemodus und den History-Stream; eine Karte, die die Seite verlassen hat, startet nichts. Das Verlassen der Seite hält jeden Timer und den Stream an, und eine Karte, die zurückkommt, wird aktualisiert und startet sie neu. Läuft nach den Tests einer Datei noch ein Timer, schlägt die Datei mit ihrem Namen und dem fehl, was der Timer aufruft, und der Timer hält an." width="560">
+  <img src="images/de/card-timers-light.png" alt="Die Timer einer Karte und die Seite: Home Assistant gibt einer Karte neue Zustände. Eine Karte auf der Seite startet, was sie braucht, etwa den Countdown eines Turniers, die Zeit der Zusammenfassung, den Ruhemodus und den History-Stream; eine Karte, die die Seite verlassen hat, startet nichts. Das Verlassen der Seite hält jeden Timer und den Stream an, und eine Karte, die zurückkommt, wird aktualisiert und startet sie neu. In npm test verlassen die Karten eines Tests die Seite, wenn er endet; läuft dann noch ein Timer, schlägt der Test mit seinem Namen und dem fehl, was der Timer aufruft, und der Timer hält an." width="560">
 </picture>
 
 `npm test` hält jede Karte daran:
 
-- `tests/frontend/dom.mjs` verfolgt die echten Timer, die die Karten und die Tests stellen. Ein Timer, der noch läuft, wenn die Tests einer Datei fertig sind und ihre Karten die Seite verlassen haben, würde die Datei für immer laufen lassen. Stattdessen hält er an, und die Datei schlägt fehl, mit ihrem Namen und dem, was der Timer aufruft:
+- `tests/frontend/dom.mjs` verfolgt die echten Timer, die die Karten und die Tests stellen. Endet ein Test, enden seine simulierten Timer, und seine Karten verlassen die Seite, sodass der nächste Test ohne eine Karte und einen Timer von ihm beginnt. Ein Timer, der dann noch läuft, würde die Datei für immer laufen lassen. Stattdessen hält er an, und der Test schlägt fehl, mit seinem Namen und dem, was der Timer aufruft:
 
   ```text
-  ✖ tests/frontend/dom.mjs
-    Error: tournament.test.mjs left 1 timer running after its cards left the page:
+  ✖ a scoreboard of a waiting tournament counts down with real timers
+    Error: The test "a scoreboard of a waiting tournament counts down with real timers" left 1 timer running after its cards left the page:
     setInterval(() => this._update(), 1000)
   ```
 
+  Karten, die eine Datei außerhalb ihrer Tests auf die Seite stellt, verlassen sie nach ihrem letzten Test, und die Datei schlägt genauso mit ihrem Namen fehl.
 - Ein Test, der nie endet, schlägt nach 60 Sekunden mit seinem Namen fehl (`--test-timeout=60000` in `package.json`), und die übrigen Dateien laufen weiter.
 
 Simulierte Timer (`context.mock.timers`) enden mit ihrem Test und zählen nicht. Um zu prüfen, dass eine Karte keinen Timer startet, vergleicht ein Test `timers()` aus `dom.mjs` davor und danach, wie es *a scoreboard that left the page starts no countdown and no timer of the tournament* in `tests/frontend/tournament.test.mjs` tut.
+
+Die Karten eines Tests verlassen die Seite mit ihm, weil eine Karte, die blieb, `npm test` auf einem langsamen Rechner zufällig scheitern ließ (#106). Der Countdown eines wartenden Turniers zeichnete eine Karte eines früheren Tests jede Sekunde neu, auch während ein späterer Test `setTimeout` simulierte. Die Karte löschte ihren Timer des Ruhemodus dann mit der Simulation, die nichts löscht, und der echte Timer lief weiter, nachdem die Karten die Seite verlassen hatten. `dom.mjs` beendet die Simulation, bevor die Karten gehen, sodass sie ihre echten Timer mit dem echten `clearTimeout` löschen.
 
 ## Wann die End-to-End-Tests laufen
 

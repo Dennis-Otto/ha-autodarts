@@ -4,6 +4,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### Fixed
+
+- **`npm test` no longer fails at random in `tournament.test.mjs`:** on a slow or busy machine, such as a Linux container with little CPU, `npm test` failed with *tournament.test.mjs left 1 timer running after its cards left the page* and the idle timer of a scoreboard, while it passed on a fast one. The cards of a test stayed on the page for the rest of its file, and the countdown of a waiting tournament redrew a scoreboard of an earlier test every second. When that happened while a later test mocked the timers, the scoreboard cleared its idle timer with the mock, which clears nothing, and the real timer ran on. The cards of a test now leave the page when it ends, so no test runs into the timers of another, and a test that leaves a timer running fails with its own name. The cards on your dashboards were not affected. Thanks to @JoeyAwwad for the report (#106, #294).
+
 ## [1.12.4](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.3...v1.12.4) (2026-10-14)
 
 ### Improved
