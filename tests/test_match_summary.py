@@ -101,18 +101,18 @@ def test_the_summary_survives_a_restart_and_the_next_match():
 def test_stores_without_a_summary_or_with_broken_tallies_still_load():
     game, _ = x01_match()
     saved = game.stored()
-    for key in ("summary", "tallies", "double_out_next"):
+    for key in ("summary", "tallies", "out_mode_next"):
         del saved[key]
     game.restore(saved)
-    assert game.summary is None and game.double_out_next is None
+    assert game.summary is None and game.out_mode_next is None
     assert game.tallies == [Tally(), Tally()]
     saved |= {
         "summary": {"players": "none"},
         "tallies": [{"scores_180": -1, "best_leg": 9, "checkouts": "2"}, None],
-        "double_out_next": "yes",
+        "out_mode_next": "yes",
     }
     game.restore(saved)
-    assert game.summary is None and game.double_out_next is None
+    assert game.summary is None and game.out_mode_next is None
     assert game.tallies == [Tally(best_leg=9), Tally()]
     saved["tallies"] = [{}]
     game.restore(saved)

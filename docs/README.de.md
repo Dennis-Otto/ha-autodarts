@@ -43,7 +43,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 
 ### Spielen
 
-- X01 von 101 bis 1001 mit Double-Out, Double-In und dem Checkout-Weg nach jedem Dart
+- X01 von 101 bis 1001 mit Straight, Double und Master In und Out, dem 50/50-Bull, einer Rundengrenze und dem Checkout-Weg nach jedem Dart
 - Cricket, Cut-Throat Cricket, Tactics und Wild Mouse auf einer Kreidetafel
 - Partyspiele für bis zu acht: Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up
 - Turniere mit drei bis acht Spielern: jeder gegen jeden mit Tabelle oder K.-o.-System mit Turnierbaum

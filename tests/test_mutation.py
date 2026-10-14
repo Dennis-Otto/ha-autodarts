@@ -202,7 +202,8 @@ def test_mutmut_changes_the_functions_with_a_cache():
             "property",
             "staticmethod",
         }, path
-    assert decorators(ROOT / "custom_components/autodarts/checkout.py") == {"property"}
+    # The module whose caches matter most has no decorator at all.
+    assert decorators(ROOT / "custom_components/autodarts/checkout.py") == set()
 
 
 def test_the_property_tests_draw_the_same_examples_in_ci_and_under_mutmut():

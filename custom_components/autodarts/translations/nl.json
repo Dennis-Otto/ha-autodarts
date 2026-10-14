@@ -526,6 +526,29 @@
           "singles": "Singletraining"
         }
       },
+      "practice_in_mode": {
+        "name": "Oefenspel in-modus",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_out_mode": {
+        "name": "Oefenspel out-modus",
+        "state": {
+          "straight": "Straight",
+          "double": "Double",
+          "master": "Master"
+        }
+      },
+      "practice_bull_mode": {
+        "name": "Oefenspel bull-modus",
+        "state": {
+          "25_50": "25/50",
+          "50_50": "50/50"
+        }
+      },
       "weekly_report_day": {
         "name": "Dag van het weekrapport",
         "state": {
@@ -582,6 +605,9 @@
       },
       "practice_start": {
         "name": "Oefenspel startscore speler {number}"
+      },
+      "practice_max_rounds": {
+        "name": "Oefenspel maximaal aantal rondes"
       },
       "practice_count_up_rounds": {
         "name": "Oefenspel Count-Up-rondes"
@@ -904,7 +930,7 @@
       "message": "Teams spelen vanaf de startscores van speler 1 en 2, één per team. Geef hoogstens twee startscores op."
     },
     "unwinnable_start": {
-      "message": "Een startscore van 3 is met double in en double out niet uit te gooien: de enige openingsdubbel, D1, laat 1 over. Kies een andere startscore, of schakel double in of double out uit."
+      "message": "Een startscore van 3 is met double- of master-in en double- of master-out niet uit te gooien, tenzij beide master zijn: de enige darts die openen, D1 en T1, laten 1 over of eindigen op een triple. Kies een andere startscore, of andere in- en out-modi."
     },
     "export_limit": {
       "message": "In het afgelopen uur zijn {count} exports geschreven, meer schrijft de integratie niet. Probeer het later opnieuw."
@@ -1060,13 +1086,29 @@
           "name": "Sets om te winnen",
           "description": "Aantal sets dat je nodig hebt om de wedstrijd te winnen."
         },
+        "in_mode": {
+          "name": "In-modus",
+          "description": "Hoe X01-legs beginnen: met elke dart (straight), met een dubbel of de bullseye (double), of met een dubbel, een triple of de bullseye (master)."
+        },
+        "out_mode": {
+          "name": "Out-modus",
+          "description": "Hoe X01-legs eindigen: op elke dart (straight), op een dubbel of de bullseye (double), of op een dubbel, een triple of de bullseye (master)."
+        },
+        "bull_mode": {
+          "name": "Bull-modus",
+          "description": "Wat de bull in X01 telt: 25 voor de buitenste bull en 50 voor de bullseye (25/50), of 50 voor beide (50/50). Alleen de bullseye telt als dubbel."
+        },
+        "max_rounds": {
+          "name": "Maximaal aantal rondes",
+          "description": "Rondes waarna de laagste score een X01-leg wint, 1 tot 50; bij gelijkspel gaat het ronde voor ronde verder. 0 speelt zonder limiet."
+        },
         "double_out": {
           "name": "Double out",
-          "description": "X01-legs eindigen op een dubbel of de bullseye."
+          "description": "Vervangen door de out-modus: aan is double, uit is straight. X01-legs eindigen op een dubbel of de bullseye."
         },
         "double_in": {
           "name": "Double in",
-          "description": "X01-legs beginnen met een dubbel of de bullseye."
+          "description": "Vervangen door de in-modus: aan is double, uit is straight. X01-legs beginnen met een dubbel of de bullseye."
         },
         "bull_off": {
           "name": "Bullen",
@@ -1412,6 +1454,19 @@
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Singletraining"
+      }
+    },
+    "x01_mode": {
+      "options": {
+        "straight": "Straight",
+        "double": "Double",
+        "master": "Master"
+      }
+    },
+    "bull_mode": {
+      "options": {
+        "25_50": "25/50",
+        "50_50": "50/50"
       }
     },
     "export_format": {

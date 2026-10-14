@@ -355,7 +355,9 @@ class Progress:
         game, darts = leg.get("game"), _count(leg.get("darts"))
         # Like the profile, a team leg sets no fewest darts and no best MPR.
         alone = leg.get("team") is None
-        if game in GAMES and leg.get("double_out") is True:
+        # A leg the round limit decided was not checked out.
+        checked_out = leg.get("rounds") is None
+        if game in GAMES and leg.get("double_out") is True and checked_out:
             index = WEEK["highest_checkout"]
             week[index] = max(week[index], _count(leg.get("checkout")))
             best = WEEK["best_501"]

@@ -6,7 +6,7 @@ from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
 from .local_coordinator import AutodartsLocalCoordinator
-from .practice import OPTIONS
+from .practice import OPTIONS, X01_RULES
 from .runtime import AutodartsConfigEntry
 
 # Identifiers, addresses, credentials and player names that must never leave a
@@ -136,8 +136,9 @@ def _practice(local: AutodartsLocalCoordinator) -> dict[str, Any]:
         # A training game, or 501, cricket or a party game such as killer.
         "game": practice.drill or practice.kind,
         **{option: getattr(practice, option) for option in OPTIONS},
-        # Double out switched during a leg, for the next leg.
-        "double_out_next": practice.double_out_next,
+        **{rule: getattr(practice, rule) for rule in X01_RULES},
+        # The Out mode switched during a leg, for the next leg.
+        "out_mode_next": practice.out_mode_next,
         "bull_off_running": practice.bulling is not None,
         "players": len(practice.players),
         "bot_level": practice.bot_level,

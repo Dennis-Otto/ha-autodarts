@@ -297,6 +297,7 @@ const TEXT = {
     killer_lives: "{count} lives",
     needs_players: "Killer needs at least two players",
     double_in_needed: "Start with a double",
+    master_in_needed: "Start with a double or a treble",
     out: "out",
     // Scoreboard card
     view_scoreboard: "Scoreboard",
@@ -340,6 +341,10 @@ const TEXT = {
     show_visit: "Show the current visit",
     show_status: "Show the board status",
     legs_per_set: "legs per set",
+    master_in: "Master in",
+    master_out: "Master out",
+    straight_out: "Straight out",
+    bull_50_50: "Bull 50/50",
     sets_to_win: "sets to win",
     visit_short: "Visit",
     last_short: "Last",
@@ -363,6 +368,8 @@ const TEXT = {
     say_runs: "{runs} runs",
     say_leg: "Game shot, and the leg!",
     say_match: "Game shot, and the match, {name}!",
+    say_limit_leg: "Round limit, and the leg, {name}!",
+    say_limit_match: "Round limit, and the match, {name}!",
     say_setup: "{name}, leave yourself {leave}",
     say_setup_alone: "Leave yourself {leave}",
     // Correcting and entering darts on the scoreboard
@@ -424,6 +431,14 @@ const TEXT = {
     lobby_decrease: "Fewer: {name}",
     lobby_increase: "More: {name}",
     lobby_options: "Options",
+    lobby_in_mode: "In",
+    lobby_out_mode: "Out",
+    lobby_bull_mode: "Bull",
+    lobby_straight: "Straight",
+    lobby_double: "Double",
+    lobby_master: "Master",
+    lobby_max_rounds: "Max rounds",
+    lobby_no_limit: "No limit",
     lobby_rules: "How to play",
     lobby_rules_more: "All rules",
     rules_x01: "Count down to exactly zero; with double out, the last dart hits a double or the bullseye. A dart that goes too far busts the visit.",
@@ -905,6 +920,7 @@ const TEXT = {
     killer_lives: "{count} Leben",
     needs_players: "Killer braucht mindestens zwei Spieler",
     double_in_needed: "Mit einem Double beginnen",
+    master_in_needed: "Mit einem Double oder Triple beginnen",
     out: "raus",
     view_scoreboard: "Anzeigetafel",
     view_players: "Spieler",
@@ -947,6 +963,10 @@ const TEXT = {
     show_visit: "Aktuelle Aufnahme anzeigen",
     show_status: "Board-Status anzeigen",
     legs_per_set: "Legs pro Satz",
+    master_in: "Master-In",
+    master_out: "Master-Out",
+    straight_out: "Straight-Out",
+    bull_50_50: "Bull 50/50",
     sets_to_win: "Sätze zum Sieg",
     visit_short: "Aufnahme",
     last_short: "Zuletzt",
@@ -970,6 +990,8 @@ const TEXT = {
     say_runs: "{runs} Runs",
     say_leg: "Game shot, und das Leg!",
     say_match: "Game shot, und das Match, {name}!",
+    say_limit_leg: "Rundenlimit, und das Leg, {name}!",
+    say_limit_match: "Rundenlimit, und das Match, {name}!",
     say_setup: "{name}, stell dir die {leave}",
     say_setup_alone: "Stell dir die {leave}",
     // Darts auf der Anzeigetafel korrigieren und eingeben
@@ -1031,6 +1053,14 @@ const TEXT = {
     lobby_decrease: "Weniger: {name}",
     lobby_increase: "Mehr: {name}",
     lobby_options: "Optionen",
+    lobby_in_mode: "In",
+    lobby_out_mode: "Out",
+    lobby_bull_mode: "Bull",
+    lobby_straight: "Straight",
+    lobby_double: "Double",
+    lobby_master: "Master",
+    lobby_max_rounds: "Maximale Runden",
+    lobby_no_limit: "Keine Grenze",
     lobby_rules: "So wird gespielt",
     lobby_rules_more: "Alle Regeln",
     rules_x01: "Zähle auf genau null herunter; mit Double-Out trifft der letzte Dart ein Double oder das Bullseye. Ein Dart zu viel überwirft die Aufnahme.",
@@ -1503,6 +1533,7 @@ const TEXT = {
     killer_lives: "{count} vidas",
     needs_players: "Killer necesita al menos dos jugadores",
     double_in_needed: "Empieza con un doble",
+    master_in_needed: "Empieza con un doble o un triple",
     out: "eliminado",
     view_scoreboard: "Marcador",
     view_players: "Jugadores",
@@ -1545,6 +1576,10 @@ const TEXT = {
     show_visit: "Mostrar la tirada actual",
     show_status: "Mostrar el estado de la diana",
     legs_per_set: "legs por set",
+    master_in: "Master in",
+    master_out: "Master out",
+    straight_out: "Straight out",
+    bull_50_50: "Bull 50/50",
     sets_to_win: "sets para ganar",
     visit_short: "Tirada",
     last_short: "Última",
@@ -1568,6 +1603,8 @@ const TEXT = {
     say_runs: "{runs} carreras",
     say_leg: "¡Game shot, y el leg!",
     say_match: "¡Game shot, y el partido, {name}!",
+    say_limit_leg: "¡Límite de rondas, y el leg, {name}!",
+    say_limit_match: "¡Límite de rondas, y el partido, {name}!",
     say_setup: "{name}, déjate {leave}",
     say_setup_alone: "Déjate {leave}",
     correct_title: "Corregir el dardo {dart}",
@@ -1628,6 +1665,14 @@ const TEXT = {
     lobby_decrease: "Menos: {name}",
     lobby_increase: "Más: {name}",
     lobby_options: "Opciones",
+    lobby_in_mode: "Entrada",
+    lobby_out_mode: "Salida",
+    lobby_bull_mode: "Bull",
+    lobby_straight: "Straight",
+    lobby_double: "Double",
+    lobby_master: "Master",
+    lobby_max_rounds: "Rondas máximas",
+    lobby_no_limit: "Sin límite",
     lobby_rules: "Cómo se juega",
     lobby_rules_more: "Todas las reglas",
     rules_x01: "Cuenta hacia atrás hasta cero exacto; con double out, el último dardo da en un doble o en el bullseye. Un dardo que se pasa anula la tirada.",
@@ -2099,6 +2144,7 @@ const TEXT = {
     killer_lives: "{count} vies",
     needs_players: "Il faut au moins deux joueurs pour Killer",
     double_in_needed: "Commencez par un double",
+    master_in_needed: "Commencez par un double ou un triple",
     out: "éliminé",
     view_scoreboard: "Tableau des scores",
     view_players: "Joueurs",
@@ -2141,6 +2187,10 @@ const TEXT = {
     show_visit: "Afficher la volée en cours",
     show_status: "Afficher l'état de la cible",
     legs_per_set: "manches par set",
+    master_in: "Master in",
+    master_out: "Master out",
+    straight_out: "Straight out",
+    bull_50_50: "Bull 50/50",
     sets_to_win: "sets pour gagner",
     visit_short: "Volée",
     last_short: "Dernière",
@@ -2164,6 +2214,8 @@ const TEXT = {
     say_runs: "{runs} points",
     say_leg: "Game shot, et la manche\u00a0!",
     say_match: "Game shot, et le match, {name}\u00a0!",
+    say_limit_leg: "Limite de tours, et la manche, {name}\u00a0!",
+    say_limit_match: "Limite de tours, et le match, {name}\u00a0!",
     say_setup: "{name}, laissez {leave}",
     say_setup_alone: "Laissez {leave}",
     correct_title: "Corriger la fléchette {dart}",
@@ -2224,6 +2276,14 @@ const TEXT = {
     lobby_decrease: "Moins\u00a0: {name}",
     lobby_increase: "Plus\u00a0: {name}",
     lobby_options: "Options",
+    lobby_in_mode: "Entrée",
+    lobby_out_mode: "Sortie",
+    lobby_bull_mode: "Bull",
+    lobby_straight: "Straight",
+    lobby_double: "Double",
+    lobby_master: "Master",
+    lobby_max_rounds: "Tours maximum",
+    lobby_no_limit: "Sans limite",
     lobby_rules: "Comment jouer",
     lobby_rules_more: "Toutes les règles",
     rules_x01: "Comptez à rebours jusqu'à zéro exactement\u00a0; avec le double out, la dernière fléchette touche un double ou le bullseye. Une fléchette de trop annule la volée.",
@@ -2695,6 +2755,7 @@ const TEXT = {
     killer_lives: "{count} levens",
     needs_players: "Killer heeft minstens twee spelers nodig",
     double_in_needed: "Begin met een dubbel",
+    master_in_needed: "Begin met een dubbel of een triple",
     out: "eruit",
     view_scoreboard: "Scorebord",
     view_players: "Spelers",
@@ -2737,6 +2798,10 @@ const TEXT = {
     show_visit: "Huidige beurt tonen",
     show_status: "Bordstatus tonen",
     legs_per_set: "legs per set",
+    master_in: "Master in",
+    master_out: "Master out",
+    straight_out: "Straight out",
+    bull_50_50: "Bull 50/50",
     sets_to_win: "sets om te winnen",
     visit_short: "Beurt",
     last_short: "Vorige",
@@ -2760,6 +2825,8 @@ const TEXT = {
     say_runs: "{runs} runs",
     say_leg: "Game shot, en de leg!",
     say_match: "Game shot, en de wedstrijd, {name}!",
+    say_limit_leg: "Rondelimiet, en de leg, {name}!",
+    say_limit_match: "Rondelimiet, en de wedstrijd, {name}!",
     say_setup: "{name}, laat {leave} over",
     say_setup_alone: "Laat {leave} over",
     correct_title: "Dart {dart} corrigeren",
@@ -2820,6 +2887,14 @@ const TEXT = {
     lobby_decrease: "Minder: {name}",
     lobby_increase: "Meer: {name}",
     lobby_options: "Opties",
+    lobby_in_mode: "In",
+    lobby_out_mode: "Out",
+    lobby_bull_mode: "Bull",
+    lobby_straight: "Straight",
+    lobby_double: "Double",
+    lobby_master: "Master",
+    lobby_max_rounds: "Maximaal aantal rondes",
+    lobby_no_limit: "Geen limiet",
     lobby_rules: "Zo speel je",
     lobby_rules_more: "Alle regels",
     rules_x01: "Tel af naar precies nul; met double out raakt de laatste dart een double of de bullseye. Een dart te veel maakt de beurt ongeldig.",
@@ -3333,6 +3408,10 @@ const SCOREBOARD_KEYS = {
   players: "number.practice_players",
   legs: "number.practice_legs",
   sets: "number.practice_sets",
+  inMode: "select.practice_in_mode",
+  outMode: "select.practice_out_mode",
+  bullMode: "select.practice_bull_mode",
+  maxRounds: "number.practice_max_rounds",
   doubleOut: "switch.practice_double_out",
   doubleIn: "switch.practice_double_in",
   bullOff: "switch.practice_bull_off",
@@ -3930,6 +4009,23 @@ function setupView(setup) {
   return route.length ? { route, leave: setup.leave } : null;
 }
 
+// The In and Out modes of X01: any dart, a double, or a double or a treble.
+const X01_MODES = ["straight", "double", "master"];
+const BULL_MODES = ["25_50", "50_50"];
+
+// The leg the round limit decided last, from the newest leg of the history.
+function roundLimitLeg(legs) {
+  const leg = Array.isArray(legs) ? legs[0] : null;
+  return Number.isInteger(leg?.rounds) ? { ended: String(leg.ended), name: named(leg.name) } : null;
+}
+
+// The X01 rules of a board, as the selects or the sensor give them, or the switches of
+// double in and double out where no mode is known.
+const inModeOf = (board) =>
+  X01_MODES.includes(board.in_mode) ? board.in_mode : board.double_in === true ? "double" : "straight";
+const outModeOf = (board) =>
+  X01_MODES.includes(board.out_mode) ? board.out_mode : board.double_out === false ? "straight" : "double";
+
 // The practice leg of the remaining-score sensor, or null without a game.
 function practiceView(state) {
   if (!usable(state)) return null;
@@ -3968,16 +4064,22 @@ function practiceView(state) {
     winner: finite(attributes.winner),
     legsToWin: finite(attributes.legs_to_win) ?? 1,
     setsToWin: finite(attributes.sets_to_win) ?? 1,
-    // Without double in, every player is in from the first dart.
+    // Without double or master in, every player is in from the first dart.
     opened: attributes.opened !== false,
-    doubleOut: attributes.double_out !== false,
+    inMode: inModeOf(attributes),
+    outMode: outModeOf(attributes),
+    bullMode: attributes.bull_mode === "50_50" ? "50_50" : "25_50",
+    maxRounds: finite(attributes.max_rounds) ?? 0,
+    round: finite(attributes.round),
+    limit: roundLimitLeg(attributes.legs),
     visit: gameVisit(attributes),
     scores,
   };
 }
 
-// The highest score that ends a leg: two trebles 20 and the bull, or three trebles 20.
-const highestCheckout = (practice) => (practice.doubleOut ? 170 : 180);
+// The highest score that ends a leg: two trebles 20 and the bull with double out, or
+// three trebles 20.
+const highestCheckout = (practice) => (practice.outMode === "double" ? 170 : 180);
 
 const DRILLS = [
   "around_the_clock",
@@ -4329,7 +4431,7 @@ function x01Note(practice, ui) {
   if (practice.won) return note(t("game_shot"), "won");
   if (practice.bust) return note(t("bust"), "bust");
   if (practice.route.length) return bedChips(ui, practice.route);
-  if (!practice.opened) return note(t("double_in_needed"));
+  if (!practice.opened) return note(t(practice.inMode === "master" ? "master_in_needed" : "double_in_needed"));
   if (practice.setup) return setupHtml(practice.setup, ui);
   // Single out finishes up to 180; double out only up to 170.
   return practice.remaining <= highestCheckout(practice) ? note(t("no_checkout")) : "";
@@ -4882,6 +4984,25 @@ function summaryTable(summary, ui, teams = []) {
   );
 }
 
+// The X01 rules besides the usual double out, and the round of a leg with a round
+// limit; past it, the extra rounds of a tie.
+function x01Rules(practice, t) {
+  const rules = [
+    { double: t("double_in"), master: t("master_in") }[practice.inMode] ?? "",
+    { straight: t("straight_out"), master: t("master_out") }[practice.outMode] ?? "",
+    practice.bullMode === "50_50" ? t("bull_50_50") : "",
+  ];
+  if (practice.maxRounds && practice.round !== null) {
+    const name = t("drill_round");
+    rules.push(
+      practice.round > practice.maxRounds
+        ? `${t("playoff")} · ${name} ${practice.round}`
+        : `${name} ${practice.round}/${practice.maxRounds}`
+    );
+  }
+  return rules;
+}
+
 // Legs per set and sets to win of a match.
 const matchFormat = (game, t) =>
   game.scores.length > 1
@@ -4927,7 +5048,9 @@ function scoreboardHtml(view, ui) {
   return {
     title: { cricket: cricketTitle(t, game.kind), party: t(`party_${game.kind}`) }[view.mode] ??
       `${t("practice")} ${game.game ?? ""}`.trim(),
-    meta: [round, hint ? t(hint) : "", ...matchFormat(game, t)].filter(Boolean).join(" · "),
+    meta: [round, hint ? t(hint) : "", ...(view.mode === "x01" ? x01Rules(game, t) : []), ...matchFormat(game, t)]
+      .filter(Boolean)
+      .join(" · "),
     banner: game.winner !== null ? winnerText(game, ui) : "",
     bannerKind: "",
     main: main(),
@@ -5106,7 +5229,9 @@ const PARTY_PLAYERS = 8;
 const KNOWN_GAMES = ["101", "301", "501", "701", "901", "1001", ...CRICKET_GAMES, ...PARTY_GAMES, ...DRILLS];
 // A game that ended opens the new game screen after this pause, so the result shows first.
 const LOBBY_DELAY = 8000;
-const LOBBY_OPTIONS = ["double_out", "double_in", "bull_off", "bull_off_distance", "teams", "three_in_a_bed"];
+const LOBBY_OPTIONS = ["bull_off", "bull_off_distance", "teams", "three_in_a_bed"];
+// The round limit of X01 in the steps the screen offers, 0 for none, up to 50.
+const ROUND_STEPS = [0, 5, 10, 15, 20, 30, 50];
 // Teams are two pairs of players; start scores of their own go in steps of 100.
 const TEAM_SIZE = 4;
 // The bot's level: its 3-dart average, set in steps of 10.
@@ -5176,8 +5301,10 @@ function lobbyChoice(board, games) {
     teams: board.teams === true,
     legs: within(board.legs, LOBBY_LIMITS.legs, 1),
     sets: within(board.sets, LOBBY_LIMITS.sets, 1),
-    double_out: board.double_out !== false,
-    double_in: board.double_in === true,
+    in_mode: inModeOf(board),
+    out_mode: outModeOf(board),
+    bull_mode: board.bull_mode === "50_50" ? "50_50" : "25_50",
+    max_rounds: Number.isInteger(board.max_rounds) ? Math.min(Math.max(board.max_rounds, 0), ROUND_STEPS.at(-1)) : 0,
     bull_off: board.bull_off === true,
     bull_off_distance: board.bull_off_distance === true,
     three_in_a_bed: board.three_in_a_bed !== false,
@@ -5212,6 +5339,8 @@ function lobbyChange(choice, action, value) {
   } else if (action === "mode") {
     // Tournament players need a name; a tournament of guests has no table.
     next.tournament = value === "tournament";
+    // A tournament plays straight or double in and out: master comes closest to double.
+    for (const rule of ["in_mode", "out_mode"]) if (next.tournament && next[rule] === "master") next[rule] = "double";
     // The start scores stay with their players.
     const kept = next.players
       .map((name, index) => [name, next.starts[index] ?? 0])
@@ -5248,6 +5377,14 @@ function lobbyChange(choice, action, value) {
     next.starts[index] = start === game ? 0 : start;
   } else if (action === "legs" || action === "sets") {
     next[action] = within(next[action] + index, LOBBY_LIMITS[action], next[action]);
+  } else if ((action === "in_mode" || action === "out_mode") && X01_MODES.includes(value)) {
+    next[action] = next.tournament && value === "master" ? next[action] : value;
+  } else if (action === "bull_mode" && BULL_MODES.includes(value)) {
+    next.bull_mode = value;
+  } else if (action === "max_rounds") {
+    // The next step up or down; a limit of the board between steps goes to its neighbours.
+    const steps = index > 0 ? ROUND_STEPS.filter((step) => step > next.max_rounds) : ROUND_STEPS.filter((step) => step < next.max_rounds);
+    next.max_rounds = (index > 0 ? steps[0] : steps.at(-1)) ?? next.max_rounds;
   } else if (action === "toggle" && [...LOBBY_OPTIONS, "third_place", "random_draw"].includes(value)) {
     next[value] = !next[value];
   } else if (action === "bot") {
@@ -5287,7 +5424,14 @@ function startGameData(choice, { entry = null, distance = false, bed = false } =
     Object.assign(data, { legs: choice.legs, sets: choice.sets, bull_off: choice.bull_off });
     if (distance && choice.bull_off) data.bull_off_distance = choice.bull_off_distance;
   }
-  if (rules.x01) Object.assign(data, { double_out: choice.double_out, double_in: choice.double_in });
+  if (rules.x01) {
+    Object.assign(data, {
+      in_mode: choice.in_mode,
+      out_mode: choice.out_mode,
+      bull_mode: choice.bull_mode,
+      max_rounds: choice.max_rounds,
+    });
+  }
   // Start scores go with the start once any is set, so the game's start comes back, too.
   const starts = players.map((_, index) => choice.starts?.[index] ?? 0);
   if (rules.x01 && (choice.handicap || starts.some(Boolean))) data.start_scores = starts;
@@ -5436,8 +5580,37 @@ function lobbyHtml(choice, ui) {
       `</span></div>`
     );
   };
+  // The In and Out mode, the bull mode and the round limit of X01; a tournament plays
+  // straight or double in and out, the bull 25/50 and no round limit.
+  const choices = (key, values, label) =>
+    `<div class="choice" role="group" aria-label="${text(label)}"><span class="stepper-label">${text(label)}</span>` +
+    `<span class="choice-options">${values
+      .map(([value, name]) => button(key, value, name, ` class="option" aria-pressed="${choice[key] === value}"`))
+      .join("")}</span></div>`;
+  const x01Modes = X01_MODES.filter((mode) => !choice.tournament || mode !== "master").map((mode) => [
+    mode,
+    text(`lobby_${mode}`),
+  ]);
+  const limit = { name: t("lobby_max_rounds") };
+  const x01 = rules.x01
+    ? choices("in_mode", x01Modes, "lobby_in_mode") +
+      choices("out_mode", x01Modes, "lobby_out_mode") +
+      (choice.tournament
+        ? ""
+        : choices("bull_mode", BULL_MODES.map((mode) => [mode, mode.replace("_", "/")]), "lobby_bull_mode") +
+          `<div class="stepper rounds"><span class="stepper-label">${text("lobby_max_rounds")}</span>` +
+          `<span class="stepper-controls">` +
+          button("max_rounds", -1, "−", ` aria-label="${text("lobby_decrease", limit)}"${choice.max_rounds ? "" : " disabled"}`) +
+          `<b class="stepper-value">${choice.max_rounds || text("lobby_no_limit")}</b>` +
+          button(
+            "max_rounds",
+            1,
+            "+",
+            ` aria-label="${text("lobby_increase", limit)}"${choice.max_rounds >= ROUND_STEPS.at(-1) ? " disabled" : ""}`
+          ) +
+          `</span></div>`)
+    : "";
   const options = [
-    ...(rules.x01 ? ["double_out", "double_in"] : []),
     ...(match ? ["bull_off"] : []),
     ...(match && ui.distance && choice.bull_off ? ["bull_off_distance"] : []),
     ...(!choice.tournament && rules.teams && ui.teams && choice.players.length + Number(bot) === TEAM_SIZE
@@ -5499,14 +5672,15 @@ function lobbyHtml(choice, ui) {
           "format"
         )
       : "") +
-    (options.length
+    (options.length || x01
       ? block(
           "lobby_options",
-          options
-            .map((option) =>
-              button("toggle", option, text(option), ` class="option" aria-pressed="${choice[option]}"`)
-            )
-            .join(""),
+          x01 +
+            options
+              .map((option) =>
+                button("toggle", option, text(option), ` class="option" aria-pressed="${choice[option]}"`)
+              )
+              .join(""),
           "options"
         )
       : "") +
@@ -5647,46 +5821,64 @@ function padBoardHtml(pad, ui) {
 // Score of a visit -------------------------------------------------------------------
 
 // The beds a dart of a visit entered as its score can hit, as the integration makes its
-// darts up: their points and whether they are a double. A miss, the bulls, and the
-// single, double and treble of every number.
+// darts up: their points and whether they are a double or a treble. A miss, the bulls,
+// and the single, double and treble of every number; with the bull mode 50/50, the
+// outer bull scores what the bullseye does, which stands for both.
 const SCORE_BEDS = [
-  { points: 0, double: false },
-  { points: 25, double: false },
-  { points: 50, double: true },
-  ...[...Array(20)].flatMap((_, index) => [1, 2, 3].map((times) => ({ points: (index + 1) * times, double: times === 2 }))),
+  { points: 0, double: false, treble: false },
+  { points: 25, double: false, treble: false, outer: true },
+  { points: 50, double: true, treble: false },
+  ...[...Array(20)].flatMap((_, index) =>
+    [1, 2, 3].map((times) => ({ points: (index + 1) * times, double: times === 2, treble: times === 3 }))
+  ),
 ];
-const BEDS_BY_POINTS = SCORE_BEDS.reduce(
-  (beds, bed) => beds.set(bed.points, [...(beds.get(bed.points) ?? []), bed]),
-  new Map()
-);
+const bedsByPoints = (beds) =>
+  beds.reduce((found, bed) => found.set(bed.points, [...(found.get(bed.points) ?? []), bed]), new Map());
+const SCORE_BULLS = {
+  "25_50": { beds: SCORE_BEDS, byPoints: bedsByPoints(SCORE_BEDS) },
+  "50_50": {
+    beds: SCORE_BEDS.filter((bed) => !bed.outer),
+    byPoints: bedsByPoints(SCORE_BEDS.filter((bed) => !bed.outer)),
+  },
+};
+
+// Whether a dart opens or ends a leg with this In or Out mode: any dart straight, a
+// double or the bullseye with double, and a treble as well with master.
+const fitsMode = (dart, mode) => mode === "straight" || dart.double || (mode === "master" && dart.treble);
 
 // How the darts of a visit end from what the player had, as the integration counts them:
-// "bust" at a dart that goes below zero, leaves 1 with double out or reaches zero without
-// the double it needs, "won" at zero, and null where they leave the rest.
-function visitOutcome(from, darts, doubleOut) {
+// "bust" at a dart that goes below zero, leaves 1 with double or master out or reaches
+// zero without the dart the Out mode needs, "won" at zero, and null where they leave the
+// rest.
+function visitOutcome(from, darts, out) {
   let left = from;
   for (const dart of darts) {
     left -= dart.points;
-    if (left < 0 || (doubleOut && left === 1) || (left === 0 && doubleOut && !dart.double)) return "bust";
+    if (left < 0 || (out !== "straight" && left === 1) || (left === 0 && !fitsMode(dart, out))) return "bust";
     if (left === 0) return "won";
   }
   return null;
 }
 
-// Whether some visit of `count` darts scores `points` and `fits`, which tells by its darts.
-function someVisit(count, points, fits, chosen = []) {
-  if (chosen.length === count - 1) return (BEDS_BY_POINTS.get(points) ?? []).some((dart) => fits([...chosen, dart]));
-  return SCORE_BEDS.some((dart) => dart.points <= points && someVisit(count, points - dart.points, fits, [...chosen, dart]));
+// Whether some visit of `count` darts scores `points` and passes `test`, which tells by
+// its darts, with the beds of the bull mode.
+function someVisit(entry, count, points, test, chosen = []) {
+  const { beds, byPoints } = SCORE_BULLS[entry.bull === "50_50" ? "50_50" : "25_50"];
+  if (chosen.length === count - 1) return (byPoints.get(points) ?? []).some((dart) => test([...chosen, dart]));
+  return beds.some((dart) => dart.points <= points && someVisit(entry, count, points - dart.points, test, [...chosen, dart]));
 }
 
-// Whether these darts can open the leg: while it waits for a double, the first that
-// scores is one.
-const opens = (entry, darts) => !entry.opening || darts.find((dart) => dart.points)?.double !== false;
+// Whether these darts can open the leg: while it waits for a double, or a double or a
+// treble with master in, the first that scores is one.
+function opens(entry, darts) {
+  const first = darts.find((dart) => dart.points);
+  return !entry.opening || !first || fitsMode(first, entry.opening);
+}
 
 // The fewest darts that check out what the player has left, or null where no visit can.
 function checkoutDarts(entry) {
-  const wins = (darts) => opens(entry, darts) && visitOutcome(entry.from, darts, entry.doubleOut) === "won";
-  return [1, 2, 3].find((count) => someVisit(count, entry.from, wins)) ?? null;
+  const wins = (darts) => opens(entry, darts) && visitOutcome(entry.from, darts, entry.out) === "won";
+  return [1, 2, 3].find((count) => someVisit(entry, count, entry.from, wins)) ?? null;
 }
 
 // Whether a visit scores this from where the player stands, as the integration takes it:
@@ -5696,9 +5888,10 @@ function checkoutDarts(entry) {
 // from 60 does without double out.
 function scorable(entry, points) {
   return someVisit(
+    entry,
     3,
     points,
-    (darts) => opens(entry, darts) && (points === entry.from || visitOutcome(entry.from, darts, entry.doubleOut) !== "won")
+    (darts) => opens(entry, darts) && (points === entry.from || visitOutcome(entry.from, darts, entry.out) !== "won")
   );
 }
 
@@ -5706,11 +5899,17 @@ function scorable(entry, points) {
 const scoreReady = (entry, typed) => typed !== "" && scorable(entry, Number(typed));
 
 // The keypad takes the score of a visit in an X01 leg being played: what the player had
-// before the visit, whether the leg ends on a double and whether it waits for one to open.
+// before the visit, the Out mode, the In mode the leg waits for to open, if any, and the
+// bull mode.
 function scoreEntry(view) {
   const practice = view.mode === "x01" ? view.practice : null;
   if (!practice || practice.winner !== null) return null;
-  return { from: practice.from, doubleOut: practice.doubleOut, opening: !practice.opened };
+  return {
+    from: practice.from,
+    out: practice.outMode,
+    opening: practice.opened ? null : practice.inMode,
+    bull: practice.bullMode,
+  };
 }
 
 // What a score says before it goes in: what it leaves, a checkout or a bust, or that no
@@ -5720,7 +5919,7 @@ function scoreHint(entry, points, t) {
   if (!scorable(entry, points)) return fill(t("score_impossible"), { score: points });
   if (points === entry.from && checkoutDarts(entry) !== null) return t("checkout");
   const left = entry.from - points;
-  if (left < 0 || (entry.doubleOut && left <= 1)) return t("bust");
+  if (left < 0 || (entry.out !== "straight" && left <= 1)) return t("bust");
   return fill(t("setup_leave"), { leave: left });
 }
 
@@ -5737,14 +5936,15 @@ function scoreAnswer(entry, points, answers = {}) {
     data.checkout = true;
     if (answers.darts === undefined && least < 3) return { ask: "darts", choices: counting(least, 3) };
     data.darts = answers.darts ?? 3;
-    if (!entry.doubleOut) return { data };
+    // Darts at a double count with double out alone.
+    if (entry.out !== "double") return { data };
     if (answers.doubles === undefined && data.darts > 1) return { ask: "doubles", choices: counting(1, data.darts) };
     data.darts_at_double = answers.doubles ?? 1;
     return { data };
   }
   // A visit that left a double in reach may have thrown at it; what is left where no double
   // finishes it, such as 159, goes in as it is and busts.
-  if (entry.doubleOut && entry.from - points <= 50 && points !== entry.from) {
+  if (entry.out === "double" && entry.from - points <= 50 && points !== entry.from) {
     if (answers.doubles === undefined) return { ask: "doubles", choices: counting(0, 3) };
     data.darts_at_double = answers.doubles;
   }
@@ -6326,7 +6526,9 @@ function tournamentStartData(choice, { entry = null, distance = false } = {}) {
   };
   if (entry) data.config_entry_id = entry;
   if (distance && choice.bull_off) data.bull_off_distance = choice.bull_off_distance;
-  if (gameGroup(choice.game) === "x01") Object.assign(data, { double_out: choice.double_out, double_in: choice.double_in });
+  if (gameGroup(choice.game) === "x01") {
+    Object.assign(data, { double_out: choice.out_mode !== "straight", double_in: choice.in_mode !== "straight" });
+  }
   // A handicap goes with the start, and so does the game's start score when it is back.
   if (gameGroup(choice.game) === "x01" && (choice.handicap || starts.some(Boolean))) data.start_scores = starts;
   if (choice.format === "knockout") data.third_place = choice.third_place && players.length >= THIRD_PLACE_PLAYERS;
@@ -7032,6 +7234,9 @@ function callerState(visit, view, previous = null) {
     won: game?.won === true,
     winner: game?.winner ?? null,
     winnerName: winner?.name ?? null,
+    // The leg the round limit decided last, by when it ended, and its winner.
+    limit: current.practice?.limit?.ended ?? null,
+    limitName: current.practice?.limit?.name ?? null,
   };
 }
 
@@ -7047,9 +7252,11 @@ function callerCalls(previous, current, options) {
   }
   if (on("call_results") && current.bust && !previous.bust) calls.push({ kind: "bust" });
   if (on("call_results") && current.winner !== null && previous.winner === null) {
-    calls.push({ kind: "match", name: current.winnerName });
+    calls.push({ kind: current.limit ? "limit_match" : "match", name: current.winnerName });
   } else if (on("call_results") && current.won && !previous.won && current.winner === null) {
     calls.push({ kind: "leg" });
+  } else if (on("call_results") && current.limit !== previous.limit && current.limit && current.winner === null) {
+    calls.push({ kind: "limit_leg", name: current.limitName });
   }
   const turn =
     current.player !== previous.player || current.remaining !== previous.remaining || previous.darts > 0;
@@ -7089,9 +7296,11 @@ function callerText(call, t) {
   }
   if (call.kind === "bust") return t("say_bust");
   if (call.kind === "leg") return t("say_leg");
-  if (call.kind === "match") {
-    // Without a name the call ends with the match, before the punctuation of the language.
-    const words = call.name ? t("say_match") : t("say_match").replace(/,\s*\{name\}/, "");
+  if (["match", "limit_match", "limit_leg"].includes(call.kind)) {
+    // Without a name the call ends with the match or the leg, before the punctuation of
+    // the language.
+    const key = { match: "say_match", limit_match: "say_limit_match", limit_leg: "say_limit_leg" }[call.kind];
+    const words = call.name ? t(key) : t(key).replace(/,\s*\{name\}/, "");
     return fill(words, { name: call.name });
   }
   if (call.kind === "tournament_next") return fill(t("say_tournament_next"), { first: call.first, second: call.second });
@@ -7221,8 +7430,10 @@ const PRACTICE_KEYS = [
   "number.practice_players",
   "number.practice_legs",
   "number.practice_sets",
-  "switch.practice_double_out",
-  "switch.practice_double_in",
+  "select.practice_in_mode",
+  "select.practice_out_mode",
+  "select.practice_bull_mode",
+  "number.practice_max_rounds",
   "switch.practice_bull_off",
   "switch.practice_bull_off_distance",
   "switch.practice_teams",
@@ -8836,6 +9047,11 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .lobby-nobody { margin: 0 0 10px; font-size: clamp(12px, 1.5cqi, 16px); }
   .options { display: flex; flex-wrap: wrap; gap: 8px; }
   .options .section-label { flex-basis: 100%; margin-bottom: 0; }
+  .options .choice { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .choice .stepper-label { min-width: 4.5em; }
+  .choice-options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .options .stepper.rounds { flex-basis: 100%; margin-bottom: 4px; }
+  .stepper.rounds .stepper-value { min-width: 4ch; font-size: clamp(16px, 2cqi, 24px); }
   /* The start stays in reach at the bottom of the screen while the page scrolls, below
      both columns and above a phone's home indicator, across the whole card. The card's
      background lies on the page's, so the games scrolling beneath stay hidden with a
@@ -9380,7 +9596,9 @@ function livePanel(view, ui) {
   const match = players.length > 1;
   return {
     title: `${t("practice")} ${practice.game ?? ""}`.trim(),
-    meta: match ? turn(practice) : players[0].details.filter(Boolean).join(" · "),
+    meta: [...x01Rules(practice, t), match ? turn(practice) : players[0].details.filter(Boolean).join(" · ")]
+      .filter(Boolean)
+      .join(" · "),
     big: String(practice.remaining),
     route: practice.winner !== null ? winner(practice) : x01Note(practice, ui),
     routeTitle: practice.route.length ? `${t("checkout")}: ${practice.route.join(" ")}` : "",
@@ -11723,6 +11941,10 @@ function createElements(Base) {
         }),
         legs: this._number("legs"),
         sets: this._number("sets"),
+        in_mode: this._state("inMode")?.state,
+        out_mode: this._state("outMode")?.state,
+        bull_mode: this._state("bullMode")?.state,
+        max_rounds: this._number("maxRounds"),
         double_out: !this._state("doubleOut") || on("doubleOut"),
         double_in: on("doubleIn"),
         bull_off: on("bullOff"),
@@ -11799,6 +12021,7 @@ function createElements(Base) {
       const choice = this._lobby;
       const index = Number(value);
       if (action === "legs" || action === "sets") return `${this._t(`lobby_${action}`)} ${choice[action]}`;
+      if (action === "max_rounds") return `${this._t("lobby_max_rounds")} ${choice.max_rounds || this._t("lobby_no_limit")}`;
       if (action === "lower" || action === "raise") {
         const name = choice.players[index] || `${this._t("score_player")} ${index + 1}`;
         return `${name} ${choice.starts[index] || choice.game}`;

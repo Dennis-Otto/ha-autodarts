@@ -1,5 +1,5 @@
-"""Camera standby of the Board Manager, the practice game, Golf holes, the report
-day and the tournament."""
+"""Camera standby of the Board Manager, the practice game, the X01 rules, Golf
+holes, the report day and the tournament."""
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.const import EntityCategory
@@ -16,6 +16,7 @@ from .party import GOLF_HOLES
 from .practice import GAME_OPTIONS, MAX_PLAYERS
 from .report import WEEKDAYS
 from .runtime import AutodartsConfigEntry
+from .scoring import BULL_MODES, MODES
 from .tournament import FORMATS, TOURNAMENT_GAMES
 
 PARALLEL_UPDATES = 1
@@ -35,6 +36,10 @@ async def async_setup_entry(
             [
                 *standby,
                 AutodartsPracticeGame(coordinator),
+                *(
+                    AutodartsX01Rule(coordinator, rule)
+                    for rule in ("in_mode", "out_mode", "bull_mode")
+                ),
                 AutodartsGolfHoles(coordinator),
                 AutodartsReportDay(coordinator),
                 AutodartsTournamentSelect(coordinator, "format"),
@@ -106,6 +111,39 @@ class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
             await self.coordinator.async_play(int(option))
         else:
             await self.coordinator.async_play(option)
+
+
+class AutodartsX01Rule(AutodartsLocalEntity, SelectEntity):
+    """The In or Out mode of X01, straight, double or master, or its bull mode.
+
+    The Out mode applies from the next leg once darts of a leg count; another
+    In mode or bull mode starts the match anew.
+    """
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator, rule: str) -> None:
+        super().__init__(coordinator, f"practice_{rule}")
+        self._rule = rule
+        self._attr_options = list(BULL_MODES if rule == "bull_mode" else MODES)
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def current_option(self) -> str:
+        return str(self.coordinator.practice.rule(self._rule))
+
+    async def async_select_option(self, option: str) -> None:
+        practice = self.coordinator.practice
+        if self._rule != "bull_mode" and practice.unwinnable(
+            rules={self._rule: option}
+        ):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="unwinnable_start"
+            )
+        await self.coordinator.async_set_x01_rule(self._rule, option)
 
 
 class AutodartsGolfHoles(AutodartsLocalEntity, SelectEntity):

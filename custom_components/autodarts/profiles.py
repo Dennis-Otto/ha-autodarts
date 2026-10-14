@@ -208,9 +208,11 @@ class Profiles:
                     profile.checkouts += 1
                     profile.highest_checkout = max(profile.highest_checkout, checkout)
                 # The fewest darts count for the score the player really started
-                # from, and only for a leg the player played alone.
+                # from, only for a leg the player played alone, and not for a
+                # leg the round limit decided.
                 start = entry.get("start", game)
-                if won and darts and double_out and start in GAMES and not team:
+                alone = not team and entry.get("rounds") is None
+                if won and darts and double_out and start in GAMES and alone:
                     best = profile.fewest_darts.get(str(start))
                     profile.fewest_darts[str(start)] = min(best or darts, darts)
             elif game == "cricket":
