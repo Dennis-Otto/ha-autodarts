@@ -379,6 +379,49 @@ browser jobs, differs from that of `hacs.json`.
 `tests/test_e2e_workflow.py` runs the steps of *changes* and of the gate in bash,
 with a stand-in for `gh`.
 
+### Network of the jobs
+
+Every job begins with [Harden-Runner](https://github.com/step-security/harden-runner).
+In the project's own workflows, the end-to-end tests, the visual check and its comment,
+the screenshot bot and the translation bot, it blocks every host that the steps of the
+job don't need (`egress-policy: block`), so that a compromised action, package or test
+can't send a token or data anywhere else. A job that starts no container also runs
+without sudo and Docker, so that no step can lift the block. Harden-Runner allows
+GitHub's own services of Actions itself, such as the storage of artifacts and caches.
+
+| Jobs | Hosts | What for |
+| --- | --- | --- |
+| translation bot, *pull request* of the screenshot bot, comment of the visual check | `api.github.com`, `github.com` | They may write issues, branches or comments, so they reach GitHub alone. |
+| *changes* of the end-to-end tests | `api.github.com` | the files of the pull request |
+| *scenario* | `github.com`, `ghcr.io`, `pkg-containers.githubusercontent.com` | the code and the Home Assistant image |
+| *browser* and the nightly beta | the same, `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org` | the Playwright image, axe-core and the Python packages of the browser test |
+| *render* of the visual check and of the screenshot bot | as *browser* without npm, and `launchpad.net`, `launchpadlibrarian.net`, `brands.home-assistant.io` | pngquant, and the icons of Home Assistant's other integrations, which the images show |
+| *compare* and *collect* | `github.com`, `pypi.org`, `files.pythonhosted.org` | Pillow for the comparison |
+| the gate *e2e* | none | |
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/job-network-dark.png">
+  <img src="images/en/job-network-light.png" alt="Which hosts the jobs reach: Harden-Runner, the first step of every job of the project's own workflows, lets a job reach only the hosts it lists. The bots that may write, the translation bot, the pull request of the screenshot bot and the comment of the visual check, reach GitHub alone and run without sudo and Docker. The end-to-end tests and the images reach the code, the images of Home Assistant and Playwright and their packages. The Home Assistant they start has no Radio Browser and calls nothing on the internet, apart from the icons that the images show. Every other host is blocked, and an annotation names it." width="640">
+</picture>
+
+The Home Assistant of the tests calls nothing on the internet itself. Its onboarding
+sets up Radio Browser, which looks up radio stations on the internet as soon as it
+starts, before a test could remove it. So `tests/e2e/offline/radio_browser` takes its
+place as a custom integration in the container, and its config flow turns the offer
+down; the scenario checks that no entry of Radio Browser exists. Only the demo of the
+images loads the icons of the built-in integrations that the integrations page shows,
+through Home Assistant's own proxy from its CDN.
+
+A host that a job doesn't list fails its step, and an annotation of Harden-Runner names
+the host. A new host goes into `allowed-endpoints` of the job together with the step
+that needs it, with a comment that says why, and into `tests/test_workflow_network.py`.
+That test fails for a job of these workflows that it doesn't know, a host that a job
+doesn't need, a job back in audit mode, a job without containers that keeps sudo, and a
+job that may write and reaches more than GitHub. Harden-Runner filters the addresses of
+the runner and of Docker's default network; the containers of the Compose networks get
+their addresses from its DNS, which resolves only the hosts of the job. The
+workflows that the blueprint keeps follow its own rules.
+
 ### Mutation tests
 
 Tests can run a line without checking what it does. Every Saturday the **Mutation**

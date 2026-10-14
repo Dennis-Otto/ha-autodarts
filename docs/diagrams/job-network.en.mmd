@@ -1,0 +1,24 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Which hosts the jobs reach
+  accDescr: Harden-Runner, the first step of every job of the project's own workflows, lets a job reach only the hosts it lists. The bots that may write, the translation bot, the pull request of the screenshot bot and the comment of the visual check, reach GitHub alone and run without sudo and Docker. The end-to-end tests and the images reach the code, the images of Home Assistant and Playwright and their packages. The Home Assistant they start has no Radio Browser and calls nothing on the internet, apart from the icons that the images show. Every other host is blocked, and an annotation names it.
+
+  BOTS["Bots that may write:<br/>translation bot, screenshot pull request,<br/>comment of the visual check"] --> HR
+  TESTS["End-to-end tests and images:<br/>scenario, browser test,<br/>visual check, screenshot bot"] --> HR
+  TESTS --> HA["Home Assistant in its container,<br/>without Radio Browser"]
+  HA -- "only the icons<br/>that the images show" --> HR
+  HR{{"Harden-Runner:<br/>only the hosts that the job lists"}}
+  HR -- "bots, without<br/>sudo and Docker" --> GITHUB["GitHub:<br/>api.github.com, github.com"]
+  HR -- "tests and images" --> PACKAGES["Code, images and packages:<br/>GitHub, ghcr.io, mcr.microsoft.com,<br/>npm, PyPI, Launchpad,<br/>icons of Home Assistant"]
+  HR -- "any other host" --> BLOCKED["Blocked: an annotation<br/>names the host"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class BOTS,TESTS,HA,HR bot
+  class GITHUB,PACKAGES done
+  class BLOCKED failed
