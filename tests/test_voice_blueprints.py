@@ -1062,6 +1062,7 @@ OTHER_DEVICES = {
     "nl": ["Zet het volume op 50", "Zet de temperatuur op 21"],
 }
 
+
 @pytest.mark.parametrize("language", SPOKEN)
 async def test_assist_keeps_its_own_commands(hass, language):
     """Assist hears the sentences of the blueprints before its own commands, so they
