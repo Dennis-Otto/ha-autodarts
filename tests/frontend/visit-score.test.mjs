@@ -252,37 +252,119 @@ test("a checkout asks for its darts and the darts at a double, and Cancel goes b
   assert.deepEqual(actions(hass).at(-1), ["enter_visit", { config_entry_id: ENTRY, score: 20, darts_at_double: 0 }]);
 });
 
-test("a keyboard types the score", () => {
+// Keys of a keyboard reach the pad as in a browser: at the element that has the focus.
+// A card whose focus went nowhere gets none of them.
+const press = (card, name, options = {}) => {
+  const event = new window.KeyboardEvent("keydown", { key: name, bubbles: true, cancelable: true, ...options });
+  (card.shadowRoot.activeElement ?? card).dispatchEvent(event);
+  return event.defaultPrevented;
+};
+// The control with the focus, by the key it keeps the focus with.
+const focused = (card) => card.shadowRoot.activeElement?.dataset.focus ?? null;
+
+test("a keyboard types the score where the focus is, and keeps typing after each score", () => {
   const hass = board();
   const card = mount("autodarts-scoreboard-card", hass);
-  const key = (name, target = $(card, ".pad-area")) =>
-    target.dispatchEvent(new window.KeyboardEvent("keydown", { key: name, bubbles: true }));
   // The keys view takes no digits.
-  key("6");
+  $(card, '.pad [data-value="S20"]').focus();
+  assert.equal(press(card, "6"), false);
+  // The score view takes the focus from its button, so that the keys reach it.
+  $(card, '.pad [data-pad="score"]').focus();
   tap(card, '.pad [data-pad="score"]');
-  for (const name of ["6", "0", "x", "Backspace", "0"]) key(name);
+  assert.equal(focused(card), "pad");
+  assert.equal($(card, ".pad").getAttribute("tabindex"), "-1");
+  for (const name of ["6", "0", "x", "Backspace", "0"]) press(card, name);
   assert.equal(text(card, ".score-line .typed"), "60");
-  // Enter on a key of the pad presses that key, not the score.
-  key("Enter", $(card, '[data-pad="digit"][data-value="1"]'));
-  assert.deepEqual(actions(hass), []);
-  key("Enter");
+  // Keys with Ctrl, Alt or the Command key stay the browser's.
+  for (const modifier of ["ctrlKey", "altKey", "metaKey"]) assert.equal(press(card, "1", { [modifier]: true }), false);
+  assert.equal(text(card, ".score-line .typed"), "60");
+  assert.equal(press(card, "Enter"), true);
   assert.deepEqual(actions(hass), [["enter_visit", { config_entry_id: ENTRY, score: 60 }]]);
+  // The pad keeps the focus after the score went in, though OK is off now.
+  assert.equal(focused(card), "pad");
+  for (const name of "45") press(card, name);
+  assert.equal(text(card, ".score-line .typed"), "45");
+  // Enter on a digit takes the score, as a calculator does, and the pad keeps the focus.
+  $(card, '[data-pad="digit"][data-value="1"]').focus();
+  assert.equal(press(card, "Enter"), true);
+  assert.deepEqual(actions(hass).at(-1), ["enter_visit", { config_entry_id: ENTRY, score: 45 }]);
+  assert.equal(focused(card), "pad");
+  // On any other key, Enter presses that key, as the browser does.
+  for (const name of "26") press(card, name);
+  $(card, '[data-pad="next"]').focus();
+  assert.equal(press(card, "Enter"), false);
+  assert.equal(actions(hass).length, 2);
+  assert.equal(text(card, ".score-line .typed"), "26");
+  // Without a question to leave, Escape stays the browser's, as for a dialog around the card.
+  $(card, ".pad").focus();
+  assert.equal(press(card, "Escape"), false);
+  assert.equal(text(card, ".score-line .typed"), "26");
+});
+
+test("during the question after a score, a digit only answers it", () => {
+  const hass = board(practice(4));
+  const card = mount("autodarts-scoreboard-card", hass);
+  $(card, '.pad [data-pad="score"]').focus();
+  tap(card, '.pad [data-pad="score"]');
+  press(card, "4");
+  press(card, "Enter");
+  assert.equal(text(card, ".score-line.ask"), "Darts for the checkout");
+  // The question took the focus from OK, which is gone.
+  assert.equal(focused(card), "pad");
+  // 4 is no number of darts, and Enter has nothing to take; the score stays 4.
+  assert.equal(press(card, "4"), false);
+  press(card, "Enter");
+  assert.equal(text(card, ".score-line.ask"), "Darts for the checkout");
+  press(card, "2");
+  assert.equal(text(card, ".score-line.ask"), "Darts at a double");
+  assert.equal(focused(card), "pad");
+  press(card, "3");
+  press(card, "1");
+  assert.deepEqual(actions(hass), [
+    ["enter_visit", { config_entry_id: ENTRY, score: 4, checkout: true, darts: 2, darts_at_double: 1 }],
+  ]);
+  // Backspace and Escape go back from the question to the score, to change it.
   card.hass = update(hass, practice(32));
-  key("0");
-  key("Enter");
+  press(card, "0");
+  press(card, "Enter");
   assert.ok($(card, '[data-pad="answer"]'));
-  key("Escape");
+  press(card, "Backspace");
   assert.equal($(card, '[data-pad="answer"]'), null);
   assert.equal(text(card, ".score-line .typed"), "0");
+  press(card, "Enter");
+  press(card, "Escape");
+  assert.equal($(card, '[data-pad="answer"]'), null);
+  assert.equal(text(card, ".score-line .typed"), "0");
+  assert.equal(focused(card), "pad");
+  // While the bot throws, the keys wait as the pad does.
+  card.hass = update(hass, practice(501, { player: 2, bot: { player: 2, level: 60 }, scores: [{ player: 2, remaining: 501, bot: true }] }));
+  assert.equal(press(card, "5"), false);
+  assert.equal(text(card, ".score-line .typed"), "0");
+  assert.equal(actions(hass).length, 1);
+});
+
+test("the score view takes the focus after a mouse, and not after a finger that gave it none", () => {
+  for (const [pointerType, takes] of [
+    ["mouse", true],
+    ["touch", false],
+  ]) {
+    const card = mount("autodarts-scoreboard-card", board());
+    const button = $(card, '.pad [data-pad="score"]');
+    // Safari gives a button that a mouse clicks no focus; the pad takes it all the same.
+    button.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true, composed: true, pointerType }));
+    button.click();
+    assert.equal(focused(card) === "pad", takes, pointerType);
+  }
 });
 
 test("a score no visit makes keeps OK and Enter off, and any bust goes in", () => {
   const hass = board(practice(32));
   const card = mount("autodarts-scoreboard-card", hass);
-  const key = (name) => $(card, ".pad-area").dispatchEvent(new window.KeyboardEvent("keydown", { key: name, bubbles: true }));
+  const key = (name) => press(card, name);
   tap(card, '.pad [data-pad="score"]');
+  $(card, ".pad").focus();
   // Enter waits for a score, as OK does.
-  key("Enter");
+  assert.equal(press(card, "Enter"), false);
   assert.deepEqual(actions(hass), []);
   for (const points of IMPOSSIBLE) {
     type(card, String(points));

@@ -542,6 +542,86 @@ test("the caller calls what counts: a visit's score, what a player requires, bus
   said();
 });
 
+test("the caller counts a visit from where it started, also after a state it missed", () => {
+  // Alex alone; the takeout after the 140 goes by unseen, as on a tablet that woke up.
+  const alone = (remaining, keys, from) => x01(remaining, keys, { visit_from: from, scores: [PLAYERS[0]] });
+  const { hass, card } = setup(alone(501, [], 501), { caller: true });
+  tap(card);
+  said();
+  let next = update(hass, { ...visit(T20, T20, dart(20, 1)), ...alone(361, ["T20", "T20", "S20"], 501) });
+  card.hass = next;
+  assert.deepEqual(said(), ["140"]);
+  const one = dart(1, 1);
+  next = update(next, { ...visit(one, one, one), ...alone(358, ["S1", "S1", "S1"], 361) });
+  card.hass = next;
+  assert.deepEqual(said(), ["3"]);
+  tap(card);
+  said();
+});
+
+test("a scoreboard that comes back calls and celebrates nothing that happened while it was away", () => {
+  const ways = {
+    // Away on another view: Home Assistant gives the card the new states once it is back.
+    "another view": (card, states) => {
+      card.remove();
+      document.body.append(card);
+      card.hass = states;
+    },
+    // Some dashboards give a card the new states while it is away.
+    "states while away": (card, states) => {
+      card.remove();
+      card.hass = states;
+      document.body.append(card);
+    },
+    // The connection drops and comes back, first with the states from before it dropped.
+    "a lost connection": (card, states) => {
+      const before = card._hass;
+      card.hass = { ...before, connected: false };
+      card.hass = { ...before, connected: false };
+      card.hass = { ...before, connected: true };
+      card.hass = states;
+    },
+  };
+  for (const [way, away] of Object.entries(ways)) {
+    const { hass, card } = setup(x01(40, [], { checkout: "D20" }), { caller: true });
+    tap(card);
+    said();
+    // Meanwhile Alex threw the match.
+    const won = update(hass, { ...visit(dart(20, 2)), ...x01(0, ["D20"], { won: true, winner: 1 }) });
+    away(card, won);
+    assert.deepEqual(said(), [], way);
+    assert.equal($(card, ".celebrate").children.length, 0, way);
+    // What happens after the return is called and celebrated again.
+    const next = update(won, { ...visit(), ...x01(501, []) });
+    card.hass = next;
+    card.hass = update(next, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
+    assert.deepEqual(said(), ["180"], way);
+    assert.equal($(card, ".celebrate .moment").className, "moment max", way);
+    tap(card);
+    said();
+  }
+});
+
+test("a connection that drops while nothing changes loses no call", () => {
+  const { hass, card } = setup(x01(501), { caller: true });
+  tap(card);
+  said();
+  card.hass = { ...hass, connected: false };
+  card.hass = { ...hass, connected: true };
+  // Home Assistant fetches every state anew after it reconnected.
+  card.hass = update(hass, {});
+  card.hass = update(hass, { ...visit(T20, T20, T20), ...x01(321, ["T20", "T20", "T20"]) });
+  assert.deepEqual(said(), ["180"]);
+  tap(card);
+  said();
+  // A scoreboard that leaves before it saw Home Assistant comes back as a new one.
+  const bare = mount("autodarts-scoreboard-card");
+  bare.remove();
+  document.body.append(bare);
+  bare.hass = hass;
+  assert.ok($(bare, ".main"));
+});
+
 test("before the opening double a visit is no score, and without double out 180 can be required", () => {
   const { hass, card } = setup(x01(501, [], { opened: false }), { caller: true });
   tap(card);

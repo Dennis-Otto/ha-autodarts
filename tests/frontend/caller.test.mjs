@@ -138,6 +138,33 @@ test("a visit joined halfway is not called, since its start is unknown", () => {
   assert.equal(callerState(visit(), x01({ player: 2, remaining: 301 }), three).start, 301);
 });
 
+test("in X01 a visit counts from where the integration says it started, also after a state the card missed", () => {
+  // Alex alone scores 140; the takeout goes by unseen, and the next visit scores 3, not 143.
+  const states = play([
+    [visit(), x01({ remaining: 501, visitFrom: 501 })],
+    [
+      visit(dart(20, 3), dart(20, 3), dart(20, 1)),
+      x01({ remaining: 361, visitFrom: 501, visit: ["T20", "T20", "S20"] }),
+    ],
+    [visit(dart(1, 1), dart(1, 1), dart(1, 1)), x01({ remaining: 358, visitFrom: 361, visit: ["S1", "S1", "S1"] })],
+  ]);
+  assert.deepEqual(callerCalls(states[0], states[1], all), [{ kind: "score", score: 140 }]);
+  assert.deepEqual(callerCalls(states[1], states[2], all), [{ kind: "score", score: 3 }]);
+  // A visit first seen with two darts is called when its third dart lands.
+  const sam = play([
+    [visit(), x01({ remaining: 358, visitFrom: 358 })],
+    [
+      visit(dart(20, 1), dart(20, 1)),
+      x01({ player: 2, name: "Sam", remaining: 261, visitFrom: 301, visit: ["S20", "S20"] }),
+    ],
+    [
+      visit(dart(20, 1), dart(20, 1), dart(20, 1)),
+      x01({ player: 2, name: "Sam", remaining: 241, visitFrom: 301, visit: ["S20", "S20", "S20"] }),
+    ],
+  ]);
+  assert.deepEqual(callerCalls(sam[1], sam[2], all), [{ kind: "score", score: 60 }]);
+});
+
 test("Cricket calls the marks of the visit, party games their points, Killer and training games nothing", () => {
   const numbers = [20, 19, 18, 17, 16, 15, 25];
   const cricket = (keys, won = false) => ({

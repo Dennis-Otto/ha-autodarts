@@ -114,7 +114,7 @@ Jedes Spiel hat seinen eigenen Bildschirm:
 
 - **Zu spät bemerkt:** Nach der Entnahme zeigt die Kachel *Zuletzt* neben den Darts die letzte Aufnahme mit einem gebogenen Pfeil; ein Tipp darauf und ein zweiter auf das rote *Zurück?* nehmen sie zurück. Korrigiere ihre Darts und beende sie dann mit *Nächster Spieler*.
 - **Von Hand eingegebene Darts:** Für Darts, die das Board übersehen hat, oder einen Spieler ohne Kameras schaltest du *Übungsspiel manuelle Eingabe* und die Option `keypad` der Karte ein. Das Tastenfeld gibt jedes angetippte Feld als Dart ein; *Nächster Spieler* beendet die Aufnahme. Im Querformat stehen Korrektur und Tastenfeld neben den Punkten, sodass beides auf den Bildschirm passt. Eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat das Tastenfeld ohne beides.
-- **Die Punkte einer Aufnahme:** In X01 nimmt *Punkte* oben im Tastenfeld eine Aufnahme mit ihrer Punktzahl, etwa 140, mit **OK**; ein Checkout fragt nach seinen Darts und den Darts auf ein Doppel. [Wie sie zählt](without-autodarts.de.md#darts-eingeben).
+- **Die Punkte einer Aufnahme:** In X01 nimmt *Punkte* oben im Tastenfeld eine Aufnahme mit ihrer Punktzahl, etwa 140, mit **OK**; ein Checkout fragt nach seinen Darts und den Darts auf ein Doppel. Mit einer Tastatur tippst du die Punkte und drückst Enter, und eine Ziffer beantwortet eine Frage; das Tastenfeld behält die Tasten für die nächste Aufnahme. [Wie sie zählt](without-autodarts.de.md#darts-eingeben).
 - **Was du siehst:** Ein Stift zeigt jeden Dart, den ein Tipp korrigiert; von Hand eingegebene oder korrigierte Darts haben einen gestrichelten Rahmen, die Darts des Bots eine Tönung in der Akzentfarbe.
 
 <img src="images/de/scoreboard-keypad.png" alt="Die Anzeigetafel mit dem Tastenfeld: Alex hat T20 und S19 von Hand eingegeben, gestrichelt umrandet; darunter S, D und T, die Zahlen 1 bis 20, 25, Bull, Miss und Nächster Spieler" width="760">
@@ -154,6 +154,8 @@ Er sagt nur an, was zählt, in der Sprache des Benutzers am Bildschirm: Deutsch,
 - **Checkout-Training, 121-Checkout und Catch 40:** was der nächste Versuch braucht.
 - **Turniere:** jedes Match beim Start, „Nächstes Match: Alex gegen Sam“, und den Sieger des Turniers.
 - Darts nach dem Überwerfen oder einem Game shot werden nicht angesagt. Killer, Golf und die anderen Trainingsspiele bekommen keine Punktansagen.
+
+Ein Bildschirm, der weg war, auf einer anderen Ansicht oder ohne seine Verbindung zu Home Assistant, sagt nichts an und feiert nichts, was in der Zwischenzeit geschah, etwa ein Match, das in den Minuten davor endete; ab seiner Rückkehr sagt er das Spiel wieder an.
 
 `call_scores`, `call_checkouts`, `call_results` und `call_sounds` schalten jede Art von Ansage ein oder aus. Welche Stimme spricht, hängt von Browser und Betriebssystem ab: Offline-Stimmen des Betriebssystems behalten die Ansagen bei dir zu Hause; manche Browser nutzen Online-Stimmen, die den Text an ihren Anbieter schicken. Für Lautsprecher im Raum nutzt du stattdessen die [Blueprints Dart caller und Practice caller](automations.de.md#welcher-caller).
 
