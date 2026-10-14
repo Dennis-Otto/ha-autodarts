@@ -191,8 +191,9 @@ class PersonalRecords:
         if kind == "leg_won" and value("game") == "cricket":
             return [("best_cricket_mpr", _value(value("mpr")), name)] if alone else []
         if kind == "leg_won" and value("game") in GAMES:
-            # Legs without double out finish more easily; they set no record.
-            if value("double_out") is not True:
+            # Legs without double out finish more easily; they set no record,
+            # nor do legs the round limit decided.
+            if value("double_out") is not True or value("rounds") is not None:
                 return []
             # A leg counts for the score it really started from.
             start = value("start") or value("game")

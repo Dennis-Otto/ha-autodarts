@@ -1,0 +1,15 @@
+flowchart TB
+  accTitle: Wie ein Leg mit Rundengrenze endet
+  accDescr: Ein Dart, der auscheckt, gewinnt das Leg jederzeit. Sonst gewinnt, sobald jeder Spieler die letzte Runde geworfen hat, der eine Spieler oder das eine Team mit der niedrigsten Restpunktzahl das Leg; bei Gleichstand werfen die Spieler eine weitere Runde.
+  VISIT["Eine Aufnahme wird verbucht"] --> CHECKOUT{"Hat ein Dart<br/>ausgecheckt?"}
+  CHECKOUT -- "ja" --> WON["Game shot:<br/>das Leg ist gewonnen"]
+  CHECKOUT -- "nein" --> ROUND{"Ist die letzte Runde<br/>komplett?"}
+  ROUND -- "nein" --> NEXT["Der nächste Spieler wirft"]
+  ROUND -- "ja" --> LOWEST{"Ein Spieler oder Team<br/>allein am niedrigsten?"}
+  LOWEST -- "ja" --> LIMIT["Rundengrenze: Die niedrigste<br/>Restpunktzahl gewinnt das Leg"]
+  LOWEST -- "nein, Gleichstand" --> EXTRA["Noch eine Runde:<br/>das Stechen"]
+  EXTRA --> NEXT
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class WON,LIMIT done
+  class EXTRA warn

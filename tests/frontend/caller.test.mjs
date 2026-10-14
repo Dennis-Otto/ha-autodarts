@@ -283,3 +283,23 @@ test("the scoreboard celebrates a 180, a ton, nine marks, a game shot and the ma
   assert.match(celebrationHtml("ton40", 1), /--c:#ff8c42/);
   assert.match(celebrationHtml("nine", 1), /--c:#ffd60a/);
 });
+
+test("the caller names the winner of a leg or a match the round limit decides", () => {
+  const limit = (name) => ({ ended: "2026-10-14T20:00:00", name });
+  const before = callerState(visit(), x01({ limit: null }));
+  const leg = callerState(visit(), x01({ limit: limit("Sam") }), before);
+  assert.deepEqual(callerCalls(before, leg, all), [{ kind: "limit_leg", name: "Sam" }]);
+  // Once called, and not when results are not called.
+  assert.deepEqual(calls(leg, callerState(visit(), x01({ limit: limit("Sam") }), leg)), []);
+  assert.deepEqual(calls(before, leg, { ...all, call_results: false }), []);
+  const won = callerState(visit(), x01({ winner: 2, limit: limit("Sam") }), before);
+  assert.deepEqual(callerCalls(before, won, all), [{ kind: "limit_match", name: "Sam" }]);
+  const t = (key) =>
+    ({
+      say_limit_leg: "Round limit, and the leg, {name}!",
+      say_limit_match: "Round limit, and the match, {name}!",
+    })[key] ?? key;
+  assert.equal(callerText({ kind: "limit_leg", name: "Sam" }, t), "Round limit, and the leg, Sam!");
+  assert.equal(callerText({ kind: "limit_leg", name: null }, t), "Round limit, and the leg!");
+  assert.equal(callerText({ kind: "limit_match", name: "Sam" }, t), "Round limit, and the match, Sam!");
+});

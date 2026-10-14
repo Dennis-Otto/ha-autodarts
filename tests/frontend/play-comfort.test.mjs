@@ -783,8 +783,10 @@ test("the new game screen seats the bot at its level", () => {
     legs: 1,
     sets: 1,
     bull_off: false,
-    double_out: true,
-    double_in: false,
+    in_mode: "straight",
+    out_mode: "double",
+    bull_mode: "25_50",
+    max_rounds: 0,
     bot_level: 80,
   });
   choice = lobbyChange(choice, "bot", "raise");
@@ -823,8 +825,10 @@ test("the new game screen seats the bot at its level", () => {
     legs: 1,
     sets: 1,
     bull_off: false,
-    double_out: true,
-    double_in: false,
+    in_mode: "straight",
+    out_mode: "double",
+    bull_mode: "25_50",
+    max_rounds: 0,
     bot_level: 60,
     teams: true,
   });
@@ -878,8 +882,9 @@ test("the bot's seat on the new game screen", () => {
   assert.equal(text(card, ".suggestion.bot"), "+ Bot");
   $(card, ".suggestion.bot").click();
   assert.equal(text(card, ".lobby-player.bot .lobby-start b"), "60");
-  // A game of one player and the bot is a match: legs and sets, and the bull-off.
-  assert.equal($$(card, ".stepper").length, 2);
+  // A game of one player and the bot is a match: legs and sets, and the bull-off; X01
+  // has its round limit besides.
+  assert.equal($$(card, ".stepper").length, 3);
   // Party games have no seat for the bot.
   $(card, '[data-lobby="game"][data-value="shanghai"]').click();
   assert.equal($(card, ".lobby-player.bot"), null);
@@ -895,8 +900,10 @@ test("the bot's seat on the new game screen", () => {
       legs: 1,
       sets: 1,
       bull_off: false,
-      double_out: true,
-      double_in: false,
+      in_mode: "straight",
+      out_mode: "double",
+      bull_mode: "25_50",
+      max_rounds: 0,
       bot_level: 60,
     },
   ]);

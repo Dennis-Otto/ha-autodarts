@@ -17,7 +17,14 @@ import random
 from bisect import bisect_left
 from typing import Any
 
-from .checkout import BEDS, FINISH_ORDER, FINISHING_SCORE, checkout, setup
+from .checkout import (
+    BEDS_BY_BULL,
+    FINISH_ORDER,
+    FINISHING_SCORE,
+    TREBLES,
+    checkout,
+    setup,
+)
 from .cricket import (
     CRICKET_NUMBERS,
     MARKS_TO_CLOSE,
@@ -26,7 +33,7 @@ from .cricket import (
     wild_mouse_bed,
     wild_mouse_order,
 )
-from .scoring import evaluate_visit
+from .scoring import BULL_25_50, DOUBLE, MASTER, STRAIGHT, evaluate_visit
 
 # 0 plays without the bot; otherwise the 3-dart average it plays, 20 to 120.
 MIN_LEVEL = 20
@@ -173,39 +180,57 @@ def aim_point(bed: str) -> tuple[float, float]:
 # -- aiming ----------------------------------------------------------------------
 
 
-def x01_aim(remaining: int, darts: int, double_out: bool, opened: bool = True) -> str:
+def x01_aim(
+    remaining: int,
+    darts: int,
+    out_mode: str = DOUBLE,
+    opening: str = STRAIGHT,
+    bull_mode: str = BULL_25_50,
+) -> str:
     """The checkout route if one exists, else the setup shot, else the treble 20.
 
     Without double out, a score below 60 that the darts left cannot finish
-    takes the biggest bed that does not bust. Before the opening double of
-    double in, the bot aims at a double, see `_opening`.
+    takes the biggest bed that does not bust. `opening` is the In mode the leg
+    still waits for, straight once it is open: before the double or treble
+    that opens it, the bot aims at one, see `_opening`.
     """
-    if not opened:
-        return _opening(remaining, darts, double_out)
-    if route := checkout(remaining, darts, double_out):
+    if opening != STRAIGHT:
+        return _opening(remaining, darts, opening, out_mode, bull_mode)
+    if route := checkout(remaining, darts, out_mode, (), bull_mode):
         return route[0]
-    if double_out and (plan := setup(remaining, darts)):
+    if plan := setup(remaining, darts, (), out_mode, bull_mode):
         return plan.route[0]
-    if not double_out and remaining < 60:
+    if out_mode == STRAIGHT and remaining < 60:
         return max(
-            (bed for bed in BEDS if bed.score < remaining),
+            (bed for bed in BEDS_BY_BULL[bull_mode] if bed.score < remaining),
             key=lambda bed: (bed.score, -bed.multiplier),
         ).name
     return "T20"
 
 
-def _opening(remaining: int, darts: int, double_out: bool) -> str:
-    """The double that opens a leg with double in: one that wins, then a
-    double ring that leaves a finish for the darts left, in the order routes
-    finish on doubles; otherwise the double 20, or the biggest double that
-    does not bust where it does."""
-    lowest = 2 if double_out else 0
+def _opening(
+    remaining: int, darts: int, in_mode: str, out_mode: str, bull_mode: str
+) -> str:
+    """The bed that opens a leg with double or master in: a double that wins,
+    with master in and out a treble that wins as well; with master in the
+    treble 20 where it does not bust, as it scores most; then a double ring that
+    leaves a finish for the darts left, in the order routes finish on doubles;
+    otherwise the double 20, or the biggest double that does not bust where it
+    does."""
+    lowest = 0 if out_mode == STRAIGHT else 2
     for name in FINISH_ORDER:
         if remaining == FINISHING_SCORE[name]:
             return name
+    if in_mode == MASTER:
+        for bed in reversed(TREBLES):
+            if remaining == bed.score and out_mode != DOUBLE:
+                return bed.name
+        if remaining - TREBLES[-1].score >= lowest:
+            return TREBLES[-1].name
     # The bullseye is too small to open with, unless it wins.
     for name in FINISH_ORDER[:-1]:
-        if checkout(remaining - FINISHING_SCORE[name], darts - 1, double_out):
+        need = remaining - FINISHING_SCORE[name]
+        if checkout(need, darts - 1, out_mode, (), bull_mode):
             return name
     safe = [
         name for name in FINISH_ORDER if remaining - FINISHING_SCORE[name] >= lowest
@@ -379,8 +404,11 @@ def aim(snapshot: dict[str, Any]) -> str:
     return x01_aim(
         snapshot["remaining"],
         BOT_DARTS - thrown,
-        snapshot["double_out"] is not False,
-        snapshot.get("opened") is not False,
+        snapshot.get("out_mode", DOUBLE),
+        STRAIGHT
+        if snapshot.get("opened") is not False
+        else snapshot.get("in_mode", DOUBLE),
+        snapshot.get("bull_mode", BULL_25_50),
     )
 
 
@@ -413,7 +441,13 @@ class Bot:
         return dart, (x, y)
 
 
-def play_leg(bot: Bot, level: int, start: int = 501, double_out: bool = True) -> int:
+def play_leg(
+    bot: Bot,
+    level: int,
+    start: int = 501,
+    out_mode: str = DOUBLE,
+    bull_mode: str = BULL_25_50,
+) -> int:
     """The darts the bot needs for a leg alone, by the rules of the practice game.
 
     This is how the scatter of every level was calibrated, and how the tests
@@ -425,9 +459,11 @@ def play_leg(bot: Bot, level: int, start: int = 501, double_out: bool = True) ->
         left, counted = remaining, 0
         outcome: str | None = None
         for dart in range(BOT_DARTS):
-            bed = x01_aim(left, BOT_DARTS - dart, double_out)
+            bed = x01_aim(left, BOT_DARTS - dart, out_mode, STRAIGHT, bull_mode)
             visit.append(bot.throw(bed, level)[0])
-            left, outcome, counted = evaluate_visit(remaining, visit, double_out)
+            left, outcome, counted = evaluate_visit(
+                remaining, visit, out_mode, bull_mode
+            )
             if outcome:
                 break
         total += counted

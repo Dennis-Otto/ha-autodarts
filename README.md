@@ -52,7 +52,7 @@ New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-O
 
 ### Play
 
-- X01 from 101 to 1001 with double out, double in and the checkout route after every dart
+- X01 from 101 to 1001 with straight, double and master in and out, the 50/50 bull, a round limit and the checkout route after every dart
 - Cricket, Cut-Throat Cricket, Tactics and Wild Mouse on a chalkboard
 - Party games for up to eight: Shanghai, Halve-It, Killer, Golf, Baseball and Count-Up
 - Tournaments of three to eight players: a round robin with a table or a knockout with a bracket

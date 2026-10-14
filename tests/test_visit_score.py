@@ -9,7 +9,9 @@ from homeassistant.exceptions import ServiceValidationError
 from custom_components.autodarts.doubles import DoubleHits
 from custom_components.autodarts.practice import VisitRefused
 from custom_components.autodarts.scoring import (
+    DOUBLE,
     SCORE_BEDS,
+    STRAIGHT,
     evaluate_visit,
     is_double,
     score,
@@ -47,41 +49,49 @@ def outcome(start: int, points: int, double_out: bool, finish: bool) -> str | No
 
 
 def test_a_score_becomes_the_darts_players_throw_for_it():
-    assert names(visit_darts(501, 140, 3, True)) == ["T20", "T20", "S20"]
-    assert names(visit_darts(501, 100, 3, True)) == ["T20", "S20", "S20"]
-    assert names(visit_darts(501, 180, 3, True)) == ["T20", "T20", "T20"]
-    assert names(visit_darts(501, 0, 3, True)) == ["MISS", "MISS", "MISS"]
+    assert names(visit_darts(501, 140, 3, DOUBLE)) == ["T20", "T20", "S20"]
+    assert names(visit_darts(501, 100, 3, DOUBLE)) == ["T20", "S20", "S20"]
+    assert names(visit_darts(501, 180, 3, DOUBLE)) == ["T20", "T20", "T20"]
+    assert names(visit_darts(501, 0, 3, DOUBLE)) == ["MISS", "MISS", "MISS"]
     # A checkout ends with a double, or with any bed without double out.
-    assert names(visit_darts(40, 40, 1, True)) == ["D20"]
-    assert names(visit_darts(100, 100, 2, True)) == ["T20", "D20"]
-    assert names(visit_darts(170, 170, 3, True)) == ["T20", "T20", "BULL"]
-    assert names(visit_darts(60, 60, 1, False)) == ["T20"]
-    assert visit_darts(100, 100, 1, True) is None
+    assert names(visit_darts(40, 40, 1, DOUBLE)) == ["D20"]
+    assert names(visit_darts(100, 100, 2, DOUBLE)) == ["T20", "D20"]
+    assert names(visit_darts(170, 170, 3, DOUBLE)) == ["T20", "T20", "BULL"]
+    assert names(visit_darts(60, 60, 1, STRAIGHT)) == ["T20"]
+    assert visit_darts(100, 100, 1, DOUBLE) is None
     # A bust ends with the dart that busts.
-    assert evaluate_visit(32, visit_darts(32, 40, 3, True), True) == (32, "bust", 3)
-    assert evaluate_visit(41, visit_darts(41, 40, 3, True), True) == (41, "bust", 3)
+    assert evaluate_visit(32, visit_darts(32, 40, 3, DOUBLE), DOUBLE) == (32, "bust", 3)
+    assert evaluate_visit(41, visit_darts(41, 40, 3, DOUBLE), DOUBLE) == (41, "bust", 3)
     # What is left busts where no double finishes it, with the last dart if it can.
-    assert names(visit_darts(159, 159, 3, True)) == ["T20", "T20", "T13"]
-    assert evaluate_visit(159, visit_darts(159, 159, 3, True), True)[1:] == ("bust", 3)
-    assert names(visit_darts(60, 60, 1, True)) == ["T20"]
+    assert names(visit_darts(159, 159, 3, DOUBLE)) == ["T20", "T20", "T13"]
+    assert evaluate_visit(159, visit_darts(159, 159, 3, DOUBLE), DOUBLE)[1:] == (
+        "bust",
+        3,
+    )
+    assert names(visit_darts(60, 60, 1, DOUBLE)) == ["T20"]
     # A bust that can't wait for the last dart comes as late as it can: from 32, the
     # first two darts of 100 leave 2 at most, and no third dart scores 70 or more.
-    assert names(visit_darts(32, 100, 3, True)) == ["S20", "T20", "S20"]
-    assert evaluate_visit(32, visit_darts(32, 100, 3, True), True) == (32, "bust", 2)
-    assert evaluate_visit(2, visit_darts(2, 180, 3, True), True) == (2, "bust", 1)
-    assert visit_darts(32, 100, 1, True) is None
+    assert names(visit_darts(32, 100, 3, DOUBLE)) == ["S20", "T20", "S20"]
+    assert evaluate_visit(32, visit_darts(32, 100, 3, DOUBLE), DOUBLE) == (
+        32,
+        "bust",
+        2,
+    )
+    assert evaluate_visit(2, visit_darts(2, 180, 3, DOUBLE), DOUBLE) == (2, "bust", 1)
+    assert visit_darts(32, 100, 1, DOUBLE) is None
     # A leg that still needs a double opens with the first dart that scores.
-    opened = visit_darts(501, 60, 3, True, opening=True)
+    opened = visit_darts(501, 60, 3, DOUBLE, opening=DOUBLE)
     assert is_double(opened[0])
-    assert names(visit_darts(501, 0, 3, True, opening=True)) == ["MISS"] * 3
-    assert visit_darts(501, 1, 3, True, opening=True) is None
+    assert names(visit_darts(501, 0, 3, DOUBLE, opening=DOUBLE)) == ["MISS"] * 3
+    assert visit_darts(501, 1, 3, DOUBLE, opening=DOUBLE) is None
     # No three darts make 179.
-    assert visit_darts(501, 179, 3, True) is None
+    assert visit_darts(501, 179, 3, DOUBLE) is None
 
 
 @pytest.mark.parametrize("start", [2, 3, 32, 41, 60, 99, 159, 170, 301])
 @pytest.mark.parametrize("double_out", [True, False])
 def test_every_score_has_darts_exactly_when_three_darts_can_throw_it(start, double_out):
+    mode = DOUBLE if double_out else STRAIGHT
     """Every visit of three darts from the start, compared with the darts made up
     for its score: there are some exactly when one does what the rules say of the
     score, and they keep the rules. A checkout, and a bust where it can, ends
@@ -90,15 +100,15 @@ def test_every_score_has_darts_exactly_when_three_darts_can_throw_it(start, doub
     latest: dict[tuple[int, str | None], int] = {}
     for visit in itertools.product(SCORE_BEDS, repeat=3):
         points = sum(map(score, visit))
-        result, counted = evaluate_visit(start, list(visit), double_out)[1:]
+        result, counted = evaluate_visit(start, list(visit), mode)[1:]
         latest[points, result] = max(latest.get((points, result), 0), counted)
     for points in range(181):
-        darts = visit_darts(start, points, 3, double_out)
+        darts = visit_darts(start, points, 3, mode)
         wanted = outcome(start, points, double_out, (points, "won") in latest)
         assert (darts is not None) == ((points, wanted) in latest), points
         if darts:
             assert sum(map(score, darts)) == points
-            assert evaluate_visit(start, darts, double_out)[1:] == (
+            assert evaluate_visit(start, darts, mode)[1:] == (
                 wanted,
                 latest[points, wanted],
             )
@@ -155,14 +165,14 @@ def test_a_checkout_asked_for_where_none_exists_is_refused():
         game.score_visit(159, checkout=True)
     assert error.value.key == "checkout_impossible"
     assert error.value.placeholders == {"remaining": "159"}
-    assert evaluate_visit(159, game.score_visit(159), True)[1] == "bust"
+    assert evaluate_visit(159, game.score_visit(159), DOUBLE)[1] == "bust"
     # Nor is a checkout that no darts score, or none of these darts.
     for start, darts in ((179, None), (100, 1)):
         with pytest.raises(VisitRefused) as error:
             playing(501, remaining=start).score_visit(start, darts, checkout=True)
         assert error.value.key == "checkout_impossible"
     darts = playing(501, remaining=40).score_visit(40, 2, checkout=True)
-    assert evaluate_visit(40, darts, True) == (0, "won", 2)
+    assert evaluate_visit(40, darts, DOUBLE) == (0, "won", 2)
 
 
 @pytest.mark.parametrize(

@@ -4,7 +4,9 @@ to eight, and training games.
 X01 with a start score of its own for every player, Cricket, Cut-Throat,
 Tactics and Wild Mouse, the party games, and the training games; X01 and the
 Cricket games also as two teams of two, and against the bot. With several
-players, a bull-off can decide who starts.
+players, a bull-off can decide who starts. X01 has the rules of
+play.autodarts.io: the In and Out mode straight, double or master, the bull
+mode 25/50 or 50/50, and a round limit after which the lowest score wins.
 """
 
 from __future__ import annotations
@@ -47,9 +49,15 @@ from .party import (
 from .positions import x01_aims
 from .profiles import Profiles, clean_name
 from .scoring import (
+    BULL_25_50,
+    BULL_MODES,
+    DOUBLE,
+    MASTER,
+    MODES,
+    STRAIGHT,
     VISIT_DARTS,
     evaluate_visit,
-    is_double,
+    fits,
     rate,
     score,
     visit_darts,
@@ -87,8 +95,22 @@ OPTIONS = (
 GAME_OPTIONS = (*(str(game) for game in GAMES), *CRICKET_GAMES, *PARTY_GAMES, *DRILLS)
 # The rules a match is played with, which a tournament sets for its matches.
 MATCH_RULES = ("double_out", "double_in", "bull_off", "bull_off_distance")
-# A start score that no dart can win with double in and double out: the only
-# opening double, D1, leaves 1.
+# The X01 rules of play.autodarts.io: the In and Out mode, the bull mode and the
+# round limit, 0 for none. Double in and double out stand for the In and Out
+# mode double, and their switches and the actions' fields for double or straight.
+X01_RULES = ("in_mode", "out_mode", "bull_mode", "max_rounds")
+MODE_ALIASES = {"double_in": "in_mode", "double_out": "out_mode"}
+DEFAULT_RULES: dict[str, str | int] = {
+    "in_mode": STRAIGHT,
+    "out_mode": DOUBLE,
+    "bull_mode": BULL_25_50,
+    "max_rounds": 0,
+}
+# A leg with a round limit ends after this many rounds at most.
+ROUND_LIMIT = 50
+# A start score that no dart can win with double or master in and out, but for
+# master in and master out: the only openers, D1 and T1, leave 1 or end the leg
+# on a treble.
 UNWINNABLE_START = 3
 
 
@@ -99,6 +121,22 @@ def _count(value: object, low: int, high: int, default: int) -> int:
 def valid_start(value: object) -> bool:
     """0 for the game's start score, or a start score of 2 to 1001."""
     return type(value) is int and (value == 0 or 2 <= value <= MAX_START)
+
+
+def valid_rule(rule: str, value: object) -> bool:
+    """An In or Out mode, a bull mode, or a round limit of 0 to 50."""
+    if rule == "max_rounds":
+        return type(value) is int and 0 <= value <= ROUND_LIMIT
+    choices = BULL_MODES if rule == "bull_mode" else MODES
+    return rule in X01_RULES and value in choices
+
+
+def unwinnable_rules(in_mode: str, out_mode: str) -> bool:
+    """Whether these In and Out modes cannot win a start score of 3."""
+    return STRAIGHT not in (in_mode, out_mode) and (in_mode, out_mode) != (
+        MASTER,
+        MASTER,
+    )
 
 
 def valid_delay(value: object) -> bool:
@@ -129,8 +167,20 @@ def valid_settings(saved: object) -> dict[str, Any] | None:
     ):
         return None
     kept = ("players", "bot_level", "legs_to_win", "sets_to_win", *MATCH_RULES)
+    # Up to version 1.12, double in and double out were the In and Out mode.
+    rules = {
+        **DEFAULT_RULES,
+        **{
+            rule: DOUBLE if saved[alias] else STRAIGHT
+            for alias, rule in MODE_ALIASES.items()
+        },
+    }
     return {
         **{key: saved[key] for key in kept},
+        **{
+            rule: saved[rule] if valid_rule(rule, saved.get(rule)) else rules[rule]
+            for rule in X01_RULES
+        },
         "names": [clean_name(name) for name in names]
         + [""] * (PARTY_PLAYERS - len(names)),
         "starts": list(starts),
@@ -224,11 +274,15 @@ class PracticeGame:
         # The Cricket game being played: cricket, cut_throat or tactics.
         self.cricket: str | None = None
         self.party: PartyGame | None = None
-        self.double_out = True
-        self.double_in = False
+        # The X01 rules: how a leg opens and ends, what the outer bull scores,
+        # and the rounds after which the lowest score wins the leg, 0 for none.
+        self.in_mode = STRAIGHT
+        self.out_mode = DOUBLE
+        self.bull_mode = BULL_25_50
+        self.max_rounds = 0
         self.bull_off = False
-        # Double out switched on or off during a leg: the rule of the next leg.
-        self.double_out_next: bool | None = None
+        # The Out mode changed during a leg: the rule of the next leg.
+        self.out_mode_next: str | None = None
         # Two darts in the same bull bed: the measured distance decides instead
         # of a rethrow; an option, as the official rules throw again.
         self.bull_off_distance = False
@@ -256,6 +310,8 @@ class PracticeGame:
         self.names = [""] * PARTY_PLAYERS
         self.players = [Player()]
         self.current = 0
+        # Visits booked in the X01 leg being played, which count its rounds.
+        self.leg_visits = 0
         # Who throws first in the current leg, and in the current set: the
         # throw passes on every leg within a set and every set within the match.
         self.starter = 0
@@ -287,6 +343,24 @@ class PracticeGame:
         self._skip = 0
         self._announced: str | None = None
 
+    @property
+    def double_out(self) -> bool:
+        """The Out mode double, which statistics and records count checkouts with."""
+        return self.out_mode == DOUBLE
+
+    @double_out.setter
+    def double_out(self, enabled: bool) -> None:
+        self.out_mode = DOUBLE if enabled else STRAIGHT
+
+    @property
+    def double_in(self) -> bool:
+        """The In mode double."""
+        return self.in_mode == DOUBLE
+
+    @double_in.setter
+    def double_in(self, enabled: bool) -> None:
+        self.in_mode = DOUBLE if enabled else STRAIGHT
+
     # -- storage ---------------------------------------------------------------
 
     def restore(self, saved: object) -> None:
@@ -299,6 +373,10 @@ class PracticeGame:
         for option in OPTIONS:
             if isinstance(saved.get(option), bool):
                 setattr(self, option, saved[option])
+        # Up to version 1.12, double in and double out were the In and Out mode.
+        for rule in X01_RULES:
+            if valid_rule(rule, saved.get(rule)):
+                setattr(self, rule, saved[rule])
         starts = saved.get("starts")
         if isinstance(starts, list) and len(starts) == MAX_PLAYERS:
             self.starts = [start if valid_start(start) else 0 for start in starts]
@@ -336,6 +414,7 @@ class PracticeGame:
             ]
         last = len(self.players) - 1
         self.current = _count(saved.get("current"), 0, last, 0)
+        self.leg_visits = _count(saved.get("leg_visits"), 0, 10**6, 0)
         self.starter = _count(saved.get("starter"), 0, last, 0)
         # Up to version 1.5, the starter passed on every leg; the legs of the
         # current set tell who started it.
@@ -391,16 +470,26 @@ class PracticeGame:
             if isinstance(leg, dict)
             and leg.get("game") in (*GAMES, *CRICKET_GAMES, *PARTY_GAMES)
             and type(leg.get("darts")) is int
-            # A party game passed without darts to its end has none.
-            and (leg["darts"] > 0 or (leg["darts"] == 0 and leg["game"] in PARTY_GAMES))
+            # A party game passed without darts to its end has none, and so has
+            # an X01 leg the round limit decided after passes.
+            and (
+                leg["darts"] > 0
+                or (
+                    leg["darts"] == 0
+                    and (leg["game"] in PARTY_GAMES or "rounds" in leg)
+                )
+            )
         ][:LEG_HISTORY]
         self._restore_match(saved)
 
     def _restore_match(self, saved: dict[str, Any]) -> None:
-        """The tallies of the match, its summary and a double out waiting for
-        the next leg; stores before version 1.6 have none of them."""
-        pending = saved.get("double_out_next")
-        self.double_out_next = pending if isinstance(pending, bool) else None
+        """The tallies of the match, its summary and an Out mode waiting for
+        the next leg; stores before version 1.6 have none of them, and up to
+        version 1.12 a double out waited."""
+        pending = saved.get("out_mode_next", saved.get("double_out_next"))
+        if isinstance(pending, bool):
+            pending = DOUBLE if pending else STRAIGHT
+        self.out_mode_next = pending if valid_rule("out_mode", pending) else None
         self.resume = valid_settings(saved.get("resume"))
         tallies = saved.get("tallies")
         self.tallies = (
@@ -422,6 +511,7 @@ class PracticeGame:
             "game": self._kind(),
             "double_out": self.double_out,
             "double_in": self.double_in,
+            **{rule: getattr(self, rule) for rule in X01_RULES},
             "bull_off": self.bull_off,
             "bull_off_distance": self.bull_off_distance,
             "personal_routes": self.personal_routes,
@@ -442,6 +532,7 @@ class PracticeGame:
             "names": list(self.names),
             "players": [asdict(player) for player in self.players],
             "current": self.current,
+            "leg_visits": self.leg_visits,
             "starter": self.starter,
             "set_starter": self.set_starter,
             "winner": self.winner,
@@ -451,7 +542,7 @@ class PracticeGame:
             "drill": self.drill,
             "drills": {kind: drill.stored() for kind, drill in self.drills.items()},
             "profiles": self.profiles.stored(),
-            "double_out_next": self.double_out_next,
+            "out_mode_next": self.out_mode_next,
             "resume": copy.deepcopy(self.resume),
             "tallies": [tally.stored() for tally in self.tallies],
             "summary": copy.deepcopy(self.summary),
@@ -545,38 +636,80 @@ class PracticeGame:
     def set_option(self, option: str, enabled: bool) -> None:
         """Switch a rule of the game on or off.
 
-        Double out changes a leg only before its first dart; once darts count,
-        it applies from the next leg. A leg keeps its rules, so none becomes
-        unwinnable, as for a player on 1 when double out comes on. Three in a
-        bed changes the targets to close, so Wild Mouse starts anew.
+        Double in and double out set the In and Out mode to double or straight,
+        see set_rule. Three in a bed changes the targets to close, so Wild Mouse
+        starts anew.
         """
-        self._resume()
-        if option == "double_out" and self._leg_begun():
-            self.double_out_next = None if enabled == self.double_out else enabled
+        if option in MODE_ALIASES:
+            self.set_rule(MODE_ALIASES[option], DOUBLE if enabled else STRAIGHT)
             return
+        self._resume()
         changed = enabled != getattr(self, option)
         setattr(self, option, enabled)
-        if option == "double_out":
-            self.double_out_next = None
         if option == "three_in_a_bed" and changed and self.cricket == WILD_MOUSE:
             self.new_match()
 
+    def set_rule(self, rule: str, value: str | int) -> bool:
+        """Set an X01 rule; whether it changed what players set.
+
+        The Out mode changes a leg only before its first dart; once darts
+        count, it applies from the next leg. A leg keeps its rules, so none
+        becomes unwinnable, as for a player on 1 when double out comes on.
+        """
+        self._resume()
+        if not valid_rule(rule, value) or value == self.rule(rule):
+            return False
+        if rule == "out_mode" and self._leg_begun():
+            self.out_mode_next = None if value == self.out_mode else str(value)
+            return True
+        setattr(self, rule, value)
+        if rule == "out_mode":
+            self.out_mode_next = None
+        return True
+
     def unwinnable(
-        self, starts: list[int] | None = None, rules: dict[str, bool] | None = None
+        self, starts: list[int] | None = None, rules: dict[str, Any] | None = None
     ) -> bool:
-        """Whether a seat would start from 3 with double in and double out, with
-        these start scores or rules instead of the current ones."""
-        rules = rules or {}
-        double_in = rules.get("double_in", self.setting("double_in"))
-        double_out = rules.get("double_out", self.setting("double_out"))
+        """Whether a seat would start from 3 with In and Out modes that cannot
+        win it (see unwinnable_rules), with these start scores or rules instead
+        of the current ones. Double in and double out stand for the modes
+        double or straight."""
+        given = dict(rules or {})
+        for alias, rule in MODE_ALIASES.items():
+            if alias in given and rule not in given:
+                given[rule] = DOUBLE if given[alias] else STRAIGHT
+        modes = [given.get(rule, self.rule(rule)) for rule in ("in_mode", "out_mode")]
         seats = (self.starts if starts is None else starts)[: len(self.players)]
-        return double_in and double_out and UNWINNABLE_START in seats
+        return unwinnable_rules(*modes) and UNWINNABLE_START in seats
 
     def setting(self, option: str) -> bool:
         """A rule as players set it; double out may wait for the next leg."""
-        if option == "double_out" and self.double_out_next is not None:
-            return self.double_out_next
+        if option == "double_out":
+            return bool(self.rule("out_mode") == DOUBLE)
         return bool(getattr(self, option))
+
+    def rule(self, rule: str) -> Any:
+        """An X01 rule as players set it; the Out mode may wait for the next leg."""
+        if rule == "out_mode" and self.out_mode_next is not None:
+            return self.out_mode_next
+        return getattr(self, rule)
+
+    def tournament_setting(self, option: str) -> bool:
+        """A rule of a match for a tournament to play, see setting; a
+        tournament plays straight or double in and out, and master comes
+        closest to double."""
+        if option in MODE_ALIASES:
+            return bool(self.rule(MODE_ALIASES[option]) != STRAIGHT)
+        return self.setting(option)
+
+    def plain_rules(self) -> bool:
+        """Whether X01 is played with the rules a tournament knows: straight or
+        double in and out, the outer bull 25 and no round limit."""
+        return (
+            MASTER not in (self.in_mode, self.rule("out_mode"))
+            and self.bull_mode == BULL_25_50
+            and not self.max_rounds
+        )
 
     def _leg_begun(self) -> bool:
         """Darts of the X01 leg in progress count already."""
@@ -638,6 +771,7 @@ class PracticeGame:
             "legs_to_win": self.legs_to_win,
             "sets_to_win": self.sets_to_win,
             **{rule: self.setting(rule) for rule in MATCH_RULES},
+            **{rule: self.rule(rule) for rule in X01_RULES},
         }
 
     def _resume(self) -> None:
@@ -649,9 +783,9 @@ class PracticeGame:
         self.bot_level = saved["bot_level"]
         self.legs_to_win = saved["legs_to_win"]
         self.sets_to_win = saved["sets_to_win"]
-        for rule in MATCH_RULES:
+        for rule in (*MATCH_RULES, *X01_RULES):
             setattr(self, rule, saved[rule])
-        self.double_out_next = None
+        self.out_mode_next = None
         self.set_players(saved["players"])
 
     def new_match(self) -> None:
@@ -690,8 +824,9 @@ class PracticeGame:
 
     def _next_leg(self) -> None:
         """The next leg from the full score; darts already thrown do not count."""
-        if self.double_out_next is not None:
-            self.double_out, self.double_out_next = self.double_out_next, None
+        if self.out_mode_next is not None:
+            self.out_mode, self.out_mode_next = self.out_mode_next, None
+        self.leg_visits = 0
         if self.drill:
             self.drills[self.drill].reset(len(self._visit))
         slots = self._slots()
@@ -861,13 +996,15 @@ class PracticeGame:
         return [] if self.bulling else self._thrown()
 
     def _opening(self) -> int:
-        """Darts of the visit before the double that opens the leg with double in."""
+        """Darts of the visit before the dart that opens the leg with double or
+        master in."""
         player = self.players[self.current]
         thrown = self._scoring()
-        if not self.double_in or player.opened:
+        if self.in_mode == STRAIGHT or player.opened:
             return 0
         return next(
-            (index for index, dart in enumerate(thrown) if is_double(dart)), len(thrown)
+            (index for index, dart in enumerate(thrown) if fits(dart, self.in_mode)),
+            len(thrown),
         )
 
     def _evaluate(self) -> tuple[int, str | None, int]:
@@ -875,15 +1012,17 @@ class PracticeGame:
         start = self.players[self.current].remaining
         opening = self._opening()
         remaining, outcome, darts = evaluate_visit(
-            start, self._scoring()[opening:], self.double_out
+            start, self._scoring()[opening:], self.out_mode, self.bull_mode
         )
         return remaining, outcome, opening + darts
 
     def _preferred(self) -> tuple[str, ...]:
         """The strongest doubles of the player at the board, if routes use
         them; the bot aims at the usual routes."""
-        if not (self.personal_routes and self.double_out) or (
-            self.current == self.bot_seat
+        if (
+            not self.personal_routes
+            or self.out_mode == STRAIGHT
+            or (self.current == self.bot_seat)
         ):
             return ()
         return (
@@ -893,12 +1032,25 @@ class PracticeGame:
 
     def _route(self, remaining: int, darts: int) -> tuple[str, ...]:
         """The checkout route, over the player's strongest doubles if wanted."""
-        return checkout(remaining, darts, self.double_out, self._preferred())
+        return checkout(
+            remaining, darts, self.out_mode, self._preferred(), self.bull_mode
+        )
 
     def _setup(self, remaining: int, darts: int) -> dict[str, Any] | None:
-        """Where to aim when the darts in hand cannot finish with double out."""
-        plan = setup(remaining, darts, self._preferred()) if self.double_out else None
+        """Where to aim when the darts in hand cannot finish with double or
+        master out."""
+        plan = setup(remaining, darts, self._preferred(), self.out_mode, self.bull_mode)
         return {"route": " ".join(plan.route), "leave": plan.leave} if plan else None
+
+    def _rules(self) -> dict[str, Any]:
+        """The X01 rules of the leg, for its events."""
+        return {
+            "double_out": self.double_out,
+            "double_in": self.double_in,
+            "out_mode": self.out_mode,
+            "in_mode": self.in_mode,
+            "bull_mode": self.bull_mode,
+        }
 
     def _record_doubles(self, attempts: list[tuple[str, bool]], player: int) -> None:
         # The bot's darts count for nobody's doubles.
@@ -1006,8 +1158,7 @@ class PracticeGame:
                     "average": _average(start, leg_darts),
                     "checkout": player.remaining,
                     "start": start,
-                    "double_out": self.double_out,
-                    "double_in": self.double_in,
+                    **self._rules(),
                     "legs": legs,
                     "sets": sets,
                     "match": match,
@@ -1057,19 +1208,21 @@ class PracticeGame:
             start,
             points,
             count,
-            self.double_out,
-            opening=self.double_in and not player.opened,
+            self.out_mode,
+            opening=STRAIGHT if player.opened else self.in_mode,
+            bull_mode=self.bull_mode,
         )
+        rules = (self.out_mode, self.bull_mode)
         # Asked for as a checkout, what is left without a finish is no bust.
         if checkout and (
-            made is None or evaluate_visit(start, made, self.double_out)[1] != "won"
+            made is None or evaluate_visit(start, made, *rules)[1] != "won"
         ):
             raise VisitRefused("checkout_impossible", remaining=str(start))
         if made is None:
             raise VisitRefused(
                 "visit_impossible", score=str(points), remaining=str(start)
             )
-        _, outcome, counted = evaluate_visit(start, made, self.double_out)
+        _, outcome, counted = evaluate_visit(start, made, *rules)
         won = outcome == "won"
         if at_double is None:
             at_double = int(won)
@@ -1139,7 +1292,7 @@ class PracticeGame:
             player.points += scored
             player.match_darts += darts
             player.match_points += scored
-            if self.double_in and opening < darts and outcome != "bust":
+            if self.in_mode != STRAIGHT and opening < darts and outcome != "bust":
                 player.opened = True
             self.profiles.visit(self._name(self.current), scored)
             self.tallies[self.current].visit(scored)
@@ -1150,6 +1303,8 @@ class PracticeGame:
                 player.remaining = remaining
                 self._share(self.current)
                 self.current = (self.current + 1) % len(self.players)
+                self.leg_visits += 1
+                events.extend(self._round_limit())
             if self.winner is None:
                 # Also when playing alone: the next visit is up, for callers.
                 events.append(self._turn())
@@ -1177,7 +1332,7 @@ class PracticeGame:
         elif self.party:
             details.update(self._party_score(self.current))
             details["target"] = self.party.target(self.current)
-        elif up.opened or not self.double_in:
+        elif up.opened or self.in_mode == STRAIGHT:
             route = self._route(up.remaining, 3)
             details = {
                 "remaining": up.remaining,
@@ -1187,6 +1342,81 @@ class PracticeGame:
         else:
             details["remaining"] = up.remaining
         return "turn_changed", {**self._who(self.current), **details}
+
+    # -- round limit -------------------------------------------------------------
+
+    @property
+    def round(self) -> int:
+        """The round of the X01 leg being played, from 1."""
+        return self.leg_visits // len(self.players) + 1
+
+    def _round_winner(self) -> int | None:
+        """The seat that wins the leg on its round limit: once its last round
+        is complete, the one side with the lowest score, its first player.
+        After a tie, the leg goes on round by round until one side alone has
+        the lowest score, or checks out."""
+        players = len(self.players)
+        if not self.max_rounds or self.leg_visits < self.max_rounds * players:
+            return None
+        if self.leg_visits % players:
+            return None
+        lowest = min(player.remaining for player in self.players)
+        seats = [
+            index
+            for index, player in enumerate(self.players)
+            if player.remaining == lowest
+        ]
+        sides = {tuple(self._side(index)) for index in seats}
+        return seats[0] if len(sides) == 1 else None
+
+    def _round_limit(self) -> list[tuple[str, dict[str, Any]]]:
+        """The leg, and maybe the match, that the round limit decides once the
+        visit that completes a round is booked: announced then, with what the
+        winner had left, as no dart checks it out."""
+        winner = self._round_winner()
+        if winner is None:
+            return []
+        self.current = winner
+        player = self.players[winner]
+        darts = self._sum(winner, "darts")
+        legs, sets, match = self._result(winner)
+        events: list[tuple[str, dict[str, Any]]] = [
+            (
+                "leg_won",
+                {
+                    **self._who(winner),
+                    "darts": darts,
+                    "average": _average(self._sum(winner, "points"), darts),
+                    "checkout": None,
+                    "remaining": player.remaining,
+                    "rounds": self.round - 1,
+                    "start": self._start(winner),
+                    **self._rules(),
+                    "legs": legs,
+                    "sets": sets,
+                    "match": match,
+                },
+            )
+        ]
+        if match:
+            events.append(
+                (
+                    "match_won",
+                    {
+                        **self._who(winner),
+                        "legs": legs,
+                        "sets": sets,
+                        "scores": self._final(winner, legs, sets),
+                        "average": _average(
+                            self._sum(winner, "match_points"),
+                            self._sum(winner, "match_darts"),
+                        ),
+                        "rounds": self.round - 1,
+                    },
+                )
+            )
+        self._book_leg(rounds=self.round - 1)
+        return events
 
     # -- bull-off ----------------------------------------------------------------
 
@@ -1248,7 +1478,7 @@ class PracticeGame:
         attempts: list[tuple[str, bool]] = []
         running = player.remaining
         for index, dart in enumerate(self._thrown()[:darts]):
-            points = score(dart) if index >= opening else 0
+            points = score(dart, self.bull_mode) if index >= opening else 0
             counts = self.double_out and index >= opening
             if dart.get("total"):
                 # A visit entered as its score says itself which darts were
@@ -1269,10 +1499,11 @@ class PracticeGame:
             running -= points
         return attempts
 
-    def _book_stats(self) -> None:
+    def _book_stats(self, checked_out: bool = True) -> None:
         """One record per leg for everybody at the board, then a fresh count.
 
-        The bot's darts count for nobody, nor does a leg it checked out.
+        The bot's darts count for nobody, nor does a leg it checked out, nor a
+        leg the round limit decided.
         """
         seat = self.bot_seat
         players = [item for index, item in enumerate(self.players) if index != seat]
@@ -1282,7 +1513,9 @@ class PracticeGame:
                 "first9_points": sum(player.first9_points for player in players),
                 "first9_darts": sum(player.first9_darts for player in players),
                 "at_double": sum(player.at_double for player in players),
-                "checkouts": int(self.double_out and self.current != seat),
+                "checkouts": int(
+                    checked_out and self.double_out and self.current != seat
+                ),
             },
         )
         del self.leg_stats[STATS_LEGS:]
@@ -1669,8 +1902,9 @@ class PracticeGame:
             ],
         }
 
-    def _leg_entries(self) -> list[dict[str, Any]]:
-        """Every player's numbers of the leg that just ended, for the profiles."""
+    def _leg_entries(self, rounds: int | None = None) -> list[dict[str, Any]]:
+        """Every player's numbers of the leg that just ended, for the profiles;
+        a leg the round limit decided was not checked out."""
         entries = []
         side = self._side(self.current)
         for index, player in enumerate(self.players):
@@ -1682,6 +1916,8 @@ class PracticeGame:
             if self._teamed():
                 # A team leg sets no record of fewest darts for one player.
                 entry["team"] = True
+            if rounds:
+                entry["rounds"] = rounds
             if self.cricket:
                 entry["marks"] = player.marks_hit
             elif not self.party:
@@ -1693,7 +1929,9 @@ class PracticeGame:
                     double_out=self.double_out,
                     double_in=self.double_in,
                     start=self._start(index),
-                    checkout=player.remaining if index == self.current else 0,
+                    checkout=player.remaining
+                    if index == self.current and not rounds
+                    else 0,
                 )
             entries.append(entry)
         return entries
@@ -1718,9 +1956,11 @@ class PracticeGame:
             entries.append(entry)
         return entries
 
-    def _book_leg(self) -> None:
-        self._tally_leg()
-        self.profiles.leg(self._kind(), self._leg_entries())
+    def _book_leg(self, rounds: int | None = None) -> None:
+        """The leg the player at self.current won: checked out, or decided by
+        the round limit after this many rounds."""
+        self._tally_leg(checked_out=not rounds)
+        self.profiles.leg(self._kind(), self._leg_entries(rounds))
         winner = self.players[self.current]
         side = self._side(self.current)
         darts = self._sum(self.current, "darts")
@@ -1733,14 +1973,17 @@ class PracticeGame:
         elif self.party:
             record = {"darts": darts, "points": self.party.points[self.current]}
         else:
-            self._book_stats()
+            self._book_stats(checked_out=not rounds)
             record = {
                 "darts": darts,
-                "average": _average(self._start(self.current), darts),
-                "checkout": winner.remaining,
+                "average": _average(self._sum(self.current, "points"), darts)
+                if rounds
+                else _average(self._start(self.current), darts),
+                "checkout": None if rounds else winner.remaining,
                 "start": self._start(self.current),
                 "double_out": self.double_out,
                 "double_in": self.double_in,
+                **({"rounds": rounds} if rounds else {}),
             }
         self.legs.insert(
             0,
@@ -1759,9 +2002,10 @@ class PracticeGame:
             player.legs, player.sets = legs, sets
             player.match_legs += 1
         if match:
-            # The result stays: the winners keep the legs of the deciding set.
+            # The result stays: the winners keep the legs of the deciding set,
+            # and what they had left when the round limit decided it.
             for index in side:
-                self.players[index].remaining = 0
+                self.players[index].remaining = winner.remaining if rounds else 0
             self.winner = self.current
             self.profiles.match(
                 self._kind(),
@@ -1787,12 +2031,15 @@ class PracticeGame:
 
     # -- match summary ------------------------------------------------------------
 
-    def _tally_leg(self) -> None:
+    def _tally_leg(self, checked_out: bool = True) -> None:
         """The leg that ended counts for everybody's match numbers. A team
         wins the leg together, in the darts of both partners; the checkout
-        counts for the player who threw it."""
+        counts for the player who threw it. A leg the round limit decided is
+        nobody's best leg."""
         for player, tally in zip(self.players, self.tallies, strict=True):
             tally.leg(player.first9_points, player.first9_darts, player.at_double)
+        if not checked_out:
+            return
         darts = self._sum(self.current, "darts")
         for index in self._side(self.current):
             checkout = self.players[index].remaining
@@ -1922,6 +2169,7 @@ class PracticeGame:
         seat = self.bot_seat
         common = {
             "double_out": self.double_out,
+            **{rule: getattr(self, rule) for rule in X01_RULES},
             "players": len(self.players),
             "legs_to_win": self.legs_to_win,
             "sets_to_win": self.sets_to_win,
@@ -1948,7 +2196,7 @@ class PracticeGame:
         side = self._side(self.current)
         # A bust takes an opening double of the visit back.
         opened = (
-            not self.double_in
+            self.in_mode == STRAIGHT
             or player.opened
             or (self._opening() < thrown and outcome != "bust")
         )
@@ -1981,6 +2229,7 @@ class PracticeGame:
             "average": _average(self._sum(self.current, "points") + scored, leg_darts),
             "opened": opened,
             "start": self._start(self.current),
+            "round": self.round,
             "scores": [
                 {
                     "player": index + 1,
@@ -1988,7 +2237,7 @@ class PracticeGame:
                     "remaining": remaining if index in side else item.remaining,
                     "opened": opened
                     if index in side
-                    else item.opened or not self.double_in,
+                    else item.opened or self.in_mode == STRAIGHT,
                     "start": self._start(index),
                     "legs": item.legs,
                     "sets": item.sets,
@@ -2048,8 +2297,15 @@ class PracticeGame:
 
     def _x01_booking(self, booking: Booking, thrown: list[dict[str, Any]]) -> None:
         player = self.players[self.current]
-        opening = None if player.opened or not self.double_in else self._opening()
-        aims = x01_aims(player.remaining, thrown, self.double_out, opening, self._route)
+        opening = None if player.opened or self.in_mode == STRAIGHT else self._opening()
+        aims = x01_aims(
+            player.remaining,
+            thrown,
+            self.out_mode,
+            opening,
+            self._route,
+            self.bull_mode,
+        )
         booking.aims[booking.start : booking.end] = aims
         booking.scored = player.remaining - self._evaluate()[0]
 
@@ -2059,8 +2315,8 @@ class PracticeGame:
         drill = self.drills[self.drill]
         booking.player, booking.game = 0, self.drill
         if isinstance(drill, CheckoutDrill | CatchDrill):
-            aims = x01_aims(drill.start, thrown, True, None, checkout)
-            if evaluate_visit(drill.start, thrown, True)[1] == "won":
+            aims = x01_aims(drill.start, thrown, DOUBLE, None, checkout)
+            if evaluate_visit(drill.start, thrown, DOUBLE)[1] == "won":
                 booking.checkout = drill.start
         else:
             doubles = [double for double, _ in drill.double_attempts()]

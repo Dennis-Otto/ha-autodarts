@@ -109,6 +109,9 @@
       "practice_start": {
         "default": "mdi:scale-balance"
       },
+      "practice_max_rounds": {
+        "default": "mdi:timer-sand-complete"
+      },
       "practice_count_up_rounds": {
         "default": "mdi:counter"
       },
@@ -131,6 +134,15 @@
       },
       "practice_game": {
         "default": "mdi:scoreboard-outline"
+      },
+      "practice_in_mode": {
+        "default": "mdi:login-variant"
+      },
+      "practice_out_mode": {
+        "default": "mdi:logout-variant"
+      },
+      "practice_bull_mode": {
+        "default": "mdi:bullseye-arrow"
       },
       "weekly_report_day": {
         "default": "mdi:calendar-week-begin"
