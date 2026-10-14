@@ -1,7 +1,7 @@
 """Highlight photos of the board in the media browser of Home Assistant.
 
-The highlight photo blueprint saves its pictures in the folder
-autodarts/highlights of the media directory, for example
+The highlight photo blueprint saves its pictures with autodarts.save_highlight
+in the folder autodarts/highlights of the media directory, for example
 /media/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg. The media
 browser lists them by month, newest first, with titles like
 "180 · Alex · 26.09.". Only plain file names of that folder resolve, so no
@@ -38,9 +38,8 @@ from homeassistant.util.hass_dict import HassKey
 from PIL import Image, ImageOps
 
 from .const import DOMAIN
+from .highlights import HIGHLIGHTS, highlight_folder
 
-# The folder of the highlight photos inside the media directory.
-HIGHLIGHTS = Path("autodarts", "highlights")
 THUMBNAIL_URL = "/api/autodarts/highlights/{name}"
 # The longer side of a thumbnail, in pixels; the media browser shows them
 # smaller than this.
@@ -56,12 +55,14 @@ PHOTO_TYPES = {
     ".webp": "image/webp",
 }
 # 2026-09-26_21-05-33_Alex_180 or 2026-09-26_Alex_checkout-121: the day, then
-# optionally the time, the player and the score.
+# optionally the time, the player and the score, and " (2)" for the second
+# photo of one second with the same name.
 PHOTO_NAME = re.compile(
     r"^(?P<day>\d{4}-\d{2}-\d{2})"
     r"(?:_(?P<time>\d{2}-\d{2}(?:-\d{2})?))?"
     r"(?:_(?P<player>.+?))??"
-    r"(?:_(?P<checkout>checkout-)?(?P<score>\d{1,3}))?$"
+    r"(?:_(?P<checkout>checkout-)?(?P<score>\d{1,3}))?"
+    r"(?: \(\d+\))?$"
 )
 MONTH = re.compile(r"^\d{4}-\d{2}$")
 MONTHS = {
@@ -180,15 +181,6 @@ def highlight(path: Path) -> Highlight | None:
         score=int(match["score"]) if match["score"] else None,
         checkout=bool(match["checkout"]),
     )
-
-
-def highlight_folder(hass: HomeAssistant) -> tuple[str, Path] | None:
-    """The media directory to serve from, and the folder of the photos in it."""
-    media = hass.config.media_dirs
-    if not media:
-        return None
-    source = "local" if "local" in media else next(iter(media))
-    return source, Path(media[source]) / HIGHLIGHTS
 
 
 def _photo_name(name: str) -> bool:

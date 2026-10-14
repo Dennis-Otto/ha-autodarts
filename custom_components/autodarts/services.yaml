@@ -156,6 +156,31 @@ export:
       selector:
         text:
 
+save_highlight:
+  fields:
+    camera:
+      required: true
+      example: "camera.autodarts_board_camera_1"
+      selector:
+        entity:
+          filter:
+            - domain: camera
+    folder:
+      required: false
+      example: "/media/autodarts/highlights"
+      selector:
+        text:
+    player:
+      required: false
+      example: "Alex"
+      selector:
+        text:
+    label:
+      required: false
+      example: "180"
+      selector:
+        text:
+
 link_player:
   fields:
     config_entry_id:
