@@ -195,17 +195,28 @@ def wait_for(
             ) from error
 
 
+def within_app(current: str, url: str) -> bool:
+    """Whether show() opens the address within the app on a page at the current one: a
+    page of the same Home Assistant, where neither address has a query or a fragment.
+    The app reads those when it starts, such as ?edit=1 for edit mode, and keeps what
+    they set when it opens another view within, so an address with one loads, and so
+    does any view after one."""
+    here, there = urlsplit(current), urlsplit(url)
+    return here.netloc == there.netloc and not (
+        here.query or here.fragment or there.query or there.fragment
+    )
+
+
 def show(pages: Page | Iterable[Page], url: str) -> None:
     """Open a view on every page at once, until its cards have drawn: loaded on a page
     that shows nothing of Home Assistant yet, and within the app on one that does, as
     its links do. That keeps the frontend and its websocket, and takes a tenth of a
     second instead of a load of the whole app. An address with a query or a fragment,
-    such as ?edit=1, always loads: the app reads them when it starts."""
+    and any view after one, always loads (see within_app)."""
     pages = [pages] if isinstance(pages, Page) else list(pages)
     target = urlsplit(url)
-    within = not (target.query or target.fragment)
     for page in pages:
-        if within and urlsplit(page.url).netloc == target.netloc:
+        if within_app(page.url, url):
             page.evaluate(NAVIGATE, target.path)
         else:
             # Only until the page is there: its cards are what the next lines wait for.

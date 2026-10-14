@@ -5,18 +5,20 @@ config:
 ---
 flowchart TB
   accTitle: Wie der Browsertest wartet
-  accDescr: Alle Bildschirme eines Schritts sind zugleich offen. Zuerst kommt ein Zug am Board, etwa ein Dart, oder eine Ansicht, die in der App geöffnet wird. Dann wartet der Test, bis jede Seite den Zustand zeigt, den der Zug setzt, etwa zwei Darts in der Aufnahme, und bis jede Seite zur Ruhe gekommen ist - ihre Karten gezeichnet, keine Anfrage am Websocket wartet auf ihre Antwort, 100 ms kein Frame, keine Animation einer Karte läuft und zwei Frames gezeichnet. Dann prüft er jede Seite auf einmal - das Layout, die Höhen oder die Barrierefreiheit - und macht mit dem nächsten Zug weiter. Eine Seite, die nicht dahin kommt, lässt den Schritt mit dem fehlschlagen, worauf sie gewartet hat.
+  accDescr: Alle Bildschirme eines Schritts sind zugleich offen. Nach einem Zug am Board, etwa einem Dart, wartet der Test mit expect_state, bis jede Seite den Zustand zeigt, den der Zug setzt, etwa zwei Darts in der Aufnahme. Nach einer Ansicht, die er öffnet, wartet er mit show, bis die Karten der Ansicht davor jede Seite verlassen und die neuen sich gezeichnet haben. Dann wartet er, bis jede Seite zur Ruhe gekommen ist - ihre Karten gezeichnet, keine Anfrage am Websocket wartet auf ihre Antwort, 100 ms kein Frame, keine Animation einer Karte läuft und zwei Frames gezeichnet. Danach prüft er jede Seite auf einmal - das Layout, die Höhen oder die Barrierefreiheit - und macht mit dem nächsten Zug oder der nächsten Ansicht weiter. Eine Seite, die nicht dahin kommt, lässt den Schritt mit dem fehlschlagen, worauf sie gewartet hat.
 
-  MOVE["Ein Zug für alle Bildschirme zugleich:<br/>ein Dart, ein Herausziehen, ein neues Spiel<br/>oder eine Ansicht, in der App geöffnet"] --> STATE{{"expect_state: Jede Seite zeigt,<br/>was der Zug setzt, etwa num_throws 2<br/>nach dem zweiten Dart"}}
+  MOVE["Ein Zug am Board, auf allen<br/>Bildschirmen zugleich:<br/>ein Dart, ein Herausziehen<br/>oder ein neues Spiel"] --> STATE{{"expect_state: Jede Seite zeigt,<br/>was der Zug setzt, etwa num_throws 2<br/>nach dem zweiten Dart"}}
+  VIEW["Eine Ansicht, auf allen<br/>Bildschirmen zugleich geöffnet"] --> SHOW{{"show: Die Karten der Ansicht davor<br/>haben jede Seite verlassen,<br/>die neuen sind gezeichnet"}}
   STATE --> SETTLE{{"settle: Die Karten sind gezeichnet,<br/>keine Anfrage wartet auf ihre Antwort,<br/>100 ms kein Frame, keine Animation<br/>einer Karte läuft, zwei Frames gezeichnet"}}
-  SETTLE --> CHECK["Jede Seite prüfen:<br/>Layout, Höhen oder Barrierefreiheit"]
-  CHECK -- "nächster Zug" --> MOVE
+  SHOW --> SETTLE
+  SETTLE --> CHECK["Jede Seite prüfen: Layout,<br/>Höhen oder Barrierefreiheit,<br/>dann der nächste Zug oder<br/>die nächste Ansicht"]
   STATE -- "nicht rechtzeitig" --> FAIL["Der Schritt schlägt fehl, mit dem,<br/>worauf die Seite wartete und was sie zeigt"]
+  SHOW -- "nicht rechtzeitig" --> FAIL
   SETTLE -- "nicht rechtzeitig" --> FAIL
 
   classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
   classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
-  class STATE,SETTLE bot
+  class STATE,SHOW,SETTLE bot
   class CHECK done
   class FAIL failed
