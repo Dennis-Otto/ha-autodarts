@@ -11,6 +11,9 @@ blueprint:
     `scores_180`, `darts_today` and `summary` (a ready-made sentence). To
     start a new session every day, add "New training session" of your board
     as the last action.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#training-report)
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/training_report.yaml

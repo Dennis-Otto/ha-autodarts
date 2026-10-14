@@ -4,6 +4,9 @@ blueprint:
     Runs actions when you start pulling the darts from the board and when
     the board is clear again, for example to light up the board or to pause
     music while you walk to it. Fill in at least one of the two.
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#takeout-actions)
   domain: automation
   author: Dennis Otto
   source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/takeout.yaml
