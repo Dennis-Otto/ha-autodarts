@@ -362,6 +362,7 @@ Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original,
 - Erfüllt jede Regel der [Qualitätsskala für Home-Assistant-Integrationen](https://developers.home-assistant.io/docs/core/integration-quality-scale/) bis Platin ([Selbstbewertung](https://github.com/Dennis-Otto/ha-autodarts/blob/main/custom_components/autodarts/quality_scale.yaml)), einschließlich strikter Typisierung.
 - 100 % Zeilen- und Zweigabdeckung der Integration, Fuzz-Tests der Karten, ein Docker-End-to-End-Test gegen beide Board-Manager-Generationen und das älteste unterstützte Home Assistant, ein echter Browsertest jeder Karte und wöchentliche [Mutationstests](development.de.md#mutationstests) der Spielregeln. [Entwicklung](development.md) (englisch).
 - Signierte Release-Pakete mit SLSA-Herkunftsnachweis. [Releases](releases.md#signed-release-packages) (englisch).
+- CI-Jobs, die nur die Hosts erreichen, die sie brauchen: Harden-Runner sperrt jeden anderen, die Bots, die schreiben dürfen, erreichen nur GitHub, und das getestete Home Assistant bleibt offline. [Netzwerk der Jobs](development.de.md#netzwerk-der-jobs).
 
 ## Herkunft und Lizenz
 

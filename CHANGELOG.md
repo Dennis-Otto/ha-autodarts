@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.13.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.4...v1.13.0) (2026-10-14)
+
 ### New
 
 - **Voice in Spanish, French and Dutch:** the blueprints *Autodarts: start a game by voice* and *Autodarts: enter darts by voice* now understand Spanish, French and Dutch as well as English and German, for example "Juega 501 para Alex y Sam", "Lance la partie Cricket pour Alex", "Speel 501 tegen de bot", "Alex hace 140", "Alex a fait 140", "Dubbel 16", "Joueur suivant" or "Ongedaan maken", and Assist answers in the language of Home Assistant. Numbers work as digits or, in the language of Home Assistant, as words such as "ciento cuarenta", "cent quarante" or "honderdveertig". The description of every blueprint now ends with a link to its settings and examples in the guide. For the new sentences, choose **Re-import blueprint** for both voice blueprints on the blueprints page; sentences you saved in an automation stay as they are (#301).
