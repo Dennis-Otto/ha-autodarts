@@ -544,7 +544,7 @@ Ohne lokales Board kommen auch *Letztes Ereignis*, *Letzter Dart* und *Darts in 
 
 ## Aktionen
 
-Mit den Aktionen kann jeder angemeldete Benutzer spielen. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player` und `autodarts.export` ändern die Daten der Spieler oder geben sie heraus und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
+Mit den Aktionen kann jeder angemeldete Benutzer spielen. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export` und `autodarts.save_highlight` ändern die Daten der Spieler, geben sie heraus oder schreiben Dateien und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
 
 ### Übungsspiel starten: `autodarts.start_game`
 
@@ -769,6 +769,32 @@ Die Antwort enthält `path` (die Datei), `url` (ihre `/local/`-Adresse, wenn der
 > **Datenschutz:** Exporte enthalten Spielernamen. Der Medienordner, in dem sie standardmäßig landen, braucht eine Anmeldung. Dateien in `www` liefert Home Assistant unter `/local/` **ohne Anmeldung** an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; der zufällige Teil des Namens macht ihn unerratbar. Exportiere nur bewusst nach `www` und lösche Exporte dort, die du nicht mehr brauchst.
 
 Die Aktion bricht mit einer klaren Meldung ab, wenn der Ordner nicht erlaubt ist, wenn in der letzten Stunde schon 20 Exporte geschrieben wurden oder wenn die Datei nicht geschrieben werden kann.
+
+### Highlight-Foto speichern: `autodarts.save_highlight`
+
+Speichert, was eine Kamera sieht, als Foto für die [Highlight-Galerie](automations.de.md#highlight-galerie), benannt nach Zeitpunkt, Spieler und dem, was es zeigt, und antwortet mit der Datei und ihrer Adresse erst, wenn die Datei geschrieben ist. Der Blueprint [Highlight photo](automations.de.md#highlight-photo) speichert seine Fotos damit; deine eigenen Automationen können das auch, etwa für ein Foto vom ersten Leg des Abends. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `camera` | Kamera-Entität | Die Kamera, die das Foto macht, etwa eine Board-Kamera; Pflicht. Die Kameras eines Boards sind deaktiviert, bis du sie auf der Seite des Boards aktivierst. Jede andere Kamera geht auch. |
+| `folder` | Ordner | Ein Ordner, in den Home Assistant schreiben darf, wie bei [`autodarts.export`](#trainingsdaten-exportieren-autodartsexport). Leer oder weggelassen: die Galerie, `autodarts/highlights` im Medienordner, `/media/autodarts/highlights` unter Home Assistant OS und im Container. |
+| `player` | Text | Der Spieler auf dem Foto, für seinen Namen und seinen Titel in der Galerie |
+| `label` | Text | Was das Foto zeigt, am Ende seines Namens, etwa `180` oder `checkout-121`; eine Zahl zeigt die Galerie als Punkte, `checkout-121` als Checkout |
+
+```yaml
+action: autodarts.save_highlight
+data:
+  camera: camera.autodarts_board_camera_1
+  player: Alex
+  label: 180
+response_variable: highlight
+```
+
+Das Foto heißt etwa `2026-09-26_21-05-33_Alex_180.jpg`, in der Zeit von Home Assistant. Spieler und Bezeichnung verlieren, was ein Dateiname oder eine Adresse nicht haben kann, etwa `/`, `:`, `_`, `~`, `..`, `{`, `%` und `#`, und werden auf 20 und 24 Zeichen gekürzt, ohne Punkt am Ende. Ein zweites Foto derselben Sekunde mit demselben Namen heißt `2026-09-26_21-05-33_Alex_180 (2).jpg`, ein drittes bekommt `(3)` und so weiter; nichts wird überschrieben. Das Bild behält die Art, die die Kamera schickt: `.jpg`, oder `.png` oder `.webp`.
+
+**Antwort:** Mit `response_variable` ist `photo` die gespeicherte Datei und `photo_url` ihre Adresse in der Medienansicht, etwa `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, die die Home-Assistant-App in einer Benachrichtigung lädt; außerhalb des Medienordners ist `photo_url` leer.
+
+Die Aktion schlägt mit einer klaren Meldung fehl und schreibt nichts, wenn es die Kamera-Entität nicht gibt oder sie deaktiviert ist, wenn die Kamera nicht verfügbar ist oder kein Bild liefert, wenn der Ordner nicht erlaubt ist oder die Datei nicht geschrieben werden kann. Mit `continue_on_error: true` macht eine Automation ohne das Foto weiter, wie der Blueprint. Anders als `camera.snapshot`, das eine deaktivierte oder nicht verfügbare Kamera und ein fehlendes Bild ohne Fehler übergeht, meldet sie nie ein Foto, das nicht auf der Festplatte liegt.
 
 ### Spieler mit einer Person verknüpfen: `autodarts.link_player`
 

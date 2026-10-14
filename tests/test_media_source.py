@@ -15,11 +15,11 @@ from homeassistant.util import dt as dt_util
 from PIL import Image
 
 from custom_components.autodarts import media_source as highlights
+from custom_components.autodarts.highlights import highlight_folder
 from custom_components.autodarts.media_source import (
     Highlight,
     async_get_media_source,
     highlight,
-    highlight_folder,
 )
 
 from .local_helpers import board, setup_local
@@ -85,6 +85,18 @@ def test_names_tell_the_moment_the_player_and_the_score(tmp_path):
     alone = parsed("2026-09-26_21-05-33_60.webp")
     assert (alone.player, alone.score) == (None, 60)
     assert parsed("2026-09-26_Kim.jpg").score is None
+    # The second photo of a second with the same name, as autodarts.save_highlight
+    # names it, is a photo like the first.
+    copy = parsed("2026-09-26_21-05-33_Alex_checkout-121 (2).jpg")
+    assert (copy.player, copy.score, copy.checkout, copy.label) == (
+        "Alex",
+        121,
+        True,
+        None,
+    )
+    assert parsed("2026-09-26_21-05-33 (3).jpg").taken == datetime(
+        2026, 9, 26, 21, 5, 33
+    )
     # A date that does not exist, or no date at all, falls back to the file time.
     for name in ("2026-13-40_Alex_180.jpg", "180.jpg"):
         fallback = parsed(name)
