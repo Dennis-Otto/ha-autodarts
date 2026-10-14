@@ -45,10 +45,15 @@ jobs:
     outputs:
       run: ${{ steps.files.outputs.run }}
     steps:
-      - name: Record the network traffic of the job
+      # The files of the pull request come from GitHub's API; no step needs sudo or
+      # Docker.
+      - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+          disable-sudo-and-containers: true
       # No checkout and no action of a third party: the files of the pull request
       # come from the API, as in pull-request-title.yml.
       - name: Decide whether the tests have to run
@@ -110,10 +115,17 @@ jobs:
       BOARD_MANAGER: ${{ matrix.board_manager }}
       E2E_ARTIFACTS: ${{ github.workspace }}/e2e-artifacts
     steps:
-      - name: Record the network traffic of the job
+      # Only the hosts of the steps: the code from github.com and Home Assistant from
+      # GitHub's registry (ghcr.io, pkg-containers.githubusercontent.com). Home
+      # Assistant itself reaches none (tests/e2e/offline/radio_browser).
+      - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -172,10 +184,25 @@ jobs:
       BROWSER_WORKERS: ${{ matrix.part.workers }}
       E2E_ARTIFACTS: ${{ github.workspace }}/e2e-artifacts
     steps:
-      - name: Record the network traffic of the job
+      # Only the hosts of the steps: the code from github.com, Home Assistant from
+      # GitHub's registry (ghcr.io, pkg-containers.githubusercontent.com), Playwright
+      # from Microsoft's (mcr.microsoft.com, *.data.mcr.microsoft.com), axe-core from
+      # npm (registry.npmjs.org) and the Python packages of the browser test (pypi.org,
+      # files.pythonhosted.org). Home Assistant itself reaches none
+      # (tests/e2e/offline/radio_browser).
+      - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            mcr.microsoft.com:443
+            *.data.mcr.microsoft.com:443
+            registry.npmjs.org:443
+            pypi.org:443
+            files.pythonhosted.org:443
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -209,10 +236,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Record the network traffic of the job
+      # The gate reads the results of the other jobs; it needs no host, sudo or
+      # Docker. Harden-Runner warns that both endpoint lists are empty: expected,
+      # an empty allow list blocks every host apart from GitHub's Actions services.
+      - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
-          egress-policy: audit
+          egress-policy: block
+          disable-sudo-and-containers: true
       - name: Pass when every test that had to run passed
         env:
           WANTED: ${{ needs.changes.outputs.run }}
@@ -248,10 +279,20 @@ jobs:
       HOME_ASSISTANT_IMAGE: ghcr.io/home-assistant/home-assistant:beta
       E2E_ARTIFACTS: ${{ github.workspace }}/e2e-artifacts
     steps:
-      - name: Record the network traffic of the job
+      # The hosts of the scenario and the browser test, as in the jobs above.
+      - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            ghcr.io:443
+            pkg-containers.githubusercontent.com:443
+            mcr.microsoft.com:443
+            *.data.mcr.microsoft.com:443
+            registry.npmjs.org:443
+            pypi.org:443
+            files.pythonhosted.org:443
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false

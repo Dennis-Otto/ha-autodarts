@@ -1979,6 +1979,25 @@ class Scenario:
             f"Unexpected diagnostics summary: {data}",
         )
 
+    async def offline(self) -> None:
+        """Home Assistant stays off the internet. Onboarding sets up Radio Browser,
+        which looks up radio stations on the internet as soon as it starts; the
+        stand-in of offline/radio_browser takes its place and turns that down, also
+        through the restarts of the scenario."""
+        manifest = await self.ws("manifest/get", integration="radio_browser")
+        check(
+            manifest["is_built_in"] is False,
+            "Home Assistant has its own Radio Browser instead of the stand-in of "
+            "offline/radio_browser, which keeps it off the internet",
+        )
+        entries = await self.api(
+            "GET", "/api/config/config_entries/entry?domain=radio_browser"
+        )
+        check(
+            not entries,
+            f"Onboarding set up Radio Browser, which reaches the internet: {entries}",
+        )
+
     async def logs(self) -> None:
         problems = [
             item
@@ -2071,6 +2090,7 @@ async def main() -> None:
         await phase("tournament", scenario.tournament())
         await phase("manual board", scenario.manual_board())
         await phase("diagnostics", scenario.diagnostics(entry_id))
+        await phase("offline", scenario.offline())
         await phase("logs", scenario.logs())
         await phase("removal", scenario.remove(entry_id))
         await scenario.socket.close()
@@ -2090,7 +2110,7 @@ async def main() -> None:
         "dashboard card, players linked to "
         "persons, the highlight gallery in the media browser, a round robin "
         "tournament, a dartboard without Autodarts beside the board, private "
-        "diagnostics, clean logs and removal."
+        "diagnostics, no Radio Browser to reach the internet, clean logs and removal."
     )
 
 

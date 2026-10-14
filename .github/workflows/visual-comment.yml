@@ -30,10 +30,16 @@ jobs:
       actions: read # to download the reports of the check's run
       pull-requests: write # to post and update the comment
     steps:
-      - name: Record the network traffic of the job
+      # The job may comment, so it reaches GitHub's API alone; Harden-Runner itself
+      # allows the storage of the reports, which the artifacts of the check keep.
+      # Without sudo and Docker no step can lift the block.
+      - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
-          egress-policy: audit
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+          disable-sudo-and-containers: true
       - name: Write the comment from the reports of the check
         env:
           GH_TOKEN: ${{ github.token }}

@@ -50,6 +50,12 @@ The scenario uses only Home Assistant's public REST and WebSocket APIs and verif
   pause between the matches, the table, the tournament events and the profiles
 - diagnostics without the board ID, API key, webhook address or player names, and
   logs without errors, tracebacks or secrets
+- a Home Assistant that stays off the internet: its onboarding would set up Radio
+  Browser, which looks up radio stations there as soon as it starts, so
+  `offline/radio_browser` takes its place as a custom integration and turns the offer
+  down, and no entry of Radio Browser exists; in CI, Harden-Runner also blocks every
+  host that a job doesn't need (see
+  [Network of the jobs](../../docs/development.md#network-of-the-jobs))
 - removal of the entry, its entities, the realtime connection and the stored
   training session, weekly report and journal
 

@@ -1,0 +1,12 @@
+{
+  "domain": "radio_browser",
+  "name": "Radio Browser",
+  "codeowners": [],
+  "config_flow": true,
+  "documentation": "https://github.com/Dennis-Otto/ha-autodarts/blob/main/tests/e2e/README.md",
+  "integration_type": "service",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "1.0.0"
+}

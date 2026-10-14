@@ -62,6 +62,7 @@ oche
 oefenspel
 partida
 pngquant
+projekteigenen
 reauthentication
 tirada
 uitgooi
@@ -70,6 +71,7 @@ unerratbare
 volée
 vous
 zurücknehmbare
+Übersetzungsbot
 Überworfene
 Übungsleg
 Übungslegs
