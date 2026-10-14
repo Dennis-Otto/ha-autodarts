@@ -36,19 +36,14 @@ Die [Anleitung zu den Karten](cards.de.md#anzeigetafel) nennt jede Option.
 
 Die Anzeigetafel passt sich der Form des Bildschirms an. Mit `full_height: true` ist sie genau der Bildschirm unter der Werkzeugleiste: Ein Banner, die Aufnahme oder das Tastenfeld machen Zahlen und Tabellen kleiner, statt die Seite über den Bildschirm hinauszuschieben, sodass nichts gescrollt werden muss, vom kleinen 800 × 480-Display bis zum Fernseher. Auf einem Handy lässt sie Platz für die Adressleiste des Browsers und in der Companion-App für die Statusleiste und den Home-Balken.
 
-<table>
-  <tr>
-    <td width="62%"><img src="images/de/scoreboard-teams.png" alt="Die Anzeigetafel auf einem Tablet im Querformat: ein 501-Team-Match von Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216" width="100%"></td>
-    <td width="38%"><img src="images/de/scoreboard-portrait.png" alt="Die Anzeigetafel auf einem Tablet im Hochformat: die Cricket-Kreidetafel von Alex und Sam mit T19 als nächstem Ziel und der aktuellen Aufnahme am unteren Rand" width="100%"></td>
-  </tr>
-  <tr>
-    <td align="center">Tablet im Querformat oder Fernseher</td>
-    <td align="center">Tablet im Hochformat</td>
-  </tr>
-</table>
-
 - **Tablet im Querformat oder Fernseher:** die beste Wahl für X01 und die Partyspiele, deren Spielerkacheln nebeneinander stehen.
+
+  <img src="images/de/scoreboard-teams.png" alt="Die Anzeigetafel auf einem Tablet im Querformat: ein 501-Team-Match von Alex und Kim mit Rest 45 gegen Sam und Lea mit Rest 216" width="760">
+
 - **Tablet im Hochformat:** gut für Cricket, dessen Kreidetafel hoch ist, und für X01: Zwei Spieler stehen übereinander, drei oder vier zu zweit nebeneinander, und die Punkte nutzen die Höhe des Bildschirms.
+
+  <img src="images/de/scoreboard-portrait.png" alt="Die Anzeigetafel auf einem Tablet im Hochformat: die Cricket-Kreidetafel von Alex und Sam mit T19 als nächstem Ziel und der aktuellen Aufnahme am unteren Rand" width="400">
+
 - **Handy:** Alles passt auf einen Bildschirm, hochkant wie quer. Mit dem Tastenfeld oder der Scheibe zum Antippen wird der Punktestand jedes Spielers zu einer Zeile, sodass alle Punktestände sichtbar bleiben; quer nimmt das Tastenfeld die rechte Bildschirmhälfte von oben bis unten ein. Zum [Korrigieren eines Darts](#darts-korrigieren-und-eingeben) öffnet sich die Scheibe vergrößert, mit einer Lupe unter dem Finger.
 - **Touch-Monitor:** Auf einem 24- oder 27-Zoll-Touchscreen neben dem Board ist jede Taste groß genug für einen Finger, auch mit angeschlossener Maus, und die Scheibe zum Antippen hat die Lupe und den Zwei-Finger-Zoom eines Handys.
 - **Entfernung:** Der Rest ist der größte Text auf dem Bildschirm und wächst mit ihm. Je größer der Bildschirm, desto weiter weg ist er lesbar; ein Fernseher bedient also auch die Zuschauer.
@@ -86,16 +81,23 @@ Am unteren Rand stehen die drei Darts der aktuellen Aufnahme und ihre Punkte, un
 
 <img src="images/de/match-summary.png" alt="Anzeigetafel, nachdem Alex Sam in 301 mit 2 : 1 geschlagen hat: die Match-Zusammenfassung mit Legs, 3-Dart-Average, First 9, Checkout-Quote, höchstem Checkout, 180ern, 140+, 100+, bestem Leg, Darts aufs Double und Darts beider Spieler" width="760">
 
-<table>
-  <tr>
-    <td width="50%"><img src="images/de/killer.webp" alt="Animation: Killer für Alex, Sam und Kim auf der Anzeigetafel. Jeder wirft um eine Zahl, Alex wird Killer und nimmt Sam die Leben, Kim wird ebenfalls Killer, und Alex nimmt das letzte Leben zum Sieg" width="100%"></td>
-    <td width="50%"><img src="images/de/scoreboard-cricket.png" alt="Anzeigetafel bei Cricket zwischen Alex und Sam: die Kreidetafel mit Marks, Punkten und Marks pro Runde, T19 als nächstes Ziel" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="images/de/golf.webp" alt="Animation: Golf für Alex und Sam auf der Anzeigetafel. Nach jeder Aufnahme füllt sich die Scorekarte: Alex spielt 1, 3 und 2, Sam 4, 5 und 5, und das vierte Loch läuft" width="100%"></td>
-    <td width="50%"><img src="images/de/scoreboard-catch-40.png" alt="Catch 40 auf der Anzeigetafel: In der zweiten Runde lässt ein Single 12 von 62 noch 50 übrig, der Weg ist das Bull, und der erste Checkout brachte 3 Punkte" width="100%"></td>
-  </tr>
-</table>
+Jedes Spiel hat seinen eigenen Bildschirm:
+
+- **Killer:** die Leben jedes Spielers als Herzen, mit seiner Zahl und ob er Killer ist, bis nur noch einer übrig ist.
+
+  <img src="images/de/killer.webp" alt="Animation: Killer für Alex, Sam und Kim auf der Anzeigetafel. Jeder wirft um eine Zahl, Alex wird Killer und nimmt Sam die Leben, Kim wird ebenfalls Killer, und Alex nimmt das letzte Leben zum Sieg" width="760">
+
+- **Cricket:** die Kreidetafel mit den Marks, den Punkten und den Marks pro Runde und das nächste Ziel oben links.
+
+  <img src="images/de/scoreboard-cricket.png" alt="Anzeigetafel bei Cricket zwischen Alex und Sam: die Kreidetafel mit Marks, Punkten und Marks pro Runde, T19 als nächstes Ziel" width="760">
+
+- **Golf:** das Loch, das gespielt wird, und die Schläge jedes Spielers.
+
+  <img src="images/de/golf.webp" alt="Animation: Golf für Alex und Sam auf der Anzeigetafel. Nach jeder Aufnahme füllt sich die Scorekarte: Alex spielt 2, 3 und 1, Sam 4, 5 und 5, und das vierte Loch läuft" width="760">
+
+- **Catch 40:** der Rest zum Checken in großer Schrift, mit dem Weg, der Runde und den bisherigen Punkten.
+
+  <img src="images/de/scoreboard-catch-40.png" alt="Catch 40 auf der Anzeigetafel: In der zweiten Runde lässt ein Single 12 von 62 noch 50 übrig, der Weg ist das Bull, und der erste Checkout brachte 3 Punkte" width="760">
 
 ## Darts korrigieren und eingeben
 
@@ -128,12 +130,13 @@ Für ein [Turnier](games.de.md#turniere) mit drei bis acht Spielern führt der B
 3. **Zwischen den Matches** bleibt die Zusammenfassung des Matches einige Sekunden stehen, dann erscheint die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System) mit dem nächsten Match und einem Countdown. **Jetzt starten** startet es sofort; sonst beginnt es von selbst, sobald die Darts aus dem Board sind.
 4. **Am Ende** nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt. *Turnier beenden* in der Spielauswahl beendet ein Turnier vorzeitig. Ein neues Turnier, das während eines laufenden startet, beendet zuerst das laufende, nach einem zweiten Tipp.
 
-<table>
-  <tr>
-    <td width="50%"><img src="images/de/tournament-lobby.png" alt="Die Spielauswahl im Turniermodus: X01 und die Cricket-Spiele, sechs Spieler mit ihren Startpunkten, K.-o.-System mit Spiel um Platz 3 und die Starttaste" width="100%"></td>
-    <td width="50%"><img src="images/de/tournament-table.png" alt="Das Turnier jeder gegen jeden mit vier Spielern auf der Anzeigetafel zwischen zwei Matches: als Nächstes Lea gegen Sam mit Countdown und die Tabelle mit Alex vorn mit 4 Punkten" width="100%"></td>
-  </tr>
-</table>
+**Turnier** in der Spielauswahl legt Spieler, Spiel, Format und Regeln fest:
+
+<img src="images/de/tournament-lobby.png" alt="Die Spielauswahl im Turniermodus: X01 und die Cricket-Spiele, sechs Spieler mit ihren Startpunkten, K.-o.-System mit Spiel um Platz 3 und die Starttaste" width="560">
+
+Zwischen zwei Matches wartet das nächste Match mit seinem Countdown über der Tabelle des Turniers jeder gegen jeden:
+
+<img src="images/de/tournament-table.png" alt="Das Turnier jeder gegen jeden mit vier Spielern auf der Anzeigetafel zwischen zwei Matches: als Nächstes Lea gegen Sam mit Countdown und die Tabelle mit Alex vorn mit 4 Punkten" width="760">
 
 Die Tabelle ordnet nach Punkten, zwei für einen Sieg, dann nach der Entscheidung bei Gleichstand aus den [Turnierregeln](games.de.md#turnierregeln). Im Turnierbaum gleitet, wer weiterkommt, in die nächste Runde. [Alle Details](cards.de.md#turniere).
 

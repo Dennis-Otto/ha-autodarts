@@ -152,6 +152,33 @@ def test_triggers_are_normalized_and_other_boards_ignored():
 
 
 @pytest.mark.parametrize(
+    ("trigger", "player", "name"),
+    [
+        # Lower case finds the trigger; the name keeps the case it was sent in.
+        ("gameshot_Dennis", None, "Dennis"),
+        ("MatchShot_John   Doe", None, "John Doe"),
+        ("gameshot_Lea_2", "Sam", "Lea_2"),
+        # Notifications and file names render a name again, so it never holds
+        # the characters of a template, as no player name does.
+        ("busted", "{{ 6*7 }}", "6*7"),
+        ("gameshot_{% if 1 %}Kim", None, "if 1 Kim"),
+        ("matchshot_#Lea", None, "Lea"),
+        # Nothing left of the trigger's name: the player who was sent counts.
+        ("gameshot_{}", "Sam", "Sam"),
+        ("gameshot_%", None, None),
+        ("gameon", "{#}", None),
+        # As long as a name in the games, at most.
+        ("gameshot_" + "x" * 30, None, "x" * 20),
+    ],
+)
+def test_names_keep_their_case_and_lose_template_characters(trigger, player, name):
+    moment = parse(trigger, player)
+    assert moment is not None
+    assert moment[1].get("name") == name
+    assert moment[1]["trigger"] == " ".join(trigger.split()).lower()
+
+
+@pytest.mark.parametrize(
     "trigger",
     [
         "181",
@@ -480,6 +507,25 @@ async def test_calls_become_board_events(
         if record.name.startswith("custom_components.autodarts")
         and WEBHOOK_ID in record.getMessage()
     ]
+
+
+async def test_names_are_spelled_as_the_players_profile_spells_them(
+    hass, aioclient_mock, hass_client_no_auth
+):
+    entry = await setup_bridge(hass, aioclient_mock)
+    entry.runtime_data.local.practice.profiles.visit("Dennis", 60)
+    events = record_events(hass)
+    client = await hass_client_no_auth()
+    for query in (
+        "?event=gameshot_dennis",
+        "?event=busted&player=DENNIS",
+        "?event=matchshot_Kim",
+        "?event=gameon&player=%7B%7B%206*7%20%7D%7D",
+    ):
+        assert await call(client, query=query) == (HTTPStatus.OK, "ok")
+    await hass.async_block_till_done()
+    assert [event["name"] for event in events] == ["Dennis", "Dennis", "Kim", "6*7"]
+    assert events[0]["trigger"] == "gameshot_dennis"
 
 
 @pytest.mark.parametrize(

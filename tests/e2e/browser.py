@@ -15,7 +15,7 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-from pages import CARDS_DRAWN, expect_state, probe, settle, show, wait_for
+from pages import CARDS_DRAWN, STATES, expect_state, probe, settle, show, wait_for
 from playwright.sync_api import (
     Browser,
     BrowserContext,
@@ -27,6 +27,7 @@ from playwright.sync_api import (
     sync_playwright,
 )
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
+from shards import Step, choose, shard
 
 HA = "http://homeassistant:8123"
 BOARD = "http://board-mock:3180"
@@ -42,14 +43,13 @@ GENERATION = int(os.environ.get("BOARD_MANAGER", "1"))
 # Writable folder for screenshots, traces and timelines of a failed step, mounted by
 # browser.sh.
 ARTIFACTS = os.environ.get("BROWSER_ARTIFACTS", "")
-# Steps to run instead of all, comma-separated, each a step's name or its beginning,
-# such as "touch screens" or "correcting" while working on a screen; browser.sh passes
-# BROWSER_STEPS on.
-ONLY = {
-    name.strip()
-    for name in os.environ.get("BROWSER_STEPS", "").split(",")
-    if name.strip()
-}
+# Steps to run instead of all, comma-separated, each the whole name of a step, which
+# runs that step alone, or a beginning of names, such as "touch" or "correcting" while
+# working on a screen (see shards.py); browser.sh passes BROWSER_STEPS on.
+WANTED = os.environ.get("BROWSER_STEPS", "")
+# A part of the steps, such as 2/4 for the second of four shards (see shards.py);
+# browser.sh gives each of its workers one.
+SHARD = os.environ.get("BROWSER_SHARD", "")
 # The integration as mounted by browser.sh, for the texts every language expects.
 INTEGRATION = Path(__file__).resolve().parents[2] / "custom_components" / "autodarts"
 
@@ -2954,9 +2954,15 @@ def artifact(step: str, name: str) -> Path | None:
     return Path(ARTIFACTS, f"{slug}-{name}")
 
 
-def keep_screenshots(browser: Browser, step: str) -> None:
-    """Save every page still open after a failed step for the CI artifact."""
-    pages = [page for context in browser.contexts for page in context.pages]
+def keep_screenshots(browser: Browser, step: str, besides: Page | None = None) -> None:
+    """Save every page still open after a failed step for the CI artifact, besides the
+    page that only sets up the board."""
+    pages = [
+        page
+        for context in browser.contexts
+        for page in context.pages
+        if page is not besides
+    ]
     for number, page in enumerate(pages, start=1):
         path = artifact(step, f"{number}.png")
         if path is None:
@@ -2972,7 +2978,8 @@ class StepTimes:
     other artifacts after each step, failed or not: browser.sh adds it to the summary
     of the job in CI, which shows what to make faster and how to split the steps."""
 
-    def __init__(self) -> None:
+    def __init__(self, title: str) -> None:
+        self.title = title
         self.steps: list[tuple[str, float]] = []
         self.path = artifact("browser steps", "table.md")
 
@@ -2984,7 +2991,7 @@ class StepTimes:
             self.path.write_text(
                 "\n".join(
                     [
-                        "### Browser steps",
+                        f"### {self.title}",
                         "",
                         "| Step | Seconds |",
                         "| --- | ---: |",
@@ -3310,104 +3317,185 @@ def manual_board(browser: Browser) -> None:
         page.close()
 
 
+# Where every step finds the board and its games, whatever the step before it left: no
+# tournament, no keypad and no game, the detection running and no darts on the board.
+# A card that showed a game opens its new game screen by itself eight seconds after the
+# game ends, so a game left running would open it in the middle of the next step.
+BETWEEN_GAMES = {
+    "tournament": "no_tournament",
+    "practice_manual_entry": "off",
+    "practice_game": "off",
+    "practice_teams": "off",
+    "detection": "on",
+    "local_status": "throw",
+    "num_throws": "0",
+}
+# The states that the board itself sets, by its detection, its status and its darts.
+BOARD_STATES = ("detection", "local_status", "num_throws")
+# The match settings that steps change, as they are between games: one player, one
+# leg and one set, without the bot.
+MATCH_SETTINGS = {
+    "practice_bot_level": 0,
+    "practice_players": 1,
+    "practice_legs": 1,
+    "practice_sets": 1,
+}
+# Whether the page knows the states of these Autodarts entities.
+STATES_KNOWN = (
+    f"(keys) => Object.values(({STATES})(keys)).every((state) => state !== null)"
+)
+
+
+class Board:
+    """Brings the board and its games back between games before a step, through a page
+    of its own that shows no card and stays open for the whole run."""
+
+    def __init__(self, browser: Browser) -> None:
+        self.browser = browser
+        self.page: Page | None = None
+
+    def between_games(self) -> None:
+        keys = [*BETWEEN_GAMES, *MATCH_SETTINGS]
+        page = self.page
+        if page is None:
+            page = self.page = self.browser.new_page()
+            page.goto(f"{HA}/profile/general")
+            wait_for([page], STATES_KNOWN, arg=keys, timeout=30000)
+        states = page.evaluate(STATES, keys)
+        if states["tournament"] != BETWEEN_GAMES["tournament"]:
+            page.evaluate(CALL_ACTION, ["stop_tournament", {}])
+        if states["practice_manual_entry"] != "off":
+            page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_manual_entry"])
+        if states["practice_game"] != "off":
+            page.evaluate(
+                CALL_SERVICE,
+                ["select", "select_option", "practice_game", {"option": "off"}],
+            )
+        if states["practice_teams"] != "off":
+            page.evaluate(CALL_SERVICE, ["switch", "turn_off", "practice_teams"])
+        for key, value in MATCH_SETTINGS.items():
+            if float(states[key]) != value:
+                page.evaluate(
+                    CALL_SERVICE, ["number", "set_value", key, {"value": value}]
+                )
+        if any(states[key] != BETWEEN_GAMES[key] for key in BOARD_STATES):
+            control(
+                {
+                    "running": True,
+                    "status": "Throw",
+                    "event": "Takeout finished",
+                    "throws": [],
+                }
+            )
+        expect_state([page], BETWEEN_GAMES)
+
+
+def steps(browser: Browser, playwright: Playwright) -> list[Step]:
+    """Every step in its order, each in one of four groups of about the same seconds,
+    which browser-steps-table.md lists after a run. In CI the groups 1 and 2 share a
+    runner (BROWSER_WORKERS=2): the steady heights, the longest step, run beside the
+    short steps of group 1. The groups 3 and 4 have a runner each, so that Safari's
+    WebKit in group 4 shares the CPU with no other browser: it failed to load the
+    scripts of Home Assistant while every screen size opened nine screens beside it."""
+    return [
+        # Both read the demo as demo.py left it: the training card its session before
+        # any control changes it, the live card the visit on the board.
+        Step("training card", 1, lambda: training(browser), as_started=True),
+        Step("live card", 1, lambda: visit(browser), as_started=True),
+        Step("fresh loads", 1, lambda: fresh_loads(browser)),
+        Step("practice game", 1, lambda: practice(browser)),
+        Step("progress and leaderboard", 1, lambda: progress(browser)),
+        Step("status card", 1, lambda: status(browser)),
+        Step("scoreboard", 1, lambda: scoreboard(browser)),
+        Step("more games", 1, lambda: more_games(browser)),
+        Step("scoreboard caller", 1, lambda: caller(browser)),
+        Step("new game screen", 1, lambda: lobby(browser)),
+        Step(
+            "correcting with the keypad and the bot", 1, lambda: play_comfort(browser)
+        ),
+        Step("tournament", 1, lambda: tournament(browser)),
+        Step("tablet screen", 3, lambda: tablet_screen(browser)),
+        Step("touch screens", 4, lambda: touch_screens(browser)),
+        Step("Safari on an iPhone", 4, lambda: safari(playwright)),
+        Step("every screen size", 3, lambda: screens(browser)),
+        Step("accessibility", 4, lambda: accessibility(browser)),
+        Step("steady heights", 2, lambda: steady_heights(browser)),
+        Step("automatic dashboard", 1, lambda: strategy(browser)),
+        Step("players export", 1, lambda: players_export(browser)),
+        Step("live card editor", 1, lambda: editor(browser, rows=7)),
+        Step(
+            "training card editor",
+            1,
+            lambda: editor(browser, "training", TRAINING_CARDS, ".heat-layer", 7),
+        ),
+        Step(
+            "status card editor",
+            1,
+            lambda: editor(browser, "status", STATUS_CARDS, ".toggle", 4),
+        ),
+        Step(
+            "doubles editor",
+            1,
+            lambda: editor(browser, "doubles", DOUBLES_CARDS, ".doubles-card", 4),
+        ),
+        Step(
+            "players editor",
+            1,
+            lambda: editor(browser, "players", PLAYERS_CARDS, ".players-card", 6),
+        ),
+        Step(
+            "leaderboard editor",
+            1,
+            lambda: editor(
+                browser, "leaderboard", LEADERBOARD_CARDS, ".leaderboard", 5
+            ),
+        ),
+        Step(
+            "scoreboard editor",
+            1,
+            lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 9),
+        ),
+        Step("dashboard strategy editor", 1, lambda: strategy_editor(browser)),
+        Step("light theme", 1, lambda: light_theme(browser)),
+        Step("languages", 1, lambda: languages(browser)),
+        # Last: a second board would be the first of the cards without one.
+        Step("a dartboard without Autodarts", 3, lambda: manual_board(browser)),
+    ]
+
+
 def main() -> None:
+    part, parts = shard(SHARD)
+    which = f" of shard {part}/{parts}" if parts > 1 else ""
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
-        steps = [
-            ("fresh loads", lambda: fresh_loads(browser)),
-            # The training card reads the demo session before any control changes it.
-            ("training card", lambda: training(browser)),
-            ("live card", lambda: visit(browser)),
-            ("practice game", lambda: practice(browser)),
-            ("progress and leaderboard", lambda: progress(browser)),
-            ("status card", lambda: status(browser)),
-            ("scoreboard", lambda: scoreboard(browser)),
-            ("more games", lambda: more_games(browser)),
-            ("scoreboard caller", lambda: caller(browser)),
-            ("new game screen", lambda: lobby(browser)),
-            ("correcting, the keypad and the bot", lambda: play_comfort(browser)),
-            ("tournament", lambda: tournament(browser)),
-            ("tablet screen", lambda: tablet_screen(browser)),
-            ("touch screens", lambda: touch_screens(browser)),
-            ("Safari on an iPhone", lambda: safari(playwright)),
-            ("every screen size", lambda: screens(browser)),
-            ("accessibility", lambda: accessibility(browser)),
-            ("steady heights", lambda: steady_heights(browser)),
-            ("automatic dashboard", lambda: strategy(browser)),
-            ("players export", lambda: players_export(browser)),
-            ("live card editor", lambda: editor(browser, rows=7)),
-            (
-                "training card editor",
-                lambda: editor(browser, "training", TRAINING_CARDS, ".heat-layer", 7),
-            ),
-            (
-                "status card editor",
-                lambda: editor(browser, "status", STATUS_CARDS, ".toggle", 4),
-            ),
-            (
-                "doubles editor",
-                lambda: editor(browser, "doubles", DOUBLES_CARDS, ".doubles-card", 4),
-            ),
-            (
-                "players editor",
-                lambda: editor(browser, "players", PLAYERS_CARDS, ".players-card", 6),
-            ),
-            (
-                "leaderboard editor",
-                lambda: editor(
-                    browser, "leaderboard", LEADERBOARD_CARDS, ".leaderboard", 5
-                ),
-            ),
-            (
-                "scoreboard editor",
-                lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 9),
-            ),
-            ("dashboard strategy editor", lambda: strategy_editor(browser)),
-            ("light theme", lambda: light_theme(browser)),
-            ("languages", lambda: languages(browser)),
-            # Last: a second board would be the first of the cards without one.
-            ("a dartboard without Autodarts", lambda: manual_board(browser)),
-        ]
-        unknown = {
-            wanted
-            for wanted in ONLY
-            if not any(name.startswith(wanted) for name, _ in steps)
-        }
-        check(not unknown, f"BROWSER_STEPS names no step: {sorted(unknown)}")
-        times = StepTimes()
-        for name, step in steps:
-            if ONLY and not any(name.startswith(wanted) for wanted in ONLY):
-                continue
+        board = Board(browser)
+        chosen = choose(steps(browser, playwright), WANTED, SHARD)
+        times = StepTimes(f"Browser steps{which}")
+        for step in chosen:
             # A failure then names the step, not only a timeout deep in Playwright.
-            print(f"Browser step: {name}", flush=True)
+            print(f"Browser step: {step.name}", flush=True)
             started = time.monotonic()
             try:
-                step()
+                if not step.as_started:
+                    try:
+                        board.between_games()
+                    except Exception as error:
+                        raise BrowserFailure(
+                            f"Before {step.name}, the board did not get back"
+                            f" between games: {error}"
+                        ) from error
+                step.run()
             except Exception:
-                times.add(f"{name} (failed)", time.monotonic() - started)
-                keep_screenshots(browser, name)
+                times.add(f"{step.name} (failed)", time.monotonic() - started)
+                keep_screenshots(browser, step.name, besides=board.page)
                 raise
-            seconds = times.add(name, time.monotonic() - started)
-            print(f"Browser step: {name} ({seconds:.1f} s)", flush=True)
+            seconds = times.add(step.name, time.monotonic() - started)
+            print(f"Browser step: {step.name} ({seconds:.1f} s)", flush=True)
         browser.close()
-    print(
-        "Browser check passed: card registration on every load, visit, highlights, "
-        "controls with confirmation, last visits, practice game, match and "
-        "training games, "
-        "training heatmap with dart positions, badges, trends, the leaderboard, "
-        "history and "
-        "sessions, board status, the scoreboard with teams, Tactics, Golf and a "
-        "match summary, its caller, new game screen, a corrected dart, the keypad "
-        "and a match against the bot, a tournament, the screens on an 800 x 480 "
-        "tablet and idle mode with reduced motion, touch screens driven by taps, "
-        "games that stay under the finger in an iPhone's Safari, every "
-        "view on eight screen sizes both ways round, cards that keep their heights "
-        "through a game, no serious or critical violation of WCAG 2.1 AA in any card "
-        "on a laptop and a phone in both themes, the generated "
-        "dashboard, the players export, all seven card forms, the strategy editor, "
-        "light theme, the cards and entity texts in Dutch, French and Spanish, and a "
-        "dartboard without Autodarts with its keypad on every screen size."
-    )
+    total = sum(seconds for _, seconds in times.steps)
+    count = f"{len(chosen)} step{'' if len(chosen) == 1 else 's'}"
+    ran = ", ".join(step.name for step in chosen) or "no step of BROWSER_STEPS is in it"
+    print(f"Browser check{which} passed, {count} in {total:.0f} s: {ran}.")
 
 
 if __name__ == "__main__":

@@ -5,8 +5,9 @@ websocket, such as positions, profiles and trends. A page is settled when every 
 has drawn itself, no request of the frontend waits for its answer, the websocket was
 quiet for a moment, no animation of a card is running, and the browser has drawn two
 frames since. browser.py waits for that, and for the states that a move at the board
-sets, so that it checks a page as soon as it is ready and never too early; the
-screenshot tool can use the same helpers.
+sets, so that it checks a page as soon as it is ready and never too early. The
+screenshot tool waits the same way until a page has loaded what Home Assistant
+sends it, and then holds the animations of each picture itself.
 """
 
 from __future__ import annotations
@@ -105,6 +106,8 @@ ANIMATIONS = """
 """
 # Two frames: the browser has laid out and drawn what the last change brought.
 FRAMES = "() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))"
+# The fonts of the page have loaded: text no longer shows in a font that stands in.
+FONTS = "() => document.fonts.ready.then(() => true)"
 # Opens a path within the app, as its links do, and notes the cards shown before, which
 # leave the page once the new view replaces them.
 NAVIGATE = """
@@ -192,17 +195,28 @@ def wait_for(
             ) from error
 
 
+def within_app(current: str, url: str) -> bool:
+    """Whether show() opens the address within the app on a page at the current one: a
+    page of the same Home Assistant, where neither address has a query or a fragment.
+    The app reads those when it starts, such as ?edit=1 for edit mode, and keeps what
+    they set when it opens another view within, so an address with one loads, and so
+    does any view after one."""
+    here, there = urlsplit(current), urlsplit(url)
+    return here.netloc == there.netloc and not (
+        here.query or here.fragment or there.query or there.fragment
+    )
+
+
 def show(pages: Page | Iterable[Page], url: str) -> None:
     """Open a view on every page at once, until its cards have drawn: loaded on a page
     that shows nothing of Home Assistant yet, and within the app on one that does, as
     its links do. That keeps the frontend and its websocket, and takes a tenth of a
     second instead of a load of the whole app. An address with a query or a fragment,
-    such as ?edit=1, always loads: the app reads them when it starts."""
+    and any view after one, always loads (see within_app)."""
     pages = [pages] if isinstance(pages, Page) else list(pages)
     target = urlsplit(url)
-    within = not (target.query or target.fragment)
     for page in pages:
-        if within and urlsplit(page.url).netloc == target.netloc:
+        if within_app(page.url, url):
             page.evaluate(NAVIGATE, target.path)
         else:
             # Only until the page is there: its cards are what the next lines wait for.
@@ -217,11 +231,13 @@ def show(pages: Page | Iterable[Page], url: str) -> None:
             ) from error
 
 
-def settle(*pages: Page, scope: str = "cards") -> None:
-    """Wait until every page is settled: its cards drawn, its websocket quiet, the
-    animations of its cards (or with scope "page", of the whole page) ended, and two
-    frames drawn since."""
+def loaded(*pages: Page) -> None:
+    """Wait until every page has what Home Assistant sends it: its cards drawn, its
+    fonts loaded and its websocket quiet. The screenshot tool waits for no more,
+    because it holds the animations of a picture itself."""
     wait_for(pages, CARDS_DRAWN, timeout=30000, what="every card drawn")
+    for page in pages:
+        page.evaluate(FONTS)
     for page in pages:
         try:
             page.wait_for_function(
@@ -233,6 +249,12 @@ def settle(*pages: Page, scope: str = "cards") -> None:
                 f"{where(page)}: the websocket does not get quiet;"
                 f" waiting for {waiting}"
             ) from error
+
+
+def settle(*pages: Page, scope: str = "cards") -> None:
+    """Wait until every page is settled: loaded, the animations of its cards (or with
+    scope "page", of the whole page) ended, and two frames drawn since."""
+    loaded(*pages)
     for page in pages:
         try:
             page.wait_for_function(

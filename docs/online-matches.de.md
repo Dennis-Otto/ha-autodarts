@@ -29,7 +29,7 @@ Für einen Effekt von Hand gibst du ihm einen Trigger, den Typ **URL** und die A
 | --- | --- | --- |
 | `gameon`, `bot_throw` | `online_game_on` | Tools for Autodarts sendet `gameon` zu Beginn jeder Aufnahme und nach jedem Moment ohne eigenen Effekt: ein guter Moment für dein normales Licht. |
 | `busted` | `online_busted` | Überworfen. |
-| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | Ein gewonnenes Leg, mit dem `segment` des Siegerdarts oder dem `name` des Spielers, wenn der Trigger sie nennt. Der Name kommt kleingeschrieben an: Aus `gameshot_Lea` wird `lea`. |
+| `gameshot`, `gameshot+d10`, `gameshot_<name>` | `online_game_shot` | Ein gewonnenes Leg, mit dem `segment` des Siegerdarts oder dem `name` des Spielers, wenn der Trigger sie nennt. Der Name behält seine Schreibweise, aus `gameshot_Lea` wird `Lea`, und ein Spieler deiner [Profile](entities.de.md#spielerprofile) kommt so an, wie das Profil den Namen schreibt: Auch aus `gameshot_lea` wird `Lea`. |
 | `matchshot`, `matchshot+bull`, `matchshot_<name>` | `online_match_shot` | Ein gewonnenes Match, mit denselben Details. |
 | `0` bis `180` | `online_visit` | Die Punkte (`score`) einer Aufnahme. |
 | `range_100_140` oder `100-140` | `online_visit` | Eine Aufnahme in dem Bereich, mit `score_min` und `score_max`. |
@@ -40,7 +40,7 @@ Für einen Effekt von Hand gibst du ihm einen Trigger, den Typ **URL** und die A
 | `idle` | `online_match_left` | Du hast das Match verlassen. |
 | `other` | keins | Ein Moment auf einem anderen Board; die Brücke ignoriert ihn. |
 
-Jedes Online-Ereignis hat `trigger` (wie gesendet, kleingeschrieben), `source` (`online`) und `name`, wenn die Adresse `&player=` enthält. Eine reine Zahl ist immer die Punktzahl einer Aufnahme: `25` ist eine Aufnahme mit 25 Punkten, `s25` ein Dart im Single-Bull. Die Board-Trigger von Tools for Autodarts wie `board_started`, `throw` oder `takeout` nimmt die Brücke nicht an: Die Board-Ereignisse melden sie direkt von deinem Board, schneller und ohne Browser.
+Jedes Online-Ereignis hat `trigger` (wie gesendet, kleingeschrieben), `source` (`online`) und `name`, wenn die Adresse `&player=` enthält. Wie jeder Spielername ist `name` höchstens 20 Zeichen lang und enthält nie `{`, `}`, `%` oder `#`, die Benachrichtigungen und Dateinamen als Vorlage lesen würden: Aus `&player={{ 6*7 }}` wird `6*7`. Eine reine Zahl ist immer die Punktzahl einer Aufnahme: `25` ist eine Aufnahme mit 25 Punkten, `s25` ein Dart im Single-Bull. Die Board-Trigger von Tools for Autodarts wie `board_started`, `throw` oder `takeout` nimmt die Brücke nicht an: Die Board-Ereignisse melden sie direkt von deinem Board, schneller und ohne Browser.
 
 - **Deine eigenen Darts** kommen sowieso vom Board: `dart_detected`, `visit_thrown` und die Entnahme sind schneller als die Erweiterung und funktionieren ohne sie. Nutze die Online-Ereignisse für das, was nur das Match weiß: Überwerfen, gewonnene Legs und Matches und die Darts deiner Gegner.
 - **Nur dein Board:** Tools for Autodarts meldet die Momente aller Spieler im Match, auch die deiner Gegner. Um nur auf dein Board zu reagieren, trägst du in den WLED-Einstellungen unter **Board IDs** deine Board-ID ein und behältst die Zeile `other`: Momente auf anderen Boards senden dann stattdessen `other`.

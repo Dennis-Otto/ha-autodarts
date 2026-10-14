@@ -481,7 +481,7 @@ async def test_blueprints_follow_the_real_board_events(
         ("achievement", "Kim"),
         ("achievement", "Kim"),
         ("bust", "Lea"),
-        ("leg", "dennis"),
+        ("leg", "Dennis"),
         ("match", ""),
     ]
     assert not switch_on

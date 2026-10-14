@@ -360,7 +360,7 @@ def test_the_browser_test_mounts_only_the_repository_and_its_artifacts():
     script = (E2E / "browser.sh").read_text(encoding="utf-8")
     assert re.findall(r'--volume "([^"]+)"', script) == [
         "${ROOT_MOUNT}:/repo:ro",
-        "${ARTIFACTS_MOUNT}:/artifacts",
+        "${artifacts_mount}:/artifacts",
     ]
 
 
@@ -393,9 +393,11 @@ def imports(script: Path) -> set[str]:
 @pytest.mark.parametrize("workflow", ["screenshots.yml", "visual.yml"])
 def test_the_screenshot_tool_runs_again_for_every_script_it_uses(workflow):
     # The screenshot bot and the visual check skip the browser test, but a module
-    # of the browser test that the screenshot tool starts to import counts for it.
+    # of the browser test that the screenshot tool imports counts for it, such as
+    # pages.py, whose waits both use.
     skipped = skipped_by(workflow)
-    assert {"tests/e2e/browser.py", "tests/e2e/pages.py"} <= skipped
+    assert "tests/e2e/browser.py" in skipped
+    assert "tests/e2e/screenshots.py" not in skipped
     for script in sorted(E2E.glob("*.py")):
         if f"tests/e2e/{script.name}" in skipped:
             continue
@@ -406,15 +408,26 @@ def test_the_screenshot_tool_runs_again_for_every_script_it_uses(workflow):
 def test_the_end_to_end_tests_run_the_oldest_supported_home_assistant():
     hacs = json.loads((ROOT / "hacs.json").read_text(encoding="utf-8"))
     oldest = hacs["homeassistant"]
-    include = E2E_WORKFLOW["jobs"]["e2e"]["strategy"]["matrix"]["include"]
-    # The other jobs run the current release, the default of compose.yaml.
-    (job,) = [job for job in include if "image" in job]
-    assert job["name"] == f"Home Assistant {oldest}"
     assert re.fullmatch(
         rf"ghcr\.io/home-assistant/home-assistant:{re.escape(oldest)}"
         r"@sha256:[0-9a-f]{64}",
-        job["image"],
+        E2E_WORKFLOW["env"]["OLDEST_HOME_ASSISTANT"],
     )
+    jobs = E2E_WORKFLOW["jobs"]
+    matrices = {
+        "scenario": jobs["scenario"]["strategy"]["matrix"]["include"],
+        "browser": jobs["browser"]["strategy"]["matrix"]["home_assistant"],
+    }
+    for job, matrix in matrices.items():
+        # The other jobs run the current release, the default of compose.yaml.
+        (entry,) = [entry for entry in matrix if entry.get("oldest")]
+        assert entry["name"] == f"Home Assistant {oldest}", job
+        (image,) = [
+            step["env"]["HOME_ASSISTANT_IMAGE"]
+            for step in jobs[job]["steps"]
+            if "HOME_ASSISTANT_IMAGE" in step.get("env", {})
+        ]
+        assert "env.OLDEST_HOME_ASSISTANT" in image, job
 
 
 def test_each_lock_file_is_compiled_for_its_own_python():

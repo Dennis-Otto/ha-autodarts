@@ -77,16 +77,13 @@ Auf dem Handy stapelt die Live-Karte Aufnahme, Scheibe, Statistik und Steuerung:
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Beschriftungen und Haupttaste |
 | `highlight_color` | [Farbe](#farben) | `#ffd60a` (Gold) | Getroffene Felder und jüngster Dart |
 
-<table>
-  <tr>
-    <td><img src="images/de/card-autodarts-style.png" alt="Anordnung unten im Autodarts-Stil" width="360"></td>
-    <td><img src="images/de/card-board-only.png" alt="Nur die Scheibe" width="360"></td>
-  </tr>
-  <tr>
-    <td align="center"><code>layout: vertical</code>, <code>board_style: autodarts</code></td>
-    <td align="center"><code>layout: board</code></td>
-  </tr>
-</table>
+Mit `layout: vertical` und `board_style: autodarts` steht die Scheibe unter der Aufnahme, im flachen Autodarts-Stil:
+
+<img src="images/de/card-autodarts-style.png" alt="Die Live-Karte mit der Scheibe unten im Autodarts-Stil: über der Scheibe die Aufnahme aus T20, S5 und Bull mit 115 Punkten, darunter die Trainingssession und die Steuerung" width="400">
+
+Mit `layout: board` zeigt die Karte nur die Scheibe:
+
+<img src="images/de/card-board-only.png" alt="Die Live-Karte mit nur der Scheibe: die drei Darts der Aufnahme und die getroffenen Felder hervorgehoben" width="400">
 
 ```yaml
 type: custom:autodarts-card
@@ -153,18 +150,17 @@ history_size: 40
 show_reset: false
 ```
 
-<img src="images/de/training-card-mobile.png" alt="Trainingskarte auf dem Handy" width="320">
+Auf dem Handy stapelt die Trainingskarte ihre Abschnitte, vom Average bis zur Session-Steuerung:
 
-<table>
-  <tr>
-    <td><img src="images/de/training-positions.png" alt="Das Trefferbild im Modus Positionen mit den Darts von Alex: eine Dichte um das Triple 20, die Doubles 16 und 8 und das Bull, darunter jeweils die Streuung" width="380"></td>
-    <td><img src="images/de/heatmap-modes.webp" alt="Animation: das Trefferbild wechselt von Feldern zu Zahlen und Positionen der Session, dann zu den Positionen und Feldern von Alex" width="380"></td>
-  </tr>
-  <tr>
-    <td align="center"><code>mode: positions</code>, <code>player: Alex</code></td>
-    <td align="center">Die Umschalter über der Scheibe</td>
-  </tr>
-</table>
+<img src="images/de/training-card-mobile.png" alt="Die Trainingskarte auf dem Handy: der 3-Dart-Average mit der Serie und den Darts von heute, das Trefferbild, die Statistikkacheln, die häufigsten Felder, die Bestleistungen, die letzten Aufnahmen, die vergangenen Sessions und die Session-Steuerung" width="320">
+
+Mit `mode: positions` und `player: Alex` zeigt das Trefferbild, wo die Darts von Alex gelandet sind, und unter der Scheibe die Streuung auf jedem Zielfeld:
+
+<img src="images/de/training-positions.png" alt="Das Trefferbild im Modus Positionen mit den Darts von Alex: eine Dichte um das Triple 20, die Doubles 16 und 8 und das Bull, darunter die Streuung auf jedem Zielfeld" width="440">
+
+Die Umschalter über der Scheibe wählen den Modus und wessen Darts das Trefferbild zeigt:
+
+<img src="images/de/heatmap-modes.webp" alt="Animation: das Trefferbild wechselt von Feldern zu Zahlen und Positionen der Session, dann zu den Positionen und Feldern von Alex" width="400">
 
 ## Board-Status
 

@@ -3,15 +3,24 @@ name: Screenshot bot
 # Keeps the images of the documentation in step with the cards. After a change of
 # the cards or of the screenshot tool reaches main, after a release, every week, and
 # on demand, it renders every image of docs/images anew from the demo, with its
-# frozen clock (tests/e2e/visual.sh). A release writes its version into the
-# manifest; the frozen demo shows only its major version, in online-bridge.png, so a
-# new major version changes that image. The maintainer or the release app merges a
-# release, so its push starts the bot like any other, and the visual checks of later
-# pull requests don't report the image as changed for days. When the pixels of any
-# image changed, it opens or updates one pull request, "docs: update the screenshots
-# of the cards", as the release app, and turns on auto-merge, so that the images
-# follow once the checks pass. An image whose pixels stayed the same keeps its file;
-# a pull request that main has caught up with in the meantime closes.
+# frozen clock. The images come in three fixed groups (GROUPS in
+# tests/e2e/screenshots.py): each group of each language renders on a runner of its
+# own from a fresh demo, all side by side, and the collect job of a language puts its
+# groups together (tests/e2e/collect.sh), as tests/e2e/visual.sh does on one machine.
+# A release writes its version into the manifest; the frozen demo shows only its
+# major version, in online-bridge.png, so a new major version changes that image. The
+# maintainer or the release app merges a release, so its push starts the bot like any
+# other, and the visual checks of later pull requests don't report the image as
+# changed for days. When the pixels of any image changed, it opens or updates one
+# pull request, "docs: update the screenshots of the cards", as the release app, and
+# turns on auto-merge, so that the images follow once the checks pass. An image whose
+# pixels stayed the same keeps its file; a pull request that main has caught up with
+# in the meantime closes. Only the rendered images go over those of main, so the
+# diagrams in docs/images, which main may have anew by then, stay as they are, and an
+# image that the tool no longer renders goes. A language that fails to render
+# doesn't hold back the other: the pull request takes the language that rendered and
+# keeps the rendered images it had for the other, from the app's own branch of this
+# repository; a pull request from a fork's branch of the same name gives it nothing.
 
 on:
   push:
@@ -21,7 +30,7 @@ on:
       - custom_components/autodarts/manifest.json
       - tests/e2e/**
       - "!tests/e2e/browser.py"
-      - "!tests/e2e/pages.py"
+      - "!tests/e2e/shards.py"
       - "!tests/e2e/browser.sh"
       - "!tests/e2e/run.sh"
       - "!tests/e2e/configuration.yaml"
@@ -40,14 +49,68 @@ concurrency:
 
 jobs:
   render:
-    name: render (${{ matrix.language }})
+    name: render (${{ matrix.language }}, ${{ matrix.group }}/3)
     if: ${{ !github.event.repository.fork }}
     runs-on: ubuntu-latest
-    # The demo takes about three minutes, the images of one language about seven.
-    timeout-minutes: 40
+    # The demo takes about two minutes, the images of a group about six.
+    timeout-minutes: 20
     permissions:
       contents: read
     strategy:
+      # A group that fails leaves the other groups and the other language running.
+      fail-fast: false
+      matrix:
+        language: [en, de]
+        group: [1, 2, 3]
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Render the images of the group with the frozen clock
+        env:
+          LANGUAGES: ${{ matrix.language }}
+          SCREENSHOT_GROUP: ${{ matrix.group }}/3
+          IMAGES: tests/e2e/artifacts/rendered
+        run: bash tests/e2e/screenshots.sh
+      - name: List how long the sections took
+        if: ${{ !cancelled() }}
+        run: |
+          for table in tests/e2e/artifacts/screenshots-*.md; do
+            if [[ -f "$table" ]]; then
+              cat "$table" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+      - name: Keep the images of the group
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: rendered-${{ matrix.language }}-${{ matrix.group }}
+          path: tests/e2e/artifacts/rendered/
+          if-no-files-found: error
+          retention-days: 1
+      - name: Keep the screenshots of a failed run
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: failure-${{ matrix.language }}-${{ matrix.group }}-${{ github.run_attempt }}
+          path: tests/e2e/artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
+  collect:
+    name: collect (${{ matrix.language }})
+    needs: render
+    # Also after a failed group: the other language still comes together.
+    if: ${{ !cancelled() && !github.event.repository.fork }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
       matrix:
         language: [en, de]
     steps:
@@ -58,18 +121,31 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Render the images with the frozen clock and compare them
+      - name: Take the images of every group
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: rendered-${{ matrix.language }}-*
+          path: tests/e2e/artifacts
+      - name: Install Pillow for the comparison
+        run: |
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet --disable-pip-version-check \
+            --require-hashes -r tests/e2e/requirements-browser.txt
+      - name: Put the groups together and compare them with the committed images
         env:
           LANGUAGES: ${{ matrix.language }}
+          PYTHON: ${{ runner.temp }}/venv/bin/python
           RESTORE: "1"
-        run: bash tests/e2e/visual.sh
+        run: bash tests/e2e/collect.sh
       - name: List the images that changed
         run: cat tests/e2e/artifacts/visual/summary.md >> "$GITHUB_STEP_SUMMARY"
+      # Only the rendered images: the diagrams of docs/images come from
+      # render_diagrams.sh, and main may have newer ones by now.
       - name: Keep the images
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: images-${{ matrix.language }}
-          path: docs/images/${{ matrix.language }}/
+          path: tests/e2e/artifacts/collected/${{ matrix.language }}/
           if-no-files-found: error
           retention-days: 3
       - name: Keep the report
@@ -79,18 +155,12 @@ jobs:
           path: tests/e2e/artifacts/visual/report.json
           if-no-files-found: error
           retention-days: 3
-      - name: Keep the screenshots of a failed run
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: failure-${{ matrix.language }}-${{ github.run_attempt }}
-          path: tests/e2e/artifacts/*.png
-          if-no-files-found: ignore
-          retention-days: 14
 
   pull-request:
     name: pull request
-    needs: render
+    needs: collect
+    # Also when one language failed: the other one still reaches its pull request.
+    if: ${{ !cancelled() && !github.event.repository.fork }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # The environment holds the private key of the release app; only main may use it.
@@ -114,14 +184,38 @@ jobs:
       - name: Take the rendered images and their reports
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
+          # Not the images of the groups or the screenshots of a failed run.
+          pattern: "{images,report}-*"
           path: ${{ runner.temp }}/rendered
       - name: Put the rendered images in place
+        id: images
         run: |
           set -euo pipefail
+          missing=""
           for language in en de; do
-            rm -rf "docs/images/$language"
-            cp -R "$RUNNER_TEMP/rendered/images-$language" "docs/images/$language"
+            report="$RUNNER_TEMP/rendered/report-$language/report.json"
+            if [[ -d "$RUNNER_TEMP/rendered/images-$language" && -f "$report" ]]; then
+              # The rendered images over those of main as it is now, which may have
+              # newer diagrams; an image that the tool no longer renders goes.
+              cp "$RUNNER_TEMP/rendered/images-$language/"* "docs/images/$language/"
+              jq -r '.images[] | select(.status == "removed") | .path' "$report" |
+                while read -r path; do
+                  if [[ "$path" =~ ^$language/[a-z0-9][a-z0-9-]*\.(png|webp)$ ]]; then
+                    rm -f "docs/images/$path"
+                  fi
+                done
+            else
+              missing="${missing:+$missing }$language"
+            fi
           done
+          if [[ "$missing" == "en de" ]]; then
+            echo "::error::No language rendered, so the images and their pull request stay as they are; the render jobs show why."
+            exit 1
+          fi
+          if [[ -n "$missing" ]]; then
+            echo "::warning::The images in $missing did not render; the pull request keeps what it had for them."
+          fi
+          echo "missing=$missing" >> "$GITHUB_OUTPUT"
           git status --short -- docs/images
       - name: Create a token of the release app
         id: app
@@ -137,16 +231,49 @@ jobs:
           GH_TOKEN: ${{ steps.app.outputs.token }}
           APP_SLUG: ${{ steps.app.outputs.app-slug }}
           SHA: ${{ github.sha }}
+          MISSING: ${{ steps.images.outputs.missing }}
         run: |
           set -euo pipefail
           # The images were rendered from $SHA; the branch starts from main as checked out.
           base="$(git rev-parse HEAD)"
           branch="bot/screenshots"
           title="docs: update the screenshots of the cards"
-          number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number // empty')"
+          # Only the app's own pull request from the branch of this repository: a fork
+          # may open one from a branch of the same name.
+          number="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open \
+            --json number,isCrossRepository,author |
+            jq -r --arg login "app/$APP_SLUG" \
+              '[.[] | select(.isCrossRepository == false and .author.login == $login)][0].number // empty')"
+          if [[ -n "$MISSING" && -n "$number" ]]; then
+            # A language that did not render this time keeps the images that the open
+            # pull request has for it, from the branch of this repository: only the
+            # rendered images, not the diagrams, which main may have anew by now.
+            git fetch --quiet --no-tags --depth=1 origin "refs/heads/$branch"
+            gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$number/files" --jq '.[].filename' |
+              while read -r path; do
+                for language in $MISSING; do
+                  if [[ ! "$path" =~ ^docs/images/$language/([a-z0-9][a-z0-9-]*)\.(png|webp)$ ]]; then
+                    continue
+                  fi
+                  name="${BASH_REMATCH[1]}"
+                  if [[ "$name" =~ ^(.+)-(light|dark)$ && -f "docs/diagrams/${BASH_REMATCH[1]}.$language.mmd" ]]; then
+                    continue
+                  fi
+                  if git cat-file -e "FETCH_HEAD:$path" 2>/dev/null; then
+                    git checkout FETCH_HEAD -- "$path"
+                  else
+                    git rm --quiet --ignore-unmatch -- "$path"
+                  fi
+                done
+              done
+          fi
           git add --all docs/images
           if git diff --cached --quiet; then
             echo "Every image looks as committed."
+            if [[ -n "$MISSING" ]]; then
+              echo "The images in $MISSING did not render, so the pull request of the images stays as it is."
+              exit 0
+            fi
             if [[ -n "$number" ]]; then
               gh pr close "$number" --repo "$GITHUB_REPOSITORY" --delete-branch \
                 --comment "The images on main look as rendered from $SHA; nothing is left to update."
@@ -201,7 +328,8 @@ jobs:
               if len(parts) > 1:
                   headline += f" ({index} of {len(parts)})"
               body = (
-                  "Rendered from the demo with its frozen clock (tests/e2e/visual.sh).\n\n"
+                  "Rendered from the demo with its frozen clock, in groups "
+                  "(tests/e2e/screenshots.sh, tests/e2e/collect.sh).\n\n"
                   + os.environ["SIGN_OFF"]
               )
               request = {
@@ -227,18 +355,26 @@ jobs:
 
           # The description: every image whose pixels changed, with how much.
           rows = []
+          missing = os.environ["MISSING"].split()
           for language in ("en", "de"):
+              if language in missing:
+                  continue
               with open(f"{folder}/rendered/report-{language}/report.json") as file:
                   for entry in json.load(file)["images"]:
                       share = entry["share"]
                       shown = "100 %" if share >= 1 else "< 0.01 %" if share < 0.0001 else f"{share * 100:.2f} %"
                       rows.append(f"| `docs/images/{entry['path']}` | {entry['status']} | {shown} |")
+          kept = ""
+          if missing:
+              names = " and ".join({"en": "English", "de": "German"}[code] for code in missing)
+              kept = f"\n\nThe {names} images did not render in this run; the pull request keeps what it had for them."
           with open(f"{folder}/body.md", "w") as file:
               file.write(
                   "The screenshot bot rendered the images of the documentation anew from the demo, "
                   f"with its frozen clock, on {os.environ['SHA']}. These look different:\n\n"
                   "| Image | Change | Pixels changed |\n| --- | --- | ---: |\n"
                   + "\n".join(rows)
+                  + kept
                   + "\n\nThe workflow run keeps the images before and after with their differences "
                   f"for three days: {os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
                   f"/actions/runs/{os.environ['GITHUB_RUN_ID']}\n"

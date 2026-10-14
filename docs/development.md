@@ -103,6 +103,8 @@ BOARD_MANAGER=1 bash tests/e2e/run.sh
 BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 ```
 
+The log shows the seconds of every phase, such as `Scenario phase: resilience (46.3 s)`.
+
 ## Demo instance and browser test
 
 `tests/e2e/demo.sh` starts Home Assistant with a simulated board, a finished training session, twelve weeks of practice of three made-up players, a week of sessions and matches in the training calendar, four weeks of long-term statistics for the graphs, players linked to persons with pictures, highlight photos, an automation from the weekly report blueprint and a dashboard with all cards at <http://127.0.0.1:18124/autodarts-demo/board>. Login is not needed from the local network.
@@ -123,21 +125,37 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 - accessibility: every card meets WCAG 2.1 at levels A and AA, checked by [axe-core](https://github.com/dequelabs/axe-core) on a laptop and an iPhone in the dark and the light theme (see [Accessibility check](#accessibility-check));
 - a browser in Dutch, French and Spanish, which gets the cards and the entity texts of Home Assistant in its language.
 
-While working on a screen, `BROWSER_STEPS` runs only the steps whose names begin with one of the given ones, such as `BROWSER_STEPS="touch screens,every screen size,correcting"`, and fails on a name that begins no step; `BROWSER_SCREENS` only some of the sizes, such as `BROWSER_SCREENS=iPhone`, and fails on a name that is no size. With `BROWSER_SCREENSHOTS=1` the size check keeps a full-page screenshot of every view and size in `tests/e2e/artifacts/screens/`, to look at by eye.
+While working on a screen, `BROWSER_STEPS` runs only the steps it names, comma-separated: the whole name of a step runs that step alone, such as `BROWSER_STEPS="training card"` without the *training card editor*, and the beginning of names every step it begins, such as `BROWSER_STEPS="touch,every screen size,correcting"`; a name that begins no step fails. `BROWSER_SCREENS` runs only some of the sizes, such as `BROWSER_SCREENS=iPhone`, and fails on a name that is no size. With `BROWSER_SCREENSHOTS=1` the size check keeps a full-page screenshot of every view and size in `tests/e2e/artifacts/screens/`, to look at by eye.
 
 After each step the log shows its seconds, such as `Browser step: steady heights (74.2 s)`, and `browser-steps-table.md` among the artifacts lists every step with its seconds; in CI the summary of the job shows that table.
+
+### The browser test in shards
+
+The steps take five minutes in a row, too long for one job. Each step belongs to one of four groups of about the same seconds (`steps()` in `tests/e2e/browser.py`), and `BROWSER_SHARD=k/n` runs the groups `g` with `(g - 1) % n = k - 1`: `1/1`, the default, every group, `1/2` the groups 1 and 3, `2/4` the group 2. `BROWSER_WORKERS=W` splits the shard of the machine once more: worker w runs the shard `(k - 1) * W + w` of `n * W` on a demo instance of its own, side by side, so `1/2` alone runs the groups 1 and 3, but `1/2` with two workers the shards `1/4` and `2/4`, the groups 1 and 2. Each worker has its browser, a Compose project of its own (`autodarts_browser_1`, …), the next port from 18125 on and a folder of its own among the artifacts (`shard-3-of-4`). Each line of a worker in the log begins with its shard, such as `[3/4]`. `browser.sh` refuses more shards than groups before it starts anything, such as `BROWSER_SHARD=2/4` with `BROWSER_WORKERS=2`.
+
+```sh
+BROWSER_WORKERS=4 bash tests/e2e/browser.sh                   # every step, four shards at once
+BROWSER_SHARD=2/4 bash tests/e2e/browser.sh                   # one shard: the steady heights
+BROWSER_SHARD=1/2 BROWSER_WORKERS=2 bash tests/e2e/browser.sh # the first runner in CI: groups 1 and 2
+```
+
+Every step starts from the board between games, whatever the step before it left: `Board.between_games()` in `browser.py` stops a tournament, turns off the keypad, the game and the teams, sets one player, one leg and one set without the bot, starts the detection, clears the board and waits until Home Assistant shows all of it. It does that through a page of its own that shows no card. A card that showed a game opens its new game screen by itself eight seconds after the game ends, so a game left running would open that screen in the middle of the next step. Only the training card and the live card read the demo as `demo.py` left it, its session and the visit on the board; they come first in group 1, and nothing is reset before them. So every shard, and every step on its own, passes as the whole run does.
+
+`tests/test_e2e_shards.py` checks the groups without a browser: every step has one, every number of shards from one to four runs every step once and in its order, the steps that read the demo as it started come first, and the dartboard without Autodarts comes last. It also runs `browser.sh` with a stand-in for `docker`, which shows the shard, project and artifacts of every worker, and that a failed worker fails the run and keeps its logs alone.
+
+The seconds of its steps make a group slower or faster. When a step grows, `browser-steps-table.md` of its shard shows it, and moving a step to another group in `steps()` balances the shards again.
 
 ### How the browser test waits
 
 The browser test waits for what it checks, never for a fixed time, which would be too short on a slow runner and too long everywhere else. `tests/e2e/pages.py` holds its waits:
 
-- `show()` opens a view on several pages at once: with a load of the page the first time, and then within the app, as its links do. That keeps the frontend and its websocket and takes a tenth of a second instead of a load of the whole app. It waits until the cards of the view have replaced those of the view before and have drawn.
+- `show()` opens a view on several pages at once: with a load of the page the first time, and then within the app, as its links do. That keeps the frontend and its websocket and takes a tenth of a second instead of a load of the whole app. An address with a query or a fragment, such as `?edit=1` for edit mode, loads the page, and so does every view after one: the app reads them only when it starts and keeps what they set in the views it opens within. It waits until the cards of the view have replaced those of the view before and have drawn.
 - `expect_state()` waits until every page shows the states that a move at the board sets, such as `num_throws` 2 after the second dart of a visit, or `local_status` `takeout_in_progress` while the darts are pulled.
 - `settle()` waits until a page has come to rest: its cards have drawn, no request of the frontend on Home Assistant's websocket waits for its answer, no frame came for 100 ms, no animation of a card is running, and the browser has drawn two frames since. A script that every page runs before Home Assistant's own follows the websocket for it.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/browser-waits-dark.png">
-  <img src="images/en/browser-waits-light.png" alt="How the browser test waits: all screens of a step are open at once. After a move at the board, such as a dart, or a view opened within the app, the test waits until every page shows the state the move sets, such as two darts in the visit, and until every page has settled: its cards drawn, no request on the websocket waiting for its answer, no frame for 100 ms, no animation of a card running, and two frames drawn. Then it checks every page, the layout, the heights or the accessibility, and goes on with the next move. A page that does not get there in time fails the step with what it waited for and what it shows." width="560">
+  <img src="images/en/browser-waits-light.png" alt="How the browser test waits: all screens of a step are open at once. After a move at the board, such as a dart, the test waits until every page shows the state the move sets, such as two darts in the visit. After a view it opens, it waits until the cards of the view before have left every page and the new ones have drawn. Then it waits until every page has settled: its cards drawn, no request on the websocket waiting for its answer, no frame for 100 ms, no animation of a card running, and two frames drawn. It then checks every page, the layout, the heights or the accessibility, and goes on with the next move or view. A page that does not get there in time fails the step with what it waited for and what it shows." width="560">
 </picture>
 
 The steps that look at many screens open them side by side and play every game once for all of them: *every screen size* its nine screens, and then the phones in four more languages; *steady heights* its four screens with three views each; *accessibility* its four screens and themes, where axe-core scans all of them at the same time; and *a dartboard without Autodarts* its nine screens. A wait that runs out names the page with its screen size and language, what it waited for and what the page showed instead, such as the request that got no answer or the state of each entity.
@@ -177,7 +195,7 @@ Two runs of the tool render the same images, byte for byte. So an image that cha
 - **A frozen clock.** The demo of the screenshots stands at Tuesday, 29 September 2026, 20:30 (`DEMO_TIME` in `screenshots.sh`), whenever it runs. `tests/e2e/frozen/sitecustomize.py` sets this clock for Home Assistant and every script in its container, through `compose.frozen.yaml`, which `demo.sh` adds when `DEMO_TIME` is set. The clock moves only when the demo moves it: every move at the simulated board, a dart, a takeout or a new status, takes two seconds, in `demo.py` as in `screenshots.py`, written into the file `.demo_clock` in the configuration of the demo. So every time Home Assistant records comes out the same in every run, to the millisecond, while the history of the board, the length of a session and the training time of the weekly report look like a real evening; the weekly report gets the minute it waits for in the same way. The browser shows the time of the demo too: Playwright's clock stands still at it, except in the pages of the game animations, where the result of a tournament match has to show for its time; their frames show no time. The page of the statistics graphs asks for reduced motion, so that Home Assistant draws their lines at once instead of as an animation, which the standing clock would stop.
 - **One source of changes.** The frozen demo doesn't poll the board: every change comes over the board socket, in the order the board sends it, never first from a poll whose moment depends on the run.
 - **Fixed random numbers.** The darts of the bot, and every other random number without a seed of its own, start from the same seed.
-- **Still pictures.** Before every screenshot and every frame of an animation, the tool waits for pictures that are still loading, lets transitions and fade-ins jump to their end and stops endless animations, such as the blinking beds, at the same moment. It goes on until a card has stopped changing and two looks a tenth of a second apart find nothing moving. Chromium draws every picture whole and animates on its main thread (`STEADY_CHROMIUM` in `screenshots.py`). The toolbar of a dashboard casts no shadow on what scrolls beneath it, a card taller than the screen is taken from the top of the page, and the dialog of the board's events opens once the recorder has written the last event it shows (`RECORDED`), not after a fixed time.
+- **Still pictures.** Before every screenshot and every frame of an animation, the tool waits for pictures that are still loading, lets transitions and fade-ins jump to their end and stops endless animations, such as the blinking beds, at the same moment. It goes on until a card has stopped changing and two looks a tenth of a second apart find nothing moving. Before that, a page that opens or changes its size waits until it has what Home Assistant sends it: every card drawn, its fonts loaded and no request of the frontend waiting for its answer on the websocket, with `loaded()` of the browser test's `pages.py`, instead of a fixed time that is too short on a slow runner. Chromium draws every picture whole and animates on its main thread (`STEADY_CHROMIUM` in `screenshots.py`). The toolbar of a dashboard casts no shadow on what scrolls beneath it, a card taller than the screen is taken from the top of the page, and the dialog of the board's events opens once the recorder has written the last event it shows (`RECORDED`), not after a fixed time.
 - **Colours in a fixed order.** Home Assistant gives every state it draws in a history or an activity list a colour of its own, the next of its palette, in the order it draws them first, for as long as the page lives; the events entity of the board has a new state with every event. The timeline of a history draws only the state that lasts longest in each pixel, so which states it colours first depends on its width at the moment its data arrives, and the history and the activity of the dialog arrive in either order. So before the dialog opens, the tool draws every event of the last 24 hours once, newest first, in an activity list of its own out of sight (`COLOUR_EVENTS` in `screenshots.py`): the dialog finds every event coloured, and the newest ones always get the first colours of the palette, however many events came before.
 - **Every text of the settings.** Home Assistant loads the texts of its settings, such as the names of their tabs, apart from its other texts. It merges every load into the texts it holds, but shows only what its newest load put together, and it counts on its timers without delay to run in the order they were asked for. They need not: Chrome holds back a timer asked for deep inside other timers, and Playwright's standing clock one asked for during a tick. A later load that overtakes the settings' then leaves a page of the settings without the names of its tabs and the heads of its columns for as long as the page lives; two renders of the screenshot bot failed that way. So the pages of the settings wait until their texts are merged and then have Home Assistant update its texts once more (`SETTINGS_TEXTS` in `screenshots.py`).
 - **Fixed addresses.** The online bridge shows `homeassistant.local` as the address of Home Assistant (`internal_url` in `demo.configuration.yaml`), not the address Docker happens to give the container.
@@ -188,28 +206,42 @@ To find out what differs between two runs, `KEEP_RAW=1` keeps every image and ev
 
 Without `DEMO_TIME`, as in `demo.sh` for a preview or in `browser.sh`, the demo runs on the real clock.
 
+### Groups side by side
+
+The tool renders its images in three fixed groups (`GROUPS` in `screenshots.py`), and every group starts from a fresh demo: the cards with the first games; more games with a tournament, and then the players; the corrections of a dart and a match against the bot, the formats, the calendar and the dartboard without Autodarts. The sections of a group run in their order, and a later one sees what an earlier one played: the players card shows the five players of the tournament before it. A group never sees what another one played, so it renders the same images on its own as after the others, and the groups can render side by side, each on a runner of its own:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/screenshot-groups-dark.png">
+  <img src="images/en/screenshot-groups-light.png" alt="How the visual check and the screenshot bot render the images in groups: each language renders in three groups at once, each group on a runner of its own from a fresh demo. The cards and the first games make group 1, more games with the players group 2, the corrections of a dart, the formats, the calendar and the dartboard without Autodarts group 3. Then one job per language puts the images of its three groups together and compares them with the committed images. The visual check writes the comparison into one comment on the pull request; the screenshot bot updates its pull request with every language that rendered." width="560">
+</picture>
+
+`screenshots.sh` and `visual.sh` render every group in turn, each from a fresh demo, and `SCREENSHOT_GROUP=2/3` renders the second group alone. `IMAGES` names the folder below the repository root that the images go to, `docs/images` unless given. The [screenshot bot](#screenshot-bot) and the [visual check](#visual-check) render each group of each language in a job of its own, six jobs side by side of about eight minutes each, where two jobs took twenty minutes before. A job per language then puts its groups together and compares them with the committed images (`tests/e2e/collect.sh`), as `visual.sh` does on one machine; it fails when a group left no images or two groups rendered the same image.
+
+Each job of a group lists the seconds of its sections in its summary, and the log shows them as `Screenshot section: people (186.2 s)`. When a group grows clearly longer than the others, a section moves to another group, as long as the sections that depend on each other stay together, in their order: the cards before the games, whose legs would end the graphs of the week; the tournament before the players; the first match of the bot before the formats, which play the bot again; the calendar and the weekly report, which starts a new week, and then the dartboard without Autodarts, whose second board would be the first of the cards without one, last in their group. A move changes the images whose data came from the sections before it once, and the screenshot bot brings them to `docs/images` after the merge. `tests/test_screenshot_groups.py` checks that every section belongs to one group, that these orders hold, and that the scripts and both workflows render as many groups as `GROUPS` has.
+
 ### Screenshot bot
 
-The **Screenshot bot** workflow (`.github/workflows/screenshots.yml`) keeps the images current. After a change of the cards (`custom_components/autodarts/frontend/`) or of the screenshot tool (`tests/e2e/`, except the browser test and the end-to-end test) reaches `main`, every Thursday and on demand, it renders every image of both languages anew with `tests/e2e/visual.sh`, one job per language, and compares them pixel by pixel with the committed ones. An image whose pixels stayed the same keeps its file.
+The **Screenshot bot** workflow (`.github/workflows/screenshots.yml`) keeps the images current. After a change of the cards (`custom_components/autodarts/frontend/`) or of the screenshot tool (`tests/e2e/`, except the browser test and the end-to-end test) reaches `main`, every Thursday and on demand, it renders every image of both languages anew, in [groups side by side](#groups-side-by-side), and compares them pixel by pixel with the committed ones. An image whose pixels stayed the same keeps its file. Only the rendered images go over those of `main`: the diagrams in `docs/images`, which `main` may have anew by the time the images are rendered, stay as they are, and an image that neither the tool nor a diagram in `docs/diagrams` makes any more goes.
 
 A release starts the bot as well. It writes its version into `custom_components/autodarts/manifest.json`, and the integration page in `online-bridge.png` shows the major version of it ([a fixed version](#the-same-images-in-every-run)): a release of the same major version renders every image as it was, a new major version, such as 2.0.0, changes that image. The maintainer or the release app merges the release pull request, so its push to `main` starts workflows like any other; only a merge with the `GITHUB_TOKEN` of a workflow would start none. So the image follows a new major version within the hour rather than on Thursday, and the visual check of later pull requests doesn't report it as changed for days.
 
-When any image changed, the bot opens one pull request, *docs: update the screenshots of the cards*, or updates the one still open, and turns on auto-merge, so the images follow once every check passes. The description lists every changed image with the share of its pixels that changed; the workflow run keeps the images before and after, with their differences, for three days. The pull request comes from the release app, so its checks run, and its commits go through GitHub's API: GitHub signs them, as `main` requires, and they carry the app's `Signed-off-by:`. The branch of the pull request starts from `main` as it stands once the images are rendered, not from the commit they were rendered from: GitHub counts a branch whose workflows differ from those on `main` as a change of the workflows, which the app has no permission for. The images go onto a branch of their own first, and the branch of the pull request moves onto them in one step: pointed at a commit `main` already has, even for a moment, it would close its pull request. When the branch of an open pull request can't move for the workflows that changed on `main` since, it starts anew, and a new pull request takes over from the old one. When `main` already has the images of a pull request still open, the bot closes it. The rendering runs without any secret; only the last job, which writes the pull request, uses the key of the release app in the environment `release`.
+When any image changed, the bot opens one pull request, *docs: update the screenshots of the cards*, or updates the one still open, and turns on auto-merge, so the images follow once every check passes. The description lists every changed image with the share of its pixels that changed; the workflow run keeps the images before and after, with their differences, for three days. The pull request comes from the release app, so its checks run, and its commits go through GitHub's API: GitHub signs them, as `main` requires, and they carry the app's `Signed-off-by:`. The branch of the pull request starts from `main` as it stands once the images are rendered, not from the commit they were rendered from: GitHub counts a branch whose workflows differ from those on `main` as a change of the workflows, which the app has no permission for. The images go onto a branch of their own first, and the branch of the pull request moves onto them in one step: pointed at a commit `main` already has, even for a moment, it would close its pull request. When the branch of an open pull request can't move for the workflows that changed on `main` since, it starts anew, and a new pull request takes over from the old one. When `main` already has the images of a pull request still open, the bot closes it. A group that fails to render holds back only its language: the pull request takes the images of the language that rendered and keeps the rendered images it had for the other, from the app's own branch in this repository or as on `main`: a diagram comes from `main`, and a pull request from a fork's branch of the same name gives it nothing, and the bot closes no pull request while a language is missing. When no language rendered, the job fails and the pull request stays as it is. The rendering runs without any secret; only the last job, which writes the pull request, uses the key of the release app in the environment `release`.
 
 ### Visual check
 
 The **Visual check** workflow (`.github/workflows/visual.yml`) renders the images the same way for every pull request that changes the cards or the screenshot tool, and compares them with the committed ones. It only reports, because an intended change reaches `docs/images` through the screenshot bot after the merge:
 
-- the summary of each job lists every image that looks different, with the share of its pixels that changed;
+- the summary of the job *compare* of each language lists every image that looks different, with the share of its pixels that changed;
 - the artifacts `visual-en` and `visual-de` keep every changed image before and after, and a picture of the difference: the new image in grey, with every changed pixel in red;
 - the **Visual check comment** workflow (`visual-comment.yml`) writes the list into one comment on the pull request, with links to the artifacts, and updates it after every run.
 
-An image that can't be rendered fails the check. The comment workflow starts when a check ends (`workflow_run`), so that it may comment on pull requests from forks as well, but it never checks out or runs their code: it reads only the reports of the check, takes nothing from them but image names and numbers it checks, and writes the comment itself. The check runs only when its files change, so it is no required check.
+An image that can't be rendered fails the check, and the other language still gets its report: the summary of its job *compare*, its artifact and the comment, which lists its images and names the language that could not be rendered. The comment workflow starts when a check ends (`workflow_run`), so that it may comment on pull requests from forks as well, but it never checks out or runs their code: it reads only the reports of the check, takes nothing from them but image names and numbers it checks, and writes the comment itself. The check runs only when its files change, so it is no required check.
 
-The same comparison runs locally; it leaves the new images in `docs/images` and the report in `tests/e2e/artifacts/visual/`:
+The same comparison runs locally; it leaves the new images in `docs/images` and the report in `tests/e2e/artifacts/visual/`. Every group of a language takes about six minutes, and one group alone renders only its own images:
 
 ```sh
 LANGUAGES=en bash tests/e2e/visual.sh
+SCREENSHOT_GROUP=2/3 LANGUAGES=en bash tests/e2e/visual.sh   # the second group alone
 git checkout -- docs/images   # back to the committed images
 ```
 
@@ -230,9 +262,10 @@ bash scripts/render_diagrams.sh
 Every pull request, and every push to `main`, runs:
 
 - pytest on every core with a coverage gate, Ruff, strict mypy and the Node tests, with the coverage report in the job summary;
-- the Docker end-to-end test against both Board Manager generations, the browser test,
-  and both again against Home Assistant 2026.8.0, the oldest supported release, when a
-  pull request changes what they use (see [When the end-to-end tests run](#when-the-end-to-end-tests-run));
+- the Docker end-to-end test against both Board Manager generations and the browser test
+  in four shards, side by side, and both again against Home Assistant 2026.8.0, the oldest
+  supported release, when a pull request changes what they use (see
+  [When the end-to-end tests run](#when-the-end-to-end-tests-run));
 - the [visual check](#visual-check) of the documentation images, when a pull request changes the cards or the screenshot tool;
 - HACS validation and hassfest;
 - actionlint, CodeQL for Python, the card JavaScript and the workflows, and dependency review;
@@ -283,8 +316,8 @@ as the release app, so that its checks run again and it merges once they pass.
 
 ### When the end-to-end tests run
 
-The end-to-end tests take about 10 minutes, longer than most other checks, and
-most pull requests change nothing they test. So the **Docker E2E** workflow
+The end-to-end tests take about five minutes with their jobs side by side, longer
+than most other checks, and most pull requests change nothing they test. So the **Docker E2E** workflow
 (`e2e.yml`) first asks the API which files a pull request changes, in the job
 *changes*, without a checkout and without an action of a third party. It runs the
 test jobs only when one of the files is something the tests run or mount:
@@ -303,7 +336,7 @@ every night and every manual run tests everything.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/e2e-gate-dark.png">
-  <img src="images/en/e2e-gate-light.png" alt="When the end-to-end tests run: a push to main, the nightly run and a manual run always run the test jobs. For a pull request the job changes asks the API for its files; when the tests use one of them, or the files are unknown, the test jobs run for about 10 minutes, otherwise they are skipped in seconds. The required check e2e passes when every test job passed or none had to run, and fails when a job failed or was cancelled." width="560">
+  <img src="images/en/e2e-gate-light.png" alt="When the end-to-end tests run: a push to main, the nightly run and a manual run always run the test jobs. For a pull request the job changes asks the API for its files; when the tests use one of them, or the files are unknown, the test jobs run side by side for about 5 minutes, otherwise they are skipped in seconds. The required check e2e passes when every test job passed or none had to run, and fails when a job failed or was cancelled." width="560">
 </picture>
 
 `main` requires one check of the end-to-end tests, `e2e`, from the job *gate*. A
@@ -316,9 +349,33 @@ the push. As the check doesn't carry the names of the test jobs, a new oldest
 Home Assistant changes no required check. When a test job fails and the flaky-test
 bot runs it again, the gate runs again with it.
 
+The test jobs run side by side. Three *scenario* jobs run `tests/e2e/run.sh`, on Board
+Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Six *browser* jobs run the
+browser test, three for the current and three for the oldest supported Home Assistant.
+Each browser job pulls the images of Home Assistant and Playwright at once. The first
+runs two workers, `BROWSER_SHARD=1/2` with `BROWSER_WORKERS=2`, the cards, games and
+forms beside the steady heights; the second runs `BROWSER_SHARD=3/4`, the third
+`BROWSER_SHARD=4/4`, so the four [shards](#the-browser-test-in-shards) of a version run
+at the same time. The touch screens, Safari and accessibility have a runner of their
+own: twice, Safari's WebKit failed to load the scripts of Home Assistant itself while a
+second browser beside it opened the nine screens of *every screen size* at once on the
+four cores of a runner. `tests/test_e2e_shards.py` fails when the job with Safari runs a
+second worker. A step that fails fails only its job, and the flaky-test bot runs only
+that job and the gate again. The job names the shard and the step that failed in an
+annotation and in its summary, with the command that runs the step alone, such as
+`BROWSER_STEPS='steady heights' bash tests/e2e/browser.sh`. The nightly beta job runs
+the scenario and then every group of steps, one after another on one demo instance, for
+the same reason.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/e2e-shards-dark.png">
+  <img src="images/en/e2e-shards-light.png" alt="The end-to-end tests side by side: once the job changes finds something to test, nine test jobs start at the same time. Three run the scenario, for Board Manager 1, Board Manager 2 and Home Assistant 2026.8.0. Six run the browser test, three for the current and three for the oldest supported Home Assistant, so all four shards of a version run at once, each on a demo instance of its own. The first runner of a version runs two workers, the cards, games and forms beside the steady heights; the second runs the tablet, every screen size and the dartboard without Autodarts; the third runs the touch screens, Safari and accessibility alone, so that Safari's WebKit shares its CPU with no other browser. The required check e2e waits for all of them." width="640">
+</picture>
+
 `tests/test_consistency.py` fails when a compose file mounts, or the browser test
 reads, a file of the repository that is missing from the table above, and when the
-oldest Home Assistant of `e2e.yml` differs from that of `hacs.json`.
+oldest Home Assistant of `e2e.yml`, `OLDEST_HOME_ASSISTANT` of the scenario and the
+browser jobs, differs from that of `hacs.json`.
 `tests/test_e2e_workflow.py` runs the steps of *changes* and of the gate in bash,
 with a stand-in for `gh`.
 
@@ -342,13 +399,13 @@ runs on demand from the Actions tab.
 `[tool.mutmut]` in `pyproject.toml` decides what changes. `only_mutate` lists seven
 modules of the game rules: the checkouts, the scores of the darts, the doubles, the
 positions, Cricket, the bot and the party games. Most tests check them directly, and
-one run on the four cores of a runner should reach all of their roughly 2,800 mutants,
-in about two hours by the times measured on a development machine. The X01
-practice game, the training games and the tournaments would add about 5,900 mutants,
-more than the 320 minutes of a run allow; they join once the workflow splits the run
-into parts. A first run on a development machine in October 2026 killed 2,503 of the
-2,804 mutants and let 294 survive, a score of 89 %; 7 ran into the time limit. Most of
-the survivors are in the party games, the bot and the positions.
+one run on the four cores of a runner reaches all of their 2,804 mutants in under
+two hours. The X01 practice game, the training games and the tournaments would add
+about 5,900 mutants, more than the 320 minutes of a run allow; they join once the
+workflow splits the run into parts. The [Mutation run of 13 October 2026](https://github.com/Dennis-Otto/ha-autodarts/actions/runs/38461492820)
+took 1 h 51 min: it killed 2,503 of the 2,804 mutants, let 294 survive and stopped 7
+at the time limit, a score of 89 %. Most of the survivors are in the party games, the
+bot and the positions.
 
 Four rules keep the tests right under mutmut, and `tests/test_mutation.py` checks
 each of them:
@@ -359,9 +416,9 @@ each of them:
   Git fails there whatever the mutant. It gets `@pytest.mark.mutation_unsafe`, and
   `tests/conftest.py` skips it whenever mutmut has set `MUTANT_UNDER_TEST`.
   `also_copy` lists every file and folder at the top of the repository that Git
-  tracks, apart from the integration, and the files that coming blueprint updates
-  add, because mutmut skips a path that doesn't exist. When a new one is missing, a
-  test fails and names the entries to add.
+  tracks, apart from the integration, and the files and folders that coming
+  blueprint updates add, because mutmut skips a path that doesn't exist. When a new
+  one is missing, a test fails and names the entries to add.
 - **The caches.** mutmut first runs every test once to record the functions that it
   calls, then runs the tests of each mutant in a process forked from that first run.
   A result that a functools cache kept there comes from the code without the mutant
