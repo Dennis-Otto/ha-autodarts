@@ -185,6 +185,22 @@ async def test_a_dart_entered_by_hand_can_say_where_it_is(hass, aioclient_mock):
     assert coordinator.manual.extras[1].position == (0.01, -0.02)
 
 
+async def test_a_dart_moved_in_its_bed_is_drawn_at_its_new_spot(hass, aioclient_mock):
+    await setup_local(hass, aioclient_mock, state=board())
+    await switch(hass, "practice_manual_entry", True)
+    await start(hass)
+    await act(hass, "throw_dart", x=0, y=0.6)
+    # The spot of the dart, in the same treble 20; the board saw none of it.
+    await act(hass, "correct_dart", dart=1, x=0.05, y=0.62)
+    assert [(dart["segment"], dart["x"], dart["y"]) for dart in throws(hass)] == [
+        ("T20", 0.05, 0.62)
+    ]
+    # No camera jitter moves a dart placed by hand, so even a small move counts.
+    await act(hass, "correct_dart", dart=1, x=0.052, y=0.62)
+    assert [(dart["x"], dart["y"]) for dart in throws(hass)] == [(0.052, 0.62)]
+    assert state(hass, "sensor", "practice_remaining") == "241"
+
+
 async def test_manual_entry_without_the_detection(hass, aioclient_mock):
     stopped = {**board(), "running": False, "status": "Stopped", "event": "Stopped"}
     entry = await setup_local(hass, aioclient_mock, state=stopped)
