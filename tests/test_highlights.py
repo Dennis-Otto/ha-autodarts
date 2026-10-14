@@ -10,7 +10,12 @@ from urllib.parse import quote
 import pytest
 import voluptuous as vol
 from homeassistant.components.camera import Image
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.core import Context
+from homeassistant.exceptions import (
+    HomeAssistantError,
+    ServiceValidationError,
+    Unauthorized,
+)
 from homeassistant.setup import async_setup_component
 
 from custom_components.autodarts.const import DOMAIN
@@ -93,6 +98,33 @@ async def test_a_photo_in_another_allowed_folder_has_no_address(
         "photo": str((darts / file).resolve()),
         "photo_url": f"/media/local/darts/{file}",
     }
+
+
+async def test_only_administrators_and_automations_save_photos(
+    hass, aioclient_mock, tmp_path, hass_read_only_user, hass_admin_user
+):
+    """It writes files, like an export: not for the user of a wall tablet."""
+    gallery = folders(hass, tmp_path / "config", tmp_path / "media")
+    camera, *_ = await setup_cameras(hass, aioclient_mock, 0)
+    camera_picture(aioclient_mock, 0)
+    with pytest.raises(Unauthorized):
+        await hass.services.async_call(
+            DOMAIN,
+            "save_highlight",
+            {"camera": camera},
+            blocking=True,
+            context=Context(user_id=hass_read_only_user.id),
+        )
+    assert not gallery.exists()
+    saved = await hass.services.async_call(
+        DOMAIN,
+        "save_highlight",
+        {"camera": camera, "label": "180"},
+        blocking=True,
+        context=Context(user_id=hass_admin_user.id),
+        return_response=True,
+    )
+    assert Path(saved["photo"]).parent == gallery.resolve()
 
 
 async def test_photos_of_the_same_moment_keep_each_other(
@@ -267,8 +299,16 @@ def test_names_and_labels_become_safe_parts_of_a_file_name():
         ("  Kim   Lee  ", "Kim Lee"),
         ("Zoë Ångström", "Zoë Ångström"),
         ("_/~", ""),
+        # A dot at the end would make .. before the suffix or the next part.
+        ("Alex.", "Alex"),
+        ("J.R. .", "J.R"),
+        (".", ""),
     ):
         assert name_part(name, 20) == part, name
+    assert photo_stem(taken, "Alex.", "") == f"{STAMP}_Alex"
+    assert photo_stem(taken, "", "180.") == f"{STAMP}_180"
+    # Also when the name is cut right after a dot.
+    assert name_part("Anna. Lena", 5) == "Anna"
     # A name is at most as long as a player name, a label a little longer.
     assert photo_stem(taken, "x" * 30, "y" * 30) == f"{STAMP}_{'x' * 20}_{'y' * 24}"
     assert name_part("Anna Lena Maria", 10) == "Anna Lena"

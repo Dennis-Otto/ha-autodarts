@@ -1731,6 +1731,9 @@ async def test_highlight_photo_hands_the_saved_file_to_the_actions(
     hass, aioclient_mock, freezer, tmp_path, tmp_path_factory, layout
 ):
     """The app loads the saved photo instead of the camera seconds later."""
+    # tmp_path is the configuration folder (blueprint_folder), so the media
+    # folder of Core is inside it, the one of Home Assistant OS outside.
+    assert hass.config.config_dir == str(tmp_path)
     media = (
         tmp_path_factory.mktemp("media")
         if layout == "home_assistant_os"

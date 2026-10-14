@@ -1140,7 +1140,7 @@
     },
     "save_highlight": {
       "name": "Highlight-Foto speichern",
-      "description": "Speichert das Bild einer Kamera als Foto, benannt nach dem Zeitpunkt, dem Spieler und dem, was es zeigt, standardmäßig in der Highlight-Galerie unter autodarts/highlights im Medienordner, und gibt die Datei und ihre Adresse zurück. Ist die Kamera deaktiviert oder nicht verfügbar, liefert sie kein Bild oder ist der Ordner nicht erlaubt, schlägt die Aktion fehl und gibt nichts zurück.",
+      "description": "Speichert das Bild einer Kamera als Foto, benannt nach dem Zeitpunkt, dem Spieler und dem, was es zeigt, standardmäßig in der Highlight-Galerie unter autodarts/highlights im Medienordner, und gibt die Datei und ihre Adresse zurück. Ist die Kamera deaktiviert oder nicht verfügbar, liefert sie kein Bild oder ist der Ordner nicht erlaubt, schlägt die Aktion fehl und gibt nichts zurück. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
       "fields": {
         "camera": {
           "name": "Kamera",

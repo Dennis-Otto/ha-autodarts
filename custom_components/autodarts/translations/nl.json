@@ -1140,7 +1140,7 @@
     },
     "save_highlight": {
       "name": "Highlightfoto opslaan",
-      "description": "Slaat het beeld van een camera op als foto, genoemd naar het moment, de speler en wat de foto toont, standaard in de highlightgalerij, autodarts/highlights in de mediamap, en geeft het bestand en het adres terug. De actie mislukt en geeft niets terug als de camera uitgeschakeld of niet beschikbaar is, geen beeld geeft of de map niet is toegestaan.",
+      "description": "Slaat het beeld van een camera op als foto, genoemd naar het moment, de speler en wat de foto toont, standaard in de highlightgalerij, autodarts/highlights in de mediamap, en geeft het bestand en het adres terug. De actie mislukt en geeft niets terug als de camera uitgeschakeld of niet beschikbaar is, geen beeld geeft of de map niet is toegestaan. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
       "fields": {
         "camera": {
           "name": "Camera",

@@ -179,7 +179,7 @@ The message can use `darts`, `visits`, `sessions`, `training_minutes`, `average`
 | Visits from | 180 | A visit with at least this score gets a photo when its third dart lands. |
 | Checkouts | on | Also a photo when a practice leg is won with a checkout. When the same dart finishes a visit and a leg, you get one photo, with the checkout message. |
 | Save to the gallery | on | Saves every photo with [`autodarts.save_highlight`](entities.md#save-a-highlight-photo-autodartssave_highlight), by default to the [highlight gallery](#highlight-gallery) of the media browser. |
-| Folder | empty | Empty for the highlight gallery: `autodarts/highlights` in the media folder, `/media/autodarts/highlights` on Home Assistant OS and in a container, `/config/media/autodarts/highlights` in other installations. Another folder must be one Home Assistant may write to, such as `/share/darts`; outside the media folder, a photo has no `photo_url`. |
+| Folder | empty | Empty for the highlight gallery: `autodarts/highlights` in the media folder, `/media/autodarts/highlights` on Home Assistant OS and in a container, `/config/media/autodarts/highlights` in other installations. Another folder must be one Home Assistant may write to, such as `/media/darts` on Home Assistant OS or a folder of `allowlist_external_dirs`; outside the media folder, a photo has no `photo_url`. |
 | Actions | none | For example a notification, see [below](#highlight-photo-on-your-phone). Optional while the photos go to the gallery. |
 | Message for a visit | `{{ score }}!` | The `message` of a visit photo. |
 | Message for a checkout | `Checkout {{ checkout }}{{ ' by ' ~ who if who }}!` | The `message` of a checkout photo. |
@@ -361,7 +361,7 @@ The app loads the saved photo, taken while the darts were still in the board, ev
 
 ### Highlight gallery
 
-The highlight photo saves every picture as a file named by the moment, the player and the score, for example `2026-09-26_21-05-33_Alex_180.jpg` or `2026-09-26_21-07-10_Alex_checkout-121.jpg`; a second photo of the same second with the same name, from a second camera for example, gets ` (2)` at the end and is kept as well. Open **Media → Autodarts** in the sidebar: the gallery lists the months, newest first, and every photo with a title such as *180 · Alex · Sep 26*.
+The highlight photo saves every picture as a file named by the moment, the player and the score, for example `2026-09-26_21-05-33_Alex_180.jpg` or `2026-09-26_21-07-10_Alex_checkout-121.jpg`; a second photo of the same second with the same name, from a second camera for example, gets a space and `(2)` at the end and is kept as well. Open **Media → Autodarts** in the sidebar: the gallery lists the months, newest first, and every photo with a title such as *180 · Alex · Sep 26*.
 
 <img src="images/en/media-gallery.png" alt="The highlight gallery in the media browser of Home Assistant: September 2026 with a checkout of 121 by Sam, a 180 by Alex and a 140 by Kim" width="760">
 

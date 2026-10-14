@@ -181,7 +181,7 @@ Die Nachricht kann `darts`, `visits`, `sessions`, `training_minutes`, `average`,
 | Visits from | 180 | Eine Aufnahme mit mindestens diesen Punkten bekommt ein Foto, sobald ihr dritter Dart landet. |
 | Checkouts | an | Auch ein Foto, wenn ein Übungsleg mit einem Checkout gewonnen wird. Beendet derselbe Dart eine Aufnahme und ein Leg, bekommst du ein Foto, mit dem Checkout-Text. |
 | Save to the gallery | an | Speichert jedes Foto mit [`autodarts.save_highlight`](entities.de.md#highlight-foto-speichern-autodartssave_highlight), standardmäßig in der [Highlight-Galerie](#highlight-galerie) der Medienansicht. |
-| Folder | leer | Leer für die Highlight-Galerie: `autodarts/highlights` im Medienordner, `/media/autodarts/highlights` unter Home Assistant OS und im Container, `/config/media/autodarts/highlights` in anderen Installationen. Ein anderer Ordner muss einer sein, in den Home Assistant schreiben darf, etwa `/share/darts`; außerhalb des Medienordners hat ein Foto keine `photo_url`. |
+| Folder | leer | Leer für die Highlight-Galerie: `autodarts/highlights` im Medienordner, `/media/autodarts/highlights` unter Home Assistant OS und im Container, `/config/media/autodarts/highlights` in anderen Installationen. Ein anderer Ordner muss einer sein, in den Home Assistant schreiben darf, etwa `/media/darts` unter Home Assistant OS oder ein Ordner aus `allowlist_external_dirs`; außerhalb des Medienordners hat ein Foto keine `photo_url`. |
 | Actions | keine | Zum Beispiel eine Benachrichtigung, siehe [unten](#highlight-foto-aufs-handy). Optional, solange die Fotos in die Galerie gehen. |
 | Message for a visit | `{{ score }}!` | Die `message` eines Aufnahme-Fotos. |
 | Message for a checkout | `Checkout {{ checkout }}{{ ' by ' ~ who if who }}!` | Die `message` eines Checkout-Fotos. |
@@ -388,7 +388,7 @@ Die App lädt das gespeicherte Foto, aufgenommen, als die Darts noch im Board st
 
 ### Highlight-Galerie
 
-Das Highlight-Foto speichert jedes Bild als Datei, benannt nach Zeitpunkt, Spieler und Punkten, etwa `2026-09-26_21-05-33_Alex_180.jpg` oder `2026-09-26_21-07-10_Alex_checkout-121.jpg`; ein zweites Foto derselben Sekunde mit demselben Namen, etwa von einer zweiten Kamera, bekommt ` (2)` am Ende und bleibt ebenfalls erhalten. Öffne **Medien → Autodarts** in der Seitenleiste: Die Galerie listet die Monate, die neuesten zuerst, und jedes Foto mit einem Titel wie *180 · Alex · 26.09.*
+Das Highlight-Foto speichert jedes Bild als Datei, benannt nach Zeitpunkt, Spieler und Punkten, etwa `2026-09-26_21-05-33_Alex_180.jpg` oder `2026-09-26_21-07-10_Alex_checkout-121.jpg`; ein zweites Foto derselben Sekunde mit demselben Namen, etwa von einer zweiten Kamera, bekommt ein Leerzeichen und `(2)` am Ende und bleibt ebenfalls erhalten. Öffne **Medien → Autodarts** in der Seitenleiste: Die Galerie listet die Monate, die neuesten zuerst, und jedes Foto mit einem Titel wie *180 · Alex · 26.09.*
 
 <img src="images/de/media-gallery.png" alt="Die Highlight-Galerie in der Medienansicht von Home Assistant: September 2026 mit einem Checkout von 121 durch Sam, einer 180 von Alex und einer 140 von Kim" width="760">
 

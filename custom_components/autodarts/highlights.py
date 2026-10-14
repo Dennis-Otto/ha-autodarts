@@ -54,9 +54,10 @@ def highlight_folder(hass: HomeAssistant) -> tuple[str, Path] | None:
 
 def name_part(text: str, limit: int) -> str:
     """A player or a label as a part of a file name: without the characters
-    above or control characters, with single spaces, at most limit long."""
+    above or control characters, with single spaces, at most limit long, and
+    without a dot at the end, which would make .. with the suffix."""
     printable = "".join(char if char.isprintable() else " " for char in text)
-    return " ".join(UNSAFE.sub(" ", printable).split())[:limit].rstrip()
+    return " ".join(UNSAFE.sub(" ", printable).split())[:limit].rstrip(". ")
 
 
 def photo_stem(taken: datetime, player: str, label: str) -> str:

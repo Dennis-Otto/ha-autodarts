@@ -197,7 +197,7 @@ The weekly report counts what the board detects, like the darts of the day, and 
 The media source *Autodarts* shows the photos that the [highlight photo blueprint](automations.md#highlight-gallery) saves with [`autodarts.save_highlight`](entities.md#save-a-highlight-photo-autodartssave_highlight):
 
 - **Folder:** `autodarts/highlights` in the media folder of Home Assistant. That is the media folder `local`: `/media` on Home Assistant OS and in a container, otherwise the `media` folder in the configuration folder. If you set `media_dirs` without `local`, the first of them.
-- **Names:** `YYYY-MM-DD_HH-MM-SS_<player>_<score>.jpg`; the time and the player are optional, a checkout reads `checkout-121`, and a second photo of the same second with the same name ends in ` (2)`. Other pictures (`.jpg`, `.jpeg`, `.png`, `.webp`) show by their file name and the time they were saved.
+- **Names:** `YYYY-MM-DD_HH-MM-SS_<player>_<score>.jpg`; the time and the player are optional, a checkout reads `checkout-121`, and a second photo of the same second with the same name ends in a space and `(2)`. Other pictures (`.jpg`, `.jpeg`, `.png`, `.webp`) show by their file name and the time they were saved.
 - **Order:** the months newest first, each with its newest photo as the cover; the photos of a month newest first.
 - **Titles:** in the language of Home Assistant's server, for example *September 2026* and *180 · Alex · Sep 26* in English, *26.09.* in German, *26-09* in Dutch and *26/09* in French and Spanish.
 - **Safety:** only plain file names of that folder open, and only pictures; hidden files, subfolders and links out of the folder are ignored. Home Assistant's own media view serves the photos, to logged-in users or with a signed address.

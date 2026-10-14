@@ -779,7 +779,10 @@ def async_setup_services(hass: HomeAssistant) -> None:
         )
         return saved if call.return_response else None
 
-    hass.services.async_register(
+    # It writes files, like autodarts.export, so it is for administrators, too;
+    # the highlight photo blueprint runs it as an automation, without a user.
+    async_register_admin_service(
+        hass,
         DOMAIN,
         SERVICE_SAVE_HIGHLIGHT,
         save_highlight,

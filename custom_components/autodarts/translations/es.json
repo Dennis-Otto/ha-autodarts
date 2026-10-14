@@ -1140,7 +1140,7 @@
     },
     "save_highlight": {
       "name": "Guardar foto destacada",
-      "description": "Guarda la imagen de una cámara como foto con el momento, el jugador y lo que muestra en su nombre, por defecto en la galería de momentos destacados, autodarts/highlights de la carpeta multimedia, y devuelve el archivo y su dirección. Falla, y no devuelve nada, si la cámara está desactivada o no disponible, si no da ninguna imagen o si la carpeta no está permitida.",
+      "description": "Guarda la imagen de una cámara como foto con el momento, el jugador y lo que muestra en su nombre, por defecto en la galería de momentos destacados, autodarts/highlights de la carpeta multimedia, y devuelve el archivo y su dirección. Falla, y no devuelve nada, si la cámara está desactivada o no disponible, si no da ninguna imagen o si la carpeta no está permitida. Solo para administradores; las automatizaciones también pueden usarla.",
       "fields": {
         "camera": {
           "name": "Cámara",

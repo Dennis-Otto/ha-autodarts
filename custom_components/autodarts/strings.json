@@ -1140,7 +1140,7 @@
     },
     "save_highlight": {
       "name": "Save highlight photo",
-      "description": "Saves the picture of a camera as a photo named by the moment, the player and what it shows, by default in the highlight gallery, autodarts/highlights in the media folder, and returns the file and its address. It fails, and so returns nothing, when the camera is disabled or unavailable or gives no picture, or when the folder is not allowed.",
+      "description": "Saves the picture of a camera as a photo named by the moment, the player and what it shows, by default in the highlight gallery, autodarts/highlights in the media folder, and returns the file and its address. It fails, and so returns nothing, when the camera is disabled or unavailable or gives no picture, or when the folder is not allowed. For administrators; automations can use it, too.",
       "fields": {
         "camera": {
           "name": "Camera",

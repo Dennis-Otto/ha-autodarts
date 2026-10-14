@@ -544,7 +544,7 @@ Ohne lokales Board kommen auch *Letztes Ereignis*, *Letzter Dart* und *Darts in 
 
 ## Aktionen
 
-Mit den Aktionen kann jeder angemeldete Benutzer spielen. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player` und `autodarts.export` ändern die Daten der Spieler oder geben sie heraus und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
+Mit den Aktionen kann jeder angemeldete Benutzer spielen. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export` und `autodarts.save_highlight` ändern die Daten der Spieler, geben sie heraus oder schreiben Dateien und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
 
 ### Übungsspiel starten: `autodarts.start_game`
 
@@ -772,7 +772,7 @@ Die Aktion bricht mit einer klaren Meldung ab, wenn der Ordner nicht erlaubt ist
 
 ### Highlight-Foto speichern: `autodarts.save_highlight`
 
-Speichert, was eine Kamera sieht, als Foto für die [Highlight-Galerie](automations.de.md#highlight-galerie), benannt nach Zeitpunkt, Spieler und dem, was es zeigt, und antwortet mit der Datei und ihrer Adresse erst, wenn die Datei geschrieben ist. Der Blueprint [Highlight photo](automations.de.md#highlight-photo) speichert seine Fotos damit; deine eigenen Automationen können das auch, etwa für ein Foto vom ersten Leg des Abends.
+Speichert, was eine Kamera sieht, als Foto für die [Highlight-Galerie](automations.de.md#highlight-galerie), benannt nach Zeitpunkt, Spieler und dem, was es zeigt, und antwortet mit der Datei und ihrer Adresse erst, wenn die Datei geschrieben ist. Der Blueprint [Highlight photo](automations.de.md#highlight-photo) speichert seine Fotos damit; deine eigenen Automationen können das auch, etwa für ein Foto vom ersten Leg des Abends. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
@@ -790,7 +790,7 @@ data:
 response_variable: highlight
 ```
 
-Das Foto heißt etwa `2026-09-26_21-05-33_Alex_180.jpg`, in der Zeit von Home Assistant. Spieler und Bezeichnung verlieren, was ein Dateiname oder eine Adresse nicht haben kann, etwa `/`, `:`, `_`, `~`, `..`, `{`, `%` und `#`, und werden auf 20 und 24 Zeichen gekürzt. Ein zweites Foto derselben Sekunde mit demselben Namen bekommt ` (2)` und so weiter; nichts wird überschrieben. Das Bild behält die Art, die die Kamera schickt: `.jpg`, oder `.png` oder `.webp`.
+Das Foto heißt etwa `2026-09-26_21-05-33_Alex_180.jpg`, in der Zeit von Home Assistant. Spieler und Bezeichnung verlieren, was ein Dateiname oder eine Adresse nicht haben kann, etwa `/`, `:`, `_`, `~`, `..`, `{`, `%` und `#`, und werden auf 20 und 24 Zeichen gekürzt, ohne Punkt am Ende. Ein zweites Foto derselben Sekunde mit demselben Namen heißt `2026-09-26_21-05-33_Alex_180 (2).jpg`, ein drittes bekommt `(3)` und so weiter; nichts wird überschrieben. Das Bild behält die Art, die die Kamera schickt: `.jpg`, oder `.png` oder `.webp`.
 
 **Antwort:** Mit `response_variable` ist `photo` die gespeicherte Datei und `photo_url` ihre Adresse in der Medienansicht, etwa `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, die die Home-Assistant-App in einer Benachrichtigung lädt; außerhalb des Medienordners ist `photo_url` leer.
 

@@ -1140,7 +1140,7 @@
     },
     "save_highlight": {
       "name": "Enregistrer une photo de temps fort",
-      "description": "Enregistre l'image d'une caméra comme photo nommée d'après le moment, le joueur et ce qu'elle montre, par défaut dans la galerie des temps forts, autodarts/highlights du dossier multimédia, et renvoie le fichier et son adresse. L'action échoue, et ne renvoie rien, si la caméra est désactivée ou indisponible, si elle ne donne aucune image ou si le dossier n'est pas autorisé.",
+      "description": "Enregistre l'image d'une caméra comme photo nommée d'après le moment, le joueur et ce qu'elle montre, par défaut dans la galerie des temps forts, autodarts/highlights du dossier multimédia, et renvoie le fichier et son adresse. L'action échoue, et ne renvoie rien, si la caméra est désactivée ou indisponible, si elle ne donne aucune image ou si le dossier n'est pas autorisé. Réservée aux administrateurs ; les automatisations peuvent aussi l'utiliser.",
       "fields": {
         "camera": {
           "name": "Caméra",

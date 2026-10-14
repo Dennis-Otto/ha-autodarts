@@ -88,7 +88,8 @@ blueprint:
             autodarts/highlights of your media folder, which is
             /media/autodarts/highlights on Home Assistant OS and in a container.
             Another folder must be one Home Assistant may write to, for example
-            /share/darts; outside the media folder, the photos get no
+            /media/darts on Home Assistant OS or a folder of
+            allowlist_external_dirs; outside the media folder, the photos get no
             `photo_url`.
           default: ""
           selector:
