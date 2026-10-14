@@ -5,7 +5,7 @@ config:
 ---
 flowchart TB
   accTitle: Welche Hosts die Jobs erreichen
-  accDescr: Harden-Runner, der erste Schritt jedes Jobs der projekteigenen Workflows, lässt einen Job nur die Hosts erreichen, die er nennt. Die Bots, die schreiben dürfen, der Übersetzungsbot, der Pull Request des Screenshot-Bots und der Kommentar des Bildvergleichs, erreichen nur GitHub und laufen ohne sudo und Docker. Die End-to-End-Tests und die Bilder erreichen den Code, die Images von Home Assistant und Playwright und ihre Pakete. Das Home Assistant, das sie starten, hat kein Radio Browser und ruft nichts im Internet auf, außer den Symbolen, die die Bilder zeigen. Jeder andere Host ist gesperrt, und eine Anmerkung nennt ihn.
+  accDescr: Harden-Runner, der erste Schritt jedes Jobs der projekteigenen Workflows, lässt einen Job nur die Hosts erreichen, die er nennt. Die Bots, die schreiben dürfen, der Übersetzungsbot, der Pull Request des Screenshot-Bots und der Kommentar des Bildvergleichs, erreichen nur GitHub und laufen ohne sudo und Docker. Die End-to-End-Tests und die Bilder erreichen den Code, die Images von Home Assistant und Playwright und ihre Pakete. Das Home Assistant, das sie starten, hat kein Radio Browser und ruft nichts im Internet auf, außer den Symbolen, die die Bilder zeigen. Jeder andere Host ist gesperrt, und das Protokoll des letzten Schritts des Jobs nennt ihn.
 
   BOTS["Bots, die schreiben dürfen:<br/>Übersetzungsbot, Pull Request der Screenshots,<br/>Kommentar des Bildvergleichs"] --> HR
   TESTS["End-to-End-Tests und Bilder:<br/>Szenario, Browsertest,<br/>Bildvergleich, Screenshot-Bot"] --> HR
@@ -14,7 +14,7 @@ flowchart TB
   HR{{"Harden-Runner:<br/>nur die Hosts, die der Job nennt"}}
   HR -- "Bots, ohne<br/>sudo und Docker" --> GITHUB["GitHub:<br/>api.github.com, github.com"]
   HR -- "Tests und Bilder" --> PACKAGES["Code, Images und Pakete:<br/>GitHub, ghcr.io, mcr.microsoft.com,<br/>npm, PyPI, Launchpad,<br/>Symbole von Home Assistant"]
-  HR -- "jeder andere Host" --> BLOCKED["Gesperrt: eine Anmerkung<br/>nennt den Host"]
+  HR -- "jeder andere Host" --> BLOCKED["Gesperrt: das Protokoll des<br/>letzten Schritts nennt den Host"]
 
   classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px

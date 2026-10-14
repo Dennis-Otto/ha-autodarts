@@ -391,17 +391,18 @@ GitHub's own services of Actions itself, such as the storage of artifacts and ca
 
 | Jobs | Hosts | What for |
 | --- | --- | --- |
-| translation bot, *pull request* of the screenshot bot, comment of the visual check | `api.github.com`, `github.com` | They may write issues, branches or comments, so they reach GitHub alone. |
+| translation bot, *pull request* of the screenshot bot | `api.github.com`, `github.com` | They may write issues and branches, so they reach GitHub alone. |
+| comment of the visual check | `api.github.com` | It reads the reports of the check and writes the comment, nothing else. |
 | *changes* of the end-to-end tests | `api.github.com` | the files of the pull request |
 | *scenario* | `github.com`, `ghcr.io`, `pkg-containers.githubusercontent.com` | the code and the Home Assistant image |
 | *browser* and the nightly beta | the same, `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org` | the Playwright image, axe-core and the Python packages of the browser test |
 | *render* of the visual check and of the screenshot bot | as *browser* without npm, and `launchpad.net`, `launchpadlibrarian.net`, `brands.home-assistant.io` | pngquant, and the icons of Home Assistant's other integrations, which the images show |
 | *compare* and *collect* | `github.com`, `pypi.org`, `files.pythonhosted.org` | Pillow for the comparison |
-| the gate *e2e* | none | |
+| the gate *e2e* | none | It only reads the results of the other jobs. Its run shows the warning that both `allowed-endpoints` and `denied-endpoints` are empty: that is expected, because an empty list blocks every host apart from GitHub's services of Actions. |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/job-network-dark.png">
-  <img src="images/en/job-network-light.png" alt="Which hosts the jobs reach: Harden-Runner, the first step of every job of the project's own workflows, lets a job reach only the hosts it lists. The bots that may write, the translation bot, the pull request of the screenshot bot and the comment of the visual check, reach GitHub alone and run without sudo and Docker. The end-to-end tests and the images reach the code, the images of Home Assistant and Playwright and their packages. The Home Assistant they start has no Radio Browser and calls nothing on the internet, apart from the icons that the images show. Every other host is blocked, and an annotation names it." width="640">
+  <img src="images/en/job-network-light.png" alt="Which hosts the jobs reach: Harden-Runner, the first step of every job of the project's own workflows, lets a job reach only the hosts it lists. The bots that may write, the translation bot, the pull request of the screenshot bot and the comment of the visual check, reach GitHub alone and run without sudo and Docker. The end-to-end tests and the images reach the code, the images of Home Assistant and Playwright and their packages. The Home Assistant they start has no Radio Browser and calls nothing on the internet, apart from the icons that the images show. Every other host is blocked, and the log of the job's last step names it." width="640">
 </picture>
 
 The Home Assistant of the tests calls nothing on the internet itself. Its onboarding
@@ -412,8 +413,10 @@ down; the scenario checks that no entry of Radio Browser exists. Only the demo o
 images loads the icons of the built-in integrations that the integrations page shows,
 through Home Assistant's own proxy from its CDN.
 
-A host that a job doesn't list fails its step, and an annotation of Harden-Runner names
-the host. A new host goes into `allowed-endpoints` of the job together with the step
+A host that a job doesn't list fails its step with an error such as a failed DNS lookup
+or a refused connection. The host itself appears as `domain not allowed: <host>` in the
+log of the job's last step, *Post Block every host that the job doesn't need*, and on
+the page of StepSecurity's insights that Harden-Runner links in its first step. A new host goes into `allowed-endpoints` of the job together with the step
 that needs it, with a comment that says why, and into `tests/test_workflow_network.py`.
 That test fails for a job of these workflows that it doesn't know, a host that a job
 doesn't need, a job back in audit mode, a job without containers that keeps sudo, and a

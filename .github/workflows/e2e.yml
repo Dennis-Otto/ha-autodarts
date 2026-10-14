@@ -237,7 +237,8 @@ jobs:
     timeout-minutes: 5
     steps:
       # The gate reads the results of the other jobs; it needs no host, sudo or
-      # Docker.
+      # Docker. Harden-Runner warns that both endpoint lists are empty: expected,
+      # an empty allow list blocks every host apart from GitHub's Actions services.
       - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
