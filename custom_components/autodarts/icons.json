@@ -427,6 +427,9 @@
     "export": {
       "service": "mdi:file-export-outline"
     },
+    "save_highlight": {
+      "service": "mdi:camera-plus-outline"
+    },
     "link_player": {
       "service": "mdi:account-link"
     },

@@ -549,7 +549,7 @@ Without a local board, *Last event*, *Last dart* and *Darts in visit* come from 
 
 ## Actions
 
-Every logged-in user can play with the actions. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player` and `autodarts.export` change or write out the players' data and are for administrators: a user who is no administrator, such as the user of a wall tablet, gets an error. Automations run them, and so do scripts that an administrator or an automation starts.
+Every logged-in user can play with the actions. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export` and `autodarts.save_highlight` change or write out the players' data or write files and are for administrators: a user who is no administrator, such as the user of a wall tablet, gets an error. Automations run them, and so do scripts that an administrator or an automation starts.
 
 ### Start a practice game: `autodarts.start_game`
 
@@ -778,6 +778,32 @@ The response has `path` (the file), `url` (its `/local/` address when the folder
 > **Privacy:** exports contain player names. The media folder, where they go by default, needs a login. Files in `www` are served at `/local/` **without a login** to anyone who can reach Home Assistant and knows the file name; the random part of the name keeps it from being guessed. Export to `www` only on purpose, and delete exports there that you no longer need.
 
 The action fails with a clear message when the folder is not allowed, when 20 exports were written in the last hour, or when the file cannot be written.
+
+### Save a highlight photo: `autodarts.save_highlight`
+
+Saves what a camera sees as a photo for the [highlight gallery](automations.md#highlight-gallery), named by the moment, the player and what it shows, and answers with the file and its address only once the file is written. The [highlight photo](automations.md#highlight-photo) blueprint saves its photos with it; your own automations can, too, for example for a photo of the first leg of the evening. For administrators; automations can use it, too.
+
+| Field | Values | Description |
+| --- | --- | --- |
+| `camera` | camera entity | The camera that takes the photo, such as a board camera; required. The cameras of a board are disabled until you enable them on the page of the board. Any other camera works, too. |
+| `folder` | folder | A folder where Home Assistant allows writing, as for [`autodarts.export`](#export-training-data-autodartsexport). Empty or left out: the gallery, `autodarts/highlights` in the media folder, `/media/autodarts/highlights` on Home Assistant OS and in a container. |
+| `player` | text | The player in the photo, for its name and its title in the gallery |
+| `label` | text | What the photo shows, at the end of its name, such as `180` or `checkout-121`; the gallery shows a number as the score and `checkout-121` as a checkout |
+
+```yaml
+action: autodarts.save_highlight
+data:
+  camera: camera.autodarts_board_camera_1
+  player: Alex
+  label: 180
+response_variable: highlight
+```
+
+The photo is named like `2026-09-26_21-05-33_Alex_180.jpg`, in the time of Home Assistant. The player and the label lose what a file name or an address cannot have, such as `/`, `:`, `_`, `~`, `..`, `{`, `%` and `#`, and are cut to 20 and 24 characters, without a dot at the end. A second photo of the same second with the same name is named `2026-09-26_21-05-33_Alex_180 (2).jpg`, a third one gets `(3)`, and so on; nothing is written over. The picture keeps the kind the camera sends: `.jpg`, or `.png` or `.webp`.
+
+**Response:** with `response_variable`, `photo` is the saved file, and `photo_url` its address in the media browser, such as `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, which the Home Assistant app loads in a notification; outside the media folder, `photo_url` is empty.
+
+The action fails with a clear message, and writes nothing, when the camera entity does not exist or is disabled, when the camera is unavailable or gives no picture, when the folder is not allowed, or when the file cannot be written. With `continue_on_error: true`, an automation goes on without the photo, as the blueprint does. Unlike `camera.snapshot`, which passes over a disabled or unavailable camera and a missing picture without an error, it never reports a photo that is not on disk.
 
 ### Link a player to a person: `autodarts.link_player`
 

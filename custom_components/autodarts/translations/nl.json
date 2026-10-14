@@ -824,6 +824,21 @@
     "export_failed": {
       "message": "De export kon niet worden weggeschreven: {error}"
     },
+    "highlight_camera_missing": {
+      "message": "De camera {camera} bestaat niet of is uitgeschakeld. De camera's van een Autodarts-bord zijn uitgeschakeld tot je ze inschakelt op de pagina van het bord."
+    },
+    "highlight_camera_unavailable": {
+      "message": "De camera {camera} is niet beschikbaar."
+    },
+    "highlight_no_picture": {
+      "message": "De camera {camera} gaf geen beeld."
+    },
+    "highlight_folder": {
+      "message": "De highlightmap {folder} mag niet verborgen zijn, en Home Assistant moet er schrijven toestaan: www, de mediamappen en de mappen uit allowlist_external_dirs zijn toegestaan."
+    },
+    "highlight_failed": {
+      "message": "De highlightfoto kon niet worden opgeslagen: {error}"
+    },
     "unknown_person": {
       "message": "Er is geen persoon {person} in Home Assistant."
     },
@@ -1162,6 +1177,28 @@
         "folder": {
           "name": "Map",
           "description": "Optioneel. Een map ten opzichte van de configuratiemap, of een absoluut pad, waarin Home Assistant mag schrijven: www, een mediamap of een map uit allowlist_external_dirs. Bestanden in www zijn zonder aanmelding bereikbaar via /local/. Zonder map: autodarts/exports in de mediamap."
+        }
+      }
+    },
+    "save_highlight": {
+      "name": "Highlightfoto opslaan",
+      "description": "Slaat het beeld van een camera op als foto, genoemd naar het moment, de speler en wat de foto toont, standaard in de highlightgalerij, autodarts/highlights in de mediamap, en geeft het bestand en het adres terug. De actie mislukt en geeft niets terug als de camera uitgeschakeld of niet beschikbaar is, geen beeld geeft of de map niet is toegestaan. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "fields": {
+        "camera": {
+          "name": "Camera",
+          "description": "De camera die de foto maakt, bijvoorbeeld een camera van het bord. De camera's van een bord zijn uitgeschakeld tot je ze inschakelt."
+        },
+        "folder": {
+          "name": "Map",
+          "description": "Optioneel. Een map ten opzichte van de configuratiemap, of een absoluut pad, waarin Home Assistant mag schrijven: www, een mediamap of een map uit allowlist_external_dirs. Zonder map: de highlightgalerij, autodarts/highlights in de mediamap."
+        },
+        "player": {
+          "name": "Speler",
+          "description": "Optioneel. De speler op de foto, voor de naam en de titel in de galerij."
+        },
+        "label": {
+          "name": "Label",
+          "description": "Optioneel. Wat de foto toont, aan het eind van de naam, zoals 180 of checkout-121. De galerij toont een getal als de score."
         }
       }
     },

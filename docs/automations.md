@@ -180,8 +180,8 @@ The message can use `darts`, `visits`, `sessions`, `training_minutes`, `average`
 | Camera | | The board camera that takes the photo. Enable the camera entity first; camera entities are disabled by default. |
 | Visits from | 180 | A visit with at least this score gets a photo when its third dart lands. |
 | Checkouts | on | Also a photo when a practice leg is won with a checkout. When the same dart finishes a visit and a leg, you get one photo, with the checkout message. |
-| Save to the gallery | on | Saves every photo in the folder below, for the [highlight gallery](#highlight-gallery) of the media browser. |
-| Folder | `/media/autodarts/highlights` | Where the photos go. Home Assistant OS and containers use `/media`; other installations the `media` folder in the configuration folder, for example `/config/media/autodarts/highlights`. |
+| Save to the gallery | on | Saves every photo with [`autodarts.save_highlight`](entities.md#save-a-highlight-photo-autodartssave_highlight), by default to the [highlight gallery](#highlight-gallery) of the media browser. |
+| Folder | empty | Empty for the highlight gallery: `autodarts/highlights` in the media folder, `/media/autodarts/highlights` on Home Assistant OS and in a container, `/config/media/autodarts/highlights` in other installations. Another folder must be one Home Assistant may write to, such as `/media/darts` on Home Assistant OS or a folder of `allowlist_external_dirs`; outside the media folder, a photo has no `photo_url`. |
 | Actions | none | For example a notification, see [below](#highlight-photo-on-your-phone). Optional while the photos go to the gallery. |
 | Message for a visit | `{{ score }}!` | The `message` of a visit photo. |
 | Message for a checkout | `Checkout {{ checkout }}{{ ' by ' ~ who if who }}!` | The `message` of a checkout photo. |
@@ -193,7 +193,14 @@ Your actions can use:
 - `image`: the live picture of the camera, for photos that are not saved.
 - `message`, `score`, `checkout` and `who` (the player at the board, when the practice game names them).
 
-`photo` and `photo_url` are empty when no photo was saved: *Save to the gallery* is off, or Home Assistant could not write to the folder. `photo_url` is also empty for a folder outside the media folder, which the app cannot load from.
+`photo` and `photo_url` are empty when no photo was saved: *Save to the gallery* is off, the camera entity is disabled or unavailable, the camera gives no picture, or Home Assistant may not write to the folder. The log of Home Assistant then says which of them it was. `photo_url` is also empty for a folder outside the media folder, which the app cannot load from. So `photo_url or image` is always a picture: the saved photo, or the live picture of the camera.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/highlight-photo-dark.png">
+  <img src="images/en/highlight-photo-light.png" alt="How the highlight photo saves a photo and what your actions get: after a big visit or a checkout, with Save to the gallery on, autodarts.save_highlight saves the photo only when the camera entity is enabled and available, the camera gives a picture and Home Assistant may write to the folder; then photo is the saved file and photo_url its address. Otherwise nothing is saved, the log says why, and photo and photo_url stay empty. Your actions run either way, and photo_url or image is the saved photo or the live picture" width="480">
+</picture>
+
+The blueprint needs version 1.12.4 or later of the integration, which brings `autodarts.save_highlight`. Earlier versions of the blueprint saved with `camera.snapshot`, which also announced a photo that was never written; choose **Re-import blueprint** in its menu on the blueprints page for the new one, and your automation keeps its settings.
 
 ### Light show
 
@@ -358,7 +365,7 @@ The app loads the saved photo, taken while the darts were still in the board, ev
 
 ### Highlight gallery
 
-The highlight photo saves every picture as a file named by the moment, the player and the score, for example `2026-09-26_21-05-33_Alex_180.jpg` or `2026-09-26_21-07-10_Alex_checkout-121.jpg`. Open **Media → Autodarts** in the sidebar: the gallery lists the months, newest first, and every photo with a title such as *180 · Alex · Sep 26*.
+The highlight photo saves every picture as a file named by the moment, the player and the score, for example `2026-09-26_21-05-33_Alex_180.jpg` or `2026-09-26_21-07-10_Alex_checkout-121.jpg`; a second photo of the same second with the same name, from a second camera for example, gets a space and `(2)` at the end and is kept as well. Open **Media → Autodarts** in the sidebar: the gallery lists the months, newest first, and every photo with a title such as *180 · Alex · Sep 26*.
 
 <img src="images/en/media-gallery.png" alt="The highlight gallery in the media browser of Home Assistant: September 2026 with a checkout of 121 by Sam, a 180 by Alex and a 140 by Kim" width="760">
 

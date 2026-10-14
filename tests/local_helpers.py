@@ -16,7 +16,10 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.autodarts.practice import PracticeGame
 
@@ -250,6 +253,34 @@ def entity_id(hass, platform, key, board_id="board-1"):
     )
     assert result is not None
     return result
+
+
+# A picture of a board camera, as the board sends it.
+JPEG = b"\xff\xd8\xff\xe0 the board with three darts in the treble 20 \xff\xd9"
+
+
+async def setup_cameras(hass, aioclient_mock, *enabled: int) -> list[str]:
+    """A Board Manager 1 board and its three cameras, those with these indexes
+    enabled, as on the page of the board."""
+    await setup_local(hass, aioclient_mock, state=board())
+    cameras = [entity_id(hass, "camera", f"camera_{index}") for index in range(3)]
+    registry = er.async_get(hass)
+    for index in enabled:
+        registry.async_update_entity(cameras[index], disabled_by=None)
+    # Home Assistant loads the board again 30 seconds after an entity was enabled.
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=31))
+    await hass.async_block_till_done()
+    assert all(hass.states.get(cameras[index]) for index in enabled)
+    return cameras
+
+
+def camera_picture(aioclient_mock, index: int, content: bytes = JPEG) -> None:
+    """The picture the camera with this index sends."""
+    aioclient_mock.get(
+        f"{BASE}/api/img/cams/{index}",
+        content=content,
+        headers={"Content-Type": "image/jpeg"},
+    )
 
 
 def state(hass, platform, key, board_id="board-1"):
