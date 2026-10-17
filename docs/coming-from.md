@@ -160,7 +160,7 @@ What Home Assistant does now:
 
 | darts-caller and darts-wled | Here |
 | --- | --- |
-| Calls of scores and checkouts | The [caller of the scoreboard](scoreboard.md#the-caller), through the screen at the board, or the [dart caller](automations.md#dart-caller) and [practice caller](automations.md#practice-caller) blueprints on your speakers |
+| Calls of scores and checkouts | The [caller of the scoreboard](scoreboard.md#the-caller), through the screen at the board, or the [dart caller](automations.md#dart-caller) and [practice caller](automations.md#practice-caller) blueprints on your speakers; both also play the [voice packs](scoreboard.md#voice-packs) of darts-caller |
 | WLED effects for a 180, a bust or a game shot | The [light show](automations.md#light-show) blueprint with your [WLED presets or other lights](automations.md#light-show-with-wled-and-other-lights) |
 | Game events for other programs | [Board events](entities.md#board-events) for every dart, visit, takeout, bust, won leg and match, for every automation of Home Assistant |
 
