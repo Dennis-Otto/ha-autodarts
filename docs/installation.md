@@ -49,6 +49,13 @@ The release workflow signs every package: `gh attestation verify autodarts.zip -
 
 There are three ways to add an Autodarts board. All of them end with the same, fully local board. A fourth adds a [dartboard without Autodarts](#4-a-dartboard-without-autodarts).
 
+Which way fits your board:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/add-board-dark.png">
+  <img src="images/en/add-board-light.png" alt="Which way to add a board: a dartboard without Autodarts gets the fourth way, Dartboard without Autodarts, and its darts are entered on the keypad. An Autodarts board with Board Manager 2 usually appears by itself as Autodarts board found under Discovered: select Add and confirm. Otherwise, enter the address of the board PC if you know it, or search for boards on this network, which opens the address form when it finds no board. Every way with Autodarts ends with the same local board, one device with all its entities" width="480">
+</picture>
+
 <img src="images/en/setup-menu.png" alt="The Autodarts setup menu: search for boards on this network, enter a board address, or a dartboard without Autodarts" width="520">
 
 ### 1. Automatic discovery (Board Manager 2)

@@ -1,4 +1,6 @@
 flowchart TB
+  accTitle: Wie eine hängende Entnahme gelöst wird
+  accDescr: Läuft die Entnahme ohne Darts und ohne Hand am Board, wartet Home Assistant 10 s. Ein Dart, eine Hand, ein Stopp oder ein anderer Status lassen nichts zu tun; sonst setzt es das Board mit POST /api/reset zurück, das Board meldet Throw ohne Darts, und takeout_finished folgt, das Spiel geht weiter. Ein Board, das weiter hängt, wird nach 10 s erneut zurückgesetzt, höchstens dreimal.
   STUCK["Entnahme läuft,<br/>keine Darts, keine Hand"] --> WAIT{"Nach 10 s<br/>unverändert?"}
   WAIT -- "nein: Dart, Hand,<br/>Stopp oder Status" --> FINE["Nichts zu tun"]
   WAIT -- "ja" --> RESET["Reset des Boards<br/>POST /api/reset"]

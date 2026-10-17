@@ -92,6 +92,17 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
 </div>
 
+## Vom Dart in dein Zuhause
+
+Alles geschieht in deinem Netzwerk, in weniger als einer Sekunde: Der Board Manager bestimmt das Feld, und Home Assistant zeigt es auf den Karten und gibt es an deine Automationen weiter.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/dart-journey-dark.png">
+  <img src="images/de/dart-journey-light.png" alt="Der Weg eines Darts: Ein Dart landet in der Triple 20. Die Kameras des Boards sehen ihn, und der Board Manager auf dem Board-PC bestimmt das Feld. Eine Echtzeitnachricht bringt es durch dein Netzwerk zur Autodarts-Integration in Home Assistant; sie aktualisiert die Entitäten, sendet die Board-Ereignisse und lässt das Feld auf den Karten und der Anzeigetafel aufleuchten. Deine Automation reagiert auf die Ereignisse, etwa mit blinkendem Licht bei einer 180 oder einem Caller. Das alles dauert weniger als eine Sekunde und braucht keine Cloud" width="560">
+</picture>
+
+[:octicons-arrow-right-24: Funktionsweise](how-it-works.de.md)
+
 ## Im Vergleich
 
 Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, mit darts-caller und darts-wled und mit den anderen Home-Assistant-Integrationen für Autodarts vergleicht. [Umstieg von anderen Werkzeugen](coming-from.de.md) zeigt, wie du umsteigst.

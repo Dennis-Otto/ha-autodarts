@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Welcher Weg zum Board passt
+  accDescr: Eine Dartscheibe ohne Autodarts bekommt den vierten Weg, Dartscheibe ohne Autodarts, und ihre Darts gibst du auf dem Tastenfeld ein. Ein Autodarts-Board mit Board Manager 2 erscheint meist von selbst als Autodarts-Board gefunden unter Entdeckt: Wähle Hinzufügen und bestätige. Sonst gibst du die Adresse des Board-PCs ein, wenn du sie kennst, oder suchst Boards im Netzwerk; findet die Suche kein Board, öffnet sich das Adressformular. Jeder Weg mit Autodarts endet beim selben lokalen Board, einem Gerät mit all seinen Entitäten.
+  START(["Board hinzufügen"]) --> AUTODARTS{"Hat das Board<br/>Autodarts?"}
+  AUTODARTS -- "nein" --> MANUAL["4 · Dartscheibe<br/>ohne Autodarts"]
+  MANUAL --> KEYPAD["Ihre Darts gibst du<br/>auf dem Tastenfeld ein"]
+  AUTODARTS -- "ja" --> FOUND{"Autodarts-Board gefunden<br/>unter Entdeckt?<br/>(Board Manager 2)"}
+  FOUND -- "ja" --> DISCOVERED["1 · Hinzufügen wählen<br/>und bestätigen"]
+  FOUND -- "nein" --> KNOWN{"Kennst du die Adresse<br/>des Board-PCs?"}
+  KNOWN -- "nein" --> SEARCH["2 · Boards im<br/>Netzwerk suchen"]
+  KNOWN -- "ja" --> ADDRESS["3 · Board-Adresse eingeben,<br/>Port 3180"]
+  SEARCH -. "kein Board gefunden" .-> ADDRESS
+  DISCOVERED --> BOARD["Dasselbe lokale Board:<br/>ein Gerät mit all seinen Entitäten"]
+  SEARCH --> BOARD
+  ADDRESS --> BOARD
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class BOARD,KEYPAD done

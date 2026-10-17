@@ -40,6 +40,11 @@ Each message and each read updates only the entities that show what changed. A h
 
 ## Connection behavior
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/connection-dark.png">
+  <img src="images/en/connection-light.png" alt="How the connection to the board behaves: at the start, the integration waits three seconds for the board at most and then loads anyway, reading the board every 2 seconds. With the first valid realtime message, darts arrive at once and a read only reconciles every 30 seconds, every 10 seconds with Board Manager 2. When the realtime connection drops, the integration reads every 2 seconds again and reconnects after 1, 2, 4 up to 60 seconds, each wait up to a fifth shorter. Two missed reads in a row keep the last values; the third makes the board entities unavailable, and after about ten the board is asked every 15 seconds. Its first answer brings back fast polling and an immediate reconnect" width="440">
+</picture>
+
 - **Realtime first.** Polling slows down once the first valid notification arrives, not merely when the socket opens, so a socket that stays silent keeps the fast polling.
 - **Reconnects.** If the realtime connection drops, the integration switches to fast polling at once. It reconnects after 1, 2, 4 … up to 60 seconds, each wait shortened by a random amount of up to a fifth. A connection that lasted 30 seconds starts over at 1 second, and when a read finds the board back after an outage, the integration reconnects right away.
 - **Short hiccups.** Two missed reads in a row, a few seconds, keep the last values; the third makes the board entities unavailable. While realtime events arrive, a missed read is no outage at all.

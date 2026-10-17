@@ -1,0 +1,17 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: The journey of a dart
+  accDescr: A dart lands in triple 20. The cameras of the board see it, and the Board Manager on the board PC names the field. A realtime message carries it over your network to the Autodarts integration in Home Assistant, which updates the entities, sends the board events and lights up the field on the cards and the scoreboard. Your automation reacts to the events, for example with flashing lights for a 180 or a caller. All of it takes less than a second and needs no cloud.
+  DART(["A dart lands in T20"]) --> CAMERAS["The cameras<br/>of the board see it"]
+  CAMERAS --> MANAGER["The Board Manager<br/>on the board PC<br/>names the field: T20"]
+  MANAGER -- "realtime message<br/>(WebSocket),<br/>in your network" --> INTEGRATION["The Autodarts integration<br/>in Home Assistant"]
+  INTEGRATION --> ENTITIES["Entities:<br/>last dart, visit score"]
+  INTEGRATION --> EVENTS["Board events:<br/>dart_detected,<br/>visit_thrown"]
+  INTEGRATION --> CARDS["Cards and scoreboard<br/>light up the field"]
+  EVENTS --> AUTOMATION["Your automation, less than<br/>a second after the dart landed:<br/>lights flash for a 180,<br/>the caller speaks"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class AUTOMATION done

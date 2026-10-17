@@ -473,7 +473,11 @@ Pro Board entstehen bis zu sechs Ansichten. Sie aktualisieren sich selbst, wenn 
 | **Spieleinstellungen** | Die Steuerung des Übungsspiels mit Teams und den Optionen für Golf, Count-Up, Bermuda, Round the World und Gotcha, die Spielernamen, ihre Startpunkte und das [Turnier](entities.de.md#turniere) mit seinen Einstellungen und Tasten, für alles, was die Spielauswahl der Anzeigetafel nicht einstellt |
 | **Board** | Der Board-Status, die Board-Einstellungen, das Board-Manager-Update und der Anteil der Darts, die das Board korrigiert hat; eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat diese Ansicht nicht |
 
-<img src="images/de/dashboard-strategy.png" alt="Die Trainingsansicht des automatischen Dashboards" width="760">
+| | |
+| --- | --- |
+| <img src="images/de/dashboard-live.png" alt="Die Ansicht Live des automatischen Dashboards: die Live-Karte mit der aktuellen Aufnahme, ihren drei Darts, den letzten Aufnahmen, der Trainingssession und dem Board" width="380"><br>**Live** | <img src="images/de/dashboard-scoreboard.png" alt="Die Ansicht Anzeigetafel: die Anzeigetafel über den Bildschirm mit der aktuellen Aufnahme in großen Ziffern, den Zahlen der Session und der Taste für ein neues Spiel" width="380"><br>**Anzeigetafel** |
+| <img src="images/de/dashboard-training.png" alt="Die Ansicht Training: die Trainingskarte mit dem Tagesziel, dem 3-Dart-Average, dem Trefferbild und der Statistik" width="380"><br>**Training** | <img src="images/de/dashboard-players.png" alt="Die Ansicht Spieler: die Profile von fünf Spielern mit ihren Averages und Bestleistungen und ihre direkten Vergleiche" width="380"><br>**Spieler** |
+| <img src="images/de/dashboard-games.png" alt="Die Ansicht Spieleinstellungen: die Steuerung des Übungsspiels vom Spiel und den Spielern bis zum Ausbullen, neben den Spielernamen" width="380"><br>**Spieleinstellungen** | <img src="images/de/dashboard-board.png" alt="Die Ansicht Board: der Board-Status mit der Erkennung, dem Board Manager, den Verbindungen und den Kameras, neben den Board-Einstellungen, dem Software-Update und der Korrekturquote" width="380"><br>**Board** |
 
 Die Spieleinstellungen haben außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Turnier Dauer der Zusammenfassung* bei den Turniereinstellungen. Die meisten Spiele brauchen nichts davon: Die [Spielauswahl](#spielauswahl) der Anzeigetafel stellt Spiel, Spieler und Regeln ein.
 

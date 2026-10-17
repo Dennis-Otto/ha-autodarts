@@ -14,6 +14,13 @@ Dein Board ist schnell genug für Automationen, die *während* des Spiels passie
 
 Blueprints sind fertige Automationen. Importieren, Board und Geräte auswählen, fertig. Sie brauchen Home Assistant ab 2026.8 und folgen der aktuellen Version der Integration: Aktualisiere beide zusammen.
 
+Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/choose-blueprint-dark.png">
+  <img src="images/de/choose-blueprint-light.png" alt="Welcher Blueprint passt: Für Licht, Fotos und Jubel nimm die Blueprints Light show, Celebrate a visit score, Highlight photo oder Takeout actions. Zum Ansagen der Darts nimm den Dart caller für jedes Spiel am Board, auch Online-Matches, und den Practice caller für das Übungsspiel; der Caller der Anzeigetafel braucht keine Lautsprecher in Home Assistant. Für ein Board, das sich selbst versorgt, nimm Start and stop detection automatically, Board problem alert oder Training session routine. Für eine Zusammenfassung deines Trainings nimm den Training report jeden Tag oder den Weekly report. Um mit Assist zu sprechen, nimm Start a game by voice oder Enter darts by voice" width="560">
+</picture>
+
 | Blueprint | Was er macht | Import |
 | --- | --- | --- |
 | **Celebrate a visit score** | Führt deine Aktionen für Aufnahmen ab einer Mindestpunktzahl aus (Standard 180), sobald der dritte Dart landet. Die Aktionen können `score`, `darts`, `segments` und `game` nutzen. Die Aufnahmen des Bots zählen nur auf Wunsch. | [![Blueprint „Celebrate a visit score“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
