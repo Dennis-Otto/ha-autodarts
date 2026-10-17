@@ -152,9 +152,9 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 | --- | --- | --- | --- | --- |
 | **Läuft ohne Cloud** | Ja, mit der [lokalen Schnittstelle](how-it-works.de.md#datenschutz) des Board Managers | Nein, mit einem [Autodarts-Konto](https://autodarts.com/) | Nein, darts-caller [meldet sich bei Autodarts an](https://github.com/Peschi90/darts-caller#autodarts-login) | Manche ([Einzelheiten](coming-from.de.md#darf-es-bleiben)) |
 | **Entitäten und Ereignisse in Home Assistant** | Ja, ein [Ereignis](entities.de.md#board-ereignisse) für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, Leg und Match | Nein | Nein | Sensoren der aktuellen Aufnahme oder des Spiels |
-| **Blueprints** | [Dreizehn](automations.de.md#blueprints) | Nein | Nein | Nein |
+| **Blueprints** | [Dreizehn Blueprints](automations.de.md#blueprints) | Nein | Nein | Nein |
 | **Lichtshow** | Blueprint [Light show](automations.de.md#light-show), für WLED oder jedes Licht | WLED, mit Tools | WLED, mit darts-wled | Eigene Automationen |
-| **Caller** | Auf der [Anzeigetafel](scoreboard.de.md#der-caller) oder deinen [Lautsprechern](automations.de.md#welcher-caller) | Mit Tools | Sprachpakete, mit darts-caller | Nein |
+| **Caller** | Auf der [Anzeigetafel](scoreboard.de.md#der-caller) oder deinen [Lautsprechern](automations.de.md#welcher-caller) | In der App, mit einer Premium-Stimme in [Plus](https://autodarts.com/); mehr mit Tools | Sprachpakete, mit darts-caller | Nein |
 | **Statistik bleibt zu Hause** | [Ja](statistics.de.md): Averages, Trefferbilder, Profile und ein Jahr Verlauf | Nein, im Autodarts-Konto | Nein | Nein |
 | **Ohne Autodarts-Board** | Ja, auf einem [Tastenfeld](without-autodarts.de.md) | Ja, auf einem Tastenfeld oder mit [Lens](https://autodarts.com/) | Nein | Nein |
 | **Online-Matches** | Deine Darts, und die Momente des Matches über die [Online-Brücke](online-matches.de.md) *(experimentell)* | Ja | Ja | Manche, über die Cloud |
@@ -168,7 +168,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
 - **Board Manager 2**, also Autodarts 2 ohne Bildschirm, ist empfohlen und bis 2.0.2 getestet; der klassische **Board Manager 1** funktioniert auch.
 - Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux.
-- Autodarts Desktop unter Windows und die Winmau-Autodarts-Geräte wie Autodarts X oder Lens sind noch nicht getestet; ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) hilft, ob es klappt oder nicht.
+- Autodarts Desktop unter Windows und Winmau-Autodarts-Geräte wie Autodarts X sind noch nicht getestet; ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) hilft, ob es klappt oder nicht.
 
 ## Anleitungen
 
@@ -336,7 +336,7 @@ Die Blueprints sind auf Englisch beschriftet; ihre Texte, etwa die Ansagen, wäh
 | Board Manager 1 (klassische App) | 1.x | 1.0.7 |
 | Autodarts Desktop unter Linux | Funktioniert laut Spielerbericht | 2.0.2 unter Ubuntu 24.04 ([Bericht](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) |
 | Autodarts Desktop unter Windows und anderen Systemen | Noch nicht getestet | – |
-| Winmau-Autodarts-Geräte wie Autodarts X oder Lens | Noch nicht getestet | – |
+| Winmau-Autodarts-Geräte wie Autodarts X | Noch nicht getestet | – |
 | Kameras | Jede Anzahl, die der Board Manager unterstützt | 3 |
 | Home Assistant | ab 2026.8 | 2026.8.0 und 2026.9.4 |
 

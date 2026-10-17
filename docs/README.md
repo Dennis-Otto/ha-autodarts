@@ -109,7 +109,7 @@ Start the detection when you enter the darts room, stop it when you leave, and g
 | Board Manager 1 (classic app) | 1.x | 1.0.7 |
 | Autodarts Desktop on Linux | Works, as reported by a player | 2.0.2 on Ubuntu 24.04 ([report](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) |
 | Autodarts Desktop on Windows and other systems | Not tested yet | – |
-| Winmau Autodarts devices such as Autodarts X or Lens | Not tested yet | – |
+| Winmau Autodarts devices such as Autodarts X | Not tested yet | – |
 | Cameras | Any number supported by the Board Manager | 3 |
 | Home Assistant | 2026.8 or newer | 2026.8.0 and 2026.9.4 |
 

@@ -18,9 +18,9 @@ Other projects bring an Autodarts board into Home Assistant or next to it. This 
 | --- | --- | --- | --- | --- |
 | **Runs without the cloud** | Yes, with the [local interface](how-it-works.md#privacy) of the Board Manager | No, with an [Autodarts account](https://autodarts.com/) | No, darts-caller [signs in to Autodarts](https://github.com/Peschi90/darts-caller#autodarts-login) | Some of them ([details](coming-from.md#can-it-stay)) |
 | **Entities and events in Home Assistant** | Yes, an [event](entities.md#board-events) for every dart, visit, takeout, bust, leg and match | No | No | Sensors of the current visit or game |
-| **Blueprints** | [Thirteen](automations.md#blueprints) | No | No | No |
+| **Blueprints** | [Thirteen blueprints](automations.md#blueprints) | No | No | No |
 | **Light show** | [Light show](automations.md#light-show) blueprint, for WLED or any light | WLED, with Tools | WLED, with darts-wled | Your own automations |
-| **Caller** | On the [scoreboard](scoreboard.md#the-caller) or your [speakers](automations.md#which-caller) | With Tools | Voice packs, with darts-caller | No |
+| **Caller** | On the [scoreboard](scoreboard.md#the-caller) or your [speakers](automations.md#which-caller) | In the app, with a premium voice in [Plus](https://autodarts.com/); more with Tools | Voice packs, with darts-caller | No |
 | **Statistics kept at home** | [Yes](statistics.md): averages, heatmaps, profiles and a year of history | No, in the Autodarts account | No | No |
 | **Without an Autodarts board** | Yes, on a [keypad](without-autodarts.md) | Yes, on a keypad or with [Lens](https://autodarts.com/) | No | No |
 | **Online matches** | Your darts, and the moments of the match through the [online bridge](online-matches.md) *(experimental)* | Yes | Yes | Some of them, through the cloud |
@@ -39,17 +39,17 @@ Home Assistant loads one integration per domain, so two integrations with the do
   <img src="images/en/coming-from-light.png" alt="Switching from another Autodarts integration: the original HACSAutodarts uses the autodarts domain; replace it in HACS and keep its entry, which is migrated. Quevinsta's and belese's integrations use the autodarts domain too; delete their entries, remove them in HACS, check that custom_components/autodarts is gone and restart. Autodarts Local, Autodarts Connect Online, Darts Hub and MQTT bridges have a domain of their own and can stay for now. Then install this integration, add the board, move the automations to its events and blueprints, and remove what nothing uses any more" width="520">
 </picture>
 
-| Project | Domain | Next to this integration |
-| --- | --- | --- |
-| [Original integration](#the-original-integration) by Trkal | `autodarts` | Replaced: its entry is migrated |
-| [Autodarts for Home Assistant](#autodarts-for-home-assistant-by-quevinsta) by Quevinsta | `autodarts` | [Remove it first](#remove-an-integration-with-the-same-domain) |
-| [autodarts](#autodarts-by-belese) by belese | `autodarts` | [Remove it first](#remove-an-integration-with-the-same-domain) |
-| [Autodarts Local](#autodarts-local) | `autodarts_local` | Can stay |
-| [Autodarts Connect Online](#autodarts-connect-online) | `autodarts_connect` | Can stay |
-| [Darts Hub](#darts-hub) | `darts_hub` | Can stay |
-| [MQTT bridges](#mqtt-bridges) | `mqtt` | Can stay |
-| [darts-caller and darts-wled](#darts-caller-and-darts-wled) | Outside Home Assistant | Can stay; let one caller speak |
-| [Tools for Autodarts](#tools-for-autodarts) | In the browser | Stays; the online bridge uses it |
+| Project | Domain | Reads the board through | Next to this integration |
+| --- | --- | --- | --- |
+| [Original integration](#the-original-integration) by Trkal | `autodarts` | The Board Manager, locally | Replaced: its entry is migrated |
+| [Autodarts for Home Assistant](#autodarts-for-home-assistant-by-quevinsta) by Quevinsta | `autodarts` | The Board Manager, locally | [Remove it first](#remove-an-integration-with-the-same-domain) |
+| [autodarts](#autodarts-by-belese) by belese | `autodarts` | The Autodarts cloud | [Remove it first](#remove-an-integration-with-the-same-domain) |
+| [Autodarts Local](#autodarts-local) | `autodarts_local` | The Board Manager, locally | Can stay |
+| [Autodarts Connect Online](#autodarts-connect-online) | `autodarts_connect` | The Autodarts cloud | Can stay |
+| [Darts Hub](#darts-hub) | `darts_hub` | darts-hub or darts-caller, and the Board Manager | Can stay |
+| [MQTT bridges](#mqtt-bridges) | `mqtt` | Its own program and an MQTT broker | Can stay |
+| [darts-caller and darts-wled](#darts-caller-and-darts-wled) | Outside Home Assistant | The Autodarts cloud | Can stay; let one caller speak |
+| [Tools for Autodarts](#tools-for-autodarts) | In the browser | The Autodarts web app | Stays; the online bridge uses it |
 
 ### Remove an integration with the same domain
 
@@ -168,9 +168,9 @@ What Home Assistant does now:
 
 ## Tools for Autodarts
 
-[Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) is a browser extension for the Autodarts web app, with a caller, sound effects, WLED effects, animations and many settings for the lobby and the match.
+[Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) is a browser extension for the Autodarts web app, with more caller voices, sound effects, WLED effects, animations and many settings for the lobby and the match.
 
-**Stays.** The [online bridge](online-matches.md) uses its WLED feature: it calls Home Assistant with the moments of an online match, which become `online_*` [board events](entities.md#board-events). As with darts-caller, let one caller speak in the room: the one of Tools or the one of Home Assistant.
+**Stays.** The [online bridge](online-matches.md) uses its WLED feature: it calls Home Assistant with the moments of an online match, which become `online_*` [board events](entities.md#board-events). As with darts-caller, let one caller speak in the room: the one of the Autodarts app, the one of Tools or the one of Home Assistant.
 
 ## The original integration
 

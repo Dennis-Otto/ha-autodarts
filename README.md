@@ -159,9 +159,9 @@ How this integration compares with the Autodarts app and its browser extension, 
 | --- | --- | --- | --- | --- |
 | **Runs without the cloud** | Yes, with the [local interface](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md#privacy) of the Board Manager | No, with an [Autodarts account](https://autodarts.com/) | No, darts-caller [signs in to Autodarts](https://github.com/Peschi90/darts-caller#autodarts-login) | Some of them ([details](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/coming-from.md#can-it-stay)) |
 | **Entities and events in Home Assistant** | Yes, an [event](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/entities.md#board-events) for every dart, visit, takeout, bust, leg and match | No | No | Sensors of the current visit or game |
-| **Blueprints** | [Thirteen](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#blueprints) | No | No | No |
+| **Blueprints** | [Thirteen blueprints](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#blueprints) | No | No | No |
 | **Light show** | [Light show](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#light-show) blueprint, for WLED or any light | WLED, with Tools | WLED, with darts-wled | Your own automations |
-| **Caller** | On the [scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md#the-caller) or your [speakers](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#which-caller) | With Tools | Voice packs, with darts-caller | No |
+| **Caller** | On the [scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md#the-caller) or your [speakers](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#which-caller) | In the app, with a premium voice in [Plus](https://autodarts.com/); more with Tools | Voice packs, with darts-caller | No |
 | **Statistics kept at home** | [Yes](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md): averages, heatmaps, profiles and a year of history | No, in the Autodarts account | No | No |
 | **Without an Autodarts board** | Yes, on a [keypad](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md) | Yes, on a keypad or with [Lens](https://autodarts.com/) | No | No |
 | **Online matches** | Your darts, and the moments of the match through the [online bridge](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/online-matches.md) *(experimental)* | Yes | Yes | Some of them, through the cloud |
@@ -175,7 +175,7 @@ How this integration compares with the Autodarts app and its browser extension, 
 
 - **Board Manager 2**, Autodarts 2 without a screen, is recommended and tested up to 2.0.2; the classic **Board Manager 1** works too.
 - A player reports that **Autodarts Desktop** 2.0.2 on Linux works too.
-- Autodarts Desktop on Windows and the Winmau Autodarts devices such as Autodarts X or Lens have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not.
+- Autodarts Desktop on Windows and Winmau Autodarts devices such as Autodarts X have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not.
 
 ## Blueprints
 

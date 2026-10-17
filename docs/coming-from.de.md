@@ -18,9 +18,9 @@ Andere Projekte bringen ein Autodarts-Board nach Home Assistant oder daneben. Di
 | --- | --- | --- | --- | --- |
 | **Läuft ohne Cloud** | Ja, mit der [lokalen Schnittstelle](how-it-works.de.md#datenschutz) des Board Managers | Nein, mit einem [Autodarts-Konto](https://autodarts.com/) | Nein, darts-caller [meldet sich bei Autodarts an](https://github.com/Peschi90/darts-caller#autodarts-login) | Manche ([Einzelheiten](coming-from.de.md#darf-es-bleiben)) |
 | **Entitäten und Ereignisse in Home Assistant** | Ja, ein [Ereignis](entities.de.md#board-ereignisse) für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, Leg und Match | Nein | Nein | Sensoren der aktuellen Aufnahme oder des Spiels |
-| **Blueprints** | [Dreizehn](automations.de.md#blueprints) | Nein | Nein | Nein |
+| **Blueprints** | [Dreizehn Blueprints](automations.de.md#blueprints) | Nein | Nein | Nein |
 | **Lichtshow** | Blueprint [Light show](automations.de.md#light-show), für WLED oder jedes Licht | WLED, mit Tools | WLED, mit darts-wled | Eigene Automationen |
-| **Caller** | Auf der [Anzeigetafel](scoreboard.de.md#der-caller) oder deinen [Lautsprechern](automations.de.md#welcher-caller) | Mit Tools | Sprachpakete, mit darts-caller | Nein |
+| **Caller** | Auf der [Anzeigetafel](scoreboard.de.md#der-caller) oder deinen [Lautsprechern](automations.de.md#welcher-caller) | In der App, mit einer Premium-Stimme in [Plus](https://autodarts.com/); mehr mit Tools | Sprachpakete, mit darts-caller | Nein |
 | **Statistik bleibt zu Hause** | [Ja](statistics.de.md): Averages, Trefferbilder, Profile und ein Jahr Verlauf | Nein, im Autodarts-Konto | Nein | Nein |
 | **Ohne Autodarts-Board** | Ja, auf einem [Tastenfeld](without-autodarts.de.md) | Ja, auf einem Tastenfeld oder mit [Lens](https://autodarts.com/) | Nein | Nein |
 | **Online-Matches** | Deine Darts, und die Momente des Matches über die [Online-Brücke](online-matches.de.md) *(experimentell)* | Ja | Ja | Manche, über die Cloud |
@@ -39,17 +39,17 @@ Home Assistant lädt eine Integration pro Domain, deshalb können zwei Integrati
   <img src="images/de/coming-from-light.png" alt="Umstieg von einer anderen Autodarts-Integration: Das ursprüngliche HACSAutodarts nutzt die Domain autodarts; ersetze es in HACS und behalte seinen Eintrag, der umgestellt wird. Die Integrationen von Quevinsta und belese nutzen ebenfalls die Domain autodarts; lösche ihre Einträge, entferne sie in HACS, prüfe, dass custom_components/autodarts weg ist, und starte neu. Autodarts Local, Autodarts Connect Online, Darts Hub und MQTT-Brücken haben eine eigene Domain und dürfen vorerst bleiben. Dann installierst du diese Integration, fügst das Board hinzu, stellst die Automationen auf ihre Ereignisse und Blueprints um und entfernst, was nichts mehr nutzt" width="520">
 </picture>
 
-| Projekt | Domain | Neben dieser Integration |
-| --- | --- | --- |
-| [Ursprüngliche Integration](#die-ursprüngliche-integration) von Trkal | `autodarts` | Wird ersetzt: ihr Eintrag wird umgestellt |
-| [Autodarts for Home Assistant](#autodarts-for-home-assistant-von-quevinsta) von Quevinsta | `autodarts` | [Vorher entfernen](#eine-integration-mit-derselben-domain-entfernen) |
-| [autodarts](#autodarts-von-belese) von belese | `autodarts` | [Vorher entfernen](#eine-integration-mit-derselben-domain-entfernen) |
-| [Autodarts Local](#autodarts-local) | `autodarts_local` | Darf bleiben |
-| [Autodarts Connect Online](#autodarts-connect-online) | `autodarts_connect` | Darf bleiben |
-| [Darts Hub](#darts-hub) | `darts_hub` | Darf bleiben |
-| [MQTT-Brücken](#mqtt-brücken) | `mqtt` | Darf bleiben |
-| [darts-caller und darts-wled](#darts-caller-und-darts-wled) | Außerhalb von Home Assistant | Darf bleiben; lass einen Caller sprechen |
-| [Tools for Autodarts](#tools-for-autodarts) | Im Browser | Bleibt; die Online-Brücke nutzt es |
+| Projekt | Domain | Liest das Board über | Neben dieser Integration |
+| --- | --- | --- | --- |
+| [Ursprüngliche Integration](#die-ursprüngliche-integration) von Trkal | `autodarts` | Den Board Manager, lokal | Wird ersetzt: ihr Eintrag wird umgestellt |
+| [Autodarts for Home Assistant](#autodarts-for-home-assistant-von-quevinsta) von Quevinsta | `autodarts` | Den Board Manager, lokal | [Vorher entfernen](#eine-integration-mit-derselben-domain-entfernen) |
+| [autodarts](#autodarts-von-belese) von belese | `autodarts` | Die Autodarts-Cloud | [Vorher entfernen](#eine-integration-mit-derselben-domain-entfernen) |
+| [Autodarts Local](#autodarts-local) | `autodarts_local` | Den Board Manager, lokal | Darf bleiben |
+| [Autodarts Connect Online](#autodarts-connect-online) | `autodarts_connect` | Die Autodarts-Cloud | Darf bleiben |
+| [Darts Hub](#darts-hub) | `darts_hub` | darts-hub oder darts-caller und den Board Manager | Darf bleiben |
+| [MQTT-Brücken](#mqtt-brücken) | `mqtt` | Ein eigenes Programm und einen MQTT-Broker | Darf bleiben |
+| [darts-caller und darts-wled](#darts-caller-und-darts-wled) | Außerhalb von Home Assistant | Die Autodarts-Cloud | Darf bleiben; lass einen Caller sprechen |
+| [Tools for Autodarts](#tools-for-autodarts) | Im Browser | Die Web-App von Autodarts | Bleibt; die Online-Brücke nutzt es |
 
 ### Eine Integration mit derselben Domain entfernen
 
@@ -168,9 +168,9 @@ Was Home Assistant jetzt übernimmt:
 
 ## Tools for Autodarts
 
-[Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) ist eine Browser-Erweiterung für die Web-App von Autodarts, mit Caller, Soundeffekten, WLED-Effekten, Animationen und vielen Einstellungen für Lobby und Match.
+[Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) ist eine Browser-Erweiterung für die Web-App von Autodarts, mit weiteren Caller-Stimmen, Soundeffekten, WLED-Effekten, Animationen und vielen Einstellungen für Lobby und Match.
 
-**Bleibt.** Die [Online-Brücke](online-matches.de.md) nutzt seine WLED-Funktion: Sie ruft Home Assistant mit den Momenten eines Online-Matches auf, die zu `online_*`-[Board-Ereignissen](entities.de.md#board-ereignisse) werden. Wie bei darts-caller gilt: Lass im Raum einen Caller sprechen, den von Tools oder den von Home Assistant.
+**Bleibt.** Die [Online-Brücke](online-matches.de.md) nutzt seine WLED-Funktion: Sie ruft Home Assistant mit den Momenten eines Online-Matches auf, die zu `online_*`-[Board-Ereignissen](entities.de.md#board-ereignisse) werden. Wie bei darts-caller gilt: Lass im Raum einen Caller sprechen, den der Autodarts-App, den von Tools oder den von Home Assistant.
 
 ## Die ursprüngliche Integration
 
