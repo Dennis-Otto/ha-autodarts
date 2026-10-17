@@ -1851,15 +1851,21 @@ class PracticeGame:
         return self.party.visit(self.current, self._party_darts())
 
     def _track_party(self) -> list[tuple[str, dict[str, Any]]]:
-        """Shanghai and Killer can be won with a single dart."""
+        """Shanghai and Killer can be won with a single dart, and a dart of
+        Gotcha can bust the visit."""
         if not self._party_ready():
             return []
         result = self._party_visit()
         won = result.won
-        outcome = "won" if won is not None else None
+        outcome = "won" if won is not None else "bust" if result.bust else None
         if outcome == self._announced:
             return []
         self._announced = outcome
+        if outcome == "bust":
+            party = self.party
+            assert isinstance(party, Gotcha)
+            remaining = party.left(party.points[self.current])
+            return [("bust", {**self._who(self.current), "remaining": remaining})]
         if won is None:
             return []
         darts = result.darts if won == self.current else 0

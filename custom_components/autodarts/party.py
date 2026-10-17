@@ -599,6 +599,9 @@ class RoundTheWorld(PartyGame):
         points, progress, hits = list(self.points), list(self.progress), 0
         for count, dart in enumerate(darts, 1):
             done = progress[player]
+            if done >= len(self.sequence):
+                # A restored leg that is already round the board.
+                break
             if dart["multiplier"] == 0 or dart["number"] != self.sequence[done]:
                 continue
             points[player] += score(dart)

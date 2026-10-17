@@ -466,7 +466,7 @@ For every board, the dashboard gets up to six views, which update themselves whe
 | **Scoreboard** | The [scoreboard card](#scoreboard-card) across the whole screen, for a tablet or TV at the board |
 | **Training** | The training card with the personal bests, the [doubles card](#doubles-card), the daily goal with darts today, the streak and the last personal best, darts per day for the last 30 days (from long-term statistics, which Home Assistant compiles hourly), the 3-dart average of the last 7 days, practice legs per day, the first 9 average, checkout rate and doubles rate of the practice game, and the training settings: starting sessions automatically and ending them after a pause |
 | **Players** | The [players card](#players-card) and the [leaderboard](#leaderboard-card), once the first named player has a profile |
-| **Game settings** | The practice game controls with teams and the Golf and Count-Up options, the player names, their start scores and the [tournament](entities.md#tournaments) with its settings and buttons, for what the scoreboard's new game screen leaves out |
+| **Game settings** | The practice game controls with teams and the Golf, Count-Up, Bermuda, Round the World and Gotcha options, the player names, their start scores and the [tournament](entities.md#tournaments) with its settings and buttons, for what the scoreboard's new game screen leaves out |
 | **Board** | The board status card, the board settings, the Board Manager update and the share of darts the board corrected; a [dartboard without Autodarts](without-autodarts.md) has no such view |
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard" width="760">

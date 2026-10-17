@@ -359,6 +359,7 @@ Sechs Kneipenklassiker und drei Spiele von play.autodarts.io für einen bis acht
 - Ein Dart, der über die Zielpunktzahl hinausgeht, mit Double- oder Master-Out 1 übrig lässt oder das Ziel mit einem Dart erreicht, den der Out-Modus nicht nimmt, überwirft die Aufnahme: Sie zählt nichts.
 - **Gotcha:** Ein Dart, der dich genau auf die Punktzahl eines anderen Spielers bringt, schickt diesen auf 0 zurück. Eine überworfene Aufnahme nimmt ihre Gotchas zurück.
 - Die Kacheln zeigen die Punkte jedes Spielers und was ihm noch fehlt. Wer zuerst auscheckt, gewinnt sofort.
+- Anders als auf play.autodarts.io hat Gotcha hier kein Rundenlimit: *Übungsspiel maximale Runden* gilt nur für X01, und ein Leg läuft, bis jemand auscheckt.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/gotcha-rules-dark.png">

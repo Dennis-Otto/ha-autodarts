@@ -359,6 +359,7 @@ Six pub classics and three games of play.autodarts.io for one to eight players, 
 - A dart that goes past the target score, leaves 1 with double or master out, or reaches the target with a dart the out mode does not take busts the visit: it counts nothing.
 - **Gotcha:** a dart that brings you to exactly another player's score sends that player back to 0. A visit that busts takes its gotchas back.
 - The tiles show every player's points and the points to go. The first to finish wins at once.
+- Unlike play.autodarts.io, Gotcha here has no round limit: *Practice max rounds* applies to X01 only, and a leg goes on until somebody finishes.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/gotcha-rules-dark.png">

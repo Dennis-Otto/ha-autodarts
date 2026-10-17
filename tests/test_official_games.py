@@ -212,6 +212,14 @@ def test_round_the_world_restores_its_state_and_ignores_nonsense():
     assert fresh.progress == [0, 0]
 
 
+def test_round_the_world_restored_round_the_board_takes_darts_without_a_crash():
+    game = RoundTheWorld(2)
+    game.restore({"progress": [21, 0]})
+    assert game.progress == [21, 0] and game.target(0) is None
+    result = game.visit(0, darts("BULL", "S1"))
+    assert result.won is None and result.progress == [21, 0] and result.hits == 0
+
+
 # -- Gotcha --------------------------------------------------------------------
 
 
@@ -295,7 +303,8 @@ def test_gotcha_in_the_practice_game_busts_wins_and_follows_the_out_mode():
     # The out mode changes a leg only before its first dart.
     practice.set_rule("out_mode", "straight")
     assert practice.party.out_mode == "double"
-    practice.track(darts("T20", "T20"))
+    events = practice.track(darts("T20", "T20"))
+    assert events == [("bust", {**practice._who(1), "remaining": 101})]
     snapshot = practice.snapshot()
     assert snapshot["bust"] is True and snapshot["scored"] == 0
     practice.finish_visit()
@@ -309,6 +318,20 @@ def test_gotcha_in_the_practice_game_busts_wins_and_follows_the_out_mode():
     assert practice.party.out_mode == "straight" and practice.party.points == [0, 0]
     practice.set_rule("out_mode", "master")
     assert practice.party.out_mode == "master"
+
+
+def test_a_gotcha_bust_is_announced_once_and_taken_back_with_a_correction():
+    practice = practice_of("gotcha", 1)
+    practice.set_party_rule("gotcha_target", 101)
+    assert practice.track(darts("T20")) == []
+    events = practice.track(darts("T20", "T20"))
+    assert kinds(events) == ["bust"] and events[0][1]["remaining"] == 101
+    # Later darts of the busted visit announce nothing again.
+    assert practice.track(darts("T20", "T20", "S1")) == []
+    # The dart corrected back below the target takes the bust away.
+    assert practice.track(darts("T20", "S20")) == []
+    assert practice.snapshot()["bust"] is False
+    assert kinds(practice.track(darts("T20", "S20", "T20"))) == ["bust"]
 
 
 def test_gotcha_rules_restart_the_game_and_come_back_after_a_restart():
