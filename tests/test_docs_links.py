@@ -3,7 +3,8 @@
 Relative links, the repository's own absolute GitHub links and the links to its
 documentation website are checked against the working tree; other external links
 are not fetched. The README is also what HACS shows, so it may only use absolute
-links and plain images.
+links and plain images. Where the text counts the blueprints, the dashboard cards
+or the actions, the number is the one the code has.
 """
 
 import json
@@ -46,6 +47,44 @@ REPOSITORY_PATH = re.compile(
 )
 # Folders the tests create while they run, with everything in them.
 GENERATED = ("tests/e2e/artifacts/",)
+# The number words of both languages, which the text uses for counts.
+NUMBERS = {
+    word: number
+    for words in (
+        "one two three four five six seven eight nine ten eleven twelve thirteen "
+        "fourteen fifteen sixteen seventeen eighteen nineteen twenty",
+        "eins zwei drei vier fünf sechs sieben acht neun zehn elf zwölf dreizehn "
+        "vierzehn fünfzehn sechzehn siebzehn achtzehn neunzehn zwanzig",
+    )
+    for number, word in enumerate(words.split(), start=1)
+}
+NUMBER = r"(\d+|" + "|".join(NUMBERS) + r")"
+# What the text counts, as it says it in English and German: "thirteen blueprints",
+# "sieben Dashboard-Karten", "the fourteen `autodarts.*` actions" and "die
+# vierzehn Aktionen `autodarts.*`". A count of some of them, such as "two voice
+# blueprints", names no total and is left alone.
+COUNTED = {
+    kind: re.compile(pattern, re.IGNORECASE)
+    for kind, pattern in {
+        "blueprints": rf"\b{NUMBER}\s+(?:Autodarts[ -])?Blueprints\b",
+        "cards": rf"\b{NUMBER}\s+(?:Dashboard[ -])?(?:cards|Karten)\b",
+        "actions": rf"\b{NUMBER}\s+(?:`autodarts\.\*`\s+actions|Aktionen\s+`autodarts\.\*`)",
+    }.items()
+}
+# Where the text counts them: the documents and the descriptions of the website,
+# the repository and the project. The roadmap counts what a release brought and a
+# decision record the state of its day, so neither has to follow the code.
+COUNTING = [
+    path
+    for path in DOCUMENTS
+    if path.name != "CHANGELOG.md"
+    and not path.name.startswith("roadmap.")
+    and path.parent.name != "decisions"
+] + [
+    ROOT / "mkdocs.yml",
+    ROOT / ".github" / "repository.toml",
+    ROOT / ".copier-answers.yml",
+]
 
 
 def prose(text: str) -> str:
@@ -219,3 +258,114 @@ def test_every_german_page_sits_next_to_its_english_page():
         if not path.with_name(path.name.removesuffix(".de.md") + ".md").exists()
     ]
     assert not lonely, lonely
+
+
+def counts_in_the_code() -> dict[str, int]:
+    """How many blueprints, dashboard cards and actions the integration brings."""
+    blueprints = ROOT / "blueprints" / "automation" / "autodarts"
+    cards = re.search(
+        r"^const CARDS = \[$(.*?)^\];$",
+        CARD.read_text("utf-8"),
+        re.MULTILINE | re.DOTALL,
+    )
+    assert cards, "autodarts-card.js has no list CARDS for the card picker"
+    services = (CARD.parent.parent / "services.yaml").read_text("utf-8")
+    return {
+        "blueprints": len(list(blueprints.glob("*.yaml"))),
+        "cards": len(re.findall(r"^\s*\{ type: ", cards.group(1), re.MULTILINE)),
+        "actions": len(re.findall(r"^[a-z_]+:", services, re.MULTILINE)),
+    }
+
+
+def claims(text: str):
+    """The counts a text names: what it counts, the number, the line and the words."""
+    # Examples in code blocks count nothing; their lines stay for the line numbers.
+    text = FENCE.sub(lambda fence: "\n" * fence.group().count("\n"), text)
+    for kind, pattern in COUNTED.items():
+        for match in pattern.finditer(text):
+            word = match.group(1).lower()
+            number = int(word) if word.isdigit() else NUMBERS[word]
+            yield kind, number, text.count("\n", 0, match.start()) + 1, match.group()
+
+
+def wrong_counts(text: str, actual: dict[str, int]) -> list[str]:
+    """The counts of a text that differ from the code, with the right number."""
+    return [
+        f"line {line}: {words!r}, but there are {actual[kind]} {kind}"
+        for kind, number, line, words in claims(text)
+        if number != actual[kind]
+    ]
+
+
+def test_the_code_has_what_the_text_counts():
+    """The counts come from the blueprint files, the card picker and the actions."""
+    actual = counts_in_the_code()
+    assert actual["blueprints"] >= 13
+    assert actual["cards"] >= 7
+    assert actual["actions"] >= 14
+
+
+def test_the_counts_in_the_prose_match_the_code():
+    """A new blueprint, card or action updates every sentence that counts them."""
+    actual = counts_in_the_code()
+    named: set[str] = set()
+    wrong: list[str] = []
+    for path in COUNTING:
+        text = path.read_text(encoding="utf-8")
+        named |= {kind for kind, *_ in claims(text)}
+        name = path.relative_to(ROOT).as_posix()
+        wrong += [f"{name}, {problem}" for problem in wrong_counts(text, actual)]
+    assert named == set(COUNTED)
+    assert not wrong, "\n".join(wrong)
+
+
+@pytest.mark.parametrize(
+    ("sentence", "kind", "number"),
+    [
+        ("Twelve blueprints: light show, callers and reports.", "blueprints", 12),
+        ("Zwölf Blueprints: Lichtshow, Caller und Berichte.", "blueprints", 12),
+        ("The blueprints page with the eleven Autodarts blueprints", "blueprints", 11),
+        ("Die Blueprint-Seite mit den elf Autodarts-Blueprints", "blueprints", 11),
+        ("It brings 12 blueprints.", "blueprints", 12),
+        ("The integration includes\nsix cards.", "cards", 6),
+        ("Six dashboard cards and an automatic dashboard", "cards", 6),
+        ("Sechs Dashboard-Karten und ein automatisches Dashboard", "cards", 6),
+        ("the thirteen `autodarts.*` actions, which need a login", "actions", 13),
+        (
+            "die dreizehn Aktionen `autodarts.*`, die eine Anmeldung brauchen",
+            "actions",
+            13,
+        ),
+    ],
+)
+def test_a_wrong_count_is_found(sentence, kind, number):
+    """The sentences the docs once had wrong, in both languages, and their kin."""
+    assert [(found, said) for found, said, *_ in claims(sentence)] == [(kind, number)]
+    code = {"blueprints": 0, "cards": 0, "actions": 0}
+    assert not wrong_counts(sentence, {**code, kind: number})
+    wrong = wrong_counts(sentence, {**code, kind: number + 1})
+    assert len(wrong) == 1
+    assert wrong[0].endswith(f", but there are {number + 1} {kind}")
+
+
+def test_a_wrong_count_names_its_line():
+    text = (
+        "# Cards\n\n```yaml\ntype: custom:autodarts-card\n```\n\nSeven dashboard cards."
+    )
+    assert wrong_counts(text, {"cards": 8}) == [
+        "line 7: 'Seven dashboard cards', but there are 8 cards"
+    ]
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Two voice blueprints start games and enter darts.",
+        "Cricket on 20 to 10 and the bull, twelve numbers in all.",
+        "The automation runs two actions after the takeout.",
+        "One card per player, and a dashboard for all of them.",
+        "```yaml\n# three blueprints\n```",
+    ],
+)
+def test_a_count_of_some_names_no_total(sentence):
+    assert not list(claims(sentence))

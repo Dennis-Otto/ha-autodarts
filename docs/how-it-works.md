@@ -64,7 +64,7 @@ A board that reports version 2 but has no `/api/system` counts as Board Manager 
 
 ## Address changes
 
-- **Board Manager 2** announces itself in the network (mDNS). When it announces a new address, Home Assistant follows it and reloads the integration. Only the addresses the announcement was sent from are used, and a board that still answers at its configured address is never moved.
+- **Board Manager 2** announces itself in the network (mDNS). When it announces a new address and the board no longer answers with its board ID at its configured one, a repair notice offers the new address. The entry moves and the integration reloads only once you confirm, after the board has identified itself at the new address again: any device in the network can announce a board ID. Only the addresses the announcement was sent from are used, and a board that still answers at its configured address is never moved.
 - **Entries linked to the Autodarts cloud** use the address the cloud reports when the configured one does not answer at the start. If the board has been away for five minutes at runtime and answers with its board ID at an address the cloud reports, a repair notice offers to switch to it. The cloud addresses are checked at most every 30 minutes.
 - **Otherwise**, open the integration and choose **Reconfigure**, then search for the board or enter its address. The integration never contacts the Autodarts discovery service on its own.
 
