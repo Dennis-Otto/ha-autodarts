@@ -158,7 +158,7 @@ Ideen für die Versionen nach 1.12. Stimmen und Reaktionen auf die [Feature-Wün
 
 ## Reichweite
 
-Wie viele Menschen die Integration finden und installieren, einmal im Monat gezählt: aus den Zahlen, die GitHub für das Repository führt, und aus der [Statistik von Home Assistant](https://analytics.home-assistant.io/), die eine benutzerdefinierte Integration aufführt, sobald eine Installation sie hat, die ihre Nutzung teilt. Die Integration selbst zählt nichts (siehe [Nicht geplant](#nicht-geplant)). `bash scripts/reach.sh` gibt die Zeile des Monats aus.
+Wie viele Menschen die Integration finden und installieren, einmal im Monat gezählt: aus den Zahlen, die GitHub für das Repository führt, und aus der [Statistik von Home Assistant](https://analytics.home-assistant.io/), die eine benutzerdefinierte Integration aufführt, sobald eine Installation sie hat, die ihre Nutzung teilt. Die Integration selbst zählt nichts (siehe [Nicht geplant](#nicht-geplant)). `bash scripts/reach.sh de` gibt die Zeile des Monats auf Deutsch aus. Andere Integrationen für Autodarts teilen sich die Domain `autodarts` (siehe [Umstieg von anderen Werkzeugen](coming-from.de.md)), deshalb zählt das Skript die Statistik nur für eine Version, die ein Release dieser Integration ist.
 
 | Monat | Downloads der Releases | Besucher in 14 Tagen | Von Google | In der Statistik | Sterne |
 | --- | --- | --- | --- | --- | --- |

@@ -158,7 +158,7 @@ Ideas for the versions after 1.12. Votes and reactions on the [feature requests]
 
 ## Reach
 
-How many people find the integration and install it, counted once a month: from the numbers GitHub keeps for the repository, and from the [analytics of Home Assistant](https://analytics.home-assistant.io/), which list a custom integration once an installation that shares its usage has it. The integration itself counts nothing (see [Not planned](#not-planned)). `bash scripts/reach.sh` prints the row of the month.
+How many people find the integration and install it, counted once a month: from the numbers GitHub keeps for the repository, and from the [analytics of Home Assistant](https://analytics.home-assistant.io/), which list a custom integration once an installation that shares its usage has it. The integration itself counts nothing (see [Not planned](#not-planned)). `bash scripts/reach.sh` prints the row of the month. Other integrations for Autodarts share the domain `autodarts` (see [Coming from another tool](coming-from.md)), so the script counts the analytics only for a version that is a release of this one.
 
 | Month | Downloads of the releases | Visitors in 14 days | From Google | In the analytics | Stars |
 | --- | --- | --- | --- | --- | --- |

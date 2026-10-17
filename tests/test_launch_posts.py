@@ -11,7 +11,15 @@ from pathlib import Path
 
 import pytest
 
-from .test_docs_links import MARKDOWN_LINK, WEBSITE, anchors, resolve, slug
+from .test_docs_links import (
+    MARKDOWN_LINK,
+    WEBSITE,
+    anchors,
+    counts_in_the_code,
+    resolve,
+    slug,
+    wrong_counts,
+)
 
 ROOT = Path(__file__).parents[1]
 DOCS = ROOT / "docs"
@@ -123,6 +131,12 @@ def test_a_launch_post_fits_where_it_goes(post):
         assert len(text.split()) <= LINE
     if "Discord" in place:
         assert len(text) <= DISCORD
+
+
+@pytest.mark.parametrize("post", posts(), ids=ids)
+def test_the_counts_of_a_launch_post_match_the_code(post):
+    # The posts sit in code blocks, which the count check of the docs leaves out.
+    assert not wrong_counts(post[3], counts_in_the_code())
 
 
 @pytest.mark.parametrize("post", posts(), ids=ids)
