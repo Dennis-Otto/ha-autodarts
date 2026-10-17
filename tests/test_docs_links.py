@@ -59,6 +59,9 @@ NUMBERS = {
     for number, word in enumerate(words.split(), start=1)
 }
 NUMBER = r"(\d+|" + "|".join(NUMBERS) + r")"
+# A count starts a word: counts above twenty are written in digits, and the end of
+# a compound such as "twenty-one" or "einundzwanzig" is no count of its own.
+START = r"(?<![\w-])"
 # What the text counts, as it says it in English and German: "thirteen blueprints",
 # "sieben Dashboard-Karten", "the fourteen `autodarts.*` actions" and "die
 # vierzehn Aktionen `autodarts.*`". A count of some of them, such as "two voice
@@ -66,11 +69,13 @@ NUMBER = r"(\d+|" + "|".join(NUMBERS) + r")"
 COUNTED = {
     kind: re.compile(pattern, re.IGNORECASE)
     for kind, pattern in {
-        "blueprints": rf"\b{NUMBER}\s+(?:Autodarts[ -])?Blueprints\b",
-        "cards": rf"\b{NUMBER}\s+(?:Dashboard[ -])?(?:cards|Karten)\b",
-        "actions": rf"\b{NUMBER}\s+(?:`autodarts\.\*`\s+actions|Aktionen\s+`autodarts\.\*`)",
+        "blueprints": rf"{START}{NUMBER}\s+(?:Autodarts[\s-]+)?Blueprints\b",
+        "cards": rf"{START}{NUMBER}\s+(?:Dashboard[\s-]+)?(?:cards|Karten)\b",
+        "actions": rf"{START}{NUMBER}\s+(?:`autodarts\.\*`\s+actions|Aktionen\s+`autodarts\.\*`)",
     }.items()
 }
+# Code blocks, also the indented ones of tabs and admonitions, count nothing.
+COUNTED_FENCE = re.compile(r"^[ \t]*(```|~~~).*?^[ \t]*\1", re.MULTILINE | re.DOTALL)
 # Where the text counts them: the documents and the descriptions of the website,
 # the repository and the project. The roadmap counts what a release brought and a
 # decision record the state of its day, so neither has to follow the code.
@@ -280,7 +285,7 @@ def counts_in_the_code() -> dict[str, int]:
 def claims(text: str):
     """The counts a text names: what it counts, the number, the line and the words."""
     # Examples in code blocks count nothing; their lines stay for the line numbers.
-    text = FENCE.sub(lambda fence: "\n" * fence.group().count("\n"), text)
+    text = COUNTED_FENCE.sub(lambda fence: "\n" * fence.group().count("\n"), text)
     for kind, pattern in COUNTED.items():
         for match in pattern.finditer(text):
             word = match.group(1).lower()
@@ -330,6 +335,8 @@ def test_the_counts_in_the_prose_match_the_code():
         ("The integration includes\nsix cards.", "cards", 6),
         ("Six dashboard cards and an automatic dashboard", "cards", 6),
         ("Sechs Dashboard-Karten und ein automatisches Dashboard", "cards", 6),
+        ("It brings seven dashboard\n    cards to the picker.", "cards", 7),
+        ("Some day there are 21 Autodarts\nblueprints.", "blueprints", 21),
         ("the thirteen `autodarts.*` actions, which need a login", "actions", 13),
         (
             "die dreizehn Aktionen `autodarts.*`, die eine Anmeldung brauchen",
@@ -365,6 +372,8 @@ def test_a_wrong_count_names_its_line():
         "The automation runs two actions after the takeout.",
         "One card per player, and a dashboard for all of them.",
         "```yaml\n# three blueprints\n```",
+        '=== "YAML"\n\n    ```yaml\n    # three blueprints\n    ```',
+        "Some day twenty-one blueprints, einundzwanzig Blueprints.",
     ],
 )
 def test_a_count_of_some_names_no_total(sentence):
