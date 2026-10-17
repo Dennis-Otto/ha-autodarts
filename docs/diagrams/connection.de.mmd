@@ -5,7 +5,7 @@ config:
 ---
 flowchart TB
   accTitle: Wie sich die Verbindung zum Board verhält
-  accDescr: Beim Start wartet die Integration höchstens drei Sekunden auf das Board und lädt dann trotzdem; sie liest das Board alle 2 Sekunden. Mit der ersten gültigen Echtzeitnachricht kommen Darts sofort an, und ein Lesevorgang gleicht nur noch alle 30 Sekunden ab, mit Board Manager 2 alle 10 Sekunden. Bricht die Echtzeitverbindung ab, liest die Integration wieder alle 2 Sekunden und verbindet sich nach 1, 2, 4 bis 60 Sekunden neu, jede Wartezeit um bis zu ein Fünftel kürzer. Zwei verpasste Lesevorgänge in Folge behalten die letzten Werte; der dritte macht die Board-Entitäten nicht verfügbar, und nach etwa zehn wird das Board alle 15 Sekunden gefragt. Seine erste Antwort bringt das schnelle Lesen und sofort eine neue Verbindung zurück.
+  accDescr: Beim Start wartet die Integration höchstens drei Sekunden auf das Board und lädt dann trotzdem; sie liest das Board alle 2 Sekunden. Mit der ersten gültigen Echtzeitnachricht kommen Darts sofort an, und ein Lesevorgang gleicht nur noch alle 30 Sekunden ab, mit Board Manager 2 alle 10 Sekunden. Bricht die Echtzeitverbindung ab, liest die Integration wieder alle 2 Sekunden und verbindet sich nach 1, 2, 4 bis 60 Sekunden neu, jede Wartezeit um bis zu ein Fünftel kürzer. Zwei verpasste Lesevorgänge in Folge behalten die letzten Werte; der dritte macht die Board-Entitäten nicht verfügbar, und jede Antwort bringt sie sofort zurück, mit schnellem Lesen und sofort einer neuen Verbindung. Ohne Antwort wird das Board nach etwa zehn verpassten Lesevorgängen alle 15 Sekunden gefragt. Seine erste Antwort bringt das schnelle Lesen und sofort eine neue Verbindung zurück.
   START(["Home Assistant startet:<br/>wartet höchstens 3 s auf das Board,<br/>lädt dann trotzdem"]) --> FAST["Schnelles Lesen:<br/>alle 2 s"]
   FAST -- "erste gültige<br/>Echtzeitnachricht" --> REALTIME["Echtzeit: jeder Dart sofort,<br/>Abgleich alle 30 s,<br/>mit Board Manager 2 alle 10 s"]
   REALTIME -- "die Verbindung<br/>bricht ab" --> RETRY["Sofort schnelles Lesen,<br/>neu verbinden nach 1, 2, 4 … 60 s,<br/>jede Wartezeit bis zu ein Fünftel kürzer"]
@@ -14,6 +14,7 @@ flowchart TB
   HICCUP -- "der dritte verpasste<br/>Lesevorgang" --> UNAVAILABLE["Die Board-Entitäten sind<br/>nicht verfügbar"]
   UNAVAILABLE -- "etwa zehn verpasste<br/>Lesevorgänge" --> AWAY["Board fehlt:<br/>alle 15 s fragen"]
   AWAY -- "die erste Antwort" --> BACK["Wieder schnelles Lesen,<br/>sofort neu verbinden"]
+  HICCUP & UNAVAILABLE -- "eine Antwort" --> BACK
   BACK --> REALTIME
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
   classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px

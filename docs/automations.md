@@ -18,7 +18,7 @@ Not sure which one you need? Start from what your home should do:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/choose-blueprint-dark.png">
-  <img src="images/en/choose-blueprint-light.png" alt="Which blueprint fits: for lights, photos and celebrations, take the Light show, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game on the board, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice or Enter darts by voice" width="560">
+  <img src="images/en/choose-blueprint-light.png" alt="Which blueprint fits: for lights, photos and celebrations, take the Light show, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game but the practice game, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice or Enter darts by voice" width="560">
 </picture>
 
 | Blueprint | What it does | Import |

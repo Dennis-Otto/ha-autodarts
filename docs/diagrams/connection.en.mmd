@@ -5,7 +5,7 @@ config:
 ---
 flowchart TB
   accTitle: How the connection to the board behaves
-  accDescr: At the start, the integration waits three seconds for the board at most and then loads anyway, reading the board every 2 seconds. With the first valid realtime message, darts arrive at once and a read only reconciles every 30 seconds, every 10 seconds with Board Manager 2. When the realtime connection drops, the integration reads every 2 seconds again and reconnects after 1, 2, 4 up to 60 seconds, each wait up to a fifth shorter. Two missed reads in a row keep the last values; the third makes the board entities unavailable, and after about ten the board is asked every 15 seconds. Its first answer brings back fast polling and an immediate reconnect.
+  accDescr: At the start, the integration waits three seconds for the board at most and then loads anyway, reading the board every 2 seconds. With the first valid realtime message, darts arrive at once and a read only reconciles every 30 seconds, every 10 seconds with Board Manager 2. When the realtime connection drops, the integration reads every 2 seconds again and reconnects after 1, 2, 4 up to 60 seconds, each wait up to a fifth shorter. Two missed reads in a row keep the last values; the third makes the board entities unavailable, and any answer brings them back at once with fast polling and an immediate reconnect. Without an answer, after about ten missed reads the board is asked every 15 seconds. Its first answer brings back fast polling and an immediate reconnect.
   START(["Home Assistant starts:<br/>waits 3 s for the board at most,<br/>then loads anyway"]) --> FAST["Fast polling:<br/>a read every 2 s"]
   FAST -- "first valid<br/>realtime message" --> REALTIME["Realtime: every dart at once,<br/>a read to reconcile every 30 s,<br/>10 s with Board Manager 2"]
   REALTIME -- "the connection drops" --> RETRY["Fast polling at once,<br/>reconnect after 1, 2, 4 … 60 s,<br/>each wait up to a fifth shorter"]
@@ -14,6 +14,7 @@ flowchart TB
   HICCUP -- "the third missed read" --> UNAVAILABLE["The board entities<br/>are unavailable"]
   UNAVAILABLE -- "about ten<br/>missed reads" --> AWAY["Board away:<br/>a read every 15 s"]
   AWAY -- "the first answer" --> BACK["Fast polling again,<br/>reconnect right away"]
+  HICCUP & UNAVAILABLE -- "an answer" --> BACK
   BACK --> REALTIME
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
   classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
