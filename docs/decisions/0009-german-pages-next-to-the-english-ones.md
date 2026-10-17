@@ -1,3 +1,7 @@
+---
+description: "Why each German page sits next to its English page, named like it with .de, so that the website switches the language and stays on the page."
+---
+
 # Put each German page next to its English page, for the language switch of the website
 
 - Status: accepted

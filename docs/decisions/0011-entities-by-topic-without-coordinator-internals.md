@@ -1,3 +1,7 @@
+---
+description: "Why the entities of fast readings update by topic, without the internals of the DataUpdateCoordinator of Home Assistant, to keep up with every dart."
+---
+
 # Update the entities of fast readings by topic, without the internals of Home Assistant's coordinator
 
 - Status: accepted

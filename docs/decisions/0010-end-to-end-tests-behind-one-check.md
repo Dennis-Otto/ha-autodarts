@@ -1,3 +1,7 @@
+---
+description: "Why the Docker end-to-end tests run only for the changes they test, behind one required check that reports in every pull request."
+---
+
 # Run the end-to-end tests only for the changes they test, behind one required check
 
 - Status: accepted

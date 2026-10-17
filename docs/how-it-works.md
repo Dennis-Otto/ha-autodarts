@@ -1,3 +1,7 @@
+---
+description: "How the integration talks to the Board Manager, updates its entities, runs games and training, keeps records and statistics, and protects your privacy."
+---
+
 # How it works
 
 [← Documentation](README.md) · [Deutsch](how-it-works.de.md)

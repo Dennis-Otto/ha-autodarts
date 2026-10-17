@@ -1,3 +1,7 @@
+---
+description: "The Autodarts icon and logo that the integration brings: where they come from, the PNG exports for Home Assistant and how to render them anew."
+---
+
 # Brand assets
 
 The bundled artwork identifies Autodarts in Home Assistant. It comes from the official Autodarts website, retrieved on 2026-09-18:

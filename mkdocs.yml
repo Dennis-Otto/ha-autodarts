@@ -7,7 +7,10 @@
 #   pip install --require-hashes -r .github/docs-requirements.txt && mkdocs serve
 # https://squidfunk.github.io/mkdocs-material/
 INHERIT: .github/mkdocs-blueprint.yml
-site_name: "Autodarts"
+# The name of the website, which ends the title of every page, and the German one
+# below. It says what the website is about: Autodarts in Home Assistant, which
+# people search for, and not the website of Autodarts itself.
+site_name: "Autodarts for Home Assistant"
 site_description: "Autodarts for Home Assistant: local realtime board control, X01, Cricket, party and training games, tournaments and a bot, player statistics with heatmaps, seven dashboard cards and thirteen blueprints, games started by voice. No cloud account needed."
 site_url: https://dennis-otto.github.io/ha-autodarts/
 repo_url: https://github.com/Dennis-Otto/ha-autodarts
@@ -16,11 +19,13 @@ copyright: "© 2026 Trkal and HACSAutodarts contributors; 2026 Dennis Otto"
 
 # The website starts with index.md and index.de.md. README.md and README.de.md are
 # the overviews of the folder on GitHub, and docs/de/ only keeps the old addresses
-# of the German pages that released versions link to.
+# of the German pages that released versions link to. The template of a decision is
+# for the pull request that copies it, not for readers of the website.
 exclude_docs: |
   /README.md
   /README.de.md
   /de/
+  /decisions/0000-template.md
 
 plugins:
   search:
@@ -40,6 +45,7 @@ plugins:
       - locale: de
         name: Deutsch
         build: true
+        site_name: "Autodarts für Home Assistant"
         site_description: "Autodarts für Home Assistant: lokale Echtzeit-Steuerung des Boards, X01, Cricket, Party- und Trainingsspiele, Turniere und ein Bot, Spielerstatistik mit Trefferbildern, sieben Dashboard-Karten und dreizehn Blueprints, Spiele per Sprache starten. Kein Cloud-Konto nötig."
         nav_translations:
           Home: Start

@@ -1,3 +1,7 @@
+---
+moved: installation.md
+---
+
 # Einrichtung
 
 Diese Anleitung ist in die neue Dokumentation umgezogen: [Installation und Einrichtung](installation.de.md).

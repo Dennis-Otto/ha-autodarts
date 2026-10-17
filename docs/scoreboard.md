@@ -1,3 +1,7 @@
+---
+description: "A scoreboard on a tablet or TV next to the board: the score readable from the oche, checkout routes, a caller, tournaments and a leaderboard."
+---
+
 # Scoreboard at the board
 
 [← Documentation](README.md) · [Deutsch](scoreboard.de.md)

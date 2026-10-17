@@ -1,3 +1,7 @@
+---
+description: "X01, Cricket, party and training games in Home Assistant: matches, sets, teams and tournaments, against the bot or each other, with every rule explained."
+---
+
 # Games and rules
 
 [← Documentation](README.md) · [Deutsch](games.de.md)

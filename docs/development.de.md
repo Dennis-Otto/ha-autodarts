@@ -1,3 +1,7 @@
+---
+description: "Wie die Bilder und Animationen der Dokumentation entstehen und aktuell bleiben: Screenshots aus der Demo, die visuelle Prüfung und der Screenshot-Bot."
+---
+
 # Entwicklung: Bilder und Prüfungen der Karten
 
 [← Dokumentation](README.de.md)

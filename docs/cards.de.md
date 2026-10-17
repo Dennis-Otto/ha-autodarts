@@ -1,3 +1,7 @@
+---
+description: "Die sieben Dashboard-Karten: Live-Karte, Training, Board-Status, Anzeigetafel, Doubles, Spieler und Bestenliste, automatisches Dashboard und Karteneditor."
+---
+
 # Dashboard-Karten
 
 [← Dokumentation](README.de.md) · [English](cards.md)

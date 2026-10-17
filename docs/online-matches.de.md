@@ -1,3 +1,7 @@
+---
+description: "Spiel online auf play.autodarts.io und lass Home Assistant mitfeiern: Überwerfen, gewonnene Legs und die Darts deiner Gegner als Board-Ereignisse."
+---
+
 # Online-Matches (experimentell)
 
 [← Dokumentation](README.de.md) · [English](online-matches.md)

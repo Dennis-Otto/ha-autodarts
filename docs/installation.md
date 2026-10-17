@@ -1,3 +1,7 @@
+---
+description: "Install the Autodarts integration with HACS, add your board by its address in your network and set it up. No Autodarts login, password or API key needed."
+---
+
 # Installation and setup
 
 [← Documentation](README.md) · [Deutsch](installation.de.md)

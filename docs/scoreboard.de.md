@@ -1,3 +1,7 @@
+---
+description: "Eine Anzeigetafel auf Tablet oder Fernseher neben dem Board: der Rest vom Abwurf lesbar, Checkout-Wege, ein Caller, Turniere und eine Bestenliste."
+---
+
 # Anzeigetafel am Board
 
 [← Dokumentation](README.de.md) · [English](scoreboard.md)

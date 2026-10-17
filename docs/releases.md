@@ -1,3 +1,7 @@
+---
+description: "How the integration is released: the release pull request, the notes in the Home Assistant update dialog, betas for testers and signed packages for HACS."
+---
+
 # Releases and update notes
 
 [← Documentation](README.md)

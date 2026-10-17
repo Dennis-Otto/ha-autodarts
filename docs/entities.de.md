@@ -1,3 +1,7 @@
+---
+description: "Alle Entitäten und Ereignisse eines Autodarts-Boards in Home Assistant: Aufnahmen, Training, Spiele, Spieler, Turniere, Steuerung und der Zustand des Boards."
+---
+
 # Entitäten und Ereignisse
 
 [← Dokumentation](README.de.md) · [English](entities.md)

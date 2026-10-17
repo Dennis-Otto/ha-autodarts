@@ -1,3 +1,7 @@
+---
+description: "Von null bis zur Anzeigetafel auf einem Tablet an deinem Autodarts-Board in etwa einer Stunde: Home Assistant, HACS, die Integration und das Dashboard."
+---
+
 # Von null bis zur Anzeigetafel
 
 [← Dokumentation](README.de.md) · [English](getting-started.md)

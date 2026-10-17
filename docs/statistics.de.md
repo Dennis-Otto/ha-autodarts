@@ -1,3 +1,7 @@
+---
+description: "Dein 3-Dart-Average, Trefferbilder deiner Darts, Bestleistungen, Doppelquote und Spielerprofile mit Abzeichen und Wochentrends, in Home Assistant."
+---
+
 # Statistik und Spieler
 
 [← Dokumentation](README.de.md) · [English](statistics.md)

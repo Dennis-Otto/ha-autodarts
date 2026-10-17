@@ -1,3 +1,7 @@
+---
+description: "Was jede Version von Autodarts für Home Assistant gebracht hat, was das nächste Release bringt, was später kommt und was die Integration nicht tun wird."
+---
+
 # Roadmap
 
 [← Dokumentation](README.de.md) · [English](roadmap.md)

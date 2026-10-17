@@ -1,3 +1,7 @@
+---
+description: "Why the project follows the repository blueprint, which keeps the checks, the release bot, the security workflows and the settings of its repositories alike."
+---
+
 # Follow the repository blueprint
 
 - Status: accepted

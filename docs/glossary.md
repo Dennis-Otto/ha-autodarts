@@ -1,3 +1,7 @@
+---
+description: "The words of darts and of the integration, as the documentation, the entities and the cards use them, from average and bust to visit, with the German terms."
+---
+
 # Glossary
 
 [← Documentation](README.md) · [Deutsch](glossary.de.md)
