@@ -43,13 +43,18 @@ COPIES = 100
 SUFFIXES = {"image/png": ".png", "image/webp": ".webp"}
 
 
-def highlight_folder(hass: HomeAssistant) -> tuple[str, Path] | None:
-    """The media directory to serve from, and the folder of the photos in it."""
+def media_folder(hass: HomeAssistant, folder: Path) -> tuple[str, Path] | None:
+    """The media directory to serve from, and a folder in it."""
     media = hass.config.media_dirs
     if not media:
         return None
     source = "local" if "local" in media else next(iter(media))
-    return source, Path(media[source]) / HIGHLIGHTS
+    return source, Path(media[source]) / folder
+
+
+def highlight_folder(hass: HomeAssistant) -> tuple[str, Path] | None:
+    """The media directory to serve from, and the folder of the photos in it."""
+    return media_folder(hass, HIGHLIGHTS)
 
 
 def name_part(text: str, limit: int) -> str:

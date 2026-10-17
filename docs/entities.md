@@ -556,7 +556,7 @@ Without a local board, *Last event*, *Last dart* and *Darts in visit* come from 
 
 ## Actions
 
-Every logged-in user can play with the actions. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export` and `autodarts.save_highlight` change or write out the players' data or write files and are for administrators: a user who is no administrator, such as the user of a wall tablet, gets an error. Automations run them, and so do scripts that an administrator or an automation starts.
+Every logged-in user can play with the actions. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export`, `autodarts.save_highlight` and `autodarts.generate_voice_pack` change or write out the players' data or write files and are for administrators: a user who is no administrator, such as the user of a wall tablet, gets an error. Automations run them, and so do scripts that an administrator or an automation starts.
 
 ### Start a practice game: `autodarts.start_game`
 
@@ -814,6 +814,49 @@ The photo is named like `2026-09-26_21-05-33_Alex_180.jpg`, in the time of Home 
 **Response:** with `response_variable`, `photo` is the saved file, and `photo_url` its address in the media browser, such as `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, which the Home Assistant app loads in a notification; outside the media folder, `photo_url` is empty.
 
 The action fails with a clear message, and writes nothing, when the camera entity does not exist or is disabled, when the camera is unavailable or gives no picture, when the folder is not allowed, or when the file cannot be written. With `continue_on_error: true`, an automation goes on without the photo, as the blueprint does. Unlike `camera.snapshot`, which passes over a disabled or unavailable camera and a missing picture without an error, it never reports a photo that is not on disk.
+
+### Find a sound of a voice pack: `autodarts.voice_sound`
+
+Finds the sound of a call in a [voice pack](scoreboard.md#voice-packs), for a media player, as the [dart caller and the practice caller](automations.md#voice-packs-of-the-callers) do. Every user may ask: it only reads which files a pack has.
+
+| Field | Values | Description |
+| --- | --- | --- |
+| `pack` | folder name | The folder of the pack in `autodarts/voices` of the media folder, such as `russ-bray`; required |
+| `keys` | 1–10 keys | The sound of the call as darts-caller names its files, such as `yr_40` and `you_require`; the first one the pack has counts, in upper or lower case; required |
+
+```yaml
+action: autodarts.voice_sound
+data:
+  pack: russ-bray
+  keys: [yr_40]
+response_variable: sound
+```
+
+**Response:** `key` is the key the pack has, `media_content_id` its sound as media for `media_player.play_media`, such as `media-source://media_source/local/autodarts/voices/russ-bray/yr_40.mp3`, and `media_content_type` its kind, such as `audio/mpeg`. A key with several files, such as `gameshot.mp3` and `gameshot+2.mp3`, answers with one of them at random. When the pack has none of the keys, or there is no such pack, all three are empty, so the call can be spoken instead. A name with `/`, `..`, or a dot at its start or end, is refused.
+
+### Record a voice pack: `autodarts.generate_voice_pack`
+
+Records a [voice pack](scoreboard.md#voice-packs) with a text-to-speech engine of Home Assistant: every call of the caller in 417 sounds, named as in the voice packs of darts-caller, in `autodarts/voices` of the media folder. With [Piper](https://www.home-assistant.io/integrations/piper/), the voice never leaves your home. For administrators; automations can use it, too.
+
+| Field | Values | Description |
+| --- | --- | --- |
+| `tts_entity` | text-to-speech entity | The engine that speaks, such as `tts.piper`; required |
+| `language` | language | The language of the voice as the engine lists it, such as `en-GB` or `en_GB`; required. The calls are in its language, English, German, Dutch, French or Spanish, and English for any other |
+| `pack` | folder name | The name of the pack, up to 64 letters, digits, spaces, dots, dashes and underscores, such as `piper-en`; required |
+| `voice` | text | A voice of the engine, such as `en_GB-alan-medium` for Piper; without one, the engine's own |
+
+```yaml
+action: autodarts.generate_voice_pack
+data:
+  tts_entity: tts.piper
+  language: en_GB
+  voice: en_GB-alan-medium
+  pack: piper-en
+```
+
+The pack has the points `0`, said as "No score", to `180`, `busted`, `gameshot`, `matchshot`, `you_require`, `yr_2` to `yr_170`, and every dart for the dart caller: `s1` to `s20`, `d1` to `d20`, `t1` to `t20`, `bull`, `bullseye` and `outside`. It takes as long as the engine needs for 417 short sentences, a few minutes. One pack is recorded at a time; a second call meanwhile is refused. The sounds are recorded next to the pack and replace it only when all of them are done, so a pack that fails halfway leaves the one before as it was. The action replaces only a pack it recorded itself: a folder of that name with other files, such as a pack of darts-caller, stays as it is, and the action asks for another name.
+
+**Response:** with `response_variable`, `pack` is the name of the pack, `folder` its folder and `sounds` the number of its sounds.
 
 ### Link a player to a person: `autodarts.link_player`
 

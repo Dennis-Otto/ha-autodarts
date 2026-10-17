@@ -9,7 +9,9 @@ blueprint:
     The messages are templates. Visit messages can use `score`, `darts` and
     `segments`; dart messages can use `dart_name` (for example `Treble 20`,
     `Bull` or `Miss`), `segment` (for example `T20`), `dart_score` and
-    `dart_index`. An empty message stays silent.
+    `dart_index`. An empty message stays silent. With a voice pack, such
+    as one of darts-caller, its recorded sounds call the scores and the
+    darts it has.
 
 
     While a practice game of the integration is played, the practice caller
@@ -71,6 +73,17 @@ blueprint:
           default: {}
           selector:
             object: {}
+        voice_pack:
+          name: Voice pack
+          description: >-
+            Optional. A voice pack in `autodarts/voices` of the media folder,
+            for example a pack of darts-caller or one recorded with the action
+            `autodarts.generate_voice_pack`. Its sounds call the scores of
+            visits and the darts; the engine speaks what the pack lacks.
+            Needs version 1.15.0 or later of the integration.
+          default: ""
+          selector:
+            text: {}
     calls:
       name: Calls
       icon: mdi:bullhorn
@@ -168,6 +181,18 @@ variables:
   speakers: !input speakers
   language: !input language
   tts_options: !input tts_options
+  voice_pack: !input voice_pack
+  # The sounds of a voice pack for the call, named as in darts-caller's packs:
+  # the score of a visit, or the dart: t20, d16, s5 or 5, bull for 25,
+  # bullseye, and outside for a miss.
+  sounds: >-
+    {% set bed = segment | string | upper %}
+    {%- if trigger.id != 'dart' %}{{ [score | string] }}
+    {%- elif dart_score == 0 %}{{ ['outside'] }}
+    {%- elif bed == 'BULL' %}{{ ['bullseye'] }}
+    {%- elif bed == '25' %}{{ ['bull'] }}
+    {%- elif bed[:1] in ['S', 'D', 'T'] %}{{ [bed | lower] + ([bed[1:]] if bed[:1] == 'S' else []) }}
+    {%- else %}{{ [] }}{% endif %}
   speech: >-
     {% set data = {'media_player_entity_id': speakers, 'cache': true, 'message': message | string} %}
     {%- if language %}{% set data = dict(data, language=language) %}{% endif %}
@@ -190,7 +215,29 @@ conditions:
     value_template: "{{ message | string | trim | length > 0 }}"
 
 actions:
-  - action: tts.speak
-    target:
-      entity_id: !input tts_engine
-    data: "{{ speech }}"
+  - variables:
+      sound: {}
+  - alias: Find the recorded sound of the call in the voice pack
+    if: "{{ voice_pack | length > 0 and sounds | count > 0 }}"
+    then:
+      # A pack without the sound of the call, or no such pack, leaves the
+      # call to the engine.
+      - action: autodarts.voice_sound
+        continue_on_error: true
+        data:
+          pack: "{{ voice_pack }}"
+          keys: "{{ sounds }}"
+        response_variable: sound
+  - if: "{{ sound.get('media_content_id', '') != '' }}"
+    then:
+      - action: media_player.play_media
+        target:
+          entity_id: !input speakers
+        data:
+          media_content_id: "{{ sound.media_content_id }}"
+          media_content_type: music
+    else:
+      - action: tts.speak
+        target:
+          entity_id: !input tts_engine
+        data: "{{ speech }}"

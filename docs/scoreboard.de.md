@@ -157,7 +157,31 @@ Er sagt nur an, was zählt, in der Sprache des Benutzers am Bildschirm: Deutsch,
 
 Ein Bildschirm, der weg war, auf einer anderen Ansicht oder ohne seine Verbindung zu Home Assistant, sagt nichts an und feiert nichts, was in der Zwischenzeit geschah, etwa ein Match, das in den Minuten davor endete; ab seiner Rückkehr sagt er das Spiel wieder an.
 
-`call_scores`, `call_checkouts`, `call_results` und `call_sounds` schalten jede Art von Ansage ein oder aus. Welche Stimme spricht, hängt von Browser und Betriebssystem ab: Offline-Stimmen des Betriebssystems behalten die Ansagen bei dir zu Hause; manche Browser nutzen Online-Stimmen, die den Text an ihren Anbieter schicken. Für Lautsprecher im Raum nutzt du stattdessen die [Blueprints Dart caller und Practice caller](automations.de.md#welcher-caller).
+`call_scores`, `call_checkouts`, `call_results` und `call_sounds` schalten jede Art von Ansage ein oder aus. Welche Stimme spricht, hängt von Browser und Betriebssystem ab: Offline-Stimmen des Betriebssystems behalten die Ansagen bei dir zu Hause; manche Browser nutzen Online-Stimmen, die den Text an ihren Anbieter schicken. Ein [Voice-Pack](#voice-packs) gibt dem Caller stattdessen eine echte Stimme. Für Lautsprecher im Raum nutzt du die [Blueprints Dart caller und Practice caller](automations.de.md#welcher-caller), die ebenfalls Voice-Packs abspielen.
+
+### Voice-Packs
+
+Die Stimme des Browsers klingt auf jedem Gerät anders und auf vielen wie ein Roboter. Ein Voice-Pack gibt dem Caller eine eigene Stimme: aufgenommene Ansagen im Medienordner von Home Assistant, die der Bildschirm über seinen Lautsprecher abspielt. Seine Dateien heißen wie in den Voice-Packs von [darts-caller](https://github.com/lbormann/darts-caller), daher funktioniert ein Pack von darts-caller so, wie es ist, und die Aktion [`autodarts.generate_voice_pack`](entities.de.md#ein-voice-pack-aufnehmen-autodartsgenerate_voice_pack) nimmt eines mit einer Text-to-Speech-Engine von Home Assistant auf, etwa mit [Piper](https://www.home-assistant.io/integrations/piper/) für eine Stimme, die dein Zuhause nie verlässt.
+
+1. Lege das Pack in einen Ordner in `autodarts/voices` des Medienordners, etwa `/media/autodarts/voices/russ-bray/` unter Home Assistant OS, mit der App *Samba share* oder *File editor*. Oder nimm eines auf: **Entwicklerwerkzeuge → Aktionen**, *Autodarts: Voice-Pack erzeugen*, mit deiner Engine, ihrer Sprache und einem Namen wie `piper-de`; das dauert einige Minuten.
+2. Trage den Namen des Ordners als *Voice-Pack* in den Caller-Optionen im Editor der Karte ein, `caller_voice: russ-bray`, oder beim automatischen Dashboard in seinen Einstellungen, *Ansicht Anzeigetafel*.
+3. Tippe auf **Caller**. Jedes Tippen, das ihn einschaltet, fragt das Pack neu ab, sodass Dateien, die du inzwischen hinzugefügt hast, ab dann zählen.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/voice-packs-dark.png">
+  <img src="images/de/voice-packs-light.png" alt="So spricht der Caller mit einem Voice-Pack: Ein in den Medienordner kopiertes Pack von darts-caller oder eines, das autodarts.generate_voice_pack mit Piper aufgenommen hat, ist ein Ordner in autodarts/voices. Hat das Pack die Dateien einer Ansage, etwa 180, busted, gameshot, matchshot oder yr_40, lädt der Bildschirm sie mit seiner Anmeldung und spielt sie nacheinander ab, einen Namen ohne Datei mit der Stimme des Browsers. Fehlt dem Pack die Ansage oder lädt eine Datei nicht, sagt die Stimme des Browsers die ganze Ansage. Die nächste Ansage wartet, bis diese zu Ende ist" width="560">
+</picture>
+
+| Ansage | Dateien des Packs |
+| --- | --- |
+| Die Punkte einer Aufnahme | `0` bis `180`; `0` ist „Keine Punkte“ |
+| Überworfen | `busted` |
+| Der Game shot eines Legs | `gameshot` |
+| Das Match | `matchshot`, dann der Name des Siegers |
+| Was ein Spieler braucht | `yr_40`, oder `you_require` und dann `c_40` oder `40`; im Match zuerst der Name des Spielers |
+| Der Name eines Spielers | Eine Datei, die wie der Spieler in Kleinbuchstaben heißt, etwa `alex.mp3`; ohne sie sagt die Stimme des Browsers den Namen |
+
+Die Dateien sind `.mp3`, `.wav`, `.ogg` oder `.flac`, auch in Ordnern des Packs. Eine Ansage mit mehreren Dateien, etwa `gameshot.mp3` und `gameshot+2.mp3`, spielt eine davon nach Zufall, wie bei darts-caller. Jede Ansage, für die das Pack keine Datei hat, etwa die Marks einer Cricket-Aufnahme oder das nächste Match eines Turniers, sagt die Stimme des Browsers, ebenso eine Ansage, deren Datei nicht lädt. Jede Ansage wartet, bis die davor zu Ende ist, sodass sich Ansagen nie überlagern. Der Bildschirm lädt die Dateien mit seiner eigenen Anmeldung aus Home Assistant, und nur die, die Home Assistant für das Pack nennt.
 
 ## Zwischen den Spielen: Ruhemodus
 
@@ -181,6 +205,7 @@ Ein Dart, ein neues Spiel oder ein Tippen irgendwohin beendet den Ruhemodus; ein
 | --- | --- |
 | Darts werden nicht gezählt | Die Erkennung ist gestoppt: Der Status oben rechts zeigt *Erkennung gestoppt*. Der Start in der Spielauswahl schaltet sie ein; sonst schaltest du sie im [Board-Status](cards.de.md#board-status) oder in der Live-Karte ein. Prüfe außerdem, dass *Übungsspiel* nicht auf *Aus* steht und kein [Online-Match](online-matches.de.md) das Board belegt. |
 | Der Caller bleibt stumm | Tippe nach jedem Neuladen der Seite einmal auf **Caller**: Browser spielen Ton erst nach einem Tippen ab. Prüfe die Lautstärke des Geräts. |
+| Der Caller spricht trotz Voice-Pack mit der Stimme des Browsers | Der Name des Packs ist der Name seines Ordners in `autodarts/voices` des Medienordners, in derselben Groß- und Kleinschreibung. Ansagen, für die das Pack keine Datei hat, spricht immer der Browser; siehe die [Dateien eines Packs](#voice-packs). Dateien, die nach dem Einschalten des Callers kopiert wurden, zählen nach dem nächsten Tippen auf **Caller**. |
 | Die Spielauswahl öffnet sich nicht | Sie öffnet sich nie in der Vorschau des Karteneditors und nicht mit `lobby: false`. |
 | Nach einem Update zeigt der Bildschirm eine alte Version der Karte | Lade die Seite neu. In der Home-Assistant-App nutzt du *Einstellungen → Companion-App → Fehlerbehebung → Frontend-Cache zurücksetzen*. |
 | Der Ruhemodus beginnt während eines Spiels | Der Ruhemodus wartet `idle_after` Sekunden ohne Darts und Tippen, und nur, wenn kein Spiel läuft oder das Spiel entschieden ist. Erhöhe `idle_after` oder setze `idle: false`. |

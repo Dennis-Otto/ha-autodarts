@@ -169,7 +169,7 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
     "title",
     ["full_height", "show_visit", "show_status", "caller", "show_summary", "celebrations"],
     "summary_seconds",
-    [["call_scores", "call_checkouts", "call_results", "call_sounds"]],
+    [["call_scores", "call_checkouts", "call_results", "call_sounds"], "caller_voice"],
     [["lobby"], "lobby_games"],
     [["idle"], ["idle_after", "idle_interval"], "idle_panels"],
     [["corrections", "keypad"]],
@@ -182,6 +182,10 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
   assert.equal(form.computeHelper(caller), "These calls are made while the caller is on.");
   assert.equal(form.schema[2].schema[3].default, false);
   assert.equal(caller.schema[0].schema[0].default, true);
+  // The voice pack is a folder name, empty for the browser's voice.
+  assert.deepEqual(caller.schema[1].selector, { text: {} });
+  assert.equal(form.computeLabel(caller.schema[1]), "Voice pack");
+  assert.match(form.computeHelper(caller.schema[1]), /^A folder of \/media\/autodarts\/voices with recorded calls/);
 
   // The new game screen is on by default and offers every game, unless the card names some.
   assert.deepEqual([lobby.type, lobby.name, lobby.flatten], ["expandable", "lobby_section", true]);
@@ -358,8 +362,9 @@ test("the dashboard strategy has an editor with the board and the title", async 
       ["idle", true],
     ]
   );
-  assert.equal(scoreboard.schema[1].name, "lobby_games");
-  assert.equal(scoreboard.schema[2].selector.select.options[0].label, "Tournament");
+  assert.equal(scoreboard.schema[1].name, "caller_voice");
+  assert.equal(scoreboard.schema[2].name, "lobby_games");
+  assert.equal(scoreboard.schema[3].selector.select.options[0].label, "Tournament");
   assert.deepEqual(form.data, { type: "custom:autodarts", title: "Darts" });
   assert.equal(form.hass, hass);
   assert.equal(form.computeLabel({ name: "device_id" }), "Board");
@@ -374,6 +379,8 @@ test("the dashboard strategy has an editor with the board and the title", async 
   assert.match(form.computeHelper(scoreboard), /^Options of the scoreboard in its view/);
   assert.equal(form.computeLabel({ name: "keypad" }), "Keypad for darts entered by hand");
   assert.match(form.computeHelper({ name: "keypad" }), /manual entry/);
+  assert.equal(form.computeLabel({ name: "caller_voice" }), "Voice pack");
+  assert.match(form.computeHelper({ name: "caller_voice" }), /voice pack of darts-caller/);
 
   const changes = [];
   loading.addEventListener("config-changed", (event) => changes.push(event.detail.config));
@@ -390,7 +397,8 @@ test("the dashboard strategy has an editor with the board and the title", async 
   // Scoreboard options that are set stay; an empty list or a section without any goes.
   for (const [scoreboard, expected] of [
     [{ caller: true, lobby_games: [], idle_panels: ["clock"] }, { caller: true, idle_panels: ["clock"] }],
-    [{ lobby_games: [] }, undefined],
+    [{ caller_voice: "russ-bray" }, { caller_voice: "russ-bray" }],
+    [{ lobby_games: [], caller_voice: "" }, undefined],
   ]) {
     form.dispatchEvent(
       new CustomEvent("value-changed", { detail: { value: { type: "custom:autodarts", scoreboard } } })

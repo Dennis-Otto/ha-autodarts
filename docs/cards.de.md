@@ -332,6 +332,7 @@ Seiten ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `call_checkouts` | Wahrheitswert | `true` | Ansagen, was der nächste Spieler braucht, wenn ein Checkout möglich ist |
 | `call_results` | Wahrheitswert | `true` | Überwerfen und Game shot ansagen |
 | `call_sounds` | Wahrheitswert | `true` | Eine Fanfare bei einer 180 spielen |
+| `caller_voice` | Text | leer | Ein [Voice-Pack](scoreboard.de.md#voice-packs): der Name eines Ordners in `/media/autodarts/voices` mit aufgenommenen Ansagen, etwa eines Packs von darts-caller; leer ist die Stimme des Browsers |
 | `lobby` | Wahrheitswert | `true` | Die [Spielauswahl](#spielauswahl) anbieten |
 | `lobby_games` | Liste von Spielen | jedes Spiel | Die Spiele, die die Spielauswahl anbietet, etwa `["501", cricket, killer]` |
 | `idle` | Wahrheitswert | `true` | Den [Ruhemodus](#ruhemodus) einschalten |

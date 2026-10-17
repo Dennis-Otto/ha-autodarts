@@ -439,6 +439,12 @@
     "save_highlight": {
       "service": "mdi:camera-plus-outline"
     },
+    "voice_sound": {
+      "service": "mdi:account-voice"
+    },
+    "generate_voice_pack": {
+      "service": "mdi:waveform"
+    },
     "link_player": {
       "service": "mdi:account-link"
     },

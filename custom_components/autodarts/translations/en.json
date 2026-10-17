@@ -856,6 +856,48 @@
     "highlight_failed": {
       "message": "The highlight photo could not be saved: {error}"
     },
+    "voice_pack_no_score": {
+      "message": "No score"
+    },
+    "voice_pack_bust": {
+      "message": "No score"
+    },
+    "voice_pack_leg": {
+      "message": "Game shot, and the leg!"
+    },
+    "voice_pack_match": {
+      "message": "Game shot, and the match!"
+    },
+    "voice_pack_require": {
+      "message": "You require"
+    },
+    "voice_pack_require_score": {
+      "message": "You require {remaining}"
+    },
+    "voice_pack_name": {
+      "message": "The voice pack {pack} has no valid folder name: up to 64 letters, digits, spaces, dots, dashes and underscores that start and end with a letter or a digit."
+    },
+    "voice_pack_engine_missing": {
+      "message": "The text-to-speech engine {engine} does not exist."
+    },
+    "voice_pack_busy": {
+      "message": "A voice pack is being generated. Try again when it is done."
+    },
+    "voice_pack_no_media": {
+      "message": "Home Assistant has no media folder for the voice packs."
+    },
+    "voice_pack_engine": {
+      "message": "The engine {engine} cannot speak {language} with these options: {error}"
+    },
+    "voice_pack_folder": {
+      "message": "Home Assistant does not allow writing to the folder of the voice packs, {folder}."
+    },
+    "voice_pack_recorded": {
+      "message": "The voice pack {pack} exists and was not generated, for example a pack of darts-caller. It stays as it is; choose another name."
+    },
+    "voice_pack_failed": {
+      "message": "The voice pack {pack} could not be generated: {error}"
+    },
     "unknown_person": {
       "message": "There is no person {person} in Home Assistant."
     },
@@ -1228,6 +1270,42 @@
         "label": {
           "name": "Label",
           "description": "Optional. What the photo shows, at the end of its name, such as 180 or checkout-121. The gallery shows a number as the score."
+        }
+      }
+    },
+    "voice_sound": {
+      "name": "Voice pack sound",
+      "description": "Finds the sound of a call in a voice pack of autodarts/voices in the media folder, for a media player: the first of the keys the pack has, such as 180, busted or yr_40, and one of its files at random. The answer is empty when the pack has none of them, so that the call can be spoken instead. The caller blueprints use it.",
+      "fields": {
+        "pack": {
+          "name": "Voice pack",
+          "description": "The folder of the pack in autodarts/voices of the media folder, for example russ-bray."
+        },
+        "keys": {
+          "name": "Keys",
+          "description": "The keys of the sound; the first one the pack has counts, for example yr_40 and you_require. They are the file names of darts-caller's voice packs: 0 to 180, busted, gameshot, matchshot, yr_2 to yr_170, s1 to t20, bull, bullseye, outside or the name of a player."
+        }
+      }
+    },
+    "generate_voice_pack": {
+      "name": "Generate voice pack",
+      "description": "Records a voice pack for the caller with a text-to-speech engine, such as Piper for a voice that stays at home: every score from 0 to 180, no score, the game shot and the match, what a player requires and every dart, under the file names of darts-caller's voice packs in autodarts/voices of the media folder. It takes a few minutes, one pack at a time, and replaces a pack it generated before, never one you copied there. For administrators; automations can use it, too.",
+      "fields": {
+        "tts_entity": {
+          "name": "Text-to-speech engine",
+          "description": "The engine that speaks, for example Piper or Home Assistant Cloud."
+        },
+        "language": {
+          "name": "Language",
+          "description": "The language of the voice, for example en-GB or de-DE. The calls are in its language, in English for a language the integration does not speak."
+        },
+        "pack": {
+          "name": "Voice pack",
+          "description": "The name of the pack, a folder of autodarts/voices in the media folder, for example piper-en."
+        },
+        "voice": {
+          "name": "Voice",
+          "description": "Optional. A voice of the engine, for example en_GB-alan-medium for Piper. Without one, the engine's own."
         }
       }
     },

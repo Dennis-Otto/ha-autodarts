@@ -36,7 +36,7 @@ from yaml import safe_dump, safe_load
 from custom_components.autodarts.bot import Bot
 from custom_components.autodarts.highlights import photo_stem
 from custom_components.autodarts.local_coordinator import EVENT_TYPES
-from custom_components.autodarts.services import _game_key
+from custom_components.autodarts.services import _game_key, async_setup_services
 
 from .local_helpers import (
     BASE,
@@ -194,6 +194,26 @@ def read_attributes(path: Path) -> set[str]:
 
 def spoken(calls) -> list[str]:
     return [str(call.data["message"]) for call in calls]
+
+
+def voice_pack(hass, tmp_path, *files: str) -> list:
+    """A voice pack of darts-caller in the media folder, the actions of the
+    integration that find its sounds, and the sounds played on the speakers."""
+    pack = tmp_path / "media" / "autodarts" / "voices" / "russ-bray"
+    pack.mkdir(parents=True)
+    for file in files:
+        (pack / file).write_bytes(b"ID3")
+    hass.config.media_dirs = {"local": str(tmp_path / "media")}
+    async_setup_services(hass)
+    return async_mock_service(hass, "media_player", "play_media")
+
+
+def played(calls) -> list[str]:
+    """The files of the voice pack the speakers played."""
+    prefix = "media-source://media_source/local/autodarts/voices/russ-bray/"
+    assert all(call.data["media_content_type"] == "music" for call in calls)
+    assert all(call.data["entity_id"] == ["media_player.dartroom"] for call in calls)
+    return [call.data["media_content_id"].removeprefix(prefix) for call in calls]
 
 
 VOICE = {
@@ -787,6 +807,63 @@ async def test_dart_caller_in_practice_games_with_its_own_voice(hass):
     assert calls[0].data["options"] == {"voice": "KatjaNeural"}
 
 
+async def test_dart_caller_plays_the_sounds_of_a_voice_pack(hass, tmp_path):
+    """The scores and darts the pack has are its recorded sounds; the engine
+    speaks the rest, and every call of a pack that does not exist."""
+    calls = async_mock_service(hass, "tts", "speak")
+    sounds = voice_pack(
+        hass,
+        tmp_path,
+        "t20.mp3",
+        "5.mp3",
+        "125.mp3",
+        "Outside.wav",
+        "bullseye.mp3",
+        "bull.mp3",
+        "180+1.mp3",
+    )
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "dart_caller",
+        {**VOICE, "call_each_dart": True, "voice_pack": "russ-bray"},
+    )
+    await fire_all(
+        hass,
+        [
+            ("dart_detected", {"segment": "T20", "score": 60, "dart_index": 1}),
+            ("dart_detected", {"segment": "S5", "score": 5, "dart_index": 2}),
+            ("visit_thrown", {"score": 125, "darts": 3, "game": None}),
+            ("dart_detected", {"segment": "D16", "score": 32, "dart_index": 1}),
+            ("dart_detected", {"segment": "M", "score": 0, "dart_index": 2}),
+            ("visit_completed", {"score": 32, "darts": 2, "thrown": False}),
+            ("dart_detected", {"segment": "Bull", "score": 50, "dart_index": 1}),
+            ("dart_detected", {"segment": "25", "score": 25, "dart_index": 2}),
+            ("visit_thrown", {"score": 180, "darts": 3, "segments": ["T20"] * 3}),
+        ],
+    )
+    assert played(sounds) == [
+        "t20.mp3",
+        "5.mp3",
+        "125.mp3",
+        "Outside.wav",
+        "bullseye.mp3",
+        "bull.mp3",
+        "180+1.mp3",
+    ]
+    assert spoken(calls) == ["Double 16", "32"]
+
+
+async def test_dart_caller_speaks_what_no_voice_pack_has(hass, tmp_path):
+    calls = async_mock_service(hass, "tts", "speak")
+    sounds = voice_pack(hass, tmp_path, "100.mp3")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "dart_caller", {**VOICE, "voice_pack": "piper-en"})
+    await fire_all(hass, [("visit_thrown", {"score": 100, "darts": 3, "game": None})])
+    assert sounds == []
+    assert spoken(calls) == ["100"]
+
+
 # -- practice caller -------------------------------------------------------------------
 
 
@@ -869,6 +946,43 @@ async def test_practice_caller_calls_requirements_busts_and_game_shots(hass):
         "You require 40",
         "Game shot, and the leg!",
         "Game shot, and the leg, Sam!",
+    ]
+
+
+async def test_practice_caller_plays_the_sounds_of_a_voice_pack(hass, tmp_path):
+    """A bust, the game shot and the match, and what you require alone are the
+    pack's sounds; a call that names the player is the engine's, as is what the
+    pack lacks."""
+    calls = async_mock_service(hass, "tts", "speak")
+    sounds = voice_pack(
+        hass, tmp_path, "yr_40.mp3", "busted.mp3", "gameshot.mp3", "matchshot.mp3"
+    )
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "practice_caller", {**VOICE, "voice_pack": "russ-bray"})
+    alone = {"game": 501, "players": 1, "player": 1, "name": None}
+    match = {"game": 501, "players": 2, "player": 2, "name": "Sam"}
+    await fire_all(
+        hass,
+        [
+            ("turn_changed", {**alone, "remaining": 40, "checkout": "D20"}),
+            ("turn_changed", {**alone, "remaining": 41, "checkout": "S1 D20"}),
+            ("turn_changed", {**match, "remaining": 40, "checkout": "D20"}),
+            ("bust", {**match, "remaining": 32}),
+            ("leg_won", {**match, "darts": 15, "match": False}),
+            ("leg_won", {**match, "rounds": 10, "remaining": 132, "match": False}),
+            ("match_won", {**match, "sets": 1}),
+        ],
+    )
+    assert played(sounds) == [
+        "yr_40.mp3",
+        "busted.mp3",
+        "gameshot.mp3",
+        "matchshot.mp3",
+    ]
+    assert spoken(calls) == [
+        "You require 41",
+        "Sam, you require 40",
+        "Round limit, and the leg, Sam!",
     ]
 
 

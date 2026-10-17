@@ -157,7 +157,31 @@ It calls only what counts, in the language of the screen's user: English, German
 
 A screen that was away, on another view or without its connection to Home Assistant, calls and celebrates nothing that happened meanwhile, such as a match that ended in the minutes before; it calls the game again from its return.
 
-`call_scores`, `call_checkouts`, `call_results` and `call_sounds` switch each kind of call on or off. Which voice speaks depends on the browser and the operating system: offline voices of the operating system keep the calls in your home; some browsers use online voices that send the text to their provider. For speakers in the room, use the [dart caller and practice caller blueprints](automations.md#which-caller) instead.
+`call_scores`, `call_checkouts`, `call_results` and `call_sounds` switch each kind of call on or off. Which voice speaks depends on the browser and the operating system: offline voices of the operating system keep the calls in your home; some browsers use online voices that send the text to their provider. A [voice pack](#voice-packs) gives the caller a real voice instead. For speakers in the room, use the [dart caller and practice caller blueprints](automations.md#which-caller), which play voice packs, too.
+
+### Voice packs
+
+The browser's voice sounds different on every device, and robotic on many. A voice pack gives the caller a voice of its own: recorded calls in the media folder of Home Assistant, which the screen plays through its speaker. Its files are named as in the voice packs of [darts-caller](https://github.com/lbormann/darts-caller), so a pack of darts-caller works as it is, and the action [`autodarts.generate_voice_pack`](entities.md#record-a-voice-pack-autodartsgenerate_voice_pack) records one with a text-to-speech engine of Home Assistant, such as [Piper](https://www.home-assistant.io/integrations/piper/) for a voice that never leaves your home.
+
+1. Put the pack in a folder of `autodarts/voices` in the media folder, for example `/media/autodarts/voices/russ-bray/` on Home Assistant OS, with the *Samba share* or the *File editor* app. Or record one: **Developer tools → Actions**, *Autodarts: Generate voice pack*, with your engine, its language and a name such as `piper-en`; it takes a few minutes.
+2. Enter the name of the folder as *Voice pack* in the caller options of the card's editor, `caller_voice: russ-bray`, or for the automatic dashboard in its settings, *Scoreboard view*.
+3. Tap **Caller**. Each tap that switches it on asks for the pack again, so files you added since count from then on.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/voice-packs-dark.png">
+  <img src="images/en/voice-packs-light.png" alt="How the caller speaks with a voice pack: a pack of darts-caller copied to the media folder, or one that autodarts.generate_voice_pack recorded with Piper, is a folder of autodarts/voices. When the pack has the files of a call, such as 180, busted, gameshot, matchshot or yr_40, the screen loads them with its login and plays them one after the other, with a name without a file in the browser's voice. When the pack lacks the call or a file does not load, the browser's voice says the whole call. The next call waits until this one has ended" width="560">
+</picture>
+
+| Call | Files of the pack |
+| --- | --- |
+| The points of a visit | `0` to `180`; `0` is "No score" |
+| A bust | `busted` |
+| The game shot of a leg | `gameshot` |
+| The match | `matchshot`, then the winner's name |
+| What a player requires | `yr_40`, or `you_require` and then `c_40` or `40`; in a match, the player's name first |
+| A player's name | A file named like the player in lower case, such as `alex.mp3`; without one, the browser's voice says the name |
+
+The files are `.mp3`, `.wav`, `.ogg` or `.flac`, also in folders of the pack. A call with several files, such as `gameshot.mp3` and `gameshot+2.mp3`, plays one of them at random, as in darts-caller. Every call the pack has no file for, such as the marks of a Cricket visit or the next match of a tournament, is said by the browser's voice, as is a call whose file does not load. Each call waits until the one before has ended, so calls never talk over each other. The screen loads the files from Home Assistant with its own login, and only those Home Assistant lists for the pack.
 
 ## Between games: idle mode
 
@@ -181,6 +205,7 @@ A dart, a new game or a tap anywhere ends idle mode; a new game screen you had o
 | --- | --- |
 | Darts are not counted | Detection is stopped: the status at the top right says *Detection stopped*. The new game screen's start switches it on; otherwise switch it on with the [board status card](cards.md#board-status-card) or the live card. Also check that *Practice game* is not *Off* and that no [online match](online-matches.md) holds the board. |
 | The caller stays silent | Tap **Caller** once after every reload of the page: browsers play sound only after a tap. Check the volume of the device. |
+| The caller speaks with the browser's voice despite a voice pack | The name of the pack is the name of its folder in `autodarts/voices` of the media folder, in the same case. Calls the pack has no file for are always the browser's; see the [files of a pack](#voice-packs). Files copied after the caller was switched on count after the next tap on **Caller**. |
 | The new game screen does not open | It never opens in the preview of the card editor, and not with `lobby: false`. |
 | The screen shows an old version of the card after an update | Reload the page. In the Home Assistant app, use *Settings → Companion app → Debugging → Reset frontend cache*. |
 | Idle mode starts during a game | Idle mode waits for `idle_after` seconds without darts and taps, and only when no game runs or the game is decided. Raise `idle_after`, or set `idle: false`. |

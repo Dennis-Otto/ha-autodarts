@@ -332,6 +332,7 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `call_checkouts` | boolean | `true` | Call what the next player requires when a checkout is possible |
 | `call_results` | boolean | `true` | Call busts and game shots |
 | `call_sounds` | boolean | `true` | Play a fanfare for a 180 |
+| `caller_voice` | text | empty | A [voice pack](scoreboard.md#voice-packs): the name of a folder of `/media/autodarts/voices` with recorded calls, such as a pack of darts-caller; empty is the browser's voice |
 | `lobby` | boolean | `true` | Offer the [new game screen](#new-game-screen) |
 | `lobby_games` | list of games | every game | The games the new game screen offers, for example `["501", cricket, killer]` |
 | `idle` | boolean | `true` | Switch [idle mode](#idle-mode) on |

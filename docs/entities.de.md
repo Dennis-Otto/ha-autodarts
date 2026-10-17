@@ -556,7 +556,7 @@ Ohne lokales Board kommen auch *Letztes Ereignis*, *Letzter Dart* und *Darts in 
 
 ## Aktionen
 
-Mit den Aktionen kann jeder angemeldete Benutzer spielen. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export` und `autodarts.save_highlight` ändern die Daten der Spieler, geben sie heraus oder schreiben Dateien und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
+Mit den Aktionen kann jeder angemeldete Benutzer spielen. `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export`, `autodarts.save_highlight` und `autodarts.generate_voice_pack` ändern die Daten der Spieler, geben sie heraus oder schreiben Dateien und sind Administratoren vorbehalten: Ein Benutzer ohne Administratorrechte, etwa der eines Wandtablets, bekommt eine Fehlermeldung. Automationen führen sie aus, ebenso Skripte, die ein Administrator oder eine Automation startet.
 
 ### Übungsspiel starten: `autodarts.start_game`
 
@@ -814,6 +814,49 @@ Das Foto heißt etwa `2026-09-26_21-05-33_Alex_180.jpg`, in der Zeit von Home As
 **Antwort:** Mit `response_variable` ist `photo` die gespeicherte Datei und `photo_url` ihre Adresse in der Medienansicht, etwa `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, die die Home-Assistant-App in einer Benachrichtigung lädt; außerhalb des Medienordners ist `photo_url` leer.
 
 Die Aktion schlägt mit einer klaren Meldung fehl und schreibt nichts, wenn es die Kamera-Entität nicht gibt oder sie deaktiviert ist, wenn die Kamera nicht verfügbar ist oder kein Bild liefert, wenn der Ordner nicht erlaubt ist oder die Datei nicht geschrieben werden kann. Mit `continue_on_error: true` macht eine Automation ohne das Foto weiter, wie der Blueprint. Anders als `camera.snapshot`, das eine deaktivierte oder nicht verfügbare Kamera und ein fehlendes Bild ohne Fehler übergeht, meldet sie nie ein Foto, das nicht auf der Festplatte liegt.
+
+### Einen Sound eines Voice-Packs finden: `autodarts.voice_sound`
+
+Sucht den Sound einer Ansage in einem [Voice-Pack](scoreboard.de.md#voice-packs), für einen Mediaplayer, wie es [Dart caller und Practice caller](automations.de.md#voice-packs-der-caller) tun. Jeder Benutzer darf fragen: Die Aktion liest nur, welche Dateien ein Pack hat.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `pack` | Ordnername | Der Ordner des Packs in `autodarts/voices` des Medienordners, etwa `russ-bray`; erforderlich |
+| `keys` | 1–10 Schlüssel | Der Sound der Ansage, wie darts-caller seine Dateien nennt, etwa `yr_40` und `you_require`; es zählt der erste, den das Pack hat, in Groß- oder Kleinschreibung; erforderlich |
+
+```yaml
+action: autodarts.voice_sound
+data:
+  pack: russ-bray
+  keys: [yr_40]
+response_variable: sound
+```
+
+**Antwort:** `key` ist der Schlüssel, den das Pack hat, `media_content_id` sein Sound als Medium für `media_player.play_media`, etwa `media-source://media_source/local/autodarts/voices/russ-bray/yr_40.mp3`, und `media_content_type` seine Art, etwa `audio/mpeg`. Ein Schlüssel mit mehreren Dateien, etwa `gameshot.mp3` und `gameshot+2.mp3`, antwortet mit einer davon nach Zufall. Hat das Pack keinen der Schlüssel oder gibt es das Pack nicht, sind alle drei leer, damit die Ansage stattdessen gesprochen werden kann. Ein Name mit `/`, `..` oder einem Punkt am Anfang oder Ende wird abgelehnt.
+
+### Ein Voice-Pack aufnehmen: `autodarts.generate_voice_pack`
+
+Nimmt ein [Voice-Pack](scoreboard.de.md#voice-packs) mit einer Text-to-Speech-Engine von Home Assistant auf: jede Ansage des Callers in 417 Sounds, benannt wie in den Voice-Packs von darts-caller, in `autodarts/voices` des Medienordners. Mit [Piper](https://www.home-assistant.io/integrations/piper/) verlässt die Stimme nie dein Zuhause. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
+
+| Feld | Werte | Beschreibung |
+| --- | --- | --- |
+| `tts_entity` | Text-to-Speech-Entität | Die Engine, die spricht, etwa `tts.piper`; erforderlich |
+| `language` | Sprache | Die Sprache der Stimme, wie die Engine sie nennt, etwa `de-DE` oder `de_DE`; erforderlich. Die Ansagen sind in ihrer Sprache, Deutsch, Englisch, Niederländisch, Französisch oder Spanisch, und Englisch für jede andere |
+| `pack` | Ordnername | Der Name des Packs, bis zu 64 Buchstaben, Ziffern, Leerzeichen, Punkte, Bindestriche und Unterstriche, etwa `piper-de`; erforderlich |
+| `voice` | Text | Eine Stimme der Engine, etwa `de_DE-thorsten-medium` für Piper; ohne sie die eigene der Engine |
+
+```yaml
+action: autodarts.generate_voice_pack
+data:
+  tts_entity: tts.piper
+  language: de_DE
+  voice: de_DE-thorsten-medium
+  pack: piper-de
+```
+
+Das Pack hat die Punkte `0`, gesagt als „Keine Punkte“, bis `180`, `busted`, `gameshot`, `matchshot`, `you_require`, `yr_2` bis `yr_170` und jeden Dart für den Dart caller: `s1` bis `s20`, `d1` bis `d20`, `t1` bis `t20`, `bull`, `bullseye` und `outside`. Es dauert so lange, wie die Engine für 417 kurze Sätze braucht, einige Minuten. Es wird immer nur ein Pack aufgenommen; ein zweiter Aufruf in der Zeit wird abgelehnt. Die Sounds entstehen neben dem Pack und ersetzen es erst, wenn alle fertig sind, sodass ein Pack, das mittendrin scheitert, das vorige lässt, wie es war. Die Aktion ersetzt nur ein Pack, das sie selbst aufgenommen hat: Ein Ordner dieses Namens mit anderen Dateien, etwa ein Pack von darts-caller, bleibt, wie er ist, und die Aktion bittet um einen anderen Namen.
+
+**Antwort:** Mit `response_variable` ist `pack` der Name des Packs, `folder` sein Ordner und `sounds` die Zahl seiner Sounds.
 
 ### Spieler mit einer Person verknüpfen: `autodarts.link_player`
 

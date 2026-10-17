@@ -1,4 +1,5 @@
-"""Dart positions for the cards; thousands of them are too many for attributes."""
+"""Dart positions for the cards, thousands of them too many for attributes, and
+the sounds of a voice pack for the caller of the scoreboard."""
 
 from __future__ import annotations
 
@@ -13,11 +14,13 @@ from homeassistant.helpers import device_registry as dr
 from .const import DOMAIN
 from .local_coordinator import AutodartsLocalCoordinator
 from .profiles import NAME_LENGTH
+from .voices import PACK_LENGTH, async_voice_pack
 
 
 @callback
 def async_setup_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_positions)
+    websocket_api.async_register_command(hass, ws_voice_pack)
 
 
 def _board(hass: HomeAssistant, device_id: str) -> AutodartsLocalCoordinator | None:
@@ -59,3 +62,24 @@ async def ws_positions(
     aim = await board.async_aim(player) if msg["aim"] else None
     result = board.progress.positions(player)
     connection.send_result(msg["id"], result if aim is None else {**result, "aim": aim})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): f"{DOMAIN}/voice_pack",
+        vol.Required("pack"): vol.All(str, vol.Length(min=1, max=PACK_LENGTH)),
+    }
+)
+@websocket_api.async_response
+async def ws_voice_pack(
+    hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]
+) -> None:
+    """Every sound of a voice pack by its key, with the addresses the scoreboard
+    loads them from with its login; not found for a pack without sounds."""
+    sounds = await async_voice_pack(hass, msg["pack"])
+    if not sounds:
+        connection.send_error(
+            msg["id"], websocket_api.ERR_NOT_FOUND, "No such voice pack"
+        )
+        return
+    connection.send_result(msg["id"], {"pack": msg["pack"], "sounds": sounds})
