@@ -86,18 +86,6 @@ Style of the languages:
 
 The documentation is English with a complete German translation. Each German page sits next to its English page, with the English name and `.de`, such as `docs/games.de.md` next to `docs/games.md`, and links to German pages by those names. A pull request that changes a page changes both languages. Keep the terms of the [glossary](docs/glossary.md) ([German](docs/glossary.de.md)), for example "Übungsspiel", "Aufnahme" for a visit and "Doppelquote". `tests/test_docs_links.py` checks that every link, heading anchor and image resolves, and that every count of blueprints, dashboard cards and `autodarts.*` actions matches the blueprint files, the card picker and `services.yaml`.
 
-## Website
-
-MkDocs builds the website from `mkdocs.yml` and the pages in `docs/`, the English one at <https://dennis-otto.github.io/ha-autodarts/> and the German one from the `.de` pages under `/de/`, with a switch between the two on every page. It starts with `docs/index.md` and `docs/index.de.md`; `docs/README.md` and `docs/README.de.md` are the overviews on GitHub. The check *docs* builds it strictly in every pull request, so that a broken link fails, and every change of `main` publishes it on GitHub Pages. To see it while you write, at <http://127.0.0.1:8000>:
-
-```sh
-python3 -m venv .venv-docs
-.venv-docs/bin/pip install --require-hashes -r .github/docs-requirements.txt
-.venv-docs/bin/mkdocs serve
-```
-
-On Windows, use `py -3` in place of `python3` and `.venv-docs/Scripts/` in place of `.venv-docs/bin/`; the dev container sets these tools up on its own. With them, `bash scripts/check.sh` builds the website strictly as well, as the check *docs* does, and without them it leaves that to the CI. The preview cards for social media come from the CI alone, because they need the Cairo library, which Windows doesn't have; where it is installed, `CI=true` before the command draws them too.
-
 Every page of the website starts with front matter that describes it in one sentence of 50 to 160 characters, written for that page in its language. Search engines show it under the title of the page, and so do the previews of a shared link:
 
 ```markdown
@@ -109,6 +97,18 @@ description: "X01, Cricket, party and training games in Home Assistant: matches,
 ```
 
 `tests/test_docs_links.py` fails for a page without a description, with a description that another page has, or with the words of the template of a decision. A page that moves keeps its file for the old links on GitHub, with front matter such as `moved: installation.md` instead: on the website it leads to that page at once, in the language of the website, and stays out of search engines, the sitemap and the search of the website (`scripts/mkdocs_hooks.py`).
+
+## Website
+
+MkDocs builds the website from `mkdocs.yml` and the pages in `docs/`, the English one at <https://dennis-otto.github.io/ha-autodarts/> and the German one from the `.de` pages under `/de/`, with a switch between the two on every page. It starts with `docs/index.md` and `docs/index.de.md`; `docs/README.md` and `docs/README.de.md` are the overviews on GitHub. The check *docs* builds it strictly in every pull request, so that a broken link fails, and every change of `main` publishes it on GitHub Pages. To see it while you write, at <http://127.0.0.1:8000>:
+
+```sh
+python3 -m venv .venv-docs
+.venv-docs/bin/pip install --require-hashes -r .github/docs-requirements.txt
+.venv-docs/bin/mkdocs serve
+```
+
+On Windows, use `py -3` in place of `python3` and `.venv-docs/Scripts/` in place of `.venv-docs/bin/`; the dev container sets these tools up on its own. With them, `bash scripts/check.sh` builds the website strictly as well, as the check *docs* does, and without them it leaves that to the CI. The preview cards for social media come from the CI alone, because they need the Cairo library, which Windows doesn't have; where it is installed, `CI=true` before the command draws them too.
 
 ## Diagrams
 
