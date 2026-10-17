@@ -459,3 +459,46 @@ def test_a_wrong_count_names_its_line():
 )
 def test_a_count_of_some_names_no_total(sentence):
     assert not list(claims(sentence))
+
+
+COMPARE = re.compile(
+    r"<!-- --8<-- \[start:compare\] -->\n(.*?)<!-- --8<-- \[end:compare\] -->",
+    re.DOTALL,
+)
+BLOB = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/"
+RELATIVE_LINK = re.compile(r"\]\((?![a-z]+:)([^)#][^)]*)\)")
+
+
+def compare_section(name: str) -> str:
+    match = COMPARE.search((ROOT / "docs" / name).read_text(encoding="utf-8"))
+    assert match, f"docs/{name} has no compare snippet"
+    return match.group(1).strip()
+
+
+def absolute_links(text: str) -> str:
+    """Make the links of a docs page absolute, as the README needs them for HACS."""
+    return RELATIVE_LINK.sub(lambda link: f"]({BLOB}docs/{link.group(1)})", text)
+
+
+def test_absolute_links_point_into_the_docs_folder():
+    text = "[a](faq.md#top) [b](https://autodarts.com/) [c](#here)"
+    assert absolute_links(text) == (
+        f"[a]({BLOB}docs/faq.md#top) [b](https://autodarts.com/) [c](#here)"
+    )
+
+
+@pytest.mark.parametrize(
+    ("source", "readme", "absolute"),
+    [
+        ("coming-from.md", "README.md", True),
+        ("coming-from.de.md", "docs/README.de.md", False),
+    ],
+)
+def test_the_readmes_carry_the_comparison_of_the_website(source, readme, absolute):
+    """GitHub and HACS can't include the snippet, so the READMEs copy it unchanged."""
+    section = compare_section(source)
+    if absolute:
+        section = absolute_links(section)
+    assert section in (ROOT / readme).read_text(encoding="utf-8"), (
+        f"{readme} differs from the compare snippet of docs/{source}"
+    )

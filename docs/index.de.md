@@ -92,6 +92,14 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
 </div>
 
+## Im Vergleich
+
+Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, mit darts-caller und darts-wled und mit den anderen Home-Assistant-Integrationen für Autodarts vergleicht. [Umstieg von anderen Werkzeugen](coming-from.de.md) zeigt, wie du umsteigst.
+
+--8<-- "docs/coming-from.de.md:compare"
+
+*Stand Oktober 2026, aus der Dokumentation und dem Code jedes Projekts. [Umstieg von anderen Werkzeugen](coming-from.de.md) hat die Einzelheiten und die Quellen.*
+
 ## Anleitungen
 
 <div class="grid cards" markdown>
@@ -113,6 +121,18 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
     ---
 
     Jede Dartscheibe, mit allen Spielen, dem Training und den Statistiken: Du gibst die Darts auf einem Tastenfeld ein.
+
+- :material-frequently-asked-questions:{ .lg .middle } [**Häufige Fragen**](faq.de.md)
+
+    ---
+
+    Kurze Antworten zu Konto, Geräten, Online-Spiel, Datenschutz, mehreren Boards, Bildschirmen, Sprachen, Updates und Umstieg.
+
+- :material-swap-horizontal:{ .lg .middle } [**Umstieg von anderen Werkzeugen**](coming-from.de.md)
+
+    ---
+
+    Autodarts Local, die anderen Integrationen, MQTT-Brücken, darts-caller, darts-wled und Tools for Autodarts im Vergleich, und wie du von ihnen umsteigst.
 
 - :material-bullseye-arrow:{ .lg .middle } [**Spiele und Regeln**](games.de.md)
 

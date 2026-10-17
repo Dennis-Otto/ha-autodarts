@@ -30,6 +30,8 @@ Du brauchst Home Assistant ab 2026.8 mit [HACS](https://hacs.xyz) und ein Autoda
 
 Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) führt dich von null bis zur Anzeigetafel neben deinem Board. Die [Installationsanleitung](installation.de.md) beschreibt die manuelle Installation, die Neukonfiguration, Updates und das Entfernen.
 
+Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-caller? [Umstieg von anderen Werkzeugen](coming-from.de.md) zeigt, was hier an seine Stelle tritt und wie du umsteigst. Kurze Antworten auf die häufigen Fragen stehen in den [häufigen Fragen](faq.de.md).
+
 ## Warum
 
 - **Sofort und lokal.** Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direkt vom Board Manager in deinem Netzwerk. Kein Konto, keine Cloud, keine Client-ID.
@@ -142,13 +144,31 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 
 [Funktionsweise →](how-it-works.de.md)
 
+## Im Vergleich
+
+Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, mit darts-caller und darts-wled und mit den anderen Home-Assistant-Integrationen für Autodarts vergleicht:
+
+| | Diese Integration | Autodarts-App mit [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) und [darts-wled](https://github.com/Peschi90/darts-wled) | Andere Home-Assistant-Integrationen |
+| --- | --- | --- | --- | --- |
+| **Läuft ohne Cloud** | Ja, mit der [lokalen Schnittstelle](how-it-works.de.md#datenschutz) des Board Managers | Nein, mit einem [Autodarts-Konto](https://autodarts.com/) | Nein, darts-caller [meldet sich bei Autodarts an](https://github.com/Peschi90/darts-caller#autodarts-login) | Manche ([Einzelheiten](coming-from.de.md#darf-es-bleiben)) |
+| **Entitäten und Ereignisse in Home Assistant** | Ja, ein [Ereignis](entities.de.md#board-ereignisse) für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, Leg und Match | Nein | Nein | Sensoren der aktuellen Aufnahme oder des Spiels |
+| **Blueprints** | [Dreizehn Blueprints](automations.de.md#blueprints) | Nein | Nein | Nein |
+| **Lichtshow** | Blueprint [Light show](automations.de.md#light-show), für WLED oder jedes Licht | WLED, mit Tools | WLED, mit darts-wled | Eigene Automationen |
+| **Caller** | Auf der [Anzeigetafel](scoreboard.de.md#der-caller) oder deinen [Lautsprechern](automations.de.md#welcher-caller) | In der App, mit einer Premium-Stimme in [Plus](https://autodarts.com/); mehr mit Tools | Sprachpakete, mit darts-caller | Nein |
+| **Statistik bleibt zu Hause** | [Ja](statistics.de.md): Averages, Trefferbilder, Profile und ein Jahr Verlauf | Nein, im Autodarts-Konto | Nein | Nein |
+| **Ohne Autodarts-Board** | Ja, auf einem [Tastenfeld](without-autodarts.de.md) | Ja, auf einem Tastenfeld oder mit [Lens](https://autodarts.com/) | Nein | Nein |
+| **Online-Matches** | Deine Darts, und die Momente des Matches über die [Online-Brücke](online-matches.de.md) *(experimentell)* | Ja | Ja | Manche, über die Cloud |
+| **Lizenz und Kosten** | [MIT](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), kostenlos | Autodarts: ein kostenloser Tarif und das bezahlte [Plus](https://autodarts.com/); Tools: [CC BY-NC 4.0](https://github.com/creazy231/tools-for-autodarts/blob/main/LICENSE) | Kostenlos, ohne angegebene Lizenz | MIT, Apache 2.0 oder ohne Lizenzdatei |
+
+*Stand Oktober 2026, aus der Dokumentation und dem Code jedes Projekts. [Umstieg von anderen Werkzeugen](coming-from.de.md) hat die Einzelheiten, die Quellen und den Weg zum Umstieg.*
+
 ## Voraussetzungen
 
 **Home Assistant ab 2026.8** mit [HACS](https://hacs.xyz) und ein Autodarts-Board in deinem Netzwerk oder eine beliebige Dartscheibe, deren Darts du auf einem Tastenfeld eingibst ([Spielen ohne Autodarts](without-autodarts.de.md)). Ein Autodarts-Konto brauchst du nicht.
 
 - **Board Manager 2**, also Autodarts 2 ohne Bildschirm, ist empfohlen und bis 2.0.2 getestet; der klassische **Board Manager 1** funktioniert auch.
 - Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux.
-- Autodarts Desktop unter Windows und die Winmau-Autodarts-Geräte wie Autodarts X oder Lens sind noch nicht getestet; ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) hilft, ob es klappt oder nicht.
+- Autodarts Desktop unter Windows und Winmau-Autodarts-Geräte wie Autodarts X sind noch nicht getestet; ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) hilft, ob es klappt oder nicht.
 
 ## Anleitungen
 
@@ -157,6 +177,8 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 - [Von null bis zur Anzeigetafel](getting-started.de.md): für Autodarts-Spieler ohne Home Assistant: Home Assistant und HACS aufsetzen, die Integration installieren, das Board hinzufügen und das erste Spiel auf der Anzeigetafel
 - [Installation und Einrichtung](installation.de.md): Voraussetzungen, HACS und manuelle Installation, die Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen
 - [Spielen ohne Autodarts](without-autodarts.de.md): jede Dartscheibe mit allen Spielen, dem Training und den Statistiken: einrichten, die Darts auf einem Tastenfeld eingeben, und was anders ist
+- [Häufige Fragen](faq.de.md): kurze Antworten zu Konto, Geräten, Online-Spiel, Datenschutz, mehreren Boards, Bildschirmen, Sprachen, Updates und Umstieg
+- [Umstieg von anderen Werkzeugen](coming-from.de.md): wie sich diese Integration mit Autodarts Local, den anderen Integrationen, MQTT-Brücken, darts-caller, darts-wled und Tools for Autodarts vergleicht, und wie du von ihnen umsteigst
 
 ### Anleitungen
 
@@ -314,7 +336,7 @@ Die Blueprints sind auf Englisch beschriftet; ihre Texte, etwa die Ansagen, wäh
 | Board Manager 1 (klassische App) | 1.x | 1.0.7 |
 | Autodarts Desktop unter Linux | Funktioniert laut Spielerbericht | 2.0.2 unter Ubuntu 24.04 ([Bericht](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) |
 | Autodarts Desktop unter Windows und anderen Systemen | Noch nicht getestet | – |
-| Winmau-Autodarts-Geräte wie Autodarts X oder Lens | Noch nicht getestet | – |
+| Winmau-Autodarts-Geräte wie Autodarts X | Noch nicht getestet | – |
 | Kameras | Jede Anzahl, die der Board Manager unterstützt | 3 |
 | Home Assistant | ab 2026.8 | 2026.8.0 und 2026.9.4 |
 
@@ -344,7 +366,7 @@ Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original,
 
 ## Hilfe und Mitmachen
 
-- **Fragen und Ideen:** [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), gern auf Deutsch. **Fehler:** [Issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), mit den Diagnosedaten deines Boards. [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) erklärt, wo du was fragst.
+- **Fragen und Ideen:** Die [häufigen Fragen](faq.de.md) beantworten die üblichen; den Rest fragst du in den [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), gern auf Deutsch. **Fehler:** [Issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), mit den Diagnosedaten deines Boards. [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) erklärt, wo du was fragst.
 - **Ausprobiert?** Ein [Erfahrungsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml) sagt uns, was geklappt hat, was nicht und was dir fehlt; kurze Antworten genügen, gern auf Deutsch.
 - **Du sprichst Deutsch, Niederländisch, Französisch oder Spanisch?** Die [Übersetzungs-Issues](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) nennen die Texte, die in deiner Sprache fehlen oder veraltet sind, und wie du sie im Browser korrigierst, ganz ohne Programmierkenntnisse.
 - **Sicherheit:** Melde Schwachstellen vertraulich, wie in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md) beschrieben.
