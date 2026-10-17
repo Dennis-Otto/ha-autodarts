@@ -291,7 +291,8 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 - **Tried it?** A [tester report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml) tells us what worked, what didn't and what you miss; short answers are fine.
 - **Speak German, Dutch, French or Spanish?** The [translation issues](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) name the texts that are missing or outdated in your language, and how to fix them in the browser, no programming needed.
 - **Security:** report vulnerabilities privately as described in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md).
-- **Show it:** for videos and articles, the [creator kit](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/creator-kit.md) has facts, videos and pictures, free to use.
+- **Show your board:** post a photo of your board, the screen next to it and what Home Assistant does with it in [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/new?category=show-and-tell). It gives others ideas and shows them that the integration runs at boards like theirs.
+- **Show it:** for videos, articles and posts, the [creator kit](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/creator-kit.md) has facts, ready-to-post texts, videos and pictures, free to use.
 - **Contributing:** contributions are welcome; [CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md) explains the checks. Participation follows the [code of conduct](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CODE_OF_CONDUCT.md) and the project's [governance](https://github.com/Dennis-Otto/ha-autodarts/blob/main/GOVERNANCE.md).
 
 ## Quality and security

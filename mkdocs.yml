@@ -63,6 +63,11 @@ hooks:
   # The hooks of the blueprint, such as the sitemap of every language.
   - .github/mkdocs_blueprint.py
 
+# The styles of the website on top of those of the theme, such as the wrapped lines
+# of the texts to copy in the creator kit.
+extra_css:
+  - stylesheets/extra.css
+
 # The menu, a tab in the header for each section. The German website has the same
 # one, with the German pages and the titles of nav_translations above.
 nav:

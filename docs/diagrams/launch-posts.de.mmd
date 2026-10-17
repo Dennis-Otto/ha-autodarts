@@ -1,0 +1,14 @@
+flowchart TB
+  accTitle: Wohin ein Beitrag zum Start seine Leser führt
+  accDescr: Ein Beitrag im Home-Assistant-Forum, auf Reddit oder auf Discord zeigt die Animation eines Matches und drei Punkte. Seine Links führen zur Live-Demo, in der die Karten im Browser spielen, und zum Vergleich mit den anderen Werkzeugen, der zeigt, was sie ersetzt und was bleiben kann. Die Schaltfläche öffnet das Repository in HACS, und der Leser fügt das Board in Home Assistant hinzu. Ein Foto unter Show and tell zeigt das Board dann den nächsten Lesern.
+  POST["Ein Beitrag<br/>im Forum, auf Reddit<br/>oder Discord:<br/>die Animation<br/>und drei Punkte"] --> DEMO["Live-Demo:<br/>die Karten spielen<br/>im Browser"]
+  POST --> COMPARE["Umstieg von<br/>anderen Werkzeugen:<br/>was sie ersetzt,<br/>was bleiben kann"]
+  DEMO --> HACS["Die Schaltfläche<br/>öffnet das Repository<br/>in HACS"]
+  COMPARE --> HACS
+  HACS --> BOARD["Das Board<br/>in Home Assistant<br/>hinzufügen"]
+  BOARD --> SHOW["Show and tell:<br/>ein Foto des Boards<br/>und seines Setups"]
+  SHOW -. "die nächsten Leser" .-> POST
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef data fill:#0075c92e,stroke:#0075c9,stroke-width:2px
+  class BOARD done
+  class POST data

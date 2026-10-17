@@ -208,6 +208,6 @@ How this integration compares with the Autodarts app and its browser extension, 
 
 </div>
 
-What every version brought is in the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md), what comes next in the [roadmap](roadmap.md). For videos and articles, the [creator kit](creator-kit.md) has facts, videos and pictures, free to use.
+What every version brought is in the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md), what comes next in the [roadmap](roadmap.md). For videos, articles and posts, the [creator kit](creator-kit.md) has facts, ready-to-post texts, videos and pictures, free to use.
 
 --8<-- "docs/README.md:devices-and-languages"
