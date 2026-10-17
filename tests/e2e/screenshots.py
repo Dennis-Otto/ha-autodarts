@@ -2409,6 +2409,19 @@ def scoreboard_game(page: Page, names: list[str], option: str) -> Page:
     return board
 
 
+def winning_visit(board: Page, recorder: Recorder, darts: list[dict]) -> None:
+    """Throw the visit that wins the match dart by dart, pull the darts and hold
+    the banner of the winner."""
+    for count in range(1, len(darts) + 1):
+        control({"event": "Throw detected", "throws": darts[:count]})
+        board.wait_for_timeout(500)
+        recorder.shot(700 if count < len(darts) else 1200)
+    pull_darts()
+    wait_card(board, "!r.querySelector('.banner').hidden", SCOREBOARD)
+    board.wait_for_timeout(300)
+    recorder.shot(2600)
+
+
 def shanghai_animation(page: Page) -> None:
     """Shanghai for two: Sam hits single, double and triple 2 and wins at once."""
     board = scoreboard_game(page, ["Alex", "Sam"], "shanghai")
@@ -2420,15 +2433,7 @@ def shanghai_animation(page: Page) -> None:
         [at("S2"), at("D2"), at("S15")],
     ):
         dart_by_dart(board, recorder, darts)
-    shanghai = [at("S2"), at("D2"), at("T2")]
-    for count in range(1, 4):
-        control({"event": "Throw detected", "throws": shanghai[:count]})
-        board.wait_for_timeout(500)
-        recorder.shot(700 if count < 3 else 1200)
-    pull_darts()
-    wait_card(board, "!r.querySelector('.banner').hidden", SCOREBOARD)
-    board.wait_for_timeout(300)
-    recorder.shot(2600)
+    winning_visit(board, recorder, [at("S2"), at("D2"), at("T2")])
     recorder.save("shanghai")
     board.close()
     end_match(page)
@@ -2452,6 +2457,66 @@ def halve_it_animation(page: Page) -> None:
     recorder.save("halve-it")
     board.close()
     end_match(page)
+
+
+def bermuda_animation(page: Page) -> None:
+    """Bermuda for two: the beds hit score their points, and a visit without a
+    hit on the target halves them."""
+    board = scoreboard_game(page, ["Alex", "Sam"], "bermuda")
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1400)
+    for darts in (
+        [at("T12"), at("S12"), at("D12")],
+        [at("S12"), at("S5"), at("T12")],
+        [at("S13"), at("D13"), at("S1")],
+        [at("S20"), at("S1"), at("S18")],
+        [at("T14"), at("S11"), at("S14")],
+        [at("D14"), at("D10"), at("S14")],
+    ):
+        dart_by_dart(board, recorder, darts)
+    recorder.shot(1600)
+    recorder.save("bermuda")
+    board.close()
+    end_match(page)
+
+
+def round_the_world_animation(page: Page) -> None:
+    """Round the World for two: every hit moves a player on to the next number."""
+    board = scoreboard_game(page, ["Alex", "Sam"], "round_the_world")
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1400)
+    for darts in (
+        [at("S1"), at("T2"), at("S3")],
+        [at("S1"), at("S18"), at("D2")],
+        [at("S4"), at("S5"), at("S20")],
+        [at("T3"), at("S4"), at("S4")],
+    ):
+        dart_by_dart(board, recorder, darts)
+    recorder.shot(1600)
+    recorder.save("round-the-world")
+    board.close()
+    end_match(page)
+
+
+def gotcha_animation(page: Page) -> None:
+    """Gotcha for two up to 101: Sam reaches Alex's 75 and sends Alex back to 0,
+    then checks out on a double."""
+    target = ["number", "set_value", "practice_gotcha_target"]
+    page.evaluate(CALL_SERVICE, [*target, {"value": 101}])
+    board = scoreboard_game(page, ["Alex", "Sam"], "gotcha")
+    recorder = Recorder(board, SCOREBOARD)
+    recorder.shot(1400)
+    for darts in (
+        [at("T20"), at("S10"), at("S5")],
+        [at("T20"), at("S10"), at("S5")],
+        [at("T20"), at("S20"), at("D3")],
+    ):
+        dart_by_dart(board, recorder, darts)
+    winning_visit(board, recorder, [at("S6"), at("D10")])
+    recorder.save("gotcha")
+    board.close()
+    end_match(page)
+    page.evaluate(CALL_SERVICE, [*target, {"value": 301}])
 
 
 def bull_off_animation(page: Page) -> None:
@@ -3188,6 +3253,9 @@ def more_games(browser: Browser) -> None:
     tournament_bracket_animation(page)
     shanghai_animation(page)
     halve_it_animation(page)
+    bermuda_animation(page)
+    round_the_world_animation(page)
+    gotcha_animation(page)
     bull_off_animation(page)
     bobs_27_animation(page)
     context.close()

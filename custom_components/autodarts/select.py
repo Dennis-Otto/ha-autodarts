@@ -12,7 +12,7 @@ from .cricket import CRICKET_GAMES
 from .entity import AutodartsLocalEntity
 from .local_api import STANDBY_MINUTES
 from .local_coordinator import AutodartsLocalCoordinator
-from .party import GOLF_HOLES
+from .party import GOLF_HOLES, WORLD_ORDERS
 from .practice import GAME_OPTIONS, MAX_PLAYERS
 from .report import WEEKDAYS
 from .runtime import AutodartsConfigEntry
@@ -41,6 +41,7 @@ async def async_setup_entry(
                     for rule in ("in_mode", "out_mode", "bull_mode")
                 ),
                 AutodartsGolfHoles(coordinator),
+                AutodartsWorldOrder(coordinator),
                 AutodartsReportDay(coordinator),
                 AutodartsTournamentSelect(coordinator, "format"),
                 AutodartsTournamentSelect(coordinator, "game"),
@@ -165,6 +166,28 @@ class AutodartsGolfHoles(AutodartsLocalEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.async_set_party_rounds(golf_holes=int(option))
+
+
+class AutodartsWorldOrder(AutodartsLocalEntity, SelectEntity):
+    """The order of Round the World before the bull; a change starts a game of
+    Round the World anew."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_options = list(WORLD_ORDERS)
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "practice_round_the_world_order")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def current_option(self) -> str:
+        return self.coordinator.practice.round_the_world_order
+
+    async def async_select_option(self, option: str) -> None:
+        await self.coordinator.async_set_party_rule("round_the_world_order", option)
 
 
 class AutodartsReportDay(AutodartsLocalEntity, SelectEntity):

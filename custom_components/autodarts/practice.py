@@ -35,16 +35,21 @@ from .cricket import (
 from .doubles import DoubleHits, DoubleStats, aimed_at, hits
 from .drills import DRILLS, CatchDrill, CheckoutDrill, Drill, make_drill
 from .party import (
+    ASCENDING,
     COUNT_UP_ROUNDS,
     GOLF_HOLES,
+    GOTCHA_TARGET,
     MAX_ROUNDS,
     PARTY_GAMES,
+    WORLD_ORDERS,
     BullOff,
+    Gotcha,
     PartyGame,
     Visit,
     distance_mm,
     inner_single,
     make_party,
+    valid_gotcha_target,
 )
 from .positions import x01_aims
 from .profiles import Profiles, clean_name
@@ -90,7 +95,10 @@ OPTIONS = (
     "teams",
     "manual_entry",
     "three_in_a_bed",
+    "bermuda_halve_on_miss",
 )
+# The rules of a party game that are not on or off, and the game each belongs to.
+PARTY_RULES = {"round_the_world_order": "round_the_world", "gotcha_target": "gotcha"}
 # The games to choose from, as the practice game select and start_game offer them.
 GAME_OPTIONS = (*(str(game) for game in GAMES), *CRICKET_GAMES, *PARTY_GAMES, *DRILLS)
 # The rules a match is played with, which a tournament sets for its matches.
@@ -129,6 +137,13 @@ def valid_rule(rule: str, value: object) -> bool:
         return type(value) is int and 0 <= value <= ROUND_LIMIT
     choices = BULL_MODES if rule == "bull_mode" else MODES
     return rule in X01_RULES and value in choices
+
+
+def valid_party_rule(rule: str, value: object) -> bool:
+    """An order of Round the World, or a target score of Gotcha."""
+    if rule == "gotcha_target":
+        return valid_gotcha_target(value)
+    return rule in PARTY_RULES and value in WORLD_ORDERS
 
 
 def unwinnable_rules(in_mode: str, out_mode: str) -> bool:
@@ -303,6 +318,11 @@ class PracticeGame:
         self.starts = [0] * MAX_PLAYERS
         self.golf_holes = GOLF_HOLES[0]
         self.count_up_rounds = COUNT_UP_ROUNDS
+        # Bermuda halves the score of a visit without a hit, as play.autodarts.io
+        # does; Round the World goes round in an order; Gotcha counts up to this.
+        self.bermuda_halve_on_miss = True
+        self.round_the_world_order = ASCENDING
+        self.gotcha_target = GOTCHA_TARGET
         # The bull-off before a match of several players, while it runs.
         self.bulling: BullOff | None = None
         self.legs_to_win = 1
@@ -385,6 +405,9 @@ class PracticeGame:
         self.count_up_rounds = _count(
             saved.get("count_up_rounds"), 1, MAX_ROUNDS, COUNT_UP_ROUNDS
         )
+        for rule in PARTY_RULES:
+            if valid_party_rule(rule, saved.get(rule)):
+                setattr(self, rule, saved[rule])
         self.legs_to_win = _count(saved.get("legs_to_win"), 1, MAX_LEGS, 1)
         self.sets_to_win = _count(saved.get("sets_to_win"), 1, MAX_SETS, 1)
         level, delay = saved.get("bot_level"), saved.get("bot_delay")
@@ -434,9 +457,7 @@ class PracticeGame:
             if self.game and (player.remaining > start or not left):
                 player.new_leg(start, slots)
         self.party = (
-            make_party(kind, len(self.players), self._rounds(kind))
-            if kind in PARTY_GAMES
-            else None
+            self._party(kind, len(self.players)) if kind in PARTY_GAMES else None
         )
         if self.party:
             self.party.restore(saved.get("party"))
@@ -523,6 +544,8 @@ class PracticeGame:
             "bot_delay": self.bot_delay,
             "golf_holes": self.golf_holes,
             "count_up_rounds": self.count_up_rounds,
+            "bermuda_halve_on_miss": self.bermuda_halve_on_miss,
+            **{rule: getattr(self, rule) for rule in PARTY_RULES},
             "doubles": self.doubles.stored(),
             "double_hits": self.double_hits.stored(),
             "party": self.party.stored() if self.party else None,
@@ -563,7 +586,7 @@ class PracticeGame:
         self.cricket = game if isinstance(game, str) and game in CRICKET_GAMES else None
         self.game = game if not self.drill and game in GAMES else 0
         self.party = (
-            make_party(game, humans, self._rounds(game))
+            self._party(game, humans)
             if isinstance(game, str) and game in PARTY_GAMES
             else None
         )
@@ -633,6 +656,16 @@ class PracticeGame:
         if kind in before and before[kind] != self._rounds(kind):
             self.play(str(kind))
 
+    def set_party_rule(self, rule: str, value: str | int) -> None:
+        """The order of Round the World or the target score of Gotcha; a
+        change starts the game anew while it is played."""
+        self._resume()
+        if not valid_party_rule(rule, value) or value == getattr(self, rule):
+            return
+        setattr(self, rule, value)
+        if self.party and self.party.kind == PARTY_RULES[rule]:
+            self.play(self.party.kind)
+
     def set_option(self, option: str, enabled: bool) -> None:
         """Switch a rule of the game on or off.
 
@@ -648,6 +681,9 @@ class PracticeGame:
         setattr(self, option, enabled)
         if option == "three_in_a_bed" and changed and self.cricket == WILD_MOUSE:
             self.new_match()
+        bermuda = self.party is not None and self.party.kind == "bermuda"
+        if option == "bermuda_halve_on_miss" and changed and bermuda:
+            self.play("bermuda")
 
     def set_rule(self, rule: str, value: str | int) -> bool:
         """Set an X01 rule; whether it changed what players set.
@@ -665,7 +701,13 @@ class PracticeGame:
         setattr(self, rule, value)
         if rule == "out_mode":
             self.out_mode_next = None
+            self._gotcha_out_mode()
         return True
+
+    def _gotcha_out_mode(self) -> None:
+        """Gotcha finishes as the Out mode of X01 asks."""
+        if isinstance(self.party, Gotcha):
+            self.party.out_mode = self.out_mode
 
     def unwinnable(
         self, starts: list[int] | None = None, rules: dict[str, Any] | None = None
@@ -712,9 +754,9 @@ class PracticeGame:
         )
 
     def _leg_begun(self) -> bool:
-        """Darts of the X01 leg in progress count already."""
+        """Darts of the X01 or Gotcha leg in progress count already."""
         return bool(
-            self.game
+            (self.game or isinstance(self.party, Gotcha))
             and self.winner is None
             and (any(player.darts for player in self.players) or self._scoring())
         )
@@ -826,6 +868,7 @@ class PracticeGame:
         """The next leg from the full score; darts already thrown do not count."""
         if self.out_mode_next is not None:
             self.out_mode, self.out_mode_next = self.out_mode_next, None
+            self._gotcha_out_mode()
         self.leg_visits = 0
         if self.drill:
             self.drills[self.drill].reset(len(self._visit))
@@ -887,6 +930,15 @@ class PracticeGame:
     def _slots(self) -> int:
         """The marks every player keeps: one per number and Wild Mouse target."""
         return len(self._numbers()) + len(self._targets())
+
+    def _party(self, kind: str, players: int) -> PartyGame:
+        """A party game with the rules players chose for it."""
+        options: dict[str, dict[str, Any]] = {
+            "bermuda": {"halve": self.bermuda_halve_on_miss},
+            "round_the_world": {"order": self.round_the_world_order},
+            "gotcha": {"target": self.gotcha_target, "out_mode": self.out_mode},
+        }
+        return make_party(kind, players, self._rounds(kind), **options.get(kind, {}))
 
     def _rounds(self, kind: object) -> int | None:
         return {"golf": self.golf_holes, "count_up": self.count_up_rounds}.get(
@@ -1799,15 +1851,21 @@ class PracticeGame:
         return self.party.visit(self.current, self._party_darts())
 
     def _track_party(self) -> list[tuple[str, dict[str, Any]]]:
-        """Shanghai and Killer can be won with a single dart."""
+        """Shanghai and Killer can be won with a single dart, and a dart of
+        Gotcha can bust the visit."""
         if not self._party_ready():
             return []
         result = self._party_visit()
         won = result.won
-        outcome = "won" if won is not None else None
+        outcome = "won" if won is not None else "bust" if result.bust else None
         if outcome == self._announced:
             return []
         self._announced = outcome
+        if outcome == "bust":
+            party = self.party
+            assert isinstance(party, Gotcha)
+            remaining = party.left(party.points[self.current])
+            return [("bust", {**self._who(self.current), "remaining": remaining})]
         if won is None:
             return []
         darts = result.darts if won == self.current else 0
@@ -1848,23 +1906,12 @@ class PracticeGame:
         live = ready and self.winner is None and self.bulling is None
         result = self._party_visit() if live else None
         points = result.points if result else list(party.points)
-        details = [party.details(index) for index in range(len(self.players))]
-        if result and party.kind == "killer":
-            details = [
-                {
-                    "number": result.numbers[index],
-                    "lives": result.lives[index],
-                    "killer": result.killers[index],
-                }
-                for index in range(len(self.players))
-            ]
+        details = [
+            party.live_details(index, result) if result else party.details(index)
+            for index in range(len(self.players))
+        ]
         won = bool(result and result.won is not None and result.won >= 0)
-        target = party.target(self.current) if live and not won else None
-        if result and party.kind == "killer" and not won:
-            # A killer made in this visit hunts the others from the next dart.
-            number = result.numbers[self.current]
-            killer = result.killers[self.current]
-            target = None if number is None or killer else f"D{number}"
+        target = party.live_target(self.current, result) if result and not won else None
         choosing = party.kind == "killer" and None in getattr(party, "numbers", [])
         playoff = party.playoff()
         player = self.players[self.current]
@@ -1877,9 +1924,15 @@ class PracticeGame:
             "remaining": None,
             "checkout": None,
             "target": target,
-            "bust": False,
+            "bust": bool(result and result.bust),
             "won": won,
             "visit": [hit_key(dart) for dart in self._scoring()],
+            # What the visit so far scored for the player at the board.
+            "scored": (
+                result.points[self.current] - party.points[self.current]
+                if result
+                else None
+            ),
             "darts": player.darts + (result.darts if result else 0),
             "average": None,
             "points": points[self.current],

@@ -37,6 +37,7 @@ from .local_helpers import dart
 KINDS = [
     *(101, 301, "cricket", "cut_throat", "tactics"),
     *("shanghai", "halve_it", "killer", "golf", "baseball", "count_up"),
+    *("bermuda", "round_the_world", "gotcha"),
     *DRILLS,
 ]
 STARTS = [0, 0, 2, 40, 101, 301, 501, 1001]
@@ -123,7 +124,9 @@ class PracticeMachine(RuleBasedStateMachine):
             return str(snapshot["checkout"].split()[0])
         target = (drill or snapshot).get("target")
         if target:
-            bed = {"D": "D20", "T": "T20", "25": "BULL"}.get(target, target)
+            bed = {"D": "D20", "T": "T20", "25": "BULL", "50": "BULL"}.get(
+                target, target
+            )
             return f"{'SDT'[choice]}{bed}" if bed.isdigit() else str(bed)
         others = [
             score["number"]

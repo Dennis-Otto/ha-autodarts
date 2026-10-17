@@ -41,6 +41,9 @@ start_game:
             - golf
             - baseball
             - count_up
+            - bermuda
+            - round_the_world
+            - gotcha
             - around_the_clock
             - doubles
             - checkout
@@ -146,6 +149,27 @@ start_game:
         number:
           min: 1
           max: 20
+          mode: box
+    halve_on_miss:
+      required: false
+      selector:
+        boolean: {}
+    order:
+      required: false
+      selector:
+        select:
+          translation_key: world_order
+          options:
+            - ascending
+            - descending
+            - random
+    target_score:
+      required: false
+      example: "301"
+      selector:
+        number:
+          min: 101
+          max: 1001
           mode: box
     bot_level:
       required: false

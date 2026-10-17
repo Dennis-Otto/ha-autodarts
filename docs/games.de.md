@@ -2,7 +2,7 @@
 
 [← Dokumentation](README.de.md) · [English](games.md)
 
-Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, vier Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
+Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, vier Cricket-Spiele, neun Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
 
 <img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet am Board öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
@@ -23,6 +23,9 @@ Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 100
 | [**Golf**](#golf) | 1–8 | Neun oder 18 Löcher mit den wenigsten Schlägen |
 | [**Baseball**](#baseball) | 1–8 | Die meisten Runs in neun Innings |
 | [**Count-Up**](#count-up) | 1–8 | Die meisten Punkte in 1 bis 20 Runden |
+| [**Bermuda**](#bermuda) | 1–8 | Dreizehn Ziele wie bei play.autodarts.io; eine Aufnahme ohne Treffer halbiert deine Punkte |
+| [**Round the World**](#round-the-world) | 1–8 | 1 bis 20 in einer Reihenfolge deiner Wahl, dann das Bull; wer zuerst das Bull trifft, gewinnt |
+| [**Gotcha**](#gotcha) | 1–8 | Hochzählen bis zur Zielpunktzahl und andere auf 0 zurückschicken, indem du ihre Punktzahl erreichst |
 | [**Around the Clock**](#around-the-clock) | 1 | 1 bis 20 und das Bull mit den wenigsten Darts |
 | [**Doppeltraining**](#doppeltraining) | 1 | D1 bis D20 und das Bullseye mit den wenigsten Darts |
 | [**Checkout-Training**](#checkout-training) | 1 | Zufällige Reste von 2 bis 170 in drei Aufnahmen checken |
@@ -273,7 +276,7 @@ Auch als Minnesota Cricket bekannt. Neben 20 bis 15 und dem Bull schließt jeder
 
 ## Partyspiele
 
-Sechs Kneipenklassiker für einen bis acht Spieler, eine ganze Runde; Killer braucht zwei. Mit fünf bis acht zeigt die Anzeigetafel zwei Reihen mit je vier Kacheln.
+Sechs Kneipenklassiker und drei Spiele von play.autodarts.io für einen bis acht Spieler, eine ganze Runde; Killer braucht zwei. Mit fünf bis acht zeigt die Anzeigetafel zwei Reihen mit je vier Kacheln.
 
 <img src="images/de/scoreboard-party.png" alt="Anzeigetafel bei Killer für eine Runde von acht, Alex bis Ben, in zwei Reihen mit je vier Kacheln: Alex am Board als Killer, Sam mit noch zwei Leben" width="760"> Sie verbuchen eine Aufnahme, wenn du die Darts ziehst, und gewinnen Legs und Sätze wie jedes Match. Die Karten zeigen die Runde, das Ziel und die Punkte oder Leben jedes Spielers und umranden die Felder, auf die du zielst. Partyspiele zählen nicht für die X01-Statistik.
 
@@ -328,6 +331,40 @@ Sechs Kneipenklassiker für einen bis acht Spieler, eine ganze Runde; Killer bra
 
 - 1 bis 20 Runden, eingestellt in *Übungsspiel Count-Up-Runden*, standardmäßig 8. Jeder Dart bringt seinen Wert.
 - Die meisten Punkte gewinnen. Bei Gleichstand an der Spitze spielen die Gleichauf-Liegenden Zusatzrunden, bis einer von ihnen nach einer Runde vorn liegt.
+
+### Bermuda
+
+<img src="images/de/bermuda.webp" alt="Animation: Bermuda für Alex und Sam auf der Anzeigetafel. Beide punkten auf der 12, Sam verfehlt die 13 und fällt von 48 auf 24 Punkte, und Alex klettert auf der 14 auf 167" width="760">
+
+- Dreizehn Runden ab 0 Punkten, wie [play.autodarts.io](https://play.autodarts.io) sie spielt: 12, 13, 14, ein beliebiges Double, 15, 16, 17, ein beliebiges Triple, 18, 19, 20, das Bull und das Bullseye.
+- Treffer bringen ihre Punkte. *Beliebiges Double* schließt das Bullseye ein. In der zwölften Runde, *Bull (25/50)*, zählen beide Bulls; in der letzten, *Bullseye (50)*, nur das Bullseye.
+- Eine Aufnahme ohne Treffer aufs Ziel halbiert die Punkte, abgerundet, auch wenn weniger als drei Darts geworfen wurden. *Übungsspiel Bermuda halbieren ohne Treffer* schaltet das ab, sodass ein Fehlwurf nur nichts bringt; eine Änderung startet ein Bermuda-Spiel neu.
+- Die meisten Punkte nach 13 Runden gewinnen; Gleichstände werden wie bei Shanghai entschieden.
+
+### Round the World
+
+<img src="images/de/round-the-world.webp" alt="Animation: Round the World für Alex und Sam auf der Anzeigetafel. Alex trifft 1, 2 und 3 in einer Aufnahme, Sam 1 und 2, und jede Kachel zeigt, wie viele der 21 Ziele der Spieler geschafft hat" width="760">
+
+- Jeder Spieler geht für sich einmal ums Board: die Zahlen 1 bis 20, dann das Bull. *Übungsspiel Round-the-World-Reihenfolge* spielt 1 bis 20 (`ascending`, die Vorgabe), 20 bis 1 (`descending`) oder die Zahlen in jedem Leg in einer neuen zufälligen Reihenfolge (`random`); das Bull kommt immer zuletzt. Eine Änderung startet ein Round-the-World-Spiel neu.
+- Jedes Feld des Ziels erledigt es, und der nächste Dart zielt auf das nächste Ziel, auch innerhalb einer Aufnahme. Single-Bull und Bullseye erledigen beide das Bull.
+- Jeder Treffer bringt seine Punkte, ein Triple 3 also neun. Die Kacheln zeigen die Punkte und wie viele der 21 Ziele jeder Spieler geschafft hat.
+- Wer zuerst das Bull erledigt, gewinnt sofort; spätere Darts der Aufnahme zählen nicht.
+
+### Gotcha
+
+<img src="images/de/gotcha.webp" alt="Animation: Gotcha bis 101 für Alex und Sam auf der Anzeigetafel. Sam erreicht Alex' 75 und schickt Alex auf 0 zurück, Alex klettert auf 86, und Sam checkt mit Double 10 aus" width="760">
+
+- Alle zählen von 0 hoch bis zur Zielpunktzahl: standardmäßig 301, 101 bis 1001 in *Übungsspiel Gotcha-Zielpunktzahl*. Eine Änderung startet ein Gotcha-Spiel neu.
+- Das Leg endet, wie es der *Übungsspiel Out-Modus* verlangt, wie X01 andersherum: auf jedem Dart (Straight), auf einem Double oder dem Bullseye (Double) oder auch auf einem Triple (Master). Ein neuer Out-Modus ändert ein Leg nur vor seinem ersten Dart.
+- Ein Dart, der über die Zielpunktzahl hinausgeht, mit Double- oder Master-Out 1 übrig lässt oder das Ziel mit einem Dart erreicht, den der Out-Modus nicht nimmt, überwirft die Aufnahme: Sie zählt nichts.
+- **Gotcha:** Ein Dart, der dich genau auf die Punktzahl eines anderen Spielers bringt, schickt diesen auf 0 zurück. Eine überworfene Aufnahme nimmt ihre Gotchas zurück.
+- Die Kacheln zeigen die Punkte jedes Spielers und was ihm noch fehlt. Wer zuerst auscheckt, gewinnt sofort.
+- Anders als auf play.autodarts.io hat Gotcha hier kein Rundenlimit: *Übungsspiel maximale Runden* gilt nur für X01, und ein Leg läuft, bis jemand auscheckt.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/gotcha-rules-dark.png">
+  <img src="images/de/gotcha-rules-light.png" alt="Was ein Dart bei Gotcha bewirkt: Ein Dart zählt seine Punkte dazu. Über die Zielpunktzahl hinaus, bei 1 Rest mit Double- oder Master-Out oder auf der Zielpunktzahl mit einem Dart, der nicht zum Out-Modus passt, ist die Aufnahme überworfen und zählt nichts, auch ihre Gotchas nicht. Auf der Zielpunktzahl mit einem passenden Dart gewinnt der Spieler das Leg. Darunter fällt jeder andere Spieler mit genau der neuen Punktzahl auf 0 zurück, und der nächste Dart folgt" width="460">
+</picture>
 
 ## Trainingsspiele
 

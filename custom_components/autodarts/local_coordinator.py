@@ -1794,6 +1794,12 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.practice.set_rounds(golf_holes, count_up_rounds)
         await self._async_training([])
 
+    async def async_set_party_rule(self, rule: str, value: str | int) -> None:
+        """The order of Round the World or the target score of Gotcha; the
+        game being played starts anew."""
+        self.practice.set_party_rule(rule, value)
+        await self._async_training([])
+
     async def async_set_achievements(self, enabled: bool) -> None:
         """Achievements reached while they were off unlock quietly when on again."""
         self.progress.enable(enabled, self.practice.profiles, dt_util.now())
@@ -1844,6 +1850,9 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         out_mode: str | None = None,
         bull_mode: str | None = None,
         max_rounds: int | None = None,
+        halve_on_miss: bool | None = None,
+        order: str | None = None,
+        target_score: int | None = None,
     ) -> None:
         """Set up a practice game in one step; unset values stay as they are.
         Double in and double out set the In and Out mode to double or straight."""
@@ -1859,9 +1868,16 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             ("bull_off_distance", bull_off_distance),
             ("teams", teams),
             ("three_in_a_bed", three_in_a_bed),
+            ("bermuda_halve_on_miss", halve_on_miss),
         ):
             if value is not None:
                 practice.set_option(option, value)
+        for party_rule, chosen in (
+            ("round_the_world_order", order),
+            ("gotcha_target", target_score),
+        ):
+            if chosen is not None:
+                practice.set_party_rule(party_rule, chosen)
         for rule, setting in (
             ("in_mode", in_mode),
             ("out_mode", out_mode),

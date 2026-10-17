@@ -14,7 +14,7 @@ from .bot import MAX_DELAY, MAX_LEVEL, MIN_LEVEL, valid_level
 from .const import DOMAIN
 from .entity import AutodartsLocalEntity
 from .local_coordinator import AutodartsLocalCoordinator
-from .party import MAX_ROUNDS
+from .party import GOTCHA_TARGETS, MAX_ROUNDS
 from .practice import (
     MAX_LEGS,
     MAX_PLAYERS,
@@ -60,6 +60,7 @@ async def async_setup_entry(
                 ),
                 AutodartsMaxRounds(coordinator),
                 AutodartsCountUpRounds(coordinator),
+                AutodartsGotchaTarget(coordinator),
                 AutodartsTournamentSeconds(coordinator, "pause"),
                 AutodartsTournamentSeconds(coordinator, "summary"),
                 AutodartsBotLevel(coordinator),
@@ -259,6 +260,30 @@ class AutodartsCountUpRounds(AutodartsLocalEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_party_rounds(count_up_rounds=int(value))
+
+
+class AutodartsGotchaTarget(AutodartsLocalEntity, NumberEntity):
+    """The target score of Gotcha; a change starts a game of Gotcha anew."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_native_min_value = GOTCHA_TARGETS[0]
+    _attr_native_max_value = GOTCHA_TARGETS[1]
+    _attr_native_step = 1
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+        super().__init__(coordinator, "practice_gotcha_target")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.practice.gotcha_target
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.async_set_party_rule("gotcha_target", int(value))
 
 
 class AutodartsTournamentSeconds(AutodartsLocalEntity, NumberEntity):

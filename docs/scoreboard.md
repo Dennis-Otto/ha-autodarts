@@ -150,7 +150,7 @@ With `caller: true`, the screen at the board calls the game itself, through the 
 It calls only what counts, in the language of the screen's user: English, German, Dutch, French or Spanish.
 
 - **X01:** the points of a visit, "No score" for a bust or a visit before the opening double, "you require 81" whenever the remaining score can be finished, "leave yourself 32" when only a setup is possible, the game shot of a leg and the match, and a fanfare for a 180. The bot is called *Bot*.
-- **Cricket games:** the marks of a visit, such as "5 marks". **Shanghai** and **Halve-It:** the points on the target; **Count-Up:** the points of the visit; **Baseball:** the runs.
+- **Cricket games:** the marks of a visit, such as "5 marks". **Shanghai**, **Halve-It** and **Bermuda:** the points on the target; **Count-Up** and **Round the World:** the points of the visit; **Gotcha:** the points of the visit, or "No score" for a visit that went too far; **Baseball:** the runs.
 - **Checkout training, 121 checkout and Catch 40:** what the next attempt requires.
 - **Tournaments:** every match as it starts, "Next match: Alex against Sam", and the winner of the tournament.
 - Darts after a bust or a game shot are not called. Killer, Golf and the other training games get no score calls.

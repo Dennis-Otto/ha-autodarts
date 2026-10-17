@@ -33,7 +33,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 ## Warum
 
 - **Sofort und lokal.** Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direkt vom Board Manager in deinem Netzwerk. Kein Konto, keine Cloud, keine Client-ID.
-- **Ein ganzer Dartabend.** X01 von 101 bis 1001, vier Cricket-Spiele, sechs Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu acht, mit einer Anzeigetafel für das Tablet am Board.
+- **Ein ganzer Dartabend.** X01 von 101 bis 1001, vier Cricket-Spiele, neun Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu acht, mit einer Anzeigetafel für das Tablet am Board.
 - **Deine Entwicklung in Zahlen.** Averages, Trefferbilder der echten Dart-Positionen, Bestleistungen, Abzeichen, Wochentrends, Spielerprofile, ein Wochenbericht und ein Jahr Verlauf, alles bei dir zu Hause.
 - **Dein Zuhause spielt mit.** Licht für eine 180, ein Caller auf deinen Lautsprechern, das Boardlicht bei der Entnahme, ein Foto deines besten Checkouts.
 
@@ -45,7 +45,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 
 - X01 von 101 bis 1001 mit Straight, Double und Master In und Out, dem 50/50-Bull, einer Rundengrenze und dem Checkout-Weg nach jedem Dart
 - Cricket, Cut-Throat Cricket, Tactics und Wild Mouse auf einer Kreidetafel
-- Partyspiele für bis zu acht: Shanghai, Halve-It, Killer, Golf, Baseball und Count-Up
+- Partyspiele für bis zu acht: Shanghai, Halve-It, Killer, Golf, Baseball, Count-Up, Bermuda, Round the World und Gotcha
 - Turniere mit drei bis acht Spielern: jeder gegen jeden mit Tabelle oder K.-o.-System mit Turnierbaum
 
 <details>

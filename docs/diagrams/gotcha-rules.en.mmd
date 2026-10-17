@@ -1,0 +1,14 @@
+flowchart TB
+  accTitle: What a dart does in Gotcha
+  accDescr: A dart adds its points. Past the target score, on 1 left with double or master out, or on the target with a dart that does not fit the out mode, the visit busts and counts nothing, its gotchas included. On the target with a fitting dart, the player wins the leg. Below the target, every other player on exactly the new score goes back to 0, and the next dart follows.
+  DART["A dart adds<br/>its points"] --> WHERE{"Where does it<br/>leave the player?"}
+  WHERE -- "past the target,<br/>1 left with double<br/>or master out,<br/>or on the target with<br/>a dart that doesn't<br/>fit the out mode" --> BUST["Bust: the visit<br/>counts nothing,<br/>its gotchas included"]
+  WHERE -- "on the target with<br/>a fitting dart" --> WON["Game shot:<br/>the leg is won"]
+  WHERE -- "below the target" --> SAME{"Another player on<br/>exactly this score?"}
+  SAME -- "yes" --> GOTCHA["Gotcha: that player<br/>goes back to 0"]
+  SAME -- "no" --> NEXT["The next dart"]
+  GOTCHA --> NEXT
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class WON done
+  class BUST,GOTCHA warn

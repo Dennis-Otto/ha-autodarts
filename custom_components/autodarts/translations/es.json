@@ -483,6 +483,9 @@
       },
       "practice_three_in_a_bed": {
         "name": "Three in a bed de la partida Wild Mouse"
+      },
+      "practice_bermuda_halve_on_miss": {
+        "name": "Mitad sin acierto de la partida Bermuda"
       }
     },
     "select": {
@@ -520,6 +523,9 @@
           "golf": "Golf",
           "baseball": "Baseball",
           "count_up": "Count-Up",
+          "bermuda": "Bermuda",
+          "round_the_world": "Round the World",
+          "gotcha": "Gotcha",
           "checkout_121": "121 checkout",
           "catch_40": "Catch 40",
           "jdc_challenge": "JDC Challenge",
@@ -563,6 +569,14 @@
       },
       "practice_golf_holes": {
         "name": "Hoyos de Golf de la partida"
+      },
+      "practice_round_the_world_order": {
+        "name": "Orden de Round the World de la partida",
+        "state": {
+          "ascending": "1 a 20, bull",
+          "descending": "20 a 1, bull",
+          "random": "Aleatorio, bull"
+        }
       },
       "tournament_format": {
         "name": "Formato del torneo",
@@ -611,6 +625,9 @@
       },
       "practice_count_up_rounds": {
         "name": "Rondas de Count-Up de la partida"
+      },
+      "practice_gotcha_target": {
+        "name": "Puntuación objetivo de Gotcha de la partida"
       },
       "tournament_pause": {
         "name": "Pausa del torneo"
@@ -1138,6 +1155,18 @@
           "name": "Rondas de Count-Up",
           "description": "Rondas de Count-Up, de 1 a 20."
         },
+        "halve_on_miss": {
+          "name": "Mitad en Bermuda",
+          "description": "Bermuda: una tirada sin acierto divide los puntos a la mitad, como en play.autodarts.io. Desactivado, los puntos se mantienen."
+        },
+        "order": {
+          "name": "Orden de Round the World",
+          "description": "El orden de los números en Round the World antes del bull: 1 a 20, 20 a 1 o aleatorio."
+        },
+        "target_score": {
+          "name": "Puntuación objetivo de Gotcha",
+          "description": "La puntuación hasta la que cuenta Gotcha, de 101 a 1001; el modo de salida decide cómo termina."
+        },
         "bot_level": {
           "name": "Nivel del bot",
           "description": "Juega contra el bot en X01 y los juegos de Cricket: la media de 3 dardos con la que juega, de 20 a 120; con 0 se juega sin el bot. El bot ocupa el puesto después de los jugadores."
@@ -1450,10 +1479,20 @@
         "golf": "Golf",
         "baseball": "Baseball",
         "count_up": "Count-Up",
+        "bermuda": "Bermuda",
+        "round_the_world": "Round the World",
+        "gotcha": "Gotcha",
         "checkout_121": "121 checkout",
         "catch_40": "Catch 40",
         "jdc_challenge": "JDC Challenge",
         "singles": "Entrenamiento de simples"
+      }
+    },
+    "world_order": {
+      "options": {
+        "ascending": "1 a 20, bull",
+        "descending": "20 a 1, bull",
+        "random": "Aleatorio, bull"
       }
     },
     "x01_mode": {

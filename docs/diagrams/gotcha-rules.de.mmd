@@ -1,0 +1,14 @@
+flowchart TB
+  accTitle: Was ein Dart bei Gotcha bewirkt
+  accDescr: Ein Dart zählt seine Punkte dazu. Über die Zielpunktzahl hinaus, bei 1 Rest mit Double- oder Master-Out oder auf der Zielpunktzahl mit einem Dart, der nicht zum Out-Modus passt, ist die Aufnahme überworfen und zählt nichts, auch ihre Gotchas nicht. Auf der Zielpunktzahl mit einem passenden Dart gewinnt der Spieler das Leg. Darunter fällt jeder andere Spieler mit genau der neuen Punktzahl auf 0 zurück, und der nächste Dart folgt.
+  DART["Ein Dart zählt<br/>seine Punkte dazu"] --> WHERE{"Wo steht der<br/>Spieler danach?"}
+  WHERE -- "über dem Ziel,<br/>1 Rest mit Double-<br/>oder Master-Out,<br/>oder auf dem Ziel mit<br/>einem Dart, der nicht<br/>zum Out-Modus passt" --> BUST["Überworfen: Die<br/>Aufnahme zählt nichts,<br/>auch ihre Gotchas nicht"]
+  WHERE -- "auf dem Ziel mit<br/>einem passenden Dart" --> WON["Game Shot:<br/>Das Leg ist gewonnen"]
+  WHERE -- "unter dem Ziel" --> SAME{"Steht ein anderer<br/>Spieler genau auf<br/>dieser Punktzahl?"}
+  SAME -- "ja" --> GOTCHA["Gotcha: Dieser<br/>Spieler fällt auf 0"]
+  SAME -- "nein" --> NEXT["Der nächste Dart"]
+  GOTCHA --> NEXT
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class WON done
+  class BUST,GOTCHA warn
