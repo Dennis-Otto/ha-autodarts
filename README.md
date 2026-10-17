@@ -41,6 +41,8 @@ You need Home Assistant 2026.8 or newer with [HACS](https://hacs.xyz), and an Au
 
 New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md) takes you from nothing to the scoreboard next to your board. The [installation guide](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md) covers manual installation, reconfiguration, updates and removal.
 
+Coming from Autodarts Local, another Autodarts integration or darts-caller? [Coming from another tool](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/coming-from.md) shows what takes their place and how to switch. Short answers to the common questions are in the [FAQ](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/faq.md).
+
 ## Why
 
 - **Instant and local.** Darts appear in Home Assistant a fraction of a second after they land, straight from the Board Manager in your network. No account, no cloud, no client ID.
@@ -149,13 +151,31 @@ New to Home Assistant? [From zero to the scoreboard](https://github.com/Dennis-O
 
 [How it works →](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md)
 
+## How it compares
+
+How this integration compares with the Autodarts app and its browser extension, with darts-caller and darts-wled, and with the other Home Assistant integrations for Autodarts:
+
+| | This integration | Autodarts app with [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) and [darts-wled](https://github.com/Peschi90/darts-wled) | Other Home Assistant integrations |
+| --- | --- | --- | --- | --- |
+| **Runs without the cloud** | Yes, with the [local interface](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md#privacy) of the Board Manager | No, with an [Autodarts account](https://autodarts.com/) | No, darts-caller [signs in to Autodarts](https://github.com/Peschi90/darts-caller#autodarts-login) | Some of them ([details](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/coming-from.md#can-it-stay)) |
+| **Entities and events in Home Assistant** | Yes, an [event](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/entities.md#board-events) for every dart, visit, takeout, bust, leg and match | No | No | Sensors of the current visit or game |
+| **Blueprints** | [Thirteen blueprints](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#blueprints) | No | No | No |
+| **Light show** | [Light show](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#light-show) blueprint, for WLED or any light | WLED, with Tools | WLED, with darts-wled | Your own automations |
+| **Caller** | On the [scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md#the-caller) or your [speakers](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#which-caller) | In the app, with a premium voice in [Plus](https://autodarts.com/); more with Tools | Voice packs, with darts-caller | No |
+| **Statistics kept at home** | [Yes](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md): averages, heatmaps, profiles and a year of history | No, in the Autodarts account | No | No |
+| **Without an Autodarts board** | Yes, on a [keypad](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md) | Yes, on a keypad or with [Lens](https://autodarts.com/) | No | No |
+| **Online matches** | Your darts, and the moments of the match through the [online bridge](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/online-matches.md) *(experimental)* | Yes | Yes | Some of them, through the cloud |
+| **License and cost** | [MIT](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), free | Autodarts: a free plan and the paid [Plus](https://autodarts.com/); Tools: [CC BY-NC 4.0](https://github.com/creazy231/tools-for-autodarts/blob/main/LICENSE) | Free, no license stated | MIT, Apache 2.0 or no license file |
+
+*As of October 2026, from the documentation and the code of each project. [Coming from another tool](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/coming-from.md) has the details, the sources and how to switch.*
+
 ## Requirements
 
 **Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network, or any dartboard whose darts you enter on a keypad ([play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md)). No Autodarts account is needed.
 
 - **Board Manager 2**, Autodarts 2 without a screen, is recommended and tested up to 2.0.2; the classic **Board Manager 1** works too.
 - A player reports that **Autodarts Desktop** 2.0.2 on Linux works too.
-- Autodarts Desktop on Windows and the Winmau Autodarts devices such as Autodarts X or Lens have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not.
+- Autodarts Desktop on Windows and Winmau Autodarts devices such as Autodarts X have not been tested yet; a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not.
 
 ## Blueprints
 
@@ -230,6 +250,8 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 - [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md): for Autodarts players without Home Assistant, from nothing to the first game on the scoreboard
 - [Installation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md): requirements, HACS and manual installation, the ways to add a board, updates and removal
 - [Play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md): any dartboard with every game, the training and the statistics, its darts entered on a keypad
+- [Frequently asked questions](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/faq.md): account, devices, online play, privacy, several boards, screens, languages, updates and switching, in short answers
+- [Coming from another tool](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/coming-from.md): Autodarts Local, the other integrations, MQTT bridges, darts-caller, darts-wled and Tools for Autodarts compared, and how to switch
 
 ### Guides
 
@@ -265,7 +287,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 
 ## Support and contributing
 
-- **Questions and ideas:** [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions). **Bugs:** [issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), with the diagnostics of your board. [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) explains where to ask what.
+- **Questions and ideas:** the [FAQ](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/faq.md) answers the common ones; ask the rest in [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions). **Bugs:** [issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), with the diagnostics of your board. [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) explains where to ask what.
 - **Tried it?** A [tester report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml) tells us what worked, what didn't and what you miss; short answers are fine.
 - **Speak German, Dutch, French or Spanish?** The [translation issues](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) name the texts that are missing or outdated in your language, and how to fix them in the browser, no programming needed.
 - **Security:** report vulnerabilities privately as described in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md).

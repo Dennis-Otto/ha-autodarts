@@ -13,6 +13,8 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 - [From zero to the scoreboard](getting-started.md): for Autodarts players without Home Assistant: set up Home Assistant and HACS, install the integration, add the board and play the first game on the scoreboard
 - [Installation and setup](installation.md): requirements, HACS and manual installation, the ways to add a board, the optional cloud link, reconfiguration, updating and removal
 - [Play without Autodarts](without-autodarts.md): any dartboard with every game, the training and the statistics: set it up, enter the darts on a keypad, and what is different
+- [Frequently asked questions](faq.md): short answers about the account, devices, online play, privacy, several boards, screens, languages, updates and switching
+- [Coming from another tool](coming-from.md): how this integration compares with Autodarts Local, the other integrations, MQTT bridges, darts-caller, darts-wled and Tools for Autodarts, and how to switch from them
 
 ## Guides
 
@@ -107,7 +109,7 @@ Start the detection when you enter the darts room, stop it when you leave, and g
 | Board Manager 1 (classic app) | 1.x | 1.0.7 |
 | Autodarts Desktop on Linux | Works, as reported by a player | 2.0.2 on Ubuntu 24.04 ([report](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) |
 | Autodarts Desktop on Windows and other systems | Not tested yet | – |
-| Winmau Autodarts devices such as Autodarts X or Lens | Not tested yet | – |
+| Winmau Autodarts devices such as Autodarts X | Not tested yet | – |
 | Cameras | Any number supported by the Board Manager | 3 |
 | Home Assistant | 2026.8 or newer | 2026.8.0 and 2026.9.4 |
 

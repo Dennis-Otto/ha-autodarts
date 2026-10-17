@@ -92,6 +92,14 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
 </div>
 
+## How it compares
+
+How this integration compares with the Autodarts app and its browser extension, with darts-caller and darts-wled, and with the other Home Assistant integrations for Autodarts. [Coming from another tool](coming-from.md) shows how to switch.
+
+--8<-- "docs/coming-from.md:compare"
+
+*As of October 2026, from the documentation and the code of each project. [Coming from another tool](coming-from.md) has the details and the sources.*
+
 ## Guides
 
 <div class="grid cards" markdown>
@@ -113,6 +121,18 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
     ---
 
     Any dartboard, with every game, the training and the statistics: you enter the darts on a keypad.
+
+- :material-frequently-asked-questions:{ .lg .middle } [**Frequently asked questions**](faq.md)
+
+    ---
+
+    Short answers about the account, devices, online play, privacy, several boards, screens, languages, updates and switching.
+
+- :material-swap-horizontal:{ .lg .middle } [**Coming from another tool**](coming-from.md)
+
+    ---
+
+    Autodarts Local, the other integrations, MQTT bridges, darts-caller, darts-wled and Tools for Autodarts compared, and how to switch from them.
 
 - :material-bullseye-arrow:{ .lg .middle } [**Games and rules**](games.md)
 
