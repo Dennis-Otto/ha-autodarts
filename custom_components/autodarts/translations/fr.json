@@ -856,6 +856,48 @@
     "highlight_failed": {
       "message": "Impossible d'enregistrer la photo de temps fort\u00a0: {error}"
     },
+    "voice_pack_no_score": {
+      "message": "Aucun point"
+    },
+    "voice_pack_bust": {
+      "message": "Aucun point"
+    },
+    "voice_pack_leg": {
+      "message": "Game shot, et la manche\u00a0!"
+    },
+    "voice_pack_match": {
+      "message": "Game shot, et le match\u00a0!"
+    },
+    "voice_pack_require": {
+      "message": "Il vous reste"
+    },
+    "voice_pack_require_score": {
+      "message": "Il vous reste {remaining}"
+    },
+    "voice_pack_name": {
+      "message": "Le pack de voix {pack} n'a pas de nom de dossier valide\u00a0: jusqu'à 64 lettres, chiffres, espaces, points, tirets et tirets bas, qui commencent et finissent par une lettre ou un chiffre."
+    },
+    "voice_pack_engine_missing": {
+      "message": "Le moteur de synthèse vocale {engine} n'existe pas."
+    },
+    "voice_pack_busy": {
+      "message": "Un pack de voix est en cours de génération. Réessayez quand il sera terminé."
+    },
+    "voice_pack_no_media": {
+      "message": "Home Assistant n'a pas de dossier multimédia pour les packs de voix."
+    },
+    "voice_pack_engine": {
+      "message": "Le moteur {engine} ne peut pas parler {language} avec ces options\u00a0: {error}"
+    },
+    "voice_pack_folder": {
+      "message": "Home Assistant n'autorise pas l'écriture dans le dossier des packs de voix, {folder}."
+    },
+    "voice_pack_recorded": {
+      "message": "Le pack de voix {pack} existe et n'a pas été généré, par exemple un pack de darts-caller. Il reste tel quel\u00a0; choisissez un autre nom."
+    },
+    "voice_pack_failed": {
+      "message": "Impossible de générer le pack de voix {pack}\u00a0: {error}"
+    },
     "unknown_person": {
       "message": "Il n'existe aucune personne {person} dans Home Assistant."
     },
@@ -1228,6 +1270,42 @@
         "label": {
           "name": "Libellé",
           "description": "Facultatif. Ce que montre la photo, à la fin de son nom, par exemple 180 ou checkout-121. La galerie affiche un nombre comme le score."
+        }
+      }
+    },
+    "voice_sound": {
+      "name": "Son d'un pack de voix",
+      "description": "Cherche le son d'une annonce dans un pack de voix de autodarts/voices du dossier multimédia, pour un lecteur multimédia\u00a0: la première des clés que le pack possède, comme 180, busted ou yr_40, et l'un de ses fichiers au hasard. La réponse est vide si le pack n'en a aucune, pour que l'annonce soit dite par la voix à la place. Les blueprints de l'annonceur l'utilisent.",
+      "fields": {
+        "pack": {
+          "name": "Pack de voix",
+          "description": "Le dossier du pack dans autodarts/voices du dossier multimédia, par exemple russ-bray."
+        },
+        "keys": {
+          "name": "Clés",
+          "description": "Les clés du son\u00a0; la première que le pack possède compte, par exemple yr_40 et you_require. Ce sont les noms de fichier des packs de voix de darts-caller\u00a0: 0 à 180, busted, gameshot, matchshot, yr_2 à yr_170, s1 à t20, bull, bullseye, outside ou le nom d'un joueur."
+        }
+      }
+    },
+    "generate_voice_pack": {
+      "name": "Générer un pack de voix",
+      "description": "Enregistre un pack de voix pour l'annonceur avec un moteur de synthèse vocale, comme Piper pour une voix qui reste à la maison\u00a0: chaque score de 0 à 180, aucun point, le game shot et le match, ce qu'il reste à un joueur et chaque fléchette, sous les noms de fichier des packs de voix de darts-caller dans autodarts/voices du dossier multimédia. Cela prend quelques minutes, un pack à la fois, et remplace un pack généré auparavant, jamais un pack que vous y avez copié. Réservée aux administrateurs\u00a0; les automatisations peuvent aussi l'utiliser.",
+      "fields": {
+        "tts_entity": {
+          "name": "Moteur de synthèse vocale",
+          "description": "Le moteur qui parle, par exemple Piper ou Home Assistant Cloud."
+        },
+        "language": {
+          "name": "Langue",
+          "description": "La langue de la voix, par exemple fr-FR ou en-GB. Les annonces sont dans sa langue, en anglais pour une langue que l'intégration ne parle pas."
+        },
+        "pack": {
+          "name": "Pack de voix",
+          "description": "Le nom du pack, un dossier de autodarts/voices du dossier multimédia, par exemple piper-fr."
+        },
+        "voice": {
+          "name": "Voix",
+          "description": "Facultatif. Une voix du moteur, par exemple fr_FR-siwis-medium pour Piper. Sans elle, le moteur parle avec la sienne."
         }
       }
     },

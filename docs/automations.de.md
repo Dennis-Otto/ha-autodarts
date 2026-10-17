@@ -42,6 +42,8 @@ Die Blueprints sind auf Englisch beschriftet; ihre Texte kannst du beim Anlegen 
 - **Practice caller:** sagt an, worauf es im Übungsspiel ankommt: Rest, Überwerfen, Game shot und auf Wunsch das Ausbullen.
 - **Caller der Anzeigetafel:** Die [Anzeigetafel](scoreboard.de.md#der-caller) sagt Aufnahmen und Übungsspiel mit einer Stimme an, über den Browser des Bildschirms am Board. Dafür brauchst du keine Lautsprecher in Home Assistant.
 
+Alle drei können mit einem Voice-Pack aus aufgenommenen Sounds ansagen, etwa einem von darts-caller: siehe [Voice-Packs der Caller](#voice-packs-der-caller) und [der Anzeigetafel](scoreboard.de.md#voice-packs).
+
 ## Einstellungen der Blueprints
 
 Jeder Blueprint zeigt diese Einstellungen, wenn du eine Automation daraus anlegst: Wähle den Blueprint auf der Blueprint-Seite, fülle das Formular aus und speichere. Einstellungen mit Standardwert sind optional.
@@ -66,6 +68,7 @@ Jeder Blueprint zeigt diese Einstellungen, wenn du eine Automation daraus anlegs
 | Speakers | | Die Mediaplayer, die die Ansagen abspielen. |
 | Language | leer | Die Sprache der Stimme, etwa `de-DE`; leer nutzt die Sprache der Sprachausgabe. |
 | Voice options | leer | Optionen der Sprachausgabe, etwa `voice: ...` für eine andere Stimme. |
+| Voice pack | leer | Ein [Voice-Pack](#voice-packs-der-caller) in `autodarts/voices` des Medienordners, etwa ein Pack von darts-caller. Seine Sounds sagen die Aufnahmen und Darts an, die es hat; den Rest spricht die Sprachausgabe. |
 | Call every dart | aus | Sagt zusätzlich jeden Dart an, sobald er landet. Der dritte Dart wird nicht einzeln angesagt, weil gleich die Aufnahme folgt. |
 | Stay silent in practice games | an | Überlässt die Ansagen dem Übungs-Caller, solange ein X01-, Cricket- oder Partyspiel der Integration läuft. |
 | Visit message | `{{ score }}` | Wird nach einer Aufnahme gesagt. Nutzbar sind `score`, `darts` und `segments`. |
@@ -151,6 +154,7 @@ Lass die Kalibrierungstaste leer, wenn die Board-Einstellung *Beim Start kalibri
 | --- | --- | --- |
 | Board events | | Die Entität *Ereignisse* deines Boards. |
 | Text-to-speech engine, Speakers, Language, Voice options | | Wie beim Dart caller. |
+| Voice pack | leer | Ein [Voice-Pack](#voice-packs-der-caller): Seine Sounds sagen Überworfen, Game shots, das Match und, wenn du allein spielst, was du brauchst, an; jede andere Ansage spricht die Sprachausgabe. |
 | Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Wird gesagt, wenn die nächste Aufnahme das Leg beenden kann. |
 | No checkout, a setup | leer | Wird gesagt, wenn die nächste Aufnahme das Leg nicht beenden, aber ein Finish stellen kann, mit `leave` und `setup`, etwa `{{ who ~ ', leave' if who else 'Leave' }} yourself {{ leave }}`. Leer nutzt den Text von *Next player*. |
 | Next player | leer | Wird gesagt, wenn die nächste Aufnahme das Leg nicht beenden kann. Leer bleibt stumm. |
@@ -391,6 +395,17 @@ data:
   title: "{{ title }}"
   message: "{{ message }}"
 ```
+
+### Voice-Packs der Caller
+
+Mit *Voice pack* spielen Dart caller und Practice caller aufgenommene Sounds auf den Lautsprechern statt der Stimme der Sprachausgabe: ein Pack von [darts-caller](https://github.com/lbormann/darts-caller) oder eines, das [`autodarts.generate_voice_pack`](entities.de.md#ein-voice-pack-aufnehmen-autodartsgenerate_voice_pack) aufgenommen hat, in einem Ordner in `autodarts/voices` des Medienordners, wie für die [Anzeigetafel](scoreboard.de.md#voice-packs). Die Blueprints fragen [`autodarts.voice_sound`](entities.de.md#einen-sound-eines-voice-packs-finden-autodartsvoice_sound) nach dem Sound jeder Ansage und spielen ihn mit `media_player.play_media` ab; eine Ansage, für die das Pack keinen Sound hat, spricht die Sprachausgabe mit deiner Nachricht.
+
+| Blueprint | Ansagen mit einem Sound des Packs |
+| --- | --- |
+| Dart caller | Die Punkte einer Aufnahme, `0` bis `180`; jeder Dart: `t20`, `d16`, `s5` oder `5`, `bull` für die 25, `bullseye`, und `outside` für einen Fehlwurf |
+| Practice caller | `busted`, `gameshot` und `matchshot`, auch im Match; was du brauchst, wenn du allein spielst, `yr_40`. Eine Ansage, die den Spieler am Board nennt, und ein Leg oder Match, das das Rundenlimit entscheidet, bleiben bei der Sprachausgabe |
+
+Auf einem Mediaplayer ersetzt ein neuer Sound den laufenden, deshalb ist jede Ansage der Blueprints ein einziger Sound; die [Anzeigetafel](scoreboard.de.md#voice-packs) spielt auch Ansagen aus mehreren Sounds nacheinander, etwa einen Namen, `you_require` und `40`. Eine leere Nachricht bleibt still, auch mit einem Voice-Pack. Voice-Packs brauchen Version 1.15.0 oder neuer der Integration.
 
 ### Highlight-Foto aufs Handy
 

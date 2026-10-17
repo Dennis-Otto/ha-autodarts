@@ -160,7 +160,7 @@ Was Home Assistant jetzt übernimmt:
 
 | darts-caller und darts-wled | Hier |
 | --- | --- |
-| Ansagen von Punkten und Checkouts | Der [Caller der Anzeigetafel](scoreboard.de.md#der-caller), über den Bildschirm am Board, oder die Blueprints [Dart caller](automations.de.md#dart-caller) und [Practice caller](automations.de.md#practice-caller) auf deinen Lautsprechern |
+| Ansagen von Punkten und Checkouts | Der [Caller der Anzeigetafel](scoreboard.de.md#der-caller), über den Bildschirm am Board, oder die Blueprints [Dart caller](automations.de.md#dart-caller) und [Practice caller](automations.de.md#practice-caller) auf deinen Lautsprechern; beide spielen auch die [Voice-Packs](scoreboard.de.md#voice-packs) von darts-caller |
 | WLED-Effekte für eine 180, ein Überwerfen oder einen Game shot | Der Blueprint [Light show](automations.de.md#light-show) mit deinen [WLED-Presets oder anderem Licht](automations.de.md#lichtshow-mit-wled-und-anderem-licht) |
 | Spielereignisse für andere Programme | [Board-Ereignisse](entities.de.md#board-ereignisse) für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match, für jede Automation von Home Assistant |
 

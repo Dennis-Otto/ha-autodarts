@@ -358,6 +358,8 @@ const TEXT = {
     caller_hint: "Tap to switch the caller on or off",
     caller_options: "Caller options",
     caller_options_helper: "These calls are made while the caller is on.",
+    caller_voice: "Voice pack",
+    caller_voice_helper: "A folder of /media/autodarts/voices with recorded calls, such as a voice pack of darts-caller. Empty uses the voice of the browser, which also says what the pack lacks.",
     call_scores: "Call every visit",
     call_checkouts: "Call what a player requires",
     call_results: "Call game shots and busts",
@@ -994,6 +996,8 @@ const TEXT = {
     caller_hint: "Tippen schaltet den Caller ein oder aus",
     caller_options: "Caller-Optionen",
     caller_options_helper: "Diese Ansagen macht der Caller, solange er an ist.",
+    caller_voice: "Voice-Pack",
+    caller_voice_helper: "Ein Ordner in /media/autodarts/voices mit aufgenommenen Ansagen, etwa ein Voice-Pack von darts-caller. Leer spricht die Stimme des Browsers, die auch sagt, was dem Pack fehlt.",
     call_scores: "Jede Aufnahme ansagen",
     call_checkouts: "Ansagen, was ein Spieler braucht",
     call_results: "Game shot und Überwerfen ansagen",
@@ -1621,6 +1625,8 @@ const TEXT = {
     caller_hint: "Toca para activar o desactivar el locutor",
     caller_options: "Opciones del locutor",
     caller_options_helper: "El locutor hace estos anuncios mientras está activado.",
+    caller_voice: "Paquete de voz",
+    caller_voice_helper: "Una carpeta de /media/autodarts/voices con anuncios grabados, como un paquete de voz de darts-caller. Vacío, habla la voz del navegador, que también dice lo que le falta al paquete.",
     call_scores: "Anunciar cada tirada",
     call_checkouts: "Anunciar lo que le queda a cada jugador",
     call_results: "Anunciar game shots y busts",
@@ -2246,6 +2252,8 @@ const TEXT = {
     caller_hint: "Touchez pour activer ou désactiver l'annonceur",
     caller_options: "Options de l'annonceur",
     caller_options_helper: "L'annonceur fait ces annonces tant qu'il est activé.",
+    caller_voice: "Pack de voix",
+    caller_voice_helper: "Un dossier de /media/autodarts/voices avec des annonces enregistrées, comme un pack de voix de darts-caller. Vide, c'est la voix du navigateur qui parle, et elle dit aussi ce qui manque au pack.",
     call_scores: "Annoncer chaque volée",
     call_checkouts: "Annoncer les points restants",
     call_results: "Annoncer les game shots et les busts",
@@ -2871,6 +2879,8 @@ const TEXT = {
     caller_hint: "Tik om de caller aan of uit te zetten",
     caller_options: "Calleropties",
     caller_options_helper: "Dit roept de caller om zolang hij aanstaat.",
+    caller_voice: "Stempakket",
+    caller_voice_helper: "Een map in /media/autodarts/voices met opgenomen teksten, zoals een stempakket van darts-caller. Leeg spreekt de stem van de browser, die ook zegt wat het pakket mist.",
     call_scores: "Elke beurt omroepen",
     call_checkouts: "Omroepen wat een speler nog nodig heeft",
     call_results: "Game shots en busts omroepen",
@@ -7700,6 +7710,154 @@ function callerText(call, t) {
 // One audio context for every card; browsers allow sound only after a tap.
 const callerAudio = { unlocked: false, context: null };
 
+// Voice packs -----------------------------------------------------------------
+//
+// A voice pack is a folder of /media/autodarts/voices with recorded calls, named as darts-caller
+// names the files of its packs: 180.mp3, busted.mp3, gameshot.mp3, yr_40.mp3 or a player's name.
+// The caller plays the sounds of a call one after the other through the audio context its tap
+// unlocked, and says in the browser's voice what the pack lacks.
+
+// The pack the card's settings name; none, empty or "browser" is the browser's voice.
+function voicePackName(value) {
+  const name = typeof value === "string" ? value.trim() : "";
+  return name && name.toLowerCase() !== "browser" ? name : null;
+}
+
+// The sounds of a pack as Home Assistant lists them: key -> the addresses of its files in the
+// media folder, the only ones the card loads. Null for a pack without sounds.
+function voicePack(result) {
+  const sounds = new Map();
+  for (const [key, files] of Object.entries(result?.sounds ?? {})) {
+    const urls = Array.isArray(files) ? files.filter((url) => typeof url === "string" && url.startsWith("/media/")) : [];
+    if (urls.length) sounds.set(key, urls);
+  }
+  return sounds.size ? { sounds } : null;
+}
+
+// The parts of a call as a pack says them: its recorded sounds, and the words of a name it has
+// no sound for, whose file darts-caller names in lower case. Null when the pack cannot say the
+// call, which the browser's voice then says whole. What a player requires is one sound, yr_40,
+// or you_require and the score, c_40 or 40.
+function callerSounds(call, has, t) {
+  const sound = (key) => (has(key) ? { sound: key } : null);
+  const one = (key) => (has(key) ? [{ sound: key }] : null);
+  const name = (words) => sound(nameKey(words)) ?? { text: words };
+  if (call.kind === "score") return one(String(call.score));
+  if (call.kind === "bust") return one("busted");
+  if (call.kind === "leg") return one("gameshot");
+  if (call.kind === "match") {
+    const shot = one("matchshot");
+    return shot && call.name ? [...shot, name(call.name)] : shot;
+  }
+  if (call.kind !== "require") return null;
+  const left = call.remaining;
+  const score = sound(`c_${left}`) ?? sound(String(left));
+  const require = one(`yr_${left}`) ?? (has("you_require") && score ? [{ sound: "you_require" }, score] : null);
+  // Alone, nobody needs a name; in a match, unnamed players have a number.
+  return require && call.players > 1 ? [name(playerName({ t }, call, true)), ...require] : require;
+}
+
+// The sounds of the packs, loaded once, and the calls waiting their turn: a call never talks
+// over the one before. Switching the caller off starts a new round, which ends the calls of
+// the one before.
+const callerVoice = { queue: Promise.resolve(), round: 0, sounds: new Map(), playing: null };
+// The decoded sounds kept for the next calls, the most recent last.
+const KEPT_SOUNDS = 64;
+// How much longer than its sound or its words a part of a call may take before the next one
+// comes anyway, as when a suspended audio context never ends a sound.
+const SOUND_GRACE = 1000;
+const SPEECH_GRACE = 3000;
+const SPEECH_PER_CHARACTER = 120;
+
+// One of the files of a key, at random, as darts-caller plays them.
+const soundUrl = (urls) => urls[Math.floor(Math.random() * urls.length)];
+
+// A sound decoded for the audio context; one that failed is asked for again next time.
+function loadSound(url, fetch, context) {
+  const kept = callerVoice.sounds;
+  const sound =
+    kept.get(url) ??
+    fetch(url)
+      .then((response) => {
+        if (!response.ok) throw new Error(`${url}: ${response.status}`);
+        return response.arrayBuffer();
+      })
+      .then((data) => context.decodeAudioData(data));
+  kept.delete(url);
+  kept.set(url, sound);
+  sound.catch(() => kept.delete(url));
+  for (const old of [...kept.keys()].slice(0, -KEPT_SOUNDS)) kept.delete(old);
+  return sound;
+}
+
+// Words in the browser's voice, in the language of the card; nothing without a voice.
+function utter(text, lang) {
+  const speech = window.speechSynthesis;
+  if (!text || !speech || typeof SpeechSynthesisUtterance === "undefined") return null;
+  const utterance = new SpeechSynthesisUtterance(text);
+  // The words are those of the card's language, so the voice must be too.
+  utterance.lang = lang;
+  speech.speak(utterance);
+  return utterance;
+}
+
+// A part of a call that ends by itself, or after a while at the latest.
+function ended(target, events, wait) {
+  return new Promise((resolve) => {
+    const done = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(done, wait);
+    for (const event of events) target[event] = done;
+  });
+}
+
+function playSound(buffer, context) {
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  source.connect(context.destination);
+  const end = ended(source, ["onended"], buffer.duration * 1000 + SOUND_GRACE);
+  source.start();
+  callerVoice.playing = source;
+  return end;
+}
+
+function sayWords(text, lang) {
+  const utterance = utter(text, lang);
+  return utterance ? ended(utterance, ["onend", "onerror"], SPEECH_GRACE + text.length * SPEECH_PER_CHARACTER) : null;
+}
+
+// One call of a pack: its sounds one after the other, a name without a sound in the browser's
+// voice. A sound that does not load leaves the whole call to the browser's voice; one the
+// browser cannot play ends the call, and the next one still comes.
+async function playCall(parts, words, { round, lang, fetch, context }) {
+  let plan = parts;
+  let sounds = [];
+  try {
+    sounds = await Promise.all(parts.map((part) => (part.url ? loadSound(part.url, fetch, context) : null)));
+  } catch {
+    plan = [{ text: words }];
+  }
+  try {
+    for (const [index, part] of plan.entries()) {
+      if (round !== callerVoice.round) return;
+      await (part.url ? playSound(sounds[index], context) : sayWords(part.text, lang));
+      callerVoice.playing = null;
+    }
+  } catch {
+    // Nothing more of this call.
+  }
+}
+
+// The caller falls silent: what it plays stops, and the calls waiting are dropped.
+function silenceCaller() {
+  callerVoice.round += 1;
+  callerVoice.playing?.stop();
+  callerVoice.playing = null;
+  window.speechSynthesis?.cancel();
+}
+
 // Big moments at the board, celebrated without a word, as the banner and the caller say
 // what happened: a glow in the colour of the moment, and confetti for a 180, a game shot and
 // the match. Nothing of it moves the scoreboard, and it fades out by itself.
@@ -7950,12 +8108,12 @@ function gamesDashboardView(board) {
 }
 
 // Options of the scoreboard view that the dashboard's own settings may set.
-const STRATEGY_SCOREBOARD = ["caller", "keypad", "corrections", "idle", "lobby_games", "idle_panels"];
+const STRATEGY_SCOREBOARD = ["caller", "caller_voice", "keypad", "corrections", "idle", "lobby_games", "idle_panels"];
 
 // The options set in the dashboard's settings, without the empty ones.
 function scoreboardOptions(config) {
   const chosen = config?.scoreboard && typeof config.scoreboard === "object" ? config.scoreboard : {};
-  const set = (value) => value !== undefined && value !== null && !(Array.isArray(value) && !value.length);
+  const set = (value) => value !== undefined && value !== null && value !== "" && !(Array.isArray(value) && !value.length);
   return Object.fromEntries(STRATEGY_SCOREBOARD.filter((key) => set(chosen[key])).map((key) => [key, chosen[key]]));
 }
 
@@ -8105,6 +8263,8 @@ const colorField = (name, defaultColor) => ({
   selector: { ui_color: defaultColor ? { default_color: defaultColor } : {} },
 });
 const accentField = colorField("accent_color", "primary");
+// The voice pack of the caller, a folder of the media folder.
+const voiceField = { name: "caller_voice", selector: { text: {} } };
 // Named players to pick from; any other name can be typed in.
 const playerField = (helper) => ({
   name: "player",
@@ -8124,6 +8284,7 @@ const FORM_HELPERS = {
   accent_color: "color_helper",
   highlight_color: "highlight_color_helper",
   caller_options: "caller_options_helper",
+  caller_voice: "caller_voice_helper",
   lobby_section: "lobby_section_helper",
   lobby_games: "lobby_games_helper",
   idle_section: "idle_section_helper",
@@ -8275,7 +8436,10 @@ const FORMS = {
       type: "expandable",
       name: "caller_options",
       flatten: true,
-      schema: [toggles(["call_scores", "call_checkouts", "call_results", "call_sounds"], SCOREBOARD_DEFAULTS)],
+      schema: [
+        toggles(["call_scores", "call_checkouts", "call_results", "call_sounds"], SCOREBOARD_DEFAULTS),
+        voiceField,
+      ],
     },
     {
       type: "expandable",
@@ -8356,6 +8520,7 @@ const strategyForm = (hass) => [
     name: "scoreboard",
     schema: [
       toggles(["caller", "keypad", "corrections", "idle"], SCOREBOARD_DEFAULTS),
+      voiceField,
       { name: "lobby_games", selector: { select: { multiple: true, mode: "dropdown", options: gameOptions(hass) } } },
       {
         name: "idle_panels",
@@ -12418,10 +12583,55 @@ function createElements(Base) {
         callerAudio.context?.resume?.();
         // Speaking inside the tap keeps browsers from blocking later calls.
         this._speak(this._t("caller_on"));
+        // Each time the caller is switched on, the pack is asked for anew, with the files
+        // copied there since.
+        this._voiceFor = undefined;
+        this._followVoice();
       } else {
-        window.speechSynthesis?.cancel();
+        silenceCaller();
       }
       this._showCaller();
+    }
+
+    // The voice pack the card's settings name, asked for once; until Home Assistant answers,
+    // and for a pack it does not know, the browser's voice calls.
+    _followVoice() {
+      const pack = voicePackName(this._config.caller_voice);
+      if (this._voiceFor === pack) return;
+      this._voiceFor = pack;
+      this._voice = null;
+      const hass = this._hass;
+      if (pack && typeof hass.callWS === "function" && typeof hass.fetchWithAuth === "function") {
+        this._loadVoice(pack);
+      }
+    }
+
+    async _loadVoice(pack) {
+      let result = null;
+      try {
+        result = await this._hass.callWS({ type: "autodarts/voice_pack", pack });
+      } catch {
+        // An unknown pack leaves the calls to the browser's voice.
+      }
+      if (this._voiceFor === pack) this._voice = voicePack(result);
+    }
+
+    // A call in the pack's sounds where it has them, in the browser's voice where not; with a
+    // pack, every call waits for the one before.
+    _callOut(call) {
+      const t = (key) => this._t(key);
+      const words = callerText(call, t);
+      const voice = this._voice;
+      const context = callerAudio.context;
+      if (!voice || !context) {
+        this._speak(words);
+        return;
+      }
+      const parts = callerSounds(call, (key) => voice.sounds.has(key), t) ?? [{ text: words }];
+      const plan = parts.map((part) => (part.sound ? { url: soundUrl(voice.sounds.get(part.sound)) } : part));
+      const hass = this._hass;
+      const options = { round: callerVoice.round, lang: voiceLanguage(hass), fetch: (url) => hass.fetchWithAuth(url), context };
+      callerVoice.queue = callerVoice.queue.then(() => playCall(plan, words, options));
     }
 
     _showCaller() {
@@ -12440,12 +12650,7 @@ function createElements(Base) {
     }
 
     _speak(text) {
-      const speech = window.speechSynthesis;
-      if (!text || !speech || typeof SpeechSynthesisUtterance === "undefined") return;
-      const utterance = new SpeechSynthesisUtterance(text);
-      // The words are English or German, so the voice must be too.
-      utterance.lang = voiceLanguage(this._hass);
-      speech.speak(utterance);
+      utter(text, voiceLanguage(this._hass));
     }
 
     _announce(visit, view, tournament) {
@@ -12458,12 +12663,13 @@ function createElements(Base) {
       const before = this._tournamentCall;
       this._tournamentCall = followed;
       if (!this._config.caller || !callerAudio.unlocked || this.preview) return;
+      this._followVoice();
       for (const call of [
         ...callerCalls(previous, current, this._config),
         ...tournamentCalls(before, followed, this._config),
       ]) {
         if (call.kind === "fanfare") playFanfare();
-        else this._speak(callerText(call, (key) => this._t(key)));
+        else this._callOut(call);
       }
     }
 
@@ -13550,6 +13756,7 @@ export {
   bullOffLeaders,
   bullOffView,
   callerCalls,
+  callerSounds,
   callerState,
   callerText,
   celebrationHtml,
@@ -13592,6 +13799,7 @@ export {
   leaderboardRecords,
   leaderboardRecordsHtml,
   livePanel,
+  loadSound,
   lobbyChange,
   lobbyChoice,
   lobbyHints,
@@ -13642,4 +13850,6 @@ export {
   visitCount,
   visitsFromHistory,
   voiceLanguage,
+  voicePack,
+  voicePackName,
 };

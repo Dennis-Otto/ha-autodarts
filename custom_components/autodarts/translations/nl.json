@@ -856,6 +856,48 @@
     "highlight_failed": {
       "message": "De highlightfoto kon niet worden opgeslagen: {error}"
     },
+    "voice_pack_no_score": {
+      "message": "Geen score"
+    },
+    "voice_pack_bust": {
+      "message": "Geen score"
+    },
+    "voice_pack_leg": {
+      "message": "Game shot, en de leg!"
+    },
+    "voice_pack_match": {
+      "message": "Game shot, en de wedstrijd!"
+    },
+    "voice_pack_require": {
+      "message": "Je hebt nog nodig"
+    },
+    "voice_pack_require_score": {
+      "message": "Je hebt nog {remaining} nodig"
+    },
+    "voice_pack_name": {
+      "message": "Het stempakket {pack} heeft geen geldige mapnaam: tot 64 letters, cijfers, spaties, punten, streepjes en underscores, die met een letter of een cijfer beginnen en eindigen."
+    },
+    "voice_pack_engine_missing": {
+      "message": "De tekst-naar-spraakengine {engine} bestaat niet."
+    },
+    "voice_pack_busy": {
+      "message": "Er wordt al een stempakket gemaakt. Probeer het opnieuw als het klaar is."
+    },
+    "voice_pack_no_media": {
+      "message": "Home Assistant heeft geen mediamap voor de stempakketten."
+    },
+    "voice_pack_engine": {
+      "message": "De engine {engine} kan {language} niet spreken met deze opties: {error}"
+    },
+    "voice_pack_folder": {
+      "message": "Home Assistant staat niet toe dat er in de map van de stempakketten wordt geschreven, {folder}."
+    },
+    "voice_pack_recorded": {
+      "message": "Het stempakket {pack} bestaat al en is niet door deze actie gemaakt, bijvoorbeeld een pakket van darts-caller. Het blijft zoals het is; kies een andere naam."
+    },
+    "voice_pack_failed": {
+      "message": "Het stempakket {pack} kon niet worden gemaakt: {error}"
+    },
     "unknown_person": {
       "message": "Er is geen persoon {person} in Home Assistant."
     },
@@ -1228,6 +1270,42 @@
         "label": {
           "name": "Label",
           "description": "Optioneel. Wat de foto toont, aan het eind van de naam, zoals 180 of checkout-121. De galerij toont een getal als de score."
+        }
+      }
+    },
+    "voice_sound": {
+      "name": "Geluid uit een stempakket",
+      "description": "Zoekt in een stempakket in autodarts/voices van de mediamap het geluid van wat de caller roept, voor een mediaspeler: de eerste van de sleutels die het pakket heeft, zoals 180, busted of yr_40, en daarvan een willekeurig bestand. Het antwoord is leeg als het pakket er geen van heeft, zodat de stem het in plaats daarvan uitspreekt. De caller-blueprints gebruiken het.",
+      "fields": {
+        "pack": {
+          "name": "Stempakket",
+          "description": "De map van het pakket in autodarts/voices van de mediamap, bijvoorbeeld russ-bray."
+        },
+        "keys": {
+          "name": "Sleutels",
+          "description": "De sleutels van het geluid; de eerste die het pakket heeft telt, bijvoorbeeld yr_40 en you_require. Het zijn de bestandsnamen van de stempakketten van darts-caller: 0 tot 180, busted, gameshot, matchshot, yr_2 tot yr_170, s1 tot t20, bull, bullseye, outside of de naam van een speler."
+        }
+      }
+    },
+    "generate_voice_pack": {
+      "name": "Stempakket maken",
+      "description": "Neemt een stempakket voor de caller op met een tekst-naar-spraakengine, zoals Piper voor een stem die thuis blijft: elke score van 0 tot 180, geen score, de game shot en de wedstrijd, wat een speler nog nodig heeft en elke dart, met de bestandsnamen van de stempakketten van darts-caller in autodarts/voices van de mediamap. Het duurt een paar minuten, één pakket tegelijk, en vervangt een pakket dat de actie eerder maakte, nooit een dat je daar zelf hebt neergezet. Alleen voor beheerders; automatiseringen kunnen de actie ook gebruiken.",
+      "fields": {
+        "tts_entity": {
+          "name": "Tekst-naar-spraakengine",
+          "description": "De engine die spreekt, bijvoorbeeld Piper of Home Assistant Cloud."
+        },
+        "language": {
+          "name": "Taal",
+          "description": "De taal van de stem, bijvoorbeeld nl-NL of en-GB. De teksten zijn in die taal, in het Engels voor een taal die de integratie niet spreekt."
+        },
+        "pack": {
+          "name": "Stempakket",
+          "description": "De naam van het pakket, een map in autodarts/voices van de mediamap, bijvoorbeeld piper-nl."
+        },
+        "voice": {
+          "name": "Stem",
+          "description": "Optioneel. Een stem van de engine, bijvoorbeeld nl_NL-mls-medium voor Piper. Zonder stem spreekt de engine met zijn eigen stem."
         }
       }
     },
