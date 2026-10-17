@@ -8,6 +8,8 @@ The integration includes seven cards. Home Assistant loads them automatically, s
 - adapts to its width, from a phone to a wall tablet;
 - finds your board by itself. With several boards, choose one in the editor.
 
+**[Try them live](https://dennis-otto.github.io/ha-autodarts/demo/index.html)**: the scoreboard, the live, training and players cards play a 501 against the bot, a Cricket game and a tournament in your browser, without Home Assistant.
+
 To add one, edit a dashboard, select **Add card** and search for **Autodarts**. The card picker names the cards in your language and links each one to its section below.
 
 **On this page:** [Live card](#live-card) · [Training card](#training-card) · [Board status card](#board-status-card) · [Scoreboard card](#scoreboard-card) · [Doubles card](#doubles-card) · [Players card](#players-card) · [Leaderboard card](#leaderboard-card) · [Automatic dashboard](#automatic-dashboard) · [Card editor](#card-editor) · [Accessibility](#accessibility) · [Tips](#tips)

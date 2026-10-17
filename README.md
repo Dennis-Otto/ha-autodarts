@@ -13,11 +13,13 @@
 [![CI](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/ci.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/ci.yml)
 [![Coverage 100 %](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/development.md#tests)
 
-[**Documentation**](https://dennis-otto.github.io/ha-autodarts/) · [**Deutsche Anleitung**](https://dennis-otto.github.io/ha-autodarts/de/) · [Quick start](#quick-start) · [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) · [💛 Sponsor](https://github.com/sponsors/Dennis-Otto)
+[**Documentation**](https://dennis-otto.github.io/ha-autodarts/) · [**Try it live**](https://dennis-otto.github.io/ha-autodarts/demo/index.html) · [**Deutsche Anleitung**](https://dennis-otto.github.io/ha-autodarts/de/) · [Quick start](#quick-start) · [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) · [💛 Sponsor](https://github.com/sponsors/Dennis-Otto)
 
 </div>
 
 <img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, the beds light up and the scoreboard counts down to 121; Sam scores 85; Alex checks out 121 with T20, outer bull and D18 for the game shot" width="100%">
+
+**[Try the cards live in your browser](https://dennis-otto.github.io/ha-autodarts/demo/index.html)**: a 501 against the bot, a Cricket game and a tournament, played by the integration at a simulated board and shown by its cards, on a phone too and in all five languages. Nothing to install.
 
 ## Quick start
 

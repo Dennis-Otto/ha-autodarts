@@ -47,7 +47,9 @@ Ich spiele selbst auf einem Autodarts-Board. Ich wollte es in Home Assistant hab
 
 ## Ohne Board ausprobieren
 
-Eine Demo mit simuliertem Board und erfundenen Spielern zeigt alle Karten, die Anzeigetafel und eine Trainingshistorie. Du brauchst Docker und Git; unter Windows startest du sie in der Git Bash.
+Am schnellsten geht es mit der [Live-Demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html?lang=de): Die Karten spielen ein 501 gegen den Bot, ein Cricket-Spiel und ein Turnier direkt im Browser, auch auf dem Handy und in allen fünf Sprachen, ohne dass du etwas installierst. Teile ihren Link; `?lang=de`, `nl`, `fr` oder `es` am Ende öffnet sie in dieser Sprache.
+
+Für das ganze Home Assistant startest du die Demo mit simuliertem Board und erfundenen Spielern: Sie zeigt alle Karten, die Anzeigetafel und eine Trainingshistorie. Du brauchst Docker und Git; unter Windows startest du sie in der Git Bash.
 
 ```sh
 git clone https://github.com/Dennis-Otto/ha-autodarts.git

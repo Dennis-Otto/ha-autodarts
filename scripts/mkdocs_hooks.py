@@ -20,6 +20,9 @@ GitHub. The hooks lead them to the pages of the website where MkDocs alone can't
 - A page of the German website lies one folder deeper than its file, in de/, so
   the pictures of its HTML, such as <img src="images/de/card.png">, get the path
   from there, as those of the Markdown do.
+- The live demo in demo/ plays the cards of the integration, which the website
+  takes from the integration as they are, so that it always shows the cards of its
+  version: after the build, they join the page of the demo.
 
 A link to a page that doesn't exist fails the build, as it does in the Markdown.
 """
@@ -29,6 +32,7 @@ from __future__ import annotations
 import logging
 import posixpath
 import re
+import shutil
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +44,16 @@ GERMAN = "de"
 ENGLISH = "en"
 # The start pages on GitHub, and those of the website that take their place.
 START = {"README.md": "index.md", f"README.{GERMAN}.md": f"index.{GERMAN}.md"}
+
+# The cards of the integration, and where the live demo loads them from.
+CARDS = (
+    Path(__file__).resolve().parents[1]
+    / "custom_components"
+    / "autodarts"
+    / "frontend"
+    / "autodarts-card.js"
+)
+DEMO = "demo"
 
 # An address that is no relative path: with a scheme, from the root, or an anchor.
 ABSOLUTE = re.compile(r"[a-z][a-z0-9+.-]*:|/|#", re.IGNORECASE)
@@ -163,3 +177,11 @@ def on_page_content(html: str, page: Any, config: Any, files: Any) -> str:
         return f'href="{address}{anchor}"'
 
     return LINK.sub(replace, html)
+
+
+def on_post_build(config: Any) -> None:
+    """The cards of the integration next to the page of the live demo."""
+    demo = Path(config.site_dir) / DEMO
+    # The German website has no demo of its own; it links to the one in English.
+    if (demo / "index.html").is_file():
+        shutil.copyfile(CARDS, demo / CARDS.name)
