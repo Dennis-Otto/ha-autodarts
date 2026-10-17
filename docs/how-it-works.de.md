@@ -64,7 +64,7 @@ Ein Board, das Version 2 meldet, aber kein `/api/system` hat, gilt als Board Man
 
 ## Adresswechsel
 
-- **Board Manager 2** meldet sich im Netzwerk (mDNS). Meldet er eine neue Adresse, übernimmt Home Assistant sie und lädt die Integration neu. Genutzt werden nur die Adressen, von denen die Meldung kommt, und ein Board, das unter seiner eingerichteten Adresse noch antwortet, wird nie umgezogen.
+- **Board Manager 2** meldet sich im Netzwerk (mDNS). Meldet er eine neue Adresse und antwortet das Board unter seiner eingerichteten nicht mehr mit seiner Board-ID, bietet ein Reparaturhinweis die neue Adresse an. Der Eintrag zieht erst um und die Integration lädt sich neu, wenn du bestätigst und das Board sich unter der neuen Adresse noch einmal ausgewiesen hat: Jedes Gerät im Netzwerk kann eine Board-ID melden. Genutzt werden nur die Adressen, von denen die Meldung kommt, und ein Board, das unter seiner eingerichteten Adresse noch antwortet, wird nie umgezogen.
 - **Einträge mit Autodarts-Cloud-Verknüpfung** nutzen beim Start die Adresse, die die Cloud meldet, wenn die eingerichtete nicht antwortet. Fehlt das Board im Betrieb fünf Minuten und antwortet es unter einer Adresse, die die Cloud meldet, mit seiner Board-ID, bietet ein Reparaturhinweis den Wechsel an. Die Cloud-Adressen werden höchstens alle 30 Minuten geprüft.
 - **Sonst** öffnest du die Integration, wählst **Neu konfigurieren** und suchst das Board oder gibst seine Adresse ein. Den Suchdienst von Autodarts fragt die Integration nie von sich aus.
 

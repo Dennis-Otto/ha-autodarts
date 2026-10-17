@@ -14,7 +14,7 @@ Home Assistant prefers integrations whose protocol code lives in a library on Py
 
 ## Decision
 
-Option 2. The name aioautodarts is reserved for it, and the library is on the roadmap under *Later*: publishing on PyPI needs a trusted publisher of the maintainer, which can wait.
+Option 2. The library is on the roadmap under *Later*, with the name aioautodarts in mind. The name is not reserved: PyPI holds a name only from its first upload, and a pending trusted publisher holds none. That first upload is a task for the maintainer and can wait until the protocol settles; until then, another project may take the name.
 
 ## Consequences
 
