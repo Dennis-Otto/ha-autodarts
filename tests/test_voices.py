@@ -208,6 +208,8 @@ class Engine:
         self.refuse: str | None = None
         self.fail_at: int | None = None
         self.wait: asyncio.Event | None = None
+        # Runs once the engine has spoken the first sound.
+        self.meanwhile = None
         self.module = types.ModuleType("homeassistant.components.tts")
         self.module.generate_media_source_id = self.media_id
         self.module.async_get_media_source_audio = self.audio
@@ -227,6 +229,8 @@ class Engine:
             raise HomeAssistantError("Piper is not running")
         message = unquote(media_id.split("message=", 1)[1])
         self.rendered.append(message)
+        if self.meanwhile and len(self.rendered) == 1:
+            self.meanwhile()
         return self.extension, b"ID3 " + message.encode()
 
     def __enter__(self):
@@ -361,6 +365,20 @@ async def test_a_generated_pack_replaces_the_one_before_and_nothing_else(
         "180.mp3"
     ]
     assert (voices_folder / "loose.mp3").read_bytes() == MP3
+
+
+async def test_a_pack_copied_there_while_recording_stays_as_it_is(
+    hass, tmp_path, engine, integration
+):
+    voices_folder = folders(hass, tmp_path)
+    engine.meanwhile = lambda: recorded(voices_folder / "piper-en", "180.mp3")
+    with pytest.raises(ServiceValidationError) as error:
+        await generate(hass)
+    assert error.value.translation_key == "voice_pack_recorded"
+    assert error.value.translation_placeholders == {"pack": "piper-en"}
+    pack = voices_folder / "piper-en"
+    assert [path.name for path in pack.iterdir()] == ["180.mp3"]
+    assert sorted(path.name for path in voices_folder.iterdir()) == ["piper-en"]
 
 
 async def test_a_pack_that_fails_halfway_leaves_the_one_before(

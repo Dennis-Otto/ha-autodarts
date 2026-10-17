@@ -218,14 +218,17 @@ actions:
   - variables:
       sound: {}
   - alias: Find the recorded sound of the call in the voice pack
-    if: "{{ voice_pack | length > 0 and sounds | count > 0 }}"
+    # A name no folder of a pack can have leaves the call to the engine, as
+    # the action would refuse it before continue_on_error could catch that.
+    if: >-
+      {{ (voice_pack | string | trim | length) in range(1, 65) and sounds | count > 0 }}
     then:
       # A pack without the sound of the call, or no such pack, leaves the
       # call to the engine.
       - action: autodarts.voice_sound
         continue_on_error: true
         data:
-          pack: "{{ voice_pack }}"
+          pack: "{{ voice_pack | string | trim }}"
           keys: "{{ sounds }}"
         response_variable: sound
   - if: "{{ sound.get('media_content_id', '') != '' }}"

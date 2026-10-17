@@ -107,7 +107,7 @@ Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) f
 
 - Eine Anzeigetafel für Tablet oder Fernseher, lesbar vom Abwurf aus
 - Eine Spielauswahl, um Spiel, Spieler und Format direkt am Board zu wählen oder ein Turnier zu starten
-- Ein Caller, der das Spiel über den Browser des Bildschirms ansagt
+- Ein Caller, der das Spiel über den Browser des Bildschirms ansagt, auch mit den aufgenommenen Voice-Packs von darts-caller oder einer Stimme, die du mit Piper aufnimmst
 - Ein Ruhemodus mit Bestenliste, Bestleistungen, den Darts von heute und einer Uhr
 
 <p align="center"><img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Spielauswahl, Cricket und ein zweiter Spieler werden gewählt und das Spiel startet" width="600"></p>
@@ -249,7 +249,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 
   [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml)
 
-- **Dart caller.** Jede Aufnahme auf deinen Lautsprechern, mit einer eigenen Ansage für die 180.
+- **Dart caller.** Jede Aufnahme auf deinen Lautsprechern, mit einer eigenen Ansage für die 180, oder mit den aufgenommenen Sounds eines Voice-Packs.
 
   [![Blueprint „Dart caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml)
 

@@ -864,6 +864,25 @@ async def test_dart_caller_speaks_what_no_voice_pack_has(hass, tmp_path):
     assert spoken(calls) == ["100"]
 
 
+@pytest.mark.parametrize("pack", ["   ", "p" * 65])
+async def test_dart_caller_speaks_with_a_pack_no_folder_can_have(hass, tmp_path, pack):
+    calls = async_mock_service(hass, "tts", "speak")
+    sounds = voice_pack(hass, tmp_path, "100.mp3")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "dart_caller", {**VOICE, "voice_pack": pack})
+    await fire_all(hass, [("visit_thrown", {"score": 100, "darts": 3, "game": None})])
+    assert sounds == []
+    assert spoken(calls) == ["100"]
+
+
+async def test_dart_caller_finds_a_pack_named_with_spaces_around(hass, tmp_path):
+    sounds = voice_pack(hass, tmp_path, "100.mp3")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "dart_caller", {**VOICE, "voice_pack": " russ-bray "})
+    await fire_all(hass, [("visit_thrown", {"score": 100, "darts": 3, "game": None})])
+    assert played(sounds) == ["100.mp3"]
+
+
 # -- practice caller -------------------------------------------------------------------
 
 
@@ -965,6 +984,11 @@ async def test_practice_caller_plays_the_sounds_of_a_voice_pack(hass, tmp_path):
         hass,
         [
             ("turn_changed", {**alone, "remaining": 40, "checkout": "D20"}),
+            # Alone, the pack calls a player with a profile name, too.
+            (
+                "turn_changed",
+                {**alone, "name": "Alex", "remaining": 40, "checkout": "D20"},
+            ),
             ("turn_changed", {**alone, "remaining": 41, "checkout": "S1 D20"}),
             ("turn_changed", {**match, "remaining": 40, "checkout": "D20"}),
             ("bust", {**match, "remaining": 32}),
@@ -974,6 +998,7 @@ async def test_practice_caller_plays_the_sounds_of_a_voice_pack(hass, tmp_path):
         ],
     )
     assert played(sounds) == [
+        "yr_40.mp3",
         "yr_40.mp3",
         "busted.mp3",
         "gameshot.mp3",

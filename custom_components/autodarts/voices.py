@@ -222,19 +222,23 @@ async def _say(hass: HomeAssistant, language: str) -> dict[str, str]:
     }
 
 
-def _prepare(config: Config, target: Path) -> Path:
-    """An empty folder next to the pack to record into, so a pack that fails
-    halfway leaves the one before as it was; runs in the executor."""
-    # The rules of the exports: not hidden, and where Home Assistant allows writing.
-    voices = export_folder(config, str(target.parent))
-    voices.mkdir(parents=True, exist_ok=True)
-    pack = voices / target.name
+def _keep_recorded(pack: Path) -> None:
+    """Refuse a pack of that name that was not generated; runs in the executor."""
     if (
         pack.exists()
         and not (pack / MARK).is_file()
         and (not pack.is_dir() or any(pack.iterdir()))
     ):
         raise RecordedPackError(pack)
+
+
+def _prepare(config: Config, target: Path) -> Path:
+    """An empty folder next to the pack to record into, so a pack that fails
+    halfway leaves the one before as it was; runs in the executor."""
+    # The rules of the exports: not hidden, and where Home Assistant allows writing.
+    voices = export_folder(config, str(target.parent))
+    voices.mkdir(parents=True, exist_ok=True)
+    _keep_recorded(voices / target.name)
     staging = voices / f".{target.name}.new"
     shutil.rmtree(staging, ignore_errors=True)
     staging.mkdir()
@@ -243,8 +247,10 @@ def _prepare(config: Config, target: Path) -> Path:
 
 def _finish(staging: Path, pack: str, mark: str) -> Path:
     """Put the recorded pack in place of the one before; runs in the executor."""
-    (staging / MARK).write_text(mark, encoding="utf-8")
     target = staging.parent / pack
+    # Checked again: a pack may have been copied there while the engine spoke.
+    _keep_recorded(target)
+    (staging / MARK).write_text(mark, encoding="utf-8")
     old = staging.parent / f".{pack}.old"
     shutil.rmtree(old, ignore_errors=True)
     if target.exists():
@@ -339,6 +345,13 @@ async def _generate(
             )
         mark = json.dumps({"engine": engine, "language": language, "voice": voice})
         folder = await hass.async_add_executor_job(_finish, staging, pack, mark)
+    except RecordedPackError as err:
+        await hass.async_add_executor_job(shutil.rmtree, staging, True)
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="voice_pack_recorded",
+            translation_placeholders={"pack": pack},
+        ) from err
     except (HomeAssistantError, OSError, ValueError) as err:
         await hass.async_add_executor_job(shutil.rmtree, staging, True)
         raise HomeAssistantError(

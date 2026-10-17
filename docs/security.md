@@ -53,7 +53,8 @@ This page explains how the integration protects your data and your board, what i
 | Faulty board data or a bug in a game rule cuts the connection | Errors in the training and the games are contained and logged once; high-rate values never run the game logic; reads never overlap | `tests/test_connection.py` |
 | An export writes where it should not, overwrites a file or fills the disk | Only administrators and automations export; the folder is resolved before writing, so neither `..` nor a symbolic link leads elsewhere, and it must be one where Home Assistant allows writing (`www`, the media folders, `allowlist_external_dirs`); hidden folders and control characters are refused; at most 20 exports in an hour; every export is a new file | `tests/test_reports_setup.py` |
 | A highlight photo writes where it should not or overwrites a file | Only administrators and automations save highlight photos; the folder follows the rules of the exports; a file name keeps only safe characters of the player and the label; every photo is a new file, and one that is cut off is deleted | `tests/test_highlights.py` |
-| The user of a shared wall tablet deletes, relinks or exports the players' data, or saves what a camera sees | `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export` and `autodarts.save_highlight` are administrator actions, which automations still run; only administrators download exports | `tests/test_services.py`, `tests/test_reports_setup.py`, `tests/test_highlights.py` |
+| A voice pack writes or deletes where it should not, or replaces a recorded pack | Only administrators and automations generate voice packs; the folder follows the rules of the exports; a pack name is a plain folder name, without `/` or `..`; the sounds are recorded into a hidden folder beside the pack, which replaces only a pack the integration generated itself (marked with `.autodarts-voice-pack`), checked again right before; one pack at a time | `tests/test_voices.py` |
+| The user of a shared wall tablet deletes, relinks or exports the players' data, or saves what a camera sees | `autodarts.delete_player`, `autodarts.link_player`, `autodarts.unlink_player`, `autodarts.export`, `autodarts.save_highlight` and `autodarts.generate_voice_pack` are administrator actions, which automations still run; only administrators download exports | `tests/test_services.py`, `tests/test_reports_setup.py`, `tests/test_highlights.py` |
 | A player name runs as a formula in a spreadsheet | CSV cells that start like a formula get a leading apostrophe | `tests/test_reports_setup.py` |
 | An action runs twice, for example a restart or a reset | Actions are sent once and never retried automatically | `tests/test_local_api.py` |
 | A compromised dependency or build | Hash-pinned dependencies, pinned Actions and images, Dependabot, dependency review, CodeQL, Gitleaks, OpenSSF Scorecard | [Development](development.md#continuous-integration) |
@@ -67,10 +68,10 @@ How the integration counters the weaknesses of the [CWE Top 25](https://cwe.mitr
 | Weakness | Countermeasure |
 | --- | --- |
 | Cross-site scripting (CWE-79) | Every text from the board, the entity registry or a player is escaped before it becomes HTML, and numbers are checked before they become SVG geometry |
-| Path traversal (CWE-22) | Exports and highlight photos resolve their folder before writing, so neither `..` nor a symbolic link leads elsewhere; the highlight copies serve only plain file names of photos in the highlight folder |
+| Path traversal (CWE-22) | Exports, highlight photos and generated voice packs resolve their folder before writing, so neither `..` nor a symbolic link leads elsewhere; the highlight copies serve only plain file names of photos in the highlight folder; voice packs are plain folder names of the voice folder |
 | Improper input validation (CWE-20) | Every answer of the Board Manager, every realtime notification and every call of the online bridge is checked against known types, ranges and lengths |
 | Exposure of sensitive information (CWE-200, CWE-532) | The board API key is dropped right after reading and never stored, logged or shown; OAuth tokens are never logged; the diagnostics redact board IDs, addresses and player names |
-| Missing authorization (CWE-862) | Actions, downloads, highlight copies and the WebSocket command need a login to Home Assistant; deleting, relinking and exporting the data of players and saving highlight photos need an administrator |
+| Missing authorization (CWE-862) | Actions, downloads, highlight copies and the WebSocket commands need a login to Home Assistant; deleting, relinking and exporting the data of players, saving highlight photos and generating voice packs need an administrator |
 | Server-side request forgery (CWE-918) | Discovery contacts only the addresses an announcement came from, never loopback, link-local or multicast addresses; IDs from the cloud are encoded as a single path segment |
 | Uncontrolled resource consumption (CWE-400) | At most two live streams per camera, 20 exports in an hour, and 20 calls a second and 120 a minute for the online bridge |
 | Formula injection in exports (CWE-1236) | CSV cells that start like a formula get a leading apostrophe |
@@ -87,6 +88,7 @@ How the integration counters the weaknesses of the [CWE Top 25](https://cwe.mitr
   - the downloads of this run's exports at `/api/autodarts/export/`, for administrators or with their signed link that expires after a minute;
   - small copies of the highlight photos at `/api/autodarts/highlights/`, for logged-in users like the photos themselves; only plain file names of photos in the highlight folder are served;
   - the WebSocket command `autodarts/positions`, with which the cards read the dart positions, for logged-in users;
+  - the WebSocket command `autodarts/voice_pack`, with which the scoreboard lists the sounds of a voice pack (at most 10,000 files are looked at), for logged-in users;
   - only while the online bridge is on, one secret webhook address.
 
 ## Residual risks
