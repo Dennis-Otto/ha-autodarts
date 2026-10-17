@@ -1,3 +1,7 @@
+---
+description: "Why the callers play voice packs in the file names of darts-caller, so existing packs work as they are and a missing file never silences a call."
+---
+
 # Give the callers voice packs in the file names of darts-caller
 
 - Status: accepted
