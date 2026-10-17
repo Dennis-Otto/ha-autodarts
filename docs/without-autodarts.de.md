@@ -1,3 +1,7 @@
+---
+description: "Spiele an jeder Steeldartscheibe ohne Autodarts: Gib jeden Dart auf einem Tastenfeld, Tablet oder Handy ein, mit allen Spielen, Training und Statistik."
+---
+
 # Spielen ohne Autodarts
 
 [← Dokumentation](README.de.md) · [English](without-autodarts.md)

@@ -1,3 +1,7 @@
+---
+description: "The seven dashboard cards: live board, training, board status, scoreboard, doubles, players and leaderboard, the automatic dashboard and the card editor."
+---
+
 # Dashboard cards
 
 [← Documentation](README.md) · [Deutsch](cards.de.md)

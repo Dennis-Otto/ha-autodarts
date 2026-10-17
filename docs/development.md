@@ -1,3 +1,7 @@
+---
+description: "Develop the integration: the building blocks of the cards, the tests, the Docker end-to-end and browser tests, the screenshots, the live demo and the CI."
+---
+
 # Development
 
 [← Documentation](README.md)

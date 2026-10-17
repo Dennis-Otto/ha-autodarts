@@ -9,10 +9,12 @@ or the actions, the number is the one the code has.
 
 import json
 import re
+import tomllib
 from pathlib import Path
 from urllib.parse import unquote
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).parents[1]
 DOCUMENTS = sorted(
@@ -21,6 +23,13 @@ DOCUMENTS = sorted(
     for path in ROOT.glob(pattern)
 )
 IMAGES = ROOT / "docs" / "images"
+DOCS = ROOT / "docs"
+# The front matter of a page of the website, which MkDocs reads: a description that
+# search engines show under its title, as long as Google shows one, or the page that
+# took the place of a page that moved (scripts/mkdocs_hooks.py).
+FRONT_MATTER = re.compile(r"\A---\n(.*?)^---$", re.MULTILINE | re.DOTALL)
+DESCRIPTION = range(50, 161)
+MOVED = "moved"
 CARD = ROOT / "custom_components" / "autodarts" / "frontend" / "autodarts-card.js"
 # The repository's own addresses, which HACS needs instead of relative links.
 OWN = re.compile(
@@ -263,6 +272,78 @@ def test_every_german_page_sits_next_to_its_english_page():
         if not path.with_name(path.name.removesuffix(".de.md") + ".md").exists()
     ]
     assert not lonely, lonely
+
+
+def front_matter(path: Path) -> dict[str, object]:
+    """The front matter of a page, between two lines --- at its start."""
+    match = FRONT_MATTER.match(path.read_text("utf-8"))
+    return yaml.safe_load(match[1]) if match else {}
+
+
+def website_pages() -> list[Path]:
+    """The pages of the website: the Markdown in docs/ but what mkdocs.yml excludes."""
+    excluded = yaml.safe_load((ROOT / "mkdocs.yml").read_text("utf-8"))["exclude_docs"]
+    patterns = excluded.split()
+    # Each pattern starts at docs/, and one that ends with / is a folder.
+    assert all(pattern.startswith("/") for pattern in patterns), patterns
+    pages = []
+    for path in sorted(DOCS.glob("**/*.md")):
+        name = "/" + path.relative_to(DOCS).as_posix()
+        if not any(
+            name == pattern or (pattern.endswith("/") and name.startswith(pattern))
+            for pattern in patterns
+        ):
+            pages.append(path)
+    return pages
+
+
+def test_every_page_of_the_website_has_a_description_of_its_own():
+    """Search engines and the previews of shared links show it under the title.
+
+    A page that moved leads on to another page and needs none. A copy of the
+    template of a decision says what it decided instead of the template's words.
+    """
+    pages = [path for path in website_pages() if MOVED not in front_matter(path)]
+    assert len(pages) >= 50
+    template = front_matter(DOCS / "decisions" / "0000-template.md")["description"]
+    seen: dict[object, str] = {template: "the template of a decision"}
+    wrong = []
+    for path in pages:
+        name = path.relative_to(ROOT).as_posix()
+        description = front_matter(path).get("description")
+        if not isinstance(description, str) or len(description) not in DESCRIPTION:
+            wrong.append(f"{name}: {description!r} is not 50 to 160 characters long")
+        elif description in seen:
+            wrong.append(f"{name} has the description of {seen[description]}")
+        seen[description] = name
+    assert not wrong, wrong
+
+
+def test_a_page_that_moved_leads_to_a_page_of_the_website():
+    pages = website_pages()
+    moved = {path: front_matter(path).get(MOVED) for path in pages}
+    moved = {path: target for path, target in moved.items() if target}
+    assert [path.name for path in moved] == ["LOCAL-CONTROL.md", "SETUP-DE.md"]
+    lost = [
+        f"{path.name} moved to {target}"
+        for path, target in moved.items()
+        if not isinstance(target, str)
+        or (path.parent / target).resolve() not in pages
+        or MOVED in front_matter(path.parent / target)
+    ]
+    assert not lost, lost
+
+
+def test_the_repository_has_the_topics_that_github_shows():
+    """GitHub shows twenty topics at most, each of small letters, digits and -."""
+    settings = tomllib.loads((ROOT / ".github" / "repository.toml").read_text("utf-8"))
+    project = ROOT / ".github" / "repository.project.toml"
+    extra = tomllib.loads(project.read_text("utf-8"))
+    topics = settings["repository"]["topics"]
+    topics += [t for t in extra["repository"]["topics"] if t not in topics]
+    assert len(topics) == len(set(topics)) <= 20, topics
+    assert all(re.fullmatch(r"[a-z0-9][a-z0-9-]{0,49}", topic) for topic in topics)
+    assert {"autodarts", "home-assistant", "wled", "darts-scoreboard"} <= set(topics)
 
 
 def counts_in_the_code() -> dict[str, int]:

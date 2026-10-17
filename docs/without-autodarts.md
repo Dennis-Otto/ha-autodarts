@@ -1,3 +1,7 @@
+---
+description: "Play on any steel dartboard without Autodarts: enter each dart on a keypad, a tablet or your phone and get every game, the training and all statistics."
+---
+
 # Play without Autodarts
 
 [← Documentation](README.md) · [Deutsch](without-autodarts.de.md)

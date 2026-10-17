@@ -1,3 +1,7 @@
+---
+description: "Why the jobs of the workflows of the project may reach only the hosts they need, and the Home Assistant under test none at all."
+---
+
 # Let the jobs of the project's workflows reach only the hosts they need, and the Home Assistant under test none
 
 - Status: accepted

@@ -1,3 +1,8 @@
+---
+# What search engines show under the title: why, in a sentence of 50 to 160 characters.
+description: "Why the project decided what it did, in one sentence for search engines: replace these words with those of the decision."
+---
+
 # The decision, in a few words
 
 - Status: proposed, accepted, rejected, or replaced by [0000](0000-template.md)

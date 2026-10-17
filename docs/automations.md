@@ -1,3 +1,7 @@
+---
+description: "Automations while you play: flash the lights on a 180, call the score, celebrate a checkout. Blueprints, board events and examples for your board."
+---
+
 # Automations
 
 [← Documentation](README.md) · [Deutsch](automations.de.md)

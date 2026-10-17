@@ -1,8 +1,12 @@
+---
+description: "The decisions that shape Autodarts for Home Assistant, each with its context, the options and the reasons, from the local API of the board to the releases."
+---
+
 # Decisions
 
 The decisions that shape this project, each with its reasons, so that a later change can see why things are as they are. A decision that changes an earlier one gets a new record, and the earlier one says which record replaces it.
 
-Copy [the template](0000-template.md) to the next free number and describe the decision in the pull request that makes it.
+Copy [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/decisions/0000-template.md) to the next free number and describe the decision in the pull request that makes it.
 
 | Record | Decision | Status |
 | --- | --- | --- |

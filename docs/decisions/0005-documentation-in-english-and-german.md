@@ -1,3 +1,7 @@
+---
+description: "Why the documentation is written in English, for the Home Assistant community, with a complete German translation for the many German-speaking players."
+---
+
 # Write the documentation in English, with a complete German translation
 
 - Status: accepted

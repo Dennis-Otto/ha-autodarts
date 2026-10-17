@@ -1,3 +1,7 @@
+---
+description: "Why the images of the documentation render in fixed groups side by side, each from a fresh demo, so that the visual check is fast and repeatable."
+---
+
 # Render the images of the documentation in fixed groups, each from a fresh demo
 
 - Status: accepted

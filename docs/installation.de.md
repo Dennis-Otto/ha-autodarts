@@ -1,3 +1,7 @@
+---
+description: "Installiere die Autodarts-Integration mit HACS, füge dein Board über seine Adresse im Netzwerk hinzu und richte es ein. Ohne Anmeldung und API-Schlüssel."
+---
+
 # Installation und Einrichtung
 
 [← Dokumentation](README.de.md) · [English](installation.md)

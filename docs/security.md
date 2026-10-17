@@ -1,3 +1,7 @@
+---
+description: "How the Autodarts integration protects your data and your board: what it protects, whom it trusts, the threats it counters and the risks that remain."
+---
+
 # Security design
 
 [← Documentation](README.md) · [Deutsch](security.de.md)

@@ -1,3 +1,7 @@
+---
+description: "Automationen während des Spiels: Licht bei einer 180, Punkte ansagen, ein Checkout feiern. Blueprints, Board-Ereignisse und Beispiele für dein Board."
+---
+
 # Automationen
 
 [← Dokumentation](README.de.md) · [English](automations.md)

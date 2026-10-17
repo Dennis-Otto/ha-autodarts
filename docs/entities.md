@@ -1,3 +1,7 @@
+---
+description: "Every entity and event of an Autodarts board in Home Assistant: live visits, training, games, players, tournaments, controls and the health of the board."
+---
+
 # Entities and events
 
 [← Documentation](README.md) · [Deutsch](entities.de.md)

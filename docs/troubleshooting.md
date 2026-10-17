@@ -1,3 +1,7 @@
+---
+description: "Fix common problems of the Autodarts integration: setup, repairs, a board that is not found or does not update, the move to Autodarts 2, and logs."
+---
+
 # Troubleshooting
 
 [← Documentation](README.md) · [Deutsch](troubleshooting.de.md)

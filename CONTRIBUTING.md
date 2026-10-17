@@ -98,6 +98,18 @@ python3 -m venv .venv-docs
 
 On Windows, use `py -3` in place of `python3` and `.venv-docs/Scripts/` in place of `.venv-docs/bin/`; the dev container sets these tools up on its own. With them, `bash scripts/check.sh` builds the website strictly as well, as the check *docs* does, and without them it leaves that to the CI. The preview cards for social media come from the CI alone, because they need the Cairo library, which Windows doesn't have; where it is installed, `CI=true` before the command draws them too.
 
+Every page of the website starts with front matter that describes it in one sentence of 50 to 160 characters, written for that page in its language. Search engines show it under the title of the page, and so do the previews of a shared link:
+
+```markdown
+---
+description: "X01, Cricket, party and training games in Home Assistant: matches, sets, teams and tournaments, against the bot or each other, with every rule explained."
+---
+
+# Games and rules
+```
+
+`tests/test_docs_links.py` fails for a page without a description, with a description that another page has, or with the words of the template of a decision. A page that moves keeps its file for the old links on GitHub, with front matter such as `moved: installation.md` instead: on the website it leads to that page at once, in the language of the website, and stays out of search engines, the sitemap and the search of the website (`scripts/mkdocs_hooks.py`).
+
 ## Diagrams
 
 The GitHub app, the stores of the projects and other renderers of Markdown show a `mermaid` block as code, so a diagram is a picture of its source. The source is Mermaid in `docs/diagrams/<name>.mmd`, and `bash scripts/diagrams.sh` draws it, with Docker, as `docs/images/diagrams/<name>.svg` on a white card and `<name>.dark.svg` for a dark theme. The Markdown shows them with paths from its own folder, and the website draws the source itself:

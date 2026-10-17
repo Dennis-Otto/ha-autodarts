@@ -1,3 +1,7 @@
+---
+description: "Why the live demo of the website replays a recording of the integration, so that everyone can try the cards in the browser without installing anything."
+---
+
 # Replay a recording of the integration for the live demo of the website
 
 - Status: accepted

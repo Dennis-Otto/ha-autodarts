@@ -1,7 +1,11 @@
 ---
+description: "Autodarts in Home Assistant: jeder Dart live vom Board Manager, Spiele, eine Anzeigetafel, Statistik und Automationen. Lokal und kostenlos, ohne Cloud-Konto."
 hide:
   - navigation
   - toc
+# The headline of the preview card of a shared link, under the name of the website
+# (in one line, which markdownlint doesn't take for the title of the page).
+social: { cards_layout_options: { title: "Dein Autodarts-Board live in Home Assistant" } }
 ---
 
 # Autodarts für Home Assistant
