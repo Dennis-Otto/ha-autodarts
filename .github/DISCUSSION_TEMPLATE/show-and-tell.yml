@@ -1,0 +1,41 @@
+title: "My board: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Show the board you play at with Autodarts for Home Assistant: a photo, the screen next to it and what Home Assistant does. Others find ideas here and see that the integration runs at boards like theirs. Made a video or an article? Share its link here too; the [creator kit](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/creator-kit.md) has pictures and facts for it. English and German are both welcome.
+  - type: textarea
+    id: photo
+    attributes:
+      label: Your board
+      description: Drop a photo or a short video here, of the board and the screen at it. Please leave out faces you don't want online, and anything private in the background.
+    validations:
+      required: true
+  - type: dropdown
+    id: board_software
+    attributes:
+      label: Autodarts software on the board PC
+      options:
+        - Autodarts 2 without a screen (Board Manager 2, headless)
+        - Autodarts Desktop
+        - Winmau Autodarts device (Autodarts X, Lens, Vantage)
+        - Board Manager 1 (classic app)
+        - No Autodarts board, darts entered on a keypad
+        - I don't know
+  - type: textarea
+    id: screen
+    attributes:
+      label: The screen at the board
+      description: A tablet, a TV or a phone, and the cards or the scoreboard it shows.
+      placeholder: "A 10-inch tablet on the wall with the scoreboard"
+  - type: textarea
+    id: automations
+    attributes:
+      label: What Home Assistant does
+      description: The blueprints and automations at your board, such as the light show, the caller or a highlight photo.
+  - type: textarea
+    id: tip
+    attributes:
+      label: A tip for others
+      description: Something that made your setup better, or that you would do differently next time.

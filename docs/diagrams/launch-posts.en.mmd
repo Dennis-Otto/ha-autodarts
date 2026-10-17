@@ -1,0 +1,14 @@
+flowchart TB
+  accTitle: Where a launch post leads its readers
+  accDescr: A post in the Home Assistant forum, on Reddit or on Discord shows the animation of a match and three points. Its links lead to the live demo, where the cards play in the browser, and to the comparison with the other tools, which shows what takes their place and what can stay. The button opens the repository in HACS, and the reader adds the board in Home Assistant. A photo in Show and tell then shows the board to the next readers.
+  POST["A post in the forum,<br/>on Reddit or Discord:<br/>the animation<br/>and three points"] --> DEMO["Live demo:<br/>the cards play<br/>in the browser"]
+  POST --> COMPARE["Coming from<br/>another tool:<br/>what takes its place,<br/>what can stay"]
+  DEMO --> HACS["The button<br/>opens the repository<br/>in HACS"]
+  COMPARE --> HACS
+  HACS --> BOARD["Add the board<br/>in Home Assistant"]
+  BOARD --> SHOW["Show and tell:<br/>a photo of the board<br/>and its setup"]
+  SHOW -. "the next readers" .-> POST
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef data fill:#0075c92e,stroke:#0075c9,stroke-width:2px
+  class BOARD done
+  class POST data

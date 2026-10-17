@@ -39,7 +39,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 - [Roadmap](roadmap.md): released versions and what comes next
 - [Development](development.md): tests, Docker end-to-end test, demo instance, accessibility check, screenshots, the screenshot bot, the visual check and CI
 - [Releases](releases.md): how versions and release notes are produced
-- [Creator kit](creator-kit.md): facts, descriptions, videos, animations and pictures for YouTubers, streamers and bloggers, free to use
+- [Creator kit](creator-kit.md): facts, descriptions, ready-to-post texts for forums, Reddit and Discord, videos, animations and pictures for YouTubers, streamers and bloggers, free to use
 
 ## Use cases
 

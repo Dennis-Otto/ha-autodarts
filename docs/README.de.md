@@ -203,7 +203,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 - [Roadmap](roadmap.de.md): erschienene Versionen und was als Nächstes kommt
 - [Development](development.md), [Releases](releases.md): die Entwickler-Dokumentation, auf Englisch
 - [Bilder und Prüfungen der Karten](development.de.md): wie die Bilder der Dokumentation entstehen, der Screenshot-Bot, der Bildvergleich und die Prüfung der Barrierefreiheit, auf Deutsch
-- [Creator-Kit](creator-kit.de.md): Fakten, Beschreibungen, Videos, Animationen und Bilder für YouTuber, Streamer und Blogger, frei nutzbar
+- [Creator-Kit](creator-kit.de.md): Fakten, Beschreibungen, fertige Beiträge für Foren, Reddit und Discord, Videos, Animationen und Bilder für YouTuber, Streamer und Blogger, frei nutzbar
 
 ## Anwendungsfälle
 
@@ -370,7 +370,8 @@ Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original,
 - **Ausprobiert?** Ein [Erfahrungsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml) sagt uns, was geklappt hat, was nicht und was dir fehlt; kurze Antworten genügen, gern auf Deutsch.
 - **Du sprichst Deutsch, Niederländisch, Französisch oder Spanisch?** Die [Übersetzungs-Issues](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) nennen die Texte, die in deiner Sprache fehlen oder veraltet sind, und wie du sie im Browser korrigierst, ganz ohne Programmierkenntnisse.
 - **Sicherheit:** Melde Schwachstellen vertraulich, wie in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md) beschrieben.
-- **Zeigen:** Für Videos und Artikel gibt es ein [Creator-Kit](creator-kit.de.md) mit Fakten, Videos und Bildern zur freien Verwendung.
+- **Zeig dein Board:** Teile ein Foto deines Boards, des Bildschirms daneben und was Home Assistant damit macht, unter [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/new?category=show-and-tell). Es gibt anderen Ideen und zeigt ihnen, dass die Integration an Boards wie ihrem läuft.
+- **Zeigen:** Für Videos, Artikel und Beiträge gibt es ein [Creator-Kit](creator-kit.de.md) mit Fakten, fertigen Texten, Videos und Bildern zur freien Verwendung.
 - **Mitmachen:** Beiträge sind willkommen; [CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md) erklärt die Prüfungen. Die Mitarbeit folgt dem [Verhaltenskodex](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CODE_OF_CONDUCT.md) und der [Governance](https://github.com/Dennis-Otto/ha-autodarts/blob/main/GOVERNANCE.md) des Projekts.
 
 ## Qualität und Sicherheit
