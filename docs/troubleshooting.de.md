@@ -1,3 +1,7 @@
+---
+description: "Häufige Probleme der Autodarts-Integration lösen: Einrichtung, Reparaturen, ein Board, das fehlt oder nicht aktualisiert, der Weg zu Autodarts 2 und Logs."
+---
+
 # Fehlerbehebung
 
 [← Dokumentation](README.de.md) · [English](troubleshooting.md)

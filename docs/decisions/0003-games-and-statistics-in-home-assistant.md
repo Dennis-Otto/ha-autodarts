@@ -1,3 +1,7 @@
+---
+description: "Why games, training and statistics run in Home Assistant itself, without the matches, scores and statistics of the Autodarts cloud."
+---
+
 # Keep games, training and statistics in Home Assistant itself
 
 - Status: accepted

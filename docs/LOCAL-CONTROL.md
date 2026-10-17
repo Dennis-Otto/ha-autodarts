@@ -1,3 +1,7 @@
+---
+moved: installation.md
+---
+
 # Lokale Steuerung
 
 Diese Anleitung ist in die neue Dokumentation umgezogen:

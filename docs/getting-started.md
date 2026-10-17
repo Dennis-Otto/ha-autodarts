@@ -1,3 +1,7 @@
+---
+description: "From no Home Assistant to the scoreboard on a tablet at your Autodarts board in about an hour: Home Assistant, HACS, the integration and the dashboard."
+---
+
 # From zero to the scoreboard
 
 [← Documentation](README.md) · [Deutsch](getting-started.de.md)

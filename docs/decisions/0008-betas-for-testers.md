@@ -1,3 +1,7 @@
+---
+description: "Why testers get a beta of the next release after every change for users, which HACS offers with its switch for pre-releases."
+---
+
 # Give testers a beta after every change for users
 
 - Status: accepted

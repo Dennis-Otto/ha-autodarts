@@ -1,3 +1,7 @@
+---
+description: "Your 3-dart average, heatmaps of your darts, personal bests, doubles and player profiles with badges and weekly trends, kept in Home Assistant."
+---
+
 # Statistics and players
 
 [← Documentation](README.md) · [Deutsch](statistics.de.md)

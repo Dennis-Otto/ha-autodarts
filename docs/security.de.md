@@ -1,3 +1,7 @@
+---
+description: "Wie die Autodarts-Integration deine Daten und dein Board schützt: was sie schützt, wem sie vertraut, welche Bedrohungen sie abwehrt und welche Risiken bleiben."
+---
+
 # Sicherheit
 
 [← Dokumentation](README.de.md) · [English](security.md)

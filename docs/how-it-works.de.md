@@ -1,3 +1,7 @@
+---
+description: "Wie die Integration mit dem Board Manager spricht, ihre Entitäten aktualisiert, Spiele und Training führt, Rekorde und Statistik speichert und Daten schützt."
+---
+
 # Funktionsweise
 
 [← Dokumentation](README.de.md) · [English](how-it-works.md)

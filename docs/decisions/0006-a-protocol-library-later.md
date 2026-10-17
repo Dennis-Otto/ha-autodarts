@@ -1,3 +1,7 @@
+---
+description: "Why the protocol of the Board Manager stays in the integration for now, and not yet in a library on PyPI such as aioautodarts."
+---
+
 # Keep the protocol of the Board Manager in the integration for now
 
 - Status: accepted

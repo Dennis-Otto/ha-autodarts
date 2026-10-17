@@ -1,3 +1,7 @@
+---
+description: "Fakten, die Geschichte, Bilder und Videos der Autodarts-Integration für Home Assistant, frei nutzbar für YouTuber, Streamer und Blogger."
+---
+
 # Creator-Kit
 
 [← Dokumentation](README.de.md) · [English](creator-kit.md)

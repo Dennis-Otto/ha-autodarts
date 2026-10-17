@@ -1,3 +1,7 @@
+---
+description: "Die Begriffe des Dartsports und der Integration, wie Dokumentation, Entitäten und Karten sie verwenden, von Average bis Aufnahme, mit den englischen Namen."
+---
+
 # Glossar
 
 [← Dokumentation](README.de.md) · [English](glossary.md)

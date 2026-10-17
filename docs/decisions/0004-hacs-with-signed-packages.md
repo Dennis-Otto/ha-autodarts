@@ -1,3 +1,7 @@
+---
+description: "Why the integration reaches its users through HACS, as a release package with signed provenance, an SBOM and the licenses of its components."
+---
+
 # Deliver through HACS, with signed release packages
 
 - Status: accepted

@@ -1,3 +1,7 @@
+---
+description: "Why the integration talks to the board through the local HTTP and WebSocket API of the Board Manager, without the Autodarts cloud and a client ID."
+---
+
 # Talk to the board through the local API of the Board Manager
 
 - Status: accepted
