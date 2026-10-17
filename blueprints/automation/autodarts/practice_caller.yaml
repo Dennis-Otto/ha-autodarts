@@ -20,7 +20,9 @@ blueprint:
     decided, with the `remaining` score of its winner), and when the bull-off is won
     `hit` (the bed of the winning dart: `BULL`, `25` or for example `S20`) and
     `distance` (millimeters from the center, empty when the board measured no
-    position). An empty message stays silent.
+    position). An empty message stays silent. With a voice pack, such as
+    one of darts-caller, its recorded sounds call busts, game shots, the
+    match and, when you play alone, what you require.
 
 
     The first visit of a game is not called: a practice game starts without a
@@ -81,6 +83,18 @@ blueprint:
           default: {}
           selector:
             object: {}
+        voice_pack:
+          name: Voice pack
+          description: >-
+            Optional. A voice pack in `autodarts/voices` of the media folder,
+            for example a pack of darts-caller or one recorded with the action
+            `autodarts.generate_voice_pack`. Its sounds call busts, game
+            shots, the match and, when you play alone, what you require; the
+            engine speaks every other call. Needs version 1.15.0 or later of
+            the integration.
+          default: ""
+          selector:
+            text: {}
     messages:
       name: Messages
       icon: mdi:message-text
@@ -272,6 +286,16 @@ variables:
   speakers: !input speakers
   language: !input language
   tts_options: !input tts_options
+  voice_pack: !input voice_pack
+  # The sounds of a voice pack for the call, named as in darts-caller's packs:
+  # what you require when you play alone, a bust, a leg and the match won with
+  # a checkout. A call that names the player at the board stays the engine's.
+  sounds: >-
+    {%- if kind == 'turn_changed' and checkout and players == 1 and not bull_off and previous != 'bull_off_won' %}{{ ['yr_' ~ remaining] }}
+    {%- elif kind == 'bust' %}{{ ['busted'] }}
+    {%- elif kind == 'leg_won' and not rounds %}{{ ['gameshot'] }}
+    {%- elif kind == 'match_won' and not rounds %}{{ ['matchshot'] }}
+    {%- else %}{{ [] }}{% endif %}
   speech: >-
     {% set data = {'media_player_entity_id': speakers, 'cache': true, 'message': message | string} %}
     {%- if language %}{% set data = dict(data, language=language) %}{% endif %}
@@ -284,7 +308,32 @@ conditions:
     value_template: "{{ message | string | trim | length > 0 }}"
 
 actions:
-  - action: tts.speak
-    target:
-      entity_id: !input tts_engine
-    data: "{{ speech }}"
+  - variables:
+      sound: {}
+  - alias: Find the recorded sound of the call in the voice pack
+    # A name no folder of a pack can have leaves the call to the engine, as
+    # the action would refuse it before continue_on_error could catch that.
+    if: >-
+      {{ (voice_pack | string | trim | length) in range(1, 65) and sounds | count > 0 }}
+    then:
+      # A pack without the sound of the call, or no such pack, leaves the
+      # call to the engine.
+      - action: autodarts.voice_sound
+        continue_on_error: true
+        data:
+          pack: "{{ voice_pack | string | trim }}"
+          keys: "{{ sounds }}"
+        response_variable: sound
+  - if: "{{ sound.get('media_content_id', '') != '' }}"
+    then:
+      - action: media_player.play_media
+        target:
+          entity_id: !input speakers
+        data:
+          media_content_id: "{{ sound.media_content_id }}"
+          media_content_type: music
+    else:
+      - action: tts.speak
+        target:
+          entity_id: !input tts_engine
+        data: "{{ speech }}"

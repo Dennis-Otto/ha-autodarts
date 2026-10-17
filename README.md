@@ -121,7 +121,7 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 
 - A scoreboard for a tablet or TV, readable from the oche
 - A new game screen to choose the game, the players and the format at the board, or to start a tournament
-- A caller that calls the game through the screen's browser
+- A caller that calls the game through the screen's browser, also with the recorded voice packs of darts-caller or a voice you record with Piper
 - Idle mode with a leaderboard, personal bests, today's darts and a clock
 
 <p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/lobby.webp" alt="Animation: on the tablet, New game opens the game screen, Cricket and a second player are chosen and the game starts" width="600"></p>
@@ -185,7 +185,7 @@ Import a blueprint with one click, choose your board and you're done.
 
   [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml)
 
-- **Dart caller.** Every visit announced on your speakers, with a special call for 180.
+- **Dart caller.** Every visit announced on your speakers, with a special call for 180, or with the recorded sounds of a voice pack.
 
   [![Import the dart caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml)
 

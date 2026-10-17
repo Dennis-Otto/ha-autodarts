@@ -47,6 +47,8 @@ Without My Home Assistant, go to **Settings → Automations & scenes → Bluepri
 - **Practice caller:** calls what matters in the practice game: requirements, busts, game shots and, if you like, the bull-off.
 - **Caller of the scoreboard card:** the [scoreboard](scoreboard.md#the-caller) calls visits and the practice game in one voice, through the browser of the screen at the board. It needs no speakers in Home Assistant.
 
+All three can call with a voice pack of recorded sounds, such as one of darts-caller: see [voice packs of the callers](#voice-packs-of-the-callers) and [of the scoreboard](scoreboard.md#voice-packs).
+
 ## Blueprint settings
 
 Every blueprint shows these settings when you create an automation from it: select the blueprint on the blueprints page, fill in the form and save. Settings with a default are optional.
@@ -71,6 +73,7 @@ Every blueprint shows these settings when you create an automation from it: sele
 | Speakers | | The media players that play the calls. |
 | Language | empty | The language of the voice, for example `en-GB`; empty uses the language of the engine. |
 | Voice options | empty | Options of the engine, for example `voice: ...` for another voice. |
+| Voice pack | empty | A [voice pack](#voice-packs-of-the-callers) in `autodarts/voices` of the media folder, such as a pack of darts-caller. Its sounds call the visits and the darts it has; the engine speaks the rest. |
 | Call every dart | off | Also calls each dart when it lands. The third dart is not called on its own, because the visit follows right away. |
 | Stay silent in practice games | on | Leaves the calls to the practice caller while an X01, Cricket or party game of the integration is played. |
 | Visit message | `{{ score }}` | Said after a visit. It can use `score`, `darts` and `segments`. |
@@ -156,6 +159,7 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | --- | --- | --- |
 | Board events | | The *Events* entity of your board. |
 | Text-to-speech engine, Speakers, Language, Voice options | | As in the dart caller. |
+| Voice pack | empty | A [voice pack](#voice-packs-of-the-callers): its sounds call busts, game shots, the match and, when you play alone, what you require; the engine speaks every other call. |
 | Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Said when the next visit can finish the leg. |
 | No checkout, a setup | empty | Said when the next visit cannot finish the leg but can leave a finish, with `leave` and `setup`, for example `{{ who ~ ', leave' if who else 'Leave' }} yourself {{ leave }}`. Empty uses the *Next player* message. |
 | Next player | empty | Said when the next visit cannot finish the leg. Empty stays silent. |
@@ -370,6 +374,17 @@ For example:
 | Bull-off throw | `{{ who }}, throw for the bull` |
 | Bull-off won | `{{ who }} to throw first. Game on!`, or `{{ who }} wins the bull{{ ' by ' ~ distance ~ ' millimeters' if distance is number }}` |
 | Word for a player without a name | `Player` |
+
+### Voice packs of the callers
+
+With *Voice pack*, the dart caller and the practice caller play recorded sounds on the speakers instead of the engine's voice: a pack of [darts-caller](https://github.com/lbormann/darts-caller), or one that [`autodarts.generate_voice_pack`](entities.md#record-a-voice-pack-autodartsgenerate_voice_pack) recorded, in a folder of `autodarts/voices` in the media folder, as for the [scoreboard](scoreboard.md#voice-packs). The blueprints ask [`autodarts.voice_sound`](entities.md#find-a-sound-of-a-voice-pack-autodartsvoice_sound) for the sound of each call and play it with `media_player.play_media`; a call the pack has no sound for is spoken by the engine, with your message.
+
+| Blueprint | Calls with a sound of the pack |
+| --- | --- |
+| Dart caller | The points of a visit, `0` to `180`; every dart: `t20`, `d16`, `s5` or `5`, `bull` for 25, `bullseye`, and `outside` for a miss |
+| Practice caller | `busted`, `gameshot` and `matchshot`, also in a match; what you require when you play alone, `yr_40`. A call that names the player at the board, and a leg or match the round limit decides, stay the engine's |
+
+On a media player, a new sound replaces the one that plays, so each call of the blueprints is one sound; the [scoreboard](scoreboard.md#voice-packs) also plays calls of several sounds, such as a name, `you_require` and `40`, one after the other. An empty message stays silent, also with a voice pack. Voice packs need version 1.15.0 or later of the integration.
 
 ### Highlight photo on your phone
 

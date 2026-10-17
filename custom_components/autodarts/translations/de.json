@@ -856,6 +856,48 @@
     "highlight_failed": {
       "message": "Das Highlight-Foto konnte nicht gespeichert werden: {error}"
     },
+    "voice_pack_no_score": {
+      "message": "Keine Punkte"
+    },
+    "voice_pack_bust": {
+      "message": "Überworfen"
+    },
+    "voice_pack_leg": {
+      "message": "Game shot, und das Leg!"
+    },
+    "voice_pack_match": {
+      "message": "Game shot, und das Match!"
+    },
+    "voice_pack_require": {
+      "message": "Du brauchst"
+    },
+    "voice_pack_require_score": {
+      "message": "Du brauchst {remaining}"
+    },
+    "voice_pack_name": {
+      "message": "Das Voice-Pack {pack} hat keinen gültigen Ordnernamen: bis zu 64 Buchstaben, Ziffern, Leerzeichen, Punkte, Bindestriche und Unterstriche, die mit einem Buchstaben oder einer Ziffer beginnen und enden."
+    },
+    "voice_pack_engine_missing": {
+      "message": "Die Text-to-Speech-Engine {engine} gibt es nicht."
+    },
+    "voice_pack_busy": {
+      "message": "Gerade wird ein Voice-Pack erzeugt. Versuch es noch einmal, wenn es fertig ist."
+    },
+    "voice_pack_no_media": {
+      "message": "Home Assistant hat keinen Medienordner für die Voice-Packs."
+    },
+    "voice_pack_engine": {
+      "message": "Die Engine {engine} kann {language} mit diesen Optionen nicht sprechen: {error}"
+    },
+    "voice_pack_folder": {
+      "message": "Home Assistant erlaubt nicht, in den Ordner der Voice-Packs zu schreiben, {folder}."
+    },
+    "voice_pack_recorded": {
+      "message": "Das Voice-Pack {pack} gibt es schon, und es wurde nicht erzeugt, etwa ein Pack von darts-caller. Es bleibt, wie es ist; wähle einen anderen Namen."
+    },
+    "voice_pack_failed": {
+      "message": "Das Voice-Pack {pack} konnte nicht erzeugt werden: {error}"
+    },
     "unknown_person": {
       "message": "Es gibt keine Person {person} in Home Assistant."
     },
@@ -1228,6 +1270,42 @@
         "label": {
           "name": "Bezeichnung",
           "description": "Optional. Was das Foto zeigt, am Ende seines Namens, etwa 180 oder checkout-121. Eine Zahl zeigt die Galerie als Punkte."
+        }
+      }
+    },
+    "voice_sound": {
+      "name": "Sound eines Voice-Packs",
+      "description": "Sucht den Sound einer Ansage in einem Voice-Pack in autodarts/voices des Medienordners, für einen Mediaplayer: den ersten der Schlüssel, den das Pack hat, etwa 180, busted oder yr_40, und davon eine Datei nach Zufall. Die Antwort ist leer, wenn das Pack keinen davon hat, damit die Ansage stattdessen gesprochen werden kann. Die Caller-Blueprints nutzen sie.",
+      "fields": {
+        "pack": {
+          "name": "Voice-Pack",
+          "description": "Der Ordner des Packs in autodarts/voices des Medienordners, zum Beispiel russ-bray."
+        },
+        "keys": {
+          "name": "Schlüssel",
+          "description": "Die Schlüssel des Sounds; es zählt der erste, den das Pack hat, zum Beispiel yr_40 und you_require. Es sind die Dateinamen der Voice-Packs von darts-caller: 0 bis 180, busted, gameshot, matchshot, yr_2 bis yr_170, s1 bis t20, bull, bullseye, outside oder der Name eines Spielers."
+        }
+      }
+    },
+    "generate_voice_pack": {
+      "name": "Voice-Pack erzeugen",
+      "description": "Nimmt ein Voice-Pack für den Caller mit einer Text-to-Speech-Engine auf, etwa Piper für eine Stimme, die zu Hause bleibt: jede Punktzahl von 0 bis 180, keine Punkte, das Game shot und das Match, was ein Spieler braucht, und jeden Dart, unter den Dateinamen der Voice-Packs von darts-caller in autodarts/voices des Medienordners. Das dauert einige Minuten, ein Pack nach dem anderen, und ersetzt ein Pack, das die Aktion vorher erzeugt hat, nie eines, das du dorthin kopiert hast. Nur für Administratoren; Automationen können sie ebenfalls nutzen.",
+      "fields": {
+        "tts_entity": {
+          "name": "Text-to-Speech-Engine",
+          "description": "Die Engine, die spricht, zum Beispiel Piper oder Home Assistant Cloud."
+        },
+        "language": {
+          "name": "Sprache",
+          "description": "Die Sprache der Stimme, zum Beispiel de-DE oder en-GB. Die Ansagen sind in ihrer Sprache, auf Englisch für eine Sprache, die die Integration nicht spricht."
+        },
+        "pack": {
+          "name": "Voice-Pack",
+          "description": "Der Name des Packs, ein Ordner in autodarts/voices des Medienordners, zum Beispiel piper-de."
+        },
+        "voice": {
+          "name": "Stimme",
+          "description": "Optional. Eine Stimme der Engine, zum Beispiel de_DE-thorsten-medium für Piper. Ohne sie spricht die Engine mit ihrer eigenen."
         }
       }
     },

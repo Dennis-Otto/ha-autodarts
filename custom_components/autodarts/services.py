@@ -1,6 +1,6 @@
 """Actions of the integration: start a practice game or a tournament with one call,
-correct and enter darts, pass the turn, undo a visit, save a highlight photo, and
-more."""
+correct and enter darts, pass the turn, undo a visit, save a highlight photo,
+record a voice pack for the caller, and more."""
 
 from __future__ import annotations
 
@@ -66,6 +66,7 @@ from .voice import Turn, passed, refusal, spoken, undone
 from .voice import dart as dart_said
 from .voice import name as voice_name
 from .voice import visit as visit_said
+from .voices import PACK_LENGTH, async_generate_voice_pack, async_voice_sound
 
 SERVICE_START_GAME = "start_game"
 SERVICE_DELETE_PLAYER = "delete_player"
@@ -79,6 +80,8 @@ SERVICE_ENTER_VISIT = "enter_visit"
 SERVICE_NEXT_PLAYER = "next_player"
 SERVICE_UNDO_VISIT = "undo_visit"
 SERVICE_SAVE_HIGHLIGHT = "save_highlight"
+SERVICE_VOICE_SOUND = "voice_sound"
+SERVICE_GENERATE_VOICE_PACK = "generate_voice_pack"
 
 
 # The longest bed name an error message repeats.
@@ -260,6 +263,31 @@ SAVE_HIGHLIGHT_SCHEMA = vol.Schema(
         vol.Optional("folder"): vol.All(cv.string, vol.Strip, vol.Length(max=255)),
         vol.Optional("player"): _text,
         vol.Optional("label"): _text,
+    }
+)
+
+
+PACK = vol.All(cv.string, vol.Strip, vol.Length(min=1, max=PACK_LENGTH))
+# The keys of the sound for a call, the first one the pack has is played: a
+# template renders a score such as 180 as a number.
+VOICE_SOUND_SCHEMA = vol.Schema(
+    {
+        vol.Required("pack"): PACK,
+        vol.Required("keys"): vol.All(
+            cv.ensure_list,
+            [vol.All(vol.Coerce(str), vol.Length(min=1, max=PACK_LENGTH))],
+            vol.Length(min=1, max=10),
+        ),
+    }
+)
+GENERATE_VOICE_PACK_SCHEMA = vol.Schema(
+    {
+        vol.Required("tts_entity"): cv.entity_domain("tts"),
+        vol.Required("language"): vol.All(
+            cv.string, vol.Strip, vol.Length(min=2, max=35)
+        ),
+        vol.Required("pack"): PACK,
+        vol.Optional("voice"): vol.All(cv.string, vol.Strip, vol.Length(max=255)),
     }
 )
 
@@ -829,6 +857,39 @@ def async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_SAVE_HIGHLIGHT,
         save_highlight,
         schema=SAVE_HIGHLIGHT_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
+
+    async def voice_sound(call: ServiceCall) -> ServiceResponse:
+        return await async_voice_sound(hass, call.data["pack"], call.data["keys"])
+
+    # It only reads which sounds a pack has, as the media browser shows them, so the
+    # caller blueprints and anyone may ask.
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_VOICE_SOUND,
+        voice_sound,
+        schema=VOICE_SOUND_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
+    )
+
+    async def generate_voice_pack(call: ServiceCall) -> ServiceResponse:
+        generated = await async_generate_voice_pack(
+            hass,
+            call.data["tts_entity"],
+            call.data["language"],
+            call.data["pack"],
+            call.data.get("voice") or None,
+        )
+        return generated if call.return_response else None
+
+    # It writes hundreds of files to the media folder, so it is for administrators.
+    async_register_admin_service(
+        hass,
+        DOMAIN,
+        SERVICE_GENERATE_VOICE_PACK,
+        generate_voice_pack,
+        schema=GENERATE_VOICE_PACK_SCHEMA,
         supports_response=SupportsResponse.OPTIONAL,
     )
 

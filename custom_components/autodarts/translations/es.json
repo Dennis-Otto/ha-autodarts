@@ -856,6 +856,48 @@
     "highlight_failed": {
       "message": "No se ha podido guardar la foto destacada: {error}"
     },
+    "voice_pack_no_score": {
+      "message": "Sin puntos"
+    },
+    "voice_pack_bust": {
+      "message": "Sin puntos"
+    },
+    "voice_pack_leg": {
+      "message": "¡Game shot, y el leg!"
+    },
+    "voice_pack_match": {
+      "message": "¡Game shot, y el partido!"
+    },
+    "voice_pack_require": {
+      "message": "Te quedan"
+    },
+    "voice_pack_require_score": {
+      "message": "Te quedan {remaining}"
+    },
+    "voice_pack_name": {
+      "message": "El paquete de voz {pack} no tiene un nombre de carpeta válido: hasta 64 letras, cifras, espacios, puntos, guiones y guiones bajos que empiecen y terminen con una letra o una cifra."
+    },
+    "voice_pack_engine_missing": {
+      "message": "El motor de texto a voz {engine} no existe."
+    },
+    "voice_pack_busy": {
+      "message": "Ya se está generando un paquete de voz. Inténtalo de nuevo cuando termine."
+    },
+    "voice_pack_no_media": {
+      "message": "Home Assistant no tiene una carpeta multimedia para los paquetes de voz."
+    },
+    "voice_pack_engine": {
+      "message": "El motor {engine} no puede hablar {language} con estas opciones: {error}"
+    },
+    "voice_pack_folder": {
+      "message": "Home Assistant no permite escribir en la carpeta de los paquetes de voz, {folder}."
+    },
+    "voice_pack_recorded": {
+      "message": "El paquete de voz {pack} ya existe y no se generó, por ejemplo un paquete de darts-caller. Se queda como está; elige otro nombre."
+    },
+    "voice_pack_failed": {
+      "message": "No se ha podido generar el paquete de voz {pack}: {error}"
+    },
     "unknown_person": {
       "message": "No hay ninguna persona {person} en Home Assistant."
     },
@@ -1228,6 +1270,42 @@
         "label": {
           "name": "Etiqueta",
           "description": "Opcional. Lo que muestra la foto, al final de su nombre, como 180 o checkout-121. La galería muestra un número como la puntuación."
+        }
+      }
+    },
+    "voice_sound": {
+      "name": "Sonido de un paquete de voz",
+      "description": "Busca el sonido de un anuncio en un paquete de voz de autodarts/voices de la carpeta multimedia, para un reproductor: la primera de las claves que tenga el paquete, como 180, busted o yr_40, y uno de sus archivos al azar. La respuesta está vacía si el paquete no tiene ninguna, para que el anuncio se diga con la voz en su lugar. Los blueprints del locutor la usan.",
+      "fields": {
+        "pack": {
+          "name": "Paquete de voz",
+          "description": "La carpeta del paquete en autodarts/voices de la carpeta multimedia, por ejemplo russ-bray."
+        },
+        "keys": {
+          "name": "Claves",
+          "description": "Las claves del sonido; cuenta la primera que tenga el paquete, por ejemplo yr_40 y you_require. Son los nombres de archivo de los paquetes de voz de darts-caller: 0 a 180, busted, gameshot, matchshot, yr_2 a yr_170, s1 a t20, bull, bullseye, outside o el nombre de un jugador."
+        }
+      }
+    },
+    "generate_voice_pack": {
+      "name": "Generar paquete de voz",
+      "description": "Graba un paquete de voz para el locutor con un motor de texto a voz, como Piper para una voz que no sale de casa: cada puntuación de 0 a 180, sin puntos, el game shot y el partido, lo que le queda a un jugador y cada dardo, con los nombres de archivo de los paquetes de voz de darts-caller en autodarts/voices de la carpeta multimedia. Tarda unos minutos, un paquete cada vez, y sustituye un paquete que generó antes, nunca uno que hayas copiado allí. Solo para administradores; las automatizaciones también pueden usarla.",
+      "fields": {
+        "tts_entity": {
+          "name": "Motor de texto a voz",
+          "description": "El motor que habla, por ejemplo Piper o Home Assistant Cloud."
+        },
+        "language": {
+          "name": "Idioma",
+          "description": "El idioma de la voz, por ejemplo es-ES o en-GB. Los anuncios van en su idioma, en inglés para un idioma que la integración no habla."
+        },
+        "pack": {
+          "name": "Paquete de voz",
+          "description": "El nombre del paquete, una carpeta de autodarts/voices de la carpeta multimedia, por ejemplo piper-es."
+        },
+        "voice": {
+          "name": "Voz",
+          "description": "Opcional. Una voz del motor, por ejemplo es_ES-davefx-medium para Piper. Sin ella, habla con la suya propia."
         }
       }
     },

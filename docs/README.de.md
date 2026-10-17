@@ -109,7 +109,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 
 - Eine Anzeigetafel für Tablet oder Fernseher, lesbar vom Abwurf aus
 - Eine Spielauswahl, um Spiel, Spieler und Format direkt am Board zu wählen oder ein Turnier zu starten
-- Ein Caller, der das Spiel über den Browser des Bildschirms ansagt
+- Ein Caller, der das Spiel über den Browser des Bildschirms ansagt, auch mit den aufgenommenen Voice-Packs von darts-caller oder einer Stimme, die du mit Piper aufnimmst
 - Ein Ruhemodus mit Bestenliste, Bestleistungen, den Darts von heute und einer Uhr
 
 <p align="center"><img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Spielauswahl, Cricket und ein zweiter Spieler werden gewählt und das Spiel startet" width="600"></p>
@@ -271,7 +271,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 
   [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml)
 
-- **Dart caller.** Jede Aufnahme auf deinen Lautsprechern, mit einer eigenen Ansage für die 180.
+- **Dart caller.** Jede Aufnahme auf deinen Lautsprechern, mit einer eigenen Ansage für die 180, oder mit den aufgenommenen Sounds eines Voice-Packs.
 
   [![Blueprint „Dart caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml)
 
@@ -349,7 +349,7 @@ Seit September 2026 beschreibt die Doku von Autodarts den Board Manager als Brow
 Die Integration spricht Deutsch, Englisch, Niederländisch, Französisch und Spanisch: Einrichtung, Optionen, Entitäten und ihre Zustände, Aktionen, Meldungen und Reparaturen, die Karten mit ihren Editoren und der Caller der Anzeigetafel. Sie folgt der Sprache von Home Assistant, eine regionale Variante wie `de-CH` oder `es-419` zählt zu ihrer Sprache. Andere Sprachen sehen Englisch.
 
 - Die Namen der Entitäten legt Home Assistant in der Sprache des Servers fest (**Einstellungen → System → Allgemein**), Zustände und Karten folgen der Sprache deines Benutzerprofils.
-- Der Caller spricht die Sprache der Karte mit einer Stimme deines Browsers oder Tablets für diese Sprache.
+- Der Caller spricht die Sprache der Karte mit einer Stimme deines Browsers oder Tablets für diese Sprache, oder mit einem [Voice-Pack](scoreboard.de.md#voice-packs) aufgenommener Ansagen; `autodarts.generate_voice_pack` nimmt eines in der Sprache deiner Wahl auf.
 - Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints auf Englisch, weil Home Assistant Blueprints nicht übersetzt. Die Sprach-Blueprints verstehen Sätze in allen fünf Sprachen, und Assist antwortet in der Sprache von Home Assistant.
 
 Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original, stehen im [Übersetzungs-Issue](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) dieser Sprache, das ein Bot aktuell hält. Es erklärt, wie du sie direkt auf GitHub korrigierst, ganz ohne Programmierkenntnisse. Eine Übersetzung verbessern oder eine Sprache hinzufügen: [Übersetzungen in CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations).
