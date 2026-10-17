@@ -1,0 +1,15 @@
+flowchart TB
+  accTitle: Umstieg von einer anderen Autodarts-Integration
+  accDescr: Das ursprüngliche HACSAutodarts nutzt die Domain autodarts; ersetze es in HACS und behalte seinen Eintrag, der umgestellt wird. Die Integrationen von Quevinsta und belese nutzen ebenfalls die Domain autodarts; lösche ihre Einträge, entferne sie in HACS, prüfe, dass custom_components/autodarts weg ist, und starte neu. Autodarts Local, Autodarts Connect Online, Darts Hub und MQTT-Brücken haben eine eigene Domain und dürfen vorerst bleiben. Dann installierst du diese Integration, fügst das Board hinzu, stellst die Automationen auf ihre Ereignisse und Blueprints um und entfernst, was nichts mehr nutzt.
+  OLD["Deine Autodarts-<br/>Integration heute"] --> DOMAIN{"Welche Domain<br/>nutzt sie?"}
+  DOMAIN -- "autodarts:<br/>das ursprüngliche<br/>HACSAutodarts" --> KEEP["In HACS ersetzen<br/>und den Eintrag<br/>behalten, er wird<br/>umgestellt"]
+  DOMAIN -- "autodarts:<br/>Quevinsta, belese" --> REMOVE["Einträge löschen,<br/>in HACS entfernen,<br/>prüfen, dass<br/>custom_components/autodarts<br/>weg ist, neu starten"]
+  DOMAIN -- "eine eigene:<br/>Autodarts Local,<br/>Connect Online,<br/>Darts Hub, MQTT" --> BESIDE["Darf vorerst<br/>bleiben"]
+  REMOVE --> ADD["Diese Integration<br/>installieren und das<br/>Board hinzufügen"]
+  BESIDE --> ADD
+  ADD --> MOVE["Automationen auf<br/>ihre Ereignisse und<br/>Blueprints umstellen"]
+  MOVE --> DONE["Entfernen, was<br/>nichts mehr nutzt"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class KEEP,DONE done
+  class REMOVE warn

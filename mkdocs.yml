@@ -71,6 +71,8 @@ nav:
       - getting-started.md
       - installation.md
       - without-autodarts.md
+      - faq.md
+      - coming-from.md
   - Guides:
       - games.md
       - scoreboard.md

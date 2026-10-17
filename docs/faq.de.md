@@ -1,0 +1,89 @@
+---
+description: "Kurze Antworten zu Autodarts in Home Assistant: Konto, Geräte, Online-Spiel, Datenschutz, mehrere Boards, Bildschirme, Sprachen, Updates und Umstieg."
+---
+
+# Häufige Fragen
+
+[← Dokumentation](README.de.md) · [English](faq.md)
+
+Kurze Antworten, jede mit der Seite, die die Einzelheiten hat. Deine Frage fehlt? Stell sie in den [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), gern auf Deutsch.
+
+**Schnell zu:** [Bevor du anfängst](#bevor-du-anfängst) · [Spielen](#spielen) · [Bildschirme und Sprachen](#bildschirme-und-sprachen) · [Datenschutz](#datenschutz) · [Updates und Umstieg](#updates-und-umstieg)
+
+## Bevor du anfängst
+
+### Brauche ich ein Autodarts-Konto oder ein Abo?
+
+Nein. Die Integration spricht über dein eigenes Netzwerk mit dem Board Manager auf deinem Board-PC, auf TCP-Port 3180. Sie braucht keine Autodarts-Anmeldung, kein Passwort, keinen API-Schlüssel und kein Abo wie Autodarts Plus, und sie ändert nie die Registrierung deines Boards bei Autodarts. Eine Dartscheibe ohne Autodarts braucht gar nichts von Autodarts. [Voraussetzungen](installation.de.md#voraussetzungen)
+
+### Was brauche ich?
+
+Home Assistant ab 2026.8 mit [HACS](https://hacs.xyz) und ein Autodarts-Board in deinem Netzwerk oder eine beliebige Dartscheibe, deren Darts du auf einem Tastenfeld eingibst. Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) führt dich vom Nichts zum ersten Spiel auf der Anzeigetafel.
+
+### Funktioniert es mit Autodarts Desktop, Autodarts X oder Lens?
+
+Die Integration braucht einen Board Manager, den Home Assistant in deinem Netzwerk erreicht. Board Manager 2 ist bis 2.0.2 getestet, der klassische Board Manager 1 funktioniert auch, und laut dem Bericht eines Spielers läuft Autodarts Desktop 2.0.2 unter Linux. Autodarts Desktop unter Windows, Autodarts X und Lens sind noch nicht getestet. Ein [Kompatibilitätsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) sagt uns, wie es mit deinem läuft, ob es klappt oder nicht. [Unterstützte Geräte](README.de.md#unterstützte-geräte)
+
+### Kostet es etwas?
+
+Nein. Die Integration ist kostenlos und quelloffen unter der [MIT-Lizenz](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), ohne etwas zu bezahlen und ohne kostenpflichtige Version. [Sponsoring](https://github.com/sponsors/Dennis-Otto) hilft dem Projekt und ist ganz freiwillig.
+
+### Ist das eine offizielle Autodarts-Integration?
+
+Nein. Sie ist eine inoffizielle Community-Integration, gepflegt von [@Dennis-Otto](https://github.com/Dennis-Otto) und ohne Verbindung zu Autodarts. Sie nutzt die lokale Schnittstelle des Board Managers, die das Autodarts-Team offen hält. [Herkunft und Lizenz](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/README.de.md#herkunft-und-lizenz)
+
+## Spielen
+
+### Ich habe kein Autodarts-Board. Kann ich sie nutzen?
+
+Ja. Richte eine Dartscheibe ohne Autodarts ein und gib jeden Dart auf dem Tastenfeld der Anzeigetafel oder per Sprache ein. Alle Spiele, das Training und die Statistik funktionieren. Bekommt deine Dartscheibe später Autodarts, behält sie die Spiele, die Spieler und die Statistik. [Spielen ohne Autodarts](without-autodarts.de.md)
+
+### Kann ich online spielen?
+
+Ja, wie bisher auf play.autodarts.io. Die Integration sieht dabei die Darts auf deinem eigenen Board: `dart_detected`, `visit_thrown` und die Entnahme kommen wie gewohnt an. Überwerfen, gewonnene Legs und Matches passieren im Browser; die optionale Online-Brücke bringt sie mit der Browser-Erweiterung Tools for Autodarts nach Home Assistant *(experimentell)*. [Online-Matches](online-matches.de.md)
+
+### Das Board hat einen Dart falsch erkannt. Wie korrigiere ich ihn?
+
+Tippe den Dart auf der Anzeigetafel an und wähle, wo er gelandet ist, auf den Tasten oder auf einem Bild des Boards. In Automationen macht `autodarts.correct_dart` dasselbe, und `autodarts.undo_visit` nimmt die letzte Aufnahme zurück. [Darts korrigieren und eingeben](scoreboard.de.md#darts-korrigieren-und-eingeben)
+
+### Kann ich mehrere Boards nutzen?
+
+Ja. Jedes Board ist ein eigener Eintrag und ein eigenes Gerät, mit eigenen Entitäten, Spielen und Statistiken, und das automatische Dashboard gibt jedem Board seine Ansichten, etwa `/scoreboard-1` und `/scoreboard-2`. Die Aktionen der Integration brauchen dann die `config_entry_id` des Boards. [Mehrere Boards](without-autodarts.de.md#mehrere-boards)
+
+## Bildschirme und Sprachen
+
+### Kann ich die Anzeigetafel auf einem Fernseher oder einem Fire-Tablet zeigen?
+
+Ja: auf jedem Bildschirm, dessen Browser dein Home Assistant öffnet, etwa einem Tablet an der Wand, auch einem Fire-Tablet, einem Fernseher mit Browser, einem kleinen PC oder einem alten Handy. Installieren musst du darauf nichts. Gib dem Bildschirm einen eigenen Home-Assistant-Benutzer und öffne die Ansicht *Anzeigetafel* des automatischen Dashboards, im Vollbild oder in einem Kiosk-Browser. [Den Bildschirm einrichten](scoreboard.de.md#den-bildschirm-einrichten)
+
+### Welche Sprachen spricht sie, und welche Stimmen hat der Caller?
+
+Englisch, Deutsch, Niederländisch, Französisch und Spanisch, in der Sprache von Home Assistant: Einrichtung, Entitäten, Karten und Caller. Der Caller der Anzeigetafel spricht mit einer Stimme des Browsers am Bildschirm für diese Sprache. Die Blueprints Dart caller und Practice caller sprechen über die Sprachausgabe und die Lautsprecher deines Home Assistant. [Sprachen](README.de.md#sprachen) · [Welcher Caller?](automations.de.md#welcher-caller)
+
+## Datenschutz
+
+### Was verlässt mein Netzwerk?
+
+Im lokalen Betrieb nichts. Nur was du wählst, spricht mit dem Internet: Die Board-Suche fragt einmal den öffentlichen Suchdienst von Autodarts, die optionale Cloud-Verknüpfung wird die Geräteanmeldung von Autodarts nutzen, und die Online-Brücke nimmt nur die Aufrufe von Tools for Autodarts an. Geheimnisse des Boards werden nie gespeichert, und die Diagnosedaten schwärzen Board-IDs, Adressen und Spielernamen. Manche Browser sprechen die Ansagen der Anzeigetafel mit Online-Stimmen; eine Offline-Stimme des Geräts hält sie zu Hause. [Datenschutz](how-it-works.de.md#datenschutz) · [Sicherheit](security.de.md)
+
+### Wo liegt meine Statistik?
+
+Im eigenen Speicher von Home Assistant, nie in der Cloud: die Trainingssessions, das Übungsspiel, die Bestleistungen, die Spielerprofile mit ihren Matches und der Trainingskalender mit einem Jahr an Sessions und Matches. Löschst du das Board, wird all das mitgelöscht; [`autodarts.export`](entities.de.md#trainingsdaten-exportieren-autodartsexport) sichert vorher eine Kopie. [Gespeicherte Daten](how-it-works.de.md#gespeicherte-daten)
+
+## Updates und Umstieg
+
+### Wie aktualisiere ich den Board Manager?
+
+Auf dem Board-PC, wie Autodarts es beschreibt. Home Assistant sagt dir, wann ein Update ansteht: Mit Board Manager 2 zeigt die Update-Entität *Software* die installierte und die neueste Version, und ein Board mit Board Manager 1 bekommt eine Reparaturmeldung für den Umstieg auf Board Manager 2. Die Integration selbst aktualisierst du über HACS. [Auf Board Manager 2 umsteigen](installation.de.md#von-board-manager-1-auf-board-manager-2-umsteigen) · [Zustand und Verbindungen](entities.de.md#zustand-und-verbindungen)
+
+### Ich nutze das ursprüngliche HACSAutodarts. Wie steige ich um?
+
+Ersetze es in HACS und behalte seinen Eintrag unter **Geräte & Dienste**. Beide nutzen die Domain `autodarts`; Einträge seiner ersten Version werden umgestellt, ihr Passwort wird dabei gelöscht. [Von der ursprünglichen Integration umsteigen](installation.de.md#von-der-ursprünglichen-integration-umsteigen)
+
+### Ich nutze ein anderes Autodarts-Werkzeug. Wie steige ich um?
+
+[Umstieg von anderen Werkzeugen](coming-from.de.md) behandelt Autodarts Local, die anderen Home-Assistant-Integrationen, MQTT-Brücken, darts-caller und darts-wled sowie Tools for Autodarts: was jedes bietet, welche Entitäten, Ereignisse und Blueprints seinen Platz einnehmen, welche installiert bleiben dürfen und wie du die anderen entfernst.
+
+### Etwas funktioniert nicht. Wo bekomme ich Hilfe?
+
+Die [Fehlerbehebung](troubleshooting.de.md) erklärt die Meldungen, Reparaturen und Diagnosedaten. Fragen stellst du in den [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), gern auf Deutsch, und Fehler meldest du als [Issue](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), mit den Diagnosedaten deines Boards; [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) erklärt, wo du was fragst.
