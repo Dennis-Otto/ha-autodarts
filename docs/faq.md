@@ -24,7 +24,7 @@ Home Assistant 2026.8 or newer with [HACS](https://hacs.xyz), and an Autodarts b
 
 The integration needs a Board Manager that Home Assistant reaches in your network. Board Manager 2 is tested up to 2.0.2, the classic Board Manager 1 works too, and a player reports that Autodarts Desktop 2.0.2 on Linux works. Autodarts Desktop on Windows and Autodarts X have not been tested yet. A [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) tells us how it goes with yours, whether it works or not. [Supported devices](README.md#supported-devices)
 
-Lens scores with the camera of a phone or tablet inside the Autodarts app, without a Board Manager in your network, so the integration can't read its darts. Enter them on the keypad instead. [Play without Autodarts](without-autodarts.md)
+Lens scores with the camera of a phone or tablet inside the Autodarts app, without a Board Manager in your network, so the integration can't read its darts. Enter them on the keypad instead. Once the [cloud link](online-matches.md#the-cloud-link) ships, a board without a Board Manager in your network, such as Lens, connects through the Autodarts cloud, with its match data and the moments of its online matches. [Play without Autodarts](without-autodarts.md)
 
 ### Does it cost anything?
 

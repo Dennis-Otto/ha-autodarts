@@ -1,0 +1,21 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Zwei Wege für die Momente eines Online-Matches
+  accDescr: Ein Match auf play.autodarts.io erreicht Home Assistant auf einem von zwei Wegen. Mit der Cloud-Verknüpfung, sobald Autodarts ihren Client ausgibt, liest die Integration den Stand des Matches alle 5 Sekunden aus der Autodarts-Cloud und macht aus dem Neuen die Trigger von Tools for Autodarts. Mit der Online-Brücke ruft Tools for Autodarts im Browser einen geheimen Webhook von Home Assistant auf. Beides wird zu denselben Board-Ereignissen wie online_busted und online_game_shot, für die Lichtshow, die Caller und deine Automationen. Solange die Brücke an ist, meldet sie allein die Momente.
+
+  MATCH["Ein Match auf play.autodarts.io"] --> CLOUD["Die Autodarts-Cloud,<br/>sobald Autodarts den Client ausgibt"]
+  MATCH --> BROWSER["Ein Browser mit Tools for Autodarts"]
+  CLOUD -->|"Cloud-Verknüpfung:<br/>das Match alle 5 s"| MOMENTS{{"Das Neue wird zu dem Trigger,<br/>den Tools for Autodarts senden würde"}}
+  BROWSER -->|"Online-Brücke:<br/>Aufruf eines<br/>geheimen Webhooks"| BRIDGE{{"Die Brücke liest<br/>den Trigger des Aufrufs"}}
+  MOMENTS -->|"solange die<br/>Brücke aus ist"| EVENTS["Dieselben Board-Ereignisse:<br/>online_busted, online_game_shot, …<br/>mit der Quelle cloud oder online"]
+  BRIDGE --> EVENTS
+  EVENTS --> USE["Die Lichtshow, die Caller<br/>und deine Automationen"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class MOMENTS,BRIDGE bot
+  class EVENTS,USE done

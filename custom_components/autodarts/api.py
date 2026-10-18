@@ -24,6 +24,9 @@ DEVICE_CODE_URL = f"{AUTH_BASE}/device/code"
 DEVICE_TOKEN_URL = f"{AUTH_BASE}/device/token"
 REFRESH_URL = f"{AUTH_BASE}/refresh"
 DEVICE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code"
+# Seconds before an access token expires that it is renewed: Autodarts' guide
+# advises about a minute, so that no request fails for an expired token.
+REFRESH_MARGIN = 60
 
 
 @dataclass(frozen=True)
@@ -192,7 +195,7 @@ class AutodartsCloudClient:
             if rejected_token is not None:
                 if self._token.get("access_token") != rejected_token:
                     return  # Another request has already refreshed this token.
-            elif time.time() < self._token.get("expires_at", 0) - 30:
+            elif time.time() < self._token.get("expires_at", 0) - REFRESH_MARGIN:
                 return
             refresh_token = self._token.get("refresh_token")
             if not refresh_token:

@@ -8,13 +8,20 @@ description: "Play online on play.autodarts.io and let Home Assistant celebrate:
 
 Play online on play.autodarts.io and let Home Assistant celebrate with you: busts, won legs and matches, and the darts of your opponents arrive as board events, for the light show, a caller or a notification when your tournament match is ready.
 
-**On this page:** [How it works](#how-it-works) · [Set up the bridge](#set-up-the-bridge) · [Triggers and events](#triggers-and-events) · [Security](#security) · [Limitations](#limitations)
+**On this page:** [How it works](#how-it-works) · [Set up the bridge](#set-up-the-bridge) · [Triggers and events](#triggers-and-events) · [The cloud link](#the-cloud-link) · [Security](#security) · [Limitations](#limitations)
 
 ## How it works
 
-The integration sees the darts on your board in an online match on play.autodarts.io, too: `dart_detected`, `visit_thrown` and the takeout arrive as usual. It cannot see the game itself: a bust, a won leg or match and the darts of your opponents happen in the browser. Autodarts shares them only through its cloud, which needs a client ID that has not been issued yet.
+The integration sees the darts on your board in an online match on play.autodarts.io, too: `dart_detected`, `visit_thrown` and the takeout arrive as usual. It cannot see the game itself: a bust, a won leg or match and the darts of your opponents happen in the browser. Autodarts shares them through its cloud, which a third-party integration reaches only with a client ID from Autodarts: the [cloud link](#the-cloud-link) is ready for it.
 
 The optional **online bridge** brings these moments into Home Assistant with the browser extension [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts). Its WLED feature calls an address of your choice for each moment of the game. The bridge offers a secret Home Assistant address for it and turns every call into a [board event](entities.md#board-events) whose type starts with `online_` and whose `source` is `online`. It is off by default.
+
+Once Autodarts has issued the client ID of the integration, the **cloud link** brings the same moments without a browser: the integration reads the state of the match from the Autodarts cloud and reports what is new as the same board events, with the `source` `cloud`. The bridge then remains for those who don't link their Autodarts account.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/online-moments-dark.png">
+  <img src="images/en/online-moments-light.png" alt="Two ways for the moments of an online match: a match on play.autodarts.io reaches Home Assistant in one of two ways. With the cloud link, once Autodarts issues its client, the integration reads the state of the match from the Autodarts cloud every 5 seconds and turns what is new into the triggers of Tools for Autodarts. With the online bridge, Tools for Autodarts in the browser calls a secret webhook of Home Assistant. Both become the same board events, such as online_busted and online_game_shot, for the light show, the callers and your automations. While the bridge is switched on, it alone reports the moments." width="560">
+</picture>
 
 ## Set up the bridge
 
@@ -67,6 +74,27 @@ actions:
       message: Your tournament match is ready. Mark yourself ready on Autodarts.
 mode: single
 ```
+
+## The cloud link
+
+The cloud link is not available yet: it waits for the client ID that Autodarts issues to the integration, which has been requested ([roadmap](roadmap.md#next), [decision 0020](decisions/0020-a-public-client-for-the-cloud-link.md)). Everything else is ready, and once it ships, the setup links your Autodarts account with a short code that you enter on any device. During a match, the integration reads the state of the match every 5 seconds and reports what is new since the last read as the triggers above, so the light show, the callers and your automations work without the browser extension:
+
+| In the match | Trigger | Board event |
+| --- | --- | --- |
+| A new visit of a player at your board | `gameon` | `online_game_on` |
+| Every dart of the visit | `t20`, `s25`, `bull`, `m17`, `miss` … | `online_dart` |
+| The third dart of a visit that neither busts nor wins | its score, such as `140` | `online_visit` |
+| A bust | `busted` | `online_busted` |
+| A won leg, with the winning dart | `gameshot+d16` | `online_game_shot` |
+| A won match, with the winning dart | `matchshot+bull` | `online_match_shot` |
+| The bull-off begins | `bulloff` | `online_bull_off` |
+| Your board leaves the match | `idle` | `online_match_left` |
+
+- **The same events.** Each event has the details of its trigger, `name` with the player as your [profiles](entities.md#player-profiles) spell the name, and `source` `cloud`. An automation that reacts to `online_busted` works with the bridge and with the cloud link alike.
+- **Only your board.** Moments of players at another board, your opponents in an online match, are skipped, as with the bridge when Tools for Autodarts knows your board ID. The bot and players without a board of their own throw at yours.
+- **The bridge first.** While the bridge is switched on, it alone reports the moments: it is instant, and both together would report every moment twice. Switch it off to let the cloud link take over.
+- **Without a Board Manager in your network.** A board that Home Assistant reaches only through the cloud, such as Lens, gets the **Events** entity with these events, for the light show and your automations.
+- **Every 5 seconds.** A moment that lasts shorter than a read, such as a visit taken out within seconds, can be missed and is never replayed. A match that ran before Home Assistant started counts from the next read on. `tournament_ready` comes only from the bridge, because the state of a match doesn't show it.
 
 ## Security
 
