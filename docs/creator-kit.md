@@ -34,7 +34,7 @@ Autodarts for Home Assistant is a free, open-source integration that connects an
 | Price | Free, open source under the MIT license |
 | Connection | Local and in real time with the Board Manager on the board PC; no Autodarts account, no cloud |
 | Games | X01 from 101 to 1001, six Cricket games, nine party games and eight training games |
-| Play | Up to four players or two teams of two, handicap start scores, a bot from level 20 to 120, tournaments of three to eight players |
+| Play | Up to four players or two teams of two, handicap start scores, a bot from level 20 to 120, tournaments of three to 32 players |
 | Scoreboard | A full-screen view for a tablet or TV, with the new game screen, dart corrections, a caller and idle mode |
 | Statistics | Personal bests, heatmaps of the real dart positions, trends, achievements, a leaderboard, a weekly report and exports |
 | Home | Seven dashboard cards, an automatic dashboard and fifteen blueprints, for example a light show on a 180 |
@@ -191,7 +191,7 @@ I built a free scoreboard, bot and stats for Autodarts boards that run at home, 
 ```markdown title="Post"
 I play on an Autodarts board, and in my spare time I built a free, open-source add-on that turns it into a dart machine at home. It runs in Home Assistant, free smart home software for a Raspberry Pi or a mini PC, and talks to the board PC in your network, without an Autodarts account.
 
-- **Play:** X01 from 101 to 1001 with double or master out, six Cricket games, party games such as Shanghai and Killer, training games such as Bob's 27, a bot from level 20 to 120 and tournaments of three to eight players.
+- **Play:** X01 from 101 to 1001 with double or master out, six Cricket games, party games such as Shanghai and Killer, training games such as Bob's 27, a bot from level 20 to 120 and tournaments of three to 32 players.
 - **At the board:** a full-screen scoreboard for a tablet or TV with checkout routes, a caller and confetti on a 180.
 - **Get better:** averages, first 9 and checkout rate per player, heatmaps of where your darts really land, and a map of where you should aim, from your own spread.
 

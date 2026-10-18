@@ -53,7 +53,8 @@ The words of darts and of this integration, as the documentation, the entities a
 | **Match summary** | The numbers of every player after a match: averages, checkout rate, highest checkout, 180s and the best leg | Match-Zusammenfassung |
 | **Bot** | A computer player for X01 and the Cricket games; its level is the 3-dart average it plays | Bot |
 | **Darts entered by hand** | Darts added in Home Assistant, with the scoreboard's keypad or an action, as if the board had detected them | Von Hand eingegebene Darts |
-| **Tournament** | Three to eight players in a round robin or a knockout, one match at a time | Turnier |
+| **Tournament** | Three to 32 players in a round robin, a knockout, a double elimination or groups with a knockout, one match at a time | Turnier |
+| **Double elimination** | A tournament in which a player is out after the second lost match: the losers' bracket gives a second chance, the grand final decides | Doppel-K.-o.-System |
 | **Round robin** | Everyone plays everyone once; a table ranks the players | Jeder gegen jeden |
 | **Knockout** | The winners go on through a bracket until the final | K.-o.-System |
 | **Bracket, bye, seed** | The tree of a knockout; a free pass into the next round; a player's place in the draw | Turnierbaum, Freilos, Setzliste |

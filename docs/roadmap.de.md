@@ -68,7 +68,7 @@ Erschienen als 1.6.0 am 27. September 2026; die Details stehen im [Changelog](ht
 | **Berichte** | Ein Wochenbericht mit Blueprint, ein Trainingskalender über ein Jahr und Exporte als CSV oder JSON | Fertig |
 | **Highlights und Licht** | Eine Highlight-Galerie in der Medienansicht und ein Blueprint für Lichtshows | Fertig |
 | **Online-Matches** *(experimentell)* | Überwerfen, gewonnene Legs und Matches von Online-Matches über die Browser-Erweiterung Tools for Autodarts | Fertig |
-| **Turniermodus** | Jeder gegen jeden oder K.-o. für drei bis acht benannte Spieler an einem Board: Tabelle oder Turnierbaum auf der Anzeigetafel, das nächste Match startet von selbst, und die Ergebnisse fließen in die Spielerprofile | Fertig |
+| **Turniermodus** | Jeder gegen jeden, K.-o., Doppel-K.-o. oder Gruppen mit K.-o. für drei bis 32 benannte Spieler an einem Board: Tabelle oder Turnierbaum auf der Anzeigetafel, das nächste Match startet von selbst, und die Ergebnisse fließen in die Spielerprofile | Fertig |
 | **Match-Zusammenfassung** | Averages, Checkout-Quote, höchster Checkout, 180er und bestes Leg jedes Spielers nach einem Match, auf der Anzeigetafel, der Live-Karte und in `match_won` | Fertig |
 | **Erfolge** | Meilensteine pro Spieler in Stufen, etwa die erste 180, ein Checkout ab 100, ein Neun-Darter oder eine Serie von zehn Tagen, jeweils mit einem Ereignis und als Abzeichen | Fertig |
 | **Trends und Trefferbilder pro Spieler** | Average, Checkout-Quote und Doppelquote pro Woche als Verlauf, das eigene Trefferbild jedes Spielers und eine Bestenliste mit den Rekorden aller Spieler | Fertig |

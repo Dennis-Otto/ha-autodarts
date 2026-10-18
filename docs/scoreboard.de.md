@@ -147,11 +147,11 @@ Was eine Korrektur ändert, erklärt die [Anleitung zu Spielen](games.de.md#korr
 
 ## Turniere
 
-Für ein [Turnier](games.de.md#turniere) mit drei bis acht Spielern führt der Bildschirm am Board durch den Abend:
+Für ein [Turnier](games.de.md#turniere) mit drei bis 32 Spielern führt der Bildschirm am Board durch den Abend:
 
-1. **Hier starten:** Tippe auf **Neues Spiel**, dann auf **Turnier**. Wähle bis zu acht Spieler mit Namen, X01 mit Startpunkten als Handicap oder ein Cricket-Spiel, jeder gegen jeden oder K.-o.-System, Legs und Sätze, die Regeln, das Spiel um Platz 3 und eine zufällige Auslosung, und tippe auf **Turnier starten**.
-2. **Während eines Matches** nennt die Titelzeile Runde und Match, etwa *Turnier · Halbfinale · Match 5 von 7*.
-3. **Zwischen den Matches** bleibt die Zusammenfassung des Matches einige Sekunden stehen, dann erscheint die Tabelle (jeder gegen jeden) oder der Turnierbaum (K.-o.-System) mit dem nächsten Match und einem Countdown. **Jetzt starten** startet es sofort; sonst beginnt es von selbst, sobald die Darts aus dem Board sind.
+1. **Hier starten:** Tippe auf **Neues Spiel**, dann auf **Turnier**. Wähle die Spieler mit Namen, bis zu acht bei jeder gegen jeden und 32 in den anderen Formaten, X01 mit Startpunkten als Handicap oder ein Cricket-Spiel, jeder gegen jeden, K.-o.-System, Doppel-K.-o.-System oder Gruppen und K.-o.-System, Legs und Sätze, die Regeln, das Spiel um Platz 3 und eine zufällige Auslosung, und tippe auf **Turnier starten**.
+2. **Während eines Matches** nennt die Titelzeile Runde und Match, etwa *Turnier · Halbfinale · Match 5 von 7* oder *Turnier · Gruppe B · Runde 2 · Match 6 von 63*.
+3. **Zwischen den Matches** bleibt die Zusammenfassung des Matches einige Sekunden stehen, dann erscheint die Tabelle (jeder gegen jeden), die Tabellen der Gruppen oder der Turnierbaum, im Doppel-K.-o.-System mit der Verliererrunde darunter, mit dem nächsten Match und einem Countdown. **Jetzt starten** startet es sofort; sonst beginnt es von selbst, sobald die Darts aus dem Board sind.
 4. **Am Ende** nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt. *Turnier beenden* in der Spielauswahl beendet ein Turnier vorzeitig. Ein neues Turnier, das während eines laufenden startet, beendet zuerst das laufende, nach einem zweiten Tipp.
 
 **Turnier** in der Spielauswahl legt Spieler, Spiel, Format und Regeln fest:

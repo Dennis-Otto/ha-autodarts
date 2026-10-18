@@ -54,9 +54,9 @@ The **Events** entity (for example `event.autodarts_board_events` in a Home Assi
 | `drill_finished` | A [training game](#training-games) ends: Around the Clock, the doubles training, Catch 40, the JDC Challenge or the singles training reach the end, or Bob's 27 ends | `drill`, `darts`, `hits`, `hit_rate` (percent); Bob's 27 adds `score` and `completed`; Catch 40 has `score`, `checkouts` and `darts`, the JDC Challenge `score`, `parts` (the points of its three parts) and `darts`, the singles training `score` as well |
 | `checkout_attempt` | An attempt of the checkout training or the 121 checkout ends | `drill`, `target`, `success`, `darts`, `attempts`, `successes`, `rate` (percent); the 121 checkout adds `next`, the next target |
 | `bull_off_won` | The [bull-off](#practice-game) decides who starts the match | `game`, `player`, `name`, `players`, `hit` (the bed of the winning dart: `BULL`, `25` or for example `S20`), `distance` (millimeters from the center, or none without a position from the board); `call` |
-| `tournament_started` | A [tournament](#tournaments) starts | `format` (`round_robin` or `knockout`), `game`, `matches` (the number of matches to play), `players` (in the order of the draw), `start_scores` (in the same order), `legs_to_win`, `sets_to_win`, `seed` (of a random draw, otherwise none) |
-| `tournament_match_finished` | A match of the tournament counts: the darts of its winning visit are pulled | `format`, `game`, `matches`, `match` (its number in the order of play), `round`, `stage` (`round_1` to `round_7`, `quarter_final`, `semi_final`, `third_place` or `final`), `players`, `winner`, `loser`, `legs` and `sets` of both players, `next` (the players of the next match, none after the last one) |
-| `tournament_finished` | The last match of the tournament counts | `format`, `game`, `matches`, `winner`, `runner_up`, `third` (none in a knockout without the match for third place), `players` |
+| `tournament_started` | A [tournament](#tournaments) starts | `format` (`round_robin`, `knockout`, `double_knockout` or `groups_knockout`), `game`, `matches` (the number of matches to play; a deciding final adds one), `players` (in the order of the draw), `start_scores` (in the same order), `legs_to_win`, `sets_to_win`, `seed` (of a random draw, otherwise none); with groups also `groups` and `advance` |
+| `tournament_match_finished` | A match of the tournament counts: the darts of its winning visit are pulled | `format`, `game`, `matches`, `match` (its number in the order of play), `round`, `stage` (one of the stages of *Tournament*), `group` (`A` to `H`, only in the groups), `players`, `winner`, `loser`, `legs` and `sets` of both players, `next` (the players of the next match, none after the last one) |
+| `tournament_finished` | The last match of the tournament counts | `format`, `game`, `matches`, `winner`, `runner_up`, `third` (none in a knockout without the match for third place; in a double elimination the loser of the losers' final), `players` |
 | `personal_best` | A value beats your [personal best](#personal-bests-streak-and-daily-goal) | `record`, `value`, `previous`, `name` (the player, if known) |
 | `daily_goal_reached` | Today's darts reach the [daily goal](#personal-bests-streak-and-daily-goal), once per day | `goal`, `darts`, `streak` |
 | `weekly_report` | The [report week](#weekly-report) ends, by default on Monday at midnight | `week_start`, `week_end`, `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `darts_at_double`, `checkouts`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests`, `title` and `summary` |
@@ -421,7 +421,7 @@ Training games are for one player; *Practice players* applies to X01, the Cricke
 
 ## Tournaments
 
-A tournament for three to eight named players at one board: a **round robin**, in which everyone plays everyone once and a table ranks the players, or a **knockout**, in which the winners go on through a bracket until the final. Every match is a [practice match](#practice-game) between two players, with the legs, sets and rules of the tournament: X01, where every player can start from a score of their own as a handicap, or [Cricket](#cricket), Cut-Throat Cricket or Tactics. The results go into the [player profiles](#player-profiles), the match history and the head-to-head records like every match. [The rules and the tie-breakers](games.md#tournaments).
+A tournament for three to 32 named players at one board: a **round robin** of up to eight, in which everyone plays everyone once and a table ranks the players, a **knockout**, in which the winners go on through a bracket until the final, a **double elimination**, in which a player is out after the second lost match, or **groups and knockout**, in which the best of every group go on into a knockout. Every match is a [practice match](#practice-game) between two players, with the legs, sets and rules of the tournament: X01, where every player can start from a score of their own as a handicap, or [Cricket](#cricket), Cut-Throat Cricket or Tactics. The results go into the [player profiles](#player-profiles), the match history and the head-to-head records like every match. [The rules and the tie-breakers](games.md#tournaments).
 
 <img src="images/en/tournament-bracket.webp" alt="Animation: the knockout bracket of five players on the scoreboard. Lea beats Max in the quarter-final and slides into the semi-final; Alex beats Lea and goes into the final, Lea into the match for third place; Kim beats Sam, Lea takes third place and Alex wins the final" width="760">
 
@@ -444,19 +444,21 @@ A tournament for three to eight named players at one board: a **round robin**, i
 
 | Entity | Type | Description |
 | --- | --- | --- |
-| Tournament | Sensor (enum) | The stage being played, or during a pause the next one: `no_tournament`, `round_1` to `round_7`, `quarter_final`, `semi_final`, `third_place`, `final` or `finished`. The attributes are below. |
-| Tournament format | Select, *Configuration* | `round_robin` (the default) or `knockout`. |
+| Tournament | Sensor (enum) | The stage being played, or during a pause the next one: `no_tournament`, `round_1` to `round_7` (also of the groups), `round_of_32`, `round_of_16`, `quarter_final`, `semi_final`, `third_place`, `final`, in a double elimination `winners_round_1` to `winners_round_4`, `winners_final`, `losers_round_1` to `losers_round_7`, `losers_final`, `grand_final` and `grand_final_reset` (the deciding final), or `finished`. The attributes are below. |
+| Tournament format | Select, *Configuration* | `round_robin` (the default), `knockout`, `double_knockout` or `groups_knockout`. *Start tournament* makes groups of about four players, of which two go on; [`autodarts.start_tournament`](#start-a-tournament-autodartsstart_tournament) and the new game screen choose them. |
 | Tournament game | Select, *Configuration* | `101` to `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `random_cricket` or `hidden_cricket`; `501` by default. |
-| Tournament players | Text, *Configuration* | Three to eight names, separated by commas, for example `Dennis, Lea, Max`. |
+| Tournament players | Text, *Configuration* | Up to 32 names, separated by commas, for example `Dennis, Lea, Max`. A list longer than the 255 characters of a state shows the names that fit and `…`; the attribute `players` lists them all, and a list written with the `…` keeps the names it stands for, where it stands. |
 | Tournament pause | Number, seconds, *Configuration* | 0–600 seconds between two matches after the summary, 10 by default; 0 waits for *Next tournament match*. A change applies at once. |
 | Tournament summary duration | Number, seconds, *Configuration* | 0–60 seconds the summary of a match shows before the pause begins, 8 by default. A change applies at once. |
-| Tournament third-place match | Switch, *Configuration* | In a knockout of four players or more, the losers of the semi-finals play for third place. Off by default. |
+| Tournament third-place match | Switch, *Configuration* | In a knockout of four players or more, also after the groups, the losers of the semi-finals play for third place. Off by default. |
 | Tournament random draw | Switch, *Configuration* | Draws the order of the players at random instead of taking the order of the names. Off by default. |
 | Start tournament | Button | Starts a tournament with these settings and the legs per set, sets to win and rules of the [practice game](#practice-game). |
 | Next tournament match | Button | Starts the next match without waiting for the pause to end. |
 | Stop tournament | Button | Ends the tournament. |
 
-*Tournament* has the attributes `status` (`playing`, `waiting` or `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in the order of the draw), `start_scores` (of the players in the same order; 0 plays the game's), `round` and `rounds`, `matches_played` and `matches_total`, `current` (the match at the board), `next` (the match after it), `last_result`, `pause`, `summary`, `next_at` (when the next match starts: the end of the last match, the summary and the pause), `winner`, `started`, `ended` and `fixtures` (every match in the order of play). A round robin adds `standings`, a knockout `bracket`: its rounds with their matches, byes included, and the match for third place.
+*Tournament* has the attributes `status` (`playing`, `waiting` or `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in the order of the draw), `start_scores` (of the players in the same order; 0 plays the game's), `round` and `rounds`, `matches_played` and `matches_total`, `current` (the match at the board), `next` (the match after it), `last_result`, `pause`, `summary`, `next_at` (when the next match starts: the end of the last match, the summary and the pause), `winner`, `started`, `ended` and `fixtures` (every match in the order of play). A round robin adds `standings`, the other formats `bracket`: its rounds with their matches, byes included, and the match for third place; a double elimination has the grand finals in it, the deciding final once it is played, and its losers' bracket in `losers_bracket`. Groups and knockout add `groups`, the table of every group as `group` (`A` to `H`) with its `standings`, and `advance`, how many of each go on; the matches of the groups have their `group`, and the places of the knockout stay empty until the groups are decided.
+
+`round` is the round of the next match to play within its own part of the tournament: the round robin, the groups, the knockout, or the winners' or the losers' bracket of a double elimination, which the `stage` of the match names. The knockout after the groups counts its rounds from 1 again, and in a double elimination the grand finals are one round after the winners' final. `rounds` is the most rounds of one part: in a double elimination of 32 players the eight of the losers' bracket. For the progress of the whole tournament, take `matches_played` of `matches_total`.
 
 - A **match** has `match` (its number in the order of play; none for a bye), `round`, `stage`, `players`, `winner`, `bye`, `legs` (of the whole match) and `sets` of both players, `ended` and, once played, the `average` (X01) or `mpr` (Cricket) of both players.
 - A row of **standings** has `position`, `name`, `played`, `won`, `lost`, `legs_for`, `legs_against`, `leg_difference`, `points` and `average` or `mpr`.
@@ -905,8 +907,8 @@ Draws a [tournament](#tournaments) and starts its first match. Values you leave 
 
 | Field | Values | Description |
 | --- | --- | --- |
-| `players` | 3–8 names | The players, in the order of the draw |
-| `format` | `round_robin`, `knockout` | Everyone against everyone, or a bracket up to the final |
+| `players` | 3–32 names | The players, in the order of the draw: 3–8 in a round robin, 6–32 with groups |
+| `format` | `round_robin`, `knockout`, `double_knockout`, `groups_knockout` | Everyone against everyone, a bracket up to the final, a bracket in which a player is out after the second defeat, or groups with a knockout |
 | `start_scores` | 0 or 2–1001 per player | X01 start scores of the players in the order of `players`, for a handicap, at most one per player; 0 or a missing score plays the game's start score. With double in and double out, a start score of 3 cannot be won and is refused. |
 | `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `random_cricket`, `hidden_cricket` | The game of every match |
 | `legs` | 1–11 | Legs that win a set |
@@ -915,7 +917,9 @@ Draws a [tournament](#tournaments) and starts its first match. Values you leave 
 | `double_in` | `true`, `false` | Start X01 legs with a double or the bullseye |
 | `bull_off` | `true`, `false` | A bull-off decides who starts every match |
 | `bull_off_distance` | `true`, `false` | Two darts in the same bull bed are decided by the measured distance instead of a rethrow |
-| `third_place` | `true`, `false` | In a knockout of four players or more, the losers of the semi-finals play for third place |
+| `third_place` | `true`, `false` | In a knockout of four players or more, also after the groups, the losers of the semi-finals play for third place |
+| `groups` | 2–8 | Groups and knockout: the number of groups, of three to eight players each; without it, groups of about four |
+| `advance` | 1–4 | Groups and knockout: how many of every group go on into the knockout, fewer than the smallest group has; 2 without it |
 | `random_draw` | `true`, `false` | Draw the order of the players at random |
 | `seed` | 1–999999 | A number for a random draw: the same number draws the same order |
 | `pause` | 0–600 | Seconds between two matches, after the summary; 0 waits for *Next tournament match* |
@@ -932,7 +936,7 @@ data:
   pause: 30
 ```
 
-A tournament being played has to be stopped before the next one starts; a finished one is replaced. The action fails with a clear message while a tournament is being played, when fewer than three or more than eight players are named, when a name appears twice or contains curly brackets, a percent sign, a number sign or control characters, or when the start scores are wrong as above.
+A tournament being played has to be stopped before the next one starts; a finished one is replaced. The action fails with a clear message while a tournament is being played, when the format does not take the number of players, when the players do not fit into the groups, when a name appears twice or contains curly brackets, a percent sign, a number sign or control characters, or when the start scores are wrong as above.
 
 ### Start the next tournament match: `autodarts.next_tournament_match`
 

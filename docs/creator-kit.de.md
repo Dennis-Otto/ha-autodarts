@@ -34,7 +34,7 @@ Autodarts für Home Assistant ist eine kostenlose Open-Source-Integration, die e
 | Preis | Kostenlos, Open Source unter der MIT-Lizenz |
 | Verbindung | Lokal und in Echtzeit mit dem Board Manager auf dem Board-PC; kein Autodarts-Konto, keine Cloud |
 | Spiele | X01 von 101 bis 1001, sechs Cricket-Spiele, neun Partyspiele und acht Trainingsspiele |
-| Spielen | Bis zu vier Spieler oder zwei Teams zu zweit, Handicap-Startpunkte, ein Bot von Stufe 20 bis 120, Turniere für drei bis acht Spieler |
+| Spielen | Bis zu vier Spieler oder zwei Teams zu zweit, Handicap-Startpunkte, ein Bot von Stufe 20 bis 120, Turniere für drei bis 32 Spieler |
 | Anzeigetafel | Eine Vollbild-Ansicht für Tablet oder Fernseher, mit Spielauswahl, Korrekturen, Caller und Ruhemodus |
 | Statistik | Bestleistungen, Trefferbilder der echten Dart-Positionen, Trends, Erfolge, Bestenliste, Wochenbericht und Exporte |
 | Zuhause | Sieben Dashboard-Karten, ein automatisches Dashboard und fünfzehn Blueprints, etwa eine Licht-Show beim 180er |

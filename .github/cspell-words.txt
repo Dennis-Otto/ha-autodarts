@@ -13,7 +13,9 @@ Entitätseinstellungen
 Entitätskategorie
 Entitätsnamen
 Entitätsverwaltung
+Entscheidungsfinale
 Gegnerpaars
+Gewinnerrunde
 Halbfinals
 Hervorhebungsfarbe
 Integrationen
@@ -48,6 +50,8 @@ Trefferbilder
 Trefferbildern
 Trefferhäufigkeit
 Trkal
+Verliererrunde
+Verliererseite
 Verzerrungskorrektur
 WLED
 Wertungsfelder

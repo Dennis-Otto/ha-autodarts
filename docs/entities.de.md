@@ -54,9 +54,9 @@ Die Entität **Ereignisse** (etwa `event.autodarts_board_ereignisse` in einem de
 | `drill_finished` | Ein [Trainingsspiel](#trainingsspiele) endet: Around the Clock, Doppeltraining, Catch 40, JDC Challenge oder Singles-Training sind durch, oder Bob's 27 ist vorbei | `drill`, `darts`, `hits`, `hit_rate` (Prozent); Bob's 27 ergänzt `score` und `completed`; Catch 40 hat `score`, `checkouts` und `darts`, die JDC Challenge `score`, `parts` (die Punkte ihrer drei Teile) und `darts`, das Singles-Training zusätzlich `score` |
 | `checkout_attempt` | Ein Versuch im Checkout-Training oder im 121-Checkout endet | `drill`, `target`, `success`, `darts`, `attempts`, `successes`, `rate` (Prozent); der 121-Checkout ergänzt `next`, das nächste Ziel |
 | `bull_off_won` | Das [Ausbullen](#übungsspiel) entscheidet, wer das Match beginnt | `game`, `player`, `name`, `players`, `hit` (das Feld des Siegerdarts: `BULL`, `25` oder etwa `S20`), `distance` (Millimeter von der Mitte, oder keiner ohne Position vom Board); `call` |
-| `tournament_started` | Ein [Turnier](#turniere) beginnt | `format` (`round_robin` oder `knockout`), `game`, `matches` (die Zahl der Matches), `players` (in der Reihenfolge der Auslosung), `start_scores` (in derselben Reihenfolge), `legs_to_win`, `sets_to_win`, `seed` (einer zufälligen Auslosung, sonst keiner) |
-| `tournament_match_finished` | Ein Match des Turniers zählt: Die Darts der entscheidenden Aufnahme sind gezogen | `format`, `game`, `matches`, `match` (seine Nummer im Spielplan), `round`, `stage` (`round_1` bis `round_7`, `quarter_final`, `semi_final`, `third_place` oder `final`), `players`, `winner`, `loser`, `legs` und `sets` beider Spieler, `next` (die Spieler des nächsten Matches, nach dem letzten keiner) |
-| `tournament_finished` | Das letzte Match des Turniers zählt | `format`, `game`, `matches`, `winner`, `runner_up`, `third` (keiner im K.-o.-System ohne Spiel um Platz 3), `players` |
+| `tournament_started` | Ein [Turnier](#turniere) beginnt | `format` (`round_robin`, `knockout`, `double_knockout` oder `groups_knockout`), `game`, `matches` (die Zahl der Matches; ein Entscheidungsfinale kommt dazu), `players` (in der Reihenfolge der Auslosung), `start_scores` (in derselben Reihenfolge), `legs_to_win`, `sets_to_win`, `seed` (einer zufälligen Auslosung, sonst keiner); mit Gruppen auch `groups` und `advance` |
+| `tournament_match_finished` | Ein Match des Turniers zählt: Die Darts der entscheidenden Aufnahme sind gezogen | `format`, `game`, `matches`, `match` (seine Nummer im Spielplan), `round`, `stage` (eine der Runden von *Turnier*), `group` (`A` bis `H`, nur in den Gruppen), `players`, `winner`, `loser`, `legs` und `sets` beider Spieler, `next` (die Spieler des nächsten Matches, nach dem letzten keiner) |
+| `tournament_finished` | Das letzte Match des Turniers zählt | `format`, `game`, `matches`, `winner`, `runner_up`, `third` (keiner im K.-o.-System ohne Spiel um Platz 3; im Doppel-K.-o.-System der Verlierer des Finales der Verlierer), `players` |
 | `personal_best` | Ein Wert übertrifft deine [Bestleistung](#bestleistungen-serie-und-tagesziel) | `record`, `value`, `previous`, `name` (der Spieler, falls bekannt) |
 | `daily_goal_reached` | Die Darts von heute erreichen das [Tagesziel](#bestleistungen-serie-und-tagesziel), einmal pro Tag | `goal`, `darts`, `streak` |
 | `weekly_report` | Die [Berichtswoche](#wochenbericht) endet, standardmäßig montags um Mitternacht | `week_start`, `week_end`, `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `darts_at_double`, `checkouts`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests`, `title` und `summary` |
@@ -421,7 +421,7 @@ Trainingsspiele sind für einen Spieler; *Übungsspiel Spielerzahl* gilt für X0
 
 ## Turniere
 
-Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen jeden**, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, oder das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen. Jedes Match ist ein [Übungsmatch](#übungsspiel) zwischen zwei Spielern mit den Legs, Sätzen und Regeln des Turniers: X01, bei dem jeder Spieler als Handicap von eigenen Startpunkten beginnen kann, oder [Cricket](#cricket), Cut-Throat Cricket oder Tactics. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](#spielerprofile), den Match-Verlauf und die direkten Vergleiche. [Regeln und Entscheidung bei Gleichstand](games.de.md#turniere).
+Ein Turnier für drei bis 32 Spieler mit Namen an einem Board: **jeder gegen jeden** mit bis zu acht, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen, das **Doppel-K.-o.-System**, bei dem ein Spieler nach dem zweiten verlorenen Match ausscheidet, oder **Gruppen und K.-o.-System**, bei dem die Besten jeder Gruppe ins K.-o.-System kommen. Jedes Match ist ein [Übungsmatch](#übungsspiel) zwischen zwei Spielern mit den Legs, Sätzen und Regeln des Turniers: X01, bei dem jeder Spieler als Handicap von eigenen Startpunkten beginnen kann, oder [Cricket](#cricket), Cut-Throat Cricket oder Tactics. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](#spielerprofile), den Match-Verlauf und die direkten Vergleiche. [Regeln und Entscheidung bei Gleichstand](games.de.md#turniere).
 
 <img src="images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
 
@@ -444,19 +444,21 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board: **jeder gegen j
 
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
-| Turnier | Sensor (Aufzählung) | Die Runde, die gespielt wird, während einer Pause die nächste: `no_tournament`, `round_1` bis `round_7`, `quarter_final`, `semi_final`, `third_place`, `final` oder `finished`. Die Attribute stehen unten. |
-| Turnierformat | Auswahl, *Konfiguration* | `round_robin` (jeder gegen jeden, Standard) oder `knockout` (K.-o.-System). |
+| Turnier | Sensor (Aufzählung) | Die Runde, die gespielt wird, während einer Pause die nächste: `no_tournament`, `round_1` bis `round_7` (auch der Gruppen), `round_of_32`, `round_of_16`, `quarter_final`, `semi_final`, `third_place`, `final`, im Doppel-K.-o.-System `winners_round_1` bis `winners_round_4`, `winners_final`, `losers_round_1` bis `losers_round_7`, `losers_final`, `grand_final` und `grand_final_reset` (das Entscheidungsfinale), oder `finished`. Die Attribute stehen unten. |
+| Turnierformat | Auswahl, *Konfiguration* | `round_robin` (jeder gegen jeden, Standard), `knockout` (K.-o.-System), `double_knockout` (Doppel-K.-o.-System) oder `groups_knockout` (Gruppen und K.-o.-System). *Turnier starten* bildet Gruppen von etwa vier Spielern, aus denen zwei weiterkommen; [`autodarts.start_tournament`](#turnier-starten-autodartsstart_tournament) und die Spielauswahl wählen sie. |
 | Turnierspiel | Auswahl, *Konfiguration* | `101` bis `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `random_cricket` oder `hidden_cricket`; standardmäßig `501`. |
-| Turnierspieler | Text, *Konfiguration* | Drei bis acht Namen, durch Kommas getrennt, etwa `Dennis, Lea, Max`. |
+| Turnierspieler | Text, *Konfiguration* | Bis zu 32 Namen, durch Kommas getrennt, etwa `Dennis, Lea, Max`. Eine Liste, die länger ist als die 255 Zeichen eines Zustands, zeigt die Namen, die hineinpassen, und `…`; das Attribut `players` nennt alle, und eine Liste, die mit dem `…` geschrieben wird, behält die Namen, für die es steht, an seiner Stelle. |
 | Turnierpause | Zahl, Sekunden, *Konfiguration* | 0–600 Sekunden zwischen zwei Matches nach der Zusammenfassung, standardmäßig 10; 0 wartet auf *Nächstes Turniermatch*. Eine Änderung gilt sofort. |
 | Turnier Dauer der Zusammenfassung | Zahl, Sekunden, *Konfiguration* | 0–60 Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt, standardmäßig 8. Eine Änderung gilt sofort. |
-| Turnier Spiel um Platz 3 | Schalter, *Konfiguration* | Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3. Standardmäßig aus. |
+| Turnier Spiel um Platz 3 | Schalter, *Konfiguration* | Im K.-o.-System mit mindestens vier Spielern, auch nach den Gruppen, spielen die Verlierer der Halbfinals um Platz 3. Standardmäßig aus. |
 | Turnier zufällige Auslosung | Schalter, *Konfiguration* | Lost die Reihenfolge der Spieler zufällig aus, statt die Reihenfolge der Namen zu nehmen. Standardmäßig aus. |
 | Turnier starten | Taste | Startet ein Turnier mit diesen Einstellungen und den Legs pro Satz, Sätzen zum Sieg und Regeln des [Übungsspiels](#übungsspiel). |
 | Nächstes Turniermatch | Taste | Startet das nächste Match, ohne das Ende der Pause abzuwarten. |
 | Turnier beenden | Taste | Beendet das Turnier. |
 
-*Turnier* hat die Attribute `status` (`playing`, `waiting` oder `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in der Reihenfolge der Auslosung), `start_scores` (der Spieler in derselben Reihenfolge; 0 spielt die des Spiels), `round` und `rounds`, `matches_played` und `matches_total`, `current` (das Match am Board), `next` (das Match danach), `last_result`, `pause`, `summary`, `next_at` (wann das nächste Match beginnt: Ende des letzten Matches, Zusammenfassung und Pause), `winner`, `started`, `ended` und `fixtures` (alle Matches in der Reihenfolge des Spielplans). Jeder gegen jeden ergänzt `standings`, das K.-o.-System `bracket`: seine Runden mit ihren Matches, Freilose eingeschlossen, und das Spiel um Platz 3.
+*Turnier* hat die Attribute `status` (`playing`, `waiting` oder `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in der Reihenfolge der Auslosung), `start_scores` (der Spieler in derselben Reihenfolge; 0 spielt die des Spiels), `round` und `rounds`, `matches_played` und `matches_total`, `current` (das Match am Board), `next` (das Match danach), `last_result`, `pause`, `summary`, `next_at` (wann das nächste Match beginnt: Ende des letzten Matches, Zusammenfassung und Pause), `winner`, `started`, `ended` und `fixtures` (alle Matches in der Reihenfolge des Spielplans). Jeder gegen jeden ergänzt `standings`, die anderen Formate `bracket`: seine Runden mit ihren Matches, Freilose eingeschlossen, und das Spiel um Platz 3; im Doppel-K.-o.-System stehen darin die großen Finals, das Entscheidungsfinale, sobald es gespielt wird, und seine Verliererrunde steht in `losers_bracket`. Gruppen und K.-o.-System ergänzen `groups`, die Tabelle jeder Gruppe als `group` (`A` bis `H`) mit ihren `standings`, und `advance`, wie viele aus jeder weiterkommen; die Gruppenmatches haben ihre `group`, und die Plätze des K.-o.-Systems bleiben leer, bis die Gruppen entschieden sind.
+
+`round` ist die Runde des nächsten Matches in seinem eigenen Teil des Turniers: jeder gegen jeden, die Gruppen, das K.-o.-System oder die Gewinner- oder die Verliererrunde des Doppel-K.-o.-Systems, die die `stage` des Matches nennt. Das K.-o.-System nach den Gruppen zählt seine Runden wieder ab 1, und im Doppel-K.-o.-System sind die großen Finals eine Runde nach dem Finale der Gewinner. `rounds` sind die meisten Runden eines Teils: im Doppel-K.-o.-System mit 32 Spielern die acht der Verliererrunde. Für den Fortschritt des ganzen Turniers nimm `matches_played` von `matches_total`.
 
 - Ein **Match** hat `match` (seine Nummer im Spielplan; keine bei einem Freilos), `round`, `stage`, `players`, `winner`, `bye`, `legs` (des ganzen Matches) und `sets` beider Spieler, `ended` und, sobald gespielt, den `average` (X01) oder `mpr` (Cricket) beider Spieler.
 - Eine Zeile der **Tabelle** (`standings`) hat `position`, `name`, `played`, `won`, `lost`, `legs_for`, `legs_against`, `leg_difference`, `points` und `average` oder `mpr`.
@@ -905,8 +907,8 @@ Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du w
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
-| `players` | 3–8 Namen | Die Spieler, in der Reihenfolge der Auslosung |
-| `format` | `round_robin`, `knockout` | Jeder gegen jeden oder ein Turnierbaum bis ins Finale |
+| `players` | 3–32 Namen | Die Spieler, in der Reihenfolge der Auslosung: 3–8 bei jeder gegen jeden, 6–32 mit Gruppen |
+| `format` | `round_robin`, `knockout`, `double_knockout`, `groups_knockout` | Jeder gegen jeden, ein Turnierbaum bis ins Finale, ein Turnierbaum, in dem ein Spieler nach der zweiten Niederlage ausscheidet, oder Gruppen mit K.-o.-System |
 | `start_scores` | 0 oder 2–1001 pro Spieler | X01-Startpunkte der Spieler in der Reihenfolge von `players`, für ein Handicap, höchstens einer pro Spieler; 0 oder ein fehlender Wert spielt die Startpunkte des Spiels. Mit Double-In und Double-Out lassen sich Startpunkte von 3 nicht gewinnen und werden abgelehnt. |
 | `game` | `101`, `301`, `501`, `701`, `901`, `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `random_cricket`, `hidden_cricket` | Das Spiel jedes Matches |
 | `legs` | 1–11 | Legs, die einen Satz gewinnen |
@@ -915,7 +917,9 @@ Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du w
 | `double_in` | `true`, `false` | X01-Legs mit einem Double oder dem Bullseye beginnen |
 | `bull_off` | `true`, `false` | Ausbullen entscheidet, wer jedes Match beginnt |
 | `bull_off_distance` | `true`, `false` | Zwei Darts im selben Bull-Feld entscheidet der gemessene Abstand statt eines neuen Wurfs |
-| `third_place` | `true`, `false` | Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3 |
+| `third_place` | `true`, `false` | Im K.-o.-System mit mindestens vier Spielern, auch nach den Gruppen, spielen die Verlierer der Halbfinals um Platz 3 |
+| `groups` | 2–8 | Gruppen und K.-o.-System: die Zahl der Gruppen mit je drei bis acht Spielern; ohne sie Gruppen von etwa vier |
+| `advance` | 1–4 | Gruppen und K.-o.-System: wie viele aus jeder Gruppe ins K.-o.-System kommen, weniger, als die kleinste Gruppe hat; ohne Angabe 2 |
 | `random_draw` | `true`, `false` | Die Reihenfolge der Spieler zufällig auslosen |
 | `seed` | 1–999999 | Eine Zahl für eine zufällige Auslosung: Dieselbe Zahl lost dieselbe Reihenfolge aus |
 | `pause` | 0–600 | Sekunden zwischen zwei Matches, nach der Zusammenfassung; 0 wartet auf *Nächstes Turniermatch* |
@@ -932,7 +936,7 @@ data:
   pause: 30
 ```
 
-Ein laufendes Turnier muss beendet sein, bevor das nächste beginnt; ein abgeschlossenes wird ersetzt. Die Aktion bricht mit einer klaren Meldung ab, solange ein Turnier läuft, wenn weniger als drei oder mehr als acht Spieler genannt sind, wenn ein Name zweimal vorkommt oder geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält oder wenn die Startpunkte wie oben nicht passen.
+Ein laufendes Turnier muss beendet sein, bevor das nächste beginnt; ein abgeschlossenes wird ersetzt. Die Aktion bricht mit einer klaren Meldung ab, solange ein Turnier läuft, wenn das Format die Zahl der Spieler nicht nimmt, wenn die Spieler nicht in die Gruppen passen, wenn ein Name zweimal vorkommt oder geschweifte Klammern, ein Prozentzeichen, eine Raute oder Steuerzeichen enthält oder wenn die Startpunkte wie oben nicht passen.
 
 ### Nächstes Turniermatch starten: `autodarts.next_tournament_match`
 

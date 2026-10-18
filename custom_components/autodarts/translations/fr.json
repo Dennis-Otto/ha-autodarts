@@ -351,10 +351,27 @@
           "round_5": "Tour 5",
           "round_6": "Tour 6",
           "round_7": "Tour 7",
+          "round_of_32": "Seizième de finale",
+          "round_of_16": "Huitième de finale",
           "quarter_final": "Quart de finale",
           "semi_final": "Demi-finale",
           "third_place": "Petite finale",
           "final": "Finale",
+          "winners_round_1": "Tour 1 des gagnants",
+          "winners_round_2": "Tour 2 des gagnants",
+          "winners_round_3": "Tour 3 des gagnants",
+          "winners_round_4": "Tour 4 des gagnants",
+          "winners_final": "Finale des gagnants",
+          "losers_round_1": "Tour 1 des perdants",
+          "losers_round_2": "Tour 2 des perdants",
+          "losers_round_3": "Tour 3 des perdants",
+          "losers_round_4": "Tour 4 des perdants",
+          "losers_round_5": "Tour 5 des perdants",
+          "losers_round_6": "Tour 6 des perdants",
+          "losers_round_7": "Tour 7 des perdants",
+          "losers_final": "Finale des perdants",
+          "grand_final": "Grande finale",
+          "grand_final_reset": "Finale décisive",
           "finished": "Terminé"
         },
         "state_attributes": {
@@ -370,7 +387,9 @@
             "name": "Format",
             "state": {
               "round_robin": "Poule unique",
-              "knockout": "Élimination directe"
+              "knockout": "Élimination directe",
+              "double_knockout": "Double élimination",
+              "groups_knockout": "Poules et élimination directe"
             }
           }
         }
@@ -584,7 +603,9 @@
         "name": "Format du tournoi",
         "state": {
           "round_robin": "Poule unique",
-          "knockout": "Élimination directe"
+          "knockout": "Élimination directe",
+          "double_knockout": "Double élimination",
+          "groups_knockout": "Poules et élimination directe"
         }
       },
       "tournament_game": {
@@ -761,7 +782,12 @@
         "name": "Joueur {number} de la partie"
       },
       "tournament_players": {
-        "name": "Joueurs du tournoi"
+        "name": "Joueurs du tournoi",
+        "state_attributes": {
+          "players": {
+            "name": "Joueurs"
+          }
+        }
       }
     },
     "calendar": {
@@ -918,7 +944,10 @@
       "message": "Un score de départ vaut 0 (score de départ du jeu) ou est compris entre 2 et 1001."
     },
     "tournament_players": {
-      "message": "Un tournoi nécessite entre trois et huit joueurs, pas {count}."
+      "message": "Ce format de tournoi nécessite entre {min} et {max} joueurs, pas {count}."
+    },
+    "tournament_groups": {
+      "message": "{count} joueurs ne tiennent pas dans {groups} poules\u00a0: chaque poule nécessite entre trois et huit joueurs, plus que les {advance} qui se qualifient."
     },
     "no_tournament": {
       "message": "Aucun tournoi n'est en cours."
@@ -1467,7 +1496,7 @@
     },
     "start_tournament": {
       "name": "Démarrer un tournoi",
-      "description": "Tire au sort un tournoi de trois à huit joueurs et lance son premier match\u00a0: en poule unique ou en élimination directe, avec des matchs de X01 ou de Cricket. Un tournoi en cours doit d'abord être terminé.",
+      "description": "Tire au sort un tournoi de trois à 32 joueurs et lance son premier match\u00a0: en poule unique, en élimination directe, en double élimination ou en poules suivies d'une élimination directe, avec des matchs de X01 ou de Cricket. Un tournoi en cours doit d'abord être terminé.",
       "fields": {
         "config_entry_id": {
           "name": "Cible",
@@ -1475,7 +1504,7 @@
         },
         "players": {
           "name": "Joueurs",
-          "description": "Noms de trois à huit joueurs, dans l'ordre du tirage. Si aucun nom n'est indiqué, ce sont les joueurs de l'entité Joueurs du tournoi qui jouent."
+          "description": "Noms des joueurs, dans l'ordre du tirage\u00a0: de trois à huit en poule unique, au moins six en poules, jusqu'à 32 dans tous les autres formats. Si aucun nom n'est indiqué, ce sont les joueurs de l'entité Joueurs du tournoi qui jouent."
         },
         "start_scores": {
           "name": "Scores de départ",
@@ -1483,7 +1512,7 @@
         },
         "format": {
           "name": "Format",
-          "description": "Poule unique\u00a0: chaque joueur affronte une fois tous les autres. Élimination directe\u00a0: les vainqueurs avancent jusqu'à la finale."
+          "description": "Poule unique\u00a0: chaque joueur affronte une fois tous les autres. Élimination directe\u00a0: les vainqueurs avancent jusqu'à la finale. Double élimination\u00a0: un joueur est éliminé après sa deuxième défaite. Poules et élimination directe\u00a0: chaque joueur affronte tous les autres de sa poule, et les meilleurs de chaque poule passent en élimination directe."
         },
         "game": {
           "name": "Jeu",
@@ -1515,7 +1544,15 @@
         },
         "third_place": {
           "name": "Petite finale",
-          "description": "En élimination directe à partir de quatre joueurs, les perdants des demi-finales disputent la troisième place."
+          "description": "En élimination directe à partir de quatre joueurs, aussi après les poules, les perdants des demi-finales disputent la troisième place."
+        },
+        "groups": {
+          "name": "Poules",
+          "description": "Poules et élimination directe\u00a0: le nombre de poules, de 2 à 8, de trois à huit joueurs chacune. Sans indication, des poules d'environ quatre joueurs."
+        },
+        "advance": {
+          "name": "Qualifiés par poule",
+          "description": "Poules et élimination directe\u00a0: combien de joueurs de chaque poule passent en élimination directe, de 1 à 4 et moins que la poule n'en compte. Sans indication, deux."
         },
         "random_draw": {
           "name": "Tirage au sort",
@@ -1729,7 +1766,9 @@
     "tournament_format": {
       "options": {
         "round_robin": "Poule unique",
-        "knockout": "Élimination directe"
+        "knockout": "Élimination directe",
+        "double_knockout": "Double élimination",
+        "groups_knockout": "Poules et élimination directe"
       }
     }
   }

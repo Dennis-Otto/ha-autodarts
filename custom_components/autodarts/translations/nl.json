@@ -351,10 +351,27 @@
           "round_5": "Ronde 5",
           "round_6": "Ronde 6",
           "round_7": "Ronde 7",
+          "round_of_32": "Zestiende finale",
+          "round_of_16": "Achtste finale",
           "quarter_final": "Kwartfinale",
           "semi_final": "Halve finale",
           "third_place": "Troostfinale",
           "final": "Finale",
+          "winners_round_1": "Winnaarsronde 1",
+          "winners_round_2": "Winnaarsronde 2",
+          "winners_round_3": "Winnaarsronde 3",
+          "winners_round_4": "Winnaarsronde 4",
+          "winners_final": "Winnaarsfinale",
+          "losers_round_1": "Verliezersronde 1",
+          "losers_round_2": "Verliezersronde 2",
+          "losers_round_3": "Verliezersronde 3",
+          "losers_round_4": "Verliezersronde 4",
+          "losers_round_5": "Verliezersronde 5",
+          "losers_round_6": "Verliezersronde 6",
+          "losers_round_7": "Verliezersronde 7",
+          "losers_final": "Verliezersfinale",
+          "grand_final": "Grote finale",
+          "grand_final_reset": "Beslissende finale",
           "finished": "Afgelopen"
         },
         "state_attributes": {
@@ -370,7 +387,9 @@
             "name": "Format",
             "state": {
               "round_robin": "Iedereen tegen iedereen",
-              "knockout": "Knock-out"
+              "knockout": "Knock-out",
+              "double_knockout": "Dubbele knock-out",
+              "groups_knockout": "Groepen en knock-out"
             }
           }
         }
@@ -584,7 +603,9 @@
         "name": "Toernooiformat",
         "state": {
           "round_robin": "Iedereen tegen iedereen",
-          "knockout": "Knock-out"
+          "knockout": "Knock-out",
+          "double_knockout": "Dubbele knock-out",
+          "groups_knockout": "Groepen en knock-out"
         }
       },
       "tournament_game": {
@@ -761,7 +782,12 @@
         "name": "Oefenspel speler {number}"
       },
       "tournament_players": {
-        "name": "Toernooispelers"
+        "name": "Toernooispelers",
+        "state_attributes": {
+          "players": {
+            "name": "Spelers"
+          }
+        }
       }
     },
     "calendar": {
@@ -918,7 +944,10 @@
       "message": "Een startscore is 0 (voor de startscore van het spel) of ligt tussen 2 en 1001."
     },
     "tournament_players": {
-      "message": "Een toernooi heeft drie tot acht spelers nodig, niet {count}."
+      "message": "Deze toernooivorm heeft {min} tot {max} spelers nodig, niet {count}."
+    },
+    "tournament_groups": {
+      "message": "{count} spelers passen niet in {groups} groepen: elke groep heeft drie tot acht spelers nodig, meer dan de {advance} die doorgaan."
     },
     "no_tournament": {
       "message": "Er wordt geen toernooi gespeeld."
@@ -1467,7 +1496,7 @@
     },
     "start_tournament": {
       "name": "Toernooi starten",
-      "description": "Maakt de loting voor een toernooi met drie tot acht spelers en start de eerste wedstrijd: iedereen tegen iedereen of knock-out, met wedstrijden in X01 of Cricket. Een lopend toernooi moet eerst worden gestopt.",
+      "description": "Maakt de loting voor een toernooi met drie tot 32 spelers en start de eerste wedstrijd: iedereen tegen iedereen, knock-out, dubbele knock-out of groepen met een knock-out, met wedstrijden in X01 of Cricket. Een lopend toernooi moet eerst worden gestopt.",
       "fields": {
         "config_entry_id": {
           "name": "Bord",
@@ -1475,7 +1504,7 @@
         },
         "players": {
           "name": "Spelers",
-          "description": "Namen van drie tot acht spelers, in de volgorde van de loting. Zonder namen spelen de spelers uit Toernooispelers."
+          "description": "Namen van de spelers, in de volgorde van de loting: drie tot acht bij iedereen tegen iedereen, minstens zes bij groepen, tot 32 bij elke andere vorm. Zonder namen spelen de spelers uit Toernooispelers."
         },
         "start_scores": {
           "name": "Startscores",
@@ -1483,7 +1512,7 @@
         },
         "format": {
           "name": "Format",
-          "description": "Iedereen tegen iedereen: elke speler speelt één keer tegen elke andere speler. Knock-out: de winnaars gaan door tot en met de finale."
+          "description": "Iedereen tegen iedereen: elke speler speelt één keer tegen elke andere speler. Knock-out: de winnaars gaan door tot en met de finale. Dubbele knock-out: wie voor de tweede keer verliest, ligt eruit. Groepen en knock-out: in elke groep speelt iedereen tegen iedereen, en de besten van elke groep gaan door naar de knock-out."
         },
         "game": {
           "name": "Spel",
@@ -1515,7 +1544,15 @@
         },
         "third_place": {
           "name": "Troostfinale",
-          "description": "Bij een knock-out met vier of meer spelers spelen de verliezers van de halve finales om de derde plaats."
+          "description": "Bij een knock-out met vier of meer spelers, ook na de groepen, spelen de verliezers van de halve finales om de derde plaats."
+        },
+        "groups": {
+          "name": "Groepen",
+          "description": "Groepen en knock-out: het aantal groepen, 2 tot 8, van elk drie tot acht spelers. Zonder dit groepen van ongeveer vier spelers."
+        },
+        "advance": {
+          "name": "Door per groep",
+          "description": "Groepen en knock-out: hoeveel spelers van elke groep doorgaan naar de knock-out, 1 tot 4 en minder dan de groep telt. Zonder dit twee."
         },
         "random_draw": {
           "name": "Willekeurige loting",
@@ -1729,7 +1766,9 @@
     "tournament_format": {
       "options": {
         "round_robin": "Iedereen tegen iedereen",
-        "knockout": "Knock-out"
+        "knockout": "Knock-out",
+        "double_knockout": "Dubbele knock-out",
+        "groups_knockout": "Groepen en knock-out"
       }
     }
   }

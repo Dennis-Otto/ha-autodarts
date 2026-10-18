@@ -351,10 +351,27 @@
           "round_5": "Round 5",
           "round_6": "Round 6",
           "round_7": "Round 7",
+          "round_of_32": "Round of 32",
+          "round_of_16": "Round of 16",
           "quarter_final": "Quarter-final",
           "semi_final": "Semi-final",
           "third_place": "Third-place match",
           "final": "Final",
+          "winners_round_1": "Winners round 1",
+          "winners_round_2": "Winners round 2",
+          "winners_round_3": "Winners round 3",
+          "winners_round_4": "Winners round 4",
+          "winners_final": "Winners final",
+          "losers_round_1": "Losers round 1",
+          "losers_round_2": "Losers round 2",
+          "losers_round_3": "Losers round 3",
+          "losers_round_4": "Losers round 4",
+          "losers_round_5": "Losers round 5",
+          "losers_round_6": "Losers round 6",
+          "losers_round_7": "Losers round 7",
+          "losers_final": "Losers final",
+          "grand_final": "Grand final",
+          "grand_final_reset": "Deciding final",
           "finished": "Finished"
         },
         "state_attributes": {
@@ -370,7 +387,9 @@
             "name": "Format",
             "state": {
               "round_robin": "Round robin",
-              "knockout": "Knockout"
+              "knockout": "Knockout",
+              "double_knockout": "Double elimination",
+              "groups_knockout": "Groups and knockout"
             }
           }
         }
@@ -584,7 +603,9 @@
         "name": "Tournament format",
         "state": {
           "round_robin": "Round robin",
-          "knockout": "Knockout"
+          "knockout": "Knockout",
+          "double_knockout": "Double elimination",
+          "groups_knockout": "Groups and knockout"
         }
       },
       "tournament_game": {
@@ -761,7 +782,12 @@
         "name": "Practice player {number}"
       },
       "tournament_players": {
-        "name": "Tournament players"
+        "name": "Tournament players",
+        "state_attributes": {
+          "players": {
+            "name": "Players"
+          }
+        }
       }
     },
     "calendar": {
@@ -918,7 +944,10 @@
       "message": "A start score is 0, for the game's start score, or 2 to 1001."
     },
     "tournament_players": {
-      "message": "A tournament needs three to eight players, not {count}."
+      "message": "This tournament format takes {min} to {max} players, not {count}."
+    },
+    "tournament_groups": {
+      "message": "{count} players don't fit into {groups} groups: every group needs three to eight players, more than the {advance} who go on."
     },
     "no_tournament": {
       "message": "No tournament is being played."
@@ -1467,7 +1496,7 @@
     },
     "start_tournament": {
       "name": "Start tournament",
-      "description": "Draws a tournament of three to eight players and starts its first match: a round robin or a knockout of X01 or Cricket matches. A tournament being played has to be stopped first.",
+      "description": "Draws a tournament of three to 32 players and starts its first match: a round robin, a knockout, a double elimination or groups with a knockout, of X01 or Cricket matches. A tournament being played has to be stopped first.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1475,7 +1504,7 @@
         },
         "players": {
           "name": "Players",
-          "description": "Names of three to eight players, in the order of the draw. Without names, the players of Tournament players play."
+          "description": "Names of the players in the order of the draw: three to eight for a round robin, six or more for groups, up to 32 in every format but the round robin. Without names, the players of Tournament players play."
         },
         "start_scores": {
           "name": "Start scores",
@@ -1483,7 +1512,7 @@
         },
         "format": {
           "name": "Format",
-          "description": "Round robin: everyone plays everyone once. Knockout: the winners go on until the final."
+          "description": "Round robin: everyone plays everyone once. Knockout: the winners go on until the final. Double elimination: a player is out after the second lost match. Groups and knockout: everyone plays everyone in their group, and the best of every group go on into a knockout."
         },
         "game": {
           "name": "Game",
@@ -1515,7 +1544,15 @@
         },
         "third_place": {
           "name": "Third-place match",
-          "description": "In a knockout of four players or more, the losing semi-finalists play for third place."
+          "description": "In a knockout of four players or more, also after the groups, the losing semi-finalists play for third place."
+        },
+        "groups": {
+          "name": "Groups",
+          "description": "Groups and knockout: the number of groups, from 2 to 8, of three to eight players each. Without it, groups of about four players."
+        },
+        "advance": {
+          "name": "Qualifiers per group",
+          "description": "Groups and knockout: how many players of every group go on into the knockout, from 1 to 4 and fewer than the group has. Without it, two."
         },
         "random_draw": {
           "name": "Random draw",
@@ -1729,7 +1766,9 @@
     "tournament_format": {
       "options": {
         "round_robin": "Round robin",
-        "knockout": "Knockout"
+        "knockout": "Knockout",
+        "double_knockout": "Double elimination",
+        "groups_knockout": "Groups and knockout"
       }
     }
   }

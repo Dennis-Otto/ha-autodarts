@@ -6,7 +6,7 @@ description: "X01, Cricket, Party- und Trainingsspiele in Home Assistant: Matche
 
 [← Dokumentation](README.de.md) · [English](games.md)
 
-Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, sechs Cricket-Spiele, neun Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
+Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, sechs Cricket-Spiele, neun Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu 32. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
 
 <img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet am Board öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
@@ -40,7 +40,7 @@ Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 100
 | [**Catch 40**](#catch-40) | 1 | 61 bis 100 checken, je schneller, desto mehr Punkte |
 | [**JDC Challenge**](#jdc-challenge) | 1 | Die 57-Dart-Routine der Junior Darts Corporation |
 | [**Singles-Training**](#singles-training) | 1 | Eine Aufnahme auf jede Zahl, Punkte pro Treffer |
-| [**Turnier**](#turniere) | 3–8 | Jeder gegen jeden oder K.-o.-System aus X01- oder Cricket-Matches, eines nach dem anderen |
+| [**Turnier**](#turniere) | 3–32 | Jeder gegen jeden, K.-o.-System, Doppel-K.-o.-System oder Gruppen mit K.-o.-System, aus X01- oder Cricket-Matches, eines nach dem anderen |
 
 ## Ein Spiel starten
 
@@ -158,9 +158,16 @@ Niemand zum Mitspielen? X01 und die Cricket-Spiele lassen sich gegen den Bot spi
 
 <img src="images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
 
-Ein Turnier für drei bis acht Spieler mit Namen an einem Board, ein Match nach dem anderen: **jeder gegen jeden**, bei dem alle einmal gegeneinander spielen und eine Tabelle die Spieler ordnet, oder das **K.-o.-System**, bei dem die Sieger über einen Turnierbaum bis ins Finale weiterkommen. Jedes Match ist ein X01-Match, auf Wunsch mit Startpunkten als Handicap, oder ein Cricket-Spiel, mit den Legs, Sätzen und Regeln des Turniers. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](statistics.de.md#spielerprofile) und die direkten Vergleiche.
+Ein Turnier für drei bis 32 Spieler mit Namen an einem Board, ein Match nach dem anderen, in einem von vier Formaten:
 
-1. **Starten:** Tippe auf der Anzeigetafel auf **Neues Spiel**, dann auf **Turnier**. Wähle die Spieler, jeder gegen jeden oder K.-o.-System, das Spiel, Legs und Sätze und die Regeln und tippe auf **Turnier starten**. Oder starte es aus einer Automation:
+- **Jeder gegen jeden**, drei bis acht Spieler: Alle spielen einmal gegeneinander, und eine Tabelle ordnet die Spieler.
+- **K.-o.-System**, drei bis 32 Spieler: Die Sieger kommen über einen Turnierbaum bis ins Finale weiter.
+- **Doppel-K.-o.-System**, drei bis 32 Spieler: Niemand scheidet aus, bevor er zwei Matches verloren hat. Wer in der Gewinnerrunde verliert, bekommt in der Verliererrunde eine zweite Chance, und die Sieger beider Seiten treffen sich im großen Finale.
+- **Gruppen und K.-o.-System**, sechs bis 32 Spieler: In jeder Gruppe spielen alle gegeneinander, und die Besten jeder Gruppe kommen ins K.-o.-System, wie bei einer Vereinsmeisterschaft.
+
+Jedes Match ist ein X01-Match, auf Wunsch mit Startpunkten als Handicap, oder ein Cricket-Spiel, mit den Legs, Sätzen und Regeln des Turniers. Die Ergebnisse fließen wie bei jedem Match in die [Spielerprofile](statistics.de.md#spielerprofile) und die direkten Vergleiche.
+
+1. **Starten:** Tippe auf der Anzeigetafel auf **Neues Spiel**, dann auf **Turnier**. Wähle die Spieler, das Format, bei Gruppen auch die Zahl der Gruppen und wie viele aus jeder weiterkommen, das Spiel, Legs und Sätze und die Regeln und tippe auf **Turnier starten**. Oder starte es aus einer Automation:
 
    ```yaml
    action: autodarts.start_tournament
@@ -171,7 +178,19 @@ Ein Turnier für drei bis acht Spieler mit Namen an einem Board, ein Match nach 
      legs: 2
    ```
 
-2. **Spielen:** Das erste Match beginnt sofort, und die Titelzeile der Anzeigetafel nennt Runde und Match. Ist ein Match entschieden und sind die Darts gezogen, zeigt die Anzeigetafel seine Zusammenfassung, dann Tabelle oder Turnierbaum mit dem nächsten Match und einem Countdown. Das nächste Match beginnt von selbst; **Jetzt starten** überspringt das Warten.
+   Vierergruppen für 16 Spieler, aus denen die ersten beiden in ein K.-o.-System mit acht Spielern kommen:
+
+   ```yaml
+   action: autodarts.start_tournament
+   data:
+     players: [Alex, Sam, Kim, Lea, Max, Tom, Ida, Ben, Zoe, Eli, Noa, Mia, Leo, Ava, Jon, Uma]
+     format: groups_knockout
+     groups: 4
+     advance: 2
+     game: "501"
+   ```
+
+2. **Spielen:** Das erste Match beginnt sofort, und die Titelzeile der Anzeigetafel nennt Runde, Gruppe und Match. Ist ein Match entschieden und sind die Darts gezogen, zeigt die Anzeigetafel seine Zusammenfassung, dann Tabelle, Gruppen oder Turnierbaum mit dem nächsten Match und einem Countdown. Das nächste Match beginnt von selbst; **Jetzt starten** überspringt das Warten.
 3. **Sieger:** Nach dem letzten Match nennt ein Banner den Sieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt. `tournament_finished` kann die [Lichtshow](automations.de.md#light-show) starten oder [die Ergebnisse ansagen](automations.de.md#ergebnisse-eines-turniers-ansagen).
 4. **Danach:** Das Übungsspiel kehrt zu den Spielern, Namen, Startpunkten, Legs, Sätzen, Regeln und der Bot-Stärke von vor dem Turnier zurück, mit dem ersten Dart des nächsten Matches oder der ersten Änderung einer Einstellung des Übungsspiels. Nach *Turnier beenden* wird ein laufendes Match erst zu Ende gespielt. Ein neues Turnier startet nur, wenn keines läuft: Beende das laufende zuerst.
 
@@ -183,11 +202,17 @@ Zwischen zwei Matches zeigt die Anzeigetafel das nächste Match mit seinem Count
 
 <img src="images/de/tournament-table.png" alt="Das Turnier jeder gegen jeden mit vier Spielern auf der Anzeigetafel zwischen zwei Matches: als Nächstes Lea gegen Sam mit Countdown und die Tabelle mit Alex vorn mit 4 Punkten" width="760">
 
+Mit Gruppen zeigt sie die Tabellen der Gruppen nebeneinander, die Plätze, die weiterkommen, markiert, und im Doppel-K.-o.-System die Verliererrunde unter der Gewinnerrunde. Beides aus der Demo, mit 32 Spielern:
+
+<img src="images/de/tournament-groups.png" alt="32 Spieler in acht Vierergruppen auf der Anzeigetafel nach zwei Runden: als Nächstes Tim gegen Alex in Gruppe A mit Countdown, und die Tabellen der Gruppen A bis H nebeneinander, die ersten beiden Plätze jeder Gruppe als weiterkommend markiert" width="760">
+
+<img src="images/de/tournament-double.png" alt="Ein Doppel-K.-o.-System mit 32 Spielern auf der Anzeigetafel nach der ersten Runde beider Hälften: als Nächstes Alex gegen Tim in Runde 2 der Gewinner mit Countdown, die Gewinnerrunde bis zum großen Finale und darunter die Verliererrunde bis zu ihrem Finale, ihre erste Runde gespielt" width="760">
+
 Die [Referenz der Entitäten](entities.de.md#turniere) nennt Einstellungen, Tasten und Aktionen des Turniers, die [Anleitung zur Anzeigetafel](scoreboard.de.md#turniere), was der Bildschirm zeigt.
 
 ### Turnierregeln
 
-- **Spieler:** drei bis acht Spieler mit je einem Namen, höchstens acht auch in *Turnierspieler*. Ein Name ist unabhängig von Groß- und Kleinschreibung derselbe Spieler, wie bei den [Spielerprofilen](entities.de.md#spielerprofile). Einen Spieler des laufenden Turniers kannst du nicht löschen; ein gelöschter Spieler verschwindet aus der Liste für das nächste Turnier.
+- **Spieler:** drei bis acht Spieler bei jeder gegen jeden, drei bis 32 im K.-o.- und im Doppel-K.-o.-System, sechs bis 32 mit Gruppen, jeder mit einem Namen. *Turnierspieler* zeigt so viele davon, wie seine 255 Zeichen fassen, dann `…`; sein Attribut `players` nennt alle, und eine Liste, die mit dem `…` zurückgeschrieben wird, behält die Namen, für die es steht. Ein Name ist unabhängig von Groß- und Kleinschreibung derselbe Spieler, wie bei den [Spielerprofilen](entities.de.md#spielerprofile). Einen Spieler des laufenden Turniers kannst du nicht löschen; ein gelöschter Spieler verschwindet aus der Liste für das nächste Turnier.
 - **Auslosung:** die Reihenfolge der Namen oder mit *Turnier zufällige Auslosung* oder einem `seed` eine zufällige Reihenfolge. Derselbe Startwert lost immer dieselbe Reihenfolge aus; eine zufällige Auslosung ohne Startwert wählt einen und zeigt ihn im Attribut `seed` von *Turnier*.
 - **Jeder gegen jeden:** Alle spielen einmal gegeneinander, in Runden nach dem Rutschsystem (Kreismethode): drei oder vier Spieler spielen 3 Runden, fünf oder sechs 5, sieben oder acht 7. Bei einer ungeraden Zahl setzt in jeder Runde ein Spieler aus. Ein Spieler des letzten Matches einer Runde eröffnet die nächste Runde nur, wenn kein anderes Match es kann, und den Anwurf eines Matches bekommt der Spieler, der ihn seltener hatte.
 - **Punkte:** Ein gewonnenes Match bringt 2 Punkte wie in der Premier League, ein verlorenes keine. Ein Match kann nicht unentschieden enden.
@@ -198,13 +223,22 @@ Die [Referenz der Entitäten](entities.de.md#turniere) nennt Einstellungen, Tast
   4. die Reihenfolge der Auslosung.
 
   Von zwei punktgleichen Spielern steht also vorn, wer das direkte Duell gewonnen hat; bei drei Spielern, die sich reihum geschlagen haben, entscheidet die Leg-Differenz.
-- **K.-o.-System:** ein Turnierbaum mit 4 Plätzen für drei oder vier Spieler und mit 8 Plätzen für fünf bis acht. Der erste Spieler der Auslosung ist Nummer 1 der Setzliste, der zweite Nummer 2 und so weiter, gesetzt wie bei Profiturnieren: Nummer 1 trifft zuerst auf die letzte Nummer, die Nummern 1 und 2 können sich frühestens im Finale treffen und die Nummern 1 bis 4 nicht vor dem Halbfinale. Plätze, die die Spieler nicht füllen, sind Freilose für die besten Nummern, die direkt in die nächste Runde kommen. Die Runden heißen Viertelfinale, Halbfinale und Finale.
-- **Platz 3:** Mit *Turnier Spiel um Platz 3* und mindestens vier Spielern spielen die Verlierer der Halbfinals vor dem Finale um Platz 3. Ohne diese Einstellung gibt es im K.-o.-System keinen dritten Platz.
-- **Spielplan:** ein Match nach dem anderen, Runde für Runde. Im K.-o.-System spielen die Matches einer Runde von oben nach unten im Turnierbaum, das Spiel um Platz 3 vor dem Finale.
+- **K.-o.-System:** ein Turnierbaum mit 4, 8, 16 oder 32 Plätzen, den wenigsten, die die Spieler fassen: 4 Plätze für drei oder vier Spieler, 8 für fünf bis acht, 16 für neun bis 16 und 32 für 17 bis 32. Der erste Spieler der Auslosung ist Nummer 1 der Setzliste, der zweite Nummer 2 und so weiter, gesetzt wie bei Profiturnieren: Nummer 1 trifft zuerst auf die letzte Nummer, die Nummern 1 und 2 können sich frühestens im Finale treffen und die Nummern 1 bis 4 nicht vor dem Halbfinale. Plätze, die die Spieler nicht füllen, sind Freilose für die besten Nummern, die direkt in die nächste Runde kommen; Freilose gibt es also nur in der ersten Runde. Die Runden heißen Sechzehntelfinale, Achtelfinale, Viertelfinale, Halbfinale und Finale.
+- **Doppel-K.-o.-System:** Die Gewinnerrunde ist ein K.-o.-System wie oben. Wer dort verliert, wechselt in die Verliererrunde; wer dort verliert, scheidet aus. Die Runden der Verliererrunde wechseln sich ab: ihre Spieler untereinander, dann gegen die Spieler, die gerade aus der Gewinnerrunde gekommen sind, jede zweite Runde über Kreuz, damit sich zwei Spieler so spät wie möglich wieder treffen. Der Sieger des Finales der Gewinner und der Sieger des Finales der Verlierer treffen sich im großen Finale. Gewinnt es der Sieger der Verliererrunde, haben beide einmal verloren, und ein Entscheidungsfinale folgt. So verliert jeder Spieler außer dem Turniersieger genau zwei Matches: Drei Spieler spielen 4 oder 5 Matches, 32 spielen 62 oder 63. Freilose für die besten Nummern gibt es in der ersten Runde der Gewinnerrunde und in den ersten beiden Runden der Verliererrunde, in die niemand nachrückt. Dritter wird der Verlierer des Finales der Verlierer.
+- **Gruppen und K.-o.-System:** zwei bis acht Gruppen, A bis H, mit je drei bis acht Spielern; ohne `groups` Gruppen von etwa vier Spielern, etwa acht Vierergruppen für 32 Spieler. Die Auslosung verteilt sich wie eine Schlange auf die Gruppen: Nummer 1 in Gruppe A, Nummer 2 in Gruppe B und so weiter, und von der letzten Gruppe zurück, damit jede Gruppe eine der besten Nummern bekommt und keine Gruppe mehr als einen Spieler mehr hat als eine andere. Jede Gruppe spielt jeder gegen jeden und ordnet ihre Spieler nach dessen Regeln oben, und alle Gruppen spielen Runde für Runde: die erste Runde jeder Gruppe, dann die zweite. Die Besten jeder Gruppe kommen weiter, ohne `advance` zwei, mit ihm eins bis vier, immer weniger, als die kleinste Gruppe hat. Im K.-o.-System sind die Gruppensieger die besten Nummern in der Reihenfolge der Gruppen, dann die Zweiten und so weiter, und jeder Spieler kommt dorthin, wo er die Spieler seiner Gruppe so spät trifft, wie der Turnierbaum es erlaubt, nie in dessen erster Runde. Das K.-o.-System beginnt, sobald das letzte Gruppenmatch entschieden ist.
+- **Platz 3:** Mit *Turnier Spiel um Platz 3* und mindestens vier Spielern im K.-o.-System, auch in dem nach den Gruppen, spielen die Verlierer der Halbfinals vor dem Finale um Platz 3. Ohne diese Einstellung gibt es im K.-o.-System keinen dritten Platz. Das Doppel-K.-o.-System hat seinen dritten Platz auch ohne sie.
+- **Spielplan:** ein Match nach dem anderen, Runde für Runde. Im K.-o.-System spielen die Matches einer Runde von oben nach unten im Turnierbaum, das Spiel um Platz 3 vor dem Finale. Das Doppel-K.-o.-System spielt eine Runde der Gewinnerrunde, dann die Runden der Verliererrunde, die sie füllt: In einer Runde über Kreuz spielt zuerst, wer zuerst gewechselt ist. Die großen Finals kommen zuletzt.
 - **Matches:** Jedes Match ist ein [Match](#matches-legs-und-sätze) zweier Spieler mit den Legs pro Satz, Sätzen zum Sieg, Double-Out, Double-In und dem Ausbullen des Turniers. Regeln, die das Turnier nicht festlegt, übernimmt es aus dem Übungsspiel, so wie du sie eingestellt hast, auch einen Out-Modus, der aufs nächste Leg wartet. Ein Turnier spielt Straight oder Double In und Out, Master als Double, das Bull 25/50 und keine Rundengrenze; danach hat das Übungsspiel wieder seine eigenen Regeln. Bei X01 beginnt ein Spieler mit eigenen Startpunkten jedes Leg des Turniers von diesen, als Handicap; der andere von denen des Spiels. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet.
 - **Geänderte Matches:** Ein Match, dessen Legs, Sätze, Startpunkte oder Regeln sich während des Spiels ändern, ist kein Turniermatch mehr, und sein Ergebnis zählt nicht; *Nächstes Turniermatch* stellt das Turniermatch wieder her. Eine in der Pause geänderte Einstellung beginnt das Match der letzten beiden Spieler neu: Bis zu seinem ersten Dart macht es nach der Pause dem nächsten Match Platz.
 - **Averages:** Der Average eines Spielers zählt Punkte und Darts aller seiner Turniermatches; die Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
-- **Sieger:** der Sieger des Finales oder der Erste der Tabelle nach dem letzten Match. Danach meldet *Nächstes Turniermatch*, dass das Turnier vorbei ist: Beende es oder starte ein neues.
+- **Sieger:** der Sieger des Finales oder des letzten großen Finales oder der Erste der Tabelle nach dem letzten Match. Danach meldet *Nächstes Turniermatch*, dass das Turnier vorbei ist: Beende es oder starte ein neues.
+
+So geht ein Spieler durch das Doppel-K.-o.-System:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/double-elimination-dark.png">
+  <img src="images/de/double-elimination-light.png" alt="So läuft das Doppel-K.-o.-System: Jeder Spieler beginnt in der Gewinnerrunde. Wer dort gewinnt, kommt in die nächste Runde, bis ins Finale der Gewinner, dessen Sieger das große Finale spielt. Wer ein Match der Gewinnerrunde verliert, wechselt in die Verliererrunde, und wer dort verliert, scheidet nach der zweiten Niederlage aus. Der Sieger des Finales der Verlierer spielt das große Finale. Gewinnt es der Sieger der Gewinnerrunde, ist er Turniersieger; gewinnt es der Sieger der Verliererrunde, haben beide einmal verloren, und das Entscheidungsfinale macht den Turniersieger." width="560">
+</picture>
 
 ## X01
 

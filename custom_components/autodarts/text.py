@@ -1,7 +1,9 @@
 """Names of the practice and tournament players, for the scoreboard and events."""
 
+from typing import Any
+
 from homeassistant.components.text import TextEntity
-from homeassistant.const import EntityCategory
+from homeassistant.const import MAX_LENGTH_STATE_STATE, EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -12,9 +14,19 @@ from .games_coordinator import AutodartsGamesCoordinator
 from .practice import PARTY_PLAYERS
 from .profiles import NAME_LENGTH, clean_name
 from .runtime import AutodartsConfigEntry
-from .tournament import MAX_ENTRANTS, check_names, parse_players, split_players
+from .tournament import (
+    MAX_ENTRANTS,
+    MIN_ENTRANTS,
+    check_names,
+    parse_players,
+    split_players,
+)
 
 PARALLEL_UPDATES = 0
+# What a list of tournament players too long for the state ends with: the
+# names that did not fit.
+ELLIPSIS = "…"
+MORE = f", {ELLIPSIS}"
 
 
 async def async_setup_entry(
@@ -66,27 +78,66 @@ class AutodartsPlayerName(AutodartsStoredEntity, TextEntity):
 
 
 class AutodartsTournamentPlayers(AutodartsStoredEntity, TextEntity):
-    """The players of the next tournament, their names separated by commas;
-    eight at most, so the list always fits into the 255 characters of a state."""
+    """The players of the next tournament, their names separated by commas.
+
+    A state holds 255 characters, fewer than 32 long names take: a longer list
+    shows the names that fit and an ellipsis, and the attribute players has
+    them all. A list written with that ellipsis keeps the names it stands for
+    where it stands, so that a long list can be changed here too.
+    """
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_native_min = 0
-    _attr_native_max = 255
+    _attr_native_max = MAX_LENGTH_STATE_STATE
 
     def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "tournament_players")
 
     @property
+    def _players(self) -> list[str]:
+        return self.coordinator.games.tournament.setup.players
+
+    def _shown(self) -> int:
+        """How many names the state shows: all of them, or those that fit
+        before the ellipsis."""
+        players = self._players
+        count = len(players)
+        while (
+            len(", ".join(players[:count]))
+            + (0 if count == len(players) else len(MORE))
+            > self.native_max
+        ):
+            count -= 1
+        return count
+
+    @property
     def native_value(self) -> str:
-        return ", ".join(self.coordinator.games.tournament.setup.players)
+        shown = self._shown()
+        return ", ".join(self._players[:shown]) + (
+            "" if shown == len(self._players) else MORE
+        )
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {"players": list(self._players)}
 
     async def async_set_value(self, value: str) -> None:
-        check_names(split_players(value))
-        players = parse_players(value)
+        written = [name.strip() for name in split_players(value)]
+        names = [name for name in written if name != ELLIPSIS]
+        check_names(names)
+        players = parse_players(",".join(names))
+        if ELLIPSIS in written:
+            # The ellipsis stands for the names it hid, where it stands.
+            before = parse_players(",".join(written[: written.index(ELLIPSIS)]))
+            players[len(before) : len(before)] = self._players[self._shown() :]
         if len(players) > MAX_ENTRANTS:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="tournament_players",
-                translation_placeholders={"count": str(len(players))},
+                translation_placeholders={
+                    "count": str(len(players)),
+                    "min": str(MIN_ENTRANTS),
+                    "max": str(MAX_ENTRANTS),
+                },
             )
         await self.coordinator.async_set_tournament(players=players)

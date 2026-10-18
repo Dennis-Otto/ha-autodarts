@@ -120,7 +120,7 @@ Diese Integration speichert kein Passwort: Die optionale Cloud-Verknüpfung wird
 | Autodarts Connect Online | Hier |
 | --- | --- |
 | Das Ereignis `autodarts_throw` | Das Ereignis `dart_detected`, lokal, für jeden Dart auf deinem Board |
-| Name, Punkte und Average von bis zu vier Spielern | `scores` von *Übungsspiel Restpunkte* für ein Match von bis zu vier Spielern, und bis zu acht Spieler in den [Partyspielen](entities.de.md#partyspiele) und [Turnieren](entities.de.md#turniere) |
+| Name, Punkte und Average von bis zu vier Spielern | `scores` von *Übungsspiel Restpunkte* für ein Match von bis zu vier Spielern, bis zu acht Spieler in den [Partyspielen](entities.de.md#partyspiele) und 32 in den [Turnieren](entities.de.md#turniere) |
 | Cricket-Marks | `marks`, `points` und `mpr` jedes Spielers in den `scores` von *Übungsspiel Restpunkte*, in den [Cricket-Spielen](entities.de.md#cricket) |
 | Online-Matches | Deine Darts wie gewohnt, und Überwerfen, gewonnene Legs und Matches über die [Online-Brücke](online-matches.de.md) *(experimentell)* |
 

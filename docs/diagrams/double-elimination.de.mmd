@@ -1,0 +1,26 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: So läuft das Doppel-K.-o.-System
+  accDescr: Jeder Spieler beginnt in der Gewinnerrunde. Wer dort gewinnt, kommt in die nächste Runde, bis ins Finale der Gewinner, dessen Sieger das große Finale spielt. Wer ein Match der Gewinnerrunde verliert, wechselt in die Verliererrunde, und wer dort verliert, scheidet nach der zweiten Niederlage aus. Der Sieger des Finales der Verlierer spielt das große Finale. Gewinnt es der Sieger der Gewinnerrunde, ist er Turniersieger; gewinnt es der Sieger der Verliererrunde, haben beide einmal verloren, und das Entscheidungsfinale macht den Turniersieger.
+
+  START["Jeder Spieler beginnt<br/>in der Gewinnerrunde"] --> WIN{{"Gewinnt er das Match?"}}
+  WIN -- "ja" --> NEXT["Nächste Runde der Gewinnerrunde,<br/>bis ins Finale der Gewinner"]
+  NEXT --> GRAND{{"Großes Finale:<br/>Wer gewinnt es?"}}
+  WIN -- "nein" --> DROP["Wechselt in<br/>die Verliererrunde"]
+  DROP --> AGAIN{{"Gewinnt er das Match?"}}
+  AGAIN -- "nein" --> OUT["Scheidet nach der<br/>zweiten Niederlage aus"]
+  AGAIN -- "ja" --> LFINAL["Nächste Runde der Verliererrunde,<br/>bis ins Finale der Verlierer"]
+  LFINAL --> GRAND
+  GRAND -- "der Sieger der<br/>Gewinnerrunde" --> CHAMPION["Turniersieger"]
+  GRAND -- "der Sieger der<br/>Verliererrunde" --> DECIDE["Beide haben einmal verloren:<br/>Das Entscheidungsfinale macht den Turniersieger"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class START,WIN,NEXT,GRAND,DROP,AGAIN,LFINAL bot
+  class CHAMPION,DECIDE done
+  class OUT failed

@@ -364,6 +364,8 @@ start_tournament:
           options:
             - round_robin
             - knockout
+            - double_knockout
+            - groups_knockout
     game:
       required: false
       example: "501"
@@ -417,6 +419,22 @@ start_tournament:
       required: false
       selector:
         boolean: {}
+    groups:
+      required: false
+      example: 4
+      selector:
+        number:
+          min: 2
+          max: 8
+          mode: box
+    advance:
+      required: false
+      example: 2
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
     random_draw:
       required: false
       selector:

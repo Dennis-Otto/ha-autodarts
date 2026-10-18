@@ -1,14 +1,16 @@
-"""Tournaments of three to eight named players at one board.
+"""Tournaments of three to 32 named players at one board.
 
 A tournament is a series of practice matches between two players at a time:
 X01, with a start score of their own for a handicap if wanted, or a Cricket
-game. In a round robin everyone plays everyone once and a table
-ranks the players; in a knockout the winners go on through a bracket until the
-final. When a match ends, its result goes into the table or the bracket, and
-the next match starts after the summary of the match and a pause, never while
-darts of a visit are on the board. The matches count for the player profiles like any other match.
-When the tournament ends, the practice game goes back to its settings from
-before, with the next match or the next change of a setting.
+game. In a round robin everyone plays everyone once and a table ranks the
+players; in a knockout the winners go on through a bracket until the final; in
+a double elimination a player is out after the second lost match only; with
+groups, a round robin in every group sends its best players into a knockout.
+When a match ends, its result goes into the table or the bracket, and the next
+match starts after the summary of the match and a pause, never while darts of a
+visit are on the board. The matches count for the player profiles like any
+other match. When the tournament ends, the practice game goes back to its
+settings from before, with the next match or the next change of a setting.
 """
 
 from __future__ import annotations
@@ -22,6 +24,28 @@ from typing import Any
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 
+from .brackets import (
+    GRAND_FINAL,
+    GRAND_FINAL_RESET,
+    GROUP_NAMES,
+    KNOCKOUT_STAGES,
+    LOSERS_FINAL,
+    LOSERS_ROUNDS,
+    ROUTES,
+    THIRD_PLACE,
+    WINNERS_FINAL,
+    WINNERS_ROUNDS,
+    Match,
+    double_knockout,
+    enter,
+    group_seeds,
+    group_stage,
+    knockout,
+    knockout_plan,
+    round_robin,
+    shifted,
+    snake,
+)
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES, marks_per_round
 from .practice import (
@@ -38,11 +62,30 @@ from .scoring import BULL_25_50, average, bounded_count
 
 ROUND_ROBIN = "round_robin"
 KNOCKOUT = "knockout"
-FORMATS = (ROUND_ROBIN, KNOCKOUT)
+DOUBLE_KNOCKOUT = "double_knockout"
+GROUPS_KNOCKOUT = "groups_knockout"
+FORMATS = (ROUND_ROBIN, KNOCKOUT, DOUBLE_KNOCKOUT, GROUPS_KNOCKOUT)
 # The head-to-head games a tournament plays: X01 and the Cricket games.
 TOURNAMENT_GAMES = (*(str(game) for game in GAMES), *CRICKET_GAMES)
 MIN_ENTRANTS = 3
-MAX_ENTRANTS = 8
+MAX_ENTRANTS = 32
+# A round robin of more players takes too long at one board: groups play it.
+MAX_ROUND_ROBIN = 8
+# Groups of three to eight players, two to eight groups, of which one to four
+# players each go on into the knockout.
+MIN_GROUPS = 2
+MAX_GROUPS = len(GROUP_NAMES)
+MAX_ADVANCE = 4
+DEFAULT_ADVANCE = 2
+# Without a number of groups, groups of about this many players.
+GROUP_SIZE = 4
+# The players every format takes, at least and at most.
+ENTRANTS = {
+    ROUND_ROBIN: (MIN_ENTRANTS, MAX_ROUND_ROBIN),
+    KNOCKOUT: (MIN_ENTRANTS, MAX_ENTRANTS),
+    DOUBLE_KNOCKOUT: (MIN_ENTRANTS, MAX_ENTRANTS),
+    GROUPS_KNOCKOUT: (MIN_GROUPS * MIN_ENTRANTS, MAX_ENTRANTS),
+}
 # Seconds between two matches; 0 waits until the next match is started.
 DEFAULT_PAUSE = 10
 MAX_PAUSE = 600
@@ -66,19 +109,30 @@ TOURNAMENT_EVENTS = (
 PLAYING = "playing"
 WAITING = "waiting"
 FINISHED = "finished"
-# Knockout rounds counted back from the final; eight players need three.
-KNOCKOUT_STAGES = ("final", "semi_final", "quarter_final")
-THIRD_PLACE = "third_place"
-# Seven players play seven rounds of the round robin, and so do eight.
-MAX_ROUNDS = 7
+# Eight players play seven rounds of the round robin, in a group too.
+MAX_ROUNDS = MAX_ROUND_ROBIN - 1
+# The stages the cards name by their key; the numbered rounds they count.
+NAMED_STAGES = (
+    *KNOCKOUT_STAGES,
+    THIRD_PLACE,
+    WINNERS_FINAL,
+    LOSERS_FINAL,
+    GRAND_FINAL,
+    GRAND_FINAL_RESET,
+)
 # The states of the tournament sensor: the stage being played.
 STATES = [
     "no_tournament",
     *(f"round_{number}" for number in range(1, MAX_ROUNDS + 1)),
-    "quarter_final",
-    "semi_final",
+    *KNOCKOUT_STAGES[:0:-1],
     THIRD_PLACE,
-    "final",
+    KNOCKOUT_STAGES[0],
+    *(f"winners_round_{number}" for number in range(1, WINNERS_ROUNDS)),
+    WINNERS_FINAL,
+    *(f"losers_round_{number}" for number in range(1, LOSERS_ROUNDS)),
+    LOSERS_FINAL,
+    GRAND_FINAL,
+    GRAND_FINAL_RESET,
     FINISHED,
 ]
 
@@ -153,103 +207,21 @@ class TournamentSetup:
         )
 
 
-def _pair() -> list[int]:
-    return [0, 0]
+def auto_groups(count: int) -> int:
+    """The number of groups for this many players without one given: groups of
+    about four players, two at least and eight at most."""
+    return min(max(count // GROUP_SIZE, MIN_GROUPS), MAX_GROUPS)
 
 
-@dataclass
-class Match:
-    """A match between two players, given by their place in the draw."""
-
-    round: int
-    stage: str
-    # The place of a knockout match in its round, for the bracket.
-    slot: int = 0
-    # A player is None until an earlier match decides them, and for a bye.
-    players: list[int | None] = field(default_factory=lambda: [None, None])
-    bye: bool = False
-    winner: int | None = None
-    # Per player: the legs of the whole match and the sets, and the points of
-    # X01 or the marks of Cricket with the darts they took, for the averages.
-    legs: list[int] = field(default_factory=_pair)
-    sets: list[int] = field(default_factory=_pair)
-    points: list[int] = field(default_factory=_pair)
-    marks: list[int] = field(default_factory=_pair)
-    darts: list[int] = field(default_factory=_pair)
-    ended: str | None = None
-
-    @property
-    def ready(self) -> bool:
-        """Both players are known and the match is still to be played."""
-        return not self.bye and self.winner is None and None not in self.players
-
-    @property
-    def played(self) -> bool:
-        return not self.bye and self.winner is not None
-
-    @property
-    def loser(self) -> int | None:
-        if not self.played:
-            return None
-        return self.players[1] if self.players[0] == self.winner else self.players[0]
-
-
-def round_robin(count: int) -> list[Match]:
-    """Everyone against everyone, in rounds of the circle method.
-
-    With an odd number of players, one of them has a bye in every round. The
-    player with fewer matches as the first to throw throws first; the players
-    of a round's last match open the next round only when nobody else can.
-    """
-    seats: list[int | None] = [*range(count), *([None] if count % 2 else [])]
-    size = len(seats)
-    first = [0] * count
-    last: set[int] = set()
-    matches: list[Match] = []
-    for number in range(1, size):
-        pairs: list[tuple[int, int]] = []
-        for index in range(size // 2):
-            one, two = seats[index], seats[size - 1 - index]
-            if one is None or two is None:
-                continue
-            if first[two] < first[one] or (
-                first[two] == first[one] and (number + index) % 2 == 0
-            ):
-                one, two = two, one
-            first[one] += 1
-            pairs.append((one, two))
-        pairs.sort(key=lambda pair: bool(last & set(pair)))
-        matches.extend(
-            Match(round=number, stage=f"round_{number}", players=[one, two])
-            for one, two in pairs
-        )
-        last = set(pairs[-1])
-        seats = [seats[0], seats[-1], *seats[1:-1]]
-    return matches
-
-
-def knockout(count: int, third_place: bool) -> list[Match]:
-    """A bracket for the next power of two, seeded so that the first two seeds
-    meet in the final at the earliest; the top seeds get the byes."""
-    size = 1 << (count - 1).bit_length()
-    rounds = size.bit_length() - 1
-    seats = [0]
-    while len(seats) < size:
-        seats = [seat for top in seats for seat in (top, 2 * len(seats) - 1 - top)]
-    matches: list[Match] = []
-    for number in range(1, rounds + 1):
-        stage = KNOCKOUT_STAGES[rounds - number]
-        if number == rounds and third_place:
-            matches.append(Match(round=number, stage=THIRD_PLACE, slot=1))
-        for slot in range(size >> number):
-            match = Match(round=number, stage=stage, slot=slot)
-            if number == 1:
-                top, bottom = seats[2 * slot], seats[2 * slot + 1]
-                # The lower seed of a pair is the one missing.
-                match.players = [top, bottom if bottom < count else None]
-                match.bye = bottom >= count
-            matches.append(match)
-    return matches
+def fits_groups(count: int, groups: int, advance: int) -> bool:
+    """Whether this many players make groups of three to eight players, each
+    with more players than go on into the knockout."""
+    if not (MIN_GROUPS <= groups <= MAX_GROUPS and 1 <= advance <= MAX_ADVANCE):
+        return False
+    smallest, largest = count // groups, -(-count // groups)
+    return (
+        MIN_ENTRANTS <= smallest and largest <= MAX_ROUND_ROBIN and advance < smallest
+    )
 
 
 class Tournament:
@@ -266,6 +238,8 @@ class Tournament:
         rules: dict[str, bool],
         starts: list[int] | None = None,
         third_place: bool = False,
+        groups: int = 0,
+        advance: int = DEFAULT_ADVANCE,
         seed: int | None = None,
         started: str | None = None,
     ) -> None:
@@ -274,29 +248,41 @@ class Tournament:
         # The names in the order of the draw, and the X01 start score of every
         # player: 0 for the game's, another one for a handicap.
         self.players = list(players)
+        count = len(players)
         self.starts = [
             start if valid_start(start) and game.isdigit() else 0
-            for start in [*(starts or []), *[0] * len(players)][: len(players)]
+            for start in [*(starts or []), *[0] * count][:count]
         ]
         self.legs_to_win = legs
         self.sets_to_win = sets
         self.rules = dict(rules)
+        # The players of every group, and the group and the place in it of
+        # every seed of the knockout after the groups.
+        self.groups = snake(count, groups) if format == GROUPS_KNOCKOUT else []
+        self.advance = advance if self.groups else 0
+        self.seeding = group_seeds(groups, advance) if self.groups else ()
+        knockout_players = len(self.seeding) if self.groups else count
         self.third_place = (
-            third_place and format == KNOCKOUT and len(players) >= THIRD_PLACE_ENTRANTS
+            third_place
+            and format in (KNOCKOUT, GROUPS_KNOCKOUT)
+            and knockout_players >= THIRD_PLACE_ENTRANTS
         )
         self.seed = seed
         self.started = started
         self.ended: str | None = None
         self.status = PLAYING
-        self.matches = (
-            knockout(len(players), self.third_place)
-            if format == KNOCKOUT
-            else round_robin(len(players))
-        )
-        for index, match in enumerate(self.matches):
-            if match.bye:
-                match.winner = match.players[0]
-                self._advance(index)
+        if format == ROUND_ROBIN:
+            self.matches = round_robin(count)
+        elif format == KNOCKOUT:
+            self.matches = knockout(count, self.third_place)
+        elif format == DOUBLE_KNOCKOUT:
+            self.matches = double_knockout(count)
+        else:
+            stage = group_stage(self.groups)
+            later = knockout_plan(knockout_players, self.third_place)
+            self.matches = [*stage, *shifted(later, len(stage))]
+        for index in range(len(self.matches)):
+            self._settle(index)
 
     @property
     def kind(self) -> int | str:
@@ -327,25 +313,49 @@ class Tournament:
             None if player is None else self.players[player] for player in match.players
         ]
 
-    def _find(self, round_: int, slot: int, stage: str | None = None) -> Match:
-        return next(
-            match
-            for match in self.matches
-            if match.round == round_
-            and match.slot == slot
-            and (match.stage == THIRD_PLACE) == (stage == THIRD_PLACE)
-        )
+    def _stage(self, stage: str) -> Match:
+        return next(match for match in self.matches if match.stage == stage)
+
+    def _settle(self, index: int) -> None:
+        """A bye goes on as soon as its player is known."""
+        match = self.matches[index]
+        if match.bye and match.winner is None and match.players[0] is not None:
+            match.winner = match.players[0]
+            self._advance(index)
 
     def _advance(self, index: int) -> None:
-        """The winner of a knockout match goes on, the loser of a semi-final
-        to the match for third place."""
+        """The winner of a match goes on, and so does the loser where losers
+        play on: in the match for third place and the losers' bracket. The
+        last match of the groups draws the knockout after them."""
         match = self.matches[index]
-        if self.format != KNOCKOUT or match.round == self.rounds:
+        if match.stage == GRAND_FINAL:
+            assert match.winner_to is not None
+            self._decide(match, self.matches[match.winner_to[0]])
             return
-        side = match.slot % 2
-        self._find(match.round + 1, match.slot // 2).players[side] = match.winner
-        if self.third_place and match.round == self.rounds - 1:
-            self._find(self.rounds, 1, THIRD_PLACE).players[side] = match.loser
+        for target, player in (
+            (match.winner_to, match.winner),
+            (match.loser_to, match.loser),
+        ):
+            if target is not None and player is not None:
+                self.matches[target[0]].players[target[1]] = player
+                self._settle(target[0])
+        if match.group is not None and all(
+            other.played for other in self.matches if other.group is not None
+        ):
+            tables = [self._ranked(group) for group in range(len(self.groups))]
+            qualifiers = [tables[group][place] for group, place in self.seeding]
+            for entered in enter(self.matches, qualifiers):
+                self._settle(entered)
+
+    @staticmethod
+    def _decide(final: Match, reset: Match) -> None:
+        """The winner of the winners' bracket wins the grand final, and with it
+        the tournament; else both players have lost once, and the second grand
+        final decides."""
+        if final.winner == final.players[0]:
+            reset.players, reset.winner = [final.winner, None], final.winner
+        else:
+            reset.players, reset.bye = list(final.players), False
 
     def record(self, index: int, practice: PracticeGame, ended: str) -> None:
         """The result of the practice match that just ended."""
@@ -375,15 +385,20 @@ class Tournament:
     def _scored(self, match: Match) -> list[int]:
         return match.marks if self.game in CRICKET_GAMES else match.points
 
-    def standings(self) -> list[dict[str, Any]]:
-        """The round robin table: points, then the points of the matches among
-        the players level on points, the leg difference, the average and the
-        order of the draw."""
-        count = len(self.players)
-        won, lost, legs_for, legs_against, scored, darts = (
-            [0] * count for _ in range(6)
+    def _table(self, group: int | None = None) -> list[tuple[int, dict[str, Any]]]:
+        """The table of the round robin or of a group, with the place of every
+        player in the draw: points, then the points of the matches among the
+        players level on points, the leg difference, the average and the order
+        of the draw."""
+        members = (
+            list(range(len(self.players))) if group is None else self.groups[group]
         )
-        played = [match for match in self.matches if match.played]
+        won, lost, legs_for, legs_against, scored, darts = (
+            dict.fromkeys(members, 0) for _ in range(6)
+        )
+        played = [
+            match for match in self.matches if match.played and match.group == group
+        ]
         for match in played:
             for side, player in enumerate(match.players):
                 assert player is not None
@@ -393,11 +408,20 @@ class Tournament:
                 legs_against[player] += match.legs[1 - side]
                 scored[player] += self._scored(match)[side]
                 darts[player] += match.darts[side]
-        points = [wins * WIN_POINTS for wins in won]
-        averages = self._averages(scored, darts)
+        points = {player: wins * WIN_POINTS for player, wins in won.items()}
+        averages = dict(
+            zip(
+                members,
+                self._averages(
+                    [scored[player] for player in members],
+                    [darts[player] for player in members],
+                ),
+                strict=True,
+            )
+        )
 
         def among(player: int) -> int:
-            level = {other for other in range(count) if points[other] == points[player]}
+            level = {other for other in members if points[other] == points[player]}
             return sum(
                 WIN_POINTS
                 for match in played
@@ -415,29 +439,53 @@ class Tournament:
             )
 
         return [
+            (
+                player,
+                {
+                    "position": position,
+                    "name": self.players[player],
+                    "played": won[player] + lost[player],
+                    "won": won[player],
+                    "lost": lost[player],
+                    "legs_for": legs_for[player],
+                    "legs_against": legs_against[player],
+                    "leg_difference": legs_for[player] - legs_against[player],
+                    "points": points[player],
+                    self._statistic: averages[player],
+                },
+            )
+            for position, player in enumerate(sorted(members, key=rank), 1)
+        ]
+
+    def _ranked(self, group: int) -> list[int]:
+        """The players of a group by their place in its table."""
+        return [player for player, _ in self._table(group)]
+
+    def standings(self) -> list[dict[str, Any]]:
+        """The round robin table."""
+        return [row for _, row in self._table()]
+
+    def tables(self) -> list[dict[str, Any]]:
+        """The table of every group."""
+        return [
             {
-                "position": position,
-                "name": self.players[player],
-                "played": won[player] + lost[player],
-                "won": won[player],
-                "lost": lost[player],
-                "legs_for": legs_for[player],
-                "legs_against": legs_against[player],
-                "leg_difference": legs_for[player] - legs_against[player],
-                "points": points[player],
-                self._statistic: averages[player],
+                "group": GROUP_NAMES[group],
+                "standings": [row for _, row in self._table(group)],
             }
-            for position, player in enumerate(sorted(range(count), key=rank), 1)
+            for group in range(len(self.groups))
         ]
 
     def podium(self) -> list[str | None]:
         """Winner, runner-up and third of a finished tournament."""
         if self.format == ROUND_ROBIN:
             return [row["name"] for row in self.standings()[:3]]
-        final = self._find(self.rounds, 0)
-        third = (
-            self._find(self.rounds, 1, THIRD_PLACE).winner if self.third_place else None
-        )
+        if self.format == DOUBLE_KNOCKOUT:
+            reset = self._stage(GRAND_FINAL_RESET)
+            final = reset if reset.played else self._stage(GRAND_FINAL)
+            third = self._stage(LOSERS_FINAL).loser
+        else:
+            final = self._stage(KNOCKOUT_STAGES[0])
+            third = self._stage(THIRD_PLACE).winner if self.third_place else None
         return [
             self.players[player] if player is not None else None
             for player in (final.winner, final.loser, third)
@@ -450,14 +498,18 @@ class Tournament:
         played = [index for index, match in enumerate(self.matches) if not match.bye]
         return {index: number for number, index in enumerate(played, 1)}
 
-    def match(self, index: int | None) -> dict[str, Any] | None:
+    def match(
+        self, index: int | None, numbers: dict[int, int]
+    ) -> dict[str, Any] | None:
+        """A match as the sensor shows it, with its number from numbers()."""
         if index is None:
             return None
         match = self.matches[index]
         result: dict[str, Any] = {
-            "match": self.numbers().get(index),
+            "match": numbers.get(index),
             "round": match.round,
             "stage": match.stage,
+            **({} if match.group is None else {"group": GROUP_NAMES[match.group]}),
             "players": self.names(match),
             "winner": None if match.winner is None else self.players[match.winner],
             "bye": match.bye,
@@ -480,25 +532,52 @@ class Tournament:
             None,
         )
 
-    def bracket(self) -> list[dict[str, Any]]:
-        """The knockout rounds with their matches, byes included; the match for
-        third place comes after the final."""
+    def bracket(self, losers: bool = False) -> list[dict[str, Any]]:
+        """The rounds of the bracket with their matches, byes included; the
+        match for third place comes after the final. A double elimination has
+        the winners' bracket with the grand final, and the losers' bracket on
+        its own; the second grand final shows once it is played."""
+        stages: list[str] = []
+        for match in self.matches:
+            if match.group is None and match.stage not in stages:
+                stages.append(match.stage)
+        if THIRD_PLACE in stages:
+            stages = [*(stage for stage in stages if stage != THIRD_PLACE), THIRD_PLACE]
         rounds: list[dict[str, Any]] = []
-        for stage in (*KNOCKOUT_STAGES[::-1], THIRD_PLACE):
-            indexes = [
-                index
-                for index, match in enumerate(self.matches)
-                if match.stage == stage
-            ]
+        numbers = self.numbers()
+        for stage in stages:
+            if stage.startswith("losers_") != losers:
+                continue
+            indexes = sorted(
+                (
+                    index
+                    for index, match in enumerate(self.matches)
+                    if match.stage == stage
+                    and not (stage == GRAND_FINAL_RESET and match.bye)
+                ),
+                key=lambda index: self.matches[index].slot,
+            )
             if indexes:
                 rounds.append(
                     {
                         "stage": stage,
                         "round": self.matches[indexes[0]].round,
-                        "matches": [self.match(index) for index in indexes],
+                        "matches": [self.match(index, numbers) for index in indexes],
                     }
                 )
         return rounds
+
+    def views(self) -> dict[str, Any]:
+        """The table of a round robin, the bracket of the other formats, the
+        losers' bracket of a double elimination and the tables of the groups."""
+        if self.format == ROUND_ROBIN:
+            return {"standings": self.standings()}
+        views: dict[str, Any] = {"bracket": self.bracket()}
+        if self.format == DOUBLE_KNOCKOUT:
+            views["losers_bracket"] = self.bracket(losers=True)
+        if self.groups:
+            views |= {"groups": self.tables(), "advance": self.advance}
+        return views
 
     def stored(self) -> dict[str, Any]:
         return {
@@ -510,11 +589,20 @@ class Tournament:
             "sets_to_win": self.sets_to_win,
             "rules": dict(self.rules),
             "third_place": self.third_place,
+            "groups": len(self.groups),
+            "advance": self.advance,
             "seed": self.seed,
             "started": self.started,
             "ended": self.ended,
             "status": self.status,
-            "matches": [asdict(match) for match in self.matches],
+            "matches": [
+                {
+                    key: value
+                    for key, value in asdict(match).items()
+                    if key not in ROUTES
+                }
+                for match in self.matches
+            ],
         }
 
     @classmethod
@@ -528,8 +616,19 @@ class Tournament:
             saved.get("format") in FORMATS
             and saved.get("game") in TOURNAMENT_GAMES
             and isinstance(players, list)
-            and MIN_ENTRANTS <= len(players) <= MAX_ENTRANTS
+            and ENTRANTS[saved["format"]][0]
+            <= len(players)
+            <= ENTRANTS[saved["format"]][1]
             and all(isinstance(name, str) and _name(name) for name in players)
+        ):
+            return None
+        groups, advance = saved.get("groups"), saved.get("advance")
+        if saved["format"] != GROUPS_KNOCKOUT:
+            groups, advance = 0, DEFAULT_ADVANCE
+        elif not (
+            type(groups) is int
+            and type(advance) is int
+            and fits_groups(len(players), groups, advance)
         ):
             return None
         rules = saved.get("rules")
@@ -547,6 +646,8 @@ class Tournament:
             },
             starts=starts if isinstance(starts, list) else None,
             third_place=saved.get("third_place") is True,
+            groups=groups,
+            advance=advance,
             seed=seed if type(seed) is int else None,
             started=saved["started"] if isinstance(saved.get("started"), str) else None,
         )
@@ -636,6 +737,8 @@ class TournamentDirector:
         sets: int | None = None,
         seed: int | None = None,
         rules: dict[str, bool | None] | None = None,
+        groups: int | None = None,
+        advance: int | None = None,
         **setup: Any,
     ) -> list[tuple[str, dict[str, Any]]]:
         """Draw a tournament and set the practice game up for its first match.
@@ -643,7 +746,9 @@ class TournamentDirector:
         Unset values come from the setup; legs, sets and rules from the practice
         game. Start scores go with the players in their order; 0 or none plays
         the game's. A seed draws the order at random, the same order for the
-        same seed. A tournament being played has to be stopped first.
+        same seed. Groups with knockout make groups of about four players
+        without a number of groups, of which two go on without a number of
+        their own. A tournament being played has to be stopped first.
         """
         if self.running:
             raise _invalid("tournament_running")
@@ -662,8 +767,24 @@ class TournamentDirector:
             if name.casefold() in seen:
                 raise _invalid("duplicate_player", name=name)
             seen.add(name.casefold())
-        if not MIN_ENTRANTS <= len(names) <= MAX_ENTRANTS:
-            raise _invalid("tournament_players", count=str(len(names)))
+        chosen = setup.get("format") or self.setup.format
+        fewest, most = ENTRANTS[chosen]
+        if not fewest <= len(names) <= most:
+            raise _invalid(
+                "tournament_players",
+                count=str(len(names)),
+                min=str(fewest),
+                max=str(most),
+            )
+        groups = groups or auto_groups(len(names))
+        advance = advance or DEFAULT_ADVANCE
+        if chosen == GROUPS_KNOCKOUT and not fits_groups(len(names), groups, advance):
+            raise _invalid(
+                "tournament_groups",
+                count=str(len(names)),
+                groups=str(groups),
+                advance=str(advance),
+            )
         self.configure(players=names, **setup)
         if seed is None and self.setup.random_draw:
             seed = _RANDOM.randint(1, MAX_SEED)
@@ -686,6 +807,8 @@ class TournamentDirector:
                 for rule in RULES
             },
             third_place=self.setup.third_place,
+            groups=groups,
+            advance=advance,
             seed=seed,
             started=now.isoformat(),
         )
@@ -705,6 +828,14 @@ class TournamentDirector:
                     "legs_to_win": tournament.legs_to_win,
                     "sets_to_win": tournament.sets_to_win,
                     "seed": tournament.seed,
+                    **(
+                        {
+                            "groups": len(tournament.groups),
+                            "advance": tournament.advance,
+                        }
+                        if tournament.groups
+                        else {}
+                    ),
                 },
             )
         ]
@@ -837,6 +968,7 @@ class TournamentDirector:
             "match": tournament.numbers()[index],
             "round": match.round,
             "stage": match.stage,
+            **({} if match.group is None else {"group": GROUP_NAMES[match.group]}),
             "players": tournament.names(match),
             "winner": tournament.players[winner],
             "loser": tournament.players[loser],
@@ -975,19 +1107,15 @@ class TournamentDirector:
             "rounds": tournament.rounds,
             "matches_played": sum(match.played for match in tournament.matches),
             "matches_total": len(numbers),
-            "current": tournament.match(current),
-            "next": tournament.match(following),
-            "last_result": tournament.match(last),
+            "current": tournament.match(current, numbers),
+            "next": tournament.match(following, numbers),
+            "last_result": tournament.match(last, numbers),
             "pause": self.setup.pause,
             "summary": self.setup.summary,
             "next_at": due.isoformat() if due else None,
             "winner": tournament.podium()[0] if finished else None,
             "started": tournament.started,
             "ended": tournament.ended,
-            "fixtures": [tournament.match(index) for index in numbers],
-            **(
-                {"bracket": tournament.bracket()}
-                if tournament.format == KNOCKOUT
-                else {"standings": tournament.standings()}
-            ),
+            "fixtures": [tournament.match(index, numbers) for index in numbers],
+            **tournament.views(),
         }

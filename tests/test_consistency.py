@@ -41,7 +41,7 @@ from custom_components.autodarts.services import (
     DELETE_PLAYER_SCHEMA,
     START_GAME_SCHEMA,
 )
-from custom_components.autodarts.tournament import KNOCKOUT_STAGES, THIRD_PLACE
+from custom_components.autodarts.tournament import NAMED_STAGES
 
 from .local_helpers import entity_id, setup_local
 
@@ -431,14 +431,14 @@ CARD_TEXT_SOURCES = {
     ("achievement_", ""): frozenset(ACHIEVEMENTS),
     ("achievement_", "_goal"): frozenset(ACHIEVEMENTS),
     ("drill_", ""): frozenset(DRILLS),
-    ("tournament_stage_", ""): frozenset((*KNOCKOUT_STAGES, THIRD_PLACE)),
+    ("tournament_stage_", ""): frozenset(NAMED_STAGES),
 }
 
 
 def test_every_card_text_is_used():
     # A text that the cards never show would still go to the translators. The
-    # integration hands the cards the achievements and the knockout rounds.
-    values = frozenset((*ACHIEVEMENTS, *KNOCKOUT_STAGES))
+    # integration hands the cards the achievements and the stages of the brackets.
+    values = frozenset((*ACHIEVEMENTS, *NAMED_STAGES))
     keys = list(card_texts()["en"])
     assert unused_card_texts(CARD, keys, values, CARD_TEXT_SOURCES) == []
 
