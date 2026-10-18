@@ -1383,11 +1383,12 @@ def play_tournament(page: Page, matches: int | None = None) -> int:
 
 
 def big_tournament(
-    page: Page, name: str, options: dict, before: int, shown: str
+    page: Page, name: str, options: dict, before: int, shown: str, height: int
 ) -> None:
     """A tournament of 32 players played to its champion through the practice
     game, with a picture of the scoreboard between two matches after `before`
-    of them, once `shown` is on it."""
+    of them, once `shown` is on it, on a screen `height` high that shows all of
+    it."""
     pull_darts()
     game(page, "off")
     page.evaluate(
@@ -1413,6 +1414,7 @@ def big_tournament(
         CALL_SERVICE, ["number", "set_value", "tournament_pause", {"value": 90}]
     )
     board = tablet(page, "autodarts-demo/tournament")
+    board.set_viewport_size({"width": 1280, "height": height})
     wait_card(board, shown, SCOREBOARD, 60000)
     ready(board)
     card_shot(board, name, tag=SCOREBOARD)
@@ -1442,6 +1444,8 @@ def tournament_groups(page: Page) -> None:
         # Two rounds of two matches in each of the eight groups.
         32,
         "!!r.querySelector('.groups')",
+        # The eight tables, three side by side.
+        1100,
     )
 
 
@@ -1455,6 +1459,8 @@ def tournament_double(page: Page) -> None:
         # The 16 matches of the winners' first round and the 8 of the losers'.
         24,
         "!!r.querySelector('.losers-label')",
+        # The 16 matches of the winners' first round and the losers' bracket below.
+        2400,
     )
 
 
