@@ -249,7 +249,7 @@ def _accepts_gzip(accept_encoding: str) -> bool:
 def _load() -> tuple[dict[str, tuple[bytes, bytes]], str]:
     """Read every file of the cards, compress each and digest them together.
 
-    The files go into the digest by their path in the folder, so a change of any of
+    The files go into the digest in the order of their paths, so a change of any of
     them, such as a text of one language, moves every address to a new folder.
     """
     files = {

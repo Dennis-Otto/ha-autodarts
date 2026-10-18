@@ -318,8 +318,8 @@ export function findings(cwd, ref = "HEAD") {
       const forms = source.forms.map((form) => ({ form, ids: blobsOf(form.path(language)) }));
       // The file of each commit, of the first form that it has.
       const files = shas.map((_, index) => {
-        const found = forms.find(({ ids }) => ids[index]);
-        return found ? { form: found.form, id: found.ids[index] } : null;
+        const first = forms.find(({ ids }) => ids[index]);
+        return first ? { form: first.form, id: first.ids[index] } : null;
       });
       const changes = files.flatMap((file, index) => (index > 0 && file?.id === files[index - 1]?.id ? [] : [{ index, file }]));
       readAll(changes.map(({ file }) => file?.id));

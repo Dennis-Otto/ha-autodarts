@@ -153,7 +153,8 @@ def test_the_live_demo_gets_the_cards_of_the_integration(tmp_path):
     texts = sorted((cards.parent / "text").glob("*.js"))
     assert len(texts) == 5
     for text in texts:
-        assert (tmp_path / "demo" / "text" / text.name).read_bytes() == text.read_bytes()
+        copy = tmp_path / "demo" / "text" / text.name
+        assert copy.read_bytes() == text.read_bytes()
     # Again into a site that has the texts already, as mkdocs serve builds it.
     hooks.on_post_build(SimpleNamespace(site_dir=str(tmp_path), site_url=SITE))
     assert (tmp_path / "demo" / "text" / texts[0].name).is_file()
