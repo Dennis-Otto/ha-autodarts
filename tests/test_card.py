@@ -19,11 +19,7 @@ from hypothesis import strategies as st
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.card import (
-    CARD_PATH,
-    CARD_URL,
     FRONTEND,
-    STRATEGY_PATH,
-    STRATEGY_URL,
     _accepts_gzip,
     _load,
     async_add_card_resources,
@@ -256,7 +252,7 @@ async def test_card_is_served_and_loaded_on_dashboards(hass, hass_client_no_auth
     # Home Assistant's own header for static files, which the card module copies.
     static_cache_control = response.headers["Cache-Control"]
     assert static_cache_control == "public, max-age=2678400"
-    assert await response.read() == STRATEGY_PATH.read_bytes()
+    assert await response.read() == FILES["autodarts-strategy.js"].read_bytes()
 
     # Every browser accepts gzip, as the test client does: a quarter of the module.
     response = await client.get(address("autodarts-card.js"), auto_decompress=False)
@@ -266,8 +262,8 @@ async def test_card_is_served_and_loaded_on_dashboards(hass, hass_client_no_auth
     assert_cached(response)
     assert response.headers["Cache-Control"] == static_cache_control
     sent = await response.read()
-    assert gzip.decompress(sent) == CARD_PATH.read_bytes()
-    assert len(sent) < CARD_PATH.stat().st_size * 0.3
+    assert gzip.decompress(sent) == FILES["autodarts-card.js"].read_bytes()
+    assert len(sent) < FILES["autodarts-card.js"].stat().st_size * 0.3
 
 
 async def test_the_texts_of_every_language_are_served_beside_the_card(
@@ -279,7 +275,7 @@ async def test_the_texts_of_every_language_are_served_beside_the_card(
     assert texts == [
         f"text/{language}.js" for language in ("de", "en", "es", "fr", "nl")
     ]
-    source = CARD_PATH.read_text(encoding="utf-8")
+    source = FILES["autodarts-card.js"].read_text(encoding="utf-8")
     for name in texts:
         assert f'from "./{name}";' in source
         response = await client.get(address(name), auto_decompress=False)
@@ -341,7 +337,7 @@ async def test_card_is_plain_for_clients_without_gzip(
     assert response.headers["Content-Type"] == "text/javascript; charset=utf-8"
     assert "Content-Encoding" not in response.headers
     assert_cached(response)
-    assert await response.read() == CARD_PATH.read_bytes()
+    assert await response.read() == FILES["autodarts-card.js"].read_bytes()
 
 
 async def test_a_browser_keeps_its_copy_of_the_card(hass, hass_client_no_auth):
@@ -356,7 +352,7 @@ async def test_a_browser_keeps_its_copy_of_the_card(hass, hass_client_no_auth):
     # A copy of another version gets the module served now.
     response = await client.get(url, headers={"If-None-Match": 'W/"0.1.0-0"'})
     assert response.status == 200
-    assert await response.read() == CARD_PATH.read_bytes()
+    assert await response.read() == FILES["autodarts-card.js"].read_bytes()
 
 
 @pytest.mark.parametrize(
@@ -425,14 +421,6 @@ async def test_an_address_of_no_or_another_version_never_goes_stale(
     response = await client.get(url, headers={"If-None-Match": etag})
     assert response.status == 304
     assert response.headers["Cache-Control"] == "no-cache"
-
-
-def test_the_addresses_without_a_version_are_those_of_the_documentation():
-    assert (CARD_URL, STRATEGY_URL) == (
-        "/autodarts/autodarts-card.js",
-        "/autodarts/autodarts-strategy.js",
-    )
-    assert STRATEGY_PATH == FRONTEND / "autodarts-strategy.js"
 
 
 CAST = "https://cast.home-assistant.io"

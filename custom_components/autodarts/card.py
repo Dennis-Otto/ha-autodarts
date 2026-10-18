@@ -31,14 +31,9 @@ _LOGGER = logging.getLogger(__name__)
 # that the card module imports, one module per language in text/.
 FRONTEND = Path(__file__).parent / "frontend"
 CARD = "autodarts-card.js"
-CARD_PATH = FRONTEND / CARD
 # The dashboard strategy alone, small enough to be registered before Home Assistant
 # stops waiting for it; it loads the strategy of the card module.
 STRATEGY = "autodarts-strategy.js"
-STRATEGY_PATH = FRONTEND / STRATEGY
-# Both modules at their addresses without a version, which resources in YAML name.
-CARD_URL = f"/{DOMAIN}/{CARD}"
-STRATEGY_URL = f"/{DOMAIN}/{STRATEGY}"
 # The path of a module of the cards in a resource, at any version or none.
 _MODULE_PATH = re.compile(
     rf"/{DOMAIN}/(?:[^/]+/)?({re.escape(CARD)}|{re.escape(STRATEGY)})"
