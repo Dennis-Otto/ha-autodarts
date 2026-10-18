@@ -1,4 +1,5 @@
-"""Moments of Autodarts online matches, sent by the browser extension Tools for Autodarts.
+"""Moments of Autodarts online matches, from the browser extension Tools for
+Autodarts or from the Autodarts cloud.
 
 The integration sees the darts on the local board, but not the game of an
 online match on play.autodarts.io: busts, game shots and the darts of the
@@ -6,6 +7,10 @@ opponents happen in the browser. The WLED feature of Tools for Autodarts calls a
 URL of your choice for each of its triggers. The bridge offers such a URL as a
 secret Home Assistant webhook and turns the calls into board events of the
 source "online". It is off until it is switched on in the options.
+
+With the cloud link, the integration reads the same moments from the state of
+the match that the cloud reports, and turns them into the triggers the bridge
+receives: the board events are the same, with the source "cloud".
 """
 
 from __future__ import annotations
@@ -14,7 +19,7 @@ import json
 import logging
 import re
 from collections import deque
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from contextlib import suppress
 from datetime import datetime
 from http import HTTPStatus
@@ -32,10 +37,11 @@ from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 
-from .const import CONF_BOARD_ID, DOMAIN
+from .const import CONF_BOARD_ID, DOMAIN, event_signal
 from .profiles import clean_name
 
 if TYPE_CHECKING:
+    from .coordinator import AutodartsDataUpdateCoordinator
     from .games_coordinator import AutodartsGamesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -432,3 +438,200 @@ async def async_setup_bridge(
     bridge = OnlineBridge(hass, entry, coordinator)
     bridge.async_register()
     return bridge
+
+
+# -- moments from the cloud ----------------------------------------------------
+
+# The bull-off before a match, as the cloud names its variant.
+BULL_OFF = "Bull-off"
+# Darts in a visit; a visit that neither busts nor wins ends with the third.
+VISIT_DARTS = 3
+
+
+def throw_trigger(throw: Any) -> str | None:
+    """A dart of the cloud as Tools for Autodarts names it, None if malformed."""
+    segment = throw.get("segment") if isinstance(throw, dict) else None
+    if not isinstance(segment, dict):
+        return None
+    number, multiplier = segment.get("number"), segment.get("multiplier")
+    if type(number) is not int or type(multiplier) is not int:
+        return None
+    if number == 25 and multiplier in (1, 2):
+        return "s25" if multiplier == 1 else "bull"
+    if 1 <= number <= 20 and 1 <= multiplier <= 3:
+        return f"{'sdt'[multiplier - 1]}{number}"
+    if multiplier == 0:
+        # Beside a number, or off the board without one.
+        return f"m{number}" if 1 <= number <= 20 else "miss"
+    return None
+
+
+def _number(value: Any) -> int | None:
+    return value if type(value) is int else None
+
+
+def _name(player: dict[str, Any]) -> str | None:
+    name = player.get("name")
+    return name if isinstance(name, str) else None
+
+
+class CloudMoments:
+    """The moments of a board's online matches, read from the state of the match
+    that the cloud reports with every poll.
+
+    Each update is compared with what was already reported, and what is new
+    becomes the trigger that Tools for Autodarts sends for it, so that the board
+    events are those of the bridge. A match that ran before the first update is
+    only noted: its moments count from the next update on. Players at another
+    board are the opponents of an online match, whose moments the bridge, set
+    up for one board, does not send either.
+    """
+
+    def __init__(self, board_id: str) -> None:
+        self._board_id = board_id
+        self._started = False
+        self._match_id: str | None = None
+        self._quiet = False
+        self._reported: set[tuple[Any, ...]] = set()
+
+    def update(self, data: Mapping[str, Any] | None) -> list[tuple[str, str | None]]:
+        """The triggers and player names of what happened since the last update."""
+        if data is None:
+            # Nothing read yet, so nothing to compare with.
+            return []
+        board = data.get("board")
+        match_id = board.get("matchId") if isinstance(board, dict) else None
+        if not isinstance(match_id, str) or not match_id:
+            match_id = None
+        moments: list[tuple[str, str | None]] = []
+        if match_id != self._match_id:
+            if match_id is None:
+                moments.append(("idle", None))
+            self._match_id = match_id
+            self._reported = set()
+            self._quiet = not self._started
+        self._started = True
+        match = data.get("match")
+        if match_id is None or not isinstance(match, dict):
+            # A match whose state could not be read is compared at the next poll.
+            return moments
+        found = list(self._match(match))
+        if self._quiet:
+            self._quiet = False
+            return moments
+        return moments + found
+
+    def _new(self, *key: Any) -> bool:
+        """Whether a moment is new, reporting it from now on."""
+        if key in self._reported:
+            return False
+        self._reported.add(key)
+        return True
+
+    def _at_board(self, player: dict[str, Any]) -> bool:
+        """Whether a player throws at this board; a bot or a guest has no board."""
+        board = player.get("boardId")
+        return not isinstance(board, str) or not board or board == self._board_id
+
+    def _match(self, match: dict[str, Any]) -> Iterator[tuple[str, str | None]]:
+        if match.get("variant") == BULL_OFF:
+            # Who throws first; the bull-off has no visits or legs of its own.
+            if self._new("bulloff"):
+                yield "bulloff", None
+            return
+        players = match.get("players")
+        players = (
+            [player if isinstance(player, dict) else {} for player in players]
+            if isinstance(players, list)
+            else []
+        )
+        index = _number(match.get("player"))
+        # Assumption (darts-caller's reading, decision 0020): `turns` holds the
+        # current visit first; the darts_thrown sensor reads it as the history.
+        turns = match.get("turns")
+        turn = turns[0] if isinstance(turns, list) and turns else None
+        if index is None or not 0 <= index < len(players) or not isinstance(turn, dict):
+            return
+        # The visit: its set, leg and round, and the index of its player.
+        visit = (
+            _number(match.get("set")),
+            _number(match.get("leg")),
+            _number(match.get("round")),
+            index,
+        )
+        throws = turn.get("throws")
+        darts = (
+            [throw_trigger(throw) for throw in throws]
+            if isinstance(throws, list)
+            else []
+        )
+        if self._at_board(players[index]):
+            name = _name(players[index])
+            if self._new("turn", *visit):
+                # Tools for Autodarts names a bot's visit `bot_throw`.
+                bot = isinstance(players[index].get("cpuPPR"), int)
+                yield "bot_throw" if bot else "gameon", name
+            for number, dart in enumerate(darts):
+                if dart and self._new("dart", *visit, number):
+                    yield dart, name
+        yield from self._end(match, players, visit, turn, darts)
+
+    def _end(
+        self,
+        match: dict[str, Any],
+        players: list[dict[str, Any]],
+        visit: tuple[int | None, int | None, int | None, int],
+        turn: dict[str, Any],
+        darts: list[str | None],
+    ) -> Iterator[tuple[str, str | None]]:
+        """How a visit ends: with a won match or leg, a bust or its score."""
+        index = visit[3]
+        for shot, key in (("matchshot", "winner"), ("gameshot", "gameWinner")):
+            winner = _number(match.get(key))
+            if winner is None or not 0 <= winner < len(players):
+                continue
+            # A won match is the shot of its last leg, and either ends the visit.
+            new = self._new("shot", *visit[:2])
+            self._reported.add(("end", *visit))
+            if new and self._at_board(players[winner]):
+                # The winning dart is the last one of the winner's visit.
+                last = darts[-1] if winner == index and darts else None
+                yield f"{shot}+{last}" if last else shot, _name(players[winner])
+            return
+        if not self._at_board(players[index]) or ("end", *visit) in self._reported:
+            return
+        if turn.get("busted") is True:
+            self._reported.add(("end", *visit))
+            yield "busted", _name(players[index])
+            return
+        points = _number(turn.get("points"))
+        if len(darts) >= VISIT_DARTS and points is not None and 0 <= points <= 180:
+            self._reported.add(("end", *visit))
+            yield str(points), _name(players[index])
+
+
+@callback
+def async_follow_cloud(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    cloud: AutodartsDataUpdateCoordinator,
+    coordinator: AutodartsGamesCoordinator | None,
+) -> None:
+    """Turn the moments of the cloud's matches into the board events of the
+    bridge, with the source "cloud"."""
+    moments = CloudMoments(cloud.board_id)
+    signal = event_signal(entry.entry_id)
+
+    @callback
+    def update() -> None:
+        found = moments.update(cloud.data)
+        for kind, attributes in filter(None, (parse(*moment) for moment in found)):
+            if coordinator is not None and "name" in attributes:
+                # As the player's profile spells the name, as with the bridge.
+                profiles = coordinator.games.practice.profiles
+                attributes["name"] = profiles.spelled(attributes["name"])
+            async_dispatcher_send(hass, signal, kind, {**attributes, "source": "cloud"})
+
+    # What the first read found happened before Home Assistant watched.
+    moments.update(cloud.data)
+    entry.async_on_unload(cloud.async_add_listener(update))

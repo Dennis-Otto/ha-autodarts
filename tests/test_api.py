@@ -223,6 +223,27 @@ async def test_repeated_401_requires_reauth(hass, aioclient_mock):
     assert aioclient_mock.call_count == 3
 
 
+@pytest.mark.parametrize(("expires_in", "renewed"), [(45, True), (90, False)])
+async def test_a_token_is_renewed_a_minute_before_it_expires(
+    hass, aioclient_mock, expires_in, renewed
+):
+    """Autodarts' guide advises renewing about a minute early, so that no request
+    reaches the API with a token that expires on the way."""
+    aioclient_mock.post(REFRESH_URL, json=TOKEN)
+    aioclient_mock.get(f"{API_BASE}/bs/v0/boards/board-1", json={"id": "board-1"})
+    cloud = AutodartsCloudClient(
+        async_get_clientsession(hass),
+        {
+            "access_token": "old",
+            "refresh_token": "old-refresh",
+            "expires_at": time.time() + expires_in,
+        },
+        CLIENT_ID,
+    )
+    assert await cloud.get_board("board-1") == {"id": "board-1"}
+    assert (cloud.token["access_token"] == "test-access") is renewed
+
+
 @pytest.mark.parametrize(
     "body",
     [

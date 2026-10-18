@@ -46,7 +46,7 @@ from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
 from .local_coordinator import ISSUES, AutodartsLocalCoordinator
 from .manual_coordinator import AutodartsManualCoordinator
-from .online import async_setup_bridge
+from .online import async_follow_cloud, async_setup_bridge
 from .repairs import address_title
 from .report import BoardReports
 from .runtime import AutodartsConfigEntry, AutodartsRuntimeData
@@ -213,6 +213,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
             _remove_other_generation(hass, entry, board.board_manager_2)
     # Moments of online matches arrive as board events, if switched on.
     runtime.bridge = await async_setup_bridge(hass, entry, runtime.local)
+    if runtime.cloud and runtime.bridge is None:
+        # Otherwise the faster bridge reports them, and both would report each twice.
+        async_follow_cloud(hass, entry, runtime.cloud, runtime.local)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     if runtime.local:
         runtime.local.async_start()

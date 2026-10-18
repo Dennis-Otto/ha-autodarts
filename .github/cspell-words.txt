@@ -85,6 +85,7 @@ joue
 joueur
 juega
 jugador
+lloydowen
 maken
 oche
 oefenspel

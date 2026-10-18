@@ -519,8 +519,10 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_auth()
 
         schema: dict[vol.Marker, Any] = {
+            # Filled in with the client of the integration once Autodarts has issued it.
             vol.Required(
-                CONF_CLIENT_ID, default=self._user_input.get(CONF_CLIENT_ID, "")
+                CONF_CLIENT_ID,
+                default=self._user_input.get(CONF_CLIENT_ID, const.CLOUD_CLIENT_ID),
             ): vol.All(str, vol.Strip, vol.Length(min=1)),
         }
         if step_id == "cloud":
