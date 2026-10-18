@@ -29,10 +29,10 @@ from urllib.parse import quote
 from homeassistant.core import HomeAssistant
 from homeassistant.core_config import Config
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
-from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util.hass_dict import HassKey
 
-from .const import DOMAIN, LANGUAGES
+from .calls import phrases
+from .const import DOMAIN
 from .export import ExportFolderError, export_folder
 from .highlights import media_folder
 
@@ -205,21 +205,6 @@ def pack_words(say: dict[str, str]) -> dict[str, str]:
     return words
 
 
-async def _say(hass: HomeAssistant, language: str) -> dict[str, str]:
-    """The caller's words in the language of the voice, such as German for
-    de-CH, or English for a language the integration does not speak."""
-    words = re.split(r"[-_]", language, maxsplit=1)[0].lower()
-    texts = await async_get_translations(
-        hass, words if words in LANGUAGES else "en", "exceptions", {DOMAIN}
-    )
-    prefix = f"component.{DOMAIN}.exceptions."
-    return {
-        key.removeprefix(prefix).removesuffix(".message"): text
-        for key, text in texts.items()
-        if key.startswith(prefix)
-    }
-
-
 def _keep_recorded(pack: Path) -> None:
     """Refuse a pack of that name that was not generated; runs in the executor."""
     if (
@@ -298,7 +283,8 @@ async def _generate(
         raise ServiceValidationError(
             translation_domain=DOMAIN, translation_key="voice_pack_no_media"
         )
-    words = pack_words(await _say(hass, language))
+    # The caller's words in the language of the voice, such as German for de-CH.
+    words = pack_words(await phrases(hass, language))
     options = {"voice": voice} if voice else None
     try:
         media = {

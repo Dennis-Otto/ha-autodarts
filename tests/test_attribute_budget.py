@@ -5,7 +5,9 @@ players, a full history and a tournament."""
 from datetime import timedelta
 
 import pytest
+from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.json import json_bytes
 from homeassistant.util import dt as dt_util
 
@@ -20,7 +22,7 @@ from custom_components.autodarts.records import RECORDS
 from custom_components.autodarts.report import REPORT_BESTS
 from custom_components.autodarts.training import COUNTERS
 
-from .local_helpers import board, entity_id, setup_local, written
+from .local_helpers import T20, board, entity_id, setup_local, written
 
 # What the recorder keeps of a state, at most; Home Assistant drops more than
 # 16 KiB, and a state is written with every change.
@@ -281,6 +283,42 @@ async def test_recorded_attributes_stay_small_in_a_busy_home(hass, aioclient_moc
     measured = sizes(hass, entry)
     assert not within_budget(measured), within_budget(measured)
     assert measured["board-1_practice_remaining"][1] > RECORDED_BYTES
+
+
+async def test_the_words_of_the_events_stay_small_in_a_busy_home(hass, aioclient_mock):
+    """The weekly report of the busiest week, with its title and summary in the
+    longest language, and the call of a turn in a team match with the longest
+    names."""
+    hass.config.language = "fr"
+    entry = await busy_home(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    announced = {}
+
+    @callback
+    def keep(event) -> None:
+        state = event.data["new_state"]
+        announced[state.attributes["event_type"]] = dict(state.attributes)
+
+    async_track_state_change_event(hass, entity_id(hass, "event", "board_events"), keep)
+    report = coordinator.reports.report
+    report.counts = dict.fromkeys(report.counts, 99999)
+    report.highest_visit = 180
+    report.ends = dt_util.utcnow()
+    await coordinator.reports._async_report(dt_util.utcnow())
+    await hass.services.async_call("autodarts", "stop_tournament", {}, blocking=True)
+    await coordinator.async_start_game(
+        1001, names=NAMES[:4], legs=11, sets=7, teams=True, bull_off=False
+    )
+    for darts in range(1, 4):
+        coordinator.async_receive("state", board(*[T20] * darts))
+    coordinator.async_receive("state", board(*[T20] * 3, event="Takeout started"))
+    coordinator.async_receive("state", board(event="Takeout finished"))
+    await hass.async_block_till_done()
+    week, turn = announced["weekly_report"], announced["turn_changed"]
+    assert week["summary"].startswith("99999 fléchettes en ")
+    assert NAMES[1] in turn["call"]
+    for attributes in (week, turn):
+        assert len(json_bytes(attributes)) < RECORDED_BYTES
 
 
 @pytest.fixture

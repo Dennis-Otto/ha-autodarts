@@ -7,6 +7,7 @@ Dartabend
 Dartautomaten
 Dartraum
 Dartscheibe
+Dartwoche
 Entitäts
 Entitätseinstellungen
 Entitätskategorie

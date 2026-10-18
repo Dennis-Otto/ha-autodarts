@@ -185,7 +185,7 @@ Import a blueprint with one click, choose your board and you're done.
 
   [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml)
 
-- **Dart caller.** Every visit announced on your speakers, with a special call for 180, or with the recorded sounds of a voice pack.
+- **Dart caller.** Every visit announced on your speakers, with a special call for 180, in the language of Home Assistant or with the recorded sounds of a voice pack.
 
   [![Import the dart caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml)
 
@@ -200,7 +200,7 @@ Import a blueprint with one click, choose your board and you're done.
 
   [![Import the visit score blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml)
 
-- **Practice caller.** Who needs what, busts and game shots of the practice game on your speakers.
+- **Practice caller.** Who needs what, busts and game shots of the practice game on your speakers, in the language of Home Assistant.
 
   [![Import the practice caller blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml)
 
@@ -220,7 +220,7 @@ Import a blueprint with one click, choose your board and you're done.
 
   [![Import the training session routine blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml)
 
-- **Weekly report.** Your training week with the trend of your 3-dart average, as a notification.
+- **Weekly report.** Your training week with the trend of your 3-dart average, as a notification in the language of Home Assistant.
 
   [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml)
 

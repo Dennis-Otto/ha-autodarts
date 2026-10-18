@@ -48,7 +48,7 @@ Without My Home Assistant, go to **Settings → Automations & scenes → Bluepri
 - **Practice caller:** calls what matters in the practice game: requirements, busts, game shots and, if you like, the bull-off.
 - **Caller of the scoreboard card:** the [scoreboard](scoreboard.md#the-caller) calls visits and the practice game in one voice, through the browser of the screen at the board. It needs no speakers in Home Assistant.
 
-All three can call with a voice pack of recorded sounds, such as one of darts-caller: see [voice packs of the callers](#voice-packs-of-the-callers) and [of the scoreboard](scoreboard.md#voice-packs).
+All three speak the language of Home Assistant without any setting, in English, German, Dutch, French and Spanish, and all three can call with a voice pack of recorded sounds, such as one of darts-caller: see [voice packs of the callers](#voice-packs-of-the-callers) and [of the scoreboard](scoreboard.md#voice-packs).
 
 ## Blueprint settings
 
@@ -78,10 +78,10 @@ Every blueprint shows these settings when you create an automation from it: sele
 | Call every dart | off | Also calls each dart when it lands. The third dart is not called on its own, because the visit follows right away. |
 | Stay silent in practice games | on | Leaves the calls to the practice caller while an X01, Cricket or party game of the integration is played. |
 | Visit message | `{{ score }}` | Said after a visit. It can use `score`, `darts` and `segments`. |
-| Message for 180 | `One hundred and eighty!` | Said instead of the visit message after a 180. |
-| Dart message | `{{ dart_name }}` | Said for each dart. It can use `dart_name` (such as `Treble 20`, `5`, `Bull` or `Miss`), `segment` (such as `T20`), `dart_score` and `dart_index`. |
+| Message for 180 | `{{ call }}` | Said instead of the visit message after a 180: "One hundred and eighty!" in the language of Home Assistant. |
+| Dart message | `{{ dart_name }}` | Said for each dart. It can use `dart_name` (such as `Treble 20`, `5`, `Bull` or `Miss`, in the language of Home Assistant), `segment` (such as `T20`), `dart_score` and `dart_index`. |
 
-An empty message stays silent.
+An empty message stays silent. `call` and `dart_name` are the [words of the integration](#calls-in-the-language-of-home-assistant), in English with an older version of the integration.
 
 ### Takeout actions
 
@@ -161,18 +161,20 @@ Leave the calibration button empty when the board's *Calibrate on start* setting
 | Board events | | The *Events* entity of your board. |
 | Text-to-speech engine, Speakers, Language, Voice options | | As in the dart caller. |
 | Voice pack | empty | A [voice pack](#voice-packs-of-the-callers): its sounds call busts, game shots, the match and, when you play alone, what you require; the engine speaks every other call. |
-| Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Said when the next visit can finish the leg. |
-| No checkout, a setup | empty | Said when the next visit cannot finish the leg but can leave a finish, with `leave` and `setup`, for example `{{ who ~ ', leave' if who else 'Leave' }} yourself {{ leave }}`. Empty uses the *Next player* message. |
-| Next player | empty | Said when the next visit cannot finish the leg. Empty stays silent. |
-| Bust | `No score` | Said when a dart busts the visit. |
-| Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Said when a dart wins a leg that does not decide the match; in a team match with the team's name. |
-| Match won | `Game shot, and the match, {{ team or who }}!` | Said when a dart decides the match; in a team match with the team's name. |
-| Leg won on the round limit | `Round limit, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Said when the last round of an X01 leg with a [round limit](games.md#x01) ends without a checkout and the lowest score wins a leg that does not decide the match, with `rounds` and the `remaining` score of the winner. |
-| Match won on the round limit | `Round limit, and the match{{ ', ' ~ (team or who) if team or who }}!` | Said when the round limit decides the match. |
-| Bull-off throw | empty | Said when the next player throws for the bull, for example `{{ who }}, throw for the bull`. The first player of the bull-off is not called. Empty uses the *Next player* message. |
-| Bull-off won | empty | Said when the bull-off decides who starts, in one call with the first call of the match, for example `{{ who }} to throw first. Game on!`. Empty stays silent. |
-| Word for a player without a name | `Player` | Makes "Player 2" in a match without names. |
-| Word for the bot | `Bot` | The name of the practice game's [bot](entities.md#bot) in `who`, as the scoreboard shows it, for example "Bot, you require 40". |
+| Checkout possible | `{{ call }}` | Said when the next visit can finish the leg: "Sam, you require 81", or "You require 81" when you play alone. |
+| No checkout, a setup | empty | Said when the next visit cannot finish the leg but can leave a finish, with `leave` and `setup`; `{{ call }}` says "Sam, leave yourself 32". Empty uses the *Next player* message. |
+| Next player | empty | Said when the next visit cannot finish the leg; `{{ call }}` says "Sam to throw." in a match. Empty stays silent. |
+| Bust | `{{ call }}` | Said when a dart busts the visit: "No score". |
+| Leg won | `{{ call }}` | Said when a dart wins a leg that does not decide the match: "Game shot, and the leg, Sam!", in a team match with the team's name. |
+| Match won | `{{ call }}` | Said when a dart decides the match: "Game shot, and the match, Sam!", in a team match with the team's name. |
+| Leg won on the round limit | `{{ call }}` | Said when the last round of an X01 leg with a [round limit](games.md#x01) ends without a checkout and the lowest score wins a leg that does not decide the match, with `rounds` and the `remaining` score of the winner: "Round limit, and the leg, Sam!". |
+| Match won on the round limit | `{{ call }}` | Said when the round limit decides the match: "Round limit, and the match, Sam!". |
+| Bull-off throw | empty | Said when the next player throws for the bull; `{{ call }}` says "Sam, throw for the bull". The first player of the bull-off is not called. Empty uses the *Next player* message. |
+| Bull-off won | empty | Said when the bull-off decides who starts, in one call with the first call of the match; `{{ bull_off_call }}` says "Sam to throw first. Game on!". Empty stays silent. |
+| Word for a player without a name | `Player` | Makes "Player 2" in `who` of your own messages, in a match without names. |
+| Word for the bot | `Bot` | The name of the practice game's [bot](entities.md#bot) in `who` of your own messages, as the scoreboard shows it, for example "Bot, you require 40". |
+
+`call` and `bull_off_call` are the [words of the integration](#calls-in-the-language-of-home-assistant): the examples above in English, and in the language of Home Assistant in any other.
 
 The first visit of a game is not called, because a game starts without a change of turn. With a [bull-off](games.md#bull-off), the call of the winner starts the game instead.
 
@@ -182,11 +184,11 @@ The first visit of a game is not called, because a game starts without a change 
 | --- | --- | --- |
 | Board events | | The *Events* entity of your board. |
 | Minimum darts | 1 | Skips the report of a week with fewer darts, for example a week on holiday. With 0, every week is reported. |
-| Title | `Your darts week` | The title of the notification, available as `title`. |
-| Message | `{{ summary }}` | The text of the notification, available as `message`. |
+| Title | `{{ week_title }}` | The title of the notification, available as `title`: "Your darts week" in the language of Home Assistant. |
+| Message | `{{ summary }}` | The text of the notification, available as `message`: the week in a few sentences, in the language of Home Assistant. |
 | Notification actions | a notification in Home Assistant | How the report is sent, for example to your phone, see [below](#weekly-report-on-your-phone). |
 
-The message can use `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` (how many were set), `week_start`, `week_end` and `summary`, a ready-made summary in English. The board ends the week at its *Weekly report day* and *Weekly report time*, by default on Monday at midnight.
+The message can use `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` (how many were set), `week_start`, `week_end` and `summary`, a ready-made summary in the language of Home Assistant. The board ends the week at its *Weekly report day* and *Weekly report time*, by default on Monday at midnight.
 
 ### Highlight photo
 
@@ -363,10 +365,10 @@ The messages of the dart caller are templates. For example:
 | Setting | Example |
 | --- | --- |
 | Visit message | `{{ score }}`, or `{{ score }} points` |
-| Message for 180 | `One hundred and eighty!` |
+| Message for 180 | `{{ call }}` says "One hundred and eighty!", or your own words, such as `Maximum!` |
 | Dart message | `{{ dart_name }}` says "Treble 20", "5", "Bull" or "Miss"; `{{ dart_score }}` says the points |
 
-For a German caller, see the [German guide](automations.de.md#deutscher-dart-caller).
+For German words of your own, see the [German guide](automations.de.md#deutscher-dart-caller).
 
 ### Practice caller messages
 
@@ -374,6 +376,8 @@ The practice caller's messages are templates with these variables:
 
 | Variable | Content |
 | --- | --- |
+| `call` | What the caller says, in the language of Home Assistant, as the defaults say it: "Sam, you require 81", "No score" or "Game shot, and the leg, Sam!" |
+| `bull_off_call` | What the caller says when the bull-off is won, in *Bull-off won*: "Sam to throw first. Game on!" |
 | `who` | The player's name, "Bot" for the [bot](entities.md#bot) (see *Word for the bot*), "Player 2" in a match without names, empty when you play alone |
 | `team` | The team of the player in a [team match](entities.md#teams-and-start-scores), for example `Alex & Kim` when both partners have a name; empty otherwise |
 | `remaining` | The score left |
@@ -386,7 +390,7 @@ The practice caller's messages are templates with these variables:
 | `hit` | The bed of the winning bull-off dart in *Bull-off won*: `BULL`, `25` or for example `S20` |
 | `distance` | How far the winning bull-off dart landed from the center, in millimeters, in *Bull-off won*; empty when the board reported no position for it, never `None` |
 
-For example:
+For example, in words of your own:
 
 | Setting | Example |
 | --- | --- |
@@ -400,6 +404,21 @@ For example:
 | Bull-off throw | `{{ who }}, throw for the bull` |
 | Bull-off won | `{{ who }} to throw first. Game on!`, or `{{ who }} wins the bull{{ ' by ' ~ distance ~ ' millimeters' if distance is number }}` |
 | Word for a player without a name | `Player` |
+
+### Calls in the language of Home Assistant
+
+Home Assistant translates no blueprint, so the integration gives every event a caller speaks its words in the language of Home Assistant, and the callers say them by default: `call` on the events of the dart caller and the practice caller, `title` and `summary` on the weekly report. They follow a new language of Home Assistant at once, in English, German, Dutch, French and Spanish; a regional variant such as `de-CH` speaks its language, and another language English. The words are those of the [scoreboard's caller](scoreboard.md#the-caller) and of the voice packs that `autodarts.generate_voice_pack` records.
+
+| Event | `call` in English | `call` in German |
+| --- | --- | --- |
+| `turn_changed` | "Sam, you require 81", "Sam, leave yourself 32", "Sam to throw.", "Sam, throw for the bull" | "Sam, du brauchst 81", "Sam, stell dir die 32", "Sam ist dran.", "Sam, dein Wurf aufs Bull" |
+| `bust` | "No score" | "Überworfen" |
+| `leg_won`, `match_won` | "Game shot, and the leg, Sam!", "Round limit, and the match, Sam!" | "Game shot, und das Leg, Sam!", "Rundenlimit, und das Match, Sam!" |
+| `bull_off_won` | "Sam to throw first. Game on!" | "Sam beginnt. Game on!" |
+| `visit_thrown`, `visit_completed` | "One hundred and eighty!", "No score" for 0, otherwise the score | "Einhundertachtzig!", "Keine Punkte" |
+| `dart_detected` | "Treble 20", "Double 16", "5", "25", "Bull", "Miss" | "Triple 20", "Doppel 16", "5", "25", "Bull", "Fehlwurf" |
+
+A message of your own keeps its words in every language. An automation set up before calls in your language once you [re-import](#blueprints) the blueprint, unless it saved a message, such as the English default of before: replace that with `{{ call }}`, or the title of the weekly report with `{{ week_title }}`. With an older version of the integration, the events have no words, and the blueprints say them in English.
 
 ### Voice packs of the callers
 
@@ -543,7 +562,7 @@ The ready-made `summary` reads, for example: *312 darts in 95 minutes at the boa
 
 <img src="images/en/weekly-report-notification.png" alt="The notification Your darts week in Home Assistant with the darts, sessions, 3-dart average, best visit and streak of the week" width="468">
 
-For a report in another language, write your own *Title* and *Message*. In German, in the YAML mode of the automation:
+The title and the summary are in the language of Home Assistant, for example *Deine Dartwoche* and *312 Darts in 95 Minuten am Board, 3 Sessions. 3-Dart-Average 54,2 (+2,1 zur Vorwoche).* in German. For words of your own, write your own *Title* and *Message*. A shorter German report, in the YAML mode of the automation:
 
 ```yaml
 use_blueprint:
@@ -798,6 +817,8 @@ actions:
         {% endif %}
 mode: queued
 ```
+
+To say it as the practice caller does, in the language of Home Assistant, use the words of the event: `message: "{{ trigger.to_state.attributes.call }}"`.
 
 ### Send the summary of a match
 

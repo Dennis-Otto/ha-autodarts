@@ -151,6 +151,8 @@ async def test_darts_entered_by_hand_need_the_switch(hass, aioclient_mock):
         "game": 301,
         "name": "Alex",
         "source": "manual",
+        # As a caller says it, in the language of Home Assistant.
+        "call": "Treble 20",
     }
     assert events[-1][1]["manual"] is True and events[-1][1]["score"] == 170
     assert state(hass, "sensor", "practice_remaining") == "131"

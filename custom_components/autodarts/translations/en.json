@@ -1071,6 +1071,96 @@
     },
     "voice_bed_miss": {
       "message": "Miss"
+    },
+    "caller_require": {
+      "message": "{name}, you require {remaining}"
+    },
+    "caller_setup": {
+      "message": "{name}, leave yourself {leave}"
+    },
+    "caller_setup_alone": {
+      "message": "Leave yourself {leave}"
+    },
+    "caller_limit_leg": {
+      "message": "Round limit, and the leg, {name}!"
+    },
+    "caller_limit_leg_alone": {
+      "message": "Round limit, and the leg!"
+    },
+    "caller_limit_match": {
+      "message": "Round limit, and the match, {name}!"
+    },
+    "caller_limit_match_alone": {
+      "message": "Round limit, and the match!"
+    },
+    "caller_bull_off_turn": {
+      "message": "{name}, throw for the bull"
+    },
+    "caller_bull_off": {
+      "message": "{name} to throw first. Game on!"
+    },
+    "caller_bot": {
+      "message": "Bot"
+    },
+    "caller_maximum": {
+      "message": "One hundred and eighty!"
+    },
+    "caller_treble": {
+      "message": "Treble {number}"
+    },
+    "report_title": {
+      "message": "Your darts week"
+    },
+    "report_darts": {
+      "message": "{darts} darts."
+    },
+    "report_darts_time": {
+      "message": "{darts} darts in {time} at the board."
+    },
+    "report_darts_sessions": {
+      "message": "{darts} darts, {sessions}."
+    },
+    "report_darts_time_sessions": {
+      "message": "{darts} darts in {time} at the board, {sessions}."
+    },
+    "report_minute": {
+      "message": "1 minute"
+    },
+    "report_minutes": {
+      "message": "{count} minutes"
+    },
+    "report_session": {
+      "message": "1 session"
+    },
+    "report_sessions": {
+      "message": "{count} sessions"
+    },
+    "report_average": {
+      "message": "3-dart average {average}."
+    },
+    "report_average_change": {
+      "message": "3-dart average {average} ({change} on the week before)."
+    },
+    "report_best_visit": {
+      "message": "Best visit {score}."
+    },
+    "report_best_visit_180": {
+      "message": "Best visit {score}, {count} × 180."
+    },
+    "report_checkout_rate": {
+      "message": "Checkout rate {rate} %."
+    },
+    "report_streak_day": {
+      "message": "1 day in a row."
+    },
+    "report_streak_days": {
+      "message": "{count} days in a row."
+    },
+    "report_new_best": {
+      "message": "1 new personal best."
+    },
+    "report_new_bests": {
+      "message": "{count} new personal bests."
     }
   },
   "issues": {

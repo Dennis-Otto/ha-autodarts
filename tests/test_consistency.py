@@ -15,6 +15,7 @@ import yaml
 
 from custom_components.autodarts.achievements import ACHIEVEMENTS
 from custom_components.autodarts.binary_sensor import MOTION_SENSORS
+from custom_components.autodarts.calls import DECIMAL_MARKS
 from custom_components.autodarts.const import LANGUAGES as INTEGRATION_LANGUAGES
 from custom_components.autodarts.drills import DRILLS
 from custom_components.autodarts.journal import LOCALES
@@ -246,11 +247,13 @@ CARD_TEXTS = card_texts()
 
 def test_every_list_of_languages_names_the_languages_of_the_translations():
     # A new translation needs its words in each of these too; without them the
-    # calendar, the highlight gallery and the voice actions would stay English.
+    # calendar, the highlight gallery, the voice actions and the numbers of the
+    # weekly report would stay English.
     languages = set(LANGUAGES)
     assert set(INTEGRATION_LANGUAGES) == languages
     assert set(LOCALES) == languages
     assert set(MONTHS) == languages
+    assert set(DECIMAL_MARKS) == languages
     # English writes "Sep 26", every other language the day and month in numbers.
     assert set(SHORT_DATES) == languages - {"en"}
     # Where a language has none of its own, it says "Checkout" and "September 2026".

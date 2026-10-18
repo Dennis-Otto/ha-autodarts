@@ -1071,6 +1071,96 @@
     },
     "voice_bed_miss": {
       "message": "Fehlwurf"
+    },
+    "caller_require": {
+      "message": "{name}, du brauchst {remaining}"
+    },
+    "caller_setup": {
+      "message": "{name}, stell dir die {leave}"
+    },
+    "caller_setup_alone": {
+      "message": "Stell dir die {leave}"
+    },
+    "caller_limit_leg": {
+      "message": "Rundenlimit, und das Leg, {name}!"
+    },
+    "caller_limit_leg_alone": {
+      "message": "Rundenlimit, und das Leg!"
+    },
+    "caller_limit_match": {
+      "message": "Rundenlimit, und das Match, {name}!"
+    },
+    "caller_limit_match_alone": {
+      "message": "Rundenlimit, und das Match!"
+    },
+    "caller_bull_off_turn": {
+      "message": "{name}, dein Wurf aufs Bull"
+    },
+    "caller_bull_off": {
+      "message": "{name} beginnt. Game on!"
+    },
+    "caller_bot": {
+      "message": "Bot"
+    },
+    "caller_maximum": {
+      "message": "Einhundertachtzig!"
+    },
+    "caller_treble": {
+      "message": "Triple {number}"
+    },
+    "report_title": {
+      "message": "Deine Dartwoche"
+    },
+    "report_darts": {
+      "message": "{darts} Darts."
+    },
+    "report_darts_time": {
+      "message": "{darts} Darts in {time} am Board."
+    },
+    "report_darts_sessions": {
+      "message": "{darts} Darts, {sessions}."
+    },
+    "report_darts_time_sessions": {
+      "message": "{darts} Darts in {time} am Board, {sessions}."
+    },
+    "report_minute": {
+      "message": "1 Minute"
+    },
+    "report_minutes": {
+      "message": "{count} Minuten"
+    },
+    "report_session": {
+      "message": "1 Session"
+    },
+    "report_sessions": {
+      "message": "{count} Sessions"
+    },
+    "report_average": {
+      "message": "3-Dart-Average {average}."
+    },
+    "report_average_change": {
+      "message": "3-Dart-Average {average} ({change} zur Vorwoche)."
+    },
+    "report_best_visit": {
+      "message": "Beste Aufnahme {score}."
+    },
+    "report_best_visit_180": {
+      "message": "Beste Aufnahme {score}, {count} × 180."
+    },
+    "report_checkout_rate": {
+      "message": "Checkout-Quote {rate} %."
+    },
+    "report_streak_day": {
+      "message": "1 Tag in Folge."
+    },
+    "report_streak_days": {
+      "message": "{count} Tage in Folge."
+    },
+    "report_new_best": {
+      "message": "1 neue Bestleistung."
+    },
+    "report_new_bests": {
+      "message": "{count} neue Bestleistungen."
     }
   },
   "issues": {

@@ -8,9 +8,15 @@ blueprint:
     possible and the bull-off.
 
 
-    The messages are templates. They can use `who` (the player's name, "Bot"
-    for the practice game's bot, "Player 2" in a match without names, empty
-    when you play alone),
+    The calls are in the language of Home Assistant: the default messages say
+    `call`, the words of the integration for the event, such as "Sam, you
+    require 81" or "Game shot, and the leg, Sam!". An older version of the
+    integration, which has no `call`, makes them English.
+
+
+    The messages are templates. Besides `call`, they can use `who` (the
+    player's name, "Bot" for the practice game's bot, "Player 2" in a match
+    without names, empty when you play alone),
     `remaining`, `checkout` (the route when a checkout is possible, for example
     `T20 T20 BULL`; the score checked out when a leg is won), `darts`,
     `average`, `points` (Cricket and party games), `target` (the next target of
@@ -104,17 +110,18 @@ blueprint:
           name: Checkout possible
           description: >-
             Said when the next visit can finish the leg, with `remaining` and
-            the route in `checkout`.
-          default: "{{ who ~ ', you' if who else 'You' }} require {{ remaining }}"
+            the route in `checkout`. `{{ call }}` says "Sam, you require 81"
+            in the language of Home Assistant.
+          default: "{{ call }}"
           selector:
             text: {}
         setup_message:
           name: No checkout, a setup
           description: >-
             Said when the next visit cannot finish the leg but can leave a
-            finish for the visit after, with `leave` and the darts in `setup`,
-            for example `{{ who ~ ', leave' if who else 'Leave' }} yourself
-            {{ leave }}`. Empty uses the "Next player" message.
+            finish for the visit after, with `leave` and the darts in `setup`.
+            For example `{{ call }}` says "Sam, leave yourself 32" in the
+            language of Home Assistant. Empty uses the "Next player" message.
           default: ""
           selector:
             text: {}
@@ -123,14 +130,17 @@ blueprint:
           description: >-
             Said when the next visit cannot finish the leg, for example
             `{{ who }}` in a match or `{{ who }}, {{ target }}` in a party
-            game. Empty stays silent.
+            game; `{{ call }}` says "Sam to throw." in a match, in the language
+            of Home Assistant. Empty stays silent.
           default: ""
           selector:
             text: {}
         bust_message:
           name: Bust
-          description: Said when a dart busts the visit.
-          default: "No score"
+          description: >-
+            Said when a dart busts the visit. `{{ call }}` says "No score" in
+            the language of Home Assistant.
+          default: "{{ call }}"
           selector:
             text: {}
         leg_message:
@@ -138,16 +148,18 @@ blueprint:
           description: >-
             Said when a dart wins a leg that does not decide the match, with
             `checkout`, `darts` and `average` of the leg. In a team match,
-            `team` names the team.
-          default: "Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!"
+            `team` names the team. `{{ call }}` says "Game shot, and the leg,
+            Sam!" in the language of Home Assistant.
+          default: "{{ call }}"
           selector:
             text: {}
         match_message:
           name: Match won
           description: >-
             Said when a dart decides the match. In a team match, `team` names
-            the team.
-          default: "Game shot, and the match, {{ team or who }}!"
+            the team. `{{ call }}` says "Game shot, and the match, Sam!" in the
+            language of Home Assistant.
+          default: "{{ call }}"
           selector:
             text: {}
         round_limit_leg_message:
@@ -156,24 +168,27 @@ blueprint:
             Said when the last round of an X01 leg with a round limit ends
             without a checkout and the lowest score wins a leg that does not
             decide the match, with `rounds`, and `remaining` of the winner. In
-            a team match, `team` names the team.
-          default: "Round limit, and the leg{{ ', ' ~ (team or who) if team or who }}!"
+            a team match, `team` names the team. `{{ call }}` says "Round
+            limit, and the leg, Sam!" in the language of Home Assistant.
+          default: "{{ call }}"
           selector:
             text: {}
         round_limit_match_message:
           name: Match won on the round limit
           description: >-
             Said when the round limit decides the match. In a team match,
-            `team` names the team.
-          default: "Round limit, and the match{{ ', ' ~ (team or who) if team or who }}!"
+            `team` names the team. `{{ call }}` says "Round limit, and the
+            match, Sam!" in the language of Home Assistant.
+          default: "{{ call }}"
           selector:
             text: {}
         bull_off_turn_message:
           name: Bull-off throw
           description: >-
             Said when the next player throws for the bull, for example
-            `{{ who }}, throw for the bull`. The first player of the bull-off
-            is not called. Empty uses the "Next player" message.
+            `{{ who }}, throw for the bull`, or `{{ call }}` in the language of
+            Home Assistant. The first player of the bull-off is not called.
+            Empty uses the "Next player" message.
           default: ""
           selector:
             text: {}
@@ -182,23 +197,27 @@ blueprint:
           description: >-
             Said when the bull-off decides who starts, together with the
             first call of the match, for example
-            `{{ who }} to throw first. Game on!`. `hit` names the bed of the
-            winning dart and `distance` its millimeters, if measured. Empty
-            stays silent.
+            `{{ who }} to throw first. Game on!`, or `{{ bull_off_call }}` in
+            the language of Home Assistant. `hit` names the bed of the winning
+            dart and `distance` its millimeters, if measured. Empty stays
+            silent.
           default: ""
           selector:
             text: {}
         player_label:
           name: Word for a player without a name
-          description: For example `Player` makes "Player 2".
+          description: >-
+            The `who` of a player without a name in your own messages, for
+            example `Player` makes "Player 2". `call` names them in the
+            language of Home Assistant.
           default: "Player"
           selector:
             text: {}
         bot_label:
           name: Word for the bot
           description: >-
-            The `who` of the practice game's bot, for example "Bot, you
-            require 40", as the scoreboard names it.
+            The `who` of the practice game's bot in your own messages, for
+            example "Bot, you require 40", as the scoreboard names it.
           default: "Bot"
           selector:
             text: {}
@@ -263,6 +282,20 @@ variables:
   deciding: "{{ trigger.to_state.attributes.get('match', false) }}"
   # A leg the round limit decided, after this many rounds; 0 for a checkout.
   rounds: "{{ trigger.to_state.attributes.get('rounds') | int(0) }}"
+  # What the caller says, in the language of Home Assistant: the words the
+  # integration gives the event, without template characters, as the names.
+  # An older version of the integration gives none; then it is English.
+  call: >-
+    {% set said = trigger.to_state.attributes.get('call') %}
+    {%- if said is string %}{{ said | regex_replace('[{}%#\x00-\x1f]+', '') }}
+    {%- elif kind == 'turn_changed' and checkout %}{{ who ~ ', you' if who else 'You' }} require {{ remaining }}
+    {%- elif kind == 'bust' %}No score
+    {%- elif kind in ['leg_won', 'match_won'] %}{{ 'Round limit' if rounds else 'Game shot' }}, and the {{ 'leg' if kind == 'leg_won' else 'match' }}{{ ', ' ~ (team or who) if team or who }}!
+    {%- endif %}
+  # A won bull-off is called with the next turn, so its words are the event before.
+  bull_off_call: >-
+    {{ (trigger.from_state.attributes.get('call') or '')
+       | regex_replace('[{}%#\x00-\x1f]+', '') if previous == 'bull_off_won' else '' }}
   checkout_text: !input checkout_message
   setup_text: !input setup_message
   turn_text: !input turn_message
@@ -276,9 +309,9 @@ variables:
   message: >-
     {% if kind == 'turn_changed' and bull_off %}{{ bull_off_turn_text or turn_text }}
     {%- elif kind == 'turn_changed' %}
-    {%- set call = checkout_text if checkout else (setup_text if setup and setup_text else turn_text) %}
-    {%- if previous == 'bull_off_won' %}{{ (bull_off_text | string ~ ' ' ~ call | string) | trim }}
-    {%- else %}{{ call }}{% endif %}
+    {%- set said = checkout_text if checkout else (setup_text if setup and setup_text else turn_text) %}
+    {%- if previous == 'bull_off_won' %}{{ (bull_off_text | string ~ ' ' ~ said | string) | trim }}
+    {%- else %}{{ said }}{% endif %}
     {%- elif kind == 'bust' %}{{ bust_text }}
     {%- elif kind == 'leg_won' %}{{ '' if deciding else (limit_leg_text if rounds else leg_text) }}
     {%- elif kind == 'match_won' %}{{ limit_match_text if rounds else match_text }}
