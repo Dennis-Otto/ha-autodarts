@@ -16,6 +16,7 @@ import yaml
 from custom_components.autodarts.achievements import ACHIEVEMENTS
 from custom_components.autodarts.binary_sensor import MOTION_SENSORS
 from custom_components.autodarts.const import LANGUAGES as INTEGRATION_LANGUAGES
+from custom_components.autodarts.drills import DRILLS
 from custom_components.autodarts.journal import LOCALES
 from custom_components.autodarts.local_api import STANDBY_MINUTES
 from custom_components.autodarts.local_coordinator import EVENT_TYPES, ISSUES
@@ -36,7 +37,7 @@ from custom_components.autodarts.services import (
     DELETE_PLAYER_SCHEMA,
     START_GAME_SCHEMA,
 )
-from custom_components.autodarts.tournament import KNOCKOUT_STAGES
+from custom_components.autodarts.tournament import KNOCKOUT_STAGES, THIRD_PLACE
 
 from .local_helpers import entity_id, setup_local
 
@@ -323,20 +324,29 @@ def card_text_families(code: str) -> set[tuple[str, str]]:
 
 
 def unused_card_texts(
-    code: str, keys: list[str], values: frozenset[str] = frozenset()
+    code: str,
+    keys: list[str],
+    values: frozenset[str] = frozenset(),
+    sources: dict[tuple[str, str], frozenset[str]] | None = None,
 ) -> list[str]:
     """The keys that code reads neither in quotes nor by a family of
     CARD_TEXT_FAMILIES whose value is a word of the code, one of the values or a
-    number, such as "gotcha" of party_gotcha or 3 of mark_3."""
+    number, such as "gotcha" of party_gotcha or 3 of mark_3. A family of
+    sources takes only the values of its own list, such as DRILLS for drill_."""
     quoted = set(re.findall(r"[\"'`](\w+)[\"'`]", code)) | values
+    sources = sources or {}
+
+    def built(key: str, start: str, end: str) -> bool:
+        value = key[len(start) : len(key) - len(end)]
+        if not (key.startswith(start) and key.endswith(end) and value):
+            return False
+        if (start, end) in sources:
+            return value in sources[start, end]
+        return value in quoted or value.isdigit()
 
     def used(key: str) -> bool:
         return key in quoted or any(
-            key.startswith(start)
-            and key.endswith(end)
-            and (value := key[len(start) : len(key) - len(end)])
-            and (value in quoted or value.isdigit())
-            for start, end in CARD_TEXT_FAMILIES
+            built(key, start, end) for start, end in CARD_TEXT_FAMILIES
         )
 
     return [key for key in keys if not used(key)]
@@ -347,11 +357,22 @@ def test_every_family_of_card_texts_is_still_built():
     assert [family for family in CARD_TEXT_FAMILIES if family not in families] == []
 
 
+# Families whose values come from one list of the integration: a key of such a
+# family counts only for a value of that list, not for any word of the code.
+CARD_TEXT_SOURCES = {
+    ("achievement_", ""): frozenset(ACHIEVEMENTS),
+    ("achievement_", "_goal"): frozenset(ACHIEVEMENTS),
+    ("drill_", ""): frozenset(DRILLS),
+    ("tournament_stage_", ""): frozenset((*KNOCKOUT_STAGES, THIRD_PLACE)),
+}
+
+
 def test_every_card_text_is_used():
     # A text that the cards never show would still go to the translators. The
     # integration hands the cards the achievements and the knockout rounds.
     values = frozenset((*ACHIEVEMENTS, *KNOCKOUT_STAGES))
-    assert unused_card_texts(CARD_CODE, list(CARD_TEXTS["en"]), values) == []
+    keys = list(CARD_TEXTS["en"])
+    assert unused_card_texts(CARD_CODE, keys, values, CARD_TEXT_SOURCES) == []
 
 
 def test_a_card_text_that_nothing_reads_is_found():
@@ -364,6 +385,12 @@ def test_a_card_text_that_nothing_reads_is_found():
     keys = ["score", "party_gotcha", "mark_3", "layout_auto", "party_bingo", "team"]
     assert unused_card_texts(code, keys) == ["party_bingo", "team"]
     assert unused_card_texts(code, keys, frozenset({"bingo"})) == ["team"]
+    # "target" is a word of the code, but not a drill of the integration.
+    code += 'ui.t(`drill_${kind}`);\nel.className = "target";\n'
+    keys = ["drill_doubles", "drill_target"]
+    assert unused_card_texts(code, keys) == ["drill_doubles"]
+    sources = {("drill_", ""): frozenset({"doubles"})}
+    assert unused_card_texts(code, keys, sources=sources) == ["drill_target"]
 
 
 # Dependabot bumps the requirements files; the copies elsewhere follow by hand.
