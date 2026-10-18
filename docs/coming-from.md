@@ -120,7 +120,7 @@ This integration stores no password: the optional cloud link will use the Autoda
 | Autodarts Connect Online | Here |
 | --- | --- |
 | The event `autodarts_throw` | The event `dart_detected`, locally, for every dart on your board |
-| Name, score and average of up to four players | `scores` of *Practice remaining score* for a match of up to four, and up to eight players in the [party games](entities.md#party-games) and [tournaments](entities.md#tournaments) |
+| Name, score and average of up to four players | `scores` of *Practice remaining score* for a match of up to four, up to eight players in the [party games](entities.md#party-games) and 32 in the [tournaments](entities.md#tournaments) |
 | Cricket marks | The `marks`, `points` and `mpr` of every player in the `scores` of *Practice remaining score*, in the [Cricket games](entities.md#cricket) |
 | Online matches | Your darts as usual, and busts, won legs and matches through the [online bridge](online-matches.md) *(experimental)* |
 

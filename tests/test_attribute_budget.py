@@ -3,6 +3,7 @@ board updates only the entities that show it, for a busy home with eight
 players, a full history and a tournament."""
 
 from datetime import timedelta
+from types import SimpleNamespace
 
 import pytest
 from homeassistant.core import callback
@@ -283,6 +284,49 @@ async def test_recorded_attributes_stay_small_in_a_busy_home(hass, aioclient_moc
     measured = sizes(hass, entry)
     assert not within_budget(measured), within_budget(measured)
     assert measured["board-1_practice_remaining"][1] > RECORDED_BYTES
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        # The most matches: four groups of eight, of which four go on.
+        {"format": "groups_knockout", "groups": 4, "advance": 4, "third_place": True},
+        # The most rounds: a double elimination of 32.
+        {"format": "double_knockout"},
+    ],
+)
+async def test_a_tournament_of_32_stays_within_its_budget(
+    hass, aioclient_mock, options
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    players = [f"Player Number {index:02d} xx"[:20] for index in range(32)]
+    await hass.services.async_call(
+        "autodarts", "start_tournament", {"players": players, **options}, blocking=True
+    )
+    # Every match played to its end, with the longest results.
+    tournament = coordinator.games.tournament.tournament
+    while (index := tournament.upcoming()) is not None:
+        practice = SimpleNamespace(
+            winner=1,
+            players=[
+                SimpleNamespace(
+                    match_legs=77,
+                    sets=7,
+                    match_points=9999,
+                    match_marks=0,
+                    match_darts=999,
+                )
+            ]
+            * 2,
+        )
+        tournament.record(index, practice, iso())
+    tournament.status, tournament.ended = "finished", iso()
+    coordinator.async_update_listeners()
+    await hass.async_block_till_done()
+    measured = sizes(hass, entry)
+    assert not within_budget(measured), within_budget(measured)
+    assert measured["board-1_tournament"][1] > RECORDED_BYTES
 
 
 async def test_the_words_of_the_events_stay_small_in_a_busy_home(hass, aioclient_mock):

@@ -1106,14 +1106,23 @@ class AutodartsLastMatch(AutodartsStoredEntity, SensorEntity):
 
 
 class AutodartsTournament(AutodartsStoredEntity, SensorEntity):
-    """The stage of the tournament, with its matches and its table or bracket."""
+    """The stage of the tournament, with its matches and its tables or brackets."""
 
     _attr_device_class = SensorDeviceClass.ENUM
     _attr_options = TOURNAMENT_STATES
-    # The matches, the table and the bracket are for cards; the recorder keeps
+    # The matches, the tables and the brackets are for cards; the recorder keeps
     # the stage and the players.
     _unrecorded_attributes = frozenset(
-        {"fixtures", "standings", "bracket", "current", "next", "last_result"}
+        {
+            "fixtures",
+            "standings",
+            "groups",
+            "bracket",
+            "losers_bracket",
+            "current",
+            "next",
+            "last_result",
+        }
     )
 
     def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:

@@ -6,7 +6,7 @@ description: "X01, Cricket, party and training games in Home Assistant: matches,
 
 [← Documentation](README.md) · [Deutsch](games.de.md)
 
-Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, six Cricket games, nine party games and eight training games, alone, as a match of up to four players, a party game of up to eight or a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
+Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, six Cricket games, nine party games and eight training games, alone, as a match of up to four players, a party game of up to eight or a tournament of up to 32. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
 
 <img src="images/en/lobby.webp" alt="Animation: on the tablet at the board, New game opens the game screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
@@ -40,7 +40,7 @@ Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001,
 | [**Catch 40**](#catch-40) | 1 | Check out 61 to 100, the faster the more points |
 | [**JDC Challenge**](#jdc-challenge) | 1 | The 57-dart routine of the Junior Darts Corporation |
 | [**Singles training**](#singles-training) | 1 | One visit at each number, points per mark |
-| [**Tournament**](#tournaments) | 3–8 | A round robin or a knockout of X01 or Cricket matches, one at a time |
+| [**Tournament**](#tournaments) | 3–32 | A round robin, a knockout, a double elimination or groups with a knockout, of X01 or Cricket matches, one at a time |
 
 ## Start a game
 
@@ -158,9 +158,16 @@ Nobody to play with? X01 and the Cricket games can be played against the bot, a 
 
 <img src="images/en/tournament-bracket.webp" alt="Animation: the knockout bracket of five players on the scoreboard. Lea beats Max in the quarter-final and slides into the semi-final; Alex beats Lea and goes into the final, Lea into the match for third place; Kim beats Sam, Lea takes third place and Alex wins the final" width="760">
 
-A tournament for three to eight named players at one board, one match at a time: a **round robin**, in which everyone plays everyone once and a table ranks the players, or a **knockout**, in which the winners go on through a bracket until the final. Every match is an X01 match, with start scores for a handicap if you like, or a Cricket game, with the legs, sets and rules of the tournament. The results go into the [player profiles](statistics.md#player-profiles) and the head-to-head records like every match.
+A tournament for three to 32 named players at one board, one match at a time, in one of four formats:
 
-1. **Start:** tap **New game** on the scoreboard, then **Tournament**. Choose the players, round robin or knockout, the game, the legs and sets and the rules, and tap **Start tournament**. Or start it from an automation:
+- **Round robin**, three to eight players: everyone plays everyone once, and a table ranks the players.
+- **Knockout**, three to 32 players: the winners go on through a bracket until the final.
+- **Double elimination**, three to 32 players: nobody is out before losing two matches. A loser of the winners' bracket gets a second chance in the losers' bracket, and the winners of both brackets meet in the grand final.
+- **Groups and knockout**, six to 32 players: everyone plays everyone in their group, and the best of every group go on into a knockout, as at a club championship.
+
+Every match is an X01 match, with start scores for a handicap if you like, or a Cricket game, with the legs, sets and rules of the tournament. The results go into the [player profiles](statistics.md#player-profiles) and the head-to-head records like every match.
+
+1. **Start:** tap **New game** on the scoreboard, then **Tournament**. Choose the players, the format, with groups also the number of groups and how many of each go on, the game, the legs and sets and the rules, and tap **Start tournament**. Or start it from an automation:
 
    ```yaml
    action: autodarts.start_tournament
@@ -171,7 +178,19 @@ A tournament for three to eight named players at one board, one match at a time:
      legs: 2
    ```
 
-2. **Play:** the first match starts at once, and the title line of the scoreboard names the round and the match. When a match is decided and the darts are pulled, the scoreboard shows its summary, then the table or the bracket with the next match and a countdown. The next match starts by itself; **Start now** skips the wait.
+   Groups of four for 16 players, of which the first two go on into a knockout of eight:
+
+   ```yaml
+   action: autodarts.start_tournament
+   data:
+     players: [Alex, Sam, Kim, Lea, Max, Tom, Ida, Ben, Zoe, Eli, Noa, Mia, Leo, Ava, Jon, Uma]
+     format: groups_knockout
+     groups: 4
+     advance: 2
+     game: "501"
+   ```
+
+2. **Play:** the first match starts at once, and the title line of the scoreboard names the round, the group and the match. When a match is decided and the darts are pulled, the scoreboard shows its summary, then the table, the groups or the brackets with the next match and a countdown. The next match starts by itself; **Start now** skips the wait.
 3. **Winner:** after the last match, a banner names the winner, and the table or the bracket stays until a new match begins. `tournament_finished` can start the [light show](automations.md#light-show) or [announce the results](automations.md#announce-the-results-of-a-tournament).
 4. **Afterwards:** the practice game goes back to the players, names, start scores, legs, sets, rules and bot level it had before the tournament, with the first dart of the next match or the first change of a practice setting. After *Stop tournament*, a match being played is played to its end first. A new tournament starts only when none is being played: stop the one being played first.
 
@@ -183,11 +202,17 @@ Between two matches, the scoreboard shows the next match with its countdown, and
 
 <img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="760">
 
+With groups, it shows the tables of the groups side by side, with the places that go on marked, and in a double elimination the losers' bracket below the winners' bracket. Both from the demo, with 32 players:
+
+<img src="images/en/tournament-groups.png" alt="32 players in eight groups of four on the scoreboard after two rounds: next up Tim against Alex in group A with a countdown, and the tables of groups A to H side by side, the first two places of every group marked as going on" width="760">
+
+<img src="images/en/tournament-double.png" alt="A double elimination of 32 players on the scoreboard after the first round of each bracket: next up Alex against Tim in winners round 2 with a countdown, the winners' bracket up to the grand final, and below it the losers' bracket up to the losers' final, its first round played" width="760">
+
 The [entity reference](entities.md#tournaments) lists the tournament's settings, buttons and actions, and the [scoreboard guide](scoreboard.md#tournaments) what the screen shows.
 
 ### Tournament rules
 
-- **Players:** three to eight players with a name each, eight at most also in *Tournament players*. A name is the same player regardless of upper and lower case, as in the [player profiles](entities.md#player-profiles). A player of the tournament being played cannot be deleted; a deleted player leaves the list for the next tournament.
+- **Players:** three to eight players in a round robin, three to 32 in a knockout and a double elimination, six to 32 with groups, each with a name. *Tournament players* shows as many of them as its 255 characters hold, then `…`; its attribute `players` lists them all, and a list written back with the `…` keeps the names it stands for. A name is the same player regardless of upper and lower case, as in the [player profiles](entities.md#player-profiles). A player of the tournament being played cannot be deleted; a deleted player leaves the list for the next tournament.
 - **Draw:** the order of the names, or a random order with *Tournament random draw* or a `seed`. The same seed always draws the same order; a random draw without a seed picks one and shows it in the `seed` attribute of *Tournament*.
 - **Round robin:** everyone plays everyone once, in rounds by the circle method: three or four players play 3 rounds, five or six play 5, seven or eight play 7. With an odd number of players, one player sits out every round. Within a round, a player of the round's last match opens the next round only when no other match can, and the first throw goes to the player of a match who had it less often.
 - **Points:** a won match is worth 2 points, as in the Premier League, a lost one none. A match cannot end in a draw.
@@ -198,13 +223,22 @@ The [entity reference](entities.md#tournaments) lists the tournament's settings,
   4. the order of the draw.
 
   So of two players level on points, the one who won their match goes first; of three players who beat each other in turn, the leg difference decides.
-- **Knockout:** a bracket of 4 places for three or four players and of 8 places for five to eight. The first player of the draw is seed 1, the second seed 2, and so on, placed as in professional draws: seed 1 meets the last seed first, seeds 1 and 2 can meet in the final at the earliest, and seeds 1 to 4 not before the semi-finals. Places the players do not fill are byes for the top seeds, who go straight into the next round. The rounds are the quarter-finals, the semi-finals and the final.
-- **Third place:** with *Tournament third-place match* and four players or more, the losers of the semi-finals play for third place, before the final. Without it, a knockout has no third place.
-- **Order of play:** one match at a time, round by round. A knockout plays the matches of a round from the top of the bracket down, and the match for third place before the final.
+- **Knockout:** a bracket of 4, 8, 16 or 32 places, the fewest that hold the players: 4 places for three or four players, 8 for five to eight, 16 for nine to 16 and 32 for 17 to 32. The first player of the draw is seed 1, the second seed 2, and so on, placed as in professional draws: seed 1 meets the last seed first, seeds 1 and 2 can meet in the final at the earliest, and seeds 1 to 4 not before the semi-finals. Places the players do not fill are byes for the top seeds, who go straight into the next round, so byes fall in the first round only. The rounds are the round of 32, the round of 16, the quarter-finals, the semi-finals and the final.
+- **Double elimination:** the winners' bracket is a knockout as above. A player who loses there drops into the losers' bracket; a player who loses there is out. The rounds of the losers' bracket take turns: its players among themselves, then against the players who just dropped from the winners' bracket, crossed every other round, so that two players meet again as late as they can. The winner of the winners' final and the winner of the losers' final meet in the grand final. If the winner of the losers' bracket wins it, both have lost once, and a deciding final follows. So every player but the champion loses exactly two matches: three players play 4 or 5 matches, 32 play 62 or 63. Byes for the top seeds fall in the first round of the winners' bracket and in the first two rounds of the losers' bracket, where nobody drops in. Third is the loser of the losers' final.
+- **Groups and knockout:** two to eight groups, A to H, of three to eight players each; without `groups`, groups of about four players, for example eight groups of four for 32 players. The draw goes into the groups like a snake: seed 1 into group A, seed 2 into group B, and so on, and from the last group back, so that every group gets one of the top seeds and no group has more than one player more than another. Every group plays a round robin and ranks its players by its rules above, and all groups play round by round: the first round of every group, then the second. The best of every group go on, two without `advance`, one to four with it, always fewer than the smallest group has. In the knockout, the group winners are the top seeds in the order of the groups, then the second places, and so on, and every player goes where they meet the players of their own group as late as the bracket allows, never in its first round. The knockout begins when the last match of the groups is decided.
+- **Third place:** with *Tournament third-place match* and four players or more in the knockout, also in the knockout after the groups, the losers of the semi-finals play for third place, before the final. Without it, a knockout has no third place. A double elimination has its third place without it.
+- **Order of play:** one match at a time, round by round. A knockout plays the matches of a round from the top of the bracket down, and the match for third place before the final. A double elimination plays a round of the winners' bracket, then the rounds of the losers' bracket it fills: in a crossed round, who dropped first plays first. The grand finals come last.
 - **Matches:** every match is a [match](#matches-legs-and-sets) of two players, with the legs per set, sets to win, double out, double in and bull-off of the tournament. Rules the tournament does not set come from the practice game as you set them, also an out mode that waits for the next leg. A tournament plays straight or double in and out, with master coming as double, the bull 25/50 and no round limit; after it, the practice game has its own rules again. In X01, a player with a start score of their own starts every leg of the tournament from it, a handicap; the other one from the game's. The first named player throws first, unless the bull-off decides.
 - **Changed matches:** a match whose legs, sets, start scores or rules are changed while it is played is no tournament match any more, and its result does not count; *Next tournament match* sets the tournament match up again. A setting changed during the pause starts the match of the last two players anew: until its first dart, it makes way for the next match when the pause is over.
 - **Averages:** a player's average counts the points and darts of all their tournament matches; the darts of a bust visit count, its points do not.
-- **Winner:** the winner of the final, or the player at the top of the table after the last match. After it, *Next tournament match* says that the tournament is over: stop it, or start a new one.
+- **Winner:** the winner of the final or of the last grand final, or the player at the top of the table after the last match. After it, *Next tournament match* says that the tournament is over: stop it, or start a new one.
+
+How a player goes through a double elimination:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/double-elimination-dark.png">
+  <img src="images/en/double-elimination-light.png" alt="How a double elimination runs: every player starts in the winners' bracket. A player who wins there goes on to the next round, up to the winners' final, whose winner plays the grand final. A player who loses a match of the winners' bracket drops into the losers' bracket, and one who loses there is out after the second defeat. The winner of the losers' final plays the grand final. If the winner of the winners' bracket wins it, they are the champion; if the winner of the losers' bracket wins it, both have lost once, and the deciding final makes the champion." width="560">
+</picture>
 
 ## X01
 

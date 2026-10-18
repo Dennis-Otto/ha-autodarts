@@ -373,10 +373,27 @@
           "round_5": "Ronda 5",
           "round_6": "Ronda 6",
           "round_7": "Ronda 7",
+          "round_of_32": "Dieciseisavos de final",
+          "round_of_16": "Octavos de final",
           "quarter_final": "Cuartos de final",
           "semi_final": "Semifinal",
           "third_place": "Partido por el tercer puesto",
           "final": "Final",
+          "winners_round_1": "Ronda 1 de ganadores",
+          "winners_round_2": "Ronda 2 de ganadores",
+          "winners_round_3": "Ronda 3 de ganadores",
+          "winners_round_4": "Ronda 4 de ganadores",
+          "winners_final": "Final de ganadores",
+          "losers_round_1": "Ronda 1 de perdedores",
+          "losers_round_2": "Ronda 2 de perdedores",
+          "losers_round_3": "Ronda 3 de perdedores",
+          "losers_round_4": "Ronda 4 de perdedores",
+          "losers_round_5": "Ronda 5 de perdedores",
+          "losers_round_6": "Ronda 6 de perdedores",
+          "losers_round_7": "Ronda 7 de perdedores",
+          "losers_final": "Final de perdedores",
+          "grand_final": "Gran final",
+          "grand_final_reset": "Final decisiva",
           "finished": "Terminado"
         },
         "state_attributes": {
@@ -392,7 +409,9 @@
             "name": "Formato",
             "state": {
               "round_robin": "Todos contra todos",
-              "knockout": "Eliminación directa"
+              "knockout": "Eliminación directa",
+              "double_knockout": "Doble eliminación",
+              "groups_knockout": "Grupos y eliminación directa"
             }
           }
         }
@@ -606,7 +625,9 @@
         "name": "Formato del torneo",
         "state": {
           "round_robin": "Todos contra todos",
-          "knockout": "Eliminación directa"
+          "knockout": "Eliminación directa",
+          "double_knockout": "Doble eliminación",
+          "groups_knockout": "Grupos y eliminación directa"
         }
       },
       "tournament_game": {
@@ -786,7 +807,12 @@
         "name": "Jugador {number} de la partida"
       },
       "tournament_players": {
-        "name": "Jugadores del torneo"
+        "name": "Jugadores del torneo",
+        "state_attributes": {
+          "players": {
+            "name": "Jugadores"
+          }
+        }
       }
     },
     "calendar": {
@@ -943,7 +969,10 @@
       "message": "La puntuación inicial debe ser 0, para usar la del juego, o de 2 a 1001."
     },
     "tournament_players": {
-      "message": "Un torneo necesita de tres a ocho jugadores, no {count}."
+      "message": "Este formato de torneo necesita de {min} a {max} jugadores, no {count}."
+    },
+    "tournament_groups": {
+      "message": "{count} jugadores no caben en {groups} grupos: cada grupo necesita de tres a ocho jugadores, más que los {advance} que pasan."
     },
     "no_tournament": {
       "message": "No se está jugando ningún torneo."
@@ -1492,7 +1521,7 @@
     },
     "start_tournament": {
       "name": "Iniciar torneo",
-      "description": "Sortea un torneo de tres a ocho jugadores e inicia su primer partido: todos contra todos o eliminación directa, con partidos de X01 o de Cricket. Un torneo en curso debe terminarse primero.",
+      "description": "Sortea un torneo de tres a 32 jugadores e inicia su primer partido: todos contra todos, eliminación directa, doble eliminación o grupos con eliminación directa, con partidos de X01 o de Cricket. Un torneo en curso debe terminarse primero.",
       "fields": {
         "config_entry_id": {
           "name": "Diana",
@@ -1500,7 +1529,7 @@
         },
         "players": {
           "name": "Jugadores",
-          "description": "Nombres de tres a ocho jugadores, en el orden del sorteo. Sin nombres, juegan los jugadores indicados en Jugadores del torneo."
+          "description": "Nombres de los jugadores, en el orden del sorteo: de tres a ocho en todos contra todos, seis o más en grupos, hasta 32 en los demás formatos. Sin nombres, juegan los jugadores indicados en Jugadores del torneo."
         },
         "start_scores": {
           "name": "Puntuaciones iniciales",
@@ -1508,7 +1537,7 @@
         },
         "format": {
           "name": "Formato",
-          "description": "Todos contra todos: cada jugador se enfrenta una vez a todos los demás. Eliminación directa: los ganadores avanzan hasta la final."
+          "description": "Todos contra todos: cada jugador se enfrenta una vez a todos los demás. Eliminación directa: los ganadores avanzan hasta la final. Doble eliminación: un jugador queda fuera tras su segunda derrota. Grupos y eliminación directa: cada jugador se enfrenta a todos los de su grupo, y los mejores de cada grupo pasan a la eliminación directa."
         },
         "game": {
           "name": "Juego",
@@ -1540,7 +1569,15 @@
         },
         "third_place": {
           "name": "Partido por el tercer puesto",
-          "description": "En una eliminación directa de cuatro o más jugadores, los perdedores de las semifinales juegan por el tercer puesto."
+          "description": "En una eliminación directa de cuatro o más jugadores, también después de los grupos, los perdedores de las semifinales juegan por el tercer puesto."
+        },
+        "groups": {
+          "name": "Grupos",
+          "description": "Grupos y eliminación directa: el número de grupos, de 2 a 8, de tres a ocho jugadores cada uno. Sin él, grupos de unos cuatro jugadores."
+        },
+        "advance": {
+          "name": "Clasificados por grupo",
+          "description": "Grupos y eliminación directa: cuántos jugadores de cada grupo pasan a la eliminación directa, de 1 a 4 y menos de los que tiene el grupo. Sin él, dos."
         },
         "random_draw": {
           "name": "Sorteo aleatorio",
@@ -1754,7 +1791,9 @@
     "tournament_format": {
       "options": {
         "round_robin": "Todos contra todos",
-        "knockout": "Eliminación directa"
+        "knockout": "Eliminación directa",
+        "double_knockout": "Doble eliminación",
+        "groups_knockout": "Grupos y eliminación directa"
       }
     }
   }

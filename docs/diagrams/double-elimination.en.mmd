@@ -1,0 +1,26 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How a double elimination runs
+  accDescr: Every player starts in the winners' bracket. A player who wins there goes on to the next round, up to the winners' final, whose winner plays the grand final. A player who loses a match of the winners' bracket drops into the losers' bracket, and one who loses there is out after the second defeat. The winner of the losers' final plays the grand final. If the winner of the winners' bracket wins it, they are the champion; if the winner of the losers' bracket wins it, both have lost once, and the deciding final makes the champion.
+
+  START["Every player starts<br/>in the winners' bracket"] --> WIN{{"Wins the match?"}}
+  WIN -- "yes" --> NEXT["Next round of the winners' bracket,<br/>up to the winners' final"]
+  NEXT --> GRAND{{"Grand final:<br/>who wins it?"}}
+  WIN -- "no" --> DROP["Drops into<br/>the losers' bracket"]
+  DROP --> AGAIN{{"Wins the match?"}}
+  AGAIN -- "no" --> OUT["Out after<br/>the second defeat"]
+  AGAIN -- "yes" --> LFINAL["Next round of the losers' bracket,<br/>up to the losers' final"]
+  LFINAL --> GRAND
+  GRAND -- "the winner of<br/>the winners' bracket" --> CHAMPION["Champion"]
+  GRAND -- "the winner of<br/>the losers' bracket" --> DECIDE["Both lost once:<br/>the deciding final makes the champion"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class START,WIN,NEXT,GRAND,DROP,AGAIN,LFINAL bot
+  class CHAMPION,DECIDE done
+  class OUT failed

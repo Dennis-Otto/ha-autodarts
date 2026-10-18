@@ -443,9 +443,9 @@ async def text(hass, key: str, value: str) -> None:
 async def test_names_and_the_list_of_players_are_checked(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    nine = ", ".join(f"Player {number}" for number in range(9))
+    many = ", ".join(f"P{number}" for number in range(33))
     for key, value, error_key in (
-        ("tournament_players", nine, "tournament_players"),
+        ("tournament_players", many, "tournament_players"),
         ("tournament_players", "Alex, {{ 6*7 }}, Kim", "invalid_player_name"),
         ("practice_player_1", "50%", "invalid_player_name"),
     ):
@@ -455,7 +455,7 @@ async def test_names_and_the_list_of_players_are_checked(hass, aioclient_mock):
     assert error.value.translation_placeholders is None
     assert coordinator.games.tournament.setup.players == []
     assert coordinator.games.practice.names[0] == ""
-    # Eight names of 20 characters always fit into the state.
+    # Eight names of 20 characters fit into the state.
     await text(hass, "tournament_players", ",".join(f"{'X' * 19}{n}" for n in range(8)))
     assert len(state(hass, "text", "tournament_players")) <= 255
     with pytest.raises(ServiceValidationError) as error:
@@ -465,6 +465,79 @@ async def test_names_and_the_list_of_players_are_checked(hass, aioclient_mock):
         await action(hass, "start_tournament", players=["Alex", "Sam", "#Kim"])
     assert error.value.translation_key == "invalid_player_name"
     assert state(hass, "sensor", "tournament") == "no_tournament"
+
+
+async def test_a_long_list_of_players_shows_what_fits_and_keeps_the_rest(
+    hass, aioclient_mock
+):
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    setup = coordinator.games.tournament.setup
+    # A start of 32 players sets them up for the next tournament too.
+    names = [f"Player Number {number:02d}xxxx" for number in range(32)]
+    await coordinator.async_set_tournament(players=names)
+    await hass.async_block_till_done()
+    shown = hass.states.get(entity_id(hass, "text", "tournament_players"))
+    # Eleven names of 20 characters and the ellipsis fit into 255 characters.
+    assert shown.state == ", ".join([*names[:11], "…"])
+    assert shown.attributes["players"] == names == setup.players
+    # Written back with a name changed, the ellipsis keeps the names it hid.
+    await text(hass, "tournament_players", shown.state.replace(names[0], "Alex"))
+    assert setup.players == ["Alex", *names[1:]]
+    # Alex is shorter: twelve names fit now. The ellipsis keeps the others where
+    # it stands, and only once.
+    await text(hass, "tournament_players", "Zoe, …, Kim, …")
+    assert setup.players == ["Zoe", *names[12:], "Kim"]
+    # 33 players are one too many, with the hidden ones too: twelve and 21.
+    await coordinator.async_set_tournament(players=names)
+    visible = ", ".join(f"P{number}" for number in range(12))
+    with pytest.raises(ServiceValidationError) as error:
+        await text(hass, "tournament_players", f"{visible}, …")
+    assert error.value.translation_placeholders == {
+        "count": "33",
+        "min": "3",
+        "max": "32",
+    }
+    await text(hass, "tournament_players", "Alex, Sam")
+    assert state(hass, "text", "tournament_players") == "Alex, Sam"
+
+
+async def test_the_action_starts_groups_with_a_knockout(hass, aioclient_mock):
+    await setup_local(hass, aioclient_mock, state=board())
+    players = [f"Player {number}" for number in range(12)]
+    with pytest.raises(ServiceValidationError) as error:
+        await action(
+            hass,
+            "start_tournament",
+            players=players,
+            format="groups_knockout",
+            groups=5,
+        )
+    assert error.value.translation_key == "tournament_groups"
+    await action(
+        hass,
+        "start_tournament",
+        players=players,
+        format="groups_knockout",
+        groups=3,
+        advance=1,
+        game="101",
+    )
+    sensor = tournament(hass)
+    assert sensor.state == "round_1"
+    assert [group["group"] for group in sensor.attributes["groups"]] == ["A", "B", "C"]
+    assert sensor.attributes["advance"] == 1
+    assert sensor.attributes["current"]["group"] == "A"
+    assert [round_["stage"] for round_ in sensor.attributes["bracket"]] == [
+        "semi_final",
+        "final",
+    ]
+    assert state(hass, "select", "tournament_format") == "groups_knockout"
+    await action(hass, "stop_tournament")
+    await action(hass, "start_tournament", format="double_knockout")
+    sensor = tournament(hass)
+    assert sensor.state == "winners_round_1"
+    assert sensor.attributes["losers_bracket"][0]["stage"] == "losers_round_1"
 
 
 async def test_a_tournament_is_stopped_before_the_next_one_starts(hass, aioclient_mock):

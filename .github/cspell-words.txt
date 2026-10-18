@@ -15,7 +15,9 @@ Entitätseinstellungen
 Entitätskategorie
 Entitätsnamen
 Entitätsverwaltung
+Entscheidungsfinale
 Gegnerpaars
+Gewinnerrunde
 Granboard
 Granboards
 Halbfinals
@@ -53,6 +55,8 @@ Trefferbilder
 Trefferbildern
 Trefferhäufigkeit
 Trkal
+Verliererrunde
+Verliererseite
 Verzerrungskorrektur
 WLED
 Wertungsfelder

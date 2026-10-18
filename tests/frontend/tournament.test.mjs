@@ -139,6 +139,7 @@ test("the tournament sensor reads as a view, and malformed values as defaults", 
     match: 1,
     round: 1,
     stage: "round_1",
+    group: null,
     players: ["Kim", "Sam"],
     winner: "Sam",
     bye: false,
@@ -158,7 +159,7 @@ test("the tournament sensor reads as a view, and malformed values as defaults", 
     points: 0,
     average: 45.5,
   });
-  assert.deepEqual(view.bracket, []);
+  assert.deepEqual([view.bracket, view.losers, view.groups, view.advance], [[], [], [], 0]);
 
   const odd = tournamentView({
     state: "final",
@@ -181,6 +182,7 @@ test("the tournament sensor reads as a view, and malformed values as defaults", 
     match: null,
     round: 1,
     stage: "",
+    group: null,
     players: [null, null],
     winner: null,
     bye: false,
@@ -807,7 +809,7 @@ const lobbyPlayers = (card) => $$(card, ".lobby-player .who").map((name) => name
 const options = (card) => $$(card, ".option").map((button) => [button.dataset.value, button.getAttribute("aria-pressed")]);
 const started = (hass) => hass.calls.filter(([domain]) => domain === "autodarts");
 
-test("the new game screen starts a tournament of up to eight players", () => {
+test("the new game screen starts a round robin of up to eight players, a knockout of more", () => {
   const { hass, card } = setup({ "select.practice_game": { state: "shanghai", attributes: { options: PRACTICE } } });
   $(card, ".lobby-toggle").click();
   assert.deepEqual(
@@ -826,7 +828,7 @@ test("the new game screen starts a tournament of up to eight players", () => {
   );
   assert.deepEqual($$(card, '.game[aria-pressed="true"]').map((button) => button.textContent), ["501"]);
   assert.equal($(card, ".suggestion.guest"), null);
-  assert.equal(text(card, ".lobby-hint"), "A tournament needs three to eight players.");
+  assert.equal(text(card, ".lobby-hint"), "This format takes 3 to 8 players.");
   assert.equal($(card, ".lobby .start").disabled, true);
   assert.equal(text(card, ".lobby .start"), "Start tournament");
   for (const name of ["Sam", "Lea", "Max", "Tom", "Ida", "Ben"]) {
@@ -836,6 +838,7 @@ test("the new game screen starts a tournament of up to eight players", () => {
     lobbyTap(card, "add-name");
   }
   assert.deepEqual(lobbyPlayers(card), ["Alex", "Kim", "Sam", "Lea", "Max", "Tom", "Ida", "Ben"]);
+  // A round robin takes eight, the other formats 32.
   assert.equal($(card, ".lobby-name").disabled, true);
   assert.equal($(card, ".lobby-player.resting"), null);
   assert.equal($(card, ".lobby-hint"), null);
@@ -844,10 +847,12 @@ test("the new game screen starts a tournament of up to eight players", () => {
     [
       ["Round robin", "true"],
       ["Knockout", "false"],
+      ["Double elimination", "false"],
+      ["Groups and knockout", "false"],
     ]
   );
   // A tournament plays straight or double in and out, with no bull mode or round limit.
-  assert.deepEqual(options(card).slice(2), [
+  assert.deepEqual(options(card).slice(4), [
     ["straight", "true"],
     ["double", "false"],
     ["straight", "false"],
@@ -857,10 +862,11 @@ test("the new game screen starts a tournament of up to eight players", () => {
   ]);
   assert.equal($(card, '[data-lobby="max_rounds"]'), null);
   lobbyTap(card, "format", "knockout");
+  assert.equal($(card, ".lobby-name").disabled, false);
   lobbyTap(card, "toggle", "third_place");
   lobbyTap(card, "toggle", "random_draw");
   lobbyTap(card, "game", "cricket");
-  assert.deepEqual(options(card).slice(2), [
+  assert.deepEqual(options(card).slice(4), [
     ["bull_off", "false"],
     ["third_place", "true"],
     ["random_draw", "true"],
@@ -1063,4 +1069,246 @@ test("a stop that fails leaves the tournament being played, and a match starts a
   lobbyTap(idle.card, "start");
   await settle();
   assert.deepEqual(started(idle.hass).map(([, service]) => service), ["start_tournament"]);
+});
+
+// -- double elimination and groups with knockout ------------------------------------
+
+const MORE = {
+  tournament_group: "Group {group}",
+  tournament_winners_round: "Winners round {round}",
+  tournament_losers_round: "Losers round {round}",
+  tournament_stage_round_of_16: "Round of 16",
+  tournament_stage_grand_final: "Grand final",
+  tournament_stage_grand_final_reset: "Deciding final",
+  tournament_losers_bracket: "Losers bracket",
+  tournament_through: "goes on into the knockout",
+};
+const tt = (key) => MORE[key] ?? t(key);
+const table = (...names) => names.map((name, index) => row(index + 1, name, 2 - index, index, 2, 1, null));
+const GROUP_MATCH = match(3, "round_2", ["Ida", "Ben"], { round: 2, group: "B" });
+const GROUPS = {
+  ...ROUND_ROBIN,
+  format: "groups_knockout",
+  players: ["Alex", "Sam", "Kim", "Lea", "Max", "Tom", "Ida", "Ben"],
+  matches_total: 15,
+  next: GROUP_MATCH,
+  standings: undefined,
+  advance: 2,
+  groups: [
+    { group: "A", standings: table("Alex", "Lea", "Max", "Sam") },
+    { group: "B", standings: table("Kim", "Tom", "Ida", "Ben") },
+    { group: 3 },
+  ],
+  bracket: [
+    { stage: "semi_final", round: 1, matches: [match(13, "semi_final", [null, null]), match(14, "semi_final", [null, null])] },
+    { stage: "final", round: 2, matches: [match(15, "final", [null, null], { round: 2 })] },
+  ],
+};
+
+test("groups with knockout show the tables of the groups until the knockout begins", () => {
+  const view = tournamentView({ state: "round_2", attributes: GROUPS });
+  assert.deepEqual([view.format, view.advance, view.groups.map((group) => group.name)], ["groups_knockout", 2, ["A", "B"]]);
+  assert.equal(view.next.group, "B");
+  assert.equal(tournamentLabel(view, view.next, tt), "Tournament · Group B · Round 2 · Match 3 of 15");
+  const page = new window.DOMParser().parseFromString(tournamentHtml(view, ui({ t: tt })).main, "text/html");
+  assert.equal(page.querySelector(".next-up .section-label").textContent, "tournament_next · Group B · Round 2");
+  assert.equal(page.querySelector(".bracket"), null);
+  assert.deepEqual(
+    [...page.querySelectorAll(".group > .section-label")].map((label) => label.textContent),
+    ["Group A", "Group B"]
+  );
+  // A group's table leaves out the matches, the legs and the average.
+  assert.deepEqual(
+    [...page.querySelectorAll(".group:first-child thead th")].map((cell) => cell.textContent),
+    ["#", "tournament_player", "tournament_won", "tournament_lost", "tournament_difference", "tournament_points"]
+  );
+  // The first two of every group go on, which a screen reader hears too.
+  assert.deepEqual(
+    [...page.querySelectorAll(".group:last-child tbody tr")].map((line) => [
+      line.className,
+      line.querySelector(".who").textContent,
+    ]),
+    [
+      ["through", "Kim goes on into the knockout"],
+      ["through", "Tom goes on into the knockout"],
+      ["next", "Ida"],
+      ["next", "Ben"],
+    ]
+  );
+  // Once a place of the knockout has a player, the bracket shows instead.
+  const begun = tournamentView({
+    state: "semi_final",
+    attributes: {
+      ...GROUPS,
+      next: match(13, "semi_final", ["Alex", "Tom"]),
+      bracket: [{ stage: "semi_final", matches: [match(13, "semi_final", ["Alex", "Tom"])] }],
+    },
+  });
+  const knockout = new window.DOMParser().parseFromString(tournamentHtml(begun, ui({ t: tt })).main, "text/html");
+  assert.equal(knockout.querySelector(".groups"), null);
+  assert.equal(knockout.querySelector(".bracket").className, "bracket");
+});
+
+test("a double elimination shows the winners' bracket with the grand final, and the losers' bracket", () => {
+  const won = (number, stage, players, winner) =>
+    match(number, stage, players, { winner, legs: players[0] === winner ? [1, 0] : [0, 1], ended: at(number) });
+  const attributes = {
+    ...ROUND_ROBIN,
+    status: "finished",
+    format: "double_knockout",
+    players: ["Alex", "Sam", "Kim"],
+    winner: "Kim",
+    next: null,
+    standings: undefined,
+    bracket: [
+      { stage: "winners_round_1", matches: [BYE("Alex"), won(1, "winners_round_1", ["Sam", "Kim"], "Kim")] },
+      { stage: "winners_final", matches: [won(2, "winners_final", ["Alex", "Kim"], "Alex")] },
+      { stage: "grand_final", matches: [won(4, "grand_final", ["Alex", "Kim"], "Kim")] },
+      { stage: "grand_final_reset", matches: [won(5, "grand_final_reset", ["Alex", "Kim"], "Kim")] },
+    ],
+    losers_bracket: [
+      { stage: "losers_round_1", matches: [match(null, "losers_round_1", ["Sam", null], { bye: true, winner: "Sam" })] },
+      { stage: "losers_final", matches: [won(3, "losers_final", ["Sam", "Kim"], "Kim")] },
+    ],
+  };
+  const view = tournamentView({ state: "finished", attributes });
+  assert.deepEqual(
+    view.losers.map((round) => round.stage),
+    ["losers_round_1", "losers_final"]
+  );
+  assert.deepEqual(
+    ["winners_round_1", "losers_round_2", "round_of_16", "grand_final_reset", "round_4"].map((stage) => stageName(tt, stage)),
+    ["Winners round 1", "Losers round 2", "Round of 16", "Deciding final", "Round 4"]
+  );
+  const page = new window.DOMParser().parseFromString(tournamentHtml(view, ui({ t: tt })).main, "text/html");
+  const [winners, losers] = page.querySelectorAll(".bracket");
+  assert.equal(page.querySelector(".losers-label").textContent, "Losers bracket");
+  assert.deepEqual(
+    [...winners.querySelectorAll(".round")].map((round) => round.querySelector(".section-label").textContent),
+    ["Winners round 1", "tournament_stage_winners_final", "Grand final", "Deciding final"]
+  );
+  // The deciding final crowns the champion; the losers' bracket crowns nobody.
+  assert.equal(winners.querySelector(".round.grand_final_reset .duel").className, "duel crowned");
+  assert.equal(winners.querySelectorAll(".crowned").length, 1);
+  assert.equal(losers.querySelector(".crowned"), null);
+  assert.deepEqual(
+    [...bracketSlots(view).keys()].filter((key) => key.startsWith("losers")),
+    ["losers_round_1-0-0", "losers_round_1-0-1", "losers_final-0-0", "losers_final-0-1"]
+  );
+});
+
+test("a bracket of 16 or 32 places has smaller boxes", () => {
+  const first = (count) => ({
+    stage: "round_of_16",
+    matches: Array.from({ length: count }, (_, index) => match(index + 1, "round_of_16", [`P${index}`, `Q${index}`])),
+  });
+  const size = (count) => {
+    const view = tournamentView({ state: "round_of_16", attributes: { ...KNOCKOUT, bracket: [first(count)] } });
+    const page = new window.DOMParser().parseFromString(tournamentHtml(view, ui()).main, "text/html");
+    return page.querySelector(".bracket").className;
+  };
+  assert.deepEqual([size(4), size(8), size(16)], ["bracket", "bracket big", "bracket huge"]);
+});
+
+test("groups with knockout take six players or more, with steppers for the groups and who goes on", () => {
+  const { hass, card } = setup();
+  $(card, ".lobby-toggle").click();
+  lobbyTap(card, "mode", "tournament");
+  lobbyTap(card, "format", "groups_knockout");
+  for (const name of ["Sam", "Lea", "Max"]) typeName(card, name);
+  assert.equal(text(card, ".lobby-hint"), "This format takes 6 to 32 players.");
+  assert.equal($(card, ".lobby .start").disabled, true);
+  typeName(card, "Tom");
+  assert.equal($(card, ".lobby-hint"), null);
+  const steppers = () =>
+    $$(card, ".stepper")
+      .slice(2)
+      .map((stepper) => [
+        stepper.querySelector(".stepper-label").textContent,
+        stepper.querySelector(".stepper-value").textContent,
+        ...[...stepper.querySelectorAll("button")].map((button) => button.disabled),
+      ]);
+  // Six players make two groups of three, of which two go on: four in the knockout,
+  // who can play for third place.
+  assert.deepEqual(steppers(), [
+    ["Groups", "Auto (2)", true, false],
+    ["Qualifiers per group", "2", false, true],
+  ]);
+  assert.ok(options(card).some(([option]) => option === "third_place"));
+  lobbyTap(card, "groups", "1");
+  assert.equal(text(card, ".said"), "Groups 2");
+  lobbyTap(card, "advance", "-1");
+  assert.equal(text(card, ".said"), "Qualifiers per group 1");
+  assert.deepEqual(steppers(), [
+    ["Groups", "2", false, true],
+    ["Qualifiers per group", "1", true, false],
+  ]);
+  // Two in the knockout play no match for third place.
+  assert.equal(
+    options(card).some(([option]) => option === "third_place"),
+    false
+  );
+  lobbyTap(card, "start");
+  assert.deepEqual(started(hass).at(-1)[2], {
+    players: ["Alex", "Kim", "Sam", "Lea", "Max", "Tom"],
+    format: "groups_knockout",
+    game: "501",
+    legs: 2,
+    sets: 1,
+    bull_off: false,
+    random_draw: false,
+    double_out: true,
+    double_in: false,
+    third_place: false,
+    groups: 2,
+    advance: 1,
+  });
+});
+
+test("the groups of the new game screen follow its players", () => {
+  const choice = (count, extra = {}) => ({
+    ...lobbyChoice({ game: "501", names: [], legs: 1, sets: 1 }, ["501"]),
+    tournament: true,
+    format: "groups_knockout",
+    players: Array.from({ length: count }, (_, index) => `P${index}`),
+    ...extra,
+  });
+  const data = (count, extra) => {
+    const { groups, advance, third_place: third } = tournamentStartData(choice(count, extra));
+    return { groups, advance, third };
+  };
+  // Twelve players fit into two, three or four groups; three of four go on at most.
+  assert.deepEqual(data(12, { groups: 4, advance: 4 }), { groups: 4, advance: 2, third: false });
+  assert.deepEqual(data(12, { groups: 3, advance: 4, third_place: true }), { groups: 3, advance: 3, third: true });
+  // A number that does not fit any more is the board's choice, and an old choice
+  // without the setting lets two go on.
+  assert.deepEqual(data(12, { groups: 7 }), { groups: undefined, advance: 2, third: false });
+  assert.deepEqual(data(32, { groups: undefined, advance: undefined }), { groups: undefined, advance: 2, third: false });
+  // The steppers go through the numbers that fit and stop at both ends.
+  let next = choice(12);
+  const taps = [];
+  for (const step of [1, 1, 1, 1, -1, -1, -1, -1]) {
+    next = lobbyChange(next, "groups", step);
+    taps.push(next.groups);
+  }
+  assert.deepEqual(taps, [2, 3, 4, 4, 3, 2, 0, 0]);
+  next = lobbyChange(choice(12, { groups: 4 }), "advance", 1);
+  assert.equal(lobbyChange(next, "advance", 1).advance, 2);
+});
+
+test("a round robin of more than eight waits until players leave or the format changes", () => {
+  const { card } = setup();
+  $(card, ".lobby-toggle").click();
+  lobbyTap(card, "mode", "tournament");
+  lobbyTap(card, "format", "double_knockout");
+  for (const name of ["Sam", "Lea", "Max", "Tom", "Ida", "Ben", "Zoe"]) typeName(card, name);
+  assert.equal(lobbyPlayers(card).length, 9);
+  assert.equal($(card, "[data-lobby='groups']"), null);
+  lobbyTap(card, "format", "round_robin");
+  assert.equal(text(card, ".lobby-hint"), "This format takes 3 to 8 players.");
+  assert.equal($(card, ".lobby .start").disabled, true);
+  // The ninth one rests until the format takes them.
+  assert.equal($$(card, ".lobby-player.resting").length, 1);
+  lobbyTap(card, "remove", "8");
+  assert.equal($(card, ".lobby-hint"), null);
 });

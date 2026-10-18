@@ -15,6 +15,7 @@ from custom_components.autodarts.tournament import (
     FINISHED,
     KNOCKOUT,
     MAX_ENTRANTS,
+    MAX_ROUND_ROBIN,
     MIN_ENTRANTS,
     PLAYING,
     ROUND_ROBIN,
@@ -24,6 +25,7 @@ from custom_components.autodarts.tournament import (
     Tournament,
     TournamentDirector,
     TournamentSetup,
+    double_knockout,
     knockout,
     parse_players,
     round_robin,
@@ -34,6 +36,8 @@ from .local_helpers import dart
 
 NOW = datetime(2026, 9, 27, 12, 0, tzinfo=UTC)
 NAMES = ["Alex", "Sam", "Kim", "Lea", "Max", "Tom", "Ida", "Ben"]
+# Names for the biggest tournaments.
+PLAYERS = [*NAMES, *(f"Player {number}" for number in range(9, MAX_ENTRANTS + 1))]
 # A 101 leg in one visit, and one that stops short.
 CHECKOUT = ("T20", "S1", "D20")
 SHORT = ("S1", "S1", "S1")
@@ -67,7 +71,7 @@ def director(
     events = tournament.start(
         practice,
         NOW,
-        players=NAMES[:count],
+        players=PLAYERS[:count],
         format=fmt,
         game=game,
         legs=legs,
@@ -107,7 +111,7 @@ def test_names_are_separated_by_commas_semicolons_or_lines():
     assert parse_players("A" * 30) == ["A" * 20]
 
 
-@pytest.mark.parametrize("count", range(MIN_ENTRANTS, MAX_ENTRANTS + 1))
+@pytest.mark.parametrize("count", range(MIN_ENTRANTS, MAX_ROUND_ROBIN + 1))
 def test_a_round_robin_plays_every_pair_once_in_rounds(count):
     matches = round_robin(count)
     pairs = [frozenset(match.players) for match in matches]
@@ -513,12 +517,12 @@ def test_starting_takes_the_setup_and_the_practice_rules():
 @pytest.mark.parametrize(
     ("players", "key", "placeholders"),
     [
-        (["Alex", "Sam"], "tournament_players", {"count": "2"}),
-        (NAMES + ["Zoe"], "tournament_players", {"count": "9"}),
+        (["Alex", "Sam"], "tournament_players", {"count": "2", "min": "3", "max": "8"}),
+        (NAMES + ["Zoe"], "tournament_players", {"count": "9", "min": "3", "max": "8"}),
         (["Alex", "Sam", " alex "], "duplicate_player", {"name": "alex"}),
     ],
 )
-def test_a_tournament_needs_three_to_eight_different_players(
+def test_a_round_robin_needs_three_to_eight_different_players(
     players, key, placeholders
 ):
     tournament = TournamentDirector()
@@ -657,8 +661,11 @@ def test_restore_keeps_the_setup_and_ignores_what_it_does_not_know():
         }
     )
     assert tournament.setup == TournamentSetup(
-        players=["Alex", "B" * 20, *NAMES[:6]], random_draw=True
+        players=["Alex", "B" * 20, *NAMES], random_draw=True
     )
+    # 32 players at most.
+    tournament.restore({"setup": {"players": [f"P{index}" for index in range(40)]}})
+    assert len(tournament.setup.players) == MAX_ENTRANTS
     assert tournament.tournament is None
     for saved in (None, [], {"setup": None, "tournament": "x"}):
         tournament.restore(saved)
@@ -762,20 +769,28 @@ def test_byes_in_the_stored_matches_are_kept():
 def test_the_sensor_states_cover_every_stage():
     stages = {"no_tournament", FINISHED}
     for count in range(MIN_ENTRANTS, MAX_ENTRANTS + 1):
-        stages |= {match.stage for match in round_robin(count)}
         stages |= {match.stage for match in knockout(count, third_place=True)}
+        stages |= {match.stage for match in double_knockout(count)}
+    for count in range(MIN_ENTRANTS, MAX_ROUND_ROBIN + 1):
+        stages |= {match.stage for match in round_robin(count)}
     assert stages == set(STATES)
+    assert len(STATES) == len(set(STATES))
 
 
 @given(
-    count=st.integers(MIN_ENTRANTS, MAX_ENTRANTS),
+    data=st.data(),
     fmt=st.sampled_from([ROUND_ROBIN, KNOCKOUT]),
     third_place=st.booleans(),
-    outcomes=st.lists(st.booleans(), min_size=28, max_size=28),
+    outcomes=st.lists(st.booleans(), min_size=32, max_size=32),
 )
 def test_every_tournament_ends_with_every_match_played(
-    count, fmt, third_place, outcomes
+    data, fmt, third_place, outcomes
 ):
+    count = data.draw(
+        st.integers(
+            MIN_ENTRANTS, MAX_ROUND_ROBIN if fmt == ROUND_ROBIN else MAX_ENTRANTS
+        )
+    )
     tournament, practice = director(count, fmt=fmt, third_place=third_place)
     choices = iter(outcomes)
     events = play_out(tournament, practice, winner=lambda names: int(next(choices)))
