@@ -111,7 +111,7 @@ Start the detection when you enter the darts room, stop it when you leave, and g
 | Autodarts Desktop on Windows and other systems | Not tested yet | – |
 | Winmau Autodarts devices such as Autodarts X | Not tested yet | – |
 | Cameras | Any number supported by the Board Manager | 3 |
-| Home Assistant | 2026.8 or newer | 2026.8.0 and 2026.9.4 |
+| Home Assistant | 2026.8 or newer ([why](decisions/0022-home-assistant-2026-8-as-the-oldest-release.md)) | 2026.8.0 and 2026.9.4 |
 
 Any board hardware that runs the Autodarts Board Manager works, because the integration talks to the Board Manager, not to the cameras. Rows reported by a player were tested by a player on their own board, not by the project.
 

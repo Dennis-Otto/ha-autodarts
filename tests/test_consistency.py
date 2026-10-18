@@ -675,6 +675,54 @@ def test_the_end_to_end_tests_run_the_oldest_supported_home_assistant():
         assert "env.OLDEST_HOME_ASSISTANT" in image, job
 
 
+# How the pages name the oldest supported Home Assistant: "2026.8 or newer",
+# "**2026.8** oder neuer", "ab 2026.8" and the badge of the README.
+MINIMUM_RELEASE = re.compile(
+    r"\*{0,2}(20\d\d\.\d{1,2})(?:\.\d+)?\*{0,2} (?:or newer|oder neuer)"
+    r"|\bab \*{0,2}(20\d\d\.\d{1,2})"
+    r"|Home%20Assistant-(20\d\d\.\d{1,2})%2B"
+)
+
+
+def test_the_documentation_names_the_oldest_supported_home_assistant():
+    """A new minimum starts in hacs.json, and every page follows it
+    (docs/decisions/0022-home-assistant-2026-8-as-the-oldest-release.md)."""
+    hacs = json.loads((ROOT / "hacs.json").read_text(encoding="utf-8"))
+    oldest = ".".join(hacs["homeassistant"].split(".")[:2])
+    # The changelog and the decisions keep the releases of their time.
+    pages = [
+        path
+        for path in sorted(ROOT.glob("*.md")) + sorted((ROOT / "docs").glob("*.md"))
+        if path.name != "CHANGELOG.md"
+    ]
+    named: Counter[str] = Counter()
+    wrong = []
+    for path in pages:
+        page = path.relative_to(ROOT).as_posix()
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for number, line in enumerate(lines, 1):
+            for match in MINIMUM_RELEASE.finditer(line):
+                release = next(group for group in match.groups() if group)
+                named[page] += 1
+                if release != oldest:
+                    wrong.append(f"{page}:{number}: {match[0]}")
+    assert not wrong, (
+        f"hacs.json requires Home Assistant {oldest}, but these lines name another "
+        "release as the oldest one; name the release of hacs.json there, or, for a "
+        "feature that needs a newer release, write 'since 2026.x' instead of "
+        "'2026.x or newer' or 'ab 2026.x':\n" + "\n".join(wrong)
+    )
+    # The pattern still finds what each language says on its main pages.
+    for page in (
+        "README.md",
+        "docs/README.md",
+        "docs/README.de.md",
+        "docs/installation.md",
+        "docs/installation.de.md",
+    ):
+        assert named[page], page
+
+
 def test_each_lock_file_is_compiled_for_its_own_python():
     # Renovate installs pip-tools once per run, for the Python of the first lock file
     # it compiles: the tests compile with pip-compile for the Python of the project,
