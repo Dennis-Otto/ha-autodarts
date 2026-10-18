@@ -54,7 +54,8 @@
           "discover": "Rechercher des cibles sur ce réseau",
           "local": "Saisir l'adresse de la cible",
           "cloud": "Associer un compte cloud",
-          "manual": "Cible sans Autodarts\u00a0: saisir soi-même chaque fléchette"
+          "manual": "Cible sans Autodarts\u00a0: saisir soi-même chaque fléchette",
+          "granboard": "Granboard via Bluetooth (expérimental)"
         }
       },
       "reconfigure": {
@@ -94,6 +95,26 @@
         },
         "data_description": {
           "name": "Nomme la cible, son appareil et ses entités, par exemple Cible ou Garage."
+        }
+      },
+      "granboard": {
+        "title": "Granboard via Bluetooth",
+        "description": "Choisissez le Granboard que le Bluetooth de Home Assistant voit. Ses fléchettes comptent comme sur une cible sans Autodarts.",
+        "data": {
+          "address": "Granboard"
+        },
+        "data_description": {
+          "address": "Allumez la cible\u00a0: Home Assistant la trouve par un adaptateur Bluetooth ou un proxy Bluetooth ESPHome à portée."
+        }
+      },
+      "granboard_confirm": {
+        "title": "Granboard via Bluetooth (expérimental)",
+        "description": "Home Assistant reçoit les fléchettes du Granboard à l'adresse {address} et joue avec elles les jeux, l'entraînement et les statistiques, comme sur une cible sans Autodarts. Le bouton de la cible passe au joueur suivant, et le pavé des cartes corrige toujours une fléchette. La prise en charge du Granboard est expérimentale\u00a0: signalez un secteur qui compte mal.",
+        "data": {
+          "name": "Nom"
+        },
+        "data_description": {
+          "name": "Nomme la cible, son appareil et ses entités, par exemple Granboard ou Garage."
         }
       },
       "discover": {
@@ -138,7 +159,8 @@
       "board_not_configured": "Aucun ID de cible n'est configuré dans Board Manager. Commencez par y terminer la configuration de la cible.",
       "already_in_progress": "La configuration de cette cible est déjà en cours.",
       "address_updated": "Cette cible Autodarts est déjà configurée. Son adresse a été mise à jour et l'intégration est rechargée.",
-      "board_connected": "La cible Autodarts est connectée. La cible garde ses jeux, ses statistiques et ses tableaux de bord, et l'intégration est rechargée."
+      "board_connected": "La cible Autodarts est connectée. La cible garde ses jeux, ses statistiques et ses tableaux de bord, et l'intégration est rechargée.",
+      "no_granboards": "Le Bluetooth de Home Assistant ne voit aucun Granboard qui ne soit pas encore configuré. Allumez la cible, gardez-la à portée d'un adaptateur Bluetooth ou d'un proxy Bluetooth ESPHome, puis réessayez."
     },
     "flow_title": "{name}",
     "create_entry": {
@@ -649,6 +671,9 @@
     "binary_sensor": {
       "local_connected": {
         "name": "Connexion locale"
+      },
+      "granboard_connected": {
+        "name": "Connexion du Granboard"
       },
       "hand_detected": {
         "name": "Main détectée"

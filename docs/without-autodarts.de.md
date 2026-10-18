@@ -10,7 +10,7 @@ Kein Autodarts an deinem Board? Die Integration funktioniert mit jeder Steeldart
 
 <img src="images/de/manual-entry.webp" alt="Animation: die Anzeigetafel einer Dartscheibe ohne Autodarts auf einem Tablet. Alex tippt zweimal T und 20 und dann T und 19, die Aufnahme zeigt 177 und der Status Aufnahme komplett; zwei Tipps auf Nächster Spieler geben an Sam weiter" width="760">
 
-**Auf dieser Seite:** [Für wen](#für-wen) · [Einrichten](#einrichten) · [Darts eingeben](#darts-eingeben) · [Was alles funktioniert](#was-alles-funktioniert) · [Was anders ist](#was-anders-ist) · [Mehrere Boards](#mehrere-boards) · [Autodarts später](#autodarts-später)
+**Auf dieser Seite:** [Für wen](#für-wen) · [Einrichten](#einrichten) · [Darts eingeben](#darts-eingeben) · [Was alles funktioniert](#was-alles-funktioniert) · [Was anders ist](#was-anders-ist) · [Ein Granboard](#ein-granboard) · [Mehrere Boards](#mehrere-boards) · [Autodarts später](#autodarts-später)
 
 ## Für wen
 
@@ -77,6 +77,10 @@ Alles, was die Integration mit Darts macht, denn dafür hat sie die Kameras nie 
 | Erkennungsqualität, Kalibrierung, Online-Matches | Ja | Nein |
 
 Ein Bildschirm, der nur die Anzeigetafel zeigt, etwa ein Fernseher ohne Touch, blendet das Tastenfeld mit der Option `keypad: false` der Karte aus; siehe [Dashboard-Karten](cards.de.md#darts-korrigieren-und-eingeben).
+
+## Ein Granboard
+
+Ein Granboard sendet seine Darts über Bluetooth an Home Assistant, also gibt sie niemand ein: Home Assistant findet das Board und richtet es als Dartscheibe ohne Autodarts ein, die sie empfängt, mit allem auf dieser Seite. Siehe [Granboard über Bluetooth](granboard.de.md) *(experimentell)*.
 
 ## Mehrere Boards
 

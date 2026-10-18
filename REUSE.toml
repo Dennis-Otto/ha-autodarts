@@ -8,6 +8,15 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = ["2026 Trkal and HACSAutodarts contributors", "2026 Dennis Otto", "Contributors to Autodarts"]
 SPDX-License-Identifier = "MIT"
 
+# The frames of the Granboard in granboard.py are those that two MIT-licensed apps
+# read, gran-app by sobassy and granboard-app by bastiennoel93; see
+# docs/decisions/0024-granboard-over-home-assistant-bluetooth.md.
+[[annotations]]
+path = "custom_components/autodarts/granboard.py"
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2024 Sobassy", "2025 bastiennoel93"]
+SPDX-License-Identifier = "MIT"
+
 # The brand artwork of Autodarts identifies the supported product. It belongs to its
 # owner and is not covered by the MIT license; see the README and
 # docs/branding/README.md.

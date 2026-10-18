@@ -10,6 +10,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.components import webhook
+from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
 from homeassistant.config_entries import (
     SOURCE_IGNORE,
     SOURCE_REAUTH,
@@ -19,14 +20,14 @@ from homeassistant.config_entries import (
     ConfigFlowResult,
     OptionsFlowWithReload,
 )
-from homeassistant.const import CONF_NAME
+from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
-from . import const
+from . import const, granboard
 from .api import (
     AutodartsAuthError,
     AutodartsCloudClient,
@@ -39,6 +40,7 @@ from .const import (
     CONF_API_GENERATION,
     CONF_BOARD_ID,
     CONF_CLIENT_ID,
+    CONF_GRANBOARD,
     CONF_HOST,
     CONF_LOCAL_ONLY,
     CONF_MANUAL_BOARD,
@@ -107,19 +109,33 @@ def _announced_port(discovery_info: ZeroconfServiceInfo) -> int:
     return DEFAULT_PORT
 
 
-# The name a dartboard without Autodarts gets unless the user chooses another.
+# The name a dartboard without Autodarts gets unless the user chooses another,
+# and the one it gets with a Granboard.
 MANUAL_BOARD_NAME = "Dartboard"
+GRANBOARD_NAME = "Granboard"
 
 
 def _menu_options(manual: bool = False) -> list[str]:
     """Offer the cloud link only while a client ID can actually be obtained,
-    and a dartboard without Autodarts when one is set up."""
+    and a dartboard without Autodarts, with or without a Granboard, when one is
+    set up."""
     options = ["discover", "local"]
     if const.CLOUD_LINK_AVAILABLE:
         options.append("cloud")
     if manual:
-        options.append("manual")
+        options.extend(("granboard", "manual"))
     return options
+
+
+def _name_schema(default: str) -> vol.Schema:
+    """The name of a dartboard without Autodarts."""
+    return vol.Schema(
+        {
+            vol.Required(CONF_NAME, default=default): vol.All(
+                str, vol.Strip, vol.Length(min=1, max=50)
+            )
+        }
+    )
 
 
 def _auth_error(error: AutodartsAuthError) -> str:
@@ -159,6 +175,8 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         self._discovered: dict[str, Any] = {}
         # Names the board search reported, by board ID.
         self._names: dict[str, str] = {}
+        # The Bluetooth address of the Granboard being set up.
+        self._granboard = ""
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -191,14 +209,65 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
                 },
             )
         return self.async_show_form(
-            step_id="manual",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_NAME, default=MANUAL_BOARD_NAME): vol.All(
-                        str, vol.Strip, vol.Length(min=1, max=50)
-                    )
-                }
-            ),
+            step_id="manual", data_schema=_name_schema(MANUAL_BOARD_NAME)
+        )
+
+    async def async_step_bluetooth(
+        self, discovery_info: BluetoothServiceInfoBleak
+    ) -> ConfigFlowResult:
+        """A Granboard that Home Assistant's Bluetooth found."""
+        await self.async_set_unique_id(granboard.board_id(discovery_info.address))
+        self._abort_if_unique_id_configured()
+        self._granboard = discovery_info.address
+        self.context["title_placeholders"] = {"name": discovery_info.name}
+        return await self.async_step_granboard_confirm()
+
+    async def async_step_granboard(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """One of the Granboards that Home Assistant's Bluetooth sees, for a
+        board whose discovery was dismissed, or to set it up before it shows."""
+        if user_input is not None:
+            address = user_input[CONF_ADDRESS]
+            await self.async_set_unique_id(
+                granboard.board_id(address), raise_on_progress=False
+            )
+            self._abort_if_unique_id_configured()
+            self._granboard = address
+            return await self.async_step_granboard_confirm()
+        configured = self._async_current_ids(include_ignore=False)
+        found = {
+            info.address: f"{info.name} ({info.address})"
+            for info in granboard.async_discovered(self.hass)
+            if granboard.board_id(info.address) not in configured
+        }
+        if not found:
+            return self.async_abort(reason="no_granboards")
+        return self.async_show_form(
+            step_id="granboard",
+            data_schema=vol.Schema({vol.Required(CONF_ADDRESS): vol.In(found)}),
+        )
+
+    async def async_step_granboard_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """A dartboard without Autodarts that receives the darts of the Granboard."""
+        if user_input is not None:
+            name = user_input[CONF_NAME]
+            return self.async_create_entry(
+                title=f"Autodarts ({name})",
+                data={
+                    CONF_BOARD_ID: self.unique_id,
+                    CONF_MANUAL_BOARD: True,
+                    CONF_LOCAL_ONLY: True,
+                    CONF_NAME: name,
+                    CONF_GRANBOARD: self._granboard,
+                },
+            )
+        return self.async_show_form(
+            step_id="granboard_confirm",
+            data_schema=_name_schema(GRANBOARD_NAME),
+            description_placeholders={"address": self._granboard},
         )
 
     async def _async_identify(self, host: str, port: int) -> dict[str, Any]:
@@ -459,7 +528,8 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
             **{
                 key: value
                 for key, value in entry.data.items()
-                if key != CONF_MANUAL_BOARD
+                # A Granboard gives way to the board's own detection.
+                if key not in (CONF_MANUAL_BOARD, CONF_GRANBOARD)
             },
             CONF_BOARD_ID: board_id,
             CONF_HOST: host,

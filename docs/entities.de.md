@@ -511,6 +511,7 @@ Jedes Zurücksetzen steht auf Stufe Info im Protokoll, und die [Diagnosedaten](t
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
 | Lokale Verbindung | Binärsensor, *Diagnose* | Home Assistant erreicht den Board Manager. Ein oder zwei verpasste Lesevorgänge, also wenige Sekunden, lassen ihn an. |
+| Granboard-Verbindung | Binärsensor, *Diagnose* | Nur auf einem [Granboard](granboard.de.md): Home Assistant ist über Bluetooth mit dem Board verbunden. |
 | Echtzeitverbindung | Binärsensor, *Diagnose* | Die Verbindung für Echtzeitereignisse steht. Bis darüber Ereignisse ankommen, liest die Integration alle 2 Sekunden. |
 | Cloud-Verbindung | Binärsensor, **BM 2**, *Diagnose* | Die Verbindung des Boards zu Autodarts. |
 | Kameras aktiv | Binärsensor | Die Kameras laufen. |

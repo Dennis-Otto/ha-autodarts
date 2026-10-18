@@ -511,6 +511,7 @@ A change is written to the Board Manager configuration; only the changed setting
 | Entity | Type | Description |
 | --- | --- | --- |
 | Local connection | Binary sensor, *Diagnostic* | Home Assistant reaches the Board Manager. One or two missed reads, a few seconds, keep it on. |
+| Granboard connection | Binary sensor, *Diagnostic* | Only on a [Granboard](granboard.md): Home Assistant is connected to the board over Bluetooth. |
 | Realtime connection | Binary sensor, *Diagnostic* | The connection for realtime events is open. Until events arrive over it, the integration reads every 2 seconds. |
 | Cloud link | Binary sensor, **BM 2**, *Diagnostic* | The board's connection to Autodarts. |
 | Cameras active | Binary sensor | The cameras are running. |

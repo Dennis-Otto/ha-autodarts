@@ -8,3 +8,8 @@ hypothesis==6.168.4
 hassil==3.12.1
 home-assistant-intents==2026.8.28
 gazetteer-matcher==1.1.0
+# Home Assistant's Bluetooth, which the Granboard link uses in
+# custom_components/autodarts/granboard.py, depends on its usb integration, whose
+# packages pytest-homeassistant-custom-component does not bring.
+aiousbwatcher==1.1.2
+serialx==1.10.0

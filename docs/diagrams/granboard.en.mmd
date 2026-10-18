@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How a dart of a Granboard reaches the games
+  accDescr: For every hit, the Granboard sends a short frame over Bluetooth LE, such as 3.4@ for the treble 20. A Bluetooth adapter of Home Assistant or an ESPHome Bluetooth proxy within reach passes it on. The integration reads the frame. A bed goes into the visit, as the action throw_dart does; the button ends the visit, as next_player does; a frame in the first two seconds after connecting is dropped, and an unknown one is kept for the diagnostics. The games, the training and the statistics follow the visit. When the board goes away, the integration connects again as soon as Home Assistant sees it, otherwise after 2, 4, 8 up to 300 seconds.
+  HIT(["A dart hits the Granboard"]) --> FRAME["A frame over Bluetooth LE,<br/>such as 3.4@ for T20"]
+  FRAME --> RADIO["A Bluetooth adapter or an<br/>ESPHome Bluetooth proxy"]
+  RADIO --> READ{"The integration<br/>reads the frame"}
+  READ -- "a bed" --> DART["Into the visit,<br/>as throw_dart does"]
+  READ -- "the button" --> NEXT["The visit ends,<br/>as next_player does"]
+  READ -- "in the first 2 s<br/>after connecting" --> DROP["Dropped"]
+  READ -- "unknown" --> DIAG["Kept for the diagnostics"]
+  DART & NEXT --> GAMES["Games, training<br/>and statistics"]
+  RADIO -. "the board goes away" .-> AGAIN["Connects again once Home Assistant<br/>sees it, otherwise after 2, 4, 8 … 300 s"]
+  AGAIN -.-> RADIO
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class GAMES done
+  class DROP,DIAG,AGAIN warn

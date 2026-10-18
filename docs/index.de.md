@@ -135,6 +135,12 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
     Jede Dartscheibe, mit allen Spielen, dem Training und den Statistiken: Du gibst die Darts auf einem Tastenfeld ein.
 
+- :material-bluetooth:{ .lg .middle } [**Granboard über Bluetooth**](granboard.de.md)
+
+    ---
+
+    Die Darts eines Granboards kommen von selbst, über das Bluetooth von Home Assistant und ESPHome-Proxys. Experimentell.
+
 - :material-frequently-asked-questions:{ .lg .middle } [**Häufige Fragen**](faq.de.md)
 
     ---

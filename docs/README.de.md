@@ -158,7 +158,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 | **Lichtshow** | Blueprint [Light show](automations.de.md#light-show), für WLED oder jedes Licht | WLED, mit Tools | WLED, mit darts-wled | Eigene Automationen |
 | **Caller** | Auf der [Anzeigetafel](scoreboard.de.md#der-caller) oder deinen [Lautsprechern](automations.de.md#welcher-caller) | In der App, mit einer Premium-Stimme in [Plus](https://autodarts.com/); mehr mit Tools | Sprachpakete, mit darts-caller | Nein |
 | **Statistik bleibt zu Hause** | [Ja](statistics.de.md): Averages, Trefferbilder, Profile und ein Jahr Verlauf | Nein, im Autodarts-Konto | Nein | Nein |
-| **Ohne Autodarts-Board** | Ja, auf einem [Tastenfeld](without-autodarts.de.md) | Ja, auf einem Tastenfeld oder mit [Lens](https://autodarts.com/) | Nein | Nein |
+| **Ohne Autodarts-Board** | Ja, auf einem [Tastenfeld](without-autodarts.de.md) oder einem [Granboard über Bluetooth](granboard.de.md) *(experimentell)* | Ja, auf einem Tastenfeld oder mit [Lens](https://autodarts.com/) | Nein | Nein |
 | **Online-Matches** | Deine Darts, und die Momente des Matches über die [Online-Brücke](online-matches.de.md) *(experimentell)* | Ja | Ja | Manche, über die Cloud |
 | **Lizenz und Kosten** | [MIT](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), kostenlos | Autodarts: ein kostenloser Tarif und das bezahlte [Plus](https://autodarts.com/); Tools: [CC BY-NC 4.0](https://github.com/creazy231/tools-for-autodarts/blob/main/LICENSE) | Kostenlos, ohne angegebene Lizenz | MIT, Apache 2.0 oder ohne Lizenzdatei |
 
@@ -166,7 +166,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
 ## Voraussetzungen
 
-**Home Assistant ab 2026.8** mit [HACS](https://hacs.xyz) und ein Autodarts-Board in deinem Netzwerk oder eine beliebige Dartscheibe, deren Darts du auf einem Tastenfeld eingibst ([Spielen ohne Autodarts](without-autodarts.de.md)). Ein Autodarts-Konto brauchst du nicht.
+**Home Assistant ab 2026.8** mit [HACS](https://hacs.xyz) und ein Autodarts-Board in deinem Netzwerk oder eine beliebige Dartscheibe, deren Darts du auf einem Tastenfeld eingibst ([Spielen ohne Autodarts](without-autodarts.de.md)), oder ein Granboard in Reichweite des Bluetooth von Home Assistant ([Granboard](granboard.de.md), experimentell). Ein Autodarts-Konto brauchst du nicht.
 
 - **Board Manager 2**, also Autodarts 2 ohne Bildschirm, ist empfohlen und bis 2.0.2 getestet; der klassische **Board Manager 1** funktioniert auch.
 - Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux.
@@ -179,6 +179,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 - [Von null bis zur Anzeigetafel](getting-started.de.md): für Autodarts-Spieler ohne Home Assistant: Home Assistant und HACS aufsetzen, die Integration installieren, das Board hinzufügen und das erste Spiel auf der Anzeigetafel
 - [Installation und Einrichtung](installation.de.md): Voraussetzungen, HACS und manuelle Installation, die Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen
 - [Spielen ohne Autodarts](without-autodarts.de.md): jede Dartscheibe mit allen Spielen, dem Training und den Statistiken: einrichten, die Darts auf einem Tastenfeld eingeben, und was anders ist
+- [Granboard über Bluetooth](granboard.de.md): die Darts eines Granboards über das Bluetooth von Home Assistant und ESPHome-Proxys, für jedes Spiel *(experimentell)*
 - [Häufige Fragen](faq.de.md): kurze Antworten zu Konto, Geräten, Online-Spiel, Datenschutz, mehreren Boards, Bildschirmen, Sprachen, Updates und Umstieg
 - [Umstieg von anderen Werkzeugen](coming-from.de.md): wie sich diese Integration mit Autodarts Local, den anderen Integrationen, MQTT-Brücken, darts-caller, darts-wled und Tools for Autodarts vergleicht, und wie du von ihnen umsteigst
 

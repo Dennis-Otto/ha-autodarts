@@ -165,7 +165,7 @@ How this integration compares with the Autodarts app and its browser extension, 
 | **Light show** | [Light show](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#light-show) blueprint, for WLED or any light | WLED, with Tools | WLED, with darts-wled | Your own automations |
 | **Caller** | On the [scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md#the-caller) or your [speakers](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#which-caller) | In the app, with a premium voice in [Plus](https://autodarts.com/); more with Tools | Voice packs, with darts-caller | No |
 | **Statistics kept at home** | [Yes](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md): averages, heatmaps, profiles and a year of history | No, in the Autodarts account | No | No |
-| **Without an Autodarts board** | Yes, on a [keypad](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md) | Yes, on a keypad or with [Lens](https://autodarts.com/) | No | No |
+| **Without an Autodarts board** | Yes, on a [keypad](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md) or a [Granboard over Bluetooth](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/granboard.md) *(experimental)* | Yes, on a keypad or with [Lens](https://autodarts.com/) | No | No |
 | **Online matches** | Your darts, and the moments of the match through the [online bridge](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/online-matches.md) *(experimental)* | Yes | Yes | Some of them, through the cloud |
 | **License and cost** | [MIT](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), free | Autodarts: a free plan and the paid [Plus](https://autodarts.com/); Tools: [CC BY-NC 4.0](https://github.com/creazy231/tools-for-autodarts/blob/main/LICENSE) | Free, no license stated | MIT, Apache 2.0 or no license file |
 
@@ -173,7 +173,7 @@ How this integration compares with the Autodarts app and its browser extension, 
 
 ## Requirements
 
-**Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network, or any dartboard whose darts you enter on a keypad ([play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md)). No Autodarts account is needed.
+**Home Assistant 2026.8 or newer** with [HACS](https://hacs.xyz), and an Autodarts board in your network, or any dartboard whose darts you enter on a keypad ([play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md)), or a Granboard within reach of Home Assistant's Bluetooth ([Granboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/granboard.md), experimental). No Autodarts account is needed.
 
 - **Board Manager 2**, Autodarts 2 without a screen, is recommended and tested up to 2.0.2; the classic **Board Manager 1** works too.
 - A player reports that **Autodarts Desktop** 2.0.2 on Linux works too.
@@ -260,6 +260,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 - [From zero to the scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/getting-started.md): for Autodarts players without Home Assistant, from nothing to the first game on the scoreboard
 - [Installation](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/installation.md): requirements, HACS and manual installation, the ways to add a board, updates and removal
 - [Play without Autodarts](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/without-autodarts.md): any dartboard with every game, the training and the statistics, its darts entered on a keypad
+- [Granboard over Bluetooth](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/granboard.md): the darts of a Granboard over Home Assistant's Bluetooth and ESPHome proxies, for every game *(experimental)*
 - [Frequently asked questions](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/faq.md): account, devices, online play, privacy, several boards, screens, languages, updates and switching, in short answers
 - [Coming from another tool](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/coming-from.md): Autodarts Local, the other integrations, MQTT bridges, darts-caller, darts-wled and Tools for Autodarts compared, and how to switch
 
