@@ -153,6 +153,7 @@ Für ein [Turnier](games.de.md#turniere) mit drei bis 32 Spielern führt der Bil
 2. **Während eines Matches** nennt die Titelzeile Runde und Match, etwa *Turnier · Halbfinale · Match 5 von 7* oder *Turnier · Gruppe B · Runde 2 · Match 6 von 63*.
 3. **Zwischen den Matches** bleibt die Zusammenfassung des Matches einige Sekunden stehen, dann erscheint die Tabelle (jeder gegen jeden), die Tabellen der Gruppen oder der Turnierbaum, im Doppel-K.-o.-System mit der Verliererrunde darunter, mit dem nächsten Match und einem Countdown. **Jetzt starten** startet es sofort; sonst beginnt es von selbst, sobald die Darts aus dem Board sind.
 4. **Am Ende** nennt ein Banner den Turniersieger, und Tabelle oder Turnierbaum bleiben stehen, bis ein neues Match beginnt. *Turnier beenden* in der Spielauswahl beendet ein Turnier vorzeitig. Ein neues Turnier, das während eines laufenden startet, beendet zuerst das laufende, nach einem zweiten Tipp.
+5. **Auf mehreren Boards** zeigt die Anzeigetafel jedes Boards ihr eigenes Match und zwischen den Matches über Tabelle oder Turnierbaum einen Kasten je Board: was es spielt oder wann sein nächstes Match beginnt, der eigene Kasten hervorgehoben, und das voraussichtliche Ende des Turniers. [Ein Turnier auf mehreren Boards](games.de.md#ein-turnier-auf-mehreren-boards).
 
 **Turnier** in der Spielauswahl legt Spieler, Spiel, Format und Regeln fest:
 

@@ -52,6 +52,8 @@ Tippe den Dart auf der Anzeigetafel an und wähle, wo er gelandet ist, auf den T
 
 Ja. Jedes Board ist ein eigener Eintrag und ein eigenes Gerät, mit eigenen Entitäten, Spielen und Statistiken, und das automatische Dashboard gibt jedem Board seine Ansichten, etwa `/scoreboard-1` und `/scoreboard-2`. Die Aktionen der Integration brauchen dann die `config_entry_id` des Boards. [Mehrere Boards](without-autodarts.de.md#mehrere-boards)
 
+Ein Vereinsabend kann auch [ein Turnier auf mehreren Boards zugleich](games.de.md#ein-turnier-auf-mehreren-boards) spielen, jedes Board mit einem eigenen Match.
+
 ## Bildschirme und Sprachen
 
 ### Kann ich die Anzeigetafel auf einem Fernseher oder einem Fire-Tablet zeigen?

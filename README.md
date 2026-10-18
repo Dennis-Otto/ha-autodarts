@@ -59,7 +59,7 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 - X01 from 101 to 1001 with straight, double and master in and out, the 50/50 bull, a round limit and the checkout route after every dart
 - Cricket, Cut-Throat Cricket, Tactics, Wild Mouse, Random Cricket and Hidden Cricket on a chalkboard
 - Party games for up to eight: Shanghai, Halve-It, Killer, Golf, Baseball, Count-Up, Bermuda, Round the World and Gotcha
-- Tournaments of three to 32 players: a round robin with a table, a knockout, a double elimination or groups with a knockout, with their brackets
+- Tournaments of three to 32 players: a round robin with a table, a knockout, a double elimination or groups with a knockout, with their brackets, at one board or on several boards at once
 
 <details>
 <summary>Matches, the bot, corrections and more</summary>

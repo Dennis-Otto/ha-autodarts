@@ -961,6 +961,18 @@
     "tournament_match_running": {
       "message": "De toernooiwedstrijd {first} tegen {second} is nog bezig. Speel die eerst uit of stop het toernooi."
     },
+    "tournament_no_match": {
+      "message": "Er is nog geen toernooiwedstrijd klaar voor dit bord. Die begint zodra een ander bord een uitslag heeft."
+    },
+    "board_in_tournament": {
+      "message": "{board} speelt al in een toernooi. Stop dat toernooi eerst."
+    },
+    "tournament_boards": {
+      "message": "Een toernooi speelt op hoogstens {max} borden tegelijk."
+    },
+    "unknown_board": {
+      "message": "{board} is geen Autodarts-bord."
+    },
     "no_dart": {
       "message": "De huidige beurt heeft geen dart {dart}."
     },
@@ -1501,6 +1513,10 @@
         "config_entry_id": {
           "name": "Bord",
           "description": "Het Autodarts-bord. Alleen nodig bij meer dan één bord."
+        },
+        "boards": {
+          "name": "Borden",
+          "description": "Meer borden die tegelijk wedstrijden van het toernooi spelen, via hun apparaat of item: elk bord speelt een eigen wedstrijd, en het bord van de actie houdt het toernooi bij. Tot acht borden."
         },
         "players": {
           "name": "Spelers",

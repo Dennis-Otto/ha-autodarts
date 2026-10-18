@@ -54,8 +54,8 @@ The **Events** entity (for example `event.autodarts_board_events` in a Home Assi
 | `drill_finished` | A [training game](#training-games) ends: Around the Clock, the doubles training, Catch 40, the JDC Challenge or the singles training reach the end, or Bob's 27 ends | `drill`, `darts`, `hits`, `hit_rate` (percent); Bob's 27 adds `score` and `completed`; Catch 40 has `score`, `checkouts` and `darts`, the JDC Challenge `score`, `parts` (the points of its three parts) and `darts`, the singles training `score` as well |
 | `checkout_attempt` | An attempt of the checkout training or the 121 checkout ends | `drill`, `target`, `success`, `darts`, `attempts`, `successes`, `rate` (percent); the 121 checkout adds `next`, the next target |
 | `bull_off_won` | The [bull-off](#practice-game) decides who starts the match | `game`, `player`, `name`, `players`, `hit` (the bed of the winning dart: `BULL`, `25` or for example `S20`), `distance` (millimeters from the center, or none without a position from the board); `call` |
-| `tournament_started` | A [tournament](#tournaments) starts | `format` (`round_robin`, `knockout`, `double_knockout` or `groups_knockout`), `game`, `matches` (the number of matches to play; a deciding final adds one), `players` (in the order of the draw), `start_scores` (in the same order), `legs_to_win`, `sets_to_win`, `seed` (of a random draw, otherwise none); with groups also `groups` and `advance` |
-| `tournament_match_finished` | A match of the tournament counts: the darts of its winning visit are pulled | `format`, `game`, `matches`, `match` (its number in the order of play), `round`, `stage` (one of the stages of *Tournament*), `group` (`A` to `H`, only in the groups), `players`, `winner`, `loser`, `legs` and `sets` of both players, `next` (the players of the next match, none after the last one) |
+| `tournament_started` | A [tournament](#tournaments) starts | `format` (`round_robin`, `knockout`, `double_knockout` or `groups_knockout`), `game`, `matches` (the number of matches to play; a deciding final adds one), `players` (in the order of the draw), `start_scores` (in the same order), `legs_to_win`, `sets_to_win`, `seed` (of a random draw, otherwise none); with groups also `groups` and `advance`; on [several boards](games.md#a-tournament-on-several-boards) also `boards` (their names, the board that holds the tournament first) |
+| `tournament_match_finished` | A match of the tournament counts: the darts of its winning visit are pulled | `format`, `game`, `matches`, `match` (its number in the order of play), `round`, `stage` (one of the stages of *Tournament*), `group` (`A` to `H`, only in the groups), `players`, `winner`, `loser`, `legs` and `sets` of both players, `next` (the players of the next match of the board, none after the last one), on several boards `board` (the name of the board that played it); the board that holds a tournament on several boards announces the matches of all its boards |
 | `tournament_finished` | The last match of the tournament counts | `format`, `game`, `matches`, `winner`, `runner_up`, `third` (none in a knockout without the match for third place; in a double elimination the loser of the losers' final), `players` |
 | `personal_best` | A value beats your [personal best](#personal-bests-streak-and-daily-goal) | `record`, `value`, `previous`, `name` (the player, if known) |
 | `daily_goal_reached` | Today's darts reach the [daily goal](#personal-bests-streak-and-daily-goal), once per day | `goal`, `darts`, `streak` |
@@ -456,14 +456,14 @@ A tournament for three to 32 named players at one board: a **round robin** of up
 | Next tournament match | Button | Starts the next match without waiting for the pause to end. |
 | Stop tournament | Button | Ends the tournament. |
 
-*Tournament* has the attributes `status` (`playing`, `waiting` or `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in the order of the draw), `start_scores` (of the players in the same order; 0 plays the game's), `round` and `rounds`, `matches_played` and `matches_total`, `current` (the match at the board), `next` (the match after it), `last_result`, `pause`, `summary`, `next_at` (when the next match starts: the end of the last match, the summary and the pause), `winner`, `started`, `ended` and `fixtures` (every match in the order of play). A round robin adds `standings`, the other formats `bracket`: its rounds with their matches, byes included, and the match for third place; a double elimination has the grand finals in it, the deciding final once it is played, and its losers' bracket in `losers_bracket`. Groups and knockout add `groups`, the table of every group as `group` (`A` to `H`) with its `standings`, and `advance`, how many of each go on; the matches of the groups have their `group`, and the places of the knockout stay empty until the groups are decided.
+*Tournament* has the attributes `status` (`playing`, `waiting` or `finished`), `format`, `game`, `legs_to_win`, `sets_to_win`, `double_out`, `double_in`, `bull_off`, `bull_off_distance`, `third_place`, `seed`, `players` (in the order of the draw), `start_scores` (of the players in the same order; 0 plays the game's), `round` and `rounds`, `matches_played` and `matches_total`, `current` (the match at the board), `next` (the match after it), `last_result`, `pause`, `summary`, `next_at` (when the next match starts: the end of the last match, the summary and the pause), `ends_at` (when the tournament is expected to end, see [the forecast](games.md#a-tournament-on-several-boards)), `winner`, `started`, `ended` and `fixtures` (every match in the order of play). A tournament on several boards adds `board`, the number of the sensor's board from 1, and `boards`, every board with its `board` number, `name`, `match` (the number of its match, none between matches), `players` and `next_at`; `status`, `current`, `next`, `next_at` and `last_result` are those of the sensor's board. A round robin adds `standings`, the other formats `bracket`: its rounds with their matches, byes included, and the match for third place; a double elimination has the grand finals in it, the deciding final once it is played, and its losers' bracket in `losers_bracket`. Groups and knockout add `groups`, the table of every group as `group` (`A` to `H`) with its `standings`, and `advance`, how many of each go on; the matches of the groups have their `group`, and the places of the knockout stay empty until the groups are decided.
 
 `round` is the round of the next match to play within its own part of the tournament: the round robin, the groups, the knockout, or the winners' or the losers' bracket of a double elimination, which the `stage` of the match names. The knockout after the groups counts its rounds from 1 again, and in a double elimination the grand finals are one round after the winners' final. `rounds` is the most rounds of one part: in a double elimination of 32 players the eight of the losers' bracket. For the progress of the whole tournament, take `matches_played` of `matches_total`.
 
-- A **match** has `match` (its number in the order of play; none for a bye), `round`, `stage`, `players`, `winner`, `bye`, `legs` (of the whole match) and `sets` of both players, `ended` and, once played, the `average` (X01) or `mpr` (Cricket) of both players.
+- A **match** has `match` (its number in the order of play; none for a bye), `round`, `stage`, `players`, `winner`, `bye`, `legs` (of the whole match) and `sets` of both players, `ended`, on several boards the `board` that plays or played it (its number from 1), and, once played, the `average` (X01) or `mpr` (Cricket) of both players.
 - A row of **standings** has `position`, `name`, `played`, `won`, `lost`, `legs_for`, `legs_against`, `leg_difference`, `points` and `average` or `mpr`.
 
-The recorder stores neither `fixtures`, `standings`, `bracket`, `current`, `next` nor `last_result`. The [scoreboard](cards.md#tournaments) shows the round during a match and the table or the bracket between the matches.
+The recorder stores neither `fixtures`, `standings`, `bracket`, `current`, `next`, `last_result`, `boards` nor `ends_at`. The [scoreboard](cards.md#tournaments) shows the round during a match and the table or the bracket between the matches.
 
 ## Controls
 
@@ -924,7 +924,8 @@ Draws a [tournament](#tournaments) and starts its first match. Values you leave 
 | `seed` | 1–999999 | A number for a random draw: the same number draws the same order |
 | `pause` | 0–600 | Seconds between two matches, after the summary; 0 waits for *Next tournament match* |
 | `summary` | 0–60 | Seconds the summary of a match shows before the pause begins |
-| `config_entry_id` | Autodarts entry | Only needed with more than one board |
+| `config_entry_id` | Autodarts entry | Only needed with more than one board; with `boards`, the board that holds the tournament |
+| `boards` | Up to 8 devices or entries | More boards that play [matches of the tournament at the same time](games.md#a-tournament-on-several-boards), by their device or the ID of their entry; the board of the action is one of them anyway. Up to eight boards in all. |
 
 ```yaml
 action: autodarts.start_tournament
@@ -936,11 +937,11 @@ data:
   pause: 30
 ```
 
-A tournament being played has to be stopped before the next one starts; a finished one is replaced. The action fails with a clear message while a tournament is being played, when the format does not take the number of players, when the players do not fit into the groups, when a name appears twice or contains curly brackets, a percent sign, a number sign or control characters, or when the start scores are wrong as above.
+A tournament being played has to be stopped before the next one starts; a finished one is replaced. The action fails with a clear message while a tournament is being played, when the format does not take the number of players, when the players do not fit into the groups, when a name appears twice or contains curly brackets, a percent sign, a number sign or control characters, when the start scores are wrong as above, when a board in `boards` is no Autodarts board or is not loaded, when one of the boards plays in a tournament already, or when there are more than eight boards.
 
 ### Start the next tournament match: `autodarts.next_tournament_match`
 
-Starts the next match of the tournament during the pause, or sets the tournament's match up again when another game was chosen meanwhile. It fails with a clear message while the match of the tournament is being played, and when no tournament is running.
+Starts the next match of the tournament during the pause, or sets the tournament's match up again when another game was chosen meanwhile. On several boards, it starts the next match of the board of the action. It fails with a clear message while the match of the tournament is being played, when no tournament is running, and when no match is ready for this board yet.
 
 ```yaml
 action: autodarts.next_tournament_match
@@ -948,7 +949,7 @@ action: autodarts.next_tournament_match
 
 ### Stop a tournament: `autodarts.stop_tournament`
 
-Ends the tournament; the match being played goes on as a practice match. It fails with a clear message when there is no tournament.
+Ends the tournament, on several boards on every board; the match being played goes on as a practice match. It fails with a clear message when there is no tournament.
 
 Both actions take `config_entry_id` when there is more than one board.
 

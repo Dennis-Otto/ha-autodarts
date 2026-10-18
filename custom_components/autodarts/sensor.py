@@ -1122,6 +1122,8 @@ class AutodartsTournament(AutodartsStoredEntity, SensorEntity):
             "current",
             "next",
             "last_result",
+            "boards",
+            "ends_at",
         }
     )
 
@@ -1130,11 +1132,12 @@ class AutodartsTournament(AutodartsStoredEntity, SensorEntity):
 
     @property
     def native_value(self) -> str:
-        return self.coordinator.games.tournament.state()
+        return self.coordinator.games.tournament_state()
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        return self.coordinator.games.tournament.snapshot()
+        # A board of a tournament on several boards shows it with its own match.
+        return self.coordinator.games.tournament_snapshot()
 
 
 class AutodartsCorrectionRate(AutodartsLocalEntity, SensorEntity):

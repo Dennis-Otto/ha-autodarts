@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: So läuft ein Turnier auf mehreren Boards
+  accDescr: Das Turnier startet auf einem Board, mit den anderen Boards in boards. Jedes Board übernimmt sofort ein Match, wenn eines bereit ist, dessen Spieler an keinem anderen Board spielen. Ist ein Match entschieden und sind seine Darts gezogen, geht sein Ergebnis in die Tabelle oder den Turnierbaum, die das Board des Turniers für alle Boards führt. Nach dem letzten Match kehrt jedes Board zu seinen eigenen Spielen zurück. Sonst zeigt das Board die Zusammenfassung und die Pause, die auch die Spieler seines nächsten Matches bekommen. Dann übernimmt das Board das nächste Match, dessen Spieler feststehen und frei sind, sobald es frei ist; ein Board ohne ein solches Match wartet auf ein Ergebnis eines anderen Boards.
+
+  START(["Turnier starten<br/>mit seinen Boards"]) --> TAKE["Das Board übernimmt das nächste Match,<br/>dessen Spieler an keinem anderen Board spielen"]
+  TAKE --> PLAY["Die Boards spielen<br/>ihre Matches nebeneinander"]
+  PLAY --> RESULT["Ein Match ist entschieden,<br/>seine Darts sind gezogen"]
+  RESULT --> TABLE["Das Ergebnis geht in Tabelle oder Turnierbaum,<br/>geführt vom Board des Turniers"]
+  TABLE --> LAST{{"Das letzte Match?"}}
+  LAST -- "ja" --> DONE(["Jedes Board kehrt zu<br/>seinen eigenen Spielen zurück"])
+  LAST -- "nein" --> PAUSE["Zusammenfassung und Pause, für das Board<br/>und die Spieler seines nächsten Matches"]
+  PAUSE --> READY{{"Ein Match bereit,<br/>dessen Spieler frei sind?"}}
+  READY -- "ja, sobald das<br/>Board frei ist" --> TAKE
+  READY -- "nein" --> WAIT["Das Board wartet auf ein<br/>Ergebnis eines anderen Boards"]
+  WAIT -.-> READY
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class DONE done

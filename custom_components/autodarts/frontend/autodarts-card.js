@@ -3415,6 +3415,7 @@ function tournamentView(state) {
   const list = (value) => (Array.isArray(value) ? value : []);
   const game = Number.isInteger(attributes.game) ? attributes.game : named(attributes.game);
   const nextAt = Date.parse(attributes.next_at);
+  const endsAt = Date.parse(attributes.ends_at);
   const rows = (value) =>
     list(value)
       .filter((row) => named(row?.name))
@@ -3461,6 +3462,23 @@ function tournamentView(state) {
     bracket: rounds(attributes.bracket),
     // The losers' bracket of a double elimination.
     losers: rounds(attributes.losers_bracket),
+    // A tournament on several boards: the board of the sensor, from 1, and every
+    // board with its match, or when its next match starts.
+    board: finite(attributes.board),
+    boards: list(attributes.boards)
+      .filter((item) => named(item?.name))
+      .map((item) => {
+        const at = Date.parse(item.next_at);
+        return {
+          board: finite(item.board),
+          name: item.name,
+          match: finite(item.match),
+          players: list(item.players).map(named).filter(Boolean),
+          nextAt: Number.isFinite(at) ? at : null,
+        };
+      }),
+    // When the tournament is expected to end.
+    endsAt: Number.isFinite(endsAt) ? endsAt : null,
   };
 }
 
@@ -3551,9 +3569,43 @@ function tournamentGroups(view, ui) {
 const knockoutBegun = (view) =>
   view.bracket.some((round) => round.matches.some((match) => match.players.some((name) => name !== null)));
 
-// What shows of a tournament between its matches and in idle mode: the table of a
-// round robin, the groups until their knockout begins, and the brackets.
+// A tournament on several boards: what every board plays, or when its next match
+// starts, the board of the card marked, and when the tournament is expected to end.
+// Nothing for a tournament at one board.
+function tournamentBoards(view, ui, now = Date.now()) {
+  if (view.boards.length < 2) return "";
+  const { t } = ui;
+  const time = ui.time ?? ((moment) => formatClock(null, moment).time);
+  const rows = view.boards.map((board) => {
+    const playing = board.players.length === 2;
+    const waits =
+      board.nextAt !== null && board.nextAt > now
+        ? fill(t("tournament_board_next"), { time: time(board.nextAt) })
+        : t("tournament_board_free");
+    const match = playing
+      ? `${escapeHtml(board.players[0])} <span class="vs">${escapeHtml(t("tournament_vs"))}</span> ${escapeHtml(board.players[1])}`
+      : escapeHtml(waits);
+    const kind = [playing ? "playing" : "waiting", board.board !== null && board.board === view.board ? "own" : ""];
+    return (
+      `<li class="${kind.filter(Boolean).join(" ")}"><span class="board-name">${escapeHtml(board.name)}</span>` +
+      `<span class="board-match">${match}</span></li>`
+    );
+  });
+  const ends =
+    view.endsAt !== null && view.endsAt > now
+      ? `<p class="forecast">${escapeHtml(fill(t("tournament_ends"), { time: time(view.endsAt) }))}</p>`
+      : "";
+  return `<section class="boards" aria-label="${escapeHtml(t("tournament_boards"))}"><ul>${rows.join("")}</ul>${ends}</section>`;
+}
+
+// What shows of a tournament between its matches and in idle mode: the boards of a
+// tournament on several boards, then the table of a round robin, the groups until
+// their knockout begins, and the brackets.
 function tournamentBody(view, ui, fresh = new Set()) {
+  return tournamentBoards(view, ui) + tournamentStage(view, ui, fresh);
+}
+
+function tournamentStage(view, ui, fresh) {
   if (view.format === "round_robin") return tournamentTable(view, ui);
   if (view.format === "groups_knockout" && !knockoutBegun(view)) return tournamentGroups(view, ui);
   if (!view.losers.length) return tournamentBracket(view, ui, fresh);
@@ -7037,6 +7089,28 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
     font: inherit; font-size: clamp(13px, 1.7cqi, 20px); font-weight: 700;
     color: #fff; background: var(--ad-accent-fill); border: none;
   }
+  /* A tournament on several boards: a box per board, the card's own marked, and the expected end. */
+  .boards { width: min(100%, 1100px); margin: 0 auto; }
+  .boards ul {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: clamp(6px, 1cqi, 12px); margin: 0; padding: 0; list-style: none;
+  }
+  .boards li {
+    display: flex; flex-direction: column; gap: 2px; padding: clamp(8px, 1.2cqi, 14px); border-radius: 14px;
+    background: color-mix(in srgb, var(--primary-text-color) 5%, transparent);
+  }
+  .boards li.own { box-shadow: inset 0 0 0 2px var(--ad-accent); }
+  .boards .board-name {
+    font-size: clamp(11px, 1.4cqi, 15px); font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ad-muted-text);
+  }
+  .boards .board-match { font-size: clamp(14px, 2cqi, 24px); font-weight: 700; color: var(--primary-text-color); }
+  .boards li.waiting .board-match { font-weight: 600; color: var(--ad-muted-text); }
+  .boards .vs { font-size: .7em; font-weight: 600; color: var(--ad-muted-text); }
+  .boards .forecast {
+    margin: clamp(6px, 1cqi, 10px) 0 0; text-align: center; font-size: clamp(12px, 1.6cqi, 18px);
+    color: var(--ad-muted-text);
+  }
   .standings {
     width: min(100%, 1100px); margin: 0 auto; border-collapse: collapse; font-variant-numeric: tabular-nums;
     font-size: clamp(14px, 2.2cqi, 30px); color: var(--primary-text-color);
@@ -7952,6 +8026,7 @@ function createElements(Base) {
         percent: (value, digits) => this._percent(value, digits),
         label: (key) => hitLabel(this._hass, key),
         date: (value) => formatDateTime(this._hass, value),
+        time: (moment) => formatClock(this._hass, moment).time,
         avatar: (name) => links.get(nameKey(name))?.picture ?? null,
         links,
       };
@@ -11332,6 +11407,7 @@ export {
   bracketSlots,
   freshSlots,
   stageName,
+  tournamentBoards,
   tournamentCalls,
   tournamentCallState,
   tournamentCountdown,

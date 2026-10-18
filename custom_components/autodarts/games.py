@@ -2,7 +2,9 @@
 
 BoardGames follows the darts on one board: the training session, the practice
 game with the players' progress and personal bests, the tournament, the darts
-entered by hand and the bot's darts. It books the visits, keeps what an undo
+entered by hand and the bot's darts. The boards of a tournament on several
+boards are linked: the board it was started on holds it, and the others play
+their matches of it. It books the visits, keeps what an undo
 needs and stores itself. Each step returns the board events it brings, in their
 order, and takes the time as a parameter, so that the engine runs and is tested
 without Home Assistant (tests/test_games.py). AutodartsGamesCoordinator plays it
@@ -26,7 +28,7 @@ from .profiles import valid_name
 from .progress import Progress
 from .quality import DetectionQuality
 from .records import PersonalRecords
-from .tournament import TournamentDirector
+from .tournament import FINISHED, MAX_BOARDS, TournamentDirector
 from .training import TrainingSession, hit_key, segments
 
 # What a part of the games reports: the type of a board event and its attributes.
@@ -127,6 +129,16 @@ class BoardGames:
         self.records = PersonalRecords()
         self.progress = Progress()
         self.tournament = TournamentDirector()
+        # The key of the board, the ID of its entry in Home Assistant, by which
+        # the boards of a tournament on several boards know each other.
+        self.key = ""
+        # A tournament on several boards: the other boards of the tournament
+        # this board holds, by their key while they are loaded; the board that
+        # holds the tournament this board plays matches of; and the events of
+        # the matches on the other boards, which the holding board announces.
+        self.guests: dict[str, BoardGames] = {}
+        self.host: BoardGames | None = None
+        self.board_events: list[Announcement] = []
         # Corrections, darts entered by hand and the bot's darts in the visit.
         self.manual = ManualDarts()
         # Its darts can be seeded, for tests and the recording of the demo.
@@ -254,8 +266,15 @@ class BoardGames:
         events = self.practice.finish_visit(empty)
         booked = self._booked(pending.legs_total, decided)
         events += self.progress.after(pending, self.practice, now)
-        # A tournament takes the result once the practice game booked it.
-        events += self._fixture(now)
+        # A tournament takes the result once the practice game booked it; the
+        # board holding a tournament on several boards announces its events.
+        fixture = self._fixture(now)
+        if self.host is not None:
+            self.host.board_events += [
+                (kind, details, source) for kind, details in fixture
+            ]
+        else:
+            events += fixture
         self._announced += [
             (kind, details, source)
             for kind, details in self._recorded(events, now, booked)
@@ -366,24 +385,203 @@ class BoardGames:
 
     # -- tournaments -------------------------------------------------------------
 
+    def _seat(self) -> tuple[TournamentDirector, str | None]:
+        """The tournament the board plays: its own, or that of the board holding
+        a tournament on several boards, with the key of this board in it."""
+        if self.host is not None:
+            return self.host.tournament, self.key
+        return self.tournament, None
+
+    def tournament_state(self) -> str:
+        """The stage of the tournament the board plays, see TournamentDirector.state."""
+        director, board = self._seat()
+        return director.state(board)
+
+    def tournament_snapshot(self) -> dict[str, Any]:
+        """The tournament the board plays, as the board sees it."""
+        director, board = self._seat()
+        return director.snapshot(board)
+
+    @property
+    def several_boards(self) -> bool:
+        """Whether the board holds a tournament on several boards."""
+        tournament = self.tournament.tournament
+        return tournament is not None and tournament.several
+
     def board_free(self) -> bool:
         """Whether the next match of a tournament can start at the board: no
         darts are left on it and the practice game makes way."""
-        return not self.training.visit() and self.tournament.free(self.practice)
+        director, board = self._seat()
+        return not self.training.visit() and director.free(self.practice, board)
 
     def _fixture(self, now: datetime) -> list[Event]:
         """After a visit: the result of a tournament match, and the next match
         once the pause is over, no darts are left on the board and no other
         game is being played."""
         utc = now.astimezone(UTC)
-        events = self.tournament.booked(self.practice, utc)
-        due = self.tournament.due(utc) and self.board_free()
+        director, board = self._seat()
+        events = director.booked(self.practice, utc, board)
+        due = director.due(utc, board) and self.board_free()
         if due:
-            self.tournament.next_match(self.practice)
+            director.next_match(self.practice, board, utc)
         if events or due:
             # A result the tournament took, or its next match, cannot be undone.
             self._undo = None
             self.fixtures += 1
+        return events
+
+    # -- tournaments on several boards -------------------------------------------
+
+    def start_tournament(
+        self,
+        now: datetime,
+        name: str = "",
+        boards: list[tuple[str, str, BoardGames]] | None = None,
+        **options: Any,
+    ) -> list[Event]:
+        """Draw a tournament, see TournamentDirector.start. With other boards,
+        each with its key and name, a tournament on several boards that this
+        board, called by `name`, holds: every board plays a match at once if
+        one is ready for it."""
+        if self.host is not None:
+            raise ActionRefused(
+                "board_in_tournament", board=self.host.tournament.name()
+            )
+        others: list[tuple[str, str, BoardGames]] = []
+        for key, called, games in boards or []:
+            if games is self or any(key == other for other, _, _ in others):
+                continue
+            if games.host is not None or games.tournament.running:
+                raise ActionRefused("board_in_tournament", board=called)
+            others.append((key, called, games))
+        if len(others) >= MAX_BOARDS:
+            raise ActionRefused("tournament_boards", max=str(MAX_BOARDS))
+        seats = [(self.key, name), *((key, called) for key, called, _ in others)]
+        director = self.tournament
+        if not director.running:
+            # The boards of a finished tournament go back to their settings first.
+            self._release_guests()
+        events = director.start(
+            self.practice, now, boards=seats if others else None, **options
+        )
+        utc = now.astimezone(UTC)
+        for key, _, games in others:
+            # A tournament the board finished before gives way to this one.
+            if games.tournament.tournament is not None:
+                games.tournament.stop(games.practice)
+            games.host = self
+            self.guests[key] = games
+            director.join(games.practice, key, utc)
+            games.moved()
+        return events
+
+    def moved(self) -> None:
+        """A change of the games made on another board of a tournament on several
+        boards, which cannot be undone visit by visit."""
+        self._undo = None
+        self.revision += 1
+
+    def stop_tournament(self) -> list[BoardGames]:
+        """Stop the tournament this board holds, see TournamentDirector.stop:
+        the other boards of a tournament on several boards go back to their
+        practice settings too, and are returned."""
+        director = self.tournament
+        released = self._release_guests() if director.tournament else []
+        director.stop(self.practice)
+        return released
+
+    def next_tournament_match(self, now: datetime) -> None:
+        """Start the next match at this board now, see TournamentDirector.next_match."""
+        director, board = self._seat()
+        director.next_match(self.practice, board, now.astimezone(UTC))
+
+    def _release_guests(self) -> list[BoardGames]:
+        """The other boards go back to their practice settings and leave."""
+        director = self.tournament
+        released = list(self.guests.values())
+        for key, games in self.guests.items():
+            director.release(games.practice, key)
+            games.host = None
+            games.moved()
+        self.guests.clear()
+        return released
+
+    def settle_boards(self, now: datetime) -> list[BoardGames]:
+        """A tournament on several boards that this board holds, after a change
+        on one of its boards: every board whose pause is over takes its next
+        match once it is clear, and after the last match every board goes back
+        to its practice settings. Returns the boards whose games changed, this
+        one too."""
+        director = self.tournament
+        tournament = director.tournament
+        if tournament is None or not tournament.several:
+            return []
+        if tournament.status == FINISHED:
+            changed = [*self._release_guests()]
+            if self.practice.hold or director.saved is not None:
+                director.release(self.practice)
+                self.moved()
+                changed.insert(0, self)
+            return changed
+        utc = now.astimezone(UTC)
+        changed = []
+        for key in [None, *director.guests()]:
+            games = self if key is None else self.guests.get(key)
+            if games is None or not director.due(utc, key) or not games.board_free():
+                continue
+            director.next_match(games.practice, key, utc)
+            games.moved()
+            changed.append(games)
+        return changed
+
+    def next_fixture(self) -> datetime | None:
+        """When the next match of the tournament this board holds is due at one
+        of its boards that are loaded; None without one."""
+        due = [
+            at
+            for board, at in self.tournament.due_boards()
+            if board is None or board in self.guests
+        ]
+        return min(due, default=None)
+
+    def attach(self, games: BoardGames) -> bool:
+        """Another board of the tournament on several boards this board holds is
+        back, after a restart or a reload: it plays its matches again. False for
+        a board that is no part of it, or that plays a tournament of its own."""
+        director = self.tournament
+        if (
+            games is self
+            or games.key not in director.guests()
+            or games.key in self.guests
+            or games.host is not None
+        ):
+            return False
+        if games.tournament.running:
+            # The board left for a tournament of its own: others play its match.
+            director.vacate(games.key)
+            return False
+        self.guests[games.key] = games
+        games.host = self
+        director.attach(games.practice, games.key)
+        return True
+
+    def leave(self) -> list[BoardGames]:
+        """The board unloads: the boards of its tournament on several boards
+        lose sight of it until it is back. Returns those boards."""
+        others = list(self.guests.values())
+        for games in others:
+            games.host = None
+        self.guests.clear()
+        if (host := self.host) is not None:
+            host.guests.pop(self.key, None)
+            self.host = None
+            others.append(host)
+        return others
+
+    def take_board_events(self) -> list[Announcement]:
+        """The events of the matches on the other boards of the tournament this
+        board holds, to announce."""
+        events, self.board_events = self.board_events, []
         return events
 
     # -- settings and players ----------------------------------------------------
@@ -407,6 +605,8 @@ class BoardGames:
         """Forget a player profile, and the name in the records, the player
         slots and the next tournament; False when there is no profile by that
         name. A player of the tournament being played stays."""
+        if self.host is not None:
+            self.host.tournament.check(name)
         self.tournament.forget(name)
         deleted = self.practice.profiles.delete(name)
         if deleted:

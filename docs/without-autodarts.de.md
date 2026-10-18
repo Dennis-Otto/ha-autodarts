@@ -80,7 +80,7 @@ Ein Bildschirm, der nur die Anzeigetafel zeigt, etwa ein Fernseher ohne Touch, b
 
 ## Mehrere Boards
 
-Jede Dartscheibe ohne Autodarts ist ein eigener Eintrag und ein eigenes Gerät, mit eigenen Entitäten, Spielen und Statistiken, ebenso jedes Autodarts-Board daneben. Das automatische Dashboard gibt jedem Board seine Ansichten. Die Aktionen der Integration brauchen dann die `config_entry_id` des Boards, wie bei mehreren Autodarts-Boards.
+Jede Dartscheibe ohne Autodarts ist ein eigener Eintrag und ein eigenes Gerät, mit eigenen Entitäten, Spielen und Statistiken, ebenso jedes Autodarts-Board daneben. Das automatische Dashboard gibt jedem Board seine Ansichten. Die Aktionen der Integration brauchen dann die `config_entry_id` des Boards, wie bei mehreren Autodarts-Boards. Ein [Turnier auf mehreren Boards](games.de.md#ein-turnier-auf-mehreren-boards) spielt auf Dartscheiben mit und ohne Autodarts nebeneinander.
 
 Um ein Board samt seinen Statistiken zu entfernen, lösche seinen Eintrag unter **Einstellungen → Geräte & Dienste → Autodarts**.
 
