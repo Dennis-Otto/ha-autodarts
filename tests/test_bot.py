@@ -7,22 +7,19 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
+from custom_components.autodarts.board import SECTORS, aim_point, bed_name, segment_at
 from custom_components.autodarts.bot import (
     AVERAGE_PER_MPR,
     CRICKET_SCATTER,
     MAX_LEVEL,
     MIN_LEVEL,
     SCATTER,
-    SECTORS,
     Bot,
     aim,
-    aim_point,
-    bed_name,
     cricket_aim,
     play_cricket_leg,
     play_leg,
     scatter,
-    segment_at,
     valid_level,
     x01_aim,
 )

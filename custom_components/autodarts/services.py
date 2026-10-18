@@ -27,7 +27,8 @@ from homeassistant.helpers.service import (
 )
 from homeassistant.helpers.translation import async_get_translations
 
-from .bot import BOARD_MM, bed_name, segment_at, valid_level
+from .board import RADIUS_MM, bed_name, segment_at
+from .bot import valid_level
 from .const import DOMAIN, LANGUAGES
 from .cricket import CRICKET_GAMES
 from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
@@ -364,7 +365,9 @@ def _dart_at(
         if named is None:
             raise _invalid("no_bed")
         return named, None
-    found = _bed(bed_name(*segment_at(position[0] * BOARD_MM, position[1] * BOARD_MM)))
+    found = _bed(
+        bed_name(*segment_at(position[0] * RADIUS_MM, position[1] * RADIUS_MM))
+    )
     if named is not None and named["name"] != found["name"]:
         raise _invalid(
             "bed_position", segment=str(named["name"]), found=str(found["name"])

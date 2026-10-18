@@ -26,7 +26,7 @@ from dataclasses import dataclass
 from functools import cache
 from typing import Any
 
-from .bot import BOARD_MM, SECTORS, TREBLE_MM, bed_name, segment_at
+from .board import RADIUS_MM, SECTORS, aim_point, bed_name, segment_at
 
 # The aim map needs this many darts aimed at a treble.
 MIN_DARTS = 30
@@ -41,8 +41,8 @@ SEARCH_STARTS = 4
 SEARCH_REACH_MM = 4
 # A landing point further than this from an aim point on the board misses the
 # board, wherever on it the aim point lies; the board of points reaches that far.
-REACH_MM = 2 * BOARD_MM
-EDGE_MM = BOARD_MM + REACH_MM
+REACH_MM = 2 * RADIUS_MM
+EDGE_MM = RADIUS_MM + REACH_MM
 WIDTH = 2 * EDGE_MM + 1
 GOLDEN = (math.sqrt(5) - 1) / 2
 # The beds the best aim is compared with, and the beds whose centres it beats.
@@ -73,9 +73,9 @@ def points(x: float, y: float) -> int:
 def _board() -> bytes:
     """The points of every millimetre around the board, row by row from the bottom."""
     cells = bytearray(WIDTH * WIDTH)
-    for y in range(-BOARD_MM, BOARD_MM + 1):
+    for y in range(-RADIUS_MM, RADIUS_MM + 1):
         row = (y + EDGE_MM) * WIDTH + EDGE_MM
-        for x in range(-BOARD_MM, BOARD_MM + 1):
+        for x in range(-RADIUS_MM, RADIUS_MM + 1):
             cells[row + x] = points(x, y)
     return bytes(cells)
 
@@ -125,19 +125,13 @@ def expected(model: ErrorModel, x: int, y: int) -> float:
 
 
 def _on_board(x: int, y: int) -> bool:
-    return x * x + y * y <= BOARD_MM * BOARD_MM
+    return x * x + y * y <= RADIUS_MM * RADIUS_MM
 
 
 def centre(bed: str) -> tuple[int, int]:
     """The centre of a treble or the bullseye, at its nearest point of the grid."""
-    if bed == "BULL":
-        return 0, 0
-    angle = math.radians(SECTORS.index(int(bed[1:])) * 18)
-    radius = sum(TREBLE_MM) / 2
-    return (
-        GRID_MM * round(radius * math.sin(angle) / GRID_MM),
-        GRID_MM * round(radius * math.cos(angle) / GRID_MM),
-    )
+    x, y = aim_point(bed)
+    return GRID_MM * round(x / GRID_MM), GRID_MM * round(y / GRID_MM)
 
 
 def best_aim(model: ErrorModel) -> dict[str, Any]:
@@ -153,8 +147,8 @@ def best_aim(model: ErrorModel) -> dict[str, Any]:
     rough = _offsets(model, SEARCH_DRAWS)
     coarse = [
         (x, y)
-        for y in range(-BOARD_MM, BOARD_MM + 1, SEARCH_MM)
-        for x in range(-BOARD_MM, BOARD_MM + 1, SEARCH_MM)
+        for y in range(-RADIUS_MM, RADIUS_MM + 1, SEARCH_MM)
+        for x in range(-RADIUS_MM, RADIUS_MM + 1, SEARCH_MM)
         if _on_board(x, y)
     ]
     coarse.sort(key=lambda point: -_total(rough, *point))

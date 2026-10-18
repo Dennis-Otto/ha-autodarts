@@ -39,7 +39,13 @@ from .const import (
     SENSOR_VISIT_SCORE,
 )
 from .coordinator import AutodartsDataUpdateCoordinator
-from .entity import AutodartsEntity, AutodartsLocalEntity
+from .entity import (
+    AutodartsEntity,
+    AutodartsLocalEntity,
+    AutodartsStoredEntity,
+    async_track_cameras,
+    camera_count,
+)
 from .local_coordinator import AutodartsLocalCoordinator
 from .online import SENSOR_KEY as ONLINE_SENSOR_KEY
 from .online import OnlineBridge
@@ -427,39 +433,10 @@ async def async_setup_entry(
         if runtime.bridge:
             entities.append(AutodartsOnlineBridgeSensor(runtime.local, runtime.bridge))
     async_add_entities(entities)
-    if (coordinator := runtime.local) and not coordinator.manual_board:
-        known: set[int] = set()
-
-        @callback
-        def discover_cameras() -> None:
-            count = (coordinator.data or {}).get("settings", {}).get("camera_count", 0)
-            new = set(range(count)) - known
-            if not new:
-                return
-            known.update(new)
-            async_add_entities(
-                [
-                    AutodartsCameraSensor(
-                        coordinator,
-                        index,
-                        AutodartsSensorEntityDescription(
-                            key=f"camera_{index}_fps",
-                            translation_key="camera_fps",
-                            translation_placeholders={"number": str(index + 1)},
-                            native_unit_of_measurement="fps",
-                            state_class=SensorStateClass.MEASUREMENT,
-                            entity_category=EntityCategory.DIAGNOSTIC,
-                            entity_registry_enabled_default=False,
-                            value_fn=partial(_camera_fps, index=index),
-                            telemetry=True,
-                        ),
-                    )
-                    for index in sorted(new)
-                ]
-            )
-
-        discover_cameras()
-        entry.async_on_unload(coordinator.async_add_listener(discover_cameras))
+    if coordinator := runtime.local:
+        async_track_cameras(
+            entry, coordinator, partial(_camera_sensor, coordinator), async_add_entities
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -509,6 +486,27 @@ def _local_status(data: dict[str, Any]) -> str | None:
 def _camera_fps(data: dict[str, Any], index: int) -> float | None:
     fps = data.get("camera_stats", {}).get("fps")
     return _number(fps[index]) if isinstance(fps, list) and index < len(fps) else None
+
+
+def _camera_sensor(
+    coordinator: AutodartsLocalCoordinator, index: int
+) -> AutodartsCameraSensor:
+    """The frame rate of a camera, a sensor of each camera of the board."""
+    return AutodartsCameraSensor(
+        coordinator,
+        index,
+        AutodartsSensorEntityDescription(
+            key=f"camera_{index}_fps",
+            translation_key="camera_fps",
+            translation_placeholders={"number": str(index + 1)},
+            native_unit_of_measurement="fps",
+            state_class=SensorStateClass.MEASUREMENT,
+            entity_category=EntityCategory.DIAGNOSTIC,
+            entity_registry_enabled_default=False,
+            value_fn=partial(_camera_fps, index=index),
+            telemetry=True,
+        ),
+    )
 
 
 LOCAL_SENSORS = (
@@ -668,8 +666,7 @@ class AutodartsCameraSensor(AutodartsLocalSensor):
     @property
     def available(self) -> bool:
         """Like the camera, unavailable once the board has fewer cameras."""
-        count = (self.coordinator.data or {}).get("settings", {}).get("camera_count", 0)
-        return super().available and self._index < count
+        return super().available and self._index < camera_count(self.coordinator)
 
 
 class AutodartsVisitSensor(AutodartsLocalSensor):
@@ -718,7 +715,7 @@ class AutodartsVisitSensor(AutodartsLocalSensor):
         }
 
 
-class AutodartsTrainingSensor(AutodartsLocalEntity, SensorEntity):
+class AutodartsTrainingSensor(AutodartsStoredEntity, SensorEntity):
     """Locally stored session totals remain readable while the board is offline."""
 
     def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
@@ -736,10 +733,6 @@ class AutodartsTrainingSensor(AutodartsLocalEntity, SensorEntity):
             # or an undone visit takes points and darts back, so they can
             # also go down.
             self._attr_state_class = SensorStateClass.TOTAL
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def last_reset(self) -> datetime | None:
@@ -777,7 +770,7 @@ class AutodartsTrainingDartsSensor(AutodartsTrainingSensor):
         return {"hits": self._session()["hits"]}
 
 
-class AutodartsLastSessionSensor(AutodartsLocalEntity, SensorEntity):
+class AutodartsLastSessionSensor(AutodartsStoredEntity, SensorEntity):
     """The 3-dart average of the last finished session, one value per session.
 
     Its history shows the progress from session to session; the attributes
@@ -794,10 +787,6 @@ class AutodartsLastSessionSensor(AutodartsLocalEntity, SensorEntity):
         super().__init__(coordinator, "training_last_session")
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def native_value(self) -> float | None:
         history = self.coordinator.training.history
         return history[0]["average"] if history else None
@@ -812,7 +801,7 @@ class AutodartsLastSessionSensor(AutodartsLocalEntity, SensorEntity):
         }
 
 
-class AutodartsPracticeSensor(AutodartsLocalEntity, SensorEntity):
+class AutodartsPracticeSensor(AutodartsStoredEntity, SensorEntity):
     """Remaining score and checkout of X01, the target of Cricket or a training game."""
 
     # Darts, scores, results and the match summary are for cards; the
@@ -824,10 +813,6 @@ class AutodartsPracticeSensor(AutodartsLocalEntity, SensorEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
         super().__init__(coordinator, f"practice_{key}")
         self._key = key
-
-    @property
-    def available(self) -> bool:
-        return True
 
     def _game(self) -> dict[str, Any]:
         """The snapshot the coordinator published; computed only before the first."""
@@ -865,7 +850,7 @@ PRACTICE_STATISTICS = {
 }
 
 
-class AutodartsPracticeStatistic(AutodartsLocalEntity, SensorEntity):
+class AutodartsPracticeStatistic(AutodartsStoredEntity, SensorEntity):
     """First-9 average, checkout and doubles rate of the last ten legs."""
 
     def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
@@ -877,10 +862,6 @@ class AutodartsPracticeStatistic(AutodartsLocalEntity, SensorEntity):
         else:
             self._attr_state_class = SensorStateClass.MEASUREMENT
             self._attr_suggested_display_precision = 1
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> float | int | None:
@@ -923,12 +904,8 @@ class RevisionCache:
         return self._value
 
 
-class AutodartsRecordsEntity(AutodartsLocalEntity, SensorEntity):
+class AutodartsRecordsEntity(AutodartsStoredEntity, SensorEntity):
     """Personal bests, darts per day and the streak; kept across restarts."""
-
-    @property
-    def available(self) -> bool:
-        return True
 
     def _records(self) -> dict[str, Any]:
         return self.coordinator.records.snapshot(dt_util.now().date())
@@ -1000,7 +977,7 @@ class AutodartsStreak(AutodartsRecordsEntity):
         }
 
 
-class AutodartsPlayerProfiles(AutodartsLocalEntity, SensorEntity):
+class AutodartsPlayerProfiles(AutodartsStoredEntity, SensorEntity):
     """Named players with their statistics and personal bests."""
 
     _unrecorded_attributes = frozenset({"players"})
@@ -1009,10 +986,6 @@ class AutodartsPlayerProfiles(AutodartsLocalEntity, SensorEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "player_profiles")
         self._cache = RevisionCache()
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> int:
@@ -1036,7 +1009,7 @@ class AutodartsPlayerProfiles(AutodartsLocalEntity, SensorEntity):
         }
 
 
-class AutodartsDoubles(AutodartsLocalEntity, SensorEntity):
+class AutodartsDoubles(AutodartsStoredEntity, SensorEntity):
     """The double hit best, with the hit rate of every double and how often every
     double was hit by any dart."""
 
@@ -1044,10 +1017,6 @@ class AutodartsDoubles(AutodartsLocalEntity, SensorEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "favourite_double")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> str | None:
@@ -1064,7 +1033,7 @@ class AutodartsDoubles(AutodartsLocalEntity, SensorEntity):
         }
 
 
-class AutodartsLastMatch(AutodartsLocalEntity, SensorEntity):
+class AutodartsLastMatch(AutodartsStoredEntity, SensorEntity):
     """When the last match of several players ended, with the recent matches."""
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
@@ -1073,10 +1042,6 @@ class AutodartsLastMatch(AutodartsLocalEntity, SensorEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "last_match")
         self._cache = RevisionCache()
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> datetime | None:
@@ -1102,7 +1067,7 @@ class AutodartsLastMatch(AutodartsLocalEntity, SensorEntity):
         }
 
 
-class AutodartsTournament(AutodartsLocalEntity, SensorEntity):
+class AutodartsTournament(AutodartsStoredEntity, SensorEntity):
     """The stage of the tournament, with its matches and its table or bracket."""
 
     _attr_device_class = SensorDeviceClass.ENUM
@@ -1115,10 +1080,6 @@ class AutodartsTournament(AutodartsLocalEntity, SensorEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "tournament")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> str:
@@ -1150,7 +1111,7 @@ class AutodartsCorrectionRate(AutodartsLocalEntity, SensorEntity):
         return {"darts": quality["darts"], "corrected": quality["corrected"]}
 
 
-class AutodartsOnlineBridgeSensor(AutodartsLocalEntity, RestoreEntity, SensorEntity):
+class AutodartsOnlineBridgeSensor(AutodartsStoredEntity, RestoreEntity, SensorEntity):
     """When the last moment of an online match arrived, to check the bridge."""
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
@@ -1161,11 +1122,6 @@ class AutodartsOnlineBridgeSensor(AutodartsLocalEntity, RestoreEntity, SensorEnt
     ) -> None:
         super().__init__(coordinator, ONLINE_SENSOR_KEY)
         self._bridge = bridge
-
-    @property
-    def available(self) -> bool:
-        # Online matches do not need the board.
-        return True
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -1193,7 +1149,7 @@ class AutodartsOnlineBridgeSensor(AutodartsLocalEntity, RestoreEntity, SensorEnt
         }
 
 
-class AutodartsWeeklyReport(AutodartsLocalEntity, SensorEntity):
+class AutodartsWeeklyReport(AutodartsStoredEntity, SensorEntity):
     """Darts of the running report week, with the week so far and the last report."""
 
     _attr_native_unit_of_measurement = "darts"
@@ -1203,10 +1159,6 @@ class AutodartsWeeklyReport(AutodartsLocalEntity, SensorEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "weekly_report")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def last_reset(self) -> datetime | None:
@@ -1222,7 +1174,7 @@ class AutodartsWeeklyReport(AutodartsLocalEntity, SensorEntity):
         return {key: value for key, value in snapshot.items() if key != "darts"}
 
 
-class AutodartsAchievements(AutodartsLocalEntity, SensorEntity):
+class AutodartsAchievements(AutodartsStoredEntity, SensorEntity):
     """Achievements unlocked by all players, with every player's badges."""
 
     _attr_native_unit_of_measurement = "badges"
@@ -1231,10 +1183,6 @@ class AutodartsAchievements(AutodartsLocalEntity, SensorEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "achievements")
         self._cache = RevisionCache()
-
-    @property
-    def available(self) -> bool:
-        return True
 
     def _achievements(self) -> dict[str, Any]:
         """Worked out once for the state and the attributes of each change."""

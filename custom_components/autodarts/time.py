@@ -7,7 +7,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsStoredEntity
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 
@@ -23,17 +23,13 @@ async def async_setup_entry(
         async_add_entities([AutodartsReportTime(coordinator)])
 
 
-class AutodartsReportTime(AutodartsLocalEntity, TimeEntity):
+class AutodartsReportTime(AutodartsStoredEntity, TimeEntity):
     """Local time of the weekly report, to the minute; midnight by default."""
 
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "weekly_report_time")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> time:

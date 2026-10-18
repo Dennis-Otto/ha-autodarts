@@ -5,8 +5,9 @@ import random
 from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.autodarts.board import RADIUS_MM
 from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.positions import AIMS, BOARD_RADIUS_MM
+from custom_components.autodarts.positions import AIMS
 
 from .local_helpers import (
     BULL,
@@ -191,7 +192,7 @@ async def test_the_aim_map_is_worked_out_beside_the_event_loop(
     """The restored darts of a player give the profile its best aim, worked out in
     an executor, and so does every visit; the cards ask for the aim model only
     for the aim map."""
-    scale = BOARD_RADIUS_MM * 10
+    scale = RADIUS_MM * 10
     log = [
         value
         for x, y, aim in normal(random.Random(1), ["T20"], 40, sd=(5, 5))

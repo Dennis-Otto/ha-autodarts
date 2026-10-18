@@ -43,6 +43,16 @@ Nothing may move while a game goes on. A line that comes and goes, such as a rou
 | Pad | `PadCard`, `padHtml`, `PAD_CSS` | Correcting a dart of the visit on the live card and the scoreboard: keys or board, loupe, pinch and zoom. |
 | Icons | `ICON_PATHS` | Lines in the colour of their text. |
 
+## Shared modules of the integration
+
+The integration has building blocks of its own, which every module uses instead of a copy: a change to one reaches every game, statistic and entity.
+
+| Module | What it holds | Use it for |
+| --- | --- | --- |
+| `board.py` | The rings of the board (`BULL_MM`, `OUTER_BULL_MM`, `TREBLE_MM` and `DOUBLE_MM` as their inner and outer edge, `RADIUS_MM`), the numbers in `SECTORS`, and `bed_name`, `top_bed`, `segment_at`, `aim_point` and `distance_mm` | Every name of a bed and every point on the board: the bot, the dart log, the aim map, the party games and the actions that enter a dart by its position. The cards draw the same board (`R` in `autodarts-card.js`), and `tests/test_board.py` fails when the two differ or a module brings its own geometry. |
+| `entity.py` | `AutodartsLocalEntity`, `AutodartsStoredEntity`, `camera_count` and `async_track_cameras` | An entity of a board; an entity of what Home Assistant keeps itself, such as a setting, a game, a session or a statistic, which stays available while the board is away; the entities of each camera, added as soon as the board reports the camera. |
+| `scoring.py` | `score`, `fits`, `average`, `rate` and `bounded_count` | The points of a dart, the In and Out modes, averages and hit rates, and a count or setting read back from a stored file. |
+
 ## Tests
 
 Python 3.14 and Node.js 24:

@@ -7,7 +7,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsStoredEntity
 from .local_coordinator import AutodartsLocalCoordinator
 from .practice import PARTY_PLAYERS
 from .profiles import NAME_LENGTH, clean_name
@@ -34,7 +34,7 @@ async def async_setup_entry(
         )
 
 
-class AutodartsPlayerName(AutodartsLocalEntity, TextEntity):
+class AutodartsPlayerName(AutodartsStoredEntity, TextEntity):
     """An empty name shows as "Player N" on the card."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -47,10 +47,6 @@ class AutodartsPlayerName(AutodartsLocalEntity, TextEntity):
         self._attr_translation_key = "practice_player"
         self._attr_translation_placeholders = {"number": str(index + 1)}
         self._index = index
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> str:
@@ -69,7 +65,7 @@ class AutodartsPlayerName(AutodartsLocalEntity, TextEntity):
             )
 
 
-class AutodartsTournamentPlayers(AutodartsLocalEntity, TextEntity):
+class AutodartsTournamentPlayers(AutodartsStoredEntity, TextEntity):
     """The players of the next tournament, their names separated by commas;
     eight at most, so the list always fits into the 255 characters of a state."""
 
@@ -79,10 +75,6 @@ class AutodartsTournamentPlayers(AutodartsLocalEntity, TextEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "tournament_players")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> str:

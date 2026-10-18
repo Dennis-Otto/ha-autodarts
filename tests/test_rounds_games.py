@@ -6,6 +6,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from custom_components.autodarts.board import RADIUS_MM, TREBLE_MM
 from custom_components.autodarts.party import (
     Baseball,
     CountUp,
@@ -43,9 +44,11 @@ def test_inner_singles_lie_inside_the_treble_ring():
     assert inner_single(None) is None
     assert inner_single((0.0, 0.3)) is True
     assert inner_single((0.4, 0.5)) is False
-    # The middle of the treble ring, 99 to 107 mm from the centre, splits them.
-    assert inner_single((0.0, 102.9 / 170)) is True
-    assert inner_single((0.0, 103.1 / 170)) is False
+    # The middle of the board's treble ring, 97 to 107 mm from the centre,
+    # splits them.
+    assert TREBLE_MM == (97, 107)
+    assert inner_single((0.0, 101.9 / RADIUS_MM)) is True
+    assert inner_single((0.0, 102.1 / RADIUS_MM)) is False
 
 
 def test_the_last_dart_of_a_golf_visit_counts():

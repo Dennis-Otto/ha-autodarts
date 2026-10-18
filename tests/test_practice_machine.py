@@ -15,7 +15,8 @@ from hypothesis.stateful import (
     rule,
 )
 
-from custom_components.autodarts.bot import Bot, aim, bed_name
+from custom_components.autodarts.board import bed_name
+from custom_components.autodarts.bot import Bot, aim
 from custom_components.autodarts.cricket import CRICKET_GAMES, MARKS_TO_CLOSE
 from custom_components.autodarts.drills import DRILLS, RESULTS
 from custom_components.autodarts.manual import ManualDarts, parse_bed

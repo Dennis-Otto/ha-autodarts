@@ -17,6 +17,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
+from .board import RADIUS_MM, TREBLE_MM, distance_mm
 from .scoring import BULL, MODES, STRAIGHT, fits, score
 from .training import hit_key
 
@@ -49,8 +50,6 @@ WORLD_NUMBERS = 20
 GOTCHA_TARGETS = (101, 1001)
 GOTCHA_TARGET = 301
 KILLER_LIVES = 3
-# Board Manager positions are relative to the outer edge of the double ring.
-BOARD_RADIUS_MM = 170
 # The bullseye beats the outer bull, which beats every other bed of the board;
 # a dart off the board comes last.
 BULL_BEDS = {"BULL": 3, "25": 2}
@@ -63,18 +62,11 @@ MAX_ROUNDS = 20
 # treble two strokes, then the inner and the outer single.
 GOLF_STROKES = {2: 1, 3: 2}
 GOLF_INNER, GOLF_OUTER, GOLF_MISS = 3, 4, 5
-# Singles closer to the centre than the middle of the treble ring (99 to
-# 107 mm) are inner singles.
-INNER_SINGLE = 103 / BOARD_RADIUS_MM
+# Singles closer to the centre than the middle of the treble ring are inner
+# singles; positions are relative to the outer edge of the double ring.
+INNER_SINGLE = sum(TREBLE_MM) / 2 / RADIUS_MM
 # A visit that ends without a dart, when the player passes: three misses.
 MISSES = [{"number": 0, "multiplier": 0}] * 3
-
-
-def distance_mm(position: tuple[float, float] | None) -> float | None:
-    """How far a dart landed from the centre of the board, in millimetres."""
-    if position is None:
-        return None
-    return round(math.hypot(*position) * BOARD_RADIUS_MM, 1)
 
 
 def inner_single(position: tuple[float, float] | None) -> bool | None:

@@ -4,13 +4,15 @@ To show a camera, the integration never starts or stops the detection or the
 camera streams.
 """
 
+from functools import partial
+
 from aiohttp import hdrs, web
 from homeassistant.components.camera import Camera
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsLocalEntity, async_track_cameras, camera_count
 from .errors import AutodartsApiError
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
@@ -27,22 +29,13 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data.local
-    if coordinator and not coordinator.manual_board:
-        known: set[int] = set()
-
-        @callback
-        def discover_cameras() -> None:
-            count = (coordinator.data or {}).get("settings", {}).get("camera_count", 0)
-            new = set(range(count)) - known
-            if not new:
-                return
-            known.update(new)
-            async_add_entities(
-                [AutodartsCamera(coordinator, index) for index in sorted(new)]
-            )
-
-        discover_cameras()
-        entry.async_on_unload(coordinator.async_add_listener(discover_cameras))
+    if coordinator:
+        async_track_cameras(
+            entry,
+            coordinator,
+            partial(AutodartsCamera, coordinator),
+            async_add_entities,
+        )
 
 
 class AutodartsCamera(AutodartsLocalEntity, Camera):
@@ -60,8 +53,7 @@ class AutodartsCamera(AutodartsLocalEntity, Camera):
 
     @property
     def available(self) -> bool:
-        count = (self.coordinator.data or {}).get("settings", {}).get("camera_count", 0)
-        return super().available and self._index < count
+        return super().available and self._index < camera_count(self.coordinator)
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None

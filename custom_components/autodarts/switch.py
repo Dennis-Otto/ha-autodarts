@@ -11,7 +11,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsLocalEntity, AutodartsStoredEntity
 from .local_api import CONFIG_SWITCHES
 from .local_coordinator import AutodartsLocalCoordinator
 from .practice import OPTIONS as PRACTICE_OPTIONS
@@ -97,7 +97,7 @@ class AutodartsSwitch(AutodartsLocalEntity, SwitchEntity):
         await self._async_set(False)
 
 
-class AutodartsStuckTakeoutSwitch(AutodartsLocalEntity, SwitchEntity):
+class AutodartsStuckTakeoutSwitch(AutodartsStoredEntity, SwitchEntity):
     """Reset the board when it keeps a takeout without darts, which Board
     Manager 2.0.2 sometimes does."""
 
@@ -105,11 +105,6 @@ class AutodartsStuckTakeoutSwitch(AutodartsLocalEntity, SwitchEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "free_stuck_takeout")
-
-    @property
-    def available(self) -> bool:
-        # A setting of Home Assistant, which can change while the board is away.
-        return True
 
     @property
     def is_on(self) -> bool:
@@ -122,7 +117,7 @@ class AutodartsStuckTakeoutSwitch(AutodartsLocalEntity, SwitchEntity):
         self.coordinator.async_set_free_stuck_takeout(False)
 
 
-class AutodartsTrainingSwitch(AutodartsLocalEntity, SwitchEntity):
+class AutodartsTrainingSwitch(AutodartsStoredEntity, SwitchEntity):
     """Start or end a training session, or let the first dart start one."""
 
     def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
@@ -130,11 +125,6 @@ class AutodartsTrainingSwitch(AutodartsLocalEntity, SwitchEntity):
         self._key = key
         if key == "training_auto_start":
             self._attr_entity_category = EntityCategory.CONFIG
-
-    @property
-    def available(self) -> bool:
-        # Sessions live in Home Assistant and work while the board is offline.
-        return True
 
     @property
     def is_on(self) -> bool:
@@ -156,7 +146,7 @@ class AutodartsTrainingSwitch(AutodartsLocalEntity, SwitchEntity):
             await self.coordinator.async_set_auto_start(False)
 
 
-class AutodartsPracticeSwitch(AutodartsLocalEntity, SwitchEntity):
+class AutodartsPracticeSwitch(AutodartsStoredEntity, SwitchEntity):
     """A rule of the practice game."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -164,10 +154,6 @@ class AutodartsPracticeSwitch(AutodartsLocalEntity, SwitchEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator, option: str) -> None:
         super().__init__(coordinator, f"practice_{option}")
         self._option = option
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def is_on(self) -> bool:
@@ -186,17 +172,13 @@ class AutodartsPracticeSwitch(AutodartsLocalEntity, SwitchEntity):
         await self.coordinator.async_set_practice_option(self._option, False)
 
 
-class AutodartsAchievementsSwitch(AutodartsLocalEntity, SwitchEntity):
+class AutodartsAchievementsSwitch(AutodartsStoredEntity, SwitchEntity):
     """Unlock the players' achievements and announce them."""
 
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "achievements_enabled")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def is_on(self) -> bool:
@@ -209,7 +191,7 @@ class AutodartsAchievementsSwitch(AutodartsLocalEntity, SwitchEntity):
         await self.coordinator.async_set_achievements(False)
 
 
-class AutodartsTournamentSwitch(AutodartsLocalEntity, SwitchEntity):
+class AutodartsTournamentSwitch(AutodartsStoredEntity, SwitchEntity):
     """A setting of the next tournament: the third-place match or a random draw."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -217,10 +199,6 @@ class AutodartsTournamentSwitch(AutodartsLocalEntity, SwitchEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator, option: str) -> None:
         super().__init__(coordinator, f"tournament_{option}")
         self._option = option
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def is_on(self) -> bool:
