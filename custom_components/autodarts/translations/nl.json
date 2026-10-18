@@ -1244,6 +1244,21 @@
           "board_unavailable": "Het bord reageert niet meer op het nieuwe adres. Wacht op de volgende melding, of open de integratie en kies **Opnieuw configureren**."
         }
       }
+    },
+    "blueprint_edited": {
+      "title": "Blueprint niet bijgewerkt: {name}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Blueprint vervangen",
+            "description": "Het bestand `{path}` komt met geen enkele versie van deze blueprint overeen die de Autodarts-integratie kent: je hebt het gewijzigd of uit een nieuwere stand van de repository geïmporteerd. Daarom heeft de update van de integratie het gelaten zoals het is, terwijl de integratie de versie van {name} meebrengt die erbij hoort.\n\nJe bestand door die versie vervangen? Je wijzigingen in het bestand gaan verloren; de automatiseringen die van de blueprint zijn gemaakt, behouden hun instellingen en worden opnieuw geladen. Negeer deze melding om je bestand te houden."
+          }
+        },
+        "abort": {
+          "not_shipped": "Deze versie van de integratie brengt deze blueprint niet meer mee, dus je bestand blijft zoals het is.",
+          "write_failed": "Home Assistant kon het bestand niet schrijven. Controleer of er in de blueprintmap van je configuratie geschreven kan worden en probeer het opnieuw."
+        }
+      }
     }
   },
   "services": {

@@ -3272,7 +3272,7 @@ def manual_voice_animation(page: Page, entry: str) -> None:
         "id": "autodarts_voice_darts",
         "alias": "Darts by voice",
         "use_blueprint": {
-            "path": "autodarts/enter_darts_by_voice.yaml",
+            "path": "Dennis-Otto/enter_darts_by_voice.yaml",
             "input": {"board": entry},
         },
     }

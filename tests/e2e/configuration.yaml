@@ -17,17 +17,17 @@ automation:
   - id: start_game_by_voice
     alias: Start a game by voice
     use_blueprint:
-      path: autodarts/start_game_by_voice.yaml
+      path: Dennis-Otto/start_game_by_voice.yaml
       input: {}
   - id: enter_darts_by_voice
     alias: Enter darts by voice
     use_blueprint:
-      path: autodarts/enter_darts_by_voice.yaml
+      path: Dennis-Otto/enter_darts_by_voice.yaml
       input: {}
   - id: ask_about_darts
     alias: Ask Assist about your darts
     use_blueprint:
-      path: autodarts/ask_about_darts.yaml
+      path: Dennis-Otto/ask_about_darts.yaml
       input: {}
 config:
 conversation:

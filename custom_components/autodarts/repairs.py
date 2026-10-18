@@ -1,4 +1,5 @@
-"""Repairs the integration can fix itself: calibrate, or follow a moved board."""
+"""Repairs the integration can fix itself: calibrate, follow a moved board, or
+replace a changed blueprint with the one of the release."""
 
 from __future__ import annotations
 
@@ -20,6 +21,8 @@ from .const import CONF_BOARD_ID, CONF_HOST, CONF_PORT, DEFAULT_PORT, DOMAIN
 from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
 from .local_coordinator import AutodartsLocalCoordinator
+from .shipped_blueprints import ISSUE as BLUEPRINT_EDITED
+from .shipped_blueprints import async_restore_blueprint
 
 
 def address_title(entry: ConfigEntry, host: str) -> str:
@@ -135,14 +138,49 @@ class BoardMovedFlow(RepairsFlow):
         return self.async_create_entry(data={})
 
 
+class BlueprintEditedFlow(RepairsFlow):
+    """A blueprint the user changed: replace it with the one of the release once
+    confirmed, or keep it by ignoring the repair."""
+
+    def __init__(self, data: dict[str, Any]) -> None:
+        self._file = str(data.get("file", ""))
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> RepairsFlowResult:
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> RepairsFlowResult:
+        if user_input is None:
+            issue = ir.async_get(self.hass).async_get_issue(DOMAIN, self.issue_id)
+            return self.async_show_form(
+                step_id="confirm",
+                description_placeholders=issue.translation_placeholders
+                if issue
+                else None,
+            )
+        try:
+            restored = await async_restore_blueprint(self.hass, self._file)
+        except OSError:
+            return self.async_abort(reason="write_failed")
+        if not restored:
+            return self.async_abort(reason="not_shipped")
+        return self.async_create_entry(data={})
+
+
 async def async_create_fix_flow(
     hass: HomeAssistant, issue_id: str, data: dict[str, Any] | None
 ) -> RepairsFlow:
-    """The flow of a fixable issue, named <issue>_<entry_id>."""
+    """The flow of a fixable issue, named <issue>_<entry_id>, or for a blueprint
+    <issue>_<file>_<version>."""
     data = data or {}
     if issue_id.startswith("board_moved_"):
         return BoardMovedFlow(data)
     if issue_id.startswith("calibration_"):
         return CalibrationFlow(str(data.get("entry_id", "")))
+    if issue_id.startswith(BLUEPRINT_EDITED):
+        return BlueprintEditedFlow(data)
     # Only the issues above are fixable; any other one has nothing to confirm.
     return ConfirmRepairFlow()

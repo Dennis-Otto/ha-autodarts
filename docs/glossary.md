@@ -79,7 +79,7 @@ The words of darts and of this integration, as the documentation, the entities a
 | **Automatic dashboard** | The dashboard the integration builds for every board | Automatisches Dashboard |
 | **Highlight gallery** | The photos of the highlight photo blueprint in the media browser | Highlight-Galerie |
 | **Online bridge** | The optional link that brings moments of online matches from the browser extension Tools for Autodarts into Home Assistant | Online-Brücke |
-| **Blueprint** | A ready-made automation to import and fill in | Blueprint |
+| **Blueprint** | A ready-made automation that comes with the integration, to choose and fill in | Blueprint |
 
 ## Writing conventions
 

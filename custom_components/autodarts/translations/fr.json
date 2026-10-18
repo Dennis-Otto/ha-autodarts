@@ -1244,6 +1244,21 @@
           "board_unavailable": "La cible ne répond plus à la nouvelle adresse. Attendez le prochain message, ou ouvrez l'intégration et choisissez **Reconfigurer**."
         }
       }
+    },
+    "blueprint_edited": {
+      "title": "Blueprint non mis à jour : {name}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Remplacer le blueprint",
+            "description": "Le fichier `{path}` ne correspond à aucune version de ce blueprint connue de l'intégration Autodarts : vous l'avez modifié, ou importé depuis un état plus récent du dépôt. La mise à jour de l'intégration l'a donc laissé tel quel, tandis que l'intégration apporte la version de {name} qui lui correspond.\n\nRemplacer votre fichier par cette version ? Vos modifications du fichier seront perdues ; les automatisations créées à partir du blueprint conservent leurs paramètres et sont rechargées. Pour garder votre fichier, ignorez ce message."
+          }
+        },
+        "abort": {
+          "not_shipped": "Cette version de l'intégration n'apporte plus ce blueprint, votre fichier reste donc tel quel.",
+          "write_failed": "Home Assistant n'a pas pu écrire le fichier. Vérifiez que le dossier des blueprints de votre configuration est accessible en écriture, puis réessayez."
+        }
+      }
     }
   },
   "services": {

@@ -1244,6 +1244,21 @@
           "board_unavailable": "La diana ya no responde en la nueva dirección. Espera al siguiente aviso, o abre la integración y elige **Reconfigurar**."
         }
       }
+    },
+    "blueprint_edited": {
+      "title": "Blueprint no actualizado: {name}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Reemplazar el blueprint",
+            "description": "El archivo `{path}` no coincide con ninguna versión de este blueprint que conozca la integración Autodarts: lo cambiaste o lo importaste de un estado más reciente del repositorio. Por eso la actualización de la integración lo dejó como está, mientras que la integración trae la versión de {name} que le corresponde.\n\n¿Reemplazar tu archivo por esa versión? Tus cambios en el archivo se pierden; las automatizaciones creadas a partir del blueprint conservan su configuración y se vuelven a cargar. Para conservar tu archivo, ignora este aviso."
+          }
+        },
+        "abort": {
+          "not_shipped": "Esta versión de la integración ya no trae este blueprint, así que tu archivo se queda como está.",
+          "write_failed": "Home Assistant no pudo escribir el archivo. Comprueba que se puede escribir en la carpeta de blueprints de tu configuración e inténtalo de nuevo."
+        }
+      }
     }
   },
   "services": {

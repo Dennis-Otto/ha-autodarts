@@ -261,6 +261,16 @@ Die Texte der Karten sind ein Modul je Sprache in `custom_components/autodarts/f
 
 Die Integration liefert jede Datei des Ordners unter `/autodarts/<Version>-<Prüfsumme>/<Pfad>` aus, komprimiert, und gibt jeder Seite beide Module unter diesen Adressen (`card.py`). Relative Importe behalten den Ordner. Ändert sich eine Datei, auch nur ein Text, bekommen alle neue Adressen, und kein Browser behält einen alten Text neben einer neuen Karte. Der Ordner einer vergangenen Version und die Adressen ohne Version liefern die heutigen Dateien, die Browser bei jedem Laden neu anfragen.
 
+## Blueprints im Release-Paket
+
+HACS installiert das Paket eines Release, das nur den Ordner der Integration enthält. Deshalb reisen die Blueprints in `custom_components/autodarts/blueprints/` mit, einer Kopie von `blueprints/` ([Entscheidung 0023](decisions/0023-blueprints-ship-with-the-integration.md), auf Englisch). `custom_components/autodarts/blueprint_versions.json` hält einen Fingerabdruck jeder Version jedes Blueprints, die es auf main gab. Daran erkennt die Integration einen Blueprint, den niemand geändert hat, und aktualisiert ihn, siehe `shipped_blueprints.py` und die [Updates der Blueprints](automations.de.md#updates-der-blueprints). Nach einer Änderung an einem Blueprint:
+
+```sh
+python scripts/ship_blueprints.py
+```
+
+Das Skript kopiert die Blueprints und ergänzt den Fingerabdruck jeder neuen Version; `--history` ergänzt auch die jeder Version in Git. `tests/test_shipped_blueprints.py` scheitert mit diesem Befehl, bis Kopie und Fingerabdrücke da sind. Ein Fingerabdruck bleibt für immer in der Datei, damit die Integration Installationen jeder früheren Version erkennt.
+
 ## Mutationstests
 
 Tests können eine Zeile ausführen, ohne zu prüfen, was sie tut. Jeden Samstag findet der Workflow **Mutation** (`mutation.yml`, den der Blueprint pflegt) solche Zeilen: [mutmut](https://github.com/boxed/mutmut) ändert den Code auf Tausende kleine Arten, die Mutanten, etwa `<=` statt `<` oder eine andere Zahl, und führt gegen jeden Mutanten die Tests aus, die die geänderte Funktion aufrufen. Ein Test, der scheitert, erledigt den Mutanten; ein Mutant, den jeder Test durchlässt, überlebt und zeigt auf eine Zeile, die die Tests ausführen, aber nicht prüfen. Die Zusammenfassung des Laufs zeigt den Wert, den Anteil der Mutanten, die ein Test erledigt hat, und die überlebenden Mutanten; ein niedriger Wert lässt nichts fehlschlagen. Der Workflow läuft auch auf Abruf über den Reiter Actions.

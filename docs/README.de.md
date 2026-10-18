@@ -121,7 +121,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 ### Automatisieren
 
 - Board-Ereignisse für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match, jede Bestleistung und mehr
-- Fünfzehn Blueprints: Lichtshow, Spielstand-Anzeige, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen, Spielstart und Darts per Sprache sowie Antworten von Assist zu deinen Darts ([importieren](#blueprints))
+- Fünfzehn Blueprints: Lichtshow, Spielstand-Anzeige, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen, Spielstart und Darts per Sprache sowie Antworten von Assist zu deinen Darts, die mit der Integration kommen und mit ihr aktuell bleiben ([ansehen](#blueprints))
 - Jedes Spiel mit einer Aktion starten, auch per Sprache, Assist deine Darts sagen, wie am Dartautomaten, und es fragen: „Wie ist mein Schnitt heute?“
 - Online-Matches auf play.autodarts.io über eine optionale Brücke *(experimentell)*
 
@@ -267,7 +267,7 @@ Starte die Erkennung, wenn du den Dartraum betrittst, stoppe sie, wenn du gehst,
 
 ## Blueprints
 
-Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
+Die Integration bringt jeden Blueprint mit und hält die, die du nicht geändert hast, mit jedem ihrer Updates aktuell. Wähle einen auf der Blueprint-Seite von Home Assistant, wähle dein Board und fertig; die Buttons importieren einen von GitHub, etwa einen, den du gelöscht hast.
 
 - **Light show.** Deine WLED-Presets oder Raumlichter bei einer 180, einem High Finish, beim Überwerfen, einem gewonnenen Leg oder Match, einer Bestleistung, einem Erfolg, dem Sieger eines Turniers und mehr, und danach zurück zu deinem normalen Licht.
 

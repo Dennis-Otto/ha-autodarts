@@ -52,6 +52,7 @@ from .report import BoardReports
 from .runtime import AutodartsConfigEntry, AutodartsRuntimeData
 from .sensor import SYSTEM_SENSORS
 from .services import async_setup_services
+from .shipped_blueprints import async_install_blueprints
 from .storage import TrainingStore
 from .websocket import async_setup_websocket
 
@@ -69,11 +70,12 @@ V2_ONLY = (
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Provide the dashboard card, the actions and the positions for the cards
-    once, independent of entries."""
+    """Provide the dashboard card, the actions, the positions for the cards and
+    the blueprints once, independent of entries."""
     await async_register_card(hass)
     async_setup_services(hass)
     async_setup_websocket(hass)
+    await async_install_blueprints(hass)
     return True
 
 
