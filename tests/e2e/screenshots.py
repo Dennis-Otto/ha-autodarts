@@ -1929,7 +1929,7 @@ def heatmap_animation(page: Page) -> None:
     show(
         "button[data-source='Alex']",
         "button[data-source=Alex][aria-pressed=true]",
-        2520,
+        2400,
     )
     show("button[data-mode='beds']", "button[data-mode=beds][aria-pressed=true]", 2400)
     # The first frame only prepared the session; the animation starts with its beds.
