@@ -1215,6 +1215,21 @@
           "board_unavailable": "The board no longer answers at the new address. Wait for the next notice, or open the integration and choose **Reconfigure**."
         }
       }
+    },
+    "blueprint_edited": {
+      "title": "Blueprint not updated: {name}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Replace the blueprint",
+            "description": "The file `{path}` matches no version of this blueprint that the Autodarts integration knows: you changed it, or imported it from a newer state of the repository. So the update of the integration left it as it is, while the integration brings the version of {name} that belongs to it.\n\nReplace your file with that version? Your changes to the file are lost; the automations made from the blueprint keep their settings and reload. To keep your file, ignore this notice."
+          }
+        },
+        "abort": {
+          "not_shipped": "This version of the integration no longer brings this blueprint, so your file stays as it is.",
+          "write_failed": "Home Assistant could not write the file. Check that the blueprints folder of your configuration can be written to, and try again."
+        }
+      }
     }
   },
   "services": {

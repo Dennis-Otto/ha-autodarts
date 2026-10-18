@@ -1215,6 +1215,21 @@
           "board_unavailable": "Das Board antwortet unter der neuen Adresse nicht mehr. Warte auf den nächsten Hinweis oder öffne die Integration und wähle **Neu konfigurieren**."
         }
       }
+    },
+    "blueprint_edited": {
+      "title": "Blueprint nicht aktualisiert: {name}",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Blueprint ersetzen",
+            "description": "Die Datei `{path}` gleicht keiner Version dieses Blueprints, die die Autodarts-Integration kennt: Du hast sie geändert oder aus einem neueren Stand des Repositorys importiert. Deshalb hat das Update der Integration sie gelassen, wie sie ist, während die Integration die Version von {name} mitbringt, die zu ihr gehört.\n\nDeine Datei durch diese Version ersetzen? Deine Änderungen an der Datei gehen verloren; die Automationen aus dem Blueprint behalten ihre Einstellungen und werden neu geladen. Um deine Datei zu behalten, ignoriere diesen Hinweis."
+          }
+        },
+        "abort": {
+          "not_shipped": "Diese Version der Integration bringt diesen Blueprint nicht mehr mit, deshalb bleibt deine Datei, wie sie ist.",
+          "write_failed": "Home Assistant konnte die Datei nicht schreiben. Prüfe, ob der Blueprint-Ordner deiner Konfiguration beschreibbar ist, und versuche es erneut."
+        }
+      }
     }
   },
   "services": {

@@ -133,7 +133,7 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 ### Automate
 
 - Board events for every dart, visit, takeout, bust, won leg and match, personal best and more
-- Fifteen blueprints: light show, score display, dart and practice callers, highlight photos, reports, alerts, routines, games started and darts entered by voice, and answers from Assist about your darts ([import them](#blueprints))
+- Fifteen blueprints: light show, score display, dart and practice callers, highlight photos, reports, alerts, routines, games started and darts entered by voice, and answers from Assist about your darts, which come with the integration and update with it ([see them](#blueprints))
 - Start any game with one action, also by voice, tell Assist your darts, as at a dart machine, and ask it "What is my average today?"
 - Online matches on play.autodarts.io through an optional bridge *(experimental)*
 
@@ -181,7 +181,7 @@ How this integration compares with the Autodarts app and its browser extension, 
 
 ## Blueprints
 
-Import a blueprint with one click, choose your board and you're done.
+The integration brings every blueprint along and keeps those you haven't changed up to date with each of its updates. Choose one on the blueprints page of Home Assistant, select your board and you're done; the buttons import one from GitHub, for example one you deleted.
 
 - **Light show.** Your WLED presets or room lights for a 180, a high finish, a bust, a won leg or match, a personal best, an achievement, the winner of a tournament and more, and back to your normal light afterwards.
 

@@ -71,7 +71,7 @@ If the board misreads a dart, tap it in the visit and correct it. The [games gui
 
 ## What next
 
-- **Light and sound:** the [blueprints](automations.md#blueprints) flash your lights on a 180, call the scores or take a photo of a highlight. Each one is a single click to import.
+- **Light and sound:** the [blueprints](automations.md#blueprints) flash your lights on a 180, call the scores or take a photo of a highlight. They come with the integration and wait on the blueprints page of Home Assistant.
 - **Your progress:** personal bests, a heatmap of your darts, trends and achievements are in the [statistics guide](statistics.md).
 - **Friends over:** teams, handicaps and tournaments for up to eight players are in the [games guide](games.md).
 

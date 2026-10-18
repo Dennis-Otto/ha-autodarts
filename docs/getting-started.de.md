@@ -71,7 +71,7 @@ Erkennt das Board einen Dart falsch, tippst du ihn in der Aufnahme an und korrig
 
 ## Wie es weitergeht
 
-- **Licht und Ton:** Die [Blueprints](automations.de.md#blueprints) lassen dein Licht beim 180er aufblitzen, sagen die Punkte an oder machen ein Foto vom Highlight. Jeder lässt sich mit einem Klick importieren.
+- **Licht und Ton:** Die [Blueprints](automations.de.md#blueprints) lassen dein Licht beim 180er aufblitzen, sagen die Punkte an oder machen ein Foto vom Highlight. Sie kommen mit der Integration und warten auf der Blueprint-Seite von Home Assistant.
 - **Dein Fortschritt:** Bestleistungen, ein Trefferbild deiner Darts, Trends und Erfolge stehen in der [Anleitung zur Statistik](statistics.de.md).
 - **Freunde zu Besuch:** Teams, Handicaps und Turniere für bis zu acht Spieler stehen in der [Anleitung zu den Spielen](games.de.md).
 

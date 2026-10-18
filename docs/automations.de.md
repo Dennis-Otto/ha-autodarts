@@ -12,7 +12,7 @@ Dein Board ist schnell genug für Automationen, die *während* des Spiels passie
 
 ## Blueprints
 
-Blueprints sind fertige Automationen. Importieren, Board und Geräte auswählen, fertig. Sie brauchen Home Assistant ab 2026.8 und folgen der aktuellen Version der Integration: Aktualisiere beide zusammen.
+Blueprints sind fertige Automationen, und die Integration bringt alle fünfzehn mit: Sobald dein erstes Board eingerichtet ist, stehen sie auf der Blueprint-Seite, **Einstellungen → Automationen & Szenen → Blueprints**. Blueprint wählen, Board und Geräte auswählen, fertig. Sie brauchen Home Assistant ab 2026.8, und jedes Update der Integration bringt ihre neuen Versionen mit, siehe [Updates der Blueprints](#updates-der-blueprints).
 
 Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 
@@ -39,11 +39,28 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 | **Enter darts by voice** | Gibt die Darts eines Spiels ein, wenn du sie Assist sagst, wie am Dartautomaten: die Punkte einer Aufnahme, etwa „Alex hat 140“ oder „140 Punkte“, einen Checkout, einen einzelnen Dart wie „Triple 20“, den nächsten Spieler und Rückgängig, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet in den Worten des Callers der Anzeigetafel: was die Aufnahme übrig lässt und wer als Nächstes wirft, oder warum es nicht ging. | [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
 | **Ask Assist about your darts** | Beantwortet deine Fragen zu den Darts, etwa „Wie ist mein Schnitt heute?“, „Wie viele 180er diese Woche?“, „Was ist mein höchster Checkout?“, „Wer führt die Bestenliste an?“ oder „Wohin soll ich zielen?“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch, aus den Statistiken des Boards. Assist antwortet in der Sprache deiner Frage. | [![Blueprint „Ask Assist about your darts“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fask_about_darts.yaml) |
 
-Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Um einen früher importierten Blueprint zu aktualisieren, importierst du ihn über sein Menü auf der Blueprint-Seite erneut; deine Automationen behalten ihre Einstellungen.
+Die Buttons importieren einen Blueprint von GitHub, etwa einen, den du gelöscht hast. Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Ein importierter Blueprint bleibt aktuell wie die anderen.
 
 Die Blueprints sind auf Englisch beschriftet. Ihre Ansagen und der Wochenbericht sprechen von sich aus die [Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant), und ihre Texte kannst du beim Anlegen frei wählen.
 
 <img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den fünfzehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
+
+### Updates der Blueprints
+
+Die Blueprints gehören zur Integration und passen deshalb immer zu ihr: Nach einem Update in HACS und dem Neustart von Home Assistant ist jeder Blueprint, den du nicht geändert hast, die Version des neuen Release. Die Integration hält sie in `/config/blueprints/automation/Dennis-Otto/`, dem Ordner, in dem der Import von Home Assistant die Blueprints dieses Repositorys speichert. Ein früher importierter Blueprint ist also dieselbe Datei und wird ebenfalls aktualisiert.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/blueprint-updates-dark.png">
+  <img src="images/de/blueprint-updates-light.png" alt="Was jeder Start von Home Assistant mit einem Blueprint der Integration macht: Die Integration sucht die Datei jedes ihrer Blueprints in blueprints/automation/Dennis-Otto. Eine fehlende Datei wird installiert, außer du hast sie gelöscht, dann bleibt sie gelöscht. Eine Datei mit der Version der Integration bleibt, wie sie ist. Eine frühere Version, die niemand geändert hat, so wie die Integration sie mitgebracht oder Home Assistant sie importiert hat, wird aktualisiert, und die Automationen daraus werden mit ihren Einstellungen neu geladen. Eine Datei, die du geändert hast, bleibt, mit einer Reparatur, die die Version der Integration anbietet." width="560">
+</picture>
+
+- **Von dir geändert:** Einen Blueprint, den du bearbeitet hast, lässt die Integration, wie er ist. Eine Reparatur unter **Einstellungen → System → Reparaturen**, *Blueprint nicht aktualisiert*, bietet die Version der Integration an: Bestätige sie, um deine Datei zu ersetzen, oder ignoriere sie, um deine zu behalten. Ändert ein späteres Release den Blueprint, fragt sie erneut.
+- **Von dir gelöscht:** bleibt gelöscht. Sein Button oben importiert ihn wieder.
+- **Deine Automationen** behalten ihre Einstellungen, und die aus einem aktualisierten Blueprint werden sofort neu geladen.
+- **Blueprint erneut importieren** im Menü eines Blueprints brauchst du nicht mehr. Es holt den Blueprint aus dem Hauptzweig auf GitHub, der deinem Release voraus sein kann; die Integration behandelt ihn dann als geändert und bietet die Version an, die zu deinem Release gehört.
+- **Ein eigener Blueprint:** Um einen Blueprint zu ändern und trotzdem die neuen Versionen des Originals zu bekommen, speichere deine Kopie unter einem anderen Namen, etwa `/config/blueprints/automation/Dennis-Otto/mein_light_show.yaml`. Die Integration kümmert sich nur um die Dateien mit den Namen ihrer Blueprints.
+
+Die Integration vergleicht, was ein Blueprint tut, nicht seine Kommentare oder sein Layout: Ein Update ersetzt einen unveränderten Blueprint samt Kommentaren, die du ergänzt hast. Ein Update ersetzt auch eine frühere Version, in der du nur die Optionen einer Einstellung geändert hast, etwa einen Bereich oder einen Filter; bis zum nächsten Update, das den Blueprint ändert, bleibt eine solche Änderung und bekommt die Reparatur.
 
 ### Welcher Caller?
 
@@ -225,7 +242,7 @@ Deine Aktionen können nutzen:
   <img src="images/de/highlight-photo-light.png" alt="Wie das Highlight-Foto ein Foto speichert und was deine Aktionen bekommen: Nach einer hohen Aufnahme oder einem Checkout speichert autodarts.save_highlight mit Save to the gallery das Foto nur, wenn die Kamera-Entität aktiviert und verfügbar ist, die Kamera ein Bild liefert und Home Assistant in den Ordner schreiben darf; dann ist photo die gespeicherte Datei und photo_url ihre Adresse. Sonst wird nichts gespeichert, das Log sagt warum, und photo und photo_url bleiben leer. Deine Aktionen laufen in jedem Fall, und photo_url or image ist das gespeicherte Foto oder das Live-Bild" width="480">
 </picture>
 
-Der Blueprint braucht Version 1.12.4 oder neuer der Integration, die `autodarts.save_highlight` mitbringt. Frühere Versionen des Blueprints speicherten mit `camera.snapshot`, das auch ein Foto meldete, das nie geschrieben wurde. Für den neuen importierst du den Blueprint über sein Menü auf der Blueprint-Seite erneut; deine Automation behält ihre Einstellungen. Eine *Clip camera* braucht eine Version der Integration nach 1.16.0, deren `autodarts.save_highlight` den Clip aufnimmt.
+Der Blueprint braucht Version 1.12.4 oder neuer der Integration, die `autodarts.save_highlight` mitbringt. Frühere Versionen des Blueprints speicherten mit `camera.snapshot`, das auch ein Foto meldete, das nie geschrieben wurde. Den neuen bringt das Update der Integration mit; deine Automation behält ihre Einstellungen. Eine *Clip camera* braucht eine Version der Integration nach 1.16.0, deren `autodarts.save_highlight` den Clip aufnimmt.
 
 ### Light show
 
@@ -307,7 +324,7 @@ Assist antwortet „Game on: 501 mit Alex und Sam.“ in der Sprache von Home As
 - **Die Spieler:** je ein Wort, verbunden mit „und“, „and“, „y“, „et“, „en“ oder einem Komma. Ein Spieler, der schon ein Profil hat, behält dessen Schreibweise, auch wenn der Sprachassistent den Namen kleinschreibt. Ohne Spieler bleiben die Spieler, wie sie sind.
 - **Der Bot:** Ein Satz, der auf „Bot“ endet, spielt gegen den Bot, der nach den Spielern einen Platz bekommt; jeder andere Satz startet das Spiel ohne Bot. Der Bot ist nie ein Spieler, auch nicht in „Spiele 501 für Alex und den Bot“, „Play 501 for Alex and the bot“, „Juega 501 para Alex y el bot“, „Joue 501 pour Alex et le bot“ oder „Speel 501 voor Alex en de bot“.
 - **Warum eine Zahl oder das Wort „Spiel“:** Assist hört die Sätze einer Automation vor seinen eigenen Befehlen. Ein Satz wie „Starte {game} für {players}“ würde auch „Starte einen Timer für 5 Minuten“ abfangen, und der Timer liefe nie los. Mit einer Zahl oder dem Wort für ein Spiel bleiben deine anderen Befehle, wie sie sind, in jeder Sprache.
-- **Neue Sätze:** Home Assistant behält den Blueprint, den du importiert hast, und eine Automation die Sätze, die du in ihr gespeichert hast. Für die Sätze einer neuen Version wähle auf der Seite der Blueprints **Blueprint erneut importieren** und lass *Sentences* beim Standard; eigene Sätze bleiben, wie sie sind.
+- **Neue Sätze:** Eine Automation behält die Sätze, die du in ihr gespeichert hast. Nach dem Update der Integration und dem Neustart ist die neue Version des Blueprints da; für ihre Sätze lass *Sentences* beim Standard. Eigene Sätze bleiben, wie sie sind.
 
 ### Enter darts by voice
 
@@ -342,7 +359,7 @@ Assist antwortet in den Worten des Callers der Anzeigetafel, in der Sprache von 
 - **Eine Zahl allein** sind die Punkte einer Aufnahme, kein Dart: „zwanzig“ gibt eine Aufnahme mit 20 ein; für einen Dart sag „Single 20“.
 - **Andere Befehle:** Jeder Satz ist eine Zahl oder hat Wörter des Darts, damit Assists eigene Befehle wie „Wie spät ist es“ seine eigenen bleiben.
 - **Sprachen:** Die Sätze sind auf Deutsch, Englisch, Spanisch, Französisch und Niederländisch, und Assist antwortet in der Sprache von Home Assistant. In einer anderen Sprache ersetzt du sie durch eigene und behältst die Wörter der Felder: triple, double, doble oder dubbel, single bull, bull und miss, raté, fallo oder mis.
-- **Neue Sätze:** Eine Automation behält die Sätze, die du in ihr gespeichert hast. Für die einer neuen Version wähle auf der Seite der Blueprints **Blueprint erneut importieren** und lass die Sätze beim Standard.
+- **Neue Sätze:** Eine Automation behält die Sätze, die du in ihr gespeichert hast. Nach dem Update der Integration und dem Neustart ist die neue Version des Blueprints da; für ihre Sätze lass sie beim Standard.
 
 #### Zahlen per Sprache
 
@@ -403,7 +420,7 @@ Assist antwortet aus den Statistiken des Boards, in der Sprache deiner Frage: �
 - **Der beste Zielpunkt** ist die Stelle, an der ein Spieler mit der Streuung seiner Darts die meisten Punkte pro Dart holt ([Wohin zielen](statistics.de.md#wohin-zielen)). Er braucht Darts, die das Board erkannt hat, deshalb hat eine Dartscheibe ohne Autodarts keinen. „Ich“ ist der Spieler, der mit der Person verknüpft ist, als die du angemeldet bist ([Spieler und Personen](statistics.de.md#spieler-und-personen)); ein Sprachsatellit hat keine Person, er bekommt den Spieler, der zuletzt gespielt hat.
 - **Sprachen:** Die Fragen sind auf Deutsch, Englisch, Spanisch, Französisch und Niederländisch, und Assist antwortet in der Sprache der Frage, der deines Sprachassistenten, auch bei einer regionalen Sprache wie Deutsch für die Schweiz. In einer anderen Sprache schreibst du eigene Fragen; Assist beantwortet sie auf Englisch.
 - **Andere Befehle:** Jede Frage hat ein Wort des Darts, etwa Average, 180, Checkout oder Bestenliste, damit Assists eigene Befehle wie „Wie spät ist es“ seine eigenen bleiben. Eine Frage liest nur die Statistiken und ändert nichts.
-- **Neue Sätze:** Eine Automation behält die Sätze, die du in ihr gespeichert hast. Für die einer neuen Version wähle auf der Seite der Blueprints **Blueprint erneut importieren** und lass die Sätze beim Standard.
+- **Neue Sätze:** Eine Automation behält die Sätze, die du in ihr gespeichert hast. Nach dem Update der Integration und dem Neustart ist die neue Version des Blueprints da; für ihre Sätze lass sie beim Standard.
 
 ### Deutscher Dart-Caller
 
@@ -457,7 +474,7 @@ Mit Home Assistant auf Deutsch heißt der Bericht ohne eigene Texte *Deine Dartw
 
 ```yaml
 use_blueprint:
-  path: autodarts/weekly_report.yaml
+  path: Dennis-Otto/weekly_report.yaml
   input:
     board_events: event.autodarts_board_ereignisse
     report_title: Deine Dartwoche
@@ -493,7 +510,7 @@ Home Assistant übersetzt keine Blueprints. Deshalb gibt die Integration jedem E
 
 Auch den Bot und einen Spieler ohne Namen nennen die Standardansagen mit den Worten der Integration, auf Deutsch „Bot“ und „Spieler 2“; *Word for the bot* und *Word for a player without a name* gelten für deine eigenen Texte. Wähle eine *Voice*, die die Sprache von Home Assistant spricht, oder lass *Language* leer: Eine englische Stimme liest deutsche Worte schlecht. Für die englischen Ansagen in einem deutschen Home Assistant trägst du die englischen Beispiele der [Practice caller messages](automations.md#practice-caller-messages) als eigene Texte ein.
 
-Ein eigener Text behält seine Worte in jeder Sprache. Eine früher angelegte Automation sagt in deiner Sprache an, sobald du den Blueprint [erneut importierst](#blueprints), außer sie hat einen Text gespeichert, etwa den englischen Standard von früher: Ersetze ihn durch `{{ call }}`, den Titel des Wochenberichts durch `{{ week_title }}`. Mit einer älteren Version der Integration haben die Ereignisse keine Worte, und die Blueprints sagen sie auf Englisch.
+Ein eigener Text behält seine Worte in jeder Sprache. Eine früher angelegte Automation sagt in deiner Sprache an, sobald das [Update der Integration](#updates-der-blueprints) den neuen Blueprint bringt, außer sie hat einen Text gespeichert, etwa den englischen Standard von früher: Ersetze ihn durch `{{ call }}`, den Titel des Wochenberichts durch `{{ week_title }}`. Mit einer älteren Version der Integration haben die Ereignisse keine Worte, und die Blueprints sagen sie auf Englisch.
 
 ### Voice-Packs der Caller
 
