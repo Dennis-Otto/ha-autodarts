@@ -214,6 +214,8 @@ class PartyGame(ABC):
     start = 0
     # Rounds of a leg, where the game has a fixed number.
     rounds: int | None = None
+    # The fewest players the game takes.
+    min_players = 1
 
     def __init__(self, players: int) -> None:
         self.players = players
@@ -238,6 +240,18 @@ class PartyGame(ABC):
     def playoff(self) -> list[int] | None:
         """The players of extra rounds after a tie, while they play them."""
         return None
+
+    @property
+    def choosing(self) -> bool:
+        """Whether the players still choose what they play for, before the
+        darts count."""
+        return False
+
+    def announced(self, player: int, result: Visit | None = None) -> dict[str, Any]:
+        """What the game announces of a player at a turn and a won leg: their
+        points, with the darts of the visit so far as `result` has them."""
+        points = result.points if result else self.points
+        return {"points": points[player]}
 
     @abstractmethod
     def target(self, player: int) -> str | None:
@@ -420,6 +434,7 @@ class Killer(PartyGame):
     """
 
     kind = "killer"
+    min_players = 2
 
     def new_leg(self, players: int, starter: int) -> None:
         super().new_leg(players, starter)
@@ -430,6 +445,12 @@ class Killer(PartyGame):
     @property
     def choosing(self) -> bool:
         return None in self.numbers
+
+    def announced(self, player: int, result: Visit | None = None) -> dict[str, Any]:
+        """Killer keeps no points: the lives, and whether the player is a killer."""
+        if result:
+            return {"lives": result.lives[player], "killer": result.killers[player]}
+        return {"lives": self.lives[player], "killer": self.killers[player]}
 
     def target(self, player: int) -> str | None:
         number = self.numbers[player]

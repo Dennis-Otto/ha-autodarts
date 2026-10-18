@@ -1,0 +1,21 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: The practice game and its modes
+  accDescr: BoardGames hands the darts, the pulled darts and the actions to PracticeGame in practice.py, the match frame of every game: the players, their seats and teams, the bot, the bull-off, legs and sets, the tallies of the match, undo and the store. Its mode factory makes the mode of the game being played, from modes.py, which plays the game itself: it follows and books the darts of a visit, tells the player at the board what is next, shows the game and adds what the game counts to the records. A match of players taking turns is a MatchMode: X01Mode counts down from the start score with the In and Out modes and the round limit, CricketMode plays the Cricket games with cricket.py, and PartyMode the party games with their rules from party.py. DrillMode plays a training game from drills.py, and GameMode itself is no game.
+
+  BG["BoardGames, games.py"] -- "darts, pulled darts, actions" --> PG["PracticeGame, practice.py<br/>the match frame: players, seats, teams,<br/>bot, bull-off, legs and sets,<br/>tallies of the match, undo, store"]
+  PG -- "its mode factory<br/>makes the mode" --> GM["GameMode, modes.py<br/>follows and books a visit, the next turn,<br/>the snapshot, the records of a leg,<br/>a match and its summary"]
+  GM -- "a match" --> MM["MatchMode<br/>players take turns,<br/>legs make sets"]
+  GM -- "no match" --> DM["DrillMode, a training game<br/>from drills.py; GameMode<br/>itself is no game"]
+  MM --> X01["X01Mode<br/>start score, In and Out<br/>modes, round limit"]
+  MM --> CR["CricketMode<br/>marks, points, drawn<br/>numbers, cricket.py"]
+  MM --> PM["PartyMode<br/>the rules of a<br/>PartyGame, party.py"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class PG bot
+  class GM,MM,X01,CR,PM,DM done

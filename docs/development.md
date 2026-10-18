@@ -58,6 +58,17 @@ Entities read the games through `coordinator.games`, such as `coordinator.games.
 
 Code that needs the Board Manager asks for `AutodartsLocalCoordinator` by its type, and the type checker holds it to that: `runtime.local` is an `AutodartsGamesCoordinator`, the entities of the games take any coordinator of the games, and the entities of the Board Manager, such as its cameras, controls and readings, are an `AutodartsBoardEntity`, which the setup of each platform adds only after `isinstance(coordinator, AutodartsLocalCoordinator)`. No change of the transport can reach a dartboard without Autodarts, as [decision 0018](decisions/0018-a-dartboard-without-autodarts-beside-the-board.md) explains.
 
+### The practice game and its modes
+
+`PracticeGame` in `practice.py` is the frame of every match on the board: the players, their seats and teams, the bot, the bull-off, legs and sets, the tallies of the match, undo and the store. The game itself is its mode, from `modes.py`: `X01Mode`, `CricketMode` and `PartyMode` play a match, `DrillMode` plays a training game, and `GameMode` itself is no game. The frame hands every step that depends on the game to its mode: following the darts of a visit (`track`), booking it (`book`), the next turn (`turn_details`), the state the cards show (`snapshot`), what a leg, a match and its summary record (`book_leg`, `leg_entry`, `match_entry` and `summary_entry`) and the analysis of a visit (`booking`). Only the mode factory, `PracticeGame._mode`, knows the games. A mode keeps what only its game has, such as the numbers Random Cricket drew or the state of a party game, and the store keeps the layout it had before the modes, which `tests/test_modes.py` checks byte for byte against stores written before the modes, in `tests/fixtures/stores_before_modes.json`.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/game-modes-dark.png">
+  <img src="images/en/game-modes-light.png" alt="The practice game and its modes: BoardGames hands the darts, the pulled darts and the actions to PracticeGame in practice.py, the match frame of every game: the players, their seats and teams, the bot, the bull-off, legs and sets, the tallies of the match, undo and the store. Its mode factory makes the mode of the game being played, from modes.py, which plays the game itself: it follows and books the darts of a visit, tells the player at the board what is next, shows the game and adds what the game counts to the records. A match of players taking turns is a MatchMode: X01Mode counts down from the start score with the In and Out modes and the round limit, CricketMode plays the Cricket games with cricket.py, and PartyMode the party games with their rules from party.py. DrillMode plays a training game from drills.py, and GameMode itself is no game." width="480">
+</picture>
+
+A new game is a new mode, or for a party or training game a new `PartyGame` in `party.py` or `Drill` in `drills.py`, which `PartyMode` and `DrillMode` play: a class in `modes.py` with the steps in which it differs from `GameMode`, and a line in the mode factory. A setting that a game is made with, such as the holes of Golf, belongs in `GAME_SETTINGS`, so that a change of it starts the game anew while it is played. [Decision 0021](decisions/0021-games-as-modes-of-the-practice-game.md) explains why.
+
 ## Shared modules of the integration
 
 The integration has building blocks of its own, which every module uses instead of a copy: a change to one reaches every game, statistic and entity.
