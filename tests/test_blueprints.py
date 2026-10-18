@@ -2175,7 +2175,11 @@ async def test_highlight_photo_records_a_clip_beside_the_photo(hass, freezer):
             "photo": clip.removesuffix(".mp4") + ".jpg",
             "photo_url": url.removesuffix(".mp4") + ".jpg",
         }
-        return {**answer, "clip": clip, "clip_url": url} if "clip_camera" in call.data else answer
+        return (
+            {**answer, "clip": clip, "clip_url": url}
+            if "clip_camera" in call.data
+            else answer
+        )
 
     hass.services.async_register(
         "autodarts", "save_highlight", save, supports_response=SupportsResponse.OPTIONAL

@@ -313,7 +313,12 @@ async def test_a_clip_records_beside_the_photo_without_holding_up_the_answer(
     }
     await asyncio.wait_for(started.wait(), 1)
     assert records == [
-        {"entity_id": ["camera.room"], "filename": str(clip), "lookback": 5, "duration": 8}
+        {
+            "entity_id": "camera.room",
+            "filename": str(clip),
+            "lookback": 5,
+            "duration": 8,
+        }
     ]
     done.set()
     await hass.async_block_till_done()

@@ -1370,7 +1370,7 @@
         },
         "clip_camera": {
           "name": "Caméra du clip",
-          "description": "Facultatif. Une caméra avec un flux vidéo qui enregistre aussi le moment en clip à côté de la photo, sous son nom avec .mp4, où la galerie le lit. L'enregistrement se fait en arrière-plan : la réponse donne tout de suite le clip et son adresse, et le fichier est écrit à la fin de l'enregistrement. Une caméra sans flux, ou qui enregistre déjà, laisse la photo sans clip."
+          "description": "Facultatif. Une caméra avec un flux vidéo qui enregistre aussi le moment en clip à côté de la photo, sous son nom avec .mp4, où la galerie le lit. L'enregistrement se fait en arrière-plan : la réponse donne tout de suite le clip et son adresse, et le fichier est écrit à la fin de l'enregistrement. Une caméra sans flux, ou qui enregistre déjà, laisse la photo sans clip."
         },
         "clip_lookback": {
           "name": "Secondes avant",
