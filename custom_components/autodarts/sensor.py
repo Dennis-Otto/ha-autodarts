@@ -40,6 +40,7 @@ from .const import (
 )
 from .coordinator import AutodartsDataUpdateCoordinator
 from .entity import (
+    AutodartsBoardEntity,
     AutodartsEntity,
     AutodartsLocalEntity,
     AutodartsStoredEntity,
@@ -417,14 +418,6 @@ async def async_setup_entry(
             for description in STATIC_SENSORS
             if description.key in board_keys
         )
-        if (
-            isinstance(runtime.local, AutodartsLocalCoordinator)
-            and runtime.local.board_manager_2
-        ):
-            entities.extend(
-                AutodartsLocalSensor(runtime.local, description)
-                for description in SYSTEM_SENSORS
-            )
         entities.extend(
             (
                 AutodartsVisitSensor
@@ -432,8 +425,20 @@ async def async_setup_entry(
                 else AutodartsLocalSensor
             )(runtime.local, description)
             for description in LOCAL_SENSORS
-            if not (runtime.local.manual_board and description.key == "detection_fps")
+            if not description.telemetry
         )
+        # Only a Board Manager reports its readings.
+        if isinstance(board := runtime.local, AutodartsLocalCoordinator):
+            if board.board_manager_2:
+                entities.extend(
+                    AutodartsBoardSensor(board, description)
+                    for description in SYSTEM_SENSORS
+                )
+            entities.extend(
+                AutodartsBoardSensor(board, description)
+                for description in LOCAL_SENSORS
+                if description.telemetry
+            )
         if runtime.bridge:
             entities.append(AutodartsOnlineBridgeSensor(runtime.local, runtime.bridge))
     async_add_entities(entities)
@@ -622,30 +627,23 @@ SYSTEM_SENSORS = (
 )
 
 
-class AutodartsLocalSensor(AutodartsLocalEntity, SensorEntity):
+class AutodartsLocalSensor[
+    CoordinatorT: AutodartsGamesCoordinator = AutodartsGamesCoordinator
+](AutodartsLocalEntity[CoordinatorT], SensorEntity):
     entity_description: AutodartsSensorEntityDescription
 
     def __init__(
         self,
-        coordinator: AutodartsGamesCoordinator,
+        coordinator: CoordinatorT,
         description: AutodartsSensorEntityDescription,
     ) -> None:
         super().__init__(coordinator, description.key)
         self.entity_description = description
         self._attr_translation_key = description.translation_key
-        if description.telemetry:
-            # Updated by every poll, without the other entities of the board.
-            self._topic = Topic.TELEMETRY
 
     def _values(self) -> dict[str, Any]:
-        """The readings for a frame rate or the load, otherwise the data."""
-        coordinator = self.coordinator
-        # Only a Board Manager sends readings.
-        if self.entity_description.telemetry and isinstance(
-            coordinator, AutodartsLocalCoordinator
-        ):
-            return coordinator.readings
-        return coordinator.data or {}
+        """The data that the value and the attributes are read from."""
+        return self.coordinator.data or {}
 
     @property
     def native_value(self) -> Any:
@@ -659,12 +657,34 @@ class AutodartsLocalSensor(AutodartsLocalEntity, SensorEntity):
         return super().extra_state_attributes
 
 
-class AutodartsCameraSensor(AutodartsLocalSensor):
+class AutodartsBoardSensor(
+    AutodartsBoardEntity, AutodartsLocalSensor[AutodartsLocalCoordinator]
+):
+    """A sensor of the Board Manager, such as a frame rate, the load or the host."""
+
+    def __init__(
+        self,
+        coordinator: AutodartsLocalCoordinator,
+        description: AutodartsSensorEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, description)
+        if description.telemetry:
+            # Updated by every poll, without the other entities of the board.
+            self._topic = Topic.TELEMETRY
+
+    def _values(self) -> dict[str, Any]:
+        """The readings for a frame rate or the load, otherwise the data."""
+        if self.entity_description.telemetry:
+            return self.coordinator.readings
+        return super()._values()
+
+
+class AutodartsCameraSensor(AutodartsBoardSensor):
     """A per-camera value; the camera number lets cards group its entities."""
 
     def __init__(
         self,
-        coordinator: AutodartsGamesCoordinator,
+        coordinator: AutodartsLocalCoordinator,
         index: int,
         description: AutodartsSensorEntityDescription,
     ) -> None:
