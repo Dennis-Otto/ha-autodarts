@@ -8,7 +8,7 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
 
 <img src="images/de/hero.webp" alt="Animation: ein 301-Match auf der Live-Karte und der Anzeigetafel nebeneinander. Alex wirft drei Triple 20, die Felder leuchten auf und die Anzeigetafel zählt auf 121 herunter; Sam wirft 85; Alex checkt 121 mit T20, Single-Bull und D18 zum Game shot" width="100%">
 
-**Schnell zu:** [Schnellstart](#schnellstart) · [Das kann die Integration](#das-kann-die-integration) · [Anleitungen](#anleitungen) · [Anwendungsfälle](#anwendungsfälle) · [Blueprints](#blueprints) · [Glossar](https://dennis-otto.github.io/ha-autodarts/de/glossary.html) · [Änderungen](https://dennis-otto.github.io/ha-autodarts/de/changelog.html)
+**Schnell zu:** [Schnellstart](#schnellstart) · [Das kann die Integration](#das-kann-die-integration) · [Anleitungen](#anleitungen) · [Anwendungsfälle](#anwendungsfälle) · [Blueprints](#blueprints) · [Glossar](https://dennis-otto.github.io/ha-autodarts/de/glossary.html) · [Änderungen](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md)
 
 ## Schnellstart
 
@@ -202,7 +202,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
 ### Projekt
 
-- [Änderungen](https://dennis-otto.github.io/ha-autodarts/de/changelog.html): was jede Version gebracht hat (auf Englisch)
+- [Änderungen](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md): was jede Version gebracht hat (auf Englisch)
 - [Roadmap](https://dennis-otto.github.io/ha-autodarts/de/roadmap.html): erschienene Versionen und was als Nächstes kommt
 - [Development](https://dennis-otto.github.io/ha-autodarts/development.html), [Releases](https://dennis-otto.github.io/ha-autodarts/de/releases.html): die Entwickler-Dokumentation, auf Englisch
 - [Bilder und Prüfungen der Karten](https://dennis-otto.github.io/ha-autodarts/de/development.html): wie die Bilder der Dokumentation entstehen, der Screenshot-Bot, der Bildvergleich und die Prüfung der Barrierefreiheit, auf Deutsch

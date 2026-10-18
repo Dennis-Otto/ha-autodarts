@@ -13,7 +13,7 @@
 [![CI](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/ci.yml/badge.svg)](https://github.com/Dennis-Otto/ha-autodarts/actions/workflows/ci.yml)
 [![Coverage 100 %](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://dennis-otto.github.io/ha-autodarts/development.html#tests)
 
-[**Documentation**](https://dennis-otto.github.io/ha-autodarts/) · [**Try it live**](https://dennis-otto.github.io/ha-autodarts/demo/index.html) · [**Deutsche Anleitung**](https://dennis-otto.github.io/ha-autodarts/de/) · [Quick start](#quick-start) · [Changelog](https://dennis-otto.github.io/ha-autodarts/changelog.html) · [💛 Sponsor](https://github.com/sponsors/Dennis-Otto)
+[**Documentation**](https://dennis-otto.github.io/ha-autodarts/) · [**Try it live**](https://dennis-otto.github.io/ha-autodarts/demo/index.html) · [**Deutsche Anleitung**](https://dennis-otto.github.io/ha-autodarts/de/) · [Quick start](#quick-start) · [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) · [💛 Sponsor](https://github.com/sponsors/Dennis-Otto)
 
 </div>
 
@@ -283,7 +283,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 
 ### Project
 
-- [Changelog](https://dennis-otto.github.io/ha-autodarts/changelog.html) and [releases](https://github.com/Dennis-Otto/ha-autodarts/releases): what every version brought; the [roadmap](https://dennis-otto.github.io/ha-autodarts/roadmap.html) shows what comes next
+- [Changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) and [releases](https://github.com/Dennis-Otto/ha-autodarts/releases): what every version brought; the [roadmap](https://dennis-otto.github.io/ha-autodarts/roadmap.html) shows what comes next
 - [Deutsche Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/): die komplette Anleitung auf Deutsch
 
 </details>

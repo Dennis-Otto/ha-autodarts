@@ -522,8 +522,9 @@ def website_address(link: str, german: bool) -> str | None:
     name exists; otherwise it is the page of both websites, and the German README
     stays on the German website, as scripts/mkdocs_hooks.py does.
     """
-    if link == f"{BLOB}CHANGELOG.md":
-        return f"{WEBSITE}{'de/' if german else ''}changelog.html"
+    # The changelog stays on GitHub until the merge of #393 has published
+    # changelog.html: the link check would find no page before. Then it is
+    # f"{WEBSITE}{'de/' if german else ''}changelog.html".
     match = DOCS_PAGE.match(link)
     if match is None:
         return None
@@ -553,7 +554,8 @@ def website_links(text: str, german: bool) -> str:
         ("releases.md#x", True, f"{WEBSITE}de/releases.html#x"),
         ("decisions/0001-x.md", True, f"{WEBSITE}de/decisions/0001-x.html"),
         (f"{BLOB}docs/README.md#languages", False, f"{WEBSITE}#languages"),
-        (f"{BLOB}CHANGELOG.md", True, f"{WEBSITE}de/changelog.html"),
+        # f"{WEBSITE}de/changelog.html" once the changelog page is published.
+        (f"{BLOB}CHANGELOG.md", True, None),
         ("README.md", True, f"{WEBSITE}de/"),
         (f"{BLOB}SECURITY.md", False, None),
         ("../CHANGELOG.md", False, None),
