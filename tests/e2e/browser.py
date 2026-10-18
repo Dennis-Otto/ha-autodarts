@@ -8,7 +8,6 @@ from __future__ import annotations
 import json
 import math
 import os
-import re
 import time
 import tomllib
 import urllib.request
@@ -2924,14 +2923,14 @@ def read(path: str) -> str:
 
 
 def card_texts(language: str) -> dict[str, str]:
-    """TEXT.<language> of the card module."""
-    source = read("frontend/autodarts-card.js")
-    start = source.index(f"\n  {language}: {{\n", source.index("const TEXT = {"))
-    body = source[start : source.index("\n  },\n", start)]
-    return {
-        key: json.loads(value)
-        for key, value in re.findall(r'^    (\w+):\s+(".*"),$', body, re.M)
-    }
+    """The texts of the cards in a language: the JSON of its module in frontend/text/,
+    without the comments on lines of their own (tests/test_consistency.py checks it)."""
+    source = read(f"frontend/text/{language}.js")
+    code = "\n".join(
+        line for line in source.split("\n") if not line.lstrip().startswith("//")
+    )
+    texts: dict[str, str] = json.loads(code[code.index("{") : code.rindex("}") + 1])
+    return texts
 
 
 # What the page shows and what Home Assistant serves in the language of the browser.

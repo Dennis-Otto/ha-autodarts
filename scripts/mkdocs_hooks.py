@@ -61,7 +61,8 @@ ENGLISH = "en"
 # The start pages on GitHub, and those of the website that take their place.
 START = {"README.md": "index.md", f"README.{GERMAN}.md": f"index.{GERMAN}.md"}
 
-# The cards of the integration, and where the live demo loads them from.
+# The cards of the integration with the texts they import, and where the live demo
+# loads them from.
 CARDS = (
     Path(__file__).resolve().parents[1]
     / "custom_components"
@@ -69,6 +70,7 @@ CARDS = (
     / "frontend"
     / "autodarts-card.js"
 )
+CARD_TEXTS = CARDS.parent / "text"
 DEMO = "demo"
 
 # The key of the front matter of a page that moved, with the page that took its
@@ -298,4 +300,5 @@ def on_post_build(config: Any) -> None:
     # The German website has no demo of its own; it links to the one in English.
     if (demo / "index.html").is_file():
         shutil.copyfile(CARDS, demo / CARDS.name)
+        shutil.copytree(CARD_TEXTS, demo / CARD_TEXTS.name, dirs_exist_ok=True)
     unlist(site, config.site_url or "")

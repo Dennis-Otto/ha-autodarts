@@ -13,6 +13,7 @@ description: "Develop the integration: the building blocks of the cards, the tes
 | `custom_components/autodarts/` | The integration |
 | `custom_components/autodarts/frontend/autodarts-card.js` | The seven dashboard cards, served by the integration |
 | `custom_components/autodarts/frontend/autodarts-strategy.js` | The automatic dashboard's strategy element alone, registered before Home Assistant's five seconds run out; it loads the rest from `autodarts-card.js` |
+| `custom_components/autodarts/frontend/text/` | The [texts of the cards](#texts-of-the-cards), one module per language, which `autodarts-card.js` imports |
 | `blueprints/automation/autodarts/` | Automation blueprints |
 | `tests/` | Unit and integration tests with `pytest-homeassistant-custom-component` |
 | `tests/frontend/` | Node tests of the card logic and of every card element in a browser DOM, including property-based tests with fast-check, and of the translation bot |
@@ -614,11 +615,22 @@ The job *issue-assistant* of the **Lint** workflow runs the action's `check`: it
 
 *Actions → Issue assistant → Run workflow* analyzes an issue again, or runs a follow-up, the check of the maintainer's comment or the check of a comment after the release. The run starts as a dry run: its summary shows the comment and labels it would post. To try a change of `project.md` or the action's prompts locally, see the action's [README](https://github.com/Dennis-Otto/issue-assistant#try-a-prompt-locally).
 
+## Texts of the cards
+
+The texts of the cards are one module per language in `custom_components/autodarts/frontend/text/`, `export default` followed by JSON, so that a translator edits one small file and every tool reads it alike: the consistency tests, the browser test and the [translation bot](#translation-bot) drop the lines of comments and read the rest as JSON. `autodarts-card.js` imports each file and puts them together in `TEXT`; `tests/test_consistency.py` checks the files, their imports and their keys ([decision 0019](decisions/0019-card-texts-per-language.md)).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/card-files-dark.png">
+  <img src="images/en/card-files-light.png" alt="How a browser gets the cards and their texts: at every start, the integration digests every file of the cards, both modules and the texts of each language. Version and digest name a folder such as /autodarts/1.16.0-0123abcd/, from which every page loads autodarts-strategy.js and autodarts-card.js. The card module imports text/en.js, text/de.js and the other languages beside it, from the same folder, and the browser keeps every file of the folder for a month. A release, or a text changed in one language, gives a new folder for every file, so no browser mixes files of two versions." width="560">
+</picture>
+
+The integration serves every file of the folder at `/autodarts/<version>-<digest>/<path>`, compressed, and hands both modules to every page at those addresses (`card.py`). Relative imports keep the folder, so a change of any file, also of one text, moves all of them to new addresses, and no browser keeps an old text beside a new card. The folder of a version that has gone and the addresses without a version serve today's files, which browsers ask for again on every load.
+
 ## Translation bot
 
-The **Translations** workflow (`.github/workflows/translations.yml`) runs `scripts/translations.mjs` after every push to `main` that changes a translation file, the card module or the bot, every Monday, and on *Run workflow*. For each language with texts to fix, it keeps one issue open, such as *Translation: French needs 4 updates · Français : 4 textes à mettre à jour*, written in that language and in English and labeled `translations`, `help wanted` and `good first issue`, so native speakers find it. It closes the issue with thanks once the language is up to date, and opens a new one when texts fall behind again.
+The **Translations** workflow (`.github/workflows/translations.yml`) runs `scripts/translations.mjs` after every push to `main` that changes a translation file, a file of the card texts or the bot, every Monday, and on *Run workflow*. For each language with texts to fix, it keeps one issue open, such as *Translation: French needs 4 updates · Français : 4 textes à mettre à jour*, written in that language and in English and labeled `translations`, `help wanted` and `good first issue`, so native speakers find it. It closes the issue with thanks once the language is up to date, and opens a new one when texts fall behind again.
 
-- **Missing:** a text of `translations/en.json` (which equals `strings.json`) or of `TEXT.en` that the language lacks. The consistency tests already fail on one; the bot reports it in case one slips through.
+- **Missing:** a text of `translations/en.json` (which equals `strings.json`) or of `frontend/text/en.js` that the language lacks. The consistency tests already fail on one; the bot reports it in case one slips through.
 - **Outdated:** the English text changed after the language's text last did. The bot reads the first-parent history of `main`, where each merged pull request is one commit, and needs no file to keep: for each text, it takes the newest commit that changed the text in that language, or checked it, and compares the English text of that commit with today's. A change of case alone doesn't count, because each language writes its own, and neither does an English change that was taken back.
 
 A translation that stays right after an English change is checked by a line in the description of the pull request, which becomes the message of its commit on `main`; the issue tells translators the same:
@@ -629,7 +641,7 @@ Translations-checked: de fr config.step.user.title status_ready
 
 Languages come first, then keys, separated by spaces or commas; without keys, the line checks every text of the languages. GitHub wraps the description at 72 characters when it squashes it into the commit, so the bot reads a line of keys alone whose first key didn't fit on the line before as part of it.
 
-Each issue lists the keys with a link to their line, the English text now and when the language last changed, and the translation, followed by the steps for someone who doesn't program: edit the file on GitHub, open a pull request titled like `fix(i18n): update the French texts`, and find their GitHub name in the changelog. The bot reads `TEXT` of each version of the card module by evaluating its object literal alone, without the rest of the module. It finds its issues by a hidden marker among the open issues of `github-actions[bot]`, and its job may only read the repository and write issues.
+Each issue lists the keys with a link to their line, the English text now and when the language last changed, and the translation, followed by the steps for someone who doesn't program: edit the file on GitHub, open a pull request titled like `fix(i18n): update the French texts`, and find their GitHub name in the changelog. The bot reads a file of card texts as the tests do, as JSON without its lines of comments. Before the texts moved there, `TEXT` of the card module held every language; for those commits, the bot evaluates its object literal alone, without the rest of the module, so the history of a text goes on across the move. It finds its issues by a hidden marker among the open issues of `github-actions[bot]`, and its job may only read the repository and write issues.
 
 `node scripts/translations.mjs` prints the issues it would write, without GitHub. Its tests in `tests/frontend/translation-bot.test.mjs` build temporary git repositories, with merges and checks, and answer as GitHub would; `npm test` covers every line, branch and function of the bot as it does for the cards.
 
@@ -641,6 +653,6 @@ See the [release guide](releases.md).
 
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), for example `feat:`, `fix:` and `docs:`.
 - Python follows Ruff and strict mypy (`pyproject.toml`), JavaScript the recommended rules of ESLint (`eslint.config.mjs`); `scripts/check.sh` fails on either.
-- User-facing text goes into `strings.json` and every translation, card texts into every language of `TEXT`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text, and for a text that no card reads any more ([translations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)). When an English text changes, change its translations in the same pull request, or the [translation bot](#translation-bot) asks native speakers for them.
+- User-facing text goes into `strings.json` and every translation, card texts into every file of `frontend/text/`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text, and for a text that no card reads any more ([translations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)). When an English text changes, change its translations in the same pull request, or the [translation bot](#translation-bot) asks native speakers for them.
 - New behavior needs tests, and new user-facing features need documentation in English and German.
 - A part of a card is built of the [UI building blocks](#ui-building-blocks): what a tap does shows before the tap.

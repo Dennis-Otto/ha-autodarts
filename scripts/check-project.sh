@@ -33,6 +33,8 @@ if ! command -v node >/dev/null 2>&1 || [[ ! -d node_modules ]]; then
 	echo "Node.js or its packages (npm ci) are missing here; the CI tests the cards."
 	exit 0
 fi
-node --check custom_components/autodarts/frontend/autodarts-card.js
+for module in custom_components/autodarts/frontend/*.js custom_components/autodarts/frontend/text/*.js; do
+	node --check "$module"
+done
 npx --no-install eslint .
 npm test

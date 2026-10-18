@@ -19,7 +19,7 @@ The integration loads its cards on every page of Home Assistant as extra modules
 
 ## Decision
 
-Option 2. When Home Assistant keeps the dashboard resources, as it does by default, the integration keeps one module resource for `/autodarts/autodarts-strategy.js` and one for `/autodarts/autodarts-card.js`, each with the query of its version. It finds its own by their path, whatever their query, brings them to the current address in their place, removes duplicates and leaves every other resource alone; a lock lets boards that are set up side by side add each one once. Removing the last board removes both.
+Option 2. When Home Assistant keeps the dashboard resources, as it does by default, the integration keeps one module resource for `/autodarts/autodarts-strategy.js` and one for `/autodarts/autodarts-card.js`, each with the query of its version. It finds its own by their path, whatever their query, brings them to the current address in their place, removes duplicates and leaves every other resource alone; a lock lets boards that are set up side by side add each one once. Removing the last board removes both. Since [0019](0019-card-texts-per-language.md), the version is a folder of the address instead of its query, which the resources follow.
 
 Resources in YAML stay the user's: the documentation names the two lines. An address without the current version is sent with `Cache-Control: no-cache`, so a browser revalidates it on every load and never keeps an old module there. Both modules wait for `home-assistant` or `hc-main`, and pictures that Home Assistant serves get its address through `hass.hassUrl`, because the receiver has an address of its own.
 

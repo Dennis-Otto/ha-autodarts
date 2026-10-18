@@ -28,6 +28,12 @@ test("the strategy waits for Home Assistant's app element, then registers before
 
 test("the card module is the one Home Assistant loads, with the same version", () => {
   assert.equal(CARD_MODULE, CARD.href);
+  // Home Assistant loads both from the folder of the version, which the import keeps.
+  assert.equal(
+    cardModule("http://homeassistant.local:8123/autodarts/1.16.0-0123abcd/autodarts-strategy.js"),
+    "http://homeassistant.local:8123/autodarts/1.16.0-0123abcd/autodarts-card.js"
+  );
+  // A resource of an earlier release had the version in its query.
   assert.equal(
     cardModule("http://homeassistant.local:8123/autodarts/autodarts-strategy.js?v=1.12.1-0123abcd"),
     "http://homeassistant.local:8123/autodarts/autodarts-card.js?v=1.12.1-0123abcd"

@@ -3,7 +3,7 @@
 // for each language, and how it opens, updates and closes the issues on GitHub.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, test } from "node:test";
@@ -13,7 +13,9 @@ import {
   BOT,
   CARD,
   LABELS,
+  TEXTS,
   TRANSLATIONS,
+  cardFile,
   cardLines,
   cardTexts,
   checks,
@@ -24,6 +26,7 @@ import {
   jsonLines,
   languageName,
   main,
+  moduleTexts,
   openIssues,
   render,
   sync,
@@ -52,7 +55,15 @@ const LINKS = {
 const file = (language) => `${TRANSLATIONS}/${language}.json`;
 const json = (tree) => `${JSON.stringify(tree, null, 2)}\n`;
 
-// A card module as autodarts-card.js writes it: TEXT between other code.
+// The texts of a language as frontend/text/<language>.js has them: JSON after
+// export default, with comments on lines of their own.
+function textModule(texts) {
+  const entries = Object.entries(texts).map(([key, value]) => `  ${JSON.stringify(key)}: ${JSON.stringify(value)}`);
+  return ["// The texts of the cards.", "export default {", "  // Status", entries.join(",\n"), "};", ""].join("\n");
+}
+
+// A card module as autodarts-card.js wrote it before its texts moved: TEXT between
+// other code.
 function card(texts) {
   return [
     "// The cards.",
@@ -203,6 +214,72 @@ test("a merged branch counts as one commit, at its merge", () => {
   );
 });
 
+test("the history of a card text goes on when TEXT moves into a file per language", () => {
+  const repository = history();
+  const before = cardTexts(readFileSync(join(repository.dir, CARD), "utf8"));
+  repository.commit("refactor(cards): one file per language", {
+    [CARD]: "// The cards.\nconst TEXT = { en, de, fr };\n",
+    ...Object.fromEntries(Object.entries(before).map(([language, texts]) => [cardFile(language), textModule(texts)])),
+  });
+  // The move changes nothing: the French text that was outdated before still is.
+  const moved = findings(repository.dir);
+  assert.deepEqual(summary(moved), {
+    de: ["missing config.added"],
+    fr: ["outdated config.title", "missing config.added", "outdated stop"],
+  });
+  const stop = moved[1].items[2];
+  assert.equal(stop.path, cardFile("fr"));
+  assert.equal(stop.line, 5);
+  assert.equal(stop.previous, "Stop");
+  // After the move, English changes in its file and German follows in its own.
+  repository.commit("fix(cards): say what to do", { [cardFile("en")]: textModule({ ...before.en, ready: "Ready to throw" }) });
+  repository.commit("fix(i18n): German follows", { [cardFile("de")]: textModule({ ...before.de, ready: "Bereit zum Werfen" }) });
+  const [german, french] = findings(repository.dir);
+  assert.deepEqual(summary([german, french]), {
+    de: ["missing config.added"],
+    fr: ["outdated config.title", "missing config.added", "outdated ready", "outdated stop"],
+  });
+  assert.deepEqual(french.items[2], {
+    source: "cards",
+    path: cardFile("fr"),
+    key: "ready",
+    english: "Ready to throw",
+    translation: "Prêt",
+    line: 4,
+    state: "outdated",
+    previous: "Ready",
+  });
+});
+
+test("languages come from the files of the card texts too, and a missing file is where its texts go", () => {
+  const repository = new Repository();
+  repository.commit("feat: texts", {
+    [file("en")]: json({ title: "Board" }),
+    [file("de")]: json({ title: "Brett" }),
+    [CARD]: "const TEXT = { en, nl };\n",
+    [cardFile("en")]: textModule({ ready: "Ready" }),
+    [cardFile("nl")]: textModule({ ready: "Klaar" }),
+    [`${TEXTS}/README.md`]: "Not a language.\n",
+  });
+  const [german, dutch] = findings(repository.dir);
+  assert.deepEqual(german.items, [
+    {
+      source: "cards",
+      path: cardFile("de"),
+      key: "ready",
+      english: "Ready",
+      translation: undefined,
+      line: undefined,
+      state: "missing",
+      previous: undefined,
+    },
+  ]);
+  assert.deepEqual(
+    dutch.items.map((item) => [item.source, item.state, item.key]),
+    [["integration", "missing", "title"]]
+  );
+});
+
 test("a line Translations-checked counts the texts it names as up to date", () => {
   const repository = history();
   repository.commit(
@@ -318,13 +395,33 @@ test("languages come from the translation files and from TEXT, and a translation
 test("the bot stops when it no longer finds the English texts", () => {
   const repository = new Repository();
   repository.commit("feat: texts", { [file("en")]: json({ title: "Board" }), [file("de")]: json({ title: "Brett" }) });
-  assert.throws(() => findings(repository.dir), new RegExp(`No English texts in ${CARD}`));
+  assert.throws(() => findings(repository.dir), new RegExp(`No English texts in ${cardFile("en")}`));
   const empty = new Repository();
   empty.commit("feat: no texts yet", { [CARD]: card({ en: { ready: "Ready" } }) });
   assert.throws(() => findings(empty.dir), new RegExp(`No English texts in ${TRANSLATIONS}/en.json`));
 });
 
-test("TEXT of the card is read in isolation, whatever its texts hold", () => {
+test("a file of card texts is read as JSON, with comments on lines of their own", () => {
+  const source = [
+    "// The texts.",
+    "export default {",
+    "  // Status",
+    '  "hello": "Hello {name} }",',
+    "    // A comment may be indented.",
+    '  "address": "https://example.com/a // b",',
+    '  "ready": "Prêt\\u00a0!"',
+    "};",
+    "",
+  ].join("\n");
+  assert.deepEqual(moduleTexts(source), { hello: "Hello {name} }", address: "https://example.com/a // b", ready: "Prêt\u00a0!" });
+  assert.deepEqual([...jsonLines(source)], [["hello", 4], ["address", 6], ["ready", 7]]);
+  // A comma after the last text is no JSON; the consistency tests name the file.
+  assert.throws(() => moduleTexts('export default {\n  "a": "A",\n};\n'), { name: "SyntaxError" });
+  // The card module of today puts the files together and has no texts of its own.
+  assert.deepEqual(cardTexts("const TEXT = { en, de };\nconst DEFAULTS = {\n  layout: 1,\n};\n"), {});
+});
+
+test("TEXT of an earlier card module is read in isolation, whatever its texts hold", () => {
   const source = [
     "const TEXT = {",
     "  en: {",
@@ -400,7 +497,7 @@ test("an issue names each text with its English text then and now and its transl
         item("config.title"),
         item("config.added", { state: "missing", translation: undefined, previous: undefined, line: undefined }),
         item("config.code", { english: "Run ```yaml``` or `x`", previous: undefined }),
-        item("stop", { source: "cards", path: CARD, line: 20 }),
+        item("stop", { source: "cards", path: cardFile("fr"), line: 20 }),
       ],
     },
     LINKS
@@ -418,9 +515,10 @@ test("an issue names each text with its English text then and now and its transl
   assert.ok(body.includes("#### `config.added` · missing\n\nEnglish now:\n```text\nEnglish config.added\n```\n\nFrench: missing"));
   // A fence longer than any backticks of the text keeps it whole.
   assert.ok(body.includes("English now:\n````text\nRun ```yaml``` or `x`\n````\n\nFrench now:"));
-  assert.ok(body.includes(`### Cards: \`TEXT.fr\` in \`${CARD}\`\n\n#### [\`stop\`](${LINKS.blob}/${CARD}#L20)`));
+  assert.ok(body.includes(`### Cards: \`${cardFile("fr")}\`\n\n#### [\`stop\`](${LINKS.blob}/${cardFile("fr")}#L20)`));
   assert.ok(body.includes(`[\`${file("fr")}\`](${LINKS.edit}/${file("fr")})`));
-  assert.ok(body.includes(`[\`${CARD}\`](${LINKS.edit}/${CARD}) for the texts of the dashboard cards, in the block \`fr: {\``));
+  assert.ok(body.includes(`[\`${cardFile("fr")}\`](${LINKS.edit}/${cardFile("fr")}) for the texts of the dashboard cards\n`));
+  assert.ok(body.includes("the comma after them where there is one"));
   assert.ok(body.includes("`fix(i18n): update the French texts`"));
   assert.ok(body.includes(`[changelog](${LINKS.blob}/CHANGELOG.md) thanks you`));
   assert.ok(body.includes("`Translations-checked: fr config.title`"));

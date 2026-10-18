@@ -504,7 +504,7 @@ If the chosen board is removed from Home Assistant, the dashboard says so instea
 
 ## Home Assistant Cast
 
-[Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) shows a dashboard on a TV through a Chromecast, or on a Google Nest Hub, without a browser on the device. The cards and the automatic dashboard work there too: Cast loads the dashboard resources of Home Assistant, and the integration keeps its two modules there, `/autodarts/autodarts-strategy.js` and `/autodarts/autodarts-card.js`, with its version in their address. It brings them up to date with every start of Home Assistant and removes them with its last board. *Settings → Dashboards → ⋮ → Resources* lists them when advanced mode is on in your user profile. Browsers stay as they are: they load each module once, as a resource and as part of Home Assistant.
+[Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) shows a dashboard on a TV through a Chromecast, or on a Google Nest Hub, without a browser on the device. The cards and the automatic dashboard work there too: Cast loads the dashboard resources of Home Assistant, and the integration keeps its two modules there, `autodarts-strategy.js` and `autodarts-card.js`, in the folder of its version under `/autodarts/`, such as `/autodarts/1.16.0-0123abcd/autodarts-card.js`. It brings them up to date with every start of Home Assistant and removes them with its last board. *Settings → Dashboards → ⋮ → Resources* lists them when advanced mode is on in your user profile. Browsers stay as they are: they load each module once, as a resource and as part of Home Assistant.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/cast-dark.png">
@@ -564,4 +564,4 @@ The cards work with a keyboard, with a screen reader and without animations:
 - **Combine:** put the live card and the training card next to each other in a sections view with two columns.
 - **Several boards:** add one card per board and choose the board in each card's editor.
 - **Cached old version:** after an update, the card URL changes automatically. If a browser still shows an old card, reload the page. In the companion app, use *Settings → Companion app → Debugging → Reset frontend cache*.
-- **Download size:** all cards come in one file, compressed to about 150 KB. A browser downloads it on its first visit and after an update and keeps it until the next one, so only the first load of a dashboard waits for it on a slow connection.
+- **Download size:** all cards come in one module and their texts in a small file per language, compressed to about 175 KB together. A browser downloads it on its first visit and after an update and keeps it until the next one, so only the first load of a dashboard waits for it on a slow connection.
