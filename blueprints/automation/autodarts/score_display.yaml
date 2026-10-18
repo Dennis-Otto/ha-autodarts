@@ -6,8 +6,8 @@ blueprint:
     board after every dart, with the checkout route when a checkout is
     possible, and in Cricket and the party games the points. A visit of 180
     (or the minimum score you choose), a bust, a won leg and the winner of a
-    match flash for a few seconds; then the score comes back. When the game ends, or nothing happens for the idle time, the
-    display goes back to its clock.
+    match flash for a few seconds; then the score comes back. When the game is switched off, or after the
+    idle time, the display goes back to its clock.
 
 
     AWTRIX 3 and PixelIt can listen to MQTT, which needs the MQTT integration
@@ -327,6 +327,18 @@ conditions:
          else state_attr(practice, 'game') not in [none, '']
               or trigger.id == 'score' and trigger.from_state is not none
                  and trigger.from_state.attributes.get('game') not in [none, ''] }}
+  # Home Assistant reloads every automation when any one is saved. Only a
+  # reload that set this automation up anew counts, and only while its last
+  # run could still be waiting for the clock.
+  - alias: Resumed only by a restart or by saving this automation
+    condition: template
+    value_template: >-
+      {%- set setup = as_timestamp(this.last_changed) %}
+      {%- set ran = this.attributes.get('last_triggered') %}
+      {{- trigger.id != 'resumed' or trigger.platform == 'homeassistant'
+          or (ran is none or as_timestamp(ran) < setup)
+             and states[practice] is not none
+             and (now() - states[practice].last_updated).total_seconds() < idle_minutes * 60 }}
 
 actions:
   # The moment, then the score until the idle time is over, then the clock.
@@ -368,6 +380,7 @@ actions:
             # the idle time is over; without a game, the clock comes back.
             wait: >-
               {{ flash_seconds if step == 'moment'
+                 else 0 if step == 'score' and trigger.id == 'moment' and playing and not shown
                  else idle_minutes * 60 if step == 'score' and game != '' else 0 }}
             # AWTRIX 3 holds a notification until the next one replaces it or
             # it is dismissed; PixelIt shows a screen until the next one.

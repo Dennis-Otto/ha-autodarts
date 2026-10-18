@@ -6,7 +6,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### New
 
-- **The score on a pixel display at the board:** the new blueprint *Autodarts: score display* shows the practice game on an AWTRIX 3, such as the Ulanzi TC001, or on a PixelIt: the score of the player at the board after every dart, in green with its route when a checkout is possible, the points in Cricket and the party games, and for a few seconds a 180, a bust, a won leg and the winner of the match. When the game is over, the display goes back to its clock. AWTRIX 3 and PixelIt take the screen over MQTT, and PixelIt also over HTTP through a REST command ([score display](docs/automations.md#score-display-on-an-awtrix-or-a-pixelit), #343, #346).
+- **The score on a pixel display at the board:** the new blueprint *Autodarts: score display* shows the practice game on an AWTRIX 3, such as the Ulanzi TC001, or on a PixelIt: the score of the player at the board after every dart, in green with its route when a checkout is possible, the points in Cricket and the party games, and for a few seconds a 180, a bust, a won leg and the winner of the match. When the game is switched off, or after the idle time, the display goes back to its clock. AWTRIX 3 and PixelIt take the screen over MQTT, and PixelIt also over HTTP through a REST command ([score display](docs/automations.md#score-display-on-an-awtrix-or-a-pixelit), #343, #346).
 
 ## [1.15.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.14.0...v1.15.0) (2026-10-18)
 

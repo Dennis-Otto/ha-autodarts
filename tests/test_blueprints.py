@@ -2982,6 +2982,45 @@ async def test_score_display_shows_the_game_again_after_a_restart(hass, freezer)
     assert awtrix_screens(publish)[2:] == [None, None]
 
 
+async def test_score_display_ignores_the_save_of_another_automation(hass, freezer):
+    """Home Assistant reloads every automation when any one is saved: that
+    neither cuts the wait short nor puts an old game back on the display."""
+    publish = async_mock_service(hass, "mqtt", "publish")
+    hass.states.async_set(EVENTS, "unknown")
+    await saved(hass, "score_display", AWTRIX)
+    async with waits(hass, IDLE):
+        practice_state(hass, 321)
+    # A game that runs: nothing new, and the clock comes back on time.
+    await tick(hass, freezer, 60)
+    await reloaded(hass)
+    assert awtrix_screens(publish) == [("321", WHITE)]
+    await tick(hass, freezer, IDLE - 61)
+    assert len(publish) == 1
+    await pass_time(hass, freezer, 1)
+    assert awtrix_screens(publish)[1:] == [None]
+    # An old game whose clock came back long ago stays off the display.
+    await tick(hass, freezer, 86400)
+    await reloaded(hass)
+    assert awtrix_screens(publish)[1:] == [None]
+
+
+async def test_score_display_without_a_score_brings_the_clock_back_after_a_moment(
+    hass, freezer
+):
+    """With an empty score, a moment flashes and the clock comes back after
+    it, not after the idle time."""
+    publish = async_mock_service(hass, "mqtt", "publish")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "score_display", {**AWTRIX, "score_message": ""})
+    practice_state(hass, 321)
+    await settle(hass)
+    assert not publish
+    async with waits(hass, FLASH):
+        fire(hass, "visit_thrown", score=180, darts=3, game=501)
+    await pass_time(hass, freezer, FLASH)
+    assert awtrix_screens(publish) == [("180!", GOLD), None]
+
+
 async def throw(hass, coordinator, *darts) -> None:
     """Throw dart by dart, without waiting for the runs that wait for the clock."""
     for count in range(1, len(darts) + 1):
