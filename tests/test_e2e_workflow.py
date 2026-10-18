@@ -164,6 +164,7 @@ def test_a_pull_request_that_changes_nothing_the_tests_use_skips_them(tmp_path, 
     [
         "custom_components/autodarts/sensor.py",
         "custom_components/autodarts/frontend/autodarts-card.js",
+        "custom_components/autodarts/frontend/text/de.js",
         "blueprints/automation/autodarts/weekly_report.yaml",
         "tests/e2e/scenario.py",
         "tests/e2e/demo_progress.py",

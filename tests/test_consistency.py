@@ -8,7 +8,10 @@ import os
 import re
 import shlex
 import tomllib
+from collections import Counter
+from functools import cache
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -56,6 +59,8 @@ SOURCES = "\n".join(
     path.read_text(encoding="utf-8") for path in sorted(INTEGRATION.glob("*.py"))
 )
 CARD = (INTEGRATION / "frontend" / "autodarts-card.js").read_text(encoding="utf-8")
+# The texts of the cards, a module per language, which the card module imports.
+CARD_TEXT_FILES = INTEGRATION / "frontend" / "text"
 # Entities whose device class brings the icon.
 DEVICE_CLASS_ICONS = {
     ("binary_sensor", "camera_problem"),
@@ -224,25 +229,49 @@ def test_every_repair_issue_is_translated():
             assert spec["description"], issue
 
 
-TEXT_BLOCK = CARD[
-    CARD.index("const TEXT = {\n") : CARD.index("\n};\n", CARD.index("const TEXT"))
-]
+# The imports of the card texts in the card module: the name and the language of each.
+CARD_IMPORTS = re.findall(r'^import (\w+) from "\./text/([\w-]+)\.js";$', CARD, re.M)
 
 
+def _unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """The texts of a file, none of them twice: JSON would keep the last silently."""
+    twice = sorted(
+        key for key, count in Counter(key for key, _ in pairs).items() if count > 1
+    )
+    if twice:
+        raise ValueError(f"texts given twice: {', '.join(twice)}")
+    return dict(pairs)
+
+
+def module_texts(source: str) -> dict[str, Any]:
+    """The texts of a module of the card texts: JSON after `export default`, with
+    comments on lines of their own, as the translation bot reads them too.
+
+    The comments and the words around the JSON become blanks, so that an error of
+    JSON names the line and column of the file.
+    """
+    code = "\n".join(
+        "" if line.lstrip().startswith("//") else line for line in source.split("\n")
+    )
+    start, end = code.find("{"), code.rfind("}") + 1
+    if start < 0 or (code[:start].split(), code[end:].split()) != (
+        ["export", "default"],
+        [";"],
+    ):
+        raise ValueError(
+            'not "export default {…};" with comments on lines of their own'
+        )
+    head, tail = (re.sub(r"\S", " ", part) for part in (code[:start], code[end:]))
+    return json.loads(head + code[start:end] + tail, object_pairs_hook=_unique)
+
+
+@cache
 def card_texts() -> dict[str, dict[str, str]]:
-    """TEXT of the card module: every text by its key, per language."""
-    # "  en: {", its texts, "  de: {", its texts, …
-    parts = re.split(r"^  (\w+): \{$", TEXT_BLOCK, flags=re.M)[1:]
+    """Every text of the cards by its key, per language, in the order of TEXT."""
     return {
-        language: {
-            key: json.loads(value)
-            for key, value in re.findall(r'^    (\w+):\s+(".*"),$', body, re.M)
-        }
-        for language, body in zip(parts[::2], parts[1::2], strict=True)
+        language: module_texts((CARD_TEXT_FILES / f"{language}.js").read_text("utf-8"))
+        for _, language in CARD_IMPORTS
     }
-
-
-CARD_TEXTS = card_texts()
 
 
 def test_every_list_of_languages_names_the_languages_of_the_translations():
@@ -261,16 +290,51 @@ def test_every_list_of_languages_names_the_languages_of_the_translations():
 
 
 def test_the_cards_speak_every_language_of_the_integration():
-    assert list(CARD_TEXTS) == list(INTEGRATION_LANGUAGES)
-    assert set(CARD_TEXTS) == set(LANGUAGES)
-    # Every key of TEXT is one text; none escaped the parser.
-    keys = re.findall(r"^    \w+:", TEXT_BLOCK, re.M)
-    assert len(keys) == sum(len(texts) for texts in CARD_TEXTS.values())
+    # The card module imports each file of text/ by the name of its language, in
+    # the order of the integration, and TEXT has them all.
+    imported = [language for _, language in CARD_IMPORTS]
+    assert [name for name, _ in CARD_IMPORTS] == imported
+    assert imported == list(INTEGRATION_LANGUAGES)
+    assert sorted(path.stem for path in CARD_TEXT_FILES.iterdir()) == LANGUAGES
+    assert f"const TEXT = {{ {', '.join(imported)} }};" in CARD.split("\n")
+    assert list(card_texts()) == imported
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_each_file_of_card_texts_is_json_after_export_default(language):
+    """A translator edits the file in the browser; a slip there says how to fix it."""
+    path = CARD_TEXT_FILES / f"{language}.js"
+    try:
+        texts = module_texts(path.read_text(encoding="utf-8"))
+    except ValueError as error:
+        pytest.fail(
+            f"{path.name}: {error}. Each text is a line such as "
+            '"visit": "Current visit", with a comma after every text but the last.'
+        )
+    assert all(isinstance(text, str) for text in texts.values()), path.name
+
+
+def test_a_slip_in_a_file_of_card_texts_names_its_line():
+    good = '// The texts.\nexport default {\n  // Status\n  "a": "A",\n  "b": "B"\n};\n'
+    assert module_texts(good) == {"a": "A", "b": "B"}
+    with pytest.raises(
+        json.JSONDecodeError, match="trailing comma.*: line 5 column 11 "
+    ):
+        module_texts(good.replace('"B"', '"B",'))
+    with pytest.raises(ValueError, match="texts given twice: a"):
+        module_texts(good.replace('"b"', '"a"'))
+    for wrapped in (
+        '{"a": "A"}',
+        'export const TEXT = {"a": "A"};',
+        "export default 1;",
+    ):
+        with pytest.raises(ValueError, match="export default"):
+            module_texts(wrapped)
 
 
 @pytest.mark.parametrize("language", LANGUAGES)
 def test_card_texts_exist_in_every_language(language):
-    english, translated = CARD_TEXTS["en"], CARD_TEXTS[language]
+    english, translated = card_texts()["en"], card_texts()[language]
     assert len(english) > 100
     # The keys of TEXT.en in their order, each text with the same placeholders.
     assert list(translated) == list(english)
@@ -315,8 +379,6 @@ CARD_TEXT_FAMILIES = (
     ("", "_entity"),
     ("", "_long"),
 )
-# The card without its texts: the code that reads them.
-CARD_CODE = CARD.replace(TEXT_BLOCK, "")
 
 
 def card_text_families(code: str) -> set[tuple[str, str]]:
@@ -357,7 +419,7 @@ def unused_card_texts(
 
 
 def test_every_family_of_card_texts_is_still_built():
-    families = card_text_families(CARD_CODE)
+    families = card_text_families(CARD)
     assert [family for family in CARD_TEXT_FAMILIES if family not in families] == []
 
 
@@ -375,8 +437,8 @@ def test_every_card_text_is_used():
     # A text that the cards never show would still go to the translators. The
     # integration hands the cards the achievements and the knockout rounds.
     values = frozenset((*ACHIEVEMENTS, *KNOCKOUT_STAGES))
-    keys = list(CARD_TEXTS["en"])
-    assert unused_card_texts(CARD_CODE, keys, values, CARD_TEXT_SOURCES) == []
+    keys = list(card_texts()["en"])
+    assert unused_card_texts(CARD, keys, values, CARD_TEXT_SOURCES) == []
 
 
 def test_a_card_text_that_nothing_reads_is_found():
@@ -508,10 +570,7 @@ def test_pull_requests_run_the_end_to_end_tests_for_every_file_they_use():
 
 def test_pull_requests_run_the_live_demo_for_every_file_it_plays():
     used = read_from_the_root(live_demo=True)
-    assert {
-        "docs/demo",
-        "custom_components/autodarts/frontend/autodarts-card.js",
-    } <= used
+    assert {"docs/demo", "custom_components/autodarts/frontend"} <= used
     used |= {
         ".github/workflows/e2e.yml",
         "tests/e2e/live_demo.py",

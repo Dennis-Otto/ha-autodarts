@@ -1,0 +1,19 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How a browser gets the cards and their texts
+  accDescr: At every start, the integration digests every file of the cards, both modules and the texts of each language. Version and digest name a folder such as /autodarts/1.16.0-0123abcd/, from which every page loads autodarts-strategy.js and autodarts-card.js. The card module imports text/en.js, text/de.js and the other languages beside it, from the same folder, and the browser keeps every file of the folder for a month. A release, or a text changed in one language, gives a new folder for every file, so no browser mixes files of two versions.
+
+  START["Home Assistant starts: the integration<br/>digests every file of the cards"] --> FOLDER{{"A folder of version and digest:<br/>/autodarts/1.16.0-0123abcd/"}}
+  FOLDER --> PAGE["Every page loads autodarts-strategy.js<br/>and autodarts-card.js from it"]
+  PAGE --> TEXTS["The card module imports text/en.js,<br/>text/de.js … beside it, from the same folder"]
+  TEXTS --> KEPT["The browser keeps every file<br/>of the folder for a month"]
+  KEPT -.->|"A release or<br/>a changed text:<br/>a new folder"| FOLDER
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class FOLDER bot
+  class KEPT done

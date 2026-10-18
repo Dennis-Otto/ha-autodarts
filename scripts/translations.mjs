@@ -18,6 +18,9 @@ import vm from "node:vm";
 
 export const TRANSLATIONS = "custom_components/autodarts/translations";
 export const CARD = "custom_components/autodarts/frontend/autodarts-card.js";
+// The texts of the cards, a module per language; earlier commits had them in CARD.
+export const TEXTS = "custom_components/autodarts/frontend/text";
+export const cardFile = (language) => `${TEXTS}/${language}.js`;
 export const SOURCE = "en";
 // The issues of the bot: the GitHub token of a workflow opens them as this user.
 export const BOT = "github-actions[bot]";
@@ -33,24 +36,40 @@ const NAMES = /^[\w.,-]+(?:[ \t]+[\w.,-]+)*$/;
 const TEXTS_BUDGET = 40_000;
 const KEYS_BUDGET = 8_000;
 
-// The two places of the texts. The integration has a file per language; the cards
-// have one TEXT dictionary with every language in autodarts-card.js.
+// The two places of the texts, each with the forms of its files: a commit has the
+// texts of the first form whose file it has. The integration has a file per language.
+// So have the cards, in TEXTS; before, one TEXT dictionary in autodarts-card.js held
+// every language, and the history of a text goes on across the move.
 const SOURCES = [
   {
     id: "integration",
-    path: (language) => `${TRANSLATIONS}/${language}.json`,
-    parse: (content) => flatten(JSON.parse(content)),
-    select: (parsed) => parsed,
-    lines: (content) => jsonLines(content),
+    forms: [
+      {
+        path: (language) => `${TRANSLATIONS}/${language}.json`,
+        parse: (content) => flatten(JSON.parse(content)),
+        select: (parsed) => parsed,
+        lines: (content) => jsonLines(content),
+      },
+    ],
     heading: (language) => `Integration: \`${TRANSLATIONS}/${language}.json\``,
   },
   {
     id: "cards",
-    path: () => CARD,
-    parse: (content) => cardTexts(content),
-    select: (parsed, language) => parsed[language] ?? {},
-    lines: (content, language) => cardLines(content, language),
-    heading: (language) => `Cards: \`TEXT.${language}\` in \`${CARD}\``,
+    forms: [
+      {
+        path: cardFile,
+        parse: (content) => moduleTexts(content),
+        select: (parsed) => parsed,
+        lines: (content) => jsonLines(content),
+      },
+      {
+        path: () => CARD,
+        parse: (content) => cardTexts(content),
+        select: (parsed, language) => parsed[language] ?? {},
+        lines: (content, language) => cardLines(content, language),
+      },
+    ],
+    heading: (language) => `Cards: \`${cardFile(language)}\``,
   },
 ];
 
@@ -153,10 +172,21 @@ export function flatten(tree, prefix = "") {
   return texts;
 }
 
-// TEXT of a version of the card module, by language: the object literal alone,
-// evaluated without access to anything else. It ends with the first line "};".
+// The texts of a module of TEXTS: JSON after "export default", with comments on
+// lines of their own, as tests/test_consistency.py reads them too.
+export function moduleTexts(source) {
+  const json = source
+    .split("\n")
+    .filter((line) => !/^\s*\/\//.test(line))
+    .join("\n");
+  return flatten(JSON.parse(json.slice(json.indexOf("{"), json.lastIndexOf("}") + 1)));
+}
+
+// TEXT of an earlier version of the card module, by language: the object literal
+// alone, evaluated without access to anything else. It ends with the first line "};".
+// Today's module only puts the modules of TEXTS together, on one line.
 export function cardTexts(source) {
-  const start = source.indexOf("const TEXT = {");
+  const start = source.indexOf("const TEXT = {\n");
   if (start < 0) return {};
   const open = source.indexOf("{", start);
   const literal = source.slice(open, source.indexOf("\n};", open) + 2);
@@ -180,7 +210,7 @@ export function jsonLines(content) {
   return lines;
 }
 
-// The line of every text of a language in TEXT of the card module.
+// The line of every text of a language in TEXT of an earlier card module.
 export function cardLines(source, language) {
   const lines = new Map();
   const all = source.split("\n");
@@ -266,39 +296,58 @@ export function findings(cwd, ref = "HEAD") {
     if (unread.length === 0) return;
     for (const [id, content] of contents(cwd, unread)) read.set(id, content);
   };
-  const files = git(cwd, ["ls-tree", "--name-only", ref, `${TRANSLATIONS}/`]).toString("utf8").split("\n");
+  const named = (folder, extension) =>
+    git(cwd, ["ls-tree", "--name-only", ref, `${folder}/`])
+      .toString("utf8")
+      .split("\n")
+      .filter((file) => file.endsWith(extension))
+      .map((file) => file.slice(folder.length + 1, -extension.length));
+  // The languages of the card module of an earlier ref, before its texts moved.
   const cardBlob = blobsOf(CARD)[head];
   readAll([cardBlob]);
-  const cardLanguages = cardBlob ? Object.keys(cardTexts(read.get(cardBlob))) : [];
-  const fileLanguages = files.filter((file) => file.endsWith(".json")).map((file) => file.slice(TRANSLATIONS.length + 1, -5));
-  const languages = [...new Set([...fileLanguages, ...cardLanguages])].filter((code) => code !== SOURCE).sort();
+  const earlierCard = cardBlob ? Object.keys(cardTexts(read.get(cardBlob))) : [];
+  const languages = [...new Set([...named(TRANSLATIONS, ".json"), ...named(TEXTS, ".js"), ...earlierCard])]
+    .filter((code) => code !== SOURCE)
+    .sort();
   const found = checks(chain, languages);
   const results = languages.map((language) => ({ language, items: [] }));
   for (const source of SOURCES) {
-    const parsed = new Map();
-    const history = (language) => {
-      const ids = blobsOf(source.path(language));
-      const changes = ids.flatMap((id, index) => (index > 0 && id === ids[index - 1] ? [] : [{ index, id }]));
-      readAll(changes.map((change) => change.id));
-      const versions = changes.map(({ index, id }) => {
-        if (id && !parsed.has(id)) parsed.set(id, source.parse(read.get(id)));
-        return { index, texts: id ? source.select(parsed.get(id), language) : {} };
+    // Each blob is parsed once per form; the earlier card module is the same for every language.
+    const parsed = new Map(source.forms.map((form) => [form, new Map()]));
+    const history = (language, like) => {
+      const forms = source.forms.map((form) => ({ form, ids: blobsOf(form.path(language)) }));
+      // The file of each commit, of the first form that it has.
+      const files = shas.map((_, index) => {
+        const first = forms.find(({ ids }) => ids[index]);
+        return first ? { form: first.form, id: first.ids[index] } : null;
       });
-      return { timeline: timeline(versions), head: ids[head] ? read.get(ids[head]) : "" };
+      const changes = files.flatMap((file, index) => (index > 0 && file?.id === files[index - 1]?.id ? [] : [{ index, file }]));
+      readAll(changes.map(({ file }) => file?.id));
+      const versions = changes.map(({ index, file }) => {
+        if (!file) return { index, texts: {} };
+        const cache = parsed.get(file.form);
+        if (!cache.has(file.id)) cache.set(file.id, file.form.parse(read.get(file.id)));
+        return { index, texts: file.form.select(cache.get(file.id), language) };
+      });
+      // Where the texts are now, or would go: in the form of English, the newest without it.
+      const now = files[head];
+      const form = like ?? now?.form ?? source.forms[0];
+      const lines = now?.form === form ? form.lines(read.get(now.id), language) : new Map();
+      return { timeline: timeline(versions), form, path: form.path(language), lines };
     };
     const english = history(SOURCE);
     const current = english.timeline.versions.at(-1).texts;
     if (Object.keys(current).length === 0) {
-      throw new Error(`No English texts in ${source.path(SOURCE)}; the translation bot needs to learn its new form.`);
+      throw new Error(`No English texts in ${english.path}; the translation bot needs to learn its new form.`);
     }
     for (const result of results) {
       const { language } = result;
-      const translated = history(language);
+      const translated = history(language, english.form);
       const texts = translated.timeline.versions.at(-1).texts;
-      const lines = source.lines(translated.head, language);
+      const { path, lines } = translated;
       for (const [key, text] of Object.entries(current)) {
         const translation = texts[key];
-        const item = { source: source.id, path: source.path(language), key, english: text, translation, line: lines.get(key) };
+        const item = { source: source.id, path, key, english: text, translation, line: lines.get(key) };
         if (translation === undefined) {
           result.items.push({ ...item, state: "missing", previous: undefined });
           continue;
@@ -374,7 +423,7 @@ export function render(result, links) {
   const files = [...new Set(items.map((item) => item.source))].map((id) =>
     id === "integration"
       ? `   - [\`${TRANSLATIONS}/${language}.json\`](${links.edit}/${TRANSLATIONS}/${language}.json) for the texts of the integration: setup, entities, actions and messages`
-      : `   - [\`${CARD}\`](${links.edit}/${CARD}) for the texts of the dashboard cards, in the block \`${language}: {\` of \`const TEXT = {\``
+      : `   - [\`${cardFile(language)}\`](${links.edit}/${cardFile(language)}) for the texts of the dashboard cards`
   );
   parts.push(
     "## How to help",
@@ -382,7 +431,7 @@ export function render(result, links) {
     [
       "1. Open the file and click the pencil, *Edit this file*. GitHub makes a copy of the repository for you, a fork.",
       ...files,
-      "2. Find each key listed above, whose link shows its line, and change only the text in quotes. Keep the key, the quotes, a comma after them, placeholders such as `{name}`, and the order of the lines.",
+      "2. Find each key listed above, whose link shows its line, and change only the text in quotes. Keep the key, the quotes, the comma after them where there is one, placeholders such as `{name}`, and the order of the lines.",
       `3. Click *Commit changes…*, then *Propose changes* and *Create pull request*. A title such as \`fix(i18n): update the ${name} texts\` fits. The checks of the pull request test every language, and a maintainer helps when one fails.`,
       `4. Once it is merged, the next release brings your texts to every user, and the [changelog](${links.blob}/CHANGELOG.md) thanks you by your GitHub name. A maintainer writes that line, you don't need to.`,
     ].join("\n"),

@@ -27,15 +27,17 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+# Every file of the cards: the two modules that Home Assistant loads and the texts
+# that the card module imports, one module per language in text/.
 FRONTEND = Path(__file__).parent / "frontend"
-CARD_URL = f"/{DOMAIN}/autodarts-card.js"
-CARD_PATH = FRONTEND / "autodarts-card.js"
+CARD = "autodarts-card.js"
 # The dashboard strategy alone, small enough to be registered before Home Assistant
 # stops waiting for it; it loads the strategy of the card module.
-STRATEGY_URL = f"/{DOMAIN}/autodarts-strategy.js"
-STRATEGY_PATH = FRONTEND / "autodarts-strategy.js"
-# Both modules by their address, the card first as the digest has always taken them.
-MODULES = {CARD_URL: CARD_PATH, STRATEGY_URL: STRATEGY_PATH}
+STRATEGY = "autodarts-strategy.js"
+# The path of a module of the cards in a resource, at any version or none.
+_MODULE_PATH = re.compile(
+    rf"/{DOMAIN}/(?:[^/]+/)?({re.escape(CARD)}|{re.escape(STRATEGY)})"
+)
 # A month, as Home Assistant sends its own static files; the tests compare the two.
 CACHE_CONTROL = "public, max-age=2678400"
 # One content coding of Accept-Encoding with its optional weight, a number from 0 to 1
@@ -48,9 +50,9 @@ _CODING = re.compile(
 
 @dataclass(slots=True)
 class CardResources:
-    """The addresses of both modules, which the dashboard resources keep for Cast."""
+    """The address of each module, which the dashboard resources keep for Cast."""
 
-    urls: tuple[str, ...]
+    urls: dict[str, str]
     # Boards are set up side by side; one at a time looks at the resources.
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
@@ -63,15 +65,16 @@ async def async_register_card(hass: HomeAssistant) -> None:
     if hass.http is None or "frontend" not in hass.config.components:
         return
     version = (await async_get_integration(hass, DOMAIN)).version
-    modules, digest = await hass.async_add_executor_job(_load)
-    # Version and content change the URLs, so browsers never keep a stale card. Both
-    # modules carry the same query: the strategy imports the card by it.
+    files, digest = await hass.async_add_executor_job(_load)
+    # Version and content change the addresses, so browsers never keep a stale card.
+    # The whole folder has the version in its address: the relative imports of a
+    # module, of the card by the strategy and of the texts by the card, keep it.
     tag = f"{version}-{digest}"
-    for url, (module, compressed) in modules.items():
-        hass.http.register_view(ModuleView(url, module, compressed, tag))
+    for name, (content, compressed) in files.items():
+        hass.http.register_view(FileView(name, content, compressed, tag))
     # The strategy comes first, so that it is there before the cards have loaded.
-    urls = tuple(f"{url}?v={tag}" for url in (STRATEGY_URL, CARD_URL))
-    for url in urls:
+    urls = {name: versioned(tag, name) for name in (STRATEGY, CARD)}
+    for url in urls.values():
         add_extra_js_url(hass, url)
     hass.data[CARD_RESOURCES] = CardResources(urls)
 
@@ -92,8 +95,8 @@ async def async_add_card_resources(hass: HomeAssistant) -> None:
         try:
             # Home Assistant reads the resources on their first use.
             await resources.async_get_info()
-            for url in card.urls:
-                await _async_keep(resources, url)
+            for module, url in card.urls.items():
+                await _async_keep(resources, module, url)
         except HomeAssistantError as err:
             # Every browser still loads the cards; only Cast misses them.
             _LOGGER.warning("The cards are missing in the dashboard resources: %s", err)
@@ -105,7 +108,7 @@ async def async_remove_card_resources(hass: HomeAssistant) -> None:
         return
     try:
         await resources.async_get_info()
-        for item in _ours(resources, *MODULES):
+        for item in _ours(resources, CARD, STRATEGY):
             await resources.async_delete_item(item["id"])
     except HomeAssistantError as err:
         _LOGGER.warning("The cards stay in the dashboard resources: %s", err)
@@ -121,26 +124,35 @@ def _resources(hass: HomeAssistant) -> ResourceStorageCollection | None:
     return None
 
 
-def _ours(resources: ResourceStorageCollection, *paths: str) -> list[dict[str, Any]]:
-    """The resources of these modules by their path, whatever their query."""
-    return [item for item in resources.async_items() if _path(item["url"]) in paths]
+def versioned(tag: str, name: str) -> str:
+    """The address of a file of the cards in the folder of this version."""
+    return f"/{DOMAIN}/{tag}/{name}"
 
 
-def _path(url: str) -> str | None:
-    """The path of a resource, or None for an address that does not parse.
+def _ours(resources: ResourceStorageCollection, *modules: str) -> list[dict[str, Any]]:
+    """The resources of these modules, at any version or none, whatever their query."""
+    return [item for item in resources.async_items() if _module(item["url"]) in modules]
+
+
+def _module(url: str) -> str | None:
+    """The module of the cards that a resource loads, or None for any other.
 
     Home Assistant takes any text as the address of a resource, so a typo in the
     resource of another card must not stop the boards from setting up.
     """
     try:
-        return urlsplit(url).path
+        path = urlsplit(url).path
     except ValueError:
         return None
+    return match[1] if (match := _MODULE_PATH.fullmatch(path)) else None
 
 
-async def _async_keep(resources: ResourceStorageCollection, url: str) -> None:
-    """One module resource at this address: added, brought up to date, the rest gone."""
-    found = _ours(resources, urlsplit(url).path)
+async def _async_keep(
+    resources: ResourceStorageCollection, module: str, url: str
+) -> None:
+    """One resource of the module at this address: added, brought up to date, the
+    rest gone."""
+    found = _ours(resources, module)
     if not found:
         await resources.async_create_item({"res_type": "module", "url": url})
         return
@@ -153,41 +165,51 @@ async def _async_keep(resources: ResourceStorageCollection, url: str) -> None:
         await resources.async_delete_item(item["id"])
 
 
-class ModuleView(HomeAssistantView):
-    """A module of the cards, compressed for every browser that accepts gzip.
+class FileView(HomeAssistantView):
+    """A file of the cards, compressed for every browser that accepts gzip.
 
     Home Assistant sends a static file as it is on disk. The cards are more than half
     a megabyte of text, which gzip makes a quarter of that; a phone on slow Wi-Fi
     downloads them on its first visit and after every update.
+
+    The file is served in the folder of any version, such as
+    /autodarts/1.16.0-0123abcd/text/de.js, and without one, at /autodarts/text/de.js.
+    The folder of a version that has gone serves today's file, as a page that Home
+    Assistant sent before an update still asks for it; its imports, relative to it,
+    then come from the same folder and are of today too.
     """
 
     # Like every other frontend file: the dashboards load it before anyone logs in.
     requires_auth = False
 
-    def __init__(self, url: str, module: bytes, compressed: bytes, tag: str) -> None:
-        self.url = url
-        self.name = f"{DOMAIN}:{Path(url).stem}"
-        self._module = module
+    def __init__(self, name: str, content: bytes, compressed: bytes, tag: str) -> None:
+        self.url = f"/{DOMAIN}/{name}"
+        self.extra_urls = [versioned("{version}", name)]
+        # The name says which file this is; Home Assistant gives it to no route.
+        self.name = f"{DOMAIN}:{name}"
+        self._content = content
         self._compressed = compressed
         self._tag = tag
 
-    def _headers(self, request: web.Request) -> dict[str, str]:
-        """The headers of the static files for the address of this version.
+    def _headers(self, version: str | None) -> dict[str, str]:
+        """The headers of the static files in the folder of this version.
 
         The weak tag stands for both encodings, as the content is the same, and lets a
         browser revalidate its copy for free. Any other address, such as the one of a
         resource in YAML without the version, is revalidated on every load, so that a
-        browser never keeps an old module there.
+        browser never keeps an old file there.
         """
-        current = request.query.get("v") == self._tag
+        current = version == self._tag
         return {
             hdrs.CACHE_CONTROL: CACHE_CONTROL if current else "no-cache",
             hdrs.ETAG: f'W/"{self._tag}"',
             hdrs.VARY: hdrs.ACCEPT_ENCODING,
         }
 
-    async def get(self, request: web.Request) -> web.Response:
-        headers = self._headers(request)
+    async def get(
+        self, request: web.Request, version: str | None = None
+    ) -> web.Response:
+        headers = self._headers(version)
         if any(tag.value in ("*", self._tag) for tag in request.if_none_match or ()):
             return web.Response(status=HTTPStatus.NOT_MODIFIED, headers=headers)
         if _accepts_gzip(request.headers.get(hdrs.ACCEPT_ENCODING, "")):
@@ -198,7 +220,7 @@ class ModuleView(HomeAssistantView):
                 headers={**headers, hdrs.CONTENT_ENCODING: "gzip"},
             )
         return web.Response(
-            body=self._module,
+            body=self._content,
             content_type="text/javascript",
             charset="utf-8",
             headers=headers,
@@ -220,11 +242,19 @@ def _accepts_gzip(accept_encoding: str) -> bool:
 
 
 def _load() -> tuple[dict[str, tuple[bytes, bytes]], str]:
-    """Read both modules, compress each and digest them together."""
-    modules = {url: path.read_bytes() for url, path in MODULES.items()}
-    content = hashlib.sha256(b"".join(modules.values()))
-    # Without a time stamp the same module always compresses to the same bytes.
+    """Read every file of the cards, compress each and digest them together.
+
+    The files go into the digest in the order of their paths, so a change of any of
+    them, such as a text of one language, moves every address to a new folder.
+    """
+    files = {
+        path.relative_to(FRONTEND).as_posix(): path.read_bytes()
+        for path in FRONTEND.rglob("*.js")
+    }
+    names = sorted(files)
+    content = hashlib.sha256(b"".join(files[name] for name in names))
+    # Without a time stamp the same file always compresses to the same bytes.
     return {
-        url: (module, gzip.compress(module, compresslevel=9, mtime=0))
-        for url, module in modules.items()
+        name: (files[name], gzip.compress(files[name], compresslevel=9, mtime=0))
+        for name in names
     }, content.hexdigest()[:8]

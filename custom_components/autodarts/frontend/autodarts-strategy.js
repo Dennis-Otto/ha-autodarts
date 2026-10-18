@@ -11,8 +11,9 @@
  */
 
 const STRATEGY_ELEMENT = "ll-strategy-dashboard-autodarts";
-// autodarts-card.js beside a module, with the same version in its address, so that the
-// import finds the module Home Assistant is loading already.
+// autodarts-card.js beside a module: in the folder of the same version, as Home Assistant
+// loads both, or with the same query, so that the import finds the module Home Assistant
+// is loading already.
 const cardModule = (url) => new URL(`autodarts-card.js${new URL(url).search}`, url).href;
 const CARD_MODULE = cardModule(import.meta.url);
 

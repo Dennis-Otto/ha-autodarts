@@ -83,7 +83,7 @@ How the integration counters the weaknesses of the [CWE Top 25](https://cwe.mitr
 - **Fail safe:** unknown data becomes *unknown*, an unreachable board makes entities unavailable, and a wrong board never shows its data.
 - **Local first:** the cloud is optional, and local control never depends on it.
 - **Small attack surface:** no Python dependencies at runtime and no open ports of its own. What the integration adds to Home Assistant's own web server:
-  - the card files at `/autodarts/autodarts-card.js` and `/autodarts/autodarts-strategy.js`, served without a login like every other frontend file; they contain code, no data;
+  - the files of the cards under `/autodarts/`, such as `/autodarts/<version>/autodarts-card.js`, `autodarts-strategy.js` and the texts of each language in `text/`, served without a login like every other frontend file; they contain code and texts, no data;
   - the sixteen `autodarts.*` actions, which need a login like every action: `start_game`, `correct_dart`, `throw_dart`, `enter_visit`, `next_player`, `undo_visit`, `start_tournament`, `next_tournament_match`, `stop_tournament` and `voice_sound`, which only reads which sounds a voice pack has, for every user, and `delete_player`, `link_player`, `unlink_player`, `export`, `save_highlight` and `generate_voice_pack` for administrators, automations and scripts started by them;
   - the downloads of this run's exports at `/api/autodarts/export/`, for administrators or with their signed link that expires after a minute;
   - small copies of the highlight photos at `/api/autodarts/highlights/`, for logged-in users like the photos themselves; only plain file names of photos in the highlight folder are served;
