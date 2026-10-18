@@ -113,9 +113,14 @@ def hidden_target(
 ) -> str | None:
     """The bed to aim at in Hidden Cricket, as next_target over the numbers
     that show, None for a hidden one: the highest one still open, then the bull;
-    with those closed, one to score on. None when the numbers that show leave
-    nothing, as when only hidden ones are open."""
+    with those closed, one to score on. None while numbers are still hidden and
+    every number that shows but the bull is closed: then the players search, as
+    the bot does, rather than go for the bull."""
     slots = by_value(numbers)
+    if None in numbers and all(
+        marks[slot] >= MARKS_TO_CLOSE for slot in slots if numbers[slot] != BULL
+    ):
+        return None
     return next_target(
         [marks[slot] for slot in slots],
         tuple(int(numbers[slot] or 0) for slot in slots),

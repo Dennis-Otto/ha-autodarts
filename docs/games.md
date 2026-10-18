@@ -282,7 +282,7 @@ Also known as Minnesota Cricket. Besides 20 to 15 and the bull, every player clo
 
 ### Random Cricket
 
-Cricket on numbers that change with every leg, as Scolia, Granboard and Dartsmind offer it: no two legs ask for the same doubles and triples, which keeps a group of regulars on their toes.
+Cricket on numbers that change with every leg, as Scolia, Granboard and Dartsmind offer it: the doubles and triples change from leg to leg, which keeps a group of regulars on their toes.
 
 <img src="images/en/scoreboard-random-cricket.png" alt="Scoreboard in Random Cricket between Alex and Sam: the chalkboard with the numbers the leg drew, 16, 10, 9, 7, 3 and 2, and the bull. Alex has closed the 16, framed in green where a dart scores, and the 10, with 16 points; Sam has closed the 10 and marked the 9 twice; Alex's T10 is on the board, and T9 is the next target" width="760">
 
@@ -299,7 +299,7 @@ Random Cricket with a secret: the six numbers of the leg stay hidden until a dar
 
 - **Numbers:** six of 1 to 20, drawn anew for every leg as in Random Cricket, and the bull. The chalkboard shows a question mark for each number until a dart marks it; from then on its row shows the number to everybody. The bull always shows. The rows keep the order of the draw, so the row a number shows up in says nothing about the numbers still hidden.
 - **Marks, points and the win** follow the rules of [Cricket](#cricket): the dart that finds a number marks it, and a dart on a number the leg did not draw counts nothing.
-- **Target:** the board outlines the highest number that shows and is still open, then the bull, and once those are closed, a number that shows to score on. It never points at a hidden number: finding those is up to you.
+- **Target:** the board outlines the highest number that shows and is still open, then the bull once every number shows, and once those are closed, a number that shows to score on. While numbers are still hidden and every number that shows but the bull is closed, there is no target: that is the time to search. It never points at a hidden number: finding those is up to you.
 - **The bot** plays the numbers that show; once it has closed them, it searches for the others with the triple of a different number with every dart ([how](how-it-works.md#bot)).
 - **No peeking:** *Practice remaining score* has `null` for a number that does not show yet, so neither the cards nor the history of Home Assistant give it away.
 - **The caller** names a number as soon as it shows, such as *17 is in*.

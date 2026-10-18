@@ -282,7 +282,7 @@ Auch als Minnesota Cricket bekannt. Neben 20 bis 15 und dem Bull schließt jeder
 
 ### Random Cricket
 
-Cricket auf Zahlen, die mit jedem Leg wechseln, wie es Scolia, Granboard und Dartsmind anbieten: Kein Leg verlangt dieselben Doubles und Triples wie das letzte, und das hält auch eingespielte Runden wach.
+Cricket auf Zahlen, die mit jedem Leg wechseln, wie es Scolia, Granboard und Dartsmind anbieten: Die Doubles und Triples wechseln von Leg zu Leg, und das hält auch eingespielte Runden wach.
 
 <img src="images/de/scoreboard-random-cricket.png" alt="Anzeigetafel bei Random Cricket zwischen Alex und Sam: die Kreidetafel mit den Zahlen, die das Leg gezogen hat, 16, 10, 9, 7, 3 und 2, und dem Bull. Alex hat die 16, grün gerahmt, wo ein Dart punktet, und die 10 geschlossen und 16 Punkte; Sam hat die 10 geschlossen und die 9 zweimal markiert; die T10 von Alex steckt im Board, und T9 ist das nächste Ziel" width="760">
 
@@ -299,7 +299,7 @@ Random Cricket mit einem Geheimnis: Die sechs Zahlen des Legs bleiben verdeckt, 
 
 - **Zahlen:** sechs von 1 bis 20, für jedes Leg neu gezogen wie bei Random Cricket, und das Bull. Die Kreidetafel zeigt für jede Zahl ein Fragezeichen, bis ein Dart sie markiert; von da an zeigt ihre Zeile die Zahl allen. Das Bull ist immer zu sehen. Die Zeilen behalten die Reihenfolge der Ziehung, damit die Zeile, in der eine Zahl auftaucht, nichts über die noch verdeckten verrät.
 - **Marks, Punkte und Sieg** folgen den Regeln von [Cricket](#cricket): Der Dart, der eine Zahl findet, markiert sie, und ein Dart auf eine Zahl, die das Leg nicht gezogen hat, zählt nichts.
-- **Ziel:** Das Board umrandet die höchste aufgedeckte Zahl, die noch offen ist, dann das Bull und, sind diese geschlossen, eine aufgedeckte Zahl zum Punkten. Auf eine verdeckte Zahl zeigt es nie: Sie zu finden, ist deine Sache.
+- **Ziel:** Das Board umrandet die höchste aufgedeckte Zahl, die noch offen ist, dann das Bull, sobald alle Zahlen aufgedeckt sind, und, sind diese geschlossen, eine aufgedeckte Zahl zum Punkten. Solange noch Zahlen verdeckt sind und jede aufgedeckte Zahl außer dem Bull geschlossen ist, gibt es kein Ziel: Dann heißt es suchen. Auf eine verdeckte Zahl zeigt es nie: Sie zu finden, ist deine Sache.
 - **Der Bot** spielt die aufgedeckten Zahlen; hat er sie geschlossen, sucht er die anderen, mit jedem Dart auf dem Triple einer anderen Zahl ([wie](how-it-works.de.md#bot)).
 - **Kein Spicken:** *Übungsspiel Restpunkte* hat `null` für eine noch verdeckte Zahl, sodass weder die Karten noch der Verlauf von Home Assistant sie verraten.
 - **Der Caller** nennt eine Zahl, sobald sie aufgedeckt ist, etwa *Die 17 ist im Spiel*.

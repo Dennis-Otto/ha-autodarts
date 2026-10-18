@@ -83,13 +83,19 @@ test("Random Cricket shows the numbers it drew, and no other game hides any", ()
 
 test("the caller names the numbers of a leg of Random Cricket and every number Hidden Cricket shows", () => {
   const idle = callerState(visit(), { mode: "idle" });
-  const first = callerState(visit(), view(practice("random_cricket", [18, 14, 11, 7, 5, 2, 25])), idle);
+  const begun = { scores: [{ player: 1, marks: OPEN, points: 0 }, { player: 2, marks: OPEN, points: 0 }] };
+  const first = callerState(visit(), view(practice("random_cricket", [18, 14, 11, 7, 5, 2, 25], begun)), idle);
   assert.deepEqual(callerCalls(idle, first, all), [{ kind: "numbers", numbers: [18, 14, 11, 7, 5, 2] }]);
   // The same numbers are not called again; those of the next leg are.
   const again = callerState(visit(), view(practice("random_cricket", [18, 14, 11, 7, 5, 2, 25])), first);
   assert.deepEqual(callerCalls(first, again, all), []);
   const next = callerState(visit(), view(practice("random_cricket", [20, 13, 9, 6, 4, 1, 25])), again);
   assert.deepEqual(callerCalls(again, next, all), [{ kind: "numbers", numbers: [20, 13, 9, 6, 4, 1] }]);
+  // A leg that comes back with marks on the board, as after a reload of the integration,
+  // is not called again.
+  const gone = callerState(visit(), { mode: "idle" }, next);
+  const back = callerState(visit(), view(practice("random_cricket", [20, 13, 9, 6, 4, 1, 25])), gone);
+  assert.deepEqual(callerCalls(gone, back, all), []);
   // Hidden Cricket says nothing of its numbers at the start, and names one once it shows.
   const hidden = callerState(visit(), view(practice("hidden_cricket", [null, null, null, null, null, null, 25])), next);
   assert.deepEqual(callerCalls(next, hidden, all), []);

@@ -4518,6 +4518,8 @@ function callerState(visit, view, previous = null) {
     // The numbers of Random and Hidden Cricket, which they draw for every leg.
     kind: game?.kind ?? null,
     numbers: current.cricket?.numbers ?? [],
+    // A leg nobody has marked yet: one that has just begun.
+    fresh: (current.cricket?.scores ?? []).every((score) => score.marks.every((mark) => mark === 0)),
     player,
     name: game?.name ?? null,
     bot: up?.bot === true,
@@ -4647,10 +4649,12 @@ function targetWords(target, t) {
 }
 
 // Random Cricket names the numbers it drew when a leg begins; Hidden Cricket a number as
-// soon as a dart shows it.
+// soon as a dart shows it. A game that comes back with marks on the board, as after a reload
+// of the integration, is one the caller has named already.
 function drawnCalls(previous, current) {
   const same = previous.kind === current.kind;
-  if (current.kind === "random_cricket" && !(same && previous.numbers.join() === current.numbers.join())) {
+  const drawn = previous.numbers.join() !== current.numbers.join();
+  if (current.kind === "random_cricket" && drawn && (same || current.fresh)) {
     return [{ kind: "numbers", numbers: current.numbers.filter((number) => number !== 25) }];
   }
   if (current.kind !== "hidden_cricket" || !same) return [];

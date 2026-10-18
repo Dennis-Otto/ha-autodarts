@@ -99,10 +99,16 @@ def test_hidden_cricket_aims_only_at_the_numbers_that_show():
     numbers = [None, 18, 2, None, None, None, 25]
     assert hidden_target(OPEN, numbers, [OPEN]) == "T18"
     assert hidden_target([0, 3, 0, 0, 0, 0, 0], numbers, [OPEN]) == "T2"
-    # Only hidden numbers are open: nothing to aim at but what scores.
+    # Every number that shows but the bull is closed while others hide: the
+    # players search, as the bot does, so nothing is the target.
+    assert hidden_target([0, 3, 3, 0, 0, 0, 0], numbers, [OPEN]) is None
     closed = [0, 3, 3, 0, 0, 0, 3]
-    assert hidden_target(closed, numbers, [closed]) is None
-    assert hidden_target(closed, numbers, [[0, 2, 3, 0, 0, 0, 3]]) == "T18"
+    assert hidden_target(closed, numbers, [[0, 2, 3, 0, 0, 0, 3]]) is None
+    # Once every number shows, the bull is the target, then one to score on.
+    found = [20, 18, 2, 7, 5, 3, 25]
+    assert hidden_target([3, 3, 3, 3, 3, 3, 0], found, [OPEN]) == "BULL"
+    assert hidden_target([3] * 7, found, [[3, 2, 3, 3, 3, 3, 3]]) == "T18"
+    assert hidden_target([3] * 7, found, [[3] * 7]) is None
 
 
 def test_random_cricket_draws_new_numbers_for_every_leg():
@@ -178,8 +184,8 @@ def test_hidden_cricket_shows_a_number_once_a_dart_marks_it():
     practice = drawn_game("hidden_cricket", numbers=HIDDEN)
     snapshot = practice.snapshot()
     assert snapshot["numbers"] == [None] * 6 + [25]
-    # Nothing but the bull shows: the bull is the target.
-    assert snapshot["target"] == "BULL"
+    # Nothing but the bull shows: the players search, so there is no target.
+    assert snapshot["target"] is None
     # A dart on a number that was not drawn shows nothing.
     practice.track([dart("T20")])
     assert practice.snapshot()["numbers"] == [None] * 6 + [25]
@@ -266,8 +272,9 @@ async def test_start_game_plays_random_and_hidden_cricket_by_name(hass, aioclien
         await hass.async_block_till_done()
         assert practice.cricket == kind and valid_draw(practice.drawn)
         assert state(hass, "select", "practice_game") == kind
-    # Hidden Cricket starts with nothing to aim at but the bull.
-    assert state(hass, "sensor", "practice_target") == "BULL"
+    # Hidden Cricket starts with only the bull showing: the players search, so
+    # there is no target yet.
+    assert state(hass, "sensor", "practice_target") == "unknown"
 
 
 class DrawnCricketMachine(RuleBasedStateMachine):
@@ -326,6 +333,9 @@ class DrawnCricketMachine(RuleBasedStateMachine):
     def bot_visit(self, seed) -> None:
         """The bot throws where it aims while it is at the board."""
         game = self.game
+        if game.bot_level != 60:
+            # A bot that joins starts a new match: the last visit is gone.
+            self.checkpoint = None
         game.set_bot(60)
         self.numbers = game.drawn
         if not game.bot_up:
