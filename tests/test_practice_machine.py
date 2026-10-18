@@ -264,7 +264,8 @@ class PracticeMachine(RuleBasedStateMachine):
         saved = stored_as_json(self.game)
         restored = PracticeGame()
         restored.restore(saved)
-        assert stored_as_json(restored) == saved
+        # The store loads unchanged, byte for byte.
+        assert json.dumps(restored.stored()) == json.dumps(saved)
         self.game = restored
         self.darts, self.positions = [], []
         self.checkpoint = None

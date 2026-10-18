@@ -1,0 +1,21 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Das Übungsspiel und seine Modi
+  accDescr: BoardGames gibt die Darts, die gezogenen Darts und die Aktionen an PracticeGame in practice.py, den Rahmen jedes Matches: die Spieler, ihre Plätze und Teams, den Bot, das Ausbullen, Legs und Sets, die Bilanz des Matches, das Rückgängigmachen und den Speicher. Seine Modus-Fabrik erzeugt den Modus des gespielten Spiels aus modes.py, der das Spiel selbst spielt: Er folgt den Darts einer Aufnahme und bucht sie, sagt dem Spieler am Board, was als Nächstes kommt, zeigt das Spiel und ergänzt, was das Spiel zählt, in den Aufzeichnungen. Ein Match, in dem sich Spieler abwechseln, ist ein MatchMode: X01Mode zählt von den Startpunkten herunter, mit den In- und Out-Modi und dem Rundenlimit, CricketMode spielt die Cricket-Spiele mit cricket.py und PartyMode die Partyspiele mit ihren Regeln aus party.py. DrillMode spielt ein Trainingsspiel aus drills.py, und GameMode selbst ist kein Spiel.
+
+  BG["BoardGames, games.py"] -- "Darts, gezogene Darts, Aktionen" --> PG["PracticeGame, practice.py<br/>der Rahmen des Matches: Spieler, Plätze,<br/>Teams, Bot, Ausbullen, Legs und Sets,<br/>Bilanz des Matches, Rückgängig, Speicher"]
+  PG -- "seine Modus-Fabrik<br/>erzeugt den Modus" --> GM["GameMode, modes.py<br/>folgt einer Aufnahme und bucht sie,<br/>der nächste Zug, der Zustand,<br/>die Aufzeichnungen eines Legs,<br/>eines Matches und seiner Zusammenfassung"]
+  GM -- "ein Match" --> MM["MatchMode<br/>Spieler wechseln sich ab,<br/>Legs ergeben Sets"]
+  GM -- "kein Match" --> DM["DrillMode, ein Trainingsspiel<br/>aus drills.py; GameMode<br/>selbst ist kein Spiel"]
+  MM --> X01["X01Mode<br/>Startpunkte, In- und<br/>Out-Modi, Rundenlimit"]
+  MM --> CR["CricketMode<br/>Marks, Punkte, gezogene<br/>Zahlen, cricket.py"]
+  MM --> PM["PartyMode<br/>die Regeln eines<br/>PartyGame, party.py"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class PG bot
+  class GM,MM,X01,CR,PM,DM done

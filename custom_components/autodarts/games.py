@@ -20,7 +20,8 @@ from .bot import BOT_DARTS, Bot
 from .bot import aim as bot_aim
 from .local_api import number
 from .manual import ManualDarts
-from .practice import PracticeGame, VisitRefused
+from .modes import VisitRefused
+from .practice import PracticeGame
 from .profiles import valid_name
 from .progress import Progress
 from .quality import DetectionQuality
