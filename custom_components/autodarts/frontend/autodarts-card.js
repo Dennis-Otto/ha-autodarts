@@ -2384,6 +2384,9 @@ function lobbyChoice(board, games) {
     format: TOURNAMENT_FORMATS.includes(board.format) ? board.format : "round_robin",
     third_place: board.third_place === true,
     random_draw: board.random_draw === true,
+    // Groups with knockout: groups the board makes (0), and two go on.
+    groups: 0,
+    advance: GROUP_LIMITS.through,
     draft: "",
   };
 }
@@ -2391,11 +2394,11 @@ function lobbyChoice(board, games) {
 // Whether the bot plays the chosen game: in a match of X01 or a Cricket game.
 const botSeat = (choice) => Boolean(choice.bot) && !choice.tournament && gameRules(choice.game).bot;
 
-// How many players a choice takes: up to four in a match, eight in a tournament;
-// the bot takes a seat of its own.
+// How many players a choice takes: up to four in a match, eight in a round robin and
+// 32 in the other tournaments; the bot takes a seat of its own.
 const playerLimit = (choice) =>
   choice.tournament
-    ? TOURNAMENT_LIMITS.players
+    ? tournamentPlayers(choice.format)[1]
     : (gameGroup(choice.game) === "party" ? PARTY_PLAYERS : LOBBY_LIMITS.players) - Number(botSeat(choice));
 
 // The choice after a tap: a game, a player added, moved or removed, the format or a rule.
@@ -2419,6 +2422,13 @@ function lobbyChange(choice, action, value) {
     next.starts = kept.map(([, start]) => start);
   } else if (action === "format" && TOURNAMENT_FORMATS.includes(value)) {
     next.format = value;
+  } else if (action === "groups") {
+    // The next number of groups that fits, or the board's choice below the fewest.
+    const { groups, options } = groupSetup(next);
+    next.groups = options[Math.min(Math.max(options.indexOf(groups) + index, 0), options.length - 1)];
+  } else if (action === "advance") {
+    const { advance, most } = groupSetup(next);
+    next.advance = Math.min(Math.max(advance + index, 1), most);
   } else if (action === "add") {
     const name = String(value ?? "").trim().slice(0, LOBBY_LIMITS.name);
     if (room && name && !next.players.some((player) => nameKey(player) === nameKey(name))) {
@@ -2591,7 +2601,7 @@ function lobbyHtml(choice, ui) {
     );
   };
   const bot = botSeat(choice);
-  const seats = choice.tournament ? TOURNAMENT_LIMITS.players : rules.maxPlayers - Number(bot);
+  const seats = choice.tournament ? tournamentPlayers(choice.format)[1] : rules.maxPlayers - Number(bot);
   // The bot sits after the players, at its level.
   const botRow = bot
     ? `<li class="lobby-player bot"><span class="bot-icon" aria-hidden="true">🤖</span>` +
@@ -2639,16 +2649,31 @@ function lobbyHtml(choice, ui) {
     ` aria-label="${text("lobby_new_player")}"${full}>` +
     `${button("add-name", undefined, text("lobby_add"), full)}</div>`;
   const match = choice.tournament || (!rules.drill && choice.players.length + Number(bot) > 1);
-  const stepper = (key, label) => {
+  const stepper = (key, label, { shown = choice[key], lowest = choice[key] <= 1, highest = choice[key] >= LOBBY_LIMITS[key] } = {}) => {
     const name = { name: t(label) };
     return (
       `<div class="stepper"><span class="stepper-label">${text(label)}</span><span class="stepper-controls">` +
-      button(key, -1, "−", ` aria-label="${text("lobby_decrease", name)}"${choice[key] <= 1 ? " disabled" : ""}`) +
-      `<b class="stepper-value">${choice[key]}</b>` +
-      button(key, 1, "+", ` aria-label="${text("lobby_increase", name)}"${choice[key] >= LOBBY_LIMITS[key] ? " disabled" : ""}`) +
+      button(key, -1, "−", ` aria-label="${text("lobby_decrease", name)}"${lowest ? " disabled" : ""}`) +
+      `<b class="stepper-value">${escapeHtml(shown)}</b>` +
+      button(key, 1, "+", ` aria-label="${text("lobby_increase", name)}"${highest ? " disabled" : ""}`) +
       `</span></div>`
     );
   };
+  // The groups and how many of each go on, for groups with knockout.
+  const grouping = groupSetup(choice);
+  const groupSteppers =
+    choice.tournament && choice.format === "groups_knockout"
+      ? stepper("groups", "tournament_groups", {
+          shown: grouping.groups || fill(t("tournament_auto"), { count: grouping.shown }),
+          lowest: grouping.groups === 0,
+          highest: grouping.groups === grouping.options.at(-1),
+        }) +
+        stepper("advance", "tournament_advance", {
+          shown: grouping.advance,
+          lowest: grouping.advance <= 1,
+          highest: grouping.advance >= grouping.most,
+        })
+      : "";
   // The In and Out mode, the bull mode and the round limit of X01; a tournament plays
   // straight or double in and out, the bull 25/50 and no round limit.
   const choices = (key, values, label) =>
@@ -2686,7 +2711,7 @@ function lobbyHtml(choice, ui) {
       ? ["teams"]
       : []),
     ...(!choice.tournament && ui.bed && choice.game === "wild_mouse" ? ["three_in_a_bed"] : []),
-    ...(choice.tournament && choice.format === "knockout" && choice.players.length >= THIRD_PLACE_PLAYERS
+    ...(choice.tournament && THIRD_PLACE_FORMATS.includes(choice.format) && knockoutPlayers(choice) >= THIRD_PLACE_PLAYERS
       ? ["third_place"]
       : []),
     ...(choice.tournament ? ["random_draw"] : []),
@@ -2737,7 +2762,7 @@ function lobbyHtml(choice, ui) {
     (match
       ? block(
           "lobby_format",
-          `${formats}<div class="steppers">${stepper("legs", "lobby_legs")}${stepper("sets", "lobby_sets")}</div>`,
+          `${formats}<div class="steppers">${stepper("legs", "lobby_legs")}${stepper("sets", "lobby_sets")}${groupSteppers}</div>`,
           "format"
         )
       : "") +
@@ -2757,12 +2782,13 @@ function lobbyHtml(choice, ui) {
   );
 }
 
-// Whether the start waits for players: a tournament needs three, Killer two;
-// nobody chosen is one player without a name.
-const lobbyBlocked = (choice) =>
-  choice.tournament
-    ? choice.players.length < TOURNAMENT_LIMITS.min
-    : Math.max(choice.players.length, 1) < gameRules(choice.game).minPlayers;
+// Whether the start waits for players: a tournament needs the players of its format,
+// Killer two; nobody chosen is one player without a name.
+const lobbyBlocked = (choice) => {
+  if (!choice.tournament) return Math.max(choice.players.length, 1) < gameRules(choice.game).minPlayers;
+  const [fewest, most] = tournamentPlayers(choice.format);
+  return choice.players.length < fewest || choice.players.length > most;
+};
 
 // What holds the start back or what it does besides: too few players, a training
 // game that one player plays, or detection that the start switches on.
@@ -2773,7 +2799,10 @@ function lobbyHints(choice, ui) {
   // The seats of a match: the bot takes one; players beyond them sit out.
   const seats = rules.maxPlayers - Number(botSeat(choice));
   const limit = playerLimit(choice);
-  if (lobbyBlocked(choice)) hints.push(t(choice.tournament ? "tournament_needs_players" : "needs_players"));
+  if (lobbyBlocked(choice)) {
+    const [min, max] = tournamentPlayers(choice.format);
+    hints.push(choice.tournament ? fill(t("tournament_needs_players"), { min, max }) : t("needs_players"));
+  }
   else if (!choice.tournament && rules.drill && choice.players.length > 1) {
     hints.push(fill(t("lobby_one_player"), { name: choice.players[0] || `${t("score_player")} 1` }));
   } else if (!choice.tournament && choice.players.length > seats) {
@@ -3310,11 +3339,56 @@ function formatClock(hass, moment) {
 // Tournaments ----------------------------------------------------------------------
 
 const TOURNAMENT_STATUS = ["playing", "waiting", "finished"];
-// Players of the start_tournament action.
-const TOURNAMENT_LIMITS = { min: 3, players: 8 };
-const TOURNAMENT_FORMATS = ["round_robin", "knockout"];
-// A knockout has a match for third place from four players.
+const TOURNAMENT_FORMATS = ["round_robin", "knockout", "double_knockout", "groups_knockout"];
+// The players of every format of the start_tournament action, at least and at most.
+const TOURNAMENT_PLAYERS = {
+  round_robin: [3, 8],
+  knockout: [3, 32],
+  double_knockout: [3, 32],
+  groups_knockout: [6, 32],
+};
+const tournamentPlayers = (format) => TOURNAMENT_PLAYERS[format];
+// Two to eight groups of three to eight players, of which one to four go on into
+// the knockout; without a number, groups of about four players and two go on.
+const GROUP_LIMITS = { groups: [2, 8], size: [3, 8], advance: 4, about: 4, through: 2 };
+// A knockout has a match for third place from four players, also after the groups.
 const THIRD_PLACE_PLAYERS = 4;
+const THIRD_PLACE_FORMATS = ["knockout", "groups_knockout"];
+
+// Whether this many players make that many groups of three to eight players, each
+// with more players than go on.
+function groupsFit(count, groups, advance = 1) {
+  const smallest = Math.floor(count / groups);
+  return (
+    groups >= GROUP_LIMITS.groups[0] &&
+    groups <= GROUP_LIMITS.groups[1] &&
+    smallest >= GROUP_LIMITS.size[0] &&
+    Math.ceil(count / groups) <= GROUP_LIMITS.size[1] &&
+    advance < smallest
+  );
+}
+
+// The groups of the new game screen for its players: a number that no longer fits
+// leaves it to the board (0, about four players a group), and fewer players go on
+// where the groups are small.
+function groupSetup(choice) {
+  const count = choice.players.length;
+  const options = Array.from({ length: GROUP_LIMITS.groups[1] - 1 }, (_, index) => index + 2).filter((groups) =>
+    groupsFit(count, groups)
+  );
+  const groups = options.includes(choice.groups) ? choice.groups : 0;
+  const shown = groups || Math.min(Math.max(Math.floor(count / GROUP_LIMITS.about), 2), GROUP_LIMITS.groups[1]);
+  const most = Math.max(Math.min(Math.floor(count / shown) - 1, GROUP_LIMITS.advance), 1);
+  const advance = Math.min(Math.max(choice.advance ?? GROUP_LIMITS.through, 1), most);
+  return { groups, shown, options: [0, ...options], advance, most };
+}
+
+// The players of the knockout: all of them, or those who go on after the groups.
+const knockoutPlayers = (choice) => {
+  if (choice.format !== "groups_knockout") return choice.players.length;
+  const { shown, advance } = groupSetup(choice);
+  return shown * advance;
+};
 
 // A match of the tournament sensor: its players, the winner and the result.
 function tournamentMatch(item) {
@@ -3324,6 +3398,7 @@ function tournamentMatch(item) {
     match: finite(item.match),
     round: finite(item.round) ?? 1,
     stage: named(item.stage) ?? "",
+    group: named(item.group),
     players: pair(item.players, named),
     winner: named(item.winner),
     bye: item.bye === true,
@@ -3340,10 +3415,29 @@ function tournamentView(state) {
   const list = (value) => (Array.isArray(value) ? value : []);
   const game = Number.isInteger(attributes.game) ? attributes.game : named(attributes.game);
   const nextAt = Date.parse(attributes.next_at);
+  const rows = (value) =>
+    list(value)
+      .filter((row) => named(row?.name))
+      .map((row) => ({
+        position: finite(row.position) ?? 0,
+        name: row.name,
+        played: finite(row.played) ?? 0,
+        won: finite(row.won) ?? 0,
+        lost: finite(row.lost) ?? 0,
+        legsFor: finite(row.legs_for) ?? 0,
+        legsAgainst: finite(row.legs_against) ?? 0,
+        difference: finite(row.leg_difference) ?? 0,
+        points: finite(row.points) ?? 0,
+        average: finite(row.average ?? row.mpr),
+      }));
+  const rounds = (value) =>
+    list(value)
+      .filter((round) => named(round?.stage))
+      .map((round) => ({ stage: round.stage, matches: list(round.matches).map(tournamentMatch).filter(Boolean) }));
   return {
     stage: state.state,
     status: attributes.status,
-    format: attributes.format === "knockout" ? "knockout" : "round_robin",
+    format: TOURNAMENT_FORMATS.includes(attributes.format) ? attributes.format : "round_robin",
     game,
     // Cricket ranks by marks per round, X01 by the 3-dart average.
     mpr: typeof game === "string",
@@ -3358,37 +3452,39 @@ function tournamentView(state) {
     summary: finite(attributes.summary) ?? 8,
     winner: named(attributes.winner),
     started: named(attributes.started),
-    standings: list(attributes.standings)
-      .filter((row) => named(row?.name))
-      .map((row) => ({
-        position: finite(row.position) ?? 0,
-        name: row.name,
-        played: finite(row.played) ?? 0,
-        won: finite(row.won) ?? 0,
-        lost: finite(row.lost) ?? 0,
-        legsFor: finite(row.legs_for) ?? 0,
-        legsAgainst: finite(row.legs_against) ?? 0,
-        difference: finite(row.leg_difference) ?? 0,
-        points: finite(row.points) ?? 0,
-        average: finite(row.average ?? row.mpr),
-      })),
-    bracket: list(attributes.bracket)
-      .filter((round) => named(round?.stage))
-      .map((round) => ({ stage: round.stage, matches: list(round.matches).map(tournamentMatch).filter(Boolean) })),
+    standings: rows(attributes.standings),
+    // The tables of the groups, and how many of each go on into the knockout.
+    groups: list(attributes.groups)
+      .filter((group) => named(group?.group))
+      .map((group) => ({ name: group.group, standings: rows(group.standings) })),
+    advance: finite(attributes.advance) ?? 0,
+    bracket: rounds(attributes.bracket),
+    // The losers' bracket of a double elimination.
+    losers: rounds(attributes.losers_bracket),
   };
 }
 
-// "Round 2", or a knockout stage such as "Semi-final".
+// The numbered rounds: of a round robin or a group, and of the two brackets of a
+// double elimination.
+const NUMBERED_ROUNDS = ["round", "winners_round", "losers_round"];
+
+// "Round 2", "Losers round 3", or a knockout stage such as "Semi-final".
 function stageName(t, stage) {
-  const round = /^round_(\d+)$/.exec(stage);
-  return round ? fill(t("tournament_round"), { round: round[1] }) : t(`tournament_stage_${stage}`);
+  const [, kind, round] = /^(\w+?)_(\d+)$/.exec(stage) ?? [];
+  return NUMBERED_ROUNDS.includes(kind) ? fill(t(`tournament_${kind}`), { round }) : t(`tournament_stage_${stage}`);
 }
+
+// The stage of a match, with its group: "Group B · Round 2".
+const matchStage = (t, match) =>
+  [match.group ? fill(t("tournament_group"), { group: match.group }) : "", stageName(t, match.stage)]
+    .filter(Boolean)
+    .join(" · ");
 
 // The tournament round of a match, for the scoreboard's match view.
 function tournamentLabel(view, match, t) {
   return [
     t("tournament"),
-    stageName(t, match.stage),
+    matchStage(t, match),
     fill(t("tournament_match"), { match: match.match, matches: view.total }),
   ].join(" · ");
 }
@@ -3399,34 +3495,72 @@ const playsMatch = (names, match) =>
 
 const signed = (value) => (value > 0 ? `+${value}` : value < 0 ? `−${-value}` : "0");
 
-// The round robin table, with the players of the next match marked.
-function tournamentTable(view, ui) {
+// The round robin table, with the players of the next match marked. The table of a
+// group leaves out the matches, the legs and the average, and marks the places that
+// go on into the knockout.
+function tournamentTable(view, ui, { standings = view.standings, through = 0 } = {}) {
   const { t, format } = ui;
+  const compact = through > 0;
   const column = (key) =>
     `<th scope="col"><abbr title="${escapeHtml(t(`${key}_long`))}">${escapeHtml(t(key))}</abbr></th>`;
   const statistic = view.mpr
     ? `<th scope="col">${escapeHtml(t("cricket_mpr"))}</th>`
     : `<th scope="col"><abbr title="${escapeHtml(t("average_long"))}">Ø</abbr></th>`;
   const next = new Set((view.status === "waiting" ? view.next : view.current)?.players ?? []);
-  const rows = view.standings.map((row) => {
-    const kind = row.name === view.winner ? "champion" : next.has(row.name) ? "next" : "";
+  const rows = standings.map((row) => {
+    const kind = [
+      row.name === view.winner ? "champion" : next.has(row.name) ? "next" : "",
+      row.position <= through ? "through" : "",
+    ].filter(Boolean);
+    const goes = row.position <= through ? ` <span class="visually-hidden">${escapeHtml(t("tournament_through"))}</span>` : "";
     return (
-      `<tr${kind ? ` class="${kind}"` : ""}><td class="rank">${row.position}</td>` +
+      `<tr${kind.length ? ` class="${kind.join(" ")}"` : ""}><td class="rank">${row.position}</td>` +
       `<th scope="row" class="who"><span class="player-name">${avatarHtml(ui.avatar(row.name))}` +
-      `<span>${escapeHtml(row.name)}</span></span></th>` +
-      `<td>${row.played}</td><td>${row.won}</td><td>${row.lost}</td>` +
-      `<td>${row.legsFor}:${row.legsAgainst}</td><td>${signed(row.difference)}</td>` +
-      `<td>${row.average === null ? "–" : escapeHtml(format(row.average, view.mpr ? 2 : 1))}</td>` +
+      `<span>${escapeHtml(row.name)}</span>${goes}</span></th>` +
+      (compact ? "" : `<td>${row.played}</td>`) +
+      `<td>${row.won}</td><td>${row.lost}</td>` +
+      (compact ? "" : `<td>${row.legsFor}:${row.legsAgainst}</td>`) +
+      `<td>${signed(row.difference)}</td>` +
+      (compact ? "" : `<td>${row.average === null ? "–" : escapeHtml(format(row.average, view.mpr ? 2 : 1))}</td>`) +
       `<td class="points">${row.points}</td></tr>`
     );
   });
+  const columns = compact
+    ? ["tournament_won", "tournament_lost", "tournament_difference"]
+    : ["tournament_played", "tournament_won", "tournament_lost", "tournament_legs", "tournament_difference"];
   return (
     `<table class="standings"><thead><tr><th scope="col" class="rank">#</th>` +
     `<th scope="col" class="who">${escapeHtml(t("tournament_player"))}</th>` +
-    ["tournament_played", "tournament_won", "tournament_lost", "tournament_legs", "tournament_difference"]
-      .map(column)
-      .join("") +
-    `${statistic}${column("tournament_points")}</tr></thead><tbody>${rows.join("")}</tbody></table>`
+    columns.map(column).join("") +
+    `${compact ? "" : statistic}${column("tournament_points")}</tr></thead><tbody>${rows.join("")}</tbody></table>`
+  );
+}
+
+// The tables of the groups side by side, the places that go on marked.
+function tournamentGroups(view, ui) {
+  const { t } = ui;
+  const tables = view.groups.map(
+    (group) =>
+      `<section class="group"><div class="section-label">${escapeHtml(fill(t("tournament_group"), { group: group.name }))}</div>` +
+      `${tournamentTable(view, ui, { standings: group.standings, through: view.advance })}</section>`
+  );
+  return `<div class="groups">${tables.join("")}</div>`;
+}
+
+// Whether the knockout after the groups has begun: a place of it has a player.
+const knockoutBegun = (view) =>
+  view.bracket.some((round) => round.matches.some((match) => match.players.some((name) => name !== null)));
+
+// What shows of a tournament between its matches and in idle mode: the table of a
+// round robin, the groups until their knockout begins, and the brackets.
+function tournamentBody(view, ui, fresh = new Set()) {
+  if (view.format === "round_robin") return tournamentTable(view, ui);
+  if (view.format === "groups_knockout" && !knockoutBegun(view)) return tournamentGroups(view, ui);
+  if (!view.losers.length) return tournamentBracket(view, ui, fresh);
+  return (
+    tournamentBracket(view, ui, fresh) +
+    `<div class="section-label losers-label">${escapeHtml(ui.t("tournament_losers_bracket"))}</div>` +
+    tournamentBracket({ ...view, bracket: view.losers, winner: null }, ui, fresh)
   );
 }
 
@@ -3434,7 +3568,7 @@ function tournamentTable(view, ui) {
 // so that a place filled since the last look can be animated.
 function bracketSlots(view) {
   const slots = new Map();
-  for (const round of view?.bracket ?? []) {
+  for (const round of [...(view?.bracket ?? []), ...(view?.losers ?? [])]) {
     round.matches.forEach((match, index) => {
       const decided = match.winner !== null && !match.bye;
       match.players.forEach((name, side) => {
@@ -3456,9 +3590,14 @@ function freshSlots(before, after) {
 }
 
 // The knockout bracket: a column per round; the match for third place below the final.
+// The last round crowns the champion: the final, or the grand final of a double
+// elimination. A bracket of 16 or 32 places has smaller boxes.
 function tournamentBracket(view, ui, fresh = new Set()) {
   const { t } = ui;
   const live = (view.status === "waiting" ? view.next : view.current)?.match ?? null;
+  const crown = view.winner ? view.bracket.filter((round) => round.stage !== "third_place").at(-1)?.stage : null;
+  const widest = Math.max(0, ...view.bracket.map((round) => round.matches.length));
+  const size = widest > 8 ? " huge" : widest > 4 ? " big" : "";
   const box = (match, stage, index) => {
     const decided = match.winner !== null && !match.bye;
     const slots = match.players.map((name, side) => {
@@ -3481,7 +3620,7 @@ function tournamentBracket(view, ui, fresh = new Set()) {
       "duel",
       match.bye ? "bye" : "",
       match.match !== null && match.match === live ? "live" : "",
-      stage === "final" && view.winner ? "crowned" : "",
+      stage === crown ? "crowned" : "",
     ].filter(Boolean);
     return `<div class="${kind.join(" ")}">${slots.join("")}</div>`;
   };
@@ -3498,7 +3637,7 @@ function tournamentBracket(view, ui, fresh = new Set()) {
           : "") +
         `</div></div>`
     );
-  return `<div class="bracket">${columns.join("")}</div>`;
+  return `<div class="bracket${size}">${columns.join("")}</div>`;
 }
 
 // Who plays next, while the tournament waits; the countdown is filled in every second.
@@ -3509,7 +3648,7 @@ function tournamentNextUp(view, ui) {
   const [first, second] = match.players.map((name) => name ?? t("tournament_open"));
   return (
     `<div class="next-up"><span class="section-label">${escapeHtml(
-      `${t("tournament_next")} · ${stageName(t, match.stage)}`
+      `${t("tournament_next")} · ${matchStage(t, match)}`
     )}</span>` +
     `<span class="pairing">${avatarHtml(ui.avatar(first))}<b>${escapeHtml(first)}</b>` +
     `<span class="vs">${escapeHtml(t("tournament_vs"))}</span><b>${escapeHtml(second)}</b>${avatarHtml(
@@ -3538,7 +3677,7 @@ function tournamentCountdown(view, now, t) {
 // The tournament between its matches: who plays next, and the table or the bracket.
 function tournamentHtml(view, ui) {
   const { t } = ui;
-  const body = view.format === "knockout" ? tournamentBracket(view, ui, ui.fresh) : tournamentTable(view, ui);
+  const body = tournamentBody(view, ui, ui.fresh);
   return {
     title: t("tournament"),
     meta: [
@@ -3557,7 +3696,7 @@ function tournamentHtml(view, ui) {
 function tournamentPanelHtml(data, ui) {
   const view = data.tournament;
   if (!view) return "";
-  return view.format === "knockout" ? tournamentBracket(view, ui) : tournamentTable(view, ui);
+  return tournamentBody(view, ui);
 }
 
 // What the caller follows of a tournament.
@@ -3607,7 +3746,15 @@ function tournamentStartData(choice, { entry = null, distance = false } = {}) {
   }
   // A handicap goes with the start, and so does the game's start score when it is back.
   if (gameGroup(choice.game) === "x01" && (choice.handicap || starts.some(Boolean))) data.start_scores = starts;
-  if (choice.format === "knockout") data.third_place = choice.third_place && players.length >= THIRD_PLACE_PLAYERS;
+  if (THIRD_PLACE_FORMATS.includes(choice.format)) {
+    data.third_place = choice.third_place && knockoutPlayers(choice) >= THIRD_PLACE_PLAYERS;
+  }
+  // Groups the board makes itself are left out; the qualifiers always go along.
+  if (choice.format === "groups_knockout") {
+    const { groups, advance } = groupSetup(choice);
+    if (groups) data.groups = groups;
+    data.advance = advance;
+  }
   return data;
 }
 
@@ -6909,11 +7056,25 @@ const SCOREBOARD_CSS = `${BASE_CSS}${PAD_CSS}
   .standings tr.next { background: color-mix(in srgb, var(--ad-accent) 10%, transparent); }
   .standings tr.champion { background: color-mix(in srgb, ${STATUS_COLORS.ready} 16%, transparent); }
   .standings tr.champion .player-name span::after { content: " 🏆"; }
+  /* The places of a group that go on into the knockout. */
+  .standings tr.through .rank { box-shadow: inset 4px 0 0 var(--ad-accent); }
+  .groups {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: clamp(10px, 2cqi, 28px); align-items: start;
+  }
+  .groups .group { min-width: 0; }
+  .groups .standings { font-size: clamp(12px, 1.6cqi, 22px); }
+  .scoreboard.full .groups .standings { font-size: clamp(11px, min(1.5cqi, 2.6cqh), 22px); }
+  .losers-label { margin: clamp(10px, 2cqi, 24px) 0 6px; font-size: clamp(11px, 1.4cqi, 15px); }
   .bracket { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: clamp(10px, 2.4cqi, 36px); }
   .bracket .round { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .bracket .duels { flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 10px; }
   .bracket .section-label { font-size: clamp(11px, 1.4cqi, 15px); }
   .bracket .section-label.third { margin-top: 6px; }
+  /* Brackets of 16 and 32 places keep their boxes small enough for a screen. */
+  .bracket.big .slot { font-size: clamp(11px, 1.4cqi, 18px); min-height: 1.5em; }
+  .bracket.huge .slot { font-size: clamp(10px, 1cqi, 14px); min-height: 1.4em; padding: .15em .45em; }
+  .bracket.big .duels, .bracket.huge .duels { gap: 4px; }
   .duel {
     position: relative; border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--primary-text-color) 4%, transparent);
     border: 2px solid var(--divider-color, rgba(127,127,127,.3));
@@ -10184,6 +10345,10 @@ function createElements(Base) {
       const choice = this._lobby;
       const index = Number(value);
       if (action === "legs" || action === "sets") return `${this._t(`lobby_${action}`)} ${choice[action]}`;
+      if (action === "groups" || action === "advance") {
+        const { shown, advance } = groupSetup(choice);
+        return `${this._t(`tournament_${action}`)} ${action === "groups" ? shown : advance}`;
+      }
       if (action === "max_rounds") return `${this._t("lobby_max_rounds")} ${choice.max_rounds || this._t("lobby_no_limit")}`;
       if (action === "lower" || action === "raise") {
         const name = choice.players[index] || `${this._t("score_player")} ${index + 1}`;

@@ -351,10 +351,27 @@
           "round_5": "Runde 5",
           "round_6": "Runde 6",
           "round_7": "Runde 7",
+          "round_of_32": "Sechzehntelfinale",
+          "round_of_16": "Achtelfinale",
           "quarter_final": "Viertelfinale",
           "semi_final": "Halbfinale",
           "third_place": "Spiel um Platz 3",
           "final": "Finale",
+          "winners_round_1": "Gewinnerrunde 1",
+          "winners_round_2": "Gewinnerrunde 2",
+          "winners_round_3": "Gewinnerrunde 3",
+          "winners_round_4": "Gewinnerrunde 4",
+          "winners_final": "Finale der Gewinner",
+          "losers_round_1": "Verliererrunde 1",
+          "losers_round_2": "Verliererrunde 2",
+          "losers_round_3": "Verliererrunde 3",
+          "losers_round_4": "Verliererrunde 4",
+          "losers_round_5": "Verliererrunde 5",
+          "losers_round_6": "Verliererrunde 6",
+          "losers_round_7": "Verliererrunde 7",
+          "losers_final": "Finale der Verlierer",
+          "grand_final": "Großes Finale",
+          "grand_final_reset": "Entscheidungsfinale",
           "finished": "Beendet"
         },
         "state_attributes": {
@@ -370,7 +387,9 @@
             "name": "Format",
             "state": {
               "round_robin": "Jeder gegen jeden",
-              "knockout": "K.-o.-System"
+              "knockout": "K.-o.-System",
+              "double_knockout": "Doppel-K.-o.-System",
+              "groups_knockout": "Gruppen und K.-o.-System"
             }
           }
         }
@@ -584,7 +603,9 @@
         "name": "Turnierformat",
         "state": {
           "round_robin": "Jeder gegen jeden",
-          "knockout": "K.-o.-System"
+          "knockout": "K.-o.-System",
+          "double_knockout": "Doppel-K.-o.-System",
+          "groups_knockout": "Gruppen und K.-o.-System"
         }
       },
       "tournament_game": {
@@ -761,7 +782,12 @@
         "name": "Übungsspiel Spieler {number}"
       },
       "tournament_players": {
-        "name": "Turnierspieler"
+        "name": "Turnierspieler",
+        "state_attributes": {
+          "players": {
+            "name": "Spieler"
+          }
+        }
       }
     },
     "calendar": {
@@ -918,7 +944,10 @@
       "message": "Startpunkte sind 0 (die des Spiels) oder 2 bis 1001."
     },
     "tournament_players": {
-      "message": "Ein Turnier braucht drei bis acht Spieler, nicht {count}."
+      "message": "Dieses Turnierformat braucht {min} bis {max} Spieler, nicht {count}."
+    },
+    "tournament_groups": {
+      "message": "{count} Spieler passen nicht in {groups} Gruppen: Jede Gruppe braucht drei bis acht Spieler, mehr als die {advance}, die weiterkommen."
     },
     "no_tournament": {
       "message": "Es läuft kein Turnier."
@@ -1452,7 +1481,7 @@
     },
     "start_tournament": {
       "name": "Turnier starten",
-      "description": "Lost ein Turnier mit drei bis acht Spielern aus und startet das erste Match: jeder gegen jeden oder im K.-o.-System, mit Matches in X01 oder Cricket. Ein laufendes Turnier muss vorher beendet werden.",
+      "description": "Lost ein Turnier mit drei bis 32 Spielern aus und startet das erste Match: jeder gegen jeden, im K.-o.-System, im Doppel-K.-o.-System oder in Gruppen mit anschließendem K.-o.-System, mit Matches in X01 oder Cricket. Ein laufendes Turnier muss vorher beendet werden.",
       "fields": {
         "config_entry_id": {
           "name": "Board",
@@ -1460,7 +1489,7 @@
         },
         "players": {
           "name": "Spieler",
-          "description": "Namen von drei bis acht Spielern in der Reihenfolge der Auslosung. Ohne Namen spielen die Spieler aus Turnierspieler."
+          "description": "Namen der Spieler in der Reihenfolge der Auslosung: drei bis acht für jeder gegen jeden, mindestens sechs für Gruppen, bis zu 32 in jedem Format außer jeder gegen jeden. Ohne Namen spielen die Spieler aus Turnierspieler."
         },
         "start_scores": {
           "name": "Startpunkte",
@@ -1468,7 +1497,7 @@
         },
         "format": {
           "name": "Format",
-          "description": "Jeder gegen jeden: Alle spielen einmal gegeneinander. K.-o.-System: Die Sieger kommen weiter bis ins Finale."
+          "description": "Jeder gegen jeden: Alle spielen einmal gegeneinander. K.-o.-System: Die Sieger kommen weiter bis ins Finale. Doppel-K.-o.-System: Wer zum zweiten Mal verliert, scheidet aus. Gruppen und K.-o.-System: In jeder Gruppe spielen alle gegeneinander, und die Besten jeder Gruppe kommen ins K.-o.-System."
         },
         "game": {
           "name": "Spiel",
@@ -1500,7 +1529,15 @@
         },
         "third_place": {
           "name": "Spiel um Platz 3",
-          "description": "Im K.-o.-System mit mindestens vier Spielern spielen die Verlierer der Halbfinals um Platz 3."
+          "description": "Im K.-o.-System mit mindestens vier Spielern, auch nach den Gruppen, spielen die Verlierer der Halbfinals um Platz 3."
+        },
+        "groups": {
+          "name": "Gruppen",
+          "description": "Gruppen und K.-o.-System: die Zahl der Gruppen, 2 bis 8, mit je drei bis acht Spielern. Ohne sie Gruppen von etwa vier Spielern."
+        },
+        "advance": {
+          "name": "Weiter je Gruppe",
+          "description": "Gruppen und K.-o.-System: wie viele Spieler jeder Gruppe ins K.-o.-System kommen, 1 bis 4 und weniger, als die Gruppe hat. Ohne Angabe zwei."
         },
         "random_draw": {
           "name": "Zufällige Auslosung",
@@ -1714,7 +1751,9 @@
     "tournament_format": {
       "options": {
         "round_robin": "Jeder gegen jeden",
-        "knockout": "K.-o.-System"
+        "knockout": "K.-o.-System",
+        "double_knockout": "Doppel-K.-o.-System",
+        "groups_knockout": "Gruppen und K.-o.-System"
       }
     }
   }

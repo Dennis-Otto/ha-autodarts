@@ -76,7 +76,7 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Turniere mit drei bis acht Spielern, jeder gegen jeden mit Tabelle oder im K.-o.-System mit Turnierbaum, und ein Bot mit Stärke 20 bis 120 als Gegner bei X01 und Cricket.
+    Turniere mit drei bis 32 Spielern, jeder gegen jeden mit Tabelle, im K.-o.-System, im Doppel-K.-o.-System oder in Gruppen mit K.-o.-System, und ein Bot mit Stärke 20 bis 120 als Gegner bei X01 und Cricket.
 
     [:octicons-arrow-right-24: Turniere](games.de.md#turniere) · [Der Bot](games.de.md#gegen-den-bot-spielen)
 

@@ -102,7 +102,8 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *The export folder … must not be hidden, and Home Assistant must allow writing to it* | Leave the folder empty for `autodarts/exports` of the media folder, or choose a folder that does not start with a dot in `www`, in a media folder or in a folder listed in `allowlist_external_dirs`. |
 | *The export could not be written* | The folder is not writable or the disk is full; the message names the reason. |
 | *… exports were written in the last hour* | The integration writes a limited number of exports per hour. Try again later. |
-| *A tournament needs three to eight players* | Name three to eight players, each with a name of their own. |
+| *This tournament format takes … to … players* | Name as many players as the format takes, each with a name of their own: three to eight in a round robin, six to 32 with groups, three to 32 otherwise. |
+| *… players don't fit into … groups* | Choose fewer groups, or let the board choose them, so that every group has three to eight players and more than go on. |
 | *No tournament is being played* | *Next tournament match* and *Stop tournament* need a running tournament. |
 | *A tournament is being played* | Only one tournament runs at a time. Stop it before you start a new one. |
 | *The tournament is over* | The final is played; *Next tournament match* has no match left. Stop the tournament, or start a new one. |

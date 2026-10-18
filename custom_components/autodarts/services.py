@@ -55,11 +55,14 @@ from .profiles import NAME_LENGTH, valid_name
 from .scoring import BULL_MODES, DOUBLE, MODES, STRAIGHT
 from .tournament import (
     FORMATS,
+    MAX_ADVANCE,
     MAX_ENTRANTS,
+    MAX_GROUPS,
     MAX_PAUSE,
     MAX_SEED,
     MAX_SUMMARY,
     MIN_ENTRANTS,
+    MIN_GROUPS,
     RULES,
     TOURNAMENT_GAMES,
 )
@@ -195,6 +198,12 @@ START_TOURNAMENT_SCHEMA = vol.Schema(
         vol.Optional("sets"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SETS)),
         **{vol.Optional(rule): cv.boolean for rule in RULES},
         vol.Optional("third_place"): cv.boolean,
+        vol.Optional("groups"): vol.All(
+            vol.Coerce(int), vol.Range(min=MIN_GROUPS, max=MAX_GROUPS)
+        ),
+        vol.Optional("advance"): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=MAX_ADVANCE)
+        ),
         vol.Optional("random_draw"): cv.boolean,
         vol.Optional("seed"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SEED)),
         vol.Optional("pause"): vol.All(
