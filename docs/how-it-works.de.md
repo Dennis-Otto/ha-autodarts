@@ -61,7 +61,7 @@ Jede Nachricht und jeder Lesevorgang aktualisiert nur die Entitäten, die zeigen
 
 ## Board-Manager-Generationen
 
-| | Board Manager 1 (klassische App) | Board Manager 2 (Headless) |
+| Merkmal | Board Manager 1 (klassische App) | Board Manager 2 (Headless) |
 | --- | --- | --- |
 | Erkennung | Version beginnt mit `1.` | Version beginnt mit `2.` und `/api/system` existiert |
 | Lesen | Einzelne Aufrufe für Zustand, Statistik, Kameras, Bewegung, Einstellungen und Version | Ein gemeinsamer Aufruf von `/api/system` |

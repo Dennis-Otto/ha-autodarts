@@ -2489,21 +2489,16 @@ def dart_by_dart(board: Page, recorder: Recorder, darts: list[dict]) -> None:
     recorder.shot(1000)
 
 
-def hero_animation(page: Page) -> None:
-    """The first picture of the README: a 301 match on the live card and the scoreboard.
+HERO_CARDS = ("autodarts-card", SCOREBOARD)
 
-    Alex throws a 180, Sam scores 85, and Alex checks out 121 for the game shot.
-    """
-    start_match(page, ["Alex", "Sam"], "301")
-    view = page.context.new_page()
-    view.add_init_script(HIDE_SIDEBAR)
-    view.set_viewport_size({"width": 1280, "height": 720})
+
+def hero_view(view: Page) -> tuple[ClipRecorder, list[int]]:
+    """The live card and the scoreboard of the hero dashboard on a page, and a
+    recorder of the region around both, with their heights at the start."""
     view.goto(f"{HA}/autodarts-demo/hero")
     wait_card(view, "r.querySelectorAll('.player').length === 2", SCOREBOARD, 60000)
     ready(view)
-    boxes = [
-        view.locator(tag).first.bounding_box() for tag in ("autodarts-card", SCOREBOARD)
-    ]
+    boxes = [view.locator(tag).first.bounding_box() for tag in HERO_CARDS]
     left = min(box["x"] for box in boxes) - 12
     top = min(box["y"] for box in boxes) - 12
     right = max(box["x"] + box["width"] for box in boxes) + 12
@@ -2511,17 +2506,47 @@ def hero_animation(page: Page) -> None:
     recorder = ClipRecorder(
         view, {"x": left, "y": top, "width": right - left, "height": bottom - top}
     )
-    heights = [round(box["height"]) for box in boxes]
-    recorder.blink(1, hold=1400)
+    return recorder, [round(box["height"]) for box in boxes]
+
+
+def hero_animation(page: Page) -> None:
+    """The first picture of the README and of the website: a 301 match on the live
+    card and the scoreboard.
+
+    Alex throws a 180, Sam scores 85, and Alex checks out 121 for the game shot. The
+    same match plays on a wide screen, the two cards side by side (hero.webp), and on
+    a phone, where Home Assistant puts the scoreboard below the live card
+    (hero-mobile.webp): the home page of the website shows that one on a phone, on
+    which the wide picture would be too small to read.
+    """
+    start_match(page, ["Alex", "Sam"], "301")
+    wide = page.context.new_page()
+    wide.add_init_script(HIDE_SIDEBAR)
+    wide.set_viewport_size({"width": 1280, "height": 720})
+    phone_context = own_context(
+        page,
+        # Tall enough for both cards, one below the other.
+        viewport={"width": 390, "height": 1100},
+        device_scale_factor=2,
+        is_mobile=True,
+        has_touch=True,
+    )
+    phone = phone_context.new_page()
+    views = {
+        "hero": (wide, *hero_view(wide)),
+        "hero-mobile": (phone, *hero_view(phone)),
+    }
+    for _, recorder, _ in views.values():
+        recorder.blink(1, hold=1400)
     darts_shown = "r.querySelectorAll('.visit .dart:not(.empty)').length === {0}"
     active = "r.querySelector('.player.active .name')?.textContent.includes('{0}')"
 
-    def steady() -> None:
+    def steady(view: Page, heights: list[int]) -> None:
         # The cards keep their heights through the game; a card that grows would
         # leave the clip and make the picture restless.
         now = [
             round(view.locator(tag).first.bounding_box()["height"])
-            for tag in ("autodarts-card", SCOREBOARD)
+            for tag in HERO_CARDS
         ]
         if any(abs(a - b) > 1 for a, b in zip(now, heights, strict=True)):
             raise AssertionError(
@@ -2533,31 +2558,38 @@ def hero_animation(page: Page) -> None:
         for name in names:
             thrown.append(named_dart(name))
             control({"event": "Throw detected", "throws": thrown})
-            wait_card(view, darts_shown.format(len(thrown)), SCOREBOARD)
-            steady()
-            # The bed lights up, then holds at full strength.
-            view.evaluate(SEEK, 250)
-            recorder.shot(250)
-            view.evaluate(SEEK, 800)
-            recorder.shot(650)
+            for view, recorder, heights in views.values():
+                wait_card(view, darts_shown.format(len(thrown)), SCOREBOARD)
+                steady(view, heights)
+                # The bed lights up, then holds at full strength.
+                view.evaluate(SEEK, 250)
+                recorder.shot(250)
+                view.evaluate(SEEK, 800)
+                recorder.shot(650)
 
     for names, following in (
         (["T20", "T20", "T20"], "Sam"),
         (["T20", "S20", "S5"], "Alex"),
     ):
         throw(names)
-        recorder.blink(1, hold=600)
+        for _, recorder, _ in views.values():
+            recorder.blink(1, hold=600)
         pull_darts()
-        wait_card(view, active.format(following), SCOREBOARD)
-        view.wait_for_timeout(300)
-        steady()
-        recorder.blink(1, hold=900)
+        for view, recorder, heights in views.values():
+            wait_card(view, active.format(following), SCOREBOARD)
+            view.wait_for_timeout(300)
+            steady(view, heights)
+            recorder.blink(1, hold=900)
     # Alex follows the route the cards show for 121; the game shot ends the
     # animation, before the match summary takes the place of the players.
-    throw(view.evaluate(ROUTE).split())
-    recorder.blink(1, hold=2800)
-    recorder.save("hero", width=960)
-    view.close()
+    throw(wide.evaluate(ROUTE).split())
+    for name, (_, recorder, _) in views.items():
+        recorder.blink(1, hold=2800)
+        # On a phone, the picture is shown about 340 pixels wide: at 560 pixels it
+        # stays sharp on a screen of twice the density.
+        recorder.save(name, width=960 if name == "hero" else 560)
+    wide.close()
+    phone_context.close()
     pull_darts()
     players(page, 1)
     game(page, "off")
