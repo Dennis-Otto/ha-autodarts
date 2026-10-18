@@ -6,7 +6,7 @@ description: "What each version of Autodarts for Home Assistant brought, what th
 
 [← Documentation](README.md) · [Deutsch](roadmap.de.md)
 
-This roadmap shows what each version brought, what the next release brings and what comes after it. *Next* and *Later* look at least a year ahead, until October 2027, and *Not planned* says what the integration won't do. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose).
+This roadmap shows what each version brought, what the next release brings and what comes after it. *Next* and *Later* look at least a year ahead, until October 2027, *Not planned* says what the integration won't do, and *Reach* how many people find it. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose).
 
 ## Version 1.0: the local foundation
 
@@ -155,6 +155,23 @@ Ideas for the versions after 1.12. Votes and reactions on the [feature requests]
 - **A cloud account for local play.** Everything that works with the Board Manager in your network keeps working without an Autodarts account; cloud features stay optional.
 - **Telemetry.** The integration sends nothing about your games or your home anywhere, and in local mode nothing leaves your network.
 - **Breaking changes without a way forward.** Existing config entries, entity IDs and automations keep working, or a release migrates them and its notes say what changes.
+
+## Reach
+
+How many people find the integration and install it, counted once a month: from the numbers GitHub keeps for the repository, and from the [analytics of Home Assistant](https://analytics.home-assistant.io/), which list a custom integration once an installation that shares its usage has it. The integration itself counts nothing (see [Not planned](#not-planned)). `bash scripts/reach.sh` prints the row of the month. Other integrations for Autodarts share the domain `autodarts` (see [Coming from another tool](coming-from.md)), so the script counts the analytics only for a version that is a release of this one.
+
+| Month | Downloads of the releases | Visitors in 14 days | From Google | In the analytics | Stars |
+| --- | --- | --- | --- | --- | --- |
+| October 2026 | 120 | 29 | 0 | No | 3 |
+
+The downloads count every installation and update through HACS, of the betas too, since the first release. Where the integration can be found, and the posts that point to it:
+
+| Where | Status |
+| --- | --- |
+| HACS default repository | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)), in the HACS review queue |
+| [awesome-home-assistant](https://github.com/frenck/awesome-home-assistant) | Lists projects from six months of age, so this one from March 2027 |
+| Home Assistant forum, Reddit and the Autodarts Discord | The [launch posts](creator-kit.md#launch-posts) are ready |
+| Photos of boards it runs at | [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/show-and-tell) |
 
 ## How priorities are set
 

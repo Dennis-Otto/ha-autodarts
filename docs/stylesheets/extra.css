@@ -1,0 +1,10 @@
+/* The styles of this website on top of those of Material for MkDocs. */
+
+/* A code block with a title holds a text to copy, such as a launch post of the
+   creator kit: its long lines wrap instead of scrolling sideways, and the copy
+   button still takes the text as it is. Code blocks without a title, such as
+   the drawing of the trust boundaries, keep their lines. */
+.md-typeset .highlight:has(> .filename) code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

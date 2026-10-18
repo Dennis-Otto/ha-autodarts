@@ -219,6 +219,6 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
 </div>
 
-Was jede Version gebracht hat, steht in den [Änderungen](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) (auf Englisch), was als Nächstes kommt, in der [Roadmap](roadmap.de.md). Für Videos und Artikel hat das [Creator-Kit](creator-kit.de.md) Fakten, Videos und Bilder, frei nutzbar.
+Was jede Version gebracht hat, steht in den [Änderungen](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md) (auf Englisch), was als Nächstes kommt, in der [Roadmap](roadmap.de.md). Für Videos, Artikel und Beiträge hat das [Creator-Kit](creator-kit.de.md) Fakten, fertige Texte, Videos und Bilder, frei nutzbar.
 
 --8<-- "docs/README.de.md:devices-and-languages"
