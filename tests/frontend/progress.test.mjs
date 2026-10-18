@@ -277,10 +277,35 @@ test("trends give every figure over the weeks and where it is heading", () => {
   assert.equal(falling[0].direction, "down");
   const steady = trendView({ ...TREND, x01_points: column([450, 0, 600, 900]) }, 4);
   assert.equal(steady[0].direction, "steady");
-  // One week has no halves to compare.
   // A single week has nothing to compare with: no direction, and no arrow.
   assert.ok(trendView(TREND, 1).every((metric) => metric.direction === null));
   assert.ok(trendView(undefined).every((metric) => metric.value === null && !metric.values.length));
+});
+
+test("the darts arrow compares the complete weeks per week, so steady throwing stays steady", () => {
+  const dartsOf = (darts, size) => trendView({ weeks: WEEKS, darts: column(darts) }, size).at(-1);
+  // 300 darts every week, while the current week has only begun, is half done or is done:
+  // no window the editor offers shows an arrow up or down, odd ones included.
+  for (let size = 4; size <= 12; size += 1) {
+    for (const current of [0, 40, 150, 300]) {
+      const darts = dartsOf([...Array(11).fill(300), current], size);
+      assert.equal(darts.key, "darts");
+      assert.equal(darts.direction, "steady", `${size} weeks, ${current} darts this week`);
+    }
+  }
+  // The value and the line still count the current week.
+  const steady = dartsOf([300, 300, 300, 300, 40], 5);
+  assert.equal(steady.value, 4 * 300 + 40);
+  assert.deepEqual(steady.values, [300, 300, 300, 300, 40]);
+  // More or fewer darts a week still show: 200 a week, then 400 a week.
+  assert.equal(dartsOf([200, 200, 400, 400, 10], 5).direction, "up");
+  assert.equal(dartsOf([400, 400, 400, 200, 200, 10], 6).direction, "down");
+  // A week without darts is a week with none, not one left out: a pause, a start.
+  assert.equal(dartsOf([300, 300, 300, 0, 10], 5).direction, "down");
+  assert.equal(dartsOf([0, 0, 300, 300, 10], 5).direction, "up");
+  // Darts of the current week alone, or no complete week before it, leave nothing to compare.
+  assert.equal(dartsOf([0, 0, 0, 0, 120], 5).direction, null);
+  assert.equal(dartsOf([300, 300], 2).direction, null);
 });
 
 test("sparklines draw the weeks and bridge a week without a value with a dashed stretch", () => {

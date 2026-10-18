@@ -182,7 +182,7 @@ Named players unlock achievements in tiers of bronze, silver, gold and, for the 
 
 <img src="images/en/players-trends.png" alt="Trends of Alex, Sam and Kim with the 3-dart average, first 9, checkout rate, doubles rate and darts per week, and the grouping of each player at the triple 20, the bull and the double 8" width="620">
 
-- **Weekly trends:** for every player who practiced in the weeks shown, the 3-dart average, first 9, checkout rate, doubles rate and darts of up to 12 weeks, as a line with an arrow that compares the newer half of the weeks with the older half: ↗ better, ↘ worse, → about the same.
+- **Weekly trends:** for every player who practiced in the weeks shown, the 3-dart average, first 9, checkout rate, doubles rate and darts of up to 12 weeks, as a line with an arrow that compares the newer half of the weeks with the older half: ↗ better, ↘ worse, → about the same. The arrow of the darts compares the darts per week of the complete weeks, a week without practice with none, so the current week, which has only begun, never pulls it down.
 - **Grouping:** where a player's darts land around the beds they aimed at most, in millimeters. The offset tells the accuracy, for example *6 mm left of center*; the grouping the precision, the radius that holds half of the darts, for example *grouping 38 mm*; and the trend whether the newer darts group tighter. [How the grouping is measured](how-it-works.md#grouping).
 
 The weekly sums are in the `trend` attribute of *Player profiles*, so you can build graphs of your own. [Player progress](entities.md#player-progress).

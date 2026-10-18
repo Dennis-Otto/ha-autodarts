@@ -91,6 +91,57 @@ test("positions load again only when a visit was booked", async () => {
   assert.equal(asked.length, 2);
 });
 
+test("a failed request keeps the last drawing and asks again with the next update", async () => {
+  const asked = [];
+  const answers = {};
+  const { hass, card } = setup({ mode: "positions" }, board(asked, answers));
+  await settle();
+  assert.equal($$(card, ".heat-layer .position").length, 2);
+  // Home Assistant restarts right after a visit: the request for its positions fails.
+  answers[""] = new Error("connection lost");
+  const booked = update(hass, { "sensor.training_visits": "3" });
+  card.hass = booked;
+  await settle();
+  assert.equal(asked.length, 2);
+  // The darts drawn before stay, and the card does not claim that there are none.
+  assert.equal($$(card, ".heat-layer .position").length, 2);
+  assert.notEqual(text(card, ".heat .groups"), "No dart positions yet.");
+  assert.equal(text(card, ".group-text"), "grouping 38 mm · 80 % within 61 mm · 6 mm left of center, 2 mm high");
+  // The next update asks again and draws what the board logged meanwhile.
+  answers[""] = { positions: [[0, 0.6], [0.02, 0.61], [0.1, 0.5]], spread: [GROUP] };
+  card.hass = update(booked, { "sensor.training_points": "300" });
+  await settle();
+  assert.equal(asked.length, 3);
+  assert.deepEqual(asked.at(-1), { type: "autodarts/positions", device_id: DEVICE });
+  assert.equal($$(card, ".heat-layer .position").length, 3);
+  // Once answered, the same visit is not asked for again.
+  card.hass = update(booked, { "sensor.training_points": "310" });
+  await settle();
+  assert.equal(asked.length, 3);
+});
+
+test("a request that fails after a newer one started leaves that one alone", async () => {
+  const asked = [];
+  const pending = [];
+  const callWS = (message) => {
+    asked.push(message);
+    return new Promise((resolve, reject) => pending.push({ resolve, reject }));
+  };
+  const { hass, card } = setup({ mode: "positions" }, callWS);
+  const booked = update(hass, { "sensor.training_visits": "3" });
+  card.hass = booked;
+  assert.equal(asked.length, 2);
+  pending[0].reject(new Error("connection lost"));
+  await settle();
+  // The newer request still counts as on its way: the next update asks for nothing.
+  card.hass = update(booked, { "sensor.training_points": "300" });
+  await settle();
+  assert.equal(asked.length, 2);
+  pending[1].resolve({ positions: [[0, 0.6]], spread: [] });
+  await settle();
+  assert.equal($$(card, ".heat-layer .position").length, 1);
+});
+
 // The visit sensor: the darts on the board with their number in the visit, and the recent visits.
 const visit = (throws, recent = []) => ({
   "sensor.local_visit_score": { state: "0", attributes: { throws, recent_visits: recent } },
@@ -237,9 +288,11 @@ test("without switches, a player or positions the heatmap still draws", async ()
   assert.equal($(card, ".modes"), null);
   assert.equal($(card, ".sources"), null);
   await settle();
-  // A board being removed answers with an error: no positions.
+  // A board that cannot answer, such as one being removed, has not said that it has no
+  // positions: the heatmap waits for them.
   assert.equal(asked.length, 1);
-  assert.equal(text(card, ".heat .groups"), "No dart positions yet.");
+  assert.equal($(card, ".heat .groups").hidden, true);
+  assert.equal(text(card, ".heat .groups"), "");
   // Without the WebSocket, the heatmap waits for positions.
   const plain = setup({ mode: "positions" }).card;
   assert.equal($$(plain, ".heat-layer .position").length, 0);
