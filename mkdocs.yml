@@ -30,6 +30,11 @@ exclude_docs: |
 plugins:
   search:
     lang: [en, de]
+  # The changelog page is a single include of CHANGELOG.md: the date of its last
+  # commit would never change with a release.
+  git-revision-date-localized:
+    exclude:
+      - changelog.md
   # English and German. The German pages sit next to the English ones, named like
   # them with .de, such as games.de.md next to games.md, and make the German website
   # in de/, with German menus, search and dates, and a switch between the languages
@@ -93,7 +98,8 @@ nav:
       - security.md
       - glossary.md
   - Project:
-      - Changelog: https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md
+      # CHANGELOG.md, which changelog.md includes with its links for the website.
+      - Changelog: changelog.md
       - roadmap.md
       - development.md
       - releases.md

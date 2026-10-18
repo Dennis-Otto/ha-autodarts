@@ -37,9 +37,13 @@ OWN = re.compile(
     r"|raw\.githubusercontent\.com/Dennis-Otto/ha-autodarts/main)/"
 )
 # The documentation website (mkdocs.yml): docs/<page>.md is <page>.html, and its
-# German page docs/<page>.de.md is de/<page>.html; index.md is the start page.
+# German page docs/<page>.de.md is de/<page>.html, or the English page where no
+# German one exists; index.md is the start page.
 WEBSITE = "https://dennis-otto.github.io/ha-autodarts/"
 WEBSITE_PAGE = re.compile(r"^(?:(de)/)?([^#?]*)")
+# A line of a page of the website that includes a file of the repository, or a
+# section of one, with pymdownx.snippets, such as --8<-- "CHANGELOG.md".
+INCLUDE = re.compile(r'^--8<-- "([^":]+)(?::([\w-]+))?"$', re.MULTILINE)
 FENCE = re.compile(r"^(```|~~~).*?^\1", re.MULTILINE | re.DOTALL)
 CODE = re.compile(r"`[^`\n]*`")
 MARKDOWN_LINK = re.compile(
@@ -114,9 +118,24 @@ def slug(heading: str) -> str:
     return text.replace(" ", "-")
 
 
-def anchors(path: Path) -> set[str]:
-    """The anchors of a document: its headings, numbered when repeated, and HTML anchors."""
-    text = FENCE.sub("", path.read_text(encoding="utf-8"))
+def included(text: str) -> str:
+    """The text with the files and sections it includes, as the website shows it."""
+
+    def include(match: re.Match[str]) -> str:
+        source = (ROOT / match[1]).read_text(encoding="utf-8")
+        if section := match[2]:
+            source = source.partition(f"[start:{section}]")[2]
+            source = source.partition(f"[end:{section}]")[0]
+        return source
+
+    return INCLUDE.sub(include, text)
+
+
+def anchors(path: Path, website: bool = False) -> set[str]:
+    """The anchors of a document: its headings, numbered when repeated, and HTML
+    anchors, with those of the files it includes on the website."""
+    text = path.read_text(encoding="utf-8")
+    text = FENCE.sub("", included(text) if website else text)
     found: set[str] = set(HTML_ANCHOR.findall(text))
     seen: dict[str, int] = {}
     for _, heading in HEADING.findall(text):
@@ -128,7 +147,12 @@ def anchors(path: Path) -> set[str]:
 
 
 def targets(path: Path) -> list[str]:
-    text = prose(path.read_text(encoding="utf-8"))
+    return targets_of(path.read_text(encoding="utf-8"))
+
+
+def targets_of(text: str) -> list[str]:
+    """The addresses of the links and pictures of a text."""
+    text = prose(text)
     links = MARKDOWN_LINK.findall(text) + HTML_LINK.findall(text)
     for srcset in SRCSET.findall(text):
         links += [part.split()[0] for part in srcset.split(",") if part.strip()]
@@ -143,7 +167,10 @@ def website_page(address: str) -> tuple[Path, str]:
         return ROOT / "docs" / page, ""
     name = (page or "index.html").removesuffix(".html")
     anchor = address.partition("#")[2]
-    return ROOT / "docs" / f"{name}{'.de' if german else ''}.md", unquote(anchor)
+    file = ROOT / "docs" / f"{name}.de.md"
+    if not german or not file.is_file():
+        file = ROOT / "docs" / f"{name}.md"
+    return file, unquote(anchor)
 
 
 def resolve(document: Path, target: str) -> tuple[Path, str] | None:
@@ -183,9 +210,10 @@ def test_links_lead_to_files_and_headings(document):
         if resolved is None:
             continue
         file, anchor = resolved
+        website = target.startswith(WEBSITE)
         if not file.exists():
             broken.append(f"{target}: no such file")
-        elif anchor and file.suffix == ".md" and anchor not in anchors(file):
+        elif anchor and file.suffix == ".md" and anchor not in anchors(file, website):
             broken.append(f"{target}: no heading #{anchor}")
     assert not broken, "\n".join(broken)
 
@@ -467,6 +495,17 @@ COMPARE = re.compile(
 )
 BLOB = "https://github.com/Dennis-Otto/ha-autodarts/blob/main/"
 RELATIVE_LINK = re.compile(r"\]\((?![a-z]+:)([^)#][^)]*)\)")
+# A page of the documentation, written as a relative link of docs/ or as a link to
+# GitHub, with its anchor.
+DOCS_PAGE = re.compile(
+    rf"^(?:{re.escape(BLOB)}docs/)?"
+    r"(?P<page>(?![a-z][a-z0-9+.-]*:|\.\./|/)[^#]+?)\.md(?P<anchor>#.*)?$"
+)
+# The READMEs that link to the website: the one of the project, which HACS shows,
+# and its German translation, whose links lead to the German website.
+READMES = {"README.md": False, "docs/README.de.md": True}
+# A section of a page that the website includes, whose links are those of docs/.
+SHARED = re.compile(r"\[start:([\w-]+)\].*?\[end:\1\]", re.DOTALL)
 
 
 def compare_section(name: str) -> str:
@@ -475,30 +514,91 @@ def compare_section(name: str) -> str:
     return match.group(1).strip()
 
 
-def absolute_links(text: str) -> str:
-    """Make the links of a docs page absolute, as the README needs them for HACS."""
-    return RELATIVE_LINK.sub(lambda link: f"]({BLOB}docs/{link.group(1)})", text)
+def website_address(link: str, german: bool) -> str | None:
+    """The address on the website of a link of a README to a page of docs/ or to the
+    changelog, for the README of one language, or None for any other link.
+
+    A German page is in de/. A page without it is English if a German page of its
+    name exists; otherwise it is the page of both websites, and the German README
+    stays on the German website, as scripts/mkdocs_hooks.py does.
+    """
+    # The changelog stays on GitHub until the merge of #393 has published
+    # changelog.html: the link check would find no page before. Then it is
+    # f"{WEBSITE}{'de/' if german else ''}changelog.html".
+    match = DOCS_PAGE.match(link)
+    if match is None:
+        return None
+    page, anchor = match["page"], match["anchor"] or ""
+    if page.endswith(".de"):
+        return f"{WEBSITE}de/{page.removesuffix('.de')}.html{anchor}"
+    if page == "README":
+        return f"{WEBSITE}{'de/' if german else ''}{anchor}"
+    english = (DOCS / f"{page}.de.md").is_file()
+    return f"{WEBSITE}{'de/' if german and not english else ''}{page}.html{anchor}"
 
 
-def test_absolute_links_point_into_the_docs_folder():
-    text = "[a](faq.md#top) [b](https://autodarts.com/) [c](#here)"
-    assert absolute_links(text) == (
-        f"[a]({BLOB}docs/faq.md#top) [b](https://autodarts.com/) [c](#here)"
+def website_links(text: str, german: bool) -> str:
+    """The links of a docs page to other pages as the READMEs have them."""
+    return RELATIVE_LINK.sub(
+        lambda link: f"]({website_address(link[1], german) or link[1]})", text
     )
 
 
 @pytest.mark.parametrize(
-    ("source", "readme", "absolute"),
+    ("link", "german", "address"),
     [
-        ("coming-from.md", "README.md", True),
-        ("coming-from.de.md", "docs/README.de.md", False),
+        ("faq.md#top", False, f"{WEBSITE}faq.html#top"),
+        (f"{BLOB}docs/faq.md", False, f"{WEBSITE}faq.html"),
+        ("faq.de.md#oben", True, f"{WEBSITE}de/faq.html#oben"),
+        ("development.md", True, f"{WEBSITE}development.html"),
+        ("releases.md#x", True, f"{WEBSITE}de/releases.html#x"),
+        ("decisions/0001-x.md", True, f"{WEBSITE}de/decisions/0001-x.html"),
+        (f"{BLOB}docs/README.md#languages", False, f"{WEBSITE}#languages"),
+        # f"{WEBSITE}de/changelog.html" once the changelog page is published.
+        (f"{BLOB}CHANGELOG.md", True, None),
+        ("README.md", True, f"{WEBSITE}de/"),
+        (f"{BLOB}SECURITY.md", False, None),
+        ("../CHANGELOG.md", False, None),
+        ("https://autodarts.com/", False, None),
     ],
 )
-def test_the_readmes_carry_the_comparison_of_the_website(source, readme, absolute):
-    """GitHub and HACS can't include the snippet, so the READMEs copy it unchanged."""
-    section = compare_section(source)
-    if absolute:
-        section = absolute_links(section)
+def test_a_readme_link_to_a_page_has_its_address_on_the_website(link, german, address):
+    assert website_address(link, german) == address
+
+
+def test_website_links_leave_the_other_links():
+    text = "[a](faq.md#top) [b](https://autodarts.com/) [c](#here)"
+    assert website_links(text, False) == (
+        f"[a]({WEBSITE}faq.html#top) [b](https://autodarts.com/) [c](#here)"
+    )
+
+
+def test_the_readmes_link_to_the_pages_of_the_website():
+    """The website has the search, the dark mode and the switch of the language.
+
+    GitHub shows the files of docs/ as plain Markdown; HACS can't follow relative
+    links. The German README keeps the line of GitHub at its top, with the project
+    page and its English overview, and the section that the website includes.
+    """
+    found = []
+    for name, german in READMES.items():
+        text = (ROOT / name).read_text(encoding="utf-8")
+        if german:
+            text = SHARED.sub("", text.split("\n", 3)[3])
+        for target in targets_of(text):
+            if (address := website_address(target, german)) is not None:
+                found.append(f"{name}: {target} -> {address}")
+    assert not found, "Link to the website instead:\n" + "\n".join(found)
+
+
+@pytest.mark.parametrize(
+    ("source", "readme"),
+    [("coming-from.md", "README.md"), ("coming-from.de.md", "docs/README.de.md")],
+)
+def test_the_readmes_carry_the_comparison_of_the_website(source, readme):
+    """GitHub and HACS can't include the snippet, so the READMEs copy it, with
+    links to the website."""
+    section = website_links(compare_section(source), READMES[readme])
     assert section in (ROOT / readme).read_text(encoding="utf-8"), (
         f"{readme} differs from the compare snippet of docs/{source}"
     )

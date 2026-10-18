@@ -20,6 +20,16 @@ GitHub. The hooks lead them to the pages of the website where MkDocs alone can't
 - A page of the German website lies one folder deeper than its file, in de/, so
   the pictures of its HTML, such as <img src="images/de/card.png">, get the path
   from there, as those of the Markdown do.
+- A page on GitHub starts with a line back to the overview, often with the link to
+  the other language, such as [← Documentation](README.md) · [Deutsch](games.de.md).
+  The website has its menu, its tabs and the switch of the language for that, so it
+  leaves the line out.
+- A page may include a whole file of the repository, as changelog.md includes
+  CHANGELOG.md with the line --8<-- "CHANGELOG.md", so that nothing is written
+  twice. The links of that file are written from its own folder, such as
+  [games](docs/games.md) from the root: they lead to the pages of the website, and
+  to GitHub for the other files of the repository. The pencil of a page that is
+  nothing but the file edits that file.
 - The live demo in demo/ plays the cards of the integration, which the website
   takes from the integration as they are, so that it always shows the cards of its
   version: after the build, they join the page of the demo.
@@ -107,6 +117,28 @@ SOURCE = re.compile(
     r"|\b(?P<attribute>src|srcset|href)=(?P<quote>[\"'])(?P<value>[^\"']*)(?P=quote)",
     re.MULTILINE | re.DOTALL,
 )
+# The line back to the overview of GitHub at the start of a page, after its title,
+# with the link to the other language if there is one, as a paragraph of its own.
+BACK = re.compile(
+    r"(?P<title>\A\s*(?:#[ \t][^\n]*\n)?)\s*"
+    r"\[← [^\]\n]+\]\((?:\.\./)?README(?:\.de)?\.md\)"
+    r"(?: · \[[^\]\n]+\]\([^)\s]+\))?[ \t]*(?:\n(?=[ \t]*\n)|\n?\Z)"
+)
+# A line that includes a whole file with pymdownx.snippets, by its path from the
+# root of the repository, such as --8<-- "CHANGELOG.md"; a section of a file, such
+# as "docs/README.md:languages", is left to snippets.
+INCLUDE = re.compile(r'^--8<-- "(?P<path>[^":]+\.md)"[ \t]*$', re.MULTILINE)
+# In an included file: code, whose links are examples, or the relative address of
+# a link or picture of the Markdown, of a link reference or of the HTML, without
+# its anchor.
+INCLUDED = re.compile(
+    r"(?P<code>^[ \t]*(?P<fence>```|~~~).*?^[ \t]*(?P=fence)|`[^`\n]*`)"
+    r"|(?P<before>\]\(|^[ \t]*\[[^\]\n]+\]:[ \t]*|\b(?:src|href)=[\"'])"
+    r"(?![a-z][a-z0-9+.-]*:|/|#)(?P<path>[^)\s\"'#?]+)",
+    re.MULTILINE | re.DOTALL,
+)
+# The branch whose files the links to GitHub show.
+BRANCH = "main"
 
 
 def website(page: Any) -> str:
@@ -181,9 +213,58 @@ def lead_on(page: Any, docs: Path, files: Any) -> None:
     page.meta["search"] = {"exclude": True}
 
 
-def on_page_markdown(markdown: str, page: Any, config: Any, files: Any) -> str:
-    """The Markdown of the page, with its links for the website."""
+def include(markdown: str, page: Any, config: Any) -> str:
+    """The Markdown of page with the whole files of the repository that it includes.
+
+    The links of such a file are written from its own folder. A link to a file of
+    docs/ gets the path from page, which MkDocs and on_page_markdown then lead to
+    the page of the website; a link to another file of the repository leads to the
+    file on GitHub. A page that is nothing but one file is edited in that file.
+    """
     docs = Path(config.docs_dir)
+    folder = f"{docs.name}/"
+
+    def expand(match: re.Match[str]) -> str:
+        path = match["path"]
+        file = docs.parent / path
+        # pymdownx.snippets fails the build for a file that doesn't exist.
+        if not file.is_file():
+            return match[0]
+
+        def rebase(link: re.Match[str]) -> str:
+            if link["code"]:
+                return link[0]
+            target = posixpath.normpath(
+                posixpath.join(posixpath.dirname(path), link["path"])
+            )
+            if target.startswith(folder):
+                address = relative(target.removeprefix(folder), page.file.src_uri)
+            else:
+                address = f"{config.repo_url.rstrip('/')}/blob/{BRANCH}/{target}"
+            return f"{link['before']}{address}"
+
+        return INCLUDED.sub(rebase, file.read_text(encoding="utf-8"))
+
+    whole = INCLUDE.fullmatch(markdown.strip())
+    own = f"{folder}{page.file.src_uri}"
+    if (
+        whole
+        and (docs.parent / whole["path"]).is_file()
+        and page.edit_url
+        and page.edit_url.endswith(own)
+    ):
+        page.edit_url = page.edit_url.removesuffix(own) + whole["path"]
+    return INCLUDE.sub(expand, markdown)
+
+
+def on_page_markdown(markdown: str, page: Any, config: Any, files: Any) -> str:
+    """The Markdown of the page for the website: without the line back to the
+    overview of GitHub, with the files it includes and with its links for the
+    website."""
+    docs = Path(config.docs_dir)
+    markdown = BACK.sub(lambda match: match["title"], markdown, count=1)
+    if INCLUDE.search(markdown):
+        markdown = include(markdown, page, config)
     if MOVED_TO in page.meta:
         lead_on(page, docs, files)
     deeper = posixpath.dirname(page.file.url) != posixpath.dirname(page.file.src_uri)
