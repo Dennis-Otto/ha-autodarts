@@ -44,6 +44,8 @@ GAME_NAMES = {
     "cut_throat": "Cut-Throat",
     "tactics": "Tactics",
     "wild_mouse": "Wild Mouse",
+    "random_cricket": "Random Cricket",
+    "hidden_cricket": "Hidden Cricket",
     "shanghai": "Shanghai",
     "halve_it": "Halve-It",
     "killer": "Killer",

@@ -1083,7 +1083,7 @@ function drillBeds(drill) {
 }
 
 const CRICKET_NUMBERS = [20, 19, 18, 17, 16, 15, 25];
-const CRICKET_GAMES = ["cricket", "cut_throat", "tactics", "wild_mouse"];
+const CRICKET_GAMES = ["cricket", "cut_throat", "tactics", "wild_mouse", "random_cricket", "hidden_cricket"];
 // What Wild Mouse closes besides the numbers, in the order of its rows.
 const WILD_TARGETS = ["doubles", "triples", "bed"];
 // No mark, one, two, and a closed number, as on a Cricket chalkboard.
@@ -1093,9 +1093,13 @@ const CRICKET_MARKS = ["", "/", "X", "Ⓧ"];
 function cricketView(state) {
   const attributes = state?.attributes || {};
   if (!state || state.state === "unavailable" || !CRICKET_GAMES.includes(attributes.game)) return null;
-  // Tactics adds the numbers 14 to 10, Wild Mouse doubles, triples and three in a bed.
+  // Tactics adds the numbers 14 to 10, Wild Mouse doubles, triples and three in a bed;
+  // Random and Hidden Cricket draw theirs, and Hidden Cricket has null for a number
+  // that does not show yet.
+  const hidden = attributes.game === "hidden_cricket";
+  const number = (value) => Number.isInteger(value) || (hidden && value === null);
   const numbers =
-    Array.isArray(attributes.numbers) && attributes.numbers.length && attributes.numbers.every(Number.isInteger)
+    Array.isArray(attributes.numbers) && attributes.numbers.length && attributes.numbers.every(number)
       ? attributes.numbers
       : CRICKET_NUMBERS;
   const wild = attributes.game === "wild_mouse";
@@ -1644,25 +1648,31 @@ function cricketTable(cricket, ui, { aim = true } = {}) {
     return `<td class="${style}"${hint ? ` title="${escapeHtml(t(`cricket_aim_${hint}`))}"` : ""}>`;
   };
   const row = (style, heading, content, slot) =>
-    `<tr class="${style}"><th>${escapeHtml(heading)}</th>${columns
+    `<tr class="${style}"><th>${heading}</th>${columns
       .map((column) => `${cell(column, slot)}${content(column)}</td>`)
       .join("")}</tr>`;
   const marks = (count) =>
     `<span role="img" aria-label="${escapeHtml(t(`mark_${count}`))}">${CRICKET_MARKS[count]}</span>`;
-  // The numbers, then what Wild Mouse closes besides them.
-  const keys = [...cricket.numbers.map(String), ...cricket.targets];
+  // The numbers, then what Wild Mouse closes besides them; a question mark for a number
+  // of Hidden Cricket that does not show yet.
+  const keys = [...cricket.numbers.map((number) => (number === null ? null : String(number))), ...cricket.targets];
+  const hiddenHeading = `<span role="img" aria-label="${escapeHtml(t("cricket_hidden"))}">?</span>`;
   const rows = keys.map((key, slot) => {
     const bed = key === "25" ? "BULL" : `T${key}`;
-    const aimed = cricket.targetRow === null ? bed === cricket.target : key === cricket.targetRow;
+    const aimed = key !== null && (cricket.targetRow === null ? bed === cricket.target : key === cricket.targetRow);
     const style = columns.every((column) => column.marks[slot] >= 3) ? "closed" : aimed ? "target" : "";
-    const heading = key === "25" ? "Bull" : WILD_TARGETS.includes(key) ? t(`wild_${key}`) : key;
+    const heading =
+      key === null
+        ? hiddenHeading
+        : escapeHtml(key === "25" ? "Bull" : WILD_TARGETS.includes(key) ? t(`wild_${key}`) : key);
     return row(style, heading, (column) => marks(column.marks[slot]), slot);
   });
   const text = (value) => (column) => escapeHtml(value(column));
-  if (match) rows.push(row("total", t("cricket_points"), text((column) => String(column.points))));
-  rows.push(row("detail", t("cricket_mpr"), text((column) => column.mpr)));
-  if (match && cricket.legsToWin > 1) rows.push(row("detail", t("score_legs"), text((column) => String(column.legs))));
-  if (match && cricket.setsToWin > 1) rows.push(row("detail", t("score_sets"), text((column) => String(column.sets))));
+  const label = (key) => escapeHtml(t(key));
+  if (match) rows.push(row("total", label("cricket_points"), text((column) => String(column.points))));
+  rows.push(row("detail", label("cricket_mpr"), text((column) => column.mpr)));
+  if (match && cricket.legsToWin > 1) rows.push(row("detail", label("score_legs"), text((column) => String(column.legs))));
+  if (match && cricket.setsToWin > 1) rows.push(row("detail", label("score_sets"), text((column) => String(column.sets))));
   const head = columns
     .map((column) => ({ ...column, state: kind(column) }))
     .map((column) => `<th class="${column.state}"${turnMark(column)}>${column.head}${winnerMark(column, ui)}</th>`)
@@ -2006,8 +2016,15 @@ function scoreboardHtml(view, ui) {
   }
   const game = { cricket: view.cricket, party: view.party }[view.mode] ?? view.practice;
   const round = view.mode === "party" ? partyRound(game, t) : "";
-  // Cut-Throat turns the points round, and Golf's players stop by pulling their darts.
-  const hint = { cut_throat: "cut_throat_hint", wild_mouse: "wild_mouse_hint", golf: "golf_hint" }[game.kind];
+  // Cut-Throat turns the points round, Random and Hidden Cricket draw their numbers, and
+  // Golf's players stop by pulling their darts.
+  const hint = {
+    cut_throat: "cut_throat_hint",
+    wild_mouse: "wild_mouse_hint",
+    random_cricket: "random_cricket_hint",
+    hidden_cricket: "hidden_cricket_hint",
+    golf: "golf_hint",
+  }[game.kind];
   const scorecard = view.mode === "party" && SCORECARD_GAMES.includes(game.kind);
   // The summary of a won match takes the place of the players.
   const main = view.summary
@@ -4498,6 +4515,11 @@ function callerState(visit, view, previous = null) {
     visit: keys.join(" "),
     count: visitCount(current, keys, start),
     mode: current.mode,
+    // The numbers of Random and Hidden Cricket, which they draw for every leg.
+    kind: game?.kind ?? null,
+    numbers: current.cricket?.numbers ?? [],
+    // A leg nobody has marked yet: one that has just begun.
+    fresh: (current.cricket?.scores ?? []).every((score) => score.marks.every((mark) => mark === 0)),
     player,
     name: game?.name ?? null,
     bot: up?.bot === true,
@@ -4565,6 +4587,8 @@ function callerCalls(previous, current, options) {
   } else if (on("call_results") && current.limit !== previous.limit && current.limit && current.winner === null) {
     calls.push({ kind: "limit_leg", name: current.limitName });
   }
+  // The numbers a leg drew follow the game shot of the leg before.
+  if (on("call_scores")) calls.push(...drawnCalls(previous, current));
   const turn =
     current.player !== previous.player || current.remaining !== previous.remaining || previous.darts > 0;
   // The route exists only for a score the darts of a visit can finish; without
@@ -4624,8 +4648,25 @@ function targetWords(target, t) {
   return ["50", "BULL"].includes(target) ? t("say_bullseye") : bedWords(target, t);
 }
 
+// Random Cricket names the numbers it drew when a leg begins; Hidden Cricket a number as
+// soon as a dart shows it. A game that comes back with marks on the board, as after a reload
+// of the integration, is one the caller has named already.
+function drawnCalls(previous, current) {
+  const same = previous.kind === current.kind;
+  const drawn = previous.numbers.join() !== current.numbers.join();
+  if (current.kind === "random_cricket" && drawn && (same || current.fresh)) {
+    return [{ kind: "numbers", numbers: current.numbers.filter((number) => number !== 25) }];
+  }
+  if (current.kind !== "hidden_cricket" || !same) return [];
+  return current.numbers
+    .filter((number, slot) => number !== null && previous.numbers[slot] === null)
+    .map((number) => ({ kind: "shown", number }));
+}
+
 // A call as the caller says it.
 function callerText(call, t) {
+  if (call.kind === "numbers") return fill(t("say_numbers"), { numbers: call.numbers.join(", ") });
+  if (call.kind === "shown") return fill(t("say_shown"), { number: call.number });
   if (call.kind === "dart") {
     return call.by === "score" && call.key !== "MISS" ? String(keyScore(call.key)) : bedWords(call.key, t);
   }

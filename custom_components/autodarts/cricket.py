@@ -1,14 +1,18 @@
 """Cricket rules: marks on 20 to 15 and the bull, points on numbers others need.
 
-Three variants play by the same marks: Cut-Throat, where points go to the
+Five variants play by the same marks: Cut-Throat, where points go to the
 players who still have the number open and the lowest score wins, Tactics,
-which adds the numbers 14 to 10, and Wild Mouse, also known as Minnesota
-Cricket, which adds any double, any triple and three in a bed.
+which adds the numbers 14 to 10, Wild Mouse, also known as Minnesota Cricket,
+which adds any double, any triple and three in a bed, and Random and Hidden
+Cricket, which play six numbers of 1 to 20 drawn for every leg and the bull;
+Hidden Cricket shows a number only once a dart has marked it.
 """
 
 from __future__ import annotations
 
-from typing import Any, NamedTuple
+import random
+from collections.abc import Sequence
+from typing import Any, NamedTuple, TypeGuard
 
 from .board import top_bed
 from .scoring import VISIT_DARTS, score
@@ -18,12 +22,20 @@ from .training import hit_key
 CRICKET_NUMBERS = (20, 19, 18, 17, 16, 15, 25)
 TACTICS_NUMBERS = (20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 25)
 WILD_MOUSE = "wild_mouse"
-# Every Cricket game and its numbers.
+RANDOM_CRICKET, HIDDEN_CRICKET = "random_cricket", "hidden_cricket"
+# The games that draw their numbers for every leg: six of 1 to 20, and the bull.
+DRAWN_GAMES = (RANDOM_CRICKET, HIDDEN_CRICKET)
+DRAWN_NUMBERS = 6
+BULL = 25
+# Every Cricket game and its numbers; the drawn games play these until the
+# first draw.
 CRICKET_GAMES = {
     "cricket": CRICKET_NUMBERS,
     "cut_throat": CRICKET_NUMBERS,
     "tactics": TACTICS_NUMBERS,
     WILD_MOUSE: CRICKET_NUMBERS,
+    RANDOM_CRICKET: CRICKET_NUMBERS,
+    HIDDEN_CRICKET: CRICKET_NUMBERS,
 }
 MARKS_TO_CLOSE = 3
 # Wild Mouse closes three more targets after the numbers: three doubles, three
@@ -51,6 +63,69 @@ class CricketVisit(NamedTuple):
     # whether the visit was three in a bed that counted.
     targets: tuple[str | None, ...] = ()
     bed: bool = False
+
+
+def draw_numbers(rng: random.Random, hidden: bool = False) -> tuple[int, ...]:
+    """Six different numbers of 1 to 20 for a leg of Random or Hidden Cricket,
+    then the bull. Random Cricket shows them highest first, as Cricket does.
+    Hidden Cricket keeps the order of the draw, so that the row a number shows
+    up in says nothing about the numbers still hidden."""
+    drawn = rng.sample(range(1, 21), DRAWN_NUMBERS)
+    return (*(drawn if hidden else sorted(drawn, reverse=True)), BULL)
+
+
+def valid_draw(numbers: object) -> TypeGuard[Sequence[int]]:
+    """Whether stored numbers are a draw: six different numbers of 1 to 20,
+    then the bull."""
+    if not isinstance(numbers, list | tuple) or len(numbers) != DRAWN_NUMBERS + 1:
+        return False
+    *drawn, bull = numbers
+    return (
+        bull == BULL
+        and type(bull) is int
+        and all(type(number) is int and 1 <= number <= 20 for number in drawn)
+        and len(set(drawn)) == DRAWN_NUMBERS
+    )
+
+
+def shown(numbers: Sequence[int], marks: Sequence[Sequence[int]]) -> list[bool]:
+    """Which numbers of Hidden Cricket the players see: those a dart has marked
+    for anybody, and the bull, which is always in."""
+    return [
+        number == BULL or any(player[slot] for player in marks)
+        for slot, number in enumerate(numbers)
+    ]
+
+
+def by_value(numbers: Sequence[int | None]) -> list[int]:
+    """The slots of the numbers that show, highest first and the bull last, as
+    players close them."""
+    return sorted(
+        (slot for slot, number in enumerate(numbers) if number is not None),
+        key=lambda slot: (numbers[slot] == BULL, -(numbers[slot] or 0)),
+    )
+
+
+def hidden_target(
+    marks: list[int],
+    numbers: Sequence[int | None],
+    others_marks: list[list[int]],
+) -> str | None:
+    """The bed to aim at in Hidden Cricket, as next_target over the numbers
+    that show, None for a hidden one: the highest one still open, then the bull;
+    with those closed, one to score on. None while numbers are still hidden and
+    every number that shows but the bull is closed: then the players search, as
+    the bot does, rather than go for the bull."""
+    slots = by_value(numbers)
+    if None in numbers and all(
+        marks[slot] >= MARKS_TO_CLOSE for slot in slots if numbers[slot] != BULL
+    ):
+        return None
+    return next_target(
+        [marks[slot] for slot in slots],
+        tuple(int(numbers[slot] or 0) for slot in slots),
+        [[other[slot] for slot in slots] for other in others_marks],
+    )
 
 
 def _marks(

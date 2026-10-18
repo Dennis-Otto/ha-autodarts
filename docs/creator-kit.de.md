@@ -33,7 +33,7 @@ Autodarts für Home Assistant ist eine kostenlose Open-Source-Integration, die e
 | Name | Autodarts für Home Assistant (`ha-autodarts`) |
 | Preis | Kostenlos, Open Source unter der MIT-Lizenz |
 | Verbindung | Lokal und in Echtzeit mit dem Board Manager auf dem Board-PC; kein Autodarts-Konto, keine Cloud |
-| Spiele | X01 von 101 bis 1001, vier Cricket-Spiele, neun Partyspiele und acht Trainingsspiele |
+| Spiele | X01 von 101 bis 1001, sechs Cricket-Spiele, neun Partyspiele und acht Trainingsspiele |
 | Spielen | Bis zu vier Spieler oder zwei Teams zu zweit, Handicap-Startpunkte, ein Bot von Stufe 20 bis 120, Turniere für drei bis acht Spieler |
 | Anzeigetafel | Eine Vollbild-Ansicht für Tablet oder Fernseher, mit Spielauswahl, Korrekturen, Caller und Ruhemodus |
 | Statistik | Bestleistungen, Trefferbilder der echten Dart-Positionen, Trends, Erfolge, Bestenliste, Wochenbericht und Exporte |
@@ -136,7 +136,7 @@ Autodarts für Home Assistant: dein Dartboard im Smart Home, mit Anzeigetafel, B
 Ich spiele an einem Autodarts-Board und wollte das ganze Spiel in Home Assistant haben, nicht nur die letzte Punktzahl. Eine vollständige Lösung habe ich nicht gefunden, also habe ich in meiner Freizeit eine gebaut: **Autodarts für Home Assistant**, kostenlos und Open Source unter der MIT-Lizenz.
 
 - **Lokal und in Echtzeit.** Die Integration spricht mit dem Board Manager auf dem Board-PC in deinem Netzwerk: kein Autodarts-Konto, keine Cloud, nichts verlässt dein Zuhause.
-- **Ein Dartautomat für zu Hause.** X01, vier Cricket-Spiele, neun Party- und acht Trainingsspiele, ein Bot von Stufe 20 bis 120 und Turniere, auf einer Anzeigetafel im Vollbild für Tablet oder Fernseher, mit Caller.
+- **Ein Dartautomat für zu Hause.** X01, sechs Cricket-Spiele, neun Party- und acht Trainingsspiele, ein Bot von Stufe 20 bis 120 und Turniere, auf einer Anzeigetafel im Vollbild für Tablet oder Fernseher, mit Caller.
 - **Jeder Dart für deine Automationen.** Ereignisse für jeden Dart, jede Aufnahme, jedes Überwerfen, Leg und Match, sieben Dashboard-Karten und vierzehn Blueprints, von der Licht-Show beim 180er bis zum Wochenbericht. Die Statistik mit Trefferbildern bleibt in deinem Home Assistant.
 
 **Erst ausprobieren:** Die [Live-Demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html?lang=de) spielt die Karten in deinem Browser, ganz ohne Installation. Kein Autodarts-Board? Sie zählt auch Darts, die du auf einem Tastenfeld eingibst.

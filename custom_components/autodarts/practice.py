@@ -2,16 +2,18 @@
 to eight, and training games.
 
 X01 with a start score of its own for every player, Cricket, Cut-Throat,
-Tactics and Wild Mouse, the party games, and the training games; X01 and the
-Cricket games also as two teams of two, and against the bot. With several
-players, a bull-off can decide who starts. X01 has the rules of
-play.autodarts.io: the In and Out mode straight, double or master, the bull
-mode 25/50 or 50/50, and a round limit after which the lowest score wins.
+Tactics, Wild Mouse, Random and Hidden Cricket, the party games, and the
+training games; X01 and the Cricket games also as two teams of two, and
+against the bot. With several players, a bull-off can decide who starts. X01
+has the rules of play.autodarts.io: the In and Out mode straight, double or
+master, the bull mode 25/50 or 50/50, and a round limit after which the
+lowest score wins.
 """
 
 from __future__ import annotations
 
 import copy
+import random
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -24,13 +26,19 @@ from .cricket import (
     BED,
     CRICKET_GAMES,
     CRICKET_NUMBERS,
+    DRAWN_GAMES,
+    HIDDEN_CRICKET,
     WILD_MOUSE,
     WILD_MOUSE_TARGETS,
     CricketVisit,
+    draw_numbers,
+    hidden_target,
     marks_per_round,
     next_target,
     play_visit,
     play_wild_mouse_visit,
+    shown,
+    valid_draw,
     wild_mouse_target,
 )
 from .doubles import DoubleHits, DoubleStats, aimed_at, hits
@@ -285,6 +293,11 @@ class PracticeGame:
         self.game = 0
         # The Cricket game being played: cricket, cut_throat or tactics.
         self.cricket: str | None = None
+        # The numbers Random and Hidden Cricket drew for the leg, kept with the
+        # game, so that an undone visit and a restart keep them; drawn without
+        # cryptographic randomness, which games need not.
+        self.drawn: tuple[int, ...] = CRICKET_NUMBERS
+        self.rng = random.Random()  # noqa: S311
         self.party: PartyGame | None = None
         # The X01 rules: how a leg opens and ends, what the outer bull scores,
         # and the rounds after which the lowest score wins the leg, 0 for none.
@@ -420,6 +433,11 @@ class PracticeGame:
                 clean_name(name) if isinstance(name, str) else ""
                 for name in [*names, *[""] * PARTY_PLAYERS][:PARTY_PLAYERS]
             ]
+        # A leg of Random or Hidden Cricket keeps the numbers it drew.
+        drawn = saved.get("drawn")
+        drawing = self.cricket in DRAWN_GAMES
+        redraw = drawing and not valid_draw(drawn)
+        self.drawn = tuple(drawn) if drawing and valid_draw(drawn) else CRICKET_NUMBERS
         slots = self._slots()
         players = saved.get("players")
         if isinstance(players, list) and 0 < len(players) <= PARTY_PLAYERS:
@@ -453,6 +471,12 @@ class PracticeGame:
             left = player.remaining or index in self._winners()
             if self.game and (player.remaining > start or not left):
                 player.new_leg(start, slots)
+            # Marks of numbers that were not drawn, from a store without its
+            # draw, start the leg again with new numbers.
+            if redraw:
+                player.new_leg(start, slots)
+        if redraw:
+            self._draw()
         self.party = (
             self._party(kind, len(self.players)) if kind in PARTY_GAMES else None
         )
@@ -543,6 +567,7 @@ class PracticeGame:
             "count_up_rounds": self.count_up_rounds,
             "bermuda_halve_on_miss": self.bermuda_halve_on_miss,
             **{rule: getattr(self, rule) for rule in PARTY_RULES},
+            "drawn": list(self.drawn) if self.cricket in DRAWN_GAMES else None,
             "doubles": self.doubles.stored(),
             "double_hits": self.double_hits.stored(),
             "party": self.party.stored() if self.party else None,
@@ -869,6 +894,8 @@ class PracticeGame:
         self.leg_visits = 0
         if self.drill:
             self.drills[self.drill].reset(len(self._visit))
+        if self.cricket in DRAWN_GAMES:
+            self._draw()
         slots = self._slots()
         for index, player in enumerate(self.players):
             player.new_leg(self._start(index), slots)
@@ -913,8 +940,15 @@ class PracticeGame:
         return bool(self.game or self.cricket or self.party)
 
     def _numbers(self) -> tuple[int, ...]:
-        """The numbers of the Cricket game: 20 to 15 and the bull, or Tactics'."""
+        """The numbers of the Cricket game: 20 to 15 and the bull, Tactics', or
+        those Random and Hidden Cricket drew for the leg."""
+        if self.cricket in DRAWN_GAMES:
+            return self.drawn
         return CRICKET_GAMES[self.cricket] if self.cricket else CRICKET_NUMBERS
+
+    def _draw(self) -> None:
+        """New numbers for a leg of Random or Hidden Cricket."""
+        self.drawn = draw_numbers(self.rng, hidden=self.cricket == HIDDEN_CRICKET)
 
     def _targets(self) -> tuple[str, ...]:
         """What Wild Mouse closes besides the numbers; the others close nothing more."""
@@ -1720,8 +1754,16 @@ class PracticeGame:
             return visit.others[opponents.index(index)]
 
         others = [self.players[index].marks for index in opponents]
+        marks = [
+            visit.marks if index in side else item.marks
+            for index, item in enumerate(self.players)
+        ]
+        numbers = self._shown_numbers(marks)
         wild: dict[str, Any] = {}
-        if self.cricket == WILD_MOUSE:
+        if self.cricket == HIDDEN_CRICKET:
+            # Only the numbers that show are a target.
+            target = hidden_target(visit.marks, numbers, others)
+        elif self.cricket == WILD_MOUSE:
             # Where every dart of the visit counted, and the row to aim at with
             # its bed, as a triple counts for its number or for triples.
             row, target = wild_mouse_target(
@@ -1762,12 +1804,12 @@ class PracticeGame:
             "mpr": marks_per_round(
                 self._sum(self.current, "marks_hit") + visit.counted, darts
             ),
-            "numbers": list(self._numbers()),
+            "numbers": numbers,
             "scores": [
                 {
                     "player": index + 1,
                     "name": self._name(index),
-                    "marks": list(visit.marks if index in side else item.marks),
+                    "marks": list(marks[index]),
                     "points": points(index),
                     "legs": item.legs,
                     "sets": item.sets,
@@ -1784,6 +1826,17 @@ class PracticeGame:
             ],
             **wild,
         }
+
+    def _shown_numbers(self, marks: list[list[int]]) -> list[int | None]:
+        """The numbers of the game as the players see them: in Hidden Cricket,
+        None for a number no dart has marked yet."""
+        numbers = self._numbers()
+        if self.cricket != HIDDEN_CRICKET:
+            return list(numbers)
+        return [
+            number if show else None
+            for number, show in zip(numbers, shown(numbers, marks), strict=True)
+        ]
 
     # -- party games ---------------------------------------------------------------
 

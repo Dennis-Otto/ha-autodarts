@@ -520,6 +520,8 @@
           "cut_throat": "Cut-Throat Cricket",
           "tactics": "Tactics",
           "wild_mouse": "Wild Mouse",
+          "random_cricket": "Random Cricket",
+          "hidden_cricket": "Hidden Cricket",
           "golf": "Golf",
           "baseball": "Baseball",
           "count_up": "Count-Up",
@@ -597,7 +599,9 @@
           "cricket": "Cricket",
           "cut_throat": "Cut-Throat Cricket",
           "tactics": "Tactics",
-          "wild_mouse": "Wild Mouse"
+          "wild_mouse": "Wild Mouse",
+          "random_cricket": "Random Cricket",
+          "hidden_cricket": "Hidden Cricket"
         }
       }
     },
@@ -1647,6 +1651,8 @@
         "cut_throat": "Cut-Throat Cricket",
         "tactics": "Tactics",
         "wild_mouse": "Wild Mouse",
+        "random_cricket": "Random Cricket",
+        "hidden_cricket": "Hidden Cricket",
         "golf": "Golf",
         "baseball": "Baseball",
         "count_up": "Count-Up",
