@@ -205,13 +205,14 @@ Der Wochenbericht zählt, was das Board erkennt, wie bei den Darts des Tages, un
 
 ## Highlight-Galerie
 
-Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint](automations.de.md#highlight-galerie) mit [`autodarts.save_highlight`](entities.de.md#highlight-foto-speichern-autodartssave_highlight) speichert:
+Die Medienquelle *Autodarts* zeigt die Fotos, die der [Highlight-Foto-Blueprint](automations.de.md#highlight-galerie) mit [`autodarts.save_highlight`](entities.de.md#highlight-foto-speichern-autodartssave_highlight) speichert, und die [Clips](automations.de.md#highlight-clips), die er mit `camera.record` aufnimmt:
 
 - **Ordner:** `autodarts/highlights` im Medienordner von Home Assistant. Das ist der Medienordner `local`: `/media` unter Home Assistant OS und im Container, sonst der Ordner `media` im Konfigurationsordner. Hast du `media_dirs` ohne `local` gesetzt, der erste davon.
-- **Namen:** `JJJJ-MM-TT_HH-MM-SS_<Spieler>_<Punkte>.jpg`; Uhrzeit und Spieler sind optional, ein Checkout heißt `checkout-121`, und ein zweites Foto derselben Sekunde mit demselben Namen endet mit einem Leerzeichen und `(2)`. Andere Bilder (`.jpg`, `.jpeg`, `.png`, `.webp`) erscheinen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
-- **Reihenfolge:** die Monate, die neuesten zuerst, jeder mit seinem neuesten Foto als Titelbild; die Fotos eines Monats, die neuesten zuerst.
-- **Titel:** in der Sprache des Home-Assistant-Servers, etwa *September 2026* und *180 · Alex · 26.09.* auf Deutsch, *Sep 26* auf Englisch, *26-09* auf Niederländisch und *26/09* auf Französisch und Spanisch.
-- **Sicherheit:** Nur einfache Dateinamen dieses Ordners öffnen sich, und nur Bilder; versteckte Dateien, Unterordner und Verknüpfungen aus dem Ordner hinaus werden ignoriert. Die Fotos liefert die Medienansicht von Home Assistant selbst aus, an angemeldete Benutzer oder mit einer signierten Adresse.
+- **Namen:** `JJJJ-MM-TT_HH-MM-SS_<Spieler>_<Punkte>.jpg`; Uhrzeit und Spieler sind optional, ein Checkout heißt `checkout-121`, und ein zweites Foto derselben Sekunde mit demselben Namen endet mit einem Leerzeichen und `(2)`. Ein Clip hat den Namen seines Fotos mit `.mp4`. Andere Bilder (`.jpg`, `.jpeg`, `.png`, `.webp`) und Clips (`.mp4`) erscheinen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
+- **Reihenfolge:** die Monate, die neuesten zuerst, jeder mit seinem neuesten Foto als Titelbild; die Fotos und Clips eines Monats, die neuesten zuerst, ein Clip vor seinem Foto.
+- **Clips:** Die Galerie zeigt einen Clip mit dem Vorschaubild des Fotos seines Namens, oder ohne eines, und der Browser spielt ihn als MP4 ab.
+- **Titel:** in der Sprache des Home-Assistant-Servers, etwa *September 2026* und *180 · Alex · 26.09.* oder *Clip · 180 · Alex · 26.09.* auf Deutsch, *Sep 26* auf Englisch, *26-09* auf Niederländisch und *26/09* auf Französisch und Spanisch.
+- **Sicherheit:** Nur einfache Dateinamen dieses Ordners öffnen sich, und nur Bilder und Clips; versteckte Dateien, Unterordner und Verknüpfungen aus dem Ordner hinaus werden ignoriert. Die Fotos liefert die Medienansicht von Home Assistant selbst aus, an angemeldete Benutzer oder mit einer signierten Adresse.
 
 ## Fortschritt der Spieler
 

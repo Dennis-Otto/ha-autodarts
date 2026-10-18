@@ -18,7 +18,7 @@ import pytest
 import voluptuous as vol
 from homeassistant.components.blueprint import models
 from homeassistant.components.blueprint.schemas import BLUEPRINT_SCHEMA
-from homeassistant.core import CoreState, callback
+from homeassistant.core import CoreState, SupportsResponse, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
@@ -2145,6 +2145,82 @@ async def test_highlight_photo_gallery_folder_and_saving_can_change(hass, freeze
         ("/config/media/darts/", "camera.autodarts_board_camera_1", "Lea"),
     ]
     assert len(photos) == 2
+
+
+# The clip as the actions get it.
+CLIPPED = {
+    **PHOTO,
+    "clip_camera": "camera.room",
+    "photo_actions": [
+        {
+            "action": "test.photo",
+            "data": {"clip": "{{ clip }}", "clip_url": "{{ clip_url }}"},
+        }
+    ],
+}
+
+
+async def test_highlight_photo_records_a_clip_beside_the_photo(hass, freezer):
+    """A camera with a video stream records the moment as an MP4 beside the
+    photo, where the gallery plays it; autodarts.save_highlight records it in
+    the background and answers with its file and address at once."""
+    photos = async_mock_service(hass, "test", "photo")
+    saved = []
+    clip = "/media/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
+    url = "/media/local/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
+
+    async def save(call):
+        saved.append(call)
+        answer = {
+            "photo": clip.removesuffix(".mp4") + ".jpg",
+            "photo_url": url.removesuffix(".mp4") + ".jpg",
+        }
+        return (
+            {**answer, "clip": clip, "clip_url": url}
+            if "clip_camera" in call.data
+            else answer
+        )
+
+    hass.services.async_register(
+        "autodarts", "save_highlight", save, supports_response=SupportsResponse.OPTIONAL
+    )
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            ("highlight_photo", CLIPPED),
+            (
+                "highlight_photo",
+                {
+                    **CLIPPED,
+                    "clip_camera": "camera.stream",
+                    "clip_lookback": 2,
+                    "clip_duration": 20,
+                },
+            ),
+            # Without a clip camera, or without a saved photo, there is no clip,
+            # and the action gets no clip fields, which older versions lack.
+            ("highlight_photo", {**CLIPPED, "clip_camera": ""}),
+            ("highlight_photo", {**CLIPPED, "save_photo": False}),
+        ],
+    )
+    fire(hass, "visit_thrown", score=180, darts=3, name="Alex")
+    await photo_taken(hass, freezer)
+    assert sorted(
+        (
+            call.data.get("clip_camera", ""),
+            call.data.get("clip_lookback"),
+            call.data.get("clip_duration"),
+        )
+        for call in saved
+    ) == [("", None, None), ("camera.room", 5, 8), ("camera.stream", 2, 20)]
+    assert all(call.data["camera"] == PHOTO["camera"] for call in saved)
+    assert sorted((call.data["clip"], call.data["clip_url"]) for call in photos) == [
+        ("", ""),
+        ("", ""),
+        (clip, url),
+        (clip, url),
+    ]
 
 
 @pytest.mark.parametrize(

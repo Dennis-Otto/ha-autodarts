@@ -1367,6 +1367,18 @@
         "label": {
           "name": "Label",
           "description": "Optioneel. Wat de foto toont, aan het eind van de naam, zoals 180 of checkout-121. De galerij toont een getal als de score."
+        },
+        "clip_camera": {
+          "name": "Clipcamera",
+          "description": "Optioneel. Een camera met een videostream die het moment ook als clip naast de foto opneemt, onder dezelfde naam met .mp4, waar de galerij hem afspeelt. De opname loopt op de achtergrond, dus het antwoord noemt de clip en het adres meteen; het bestand wordt geschreven als de opname klaar is. Een camera zonder stream, of een die al opneemt, laat de foto zonder clip."
+        },
+        "clip_lookback": {
+          "name": "Seconden ervoor",
+          "description": "Optioneel. Hoeveel van de clip vóór de foto ligt, uit wat de lopende stream van de camera bewaart. Standaard 5."
+        },
+        "clip_duration": {
+          "name": "Seconden erna",
+          "description": "Optioneel. Hoeveel van de clip na de foto komt. Standaard 8."
         }
       }
     },

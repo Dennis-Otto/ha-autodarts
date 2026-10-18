@@ -1367,6 +1367,18 @@
         "label": {
           "name": "Libellé",
           "description": "Facultatif. Ce que montre la photo, à la fin de son nom, par exemple 180 ou checkout-121. La galerie affiche un nombre comme le score."
+        },
+        "clip_camera": {
+          "name": "Caméra du clip",
+          "description": "Facultatif. Une caméra avec un flux vidéo qui enregistre aussi le moment en clip à côté de la photo, sous son nom avec .mp4, où la galerie le lit. L'enregistrement se fait en arrière-plan : la réponse donne tout de suite le clip et son adresse, et le fichier est écrit à la fin de l'enregistrement. Une caméra sans flux, ou qui enregistre déjà, laisse la photo sans clip."
+        },
+        "clip_lookback": {
+          "name": "Secondes avant",
+          "description": "Facultatif. La part du clip avant la photo, tirée de ce que garde le flux en cours de la caméra. 5 par défaut."
+        },
+        "clip_duration": {
+          "name": "Secondes après",
+          "description": "Facultatif. La part du clip après la photo. 8 par défaut."
         }
       }
     },

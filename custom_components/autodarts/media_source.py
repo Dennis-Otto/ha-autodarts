@@ -1,14 +1,16 @@
-"""Highlight photos of the board in the media browser of Home Assistant.
+"""Highlight photos and clips of the board in the media browser of Home Assistant.
 
 The highlight photo blueprint saves its pictures with autodarts.save_highlight
 in the folder autodarts/highlights of the media directory, for example
-/media/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg. The media
-browser lists them by month, newest first, with titles like
-"180 · Alex · 26.09.". Only plain file names of that folder resolve, so no
-identifier can reach anything outside it.
+/media/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg, and with a clip
+camera it records the moment as a clip of the same name with .mp4 beside it.
+The media browser lists them by month, newest first, with titles like
+"180 · Alex · 26.09." or "Clip · 180 · Alex · 26.09.". Only plain file names of
+that folder resolve, so no identifier can reach anything outside it.
 
 The media browser embeds every thumbnail it shows, so the thumbnails are small
-copies of the photos, made once and kept while Home Assistant runs.
+copies of the photos, made once and kept while Home Assistant runs. A clip
+shows the thumbnail of its photo.
 """
 
 from __future__ import annotations
@@ -54,6 +56,9 @@ PHOTO_TYPES = {
     ".png": "image/png",
     ".webp": "image/webp",
 }
+# The clips that camera.record writes, which the browser plays as they are.
+CLIP_TYPES = {".mp4": "video/mp4"}
+MEDIA_TYPES = PHOTO_TYPES | CLIP_TYPES
 # 2026-09-26_21-05-33_Alex_180 or 2026-09-26_Alex_checkout-121: the day, then
 # optionally the time, the player and the score, and " (2)" for the second
 # photo of one second with the same name.
@@ -99,6 +104,8 @@ SHORT_DATES = {
 }
 # A checkout as the darts players of the language call it.
 CHECKOUTS = {"es": "Cierre", "fr": "Finish", "nl": "Uitgooi"}
+# A clip, in front of its title.
+CLIPS = {"es": "Vídeo", "fr": "Vidéo"}
 
 
 @dataclass(frozen=True)
@@ -117,9 +124,19 @@ class Highlight:
     def month(self) -> str:
         return self.taken.strftime("%Y-%m")
 
+    @property
+    def clip(self) -> bool:
+        return Path(self.file).suffix.lower() in CLIP_TYPES
+
+    @property
+    def media_type(self) -> str:
+        return MEDIA_TYPES[Path(self.file).suffix.lower()]
+
     def title(self, language: str) -> str:
-        """180 · Alex · 26.09. or Checkout 121 · Sep 26."""
-        parts = [self.label] if self.label else []
+        """180 · Alex · 26.09., Checkout 121 · Sep 26 or Clip · 180 · Sep 26."""
+        parts = [CLIPS.get(language, "Clip")] if self.clip else []
+        if self.label:
+            parts.append(self.label)
         if self.score is not None and self.checkout:
             parts.append(f"{CHECKOUTS.get(language, 'Checkout')} {self.score}")
         elif self.score is not None:
@@ -154,8 +171,8 @@ def _inside(folder: Path, path: Path) -> bool:
 
 
 def highlight(path: Path) -> Highlight | None:
-    """What a file of the folder shows, or None when it is no photo."""
-    if path.name.startswith(".") or path.suffix.lower() not in PHOTO_TYPES:
+    """What a file of the folder shows, or None when it is no photo or clip."""
+    if path.name.startswith(".") or path.suffix.lower() not in MEDIA_TYPES:
         return None
     match = PHOTO_NAME.match(path.stem)
     if match:
@@ -167,7 +184,7 @@ def highlight(path: Path) -> Highlight | None:
         except ValueError:
             match = None
     if match is None:
-        # Photos saved by other means are sorted by the time they were written.
+        # Files saved by other means are sorted by the time they were written.
         written = dt_util.as_local(dt_util.utc_from_timestamp(path.stat().st_mtime))
         return Highlight(
             file=path.name, taken=written.replace(tzinfo=None), label=path.stem
@@ -183,13 +200,14 @@ def highlight(path: Path) -> Highlight | None:
     )
 
 
-def _photo_name(name: str) -> bool:
-    """A plain, visible file name of a photo, nothing that leads elsewhere."""
+def _media_name(name: str, types: dict[str, str] = MEDIA_TYPES) -> bool:
+    """A plain, visible file name of a photo or a clip, nothing that leads
+    elsewhere."""
     try:
         raise_if_invalid_filename(name)
     except ValueError:
         return False
-    return not name.startswith(".") and Path(name).suffix.lower() in PHOTO_TYPES
+    return not name.startswith(".") and Path(name).suffix.lower() in types
 
 
 def _version(folder: Path, name: str) -> tuple[str, int, int] | None:
@@ -236,7 +254,7 @@ class HighlightThumbnailView(HomeAssistantView):
     async def get(self, request: web.Request, name: str) -> web.StreamResponse:
         hass = request.app[KEY_HASS]
         found = highlight_folder(hass)
-        if found is None or not _photo_name(name):
+        if found is None or not _media_name(name, PHOTO_TYPES):
             return self.json_message("Highlight not found", 404)
         folder = found[1]
         key = await hass.async_add_executor_job(_version, folder, name)
@@ -275,7 +293,7 @@ class HighlightSource(MediaSource):
         self.hass = hass
 
     def _scan(self) -> list[Highlight]:
-        """Every photo of the folder, newest first."""
+        """Every photo and clip of the folder, newest first."""
         found = highlight_folder(self.hass)
         if found is None or not found[1].is_dir():
             return []
@@ -285,24 +303,45 @@ class HighlightSource(MediaSource):
             for path in folder.iterdir()
             if _inside(folder, path) and (photo := highlight(path)) is not None
         ]
-        return sorted(photos, key=lambda photo: (photo.taken, photo.file), reverse=True)
+        # A clip comes right before its photo, whatever the kind of the picture;
+        # the dot of the suffix keeps a photo before its copies, such as " (2)".
+        return sorted(
+            photos,
+            key=lambda photo: (photo.taken, Path(photo.file).stem + ".", photo.clip),
+            reverse=True,
+        )
 
     def _url(self, source: str, file: str) -> str:
-        """The address of Home Assistant's media view for a photo."""
+        """The address of Home Assistant's media view for a photo or a clip."""
         return quote(f"/media/{source}/{HIGHLIGHTS.as_posix()}/{file}")
 
     @staticmethod
-    def _thumbnail(file: str) -> str:
-        return THUMBNAIL_URL.format(name=quote(file, safe=""))
+    def _thumbnails(photos: list[Highlight]) -> dict[str, str]:
+        """The thumbnail of every photo, and of every clip with a photo of the
+        same name, which the highlight photo blueprint saves beside it."""
+        posters = {
+            Path(photo.file).stem: photo.file for photo in photos if not photo.clip
+        }
+        thumbnails = {}
+        for photo in photos:
+            poster = posters.get(Path(photo.file).stem) if photo.clip else photo.file
+            if poster is not None:
+                thumbnails[photo.file] = THUMBNAIL_URL.format(
+                    name=quote(poster, safe="")
+                )
+        return thumbnails
 
     async def async_browse_media(self, item: MediaSourceItem) -> BrowseMediaSource:
         photos = await self.hass.async_add_executor_job(self._scan)
         language = _language(self.hass)
+        thumbnails = self._thumbnails(photos)
         if not item.identifier:
-            covers: dict[str, Highlight] = {}
+            covers: dict[str, str | None] = {}
             for photo in photos:
-                # The newest photo of a month is its cover.
-                covers.setdefault(photo.month, photo)
+                # The newest picture of a month is its cover.
+                covers[photo.month] = covers.get(photo.month) or thumbnails.get(
+                    photo.file
+                )
             return BrowseMediaSource(
                 domain=DOMAIN,
                 identifier=None,
@@ -319,7 +358,7 @@ class HighlightSource(MediaSource):
                         media_class=MediaClass.DIRECTORY,
                         media_content_type="",
                         title=_month_title(month, language),
-                        thumbnail=self._thumbnail(cover.file),
+                        thumbnail=cover,
                         can_play=False,
                         can_expand=True,
                         children_media_class=MediaClass.IMAGE,
@@ -342,10 +381,10 @@ class HighlightSource(MediaSource):
                 BrowseMediaSource(
                     domain=DOMAIN,
                     identifier=photo.file,
-                    media_class=MediaClass.IMAGE,
-                    media_content_type=PHOTO_TYPES[Path(photo.file).suffix.lower()],
+                    media_class=MediaClass.VIDEO if photo.clip else MediaClass.IMAGE,
+                    media_content_type=photo.media_type,
                     title=photo.title(language),
-                    thumbnail=self._thumbnail(photo.file),
+                    thumbnail=thumbnails.get(photo.file),
                     can_play=True,
                     can_expand=False,
                 )
@@ -355,14 +394,15 @@ class HighlightSource(MediaSource):
         )
 
     async def async_resolve_media(self, item: MediaSourceItem) -> PlayMedia:
-        """A photo by its plain file name; nothing outside the folder resolves."""
+        """A photo or a clip by its plain file name; nothing outside the folder
+        resolves."""
         name = item.identifier
         found = highlight_folder(self.hass)
-        if found is None or not _photo_name(name):
+        if found is None or not _media_name(name):
             raise Unresolvable(f"Invalid highlight: {name}")
         source, folder = found
         path = folder / name
         if not await self.hass.async_add_executor_job(_inside, folder, path):
             raise Unresolvable(f"Unknown highlight: {name}")
         suffix = Path(name).suffix.lower()
-        return PlayMedia(self._url(source, name), PHOTO_TYPES[suffix], path=path)
+        return PlayMedia(self._url(source, name), MEDIA_TYPES[suffix], path=path)

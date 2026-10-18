@@ -19,6 +19,7 @@ Hervorhebungsfarbe
 Integrationen
 Kamerastream
 Kamerastreams
+Keyfarbe
 Lautsprechersymbol
 Liveansicht
 Matchergebnis
@@ -38,6 +39,7 @@ Spielerkarte
 Spielernummer
 Spielerprofil
 Spielerprofilen
+Streamlabs
 Teamnamen
 Tibshirani
 Trainingsentitäten

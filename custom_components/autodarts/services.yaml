@@ -239,6 +239,29 @@ save_highlight:
       example: "180"
       selector:
         text:
+    clip_camera:
+      required: false
+      example: "camera.dartroom"
+      selector:
+        entity:
+          filter:
+            - domain: camera
+    clip_lookback:
+      required: false
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 10
+          unit_of_measurement: s
+    clip_duration:
+      required: false
+      default: 8
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: s
 
 voice_sound:
   fields:

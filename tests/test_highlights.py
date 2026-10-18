@@ -1,5 +1,6 @@
 """autodarts.save_highlight: a photo that is on disk, or an error that says why not."""
 
+import asyncio
 import io
 import re
 from datetime import datetime, timedelta
@@ -282,6 +283,71 @@ async def test_the_action_saves_without_being_asked_for_its_response(
     assert [path.read_bytes() for path in gallery.iterdir()] == [JPEG]
 
 
+async def test_a_clip_records_beside_the_photo_without_holding_up_the_answer(
+    hass, aioclient_mock, tmp_path, freezer, caplog
+):
+    """camera.record returns only when the recording has ended: the clip records
+    in the background, and the answer names its file and address at once."""
+    freezer.move_to(TAKEN)
+    gallery = folders(hass, tmp_path / "config", tmp_path / "media")
+    share = tmp_path / "share"
+    hass.config.allowlist_external_dirs.add(str(share))
+    camera, *_ = await setup_cameras(hass, aioclient_mock, 0)
+    camera_picture(aioclient_mock, 0)
+    started, done = asyncio.Event(), asyncio.Event()
+    records = []
+
+    async def record(call) -> None:
+        records.append(dict(call.data))
+        started.set()
+        await done.wait()
+
+    hass.services.async_register("camera", "record", record)
+    saved = await save(hass, camera=camera, label="180", clip_camera="camera.room")
+    clip = (gallery / f"{STAMP}_180.mp4").resolve()
+    assert saved == {
+        "photo": str(clip.with_suffix(".jpg")),
+        "photo_url": f"/media/local/autodarts/highlights/{STAMP}_180.jpg",
+        "clip": str(clip),
+        "clip_url": f"/media/local/autodarts/highlights/{STAMP}_180.mp4",
+    }
+    await asyncio.wait_for(started.wait(), 1)
+    assert records == [
+        {
+            "entity_id": "camera.room",
+            "filename": str(clip),
+            "lookback": 5,
+            "duration": 8,
+        }
+    ]
+    done.set()
+    await hass.async_block_till_done()
+
+    # A camera that cannot record, or records already, leaves only the photo,
+    # and the log says why; a photo without an address has a clip without one.
+    async def busy(call) -> None:
+        raise HomeAssistantError("Stream already recording")
+
+    hass.services.async_register("camera", "record", busy)
+    saved = await save(
+        hass,
+        camera=camera,
+        folder=str(share),
+        clip_camera="camera.room",
+        clip_lookback=2,
+        clip_duration=20,
+    )
+    assert saved["clip"] == str((share / f"{STAMP}.mp4").resolve())
+    assert saved["clip_url"] == ""
+    await hass.async_block_till_done()
+    assert f"No clip {STAMP}.mp4 from camera.room: Stream already recording" in (
+        caplog.text
+    )
+    # An empty clip camera, as the blueprint passes its default, is no clip.
+    saved = await save(hass, camera=camera, clip_camera="")
+    assert "clip" not in saved
+
+
 def test_names_and_labels_become_safe_parts_of_a_file_name():
     taken = datetime(2026, 9, 26, 21, 5, 33)
     assert photo_stem(taken, "", "") == STAMP
@@ -327,6 +393,9 @@ def test_the_player_and_the_label_are_text_whatever_a_template_made_of_them():
         {},
         {"camera": "light.dartroom"},
         {"camera": "camera.x", "folder": "x" * 256},
+        {"camera": "camera.x", "clip_camera": "light.dartroom"},
+        {"camera": "camera.x", "clip_lookback": 11},
+        {"camera": "camera.x", "clip_duration": 0},
     ):
         with pytest.raises(vol.Invalid):
             SAVE_HIGHLIGHT_SCHEMA(wrong)

@@ -10,7 +10,7 @@ A tablet or a TV next to the board turns your darts room into a stage: the score
 
 <img src="images/en/scoreboard.webp" alt="Animation: the scoreboard during a 501 match. The turn passes between Alex and Sam after every visit, and Alex checks out 141 with T20 T19 D12 to win the match" width="760">
 
-**On this page:** [What you need](#what-you-need) · [Set up the screen](#set-up-the-screen) · [On a TV with Home Assistant Cast](#on-a-tv-with-home-assistant-cast) · [Landscape, portrait and TV](#landscape-portrait-and-tv) · [Choose the next game](#choose-the-next-game) · [During the game](#during-the-game) · [Correct and enter darts](#correct-and-enter-darts) · [Tournaments](#tournaments) · [The caller](#the-caller) · [Between games: idle mode](#between-games-idle-mode) · [Tips](#tips) · [If something is off](#if-something-is-off)
+**On this page:** [What you need](#what-you-need) · [Set up the screen](#set-up-the-screen) · [On a TV with Home Assistant Cast](#on-a-tv-with-home-assistant-cast) · [Landscape, portrait and TV](#landscape-portrait-and-tv) · [Choose the next game](#choose-the-next-game) · [During the game](#during-the-game) · [Correct and enter darts](#correct-and-enter-darts) · [Tournaments](#tournaments) · [The caller](#the-caller) · [Between games: idle mode](#between-games-idle-mode) · [Stream overlay](#stream-overlay) · [Tips](#tips) · [If something is off](#if-something-is-off)
 
 ## What you need
 
@@ -248,6 +248,48 @@ When no game runs, or a match or training game is decided, and nobody throws or 
 
 A dart, a new game or a tap anywhere ends idle mode; a new game screen you had opened comes back as you left it. `idle_panels` chooses the panels and their order, `idle_interval` how long each one shows. On devices set to reduce motion, the panels change without fading. [All panels](cards.md#idle-mode).
 
+## Stream overlay
+
+Stream your games: the scoreboard alone, without its card, lies over the picture of your stream in OBS Studio, Streamlabs or any other software with a browser source. It shows the game and its format, every player's score, the checkout route of the player at the board, the darts of the visit, the winner and the confetti of the big moments, and between games nothing at all.
+
+<img src="images/en/scoreboard-overlay.png" alt="The stream overlay along the bottom of the picture of the board: Practice 501 with three legs per set, Alex at the board with 84 left and the route T20 D12, Sam with 375, and beside them the visit with T20 and 60 points" width="760">
+
+1. **A user for OBS.** In **Settings → People**, add a person with *Allow login*, without administrator rights and with *Can only log in from the local network*, so that OBS can't change your settings.
+2. **The view.** The [automatic dashboard](cards.md#automatic-dashboard) has a *Stream overlay* view that its tabs leave out. Its address is the one of the dashboard with `/overlay` at its end, such as `http://homeassistant.local:8123/dashboard-autodarts/overlay`; with several boards `/overlay-1`, `/overlay-2` and so on.
+3. **The browser source.** In OBS, add a source **Browser** with that address, a width of 1920 and a height of 1080, and turn off *Shutdown source when not visible*, so that it stays signed in. Right-click the source, choose **Interact** and sign in once as the user for OBS.
+4. **Place it.** Put the source above the camera of your stream in the scene. The overlay is see-through: OBS shows your camera wherever the overlay shows nothing.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/stream-overlay-dark.png">
+  <img src="images/en/stream-overlay-light.png" alt="How the scoreboard reaches a stream in OBS: a dart lands on the board, and Home Assistant shows it on the scoreboard card of the view whose address ends in /overlay. OBS opens that address as a browser source of 1920 by 1080 pixels, signed in as a user of its own. A see-through overlay goes straight into the scene; on a key colour, the chroma key filter of OBS takes the colour out first. The scene puts the overlay above the camera of the stream, which shows the score, the route and the visit" width="480">
+</picture>
+
+In the dashboard's settings, the section *Stream overlay view* chooses the rest:
+
+| Setting | Choices |
+| --- | --- |
+| *Overlay* (`overlay`) | `transparent`, see-through, for a browser source; or `chroma`, on a key colour, for software that can't show see-through pages, such as a capture of a window. Add the filter **Chroma Key** to the source in OBS, with *Key Color Type* *Custom* and the key colour. |
+| *Place in the picture* (`overlay_layout`) | `lower_third`, the players side by side along the bottom with the visit beside them; `corner`, a box in the top-left corner with a line for each of up to four players; or `full`, the whole picture, for a scene of its own, with the [match summary](cards.md#match-summary) and the table or the bracket of a [tournament](#tournaments) between matches. |
+| *Key colour* (`overlay_color`) | The colour under a `chroma` overlay, `#00FF00` by default. Take `#FF00FF` when your room is green. |
+
+<img src="images/en/scoreboard-overlay-corner.png" alt="The stream overlay in the top-left corner on the key colour, before the chroma key filter of OBS takes the green out: Practice 501, Alex with 84 left and the route T20 D12, Sam with 375, and below them the visit with T20" width="760">
+
+For a view of your own, put the [scoreboard card](cards.md#scoreboard-card) with `overlay` into a view in panel mode, ideally a subview, but never the first view of a dashboard: leaving the overlay goes back to the first view.
+
+The card:
+
+```yaml
+type: custom:autodarts-scoreboard-card
+overlay: chroma
+overlay_layout: corner
+overlay_color: "#FF00FF"
+```
+
+- **On the dashboard, the overlay takes the whole window** and hides Home Assistant around it, the header and the sidebar too. **Escape** or a double click leaves it, for the page before it or the dashboard's first view. In the card editor and in the edit mode of a dashboard, the overlay shows inside the card, on its key colour or on a checkerboard for see-through.
+- **Nobody taps a stream:** the overlay has no new game screen, no idle mode, no keypad and no corrections; start games at the board, on a phone or on the tablet at the board. Its caller stays silent; the [dart caller](automations.md#dart-caller) or the [practice caller](automations.md#practice-caller) calls the game through your speakers instead.
+- **Its own colours:** the overlay keeps light text on dark plates over any picture and whatever the theme, in the accent colour of the card for the player at the board and in gold for the winner. On a key colour it leaves out the glow of a big moment, which a chroma key would leave as a fringe; the confetti stays.
+- **Clips for your highlights:** with a *Clip camera*, the [highlight photo](automations.md#highlight-photo) also records each big moment as a clip, from a few seconds before the dart, which the [highlight gallery](automations.md#highlight-gallery) plays.
+
 ## Tips
 
 - **The live card on a second screen:** a phone or a second tablet with the [live card](cards.md#live-card) shows the board with every dart where it landed, next to the scoreboard.
@@ -268,6 +310,11 @@ A dart, a new game or a tap anywhere ends idle mode; a new game screen you had o
 | Idle mode starts during a game | Idle mode waits for `idle_after` seconds without darts and taps, and only when no game runs or the game is decided. Raise `idle_after`, or set `idle: false`. |
 | A tap on a dart does nothing | The dart belongs to the bot, the card has `corrections: false`, or it is the preview of the card editor. |
 | The keypad does not show | It needs the card's `keypad: true` (in the automatic dashboard: its settings, *Scoreboard view*) and *Practice manual entry* on, and it waits while the bot is at the board. On a [dartboard without Autodarts](without-autodarts.md) it always shows, unless the card sets `keypad: false`. |
+| OBS shows the sign-in page of Home Assistant | Right-click the browser source, choose **Interact** and sign in as the user for OBS; keep *Shutdown source when not visible* off, so that it stays signed in. |
+| The overlay shows on a green screen | It is set to `chroma`: add the filter **Chroma Key** to the source in OBS with the key colour, or set it to `transparent`. |
+| OBS shows Home Assistant around the overlay | The browser source of OBS before version 31 is too old to put the overlay above the page, which then shows it inside the card: update OBS. |
+| The overlay covers the dashboard, and *Edit dashboard* can't be reached | Open the address of the view with `?edit=1` at its end, such as `http://homeassistant.local:8123/darts/overlay?edit=1`: in edit mode the overlay shows inside the card, which you can then edit or delete. |
+| The overlay shows nothing | No game runs: between games the overlay leaves the picture to the stream. Start a game, and the board shows. |
 | No picture next to a name | The player is not linked to a person, or the person has no picture. See [players and persons](statistics.md#players-and-persons). |
 
 More help: [troubleshooting](troubleshooting.md).

@@ -4,6 +4,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### New
+
+- **The scoreboard in your stream, and clips of your highlights:** the automatic dashboard has a *Stream overlay* view for a browser source in OBS Studio or Streamlabs, at its address with `/overlay` at its end, which its tabs leave out. It shows the scoreboard alone over the picture of your stream: the game, every player's score, the checkout route, the darts of the visit, the winner and the confetti, on dark plates that stay readable over any video, and nothing between games. It is see-through along the bottom of the picture; the dashboard's settings and the card's options `overlay`, `overlay_layout` and `overlay_color` put it in the top-left corner or across the whole picture, or on a key colour for the chroma key filter of OBS, `#00FF00` unless you choose another. On a dashboard the overlay fills the window and hides Home Assistant around it, and Escape or a double click leaves it. With a *Clip camera*, a camera of the room or of your stream, the highlight photo also records every big moment as an MP4 beside its photo, from a few seconds before the dart, and the highlight gallery plays it; the recording runs in the background, so your notification goes out at once ([stream overlay](docs/scoreboard.md#stream-overlay), [highlight clips](docs/automations.md#highlight-clips), #370, #372).
+
 ## [1.16.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.15.0...v1.16.0) (2026-10-18)
 
 ### New

@@ -162,7 +162,7 @@ test("the strategy element generates the dashboard of every board", async () => 
   assert.equal(dashboard.title, "Darts");
   assert.deepEqual(
     dashboard.views.map((view) => view.path),
-    ["live", "scoreboard", "training", "board"]
+    ["live", "scoreboard", "training", "board", "overlay"]
   );
 });
 
