@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.15.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.14.0...v1.15.0) (2026-10-18)
+
 ### New
 
 - **Bermuda, Round the World and Gotcha, as on play.autodarts.io:** three more party games for one to eight players. Bermuda plays 13 rounds from the 12 to the bullseye, and a visit without a hit halves your points unless you switch *Practice Bermuda halving on a miss* off. Round the World goes from 1 to 20, from 20 to 1 or in a random order, then to the bull; any bed counts, and the first at the bull wins. Gotcha counts up to a target score of 101 to 1001 with your out mode: go past it and the visit busts, reach another player's score exactly and they go back to 0. Start them from the new game screen, by voice or with `start_game` (`halve_on_miss`, `order`, `target_score`); the scoreboard shows the targets, how far everybody has come round the board and the points to go, and the caller calls the visits and the busts ([party games](docs/games.md#party-games), #305, #308).
