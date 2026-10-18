@@ -2668,6 +2668,70 @@ def scoreboard_portrait(page: Page) -> None:
     end_match(page)
 
 
+# The picture of a stream behind the overlay: a highlight photo of the demo, as the
+# camera of a stream shows the board. The page is see-through behind the overlay,
+# which leaves OBS the picture below it; here the page itself shows the photo.
+STREAM_PICTURE = """
+async ([name]) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const path = `/media/local/autodarts/highlights/${name}`;
+  const signed = await hass.callWS({ type: 'auth/sign_path', path });
+  const picture = new Image();
+  picture.src = signed.path;
+  await picture.decode();
+  document.documentElement.style.setProperty(
+    'background', `#000 url("${signed.path}") center / cover no-repeat`, 'important'
+  );
+}
+"""
+
+OVERLAY_CORNER = f"""
+() => ({find(SCOREBOARD)})()[0].setConfig({{
+  type: 'custom:autodarts-scoreboard-card', overlay: 'chroma', overlay_layout: 'corner'
+}})
+"""
+
+
+def stream_overlay(page: Page) -> None:
+    """The scoreboard as the overlay of a stream in OBS: see-through along the bottom
+    of the picture of the board, and on its key colour in the top-left corner."""
+    start_match(page, ["Alex", "Sam"], "501", legs=3)
+    context = own_context(page, viewport={"width": 1280, "height": 720})
+    board = context.new_page()
+    board.goto(f"{HA}/autodarts-auto/overlay")
+    wait_card(
+        board,
+        "r.querySelectorAll('.stage.taken .player').length === 2",
+        SCOREBOARD,
+        60000,
+    )
+    throw_visits(
+        board,
+        [
+            [at("T20"), at("T20"), at("T20")],
+            [at("S20"), at("S20"), at("S1")],
+            [at("T20"), at("T19"), at("T20")],
+            [at("T20"), at("S20"), at("S5")],
+        ],
+    )
+    control({"event": "Throw detected", "throws": [at("T20")]})
+    wait_card(
+        board, "r.querySelectorAll('.visit .dart:not(.empty)').length === 1", SCOREBOARD
+    )
+    board.evaluate(STREAM_PICTURE, ["2026-09-26_21-05-33_Alex_180.jpg"])
+    page_shot(board, "scoreboard-overlay")
+    # The same card in the corner, on the key colour that OBS takes out.
+    board.evaluate(OVERLAY_CORNER)
+    wait_card(
+        board,
+        "r.querySelector('.stage.taken[data-layout=corner] .visit .dart:not(.empty)')",
+        SCOREBOARD,
+    )
+    page_shot(board, "scoreboard-overlay-corner")
+    context.close()
+    end_match(page)
+
+
 def dashboard_trends(page: Page) -> None:
     """The graphs of the generated training view, from four weeks of statistics."""
     # Home Assistant draws the lines of its graphs at once, without the animation
@@ -3371,6 +3435,8 @@ def people(browser: Browser) -> None:
     page = context.new_page()
     open_dashboard(page, "board")
     match_summary(page)
+    # After every other picture of its group: its darts count for the players.
+    stream_overlay(page)
     context.close()
 
 

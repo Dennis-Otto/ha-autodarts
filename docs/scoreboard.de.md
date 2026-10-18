@@ -10,7 +10,7 @@ Ein Tablet oder Fernseher neben dem Board macht deinen Dartraum zur Bühne: der 
 
 <img src="images/de/scoreboard.webp" alt="Animation: die Anzeigetafel in einem 501-Match; nach jeder Aufnahme wechselt der Wurf zwischen Alex und Sam, und Alex checkt 141 mit T20 T19 D12 zum Sieg" width="760">
 
-**Auf dieser Seite:** [Was du brauchst](#was-du-brauchst) · [Den Bildschirm einrichten](#den-bildschirm-einrichten) · [Auf dem Fernseher mit Home Assistant Cast](#auf-dem-fernseher-mit-home-assistant-cast) · [Quer, hochkant und Fernseher](#quer-hochkant-und-fernseher) · [Das nächste Spiel wählen](#das-nächste-spiel-wählen) · [Während des Spiels](#während-des-spiels) · [Darts korrigieren und eingeben](#darts-korrigieren-und-eingeben) · [Turniere](#turniere) · [Der Caller](#der-caller) · [Zwischen den Spielen: Ruhemodus](#zwischen-den-spielen-ruhemodus) · [Tipps](#tipps) · [Wenn etwas nicht passt](#wenn-etwas-nicht-passt)
+**Auf dieser Seite:** [Was du brauchst](#was-du-brauchst) · [Den Bildschirm einrichten](#den-bildschirm-einrichten) · [Auf dem Fernseher mit Home Assistant Cast](#auf-dem-fernseher-mit-home-assistant-cast) · [Quer, hochkant und Fernseher](#quer-hochkant-und-fernseher) · [Das nächste Spiel wählen](#das-nächste-spiel-wählen) · [Während des Spiels](#während-des-spiels) · [Darts korrigieren und eingeben](#darts-korrigieren-und-eingeben) · [Turniere](#turniere) · [Der Caller](#der-caller) · [Zwischen den Spielen: Ruhemodus](#zwischen-den-spielen-ruhemodus) · [Stream-Overlay](#stream-overlay) · [Tipps](#tipps) · [Wenn etwas nicht passt](#wenn-etwas-nicht-passt)
 
 ## Was du brauchst
 
@@ -248,6 +248,46 @@ Läuft kein Spiel oder ist ein Match oder Trainingsspiel entschieden und wirft o
 
 Ein Dart, ein neues Spiel oder ein Tippen irgendwohin beendet den Ruhemodus; eine Spielauswahl, die du geöffnet hattest, kommt so zurück, wie du sie verlassen hast. `idle_panels` wählt die Seiten und ihre Reihenfolge, `idle_interval`, wie lange jede zu sehen ist. Auf Geräten, die reduzierte Bewegung wünschen, wechseln die Seiten ohne Überblendung. [Alle Seiten](cards.de.md#ruhemodus).
 
+## Stream-Overlay
+
+Streame deine Spiele: Die Anzeigetafel allein, ohne ihre Karte, liegt über dem Bild deines Streams in OBS Studio, Streamlabs oder jeder anderen Software mit einer Browserquelle. Sie zeigt das Spiel und sein Format, die Punkte jedes Spielers, den Checkout-Weg des Spielers am Board, die Darts der Aufnahme, den Sieger und das Konfetti der großen Momente, und zwischen den Spielen gar nichts.
+
+<img src="images/de/scoreboard-overlay.png" alt="Das Stream-Overlay am unteren Rand des Bildes vom Board: Übungsspiel 501 mit drei Legs pro Satz, Alex am Board mit 84 Rest und dem Weg T20 D12, Sam mit 375, und daneben die Aufnahme mit T20 und 60 Punkten" width="760">
+
+1. **Ein Benutzer für OBS.** Lege unter **Einstellungen → Personen** eine Person mit *Anmelden erlauben* an, ohne Administratorrechte und mit *Kann sich nur aus dem lokalen Netzwerk anmelden*, damit OBS deine Einstellungen nicht ändern kann.
+2. **Die Ansicht.** Das [automatische Dashboard](cards.de.md#automatisches-dashboard) hat eine Ansicht *Stream-Overlay*, die bei seinen Tabs nicht steht. Ihre Adresse ist die des Dashboards mit `/overlay` am Ende, etwa `http://homeassistant.local:8123/dashboard-autodarts/overlay`; bei mehreren Boards `/overlay-1`, `/overlay-2` und so weiter.
+3. **Die Browserquelle.** Füge in OBS eine Quelle **Browser** mit dieser Adresse hinzu, mit einer Breite von 1920 und einer Höhe von 1080, und schalte *Quelle herunterfahren, wenn nicht sichtbar* aus, damit sie angemeldet bleibt. Klicke die Quelle mit der rechten Maustaste an, wähle **Interagieren** und melde dich einmal als Benutzer für OBS an.
+4. **Platzieren.** Lege die Quelle in der Szene über die Kamera deines Streams. Das Overlay ist durchsichtig: Wo es nichts zeigt, zeigt OBS deine Kamera.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/stream-overlay-dark.png">
+  <img src="images/de/stream-overlay-light.png" alt="Wie die Anzeigetafel in einen Stream mit OBS kommt: Ein Dart landet im Board, und Home Assistant zeigt ihn auf der Anzeigetafel-Karte der Ansicht, deren Adresse auf /overlay endet. OBS öffnet diese Adresse als Browserquelle mit 1920 mal 1080 Pixeln, angemeldet als eigener Benutzer. Ein durchsichtiges Overlay geht direkt in die Szene; auf einer Keyfarbe nimmt der Chroma-Key-Filter von OBS die Farbe vorher heraus. Die Szene legt das Overlay über die Kamera des Streams, und der Stream zeigt Punkte, Weg und Aufnahme" width="480">
+</picture>
+
+In den Einstellungen des Dashboards wählt der Abschnitt *Ansicht Stream-Overlay* den Rest:
+
+| Einstellung | Auswahl |
+| --- | --- |
+| *Overlay* (`overlay`) | `transparent`, durchsichtig, für eine Browserquelle; oder `chroma`, auf einer Keyfarbe, für Software, die keine durchsichtigen Seiten zeigen kann, etwa die Aufnahme eines Fensters. Füge der Quelle in OBS den Filter **Chroma Key** hinzu, mit *Schlüsselfarbtyp* *Benutzerdefiniert* und der Keyfarbe. |
+| *Platz im Bild* (`overlay_layout`) | `lower_third`, die Spieler nebeneinander am unteren Rand mit der Aufnahme daneben; `corner`, ein Kasten in der Ecke oben links mit einer Zeile für jeden von bis zu vier Spielern; oder `full`, das ganze Bild, für eine eigene Szene, mit der [Match-Zusammenfassung](cards.de.md#match-zusammenfassung) und zwischen den Matches der Tabelle oder dem Turnierbaum eines [Turniers](#turniere). |
+| *Keyfarbe* (`overlay_color`) | Die Farbe unter einem `chroma`-Overlay, standardmäßig `#00FF00`. Nimm `#FF00FF`, wenn dein Raum grün ist. |
+
+<img src="images/de/scoreboard-overlay-corner.png" alt="Das Stream-Overlay in der Ecke oben links auf der Keyfarbe, bevor der Chroma-Key-Filter von OBS das Grün herausnimmt: Übungsspiel 501, Alex mit 84 Rest und dem Weg T20 D12, Sam mit 375, und darunter die Aufnahme mit T20" width="760">
+
+Für eine eigene Ansicht setzt du die [Anzeigetafel-Karte](cards.de.md#anzeigetafel) mit `overlay` in eine Ansicht im Panel-Modus:
+
+```yaml
+type: custom:autodarts-scoreboard-card
+overlay: chroma
+overlay_layout: corner
+overlay_color: "#FF00FF"
+```
+
+- **Auf dem Dashboard nimmt das Overlay das ganze Fenster ein** und verbirgt Home Assistant drumherum, auch die Kopfzeile und die Seitenleiste. **Escape** oder ein Doppelklick verlässt es, zur Seite davor oder zur ersten Ansicht des Dashboards. Im Karteneditor und im Bearbeitungsmodus eines Dashboards zeigt sich das Overlay in der Karte, auf seiner Keyfarbe oder, durchsichtig, auf einem Schachbrett.
+- **Einen Stream tippt niemand an:** Das Overlay hat keinen Bildschirm für ein neues Spiel, keinen Ruhemodus, kein Tastenfeld und keine Korrekturen; starte Spiele am Board, auf dem Handy oder auf dem Tablet am Board. Sein Caller bleibt still; der [Dart caller](automations.de.md#dart-caller) oder der [Practice caller](automations.de.md#practice-caller) ruft das Spiel stattdessen über deine Lautsprecher aus.
+- **Eigene Farben:** Das Overlay behält helle Schrift auf dunklen Tafeln, über jedem Bild und mit jedem Theme, in der Akzentfarbe der Karte für den Spieler am Board und in Gold für den Sieger. Auf einer Keyfarbe lässt es das Leuchten eines großen Moments weg, das ein Chroma Key als Rand stehen ließe; das Konfetti bleibt.
+- **Clips deiner Highlights:** Mit einer *Clip camera* nimmt das [Highlight-Foto](automations.de.md#highlight-photo) jeden großen Moment auch als Clip auf, ab ein paar Sekunden vor dem Dart, den die [Highlight-Galerie](automations.de.md#highlight-galerie) abspielt.
+
 ## Tipps
 
 - **Die Live-Karte auf einem zweiten Bildschirm:** Ein Handy oder zweites Tablet mit der [Live-Karte](cards.de.md#live-karte) zeigt die Scheibe mit jedem Dart dort, wo er gelandet ist, neben der Anzeigetafel.
@@ -268,6 +308,10 @@ Ein Dart, ein neues Spiel oder ein Tippen irgendwohin beendet den Ruhemodus; ein
 | Der Ruhemodus beginnt während eines Spiels | Der Ruhemodus wartet `idle_after` Sekunden ohne Darts und Tippen, und nur, wenn kein Spiel läuft oder das Spiel entschieden ist. Erhöhe `idle_after` oder setze `idle: false`. |
 | Ein Tipp auf einen Dart bewirkt nichts | Der Dart gehört dem Bot, die Karte hat `corrections: false`, oder es ist die Vorschau des Karteneditors. |
 | Das Tastenfeld erscheint nicht | Es braucht `keypad: true` in der Karte (im automatischen Dashboard: seine Einstellungen, *Ansicht Anzeigetafel*) und eingeschaltete *Übungsspiel manuelle Eingabe*, und es wartet, solange der Bot am Board ist. An einer [Dartscheibe ohne Autodarts](without-autodarts.de.md) erscheint es immer, außer die Karte setzt `keypad: false`. |
+| OBS zeigt die Anmeldeseite von Home Assistant | Klicke die Browserquelle mit der rechten Maustaste an, wähle **Interagieren** und melde dich als Benutzer für OBS an; lass *Quelle herunterfahren, wenn nicht sichtbar* aus, damit sie angemeldet bleibt. |
+| Das Overlay zeigt sich auf grünem Grund | Es steht auf `chroma`: Füge der Quelle in OBS den Filter **Chroma Key** mit der Keyfarbe hinzu, oder stelle es auf `transparent`. |
+| OBS zeigt Home Assistant rund um das Overlay | Die Browserquelle von OBS vor Version 31 ist zu alt, um das Overlay über die Seite zu legen, die es dann in der Karte zeigt: Aktualisiere OBS. |
+| Das Overlay zeigt nichts | Es läuft kein Spiel: Zwischen den Spielen überlässt das Overlay das Bild dem Stream. Starte ein Spiel, und das Board erscheint. |
 | Kein Bild neben einem Namen | Der Spieler ist mit keiner Person verknüpft, oder die Person hat kein Bild. Siehe [Spieler und Personen](statistics.de.md#spieler-und-personen). |
 
 Mehr Hilfe: [Fehlerbehebung](troubleshooting.de.md).

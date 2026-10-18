@@ -232,6 +232,88 @@ async def test_only_photos_of_the_folder_resolve(hass, gallery):
         assert "link.jpg" not in [photo.identifier for photo in listed.children]
 
 
+async def test_clips_play_beside_their_photos_with_the_same_thumbnail(hass, gallery):
+    """The clip camera of the highlight photo records the moment beside its photo."""
+    for name in (
+        "2026-09-26_21-05-33_Alex_180.mp4",
+        # A clip whose photo was not saved, alone in its month.
+        "2026-10-03_20-00-00_Kim_140.MP4",
+        # A second photo of one second, as from a second camera, and its clip.
+        "2026-09-26_21-05-33_Alex_180 (2).png",
+        "2026-09-26_21-05-33_Alex_180 (2).mp4",
+        # Other videos are no clips of the blueprint.
+        "2026-09-26_21-05-33_Alex_180.mkv",
+    ):
+        (gallery / name).write_bytes(b"clip")
+    source = await async_get_media_source(hass)
+    root = await source.async_browse_media(item(hass))
+    # A month of clips without photos has no cover; the others show their newest photo.
+    assert [(month.identifier, month.thumbnail) for month in root.children[:2]] == [
+        ("2026-10", None),
+        (
+            "2026-09",
+            "/api/autodarts/highlights/2026-09-26_21-07-10_Alex%20Bee_checkout-121.JPG",
+        ),
+    ]
+    thumbnail = "/api/autodarts/highlights/2026-09-26_21-05-33_Alex_180"
+    september = await source.async_browse_media(item(hass, "2026-09"))
+    assert [
+        (child.identifier, child.title, child.media_class, child.thumbnail)
+        for child in september.children[1:5]
+    ] == [
+        (
+            "2026-09-26_21-05-33_Alex_180.mp4",
+            "Clip · 180 · Alex · Sep 26",
+            MediaClass.VIDEO,
+            f"{thumbnail}.jpg",
+        ),
+        (
+            "2026-09-26_21-05-33_Alex_180.jpg",
+            "180 · Alex · Sep 26",
+            MediaClass.IMAGE,
+            f"{thumbnail}.jpg",
+        ),
+        (
+            "2026-09-26_21-05-33_Alex_180 (2).png",
+            "180 · Alex · Sep 26",
+            MediaClass.IMAGE,
+            f"{thumbnail}%20%282%29.png",
+        ),
+        (
+            "2026-09-26_21-05-33_Alex_180 (2).mp4",
+            "Clip · 180 · Alex · Sep 26",
+            MediaClass.VIDEO,
+            f"{thumbnail}%20%282%29.png",
+        ),
+    ]
+    assert september.children[1].media_content_type == "video/mp4"
+    assert "2026-09-26_21-05-33_Alex_180.mkv" not in [
+        child.identifier for child in september.children
+    ]
+    october = await source.async_browse_media(item(hass, "2026-10"))
+    assert [(child.title, child.thumbnail) for child in october.children] == [
+        ("Clip · 140 · Kim · Oct 3", None)
+    ]
+    for language, title in (
+        ("fr", "Vidéo · 140 · Kim · 03/10"),
+        ("de", "Clip · 140 · Kim · 03.10."),
+    ):
+        hass.config.language = language
+        october = await source.async_browse_media(item(hass, "2026-10"))
+        assert october.children[0].title == title
+
+    # The gallery plays a clip in the browser.
+    clip = await source.async_resolve_media(
+        item(hass, "2026-09-26_21-05-33_Alex_180.mp4")
+    )
+    assert (
+        clip.url == "/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.mp4"
+    )
+    assert clip.mime_type == "video/mp4"
+    with pytest.raises(Unresolvable):
+        await source.async_resolve_media(item(hass, "2026-09-26_21-05-33_Alex_180.mkv"))
+
+
 async def test_without_a_folder_the_gallery_is_empty(hass, tmp_path):
     source = await async_get_media_source(hass)
     hass.config.media_dirs = {"media": str(tmp_path)}

@@ -351,9 +351,12 @@ Seiten ohne Inhalt werden übersprungen. Ein Dart, ein neues Spiel oder ein Tipp
 | `celebrations` | Wahrheitswert | `true` | Eine 180, eine Aufnahme ab 100, neun Marks, ein Game Shot und das Match mit Konfetti und einem Leuchten feiern ([Anzeigetafel](scoreboard.de.md#während-des-spiels)) |
 | `corrections` | Wahrheitswert | `true` | Ein Tipp auf einen Dart der Aufnahme [korrigiert ihn](#darts-korrigieren-und-eingeben); ein Tipp auf die letzte Aufnahme neben den Darts nimmt sie zurück, solange es geht |
 | `keypad` | Wahrheitswert | `false` | Das [Tastenfeld](#darts-korrigieren-und-eingeben) für von Hand eingegebene Darts zeigen, solange *Übungsspiel manuelle Eingabe* an ist; an einer [Dartscheibe ohne Autodarts](without-autodarts.de.md) erscheint es, außer `false` ist gesetzt |
+| `overlay` | `off`, `transparent`, `chroma` | `off` | Das [Stream-Overlay](scoreboard.de.md#stream-overlay) für eine Browserquelle von OBS: die Anzeigetafel allein über dem Bild eines Streams, durchsichtig oder auf einer Keyfarbe; auf einem Dashboard nimmt es das ganze Fenster ein |
+| `overlay_layout` | `lower_third`, `corner`, `full` | `lower_third` | Wo das Overlay im Bild liegt: die Spieler nebeneinander am unteren Rand, ein Kasten in der Ecke oben links oder das ganze Bild |
+| `overlay_color` | Farbe | `#00FF00` | Die Keyfarbe unter einem `chroma`-Overlay, die der Chroma-Key-Filter von OBS herausnimmt |
 | `accent_color` | [Farbe](#farben) | Primärfarbe des Designs | Spieler am Board, Wege und Aufnahmepunkte |
 
-Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl, Ruhemodus sowie Darts korrigieren und eingeben haben eigene eingeklappte Abschnitte.
+Im Editor stehen die vier `call_…`-Optionen im eingeklappten Abschnitt *Caller-Optionen*; Spielauswahl, Ruhemodus, Darts korrigieren und eingeben sowie das Stream-Overlay haben eigene eingeklappte Abschnitte. Ein Overlay lässt Status, Caller, Spielauswahl, Ruhemodus, Tastenfeld und Korrekturen weg, die auf einem Stream niemand antippt, und die Match-Zusammenfassung, solange es nicht das ganze Bild einnimmt.
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -466,7 +469,7 @@ Statt die Karten selbst anzuordnen, kann die Integration ein komplettes Dashboar
 1. Öffne **Einstellungen → Dashboards → Dashboard hinzufügen**.
 2. Wähle **Autodarts**.
 
-Pro Board entstehen bis zu sechs Ansichten. Sie aktualisieren sich selbst, wenn du ein Board hinzufügst oder Entitäten aktivierst:
+Pro Board entstehen bis zu sechs Ansichten in den Tabs und das Stream-Overlay. Sie aktualisieren sich selbst, wenn du ein Board hinzufügst oder Entitäten aktivierst:
 
 | Ansicht | Inhalt |
 | --- | --- |
@@ -476,6 +479,7 @@ Pro Board entstehen bis zu sechs Ansichten. Sie aktualisieren sich selbst, wenn 
 | **Spieler** | Die [Spielerkarte](#spielerkarte) und die [Bestenliste](#bestenliste), sobald der erste benannte Spieler ein Profil hat |
 | **Spieleinstellungen** | Die Steuerung des Übungsspiels mit Teams und den Optionen für Golf, Count-Up, Bermuda, Round the World und Gotcha, die Spielernamen, ihre Startpunkte und das [Turnier](entities.de.md#turniere) mit seinen Einstellungen und Tasten, für alles, was die Spielauswahl der Anzeigetafel nicht einstellt |
 | **Board** | Der Board-Status, die Board-Einstellungen, das Board-Manager-Update und der Anteil der Darts, die das Board korrigiert hat; eine [Dartscheibe ohne Autodarts](without-autodarts.de.md) hat diese Ansicht nicht |
+| **Stream-Overlay** | Die Anzeigetafel als [Stream-Overlay](scoreboard.de.md#stream-overlay) einer Browserquelle in OBS, durchsichtig am unteren Rand des Bildes; bei den Tabs steht sie nicht, und ihre Adresse ist die des Dashboards mit `/overlay` am Ende |
 
 | | |
 | --- | --- |
@@ -485,7 +489,7 @@ Pro Board entstehen bis zu sechs Ansichten. Sie aktualisieren sich selbst, wenn 
 
 Die Spieleinstellungen haben außerdem *Ausbullen nach Abstand* bei den Regeln des Übungsspiels und *Turnier Dauer der Zusammenfassung* bei den Turniereinstellungen. Die meisten Spiele brauchen nichts davon: Die [Spielauswahl](#spielauswahl) der Anzeigetafel stellt Spiel, Spieler und Regeln ein.
 
-In YAML ist das ganze Dashboard eine Zeile; `device_id`, `title` und `scoreboard` sind optional. `scoreboard` setzt Optionen der Karte in der Ansicht *Anzeigetafel*: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` und `idle_panels`, wie bei der [Anzeigetafel](#anzeigetafel) beschrieben. Was du weglässt, behält den Standard der Karte.
+In YAML ist das ganze Dashboard eine Zeile; `device_id`, `title`, `scoreboard` und `overlay_view` sind optional. `scoreboard` setzt Optionen der Karte in der Ansicht *Anzeigetafel*: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` und `idle_panels`, wie bei der [Anzeigetafel](#anzeigetafel) beschrieben. `overlay_view` setzt `overlay`, `overlay_layout` und `overlay_color` des Stream-Overlays. Was du weglässt, behält den Standard der Karte; das Stream-Overlay ist durchsichtig.
 
 ```yaml
 strategy:
@@ -497,9 +501,11 @@ strategy:
     keypad: true
     lobby_games: ["501", cricket, killer]
     idle_panels: [leaderboard, clock]
+  overlay_view:
+    overlay_layout: corner
 ```
 
-Um später Board, Titel oder die Optionen der Anzeigetafel zu wählen, öffnest du im Dashboard das Menü (⋮) → **Dashboard bearbeiten**. Home Assistant zeigt dann den eigenen Editor des Dashboards, die Optionen der Anzeigetafel im Abschnitt *Ansicht Anzeigetafel*:
+Um später Board, Titel oder die Optionen der Anzeigetafel zu wählen, öffnest du im Dashboard das Menü (⋮) → **Dashboard bearbeiten**. Home Assistant zeigt dann den eigenen Editor des Dashboards, die Optionen der Anzeigetafel im Abschnitt *Ansicht Anzeigetafel* und die des Stream-Overlays in *Ansicht Stream-Overlay*:
 
 <img src="images/de/strategy-editor.png" alt="Der Editor des automatischen Dashboards mit Board und Titel" width="760">
 

@@ -1,0 +1,21 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Wie die Anzeigetafel in einen Stream mit OBS kommt
+  accDescr: Ein Dart landet im Board, und Home Assistant zeigt ihn auf der Anzeigetafel-Karte der Ansicht, deren Adresse auf /overlay endet. OBS öffnet diese Adresse als Browserquelle mit 1920 mal 1080 Pixeln, angemeldet als eigener Benutzer. Ein durchsichtiges Overlay geht direkt in die Szene; auf einer Keyfarbe nimmt der Chroma-Key-Filter von OBS die Farbe vorher heraus. Die Szene legt das Overlay über die Kamera des Streams, und der Stream zeigt Punkte, Weg und Aufnahme.
+
+  BOARD["Ein Dart landet im Board"] --> HA{{"Home Assistant: die Anzeigetafel-Karte<br/>in der Ansicht …/overlay"}}
+  HA --> OBS["OBS: eine Browserquelle mit der Adresse<br/>der Ansicht, 1920 × 1080, angemeldet<br/>als eigener Benutzer"]
+  OBS --> MODE{"Durchsichtig oder<br/>auf einer Keyfarbe?"}
+  MODE -->|Durchsichtig| SCENE["Die Szene: das Overlay über<br/>der Kamera des Streams"]
+  MODE -->|Keyfarbe| KEY["Der Chroma-Key-Filter von OBS<br/>nimmt die Farbe heraus"]
+  KEY --> SCENE
+  SCENE --> STREAM["Der Stream zeigt Punkte,<br/>Weg und Aufnahme"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class HA bot
+  class STREAM done

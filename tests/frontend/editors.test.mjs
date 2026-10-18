@@ -177,6 +177,7 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
     [["lobby"], "lobby_games"],
     [["idle"], ["idle_after", "idle_interval"], "idle_panels"],
     [["corrections", "keypad"]],
+    [["overlay", "overlay_layout"], "overlay_color"],
     "accent_color",
   ]);
   assert.equal(form.schema[2].schema[4].default, true);
@@ -247,6 +248,28 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
   assert.throws(() => form.assertConfig({ lobby_games: ["pool"] }), /lobby_games/);
   assert.throws(() => form.assertConfig({ idle_panels: "clock" }), /idle_panels/);
   assert.throws(() => form.assertConfig({ idle_after: "soon" }), /idle_after/);
+});
+
+test("the overlay of a stream waits in a section of its own, off by default", () => {
+  const form = formOf("autodarts-scoreboard-card");
+  const overlay = form.schema.find((field) => field.name === "overlay_section");
+  assert.deepEqual([overlay.type, overlay.flatten], ["expandable", true]);
+  assert.equal(form.computeLabel(overlay), "Stream overlay");
+  assert.match(form.computeHelper(overlay), /^The scoreboard alone over the picture of a stream, for a browser source in OBS/);
+  const [mode, layout] = overlay.schema[0].schema;
+  assert.equal(form.computeLabel(mode), "Overlay");
+  assert.deepEqual(labels(mode), ["Off", "On a key colour", "See-through"]);
+  assert.equal(form.computeHelper(mode), "Default: Off");
+  assert.equal(form.computeLabel(layout), "Place in the picture");
+  assert.deepEqual(labels(layout), ["Lower third", "Top-left corner", "Whole picture"]);
+  assert.equal(form.computeHelper(layout), "Default: Lower third");
+  const color = overlay.schema[1];
+  assert.deepEqual(color.selector, { text: {} });
+  assert.equal(form.computeLabel(color), "Key colour");
+  assert.match(form.computeHelper(color), /chroma key filter of OBS/);
+  assert.doesNotThrow(() => form.assertConfig({ overlay: "chroma", overlay_layout: "corner", overlay_color: "#FF00FF" }));
+  assert.throws(() => form.assertConfig({ overlay: "green" }), /The option overlay does not accept "green"/);
+  assert.throws(() => form.assertConfig({ overlay_layout: "middle" }), /overlay_layout/);
 });
 
 test("the editor offers the games of the board on the page", () => {
@@ -435,6 +458,24 @@ test("the dashboard strategy has an editor with the board and the title", async 
       new CustomEvent("value-changed", { detail: { value: { type: "custom:autodarts", scoreboard } } })
     );
     assert.deepEqual(changes.at(-1), { type: "custom:autodarts", ...(expected ? { scoreboard: expected } : {}) });
+  }
+  // The overlay view's own section, stored under "overlay_view", with no choice to switch it off.
+  const overlay = form.schema[3];
+  assert.deepEqual([overlay.type, overlay.name, overlay.flatten], ["expandable", "overlay_view", undefined]);
+  assert.equal(form.computeLabel(overlay), "Stream overlay view");
+  assert.match(form.computeHelper(overlay), /with \/overlay at its end, for a browser source in OBS/);
+  const [mode, layout] = overlay.schema[0].schema;
+  assert.deepEqual(labels(mode), ["On a key colour", "See-through"]);
+  assert.deepEqual(labels(layout), ["Lower third", "Top-left corner", "Whole picture"]);
+  assert.equal(form.computeLabel(overlay.schema[1]), "Key colour");
+  for (const [view, expected] of [
+    [{ overlay: "chroma", overlay_layout: "corner", overlay_color: "#FF00FF" }, undefined],
+    [{ overlay: "", overlay_layout: "full" }, { overlay_layout: "full" }],
+    [{ overlay: "", overlay_color: "" }, null],
+  ]) {
+    form.dispatchEvent(new CustomEvent("value-changed", { detail: { value: { type: "custom:autodarts", overlay_view: view } } }));
+    const stored = expected === undefined ? view : expected;
+    assert.deepEqual(changes.at(-1), { type: "custom:autodarts", ...(stored ? { overlay_view: stored } : {}) });
   }
   // A new configuration keeps the form.
   loading.setConfig({ type: "custom:autodarts" });

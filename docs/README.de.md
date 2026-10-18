@@ -111,6 +111,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 - Eine Spielauswahl, um Spiel, Spieler und Format direkt am Board zu wählen oder ein Turnier zu starten
 - Ein Caller, der das Spiel über den Browser des Bildschirms ansagt, auch mit den aufgenommenen Voice-Packs von darts-caller oder einer Stimme, die du mit Piper aufnimmst
 - Ein Ruhemodus mit Bestenliste, Bestleistungen, den Darts von heute und einer Uhr
+- Ein [Stream-Overlay](scoreboard.de.md#stream-overlay) für OBS: Punkte, Weg und Aufnahme über dem Bild deines Streams, durchsichtig oder auf einer Keyfarbe
 
 <p align="center"><img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Spielauswahl, Cricket und ein zweiter Spieler werden gewählt und das Spiel startet" width="600"></p>
 
@@ -275,7 +276,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 
   [![Blueprint „Dart caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml)
 
-- **Highlight photo.** Ein Bild des Boards nach einer 180 oder einem Checkout, aufs Handy und in eine Galerie der Medienansicht.
+- **Highlight photo.** Ein Bild des Boards nach einer 180 oder einem Checkout, aufs Handy und in eine Galerie der Medienansicht, und mit einer Kamera im Raum ein Clip ab ein paar Sekunden vor dem Dart.
 
   [![Blueprint „Highlight photo“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml)
 

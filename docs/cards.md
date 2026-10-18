@@ -351,9 +351,12 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `celebrations` | boolean | `true` | Celebrate a 180, a visit of 100 or more, nine marks, a game shot and the match with confetti and a glow ([scoreboard](scoreboard.md#during-the-game)) |
 | `corrections` | boolean | `true` | A tap on a dart of the visit [corrects it](#correcting-and-entering-darts); a tap on the last visit beside the darts takes it back while possible |
 | `keypad` | boolean | `false` | Show the [keypad](#correcting-and-entering-darts) for darts entered by hand while *Practice manual entry* is on; on a [dartboard without Autodarts](without-autodarts.md) it shows unless `false` is set |
+| `overlay` | `off`, `transparent`, `chroma` | `off` | The [stream overlay](scoreboard.md#stream-overlay) for a browser source of OBS: the scoreboard alone over the picture of a stream, see-through or on a key colour; on a dashboard it takes the whole window |
+| `overlay_layout` | `lower_third`, `corner`, `full` | `lower_third` | Where the overlay lies in the picture: the players side by side along the bottom, a box in the top-left corner, or the whole picture |
+| `overlay_color` | color | `#00FF00` | The key colour under a `chroma` overlay, which the chroma key filter of OBS takes out |
 | `accent_color` | [color](#colors) | theme primary color | The player at the board, routes and the visit score |
 
-In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen, idle mode, and correcting and entering darts have collapsed sections of their own.
+In the editor, the four `call_…` options wait in the collapsed section *Caller options*; the new game screen, idle mode, correcting and entering darts, and the stream overlay have collapsed sections of their own. An overlay leaves out the status, the caller, the new game screen, idle mode, the keypad and the corrections, which nobody taps on a stream, and the match summary unless it takes the whole picture.
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -466,7 +469,7 @@ Instead of arranging the cards yourself, let the integration build a whole dashb
 1. Go to **Settings → Dashboards → Add dashboard**.
 2. Choose **Autodarts**.
 
-For every board, the dashboard gets up to six views, which update themselves when you add a board or enable entities:
+For every board, the dashboard gets up to six views in its tabs and the stream overlay, which update themselves when you add a board or enable entities:
 
 | View | Contents |
 | --- | --- |
@@ -476,6 +479,7 @@ For every board, the dashboard gets up to six views, which update themselves whe
 | **Players** | The [players card](#players-card) and the [leaderboard](#leaderboard-card), once the first named player has a profile |
 | **Game settings** | The practice game controls with teams and the Golf, Count-Up, Bermuda, Round the World and Gotcha options, the player names, their start scores and the [tournament](entities.md#tournaments) with its settings and buttons, for what the scoreboard's new game screen leaves out |
 | **Board** | The board status card, the board settings, the Board Manager update and the share of darts the board corrected; a [dartboard without Autodarts](without-autodarts.md) has no such view |
+| **Stream overlay** | The scoreboard as the [stream overlay](scoreboard.md#stream-overlay) of a browser source in OBS, see-through along the bottom of the picture; the tabs leave it out, and its address is the one of the dashboard with `/overlay` at its end |
 
 | | |
 | --- | --- |
@@ -485,7 +489,7 @@ For every board, the dashboard gets up to six views, which update themselves whe
 
 The game settings also have *Bull-off by distance* among the practice rules and *Tournament summary duration* among the tournament settings. Most games need none of them: the scoreboard's [new game screen](#new-game-screen) sets the game, the players and the rules.
 
-In YAML, the whole dashboard is one line; `device_id`, `title` and `scoreboard` are optional. `scoreboard` sets options of the scoreboard view's card: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` and `idle_panels`, as described for the [scoreboard card](#scoreboard-card). Options you leave out keep the card's defaults.
+In YAML, the whole dashboard is one line; `device_id`, `title`, `scoreboard` and `overlay_view` are optional. `scoreboard` sets options of the scoreboard view's card: `caller`, `keypad`, `corrections`, `idle`, `lobby_games` and `idle_panels`, as described for the [scoreboard card](#scoreboard-card). `overlay_view` sets `overlay`, `overlay_layout` and `overlay_color` of the stream overlay. Options you leave out keep the card's defaults; the stream overlay is see-through.
 
 ```yaml
 strategy:
@@ -497,9 +501,11 @@ strategy:
     keypad: true
     lobby_games: ["501", cricket, killer]
     idle_panels: [leaderboard, clock]
+  overlay_view:
+    overlay_layout: corner
 ```
 
-To choose the board, the title or the scoreboard's options later, open the dashboard's menu (⋮) → **Edit dashboard**. Home Assistant shows the dashboard's own editor, with the scoreboard's options in the section *Scoreboard view*:
+To choose the board, the title or the scoreboard's options later, open the dashboard's menu (⋮) → **Edit dashboard**. Home Assistant shows the dashboard's own editor, with the scoreboard's options in the section *Scoreboard view* and those of the stream overlay in *Stream overlay view*:
 
 <img src="images/en/strategy-editor.png" alt="The editor of the automatic dashboard with the board and the title" width="760">
 

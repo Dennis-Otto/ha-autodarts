@@ -205,6 +205,9 @@ Die Nachricht kann `darts`, `visits`, `sessions`, `training_minutes`, `average`,
 | Actions | keine | Zum Beispiel eine Benachrichtigung, siehe [unten](#highlight-foto-aufs-handy). Optional, solange die Fotos in die Galerie gehen. |
 | Message for a visit | `{{ score }}!` | Die `message` eines Aufnahme-Fotos. |
 | Message for a checkout | `Checkout {{ checkout }}{{ ' by ' ~ who if who }}!` | Die `message` eines Checkout-Fotos. |
+| Clip camera | leer | Optional, im eingeklappten Abschnitt *Clip*: eine Kamera mit Videostream, die das Board filmt, etwa eine Kamera im Raum oder die deines Streams. Sie nimmt jeden Moment als [Clip](#highlight-clips) neben dem Foto auf und braucht deshalb *Save to the gallery*. Die Board-Kameras von Autodarts liefern Bilder, keinen Videostream; die Liste bietet nur Kameras mit einem an. |
+| Seconds before | 5 | Wie viel des Clips vor dem Moment des Fotos liegt. Dafür muss der Stream der Kamera vorher laufen: Schalte *Kamera-Stream vorladen* in den Einstellungen der Kamera-Entität ein. |
+| Seconds after | 8 | Wie viel des Clips auf den Moment des Fotos folgt. |
 
 Deine Aktionen können nutzen:
 
@@ -212,6 +215,7 @@ Deine Aktionen können nutzen:
 - `photo`: die Datei, in der das Bild gespeichert wird.
 - `image`: das Live-Bild der Kamera, für Fotos, die nicht gespeichert werden.
 - `message`, `score`, `checkout` und `who` (der Spieler am Board, wenn das Übungsspiel ihn nennt).
+- `clip` und `clip_url`: die Datei und die Adresse des [Clips](#highlight-clips), der aufgenommen wird, leer ohne Clip-Kamera oder ohne gespeichertes Foto. Die Datei entsteht, wenn die Aufnahme endet, *Seconds after* später; eine Benachrichtigung mit dem Clip wartet also erst so lange.
 
 `photo` und `photo_url` sind leer, wenn kein Foto gespeichert wurde: *Save to the gallery* ist aus, die Kamera-Entität ist deaktiviert oder nicht verfügbar, die Kamera liefert kein Bild, oder Home Assistant darf nicht in den Ordner schreiben. Das Log von Home Assistant sagt dann, was davon es war. `photo_url` ist außerdem leer für einen Ordner außerhalb des Medienordners, aus dem die App nicht laden kann. So ist `photo_url or image` immer ein Bild: das gespeicherte Foto oder das Live-Bild der Kamera.
 
@@ -477,7 +481,7 @@ Die App lädt das gespeicherte Foto, aufgenommen, als die Darts noch im Board st
 
 ### Highlight-Galerie
 
-Das Highlight-Foto speichert jedes Bild als Datei, benannt nach Zeitpunkt, Spieler und Punkten, etwa `2026-09-26_21-05-33_Alex_180.jpg` oder `2026-09-26_21-07-10_Alex_checkout-121.jpg`; ein zweites Foto derselben Sekunde mit demselben Namen, etwa von einer zweiten Kamera, bekommt ein Leerzeichen und `(2)` am Ende und bleibt ebenfalls erhalten. Öffne **Medien → Autodarts** in der Seitenleiste: Die Galerie listet die Monate, die neuesten zuerst, und jedes Foto mit einem Titel wie *180 · Alex · 26.09.*
+Das Highlight-Foto speichert jedes Bild als Datei, benannt nach Zeitpunkt, Spieler und Punkten, etwa `2026-09-26_21-05-33_Alex_180.jpg` oder `2026-09-26_21-07-10_Alex_checkout-121.jpg`; ein zweites Foto derselben Sekunde mit demselben Namen, etwa von einer zweiten Kamera, bekommt ein Leerzeichen und `(2)` am Ende und bleibt ebenfalls erhalten. Öffne **Medien → Autodarts** in der Seitenleiste: Die Galerie listet die Monate, die neuesten zuerst, und jedes Foto mit einem Titel wie *180 · Alex · 26.09.*, die [Clips](#highlight-clips) des Highlight-Fotos neben ihren Fotos.
 
 <img src="images/de/media-gallery.png" alt="Die Highlight-Galerie in der Medienansicht von Home Assistant: September 2026 mit einem Checkout von 121 durch Sam, einer 180 von Alex und einer 140 von Kim" width="760">
 
@@ -485,6 +489,16 @@ Das Highlight-Foto speichert jedes Bild als Datei, benannt nach Zeitpunkt, Spiel
 - Fotos, die du selbst dorthin kopierst, erscheinen auch; ohne einen solchen Namen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
 - Um ein Foto zu löschen, öffne **Medien → Meine Medien → autodarts → highlights**.
 - Die Galerie braucht die Medienansicht, die zur Standardkonfiguration von Home Assistant gehört.
+
+### Highlight-Clips
+
+Mit einer *Clip camera* nimmt das Highlight-Foto jeden Moment auch als Clip auf: von *Seconds before* vor dem Foto bis *Seconds after* danach, gespeichert als MP4 neben dem Foto, unter seinem Namen mit `.mp4`, etwa `2026-09-26_21-05-33_Alex_180.mp4`. Die [Highlight-Galerie](#highlight-galerie) listet ihn als *Clip · 180 · Alex · 26.09.* mit dem Bild seines Fotos und spielt ihn im Browser ab.
+
+- **Die Kamera:** jede Kamera mit Videostream in Home Assistant, etwa eine RTSP-Kamera über die Integration *Generic Camera* oder *ONVIF*, oder die Kamera deines Streams. Die Board-Kameras von Autodarts liefern nur Bilder, die sich nicht aufnehmen lassen.
+- **Die Sekunden vor dem Dart:** Home Assistant hält sie nur, solange der Stream der Kamera läuft. Öffne die Kamera-Entität, ihre Einstellungen (⚙) und schalte *Kamera-Stream vorladen* ein; ohne das beginnt der Clip beim Foto.
+- **Ein Clip nach dem anderen:** Eine Kamera nimmt immer nur einen Clip auf. Ein Moment, der kommt, während der Clip des vorigen noch läuft, bekommt sein Foto ohne Clip.
+- Die Aufnahme nutzt [`camera.record`](https://www.home-assistant.io/integrations/camera/) von Home Assistant, das nur in Ordner schreibt, in die Home Assistant schreiben darf, etwa den Medienordner der Galerie. Eine ältere Version der Integration lässt die Clips im Ordner, ihre Galerie listet aber nur die Fotos.
+- Mit dem [Stream-Overlay](scoreboard.de.md#stream-overlay) der Anzeigetafel zeigt die Kamera deines Streams auch die Punkte.
 
 ### Lichtshow mit WLED und anderem Licht
 

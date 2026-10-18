@@ -150,6 +150,7 @@ test("the game settings offer the practice controls and player names, the live v
     ["training", "Training", "mdi:chart-box-outline"],
     ["games", "Spieleinstellungen", "mdi:tune-variant"],
     ["board", "Board", "mdi:cog-outline"],
+    ["overlay", "Stream-Overlay", "mdi:video-outline"],
   ]);
   assert.deepEqual(views[0].sections, [
     { type: "grid", column_span: 2, cards: [{ type: "custom:autodarts-card", device_id: "dev", grid_options: { columns: "full" } }] },

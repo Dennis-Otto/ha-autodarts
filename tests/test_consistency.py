@@ -362,6 +362,8 @@ CARD_TEXT_FAMILIES = (
     ("lobby_group_", ""),
     ("mark_", ""),
     ("mode_", ""),
+    ("overlay_", ""),
+    ("overlay_layout_", ""),
     ("party_", ""),
     ("period_", ""),
     ("picker_", ""),

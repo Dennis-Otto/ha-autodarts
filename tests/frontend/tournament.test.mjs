@@ -602,6 +602,24 @@ test("between matches the result shows, then the table with the next match and a
   assert.equal($(card, ".visit").hidden, false);
 });
 
+test("an overlay beside the stream keeps the result of a match, the whole picture shows the table", (context) => {
+  clock(context);
+  for (const [layout, table] of [
+    ["lower_third", false],
+    ["full", true],
+  ]) {
+    const { hass, card } = setup({ ...OPENING, ...practice(["Kim", "Sam"]) }, { overlay: "chroma", overlay_layout: layout });
+    card.hass = update(hass, { ...summarized(practice(["Kim", "Sam"], 2)), ...tournament() });
+    context.mock.timers.tick(5000);
+    assert.equal(shown(card), table, layout);
+    assert.equal($(card, ".visit").hidden, table, layout);
+    assert.equal($(card, ".banner").hidden, table, layout);
+    // The countdown runs only where the table shows.
+    assert.equal(Boolean(card._tournamentTick), table, layout);
+    card.remove();
+  }
+});
+
 test("Cricket and party games or no game at all are no match of the tournament", () => {
   const cricket = {
     "sensor.practice_remaining": {

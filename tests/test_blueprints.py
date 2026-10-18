@@ -2147,6 +2147,74 @@ async def test_highlight_photo_gallery_folder_and_saving_can_change(hass, freeze
     assert len(photos) == 2
 
 
+# The clip as the actions get it.
+CLIPPED = {
+    **PHOTO,
+    "clip_camera": "camera.room",
+    "photo_actions": [
+        {
+            "action": "test.photo",
+            "data": {"clip": "{{ clip }}", "clip_url": "{{ clip_url }}"},
+        }
+    ],
+}
+
+
+async def test_highlight_photo_records_a_clip_beside_the_photo(hass, freezer):
+    """A camera with a video stream records the moment as an MP4 beside the
+    photo, where the gallery plays it."""
+    photos = async_mock_service(hass, "test", "photo")
+    saves(hass)
+    records = async_mock_service(hass, "camera", "record")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            ("highlight_photo", CLIPPED),
+            (
+                "highlight_photo",
+                {
+                    **CLIPPED,
+                    "clip_camera": "camera.stream",
+                    "clip_lookback": 2,
+                    "clip_duration": 20,
+                },
+            ),
+            # Without a clip camera, or without a saved photo, there is no clip.
+            ("highlight_photo", {**CLIPPED, "clip_camera": ""}),
+            ("highlight_photo", {**CLIPPED, "save_photo": False}),
+        ],
+    )
+    fire(hass, "visit_thrown", score=180, darts=3, name="Alex")
+    await photo_taken(hass, freezer)
+    clip = "/media/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
+    assert sorted(
+        (
+            call.data["entity_id"],
+            call.data["filename"],
+            call.data["lookback"],
+            call.data["duration"],
+        )
+        for call in records
+    ) == [(["camera.room"], clip, 5, 8), (["camera.stream"], clip, 2, 20)]
+    url = "/media/local/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
+    assert sorted((call.data["clip"], call.data["clip_url"]) for call in photos) == [
+        ("", ""),
+        ("", ""),
+        (clip, url),
+        (clip, url),
+    ]
+
+    # A camera that cannot record, or records already, does not stop the actions.
+    async def busy(call) -> None:
+        raise HomeAssistantError("Stream already recording")
+
+    hass.services.async_register("camera", "record", busy)
+    fire(hass, "leg_won", game=501, players=1, player=1, name="Kim", checkout=121)
+    await photo_taken(hass, freezer)
+    assert len(photos) == 8
+
+
 @pytest.mark.parametrize(
     "layout",
     # /media on Home Assistant OS and in a container, /config/media elsewhere.

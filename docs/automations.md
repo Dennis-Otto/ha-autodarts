@@ -203,6 +203,9 @@ The message can use `darts`, `visits`, `sessions`, `training_minutes`, `average`
 | Actions | none | For example a notification, see [below](#highlight-photo-on-your-phone). Optional while the photos go to the gallery. |
 | Message for a visit | `{{ score }}!` | The `message` of a visit photo. |
 | Message for a checkout | `Checkout {{ checkout }}{{ ' by ' ~ who if who }}!` | The `message` of a checkout photo. |
+| Clip camera | empty | Optional, in the collapsed section *Clip*: a camera with a video stream that films the board, such as a camera of the room or the one of your stream. It records each moment as a [clip](#highlight-clips) beside the photo, so it needs *Save to the gallery*. The board cameras of Autodarts give pictures, not a video stream; the list offers only cameras with one. |
+| Seconds before | 5 | How much of the clip comes before the moment of the photo. It needs the stream of the camera to run ahead: turn on *Preload camera stream* in the settings of the camera entity. |
+| Seconds after | 8 | How much of the clip follows the moment of the photo. |
 
 Your actions can use:
 
@@ -210,6 +213,7 @@ Your actions can use:
 - `photo`: the file the picture is saved to.
 - `image`: the live picture of the camera, for photos that are not saved.
 - `message`, `score`, `checkout` and `who` (the player at the board, when the practice game names them).
+- `clip` and `clip_url`: the file and the address of the [clip](#highlight-clips) being recorded, empty without a clip camera or a saved photo. The file is written when the recording ends, *Seconds after* later, so a notification with the clip waits that long first.
 
 `photo` and `photo_url` are empty when no photo was saved: *Save to the gallery* is off, the camera entity is disabled or unavailable, the camera gives no picture, or Home Assistant may not write to the folder. The log of Home Assistant then says which of them it was. `photo_url` is also empty for a folder outside the media folder, which the app cannot load from. So `photo_url or image` is always a picture: the saved photo, or the live picture of the camera.
 
@@ -449,7 +453,7 @@ The app loads the saved photo, taken while the darts were still in the board, ev
 
 ### Highlight gallery
 
-The highlight photo saves every picture as a file named by the moment, the player and the score, for example `2026-09-26_21-05-33_Alex_180.jpg` or `2026-09-26_21-07-10_Alex_checkout-121.jpg`; a second photo of the same second with the same name, from a second camera for example, gets a space and `(2)` at the end and is kept as well. Open **Media → Autodarts** in the sidebar: the gallery lists the months, newest first, and every photo with a title such as *180 · Alex · Sep 26*.
+The highlight photo saves every picture as a file named by the moment, the player and the score, for example `2026-09-26_21-05-33_Alex_180.jpg` or `2026-09-26_21-07-10_Alex_checkout-121.jpg`; a second photo of the same second with the same name, from a second camera for example, gets a space and `(2)` at the end and is kept as well. Open **Media → Autodarts** in the sidebar: the gallery lists the months, newest first, and every photo with a title such as *180 · Alex · Sep 26*, with the [clips](#highlight-clips) of the highlight photo beside their photos.
 
 <img src="images/en/media-gallery.png" alt="The highlight gallery in the media browser of Home Assistant: September 2026 with a checkout of 121 by Sam, a 180 by Alex and a 140 by Kim" width="760">
 
@@ -457,6 +461,16 @@ The highlight photo saves every picture as a file named by the moment, the playe
 - Photos you copy there yourself show, too; without a name of this kind, by their file name and the time they were saved.
 - To delete a photo, open **Media → My media → autodarts → highlights**.
 - The gallery needs the media browser, which the default configuration of Home Assistant includes.
+
+### Highlight clips
+
+With a *Clip camera*, the highlight photo also records each moment as a clip: from *Seconds before* the photo to *Seconds after* it, saved as an MP4 beside the photo, under its name with `.mp4`, such as `2026-09-26_21-05-33_Alex_180.mp4`. The [highlight gallery](#highlight-gallery) lists it as *Clip · 180 · Alex · Sep 26* with the picture of its photo and plays it in the browser.
+
+- **The camera:** any camera with a video stream in Home Assistant, such as an RTSP camera through the *Generic Camera* or *ONVIF* integration, or the camera of your stream. The board cameras of Autodarts give pictures only, which can't be recorded.
+- **The seconds before the dart:** Home Assistant keeps them only while the stream of the camera runs. Open the camera entity, its settings (⚙), and turn on *Preload camera stream*; without it, the clip starts at the photo.
+- **One clip at a time:** a camera records one clip at a time. A moment that comes while the clip of the one before is still recording gets its photo without a clip.
+- Recording uses Home Assistant's [`camera.record`](https://www.home-assistant.io/integrations/camera/), which writes only to folders Home Assistant may write to, such as the media folder of the gallery. An older version of the integration keeps the clips in the folder, but its gallery lists only the photos.
+- With the [stream overlay](scoreboard.md#stream-overlay) of the scoreboard, the camera of your stream shows the score as well.
 
 ### Light show with WLED and other lights
 

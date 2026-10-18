@@ -19,6 +19,14 @@ blueprint:
     entity first; camera entities are disabled by default.
 
 
+    With a clip camera, a camera with a video stream that films the board, the
+    moment is also recorded as a clip, from a few seconds before the dart to a
+    few seconds after it, saved beside the photo under its name with `.mp4`, and
+    the gallery plays it. Your actions get its file and address as `clip` and
+    `clip_url` once the recording has started; the file is written when the
+    recording ends.
+
+
     Needs version 1.12.4 or later of the Autodarts integration, whose action
     `autodarts.save_highlight` saves the photo.
 
@@ -122,6 +130,51 @@ blueprint:
           default: "Checkout {{ checkout }}{{ ' by ' ~ who if who }}!"
           selector:
             text: {}
+    clip:
+      name: Clip
+      icon: mdi:video-outline
+      collapsed: true
+      input:
+        clip_camera:
+          name: Clip camera
+          description: >-
+            Optional. A camera with a video stream that films the board, such as
+            a camera of the room or the one of your stream, records the moment
+            as a clip beside the photo; it needs Save to the gallery. The board
+            cameras of Autodarts give pictures, not a video stream. For the
+            seconds before the dart, turn on Preload camera stream in the
+            settings of the camera entity.
+          default: ""
+          selector:
+            entity:
+              filter:
+                - domain: camera
+                  supported_features:
+                    - camera.CameraEntityFeature.STREAM
+        clip_lookback:
+          name: Seconds before
+          description: >-
+            How much of the clip comes before the dart, while the stream of the
+            camera runs ahead, as with Preload camera stream on.
+          default: 5
+          selector:
+            number:
+              min: 0
+              max: 10
+              step: 1
+              mode: box
+              unit_of_measurement: s
+        clip_duration:
+          name: Seconds after
+          description: How much of the clip follows the moment of the photo.
+          default: 8
+          selector:
+            number:
+              min: 2
+              max: 30
+              step: 1
+              mode: box
+              unit_of_measurement: s
 
 # A leg won by the third dart follows its visit within milliseconds: the short
 # pause lets the checkout replace the visit, so the leg gets one photo.
@@ -160,6 +213,9 @@ variables:
        | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
   save_photo: !input save_photo
   gallery_folder: !input gallery_folder
+  clip_camera: !input clip_camera
+  clip_lookback: !input clip_lookback
+  clip_duration: !input clip_duration
   score_text: !input score_message
   checkout_text: !input checkout_message
   message: "{{ checkout_text if trigger.id == 'checkout' else score_text }}"
@@ -195,7 +251,29 @@ actions:
           label: "{{ 'checkout-' ~ checkout if trigger.id == 'checkout' else score }}"
         response_variable: highlight
   # Only a saved photo has a file, and an address when it is in a media folder.
+  # Its clip goes beside it, under its name with .mp4, where the gallery finds it.
   - variables:
       photo: "{{ highlight.get('photo', '') }}"
       photo_url: "{{ highlight.get('photo_url', '') }}"
+      clip: >-
+        {{ photo | regex_replace('[.](jpg|png|webp)$', '.mp4')
+           if clip_camera and photo else '' }}
+      clip_url: >-
+        {{ photo_url | regex_replace('[.](jpg|png|webp)$', '.mp4')
+           if clip and photo_url else '' }}
+  - alias: Record a clip of the moment beside the photo
+    if: "{{ clip != '' }}"
+    then:
+      # camera.record starts the recording, with the seconds before it that the
+      # running stream keeps, and returns once it runs; the file is written when
+      # the recording ends. A camera without a stream, or one that records already,
+      # must not stop the actions.
+      - action: camera.record
+        continue_on_error: true
+        target:
+          entity_id: "{{ clip_camera }}"
+        data:
+          filename: "{{ clip }}"
+          lookback: "{{ clip_lookback | int(5) }}"
+          duration: "{{ clip_duration | int(8) }}"
   - sequence: !input photo_actions

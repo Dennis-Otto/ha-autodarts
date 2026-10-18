@@ -10,7 +10,7 @@ Für YouTuber, Streamer, Blogger und alle, die die Autodarts-Integration für Ho
 
 <img src="images/de/hero.webp" alt="Animation: ein 301-Match auf der Live-Karte und der Anzeigetafel nebeneinander. Alex wirft drei Triple 20, die Felder leuchten auf und die Anzeigetafel zählt auf 121 herunter; Sam wirft 85; Alex checkt 121 mit T20, Single-Bull und D18 zum Game shot" width="760">
 
-**Auf dieser Seite:** [Kurz gesagt](#kurz-gesagt) · [Fakten](#fakten) · [Die Geschichte](#die-geschichte) · [Ohne Board ausprobieren](#ohne-board-ausprobieren) · [Videos und Animationen](#videos-und-animationen) · [Bilder](#bilder) · [So nennst du sie](#so-nennst-du-sie) · [Beiträge zum Start](#beiträge-zum-start) · [Kontakt](#kontakt)
+**Auf dieser Seite:** [Kurz gesagt](#kurz-gesagt) · [Fakten](#fakten) · [Die Geschichte](#die-geschichte) · [Ohne Board ausprobieren](#ohne-board-ausprobieren) · [Videos und Animationen](#videos-und-animationen) · [Bilder](#bilder) · [Deine Spiele streamen](#deine-spiele-streamen) · [So nennst du sie](#so-nennst-du-sie) · [Beiträge zum Start](#beiträge-zum-start) · [Kontakt](#kontakt)
 
 ## Kurz gesagt
 
@@ -85,6 +85,15 @@ Alle Screenshots der Dokumentation liegen in [`docs/images/de`](https://github.c
 | --- | --- |
 | <img src="images/de/scoreboard-lobby.png" alt="Die Spielauswahl auf einem Tablet im Querformat: die Spiele nach Gruppen mit 501 gewählt, Alex und Sam mit ihren Bildern, Sam ab 301, drei Legs pro Satz, Double-Out und die Start-Taste" width="100%"> | <img src="images/de/match-summary.png" alt="Anzeigetafel, nachdem Alex Sam in 301 mit 2 : 1 geschlagen hat: die Match-Zusammenfassung mit Legs, 3-Dart-Average, First 9, Checkout-Quote, höchstem Checkout, 180ern, 140+, 100+, bestem Leg, Darts aufs Double und Darts beider Spieler" width="100%"> |
 | <img src="images/de/players-card.png" alt="Spielerkarte mit den Profilen von Alex, Sam und Kim mit ihren Bildern, ihren Averages und Bestleistungen, dem direkten Vergleich von Alex und Sam und den letzten Matches" width="100%"> | <img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den vierzehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="100%"> |
+
+## Deine Spiele streamen
+
+Du spielst im Stream? Die Anzeigetafel ist ein Overlay für OBS Studio, Streamlabs und jede andere Software mit einer Browserquelle: Punkte, Checkout-Weg und die Darts der Aufnahme am unteren Rand deines Bildes, in seiner Ecke oben links oder über das ganze Bild, durchsichtig oder auf einer Keyfarbe. Es füllt das Fenster von selbst und zeigt zwischen den Spielen nichts. Das Highlight-Foto nimmt jede 180 und jeden großen Checkout auch als Clip auf, ab ein paar Sekunden vor dem Dart, bereit zum Schneiden.
+
+<img src="images/de/scoreboard-overlay.png" alt="Das Stream-Overlay am unteren Rand des Bildes vom Board: Übungsspiel 501, Alex am Board mit dem Weg T20 D12, Sam, und daneben die Darts der Aufnahme" width="760">
+
+- [Das Stream-Overlay einrichten](scoreboard.de.md#stream-overlay): ein Benutzer für OBS, die Ansicht `…/overlay` des automatischen Dashboards und eine Browserquelle mit 1920 × 1080.
+- [Clips deiner Highlights aufnehmen](automations.de.md#highlight-clips) mit der Kamera deines Streams.
 
 ## So nennst du sie
 
