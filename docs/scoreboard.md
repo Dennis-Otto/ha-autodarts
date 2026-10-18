@@ -10,11 +10,11 @@ A tablet or a TV next to the board turns your darts room into a stage: the score
 
 <img src="images/en/scoreboard.webp" alt="Animation: the scoreboard during a 501 match. The turn passes between Alex and Sam after every visit, and Alex checks out 141 with T20 T19 D12 to win the match" width="760">
 
-**On this page:** [What you need](#what-you-need) · [Set up the screen](#set-up-the-screen) · [Landscape, portrait and TV](#landscape-portrait-and-tv) · [Choose the next game](#choose-the-next-game) · [During the game](#during-the-game) · [Correct and enter darts](#correct-and-enter-darts) · [Tournaments](#tournaments) · [The caller](#the-caller) · [Between games: idle mode](#between-games-idle-mode) · [Tips](#tips) · [If something is off](#if-something-is-off)
+**On this page:** [What you need](#what-you-need) · [Set up the screen](#set-up-the-screen) · [On a TV with Home Assistant Cast](#on-a-tv-with-home-assistant-cast) · [Landscape, portrait and TV](#landscape-portrait-and-tv) · [Choose the next game](#choose-the-next-game) · [During the game](#during-the-game) · [Correct and enter darts](#correct-and-enter-darts) · [Tournaments](#tournaments) · [The caller](#the-caller) · [Between games: idle mode](#between-games-idle-mode) · [Tips](#tips) · [If something is off](#if-something-is-off)
 
 ## What you need
 
-- **A screen with a browser:** a tablet on the wall, a TV with a browser or a small PC, an old phone. Anything that opens your Home Assistant works.
+- **A screen with a browser:** a tablet on the wall, a TV with a browser or a small PC, an old phone. Anything that opens your Home Assistant works, and a TV with a Chromecast [through Home Assistant Cast](#on-a-tv-with-home-assistant-cast).
 - **A Home Assistant user for the screen.** A user of its own, without administrator rights, keeps the screen from changing your settings. The screen shows the dashboard in that user's language: English, German, Dutch, French or Spanish, other [languages](README.md#languages) in English.
 - **The integration's cards,** which load by themselves. There is nothing to install on the screen.
 
@@ -35,6 +35,26 @@ idle_panels: [leaderboard, today, last_match, clock]
 ```
 
 The [card guide](cards.md#scoreboard-card) lists every option.
+
+## On a TV with Home Assistant Cast
+
+A TV with a Chromecast, or a Google Nest Hub, shows the scoreboard without a browser of its own: [Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) puts a dashboard on it, and the cards load there by themselves.
+
+1. **Reach Home Assistant over HTTPS.** Cast needs an address of Home Assistant that starts with `https://`, such as the one of Home Assistant Cloud.
+2. **Cast the view.** Open [cast.home-assistant.io](https://cast.home-assistant.io) in Chrome on a computer or an Android phone in the network of the TV, connect your Home Assistant, choose the TV, then the Autodarts dashboard and its *Scoreboard* view. Or let an automation cast it, for example when a game starts, with the action of the [Google Cast](https://www.home-assistant.io/integrations/cast/) integration:
+
+   ```yaml
+   action: cast.show_lovelace_view
+   data:
+     entity_id: media_player.living_room_tv
+     dashboard_path: dashboard-darts
+     view_path: scoreboard
+   ```
+
+   `dashboard_path` is the first part of the dashboard's address after the host, `view_path` the last part of the view's address.
+3. **Play as usual.** The TV shows the dashboard; start games, enter darts and choose the next game at the board, on a phone or a tablet. The [caller](#the-caller) starts with a tap on the screen, so it stays silent on a TV: the [practice caller](automations.md#practice-caller) calls the game through your speakers instead.
+
+[How the cards reach the TV](cards.md#home-assistant-cast), with the lines for resources in YAML.
 
 ## Landscape, portrait and TV
 

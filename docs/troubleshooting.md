@@ -139,6 +139,7 @@ The status stays *Takeout in progress* although the board is empty, and new dart
 ### The card is missing or outdated
 
 - **Custom element doesn't exist: autodarts-card:** restart Home Assistant after installing, then reload the browser page.
+- **Nothing or *Custom element doesn't exist* on Home Assistant Cast:** restart Home Assistant once after installing or updating the integration, then cast again. *Settings → Dashboards → ⋮ → Resources* lists `/autodarts/autodarts-strategy.js` and `/autodarts/autodarts-card.js`; with resources in YAML, add the [two lines](cards.md#home-assistant-cast) yourself.
 - **An old version of a card after an update:** reload the page. In the companion app, use *Settings → Companion app → Debugging → Reset frontend cache*.
 - **The training history is empty:** the history is read from the recorder. It needs the `recorder` integration (enabled by default) and fills with completed visits.
 

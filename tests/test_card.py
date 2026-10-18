@@ -1,5 +1,6 @@
 """The dashboard card: dart details for the board view and automatic loading."""
 
+import asyncio
 import gzip
 import hashlib
 import json
@@ -8,18 +9,26 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+from homeassistant.components.lovelace.const import LOVELACE_DATA
+from homeassistant.config_entries import SOURCE_IGNORE
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.setup import async_setup_component
 from hypothesis import given
 from hypothesis import strategies as st
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts.card import (
     CARD_PATH,
     CARD_URL,
+    MODULES,
     STRATEGY_PATH,
     STRATEGY_URL,
     _accepts_gzip,
+    async_add_card_resources,
     async_register_card,
+    async_remove_card_resources,
 )
+from custom_components.autodarts.const import DOMAIN
 from custom_components.autodarts.sensor import AutodartsVisitSensor
 
 from .local_helpers import STATE, entity_id, setup_local
@@ -259,7 +268,7 @@ async def test_card_is_plain_for_clients_without_gzip(
 ):
     client, _ = await serve_card(hass, hass_client_no_auth)
     response = await client.get(
-        CARD_URL,
+        f"{CARD_URL}?v={tag()}",
         headers=headers,
         skip_auto_headers=[] if headers else ["Accept-Encoding"],
         auto_decompress=False,
@@ -274,13 +283,14 @@ async def test_card_is_plain_for_clients_without_gzip(
 async def test_a_browser_keeps_its_copy_of_the_card(hass, hass_client_no_auth):
     client, _ = await serve_card(hass, hass_client_no_auth)
     # A browser asks again after a month, Safari also on every reload.
+    url = f"{CARD_URL}?v={tag()}"
     for known in (f'W/"{tag()}"', f'"{tag()}"', f'"0.1.0-00000000", W/"{tag()}"', "*"):
-        response = await client.get(CARD_URL, headers={"If-None-Match": known})
+        response = await client.get(url, headers={"If-None-Match": known})
         assert response.status == 304
         assert_cached(response)
         assert await response.read() == b""
     # A copy of another version gets the module served now.
-    response = await client.get(CARD_URL, headers={"If-None-Match": 'W/"0.1.0-0"'})
+    response = await client.get(url, headers={"If-None-Match": 'W/"0.1.0-0"'})
     assert response.status == 200
     assert await response.read() == CARD_PATH.read_bytes()
 
@@ -323,3 +333,223 @@ async def test_card_is_skipped_without_web_frontend(hass):
     hass.http.async_register_static_paths.assert_not_called()
     hass.http.register_view.assert_not_called()
     add_js.assert_not_called()
+
+
+@pytest.mark.parametrize("url", [STRATEGY_URL, CARD_URL])
+@pytest.mark.parametrize(
+    "query", ["", "?v=0.1.0-00000000"], ids=["no version", "another version"]
+)
+async def test_an_address_of_no_or_another_version_never_goes_stale(
+    hass, hass_client_no_auth, url, query
+):
+    """A resource in YAML has no version in its address: browsers revalidate it."""
+    client, _ = await serve_card(hass, hass_client_no_auth)
+    response = await client.get(f"{url}{query}")
+    assert response.status == 200
+    assert response.headers["Cache-Control"] == "no-cache"
+    assert await response.read() == MODULES[url].read_bytes()
+    # Every load asks again, and an unchanged module costs a few bytes.
+    etag = response.headers["ETag"]
+    response = await client.get(f"{url}{query}", headers={"If-None-Match": etag})
+    assert response.status == 304
+    assert response.headers["Cache-Control"] == "no-cache"
+
+
+CAST = "https://cast.home-assistant.io"
+OTHER = ("module", "/hacsfiles/button-card/button-card.js")
+
+
+async def test_home_assistant_cast_may_load_both_modules(hass, hass_client_no_auth):
+    """The Cast receiver runs on its own origin and loads the modules from there."""
+    client, _ = await serve_card(hass, hass_client_no_auth)
+    for url in (STRATEGY_URL, CARD_URL):
+        response = await client.get(f"{url}?v={tag()}", headers={"Origin": CAST})
+        assert response.status == 200
+        assert response.headers["Access-Control-Allow-Origin"] == CAST
+
+
+def resources(hass):
+    return hass.data[LOVELACE_DATA].resources
+
+
+def listed(hass):
+    """The dashboard resources as Settings, Dashboards, Resources lists them."""
+    return [(item["type"], item["url"]) for item in resources(hass).async_items()]
+
+
+def ours():
+    """Both modules at their current addresses, the strategy first."""
+    return [
+        ("module", f"{STRATEGY_URL}?v={tag()}"),
+        ("module", f"{CARD_URL}?v={tag()}"),
+    ]
+
+
+async def with_dashboards(hass, **lovelace):
+    """Home Assistant with its frontend and its dashboard resources."""
+    assert await async_setup_component(hass, "http", {})
+    assert await async_setup_component(hass, "lovelace", {"lovelace": lovelace})
+    hass.config.components.add("frontend")
+
+
+async def register(hass):
+    with patch("custom_components.autodarts.card.add_extra_js_url"):
+        await async_register_card(hass)
+
+
+async def test_cast_finds_both_modules_in_the_dashboard_resources(hass, hass_storage):
+    hass_storage["lovelace_resources"] = {
+        "version": 1,
+        "key": "lovelace_resources",
+        "data": {
+            "items": [
+                {
+                    "id": "old",
+                    "type": "module",
+                    "url": "/autodarts/autodarts-strategy.js?v=1.0.0-00000000",
+                },
+                {"id": "theirs", "type": OTHER[0], "url": OTHER[1]},
+                {
+                    "id": "by-hand",
+                    "type": "js",
+                    "url": "http://homeassistant.local:8123/autodarts/autodarts-card.js",
+                },
+                {
+                    "id": "twice",
+                    "type": "module",
+                    "url": "/autodarts/autodarts-card.js?v=1.0.0-00000000",
+                },
+            ]
+        },
+    }
+    await with_dashboards(hass)
+    await register(hass)
+    await async_add_card_resources(hass)
+    # Brought to this version in their place; the resource of another card stays.
+    strategy, card = ours()
+    assert listed(hass) == [strategy, OTHER, card]
+    assert [item["id"] for item in resources(hass).async_items()] == [
+        "old",
+        "theirs",
+        "by-hand",
+    ]
+    # Once up to date, a board set up later changes nothing.
+    collection = resources(hass)
+    with (
+        patch.object(collection, "async_create_item") as create,
+        patch.object(collection, "async_update_item") as update,
+        patch.object(collection, "async_delete_item") as delete,
+    ):
+        await async_add_card_resources(hass)
+    create.assert_not_called()
+    update.assert_not_called()
+    delete.assert_not_called()
+
+
+async def test_a_resource_that_does_not_parse_stays_as_it_is(hass, hass_storage):
+    broken = {"id": "typo", "type": "module", "url": "http://[broken"}
+    hass_storage["lovelace_resources"] = {
+        "version": 1,
+        "key": "lovelace_resources",
+        "data": {"items": [broken]},
+    }
+    await with_dashboards(hass)
+    await register(hass)
+    await async_add_card_resources(hass)
+    assert listed(hass) == [("module", "http://[broken"), *ours()]
+    await async_remove_card_resources(hass)
+    assert listed(hass) == [("module", "http://[broken")]
+
+
+async def test_boards_set_up_side_by_side_add_each_module_once(hass):
+    await with_dashboards(hass)
+    await register(hass)
+    collection = resources(hass)
+    create = collection.async_create_item
+
+    async def told(data):
+        # An open page of the settings hears of every new resource, which takes a
+        # moment in which the next board looks at the resources.
+        await asyncio.sleep(0)
+        return await create(data)
+
+    with patch.object(collection, "async_create_item", told):
+        await asyncio.gather(*(async_add_card_resources(hass) for _ in range(3)))
+    assert listed(hass) == ours()
+
+
+async def manual_board(hass, digit, name):
+    """A dartboard without Autodarts, which sets up without a network."""
+    board_id = f"manual_{digit * 32}"
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        unique_id=board_id,
+        title=f"Autodarts ({name})",
+        data={
+            "board_id": board_id,
+            "manual_board": True,
+            "local_only": True,
+            "name": name,
+        },
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry
+
+
+async def test_cast_gets_the_cards_until_the_last_board_is_deleted(hass):
+    await with_dashboards(hass)
+    await resources(hass).async_create_item({"res_type": OTHER[0], "url": OTHER[1]})
+    with patch("custom_components.autodarts.card.add_extra_js_url"):
+        garage = await manual_board(hass, "1", "Garage")
+        cellar = await manual_board(hass, "2", "Cellar")
+    assert listed(hass) == [OTHER, *ours()]
+    await hass.config_entries.async_remove(garage.entry_id)
+    assert listed(hass) == [OTHER, *ours()]
+    # An ignored board loads nothing, so it keeps nothing either.
+    MockConfigEntry(
+        domain=DOMAIN, source=SOURCE_IGNORE, unique_id="ignored"
+    ).add_to_hass(hass)
+    await hass.config_entries.async_remove(cellar.entry_id)
+    assert listed(hass) == [OTHER]
+    # A board added again brings them back, without a restart.
+    await manual_board(hass, "3", "Garage")
+    assert listed(hass) == [OTHER, *ours()]
+
+
+async def test_resources_in_yaml_stay_the_users_own(hass):
+    yaml = [{"url": OTHER[1], "type": OTHER[0]}]
+    await with_dashboards(hass, resource_mode="yaml", resources=yaml)
+    await register(hass)
+    await async_add_card_resources(hass)
+    await async_remove_card_resources(hass)
+    assert resources(hass).async_items() == yaml
+
+
+async def test_without_dashboards_there_are_no_resources_to_keep(hass):
+    assert await async_setup_component(hass, "http", {})
+    hass.config.components.add("frontend")
+    await register(hass)
+    await async_add_card_resources(hass)
+    await async_remove_card_resources(hass)
+    assert LOVELACE_DATA not in hass.data
+
+
+async def test_a_failure_of_the_resources_leaves_the_cards_in_browsers(hass, caplog):
+    await with_dashboards(hass)
+    await register(hass)
+    collection = resources(hass)
+    with patch.object(
+        collection, "async_create_item", side_effect=HomeAssistantError("read-only")
+    ):
+        await async_add_card_resources(hass)
+    assert "The cards are missing in the dashboard resources: read-only" in caplog.text
+    await async_add_card_resources(hass)
+    with patch.object(
+        collection, "async_delete_item", side_effect=HomeAssistantError("read-only")
+    ):
+        await async_remove_card_resources(hass)
+    assert "The cards stay in the dashboard resources: read-only" in caplog.text
+    assert listed(hass) == ours()

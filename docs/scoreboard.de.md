@@ -10,11 +10,11 @@ Ein Tablet oder Fernseher neben dem Board macht deinen Dartraum zur Bühne: der 
 
 <img src="images/de/scoreboard.webp" alt="Animation: die Anzeigetafel in einem 501-Match; nach jeder Aufnahme wechselt der Wurf zwischen Alex und Sam, und Alex checkt 141 mit T20 T19 D12 zum Sieg" width="760">
 
-**Auf dieser Seite:** [Was du brauchst](#was-du-brauchst) · [Den Bildschirm einrichten](#den-bildschirm-einrichten) · [Quer, hochkant und Fernseher](#quer-hochkant-und-fernseher) · [Das nächste Spiel wählen](#das-nächste-spiel-wählen) · [Während des Spiels](#während-des-spiels) · [Darts korrigieren und eingeben](#darts-korrigieren-und-eingeben) · [Turniere](#turniere) · [Der Caller](#der-caller) · [Zwischen den Spielen: Ruhemodus](#zwischen-den-spielen-ruhemodus) · [Tipps](#tipps) · [Wenn etwas nicht passt](#wenn-etwas-nicht-passt)
+**Auf dieser Seite:** [Was du brauchst](#was-du-brauchst) · [Den Bildschirm einrichten](#den-bildschirm-einrichten) · [Auf dem Fernseher mit Home Assistant Cast](#auf-dem-fernseher-mit-home-assistant-cast) · [Quer, hochkant und Fernseher](#quer-hochkant-und-fernseher) · [Das nächste Spiel wählen](#das-nächste-spiel-wählen) · [Während des Spiels](#während-des-spiels) · [Darts korrigieren und eingeben](#darts-korrigieren-und-eingeben) · [Turniere](#turniere) · [Der Caller](#der-caller) · [Zwischen den Spielen: Ruhemodus](#zwischen-den-spielen-ruhemodus) · [Tipps](#tipps) · [Wenn etwas nicht passt](#wenn-etwas-nicht-passt)
 
 ## Was du brauchst
 
-- **Einen Bildschirm mit Browser:** ein Tablet an der Wand, einen Fernseher mit Browser oder einem kleinen PC, ein altes Handy. Alles, was dein Home Assistant öffnet, funktioniert.
+- **Einen Bildschirm mit Browser:** ein Tablet an der Wand, einen Fernseher mit Browser oder einem kleinen PC, ein altes Handy. Alles, was dein Home Assistant öffnet, funktioniert, und ein Fernseher mit Chromecast [über Home Assistant Cast](#auf-dem-fernseher-mit-home-assistant-cast).
 - **Einen Home-Assistant-Benutzer für den Bildschirm.** Ein eigener Benutzer ohne Administratorrechte verhindert, dass am Bildschirm deine Einstellungen geändert werden. Der Bildschirm zeigt das Dashboard in der Sprache dieses Benutzers: Deutsch, Englisch, Niederländisch, Französisch oder Spanisch, andere [Sprachen](README.de.md#sprachen) auf Englisch.
 - **Die Karten der Integration,** die sich von selbst laden. Auf dem Bildschirm musst du nichts installieren.
 
@@ -35,6 +35,26 @@ idle_panels: [leaderboard, today, last_match, clock]
 ```
 
 Die [Anleitung zu den Karten](cards.de.md#anzeigetafel) nennt jede Option.
+
+## Auf dem Fernseher mit Home Assistant Cast
+
+Ein Fernseher mit Chromecast oder ein Google Nest Hub zeigt die Anzeigetafel ohne eigenen Browser: [Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) bringt ein Dashboard darauf, und die Karten laden dort von selbst.
+
+1. **Home Assistant über HTTPS erreichen.** Cast braucht eine Adresse von Home Assistant, die mit `https://` beginnt, etwa die von Home Assistant Cloud.
+2. **Die Ansicht streamen.** Öffne [cast.home-assistant.io](https://cast.home-assistant.io) in Chrome auf einem Computer oder einem Android-Handy im Netzwerk des Fernsehers, verbinde dein Home Assistant, wähle den Fernseher, dann das Autodarts-Dashboard und seine Ansicht *Anzeigetafel*. Oder lass eine Automation streamen, etwa wenn ein Spiel beginnt, mit der Aktion der Integration [Google Cast](https://www.home-assistant.io/integrations/cast/):
+
+   ```yaml
+   action: cast.show_lovelace_view
+   data:
+     entity_id: media_player.living_room_tv
+     dashboard_path: dashboard-darts
+     view_path: scoreboard
+   ```
+
+   `dashboard_path` ist der erste Teil der Adresse des Dashboards nach dem Host, `view_path` der letzte Teil der Adresse der Ansicht.
+3. **Spielen wie immer.** Der Fernseher zeigt das Dashboard; Spiele startest du, Darts gibst du ein und das nächste Spiel wählst du am Board, auf einem Handy oder einem Tablet. Der [Caller](#der-caller) startet mit einem Tippen auf den Bildschirm und bleibt auf einem Fernseher deshalb stumm: Der [Übungs-Caller](automations.de.md#practice-caller) sagt das Spiel stattdessen über deine Lautsprecher an.
+
+[Wie die Karten auf den Fernseher kommen](cards.de.md#home-assistant-cast), mit den Zeilen für Ressourcen in YAML.
 
 ## Quer, hochkant und Fernseher
 
