@@ -407,7 +407,7 @@ For example, in words of your own:
 
 ### Calls in the language of Home Assistant
 
-Home Assistant translates no blueprint, so the integration gives every event a caller speaks its words in the language of Home Assistant, and the callers say them by default: `call` on the events of the dart caller and the practice caller, `title` and `summary` on the weekly report. They follow a new language of Home Assistant at once, in English, German, Dutch, French and Spanish; a regional variant such as `de-CH` speaks its language, and another language English. The words are those of the [scoreboard's caller](scoreboard.md#the-caller) and of the voice packs that `autodarts.generate_voice_pack` records.
+Home Assistant translates no blueprint, so the integration gives each event that a caller speaks the words for it, in the language of Home Assistant, and the callers say them by default: `call` on the events of the dart caller and the practice caller, `title` and `summary` on the weekly report. They follow a new language of Home Assistant at once, in English, German, Dutch, French and Spanish; a regional variant such as `de-CH` speaks its language, and another language English. The words are those of the [scoreboard's caller](scoreboard.md#the-caller) and of the voice packs that `autodarts.generate_voice_pack` records.
 
 | Event | `call` in English | `call` in German |
 | --- | --- | --- |
