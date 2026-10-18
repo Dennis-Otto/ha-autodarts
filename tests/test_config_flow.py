@@ -89,6 +89,16 @@ async def test_device_login_creates_board_entry(hass):
     assert result["result"].unique_id == "board-1"
 
 
+@pytest.mark.parametrize("client_id", ["", "autodarts-for-home-assistant"])
+@pytest.mark.usefixtures("cloud_link")
+async def test_the_cloud_step_offers_the_client_of_the_integration(hass, client_id):
+    """Once Autodarts has issued the client, nobody has to type it in."""
+    with patch("custom_components.autodarts.const.CLOUD_CLIENT_ID", client_id):
+        result = await init_cloud_flow(hass)
+    field = next(key for key in result["data_schema"].schema if key == "client_id")
+    assert field.default() == client_id
+
+
 @pytest.mark.usefixtures("cloud_link")
 async def test_multiple_boards(hass):
     future = asyncio.get_running_loop().create_future()

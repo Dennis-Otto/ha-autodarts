@@ -15,8 +15,19 @@ IDLE_SCAN_INTERVAL: Final = 60  # seconds, cloud polling without a match
 
 # Autodarts has not issued the public OAuth client ID for this integration yet.
 # Until it does, setup offers no cloud link and entries without a client ID run
-# locally instead of asking for a login that cannot be completed.
+# locally instead of asking for a login that cannot be completed. Once it has,
+# CLOUD_CLIENT_ID holds it and CLOUD_LINK_AVAILABLE turns True, as decision 0020
+# in docs/decisions/ describes.
 CLOUD_LINK_AVAILABLE = False
+# The public client "Autodarts for Home Assistant" with the device grant, which
+# the cloud step of the setup offers.
+CLOUD_CLIENT_ID = ""
+
+
+def event_signal(entry_id: str) -> str:
+    """The signal that carries the events of a board to its event entity."""
+    return f"{DOMAIN}_{entry_id}_event"
+
 
 # Config entry keys
 CONF_TOKEN: Final = "token"

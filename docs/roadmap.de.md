@@ -140,7 +140,7 @@ Ideen für die Versionen nach 1.12. Stimmen und Reaktionen auf die [Feature-Wün
 | --- | --- | --- |
 | **Fragen an Assist** | „Wie ist mein Average heute?“, „Wie viele 180er diese Woche?“ als eigene Sätze | Sätze, die sich am Board natürlich anfühlen, von Spielern, die die Sprache sprechen |
 | **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert; ein Spieler hat 2.0.2 unter Linux als funktionierend gemeldet ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Testberichte von Spielern, die es unter Windows nutzen |
-| **Cloud-Verknüpfung** | Cloud-Spieldaten und Cloud-Spielereignisse: Leg und Match gewonnen, Überwerfen, Spielerwechsel, Restpunkte | Eine OAuth-Client-ID von Autodarts; sie ist beantragt |
+| **Cloud-Verknüpfung** | Cloud-Spieldaten und die Momente von Online-Matches ohne Browser-Erweiterung: Überwerfen, gewonnene Legs und Matches und jeder Dart, als dieselben Board-Ereignisse wie bei der Online-Brücke ([die Cloud-Verknüpfung](online-matches.de.md#die-cloud-verknüpfung)), auch für Boards ohne Board Manager in deinem Netzwerk wie Lens | Eine OAuth-Client-ID von Autodarts; sie ist beantragt, und die Integration ist dafür bereit ([Entscheidung 0020](decisions/0020-a-public-client-for-the-cloud-link.md), auf Englisch) |
 | **HACS-Standardkatalog** | Installation, ohne ein benutzerdefiniertes Repository hinzuzufügen | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |
 | **Weitere Sprachen** | Integration und Karten in weiteren Sprachen | Beiträge von Muttersprachlern ([so kommt eine Sprache dazu](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 

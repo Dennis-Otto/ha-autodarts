@@ -36,7 +36,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from .calls import Caller
-from .const import DOMAIN
+from .const import DOMAIN, event_signal
 from .games import ActionRefused, Announcement, BoardGames, Event
 from .positions import Aim
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE
@@ -100,7 +100,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._entry: ConfigEntry = entry
         self.board_id = board_id
         self.device_name = "Autodarts Board"
-        self.event_signal = f"{DOMAIN}_{entry.entry_id}_event"
+        self.event_signal = event_signal(entry.entry_id)
         self.reports = BoardReports(hass, entry.entry_id, self)
         self.games = BoardGames(self.reports)
         # The words of the callers in the language of Home Assistant.

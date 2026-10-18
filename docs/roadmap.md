@@ -140,7 +140,7 @@ Ideas for the versions after 1.12. Votes and reactions on the [feature requests]
 | --- | --- | --- |
 | **Questions to Assist** | "What is my average today?", "How many 180s this week?" as sentences of their own | Sentences that feel natural at the board, from players who speak the language |
 | **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works; a player reported 2.0.2 on Linux working ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Test reports from players who use it on Windows |
-| **Cloud link** | Cloud match data and cloud match events: leg and match won, bust, player change, remaining score | An OAuth client ID from Autodarts, which has been requested |
+| **Cloud link** | Cloud match data and the moments of online matches without a browser extension: busts, won legs and matches and every dart, as the same board events as the online bridge ([the cloud link](online-matches.md#the-cloud-link)), also for boards without a Board Manager in your network such as Lens | An OAuth client ID from Autodarts, which has been requested; the integration is ready for it ([decision 0020](decisions/0020-a-public-client-for-the-cloud-link.md)) |
 | **HACS default repository** | Installation without adding a custom repository | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); the HACS review queue takes several months |
 | **Further languages** | The integration and the cards in more languages | Contributions from native speakers ([how to add a language](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 

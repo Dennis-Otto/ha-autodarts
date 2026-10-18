@@ -2,6 +2,7 @@
 # name: test_setup_refreshes_persists_and_loads_sensors
   dict({
     'board-1_board_event': 'sensor.my_board_last_event | - | enabled | - | - | - | board_event | named',
+    'board-1_board_events': 'event.my_board_events | - | enabled | - | - | - | board_events | named',
     'board-1_board_status': 'sensor.my_board_cloud_status | diagnostic | enabled | enum | - | - | board_status | named',
     'board-1_darts_thrown': 'sensor.my_board_darts_thrown | - | enabled | - | darts | total_increasing | darts_thrown | named',
     'board-1_game_mode': 'sensor.my_board_game_mode | - | enabled | - | - | - | game_mode | named',
