@@ -12,8 +12,6 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from functools import cache
-from itertools import permutations
 
 # Knockout rounds counted back from the final; 32 players need five.
 KNOCKOUT_STAGES = ("final", "semi_final", "quarter_final", "round_of_16", "round_of_32")
@@ -350,7 +348,35 @@ def double_knockout(count: int) -> list[Match]:
     return matches
 
 
-@cache
+# For each number of groups and of players going on from each group, in which
+# order the groups fill the seeds of the second place, of the third and of the
+# fourth (see group_seeds). Worked out once, by trying every order of the groups,
+# which takes too long for the event loop of a small Home Assistant host; the
+# tests work the table out anew. With one player going on, the group winners are
+# all the seeds.
+GROUP_ORDERS: dict[tuple[int, int], tuple[tuple[int, ...], ...]] = {
+    (2, 2): ((0, 1),),
+    (2, 3): ((0, 1), (0, 1)),
+    (2, 4): ((0, 1), (0, 1), (0, 1)),
+    (3, 2): ((1, 2, 0),),
+    (3, 3): ((1, 2, 0), (0, 1, 2)),
+    (3, 4): ((1, 2, 0), (0, 1, 2), (2, 1, 0)),
+    (4, 2): ((1, 0, 3, 2),),
+    (4, 3): ((1, 0, 3, 2), (1, 0, 3, 2)),
+    (4, 4): ((1, 0, 3, 2), (1, 0, 3, 2), (0, 1, 2, 3)),
+    (5, 2): ((0, 3, 1, 2, 4),),
+    (5, 3): ((0, 3, 1, 2, 4), (3, 0, 1, 4, 2)),
+    (5, 4): ((0, 3, 1, 2, 4), (3, 0, 1, 4, 2), (3, 4, 0, 1, 2)),
+    (6, 2): ((0, 1, 2, 3, 4, 5),),
+    (6, 3): ((0, 1, 2, 3, 4, 5), (0, 1, 2, 3, 4, 5)),
+    (6, 4): ((0, 1, 2, 3, 4, 5), (0, 1, 2, 3, 4, 5), (0, 1, 2, 3, 4, 5)),
+    (7, 2): ((1, 2, 0, 3, 5, 6, 4),),
+    (7, 3): ((1, 2, 0, 3, 5, 6, 4), (2, 3, 4, 5, 6, 0, 1)),
+    (8, 2): ((1, 0, 3, 2, 5, 4, 7, 6),),
+    (8, 3): ((1, 0, 3, 2, 5, 4, 7, 6), (2, 3, 0, 1, 6, 7, 4, 5)),
+}
+
+
 def group_seeds(groups: int, advance: int) -> tuple[tuple[int, int], ...]:
     """The group and the place in it of every seed of the knockout after the
     groups: the group winners first, in the order of the groups, then the
@@ -358,28 +384,10 @@ def group_seeds(groups: int, advance: int) -> tuple[tuple[int, int], ...]:
     place where they meet the players of their own group as late as the bracket
     allows: as few of them as can in the first round, then in the second, and so
     on; of equal draws, the one with the earlier groups on the higher seeds."""
-    size = bracket_size(groups * advance)
-    where = {seed: place for place, seed in enumerate(places(size))}
+    orders = GROUP_ORDERS[groups, advance] if advance > 1 else ()
     seeds = [(group, 0) for group in range(groups)]
-    for rank in range(1, advance):
-        tier = range(rank * groups, (rank + 1) * groups)
-        # The round in which a seed meets a player of a group at the earliest.
-        meets = {
-            (seed, group): min(
-                (where[seed] ^ where[other]).bit_length()
-                for other, (mate, _) in enumerate(seeds)
-                if mate == group
-            )
-            for seed in tier
-            for group in range(groups)
-        }
-        best = max(
-            permutations(range(groups)),
-            key=lambda order: sorted(
-                meets[seed, group] for seed, group in zip(tier, order, strict=True)
-            ),
-        )
-        seeds.extend((group, rank) for group in best)
+    for rank, order in enumerate(orders, start=1):
+        seeds.extend((group, rank) for group in order)
     return tuple(seeds)
 
 

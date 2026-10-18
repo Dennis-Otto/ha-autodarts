@@ -225,14 +225,14 @@ The [entity reference](entities.md#tournaments) lists the tournament's settings,
 - **Matches:** every match is a [match](#matches-legs-and-sets) of two players, with the legs per set, sets to win, double out, double in and bull-off of the tournament. Rules the tournament does not set come from the practice game as you set them, also an out mode that waits for the next leg. A tournament plays straight or double in and out, with master coming as double, the bull 25/50 and no round limit; after it, the practice game has its own rules again. In X01, a player with a start score of their own starts every leg of the tournament from it, a handicap; the other one from the game's. The first named player throws first, unless the bull-off decides.
 - **Changed matches:** a match whose legs, sets, start scores or rules are changed while it is played is no tournament match any more, and its result does not count; *Next tournament match* sets the tournament match up again. A setting changed during the pause starts the match of the last two players anew: until its first dart, it makes way for the next match when the pause is over.
 - **Averages:** a player's average counts the points and darts of all their tournament matches; the darts of a bust visit count, its points do not.
-- **Winner:** the winner of the final or of the last grand final, or the player at the top of the table after the last match.
+- **Winner:** the winner of the final or of the last grand final, or the player at the top of the table after the last match. After it, *Next tournament match* says that the tournament is over: stop it, or start a new one.
 
 How a player goes through a double elimination:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/double-elimination-dark.png">
   <img src="images/en/double-elimination-light.png" alt="How a double elimination runs: every player starts in the winners' bracket. A player who wins there goes on to the next round, up to the winners' final, whose winner plays the grand final. A player who loses a match of the winners' bracket drops into the losers' bracket, and one who loses there is out after the second defeat. The winner of the losers' final plays the grand final. If the winner of the winners' bracket wins it, they are the champion; if the winner of the losers' bracket wins it, both have lost once, and the deciding final makes the champion." width="560">
-</picture> After it, *Next tournament match* says that the tournament is over: stop it, or start a new one.
+</picture>
 
 ## X01
 

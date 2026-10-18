@@ -934,6 +934,19 @@ async ([service, data]) => {
 """
 
 
+# Whether the tournament sensor's status is one of the given ones.
+TOURNAMENT_IN = """
+(statuses) => {
+  const hass = document.querySelector('home-assistant').hass;
+  const entity = Object.values(hass.entities).find(
+    (item) => item.platform === 'autodarts' && item.translation_key === 'tournament'
+      && item.entity_id.startsWith('sensor.')
+  );
+  return statuses.includes(hass.states[entity.entity_id]?.attributes.status);
+}
+"""
+
+
 # Playing comfort -----------------------------------------------------------------
 
 
@@ -1341,6 +1354,108 @@ def tournament_table(page: Page) -> None:
     )
     players(page, 1)
     game(page, "off")
+
+
+# The 32 players of the big tournaments.
+FIELD = [
+    "Alex", "Sam", "Kim", "Lea", "Max", "Tom", "Mia", "Ben",
+    "Zoe", "Jan", "Ida", "Leo", "Amy", "Ole", "Eva", "Tim",
+    "Lia", "Nik", "Ava", "Paul", "Ela", "Finn", "Nora", "Jonas",
+    "Emma", "Luca", "Lina", "Theo", "Rosa", "Emil", "Ella", "Noah",
+]  # fmt: skip
+
+
+def play_tournament(page: Page, matches: int | None = None) -> int:
+    """Play the matches of the tournament, most of them won by the first player
+    and every third by the second, until `matches` are played or it is over;
+    how many it played."""
+    played = 0
+    while matches is None or played < matches:
+        if page.evaluate(TOURNAMENT_IN, ["finished"]):
+            break
+        if page.evaluate(TOURNAMENT_IN, ["waiting"]):
+            page.evaluate(CALL_ACTION, ["next_tournament_match", {}])
+            page.wait_for_function(TOURNAMENT_IN, arg=["playing"])
+        checkout_101(page, ["S20", "S20", "S1"] if played % 3 == 2 else None)
+        page.wait_for_function(TOURNAMENT_IN, arg=["waiting", "finished"])
+        played += 1
+    return played
+
+
+def big_tournament(
+    page: Page, name: str, options: dict, before: int, shown: str
+) -> None:
+    """A tournament of 32 players played to its champion through the practice
+    game, with a picture of the scoreboard between two matches after `before`
+    of them, once `shown` is on it."""
+    pull_darts()
+    game(page, "off")
+    page.evaluate(
+        CALL_ACTION,
+        [
+            "start_tournament",
+            {
+                "players": FIELD,
+                **options,
+                "game": "101",
+                "legs": 1,
+                "sets": 1,
+                "double_out": True,
+                "bull_off": False,
+                "pause": 0,
+                "summary": 1,
+            },
+        ],
+    )
+    play_tournament(page, before)
+    # A pause with its countdown, long enough for the picture.
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "tournament_pause", {"value": 90}]
+    )
+    board = tablet(page, "autodarts-demo/tournament")
+    wait_card(board, shown, SCOREBOARD, 60000)
+    ready(board)
+    card_shot(board, name, tag=SCOREBOARD)
+    board.close()
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "tournament_pause", {"value": 0}]
+    )
+    # On to the champion: the acceptance of 32 players in the demo.
+    play_tournament(page)
+    if not page.evaluate(TOURNAMENT_IN, ["finished"]):
+        raise AssertionError(f"{name}: the tournament of 32 found no champion")
+    page.evaluate(CALL_ACTION, ["stop_tournament", {}])
+    page.evaluate(
+        CALL_SERVICE, ["number", "set_value", "tournament_pause", {"value": 10}]
+    )
+    players(page, 1)
+    game(page, "off")
+
+
+def tournament_groups(page: Page) -> None:
+    """32 players in eight groups of four, two of each into a knockout of 16: the
+    tables of the groups after two rounds, the places that go on marked."""
+    big_tournament(
+        page,
+        "tournament-groups",
+        {"format": "groups_knockout", "groups": 8, "advance": 2},
+        # Two rounds of two matches in each of the eight groups.
+        32,
+        "!!r.querySelector('.groups')",
+    )
+
+
+def tournament_double(page: Page) -> None:
+    """A double elimination of 32 players: the winners' bracket after its first
+    round and the losers' bracket below it after its first."""
+    big_tournament(
+        page,
+        "tournament-double",
+        {"format": "double_knockout"},
+        # The 16 matches of the winners' first round and the 8 of the losers'.
+        24,
+        "!!r.querySelector('.losers-label')",
+    )
 
 
 def tournament_lobby(page: Page) -> None:
@@ -3495,6 +3610,23 @@ def people(browser: Browser) -> None:
     context.close()
 
 
+def tournaments(browser: Browser) -> None:
+    """The big tournaments: groups with a knockout and a double elimination, 32
+    players each, played to their champions."""
+    context = new_context(
+        browser,
+        viewport={"width": 1280, "height": 1000},
+        device_scale_factor=2,
+        locale=LOCALE,
+        color_scheme="dark",
+    )
+    page = context.new_page()
+    open_dashboard(page, "board")
+    tournament_groups(page)
+    tournament_double(page)
+    context.close()
+
+
 def calendar(browser: Browser) -> None:
     """The training calendar and the weekly report. Each opens a page in the demo's
     time zone; the report comes last, because it starts a new week."""
@@ -3527,6 +3659,7 @@ SECTIONS: dict[str, Callable[[Browser], None]] = {
     "corrections": corrections,
     "formats": formats,
     "people": people,
+    "tournaments": tournaments,
     "calendar": calendar,
     "manual": manual,
 }
@@ -3541,7 +3674,8 @@ GROUPS = (
     # The players card shows the five players of the tournament.
     ("more games", "people"),
     # The bot plays its first match in the corrections, as it did before the groups.
-    ("corrections", "formats", "calendar", "manual"),
+    # The big tournaments before the calendar's weekly report, which starts a new week.
+    ("corrections", "formats", "tournaments", "calendar", "manual"),
 )
 
 

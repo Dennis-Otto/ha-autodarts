@@ -3,7 +3,7 @@ with a knockout, and the properties every draw keeps."""
 
 import json
 from collections import Counter
-from itertools import combinations
+from itertools import combinations, permutations
 from types import SimpleNamespace
 
 import pytest
@@ -14,6 +14,7 @@ from hypothesis import strategies as st
 from custom_components.autodarts.brackets import (
     GRAND_FINAL,
     GRAND_FINAL_RESET,
+    GROUP_ORDERS,
     LOSERS_FINAL,
     WINNERS_FINAL,
     bracket_size,
@@ -236,6 +237,52 @@ def test_without_a_number_groups_have_about_four_players():
         assert fits_groups(count, auto_groups(count), 2)
 
 
+def searched_orders(groups: int, advance: int) -> tuple[tuple[int, ...], ...]:
+    """The orders of GROUP_ORDERS worked out anew: of every order of the groups
+    for a place, the one whose players meet a player of their own group the
+    latest, the fewest in the first round, then in the second, and so on; of
+    equal orders, the first."""
+    where = {
+        seed: place for place, seed in enumerate(places(bracket_size(groups * advance)))
+    }
+    seeds = [(group, 0) for group in range(groups)]
+    orders = []
+    for rank in range(1, advance):
+        tier = range(rank * groups, (rank + 1) * groups)
+        meets = {
+            (seed, group): min(
+                (where[seed] ^ where[other]).bit_length()
+                for other, (mate, _) in enumerate(seeds)
+                if mate == group
+            )
+            for seed in tier
+            for group in range(groups)
+        }
+        best = max(
+            permutations(range(groups)),
+            key=lambda order: sorted(
+                meets[seed, group] for seed, group in zip(tier, order, strict=True)
+            ),
+        )
+        seeds.extend((group, rank) for group in best)
+        orders.append(best)
+    return tuple(orders)
+
+
+def test_the_orders_of_the_groups_are_the_best_draws():
+    # Every number of groups and of players going on that some field allows.
+    allowed = {
+        (groups, advance)
+        for count in range(ENTRANTS[GROUPS_KNOCKOUT][0], MAX_ENTRANTS + 1)
+        for groups in range(MIN_GROUPS, MAX_GROUPS + 1)
+        for advance in range(2, MAX_ADVANCE + 1)
+        if fits_groups(count, groups, advance)
+    }
+    assert set(GROUP_ORDERS) == allowed
+    for (groups, advance), orders in GROUP_ORDERS.items():
+        assert orders == searched_orders(groups, advance)
+
+
 def test_the_group_winners_get_the_top_seeds_and_meet_their_group_late():
     assert group_seeds(2, 2) == ((0, 0), (1, 0), (0, 1), (1, 1))
     tournament = drawn(GROUPS_KNOCKOUT, 16, groups=4, advance=2)
@@ -396,6 +443,21 @@ def test_32_players_play_to_a_champion(fmt, options, matches):
     assert snapshot["status"] == FINISHED and snapshot["winner"] == finished["winner"]
     assert snapshot["matches_played"] == snapshot["matches_total"] == matches
     assert json.loads(json.dumps(snapshot)) == snapshot
+
+
+def test_round_counts_within_its_part_of_the_tournament():
+    # A double elimination: the rounds of each bracket, the grand finals one
+    # round after the winners' final, and the losers' bracket the longest part.
+    double = drawn(DOUBLE_KNOCKOUT, 32)
+    stages = {match.stage: match.round for match in double.matches}
+    assert stages["winners_final"] == 5 and stages["losers_final"] == 8
+    assert stages[GRAND_FINAL] == stages[GRAND_FINAL_RESET] == 6
+    assert double.rounds == 8
+    # The knockout after the groups counts its rounds from 1 again.
+    groups = drawn(GROUPS_KNOCKOUT, 32, groups=8, advance=2)
+    stages = {match.stage: match.round for match in groups.matches}
+    assert stages["round_3"] == 3 and stages["round_of_16"] == 1
+    assert stages["final"] == groups.rounds == 4
 
 
 def test_a_group_tournament_names_its_groups_in_events_and_the_sensor():

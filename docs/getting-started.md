@@ -73,7 +73,7 @@ If the board misreads a dart, tap it in the visit and correct it. The [games gui
 
 - **Light and sound:** the [blueprints](automations.md#blueprints) flash your lights on a 180, call the scores or take a photo of a highlight. Each one is a single click to import.
 - **Your progress:** personal bests, a heatmap of your darts, trends and achievements are in the [statistics guide](statistics.md).
-- **Friends over:** teams, handicaps and tournaments for up to eight players are in the [games guide](games.md).
+- **Friends over:** teams, handicaps and tournaments for up to 32 players are in the [games guide](games.md).
 
 ## If something doesn't work
 

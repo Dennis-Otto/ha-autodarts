@@ -225,14 +225,14 @@ Die [Referenz der Entitäten](entities.de.md#turniere) nennt Einstellungen, Tast
 - **Matches:** Jedes Match ist ein [Match](#matches-legs-und-sätze) zweier Spieler mit den Legs pro Satz, Sätzen zum Sieg, Double-Out, Double-In und dem Ausbullen des Turniers. Regeln, die das Turnier nicht festlegt, übernimmt es aus dem Übungsspiel, so wie du sie eingestellt hast, auch einen Out-Modus, der aufs nächste Leg wartet. Ein Turnier spielt Straight oder Double In und Out, Master als Double, das Bull 25/50 und keine Rundengrenze; danach hat das Übungsspiel wieder seine eigenen Regeln. Bei X01 beginnt ein Spieler mit eigenen Startpunkten jedes Leg des Turniers von diesen, als Handicap; der andere von denen des Spiels. Der zuerst genannte Spieler hat den Anwurf, wenn kein Ausbullen entscheidet.
 - **Geänderte Matches:** Ein Match, dessen Legs, Sätze, Startpunkte oder Regeln sich während des Spiels ändern, ist kein Turniermatch mehr, und sein Ergebnis zählt nicht; *Nächstes Turniermatch* stellt das Turniermatch wieder her. Eine in der Pause geänderte Einstellung beginnt das Match der letzten beiden Spieler neu: Bis zu seinem ersten Dart macht es nach der Pause dem nächsten Match Platz.
 - **Averages:** Der Average eines Spielers zählt Punkte und Darts aller seiner Turniermatches; die Darts einer überworfenen Aufnahme zählen, ihre Punkte nicht.
-- **Sieger:** der Sieger des Finales oder des letzten großen Finales oder der Erste der Tabelle nach dem letzten Match.
+- **Sieger:** der Sieger des Finales oder des letzten großen Finales oder der Erste der Tabelle nach dem letzten Match. Danach meldet *Nächstes Turniermatch*, dass das Turnier vorbei ist: Beende es oder starte ein neues.
 
 So geht ein Spieler durch das Doppel-K.-o.-System:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/double-elimination-dark.png">
   <img src="images/de/double-elimination-light.png" alt="So läuft das Doppel-K.-o.-System: Jeder Spieler beginnt in der Gewinnerrunde. Wer dort gewinnt, kommt in die nächste Runde, bis ins Finale der Gewinner, dessen Sieger das große Finale spielt. Wer ein Match der Gewinnerrunde verliert, wechselt in die Verliererrunde, und wer dort verliert, scheidet nach der zweiten Niederlage aus. Der Sieger des Finales der Verlierer spielt das große Finale. Gewinnt es der Sieger der Gewinnerrunde, ist er Turniersieger; gewinnt es der Sieger der Verliererrunde, haben beide einmal verloren, und das Entscheidungsfinale macht den Turniersieger." width="560">
-</picture> Danach meldet *Nächstes Turniermatch*, dass das Turnier vorbei ist: Beende es oder starte ein neues.
+</picture>
 
 ## X01
 
