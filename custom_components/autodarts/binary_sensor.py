@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import LIFECYCLE_STATUSES
-from .entity import AutodartsLocalEntity, async_track_cameras
+from .entity import AutodartsBoardEntity, async_track_cameras
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 from .topics import Topic
@@ -38,7 +38,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data.local
     # The connection, the motion and the cameras of a board; a dartboard
     # without Autodarts has none of them.
-    if coordinator and not coordinator.manual_board:
+    if isinstance(coordinator, AutodartsLocalCoordinator):
         async_add_entities(
             [AutodartsLocalConnectivity(coordinator)]
             + [
@@ -61,7 +61,7 @@ async def async_setup_entry(
         )
 
 
-class AutodartsLocalConnectivity(AutodartsLocalEntity, BinarySensorEntity):
+class AutodartsLocalConnectivity(AutodartsBoardEntity, BinarySensorEntity):
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
@@ -77,7 +77,7 @@ class AutodartsLocalConnectivity(AutodartsLocalEntity, BinarySensorEntity):
         return self.coordinator.last_update_success
 
 
-class AutodartsLocalState(AutodartsLocalEntity, BinarySensorEntity):
+class AutodartsLocalState(AutodartsBoardEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: AutodartsLocalCoordinator,

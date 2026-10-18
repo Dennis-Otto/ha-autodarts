@@ -5,10 +5,11 @@ config:
 ---
 flowchart TB
   accTitle: The board and its games
-  accDescr: The Board Manager sends realtime events and answers reads. AutodartsLocalCoordinator in local_coordinator.py follows the board, frees stuck takeouts, raises the repair issues of the board and hands each state of the board to the games coordinator it extends, AutodartsGamesCoordinator in games_coordinator.py, which the actions and entities of Home Assistant use, too. It plays BoardGames in games.py, which knows nothing of Home Assistant: the training, the practice game, the tournament, the bot and the darts entered by hand follow the darts, book the visits and return the board events. The games coordinator announces them to automations and cards, saves the games with BoardStore in storage.py and keeps the timers of the games. Entities read the games through coordinator.games, and tests/test_games.py tests BoardGames without Home Assistant.
+  accDescr: The Board Manager sends realtime events and answers reads. AutodartsLocalCoordinator in local_coordinator.py follows the board, frees stuck takeouts, raises the repair issues of the board and hands each state of the board to the games coordinator it extends, AutodartsGamesCoordinator in games_coordinator.py, which the actions and entities of Home Assistant use, too. It plays BoardGames in games.py, which knows nothing of Home Assistant: the training, the practice game, the tournament, the bot and the darts entered by hand follow the darts, book the visits and return the board events. The games coordinator announces them to automations and cards, saves the games with BoardStore in storage.py and keeps the timers of the games. AutodartsManualCoordinator in manual_coordinator.py extends it as well, beside the local coordinator, for a dartboard without Autodarts: it has no client and no reads, and its board waits for darts entered by hand. Entities read the games through coordinator.games, and tests/test_games.py tests BoardGames without Home Assistant.
 
   BM["Board Manager<br/>realtime events and reads"] --> LC["AutodartsLocalCoordinator<br/>local_coordinator.py<br/>transport, takeouts, repair issues"]
   LC -- "each state of the board" --> GC["AutodartsGamesCoordinator<br/>games_coordinator.py<br/>timers, store, events, actions"]
+  MC["AutodartsManualCoordinator<br/>manual_coordinator.py<br/>a dartboard without Autodarts:<br/>no client, no reads"] -- "a board that waits<br/>for darts by hand" --> GC
   ACT["Actions and entities<br/>of Home Assistant"] --> GC
   GC -- "darts, actions, time" --> BG["BoardGames, games.py<br/>without Home Assistant:<br/>training, practice game, tournament,<br/>bot, darts by hand, undo"]
   BG -- "board events" --> GC
@@ -19,5 +20,5 @@ flowchart TB
 
   classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
-  class LC,GC,ST bot
+  class LC,MC,GC,ST bot
   class BG,TEST done

@@ -32,6 +32,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.util.hass_dict import HassKey
 
 from .const import DOMAIN
+from .games_coordinator import AutodartsGamesCoordinator
 from .journal import (
     SESSION_COUNTS,
     TrainingJournal,
@@ -39,7 +40,6 @@ from .journal import (
     duration_minutes,
     player_results,
 )
-from .local_coordinator import AutodartsLocalCoordinator
 from .practice import PARTY_PLAYERS
 
 EXPORT_FORMATS = ("csv", "json")
@@ -186,13 +186,13 @@ def match_rows(journal: TrainingJournal) -> list[dict[str, Any]]:
     return rows
 
 
-def profile_rows(coordinator: AutodartsLocalCoordinator) -> list[dict[str, Any]]:
+def profile_rows(coordinator: AutodartsGamesCoordinator) -> list[dict[str, Any]]:
     profiles = coordinator.games.practice.profiles.snapshot()
     players: list[dict[str, Any]] = profiles["players"]
     return players
 
 
-TABLES: dict[str, Callable[[AutodartsLocalCoordinator], list[dict[str, Any]]]] = {
+TABLES: dict[str, Callable[[AutodartsGamesCoordinator], list[dict[str, Any]]]] = {
     "sessions": lambda coordinator: session_rows(coordinator.reports.journal),
     "matches": lambda coordinator: match_rows(coordinator.reports.journal),
     "profiles": profile_rows,
@@ -313,7 +313,7 @@ def _recent_exports(hass: HomeAssistant) -> deque[float]:
 
 async def async_export(
     hass: HomeAssistant,
-    coordinator: AutodartsLocalCoordinator,
+    coordinator: AutodartsGamesCoordinator,
     file_format: str,
     what: str,
     folder: str | None = None,

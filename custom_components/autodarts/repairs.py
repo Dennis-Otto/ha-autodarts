@@ -19,6 +19,7 @@ from yarl import URL
 from .const import CONF_BOARD_ID, CONF_HOST, CONF_PORT, DEFAULT_PORT, DOMAIN
 from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
+from .local_coordinator import AutodartsLocalCoordinator
 
 
 def address_title(entry: ConfigEntry, host: str) -> str:
@@ -83,7 +84,8 @@ class CalibrationFlow(RepairsFlow):
         entry = self.hass.config_entries.async_get_entry(self._entry_id)
         loaded = entry is not None and entry.state is ConfigEntryState.LOADED
         coordinator = entry.runtime_data.local if entry and loaded else None
-        if coordinator is None:
+        # Only a Board Manager calibrates; a dartboard without Autodarts has none.
+        if not isinstance(coordinator, AutodartsLocalCoordinator):
             return self.async_abort(reason="board_unavailable")
         try:
             await coordinator.async_recalibrate()

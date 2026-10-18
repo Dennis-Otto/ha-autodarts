@@ -44,11 +44,8 @@ from .coordinator import AutodartsDataUpdateCoordinator
 from .discovery import cloud_addresses
 from .errors import AutodartsApiError
 from .local_api import AutodartsLocalClient
-from .local_coordinator import (
-    ISSUES,
-    AutodartsLocalCoordinator,
-    AutodartsManualCoordinator,
-)
+from .local_coordinator import ISSUES, AutodartsLocalCoordinator
+from .manual_coordinator import AutodartsManualCoordinator
 from .online import async_setup_bridge
 from .repairs import address_title
 from .report import BoardReports
@@ -209,11 +206,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) ->
             or entry.data.get(CONF_NAME)
             or (device.name if device and device.name else "Autodarts Board")
         )
-    if runtime.local:
-        runtime.local.setup_generation = runtime.local.generation or 1
+    if isinstance(board := runtime.local, AutodartsLocalCoordinator):
+        board.setup_generation = board.generation or 1
         # An unknown generation keeps the entities and their customizations.
-        if runtime.local.generation is not None:
-            _remove_other_generation(hass, entry, runtime.local.board_manager_2)
+        if board.generation is not None:
+            _remove_other_generation(hass, entry, board.board_manager_2)
     # Moments of online matches arrive as board events, if switched on.
     runtime.bridge = await async_setup_bridge(hass, entry, runtime.local)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

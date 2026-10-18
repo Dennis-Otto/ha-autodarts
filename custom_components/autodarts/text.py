@@ -8,7 +8,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
 from .entity import AutodartsStoredEntity
-from .local_coordinator import AutodartsLocalCoordinator
+from .games_coordinator import AutodartsGamesCoordinator
 from .practice import PARTY_PLAYERS
 from .profiles import NAME_LENGTH, clean_name
 from .runtime import AutodartsConfigEntry
@@ -42,7 +42,7 @@ class AutodartsPlayerName(AutodartsStoredEntity, TextEntity):
     _attr_native_min = 0
     _attr_native_max = NAME_LENGTH
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, index: int) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, index: int) -> None:
         super().__init__(coordinator, f"practice_player_{index + 1}")
         self._attr_translation_key = "practice_player"
         self._attr_translation_placeholders = {"number": str(index + 1)}
@@ -73,7 +73,7 @@ class AutodartsTournamentPlayers(AutodartsStoredEntity, TextEntity):
     _attr_native_min = 0
     _attr_native_max = 255
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "tournament_players")
 
     @property

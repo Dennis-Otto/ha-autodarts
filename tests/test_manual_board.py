@@ -1,12 +1,14 @@
 """A dartboard without Autodarts: set up without a board, every dart entered in
 Home Assistant, with the games, the training and the statistics of a board."""
 
+from contextlib import suppress
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 from homeassistant.config_entries import SOURCE_RECONFIGURE, SOURCE_USER
 from homeassistant.data_entry_flow import FlowResultType, InvalidData
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
@@ -18,7 +20,10 @@ from pytest_homeassistant_custom_component.common import (
 from custom_components.autodarts.config_flow import AutodartsConfigFlow
 from custom_components.autodarts.const import DISCOVERY_URL
 from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.local_coordinator import (
+from custom_components.autodarts.games_coordinator import AutodartsGamesCoordinator
+from custom_components.autodarts.local_api import AutodartsLocalClient
+from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
+from custom_components.autodarts.manual_coordinator import (
     MANUAL_STATE,
     AutodartsManualCoordinator,
 )
@@ -225,15 +230,55 @@ async def test_manual_entry_stays_on_after_a_restart(hass, hass_storage):
     assert value(hass, "sensor", "practice_remaining") == "281"
 
 
-async def test_nothing_on_a_dartboard_without_autodarts_can_be_controlled(hass):
+async def test_a_dartboard_without_autodarts_has_no_transport(hass):
     entry = await setup_manual(hass)
     coordinator = entry.runtime_data.local
-    with pytest.raises(HomeAssistantError) as error:
-        await coordinator.async_recalibrate()
-    assert error.value.translation_key == "no_board_manager"
-    with pytest.raises(HomeAssistantError):
-        assert coordinator.client
-    assert coordinator._stream_task is None
+    # It plays the games beside the board's coordinator, not as a board whose
+    # transport is switched off: there is nothing on it to control.
+    assert isinstance(coordinator, AutodartsGamesCoordinator)
+    assert not isinstance(coordinator, AutodartsLocalCoordinator)
+    for name in ("client", "async_action", "async_recalibrate", "readings", "topics"):
+        assert not hasattr(coordinator, name), name
+
+
+async def test_no_code_of_a_dartboard_without_autodarts_reaches_a_client(
+    hass, aioclient_mock
+):
+    # A client of a Board Manager, made anywhere from here on, fails the test.
+    with patch.object(
+        AutodartsLocalClient, "__init__", side_effect=AssertionError("a client")
+    ):
+        entry = await setup_manual(hass)
+        await act(hass, "start_game", game="501", players=["Alex", "Sam"])
+        await act(hass, "throw_dart", segment="T20")
+        await act(hass, "correct_dart", dart=1, segment="T19")
+        await act(hass, "next_player")
+        await act(hass, "enter_visit", score=60)
+        await act(hass, "undo_visit")
+        # Every button and switch of the board, once on and once off; the
+        # games may refuse one, such as a tournament without players.
+        entity_ids = [
+            item.entity_id
+            for item in er.async_entries_for_config_entry(
+                er.async_get(hass), entry.entry_id
+            )
+        ]
+        for entity_id in entity_ids:
+            domain = entity_id.split(".")[0]
+            services = {"button": ("press",), "switch": ("turn_off", "turn_on")}
+            for service in services.get(domain, ()):
+                with suppress(ServiceValidationError):
+                    await hass.services.async_call(
+                        domain, service, {"entity_id": entity_id}, blocking=True
+                    )
+        await hass.async_block_till_done()
+        await async_get_config_entry_diagnostics(hass, entry)
+        await entry.runtime_data.local.async_refresh()
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(minutes=5))
+        assert await hass.config_entries.async_reload(entry.entry_id)
+        await hass.async_block_till_done()
+        assert await hass.config_entries.async_unload(entry.entry_id)
+    assert not aioclient_mock.mock_calls
 
 
 async def test_diagnostics_of_a_dartboard_without_autodarts(hass):

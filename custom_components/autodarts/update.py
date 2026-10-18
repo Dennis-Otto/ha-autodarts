@@ -6,7 +6,7 @@ from homeassistant.components.update import UpdateDeviceClass, UpdateEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsBoardEntity
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 
@@ -19,11 +19,14 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data.local
-    if coordinator and coordinator.board_manager_2:
+    if (
+        isinstance(coordinator, AutodartsLocalCoordinator)
+        and coordinator.board_manager_2
+    ):
         async_add_entities([AutodartsBoardUpdate(coordinator)])
 
 
-class AutodartsBoardUpdate(AutodartsLocalEntity, UpdateEntity):
+class AutodartsBoardUpdate(AutodartsBoardEntity, UpdateEntity):
     """Installing stays on the board PC (`autodarts update`); HA shows the news."""
 
     _attr_device_class = UpdateDeviceClass.FIRMWARE

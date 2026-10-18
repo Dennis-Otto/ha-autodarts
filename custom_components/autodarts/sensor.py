@@ -40,12 +40,14 @@ from .const import (
 )
 from .coordinator import AutodartsDataUpdateCoordinator
 from .entity import (
+    AutodartsBoardEntity,
     AutodartsEntity,
     AutodartsLocalEntity,
     AutodartsStoredEntity,
     async_track_cameras,
     camera_count,
 )
+from .games_coordinator import AutodartsGamesCoordinator
 from .local_coordinator import AutodartsLocalCoordinator
 from .online import SENSOR_KEY as ONLINE_SENSOR_KEY
 from .online import OnlineBridge
@@ -416,11 +418,6 @@ async def async_setup_entry(
             for description in STATIC_SENSORS
             if description.key in board_keys
         )
-        if runtime.local.board_manager_2:
-            entities.extend(
-                AutodartsLocalSensor(runtime.local, description)
-                for description in SYSTEM_SENSORS
-            )
         entities.extend(
             (
                 AutodartsVisitSensor
@@ -428,12 +425,25 @@ async def async_setup_entry(
                 else AutodartsLocalSensor
             )(runtime.local, description)
             for description in LOCAL_SENSORS
-            if not (runtime.local.manual_board and description.key == "detection_fps")
+            if not description.telemetry
         )
+        # Only a Board Manager reports its readings.
+        if isinstance(board := runtime.local, AutodartsLocalCoordinator):
+            if board.board_manager_2:
+                entities.extend(
+                    AutodartsBoardSensor(board, description)
+                    for description in SYSTEM_SENSORS
+                )
+            entities.extend(
+                AutodartsBoardSensor(board, description)
+                for description in LOCAL_SENSORS
+                if description.telemetry
+            )
         if runtime.bridge:
             entities.append(AutodartsOnlineBridgeSensor(runtime.local, runtime.bridge))
     async_add_entities(entities)
-    if coordinator := runtime.local:
+    # A dartboard without Autodarts has no cameras.
+    if isinstance(coordinator := runtime.local, AutodartsLocalCoordinator):
         async_track_cameras(
             entry, coordinator, partial(_camera_sensor, coordinator), async_add_entities
         )
@@ -617,25 +627,22 @@ SYSTEM_SENSORS = (
 )
 
 
-class AutodartsLocalSensor(AutodartsLocalEntity, SensorEntity):
+class AutodartsLocalSensor[
+    CoordinatorT: AutodartsGamesCoordinator = AutodartsGamesCoordinator
+](AutodartsLocalEntity[CoordinatorT], SensorEntity):
     entity_description: AutodartsSensorEntityDescription
 
     def __init__(
         self,
-        coordinator: AutodartsLocalCoordinator,
+        coordinator: CoordinatorT,
         description: AutodartsSensorEntityDescription,
     ) -> None:
         super().__init__(coordinator, description.key)
         self.entity_description = description
         self._attr_translation_key = description.translation_key
-        if description.telemetry:
-            # Updated by every poll, without the other entities of the board.
-            self._topic = Topic.TELEMETRY
 
     def _values(self) -> dict[str, Any]:
-        """The readings for a frame rate or the load, otherwise the data."""
-        if self.entity_description.telemetry:
-            return self.coordinator.readings
+        """The data that the value and the attributes are read from."""
         return self.coordinator.data or {}
 
     @property
@@ -650,7 +657,29 @@ class AutodartsLocalSensor(AutodartsLocalEntity, SensorEntity):
         return super().extra_state_attributes
 
 
-class AutodartsCameraSensor(AutodartsLocalSensor):
+class AutodartsBoardSensor(
+    AutodartsBoardEntity, AutodartsLocalSensor[AutodartsLocalCoordinator]
+):
+    """A sensor of the Board Manager, such as a frame rate, the load or the host."""
+
+    def __init__(
+        self,
+        coordinator: AutodartsLocalCoordinator,
+        description: AutodartsSensorEntityDescription,
+    ) -> None:
+        super().__init__(coordinator, description)
+        if description.telemetry:
+            # Updated by every poll, without the other entities of the board.
+            self._topic = Topic.TELEMETRY
+
+    def _values(self) -> dict[str, Any]:
+        """The readings for a frame rate or the load, otherwise the data."""
+        if self.entity_description.telemetry:
+            return self.coordinator.readings
+        return super()._values()
+
+
+class AutodartsCameraSensor(AutodartsBoardSensor):
     """A per-camera value; the camera number lets cards group its entities."""
 
     def __init__(
@@ -678,7 +707,7 @@ class AutodartsVisitSensor(AutodartsLocalSensor):
 
     def __init__(
         self,
-        coordinator: AutodartsLocalCoordinator,
+        coordinator: AutodartsGamesCoordinator,
         description: AutodartsSensorEntityDescription,
     ) -> None:
         super().__init__(coordinator, description)
@@ -718,7 +747,7 @@ class AutodartsVisitSensor(AutodartsLocalSensor):
 class AutodartsTrainingSensor(AutodartsStoredEntity, SensorEntity):
     """Locally stored session totals remain readable while the board is offline."""
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, key: str) -> None:
         super().__init__(coordinator, f"training_{key}")
         self._key = key
         self._attr_native_unit_of_measurement = TRAINING_UNITS.get(key)
@@ -783,7 +812,7 @@ class AutodartsLastSessionSensor(AutodartsStoredEntity, SensorEntity):
     # The session list is for cards; the recorder keeps one value per session.
     _unrecorded_attributes = frozenset({"sessions"})
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "training_last_session")
 
     @property
@@ -810,7 +839,7 @@ class AutodartsPracticeSensor(AutodartsStoredEntity, SensorEntity):
         {"visit", "legs", "scores", "results", "summary"}
     )
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, key: str) -> None:
         super().__init__(coordinator, f"practice_{key}")
         self._key = key
 
@@ -857,7 +886,7 @@ PRACTICE_STATISTICS = {
 class AutodartsPracticeStatistic(AutodartsStoredEntity, SensorEntity):
     """First-9 average, checkout and doubles rate of the last ten legs."""
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, key: str) -> None:
         super().__init__(coordinator, f"practice_{key}")
         self._key = key
         self._attr_native_unit_of_measurement = PRACTICE_STATISTICS[key]
@@ -897,7 +926,7 @@ class RevisionCache:
 
     def get(
         self,
-        coordinator: AutodartsLocalCoordinator,
+        coordinator: AutodartsGamesCoordinator,
         compute: Callable[[], dict[str, Any]],
         *changes: object,
     ) -> dict[str, Any]:
@@ -921,7 +950,7 @@ class AutodartsPersonalBest(AutodartsRecordsEntity):
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "personal_best")
 
     @property
@@ -945,7 +974,7 @@ class AutodartsDailyDarts(AutodartsRecordsEntity):
     _attr_native_unit_of_measurement = "darts"
     _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "darts_today")
 
     @property
@@ -966,7 +995,7 @@ class AutodartsStreak(AutodartsRecordsEntity):
     _attr_native_unit_of_measurement = UnitOfTime.DAYS
     _attr_state_class = SensorStateClass.MEASUREMENT
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "training_streak")
 
     @property
@@ -988,7 +1017,7 @@ class AutodartsPlayerProfiles(AutodartsStoredEntity, SensorEntity):
     _unrecorded_attributes = frozenset({"players"})
     _attr_native_unit_of_measurement = "players"
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "player_profiles")
         self._cache = RevisionCache()
 
@@ -1021,7 +1050,7 @@ class AutodartsDoubles(AutodartsStoredEntity, SensorEntity):
 
     _unrecorded_attributes = frozenset({"doubles", "landed"})
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "favourite_double")
 
     @property
@@ -1046,7 +1075,7 @@ class AutodartsLastMatch(AutodartsStoredEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
     _unrecorded_attributes = frozenset({"matches", "head_to_head"})
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "last_match")
         self._cache = RevisionCache()
 
@@ -1085,7 +1114,7 @@ class AutodartsTournament(AutodartsStoredEntity, SensorEntity):
         {"fixtures", "standings", "bracket", "current", "next", "last_result"}
     )
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "tournament")
 
     @property
@@ -1105,7 +1134,7 @@ class AutodartsCorrectionRate(AutodartsLocalEntity, SensorEntity):
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_suggested_display_precision = 1
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "correction_rate")
 
     @property
@@ -1125,7 +1154,7 @@ class AutodartsOnlineBridgeSensor(AutodartsStoredEntity, RestoreEntity, SensorEn
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
-        self, coordinator: AutodartsLocalCoordinator, bridge: OnlineBridge
+        self, coordinator: AutodartsGamesCoordinator, bridge: OnlineBridge
     ) -> None:
         super().__init__(coordinator, ONLINE_SENSOR_KEY)
         self._bridge = bridge
@@ -1164,7 +1193,7 @@ class AutodartsWeeklyReport(AutodartsStoredEntity, SensorEntity):
     _attr_state_class = SensorStateClass.TOTAL
     _unrecorded_attributes = frozenset({"personal_bests", "last_week"})
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "weekly_report")
 
     @property
@@ -1187,7 +1216,7 @@ class AutodartsAchievements(AutodartsStoredEntity, SensorEntity):
     _attr_native_unit_of_measurement = "badges"
     _unrecorded_attributes = frozenset({"catalogue", "players"})
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "achievements")
         self._cache = RevisionCache()
 

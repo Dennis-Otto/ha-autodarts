@@ -13,7 +13,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .bot import MAX_DELAY, MAX_LEVEL, MIN_LEVEL, valid_level
 from .const import DOMAIN
 from .entity import AutodartsStoredEntity
-from .local_coordinator import AutodartsLocalCoordinator
+from .games_coordinator import AutodartsGamesCoordinator
 from .party import GOTCHA_TARGETS, MAX_ROUNDS
 from .practice import (
     MAX_LEGS,
@@ -95,7 +95,7 @@ class AutodartsIdleTimeout(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "training_idle_timeout")
 
     @property
@@ -116,7 +116,7 @@ class AutodartsDailyGoal(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 10
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "training_daily_goal")
 
     @property
@@ -135,7 +135,7 @@ class AutodartsPracticeNumber(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, key: str) -> None:
         super().__init__(coordinator, key)
         self._key = key
         self._attr_native_max_value = PRACTICE_NUMBERS[key]
@@ -172,7 +172,7 @@ class AutodartsStartScore(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, index: int) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, index: int) -> None:
         super().__init__(coordinator, f"practice_start_{index + 1}")
         self._attr_translation_key = "practice_start"
         self._attr_translation_placeholders = {"number": str(index + 1)}
@@ -207,7 +207,7 @@ class AutodartsMaxRounds(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_max_rounds")
 
     @property
@@ -227,7 +227,7 @@ class AutodartsCountUpRounds(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_count_up_rounds")
 
     @property
@@ -247,7 +247,7 @@ class AutodartsGotchaTarget(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_gotcha_target")
 
     @property
@@ -269,7 +269,7 @@ class AutodartsTournamentSeconds(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, key: str) -> None:
         super().__init__(coordinator, f"tournament_{key}")
         self._key = key
         self._attr_native_max_value = MAX_PAUSE if key == "pause" else MAX_SUMMARY
@@ -296,7 +296,7 @@ class AutodartsBotLevel(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 1
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_bot_level")
 
     @property
@@ -327,7 +327,7 @@ class AutodartsBotDelay(AutodartsStoredEntity, NumberEntity):
     _attr_native_step = 0.5
     _attr_mode = NumberMode.BOX
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_bot_delay")
 
     @property

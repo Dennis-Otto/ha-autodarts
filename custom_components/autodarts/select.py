@@ -9,7 +9,8 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES
-from .entity import AutodartsLocalEntity, AutodartsStoredEntity
+from .entity import AutodartsBoardEntity, AutodartsStoredEntity
+from .games_coordinator import AutodartsGamesCoordinator
 from .local_api import STANDBY_MINUTES
 from .local_coordinator import AutodartsLocalCoordinator
 from .party import GOLF_HOLES, WORLD_ORDERS
@@ -30,7 +31,9 @@ async def async_setup_entry(
     if coordinator := entry.runtime_data.local:
         # A dartboard without Autodarts has no cameras to send to standby.
         standby = (
-            [] if coordinator.manual_board else [AutodartsStandbySelect(coordinator)]
+            [AutodartsStandbySelect(coordinator)]
+            if isinstance(coordinator, AutodartsLocalCoordinator)
+            else []
         )
         async_add_entities(
             [
@@ -49,7 +52,7 @@ async def async_setup_entry(
         )
 
 
-class AutodartsStandbySelect(AutodartsLocalEntity, SelectEntity):
+class AutodartsStandbySelect(AutodartsBoardEntity, SelectEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_options = [str(value) for value in STANDBY_MINUTES]
 
@@ -76,7 +79,7 @@ class AutodartsPracticeGame(AutodartsStoredEntity, SelectEntity):
 
     _attr_options = ["off", *GAME_OPTIONS]
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_game")
 
     @property
@@ -118,7 +121,7 @@ class AutodartsX01Rule(AutodartsStoredEntity, SelectEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, rule: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, rule: str) -> None:
         super().__init__(coordinator, f"practice_{rule}")
         self._rule = rule
         self._attr_options = list(BULL_MODES if rule == "bull_mode" else MODES)
@@ -144,7 +147,7 @@ class AutodartsGolfHoles(AutodartsStoredEntity, SelectEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_options = [str(holes) for holes in GOLF_HOLES]
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_golf_holes")
 
     @property
@@ -162,7 +165,7 @@ class AutodartsWorldOrder(AutodartsStoredEntity, SelectEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_options = list(WORLD_ORDERS)
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_round_the_world_order")
 
     @property
@@ -179,7 +182,7 @@ class AutodartsReportDay(AutodartsStoredEntity, SelectEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_options = list(WEEKDAYS)
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "weekly_report_day")
 
     @property
@@ -196,7 +199,7 @@ class AutodartsTournamentSelect(AutodartsStoredEntity, SelectEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, key: str) -> None:
         super().__init__(coordinator, f"tournament_{key}")
         self._key = key
         self._attr_options = list(FORMATS if key == "format" else TOURNAMENT_GAMES)
