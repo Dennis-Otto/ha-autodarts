@@ -53,7 +53,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Match-Zusammenfassung** | Die Zahlen jedes Spielers nach einem Match: Averages, Checkout-Quote, höchster Checkout, 180er und bestes Leg | Match summary |
 | **Bot** | Ein Computerspieler für X01 und die Cricket-Spiele; seine Stärke ist der 3-Dart-Average, den er spielt | Bot |
 | **Von Hand eingegebene Darts** | Darts, die in Home Assistant hinzugefügt werden, mit dem Tastenfeld der Anzeigetafel oder einer Aktion, als hätte das Board sie erkannt | Darts entered by hand |
-| **Turnier** | Drei bis 32 Spieler, jeder gegen jeden, im K.-o.-System, im Doppel-K.-o.-System oder in Gruppen mit K.-o.-System, ein Match nach dem anderen | Tournament |
+| **Turnier** | Drei bis 32 Spieler, jeder gegen jeden, im K.-o.-System, im Doppel-K.-o.-System oder in Gruppen mit K.-o.-System, an einem Board oder auf mehreren Boards zugleich | Tournament |
 | **Doppel-K.-o.-System** | Ein Turnier, in dem ein Spieler nach dem zweiten verlorenen Match ausscheidet: Die Verliererrunde gibt eine zweite Chance, das große Finale entscheidet | Double elimination |
 | **Jeder gegen jeden** | Alle spielen einmal gegeneinander; eine Tabelle ordnet die Spieler | Round robin |
 | **K.-o.-System** | Die Sieger kommen über einen Turnierbaum bis ins Finale weiter | Knockout |

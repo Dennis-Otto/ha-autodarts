@@ -3447,6 +3447,8 @@ function tournamentView(state) {
     total: finite(attributes.matches_total) ?? 0,
     current: tournamentMatch(attributes.current),
     next: tournamentMatch(attributes.next),
+    // False while the board waits for a match another board still plays.
+    nextReady: attributes.next_ready !== false,
     last: tournamentMatch(attributes.last_result),
     nextAt: Number.isFinite(nextAt) ? nextAt : null,
     pause: finite(attributes.pause) ?? 0,
@@ -3707,7 +3709,7 @@ function tournamentNextUp(view, ui) {
       ui.avatar(second)
     )}</span>` +
     `<span class="countdown" role="timer"></span>` +
-    (ui.startNow
+    (ui.startNow && view.nextReady
       ? `<button type="button" class="start-next" data-tournament="next">${escapeHtml(t("tournament_start_now"))}</button>`
       : "") +
     `</div>`
@@ -3717,6 +3719,7 @@ function tournamentNextUp(view, ui) {
 // When the next match starts: in a few seconds, after the takeout, or when asked.
 function tournamentCountdown(view, now, t) {
   if (view.status !== "waiting") return "";
+  if (!view.nextReady) return t("tournament_board_free");
   if (!view.pause || view.nextAt === null) return t("tournament_on_request");
   const seconds = Math.min(Math.max(Math.ceil((view.nextAt - now) / 1000), 0), view.pause);
   if (!seconds) return t("tournament_after_takeout");

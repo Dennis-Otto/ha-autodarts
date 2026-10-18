@@ -135,8 +135,11 @@ def test_the_table_takes_the_results_of_every_board():
     seen = guest.tournament_snapshot()
     assert seen["status"] == WAITING and seen["next_at"] is None
     assert seen["last_result"]["winner"] == "Kim"
-    # Nothing to play for this board yet: the first match still to play shows.
-    assert seen["round"] == 1 and seen["next"]["players"] == ["Alex", "Lea"]
+    # Nothing to play for this board yet: not the match the other board plays,
+    # but the first one no board plays yet, which it cannot start now.
+    assert seen["round"] == 2 and seen["next"]["players"] != ["Alex", "Lea"]
+    assert seen["next_ready"] is False
+    assert host.tournament_snapshot()["next_ready"] is False
     announced = visit(host, *CHECKOUT)
     assert fired(announced, "tournament_match_finished")[0]["next"] == [
         "Kim",
@@ -146,6 +149,9 @@ def test_the_table_takes_the_results_of_every_board():
         row["name"]: row["points"] for row in host.tournament_snapshot()["standings"]
     }
     assert table == {"Alex": 2, "Kim": 2, "Lea": 0, "Sam": 0}
+    # Now every board has a match it can start.
+    assert guest.tournament_snapshot()["next_ready"] is True
+    assert host.tournament_snapshot()["next_ready"] is True
     assert (
         guest.tournament_snapshot()["standings"]
         == host.tournament_snapshot()["standings"]
@@ -359,6 +365,22 @@ def test_boards_find_each_other_again_after_a_restart():
     # The other board unloads: the board of the tournament loses sight of it.
     assert back.leave() == [again]
     assert again.guests == {} and back.host is None
+
+
+def test_a_board_that_plays_for_another_board_gives_its_match_back():
+    host, guest = boards()
+    start(host, guest)
+    saved = host.stored()
+    host.leave()
+    # Meanwhile, the other board joined a tournament held by a third board.
+    third = games("board-3")
+    start(third, guest)
+    assert guest.host is third
+    again = games("board-1")
+    again.restore(saved, NOW)
+    assert not again.attach(guest)
+    assert again.tournament.tournament.seats[1].match is None
+    assert guest.host is third
 
 
 def test_a_board_that_plays_a_tournament_of_its_own_gives_its_match_back():

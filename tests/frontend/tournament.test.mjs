@@ -237,6 +237,8 @@ test("stages, labels and the countdown read as players say them", () => {
   assert.equal(tournamentCountdown({ ...view, pause: 600, nextAt: NOW + 600000 }, NOW, t), "starts in 10:00 min");
   assert.equal(tournamentCountdown({ ...view, nextAt: null }, NOW, t), "starts with Next tournament match");
   assert.equal(tournamentCountdown({ ...view, status: "playing" }, NOW, t), "");
+  // A board that waits for a match another board still plays.
+  assert.equal(tournamentCountdown({ ...view, nextReady: false }, NOW, t), "tournament_board_free");
 });
 
 test("the caller follows the matches of a tournament and names the champion", () => {
@@ -366,6 +368,12 @@ test("between matches the round robin shows who plays next and the table", () =>
   assert.equal(page.querySelector(".pairing").textContent, "Alextournament_vsKim");
   assert.equal(page.querySelector(".pairing .avatar").getAttribute("src"), "/api/image/serve/alex/512x512");
   assert.equal(page.querySelector(".start-next").dataset.tournament, "next");
+  assert.equal(view.nextReady, true);
+  // Nothing this board can start yet: no button.
+  const waits = tournamentView({ state: "round_2", attributes: { ...ROUND_ROBIN, next_ready: false } });
+  assert.equal(waits.nextReady, false);
+  const idle = new window.DOMParser().parseFromString(tournamentHtml(waits, ui({ startNow: true })).main, "text/html");
+  assert.equal(idle.querySelector(".start-next"), null);
   assert.deepEqual(
     [...page.querySelectorAll(".standings tbody tr")].map((line) => [
       line.className,

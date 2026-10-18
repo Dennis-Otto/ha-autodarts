@@ -1121,6 +1121,7 @@ class AutodartsTournament(AutodartsStoredEntity, SensorEntity):
             "losers_bracket",
             "current",
             "next",
+            "next_ready",
             "last_result",
             "boards",
             "ends_at",

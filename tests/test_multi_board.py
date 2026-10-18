@@ -302,6 +302,36 @@ async def test_a_deleted_board_gives_its_match_back(hass, board_and_dartboard):
     assert seats[1].match is None
 
 
+async def test_a_board_deleted_while_the_other_plays_on_gives_its_match_back(
+    hass, board_and_dartboard, freezer
+):
+    entry, dartboard = board_and_dartboard
+    await start_on_both(hass, entry, dartboard)
+    assert await hass.config_entries.async_remove(dartboard.entry_id)
+    await hass.async_block_till_done()
+    host = entry.runtime_data.local
+    assert host.games.tournament.tournament.seats[1].match is None
+    # The board of the tournament plays the match of the deleted board next.
+    await throw(hass, host, *CHECKOUT)
+    await pause(hass, freezer)
+    assert players(hass) == ["Kim", "Sam"]
+
+
+async def test_a_deleted_board_of_the_tournament_hands_its_boards_back(
+    hass, board_and_dartboard
+):
+    entry, dartboard = board_and_dartboard
+    cellar = dartboard.runtime_data.local
+    await start_on_both(hass, entry, dartboard)
+    await enter(hass, dartboard, "T20", "S1", "D20")
+    assert cellar.games.practice.hold
+    assert await hass.config_entries.async_remove(entry.entry_id)
+    await hass.async_block_till_done()
+    # The dartboard plays again, with its settings from before the tournament.
+    assert cellar.games.host is None and not cellar.games.practice.hold
+    assert cellar.games.practice.resume is not None
+
+
 async def test_the_boards_of_the_action_are_checked(hass, board_and_dartboard):
     entry, dartboard = board_and_dartboard
     with pytest.raises(ServiceValidationError) as error:

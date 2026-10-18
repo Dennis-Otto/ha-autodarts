@@ -48,7 +48,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 - X01 von 101 bis 1001 mit Straight, Double und Master In und Out, dem 50/50-Bull, einer Rundengrenze und dem Checkout-Weg nach jedem Dart
 - Cricket, Cut-Throat Cricket, Tactics, Wild Mouse, Random Cricket und Hidden Cricket auf einer Kreidetafel
 - Partyspiele für bis zu acht: Shanghai, Halve-It, Killer, Golf, Baseball, Count-Up, Bermuda, Round the World und Gotcha
-- Turniere mit drei bis 32 Spielern: jeder gegen jeden mit Tabelle, K.-o.-System, Doppel-K.-o.-System oder Gruppen mit K.-o.-System, mit ihren Turnierbäumen
+- Turniere mit drei bis 32 Spielern: jeder gegen jeden mit Tabelle, K.-o.-System, Doppel-K.-o.-System oder Gruppen mit K.-o.-System, mit ihren Turnierbäumen, an einem Board oder auf mehreren Boards zugleich
 
 <details>
 <summary>Matches, der Bot, Korrekturen und mehr</summary>

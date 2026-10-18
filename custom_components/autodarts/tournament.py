@@ -1506,10 +1506,23 @@ class TournamentDirector:
         assert tournament is not None
         index = tournament.seats[number].match
         if index is None:
-            index = tournament.next_for(number)
+            index = self._waits_for(number)
         if index is None:
             index = tournament.upcoming()
         assert index is not None
+        return index
+
+    def _waits_for(self, number: int) -> int | None:
+        """The match a board without one takes next: the first it can take, or
+        else the first one still to play that no other board plays, its
+        players possibly still open; None when the other boards play the
+        rest."""
+        tournament = self.tournament
+        assert tournament is not None
+        index = tournament.next_for(number)
+        if index is None:
+            taken = {seat.match for seat in tournament.seats if seat.match is not None}
+            index = tournament.after(-1, taken)
         return index
 
     def state(self, board: str | None = None) -> str:
@@ -1539,9 +1552,10 @@ class TournamentDirector:
         current = None if finished else tournament.seats[number].match
         upcoming = None if finished else self._shown(number)
         taken = {seat.match for seat in tournament.seats if seat.match is not None}
-        following = (
-            tournament.after(current, taken) if current is not None else upcoming
-        )
+        if current is not None:
+            following = tournament.after(current, taken)
+        else:
+            following = None if finished else self._waits_for(number)
         last = tournament.last_played(number if tournament.several else None)
         due = self._due_at(number)
         numbers = tournament.numbers()
@@ -1566,6 +1580,13 @@ class TournamentDirector:
             "matches_total": len(numbers),
             "current": tournament.match(current, numbers),
             "next": tournament.match(following, numbers),
+            # Whether the board can start its next match now; False while it
+            # waits for a match another board still plays.
+            "next_ready": (
+                not finished
+                and current is None
+                and tournament.next_for(number) is not None
+            ),
             "last_result": tournament.match(last, numbers),
             "pause": self.setup.pause,
             "summary": self.setup.summary,

@@ -553,11 +553,11 @@ class BoardGames:
             games is self
             or games.key not in director.guests()
             or games.key in self.guests
-            or games.host is not None
         ):
             return False
-        if games.tournament.running:
-            # The board left for a tournament of its own: others play its match.
+        if games.tournament.running or games.host is not None:
+            # The board left for a tournament of its own, or of another board:
+            # others play its match.
             director.vacate(games.key)
             return False
         self.guests[games.key] = games

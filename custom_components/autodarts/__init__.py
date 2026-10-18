@@ -43,6 +43,7 @@ from .const import (
 from .coordinator import AutodartsDataUpdateCoordinator
 from .discovery import cloud_addresses
 from .errors import AutodartsApiError
+from .games_coordinator import board_deleted
 from .local_api import AutodartsLocalClient
 from .local_coordinator import ISSUES, AutodartsLocalCoordinator
 from .manual_coordinator import AutodartsManualCoordinator
@@ -288,8 +289,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -
 
 async def async_remove_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> None:
     """Deleting the integration also deletes its local training session, and
-    deleting its last board the dashboard resources of the cards."""
-    await TrainingStore(hass, entry.entry_id).async_remove()
+    deleting its last board the dashboard resources of the cards. The other
+    boards of a tournament on several boards play on without it."""
+    store = TrainingStore(hass, entry.entry_id)
+    board_deleted(hass, entry.entry_id, await store.async_load())
+    await store.async_remove()
     await BoardReports.async_remove(hass, entry.entry_id)
     _delete_issues(hass, entry)
     # An ignored board loads nothing; a disabled one can come back.

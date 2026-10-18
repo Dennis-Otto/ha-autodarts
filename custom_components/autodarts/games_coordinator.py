@@ -47,6 +47,7 @@ from .positions import Aim
 from .quality import RECALIBRATE_RATE, RECOVERED_RATE
 from .report import BoardReports
 from .storage import BoardStore
+from .tournament import TournamentDirector
 
 _LOGGER = logging.getLogger(__name__)
 # A tournament match that is due waits this long before it looks again whether
@@ -73,6 +74,28 @@ def _boards(hass: HomeAssistant) -> list[AutodartsGamesCoordinator]:
     return _coordinators(
         hass, [entry.entry_id for entry in hass.config_entries.async_entries(DOMAIN)]
     )
+
+
+@callback
+def board_deleted(hass: HomeAssistant, key: str, stored: object) -> None:
+    """A board deleted from Home Assistant leaves its tournaments on several
+    boards for good: a board it played matches for gives its match back for
+    another board, and the boards of the tournament it held, in `stored`, go
+    back to their practice settings."""
+    held = TournamentDirector()
+    held.restore(stored.get("tournament") if isinstance(stored, dict) else None)
+    guests = held.guests()
+    for board in _boards(hass):
+        games = board.games
+        if key in games.tournament.guests():
+            games.tournament.vacate(key)
+            board._moved()
+            board._schedule_fixture()
+        elif (
+            games.key in guests and games.host is None and not games.tournament.running
+        ):
+            held.release(games.practice, games.key)
+            board._moved()
 
 
 def _coordinators(
