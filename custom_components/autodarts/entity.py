@@ -12,12 +12,13 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import AutodartsDataUpdateCoordinator
+from .games_coordinator import AutodartsGamesCoordinator
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 from .topics import Topic
 
 
-def camera_count(coordinator: AutodartsLocalCoordinator) -> int:
+def camera_count(coordinator: AutodartsGamesCoordinator) -> int:
     """How many cameras the board has, as its settings report them; none
     before they are read."""
     count: int = (coordinator.data or {}).get("settings", {}).get("camera_count", 0)
@@ -35,10 +36,8 @@ def async_track_cameras(
     camera index, now and whenever the board reports more cameras.
 
     A camera the board no longer reports keeps its entities, which become
-    unavailable; a dartboard without Autodarts has no cameras.
+    unavailable.
     """
-    if coordinator.manual_board:
-        return
     known: set[int] = set()
 
     @callback
@@ -73,19 +72,26 @@ class AutodartsEntity(CoordinatorEntity[AutodartsDataUpdateCoordinator]):
         )
 
 
-class AutodartsLocalEntity(CoordinatorEntity[AutodartsLocalCoordinator]):
-    """All local entities remain independent of cloud availability."""
+class AutodartsLocalEntity[
+    CoordinatorT: AutodartsGamesCoordinator = AutodartsGamesCoordinator
+](CoordinatorEntity[CoordinatorT]):
+    """All local entities remain independent of cloud availability.
+
+    An entity of the games works with every board, a dartboard without
+    Autodarts as well. An entity of the Board Manager, an AutodartsBoardEntity,
+    has the board's AutodartsLocalCoordinator.
+    """
 
     _attr_has_entity_name = True
     # The readings the entity shows, see AutodartsLocalCoordinator.readings: a
     # change of them alone updates it without the other entities of the board.
     _topic: Topic | None = None
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+    def __init__(self, coordinator: CoordinatorT, key: str) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.board_id}_{key}"
         self._attr_translation_key = key
-        if coordinator.manual_board:
+        if not isinstance(coordinator, AutodartsLocalCoordinator):
             # A dartboard of any make, without a Board Manager to open.
             self._attr_device_info = DeviceInfo(
                 identifiers={(DOMAIN, coordinator.board_id)},
@@ -104,15 +110,26 @@ class AutodartsLocalEntity(CoordinatorEntity[AutodartsLocalCoordinator]):
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        if self._topic is not None:
+        coordinator = self.coordinator
+        # Only a Board Manager sends readings.
+        if self._topic is not None and isinstance(
+            coordinator, AutodartsLocalCoordinator
+        ):
             self.async_on_remove(
-                self.coordinator.topics.async_add_listener(
+                coordinator.topics.async_add_listener(
                     self._topic, self.async_write_ha_state
                 )
             )
 
 
-class AutodartsStoredEntity(AutodartsLocalEntity):
+class AutodartsBoardEntity(AutodartsLocalEntity[AutodartsLocalCoordinator]):
+    """An entity of the Board Manager, such as a camera, a control or a reading
+    of the detection; a dartboard without Autodarts has none."""
+
+
+class AutodartsStoredEntity[
+    CoordinatorT: AutodartsGamesCoordinator = AutodartsGamesCoordinator
+](AutodartsLocalEntity[CoordinatorT]):
     """An entity of what Home Assistant keeps itself, such as a setting, a game,
     a training session, a statistic or an online match: it stays available while
     the board is switched off or away."""

@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN
-from .local_coordinator import AutodartsLocalCoordinator
+from .games_coordinator import AutodartsGamesCoordinator
 from .profiles import NAME_LENGTH
 from .voices import PACK_LENGTH, async_voice_pack
 
@@ -23,13 +23,13 @@ def async_setup_websocket(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_voice_pack)
 
 
-def _board(hass: HomeAssistant, device_id: str) -> AutodartsLocalCoordinator | None:
+def _board(hass: HomeAssistant, device_id: str) -> AutodartsGamesCoordinator | None:
     """The local board of an Autodarts device, if it is loaded."""
     device = dr.async_get(hass).async_get(device_id)
     if device is None:
         return None
     for entry in hass.config_entries.async_entries(DOMAIN):
-        local: AutodartsLocalCoordinator | None = (
+        local: AutodartsGamesCoordinator | None = (
             entry.runtime_data.local if entry.state is ConfigEntryState.LOADED else None
         )
         if local and (DOMAIN, local.board_id) in device.identifiers:

@@ -36,7 +36,7 @@ from .const import CONF_BOARD_ID, DOMAIN
 from .profiles import clean_name
 
 if TYPE_CHECKING:
-    from .local_coordinator import AutodartsLocalCoordinator
+    from .games_coordinator import AutodartsGamesCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -285,7 +285,7 @@ class OnlineBridge:
         self,
         hass: HomeAssistant,
         entry: ConfigEntry,
-        coordinator: AutodartsLocalCoordinator,
+        coordinator: AutodartsGamesCoordinator,
     ) -> None:
         self.hass = hass
         self._entry = entry
@@ -412,7 +412,7 @@ class OnlineBridge:
 async def async_setup_bridge(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    coordinator: AutodartsLocalCoordinator | None,
+    coordinator: AutodartsGamesCoordinator | None,
 ) -> OnlineBridge | None:
     """Open the webhook when the bridge is on; the board events deliver its moments."""
     if not (

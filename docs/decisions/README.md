@@ -27,4 +27,5 @@ Copy [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/d
 | [0015](0015-voice-packs-in-the-file-names-of-darts-caller.md) | Give the callers voice packs in the file names of darts-caller | accepted |
 | [0016](0016-a-game-engine-without-home-assistant.md) | Run the games in an engine without Home Assistant, apart from the connection to the board | accepted |
 | [0017](0017-modules-in-the-dashboard-resources-for-cast.md) | Keep the modules of the cards in the dashboard resources, for Home Assistant Cast | accepted |
+| [0018](0018-a-dartboard-without-autodarts-beside-the-board.md) | Play a dartboard without Autodarts beside the board, without a transport | accepted |
 | [0019](0019-card-texts-per-language.md) | Give each language of the cards a module of its own, in a folder of the version | accepted |

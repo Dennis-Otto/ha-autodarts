@@ -5,6 +5,7 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.core import HomeAssistant
 
+from .games_coordinator import AutodartsGamesCoordinator
 from .local_coordinator import AutodartsLocalCoordinator
 from .practice import OPTIONS, X01_RULES
 from .runtime import AutodartsConfigEntry
@@ -19,6 +20,8 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     runtime = entry.runtime_data
     local = runtime.local
+    # The Board Manager's connection; a dartboard without Autodarts has none.
+    board = local if isinstance(local, AutodartsLocalCoordinator) else None
     return {
         "entry": {
             "version": entry.version,
@@ -27,14 +30,14 @@ async def async_get_config_entry_diagnostics(
         "local": async_redact_data(local.data if local else None, TO_REDACT),
         # The motion flags, the cameras' state, frame rates and the board PC's load.
         "local_readings": async_redact_data(
-            local.readings if local else None, TO_REDACT
+            board.readings if board else None, TO_REDACT
         ),
         "local_available": bool(local and local.last_update_success),
         # Set up with a cloud client, not merely asked for one.
         "cloud_configured": runtime.cloud is not None,
         "cloud_available": bool(runtime.cloud and runtime.cloud.last_update_success),
-        "realtime_connected": bool(local and local.stream_connected),
-        "board_manager_generation": local.generation if local else None,
+        "realtime_connected": bool(board and board.stream_connected),
+        "board_manager_generation": board.generation if board else None,
         "training_sessions": (
             {
                 "active": local.games.training.active,
@@ -80,7 +83,10 @@ async def async_get_config_entry_diagnostics(
             else None
         ),
         # Counts, kinds of errors and durations only; no addresses or messages.
-        "connection": local.diagnostics() if local else None,
+        # A dartboard without Autodarts connects to nothing.
+        "connection": (
+            board.diagnostics() if board else {"manual_board": True} if local else None
+        ),
         # Never the secret webhook address.
         "online_bridge": (
             runtime.bridge.diagnostics() if runtime.bridge else {"enabled": False}
@@ -88,7 +94,7 @@ async def async_get_config_entry_diagnostics(
     }
 
 
-def _progress(local: AutodartsLocalCoordinator) -> dict[str, Any]:
+def _progress(local: AutodartsGamesCoordinator) -> dict[str, Any]:
     """Whether achievements unlock, and how much progress is kept."""
     progress = local.games.progress
     players = progress.players.values()
@@ -103,7 +109,7 @@ def _progress(local: AutodartsLocalCoordinator) -> dict[str, Any]:
     }
 
 
-def _tournament(local: AutodartsLocalCoordinator) -> dict[str, Any]:
+def _tournament(local: AutodartsGamesCoordinator) -> dict[str, Any]:
     """The setup and the progress of the tournament; the players only as a number."""
     director = local.games.tournament
     setup = director.setup
@@ -129,7 +135,7 @@ def _tournament(local: AutodartsLocalCoordinator) -> dict[str, Any]:
     }
 
 
-def _practice(local: AutodartsLocalCoordinator) -> dict[str, Any]:
+def _practice(local: AutodartsGamesCoordinator) -> dict[str, Any]:
     """The game, its rules and its progress; the players only as a number."""
     practice = local.games.practice
     return {

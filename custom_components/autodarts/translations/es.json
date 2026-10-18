@@ -832,9 +832,6 @@
     "not_supported": {
       "message": "Esta diana no admite la acción."
     },
-    "no_board_manager": {
-      "message": "Esta diana no tiene Autodarts, así que no hay nada en ella que controlar."
-    },
     "export_folder": {
       "message": "La carpeta de exportación {folder} no puede estar oculta, y Home Assistant debe permitir escribir en ella: www, las carpetas multimedia y las carpetas de allowlist_external_dirs están permitidas."
     },

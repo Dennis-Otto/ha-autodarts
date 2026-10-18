@@ -8,7 +8,8 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .entity import AutodartsStoredEntity
-from .local_coordinator import EVENT_TYPES, AutodartsLocalCoordinator
+from .games_coordinator import AutodartsGamesCoordinator
+from .local_coordinator import EVENT_TYPES
 from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 0
@@ -26,7 +27,7 @@ async def async_setup_entry(
 class AutodartsBoardEvent(AutodartsStoredEntity, EventEntity):
     _attr_event_types = EVENT_TYPES
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "board_events")
 
     async def async_added_to_hass(self) -> None:

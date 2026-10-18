@@ -832,9 +832,6 @@
     "not_supported": {
       "message": "Cette cible ne prend pas en charge l'action."
     },
-    "no_board_manager": {
-      "message": "Cette cible n'a pas d'Autodarts\u00a0: il n'y a rien à y piloter."
-    },
     "export_folder": {
       "message": "Le dossier d'export {folder} ne doit pas être masqué, et Home Assistant doit y autoriser l'écriture\u00a0: www, les dossiers multimédias et les dossiers de allowlist_external_dirs sont autorisés."
     },

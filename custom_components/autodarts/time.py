@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .entity import AutodartsStoredEntity
-from .local_coordinator import AutodartsLocalCoordinator
+from .games_coordinator import AutodartsGamesCoordinator
 from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 0
@@ -28,7 +28,7 @@ class AutodartsReportTime(AutodartsStoredEntity, TimeEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "weekly_report_time")
 
     @property
