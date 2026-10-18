@@ -52,7 +52,7 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Eine Anzeigetafel für Tablet oder Fernseher, lesbar vom Abwurf aus, mit Spielauswahl, Caller und Ruhemodus. Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch.
+    Eine Anzeigetafel für Tablet oder Fernseher, auch über Chromecast, lesbar vom Abwurf aus, mit Spielauswahl, Caller und Ruhemodus. Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch.
 
     [:octicons-arrow-right-24: Anzeigetafel am Board](scoreboard.de.md) · [Dashboard-Karten](cards.de.md)
 

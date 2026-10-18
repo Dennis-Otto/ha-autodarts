@@ -1624,7 +1624,8 @@ class Scenario:
     async def card(self) -> None:
         """The bundled dashboard card and the strategy's own small module are served
         and loaded without a resource, with one version in both addresses, and the
-        card module is compressed."""
+        card module is compressed. Both are dashboard resources too, which Home
+        Assistant Cast loads from its own origin."""
         version = json.loads(MANIFEST.read_text())["version"]
         digest = hashlib.sha256(CARD.read_bytes() + STRATEGY.read_bytes()).hexdigest()
         query = f"?v={version}-{digest[:8]}"
@@ -1669,6 +1670,22 @@ class Scenario:
             page = await response.text()
         check(url in page, "Dashboards do not load the Autodarts card")
         check(strategy_url in page, "Dashboards do not load the strategy module")
+        resources = [
+            (item["type"], item["url"])
+            for item in await self.ws("lovelace/resources")
+            if item["url"].startswith("/autodarts/")
+        ]
+        check(
+            resources == [("module", strategy_url), ("module", url)],
+            f"The dashboard resources for Cast are {resources}",
+        )
+        cast = "https://cast.home-assistant.io"
+        for address in (url, strategy_url):
+            async with self.session.get(
+                f"{HA}{address}", headers={"Origin": cast}
+            ) as response:
+                allowed = response.headers.get("Access-Control-Allow-Origin")
+            check(allowed == cast, f"Cast may not load {address}: {allowed}")
 
     async def people(self) -> None:
         """A player becomes a person of Home Assistant, and stops being one."""

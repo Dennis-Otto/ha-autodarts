@@ -56,7 +56,7 @@ Yes. Every board is an entry and a device of its own, with its own entities, gam
 
 ### Can I show the scoreboard on a TV or a Fire tablet?
 
-Yes: any screen whose browser opens your Home Assistant, such as a tablet on the wall, a Fire tablet among them, a TV with a browser, a small PC or an old phone. Nothing needs to be installed on it. Give the screen a Home Assistant user of its own and open the *Scoreboard* view of the automatic dashboard, in full screen or in a kiosk browser. [Set up the screen](scoreboard.md#set-up-the-screen)
+Yes: any screen whose browser opens your Home Assistant, such as a tablet on the wall, a Fire tablet among them, a TV with a browser, a small PC or an old phone. Nothing needs to be installed on it. Give the screen a Home Assistant user of its own and open the *Scoreboard* view of the automatic dashboard, in full screen or in a kiosk browser. A TV with a Chromecast or a Google Nest Hub shows it through Home Assistant Cast, without a browser of its own. [Set up the screen](scoreboard.md#set-up-the-screen) · [Home Assistant Cast](scoreboard.md#on-a-tv-with-home-assistant-cast)
 
 ### Which languages does it speak, and which voices does the caller have?
 

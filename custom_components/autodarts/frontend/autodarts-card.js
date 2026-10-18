@@ -5280,8 +5280,11 @@ function playersHtml(view, ui) {
 // People ---------------------------------------------------------------------
 
 // Pictures that Home Assistant serves itself or that come from the web; no other schemes.
-function pictureUrl(value) {
-  return typeof value === "string" && /^(\/(?!\/)|https?:\/\/)/i.test(value) ? value : null;
+// Home Assistant's own get its address, as in its own cards: the receiver of Home Assistant
+// Cast has an address of its own.
+function pictureUrl(value, hass) {
+  if (typeof value !== "string" || !/^(\/(?!\/)|https?:\/\/)/i.test(value)) return null;
+  return value.startsWith("/") && typeof hass?.hassUrl === "function" ? hass.hassUrl(value) : value;
 }
 
 const avatarHtml = (picture) =>
@@ -5299,7 +5302,7 @@ function personLinks(hass, profiles) {
     const state = hass?.states?.[player.person];
     links.set(nameKey(player.name), {
       person: player.person,
-      picture: pictureUrl(state?.attributes?.entity_picture),
+      picture: pictureUrl(state?.attributes?.entity_picture, hass),
       home: state?.state === "home",
     });
   }
@@ -13694,23 +13697,29 @@ function register() {
   }
 }
 
+// The app element of Home Assistant, and hc-main of the receiver of Home Assistant Cast,
+// which shows dashboards on a TV and loads this module as a dashboard resource.
+const APP_ELEMENTS = ["home-assistant", "hc-main"];
+
 // Home Assistant loads this module in parallel with its own app, which then swaps in
 // a scoped custom element registry. Elements defined before that swap stay invisible
 // to dashboards, so the cards wait for the app element; other hosts get them after a timeout.
 async function frontendReady(timeout = 30000) {
   const registry = window.customElements;
-  if (registry.get("home-assistant")) return;
+  if (APP_ELEMENTS.some((name) => registry.get(name))) return;
   let timer;
   const expired = new Promise((resolve) => {
     timer = setTimeout(resolve, timeout);
   });
-  await Promise.race([registry.whenDefined?.("home-assistant") ?? expired, expired]);
+  const apps = registry.whenDefined ? APP_ELEMENTS.map((name) => registry.whenDefined(name)) : [];
+  await Promise.race([...apps, expired]);
   clearTimeout(timer);
 }
 
 if (globalThis.window?.customElements) frontendReady().then(register);
 
 export {
+  APP_ELEMENTS,
   addWeeks,
   checkoutDarts,
   scoreAnswer,

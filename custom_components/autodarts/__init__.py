@@ -23,7 +23,11 @@ from homeassistant.helpers.typing import ConfigType
 from . import const
 from .api import AutodartsCloudClient
 from .button import V1_BUTTONS
-from .card import async_register_card
+from .card import (
+    async_add_card_resources,
+    async_register_card,
+    async_remove_card_resources,
+)
 from .const import (
     CONF_BOARD_ID,
     CONF_CLIENT_ID,
@@ -78,6 +82,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> bool:
     """Local controls remain usable even if cloud authentication fails."""
+    # Again with every board, so that a board added after the last one was deleted
+    # brings the cards back to Home Assistant Cast.
+    await async_add_card_resources(hass)
     session = async_get_clientsession(hass)
     runtime = AutodartsRuntimeData()
     local_failed = False
@@ -278,10 +285,17 @@ async def async_unload_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: AutodartsConfigEntry) -> None:
-    """Deleting the integration also deletes its local training session."""
+    """Deleting the integration also deletes its local training session, and
+    deleting its last board the dashboard resources of the cards."""
     await TrainingStore(hass, entry.entry_id).async_remove()
     await BoardReports.async_remove(hass, entry.entry_id)
     _delete_issues(hass, entry)
+    # An ignored board loads nothing; a disabled one can come back.
+    if all(
+        other.entry_id == entry.entry_id
+        for other in hass.config_entries.async_entries(DOMAIN, include_ignore=False)
+    ):
+        await async_remove_card_resources(hass)
 
 
 def _delete_issues(hass: HomeAssistant, entry: ConfigEntry) -> None:

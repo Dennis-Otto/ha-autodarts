@@ -52,7 +52,7 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    A scoreboard for a tablet or TV, readable from the oche, with a new game screen, a caller and idle mode. Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish.
+    A scoreboard for a tablet or TV, also through Chromecast, readable from the oche, with a new game screen, a caller and idle mode. Seven dashboard cards and an automatic dashboard, in English, German, Dutch, French and Spanish.
 
     [:octicons-arrow-right-24: Scoreboard at the board](scoreboard.md) · [Dashboard cards](cards.md)
 
