@@ -100,7 +100,7 @@ class AutodartsIdleTimeout(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.training.idle_minutes
+        return self.coordinator.games.training.idle_minutes
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_idle_minutes(int(value))
@@ -121,7 +121,7 @@ class AutodartsDailyGoal(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.records.goal
+        return self.coordinator.games.records.goal
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_daily_goal(int(value))
@@ -142,7 +142,7 @@ class AutodartsPracticeNumber(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        practice = self.coordinator.practice
+        practice = self.coordinator.games.practice
         if self._key == "practice_players":
             # The bot's seat is not a player's.
             return practice.humans
@@ -154,7 +154,7 @@ class AutodartsPracticeNumber(AutodartsStoredEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         if self._key == "practice_players":
-            practice = self.coordinator.practice
+            practice = self.coordinator.games.practice
             _check_seat(practice, int(value), practice.bot_level)
             await self.coordinator.async_set_players(int(value))
         elif self._key == "practice_legs":
@@ -180,7 +180,7 @@ class AutodartsStartScore(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.practice.starts[self._index]
+        return self.coordinator.games.practice.starts[self._index]
 
     async def async_set_native_value(self, value: float) -> None:
         start = int(value)
@@ -188,9 +188,9 @@ class AutodartsStartScore(AutodartsStoredEntity, NumberEntity):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="invalid_start_score"
             )
-        starts = list(self.coordinator.practice.starts)
+        starts = list(self.coordinator.games.practice.starts)
         starts[self._index] = start
-        if self.coordinator.practice.unwinnable(starts):
+        if self.coordinator.games.practice.unwinnable(starts):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="unwinnable_start"
             )
@@ -212,7 +212,7 @@ class AutodartsMaxRounds(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.practice.max_rounds
+        return self.coordinator.games.practice.max_rounds
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_x01_rule("max_rounds", int(value))
@@ -232,7 +232,7 @@ class AutodartsCountUpRounds(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.practice.count_up_rounds
+        return self.coordinator.games.practice.count_up_rounds
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_party_rounds(count_up_rounds=int(value))
@@ -252,7 +252,7 @@ class AutodartsGotchaTarget(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.practice.gotcha_target
+        return self.coordinator.games.practice.gotcha_target
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_party_rule("gotcha_target", int(value))
@@ -276,7 +276,7 @@ class AutodartsTournamentSeconds(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        value: int = getattr(self.coordinator.tournament.setup, self._key)
+        value: int = getattr(self.coordinator.games.tournament.setup, self._key)
         return value
 
     async def async_set_native_value(self, value: float) -> None:
@@ -301,11 +301,11 @@ class AutodartsBotLevel(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> int:
-        return self.coordinator.practice.bot_level
+        return self.coordinator.games.practice.bot_level
 
     async def async_set_native_value(self, value: float) -> None:
         level = int(value)
-        practice = self.coordinator.practice
+        practice = self.coordinator.games.practice
         if 0 < level < MIN_LEVEL:
             level = MIN_LEVEL if level > practice.bot_level else 0
         if not valid_level(level):
@@ -332,7 +332,7 @@ class AutodartsBotDelay(AutodartsStoredEntity, NumberEntity):
 
     @property
     def native_value(self) -> float:
-        return self.coordinator.practice.bot_delay
+        return self.coordinator.games.practice.bot_delay
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_bot(delay=float(value))

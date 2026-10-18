@@ -1,0 +1,615 @@
+"""The games of a board, without Home Assistant.
+
+BoardGames follows the darts on one board: the training session, the practice
+game with the players' progress and personal bests, the tournament, the darts
+entered by hand and the bot's darts. It books the visits, keeps what an undo
+needs and stores itself. Each step returns the board events it brings, in their
+order, and takes the time as a parameter, so that the engine runs and is tested
+without Home Assistant (tests/test_games.py). AutodartsGamesCoordinator plays it
+in Home Assistant, with the timers, the store and the events of a board.
+"""
+
+from __future__ import annotations
+
+import random
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Any, Protocol
+
+from .bot import BOT_DARTS, Bot
+from .bot import aim as bot_aim
+from .local_api import number
+from .manual import ManualDarts
+from .practice import PracticeGame, VisitRefused
+from .profiles import valid_name
+from .progress import Progress
+from .quality import DetectionQuality
+from .records import PersonalRecords
+from .tournament import TournamentDirector
+from .training import TrainingSession, hit_key, segments
+
+# What a part of the games reports: the type of a board event and its attributes.
+Event = tuple[str, dict[str, Any]]
+# A board event to announce, with its source: the board ("websocket", "poll"),
+# Home Assistant ("manual", "training") or the bot.
+Announcement = tuple[str, dict[str, Any], str]
+
+# Dart and visit events name the practice game being played, so that callers
+# can leave the game to the practice caller.
+PLAY_EVENTS = ("dart_detected", "dart_corrected", "visit_thrown", "visit_completed")
+DART_EVENTS = ("dart_detected", "dart_corrected")
+# Results announced with the dart that decides them, which a correction can
+# take back; statistics take them from the booking instead.
+RESULT_EVENTS = ("leg_won", "match_won")
+# Options that start the match anew, see BoardGames.set_practice_option.
+NEW_MATCH_OPTIONS = ("double_in", "bull_off", "teams")
+
+
+def _throw_positions(state: dict[str, Any]) -> list[tuple[float, float] | None] | None:
+    """Board positions of the darts on the board; None for a state training rejects."""
+    if segments(state) is None:
+        return None
+    positions: list[tuple[float, float] | None] = []
+    for dart in state.get("throws", []):
+        coords = dart.get("coords")
+        x, y = (
+            number(coords.get(axis)) if isinstance(coords, dict) else None
+            for axis in ("x", "y")
+        )
+        positions.append(None if x is None or y is None else (float(x), float(y)))
+    return positions
+
+
+def _aligned(
+    positions: list[tuple[float, float] | None], count: int
+) -> list[tuple[float, float] | None]:
+    """The positions of the last darts, None for those without one."""
+    known = positions[-count:] if count else []
+    aligned: list[tuple[float, float] | None] = [None] * (count - len(known))
+    aligned.extend(known)
+    return aligned
+
+
+class ActionRefused(ValueError):
+    """An action that the games cannot take now: the key of the message that
+    says why, and what the message names."""
+
+    def __init__(self, key: str, **placeholders: str) -> None:
+        super().__init__(key)
+        self.key = key
+        self.placeholders = placeholders
+
+
+class Reports(Protocol):
+    """The weekly report and the training journal, which count what the games
+    announce and take part in an undo; see BoardReports."""
+
+    def observe(
+        self,
+        events: list[Event],
+        now: datetime,
+        booked: list[Event] | None = None,
+    ) -> None: ...
+
+    def checkpoint(self) -> dict[str, Any]: ...
+
+    def rewind(self, checkpoint: dict[str, Any]) -> None: ...
+
+    def forget(self, name: str) -> None: ...
+
+
+@dataclass
+class Checkpoint:
+    """Everything a player's visit changes when it is booked, as it was before,
+    to undo the visit: the practice game, where the visit's darts landed, the
+    progress of the players at the board, the weekly report and the journal,
+    and the personal bests."""
+
+    practice: dict[str, Any]
+    positions: list[tuple[float, float] | None]
+    progress: dict[str, Any]
+    reports: dict[str, Any]
+    records: dict[str, Any]
+
+
+class BoardGames:
+    """The training, the games and the statistics of one board.
+
+    The time `now` that steps take is that of Home Assistant's time zone, in
+    which a day of training begins and ends.
+    """
+
+    def __init__(self, reports: Reports, rng: random.Random | None = None) -> None:
+        self.training = TrainingSession()
+        self.practice = PracticeGame()
+        self.quality = DetectionQuality()
+        self.records = PersonalRecords()
+        self.progress = Progress()
+        self.tournament = TournamentDirector()
+        # Corrections, darts entered by hand and the bot's darts in the visit.
+        self.manual = ManualDarts()
+        # Its darts can be seeded, for tests and the recording of the demo.
+        self.bot = Bot(rng)
+        self._reports = reports
+        # Raised with every change of the training or the games, which the
+        # coordinator then saves; the entities' data carries it.
+        self.revision = 0
+        # Raised whenever the next match of a tournament is due at another time.
+        self.fixtures = 0
+        # Board positions of the darts in the last state the training took.
+        self._positions: list[tuple[float, float] | None] = []
+        # The game and the statistics before the last visit of a player was
+        # booked, to undo the visit.
+        self._undo: Checkpoint | None = None
+        # The events of the step being taken, in order; a step returns them,
+        # and they stay here for drain should the step fail halfway.
+        self._announced: list[Announcement] = []
+
+    # -- stored data -------------------------------------------------------------
+
+    def restore(self, saved: object, now: datetime) -> None:
+        """The games as stored; a part that is missing or broken starts anew."""
+        stored = saved if isinstance(saved, dict) else {}
+        self.training.restore(saved if isinstance(saved, dict) else None)
+        self.practice.restore(stored.get("practice"))
+        self.records.restore(stored.get("records"))
+        self.progress.restore(stored.get("progress"), self.practice.profiles, now)
+        self.tournament.restore(stored.get("tournament"))
+        self.practice.hold = self.tournament.waiting
+
+    def stored(self) -> dict[str, Any]:
+        """Training sessions, the practice game, personal bests, the players'
+        progress and the tournament, saved together."""
+        return {
+            **self.training.stored(),
+            "practice": self.practice.stored(),
+            "records": self.records.stored(),
+            "progress": self.progress.stored(),
+            "tournament": self.tournament.stored(),
+        }
+
+    # -- the darts on the board --------------------------------------------------
+
+    def interrupts_bot(self, state: dict[str, Any]) -> bool:
+        """Whether a player throws while the bot is at the board, which then
+        throws the rest of its visit at once, see follow_visit."""
+        return self.practice.bot_up and bool(self.manual.board_darts(state))
+
+    def follow_visit(
+        self, data: dict[str, Any], state: dict[str, Any], source: str, now: datetime
+    ) -> list[Announcement]:
+        """Follow the visit as Home Assistant knows it: the board's darts with
+        the corrections, the darts entered by hand and the bot's darts.
+
+        Writes them into data["throws"] with the snapshots of the games for
+        the entities, and returns the events they bring.
+        """
+        # The board's darts show, should the games fail.
+        data.pop("throws", None)
+        if self.interrupts_bot(state):
+            self._finish_bot(data, state, now)
+        effective = self.manual.apply(state)
+        self._track(data, effective, source, now)
+        data["throws"] = self._visit_throws(effective)
+        return self.drain()
+
+    def drain(self) -> list[Announcement]:
+        """The events announced since the last drain, in order: those of a
+        step that failed halfway, too."""
+        announced, self._announced = self._announced, []
+        return announced
+
+    def _track(
+        self, data: dict[str, Any], state: dict[str, Any], source: str, now: datetime
+    ) -> None:
+        """Training, practice game and records follow the darts on the board."""
+        announced = self._announced
+        changed = False
+        observed = self.training.observe(state)
+        completed = any(kind == "visit_completed" for kind, _ in observed)
+        # The weekly report and the personal bests before they count a
+        # completed visit, to undo it.
+        reports = self._reports.checkpoint() if completed else {}
+        records = self.records.checkpoint() if completed else {}
+        for kind, attributes in self._recorded(observed, now):
+            changed = True
+            self.quality.record(kind, attributes)
+            if kind in DART_EVENTS and attributes.get("total"):
+                # A visit entered as its score announces itself, not its made-up darts.
+                continue
+            if kind in PLAY_EVENTS:
+                attributes = {
+                    **attributes,
+                    "game": self.practice.kind,
+                    "name": self.practice.thrower,
+                }
+            announced.append((kind, attributes, source))
+            if kind == "visit_completed":
+                self._checkpoint(attributes, reports, records)
+                self._book_visit(source, now, bot=attributes.get("bot") is True)
+        if (positions := _throw_positions(state)) is not None:
+            self._positions = positions
+        # The visit is the last darts on the board; positions of rejected states
+        # never shift onto them.
+        visit = self.training.visit()
+        aligned = _aligned(self._positions, len(visit))
+        for kind, attributes in self._recorded(
+            self.practice.track(visit, aligned), now
+        ):
+            changed = True
+            announced.append((kind, attributes, source))
+        self._publish(data, changed)
+
+    def _book_visit(
+        self, source: str, now: datetime, bot: bool = False, empty: bool = False
+    ) -> None:
+        """Book the pulled darts in the practice game and the players' progress;
+        with empty, the player at the board passes, see PracticeGame.finish_visit."""
+        pending = self.progress.before(self.practice)
+        # The bot's darts are nobody's training.
+        if self.training.active and not bot:
+            self.progress.session_visit(pending.booking)
+        decided = self.practice.winner is not None
+        events = self.practice.finish_visit(empty)
+        booked = self._booked(pending.legs_total, decided)
+        events += self.progress.after(pending, self.practice, now)
+        # A tournament takes the result once the practice game booked it.
+        events += self._fixture(now)
+        self._announced += [
+            (kind, details, source)
+            for kind, details in self._recorded(events, now, booked)
+        ]
+
+    def _recorded(
+        self, events: list[Event], now: datetime, booked: list[Event] | None = None
+    ) -> list[Event]:
+        """The events, each followed by the personal bests or daily goal it brings.
+
+        Legs and matches count for the records and the weekly report once the
+        practice game booked them, see _booked: a correction can take back the
+        leg_won and match_won announced with a winning dart.
+        """
+        result: list[Event] = []
+        for kind, attributes in events:
+            if kind == "session_started":
+                # The positions of a session start over with it, like its hits.
+                self.progress.session_started()
+            result.append((kind, attributes))
+            # The bot sets no personal bests and throws no darts of the day.
+            if not attributes.get("bot") and kind not in RESULT_EVENTS:
+                result.extend(self.records.observe(kind, attributes, now))
+        for kind, attributes in booked or []:
+            if not attributes.get("bot"):
+                result.extend(self.records.observe(kind, attributes, now))
+        self._reports.observe(result, now, booked)
+        return result
+
+    def _booked(self, legs_total: int, decided: bool) -> list[Event]:
+        """The leg and the match that booking a visit ended, if any."""
+        practice = self.practice
+        booked: list[Event] = []
+        if practice.legs_total > legs_total and practice.legs:
+            booked.append(("leg_won", practice.legs[0]))
+        if practice.winner is not None and not decided:
+            booked.append(("match_won", {"game": practice.kind}))
+        return booked
+
+    def _checkpoint(
+        self, visit: dict[str, Any], reports: dict[str, Any], records: dict[str, Any]
+    ) -> None:
+        """The game before a player's visit is booked, to undo the visit; the
+        bot's visits are undone together with the visit before them."""
+        if visit.get("bot"):
+            return
+        self._undo = Checkpoint(
+            practice=self.practice.checkpoint(),
+            positions=_aligned(self._positions, visit["darts"]),
+            # The visit, a leg it ends and training games book for these players.
+            progress=self.progress.checkpoint(self.practice.names),
+            reports=reports,
+            records=records,
+        )
+
+    def _publish(self, data: dict[str, Any], announced: bool) -> None:
+        """Snapshots for the entities; a change raises the revision."""
+        training, practice = self.training.snapshot(), self.practice_snapshot()
+        # The first snapshots only show what was restored.
+        if announced or (
+            "training" in data
+            and (training != data["training"] or practice != data.get("practice"))
+        ):
+            self.revision += 1
+        data.update(
+            training=training,
+            practice=practice,
+            quality=self.quality.snapshot(),
+            revision=self.revision,
+        )
+
+    def _visit_throws(self, state: dict[str, Any]) -> list[Any]:
+        """The darts for the cards, each dart of the visit with its number."""
+        throws = state.get("throws")
+        numbers = {
+            slot: number for number, slot in enumerate(self.training.visit_slots(), 1)
+        }
+        return [
+            {**throw, "dart": numbers[slot]}
+            if slot in numbers and isinstance(throw, dict)
+            else throw
+            for slot, throw in enumerate(throws if isinstance(throws, list) else [])
+        ]
+
+    def practice_snapshot(self) -> dict[str, Any]:
+        """The practice game for the entities, and whether the last visit of a
+        player can be undone now."""
+        undo = self._undo is not None and self.training.can_undo()
+        return {**self.practice.snapshot(), "undo": undo}
+
+    def snapshots(self) -> dict[str, Any]:
+        """The training session and the practice game for the entities, with
+        the revision of the games."""
+        return {
+            "training": self.training.snapshot(),
+            "practice": self.practice_snapshot(),
+            "revision": self.revision,
+        }
+
+    def changed(self, events: list[Event], now: datetime) -> list[Event]:
+        """A change of the session or the game, made in Home Assistant: the
+        events it brings, with the personal bests they set. A change cannot
+        be undone visit by visit."""
+        recorded = self._recorded(events, now)
+        self._undo = None
+        self.revision += 1
+        return recorded
+
+    # -- tournaments -------------------------------------------------------------
+
+    def board_free(self) -> bool:
+        """Whether the next match of a tournament can start at the board: no
+        darts are left on it and the practice game makes way."""
+        return not self.training.visit() and self.tournament.free(self.practice)
+
+    def _fixture(self, now: datetime) -> list[Event]:
+        """After a visit: the result of a tournament match, and the next match
+        once the pause is over, no darts are left on the board and no other
+        game is being played."""
+        utc = now.astimezone(UTC)
+        events = self.tournament.booked(self.practice, utc)
+        due = self.tournament.due(utc) and self.board_free()
+        if due:
+            self.tournament.next_match(self.practice)
+        if events or due:
+            # A result the tournament took, or its next match, cannot be undone.
+            self._undo = None
+            self.fixtures += 1
+        return events
+
+    # -- settings and players ----------------------------------------------------
+
+    def set_practice_option(self, option: str, enabled: bool) -> None:
+        """Routes and the bull-off rule apply at once, and double out until the
+        first dart of a leg, otherwise from the next leg; double in, the
+        bull-off and teams start anew."""
+        self.practice.set_option(option, enabled)
+        if option in NEW_MATCH_OPTIONS:
+            self.practice.new_match()
+
+    def set_x01_rule(self, rule: str, value: str | int) -> None:
+        """An X01 rule: the Out mode until the first dart of a leg, otherwise
+        from the next leg; another In mode, bull mode or round limit starts
+        the match anew."""
+        if self.practice.set_rule(rule, value) and rule != "out_mode":
+            self.practice.new_match()
+
+    def delete_player(self, name: str) -> bool:
+        """Forget a player profile, and the name in the records, the player
+        slots and the next tournament; False when there is no profile by that
+        name. A player of the tournament being played stays."""
+        self.tournament.forget(name)
+        deleted = self.practice.profiles.delete(name)
+        if deleted:
+            self.practice.forget(name)
+            self.records.forget(name)
+            self.progress.forget(name)
+            self._reports.forget(name)
+        return deleted
+
+    def start_game(
+        self,
+        game: int | str,
+        names: list[str] | None = None,
+        legs: int | None = None,
+        sets: int | None = None,
+        double_out: bool | None = None,
+        double_in: bool | None = None,
+        bull_off: bool | None = None,
+        bull_off_distance: bool | None = None,
+        teams: bool | None = None,
+        three_in_a_bed: bool | None = None,
+        start_scores: list[int] | None = None,
+        holes: int | None = None,
+        rounds: int | None = None,
+        bot_level: int | None = None,
+        in_mode: str | None = None,
+        out_mode: str | None = None,
+        bull_mode: str | None = None,
+        max_rounds: int | None = None,
+        halve_on_miss: bool | None = None,
+        order: str | None = None,
+        target_score: int | None = None,
+    ) -> None:
+        """Set up a practice game in one step; unset values stay as they are.
+        Double in and double out set the In and Out mode to double or straight."""
+        practice = self.practice
+        if names and not all(valid_name(name) for name in names):
+            raise ActionRefused("invalid_player_name")
+        for option, value in (
+            ("double_out", double_out),
+            ("double_in", double_in),
+            ("bull_off", bull_off),
+            ("bull_off_distance", bull_off_distance),
+            ("teams", teams),
+            ("three_in_a_bed", three_in_a_bed),
+            ("bermuda_halve_on_miss", halve_on_miss),
+        ):
+            if value is not None:
+                practice.set_option(option, value)
+        for party_rule, chosen in (
+            ("round_the_world_order", order),
+            ("gotcha_target", target_score),
+        ):
+            if chosen is not None:
+                practice.set_party_rule(party_rule, chosen)
+        for rule, setting in (
+            ("in_mode", in_mode),
+            ("out_mode", out_mode),
+            ("bull_mode", bull_mode),
+            ("max_rounds", max_rounds),
+        ):
+            if setting is not None:
+                practice.set_rule(rule, setting)
+        if names:
+            for index in range(len(practice.names)):
+                practice.set_name(index, names[index] if index < len(names) else "")
+        if start_scores is not None:
+            # Players without a start score of their own play the game's.
+            for index in range(len(practice.starts)):
+                own = start_scores[index] if index < len(start_scores) else 0
+                practice.set_start(index, own)
+        practice.set_rounds(holes, rounds)
+        practice.set_format(legs, sets)
+        # The players besides the bot, counted before a new level of the bot
+        # changes which seat is its own.
+        humans = practice.humans
+        if bot_level is not None:
+            practice.bot_level = bot_level
+        practice.play(game, len(names) if names else humans)
+
+    # -- corrections and darts entered by hand -----------------------------------
+
+    def correct_dart(
+        self,
+        dart: int,
+        segment: dict[str, Any],
+        position: tuple[float, float] | None = None,
+    ) -> None:
+        """Put a dart of the current visit into another bed, at the position
+        given; without one, the dart has no position. The bot's darts stay."""
+        slots = self.training.visit_slots()
+        if not 1 <= dart <= len(slots):
+            raise ActionRefused("no_dart", dart=str(dart))
+        place = slots[dart - 1]
+        kind, index = self.manual.sources[place]
+        if kind == "extra" and self.manual.extras[index].dart.get("bot"):
+            raise ActionRefused("bot_dart")
+        self.manual.correct(place, segment, position)
+
+    def _check_entry(self) -> None:
+        """Darts are entered by hand only with the keypad on, and never for the bot."""
+        if not self.practice.manual_entry:
+            raise ActionRefused("manual_entry_off")
+        if self.practice.bot_up:
+            raise ActionRefused("bot_turn")
+
+    def throw_dart(
+        self, segment: dict[str, Any], position: tuple[float, float] | None = None
+    ) -> None:
+        """A dart entered by hand, as if the board had detected it there."""
+        self._check_entry()
+        if len(self.training.visit()) >= BOT_DARTS:
+            raise ActionRefused("visit_full")
+        self.manual.add(segment, position, "manual")
+
+    def enter_visit(
+        self,
+        state: dict[str, Any],
+        points: int,
+        darts: int | None = None,
+        at_double: int | None = None,
+        checkout: bool = False,
+    ) -> None:
+        """An X01 visit entered as its score, or with `checkout` as the checkout
+        of what is left, while the board in `state` holds no darts of the visit:
+        the darts entered by hand in the visit so far give way to it. The visit
+        ends once it was followed, see AutodartsGamesCoordinator.async_enter_visit."""
+        self._check_entry()
+        if self.manual.board_darts(state):
+            raise ActionRefused("visit_on_board")
+        try:
+            visit = self.practice.score_visit(points, darts, at_double, checkout)
+        except VisitRefused as err:
+            raise ActionRefused(err.key, **err.placeholders) from err
+        self.manual.extras = []
+        for dart in visit:
+            self.manual.add(dart, None, "manual")
+
+    def next_player(self, now: datetime) -> list[Announcement]:
+        """End the visit without pulling the darts; without darts, pass."""
+        if self.training.visit() or self.manual.extras:
+            self.manual.end_visit()
+            return []
+        if self.practice.passes():
+            # Booked like a visit: a pass can end a party game's last round.
+            self._book_visit("manual", now, empty=True)
+            return self.drain()
+        raise ActionRefused("empty_visit")
+
+    def undo_visit(self) -> list[Announcement]:
+        """Take the last visit of a player back as the current visit, with the
+        game as it was before; the bot's visits after it are undone, too."""
+        darts = self.training.undo_visit() if self._undo else None
+        if self._undo is None or darts is None:
+            raise ActionRefused("undo_unavailable")
+        checkpoint, self._undo = self._undo, None
+        # Booked again once it ends, the visit must not count twice.
+        self.progress.rewind(checkpoint.progress)
+        self._reports.rewind(checkpoint.reports)
+        self.records.rewind(checkpoint.records)
+        self.practice.rewind(checkpoint.practice, darts, checkpoint.positions)
+        self.manual.replay(darts, checkpoint.positions)
+        undone = {
+            "darts": len(darts),
+            "score": sum(dart["number"] * dart["multiplier"] for dart in darts),
+            "segments": [dart["name"] or hit_key(dart) for dart in darts],
+            "game": self.practice.kind,
+            "name": self.practice.thrower,
+        }
+        return [("visit_undone", undone, "manual")]
+
+    # -- the bot -----------------------------------------------------------------
+
+    def bot_step(self) -> None:
+        """The bot's next dart, or the end of its visit once it is over."""
+        if self._bot_done():
+            self.manual.end_visit()
+        else:
+            self._bot_throw()
+
+    def _bot_done(self) -> bool:
+        """Whether the bot's visit is over: its darts thrown, a bust or a win."""
+        snapshot = self.practice.snapshot()
+        thrown = self.manual.bot_darts()
+        if snapshot["bull_off"]:
+            return thrown >= 1
+        return bool(thrown >= BOT_DARTS or snapshot.get("bust") or snapshot["won"])
+
+    def _bot_throw(self) -> None:
+        dart, position = self.bot.throw(
+            bot_aim(self.practice.snapshot()),
+            self.practice.bot_level,
+            cricket=self.practice.cricket is not None,
+        )
+        self.manual.add(dart, position, "bot")
+
+    def _finish_bot(
+        self, data: dict[str, Any], state: dict[str, Any], now: datetime
+    ) -> None:
+        """The bot throws the rest of its visit at once and ends it, before the
+        new darts on the board count for the next player."""
+        before = self.manual.held(state)
+        while not self._bot_done():
+            self._bot_throw()
+            self._track(data, self.manual.apply(before), "bot", now)
+        self.manual.end_visit()
+        self._track(data, self.manual.apply(before), "bot", now)

@@ -92,7 +92,7 @@ async def test_start_game_sets_up_a_match_in_one_call(hass, aioclient_mock):
         blocking=True,
     )
     await hass.async_block_till_done()
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     assert practice.game == 501 and len(practice.players) == 2
     assert practice.names[:3] == ["Dennis", "Lea", ""]
     assert (practice.legs_to_win, practice.sets_to_win) == (3, 2)
@@ -138,7 +138,7 @@ async def test_start_game_needs_two_players_for_killer_and_names_of_their_own(
     hass, aioclient_mock
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     for data, key in (
         # One player is at the board, and no names change that.
         ({"game": "killer"}, "killer_players"),
@@ -217,7 +217,7 @@ async def test_many_corrections_suggest_a_calibration_that_the_repair_runs(
         for call in aioclient_mock.mock_calls
     )
     assert registry.async_get_issue(DOMAIN, issue_id) is None
-    assert coordinator.quality.rate is None
+    assert coordinator.games.quality.rate is None
     assert state(hass, "sensor", "correction_rate") == "unknown"
 
 
@@ -227,7 +227,7 @@ async def test_a_rejected_calibration_keeps_the_repair_open(
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     issue_id = f"calibration_{entry.entry_id}"
-    darts(coordinator.quality, QUALITY_MINIMUM, corrected_every=2)
+    darts(coordinator.games.quality, QUALITY_MINIMUM, corrected_every=2)
     coordinator.async_receive("state", board())
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
 
@@ -235,7 +235,7 @@ async def test_a_rejected_calibration_keeps_the_repair_open(
     result = await fix(hass, hass_client, issue_id)
     assert result["type"] == "abort" and result["reason"] == "calibration_failed"
     assert ir.async_get(hass).async_get_issue(DOMAIN, issue_id) is not None
-    assert coordinator.quality.snapshot()["darts"] == QUALITY_MINIMUM
+    assert coordinator.games.quality.snapshot()["darts"] == QUALITY_MINIMUM
 
 
 async def test_the_repair_gives_up_on_an_unloaded_board(
@@ -243,7 +243,7 @@ async def test_the_repair_gives_up_on_an_unloaded_board(
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     issue_id = f"calibration_{entry.entry_id}"
-    darts(entry.runtime_data.local.quality, QUALITY_MINIMUM, corrected_every=2)
+    darts(entry.runtime_data.local.games.quality, QUALITY_MINIMUM, corrected_every=2)
     entry.runtime_data.local.async_receive("state", board())
     flow = await fix(hass, hass_client, issue_id, confirm=False)
     assert flow["type"] == "form"

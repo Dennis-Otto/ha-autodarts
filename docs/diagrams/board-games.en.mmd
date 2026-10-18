@@ -1,0 +1,23 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: The board and its games
+  accDescr: The Board Manager sends realtime events and answers reads. AutodartsLocalCoordinator in local_coordinator.py follows the board, frees stuck takeouts, raises the repair issues of the board and hands each state of the board to the games coordinator it extends, AutodartsGamesCoordinator in games_coordinator.py, which the actions and entities of Home Assistant use, too. It plays BoardGames in games.py, which knows nothing of Home Assistant: the training, the practice game, the tournament, the bot and the darts entered by hand follow the darts, book the visits and return the board events. The games coordinator announces them to automations and cards, saves the games with BoardStore in storage.py and keeps the timers of the games. Entities read the games through coordinator.games, and tests/test_games.py tests BoardGames without Home Assistant.
+
+  BM["Board Manager<br/>realtime events and reads"] --> LC["AutodartsLocalCoordinator<br/>local_coordinator.py<br/>transport, takeouts, repair issues"]
+  LC -- "each state of the board" --> GC["AutodartsGamesCoordinator<br/>games_coordinator.py<br/>timers, store, events, actions"]
+  ACT["Actions and entities<br/>of Home Assistant"] --> GC
+  GC -- "darts, actions, time" --> BG["BoardGames, games.py<br/>without Home Assistant:<br/>training, practice game, tournament,<br/>bot, darts by hand, undo"]
+  BG -- "board events" --> GC
+  GC -- "save and restore" --> ST[("BoardStore<br/>storage.py")]
+  GC -- "board events" --> AUT["Automations and cards"]
+  BG -. "coordinator.games" .-> ENT["Entities"]
+  BG -. "tested in milliseconds by" .-> TEST["tests/test_games.py<br/>without Home Assistant"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class LC,GC,ST bot
+  class BG,TEST done

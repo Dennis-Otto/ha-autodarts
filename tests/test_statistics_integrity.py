@@ -20,7 +20,7 @@ D20 = ("D20", 20, 2)
 
 
 def week(coordinator, name: str) -> list[int]:
-    return coordinator.progress.players[name].week(dt_util.now().date())
+    return coordinator.games.progress.players[name].week(dt_util.now().date())
 
 
 async def test_an_undone_visit_counts_once_booked_again(hass, aioclient_mock):
@@ -33,7 +33,7 @@ async def test_an_undone_visit_counts_once_booked_again(hass, aioclient_mock):
     await act(hass, "undo_visit")
     await act(hass, "correct_dart", dart=2, segment="T20")
     await act(hass, "next_player")
-    alex = coordinator.progress.players["alex"]
+    alex = coordinator.games.progress.players["alex"]
     assert alex.counters["darts"] == 3 and sum(alex.hits.values()) == 3
     assert [alex.counters[key] for key in ("tons", "ton_forties", "maximums")] == [
         1,
@@ -57,12 +57,12 @@ async def test_a_misread_180_leaves_no_maximum_once_undone(hass, aioclient_mock)
     await start(hass, "501", players=["Alex", "Lea"])
     receive(coordinator, board(T20), board(T20, T20), board(T20, T20, T20), board())
     await hass.async_block_till_done()
-    alex = coordinator.progress.players["alex"]
+    alex = coordinator.games.progress.players["alex"]
     assert alex.counters["maximums"] == 1 and "maximum" in alex.badges
     await act(hass, "undo_visit")
     await act(hass, "correct_dart", dart=2, segment="S20")
     await act(hass, "next_player")
-    alex = coordinator.progress.players["alex"]
+    alex = coordinator.games.progress.players["alex"]
     assert alex.counters["maximums"] == 0 and "maximum" not in alex.badges
     assert coordinator.reports.report.counts["scores_180"] == 0
     assert coordinator.reports.report.highest_visit == 140
@@ -71,7 +71,7 @@ async def test_a_misread_180_leaves_no_maximum_once_undone(hass, aioclient_mock)
 async def test_an_undone_misread_180_is_no_personal_best(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    records = coordinator.records
+    records = coordinator.games.records
     await start(hass, "501", players=["Alex", "Lea"])
     # Alex's first visit sets the highest visit quietly; Lea throws a 1.
     receive(coordinator, board(T20), board(T20, S20), board(T20, S20, S20), board())
@@ -106,7 +106,7 @@ async def test_an_undone_misread_180_is_no_personal_best(hass, aioclient_mock):
 async def test_an_undone_misread_checkout_is_no_personal_best(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    records = coordinator.records
+    records = coordinator.games.records
     earlier = {"date": "2026-10-01T20:00:00+00:00", "name": "Sam"}
     records.bests = {
         "highest_checkout": {"value": 40, **earlier},
@@ -121,7 +121,7 @@ async def test_an_undone_misread_checkout_is_no_personal_best(hass, aioclient_mo
     await act(hass, "undo_visit")
     await act(hass, "correct_dart", dart=3, segment="S20")
     await act(hass, "next_player")
-    assert coordinator.practice.winner is None
+    assert coordinator.games.practice.winner is None
     assert records.bests["highest_checkout"] == {"value": 40, **earlier}
     assert records.bests["fewest_darts_101"] == {"value": 6, **earlier}
     assert records.latest is None
@@ -133,9 +133,9 @@ async def test_an_undone_first_visit_forgets_the_new_player(hass, aioclient_mock
     await start(hass, "501", players=["Kim"])
     receive(coordinator, board(T20), board())
     await hass.async_block_till_done()
-    assert "kim" in coordinator.progress.players
+    assert "kim" in coordinator.games.progress.players
     await act(hass, "undo_visit")
-    assert "kim" not in coordinator.progress.players
+    assert "kim" not in coordinator.games.progress.players
 
 
 async def test_an_undone_winning_visit_leaves_one_leg_and_one_match(
@@ -153,7 +153,7 @@ async def test_an_undone_winning_visit_leaves_one_leg_and_one_match(
     assert [reports.report.counts[key] for key in ("legs", "matches")] == [0, 0]
     await act(hass, "next_player")
     assert len(reports.journal.matches) == 1
-    assert len(coordinator.practice.profiles.matches) == 1
+    assert len(coordinator.games.practice.profiles.matches) == 1
     counts = reports.report.counts
     assert [
         counts[key] for key in ("legs", "matches", "darts_at_double", "checkouts")
@@ -189,7 +189,7 @@ async def test_records_and_the_report_count_the_booked_leg_only(hass, aioclient_
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     await start(hass, "101")
-    coordinator.practice.players[0].remaining = 40
+    coordinator.games.practice.players[0].remaining = 40
     events = record(hass, coordinator)
     receive(coordinator, board(D20))
     # The board reads the dart again, as a single 20: no checkout.
@@ -197,7 +197,7 @@ async def test_records_and_the_report_count_the_booked_leg_only(hass, aioclient_
     await hass.async_block_till_done()
     assert kinds(events).count("leg_won") == 2
     assert "personal_best" not in kinds(events)
-    records = coordinator.records.bests
+    records = coordinator.games.records.bests
     assert records["fewest_darts_101"]["value"] == 2
     assert records["highest_checkout"]["value"] == 40
     assert coordinator.reports.report.counts["legs"] == 1
@@ -211,15 +211,17 @@ async def test_the_bot_counts_for_nobody(hass, aioclient_mock, freezer):
         await hass.async_block_till_done()
         for _ in range(5):
             await pass_time(hass, freezer, 1)
-        if coordinator.practice.legs_total:
+        if coordinator.games.practice.legs_total:
             break
-    assert coordinator.practice.legs[0].get("bot") is True
+    assert coordinator.games.practice.legs[0].get("bot") is True
     # Its leg is played, but sets no record and is nobody's progress.
     assert coordinator.reports.report.counts["legs"] == 1
-    assert not {"fewest_darts_101", "highest_checkout"} & set(coordinator.records.bests)
-    assert set(coordinator.progress.players) == {"alex"}
+    assert not {"fewest_darts_101", "highest_checkout"} & set(
+        coordinator.games.records.bests
+    )
+    assert set(coordinator.games.progress.players) == {"alex"}
     # The bot's darts have positions, Alex's none: the session has no darts.
-    assert len(coordinator.progress.session) == 0
+    assert len(coordinator.games.progress.session) == 0
     unlocked = [details for kind, details in events if kind == "achievement_unlocked"]
     assert all(details["name"] == "Alex" for details in unlocked)
     assert await hass.config_entries.async_unload(entry.entry_id)
@@ -240,7 +242,7 @@ async def test_a_passed_last_turn_books_the_match_like_a_dart(
     else:
         receive(coordinator, board(MISS), board())
         await hass.async_block_till_done()
-    assert coordinator.practice.winner == 0
+    assert coordinator.games.practice.winner == 0
     counts = coordinator.reports.report.counts
     assert [counts[key] for key in ("legs", "matches")] == [1, 1]
     assert len(coordinator.reports.journal.matches) == 1
@@ -272,7 +274,7 @@ async def test_a_deleted_player_leaves_the_weekly_report(hass, aioclient_mock):
     await start(hass, "101", players=["Alex"])
     # The first checkout sets the record quietly, a higher one beats it.
     for checkout, dart in ((32, ("D16", 16, 2)), (40, D20)):
-        coordinator.practice.players[0].remaining = checkout
+        coordinator.games.practice.players[0].remaining = checkout
         receive(coordinator, board(dart), board())
     await hass.async_block_till_done()
     names = [best["name"] for best in coordinator.reports.report.bests]
@@ -289,7 +291,7 @@ async def test_a_deleted_player_leaves_last_weeks_report(hass, aioclient_mock, f
     coordinator = entry.runtime_data.local
     await start(hass, "101", players=["Alex"])
     for checkout, dart in ((32, ("D16", 16, 2)), (40, D20)):
-        coordinator.practice.players[0].remaining = checkout
+        coordinator.games.practice.players[0].remaining = checkout
         receive(coordinator, board(dart), board())
     await hass.async_block_till_done()
     await pass_time(hass, freezer, 120)
@@ -323,7 +325,7 @@ async def name_seat(hass, seat: int, name: str) -> None:
 async def test_two_seats_never_share_a_name(hass, aioclient_mock):
     """The name of each seat, as the games view enters it, is a player of its own."""
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await set_number(hass, "practice_players", 8)
     await name_seat(hass, 1, "Alex")
     await name_seat(hass, 8, "Sam")
@@ -343,7 +345,7 @@ async def test_a_resting_seat_gives_its_name_up(hass, aioclient_mock):
     """Sam trains alone after a match with Alex: the seat Sam sat on before
     rests, and its name goes to the seat Sam takes now."""
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await start(hass, "501", players=["Alex", "Sam"])
     await set_number(hass, "practice_players", 1)
     await name_seat(hass, 1, "sam")
@@ -359,7 +361,7 @@ async def test_the_bots_seat_gives_its_name_up(hass, aioclient_mock):
     """The bot plays under no name; its seat keeps the name of whoever sat
     there before."""
     entry, coordinator = await against_the_bot(hass, aioclient_mock)
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     await name_seat(hass, 2, "Sam")
     await name_seat(hass, 1, "SAM")
     assert practice.bot_seat == 1 and practice.names[:2] == ["SAM", ""]
@@ -369,7 +371,7 @@ async def test_a_refused_name_brings_the_practice_players_back(hass, aioclient_m
     """After a tournament, the players from before come back with the first
     change of a setting, also with a name they refuse."""
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await start(hass, "501", players=["Zoe", "Sam"])
     await act(hass, "start_tournament", players=["Tom", "Ida", "Ben"], game="101")
     await act(hass, "stop_tournament")
@@ -387,7 +389,7 @@ async def test_the_bull_off_darts_are_training_darts(hass, aioclient_mock):
     await start(hass, "501", players=["Alex", "Sam"], bull_off=True)
     receive(coordinator, board(("Bull", 25, 2)), board(), board(T20), board())
     await hass.async_block_till_done()
-    assert coordinator.practice.bulling is None
-    training = coordinator.training.snapshot()
+    assert coordinator.games.practice.bulling is None
+    training = coordinator.games.training.snapshot()
     assert (training["darts"], training["visits"], training["bulls"]) == (2, 2, 1)
-    assert coordinator.quality.snapshot()["darts"] == 2
+    assert coordinator.games.quality.snapshot()["darts"] == 2

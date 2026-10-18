@@ -362,7 +362,7 @@ class OnlineBridge:
             return Response(text="ignored")
         if "name" in attributes:
             # As the player's profile spells the name: Dennis for dennis.
-            profiles = self._coordinator.practice.profiles
+            profiles = self._coordinator.games.practice.profiles
             attributes["name"] = profiles.spelled(attributes["name"])
         self._fire(kind, attributes)
         return Response(text="ok")

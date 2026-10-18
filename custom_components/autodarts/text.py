@@ -50,7 +50,7 @@ class AutodartsPlayerName(AutodartsStoredEntity, TextEntity):
 
     @property
     def native_value(self) -> str:
-        return self.coordinator.practice.names[self._index]
+        return self.coordinator.games.practice.names[self._index]
 
     async def async_set_value(self, value: str) -> None:
         """Every seat in play needs a name of its own, as in start_game and
@@ -78,7 +78,7 @@ class AutodartsTournamentPlayers(AutodartsStoredEntity, TextEntity):
 
     @property
     def native_value(self) -> str:
-        return ", ".join(self.coordinator.tournament.setup.players)
+        return ", ".join(self.coordinator.games.tournament.setup.players)
 
     async def async_set_value(self, value: str) -> None:
         check_names(split_players(value))

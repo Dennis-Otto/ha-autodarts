@@ -144,7 +144,7 @@ async def test_a_dartboard_without_autodarts_has_the_entities_of_the_games(
     assert value(hass, "sensor", "local_visit_score") == "0"
     assert value(hass, "switch", "training_session") == "on"
     # Every dart is entered by hand, so manual entry is on and cannot be turned off.
-    assert coordinator.practice.manual_entry
+    assert coordinator.games.practice.manual_entry
     for platform, key in (
         ("switch", "practice_manual_entry"),
         ("switch", "detection"),
@@ -211,13 +211,13 @@ async def test_manual_entry_stays_on_after_a_restart(hass, hass_storage):
     }
     entry = await setup_manual(hass, entry_id="manual-entry")
     coordinator = entry.runtime_data.local
-    assert coordinator.practice.manual_entry
+    assert coordinator.games.practice.manual_entry
     await act(hass, "throw_dart", segment="S20")
     await act(hass, "next_player")
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     coordinator = entry.runtime_data.local
-    assert coordinator.practice.manual_entry
+    assert coordinator.games.practice.manual_entry
     assert value(hass, "sensor", "practice_remaining") == "281"
     assert value(hass, "sensor", "training_darts") == "1"
     # A refresh keeps the game as it is.

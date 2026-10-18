@@ -17,10 +17,10 @@ async def test_profiles_the_last_match_and_deleting_a_player(hass, aioclient_moc
     assert state(hass, "sensor", "player_profiles") == "0"
     assert state(hass, "sensor", "last_match") == "unknown"
     for index, name in enumerate(("Alex", "Lea")):
-        coordinator.practice.set_name(index, name)
+        coordinator.games.practice.set_name(index, name)
     await select_game(hass, "501")
     await set_number(hass, "practice_players", 2)
-    coordinator.practice.players[0].remaining = 40
+    coordinator.games.practice.players[0].remaining = 40
     await throw(hass, coordinator, D20)
 
     profiles = hass.states.get(entity_id(hass, "sensor", "player_profiles"))
@@ -50,8 +50,8 @@ async def test_profiles_the_last_match_and_deleting_a_player(hass, aioclient_moc
     # Every double hit, whatever the dart was aimed at.
     assert doubles.attributes["landed"] == {"D20": 1}
     await switch(hass, "practice_personal_routes", True)
-    assert coordinator.practice.personal_routes is True
-    assert coordinator.practice.winner == 0
+    assert coordinator.games.practice.personal_routes is True
+    assert coordinator.games.practice.winner == 0
 
     await hass.services.async_call(
         DOMAIN, "delete_player", {"name": "lea"}, blocking=True
@@ -59,7 +59,7 @@ async def test_profiles_the_last_match_and_deleting_a_player(hass, aioclient_moc
     await hass.async_block_till_done()
     assert state(hass, "sensor", "player_profiles") == "1"
     # The name leaves the player slots, so the next leg creates no profile again.
-    assert coordinator.practice.names[:2] == ["Alex", ""]
+    assert coordinator.games.practice.names[:2] == ["Alex", ""]
     with pytest.raises(ServiceValidationError) as error:
         await hass.services.async_call(
             DOMAIN, "delete_player", {"name": "Nobody"}, blocking=True
@@ -67,14 +67,14 @@ async def test_profiles_the_last_match_and_deleting_a_player(hass, aioclient_moc
     assert error.value.translation_key == "unknown_player"
 
     # The board's personal bests keep their values, without the name.
-    assert coordinator.records.bests["highest_checkout"]["name"] == "Alex"
+    assert coordinator.games.records.bests["highest_checkout"]["name"] == "Alex"
     await hass.services.async_call(
         DOMAIN, "delete_player", {"name": "ALEX"}, blocking=True
     )
     await hass.async_block_till_done()
     assert state(hass, "sensor", "player_profiles") == "0"
-    assert coordinator.practice.names[:2] == ["", ""]
-    best = coordinator.records.bests["highest_checkout"]
+    assert coordinator.games.practice.names[:2] == ["", ""]
+    best = coordinator.games.records.bests["highest_checkout"]
     assert best["name"] is None and best["value"] == 40
     # The match history keeps the names.
     last = hass.states.get(entity_id(hass, "sensor", "last_match"))
