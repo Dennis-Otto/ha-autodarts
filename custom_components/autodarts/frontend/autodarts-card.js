@@ -10448,9 +10448,9 @@ function createElements(Base) {
       let { title, meta, banner, main } = board;
       // Between games the overlay leaves the picture to the stream; only the whole picture
       // has room for the table or the bracket of a tournament.
-      const quiet = Boolean(overlay) && view.mode === "idle";
-      if (quiet) ({ title, meta, banner, main } = { title: "", meta: "", banner: "", main: "" });
       const between = tournament.shown && (!overlay || overlay.layout === "full");
+      const quiet = Boolean(overlay) && view.mode === "idle" && !between;
+      if (quiet) ({ title, meta, banner, main } = { title: "", meta: "", banner: "", main: "" });
       let hints = "";
       if (this._lobby) {
         const choice = this._lobby;

@@ -274,7 +274,9 @@ In den Einstellungen des Dashboards wählt der Abschnitt *Ansicht Stream-Overlay
 
 <img src="images/de/scoreboard-overlay-corner.png" alt="Das Stream-Overlay in der Ecke oben links auf der Keyfarbe, bevor der Chroma-Key-Filter von OBS das Grün herausnimmt: Übungsspiel 501, Alex mit 84 Rest und dem Weg T20 D12, Sam mit 375, und darunter die Aufnahme mit T20" width="760">
 
-Für eine eigene Ansicht setzt du die [Anzeigetafel-Karte](cards.de.md#anzeigetafel) mit `overlay` in eine Ansicht im Panel-Modus:
+Für eine eigene Ansicht setzt du die [Anzeigetafel-Karte](cards.de.md#anzeigetafel) mit `overlay` in eine Ansicht im Panel-Modus, am besten eine Unteransicht, aber nie die erste Ansicht eines Dashboards: Wer das Overlay verlässt, landet wieder in der ersten Ansicht.
+
+Die Karte:
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -311,6 +313,7 @@ overlay_color: "#FF00FF"
 | OBS zeigt die Anmeldeseite von Home Assistant | Klicke die Browserquelle mit der rechten Maustaste an, wähle **Interagieren** und melde dich als Benutzer für OBS an; lass *Quelle herunterfahren, wenn nicht sichtbar* aus, damit sie angemeldet bleibt. |
 | Das Overlay zeigt sich auf grünem Grund | Es steht auf `chroma`: Füge der Quelle in OBS den Filter **Chroma Key** mit der Keyfarbe hinzu, oder stelle es auf `transparent`. |
 | OBS zeigt Home Assistant rund um das Overlay | Die Browserquelle von OBS vor Version 31 ist zu alt, um das Overlay über die Seite zu legen, die es dann in der Karte zeigt: Aktualisiere OBS. |
+| Das Overlay verdeckt das Dashboard, und *Dashboard bearbeiten* ist nicht erreichbar | Öffne die Adresse der Ansicht mit `?edit=1` am Ende, etwa `http://homeassistant.local:8123/darts/overlay?edit=1`: Im Bearbeitungsmodus zeigt sich das Overlay in der Karte, die du dann bearbeiten oder löschen kannst. |
 | Das Overlay zeigt nichts | Es läuft kein Spiel: Zwischen den Spielen überlässt das Overlay das Bild dem Stream. Starte ein Spiel, und das Board erscheint. |
 | Kein Bild neben einem Namen | Der Spieler ist mit keiner Person verknüpft, oder die Person hat kein Bild. Siehe [Spieler und Personen](statistics.de.md#spieler-und-personen). |
 

@@ -1363,6 +1363,18 @@
         "label": {
           "name": "Bezeichnung",
           "description": "Optional. Was das Foto zeigt, am Ende seines Namens, etwa 180 oder checkout-121. Eine Zahl zeigt die Galerie als Punkte."
+        },
+        "clip_camera": {
+          "name": "Clip-Kamera",
+          "description": "Optional. Eine Kamera mit Videostream, die den Moment zusätzlich als Clip neben dem Foto aufnimmt, unter seinem Namen mit .mp4, wo die Galerie ihn abspielt. Die Aufnahme läuft im Hintergrund, die Antwort nennt den Clip und seine Adresse also sofort; die Datei entsteht, wenn die Aufnahme endet. Eine Kamera ohne Stream oder eine, die schon aufnimmt, lässt das Foto ohne Clip."
+        },
+        "clip_lookback": {
+          "name": "Sekunden davor",
+          "description": "Optional. Wie viel des Clips vor dem Foto liegt, aus dem, was der laufende Stream der Kamera vorhält. Standard 5."
+        },
+        "clip_duration": {
+          "name": "Sekunden danach",
+          "description": "Optional. Wie viel des Clips auf das Foto folgt. Standard 8."
         }
       }
     },

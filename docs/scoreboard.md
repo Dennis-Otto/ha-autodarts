@@ -274,7 +274,9 @@ In the dashboard's settings, the section *Stream overlay view* chooses the rest:
 
 <img src="images/en/scoreboard-overlay-corner.png" alt="The stream overlay in the top-left corner on the key colour, before the chroma key filter of OBS takes the green out: Practice 501, Alex with 84 left and the route T20 D12, Sam with 375, and below them the visit with T20" width="760">
 
-For a view of your own, put the [scoreboard card](cards.md#scoreboard-card) with `overlay` into a view in panel mode:
+For a view of your own, put the [scoreboard card](cards.md#scoreboard-card) with `overlay` into a view in panel mode, ideally a subview, but never the first view of a dashboard: leaving the overlay goes back to the first view.
+
+The card:
 
 ```yaml
 type: custom:autodarts-scoreboard-card
@@ -311,6 +313,7 @@ overlay_color: "#FF00FF"
 | OBS shows the sign-in page of Home Assistant | Right-click the browser source, choose **Interact** and sign in as the user for OBS; keep *Shutdown source when not visible* off, so that it stays signed in. |
 | The overlay shows on a green screen | It is set to `chroma`: add the filter **Chroma Key** to the source in OBS with the key colour, or set it to `transparent`. |
 | OBS shows Home Assistant around the overlay | The browser source of OBS before version 31 is too old to put the overlay above the page, which then shows it inside the card: update OBS. |
+| The overlay covers the dashboard, and *Edit dashboard* can't be reached | Open the address of the view with `?edit=1` at its end, such as `http://homeassistant.local:8123/darts/overlay?edit=1`: in edit mode the overlay shows inside the card, which you can then edit or delete. |
 | The overlay shows nothing | No game runs: between games the overlay leaves the picture to the stream. Start a game, and the board shows. |
 | No picture next to a name | The player is not linked to a person, or the person has no picture. See [players and persons](statistics.md#players-and-persons). |
 

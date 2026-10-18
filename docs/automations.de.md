@@ -215,7 +215,7 @@ Deine Aktionen können nutzen:
 - `photo`: die Datei, in der das Bild gespeichert wird.
 - `image`: das Live-Bild der Kamera, für Fotos, die nicht gespeichert werden.
 - `message`, `score`, `checkout` und `who` (der Spieler am Board, wenn das Übungsspiel ihn nennt).
-- `clip` und `clip_url`: die Datei und die Adresse des [Clips](#highlight-clips), der aufgenommen wird, leer ohne Clip-Kamera oder ohne gespeichertes Foto. Die Datei entsteht, wenn die Aufnahme endet, *Seconds after* später; eine Benachrichtigung mit dem Clip wartet also erst so lange.
+- `clip` und `clip_url`: die Datei und die Adresse des [Clips](#highlight-clips), der aufgenommen wird, leer ohne Clip-Kamera oder ohne gespeichertes Foto. Die Aufnahme läuft im Hintergrund, die Aktionen bekommen also beides sofort und warten nicht auf sie; die Datei entsteht, wenn die Aufnahme endet, *Seconds after* später. Eine Benachrichtigung, die den Clip verlinkt, wartet erst so lange, etwa mit einem `delay`.
 
 `photo` und `photo_url` sind leer, wenn kein Foto gespeichert wurde: *Save to the gallery* ist aus, die Kamera-Entität ist deaktiviert oder nicht verfügbar, die Kamera liefert kein Bild, oder Home Assistant darf nicht in den Ordner schreiben. Das Log von Home Assistant sagt dann, was davon es war. `photo_url` ist außerdem leer für einen Ordner außerhalb des Medienordners, aus dem die App nicht laden kann. So ist `photo_url or image` immer ein Bild: das gespeicherte Foto oder das Live-Bild der Kamera.
 
@@ -224,7 +224,7 @@ Deine Aktionen können nutzen:
   <img src="images/de/highlight-photo-light.png" alt="Wie das Highlight-Foto ein Foto speichert und was deine Aktionen bekommen: Nach einer hohen Aufnahme oder einem Checkout speichert autodarts.save_highlight mit Save to the gallery das Foto nur, wenn die Kamera-Entität aktiviert und verfügbar ist, die Kamera ein Bild liefert und Home Assistant in den Ordner schreiben darf; dann ist photo die gespeicherte Datei und photo_url ihre Adresse. Sonst wird nichts gespeichert, das Log sagt warum, und photo und photo_url bleiben leer. Deine Aktionen laufen in jedem Fall, und photo_url or image ist das gespeicherte Foto oder das Live-Bild" width="480">
 </picture>
 
-Der Blueprint braucht Version 1.12.4 oder neuer der Integration, die `autodarts.save_highlight` mitbringt. Frühere Versionen des Blueprints speicherten mit `camera.snapshot`, das auch ein Foto meldete, das nie geschrieben wurde. Für den neuen importierst du den Blueprint über sein Menü auf der Blueprint-Seite erneut; deine Automation behält ihre Einstellungen.
+Der Blueprint braucht Version 1.12.4 oder neuer der Integration, die `autodarts.save_highlight` mitbringt. Frühere Versionen des Blueprints speicherten mit `camera.snapshot`, das auch ein Foto meldete, das nie geschrieben wurde. Für den neuen importierst du den Blueprint über sein Menü auf der Blueprint-Seite erneut; deine Automation behält ihre Einstellungen. Eine *Clip camera* braucht eine Version der Integration nach 1.16.0, deren `autodarts.save_highlight` den Clip aufnimmt.
 
 ### Light show
 
@@ -496,8 +496,8 @@ Mit einer *Clip camera* nimmt das Highlight-Foto jeden Moment auch als Clip auf:
 
 - **Die Kamera:** jede Kamera mit Videostream in Home Assistant, etwa eine RTSP-Kamera über die Integration *Generic Camera* oder *ONVIF*, oder die Kamera deines Streams. Die Board-Kameras von Autodarts liefern nur Bilder, die sich nicht aufnehmen lassen.
 - **Die Sekunden vor dem Dart:** Home Assistant hält sie nur, solange der Stream der Kamera läuft. Öffne die Kamera-Entität, ihre Einstellungen (⚙) und schalte *Kamera-Stream vorladen* ein; ohne das beginnt der Clip beim Foto.
-- **Ein Clip nach dem anderen:** Eine Kamera nimmt immer nur einen Clip auf. Ein Moment, der kommt, während der Clip des vorigen noch läuft, bekommt sein Foto ohne Clip.
-- Die Aufnahme nutzt [`camera.record`](https://www.home-assistant.io/integrations/camera/) von Home Assistant, das nur in Ordner schreibt, in die Home Assistant schreiben darf, etwa den Medienordner der Galerie. Eine ältere Version der Integration lässt die Clips im Ordner, ihre Galerie listet aber nur die Fotos.
+- **Ein Clip nach dem anderen:** Eine Kamera nimmt immer nur einen Clip auf. Ein Moment, der kommt, während der Clip des vorigen noch läuft, bekommt sein Foto ohne Clip, und das Protokoll sagt, warum; der Clip davor läuft bis zum Ende.
+- [`autodarts.save_highlight`](entities.de.md#highlight-foto-speichern-autodartssave_highlight) nimmt den Clip im Hintergrund mit [`camera.record`](https://www.home-assistant.io/integrations/camera/) von Home Assistant auf, das nur in Ordner schreibt, in die Home Assistant schreiben darf, etwa den Medienordner der Galerie. Eine ältere Version der Integration lässt die Clips im Ordner, ihre Galerie listet aber nur die Fotos.
 - Mit dem [Stream-Overlay](scoreboard.de.md#stream-overlay) der Anzeigetafel zeigt die Kamera deines Streams auch die Punkte.
 
 ### Lichtshow mit WLED und anderem Licht

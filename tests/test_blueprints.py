@@ -18,7 +18,7 @@ import pytest
 import voluptuous as vol
 from homeassistant.components.blueprint import models
 from homeassistant.components.blueprint.schemas import BLUEPRINT_SCHEMA
-from homeassistant.core import CoreState, callback
+from homeassistant.core import CoreState, SupportsResponse, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
@@ -2162,10 +2162,24 @@ CLIPPED = {
 
 async def test_highlight_photo_records_a_clip_beside_the_photo(hass, freezer):
     """A camera with a video stream records the moment as an MP4 beside the
-    photo, where the gallery plays it."""
+    photo, where the gallery plays it; autodarts.save_highlight records it in
+    the background and answers with its file and address at once."""
     photos = async_mock_service(hass, "test", "photo")
-    saves(hass)
-    records = async_mock_service(hass, "camera", "record")
+    saved = []
+    clip = "/media/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
+    url = "/media/local/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
+
+    async def save(call):
+        saved.append(call)
+        answer = {
+            "photo": clip.removesuffix(".mp4") + ".jpg",
+            "photo_url": url.removesuffix(".mp4") + ".jpg",
+        }
+        return {**answer, "clip": clip, "clip_url": url} if "clip_camera" in call.data else answer
+
+    hass.services.async_register(
+        "autodarts", "save_highlight", save, supports_response=SupportsResponse.OPTIONAL
+    )
     hass.states.async_set(EVENTS, "unknown")
     await automate_all(
         hass,
@@ -2180,39 +2194,29 @@ async def test_highlight_photo_records_a_clip_beside_the_photo(hass, freezer):
                     "clip_duration": 20,
                 },
             ),
-            # Without a clip camera, or without a saved photo, there is no clip.
+            # Without a clip camera, or without a saved photo, there is no clip,
+            # and the action gets no clip fields, which older versions lack.
             ("highlight_photo", {**CLIPPED, "clip_camera": ""}),
             ("highlight_photo", {**CLIPPED, "save_photo": False}),
         ],
     )
     fire(hass, "visit_thrown", score=180, darts=3, name="Alex")
     await photo_taken(hass, freezer)
-    clip = "/media/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
     assert sorted(
         (
-            call.data["entity_id"],
-            call.data["filename"],
-            call.data["lookback"],
-            call.data["duration"],
+            call.data.get("clip_camera", ""),
+            call.data.get("clip_lookback"),
+            call.data.get("clip_duration"),
         )
-        for call in records
-    ) == [(["camera.room"], clip, 5, 8), (["camera.stream"], clip, 2, 20)]
-    url = "/media/local/autodarts/highlights/2026-09-26_21-05-33_180.mp4"
+        for call in saved
+    ) == [("", None, None), ("camera.room", 5, 8), ("camera.stream", 2, 20)]
+    assert all(call.data["camera"] == PHOTO["camera"] for call in saved)
     assert sorted((call.data["clip"], call.data["clip_url"]) for call in photos) == [
         ("", ""),
         ("", ""),
         (clip, url),
         (clip, url),
     ]
-
-    # A camera that cannot record, or records already, does not stop the actions.
-    async def busy(call) -> None:
-        raise HomeAssistantError("Stream already recording")
-
-    hass.services.async_register("camera", "record", busy)
-    fire(hass, "leg_won", game=501, players=1, player=1, name="Kim", checkout=121)
-    await photo_taken(hass, freezer)
-    assert len(photos) == 8
 
 
 @pytest.mark.parametrize(

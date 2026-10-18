@@ -23,12 +23,13 @@ blueprint:
     moment is also recorded as a clip, from a few seconds before the dart to a
     few seconds after it, saved beside the photo under its name with `.mp4`, and
     the gallery plays it. Your actions get its file and address as `clip` and
-    `clip_url` once the recording has started; the file is written when the
-    recording ends.
+    `clip_url` at once, without waiting for the recording; the file is
+    written when the recording ends.
 
 
     Needs version 1.12.4 or later of the Autodarts integration, whose action
-    `autodarts.save_highlight` saves the photo.
+    `autodarts.save_highlight` saves the photo; a clip camera needs a version
+    later than 1.16.0, whose action records the clip.
 
 
     [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#highlight-photo)
@@ -238,42 +239,35 @@ actions:
   - alias: Save the photo to the gallery
     if: "{{ save_photo }}"
     then:
+      # The clip records in the background, from the seconds before the dart
+      # that the running stream keeps: the actions do not wait for it, and the
+      # next highlight does not cut it short. A camera without a stream, or one
+      # that records already, leaves the photo without a clip. The clip fields
+      # go only with a clip camera, so that without one an integration older
+      # than the clips still saves the photo.
+      - variables:
+          saving:
+            camera: "{{ camera_entity }}"
+            folder: "{{ gallery_folder }}"
+            player: "{{ who }}"
+            label: "{{ 'checkout-' ~ checkout if trigger.id == 'checkout' else score }}"
+          clipping:
+            clip_camera: "{{ clip_camera }}"
+            clip_lookback: "{{ clip_lookback | int(5) }}"
+            clip_duration: "{{ clip_duration | int(8) }}"
       # The action answers only for a photo it wrote, named like
       # 2026-09-26_21-05-33_Alex_180.jpg or 2026-09-26_21-07-10_Alex_checkout-121.jpg.
       # A camera that is off or gives no picture, or a folder Home Assistant may
       # not write to, must not stop the actions: they get the live picture.
       - action: autodarts.save_highlight
         continue_on_error: true
-        data:
-          camera: !input camera
-          folder: "{{ gallery_folder }}"
-          player: "{{ who }}"
-          label: "{{ 'checkout-' ~ checkout if trigger.id == 'checkout' else score }}"
+        data: "{{ dict(saving, **clipping) if clip_camera else saving }}"
         response_variable: highlight
   # Only a saved photo has a file, and an address when it is in a media folder.
   # Its clip goes beside it, under its name with .mp4, where the gallery finds it.
   - variables:
       photo: "{{ highlight.get('photo', '') }}"
       photo_url: "{{ highlight.get('photo_url', '') }}"
-      clip: >-
-        {{ photo | regex_replace('[.](jpg|png|webp)$', '.mp4')
-           if clip_camera and photo else '' }}
-      clip_url: >-
-        {{ photo_url | regex_replace('[.](jpg|png|webp)$', '.mp4')
-           if clip and photo_url else '' }}
-  - alias: Record a clip of the moment beside the photo
-    if: "{{ clip != '' }}"
-    then:
-      # camera.record starts the recording, with the seconds before it that the
-      # running stream keeps, and returns once it runs; the file is written when
-      # the recording ends. A camera without a stream, or one that records already,
-      # must not stop the actions.
-      - action: camera.record
-        continue_on_error: true
-        target:
-          entity_id: "{{ clip_camera }}"
-        data:
-          filename: "{{ clip }}"
-          lookback: "{{ clip_lookback | int(5) }}"
-          duration: "{{ clip_duration | int(8) }}"
+      clip: "{{ highlight.get('clip', '') }}"
+      clip_url: "{{ highlight.get('clip_url', '') }}"
   - sequence: !input photo_actions

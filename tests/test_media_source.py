@@ -233,7 +233,8 @@ async def test_only_photos_of_the_folder_resolve(hass, gallery):
 
 
 async def test_clips_play_beside_their_photos_with_the_same_thumbnail(hass, gallery):
-    """The clip camera of the highlight photo records the moment beside its photo."""
+    """The clip camera of the highlight photo records the moment beside its photo,
+    and the gallery lists a clip right before its photo."""
     for name in (
         "2026-09-26_21-05-33_Alex_180.mp4",
         # A clip whose photo was not saved, alone in its month.
@@ -274,15 +275,15 @@ async def test_clips_play_beside_their_photos_with_the_same_thumbnail(hass, gall
             f"{thumbnail}.jpg",
         ),
         (
-            "2026-09-26_21-05-33_Alex_180 (2).png",
-            "180 · Alex · Sep 26",
-            MediaClass.IMAGE,
-            f"{thumbnail}%20%282%29.png",
-        ),
-        (
             "2026-09-26_21-05-33_Alex_180 (2).mp4",
             "Clip · 180 · Alex · Sep 26",
             MediaClass.VIDEO,
+            f"{thumbnail}%20%282%29.png",
+        ),
+        (
+            "2026-09-26_21-05-33_Alex_180 (2).png",
+            "180 · Alex · Sep 26",
+            MediaClass.IMAGE,
             f"{thumbnail}%20%282%29.png",
         ),
     ]

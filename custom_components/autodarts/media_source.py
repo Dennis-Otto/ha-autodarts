@@ -303,7 +303,13 @@ class HighlightSource(MediaSource):
             for path in folder.iterdir()
             if _inside(folder, path) and (photo := highlight(path)) is not None
         ]
-        return sorted(photos, key=lambda photo: (photo.taken, photo.file), reverse=True)
+        # A clip comes right before its photo, whatever the kind of the picture;
+        # the dot of the suffix keeps a photo before its copies, such as " (2)".
+        return sorted(
+            photos,
+            key=lambda photo: (photo.taken, Path(photo.file).stem + ".", photo.clip),
+            reverse=True,
+        )
 
     def _url(self, source: str, file: str) -> str:
         """The address of Home Assistant's media view for a photo or a clip."""

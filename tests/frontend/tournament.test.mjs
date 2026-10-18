@@ -620,6 +620,22 @@ test("an overlay beside the stream keeps the result of a match, the whole pictur
   }
 });
 
+test("the whole picture shows a waiting tournament also without a practice game", () => {
+  for (const [layout, table] of [
+    ["lower_third", false],
+    ["full", true],
+  ]) {
+    const { card } = setup(
+      { ...tournament({ summary: 0 }), "sensor.practice_remaining": "unknown" },
+      { overlay: "chroma", overlay_layout: layout },
+    );
+    assert.equal(shown(card), table, layout);
+    // Beside the stream the overlay is empty between games; the table is not.
+    assert.equal($(card, ".scoreboard").classList.contains("quiet"), !table, layout);
+    card.remove();
+  }
+});
+
 test("Cricket and party games or no game at all are no match of the tournament", () => {
   const cricket = {
     "sensor.practice_remaining": {

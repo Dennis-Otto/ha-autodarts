@@ -1363,6 +1363,18 @@
         "label": {
           "name": "Etiqueta",
           "description": "Opcional. Lo que muestra la foto, al final de su nombre, como 180 o checkout-121. La galería muestra un número como la puntuación."
+        },
+        "clip_camera": {
+          "name": "Cámara del clip",
+          "description": "Opcional. Una cámara con transmisión de vídeo que también graba el momento como clip junto a la foto, con su nombre y .mp4, donde la galería lo reproduce. La grabación se hace en segundo plano, así que la respuesta da el clip y su dirección al momento; el archivo se escribe cuando termina la grabación. Una cámara sin transmisión, o que ya está grabando, deja la foto sin clip."
+        },
+        "clip_lookback": {
+          "name": "Segundos antes",
+          "description": "Opcional. Cuánto del clip va antes de la foto, de lo que guarda la transmisión en curso de la cámara. 5 por defecto."
+        },
+        "clip_duration": {
+          "name": "Segundos después",
+          "description": "Opcional. Cuánto del clip sigue a la foto. 8 por defecto."
         }
       }
     },
