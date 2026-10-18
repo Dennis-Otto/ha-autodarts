@@ -49,6 +49,13 @@ Der Release-Workflow signiert jedes Paket: `gh attestation verify autodarts.zip 
 
 Es gibt drei Wege für ein Autodarts-Board; alle führen zum selben, vollständig lokalen Board. Ein vierter fügt eine [Dartscheibe ohne Autodarts](#4-eine-dartscheibe-ohne-autodarts) hinzu.
 
+Welcher Weg zu deinem Board passt:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/add-board-dark.png">
+  <img src="images/de/add-board-light.png" alt="Welcher Weg zum Board passt: Eine Dartscheibe ohne Autodarts bekommt den vierten Weg, Dartscheibe ohne Autodarts, und ihre Darts gibst du auf dem Tastenfeld ein. Ein Autodarts-Board mit Board Manager 2 erscheint meist von selbst als Autodarts-Board gefunden unter Entdeckt: Wähle Hinzufügen und bestätige. Sonst gibst du die Adresse des Board-PCs ein, wenn du sie kennst, oder suchst Boards im Netzwerk; findet die Suche kein Board, öffnet sich das Adressformular. Jeder Weg mit Autodarts endet beim selben lokalen Board, einem Gerät mit all seinen Entitäten" width="480">
+</picture>
+
 <img src="images/de/setup-menu.png" alt="Das Einrichtungsmenü: Boards im Netzwerk suchen, Board-Adresse eingeben oder eine Dartscheibe ohne Autodarts" width="520">
 
 ### 1. Automatische Erkennung (Board Manager 2)

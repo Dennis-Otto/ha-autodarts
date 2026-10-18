@@ -1,4 +1,6 @@
 flowchart TB
+  accTitle: Architecture
+  accDescr: The Board Manager on the board PC sends realtime events to the Autodarts integration in Home Assistant, which reads and controls the board over HTTP, keeps the training session locally and provides entities, board events, cards and automations; the Autodarts cloud optionally adds match data.
   subgraph PC["Board PC"]
     direction LR
     CAM["Cameras"] --> BM["Autodarts Board Manager<br/>port 3180"]

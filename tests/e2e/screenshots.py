@@ -22,7 +22,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from time import monotonic
 
-from pages import FRAMES, loaded, probe
+from pages import FRAMES, POLL, QUIET, WEBSOCKET_QUIET, loaded, probe
 from PIL import Image
 from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
@@ -2025,6 +2025,43 @@ def strategy_dashboard(page: Page) -> None:
     page.set_viewport_size(size)
 
 
+# The views of the automatic dashboard in the order of its tabs, each with the card
+# it waits for: its first card, or for the game settings the built-in card of a list.
+STRATEGY_VIEWS = (
+    ("live", "autodarts-card"),
+    ("scoreboard", "autodarts-scoreboard-card"),
+    ("training", "autodarts-training-card"),
+    ("players", "autodarts-players-card"),
+    ("games", "hui-entities-card"),
+    ("board", "autodarts-status-card"),
+)
+
+
+def strategy_views(page: Page) -> None:
+    """Every view of the automatic dashboard as a laptop shows it, all of one size, as
+    dashboard-<view>.png, which the card guide shows side by side. Without the
+    sidebar, which would take a fifth of each picture. The steps only look, so the
+    images after them stay as they were."""
+    context = own_context(page, viewport={"width": 1280, "height": 800})
+    # Before Home Assistant reads it, on every page: the first load of a dashboard
+    # passes through the login, which would take a script's page from under it.
+    context.add_init_script(f"try {{ {HIDE_SIDEBAR} }} catch {{}}")
+    view = context.new_page()
+    for path, tag in STRATEGY_VIEWS:
+        view.goto(f"{HA}/autodarts-auto/{path}")
+        wait_card(view, "r?.querySelector('ha-card')", tag, 60000)
+        if tag.startswith("autodarts-"):
+            ready(view)
+        else:
+            # Built-in cards alone, which ready() does not wait for.
+            view.wait_for_function(
+                WEBSOCKET_QUIET, arg=QUIET, timeout=15000, polling=POLL
+            )
+            view.evaluate(FRAMES)
+        page_shot(view, f"dashboard-{path}")
+    context.close()
+
+
 # Takes the focus from where a click left it, deep in the shadow roots.
 BLUR = """
 () => {
@@ -3323,6 +3360,7 @@ def people(browser: Browser) -> None:
     media_gallery(context.new_page())
     # After the doubles training, so the training view shows its doubles.
     strategy_dashboard(context.new_page())
+    strategy_views(context.new_page())
     blueprints_page(context.new_page())
     board_events_dialog(context.new_page())
     online_bridge_options(context.new_page())
