@@ -182,7 +182,7 @@ Spieler mit Namen schalten Erfolge in Stufen frei, Bronze, Silber, Gold und für
 
 <img src="images/de/players-trends.png" alt="Trends von Alex, Sam und Kim mit 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts pro Woche und die Streuung jedes Spielers an der Triple 20, dem Bull und der Double 8" width="620">
 
-- **Wochentrends:** für jeden Spieler, der in den gezeigten Wochen geübt hat, 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts über bis zu 12 Wochen, als Linie mit einem Pfeil, der die neuere Hälfte der Wochen mit der älteren vergleicht: ↗ besser, ↘ schlechter, → etwa gleich.
+- **Wochentrends:** für jeden Spieler, der in den gezeigten Wochen geübt hat, 3-Dart-Average, First 9, Checkout-Quote, Doppelquote und Darts über bis zu 12 Wochen, als Linie mit einem Pfeil, der die neuere Hälfte der Wochen mit der älteren vergleicht: ↗ besser, ↘ schlechter, → etwa gleich. Der Pfeil der Darts vergleicht die Darts pro Woche der abgeschlossenen Wochen, eine Woche ohne Training mit null Darts, sodass die laufende Woche, die gerade erst begonnen hat, ihn nie nach unten zieht.
 - **Streuung:** wo die Darts eines Spielers um die Felder landen, auf die er am meisten gezielt hat, in Millimetern. Die Abweichung zeigt die Treffgenauigkeit, etwa *6 mm links der Mitte*, die Streuung die Präzision, den Radius, in dem die Hälfte der Darts liegt, etwa *Streuung 38 mm*, und der Trend, ob die neueren Darts enger liegen. [So wird die Streuung gemessen](how-it-works.de.md#streuung).
 
 Die Wochensummen stehen im Attribut `trend` von *Spielerprofile*, für eigene Grafiken. [Fortschritt der Spieler](entities.de.md#fortschritt-der-spieler).
