@@ -10,7 +10,7 @@ For YouTubers, streamers, bloggers and everyone who wants to show the Autodarts 
 
 <img src="images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, Sam scores 85, and Alex checks out 121 for the game shot" width="760">
 
-**On this page:** [In short](#in-short) · [Facts](#facts) · [The story](#the-story) · [Try it without a board](#try-it-without-a-board) · [Videos and animations](#videos-and-animations) · [Pictures](#pictures) · [How to name it](#how-to-name-it) · [Launch posts](#launch-posts) · [Contact](#contact)
+**On this page:** [In short](#in-short) · [Facts](#facts) · [The story](#the-story) · [Try it without a board](#try-it-without-a-board) · [Videos and animations](#videos-and-animations) · [Pictures](#pictures) · [Stream your games](#stream-your-games) · [How to name it](#how-to-name-it) · [Launch posts](#launch-posts) · [Contact](#contact)
 
 ## In short
 
@@ -85,6 +85,15 @@ Every screenshot of the documentation is in [`docs/images/en`](https://github.co
 | --- | --- |
 | <img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, Sam starting from 301, three legs per set, double out and the start button" width="100%"> | <img src="images/en/match-summary.png" alt="Scoreboard after Alex beat Sam 2 : 1 in 301: the match summary with legs, 3-dart average, first 9, checkout rate, highest checkout, 180s, 140+, 100+, best leg, darts at a double and darts of both players" width="100%"> |
 | <img src="images/en/players-card.png" alt="Players card with the profiles of Alex, Sam and Kim with their pictures, their averages and personal bests, the head-to-head record of Alex and Sam, and the recent matches" width="100%"> | <img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the fourteen Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="100%"> |
+
+## Stream your games
+
+Playing on stream? The scoreboard is an overlay for OBS Studio, Streamlabs and every other software with a browser source: the score, the checkout route and the darts of the visit along the bottom of your picture, in its top-left corner or across all of it, see-through or on a key colour. It fills the window by itself and shows nothing between games. The highlight photo records each 180 or big checkout as a clip as well, from a few seconds before the dart, ready to cut.
+
+<img src="images/en/scoreboard-overlay.png" alt="The stream overlay along the bottom of the picture of the board: Practice 501, Alex at the board with the route T20 D12, Sam, and beside them the darts of the visit" width="760">
+
+- [Set up the stream overlay](scoreboard.md#stream-overlay): a user for OBS, the view `…/overlay` of the automatic dashboard and a browser source of 1920 × 1080.
+- [Record clips of your highlights](automations.md#highlight-clips) with the camera of your stream.
 
 ## How to name it
 

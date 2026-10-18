@@ -807,6 +807,9 @@ Speichert, was eine Kamera sieht, als Foto für die [Highlight-Galerie](automati
 | `folder` | Ordner | Ein Ordner, in den Home Assistant schreiben darf, wie bei [`autodarts.export`](#trainingsdaten-exportieren-autodartsexport). Leer oder weggelassen: die Galerie, `autodarts/highlights` im Medienordner, `/media/autodarts/highlights` unter Home Assistant OS und im Container. |
 | `player` | Text | Der Spieler auf dem Foto, für seinen Namen und seinen Titel in der Galerie |
 | `label` | Text | Was das Foto zeigt, am Ende seines Namens, etwa `180` oder `checkout-121`; eine Zahl zeigt die Galerie als Punkte, `checkout-121` als Checkout |
+| `clip_camera` | Kamera-Entität | Eine Kamera mit Videostream, die den Moment zusätzlich als [Clip](automations.de.md#highlight-clips) neben dem Foto aufnimmt, unter seinem Namen mit `.mp4`. Die Aufnahme läuft im Hintergrund, die Aktion wartet also nicht auf sie. Leer oder weggelassen: kein Clip |
+| `clip_lookback` | 0 bis 10 Sekunden | Wie viel des Clips vor dem Foto liegt, aus dem, was der laufende Stream vorhält; Standard 5 |
+| `clip_duration` | 1 bis 60 Sekunden | Wie viel des Clips auf das Foto folgt; Standard 8 |
 
 ```yaml
 action: autodarts.save_highlight
@@ -819,7 +822,7 @@ response_variable: highlight
 
 Das Foto heißt etwa `2026-09-26_21-05-33_Alex_180.jpg`, in der Zeit von Home Assistant. Spieler und Bezeichnung verlieren, was ein Dateiname oder eine Adresse nicht haben kann, etwa `/`, `:`, `_`, `~`, `..`, `{`, `%` und `#`, und werden auf 20 und 24 Zeichen gekürzt, ohne Punkt am Ende. Ein zweites Foto derselben Sekunde mit demselben Namen heißt `2026-09-26_21-05-33_Alex_180 (2).jpg`, ein drittes bekommt `(3)` und so weiter; nichts wird überschrieben. Das Bild behält die Art, die die Kamera schickt: `.jpg`, oder `.png` oder `.webp`.
 
-**Antwort:** Mit `response_variable` ist `photo` die gespeicherte Datei und `photo_url` ihre Adresse in der Medienansicht, etwa `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, die die Home-Assistant-App in einer Benachrichtigung lädt; außerhalb des Medienordners ist `photo_url` leer.
+**Antwort:** Mit `response_variable` ist `photo` die gespeicherte Datei und `photo_url` ihre Adresse in der Medienansicht, etwa `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, die die Home-Assistant-App in einer Benachrichtigung lädt; außerhalb des Medienordners ist `photo_url` leer. Mit einer `clip_camera` sind `clip` und `clip_url` die Datei und die Adresse des Clips, die entsteht, wenn die Aufnahme endet; eine Kamera ohne Stream oder eine, die schon aufnimmt, schreibt keinen Clip, und das Protokoll sagt, warum.
 
 Die Aktion schlägt mit einer klaren Meldung fehl und schreibt nichts, wenn es die Kamera-Entität nicht gibt oder sie deaktiviert ist, wenn die Kamera nicht verfügbar ist oder kein Bild liefert, wenn der Ordner nicht erlaubt ist oder die Datei nicht geschrieben werden kann. Mit `continue_on_error: true` macht eine Automation ohne das Foto weiter, wie der Blueprint. Anders als `camera.snapshot`, das eine deaktivierte oder nicht verfügbare Kamera und ein fehlendes Bild ohne Fehler übergeht, meldet sie nie ein Foto, das nicht auf der Festplatte liegt.
 

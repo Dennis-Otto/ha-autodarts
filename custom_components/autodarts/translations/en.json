@@ -1367,6 +1367,18 @@
         "label": {
           "name": "Label",
           "description": "Optional. What the photo shows, at the end of its name, such as 180 or checkout-121. The gallery shows a number as the score."
+        },
+        "clip_camera": {
+          "name": "Clip camera",
+          "description": "Optional. A camera with a video stream that also records the moment as a clip beside the photo, under its name with .mp4, where the gallery plays it. The recording runs in the background, so the answer names the clip and its address at once; the file is written when the recording ends. A camera without a stream, or one that records already, leaves the photo without a clip."
+        },
+        "clip_lookback": {
+          "name": "Seconds before",
+          "description": "Optional. How much of the clip comes before the photo, from what the running stream of the camera keeps. Default 5."
+        },
+        "clip_duration": {
+          "name": "Seconds after",
+          "description": "Optional. How much of the clip follows the photo. Default 8."
         }
       }
     },

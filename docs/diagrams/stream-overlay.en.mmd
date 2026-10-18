@@ -1,0 +1,21 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How the scoreboard reaches a stream in OBS
+  accDescr: A dart lands on the board, and Home Assistant shows it on the scoreboard card of the view whose address ends in /overlay. OBS opens that address as a browser source of 1920 by 1080 pixels, signed in as a user of its own. A see-through overlay goes straight into the scene; on a key colour, the chroma key filter of OBS takes the colour out first. The scene puts the overlay above the camera of the stream, which shows the score, the route and the visit.
+
+  BOARD["A dart lands on the board"] --> HA{{"Home Assistant: the scoreboard card<br/>in the view …/overlay"}}
+  HA --> OBS["OBS: a browser source with the address<br/>of the view, 1920 × 1080, signed in<br/>as a user of its own"]
+  OBS --> MODE{"See-through or<br/>on a key colour?"}
+  MODE -->|See-through| SCENE["The scene: the overlay above<br/>the camera of the stream"]
+  MODE -->|Key colour| KEY["The chroma key filter of OBS<br/>takes the colour out"]
+  KEY --> SCENE
+  SCENE --> STREAM["The stream shows the score,<br/>the route and the visit"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class HA bot
+  class STREAM done

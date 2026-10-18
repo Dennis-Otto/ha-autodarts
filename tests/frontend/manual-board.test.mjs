@@ -172,6 +172,6 @@ test("the dashboard of a dartboard without Autodarts has no board view", () => {
     states: { "sensor.garage_status": { entity_id: "sensor.garage_status", state: status, attributes: {} } },
   });
   const paths = (status) => dashboardStrategy(hass(status)).views.map((view) => view.path);
-  assert.deepEqual(paths("manual"), ["live", "scoreboard", "training"]);
-  assert.deepEqual(paths("throw"), ["live", "scoreboard", "training", "board"]);
+  assert.deepEqual(paths("manual"), ["live", "scoreboard", "training", "overlay"]);
+  assert.deepEqual(paths("throw"), ["live", "scoreboard", "training", "board", "overlay"]);
 });

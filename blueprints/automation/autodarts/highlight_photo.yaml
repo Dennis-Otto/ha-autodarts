@@ -19,8 +19,17 @@ blueprint:
     entity first; camera entities are disabled by default.
 
 
+    With a clip camera, a camera with a video stream that films the board, the
+    moment is also recorded as a clip, from a few seconds before the dart to a
+    few seconds after it, saved beside the photo under its name with `.mp4`, and
+    the gallery plays it. Your actions get its file and address as `clip` and
+    `clip_url` at once, without waiting for the recording; the file is
+    written when the recording ends.
+
+
     Needs version 1.12.4 or later of the Autodarts integration, whose action
-    `autodarts.save_highlight` saves the photo.
+    `autodarts.save_highlight` saves the photo; a clip camera needs a version
+    later than 1.16.0, whose action records the clip.
 
 
     [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#highlight-photo)
@@ -122,6 +131,51 @@ blueprint:
           default: "Checkout {{ checkout }}{{ ' by ' ~ who if who }}!"
           selector:
             text: {}
+    clip:
+      name: Clip
+      icon: mdi:video-outline
+      collapsed: true
+      input:
+        clip_camera:
+          name: Clip camera
+          description: >-
+            Optional. A camera with a video stream that films the board, such as
+            a camera of the room or the one of your stream, records the moment
+            as a clip beside the photo; it needs Save to the gallery. The board
+            cameras of Autodarts give pictures, not a video stream. For the
+            seconds before the dart, turn on Preload camera stream in the
+            settings of the camera entity.
+          default: ""
+          selector:
+            entity:
+              filter:
+                - domain: camera
+                  supported_features:
+                    - camera.CameraEntityFeature.STREAM
+        clip_lookback:
+          name: Seconds before
+          description: >-
+            How much of the clip comes before the dart, while the stream of the
+            camera runs ahead, as with Preload camera stream on.
+          default: 5
+          selector:
+            number:
+              min: 0
+              max: 10
+              step: 1
+              mode: box
+              unit_of_measurement: s
+        clip_duration:
+          name: Seconds after
+          description: How much of the clip follows the moment of the photo.
+          default: 8
+          selector:
+            number:
+              min: 2
+              max: 30
+              step: 1
+              mode: box
+              unit_of_measurement: s
 
 # A leg won by the third dart follows its visit within milliseconds: the short
 # pause lets the checkout replace the visit, so the leg gets one photo.
@@ -160,6 +214,9 @@ variables:
        | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
   save_photo: !input save_photo
   gallery_folder: !input gallery_folder
+  clip_camera: !input clip_camera
+  clip_lookback: !input clip_lookback
+  clip_duration: !input clip_duration
   score_text: !input score_message
   checkout_text: !input checkout_message
   message: "{{ checkout_text if trigger.id == 'checkout' else score_text }}"
@@ -182,20 +239,35 @@ actions:
   - alias: Save the photo to the gallery
     if: "{{ save_photo }}"
     then:
+      # The clip records in the background, from the seconds before the dart
+      # that the running stream keeps: the actions do not wait for it, and the
+      # next highlight does not cut it short. A camera without a stream, or one
+      # that records already, leaves the photo without a clip. The clip fields
+      # go only with a clip camera, so that without one an integration older
+      # than the clips still saves the photo.
+      - variables:
+          saving:
+            camera: "{{ camera_entity }}"
+            folder: "{{ gallery_folder }}"
+            player: "{{ who }}"
+            label: "{{ 'checkout-' ~ checkout if trigger.id == 'checkout' else score }}"
+          clipping:
+            clip_camera: "{{ clip_camera }}"
+            clip_lookback: "{{ clip_lookback | int(5) }}"
+            clip_duration: "{{ clip_duration | int(8) }}"
       # The action answers only for a photo it wrote, named like
       # 2026-09-26_21-05-33_Alex_180.jpg or 2026-09-26_21-07-10_Alex_checkout-121.jpg.
       # A camera that is off or gives no picture, or a folder Home Assistant may
       # not write to, must not stop the actions: they get the live picture.
       - action: autodarts.save_highlight
         continue_on_error: true
-        data:
-          camera: !input camera
-          folder: "{{ gallery_folder }}"
-          player: "{{ who }}"
-          label: "{{ 'checkout-' ~ checkout if trigger.id == 'checkout' else score }}"
+        data: "{{ dict(saving, **clipping) if clip_camera else saving }}"
         response_variable: highlight
   # Only a saved photo has a file, and an address when it is in a media folder.
+  # Its clip goes beside it, under its name with .mp4, where the gallery finds it.
   - variables:
       photo: "{{ highlight.get('photo', '') }}"
       photo_url: "{{ highlight.get('photo_url', '') }}"
+      clip: "{{ highlight.get('clip', '') }}"
+      clip_url: "{{ highlight.get('clip_url', '') }}"
   - sequence: !input photo_actions

@@ -244,6 +244,10 @@ const SCOREBOARD_DEFAULTS = {
   // while Practice manual entry is on, and on a dartboard without Autodarts.
   corrections: true,
   keypad: false,
+  // The overlay of a stream: the scoreboard alone over the video, for a browser source of OBS.
+  overlay: "off",
+  overlay_layout: "lower_third",
+  overlay_color: "#00FF00",
 };
 
 // Entities a card reads, by domain and translation key of the integration.
@@ -428,6 +432,79 @@ function cssColor(value, fallback) {
   if (/^var\(--[\w-]+\)$/.test(value)) return value;
   if (/\\|url|image|src\(|var\(/i.test(value)) return fallback;
   return globalThis.CSS?.supports?.("color", value) ? value : fallback;
+}
+
+// Stream overlay --------------------------------------------------------------
+
+// What the overlay of a stream lies on: a key colour that a chroma key filter takes out,
+// or nothing at all, for a browser source that shows what is see-through.
+const OVERLAY_MODES = ["chroma", "transparent"];
+// A band along the bottom of the picture, a box in its top-left corner, or all of it.
+const OVERLAY_LAYOUTS = ["lower_third", "corner", "full"];
+
+// The overlay the settings of a scoreboard ask for, or null for the card as it is.
+// Unknown values fall back to the defaults, as the code editor may write anything.
+function overlayOf(config) {
+  if (!OVERLAY_MODES.includes(config?.overlay)) return null;
+  const layout = OVERLAY_LAYOUTS.includes(config.overlay_layout)
+    ? config.overlay_layout
+    : SCOREBOARD_DEFAULTS.overlay_layout;
+  const key =
+    config.overlay === "chroma" ? cssColor(config.overlay_color, SCOREBOARD_DEFAULTS.overlay_color) : "transparent";
+  return { mode: config.overlay, layout, key };
+}
+
+// Nobody taps a stream: the overlay has no new game screen, idle mode, caller, keypad,
+// corrections or status, and only the whole picture has room for the summary of a match.
+function overlayConfig(config) {
+  const overlay = overlayOf(config);
+  if (!overlay) return config;
+  return {
+    ...config,
+    full_height: false,
+    show_status: false,
+    caller: false,
+    lobby: false,
+    idle: false,
+    corrections: false,
+    keypad: false,
+    ...(overlay.layout === "full" ? {} : { show_summary: false }),
+  };
+}
+
+// The overlays that hold the page: while one is there, the page shows nothing else, and
+// what is around the overlay is see-through.
+const overlayHolders = new Set();
+const OVERLAY_PAGE_ID = "autodarts-overlay";
+const OVERLAY_PAGE_CSS = `
+  html, body { background: transparent !important; overflow: hidden !important; }
+  body > * { visibility: hidden !important; }
+`;
+
+function holdPage(card, hold) {
+  if (hold) overlayHolders.add(card);
+  else overlayHolders.delete(card);
+  const style = document.getElementById(OVERLAY_PAGE_ID);
+  if (overlayHolders.size && !style) {
+    const sheet = document.createElement("style");
+    sheet.id = OVERLAY_PAGE_ID;
+    sheet.textContent = OVERLAY_PAGE_CSS;
+    document.head.append(sheet);
+  } else if (!overlayHolders.size) {
+    style?.remove();
+  }
+}
+
+// Leaving the overlay, which covers the dashboard's own controls: back to the page before
+// it, or, opened on its own as in OBS, to the dashboard's first view.
+function leaveOverlay() {
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+  const dashboard = window.location.pathname.split("/").slice(0, 2).join("/");
+  window.history.pushState(null, "", dashboard);
+  window.dispatchEvent(new CustomEvent("location-changed", { detail: { replace: false } }));
 }
 
 const usable = (state) => state && !["unknown", "unavailable"].includes(state.state);
@@ -5171,6 +5248,31 @@ function scoreboardDashboardView(board, options = {}) {
   };
 }
 
+// Options of the overlay view that the dashboard's own settings may set.
+const STRATEGY_OVERLAY = ["overlay", "overlay_layout", "overlay_color"];
+
+// The overlay options set in the dashboard's settings, without the empty ones.
+function overlayOptions(config) {
+  const chosen = config?.overlay_view && typeof config.overlay_view === "object" ? config.overlay_view : {};
+  return Object.fromEntries(
+    STRATEGY_OVERLAY.filter((key) => typeof chosen[key] === "string" && chosen[key]).map((key) => [key, chosen[key]])
+  );
+}
+
+// The scoreboard as the overlay of a stream, for a browser source of OBS: a view that
+// the tabs leave out, at the address of the dashboard with /overlay at its end. It is
+// see-through and lies along the bottom of the picture unless the settings say otherwise.
+function overlayDashboardView(board, options = {}) {
+  return {
+    title: `${board.t("view_overlay")}${board.suffix}`,
+    path: `overlay${board.slug}`,
+    icon: "mdi:video-outline",
+    subview: true,
+    panel: true,
+    cards: [board.card(SCOREBOARD_TYPE, { overlay: "transparent", ...options })],
+  };
+}
+
 // Goals, graphs of darts, averages and practice legs, and the training settings.
 function trainingTrends(board) {
   const { t, id, rows } = board;
@@ -5270,6 +5372,7 @@ function dashboardStrategy(hass, config = {}) {
     return { title, views: [{ title: "Autodarts", cards: [{ type: "markdown", content }] }] };
   }
   const options = scoreboardOptions(config);
+  const overlay = overlayOptions(config);
   const views = devices.flatMap((deviceId, number) => {
     const board = boardContext(hass, t, deviceId, number, devices.length);
     return [
@@ -5279,6 +5382,7 @@ function dashboardStrategy(hass, config = {}) {
       playersDashboardView(board),
       gamesDashboardView(board),
       boardDashboardView(board),
+      overlayDashboardView(board, overlay),
     ].filter(Boolean);
   });
   return { title, views };
@@ -5309,6 +5413,9 @@ const accentField = colorField("accent_color", "primary");
 const voiceField = { name: "caller_voice", selector: { text: {} } };
 // Every dart called by its points or its bed, for players who cannot see the board well.
 const dartCallsField = () => dropdown("call_darts", "call_darts", DART_CALLS);
+// Where the overlay of a stream lies in the picture, and the colour that a chroma key takes out.
+const overlayLayoutField = () => dropdown("overlay_layout", "overlay_layout", OVERLAY_LAYOUTS);
+const overlayColorField = { name: "overlay_color", selector: { text: {} } };
 // Named players to pick from; any other name can be typed in.
 const playerField = (helper) => ({
   name: "player",
@@ -5337,6 +5444,8 @@ const FORM_HELPERS = {
   keypad: "keypad_helper",
   input_section: "input_section_helper",
   summary_seconds: "summary_seconds_helper",
+  overlay_section: "overlay_section_helper",
+  overlay_color: "overlay_color_helper",
 };
 
 // The games to offer in the editor: those of a board's practice select, or every game the card knows.
@@ -5525,6 +5634,20 @@ const FORMS = {
       flatten: true,
       schema: [toggles(["corrections", "keypad"], SCOREBOARD_DEFAULTS)],
     },
+    // The overlay of a stream is for a browser source of OBS, not for the screen at the board.
+    {
+      type: "expandable",
+      name: "overlay_section",
+      flatten: true,
+      schema: [
+        {
+          type: "grid",
+          name: "",
+          schema: [dropdown("overlay", "overlay", ["off", ...OVERLAY_MODES]), overlayLayoutField()],
+        },
+        overlayColorField,
+      ],
+    },
     accentField,
   ],
   players: () => [
@@ -5585,14 +5708,46 @@ const strategyForm = (hass) => [
       },
     ],
   },
+  {
+    type: "expandable",
+    name: "overlay_view",
+    schema: [
+      {
+        type: "grid",
+        name: "",
+        schema: [
+          {
+            name: "overlay",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: OVERLAY_MODES.map((value) => ({ value, label: translate(hass, `overlay_${value}`) })),
+              },
+            },
+          },
+          {
+            name: "overlay_layout",
+            selector: {
+              select: {
+                mode: "dropdown",
+                options: OVERLAY_LAYOUTS.map((value) => ({ value, label: translate(hass, `overlay_layout_${value}`) })),
+              },
+            },
+          },
+        ],
+      },
+      overlayColorField,
+    ],
+  },
 ];
 
 // Labels and help of the dashboard's settings that differ from those of the cards.
-const STRATEGY_LABELS = { scoreboard: "strategy_scoreboard" };
+const STRATEGY_LABELS = { scoreboard: "strategy_scoreboard", overlay_view: "strategy_overlay" };
 const STRATEGY_HELPERS = {
   ...FORM_HELPERS,
   device_id: "strategy_device_helper",
   scoreboard: "strategy_scoreboard_helper",
+  overlay_view: "strategy_overlay_helper",
 };
 
 // Styles ----------------------------------------------------------------------
@@ -6971,6 +7126,158 @@ ${compactPlayers(".scoreboard.full .players:is(.n3, .n4)", 280)}
     .scoreboard.full .cricket thead th, .scoreboard.full .cricket.many thead th { font-size: clamp(11px, min(2.6cqi, 6.5cqh), 34px); }
     .scoreboard.full .cricket tr.total td, .scoreboard.full .cricket.many tr.total td { font-size: clamp(11px, min(4.2cqi, 9cqh), 56px); }
   }
+  /* The overlay of a stream: no card around it, the scores on plates of their own over the
+     picture, in colours that stay readable over any video, whatever the theme, and far from
+     a green or a blue key. Sizes follow the height of the picture. */
+  ha-card.overlay-card { background: none; border: none; border-radius: 0; box-shadow: none; overflow: visible; }
+  .stage {
+    --ad-plate: #14171d;
+    --ad-plate-edge: #323844;
+    --primary-text-color: #ffffff;
+    --secondary-text-color: #c5cad3;
+    --divider-color: #3a414d;
+    --ad-muted-text: #c5cad3;
+    --ad-accent-text: color-mix(in srgb, var(--ad-accent) 55%, #ffffff);
+    --ad-accent-fill: color-mix(in srgb, var(--ad-accent) 70%, #000000);
+    --ad-ok-text: ${GOLD};
+    --ad-gold-text: ${GOLD};
+    --ad-warn-text: #ffd166;
+    --ad-error-text: #ff8a80;
+    position: relative; container-type: size; aspect-ratio: 16 / 9; overflow: hidden;
+    color: var(--primary-text-color); background: var(--ad-key, transparent);
+  }
+  /* In the card editor, what is see-through shows as a checkerboard, as in an image editor. */
+  .stage[data-mode="transparent"]:not(.taken) {
+    background: repeating-conic-gradient(#9aa0aa 0 25%, #c9ced6 0 50%) 0 0 / 20px 20px;
+  }
+  /* On the dashboard, the stage is the whole window, above Home Assistant. */
+  .stage.taken {
+    position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none; aspect-ratio: auto;
+    margin: 0; padding: 0; border: 0; visibility: visible;
+  }
+  .stage .overlay {
+    position: absolute; display: grid; gap: 1.2cqh; padding: 0; box-sizing: border-box;
+    grid-template-columns: minmax(0, 1fr); align-content: end;
+    grid-template-areas: "header" "banner" "main" "visit";
+  }
+  /* Between games the picture belongs to the stream. */
+  .stage .overlay.quiet { display: none; }
+  .stage .overlay > header { grid-area: header; justify-content: flex-start; }
+  .stage .overlay > .banner { grid-area: banner; }
+  .stage .overlay > .main { grid-area: main; gap: 1.2cqh; min-height: 0; justify-content: flex-start; }
+  .stage .overlay > .visit { grid-area: visit; }
+  .stage .overlay :is(.header-actions, .pad-area, .loupe) { display: none !important; }
+  /* The game and its format in one line. */
+  .stage .overlay .heading {
+    display: block; padding: .7cqh 1.6cqh; border-radius: 1.2cqh; border: .25cqh solid var(--ad-plate-edge);
+    background: var(--ad-plate);
+  }
+  .stage .overlay .heading:has(.title:empty):has(.meta:empty) { display: none; }
+  .stage .overlay .title { display: inline; font-size: 2.8cqh; font-weight: 800; }
+  .stage .overlay .meta { display: inline; font-size: 2.2cqh; color: var(--ad-muted-text); }
+  .stage .overlay .title:not(:empty) + .meta:not(:empty)::before { content: " · "; content: " · " / ""; }
+  .stage .overlay .banner {
+    justify-self: start; padding: .8cqh 2.4cqh; border-radius: 1.2cqh; font-size: 3.6cqh;
+    color: #14171d; background: ${GOLD};
+  }
+  .stage .overlay .banner.rethrow { color: #14171d; background: #ffb74d; }
+  .stage .overlay .players { gap: 1.2cqh; }
+  .stage .overlay .player {
+    gap: .5cqh; padding: 1.2cqh 1.6cqh; border-radius: 1.6cqh; border: .3cqh solid var(--ad-plate-edge);
+    background: var(--ad-plate);
+  }
+  .stage .overlay .player.active {
+    border-color: var(--ad-accent); background: color-mix(in srgb, var(--ad-accent) 16%, var(--ad-plate));
+  }
+  .stage .overlay .player.winner { border-color: ${GOLD}; background: color-mix(in srgb, ${GOLD} 16%, var(--ad-plate)); }
+  .stage .overlay .player .name { font-size: 3.2cqh; }
+  .stage .overlay .big { font-size: 12cqh; }
+  .stage .overlay .route { font-size: 2.8cqh; }
+  .stage .overlay .details, .stage .overlay .members { font-size: 2.2cqh; }
+  .stage .overlay :is(.n5, .n6, .n7, .n8) > .player .name { font-size: 2.4cqh; }
+  .stage .overlay :is(.n5, .n6, .n7, .n8) .big { font-size: 7cqh; }
+  .stage .overlay .single .big { font-size: 12cqh; }
+  .stage .overlay .single .big.long { font-size: 7cqh; }
+  .stage .overlay .single .label { font-size: 2.2cqh; }
+  .stage .overlay .facts-box { font-size: 2.4cqh; }
+  /* Tables, a training game and the screens of a tournament lie on a plate as a whole. */
+  .stage .overlay .main > :not(.players) {
+    box-sizing: border-box; padding: 1cqh 1.6cqh; border-radius: 1.6cqh; border: .3cqh solid var(--ad-plate-edge);
+    background: var(--ad-plate);
+  }
+  .stage .overlay .main > table { border-collapse: separate; border-spacing: 0; }
+  .stage .overlay :is(.dart, .sum) {
+    padding: .8cqh 1.2cqh; border-radius: 1.2cqh; border: .25cqh solid var(--ad-plate-edge); background: var(--ad-plate);
+  }
+  .stage .overlay > .visit { gap: 1cqh; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, .8fr); }
+  .stage .overlay .sum {
+    color: #ffffff; border-color: var(--ad-accent); background: color-mix(in srgb, var(--ad-accent) 35%, var(--ad-plate));
+  }
+  .stage .overlay .dart.bot { background: color-mix(in srgb, var(--ad-accent) 14%, var(--ad-plate)); }
+  .stage .overlay .dart .segment { font-size: 3.6cqh; }
+  .stage .overlay .dart .points { font-size: 2cqh; }
+  .stage .overlay .sum .muted { font-size: 1.8cqh; }
+  .stage .overlay .sum .value { font-size: 4cqh; }
+  /* A chalkboard or a scorecard beside the stream, in smaller type than on the screen at the board. */
+  .stage:not([data-layout="full"]) .overlay :is(.cricket, .scorecard) :is(th, td) {
+    padding: .2cqh .8cqh; font-size: 2.4cqh; line-height: 1.1;
+  }
+  .stage:not([data-layout="full"]) .overlay .cricket tr.total td { font-size: 3cqh; }
+  .stage:not([data-layout="full"]) .overlay .cricket tr.detail > * { font-size: 1.8cqh; }
+  /* A glow mixes with the key colour, which a chroma key leaves as a fringe; the confetti stays. */
+  .stage[data-mode="chroma"] .moment .glow { display: none; }
+  /* Lower third: the players side by side along the bottom, the visit beside them. */
+  .stage[data-layout="lower_third"] .overlay {
+    left: 4cqw; right: 4cqw; bottom: 5cqh; max-height: 50cqh; align-items: end;
+    grid-template-columns: minmax(0, max-content) auto; justify-content: start;
+    grid-template-areas: "header header" "banner banner" "main visit";
+  }
+  .stage[data-layout="lower_third"] .overlay .players {
+    grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 30cqw); justify-content: start;
+  }
+  .stage[data-layout="lower_third"] .overlay .main > .cricket { width: 56cqw; }
+  .stage[data-layout="lower_third"] .overlay > .visit { width: 14cqw; grid-template-columns: minmax(0, 1fr); gap: .8cqh; }
+  .stage[data-layout="lower_third"] .overlay > .visit > :is(.dart, .sum) {
+    flex-direction: row; justify-content: space-between; gap: 1cqh;
+  }
+  /* Corner: a box in the top-left corner, a line for each player with the score at its end. */
+  .stage[data-layout="corner"] .overlay { top: 4cqh; left: 3cqw; width: 32cqw; align-content: start; }
+  .stage[data-layout="corner"] .overlay .players { grid-template-columns: minmax(0, 1fr); gap: .8cqh; }
+  .stage[data-layout="corner"] .overlay .player {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 1.6cqh; row-gap: .2cqh;
+    grid-template-areas: "name big" "details big" "route route" "members members"; padding: .9cqh 1.6cqh;
+  }
+  .stage[data-layout="corner"] .overlay .player > .name {
+    grid-area: name; justify-self: start; text-align: left; font-size: 2.6cqh;
+  }
+  .stage[data-layout="corner"] .overlay .player > .big { grid-area: big; font-size: 7cqh; }
+  .stage[data-layout="corner"] .overlay .player > .route { grid-area: route; font-size: 2.2cqh; }
+  .stage[data-layout="corner"] .overlay .player > .route .route-line { justify-content: flex-start; }
+  .stage[data-layout="corner"] .overlay .player > .details { grid-area: details; text-align: left; font-size: 1.8cqh; }
+  .stage[data-layout="corner"] .overlay .player > .members { grid-area: members; text-align: left; font-size: 1.8cqh; }
+  .stage[data-layout="corner"] .overlay .dart .segment { font-size: 2.8cqh; }
+  .stage[data-layout="corner"] .overlay .dart .points { font-size: 1.6cqh; }
+  .stage[data-layout="corner"] .overlay .sum .value { font-size: 3.2cqh; }
+  /* Full: the scoreboard over the whole picture, for a scene of its own. */
+  .stage[data-layout="full"] .overlay {
+    inset: 5cqh 4cqw; align-content: stretch; grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+  .stage[data-layout="full"] .overlay > .main { justify-content: center; }
+  .stage[data-layout="full"] .overlay .title { font-size: 3.6cqh; }
+  .stage[data-layout="full"] .overlay .meta { font-size: 2.8cqh; }
+  .stage[data-layout="full"] .overlay .banner { justify-self: center; font-size: 4.6cqh; }
+  .stage[data-layout="full"] .overlay .player .name { font-size: 4.4cqh; }
+  .stage[data-layout="full"] .overlay :is(.n1, .single) .big { font-size: 30cqh; }
+  .stage[data-layout="full"] .overlay .n2 .big { font-size: 22cqh; }
+  .stage[data-layout="full"] .overlay .n3 .big { font-size: 17cqh; }
+  .stage[data-layout="full"] .overlay .n4 .big { font-size: 13cqh; }
+  .stage[data-layout="full"] .overlay :is(.n5, .n6, .n7, .n8) .big { font-size: 9cqh; }
+  .stage[data-layout="full"] .overlay .route { font-size: 3.8cqh; }
+  .stage[data-layout="full"] .overlay :is(.details, .members) { font-size: 2.8cqh; }
+  .stage[data-layout="full"] .overlay .dart .segment { font-size: 5cqh; }
+  .stage[data-layout="full"] .overlay .dart .points { font-size: 2.6cqh; }
+  .stage[data-layout="full"] .overlay .sum .muted { font-size: 2.2cqh; }
+  .stage[data-layout="full"] .overlay .sum .value { font-size: 5.4cqh; }
 `;
 
 const PLAYERS_CSS = `${BASE_CSS}
@@ -9478,6 +9785,20 @@ function createElements(Base) {
       return SCOREBOARD_CSS;
     }
 
+    setConfig(config) {
+      super.setConfig(overlayConfig(config));
+    }
+
+    // The overlay takes the window only outside the card editor and the edit mode.
+    set preview(value) {
+      super.preview = value;
+      this._stage();
+    }
+
+    get preview() {
+      return super.preview;
+    }
+
     // Back on the screen counts as a look at it: the idle time starts again.
     connectedCallback() {
       if (!this._el) return;
@@ -9501,7 +9822,36 @@ function createElements(Base) {
       clearInterval(this._tournamentTick);
       this._tournamentTick = null;
       this._idleOff();
+      this._stage();
     }
+
+    // On the dashboard, the overlay of a stream takes the whole window, above Home
+    // Assistant, which it hides, so that a browser source of OBS shows the overlay alone.
+    // The card editor and the dashboard's edit mode show it inside the card, as does a
+    // browser without popovers, which put an element above everything else.
+    _stage() {
+      const stage = this._el?.stage;
+      const take = Boolean(stage) && this.isConnected && !this.preview && typeof stage.showPopover === "function";
+      holdPage(this, take);
+      if (take) window.addEventListener("keydown", this._leaveKey);
+      else window.removeEventListener("keydown", this._leaveKey);
+      if (!stage || take === this._taken) return;
+      this._taken = take;
+      stage.classList.toggle("taken", take);
+      if (take) {
+        stage.popover = "manual";
+        stage.showPopover();
+      } else {
+        // A card that left the page has its popover closed already.
+        if (stage.isConnected) stage.hidePopover();
+        stage.removeAttribute("popover");
+      }
+    }
+
+    // Escape leaves the overlay, as a double click on it does.
+    _leaveKey = (event) => {
+      if (event.key === "Escape") leaveOverlay();
+    };
 
     // A connection to Home Assistant that drops is time away from the board, too.
     set hass(hass) {
@@ -9555,11 +9905,15 @@ function createElements(Base) {
       const caller =
         `<button class="caller-toggle" aria-pressed="false" title="${t("caller_hint")}">` +
         `<span class="caller-icon" aria-hidden="true">🔇</span><span>${t("caller")}</span></button>`;
+      // The overlay of a stream lies on a picture of its own, the stage.
+      const overlay = overlayOf(c);
+      this._overlay = overlay;
+      const stage = overlay ? `<div class="stage" data-mode="${overlay.mode}" data-layout="${overlay.layout}">` : "";
       this.shadowRoot.innerHTML = `
         <style>${SCOREBOARD_CSS}</style>
-        <ha-card>
+        <ha-card${overlay ? ` class="overlay-card"` : ""}>
           <div class="root">
-            <div class="scoreboard${c.full_height ? " full" : ""}">
+            ${stage}<div class="scoreboard${c.full_height ? " full" : ""}${overlay ? " overlay" : ""}">
               <header>
                 <div class="heading">
                   <div class="title"></div>
@@ -9582,12 +9936,13 @@ function createElements(Base) {
               <div class="loupe" hidden aria-hidden="true"></div>
               <div class="celebrate" aria-hidden="true"></div>
               <div class="visually-hidden said" role="status"></div>
-            </div>
+            </div>${overlay ? "</div>" : ""}
           </div>
         </ha-card>
       `;
       const root = this.shadowRoot;
       this._el = {
+        stage: root.querySelector(".stage"),
         board: root.querySelector(".scoreboard"),
         title: root.querySelector(".title"),
         meta: root.querySelector(".meta"),
@@ -9605,6 +9960,8 @@ function createElements(Base) {
         said: root.querySelector(".said"),
       };
       this._hints = "";
+      this._taken = false;
+      this._el.stage?.addEventListener("dblclick", () => this._taken && leaveOverlay());
       this._initPad(this._el.visit, this._el.board);
       this._callerState = null;
       this._followed = null;
@@ -10108,10 +10465,13 @@ function createElements(Base) {
       const c = this._config;
       const el = this._el;
       const t = (key) => this._t(key);
+      const overlay = this._overlay;
+      this._stage();
       this._showCaller();
       const [status, statusText] = this._status();
       this.style.setProperty("--ad-status", STATUS_COLORS[status]);
       this.style.setProperty("--ad-accent", cssColor(c.accent_color, "var(--primary-color)"));
+      if (overlay) this.style.setProperty("--ad-key", overlay.key);
       if (el.pill) this._showStatus(el.pill, statusText);
 
       const visit = this._state("visit");
@@ -10127,6 +10487,11 @@ function createElements(Base) {
       const panels = this._idle ? this._idlePanels() : [];
       const panel = panels.length ? panels[this._idle.index % panels.length] : null;
       let { title, meta, banner, main } = board;
+      // Between games the overlay leaves the picture to the stream; only the whole picture
+      // has room for the table or the bracket of a tournament.
+      const between = tournament.shown && (!overlay || overlay.layout === "full");
+      const quiet = Boolean(overlay) && view.mode === "idle" && !between;
+      if (quiet) ({ title, meta, banner, main } = { title: "", meta: "", banner: "", main: "" });
       let hints = "";
       if (this._lobby) {
         const choice = this._lobby;
@@ -10156,7 +10521,7 @@ function createElements(Base) {
         main =
           `<div class="idle-panel" data-panel="${panel.panel}">${panel.html}</div>` +
           `<div class="idle-back muted">${escapeHtml(t("idle_back"))}</div>`;
-      } else if (tournament.shown) {
+      } else if (between) {
         ({ title, meta, banner, main } = tournamentHtml(tournament.tournament, {
           ...ui,
           fresh: this._bracket.fresh,
@@ -10171,6 +10536,7 @@ function createElements(Base) {
       el.lobby.hidden = !games.length || Boolean(this._lobby) || main.includes('class="lobby-cta"');
       el.board.classList.toggle("choosing", Boolean(this._lobby));
       el.board.classList.toggle("idling", Boolean(panel));
+      el.board.classList.toggle("quiet", quiet);
       this._text(el.title, title);
       this._text(el.meta, meta);
       el.banner.hidden = !banner;
@@ -10191,16 +10557,16 @@ function createElements(Base) {
       if (field && field !== this.shadowRoot.activeElement) field.value = this._lobby.draft;
       // The countdown to the next match changes every second, the rest stays; on the page only,
       // because nothing but leaving it stops the countdown.
-      const counting =
-        this.isConnected && tournament.shown && !this._lobby && !panel && tournament.tournament.status === "waiting";
+      const counting = this.isConnected && between && !this._lobby && !panel && tournament.tournament.status === "waiting";
       const countdown = el.main.querySelector(".countdown");
       if (countdown) countdown.textContent = tournamentCountdown(tournament.tournament, Date.now(), t);
       if (counting !== Boolean(this._tournamentTick)) {
         clearInterval(this._tournamentTick);
         this._tournamentTick = counting ? setInterval(() => this._update(), 1000) : null;
       }
-      // The new game screen, the idle panels, the match summary and the tournament need the room of the visit.
-      const away = Boolean(this._lobby || panel || summary || tournament.shown);
+      // The new game screen, the idle panels, the match summary and the tournament need the room of the
+      // visit; an overlay between games shows none.
+      const away = Boolean(this._lobby || panel || summary || between || quiet);
       const darts = visitThrows(visit).slice(-3);
       // Darts of the current visit correct with a tap; the bot's darts do not.
       const tappable = c.corrections && !this.preview && !away;
@@ -10661,6 +11027,9 @@ function createElements(Base) {
           const scoreboard = scoreboardOptions(config);
           if (Object.keys(scoreboard).length) config.scoreboard = scoreboard;
           else delete config.scoreboard;
+          const overlay = overlayOptions(config);
+          if (Object.keys(overlay).length) config.overlay_view = overlay;
+          else delete config.overlay_view;
           this._config = config;
           this.dispatchEvent(new CustomEvent("config-changed", { bubbles: true, composed: true, detail: { config } }));
         });

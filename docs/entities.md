@@ -807,6 +807,9 @@ Saves what a camera sees as a photo for the [highlight gallery](automations.md#h
 | `folder` | folder | A folder where Home Assistant allows writing, as for [`autodarts.export`](#export-training-data-autodartsexport). Empty or left out: the gallery, `autodarts/highlights` in the media folder, `/media/autodarts/highlights` on Home Assistant OS and in a container. |
 | `player` | text | The player in the photo, for its name and its title in the gallery |
 | `label` | text | What the photo shows, at the end of its name, such as `180` or `checkout-121`; the gallery shows a number as the score and `checkout-121` as a checkout |
+| `clip_camera` | camera entity | A camera with a video stream that also records the moment as a [clip](automations.md#highlight-clips) beside the photo, under its name with `.mp4`. The recording runs in the background, so the action does not wait for it. Empty or left out: no clip |
+| `clip_lookback` | 0 to 10 seconds | How much of the clip comes before the photo, from what the running stream keeps; default 5 |
+| `clip_duration` | 1 to 60 seconds | How much of the clip follows the photo; default 8 |
 
 ```yaml
 action: autodarts.save_highlight
@@ -819,7 +822,7 @@ response_variable: highlight
 
 The photo is named like `2026-09-26_21-05-33_Alex_180.jpg`, in the time of Home Assistant. The player and the label lose what a file name or an address cannot have, such as `/`, `:`, `_`, `~`, `..`, `{`, `%` and `#`, and are cut to 20 and 24 characters, without a dot at the end. A second photo of the same second with the same name is named `2026-09-26_21-05-33_Alex_180 (2).jpg`, a third one gets `(3)`, and so on; nothing is written over. The picture keeps the kind the camera sends: `.jpg`, or `.png` or `.webp`.
 
-**Response:** with `response_variable`, `photo` is the saved file, and `photo_url` its address in the media browser, such as `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, which the Home Assistant app loads in a notification; outside the media folder, `photo_url` is empty.
+**Response:** with `response_variable`, `photo` is the saved file, and `photo_url` its address in the media browser, such as `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`, which the Home Assistant app loads in a notification; outside the media folder, `photo_url` is empty. With a `clip_camera`, `clip` and `clip_url` are the file and the address of the clip, which is written when the recording ends; a camera without a stream, or one that records already, writes no clip, and the log says why.
 
 The action fails with a clear message, and writes nothing, when the camera entity does not exist or is disabled, when the camera is unavailable or gives no picture, when the folder is not allowed, or when the file cannot be written. With `continue_on_error: true`, an automation goes on without the photo, as the blueprint does. Unlike `camera.snapshot`, which passes over a disabled or unavailable camera and a missing picture without an error, it never reports a photo that is not on disk.
 

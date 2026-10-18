@@ -8,16 +8,24 @@ written: a camera that is disabled, unavailable or gives no picture, and a
 folder Home Assistant does not allow writing to, fail the action. camera.snapshot
 passes over a disabled or unavailable camera and a missing picture without an
 error, so whoever relied on it announced photos that were never saved.
+
+With a clip camera, a camera with a video stream, it also records the moment as a
+clip beside the photo, under its name with .mp4, where the gallery plays it.
+camera.record returns only when the recording has ended, so the clip records in
+the background: the actions that send the photo do not wait for it, and a new
+run of the highlight photo blueprint, whose mode is restart, does not cut it short.
 """
 
 from __future__ import annotations
 
+import logging
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+import voluptuous as vol
 from homeassistant.components.camera import async_get_image
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
@@ -28,6 +36,8 @@ from homeassistant.util import dt as dt_util
 from .const import DOMAIN
 from .export import ExportFolderError, export_folder
 from .profiles import NAME_LENGTH
+
+_LOGGER = logging.getLogger(__name__)
 
 # The folder of the highlight photos inside the media directory.
 HIGHLIGHTS = Path("autodarts", "highlights")
@@ -109,15 +119,41 @@ def _shown(folder: str) -> str:
     return "".join(char if char.isprintable() else "?" for char in folder)
 
 
+async def _record_clip(
+    hass: HomeAssistant, camera: str, clip: Path, lookback: int, duration: int
+) -> None:
+    """Record the clip with camera.record, which writes the file when the
+    recording ends; a camera without a stream, or one that records already,
+    leaves the photo without a clip and says why in the log."""
+    try:
+        await hass.services.async_call(
+            "camera",
+            "record",
+            {
+                "entity_id": camera,
+                "filename": str(clip),
+                "lookback": lookback,
+                "duration": duration,
+            },
+            blocking=True,
+        )
+    except (HomeAssistantError, vol.Invalid) as err:
+        _LOGGER.warning("No clip %s from %s: %s", clip.name, camera, err)
+
+
 async def async_save_highlight(
     hass: HomeAssistant,
     camera: str,
     folder: str | None = None,
     player: str = "",
     label: str = "",
+    clip_camera: str = "",
+    clip_lookback: int = 5,
+    clip_duration: int = 8,
 ) -> dict[str, Any]:
     """Save the camera's picture as a highlight photo, by default in the gallery,
-    and return the file and its address; fails when nothing was saved."""
+    and return the file and its address; fails when nothing was saved. With a
+    clip camera, start the clip beside it and return its file and address too."""
     state = hass.states.get(camera)
     if state is None:
         raise ServiceValidationError(
@@ -165,4 +201,13 @@ async def async_save_highlight(
             translation_key="highlight_failed",
             translation_placeholders={"error": str(err)},
         ) from err
-    return {"photo": str(path), "photo_url": url}
+    saved = {"photo": str(path), "photo_url": url}
+    if clip_camera:
+        clip = path.with_suffix(".mp4")
+        saved["clip"] = str(clip)
+        saved["clip_url"] = url.removesuffix(path.suffix) + ".mp4" if url else ""
+        hass.async_create_background_task(
+            _record_clip(hass, clip_camera, clip, clip_lookback, clip_duration),
+            f"autodarts clip {clip.name}",
+        )
+    return saved

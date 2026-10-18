@@ -37,7 +37,7 @@ test("one board gets a live, a scoreboard, a training and a board view", () => {
   assert.equal(config.title, "Autodarts");
   assert.deepEqual(
     config.views.map((view) => view.path),
-    ["live", "scoreboard", "training", "board"]
+    ["live", "scoreboard", "training", "board", "overlay"]
   );
   const [live, scoreboard, training, maintenance] = config.views;
   assert.deepEqual(live.sections[0].cards[0], {
@@ -76,11 +76,22 @@ test("several boards get their own named views", () => {
   );
   assert.deepEqual(
     config.views.map((view) => view.path),
-    ["live-1", "scoreboard-1", "training-1", "board-1", "live-2", "scoreboard-2", "training-2", "board-2"]
+    [
+      ...["live-1", "scoreboard-1", "training-1", "board-1", "overlay-1"],
+      ...["live-2", "scoreboard-2", "training-2", "board-2", "overlay-2"],
+    ]
   );
   assert.equal(config.views[0].title, "Live · Club board");
-  assert.equal(config.views[5].title, "Scoreboard · Garage");
-  assert.equal(config.views[6].sections[0].cards[0].device_id, "dev2");
+  assert.equal(config.views[6].title, "Scoreboard · Garage");
+  assert.equal(config.views[7].sections[0].cards[0].device_id, "dev2");
+  // The overlay of each board is its own, too, and the tabs leave it out.
+  assert.deepEqual(
+    [config.views[4], config.views[9]].map((view) => [view.title, view.subview, view.cards[0].device_id]),
+    [
+      ["Stream overlay · Club board", true, "dev1"],
+      ["Stream overlay · Garage", true, "dev2"],
+    ]
+  );
 });
 
 test("a chosen board and title are respected, and missing entities are left out", () => {
@@ -105,7 +116,7 @@ test("a board that no longer exists gets no empty views, but its own message", (
   const config = dashboardStrategy(hass(entities, { dev1: { name: "Garage" } }));
   assert.deepEqual(
     config.views.map((view) => view.path),
-    ["live", "scoreboard", "training", "board"]
+    ["live", "scoreboard", "training", "board", "overlay"]
   );
   const stale = dashboardStrategy(hass(entities, { dev1: { name: "Garage" } }), { device_id: "gone", title: "Darts" });
   assert.equal(stale.title, "Darts");
@@ -360,6 +371,37 @@ test("the dashboard's settings choose the scoreboard's caller, keypad, games and
   // Without settings, or with settings that are not an object, the card keeps its own defaults.
   for (const config of [{}, { scoreboard: "caller" }, { scoreboard: null }]) {
     assert.deepEqual(Object.keys(scoreboard(config)[0].cards[0]), ["type", "device_id", "full_height"]);
+  }
+});
+
+test("every board gets a stream overlay that the tabs leave out, with the dashboard's settings", () => {
+  const overlay = (config) =>
+    dashboardStrategy(hass(board("dev1", "a")), config).views.find((view) => view.path === "overlay");
+  assert.deepEqual(overlay(), {
+    title: "Stream overlay",
+    path: "overlay",
+    icon: "mdi:video-outline",
+    subview: true,
+    panel: true,
+    cards: [{ type: "custom:autodarts-scoreboard-card", device_id: "dev1", overlay: "transparent" }],
+  });
+  // The settings choose the key colour, the place and the colour; anything else stays out.
+  assert.deepEqual(
+    overlay({
+      overlay_view: { overlay: "chroma", overlay_layout: "corner", overlay_color: "#FF00FF", caller: true },
+      scoreboard: { caller: true },
+    }).cards[0],
+    {
+      type: "custom:autodarts-scoreboard-card",
+      device_id: "dev1",
+      overlay: "chroma",
+      overlay_layout: "corner",
+      overlay_color: "#FF00FF",
+    }
+  );
+  for (const config of [{ overlay_view: { overlay: "", overlay_layout: 3 } }, { overlay_view: "chroma" }, { overlay_view: null }]) {
+    assert.deepEqual(overlay(config).cards[0].overlay, "transparent");
+    assert.deepEqual(Object.keys(overlay(config).cards[0]), ["type", "device_id", "overlay"]);
   }
 });
 

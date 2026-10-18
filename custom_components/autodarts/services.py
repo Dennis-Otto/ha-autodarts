@@ -262,6 +262,14 @@ SAVE_HIGHLIGHT_SCHEMA = vol.Schema(
         vol.Optional("folder"): vol.All(cv.string, vol.Strip, vol.Length(max=255)),
         vol.Optional("player"): _text,
         vol.Optional("label"): _text,
+        # An empty clip camera, as the blueprint passes its default, is no clip.
+        vol.Optional("clip_camera"): vol.Any("", cv.entity_domain("camera")),
+        vol.Optional("clip_lookback"): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=10)
+        ),
+        vol.Optional("clip_duration"): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=60)
+        ),
     }
 )
 
@@ -852,6 +860,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
             call.data.get("folder"),
             call.data.get("player", ""),
             call.data.get("label", ""),
+            call.data.get("clip_camera", ""),
+            call.data.get("clip_lookback", 5),
+            call.data.get("clip_duration", 8),
         )
         return saved if call.return_response else None
 
