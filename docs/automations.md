@@ -375,7 +375,7 @@ How Assist answers a sentence of the voice blueprints:
 | Training streak | In five languages | Questions for the days in a row with darts, and the longest streak. |
 | Leaderboard | In five languages | Questions for the player at the top of the leaderboard. |
 | Best aim | In five languages | Questions for the best aim of a player, `{player}`: "I", "ich", "yo", "je" or "ik" is you, as are sentences without a player. |
-| Board | | The board whose statistics answer. Needed only with more than one board. |
+| Board | | The board whose statistics answer. Without one, the board with the most darts this week answers. |
 
 Ask for example:
 

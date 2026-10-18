@@ -377,7 +377,7 @@ So antwortet Assist auf einen Satz der Sprach-Blueprints:
 | Training streak | In fünf Sprachen | Fragen nach den Tagen in Folge mit Darts und der längsten Serie. |
 | Leaderboard | In fünf Sprachen | Fragen nach dem Spieler an der Spitze der Bestenliste. |
 | Best aim | In fünf Sprachen | Fragen nach dem besten Zielpunkt eines Spielers, `{player}`: „I“, „ich“, „yo“, „je“ oder „ik“ bist du, ebenso in Sätzen ohne Spieler. |
-| Board | | Das Board, dessen Statistiken antworten. Nur bei mehr als einem Board nötig. |
+| Board | | Das Board, dessen Statistiken antworten. Ohne Angabe antwortet das Board mit den meisten Darts dieser Woche. |
 
 Frag zum Beispiel:
 

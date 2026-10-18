@@ -24,6 +24,7 @@ from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 from homeassistant.util.yaml import load_yaml
 from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
     async_capture_events,
     async_fire_time_changed,
 )
@@ -32,7 +33,7 @@ from custom_components.autodarts.const import LANGUAGES
 from custom_components.autodarts.positions import DartLog
 
 from .local_helpers import BLUEPRINTS, automate_all
-from .test_manual_board import act, entity, setup_manual
+from .test_manual_board import DATA, act, entity, setup_manual
 
 pytestmark = pytest.mark.usefixtures("blueprint_folder")
 NO_INTENT_MATCH = IntentResponseErrorCode.NO_INTENT_MATCH
@@ -1718,6 +1719,32 @@ async def test_assist_answers_for_the_board_of_the_automation(
     )
     await evening(hass, freezer)
     assert await ask(hass, "How many 180s this week?") == answer
+
+
+async def test_assist_answers_for_the_board_with_the_most_darts(hass, freezer):
+    """Without a board chosen, the board with the most darts this week answers, all
+    from that board, also when the names of the boards sort their sensors in turns."""
+    freezer.move_to(TUESDAY)
+    await listen(hass, "en")
+    await evening(hass, freezer)
+    answer = await ask(hass, "What is my average today?")
+    board = "manual_ffffffffffffffffffffffffffffffff"
+    other = MockConfigEntry(
+        domain="autodarts",
+        version=2,
+        unique_id=board,
+        title="Autodarts (Garage M)",
+        data={**DATA, "board_id": board, "name": "Garage M"},
+    )
+    other.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(other.entry_id)
+    await hass.async_block_till_done()
+    # The sensors of the two boards sort in turns: the darts today of the board in
+    # the garage come first, the training points and the week of the other one.
+    for sensor in ("darts_today", "training_points", "weekly_report"):
+        assert hass.states.get(f"sensor.garage_{sensor}")
+        assert hass.states.get(f"sensor.garage_m_{sensor}")
+    assert await ask(hass, "What is my average today?") == answer
 
 
 def _questions(page: str) -> dict[str, set[str]]:

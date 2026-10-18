@@ -164,7 +164,7 @@ blueprint:
           multiple: true
     board:
       name: Board
-      description: The Autodarts board whose statistics answer. Needed only with more than one board.
+      description: The Autodarts board whose statistics answer. Without one, the board with the most darts this week answers.
       default: ""
       selector:
         config_entry:
@@ -354,9 +354,10 @@ variables:
        | default('', true) | lower | regex_replace('[-_].*$', '') %}
     {{ spoken if spoken in answers else 'en' }}
   # The statistics of the board, found by the attributes each sensor always has,
-  # so they are found under any name and in any language.
+  # so they are found under any name and in any language. Without a board chosen,
+  # the board with the most darts this week answers, all of it from that board.
   sensors: >-
-    {% set ns = namespace(found={}) %}
+    {% set ns = namespace(boards={}) %}
     {%- for state in expand(integration_entities('autodarts'))
         if state.domain == 'sensor'
         and (not board or config_entry_id(state.entity_id) == board) %}
@@ -370,11 +371,21 @@ variables:
         else 'darts' if 'hits' in a and 'last_reset' in a
         else 'points' if a.unit_of_measurement == 'points' and 'last_reset' in a
         else '' %}
-    {%- if kind and kind not in ns.found %}
-    {%- set ns.found = ns.found | combine({kind: state.entity_id}) %}
+    {%- set entry = config_entry_id(state.entity_id) %}
+    {%- set found = ns.boards.get(entry, {}) %}
+    {%- if kind and kind not in found %}
+    {%- set ns.boards = ns.boards | combine({entry: found | combine({kind: state.entity_id})}) %}
     {%- endif %}
     {%- endfor %}
-    {{ ns.found }}
+    {%- set pick = namespace(found={}, darts=-1) %}
+    {%- for found in ns.boards.values() %}
+    {%- set darts = states(found.week) | int(0) if 'week' in found else 0 %}
+    {%- if darts > pick.darts %}
+    {%- set pick.found = found %}
+    {%- set pick.darts = darts %}
+    {%- endif %}
+    {%- endfor %}
+    {{ pick.found }}
   # The player a question about the best aim is for: one named, or you.
   asked: "{{ trigger.slots.player | default('', true) | trim }}"
   person: >-
