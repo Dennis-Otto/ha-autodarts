@@ -20,7 +20,7 @@ Sobald Autodarts die Client-ID der Integration ausgegeben hat, bringt die **Clou
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/online-moments-dark.png">
-  <img src="images/de/online-moments-light.png" alt="Zwei Wege für die Momente eines Online-Matches: Ein Match auf play.autodarts.io erreicht Home Assistant auf einem von zwei Wegen. Mit der Cloud-Verknüpfung, sobald Autodarts ihren Client ausgibt, liest die Integration den Stand des Matches alle 5 Sekunden aus der Autodarts-Cloud und macht aus dem Neuen die Trigger von Tools for Autodarts. Mit der Online-Brücke ruft Tools for Autodarts im Browser einen geheimen Webhook von Home Assistant auf. Beides wird zu denselben Board-Ereignissen wie online_busted und online_game_shot, für die Lichtshow, die Caller und deine Automationen. Solange die Brücke an ist, meldet sie allein die Momente." width="560">
+  <img src="images/de/online-moments-light.png" alt="Zwei Wege für die Momente eines Online-Matches: Ein Match auf play.autodarts.io erreicht Home Assistant auf einem von zwei Wegen. Mit der Cloud-Verknüpfung, sobald Autodarts ihren Client ausgibt, liest die Integration den Stand des Matches alle 5 Sekunden aus der Autodarts-Cloud und macht aus dem Neuen die Trigger von Tools for Autodarts. Mit der Online-Brücke ruft Tools for Autodarts im Browser einen geheimen Webhook von Home Assistant auf. Beides wird zu denselben Board-Ereignissen wie online_busted und online_game_shot, für die Lichtshow und deine Automationen. Solange die Brücke an ist, meldet sie allein die Momente." width="560">
 </picture>
 
 ## Brücke einrichten
@@ -77,7 +77,7 @@ mode: single
 
 ## Die Cloud-Verknüpfung
 
-Die Cloud-Verknüpfung gibt es noch nicht: Sie wartet auf die Client-ID, die Autodarts der Integration ausgibt und die beantragt ist ([Roadmap](roadmap.de.md#als-nächstes), [Entscheidung 0020](decisions/0020-a-public-client-for-the-cloud-link.md), auf Englisch). Alles andere ist bereit, und sobald sie kommt, verknüpft die Einrichtung dein Autodarts-Konto mit einem kurzen Code, den du auf einem beliebigen Gerät eingibst. Während eines Matches liest die Integration den Stand des Matches alle 5 Sekunden und meldet, was seit dem letzten Lesen neu ist, als die Trigger oben. So funktionieren die Lichtshow, die Caller und deine Automationen ohne die Browser-Erweiterung:
+Die Cloud-Verknüpfung gibt es noch nicht: Sie wartet auf die Client-ID, die Autodarts der Integration ausgibt und die beantragt ist ([Roadmap](roadmap.de.md#als-nächstes), [Entscheidung 0020](decisions/0020-a-public-client-for-the-cloud-link.md), auf Englisch). Alles andere ist bereit, und sobald sie kommt, verknüpft die Einrichtung dein Autodarts-Konto mit einem kurzen Code, den du auf einem beliebigen Gerät eingibst. Während eines Matches liest die Integration den Stand des Matches alle 5 Sekunden und meldet, was seit dem letzten Lesen neu ist, als die Trigger oben. So funktionieren die Lichtshow und deine Automationen ohne die Browser-Erweiterung:
 
 | Im Match | Trigger | Board-Ereignis |
 | --- | --- | --- |
@@ -94,7 +94,7 @@ Die Cloud-Verknüpfung gibt es noch nicht: Sie wartet auf die Client-ID, die Aut
 - **Nur dein Board.** Momente von Spielern an einem anderen Board, deinen Gegnern in einem Online-Match, werden übersprungen, wie bei der Brücke, wenn Tools for Autodarts deine Board-ID kennt. Der Bot und Spieler ohne eigenes Board werfen an deinem.
 - **Die Brücke zuerst.** Solange die Brücke an ist, meldet sie allein die Momente: Sie ist sofort da, und beide zusammen würden jeden Moment doppelt melden. Schalte sie aus, damit die Cloud-Verknüpfung übernimmt.
 - **Ohne Board Manager in deinem Netzwerk.** Ein Board, das Home Assistant nur über die Cloud erreicht, etwa Lens, bekommt die Entität **Ereignisse** mit diesen Ereignissen, für die Lichtshow und deine Automationen.
-- **Alle 5 Sekunden.** Ein Moment, der kürzer dauert als ein Lesen, etwa eine Aufnahme, die binnen Sekunden entnommen wird, kann fehlen und wird nie nachgeholt. Ein Match, das schon vor dem Start von Home Assistant lief, zählt ab dem nächsten Lesen. `tournament_ready` kommt nur von der Brücke, weil der Stand eines Matches es nicht zeigt.
+- **Alle 5 Sekunden.** Ein Moment, der kürzer dauert als ein Lesen, etwa eine Aufnahme, die binnen Sekunden entnommen wird, kann fehlen und wird nie nachgeholt. Ein Match, das schon vor dem Start von Home Assistant lief, zählt ab dem nächsten Lesen. Ohne Match schaut die Integration nur einmal pro Minute nach dem Board, deshalb kann das erste Lesen eines neuen Matches bis zu einer Minute nach seinem Start kommen, und das Ausbullen und die ersten Aufnahmen können fehlen. `tournament_ready` kommt nur von der Brücke, weil der Stand eines Matches es nicht zeigt.
 
 ## Sicherheit
 

@@ -965,7 +965,7 @@ GAME_ON = ("gameon", "Lea")
         # A bot and a guest have no board of their own: they throw at this one.
         (
             match_state(0, T20, players=[{"name": "Bot", "cpuPPR": 60}]),
-            [("gameon", "Bot"), ("t20", "Bot")],
+            [("bot_throw", "Bot"), ("t20", "Bot")],
         ),
         (match_state(0, players=[{"boardId": ""}]), [("gameon", None)]),
         (match_state(0, T20, players=["Lea"]), [("gameon", None), ("t20", None)]),

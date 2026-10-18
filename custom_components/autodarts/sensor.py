@@ -267,6 +267,8 @@ def _get_darts_thrown(data: dict[str, Any]) -> int | None:
     match = _match(data)
     if not match:
         return None
+    # Assumption to confirm with a real capture (decision 0020): `turns` is
+    # the match history; CloudMoments reads its first entry as the current visit.
     turns = match.get("turns")
     if isinstance(turns, list):
         return sum(len(t.get("throws", [])) for t in turns)

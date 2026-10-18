@@ -20,7 +20,7 @@ Once Autodarts has issued the client ID of the integration, the **cloud link** b
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/online-moments-dark.png">
-  <img src="images/en/online-moments-light.png" alt="Two ways for the moments of an online match: a match on play.autodarts.io reaches Home Assistant in one of two ways. With the cloud link, once Autodarts issues its client, the integration reads the state of the match from the Autodarts cloud every 5 seconds and turns what is new into the triggers of Tools for Autodarts. With the online bridge, Tools for Autodarts in the browser calls a secret webhook of Home Assistant. Both become the same board events, such as online_busted and online_game_shot, for the light show, the callers and your automations. While the bridge is switched on, it alone reports the moments." width="560">
+  <img src="images/en/online-moments-light.png" alt="Two ways for the moments of an online match: a match on play.autodarts.io reaches Home Assistant in one of two ways. With the cloud link, once Autodarts issues its client, the integration reads the state of the match from the Autodarts cloud every 5 seconds and turns what is new into the triggers of Tools for Autodarts. With the online bridge, Tools for Autodarts in the browser calls a secret webhook of Home Assistant. Both become the same board events, such as online_busted and online_game_shot, for the light show and your automations. While the bridge is switched on, it alone reports the moments." width="560">
 </picture>
 
 ## Set up the bridge
@@ -77,7 +77,7 @@ mode: single
 
 ## The cloud link
 
-The cloud link is not available yet: it waits for the client ID that Autodarts issues to the integration, which has been requested ([roadmap](roadmap.md#next), [decision 0020](decisions/0020-a-public-client-for-the-cloud-link.md)). Everything else is ready, and once it ships, the setup links your Autodarts account with a short code that you enter on any device. During a match, the integration reads the state of the match every 5 seconds and reports what is new since the last read as the triggers above, so the light show, the callers and your automations work without the browser extension:
+The cloud link is not available yet: it waits for the client ID that Autodarts issues to the integration, which has been requested ([roadmap](roadmap.md#next), [decision 0020](decisions/0020-a-public-client-for-the-cloud-link.md)). Everything else is ready, and once it ships, the setup links your Autodarts account with a short code that you enter on any device. During a match, the integration reads the state of the match every 5 seconds and reports what is new since the last read as the triggers above, so the light show and your automations work without the browser extension:
 
 | In the match | Trigger | Board event |
 | --- | --- | --- |
@@ -94,7 +94,7 @@ The cloud link is not available yet: it waits for the client ID that Autodarts i
 - **Only your board.** Moments of players at another board, your opponents in an online match, are skipped, as with the bridge when Tools for Autodarts knows your board ID. The bot and players without a board of their own throw at yours.
 - **The bridge first.** While the bridge is switched on, it alone reports the moments: it is instant, and both together would report every moment twice. Switch it off to let the cloud link take over.
 - **Without a Board Manager in your network.** A board that Home Assistant reaches only through the cloud, such as Lens, gets the **Events** entity with these events, for the light show and your automations.
-- **Every 5 seconds.** A moment that lasts shorter than a read, such as a visit taken out within seconds, can be missed and is never replayed. A match that ran before Home Assistant started counts from the next read on. `tournament_ready` comes only from the bridge, because the state of a match doesn't show it.
+- **Every 5 seconds.** A moment that lasts shorter than a read, such as a visit taken out within seconds, can be missed and is never replayed. A match that ran before Home Assistant started counts from the next read on. Without a match, the integration looks at the board only once a minute, so the first read of a new match can come up to a minute after it starts, and the bull-off and the first visits may be missed. `tournament_ready` comes only from the bridge, because the state of a match doesn't show it.
 
 ## Security
 

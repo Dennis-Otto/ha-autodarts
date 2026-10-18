@@ -40,6 +40,7 @@ How the moments of a match become board events (`CloudMoments` in `online.py`): 
 | In the state of the match | Trigger | Board event |
 | --- | --- | --- |
 | A new visit of a player at the board | `gameon` | `online_game_on` |
+| A new visit of the bot, a player with `cpuPPR` | `bot_throw` | `online_game_on` |
 | A new dart of the visit, from its segment | `t20`, `s25`, `bull`, `m17`, `miss` | `online_dart` |
 | A visit with its third dart, neither busted nor won | its `points`, such as `140` | `online_visit` |
 | `busted` of the visit | `busted` | `online_busted` |
@@ -53,10 +54,10 @@ Players at another board, the opponents of an online match, are skipped, as they
 Once Autodarts has issued the client:
 
 1. Set `CLOUD_CLIENT_ID` in `const.py` to the issued ID, which the cloud step of the setup then fills in, and `CLOUD_LINK_AVAILABLE` to `True`.
-2. Link a test account once against the real service and save a redacted state of a match as a test fixture, to confirm the fields above: `players` with `name` and `boardId`, `player`, `set`, `leg`, `round`, `turns`, `gameWinner`, `winner` and `variant`.
-3. Remove "once the cloud link ships" from the documentation, and describe the release in the changelog as a `feat`.
+2. Link a test account once against the real service and save a redacted state of a match as a test fixture, to confirm the fields above: `players` with `name` and `boardId`, `player`, `set`, `leg`, `round`, `turns`, `gameWinner`, `winner` and `variant`. Confirm in particular that `turns` holds the current visit first, as darts-caller reads it and `CloudMoments` assumes; the `darts_thrown` sensor (`sensor._get_darts_thrown`) instead sums all of `turns` as the history of the match, and only one reading can be right, so fix the other one to match the capture.
+3. Remove "once the cloud link ships" from the documentation, and describe the release in the changelog as a `feat`. Also update the texts that say the online moments need the bridge and Tools for Autodarts: the description of the `online_matches` input of the light show (`blueprints/automation/autodarts/light_show.yaml`), the online matches section of `docs/automations.md` and `docs/automations.de.md`, and the rows on online matches in `README.md` and `README.de.md`. Check whether Autodarts X has a Board Manager in the network; if not, name it next to Lens in the FAQ (English and German).
 4. Later, with the topics of the match websocket confirmed by Autodarts, replace the polling during a match with it.
 
 ## Consequences
 
-The cloud link is ready behind the flag, with tests that force the flag on. The bridge stays as the fallback and for `tournament_ready`, which the state of a match doesn't show. While the bridge is switched on, it alone reports the moments: it is instant, and both would report every moment twice. Polling every 5 seconds can miss a moment that lasts shorter, such as a visit taken out within seconds, and doesn't replay it; a match that ran before Home Assistant started counts from the next poll on. A board that Home Assistant reaches only through the cloud gets an Events entity with the online events, so that the light show and automations work for Lens as well.
+The cloud link is ready behind the flag, with tests that force the flag on. The bridge stays as the fallback and for `tournament_ready`, which the state of a match doesn't show. While the bridge is switched on, it alone reports the moments: it is instant, and both would report every moment twice. Polling every 5 seconds can miss a moment that lasts shorter, such as a visit taken out within seconds, and doesn't replay it; a match that ran before Home Assistant started counts from the next poll on. Without a match, the board is read only every 60 seconds (`IDLE_SCAN_INTERVAL`), so the first read of a new match can come up to a minute late, and the bull-off and the first visits may be missed. A board that Home Assistant reaches only through the cloud gets an Events entity with the online events, so that the light show and automations work for Lens as well.

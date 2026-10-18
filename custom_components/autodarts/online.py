@@ -546,6 +546,8 @@ class CloudMoments:
             else []
         )
         index = _number(match.get("player"))
+        # Assumption (darts-caller's reading, decision 0020): `turns` holds the
+        # current visit first; the darts_thrown sensor reads it as the history.
         turns = match.get("turns")
         turn = turns[0] if isinstance(turns, list) and turns else None
         if index is None or not 0 <= index < len(players) or not isinstance(turn, dict):
@@ -566,7 +568,9 @@ class CloudMoments:
         if self._at_board(players[index]):
             name = _name(players[index])
             if self._new("turn", *visit):
-                yield "gameon", name
+                # Tools for Autodarts names a bot's visit `bot_throw`.
+                bot = isinstance(players[index].get("cpuPPR"), int)
+                yield "bot_throw" if bot else "gameon", name
             for number, dart in enumerate(darts):
                 if dart and self._new("dart", *visit, number):
                     yield dart, name
