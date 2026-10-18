@@ -19,7 +19,7 @@ from homeassistant.util import dt as dt_util
 from .checkout import checkout, setup
 from .doubles import aimed_at, double_of
 from .doubles import hits as hits_double
-from .scoring import BULL, DOUBLE, VISIT_DARTS, evaluate_visit, is_double, score
+from .scoring import BULL, DOUBLE, VISIT_DARTS, evaluate_visit, is_double, rate, score
 from .training import hit_key
 
 DRILLS = (
@@ -59,10 +59,6 @@ JDC_PARTS = (6, 27)
 JDC_SHANGHAI = 100
 JDC_DOUBLE = 50
 JDC_BULL = 100
-
-
-def _rate(hits: int, darts: int) -> float | None:
-    return round(hits * 100 / darts, 1) if darts else None
 
 
 def _count(value: object, default: int = 0) -> int:
@@ -220,7 +216,7 @@ class TargetDrill(Drill):
             "drill": self.kind,
             "darts": darts,
             "hits": hits,
-            "hit_rate": _rate(hits, darts),
+            "hit_rate": rate(hits, darts),
         }
 
     def _announce(self) -> list[tuple[str, dict[str, Any]]]:
@@ -270,7 +266,7 @@ class TargetDrill(Drill):
             "targets": len(TARGETS),
             "darts": self.darts + darts,
             "hits": hits,
-            "hit_rate": _rate(hits, self.darts + darts),
+            "hit_rate": rate(hits, self.darts + darts),
             "best": min(finished) if finished else None,
         }
 
@@ -325,7 +321,7 @@ class BobsDrill(Drill):
             "completed": not lost,
             "darts": self.darts,
             "hits": self.hits,
-            "hit_rate": _rate(self.hits, self.darts),
+            "hit_rate": rate(self.hits, self.darts),
         }
         self._record(result)
         return [("drill_finished", result)]
@@ -362,7 +358,7 @@ class BobsDrill(Drill):
             "score": self.score + hits * self._value(),
             "darts": self.darts + (0 if self.finished else len(self._thrown())),
             "hits": self.hits + hits,
-            "hit_rate": _rate(
+            "hit_rate": rate(
                 self.hits + hits,
                 self.darts + (0 if self.finished else len(self._thrown())),
             ),
@@ -409,7 +405,7 @@ class CheckoutDrill(Drill):
             **result,
             "attempts": self.attempts,
             "successes": self.successes,
-            "rate": _rate(self.successes, self.attempts),
+            "rate": rate(self.successes, self.attempts),
         }
 
     def double_attempts(self) -> list[tuple[str, bool]]:
@@ -468,7 +464,7 @@ class CheckoutDrill(Drill):
             **_finish(remaining, outcome, thrown, self.visits, CHECKOUT_VISITS),
             "attempts": self.attempts,
             "successes": self.successes,
-            "rate": _rate(self.successes, self.attempts),
+            "rate": rate(self.successes, self.attempts),
         }
 
 
@@ -821,7 +817,7 @@ class SinglesDrill(Drill):
             "score": self.score,
             "darts": self.darts,
             "hits": self.hits,
-            "hit_rate": _rate(self.hits, self.darts),
+            "hit_rate": rate(self.hits, self.darts),
         }
         self._record(result)
         return [("drill_finished", result)]
@@ -854,7 +850,7 @@ class SinglesDrill(Drill):
             "score": self.score + points,
             "darts": darts,
             "hits": self.hits + hits,
-            "hit_rate": _rate(self.hits + hits, darts),
+            "hit_rate": rate(self.hits + hits, darts),
             "best": max(scores) if scores else None,
         }
 

@@ -44,6 +44,16 @@ Nothing may move while a game goes on. A line that comes and goes, such as a rou
 | Pad | `PadCard`, `padHtml`, `PAD_CSS` | Correcting a dart of the visit on the live card and the scoreboard: keys or board, loupe, pinch and zoom. |
 | Icons | `ICON_PATHS` | Lines in the colour of their text. |
 
+## Shared modules of the integration
+
+The integration has building blocks of its own, which every module uses instead of a copy: a change to one reaches every game, statistic and entity.
+
+| Module | What it holds | Use it for |
+| --- | --- | --- |
+| `board.py` | The rings of the board (`BULL_MM`, `OUTER_BULL_MM`, `TREBLE_MM` and `DOUBLE_MM` as their inner and outer edge, `RADIUS_MM`), the numbers in `SECTORS`, and `bed_name`, `top_bed`, `segment_at`, `aim_point` and `distance_mm` | Every name of a bed and every point on the board: the bot, the dart log, the aim map, the party games and the actions that enter a dart by its position. The cards draw the same board (`R` in `autodarts-card.js`), and `tests/test_board.py` fails when the two differ or a module brings its own geometry. |
+| `entity.py` | `AutodartsLocalEntity`, `AutodartsStoredEntity`, `camera_count` and `async_track_cameras` | An entity of a board; an entity of what Home Assistant keeps itself, such as a setting, a game, a session or a statistic, which stays available while the board is away; the entities of each camera, added as soon as the board reports the camera. |
+| `scoring.py` | `score`, `fits`, `average`, `rate` and `bounded_count` | The points of a dart, the In and Out modes, averages and hit rates, and a count or setting read back from a stored file. |
+
 ## Tests
 
 Python 3.14 and Node.js 24:
@@ -503,8 +513,8 @@ runs on demand from the Actions tab.
   <img src="images/en/mutation-tests-light.png" alt="How the mutation tests run: every Saturday and on demand, mutmut copies the repository to mutants/ and changes the game rules in thousands of small ways. It runs every test once and records which functions each test calls; the tests marked mutation_unsafe are skipped, because they read the code as text or ask Git. The tests of the mutants must then pass without any mutant. Each mutant runs the tests that call its function, in a process forked from the first run, and every test starts with the caches of the integration empty. A mutant that makes a test fail is killed; one that every test lets through survives." width="560">
 </picture>
 
-`[tool.mutmut]` in `pyproject.toml` decides what changes. `only_mutate` lists seven
-modules of the game rules: the checkouts, the scores of the darts, the doubles, the
+`[tool.mutmut]` in `pyproject.toml` decides what changes. `only_mutate` lists eight
+modules of the game rules: the board, the checkouts, the scores of the darts, the doubles, the
 positions, Cricket, the bot and the party games. Most tests check them directly, and
 one run on the four cores of a runner reaches all of their 2,804 mutants in under
 two hours. The X01 practice game, the training games and the tournaments would add

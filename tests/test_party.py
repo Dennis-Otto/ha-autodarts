@@ -3,11 +3,11 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
+from custom_components.autodarts.board import distance_mm
 from custom_components.autodarts.party import (
     HALVE_IT_START,
     KILLER_LIVES,
     BullOff,
-    distance_mm,
     make_party,
 )
 from custom_components.autodarts.practice import MAX_PLAYERS, PracticeGame

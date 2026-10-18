@@ -34,7 +34,7 @@ from .practice import (
     valid_start,
 )
 from .profiles import clean_name, valid_name
-from .scoring import BULL_25_50, average
+from .scoring import BULL_25_50, average, bounded_count
 
 ROUND_ROBIN = "round_robin"
 KNOCKOUT = "knockout"
@@ -121,10 +121,6 @@ def _flag(value: object, default: bool) -> bool:
     return value if isinstance(value, bool) else default
 
 
-def _count(value: object, low: int, high: int, default: int) -> int:
-    return value if type(value) is int and low <= value <= high else default
-
-
 @dataclass
 class TournamentSetup:
     """The settings of the next tournament, as its entities show them."""
@@ -152,8 +148,8 @@ class TournamentSetup:
             players=[name for name in names if name][:MAX_ENTRANTS],
             third_place=_flag(data.get("third_place"), False),
             random_draw=_flag(data.get("random_draw"), False),
-            pause=_count(data.get("pause"), 0, MAX_PAUSE, DEFAULT_PAUSE),
-            summary=_count(data.get("summary"), 0, MAX_SUMMARY, DEFAULT_SUMMARY),
+            pause=bounded_count(data.get("pause"), 0, MAX_PAUSE, DEFAULT_PAUSE),
+            summary=bounded_count(data.get("summary"), 0, MAX_SUMMARY, DEFAULT_SUMMARY),
         )
 
 
@@ -544,8 +540,8 @@ class Tournament:
             format=saved["format"],
             game=saved["game"],
             players=[_name(name) for name in players],
-            legs=_count(saved.get("legs_to_win"), 1, MAX_LEGS, 1),
-            sets=_count(saved.get("sets_to_win"), 1, MAX_SETS, 1),
+            legs=bounded_count(saved.get("legs_to_win"), 1, MAX_LEGS, 1),
+            sets=bounded_count(saved.get("sets_to_win"), 1, MAX_SETS, 1),
             rules={
                 rule: _flag(rules.get(rule), rule == "double_out") for rule in RULES
             },

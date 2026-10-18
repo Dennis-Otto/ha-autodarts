@@ -2,13 +2,54 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import AutodartsDataUpdateCoordinator
 from .local_coordinator import AutodartsLocalCoordinator
+from .runtime import AutodartsConfigEntry
 from .topics import Topic
+
+
+def camera_count(coordinator: AutodartsLocalCoordinator) -> int:
+    """How many cameras the board has, as its settings report them; none
+    before they are read."""
+    count: int = (coordinator.data or {}).get("settings", {}).get("camera_count", 0)
+    return count
+
+
+@callback
+def async_track_cameras(
+    entry: AutodartsConfigEntry,
+    coordinator: AutodartsLocalCoordinator,
+    factory: Callable[[int], Entity],
+    add: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Add the entities of every camera of the board, the factory's entity per
+    camera index, now and whenever the board reports more cameras.
+
+    A camera the board no longer reports keeps its entities, which become
+    unavailable; a dartboard without Autodarts has no cameras.
+    """
+    if coordinator.manual_board:
+        return
+    known: set[int] = set()
+
+    @callback
+    def discover() -> None:
+        new = set(range(camera_count(coordinator))) - known
+        if new:
+            known.update(new)
+            add([factory(index) for index in sorted(new)])
+
+    discover()
+    entry.async_on_unload(coordinator.async_add_listener(discover))
 
 
 class AutodartsEntity(CoordinatorEntity[AutodartsDataUpdateCoordinator]):
@@ -69,3 +110,13 @@ class AutodartsLocalEntity(CoordinatorEntity[AutodartsLocalCoordinator]):
                     self._topic, self.async_write_ha_state
                 )
             )
+
+
+class AutodartsStoredEntity(AutodartsLocalEntity):
+    """An entity of what Home Assistant keeps itself, such as a setting, a game,
+    a training session, a statistic or an online match: it stays available while
+    the board is switched off or away."""
+
+    @property
+    def available(self) -> bool:
+        return True

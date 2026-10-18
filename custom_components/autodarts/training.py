@@ -8,6 +8,7 @@ from typing import Any
 
 from homeassistant.util import dt as dt_util
 
+from .board import bed_name
 from .const import LIFECYCLE_STATUSES
 
 # Finished sessions and completed visits kept for the cards.
@@ -94,12 +95,7 @@ def beds(darts: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def hit_key(dart: dict[str, Any]) -> str:
     """A stable name per bed: S20, D16, T19, 25 (outer bull), BULL or MISS."""
-    number, multiplier = dart["number"], dart["multiplier"]
-    if number == 0 or multiplier == 0:
-        return "MISS"
-    if number == 25:
-        return "BULL" if multiplier >= 2 else "25"
-    return f"{'SDT'[multiplier - 1]}{number}"
+    return bed_name(dart["number"], dart["multiplier"])
 
 
 def _visit_details(darts: list[dict[str, Any]]) -> dict[str, Any]:

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsStoredEntity
 from .journal import JournalEvent
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
@@ -37,7 +37,7 @@ def _calendar_event(event: JournalEvent) -> CalendarEvent:
     )
 
 
-class AutodartsTrainingCalendar(AutodartsLocalEntity, CalendarEntity):
+class AutodartsTrainingCalendar(AutodartsStoredEntity, CalendarEntity):
     """Read-only: every entry is something that happened on the board.
 
     The state attributes show the entry that ended last, so the state is off
@@ -46,10 +46,6 @@ class AutodartsTrainingCalendar(AutodartsLocalEntity, CalendarEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "training_calendar")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def event(self) -> CalendarEvent | None:

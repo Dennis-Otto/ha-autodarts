@@ -9,15 +9,14 @@ import pytest
 
 from custom_components.autodarts import positions
 from custom_components.autodarts.aim import MIN_DARTS, ErrorModel
+from custom_components.autodarts.board import RADIUS_MM, aim_point
 from custom_components.autodarts.checkout import checkout
 from custom_components.autodarts.positions import (
     AIMS,
-    BOARD_RADIUS_MM,
     GROUPS,
     MIN_GROUP,
     DartLog,
     aim_model,
-    aim_point,
     error_model,
     spread,
     x01_aims,
@@ -42,7 +41,7 @@ def single_out(remaining: int, left: int) -> tuple[str, ...]:
 def around(aim: str, dx: float, dy: float) -> tuple[float, float, str]:
     """A dart that landed dx and dy millimetres from the centre of a bed."""
     x, y = aim_point(aim)
-    return (x + dx) / BOARD_RADIUS_MM, (y + dy) / BOARD_RADIUS_MM, aim
+    return (x + dx) / RADIUS_MM, (y + dy) / RADIUS_MM, aim
 
 
 def ring(aim: str, radius: float, count: int, centre=(0.0, 0.0)):

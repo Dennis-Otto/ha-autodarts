@@ -1,15 +1,17 @@
 """Connectivity to the local manager, distinct from its cloud connection."""
 
+from functools import partial
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import LIFECYCLE_STATUSES
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsLocalEntity, async_track_cameras
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 from .topics import Topic
@@ -51,23 +53,12 @@ async def async_setup_entry(
                 )
             ]
         )
-        known: set[int] = set()
-
-        @callback
-        def discover_cameras() -> None:
-            count = (coordinator.data or {}).get("settings", {}).get("camera_count", 0)
-            new = set(range(count)) - known
-            if new:
-                known.update(new)
-                async_add_entities(
-                    [
-                        AutodartsLocalState(coordinator, "camera_problem", index)
-                        for index in sorted(new)
-                    ]
-                )
-
-        discover_cameras()
-        entry.async_on_unload(coordinator.async_add_listener(discover_cameras))
+        async_track_cameras(
+            entry,
+            coordinator,
+            partial(AutodartsLocalState, coordinator, "camera_problem"),
+            async_add_entities,
+        )
 
 
 class AutodartsLocalConnectivity(AutodartsLocalEntity, BinarySensorEntity):

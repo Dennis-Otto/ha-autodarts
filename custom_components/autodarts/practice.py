@@ -17,6 +17,7 @@ from typing import Any
 
 from homeassistant.util import dt as dt_util
 
+from .board import distance_mm
 from .bot import DEFAULT_DELAY, MAX_DELAY, valid_level
 from .checkout import checkout, setup
 from .cricket import (
@@ -46,7 +47,6 @@ from .party import (
     Gotcha,
     PartyGame,
     Visit,
-    distance_mm,
     inner_single,
     make_party,
     valid_gotcha_target,
@@ -61,6 +61,7 @@ from .scoring import (
     MODES,
     STRAIGHT,
     VISIT_DARTS,
+    bounded_count,
     evaluate_visit,
     fits,
     rate,
@@ -122,10 +123,6 @@ ROUND_LIMIT = 50
 UNWINNABLE_START = 3
 
 
-def _count(value: object, low: int, high: int, default: int) -> int:
-    return value if type(value) is int and low <= value <= high else default
-
-
 def valid_start(value: object) -> bool:
     """0 for the game's start score, or a start score of 2 to 1001."""
     return type(value) is int and (value == 0 or 2 <= value <= MAX_START)
@@ -168,7 +165,7 @@ def valid_settings(saved: object) -> dict[str, Any] | None:
     names, starts = saved.get("names"), saved.get("starts")
     # Up to version 1.9, four players had a name.
     if not (
-        _count(saved.get("players"), 1, PARTY_PLAYERS, 0)
+        bounded_count(saved.get("players"), 1, PARTY_PLAYERS, 0)
         and isinstance(names, list)
         and MAX_PLAYERS <= len(names) <= PARTY_PLAYERS
         and all(isinstance(name, str) for name in names)
@@ -176,8 +173,8 @@ def valid_settings(saved: object) -> dict[str, Any] | None:
         and len(starts) == MAX_PLAYERS
         and all(valid_start(start) for start in starts)
         and valid_level(saved.get("bot_level"))
-        and _count(saved.get("legs_to_win"), 1, MAX_LEGS, 0)
-        and _count(saved.get("sets_to_win"), 1, MAX_SETS, 0)
+        and bounded_count(saved.get("legs_to_win"), 1, MAX_LEGS, 0)
+        and bounded_count(saved.get("sets_to_win"), 1, MAX_SETS, 0)
         and all(isinstance(saved.get(rule), bool) for rule in MATCH_RULES)
     ):
         return None
@@ -259,7 +256,7 @@ class Player:
     def restored(cls, saved: object, slots: int = len(CRICKET_NUMBERS)) -> Player:
         data = saved if isinstance(saved, dict) else {}
         numbers = {
-            key: _count(data.get(key), 0, 10**6, 0)
+            key: bounded_count(data.get(key), 0, 10**6, 0)
             for key, value in asdict(cls()).items()
             if type(value) is int
         }
@@ -267,7 +264,7 @@ class Player:
         valid = isinstance(marks, list) and len(marks) == slots
         return cls(
             **numbers,
-            marks=[_count(mark, 0, 3, 0) for mark in marks]
+            marks=[bounded_count(mark, 0, 3, 0) for mark in marks]
             if valid and isinstance(marks, list)
             else [0] * slots,
             opened=data.get("opened") is True,
@@ -402,14 +399,14 @@ class PracticeGame:
             self.starts = [start if valid_start(start) else 0 for start in starts]
         if saved.get("golf_holes") in GOLF_HOLES:
             self.golf_holes = saved["golf_holes"]
-        self.count_up_rounds = _count(
+        self.count_up_rounds = bounded_count(
             saved.get("count_up_rounds"), 1, MAX_ROUNDS, COUNT_UP_ROUNDS
         )
         for rule in PARTY_RULES:
             if valid_party_rule(rule, saved.get(rule)):
                 setattr(self, rule, saved[rule])
-        self.legs_to_win = _count(saved.get("legs_to_win"), 1, MAX_LEGS, 1)
-        self.sets_to_win = _count(saved.get("sets_to_win"), 1, MAX_SETS, 1)
+        self.legs_to_win = bounded_count(saved.get("legs_to_win"), 1, MAX_LEGS, 1)
+        self.sets_to_win = bounded_count(saved.get("sets_to_win"), 1, MAX_SETS, 1)
         level, delay = saved.get("bot_level"), saved.get("bot_delay")
         self.bot_level = level if type(level) is int and valid_level(level) else 0
         self.bot_delay = (
@@ -436,13 +433,13 @@ class PracticeGame:
                 )
             ]
         last = len(self.players) - 1
-        self.current = _count(saved.get("current"), 0, last, 0)
-        self.leg_visits = _count(saved.get("leg_visits"), 0, 10**6, 0)
-        self.starter = _count(saved.get("starter"), 0, last, 0)
+        self.current = bounded_count(saved.get("current"), 0, last, 0)
+        self.leg_visits = bounded_count(saved.get("leg_visits"), 0, 10**6, 0)
+        self.starter = bounded_count(saved.get("starter"), 0, last, 0)
         # Up to version 1.5, the starter passed on every leg; the legs of the
         # current set tell who started it.
         played = sum(player.legs for player in self.players)
-        self.set_starter = _count(
+        self.set_starter = bounded_count(
             saved.get("set_starter"),
             0,
             last,
@@ -608,7 +605,7 @@ class PracticeGame:
         """Players besides the bot; the bot takes a seat of its own after them."""
         self._resume()
         bot = int(self._bot_plays())
-        humans = min(_count(count, 1, PARTY_PLAYERS, 1), self.seats - bot)
+        humans = min(bounded_count(count, 1, PARTY_PLAYERS, 1), self.seats - bot)
         self.players = [Player() for _ in range(humans + bot)]
         self.new_match()
 
@@ -627,9 +624,9 @@ class PracticeGame:
     def set_format(self, legs: int | None = None, sets: int | None = None) -> None:
         self._resume()
         if legs is not None:
-            self.legs_to_win = _count(legs, 1, MAX_LEGS, self.legs_to_win)
+            self.legs_to_win = bounded_count(legs, 1, MAX_LEGS, self.legs_to_win)
         if sets is not None:
-            self.sets_to_win = _count(sets, 1, MAX_SETS, self.sets_to_win)
+            self.sets_to_win = bounded_count(sets, 1, MAX_SETS, self.sets_to_win)
         self.new_match()
 
     def set_start(self, index: int, start: int) -> None:
@@ -649,7 +646,7 @@ class PracticeGame:
         if golf_holes in GOLF_HOLES:
             self.golf_holes = golf_holes
         if count_up_rounds is not None:
-            self.count_up_rounds = _count(
+            self.count_up_rounds = bounded_count(
                 count_up_rounds, 1, MAX_ROUNDS, self.count_up_rounds
             )
         kind = self.party.kind if self.party else None

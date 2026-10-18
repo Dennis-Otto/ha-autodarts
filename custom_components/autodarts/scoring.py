@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from .board import bed_name
+
 BULL = 25
 # A visit has three darts; darts beyond them, before a takeout, do not count.
 VISIT_DARTS = 3
@@ -49,6 +51,12 @@ def rate(hits: int, tries: int) -> float | None:
     return round(hits * 100 / tries, 1) if tries else None
 
 
+def bounded_count(value: object, low: int, high: int, default: int) -> int:
+    """A stored count or setting if it is a whole number from low to high, else
+    the default: a number that a damaged or older file holds never counts."""
+    return value if type(value) is int and low <= value <= high else default
+
+
 def evaluate_visit(
     start: int,
     darts: list[dict[str, Any]],
@@ -78,13 +86,11 @@ def evaluate_visit(
 
 def _bed(number: int, multiplier: int) -> dict[str, Any]:
     """A dart in a bed, named as the actions name the beds."""
-    if not number:
-        name = "MISS"
-    elif number == BULL:
-        name = "BULL" if multiplier == 2 else "25"
-    else:
-        name = f"{'SDT'[multiplier - 1]}{number}"
-    return {"number": number, "multiplier": multiplier, "name": name}
+    return {
+        "number": number,
+        "multiplier": multiplier,
+        "name": bed_name(number, multiplier),
+    }
 
 
 # The beds of a visit entered as its score, in the order its darts are looked for:

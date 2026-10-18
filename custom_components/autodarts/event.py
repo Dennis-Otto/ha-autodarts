@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsStoredEntity
 from .local_coordinator import EVENT_TYPES, AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 
@@ -23,16 +23,11 @@ async def async_setup_entry(
         async_add_entities([AutodartsBoardEvent(coordinator)])
 
 
-class AutodartsBoardEvent(AutodartsLocalEntity, EventEntity):
+class AutodartsBoardEvent(AutodartsStoredEntity, EventEntity):
     _attr_event_types = EVENT_TYPES
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "board_events")
-
-    @property
-    def available(self) -> bool:
-        # Sessions, personal bests and daily goals are announced without the board.
-        return True
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
