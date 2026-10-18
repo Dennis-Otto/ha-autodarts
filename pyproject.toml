@@ -20,6 +20,7 @@ markers = [
 [tool.mutmut]
 source_paths = ["custom_components"]
 only_mutate = [
+    "custom_components/autodarts/board.py",
     "custom_components/autodarts/bot.py",
     "custom_components/autodarts/checkout.py",
     "custom_components/autodarts/cricket.py",

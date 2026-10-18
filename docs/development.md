@@ -498,8 +498,8 @@ runs on demand from the Actions tab.
   <img src="images/en/mutation-tests-light.png" alt="How the mutation tests run: every Saturday and on demand, mutmut copies the repository to mutants/ and changes the game rules in thousands of small ways. It runs every test once and records which functions each test calls; the tests marked mutation_unsafe are skipped, because they read the code as text or ask Git. The tests of the mutants must then pass without any mutant. Each mutant runs the tests that call its function, in a process forked from the first run, and every test starts with the caches of the integration empty. A mutant that makes a test fail is killed; one that every test lets through survives." width="560">
 </picture>
 
-`[tool.mutmut]` in `pyproject.toml` decides what changes. `only_mutate` lists seven
-modules of the game rules: the checkouts, the scores of the darts, the doubles, the
+`[tool.mutmut]` in `pyproject.toml` decides what changes. `only_mutate` lists eight
+modules of the game rules: the board, the checkouts, the scores of the darts, the doubles, the
 positions, Cricket, the bot and the party games. Most tests check them directly, and
 one run on the four cores of a runner reaches all of their 2,804 mutants in under
 two hours. The X01 practice game, the training games and the tournaments would add
