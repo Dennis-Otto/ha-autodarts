@@ -11,6 +11,7 @@ before they had these.
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Mapping
 from typing import Any
@@ -23,6 +24,8 @@ from .const import DOMAIN, LANGUAGES
 # How a language writes the decimals of an average or a rate: 54.2 or 54,2.
 DECIMAL_MARKS = {"en": ".", "de": ",", "es": ",", "fr": ",", "nl": ","}
 MAXIMUM = 180
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def speaks(language: str) -> str:
@@ -63,24 +66,41 @@ class Caller:
         # Empty until loaded: the events then carry no words, and the
         # blueprints say their own.
         self.say: dict[str, str] = {}
+        # Whether a message of the language failed to format, logged once.
+        self._failed = False
 
     async def async_load(self, hass: HomeAssistant) -> None:
         """Take the words of the language Home Assistant has now."""
         language = speaks(hass.config.language)
         self.say = await phrases(hass, language)
         self.language = language
+        self._failed = False
 
     def words(self, kind: str, attributes: Mapping[str, Any]) -> dict[str, str]:
         """The words a board event brings for the blueprints: its `call`, or
         the `title` and `summary` of the weekly report; none for the others."""
         if not self.say:
             return {}
-        if kind == "weekly_report":
-            return {
-                "title": self.say["report_title"],
-                "summary": self.summary(attributes),
-            }
-        call = self.call(kind, attributes)
+        try:
+            if kind == "weekly_report":
+                return {
+                    "title": self.say["report_title"],
+                    "summary": self.summary(attributes),
+                }
+            call = self.call(kind, attributes)
+        except (KeyError, IndexError, ValueError):
+            # A broken translation must not stop the games: the event comes
+            # without words, and the blueprints say their own.
+            if not self._failed:
+                self._failed = True
+                _LOGGER.warning(
+                    "A message in %s cannot be formatted; the %s event and "
+                    "others come without words until the language reloads",
+                    self.language,
+                    kind,
+                    exc_info=True,
+                )
+            return {}
         return {} if call is None else {"call": call}
 
     # -- the callers -------------------------------------------------------------

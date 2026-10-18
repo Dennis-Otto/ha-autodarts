@@ -418,6 +418,8 @@ Home Assistant translates no blueprint, so the integration gives each event that
 | `visit_thrown`, `visit_completed` | "One hundred and eighty!", "No score" for 0, otherwise the score | "Einhundertachtzig!", "Keine Punkte" |
 | `dart_detected` | "Treble 20", "Double 16", "5", "25", "Bull", "Miss" | "Triple 20", "Doppel 16", "5", "25", "Bull", "Fehlwurf" |
 
+The default calls name the bot and a player without a name in the integration's words too, such as "Bot" and "Spieler 2" in German; *Word for the bot* and *Word for a player without a name* apply to your own messages. Pick a *Voice* that speaks the language of Home Assistant, or leave *Language* empty: an English voice reads German or French words badly. To keep the English calls in a Home Assistant of another language, enter the English examples of the [practice caller messages](#practice-caller-messages) as your messages.
+
 A message of your own keeps its words in every language. An automation set up before calls in your language once you [re-import](#blueprints) the blueprint, unless it saved a message, such as the English default of before: replace that with `{{ call }}`, or the title of the weekly report with `{{ week_title }}`. With an older version of the integration, the events have no words, and the blueprints say them in English.
 
 ### Voice packs of the callers
@@ -1033,7 +1035,7 @@ The darts of the [bot](entities.md#bot) fire the usual events with `bot: true`, 
 
 - The visit score and the light show leave the bot out; turn on *Also for the bot* to include it.
 - The highlight photo takes no photo of the bot's darts, which are not in the board.
-- The callers call the bot by the *Word for the bot*, "Bot" by default, like the scoreboard.
+- The callers call the bot "Bot" in the language of Home Assistant, like the scoreboard; your own messages call it by the *Word for the bot*.
 
 An automation made from a blueprint takes no conditions of its own unless you take control of it, so use these settings there. To celebrate only your own visits in an automation of your own, add a condition:
 

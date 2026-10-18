@@ -4,6 +4,7 @@ Assistant: what the board events bring for the blueprints."""
 import pytest
 
 from custom_components.autodarts.calls import Caller, speaks
+from custom_components.autodarts.const import LANGUAGES
 
 # The defaults of the blueprints before the board events brought the words: the
 # calls in English stay what they were.
@@ -271,3 +272,58 @@ async def test_the_summary_writes_the_numbers_of_its_language(hass):
         "10 fléchettes, 1 session. Moyenne 3 fléchettes 20,0 (-3,2 par rapport à la "
         "semaine précédente). 1 jour d'affilée. 1 nouveau record personnel."
     )
+
+
+# Every turn a caller can call, beyond the cases of ENGLISH.
+TURNS = [
+    ("turn_changed", {"player": 2, "name": "Sam", "players": 2, "bull_off": True}),
+    ("bull_off_won", {"player": 2, "name": "Sam", "players": 2}),
+    (
+        "turn_changed",
+        {"player": 2, "name": "Sam", "players": 2, "setup": {"leave": 32}},
+    ),
+    ("turn_changed", {"player": 1, "players": 1, "setup": {"leave": 32}}),
+    ("turn_changed", {"player": 2, "name": "Sam", "players": 2}),
+]
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+async def test_every_language_formats_every_call_and_summary(hass, language):
+    """A translation with a stray brace keeps its placeholders but fails to
+    format: every message of every language is formatted here once."""
+    spoken = await caller(hass, language)
+    for kind, attributes, _ in ENGLISH:
+        assert spoken.words(kind, attributes)["call"]
+    for kind, attributes in TURNS:
+        assert spoken.words(kind, attributes)["call"]
+    singular = {
+        **QUIET,
+        "training_minutes": 1,
+        "average_change": None,
+        "highest_visit": 60,
+        "personal_bests": [{}],
+    }
+    plural = {**WEEK, "streak": 2, "scores_180": 0}
+    for report in (WEEK, QUIET, singular, plural, {"darts": 3}):
+        words = spoken.words("weekly_report", report)
+        assert words["title"]
+        assert words["summary"]
+    assert not spoken._failed
+
+
+async def test_a_broken_translation_brings_no_words_and_stops_nothing(hass, caplog):
+    spoken = await caller(hass, "fr")
+    spoken.say["caller_bull_off"] = "{name} {"
+    spoken.say["report_darts_time_sessions"] = "{0}"
+    del spoken.say["caller_maximum"]
+    sam = {"player": 2, "name": "Sam", "players": 2}
+    assert spoken.words("bull_off_won", sam) == {}
+    assert spoken.words("weekly_report", WEEK) == {}
+    assert spoken.words("visit_thrown", {"score": 180}) == {}
+    # The other messages still speak, and the failure is logged once.
+    assert spoken.words("visit_completed", {"score": 60}) == {"call": "60"}
+    assert caplog.text.count("cannot be formatted") == 1
+    # Loading the language again takes its words afresh.
+    await spoken.async_load(hass)
+    assert spoken.words("bull_off_won", sam)["call"]
+    assert not spoken._failed

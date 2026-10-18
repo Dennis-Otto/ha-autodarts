@@ -446,6 +446,8 @@ Home Assistant übersetzt keine Blueprints. Deshalb gibt die Integration jedem E
 | `visit_thrown`, `visit_completed` | „Einhundertachtzig!“, „Keine Punkte“ bei 0, sonst die Punkte | „One hundred and eighty!“, „No score“ |
 | `dart_detected` | „Triple 20“, „Doppel 16“, „5“, „25“, „Bull“, „Fehlwurf“ | „Treble 20“, „Double 16“, „5“, „25“, „Bull“, „Miss“ |
 
+Auch den Bot und einen Spieler ohne Namen nennen die Standardansagen mit den Worten der Integration, auf Deutsch „Bot“ und „Spieler 2“; *Word for the bot* und *Word for a player without a name* gelten für deine eigenen Texte. Wähle eine *Voice*, die die Sprache von Home Assistant spricht, oder lass *Language* leer: Eine englische Stimme liest deutsche Worte schlecht. Für die englischen Ansagen in einem deutschen Home Assistant trägst du die englischen Beispiele der [Practice caller messages](automations.md#practice-caller-messages) als eigene Texte ein.
+
 Ein eigener Text behält seine Worte in jeder Sprache. Eine früher angelegte Automation sagt in deiner Sprache an, sobald du den Blueprint [erneut importierst](#blueprints), außer sie hat einen Text gespeichert, etwa den englischen Standard von früher: Ersetze ihn durch `{{ call }}`, den Titel des Wochenberichts durch `{{ week_title }}`. Mit einer älteren Version der Integration haben die Ereignisse keine Worte, und die Blueprints sagen sie auf Englisch.
 
 ### Voice-Packs der Caller
@@ -1037,7 +1039,7 @@ Die Darts des [Bots](entities.de.md#bot) lösen die üblichen Ereignisse mit `bo
 
 - Celebrate a visit score und die Light show lassen den Bot aus; mit *Also for the bot* nehmen sie ihn mit.
 - Der Highlight-Foto-Blueprint macht kein Foto von den Darts des Bots, die nicht im Board stecken.
-- Die Caller rufen den Bot mit dem *Word for the bot*, standardmäßig „Bot“, wie die Anzeigetafel.
+- Die Caller rufen den Bot „Bot“ in der Sprache von Home Assistant, wie die Anzeigetafel; deine eigenen Texte nennen ihn mit dem *Word for the bot*.
 
 Eine Automation aus einem Blueprint nimmt keine eigenen Bedingungen, solange du nicht die Kontrolle über sie übernimmst; nutze dort diese Einstellungen. Um in einer eigenen Automation nur deine eigenen Aufnahmen zu feiern, ergänze eine Bedingung:
 
