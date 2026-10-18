@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.15.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.14.0...v1.15.0) (2026-10-18)
+
 ### New
 
 - **Bermuda, Round the World and Gotcha, as on play.autodarts.io:** three more party games for one to eight players. Bermuda plays 13 rounds from the 12 to the bullseye, and a visit without a hit halves your points unless you switch *Practice Bermuda halving on a miss* off. Round the World goes from 1 to 20, from 20 to 1 or in a random order, then to the bull; any bed counts, and the first at the bull wins. Gotcha counts up to a target score of 101 to 1001 with your out mode: go past it and the visit busts, reach another player's score exactly and they go back to 0. Start them from the new game screen, by voice or with `start_game` (`halve_on_miss`, `order`, `target_score`); the scoreboard shows the targets, how far everybody has come round the board and the points to go, and the caller calls the visits and the busts ([party games](docs/games.md#party-games), #305, #308).
@@ -14,6 +16,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **The darts arrow of the trends no longer falls during every week:** the players card compared the darts of the older half of the weeks shown with those of the newer half, which ends with the current week. If you threw the same number of darts every week, the arrow fell for most of each week, and with 5, 7, 9 or 11 weeks shown it rose, because the newer half had one week more. It now compares the darts per week of the complete weeks, so steady practice shows → and only more or fewer darts a week turn it; a week without practice counts as one without darts, so the arrow also shows when you start practicing or take a break. The darts over the weeks and the line still count the current week; the other arrows were not affected (#327, #328).
 - **The dart positions come back after a dropped connection:** when the training card could not get the positions of the heatmap, for example while Home Assistant restarted, it said *No dart positions yet.* until your next visit. It now keeps the positions it showed and asks again with the next update (#327, #328).
+
+### Improved
+
+- **Quicker on a Raspberry Pi:** every action, such as a button, a setting or a new game, built the whole store of the training twice: once to save it and once more to compare it with what it had saved, which with a long history and many players took about 20 milliseconds on a desktop PC and several times as long on a Raspberry Pi. It now builds it once, and a dart that lands while it is saved is still saved when Home Assistant stops, as before. The setup hint of the scoreboard and the aim of the bot no longer try 12,341 ways to throw three darts where nothing can be set up, such as 501 at the start of a leg: every setup from 171 to 1001 is found in a tenth of the time, with the same result. Home Assistant also loads the integration about a quarter to half a second faster, because the checkout training no longer works out its 162 scores at every start ([setup hints](docs/how-it-works.md#setup-hints), #329, #333).
 
 ## [1.14.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.13.0...v1.14.0) (2026-10-14)
 

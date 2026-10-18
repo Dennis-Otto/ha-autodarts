@@ -8,6 +8,7 @@ from hypothesis import strategies as st
 from custom_components.autodarts.checkout import checkout
 from custom_components.autodarts.drills import (
     BOBS_START,
+    BOGEY_NUMBERS,
     CHECKOUT_SCORES,
     CHECKOUT_VISITS,
     TARGETS,
@@ -79,6 +80,11 @@ def test_doubles_training_needs_the_double_ring_and_the_bullseye():
     assert drill.snapshot()["target"] == "BULL"
     assert throw(drill, "25") == []
     assert throw(drill, "BULL")[0][0] == "drill_finished"
+
+
+def test_the_checkout_training_picks_every_score_three_darts_finish():
+    assert CHECKOUT_SCORES == tuple(score for score in range(2, 171) if checkout(score))
+    assert BOGEY_NUMBERS == set(range(2, 171)) - set(CHECKOUT_SCORES)
 
 
 def test_checkout_training_books_attempts_on_three_visits():
