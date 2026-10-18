@@ -1,4 +1,5 @@
-"""Connectivity to the local manager, distinct from its cloud connection."""
+"""Connectivity to the local manager, distinct from its cloud connection, and
+to the Granboard of a dartboard without Autodarts."""
 
 from functools import partial
 
@@ -11,8 +12,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import LIFECYCLE_STATUSES
-from .entity import AutodartsBoardEntity, async_track_cameras
+from .entity import AutodartsBoardEntity, AutodartsLocalEntity, async_track_cameras
 from .local_coordinator import AutodartsLocalCoordinator
+from .manual_coordinator import AutodartsManualCoordinator
 from .runtime import AutodartsConfigEntry
 from .topics import Topic
 
@@ -59,6 +61,9 @@ async def async_setup_entry(
             partial(AutodartsLocalState, coordinator, "camera_problem"),
             async_add_entities,
         )
+    # The Bluetooth connection of a Granboard.
+    elif isinstance(coordinator, AutodartsManualCoordinator) and coordinator.granboard:
+        async_add_entities([GranboardConnectivity(coordinator)])
 
 
 class AutodartsLocalConnectivity(AutodartsBoardEntity, BinarySensorEntity):
@@ -75,6 +80,26 @@ class AutodartsLocalConnectivity(AutodartsBoardEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         return self.coordinator.last_update_success
+
+
+class GranboardConnectivity(
+    AutodartsLocalEntity[AutodartsManualCoordinator], BinarySensorEntity
+):
+    """Whether the Granboard of a dartboard without Autodarts is connected."""
+
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, coordinator: AutodartsManualCoordinator) -> None:
+        super().__init__(coordinator, "granboard_connected")
+
+    @property
+    def available(self) -> bool:
+        return True
+
+    @property
+    def is_on(self) -> bool:
+        return bool(self.coordinator.granboard and self.coordinator.granboard.connected)
 
 
 class AutodartsLocalState(AutodartsBoardEntity, BinarySensorEntity):

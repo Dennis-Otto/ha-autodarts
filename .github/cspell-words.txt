@@ -3,11 +3,13 @@
 Antippen
 Ausbullen
 Awwad
+Bleak
 Dartabend
 Dartautomaten
 Dartraum
 Dartscheibe
 Dartwoche
+ESPHome
 Entitäts
 Entitätseinstellungen
 Entitätskategorie
@@ -16,6 +18,8 @@ Entitätsverwaltung
 Entscheidungsfinale
 Gegnerpaars
 Gewinnerrunde
+Granboard
+Granboards
 Halbfinals
 Hervorhebungsfarbe
 Integrationen
@@ -35,6 +39,7 @@ Screenreadern
 Siegdart
 Siegerdarts
 Skripteinschleusung
+Softdartscheibe
 Spielerbericht
 Spielerkacheln
 Spielerkarte
@@ -61,6 +66,7 @@ annule
 antippst
 ausgebullt
 ausgegraut
+bastiennoel
 belese
 beurt
 bullen
@@ -104,6 +110,7 @@ quinientos
 raté
 reauthentication
 siguiente
+sobassy
 speel
 spel
 speler

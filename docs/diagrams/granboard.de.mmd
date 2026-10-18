@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Wie ein Dart eines Granboards in die Spiele kommt
+  accDescr: Für jeden Treffer sendet das Granboard einen kurzen Frame über Bluetooth LE, etwa 3.4@ für das Triple 20. Ein Bluetooth-Adapter von Home Assistant oder ein ESPHome-Bluetooth-Proxy in Reichweite gibt ihn weiter. Die Integration liest den Frame. Ein Feld kommt in die Aufnahme, wie es die Aktion throw_dart tut; die Taste beendet die Aufnahme, wie next_player; ein Frame in den ersten zwei Sekunden nach dem Verbinden wird verworfen, und ein unbekannter bleibt für die Diagnose. Die Spiele, das Training und die Statistiken folgen der Aufnahme. Geht das Board weg, verbindet sich die Integration wieder, sobald Home Assistant es sieht, sonst nach 2, 4, 8 bis 300 Sekunden.
+  HIT(["Ein Dart trifft das Granboard"]) --> FRAME["Ein Frame über Bluetooth LE,<br/>etwa 3.4@ für T20"]
+  FRAME --> RADIO["Ein Bluetooth-Adapter oder ein<br/>ESPHome-Bluetooth-Proxy"]
+  RADIO --> READ{"Die Integration<br/>liest den Frame"}
+  READ -- "ein Feld" --> DART["In die Aufnahme,<br/>wie mit throw_dart"]
+  READ -- "die Taste" --> NEXT["Die Aufnahme endet,<br/>wie mit next_player"]
+  READ -- "in den ersten 2 s<br/>nach dem Verbinden" --> DROP["Verworfen"]
+  READ -- "unbekannt" --> DIAG["Bleibt für die Diagnose"]
+  DART & NEXT --> GAMES["Spiele, Training<br/>und Statistiken"]
+  RADIO -. "das Board geht weg" .-> AGAIN["Verbindet sich wieder, sobald Home Assistant<br/>es sieht, sonst nach 2, 4, 8 … 300 s"]
+  AGAIN -.-> RADIO
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class GAMES done
+  class DROP,DIAG,AGAIN warn

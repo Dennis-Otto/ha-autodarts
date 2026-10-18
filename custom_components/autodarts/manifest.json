@@ -3,11 +3,18 @@
   "name": "Autodarts",
   "after_dependencies": [
     "automation",
+    "bluetooth",
     "frontend",
     "http",
     "lovelace",
     "tts",
     "webhook"
+  ],
+  "bluetooth": [
+    {
+      "connectable": true,
+      "service_uuid": "442f1570-8a00-9a28-cbe1-e1d4212d53eb"
+    }
   ],
   "codeowners": [
     "@Dennis-Otto"

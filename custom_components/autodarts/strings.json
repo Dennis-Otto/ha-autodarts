@@ -54,7 +54,8 @@
           "discover": "Search for boards on this network",
           "local": "Enter board address",
           "cloud": "Link cloud account",
-          "manual": "Dartboard without Autodarts: enter every dart yourself"
+          "manual": "Dartboard without Autodarts: enter every dart yourself",
+          "granboard": "Granboard over Bluetooth (experimental)"
         }
       },
       "reconfigure": {
@@ -94,6 +95,26 @@
         },
         "data_description": {
           "name": "Names the board, its device and its entities, for example Dartboard or Garage."
+        }
+      },
+      "granboard": {
+        "title": "Granboard over Bluetooth",
+        "description": "Choose the Granboard that Home Assistant's Bluetooth sees. Its darts count as on a dartboard without Autodarts.",
+        "data": {
+          "address": "Granboard"
+        },
+        "data_description": {
+          "address": "Switch the board on: Home Assistant finds it through a Bluetooth adapter or an ESPHome Bluetooth proxy within reach."
+        }
+      },
+      "granboard_confirm": {
+        "title": "Granboard over Bluetooth (experimental)",
+        "description": "Home Assistant receives the darts of the Granboard at {address} and plays the games, the training and the statistics with them, as on a dartboard without Autodarts. The button of the board passes to the next player, and the keypad of the cards still corrects a dart. The support of the Granboard is experimental: please report a bed that counts wrong.",
+        "data": {
+          "name": "Name"
+        },
+        "data_description": {
+          "name": "Names the board, its device and its entities, for example Granboard or Garage."
         }
       },
       "discover": {
@@ -138,7 +159,8 @@
       "board_not_configured": "No board ID is configured in Board Manager. Complete board setup there first.",
       "already_in_progress": "Setup of this board is already in progress.",
       "address_updated": "This Autodarts board is already set up. Its address was updated, and the integration reloads.",
-      "board_connected": "The Autodarts board is connected. The dartboard keeps its games, statistics and dashboards, and the integration reloads."
+      "board_connected": "The Autodarts board is connected. The dartboard keeps its games, statistics and dashboards, and the integration reloads.",
+      "no_granboards": "Home Assistant's Bluetooth sees no Granboard that is not set up yet. Switch the board on, keep it within reach of a Bluetooth adapter or an ESPHome Bluetooth proxy, and try again."
     },
     "flow_title": "{name}",
     "create_entry": {
@@ -670,6 +692,9 @@
     "binary_sensor": {
       "local_connected": {
         "name": "Local connection"
+      },
+      "granboard_connected": {
+        "name": "Granboard connection"
       },
       "hand_detected": {
         "name": "Hand detected"

@@ -391,7 +391,7 @@ class Scenario:
         menu = await self.flow()
         check(
             menu["type"] == "menu"
-            and menu["menu_options"] == ["discover", "local", "manual"],
+            and menu["menu_options"] == ["discover", "local", "granboard", "manual"],
             f"Unexpected setup menu: {menu}",
         )
         form = await self.flow(menu["flow_id"], next_step_id="local")
@@ -1926,6 +1926,14 @@ class Scenario:
     async def manual_board(self) -> None:
         """A dartboard without Autodarts beside the board: set up from the menu,
         played with darts entered by hand, and removed again."""
+        # No Granboard is in reach of the container's Bluetooth, which the step of
+        # the setup menu says, in a real Home Assistant with its Bluetooth API.
+        menu = await self.flow()
+        result = await self.flow(menu["flow_id"], next_step_id="granboard")
+        check(
+            result["type"] == "abort" and result["reason"] == "no_granboards",
+            f"The Granboard step did not say that none is in reach: {result}",
+        )
         menu = await self.flow()
         form = await self.flow(menu["flow_id"], next_step_id="manual")
         check(

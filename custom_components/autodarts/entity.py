@@ -96,7 +96,7 @@ class AutodartsLocalEntity[
             self._attr_device_info = DeviceInfo(
                 identifiers={(DOMAIN, coordinator.board_id)},
                 name=coordinator.device_name,
-                model="Dart Board",
+                model=coordinator.device_model,
             )
             return
         self._attr_device_info = DeviceInfo(

@@ -100,6 +100,9 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     # A dartboard without Autodarts, see AutodartsManualCoordinator.
     manual_board = False
+    # The model its device shows, such as Granboard for a dartboard without
+    # Autodarts that receives the darts of one.
+    device_model = "Dart Board"
 
     def __init__(
         self,

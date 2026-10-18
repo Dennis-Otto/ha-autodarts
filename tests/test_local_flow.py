@@ -166,7 +166,7 @@ async def test_menus_offer_no_cloud_link_without_a_client_id(hass):
     )
     entry.add_to_hass(hass)
     for context, options in (
-        ({"source": SOURCE_USER}, ["discover", "local", "manual"]),
+        ({"source": SOURCE_USER}, ["discover", "local", "granboard", "manual"]),
         # A board being set up again stays a board with Autodarts.
         (
             {"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id},

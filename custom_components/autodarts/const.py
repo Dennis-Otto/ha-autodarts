@@ -42,6 +42,9 @@ CONF_API_GENERATION: Final = "api_generation"
 CONF_NO_SYSTEM_API: Final = "no_system_api"
 # A dartboard without Autodarts: every dart is entered in Home Assistant.
 CONF_MANUAL_BOARD: Final = "manual_board"
+# The Bluetooth address of the Granboard whose darts a dartboard without Autodarts
+# receives, see granboard.py.
+CONF_GRANBOARD: Final = "granboard"
 
 # Detection states around a start or stop; the cameras open or close meanwhile.
 LIFECYCLE_STATUSES: Final = ("starting", "stopping", "stopped", "calibrating", "error")
