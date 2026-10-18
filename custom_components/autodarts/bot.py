@@ -12,11 +12,11 @@ per round match those of a player with that average, a 24th of it.
 
 from __future__ import annotations
 
-import math
 import random
 from bisect import bisect_left
 from typing import Any
 
+from .board import RADIUS_MM, aim_point, bed_name, segment_at, top_bed
 from .checkout import (
     BEDS_BY_BULL,
     FINISH_ORDER,
@@ -42,23 +42,6 @@ MAX_LEVEL = 120
 DEFAULT_DELAY = 2.0
 MAX_DELAY = 10.0
 BOT_DARTS = 3
-
-# Board Manager geometry in millimetres, as the cards draw the board; positions
-# are relative to the outer edge of the double ring, with y pointing to the 20.
-BULL_MM = 7
-OUTER_BULL_MM = 17
-TREBLE_MM = (97, 107)
-DOUBLE_MM = (160, 170)
-BOARD_MM = DOUBLE_MM[1]
-SECTORS = (20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5)
-# Where the bot aims inside a bed: the middle of the ring, and for a single
-# the big outer part of the bed between the treble and the double ring.
-AIM_MM = {
-    "T": sum(TREBLE_MM) / 2,
-    "D": sum(DOUBLE_MM) / 2,
-    "S": (TREBLE_MM[1] + DOUBLE_MM[0]) / 2,
-}
-OUTER_BULL_AIM_MM = (BULL_MM + OUTER_BULL_MM) / 2
 
 # The scatter (standard deviation per axis, in millimetres) that plays a
 # level: measured with play_leg() over 600 to 1,500 legs of 501 with double
@@ -137,46 +120,6 @@ def scatter(level: int, cricket: bool = False) -> float:
     return low + (high - low) * (level - low_level) / (high_level - low_level)
 
 
-def bed_name(number: int, multiplier: int) -> str:
-    """S20, D16, T19, 25, BULL or MISS, as the practice game names a bed."""
-    if number == 0 or multiplier == 0:
-        return "MISS"
-    if number == 25:
-        return "BULL" if multiplier == 2 else "25"
-    return f"{'SDT'[multiplier - 1]}{number}"
-
-
-def segment_at(x: float, y: float) -> tuple[int, int]:
-    """The number and multiplier of the bed at a point, in millimetres."""
-    radius = math.hypot(x, y)
-    if radius <= BULL_MM:
-        return 25, 2
-    if radius <= OUTER_BULL_MM:
-        return 25, 1
-    if radius > BOARD_MM:
-        return 0, 0
-    # Clockwise from the 20 at the top, 18 degrees per number.
-    degrees = math.degrees(math.atan2(x, y))
-    number = SECTORS[round(degrees / 18) % len(SECTORS)]
-    if TREBLE_MM[0] < radius <= TREBLE_MM[1]:
-        return number, 3
-    if DOUBLE_MM[0] < radius <= DOUBLE_MM[1]:
-        return number, 2
-    return number, 1
-
-
-def aim_point(bed: str) -> tuple[float, float]:
-    """The point in millimetres the bot aims at for a bed: T20, S5, D16, 25 or BULL."""
-    if bed == "BULL":
-        return 0.0, 0.0
-    if bed == "25":
-        return 0.0, OUTER_BULL_AIM_MM
-    number = int(bed[1:])
-    angle = math.radians(SECTORS.index(number) * 18)
-    radius = AIM_MM[bed[0]]
-    return radius * math.sin(angle), radius * math.cos(angle)
-
-
 # -- aiming ----------------------------------------------------------------------
 
 
@@ -240,11 +183,6 @@ def _opening(
     return max(safe, key=FINISHING_SCORE.__getitem__)
 
 
-def _target(number: int) -> str:
-    """Trebles close and score fastest; the bull is aimed at its centre."""
-    return "BULL" if number == 25 else f"T{number}"
-
-
 def cricket_aim(
     marks: list[int],
     points: int,
@@ -291,11 +229,11 @@ def cricket_aim(
             and any(other[slot] < MARKS_TO_CLOSE for other in others_marks)
         ]
     if threats and not (behind and scoring):
-        return _target(numbers[threats[0]])
+        return top_bed(numbers[threats[0]])
     if scoring and (behind or all(closed)):
-        return _target(numbers[scoring[0]])
+        return top_bed(numbers[scoring[0]])
     open_slots = [slot for slot in slots if not closed[slot]]
-    return _target(numbers[open_slots[0] if open_slots else 0])
+    return top_bed(numbers[open_slots[0] if open_slots else 0])
 
 
 def _wild_mouse_bed(
@@ -430,9 +368,9 @@ class Bot:
         aim_x, aim_y = aim_point(bed)
         # Positions like the board's, relative to the outer edge of the double
         # ring; the bed is the one at the position the cards show.
-        x = round((aim_x + self.rng.gauss(0, sigma)) / BOARD_MM, 4)
-        y = round((aim_y + self.rng.gauss(0, sigma)) / BOARD_MM, 4)
-        number, multiplier = segment_at(x * BOARD_MM, y * BOARD_MM)
+        x = round((aim_x + self.rng.gauss(0, sigma)) / RADIUS_MM, 4)
+        y = round((aim_y + self.rng.gauss(0, sigma)) / RADIUS_MM, 4)
+        number, multiplier = segment_at(x * RADIUS_MM, y * RADIUS_MM)
         dart = {
             "number": number,
             "multiplier": multiplier,

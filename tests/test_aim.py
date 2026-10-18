@@ -18,8 +18,7 @@ from custom_components.autodarts.aim import (
     expected,
     points,
 )
-from custom_components.autodarts.bot import segment_at
-from custom_components.autodarts.positions import aim_point
+from custom_components.autodarts.board import aim_point, segment_at
 
 # The same numbers as tests/frontend/training-aim.test.mjs, which the training card
 # computes for its map: Home Assistant and the card agree to the last digit.

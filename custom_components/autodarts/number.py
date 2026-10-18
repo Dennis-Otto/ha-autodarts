@@ -12,7 +12,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .bot import MAX_DELAY, MAX_LEVEL, MIN_LEVEL, valid_level
 from .const import DOMAIN
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsStoredEntity
 from .local_coordinator import AutodartsLocalCoordinator
 from .party import GOTCHA_TARGETS, MAX_ROUNDS
 from .practice import (
@@ -84,7 +84,7 @@ def _check_seat(practice: PracticeGame, humans: int, level: int) -> None:
         )
 
 
-class AutodartsIdleTimeout(AutodartsLocalEntity, NumberEntity):
+class AutodartsIdleTimeout(AutodartsStoredEntity, NumberEntity):
     """Minutes without darts before a session ends; 0 keeps it running."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -99,10 +99,6 @@ class AutodartsIdleTimeout(AutodartsLocalEntity, NumberEntity):
         super().__init__(coordinator, "training_idle_timeout")
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def native_value(self) -> int:
         return self.coordinator.training.idle_minutes
 
@@ -110,7 +106,7 @@ class AutodartsIdleTimeout(AutodartsLocalEntity, NumberEntity):
         await self.coordinator.async_set_idle_minutes(int(value))
 
 
-class AutodartsDailyGoal(AutodartsLocalEntity, NumberEntity):
+class AutodartsDailyGoal(AutodartsStoredEntity, NumberEntity):
     """Darts to throw every day; 0 sets no goal."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -124,10 +120,6 @@ class AutodartsDailyGoal(AutodartsLocalEntity, NumberEntity):
         super().__init__(coordinator, "training_daily_goal")
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def native_value(self) -> int:
         return self.coordinator.records.goal
 
@@ -135,7 +127,7 @@ class AutodartsDailyGoal(AutodartsLocalEntity, NumberEntity):
         await self.coordinator.async_set_daily_goal(int(value))
 
 
-class AutodartsPracticeNumber(AutodartsLocalEntity, NumberEntity):
+class AutodartsPracticeNumber(AutodartsStoredEntity, NumberEntity):
     """Players of a practice match, legs per set and sets to win."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -147,10 +139,6 @@ class AutodartsPracticeNumber(AutodartsLocalEntity, NumberEntity):
         super().__init__(coordinator, key)
         self._key = key
         self._attr_native_max_value = PRACTICE_NUMBERS[key]
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> int:
@@ -175,7 +163,7 @@ class AutodartsPracticeNumber(AutodartsLocalEntity, NumberEntity):
             await self.coordinator.async_set_match_format(sets=int(value))
 
 
-class AutodartsStartScore(AutodartsLocalEntity, NumberEntity):
+class AutodartsStartScore(AutodartsStoredEntity, NumberEntity):
     """A player's own X01 start score for a handicap; 0 plays the game's."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -189,10 +177,6 @@ class AutodartsStartScore(AutodartsLocalEntity, NumberEntity):
         self._attr_translation_key = "practice_start"
         self._attr_translation_placeholders = {"number": str(index + 1)}
         self._index = index
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> int:
@@ -213,7 +197,7 @@ class AutodartsStartScore(AutodartsLocalEntity, NumberEntity):
         await self.coordinator.async_set_start_score(self._index, start)
 
 
-class AutodartsMaxRounds(AutodartsLocalEntity, NumberEntity):
+class AutodartsMaxRounds(AutodartsStoredEntity, NumberEntity):
     """The round limit of X01: after it, the lowest score wins the leg; 0 for
     none. A change starts the match anew."""
 
@@ -227,10 +211,6 @@ class AutodartsMaxRounds(AutodartsLocalEntity, NumberEntity):
         super().__init__(coordinator, "practice_max_rounds")
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def native_value(self) -> int:
         return self.coordinator.practice.max_rounds
 
@@ -238,7 +218,7 @@ class AutodartsMaxRounds(AutodartsLocalEntity, NumberEntity):
         await self.coordinator.async_set_x01_rule("max_rounds", int(value))
 
 
-class AutodartsCountUpRounds(AutodartsLocalEntity, NumberEntity):
+class AutodartsCountUpRounds(AutodartsStoredEntity, NumberEntity):
     """Rounds of Count-Up; a change starts a game of Count-Up anew."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -251,10 +231,6 @@ class AutodartsCountUpRounds(AutodartsLocalEntity, NumberEntity):
         super().__init__(coordinator, "practice_count_up_rounds")
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def native_value(self) -> int:
         return self.coordinator.practice.count_up_rounds
 
@@ -262,7 +238,7 @@ class AutodartsCountUpRounds(AutodartsLocalEntity, NumberEntity):
         await self.coordinator.async_set_party_rounds(count_up_rounds=int(value))
 
 
-class AutodartsGotchaTarget(AutodartsLocalEntity, NumberEntity):
+class AutodartsGotchaTarget(AutodartsStoredEntity, NumberEntity):
     """The target score of Gotcha; a change starts a game of Gotcha anew."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -275,10 +251,6 @@ class AutodartsGotchaTarget(AutodartsLocalEntity, NumberEntity):
         super().__init__(coordinator, "practice_gotcha_target")
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def native_value(self) -> int:
         return self.coordinator.practice.gotcha_target
 
@@ -286,7 +258,7 @@ class AutodartsGotchaTarget(AutodartsLocalEntity, NumberEntity):
         await self.coordinator.async_set_party_rule("gotcha_target", int(value))
 
 
-class AutodartsTournamentSeconds(AutodartsLocalEntity, NumberEntity):
+class AutodartsTournamentSeconds(AutodartsStoredEntity, NumberEntity):
     """Seconds between two tournament matches: the summary of a match, then the
     pause; a pause of 0 waits for the next match to be started."""
 
@@ -303,10 +275,6 @@ class AutodartsTournamentSeconds(AutodartsLocalEntity, NumberEntity):
         self._attr_native_max_value = MAX_PAUSE if key == "pause" else MAX_SUMMARY
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def native_value(self) -> int:
         value: int = getattr(self.coordinator.tournament.setup, self._key)
         return value
@@ -315,7 +283,7 @@ class AutodartsTournamentSeconds(AutodartsLocalEntity, NumberEntity):
         await self.coordinator.async_set_tournament(**{self._key: int(value)})
 
 
-class AutodartsBotLevel(AutodartsLocalEntity, NumberEntity):
+class AutodartsBotLevel(AutodartsStoredEntity, NumberEntity):
     """The bot's 3-dart average in X01 and the Cricket games; 0 plays without it.
 
     There is no level from 1 to 19: such a value steps on to the next level
@@ -330,10 +298,6 @@ class AutodartsBotLevel(AutodartsLocalEntity, NumberEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "practice_bot_level")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> int:
@@ -352,7 +316,7 @@ class AutodartsBotLevel(AutodartsLocalEntity, NumberEntity):
         await self.coordinator.async_set_bot(level=level)
 
 
-class AutodartsBotDelay(AutodartsLocalEntity, NumberEntity):
+class AutodartsBotDelay(AutodartsStoredEntity, NumberEntity):
     """Seconds before each of the bot's darts and before its visit ends."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -365,10 +329,6 @@ class AutodartsBotDelay(AutodartsLocalEntity, NumberEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "practice_bot_delay")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def native_value(self) -> float:

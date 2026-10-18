@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import Any, NamedTuple
 
+from .board import top_bed
 from .scoring import VISIT_DARTS, score
 from .training import hit_key
 
@@ -137,10 +138,6 @@ def _lowest_closed(
     ]
 
 
-def _bed(number: int) -> str:
-    return "BULL" if number == 25 else f"T{number}"
-
-
 def next_target(
     marks: list[int],
     numbers: tuple[int, ...] = CRICKET_NUMBERS,
@@ -156,7 +153,7 @@ def next_target(
     """
     for slot, number in enumerate(numbers):
         if marks[slot] < MARKS_TO_CLOSE:
-            return _bed(number)
+            return top_bed(number)
     others = list(others_marks or [])
     if cut_throat and others_points:
         fewest = min(others_points)
@@ -167,7 +164,7 @@ def next_target(
         ]
     for slot, number in enumerate(numbers):
         if any(other[slot] < MARKS_TO_CLOSE for other in others):
-            return _bed(number)
+            return top_bed(number)
     return None
 
 
@@ -319,7 +316,7 @@ def wild_mouse_bed(
     darts, or the big single 20 before the first; None once the visit's darts
     can no longer make a bed."""
     if slot < len(numbers):
-        return _bed(numbers[slot])
+        return top_bed(numbers[slot])
     target = targets[slot - len(numbers)]
     if target != BED:
         return "D" if target == DOUBLES else "T"

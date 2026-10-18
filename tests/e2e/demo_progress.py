@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, "/config")
 
-from custom_components.autodarts.positions import aim_point  # noqa: E402
+from custom_components.autodarts.board import aim_point  # noqa: E402
 from custom_components.autodarts.profiles import Profile  # noqa: E402
 from custom_components.autodarts.progress import (  # noqa: E402
     TREND_WEEKS,

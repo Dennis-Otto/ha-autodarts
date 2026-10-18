@@ -1,11 +1,18 @@
 """Explicit local Board Manager actions, also usable by HA automations."""
 
+from functools import partial
+
 from homeassistant.components.button import ButtonDeviceClass, ButtonEntity
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .entity import AutodartsLocalEntity
+from .entity import (
+    AutodartsLocalEntity,
+    AutodartsStoredEntity,
+    async_track_cameras,
+    camera_count,
+)
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 
@@ -52,24 +59,12 @@ async def async_setup_entry(
                 ),
             ]
         )
-        known: set[int] = set()
-
-        @callback
-        def discover_cameras() -> None:
-            count = (coordinator.data or {}).get("settings", {}).get("camera_count", 0)
-            new = set(range(count)) - known
-            if new:
-                known.update(new)
-                async_add_entities(
-                    [
-                        AutodartsCameraCalibration(coordinator, index)
-                        for index in sorted(new)
-                    ]
-                )
-
-        if not coordinator.manual_board:
-            discover_cameras()
-            entry.async_on_unload(coordinator.async_add_listener(discover_cameras))
+        async_track_cameras(
+            entry,
+            coordinator,
+            partial(AutodartsCameraCalibration, coordinator),
+            async_add_entities,
+        )
 
 
 class AutodartsButton(AutodartsLocalEntity, ButtonEntity):
@@ -100,9 +95,7 @@ class AutodartsCameraCalibration(AutodartsLocalEntity, ButtonEntity):
 
     @property
     def available(self) -> bool:
-        return super().available and self._index < (self.coordinator.data or {}).get(
-            "settings", {}
-        ).get("camera_count", 0)
+        return super().available and self._index < camera_count(self.coordinator)
 
     async def async_press(self) -> None:
         await self.coordinator.async_action(
@@ -110,56 +103,40 @@ class AutodartsCameraCalibration(AutodartsLocalEntity, ButtonEntity):
         )
 
 
-class AutodartsTrainingReset(AutodartsLocalEntity, ButtonEntity):
+class AutodartsTrainingReset(AutodartsStoredEntity, ButtonEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "reset_training")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     async def async_press(self) -> None:
         await self.coordinator.async_new_session()
 
 
-class AutodartsNewLeg(AutodartsLocalEntity, ButtonEntity):
+class AutodartsNewLeg(AutodartsStoredEntity, ButtonEntity):
     """Start the practice leg again from the full score."""
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "practice_new_leg")
 
-    @property
-    def available(self) -> bool:
-        return True
-
     async def async_press(self) -> None:
         await self.coordinator.async_new_leg()
 
 
-class AutodartsNewMatch(AutodartsLocalEntity, ButtonEntity):
+class AutodartsNewMatch(AutodartsStoredEntity, ButtonEntity):
     """Start the practice match again from zero legs and sets."""
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "practice_new_match")
 
-    @property
-    def available(self) -> bool:
-        return True
-
     async def async_press(self) -> None:
         await self.coordinator.async_new_match()
 
 
-class AutodartsTournamentButton(AutodartsLocalEntity, ButtonEntity):
+class AutodartsTournamentButton(AutodartsStoredEntity, ButtonEntity):
     """Start a tournament with its settings, start its next match or stop it."""
 
     def __init__(self, coordinator: AutodartsLocalCoordinator, action: str) -> None:
         super().__init__(coordinator, f"tournament_{action}")
         self._action = action
-
-    @property
-    def available(self) -> bool:
-        return True
 
     async def async_press(self) -> None:
         if self._action == "start":

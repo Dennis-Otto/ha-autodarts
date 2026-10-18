@@ -9,7 +9,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
 from .cricket import CRICKET_GAMES
-from .entity import AutodartsLocalEntity
+from .entity import AutodartsLocalEntity, AutodartsStoredEntity
 from .local_api import STANDBY_MINUTES
 from .local_coordinator import AutodartsLocalCoordinator
 from .party import GOLF_HOLES, WORLD_ORDERS
@@ -71,18 +71,13 @@ class AutodartsStandbySelect(AutodartsLocalEntity, SelectEntity):
         )
 
 
-class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
+class AutodartsPracticeGame(AutodartsStoredEntity, SelectEntity):
     """X01, a Cricket, party or training game; a choice starts it anew."""
 
     _attr_options = ["off", *GAME_OPTIONS]
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "practice_game")
-
-    @property
-    def available(self) -> bool:
-        # The game lives in Home Assistant, like training sessions.
-        return True
 
     @property
     def current_option(self) -> str:
@@ -114,7 +109,7 @@ class AutodartsPracticeGame(AutodartsLocalEntity, SelectEntity):
             await self.coordinator.async_play(option)
 
 
-class AutodartsX01Rule(AutodartsLocalEntity, SelectEntity):
+class AutodartsX01Rule(AutodartsStoredEntity, SelectEntity):
     """The In or Out mode of X01, straight, double or master, or its bull mode.
 
     The Out mode applies from the next leg once darts of a leg count; another
@@ -127,10 +122,6 @@ class AutodartsX01Rule(AutodartsLocalEntity, SelectEntity):
         super().__init__(coordinator, f"practice_{rule}")
         self._rule = rule
         self._attr_options = list(BULL_MODES if rule == "bull_mode" else MODES)
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def current_option(self) -> str:
@@ -147,7 +138,7 @@ class AutodartsX01Rule(AutodartsLocalEntity, SelectEntity):
         await self.coordinator.async_set_x01_rule(self._rule, option)
 
 
-class AutodartsGolfHoles(AutodartsLocalEntity, SelectEntity):
+class AutodartsGolfHoles(AutodartsStoredEntity, SelectEntity):
     """Nine or 18 holes of Golf; a change starts a game of Golf anew."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -157,10 +148,6 @@ class AutodartsGolfHoles(AutodartsLocalEntity, SelectEntity):
         super().__init__(coordinator, "practice_golf_holes")
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def current_option(self) -> str:
         return str(self.coordinator.practice.golf_holes)
 
@@ -168,7 +155,7 @@ class AutodartsGolfHoles(AutodartsLocalEntity, SelectEntity):
         await self.coordinator.async_set_party_rounds(golf_holes=int(option))
 
 
-class AutodartsWorldOrder(AutodartsLocalEntity, SelectEntity):
+class AutodartsWorldOrder(AutodartsStoredEntity, SelectEntity):
     """The order of Round the World before the bull; a change starts a game of
     Round the World anew."""
 
@@ -179,10 +166,6 @@ class AutodartsWorldOrder(AutodartsLocalEntity, SelectEntity):
         super().__init__(coordinator, "practice_round_the_world_order")
 
     @property
-    def available(self) -> bool:
-        return True
-
-    @property
     def current_option(self) -> str:
         return self.coordinator.practice.round_the_world_order
 
@@ -190,7 +173,7 @@ class AutodartsWorldOrder(AutodartsLocalEntity, SelectEntity):
         await self.coordinator.async_set_party_rule("round_the_world_order", option)
 
 
-class AutodartsReportDay(AutodartsLocalEntity, SelectEntity):
+class AutodartsReportDay(AutodartsStoredEntity, SelectEntity):
     """The weekday on which the weekly report ends the week."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -198,10 +181,6 @@ class AutodartsReportDay(AutodartsLocalEntity, SelectEntity):
 
     def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
         super().__init__(coordinator, "weekly_report_day")
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def current_option(self) -> str:
@@ -212,7 +191,7 @@ class AutodartsReportDay(AutodartsLocalEntity, SelectEntity):
         await reports.async_set_schedule(WEEKDAYS.index(option), reports.report.time)
 
 
-class AutodartsTournamentSelect(AutodartsLocalEntity, SelectEntity):
+class AutodartsTournamentSelect(AutodartsStoredEntity, SelectEntity):
     """The format or the game of the next tournament."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -221,10 +200,6 @@ class AutodartsTournamentSelect(AutodartsLocalEntity, SelectEntity):
         super().__init__(coordinator, f"tournament_{key}")
         self._key = key
         self._attr_options = list(FORMATS if key == "format" else TOURNAMENT_GAMES)
-
-    @property
-    def available(self) -> bool:
-        return True
 
     @property
     def current_option(self) -> str:

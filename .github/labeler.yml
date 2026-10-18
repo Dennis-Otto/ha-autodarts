@@ -39,6 +39,7 @@
 "area: games":
   - changed-files:
       - any-glob-to-any-file:
+          - custom_components/autodarts/board.py
           - custom_components/autodarts/bot.py
           - custom_components/autodarts/checkout.py
           - custom_components/autodarts/cricket.py
@@ -49,6 +50,7 @@
           - custom_components/autodarts/practice.py
           - custom_components/autodarts/scoring.py
           - custom_components/autodarts/tournament.py
+          - tests/test_board.py
           - tests/test_bot*.py
           - tests/test_checkout.py
           - tests/test_cricket*.py

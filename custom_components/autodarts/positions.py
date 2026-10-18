@@ -16,14 +16,10 @@ from statistics import median
 from typing import Any
 
 from .aim import MIN_DARTS, ErrorModel, best_aim
+from .board import RADIUS_MM, aim_point
 from .doubles import aimed_at
 from .scoring import BULL_25_50, DOUBLE, STRAIGHT, VISIT_DARTS, fits, score
 
-BOARD_RADIUS_MM = 170
-# Board Manager geometry in millimetres, as the cards draw it.
-TREBLE_MM = (97 + 107) / 2
-DOUBLE_MM = (160 + 170) / 2
-NUMBERS = (20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5)
 # The beds a dart can be aimed at, as the log stores them by position; the
 # singles are too wide to tell where a player aimed.
 AIMS = (
@@ -55,15 +51,6 @@ MEDIAN_RADIUS = math.sqrt(2 * math.log(2))
 # at most this strong, so that the distribution never collapses onto a line.
 MIN_SD = 0.5
 MAX_CORRELATION = 0.95
-
-
-def aim_point(aim: str) -> tuple[float, float]:
-    """The centre of a bed in millimetres, x to the right and y up."""
-    if aim == "BULL":
-        return 0.0, 0.0
-    radius = TREBLE_MM if aim[0] == "T" else DOUBLE_MM
-    angle = math.radians(NUMBERS.index(int(aim[1:])) * 18)
-    return radius * math.sin(angle), radius * math.cos(angle)
 
 
 def x01_aims(
@@ -130,7 +117,7 @@ def spread(darts: Iterable[tuple[float, float, str | None]]) -> list[dict[str, A
         if aim in AIMS:
             target_x, target_y = aim_point(aim)
             groups.setdefault(aim, []).append(
-                (x * BOARD_RADIUS_MM - target_x, y * BOARD_RADIUS_MM - target_y)
+                (x * RADIUS_MM - target_x, y * RADIUS_MM - target_y)
             )
     result: list[dict[str, Any]] = []
     for aim, offsets in groups.items():
@@ -198,9 +185,7 @@ def aim_model(darts: Iterable[tuple[float, float, str | None]]) -> dict[str, Any
     for x, y, aim in darts:
         if aim is not None and aim[0] == "T":
             target_x, target_y = aim_point(aim)
-            offsets.append(
-                (x * BOARD_RADIUS_MM - target_x, y * BOARD_RADIUS_MM - target_y)
-            )
+            offsets.append((x * RADIUS_MM - target_x, y * RADIUS_MM - target_y))
     result: dict[str, Any] = {"darts": len(offsets), "needed": MIN_DARTS}
     if len(offsets) < MIN_DARTS:
         return result
@@ -368,7 +353,7 @@ class DartLog:
         return self._aim.best_aim()
 
     def stored(self) -> list[int]:
-        scale = BOARD_RADIUS_MM * 10
+        scale = RADIUS_MM * 10
         flat: list[int] = []
         for x, y, aim in self.darts:
             flat.extend(
@@ -380,7 +365,7 @@ class DartLog:
         self.clear()
         if not isinstance(saved, list) or len(saved) % 3:
             return
-        scale = BOARD_RADIUS_MM * 10
+        scale = RADIUS_MM * 10
         limit = MAX_DISTANCE * scale
         for index in range(0, len(saved), 3):
             x, y, aim = saved[index : index + 3]
