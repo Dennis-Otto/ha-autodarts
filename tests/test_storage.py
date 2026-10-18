@@ -1,5 +1,6 @@
 """The stored training: private, versioned and restored after a restart."""
 
+import asyncio
 import logging
 from copy import deepcopy
 from datetime import timedelta
@@ -71,6 +72,61 @@ async def test_the_current_layout_survives_a_restart(
     assert practice.current == 1
     assert state(hass, "sensor", "training_darts") == "3"
     assert "alex" in practice.profiles.players
+
+
+async def restart(hass, entry):
+    """Unload the entry, which saves what changed, and set it up again."""
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    return entry.runtime_data.local
+
+
+async def test_an_action_builds_the_store_once(hass, aioclient_mock):
+    # Building it takes milliseconds with a long history, on a Raspberry Pi more.
+    coordinator = (await setup(hass, aioclient_mock)).runtime_data.local
+    with patch.object(coordinator, "_stored", wraps=coordinator._stored) as stored:
+        await coordinator.async_set_idle_minutes(17)
+    assert stored.call_count == 1
+
+
+async def test_a_dart_during_the_save_is_saved_at_the_shutdown(
+    hass, aioclient_mock, hass_storage
+):
+    entry = await setup(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    await coordinator.async_start_game(501, names=["Alex"])
+    write = coordinator._store.async_save
+
+    async def write_and_throw(data):
+        # The action's store is built; a dart lands while it is written.
+        await write(data)
+        coordinator.async_receive("state", board(T20))
+
+    with patch.object(coordinator._store, "async_save", write_and_throw):
+        await coordinator.async_set_idle_minutes(17)
+    # Long before the delayed save of the dart.
+    coordinator = await restart(hass, entry)
+    assert coordinator.training.idle_minutes == 17
+    assert state(hass, "sensor", "training_darts") == "1"
+
+
+async def test_a_save_that_does_not_finish_is_saved_at_the_shutdown(
+    hass, aioclient_mock, hass_storage
+):
+    entry = await setup(hass, aioclient_mock)
+    coordinator = entry.runtime_data.local
+    await coordinator.async_set_idle_minutes(5)
+    with (
+        patch.object(
+            coordinator._store, "async_save", side_effect=asyncio.CancelledError
+        ),
+        pytest.raises(asyncio.CancelledError),
+    ):
+        await coordinator.async_set_idle_minutes(17)
+    coordinator = await restart(hass, entry)
+    assert coordinator.training.idle_minutes == 17
 
 
 async def test_data_of_a_newer_minor_version_loads_after_a_downgrade(

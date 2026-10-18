@@ -130,7 +130,7 @@ Können die übrigen Darts einer Aufnahme nicht mit Double-Out checken, über 17
 4. **Der bessere Rest.** Bei Doubles die Reihenfolge oben und dann D12, D10, D4, D14, D6, D2 und die ungeraden Doubles; bei Finishes mit zwei Darts der kleinere Rest.
 5. **Weniger und größere Triples.**
 
-Stellwürfe gehen auf Singles, Triples und das äußere Bull, nie auf ein Double; die Triples kommen zuerst, das Single, das das Double stellt, zuletzt. So ist 169 T20 T20 S17 mit Rest 32, 180 T20 T20 S20 mit Rest 40, 200 T20 T20 T16 mit Rest 32, 220 dreimal Triple 20 mit Rest 40; mit einem Dart ist 100 T20 mit Rest 40, 80 T16 mit Rest 32, 41 S9 mit Rest 32 und 99 T20 mit Rest 39. Über 220 kann nichts ein Double stellen, und es erscheint kein Stellwurf. Ohne Double-Out gibt es keinen Stellwurf. Der Bot zielt auf dieselben Stellwürfe.
+Stellwürfe gehen auf Singles, Triples und das äußere Bull, nie auf ein Double; die Triples kommen zuerst, das Single, das das Double stellt, zuletzt. So ist 169 T20 T20 S17 mit Rest 32, 180 T20 T20 S20 mit Rest 40, 200 T20 T20 T16 mit Rest 32, 220 dreimal Triple 20 mit Rest 40; mit einem Dart ist 100 T20 mit Rest 40, 80 T16 mit Rest 32, 41 S9 mit Rest 32 und 99 T20 mit Rest 39. Über 220 kann nichts ein Double stellen, und es erscheint kein Stellwurf. Wo selbst Darts, die alle in der Triple 20 landen, zu viel übrig ließen, über 220 mit drei Darts, über 230 mit zweien und über 170 mit einem, weiß das Spiel das ohne Suche, so wartet kein Dart und kein Zug des Bots auf eine, die nichts finden kann. Ohne Double-Out gibt es keinen Stellwurf. Der Bot zielt auf dieselben Stellwürfe.
 
 ### Korrekturen und von Hand eingegebene Darts
 

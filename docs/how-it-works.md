@@ -130,7 +130,7 @@ When the darts left in a visit cannot check out with double out, above 170, at 1
 4. **The better leave.** Among doubles, the order above and then D12, D10, D4, D14, D6, D2 and the odd doubles; among finishes of two darts, the smaller score.
 5. **Fewer and bigger triples.**
 
-Setup darts go at singles, triples and the outer bull, never at a double; the triples come first and the single that sets up the double last. So 169 is T20 T20 S17 leaving 32, 180 T20 T20 S20 leaving 40, 200 T20 T20 T16 leaving 32, 220 three triple 20s leaving 40; with one dart, 100 is T20 leaving 40, 80 T16 leaving 32, 41 S9 leaving 32 and 99 T20 leaving 39. Above 220 nothing can leave a double, and no setup is shown. Without double out there is no setup. The bot aims at the same setups.
+Setup darts go at singles, triples and the outer bull, never at a double; the triples come first and the single that sets up the double last. So 169 is T20 T20 S17 leaving 32, 180 T20 T20 S20 leaving 40, 200 T20 T20 T16 leaving 32, 220 three triple 20s leaving 40; with one dart, 100 is T20 leaving 40, 80 T16 leaving 32, 41 S9 leaving 32 and 99 T20 leaving 39. Above 220 nothing can leave a double, and no setup is shown. Where even darts that all land in the triple 20 would leave too much, above 220 with three darts, above 230 with two and above 170 with one, the game knows that without a search, so a dart or a turn of the bot never waits for one that cannot find anything. Without double out there is no setup. The bot aims at the same setups.
 
 ### Corrections and darts entered by hand
 
