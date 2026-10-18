@@ -33,3 +33,4 @@ Copy [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/d
 | [0021](0021-games-as-modes-of-the-practice-game.md) | Play every game of the practice game as a mode of the match frame | accepted |
 | [0022](0022-home-assistant-2026-8-as-the-oldest-release.md) | Keep Home Assistant 2026.8 as the oldest supported release | accepted |
 | [0023](0023-blueprints-ship-with-the-integration.md) | Ship the blueprints with the integration and keep unchanged copies current | accepted |
+| [0024](0024-granboard-over-home-assistant-bluetooth.md) | Connect a Granboard through Home Assistant's Bluetooth, as a dartboard without Autodarts | accepted |

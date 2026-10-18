@@ -22,7 +22,7 @@ Other projects bring an Autodarts board into Home Assistant or next to it. This 
 | **Light show** | [Light show](automations.md#light-show) blueprint, for WLED or any light | WLED, with Tools | WLED, with darts-wled | Your own automations |
 | **Caller** | On the [scoreboard](scoreboard.md#the-caller) or your [speakers](automations.md#which-caller) | In the app, with a premium voice in [Plus](https://autodarts.com/); more with Tools | Voice packs, with darts-caller | No |
 | **Statistics kept at home** | [Yes](statistics.md): averages, heatmaps, profiles and a year of history | No, in the Autodarts account | No | No |
-| **Without an Autodarts board** | Yes, on a [keypad](without-autodarts.md) | Yes, on a keypad or with [Lens](https://autodarts.com/) | No | No |
+| **Without an Autodarts board** | Yes, on a [keypad](without-autodarts.md) or a [Granboard over Bluetooth](granboard.md) *(experimental)* | Yes, on a keypad or with [Lens](https://autodarts.com/) | No | No |
 | **Online matches** | Your darts, and the moments of the match through the [online bridge](online-matches.md) *(experimental)* | Yes | Yes | Some of them, through the cloud |
 | **License and cost** | [MIT](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), free | Autodarts: a free plan and the paid [Plus](https://autodarts.com/); Tools: [CC BY-NC 4.0](https://github.com/creazy231/tools-for-autodarts/blob/main/LICENSE) | Free, no license stated | MIT, Apache 2.0 or no license file |
 

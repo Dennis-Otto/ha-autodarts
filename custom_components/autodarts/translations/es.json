@@ -54,7 +54,8 @@
           "discover": "Buscar dianas en esta red",
           "local": "Introducir la dirección de la diana",
           "cloud": "Vincular cuenta en la nube",
-          "manual": "Diana sin Autodarts: introduce tú cada dardo"
+          "manual": "Diana sin Autodarts: introduce tú cada dardo",
+          "granboard": "Granboard por Bluetooth (experimental)"
         }
       },
       "reconfigure": {
@@ -94,6 +95,26 @@
         },
         "data_description": {
           "name": "Da nombre a la diana, a su dispositivo y a sus entidades, por ejemplo Diana o Garaje."
+        }
+      },
+      "granboard": {
+        "title": "Granboard por Bluetooth",
+        "description": "Elige el Granboard que ve el Bluetooth de Home Assistant. Sus dardos cuentan como en una diana sin Autodarts.",
+        "data": {
+          "address": "Granboard"
+        },
+        "data_description": {
+          "address": "Enciende la diana: Home Assistant la encuentra a través de un adaptador Bluetooth o de un proxy Bluetooth de ESPHome a su alcance."
+        }
+      },
+      "granboard_confirm": {
+        "title": "Granboard por Bluetooth (experimental)",
+        "description": "Home Assistant recibe los dardos del Granboard con la dirección {address} y juega con ellos los juegos, el entrenamiento y las estadísticas, como en una diana sin Autodarts. El botón de la diana pasa al siguiente jugador, y el teclado de las tarjetas sigue corrigiendo un dardo. La compatibilidad con el Granboard es experimental: avísanos si un sector cuenta mal.",
+        "data": {
+          "name": "Nombre"
+        },
+        "data_description": {
+          "name": "Da nombre a la diana, a su dispositivo y a sus entidades, por ejemplo Granboard o Garaje."
         }
       },
       "discover": {
@@ -138,7 +159,8 @@
       "board_not_configured": "No hay ningún ID de diana configurado en Board Manager. Termina primero allí la configuración de la diana.",
       "already_in_progress": "La configuración de esta diana ya está en curso.",
       "address_updated": "Esta diana Autodarts ya está configurada. Se ha actualizado su dirección y la integración se vuelve a cargar.",
-      "board_connected": "La diana Autodarts está conectada. La diana conserva sus juegos, estadísticas y paneles, y la integración se recarga."
+      "board_connected": "La diana Autodarts está conectada. La diana conserva sus juegos, estadísticas y paneles, y la integración se recarga.",
+      "no_granboards": "El Bluetooth de Home Assistant no ve ningún Granboard sin configurar. Enciende la diana, mantenla al alcance de un adaptador Bluetooth o de un proxy Bluetooth de ESPHome y vuelve a intentarlo."
     },
     "flow_title": "{name}",
     "create_entry": {
@@ -670,6 +692,9 @@
     "binary_sensor": {
       "local_connected": {
         "name": "Conexión local"
+      },
+      "granboard_connected": {
+        "name": "Conexión del Granboard"
       },
       "hand_detected": {
         "name": "Mano detectada"

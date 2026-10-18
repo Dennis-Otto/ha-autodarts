@@ -65,6 +65,7 @@ CARD_TEXT_FILES = INTEGRATION / "frontend" / "text"
 DEVICE_CLASS_ICONS = {
     ("binary_sensor", "camera_problem"),
     ("binary_sensor", "individual_camera_problem"),
+    ("binary_sensor", "granboard_connected"),
     ("binary_sensor", "local_connected"),
     ("button", "restart"),
     ("camera", "board_camera"),

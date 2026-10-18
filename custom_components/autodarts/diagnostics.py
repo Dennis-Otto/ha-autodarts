@@ -7,12 +7,23 @@ from homeassistant.core import HomeAssistant
 
 from .games_coordinator import AutodartsGamesCoordinator
 from .local_coordinator import AutodartsLocalCoordinator
+from .manual_coordinator import AutodartsManualCoordinator
 from .practice import OPTIONS, X01_RULES
 from .runtime import AutodartsConfigEntry
 
 # Identifiers, addresses, credentials and player names that must never leave a
 # bug report; segment names of darts are redacted with the player names.
-TO_REDACT = {"board_id", "client_id", "host", "token", "ip", "name", "team_name"}
+# The address of a Granboard as well, in the entry's data.
+TO_REDACT = {
+    "board_id",
+    "client_id",
+    "host",
+    "token",
+    "ip",
+    "name",
+    "team_name",
+    "granboard",
+}
 
 
 async def async_get_config_entry_diagnostics(
@@ -83,9 +94,13 @@ async def async_get_config_entry_diagnostics(
             else None
         ),
         # Counts, kinds of errors and durations only; no addresses or messages.
-        # A dartboard without Autodarts connects to nothing.
+        # A dartboard without Autodarts connects to nothing, or to its Granboard.
         "connection": (
-            board.diagnostics() if board else {"manual_board": True} if local else None
+            board.diagnostics()
+            if board
+            else local.diagnostics()
+            if isinstance(local, AutodartsManualCoordinator)
+            else None
         ),
         # Never the secret webhook address.
         "online_bridge": (

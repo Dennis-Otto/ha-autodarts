@@ -10,7 +10,7 @@ No Autodarts at your board? The integration works for any steel dartboard: you e
 
 <img src="images/en/manual-entry.webp" alt="Animation: the scoreboard of a dartboard without Autodarts on a tablet. Alex taps T and 20 twice and T and 19, the visit reads 177 and the status Visit complete; two taps on Next player pass the turn to Sam" width="760">
 
-**On this page:** [Who it is for](#who-it-is-for) · [Set up](#set-up) · [Enter your darts](#enter-your-darts) · [What works](#what-works) · [What is different](#what-is-different) · [Several boards](#several-boards) · [Autodarts later](#autodarts-later)
+**On this page:** [Who it is for](#who-it-is-for) · [Set up](#set-up) · [Enter your darts](#enter-your-darts) · [What works](#what-works) · [What is different](#what-is-different) · [A Granboard](#a-granboard) · [Several boards](#several-boards) · [Autodarts later](#autodarts-later)
 
 ## Who it is for
 
@@ -77,6 +77,10 @@ Everything the integration does with darts, because it never needed the cameras 
 | Detection quality, calibration, online matches | Yes | No |
 
 A screen that only shows the scoreboard, such as a TV without touch, hides the keypad with the card's option `keypad: false`; see the [card guide](cards.md#correcting-and-entering-darts).
+
+## A Granboard
+
+A Granboard sends its darts to Home Assistant over Bluetooth, so nobody enters them: Home Assistant finds the board and sets it up as a dartboard without Autodarts that receives them, with everything on this page. See [Granboard over Bluetooth](granboard.md) *(experimental)*.
 
 ## Several boards
 
