@@ -60,7 +60,7 @@ async def ws_positions(
         return
     player = msg.get("player")
     aim = await board.async_aim(player) if msg["aim"] else None
-    result = board.progress.positions(player)
+    result = board.games.progress.positions(player)
     connection.send_result(msg["id"], result if aim is None else {**result, "aim": aim})
 
 

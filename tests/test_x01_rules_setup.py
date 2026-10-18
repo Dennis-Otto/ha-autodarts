@@ -50,7 +50,7 @@ async def action(hass, service: str, **data) -> None:
 async def test_the_rules_are_configuration_entities(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     registry = er.async_get(hass)
     for platform, key, value in (
         ("select", "practice_in_mode", STRAIGHT),
@@ -94,7 +94,7 @@ async def test_the_rules_are_configuration_entities(hass, aioclient_mock):
 
 async def test_a_mode_that_cannot_win_a_start_of_3_is_refused(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await select_game(hass, "501")
     # Master in and master out win a start of 3 with the treble 1.
     await select(hass, "practice_out_mode", MASTER)
@@ -115,7 +115,7 @@ async def test_a_mode_that_cannot_win_a_start_of_3_is_refused(hass, aioclient_mo
 
 async def test_start_game_sets_the_rules_and_takes_the_old_fields(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await action(
         hass,
         "start_game",
@@ -173,7 +173,7 @@ async def test_a_tournament_plays_its_own_rules_and_gives_the_others_back(
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     await action(
         hass,
         "start_game",
@@ -188,9 +188,9 @@ async def test_a_tournament_plays_its_own_rules_and_gives_the_others_back(
     await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1, sets=1)
     assert (practice.in_mode, practice.out_mode) == (DOUBLE, DOUBLE)
     assert practice.bull_mode == BULL_25_50 and practice.max_rounds == 0
-    assert coordinator.tournament.plays(practice)
+    assert coordinator.games.tournament.plays(practice)
     await select(hass, "practice_bull_mode", BULL_50_50)
-    assert not coordinator.tournament.plays(practice)
+    assert not coordinator.games.tournament.plays(practice)
     await action(hass, "stop_tournament")
     await select_game(hass, "501")
     assert (practice.in_mode, practice.out_mode, practice.max_rounds) == (
@@ -214,7 +214,7 @@ async def test_a_tournament_plays_its_own_rules_and_gives_the_others_back(
         double_in=False,
     )
     # Straight in wins it.
-    assert 3 in coordinator.tournament.tournament.starts
+    assert 3 in coordinator.games.tournament.tournament.starts
 
 
 async def test_the_round_limit_decides_a_leg_without_a_record(hass, aioclient_mock):
@@ -235,9 +235,9 @@ async def test_the_round_limit_decides_a_leg_without_a_record(hass, aioclient_mo
     [won] = [details for kind, details in events if kind == "leg_won"]
     assert won["name"] == "Alex" and won["rounds"] == 2 and won["checkout"] is None
     assert won["remaining"] == 381 and won["darts"] == 6
-    bests = coordinator.records.bests
+    bests = coordinator.games.records.bests
     assert "highest_checkout" not in bests and "fewest_darts_501" not in bests
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     assert practice.legs[0]["rounds"] == 2 and practice.players[0].legs == 1
     profile = practice.profiles.players["alex"]
     assert profile.legs_won == 1 and profile.fewest_darts == {}

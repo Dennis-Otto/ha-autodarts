@@ -37,10 +37,10 @@ async def async_get_config_entry_diagnostics(
         "board_manager_generation": local.generation if local else None,
         "training_sessions": (
             {
-                "active": local.training.active,
-                "auto_start": local.training.auto_start,
-                "idle_minutes": local.training.idle_minutes,
-                "stored_sessions": len(local.training.history),
+                "active": local.games.training.active,
+                "auto_start": local.games.training.auto_start,
+                "idle_minutes": local.games.training.idle_minutes,
+                "stored_sessions": len(local.games.training.history),
             }
             if local
             else None
@@ -50,13 +50,13 @@ async def async_get_config_entry_diagnostics(
         # Counts only: the bests, profiles and matches carry the names of players.
         "records": (
             {
-                "stored_bests": len(local.records.bests),
-                "streak": local.records.streak,
-                "best_streak": local.records.best_streak,
-                "daily_goal": local.records.goal,
-                "player_profiles": len(local.practice.profiles.players),
-                "stored_matches": len(local.practice.profiles.matches),
-                "double_attempts": local.practice.doubles.snapshot()["attempts"],
+                "stored_bests": len(local.games.records.bests),
+                "streak": local.games.records.streak,
+                "best_streak": local.games.records.best_streak,
+                "daily_goal": local.games.records.goal,
+                "player_profiles": len(local.games.practice.profiles.players),
+                "stored_matches": len(local.games.practice.profiles.matches),
+                "double_attempts": local.games.practice.doubles.snapshot()["attempts"],
             }
             if local
             else None
@@ -90,7 +90,7 @@ async def async_get_config_entry_diagnostics(
 
 def _progress(local: AutodartsLocalCoordinator) -> dict[str, Any]:
     """Whether achievements unlock, and how much progress is kept."""
-    progress = local.progress
+    progress = local.games.progress
     players = progress.players.values()
     return {
         "achievements": progress.enabled,
@@ -105,7 +105,7 @@ def _progress(local: AutodartsLocalCoordinator) -> dict[str, Any]:
 
 def _tournament(local: AutodartsLocalCoordinator) -> dict[str, Any]:
     """The setup and the progress of the tournament; the players only as a number."""
-    director = local.tournament
+    director = local.games.tournament
     setup = director.setup
     tournament = director.tournament
     return {
@@ -131,7 +131,7 @@ def _tournament(local: AutodartsLocalCoordinator) -> dict[str, Any]:
 
 def _practice(local: AutodartsLocalCoordinator) -> dict[str, Any]:
     """The game, its rules and its progress; the players only as a number."""
-    practice = local.practice
+    practice = local.games.practice
     return {
         # A training game, or 501, cricket or a party game such as killer.
         "game": practice.drill or practice.kind,

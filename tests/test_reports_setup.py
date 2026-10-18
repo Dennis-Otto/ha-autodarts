@@ -542,7 +542,7 @@ async def test_a_party_of_eight_reaches_the_calendar_and_the_export(
     await throw(hass, coordinator, T20)
     for _ in names[1:]:
         await throw(hass, coordinator, S1)
-    assert coordinator.practice.winner == 0
+    assert coordinator.games.practice.winner == 0
     (event,) = [
         event
         for event in await calendar_events(

@@ -22,7 +22,7 @@ from .const import DOMAIN
 from .journal import TrainingJournal
 
 if TYPE_CHECKING:
-    from .local_coordinator import AutodartsLocalCoordinator
+    from .games_coordinator import AutodartsGamesCoordinator
 
 WEEKDAYS = (
     "monday",
@@ -397,7 +397,7 @@ class BoardReports:
         self,
         hass: HomeAssistant,
         entry_id: str,
-        coordinator: AutodartsLocalCoordinator,
+        coordinator: AutodartsGamesCoordinator,
     ) -> None:
         self.hass = hass
         self._coordinator = coordinator
@@ -462,7 +462,7 @@ class BoardReports:
         """Count the events and the legs and matches booked, and take over
         finished sessions, matches and legs."""
         coordinator = self._coordinator
-        practice = coordinator.practice
+        practice = coordinator.games.practice
         for kind, attributes in events:
             self.report.observe(kind, attributes, now)
         for kind, _ in booked or []:
@@ -471,7 +471,7 @@ class BoardReports:
         if events or booked or legs:
             self._save_report()
         if self.journal.sync(
-            coordinator.training.history, practice.profiles.matches, now
+            coordinator.games.training.history, practice.profiles.matches, now
         ):
             self._save_journal()
 
@@ -504,7 +504,8 @@ class BoardReports:
 
     def snapshot(self) -> dict[str, Any]:
         """The running week for the sensor, with the last week's report."""
-        streak: int = self._coordinator.records.snapshot(dt_util.now().date())["streak"]
+        records = self._coordinator.games.records
+        streak: int = records.snapshot(dt_util.now().date())["streak"]
         return {**self.report.snapshot(streak), "last_week": self.report.last}
 
     # -- schedule --------------------------------------------------------------
@@ -527,7 +528,7 @@ class BoardReports:
 
     async def _async_report(self, _now: datetime) -> None:
         now = dt_util.now()
-        streak: int = self._coordinator.records.snapshot(now.date())["streak"]
+        streak: int = self._coordinator.games.records.snapshot(now.date())["streak"]
         report = self.report.rollover(now, streak)
         if report is not None:
             await self._report_store.async_save(self.report.stored())

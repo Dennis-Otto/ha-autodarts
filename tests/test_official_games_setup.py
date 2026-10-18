@@ -22,7 +22,7 @@ async def test_the_rules_of_the_new_games_are_configuration_entities(
     hass, aioclient_mock
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     registry = er.async_get(hass)
     for platform, key, value in (
         ("switch", "practice_bermuda_halve_on_miss", "on"),
@@ -56,7 +56,7 @@ async def test_the_rules_of_the_new_games_are_configuration_entities(
 async def test_start_game_plays_the_new_games_with_their_rules(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     await hass.services.async_call(
         DOMAIN,
         "start_game",

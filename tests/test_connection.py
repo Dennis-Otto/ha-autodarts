@@ -18,10 +18,7 @@ from custom_components.autodarts.api import API_BASE, REFRESH_URL
 from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
 from custom_components.autodarts.errors import AutodartsConnectionError
 from custom_components.autodarts.local_api import AutodartsLocalClient
-from custom_components.autodarts.local_coordinator import (
-    AutodartsLocalCoordinator,
-    _throw_positions,
-)
+from custom_components.autodarts.local_coordinator import AutodartsLocalCoordinator
 
 from .local_helpers import (
     BASE,
@@ -128,7 +125,7 @@ async def test_realtime_gap_mid_visit_continues_the_practice_visit(
     ]
     completed = next(details for kind, details in fired if kind == "visit_completed")
     assert (completed["score"], completed["darts"]) == (120, 2)
-    assert coordinator.practice.snapshot()["remaining"] == 381
+    assert coordinator.games.practice.snapshot()["remaining"] == 381
 
 
 async def test_visit_pulled_during_an_outage_is_completed(hass, aioclient_mock):
@@ -190,15 +187,21 @@ async def test_game_faults_never_cost_the_board_connection(
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     broken = patch.object(
-        coordinator.practice, "snapshot", side_effect=IndexError("closest")
+        coordinator.games.practice, "snapshot", side_effect=IndexError("closest")
     )
-    with broken:
+    emit = patch.object(coordinator, "_emit", wraps=coordinator._emit)
+    with broken, emit as emitted:
         coordinator.async_receive("state", board(T20))
         coordinator.async_receive("state", board(T20, T20))
         with patch.object(
             coordinator.client, "get_state", return_value=board(T20, T20)
         ):
             await coordinator.async_refresh()
+    # The darts the training took in are announced although the game failed.
+    assert [call.args[0] for call in emitted.call_args_list] == [
+        "dart_detected",
+        "dart_detected",
+    ]
     assert coordinator.last_update_success
     assert state(hass, "binary_sensor", "local_connected") == "on"
     assert state(hass, "sensor", "last_throw") == "T20"
@@ -209,14 +212,11 @@ async def test_game_faults_never_cost_the_board_connection(
     assert state(hass, "sensor", "training_darts") == "3"
 
 
-def test_positions_come_only_from_states_training_accepts():
-    state_ = board(T20, S20, BULL)
-    state_["throws"][0]["coords"] = {"x": float("nan"), "y": 0.1}
-    state_["throws"][1]["coords"] = {"x": 0.2, "y": -0.3}
-    state_["throws"][2]["coords"] = {"x": True, "y": 0.0}
-    assert _throw_positions(state_) == [None, (0.2, -0.3), None]
-    assert _throw_positions({**state_, "numThrows": 5}) is None
-    assert _throw_positions({"numThrows": 0}) == []
+async def test_the_board_logs_its_updates_under_the_transport(hass, aioclient_mock):
+    # Debug logging for the connection keeps showing why a read failed.
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    assert coordinator.logger.name == LOGGER
 
 
 async def test_rejected_states_never_shift_positions_onto_the_visit(
@@ -224,7 +224,7 @@ async def test_rejected_states_never_shift_positions_onto_the_visit(
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     with patch.object(practice, "track", wraps=practice.track) as track:
         first = board(T20)
         first["throws"][0]["coords"] = {"x": 0.1, "y": 0.2}
@@ -315,10 +315,14 @@ async def test_telemetry_leaves_training_and_games_alone(hass, aioclient_mock):
     revision = coordinator.data["revision"]
     with (
         patch.object(
-            coordinator.practice, "snapshot", wraps=coordinator.practice.snapshot
+            coordinator.games.practice,
+            "snapshot",
+            wraps=coordinator.games.practice.snapshot,
         ) as practice,
         patch.object(
-            coordinator.training, "observe", wraps=coordinator.training.observe
+            coordinator.games.training,
+            "observe",
+            wraps=coordinator.games.training.observe,
         ) as observe,
     ):
         for _ in range(10):
@@ -344,12 +348,14 @@ async def test_an_update_of_every_entity_reuses_the_published_snapshots(
     coordinator = entry.runtime_data.local
     with (
         patch.object(
-            coordinator.training, "snapshot", wraps=coordinator.training.snapshot
+            coordinator.games.training,
+            "snapshot",
+            wraps=coordinator.games.training.snapshot,
         ) as training,
         patch.object(
-            coordinator.practice.profiles,
+            coordinator.games.practice.profiles,
             "snapshot",
-            wraps=coordinator.practice.profiles.snapshot,
+            wraps=coordinator.games.practice.profiles.snapshot,
         ) as profiles,
     ):
         coordinator.async_update_listeners()

@@ -710,7 +710,7 @@ class AutodartsVisitSensor(AutodartsLocalSensor):
             "throws": self._throws,
             # Copies: a stored state must not change with the next visit.
             "recent_visits": [
-                dict(visit) for visit in self.coordinator.training.recent_visits
+                dict(visit) for visit in self.coordinator.games.training.recent_visits
             ],
         }
 
@@ -738,14 +738,14 @@ class AutodartsTrainingSensor(AutodartsStoredEntity, SensorEntity):
     def last_reset(self) -> datetime | None:
         if self.state_class is not SensorStateClass.TOTAL:
             return None
-        return dt_util.parse_datetime(self.coordinator.training.started)
+        return dt_util.parse_datetime(self.coordinator.games.training.started)
 
     def _session(self) -> dict[str, Any]:
         """The snapshot the coordinator published; computed only before the first."""
         session = (self.coordinator.data or {}).get("training")
         if isinstance(session, dict):
             return session
-        return self.coordinator.training.snapshot()
+        return self.coordinator.games.training.snapshot()
 
     @property
     def native_value(self) -> datetime | float | int | None:
@@ -788,12 +788,12 @@ class AutodartsLastSessionSensor(AutodartsStoredEntity, SensorEntity):
 
     @property
     def native_value(self) -> float | None:
-        history = self.coordinator.training.history
+        history = self.coordinator.games.training.history
         return history[0]["average"] if history else None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        history = [dict(summary) for summary in self.coordinator.training.history]
+        history = [dict(summary) for summary in self.coordinator.games.training.history]
         last = history[0] if history else {}
         return {
             **{key: value for key, value in last.items() if key != "average"},
@@ -817,7 +817,11 @@ class AutodartsPracticeSensor(AutodartsStoredEntity, SensorEntity):
     def _game(self) -> dict[str, Any]:
         """The snapshot the coordinator published; computed only before the first."""
         game = (self.coordinator.data or {}).get("practice")
-        return game if isinstance(game, dict) else self.coordinator.practice.snapshot()
+        return (
+            game
+            if isinstance(game, dict)
+            else self.coordinator.games.practice.snapshot()
+        )
 
     @property
     def native_value(self) -> int | str | None:
@@ -865,14 +869,15 @@ class AutodartsPracticeStatistic(AutodartsStoredEntity, SensorEntity):
 
     @property
     def native_value(self) -> float | int | None:
-        value: float | int | None = self.coordinator.practice.statistics()[self._key]
+        statistics = self.coordinator.games.practice.statistics()
+        value: float | int | None = statistics[self._key]
         return value
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
         if self._key == "legs_played":
             return None
-        statistics = self.coordinator.practice.statistics()
+        statistics = self.coordinator.games.practice.statistics()
         return {
             "legs_counted": statistics["legs_counted"],
             "darts_at_double": statistics["darts_at_double"],
@@ -908,7 +913,7 @@ class AutodartsRecordsEntity(AutodartsStoredEntity, SensorEntity):
     """Personal bests, darts per day and the streak; kept across restarts."""
 
     def _records(self) -> dict[str, Any]:
-        return self.coordinator.records.snapshot(dt_util.now().date())
+        return self.coordinator.games.records.snapshot(dt_util.now().date())
 
 
 class AutodartsPersonalBest(AutodartsRecordsEntity):
@@ -989,7 +994,7 @@ class AutodartsPlayerProfiles(AutodartsStoredEntity, SensorEntity):
 
     @property
     def native_value(self) -> int:
-        return len(self.coordinator.practice.profiles.players)
+        return len(self.coordinator.games.practice.profiles.players)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -1000,11 +1005,12 @@ class AutodartsPlayerProfiles(AutodartsStoredEntity, SensorEntity):
 
     def _players(self) -> dict[str, Any]:
         # Each profile with the player's progress: trend, hits and grouping.
-        progress, today = self.coordinator.progress, dt_util.now().date()
+        games, today = self.coordinator.games, dt_util.now().date()
+        profiles = games.practice.profiles.snapshot()["players"]
         return {
             "players": [
-                {**profile, **progress.summary(profile["name"], today)}
-                for profile in self.coordinator.practice.profiles.snapshot()["players"]
+                {**profile, **games.progress.summary(profile["name"], today)}
+                for profile in profiles
             ]
         }
 
@@ -1020,12 +1026,13 @@ class AutodartsDoubles(AutodartsStoredEntity, SensorEntity):
 
     @property
     def native_value(self) -> str | None:
-        value: str | None = self.coordinator.practice.doubles.snapshot()["favourite"]
+        doubles = self.coordinator.games.practice.doubles.snapshot()
+        value: str | None = doubles["favourite"]
         return value
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        practice = self.coordinator.practice
+        practice = self.coordinator.games.practice
         snapshot = practice.doubles.snapshot()
         return {
             **{key: snapshot[key] for key in ("attempts", "hits", "rate", "doubles")},
@@ -1045,7 +1052,7 @@ class AutodartsLastMatch(AutodartsStoredEntity, SensorEntity):
 
     @property
     def native_value(self) -> datetime | None:
-        matches = self.coordinator.practice.profiles.matches
+        matches = self.coordinator.games.practice.profiles.matches
         return dt_util.parse_datetime(matches[0]["ended"]) if matches else None
 
     @property
@@ -1053,7 +1060,7 @@ class AutodartsLastMatch(AutodartsStoredEntity, SensorEntity):
         return self._cache.get(self.coordinator, self._matches)
 
     def _matches(self) -> dict[str, Any]:
-        snapshot = self.coordinator.practice.profiles.snapshot()
+        snapshot = self.coordinator.games.practice.profiles.snapshot()
         last = snapshot["matches"][0] if snapshot["matches"] else {}
         winner = last.get("winner")
         players = last.get("players", [])
@@ -1083,11 +1090,11 @@ class AutodartsTournament(AutodartsStoredEntity, SensorEntity):
 
     @property
     def native_value(self) -> str:
-        return self.coordinator.tournament.state()
+        return self.coordinator.games.tournament.state()
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        return self.coordinator.tournament.snapshot()
+        return self.coordinator.games.tournament.snapshot()
 
 
 class AutodartsCorrectionRate(AutodartsLocalEntity, SensorEntity):
@@ -1103,11 +1110,11 @@ class AutodartsCorrectionRate(AutodartsLocalEntity, SensorEntity):
 
     @property
     def native_value(self) -> float | None:
-        return self.coordinator.quality.rate
+        return self.coordinator.games.quality.rate
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
-        quality = self.coordinator.quality.snapshot()
+        quality = self.coordinator.games.quality.snapshot()
         return {"darts": quality["darts"], "corrected": quality["corrected"]}
 
 
@@ -1188,8 +1195,8 @@ class AutodartsAchievements(AutodartsStoredEntity, SensorEntity):
         """Worked out once for the state and the attributes of each change."""
         return self._cache.get(
             self.coordinator,
-            lambda: self.coordinator.progress.achievements(
-                self.coordinator.practice.profiles
+            lambda: self.coordinator.games.progress.achievements(
+                self.coordinator.games.practice.profiles
             ),
         )
 

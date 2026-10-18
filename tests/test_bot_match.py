@@ -43,7 +43,7 @@ async def against_the_bot(hass, aioclient_mock, game="301", level=120, **data):
     """Alex against the bot, which throws a second after each of its darts."""
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    coordinator.bot = Bot(random.Random(1))
+    coordinator.games.bot = Bot(random.Random(1))
     await set_number(hass, "practice_bot_delay", 1)
     await start(hass, game, players=["Alex"], bot_level=level, **data)
     return entry, coordinator
@@ -89,13 +89,14 @@ async def test_the_bot_throws_after_the_players_visit(hass, aioclient_mock, free
     completed = dict(events)["visit_completed"]
     assert completed["bot"] is True and completed["darts"] == 3
     assert events[-1][0] == "turn_changed" and events[-1][1]["name"] == "Alex"
-    assert not coordinator.practice.bot_up and throws(hass) == []
+    assert not coordinator.games.practice.bot_up and throws(hass) == []
     # Only Alex's dart counts for the training, the records and the reports.
-    assert coordinator.training.snapshot()["darts"] == 1
-    assert coordinator.records.darts_today == 1
+    assert coordinator.games.training.snapshot()["darts"] == 1
+    assert coordinator.games.records.darts_today == 1
     assert coordinator.reports.report.counts["darts"] == 1
-    assert coordinator.quality.snapshot()["darts"] == 1
-    assert [visit["score"] for visit in coordinator.training.recent_visits] == [60]
+    assert coordinator.games.quality.snapshot()["darts"] == 1
+    visits = coordinator.games.training.recent_visits
+    assert [visit["score"] for visit in visits] == [60]
     # Nothing more happens until Alex throws.
     await pass_time(hass, freezer, 5)
     assert len(bot_darts(events)) == 3
@@ -116,7 +117,7 @@ async def test_a_player_throwing_early_ends_the_bots_visit(
     assert kinds(events)[-3:] == ["visit_completed", "turn_changed", "dart_detected"]
     alex = events[-1][1]
     assert alex["name"] == "Alex" and "bot" not in alex and alex["dart_index"] == 1
-    assert coordinator.practice.snapshot()["visit"] == ["S20"]
+    assert coordinator.games.practice.snapshot()["visit"] == ["S20"]
     assert await hass.config_entries.async_unload(entry.entry_id)
 
 
@@ -142,7 +143,7 @@ async def test_what_players_cannot_do_while_the_bot_throws(
     events = record(hass, coordinator)
     await act(hass, "next_player")
     assert kinds(events) == ["visit_completed", "turn_changed"]
-    assert not coordinator.practice.bot_up
+    assert not coordinator.games.practice.bot_up
     # Its next step does not come, and a step that was due does nothing.
     await pass_time(hass, freezer, 3)
     coordinator._bot_step(dt_util.utcnow())
@@ -158,10 +159,10 @@ async def test_undo_takes_back_the_players_visit_and_the_bots(
     await hass.async_block_till_done()
     for _ in range(4):
         await pass_time(hass, freezer, 1)
-    bot_remaining = coordinator.practice.players[1].remaining
-    assert bot_remaining < 301 and coordinator.practice.current == 0
+    bot_remaining = coordinator.games.practice.players[1].remaining
+    assert bot_remaining < 301 and coordinator.games.practice.current == 0
     await act(hass, "undo_visit")
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     assert practice.current == 0 and practice.players[1].remaining == 301
     assert practice.snapshot()["visit"] == ["T20", "S20"]
     # The bot waits until Alex's visit is booked again.
@@ -177,7 +178,7 @@ async def test_a_new_game_ends_the_bots_visit(hass, aioclient_mock, freezer):
     entry, coordinator = await against_the_bot(hass, aioclient_mock)
     receive(coordinator, board(T20), board())
     await pass_time(hass, freezer, 1.1)
-    assert coordinator.manual.bot_darts() == 1
+    assert coordinator.games.manual.bot_darts() == 1
     events = record(hass, coordinator)
     await hass.services.async_call(
         "button",
@@ -187,7 +188,10 @@ async def test_a_new_game_ends_the_bots_visit(hass, aioclient_mock, freezer):
     )
     await hass.async_block_till_done()
     assert "visit_completed" in kinds(events)
-    assert coordinator.manual.bot_darts() == 0 and not coordinator.practice.bot_up
+    assert (
+        coordinator.games.manual.bot_darts() == 0
+        and not coordinator.games.practice.bot_up
+    )
     assert await hass.config_entries.async_unload(entry.entry_id)
 
 
@@ -196,7 +200,7 @@ async def test_the_bot_throws_its_dart_of_the_bull_off(hass, aioclient_mock, fre
     events = record(hass, coordinator)
     receive(coordinator, board(S20), board())
     await hass.async_block_till_done()
-    assert coordinator.practice.bot_up
+    assert coordinator.games.practice.bot_up
     await pass_time(hass, freezer, 1)
     await pass_time(hass, freezer, 1)
     # One dart, then the bull-off goes on or is decided.
@@ -230,7 +234,7 @@ async def test_the_bot_goes_on_after_a_restart(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     coordinator = entry.runtime_data.local
-    assert coordinator.practice.bot_up
+    assert coordinator.games.practice.bot_up
     assert state(hass, "number", "practice_bot_delay") == "0.5"
     events = record(hass, coordinator)
     await pass_time(hass, freezer, 0.6)
@@ -244,7 +248,7 @@ async def test_the_bot_stops_before_the_unload_waits_for_a_read(
     entry, coordinator = await against_the_bot(hass, aioclient_mock)
     receive(coordinator, board(T20), board())
     await hass.async_block_till_done()
-    assert coordinator.practice.bot_up
+    assert coordinator.games.practice.bot_up
     events = record(hass, coordinator)
     reading = asyncio.Event()
 
@@ -270,7 +274,7 @@ async def test_the_bot_stops_before_the_unload_waits_for_a_read(
 
 async def test_the_bot_settings(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await start(hass, "501")
     await set_number(hass, "practice_bot_level", 60)
     assert practice.bot_seat == 1 and state(hass, "number", "practice_players") == "1"
@@ -308,7 +312,7 @@ async def test_start_game_counts_the_players_before_a_new_bot_level(
     hass, aioclient_mock
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await start(hass, "501", players=["Alex", "Sam"])
     # Without players, the players stay, and the bot joins them.
     await start(hass, "501", bot_level=60)
@@ -321,7 +325,7 @@ async def test_start_game_counts_the_players_before_a_new_bot_level(
 
 async def test_choosing_a_game_of_the_bot_keeps_four_players(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await start(hass, "killer", players=["A", "B", "C", "D"], bot_level=60)
     for game in ("501", "cricket"):
         with pytest.raises(ServiceValidationError) as error:
@@ -335,7 +339,9 @@ async def test_choosing_a_game_of_the_bot_keeps_four_players(hass, aioclient_moc
 
 async def test_the_bot_throws_with_its_cricket_scatter(hass, aioclient_mock, freezer):
     entry, coordinator = await against_the_bot(hass, aioclient_mock, game="cricket")
-    with patch.object(coordinator.bot, "throw", wraps=coordinator.bot.throw) as throw:
+    with patch.object(
+        coordinator.games.bot, "throw", wraps=coordinator.games.bot.throw
+    ) as throw:
         receive(coordinator, board(T20), board())
         await pass_time(hass, freezer, 1.1)
     assert throw.call_args.kwargs == {"cricket": True}
@@ -344,7 +350,7 @@ async def test_the_bot_throws_with_its_cricket_scatter(hass, aioclient_mock, fre
 
 async def test_start_game_with_the_bot(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     with pytest.raises(ServiceValidationError) as error:
         await start(hass, players=["A", "B", "C", "D"], bot_level=60)
     assert error.value.translation_key == "bot_seat"
@@ -366,7 +372,7 @@ async def test_start_game_with_the_bot(hass, aioclient_mock):
 
 async def test_tournaments_play_without_the_bot(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await start(hass, "501", players=["Alex"], bot_level=60)
     assert practice.bot_seat == 1
     await act(hass, "start_tournament", players=["Alex", "Sam", "Kim"], game="301")

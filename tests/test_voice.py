@@ -64,7 +64,7 @@ async def test_start_game_explains_an_unknown_game(hass, aioclient_mock, spoken)
         await start(hass, game=spoken)
     assert error.value.translation_key == "unknown_game"
     assert error.value.translation_placeholders == {"game": spoken}
-    assert entry.runtime_data.local.practice.game == 0
+    assert entry.runtime_data.local.games.practice.game == 0
 
 
 async def test_start_game_refuses_a_name_no_game_has(hass, aioclient_mock):
@@ -81,7 +81,7 @@ async def test_start_game_refuses_a_name_no_game_has(hass, aioclient_mock):
 
 async def test_a_known_player_keeps_the_spelling_of_the_profile(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     practice.profiles.visit("Anne-Marie", 60)
     await start(hass, game="501", players=["anne-marie", "sam"])
     # A new name stays as it was said.
@@ -161,7 +161,7 @@ async def test_what_a_voice_assistant_may_hear_wrongly_is_explained(
     entry = await setup_local(hass, aioclient_mock, state=board())
     answer = await start(hass, True, **{"game": "501", **data})
     assert answer == {"started": False, "message": message}
-    assert entry.runtime_data.local.practice.game == 0
+    assert entry.runtime_data.local.games.practice.game == 0
 
 
 async def test_an_entry_for_a_name_longer_than_a_players_is_explained(hass):
@@ -185,7 +185,7 @@ async def test_an_entry_for_a_name_longer_than_a_players_is_explained(hass):
             "message": '"Alex, Sam and the bo…" is too long for a player name, which'
             " has at most 20 characters.",
         }
-    scores = entry.runtime_data.local.practice.snapshot()["scores"]
+    scores = entry.runtime_data.local.games.practice.snapshot()["scores"]
     assert [score["remaining"] for score in scores] == [501, 501]
 
 
@@ -258,7 +258,7 @@ async def test_asked_for_an_answer_a_wrong_call_says_why(hass, aioclient_mock):
     answer = await start(hass, True, game="killer", players=["Alex"])
     assert answer["started"] is False
     assert answer["message"] == "Killer needs at least two players."
-    assert entry.runtime_data.local.practice.party is None
+    assert entry.runtime_data.local.games.practice.party is None
     # Without an answer asked for, the call fails as before.
     with pytest.raises(ServiceValidationError):
         await start(hass, game="killer", players=["Alex"])

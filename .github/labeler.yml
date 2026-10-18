@@ -45,6 +45,8 @@
           - custom_components/autodarts/cricket.py
           - custom_components/autodarts/doubles.py
           - custom_components/autodarts/drills.py
+          - custom_components/autodarts/games.py
+          - custom_components/autodarts/games_coordinator.py
           - custom_components/autodarts/manual.py
           - custom_components/autodarts/party.py
           - custom_components/autodarts/practice.py
@@ -56,6 +58,7 @@
           - tests/test_cricket*.py
           - tests/test_doubles.py
           - tests/test_*drills.py
+          - tests/test_games.py
           - tests/test_manual_darts.py
           - tests/test_party.py
 "area: statistics":

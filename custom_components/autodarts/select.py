@@ -81,7 +81,7 @@ class AutodartsPracticeGame(AutodartsStoredEntity, SelectEntity):
 
     @property
     def current_option(self) -> str:
-        practice = self.coordinator.practice
+        practice = self.coordinator.games.practice
         if practice.drill:
             return practice.drill
         if practice.cricket:
@@ -91,7 +91,7 @@ class AutodartsPracticeGame(AutodartsStoredEntity, SelectEntity):
         return str(practice.game) if practice.game else "off"
 
     async def async_select_option(self, option: str) -> None:
-        practice = self.coordinator.practice
+        practice = self.coordinator.games.practice
         if (
             practice.bot_level
             and practice.humans >= MAX_PLAYERS
@@ -125,10 +125,10 @@ class AutodartsX01Rule(AutodartsStoredEntity, SelectEntity):
 
     @property
     def current_option(self) -> str:
-        return str(self.coordinator.practice.rule(self._rule))
+        return str(self.coordinator.games.practice.rule(self._rule))
 
     async def async_select_option(self, option: str) -> None:
-        practice = self.coordinator.practice
+        practice = self.coordinator.games.practice
         if self._rule != "bull_mode" and practice.unwinnable(
             rules={self._rule: option}
         ):
@@ -149,7 +149,7 @@ class AutodartsGolfHoles(AutodartsStoredEntity, SelectEntity):
 
     @property
     def current_option(self) -> str:
-        return str(self.coordinator.practice.golf_holes)
+        return str(self.coordinator.games.practice.golf_holes)
 
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.async_set_party_rounds(golf_holes=int(option))
@@ -167,7 +167,7 @@ class AutodartsWorldOrder(AutodartsStoredEntity, SelectEntity):
 
     @property
     def current_option(self) -> str:
-        return self.coordinator.practice.round_the_world_order
+        return self.coordinator.games.practice.round_the_world_order
 
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.async_set_party_rule("round_the_world_order", option)
@@ -203,7 +203,7 @@ class AutodartsTournamentSelect(AutodartsStoredEntity, SelectEntity):
 
     @property
     def current_option(self) -> str:
-        value: str = getattr(self.coordinator.tournament.setup, self._key)
+        value: str = getattr(self.coordinator.games.tournament.setup, self._key)
         return value
 
     async def async_select_option(self, option: str) -> None:

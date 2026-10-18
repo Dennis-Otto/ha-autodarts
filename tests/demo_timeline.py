@@ -193,7 +193,7 @@ class Recorder:
                 else:
                     self.shown[entity] = current
         positions = {}
-        progress = self.coordinator.progress
+        progress = self.coordinator.games.progress
         for player in ["", *sorted(self.players)]:
             # The answer of autodarts/positions with its aim model, as the aim map
             # of the training card asks for it.
@@ -336,7 +336,7 @@ async def record(hass: HomeAssistant, aioclient_mock: Any, freezer: Any) -> dict
         "custom_components.autodarts.local_api.AutodartsLocalClient.events", connected
     ):
         entry = await setup_local(hass, aioclient_mock, state=board())
-        entry.runtime_data.local.bot = Bot(random.Random(1))
+        entry.runtime_data.local.games.bot = Bot(random.Random(1))
         demo = Recorder(hass, freezer, entry)
         await switch(hass, "training_session", True)
         demo.chapter("start")

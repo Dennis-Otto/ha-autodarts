@@ -70,8 +70,8 @@ async def test_actions_need_the_board_and_act_on_it_only(hass, two_boards):
         {"game": "301", "players": ["Alex"], "config_entry_id": second.entry_id},
         blocking=True,
     )
-    assert second.runtime_data.local.practice.game == 301
-    assert first.runtime_data.local.practice.game == 0
+    assert second.runtime_data.local.games.practice.game == 301
+    assert first.runtime_data.local.games.practice.game == 0
     assert state(hass, "select", "practice_game", "board-2") == "301"
     assert state(hass, "select", "practice_game", "board-1") == "off"
 
@@ -81,7 +81,7 @@ async def test_actions_need_the_board_and_act_on_it_only(hass, two_boards):
         coordinator.async_receive("state", board(*[T20] * count))
     coordinator.async_receive("state", board())
     await hass.async_block_till_done()
-    assert "alex" in coordinator.practice.profiles.players
+    assert "alex" in coordinator.games.practice.profiles.players
     with pytest.raises(ServiceValidationError) as error:
         await hass.services.async_call(
             DOMAIN,
@@ -96,7 +96,7 @@ async def test_actions_need_the_board_and_act_on_it_only(hass, two_boards):
         {"name": "ALEX", "config_entry_id": second.entry_id},
         blocking=True,
     )
-    assert not coordinator.practice.profiles.players
+    assert not coordinator.games.practice.profiles.players
 
 
 async def test_one_board_away_leaves_the_other_one_alone(hass, two_boards):
@@ -107,5 +107,5 @@ async def test_one_board_away_leaves_the_other_one_alone(hass, two_boards):
     await hass.services.async_call(
         DOMAIN, "start_game", {"game": "cricket"}, blocking=True
     )
-    assert second.runtime_data.local.practice.cricket
+    assert second.runtime_data.local.games.practice.cricket
     assert state(hass, "switch", "detection", "board-2") == "on"

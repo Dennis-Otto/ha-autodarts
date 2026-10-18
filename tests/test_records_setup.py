@@ -134,9 +134,9 @@ async def test_diagnostics_name_the_game_and_only_count_the_records(
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    coordinator.practice.play("cricket")
-    coordinator.records.set_goal(200, dt_util.now().date())
-    coordinator.records.bests["highest_checkout"] = {
+    coordinator.games.practice.play("cricket")
+    coordinator.games.records.set_goal(200, dt_util.now().date())
+    coordinator.games.records.bests["highest_checkout"] = {
         "value": 121,
         "date": "2026-09-20T19:00:00+00:00",
         "name": "Secret Name",
@@ -146,6 +146,6 @@ async def test_diagnostics_name_the_game_and_only_count_the_records(
     assert diagnostics["records"]["daily_goal"] == 200
     assert diagnostics["records"]["stored_bests"] == 1
     assert "Secret Name" not in str(diagnostics)
-    coordinator.practice.play("bobs_27")
+    coordinator.games.practice.play("bobs_27")
     diagnostics = await async_get_config_entry_diagnostics(hass, entry)
     assert diagnostics["practice_game"]["game"] == "bobs_27"

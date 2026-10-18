@@ -315,7 +315,7 @@ async def test_the_action_sets_rules_draw_and_pause(hass, aioclient_mock):
     assert attributes["summary"] == 3
     assert sorted(attributes["players"]) == ["Alex", "Kim", "Lea", "Max", "Sam"]
     assert (attributes["legs_to_win"], attributes["sets_to_win"]) == (2, 2)
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     assert practice.game == 301 and practice.double_in and not practice.double_out
     assert practice.bull_off and practice.bulling is not None
     assert state(hass, "switch", "tournament_third_place") == "on"
@@ -329,12 +329,12 @@ async def test_a_tournament_survives_a_restart(
     coordinator = entry.runtime_data.local
     await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1)
     await throw(hass, coordinator, *CHECKOUT)
-    assert coordinator.practice.hold
+    assert coordinator.games.practice.hold
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     assert hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["tournament"]
     coordinator = entry.runtime_data.local
-    assert coordinator.practice.hold
+    assert coordinator.games.practice.hold
     assert state(hass, "sensor", "tournament") == "round_2"
     assert tournament(hass).attributes["status"] == "waiting"
     # The pause ended while Home Assistant was stopped: the match starts now.
@@ -342,7 +342,7 @@ async def test_a_tournament_survives_a_restart(
     await pass_pause(hass, 0)
     assert tournament(hass).attributes["status"] == "playing"
     await throw(hass, coordinator, S20)
-    assert coordinator.practice.players[0].remaining == 81
+    assert coordinator.games.practice.players[0].remaining == 81
 
 
 async def test_diagnostics_count_the_tournament_without_names(
@@ -386,7 +386,7 @@ async def test_another_game_in_the_pause_is_played_to_its_end(
     freezer.tick(timedelta(seconds=19))
     await pass_pause(hass, 0)
     assert tournament(hass).attributes["status"] == "waiting"
-    assert coordinator.practice.kind == 301
+    assert coordinator.games.practice.kind == 301
     await throw(hass, coordinator, T20)
     assert tournament(hass).attributes["status"] == "waiting"
     # A training game makes no way by itself either; ending the game does.
@@ -424,7 +424,7 @@ async def test_the_action_takes_start_scores_for_a_handicap(hass, aioclient_mock
         501,
         301,
     ]
-    assert entry.runtime_data.local.practice.starts == [0, 301, 0, 0]
+    assert entry.runtime_data.local.games.practice.starts == [0, 301, 0, 0]
     with pytest.raises(ServiceValidationError) as error:
         await action(hass, "start_tournament", players=PLAYERS, start_scores=[1])
     assert error.value.translation_key == "invalid_start_score"
@@ -453,8 +453,8 @@ async def test_names_and_the_list_of_players_are_checked(hass, aioclient_mock):
             await text(hass, key, value)
         assert error.value.translation_key == error_key
     assert error.value.translation_placeholders is None
-    assert coordinator.tournament.setup.players == []
-    assert coordinator.practice.names[0] == ""
+    assert coordinator.games.tournament.setup.players == []
+    assert coordinator.games.practice.names[0] == ""
     # Eight names of 20 characters always fit into the state.
     await text(hass, "tournament_players", ",".join(f"{'X' * 19}{n}" for n in range(8)))
     assert len(state(hass, "text", "tournament_players")) <= 255
@@ -514,15 +514,15 @@ async def test_a_player_of_the_tournament_is_deleted_after_it(hass, aioclient_mo
     await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1)
     # Kim throws first, and so has a profile.
     await throw(hass, coordinator, S20)
-    assert "kim" in coordinator.practice.profiles.players
+    assert "kim" in coordinator.games.practice.profiles.players
     with pytest.raises(ServiceValidationError) as error:
         await action(hass, "delete_player", name="kim")
     assert error.value.translation_key == "player_in_tournament"
     assert error.value.translation_placeholders == {"name": "kim"}
-    assert "kim" in coordinator.practice.profiles.players
+    assert "kim" in coordinator.games.practice.profiles.players
     await press(hass, "tournament_stop")
     await action(hass, "delete_player", name="kim")
-    assert "kim" not in coordinator.practice.profiles.players
+    assert "kim" not in coordinator.games.practice.profiles.players
     assert state(hass, "text", "tournament_players") == "Alex, Sam"
 
 
@@ -530,7 +530,7 @@ async def test_a_game_after_a_stopped_tournament_has_the_players_from_before(
     hass, aioclient_mock
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await action(hass, "start_game", game="501", players=["Zoe"], bot_level=60)
     await action(hass, "start_tournament", players=PLAYERS, game="101", legs=1)
     await press(hass, "tournament_stop")
