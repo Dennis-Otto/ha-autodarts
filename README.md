@@ -121,7 +121,7 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 
 - A scoreboard for a tablet or TV, also through Chromecast, readable from the oche
 - A new game screen to choose the game, the players and the format at the board, or to start a tournament
-- A caller that calls the game through the screen's browser, also with the recorded voice packs of darts-caller or a voice you record with Piper
+- A caller that calls the game through the screen's browser, also with the recorded voice packs of darts-caller or a voice you record with Piper, and for blind and low-vision players every dart, the checkout route and the next target
 - Idle mode with a leaderboard, personal bests, today's darts and a clock
 
 <p align="center"><img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/lobby.webp" alt="Animation: on the tablet, New game opens the game screen, Cricket and a second player are chosen and the game starts" width="600"></p>

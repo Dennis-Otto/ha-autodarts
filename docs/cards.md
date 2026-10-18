@@ -336,6 +336,9 @@ Panels with nothing to show are skipped. A dart, a new game or a tap anywhere en
 | `call_checkouts` | boolean | `true` | Call what the next player requires when a checkout is possible |
 | `call_results` | boolean | `true` | Call busts and game shots |
 | `call_sounds` | boolean | `true` | Play a fanfare for a 180 |
+| `call_darts` | `off`, `score`, `bed` | `off` | Call [every dart](scoreboard.md#for-blind-and-low-vision-players) as it lands: by its points, such as 60, or by its bed, such as Treble 20 |
+| `call_route` | boolean | `false` | Call the route of a checkout, also after each dart that leaves another one |
+| `call_target` | boolean | `false` | Call the next target of a training or party game, such as Double 16 |
 | `caller_voice` | text | empty | A [voice pack](scoreboard.md#voice-packs): the name of a folder of `/media/autodarts/voices` with recorded calls, such as a pack of darts-caller; empty is the browser's voice |
 | `lobby` | boolean | `true` | Offer the [new game screen](#new-game-screen) |
 | `lobby_games` | list of games | every game | The games the new game screen offers, for example `["501", cricket, killer]` |
@@ -555,6 +558,7 @@ The cards work with a keyboard, with a screen reader and without animations:
 - **Color and contrast:** the cards take their colors from your theme, light or dark, and never rely on color alone: the board status comes with a text, the heatmap shows the count of a bed on hover or tap, and the Cricket marks are symbols. Text in the accent color, gray text on tinted tiles and the colors of the doubles card are mixed for a contrast of at least 4.5:1; players who are out are faded by color, not transparency. In Windows' high contrast mode, pressed buttons get an outline. Choose an `accent_color` and a `highlight_color` with enough contrast to your theme, or use a high-contrast theme, which the cards follow.
 - **Touch:** on a touch screen, the small buttons, such as *New game*, the caller, the period switch and *Export*, are at least 40 pixels high.
 - **Hints on a tap:** what a mouse shows as a tooltip, a tap with a finger or a pen shows in a small bubble over the card, without moving anything: the darts of a last visit on the live card, a visit in the training chart and its average line, a trend arrow on the players card, the column names of a tournament's table, a double on the doubles card, a camera's dot on the status card and the hint of a setup. Another tap, Escape or five seconds close it. Controls such as the caller do what they do; their tooltip stays for the mouse.
+- **Blind and low-vision players:** the caller of the scoreboard calls every dart, the route of a checkout and the next target of a training or party game, so the board can be played without seeing it ([for blind and low-vision players](scoreboard.md#for-blind-and-low-vision-players)).
 - **Language:** the cards follow the language of your Home Assistant profile, and numbers, dates and times its formats.
 - **Checked with every change:** [axe-core](https://github.com/dequelabs/axe-core) checks every card in a real browser against WCAG 2.1 at levels A and AA, on a laptop and a phone, in the light and the dark theme ([accessibility check](development.md#accessibility-check)).
 

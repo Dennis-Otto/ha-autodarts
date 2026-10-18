@@ -871,6 +871,12 @@
     "voice_pack_require_score": {
       "message": "Du brauchst {remaining}"
     },
+    "voice_pack_target": {
+      "message": "Ziel"
+    },
+    "voice_pack_any_double": {
+      "message": "Beliebiges Double"
+    },
     "voice_pack_name": {
       "message": "Das Voice-Pack {pack} hat keinen gültigen Ordnernamen: bis zu 64 Buchstaben, Ziffern, Leerzeichen, Punkte, Bindestriche und Unterstriche, die mit einem Buchstaben oder einer Ziffer beginnen und enden."
     },

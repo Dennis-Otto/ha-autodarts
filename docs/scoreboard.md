@@ -178,10 +178,40 @@ It calls only what counts, in the language of the screen's user: English, German
 - **Checkout training, 121 checkout and Catch 40:** what the next attempt requires.
 - **Tournaments:** every match as it starts, "Next match: Alex against Sam", and the winner of the tournament.
 - Darts after a bust or a game shot are not called. Killer, Golf and the other training games get no score calls.
+- **For blind and low-vision players**, when you switch it on: every dart, the route of a checkout and the next target ([details](#for-blind-and-low-vision-players)).
 
 A screen that was away, on another view or without its connection to Home Assistant, calls and celebrates nothing that happened meanwhile, such as a match that ended in the minutes before; it calls the game again from its return.
 
 `call_scores`, `call_checkouts`, `call_results` and `call_sounds` switch each kind of call on or off. Which voice speaks depends on the browser and the operating system: offline voices of the operating system keep the calls in your home; some browsers use online voices that send the text to their provider. A [voice pack](#voice-packs) gives the caller a real voice instead. For speakers in the room, use the [dart caller and practice caller blueprints](automations.md#which-caller), which play voice packs, too.
+
+### For blind and low-vision players
+
+Three options make the board playable without seeing it: the caller says every dart, where a checkout goes and what to aim at next. They are off by default. Switch them on in the caller options of the card's editor, or for the automatic dashboard in its settings, *Scoreboard view*:
+
+```yaml
+type: custom:autodarts-scoreboard-card
+caller: true
+call_darts: bed
+call_route: true
+call_target: true
+```
+
+| Option | What the caller says |
+| --- | --- |
+| `call_darts: bed` | Every dart as it lands, in every game, by its bed: "Treble 20", "Double 16", "5" for a single, "25", "Bull" for the bullseye or "Miss". `call_darts: score` says its points instead, such as "60" or "50". A dart you correct is called again. |
+| `call_route: true` | In X01, the checkout training, 121 checkout and Catch 40: the route of a checkout after what the player requires, such as "Treble 19, Double 12", and after each dart that leaves another finish for the darts left, with the score it finishes: "62: Treble 10, Double 16". |
+| `call_target: true` | In Around the Clock, the doubles and singles training, Bob's 27, the JDC Challenge and the party games with a target, such as Shanghai, Halve-It, Bermuda, Round the World, Golf and Baseball: the next target, such as "Target: Double 16", "Target: Any double" or "Target: Bull", as soon as it moves on and whenever a player's turn comes. |
+
+A visit of Sam at 81 in a match, with all three on:
+
+| On the board | The caller says |
+| --- | --- |
+| Sam's turn | "Sam, you require 81", "Treble 19, Double 12" |
+| The first dart in single 19 | "19", "62: Treble 10, Double 16" |
+| The second dart in treble 10 | "Treble 10", "32: Double 16" |
+| The third dart in double 16 | "Double 16", "Game shot, and the leg!" |
+
+The bot's turns get the darts, but no route and no target. With a [voice pack](#voice-packs), the darts, routes and targets play the files of their beds, and the browser's voice says a call the pack lacks a file for.
 
 ### Voice packs
 
@@ -204,6 +234,9 @@ The browser's voice sounds different on every device, and robotic on many. A voi
 | The match | `matchshot`, then the winner's name |
 | What a player requires | `yr_40`, or `you_require` and then `c_40` or `40`; in a match, the player's name first |
 | A player's name | A file named like the player in lower case, such as `alex.mp3`; without one, the browser's voice says the name |
+| [Every dart](#for-blind-and-low-vision-players) | By its bed `t20`, `d16`, `s5` or `5`, `bull` for the 25 and `bullseye`, by its points `1` to `60`, and `outside` for a miss |
+| The route of a checkout | The files of its beds; with the score, `c_62` or `62` first |
+| The next target | `bs_target_is`, then the target: `20` or `s20`, `d16`, `t20`, `bs_any_double` for any double, `bull` for the bull and `bullseye` for the bullseye alone |
 
 The files are `.mp3`, `.wav`, `.ogg` or `.flac`, also in folders of the pack. A call with several files, such as `gameshot.mp3` and `gameshot+2.mp3`, plays one of them at random, as in darts-caller. Every call the pack has no file for, such as the marks of a Cricket visit or the next match of a tournament, is said by the browser's voice, as is a call whose file does not load. Each call waits until the one before has ended, so calls never talk over each other. The screen loads the files from Home Assistant with its own login, and only those Home Assistant lists for the pack.
 

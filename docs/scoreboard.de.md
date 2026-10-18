@@ -178,10 +178,40 @@ Er sagt nur an, was zählt, in der Sprache des Benutzers am Bildschirm: Deutsch,
 - **Checkout-Training, 121-Checkout und Catch 40:** was der nächste Versuch braucht.
 - **Turniere:** jedes Match beim Start, „Nächstes Match: Alex gegen Sam“, und den Sieger des Turniers.
 - Darts nach dem Überwerfen oder einem Game shot werden nicht angesagt. Killer, Golf und die anderen Trainingsspiele bekommen keine Punktansagen.
+- **Für blinde und sehbehinderte Spieler**, wenn du es einschaltest: jeden Dart, den Checkout-Weg und das nächste Ziel ([Details](#für-blinde-und-sehbehinderte-spieler)).
 
 Ein Bildschirm, der weg war, auf einer anderen Ansicht oder ohne seine Verbindung zu Home Assistant, sagt nichts an und feiert nichts, was in der Zwischenzeit geschah, etwa ein Match, das in den Minuten davor endete; ab seiner Rückkehr sagt er das Spiel wieder an.
 
 `call_scores`, `call_checkouts`, `call_results` und `call_sounds` schalten jede Art von Ansage ein oder aus. Welche Stimme spricht, hängt von Browser und Betriebssystem ab: Offline-Stimmen des Betriebssystems behalten die Ansagen bei dir zu Hause; manche Browser nutzen Online-Stimmen, die den Text an ihren Anbieter schicken. Ein [Voice-Pack](#voice-packs) gibt dem Caller stattdessen eine echte Stimme. Für Lautsprecher im Raum nutzt du die [Blueprints Dart caller und Practice caller](automations.de.md#welcher-caller), die ebenfalls Voice-Packs abspielen.
+
+### Für blinde und sehbehinderte Spieler
+
+Drei Optionen machen das Board spielbar, ohne es zu sehen: Der Caller sagt jeden Dart an, wohin ein Checkout geht und worauf du als Nächstes zielst. Sie sind anfangs aus. Schalte sie in den Caller-Optionen im Editor der Karte ein, oder beim automatischen Dashboard in seinen Einstellungen, *Ansicht Anzeigetafel*:
+
+```yaml
+type: custom:autodarts-scoreboard-card
+caller: true
+call_darts: bed
+call_route: true
+call_target: true
+```
+
+| Option | Was der Caller sagt |
+| --- | --- |
+| `call_darts: bed` | Jeden Dart, sobald er steckt, in jedem Spiel, mit seinem Feld: „Triple 20“, „Doppel 16“, „5“ für ein Single, „25“, „Bull“ für das Bullseye oder „Fehlwurf“. `call_darts: score` sagt stattdessen seine Punkte, etwa „60“ oder „50“. Ein Dart, den du korrigierst, wird noch einmal angesagt. |
+| `call_route: true` | In X01, im Checkout-Training, im 121-Checkout und in Catch 40: den Weg eines Checkouts nach dem, was der Spieler braucht, etwa „Triple 19, Doppel 12“, und nach jedem Dart, der für die übrigen Darts einen anderen Checkout lässt, mit dem Rest, den er checkt: „62: Triple 10, Doppel 16“. |
+| `call_target: true` | In Around the Clock, im Doppeltraining und im Singles-Training, in Bob's 27, in der JDC Challenge und in den Partyspielen mit einem Ziel, etwa Shanghai, Halve-It, Bermuda, Round the World, Golf und Baseball: das nächste Ziel, etwa „Ziel: Doppel 16“, „Ziel: Beliebiges Double“ oder „Ziel: Bull“, sobald es weitergeht und immer dann, wenn ein Spieler an der Reihe ist. |
+
+Eine Aufnahme von Sam bei 81 in einem Match, mit allen dreien:
+
+| Am Board | Der Caller sagt |
+| --- | --- |
+| Sam ist dran | „Sam, du brauchst 81“, „Triple 19, Doppel 12“ |
+| Der erste Dart in die Single 19 | „19“, „62: Triple 10, Doppel 16“ |
+| Der zweite Dart in die Triple 10 | „Triple 10“, „32: Doppel 16“ |
+| Der dritte Dart in die Doppel 16 | „Doppel 16“, „Game shot, und das Leg!“ |
+
+Die Aufnahmen des Bots bekommen die Darts, aber keinen Weg und kein Ziel. Mit einem [Voice-Pack](#voice-packs) spielen die Darts, Wege und Ziele die Dateien ihrer Felder, und die Stimme des Browsers sagt eine Ansage, für die dem Pack eine Datei fehlt.
 
 ### Voice-Packs
 
@@ -204,6 +234,9 @@ Die Stimme des Browsers klingt auf jedem Gerät anders und auf vielen wie ein Ro
 | Das Match | `matchshot`, dann der Name des Siegers |
 | Was ein Spieler braucht | `yr_40`, oder `you_require` und dann `c_40` oder `40`; im Match zuerst der Name des Spielers |
 | Der Name eines Spielers | Eine Datei, die wie der Spieler in Kleinbuchstaben heißt, etwa `alex.mp3`; ohne sie sagt die Stimme des Browsers den Namen |
+| [Jeder Dart](#für-blinde-und-sehbehinderte-spieler) | Mit seinem Feld `t20`, `d16`, `s5` oder `5`, `bull` für die 25 und `bullseye`, mit seinen Punkten `1` bis `60`, und `outside` für einen Fehlwurf |
+| Der Weg eines Checkouts | Die Dateien seiner Felder; mit dem Rest zuerst `c_62` oder `62` |
+| Das nächste Ziel | `bs_target_is`, dann das Ziel: `20` oder `s20`, `d16`, `t20`, `bs_any_double` für ein beliebiges Double, `bull` für das Bull und `bullseye` für das Bullseye allein |
 
 Die Dateien sind `.mp3`, `.wav`, `.ogg` oder `.flac`, auch in Ordnern des Packs. Eine Ansage mit mehreren Dateien, etwa `gameshot.mp3` und `gameshot+2.mp3`, spielt eine davon nach Zufall, wie bei darts-caller. Jede Ansage, für die das Pack keine Datei hat, etwa die Marks einer Cricket-Aufnahme oder das nächste Match eines Turniers, sagt die Stimme des Browsers, ebenso eine Ansage, deren Datei nicht lädt. Jede Ansage wartet, bis die davor zu Ende ist, sodass sich Ansagen nie überlagern. Der Bildschirm lädt die Dateien mit seiner eigenen Anmeldung aus Home Assistant, und nur die, die Home Assistant für das Pack nennt.
 

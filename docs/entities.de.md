@@ -842,7 +842,7 @@ response_variable: sound
 
 ### Ein Voice-Pack aufnehmen: `autodarts.generate_voice_pack`
 
-Nimmt ein [Voice-Pack](scoreboard.de.md#voice-packs) mit einer Text-to-Speech-Engine von Home Assistant auf: jede Ansage des Callers in 417 Sounds, benannt wie in den Voice-Packs von darts-caller, in `autodarts/voices` des Medienordners. Mit [Piper](https://www.home-assistant.io/integrations/piper/) verlässt die Stimme nie dein Zuhause. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
+Nimmt ein [Voice-Pack](scoreboard.de.md#voice-packs) mit einer Text-to-Speech-Engine von Home Assistant auf: jede Ansage des Callers in 419 Sounds, benannt wie in den Voice-Packs von darts-caller, in `autodarts/voices` des Medienordners. Mit [Piper](https://www.home-assistant.io/integrations/piper/) verlässt die Stimme nie dein Zuhause. Nur für Administratoren; Automationen können sie ebenfalls nutzen.
 
 | Feld | Werte | Beschreibung |
 | --- | --- | --- |
@@ -860,7 +860,7 @@ data:
   pack: piper-de
 ```
 
-Das Pack hat die Punkte `0`, gesagt als „Keine Punkte“, bis `180`, `busted`, `gameshot`, `matchshot`, `you_require`, `yr_2` bis `yr_170` und jeden Dart für den Dart caller: `s1` bis `s20`, `d1` bis `d20`, `t1` bis `t20`, `bull`, `bullseye` und `outside`. Es dauert so lange, wie die Engine für 417 kurze Sätze braucht, einige Minuten. Es wird immer nur ein Pack aufgenommen; ein zweiter Aufruf in der Zeit wird abgelehnt. Die Sounds entstehen neben dem Pack und ersetzen es erst, wenn alle fertig sind, sodass ein Pack, das mittendrin scheitert, das vorige lässt, wie es war. Die Aktion ersetzt nur ein Pack, das sie selbst aufgenommen hat: Ein Ordner dieses Namens mit anderen Dateien, etwa ein Pack von darts-caller, bleibt, wie er ist, und die Aktion bittet um einen anderen Namen.
+Das Pack hat die Punkte `0`, gesagt als „Keine Punkte“, bis `180`, `busted`, `gameshot`, `matchshot`, `you_require`, `yr_2` bis `yr_170` und jeden Dart für den Dart caller: `s1` bis `s20`, `d1` bis `d20`, `t1` bis `t20`, `bull`, `bullseye` und `outside` sowie `bs_target_is` und `bs_any_double` für die Ziele der Trainings- und Partyspiele. Es dauert so lange, wie die Engine für 419 kurze Sätze braucht, einige Minuten. Es wird immer nur ein Pack aufgenommen; ein zweiter Aufruf in der Zeit wird abgelehnt. Die Sounds entstehen neben dem Pack und ersetzen es erst, wenn alle fertig sind, sodass ein Pack, das mittendrin scheitert, das vorige lässt, wie es war. Die Aktion ersetzt nur ein Pack, das sie selbst aufgenommen hat: Ein Ordner dieses Namens mit anderen Dateien, etwa ein Pack von darts-caller, bleibt, wie er ist, und die Aktion bittet um einen anderen Namen.
 
 **Antwort:** Mit `response_variable` ist `pack` der Name des Packs, `folder` sein Ordner und `sounds` die Zahl seiner Sounds.
 

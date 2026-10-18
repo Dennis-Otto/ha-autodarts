@@ -182,7 +182,8 @@ def _shown(text: str) -> str:
 def pack_words(say: dict[str, str]) -> dict[str, str]:
     """The words of every sound a generated pack has, by its key, in the words
     of the caller: the scores, a bust, the game shot and the match, what a
-    player requires, and every dart, as darts-caller names them."""
+    player requires, every dart and the targets of the training and party
+    games, as darts-caller names them."""
     words = {"0": say["voice_pack_no_score"]}
     words.update({str(score): str(score) for score in range(1, 181)})
     words["busted"] = say["voice_pack_bust"]
@@ -202,6 +203,8 @@ def pack_words(say: dict[str, str]) -> dict[str, str]:
     words["bull"] = say["voice_bed_outer"]
     words["bullseye"] = say["voice_bed_bull"]
     words["outside"] = say["voice_bed_miss"]
+    words["bs_target_is"] = say["voice_pack_target"]
+    words["bs_any_double"] = say["voice_pack_any_double"]
     return words
 
 

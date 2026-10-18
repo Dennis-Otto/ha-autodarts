@@ -871,6 +871,12 @@
     "voice_pack_require_score": {
       "message": "Je hebt nog {remaining} nodig"
     },
+    "voice_pack_target": {
+      "message": "Doel"
+    },
+    "voice_pack_any_double": {
+      "message": "Willekeurige dubbel"
+    },
     "voice_pack_name": {
       "message": "Het stempakket {pack} heeft geen geldige mapnaam: tot 64 letters, cijfers, spaties, punten, streepjes en underscores, die met een letter of een cijfer beginnen en eindigen."
     },

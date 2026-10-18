@@ -169,7 +169,11 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
     "title",
     ["full_height", "show_visit", "show_status", "caller", "show_summary", "celebrations"],
     "summary_seconds",
-    [["call_scores", "call_checkouts", "call_results", "call_sounds"], "caller_voice"],
+    [
+      ["call_scores", "call_checkouts", "call_results", "call_sounds", "call_route", "call_target"],
+      "call_darts",
+      "caller_voice",
+    ],
     [["lobby"], "lobby_games"],
     [["idle"], ["idle_after", "idle_interval"], "idle_panels"],
     [["corrections", "keypad"]],
@@ -182,10 +186,24 @@ test("the caller's calls, the new game screen and idle mode wait in sections of 
   assert.equal(form.computeHelper(caller), "These calls are made while the caller is on.");
   assert.equal(form.schema[2].schema[3].default, false);
   assert.equal(caller.schema[0].schema[0].default, true);
+  // For blind and low-vision players: every dart, the route and the target, all off by default.
+  assert.deepEqual(
+    caller.schema[0].schema.slice(4).map((field) => [field.name, form.computeLabel(field), field.default]),
+    [
+      ["call_route", "Call the checkout route", false],
+      ["call_target", "Call the next target", false],
+    ]
+  );
+  const darts = caller.schema[1];
+  assert.equal(form.computeLabel(darts), "Call every dart");
+  assert.deepEqual(labels(darts), ["Off", "By its points, such as 60", "By its bed, such as Treble 20"]);
+  assert.match(form.computeHelper(darts), /^For players who can't see the board well/);
+  form.assertConfig({ call_darts: "bed", call_route: true, call_target: false });
+  assert.throws(() => form.assertConfig({ call_darts: true }), /The option call_darts does not accept true/);
   // The voice pack is a folder name, empty for the browser's voice.
-  assert.deepEqual(caller.schema[1].selector, { text: {} });
-  assert.equal(form.computeLabel(caller.schema[1]), "Voice pack");
-  assert.match(form.computeHelper(caller.schema[1]), /^A folder of \/media\/autodarts\/voices with recorded calls/);
+  assert.deepEqual(caller.schema[2].selector, { text: {} });
+  assert.equal(form.computeLabel(caller.schema[2]), "Voice pack");
+  assert.match(form.computeHelper(caller.schema[2]), /^A folder of \/media\/autodarts\/voices with recorded calls/);
 
   // The new game screen is on by default and offers every game, unless the card names some.
   assert.deepEqual([lobby.type, lobby.name, lobby.flatten], ["expandable", "lobby_section", true]);
@@ -363,8 +381,17 @@ test("the dashboard strategy has an editor with the board and the title", async 
     ]
   );
   assert.equal(scoreboard.schema[1].name, "caller_voice");
-  assert.equal(scoreboard.schema[2].name, "lobby_games");
-  assert.equal(scoreboard.schema[3].selector.select.options[0].label, "Tournament");
+  // The calls for blind and low-vision players, as on the scoreboard card.
+  assert.equal(scoreboard.schema[2].name, "call_darts");
+  assert.deepEqual(
+    scoreboard.schema[3].schema.map((field) => [field.name, field.default]),
+    [
+      ["call_route", false],
+      ["call_target", false],
+    ]
+  );
+  assert.equal(scoreboard.schema[4].name, "lobby_games");
+  assert.equal(scoreboard.schema[5].selector.select.options[0].label, "Tournament");
   assert.deepEqual(form.data, { type: "custom:autodarts", title: "Darts" });
   assert.equal(form.hass, hass);
   assert.equal(form.computeLabel({ name: "device_id" }), "Board");
@@ -398,6 +425,10 @@ test("the dashboard strategy has an editor with the board and the title", async 
   for (const [scoreboard, expected] of [
     [{ caller: true, lobby_games: [], idle_panels: ["clock"] }, { caller: true, idle_panels: ["clock"] }],
     [{ caller_voice: "russ-bray" }, { caller_voice: "russ-bray" }],
+    [
+      { call_darts: "bed", call_route: true, call_target: false },
+      { call_darts: "bed", call_route: true, call_target: false },
+    ],
     [{ lobby_games: [], caller_voice: "" }, undefined],
   ]) {
     form.dispatchEvent(

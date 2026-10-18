@@ -183,6 +183,53 @@ test("a call is the sounds of darts-caller's file names, or nothing the pack can
   }
 });
 
+test("a dart, a route and a target are the sounds of their beds, or nothing the pack can say", () => {
+  const pack =
+    (...keys) =>
+    (key) =>
+      keys.includes(key);
+  const sounds = (call, ...keys) => callerSounds(call, pack(...keys), (key) => key);
+  const thrown = (key, by = "bed") => ({ kind: "dart", key, by });
+  const beds = ["t20", "d16", "s5", "5", "bull", "bullseye", "outside", "60"];
+  assert.deepEqual(
+    ["T20", "D16", "S5", "25", "BULL", "MISS"].map((key) => sounds(thrown(key), ...beds)),
+    ["t20", "d16", "s5", "bull", "bullseye", "outside"].map((sound) => [{ sound }])
+  );
+  // A single without a sound of its own is its number; by its points, a dart is their sound.
+  assert.deepEqual(sounds(thrown("S5"), "5"), [{ sound: "5" }]);
+  assert.deepEqual(sounds(thrown("T20", "score"), ...beds), [{ sound: "60" }]);
+  assert.deepEqual(sounds(thrown("MISS", "score"), ...beds), [{ sound: "outside" }]);
+  assert.equal(sounds(thrown("T19"), ...beds), null);
+  // A route is its beds, after the score it finishes where the call names it.
+  const route = { kind: "route", route: ["T20", "D16"] };
+  assert.deepEqual(sounds(route, "t20", "d16"), [{ sound: "t20" }, { sound: "d16" }]);
+  assert.deepEqual(sounds({ ...route, remaining: 92 }, "c_92", "92", "t20", "d16"), [
+    { sound: "c_92" },
+    { sound: "t20" },
+    { sound: "d16" },
+  ]);
+  assert.deepEqual(sounds({ ...route, remaining: 92 }, "92", "t20", "d16")[0], { sound: "92" });
+  assert.equal(sounds({ ...route, remaining: 92 }, "t20", "d16"), null);
+  assert.equal(sounds(route, "t20"), null);
+  // A target is bs_target_is and the target, as in the blind support of darts-caller.
+  const target = (aim, ...keys) => sounds({ kind: "target", target: aim }, "bs_target_is", ...keys);
+  assert.deepEqual(target("20", "20", "s20"), [{ sound: "bs_target_is" }, { sound: "20" }]);
+  assert.deepEqual(
+    [
+      ["20", "s20"],
+      ["D", "bs_any_double"],
+      ["D16", "d16"],
+      ["25", "bull"],
+      ["50", "bullseye"],
+      ["BULL", "bullseye"],
+    ].map(([aim, key]) => target(aim, key)[1].sound),
+    ["s20", "bs_any_double", "d16", "bull", "bullseye", "bullseye"]
+  );
+  assert.equal(target("T", "t20"), null);
+  assert.equal(target("25", "25"), null);
+  assert.equal(sounds({ kind: "target", target: "20" }, "20"), null);
+});
+
 test("a sound is loaded once, again after it failed, and the oldest are let go", async () => {
   const context = { decodeAudioData: async (data) => ({ decoded: data }) };
   const fetched = [];
@@ -354,6 +401,33 @@ test("an unknown pack, or a Home Assistant that cannot hand out its files, leave
   await played();
   card.hass = score(card._hass);
   assert.deepEqual(heard.splice(0), ['"180"']);
+  tap(card);
+  heard.length = 0;
+});
+
+test("for a blind player, the pack calls every dart and the route that is left, the browser what it lacks", async () => {
+  window.AudioContext = FakeAudioContext;
+  const beds = { ...SOUNDS, t20: [url("t20.mp3")], d20: [url("d20.mp3")] };
+  const wiring = homeAssistant({ pack: { pack: "russ-bray", sounds: beds } });
+  const { hass, card } = setup(wiring, { call_darts: "bed", call_route: true });
+  tap(card);
+  await played();
+  let next = update(hass, { ...visit(), ...x01(100, [], { checkout: "T20 D20" }) });
+  card.hass = next;
+  next = update(next, { ...visit(T20), ...x01(40, ["T20"], { checkout: "D20" }) });
+  card.hass = next;
+  next = update(next, { ...visit(T20, dart(20, 2)), ...x01(0, ["T20", "D20"], { won: true }) });
+  card.hass = next;
+  assert.deepEqual(await played(), [
+    '"Alex, you require 100"',
+    "t20.mp3",
+    "d20.mp3",
+    "t20.mp3",
+    "40.mp3",
+    "d20.mp3",
+    "d20.mp3",
+    '"Game shot, and the leg!"',
+  ]);
   tap(card);
   heard.length = 0;
 });
