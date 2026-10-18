@@ -173,7 +173,8 @@ def test_a_recording_answers_every_route_or_names_it_absent(version):
     absent = {path for name, path in ROUTES.items() if name not in recorded_routes}
     assert set(summary(version)["absent"]) == absent
     assert summary(version)["board_manager"] == version
-    assert recorded(version, "version.txt") == f"{version}\n"
+    # As the board answers it, maybe with a v, which the folder leaves out.
+    assert capture_board.folder_name(recorded(version, "version.txt")) == version
     # Board Manager 2 has /api/system and /api/host, the classic one neither.
     generation = int(version.split(".")[0])
     assert absent == (set() if generation >= 2 else {"/api/system", "/api/host"})
@@ -192,7 +193,8 @@ def test_a_recording_keeps_only_placeholders(version):
     assert capture_board.redact(frames(version), {}) == frames(version)
     # The placeholders stand where the board keeps the secrets.
     auth = recording["config.json"]["auth"]
-    assert auth == {"board_id": "board-1", "api_key": PLACEHOLDERS["api_key"]}
+    assert auth["board_id"] == PLACEHOLDERS["board_id"]
+    assert auth["api_key"] == PLACEHOLDERS["api_key"]
     if "system.json" in recording:
         host = recording["system.json"]["config"]["host"]
         assert host["tls_key"] == PLACEHOLDERS["tls_key"]
@@ -208,7 +210,7 @@ async def test_the_integration_reads_every_recording(version):
         assert await client.identify() == {
             "board_id": "board-1",
             "version": version,
-            "camera_count": 3,
+            "camera_count": len(recording["config.json"]["cam"]["cams"]),
         }
         assert await client.get_state() == recording["state.json"]
         assert await client.get_stats() == recording["state-stats.json"]
@@ -315,8 +317,11 @@ async def test_the_unit_double_answers_as_recorded(
 
 @pytest.mark.parametrize("version", VERSIONS)
 def test_the_darts_of_the_unit_tests_have_only_keys_the_board_sends(version):
-    thrown = [frame for frame in states(version) if frame["data"]["numThrows"] == 3]
-    assert within(shape(board(T20, S20, BULL)), shape(thrown[0]["data"]))
+    # However many darts the visit of a recording has, each fits what it sends.
+    thrown = [frame for frame in states(version) if frame["data"]["throws"]]
+    assert thrown
+    for frame in thrown:
+        assert within(shape(board(T20, S20, BULL)), shape(frame["data"])), frame
 
 
 @pytest.mark.parametrize(("generation", "version"), GENERATIONS)

@@ -132,6 +132,47 @@ def test_the_name_of_the_board_pc_it_was_given_is_replaced_too():
     assert content[capture_board.FRAMES] == ""
 
 
+@pytest.mark.parametrize("host", ["dartboard.local", "192.168.1.50"])
+@pytest.mark.parametrize("hostname", ["dartboard", "board-pc", "artboard"])
+def test_a_board_pc_named_like_part_of_a_placeholder_is_recorded(host, hostname):
+    # "dartboard" is part of the placeholder "dartboard-pc": it must neither be
+    # replaced again inside it nor count as left in the recording.
+    _, content = capture_board.files(
+        {
+            "version.txt": "2.0.2",
+            "host.json": {"hostname": hostname, "ip": "192.168.1.50"},
+            "state.json": {"source": f"reached as {host}, named {hostname}"},
+        },
+        [{"type": "state", "data": {"from": f"{hostname}.lan"}}],
+        [],
+        host,
+        None,
+    )
+
+    assert json.loads(content["host.json"]) == {
+        "hostname": PLACEHOLDERS["hostname"],
+        "ip": PLACEHOLDERS["ip"],
+    }
+    placeholder = PLACEHOLDERS["ip" if host[0].isdigit() else "hostname"]
+    assert json.loads(content["state.json"]) == {
+        "source": f"reached as {placeholder}, named dartboard-pc"
+    }
+    assert "dartboard-pc-pc" not in "".join(content.values())
+    assert content[capture_board.FRAMES] == (
+        '{"type":"state","data":{"from":"dartboard-pc.lan"}}\n'
+    )
+
+
+def test_a_secret_is_found_next_to_a_placeholder():
+    found = {"dartboard": PLACEHOLDERS["hostname"]}
+
+    assert capture_board.leftovers("dartboard-pc", found) == []
+    assert capture_board.leftovers("dartboard-pc and dartboard", found) == [
+        PLACEHOLDERS["hostname"]
+    ]
+    assert capture_board.alternation([]).search("anything") is None
+
+
 def test_nothing_is_written_that_still_holds_a_secret(monkeypatch):
     monkeypatch.setattr(capture_board, "redact", lambda value, found: value)
 

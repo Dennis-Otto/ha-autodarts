@@ -32,7 +32,7 @@ import ipaddress
 import json
 import re
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -145,16 +145,14 @@ def private(address: str) -> bool:
 def redact(value: Any, found: dict[str, str]) -> Any:
     """The value with every secret, at its key or anywhere in a text, and every
     private IPv4 address replaced by its placeholder."""
-    replacements = sorted(
-        (item for item in found.items() if len(item[0]) >= SHORTEST_SECRET),
-        key=lambda item: -len(item[0]),
-    )
+    # One pass over the text, longest secret first, so that a placeholder just
+    # written is never searched again: "dartboard" stays inside "dartboard-pc".
+    anywhere = alternation(secret for secret in found if len(secret) >= SHORTEST_SECRET)
 
     def text(item: str) -> str:
         if item in found:
             return found[item]
-        for secret, replacement in replacements:
-            item = item.replace(secret, replacement)
+        item = anywhere.sub(lambda match: found[match.group()], item)
         return IPV4.sub(
             lambda match: (
                 PLACEHOLDERS["ip"] if private(match.group()) else match.group()
@@ -174,16 +172,32 @@ def redact(value: Any, found: dict[str, str]) -> Any:
     return walk(value)
 
 
+def alternation(texts: Iterable[str]) -> re.Pattern[str]:
+    """A pattern that finds any of the texts, the longest where several start, and
+    nothing without texts."""
+    unique = sorted(set(texts), key=lambda item: (-len(item), item))
+    return re.compile("|".join(map(re.escape, unique)) or "(?!)")
+
+
 def leftovers(content: str, found: dict[str, str]) -> list[str]:
     """What a file to be written still holds of the secrets, by their placeholders."""
-    left = {
-        replacement
+    # Each secret as written in a text, and as JSON writes it, such as a key of
+    # several lines.
+    written = {
+        form: replacement
         for secret, replacement in found.items()
         if len(secret) >= SHORTEST_SECRET
-        # As written in a text, and as JSON writes it, such as a key of several lines.
-        and (
-            secret in content or json.dumps(secret, ensure_ascii=False)[1:-1] in content
-        )
+        for form in (secret, json.dumps(secret, ensure_ascii=False)[1:-1])
+    }
+    # The placeholders are searched along with the secrets, longest first, so that
+    # a secret inside a placeholder, such as "dartboard" in "dartboard-pc", doesn't
+    # count as left.
+    allowed = set(PLACEHOLDERS.values()) | set(found.values())
+    search = alternation([*written, *allowed])
+    left = {
+        written[match]
+        for match in search.findall(content)
+        if match in written and match not in allowed
     }
     if any(private(address) for address in IPV4.findall(content)):
         left.add("a private IPv4 address")

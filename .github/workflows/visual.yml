@@ -26,6 +26,7 @@ on:
       - "!tests/e2e/README.md"
       - "!tests/e2e/accessibility-baseline.toml"
       - tests/fixtures/board_manager/**
+      - "!tests/fixtures/board_manager/README.md"
       - .github/workflows/visual.yml
   workflow_dispatch:
 

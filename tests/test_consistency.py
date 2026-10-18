@@ -581,6 +581,8 @@ def test_the_pictures_are_taken_again_when_the_recorded_board_changes(workflow):
     trigger = yaml.safe_load(path.read_text(encoding="utf-8"))[True]
     (event,) = [event for event in ("push", "pull_request") if event in trigger]
     assert f"{recordings}/**" in trigger[event]["paths"]
+    # Its README alone changes no picture.
+    assert f"!{recordings}/README.md" in trigger[event]["paths"]
 
 
 def test_the_end_to_end_tests_run_the_oldest_supported_home_assistant():
