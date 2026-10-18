@@ -141,7 +141,9 @@ def test_the_header_shows_the_icon_and_the_tab_the_favicon():
     with Image.open(DOCS / theme["favicon"]) as favicon:
         assert favicon.format == "PNG"
         assert favicon.size == (48, 48)
-        assert favicon.mode == "RGBA"
+        # pngquant (docs/branding/README.md) turns it into a palette PNG: what
+        # matters is the transparent corner, not the encoding.
+        assert favicon.convert("RGBA").getchannel("A").getpixel((0, 0)) == 0
 
 
 def test_the_colours_keep_the_switch_between_light_and_dark():
