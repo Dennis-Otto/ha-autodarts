@@ -3,7 +3,8 @@
 AutodartsLocalCoordinator follows the board with its push notifications and
 reconciles them with periodic reads; it frees stuck takeouts, raises the
 repair issues of the board and runs its actions. The training and the games
-run in AutodartsGamesCoordinator, which it extends.
+run in AutodartsGamesCoordinator, which it extends; a dartboard without
+Autodarts plays them without a Board Manager, see AutodartsManualCoordinator.
 """
 
 from __future__ import annotations
@@ -197,12 +198,12 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
     def __init__(
         self,
         hass: HomeAssistant,
-        client: AutodartsLocalClient | None,
+        client: AutodartsLocalClient,
         board_id: str,
         entry: ConfigEntry,
     ) -> None:
         super().__init__(hass, board_id, entry, POLL_INTERVAL, _LOGGER)
-        self._client = client
+        self.client = client
         self._health = CameraHealth()
         self._settings: dict[str, Any] = {}
         self._version: str | None = None
@@ -256,15 +257,6 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         # Resets of a stuck takeout since the last dart on the board.
         self._takeout_resets = 0
 
-    @property
-    def client(self) -> AutodartsLocalClient:
-        """The Board Manager; a dartboard without Autodarts has none to control."""
-        if self._client is None:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN, translation_key="no_board_manager"
-            )
-        return self._client
-
     def _restore(self, saved: object) -> None:
         super()._restore(saved)
         takeout = saved.get("takeout") if isinstance(saved, dict) else None
@@ -284,10 +276,6 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         # Issues of earlier runs are not kept across restarts.
         self._report_generation()
         super().async_start()
-        self._start_realtime()
-
-    @callback
-    def _start_realtime(self) -> None:
         if self._stream_task is None:
             self._stream_task = self._entry.async_create_background_task(
                 self.hass, self._listen(), f"{DOMAIN} local events"
@@ -1274,43 +1262,3 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
                 ) from err
             self._metadata_updated = 0
             await self.async_request_refresh()
-
-
-# A dartboard without Autodarts stands like a board whose detection is stopped:
-# the darts entered by hand make every visit on their own, see ManualDarts.
-MANUAL_STATE = {"running": False, "status": "Manual", "numThrows": 0, "throws": []}
-
-
-class AutodartsManualCoordinator(AutodartsLocalCoordinator):
-    """A dartboard without Autodarts: every dart is entered in Home Assistant.
-
-    The training, the games and the statistics work as they do with a board.
-    There is no Board Manager to read or to control, so nothing is polled.
-    """
-
-    manual_board = True
-
-    def __init__(self, hass: HomeAssistant, board_id: str, entry: ConfigEntry) -> None:
-        super().__init__(hass, None, board_id, entry)
-        self.update_interval = None
-
-    def _restore(self, saved: object) -> None:
-        super()._restore(saved)
-        # Without detection, the darts entered by hand are the only darts.
-        self.games.practice.manual_entry = True
-
-    @callback
-    def _start_realtime(self) -> None:
-        """No board sends anything."""
-
-    async def _async_update_data(self) -> dict[str, Any]:
-        """The board as it stands, from the start: darts only come by hand."""
-        data = dict(self.data or {})
-        if "local" not in data:
-            data["local"] = dict(MANUAL_STATE)
-            self._process(data, {"local"}, "manual")
-        return data
-
-    def diagnostics(self) -> dict[str, Any]:
-        """A board without Autodarts connects to nothing."""
-        return {"manual_board": True}

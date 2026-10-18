@@ -4,7 +4,10 @@ BoardGames knows nothing of Home Assistant. AutodartsGamesCoordinator brings it
 the darts and the actions of Home Assistant, announces the board events it
 returns, saves it after a change, and keeps the timers of the games: the end of
 an idle session, the next match of a tournament, the bot's darts and the
-players' aim models. AutodartsLocalCoordinator adds the Board Manager.
+players' aim models. Two coordinators extend it side by side:
+AutodartsLocalCoordinator adds the Board Manager, and AutodartsManualCoordinator
+is a dartboard without Autodarts, with no transport at all. Code that needs the
+Board Manager asks for AutodartsLocalCoordinator by its type.
 """
 
 from __future__ import annotations

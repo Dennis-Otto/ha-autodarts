@@ -832,9 +832,6 @@
     "not_supported": {
       "message": "Dieses Board unterstützt die Aktion nicht."
     },
-    "no_board_manager": {
-      "message": "Diese Dartscheibe hat kein Autodarts, an ihr gibt es nichts zu steuern."
-    },
     "export_folder": {
       "message": "Der Exportordner {folder} darf nicht versteckt sein, und Home Assistant muss dort Schreiben erlauben: in www, den Medienordnern und den Ordnern aus allowlist_external_dirs."
     },

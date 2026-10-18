@@ -10,8 +10,8 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .entity import AutodartsStoredEntity
+from .games_coordinator import AutodartsGamesCoordinator
 from .journal import JournalEvent
-from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 
 PARALLEL_UPDATES = 0
@@ -44,7 +44,7 @@ class AutodartsTrainingCalendar(AutodartsStoredEntity, CalendarEntity):
     unless a calendar trigger asks for the events of a period.
     """
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "training_calendar")
 
     @property

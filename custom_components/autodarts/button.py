@@ -8,11 +8,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .entity import (
-    AutodartsLocalEntity,
+    AutodartsBoardEntity,
     AutodartsStoredEntity,
     async_track_cameras,
     camera_count,
 )
+from .games_coordinator import AutodartsGamesCoordinator
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
 
@@ -40,34 +41,38 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
-        unsupported = V1_BUTTONS if coordinator.board_manager_2 else ()
-        # A dartboard without Autodarts has nothing to start, reset or calibrate.
-        async_add_entities(
-            [
-                AutodartsButton(coordinator, key)
-                for key in BUTTONS
-                if key not in unsupported and not coordinator.manual_board
-            ]
-            + [
-                AutodartsTrainingReset(coordinator),
-                AutodartsNewLeg(coordinator),
-                AutodartsNewMatch(coordinator),
-                *(
-                    AutodartsTournamentButton(coordinator, action)
-                    for action in ("start", "next_match", "stop")
-                ),
-            ]
+    if (coordinator := entry.runtime_data.local) is None:
+        return
+    entities: list[ButtonEntity] = []
+    # A dartboard without Autodarts has nothing to start, reset or calibrate.
+    board = coordinator if isinstance(coordinator, AutodartsLocalCoordinator) else None
+    if board:
+        unsupported = V1_BUTTONS if board.board_manager_2 else ()
+        entities.extend(
+            AutodartsButton(board, key) for key in BUTTONS if key not in unsupported
         )
+    entities.extend(
+        (
+            AutodartsTrainingReset(coordinator),
+            AutodartsNewLeg(coordinator),
+            AutodartsNewMatch(coordinator),
+            *(
+                AutodartsTournamentButton(coordinator, action)
+                for action in ("start", "next_match", "stop")
+            ),
+        )
+    )
+    async_add_entities(entities)
+    if board:
         async_track_cameras(
             entry,
-            coordinator,
-            partial(AutodartsCameraCalibration, coordinator),
+            board,
+            partial(AutodartsCameraCalibration, board),
             async_add_entities,
         )
 
 
-class AutodartsButton(AutodartsLocalEntity, ButtonEntity):
+class AutodartsButton(AutodartsBoardEntity, ButtonEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator, command: str) -> None:
         super().__init__(coordinator, command)
         self._command = command
@@ -83,7 +88,7 @@ class AutodartsButton(AutodartsLocalEntity, ButtonEntity):
         )
 
 
-class AutodartsCameraCalibration(AutodartsLocalEntity, ButtonEntity):
+class AutodartsCameraCalibration(AutodartsBoardEntity, ButtonEntity):
     _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(self, coordinator: AutodartsLocalCoordinator, index: int) -> None:
@@ -104,7 +109,7 @@ class AutodartsCameraCalibration(AutodartsLocalEntity, ButtonEntity):
 
 
 class AutodartsTrainingReset(AutodartsStoredEntity, ButtonEntity):
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "reset_training")
 
     async def async_press(self) -> None:
@@ -114,7 +119,7 @@ class AutodartsTrainingReset(AutodartsStoredEntity, ButtonEntity):
 class AutodartsNewLeg(AutodartsStoredEntity, ButtonEntity):
     """Start the practice leg again from the full score."""
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_new_leg")
 
     async def async_press(self) -> None:
@@ -124,7 +129,7 @@ class AutodartsNewLeg(AutodartsStoredEntity, ButtonEntity):
 class AutodartsNewMatch(AutodartsStoredEntity, ButtonEntity):
     """Start the practice match again from zero legs and sets."""
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "practice_new_match")
 
     async def async_press(self) -> None:
@@ -134,7 +139,7 @@ class AutodartsNewMatch(AutodartsStoredEntity, ButtonEntity):
 class AutodartsTournamentButton(AutodartsStoredEntity, ButtonEntity):
     """Start a tournament with its settings, start its next match or stop it."""
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, action: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, action: str) -> None:
         super().__init__(coordinator, f"tournament_{action}")
         self._action = action
 

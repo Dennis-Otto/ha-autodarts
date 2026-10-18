@@ -32,8 +32,8 @@ from .bot import valid_level
 from .const import DOMAIN, LANGUAGES
 from .cricket import CRICKET_GAMES
 from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
+from .games_coordinator import AutodartsGamesCoordinator
 from .highlights import async_save_highlight
-from .local_coordinator import AutodartsLocalCoordinator
 from .manual import parse_bed
 from .party import GOLF_HOLES, GOTCHA_TARGETS, MAX_ROUNDS, PARTY_GAMES, WORLD_ORDERS
 from .positions import MAX_DISTANCE
@@ -293,7 +293,7 @@ GENERATE_VOICE_PACK_SCHEMA = vol.Schema(
 
 def _coordinator(
     hass: HomeAssistant, entry_id: str | None
-) -> AutodartsLocalCoordinator:
+) -> AutodartsGamesCoordinator:
     """The board of the given entry, or the only local board there is."""
     if entry_id:
         # Home Assistant explains an unknown, foreign or unloaded entry itself.
@@ -305,7 +305,7 @@ def _coordinator(
             for entry in hass.config_entries.async_entries(DOMAIN)
             if entry.state is ConfigEntryState.LOADED
         ]
-    boards: list[AutodartsLocalCoordinator] = [
+    boards: list[AutodartsGamesCoordinator] = [
         entry.runtime_data.local for entry in entries if entry.runtime_data.local
     ]
     if not boards:

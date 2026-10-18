@@ -832,9 +832,6 @@
     "not_supported": {
       "message": "This board does not support the action."
     },
-    "no_board_manager": {
-      "message": "This dartboard has no Autodarts, so there is nothing on it to control."
-    },
     "export_folder": {
       "message": "The export folder {folder} must not be hidden, and Home Assistant must allow writing to it: www, the media folders and the folders listed in allowlist_external_dirs are allowed."
     },

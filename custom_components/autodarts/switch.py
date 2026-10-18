@@ -11,7 +11,8 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import DOMAIN
-from .entity import AutodartsLocalEntity, AutodartsStoredEntity
+from .entity import AutodartsBoardEntity, AutodartsStoredEntity
+from .games_coordinator import AutodartsGamesCoordinator
 from .local_api import CONFIG_SWITCHES
 from .local_coordinator import AutodartsLocalCoordinator
 from .practice import OPTIONS as PRACTICE_OPTIONS
@@ -26,21 +27,19 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     if coordinator := entry.runtime_data.local:
-        # Board Manager 2 manages its cloud link itself; it offers no toggle.
-        upstream = () if coordinator.board_manager_2 else ("upstream",)
         # A dartboard without Autodarts has no detection, settings or takeouts,
         # and every dart is entered by hand.
-        board: list[SwitchEntity] = (
-            []
-            if coordinator.manual_board
-            else [
+        board: list[SwitchEntity] = []
+        if isinstance(coordinator, AutodartsLocalCoordinator):
+            # Board Manager 2 manages its cloud link itself; it offers no toggle.
+            upstream = () if coordinator.board_manager_2 else ("upstream",)
+            board = [
                 *(
                     AutodartsSwitch(coordinator, key)
                     for key in ("detection", *upstream, *CONFIG_SWITCHES)
                 ),
                 AutodartsStuckTakeoutSwitch(coordinator),
             ]
-        )
         async_add_entities(
             [
                 *board,
@@ -58,7 +57,7 @@ async def async_setup_entry(
         )
 
 
-class AutodartsSwitch(AutodartsLocalEntity, SwitchEntity):
+class AutodartsSwitch(AutodartsBoardEntity, SwitchEntity):
     def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
         super().__init__(coordinator, key)
         self._key = key
@@ -97,7 +96,9 @@ class AutodartsSwitch(AutodartsLocalEntity, SwitchEntity):
         await self._async_set(False)
 
 
-class AutodartsStuckTakeoutSwitch(AutodartsStoredEntity, SwitchEntity):
+class AutodartsStuckTakeoutSwitch(
+    AutodartsStoredEntity[AutodartsLocalCoordinator], SwitchEntity
+):
     """Reset the board when it keeps a takeout without darts, which Board
     Manager 2.0.2 sometimes does."""
 
@@ -120,7 +121,7 @@ class AutodartsStuckTakeoutSwitch(AutodartsStoredEntity, SwitchEntity):
 class AutodartsTrainingSwitch(AutodartsStoredEntity, SwitchEntity):
     """Start or end a training session, or let the first dart start one."""
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, key: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, key: str) -> None:
         super().__init__(coordinator, key)
         self._key = key
         if key == "training_auto_start":
@@ -151,7 +152,7 @@ class AutodartsPracticeSwitch(AutodartsStoredEntity, SwitchEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, option: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, option: str) -> None:
         super().__init__(coordinator, f"practice_{option}")
         self._option = option
 
@@ -177,7 +178,7 @@ class AutodartsAchievementsSwitch(AutodartsStoredEntity, SwitchEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
         super().__init__(coordinator, "achievements_enabled")
 
     @property
@@ -196,7 +197,7 @@ class AutodartsTournamentSwitch(AutodartsStoredEntity, SwitchEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, coordinator: AutodartsLocalCoordinator, option: str) -> None:
+    def __init__(self, coordinator: AutodartsGamesCoordinator, option: str) -> None:
         super().__init__(coordinator, f"tournament_{option}")
         self._option = option
 

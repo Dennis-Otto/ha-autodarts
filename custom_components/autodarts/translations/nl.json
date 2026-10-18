@@ -832,9 +832,6 @@
     "not_supported": {
       "message": "Dit bord ondersteunt deze actie niet."
     },
-    "no_board_manager": {
-      "message": "Dit dartbord heeft geen Autodarts, er valt dus niets aan te sturen."
-    },
     "export_folder": {
       "message": "De exportmap {folder} mag niet verborgen zijn, en Home Assistant moet er schrijven toestaan: www, de mediamappen en de mappen uit allowlist_external_dirs zijn toegestaan."
     },

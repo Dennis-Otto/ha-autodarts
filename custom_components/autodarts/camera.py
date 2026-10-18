@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .entity import AutodartsLocalEntity, async_track_cameras, camera_count
+from .entity import AutodartsBoardEntity, async_track_cameras, camera_count
 from .errors import AutodartsApiError
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
@@ -29,7 +29,8 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data.local
-    if coordinator:
+    # A dartboard without Autodarts has no cameras.
+    if isinstance(coordinator, AutodartsLocalCoordinator):
         async_track_cameras(
             entry,
             coordinator,
@@ -38,13 +39,13 @@ async def async_setup_entry(
         )
 
 
-class AutodartsCamera(AutodartsLocalEntity, Camera):
+class AutodartsCamera(AutodartsBoardEntity, Camera):
     _attr_entity_registry_enabled_default = False
     _attr_translation_key = "board_camera"
 
     def __init__(self, coordinator: AutodartsLocalCoordinator, index: int) -> None:
         Camera.__init__(self)
-        AutodartsLocalEntity.__init__(self, coordinator, f"camera_{index}")
+        AutodartsBoardEntity.__init__(self, coordinator, f"camera_{index}")
         self._attr_translation_key = "board_camera"
         self._attr_translation_placeholders = {"number": str(index + 1)}
         self._attr_extra_state_attributes = {"camera": index + 1}
