@@ -2901,7 +2901,7 @@ def strategy_editor(browser: Browser) -> None:
     form.wait_for(timeout=15000)
     fields = form.evaluate("(element) => element.schema.map((field) => field.name)")
     check(
-        fields == ["device_id", "title", "scoreboard"],
+        fields == ["device_id", "title", "scoreboard", "overlay_view"],
         f"Strategy editor fields {fields}",
     )
     page.keyboard.press("Escape")
@@ -3481,7 +3481,7 @@ def steps(browser: Browser, playwright: Playwright) -> list[Step]:
         Step(
             "scoreboard editor",
             1,
-            lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 9),
+            lambda: editor(browser, "scoreboard", SCOREBOARD_CARDS, ".main", 10),
         ),
         Step("dashboard strategy editor", 1, lambda: strategy_editor(browser)),
         Step("light theme", 1, lambda: light_theme(browser)),
