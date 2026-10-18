@@ -78,7 +78,7 @@ Die Begriffe des Dartsports und dieser Integration, wie sie die Dokumentation, d
 | **Automatisches Dashboard** | Das Dashboard, das die Integration für jedes Board baut | Automatic dashboard |
 | **Highlight-Galerie** | Die Fotos des Blueprints Highlight photo in der Medienansicht | Highlight gallery |
 | **Online-Brücke** | Die optionale Verbindung, die Momente von Online-Matches aus der Browser-Erweiterung Tools for Autodarts nach Home Assistant bringt | Online bridge |
-| **Blueprint** | Eine fertige Automation zum Importieren und Ausfüllen | Blueprint |
+| **Blueprint** | Eine fertige Automation, die mit der Integration kommt, zum Auswählen und Ausfüllen | Blueprint |
 
 ## Schreibweisen
 

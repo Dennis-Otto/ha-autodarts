@@ -167,6 +167,23 @@ def test_an_imported_earlier_version_is_known_by_its_fingerprint():
     assert state(saved, new, [fingerprint(parse_yaml(old))]) is State.OUTDATED
 
 
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        ("min: 2\n", "min: 1\n"),
+        ("- integration: autodarts\n                  domain", "- domain"),
+    ],
+)
+def test_changed_selector_options_of_the_current_version_stay(before, after):
+    """Another range or filter of the current version has its fingerprint, and is
+    still a change of the user."""
+    new = (SHIPPED / "light_show.yaml").read_bytes()
+    old = changed(new.decode(), before, after).encode()
+    versions = json.loads(VERSIONS.read_text(encoding="utf-8"))["light_show.yaml"]
+    assert fingerprint(parse_yaml(old.decode())) in versions
+    assert state(old, new, versions) is State.EDITED
+
+
 def test_the_fingerprint_of_a_version():
     text = """
 blueprint:

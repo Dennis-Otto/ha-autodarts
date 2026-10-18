@@ -160,10 +160,14 @@ def state(old: bytes, new: bytes, versions: list[str]) -> State:
         return State.EDITED
     if not isinstance(data, dict):
         return State.EDITED
-    if _same(data, _release(new)):
+    release = _release(new)
+    if _same(data, release):
         return State.CURRENT
-    if fingerprint(data) in versions:
+    found = fingerprint(data)
+    if found in versions and found != fingerprint(release):
         return State.OUTDATED
+    # The fingerprint of the release itself with other selector options: a change
+    # of the user, such as another range or filter, which stays.
     return State.EDITED
 
 
