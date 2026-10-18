@@ -708,7 +708,9 @@ def test_the_documentation_names_the_oldest_supported_home_assistant():
                     wrong.append(f"{page}:{number}: {match[0]}")
     assert not wrong, (
         f"hacs.json requires Home Assistant {oldest}, but these lines name another "
-        "release as the oldest one; name the release of hacs.json there:\n"
+        "release as the oldest one; name the release of hacs.json there, or, for a "
+        "feature that needs a newer release, write 'since 2026.x' instead of "
+        "'2026.x or newer' or 'ab 2026.x':\n"
         + "\n".join(wrong)
     )
     # The pattern still finds what each language says on its main pages.
