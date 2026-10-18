@@ -17,6 +17,7 @@ description: "Develop the integration: the building blocks of the cards, the tes
 | `tests/` | Unit and integration tests with `pytest-homeassistant-custom-component` |
 | `tests/frontend/` | Node tests of the card logic and of every card element in a browser DOM, including property-based tests with fast-check, and of the translation bot |
 | `tests/e2e/` | Docker end-to-end test, demo instance, browser test and screenshot tool |
+| `tests/fixtures/board_manager/` | [Recorded answers](#recorded-board-manager-answers) of Board Manager 1.0.7, 2.0.0 and 2.0.2, which both doubles of the Board Manager answer like |
 | `docs/` | Documentation and the [website](https://dennis-otto.github.io/ha-autodarts/), each German translation next to its page as `<name>.de.md` |
 | `scripts/` | The checks, the [translation bot](#translation-bot) and the tools for media and diagrams |
 | `.github/` | Workflows, issue forms, the labels in `labels.toml` and the settings of the [issue assistant](#issue-assistant) in `issue-assistant/` |
@@ -111,6 +112,19 @@ BOARD_MANAGER=2 bash tests/e2e/run.sh   # includes discovery by mDNS
 ```
 
 The log shows the seconds of every phase, such as `Scenario phase: resilience (46.3 s)`.
+
+### Recorded Board Manager answers
+
+The unit tests and the end-to-end test each talk to a double of the Board Manager: `tests/local_helpers.py` registers its answers with the HTTP mock of Home Assistant's tests, and `tests/e2e/board_mock.py` serves them in a container of its own. Both answer like the recordings in [`tests/fixtures/board_manager/`](https://github.com/Dennis-Otto/ha-autodarts/blob/main/tests/fixtures/board_manager/README.md): one folder per Board Manager version, 1.0.7, 2.0.0 and 2.0.2, with one file per route the integration reads, the frames of the socket while darts are thrown and taken out, and `capture.json`, which says where the recording comes from. The double of the end-to-end test puts the board ID and keys of the test and the state of the board it simulates over its recording; that of the unit tests answers exactly as recorded, unless a test gives answers of its own.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/board-recordings-dark.png">
+  <img src="images/en/board-recordings-light.png" alt="Recorded Board Manager answers: scripts/capture_board.py records what a real board answers and replaces its ID, its keys and the addresses of its network by placeholders. The recordings of Board Manager 1.0.7, 2.0.0 and 2.0.2 in tests/fixtures/board_manager are what the double of the unit tests and that of the Docker end-to-end test answer. tests/test_board_contract.py checks that both answer every route in the shape of its recording, that the integration reads every recording and that none keeps a secret, and fails when a double drifts." width="480">
+</picture>
+
+`tests/test_board_contract.py` holds both doubles to the recordings. It fails when the double of the end-to-end test answers a route, or sends a frame, with other keys or types than its recording, when the double of the unit tests answers anything else than its recording, when the integration rejects a recording or ignores one of its frames, and when a recording keeps a secret. It also records the double of the end-to-end test with the capture script and compares the result with the recording.
+
+A real board makes a recording with `python scripts/capture_board.py <address of the board PC>`. The script reads every route, records the socket for a minute (`--seconds`, or `--frames` for a number of frames), replaces the board ID, the API key, the TLS key and certificate, the name and address of the board PC and every private IPv4 address by documented placeholders, such as `board-1` and `private-board-api-key`, and writes the folder of the version the board reports. It writes nothing that still holds one of them. The recordings of today are built from the shapes the integration was developed against (`"captured": null`); a capture of a real board replaces them, and a [board compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) asks for one. A new folder needs no change of the tests: every test of the contract takes it up.
 
 ## Demo instance and browser test
 
@@ -228,7 +242,7 @@ Each job of a group lists the seconds of its sections in its summary, and the lo
 
 ### Screenshot bot
 
-The **Screenshot bot** workflow (`.github/workflows/screenshots.yml`) keeps the images current. After a change of the cards (`custom_components/autodarts/frontend/`) or of the screenshot tool (`tests/e2e/`, except the browser test and the end-to-end test) reaches `main`, every Thursday and on demand, it renders every image of both languages anew, in [groups side by side](#groups-side-by-side), and compares them pixel by pixel with the committed ones. An image whose pixels stayed the same keeps its file. Only the rendered images go over those of `main`: the diagrams in `docs/images`, which `main` may have anew by the time the images are rendered, stay as they are, and an image that neither the tool nor a diagram in `docs/diagrams` makes any more goes.
+The **Screenshot bot** workflow (`.github/workflows/screenshots.yml`) keeps the images current. After a change of the cards (`custom_components/autodarts/frontend/`) or of the screenshot tool (`tests/e2e/`, except the browser test and the end-to-end test, and the [recorded answers](#recorded-board-manager-answers) of its simulated Board Manager) reaches `main`, every Thursday and on demand, it renders every image of both languages anew, in [groups side by side](#groups-side-by-side), and compares them pixel by pixel with the committed ones. An image whose pixels stayed the same keeps its file. Only the rendered images go over those of `main`: the diagrams in `docs/images`, which `main` may have anew by the time the images are rendered, stay as they are, and an image that neither the tool nor a diagram in `docs/diagrams` makes any more goes.
 
 A release starts the bot as well. It writes its version into `custom_components/autodarts/manifest.json`, and the integration page in `online-bridge.png` shows the major version of it ([a fixed version](#the-same-images-in-every-run)): a release of the same major version renders every image as it was, a new major version, such as 2.0.0, changes that image. The maintainer or the release app merges the release pull request, so its push to `main` starts workflows like any other; only a merge with the `GITHUB_TOKEN` of a workflow would start none. So the image follows a new major version within the hour rather than on Thursday, and the visual check of later pull requests doesn't report it as changed for days.
 
@@ -238,7 +252,7 @@ When any image changed, the bot opens one pull request, *docs: update the screen
 
 ### Visual check
 
-The **Visual check** workflow (`.github/workflows/visual.yml`) renders the images the same way for every pull request that changes the cards or the screenshot tool, and compares them with the committed ones. It only reports, because an intended change reaches `docs/images` through the screenshot bot after the merge:
+The **Visual check** workflow (`.github/workflows/visual.yml`) renders the images the same way for every pull request that changes the cards, the screenshot tool or the recorded answers of its simulated Board Manager, and compares them with the committed ones. It only reports, because an intended change reaches `docs/images` through the screenshot bot after the merge:
 
 - the summary of the job *compare* of each language lists every image that looks different, with the share of its pixels that changed;
 - the artifacts `visual-en` and `visual-de` keep every changed image before and after, and a picture of the difference: the new image in grey, with every changed pixel in red;
@@ -360,6 +374,7 @@ test jobs only when one of the files is something the tests run or mount:
 | `custom_components/` | the integration, mounted into Home Assistant |
 | `blueprints/` | the blueprints, which the scenario and the demo use |
 | `tests/e2e/` | the scenario, the demo, the browser test and the simulated Board Manager |
+| `tests/fixtures/board_manager/` | the [recorded answers](#recorded-board-manager-answers) that the simulated Board Manager answers like |
 | `package.json`, `package-lock.json` | axe-core of the accessibility check |
 | `.github/workflows/e2e.yml` | the workflow itself |
 

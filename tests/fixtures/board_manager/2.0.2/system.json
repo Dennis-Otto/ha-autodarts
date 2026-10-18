@@ -1,0 +1,84 @@
+{
+  "blocker": "none",
+  "calibrated": true,
+  "camState": {
+    "isOpened": true,
+    "isRunning": true
+  },
+  "camStats": [
+    {
+      "fps": 29.9,
+      "id": 0,
+      "resolution": {
+        "height": 1024,
+        "width": 1280
+      }
+    },
+    {
+      "fps": 30,
+      "id": 1,
+      "resolution": {
+        "height": 1024,
+        "width": 1280
+      }
+    },
+    {
+      "fps": 29.8,
+      "id": 2,
+      "resolution": {
+        "height": 1024,
+        "width": 1280
+      }
+    }
+  ],
+  "config": {
+    "auth": {
+      "board_id": "board-1",
+      "api_key": "private-board-api-key"
+    },
+    "cam": {
+      "cams": [
+        "/dev/video0",
+        "/dev/video2",
+        "/dev/video4"
+      ],
+      "width": 1280,
+      "height": 1024,
+      "fps": 30,
+      "auto_calibrate_on_start": true,
+      "auto_calibrate": true,
+      "auto_distortion": false
+    },
+    "motion": {
+      "standby_minutes": 15,
+      "sensitive_calibration_setting": 123
+    },
+    "host": {
+      "port": "3180",
+      "tls_key": "private-tls-key",
+      "tls_cert": ""
+    }
+  },
+  "link": "connected",
+  "motion": {
+    "isStable": true,
+    "isHand": false,
+    "isTakeoutPartial": false,
+    "isTakeoutFull": false,
+    "camStates": []
+  },
+  "state": {
+    "connected": true,
+    "event": "Stopped",
+    "numThrows": 0,
+    "running": false
+  },
+  "stats": {
+    "cpuPercent": 12.5,
+    "fps": 12.5,
+    "memoryBytes": 314363904
+  },
+  "takenOver": false,
+  "updateAvailable": "",
+  "version": "2.0.2"
+}

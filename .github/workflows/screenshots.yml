@@ -40,6 +40,7 @@ on:
       - "!tests/e2e/configuration.yaml"
       - "!tests/e2e/README.md"
       - "!tests/e2e/accessibility-baseline.toml"
+      - tests/fixtures/board_manager/**
       - tests/demo_timeline.py
       - scripts/record_demo.py
       - .github/workflows/screenshots.yml

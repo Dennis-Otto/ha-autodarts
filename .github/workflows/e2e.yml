@@ -67,9 +67,10 @@ jobs:
           CHANGED: ${{ github.event.pull_request.changed_files }}
         run: |
           # What the tests run or mount: the integration, the blueprints, the tests
-          # with the demo and the browser test, axe-core of the npm packages, and this
-          # workflow. tests/test_consistency.py keeps it in step with the mounts.
-          tested='^(custom_components/|blueprints/|tests/e2e/|package(-lock)?\.json$|\.github/workflows/e2e\.yml$)'
+          # with the demo and the browser test, the recorded answers of the Board
+          # Manager, axe-core of the npm packages, and this workflow.
+          # tests/test_consistency.py keeps it in step with the mounts.
+          tested='^(custom_components/|blueprints/|tests/e2e/|tests/fixtures/board_manager/|package(-lock)?\.json$|\.github/workflows/e2e\.yml$)'
           # What the live demo plays: the cards, the page of the website with its
           # branding and hook, its browser test and this workflow. A pull request that
           # changes only these, such as one of the screenshot bot with a new recording,
