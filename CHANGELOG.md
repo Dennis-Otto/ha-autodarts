@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.16.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.15.0...v1.16.0) (2026-10-18)
+
 ### New
 
 - **Random Cricket and Hidden Cricket, as on Scolia, Granboard and Dartsmind:** two more Cricket games for one to four players or two teams, also against the bot and in tournaments. Random Cricket plays six numbers of 1 to 20 and the bull, drawn anew for every leg; Hidden Cricket keeps them hidden, as question marks on the chalkboard, until a dart finds one, and then shows it to everybody. Marks, points and the win follow the rules of Cricket. The numbers stay the same through an undone visit and a restart of Home Assistant, the scoreboard's caller names them, and the bot searches for the hidden ones. Start them from the new game screen, by voice or with `start_game` ([Random Cricket](docs/games.md#random-cricket), [Hidden Cricket](docs/games.md#hidden-cricket), #361, #364).
