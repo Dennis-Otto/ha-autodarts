@@ -344,7 +344,7 @@ Die Blueprints sind auf Englisch beschriftet. Die Caller und der Wochenbericht s
 | Autodarts Desktop unter Windows und anderen Systemen | Noch nicht getestet | – |
 | Winmau-Autodarts-Geräte wie Autodarts X | Noch nicht getestet | – |
 | Kameras | Jede Anzahl, die der Board Manager unterstützt | 3 |
-| Home Assistant | ab 2026.8 | 2026.8.0 und 2026.9.4 |
+| Home Assistant | ab 2026.8 ([warum](decisions/0022-home-assistant-2026-8-as-the-oldest-release.md), auf Englisch) | 2026.8.0 und 2026.9.4 |
 
 Jede Board-Hardware, auf der der Autodarts Board Manager läuft, funktioniert, weil die Integration mit dem Board Manager spricht, nicht mit den Kameras. Einträge „laut Spielerbericht“ hat ein Spieler an seinem eigenen Board getestet, nicht das Projekt.
 
