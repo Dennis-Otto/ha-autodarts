@@ -1445,7 +1445,7 @@ def tournament_groups(page: Page) -> None:
         32,
         "!!r.querySelector('.groups')",
         # The eight tables, three side by side.
-        1100,
+        960,
     )
 
 
@@ -1460,7 +1460,7 @@ def tournament_double(page: Page) -> None:
         24,
         "!!r.querySelector('.losers-label')",
         # The 16 matches of the winners' first round and the losers' bracket below.
-        2400,
+        2520,
     )
 
 
@@ -1929,7 +1929,7 @@ def heatmap_animation(page: Page) -> None:
     show(
         "button[data-source='Alex']",
         "button[data-source=Alex][aria-pressed=true]",
-        2400,
+        2520,
     )
     show("button[data-mode='beds']", "button[data-mode=beds][aria-pressed=true]", 2400)
     # The first frame only prepared the session; the animation starts with its beds.
