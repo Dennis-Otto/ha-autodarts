@@ -4,12 +4,14 @@ Reddit, Discord, forums and video editors do not all show animated WebP. This
 script reads the animations from `docs/images/<language>/`, splits them into
 frames with Pillow and writes `docs/media/<name>-<language>.mp4` and `.gif` with
 ffmpeg. Run it after `tests/e2e/screenshots.sh`, which renders the animations;
-it needs Pillow and ffmpeg.
+it needs Pillow and ffmpeg. The tests read the length of each video with
+`mp4_duration`, without ffmpeg, so they check the videos on every machine.
 """
 
 from __future__ import annotations
 
 import os
+import struct
 import subprocess
 import sys
 import tempfile
@@ -69,6 +71,48 @@ def schedule(durations: list[int], fps: int = FPS) -> list[int]:
         counts.append(end - shown)
         shown = end
     return counts
+
+
+def _box(data: bytes, kind: bytes) -> bytes:
+    """The content of the first box of a kind among the MP4 boxes of data.
+
+    A box starts with its size in 32 bits and its type; the size 1 puts the real
+    size in the 64 bits after the type, and the size 0 lets the box reach to the
+    end, as the last box of a file may.
+    """
+    offset = 0
+    while offset + 8 <= len(data):
+        size, found = struct.unpack_from(">I4s", data, offset)
+        start = offset + 8
+        if size == 1 and start + 8 <= len(data):
+            (size,) = struct.unpack_from(">Q", data, start)
+            start += 8
+        elif size == 0:
+            size = len(data) - offset
+        if size < start - offset:
+            # Shorter than its own size and type: the file is broken here.
+            break
+        if found == kind:
+            return data[start : offset + size]
+        offset += size
+    raise ValueError(f"not an MP4 video: no {kind.decode()} box")
+
+
+def mp4_duration(path: Path) -> float:
+    """Seconds of an MP4 video, as the header of its movie, the box mvhd, says.
+
+    The header of version 0 has the times in 32 bits, that of version 1 in 64:
+    after the version and the flags come the times of creation and of the last
+    change, then the timescale, the units of a second, and the duration in them.
+    """
+    header = _box(_box(path.read_bytes(), b"moov"), b"mvhd")
+    layout, offset = (">IQ", 20) if header[:1] == bytes([1]) else (">II", 12)
+    if len(header) < offset + struct.calcsize(layout):
+        raise ValueError("not an MP4 video: the movie header is too short")
+    timescale, duration = struct.unpack_from(layout, header, offset)
+    if not timescale:
+        raise ValueError("not an MP4 video: the movie header has no timescale")
+    return duration / timescale
 
 
 def convert(source: Path, stem: Path) -> None:

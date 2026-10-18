@@ -19,6 +19,8 @@ from homeassistant.helpers.intent import IntentResponseErrorCode
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import async_capture_events
 
+from custom_components.autodarts.const import LANGUAGES
+
 from .local_helpers import automate_all
 from .test_manual_board import setup_manual
 
@@ -1020,6 +1022,10 @@ def actions(calls) -> list[tuple[str, dict]]:
         for call in calls
         if call.data["domain"] == "autodarts"
     ]
+
+
+def test_the_voice_blueprints_speak_every_language_of_the_integration():
+    assert list(SPOKEN) == list(LANGUAGES)
 
 
 @pytest.mark.parametrize("language", SPOKEN)

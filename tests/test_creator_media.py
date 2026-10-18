@@ -1,8 +1,7 @@
 """Keep the videos of the creator kit in step with the animations they come from."""
 
 import importlib.util
-import shutil
-import subprocess
+import struct
 from pathlib import Path
 
 import pytest
@@ -81,12 +80,74 @@ def test_every_gif_is_as_long_as_its_animation(file):
     assert length / 1000 == pytest.approx(animation_length(file), abs=0.1)
 
 
-@pytest.mark.skipif(shutil.which("ffprobe") is None, reason="needs ffprobe")
 @pytest.mark.parametrize("file", [file for file in FILES if file.endswith(".mp4")])
 def test_every_video_is_as_long_as_its_animation(file):
-    probe = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "csv=p=0", str(media.MEDIA / file)],
-        capture_output=True, text=True, check=True,
-    )  # fmt: skip
-    assert float(probe.stdout) == pytest.approx(animation_length(file), abs=0.1)
+    length = media.mp4_duration(media.MEDIA / file)
+    assert length == pytest.approx(animation_length(file), abs=0.1)
+
+
+def box(kind: bytes, content: bytes, *, large: bool = False) -> bytes:
+    """An MP4 box: its size, its type and its content, with a 64-bit size if large."""
+    if large:
+        return struct.pack(">I4sQ", 1, kind, 16 + len(content)) + content
+    return struct.pack(">I4s", 8 + len(content), kind) + content
+
+
+def movie_header(timescale: int, duration: int, version: int = 0) -> bytes:
+    """The box mvhd of a movie, as ffmpeg writes it, up to the duration."""
+    if version:
+        times = struct.pack(">QQIQ", 0, 0, timescale, duration)
+    else:
+        times = struct.pack(">IIII", 0, 0, timescale, duration)
+    # The version, the flags, the times and the rest of the header: rate, volume, …
+    return box(b"mvhd", bytes([version, 0, 0, 0]) + times + bytes(80))
+
+
+def test_the_duration_comes_from_the_header_of_the_movie(tmp_path):
+    video = tmp_path / "video.mp4"
+    # ftyp, free and the media first, as without +faststart; then the movie.
+    track = box(b"trak", box(b"tkhd", bytes(84)))
+    video.write_bytes(
+        box(b"ftyp", b"isom" + bytes(4))
+        + box(b"free", b"")
+        + box(b"mdat", bytes(64), large=True)
+        + box(b"moov", track + movie_header(1000, 4250))
+    )
+    assert media.mp4_duration(video) == 4.25
+
+
+def test_a_long_movie_has_a_header_of_version_one(tmp_path):
+    video = tmp_path / "video.mp4"
+    # Ten hours at 90 kHz no longer fit in 32 bits.
+    video.write_bytes(box(b"moov", movie_header(90_000, 36_000 * 90_000, version=1)))
+    assert media.mp4_duration(video) == 36_000
+
+
+def test_a_last_box_of_size_zero_reaches_to_the_end_of_the_file(tmp_path):
+    video = tmp_path / "video.mp4"
+    movie = box(b"moov", movie_header(600, 1500))
+    video.write_bytes(box(b"ftyp", b"isom") + bytes(4) + movie[4:])
+    assert media.mp4_duration(video) == 2.5
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        pytest.param(box(b"ftyp", b"isom"), id="no movie"),
+        pytest.param(box(b"moov", box(b"trak", b"")), id="no header"),
+        pytest.param(struct.pack(">I4s", 4, b"moov") + bytes(8), id="broken size"),
+        pytest.param(struct.pack(">I4s", 1, b"moov") + bytes(4), id="cut-off size"),
+        pytest.param(box(b"moov", box(b"mvhd", bytes(16))), id="short header"),
+        pytest.param(
+            box(b"moov", box(b"mvhd", bytes([1, 0, 0, 0]) + bytes(20))),
+            id="short header of version one",
+        ),
+        pytest.param(box(b"moov", movie_header(0, 100)), id="no timescale"),
+        pytest.param(b"", id="empty"),
+    ],
+)
+def test_a_file_without_a_movie_header_is_no_video(tmp_path, content):
+    video = tmp_path / "video.mp4"
+    video.write_bytes(content)
+    with pytest.raises(ValueError, match="not an MP4 video"):
+        media.mp4_duration(video)

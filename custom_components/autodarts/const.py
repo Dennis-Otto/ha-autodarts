@@ -4,6 +4,11 @@ from typing import Final
 
 DOMAIN: Final = "autodarts"
 
+# The languages of the integration: its translations and the texts of the cards,
+# the words of the calendar, of the highlight gallery and of the voice packs, and
+# the names of the games that a voice assistant understands.
+LANGUAGES: Final = ("en", "de", "es", "fr", "nl")
+
 DEFAULT_PORT: Final = 3180
 DEFAULT_SCAN_INTERVAL: Final = 5  # seconds, cloud polling during a match
 IDLE_SCAN_INTERVAL: Final = 60  # seconds, cloud polling without a match
