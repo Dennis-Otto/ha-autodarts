@@ -33,7 +33,7 @@ Autodarts for Home Assistant is a free, open-source integration that connects an
 | Name | Autodarts for Home Assistant (`ha-autodarts`) |
 | Price | Free, open source under the MIT license |
 | Connection | Local and in real time with the Board Manager on the board PC; no Autodarts account, no cloud |
-| Games | X01 from 101 to 1001, four Cricket games, nine party games and eight training games |
+| Games | X01 from 101 to 1001, six Cricket games, nine party games and eight training games |
 | Play | Up to four players or two teams of two, handicap start scores, a bot from level 20 to 120, tournaments of three to eight players |
 | Scoreboard | A full-screen view for a tablet or TV, with the new game screen, dart corrections, a caller and idle mode |
 | Statistics | Personal bests, heatmaps of the real dart positions, trends, achievements, a leaderboard, a weekly report and exports |
@@ -143,7 +143,7 @@ Autodarts for Home Assistant: your dartboard in your smart home, with a scoreboa
 I play on an Autodarts board, and I wanted the whole game in Home Assistant, not just the last score. I couldn't find a complete solution, so I built one in my spare time: **Autodarts for Home Assistant**, free and open source under the MIT license.
 
 - **Local and in real time.** It talks to the Board Manager on the board PC in your network: no Autodarts account, no cloud, nothing leaves your home.
-- **A dart machine at home.** X01, four Cricket games, nine party and eight training games, a bot from level 20 to 120 and tournaments, on a full-screen scoreboard for a tablet or TV, with a caller.
+- **A dart machine at home.** X01, six Cricket games, nine party and eight training games, a bot from level 20 to 120 and tournaments, on a full-screen scoreboard for a tablet or TV, with a caller.
 - **Every dart for your automations.** Events for every dart, visit, bust, leg and match, seven dashboard cards and fourteen blueprints, from a light show on a 180 to a weekly report. Statistics with heatmaps stay in your Home Assistant.
 
 **Try it first:** the [live demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html) plays the cards in your browser, with nothing to install. No Autodarts board? It also counts darts entered on a keypad.
@@ -191,7 +191,7 @@ I built a free scoreboard, bot and stats for Autodarts boards that run at home, 
 ```markdown title="Post"
 I play on an Autodarts board, and in my spare time I built a free, open-source add-on that turns it into a dart machine at home. It runs in Home Assistant, free smart home software for a Raspberry Pi or a mini PC, and talks to the board PC in your network, without an Autodarts account.
 
-- **Play:** X01 from 101 to 1001 with double or master out, four Cricket games, party games such as Shanghai and Killer, training games such as Bob's 27, a bot from level 20 to 120 and tournaments of three to eight players.
+- **Play:** X01 from 101 to 1001 with double or master out, six Cricket games, party games such as Shanghai and Killer, training games such as Bob's 27, a bot from level 20 to 120 and tournaments of three to eight players.
 - **At the board:** a full-screen scoreboard for a tablet or TV with checkout routes, a caller and confetti on a 180.
 - **Get better:** averages, first 9 and checkout rate per player, heatmaps of where your darts really land, and a map of where you should aim, from your own spread.
 

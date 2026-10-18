@@ -2,8 +2,9 @@
 
 The bot aims like a player: in X01 at the treble 20 to score, along the
 checkout route when it can finish, and at the setup shot when it cannot; in
-the Cricket games it closes numbers and scores where it pays, and in Wild
-Mouse also doubles, triples and three in a bed. Its darts land
+the Cricket games it closes numbers and scores where it pays, in Wild Mouse
+also doubles, triples and three in a bed, and in Hidden Cricket it searches
+for the numbers that do not show yet. Its darts land
 with a Gaussian scatter in millimetres around the aim point. In X01, the
 scatter of a level is calibrated so that the bot's 3-dart average in legs of
 501 with double out matches the level; in the Cricket games, so that its marks
@@ -14,6 +15,7 @@ from __future__ import annotations
 
 import random
 from bisect import bisect_left
+from collections.abc import Sequence
 from typing import Any
 
 from .board import RADIUS_MM, aim_point, bed_name, segment_at, top_bed
@@ -26,9 +28,12 @@ from .checkout import (
     setup,
 )
 from .cricket import (
+    BULL,
     CRICKET_NUMBERS,
+    HIDDEN_CRICKET,
     MARKS_TO_CLOSE,
     WILD_MOUSE,
+    by_value,
     play_visit,
     wild_mouse_bed,
     wild_mouse_order,
@@ -236,6 +241,35 @@ def cricket_aim(
     return top_bed(numbers[open_slots[0] if open_slots else 0])
 
 
+def hidden_cricket_aim(
+    marks: list[int],
+    points: int,
+    others_marks: list[list[int]],
+    others_points: list[int],
+    numbers: Sequence[int | None],
+    darts: int,
+) -> str:
+    """Hidden Cricket, where None stands for a number that does not show yet:
+    the bot plays the numbers that show as in Cricket, highest first. Once it
+    has closed all of them but the bull while numbers are still hidden, it
+    searches: the treble of a number that does not show, another one with every
+    dart of the leg, so that it comes round to every number in turn."""
+    slots = by_value(numbers)
+    hidden = None in numbers
+    if hidden and all(
+        marks[slot] >= MARKS_TO_CLOSE for slot in slots if numbers[slot] != BULL
+    ):
+        candidates = sorted(set(range(1, 21)).difference(numbers), reverse=True)
+        return top_bed(candidates[darts % len(candidates)])
+    return cricket_aim(
+        [marks[slot] for slot in slots],
+        points,
+        [[other[slot] for slot in slots] for other in others_marks],
+        others_points,
+        tuple(int(numbers[slot] or 0) for slot in slots),
+    )
+
+
 def _wild_mouse_bed(
     slot: int,
     marks: list[int],
@@ -321,6 +355,15 @@ def aim(snapshot: dict[str, Any]) -> str:
             for score in scores
             if score["player"] != player and (team is None or score.get("team") != team)
         ]
+        if snapshot["game"] == HIDDEN_CRICKET:
+            return hidden_cricket_aim(
+                own["marks"],
+                own["points"],
+                [score["marks"] for score in others],
+                [score["points"] for score in others],
+                numbers,
+                snapshot["darts"],
+            )
         if snapshot["game"] == WILD_MOUSE:
             return wild_mouse_aim(
                 own["marks"],

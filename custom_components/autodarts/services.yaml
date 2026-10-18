@@ -35,6 +35,8 @@ start_game:
             - cut_throat
             - tactics
             - wild_mouse
+            - random_cricket
+            - hidden_cricket
             - shanghai
             - halve_it
             - killer
@@ -379,6 +381,8 @@ start_tournament:
             - cut_throat
             - tactics
             - wild_mouse
+            - random_cricket
+            - hidden_cricket
     legs:
       required: false
       selector:

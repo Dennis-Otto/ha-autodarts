@@ -174,7 +174,7 @@ Mit `caller: true` sagt der Bildschirm am Board das Spiel selbst an, über den L
 Er sagt nur an, was zählt, in der Sprache des Benutzers am Bildschirm: Deutsch, Englisch, Niederländisch, Französisch oder Spanisch.
 
 - **X01:** die Punkte einer Aufnahme, „Überworfen“ beim Überwerfen, „Keine Punkte“ vor dem öffnenden Double, „du brauchst 81“, sobald der Rest checkbar ist, „stell dir die 32“, wenn nur ein Stellwurf möglich ist, den Game shot eines Legs und des Matches und eine Fanfare bei einer 180. Der Bot heißt *Bot*.
-- **Cricket-Spiele:** die Marks einer Aufnahme, etwa „5 Marks“. **Shanghai**, **Halve-It** und **Bermuda:** die Punkte auf das Ziel; **Count-Up** und **Round the World:** die Punkte der Aufnahme; **Gotcha:** die Punkte der Aufnahme oder „Überworfen“ für eine Aufnahme, die zu weit ging; **Baseball:** die Runs.
+- **Cricket-Spiele:** die Marks einer Aufnahme, etwa „5 Marks“; bei [Random Cricket](games.de.md#random-cricket) die Zahlen jedes Legs, wenn es beginnt, etwa „Die Zahlen 18, 14, 11, 7, 5, 2 und das Bull“, und bei [Hidden Cricket](games.de.md#hidden-cricket) eine Zahl, sobald ein Dart sie aufdeckt, etwa „Die 17 ist im Spiel“. **Shanghai**, **Halve-It** und **Bermuda:** die Punkte auf das Ziel; **Count-Up** und **Round the World:** die Punkte der Aufnahme; **Gotcha:** die Punkte der Aufnahme oder „Überworfen“ für eine Aufnahme, die zu weit ging; **Baseball:** die Runs.
 - **Checkout-Training, 121-Checkout und Catch 40:** was der nächste Versuch braucht.
 - **Turniere:** jedes Match beim Start, „Nächstes Match: Alex gegen Sam“, und den Sieger des Turniers.
 - Darts nach dem Überwerfen oder einem Game shot werden nicht angesagt. Killer, Golf und die anderen Trainingsspiele bekommen keine Punktansagen.

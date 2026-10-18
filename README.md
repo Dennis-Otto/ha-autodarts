@@ -46,7 +46,7 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 ## Why
 
 - **Instant and local.** Darts appear in Home Assistant a fraction of a second after they land, straight from the Board Manager in your network. No account, no cloud, no client ID.
-- **A whole darts evening.** X01 from 101 to 1001, four Cricket games, nine party games and eight training games, alone, as a match of up to four, a party game of up to eight or a tournament of up to eight, with a scoreboard for the tablet at the board.
+- **A whole darts evening.** X01 from 101 to 1001, six Cricket games, nine party games and eight training games, alone, as a match of up to four, a party game of up to eight or a tournament of up to eight, with a scoreboard for the tablet at the board.
 - **Your progress in numbers.** Averages, heatmaps of the real dart positions, where to aim with your own spread, personal bests, badges, weekly trends, player profiles, a weekly report and a year of history, all kept in your home.
 - **Your home plays along.** Lights for a 180, a caller on your speakers, the board light for the takeout, a photo of your best checkout.
 
@@ -57,7 +57,7 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 ### Play
 
 - X01 from 101 to 1001 with straight, double and master in and out, the 50/50 bull, a round limit and the checkout route after every dart
-- Cricket, Cut-Throat Cricket, Tactics and Wild Mouse on a chalkboard
+- Cricket, Cut-Throat Cricket, Tactics, Wild Mouse, Random Cricket and Hidden Cricket on a chalkboard
 - Party games for up to eight: Shanghai, Halve-It, Killer, Golf, Baseball, Count-Up, Bermuda, Round the World and Gotcha
 - Tournaments of three to eight players: a round robin with a table or a knockout with a bracket
 
@@ -79,6 +79,7 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 ### Like a dart machine
 
 - Wild Mouse, also known as Minnesota Cricket, with doubles, triples and three in a bed
+- Random Cricket with new numbers every leg, and Hidden Cricket, whose numbers show only once a dart finds them
 - Aim hints on the chalkboard: green where a dart scores, amber what to close, and a dart that counted nothing struck through
 - Confetti and a golden glow for a 180, a game shot and the match, a glow for a ton
 - How to play every game on the new game screen, for guests who never played it, and party games for up to eight players
