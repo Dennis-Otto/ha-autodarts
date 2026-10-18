@@ -128,7 +128,7 @@ class AutodartsTrainingSwitch(AutodartsStoredEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        training = self.coordinator.training
+        training = self.coordinator.games.training
         return (
             training.active if self._key == "training_session" else training.auto_start
         )
@@ -157,11 +157,11 @@ class AutodartsPracticeSwitch(AutodartsStoredEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        return self.coordinator.practice.setting(self._option)
+        return self.coordinator.games.practice.setting(self._option)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         if self._option in ("double_in", "double_out") and (
-            self.coordinator.practice.unwinnable(rules={self._option: True})
+            self.coordinator.games.practice.unwinnable(rules={self._option: True})
         ):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="unwinnable_start"
@@ -182,7 +182,7 @@ class AutodartsAchievementsSwitch(AutodartsStoredEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        return self.coordinator.progress.enabled
+        return self.coordinator.games.progress.enabled
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_achievements(True)
@@ -202,7 +202,7 @@ class AutodartsTournamentSwitch(AutodartsStoredEntity, SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        return bool(getattr(self.coordinator.tournament.setup, self._option))
+        return bool(getattr(self.coordinator.games.tournament.setup, self._option))
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_tournament(**{self._option: True})

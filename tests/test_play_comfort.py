@@ -164,9 +164,9 @@ async def test_darts_entered_by_hand_need_the_switch(hass, aioclient_mock):
     await act(hass, "next_player")
     assert kinds(events) == ["visit_completed", "turn_changed"]
     assert events[1][1]["name"] == "Lea" and events[1][1]["source"] == "manual"
-    training = coordinator.training.snapshot()
+    training = coordinator.games.training.snapshot()
     assert training["darts"] == 3 and training["manual_darts"] == 3
-    assert coordinator.records.darts_today == 3
+    assert coordinator.games.records.darts_today == 3
 
 
 async def test_a_dart_entered_by_hand_can_say_where_it_is(hass, aioclient_mock):
@@ -182,7 +182,7 @@ async def test_a_dart_entered_by_hand_can_say_where_it_is(hass, aioclient_mock):
         ("BULL", 0.01, -0.02),
     ]
     assert state(hass, "sensor", "practice_remaining") == "191"
-    assert coordinator.manual.extras[1].position == (0.01, -0.02)
+    assert coordinator.games.manual.extras[1].position == (0.01, -0.02)
 
 
 async def test_a_dart_moved_in_its_bed_is_drawn_at_its_new_spot(hass, aioclient_mock):
@@ -217,7 +217,7 @@ async def test_manual_entry_without_the_detection(hass, aioclient_mock):
     assert state(hass, "sensor", "practice_remaining") == "241"
     await act(hass, "next_player")
     assert "visit_completed" in kinds(events)
-    assert coordinator.practice.players[0].remaining == 241
+    assert coordinator.games.practice.players[0].remaining == 241
 
 
 async def test_the_next_player_while_darts_are_in_the_board(hass, aioclient_mock):
@@ -235,7 +235,7 @@ async def test_the_next_player_while_darts_are_in_the_board(hass, aioclient_mock
     await hass.async_block_till_done()
     assert events[0][1]["dart_index"] == 1 and events[0][1]["name"] == "Lea"
     assert [dart["segment"] for dart in throws(hass)] == ["S20"]
-    assert coordinator.practice.snapshot()["scores"][1]["remaining"] == 281
+    assert coordinator.games.practice.snapshot()["scores"][1]["remaining"] == 281
     # Passing without darts: the turn goes on.
     receive(coordinator, board())
     await hass.async_block_till_done()
@@ -249,7 +249,7 @@ async def test_a_party_game_passes_without_darts_but_not_while_choosing(
     hass, aioclient_mock
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await start(hass, "golf", players=["Alex", "Sam"])
     # A visit without darts: three misses, five strokes in Golf.
     await act(hass, "next_player")
@@ -268,9 +268,9 @@ async def test_undo_the_last_visit_to_correct_it(hass, aioclient_mock):
     # Alex's 180 reads as 140, and the darts are pulled before anybody notices.
     receive(coordinator, board(T20), board(T20, S20), board(T20, S20, T20), board())
     await hass.async_block_till_done()
-    assert coordinator.practice.players[0].remaining == 361
+    assert coordinator.games.practice.players[0].remaining == 361
     assert state(hass, "sensor", "training_points") == "140"
-    assert coordinator.practice.current == 1
+    assert coordinator.games.practice.current == 1
     # The cards offer the undo while it is possible.
     assert undoable(hass) is True
     events.clear()
@@ -288,7 +288,7 @@ async def test_undo_the_last_visit_to_correct_it(hass, aioclient_mock):
         },
     )
     # Alex is at the board again with the darts of the visit.
-    assert coordinator.practice.current == 0
+    assert coordinator.games.practice.current == 0
     assert state(hass, "sensor", "practice_remaining") == "361"
     assert [dart["segment"] for dart in throws(hass)] == ["T20", "S20", "T20"]
     assert state(hass, "sensor", "training_points") == "140"
@@ -300,8 +300,8 @@ async def test_undo_the_last_visit_to_correct_it(hass, aioclient_mock):
     events.clear()
     await act(hass, "next_player")
     assert dict(events)["visit_completed"]["score"] == 180
-    assert coordinator.practice.players[0].remaining == 321
-    training = coordinator.training.snapshot()
+    assert coordinator.games.practice.players[0].remaining == 321
+    training = coordinator.games.training.snapshot()
     assert training["points"] == 180 and training["scores_180"] == 1
     assert training["visits"] == 1
 
@@ -340,9 +340,9 @@ async def test_a_new_game_ends_a_visit_entered_by_hand(hass, aioclient_mock):
     await start(hass, "501")
     # The dart counts for the training, not for the new game.
     assert kinds(events) == ["visit_completed"]
-    assert coordinator.practice.snapshot()["visit"] == []
+    assert coordinator.games.practice.snapshot()["visit"] == []
     assert state(hass, "sensor", "practice_remaining") == "501"
-    assert coordinator.training.snapshot()["darts"] == 1
+    assert coordinator.games.training.snapshot()["darts"] == 1
 
 
 async def test_no_undo_of_a_visit_a_tournament_took(hass, aioclient_mock):
@@ -354,7 +354,7 @@ async def test_no_undo_of_a_visit_a_tournament_took(hass, aioclient_mock):
     checkout = (T20, ("S1", 1, 1), ("D20", 20, 2))
     receive(coordinator, *(board(*checkout[:count]) for count in (1, 2, 3)), board())
     await hass.async_block_till_done()
-    matches = coordinator.tournament.tournament.matches
+    matches = coordinator.games.tournament.tournament.matches
     assert any(match.winner is not None for match in matches)
     assert undoable(hass) is False
     with pytest.raises(ServiceValidationError):

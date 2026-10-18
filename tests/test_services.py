@@ -53,7 +53,7 @@ async def test_start_game_rejects_values_beyond_its_limits(hass, aioclient_mock,
     entry = await setup_local(hass, aioclient_mock, state=board())
     with pytest.raises(vol.Invalid):
         await hass.services.async_call(DOMAIN, "start_game", data, blocking=True)
-    assert entry.runtime_data.local.practice.game == 0
+    assert entry.runtime_data.local.games.practice.game == 0
 
 
 @pytest.mark.parametrize(
@@ -90,7 +90,7 @@ async def test_start_game_accepts_values_at_its_limits(
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     await hass.services.async_call(DOMAIN, "start_game", data, blocking=True)
-    assert check(entry.runtime_data.local.practice)
+    assert check(entry.runtime_data.local.games.practice)
 
 
 @pytest.mark.parametrize(
@@ -165,7 +165,7 @@ async def test_actions_on_the_players_data_are_for_administrators(
     hass.config.allowlist_external_dirs = {str(tmp_path / "media")}
     hass.states.async_set("person.alex", "home")
     entry = await setup_local(hass, aioclient_mock, state=board())
-    profiles = entry.runtime_data.local.practice.profiles
+    profiles = entry.runtime_data.local.games.practice.profiles
     await entry.runtime_data.local.async_link_player("Alex", "person.alex")
     before = profiles.snapshot()
     with pytest.raises(Unauthorized):
@@ -182,7 +182,7 @@ async def test_actions_on_the_players_data_are_for_administrators(
     )
     # Playing stays open for every user.
     await call(hass, "start_game", Context(user_id=hass_read_only_user.id), game="301")
-    assert entry.runtime_data.local.practice.game == 301
+    assert entry.runtime_data.local.games.practice.game == 301
 
 
 # -- translated errors --------------------------------------------------------------
@@ -250,7 +250,7 @@ async def test_start_game_explains_a_wrong_value(
         key,
         placeholders,
     )
-    assert entry.runtime_data.local.practice.game == 0
+    assert entry.runtime_data.local.games.practice.game == 0
 
 
 @pytest.mark.parametrize(
@@ -278,7 +278,7 @@ async def test_start_game_takes_one_start_score_per_seat(
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     await call(hass, "start_game", game="501", **data)
-    assert entry.runtime_data.local.practice.starts == starts
+    assert entry.runtime_data.local.games.practice.starts == starts
 
 
 async def test_start_game_checks_the_start_scores_it_keeps(hass, aioclient_mock):
@@ -307,12 +307,12 @@ async def test_start_game_checks_the_start_scores_it_keeps(hass, aioclient_mock)
         double_in=True,
         double_out=True,
     )
-    assert coordinator.practice.game == 301
+    assert coordinator.games.practice.game == 301
 
 
 async def test_start_tournament_explains_wrong_start_scores(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    director = entry.runtime_data.local.tournament
+    director = entry.runtime_data.local.games.tournament
     players = ["Alex", "Sam", "Kim"]
     error = await invalid(
         hass, "start_tournament", players=players, start_scores=[501, 501, 301, 101]
@@ -411,8 +411,8 @@ async def test_player_names_that_templates_would_run_are_refused(hass, aioclient
     ):
         error = await invalid(hass, service, **data)
         assert error.translation_key == "invalid_player_name"
-    assert not coordinator.practice.profiles.snapshot()["players"]
-    assert coordinator.tournament.tournament is None
+    assert not coordinator.games.practice.profiles.snapshot()["players"]
+    assert coordinator.games.tournament.tournament is None
     # The board checks the names of a game on its own, too.
     with pytest.raises(ServiceValidationError) as error:
         await coordinator.async_start_game(501, names=["Alex", "{x}"])

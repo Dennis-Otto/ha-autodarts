@@ -35,7 +35,7 @@ OUTER_S1 = {
 
 async def test_the_new_options_are_configuration_entities(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     registry = er.async_get(hass)
     for platform, key, value in (
         ("switch", "practice_teams", "off"),
@@ -104,14 +104,14 @@ async def test_golf_counts_inner_and_outer_singles_by_the_dart_position(
         )
         coordinator.async_receive("state", board())
         await hass.async_block_till_done()
-    scores = coordinator.practice.snapshot()["scores"]
+    scores = coordinator.games.practice.snapshot()["scores"]
     assert [score["scorecard"] for score in scores] == [[3], [4]]
 
 
 async def test_start_game_sets_up_teams_handicaps_and_rounds(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    practice = coordinator.practice
+    practice = coordinator.games.practice
     events = record(hass, coordinator)
     await hass.services.async_call(
         DOMAIN,
@@ -223,7 +223,7 @@ async def test_a_start_of_3_and_both_double_rules_exclude_each_other(
     """The start score numbers and the double switches never make a leg that no
     dart can win: from 3, the only opening double, D1, leaves 1."""
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await switch(hass, "practice_double_in", True)
     await switch(hass, "practice_double_out", True)
     with pytest.raises(ServiceValidationError) as error:

@@ -75,7 +75,7 @@ async def test_eight_named_players_start_killer_and_x01_refuses_a_fifth(
     hass, aioclient_mock
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     await hass.services.async_call(
         DOMAIN, "start_game", {"game": "killer", "players": NAMES}, blocking=True
     )

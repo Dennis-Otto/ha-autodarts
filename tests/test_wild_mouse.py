@@ -317,7 +317,7 @@ async def test_start_game_plays_wild_mouse_with_or_without_beds(hass, aioclient_
         blocking=True,
     )
     await hass.async_block_till_done()
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     assert practice.cricket == "wild_mouse" and practice.three_in_a_bed is False
     assert len(practice.players[0].marks) == 9
     assert state(hass, "select", "practice_game") == "wild_mouse"

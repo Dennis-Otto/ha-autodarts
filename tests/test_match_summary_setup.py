@@ -65,7 +65,9 @@ async def test_a_finished_match_shows_its_summary_and_announces_it(
     won = [details for kind, details in events if kind == "match_won"]
     assert len(won) == 1 and won[0]["summary"] == summary["players"]
     # The store keeps the summary for a restart.
-    assert coordinator.practice.stored()["summary"]["players"] == summary["players"]
+    assert (
+        coordinator.games.practice.stored()["summary"]["players"] == summary["players"]
+    )
 
 
 async def test_double_out_switched_during_a_leg_applies_from_the_next(
@@ -90,7 +92,7 @@ async def test_double_out_switched_during_a_leg_applies_from_the_next(
     # A new game takes the rule it asks for at once.
     await throw(hass, coordinator, T20)
     await start_game(hass, game="301", double_out=False)
-    assert coordinator.practice.double_out is False
+    assert coordinator.games.practice.double_out is False
     assert state(hass, "switch", "practice_double_out") == "off"
 
 

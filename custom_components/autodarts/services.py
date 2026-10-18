@@ -596,7 +596,8 @@ def async_setup_services(hass: HomeAssistant) -> None:
             return {"started": False, "message": await refusal(hass, error)}
         if not call.return_response:
             return None
-        practice = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID)).practice
+        coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
+        practice = coordinator.games.practice
         return {
             "started": True,
             "game": key,
@@ -608,7 +609,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def _start_game(call: ServiceCall) -> str:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
         game = await _game_key(hass, call.data["game"])
-        practice = coordinator.practice
+        practice = coordinator.games.practice
         said: list[str] = call.data.get("players", [])
         _check_names(said)
         # A name a player already has keeps its spelling, as a voice may lower it.
@@ -726,7 +727,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def start_tournament(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-        setup = coordinator.tournament.setup
+        setup = coordinator.games.tournament.setup
         _check_names(call.data.get("players"))
         _check_starts(
             call.data.get("start_scores"),
@@ -734,7 +735,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
             x01=str(call.data.get("game", setup.game)).isdigit(),
             # A tournament plays double or straight in and out.
             unwinnable=all(
-                call.data.get(alias, coordinator.practice.tournament_setting(alias))
+                call.data.get(
+                    alias, coordinator.games.practice.tournament_setting(alias)
+                )
                 for alias in MODE_ALIASES
             ),
         )
@@ -792,7 +795,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def throw_dart(call: ServiceCall) -> ServiceResponse:
         async def act(answer: bool) -> str | None:
             coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-            practice = coordinator.practice
+            practice = coordinator.games.practice
             await _check_turn(hass, practice, call.data.get("player"))
             bed, position = _dart_at(call.data)
             await coordinator.async_throw_dart(bed, position)
@@ -803,7 +806,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def enter_visit(call: ServiceCall) -> ServiceResponse:
         async def act(answer: bool) -> str | None:
             coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-            practice = coordinator.practice
+            practice = coordinator.games.practice
             await _check_turn(hass, practice, call.data.get("player"))
             score = _visit_score(call.data, practice)
             turn = Turn.of(practice)
@@ -820,9 +823,11 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def next_player(call: ServiceCall) -> ServiceResponse:
         async def act(answer: bool) -> str | None:
             coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))
-            turn = Turn.of(coordinator.practice)
+            turn = Turn.of(coordinator.games.practice)
             await coordinator.async_next_player()
-            return await passed(hass, coordinator.practice, turn) if answer else None
+            return (
+                await passed(hass, coordinator.games.practice, turn) if answer else None
+            )
 
         return await answered(call, "passed", act)
 
@@ -834,9 +839,9 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 return None
             score = sum(
                 dart["number"] * dart["multiplier"]
-                for dart in coordinator.training.visit()
+                for dart in coordinator.games.training.visit()
             )
-            return await undone(hass, coordinator.practice, score)
+            return await undone(hass, coordinator.games.practice, score)
 
         return await answered(call, "undone", act)
 

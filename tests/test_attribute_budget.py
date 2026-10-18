@@ -210,7 +210,7 @@ async def busy_home(hass, aioclient_mock):
     """A board with eight players, a full history and a tournament of them all."""
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    coordinator.training.restore(
+    coordinator.games.training.restore(
         {
             "history": [session(index) for index in range(20)],
             "recent_visits": [
@@ -220,7 +220,7 @@ async def busy_home(hass, aioclient_mock):
             "hits": dict.fromkeys(BEDS, 9999),
         }
     )
-    profiles = coordinator.practice.profiles
+    profiles = coordinator.games.practice.profiles
     profiles.restore(
         {
             "players": [profile(name) for name in NAMES],
@@ -233,10 +233,10 @@ async def busy_home(hass, aioclient_mock):
             },
         }
     )
-    coordinator.progress.restore(
+    coordinator.games.progress.restore(
         {"players": [progress(name) for name in NAMES]}, profiles, dt_util.now()
     )
-    coordinator.records.restore(
+    coordinator.games.records.restore(
         {
             "bests": {
                 record: {**best(record, index), "date": iso()}
@@ -274,8 +274,8 @@ async def test_recorded_attributes_stay_small_in_a_busy_home(hass, aioclient_moc
     await coordinator.async_start_game(
         1001, names=NAMES[:4], legs=11, sets=7, teams=True
     )
-    coordinator.practice.legs = [leg(index) for index in range(10)]
-    coordinator.practice.summary = summary()
+    coordinator.games.practice.legs = [leg(index) for index in range(10)]
+    coordinator.games.practice.summary = summary()
     await coordinator.async_new_leg()
     await hass.async_block_till_done()
     measured = sizes(hass, entry)

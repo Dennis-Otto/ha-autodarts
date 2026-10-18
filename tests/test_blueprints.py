@@ -579,7 +579,7 @@ async def test_blueprints_follow_the_real_board_events(
         )
         for _ in range(3):
             await visit(hass, coordinator, T20, S1, D20)
-            if coordinator.tournament.waiting:
+            if coordinator.games.tournament.waiting:
                 await coordinator.async_next_tournament_match()
     await hass.async_block_till_done()
     assert (light[-2].data["moment"], light[-1].data) == (
@@ -590,7 +590,7 @@ async def test_blueprints_follow_the_real_board_events(
     # Against a bot whose darts land where it aims: 180, 180 and 141. Its
     # darts are not in the board, so only the callers name it. Dennis starts
     # at 169, which leaves no checkout, and the turn names a setup instead.
-    coordinator.bot = Bot(Steady())
+    coordinator.games.bot = Bot(Steady())
     heard, shown = len(speak), (len(light), len(celebrate), len(snapshots))
     with patch.object(coordinator.client, "get_state", side_effect=unchanged_board):
         await coordinator.async_start_game(

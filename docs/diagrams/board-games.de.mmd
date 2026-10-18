@@ -1,0 +1,23 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Das Board und seine Spiele
+  accDescr: Der Board Manager sendet Echtzeitereignisse und beantwortet Abfragen. AutodartsLocalCoordinator in local_coordinator.py folgt dem Board, befreit hängende Takeouts, meldet die Reparaturhinweise des Boards und gibt jeden Zustand des Boards an den Spiele-Koordinator, den er erweitert: AutodartsGamesCoordinator in games_coordinator.py, den auch die Aktionen und Entitäten von Home Assistant nutzen. Er spielt BoardGames in games.py, das nichts von Home Assistant weiß: Training, Übungsspiel, Turnier, Bot und von Hand eingegebene Darts folgen den Darts, buchen die Aufnahmen und geben die Board-Ereignisse zurück. Der Spiele-Koordinator meldet sie an Automationen und Karten, speichert die Spiele mit BoardStore in storage.py und führt die Timer der Spiele. Entitäten lesen die Spiele über coordinator.games, und tests/test_games.py testet BoardGames ohne Home Assistant.
+
+  BM["Board Manager<br/>Echtzeitereignisse und Abfragen"] --> LC["AutodartsLocalCoordinator<br/>local_coordinator.py<br/>Verbindung, Takeouts, Reparaturhinweise"]
+  LC -- "jeder Zustand des Boards" --> GC["AutodartsGamesCoordinator<br/>games_coordinator.py<br/>Timer, Speicher, Ereignisse, Aktionen"]
+  ACT["Aktionen und Entitäten<br/>von Home Assistant"] --> GC
+  GC -- "Darts, Aktionen, Zeit" --> BG["BoardGames, games.py<br/>ohne Home Assistant:<br/>Training, Übungsspiel, Turnier,<br/>Bot, Darts von Hand, Rückgängig"]
+  BG -- "Board-Ereignisse" --> GC
+  GC -- "speichern und wiederherstellen" --> ST[("BoardStore<br/>storage.py")]
+  GC -- "Board-Ereignisse" --> AUT["Automationen und Karten"]
+  BG -. "coordinator.games" .-> ENT["Entitäten"]
+  BG -. "in Millisekunden getestet von" .-> TEST["tests/test_games.py<br/>ohne Home Assistant"]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class LC,GC,ST bot
+  class BG,TEST done

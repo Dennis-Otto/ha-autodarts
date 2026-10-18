@@ -1,6 +1,7 @@
 """Achievements, the players' progress and dart positions in Home Assistant."""
 
 import random
+from unittest.mock import patch
 
 from homeassistant.helpers import device_registry as dr
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -65,7 +66,7 @@ async def test_a_180_unlocks_an_achievement(hass, aioclient_mock, hass_ws_client
     events = record(hass, coordinator)
     assert state(hass, "sensor", "achievements") == "0"
     assert state(hass, "switch", "achievements_enabled") == "on"
-    coordinator.practice.set_name(0, "Alex")
+    coordinator.games.practice.set_name(0, "Alex")
     await select_game(hass, "501")
     await throw(hass, coordinator, T20, T20, T20)
 
@@ -117,7 +118,7 @@ async def test_achievements_can_be_turned_off(hass, aioclient_mock):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
     events = record(hass, coordinator)
-    coordinator.practice.set_name(0, "Alex")
+    coordinator.games.practice.set_name(0, "Alex")
     await select_game(hass, "501")
     await switch(hass, "achievements_enabled", False)
     assert state(hass, "switch", "achievements_enabled") == "off"
@@ -141,7 +142,7 @@ async def test_progress_survives_a_restart_and_leaves_with_the_player(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     coordinator = entry.runtime_data.local
-    coordinator.practice.set_name(0, "Alex")
+    coordinator.games.practice.set_name(0, "Alex")
     await select_game(hass, "501")
     await throw(hass, coordinator, T20, T20, T20)
     assert await hass.config_entries.async_reload(entry.entry_id)
@@ -149,20 +150,20 @@ async def test_progress_survives_a_restart_and_leaves_with_the_player(
     saved = hass_storage["autodarts.progress-entry.training"]["data"]["progress"]
     assert saved["players"][0]["counters"]["maximums"] == 1
     coordinator = entry.runtime_data.local
-    assert coordinator.progress.players["alex"].counters["maximums"] == 1
+    assert coordinator.games.progress.players["alex"].counters["maximums"] == 1
     assert state(hass, "sensor", "achievements") == "1"
-    assert len(coordinator.progress.session) == 3
+    assert len(coordinator.games.progress.session) == 3
 
     # A new training session starts its positions from zero.
     await switch(hass, "training_session", False)
     await switch(hass, "training_session", True)
-    assert len(coordinator.progress.session) == 0
+    assert len(coordinator.games.progress.session) == 0
 
     await hass.services.async_call(
         DOMAIN, "delete_player", {"name": "ALEX"}, blocking=True
     )
     await hass.async_block_till_done()
-    assert coordinator.progress.players == {}
+    assert coordinator.games.progress.players == {}
     assert state(hass, "sensor", "achievements") == "0"
 
 
@@ -214,7 +215,7 @@ async def test_the_aim_map_is_worked_out_beside_the_event_loop(
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     coordinator = entry.runtime_data.local
-    assert coordinator.progress.stale_aims() == []
+    assert coordinator.games.progress.stale_aims() == []
     profiles = hass.states.get(entity_id(hass, "sensor", "player_profiles"))
     [alex] = profiles.attributes["players"]
     assert alex["best_aim"] == "T20" and alex["expected_ppd"] > 40
@@ -230,7 +231,7 @@ async def test_the_aim_map_is_worked_out_beside_the_event_loop(
     assert asked["result"]["aim"]["darts"] == 40
     assert asked["result"]["aim"]["best"]["bed"] == "T20"
     # The session's model is worked out when the map asks for it, and once.
-    session = coordinator.progress.session
+    session = coordinator.games.progress.session
     assert session.aim_stale
     empty = await positions(hass, client, device_id=board_device, aim=True)
     assert empty["result"]["aim"] == {"darts": 0, "needed": 30}
@@ -244,14 +245,14 @@ async def test_the_aim_map_is_worked_out_beside_the_event_loop(
     assert unknown["result"]["aim"] == {"darts": 0, "needed": 30}
 
     # A visit of Alex: the profile follows once the new model is worked out.
-    coordinator.practice.set_name(0, "Alex")
+    coordinator.games.practice.set_name(0, "Alex")
     await select_game(hass, "501")
     await throw(hass, coordinator, T20, T20, T20)
-    assert coordinator.progress.stale_aims() == []
-    assert coordinator.progress.log("alex").aim()["darts"] == 43
+    assert coordinator.games.progress.stale_aims() == []
+    assert coordinator.games.progress.log("alex").aim()["darts"] == 43
     profiles = hass.states.get(entity_id(hass, "sensor", "player_profiles"))
     [alex] = profiles.attributes["players"]
-    best = coordinator.progress.log("alex").best_aim()
+    best = coordinator.games.progress.log("alex").best_aim()
     assert (alex["best_aim"], alex["expected_ppd"]) == (
         best["bed"],
         round(best["expected"], 1),
@@ -259,12 +260,35 @@ async def test_the_aim_map_is_worked_out_beside_the_event_loop(
     assert abs(alex["expected_ppd"] - first) < 1
 
 
+async def test_an_aim_model_worked_out_at_once_never_holds_back_the_next(
+    hass, aioclient_mock
+):
+    """Home Assistant starts a task eagerly: when the aim models are worked out
+    before the task is even returned, the next darts still get theirs."""
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    coordinator.games.practice.set_name(0, "Alex")
+    await select_game(hass, "501")
+
+    def at_once(target, *args):
+        done = hass.loop.create_future()
+        done.set_result(target(*args))
+        return done
+
+    with patch.object(hass, "async_add_executor_job", at_once):
+        await throw(hass, coordinator, T20, T20, T20)
+    assert coordinator.games.progress.stale_aims() == []
+    await throw(hass, coordinator, T20, T20, BULL)
+    assert coordinator.games.progress.stale_aims() == []
+    assert coordinator.games.progress.log("alex").aim()["darts"] == 6
+
+
 async def test_corrected_darts_are_logged_only_where_the_correction_puts_them(
     hass, aioclient_mock, hass_ws_client
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())
     coordinator = entry.runtime_data.local
-    coordinator.practice.set_name(0, "Alex")
+    coordinator.games.practice.set_name(0, "Alex")
     await select_game(hass, "501")
     coordinator.async_receive("state", placed(T20))
     coordinator.async_receive("state", placed(T20, T20))
@@ -304,4 +328,4 @@ async def test_corrected_darts_are_logged_only_where_the_correction_puts_them(
     assert [
         (dart["segment"], dart.get("x")) for dart in visit.attributes["throws"]
     ] == [("T20", -0.02), ("S20", None), ("S20", 0.0)]
-    assert len(coordinator.progress.session) == 0
+    assert len(coordinator.games.progress.session) == 0

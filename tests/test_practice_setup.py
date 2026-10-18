@@ -209,7 +209,7 @@ async def test_a_match_of_two_players_with_names_turns_and_a_winner(
     ]
 
     await throw(hass, coordinator, OUTER_BULL)
-    coordinator.practice.players[0].remaining = 36
+    coordinator.games.practice.players[0].remaining = 36
     await throw(hass, coordinator, D18)
     won = [attributes for kind, attributes in events if kind == "match_won"]
     assert won and won[0]["name"] == "Dennis" and won[0]["sets"] == 1
@@ -241,7 +241,7 @@ async def test_legs_and_sets_to_win_are_numbers(hass, aioclient_mock, hass_stora
     await set_number(hass, "practice_sets", 2)
     assert state(hass, "number", "practice_legs") == "3"
     assert state(hass, "number", "practice_sets") == "2"
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     assert (practice.legs_to_win, practice.sets_to_win) == (3, 2)
     saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["practice"]
     assert (saved["legs_to_win"], saved["sets_to_win"]) == (3, 2)
@@ -269,7 +269,7 @@ async def test_training_games_show_their_target(hass, aioclient_mock, hass_stora
     await select_game(hass, "bobs_27")
     target = hass.states.get(entity_id(hass, "sensor", "practice_target"))
     assert target.state == "D1" and target.attributes["score"] == 27
-    coordinator.practice.drills["bobs_27"].score = 1
+    coordinator.games.practice.drills["bobs_27"].score = 1
     await throw(hass, coordinator, T20)
     finished = [attributes for kind, attributes in events if kind == "drill_finished"]
     assert finished and finished[0]["drill"] == "bobs_27"
@@ -348,7 +348,7 @@ async def test_practice_statistics_follow_the_legs(hass, aioclient_mock):
     assert state(hass, "sensor", "practice_first_9_average") == "unknown"
     assert state(hass, "sensor", "practice_legs_played") == "0"
     await select_game(hass, "301")
-    coordinator.practice.players[0].remaining = 36
+    coordinator.games.practice.players[0].remaining = 36
     await throw(hass, coordinator, D18)
     assert state(hass, "sensor", "practice_legs_played") == "1"
     assert state(hass, "sensor", "practice_checkout_rate") == "100.0"
@@ -399,5 +399,5 @@ async def test_party_games_rules_and_the_bull_off_in_home_assistant(
 
     await select_game(hass, "1001")
     await switch(hass, "practice_double_in", True)
-    assert coordinator.practice.double_in is True
-    assert coordinator.practice.snapshot()["remaining"] == 1001
+    assert coordinator.games.practice.double_in is True
+    assert coordinator.games.practice.snapshot()["remaining"] == 1001

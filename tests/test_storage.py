@@ -66,7 +66,7 @@ async def test_the_current_layout_survives_a_restart(
 
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    practice = entry.runtime_data.local.practice
+    practice = entry.runtime_data.local.games.practice
     assert practice.names[:2] == ["Alex", "Sam"] and practice.legs_to_win == 2
     assert [player.remaining for player in practice.players] == [321, 501]
     assert practice.current == 1
@@ -86,7 +86,9 @@ async def restart(hass, entry):
 async def test_an_action_builds_the_store_once(hass, aioclient_mock):
     # Building it takes milliseconds with a long history, on a Raspberry Pi more.
     coordinator = (await setup(hass, aioclient_mock)).runtime_data.local
-    with patch.object(coordinator, "_stored", wraps=coordinator._stored) as stored:
+    with patch.object(
+        coordinator.games, "stored", wraps=coordinator.games.stored
+    ) as stored:
         await coordinator.async_set_idle_minutes(17)
     assert stored.call_count == 1
 
@@ -97,18 +99,18 @@ async def test_a_dart_during_the_save_is_saved_at_the_shutdown(
     entry = await setup(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
     await coordinator.async_start_game(501, names=["Alex"])
-    write = coordinator._store.async_save
+    write = coordinator.store.training.async_save
 
     async def write_and_throw(data):
         # The action's store is built; a dart lands while it is written.
         await write(data)
         coordinator.async_receive("state", board(T20))
 
-    with patch.object(coordinator._store, "async_save", write_and_throw):
+    with patch.object(coordinator.store.training, "async_save", write_and_throw):
         await coordinator.async_set_idle_minutes(17)
     # Long before the delayed save of the dart.
     coordinator = await restart(hass, entry)
-    assert coordinator.training.idle_minutes == 17
+    assert coordinator.games.training.idle_minutes == 17
     assert state(hass, "sensor", "training_darts") == "1"
 
 
@@ -120,13 +122,13 @@ async def test_a_save_that_does_not_finish_is_saved_at_the_shutdown(
     await coordinator.async_set_idle_minutes(5)
     with (
         patch.object(
-            coordinator._store, "async_save", side_effect=asyncio.CancelledError
+            coordinator.store.training, "async_save", side_effect=asyncio.CancelledError
         ),
         pytest.raises(asyncio.CancelledError),
     ):
         await coordinator.async_set_idle_minutes(17)
     coordinator = await restart(hass, entry)
-    assert coordinator.training.idle_minutes == 17
+    assert coordinator.games.training.idle_minutes == 17
 
 
 async def test_data_of_a_newer_minor_version_loads_after_a_downgrade(
@@ -147,9 +149,12 @@ async def test_data_of_a_newer_minor_version_loads_after_a_downgrade(
     }
     entry = await setup(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
-    assert coordinator.training.snapshot()["darts"] == 12
-    assert coordinator.practice.game == 301 and coordinator.practice.names[0] == "Kim"
-    assert coordinator.records.goal == 150
+    assert coordinator.games.training.snapshot()["darts"] == 12
+    assert (
+        coordinator.games.practice.game == 301
+        and coordinator.games.practice.names[0] == "Kim"
+    )
+    assert coordinator.games.records.goal == 150
     # The migration writes the data back in this version's layout.
     assert hass_storage[key]["minor_version"] == STORAGE_MINOR_VERSION
     # Parts of the newer release stay when this one saves.
@@ -180,12 +185,13 @@ async def test_a_store_of_version_1_5_restores(hass, aioclient_mock, hass_storag
     }
     entry = await setup(hass, aioclient_mock)
     coordinator = entry.runtime_data.local
-    assert coordinator.training.snapshot()["points"] == 900
-    assert [player.remaining for player in coordinator.practice.players] == [321, 501]
-    assert coordinator.practice.profiles.players["alex"].legs_played == 4
-    assert coordinator.records.goal == 100
+    assert coordinator.games.training.snapshot()["points"] == 900
+    players = coordinator.games.practice.players
+    assert [player.remaining for player in players] == [321, 501]
+    assert coordinator.games.practice.profiles.players["alex"].legs_played == 4
+    assert coordinator.games.records.goal == 100
     # Without stored progress, the profiles give every player a start.
-    assert "alex" in coordinator.progress.players
+    assert "alex" in coordinator.games.progress.players
     assert hass_storage[key]["minor_version"] == STORAGE_MINOR_VERSION
 
 
@@ -248,7 +254,7 @@ async def test_a_store_that_cannot_be_read_is_tried_again(
         )
     assert await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
-    assert entry.runtime_data.local.training.snapshot()["darts"] == 999
+    assert entry.runtime_data.local.games.training.snapshot()["darts"] == 999
     assert hass_storage[key]["data"]["records"]["goal"] == 150
 
 
@@ -275,7 +281,7 @@ async def test_a_store_that_cannot_be_restored_stops_the_setup(
 ):
     stored_training(hass_storage)
     with patch(
-        "custom_components.autodarts.local_coordinator.PersonalRecords.restore",
+        "custom_components.autodarts.games.PersonalRecords.restore",
         side_effect=TypeError("unhashable type: 'list'"),
     ):
         entry = await failed_setup(

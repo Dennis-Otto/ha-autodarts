@@ -271,7 +271,7 @@ async def test_a_visit_entered_as_its_score_counts_like_its_darts(hass):
     assert completed["total"] is True and completed["manual"] is True
     visit = hass.states.get(entity(hass, "sensor", "local_visit_score"))
     assert visit.attributes["recent_visits"][0]["total"] is True
-    assert coordinator.training.snapshot()["total_darts"] == 3
+    assert coordinator.games.training.snapshot()["total_darts"] == 3
 
 
 async def test_a_score_visit_checks_out_and_busts(hass):
@@ -287,7 +287,7 @@ async def test_a_score_visit_checks_out_and_busts(hass):
     await act(hass, "enter_visit", score=40, darts=2, darts_at_double=2)
     leg = next(item for kind, item in events if kind == "leg_won")
     assert leg["darts"] == 8 and leg["checkout"] == 40
-    statistics = coordinator.practice.statistics()
+    statistics = coordinator.games.practice.statistics()
     assert statistics["darts_at_double"] == 4
     assert statistics["checkout_rate"] == 25.0
 
@@ -338,7 +338,7 @@ async def test_darts_entered_by_hand_give_way_to_the_visit_score(hass):
     assert value(hass, "sensor", "local_visit_score") == "60"
     await act(hass, "enter_visit", score=100)
     assert value(hass, "sensor", "practice_remaining") == "201"
-    assert coordinator.training.snapshot()["points"] == 100
+    assert coordinator.games.training.snapshot()["points"] == 100
 
 
 @pytest.mark.parametrize(

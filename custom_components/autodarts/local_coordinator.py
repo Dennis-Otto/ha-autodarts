@@ -1,4 +1,10 @@
-"""Combine local push notifications, HTTP recovery, training and practice games."""
+"""The Board Manager of a board: realtime events, HTTP reads and recovery.
+
+AutodartsLocalCoordinator follows the board with its push notifications and
+reconciles them with periodic reads; it frees stuck takeouts, raises the
+repair issues of the board and runs its actions. The training and the games
+run in AutodartsGamesCoordinator, which it extends.
+"""
 
 from __future__ import annotations
 
@@ -14,28 +20,14 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
-from homeassistant.exceptions import (
-    ConfigEntryError,
-    ConfigEntryNotReady,
-    HomeAssistantError,
-    ServiceValidationError,
-    UnsupportedStorageVersionError,
-)
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.debounce import Debouncer
-from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import (
-    async_call_later,
-    async_track_point_in_utc_time,
-    async_track_time_change,
-)
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.event import async_call_later
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .bot import BOT_DARTS, Bot
-from .bot import aim as bot_aim
 from .camera_health import CameraHealth
 from .const import (
     BOARD_MANAGER_2_URL,
@@ -49,6 +41,7 @@ from .const import (
 )
 from .discovery import cloud_addresses
 from .errors import AutodartsApiError, AutodartsConnectionError
+from .games_coordinator import AutodartsGamesCoordinator
 from .local_api import (
     AutodartsEndpointMissing,
     AutodartsLocalAuthError,
@@ -59,19 +52,9 @@ from .local_api import (
     number,
     stats_summary,
 )
-from .manual import ManualDarts
 from .online import ONLINE_EVENT_TYPES
-from .positions import Aim
-from .practice import PracticeGame, VisitRefused
-from .profiles import valid_name
-from .progress import Progress
-from .quality import RECALIBRATE_RATE, RECOVERED_RATE, DetectionQuality
-from .records import PersonalRecords
-from .report import BoardReports
-from .storage import TrainingStore
 from .topics import BoardTopics, Topic
-from .tournament import TOURNAMENT_EVENTS, TournamentDirector
-from .training import TrainingSession, hit_key, segments
+from .tournament import TOURNAMENT_EVENTS
 
 _LOGGER = logging.getLogger(__name__)
 # Poll quickly without realtime events; with them, polling only reconciles.
@@ -107,9 +90,6 @@ RECONNECT_JITTER = 0.2
 RECONNECT_RESET_SECONDS = 30
 # Failed realtime attempts in a row before a warning, about half a minute.
 STREAM_WARN_ATTEMPTS = 5
-# A tournament match that is due waits this long before it looks again whether
-# the board is clear and no other game is played.
-FIXTURE_RETRY = timedelta(seconds=5)
 # A board away this long is looked for at the addresses the Autodarts cloud reports.
 REDISCOVER_SECONDS = 300
 REDISCOVER_INTERVAL = 1800
@@ -168,13 +148,6 @@ EVENT_TYPES = [
     # Moments of online matches, from the browser extension Tools for Autodarts.
     *ONLINE_EVENT_TYPES,
 ]
-# Dart and visit events name the practice game being played, so that callers
-# can leave the game to the practice caller.
-PLAY_EVENTS = ("dart_detected", "dart_corrected", "visit_thrown", "visit_completed")
-DART_EVENTS = ("dart_detected", "dart_corrected")
-# Results announced with the dart that decides them, which a correction can
-# take back; statistics take them from the booking instead.
-RESULT_EVENTS = ("leg_won", "match_won")
 # Repair issues of an entry, named <issue>_<entry_id>.
 ISSUES = (
     "wrong_board",
@@ -188,21 +161,6 @@ ISSUES = (
 _RANDOM = random.Random()  # noqa: S311
 
 
-def _throw_positions(state: dict[str, Any]) -> list[tuple[float, float] | None] | None:
-    """Board positions of the darts on the board; None for a state training rejects."""
-    if segments(state) is None:
-        return None
-    positions: list[tuple[float, float] | None] = []
-    for dart in state.get("throws", []):
-        coords = dart.get("coords")
-        x, y = (
-            number(coords.get(axis)) if isinstance(coords, dict) else None
-            for axis in ("x", "y")
-        )
-        positions.append(None if x is None or y is None else (float(x), float(y)))
-    return positions
-
-
 def _lifecycle(state: dict[str, Any]) -> tuple[object, str]:
     """Whether the detection runs and where it is in starting or stopping."""
     status = str(state.get("status", "")).lower()
@@ -212,11 +170,6 @@ def _lifecycle(state: dict[str, Any]) -> tuple[object, str]:
 def _error_name(error: BaseException) -> str:
     """The kind of a failure, for diagnostics; messages may contain addresses."""
     return type(error.__cause__ or error).__name__
-
-
-def _work_out(jobs: list[Callable[[], Aim]]) -> list[Aim]:
-    """Aim models, in an executor."""
-    return [job() for job in jobs]
 
 
 @dataclass
@@ -238,25 +191,8 @@ class ConnectionStats:
     last_takeout_reset: datetime | None = None
 
 
-@dataclass
-class Checkpoint:
-    """Everything a player's visit changes when it is booked, as it was before,
-    to undo the visit: the practice game, where the visit's darts landed, the
-    progress of the players at the board, the weekly report and the journal,
-    and the personal bests."""
-
-    practice: dict[str, Any]
-    positions: list[tuple[float, float] | None]
-    progress: dict[str, Any]
-    reports: dict[str, Any]
-    records: dict[str, Any]
-
-
-class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
     """Keep controls local and reconcile push notifications with periodic reads."""
-
-    # A dartboard without Autodarts, see AutodartsManualCoordinator.
-    manual_board = False
 
     def __init__(
         self,
@@ -265,46 +201,8 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         board_id: str,
         entry: ConfigEntry,
     ) -> None:
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=f"{DOMAIN}_local",
-            config_entry=entry,
-            update_interval=POLL_INTERVAL,
-            # A poll that changes nothing leaves the entities alone; the data
-            # carries a revision that changes with the training and games.
-            always_update=False,
-            # Show the result of consecutive user actions without a long cooldown.
-            request_refresh_debouncer=Debouncer(
-                hass, _LOGGER, cooldown=1, immediate=True
-            ),
-        )
-        self._entry: ConfigEntry = entry
+        super().__init__(hass, board_id, entry, POLL_INTERVAL)
         self._client = client
-        self.board_id = board_id
-        self.device_name = "Autodarts Board"
-        self.event_signal = f"{DOMAIN}_{entry.entry_id}_event"
-        self.training = TrainingSession()
-        self.practice = PracticeGame()
-        self.quality = DetectionQuality()
-        self.records = PersonalRecords()
-        self.reports = BoardReports(hass, entry.entry_id, self)
-        self.progress = Progress()
-        # The players' aim models are worked out off the event loop; the count
-        # rises when a best aim changed, for the attributes of the profiles.
-        self._aim_task: asyncio.Task[None] | None = None
-        self.aim_revision = 0
-        self.tournament = TournamentDirector()
-        self._fixture_unsub: CALLBACK_TYPE | None = None
-        self._midnight_unsub: CALLBACK_TYPE | None = None
-        self._store = TrainingStore(hass, entry.entry_id)
-        # Whether the stores were restored; nothing is saved before.
-        self._loaded = False
-        # Top-level parts of the store this release does not know.
-        self._unknown: dict[str, Any] = {}
-        self._training_dirty = False
-        self._revision = 0
-        self._idle_unsub: CALLBACK_TYPE | None = None
         self._health = CameraHealth()
         self._settings: dict[str, Any] = {}
         self._version: str | None = None
@@ -330,7 +228,6 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._access_denied = False
         self._protocol_failures: dict[str, int] = {}
         self._protocol_logged: set[str] = set()
-        self._game_error_logged = False
         self._action_lock = asyncio.Lock()
         # One read at a time: an older answer must never replace a newer one.
         self._poll_lock = asyncio.Lock()
@@ -358,14 +255,6 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._takeout_unsub: CALLBACK_TYPE | None = None
         # Resets of a stuck takeout since the last dart on the board.
         self._takeout_resets = 0
-        self._positions: list[tuple[float, float] | None] = []
-        # Corrections, darts entered by hand and the bot's darts in the visit.
-        self.manual = ManualDarts()
-        self.bot = Bot()
-        self._bot_unsub: CALLBACK_TYPE | None = None
-        # The game and the statistics before the last visit of a player was
-        # booked, to undo the visit.
-        self._undo: Checkpoint | None = None
 
     @property
     def client(self) -> AutodartsLocalClient:
@@ -376,104 +265,26 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
         return self._client
 
-    async def async_load(self) -> None:
-        """Restore the stored training, games and reports; before the first poll.
-
-        Nothing is saved until everything is restored. A store that cannot be
-        read stops the setup instead, so that no empty data overwrites it: for
-        a retry after a read error, for good when it is of a newer layout or
-        cannot be restored.
-        """
-        try:
-            saved = await self._store.async_load()
-            self._restore(saved)
-            await self.reports.async_load()
-        except UnsupportedStorageVersionError as err:
-            self._keep_stores()
-            raise ConfigEntryError(
-                translation_domain=DOMAIN, translation_key="storage_newer"
-            ) from err
-        except (HomeAssistantError, OSError) as err:
-            self._keep_stores()
-            raise ConfigEntryNotReady(
-                translation_domain=DOMAIN, translation_key="storage_unreadable"
-            ) from err
-        except Exception as err:
-            self._keep_stores()
-            _LOGGER.exception("The stored training cannot be restored")
-            raise ConfigEntryError(
-                translation_domain=DOMAIN, translation_key="storage_invalid"
-            ) from err
-        self._loaded = True
-        if saved is None:
-            self._save_training()
-
-    async def _async_setup(self) -> None:
-        # The setup loads first, so that its errors stop the setup; a board
-        # found at another address loads here.
-        if not self._loaded:
-            await self.async_load()
-
     def _restore(self, saved: object) -> None:
-        stored = saved if isinstance(saved, dict) else {}
-        self.training.restore(saved if isinstance(saved, dict) else None)
-        self.practice.restore(stored.get("practice"))
-        self.records.restore(stored.get("records"))
-        self.progress.restore(
-            stored.get("progress"), self.practice.profiles, dt_util.now()
-        )
-        self.tournament.restore(stored.get("tournament"))
-        self.practice.hold = self.tournament.waiting
-        takeout = stored.get("takeout")
+        super()._restore(saved)
+        takeout = saved.get("takeout") if isinstance(saved, dict) else None
         self.free_stuck_takeout = not (
             isinstance(takeout, dict) and takeout.get("free_stuck") is False
         )
-        # Parts that a newer release stored stay after a downgrade.
-        known = self._stored()
-        self._unknown = {
-            key: value for key, value in stored.items() if key not in known
-        }
-
-    def _keep_stores(self) -> None:
-        """Never write a store that could not be read."""
-        for store in (self._store, *self.reports.stores):
-            store.make_read_only()
 
     def _stored(self) -> dict[str, Any]:
-        """Training sessions, the practice game, personal bests and the players'
-        progress, saved together."""
+        """The games, with the switch that frees a stuck takeout."""
         return {
-            **self._unknown,
-            **self.training.stored(),
-            "practice": self.practice.stored(),
-            "records": self.records.stored(),
-            "progress": self.progress.stored(),
-            "tournament": self.tournament.stored(),
+            **super()._stored(),
             "takeout": {"free_stuck": self.free_stuck_takeout},
         }
 
-    def _save_training(self) -> None:
-        self._training_dirty = True
-        self._store.async_delay_save(self._stored, 5)
-
     @callback
     def async_start(self) -> None:
-        # Entities exist now, so an overdue idle end is announced, too.
-        self._schedule_idle_end()
-        self._schedule_fixture()
         # Issues of earlier runs are not kept across restarts.
         self._report_generation()
-        self.reports.async_start()
-        if self._midnight_unsub is None:
-            # Darts today and the streak change with the date, not with a dart.
-            self._midnight_unsub = async_track_time_change(
-                self.hass, self._async_new_day, hour=0, minute=0, second=1
-            )
+        super().async_start()
         self._start_realtime()
-        # The bot goes on with its turn after a restart.
-        self._schedule_bot()
-        # The best aims of the restored darts.
-        self._schedule_aim()
 
     @callback
     def _start_realtime(self) -> None:
@@ -485,33 +296,20 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_shutdown(self) -> None:
         self._shutting_down = True
         await super().async_shutdown()
+
+    async def _async_settle(self) -> None:
+        """Nothing throws, resets or listens any more. A poll still in flight
+        ends now, without effect (see _unchanged), before the stores are saved
+        and the unload deletes the repair issues. Each read of the board gives
+        up after 10 seconds."""
         if self._stream_task:
             self._stream_task.cancel()
             with suppress(asyncio.CancelledError):
                 await self._stream_task
             self._stream_task = None
-        if self._idle_unsub:
-            self._idle_unsub()
-            self._idle_unsub = None
-        if self._fixture_unsub:
-            self._fixture_unsub()
-            self._fixture_unsub = None
-        if self._midnight_unsub:
-            self._midnight_unsub()
-            self._midnight_unsub = None
-        self._cancel_bot()
         self._cancel_takeout()
-        # Nothing throws, resets or listens any more. A poll still in flight
-        # ends now, without effect (see _unchanged), before the stores are
-        # saved and the unload deletes the repair issues. Each read of the
-        # board gives up after 10 seconds.
         async with self._poll_lock:
             pass
-        # A store that was never restored is never written.
-        if self._loaded and self._training_dirty:
-            await self._store.async_save(self._stored())
-            self._training_dirty = False
-        await self.reports.async_shutdown()
 
     # -- realtime events ---------------------------------------------------------
 
@@ -628,7 +426,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _suspend_tracking(self) -> None:
         """Changes may be missed; the next state tells how the visit went on,
         and times a stuck takeout anew."""
-        self.training.suspend()
+        self.games.training.suspend()
         self._observed_motion = None
         self._cancel_takeout()
 
@@ -730,7 +528,7 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if topic in topics:
                 self.topics.async_publish(topic)
 
-    # -- training, games and events ----------------------------------------------
+    # -- the board's state and takeouts ------------------------------------------
 
     @staticmethod
     def _motion(payload: dict[str, Any]) -> dict[str, Any]:
@@ -739,59 +537,6 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             for key in MOTION_FLAGS
             if isinstance(payload.get(key), bool)
         }
-
-    def _emit(self, kind: str, attributes: dict[str, Any], source: str) -> None:
-        # Publish the corresponding sensor states before event consumers run.
-        self.hass.loop.call_soon(
-            async_dispatcher_send,
-            self.hass,
-            self.event_signal,
-            kind,
-            {**attributes, "source": source},
-        )
-
-    def _recorded(
-        self,
-        events: list[tuple[str, dict[str, Any]]],
-        booked: list[tuple[str, dict[str, Any]]] | None = None,
-    ) -> list[tuple[str, dict[str, Any]]]:
-        """The events, each followed by the personal bests or daily goal it brings.
-
-        Legs and matches count for the records and the weekly report once the
-        practice game booked them, see _booked: a correction can take back the
-        leg_won and match_won announced with a winning dart.
-        """
-        now = dt_util.now()
-        result: list[tuple[str, dict[str, Any]]] = []
-        for kind, attributes in events:
-            if kind == "session_started":
-                # The positions of a session start over with it, like its hits.
-                self.progress.session_started()
-            result.append((kind, attributes))
-            # The bot sets no personal bests and throws no darts of the day.
-            if not attributes.get("bot") and kind not in RESULT_EVENTS:
-                result.extend(self.records.observe(kind, attributes, now))
-        for kind, attributes in booked or []:
-            if not attributes.get("bot"):
-                result.extend(self.records.observe(kind, attributes, now))
-        self.reports.observe(result, now, booked)
-        return result
-
-    def _booked(
-        self, legs_total: int, decided: bool
-    ) -> list[tuple[str, dict[str, Any]]]:
-        """The leg and the match that booking a visit ended, if any."""
-        practice = self.practice
-        booked: list[tuple[str, dict[str, Any]]] = []
-        if practice.legs_total > legs_total and practice.legs:
-            booked.append(("leg_won", practice.legs[0]))
-        if practice.winner is not None and not decided:
-            booked.append(("match_won", {"game": practice.kind}))
-        return booked
-
-    @callback
-    def _async_new_day(self, _now: datetime) -> None:
-        self.async_update_listeners()
 
     def _start_takeout(self, source: str) -> None:
         if not self._taking_out:
@@ -816,190 +561,6 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         data["camera_problems"] = self._health.update(
             data, self.readings, time.monotonic()
         )
-
-    def _guarded(self, action: Callable[[], None]) -> None:
-        """A fault in the games must never cost the connection to the board."""
-        try:
-            action()
-        except Exception:
-            if self._game_error_logged:
-                _LOGGER.debug("Training or practice game failed again", exc_info=True)
-            else:
-                self._game_error_logged = True
-                _LOGGER.exception(
-                    "Training or practice game failed; the board stays connected"
-                )
-
-    def _track(self, data: dict[str, Any], state: dict[str, Any], source: str) -> None:
-        """Training, practice game and records follow the darts on the board."""
-        announced = False
-        observed = self.training.observe(state)
-        completed = any(kind == "visit_completed" for kind, _ in observed)
-        # The weekly report and the personal bests before they count a
-        # completed visit, to undo it.
-        reports = self.reports.checkpoint() if completed else {}
-        records = self.records.checkpoint() if completed else {}
-        for kind, attributes in self._recorded(observed):
-            announced = True
-            self.quality.record(kind, attributes)
-            if kind in DART_EVENTS and attributes.get("total"):
-                # A visit entered as its score announces itself, not its made-up darts.
-                continue
-            if kind in PLAY_EVENTS:
-                attributes = {
-                    **attributes,
-                    "game": self.practice.kind,
-                    "name": self.practice.thrower,
-                }
-            self._emit(kind, attributes, source)
-            if kind == "visit_completed":
-                self._checkpoint(attributes, reports, records)
-                self._book_visit(source, bot=attributes.get("bot") is True)
-        if (positions := _throw_positions(state)) is not None:
-            self._positions = positions
-        visit = self.training.visit()
-        # The visit is the last darts on the board; positions of rejected states
-        # never shift onto them.
-        known = self._positions[-len(visit) :] if visit else []
-        aligned: list[tuple[float, float] | None] = [None] * (len(visit) - len(known))
-        aligned.extend(known)
-        for kind, attributes in self._recorded(self.practice.track(visit, aligned)):
-            announced = True
-            self._emit(kind, attributes, source)
-        self._publish_game(data, announced)
-
-    def _book_visit(self, source: str, bot: bool = False, empty: bool = False) -> None:
-        """Book the pulled darts in the practice game and the players' progress;
-        with empty, the player at the board passes, see PracticeGame.finish_visit."""
-        pending = self.progress.before(self.practice)
-        # The bot's darts are nobody's training.
-        if self.training.active and not bot:
-            self.progress.session_visit(pending.booking)
-        decided = self.practice.winner is not None
-        events = self.practice.finish_visit(empty)
-        booked = self._booked(pending.legs_total, decided)
-        events += self.progress.after(pending, self.practice, dt_util.now())
-        self._schedule_aim()
-        # A tournament takes the result once the practice game booked it.
-        events += self._fixture()
-        for kind, details in self._recorded(events, booked):
-            self._emit(kind, details, source)
-
-    @callback
-    def _schedule_aim(self) -> None:
-        """Work out the aim models of the players whose darts changed. A model
-        takes some milliseconds and the search for its best aim some tens, which
-        never run on the event loop."""
-        if self._aim_task is None and self.progress.stale_aims():
-            self._aim_task = self._entry.async_create_task(
-                self.hass, self._async_players_aim(), f"{DOMAIN} aim"
-            )
-
-    async def _async_players_aim(self) -> None:
-        """The players' aim models, until every one knows the newest darts; the
-        profiles show a changed best aim."""
-        try:
-            while logs := self.progress.stale_aims():
-                aims = await self.hass.async_add_executor_job(
-                    _work_out, [log.aim_job() for log in logs]
-                )
-                changed = [
-                    log.store_aim(aim) for log, aim in zip(logs, aims, strict=True)
-                ]
-                if any(changed):
-                    self.aim_revision += 1
-                    self.async_update_listeners()
-        finally:
-            self._aim_task = None
-
-    async def async_aim(self, name: str | None = None) -> dict[str, Any]:
-        """The aim model of a player's darts or the session's, for the cards;
-        worked out off the event loop when darts came or went since the last."""
-        log = self.progress.log(name)
-        if log.aim_stale:
-            log.store_aim(await self.hass.async_add_executor_job(log.aim_job()))
-        return log.aim()
-
-    def _follow_visit(
-        self, data: dict[str, Any], state: dict[str, Any], source: str
-    ) -> None:
-        """The visit as Home Assistant knows it: the board's darts with the
-        corrections, the darts entered by hand and the bot's darts."""
-        # The board's darts show, should the games fail.
-        data.pop("throws", None)
-        if self.practice.bot_up and self.manual.board_darts(state):
-            # A player throws while the bot is at the board: it finishes at once.
-            self._bot_finish(data, state)
-        effective = self.manual.apply(state)
-        self._track(data, effective, source)
-        data["throws"] = self._visit_throws(effective)
-        self._schedule_bot()
-
-    def _visit_throws(self, state: dict[str, Any]) -> list[Any]:
-        """The darts for the cards, each dart of the visit with its number."""
-        throws = state.get("throws")
-        numbers = {
-            slot: number for number, slot in enumerate(self.training.visit_slots(), 1)
-        }
-        return [
-            {**throw, "dart": numbers[slot]}
-            if slot in numbers and isinstance(throw, dict)
-            else throw
-            for slot, throw in enumerate(throws if isinstance(throws, list) else [])
-        ]
-
-    def _refresh(self, source: str) -> None:
-        """Follow the visit again after a change made in Home Assistant."""
-        data = dict(self.data or {})
-        self._guarded(lambda: self._follow_visit(data, data.get("local") or {}, source))
-        self.data = data
-        self.async_update_listeners()
-
-    def _practice_snapshot(self) -> dict[str, Any]:
-        """The practice game for the entities, and whether the last visit of a
-        player can be undone now."""
-        undo = self._undo is not None and self.training.can_undo()
-        return {**self.practice.snapshot(), "undo": undo}
-
-    def _checkpoint(
-        self, visit: dict[str, Any], reports: dict[str, Any], records: dict[str, Any]
-    ) -> None:
-        """The game before a player's visit is booked, to undo the visit; the
-        bot's visits are undone together with the visit before them."""
-        if visit.get("bot"):
-            return
-        count = visit["darts"]
-        known = self._positions[-count:] if count else []
-        positions: list[tuple[float, float] | None] = [None] * (count - len(known))
-        positions.extend(known)
-        self._undo = Checkpoint(
-            practice=self.practice.checkpoint(),
-            positions=positions,
-            # The visit, a leg it ends and training games book for these players.
-            progress=self.progress.checkpoint(self.practice.names),
-            reports=reports,
-            records=records,
-        )
-
-    def _publish_game(self, data: dict[str, Any], announced: bool) -> None:
-        """Snapshots for the entities; a change is saved and raises the revision."""
-        training, practice = self.training.snapshot(), self._practice_snapshot()
-        # The first snapshots only show what was restored; async_start schedules
-        # an overdue pause once the entities that announce its end exist.
-        if announced or (
-            "training" in data
-            and (training != data["training"] or practice != data.get("practice"))
-        ):
-            self._revision += 1
-            self._save_training()
-            self._schedule_idle_end()
-        data.update(
-            training=training,
-            practice=practice,
-            quality=self.quality.snapshot(),
-            revision=self._revision,
-        )
-        self._report_quality()
 
     def _observe_status(
         self, previous: dict[str, Any], state: dict[str, Any], source: str
@@ -1120,13 +681,10 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.free_stuck_takeout = enabled
         self._takeout_resets = 0
         self._watch_takeout(self.data or {})
-        self._save_training()
+        self.store.save_later()
         self.async_update_listeners()
 
     # -- repair issues -----------------------------------------------------------
-
-    def _issue_id(self, name: str) -> str:
-        return f"{name}_{self._entry.entry_id}"
 
     @callback
     def _report_identity(self) -> None:
@@ -1688,558 +1246,13 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if device.sw_version != self._version:
             registry.async_update_device(device.id, sw_version=self._version)
 
-    # -- actions -----------------------------------------------------------------
-
-    async def _async_training(self, events: list[tuple[str, dict[str, Any]]]) -> None:
-        """Save a session change at once, then announce it."""
-        events = self._recorded(events)
-        # Written now, with everything before. A dart that arrives during the
-        # write marks the store again (see _save_training), so the shutdown
-        # still saves it; one build of the store, without comparing it again.
-        self._training_dirty = False
-        try:
-            await self._store.async_save(self._stored())
-        except BaseException:
-            # Not written, for example cancelled: the shutdown saves it.
-            self._training_dirty = True
-            raise
-        for kind, attributes in events:
-            self._emit(kind, attributes, "training")
-        # A change of the game or the session cannot be undone visit by visit.
-        self._undo = None
-        self._revision += 1
-        self.data = {
-            **(self.data or {}),
-            "training": self.training.snapshot(),
-            "practice": self._practice_snapshot(),
-            "revision": self._revision,
-        }
-        self._schedule_idle_end()
-        self.async_update_listeners()
-        self._after_change()
-
-    async def async_start_session(self) -> None:
-        started = self.training.start()
-        await self._async_training([started] if started else [])
-
-    async def async_end_session(self) -> None:
-        ended = self.training.end("manual")
-        await self._async_training([ended] if ended else [])
-
-    async def async_new_session(self) -> None:
-        await self._async_training(self.training.new_session())
-
-    async def async_set_auto_start(self, enabled: bool) -> None:
-        self.training.auto_start = enabled
-        await self._async_training([])
-
-    async def async_set_daily_goal(self, darts: int) -> None:
-        self.records.set_goal(darts, dt_util.now().date())
-        await self._async_training([])
-
-    async def async_set_idle_minutes(self, minutes: int) -> None:
-        self.training.idle_minutes = minutes
-        await self._async_training([])
-
-    async def async_play(self, game: int | str) -> None:
-        """Start an X01 match or a training game, or stop playing with 0."""
-        self.practice.play(game)
-        await self._async_training([])
-
-    async def async_new_leg(self) -> None:
-        self.practice.new_leg()
-        await self._async_training([])
-
-    async def async_delete_player(self, name: str) -> bool:
-        """Forget a player profile, and the name in the records, the player
-        slots and the next tournament; False when there is no profile by that
-        name. A player of the tournament being played stays."""
-        self.tournament.forget(name)
-        deleted = self.practice.profiles.delete(name)
-        if deleted:
-            self.practice.forget(name)
-            self.records.forget(name)
-            self.progress.forget(name)
-            self.reports.forget(name)
-            await self._async_training([])
-        return deleted
-
-    async def async_link_player(self, name: str, person: str | None) -> bool:
-        """Link a player to a person, or unlink with None; False when that fails."""
-        profiles = self.practice.profiles
-        changed = profiles.link(name, person) if person else profiles.unlink(name)
-        if changed:
-            await self._async_training([])
-        return changed
-
-    async def async_set_practice_option(self, option: str, enabled: bool) -> None:
-        """Routes and the bull-off rule apply at once, and double out until the
-        first dart of a leg, otherwise from the next leg; double in, the
-        bull-off and teams start anew."""
-        self.practice.set_option(option, enabled)
-        if option in ("double_in", "bull_off", "teams"):
-            self.practice.new_match()
-        await self._async_training([])
-
-    async def async_set_x01_rule(self, rule: str, value: str | int) -> None:
-        """An X01 rule: the Out mode until the first dart of a leg, otherwise
-        from the next leg; another In mode, bull mode or round limit starts
-        the match anew."""
-        if self.practice.set_rule(rule, value) and rule != "out_mode":
-            self.practice.new_match()
-        await self._async_training([])
-
-    async def async_set_start_score(self, index: int, start: int) -> None:
-        """A player's own X01 start score, 0 for the game's; a new match."""
-        self.practice.set_start(index, start)
-        await self._async_training([])
-
-    async def async_set_party_rounds(
-        self, golf_holes: int | None = None, count_up_rounds: int | None = None
-    ) -> None:
-        """Holes of Golf and rounds of Count-Up; the game being played starts anew."""
-        self.practice.set_rounds(golf_holes, count_up_rounds)
-        await self._async_training([])
-
-    async def async_set_party_rule(self, rule: str, value: str | int) -> None:
-        """The order of Round the World or the target score of Gotcha; the
-        game being played starts anew."""
-        self.practice.set_party_rule(rule, value)
-        await self._async_training([])
-
-    async def async_set_achievements(self, enabled: bool) -> None:
-        """Achievements reached while they were off unlock quietly when on again."""
-        self.progress.enable(enabled, self.practice.profiles, dt_util.now())
-        await self._async_training([])
-
-    async def async_new_match(self) -> None:
-        self.practice.new_match()
-        await self._async_training([])
-
-    async def async_set_players(self, count: int) -> None:
-        """A different number of players starts a new match."""
-        self.practice.set_players(count)
-        await self._async_training([])
-
-    async def async_set_match_format(
-        self, legs: int | None = None, sets: int | None = None
-    ) -> None:
-        self.practice.set_format(legs, sets)
-        await self._async_training([])
-
-    async def async_set_player_name(self, index: int, name: str) -> bool:
-        """Name a seat, see PracticeGame.rename; whether it took the name. A
-        refused name changes nothing but the practice settings from before a
-        tournament, which come back with any change of a setting."""
-        resumes = self.practice.resume is not None
-        named = self.practice.rename(index, name)
-        if named or resumes:
-            await self._async_training([])
-        return named
-
-    async def async_start_game(
-        self,
-        game: int | str,
-        names: list[str] | None = None,
-        legs: int | None = None,
-        sets: int | None = None,
-        double_out: bool | None = None,
-        double_in: bool | None = None,
-        bull_off: bool | None = None,
-        bull_off_distance: bool | None = None,
-        teams: bool | None = None,
-        three_in_a_bed: bool | None = None,
-        start_scores: list[int] | None = None,
-        holes: int | None = None,
-        rounds: int | None = None,
-        bot_level: int | None = None,
-        in_mode: str | None = None,
-        out_mode: str | None = None,
-        bull_mode: str | None = None,
-        max_rounds: int | None = None,
-        halve_on_miss: bool | None = None,
-        order: str | None = None,
-        target_score: int | None = None,
-    ) -> None:
-        """Set up a practice game in one step; unset values stay as they are.
-        Double in and double out set the In and Out mode to double or straight."""
-        practice = self.practice
-        if names and not all(valid_name(name) for name in names):
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="invalid_player_name"
-            )
-        for option, value in (
-            ("double_out", double_out),
-            ("double_in", double_in),
-            ("bull_off", bull_off),
-            ("bull_off_distance", bull_off_distance),
-            ("teams", teams),
-            ("three_in_a_bed", three_in_a_bed),
-            ("bermuda_halve_on_miss", halve_on_miss),
-        ):
-            if value is not None:
-                practice.set_option(option, value)
-        for party_rule, chosen in (
-            ("round_the_world_order", order),
-            ("gotcha_target", target_score),
-        ):
-            if chosen is not None:
-                practice.set_party_rule(party_rule, chosen)
-        for rule, setting in (
-            ("in_mode", in_mode),
-            ("out_mode", out_mode),
-            ("bull_mode", bull_mode),
-            ("max_rounds", max_rounds),
-        ):
-            if setting is not None:
-                practice.set_rule(rule, setting)
-        if names:
-            for index in range(len(practice.names)):
-                practice.set_name(index, names[index] if index < len(names) else "")
-        if start_scores is not None:
-            # Players without a start score of their own play the game's.
-            for index in range(len(practice.starts)):
-                own = start_scores[index] if index < len(start_scores) else 0
-                practice.set_start(index, own)
-        practice.set_rounds(holes, rounds)
-        practice.set_format(legs, sets)
-        # The players besides the bot, counted before a new level of the bot
-        # changes which seat is its own.
-        humans = practice.humans
-        if bot_level is not None:
-            practice.bot_level = bot_level
-        practice.play(game, len(names) if names else humans)
-        await self._async_training([])
-
-    # -- tournaments ---------------------------------------------------------------
-
-    async def async_start_tournament(self, **options: Any) -> None:
-        """Draw a tournament and start its first match; see TournamentDirector.start."""
-        events = self.tournament.start(self.practice, dt_util.utcnow(), **options)
-        await self._async_tournament(events)
-
-    async def async_stop_tournament(self) -> None:
-        self.tournament.stop(self.practice)
-        await self._async_tournament([])
-
-    async def async_next_tournament_match(self) -> None:
-        """Start the next match without waiting for the pause to end."""
-        self.tournament.next_match(self.practice)
-        await self._async_tournament([])
-
-    async def async_set_tournament(self, **setup: Any) -> None:
-        """A setting of the next tournament; a new pause applies at once."""
-        self.tournament.configure(**setup)
-        await self._async_tournament([])
-
-    async def _async_tournament(self, events: list[tuple[str, dict[str, Any]]]) -> None:
-        await self._async_training(events)
-        self._schedule_fixture()
-
-    def _fixture(self) -> list[tuple[str, dict[str, Any]]]:
-        """After a visit: the result of a tournament match, and the next match
-        once the pause is over, no darts are left on the board and no other
-        game is being played."""
-        now = dt_util.utcnow()
-        events = self.tournament.booked(self.practice, now)
-        due = (
-            self.tournament.due(now)
-            and not self.training.visit()
-            and self.tournament.free(self.practice)
-        )
-        if due:
-            self.tournament.next_match(self.practice)
-        if events or due:
-            # A result the tournament took, or its next match, cannot be undone.
-            self._undo = None
-            self._schedule_fixture()
-        return events
-
-    @callback
-    def _schedule_fixture(self) -> None:
-        if self._fixture_unsub:
-            self._fixture_unsub()
-            self._fixture_unsub = None
-        if (due := self.tournament.due_at()) is not None:
-            self._fixture_unsub = async_track_point_in_utc_time(
-                self.hass, self._async_fixture_due, max(due, dt_util.utcnow())
-            )
-
-    async def _async_fixture_due(self, _now: datetime) -> None:
-        """The pause is over: the next match starts, or with the takeout of the
-        darts still on the board, or once another game is decided."""
-        self._fixture_unsub = None
-        if not self.tournament.due(dt_util.utcnow()):
-            # Woken early, or the pause changed meanwhile.
-            self._schedule_fixture()
-            return
-        if not self.training.visit() and self.tournament.free(self.practice):
-            await self.async_next_tournament_match()
-            return
-        # The takeout starts it at once; the end of another game is checked again.
-        self._fixture_unsub = async_track_point_in_utc_time(
-            self.hass, self._async_fixture_due, dt_util.utcnow() + FIXTURE_RETRY
-        )
-
-    async def async_set_bot(
-        self, level: int | None = None, delay: float | None = None
-    ) -> None:
-        """The bot's level, 0 without the bot, and the seconds between its darts."""
-        if level is not None:
-            self.practice.set_bot(level)
-        if delay is not None:
-            self.practice.bot_delay = delay
-        await self._async_training([])
-
-    # -- corrections, darts entered by hand and the bot ---------------------------
-
-    async def async_correct_dart(
-        self,
-        dart: int,
-        segment: dict[str, Any],
-        position: tuple[float, float] | None = None,
-    ) -> None:
-        """Put a dart of the current visit into another bed, at the position
-        given; without one, the dart has no position."""
-        slots = self.training.visit_slots()
-        if not 1 <= dart <= len(slots):
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key="no_dart",
-                translation_placeholders={"dart": str(dart)},
-            )
-        place = slots[dart - 1]
-        kind, index = self.manual.sources[place]
-        if kind == "extra" and self.manual.extras[index].dart.get("bot"):
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="bot_dart"
-            )
-        self.manual.correct(place, segment, position)
-        self._refresh("manual")
-
-    async def async_throw_dart(
-        self, segment: dict[str, Any], position: tuple[float, float] | None = None
-    ) -> None:
-        """A dart entered by hand, as if the board had detected it there."""
-        if not self.practice.manual_entry:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="manual_entry_off"
-            )
-        if self.practice.bot_up:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="bot_turn"
-            )
-        if len(self.training.visit()) >= BOT_DARTS:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="visit_full"
-            )
-        self.manual.add(segment, position, "manual")
-        self._refresh("manual")
-
-    async def async_enter_visit(
-        self,
-        points: int,
-        darts: int | None = None,
-        at_double: int | None = None,
-        checkout: bool = False,
-    ) -> None:
-        """An X01 visit entered as its score, or with `checkout` as the checkout
-        of what is left: the darts entered by hand in the visit so far give way to
-        it, and the next player throws."""
-        if not self.practice.manual_entry:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="manual_entry_off"
-            )
-        if self.practice.bot_up:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="bot_turn"
-            )
-        if self.manual.board_darts((self.data or {}).get("local") or {}):
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="visit_on_board"
-            )
-        try:
-            visit = self.practice.score_visit(points, darts, at_double, checkout)
-        except VisitRefused as err:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key=err.key,
-                translation_placeholders=err.placeholders or None,
-            ) from err
-        # Replaced at once: without darts, the visit of a dartboard without
-        # Autodarts would end before its score is in.
-        self.manual.extras = []
-        for dart in visit:
-            self.manual.add(dart, None, "manual")
-        self._refresh("manual")
-        self.manual.end_visit()
-        self._refresh("manual")
-
-    async def async_next_player(self) -> None:
-        """End the visit without pulling the darts; without darts, pass."""
-        if self.training.visit() or self.manual.extras:
-            self.manual.end_visit()
-        elif self.practice.passes():
-            # Booked like a visit: a pass can end a party game's last round.
-            self._book_visit("manual", empty=True)
-        else:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="empty_visit"
-            )
-        self._refresh("manual")
-
-    async def async_undo_visit(self) -> None:
-        """Take the last visit of a player back as the current visit, with the
-        game as it was before; the bot's visits after it are undone, too."""
-        darts = self.training.undo_visit() if self._undo else None
-        if self._undo is None or darts is None:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN, translation_key="undo_unavailable"
-            )
-        checkpoint = self._undo
-        self._undo = None
-        self._cancel_bot()
-        # Booked again once it ends, the visit must not count twice.
-        self.progress.rewind(checkpoint.progress)
-        self._schedule_aim()
-        self.reports.rewind(checkpoint.reports)
-        self.records.rewind(checkpoint.records)
-        self.practice.rewind(checkpoint.practice, darts, checkpoint.positions)
-        self.manual.replay(darts, checkpoint.positions)
-        self._emit(
-            "visit_undone",
-            {
-                "darts": len(darts),
-                "score": sum(dart["number"] * dart["multiplier"] for dart in darts),
-                "segments": [dart["name"] or hit_key(dart) for dart in darts],
-                "game": self.practice.kind,
-                "name": self.practice.thrower,
-            },
-            "manual",
-        )
-        self._refresh("manual")
-
-    def _bot_done(self) -> bool:
-        """Whether the bot's visit is over: its darts thrown, a bust or a win."""
-        snapshot = self.practice.snapshot()
-        thrown = self.manual.bot_darts()
-        if snapshot["bull_off"]:
-            return thrown >= 1
-        return bool(thrown >= BOT_DARTS or snapshot.get("bust") or snapshot["won"])
-
-    def _bot_throw(self) -> None:
-        dart, position = self.bot.throw(
-            bot_aim(self.practice.snapshot()),
-            self.practice.bot_level,
-            cricket=self.practice.cricket is not None,
-        )
-        self.manual.add(dart, position, "bot")
-
-    @callback
-    def _schedule_bot(self) -> None:
-        """The bot's next dart, or the end of its visit, after its delay."""
-        if not self.practice.bot_up:
-            self._cancel_bot()
-        elif self._bot_unsub is None:
-            self._bot_unsub = async_call_later(
-                self.hass, self.practice.bot_delay, self._bot_step
-            )
-
-    @callback
-    def _cancel_bot(self) -> None:
-        if self._bot_unsub:
-            self._bot_unsub()
-            self._bot_unsub = None
-
-    @callback
-    def _after_change(self) -> None:
-        """A change of the game or the session ends a visit with darts of Home
-        Assistant's, entered by hand, undone or the bot's; the bot's next turn
-        waits anew."""
-        self._cancel_bot()
-        if self.manual.extras:
-            self.manual.end_visit()
-            self._refresh("manual")
-        self._schedule_bot()
-
-    @callback
-    def _bot_step(self, _now: datetime) -> None:
-        self._bot_unsub = None
-        if not self.practice.bot_up:
-            # A step that was due when the game changed.
-            return
-        if self._bot_done():
-            self.manual.end_visit()
-        else:
-            self._bot_throw()
-        self._refresh("bot")
-
-    def _bot_finish(self, data: dict[str, Any], state: dict[str, Any]) -> None:
-        """The bot throws the rest of its visit at once and ends it, before the
-        new darts on the board count for the next player."""
-        self._cancel_bot()
-        before = self.manual.held(state)
-        while not self._bot_done():
-            self._bot_throw()
-            self._track(data, self.manual.apply(before), "bot")
-        self.manual.end_visit()
-        self._track(data, self.manual.apply(before), "bot")
-
-    @callback
-    def _report_quality(self) -> None:
-        """Suggest a calibration while many darts need corrections."""
-        issue = self._issue_id("calibration")
-        rate = self.quality.rate
-        if self.quality.enough and rate is not None and rate >= RECALIBRATE_RATE:
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                issue,
-                is_fixable=True,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="calibration_recommended",
-                translation_placeholders={"rate": f"{rate:.0f}"},
-                data={"entry_id": self._entry.entry_id},
-            )
-        elif rate is None or rate < RECOVERED_RATE:
-            ir.async_delete_issue(self.hass, DOMAIN, issue)
-
     async def async_recalibrate(self) -> None:
         """Calibrate all cameras and count the corrections from zero."""
         await self.async_action(lambda: self.client.command("calibrate"))
-        self.quality.reset()
+        self.games.quality.reset()
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id("calibration"))
         # The correction rate starts over now, not with the next read.
         self.async_update_listeners()
-
-    def _idle_due(self) -> datetime | None:
-        """When a running session ends without darts, if the user wants that."""
-        training = self.training
-        last = dt_util.parse_datetime(training.last_activity or "")
-        if not training.active or not training.idle_minutes or last is None:
-            return None
-        return last + timedelta(minutes=training.idle_minutes)
-
-    @callback
-    def _schedule_idle_end(self) -> None:
-        if self._idle_unsub:
-            self._idle_unsub()
-            self._idle_unsub = None
-        if (due := self._idle_due()) is not None:
-            self._idle_unsub = async_track_point_in_utc_time(
-                self.hass, self._async_end_idle, max(due, dt_util.utcnow())
-            )
-
-    async def _async_end_idle(self, _now: datetime) -> None:
-        self._idle_unsub = None
-        due = self._idle_due()
-        if due is None or due > dt_util.utcnow():
-            # A dart arrived in the meantime and rescheduled the end.
-            self._schedule_idle_end()
-            return
-        # The session ended with its last dart, not when the pause ran out.
-        ended = self.training.end("idle", at=self.training.last_activity)
-        await self._async_training([ended] if ended else [])
 
     async def async_action(
         self, action: Callable[[], Coroutine[Any, Any, None]]
@@ -2284,7 +1297,7 @@ class AutodartsManualCoordinator(AutodartsLocalCoordinator):
     def _restore(self, saved: object) -> None:
         super()._restore(saved)
         # Without detection, the darts entered by hand are the only darts.
-        self.practice.manual_entry = True
+        self.games.practice.manual_entry = True
 
     @callback
     def _start_realtime(self) -> None:

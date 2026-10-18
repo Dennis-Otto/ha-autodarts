@@ -25,3 +25,4 @@ Copy [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/d
 | [0013](0013-jobs-reach-only-the-hosts-they-need.md) | Let the jobs of the project's workflows reach only the hosts they need, and the Home Assistant under test none | accepted |
 | [0014](0014-a-live-demo-from-a-recording-of-the-integration.md) | Replay a recording of the integration for the live demo of the website | accepted |
 | [0015](0015-voice-packs-in-the-file-names-of-darts-caller.md) | Give the callers voice packs in the file names of darts-caller | accepted |
+| [0016](0016-a-game-engine-without-home-assistant.md) | Run the games in an engine without Home Assistant, apart from the connection to the board | accepted |

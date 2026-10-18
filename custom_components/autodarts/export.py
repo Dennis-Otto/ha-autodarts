@@ -187,7 +187,8 @@ def match_rows(journal: TrainingJournal) -> list[dict[str, Any]]:
 
 
 def profile_rows(coordinator: AutodartsLocalCoordinator) -> list[dict[str, Any]]:
-    players: list[dict[str, Any]] = coordinator.practice.profiles.snapshot()["players"]
+    profiles = coordinator.games.practice.profiles.snapshot()
+    players: list[dict[str, Any]] = profiles["players"]
     return players
 
 

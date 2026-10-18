@@ -294,7 +294,7 @@ async def test_entity_categories_and_classes(hass, aioclient_mock):
     # undone visit can lower them.
     assert darts.attributes["state_class"] == "total"
     coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
-    assert darts.attributes["last_reset"] == coordinator.training.started
+    assert darts.attributes["last_reset"] == coordinator.games.training.started
     session = hass.states.get(entity_id(hass, "sensor", "training_started"))
     assert "last_reset" not in session.attributes
     average = hass.states.get(entity_id(hass, "sensor", "training_average"))
