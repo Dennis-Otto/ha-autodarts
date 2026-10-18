@@ -286,6 +286,7 @@ def test_card_texts_exist_in_every_language(language):
 CARD_TEXT_FAMILIES = (
     ("achievement_", ""),
     ("achievement_", "_goal"),
+    ("call_darts_", ""),
     ("cricket_", ""),
     ("cricket_aim_", ""),
     ("drill_", ""),

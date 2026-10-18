@@ -361,6 +361,13 @@ const TEXT = {
     call_checkouts: "Call what a player requires",
     call_results: "Call game shots and busts",
     call_sounds: "Play a fanfare for a 180",
+    call_route: "Call the checkout route",
+    call_target: "Call the next target",
+    call_darts: "Call every dart",
+    call_darts_helper: "For players who can't see the board well: each dart as it lands, by its points or by its bed. With the route and the target, the caller says where to aim.",
+    call_darts_off: "Off",
+    call_darts_score: "By its points, such as 60",
+    call_darts_bed: "By its bed, such as Treble 20",
     say_require: "{name}, you require {remaining}",
     say_require_alone: "You require {remaining}",
     say_bust: "No score",
@@ -375,6 +382,13 @@ const TEXT = {
     say_limit_match: "Round limit, and the match, {name}!",
     say_setup: "{name}, leave yourself {leave}",
     say_setup_alone: "Leave yourself {leave}",
+    say_dart_double: "Double {number}",
+    say_dart_treble: "Treble {number}",
+    say_dart_bull: "Bull",
+    say_bullseye: "Bullseye",
+    say_dart_miss: "Miss",
+    say_route: "{remaining}: {route}",
+    say_target: "Target: {target}",
     // Correcting and entering darts on the scoreboard
     correct_title: "Correct dart {dart}",
     enter_title: "Enter a dart",
@@ -995,6 +1009,13 @@ const TEXT = {
     call_checkouts: "Ansagen, was ein Spieler braucht",
     call_results: "Game shot und Überwerfen ansagen",
     call_sounds: "Fanfare bei einer 180",
+    call_route: "Den Checkout-Weg ansagen",
+    call_target: "Das nächste Ziel ansagen",
+    call_darts: "Jeden Dart ansagen",
+    call_darts_helper: "Für Spieler, die die Scheibe schlecht sehen: jeden Dart, sobald er steckt, mit seinen Punkten oder seinem Feld. Mit dem Weg und dem Ziel sagt der Caller, wohin du zielst.",
+    call_darts_off: "Aus",
+    call_darts_score: "Mit seinen Punkten, etwa 60",
+    call_darts_bed: "Mit seinem Feld, etwa Triple 20",
     say_require: "{name}, du brauchst {remaining}",
     say_require_alone: "Du brauchst {remaining}",
     say_bust: "Überworfen",
@@ -1009,6 +1030,13 @@ const TEXT = {
     say_limit_match: "Rundenlimit, und das Match, {name}!",
     say_setup: "{name}, stell dir die {leave}",
     say_setup_alone: "Stell dir die {leave}",
+    say_dart_double: "Doppel {number}",
+    say_dart_treble: "Triple {number}",
+    say_dart_bull: "Bull",
+    say_bullseye: "Bullseye",
+    say_dart_miss: "Fehlwurf",
+    say_route: "{remaining}: {route}",
+    say_target: "Ziel: {target}",
     // Darts auf der Anzeigetafel korrigieren und eingeben
     correct_title: "Dart {dart} korrigieren",
     enter_title: "Dart eingeben",
@@ -1620,6 +1648,13 @@ const TEXT = {
     call_checkouts: "Anunciar lo que le queda a cada jugador",
     call_results: "Anunciar game shots y busts",
     call_sounds: "Tocar una fanfarria con cada 180",
+    call_route: "Anunciar la ruta de cierre",
+    call_target: "Anunciar el siguiente objetivo",
+    call_darts: "Anunciar cada dardo",
+    call_darts_helper: "Para quien no ve bien la diana: cada dardo al clavarse, por sus puntos o por su sector. Con la ruta y el objetivo, el locutor te dice adónde apuntar.",
+    call_darts_off: "Desactivado",
+    call_darts_score: "Por sus puntos, como 60",
+    call_darts_bed: "Por su sector, como Triple 20",
     say_require: "{name}, te quedan {remaining}",
     say_require_alone: "Te quedan {remaining}",
     say_bust: "Sin puntos",
@@ -1634,6 +1669,13 @@ const TEXT = {
     say_limit_match: "¡Límite de rondas, y el partido, {name}!",
     say_setup: "{name}, déjate {leave}",
     say_setup_alone: "Déjate {leave}",
+    say_dart_double: "Doble {number}",
+    say_dart_treble: "Triple {number}",
+    say_dart_bull: "Bull",
+    say_bullseye: "Bullseye",
+    say_dart_miss: "Fallo",
+    say_route: "{remaining}: {route}",
+    say_target: "Objetivo: {target}",
     correct_title: "Corregir el dardo {dart}",
     enter_title: "Introducir un dardo",
     score_title: "Puntos de la tirada",
@@ -2243,6 +2285,13 @@ const TEXT = {
     call_checkouts: "Annoncer les points restants",
     call_results: "Annoncer les game shots et les busts",
     call_sounds: "Jouer une fanfare pour un 180",
+    call_route: "Annoncer la combinaison de finish",
+    call_target: "Annoncer la prochaine cible",
+    call_darts: "Annoncer chaque fléchette",
+    call_darts_helper: "Pour les joueurs qui voient mal la cible\u00a0: chaque fléchette dès qu'elle est plantée, par ses points ou par sa zone. Avec la combinaison et la cible, l'annonceur vous dit où viser.",
+    call_darts_off: "Désactivé",
+    call_darts_score: "Par ses points, comme 60",
+    call_darts_bed: "Par sa zone, comme Triple 20",
     say_require: "{name}, il vous reste {remaining}",
     say_require_alone: "Il vous reste {remaining}",
     say_bust: "Aucun point",
@@ -2257,6 +2306,13 @@ const TEXT = {
     say_limit_match: "Limite de tours, et le match, {name}\u00a0!",
     say_setup: "{name}, laissez {leave}",
     say_setup_alone: "Laissez {leave}",
+    say_dart_double: "Double {number}",
+    say_dart_treble: "Triple {number}",
+    say_dart_bull: "Bull",
+    say_bullseye: "Bullseye",
+    say_dart_miss: "Raté",
+    say_route: "{remaining}\u00a0: {route}",
+    say_target: "Cible\u00a0: {target}",
     correct_title: "Corriger la fléchette {dart}",
     enter_title: "Saisir une fléchette",
     score_title: "Points de la volée",
@@ -2866,6 +2922,13 @@ const TEXT = {
     call_checkouts: "Omroepen wat een speler nog nodig heeft",
     call_results: "Game shots en busts omroepen",
     call_sounds: "Fanfare afspelen bij een 180",
+    call_route: "De uitgooiroute omroepen",
+    call_target: "Het volgende doel omroepen",
+    call_darts: "Elke dart omroepen",
+    call_darts_helper: "Voor spelers die het bord slecht zien: elke dart zodra hij zit, met zijn punten of zijn vak. Met de route en het doel zegt de caller waar je op mikt.",
+    call_darts_off: "Uit",
+    call_darts_score: "Met zijn punten, zoals 60",
+    call_darts_bed: "Met zijn vak, zoals Triple 20",
     say_require: "{name}, je hebt nog {remaining} nodig",
     say_require_alone: "Je hebt nog {remaining} nodig",
     say_bust: "Geen score",
@@ -2880,6 +2943,13 @@ const TEXT = {
     say_limit_match: "Rondelimiet, en de wedstrijd, {name}!",
     say_setup: "{name}, laat {leave} over",
     say_setup_alone: "Laat {leave} over",
+    say_dart_double: "Dubbel {number}",
+    say_dart_treble: "Triple {number}",
+    say_dart_bull: "Bull",
+    say_bullseye: "Bullseye",
+    say_dart_miss: "Mis",
+    say_route: "{remaining}: {route}",
+    say_target: "Doel: {target}",
     correct_title: "Dart {dart} corrigeren",
     enter_title: "Dart invoeren",
     score_title: "Score van de beurt",
@@ -3346,6 +3416,10 @@ const SCOREBOARD_DEFAULTS = {
   call_checkouts: true,
   call_results: true,
   call_sounds: true,
+  // For blind and low-vision players: every dart, the route of a checkout and the next target.
+  call_darts: "off",
+  call_route: false,
+  call_target: false,
   // The new game screen; without a list of games it offers every game of the board.
   lobby: true,
   // Panels in turn when no game runs and nobody threw or tapped for a while.
@@ -7603,6 +7677,11 @@ function callerState(visit, view, previous = null) {
       : previous?.mode === current.mode && previous?.player === player
         ? previous.start
         : null);
+  // What a training or a party game aims at next; the checkout training has its route instead.
+  const { drill, party } = current;
+  const aim = drill
+    ? !drill.finished && !CHECKOUT_DRILLS.includes(drill.kind) && drill.target
+    : party && !party.won && party.winner === null && !party.needsPlayers && party.target;
   return {
     darts: keys.length,
     visit: keys.join(" "),
@@ -7616,6 +7695,7 @@ function callerState(visit, view, previous = null) {
     start,
     route: current.practice?.route ?? current.drill?.route ?? [],
     setup: current.practice?.setup?.leave ?? current.drill?.setup?.leave ?? null,
+    target: aim || null,
     bust: game?.bust === true,
     won: game?.won === true,
     winner: game?.winner ?? null,
@@ -7626,11 +7706,32 @@ function callerState(visit, view, previous = null) {
   };
 }
 
-// The calls between two states: a visit, a requirement, a bust or a game shot.
+// How the caller may call every dart: by its points or by its bed. Off calls none.
+const DART_CALLS = ["off", "score", "bed"];
+const dartCalls = (options) => (DART_CALLS.slice(1).includes(options.call_darts) ? options.call_darts : null);
+
+// The darts of the visit the caller has not called yet: those after the darts it knew of
+// this visit, a corrected dart included, or every dart of another player's visit. The darts
+// on the board when a game starts or ends were thrown before, so they are not called again.
+function newDarts(previous, current) {
+  if (previous.mode !== current.mode) return [];
+  const darts = (state) => (state.visit ? state.visit.split(" ") : []);
+  const same = previous.player === current.player && previous.start === current.start;
+  const known = same ? darts(previous) : [];
+  const thrown = darts(current);
+  const first = thrown.findIndex((key, index) => key !== known[index]);
+  return first < 0 ? [] : thrown.slice(first);
+}
+
+// The calls between two states: the darts, a visit, a requirement and its route, a bust,
+// a game shot or the next target.
 function callerCalls(previous, current, options) {
   if (!previous) return [];
   const calls = [];
   const on = (key) => options[key] !== false;
+  // Every dart as it lands, for players who cannot see the board, before what it decided.
+  const by = dartCalls(options);
+  if (by) calls.push(...newDarts(previous, current).map((key) => ({ kind: "dart", key, by })));
   const finished = current.darts === 3 && (previous.darts !== 3 || previous.visit !== current.visit);
   if (on("call_scores") && finished && current.count) {
     calls.push({ ...current.count });
@@ -7648,13 +7749,13 @@ function callerCalls(previous, current, options) {
     current.player !== previous.player || current.remaining !== previous.remaining || previous.darts > 0;
   // The route exists only for a score the darts of a visit can finish; without
   // one, the caller names the score to leave.
-  const up =
-    on("call_checkouts") &&
+  const next =
     ["x01", "drill"].includes(current.mode) &&
     current.darts === 0 &&
     turn &&
     current.winner === null &&
     current.remaining !== null;
+  const up = on("call_checkouts") && next;
   const who = {
     name: current.name,
     ...(current.bot ? { bot: true } : {}),
@@ -7666,11 +7767,53 @@ function callerCalls(previous, current, options) {
   } else if (up && current.setup !== null) {
     calls.push({ kind: "setup", ...who, leave: current.setup });
   }
+  // The route of the checkout: at the start of a visit, after what the player requires, and
+  // whenever a dart leaves another one for the darts left, then with the score it finishes.
+  // The bot needs none.
+  const route = current.route.join(" ");
+  const changed = current.remaining !== previous.remaining || route !== previous.route.join(" ");
+  const aiming = next || (current.darts > 0 && current.darts < 3 && changed && current.winner === null);
+  if (options.call_route === true && route && aiming && !current.bust && !current.bot) {
+    calls.push({ kind: "route", route: current.route, ...(up ? {} : { remaining: current.remaining }) });
+  }
+  // The target of a training or a party game when it moves on, and for each player whose
+  // turn comes, except the bot.
+  const aim = current.target !== previous.target || current.player !== previous.player;
+  if (options.call_target === true && current.target !== null && aim && !current.bot) {
+    calls.push({ kind: "target", target: current.target });
+  }
   return calls;
+}
+
+// A bed as a caller says it, as the integration's callers do: "Treble 20", "Double 16",
+// "5" for a single, "25", "Bull" or "Miss".
+function bedWords(key, t) {
+  if (key === "MISS") return t("say_dart_miss");
+  if (key === "BULL") return t("say_dart_bull");
+  const [, ring, number] = /^([SDT])(\d+)$/.exec(key) ?? [];
+  if (!ring || ring === "S") return number ?? key;
+  return fill(t(ring === "D" ? "say_dart_double" : "say_dart_treble"), { number });
+}
+
+// A target as a caller says it: any double or treble, the bull where both of its beds count,
+// the bullseye where only it does, a number or a bed.
+function targetWords(target, t) {
+  if (target === "D") return t("any_double");
+  if (target === "T") return t("any_treble");
+  if (target === "25") return t("say_dart_bull");
+  return ["50", "BULL"].includes(target) ? t("say_bullseye") : bedWords(target, t);
 }
 
 // A call as the caller says it.
 function callerText(call, t) {
+  if (call.kind === "dart") {
+    return call.by === "score" && call.key !== "MISS" ? String(keyScore(call.key)) : bedWords(call.key, t);
+  }
+  if (call.kind === "route") {
+    const route = call.route.map((key) => bedWords(key, t)).join(", ");
+    return call.remaining === undefined ? route : fill(t("say_route"), { remaining: call.remaining, route });
+  }
+  if (call.kind === "target") return fill(t("say_target"), { target: targetWords(call.target, t) });
   if (call.kind === "score") return call.score === 0 ? t("say_no_score") : String(call.score);
   if (call.kind === "marks") {
     if (call.marks === 0) return t("say_no_score");
@@ -7728,14 +7871,47 @@ function voicePack(result) {
   return sounds.size ? { sounds } : null;
 }
 
+// The sounds of a bed in darts-caller's packs, the first one a pack has counting: t20, d16,
+// s5 or 5, bull for the 25, bullseye, and outside for a miss.
+function bedSounds(key) {
+  if (key === "MISS") return ["outside"];
+  if (key === "BULL") return ["bullseye"];
+  if (key === "25") return ["bull"];
+  const bed = key.toLowerCase();
+  return key.startsWith("S") ? [bed, key.slice(1)] : [bed];
+}
+
+// The sounds of a target after bs_target_is: any double, the bull, the bullseye, a number or a
+// bed. Any treble has none in darts-caller's packs.
+function targetSounds(target) {
+  if (target === "D") return ["bs_any_double"];
+  if (target === "T") return [];
+  if (target === "50") return ["bullseye"];
+  return /^\d+$/.test(target) && target !== "25" ? [target, `s${target}`] : bedSounds(target);
+}
+
 // The parts of a call as a pack says them: its recorded sounds, and the words of a name it has
 // no sound for, whose file darts-caller names in lower case. Null when the pack cannot say the
 // call, which the browser's voice then says whole. What a player requires is one sound, yr_40,
-// or you_require and the score, c_40 or 40.
+// or you_require and the score, c_40 or 40. A dart is the sound of its bed or of its points,
+// a route the sounds of its beds, and a target bs_target_is and the target.
 function callerSounds(call, has, t) {
   const sound = (key) => (has(key) ? { sound: key } : null);
   const one = (key) => (has(key) ? [{ sound: key }] : null);
   const name = (words) => sound(nameKey(words)) ?? { text: words };
+  // Every part the first of its sounds that the pack has; without one for each part, none.
+  const parts = (choices) => {
+    const found = choices.map((keys) => keys.find(has));
+    return found.every(Boolean) ? found.map((key) => ({ sound: key })) : null;
+  };
+  if (call.kind === "dart") {
+    return parts([call.by === "score" && call.key !== "MISS" ? [String(keyScore(call.key))] : bedSounds(call.key)]);
+  }
+  if (call.kind === "route") {
+    const score = call.remaining === undefined ? [] : [[`c_${call.remaining}`, String(call.remaining)]];
+    return parts([...score, ...call.route.map(bedSounds)]);
+  }
+  if (call.kind === "target") return parts([["bs_target_is"], targetSounds(call.target)]);
   if (call.kind === "score") return one(String(call.score));
   if (call.kind === "bust") return one("busted");
   if (call.kind === "leg") return one("gameshot");
@@ -8102,7 +8278,18 @@ function gamesDashboardView(board) {
 }
 
 // Options of the scoreboard view that the dashboard's own settings may set.
-const STRATEGY_SCOREBOARD = ["caller", "caller_voice", "keypad", "corrections", "idle", "lobby_games", "idle_panels"];
+const STRATEGY_SCOREBOARD = [
+  "caller",
+  "caller_voice",
+  "call_darts",
+  "call_route",
+  "call_target",
+  "keypad",
+  "corrections",
+  "idle",
+  "lobby_games",
+  "idle_panels",
+];
 
 // The options set in the dashboard's settings, without the empty ones.
 function scoreboardOptions(config) {
@@ -8259,6 +8446,8 @@ const colorField = (name, defaultColor) => ({
 const accentField = colorField("accent_color", "primary");
 // The voice pack of the caller, a folder of the media folder.
 const voiceField = { name: "caller_voice", selector: { text: {} } };
+// Every dart called by its points or its bed, for players who cannot see the board well.
+const dartCallsField = () => dropdown("call_darts", "call_darts", DART_CALLS);
 // Named players to pick from; any other name can be typed in.
 const playerField = (helper) => ({
   name: "player",
@@ -8279,6 +8468,7 @@ const FORM_HELPERS = {
   highlight_color: "highlight_color_helper",
   caller_options: "caller_options_helper",
   caller_voice: "caller_voice_helper",
+  call_darts: "call_darts_helper",
   lobby_section: "lobby_section_helper",
   lobby_games: "lobby_games_helper",
   idle_section: "idle_section_helper",
@@ -8431,7 +8621,11 @@ const FORMS = {
       name: "caller_options",
       flatten: true,
       schema: [
-        toggles(["call_scores", "call_checkouts", "call_results", "call_sounds"], SCOREBOARD_DEFAULTS),
+        toggles(
+          ["call_scores", "call_checkouts", "call_results", "call_sounds", "call_route", "call_target"],
+          SCOREBOARD_DEFAULTS
+        ),
+        dartCallsField(),
         voiceField,
       ],
     },
@@ -8515,6 +8709,8 @@ const strategyForm = (hass) => [
     schema: [
       toggles(["caller", "keypad", "corrections", "idle"], SCOREBOARD_DEFAULTS),
       voiceField,
+      dartCallsField(),
+      toggles(["call_route", "call_target"], SCOREBOARD_DEFAULTS),
       { name: "lobby_games", selector: { select: { multiple: true, mode: "dropdown", options: gameOptions(hass) } } },
       {
         name: "idle_panels",

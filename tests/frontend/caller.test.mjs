@@ -303,3 +303,200 @@ test("the caller names the winner of a leg or a match the round limit decides", 
   assert.equal(callerText({ kind: "limit_leg", name: null }, t), "Round limit, and the leg!");
   assert.equal(callerText({ kind: "limit_match", name: "Sam" }, t), "Round limit, and the match, Sam!");
 });
+
+// For blind and low-vision players ---------------------------------------------------------
+
+test("every dart is called as it lands, by its bed or its points, before what it decided", () => {
+  const bed = { ...all, call_darts: "bed" };
+  const from = (remaining, keys, overrides = {}) => x01({ remaining, visitFrom: 501, visit: keys, ...overrides });
+  const states = play([
+    [visit(), x01({ remaining: 501, visitFrom: 501 })],
+    [visit(dart(20, 3)), from(441, ["T20"])],
+    [visit(dart(20, 3), dart(25, 2)), from(391, ["T20", "BULL"])],
+    [visit(dart(20, 3), dart(25, 2), dart(0, 0)), from(391, ["T20", "BULL", "MISS"])],
+  ]);
+  assert.deepEqual(callerCalls(states[0], states[1], bed), [{ kind: "dart", key: "T20", by: "bed" }]);
+  assert.deepEqual(callerCalls(states[1], states[2], bed), [{ kind: "dart", key: "BULL", by: "bed" }]);
+  assert.deepEqual(callerCalls(states[2], states[3], bed), [
+    { kind: "dart", key: "MISS", by: "bed" },
+    { kind: "score", score: 110 },
+  ]);
+  assert.deepEqual(callerCalls(states[0], states[1], { ...all, call_darts: "score" }), [
+    { kind: "dart", key: "T20", by: "score" },
+  ]);
+  // Off, as before, also for a value the card does not know.
+  for (const option of [undefined, "off", "every", true]) {
+    assert.deepEqual(calls(states[0], states[1], { ...all, call_darts: option }), [], String(option));
+  }
+  // A state seen twice calls nothing again, and darts that came at once are called in order.
+  assert.deepEqual(callerCalls(states[1], states[1], bed), []);
+  assert.deepEqual(calls(states[0], states[2], bed), ["dart", "dart"]);
+  // A corrected dart is called again, with the darts after it; a dart taken back calls nothing.
+  const corrected = callerState(visit(), from(431, ["S20", "BULL"]), states[2]);
+  assert.deepEqual(callerCalls(states[2], corrected, bed).map((call) => call.key), ["S20", "BULL"]);
+  assert.deepEqual(callerCalls(states[2], callerState(visit(), from(441, ["T20"]), states[2]), bed), []);
+  // The darts of the next visit are new, also where they start alike: Sam's, or Alex's after a
+  // takeout the card missed.
+  const sam = callerState(visit(), from(441, ["T20"], { player: 2, name: "Sam" }), states[3]);
+  assert.deepEqual(calls(states[3], sam, bed), ["dart"]);
+  const again = callerState(visit(), x01({ remaining: 331, visitFrom: 391, visit: ["T20"] }), states[3]);
+  assert.deepEqual(calls(states[3], again, bed), ["dart"]);
+  // Between games the darts on the board, and in a training game its darts.
+  const idle = { mode: "idle" };
+  const empty = callerState(visit(), idle);
+  assert.deepEqual(callerCalls(empty, callerState(visit(dart(5, 1)), idle, empty), bed), [
+    { kind: "dart", key: "S5", by: "bed" },
+  ]);
+  const drill = (thrown) => ({ mode: "drill", drill: { kind: "doubles", target: "D1", thrown, route: [] } });
+  const first = callerState(visit(), drill([]));
+  assert.deepEqual(calls(first, callerState(visit(), drill(["D1"]), first), bed), ["dart"]);
+  // The darts on the board when a game ends were called in the game already.
+  const after = callerState(visit(dart(20, 3), dart(25, 2), dart(0, 0)), idle, states[3]);
+  assert.deepEqual(callerCalls(states[3], after, bed).filter((call) => call.kind === "dart"), []);
+});
+
+test("a dart, a route and a target read like a caller in the card's language", () => {
+  const t = (key) =>
+    ({
+      say_dart_double: "Double {number}",
+      say_dart_treble: "Treble {number}",
+      say_dart_bull: "Bull",
+      say_bullseye: "Bullseye",
+      say_dart_miss: "Miss",
+      say_route: "{remaining}: {route}",
+      say_target: "Target: {target}",
+      any_double: "Any double",
+      any_treble: "Any treble",
+    })[key] ?? key;
+  const beds = ["T20", "D16", "S5", "25", "BULL", "MISS"];
+  assert.deepEqual(
+    beds.map((key) => callerText({ kind: "dart", key, by: "bed" }, t)),
+    ["Treble 20", "Double 16", "5", "25", "Bull", "Miss"]
+  );
+  assert.deepEqual(
+    beds.map((key) => callerText({ kind: "dart", key, by: "score" }, t)),
+    ["60", "32", "5", "25", "50", "Miss"]
+  );
+  assert.equal(callerText({ kind: "route", route: ["T19", "D12"] }, t), "Treble 19, Double 12");
+  assert.equal(callerText({ kind: "route", route: ["S20", "BULL"], remaining: 70 }, t), "70: 20, Bull");
+  assert.deepEqual(
+    ["20", "D16", "T20", "D", "T", "25", "50", "BULL"].map((target) => callerText({ kind: "target", target }, t)),
+    [
+      "Target: 20",
+      "Target: Double 16",
+      "Target: Treble 20",
+      "Target: Any double",
+      "Target: Any treble",
+      "Target: Bull",
+      "Target: Bullseye",
+      "Target: Bullseye",
+    ]
+  );
+});
+
+test("with the route on, the caller says where the checkout goes, after each dart again", () => {
+  const route = { ...all, call_route: true };
+  const pulled = callerState(visit(dart(20, 3)), x01({ remaining: 141, visit: ["T20"] }));
+  const sam = callerState(visit(), x01({ player: 2, name: "Sam", remaining: 81, route: ["T19", "D12"] }), pulled);
+  assert.deepEqual(callerCalls(pulled, sam, route), [
+    { kind: "require", name: "Sam", player: 2, players: 2, remaining: 81 },
+    { kind: "route", route: ["T19", "D12"] },
+  ]);
+  // Without what the player requires, the route names the score; off, as before.
+  assert.deepEqual(callerCalls(pulled, sam, { ...route, call_checkouts: false }), [
+    { kind: "route", route: ["T19", "D12"], remaining: 81 },
+  ]);
+  assert.deepEqual(calls(pulled, sam), ["require"]);
+  // A dart that leaves another finish: the route of the darts left, with the score.
+  const turn = (remaining, keys, overrides = {}) =>
+    x01({ player: 2, name: "Sam", remaining, route: ["T10", "D16"], visit: keys, ...overrides });
+  const single = callerState(visit(), turn(62, ["S19"]), sam);
+  assert.deepEqual(callerCalls(sam, single, route), [{ kind: "route", route: ["T10", "D16"], remaining: 62 }]);
+  // A miss that leaves the route as it was says nothing; one that changes it says the new one.
+  const miss = callerState(visit(), turn(62, ["S19", "MISS"]), single);
+  assert.deepEqual(callerCalls(single, miss, route), []);
+  const last = callerState(visit(), turn(62, ["S19", "MISS"], { route: ["BULL"] }), single);
+  assert.deepEqual(calls(single, last, route), ["route"]);
+  // Nothing after the third dart, a bust or a game shot, without a route, or for the bot.
+  const third = callerState(visit(), turn(30, ["S19", "MISS", "S12"], { route: ["D15"] }), miss);
+  assert.deepEqual(calls(miss, third, route), ["score"]);
+  const bust = callerState(visit(), turn(62, ["S19", "T20"], { bust: true }), single);
+  assert.deepEqual(calls(single, bust, route), ["bust"]);
+  const won = callerState(visit(), turn(0, ["S19", "D31"], { winner: 2 }), single);
+  assert.deepEqual(calls(single, won, route), ["match"]);
+  const none = callerState(visit(), turn(42, ["S19", "S20"], { route: [] }), single);
+  assert.deepEqual(calls(single, none, route), []);
+  const bot = callerState(
+    visit(),
+    x01({
+      player: 2,
+      name: null,
+      remaining: 81,
+      route: ["T19", "D12"],
+      scores: [
+        { player: 1, name: "Alex" },
+        { player: 2, name: null, bot: true },
+      ],
+    }),
+    pulled
+  );
+  assert.deepEqual(calls(pulled, bot, route), ["require"]);
+  // The checkout training calls its route as X01 does, and has no target besides.
+  const idle = callerState(visit(), { mode: "idle" });
+  const training = {
+    mode: "drill",
+    drill: { kind: "checkout", target: "81", remaining: 81, route: ["T19", "D12"], thrown: [] },
+  };
+  const start = callerState(visit(), training, idle);
+  assert.deepEqual(calls(idle, start, { ...route, call_target: true }), ["require", "route"]);
+  assert.equal(start.target, null);
+});
+
+test("with the target on, training and party games call what to aim at next", () => {
+  const target = { ...all, call_target: true };
+  const idle = callerState(visit(), { mode: "idle" });
+  const clock = (aim, thrown = [], overrides = {}) => ({
+    mode: "drill",
+    drill: { kind: "around_the_clock", target: aim, finished: false, thrown, route: [], ...overrides },
+  });
+  const one = callerState(visit(), clock("1"), idle);
+  assert.deepEqual(callerCalls(idle, one, target), [{ kind: "target", target: "1" }]);
+  assert.deepEqual(calls(idle, one), []);
+  // A hit moves the target on at once, after the dart; a miss calls no target again.
+  const two = callerState(visit(), clock("2", ["S1"]), one);
+  assert.deepEqual(callerCalls(one, two, { ...target, call_darts: "bed" }), [
+    { kind: "dart", key: "S1", by: "bed" },
+    { kind: "target", target: "2" },
+  ]);
+  assert.deepEqual(callerCalls(two, callerState(visit(), clock("2", ["S1", "S5"]), two), target), []);
+  // A finished training game has no target.
+  assert.equal(callerState(visit(), clock("D20", [], { kind: "doubles", finished: true })).target, null);
+  assert.equal(callerState(visit(), clock(null)).target, null);
+  // In a party game each player hears the target as their turn comes; the bot needs none, and
+  // a decided game or one waiting for players has none.
+  const party = (overrides = {}) => ({
+    mode: "party",
+    party: {
+      kind: "shanghai",
+      target: "3",
+      player: 1,
+      won: false,
+      winner: null,
+      needsPlayers: null,
+      visit: [],
+      scores: [
+        { player: 1, name: "Alex" },
+        { player: 2, name: "Sam" },
+        { player: 3, name: null, bot: true },
+      ],
+      ...overrides,
+    },
+  });
+  const alex = callerState(visit(), party(), idle);
+  const sam = callerState(visit(), party({ player: 2 }), alex);
+  assert.deepEqual(callerCalls(alex, sam, target), [{ kind: "target", target: "3" }]);
+  assert.deepEqual(callerCalls(sam, callerState(visit(), party({ player: 3 }), sam), target), []);
+  for (const overrides of [{ won: true }, { winner: 1 }, { needsPlayers: 2 }, { target: null }]) {
+    assert.equal(callerState(visit(), party(overrides)).target, null, JSON.stringify(overrides));
+  }
+});
