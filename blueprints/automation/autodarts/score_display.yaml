@@ -334,7 +334,7 @@ conditions:
     condition: template
     value_template: >-
       {%- set setup = as_timestamp(this.last_changed) %}
-      {%- set ran = this.attributes.get('last_triggered') %}
+      {%- set ran = state_attr(this.entity_id, 'last_triggered') %}
       {{- trigger.id != 'resumed' or trigger.platform == 'homeassistant'
           or (ran is none or as_timestamp(ran) < setup)
              and states[practice] is not none
