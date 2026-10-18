@@ -93,8 +93,8 @@ EXPECTED_TRACEBACKS = (
     "import_module with args ('probatio.codecs',)",
 )
 MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
-CARD = MANIFEST.parent / "frontend" / "autodarts-card.js"
-STRATEGY = MANIFEST.parent / "frontend" / "autodarts-strategy.js"
+# Every file of the cards: both modules and the texts of each language in text/.
+FRONTEND = MANIFEST.parent / "frontend"
 
 # Unique ID suffix -> platform of the entities a three-camera board must create.
 ENTITIES = {
@@ -1623,16 +1623,24 @@ class Scenario:
 
     async def card(self) -> None:
         """The bundled dashboard card and the strategy's own small module are served
-        and loaded without a resource, with one version in both addresses, and the
-        card module is compressed. Both are dashboard resources too, which Home
-        Assistant Cast loads from its own origin."""
+        and loaded without a resource, from the folder of one version with the texts
+        of every language, and the card module is compressed. Both modules are
+        dashboard resources too, which Home Assistant Cast loads from its own origin."""
         version = json.loads(MANIFEST.read_text())["version"]
-        digest = hashlib.sha256(CARD.read_bytes() + STRATEGY.read_bytes()).hexdigest()
-        query = f"?v={version}-{digest[:8]}"
-        url = f"/autodarts/autodarts-card.js{query}"
-        strategy_url = f"/autodarts/autodarts-strategy.js{query}"
+        files = {
+            path.relative_to(FRONTEND).as_posix(): path.read_bytes()
+            for path in FRONTEND.rglob("*.js")
+        }
+        content = b"".join(files[name] for name in sorted(files))
+        folder = f"/autodarts/{version}-{hashlib.sha256(content).hexdigest()[:8]}"
+        url = f"{folder}/autodarts-card.js"
+        strategy_url = f"{folder}/autodarts-strategy.js"
+        texts = [
+            f"{folder}/{name}" for name in sorted(files) if name.startswith("text/")
+        ]
+        check(len(texts) >= 5, f"The texts of the cards are {texts}")
         sources = {}
-        for address in (url, strategy_url):
+        for address in (url, strategy_url, *texts):
             async with self.session.get(f"{HA}{address}") as response:
                 sources[address] = await response.text()
                 check(
@@ -1644,6 +1652,13 @@ class Scenario:
                     f"{address} served as {response.headers.get('Content-Type')}",
                 )
         source = sources[url]
+        for address in texts:
+            name = address.removeprefix(f"{folder}/")
+            check(f'from "./{name}";' in source, f"The card does not import {name}")
+            check(
+                sources[address].encode() == files[name],
+                f"{address} is not the file of the integration",
+            )
         # Compressed, as for every browser: aiohttp accepts gzip too.
         async with self.session.get(f"{HA}{url}", auto_decompress=False) as response:
             sent = len(await response.read())

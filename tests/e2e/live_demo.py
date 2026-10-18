@@ -21,15 +21,11 @@ from pathlib import Path
 from playwright.sync_api import Page, expect, sync_playwright
 
 # What the website has of the repository for the demo: its page, the project's icon
-# and the cards of the integration.
+# and the cards of the integration with the texts they import.
 DEMO = Path(__file__).resolve().parents[2] / "docs" / "demo"
 BRANDING = Path(__file__).resolve().parents[2] / "docs" / "branding"
-CARDS = (
-    Path(__file__).resolve().parents[2]
-    / "custom_components"
-    / "autodarts"
-    / "frontend"
-    / "autodarts-card.js"
+FRONTEND = (
+    Path(__file__).resolve().parents[2] / "custom_components" / "autodarts" / "frontend"
 )
 ARTIFACTS = Path(os.environ.get("LIVE_DEMO_ARTIFACTS", "artifacts/live-demo"))
 LANGUAGES = ["en", "de", "nl", "fr", "es"]
@@ -63,7 +59,10 @@ def website(folder: Path) -> Path:
     """The demo as the website has it: its page, the cards and the project's icon."""
     shutil.copytree(DEMO, folder / "demo")
     shutil.copytree(BRANDING, folder / "branding")
-    shutil.copyfile(CARDS, folder / "demo" / CARDS.name)
+    shutil.copyfile(
+        FRONTEND / "autodarts-card.js", folder / "demo" / "autodarts-card.js"
+    )
+    shutil.copytree(FRONTEND / "text", folder / "demo" / "text")
     return folder
 
 
