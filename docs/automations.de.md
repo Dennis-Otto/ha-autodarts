@@ -18,7 +18,7 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/choose-blueprint-dark.png">
-  <img src="images/de/choose-blueprint-light.png" alt="Welcher Blueprint passt: Für Licht, Fotos und Jubel nimm die Blueprints Light show, Celebrate a visit score, Highlight photo oder Takeout actions. Zum Ansagen der Darts nimm den Dart caller für jedes Spiel außer dem Übungsspiel, auch Online-Matches, und den Practice caller für das Übungsspiel; der Caller der Anzeigetafel braucht keine Lautsprecher in Home Assistant. Für ein Board, das sich selbst versorgt, nimm Start and stop detection automatically, Board problem alert oder Training session routine. Für eine Zusammenfassung deines Trainings nimm den Training report jeden Tag oder den Weekly report. Um mit Assist zu sprechen, nimm Start a game by voice oder Enter darts by voice" width="560">
+  <img src="images/de/choose-blueprint-light.png" alt="Welcher Blueprint passt: Für Licht, eine Pixelanzeige, Fotos und Jubel nimm die Blueprints Light show, Score display, Celebrate a visit score, Highlight photo oder Takeout actions. Zum Ansagen der Darts nimm den Dart caller für jedes Spiel außer dem Übungsspiel, auch Online-Matches, und den Practice caller für das Übungsspiel; der Caller der Anzeigetafel braucht keine Lautsprecher in Home Assistant. Für ein Board, das sich selbst versorgt, nimm Start and stop detection automatically, Board problem alert oder Training session routine. Für eine Zusammenfassung deines Trainings nimm den Training report jeden Tag oder den Weekly report. Um mit Assist zu sprechen, nimm Start a game by voice oder Enter darts by voice" width="560">
 </picture>
 
 | Blueprint | Was er macht | Import |
@@ -34,6 +34,7 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 | **Weekly report** | Schickt deine [Trainingswoche](entities.de.md#wochenbericht), wenn das Board sie beendet, standardmäßig montags um Mitternacht: Darts, Trainingszeit, Sessions, den 3-Dart-Average und seine Veränderung zur Vorwoche, beste Aufnahme, 180er, Checkout-Quote, Serie und neue Bestleistungen. Die Nachricht ist eine Vorlage; ohne eigene Aktionen erscheint der Bericht in den Benachrichtigungen von Home Assistant. | [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Macht ein Bild mit einer Board-Kamera nach einer Aufnahme ab 180 Punkten (einstellbar) oder einem Checkout im Übungsspiel, solange die Darts noch im Board stecken. Es speichert das Bild in der [Highlight-Galerie](#highlight-galerie) und führt deine Aktionen aus, die `photo_url`, `photo`, `image`, `message`, `score`, `checkout` und `who` nutzen können. | [![Blueprint „Highlight photo“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel, einem gewonnenen Ausbullen, einem Erfolg und dem Sieger eines Turniers, auf Wunsch auch bei der Entnahme und in [Online-Matches](online-matches.de.md). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Score display** | Zeigt das [Übungsspiel](games.de.md) auf einer Pixelanzeige am Board, einer AWTRIX 3 oder einem PixelIt: den Punktestand nach jedem Dart mit dem Weg eines Checkouts und für ein paar Sekunden eine 180, ein Überwerfen, ein gewonnenes Leg und den Sieger. Wird das Spiel ausgeschaltet, oder nach der Wartezeit, zeigt die Anzeige wieder ihre Uhr. | [![Blueprint „Score display“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fscore_display.yaml) |
 | **Start a game by voice** | Startet ein Übungsspiel, wenn du es Assist sagst, etwa „Starte 501 für Alex und Sam“, „Starte das Spiel Cricket für Alex“ oder „Spiele 501 gegen den Bot“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet mit Spiel und Spielern oder mit dem, was nicht gepasst hat. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
 | **Enter darts by voice** | Gibt die Darts eines Spiels ein, wenn du sie Assist sagst, wie am Dartautomaten: die Punkte einer Aufnahme, etwa „Alex hat 140“ oder „140 Punkte“, einen Checkout, einen einzelnen Dart wie „Triple 20“, den nächsten Spieler und Rückgängig, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet in den Worten des Callers der Anzeigetafel: was die Aufnahme übrig lässt und wer als Nächstes wirft, oder warum es nicht ging. | [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
 
@@ -41,7 +42,7 @@ Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen →
 
 Die Blueprints sind auf Englisch beschriftet; ihre Texte kannst du beim Anlegen frei wählen.
 
-<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den dreizehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
+<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den vierzehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
 
 ### Welcher Caller?
 
@@ -249,6 +250,31 @@ Der Blueprint braucht Version 1.12.4 oder neuer der Integration, die `autodarts.
 | Also react to online matches | aus | Spielt auch die Aktionen für Überwerfen, ein gewonnenes Leg und ein gewonnenes Match eines [Online-Matches](online-matches.de.md). Eine 180 und die Entnahme deiner eigenen Darts kommen sowieso von deinem Board. |
 
 Die Aktionen können `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` oder `board_clear`), `who` (der Name des Spielers, das Wort für den Bot oder „Player 2“), `player`, `score` (einer 180), `checkout` (eines gewonnenen Legs) und `trigger.to_state.attributes` für alle Details des [Board-Ereignisses](entities.de.md#board-ereignisse) nutzen. Siehe [Lichtshow mit WLED und anderem Licht](#lichtshow-mit-wled-und-anderem-licht).
+
+### Score display
+
+| Einstellung | Standard | Was sie bewirkt |
+| --- | --- | --- |
+| Board events | | Die Entität *Ereignisse* deines Boards. |
+| Practice remaining score | | Die Entität *Übungsspiel Restpunkte* deines Boards, die jedem Dart des [Übungsspiels](entities.de.md#übungsspiel) folgt. |
+| Display | AWTRIX 3, over MQTT | Die Anzeige und wie Home Assistant sie erreicht: eine AWTRIX 3 über MQTT, ein PixelIt über MQTT oder ein PixelIt über HTTP mit einem REST-Befehl; siehe [Spielstand auf einer AWTRIX oder einem PixelIt](#spielstand-auf-einer-awtrix-oder-einem-pixelit). |
+| MQTT prefix | leer | Für MQTT: das Präfix der Topics der Anzeige, wie es ihre MQTT-Einstellungen zeigen, etwa `awtrix_1a2b3c`. Leer nimmt `awtrix` oder `pixelit`. |
+| PixelIt REST command | `rest_command.pixelit_screen` | Für PixelIt über HTTP: der REST-Befehl, der `screen` an die Anzeige schickt. |
+| AWTRIX icon | leer | Ein Icon der AWTRIX 3 neben dem Text, mit seinem Dateinamen auf der Anzeige oder seiner LaMetric-Nummer. |
+| Flash duration | 5 Sekunden | Wie lange eine 180, ein Überwerfen, ein gewonnenes Leg oder der Sieger stehen bleibt, bevor der Punktestand zurückkommt. |
+| Back to the clock after | 5 Minuten | Wie lange die Anzeige den Punktestand oder das Ergebnis eines beendeten Spiels ohne einen Dart behält. |
+| Score | `{{ remaining if remaining != '' else points }}{{ ' ' ~ checkout if checkout }}` | Was die Anzeige für den Spieler am Board zeigt: bei X01 die Restpunkte und den Weg eines Checkouts, etwa `81 T15 D18`, bei Cricket und den Partyspielen die Punkte. Leer lässt die Anzeige während des Spiels in Ruhe; nach einem Moment kommt die Uhr sofort zurück. |
+| Color of the score, Color when a checkout is possible | weiß, grün | Die Farbe des Punktestands und seine Farbe, solange die Aufnahme das Leg beenden kann. |
+| Minimum score of a visit | 180 | Die niedrigste Punktzahl einer Aufnahme, die aufleuchtet. |
+| Visit | `{{ score }}!` | Leuchtet bei einer solchen Aufnahme auf, sobald ihr dritter Dart landet. |
+| Bust | `BUST` | Leuchtet auf, wenn ein Dart die Aufnahme überwirft. |
+| Leg won | `GAME SHOT` | Leuchtet auf, wenn ein Dart ein Leg gewinnt, das nicht das Match entscheidet. |
+| Match won | `{{ team or who }} WINS` | Leuchtet auf, wenn ein Dart das Match entscheidet; in einem Team-Match mit dem Namen des Teams. |
+| Color of a visit, Color of a bust, Color of a won leg, Color of the winner | gold, rot, grün, gold | Die Farben der Momente. |
+| Word for a player without a name | `Player` | Macht „Player 2“ in `who`, mit `Spieler` etwa „Spieler 2“. |
+| Word for the bot | `Bot` | Der Name des Bots in `who`. |
+
+Eine leere Meldung bleibt stumm. Der Punktestand kann `remaining`, `checkout` (den Weg), `leave` und `setup` (wohin ohne Checkout zielen), `points`, `target`, `who`, `player`, `players` und `game` nutzen, die Momente `who`, `team`, `score`, `remaining`, `checkout` (die ausgecheckte Punktzahl), `darts` und `average`.
 
 ### Start a game by voice
 
@@ -485,6 +511,50 @@ data:
   <source media="(prefers-color-scheme: dark)" srcset="images/de/light-show-effect-dark.png">
   <img src="images/de/light-show-effect-light.png" alt="Wie ein Effekt der Lichtshow abläuft: Ein Moment mit Effekt speichert das Licht und pausiert die Erkennung, wenn sie läuft, außer beim Tagesziel und beim neuen besten Schnitt einer Session. Seine Aktionen starten den Effekt, der für die Effektdauer läuft. Endet währenddessen eine Trainingssession, endet der Effekt sofort: Das Licht kommt zurück, und die Erkennung bleibt aus. Eine neue Session lässt den Effekt zu Ende laufen. Nach dem Effekt kommt das Licht zurück, und eine pausierte Erkennung startet wieder" width="460">
 </picture>
+
+### Spielstand auf einer AWTRIX oder einem PixelIt
+
+Eine Pixelanzeige am Board zeigt den Spielstand quer durch den Raum, wie an einem Dartautomaten: die Restpunkte des Spielers am Board nach jedem Dart, grün mit ihrem Weg, wenn ein Checkout möglich ist, eine 180 oder ein Überwerfen für ein paar Sekunden und den Sieger des Matches, bis die Wartezeit vorbei ist oder du das nächste Spiel startest.
+
+<img src="images/score-display.svg" alt="Eine Pixelanzeige am Board, fünfmal: 501 in Weiß, der Punktestand des Spielers am Board; 40 D20 in Grün, eine Punktzahl zum Auschecken mit ihrem Weg; 180! in Gold; BUST in Rot; LEA WINS in Gold, der Sieger des Matches" width="408">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/score-display-dark.png">
+  <img src="images/de/score-display-light.png" alt="Wie die Anzeige dem Spiel folgt: Jeder Dart, jede Korrektur und jeder Wechsel des Spielers am Board zeigt den Punktestand des Spielers am Board, grün mit dem Weg, wenn ein Checkout möglich ist. Eine 180, ein Überwerfen, ein gewonnenes Leg oder der Sieger eines Matches leuchtet für die Flash duration auf; danach kommt der Punktestand zurück, oder der Sieger bleibt stehen, wenn das Match vorbei ist. Wird das Spiel ausgeschaltet oder passiert während der Wartezeit nichts, zeigt die Anzeige wieder ihre Uhr" width="460">
+</picture>
+
+- **AWTRIX 3,** etwa auf einer Ulanzi TC001: Verbinde sie in ihrer Weboberfläche unter *MQTT* mit deinem MQTT-Broker, richte in Home Assistant die [MQTT-Integration](https://www.home-assistant.io/integrations/mqtt/) mit demselben Broker ein und trage das *Prefix* der Anzeige als *MQTT prefix* ein. Das Spiel erscheint als Benachrichtigung, die stehen bleibt, bis die nächste sie ersetzt, vor den Apps der Anzeige; ihre mittlere Taste schließt sie. Am Ende des Spiels schließt der Blueprint sie, und die Apps kommen zurück.
+- **PixelIt über MQTT:** Schalte in den Einstellungen des PixelIt MQTT mit dem Broker der MQTT-Integration von Home Assistant ein und trage sein *MQTT master topic*, standardmäßig `pixelit`, als *MQTT prefix* ein.
+- **PixelIt über HTTP,** ohne MQTT: Füge in `configuration.yaml` einen REST-Befehl für die Anzeige mit der Adresse deines PixelIt hinzu und starte Home Assistant neu. Der Blueprint gibt ihm das Bild in `screen`, und der Befehl schickt es an die Anzeige:
+
+  ```yaml
+  rest_command:
+    pixelit_screen:
+      url: "http://192.0.2.20/api/screen"
+      method: post
+      content_type: "application/json"
+      payload: "{{ screen | to_json }}"
+  ```
+
+  Ein PixelIt zeigt jedes Bild bis zum nächsten, deshalb holt der Blueprint am Ende des Spiels seine Uhr zurück.
+
+So folgt die Anzeige dem Spiel:
+
+- **Jeder Dart** ändert *Übungsspiel Restpunkte* und damit die Anzeige: auch eine Korrektur, eine zurückgenommene Aufnahme und der nächste Spieler, wenn du die Darts ziehst. Die Darts des Bots zählen auch, wie auf der Anzeigetafel.
+- **Ein Moment** leuchtet für die *Flash duration* auf, danach kommt der Punktestand zurück. Der nächste Dart oder der nächste Spieler nach der Entnahme beendet ihn früher, so zeigt die Anzeige immer das Spiel, wie es ist. Außerhalb des Übungsspiels, etwa im freien Spiel, leuchtet eine 180 ebenfalls auf, und danach kommt die Uhr zurück.
+- **Das Ende:** Ein beendetes Match behält seinen Sieger auf der Anzeige. Schaltest du das Übungsspiel aus, kommt die Uhr sofort zurück, sonst nach *Back to the clock after* ohne einen Dart. Ein Neustart von Home Assistant oder das Speichern dieser Automation vor dem Ende der Wartezeit zeigt das Spiel wieder und startet die Wartezeit neu; das Speichern einer anderen Automation ändert nichts. Ohne Spiel gehört die Anzeige ihren eigenen Apps und Benachrichtigungen: Der Blueprint schickt ihr nur die Momente (und danach die Uhr).
+
+Dein eigener *Score* ist eine Vorlage. Mit dem Namen des Spielers in einem Match vor dem Punktestand, etwa `Sam 81 T15 D18`:
+
+```text
+{{ who ~ ' ' if players > 1 }}{{ remaining if remaining != '' else points }}{{ ' ' ~ checkout if checkout }}
+```
+
+Mit dem Ziel eines Partyspiels neben den Punkten, etwa `12 D16`:
+
+```text
+{{ remaining if remaining != '' else (points ~ ' ' ~ target) }}{{ ' ' ~ checkout if checkout }}
+```
 
 ## Board-Ereignisse
 
