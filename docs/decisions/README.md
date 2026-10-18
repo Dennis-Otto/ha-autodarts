@@ -26,3 +26,4 @@ Copy [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/d
 | [0014](0014-a-live-demo-from-a-recording-of-the-integration.md) | Replay a recording of the integration for the live demo of the website | accepted |
 | [0015](0015-voice-packs-in-the-file-names-of-darts-caller.md) | Give the callers voice packs in the file names of darts-caller | accepted |
 | [0016](0016-a-game-engine-without-home-assistant.md) | Run the games in an engine without Home Assistant, apart from the connection to the board | accepted |
+| [0017](0017-modules-in-the-dashboard-resources-for-cast.md) | Keep the modules of the cards in the dashboard resources, for Home Assistant Cast | accepted |

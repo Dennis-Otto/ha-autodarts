@@ -50,6 +50,10 @@ function registerStrategy() {
   if (!registry.get(STRATEGY_ELEMENT)) registry.define(STRATEGY_ELEMENT, strategyElement(window.HTMLElement));
 }
 
-if (globalThis.window?.customElements) window.customElements.whenDefined("home-assistant").then(registerStrategy);
+// Home Assistant's app element, or hc-main of the receiver of Home Assistant Cast, which
+// shows dashboards on a TV and loads this module as a dashboard resource once it runs.
+const appReady = (registry) => Promise.race(["home-assistant", "hc-main"].map((name) => registry.whenDefined(name)));
 
-export { CARD_MODULE, cardModule, cardStrategy, registerStrategy, strategyElement };
+if (globalThis.window?.customElements) appReady(window.customElements).then(registerStrategy);
+
+export { CARD_MODULE, appReady, cardModule, cardStrategy, registerStrategy, strategyElement };

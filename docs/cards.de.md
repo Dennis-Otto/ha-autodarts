@@ -6,7 +6,7 @@ description: "Die sieben Dashboard-Karten: Live-Karte, Training, Board-Status, A
 
 [← Dokumentation](README.de.md) · [English](cards.md)
 
-Die Integration bringt sieben Karten mit. Home Assistant lädt sie automatisch; eine Dashboard-Ressource oder ein eigener HACS-Download ist nicht nötig. Jede Karte:
+Die Integration bringt sieben Karten mit. Home Assistant lädt sie automatisch; eine Dashboard-Ressource oder ein eigener HACS-Download ist nicht nötig. Für [Home Assistant Cast](#home-assistant-cast) hält die Integration sie selbst in den Dashboard-Ressourcen. Jede Karte:
 
 - hat einen visuellen Editor und folgt deinem Design (hell oder dunkel) und deiner [Sprache](README.de.md#sprachen) (Deutsch, Englisch, Niederländisch, Französisch oder Spanisch);
 - passt sich ihrer Breite an, vom Handy bis zum Wandtablet;
@@ -16,7 +16,7 @@ Die Integration bringt sieben Karten mit. Home Assistant lädt sie automatisch; 
 
 Zum Hinzufügen bearbeitest du ein Dashboard, wählst **Karte hinzufügen** und suchst nach **Autodarts**. Die Kartenauswahl nennt die Karten in deiner Sprache und verlinkt jede auf ihren Abschnitt unten.
 
-**Auf dieser Seite:** [Live-Karte](#live-karte) · [Trainingskarte](#trainingskarte) · [Board-Status](#board-status) · [Anzeigetafel](#anzeigetafel) · [Doubles-Karte](#doubles-karte) · [Spielerkarte](#spielerkarte) · [Bestenliste](#bestenliste) · [Automatisches Dashboard](#automatisches-dashboard) · [Karteneditor](#karteneditor) · [Barrierefreiheit](#barrierefreiheit) · [Tipps](#tipps)
+**Auf dieser Seite:** [Live-Karte](#live-karte) · [Trainingskarte](#trainingskarte) · [Board-Status](#board-status) · [Anzeigetafel](#anzeigetafel) · [Doubles-Karte](#doubles-karte) · [Spielerkarte](#spielerkarte) · [Bestenliste](#bestenliste) · [Automatisches Dashboard](#automatisches-dashboard) · [Home Assistant Cast](#home-assistant-cast) · [Karteneditor](#karteneditor) · [Barrierefreiheit](#barrierefreiheit) · [Tipps](#tipps)
 
 Die Anleitungen zeigen die Karten im Einsatz: [Spiele und Regeln](games.de.md), [Anzeigetafel am Board](scoreboard.de.md) und [Statistik und Spieler](statistics.de.md).
 
@@ -501,6 +501,32 @@ Um später Board, Titel oder die Optionen der Anzeigetafel zu wählen, öffnest 
 <img src="images/de/strategy-editor.png" alt="Der Editor des automatischen Dashboards mit Board und Titel" width="760">
 
 Wird das gewählte Board aus Home Assistant entfernt, sagt das Dashboard das, statt leere Ansichten zu zeigen; wähle ein anderes Board oder leere die Auswahl, um jedes Board zu zeigen. Um die Ansichten selbst anzupassen, wählst du im Menü (⋮) dieses Editors **Kontrolle übernehmen**. Home Assistant macht aus den erzeugten Ansichten dann ein normales, frei bearbeitbares Dashboard; es bekommt die Ansichten späterer Versionen nicht mehr, also nutze lieber die Einstellungen des Dashboards, wo sie reichen.
+
+## Home Assistant Cast
+
+[Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) zeigt ein Dashboard über einen Chromecast auf einem Fernseher oder auf einem Google Nest Hub, ohne Browser auf dem Gerät. Die Karten und das automatische Dashboard funktionieren dort auch: Cast lädt die Dashboard-Ressourcen von Home Assistant, und die Integration hält ihre beiden Module dort, `/autodarts/autodarts-strategy.js` und `/autodarts/autodarts-card.js`, mit ihrer Version in der Adresse. Sie bringt sie mit jedem Start von Home Assistant auf den neuesten Stand und entfernt sie mit ihrem letzten Board. *Einstellungen → Dashboards → ⋮ → Ressourcen* listet sie, wenn in deinem Benutzerprofil der erweiterte Modus an ist. Im Browser ändert sich nichts: Er lädt jedes Modul einmal, als Ressource wie als Teil von Home Assistant.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/cast-dark.png">
+  <img src="images/de/cast-light.png" alt="Wie die Karten über Home Assistant Cast auf einen Fernseher kommen: Ein Handy auf cast.home-assistant.io oder die Aktion cast.show_lovelace_view streamt ein Dashboard. Der Chromecast öffnet den Empfänger von Home Assistant Cast, der sich über HTTPS bei Home Assistant anmeldet und das Dashboard und seine Ressourcen liest. Die Integration hält ihre beiden Module dort, unter der Adresse ihrer Version, von jedem Start von Home Assistant, bis ihr letztes Board gelöscht ist. Der Empfänger lädt die Strategie und die Karten von Home Assistant, und der Fernseher zeigt das Dashboard mit der Anzeigetafel." width="560">
+</picture>
+
+- **Ressourcen in YAML:** Hält deine Konfiguration die Ressourcen in YAML (`resource_mode: yaml` oder das ältere `mode: yaml` unter `lovelace:`), kann die Integration keine hinzufügen. Trage die beiden Zeilen dann selbst ein und starte Home Assistant neu:
+
+  ```yaml
+  lovelace:
+    resource_mode: yaml
+    resources:
+      - url: /autodarts/autodarts-strategy.js
+        type: module
+      - url: /autodarts/autodarts-card.js
+        type: module
+  ```
+
+  Ohne Version in der Adresse fragt der Browser bei jedem Laden nach, ob sich das Modul geändert hat, und behält so nie ein altes. Er lädt die Karten unter dieser Adresse ein zweites Mal, also trage die Zeilen nur ein, wenn du streamst.
+- **Nach einem Update** startest du Home Assistant neu und streamst das Dashboard noch einmal.
+
+Die Anleitung [Anzeigetafel am Board](scoreboard.de.md#auf-dem-fernseher-mit-home-assistant-cast) zeigt, wie die Anzeigetafel auf den Fernseher neben dem Board kommt.
 
 ## Karteneditor
 
