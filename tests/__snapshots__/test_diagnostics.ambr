@@ -201,10 +201,12 @@
         ]),
       }),
       'motion': dict({
+        'isDart': False,
         'isHand': False,
         'isStable': True,
         'isTakeoutFull': False,
         'isTakeoutPartial': False,
+        'isWaiting': False,
       }),
       'stats': dict({
         'fps': 12.5,
@@ -346,6 +348,8 @@
         'numThrows': 0,
         'running': False,
         'status': 'Stopped',
+        'throws': list([
+        ]),
       }),
       'practice': dict({
         'bot': None,

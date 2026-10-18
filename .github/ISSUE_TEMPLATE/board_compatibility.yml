@@ -78,3 +78,12 @@ body:
     attributes:
       label: What works and what doesn't?
       description: For example realtime events, controls, calibration, camera health, practice games or the cards.
+  - type: textarea
+    id: recording
+    attributes:
+      label: What the board answers (optional)
+      description: >-
+        From a clone of the repository, `python scripts/capture_board.py <address of the board PC>`
+        records what your Board Manager answers while you throw a few darts, with placeholders in place
+        of the board's ID, its keys and the addresses of your network. Attach the folder it writes as a
+        zip file here: it becomes a test, so that every release keeps working with your board.

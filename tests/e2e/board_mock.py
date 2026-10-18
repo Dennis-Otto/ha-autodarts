@@ -1,8 +1,12 @@
 """Deterministic Board Manager double for the Docker end-to-end test.
 
 Serves the local HTTP and WebSocket protocol used by the integration, records every
-write command and rejects routes the integration is not expected to call.
-BOARD_MANAGER=2 switches to the headless Board Manager 2: /api/system, no
+write command and rejects routes the integration is not expected to call. It
+answers like the recordings of Board Manager 1.0.7 and 2.0.0 in
+tests/fixtures/board_manager, which compose.yaml mounts at /fixtures/board_manager,
+with the identity of the test and the state of the board it simulates;
+tests/test_board_contract.py holds it to them, as it does the double of the unit
+tests. BOARD_MANAGER=2 switches to the headless Board Manager 2: /api/system, no
 upstream routes, and an mDNS announcement like the real board.
 
 POST /control/fault injects the faults of a real network and board: dropped or
@@ -14,9 +18,12 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import json
 import os
 import socket
 import time
+from pathlib import Path
+from typing import Any
 
 from aiohttp import WSCloseCode, WSMsgType, web
 
@@ -26,8 +33,19 @@ API_KEY = "e2e-only-board-api-key"
 TLS_KEY = "e2e-only-tls-key"
 PORT = 3180
 GENERATION = int(os.environ.get("BOARD_MANAGER", "1"))
-VERSION = "2.0.0" if GENERATION >= 2 else "1.0.7"
+
+
+def version_of(generation: int) -> str:
+    """The Board Manager version the double answers as, that of its recording."""
+    return "2.0.0" if generation >= 2 else "1.0.7"
+
+
+VERSION = version_of(GENERATION)
 UPDATE = "2.0.2"
+# Next to tests/e2e in the repository, and at /fixtures next to /e2e in the
+# container of the double. Read when the double starts: the scenario imports this
+# module in the container of Home Assistant, which doesn't mount them.
+RECORDINGS = Path(__file__).resolve().parents[1] / "fixtures" / "board_manager"
 V1_ONLY = {("PUT", "/api/upstream/connect"), ("PUT", "/api/upstream/disconnect")}
 
 COMMANDS = {
@@ -43,34 +61,24 @@ COMMANDS = {
 
 
 class Board:
-    def __init__(self) -> None:
-        self.state = {
-            "connected": True,
-            "running": False,
-            "status": "Stopped",
-            "event": "Stopped",
-            "numThrows": 0,
-            "throws": [],
-        }
-        self.config = {
-            "auth": {"board_id": BOARD_ID, "api_key": API_KEY},
-            "cam": {
-                "cams": ["/dev/video0", "/dev/video2", "/dev/video4"],
-                "width": 1280,
-                "height": 1024,
-                "fps": 30,
-                "auto_calibrate_on_start": True,
-                "auto_calibrate": True,
-                "auto_distortion": False,
-            },
-            "motion": {"standby_minutes": 15},
-        }
+    def __init__(self, generation: int = GENERATION) -> None:
+        self.generation = generation
+        self.version = version_of(generation)
+        self.state = self.recorded("state.json")
+        self.config = self.recorded("config.json")
+        # The identity of the test, never that of the recording.
+        self.config["auth"].update(board_id=BOARD_ID, api_key=API_KEY)
         self.commands: list[dict] = []
         self.unexpected: list[str] = []
         # Reads by path, so a test can tell when an injected fault was read.
         self.reads: dict[str, int] = {}
         self.sockets: set[web.WebSocketResponse] = set()
         self.clear_faults()
+
+    def recorded(self, name: str) -> Any:
+        """A fresh copy of an answer of the recording: JSON, or the version text."""
+        text = (RECORDINGS / self.version / name).read_text(encoding="utf-8")
+        return text if name.endswith(".txt") else json.loads(text)
 
     def clear_faults(self) -> None:
         # Refused sockets, failing or slow reads and a restart in progress.
@@ -142,34 +150,30 @@ def routes(board: Board) -> web.RouteTableDef:
 
     @api.get("/api/version")
     async def version(request):
-        return web.Response(text=f"{VERSION}\n")
+        return web.Response(text=board.recorded("version.txt"))
 
     @api.get("/api/state/stats")
     async def stats(request):
-        return web.json_response({"fps": 12.5 if board.state["running"] else 0.0})
+        fps = 12.5 if board.state["running"] else 0.0
+        return web.json_response({**board.recorded("state-stats.json"), "fps": fps})
 
     @api.get("/api/cams/stats")
     async def camera_stats(request):
         fps = 30.0 if board.state["running"] else 0.0
-        return web.json_response({"fps": [fps] * len(board.config["cam"]["cams"])})
+        frames = [fps] * len(board.config["cam"]["cams"])
+        return web.json_response({**board.recorded("cams-stats.json"), "fps": frames})
 
     @api.get("/api/cams/state")
     async def camera_state(request):
         running = board.state["running"]
-        return web.json_response({"isRunning": running, "isOpened": running})
+        recorded = board.recorded("cams-state.json")
+        return web.json_response(
+            {**recorded, "isRunning": running, "isOpened": running}
+        )
 
     @api.get("/api/state/motion")
     async def motion(request):
-        return web.json_response(
-            {
-                "isWaiting": False,
-                "isStable": True,
-                "isDart": False,
-                "isHand": False,
-                "isTakeoutPartial": False,
-                "isTakeoutFull": False,
-            }
-        )
+        return web.json_response(board.recorded("state-motion.json"))
 
     @api.post("/api/reset")
     async def reset(request):
@@ -190,60 +194,27 @@ def routes(board: Board) -> web.RouteTableDef:
     async def system(request):
         running = board.state["running"]
         fps = 30.0 if running else 0.0
-        cams = board.config["cam"]["cams"]
-        config = copy.deepcopy(board.config)
-        config["host"] = {"port": str(PORT), "tls_key": TLS_KEY, "tls_cert": ""}
-        return web.json_response(
-            {
-                "state": {k: board.state[k] for k in ("connected", "event", "running")}
-                | {"numThrows": board.state["numThrows"]},
-                "config": config,
-                "stats": {
-                    "cpuPercent": 7.5,
-                    "fps": 12.5 if running else 0.0,
-                    "memoryBytes": 268435456,
-                },
-                "camStats": [{"fps": fps, "id": index} for index in range(len(cams))],
-                "camState": {"isRunning": running, "isOpened": running},
-                "motion": {
-                    "isStable": True,
-                    "isHand": False,
-                    "isTakeoutPartial": False,
-                    "isTakeoutFull": False,
-                    "camStates": [],
-                },
-                "link": "connected" if board.state["connected"] else "disconnected",
-                "version": VERSION,
-                "updateAvailable": UPDATE,
-                "calibrated": True,
-                "blocker": "none",
-            }
-        )
+        system = board.recorded("system.json")
+        # The configuration and state of the board, and the TLS key of the test.
+        host = {**system["config"]["host"], "tls_key": TLS_KEY}
+        system["config"] = {**copy.deepcopy(board.config), "host": host}
+        system["state"] = {key: board.state[key] for key in system["state"]}
+        system["stats"]["fps"] = 12.5 if running else 0.0
+        cameras = system["camStats"]
+        system["camStats"] = [
+            {**cameras[index % len(cameras)], "id": index, "fps": fps}
+            for index in range(len(board.config["cam"]["cams"]))
+        ]
+        system["camState"].update(isRunning=running, isOpened=running)
+        system["link"] = "connected" if board.state["connected"] else "disconnected"
+        return web.json_response(system)
 
     async def host(request):
-        # Like the real board PC, including the details the integration drops.
-        return web.json_response(
-            {
-                "os": "linux",
-                "platform": "debian",
-                "platformVersion": "13",
-                "kernelArch": "x86_64",
-                "kernelVersion": "6.12.107+deb13-amd64",
-                "cpu": {
-                    "cores": 4,
-                    "mhz": 3400.4,
-                    "model": "Intel(R) Core(TM) i3-9100T",
-                },
-                "visionVersion": VERSION,
-                "openCVVersion": "5.0.0",
-                "clientVersion": VERSION,
-                "hostname": "e2e-dartboard",
-                "ip": "192.0.2.99",
-                "cam1": {"name": "E2E Camera", "pid": "0001", "vid": "0002"},
-            }
-        )
+        # Like the board PC of the recording, including the details the
+        # integration drops: its name, its address and those of its cameras.
+        return web.json_response(board.recorded("host.json"))
 
-    if GENERATION >= 2:
+    if board.generation >= 2:
         api.get("/api/system")(system)
         api.get("/api/host")(host)
 
@@ -338,13 +309,17 @@ def fault_injection(board: Board):
     return middleware
 
 
-def create_app() -> web.Application:
-    board = Board()
+BOARD = web.AppKey("board", Board)
+
+
+def create_app(generation: int = GENERATION) -> web.Application:
+    board = Board(generation)
     app = web.Application(middlewares=[fault_injection(board)])
+    app[BOARD] = board
     app.add_routes(routes(board))
 
     for (method, path), changes in COMMANDS.items():
-        if GENERATION >= 2 and (method, path) in V1_ONLY:
+        if generation >= 2 and (method, path) in V1_ONLY:
             continue  # Board Manager 2 has no upstream routes.
 
         async def command(request, changes=changes):

@@ -1,0 +1,6 @@
+{
+  "board_manager": "2.0.0",
+  "captured": null,
+  "source": "Built from the shapes of the two earlier doubles, which the integration was developed against; a capture of a real board with scripts/capture_board.py replaces it.",
+  "absent": []
+}
