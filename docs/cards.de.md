@@ -303,6 +303,10 @@ Während eines [Turniers](entities.de.md#turniere) folgt ihm die Anzeigetafel:
 
 <img src="images/de/tournament-table.png" alt="Das Turnier jeder gegen jeden mit vier Spielern auf der Anzeigetafel zwischen zwei Matches: als Nächstes Lea gegen Sam mit Countdown und die Tabelle mit Alex vorn mit 4 Punkten" width="760">
 
+<img src="images/de/tournament-groups.png" alt="32 Spieler in acht Vierergruppen auf der Anzeigetafel nach zwei Runden: als Nächstes Tim gegen Alex in Gruppe A mit Countdown, und die Tabellen der Gruppen A bis H nebeneinander, die ersten beiden Plätze jeder Gruppe als weiterkommend markiert" width="760">
+
+<img src="images/de/tournament-double.png" alt="Ein Doppel-K.-o.-System mit 32 Spielern auf der Anzeigetafel nach der ersten Runde beider Hälften: als Nächstes Alex gegen Tim in Runde 2 der Gewinner mit Countdown, die Gewinnerrunde bis zum großen Finale und darunter die Verliererrunde bis zu ihrem Finale, ihre erste Runde gespielt" width="760">
+
 <img src="images/de/tournament-lobby.png" alt="Die Spielauswahl im Turniermodus: X01 und die Cricket-Spiele, sechs Spieler mit ihren Startpunkten, K.-o.-System mit Spiel um Platz 3 und die Starttaste" width="760">
 
 ### Ruhemodus

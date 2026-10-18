@@ -303,6 +303,10 @@ During a [tournament](entities.md#tournaments), the scoreboard follows it:
 
 <img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="760">
 
+<img src="images/en/tournament-groups.png" alt="32 players in eight groups of four on the scoreboard after two rounds: next up Tim against Alex in group A with a countdown, and the tables of groups A to H side by side, the first two places of every group marked as going on" width="760">
+
+<img src="images/en/tournament-double.png" alt="A double elimination of 32 players on the scoreboard after the first round of each bracket: next up Alex against Tim in winners round 2 with a countdown, the winners' bracket up to the grand final, and below it the losers' bracket up to the losers' final, its first round played" width="760">
+
 <img src="images/en/tournament-lobby.png" alt="The new game screen in tournament mode: X01 and the Cricket games, six players with their start scores, knockout with the match for third place, and the start button" width="760">
 
 ### Idle mode

@@ -202,6 +202,12 @@ Between two matches, the scoreboard shows the next match with its countdown, and
 
 <img src="images/en/tournament-table.png" alt="The round robin of four players on the scoreboard between two matches: next up Lea against Sam with a countdown, and the table with Alex first on 4 points" width="760">
 
+With groups, it shows the tables of the groups side by side, with the places that go on marked, and in a double elimination the losers' bracket below the winners' bracket. Both from the demo, with 32 players:
+
+<img src="images/en/tournament-groups.png" alt="32 players in eight groups of four on the scoreboard after two rounds: next up Tim against Alex in group A with a countdown, and the tables of groups A to H side by side, the first two places of every group marked as going on" width="760">
+
+<img src="images/en/tournament-double.png" alt="A double elimination of 32 players on the scoreboard after the first round of each bracket: next up Alex against Tim in winners round 2 with a countdown, the winners' bracket up to the grand final, and below it the losers' bracket up to the losers' final, its first round played" width="760">
+
 The [entity reference](entities.md#tournaments) lists the tournament's settings, buttons and actions, and the [scoreboard guide](scoreboard.md#tournaments) what the screen shows.
 
 ### Tournament rules

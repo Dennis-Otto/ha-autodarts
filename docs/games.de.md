@@ -202,6 +202,12 @@ Zwischen zwei Matches zeigt die Anzeigetafel das nächste Match mit seinem Count
 
 <img src="images/de/tournament-table.png" alt="Das Turnier jeder gegen jeden mit vier Spielern auf der Anzeigetafel zwischen zwei Matches: als Nächstes Lea gegen Sam mit Countdown und die Tabelle mit Alex vorn mit 4 Punkten" width="760">
 
+Mit Gruppen zeigt sie die Tabellen der Gruppen nebeneinander, die Plätze, die weiterkommen, markiert, und im Doppel-K.-o.-System die Verliererrunde unter der Gewinnerrunde. Beides aus der Demo, mit 32 Spielern:
+
+<img src="images/de/tournament-groups.png" alt="32 Spieler in acht Vierergruppen auf der Anzeigetafel nach zwei Runden: als Nächstes Tim gegen Alex in Gruppe A mit Countdown, und die Tabellen der Gruppen A bis H nebeneinander, die ersten beiden Plätze jeder Gruppe als weiterkommend markiert" width="760">
+
+<img src="images/de/tournament-double.png" alt="Ein Doppel-K.-o.-System mit 32 Spielern auf der Anzeigetafel nach der ersten Runde beider Hälften: als Nächstes Alex gegen Tim in Runde 2 der Gewinner mit Countdown, die Gewinnerrunde bis zum großen Finale und darunter die Verliererrunde bis zu ihrem Finale, ihre erste Runde gespielt" width="760">
+
 Die [Referenz der Entitäten](entities.de.md#turniere) nennt Einstellungen, Tasten und Aktionen des Turniers, die [Anleitung zur Anzeigetafel](scoreboard.de.md#turniere), was der Bildschirm zeigt.
 
 ### Turnierregeln
