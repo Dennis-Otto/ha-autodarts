@@ -1,0 +1,19 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Wie die Anzeige dem Spiel folgt
+  accDescr: Jeder Dart, jede Korrektur und jeder Wechsel des Spielers am Board zeigt den Punktestand des Spielers am Board, grün mit dem Weg, wenn ein Checkout möglich ist. Eine 180, ein Überwerfen, ein gewonnenes Leg oder der Sieger eines Matches leuchtet für die Flash duration auf; danach kommt der Punktestand zurück, oder der Sieger bleibt stehen, wenn das Match vorbei ist. Wird das Spiel ausgeschaltet oder passiert während der Wartezeit nichts, zeigt die Anzeige wieder ihre Uhr.
+  DART["Ein Dart, eine Korrektur<br/>oder der nächste Spieler"] --> SCORE["Der Punktestand des Spielers am Board,<br/>grün mit dem Weg eines Checkouts"]
+  SCORE --> NEXT{"Was kommt als Nächstes?"}
+  NEXT -- "eine 180, ein Überwerfen, ein<br/>gewonnenes Leg oder der Sieger" --> FLASH["Der Moment leuchtet<br/>für die Flash duration auf"]
+  FLASH -- "das Spiel geht weiter" --> SCORE
+  FLASH -- "das Match ist vorbei" --> WINNER["Der Sieger bleibt<br/>für die Wartezeit stehen"]
+  NEXT -- "kein Dart in der Wartezeit, oder<br/>das Spiel wird ausgeschaltet" --> CLOCK["Die Uhr der Anzeige"]
+  WINNER --> CLOCK
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class SCORE done
+  class FLASH,WINNER warn

@@ -1,0 +1,19 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How the score display follows the game
+  accDescr: Every dart, correction or change of the player at the board shows the score of the player at the board, in green with the route when a checkout is possible. A 180, a bust, a won leg or the winner of a match flashes for the flash duration; then the score comes back, or the winner stays when the match is over. When the game is switched off, or nothing happens for the idle time, the display goes back to its clock.
+  DART["A dart, a correction<br/>or the next player"] --> SCORE["The score of the player at the board,<br/>green with the route of a checkout"]
+  SCORE --> NEXT{"What comes next?"}
+  NEXT -- "a 180, a bust, a won leg<br/>or the winner of a match" --> FLASH["The moment flashes<br/>for the flash duration"]
+  FLASH -- "the game goes on" --> SCORE
+  FLASH -- "the match is over" --> WINNER["The winner stays<br/>for the idle time"]
+  NEXT -- "no dart for the idle time,<br/>or the game is switched off" --> CLOCK["The clock of the display"]
+  WINNER --> CLOCK
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class SCORE done
+  class FLASH,WINNER warn

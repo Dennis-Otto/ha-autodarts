@@ -68,7 +68,7 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    Board events for every dart, visit, takeout, bust, won leg and match. Thirteen blueprints: light show, dart and practice callers, highlight photos, reports, alerts, routines, and games started and darts entered by voice.
+    Board events for every dart, visit, takeout, bust, won leg and match. Fourteen blueprints: light show, score display, dart and practice callers, highlight photos, reports, alerts, routines, and games started and darts entered by voice.
 
     [:octicons-arrow-right-24: Automations](automations.md)
 
@@ -167,7 +167,7 @@ How this integration compares with the Autodarts app and its browser extension, 
 
     ---
 
-    Thirteen blueprints, their settings, board events and ready-to-use examples.
+    Fourteen blueprints, their settings, board events and ready-to-use examples.
 
 - :material-play-network:{ .lg .middle } [**Online matches**](online-matches.md)
 
