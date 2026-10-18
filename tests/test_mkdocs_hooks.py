@@ -265,6 +265,125 @@ def test_a_page_that_moved_nowhere_warns(caplog):
     assert moved.meta == {"moved": "nothing.md"}
 
 
+def test_the_line_back_to_the_overview_stays_on_github():
+    """The website has its menu and the switch of the language for it."""
+    assert markdown(
+        "# Cards\n\n[← Documentation](README.md) · [Deutsch](cards.de.md)\n\nText.\n",
+        ENGLISH,
+    ) == ("# Cards\n\nText.\n")
+    assert markdown(
+        "# Karten\n\n[← Dokumentation](README.de.md) · [English](cards.md)  \n\nText.",
+        GERMAN,
+    ) == ("# Karten\n\nText.")
+    assert markdown("# Releases\n\n[← Documentation](README.md)\n", FALLBACK) == (
+        "# Releases\n"
+    )
+    decision = page("decisions/0001-x.md", "decisions/0001-x.html")
+    assert markdown("[← Decisions](../README.md)\n\nText.\n", decision) == "\nText.\n"
+
+
+def test_a_line_back_within_the_text_stays():
+    for text, website in [
+        ("# Cards\n\nText.\n\n[← Documentation](README.md)\n", "index.md"),
+        ("# Cards\n\n[← Documentation](README.md)\nmore text.\n", "index.md"),
+        ("# Cards\n\n[← Project](https://github.com/Dennis-Otto/ha-autodarts)\n", ""),
+        ("# Cards\n\n[Documentation](README.md)\n", "index.md"),
+    ]:
+        assert markdown(text, ENGLISH) == text.replace("README.md", website, 1)
+
+
+REPOSITORY = "https://github.com/Dennis-Otto/ha-autodarts"
+
+
+def repository(tmp_path: Path, **files: str) -> SimpleNamespace:
+    """The configuration of a website whose repository has files with these texts."""
+    for name, text in files.items():
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text(text, encoding="utf-8")
+    (tmp_path / "docs").mkdir(exist_ok=True)
+    return SimpleNamespace(docs_dir=str(tmp_path / "docs"), repo_url=f"{REPOSITORY}/")
+
+
+def edited(source: str, url: str) -> SimpleNamespace:
+    """A page of docs/ with the pencil that edits its file on GitHub."""
+    found = page(source, url)
+    found.edit_url = f"{REPOSITORY}/edit/main/docs/{source}"
+    return found
+
+
+CHANGELOG = (
+    "# Changelog\n\n"
+    "- [Games](docs/games.md#tournaments), [roadmap](docs/roadmap.md)"
+    " and ![a picture](docs/images/a.png)\n"
+    "- [Tests](CONTRIBUTING.md#tests), [blueprints](blueprints/x.yaml)"
+    " and [the releases](https://github.com/x/releases)\n"
+    '- [Unreleased](#unreleased), `[code](docs/games.md)` and <img src="docs/b.png">\n'
+    "\n```md\n[code](docs/games.md)\n```\n\n[notes]: docs/notes.md\n"
+)
+
+
+def test_a_page_includes_a_file_of_the_repository_with_links_for_the_website(
+    tmp_path,
+):
+    config = repository(tmp_path, **{"CHANGELOG.md": CHANGELOG})
+    changelog = edited("changelog.md", "changelog.html")
+    text = '\n--8<-- "CHANGELOG.md"\n'
+    assert hooks.on_page_markdown(text, changelog, config, None) == (
+        "\n# Changelog\n\n"
+        "- [Games](games.md#tournaments), [roadmap](roadmap.md)"
+        " and ![a picture](images/a.png)\n"
+        f"- [Tests]({REPOSITORY}/blob/main/CONTRIBUTING.md#tests),"
+        f" [blueprints]({REPOSITORY}/blob/main/blueprints/x.yaml)"
+        " and [the releases](https://github.com/x/releases)\n"
+        '- [Unreleased](#unreleased), `[code](docs/games.md)` and <img src="b.png">\n'
+        "\n```md\n[code](docs/games.md)\n```\n\n[notes]: notes.md\n\n"
+    )
+    # The changelog is edited in CHANGELOG.md, which it is.
+    assert changelog.edit_url == f"{REPOSITORY}/edit/main/CHANGELOG.md"
+
+
+def test_the_links_of_an_included_file_lead_from_the_folder_of_the_page(tmp_path):
+    config = repository(
+        tmp_path, **{"CHANGELOG.md": "[Games](docs/games.md)", "docs/x.md": "[Y](y.md)"}
+    )
+    notes = edited("decisions/notes.md", "decisions/notes.html")
+    text = '# Notes\n\n--8<-- "CHANGELOG.md"\n\n--8<-- "docs/x.md"\n'
+    assert hooks.on_page_markdown(text, notes, config, None) == (
+        "# Notes\n\n[Games](../games.md)\n\n[Y](../y.md)\n"
+    )
+    # A page with more than the file is edited in its own file.
+    assert notes.edit_url == f"{REPOSITORY}/edit/main/docs/decisions/notes.md"
+
+
+def test_a_missing_file_and_a_section_of_a_file_are_left_to_snippets(tmp_path):
+    config = repository(tmp_path, **{"docs/README.md": "[Y](y.md)"})
+    for text in ('--8<-- "MISSING.md"\n', '--8<-- "docs/README.md:languages"\n'):
+        missing = edited("changelog.md", "changelog.html")
+        assert hooks.on_page_markdown(text, missing, config, None) == text
+        assert missing.edit_url == f"{REPOSITORY}/edit/main/docs/changelog.md"
+
+
+def test_a_page_without_its_pencil_includes_the_file_too(tmp_path):
+    config = repository(tmp_path, **{"CHANGELOG.md": "# Changelog\n"})
+    for edit_url in (None, "https://example.com/edit/changelog"):
+        changelog = page("changelog.md", "changelog.html")
+        changelog.edit_url = edit_url
+        text = '--8<-- "CHANGELOG.md"'
+        assert hooks.on_page_markdown(text, changelog, config, None) == "# Changelog\n"
+        assert changelog.edit_url == edit_url
+
+
+def test_the_changelog_is_a_page_of_the_website():
+    assert (
+        (ROOT / "docs" / "changelog.md")
+        .read_text(encoding="utf-8")
+        .endswith('\n--8<-- "CHANGELOG.md"\n')
+    )
+    assert "      - Changelog: changelog.md\n" in (ROOT / "mkdocs.yml").read_text(
+        encoding="utf-8"
+    )
+
+
 SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>

@@ -8,7 +8,7 @@ Die [Website der Dokumentation](https://dennis-otto.github.io/ha-autodarts/de/) 
 
 <img src="images/de/hero.webp" alt="Animation: ein 301-Match auf der Live-Karte und der Anzeigetafel nebeneinander. Alex wirft drei Triple 20, die Felder leuchten auf und die Anzeigetafel zählt auf 121 herunter; Sam wirft 85; Alex checkt 121 mit T20, Single-Bull und D18 zum Game shot" width="100%">
 
-**Schnell zu:** [Schnellstart](#schnellstart) · [Das kann die Integration](#das-kann-die-integration) · [Anleitungen](#anleitungen) · [Anwendungsfälle](#anwendungsfälle) · [Blueprints](#blueprints) · [Glossar](glossary.de.md) · [Änderungen](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md)
+**Schnell zu:** [Schnellstart](#schnellstart) · [Das kann die Integration](#das-kann-die-integration) · [Anleitungen](#anleitungen) · [Anwendungsfälle](#anwendungsfälle) · [Blueprints](#blueprints) · [Glossar](https://dennis-otto.github.io/ha-autodarts/de/glossary.html) · [Änderungen](https://dennis-otto.github.io/ha-autodarts/de/changelog.html)
 
 ## Schnellstart
 
@@ -28,9 +28,9 @@ Du brauchst Home Assistant ab 2026.8 mit [HACS](https://hacs.xyz) und ein Autoda
 
 3. **Karten hinzufügen.** Erzeuge in einem Schritt ein komplettes Dashboard: **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**. Oder bearbeite ein Dashboard, wähle **Karte hinzufügen** und suche nach *Autodarts*.
 
-Neu bei Home Assistant? [Von null bis zur Anzeigetafel](getting-started.de.md) führt dich von null bis zur Anzeigetafel neben deinem Board. Die [Installationsanleitung](installation.de.md) beschreibt die manuelle Installation, die Neukonfiguration, Updates und das Entfernen.
+Neu bei Home Assistant? [Von null bis zur Anzeigetafel](https://dennis-otto.github.io/ha-autodarts/de/getting-started.html) führt dich von null bis zur Anzeigetafel neben deinem Board. Die [Installationsanleitung](https://dennis-otto.github.io/ha-autodarts/de/installation.html) beschreibt die manuelle Installation, die Neukonfiguration, Updates und das Entfernen.
 
-Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-caller? [Umstieg von anderen Werkzeugen](coming-from.de.md) zeigt, was hier an seine Stelle tritt und wie du umsteigst. Kurze Antworten auf die häufigen Fragen stehen in den [häufigen Fragen](faq.de.md).
+Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-caller? [Umstieg von anderen Werkzeugen](https://dennis-otto.github.io/ha-autodarts/de/coming-from.html) zeigt, was hier an seine Stelle tritt und wie du umsteigst. Kurze Antworten auf die häufigen Fragen stehen in den [häufigen Fragen](https://dennis-otto.github.io/ha-autodarts/de/faq.html).
 
 ## Warum
 
@@ -63,7 +63,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 
 <img src="images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel; die Sieger rücken in die nächste Runde, bis Alex das Finale gewinnt" width="100%">
 
-[Spiele und Regeln →](games.de.md)
+[Spiele und Regeln →](https://dennis-otto.github.io/ha-autodarts/de/games.html)
 
 ### Wie am Dartautomaten
 
@@ -75,7 +75,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 
 <img src="images/de/celebration.webp" alt="Animation: eine 180 auf der Anzeigetafel. Alex wirft drei Triple 20, ein goldenes Leuchten erhellt die Anzeigetafel und Konfetti fliegt aus ihrer Mitte, dann zeigt die Anzeigetafel 321 wie zuvor" width="100%">
 
-[Wild Mouse →](games.de.md#wild-mouse)
+[Wild Mouse →](https://dennis-otto.github.io/ha-autodarts/de/games.html#wild-mouse)
 
 ### Trainieren
 
@@ -85,7 +85,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 
 <img src="images/de/training-game.webp" alt="Animation: Around the Clock auf der Live-Karte; jeder Treffer bringt das Ziel weiter und umrandet die Felder der nächsten Zahl" width="100%">
 
-[Trainingsspiele →](games.de.md#trainingsspiele)
+[Trainingsspiele →](https://dennis-otto.github.io/ha-autodarts/de/games.html#trainingsspiele)
 
 ### Auswerten
 
@@ -104,7 +104,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 
 <p align="center"><img src="images/de/heatmap-modes.webp" alt="Animation: Das Trefferbild der Trainingskarte wechselt von Feldern zu Zahlen und den echten Dart-Positionen, dann zu den Darts eines Spielers" width="520"></p>
 
-[Statistik und Spieler →](statistics.de.md)
+[Statistik und Spieler →](https://dennis-otto.github.io/ha-autodarts/de/statistics.html)
 
 ### Bildschirm am Board
 
@@ -112,11 +112,11 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 - Eine Spielauswahl, um Spiel, Spieler und Format direkt am Board zu wählen oder ein Turnier zu starten
 - Ein Caller, der das Spiel über den Browser des Bildschirms ansagt, auch mit den aufgenommenen Voice-Packs von darts-caller oder einer Stimme, die du mit Piper aufnimmst
 - Ein Ruhemodus mit Bestenliste, Bestleistungen, den Darts von heute und einer Uhr
-- Ein [Stream-Overlay](scoreboard.de.md#stream-overlay) für OBS: Punkte, Weg und Aufnahme über dem Bild deines Streams, durchsichtig oder auf einer Keyfarbe
+- Ein [Stream-Overlay](https://dennis-otto.github.io/ha-autodarts/de/scoreboard.html#stream-overlay) für OBS: Punkte, Weg und Aufnahme über dem Bild deines Streams, durchsichtig oder auf einer Keyfarbe
 
 <p align="center"><img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet öffnet Neues Spiel die Spielauswahl, Cricket und ein zweiter Spieler werden gewählt und das Spiel startet" width="600"></p>
 
-[Anzeigetafel am Board →](scoreboard.de.md)
+[Anzeigetafel am Board →](https://dennis-otto.github.io/ha-autodarts/de/scoreboard.html)
 
 ### Automatisieren
 
@@ -127,14 +127,14 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 
 <img src="images/de/media-gallery.png" alt="Die Highlight-Galerie in der Medienansicht von Home Assistant: Fotos eines 121er-Checkouts, einer 180 und einer 140" width="100%">
 
-[Automationen →](automations.de.md)
+[Automationen →](https://dennis-otto.github.io/ha-autodarts/de/automations.html)
 
 ### Lokal und privat
 
 - Mit Board Manager 2 automatisch gefunden; Board Manager 1 funktioniert auch
 - Nichts verlässt dein Netzwerk, außer du nutzt die Board-Suche, die Cloud-Verknüpfung oder die Online-Brücke; Geheimnisse des Boards werden nie gespeichert
 - Sieben Dashboard-Karten und ein automatisches Dashboard, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch ([Sprachen](#sprachen))
-- Leicht für einen Raspberry Pi: Eine Nachricht des Boards aktualisiert nur die Entitäten, die zeigen, was sich geändert hat ([Aktualisierung](how-it-works.de.md#aktualisierung))
+- Leicht für einen Raspberry Pi: Eine Nachricht des Boards aktualisiert nur die Entitäten, die zeigen, was sich geändert hat ([Aktualisierung](https://dennis-otto.github.io/ha-autodarts/de/how-it-works.html#aktualisierung))
 - Alle Regeln der Qualitätsskala von Home Assistant bis Platin, 100 % Testabdeckung
 
 <p align="center">
@@ -144,7 +144,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
   </picture>
 </p>
 
-[Funktionsweise →](how-it-works.de.md)
+[Funktionsweise →](https://dennis-otto.github.io/ha-autodarts/de/how-it-works.html)
 
 ## Im Vergleich
 
@@ -152,21 +152,21 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
 | | Diese Integration | Autodarts-App mit [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) und [darts-wled](https://github.com/Peschi90/darts-wled) | Andere Home-Assistant-Integrationen |
 | --- | --- | --- | --- | --- |
-| **Läuft ohne Cloud** | Ja, mit der [lokalen Schnittstelle](how-it-works.de.md#datenschutz) des Board Managers | Nein, mit einem [Autodarts-Konto](https://autodarts.com/) | Nein, darts-caller [meldet sich bei Autodarts an](https://github.com/Peschi90/darts-caller#autodarts-login) | Manche ([Einzelheiten](coming-from.de.md#darf-es-bleiben)) |
-| **Entitäten und Ereignisse in Home Assistant** | Ja, ein [Ereignis](entities.de.md#board-ereignisse) für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, Leg und Match | Nein | Nein | Sensoren der aktuellen Aufnahme oder des Spiels |
-| **Blueprints** | [Fünfzehn Blueprints](automations.de.md#blueprints) | Nein | Nein | Nein |
-| **Lichtshow** | Blueprint [Light show](automations.de.md#light-show), für WLED oder jedes Licht | WLED, mit Tools | WLED, mit darts-wled | Eigene Automationen |
-| **Caller** | Auf der [Anzeigetafel](scoreboard.de.md#der-caller) oder deinen [Lautsprechern](automations.de.md#welcher-caller) | In der App, mit einer Premium-Stimme in [Plus](https://autodarts.com/); mehr mit Tools | Sprachpakete, mit darts-caller | Nein |
-| **Statistik bleibt zu Hause** | [Ja](statistics.de.md): Averages, Trefferbilder, Profile und ein Jahr Verlauf | Nein, im Autodarts-Konto | Nein | Nein |
-| **Ohne Autodarts-Board** | Ja, auf einem [Tastenfeld](without-autodarts.de.md) oder einem [Granboard über Bluetooth](granboard.de.md) *(experimentell)* | Ja, auf einem Tastenfeld oder mit [Lens](https://autodarts.com/) | Nein | Nein |
-| **Online-Matches** | Deine Darts, und die Momente des Matches über die [Online-Brücke](online-matches.de.md) *(experimentell)* | Ja | Ja | Manche, über die Cloud |
+| **Läuft ohne Cloud** | Ja, mit der [lokalen Schnittstelle](https://dennis-otto.github.io/ha-autodarts/de/how-it-works.html#datenschutz) des Board Managers | Nein, mit einem [Autodarts-Konto](https://autodarts.com/) | Nein, darts-caller [meldet sich bei Autodarts an](https://github.com/Peschi90/darts-caller#autodarts-login) | Manche ([Einzelheiten](https://dennis-otto.github.io/ha-autodarts/de/coming-from.html#darf-es-bleiben)) |
+| **Entitäten und Ereignisse in Home Assistant** | Ja, ein [Ereignis](https://dennis-otto.github.io/ha-autodarts/de/entities.html#board-ereignisse) für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, Leg und Match | Nein | Nein | Sensoren der aktuellen Aufnahme oder des Spiels |
+| **Blueprints** | [Fünfzehn Blueprints](https://dennis-otto.github.io/ha-autodarts/de/automations.html#blueprints) | Nein | Nein | Nein |
+| **Lichtshow** | Blueprint [Light show](https://dennis-otto.github.io/ha-autodarts/de/automations.html#light-show), für WLED oder jedes Licht | WLED, mit Tools | WLED, mit darts-wled | Eigene Automationen |
+| **Caller** | Auf der [Anzeigetafel](https://dennis-otto.github.io/ha-autodarts/de/scoreboard.html#der-caller) oder deinen [Lautsprechern](https://dennis-otto.github.io/ha-autodarts/de/automations.html#welcher-caller) | In der App, mit einer Premium-Stimme in [Plus](https://autodarts.com/); mehr mit Tools | Sprachpakete, mit darts-caller | Nein |
+| **Statistik bleibt zu Hause** | [Ja](https://dennis-otto.github.io/ha-autodarts/de/statistics.html): Averages, Trefferbilder, Profile und ein Jahr Verlauf | Nein, im Autodarts-Konto | Nein | Nein |
+| **Ohne Autodarts-Board** | Ja, auf einem [Tastenfeld](https://dennis-otto.github.io/ha-autodarts/de/without-autodarts.html) oder einem [Granboard über Bluetooth](https://dennis-otto.github.io/ha-autodarts/de/granboard.html) *(experimentell)* | Ja, auf einem Tastenfeld oder mit [Lens](https://autodarts.com/) | Nein | Nein |
+| **Online-Matches** | Deine Darts, und die Momente des Matches über die [Online-Brücke](https://dennis-otto.github.io/ha-autodarts/de/online-matches.html) *(experimentell)* | Ja | Ja | Manche, über die Cloud |
 | **Lizenz und Kosten** | [MIT](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE), kostenlos | Autodarts: ein kostenloser Tarif und das bezahlte [Plus](https://autodarts.com/); Tools: [CC BY-NC 4.0](https://github.com/creazy231/tools-for-autodarts/blob/main/LICENSE) | Kostenlos, ohne angegebene Lizenz | MIT, Apache 2.0 oder ohne Lizenzdatei |
 
-*Stand Oktober 2026, aus der Dokumentation und dem Code jedes Projekts. [Umstieg von anderen Werkzeugen](coming-from.de.md) hat die Einzelheiten, die Quellen und den Weg zum Umstieg.*
+*Stand Oktober 2026, aus der Dokumentation und dem Code jedes Projekts. [Umstieg von anderen Werkzeugen](https://dennis-otto.github.io/ha-autodarts/de/coming-from.html) hat die Einzelheiten, die Quellen und den Weg zum Umstieg.*
 
 ## Voraussetzungen
 
-**Home Assistant ab 2026.8** mit [HACS](https://hacs.xyz) und ein Autodarts-Board in deinem Netzwerk oder eine beliebige Dartscheibe, deren Darts du auf einem Tastenfeld eingibst ([Spielen ohne Autodarts](without-autodarts.de.md)), oder ein Granboard in Reichweite des Bluetooth von Home Assistant ([Granboard](granboard.de.md), experimentell). Ein Autodarts-Konto brauchst du nicht.
+**Home Assistant ab 2026.8** mit [HACS](https://hacs.xyz) und ein Autodarts-Board in deinem Netzwerk oder eine beliebige Dartscheibe, deren Darts du auf einem Tastenfeld eingibst ([Spielen ohne Autodarts](https://dennis-otto.github.io/ha-autodarts/de/without-autodarts.html)), oder ein Granboard in Reichweite des Bluetooth von Home Assistant ([Granboard](https://dennis-otto.github.io/ha-autodarts/de/granboard.html), experimentell). Ein Autodarts-Konto brauchst du nicht.
 
 - **Board Manager 2**, also Autodarts 2 ohne Bildschirm, ist empfohlen und bis 2.0.2 getestet; der klassische **Board Manager 1** funktioniert auch.
 - Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux.
@@ -176,37 +176,37 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
 ### Erste Schritte
 
-- [Von null bis zur Anzeigetafel](getting-started.de.md): für Autodarts-Spieler ohne Home Assistant: Home Assistant und HACS aufsetzen, die Integration installieren, das Board hinzufügen und das erste Spiel auf der Anzeigetafel
-- [Installation und Einrichtung](installation.de.md): Voraussetzungen, HACS und manuelle Installation, die Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen
-- [Spielen ohne Autodarts](without-autodarts.de.md): jede Dartscheibe mit allen Spielen, dem Training und den Statistiken: einrichten, die Darts auf einem Tastenfeld eingeben, und was anders ist
-- [Granboard über Bluetooth](granboard.de.md): die Darts eines Granboards über das Bluetooth von Home Assistant und ESPHome-Proxys, für jedes Spiel *(experimentell)*
-- [Häufige Fragen](faq.de.md): kurze Antworten zu Konto, Geräten, Online-Spiel, Datenschutz, mehreren Boards, Bildschirmen, Sprachen, Updates und Umstieg
-- [Umstieg von anderen Werkzeugen](coming-from.de.md): wie sich diese Integration mit Autodarts Local, den anderen Integrationen, MQTT-Brücken, darts-caller, darts-wled und Tools for Autodarts vergleicht, und wie du von ihnen umsteigst
+- [Von null bis zur Anzeigetafel](https://dennis-otto.github.io/ha-autodarts/de/getting-started.html): für Autodarts-Spieler ohne Home Assistant: Home Assistant und HACS aufsetzen, die Integration installieren, das Board hinzufügen und das erste Spiel auf der Anzeigetafel
+- [Installation und Einrichtung](https://dennis-otto.github.io/ha-autodarts/de/installation.html): Voraussetzungen, HACS und manuelle Installation, die Wege, ein Board hinzuzufügen, die optionale Cloud-Verknüpfung, Neukonfiguration, Updates und Entfernen
+- [Spielen ohne Autodarts](https://dennis-otto.github.io/ha-autodarts/de/without-autodarts.html): jede Dartscheibe mit allen Spielen, dem Training und den Statistiken: einrichten, die Darts auf einem Tastenfeld eingeben, und was anders ist
+- [Granboard über Bluetooth](https://dennis-otto.github.io/ha-autodarts/de/granboard.html): die Darts eines Granboards über das Bluetooth von Home Assistant und ESPHome-Proxys, für jedes Spiel *(experimentell)*
+- [Häufige Fragen](https://dennis-otto.github.io/ha-autodarts/de/faq.html): kurze Antworten zu Konto, Geräten, Online-Spiel, Datenschutz, mehreren Boards, Bildschirmen, Sprachen, Updates und Umstieg
+- [Umstieg von anderen Werkzeugen](https://dennis-otto.github.io/ha-autodarts/de/coming-from.html): wie sich diese Integration mit Autodarts Local, den anderen Integrationen, MQTT-Brücken, darts-caller, darts-wled und Tools for Autodarts vergleicht, und wie du von ihnen umsteigst
 
 ### Anleitungen
 
-- [Spiele und Regeln](games.de.md): alle Spiele im Überblick, vier Wege, eines zu starten, Matches, Teams, Handicaps, das Ausbullen, die Match-Zusammenfassung, Turniere und die Regeln von X01, den Cricket-Spielen, den Partyspielen und den Trainingsspielen
-- [Anzeigetafel am Board](scoreboard.de.md): ein Tablet oder Fernseher neben dem Board: Einrichtung, Quer- und Hochformat, Spielauswahl, Turniere, Caller und Ruhemodus
-- [Statistik und Spieler](statistics.de.md): Trainingssessions, Bestleistungen, Trefferbild und Dart-Positionen, wohin zielen, Fortschritt über die Zeit, Doubles, Spielerprofile, Erfolge, Trends, Bestenliste, Wochenbericht, Trainingskalender und Exporte
-- [Automationen](automations.de.md): fünfzehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele
-- [Online-Matches](online-matches.de.md): Überwerfen, gewonnene Legs und Matches von Online-Matches als Board-Ereignisse, mit der Browser-Erweiterung Tools for Autodarts *(experimentell)*
+- [Spiele und Regeln](https://dennis-otto.github.io/ha-autodarts/de/games.html): alle Spiele im Überblick, vier Wege, eines zu starten, Matches, Teams, Handicaps, das Ausbullen, die Match-Zusammenfassung, Turniere und die Regeln von X01, den Cricket-Spielen, den Partyspielen und den Trainingsspielen
+- [Anzeigetafel am Board](https://dennis-otto.github.io/ha-autodarts/de/scoreboard.html): ein Tablet oder Fernseher neben dem Board: Einrichtung, Quer- und Hochformat, Spielauswahl, Turniere, Caller und Ruhemodus
+- [Statistik und Spieler](https://dennis-otto.github.io/ha-autodarts/de/statistics.html): Trainingssessions, Bestleistungen, Trefferbild und Dart-Positionen, wohin zielen, Fortschritt über die Zeit, Doubles, Spielerprofile, Erfolge, Trends, Bestenliste, Wochenbericht, Trainingskalender und Exporte
+- [Automationen](https://dennis-otto.github.io/ha-autodarts/de/automations.html): fünfzehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele
+- [Online-Matches](https://dennis-otto.github.io/ha-autodarts/de/online-matches.html): Überwerfen, gewonnene Legs und Matches von Online-Matches als Board-Ereignisse, mit der Browser-Erweiterung Tools for Autodarts *(experimentell)*
 
 ### Nachschlagen
 
-- [Dashboard-Karten](cards.de.md): Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Doubles-Karte, Spielerkarte, Bestenliste und automatisches Dashboard, mit allen Optionen und Barrierefreiheit
-- [Entitäten und Ereignisse](entities.de.md): alle Entitäten, Board-Ereignisse, Zustände, Attribute und Aktionen, und welche Board-Manager-Generation sie liefert
-- [Funktionsweise](how-it-works.de.md): Architektur, Aktualisierung, Verbindungsverhalten, Board-Manager-Generationen, Adresswechsel, Training und Bestleistungen, gespeicherte Daten und Datenschutz
-- [Fehlerbehebung](troubleshooting.de.md): Meldungen bei der Einrichtung, Reparaturen, nicht verfügbare Entitäten, fehlgeschlagene Aktionen, Diagnose und Logs
-- [Sicherheit](security.de.md): Schutzgüter, Vertrauensgrenzen, Bedrohungen und Gegenmaßnahmen
-- [Glossar](glossary.de.md): die Begriffe des Dartsports und dieser Integration, mit ihren englischen Entsprechungen
+- [Dashboard-Karten](https://dennis-otto.github.io/ha-autodarts/de/cards.html): Live-Karte, Trainingskarte, Board-Status, Anzeigetafel, Doubles-Karte, Spielerkarte, Bestenliste und automatisches Dashboard, mit allen Optionen und Barrierefreiheit
+- [Entitäten und Ereignisse](https://dennis-otto.github.io/ha-autodarts/de/entities.html): alle Entitäten, Board-Ereignisse, Zustände, Attribute und Aktionen, und welche Board-Manager-Generation sie liefert
+- [Funktionsweise](https://dennis-otto.github.io/ha-autodarts/de/how-it-works.html): Architektur, Aktualisierung, Verbindungsverhalten, Board-Manager-Generationen, Adresswechsel, Training und Bestleistungen, gespeicherte Daten und Datenschutz
+- [Fehlerbehebung](https://dennis-otto.github.io/ha-autodarts/de/troubleshooting.html): Meldungen bei der Einrichtung, Reparaturen, nicht verfügbare Entitäten, fehlgeschlagene Aktionen, Diagnose und Logs
+- [Sicherheit](https://dennis-otto.github.io/ha-autodarts/de/security.html): Schutzgüter, Vertrauensgrenzen, Bedrohungen und Gegenmaßnahmen
+- [Glossar](https://dennis-otto.github.io/ha-autodarts/de/glossary.html): die Begriffe des Dartsports und dieser Integration, mit ihren englischen Entsprechungen
 
 ### Projekt
 
-- [Änderungen](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md): was jede Version gebracht hat (auf Englisch)
-- [Roadmap](roadmap.de.md): erschienene Versionen und was als Nächstes kommt
-- [Development](development.md), [Releases](releases.md): die Entwickler-Dokumentation, auf Englisch
-- [Bilder und Prüfungen der Karten](development.de.md): wie die Bilder der Dokumentation entstehen, der Screenshot-Bot, der Bildvergleich und die Prüfung der Barrierefreiheit, auf Deutsch
-- [Creator-Kit](creator-kit.de.md): Fakten, Beschreibungen, fertige Beiträge für Foren, Reddit und Discord, Videos, Animationen und Bilder für YouTuber, Streamer und Blogger, frei nutzbar
+- [Änderungen](https://dennis-otto.github.io/ha-autodarts/de/changelog.html): was jede Version gebracht hat (auf Englisch)
+- [Roadmap](https://dennis-otto.github.io/ha-autodarts/de/roadmap.html): erschienene Versionen und was als Nächstes kommt
+- [Development](https://dennis-otto.github.io/ha-autodarts/development.html), [Releases](https://dennis-otto.github.io/ha-autodarts/de/releases.html): die Entwickler-Dokumentation, auf Englisch
+- [Bilder und Prüfungen der Karten](https://dennis-otto.github.io/ha-autodarts/de/development.html): wie die Bilder der Dokumentation entstehen, der Screenshot-Bot, der Bildvergleich und die Prüfung der Barrierefreiheit, auf Deutsch
+- [Creator-Kit](https://dennis-otto.github.io/ha-autodarts/de/creator-kit.html): Fakten, Beschreibungen, fertige Beiträge für Foren, Reddit und Discord, Videos, Animationen und Bilder für YouTuber, Streamer und Blogger, frei nutzbar
 
 ## Anwendungsfälle
 
@@ -221,7 +221,7 @@ Verfolge nach jeder Session deinen Average, deine 180er und wohin deine Darts fl
   </picture>
 </p>
 
-[Statistik →](statistics.de.md)
+[Statistik →](https://dennis-otto.github.io/ha-autodarts/de/statistics.html)
 
 ### Ein Dartabend mit Freunden
 
@@ -229,7 +229,7 @@ Wähle das Spiel am Tablet neben dem Board oder starte ein Turnier, lass die Anz
 
 <p align="center"><img src="images/de/lobby.webp" alt="Animation: In der Spielauswahl des Tablets am Board wird ein Spiel gewählt und startet auf der Anzeigetafel" width="600"></p>
 
-[Anzeigetafel →](scoreboard.de.md)
+[Anzeigetafel →](https://dennis-otto.github.io/ha-autodarts/de/scoreboard.html)
 
 ### Atmosphäre
 
@@ -237,7 +237,7 @@ Lichtshows für eine 180 oder ein gewonnenes Match, ein Dart-Caller auf deinen L
 
 <img src="images/de/blueprint-light-show.png" alt="Eine neue Automation aus dem Blueprint Light show mit einem Abschnitt für jeden Moment des Spiels" width="100%">
 
-[Automationen →](automations.de.md)
+[Automationen →](https://dennis-otto.github.io/ha-autodarts/de/automations.html)
 
 ### Highlights festhalten
 
@@ -245,7 +245,7 @@ Ein Foto des Boards nach jeder 180 oder jedem Checkout, auf dem Handy und in ein
 
 <img src="images/de/media-gallery.png" alt="Die Highlight-Galerie in der Medienansicht mit Fotos eines Checkouts und zweier hoher Aufnahmen" width="100%">
 
-[Highlight-Galerie →](automations.de.md#highlight-galerie)
+[Highlight-Galerie →](https://dennis-otto.github.io/ha-autodarts/de/automations.html#highlight-galerie)
 
 ### Fortschritt über Monate
 
@@ -253,7 +253,7 @@ Langzeitgrafiken, ein Wochenbericht aufs Handy und ein Trainingskalender mit ein
 
 <p align="center"><img src="images/de/dashboard-trends.png" alt="Grafiken der Darts pro Tag, des 3-Dart-Averages und der Übungslegs über vier Wochen" width="480"></p>
 
-[Fortschritt über die Zeit →](statistics.de.md#fortschritt-über-die-zeit)
+[Fortschritt über die Zeit →](https://dennis-otto.github.io/ha-autodarts/de/statistics.html#fortschritt-über-die-zeit)
 
 ### Ein Board, das sich selbst kümmert
 
@@ -264,7 +264,7 @@ Starte die Erkennung, wenn du den Dartraum betrittst, stoppe sie, wenn du gehst,
   <img src="images/de/status-card.png" alt="Board-Status-Karte mit Erkennung, Verbindungen, Board-PC und Kameras" width="100%">
 </picture>
 
-[Blueprints →](automations.de.md#blueprints)
+[Blueprints →](https://dennis-otto.github.io/ha-autodarts/de/automations.html#blueprints)
 
 ## Blueprints
 
@@ -335,7 +335,7 @@ Die Integration bringt jeden Blueprint mit und hält die, die du nicht geändert
 
 </details>
 
-Die Blueprints sind auf Englisch beschriftet. Die Caller und der Wochenbericht sprechen von sich aus die Sprache von Home Assistant, und eigene Texte, etwa für die Ansagen, wählst du beim Anlegen. Die [Anleitung zu Automationen](automations.de.md) enthält deutsche Beispiele.
+Die Blueprints sind auf Englisch beschriftet. Die Caller und der Wochenbericht sprechen von sich aus die Sprache von Home Assistant, und eigene Texte, etwa für die Ansagen, wählst du beim Anlegen. Die [Anleitung zu Automationen](https://dennis-otto.github.io/ha-autodarts/de/automations.html) enthält deutsche Beispiele.
 
 <!-- --8<-- [start:devices-and-languages] -->
 
@@ -370,19 +370,19 @@ Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original,
 ## Bekannte Einschränkungen
 
 - **Cloud-Spieldaten sind noch nicht verfügbar.** Sie brauchen eine OAuth-Client-ID, die Autodarts für diese Integration vergibt, und noch ist keine enthalten. Alles Lokale funktioniert ohne sie.
-- **Online-Matches über eine Browser-Erweiterung.** Überwerfen und Game shots von Online-Matches kommen nur an, solange die Autodarts-Seite mit Tools for Autodarts offen ist, einer Erweiterung von Dritten. [Grenzen](online-matches.de.md#grenzen).
+- **Online-Matches über eine Browser-Erweiterung.** Überwerfen und Game shots von Online-Matches kommen nur an, solange die Autodarts-Seite mit Tools for Autodarts offen ist, einer Erweiterung von Dritten. [Grenzen](https://dennis-otto.github.io/ha-autodarts/de/online-matches.html#grenzen).
 - **Trainingssessions zählen Darts, keine Spiele.** Eine Session zählt jeden Dart, den das Board erkennt; Spieler, Legs und Checkouts gehören zum Übungsspiel, das seine eigene Statistik führt.
 - **Board-Manager-Updates installierst du auf dem Board-PC.** Die Update-Entität meldet neue Versionen von Board Manager 2.
 - **Liveansicht der Kameras nur mit Board Manager 2.** Mit Board Manager 1 zeigen die Kamera-Entitäten Standbilder.
 
 ## Hilfe und Mitmachen
 
-- **Fragen und Ideen:** Die [häufigen Fragen](faq.de.md) beantworten die üblichen; den Rest fragst du in den [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), gern auf Deutsch. **Fehler:** [Issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), mit den Diagnosedaten deines Boards. [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) erklärt, wo du was fragst.
+- **Fragen und Ideen:** Die [häufigen Fragen](https://dennis-otto.github.io/ha-autodarts/de/faq.html) beantworten die üblichen; den Rest fragst du in den [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions), gern auf Deutsch. **Fehler:** [Issues](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose), mit den Diagnosedaten deines Boards. [SUPPORT.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md) erklärt, wo du was fragst.
 - **Ausprobiert?** Ein [Erfahrungsbericht](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=tester_report.yml) sagt uns, was geklappt hat, was nicht und was dir fehlt; kurze Antworten genügen, gern auf Deutsch.
 - **Du sprichst Deutsch, Niederländisch, Französisch oder Spanisch?** Die [Übersetzungs-Issues](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) nennen die Texte, die in deiner Sprache fehlen oder veraltet sind, und wie du sie im Browser korrigierst, ganz ohne Programmierkenntnisse.
 - **Sicherheit:** Melde Schwachstellen vertraulich, wie in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md) beschrieben.
 - **Zeig dein Board:** Teile ein Foto deines Boards, des Bildschirms daneben und was Home Assistant damit macht, unter [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/new?category=show-and-tell). Es gibt anderen Ideen und zeigt ihnen, dass die Integration an Boards wie ihrem läuft.
-- **Zeigen:** Für Videos, Artikel und Beiträge gibt es ein [Creator-Kit](creator-kit.de.md) mit Fakten, fertigen Texten, Videos und Bildern zur freien Verwendung.
+- **Zeigen:** Für Videos, Artikel und Beiträge gibt es ein [Creator-Kit](https://dennis-otto.github.io/ha-autodarts/de/creator-kit.html) mit Fakten, fertigen Texten, Videos und Bildern zur freien Verwendung.
 - **Mitmachen:** Beiträge sind willkommen; [CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md) erklärt die Prüfungen. Die Mitarbeit folgt dem [Verhaltenskodex](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CODE_OF_CONDUCT.md) und der [Governance](https://github.com/Dennis-Otto/ha-autodarts/blob/main/GOVERNANCE.md) des Projekts.
 
 ## Qualität und Sicherheit
@@ -394,12 +394,12 @@ Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original,
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14935/badge)](https://www.bestpractices.dev/projects/14935)
 
 - Erfüllt jede Regel der [Qualitätsskala für Home-Assistant-Integrationen](https://developers.home-assistant.io/docs/core/integration-quality-scale/) bis Platin ([Selbstbewertung](https://github.com/Dennis-Otto/ha-autodarts/blob/main/custom_components/autodarts/quality_scale.yaml)), einschließlich strikter Typisierung.
-- 100 % Zeilen- und Zweigabdeckung der Integration, Fuzz-Tests der Karten, ein Docker-End-to-End-Test gegen beide Board-Manager-Generationen und das älteste unterstützte Home Assistant, ein echter Browsertest jeder Karte und wöchentliche [Mutationstests](development.de.md#mutationstests) der Spielregeln. [Entwicklung](development.md) (englisch).
-- Signierte Release-Pakete mit SLSA-Herkunftsnachweis. [Releases](releases.md#signed-release-packages) (englisch).
-- CI-Jobs, die nur die Hosts erreichen, die sie brauchen: Harden-Runner sperrt jeden anderen, die Bots, die schreiben dürfen, erreichen nur GitHub, und das getestete Home Assistant bleibt offline. [Netzwerk der Jobs](development.de.md#netzwerk-der-jobs).
+- 100 % Zeilen- und Zweigabdeckung der Integration, Fuzz-Tests der Karten, ein Docker-End-to-End-Test gegen beide Board-Manager-Generationen und das älteste unterstützte Home Assistant, ein echter Browsertest jeder Karte und wöchentliche [Mutationstests](https://dennis-otto.github.io/ha-autodarts/de/development.html#mutationstests) der Spielregeln. [Entwicklung](https://dennis-otto.github.io/ha-autodarts/development.html) (englisch).
+- Signierte Release-Pakete mit SLSA-Herkunftsnachweis. [Releases](https://dennis-otto.github.io/ha-autodarts/de/releases.html#signed-release-packages) (englisch).
+- CI-Jobs, die nur die Hosts erreichen, die sie brauchen: Harden-Runner sperrt jeden anderen, die Bots, die schreiben dürfen, erreichen nur GitHub, und das getestete Home Assistant bleibt offline. [Netzwerk der Jobs](https://dennis-otto.github.io/ha-autodarts/de/development.html#netzwerk-der-jobs).
 
 ## Herkunft und Lizenz
 
-Diese Integration begann als Fork von [Trkal/HACSAutodarts](https://github.com/Trkal/HACSAutodarts), einem cloudbasierten Prototyp vom April 2026. Seit September 2026 ist sie neu geschrieben und wird unabhängig von [@Dennis-Otto](https://github.com/Dennis-Otto) gepflegt: lokale Echtzeitsteuerung für beide Board-Manager-Generationen, Spiele, Trainingsauswertung, Dashboard-Karten, Blueprints, Tests und Dokumentation. Beide nutzen die Domain `autodarts`; die [Installationsanleitung](installation.de.md#von-der-ursprünglichen-integration-umsteigen) erklärt den Wechsel. Danke an Trkal für die ursprüngliche Arbeit und an das Autodarts-Team für seine offene lokale Schnittstelle.
+Diese Integration begann als Fork von [Trkal/HACSAutodarts](https://github.com/Trkal/HACSAutodarts), einem cloudbasierten Prototyp vom April 2026. Seit September 2026 ist sie neu geschrieben und wird unabhängig von [@Dennis-Otto](https://github.com/Dennis-Otto) gepflegt: lokale Echtzeitsteuerung für beide Board-Manager-Generationen, Spiele, Trainingsauswertung, Dashboard-Karten, Blueprints, Tests und Dokumentation. Beide nutzen die Domain `autodarts`; die [Installationsanleitung](https://dennis-otto.github.io/ha-autodarts/de/installation.html#von-der-ursprünglichen-integration-umsteigen) erklärt den Wechsel. Danke an Trkal für die ursprüngliche Arbeit und an das Autodarts-Team für seine offene lokale Schnittstelle.
 
 Lizenziert unter der [MIT-Lizenz](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE). Namen und Markengrafiken von Autodarts und Winmau gehören ihren Inhabern; die mitgelieferten Markenbilder kennzeichnen das unterstützte Produkt und fallen nicht unter die MIT-Lizenz. Dies ist eine inoffizielle Community-Integration ohne Verbindung zu Autodarts.

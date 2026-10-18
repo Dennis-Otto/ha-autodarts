@@ -93,7 +93,8 @@ nav:
       - security.md
       - glossary.md
   - Project:
-      - Changelog: https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md
+      # CHANGELOG.md, which changelog.md includes with its links for the website.
+      - Changelog: changelog.md
       - roadmap.md
       - development.md
       - releases.md
