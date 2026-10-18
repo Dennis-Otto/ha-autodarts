@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.15.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.14.0...v1.15.0) (2026-10-18)
+
 ### New
 
 - **Bermuda, Round the World and Gotcha, as on play.autodarts.io:** three more party games for one to eight players. Bermuda plays 13 rounds from the 12 to the bullseye, and a visit without a hit halves your points unless you switch *Practice Bermuda halving on a miss* off. Round the World goes from 1 to 20, from 20 to 1 or in a random order, then to the bull; any bed counts, and the first at the bull wins. Gotcha counts up to a target score of 101 to 1001 with your out mode: go past it and the visit busts, reach another player's score exactly and they go back to 0. Start them from the new game screen, by voice or with `start_game` (`halve_on_miss`, `order`, `target_score`); the scoreboard shows the targets, how far everybody has come round the board and the points to go, and the caller calls the visits and the busts ([party games](docs/games.md#party-games), #305, #308).
@@ -14,20 +16,6 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **The darts arrow of the trends no longer falls during every week:** the players card compared the darts of the older half of the weeks shown with those of the newer half, which ends with the current week. If you threw the same number of darts every week, the arrow fell for most of each week, and with 5, 7, 9 or 11 weeks shown it rose, because the newer half had one week more. It now compares the darts per week of the complete weeks, so steady practice shows → and only more or fewer darts a week turn it; a week without practice counts as one without darts, so the arrow also shows when you start practicing or take a break. The darts over the weeks and the line still count the current week; the other arrows were not affected (#327, #328).
 - **The dart positions come back after a dropped connection:** when the training card could not get the positions of the heatmap, for example while Home Assistant restarted, it said *No dart positions yet.* until your next visit. It now keeps the positions it showed and asks again with the next update (#327, #328).
-
-## [1.15.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.14.0...v1.15.0) (2026-10-18)
-
-
-### Features
-
-* **caller:** recorded and locally rendered voice packs for the scoreboard caller ([#320](https://github.com/Dennis-Otto/ha-autodarts/issues/320)) ([4bcadd9](https://github.com/Dennis-Otto/ha-autodarts/commit/4bcadd90855364dff7e6fa7efed60500d5de8f0b))
-* **docs:** try the cards live on the website without installing anything ([#307](https://github.com/Dennis-Otto/ha-autodarts/issues/307)) ([d33b756](https://github.com/Dennis-Otto/ha-autodarts/commit/d33b75621527c8a717fa5a32f6035fa30820ce88))
-* **games:** Bermuda, Round the World and Gotcha ([#308](https://github.com/Dennis-Otto/ha-autodarts/issues/308)) ([41778a7](https://github.com/Dennis-Otto/ha-autodarts/commit/41778a7eff3b68e4703f2de47f109b9fcd615dc5))
-
-
-### Bug fixes
-
-* **cards:** an honest darts trend arrow, and a retry after a failed positions request ([#328](https://github.com/Dennis-Otto/ha-autodarts/issues/328)) ([1113722](https://github.com/Dennis-Otto/ha-autodarts/commit/1113722a0ccb2034ab4601459fee034ea4c221eb))
 
 ## [1.14.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.13.0...v1.14.0) (2026-10-14)
 
