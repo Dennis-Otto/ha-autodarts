@@ -511,7 +511,7 @@ Wird das gewählte Board aus Home Assistant entfernt, sagt das Dashboard das, st
   <img src="images/de/cast-light.png" alt="Wie die Karten über Home Assistant Cast auf einen Fernseher kommen: Ein Handy auf cast.home-assistant.io oder die Aktion cast.show_lovelace_view streamt ein Dashboard. Der Chromecast öffnet den Empfänger von Home Assistant Cast, der sich über HTTPS bei Home Assistant anmeldet und das Dashboard und seine Ressourcen liest. Die Integration hält ihre beiden Module dort, unter der Adresse ihrer Version, von jedem Start von Home Assistant, bis ihr letztes Board gelöscht ist. Der Empfänger lädt die Strategie und die Karten von Home Assistant, und der Fernseher zeigt das Dashboard mit der Anzeigetafel." width="560">
 </picture>
 
-- **Ressourcen in YAML:** Hält deine Konfiguration die Ressourcen in YAML (`resource_mode: yaml` unter `lovelace:`), kann die Integration keine hinzufügen. Trage die beiden Zeilen dann selbst ein und starte Home Assistant neu:
+- **Ressourcen in YAML:** Hält deine Konfiguration die Ressourcen in YAML (`resource_mode: yaml` oder das ältere `mode: yaml` unter `lovelace:`), kann die Integration keine hinzufügen. Trage die beiden Zeilen dann selbst ein und starte Home Assistant neu:
 
   ```yaml
   lovelace:

@@ -123,9 +123,19 @@ def _resources(hass: HomeAssistant) -> ResourceStorageCollection | None:
 
 def _ours(resources: ResourceStorageCollection, *paths: str) -> list[dict[str, Any]]:
     """The resources of these modules by their path, whatever their query."""
-    return [
-        item for item in resources.async_items() if urlsplit(item["url"]).path in paths
-    ]
+    return [item for item in resources.async_items() if _path(item["url"]) in paths]
+
+
+def _path(url: str) -> str | None:
+    """The path of a resource, or None for an address that does not parse.
+
+    Home Assistant takes any text as the address of a resource, so a typo in the
+    resource of another card must not stop the boards from setting up.
+    """
+    try:
+        return urlsplit(url).path
+    except ValueError:
+        return None
 
 
 async def _async_keep(resources: ResourceStorageCollection, url: str) -> None:

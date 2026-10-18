@@ -33,6 +33,10 @@ test("the strategy and the cards register in the receiver of Home Assistant Cast
 });
 
 test("modules that the receiver loads while it runs register at once", async (t) => {
+  // Defined by the test before, unless this one runs alone.
+  if (!customElements.get("hc-main")) customElements.define("hc-main", class extends HTMLElement {});
+  await customElements.whenDefined(STRATEGY);
+  await customElements.whenDefined("autodarts-scoreboard-card");
   t.mock.timers.enable({ apis: ["setTimeout"] });
   const timers = t.mock.method(globalThis, "setTimeout");
   // The receiver loads its dashboard resources after hc-main is defined.

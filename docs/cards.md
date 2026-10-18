@@ -511,7 +511,7 @@ If the chosen board is removed from Home Assistant, the dashboard says so instea
   <img src="images/en/cast-light.png" alt="How the cards reach a TV through Home Assistant Cast: a phone at cast.home-assistant.io or the action cast.show_lovelace_view casts a dashboard. The Chromecast opens the receiver of Home Assistant Cast, which signs in to Home Assistant over HTTPS and reads the dashboard and its resources. The integration keeps both of its modules there, at the address of its version, from every start of Home Assistant until its last board is deleted. The receiver loads the strategy and the cards from Home Assistant, and the TV shows the dashboard with the scoreboard." width="560">
 </picture>
 
-- **Resources in YAML:** if your configuration keeps the resources in YAML (`resource_mode: yaml` under `lovelace:`), the integration can't add any. Add the two lines yourself and restart Home Assistant:
+- **Resources in YAML:** if your configuration keeps the resources in YAML (`resource_mode: yaml`, or the older `mode: yaml`, under `lovelace:`), the integration can't add any. Add the two lines yourself and restart Home Assistant:
 
   ```yaml
   lovelace:

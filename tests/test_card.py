@@ -446,6 +446,21 @@ async def test_cast_finds_both_modules_in_the_dashboard_resources(hass, hass_sto
     delete.assert_not_called()
 
 
+async def test_a_resource_that_does_not_parse_stays_as_it_is(hass, hass_storage):
+    broken = {"id": "typo", "type": "module", "url": "http://[broken"}
+    hass_storage["lovelace_resources"] = {
+        "version": 1,
+        "key": "lovelace_resources",
+        "data": {"items": [broken]},
+    }
+    await with_dashboards(hass)
+    await register(hass)
+    await async_add_card_resources(hass)
+    assert listed(hass) == [("module", "http://[broken"), *ours()]
+    await async_remove_card_resources(hass)
+    assert listed(hass) == [("module", "http://[broken")]
+
+
 async def test_boards_set_up_side_by_side_add_each_module_once(hass):
     await with_dashboards(hass)
     await register(hass)
