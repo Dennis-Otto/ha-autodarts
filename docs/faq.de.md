@@ -60,7 +60,7 @@ Ja: auf jedem Bildschirm, dessen Browser dein Home Assistant öffnet, etwa einem
 
 ### Welche Sprachen spricht sie, und welche Stimmen hat der Caller?
 
-Englisch, Deutsch, Niederländisch, Französisch und Spanisch, in der Sprache von Home Assistant: Einrichtung, Entitäten, Karten und Caller. Der Caller der Anzeigetafel spricht mit einer Stimme des Browsers am Bildschirm für diese Sprache oder mit den aufgenommenen Sounds eines Voice-Packs, etwa eines von darts-caller oder eines, das du mit Piper aufnimmst. Die Blueprints Dart caller und Practice caller sprechen über die Sprachausgabe und die Lautsprecher deines Home Assistant. [Sprachen](README.de.md#sprachen) · [Welcher Caller?](automations.de.md#welcher-caller)
+Englisch, Deutsch, Niederländisch, Französisch und Spanisch, in der Sprache von Home Assistant: Einrichtung, Entitäten, Karten und Caller. Der Caller der Anzeigetafel spricht mit einer Stimme des Browsers am Bildschirm für diese Sprache oder mit den aufgenommenen Sounds eines Voice-Packs, etwa eines von darts-caller oder eines, das du mit Piper aufnimmst. Die Blueprints Dart caller und Practice caller sprechen in der Sprache von Home Assistant, über die Sprachausgabe und die Lautsprecher deines Home Assistant. [Sprachen](README.de.md#sprachen) · [Welcher Caller?](automations.de.md#welcher-caller)
 
 ## Datenschutz
 

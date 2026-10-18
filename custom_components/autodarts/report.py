@@ -541,6 +541,11 @@ class BoardReports:
                 self.hass,
                 coordinator.event_signal,
                 "weekly_report",
-                {**report, "source": "schedule"},
+                {
+                    **report,
+                    # The title and the summary in the language of Home Assistant.
+                    **coordinator.caller.words("weekly_report", report),
+                    "source": "schedule",
+                },
             )
         self._schedule()

@@ -40,7 +40,7 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 
 Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Um einen früher importierten Blueprint zu aktualisieren, importierst du ihn über sein Menü auf der Blueprint-Seite erneut; deine Automationen behalten ihre Einstellungen.
 
-Die Blueprints sind auf Englisch beschriftet; ihre Texte kannst du beim Anlegen frei wählen.
+Die Blueprints sind auf Englisch beschriftet. Ihre Ansagen und der Wochenbericht sprechen von sich aus die [Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant), und ihre Texte kannst du beim Anlegen frei wählen.
 
 <img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den vierzehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
 
@@ -50,7 +50,7 @@ Die Blueprints sind auf Englisch beschriftet; ihre Texte kannst du beim Anlegen 
 - **Practice caller:** sagt an, worauf es im Übungsspiel ankommt: Rest, Überwerfen, Game shot und auf Wunsch das Ausbullen.
 - **Caller der Anzeigetafel:** Die [Anzeigetafel](scoreboard.de.md#der-caller) sagt Aufnahmen und Übungsspiel mit einer Stimme an, über den Browser des Bildschirms am Board. Dafür brauchst du keine Lautsprecher in Home Assistant.
 
-Alle drei können mit einem Voice-Pack aus aufgenommenen Sounds ansagen, etwa einem von darts-caller: siehe [Voice-Packs der Caller](#voice-packs-der-caller) und [der Anzeigetafel](scoreboard.de.md#voice-packs).
+Alle drei sprechen ohne jede Einstellung die Sprache von Home Assistant, Deutsch, Englisch, Niederländisch, Französisch und Spanisch, und alle drei können mit einem Voice-Pack aus aufgenommenen Sounds ansagen, etwa einem von darts-caller: siehe [Voice-Packs der Caller](#voice-packs-der-caller) und [der Anzeigetafel](scoreboard.de.md#voice-packs).
 
 ## Einstellungen der Blueprints
 
@@ -80,10 +80,10 @@ Jeder Blueprint zeigt diese Einstellungen, wenn du eine Automation daraus anlegs
 | Call every dart | aus | Sagt zusätzlich jeden Dart an, sobald er landet. Der dritte Dart wird nicht einzeln angesagt, weil gleich die Aufnahme folgt. |
 | Stay silent in practice games | an | Überlässt die Ansagen dem Übungs-Caller, solange ein X01-, Cricket- oder Partyspiel der Integration läuft. |
 | Visit message | `{{ score }}` | Wird nach einer Aufnahme gesagt. Nutzbar sind `score`, `darts` und `segments`. |
-| Message for 180 | `One hundred and eighty!` | Wird nach einer 180 statt der normalen Ansage gesagt. |
-| Dart message | `{{ dart_name }}` | Wird für jeden Dart gesagt. Nutzbar sind `dart_name` (etwa `Treble 20`, `5`, `Bull` oder `Miss`), `segment` (etwa `T20`), `dart_score` und `dart_index`. |
+| Message for 180 | `{{ call }}` | Wird nach einer 180 statt der normalen Ansage gesagt: „Einhundertachtzig!“ in der Sprache von Home Assistant. |
+| Dart message | `{{ dart_name }}` | Wird für jeden Dart gesagt. Nutzbar sind `dart_name` (etwa `Triple 20`, `5`, `Bull` oder `Fehlwurf`, in der Sprache von Home Assistant), `segment` (etwa `T20`), `dart_score` und `dart_index`. |
 
-Ein leerer Text bleibt stumm.
+Ein leerer Text bleibt stumm. `call` und `dart_name` sind die [Worte der Integration](#ansagen-in-der-sprache-von-home-assistant), mit einer älteren Version der Integration auf Englisch.
 
 ### Takeout actions
 
@@ -163,18 +163,20 @@ Lass die Kalibrierungstaste leer, wenn die Board-Einstellung *Beim Start kalibri
 | Board events | | Die Entität *Ereignisse* deines Boards. |
 | Text-to-speech engine, Speakers, Language, Voice options | | Wie beim Dart caller. |
 | Voice pack | leer | Ein [Voice-Pack](#voice-packs-der-caller): Seine Sounds sagen Überworfen, Game shots, das Match und, wenn du allein spielst, was du brauchst, an; jede andere Ansage spricht die Sprachausgabe. |
-| Checkout possible | `{{ who ~ ', you' if who else 'You' }} require {{ remaining }}` | Wird gesagt, wenn die nächste Aufnahme das Leg beenden kann. |
-| No checkout, a setup | leer | Wird gesagt, wenn die nächste Aufnahme das Leg nicht beenden, aber ein Finish stellen kann, mit `leave` und `setup`, etwa `{{ who ~ ', leave' if who else 'Leave' }} yourself {{ leave }}`. Leer nutzt den Text von *Next player*. |
-| Next player | leer | Wird gesagt, wenn die nächste Aufnahme das Leg nicht beenden kann. Leer bleibt stumm. |
-| Bust | `No score` | Wird gesagt, wenn ein Dart die Aufnahme überwirft. |
-| Leg won | `Game shot, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Wird gesagt, wenn ein Dart ein Leg gewinnt, das nicht das Match entscheidet; im Team-Match mit dem Namen des Teams. |
-| Match won | `Game shot, and the match, {{ team or who }}!` | Wird gesagt, wenn ein Dart das Match entscheidet; im Team-Match mit dem Namen des Teams. |
-| Leg won on the round limit | `Round limit, and the leg{{ ', ' ~ (team or who) if team or who }}!` | Wird gesagt, wenn die letzte Runde eines X01-Legs mit [Rundengrenze](games.de.md#x01) ohne Checkout endet und die niedrigste Restpunktzahl ein Leg gewinnt, das nicht das Match entscheidet, mit `rounds` und dem Rest des Gewinners in `remaining`. |
-| Match won on the round limit | `Round limit, and the match{{ ', ' ~ (team or who) if team or who }}!` | Wird gesagt, wenn die Rundengrenze das Match entscheidet. |
-| Bull-off throw | leer | Wird gesagt, wenn der nächste Spieler zum Ausbullen wirft, etwa `{{ who }}, throw for the bull`. Der erste Spieler des Ausbullens wird nicht aufgerufen. Leer nutzt den Text von *Next player*. |
-| Bull-off won | leer | Wird gesagt, wenn das Ausbullen entscheidet, wer beginnt, zusammen mit der ersten Ansage des Matches, etwa `{{ who }} to throw first. Game on!`. Leer bleibt stumm. |
-| Word for a player without a name | `Player` | Ergibt „Player 2“ in einem Match ohne Namen. |
-| Word for the bot | `Bot` | Der Name des [Bots](entities.de.md#bot) im Übungsspiel in `who`, so wie die Anzeigetafel ihn zeigt, etwa „Bot, you require 40“. |
+| Checkout possible | `{{ call }}` | Wird gesagt, wenn die nächste Aufnahme das Leg beenden kann: „Sam, du brauchst 81“, allein „Du brauchst 81“. |
+| No checkout, a setup | leer | Wird gesagt, wenn die nächste Aufnahme das Leg nicht beenden, aber ein Finish stellen kann, mit `leave` und `setup`; `{{ call }}` sagt „Sam, stell dir die 32“. Leer nutzt den Text von *Next player*. |
+| Next player | leer | Wird gesagt, wenn die nächste Aufnahme das Leg nicht beenden kann; `{{ call }}` sagt im Match „Sam ist dran.“. Leer bleibt stumm. |
+| Bust | `{{ call }}` | Wird gesagt, wenn ein Dart die Aufnahme überwirft: „Überworfen“. |
+| Leg won | `{{ call }}` | Wird gesagt, wenn ein Dart ein Leg gewinnt, das nicht das Match entscheidet: „Game shot, und das Leg, Sam!“, im Team-Match mit dem Namen des Teams. |
+| Match won | `{{ call }}` | Wird gesagt, wenn ein Dart das Match entscheidet: „Game shot, und das Match, Sam!“, im Team-Match mit dem Namen des Teams. |
+| Leg won on the round limit | `{{ call }}` | Wird gesagt, wenn die letzte Runde eines X01-Legs mit [Rundengrenze](games.de.md#x01) ohne Checkout endet und die niedrigste Restpunktzahl ein Leg gewinnt, das nicht das Match entscheidet, mit `rounds` und dem Rest des Gewinners in `remaining`: „Rundenlimit, und das Leg, Sam!“. |
+| Match won on the round limit | `{{ call }}` | Wird gesagt, wenn die Rundengrenze das Match entscheidet: „Rundenlimit, und das Match, Sam!“. |
+| Bull-off throw | leer | Wird gesagt, wenn der nächste Spieler zum Ausbullen wirft; `{{ call }}` sagt „Sam, dein Wurf aufs Bull“. Der erste Spieler des Ausbullens wird nicht aufgerufen. Leer nutzt den Text von *Next player*. |
+| Bull-off won | leer | Wird gesagt, wenn das Ausbullen entscheidet, wer beginnt, zusammen mit der ersten Ansage des Matches; `{{ bull_off_call }}` sagt „Sam beginnt. Game on!“. Leer bleibt stumm. |
+| Word for a player without a name | `Player` | Ergibt „Player 2“ in `who` deiner eigenen Texte, in einem Match ohne Namen. |
+| Word for the bot | `Bot` | Der Name des [Bots](entities.de.md#bot) im Übungsspiel in `who` deiner eigenen Texte, so wie die Anzeigetafel ihn zeigt, etwa „Bot, you require 40“. |
+
+`call` und `bull_off_call` sind die [Worte der Integration](#ansagen-in-der-sprache-von-home-assistant): die Beispiele oben mit Home Assistant auf Deutsch, in jeder anderen Sprache in dieser.
 
 Die erste Aufnahme eines Spiels wird nicht angesagt, weil ein Spiel ohne Spielerwechsel beginnt. Mit [Ausbullen](games.de.md#ausbullen) eröffnet stattdessen die Ansage des Siegers das Spiel.
 
@@ -184,11 +186,11 @@ Die erste Aufnahme eines Spiels wird nicht angesagt, weil ein Spiel ohne Spieler
 | --- | --- | --- |
 | Board events | | Die Entität *Ereignisse* deines Boards. |
 | Minimum darts | 1 | Überspringt den Bericht einer Woche mit weniger Darts, etwa einer Urlaubswoche. Mit 0 kommt jede Woche. |
-| Title | `Your darts week` | Der Titel der Benachrichtigung, verfügbar als `title`. |
-| Message | `{{ summary }}` | Der Text der Benachrichtigung, verfügbar als `message`. |
+| Title | `{{ week_title }}` | Der Titel der Benachrichtigung, verfügbar als `title`: „Deine Dartwoche“ in der Sprache von Home Assistant. |
+| Message | `{{ summary }}` | Der Text der Benachrichtigung, verfügbar als `message`: die Woche in wenigen Sätzen, in der Sprache von Home Assistant. |
 | Notification actions | eine Benachrichtigung in Home Assistant | Wie der Bericht verschickt wird, etwa aufs Handy, siehe [unten](#deutscher-wochenbericht). |
 
-Die Nachricht kann `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` (wie viele es waren), `week_start`, `week_end` und `summary` nutzen, eine fertige Zusammenfassung auf Englisch. Einen deutschen Text zeigt der [deutsche Wochenbericht](#deutscher-wochenbericht). Das Board beendet die Woche an seinem *Tag des Wochenberichts* zur *Uhrzeit des Wochenberichts*, standardmäßig montags um Mitternacht.
+Die Nachricht kann `darts`, `visits`, `sessions`, `training_minutes`, `average`, `average_change`, `highest_visit`, `scores_180`, `checkout_rate`, `legs`, `matches`, `streak`, `daily_goals`, `personal_bests` (wie viele es waren), `week_start`, `week_end` und `summary` nutzen, eine fertige Zusammenfassung in der Sprache von Home Assistant. Einen kürzeren eigenen Text zeigt der [deutsche Wochenbericht](#deutscher-wochenbericht). Das Board beendet die Woche an seinem *Tag des Wochenberichts* zur *Uhrzeit des Wochenberichts*, standardmäßig montags um Mitternacht.
 
 ### Highlight photo
 
@@ -360,7 +362,7 @@ So antwortet Assist auf einen Satz der Sprach-Blueprints:
 
 ### Deutscher Dart-Caller
 
-Wähle eine deutsche Stimme für die Sprachausgabe und trage zum Beispiel ein:
+Mit Home Assistant auf Deutsch sagt der Dart-Caller ohne eigene Texte „Einhundertachtzig!“, „Triple 20“, „Doppel 16“ und „Fehlwurf“. Wähle eine deutsche Stimme für die Sprachausgabe. Eigene Worte trägst du zum Beispiel so ein:
 
 | Feld | Beispiel |
 | --- | --- |
@@ -374,6 +376,8 @@ Die Texte des Übungs-Callers sind Vorlagen mit diesen Variablen:
 
 | Variable | Inhalt |
 | --- | --- |
+| `call` | Was der Caller sagt, in der Sprache von Home Assistant, wie die Standardtexte es sagen: „Sam, du brauchst 81“, „Überworfen“ oder „Game shot, und das Leg, Sam!“ |
+| `bull_off_call` | Was der Caller sagt, wenn das Ausbullen gewonnen ist, bei *Bull-off won*: „Sam beginnt. Game on!“ |
 | `who` | Der Name des Spielers, „Bot“ für den [Bot](entities.de.md#bot) (siehe *Word for the bot*), „Spieler 2“ in einem Match ohne Namen, leer, wenn du allein spielst |
 | `team` | Das Team des Spielers im [Team-Match](entities.de.md#teams-und-startpunkte), etwa `Alex & Kim`, wenn beide Partner einen Namen haben; sonst leer |
 | `remaining` | Der Rest |
@@ -386,7 +390,7 @@ Die Texte des Übungs-Callers sind Vorlagen mit diesen Variablen:
 | `hit` | Das Feld des siegreichen Darts beim Ausbullen, bei *Bull-off won*: `BULL`, `25` oder etwa `S20` |
 | `distance` | Wie weit der siegreiche Dart beim Ausbullen von der Mitte entfernt landete, in Millimetern, bei *Bull-off won*; leer, wenn das Board für ihn keine Position gemeldet hat, nie `None` |
 
-Zum Beispiel:
+Mit Home Assistant auf Deutsch sagt der Übungs-Caller seine Ansagen ohne eigene Texte auf Deutsch. Eigene Worte zum Beispiel:
 
 | Feld | Beispiel |
 | --- | --- |
@@ -404,7 +408,7 @@ Zum Beispiel:
 
 ### Deutscher Wochenbericht
 
-Die fertige Variable `summary` ist englisch. Für einen deutschen Bericht trägst du bei *Title* und *Message* eigene Texte ein, im YAML-Modus der Automation zum Beispiel:
+Mit Home Assistant auf Deutsch heißt der Bericht ohne eigene Texte *Deine Dartwoche*, und `summary` liest sich etwa so: *312 Darts in 95 Minuten am Board, 3 Sessions. 3-Dart-Average 54,2 (+2,1 zur Vorwoche). Beste Aufnahme 140, 1 × 180. Checkout-Quote 31,2 %. 4 Tage in Folge. 2 neue Bestleistungen.* Teile ohne Wert, etwa ohne 180er, fehlen. Für einen kürzeren Bericht trägst du bei *Title* und *Message* eigene Texte ein, im YAML-Modus der Automation zum Beispiel:
 
 ```yaml
 use_blueprint:
@@ -428,6 +432,23 @@ data:
   title: "{{ title }}"
   message: "{{ message }}"
 ```
+
+### Ansagen in der Sprache von Home Assistant
+
+Home Assistant übersetzt keine Blueprints. Deshalb gibt die Integration jedem Ereignis, das ein Caller ansagt, seine Worte in der Sprache von Home Assistant mit, und die Caller sagen sie standardmäßig: `call` bei den Ereignissen des Dart- und des Übungs-Callers, `title` und `summary` beim Wochenbericht. Sie folgen einer neuen Sprache von Home Assistant sofort, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch; eine regionale Variante wie `de-CH` spricht ihre Sprache, jede andere Sprache Englisch. Es sind die Worte des [Callers der Anzeigetafel](scoreboard.de.md#der-caller) und der Voice-Packs, die `autodarts.generate_voice_pack` aufnimmt.
+
+| Ereignis | `call` auf Deutsch | `call` auf Englisch |
+| --- | --- | --- |
+| `turn_changed` | „Sam, du brauchst 81“, „Sam, stell dir die 32“, „Sam ist dran.“, „Sam, dein Wurf aufs Bull“ | „Sam, you require 81“, „Sam, leave yourself 32“, „Sam to throw.“, „Sam, throw for the bull“ |
+| `bust` | „Überworfen“ | „No score“ |
+| `leg_won`, `match_won` | „Game shot, und das Leg, Sam!“, „Rundenlimit, und das Match, Sam!“ | „Game shot, and the leg, Sam!“, „Round limit, and the match, Sam!“ |
+| `bull_off_won` | „Sam beginnt. Game on!“ | „Sam to throw first. Game on!“ |
+| `visit_thrown`, `visit_completed` | „Einhundertachtzig!“, „Keine Punkte“ bei 0, sonst die Punkte | „One hundred and eighty!“, „No score“ |
+| `dart_detected` | „Triple 20“, „Doppel 16“, „5“, „25“, „Bull“, „Fehlwurf“ | „Treble 20“, „Double 16“, „5“, „25“, „Bull“, „Miss“ |
+
+Auch den Bot und einen Spieler ohne Namen nennen die Standardansagen mit den Worten der Integration, auf Deutsch „Bot“ und „Spieler 2“; *Word for the bot* und *Word for a player without a name* gelten für deine eigenen Texte. Wähle eine *Voice*, die die Sprache von Home Assistant spricht, oder lass *Language* leer: Eine englische Stimme liest deutsche Worte schlecht. Für die englischen Ansagen in einem deutschen Home Assistant trägst du die englischen Beispiele der [Practice caller messages](automations.md#practice-caller-messages) als eigene Texte ein.
+
+Ein eigener Text behält seine Worte in jeder Sprache. Eine früher angelegte Automation sagt in deiner Sprache an, sobald du den Blueprint [erneut importierst](#blueprints), außer sie hat einen Text gespeichert, etwa den englischen Standard von früher: Ersetze ihn durch `{{ call }}`, den Titel des Wochenberichts durch `{{ week_title }}`. Mit einer älteren Version der Integration haben die Ereignisse keine Worte, und die Blueprints sagen sie auf Englisch.
 
 ### Voice-Packs der Caller
 
@@ -800,6 +821,8 @@ actions:
 mode: queued
 ```
 
+Um es zu sagen, wie der Übungs-Caller es sagt, in der Sprache von Home Assistant, nimmst du die Worte des Ereignisses: `message: "{{ trigger.to_state.attributes.call }}"`.
+
 ### Die Zusammenfassung eines Matches senden
 
 Schickt nach einem Übungsmatch mehrerer Spieler die Zahlen jedes Spielers aufs Handy. `match_won` bringt die [Match-Zusammenfassung](entities.de.md#übungsspiel) in `summary` mit; X01 hat Averages und Checkouts, Cricket `mpr` und `marks`.
@@ -1016,7 +1039,7 @@ Die Darts des [Bots](entities.de.md#bot) lösen die üblichen Ereignisse mit `bo
 
 - Celebrate a visit score und die Light show lassen den Bot aus; mit *Also for the bot* nehmen sie ihn mit.
 - Der Highlight-Foto-Blueprint macht kein Foto von den Darts des Bots, die nicht im Board stecken.
-- Die Caller rufen den Bot mit dem *Word for the bot*, standardmäßig „Bot“, wie die Anzeigetafel.
+- Die Caller rufen den Bot „Bot“ in der Sprache von Home Assistant, wie die Anzeigetafel; deine eigenen Texte nennen ihn mit dem *Word for the bot*.
 
 Eine Automation aus einem Blueprint nimmt keine eigenen Bedingungen, solange du nicht die Kontrolle über sie übernimmst; nutze dort diese Einstellungen. Um in einer eigenen Automation nur deine eigenen Aufnahmen zu feiern, ergänze eine Bedingung:
 

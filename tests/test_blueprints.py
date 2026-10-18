@@ -47,6 +47,8 @@ from .local_helpers import (
     BULL,
     EVENTS,
     JPEG,
+    MISS,
+    OUTER_BULL,
     S20,
     T20,
     automate,
@@ -1202,6 +1204,218 @@ async def test_practice_caller_names_the_bot_like_the_scoreboard(hass):
             "Game shot, and the match, Robo!",
         ],
     }
+
+
+# -- the language of Home Assistant ----------------------------------------------------
+
+
+def translated(language: str) -> dict[str, str]:
+    """The messages of the integration in a language, by their keys."""
+    path = (
+        ROOT / "custom_components" / "autodarts" / "translations" / f"{language}.json"
+    )
+    exceptions = json.loads(path.read_text(encoding="utf-8"))["exceptions"]
+    return {key: entry["message"] for key, entry in exceptions.items()}
+
+
+async def speaking_board(hass, aioclient_mock, language: str):
+    """A board in a Home Assistant of the language, with the callers and the
+    weekly report as they are imported, the dart caller calling every dart."""
+    hass.config.language = language
+    entry = await setup_bridge(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    voice = {**VOICE, "board_events": entity_id(hass, "event", "board_events")}
+    await automate_all(
+        hass,
+        [
+            ("practice_caller", voice),
+            ("dart_caller", {**voice, "call_each_dart": True}),
+            (
+                "weekly_report",
+                {
+                    "board_events": voice["board_events"],
+                    "notify_actions": [
+                        {
+                            "action": "test.report",
+                            "data": {
+                                "title": "{{ title }}",
+                                "message": "{{ message }}",
+                            },
+                        }
+                    ],
+                },
+            ),
+        ],
+    )
+    return coordinator
+
+
+async def play_a_short_match(hass, coordinator) -> None:
+    """Dennis busts 101, and Lea checks it out."""
+
+    async def unchanged_board() -> dict:
+        return dict(coordinator.data["local"])
+
+    with patch.object(coordinator.client, "get_state", side_effect=unchanged_board):
+        await coordinator.async_start_game(
+            101, names=["Dennis", "Lea"], legs=1, sets=1, bull_off=False
+        )
+        await visit(hass, coordinator, T20, S20, T20)
+        await visit(hass, coordinator, T20, S1, D20)
+
+
+async def end_the_week(hass, coordinator) -> None:
+    coordinator.reports.report.ends = dt_util.utcnow()
+    await coordinator.reports._async_report(dt_util.utcnow())
+    await hass.async_block_till_done()
+
+
+async def test_the_callers_and_the_report_speak_german_out_of_the_box(
+    hass, aioclient_mock
+):
+    speak = async_mock_service(hass, "tts", "speak")
+    reports = async_mock_service(hass, "test", "report")
+    coordinator = await speaking_board(hass, aioclient_mock, "de")
+    # Free play: the dart caller calls the darts and the visits.
+    await visit(hass, coordinator, T20, T20, T20)
+    await visit(hass, coordinator, S20, MISS)
+    await visit(hass, coordinator, BULL, OUTER_BULL, D20)
+    await play_a_short_match(hass, coordinator)
+    await end_the_week(hass, coordinator)
+    assert spoken(speak) == [
+        "Triple 20",
+        "Triple 20",
+        "Einhundertachtzig!",
+        "20",
+        "Fehlwurf",
+        "20",
+        "Bull",
+        "25",
+        "115",
+        # The practice caller has the floor during the practice game.
+        "Überworfen",
+        "Lea, du brauchst 101",
+        "Game shot, und das Match, Lea!",
+    ]
+    assert [call.data for call in reports] == [
+        {
+            "title": "Deine Dartwoche",
+            "message": "14 Darts. 3-Dart-Average 119,1. Beste Aufnahme 180, 1 × 180. "
+            "Checkout-Quote 100,0 %. 1 Tag in Folge.",
+        }
+    ]
+
+
+async def test_the_callers_follow_a_new_language_at_once(hass, aioclient_mock):
+    speak = async_mock_service(hass, "tts", "speak")
+    coordinator = await speaking_board(hass, aioclient_mock, "en")
+    await visit(hass, coordinator, T20, T20, T20)
+    await hass.config.async_update(language="nl")
+    await hass.async_block_till_done()
+    await visit(hass, coordinator, T20, T20, T20)
+    assert spoken(speak) == [
+        "Treble 20",
+        "Treble 20",
+        "One hundred and eighty!",
+        "Triple 20",
+        "Triple 20",
+        "Honderdtachtig!",
+    ]
+
+
+@pytest.mark.parametrize("language", ["en", "de", "es-419", "fr", "nl"])
+async def test_a_fresh_caller_and_report_speak_every_language(
+    hass, aioclient_mock, language
+):
+    """In each language of the integration, also in a regional variant of it."""
+    speak = async_mock_service(hass, "tts", "speak")
+    reports = async_mock_service(hass, "test", "report")
+    coordinator = await speaking_board(hass, aioclient_mock, language)
+    await play_a_short_match(hass, coordinator)
+    await end_the_week(hass, coordinator)
+    say = translated(language.split("-")[0])
+    assert spoken(speak) == [
+        say["voice_pack_bust"],
+        say["caller_require"].format(name="Lea", remaining=101),
+        say["voice_match"].format(name="Lea"),
+    ]
+    (report,) = reports
+    assert report.data["title"] == say["report_title"]
+    message = report.data["message"]
+    assert message.startswith(say["report_darts"].format(darts=6))
+    assert message.endswith(say["report_streak_day"])
+
+
+async def test_an_older_integration_leaves_the_blueprints_in_english(hass):
+    """Events without the words of the integration, from a version before them,
+    are called in English, as the blueprints called them before."""
+    speak = async_mock_service(hass, "tts", "speak")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate_all(
+        hass,
+        [
+            ("practice_caller", VOICE),
+            ("dart_caller", {**VOICE, "call_each_dart": True}),
+        ],
+    )
+    await fire_all(
+        hass,
+        [
+            ("visit_thrown", {"score": 180, "darts": 3, "game": None}),
+            ("dart_detected", {"segment": "T20", "score": 60, "dart_index": 1}),
+            ("bust", {"game": 501, "players": 1, "player": 1, "remaining": 32}),
+            # The winner of a match played alone is named by nobody.
+            ("match_won", {"game": 501, "players": 1, "player": 1, "name": None}),
+            (
+                "match_won",
+                {"game": 501, "players": 2, "player": 2, "name": "Lea", "rounds": 3},
+            ),
+        ],
+    )
+    assert spoken(speak) == [
+        "One hundred and eighty!",
+        "Treble 20",
+        "No score",
+        "Game shot, and the match!",
+        "Round limit, and the match, Lea!",
+    ]
+
+
+async def test_the_words_of_a_won_bull_off_open_the_match(hass):
+    speak = async_mock_service(hass, "tts", "speak")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "practice_caller",
+        {
+            **VOICE,
+            "bull_off_message": "{{ bull_off_call }}",
+            "turn_message": "{{ call }}",
+        },
+    )
+    match = {"game": 501, "players": 2, "remaining": 501, "checkout": None}
+    await fire_all(
+        hass,
+        [
+            (
+                "bull_off_won",
+                {**match, "player": 2, "name": "Lea", "call": "Lea beginnt. Game on!"},
+            ),
+            (
+                "turn_changed",
+                {**match, "player": 2, "name": "Lea", "call": "{{ 6*7 }} ist dran."},
+            ),
+            (
+                "turn_changed",
+                {**match, "player": 1, "name": "Kim", "call": "Kim ist dran."},
+            ),
+        ],
+    )
+    # The template characters of a name never make a template.
+    assert spoken(speak) == [
+        "Lea beginnt. Game on! 6*7  ist dran.",
+        "Kim ist dran.",
+    ]
 
 
 # -- takeout, detection, alerts ----------------------------------------------------

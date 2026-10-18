@@ -6,12 +6,14 @@ blueprint:
     third dart lands; a shorter visit when the darts are pulled.
 
 
-    The messages are templates. Visit messages can use `score`, `darts` and
-    `segments`; dart messages can use `dart_name` (for example `Treble 20`,
-    `Bull` or `Miss`), `segment` (for example `T20`), `dart_score` and
-    `dart_index`. An empty message stays silent. With a voice pack, such
-    as one of darts-caller, its recorded sounds call the scores and the
-    darts it has.
+    The messages are templates. Visit messages can use `score`, `darts`,
+    `segments` and `call` ("One hundred and eighty!" after a 180); dart
+    messages can use `dart_name` (for example `Treble 20`, `Bull` or `Miss`),
+    `segment` (for example `T20`), `dart_score` and `dart_index`. `call` and
+    `dart_name` are in the language of Home Assistant; an older version of the
+    integration makes them English. An empty message stays silent. With a
+    voice pack, such as one of darts-caller, its recorded sounds call the
+    scores and the darts it has.
 
 
     While a practice game of the integration is played, the practice caller
@@ -118,15 +120,18 @@ blueprint:
             text: {}
         maximum_message:
           name: Message for 180
-          description: Said instead of the visit message after a 180.
-          default: "One hundred and eighty!"
+          description: >-
+            Said instead of the visit message after a 180. `{{ call }}` says
+            "One hundred and eighty!" in the language of Home Assistant.
+          default: "{{ call }}"
           selector:
             text: {}
         dart_message:
           name: Dart message
           description: >-
             Said for each dart when "Call every dart" is on, for example
-            `{{ dart_name }}` or `{{ dart_score }}`.
+            `{{ dart_name }}`, the bed in the language of Home Assistant, or
+            `{{ dart_score }}`.
           default: "{{ dart_name }}"
           selector:
             text: {}
@@ -163,15 +168,22 @@ variables:
   dart_score: "{{ trigger.to_state.attributes.get('score') | int(0) }}"
   dart_index: "{{ trigger.to_state.attributes.get('dart_index') | int(0) }}"
   game: "{{ trigger.to_state.attributes.get('game') }}"
-  # How a caller says a bed: T20 is "Treble 20", S5 is "5", M is "Miss".
-  dart_name: >-
-    {% set bed = segment | string %}
-    {%- if dart_score == 0 %}Miss
+  # What the caller says, in the language of Home Assistant: the words the
+  # integration gives the event. A caller says a bed as T20 "Treble 20", S5
+  # "5" and M "Miss", and a visit of 180 "One hundred and eighty!". An older
+  # version of the integration gives none; then it is English.
+  call: >-
+    {% set said = trigger.to_state.attributes.get('call') %}
+    {%- set bed = segment | string %}
+    {%- if said is string %}{{ said }}
+    {%- elif trigger.id != 'dart' %}{{ 'One hundred and eighty!' if score == 180 else (score if score else 'No score') }}
+    {%- elif dart_score == 0 %}Miss
     {%- elif bed | upper == 'BULL' %}Bull
     {%- elif bed[:1] == 'T' %}Treble {{ bed[1:] }}
     {%- elif bed[:1] == 'D' %}Double {{ bed[1:] }}
     {%- elif bed[:1] == 'S' %}{{ bed[1:] }}
     {%- else %}{{ bed }}{% endif %}
+  dart_name: "{{ call if trigger.id == 'dart' else '' }}"
   silent_in_practice_games: !input silent_in_practice_games
   visit_text: !input visit_message
   maximum_text: !input maximum_message

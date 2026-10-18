@@ -20,7 +20,9 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EVENT_CORE_CONFIG_UPDATE
 from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.core import Event as CoreEvent
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.debounce import Debouncer
@@ -33,6 +35,7 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
+from .calls import Caller
 from .const import DOMAIN
 from .games import ActionRefused, Announcement, BoardGames, Event
 from .positions import Aim
@@ -100,6 +103,8 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.event_signal = f"{DOMAIN}_{entry.entry_id}_event"
         self.reports = BoardReports(hass, entry.entry_id, self)
         self.games = BoardGames(self.reports)
+        # The words of the callers in the language of Home Assistant.
+        self.caller = Caller()
         self.store = BoardStore(hass, entry.entry_id, self.reports, self._stored)
         # The players' aim models are worked out off the event loop; the count
         # rises when a best aim changed, for the attributes of the profiles.
@@ -107,6 +112,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.aim_revision = 0
         self._fixture_unsub: CALLBACK_TYPE | None = None
         self._midnight_unsub: CALLBACK_TYPE | None = None
+        self._language_unsub: CALLBACK_TYPE | None = None
         self._idle_unsub: CALLBACK_TYPE | None = None
         self._bot_unsub: CALLBACK_TYPE | None = None
         self._game_error_logged = False
@@ -116,6 +122,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def async_load(self) -> None:
         """Restore the stored training, games and reports; before the first
         poll. See BoardStore.async_load."""
+        await self.caller.async_load(self.hass)
         await self.store.async_load(self._restore)
 
     async def _async_setup(self) -> None:
@@ -142,6 +149,11 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._midnight_unsub = async_track_time_change(
                 self.hass, self._async_new_day, hour=0, minute=0, second=1
             )
+        if self._language_unsub is None:
+            # The callers speak a new language of Home Assistant at once.
+            self._language_unsub = self.hass.bus.async_listen(
+                EVENT_CORE_CONFIG_UPDATE, self._async_config_changed
+            )
         # The bot goes on with its turn after a restart.
         self._schedule_bot()
         # The best aims of the restored darts.
@@ -149,10 +161,16 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def async_shutdown(self) -> None:
         await super().async_shutdown()
-        for unsub in (self._idle_unsub, self._fixture_unsub, self._midnight_unsub):
+        for unsub in (
+            self._idle_unsub,
+            self._fixture_unsub,
+            self._midnight_unsub,
+            self._language_unsub,
+        ):
             if unsub:
                 unsub()
         self._idle_unsub = self._fixture_unsub = self._midnight_unsub = None
+        self._language_unsub = None
         self._cancel_bot()
         await self._async_settle()
         await self.store.async_shutdown()
@@ -165,16 +183,22 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def _async_new_day(self, _now: datetime) -> None:
         self.async_update_listeners()
 
+    async def _async_config_changed(self, _event: CoreEvent) -> None:
+        await self.caller.async_load(self.hass)
+
     # -- events and changes of the games -----------------------------------------
 
     def _emit(self, kind: str, attributes: dict[str, Any], source: str) -> None:
+        # The words of the callers come with the event, in the language of
+        # Home Assistant, which translates no blueprint.
+        words = self.caller.words(kind, attributes)
         # Publish the corresponding sensor states before event consumers run.
         self.hass.loop.call_soon(
             async_dispatcher_send,
             self.hass,
             self.event_signal,
             kind,
-            {**attributes, "source": source},
+            {**attributes, **words, "source": source},
         )
 
     def _play(self, step: Callable[[], list[Announcement]]) -> None:

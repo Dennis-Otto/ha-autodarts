@@ -1068,6 +1068,96 @@
     },
     "voice_bed_miss": {
       "message": "Fallo"
+    },
+    "caller_require": {
+      "message": "{name}, te quedan {remaining}"
+    },
+    "caller_setup": {
+      "message": "{name}, déjate {leave}"
+    },
+    "caller_setup_alone": {
+      "message": "Déjate {leave}"
+    },
+    "caller_limit_leg": {
+      "message": "¡Límite de rondas, y el leg, {name}!"
+    },
+    "caller_limit_leg_alone": {
+      "message": "¡Límite de rondas, y el leg!"
+    },
+    "caller_limit_match": {
+      "message": "¡Límite de rondas, y el partido, {name}!"
+    },
+    "caller_limit_match_alone": {
+      "message": "¡Límite de rondas, y el partido!"
+    },
+    "caller_bull_off_turn": {
+      "message": "{name}, lanza al bull"
+    },
+    "caller_bull_off": {
+      "message": "Empieza {name}. ¡Game on!"
+    },
+    "caller_bot": {
+      "message": "Bot"
+    },
+    "caller_maximum": {
+      "message": "¡Ciento ochenta!"
+    },
+    "caller_treble": {
+      "message": "Triple {number}"
+    },
+    "report_title": {
+      "message": "Tu semana de dardos"
+    },
+    "report_darts": {
+      "message": "{darts} dardos."
+    },
+    "report_darts_time": {
+      "message": "{darts} dardos en {time} ante la diana."
+    },
+    "report_darts_sessions": {
+      "message": "{darts} dardos, {sessions}."
+    },
+    "report_darts_time_sessions": {
+      "message": "{darts} dardos en {time} ante la diana, {sessions}."
+    },
+    "report_minute": {
+      "message": "1 minuto"
+    },
+    "report_minutes": {
+      "message": "{count} minutos"
+    },
+    "report_session": {
+      "message": "1 sesión"
+    },
+    "report_sessions": {
+      "message": "{count} sesiones"
+    },
+    "report_average": {
+      "message": "Media de 3 dardos {average}."
+    },
+    "report_average_change": {
+      "message": "Media de 3 dardos {average} ({change} respecto a la semana anterior)."
+    },
+    "report_best_visit": {
+      "message": "Mejor tirada {score}."
+    },
+    "report_best_visit_180": {
+      "message": "Mejor tirada {score}, {count} × 180."
+    },
+    "report_checkout_rate": {
+      "message": "Porcentaje de cierre {rate} %."
+    },
+    "report_streak_day": {
+      "message": "1 día seguido."
+    },
+    "report_streak_days": {
+      "message": "{count} días seguidos."
+    },
+    "report_new_best": {
+      "message": "1 nuevo récord personal."
+    },
+    "report_new_bests": {
+      "message": "{count} nuevos récords personales."
     }
   },
   "issues": {

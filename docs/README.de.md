@@ -271,7 +271,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 
   [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml)
 
-- **Dart caller.** Jede Aufnahme auf deinen Lautsprechern, mit einer eigenen Ansage für die 180, oder mit den aufgenommenen Sounds eines Voice-Packs.
+- **Dart caller.** Jede Aufnahme auf deinen Lautsprechern, mit einer eigenen Ansage für die 180, in der Sprache von Home Assistant oder mit den aufgenommenen Sounds eines Voice-Packs.
 
   [![Blueprint „Dart caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml)
 
@@ -286,7 +286,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 
   [![Blueprint „Celebrate a visit score“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml)
 
-- **Practice caller.** Wer was braucht, Überwerfen und Game shots des Übungsspiels auf deinen Lautsprechern.
+- **Practice caller.** Wer was braucht, Überwerfen und Game shots des Übungsspiels auf deinen Lautsprechern, in der Sprache von Home Assistant.
 
   [![Blueprint „Practice caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml)
 
@@ -306,7 +306,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 
   [![Blueprint „Training session routine“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml)
 
-- **Weekly report.** Deine Trainingswoche mit dem Trend deines 3-Dart-Averages, als Benachrichtigung.
+- **Weekly report.** Deine Trainingswoche mit dem Trend deines 3-Dart-Averages, als Benachrichtigung in der Sprache von Home Assistant.
 
   [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml)
 
@@ -328,7 +328,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 
 </details>
 
-Die Blueprints sind auf Englisch beschriftet; ihre Texte, etwa die Ansagen, wählst du beim Anlegen selbst. Die [Anleitung zu Automationen](automations.de.md) enthält deutsche Beispiele.
+Die Blueprints sind auf Englisch beschriftet. Die Caller und der Wochenbericht sprechen von sich aus die Sprache von Home Assistant, und eigene Texte, etwa für die Ansagen, wählst du beim Anlegen. Die [Anleitung zu Automationen](automations.de.md) enthält deutsche Beispiele.
 
 <!-- --8<-- [start:devices-and-languages] -->
 
@@ -354,7 +354,7 @@ Die Integration spricht Deutsch, Englisch, Niederländisch, Französisch und Spa
 
 - Die Namen der Entitäten legt Home Assistant in der Sprache des Servers fest (**Einstellungen → System → Allgemein**), Zustände und Karten folgen der Sprache deines Benutzerprofils.
 - Der Caller spricht die Sprache der Karte mit einer Stimme deines Browsers oder Tablets für diese Sprache, oder mit einem [Voice-Pack](scoreboard.de.md#voice-packs) aufgenommener Ansagen; `autodarts.generate_voice_pack` nimmt eines in der Sprache deiner Wahl auf.
-- Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints auf Englisch, weil Home Assistant Blueprints nicht übersetzt. Die Sprach-Blueprints verstehen Sätze in allen fünf Sprachen, und Assist antwortet in der Sprache von Home Assistant.
+- Die Dokumentation gibt es auf Englisch und Deutsch, die Blueprints sind auf Englisch beschriftet, weil Home Assistant Blueprints nicht übersetzt. Ihre Ansagen sprechen trotzdem jede der fünf Sprachen: Die Integration gibt den Ereignissen die Worte der Caller und des Wochenberichts in der Sprache von Home Assistant mit ([Ansagen in der Sprache von Home Assistant](automations.de.md#ansagen-in-der-sprache-von-home-assistant)). Die Sprach-Blueprints verstehen Sätze in allen fünf Sprachen, und Assist antwortet in der Sprache von Home Assistant.
 
 Texte, die in einer Sprache fehlen oder älter sind als ihr englisches Original, stehen im [Übersetzungs-Issue](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations) dieser Sprache, das ein Bot aktuell hält. Es erklärt, wie du sie direkt auf GitHub korrigierst, ganz ohne Programmierkenntnisse. Eine Übersetzung verbessern oder eine Sprache hinzufügen: [Übersetzungen in CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations).
 
