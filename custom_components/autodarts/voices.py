@@ -32,7 +32,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 from homeassistant.util.hass_dict import HassKey
 
-from .const import DOMAIN
+from .const import DOMAIN, LANGUAGES
 from .export import ExportFolderError, export_folder
 from .highlights import media_folder
 
@@ -56,8 +56,6 @@ MAX_SOUNDS = 10_000
 # A generated pack has this file, so the generator replaces only its own packs.
 MARK = ".autodarts-voice-pack"
 GENERATING: HassKey[asyncio.Lock] = HassKey(f"{DOMAIN}_voice_pack")
-# The languages of the integration; the words of a generated pack are in one of them.
-LANGUAGES = ("en", "de", "es", "fr", "nl")
 # What a voice assistant answers when no sound of a pack fits.
 NO_SOUND = {"key": "", "media_content_id": "", "media_content_type": ""}
 

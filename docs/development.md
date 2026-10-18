@@ -254,7 +254,7 @@ SCREENSHOT_GROUP=2/3 LANGUAGES=en bash tests/e2e/visual.sh   # the second group 
 git checkout -- docs/images   # back to the committed images
 ```
 
-`scripts/creator_media.py` turns five of the animations into the MP4 and GIF files of the [creator kit](creator-kit.md#videos-and-animations) in `docs/media/`, for Reddit, Discord, forums and video editors, which don't all show animated WebP. Run it after the screenshots whenever one of those animations changes; it needs Pillow and ffmpeg, and a test fails when a video no longer has the length of its animation.
+`scripts/creator_media.py` turns seven of the animations into the MP4 and GIF files of the [creator kit](creator-kit.md#videos-and-animations) in `docs/media/`, for Reddit, Discord, forums and video editors, which don't all show animated WebP. Run it after the screenshots whenever one of those animations changes; it needs Pillow and ffmpeg. A test fails when a video or a GIF no longer has the length of its animation; it reads the length of a video from its MP4 header itself, so it runs on every machine and in the CI without ffmpeg.
 
 Keep animations short, below about 20 seconds and 1 MB, and give every image a descriptive `alt` text in both languages. The README uses absolute `raw.githubusercontent.com` addresses and plain `<img>` tags, because HACS shows it outside GitHub; the pages in `docs/` use relative paths and may use `<picture>` for light and dark variants.
 
@@ -603,6 +603,6 @@ See the [release guide](releases.md).
 
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/), for example `feat:`, `fix:` and `docs:`.
 - Python follows Ruff and strict mypy (`pyproject.toml`), JavaScript the recommended rules of ESLint (`eslint.config.mjs`); `scripts/check.sh` fails on either.
-- User-facing text goes into `strings.json` and every translation, card texts into every language of `TEXT`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text ([translations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)). When an English text changes, change its translations in the same pull request, or the [translation bot](#translation-bot) asks native speakers for them.
+- User-facing text goes into `strings.json` and every translation, card texts into every language of `TEXT`; `strings.json` equals `translations/en.json`, and the consistency tests fail until every language has the text, and for a text that no card reads any more ([translations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)). When an English text changes, change its translations in the same pull request, or the [translation bot](#translation-bot) asks native speakers for them.
 - New behavior needs tests, and new user-facing features need documentation in English and German.
 - A part of a card is built of the [UI building blocks](#ui-building-blocks): what a tap does shows before the tap.

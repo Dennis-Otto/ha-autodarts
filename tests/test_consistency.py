@@ -13,9 +13,18 @@ from pathlib import Path
 import pytest
 import yaml
 
+from custom_components.autodarts.achievements import ACHIEVEMENTS
 from custom_components.autodarts.binary_sensor import MOTION_SENSORS
+from custom_components.autodarts.const import LANGUAGES as INTEGRATION_LANGUAGES
+from custom_components.autodarts.journal import LOCALES
 from custom_components.autodarts.local_api import STANDBY_MINUTES
 from custom_components.autodarts.local_coordinator import EVENT_TYPES, ISSUES
+from custom_components.autodarts.media_source import (
+    CHECKOUTS,
+    MONTH_TITLES,
+    MONTHS,
+    SHORT_DATES,
+)
 from custom_components.autodarts.practice import (
     GAME_OPTIONS,
     MAX_LEGS,
@@ -27,6 +36,7 @@ from custom_components.autodarts.services import (
     DELETE_PLAYER_SCHEMA,
     START_GAME_SCHEMA,
 )
+from custom_components.autodarts.tournament import KNOCKOUT_STAGES
 
 from .local_helpers import entity_id, setup_local
 
@@ -233,8 +243,21 @@ def card_texts() -> dict[str, dict[str, str]]:
 CARD_TEXTS = card_texts()
 
 
+def test_every_list_of_languages_names_the_languages_of_the_translations():
+    # A new translation needs its words in each of these too; without them the
+    # calendar, the highlight gallery and the voice actions would stay English.
+    languages = set(LANGUAGES)
+    assert set(INTEGRATION_LANGUAGES) == languages
+    assert set(LOCALES) == languages
+    assert set(MONTHS) == languages
+    # English writes "Sep 26", every other language the day and month in numbers.
+    assert set(SHORT_DATES) == languages - {"en"}
+    # Where a language has none of its own, it says "Checkout" and "September 2026".
+    assert set(CHECKOUTS) | set(MONTH_TITLES) <= languages
+
+
 def test_the_cards_speak_every_language_of_the_integration():
-    assert list(CARD_TEXTS) == ["en", "de", "es", "fr", "nl"]
+    assert list(CARD_TEXTS) == list(INTEGRATION_LANGUAGES)
     assert set(CARD_TEXTS) == set(LANGUAGES)
     # Every key of TEXT is one text; none escaped the parser.
     keys = re.findall(r"^    \w+:", TEXT_BLOCK, re.M)
@@ -251,6 +274,96 @@ def test_card_texts_exist_in_every_language(language):
         assert placeholders(translated[key]) == placeholders(text), key
         assert translated[key], key
         assert_tidy(language, key, translated[key])
+
+
+# Texts whose key the card puts together from a value, such as `party_${game}`
+# or `${key}_long`: the start and the end of the key around the value. The
+# choices of the editor's dropdowns are `${prefix}_${value}` of dropdown(…).
+CARD_TEXT_FAMILIES = (
+    ("achievement_", ""),
+    ("achievement_", "_goal"),
+    ("cricket_", ""),
+    ("cricket_aim_", ""),
+    ("drill_", ""),
+    ("export_format_", ""),
+    ("highlight_", ""),
+    ("idle_panel_", ""),
+    ("layout_", ""),
+    ("lobby_", ""),
+    ("lobby_group_", ""),
+    ("mark_", ""),
+    ("mode_", ""),
+    ("party_", ""),
+    ("period_", ""),
+    ("picker_", ""),
+    ("picker_", "_description"),
+    ("record_", ""),
+    ("rules_", ""),
+    ("style_", ""),
+    ("tier_", ""),
+    ("tournament_", ""),
+    ("tournament_mode_", ""),
+    ("tournament_stage_", ""),
+    ("trend_", ""),
+    ("wild_", ""),
+    ("", "_alone"),
+    ("", "_entity"),
+    ("", "_long"),
+)
+# The card without its texts: the code that reads them.
+CARD_CODE = CARD.replace(TEXT_BLOCK, "")
+
+
+def card_text_families(code: str) -> set[tuple[str, str]]:
+    """The families of keys that code puts together, as `party_${game}` and
+    `${say}_alone`, and the choices of its dropdowns."""
+    families = set(re.findall(r"`(\w*)\$\{[^{}`]*\}(\w*)`", code))
+    dropdowns = re.findall(r'dropdown\("\w+", "(\w+)"', code)
+    return families | {(f"{prefix}_", "") for prefix in dropdowns}
+
+
+def unused_card_texts(
+    code: str, keys: list[str], values: frozenset[str] = frozenset()
+) -> list[str]:
+    """The keys that code reads neither in quotes nor by a family of
+    CARD_TEXT_FAMILIES whose value is a word of the code, one of the values or a
+    number, such as "gotcha" of party_gotcha or 3 of mark_3."""
+    quoted = set(re.findall(r"[\"'`](\w+)[\"'`]", code)) | values
+
+    def used(key: str) -> bool:
+        return key in quoted or any(
+            key.startswith(start)
+            and key.endswith(end)
+            and (value := key[len(start) : len(key) - len(end)])
+            and (value in quoted or value.isdigit())
+            for start, end in CARD_TEXT_FAMILIES
+        )
+
+    return [key for key in keys if not used(key)]
+
+
+def test_every_family_of_card_texts_is_still_built():
+    families = card_text_families(CARD_CODE)
+    assert [family for family in CARD_TEXT_FAMILIES if family not in families] == []
+
+
+def test_every_card_text_is_used():
+    # A text that the cards never show would still go to the translators. The
+    # integration hands the cards the achievements and the knockout rounds.
+    values = frozenset((*ACHIEVEMENTS, *KNOCKOUT_STAGES))
+    assert unused_card_texts(CARD_CODE, list(CARD_TEXTS["en"]), values) == []
+
+
+def test_a_card_text_that_nothing_reads_is_found():
+    code = (
+        'const PARTY_GAMES = ["gotcha"];\n'
+        'ui.t("score");\nui.t(`party_${game}`);\nui.t(`mark_${count}`);\n'
+        'dropdown("layout", "layout", ["auto"]);\n'
+    )
+    assert card_text_families(code) == {("party_", ""), ("mark_", ""), ("layout_", "")}
+    keys = ["score", "party_gotcha", "mark_3", "layout_auto", "party_bingo", "team"]
+    assert unused_card_texts(code, keys) == ["party_bingo", "team"]
+    assert unused_card_texts(code, keys, frozenset({"bingo"})) == ["team"]
 
 
 # Dependabot bumps the requirements files; the copies elsewhere follow by hand.

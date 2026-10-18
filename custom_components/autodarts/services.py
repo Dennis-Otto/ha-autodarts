@@ -28,7 +28,7 @@ from homeassistant.helpers.service import (
 from homeassistant.helpers.translation import async_get_translations
 
 from .bot import BOARD_MM, bed_name, segment_at, valid_level
-from .const import DOMAIN
+from .const import DOMAIN, LANGUAGES
 from .cricket import CRICKET_GAMES
 from .export import EXPORT_CONTENTS, EXPORT_FORMATS, async_export
 from .highlights import async_save_highlight
@@ -92,8 +92,6 @@ START_SCORES = vol.All(cv.ensure_list, [vol.Coerce(int)])
 BED = vol.All(cv.string, vol.Length(min=1, max=255))
 
 
-# The languages of the integration: a game's name in any of them names the game.
-LANGUAGES = ("en", "de", "es", "fr", "nl")
 # A game's name as a voice assistant hears it is never longer.
 GAME_TEXT = 64
 
