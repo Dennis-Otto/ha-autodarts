@@ -571,6 +571,20 @@ def test_the_screenshot_tool_runs_again_for_every_script_it_uses(workflow):
         assert not used, f"{script.name} imports {sorted(used)}, which {workflow} skips"
 
 
+@pytest.mark.parametrize("workflow", ["screenshots.yml", "visual.yml"])
+def test_the_pictures_are_taken_again_when_the_recorded_board_changes(workflow):
+    # The double of the Board Manager in the demo answers like its recordings, and
+    # the pictures show what it answers, such as the board PC of the status card.
+    recordings = "tests/fixtures/board_manager"
+    assert recordings in mounted()
+    path = ROOT / ".github" / "workflows" / workflow
+    trigger = yaml.safe_load(path.read_text(encoding="utf-8"))[True]
+    (event,) = [event for event in ("push", "pull_request") if event in trigger]
+    assert f"{recordings}/**" in trigger[event]["paths"]
+    # Its README alone changes no picture.
+    assert f"!{recordings}/README.md" in trigger[event]["paths"]
+
+
 def test_the_end_to_end_tests_run_the_oldest_supported_home_assistant():
     hacs = json.loads((ROOT / "hacs.json").read_text(encoding="utf-8"))
     oldest = hacs["homeassistant"]

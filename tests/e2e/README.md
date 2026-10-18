@@ -2,10 +2,14 @@
 
 The suite mounts `custom_components/autodarts` read-only into a real Home Assistant
 container and connects it to a deterministic Board Manager double. The double runs
-from the same pinned Home Assistant image, so it needs no additional image. CI runs
+from the same pinned Home Assistant image, so it needs no additional image. It
+answers like the [recorded Board Manager](../fixtures/board_manager/README.md) 1.0.7
+or 2.0.0, which `compose.yaml` mounts next to it, with the board ID and keys of the
+test and the state of the board it simulates; `tests/test_board_contract.py` fails
+when one of its answers takes another shape than its recording. CI runs
 the scenario on every push to `main`, every night, and in every pull request that
 changes what it runs or mounts: the integration, the blueprints, this folder, the
-npm packages or `e2e.yml`, in jobs of its own for each Board Manager and the oldest
+recordings, the npm packages or `e2e.yml`, in jobs of its own for each Board Manager and the oldest
 supported Home Assistant, beside the browser test of the cards in four shards
 (`browser.sh`, see [The browser test in shards](../../docs/development.md#the-browser-test-in-shards)).
 The required check `e2e` passes once these tests pass, or at once when a pull request

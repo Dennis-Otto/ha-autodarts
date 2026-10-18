@@ -1,0 +1,23 @@
+{
+  "auth": {
+    "board_id": "board-1",
+    "api_key": "private-board-api-key"
+  },
+  "cam": {
+    "cams": [
+      "/dev/video0",
+      "/dev/video2",
+      "/dev/video4"
+    ],
+    "width": 1280,
+    "height": 1024,
+    "fps": 30,
+    "auto_calibrate_on_start": true,
+    "auto_calibrate": true,
+    "auto_distortion": false
+  },
+  "motion": {
+    "standby_minutes": 15,
+    "sensitive_calibration_setting": 123
+  }
+}

@@ -11,6 +11,8 @@ services:
       - /tmp
     volumes:
       - ./:/e2e:ro
+      # The recorded answers of the Board Manager, which the double answers like.
+      - ../fixtures/board_manager:/fixtures/board_manager:ro
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3180/health')"]
       interval: 2s
