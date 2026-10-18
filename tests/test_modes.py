@@ -4,6 +4,7 @@ game that is made with it anew."""
 
 import json
 import random
+from pathlib import Path
 
 import pytest
 from hypothesis import given, settings
@@ -118,6 +119,25 @@ def test_a_stored_game_loads_unchanged_byte_for_byte(
     assert text(restored) == saved
     assert type(restored.mode) is type(practice.mode)
     assert restored.snapshot() == practice.snapshot()
+
+
+# Stores that the practice game wrote before its games became modes (main at
+# ee15b7e), one of every game with three players after twenty visits, and a few
+# more: X01 with double in and a round limit, X01 in teams, Killer while the
+# numbers are chosen and after.
+STORES_BEFORE_MODES = json.loads(
+    (Path(__file__).parent / "fixtures" / "stores_before_modes.json").read_text(
+        encoding="utf-8"
+    )
+)
+
+
+@pytest.mark.parametrize("name", sorted(STORES_BEFORE_MODES))
+def test_a_store_from_before_the_modes_loads_unchanged_byte_for_byte(name):
+    saved = STORES_BEFORE_MODES[name]
+    restored = PracticeGame()
+    restored.restore(json.loads(saved))
+    assert text(restored) == saved
 
 
 def test_an_undone_visit_comes_back_to_the_game_of_its_checkpoint():

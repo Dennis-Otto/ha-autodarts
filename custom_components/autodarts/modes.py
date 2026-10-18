@@ -64,6 +64,8 @@ type Events = list[tuple[str, dict[str, Any]]]
 # The statistics of X01 cover the last ten legs.
 STATS_LEGS = 10
 STATS_KEYS = ("first9_points", "first9_darts", "at_double", "checkouts")
+# The rules of a party game that are not on or off, and the game each belongs to.
+PARTY_RULES = {"round_the_world_order": "round_the_world", "gotcha_target": "gotcha"}
 # The settings of the practice game that a game is made with, by game: a
 # change starts the game anew while it is played.
 GAME_SETTINGS: dict[int | str, tuple[str, ...]] = {
@@ -71,8 +73,7 @@ GAME_SETTINGS: dict[int | str, tuple[str, ...]] = {
     "golf": ("golf_holes",),
     "count_up": ("count_up_rounds",),
     "bermuda": ("bermuda_halve_on_miss",),
-    "round_the_world": ("round_the_world_order",),
-    "gotcha": ("gotcha_target",),
+    **{game: (rule,) for rule, game in PARTY_RULES.items()},
 }
 
 

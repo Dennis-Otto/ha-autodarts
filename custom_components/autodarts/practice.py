@@ -29,6 +29,7 @@ from .cricket import CRICKET_GAMES, CRICKET_NUMBERS
 from .doubles import DoubleHits, DoubleStats
 from .drills import DRILLS, Drill, make_drill
 from .modes import (
+    PARTY_RULES,
     STATS_KEYS,
     STATS_LEGS,
     CricketMode,
@@ -91,8 +92,6 @@ OPTIONS = (
     "three_in_a_bed",
     "bermuda_halve_on_miss",
 )
-# The rules of a party game that are not on or off, and the game each belongs to.
-PARTY_RULES = {"round_the_world_order": "round_the_world", "gotcha_target": "gotcha"}
 # The games to choose from, as the practice game select and start_game offer them.
 GAME_OPTIONS = (*(str(game) for game in GAMES), *CRICKET_GAMES, *PARTY_GAMES, *DRILLS)
 # The rules a match is played with, which a tournament sets for its matches.

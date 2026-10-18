@@ -49,6 +49,7 @@
           - custom_components/autodarts/games_coordinator.py
           - custom_components/autodarts/manual.py
           - custom_components/autodarts/manual_coordinator.py
+          - custom_components/autodarts/modes.py
           - custom_components/autodarts/party.py
           - custom_components/autodarts/practice.py
           - custom_components/autodarts/scoring.py
@@ -62,6 +63,7 @@
           - tests/test_games.py
           - tests/test_manual_board.py
           - tests/test_manual_darts.py
+          - tests/test_modes.py
           - tests/test_party.py
 "area: statistics":
   - changed-files:
