@@ -68,7 +68,7 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Board-Ereignisse für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match. Dreizehn Blueprints: Lichtshow, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen sowie Spielstart und Darts per Sprache.
+    Board-Ereignisse für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match. Vierzehn Blueprints: Lichtshow, Spielstand-Anzeige, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen sowie Spielstart und Darts per Sprache.
 
     [:octicons-arrow-right-24: Automationen](automations.de.md)
 
@@ -167,7 +167,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
     ---
 
-    Dreizehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele.
+    Vierzehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele.
 
 - :material-play-network:{ .lg .middle } [**Online-Matches**](online-matches.de.md)
 

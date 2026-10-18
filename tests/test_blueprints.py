@@ -1,11 +1,14 @@
 """The automation blueprints, run by Home Assistant's own automation engine."""
 
 import asyncio
+import importlib.util
 import json
 import logging
 import random
 import re
 from collections import defaultdict
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
@@ -2620,6 +2623,441 @@ async def test_practice_caller_names_the_score_to_leave_without_a_checkout(hass)
         ],
     )
     assert spoken(calls) == ["Sam, leave yourself 32", "Sam", "Sam, you require 40"]
+
+
+# -- score display -----------------------------------------------------------------------
+
+PRACTICE = "sensor.autodarts_board_practice_remaining_score"
+AWTRIX = {
+    "board_events": EVENTS,
+    "practice_score": PRACTICE,
+    "display_type": "awtrix",
+    "topic_prefix": "awtrix_1a2b3c",
+}
+WHITE, GREEN, GOLD, RED = [255, 255, 255], [0, 200, 80], [255, 190, 0], [255, 0, 0]
+# The default flash duration and idle time, in seconds.
+FLASH, IDLE = 5, 300
+PIXELIT_CLOCK = {"clock": {"show": True, "switchAktiv": False, "withSeconds": False}}
+
+
+def practice_state(hass, remaining: int | None, **attributes) -> None:
+    """The practice remaining score as the integration writes it: the score of
+    the player at the board, and the game in the attributes."""
+    hass.states.async_set(
+        PRACTICE,
+        "unknown" if remaining is None else str(remaining),
+        {
+            "game": 501,
+            "player": 1,
+            "players": 1,
+            "name": None,
+            "checkout": None,
+            "setup": None,
+            "won": False,
+            "winner": None,
+            "bot": None,
+            **attributes,
+        },
+    )
+
+
+def timers(hass) -> set:
+    return {
+        handle
+        for handle in get_scheduled_timer_handles(hass.loop)
+        if not handle.cancelled()
+    }
+
+
+@asynccontextmanager
+async def waits(hass, seconds: float) -> AsyncIterator[None]:
+    """Run what starts the display's next run, and let it show its screen and
+    reach its wait of the given length. A run that a new one replaces leaves
+    its wait behind, so only a new wait counts."""
+    before = timers(hass)
+    yield
+    for _ in range(200):
+        due = [handle.when() - hass.loop.time() for handle in timers(hass) - before]
+        if any(seconds - 0.5 < left <= seconds for left in due):
+            return
+        await asyncio.sleep(0)
+    raise AssertionError(f"no new delay of {seconds} s started")
+
+
+async def tick(hass, freezer, seconds: float) -> None:
+    """Let time pass, without waiting for a run that waits on."""
+    freezer.tick(timedelta(seconds=seconds))
+    async_fire_time_changed(hass)
+    await settle(hass)
+
+
+def awtrix_screens(calls, prefix: str = "awtrix_1a2b3c") -> list:
+    """What the AWTRIX shows, notification by notification: text and color,
+    None for the dismissal that brings its clock back."""
+    screens: list[tuple[str, list[int]] | None] = []
+    for call in calls:
+        if call.data["topic"] == f"{prefix}/notify/dismiss":
+            assert call.data["payload"] == ""
+            screens.append(None)
+            continue
+        assert call.data["topic"] == f"{prefix}/notify"
+        notice = json.loads(call.data["payload"])
+        # Held until the next notification replaces it.
+        assert (notice.pop("hold"), notice.pop("stack")) == (True, False)
+        notice.pop("icon", None)
+        screens.append((notice.pop("text"), notice.pop("color")))
+        assert not notice, notice
+    return screens
+
+
+def pixelit_screen(text: str, color: list[int]) -> dict:
+    return {
+        "text": {
+            "textString": text,
+            "bigFont": False,
+            "scrollText": "auto",
+            "scrollTextDelay": 50,
+            "centerText": True,
+            "position": {"x": 0, "y": 1},
+            "color": dict(zip("rgb", color, strict=True)),
+        }
+    }
+
+
+def picture_script():
+    spec = importlib.util.spec_from_file_location(
+        "render_score_display", ROOT / "scripts" / "render_score_display.py"
+    )
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_picture_of_the_display_shows_the_colors_of_the_blueprint():
+    """scripts/render_score_display.py draws the picture of the guide, in the
+    default colors of the blueprint, and nothing that would scroll."""
+    picture = picture_script()
+    inputs = models.Blueprint(
+        load_yaml(BLUEPRINTS / "score_display.yaml"),
+        expected_domain="automation",
+        schema=BLUEPRINT_SCHEMA,
+    ).inputs
+    for _, setting, color in picture.SCREENS:
+        assert inputs[setting]["default"] == list(color), setting
+    assert picture.PICTURE.read_text(encoding="utf-8") == picture.render()
+    with pytest.raises(ValueError, match="would scroll"):
+        picture.lit("1000000000")
+
+
+async def test_score_display_shows_the_score_after_every_dart(hass, freezer):
+    publish = async_mock_service(hass, "mqtt", "publish")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "score_display", {**AWTRIX, "icon": " 1234 "})
+    for remaining, route in ((501, None), (441, None), (81, "T15 D18")):
+        async with waits(hass, IDLE):
+            practice_state(hass, remaining, checkout=route)
+    # A checkout is possible: the score with its route, in another color.
+    assert awtrix_screens(publish) == [
+        ("501", WHITE),
+        ("441", WHITE),
+        ("81 T15 D18", GREEN),
+    ]
+    assert {json.loads(call.data["payload"])["icon"] for call in publish} == {"1234"}
+    # Without a dart for the idle time, the clock comes back.
+    await tick(hass, freezer, IDLE - 1)
+    assert len(publish) == 3
+    await pass_time(hass, freezer, 1)
+    assert awtrix_screens(publish)[3:] == [None]
+
+
+async def test_score_display_in_every_game(hass, freezer):
+    publish = async_mock_service(hass, "mqtt", "publish")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "score_display", {**AWTRIX, "topic_prefix": " "})
+    # Without a game, the display belongs to its own apps, also when the
+    # sensor appears after a restart or changes.
+    practice_state(hass, None, game=None)
+    await hass.async_block_till_done()
+    practice_state(hass, None, game=None, legs_to_win=2)
+    await hass.async_block_till_done()
+    assert not publish
+    # Cricket and the party games show the points of the player at the board.
+    async with waits(hass, IDLE):
+        practice_state(hass, None, game="cricket", points=45, target="T19")
+    async with waits(hass, IDLE):
+        practice_state(hass, None, game="shanghai", points=12, target="7")
+    # A training game, or no game at all, brings the clock back at once.
+    practice_state(hass, None, game=None)
+    await hass.async_block_till_done()
+    practice_state(hass, None, game=None, legs_to_win=3)
+    await hass.async_block_till_done()
+    assert awtrix_screens(publish, prefix="awtrix") == [
+        ("45", WHITE),
+        ("12", WHITE),
+        None,
+    ]
+    assert all("icon" not in call.data["payload"] for call in publish)
+
+
+async def test_score_display_flashes_the_moments(hass, freezer):
+    publish = async_mock_service(hass, "mqtt", "publish")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(hass, "score_display", AWTRIX)
+    match = {"game": 501, "players": 2, "player": 1, "name": "Dennis"}
+    async with waits(hass, IDLE):
+        practice_state(hass, 321, players=2, name="Dennis")
+    # A 180 flashes with its third dart, and the score comes back after it.
+    async with waits(hass, FLASH):
+        fire(hass, "visit_thrown", score=180, darts=3, game=501, name="Dennis")
+    async with waits(hass, IDLE):
+        await tick(hass, freezer, FLASH)
+    # Its darts pulled, a shorter visit and a visit below the minimum flash nothing.
+    fire(hass, "visit_completed", score=180, darts=3, thrown=True, game=501)
+    fire(hass, "visit_completed", score=100, darts=2, thrown=False, game=501)
+    fire(hass, "visit_thrown", score=140, darts=3, game=501)
+    await settle(hass)
+    assert awtrix_screens(publish) == [
+        ("321", WHITE),
+        ("180!", GOLD),
+        ("321", WHITE),
+    ]
+
+    async with waits(hass, FLASH):
+        fire(hass, "bust", **match, remaining=40)
+    async with waits(hass, IDLE):
+        await tick(hass, freezer, FLASH)
+    # The dart that wins the leg: the sensor first, then the board event.
+    async with waits(hass, IDLE):
+        practice_state(hass, 0, players=2, name="Dennis", won=True)
+    async with waits(hass, FLASH):
+        fire(hass, "leg_won", **match, checkout=40, match=False)
+    async with waits(hass, IDLE):
+        await tick(hass, freezer, FLASH)
+    assert awtrix_screens(publish)[3:] == [
+        ("BUST", RED),
+        ("321", WHITE),
+        ("GAME SHOT", GREEN),
+    ]
+
+    # The next leg; its deciding dart flashes the winner, not the leg.
+    lea = {**match, "player": 2, "name": "Lea"}
+    async with waits(hass, IDLE):
+        practice_state(hass, 501, players=2, player=2, name="Lea")
+    async with waits(hass, IDLE):
+        practice_state(hass, 0, players=2, player=2, name="Lea", won=True, winner=2)
+    fire(hass, "leg_won", **lea, checkout=501, match=True)
+    await settle(hass)
+    async with waits(hass, FLASH):
+        fire(hass, "match_won", **lea)
+    async with waits(hass, IDLE):
+        await tick(hass, freezer, FLASH)
+    assert awtrix_screens(publish)[6:] == [("501", WHITE), ("Lea WINS", GOLD)]
+    # The winner stays until the idle time is over.
+    await pass_time(hass, freezer, IDLE)
+    assert awtrix_screens(publish)[8:] == [None]
+
+
+@pytest.mark.parametrize(
+    ("winner", "who"),
+    [
+        ({"player": 2, "name": None}, "Spieler 2"),
+        ({"player": 2, "name": None, "bot": True}, "Computer"),
+        (
+            {"player": 1, "name": "Kim", "team": 1, "team_name": "Dennis & Kim"},
+            "Dennis & Kim",
+        ),
+        ({"player": 1, "name": "{{ 6*7 }}"}, "6*7"),
+    ],
+)
+async def test_score_display_names_the_winner(hass, freezer, winner, who):
+    publish = async_mock_service(hass, "mqtt", "publish")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "score_display",
+        {**AWTRIX, "player_label": "Spieler", "bot_label": "Computer"},
+    )
+    async with waits(hass, FLASH):
+        fire(hass, "match_won", game=501, players=2, **winner)
+    assert awtrix_screens(publish) == [(f"{who} WINS", GOLD)]
+
+
+@pytest.mark.parametrize(
+    ("transport", "settings"),
+    [
+        # The name of the REST command needs no domain.
+        ("pixelit", {"pixelit_command": " pixelit_screen "}),
+        ("pixelit_mqtt", {"topic_prefix": "dartroom/pixelit/"}),
+    ],
+)
+async def test_score_display_on_a_pixelit(hass, freezer, transport, settings):
+    publish = async_mock_service(hass, "mqtt", "publish")
+    post = async_mock_service(hass, "rest_command", "pixelit_screen")
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "score_display",
+        {
+            "board_events": EVENTS,
+            "practice_score": PRACTICE,
+            "display_type": transport,
+            "score_color": [255, 255, 0],
+            **settings,
+        },
+    )
+    async with waits(hass, IDLE):
+        practice_state(hass, 40, checkout="D20")
+    async with waits(hass, IDLE):
+        practice_state(hass, 60)
+    async with waits(hass, FLASH):
+        fire(hass, "bust", game=501, players=1, player=1, name=None, remaining=60)
+    async with waits(hass, IDLE):
+        await tick(hass, freezer, FLASH)
+    await pass_time(hass, freezer, IDLE)
+    if transport == "pixelit":
+        assert not publish
+        screens = [call.data["screen"] for call in post]
+    else:
+        assert not post
+        assert {call.data["topic"] for call in publish} == {
+            "dartroom/pixelit/setScreen"
+        }
+        screens = [json.loads(call.data["payload"]) for call in publish]
+    assert screens == [
+        pixelit_screen("40 D20", GREEN),
+        pixelit_screen("60", [255, 255, 0]),
+        pixelit_screen("BUST", RED),
+        pixelit_screen("60", [255, 255, 0]),
+        PIXELIT_CLOCK,
+    ]
+
+
+async def test_score_display_keeps_going_when_the_display_is_away(hass, freezer):
+    """A display that cannot be reached misses a screen, and gets the next."""
+    post = async_mock_service(
+        hass,
+        "rest_command",
+        "pixelit_screen",
+        raise_exception=HomeAssistantError("PixelIt offline"),
+    )
+    hass.states.async_set(EVENTS, "unknown")
+    await automate(
+        hass,
+        "score_display",
+        {"board_events": EVENTS, "practice_score": PRACTICE, "display_type": "pixelit"},
+    )
+    async with waits(hass, IDLE):
+        practice_state(hass, 501)
+    await pass_time(hass, freezer, IDLE)
+    assert [call.data["screen"] for call in post] == [
+        pixelit_screen("501", WHITE),
+        PIXELIT_CLOCK,
+    ]
+
+
+async def test_score_display_shows_the_game_again_after_a_restart(hass, freezer):
+    """A restart, or saving the automation, forgets the wait for the clock:
+    the display shows the game again and waits anew."""
+    publish = async_mock_service(hass, "mqtt", "publish")
+    hass.set_state(CoreState.not_running)
+    hass.states.async_set(EVENTS, "unknown")
+    practice_state(hass, 301)
+    await saved(hass, "score_display", AWTRIX)
+    async with waits(hass, IDLE):
+        await hass.async_start()
+    freezer.tick(timedelta(minutes=4))
+    async with waits(hass, IDLE):
+        await saved(hass, "score_display", AWTRIX, note="Saved again")
+    await tick(hass, freezer, IDLE - 1)
+    assert awtrix_screens(publish) == [("301", WHITE), ("301", WHITE)]
+    await pass_time(hass, freezer, 1)
+    assert awtrix_screens(publish)[2:] == [None]
+    # Without a game, a restart or the save of another automation leaves the
+    # display to its own apps and notifications.
+    practice_state(hass, None, game=None)
+    await hass.async_block_till_done()
+    await reloaded(hass)
+    await hass.async_block_till_done()
+    assert awtrix_screens(publish)[2:] == [None, None]
+
+
+async def throw(hass, coordinator, *darts) -> None:
+    """Throw dart by dart, without waiting for the runs that wait for the clock."""
+    for count in range(1, len(darts) + 1):
+        coordinator.async_receive("state", board(*darts[:count]))
+        await settle(hass)
+
+
+async def test_score_display_follows_the_real_board(hass, aioclient_mock, freezer):
+    """A practice match on the board events and the sensor of the integration."""
+    entry = await setup_bridge(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    practice = entity_id(hass, "sensor", "practice_remaining")
+    publish = async_mock_service(hass, "mqtt", "publish")
+    # An idle time that no timer of the integration has.
+    idle = 7 * 60
+
+    async def unchanged_board() -> dict:
+        return dict(coordinator.data["local"])
+
+    await automate(
+        hass,
+        "score_display",
+        {
+            **AWTRIX,
+            "board_events": entity_id(hass, "event", "board_events"),
+            "practice_score": practice,
+            "idle_time": 7,
+        },
+    )
+    with patch.object(coordinator.client, "get_state", side_effect=unchanged_board):
+        async with waits(hass, idle):
+            await coordinator.async_start_game(
+                501, names=["Dennis", "Lea"], legs=1, sets=1, bull_off=False
+            )
+        async with waits(hass, FLASH):
+            await throw(hass, coordinator, T20, T20, T20)
+        async with waits(hass, idle):
+            await tick(hass, freezer, FLASH)
+        async with waits(hass, idle):
+            coordinator.async_receive(
+                "state", board(T20, T20, T20, event="Takeout started")
+            )
+            coordinator.async_receive("state", board(event="Takeout finished"))
+        screens = awtrix_screens(publish)
+        assert screens[:3] == [("501", WHITE), ("441", WHITE), ("381", WHITE)]
+        assert screens[-3:] == [
+            ("180!", GOLD),
+            ("321", WHITE),
+            # The darts pulled, Lea is up.
+            ("501", WHITE),
+        ]
+        # The third dart's score gives way to the 180 that its board event
+        # brings right after, at once or a moment later.
+        assert screens[3:-3] in ([], [("321", WHITE)])
+
+        # A leg of 101 decides the match: the winner stays until the idle time is over.
+        async with waits(hass, idle):
+            await coordinator.async_start_game(
+                101, names=["Dennis", "Lea"], legs=1, sets=1, bull_off=False
+            )
+        routes = [hass.states.get(practice).attributes["checkout"]]
+        async with waits(hass, idle):
+            await throw(hass, coordinator, T20)
+        routes.append(hass.states.get(practice).attributes["checkout"])
+        async with waits(hass, FLASH):
+            await throw(hass, coordinator, T20, S1, D20)
+        async with waits(hass, idle):
+            await tick(hass, freezer, FLASH)
+        assert awtrix_screens(publish)[len(screens) :] == [
+            (f"101 {routes[0]}", GREEN),
+            (f"41 {routes[1]}", GREEN),
+            ("40 D20", GREEN),
+            ("Dennis WINS", GOLD),
+        ]
+        await pass_time(hass, freezer, idle)
+    assert awtrix_screens(publish)[len(screens) + 4 :] == [None]
 
 
 # -- examples of the documentation -------------------------------------------------------

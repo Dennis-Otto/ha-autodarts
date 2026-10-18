@@ -18,7 +18,7 @@ Not sure which one you need? Start from what your home should do:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/choose-blueprint-dark.png">
-  <img src="images/en/choose-blueprint-light.png" alt="Which blueprint fits: for lights, photos and celebrations, take the Light show, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game but the practice game, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice or Enter darts by voice" width="560">
+  <img src="images/en/choose-blueprint-light.png" alt="Which blueprint fits: for lights, a pixel display, photos and celebrations, take the Light show, Score display, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game but the practice game, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice or Enter darts by voice" width="560">
 </picture>
 
 | Blueprint | What it does | Import |
@@ -34,12 +34,13 @@ Not sure which one you need? Start from what your home should do:
 | **Weekly report** | Sends your [training week](entities.md#weekly-report) when the board ends it, by default on Monday at midnight: darts, training time, sessions, the 3-dart average and its change since the week before, best visit, 180s, checkout rate, streak and new personal bests. The message is a template; by default the report appears in Home Assistant's notifications. | [![Import the weekly report blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
 | **Highlight photo** | Takes a picture with a board camera after a visit of at least 180 points (adjustable) or a checkout of the practice game, while the darts are still in the board. It saves the picture to the [highlight gallery](#highlight-gallery) and runs your actions, which can use `photo_url`, `photo`, `image`, `message`, `score`, `checkout` and `who`. | [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
 | **Light show** | Plays your light effects, such as WLED presets or room lights, for a 180, a high finish, a bust, a won leg or match, a personal best, the daily goal, a won bull-off, an achievement and the winner of a tournament, and optionally during the takeout and in [online matches](online-matches.md). It can restore your lights afterwards and pause the detection while an effect plays. | [![Import the light show blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
+| **Score display** | Shows the [practice game](games.md) on a pixel display at the board, an AWTRIX 3 or a PixelIt: the score after every dart with the route of a checkout, and for a few seconds a 180, a bust, a won leg and the winner. When the game is over, the display goes back to its clock. | [![Import the score display blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fscore_display.yaml) |
 | **Start a game by voice** | Starts a practice game when you tell Assist, for example "Start 501 for Alex and Sam", "Start the game Cricket for Alex" or "Play 501 against the bot", in English, German, Spanish, French or Dutch. Assist answers with the game and the players, or with what was wrong. | [![Import the start a game by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
 | **Enter darts by voice** | Enters the darts of a game when you tell Assist, as at a dart machine: the score of a visit, such as "Alex has 140" or "140 points", a checkout, a single dart such as "Triple 20", the next player and undo, in English, German, Spanish, French or Dutch. Assist answers in the words of the scoreboard's caller: what the visit left and who throws next, or why it was refused. | [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
 
-<img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the thirteen Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="760">
+<img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the fourteen Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="760">
 
 ### Which caller?
 
@@ -247,6 +248,31 @@ The blueprint needs version 1.12.4 or later of the integration, which brings `au
 | Also react to online matches | off | Also plays the actions for a bust, a won leg and a won match of an [online match](online-matches.md). A 180 and the takeout of your own darts come from your board anyway. |
 
 The actions can use `moment` (`maximum`, `high_finish`, `bust`, `leg`, `match`, `personal_best`, `daily_goal`, `bull_off`, `achievement`, `tournament`, `takeout` or `board_clear`), `who` (the player's name, the word for the bot, or "Player 2"), `player`, `score` (of a 180), `checkout` (of a won leg) and `trigger.to_state.attributes` for every detail of the [board event](entities.md#board-events). See [light show with WLED and other lights](#light-show-with-wled-and-other-lights).
+
+### Score display
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Board events | | The *Events* entity of your board. |
+| Practice remaining score | | The *Practice remaining score* entity of your board, which follows every dart of the [practice game](entities.md#practice-game). |
+| Display | AWTRIX 3, over MQTT | The display and how Home Assistant reaches it: an AWTRIX 3 over MQTT, a PixelIt over MQTT, or a PixelIt over HTTP with a REST command; see [score display on an AWTRIX or a PixelIt](#score-display-on-an-awtrix-or-a-pixelit). |
+| MQTT prefix | empty | For MQTT: the prefix of the display's topics, as its MQTT settings show it, for example `awtrix_1a2b3c`. Empty uses `awtrix` or `pixelit`. |
+| PixelIt REST command | `rest_command.pixelit_screen` | For PixelIt over HTTP: the REST command that sends `screen` to the display. |
+| AWTRIX icon | empty | An icon of the AWTRIX 3 next to the text, by its file name on the display or its LaMetric number. |
+| Flash duration | 5 seconds | How long a 180, a bust, a won leg or the winner stays before the score comes back. |
+| Back to the clock after | 5 minutes | How long the display keeps the score, or the result of a finished game, without a dart. |
+| Score | `{{ remaining if remaining != '' else points }}{{ ' ' ~ checkout if checkout }}` | What the display shows for the player at the board: in X01 the remaining score and the route of a checkout, for example `81 T15 D18`, in Cricket and the party games the points. Empty leaves the display alone during the game. |
+| Color of the score, Color when a checkout is possible | white, green | The color of the score, and its color while the visit can finish the leg. |
+| Minimum score of a visit | 180 | The lowest visit score that flashes. |
+| Visit | `{{ score }}!` | Flashes for such a visit, the moment its third dart lands. |
+| Bust | `BUST` | Flashes when a dart busts the visit. |
+| Leg won | `GAME SHOT` | Flashes when a dart wins a leg that does not decide the match. |
+| Match won | `{{ team or who }} WINS` | Flashes when a dart decides the match; in a team match with the team's name. |
+| Color of a visit, Color of a bust, Color of a won leg, Color of the winner | gold, red, green, gold | The colors of the moments. |
+| Word for a player without a name | `Player` | Makes "Player 2" in `who`. |
+| Word for the bot | `Bot` | The bot's name in `who`. |
+
+An empty message stays silent. The score can use `remaining`, `checkout` (the route), `leave` and `setup` (where to aim without a checkout), `points`, `target`, `who`, `player`, `players` and `game`; the moments `who`, `team`, `score`, `remaining`, `checkout` (the score checked out), `darts` and `average`.
 
 ### Start a game by voice
 
@@ -457,6 +483,50 @@ data:
   <source media="(prefers-color-scheme: dark)" srcset="images/en/light-show-effect-dark.png">
   <img src="images/en/light-show-effect-light.png" alt="How an effect of the light show plays: a moment with an effect saves the lights and pauses the detection if it runs, unless the moment is the daily goal or a new best session average. Its actions start the effect, which plays for the effect duration. If a training session ends meanwhile, the effect ends at once: the lights are restored and the detection stays off. A new session lets the effect play to its end. After the effect, the lights are restored and a paused detection starts again" width="460">
 </picture>
+
+### Score display on an AWTRIX or a PixelIt
+
+A pixel display at the board shows the score from across the room, as on a dart machine: the score of the player at the board after every dart, in green with its route when a checkout is possible, a 180 or a bust for a few seconds, and the winner of the match until you start the next game.
+
+<img src="images/score-display.svg" alt="A pixel display at the board, five times: 501 in white, the score of the player at the board; 40 D20 in green, a score to check out with its route; 180! in gold; BUST in red; LEA WINS in gold, the winner of the match" width="408">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/score-display-dark.png">
+  <img src="images/en/score-display-light.png" alt="How the score display follows the game: every dart, correction or change of the player at the board shows the score of the player at the board, in green with the route when a checkout is possible. A 180, a bust, a won leg or the winner of a match flashes for the flash duration; then the score comes back, or the winner stays when the match is over. When the game is switched off, or nothing happens for the idle time, the display goes back to its clock" width="460">
+</picture>
+
+- **AWTRIX 3,** for example on an Ulanzi TC001: connect it to your MQTT broker in its web interface under *MQTT*, add the [MQTT integration](https://www.home-assistant.io/integrations/mqtt/) to Home Assistant with the same broker, and enter the *Prefix* of the display as *MQTT prefix*. The game shows as a notification that stays until the next one replaces it, in front of the apps of the display; its middle button dismisses it. At the end of the game the blueprint dismisses it, and the apps come back.
+- **PixelIt over MQTT:** turn on MQTT in the settings of the PixelIt with the broker of Home Assistant's MQTT integration, and enter its *MQTT master topic*, by default `pixelit`, as *MQTT prefix*.
+- **PixelIt over HTTP,** without MQTT: add a REST command for the display to `configuration.yaml`, with the address of your PixelIt, and restart Home Assistant. The blueprint hands it the screen in `screen`, and the command sends it to the display:
+
+  ```yaml
+  rest_command:
+    pixelit_screen:
+      url: "http://192.0.2.20/api/screen"
+      method: post
+      content_type: "application/json"
+      payload: "{{ screen | to_json }}"
+  ```
+
+  A PixelIt shows each screen until the next one, so at the end of the game the blueprint brings back its clock.
+
+How it follows the game:
+
+- **Every dart** changes the *Practice remaining score*, and the display with it: also a correction, an undone visit and the next player when you pull the darts. The bot's darts count, too, as on the scoreboard.
+- **A moment** flashes for the *Flash duration*, and then the score comes back. The next dart, or the next player after the takeout, ends a flash early, so the display always shows the game as it is. Outside the practice game, for example in free play, a 180 flashes as well, and the clock comes back after it.
+- **The end:** a finished match keeps its winner on the display. When you switch the practice game off, the clock comes back at once; otherwise after *Back to the clock after* without a dart. A restart of Home Assistant, or saving the automation, shows the game again and starts the wait anew. Without a game, the display belongs to its own apps and notifications: the blueprint sends nothing to it.
+
+Your own *Score* is a template. With the name of the player in a match before the score, for example `Sam 81 T15 D18`:
+
+```text
+{{ who ~ ' ' if players > 1 }}{{ remaining if remaining != '' else points }}{{ ' ' ~ checkout if checkout }}
+```
+
+With the target of a party game next to the points, for example `12 D16`:
+
+```text
+{{ remaining if remaining != '' else (points ~ ' ' ~ target) }}{{ ' ' ~ checkout if checkout }}
+```
 
 ### Weekly report on your phone
 

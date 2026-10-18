@@ -119,7 +119,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 ### Automatisieren
 
 - Board-Ereignisse für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match, jede Bestleistung und mehr
-- Dreizehn Blueprints: Lichtshow, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen sowie Spielstart und Darts per Sprache ([importieren](#blueprints))
+- Vierzehn Blueprints: Lichtshow, Spielstand-Anzeige, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen sowie Spielstart und Darts per Sprache ([importieren](#blueprints))
 - Jedes Spiel mit einer Aktion starten, auch per Sprache, und Assist deine Darts sagen, wie am Dartautomaten
 - Online-Matches auf play.autodarts.io über eine optionale Brücke *(experimentell)*
 
@@ -152,7 +152,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 | --- | --- | --- | --- | --- |
 | **Läuft ohne Cloud** | Ja, mit der [lokalen Schnittstelle](how-it-works.de.md#datenschutz) des Board Managers | Nein, mit einem [Autodarts-Konto](https://autodarts.com/) | Nein, darts-caller [meldet sich bei Autodarts an](https://github.com/Peschi90/darts-caller#autodarts-login) | Manche ([Einzelheiten](coming-from.de.md#darf-es-bleiben)) |
 | **Entitäten und Ereignisse in Home Assistant** | Ja, ein [Ereignis](entities.de.md#board-ereignisse) für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, Leg und Match | Nein | Nein | Sensoren der aktuellen Aufnahme oder des Spiels |
-| **Blueprints** | [Dreizehn Blueprints](automations.de.md#blueprints) | Nein | Nein | Nein |
+| **Blueprints** | [Vierzehn Blueprints](automations.de.md#blueprints) | Nein | Nein | Nein |
 | **Lichtshow** | Blueprint [Light show](automations.de.md#light-show), für WLED oder jedes Licht | WLED, mit Tools | WLED, mit darts-wled | Eigene Automationen |
 | **Caller** | Auf der [Anzeigetafel](scoreboard.de.md#der-caller) oder deinen [Lautsprechern](automations.de.md#welcher-caller) | In der App, mit einer Premium-Stimme in [Plus](https://autodarts.com/); mehr mit Tools | Sprachpakete, mit darts-caller | Nein |
 | **Statistik bleibt zu Hause** | [Ja](statistics.de.md): Averages, Trefferbilder, Profile und ein Jahr Verlauf | Nein, im Autodarts-Konto | Nein | Nein |
@@ -185,7 +185,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 - [Spiele und Regeln](games.de.md): alle Spiele im Überblick, vier Wege, eines zu starten, Matches, Teams, Handicaps, das Ausbullen, die Match-Zusammenfassung, Turniere und die Regeln von X01, den Cricket-Spielen, den Partyspielen und den Trainingsspielen
 - [Anzeigetafel am Board](scoreboard.de.md): ein Tablet oder Fernseher neben dem Board: Einrichtung, Quer- und Hochformat, Spielauswahl, Turniere, Caller und Ruhemodus
 - [Statistik und Spieler](statistics.de.md): Trainingssessions, Bestleistungen, Trefferbild und Dart-Positionen, wohin zielen, Fortschritt über die Zeit, Doubles, Spielerprofile, Erfolge, Trends, Bestenliste, Wochenbericht, Trainingskalender und Exporte
-- [Automationen](automations.de.md): dreizehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele
+- [Automationen](automations.de.md): vierzehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele
 - [Online-Matches](online-matches.de.md): Überwerfen, gewonnene Legs und Matches von Online-Matches als Board-Ereignisse, mit der Browser-Erweiterung Tools for Autodarts *(experimentell)*
 
 ### Nachschlagen
@@ -280,7 +280,7 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
   [![Blueprint „Highlight photo“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml)
 
 <details>
-<summary>Zehn weitere: Aufnahme feiern, Übungs-Caller, Entnahme, Erkennung, Routinen, Berichte, Warnungen und Sprache</summary>
+<summary>Elf weitere: Aufnahme feiern, Übungs-Caller, Spielstand-Anzeige, Entnahme, Erkennung, Routinen, Berichte, Warnungen und Sprache</summary>
 
 - **Celebrate a visit score.** Deine Aktionen für jede 180, jede Aufnahme ab 100 oder eine Punktzahl deiner Wahl, sobald der dritte Dart landet.
 
@@ -289,6 +289,10 @@ Importiere einen Blueprint mit einem Klick, wähle dein Board und fertig.
 - **Practice caller.** Wer was braucht, Überwerfen und Game shots des Übungsspiels auf deinen Lautsprechern.
 
   [![Blueprint „Practice caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml)
+
+- **Score display.** Der Spielstand des Übungsspiels nach jedem Dart, sein Checkout-Weg, eine 180 und der Sieger auf einer AWTRIX 3 oder einem PixelIt am Board.
+
+  [![Blueprint „Score display“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fscore_display.yaml)
 
 - **Takeout actions.** Licht am Board, während du die Darts ziehst.
 
