@@ -1,0 +1,21 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: What each start of Home Assistant does with a blueprint of the integration
+  accDescr: The integration looks for the file of each of its blueprints in blueprints/automation/Dennis-Otto. A missing file is installed, unless you deleted it, which keeps it deleted. A file with the version of the integration stays as it is. An earlier version that nobody changed, as the integration brought it or as Home Assistant imported it, is updated, and the automations made from it reload with their settings. A file you changed is kept, with a repair that offers the version of the integration.
+  START(["Home Assistant starts: each blueprint<br/>in blueprints/automation/Dennis-Otto"]) --> FILE{"Is its file there?"}
+  FILE -- "missing" --> GONE{"Deleted by you?"}
+  GONE -- "no" --> ADD["Installed"]
+  GONE -- "yes" --> AWAY["Stays deleted"]
+  FILE -- "there" --> SAME{"The version of<br/>the integration?"}
+  SAME -- "yes" --> LEAVE["Stays as it is"]
+  SAME -- "no" --> KNOWN{"An earlier version<br/>nobody changed?"}
+  KNOWN -- "yes" --> UPDATE["Updated, and its automations<br/>reload with their settings"]
+  KNOWN -- "no, you changed it" --> REPAIR["Kept, with a repair that offers<br/>the version of the integration"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class ADD,LEAVE,UPDATE done
+  class REPAIR warn

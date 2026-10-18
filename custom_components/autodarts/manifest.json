@@ -2,6 +2,7 @@
   "domain": "autodarts",
   "name": "Autodarts",
   "after_dependencies": [
+    "automation",
     "frontend",
     "http",
     "lovelace",

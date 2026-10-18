@@ -12,7 +12,7 @@ Your board is fast enough for automations that happen *while* you play. The ligh
 
 ## Blueprints
 
-Blueprints are ready-made automations. Import one, choose your board and the devices to use, and you're done. They require Home Assistant 2026.8 or newer, and they follow the current version of the integration: update both together.
+Blueprints are ready-made automations, and the integration brings all fifteen along: once your first board is added, they are on the blueprints page, **Settings → Automations & scenes → Blueprints**. Choose one, select your board and the devices to use, and you're done. They require Home Assistant 2026.8 or newer, and every update of the integration brings their new versions, see [updates of the blueprints](#updates-of-the-blueprints).
 
 Not sure which one you need? Start from what your home should do:
 
@@ -39,9 +39,26 @@ Not sure which one you need? Start from what your home should do:
 | **Enter darts by voice** | Enters the darts of a game when you tell Assist, as at a dart machine: the score of a visit, such as "Alex has 140" or "140 points", a checkout, a single dart such as "Triple 20", the next player and undo, in English, German, Spanish, French or Dutch. Assist answers in the words of the scoreboard's caller: what the visit left and who throws next, or why it was refused. | [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
 | **Ask Assist about your darts** | Answers your questions about the darts, such as "What is my average today?", "How many 180s this week?", "What is my best checkout?", "Who leads the leaderboard?" or "Where should I aim?", in English, German, Spanish, French or Dutch, from the statistics of the board. Assist answers in the language you asked in. | [![Import the ask Assist about your darts blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fask_about_darts.yaml) |
 
-Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
+The buttons import a blueprint from GitHub, for example one you deleted. Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts). An imported blueprint is kept up to date like the others.
 
 <img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the fifteen Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="760">
+
+### Updates of the blueprints
+
+The blueprints are part of the integration, so they always match it: after an update in HACS and the restart of Home Assistant, every blueprint you haven't changed is the version of the new release. The integration keeps them in `/config/blueprints/automation/Dennis-Otto/`, the folder where Home Assistant's import saves the blueprints of this repository, so a blueprint you imported before is the same file and is updated as well.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/blueprint-updates-dark.png">
+  <img src="images/en/blueprint-updates-light.png" alt="What each start of Home Assistant does with a blueprint of the integration: The integration looks for the file of each of its blueprints in blueprints/automation/Dennis-Otto. A missing file is installed, unless you deleted it, which keeps it deleted. A file with the version of the integration stays as it is. An earlier version that nobody changed, as the integration brought it or as Home Assistant imported it, is updated, and the automations made from it reload with their settings. A file you changed is kept, with a repair that offers the version of the integration." width="560">
+</picture>
+
+- **Changed by you:** a blueprint you edited stays as it is. A repair under **Settings → System → Repairs**, *Blueprint not updated*, offers the version of the integration: confirm it to replace your file, or ignore it to keep yours. A later release that changes the blueprint asks again.
+- **Deleted by you:** stays deleted. Its button above imports it again.
+- **Your automations** keep their settings, and those made from an updated blueprint reload at once.
+- **Re-import blueprint** in the menu of a blueprint is no longer needed. It fetches the blueprint from the main branch on GitHub, which can be ahead of your release; the integration then treats it as changed and offers the version that belongs to your release.
+- **A blueprint of your own:** to change a blueprint and still get the new versions of the original, save your copy under another name, such as `/config/blueprints/automation/Dennis-Otto/my_light_show.yaml`. The integration looks after only the files named like its blueprints.
+
+The integration compares what a blueprint does, not its comments or its layout: an update replaces an unchanged blueprint together with comments you added.
 
 ### Which caller?
 
@@ -623,7 +640,7 @@ The title and the summary are in the language of Home Assistant, for example *De
 
 ```yaml
 use_blueprint:
-  path: autodarts/weekly_report.yaml
+  path: Dennis-Otto/weekly_report.yaml
   input:
     board_events: event.autodarts_board_events
     report_title: Deine Dartwoche

@@ -36,9 +36,10 @@ services:
       # Keeps Home Assistant off the internet: onboarding would set up Radio Browser,
       # which looks up radio stations there (offline/radio_browser/__init__.py).
       - ./offline/radio_browser:/config/custom_components/radio_browser:ro
-      # The blueprints of the repository: the scenario starts a game by voice, the
-      # demo shows them on the blueprints page.
-      - ../../blueprints/automation/autodarts:/config/blueprints/automation/autodarts:ro
+      # The blueprints of the repository, where the integration installs them and
+      # leaves them alone, because they are the same: the scenario starts a game by
+      # voice, the demo shows them on the blueprints page.
+      - ../../blueprints/automation/autodarts:/config/blueprints/automation/Dennis-Otto:ro
       - ./:/e2e:ro
     healthcheck:
       test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:8123/api/onboarding >/dev/null || exit 1"]

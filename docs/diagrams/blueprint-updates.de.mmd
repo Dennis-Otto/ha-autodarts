@@ -1,0 +1,21 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Was jeder Start von Home Assistant mit einem Blueprint der Integration macht
+  accDescr: Die Integration sucht die Datei jedes ihrer Blueprints in blueprints/automation/Dennis-Otto. Eine fehlende Datei wird installiert, außer du hast sie gelöscht, dann bleibt sie gelöscht. Eine Datei mit der Version der Integration bleibt, wie sie ist. Eine frühere Version, die niemand geändert hat, so wie die Integration sie mitgebracht oder Home Assistant sie importiert hat, wird aktualisiert, und die Automationen daraus werden mit ihren Einstellungen neu geladen. Eine Datei, die du geändert hast, bleibt, mit einer Reparatur, die die Version der Integration anbietet.
+  START(["Home Assistant startet: jeder Blueprint<br/>in blueprints/automation/Dennis-Otto"]) --> FILE{"Ist seine Datei da?"}
+  FILE -- "fehlt" --> GONE{"Von dir gelöscht?"}
+  GONE -- "nein" --> ADD["Installiert"]
+  GONE -- "ja" --> AWAY["Bleibt gelöscht"]
+  FILE -- "da" --> SAME{"Die Version<br/>der Integration?"}
+  SAME -- "ja" --> LEAVE["Bleibt, wie sie ist"]
+  SAME -- "nein" --> KNOWN{"Eine frühere Version,<br/>die niemand geändert hat?"}
+  KNOWN -- "ja" --> UPDATE["Aktualisiert, ihre Automationen<br/>laden mit ihren Einstellungen neu"]
+  KNOWN -- "nein, du hast sie geändert" --> REPAIR["Bleibt, mit einer Reparatur, die<br/>die Version der Integration anbietet"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class ADD,LEAVE,UPDATE done
+  class REPAIR warn

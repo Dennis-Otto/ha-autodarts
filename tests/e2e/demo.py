@@ -459,7 +459,7 @@ async def weekly_report(demo: Scenario) -> None:
     automation = {
         "id": "autodarts_weekly_report",
         "alias": "Weekly darts report",
-        "use_blueprint": {"path": "autodarts/weekly_report.yaml", "input": inputs},
+        "use_blueprint": {"path": "Dennis-Otto/weekly_report.yaml", "input": inputs},
     }
     folder = Path("/config/automations")
     folder.mkdir(exist_ok=True)

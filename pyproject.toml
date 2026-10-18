@@ -9,6 +9,7 @@ timeout = 30
 filterwarnings = ['error:::custom_components\.autodarts']
 markers = [
     "expected_errors: the test logs errors of the integration on purpose",
+    "installs_blueprints: the integration copies its blueprints into the configuration folder, which the test points to a folder of its own",
     "mutation_unsafe: fails in mutmut's copy of the repository, which has no Git and holds every mutant in the code; skipped under mutmut",
 ]
 

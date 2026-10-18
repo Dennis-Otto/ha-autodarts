@@ -155,6 +155,18 @@ def custom_integration(enable_custom_integrations):
 
 
 @pytest.fixture(autouse=True)
+def shipped_blueprints(request):
+    """The integration brings its blueprints into the configuration folder, which in
+    tests is a folder of the test harness: only the tests marked installs_blueprints
+    let it, into a folder of their own."""
+    if request.node.get_closest_marker("installs_blueprints"):
+        yield
+        return
+    with patch("custom_components.autodarts.async_install_blueprints"):
+        yield
+
+
+@pytest.fixture(autouse=True)
 def local_stream():
     """No external sockets in tests; stream-specific tests override this source."""
 

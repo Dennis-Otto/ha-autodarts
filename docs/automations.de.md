@@ -12,7 +12,7 @@ Dein Board ist schnell genug für Automationen, die *während* des Spiels passie
 
 ## Blueprints
 
-Blueprints sind fertige Automationen. Importieren, Board und Geräte auswählen, fertig. Sie brauchen Home Assistant ab 2026.8 und folgen der aktuellen Version der Integration: Aktualisiere beide zusammen.
+Blueprints sind fertige Automationen, und die Integration bringt alle fünfzehn mit: Sobald dein erstes Board eingerichtet ist, stehen sie auf der Blueprint-Seite, **Einstellungen → Automationen & Szenen → Blueprints**. Blueprint wählen, Board und Geräte auswählen, fertig. Sie brauchen Home Assistant ab 2026.8, und jedes Update der Integration bringt ihre neuen Versionen mit, siehe [Updates der Blueprints](#updates-der-blueprints).
 
 Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 
@@ -39,11 +39,28 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 | **Enter darts by voice** | Gibt die Darts eines Spiels ein, wenn du sie Assist sagst, wie am Dartautomaten: die Punkte einer Aufnahme, etwa „Alex hat 140“ oder „140 Punkte“, einen Checkout, einen einzelnen Dart wie „Triple 20“, den nächsten Spieler und Rückgängig, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet in den Worten des Callers der Anzeigetafel: was die Aufnahme übrig lässt und wer als Nächstes wirft, oder warum es nicht ging. | [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
 | **Ask Assist about your darts** | Beantwortet deine Fragen zu den Darts, etwa „Wie ist mein Schnitt heute?“, „Wie viele 180er diese Woche?“, „Was ist mein höchster Checkout?“, „Wer führt die Bestenliste an?“ oder „Wohin soll ich zielen?“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch, aus den Statistiken des Boards. Assist antwortet in der Sprache deiner Frage. | [![Blueprint „Ask Assist about your darts“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fask_about_darts.yaml) |
 
-Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Um einen früher importierten Blueprint zu aktualisieren, importierst du ihn über sein Menü auf der Blueprint-Seite erneut; deine Automationen behalten ihre Einstellungen.
+Die Buttons importieren einen Blueprint von GitHub, etwa einen, den du gelöscht hast. Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Ein importierter Blueprint bleibt aktuell wie die anderen.
 
 Die Blueprints sind auf Englisch beschriftet. Ihre Ansagen und der Wochenbericht sprechen von sich aus die [Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant), und ihre Texte kannst du beim Anlegen frei wählen.
 
 <img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den fünfzehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
+
+### Updates der Blueprints
+
+Die Blueprints gehören zur Integration und passen deshalb immer zu ihr: Nach einem Update in HACS und dem Neustart von Home Assistant ist jeder Blueprint, den du nicht geändert hast, die Version des neuen Release. Die Integration hält sie in `/config/blueprints/automation/Dennis-Otto/`, dem Ordner, in dem der Import von Home Assistant die Blueprints dieses Repositorys speichert. Ein früher importierter Blueprint ist also dieselbe Datei und wird ebenfalls aktualisiert.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/blueprint-updates-dark.png">
+  <img src="images/de/blueprint-updates-light.png" alt="Was jeder Start von Home Assistant mit einem Blueprint der Integration macht: Die Integration sucht die Datei jedes ihrer Blueprints in blueprints/automation/Dennis-Otto. Eine fehlende Datei wird installiert, außer du hast sie gelöscht, dann bleibt sie gelöscht. Eine Datei mit der Version der Integration bleibt, wie sie ist. Eine frühere Version, die niemand geändert hat, so wie die Integration sie mitgebracht oder Home Assistant sie importiert hat, wird aktualisiert, und die Automationen daraus werden mit ihren Einstellungen neu geladen. Eine Datei, die du geändert hast, bleibt, mit einer Reparatur, die die Version der Integration anbietet." width="560">
+</picture>
+
+- **Von dir geändert:** Einen Blueprint, den du bearbeitet hast, lässt die Integration, wie er ist. Eine Reparatur unter **Einstellungen → System → Reparaturen**, *Blueprint nicht aktualisiert*, bietet die Version der Integration an: Bestätige sie, um deine Datei zu ersetzen, oder ignoriere sie, um deine zu behalten. Ändert ein späteres Release den Blueprint, fragt sie erneut.
+- **Von dir gelöscht:** bleibt gelöscht. Sein Button oben importiert ihn wieder.
+- **Deine Automationen** behalten ihre Einstellungen, und die aus einem aktualisierten Blueprint werden sofort neu geladen.
+- **Blueprint erneut importieren** im Menü eines Blueprints brauchst du nicht mehr. Es holt den Blueprint aus dem Hauptzweig auf GitHub, der deinem Release voraus sein kann; die Integration behandelt ihn dann als geändert und bietet die Version an, die zu deinem Release gehört.
+- **Ein eigener Blueprint:** Um einen Blueprint zu ändern und trotzdem die neuen Versionen des Originals zu bekommen, speichere deine Kopie unter einem anderen Namen, etwa `/config/blueprints/automation/Dennis-Otto/mein_light_show.yaml`. Die Integration kümmert sich nur um die Dateien mit den Namen ihrer Blueprints.
+
+Die Integration vergleicht, was ein Blueprint tut, nicht seine Kommentare oder sein Layout: Ein Update ersetzt einen unveränderten Blueprint samt Kommentaren, die du ergänzt hast.
 
 ### Welcher Caller?
 
@@ -457,7 +474,7 @@ Mit Home Assistant auf Deutsch heißt der Bericht ohne eigene Texte *Deine Dartw
 
 ```yaml
 use_blueprint:
-  path: autodarts/weekly_report.yaml
+  path: Dennis-Otto/weekly_report.yaml
   input:
     board_events: event.autodarts_board_ereignisse
     report_title: Deine Dartwoche

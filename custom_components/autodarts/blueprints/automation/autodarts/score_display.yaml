@@ -1,0 +1,417 @@
+blueprint:
+  name: "Autodarts: score display"
+  description: >-
+    Shows the practice game on a pixel display at the board, an AWTRIX 3
+    (such as the Ulanzi TC001) or a PixelIt: the score of the player at the
+    board after every dart, with the checkout route when a checkout is
+    possible, and in Cricket and the party games the points. A visit of 180
+    (or the minimum score you choose), a bust, a won leg and the winner of a
+    match flash for a few seconds; then the score comes back. When the game is switched off, or after the
+    idle time, the display goes back to its clock.
+
+
+    AWTRIX 3 and PixelIt can listen to MQTT, which needs the MQTT integration
+    of Home Assistant; PixelIt can also take the screen over HTTP, through a
+    REST command that you add to your configuration. The messages are
+    templates. The score can use `remaining`, `checkout` (the route, for
+    example `T20 T20 BULL`), `leave` and `setup` (where to aim when no
+    checkout is possible), `points` and `target` (Cricket and party games),
+    `who`, `player`, `players` and `game`. The moments can use `who`, `team`
+    (in a team match), `score` (of the visit), `remaining` (after a bust),
+    `checkout` (the score checked out), `darts` and `average` (of the leg).
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#score-display)
+  domain: automation
+  author: Dennis Otto
+  source_url: https://github.com/Dennis-Otto/ha-autodarts/blob/main/blueprints/automation/autodarts/score_display.yaml
+  homeassistant:
+    min_version: "2026.8.0"
+  input:
+    board:
+      name: Board
+      icon: mdi:bullseye-arrow
+      input:
+        board_events:
+          name: Board events
+          description: The "Events" entity of your Autodarts board.
+          selector:
+            entity:
+              filter:
+                - integration: autodarts
+                  domain: event
+        practice_score:
+          name: Practice remaining score
+          description: >-
+            The "Practice remaining score" entity of your Autodarts board,
+            which follows every dart of the practice game.
+          selector:
+            entity:
+              filter:
+                - integration: autodarts
+                  domain: sensor
+    display:
+      name: Display
+      icon: mdi:dots-grid
+      input:
+        display_type:
+          name: Display
+          description: >-
+            The display and how Home Assistant reaches it. MQTT needs the MQTT
+            integration, connected to the broker of the display.
+          default: awtrix
+          selector:
+            select:
+              options:
+                - label: AWTRIX 3, over MQTT
+                  value: awtrix
+                - label: PixelIt, over MQTT
+                  value: pixelit_mqtt
+                - label: PixelIt, over HTTP with a REST command
+                  value: pixelit
+        topic_prefix:
+          name: MQTT prefix
+          description: >-
+            For MQTT: the prefix of the display's topics, as its MQTT settings
+            show it, for example `awtrix_1a2b3c` for an AWTRIX 3 or `pixelit`
+            for a PixelIt. Empty uses `awtrix` or `pixelit`.
+          default: ""
+          selector:
+            text: {}
+        pixelit_command:
+          name: PixelIt REST command
+          description: >-
+            For PixelIt over HTTP: the REST command that sends `screen` to
+            `/api/screen` of the display, as in the guide.
+          default: rest_command.pixelit_screen
+          selector:
+            text: {}
+        icon:
+          name: AWTRIX icon
+          description: >-
+            Optional. An icon of the AWTRIX 3 next to the text, by its file name
+            on the display or its LaMetric number, for example `1234`.
+          default: ""
+          selector:
+            text: {}
+        flash_duration:
+          name: Flash duration
+          description: How long a 180, a bust, a won leg or the winner stays before the score comes back.
+          default: 5
+          selector:
+            number:
+              min: 1
+              max: 60
+              step: 1
+              mode: box
+              unit_of_measurement: s
+        idle_time:
+          name: Back to the clock after
+          description: >-
+            How long the display keeps the score, or the result of a finished
+            game, without a dart before it goes back to its clock.
+          default: 5
+          selector:
+            number:
+              min: 1
+              max: 120
+              step: 1
+              mode: box
+              unit_of_measurement: min
+    score:
+      name: Score
+      icon: mdi:numeric
+      collapsed: true
+      input:
+        score_message:
+          name: Score
+          description: >-
+            What the display shows for the player at the board. Empty leaves
+            the display alone during the game.
+          default: >-
+            {{ remaining if remaining != '' else points }}{{ ' ' ~ checkout if checkout }}
+          selector:
+            text: {}
+        score_color:
+          name: Color of the score
+          description: The color of the score.
+          default: [255, 255, 255]
+          selector:
+            color_rgb: {}
+        checkout_color:
+          name: Color when a checkout is possible
+          description: The color of the score while the visit can finish the leg.
+          default: [0, 200, 80]
+          selector:
+            color_rgb: {}
+    moments:
+      name: Moments
+      icon: mdi:party-popper
+      collapsed: true
+      input:
+        minimum_score:
+          name: Minimum score of a visit
+          description: The lowest visit score that flashes. 180 is the maximum.
+          default: 180
+          selector:
+            number:
+              min: 1
+              max: 180
+              step: 1
+              mode: box
+              unit_of_measurement: points
+        visit_message:
+          name: Visit
+          description: >-
+            Flashes for a visit from the minimum score, with `score`. A visit
+            of three darts flashes when its third dart lands. Empty stays
+            silent.
+          default: "{{ score }}!"
+          selector:
+            text: {}
+        visit_color:
+          name: Color of a visit
+          description: The color of the visit.
+          default: [255, 190, 0]
+          selector:
+            color_rgb: {}
+        bust_message:
+          name: Bust
+          description: Flashes when a dart busts the visit. Empty stays silent.
+          default: "BUST"
+          selector:
+            text: {}
+        bust_color:
+          name: Color of a bust
+          description: The color of a bust.
+          default: [255, 0, 0]
+          selector:
+            color_rgb: {}
+        leg_message:
+          name: Leg won
+          description: >-
+            Flashes when a dart wins a leg that does not decide the match.
+            Empty stays silent.
+          default: "GAME SHOT"
+          selector:
+            text: {}
+        leg_color:
+          name: Color of a won leg
+          description: The color of a won leg.
+          default: [0, 200, 80]
+          selector:
+            color_rgb: {}
+        match_message:
+          name: Match won
+          description: >-
+            Flashes when a dart decides the match; in a team match `team` names
+            the team. Empty stays silent.
+          default: "{{ team or who }} WINS"
+          selector:
+            text: {}
+        match_color:
+          name: Color of the winner
+          description: The color of the winner.
+          default: [255, 190, 0]
+          selector:
+            color_rgb: {}
+        player_label:
+          name: Word for a player without a name
+          description: For example `Player` makes "Player 2".
+          default: "Player"
+          selector:
+            text: {}
+        bot_label:
+          name: Word for the bot
+          description: The `who` of the practice game's bot.
+          default: "Bot"
+          selector:
+            text: {}
+
+# A new dart or moment replaces what the display shows and starts the idle
+# time again.
+mode: restart
+
+triggers:
+  # Every dart, turn and game: the sensor changes before the board event of
+  # the same dart arrives, so a moment flashes over its new score.
+  - trigger: state
+    id: score
+    entity_id: !input practice_score
+  - trigger: event.received
+    id: moment
+    target:
+      entity_id: !input board_events
+    options:
+      event_type:
+        - visit_thrown
+        - visit_completed
+        - bust
+        - leg_won
+        - match_won
+  # A restart of Home Assistant, or saving this automation, ends the wait for
+  # the clock: the display shows the game again and waits anew.
+  - trigger: homeassistant
+    id: resumed
+    event: start
+  - trigger: event
+    id: resumed
+    event_type: automation_reloaded
+
+variables:
+  practice: !input practice_score
+  display_type: !input display_type
+  topic_prefix: !input topic_prefix
+  prefix: >-
+    {{ (topic_prefix | string | trim | regex_replace('/+$', ''))
+       or ('awtrix' if display_type == 'awtrix' else 'pixelit') }}
+  pixelit_command: !input pixelit_command
+  command: >-
+    {% set name = pixelit_command | string | trim %}
+    {{- name if '.' in name else 'rest_command.' ~ name }}
+  icon: !input icon
+  flash_seconds: !input flash_duration
+  idle_minutes: !input idle_time
+  minimum_score: !input minimum_score
+  label: !input player_label
+  bot_label: !input bot_label
+  score_color: !input score_color
+  checkout_color: !input checkout_color
+  # The moment, read from the triggering state: the next event may already
+  # have replaced it.
+  moment: "{{ trigger.to_state.attributes.get('event_type', '') if trigger.id == 'moment' else '' }}"
+  score: "{{ trigger.to_state.attributes.get('score') | int(0) if moment else 0 }}"
+  player: "{{ trigger.to_state.attributes.get('player') | int(1) if moment else 1 }}"
+  players: "{{ trigger.to_state.attributes.get('players') | int(1) if moment else 1 }}"
+  # Template characters leave the names, as in the other blueprints.
+  name: >-
+    {{ ((trigger.to_state.attributes.get('name') if moment else '') or '')
+       | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
+  who: >-
+    {{ bot_label if moment and trigger.to_state.attributes.get('bot', false)
+       else name if name else (label ~ ' ' ~ player if players > 1 else '') }}
+  team: >-
+    {{ ((trigger.to_state.attributes.get('team_name') if moment else '') or '')
+       | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
+  remaining: "{{ trigger.to_state.attributes.get('remaining') | int(0) if moment else 0 }}"
+  checkout: "{{ trigger.to_state.attributes.get('checkout') | int(0) if moment else 0 }}"
+  darts: "{{ trigger.to_state.attributes.get('darts') | int(0) if moment else 0 }}"
+  average: "{{ trigger.to_state.attributes.get('average') if moment else none }}"
+  visit_text: !input visit_message
+  bust_text: !input bust_message
+  leg_text: !input leg_message
+  match_text: !input match_message
+  # A visit of three darts flashes with its third dart, not again when the
+  # darts are pulled; a leg that decides the match flashes as the match.
+  flash_text: >-
+    {%- if moment in ['visit_thrown', 'visit_completed'] %}
+    {%- set fresh = moment == 'visit_thrown' or not trigger.to_state.attributes.get('thrown', false) %}
+    {{- visit_text if fresh and score >= minimum_score else '' }}
+    {%- elif moment == 'bust' %}{{ bust_text }}
+    {%- elif moment == 'leg_won' %}{{ '' if trigger.to_state.attributes.get('match', false) else leg_text }}
+    {%- elif moment == 'match_won' %}{{ match_text }}
+    {%- endif %}
+  visit_color: !input visit_color
+  bust_color: !input bust_color
+  leg_color: !input leg_color
+  match_color: !input match_color
+
+conditions:
+  # The display belongs to its other apps and notifications while no game
+  # needs it: a restart, or a sensor that changes without a game before or
+  # after, leaves it alone.
+  - alias: A moment with a message, or a game that runs or just ended
+    condition: template
+    value_template: >-
+      {{ flash_text | string | trim != '' if trigger.id == 'moment'
+         else state_attr(practice, 'game') not in [none, '']
+              or trigger.id == 'score' and trigger.from_state is not none
+                 and trigger.from_state.attributes.get('game') not in [none, ''] }}
+  # Home Assistant reloads every automation when any one is saved. Only a
+  # reload that set this automation up anew counts, and only while its last
+  # run could still be waiting for the clock.
+  - alias: Resumed only by a restart or by saving this automation
+    condition: template
+    value_template: >-
+      {%- set setup = as_timestamp(this.last_changed) %}
+      {%- set ran = state_attr(this.entity_id, 'last_triggered') %}
+      {{- trigger.id != 'resumed' or trigger.platform == 'homeassistant'
+          or (ran is none or as_timestamp(ran) < setup)
+             and states[practice] is not none
+             and (now() - states[practice].last_updated).total_seconds() < idle_minutes * 60 }}
+
+actions:
+  # The moment, then the score until the idle time is over, then the clock.
+  - repeat:
+      for_each: "{{ (['moment'] if trigger.id == 'moment' else []) + ['score', 'clock'] }}"
+      sequence:
+        - variables:
+            step: "{{ repeat.item }}"
+            # The game as it is now, also after the flash of a moment.
+            game: "{{ state_attr(practice, 'game') or '' }}"
+            playing: >-
+              {{ game != '' and not state_attr(practice, 'won')
+                 and state_attr(practice, 'winner') is none }}
+            remaining: "{{ states(practice) | int('') }}"
+            checkout: "{{ state_attr(practice, 'checkout') or '' }}"
+            plan: "{{ state_attr(practice, 'setup') or {} }}"
+            leave: "{{ plan.leave if plan else '' }}"
+            setup: "{{ plan.route if plan else '' }}"
+            points: "{{ state_attr(practice, 'points') | int(0) }}"
+            target: "{{ state_attr(practice, 'target') or '' }}"
+            player: "{{ state_attr(practice, 'player') | int(1) }}"
+            players: "{{ state_attr(practice, 'players') | int(1) }}"
+            name: >-
+              {{ (state_attr(practice, 'name') or '')
+                 | regex_replace('[{}%#\x00-\x1f]+', '') | trim }}
+            who: >-
+              {{ bot_label if (state_attr(practice, 'bot') or {}).get('player') == player
+                 else name if name else (label ~ ' ' ~ player if players > 1 else '') }}
+            score_text: !input score_message
+            # A text such as 501 comes out of the template as a number.
+            text: >-
+              {{ (flash_text if step == 'moment'
+                  else score_text if step == 'score' and playing else '') | string | trim }}
+            shown: "{{ text | string != '' }}"
+            color: >-
+              {{ {'bust': bust_color, 'leg_won': leg_color, 'match_won': match_color}.get(moment, visit_color)
+                 if step == 'moment' else checkout_color if checkout else score_color }}
+            # The score of a game, or the result of a finished one, stays until
+            # the idle time is over; without a game, the clock comes back.
+            wait: >-
+              {{ flash_seconds if step == 'moment'
+                 else 0 if step == 'score' and trigger.id == 'moment' and playing and not shown
+                 else idle_minutes * 60 if step == 'score' and game != '' else 0 }}
+            # AWTRIX 3 holds a notification until the next one replaces it or
+            # it is dismissed; PixelIt shows a screen until the next one.
+            notice: >-
+              {% set notice = {'text': text | string, 'color': color, 'hold': true, 'stack': false} %}
+              {%- if icon | string | trim %}{% set notice = dict(notice, icon=icon | string | trim) %}{% endif %}
+              {{- notice }}
+            screen: >-
+              {%- if shown %}
+              {{- {'text': {'textString': text | string, 'bigFont': false, 'scrollText': 'auto',
+                            'scrollTextDelay': 50, 'centerText': true,
+                            'position': {'x': 0, 'y': 1},
+                            'color': {'r': color[0], 'g': color[1], 'b': color[2]}}} }}
+              {%- else %}{{ {'clock': {'show': true, 'switchAktiv': false, 'withSeconds': false}} }}
+              {%- endif %}
+            call: >-
+              {%- if display_type == 'awtrix' %}
+              {{- {'topic': prefix ~ ('/notify' if shown else '/notify/dismiss'),
+                   'payload': notice | to_json if shown else ''} }}
+              {%- elif display_type == 'pixelit_mqtt' %}
+              {{- {'topic': prefix ~ '/setScreen', 'payload': screen | to_json} }}
+              {%- else %}{{ {'screen': screen} }}
+              {%- endif %}
+        - alias: Show the text, or the clock at the end
+          if: "{{ shown or step == 'clock' }}"
+          then:
+            # A display that cannot be reached misses this screen, not the next.
+            - action: "{{ command if display_type == 'pixelit' else 'mqtt.publish' }}"
+              continue_on_error: true
+              data: "{{ call }}"
+        - if: "{{ wait > 0 }}"
+          then:
+            - delay:
+                seconds: "{{ wait }}"

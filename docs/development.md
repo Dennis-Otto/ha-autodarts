@@ -15,6 +15,7 @@ description: "Develop the integration: the building blocks of the cards, the tes
 | `custom_components/autodarts/frontend/autodarts-strategy.js` | The automatic dashboard's strategy element alone, registered before Home Assistant's five seconds run out; it loads the rest from `autodarts-card.js` |
 | `custom_components/autodarts/frontend/text/` | The [texts of the cards](#texts-of-the-cards), one module per language, which `autodarts-card.js` imports |
 | `blueprints/automation/autodarts/` | Automation blueprints |
+| `custom_components/autodarts/blueprints/` | The [blueprints of the release package](#blueprints-in-the-release-package), a copy of `blueprints/` with the fingerprint of every version in `blueprint_versions.json` |
 | `tests/` | Unit and integration tests with `pytest-homeassistant-custom-component` |
 | `tests/frontend/` | Node tests of the card logic and of every card element in a browser DOM, including property-based tests with fast-check, and of the translation bot |
 | `tests/e2e/` | Docker end-to-end test, demo instance, browser test and screenshot tool |
@@ -655,6 +656,16 @@ Languages come first, then keys, separated by spaces or commas; without keys, th
 Each issue lists the keys with a link to their line, the English text now and when the language last changed, and the translation, followed by the steps for someone who doesn't program: edit the file on GitHub, open a pull request titled like `fix(i18n): update the French texts`, and find their GitHub name in the changelog. The bot reads a file of card texts as the tests do, as JSON without its lines of comments. Before the texts moved there, `TEXT` of the card module held every language; for those commits, the bot evaluates its object literal alone, without the rest of the module, so the history of a text goes on across the move. It finds its issues by a hidden marker among the open issues of `github-actions[bot]`, and its job may only read the repository and write issues.
 
 `node scripts/translations.mjs` prints the issues it would write, without GitHub. Its tests in `tests/frontend/translation-bot.test.mjs` build temporary git repositories, with merges and checks, and answer as GitHub would; `npm test` covers every line, branch and function of the bot as it does for the cards.
+
+## Blueprints in the release package
+
+HACS installs the package of a release, which holds only the folder of the integration, so the blueprints travel in `custom_components/autodarts/blueprints/`, a copy of `blueprints/` ([decision 0023](decisions/0023-blueprints-ship-with-the-integration.md)). `custom_components/autodarts/blueprint_versions.json` keeps a fingerprint of every version of each blueprint that main has had, by which the integration recognises a blueprint nobody changed and updates it, see `shipped_blueprints.py` and the [updates of the blueprints](automations.md#updates-of-the-blueprints). After a change of a blueprint:
+
+```sh
+python scripts/ship_blueprints.py
+```
+
+It copies the blueprints and adds the fingerprint of each new version; `--history` adds those of every version in Git as well. `tests/test_shipped_blueprints.py` fails, naming the command, until the copy and the fingerprints are there. A fingerprint never leaves the file, so that installations of any earlier version are recognised.
 
 ## Releases
 
