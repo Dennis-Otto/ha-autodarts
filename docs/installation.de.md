@@ -10,7 +10,7 @@ description: "Installiere die Autodarts-Integration mit HACS, füge dein Board �
 
 | Voraussetzung | Details |
 | --- | --- |
-| Home Assistant | **2026.8** oder neuer |
+| Home Assistant | **2026.8** oder neuer ([warum 2026.8](decisions/0022-home-assistant-2026-8-as-the-oldest-release.md), auf Englisch) |
 | Autodarts-Board | Im Autodarts Board Manager eingerichtet und funktionsfähig: **Board Manager 2**, also Autodarts 2 ohne Bildschirm (Headless, empfohlen, getestet bis 2.0.2), oder der klassische **Board Manager 1**. Laut dem Bericht eines Spielers funktioniert auch **Autodarts Desktop** 2.0.2 unter Linux. Autodarts Desktop unter Windows und die **Winmau-Autodarts-Geräte** wie Autodarts X oder Lens sind noch nicht getestet; [berichte](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) gern, wie es mit deinem funktioniert |
 | Netzwerk | Home Assistant erreicht den Board-PC im lokalen Netzwerk, standardmäßig über TCP-Port **3180** |
 | Ohne Autodarts | Jede Dartscheibe: Du gibst die Darts auf einem Tastenfeld ein, siehe [Spielen ohne Autodarts](without-autodarts.de.md); dafür braucht es weder einen Board-PC noch ein Netzwerk zum Board |
