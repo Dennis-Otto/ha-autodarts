@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Which way to add a board
+  accDescr: A dartboard without Autodarts gets the fourth way, Dartboard without Autodarts, and its darts are entered on the keypad. An Autodarts board with Board Manager 2 usually appears by itself as Autodarts board found under Discovered: select Add and confirm. Otherwise, enter the address of the board PC if you know it, or search for boards on this network, which opens the address form when it finds no board. Every way with Autodarts ends with the same local board, one device with all its entities.
+  START(["Add your board"]) --> AUTODARTS{"Does the board<br/>have Autodarts?"}
+  AUTODARTS -- "no" --> MANUAL["4 · Dartboard<br/>without Autodarts"]
+  MANUAL --> KEYPAD["Its darts are entered<br/>on the keypad"]
+  AUTODARTS -- "yes" --> FOUND{"Autodarts board found<br/>under Discovered?<br/>(Board Manager 2)"}
+  FOUND -- "yes" --> DISCOVERED["1 · Select Add<br/>and confirm"]
+  FOUND -- "no" --> KNOWN{"Do you know the<br/>address of the board PC?"}
+  KNOWN -- "no" --> SEARCH["2 · Search for boards<br/>on this network"]
+  KNOWN -- "yes" --> ADDRESS["3 · Enter board address,<br/>port 3180"]
+  SEARCH -. "no board found" .-> ADDRESS
+  DISCOVERED --> BOARD["The same local board:<br/>one device with all its entities"]
+  SEARCH --> BOARD
+  ADDRESS --> BOARD
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class BOARD,KEYPAD done

@@ -1,4 +1,6 @@
 flowchart TB
+  accTitle: How a stuck takeout is freed
+  accDescr: While the takeout runs with no darts and no hand at the board, Home Assistant waits 10 s. A dart, a hand, a stop or another status leave nothing to do; otherwise it resets the board with POST /api/reset, the board reports Throw with no darts, and takeout_finished follows so the game goes on. A board still stuck is reset again after 10 s, three times at most.
   STUCK["Takeout in progress,<br/>no darts, no hand"] --> WAIT{"Still the same<br/>after 10 s?"}
   WAIT -- "no: a dart, a hand,<br/>a stop or a status" --> FINE["Nothing to do"]
   WAIT -- "yes" --> RESET["Reset of the board<br/>POST /api/reset"]

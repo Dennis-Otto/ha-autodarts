@@ -14,6 +14,13 @@ Your board is fast enough for automations that happen *while* you play. The ligh
 
 Blueprints are ready-made automations. Import one, choose your board and the devices to use, and you're done. They require Home Assistant 2026.8 or newer, and they follow the current version of the integration: update both together.
 
+Not sure which one you need? Start from what your home should do:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/choose-blueprint-dark.png">
+  <img src="images/en/choose-blueprint-light.png" alt="Which blueprint fits: for lights, photos and celebrations, take the Light show, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game but the practice game, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice or Enter darts by voice" width="560">
+</picture>
+
 | Blueprint | What it does | Import |
 | --- | --- | --- |
 | **Celebrate a visit score** | Runs your actions for visits from a minimum score (default 180), the moment the third dart lands. The actions can use `score`, `darts`, `segments` and `game`. The bot's visits count only if you ask for them. | [![Import the visit score blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |

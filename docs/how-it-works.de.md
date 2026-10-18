@@ -40,6 +40,11 @@ Jede Nachricht und jeder Lesevorgang aktualisiert nur die Entitäten, die zeigen
 
 ## Verbindungsverhalten
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/connection-dark.png">
+  <img src="images/de/connection-light.png" alt="Wie sich die Verbindung zum Board verhält: Beim Start wartet die Integration höchstens drei Sekunden auf das Board und lädt dann trotzdem; sie liest das Board alle 2 Sekunden. Mit der ersten gültigen Echtzeitnachricht kommen Darts sofort an, und ein Lesevorgang gleicht nur noch alle 30 Sekunden ab, mit Board Manager 2 alle 10 Sekunden. Bricht die Echtzeitverbindung ab, liest die Integration wieder alle 2 Sekunden und verbindet sich nach 1, 2, 4 bis 60 Sekunden neu, jede Wartezeit um bis zu ein Fünftel kürzer. Zwei verpasste Lesevorgänge in Folge behalten die letzten Werte; der dritte macht die Board-Entitäten nicht verfügbar, und jede Antwort bringt sie sofort zurück, mit schnellem Lesen und sofort einer neuen Verbindung. Ohne Antwort wird das Board nach etwa zehn verpassten Lesevorgängen alle 15 Sekunden gefragt. Seine erste Antwort bringt das schnelle Lesen und sofort eine neue Verbindung zurück" width="440">
+</picture>
+
 - **Echtzeit zuerst.** Das Lesen wird erst langsamer, wenn die erste gültige Nachricht ankommt, nicht schon, wenn die Verbindung steht. Eine Verbindung, über die nichts kommt, behält also das schnelle Lesen.
 - **Wiederverbinden.** Bricht die Echtzeitverbindung ab, wechselt die Integration sofort auf schnelles Lesen. Sie verbindet sich nach 1, 2, 4 … bis 60 Sekunden neu; jede Wartezeit wird zufällig um bis zu ein Fünftel verkürzt. Eine Verbindung, die 30 Sekunden gehalten hat, beginnt wieder bei 1 Sekunde, und findet ein Lesevorgang das Board nach einem Ausfall wieder, verbindet sich die Integration sofort.
 - **Kurze Aussetzer.** Zwei verpasste Lesevorgänge in Folge, also wenige Sekunden, behalten die letzten Werte; erst der dritte macht die Board-Entitäten nicht verfügbar. Solange Echtzeitereignisse ankommen, ist ein verpasster Lesevorgang gar kein Ausfall.

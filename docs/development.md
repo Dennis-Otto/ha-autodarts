@@ -283,9 +283,10 @@ Then open <http://127.0.0.1:8000/demo/index.html>; `?lang=de` at its end opens i
 
 ## Diagrams
 
-The architecture diagram is written in Mermaid in `docs/diagrams/` and rendered as PNG images for light and dark themes, because the GitHub app and HACS do not render Mermaid. After changing a diagram, run:
+The diagrams are written in Mermaid, one source per language in `docs/diagrams/`, such as `connection.en.mmd` and `connection.de.mmd`, and rendered as PNG images for light and dark themes, `docs/images/en/connection-light.png` and `connection-dark.png`, because the GitHub app and HACS do not render Mermaid. A page shows both in a `<picture>`, the dark one for a dark theme. A diagram runs from top to bottom (`flowchart TB`), so that it keeps its size on a phone, and has an `accTitle` and an `accDescr` for screen readers, which the `alt` of its picture repeats as `title: description`; `tests/test_diagrams.py` checks all of it. After changing a diagram, render it with Docker, or every diagram without a name:
 
 ```sh
+bash scripts/render_diagrams.sh connection
 bash scripts/render_diagrams.sh
 ```
 

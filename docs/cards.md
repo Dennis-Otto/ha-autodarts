@@ -474,7 +474,11 @@ For every board, the dashboard gets up to six views, which update themselves whe
 | **Game settings** | The practice game controls with teams and the Golf, Count-Up, Bermuda, Round the World and Gotcha options, the player names, their start scores and the [tournament](entities.md#tournaments) with its settings and buttons, for what the scoreboard's new game screen leaves out |
 | **Board** | The board status card, the board settings, the Board Manager update and the share of darts the board corrected; a [dartboard without Autodarts](without-autodarts.md) has no such view |
 
-<img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard" width="760">
+| | |
+| --- | --- |
+| <img src="images/en/dashboard-live.png" alt="The Live view of the automatic dashboard: the live card with the current visit, its three darts, the last visits, the training session and the board" width="380"><br>**Live** | <img src="images/en/dashboard-scoreboard.png" alt="The Scoreboard view: the scoreboard across the screen with the current visit in large digits, the session figures and the button for a new game" width="380"><br>**Scoreboard** |
+| <img src="images/en/dashboard-training.png" alt="The Training view: the training card with the daily goal, the 3-dart average, the hit map and the statistics" width="380"><br>**Training** | <img src="images/en/dashboard-players.png" alt="The Players view: the profiles of five players with their averages and personal bests, and their head-to-head records" width="380"><br>**Players** |
+| <img src="images/en/dashboard-games.png" alt="The Game settings view: the controls of the practice game, from the game and the players to the bull-off, beside the player names" width="380"><br>**Game settings** | <img src="images/en/dashboard-board.png" alt="The Board view: the board status card with the detection, the Board Manager, the connections and the cameras, beside the board settings, the software update and the correction rate" width="380"><br>**Board** |
 
 The game settings also have *Bull-off by distance* among the practice rules and *Tournament summary duration* among the tournament settings. Most games need none of them: the scoreboard's [new game screen](#new-game-screen) sets the game, the players and the rules.
 

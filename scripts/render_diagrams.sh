@@ -3,6 +3,9 @@
 # Render the Mermaid diagrams in docs/diagrams as PNG images, once for light and
 # once for dark themes. Markdown viewers without Mermaid, such as the GitHub app
 # and HACS, show these images instead of raw diagram code.
+#
+#   bash scripts/render_diagrams.sh                       every diagram
+#   bash scripts/render_diagrams.sh connection add-board  only these, in every language
 
 set -euo pipefail
 
@@ -13,7 +16,22 @@ IMAGE="ghcr.io/mermaid-js/mermaid-cli/mermaid-cli:11.12.0@sha256:bad64c9d9ad917c
 export MSYS_NO_PATHCONV=1
 MOUNT="$(cd "${ROOT}" && (pwd -W 2>/dev/null || pwd))"
 
-for source in "${ROOT}"/docs/diagrams/*.mmd; do
+# The diagrams named on the command line, or every diagram.
+sources=()
+if (($#)); then
+	for diagram in "$@"; do
+		matches=("${ROOT}/docs/diagrams/${diagram}".*.mmd)
+		if [[ ! -e "${matches[0]}" ]]; then
+			echo "No diagram ${diagram}: give the name of a source in docs/diagrams, such as architecture." >&2
+			exit 2
+		fi
+		sources+=("${matches[@]}")
+	done
+else
+	sources=("${ROOT}"/docs/diagrams/*.mmd)
+fi
+
+for source in "${sources[@]}"; do
 	name="$(basename "${source}" .mmd)" # for example architecture.en
 	diagram="${name%.*}"
 	language="${name##*.}"

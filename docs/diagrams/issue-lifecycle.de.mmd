@@ -1,4 +1,6 @@
 flowchart TB
+  accTitle: Lebenslauf eines Issues
+  accDescr: Labels und KI-Erstanalyse; fehlen Informationen, wartet es mit needs-info auf den Melder, mit einer Erinnerung an Tag 15 und dem Schließen an Tag 30, und eine Antwort gibt es an den Maintainer oder öffnet es wieder; ein sicheres Duplikat bekommt einen Hinweis und wird an Tag 3 geschlossen, wenn niemand kommentiert oder mit Daumen runter reagiert. Ein gemergter Fix markiert es mit fixed-in-next-release; das Release schließt es mit einem Link, und ist es noch nicht behoben, geht es zurück an den Maintainer.
   NEW["Neues Issue"] --> AI["Labels und<br/>KI-Erstanalyse"]
   AI --> MAINT["Der Maintainer<br/>übernimmt"]
   AI -- "Informationen fehlen" --> WAIT
