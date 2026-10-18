@@ -141,6 +141,9 @@ class BoardGames:
         # The game and the statistics before the last visit of a player was
         # booked, to undo the visit.
         self._undo: Checkpoint | None = None
+        # The events of the step being taken, in order; a step returns them,
+        # and they stay here for drain should the step fail halfway.
+        self._announced: list[Announcement] = []
 
     # -- stored data -------------------------------------------------------------
 
@@ -183,19 +186,24 @@ class BoardGames:
         """
         # The board's darts show, should the games fail.
         data.pop("throws", None)
-        announced: list[Announcement] = []
         if self.interrupts_bot(state):
-            announced += self._finish_bot(data, state, now)
+            self._finish_bot(data, state, now)
         effective = self.manual.apply(state)
-        announced += self._track(data, effective, source, now)
+        self._track(data, effective, source, now)
         data["throws"] = self._visit_throws(effective)
+        return self.drain()
+
+    def drain(self) -> list[Announcement]:
+        """The events announced since the last drain, in order: those of a
+        step that failed halfway, too."""
+        announced, self._announced = self._announced, []
         return announced
 
     def _track(
         self, data: dict[str, Any], state: dict[str, Any], source: str, now: datetime
-    ) -> list[Announcement]:
+    ) -> None:
         """Training, practice game and records follow the darts on the board."""
-        announced: list[Announcement] = []
+        announced = self._announced
         changed = False
         observed = self.training.observe(state)
         completed = any(kind == "visit_completed" for kind, _ in observed)
@@ -218,9 +226,7 @@ class BoardGames:
             announced.append((kind, attributes, source))
             if kind == "visit_completed":
                 self._checkpoint(attributes, reports, records)
-                announced += self._book_visit(
-                    source, now, bot=attributes.get("bot") is True
-                )
+                self._book_visit(source, now, bot=attributes.get("bot") is True)
         if (positions := _throw_positions(state)) is not None:
             self._positions = positions
         # The visit is the last darts on the board; positions of rejected states
@@ -233,11 +239,10 @@ class BoardGames:
             changed = True
             announced.append((kind, attributes, source))
         self._publish(data, changed)
-        return announced
 
     def _book_visit(
         self, source: str, now: datetime, bot: bool = False, empty: bool = False
-    ) -> list[Announcement]:
+    ) -> None:
         """Book the pulled darts in the practice game and the players' progress;
         with empty, the player at the board passes, see PracticeGame.finish_visit."""
         pending = self.progress.before(self.practice)
@@ -250,7 +255,7 @@ class BoardGames:
         events += self.progress.after(pending, self.practice, now)
         # A tournament takes the result once the practice game booked it.
         events += self._fixture(now)
-        return [
+        self._announced += [
             (kind, details, source)
             for kind, details in self._recorded(events, now, booked)
         ]
@@ -546,7 +551,8 @@ class BoardGames:
             return []
         if self.practice.passes():
             # Booked like a visit: a pass can end a party game's last round.
-            return self._book_visit("manual", now, empty=True)
+            self._book_visit("manual", now, empty=True)
+            return self.drain()
         raise ActionRefused("empty_visit")
 
     def undo_visit(self) -> list[Announcement]:
@@ -598,14 +604,12 @@ class BoardGames:
 
     def _finish_bot(
         self, data: dict[str, Any], state: dict[str, Any], now: datetime
-    ) -> list[Announcement]:
+    ) -> None:
         """The bot throws the rest of its visit at once and ends it, before the
         new darts on the board count for the next player."""
         before = self.manual.held(state)
-        announced: list[Announcement] = []
         while not self._bot_done():
             self._bot_throw()
-            announced += self._track(data, self.manual.apply(before), "bot", now)
+            self._track(data, self.manual.apply(before), "bot", now)
         self.manual.end_visit()
-        announced += self._track(data, self.manual.apply(before), "bot", now)
-        return announced
+        self._track(data, self.manual.apply(before), "bot", now)

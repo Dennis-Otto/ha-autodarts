@@ -201,7 +201,7 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         board_id: str,
         entry: ConfigEntry,
     ) -> None:
-        super().__init__(hass, board_id, entry, POLL_INTERVAL)
+        super().__init__(hass, board_id, entry, POLL_INTERVAL, _LOGGER)
         self._client = client
         self._health = CameraHealth()
         self._settings: dict[str, Any] = {}

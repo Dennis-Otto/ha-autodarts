@@ -189,13 +189,19 @@ async def test_game_faults_never_cost_the_board_connection(
     broken = patch.object(
         coordinator.games.practice, "snapshot", side_effect=IndexError("closest")
     )
-    with broken:
+    emit = patch.object(coordinator, "_emit", wraps=coordinator._emit)
+    with broken, emit as emitted:
         coordinator.async_receive("state", board(T20))
         coordinator.async_receive("state", board(T20, T20))
         with patch.object(
             coordinator.client, "get_state", return_value=board(T20, T20)
         ):
             await coordinator.async_refresh()
+    # The darts the training took in are announced although the game failed.
+    assert [call.args[0] for call in emitted.call_args_list] == [
+        "dart_detected",
+        "dart_detected",
+    ]
     assert coordinator.last_update_success
     assert state(hass, "binary_sensor", "local_connected") == "on"
     assert state(hass, "sensor", "last_throw") == "T20"
@@ -204,6 +210,13 @@ async def test_game_faults_never_cost_the_board_connection(
     # Once the game works again, the entities catch up.
     coordinator.async_receive("state", board(T20, T20, T20))
     assert state(hass, "sensor", "training_darts") == "3"
+
+
+async def test_the_board_logs_its_updates_under_the_transport(hass, aioclient_mock):
+    # Debug logging for the connection keeps showing why a read failed.
+    entry = await setup_local(hass, aioclient_mock, state=board())
+    coordinator = entry.runtime_data.local
+    assert coordinator.logger.name == LOGGER
 
 
 async def test_rejected_states_never_shift_positions_onto_the_visit(

@@ -73,10 +73,13 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         board_id: str,
         entry: ConfigEntry,
         update_interval: timedelta | None,
+        logger: logging.Logger = _LOGGER,
     ) -> None:
+        # The board logs its updates under its own logger, the transport's of
+        # AutodartsLocalCoordinator.
         super().__init__(
             hass,
-            _LOGGER,
+            logger,
             name=f"{DOMAIN}_local",
             config_entry=entry,
             update_interval=update_interval,
@@ -85,7 +88,7 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             always_update=False,
             # Show the result of consecutive user actions without a long cooldown.
             request_refresh_debouncer=Debouncer(
-                hass, _LOGGER, cooldown=1, immediate=True
+                hass, logger, cooldown=1, immediate=True
             ),
         )
         self._entry: ConfigEntry = entry
@@ -173,18 +176,23 @@ class AutodartsGamesCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _play(self, step: Callable[[], list[Announcement]]) -> None:
         """Run a step of the games and do what it asks of Home Assistant:
-        announce its events, save a change, and move the timers it moved."""
+        announce its events, save a change, and move the timers it moved; a
+        step that fails halfway still announces and saves what it did."""
         games = self.games
         revision, fixtures = games.revision, games.fixtures
-        for kind, attributes, source in step():
-            self._emit(kind, attributes, source)
-        if games.revision != revision:
-            self.store.save_later()
-            self._schedule_idle_end()
-            self._schedule_aim()
-        if games.fixtures != fixtures:
-            self._schedule_fixture()
-        self._report_quality()
+        try:
+            for kind, attributes, source in step():
+                self._emit(kind, attributes, source)
+        finally:
+            for kind, attributes, source in games.drain():
+                self._emit(kind, attributes, source)
+            if games.revision != revision:
+                self.store.save_later()
+                self._schedule_idle_end()
+                self._schedule_aim()
+            if games.fixtures != fixtures:
+                self._schedule_fixture()
+            self._report_quality()
 
     def _guarded(self, action: Callable[[], None]) -> None:
         """A fault in the games must never cost the connection to the board."""
