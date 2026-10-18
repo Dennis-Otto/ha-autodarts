@@ -1693,9 +1693,16 @@ class AutodartsLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_training(self, events: list[tuple[str, dict[str, Any]]]) -> None:
         """Save a session change at once, then announce it."""
         events = self._recorded(events)
-        stored = self._stored()
-        await self._store.async_save(stored)
-        self._training_dirty = self._stored() != stored
+        # Written now, with everything before. A dart that arrives during the
+        # write marks the store again (see _save_training), so the shutdown
+        # still saves it; one build of the store, without comparing it again.
+        self._training_dirty = False
+        try:
+            await self._store.async_save(self._stored())
+        except BaseException:
+            # Not written, for example cancelled: the shutdown saves it.
+            self._training_dirty = True
+            raise
         for kind, attributes in events:
             self._emit(kind, attributes, "training")
         # A change of the game or the session cannot be undone visit by visit.

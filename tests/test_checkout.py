@@ -1,5 +1,7 @@
 """Checkout routes: the ones players aim for, and never an impossible one."""
 
+from itertools import combinations_with_replacement
+
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -8,11 +10,14 @@ from custom_components.autodarts.checkout import (
     BEDS,
     BEDS_BY_BULL,
     DOUBLES,
+    HIGHEST,
     Setup,
+    _leaves,
     checkout,
     setup,
 )
 from custom_components.autodarts.scoring import (
+    BULL,
     BULL_25_50,
     BULL_50_50,
     DOUBLE,
@@ -326,3 +331,85 @@ def test_setups_follow_the_out_mode_and_the_bull_mode():
     assert setup(82, 1, (), DOUBLE, BULL_50_50) == Setup(("BULL",), 32)
     assert setup(82, 1) == Setup(("T14",), 40)
     assert setup(169, 3, (), DOUBLE, BULL_50_50) == Setup(("T20", "T20", "S17"), 32)
+
+
+def best_throws(darts: int, bull_mode: str) -> dict[int, tuple[tuple, tuple]]:
+    """For every total of this many setup darts, the best of all the ways to
+    throw it: the fewest small beds, then the fewest and the biggest trebles.
+
+    Setup darts aim at singles, trebles and the outer bull; the outer bull and
+    the trebles below 19 are small. A setup names the trebles first, the
+    bigger beds first.
+    """
+    beds = sorted(
+        (bed for bed in BEDS_BY_BULL[bull_mode] if bed.multiplier != 2),
+        key=lambda bed: (bed.multiplier != 3, -bed.score),
+    )
+    best: dict[int, tuple[tuple, tuple]] = {}
+    for throw in combinations_with_replacement(beds, darts):
+        total = sum(bed.score for bed in throw)
+        key = (
+            sum(
+                (bed.number == BULL and bed.multiplier == 1)
+                or (bed.multiplier == 3 and bed.number < 19)
+                for bed in throw
+            ),
+            sum(bed.multiplier == 3 for bed in throw),
+            tuple(-bed.score for bed in throw),
+        )
+        if total not in best or key < best[total][0]:
+            best[total] = (key, tuple(bed.name for bed in throw))
+    return best
+
+
+def every_throw(remaining, darts, preferred, out_mode, bull_mode, throws):
+    """The setup found by trying every way to throw the darts in hand, with
+    no shortcut: the best leave of the tiers worth setting up (a finish of
+    one dart above the highest checkout with three darts), with the fewest
+    small beds, the better leave, then the fewest and the biggest trebles."""
+    if (
+        remaining < 2
+        or not 0 < darts <= 3
+        or out_mode == STRAIGHT
+        or checkout(remaining, darts, out_mode, (), bull_mode)
+    ):
+        return None
+    tiers = 1 if darts == 3 and remaining > HIGHEST[out_mode] else 2
+    found = [
+        ((tier, key[0], place, *key[1:]), names, leave)
+        for leave, (tier, place) in _leaves(
+            preferred, out_mode, bull_mode
+        ).ranks.items()
+        if tier <= tiers and remaining - leave in throws[darts]
+        for key, names in [throws[darts][remaining - leave]]
+    ]
+    if not found:
+        return None
+    _, names, leave = min(found)
+    return Setup(names, leave)
+
+
+@pytest.mark.parametrize(
+    ("preferred", "out_mode", "bull_mode"),
+    [
+        ((), DOUBLE, BULL_25_50),
+        (("D20", "D10"), DOUBLE, BULL_25_50),
+        (("D3", "D7", "D1"), DOUBLE, BULL_25_50),
+        (("D8",), MASTER, BULL_25_50),
+        ((), DOUBLE, BULL_50_50),
+    ],
+)
+def test_a_setup_is_the_best_of_every_way_to_throw_the_darts(
+    preferred, out_mode, bull_mode
+):
+    """Every score up to 1001 with no to four darts in hand: the search of a
+    setup gives up early only where no way to throw the darts sets anything up."""
+    throws = {darts: best_throws(darts, bull_mode) for darts in (1, 2, 3)}
+    for remaining in range(1002):
+        for darts in range(5):
+            found = setup(remaining, darts, preferred, out_mode, bull_mode)
+            assert found == every_throw(
+                remaining, darts, preferred, out_mode, bull_mode, throws
+            ), (remaining, darts)
+            # Even three treble 20s leave too much above 230: nothing to set up.
+            assert found is None or remaining - 60 * darts <= 230

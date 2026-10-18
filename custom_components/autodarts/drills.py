@@ -37,8 +37,12 @@ RESULTS = 10
 TARGETS = (*range(1, 21), BULL)
 BOBS_START = 27
 CHECKOUT_VISITS = 3
-# Every score from 2 to 170 that three darts can finish on a double.
-CHECKOUT_SCORES = tuple(value for value in range(2, 171) if checkout(value))
+# The scores from 2 to 170 that three darts cannot finish on a double.
+BOGEY_NUMBERS = frozenset({159, 162, 163, 165, 166, 168, 169})
+# Every score from 2 to 170 that three darts can finish on a double, listed:
+# finding their routes at the import took up to half a second at every start
+# of Home Assistant, longer on a Raspberry Pi.
+CHECKOUT_SCORES = tuple(value for value in range(2, 171) if value not in BOGEY_NUMBERS)
 # The 121 ladder climbs from 121 to 170; nine darts finish every one of them.
 LADDER = tuple(range(121, 171))
 # Catch 40: the checkouts 61 to 100, two visits each.

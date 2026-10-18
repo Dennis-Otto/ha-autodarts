@@ -265,12 +265,27 @@ _SETUP = {
 }
 
 
-def _uncached_leave_ranks(
+# A setup dart scores 60 at most, on the treble 20.
+_SETUP_MOST = max(bed[0] for beds in _SETUP.values() for bed in beds)
+
+
+class Leaves(NamedTuple):
+    """The scores worth leaving for the next visit, see `_leaves`."""
+
+    # How good each is: its tier, then its place in the order of its tier.
+    ranks: dict[int, tuple[int, int]]
+    # The highest score of each tier or a better one, by tier: reach[2] is the
+    # highest worth leaving at all.
+    reach: tuple[int, ...]
+
+
+def _uncached_leaves(
     preferred: tuple[str, ...],
     out_mode: str = DOUBLE,
     bull_mode: str = BULL_25_50,
-) -> dict[int, tuple[int, int]]:
-    """How good every score is to start the next visit with.
+) -> Leaves:
+    """How good every score is to start the next visit with, and how high
+    each tier reaches.
 
     Tier 0 are the preferred doubles, the player's strongest and then 32, 40,
     36 and 16, in that order; tier 1 the other doubles and, with master out,
@@ -290,10 +305,14 @@ def _uncached_leave_ranks(
             ranks[leave] = (1, len(order) + 60 - leave)
         elif checkout(leave, 2, out_mode, (), bull_mode):
             ranks[leave] = (2, leave)
-    return ranks
+    reach = tuple(
+        max(leave for leave, rank in ranks.items() if rank[0] <= tier)
+        for tier in range(3)
+    )
+    return Leaves(ranks, reach)
 
 
-_leave_ranks = lru_cache(maxsize=16)(_uncached_leave_ranks)
+_leaves = lru_cache(maxsize=16)(_uncached_leaves)
 
 
 def _uncached_setup(
@@ -307,7 +326,7 @@ def _uncached_setup(
 
     Above the highest checkout, at a score without a route such as 169, or
     with too few darts left, the darts in hand set up the next visit. They
-    leave the best score to finish from (see `_leave_ranks`) with as few small
+    leave the best score to finish from (see `_leaves`) with as few small
     beds as possible, then the better leave, then fewer and bigger trebles. The
     trebles come first, the single that sets up the double last. Above the
     highest checkout with three darts, only a finish of one dart is worth
@@ -322,8 +341,13 @@ def _uncached_setup(
         or checkout(remaining, darts, out_mode, (), bull_mode)
     ):
         return None
-    ranks = _leave_ranks(preferred, out_mode, bull_mode)
+    leaves = _leaves(preferred, out_mode, bull_mode)
     tiers = 1 if darts == 3 and remaining > HIGHEST[out_mode] else 2
+    # Even darts that all land in the treble 20 leave more than any score worth
+    # leaving: nothing to search, among 12,341 ways to throw three darts.
+    if remaining - _SETUP_MOST * darts > leaves.reach[tiers]:
+        return None
+    ranks = leaves.ranks
     best: tuple[tuple[object, ...], tuple[str, ...], int] | None = None
     for beds in combinations_with_replacement(_SETUP[bull_mode], darts):
         leave = remaining - sum(bed[0] for bed in beds)

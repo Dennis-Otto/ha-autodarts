@@ -136,7 +136,7 @@ def test_a_test_that_changes_its_parameters_fails():
 
 
 def test_every_test_starts_with_the_caches_of_the_integration_empty():
-    cached = (checkout.checkout, checkout.setup, checkout._leave_ranks)
+    cached = (checkout.checkout, checkout.setup, checkout._leaves)
     assert "custom_components.autodarts.checkout" in MODULES
     assert set(module_caches(checkout)) == set(cached)
     # Emptied before this test, whichever tests ran before it.
