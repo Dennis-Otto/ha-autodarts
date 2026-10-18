@@ -18,7 +18,7 @@ Not sure which one you need? Start from what your home should do:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/choose-blueprint-dark.png">
-  <img src="images/en/choose-blueprint-light.png" alt="Which blueprint fits: for lights, a pixel display, photos and celebrations, take the Light show, Score display, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game but the practice game, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice or Enter darts by voice" width="560">
+  <img src="images/en/choose-blueprint-light.png" alt="Which blueprint fits: For lights, a pixel display, photos and celebrations, take the Light show, Score display, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game but the practice game, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice, Enter darts by voice or Ask Assist about your darts." width="560">
 </picture>
 
 | Blueprint | What it does | Import |
@@ -37,10 +37,11 @@ Not sure which one you need? Start from what your home should do:
 | **Score display** | Shows the [practice game](games.md) on a pixel display at the board, an AWTRIX 3 or a PixelIt: the score after every dart with the route of a checkout, and for a few seconds a 180, a bust, a won leg and the winner. When the game is switched off, or after the idle time, the display goes back to its clock. | [![Import the score display blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fscore_display.yaml) |
 | **Start a game by voice** | Starts a practice game when you tell Assist, for example "Start 501 for Alex and Sam", "Start the game Cricket for Alex" or "Play 501 against the bot", in English, German, Spanish, French or Dutch. Assist answers with the game and the players, or with what was wrong. | [![Import the start a game by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
 | **Enter darts by voice** | Enters the darts of a game when you tell Assist, as at a dart machine: the score of a visit, such as "Alex has 140" or "140 points", a checkout, a single dart such as "Triple 20", the next player and undo, in English, German, Spanish, French or Dutch. Assist answers in the words of the scoreboard's caller: what the visit left and who throws next, or why it was refused. | [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
+| **Ask Assist about your darts** | Answers your questions about the darts, such as "What is my average today?", "How many 180s this week?", "What is my best checkout?", "Who leads the leaderboard?" or "Where should I aim?", in English, German, Spanish, French or Dutch, from the statistics of the board. Assist answers in the language you asked in. | [![Import the ask Assist about your darts blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fask_about_darts.yaml) |
 
 Without My Home Assistant, go to **Settings → Automations & scenes → Blueprints → Import blueprint** and paste the link to the file in [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts). To update a blueprint you imported before, choose **Re-import blueprint** in its menu on the blueprints page; your automations keep their settings.
 
-<img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the fourteen Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="760">
+<img src="images/en/blueprints.png" alt="The blueprints page of Home Assistant with the fifteen Autodarts blueprints, from the board problem alert to the weekly report, and their file names" width="760">
 
 ### Which caller?
 
@@ -361,6 +362,46 @@ How Assist answers a sentence of the voice blueprints:
   <source media="(prefers-color-scheme: dark)" srcset="images/en/voice-dark.png">
   <img src="images/en/voice-light.png" alt="How Assist answers a sentence of the voice blueprints: when a sentence matches one of a blueprint, with numbers as digits or as words in the language of Home Assistant, the blueprint makes the data of the action, such as the game 501 and the player Alex, with the bot at the end of the sentence taken as the bot. The action checks the data: when it fits, the game starts or the darts are entered and Assist says what happened; otherwise Assist says why, for example that the game takes four players at most. A sentence that matches no blueprint stays one of Assist's own commands, such as a timer." width="560">
 </picture>
+
+### Ask Assist about your darts
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| Average today | In five languages | Questions for the 3-dart average of today's training sessions; parts in [brackets] are optional, (a\|b) means a or b. |
+| Average this week | In five languages | Questions for the 3-dart average of the week of the weekly report. |
+| 180s this week | In five languages | Questions for the 180s of the week of the weekly report. |
+| Darts today | In five languages | Questions for the darts of the day, towards the daily goal. |
+| Best checkout | In five languages | Questions for the highest checkout among the personal bests of the board. |
+| Training streak | In five languages | Questions for the days in a row with darts, and the longest streak. |
+| Leaderboard | In five languages | Questions for the player at the top of the leaderboard. |
+| Best aim | In five languages | Questions for the best aim of a player, `{player}`: "I", "ich", "yo", "je" or "ik" is you, as are sentences without a player. |
+| Board | | The board whose statistics answer. Without one, the board with the most darts this week answers. |
+
+Ask for example:
+
+- "What is my average today?", "How am I scoring today?" or "What's my average this week?"
+- "How many 180s this week?", "How many darts have I thrown today?" or "What is my best checkout?"
+- "How long is my streak?", "Who leads the leaderboard?", "Where should Sam aim?" or "Where should I aim?"
+- in German "Wie ist mein Schnitt heute?", "Wie viele 180er habe ich diese Woche geworfen?", "Wer führt die Bestenliste an?" or "Wohin soll ich zielen?"
+- in Spanish "¿Cuál es mi media de hoy?", "¿Cuántos 180 llevo esta semana?", "¿Quién lidera la clasificación?" or "¿Dónde debo apuntar?"
+- in French "Quelle est ma moyenne aujourd'hui ?", "Combien de 180 ai-je faits cette semaine ?", "Qui est en tête du classement ?" or "Où dois-je viser ?"
+- in Dutch "Wat is mijn gemiddelde vandaag?", "Hoeveel 180's heb ik deze week gegooid?", "Wie staat bovenaan de ranglijst?" or "Waar moet ik op mikken?"
+
+Assist answers from the statistics of the board, in the language you asked in: "Today: a 3-dart average of 120.2 from 18 darts.", "180s this week: 2.", "18 darts today. 2 more for your daily goal of 20.", "Your best checkout is 141.", "One day in a row. Your record: 1.", "Alex leads the leaderboard with a 3-dart average of 167." or "Sam, aim at Bull: 11.8 points per dart.". Before the first dart, it says what is missing, such as "No darts today yet.".
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/ask-assist-dark.png">
+  <img src="images/en/ask-assist-light.png" alt="How Assist answers a question about your darts: When you ask a question of the blueprint, such as What is my average today, the blueprint finds the statistics of the board by what each sensor holds, under any name and in any language - the training sessions of the day, the weekly report, the personal bests, the training streak and the player profiles. With numbers for the question, Assist answers in the language you asked in; without, it says what is missing, such as No darts today yet. A sentence without a question of the blueprint stays one of Assist's own commands." width="560">
+</picture>
+
+- **Today** counts every [training session](entities.md#training-session) that started today, also one that has ended. A session that began before midnight and runs on has no day of its own, so Assist answers with "This session: …" instead. For a day of its own, end each session with *Session idle timeout* or start a new one every morning with *New training session*.
+- **This week** is the week of the [weekly report](entities.md#weekly-report), which ends on Monday at midnight unless you set another time; the average of a new week is compared with the week before, such as "This week: a 3-dart average of 90, 30.1 less than last week.".
+- **The best checkout** is the highest checkout among the [personal bests](statistics.md#personal-bests-streak-and-daily-goal) of the board, and **the streak** counts the days in a row with at least one dart, as the *Training streak* sensor does.
+- **The leaderboard** ranks the players by their 3-dart average, then by their won legs, as the leaderboard of the scoreboard does.
+- **The best aim** is where a player scores the most points per dart with the spread of their darts ([where to aim](statistics.md#where-to-aim)). It needs darts that the board detected, so a dartboard without Autodarts has none. "I" is the player linked to the person you are signed in as ([players and persons](statistics.md#players-and-persons)); a voice satellite has no person, so it gets the player who played last.
+- **Languages:** the questions are in English, German, Spanish, French and Dutch, and Assist answers in the language of the question, that of your voice assistant, also for a regional language such as Spanish for Latin America. In another language, write questions of your own; Assist answers them in English.
+- **Other commands:** each question has a word of darts, such as average, 180, checkout or leaderboard, so Assist's own commands, such as "What time is it", stay its own. A question only reads the statistics and changes nothing.
+- **New sentences:** an automation keeps the sentences you saved in it. For those of a new version, choose **Re-import blueprint** on the blueprints page and leave the sentences at their default.
 
 ### Dart caller messages
 

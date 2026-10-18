@@ -18,7 +18,7 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/choose-blueprint-dark.png">
-  <img src="images/de/choose-blueprint-light.png" alt="Welcher Blueprint passt: Für Licht, eine Pixelanzeige, Fotos und Jubel nimm die Blueprints Light show, Score display, Celebrate a visit score, Highlight photo oder Takeout actions. Zum Ansagen der Darts nimm den Dart caller für jedes Spiel außer dem Übungsspiel, auch Online-Matches, und den Practice caller für das Übungsspiel; der Caller der Anzeigetafel braucht keine Lautsprecher in Home Assistant. Für ein Board, das sich selbst versorgt, nimm Start and stop detection automatically, Board problem alert oder Training session routine. Für eine Zusammenfassung deines Trainings nimm den Training report jeden Tag oder den Weekly report. Um mit Assist zu sprechen, nimm Start a game by voice oder Enter darts by voice" width="560">
+  <img src="images/de/choose-blueprint-light.png" alt="Welcher Blueprint passt: Für Licht, eine Pixelanzeige, Fotos und Jubel nimm die Blueprints Light show, Score display, Celebrate a visit score, Highlight photo oder Takeout actions. Zum Ansagen der Darts nimm den Dart caller für jedes Spiel außer dem Übungsspiel, auch Online-Matches, und den Practice caller für das Übungsspiel; der Caller der Anzeigetafel braucht keine Lautsprecher in Home Assistant. Für ein Board, das sich selbst versorgt, nimm Start and stop detection automatically, Board problem alert oder Training session routine. Für eine Zusammenfassung deines Trainings nimm den Training report jeden Tag oder den Weekly report. Um mit Assist zu sprechen, nimm Start a game by voice, Enter darts by voice oder Ask Assist about your darts." width="560">
 </picture>
 
 | Blueprint | Was er macht | Import |
@@ -37,12 +37,13 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 | **Score display** | Zeigt das [Übungsspiel](games.de.md) auf einer Pixelanzeige am Board, einer AWTRIX 3 oder einem PixelIt: den Punktestand nach jedem Dart mit dem Weg eines Checkouts und für ein paar Sekunden eine 180, ein Überwerfen, ein gewonnenes Leg und den Sieger. Wird das Spiel ausgeschaltet, oder nach der Wartezeit, zeigt die Anzeige wieder ihre Uhr. | [![Blueprint „Score display“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fscore_display.yaml) |
 | **Start a game by voice** | Startet ein Übungsspiel, wenn du es Assist sagst, etwa „Starte 501 für Alex und Sam“, „Starte das Spiel Cricket für Alex“ oder „Spiele 501 gegen den Bot“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet mit Spiel und Spielern oder mit dem, was nicht gepasst hat. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
 | **Enter darts by voice** | Gibt die Darts eines Spiels ein, wenn du sie Assist sagst, wie am Dartautomaten: die Punkte einer Aufnahme, etwa „Alex hat 140“ oder „140 Punkte“, einen Checkout, einen einzelnen Dart wie „Triple 20“, den nächsten Spieler und Rückgängig, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet in den Worten des Callers der Anzeigetafel: was die Aufnahme übrig lässt und wer als Nächstes wirft, oder warum es nicht ging. | [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
+| **Ask Assist about your darts** | Beantwortet deine Fragen zu den Darts, etwa „Wie ist mein Schnitt heute?“, „Wie viele 180er diese Woche?“, „Was ist mein höchster Checkout?“, „Wer führt die Bestenliste an?“ oder „Wohin soll ich zielen?“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch, aus den Statistiken des Boards. Assist antwortet in der Sprache deiner Frage. | [![Blueprint „Ask Assist about your darts“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fask_about_darts.yaml) |
 
 Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Um einen früher importierten Blueprint zu aktualisieren, importierst du ihn über sein Menü auf der Blueprint-Seite erneut; deine Automationen behalten ihre Einstellungen.
 
 Die Blueprints sind auf Englisch beschriftet. Ihre Ansagen und der Wochenbericht sprechen von sich aus die [Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant), und ihre Texte kannst du beim Anlegen frei wählen.
 
-<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den vierzehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
+<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den fünfzehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
 
 ### Welcher Caller?
 
@@ -363,6 +364,46 @@ So antwortet Assist auf einen Satz der Sprach-Blueprints:
   <source media="(prefers-color-scheme: dark)" srcset="images/de/voice-dark.png">
   <img src="images/de/voice-light.png" alt="So antwortet Assist auf einen Satz der Sprach-Blueprints: Passt ein Satz zu einem Satz eines Blueprints, mit Zahlen als Ziffern oder als Wörter in der Sprache von Home Assistant, macht der Blueprint daraus die Daten der Aktion, etwa das Spiel 501 und den Spieler Alex, wobei der Bot am Ende des Satzes der Bot ist. Die Aktion prüft die Daten: Passen sie, startet das Spiel oder die Darts werden eingegeben, und Assist sagt, was passiert ist; sonst sagt Assist, warum nicht, etwa dass das Spiel höchstens vier Spieler nimmt. Ein Satz, der zu keinem Blueprint passt, bleibt einer von Assists eigenen Befehlen, etwa ein Timer." width="560">
 </picture>
+
+### Ask Assist about your darts
+
+| Einstellung | Standard | Was sie bewirkt |
+| --- | --- | --- |
+| Average today | In fünf Sprachen | Fragen nach dem 3-Dart-Average der heutigen Trainingssessions; Teile in [Klammern] sind optional, (a\|b) heißt a oder b. |
+| Average this week | In fünf Sprachen | Fragen nach dem 3-Dart-Average der Woche des Wochenberichts. |
+| 180s this week | In fünf Sprachen | Fragen nach den 180ern der Woche des Wochenberichts. |
+| Darts today | In fünf Sprachen | Fragen nach den Darts des Tages, auf dem Weg zum Tagesziel. |
+| Best checkout | In fünf Sprachen | Fragen nach dem höchsten Checkout unter den Bestleistungen des Boards. |
+| Training streak | In fünf Sprachen | Fragen nach den Tagen in Folge mit Darts und der längsten Serie. |
+| Leaderboard | In fünf Sprachen | Fragen nach dem Spieler an der Spitze der Bestenliste. |
+| Best aim | In fünf Sprachen | Fragen nach dem besten Zielpunkt eines Spielers, `{player}`: „I“, „ich“, „yo“, „je“ oder „ik“ bist du, ebenso in Sätzen ohne Spieler. |
+| Board | | Das Board, dessen Statistiken antworten. Ohne Angabe antwortet das Board mit den meisten Darts dieser Woche. |
+
+Frag zum Beispiel:
+
+- „Wie ist mein Schnitt heute?“, „Was ist mein Average?“ oder „Wie ist mein Schnitt diese Woche?“
+- „Wie viele 180er habe ich diese Woche geworfen?“, „Wie viele Darts habe ich heute geworfen?“ oder „Was ist mein höchster Checkout?“
+- „Wie lang ist meine Serie?“, „Wer führt die Bestenliste an?“, „Wohin soll Sam zielen?“ oder „Wohin soll ich zielen?“
+- auf Englisch „What is my average today?“, „How many 180s this week?“, „Who leads the leaderboard?“ oder „Where should I aim?“
+- auf Spanisch „¿Cuál es mi media de hoy?“, „¿Cuántos 180 llevo esta semana?“, „¿Quién lidera la clasificación?“ oder „¿Dónde debo apuntar?“
+- auf Französisch „Quelle est ma moyenne aujourd'hui ?“, „Combien de 180 ai-je faits cette semaine ?“, „Qui est en tête du classement ?“ oder „Où dois-je viser ?“
+- auf Niederländisch „Wat is mijn gemiddelde vandaag?“, „Hoeveel 180's heb ik deze week gegooid?“, „Wie staat bovenaan de ranglijst?“ oder „Waar moet ik op mikken?“
+
+Assist antwortet aus den Statistiken des Boards, in der Sprache deiner Frage: „Heute: 3-Dart-Average 120,2 aus 18 Darts.“, „180er diese Woche: 2.“, „Heute 18 Darts. Noch 2 bis zu deinem Tagesziel von 20.“, „Dein höchster Checkout ist 141.“, „Ein Tag in Folge. Dein Rekord: 1.“, „Alex führt die Bestenliste an, mit einem 3-Dart-Average von 167.“ oder „Sam, ziel auf Bull: 11,8 Punkte pro Dart.“. Vor dem ersten Dart sagt es, was fehlt, etwa „Heute noch keine Darts.“.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/ask-assist-dark.png">
+  <img src="images/de/ask-assist-light.png" alt="So beantwortet Assist eine Frage zu deinen Darts: Stellst du eine Frage des Blueprints, etwa Wie ist mein Schnitt heute, findet der Blueprint die Statistiken des Boards an dem, was jeder Sensor enthält, unter jedem Namen und in jeder Sprache - die Trainingssessions des Tages, den Wochenbericht, die Bestleistungen, die Trainingsserie und die Spielerprofile. Gibt es Zahlen für die Frage, antwortet Assist in der Sprache, in der du gefragt hast; sonst sagt es, was fehlt, etwa Heute noch keine Darts. Ein Satz ohne Frage des Blueprints bleibt einer von Assists eigenen Befehlen." width="560">
+</picture>
+
+- **Heute** zählt jede [Trainingssession](entities.de.md#trainingssession), die heute begonnen hat, auch eine beendete. Eine Session, die vor Mitternacht begann und weiterläuft, hat keinen eigenen Tag, deshalb antwortet Assist dann mit „Diese Session: …“. Für einen eigenen Tag beende jede Session mit *Session-Timeout* oder starte jeden Morgen eine neue mit *Neue Trainingssession*.
+- **Diese Woche** ist die Woche des [Wochenberichts](entities.de.md#wochenbericht), die montags um Mitternacht endet, wenn du keine andere Zeit einstellst; der Average einer neuen Woche wird mit der Vorwoche verglichen, etwa „Diese Woche: 3-Dart-Average 90, 30,1 weniger als letzte Woche.“.
+- **Der höchste Checkout** ist der höchste Checkout unter den [Bestleistungen](statistics.de.md#bestleistungen-serie-und-tagesziel) des Boards, und **die Serie** zählt die Tage in Folge mit mindestens einem Dart, wie der Sensor *Trainingsserie*.
+- **Die Bestenliste** ordnet die Spieler nach ihrem 3-Dart-Average, dann nach ihren gewonnenen Legs, wie die Bestenliste der Anzeigetafel.
+- **Der beste Zielpunkt** ist die Stelle, an der ein Spieler mit der Streuung seiner Darts die meisten Punkte pro Dart holt ([Wohin zielen](statistics.de.md#wohin-zielen)). Er braucht Darts, die das Board erkannt hat, deshalb hat eine Dartscheibe ohne Autodarts keinen. „Ich“ ist der Spieler, der mit der Person verknüpft ist, als die du angemeldet bist ([Spieler und Personen](statistics.de.md#spieler-und-personen)); ein Sprachsatellit hat keine Person, er bekommt den Spieler, der zuletzt gespielt hat.
+- **Sprachen:** Die Fragen sind auf Deutsch, Englisch, Spanisch, Französisch und Niederländisch, und Assist antwortet in der Sprache der Frage, der deines Sprachassistenten, auch bei einer regionalen Sprache wie Deutsch für die Schweiz. In einer anderen Sprache schreibst du eigene Fragen; Assist beantwortet sie auf Englisch.
+- **Andere Befehle:** Jede Frage hat ein Wort des Darts, etwa Average, 180, Checkout oder Bestenliste, damit Assists eigene Befehle wie „Wie spät ist es“ seine eigenen bleiben. Eine Frage liest nur die Statistiken und ändert nichts.
+- **Neue Sätze:** Eine Automation behält die Sätze, die du in ihr gespeichert hast. Für die einer neuen Version wähle auf der Seite der Blueprints **Blueprint erneut importieren** und lass die Sätze beim Standard.
 
 ### Deutscher Dart-Caller
 

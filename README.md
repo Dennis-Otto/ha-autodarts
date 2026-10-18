@@ -133,8 +133,8 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 ### Automate
 
 - Board events for every dart, visit, takeout, bust, won leg and match, personal best and more
-- Fourteen blueprints: light show, score display, dart and practice callers, highlight photos, reports, alerts, routines, and games started and darts entered by voice ([import them](#blueprints))
-- Start any game with one action, also by voice, and tell Assist your darts, as at a dart machine
+- Fifteen blueprints: light show, score display, dart and practice callers, highlight photos, reports, alerts, routines, games started and darts entered by voice, and answers from Assist about your darts ([import them](#blueprints))
+- Start any game with one action, also by voice, tell Assist your darts, as at a dart machine, and ask it "What is my average today?"
 - Online matches on play.autodarts.io through an optional bridge *(experimental)*
 
 <img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/docs/images/en/media-gallery.png" alt="The highlight gallery in the media browser of Home Assistant: photos of a checkout of 121, a 180 and a 140" width="100%">
@@ -161,7 +161,7 @@ How this integration compares with the Autodarts app and its browser extension, 
 | --- | --- | --- | --- | --- |
 | **Runs without the cloud** | Yes, with the [local interface](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/how-it-works.md#privacy) of the Board Manager | No, with an [Autodarts account](https://autodarts.com/) | No, darts-caller [signs in to Autodarts](https://github.com/Peschi90/darts-caller#autodarts-login) | Some of them ([details](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/coming-from.md#can-it-stay)) |
 | **Entities and events in Home Assistant** | Yes, an [event](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/entities.md#board-events) for every dart, visit, takeout, bust, leg and match | No | No | Sensors of the current visit or game |
-| **Blueprints** | [Fourteen blueprints](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#blueprints) | No | No | No |
+| **Blueprints** | [Fifteen blueprints](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#blueprints) | No | No | No |
 | **Light show** | [Light show](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#light-show) blueprint, for WLED or any light | WLED, with Tools | WLED, with darts-wled | Your own automations |
 | **Caller** | On the [scoreboard](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md#the-caller) or your [speakers](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md#which-caller) | In the app, with a premium voice in [Plus](https://autodarts.com/); more with Tools | Voice packs, with darts-caller | No |
 | **Statistics kept at home** | [Yes](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md): averages, heatmaps, profiles and a year of history | No, in the Autodarts account | No | No |
@@ -196,7 +196,7 @@ Import a blueprint with one click, choose your board and you're done.
   [![Import the highlight photo blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml)
 
 <details>
-<summary>Eleven more: visit score, practice caller, score display, takeout, detection, routines, reports, alerts and voice</summary>
+<summary>Twelve more: visit score, practice caller, score display, takeout, detection, routines, reports, alerts and voice</summary>
 
 - **Celebrate a visit score.** Your actions for every 180, every ton, or any score you choose, the moment the third dart lands.
 
@@ -242,6 +242,10 @@ Import a blueprint with one click, choose your board and you're done.
 
   [![Import the enter darts by voice blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml)
 
+- **Ask Assist about your darts.** Ask "What is my average today?", "How many 180s this week?" or "Where should I aim?", in English, German, Spanish, French or Dutch, and the statistics of the board answer.
+
+  [![Import the ask Assist about your darts blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fask_about_darts.yaml)
+
 </details>
 
 ## Documentation
@@ -264,7 +268,7 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 - [Games and rules](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/games.md): how to start a game, matches, teams, handicaps, the bull-off, the match summary, tournaments and the rules of every game
 - [Scoreboard at the board](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/scoreboard.md): a tablet or TV at the board, the new game screen, tournaments, the caller and idle mode
 - [Statistics and players](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/statistics.md): sessions, personal bests, heatmaps and dart positions, where to aim, doubles, player profiles, achievements, trends, the leaderboard, reports, calendar and export
-- [Automations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md): fourteen blueprints, board events and ready-to-use examples
+- [Automations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/automations.md): fifteen blueprints, board events and ready-to-use examples
 - [Online matches](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/online-matches.md): moments of online matches on play.autodarts.io in Home Assistant *(experimental)*
 
 ### Reference

@@ -5,7 +5,7 @@ config:
 ---
 flowchart TB
   accTitle: Which blueprint fits
-  accDescr: For lights, a pixel display, photos and celebrations, take the Light show, Score display, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game but the practice game, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice or Enter darts by voice.
+  accDescr: For lights, a pixel display, photos and celebrations, take the Light show, Score display, Celebrate a visit score, Highlight photo or Takeout actions. To call the darts, take the Dart caller for every game but the practice game, online matches too, and the Practice caller for the practice game; the caller of the scoreboard card needs no speakers in Home Assistant. For a board that looks after itself, take Start and stop detection automatically, the Board problem alert or the Training session routine. For a summary of your training, take the Training report each day or the Weekly report. To talk to Assist, take Start a game by voice, Enter darts by voice or Ask Assist about your darts.
   MOOD{"Lights, a display, photos<br/>or a celebration?"} -- "yes" --> MOODS["Light show<br/>Score display<br/>Celebrate a visit score<br/>Highlight photo<br/>Takeout actions"]
   MOOD -- "no" --> CALL{"A voice that<br/>calls the darts?"}
   CALL -- "yes" --> CALLS["Dart caller: every game but<br/>the practice game, online matches too<br/>Practice caller: the practice game<br/>No speakers: the caller<br/>of the scoreboard card"]
@@ -14,6 +14,6 @@ flowchart TB
   CARE -- "no" --> REPORT{"A summary of<br/>your training?"}
   REPORT -- "yes" --> REPORTS["Training report, each day<br/>Weekly report"]
   REPORT -- "no" --> VOICE{"Talk to Assist?"}
-  VOICE -- "yes" --> VOICES["Start a game by voice<br/>Enter darts by voice"]
+  VOICE -- "yes" --> VOICES["Start a game by voice<br/>Enter darts by voice<br/>Ask Assist about your darts"]
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
   class MOODS,CALLS,CARES,REPORTS,VOICES done

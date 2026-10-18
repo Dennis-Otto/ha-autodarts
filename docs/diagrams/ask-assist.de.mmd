@@ -1,0 +1,20 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: So beantwortet Assist eine Frage zu deinen Darts
+  accDescr: Stellst du eine Frage des Blueprints, etwa Wie ist mein Schnitt heute, findet der Blueprint die Statistiken des Boards an dem, was jeder Sensor enthält, unter jedem Namen und in jeder Sprache - die Trainingssessions des Tages, den Wochenbericht, die Bestleistungen, die Trainingsserie und die Spielerprofile. Gibt es Zahlen für die Frage, antwortet Assist in der Sprache, in der du gefragt hast; sonst sagt es, was fehlt, etwa Heute noch keine Darts. Ein Satz ohne Frage des Blueprints bleibt einer von Assists eigenen Befehlen.
+
+  ASK["Du fragst: Wie ist mein Schnitt heute?"] --> MATCH{{"Eine Frage des Blueprints?<br/>Jede hat ein Wort des Darts"}}
+  MATCH -- "nein" --> OWN["Einer von Assists eigenen Befehlen,<br/>etwa die Uhrzeit"]
+  MATCH -- "ja" --> FIND["Der Blueprint findet<br/>die Statistiken des Boards:<br/>die Sessions des Tages, den Wochenbericht,<br/>die Bestleistungen, die Serie<br/>und die Spielerprofile"]
+  FIND --> HAS{{"Zahlen für die Frage?"}}
+  HAS -- "ja" --> SAY["Assist, in der Sprache deiner Frage:<br/>Heute: 3-Dart-Average 120,2<br/>aus 18 Darts."]
+  HAS -- "noch nicht" --> NONE["Assist: Heute noch keine Darts."]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class MATCH,FIND,HAS bot
+  class SAY done

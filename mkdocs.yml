@@ -11,7 +11,7 @@ INHERIT: .github/mkdocs-blueprint.yml
 # below. It says what the website is about: Autodarts in Home Assistant, which
 # people search for, and not the website of Autodarts itself.
 site_name: "Autodarts for Home Assistant"
-site_description: "Autodarts for Home Assistant: local realtime board control, X01, Cricket, party and training games, tournaments and a bot, player statistics with heatmaps, seven dashboard cards and fourteen blueprints, games started by voice. No cloud account needed."
+site_description: "Autodarts for Home Assistant: local realtime board control, X01, Cricket, party and training games, tournaments and a bot, player statistics with heatmaps, seven dashboard cards and fifteen blueprints, games started by voice. No cloud account needed."
 site_url: https://dennis-otto.github.io/ha-autodarts/
 repo_url: https://github.com/Dennis-Otto/ha-autodarts
 repo_name: Dennis-Otto/ha-autodarts
@@ -46,7 +46,7 @@ plugins:
         name: Deutsch
         build: true
         site_name: "Autodarts für Home Assistant"
-        site_description: "Autodarts für Home Assistant: lokale Echtzeit-Steuerung des Boards, X01, Cricket, Party- und Trainingsspiele, Turniere und ein Bot, Spielerstatistik mit Trefferbildern, sieben Dashboard-Karten und vierzehn Blueprints, Spiele per Sprache starten. Kein Cloud-Konto nötig."
+        site_description: "Autodarts für Home Assistant: lokale Echtzeit-Steuerung des Boards, X01, Cricket, Party- und Trainingsspiele, Turniere und ein Bot, Spielerstatistik mit Trefferbildern, sieben Dashboard-Karten und fünfzehn Blueprints, Spiele per Sprache starten. Kein Cloud-Konto nötig."
         nav_translations:
           Home: Start
           Get started: Erste Schritte

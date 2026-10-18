@@ -21,7 +21,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 - [Games and rules](games.md): every game at a glance, four ways to start one, matches, the match summary, teams, handicaps, the bull-off, tournaments and the rules of X01, the Cricket games, the party games and the training games
 - [Scoreboard at the board](scoreboard.md): a tablet or TV next to the board: setup, landscape and portrait, the new game screen, tournaments, the caller and idle mode
 - [Statistics and players](statistics.md): training sessions, personal bests, the heatmap and dart positions, where to aim, progress over time, doubles, player profiles, achievements, trends and grouping, the leaderboard, the weekly report, the training calendar and exports
-- [Automations](automations.md): fourteen blueprints, their settings, board events and ready-to-use examples
+- [Automations](automations.md): fifteen blueprints, their settings, board events and ready-to-use examples
 - [Online matches](online-matches.md): busts, won legs and matches of online matches as board events, with the browser extension Tools for Autodarts *(experimental)*
 
 ## Reference
@@ -123,7 +123,7 @@ The integration speaks English, German, Dutch, French and Spanish: setup, option
 
 - Home Assistant names the entities in the language of the server (**Settings → System → General**); states and cards follow the language of your user profile.
 - The caller speaks the card's language with a voice of your browser or tablet for that language, or with a [voice pack](scoreboard.md#voice-packs) of recorded calls; `autodarts.generate_voice_pack` records one in the language you choose.
-- The documentation is in English and German, the settings of the blueprints in English because Home Assistant does not translate blueprints. Their calls still speak all five languages: the integration gives the events the words of the callers and of the weekly report in the language of Home Assistant ([calls in the language of Home Assistant](automations.md#calls-in-the-language-of-home-assistant)). The voice blueprints understand sentences in all five languages, and Assist answers in the language of Home Assistant.
+- The documentation is in English and German, the settings of the blueprints in English because Home Assistant does not translate blueprints. Their calls still speak all five languages: the integration gives the events the words of the callers and of the weekly report in the language of Home Assistant ([calls in the language of Home Assistant](automations.md#calls-in-the-language-of-home-assistant)). The voice blueprints understand sentences in all five languages. Assist answers in the language of Home Assistant, and in the language of the question for *Ask Assist about your darts*.
 
 Texts that are missing in a language, or older than their English original, are listed in that language's [translation issue](https://github.com/Dennis-Otto/ha-autodarts/issues?q=is%3Aissue%20is%3Aopen%20label%3Atranslations), which a bot keeps up to date. It explains how to fix them right on GitHub, without programming. Each language has two small files of its own, `translations/<language>.json` for the integration and `frontend/text/<language>.js` for the cards, both in `custom_components/autodarts/`. To improve a translation or add a language, see [translations in CONTRIBUTING.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations).
 

@@ -7,8 +7,12 @@ The end-to-end test says a few of them to a real Home Assistant as well."""
 import importlib.util
 import logging
 import re
+from collections.abc import Iterator
+from contextlib import contextmanager
+from datetime import timedelta
 from importlib.metadata import version
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from homeassistant.components import conversation
@@ -17,12 +21,19 @@ from homeassistant.const import __version__ as HA_VERSION
 from homeassistant.core import Context
 from homeassistant.helpers.intent import IntentResponseErrorCode
 from homeassistant.setup import async_setup_component
-from pytest_homeassistant_custom_component.common import async_capture_events
+from homeassistant.util import dt as dt_util
+from homeassistant.util.yaml import load_yaml
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_capture_events,
+    async_fire_time_changed,
+)
 
 from custom_components.autodarts.const import LANGUAGES
+from custom_components.autodarts.positions import DartLog
 
-from .local_helpers import automate_all
-from .test_manual_board import setup_manual
+from .local_helpers import BLUEPRINTS, automate_all
+from .test_manual_board import DATA, act, entity, setup_manual
 
 pytestmark = pytest.mark.usefixtures("blueprint_folder")
 NO_INTENT_MATCH = IntentResponseErrorCode.NO_INTENT_MATCH
@@ -1010,7 +1021,12 @@ async def listen(hass, language: str):
     assert await async_setup_component(hass, "conversation", {})
     await setup_manual(hass)
     await automate_all(
-        hass, [("start_game_by_voice", {}), ("enter_darts_by_voice", {})]
+        hass,
+        [
+            ("start_game_by_voice", {}),
+            ("enter_darts_by_voice", {}),
+            ("ask_about_darts", {}),
+        ],
     )
     return async_capture_events(hass, EVENT_CALL_SERVICE)
 
@@ -1072,7 +1088,8 @@ OTHER_DEVICES = {
 @pytest.mark.parametrize("language", SPOKEN)
 async def test_assist_keeps_its_own_commands(hass, language):
     """Assist hears the sentences of the blueprints before its own commands, so they
-    need a number or a word of darts: a timer stays a timer in every language."""
+    need a number or a word of darts: a timer stays a timer in every language, and
+    "What time is it" is no question about the darts."""
     calls = await listen(hass, language)
     for text in OWN_COMMANDS[language]:
         result = await conversation.async_converse(hass, text, None, Context())
@@ -1084,6 +1101,11 @@ async def test_assist_keeps_its_own_commands(hass, language):
     for text in OTHER_DEVICES[language]:
         await conversation.async_converse(hass, text, None, Context())
         assert not actions(calls), text
+    # Nor do the questions about the darts answer any of them.
+    assert [
+        state.attributes["last_triggered"]
+        for state in hass.states.async_all("automation")
+    ] == [None] * 3
 
 
 # Sentences of one's own: the blueprint knows the words that join the names and the
@@ -1205,3 +1227,552 @@ def test_assist_has_the_versions_of_home_assistant():
         "Install requirements-test.txt again: pip install --require-hashes -r"
         " requirements-test.txt"
     )
+
+
+# Asking Assist about the darts: the statistics of the board answer, in the language
+# of the question. Alex and Sam play 501 on a Tuesday evening: Alex throws two 180s
+# and checks out 141, Sam scores 100 and 60. Then a new session starts, in which
+# Alex scores 60 in a 101, so the day has 18 darts in two sessions. The daily goal
+# is 20 darts. The best aims stand in for those that darts the board detected make,
+# which a dartboard without Autodarts has none of.
+TUESDAY = "2026-09-29 20:30:00+02:00"
+AIMS = {
+    "Alex": {"bed": "T19", "expected": 14.24},
+    "Sam": {"bed": "BULL", "expected": 11.8},
+}
+NBSP = "\u00a0"
+
+# What each language asks, what Assist answers before the first dart, and what
+# after the evening.
+ASKED = {
+    "en": [
+        (
+            "What is my average today?",
+            "No darts today yet.",
+            "Today: a 3-dart average of 120.2 from 18 darts.",
+        ),
+        (
+            "How am I scoring today?",
+            "No darts today yet.",
+            "Today: a 3-dart average of 120.2 from 18 darts.",
+        ),
+        (
+            "What's my average this week?",
+            "No darts this week yet.",
+            "This week: a 3-dart average of 120.2.",
+        ),
+        ("How many 180s this week?", "No 180 this week yet.", "180s this week: 2."),
+        (
+            "How many darts have I thrown today?",
+            "No darts today yet.",
+            "18 darts today. 2 more for your daily goal of 20.",
+        ),
+        ("What is my best checkout?", "No checkout yet.", "Your best checkout is 141."),
+        (
+            "How long is my streak?",
+            "No streak yet.",
+            "One day in a row. Your record: 1.",
+        ),
+        (
+            "Who leads the leaderboard?",
+            "Nobody is on the leaderboard yet.",
+            "Alex leads the leaderboard with a 3-dart average of 167.",
+        ),
+        (
+            "Where should Sam aim?",
+            "I don't know a player called Sam.",
+            "Sam, aim at Bull: 11.8 points per dart.",
+        ),
+        (
+            "Where should I aim?",
+            "No player has thrown yet.",
+            "Alex, aim at Triple 19: 14.2 points per dart.",
+        ),
+    ],
+    "de": [
+        (
+            "Wie ist mein Schnitt heute?",
+            "Heute noch keine Darts.",
+            "Heute: 3-Dart-Average 120,2 aus 18 Darts.",
+        ),
+        (
+            "Was ist mein Average?",
+            "Heute noch keine Darts.",
+            "Heute: 3-Dart-Average 120,2 aus 18 Darts.",
+        ),
+        (
+            "Wie ist mein Schnitt diese Woche?",
+            "Diese Woche noch keine Darts.",
+            "Diese Woche: 3-Dart-Average 120,2.",
+        ),
+        (
+            "Wie viele 180er habe ich diese Woche geworfen?",
+            "Diese Woche noch keine 180.",
+            "180er diese Woche: 2.",
+        ),
+        (
+            "Wie viele 180er diese Woche?",
+            "Diese Woche noch keine 180.",
+            "180er diese Woche: 2.",
+        ),
+        (
+            "Wie viele Darts habe ich heute geworfen?",
+            "Heute noch keine Darts.",
+            "Heute 18 Darts. Noch 2 bis zu deinem Tagesziel von 20.",
+        ),
+        (
+            "Was ist mein höchster Checkout?",
+            "Noch kein Checkout.",
+            "Dein höchster Checkout ist 141.",
+        ),
+        (
+            "Wie lang ist meine Serie?",
+            "Noch keine Serie.",
+            "Ein Tag in Folge. Dein Rekord: 1.",
+        ),
+        (
+            "Wer führt die Bestenliste an?",
+            "Noch steht niemand in der Bestenliste.",
+            "Alex führt die Bestenliste an, mit einem 3-Dart-Average von 167.",
+        ),
+        (
+            "Wohin soll Sam zielen?",
+            "Ich kenne keinen Spieler namens Sam.",
+            "Sam, ziel auf Bull: 11,8 Punkte pro Dart.",
+        ),
+        (
+            "Wohin soll ich zielen?",
+            "Noch hat kein Spieler geworfen.",
+            "Alex, ziel auf Triple 19: 14,2 Punkte pro Dart.",
+        ),
+    ],
+    "es": [
+        (
+            "¿Cuál es mi media de hoy?",
+            "Todavía no hay dardos hoy.",
+            "Hoy: media de 3 dardos de 120,2 en 18 dardos.",
+        ),
+        (
+            "¿Qué media llevo?",
+            "Todavía no hay dardos hoy.",
+            "Hoy: media de 3 dardos de 120,2 en 18 dardos.",
+        ),
+        (
+            "¿Cuál es mi media esta semana?",
+            "Todavía no hay dardos esta semana.",
+            "Esta semana: media de 3 dardos de 120,2.",
+        ),
+        (
+            "¿Cuántos 180 llevo esta semana?",
+            "Todavía no hay ningún 180 esta semana.",
+            "180 esta semana: 2.",
+        ),
+        (
+            "¿Cuántos dardos llevo hoy?",
+            "Todavía no hay dardos hoy.",
+            "18 dardos hoy. Te faltan 2 para tu objetivo diario de 20.",
+        ),
+        (
+            "¿Cuál es mi cierre más alto?",
+            "Todavía no hay ningún cierre.",
+            "Tu cierre más alto es 141.",
+        ),
+        (
+            "¿Cuál es mi racha?",
+            "Todavía no tienes racha.",
+            "Llevas un día. Tu récord: 1.",
+        ),
+        (
+            "¿Quién lidera la clasificación?",
+            "Todavía no hay nadie en la clasificación.",
+            "Alex lidera la clasificación con una media de 3 dardos de 167.",
+        ),
+        (
+            "¿Dónde debe apuntar Sam?",
+            "No conozco a ningún jugador llamado Sam.",
+            "Sam, apunta a Bull: 11,8 puntos por dardo.",
+        ),
+        (
+            "¿Dónde debo apuntar?",
+            "Todavía no ha lanzado ningún jugador.",
+            "Alex, apunta a Triple 19: 14,2 puntos por dardo.",
+        ),
+    ],
+    "fr": [
+        (
+            f"Quelle est ma moyenne aujourd'hui{NBSP}?",
+            "Pas encore de fléchettes aujourd'hui.",
+            "Aujourd'hui, une moyenne 3 fléchettes de 120,2 sur 18 fléchettes.",
+        ),
+        (
+            f"Quelle moyenne ai-je aujourd'hui{NBSP}?",
+            "Pas encore de fléchettes aujourd'hui.",
+            "Aujourd'hui, une moyenne 3 fléchettes de 120,2 sur 18 fléchettes.",
+        ),
+        (
+            f"Quelle est ma moyenne cette semaine{NBSP}?",
+            "Pas encore de fléchettes cette semaine.",
+            "Cette semaine, une moyenne 3 fléchettes de 120,2.",
+        ),
+        (
+            f"Combien de 180 ai-je faits cette semaine{NBSP}?",
+            "Pas encore de 180 cette semaine.",
+            f"180 cette semaine{NBSP}: 2.",
+        ),
+        (
+            f"Combien de fléchettes aujourd'hui{NBSP}?",
+            "Pas encore de fléchettes aujourd'hui.",
+            "18 fléchettes aujourd'hui. Encore 2 pour votre objectif quotidien de 20.",
+        ),
+        (
+            f"Quel est mon meilleur finish{NBSP}?",
+            "Pas encore de finish.",
+            "Votre meilleur finish est 141.",
+        ),
+        (
+            f"Quelle est ma série{NBSP}?",
+            "Pas encore de série.",
+            f"Un jour d'affilée. Votre record{NBSP}: 1.",
+        ),
+        (
+            f"Qui est en tête du classement{NBSP}?",
+            "Personne n'est encore au classement.",
+            "Alex est en tête du classement avec une moyenne 3 fléchettes de 167.",
+        ),
+        (
+            f"Où doit viser Sam{NBSP}?",
+            "Je ne connais aucun joueur nommé Sam.",
+            f"Sam, visez Bull{NBSP}: 11,8 points par fléchette.",
+        ),
+        (
+            f"Où dois-je viser{NBSP}?",
+            "Aucun joueur n'a encore lancé.",
+            f"Alex, visez Triple 19{NBSP}: 14,2 points par fléchette.",
+        ),
+    ],
+    "nl": [
+        (
+            "Wat is mijn gemiddelde vandaag?",
+            "Vandaag nog geen darts.",
+            "Vandaag: 3-dart-gemiddelde 120,2 uit 18 darts.",
+        ),
+        (
+            "Hoe gooi ik vandaag?",
+            "Vandaag nog geen darts.",
+            "Vandaag: 3-dart-gemiddelde 120,2 uit 18 darts.",
+        ),
+        (
+            "Wat is mijn gemiddelde deze week?",
+            "Deze week nog geen darts.",
+            "Deze week: 3-dart-gemiddelde 120,2.",
+        ),
+        (
+            "Hoeveel 180's heb ik deze week gegooid?",
+            "Deze week nog geen 180.",
+            "180's deze week: 2.",
+        ),
+        (
+            "Hoeveel darts vandaag?",
+            "Vandaag nog geen darts.",
+            "Vandaag 18 darts. Nog 2 tot je dagdoel van 20.",
+        ),
+        (
+            "Wat is mijn hoogste uitgooi?",
+            "Nog geen uitgooi.",
+            "Je hoogste uitgooi is 141.",
+        ),
+        (
+            "Hoe lang is mijn reeks?",
+            "Nog geen reeks.",
+            "Eén dag op rij. Je record: 1.",
+        ),
+        (
+            "Wie staat bovenaan de ranglijst?",
+            "Er staat nog niemand op de ranglijst.",
+            "Alex staat bovenaan de ranglijst met een 3-dart-gemiddelde van 167.",
+        ),
+        (
+            "Waar moet Sam op mikken?",
+            "Ik ken geen speler die Sam heet.",
+            "Sam, mik op Bull: 11,8 punten per dart.",
+        ),
+        (
+            "Waar moet ik op mikken?",
+            "Er heeft nog geen speler gegooid.",
+            "Alex, mik op Triple 19: 14,2 punten per dart.",
+        ),
+    ],
+}
+
+
+async def ask(hass, text: str, language: str | None = None, **context) -> str:
+    """What Assist answers to a question, in the language of Home Assistant or in
+    the one given."""
+    result = await conversation.async_converse(
+        hass, text, None, Context(**context), language
+    )
+    return result.response.speech["plain"]["speech"]
+
+
+async def daily_goal(hass, darts: int) -> None:
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": entity(hass, "number", "training_daily_goal"), "value": darts},
+        blocking=True,
+    )
+
+
+async def evening(hass, freezer) -> None:
+    """The darts of the evening: two sessions, a minute between the visits."""
+    await act(hass, "start_game", game=501, players=["Alex", "Sam"])
+    for score in (180, 100, 180, 60):
+        await act(hass, "enter_visit", score=score)
+        freezer.tick(60)
+    await act(hass, "enter_visit", checkout=True)
+    freezer.tick(600)
+    await hass.services.async_call(
+        "button",
+        "press",
+        {"entity_id": entity(hass, "button", "reset_training")},
+        blocking=True,
+    )
+    await act(hass, "start_game", game=101, players=["Alex"])
+    await act(hass, "enter_visit", score=60)
+
+
+@contextmanager
+def best_aims(hass, found: dict[str, dict]) -> Iterator[None]:
+    """The best aims of the players, as the board works them out from the darts it
+    detected."""
+    coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
+    logs = {
+        id(player.log): found.get(player.name)
+        for player in coordinator.games.progress.players.values()
+    }
+    with patch.object(DartLog, "best_aim", lambda log: logs.get(id(log))):
+        coordinator.aim_revision += 1
+        coordinator.async_update_listeners()
+        yield
+
+
+def test_assist_answers_questions_in_every_language_of_the_integration():
+    """Every language of the integration asks every question, the blueprint has
+    the same answers in each of them, and they follow the style of the language."""
+    assert list(ASKED) == list(LANGUAGES)
+    answers = load_yaml(BLUEPRINTS / "ask_about_darts.yaml")["variables"]["answers"]
+    assert list(answers) == list(LANGUAGES)
+    for language, said in answers.items():
+        assert said.keys() == answers["en"].keys(), language
+        assert said["beds"].keys() == answers["en"]["beds"].keys(), language
+    # French puts a no-break space before a colon and an exclamation mark, as the
+    # translations of the integration do; Spanish opens an exclamation with ¡.
+    french = [text for text in answers["fr"].values() if isinstance(text, str)]
+    assert not [text for text in french if re.search(rf"(?<!{NBSP})[:;!?]", text)]
+    spanish = [text for text in answers["es"].values() if isinstance(text, str)]
+    assert all(text.startswith("¡") for text in spanish if text.endswith("!"))
+
+
+@pytest.mark.parametrize("language", ASKED)
+async def test_assist_answers_questions_about_the_darts(hass, freezer, language):
+    """Each question is answered from the statistics of the board, before the first
+    dart and after an evening of two sessions, and runs no action."""
+    freezer.move_to(TUESDAY)
+    calls = await listen(hass, language)
+    await daily_goal(hass, 20)
+    for text, before, _ in ASKED[language]:
+        assert await ask(hass, text) == before, text
+    await evening(hass, freezer)
+    calls.clear()
+    with best_aims(hass, AIMS):
+        for text, _, after in ASKED[language]:
+            assert await ask(hass, text) == after, text
+    assert not actions(calls)
+
+
+async def later(hass, freezer, days: int) -> None:
+    """The same time some days later, after the board has started each new day."""
+    freezer.tick(timedelta(days=days))
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done()
+
+
+async def test_assist_finds_the_player_to_aim_for(hass, freezer, hass_admin_user):
+    """A named player in any case, the player linked to the person who asks, or
+    else the player who played last; a player without a best aim is told so."""
+    freezer.move_to(TUESDAY)
+    await listen(hass, "en")
+    await evening(hass, freezer)
+    assert await ask(hass, "Where should Alex aim?") == (
+        "Alex has no best aim yet: it takes darts that the board detected."
+    )
+    assert await ask(hass, "Where should Bob aim?") == (
+        "I don't know a player called Bob."
+    )
+    hass.states.async_set("person.sam", "home", {"user_id": hass_admin_user.id})
+    await act(hass, "link_player", player="Sam", person="person.sam")
+    with best_aims(hass, AIMS):
+        assert await ask(hass, "where should sam aim") == (
+            "Sam, aim at Bull: 11.8 points per dart."
+        )
+        assert await ask(hass, "Where should I aim?", user_id=hass_admin_user.id) == (
+            "Sam, aim at Bull: 11.8 points per dart."
+        )
+        # Someone without a player of their own gets the player who played last.
+        assert await ask(hass, "Where should I aim?", user_id="someone") == (
+            "Alex, aim at Triple 19: 14.2 points per dart."
+        )
+
+
+async def test_assist_answers_on_the_days_and_weeks_after(hass, freezer):
+    """The streak grows from day to day and breaks after a day without darts, the
+    daily goal is reached, a session that runs past midnight answers for itself,
+    and a new week compares its average with the week before."""
+    freezer.move_to(TUESDAY)
+    await listen(hass, "en")
+    await evening(hass, freezer)
+    await later(hass, freezer, days=1)
+    await daily_goal(hass, 6)
+    assert await ask(hass, "How long is my streak?") == (
+        "One day in a row. Your record: 1."
+    )
+    # The session of Tuesday evening goes on.
+    await act(hass, "enter_visit", score=100)
+    assert await ask(hass, "What is my average today?") == (
+        "This session: a 3-dart average of 80 from 6 darts."
+    )
+    assert await ask(hass, "How long is my streak?") == (
+        "2 days in a row. Your record: 2."
+    )
+    await hass.services.async_call(
+        "button",
+        "press",
+        {"entity_id": entity(hass, "button", "reset_training")},
+        blocking=True,
+    )
+    await act(hass, "enter_visit", score=140)
+    assert await ask(hass, "What is my average today?") == (
+        "Today: a 3-dart average of 140 from 3 darts."
+    )
+    assert await ask(hass, "How many darts today?") == (
+        "6 darts today. Daily goal reached!"
+    )
+    # A day without darts breaks the streak; the record stays.
+    await later(hass, freezer, days=2)
+    assert await ask(hass, "How long is my streak?") == (
+        "No streak right now. Your record: 2."
+    )
+    assert await ask(hass, "What is my average today?") == "No darts today yet."
+    assert await ask(hass, "How many darts today?") == "No darts today yet."
+    # The week ends; the next one starts with a 180 and a visit without points.
+    coordinator = hass.config_entries.async_entries("autodarts")[0].runtime_data.local
+    coordinator.reports.report.ends = dt_util.utcnow()
+    await coordinator.reports._async_report(dt_util.utcnow())
+    await hass.async_block_till_done()
+    assert await ask(hass, "What is my average this week?") == (
+        "No darts this week yet."
+    )
+    await act(hass, "enter_visit", score=180)
+    assert await ask(hass, "What is my average this week?") == (
+        "This week: a 3-dart average of 180, 59.9 more than last week."
+    )
+    await act(hass, "enter_visit", score=0)
+    assert await ask(hass, "What is my average this week?") == (
+        "This week: a 3-dart average of 90, 30.1 less than last week."
+    )
+
+
+async def test_assist_answers_in_the_language_of_the_question(hass, freezer):
+    """A regional language answers in its language, such as Spanish for Latin
+    America; a language the blueprint has no answers in, in English."""
+    freezer.move_to(TUESDAY)
+    await listen(hass, "en")
+    await daily_goal(hass, 20)
+    await evening(hass, freezer)
+    assert await ask(hass, "¿Cuántos dardos llevo hoy?", "es-419") == (
+        "18 dardos hoy. Te faltan 2 para tu objetivo diario de 20."
+    )
+    assert await ask(hass, "Wie lang ist meine Serie?", "de-CH") == (
+        "Ein Tag in Folge. Dein Rekord: 1."
+    )
+    assert await ask(hass, "How many darts today?", "it") == (
+        "18 darts today. 2 more for your daily goal of 20."
+    )
+
+
+@pytest.mark.parametrize(
+    ("chosen", "answer"),
+    [(True, "180s this week: 2."), (False, "No 180 this week yet.")],
+)
+async def test_assist_answers_for_the_board_of_the_automation(
+    hass, freezer, chosen, answer
+):
+    """With a board chosen, the statistics of that board answer, and none of
+    another."""
+    freezer.move_to(TUESDAY)
+    assert await async_setup_component(hass, "homeassistant", {})
+    assert await async_setup_component(hass, "conversation", {})
+    entry = await setup_manual(hass)
+    await automate_all(
+        hass,
+        [("ask_about_darts", {"board": entry.entry_id if chosen else "another"})],
+    )
+    await evening(hass, freezer)
+    assert await ask(hass, "How many 180s this week?") == answer
+
+
+async def test_assist_answers_for_the_board_with_the_most_darts(hass, freezer):
+    """Without a board chosen, the board with the most darts this week answers, all
+    from that board, also when the names of the boards sort their sensors in turns."""
+    freezer.move_to(TUESDAY)
+    await listen(hass, "en")
+    await evening(hass, freezer)
+    answer = await ask(hass, "What is my average today?")
+    board = "manual_ffffffffffffffffffffffffffffffff"
+    other = MockConfigEntry(
+        domain="autodarts",
+        version=2,
+        unique_id=board,
+        title="Autodarts (Garage M)",
+        data={**DATA, "board_id": board, "name": "Garage M"},
+    )
+    other.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(other.entry_id)
+    await hass.async_block_till_done()
+    # The sensors of the two boards sort in turns: the darts today of the board in
+    # the garage come first, the training points and the week of the other one.
+    for sensor in ("darts_today", "training_points", "weekly_report"):
+        assert hass.states.get(f"sensor.garage_{sensor}")
+        assert hass.states.get(f"sensor.garage_m_{sensor}")
+    assert await ask(hass, "What is my average today?") == answer
+
+
+def _questions(page: str) -> dict[str, set[str]]:
+    """The questions a guide gives as examples for asking Assist about the darts, in
+    the overview of the blueprints and under "Ask for example", by the language they
+    are asked in."""
+    text = (ROOT / "docs" / page).read_text(encoding="utf-8")
+    own = "de" if page.endswith(".de.md") else "en"
+    rows = re.findall(
+        r"^\| \*\*Ask Assist about your darts\*\* \| (.*?) \| \[!\[", text, re.M
+    )
+    lists = re.findall(
+        r"^(?:Ask for example|Frag zum Beispiel):\n\n((?:- .*\n)+)", text, re.M
+    )
+    assert len(rows) == len(lists) == 1, page
+    found: dict[str, set[str]] = {language: set() for language in ASKED}
+    for line in [*rows, *lists[0].splitlines()]:
+        other = OTHER_LANGUAGE.match(line)
+        language = LANGUAGE_NAMES[other.group(1)] if other else own
+        found[language] |= {first or second for first, second in QUOTED.findall(line)}
+    return found
+
+
+@pytest.mark.parametrize("page", ["automations.md", "automations.de.md"])
+def test_every_question_of_the_guides_is_asked(page):
+    """The guides give questions in every language of the integration, and none that
+    the tests above leave out."""
+    for language, questions in _questions(page).items():
+        asked = {text for text, *_ in ASKED[language]}
+        assert questions, language
+        assert questions <= asked, (language, sorted(questions - asked))

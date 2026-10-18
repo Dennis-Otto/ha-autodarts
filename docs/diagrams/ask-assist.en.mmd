@@ -1,0 +1,20 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How Assist answers a question about your darts
+  accDescr: When you ask a question of the blueprint, such as What is my average today, the blueprint finds the statistics of the board by what each sensor holds, under any name and in any language - the training sessions of the day, the weekly report, the personal bests, the training streak and the player profiles. With numbers for the question, Assist answers in the language you asked in; without, it says what is missing, such as No darts today yet. A sentence without a question of the blueprint stays one of Assist's own commands.
+
+  ASK["You ask: What is my average today?"] --> MATCH{{"A question of the blueprint?<br/>Each has a word of darts"}}
+  MATCH -- "no" --> OWN["One of Assist's own commands,<br/>such as the time"]
+  MATCH -- "yes" --> FIND["The blueprint finds the statistics of the board:<br/>the sessions of the day, the weekly report,<br/>the personal bests, the streak<br/>and the player profiles"]
+  FIND --> HAS{{"Numbers for the question?"}}
+  HAS -- "yes" --> SAY["Assist, in the language you asked in:<br/>Today: a 3-dart average<br/>of 120.2 from 18 darts."]
+  HAS -- "not yet" --> NONE["Assist: No darts today yet."]
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class MATCH,FIND,HAS bot
+  class SAY done

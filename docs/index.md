@@ -68,7 +68,7 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    Board events for every dart, visit, takeout, bust, won leg and match. Fourteen blueprints: light show, score display, dart and practice callers, highlight photos, reports, alerts, routines, and games started and darts entered by voice.
+    Board events for every dart, visit, takeout, bust, won leg and match. Fifteen blueprints: light show, score display, dart and practice callers, highlight photos, reports, alerts, routines, games started and darts entered by voice, and answers from Assist about your darts.
 
     [:octicons-arrow-right-24: Automations](automations.md)
 
@@ -84,11 +84,13 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    Say "Start 501 for Alex and Sam" to Assist, in English, German, Spanish, French or Dutch, and the game starts; then "Alex has 140" or "Triple 20" enters the darts, as at a dart machine. Any game also starts with one action of an automation.
+    Say "Start 501 for Alex and Sam" to Assist, in English, German, Spanish, French or Dutch, and the game starts; then "Alex has 140" or "Triple 20" enters the darts, as at a dart machine, and "What is my average today?" gets its answer from the statistics of the board. Any game also starts with one action of an automation.
 
     [:octicons-arrow-right-24: Start a game by voice](automations.md#start-a-game-by-voice)
 
     [:octicons-arrow-right-24: Enter darts by voice](automations.md#enter-darts-by-voice)
+
+    [:octicons-arrow-right-24: Ask Assist about your darts](automations.md#ask-assist-about-your-darts)
 
 </div>
 
@@ -167,7 +169,7 @@ How this integration compares with the Autodarts app and its browser extension, 
 
     ---
 
-    Fourteen blueprints, their settings, board events and ready-to-use examples.
+    Fifteen blueprints, their settings, board events and ready-to-use examples.
 
 - :material-play-network:{ .lg .middle } [**Online matches**](online-matches.md)
 
