@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.16.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.15.0...v1.16.0) (2026-10-18)
+
 ### New
 
 - **The score on a pixel display at the board:** the new blueprint *Autodarts: score display* shows the practice game on an AWTRIX 3, such as the Ulanzi TC001, or on a PixelIt: the score of the player at the board after every dart, in green with its route when a checkout is possible, the points in Cricket and the party games, and for a few seconds a 180, a bust, a won leg and the winner of the match. When the game is switched off, or after the idle time, the display goes back to its clock. AWTRIX 3 and PixelIt take the screen over MQTT, and PixelIt also over HTTP through a REST command ([score display](docs/automations.md#score-display-on-an-awtrix-or-a-pixelit), #343, #346).
@@ -15,22 +17,6 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 ### Improved
 
 - **Quicker on a Raspberry Pi:** every action, such as a button, a setting or a new game, built the whole store of the training twice: once to save it and once more to compare it with what it had saved, which with a long history and many players took about 20 milliseconds on a desktop PC and several times as long on a Raspberry Pi. It now builds it once, and a dart that lands while it is saved is still saved when Home Assistant stops, as before. The setup hint of the scoreboard and the aim of the bot no longer try 12,341 ways to throw three darts where nothing can be set up, such as 501 at the start of a leg: every setup from 171 to 1001 is found in a tenth of the time, with the same result. Home Assistant also loads the integration about a quarter to half a second faster, because the checkout training no longer works out its 162 scores at every start ([setup hints](docs/how-it-works.md#setup-hints), #329, #333).
-
-## [1.16.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.15.0...v1.16.0) (2026-10-18)
-
-
-### Features
-
-* **blueprints:** callers and reports speak the language of Home Assistant out of the box ([#353](https://github.com/Dennis-Otto/ha-autodarts/issues/353)) ([4bb2187](https://github.com/Dennis-Otto/ha-autodarts/commit/4bb21879c8d61cdece2204fb460f8b5ee797cfd1))
-* **blueprints:** show the score on an AWTRIX or PixelIt display ([#346](https://github.com/Dennis-Otto/ha-autodarts/issues/346)) ([4636838](https://github.com/Dennis-Otto/ha-autodarts/commit/463683853771f6bf7f6d6ec19dc0b998e8d37ef2))
-* **caller:** per-dart, route and target calls for blind and low-vision players ([#360](https://github.com/Dennis-Otto/ha-autodarts/issues/360)) ([dfcde0d](https://github.com/Dennis-Otto/ha-autodarts/commit/dfcde0dd0d4f9d062a0537f369d5fdfa2205d031))
-* **cards:** show the cards and the automatic dashboard on Home Assistant Cast ([#349](https://github.com/Dennis-Otto/ha-autodarts/issues/349)) ([cc920c8](https://github.com/Dennis-Otto/ha-autodarts/commit/cc920c88b14530b5f2c16b954562f84ecf18ae51))
-* **cloud:** get the cloud link ready for Autodarts' device login ([#365](https://github.com/Dennis-Otto/ha-autodarts/issues/365)) ([e20fc81](https://github.com/Dennis-Otto/ha-autodarts/commit/e20fc818daca98fe2da7ee4dec8e6873c096e925))
-
-
-### Performance
-
-* faster button presses and bot turns on a Raspberry Pi ([#333](https://github.com/Dennis-Otto/ha-autodarts/issues/333)) ([d1f8b3a](https://github.com/Dennis-Otto/ha-autodarts/commit/d1f8b3a362370050f5d5a5f6bc61015a2d729d15))
 
 ## [1.15.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.14.0...v1.15.0) (2026-10-18)
 
