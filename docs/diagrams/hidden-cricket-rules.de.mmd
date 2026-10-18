@@ -1,0 +1,13 @@
+flowchart TB
+  accTitle: Was ein Dart bei Hidden Cricket bewirkt
+  accDescr: Jedes Leg zieht sechs der Zahlen 1 bis 20, die verdeckt bleiben, und das Bull, das immer zu sehen ist. Ein Dart auf eine Zahl, die das Leg nicht gezogen hat, zählt nichts. Ein Dart auf eine gezogene Zahl, die noch verdeckt ist, deckt sie in ihrer Zeile für alle auf und markiert sie. Ein Dart auf eine aufgedeckte Zahl markiert sie oder punktet, wie bei Cricket.
+  LEG["Ein Leg beginnt:<br/>Sechs von 1 bis 20<br/>verdeckt gezogen,<br/>das Bull ist zu sehen"] --> DART["Ein Dart landet"]
+  DART --> DRAWN{"Auf einer Zahl<br/>des Legs?"}
+  DRAWN -- "nein" --> NOTHING["Er zählt nichts:<br/>Die Zahl ist nicht<br/>im Leg"]
+  DRAWN -- "ja" --> SHOWN{"Ist die Zahl<br/>schon aufgedeckt?"}
+  SHOWN -- "nein" --> REVEAL["Ihre Zeile zeigt<br/>allen die Zahl,<br/>und der Dart<br/>markiert sie"]
+  SHOWN -- "ja" --> MARK["Der Dart markiert<br/>sie oder punktet,<br/>wie bei Cricket"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class REVEAL done
+  class NOTHING warn

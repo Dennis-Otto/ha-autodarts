@@ -56,7 +56,7 @@ Die [Aktionen](entities.de.md#dart-eingeben-autodartsthrow_dart) `autodarts.thro
 
 Alles, was die Integration mit Darts macht, denn dafür hat sie die Kameras nie gebraucht:
 
-- **Jedes Spiel:** X01 von 101 bis 1001 mit Legs, Sätzen, Double-In und -Out, dem Checkout-Weg und Stellwürfen, dem Ausbullen, Teams und Handicaps; die vier Cricket-Spiele; die neun Partyspiele für bis zu acht; die acht Trainingsspiele; der [Bot](games.de.md#gegen-den-bot-spielen) und [Turniere](games.de.md#turniere).
+- **Jedes Spiel:** X01 von 101 bis 1001 mit Legs, Sätzen, Double-In und -Out, dem Checkout-Weg und Stellwürfen, dem Ausbullen, Teams und Handicaps; die sechs Cricket-Spiele; die neun Partyspiele für bis zu acht; die acht Trainingsspiele; der [Bot](games.de.md#gegen-den-bot-spielen) und [Turniere](games.de.md#turniere).
 - **Jede Statistik:** Trainingseinheiten, Bestleistungen, das Tagesziel und die Serie, Spielerprofile mit ihren Abzeichen, Erfolge, Trends, Doppel, die Bestenliste, der Wochenbericht, der Trainingskalender und der Export. Von Hand eingegebene Darts zählen für alles wie erkannte.
 - **Der Bildschirm am Board:** die [Anzeigetafel](scoreboard.de.md) mit dem Bildschirm für ein neues Spiel, dem Caller, den Feiern und dem Ruhemodus.
 - **Automationen:** Die Board-Ereignisse, etwa `visit_completed` oder `leg_won`, kommen wie mit einem Board, mit `manual: true` und der Quelle `manual`, daher funktionieren die [Blueprints](automations.de.md#blueprints) für Lichtshow, Caller und Berichte unverändert.

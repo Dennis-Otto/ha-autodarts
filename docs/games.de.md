@@ -6,7 +6,7 @@ description: "X01, Cricket, Party- und Trainingsspiele in Home Assistant: Matche
 
 [← Dokumentation](README.de.md) · [English](games.md)
 
-Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, vier Cricket-Spiele, neun Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
+Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 1001, sechs Cricket-Spiele, neun Partyspiele und acht Trainingsspiele, allein, als Match mit bis zu vier Spielern, als Partyspiel mit bis zu acht oder als Turnier mit bis zu acht. Home Assistant zählt jeden Dart, den das Board erkennt, erkennt Überwerfen, zeigt den Checkout-Weg und behält das Spiel über Neustarts hinweg. Du brauchst kein Autodarts-Konto, keine Cloud und keinen Browser-Tab.
 
 <img src="images/de/lobby.webp" alt="Animation: Auf dem Tablet am Board öffnet Neues Spiel die Spielauswahl, Cricket wird gewählt, Sam kommt zu Alex dazu, die Legs pro Satz steigen auf drei und das Spiel startet auf der Anzeigetafel" width="760">
 
@@ -21,6 +21,8 @@ Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 100
 | [**Cut-Throat Cricket**](#cut-throat-cricket) | 1–4 oder zwei Teams zu zwei | Alles schließen, mit den wenigsten Punkten: Deine Punkte bekommen die anderen |
 | [**Tactics**](#tactics) | 1–4 oder zwei Teams zu zwei | Cricket auf 20 bis 10 und das Bull |
 | [**Wild Mouse**](#wild-mouse) | 1–4 oder zwei Teams zu zwei | Cricket plus drei Doubles, drei Triples und drei Darts in einem Feld |
+| [**Random Cricket**](#random-cricket) | 1–4 oder zwei Teams zu zwei | Cricket auf sechs Zahlen von 1 bis 20 und das Bull, für jedes Leg neu gezogen |
+| [**Hidden Cricket**](#hidden-cricket) | 1–4 oder zwei Teams zu zwei | Random Cricket, dessen Zahlen sich erst zeigen, wenn ein Dart sie findet |
 | [**Shanghai**](#shanghai) | 1–8 | Auf die Zahlen 1 bis 7 punkten; Single, Double und Triple in einer Aufnahme gewinnen sofort |
 | [**Halve-It**](#halve-it) | 1–8 | Das Ziel der Runde treffen, sonst halbieren sich die Punkte |
 | [**Killer**](#killer) | 2–8 | Die eigene Zahl erobern, Killer werden und den anderen die Leben nehmen |
@@ -147,7 +149,7 @@ Niemand zum Mitspielen? X01 und die Cricket-Spiele lassen sich gegen den Bot spi
 - **Sein Platz:** nach den Spielern. Mit dem Bot spielen bis zu drei Spieler, auch als vierter Spieler von zwei Teams; ein solches Team hat keinen Teamnamen. Wählst du X01 oder ein Cricket-Spiel für vier Spieler, während eine Bot-Stärke eingestellt ist, bittet dich die Meldung, erst Platz zu machen.
 - **Die Stärke ändern:** Während eines Matches spielt der Bot die neue Stärke ab seinem nächsten Dart. Den Bot dazuzusetzen oder mit `0` nach Hause zu schicken, beginnt ein neues Match; in Party- und Trainingsspielen, in denen er nicht mitspielt, ändert eine neue Stärke bis zum nächsten X01- oder Cricket-Spiel nichts.
 - **Sein Zug:** Sind deine Darts gezogen, wirft der Bot seine drei Darts nacheinander, jeweils nach der Pause von *Übungsspiel Bot-Pause* (2 Sekunden), und sie erscheinen auf den Karten dort, wo sie gelandet sind. Wirfst du, während er am Board ist, wirft er den Rest seiner Aufnahme sofort.
-- **Wie er spielt:** wie ein Spieler: auf die Triple 20 zum Punkten, entlang des Checkout-Wegs zum Checken und auf einen [Stellwurf](#x01), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt. Mit Double-In eröffnet er mit einem Double, das gewinnt oder für seine Darts einen checkbaren Rest lässt, sonst mit der Double 20 oder, wo die Double 20 überwerfen würde, mit einem kleineren Double; mit Master-In eröffnet er mit der Triple 20, wo sie nicht überwirft. Er spielt den Out-Modus und den Bull-Modus des Legs. Ohne Double-Out und ohne Checkout nimmt er das größte Feld, das nicht überwirft. Er zielt immer auf die üblichen Checkout-Wege, auch mit *Übungsspiel persönliche Checkout-Wege*, und die Karten zeigen diese Wege in seinem Zug. Seine Darts streuen so stark wie die eines Spielers seiner Stärke. [Wie der Bot spielt](how-it-works.de.md#bot).
+- **Wie er spielt:** wie ein Spieler: auf die Triple 20 zum Punkten, entlang des Checkout-Wegs zum Checken und auf einen [Stellwurf](#x01), wo es keinen Weg gibt; bei Cricket schließt er die Zahlen und punktet, solange er zurückliegt, und bei Hidden Cricket sucht er die noch verdeckten Zahlen. Mit Double-In eröffnet er mit einem Double, das gewinnt oder für seine Darts einen checkbaren Rest lässt, sonst mit der Double 20 oder, wo die Double 20 überwerfen würde, mit einem kleineren Double; mit Master-In eröffnet er mit der Triple 20, wo sie nicht überwirft. Er spielt den Out-Modus und den Bull-Modus des Legs. Ohne Double-Out und ohne Checkout nimmt er das größte Feld, das nicht überwirft. Er zielt immer auf die üblichen Checkout-Wege, auch mit *Übungsspiel persönliche Checkout-Wege*, und die Karten zeigen diese Wege in seinem Zug. Seine Darts streuen so stark wie die eines Spielers seiner Stärke. [Wie der Bot spielt](how-it-works.de.md#bot).
 - **Was zählt:** Die Darts des Bots zählen für niemandes Statistik, Bestleistungen oder Erfolge; das Ergebnis des Matches zählt in deinem Spielerprofil. Partyspiele, Trainingsspiele und Turniere laufen ohne Bot; nach einem Turnier kommt der Bot mit den übrigen Einstellungen des Übungsspiels zurück.
 
 <img src="images/de/scoreboard-bot.png" alt="Anzeigetafel eines 301-Matches gegen den Bot: Alex spielt mit 169 Startpunkten und hat noch 169, und statt eines Checkouts zeigt die Karte T20 T20 S17 Rest 32; die Kachel des Bots heißt Bot Stärke 80" width="760">
@@ -276,6 +278,35 @@ Auch als Minnesota Cricket bekannt. Neben 20 bis 15 und dem Bull schließt jeder
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/wild-mouse-dark.png">
   <img src="images/de/wild-mouse-light.png" alt="Wofür ein Dart bei Wild Mouse zählt: für seine Zahl, solange sie für dich offen ist, ein Triple dreimal; sonst eine Mark auf Doubles oder Triples, solange sie offen sind; sonst punktet er auf einem Ziel, das du geschlossen hast und andere noch brauchen; sonst zählt er nichts und wird durchgestrichen. Der dritte Dart: Alle drei im selben Feld schließen 3 in a Bed oder punkten, wenn es schon geschlossen ist" width="560">
+</picture>
+
+### Random Cricket
+
+Cricket auf Zahlen, die mit jedem Leg wechseln, wie es Scolia, Granboard und Dartsmind anbieten: Kein Leg verlangt dieselben Doubles und Triples wie das letzte, und das hält auch eingespielte Runden wach.
+
+<img src="images/de/scoreboard-random-cricket.png" alt="Anzeigetafel bei Random Cricket zwischen Alex und Sam: die Kreidetafel mit den Zahlen, die das Leg gezogen hat, 16, 10, 9, 7, 3 und 2, und dem Bull. Alex hat die 16, grün gerahmt, wo ein Dart punktet, und die 10 geschlossen und 16 Punkte; Sam hat die 10 geschlossen und die 9 zweimal markiert; die T10 von Alex steckt im Board, und T9 ist das nächste Ziel" width="760">
+
+- **Zahlen:** Jedes Leg zieht zufällig sechs verschiedene Zahlen von 1 bis 20; das Bull ist immer dabei. Die Kreidetafel zeigt sie von der höchsten an. Das nächste Leg zieht neue, ebenso ein neues Leg und ein neues Match, das du startest.
+- **Marks, Punkte und Sieg** folgen den Regeln von [Cricket](#cricket). Ein Dart auf eine Zahl, die das Leg nicht gezogen hat, zählt nichts und wird durchgestrichen.
+- **Mit dem Spiel gespeichert:** Eine zurückgenommene Aufnahme und ein Neustart von Home Assistant spielen mit denselben Zahlen weiter.
+- **Der Caller** nennt die Zahlen, wenn ein Leg beginnt, etwa *Die Zahlen 18, 14, 11, 7, 5, 2 und das Bull*.
+
+### Hidden Cricket
+
+Random Cricket mit einem Geheimnis: Die sechs Zahlen des Legs bleiben verdeckt, bis ein Dart sie findet.
+
+<img src="images/de/hidden-cricket.webp" alt="Animation: Hidden Cricket zwischen Alex und Sam auf der Anzeigetafel. Die Kreidetafel beginnt mit sechs Fragezeichen und dem Bull. Die T20, T19 und T18 von Alex treffen keine Zahl des Legs und zählen nichts; die T15 von Sam deckt die 15 auf und schließt sie, während T17 und T16 nichts zählen; auch die T14, T13 und T12 von Alex finden nichts; die T11 und die T9 von Sam decken die 11 und die 9 auf und schließen sie, und Alex, wieder am Board, hat T15 als Ziel und gelbe Rahmen auf den drei Zahlen, die Sam geschlossen hat" width="760">
+
+- **Zahlen:** sechs von 1 bis 20, für jedes Leg neu gezogen wie bei Random Cricket, und das Bull. Die Kreidetafel zeigt für jede Zahl ein Fragezeichen, bis ein Dart sie markiert; von da an zeigt ihre Zeile die Zahl allen. Das Bull ist immer zu sehen. Die Zeilen behalten die Reihenfolge der Ziehung, damit die Zeile, in der eine Zahl auftaucht, nichts über die noch verdeckten verrät.
+- **Marks, Punkte und Sieg** folgen den Regeln von [Cricket](#cricket): Der Dart, der eine Zahl findet, markiert sie, und ein Dart auf eine Zahl, die das Leg nicht gezogen hat, zählt nichts.
+- **Ziel:** Das Board umrandet die höchste aufgedeckte Zahl, die noch offen ist, dann das Bull und, sind diese geschlossen, eine aufgedeckte Zahl zum Punkten. Auf eine verdeckte Zahl zeigt es nie: Sie zu finden, ist deine Sache.
+- **Der Bot** spielt die aufgedeckten Zahlen; hat er sie geschlossen, sucht er die anderen, mit jedem Dart auf dem Triple einer anderen Zahl ([wie](how-it-works.de.md#bot)).
+- **Kein Spicken:** *Übungsspiel Restpunkte* hat `null` für eine noch verdeckte Zahl, sodass weder die Karten noch der Verlauf von Home Assistant sie verraten.
+- **Der Caller** nennt eine Zahl, sobald sie aufgedeckt ist, etwa *Die 17 ist im Spiel*.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/hidden-cricket-rules-dark.png">
+  <img src="images/de/hidden-cricket-rules-light.png" alt="Was ein Dart bei Hidden Cricket bewirkt: Jedes Leg zieht sechs der Zahlen 1 bis 20, die verdeckt bleiben, und das Bull, das immer zu sehen ist. Ein Dart auf eine Zahl, die das Leg nicht gezogen hat, zählt nichts. Ein Dart auf eine gezogene Zahl, die noch verdeckt ist, deckt sie in ihrer Zeile für alle auf und markiert sie. Ein Dart auf eine aufgedeckte Zahl markiert sie oder punktet, wie bei Cricket" width="460">
 </picture>
 
 ## Partyspiele

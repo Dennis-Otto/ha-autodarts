@@ -36,7 +36,7 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    X01 von 101 bis 1001 mit dem Checkout-Weg nach jedem Dart, Cricket, Cut-Throat Cricket, Tactics und Wild Mouse und neun Partyspiele für bis zu acht, allein oder als Match mit bis zu vier Spielern, mit Legs, Sätzen, Teams und Handicap.
+    X01 von 101 bis 1001 mit dem Checkout-Weg nach jedem Dart, Cricket, Cut-Throat Cricket, Tactics, Wild Mouse, Random und Hidden Cricket und neun Partyspiele für bis zu acht, allein oder als Match mit bis zu vier Spielern, mit Legs, Sätzen, Teams und Handicap.
 
     [:octicons-arrow-right-24: Spiele und Regeln](games.de.md)
 

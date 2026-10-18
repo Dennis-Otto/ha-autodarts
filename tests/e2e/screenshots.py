@@ -2293,6 +2293,16 @@ ROUTE = """
   return hass.states[entity.entity_id].state;
 }
 """
+# The numbers of the Cricket game being played, as the practice game shows them.
+CRICKET_NUMBERS = """
+() => {
+  const hass = document.querySelector('home-assistant').hass;
+  const entity = Object.values(hass.entities).find(
+    (item) => item.platform === 'autodarts' && item.translation_key === 'practice_remaining'
+  );
+  return hass.states[entity.entity_id].attributes.numbers;
+}
+"""
 # Replaces the secret of the online bridge on the screen before a screenshot.
 MASK_SECRET = """
 () => {
@@ -2513,6 +2523,49 @@ def bermuda_animation(page: Page) -> None:
         dart_by_dart(board, recorder, darts)
     recorder.shot(1600)
     recorder.save("bermuda")
+    board.close()
+    end_match(page)
+
+
+def random_cricket_scoreboard(page: Page) -> None:
+    """Random Cricket on the scoreboard: the six numbers the leg drew, highest
+    first, and the bull; a dart on a number the leg did not draw counts nothing."""
+    board = match_of(page, ["Alex", "Sam"], "random_cricket")
+    numbers = page.evaluate(CRICKET_NUMBERS)
+    first, second, third = numbers[:3]
+    unused = next(number for number in range(20, 0, -1) if number not in numbers)
+    throw_visits(
+        board,
+        [
+            [at(f"T{first}"), at(f"S{first}"), at(f"S{second}")],
+            [at(f"T{second}"), at(f"D{third}"), at(f"S{unused}")],
+        ],
+    )
+    # Alex's treble closes the second number, which Sam has closed already.
+    control({"event": "Throw detected", "throws": [at(f"T{second}")]})
+    wait_card(
+        board,
+        "r.querySelectorAll('.cricket tbody tr')[1]?.children[1]?.textContent === 'Ⓧ'",
+        SCOREBOARD,
+    )
+    page_shot(board, "scoreboard-random-cricket")
+    board.close()
+    end_match(page)
+
+
+def hidden_cricket_animation(page: Page) -> None:
+    """Hidden Cricket on the scoreboard: a question mark for every number of the
+    leg that no dart has marked yet. The players sweep the board from the 20
+    down; a dart on a number of the leg shows it in its row, and one on a number
+    the leg did not draw counts nothing."""
+    board, recorder = scoreboard_match(page, "hidden_cricket")
+    recorder.shot(1400)
+    visit_shots(
+        board,
+        recorder,
+        [[f"T{number - dart}" for dart in range(3)] for number in (20, 17, 14, 11)],
+    )
+    recorder.save("hidden-cricket")
     board.close()
     end_match(page)
 
@@ -3293,6 +3346,8 @@ def more_games(browser: Browser) -> None:
     bermuda_animation(page)
     round_the_world_animation(page)
     gotcha_animation(page)
+    random_cricket_scoreboard(page)
+    hidden_cricket_animation(page)
     bull_off_animation(page)
     bobs_27_animation(page)
     context.close()

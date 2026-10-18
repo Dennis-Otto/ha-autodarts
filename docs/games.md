@@ -6,7 +6,7 @@ description: "X01, Cricket, party and training games in Home Assistant: matches,
 
 [← Documentation](README.md) · [Deutsch](games.de.md)
 
-Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, four Cricket games, nine party games and eight training games, alone, as a match of up to four players, a party game of up to eight or a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
+Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001, six Cricket games, nine party games and eight training games, alone, as a match of up to four players, a party game of up to eight or a tournament of up to eight. Home Assistant counts every dart the board detects, recognizes busts, shows the checkout route and keeps the game through restarts. No Autodarts account, no cloud and no browser tab are needed.
 
 <img src="images/en/lobby.webp" alt="Animation: on the tablet at the board, New game opens the game screen, Cricket is chosen, Sam joins Alex, the legs per set go up to three and the game starts on the scoreboard" width="760">
 
@@ -21,6 +21,8 @@ Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001,
 | [**Cut-Throat Cricket**](#cut-throat-cricket) | 1–4, or two teams of two | Close everything with the fewest points: your points go to the others |
 | [**Tactics**](#tactics) | 1–4, or two teams of two | Cricket on 20 to 10 and the bull |
 | [**Wild Mouse**](#wild-mouse) | 1–4, or two teams of two | Cricket plus three doubles, three triples and three darts in one bed |
+| [**Random Cricket**](#random-cricket) | 1–4, or two teams of two | Cricket on six numbers of 1 to 20 and the bull, drawn anew for every leg |
+| [**Hidden Cricket**](#hidden-cricket) | 1–4, or two teams of two | Random Cricket whose numbers show only once a dart finds them |
 | [**Shanghai**](#shanghai) | 1–8 | Score on the numbers 1 to 7; single, double and triple in one visit win at once |
 | [**Halve-It**](#halve-it) | 1–8 | Hit the target of the round, or your points are halved |
 | [**Killer**](#killer) | 2–8 | Win your number, become a killer and take the others' lives |
@@ -147,7 +149,7 @@ Nobody to play with? X01 and the Cricket games can be played against the bot, a 
 - **Its seat:** after the players. With the bot, up to three players play, also as the fourth player of two teams; such a team has no team name. Choosing X01 or a Cricket game for four players while a bot level is set asks you to make room first.
 - **Changing the level** during a match lets the bot play the new level from its next dart. Seating the bot, or sending it home with `0`, starts a new match; in party and training games, where it does not play, a new level changes nothing until the next X01 or Cricket game.
 - **Its turn:** when your darts are pulled, the bot throws its three darts one by one, with the pause of *Practice bot delay* (2 seconds) before each, and they appear on the cards where they landed. Throw while it is at the board, and it throws the rest of its visit at once.
-- **How it plays:** like a player: at the triple 20 to score, along the checkout route to finish and at a [setup](#x01) where no route exists; in Cricket it closes the numbers and scores while it is behind. With double in, it opens with a double that wins or leaves a finish for its darts, otherwise with the double 20, or with a smaller double where the double 20 would bust; with master in, it opens with the triple 20 where it does not bust. It plays the out mode and the bull mode of the leg. Without double out and without a finish, it takes the biggest bed that does not bust. It always aims at the usual checkout routes, also with *Practice personal checkout routes*, and the cards show those routes for its turn. Its darts scatter as much as those of a player of its level. [How the bot plays](how-it-works.md#bot).
+- **How it plays:** like a player: at the triple 20 to score, along the checkout route to finish and at a [setup](#x01) where no route exists; in Cricket it closes the numbers and scores while it is behind, and in Hidden Cricket it searches for the numbers that do not show yet. With double in, it opens with a double that wins or leaves a finish for its darts, otherwise with the double 20, or with a smaller double where the double 20 would bust; with master in, it opens with the triple 20 where it does not bust. It plays the out mode and the bull mode of the leg. Without double out and without a finish, it takes the biggest bed that does not bust. It always aims at the usual checkout routes, also with *Practice personal checkout routes*, and the cards show those routes for its turn. Its darts scatter as much as those of a player of its level. [How the bot plays](how-it-works.md#bot).
 - **What counts:** the bot's darts count for nobody's statistics, personal bests or achievements; the result of the match counts in your player profile. Party games, training games and tournaments are played without the bot; after a tournament, the bot comes back with the other practice settings.
 
 <img src="images/en/scoreboard-bot.png" alt="Scoreboard of a 301 match against the bot: Alex, who plays from a start score of 169, has 169 left, and instead of a checkout the card shows T20 T20 S17 leaves 32; the bot's tile reads Bot Level 80" width="760">
@@ -276,6 +278,35 @@ Also known as Minnesota Cricket. Besides 20 to 15 and the bull, every player clo
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/wild-mouse-dark.png">
   <img src="images/en/wild-mouse-light.png" alt="Where a dart counts in Wild Mouse: its number while it is open for you, a triple three times; otherwise one mark on Doubles or Triples while they are open; otherwise it scores on a target you closed that others still need; otherwise it counts nothing and is struck through. The third dart: all three in one bed close 3 in a bed, or score once it is closed" width="560">
+</picture>
+
+### Random Cricket
+
+Cricket on numbers that change with every leg, as Scolia, Granboard and Dartsmind offer it: no two legs ask for the same doubles and triples, which keeps a group of regulars on their toes.
+
+<img src="images/en/scoreboard-random-cricket.png" alt="Scoreboard in Random Cricket between Alex and Sam: the chalkboard with the numbers the leg drew, 16, 10, 9, 7, 3 and 2, and the bull. Alex has closed the 16, framed in green where a dart scores, and the 10, with 16 points; Sam has closed the 10 and marked the 9 twice; Alex's T10 is on the board, and T9 is the next target" width="760">
+
+- **Numbers:** every leg draws six different numbers from 1 to 20 at random; the bull is always in. The chalkboard shows them highest first. The next leg draws new ones, and so do a new leg and a new match that you start.
+- **Marks, points and the win** follow the rules of [Cricket](#cricket). A dart on a number the leg did not draw counts nothing and is struck through.
+- **Kept with the game:** an undone visit and a restart of Home Assistant play on with the same numbers.
+- **The caller** names the numbers when a leg begins, such as *Numbers 18, 14, 11, 7, 5, 2 and the bull*.
+
+### Hidden Cricket
+
+Random Cricket with a secret: the six numbers of the leg stay hidden until a dart finds them.
+
+<img src="images/en/hidden-cricket.webp" alt="Animation: Hidden Cricket between Alex and Sam on the scoreboard. The chalkboard starts with six question marks and the bull. Alex's T20, T19 and T18 hit no number of the leg and count nothing; Sam's T15 shows the 15 and closes it, while the T17 and T16 count nothing; Alex's T14, T13 and T12 find nothing either; Sam's T11 and T9 show and close the 11 and the 9, and Alex, at the board again, has T15 as the target and amber frames on the three numbers Sam has closed" width="760">
+
+- **Numbers:** six of 1 to 20, drawn anew for every leg as in Random Cricket, and the bull. The chalkboard shows a question mark for each number until a dart marks it; from then on its row shows the number to everybody. The bull always shows. The rows keep the order of the draw, so the row a number shows up in says nothing about the numbers still hidden.
+- **Marks, points and the win** follow the rules of [Cricket](#cricket): the dart that finds a number marks it, and a dart on a number the leg did not draw counts nothing.
+- **Target:** the board outlines the highest number that shows and is still open, then the bull, and once those are closed, a number that shows to score on. It never points at a hidden number: finding those is up to you.
+- **The bot** plays the numbers that show; once it has closed them, it searches for the others with the triple of a different number with every dart ([how](how-it-works.md#bot)).
+- **No peeking:** *Practice remaining score* has `null` for a number that does not show yet, so neither the cards nor the history of Home Assistant give it away.
+- **The caller** names a number as soon as it shows, such as *17 is in*.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/hidden-cricket-rules-dark.png">
+  <img src="images/en/hidden-cricket-rules-light.png" alt="What a dart does in Hidden Cricket: every leg draws six of the numbers 1 to 20, which stay hidden, and the bull, which always shows. A dart on a number the leg did not draw counts nothing. A dart on a drawn number that does not show yet shows it to everybody in its row and marks it. A dart on a number that shows marks it or scores, as in Cricket" width="460">
 </picture>
 
 ## Party games

@@ -1,0 +1,13 @@
+flowchart TB
+  accTitle: What a dart does in Hidden Cricket
+  accDescr: Every leg draws six of the numbers 1 to 20, which stay hidden, and the bull, which always shows. A dart on a number the leg did not draw counts nothing. A dart on a drawn number that does not show yet shows it to everybody in its row and marks it. A dart on a number that shows marks it or scores, as in Cricket.
+  LEG["A leg begins:<br/>six of 1 to 20 drawn<br/>and hidden; the<br/>bull shows"] --> DART["A dart lands"]
+  DART --> DRAWN{"On a number<br/>of the leg?"}
+  DRAWN -- "no" --> NOTHING["It counts nothing:<br/>that number is not<br/>in the leg"]
+  DRAWN -- "yes" --> SHOWN{"Does the number<br/>show already?"}
+  SHOWN -- "no" --> REVEAL["Its row shows<br/>the number to all,<br/>and the dart<br/>marks it"]
+  SHOWN -- "yes" --> MARK["The dart marks it<br/>or scores, as in Cricket"]
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
+  class REVEAL done
+  class NOTHING warn

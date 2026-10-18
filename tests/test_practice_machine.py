@@ -37,6 +37,7 @@ from .local_helpers import dart
 
 KINDS = [
     *(101, 301, "cricket", "cut_throat", "tactics"),
+    *("random_cricket", "hidden_cricket"),
     *("shanghai", "halve_it", "killer", "golf", "baseball", "count_up"),
     *("bermuda", "round_the_world", "gotcha"),
     *DRILLS,
