@@ -1071,6 +1071,96 @@
     },
     "voice_bed_miss": {
       "message": "Raté"
+    },
+    "caller_require": {
+      "message": "{name}, il vous reste {remaining}"
+    },
+    "caller_setup": {
+      "message": "{name}, laissez {leave}"
+    },
+    "caller_setup_alone": {
+      "message": "Laissez {leave}"
+    },
+    "caller_limit_leg": {
+      "message": "Limite de tours, et la manche, {name}\u00a0!"
+    },
+    "caller_limit_leg_alone": {
+      "message": "Limite de tours, et la manche\u00a0!"
+    },
+    "caller_limit_match": {
+      "message": "Limite de tours, et le match, {name}\u00a0!"
+    },
+    "caller_limit_match_alone": {
+      "message": "Limite de tours, et le match\u00a0!"
+    },
+    "caller_bull_off_turn": {
+      "message": "{name}, lancez pour le bull"
+    },
+    "caller_bull_off": {
+      "message": "{name} commence. Game on\u00a0!"
+    },
+    "caller_bot": {
+      "message": "Bot"
+    },
+    "caller_maximum": {
+      "message": "Cent quatre-vingts\u00a0!"
+    },
+    "caller_treble": {
+      "message": "Triple {number}"
+    },
+    "report_title": {
+      "message": "Votre semaine de fléchettes"
+    },
+    "report_darts": {
+      "message": "{darts} fléchettes."
+    },
+    "report_darts_time": {
+      "message": "{darts} fléchettes en {time} devant la cible."
+    },
+    "report_darts_sessions": {
+      "message": "{darts} fléchettes, {sessions}."
+    },
+    "report_darts_time_sessions": {
+      "message": "{darts} fléchettes en {time} devant la cible, {sessions}."
+    },
+    "report_minute": {
+      "message": "1 minute"
+    },
+    "report_minutes": {
+      "message": "{count} minutes"
+    },
+    "report_session": {
+      "message": "1 session"
+    },
+    "report_sessions": {
+      "message": "{count} sessions"
+    },
+    "report_average": {
+      "message": "Moyenne 3 fléchettes {average}."
+    },
+    "report_average_change": {
+      "message": "Moyenne 3 fléchettes {average} ({change} par rapport à la semaine précédente)."
+    },
+    "report_best_visit": {
+      "message": "Meilleure volée {score}."
+    },
+    "report_best_visit_180": {
+      "message": "Meilleure volée {score}, {count} × 180."
+    },
+    "report_checkout_rate": {
+      "message": "Taux de finish {rate}\u00a0%."
+    },
+    "report_streak_day": {
+      "message": "1 jour d'affilée."
+    },
+    "report_streak_days": {
+      "message": "{count} jours d'affilée."
+    },
+    "report_new_best": {
+      "message": "1 nouveau record personnel."
+    },
+    "report_new_bests": {
+      "message": "{count} nouveaux records personnels."
     }
   },
   "issues": {

@@ -60,7 +60,7 @@ Yes: any screen whose browser opens your Home Assistant, such as a tablet on the
 
 ### Which languages does it speak, and which voices does the caller have?
 
-English, German, Dutch, French and Spanish, following the language of Home Assistant: setup, entities, cards and the caller. The caller of the scoreboard speaks with a voice of the screen's browser for that language, or with the recorded sounds of a voice pack, such as one of darts-caller or one you record with Piper. The dart caller and practice caller blueprints speak through the text-to-speech and the speakers of your Home Assistant. [Languages](README.md#languages) · [Which caller?](automations.md#which-caller)
+English, German, Dutch, French and Spanish, following the language of Home Assistant: setup, entities, cards and the caller. The caller of the scoreboard speaks with a voice of the screen's browser for that language, or with the recorded sounds of a voice pack, such as one of darts-caller or one you record with Piper. The dart caller and practice caller blueprints speak in the language of Home Assistant, through the text-to-speech and the speakers of your Home Assistant. [Languages](README.md#languages) · [Which caller?](automations.md#which-caller)
 
 ## Privacy
 

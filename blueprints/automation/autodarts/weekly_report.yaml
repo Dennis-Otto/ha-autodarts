@@ -13,8 +13,10 @@ blueprint:
     `training_minutes`, `average`, `average_change`, `highest_visit`,
     `scores_180`, `checkout_rate`, `legs`, `matches`, `streak`,
     `daily_goals`, `personal_bests` (how many were set), `week_start`,
-    `week_end` and `summary`, a ready-made summary in English. Without your
-    own actions, the report appears in the notifications of Home Assistant.
+    `week_end` and `summary`, a ready-made summary in the language of Home
+    Assistant (in English with an older version of the integration). Without
+    your own actions, the report appears in the notifications of Home
+    Assistant.
 
 
     [Settings and examples in the guide](https://dennis-otto.github.io/ha-autodarts/automations.html#weekly-report)
@@ -54,15 +56,19 @@ blueprint:
       input:
         report_title:
           name: Title
-          description: The title of the notification, available as `title`.
-          default: Your darts week
+          description: >-
+            The title of the notification, available as `title`.
+            `{{ week_title }}` says "Your darts week" in the language of Home
+            Assistant.
+          default: "{{ week_title }}"
           selector:
             text: {}
         report_message:
           name: Message
           description: >-
             The text of the notification, available as `message`. For example
-            `{{ summary }}`, or in German `{{ darts }} Darts, 3-Dart-Average
+            `{{ summary }}`, the summary in the language of Home Assistant, or
+            your own words, such as `{{ darts }} darts, 3-dart average
             {{ average }}`.
           default: "{{ summary }}"
           selector:
@@ -121,8 +127,14 @@ variables:
   personal_bests: "{{ trigger.to_state.attributes.get('personal_bests') | default([], true) | count }}"
   week_start: "{{ trigger.to_state.attributes.get('week_start') }}"
   week_end: "{{ trigger.to_state.attributes.get('week_end') }}"
+  # The title and the summary in the language of Home Assistant, from the
+  # integration. An older version of the integration gives neither; then they
+  # are English.
+  week_title: "{{ trigger.to_state.attributes.get('title') or 'Your darts week' }}"
   summary: >-
-    {% set change = '' if average_change is none
+    {% set said = trigger.to_state.attributes.get('summary') %}
+    {%- if said is string %}{{ said }}{% else %}
+    {%- set change = '' if average_change is none
       else ' (' ~ ('+' if average_change > 0 else '') ~ average_change ~ ' on the week before)' %}
     {%- set parts = [
       darts ~ ' darts'
@@ -137,7 +149,7 @@ variables:
       (personal_bests ~ ' new personal best' ~ ('' if personal_bests == 1 else 's') ~ '.')
         if personal_bests else '',
     ] %}
-    {{- parts | select | join(' ') }}
+    {{- parts | select | join(' ') }}{% endif %}
   title: !input report_title
   message: !input report_message
 
