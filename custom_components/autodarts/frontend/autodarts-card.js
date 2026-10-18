@@ -6909,7 +6909,8 @@ const TREND_METRICS = [
     percent: true,
     of: (sums) => ratioOf(sums.double_hits, sums.double_attempts, 100),
   },
-  { key: "darts", label: "darts", digits: 0, of: (sums) => (sums.darts > 0 ? sums.darts : null) },
+  // A sum, not a ratio: its arrow compares the darts of a complete week.
+  { key: "darts", label: "darts", digits: 0, perWeek: true, of: (sums) => (sums.darts > 0 ? sums.darts : null) },
 ];
 
 // The last weeks of a trend, oldest first, each with its sums.
@@ -6938,16 +6939,26 @@ function addWeeks(weeks) {
 }
 
 // Every figure of a player's trend: its value over the weeks, the value of each
-// week for the sparkline, and whether the newer half of the weeks is better.
+// week for the sparkline, and whether the newer half of the weeks is better. A ratio
+// such as the average compares the two halves. A sum such as the darts compares what
+// a week of either half adds up to, a week without darts with none, and only the
+// complete weeks: the newer half can hold a week more than the older one, and the
+// last week is the current one, which has only begun.
 function trendView(trend, size = 12) {
   const weeks = trendWeeks(trend, size);
-  const half = Math.floor(weeks.length / 2);
   return TREND_METRICS.map((metric) => {
-    const before = metric.of(addWeeks(weeks.slice(0, half)));
-    const after = metric.of(addWeeks(weeks.slice(half)));
-    // Without both halves there is nothing to compare, and no arrow.
+    const compared = metric.perWeek ? weeks.slice(0, -1) : weeks;
+    const half = Math.floor(compared.length / 2);
+    const figure = (part) => {
+      const value = metric.of(addWeeks(part));
+      return metric.perWeek && part.length ? (value ?? 0) / part.length : value;
+    };
+    const before = figure(compared.slice(0, half));
+    const after = figure(compared.slice(half));
+    // Without both halves there is nothing to compare, and no arrow; neither without a
+    // figure in any of the weeks compared, such as complete weeks without darts.
     let direction = null;
-    if (before !== null && after !== null) {
+    if (before !== null && after !== null && metric.of(addWeeks(compared)) !== null) {
       direction = "steady";
       const change = after - before;
       if (Math.abs(change) >= Math.max(0.5, Math.abs(before) * 0.02)) direction = change > 0 ? "up" : "down";
@@ -11818,7 +11829,7 @@ function createElements(Base) {
       const asked = this._positionsFor;
       if (asked === key || asked === `${darts}|aim` || typeof this._hass.callWS !== "function") return;
       this._positionsFor = key;
-      let result = null;
+      let result;
       try {
         result = await this._hass.callWS({
           type: "autodarts/positions",
@@ -11827,7 +11838,10 @@ function createElements(Base) {
           ...(aim ? { aim: true } : {}),
         });
       } catch {
-        // A board that is being removed has no positions to show.
+        // No answer is no board without positions: after a restart of Home Assistant or a
+        // dropped connection, the drawing stays as it is and the next update asks again.
+        if (this._positionsFor === key) this._positionsFor = null;
+        return;
       }
       if (this._positionsFor !== key) return;
       const positions = validPositions(result?.positions);
