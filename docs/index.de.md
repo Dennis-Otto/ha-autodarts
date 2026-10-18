@@ -68,7 +68,7 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Board-Ereignisse für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match. Vierzehn Blueprints: Lichtshow, Spielstand-Anzeige, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen sowie Spielstart und Darts per Sprache.
+    Board-Ereignisse für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, gewonnene Leg und Match. Fünfzehn Blueprints: Lichtshow, Spielstand-Anzeige, Dart- und Übungs-Caller, Highlight-Fotos, Berichte, Warnungen, Routinen, Spielstart und Darts per Sprache sowie Antworten von Assist zu deinen Darts.
 
     [:octicons-arrow-right-24: Automationen](automations.de.md)
 
@@ -84,11 +84,13 @@ Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direk
 
     ---
 
-    Sag Assist „Starte 501 für Alex und Sam“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch, und das Spiel beginnt; dann gibt „Alex hat 140“ oder „Triple 20“ die Darts ein, wie am Dartautomaten. Jedes Spiel startet auch mit einer Aktion einer Automation.
+    Sag Assist „Starte 501 für Alex und Sam“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch, und das Spiel beginnt; dann gibt „Alex hat 140“ oder „Triple 20“ die Darts ein, wie am Dartautomaten, und „Wie ist mein Schnitt heute?“ beantworten die Statistiken des Boards. Jedes Spiel startet auch mit einer Aktion einer Automation.
 
     [:octicons-arrow-right-24: Spiel per Sprache starten](automations.de.md#spiel-per-sprache-starten)
 
     [:octicons-arrow-right-24: Darts per Sprache eingeben](automations.de.md#enter-darts-by-voice)
+
+    [:octicons-arrow-right-24: Assist nach deinen Darts fragen](automations.de.md#ask-assist-about-your-darts)
 
 </div>
 
@@ -167,7 +169,7 @@ Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, 
 
     ---
 
-    Vierzehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele.
+    Fünfzehn Blueprints, ihre Einstellungen, Board-Ereignisse und fertige Beispiele.
 
 - :material-play-network:{ .lg .middle } [**Online-Matches**](online-matches.de.md)
 

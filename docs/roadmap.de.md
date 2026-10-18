@@ -131,6 +131,7 @@ In Arbeit; jeder Teil kommt in die [Betas](installation.de.md#betas-für-tester)
 | Thema | Was es bringt | Stand |
 | --- | --- | --- |
 | **Darts per Sprache** | „Alex hat 140“, „Checkout mit zwei Darts“, „Triple 20“, „Nächster Spieler“ und „Rückgängig“ zu Assist, auf Deutsch, Englisch, Spanisch, Französisch und Niederländisch, mit einer Antwort in den Worten des Callers ([Blueprint](automations.de.md#enter-darts-by-voice)) | Fertig |
+| **Fragen an Assist** | „Wie ist mein Schnitt heute?“, „Wie viele 180er diese Woche?“, „Was ist mein höchster Checkout?“, „Wer führt die Bestenliste an?“ und „Wohin soll ich zielen?“ an Assist, auf Deutsch, Englisch, Spanisch, Französisch und Niederländisch, beantwortet aus den Statistiken des Boards ([Blueprint](automations.de.md#ask-assist-about-your-darts)) | Fertig |
 
 ## Als Nächstes
 
@@ -138,7 +139,6 @@ Ideen für die Versionen nach 1.12. Stimmen und Reaktionen auf die [Feature-Wün
 
 | Thema | Was es bringt | Voraussetzung |
 | --- | --- | --- |
-| **Fragen an Assist** | „Wie ist mein Average heute?“, „Wie viele 180er diese Woche?“ als eigene Sätze | Sätze, die sich am Board natürlich anfühlen, von Spielern, die die Sprache sprechen |
 | **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert; ein Spieler hat 2.0.2 unter Linux als funktionierend gemeldet ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Testberichte von Spielern, die es unter Windows nutzen |
 | **Cloud-Verknüpfung** | Cloud-Spieldaten und die Momente von Online-Matches ohne Browser-Erweiterung: Überwerfen, gewonnene Legs und Matches und jeder Dart, als dieselben Board-Ereignisse wie bei der Online-Brücke ([die Cloud-Verknüpfung](online-matches.de.md#die-cloud-verknüpfung)), auch für Boards ohne Board Manager in deinem Netzwerk wie Lens | Eine OAuth-Client-ID von Autodarts; sie ist beantragt, und die Integration ist dafür bereit ([Entscheidung 0020](decisions/0020-a-public-client-for-the-cloud-link.md), auf Englisch) |
 | **HACS-Standardkatalog** | Installation, ohne ein benutzerdefiniertes Repository hinzuzufügen | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |

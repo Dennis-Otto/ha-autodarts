@@ -1621,6 +1621,19 @@ class Scenario:
             {"practice_game": "off", "practice_manual_entry": "off"}
         )
 
+    async def voice_questions(self) -> None:
+        """The blueprint answers questions about the darts from the statistics of the
+        board, which it finds in a real Home Assistant as in the tests: Assist answers
+        in the language of the voice assistant, English here, also to German."""
+        best = (await self.state("personal_best"))["attributes"].get("highest_checkout")
+        said = await self.say("What is my best checkout?")
+        wanted = f"Your best checkout is {best}." if best else "No checkout yet."
+        check(said == wanted, f"Assist answered {said!r}, not {wanted!r}")
+        week = (await self.state("weekly_report"))["attributes"]["scores_180"]
+        said = await self.say("Wie viele 180er habe ich diese Woche geworfen?")
+        wanted = f"180s this week: {week}." if week else "No 180 this week yet."
+        check(said == wanted, f"Assist answered {said!r}, not {wanted!r}")
+
     async def card(self) -> None:
         """The bundled dashboard card and the strategy's own small module are served
         and loaded without a resource, from the folder of one version with the texts
@@ -2116,6 +2129,7 @@ async def main() -> None:
         await phase("play comfort", scenario.play_comfort())
         await phase("voice", scenario.voice())
         await phase("voice entry", scenario.voice_entry())
+        await phase("voice questions", scenario.voice_questions())
         await phase("card", scenario.card())
         await phase("people", scenario.people())
         await phase("gallery", scenario.gallery())
