@@ -50,9 +50,11 @@ class AutodartsManualCoordinator(AutodartsGamesCoordinator):
 
     async def async_shutdown(self) -> None:
         # No dart of the Granboard comes in while the games are saved.
-        if self.granboard:
-            await self.granboard.async_stop()
-        await super().async_shutdown()
+        try:
+            if self.granboard:
+                await self.granboard.async_stop()
+        finally:
+            await super().async_shutdown()
 
     def diagnostics(self) -> dict[str, Any]:
         """What a dartboard without Autodarts connects to: nothing, or a Granboard."""

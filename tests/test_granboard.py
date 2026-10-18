@@ -553,6 +553,60 @@ async def test_a_board_without_the_service(hass, ble):
     assert (await link_diagnostics(hass, entry))["failures"] == 1
 
 
+class StuckClient(FakeClient):
+    """A client whose proxy is gone: it cannot even disconnect."""
+
+    async def start_notify(self, characteristic, notified) -> None:
+        raise BleakError("proxy gone")
+
+    async def disconnect(self) -> None:
+        self.disconnects += 1
+        raise BleakError("proxy gone")
+
+
+async def test_a_board_that_cannot_disconnect_is_tried_again(hass, ble):
+    clients = [StuckClient()]
+
+    async def connect(client_class, device, name, **kwargs):
+        ble.calls.append(kwargs)
+        return clients.pop(0) if clients else FakeClient()
+
+    with patch.object(granboard, "establish_connection", connect):
+        entry = await setup_granboard(hass)
+        stats = await link_diagnostics(hass, entry)
+        assert (stats["failures"], stats["last_error"]) == (1, "BleakError")
+        await later(hass, 2.1)
+    assert len(ble.calls) == 2
+    assert connectivity(hass) == "on"
+
+
+async def test_unloading_a_board_that_cannot_disconnect(hass, ble):
+    entry = await connected(hass, ble)
+    client = ble.client
+
+    async def disconnect() -> None:
+        client.disconnects += 1
+        raise TimeoutError
+
+    client.disconnect = disconnect
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert client.disconnects == 1
+    assert ble.unregistered == 1
+
+
+async def test_a_frame_cut_off_by_a_disconnect_is_dropped(hass, ble):
+    entry = await connected(hass, ble)
+    # Half a frame, then the board goes.
+    await notify(hass, ble.client, b"3.")
+    ble.calls[0]["disconnected_callback"](ble.client)
+    await later(hass, 2.1)
+    await later(hass, WARM_UP_SECONDS + 0.1)
+    await notify(hass, ble.client, b"3.4@")
+    assert visit(entry) == ["T20"]
+    assert (await link_diagnostics(hass, entry))["unknown_frames"] == []
+
+
 async def test_unloading_lets_the_board_go(hass, ble):
     entry = await connected(hass, ble)
     client = ble.client
@@ -669,3 +723,19 @@ async def test_an_autodarts_board_takes_the_place_of_the_granboard(
     assert "granboard" not in entry.data
     assert "manual_board" not in entry.data
     assert ble.client.disconnects == 1
+    # The board's detection has no Granboard, so no sensor of one is left behind.
+    entities = er.async_get(hass)
+    assert (
+        entities.async_get_entity_id(
+            "binary_sensor",
+            "autodarts",
+            f"{entry.data['board_id']}_granboard_connected",
+        )
+        is None
+    )
+    assert (
+        entities.async_get_entity_id(
+            "binary_sensor", "autodarts", f"{BOARD_ID}_granboard_connected"
+        )
+        is None
+    )

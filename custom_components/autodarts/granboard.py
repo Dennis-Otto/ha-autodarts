@@ -18,6 +18,7 @@ them, and docs/granboard.md tells a tester how to check every bed.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import re
 from collections import deque
@@ -234,7 +235,7 @@ class GranboardLink:
         self._seen_unsub = self._retry_unsub = self._warm_unsub = None
         client, self._client = self._client, None
         if client is not None:
-            await client.disconnect()
+            await _let_go(client)
 
     @callback
     def _async_seen(
@@ -287,6 +288,8 @@ class GranboardLink:
             self._retry_later()
             return
         client: BleakClientWithServiceCache | None = None
+        # A frame cut off by the last disconnect must not join the first new one.
+        self._reader = FrameReader()
         try:
             client = await establish_connection(
                 BleakClientWithServiceCache,
@@ -308,11 +311,11 @@ class GranboardLink:
                 "The Granboard of %s did not connect: %s", self.board.device_name, err
             )
             if client is not None:
-                await client.disconnect()
+                await _let_go(client)
             self._retry_later()
             return
         if self._stopped:
-            await client.disconnect()
+            await _let_go(client)
             return
         self._client = client
         self._retries = 0
@@ -401,3 +404,9 @@ def _notify_characteristic(
         if "notify" in characteristic.properties:
             return characteristic
     raise BleakError(f"No notify characteristic in the service {SERVICE_UUID}")
+
+
+async def _let_go(client: BleakClientWithServiceCache) -> None:
+    """Disconnect, even from a board or a proxy that is gone already."""
+    with contextlib.suppress(BleakError, TimeoutError):
+        await client.disconnect()

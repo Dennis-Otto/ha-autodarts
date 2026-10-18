@@ -516,6 +516,10 @@ class AutodartsConfigFlow(ConfigFlow, domain=DOMAIN):
         old = entry.data[CONF_BOARD_ID]
         entities = er.async_get(self.hass)
         for item in er.async_entries_for_config_entry(entities, entry.entry_id):
+            if item.unique_id == f"{old}_granboard_connected":
+                # The Autodarts board has no Granboard, so its sensor goes.
+                entities.async_remove(item.entity_id)
+                continue
             unique_id = board_id + item.unique_id.removeprefix(old)
             # An entity left behind by an earlier entry of the board gives way.
             if taken := entities.async_get_entity_id(item.domain, DOMAIN, unique_id):
