@@ -871,6 +871,12 @@
     "voice_pack_require_score": {
       "message": "Il vous reste {remaining}"
     },
+    "voice_pack_target": {
+      "message": "Cible"
+    },
+    "voice_pack_any_double": {
+      "message": "N'importe quel double"
+    },
     "voice_pack_name": {
       "message": "Le pack de voix {pack} n'a pas de nom de dossier valide\u00a0: jusqu'à 64 lettres, chiffres, espaces, points, tirets et tirets bas, qui commencent et finissent par une lettre ou un chiffre."
     },

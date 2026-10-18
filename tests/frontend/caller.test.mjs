@@ -353,6 +353,21 @@ test("every dart is called as it lands, by its bed or its points, before what it
   // The darts on the board when a game ends were called in the game already.
   const after = callerState(visit(dart(20, 3), dart(25, 2), dart(0, 0)), idle, states[3]);
   assert.deepEqual(callerCalls(states[3], after, bed).filter((call) => call.kind === "dart"), []);
+  // The darts of a bull-off are those on the board, with no score after the third.
+  const bullOff = { mode: "bulloff", bullOff: {} };
+  const off = callerState(visit(), bullOff, empty);
+  const bull = callerState(visit(dart(25, 1)), bullOff, off);
+  assert.deepEqual(callerCalls(off, bull, bed), [{ kind: "dart", key: "25", by: "bed" }]);
+  const three = callerState(visit(dart(25, 1), dart(25, 2), dart(0, 0)), bullOff, bull);
+  assert.deepEqual(calls(bull, three, bed), ["dart", "dart"]);
+  // A player alone whose takeout the card missed: fewer darts after the board booked the
+  // visit are the next visit's, also where it starts on the same bed.
+  const booked = (time, ...darts) => ({ state: "0", attributes: { throws: darts, recent_visits: [{ time }] } });
+  const misses = callerState(booked("1"), drill(["MISS", "MISS", "MISS"]), first);
+  const onceMore = callerState(booked("2"), drill(["MISS"]), misses);
+  assert.deepEqual(calls(misses, onceMore, bed), ["dart"]);
+  // Before the booking, a dart taken back calls nothing.
+  assert.deepEqual(calls(misses, callerState(booked("1"), drill(["MISS"]), misses), bed), []);
 });
 
 test("a dart, a route and a target read like a caller in the card's language", () => {
@@ -450,6 +465,16 @@ test("with the route on, the caller says where the checkout goes, after each dar
   const start = callerState(visit(), training, idle);
   assert.deepEqual(calls(idle, start, { ...route, call_target: true }), ["require", "route"]);
   assert.equal(start.target, null);
+  // A dart that busts in the checkout training sends the player back to the start: no route
+  // for the darts left, which count nothing.
+  const practise = (thrown, overrides = {}) => ({
+    mode: "drill",
+    drill: { ...training.drill, thrown, ...overrides },
+  });
+  const nineteen = callerState(visit(), practise(["S19"], { remaining: 62, route: ["T10", "D16"] }), start);
+  assert.deepEqual(calls(start, nineteen, route), ["route"]);
+  const busted = callerState(visit(), practise(["S19", "T20"], { bust: true }), nineteen);
+  assert.deepEqual(calls(nineteen, busted, route), []);
 });
 
 test("with the target on, training and party games call what to aim at next", () => {

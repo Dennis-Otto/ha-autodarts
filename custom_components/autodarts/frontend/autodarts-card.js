@@ -7660,8 +7660,9 @@ function callerState(visit, view, previous = null) {
   const current = view ?? { mode: "idle" };
   const game = current.practice ?? current.cricket ?? current.party ?? null;
   const winner = game?.scores?.find((score) => score.player === game.winner);
-  // Darts after a bust or a game shot are not among the darts of the game.
-  const idle = current.mode === "idle" ? visitThrows(visit).map(dartKey) : [];
+  // Darts after a bust or a game shot are not among the darts of the game. Between games
+  // and in the bull-off, the darts are those on the board.
+  const idle = ["idle", "bulloff"].includes(current.mode) ? visitThrows(visit).map(dartKey) : [];
   const keys = game ? game.visit : (current.drill?.thrown ?? idle);
   // A checkout training has a remaining score, too.
   const remaining = current.practice?.remaining ?? current.drill?.remaining ?? null;
@@ -7697,6 +7698,12 @@ function callerState(visit, view, previous = null) {
     setup: current.practice?.setup?.leave ?? current.drill?.setup?.leave ?? null,
     target: aim || null,
     bust: game?.bust === true,
+    // A visit that counts nothing more: a bust, in a game or a checkout training, which calls
+    // no bust of its own.
+    voided: game?.bust === true || current.drill?.bust === true,
+    // When the board booked its last visit: a visit that came after it is another one, also
+    // where the card missed the takeout in between.
+    booked: newestVisit(visit) ?? null,
     won: game?.won === true,
     winner: game?.winner ?? null,
     winnerName: winner?.name ?? null,
@@ -7713,10 +7720,13 @@ const dartCalls = (options) => (DART_CALLS.slice(1).includes(options.call_darts)
 // The darts of the visit the caller has not called yet: those after the darts it knew of
 // this visit, a corrected dart included, or every dart of another player's visit. The darts
 // on the board when a game starts or ends were thrown before, so they are not called again.
+// Fewer darts after the board booked a visit are those of the next one, where the card
+// missed the takeout of a player alone in a game without a score to count from.
 function newDarts(previous, current) {
   if (previous.mode !== current.mode) return [];
   const darts = (state) => (state.visit ? state.visit.split(" ") : []);
-  const same = previous.player === current.player && previous.start === current.start;
+  const next = current.booked !== previous.booked && current.darts < previous.darts;
+  const same = previous.player === current.player && previous.start === current.start && !next;
   const known = same ? darts(previous) : [];
   const thrown = darts(current);
   const first = thrown.findIndex((key, index) => key !== known[index]);
@@ -7773,7 +7783,7 @@ function callerCalls(previous, current, options) {
   const route = current.route.join(" ");
   const changed = current.remaining !== previous.remaining || route !== previous.route.join(" ");
   const aiming = next || (current.darts > 0 && current.darts < 3 && changed && current.winner === null);
-  if (options.call_route === true && route && aiming && !current.bust && !current.bot) {
+  if (options.call_route === true && route && aiming && !current.voided && !current.bot) {
     calls.push({ kind: "route", route: current.route, ...(up ? {} : { remaining: current.remaining }) });
   }
   // The target of a training or a party game when it moves on, and for each player whose

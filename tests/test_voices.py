@@ -280,9 +280,9 @@ async def test_a_generated_pack_has_every_call_of_the_caller(
     voices_folder = folders(hass, tmp_path)
     answer = await generate(hass, language="de-DE", voice="de_DE-thorsten-medium")
     pack = voices_folder / "piper-en"
-    assert answer == {"pack": "piper-en", "folder": str(pack.resolve()), "sounds": 417}
+    assert answer == {"pack": "piper-en", "folder": str(pack.resolve()), "sounds": 419}
     said = words(pack)
-    assert len(said) == 417
+    assert len(said) == 419
     assert {key: said[key] for key in ("0", "1", "180", "s20", "d20", "t20")} == {
         "0": "Keine Punkte",
         "1": "1",
@@ -352,7 +352,7 @@ async def test_a_generated_pack_replaces_the_one_before_and_nothing_else(
     assert not (pack / "old.mp3").exists()
     # An empty folder of that name is no recorded pack.
     (voices_folder / "fresh").mkdir()
-    assert (await generate(hass, pack="fresh"))["sounds"] == 417
+    assert (await generate(hass, pack="fresh"))["sounds"] == 419
     # A pack someone copied there, or a file of that name, stays as it is.
     recorded(voices_folder / "russ-bray", "180.mp3")
     (voices_folder / "loose.mp3").write_bytes(MP3)
@@ -395,7 +395,7 @@ async def test_a_pack_that_fails_halfway_leaves_the_one_before(
         "pack": "piper-en",
         "error": "Piper is not running",
     }
-    assert len(words(voices_folder / "piper-en")) == 417
+    assert len(words(voices_folder / "piper-en")) == 419
     assert sorted(path.name for path in voices_folder.iterdir()) == ["piper-en"]
     # A sound no browser plays is no sound of a pack.
     engine.fail_at = None
@@ -459,7 +459,7 @@ async def test_one_pack_at_a_time(hass, tmp_path, engine, integration):
         await generate(hass, pack="second")
     assert error.value.translation_key == "voice_pack_busy"
     engine.wait.set()
-    assert (await first)["sounds"] == 417
+    assert (await first)["sounds"] == 419
 
 
 async def test_only_administrators_and_automations_generate_packs(
@@ -495,6 +495,8 @@ def test_every_call_has_its_words():
             "voice_bed_outer",
             "voice_bed_bull",
             "voice_bed_miss",
+            "voice_pack_target",
+            "voice_pack_any_double",
         )
     }
     say |= {
@@ -504,4 +506,6 @@ def test_every_call_has_its_words():
     }
     said = pack_words(say)
     assert said["yr_99"] == "need 99" and said["t19"] == "T19" and said["s1"] == "1"
-    assert len(said) == 417
+    assert said["bs_target_is"] == "voice_pack_target"
+    assert said["bs_any_double"] == "voice_pack_any_double"
+    assert len(said) == 419

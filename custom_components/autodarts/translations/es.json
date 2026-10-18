@@ -871,6 +871,12 @@
     "voice_pack_require_score": {
       "message": "Te quedan {remaining}"
     },
+    "voice_pack_target": {
+      "message": "Objetivo"
+    },
+    "voice_pack_any_double": {
+      "message": "Cualquier doble"
+    },
     "voice_pack_name": {
       "message": "El paquete de voz {pack} no tiene un nombre de carpeta válido: hasta 64 letras, cifras, espacios, puntos, guiones y guiones bajos que empiecen y terminen con una letra o una cifra."
     },

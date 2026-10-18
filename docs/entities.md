@@ -842,7 +842,7 @@ response_variable: sound
 
 ### Record a voice pack: `autodarts.generate_voice_pack`
 
-Records a [voice pack](scoreboard.md#voice-packs) with a text-to-speech engine of Home Assistant: every call of the caller in 417 sounds, named as in the voice packs of darts-caller, in `autodarts/voices` of the media folder. With [Piper](https://www.home-assistant.io/integrations/piper/), the voice never leaves your home. For administrators; automations can use it, too.
+Records a [voice pack](scoreboard.md#voice-packs) with a text-to-speech engine of Home Assistant: every call of the caller in 419 sounds, named as in the voice packs of darts-caller, in `autodarts/voices` of the media folder. With [Piper](https://www.home-assistant.io/integrations/piper/), the voice never leaves your home. For administrators; automations can use it, too.
 
 | Field | Values | Description |
 | --- | --- | --- |
@@ -860,7 +860,7 @@ data:
   pack: piper-en
 ```
 
-The pack has the points `0`, said as "No score", to `180`, `busted`, `gameshot`, `matchshot`, `you_require`, `yr_2` to `yr_170`, and every dart for the dart caller: `s1` to `s20`, `d1` to `d20`, `t1` to `t20`, `bull`, `bullseye` and `outside`. It takes as long as the engine needs for 417 short sentences, a few minutes. One pack is recorded at a time; a second call meanwhile is refused. The sounds are recorded next to the pack and replace it only when all of them are done, so a pack that fails halfway leaves the one before as it was. The action replaces only a pack it recorded itself: a folder of that name with other files, such as a pack of darts-caller, stays as it is, and the action asks for another name.
+The pack has the points `0`, said as "No score", to `180`, `busted`, `gameshot`, `matchshot`, `you_require`, `yr_2` to `yr_170`, and every dart for the dart caller: `s1` to `s20`, `d1` to `d20`, `t1` to `t20`, `bull`, `bullseye` and `outside`, and `bs_target_is` and `bs_any_double` for the targets of the training and party games. It takes as long as the engine needs for 419 short sentences, a few minutes. One pack is recorded at a time; a second call meanwhile is refused. The sounds are recorded next to the pack and replace it only when all of them are done, so a pack that fails halfway leaves the one before as it was. The action replaces only a pack it recorded itself: a folder of that name with other files, such as a pack of darts-caller, stays as it is, and the action asks for another name.
 
 **Response:** with `response_variable`, `pack` is the name of the pack, `folder` its folder and `sounds` the number of its sounds.
 

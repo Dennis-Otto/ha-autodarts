@@ -871,6 +871,12 @@
     "voice_pack_require_score": {
       "message": "You require {remaining}"
     },
+    "voice_pack_target": {
+      "message": "Target"
+    },
+    "voice_pack_any_double": {
+      "message": "Any double"
+    },
     "voice_pack_name": {
       "message": "The voice pack {pack} has no valid folder name: up to 64 letters, digits, spaces, dots, dashes and underscores that start and end with a letter or a digit."
     },
