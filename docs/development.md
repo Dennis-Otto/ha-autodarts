@@ -474,6 +474,29 @@ browser jobs, differs from that of `hacs.json`.
 `tests/test_e2e_workflow.py` runs the steps of *changes* and of the gate in bash,
 with a stand-in for `gh`.
 
+### When a check of this project fails
+
+A check that fails explains itself, also to a contributor from a fork: the [PR coach](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#when-a-check-fails) of the blueprint says what it found, why that matters and how to fix it, with the commands to run. It takes the checks of the blueprint from `.github/checks.toml`, and those of this project alone from `.github/checks.project.toml`. When a job of the end-to-end tests or of the visual check fails, its last step, *Explain the failure*, writes the explanation into the summary of the job and as its annotation. After the checks, the coach shows it in its one comment on the pull request; the comment follows the visual check as well, because the answer `test_workflows` of `.copier-answers.yml` names it.
+
+| Check | What its explanation names | How it is fixed |
+| --- | --- | --- |
+| *e2e*, which `main` requires | the test job that had to run and didn't pass | by the job that failed |
+| *scenario (…)* | `tests/e2e/run.sh` with the Board Manager of the job, and how to run the oldest Home Assistant | by a person |
+| *browser (…)* | `tests/e2e/browser.sh` with the `BROWSER_SHARD` of the job, and `BROWSER_STEPS` for one step | by a person |
+| *live demo* | `tests/e2e/live_demo.sh`, and `scripts/record_demo.py` for a recording that no longer fits | by a person |
+| *e2e (Home Assistant beta)*, at night | the scenario and the browser test with the beta image | by a person |
+| *render (…)* and *compare (…)* of the visual check | `tests/e2e/visual.sh` for the group and the language | by a person; an image that only looks different is no failure, the screenshot bot renders it after the merge |
+| the step *Checks of this project* of `scripts/check.sh` | the license, ESLint and the tests of the cards and of the translation bot with Node | by the fix bot, as far as a command can |
+
+What a command can fix, the fix bot fixes. When the check *check (home-assistant)* fails, it runs the commands of `autofix` of every step of `scripts/check.sh`; the step *Checks of this project* names ESLint's fixes of the cards, `python scripts/sync_translations.py` and `python scripts/ship_blueprints.py`. The sync of the translations copies `strings.json` to `translations/en.json` and puts the texts of every other language in the order of `strings.json`, without those that it no longer has; a text that a language misses stays for a person: write it in the language, or ask in the pull request for a maintainer or a native speaker to add it before the merge ([translations](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)). After the checks, the bot commits the files that changed onto the branch of the pull request, or suggests them at their lines on a pull request from a fork, and `python3 .github/blueprint.py fix run` makes the same fixes on your machine. Both reach the step *Checks of this project* once the blueprint finds a step inside an `if` of `scripts/check.sh` ([Dennis-Otto/repo-blueprint#351](https://github.com/Dennis-Otto/repo-blueprint/issues/351)); until then, run its three commands yourself.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/check-coach-dark.png">
+  <img src="images/en/check-coach-light.png" alt="How a check of this project explains and fixes itself: A job of the end-to-end tests or of the visual check fails. Its last step, Explain the failure, takes what failed, why it matters and how to fix it from .github/checks.project.toml, and writes it into the summary of the job and as its annotation. After the checks, the PR coach shows it in its one comment on the pull request, also on one from a fork. When the CI fails, the fix bot runs the commands that fix what a command can fix, ESLint, the sync of the translations and the shipped blueprints, and commits their fixes onto the branch of the pull request, or suggests them at their lines on a fork. A person fixes the rest with the commands of the explanation, and the checks run again." width="560">
+</picture>
+
+A new job of the end-to-end tests or of the visual check comes with its explanation in `.github/checks.project.toml` and its step *Explain the failure*. `tests/test_pr_coach.py` fails for a job without them, for an explanation without `autofix`, which names the commands of the fix bot or the reason why no command can fix the check, and for a required check without an explanation.
+
 ### Network of the jobs
 
 Every job begins with [Harden-Runner](https://github.com/step-security/harden-runner).
@@ -495,7 +518,7 @@ GitHub's own services of Actions itself, such as the storage of artifacts and ca
 | *compare* and *collect* | `github.com`, `pypi.org`, `files.pythonhosted.org` | Pillow for the comparison |
 | *live demo* of the end-to-end tests | `github.com`, `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, `pypi.org`, `files.pythonhosted.org` | the Playwright image and the Python packages of the browser test |
 | *timeline* of the screenshot bot | `github.com`, `pypi.org`, `files.pythonhosted.org` | the packages of the tests, whose Home Assistant plays the games of the live demo; Python comes from the runner |
-| the gate *e2e* | none | It only reads the results of the other jobs. Its run shows the warning that both `allowed-endpoints` and `denied-endpoints` are empty: that is expected, because an empty list blocks every host apart from GitHub's services of Actions. |
+| the gate *e2e* | `github.com` | It reads the results of the other jobs, and after a failure it checks out `.github/` for the explanations of the [PR coach](#when-a-check-of-this-project-fails). |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/job-network-dark.png">

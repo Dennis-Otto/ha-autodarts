@@ -45,8 +45,13 @@ done
 def run_step(
     tmp_path: Path, job: str, env: dict[str, str]
 ) -> tuple[subprocess.CompletedProcess[str], dict[str, str], str, str]:
-    """Run the step of a job; the result, its outputs, its summary and the calls of gh."""
-    (run,) = [step["run"] for step in JOBS[job]["steps"] if "run" in step]
+    """Run the step of a job; the result, its outputs, its summary and the calls of gh.
+    The step of the PR coach after a failure only explains it (tests/test_pr_coach.py)."""
+    (run,) = [
+        step["run"]
+        for step in JOBS[job]["steps"]
+        if "run" in step and step.get("name") != "Explain the failure"
+    ]
     (tmp_path / "step.sh").write_text(run, encoding="utf-8", newline="\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
