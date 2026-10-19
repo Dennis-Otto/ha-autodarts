@@ -4,6 +4,8 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.17.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.16.0...v1.17.0) (2026-10-19)
+
 ### New
 
 - **Tournaments of up to 32 players, in a double elimination or groups with a knockout:** a knockout now takes up to 32 players, with a round of 16 and a round of 32, and two formats join the round robin and the knockout. In a **double elimination**, nobody is out before losing two matches: a loser of the winners' bracket gets a second chance in the losers' bracket, the winners of both meet in the grand final, and a deciding final follows if the winner of the losers' bracket wins it. With **groups and knockout**, six to 32 players play a round robin in two to eight groups, of about four players unless you choose the number, and the best of every group, two unless you choose one to four, go on into a knockout, where the group winners are the top seeds and nobody meets a player of their own group in its first round. Choose them on the new game screen, with steppers for the groups and how many of each go on, or with `start_tournament` (`format: double_knockout` or `groups_knockout`, `groups`, `advance`). Between the matches, the scoreboard shows the tables of the groups side by side with the places that go on marked, and the losers' bracket below the winners' bracket; brackets of 16 and 32 places get smaller boxes. *Tournament players* shows as many names as its 255 characters hold, then `…`, and lists them all in its attribute `players`. A round robin still takes up to eight players ([tournaments](docs/games.md#tournaments), #381, #385).
