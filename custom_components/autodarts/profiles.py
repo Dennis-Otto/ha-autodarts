@@ -156,6 +156,16 @@ class Profiles:
         profile = self.players.get(_key(name))
         return profile.name if profile else name
 
+    def rate(self, name: str, cricket: bool) -> float | None:
+        """A player's 3-dart average, or marks per round in Cricket; None
+        before the player's first darts of the game."""
+        profile = self.players.get(_key(name))
+        if profile is None:
+            return None
+        if cricket:
+            return _ratio(profile.cricket_marks, profile.cricket_darts, 3, 2)
+        return _ratio(profile.x01_points, profile.x01_darts, 3, 2)
+
     def _profile(self, name: str | None) -> Profile | None:
         name = clean_name(name) if name else ""
         if not name:

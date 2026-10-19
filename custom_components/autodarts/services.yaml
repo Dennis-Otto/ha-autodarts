@@ -342,6 +342,13 @@ start_tournament:
       selector:
         config_entry:
           integration: autodarts
+    boards:
+      required: false
+      selector:
+        device:
+          multiple: true
+          filter:
+            integration: autodarts
     players:
       required: false
       example: '["Dennis", "Lea", "Max", "Kim"]'

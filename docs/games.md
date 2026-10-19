@@ -40,7 +40,7 @@ Your Autodarts board plays games in Home Assistant itself: X01 from 101 to 1001,
 | [**Catch 40**](#catch-40) | 1 | Check out 61 to 100, the faster the more points |
 | [**JDC Challenge**](#jdc-challenge) | 1 | The 57-dart routine of the Junior Darts Corporation |
 | [**Singles training**](#singles-training) | 1 | One visit at each number, points per mark |
-| [**Tournament**](#tournaments) | 3–32 | A round robin, a knockout, a double elimination or groups with a knockout, of X01 or Cricket matches, one at a time |
+| [**Tournament**](#tournaments) | 3–32 | A round robin, a knockout, a double elimination or groups with a knockout, of X01 or Cricket matches, at one board or on several at once |
 
 ## Start a game
 
@@ -158,7 +158,7 @@ Nobody to play with? X01 and the Cricket games can be played against the bot, a 
 
 <img src="images/en/tournament-bracket.webp" alt="Animation: the knockout bracket of five players on the scoreboard. Lea beats Max in the quarter-final and slides into the semi-final; Alex beats Lea and goes into the final, Lea into the match for third place; Kim beats Sam, Lea takes third place and Alex wins the final" width="760">
 
-A tournament for three to 32 named players at one board, one match at a time, in one of four formats:
+A tournament for three to 32 named players, at one board one match at a time, or on [several boards at once](#a-tournament-on-several-boards), in one of four formats:
 
 - **Round robin**, three to eight players: everyone plays everyone once, and a table ranks the players.
 - **Knockout**, three to 32 players: the winners go on through a bracket until the final.
@@ -209,6 +209,32 @@ With groups, it shows the tables of the groups side by side, with the places tha
 <img src="images/en/tournament-double.png" alt="A double elimination of 32 players on the scoreboard after the first round of each bracket: next up Alex against Tim in winners round 2 with a countdown, the winners' bracket up to the grand final, and below it the losers' bracket up to the losers' final, its first round played" width="760">
 
 The [entity reference](entities.md#tournaments) lists the tournament's settings, buttons and actions, and the [scoreboard guide](scoreboard.md#tournaments) what the screen shows.
+
+### A tournament on several boards
+
+A club evening with two boards or more plays one tournament on all of them: every board plays a match of its own, and the table or the bracket takes the results of every board. Each board may be an Autodarts board or a [dartboard without Autodarts](without-autodarts.md), whose darts are entered on the keypad. Start the tournament on one board, which then holds it, and name the other boards in `boards`: in **Developer tools → Actions** with the device picker, or in an automation by their device or entry:
+
+```yaml
+action: autodarts.start_tournament
+data:
+  config_entry_id: 01JA0GARAGEBOARD0000000000 # the board that holds the tournament
+  boards: [01JA0CELLARBOARD0000000000] # the other boards
+  players: [Alex, Sam, Kim, Lea, Max, Tom]
+  format: round_robin
+  game: "501"
+```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/en/tournament-boards-dark.png">
+  <img src="images/en/tournament-boards-light.png" alt="How a tournament runs on several boards: The tournament starts on one board, with the other boards in boards. Every board takes a match at once if one is ready whose players play at no other board. When a match is decided and its darts are pulled, its result goes into the table or the bracket, which the board holding the tournament keeps for all boards. After the last match, every board goes back to its own games. Otherwise the board shows the summary and the pause, which the players of its next match get too. Then the board takes the next match whose players are known and free, as soon as it is clear; a board without such a match waits for a result of another board." width="560">
+</picture>
+
+- **Side by side:** every board starts a match at once. After its pause, a board takes the next match whose players are known and play at no other board, as soon as no darts are left on it: the board that is free first plays next. A board without such a match waits until a result of another board brings one, for example the final after both semi-finals.
+- **A pause for the players too:** the players of a match get the summary and the pause after their last match, wherever they played it, so nobody walks from one board straight into the next match. *Next tournament match* on a board starts its match at once.
+- **Every scoreboard:** the scoreboard of each board shows its own match with its round and number, and between the matches the table or the bracket of the whole tournament. Above it, a box for every board says what it plays or when its next match starts, the board's own box marked, and below them the expected end of the tournament.
+- **Expected end:** the matches still to play, one after the other on the board that is free first, each as long as the averages of its players make it: their average in the tournament, else that of their player profile at its start, else 40 points a visit. A visit takes 30 seconds until the matches played show the real pace. *Tournament* has the time in its attribute `ends_at`, at one board too.
+- **The board that holds it:** its *Tournament* sensor, its settings and its events stand for the whole tournament: `tournament_match_finished` of every board arrives there, with the `board` that played the match. The *Tournament* sensor of another board shows the same tournament, with its own match first. *Stop tournament* on any of the boards stops it on all of them; afterwards, every board goes back to its own practice settings. A match counts for the player profiles of the board it was played on.
+- **Restarts:** the boards find each other again after a restart of Home Assistant or the reload of a board, and every board keeps its match. A board that is switched off keeps its match until it is back; a board deleted from Home Assistant gives its match back for another board at once, and when the deleted board held the tournament, the other boards go back to their practice settings. A board that waits for a match another board still plays says so on the scoreboard, without *Start now*. A board that plays in a tournament starts no other one, and a tournament plays on up to eight boards.
 
 ### Tournament rules
 

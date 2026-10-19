@@ -986,6 +986,18 @@
     "tournament_match_running": {
       "message": "The tournament match of {first} against {second} is still being played. Play it to the end, or stop the tournament."
     },
+    "tournament_no_match": {
+      "message": "No match of the tournament is ready for this board yet. It starts once another board has a result."
+    },
+    "board_in_tournament": {
+      "message": "{board} plays in a tournament already. Stop that tournament first."
+    },
+    "tournament_boards": {
+      "message": "A tournament plays on up to {max} boards at once."
+    },
+    "unknown_board": {
+      "message": "{board} is no Autodarts board."
+    },
     "no_dart": {
       "message": "The current visit has no dart {dart}."
     },
@@ -1526,6 +1538,10 @@
         "config_entry_id": {
           "name": "Board",
           "description": "The Autodarts board. Needed only with more than one board."
+        },
+        "boards": {
+          "name": "Boards",
+          "description": "More boards that play matches of the tournament at the same time, by their device or entry: every board plays a match of its own, and the board of the action holds the tournament. Up to eight boards."
         },
         "players": {
           "name": "Players",

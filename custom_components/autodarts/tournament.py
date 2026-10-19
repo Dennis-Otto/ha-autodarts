@@ -1,4 +1,4 @@
-"""Tournaments of three to 32 named players at one board.
+"""Tournaments of three to 32 named players, at one board or at several.
 
 A tournament is a series of practice matches between two players at a time:
 X01, with a start score of their own for a handicap if wanted, or a Cricket
@@ -11,6 +11,13 @@ match starts after the summary of the match and a pause, never while darts of a
 visit are on the board. The matches count for the player profiles like any
 other match. When the tournament ends, the practice game goes back to its
 settings from before, with the next match or the next change of a setting.
+
+A tournament on several boards belongs to the board it was started on, the
+first of its boards. Every board plays a match of its own: a board whose pause
+is over takes the next match whose players are known and play at no other
+board, so the matches of a round run side by side. The players of a match get
+the pause after their last match too, wherever they played it. The tournament
+forecasts its end from the players' averages and the pace of its matches.
 """
 
 from __future__ import annotations
@@ -18,7 +25,7 @@ from __future__ import annotations
 import random
 import re
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from homeassistant.exceptions import ServiceValidationError
@@ -100,6 +107,18 @@ WIN_POINTS = 2
 RULES = MATCH_RULES
 # A match for third place needs two losing semi-finalists.
 THIRD_PLACE_ENTRANTS = 4
+# A tournament on several boards plays on two to eight boards at once.
+MIN_BOARDS = 2
+MAX_BOARDS = 8
+# The forecast of the end: a visit takes this many seconds at the board, the
+# takeout included, until the tournament has timed enough visits of its own; a
+# player without darts yet throws the default average or marks per round; an
+# X01 leg takes a visit for the checkout, and Cricket closes 21 marks.
+VISIT_SECONDS = 30
+TIMED_VISITS = 10
+DEFAULT_RATES = {"average": 40.0, "mpr": 1.5}
+CHECKOUT_VISITS = 1
+CRICKET_MARKS = 21
 
 TOURNAMENT_EVENTS = (
     "tournament_started",
@@ -138,6 +157,8 @@ STATES = [
 
 # The draw needs no cryptographic randomness.
 _RANDOM = random.Random()  # noqa: S311
+# Earlier than every stored time, for a match without one.
+_EPOCH = datetime.min.replace(tzinfo=UTC)
 
 
 def _invalid(key: str, **placeholders: str) -> ServiceValidationError:
@@ -173,6 +194,39 @@ def check_names(names: list[str]) -> None:
 
 def _flag(value: object, default: bool) -> bool:
     return value if isinstance(value, bool) else default
+
+
+def _moment(value: object) -> datetime | None:
+    """A stored time, in UTC when it names no time zone."""
+    moment = dt_util.parse_datetime(value) if isinstance(value, str) else None
+    if moment is not None and moment.tzinfo is None:
+        return moment.replace(tzinfo=UTC)
+    return moment
+
+
+def _rate(value: object) -> float | None:
+    """A 3-dart average or marks per round as stored, or None."""
+    if isinstance(value, int | float) and not isinstance(value, bool) and value > 0:
+        return float(value)
+    return None
+
+
+def _expected(count: int) -> float:
+    """How many legs or sets a match to win this many of them takes on average:
+    between the count and twice the count less one."""
+    return (3 * count - 1) / 2
+
+
+@dataclass
+class Seat:
+    """A board of a tournament: the ID of its entry and its name, both empty at
+    one board, the match it plays, and for a board other than the first the
+    practice settings from before the tournament, to go back to after it."""
+
+    key: str = ""
+    name: str = ""
+    match: int | None = None
+    saved: dict[str, Any] | None = None
 
 
 @dataclass
@@ -242,6 +296,8 @@ class Tournament:
         advance: int = DEFAULT_ADVANCE,
         seed: int | None = None,
         started: str | None = None,
+        boards: list[tuple[str, str]] | None = None,
+        rates: list[float | None] | None = None,
     ) -> None:
         self.format = format
         self.game = game
@@ -271,6 +327,12 @@ class Tournament:
         self.started = started
         self.ended: str | None = None
         self.status = PLAYING
+        # The boards that play the matches, the first one the tournament's own,
+        # and the averages or marks per round of the players' profiles at the
+        # start, for the forecast.
+        self.seats = [Seat(key, name) for key, name in boards or [("", "")]]
+        given = list(rates or [])
+        self.rates = [_rate(rate) for rate in [*given, *[None] * count][:count]]
         if format == ROUND_ROBIN:
             self.matches = round_robin(count)
         elif format == KNOCKOUT:
@@ -283,6 +345,14 @@ class Tournament:
             self.matches = [*stage, *shifted(later, len(stage))]
         for index in range(len(self.matches)):
             self._settle(index)
+        first = self.upcoming()
+        assert first is not None
+        self.begin(first, 0, started)
+
+    @property
+    def several(self) -> bool:
+        """Whether the tournament plays on several boards."""
+        return len(self.seats) > 1
 
     @property
     def kind(self) -> int | str:
@@ -299,14 +369,76 @@ class Tournament:
             (index for index, match in enumerate(self.matches) if match.ready), None
         )
 
-    def current(self) -> int | None:
-        """The match being played."""
-        return self.upcoming() if self.status == PLAYING else None
+    def last_played(self, board: int | None = None) -> int | None:
+        """The match that ended last, of all or at a board; of two that ended
+        at the same time, the later one in the order of play."""
+        played = [
+            index
+            for index, match in enumerate(self.matches)
+            if match.played and (board is None or match.board == board)
+        ]
+        return max(
+            played,
+            key=lambda index: (_moment(self.matches[index].ended) or _EPOCH, index),
+            default=None,
+        )
 
-    def last_played(self) -> int | None:
-        """The match that ended last."""
-        played = [index for index, match in enumerate(self.matches) if match.played]
-        return played[-1] if played else None
+    def free_for(self, board: int, index: int) -> bool:
+        """Whether a board can take this match: its players are known, and no
+        other board plays it or another match of them."""
+        match = self.matches[index]
+        if not match.ready:
+            return False
+        for number, seat in enumerate(self.seats):
+            if number == board or seat.match is None:
+                continue
+            if seat.match == index or not set(match.players).isdisjoint(
+                self.matches[seat.match].players
+            ):
+                return False
+        return True
+
+    def next_for(self, board: int) -> int | None:
+        """The match a board plays next: the first one it can take."""
+        return next(
+            (
+                index
+                for index in range(len(self.matches))
+                if self.free_for(board, index)
+            ),
+            None,
+        )
+
+    def begin(self, index: int, board: int, at: str | None) -> None:
+        """A board takes a match."""
+        match = self.matches[index]
+        self.seats[board].match = index
+        match.started = match.started or at
+        if self.several:
+            match.board = board
+        self.refresh()
+
+    def refresh(self) -> None:
+        """The status of a tournament still being played, after a board took
+        a match or ended one."""
+        busy = any(seat.match is not None for seat in self.seats)
+        self.status = PLAYING if busy else WAITING
+
+    def rested(self, index: int, board: int) -> datetime | None:
+        """When the board and the players of a match last ended a match."""
+        players = set(self.matches[index].players)
+        ends = [
+            moment
+            for match in self.matches
+            if match.played
+            and (
+                not self.several
+                or match.board == board
+                or not players.isdisjoint(match.players)
+            )
+            and (moment := _moment(match.ended)) is not None
+        ]
+        return max(ends, default=None)
 
     def names(self, match: Match) -> list[str | None]:
         return [
@@ -517,20 +649,110 @@ class Tournament:
             "sets": list(match.sets),
             "ended": match.ended,
         }
+        if self.several:
+            # The board, from 1, that plays or played the match.
+            result["board"] = None if match.board is None else match.board + 1
         if match.played:
             result[self._statistic] = self._averages(self._scored(match), match.darts)
         return result
 
-    def after(self, index: int) -> int | None:
-        """The match after this one in the order of play, known or not."""
+    def after(self, index: int, skip: set[int] | None = None) -> int | None:
+        """The match after this one in the order of play, known or not; with
+        skip, not one of those, such as the matches of the other boards."""
         return next(
             (
                 later
                 for later in range(index + 1, len(self.matches))
-                if not self.matches[later].bye and self.matches[later].winner is None
+                if not self.matches[later].bye
+                and self.matches[later].winner is None
+                and later not in (skip or set())
             ),
             None,
         )
+
+    # -- forecast --------------------------------------------------------------
+
+    def _rates_now(self) -> list[float]:
+        """The average or the marks per round of every player: in the
+        tournament, else from the profile at its start, else the default."""
+        count = len(self.players)
+        scored, darts = [0] * count, [0] * count
+        for match in self.matches:
+            if not match.played:
+                continue
+            for side, player in enumerate(match.players):
+                assert player is not None
+                scored[player] += self._scored(match)[side]
+                darts[player] += match.darts[side]
+        default = DEFAULT_RATES[self._statistic]
+        return [
+            measured or profile or default
+            for measured, profile in zip(
+                self._averages(scored, darts), self.rates, strict=True
+            )
+        ]
+
+    def _visit_seconds(self) -> float:
+        """How long a visit takes: as the matches played so far took them, once
+        they had enough of them, else the default."""
+        seconds, darts = 0.0, 0
+        for match in self.matches:
+            begun, ended = _moment(match.started), _moment(match.ended)
+            if match.played and begun and ended and ended > begun:
+                seconds += (ended - begun).total_seconds()
+                darts += sum(match.darts)
+        visits = darts / 3
+        return seconds / visits if visits >= TIMED_VISITS else VISIT_SECONDS
+
+    def _length(self, index: int, rates: list[float], visit: float) -> timedelta:
+        """How long a match takes: a leg ends once the faster of its players
+        has thrown their score down or closed the board, with as many visits of
+        the other one, times the legs and sets a match takes on average. A
+        player not known yet throws the mean of all players."""
+        match = self.matches[index]
+        mean = sum(rates) / len(rates)
+        visits = []
+        for player in match.players:
+            rate = mean if player is None else rates[player]
+            if self.game in CRICKET_GAMES:
+                visits.append(CRICKET_MARKS / rate)
+            else:
+                start = (player is not None and self.starts[player]) or int(self.game)
+                visits.append(start / rate + CHECKOUT_VISITS)
+        legs = _expected(self.legs_to_win) * _expected(self.sets_to_win)
+        return timedelta(seconds=legs * 2 * min(visits) * visit)
+
+    def ends_at(self, summary: int, pause: int) -> str | None:
+        """When the tournament is expected to end: every match still to play
+        on the board that is free first, with the summary and the pause between
+        two matches, each as long as the players' averages and the pace of the
+        tournament make it. Only stored times go in, so the forecast changes
+        with the tournament, not with the clock."""
+        start = _moment(self.started)
+        if start is None or self.status == FINISHED:
+            return None
+        gap = timedelta(seconds=summary + pause)
+        rates, visit = self._rates_now(), self._visit_seconds()
+        ends: list[datetime] = []
+        free: list[datetime] = []
+        for number, seat in enumerate(self.seats):
+            if seat.match is not None:
+                begun = _moment(self.matches[seat.match].started) or start
+                ends.append(begun + self._length(seat.match, rates, visit))
+                free.append(ends[-1] + gap)
+                continue
+            last = self.last_played(number if self.several else None)
+            ended = None if last is None else _moment(self.matches[last].ended)
+            ends.append(ended or start)
+            free.append(start if ended is None else ended + gap)
+        taken = {seat.match for seat in self.seats}
+        for index, match in enumerate(self.matches):
+            if match.bye or match.winner is not None or index in taken:
+                continue
+            board = free.index(min(free))
+            ends[board] = free[board] + self._length(index, rates, visit)
+            free[board] = ends[board] + gap
+        return max(ends).isoformat()
 
     def bracket(self, losers: bool = False) -> list[dict[str, Any]]:
         """The rounds of the bracket with their matches, byes included; the
@@ -595,6 +817,7 @@ class Tournament:
             "started": self.started,
             "ended": self.ended,
             "status": self.status,
+            "rates": list(self.rates),
             "matches": [
                 {
                     key: value
@@ -603,7 +826,29 @@ class Tournament:
                 }
                 for match in self.matches
             ],
+            # The boards of a tournament on several boards.
+            **(
+                {"seats": [asdict(seat) for seat in self.seats]} if self.several else {}
+            ),
         }
+
+    @staticmethod
+    def _boards(saved: object) -> list[tuple[str, str]] | None:
+        """The keys and names of the stored boards of a tournament on several
+        boards; None for one board, or for boards that make no sense."""
+        if not isinstance(saved, list) or not MIN_BOARDS <= len(saved) <= MAX_BOARDS:
+            return None
+        if not all(
+            isinstance(seat, dict)
+            and isinstance(seat.get("key"), str)
+            and isinstance(seat.get("name"), str)
+            for seat in saved
+        ):
+            return None
+        keys = {seat["key"] for seat in saved}
+        if len(keys) < len(saved):
+            return None
+        return [(seat["key"], seat["name"]) for seat in saved]
 
     @classmethod
     def restored(cls, saved: object) -> Tournament | None:
@@ -635,6 +880,8 @@ class Tournament:
         rules = rules if isinstance(rules, dict) else {}
         starts = saved.get("starts")
         seed = saved.get("seed")
+        rates = saved.get("rates")
+        boards = cls._boards(saved.get("seats"))
         tournament = cls(
             format=saved["format"],
             game=saved["game"],
@@ -650,18 +897,44 @@ class Tournament:
             advance=advance,
             seed=seed if type(seed) is int else None,
             started=saved["started"] if isinstance(saved.get("started"), str) else None,
+            boards=boards,
+            rates=rates if isinstance(rates, list) else None,
         )
         matches = saved.get("matches")
         for index, stored in enumerate(matches if isinstance(matches, list) else []):
             if not tournament._replay(index, stored):
                 break
+        for seat in tournament.seats:
+            seat.match = None
         if tournament.upcoming() is None:
             tournament.status = FINISHED
             ended = saved.get("ended")
             tournament.ended = ended if isinstance(ended, str) else None
+        elif boards is not None:
+            tournament._reseat(saved["seats"])
         elif saved.get("status") == WAITING and tournament.last_played() is not None:
             tournament.status = WAITING
+        else:
+            tournament.seats[0].match = tournament.upcoming()
+        # A match no board plays has not begun.
+        playing = {seat.match: number for number, seat in enumerate(tournament.seats)}
+        for index, match in enumerate(tournament.matches):
+            if match.winner is None:
+                match.started = match.started if index in playing else None
+                match.board = playing.get(index) if tournament.several else None
         return tournament
+
+    def _reseat(self, saved: list[dict[str, Any]]) -> None:
+        """The stored matches of the boards, where they fit, and the practice
+        settings of the boards to go back to."""
+        for number, (seat, stored) in enumerate(zip(self.seats, saved, strict=True)):
+            index = stored.get("match")
+            if type(index) is int and 0 <= index < len(self.matches):
+                if self.free_for(number, index):
+                    seat.match = index
+            if number:
+                seat.saved = valid_settings(stored.get("saved"))
+        self.refresh()
 
     def _replay(self, index: int, saved: object) -> bool:
         """A stored result for the match at this place; False where it does not fit."""
@@ -672,6 +945,7 @@ class Tournament:
             return True
         winner, ended = saved.get("winner"), saved.get("ended")
         if winner is None:
+            self._timed(match, saved)
             return True
         if (
             not match.ready
@@ -690,8 +964,17 @@ class Tournament:
             ):
                 setattr(match, key, list(values))
         match.winner, match.ended = winner, ended
+        self._timed(match, saved)
         self._advance(index)
         return True
+
+    def _timed(self, match: Match, saved: dict[str, Any]) -> None:
+        """When a board began the stored match, and which board."""
+        if _moment(saved.get("started")) is not None:
+            match.started = saved["started"]
+        board = saved.get("board")
+        if self.several and type(board) is int and 0 <= board < len(self.seats):
+            match.board = board
 
 
 class TournamentDirector:
@@ -701,6 +984,10 @@ class TournamentDirector:
     match is booked. Between two matches, the practice game holds the result:
     darts thrown meanwhile start no new match. The settings of the practice
     game from before the tournament go back to it when the tournament ends.
+
+    A tournament on several boards knows its boards by their key: the director
+    takes the practice game of the board a key names, and None for its own,
+    the first board of the tournament.
     """
 
     def __init__(self) -> None:
@@ -711,12 +998,42 @@ class TournamentDirector:
 
     @property
     def waiting(self) -> bool:
-        return self.tournament is not None and self.tournament.status == WAITING
+        """The board of the director waits for its next match."""
+        return self.waiting_at()
+
+    def waiting_at(self, board: str | None = None) -> bool:
+        tournament = self.tournament
+        return (
+            tournament is not None
+            and tournament.status != FINISHED
+            and tournament.seats[self._seat(board)].match is None
+        )
 
     @property
     def running(self) -> bool:
         """A tournament is being played, or waits for its next match."""
         return self.tournament is not None and self.tournament.status != FINISHED
+
+    def _seat(self, board: str | None) -> int:
+        """The place of a board among the boards of the tournament: 0 for the
+        board of the director, else the board of this key."""
+        tournament = self.tournament
+        if board is None or tournament is None:
+            return 0
+        return next(
+            number for number, seat in enumerate(tournament.seats) if seat.key == board
+        )
+
+    def guests(self) -> list[str]:
+        """The keys of the other boards of the tournament being played."""
+        tournament = self.tournament
+        if not self.running or tournament is None:
+            return []
+        return [seat.key for seat in tournament.seats[1:]]
+
+    def name(self) -> str:
+        """The name of the first board of the tournament."""
+        return self.tournament.seats[0].name if self.tournament else ""
 
     def configure(self, **values: Any) -> None:
         """Settings of the next tournament; None leaves one as it is."""
@@ -739,6 +1056,7 @@ class TournamentDirector:
         rules: dict[str, bool | None] | None = None,
         groups: int | None = None,
         advance: int | None = None,
+        boards: list[tuple[str, str]] | None = None,
         **setup: Any,
     ) -> list[tuple[str, dict[str, Any]]]:
         """Draw a tournament and set the practice game up for its first match.
@@ -748,7 +1066,9 @@ class TournamentDirector:
         the game's. A seed draws the order at random, the same order for the
         same seed. Groups with knockout make groups of about four players
         without a number of groups, of which two go on without a number of
-        their own. A tournament being played has to be stopped first.
+        their own. Boards, the key and the name of each with this board first,
+        make a tournament on several boards, which the other boards then join.
+        A tournament being played has to be stopped first.
         """
         if self.running:
             raise _invalid("tournament_running")
@@ -792,6 +1112,7 @@ class TournamentDirector:
         if seed is not None:
             random.Random(seed).shuffle(order)
         given = rules or {}
+        cricket = self.setup.game in CRICKET_GAMES
         self.tournament = Tournament(
             format=self.setup.format,
             game=self.setup.game,
@@ -811,12 +1132,14 @@ class TournamentDirector:
             advance=advance,
             seed=seed,
             started=now.isoformat(),
+            boards=boards,
+            rates=[practice.profiles.rate(name, cricket) for name, _ in order],
         )
         # The settings to go back to: those before an earlier tournament, if
         # the practice game has not gone back to them yet.
         self.saved = practice.resume or practice.settings()
         practice.resume = None
-        self._play(practice)
+        self._play(practice, 0)
         tournament = self.tournament
         return [
             (
@@ -836,9 +1159,53 @@ class TournamentDirector:
                         if tournament.groups
                         else {}
                     ),
+                    **(
+                        {"boards": [seat.name for seat in tournament.seats]}
+                        if tournament.several
+                        else {}
+                    ),
                 },
             )
         ]
+
+    def join(self, practice: PracticeGame, board: str, now: datetime) -> None:
+        """Another board takes its place as the tournament starts: its practice
+        settings wait for the end of the tournament, and it plays a match at
+        once if one is ready for it."""
+        tournament = self.tournament
+        assert tournament is not None
+        number = self._seat(board)
+        tournament.seats[number].saved = practice.resume or practice.settings()
+        practice.resume = None
+        practice.hold = False
+        index = tournament.next_for(number)
+        if index is not None:
+            tournament.begin(index, number, now.isoformat())
+            self._play(practice, number)
+
+    def attach(self, practice: PracticeGame, board: str) -> None:
+        """A board of the tournament is back after a restart: a result it
+        showed waits for its next match again."""
+        tournament = self.tournament
+        assert tournament is not None
+        number = self._seat(board)
+        practice.hold = (
+            tournament.seats[number].match is None
+            and tournament.last_played(number) is not None
+        )
+
+    def vacate(self, board: str) -> None:
+        """A board that left the tournament for good gives its match back, for
+        another board to play."""
+        tournament = self.tournament
+        if board not in self.guests() or tournament is None:
+            return
+        seat = tournament.seats[self._seat(board)]
+        if seat.match is not None:
+            match = tournament.matches[seat.match]
+            match.started = match.board = None
+            seat.match = None
+            tournament.refresh()
 
     def stop(self, practice: PracticeGame) -> None:
         """End the tournament; the practice match being played goes on, and
@@ -849,20 +1216,39 @@ class TournamentDirector:
         practice.hold = False
         self._hand_back(practice)
 
+    def release(self, practice: PracticeGame, board: str | None = None) -> None:
+        """A board after the tournament, or before it stops: the practice
+        settings from before come back with its next match or change of a
+        setting."""
+        practice.hold = False
+        if board is None:
+            self._hand_back(practice)
+            return
+        tournament = self.tournament
+        assert tournament is not None
+        seat = tournament.seats[self._seat(board)]
+        if seat.saved is not None:
+            practice.resume, seat.saved = seat.saved, None
+
     def _hand_back(self, practice: PracticeGame) -> None:
         """The practice settings from before the tournament go back to the
         practice game with its next match or change of a setting."""
         if self.saved is not None:
             practice.resume, self.saved = self.saved, None
 
-    def forget(self, name: str) -> None:
-        """Take a deleted player off the setup of the next tournament; a player
-        of the tournament being played cannot be deleted."""
+    def check(self, name: str) -> None:
+        """A player of the tournament being played cannot be deleted."""
         key = name.strip().casefold()
         tournament = self.tournament
         if self.running and tournament is not None:
             if any(player.casefold() == key for player in tournament.players):
                 raise _invalid("player_in_tournament", name=name.strip())
+
+    def forget(self, name: str) -> None:
+        """Take a deleted player off the setup of the next tournament; a player
+        of the tournament being played cannot be deleted."""
+        self.check(name)
+        key = name.strip().casefold()
         self.setup.players = [
             player for player in self.setup.players if player.casefold() != key
         ]
@@ -871,32 +1257,41 @@ class TournamentDirector:
                 "" if slot.casefold() == key else slot for slot in self.saved["names"]
             ]
 
-    def next_match(self, practice: PracticeGame) -> None:
-        """Start the next match now, or set the current one up again when the
-        practice game plays something else."""
+    def next_match(
+        self,
+        practice: PracticeGame,
+        board: str | None = None,
+        now: datetime | None = None,
+    ) -> None:
+        """Start the next match at a board now, or set its current one up again
+        when the practice game plays something else."""
         tournament = self.tournament
         if tournament is None:
             raise _invalid("no_tournament")
         if tournament.status == FINISHED:
             raise _invalid("tournament_finished")
-        index = tournament.upcoming()
-        assert index is not None
-        if tournament.status == PLAYING and self.plays(practice):
+        number = self._seat(board)
+        index = tournament.seats[number].match
+        if index is not None and self.plays(practice, board):
             first, second = tournament.names(tournament.matches[index])
             raise _invalid(
                 "tournament_match_running", first=str(first), second=str(second)
             )
-        tournament.status = PLAYING
-        self._play(practice)
+        if index is None:
+            index = tournament.next_for(number)
+            if index is None:
+                raise _invalid("tournament_no_match")
+            tournament.begin(index, number, (now or dt_util.utcnow()).isoformat())
+        self._play(practice, number)
 
-    def _play(self, practice: PracticeGame) -> None:
-        """The practice game as the current match wants it."""
+    def _play(self, practice: PracticeGame, number: int) -> None:
+        """The practice game as the match of a board wants it."""
         tournament = self.tournament
         assert tournament is not None
-        index = tournament.current()
+        index = tournament.seats[number].match
         assert index is not None
         entrants = tournament.matches[index].players
-        names = self._current_names()
+        names = self._current_names(number)
         for rule, value in tournament.rules.items():
             setattr(practice, rule, value)
         # The rules of the tournament, not an Out mode left for the next leg;
@@ -916,22 +1311,25 @@ class TournamentDirector:
         practice.set_format(tournament.legs_to_win, tournament.sets_to_win)
         practice.play(tournament.kind)
 
-    def _current_names(self) -> list[str]:
+    def _current_names(self, number: int) -> list[str]:
         tournament = self.tournament
         assert tournament is not None
-        index = tournament.current()
+        index = tournament.seats[number].match
         assert index is not None
         return [str(name) for name in tournament.names(tournament.matches[index])]
 
-    def plays(self, practice: PracticeGame) -> bool:
-        """Whether the practice game plays the current match of the tournament:
-        its game and players, with the format, the rules and the start scores
-        of the tournament. A match whose settings were changed is another one."""
+    def plays(self, practice: PracticeGame, board: str | None = None) -> bool:
+        """Whether the practice game plays the match of a board: its game and
+        players, with the format, the rules and the start scores of the
+        tournament. A match whose settings were changed is another one."""
         tournament = self.tournament
-        index = None if tournament is None else tournament.current()
-        if tournament is None or index is None:
+        if tournament is None or tournament.status == FINISHED:
             return False
-        names = self._current_names()
+        number = self._seat(board)
+        index = tournament.seats[number].match
+        if index is None:
+            return False
+        names = self._current_names(number)
         starts = [
             0 if entrant is None else tournament.starts[entrant]
             for entrant in tournament.matches[index].players
@@ -950,25 +1348,34 @@ class TournamentDirector:
         )
 
     def booked(
-        self, practice: PracticeGame, now: datetime
+        self, practice: PracticeGame, now: datetime, board: str | None = None
     ) -> list[tuple[str, dict[str, Any]]]:
-        """The result of a tournament match the practice game just booked."""
+        """The result of the tournament match of a board, which its practice
+        game just booked."""
         tournament = self.tournament
-        if tournament is None or practice.winner is None or not self.plays(practice):
+        if (
+            tournament is None
+            or practice.winner is None
+            or not self.plays(practice, board)
+        ):
             return []
-        index = tournament.current()
+        number = self._seat(board)
+        seat = tournament.seats[number]
+        index = seat.match
         assert index is not None
         tournament.record(index, practice, now.isoformat())
+        seat.match = None
         match = tournament.matches[index]
         winner, loser = match.winner, match.loser
         assert winner is not None and loser is not None
-        following = tournament.upcoming()
+        following = tournament.next_for(number)
         result = {
             **self._about(tournament),
             "match": tournament.numbers()[index],
             "round": match.round,
             "stage": match.stage,
             **({} if match.group is None else {"group": GROUP_NAMES[match.group]}),
+            **({"board": seat.name} if tournament.several else {}),
             "players": tournament.names(match),
             "winner": tournament.players[winner],
             "loser": tournament.players[loser],
@@ -981,12 +1388,12 @@ class TournamentDirector:
         events: list[tuple[str, dict[str, Any]]] = [
             ("tournament_match_finished", result)
         ]
-        if following is not None:
-            tournament.status = WAITING
+        if tournament.upcoming() is not None:
+            tournament.refresh()
             practice.hold = True
             return events
         tournament.status, tournament.ended = FINISHED, now.isoformat()
-        self._hand_back(practice)
+        self.release(practice, board)
         champion, runner_up, third = tournament.podium()
         events.append(
             (
@@ -1010,34 +1417,64 @@ class TournamentDirector:
             "matches": len(tournament.numbers()),
         }
 
-    def due_at(self) -> datetime | None:
-        """When the next match is due: the summary of the last match, then the
-        pause; None without a pause."""
+    def _due_at(self, number: int) -> datetime | None:
+        """When the next match of a board is due: once the summary of the last
+        match of the board and of each of its players, then the pause, are
+        over; at once for a board and players who have not played yet. None
+        without a pause, while the board plays, and without a match it could
+        take."""
         tournament = self.tournament
-        if tournament is None or tournament.status != WAITING or not self.setup.pause:
+        if (
+            tournament is None
+            or tournament.status == FINISHED
+            or tournament.seats[number].match is not None
+        ):
             return None
-        last = tournament.last_played()
-        assert last is not None
-        ended = tournament.matches[last].ended
-        ended_at = dt_util.parse_datetime(ended or "") or dt_util.utcnow()
-        return ended_at + timedelta(seconds=self.setup.summary + self.setup.pause)
+        index = tournament.next_for(number)
+        if index is None:
+            return None
+        rested = tournament.rested(index, number)
+        if rested is None:
+            return _moment(tournament.started) or dt_util.utcnow()
+        if not self.setup.pause:
+            return None
+        return rested + timedelta(seconds=self.setup.summary + self.setup.pause)
 
-    def due(self, now: datetime) -> bool:
-        return (at := self.due_at()) is not None and at <= now
+    def due_at(self, board: str | None = None) -> datetime | None:
+        """When the next match of a board is due; None without a pause."""
+        return self._due_at(self._seat(board))
 
-    def free(self, practice: PracticeGame) -> bool:
-        """Whether the practice game can make way for the next match by itself:
-        it shows a result, or nothing is played. A match of the last two
-        players started anew during the pause, by a change of its settings,
-        makes way until its first dart. Another game chosen during the pause
-        is played to its end first."""
+    def due(self, now: datetime, board: str | None = None) -> bool:
+        return (at := self.due_at(board)) is not None and at <= now
+
+    def due_boards(self) -> list[tuple[str | None, datetime]]:
+        """The boards whose next match is due at a known time, with that time:
+        None for the board of the director, else the key of the board."""
+        tournament = self.tournament
+        if tournament is None:
+            return []
+        return [
+            (seat.key if number else None, at)
+            for number, seat in enumerate(tournament.seats)
+            if (at := self._due_at(number)) is not None
+        ]
+
+    def free(self, practice: PracticeGame, board: str | None = None) -> bool:
+        """Whether the practice game of a board can make way for its next match
+        by itself: it shows a result, or nothing is played. A match of the last
+        two players of the board started anew during the pause, by a change of
+        its settings, makes way until its first dart. Another game chosen
+        during the pause is played to its end first."""
         if practice.winner is not None or (
             practice.kind is None and practice.drill is None
         ):
             return True
         tournament = self.tournament
-        last = None if tournament is None else tournament.last_played()
-        if not self.waiting or tournament is None or last is None:
+        if tournament is None or not self.waiting_at(board):
+            return False
+        number = self._seat(board)
+        last = tournament.last_played(number if tournament.several else None)
+        if last is None:
             return False
         names = [str(name) for name in tournament.names(tournament.matches[last])]
         return (
@@ -1062,19 +1499,44 @@ class TournamentDirector:
         self.tournament = Tournament.restored(data.get("tournament"))
         self.saved = valid_settings(data.get("practice")) if self.running else None
 
-    def state(self) -> str:
-        """The stage being played, or the next one during a pause."""
+    def _shown(self, number: int) -> int:
+        """The match a board plays, or the one it plays next during a pause, or
+        the first match still to play while it waits for another board."""
+        tournament = self.tournament
+        assert tournament is not None
+        index = tournament.seats[number].match
+        if index is None:
+            index = self._waits_for(number)
+        if index is None:
+            index = tournament.upcoming()
+        assert index is not None
+        return index
+
+    def _waits_for(self, number: int) -> int | None:
+        """The match a board without one takes next: the first it can take, or
+        else the first one still to play that no other board plays, its
+        players possibly still open; None when the other boards play the
+        rest."""
+        tournament = self.tournament
+        assert tournament is not None
+        index = tournament.next_for(number)
+        if index is None:
+            taken = {seat.match for seat in tournament.seats if seat.match is not None}
+            index = tournament.after(-1, taken)
+        return index
+
+    def state(self, board: str | None = None) -> str:
+        """The stage a board plays, or the next one during a pause."""
         tournament = self.tournament
         if tournament is None:
             return "no_tournament"
         if tournament.status == FINISHED:
             return FINISHED
-        index = tournament.upcoming()
-        assert index is not None
-        return tournament.matches[index].stage
+        return tournament.matches[self._shown(self._seat(board))].stage
 
-    def snapshot(self) -> dict[str, Any]:
-        """Everything a card or an automation needs to know about the tournament."""
+    def snapshot(self, board: str | None = None) -> dict[str, Any]:
+        """Everything a card or an automation needs to know about the
+        tournament, as a board sees it: its own match first."""
         tournament = self.tournament
         if tournament is None:
             return {
@@ -1085,15 +1547,24 @@ class TournamentDirector:
                 "winner": None,
                 "fixtures": [],
             }
-        current = tournament.current()
-        upcoming = tournament.upcoming()
-        following = tournament.after(current) if current is not None else upcoming
-        last = tournament.last_played()
-        due = self.due_at()
-        numbers = tournament.numbers()
+        number = self._seat(board)
         finished = tournament.status == FINISHED
+        current = None if finished else tournament.seats[number].match
+        upcoming = None if finished else self._shown(number)
+        taken = {seat.match for seat in tournament.seats if seat.match is not None}
+        if current is not None:
+            following = tournament.after(current, taken)
+        else:
+            following = None if finished else self._waits_for(number)
+        last = tournament.last_played(number if tournament.several else None)
+        due = self._due_at(number)
+        numbers = tournament.numbers()
+        if finished:
+            status = FINISHED
+        else:
+            status = WAITING if current is None else PLAYING
         return {
-            "status": tournament.status,
+            "status": status,
             "format": tournament.format,
             "game": tournament.kind,
             "legs_to_win": tournament.legs_to_win,
@@ -1109,13 +1580,44 @@ class TournamentDirector:
             "matches_total": len(numbers),
             "current": tournament.match(current, numbers),
             "next": tournament.match(following, numbers),
+            # Whether the board can start its next match now; False while it
+            # waits for a match another board still plays.
+            "next_ready": (
+                not finished
+                and current is None
+                and tournament.next_for(number) is not None
+            ),
             "last_result": tournament.match(last, numbers),
             "pause": self.setup.pause,
             "summary": self.setup.summary,
             "next_at": due.isoformat() if due else None,
+            "ends_at": tournament.ends_at(self.setup.summary, self.setup.pause),
             "winner": tournament.podium()[0] if finished else None,
             "started": tournament.started,
             "ended": tournament.ended,
+            **self._boards(number, numbers),
             "fixtures": [tournament.match(index, numbers) for index in numbers],
             **tournament.views(),
         }
+
+    def _boards(self, number: int, numbers: dict[int, int]) -> dict[str, Any]:
+        """The boards of a tournament on several boards, each with its match or
+        when its next one is due, and the board, from 1, the snapshot is of."""
+        tournament = self.tournament
+        assert tournament is not None
+        if not tournament.several:
+            return {}
+        boards = []
+        for place, seat in enumerate(tournament.seats):
+            due = self._due_at(place)
+            match = None if seat.match is None else tournament.matches[seat.match]
+            boards.append(
+                {
+                    "board": place + 1,
+                    "name": seat.name,
+                    "match": None if seat.match is None else numbers[seat.match],
+                    "players": [] if match is None else tournament.names(match),
+                    "next_at": due.isoformat() if due else None,
+                }
+            )
+        return {"board": number + 1, "boards": boards}

@@ -153,6 +153,7 @@ For a [tournament](games.md#tournaments) of three to 32 players, the screen at t
 2. **During a match,** the title line names the round and the match, for example *Tournament · Semi-final · Match 5 of 7* or *Tournament · Group B · Round 2 · Match 6 of 63*.
 3. **Between the matches,** the summary of the match stays for a few seconds, then the table of a round robin, the tables of the groups or the bracket shows, with the losers' bracket of a double elimination below it, with the next match and a countdown. **Start now** starts it at once; otherwise it starts by itself as soon as the darts are out of the board.
 4. **At the end,** a banner names the winner of the tournament, and the table or the bracket stays until a new match begins. *Stop tournament* on the new game screen ends a tournament early. Starting a new tournament while one is played stops that one first, after a second tap.
+5. **On several boards,** the scoreboard of every board shows its own match, and between the matches a box for every board above the table or the bracket: what it plays, or when its next match starts, its own box marked, and the expected end of the tournament. [A tournament on several boards](games.md#a-tournament-on-several-boards).
 
 **Tournament** on the new game screen sets up the players, the game, the format and the rules:
 

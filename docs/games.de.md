@@ -40,7 +40,7 @@ Dein Autodarts-Board spielt Spiele direkt in Home Assistant: X01 von 101 bis 100
 | [**Catch 40**](#catch-40) | 1 | 61 bis 100 checken, je schneller, desto mehr Punkte |
 | [**JDC Challenge**](#jdc-challenge) | 1 | Die 57-Dart-Routine der Junior Darts Corporation |
 | [**Singles-Training**](#singles-training) | 1 | Eine Aufnahme auf jede Zahl, Punkte pro Treffer |
-| [**Turnier**](#turniere) | 3–32 | Jeder gegen jeden, K.-o.-System, Doppel-K.-o.-System oder Gruppen mit K.-o.-System, aus X01- oder Cricket-Matches, eines nach dem anderen |
+| [**Turnier**](#turniere) | 3–32 | Jeder gegen jeden, K.-o.-System, Doppel-K.-o.-System oder Gruppen mit K.-o.-System, aus X01- oder Cricket-Matches, an einem Board oder auf mehreren zugleich |
 
 ## Ein Spiel starten
 
@@ -158,7 +158,7 @@ Niemand zum Mitspielen? X01 und die Cricket-Spiele lassen sich gegen den Bot spi
 
 <img src="images/de/tournament-bracket.webp" alt="Animation: der Turnierbaum mit fünf Spielern auf der Anzeigetafel. Lea schlägt Max im Viertelfinale und rückt ins Halbfinale; Alex schlägt Lea und zieht ins Finale ein, Lea ins Spiel um Platz 3; Kim schlägt Sam, Lea wird Dritte und Alex gewinnt das Finale" width="760">
 
-Ein Turnier für drei bis 32 Spieler mit Namen an einem Board, ein Match nach dem anderen, in einem von vier Formaten:
+Ein Turnier für drei bis 32 Spieler mit Namen, an einem Board ein Match nach dem anderen oder [auf mehreren Boards zugleich](#ein-turnier-auf-mehreren-boards), in einem von vier Formaten:
 
 - **Jeder gegen jeden**, drei bis acht Spieler: Alle spielen einmal gegeneinander, und eine Tabelle ordnet die Spieler.
 - **K.-o.-System**, drei bis 32 Spieler: Die Sieger kommen über einen Turnierbaum bis ins Finale weiter.
@@ -209,6 +209,32 @@ Mit Gruppen zeigt sie die Tabellen der Gruppen nebeneinander, die Plätze, die w
 <img src="images/de/tournament-double.png" alt="Ein Doppel-K.-o.-System mit 32 Spielern auf der Anzeigetafel nach der ersten Runde beider Hälften: als Nächstes Alex gegen Tim in Runde 2 der Gewinner mit Countdown, die Gewinnerrunde bis zum großen Finale und darunter die Verliererrunde bis zu ihrem Finale, ihre erste Runde gespielt" width="760">
 
 Die [Referenz der Entitäten](entities.de.md#turniere) nennt Einstellungen, Tasten und Aktionen des Turniers, die [Anleitung zur Anzeigetafel](scoreboard.de.md#turniere), was der Bildschirm zeigt.
+
+### Ein Turnier auf mehreren Boards
+
+Ein Vereinsabend mit zwei Boards oder mehr spielt ein Turnier auf allen: Jedes Board spielt ein eigenes Match, und Tabelle oder Turnierbaum nehmen die Ergebnisse jedes Boards auf. Jedes Board kann ein Autodarts-Board sein oder eine [Dartscheibe ohne Autodarts](without-autodarts.de.md), deren Darts über das Tastenfeld eingegeben werden. Starte das Turnier auf einem Board, das es dann führt, und nenne die anderen Boards in `boards`: unter **Entwicklerwerkzeuge → Aktionen** mit der Geräteauswahl oder in einer Automation über ihr Gerät oder ihren Eintrag:
+
+```yaml
+action: autodarts.start_tournament
+data:
+  config_entry_id: 01JA0GARAGEBOARD0000000000 # das Board, das das Turnier führt
+  boards: [01JA0CELLARBOARD0000000000] # die anderen Boards
+  players: [Alex, Sam, Kim, Lea, Max, Tom]
+  format: round_robin
+  game: "501"
+```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="images/de/tournament-boards-dark.png">
+  <img src="images/de/tournament-boards-light.png" alt="So läuft ein Turnier auf mehreren Boards: Das Turnier startet auf einem Board, mit den anderen Boards in boards. Jedes Board übernimmt sofort ein Match, wenn eines bereit ist, dessen Spieler an keinem anderen Board spielen. Ist ein Match entschieden und sind seine Darts gezogen, geht sein Ergebnis in die Tabelle oder den Turnierbaum, die das Board des Turniers für alle Boards führt. Nach dem letzten Match kehrt jedes Board zu seinen eigenen Spielen zurück. Sonst zeigt das Board die Zusammenfassung und die Pause, die auch die Spieler seines nächsten Matches bekommen. Dann übernimmt das Board das nächste Match, dessen Spieler feststehen und frei sind, sobald es frei ist; ein Board ohne ein solches Match wartet auf ein Ergebnis eines anderen Boards." width="560">
+</picture>
+
+- **Nebeneinander:** Jedes Board beginnt sofort ein Match. Nach seiner Pause übernimmt ein Board das nächste Match, dessen Spieler feststehen und an keinem anderen Board spielen, sobald keine Darts mehr in ihm stecken: Das Board, das zuerst frei ist, spielt als Nächstes. Ein Board ohne ein solches Match wartet, bis ein Ergebnis eines anderen Boards eines bringt, etwa das Finale nach beiden Halbfinals.
+- **Auch die Spieler bekommen ihre Pause:** Die Spieler eines Matches bekommen die Zusammenfassung und die Pause nach ihrem letzten Match, egal an welchem Board sie es gespielt haben, damit niemand von einem Board direkt ins nächste Match geht. *Nächstes Turniermatch* an einem Board startet sein Match sofort.
+- **Jede Anzeigetafel:** Die Anzeigetafel jedes Boards zeigt ihr eigenes Match mit Runde und Nummer und zwischen den Matches Tabelle oder Turnierbaum des ganzen Turniers. Darüber sagt ein Kasten je Board, was es spielt oder wann sein nächstes Match beginnt, der Kasten des eigenen Boards hervorgehoben, und darunter das voraussichtliche Ende des Turniers.
+- **Voraussichtliches Ende:** die noch offenen Matches, eines nach dem anderen am Board, das zuerst frei ist, jedes so lang, wie es die Averages seiner Spieler ergeben: ihr Average im Turnier, sonst der ihres Spielerprofils zu seinem Beginn, sonst 40 Punkte je Aufnahme. Eine Aufnahme dauert 30 Sekunden, bis die gespielten Matches das echte Tempo zeigen. *Turnier* hat die Uhrzeit im Attribut `ends_at`, auch an einem Board.
+- **Das Board, das es führt:** Sein Sensor *Turnier*, seine Einstellungen und seine Ereignisse stehen für das ganze Turnier: `tournament_match_finished` jedes Boards kommt dort an, mit dem `board`, das das Match gespielt hat. Der Sensor *Turnier* eines anderen Boards zeigt dasselbe Turnier, mit dem eigenen Match zuerst. *Turnier beenden* an einem der Boards beendet es auf allen; danach kehrt jedes Board zu seinen eigenen Einstellungen des Übungsspiels zurück. Ein Match zählt für die Spielerprofile des Boards, an dem es gespielt wurde.
+- **Neustarts:** Die Boards finden sich nach einem Neustart von Home Assistant oder dem Neuladen eines Boards wieder, und jedes Board behält sein Match. Ein ausgeschaltetes Board behält sein Match, bis es zurück ist; ein aus Home Assistant gelöschtes Board gibt sein Match sofort für ein anderes Board frei, und führte das gelöschte Board das Turnier, kehren die anderen Boards zu ihren Übungseinstellungen zurück. Ein Board, das auf ein Match wartet, das ein anderes Board noch spielt, zeigt das auf der Anzeigetafel, ohne *Jetzt starten*. Ein Board, das in einem Turnier spielt, startet kein anderes, und ein Turnier spielt auf bis zu acht Boards.
 
 ### Turnierregeln
 

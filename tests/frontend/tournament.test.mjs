@@ -12,6 +12,7 @@ const {
   lobbyChange,
   lobbyChoice,
   stageName,
+  tournamentBoards,
   tournamentCallState,
   tournamentCalls,
   tournamentCountdown,
@@ -37,6 +38,8 @@ const EN = {
   tournament_after_takeout: "starts when the board is clear",
   say_tournament_next: "Next match: {first} against {second}",
   say_tournament_won: "{name} wins the tournament!",
+  tournament_board_next: "next match at {time}",
+  tournament_ends: "Expected end around {time}",
 };
 const t = (key) => EN[key] ?? key;
 
@@ -234,6 +237,8 @@ test("stages, labels and the countdown read as players say them", () => {
   assert.equal(tournamentCountdown({ ...view, pause: 600, nextAt: NOW + 600000 }, NOW, t), "starts in 10:00 min");
   assert.equal(tournamentCountdown({ ...view, nextAt: null }, NOW, t), "starts with Next tournament match");
   assert.equal(tournamentCountdown({ ...view, status: "playing" }, NOW, t), "");
+  // A board that waits for a match another board still plays.
+  assert.equal(tournamentCountdown({ ...view, nextReady: false }, NOW, t), "tournament_board_free");
 });
 
 test("the caller follows the matches of a tournament and names the champion", () => {
@@ -363,6 +368,12 @@ test("between matches the round robin shows who plays next and the table", () =>
   assert.equal(page.querySelector(".pairing").textContent, "Alextournament_vsKim");
   assert.equal(page.querySelector(".pairing .avatar").getAttribute("src"), "/api/image/serve/alex/512x512");
   assert.equal(page.querySelector(".start-next").dataset.tournament, "next");
+  assert.equal(view.nextReady, true);
+  // Nothing this board can start yet: no button.
+  const waits = tournamentView({ state: "round_2", attributes: { ...ROUND_ROBIN, next_ready: false } });
+  assert.equal(waits.nextReady, false);
+  const idle = new window.DOMParser().parseFromString(tournamentHtml(waits, ui({ startNow: true })).main, "text/html");
+  assert.equal(idle.querySelector(".start-next"), null);
   assert.deepEqual(
     [...page.querySelectorAll(".standings tbody tr")].map((line) => [
       line.className,
@@ -1311,4 +1322,99 @@ test("a round robin of more than eight waits until players leave or the format c
   assert.equal($$(card, ".lobby-player.resting").length, 1);
   lobbyTap(card, "remove", "8");
   assert.equal($(card, ".lobby-hint"), null);
+});
+
+// A tournament on three boards, as the sensor of the second board shows it.
+const BOARDS = {
+  ...ROUND_ROBIN,
+  board: 2,
+  boards: [
+    { board: 1, name: "Garage", match: 2, players: ["Alex", "Kim"], next_at: null },
+    { board: 2, name: "Cellar", match: null, players: [], next_at: at(30) },
+    { board: 3, name: "Attic", match: null, players: [], next_at: null },
+  ],
+  ends_at: at(3600),
+};
+const parse = (html) => new window.DOMParser().parseFromString(html, "text/html");
+const boardRows = (page) =>
+  [...page.querySelectorAll(".boards li")].map((item) => [
+    item.className,
+    item.querySelector(".board-name").textContent,
+    item.querySelector(".board-match").textContent,
+  ]);
+
+test("a tournament on several boards shows what every board plays and the expected end", () => {
+  const view = tournamentView({ state: "round_2", attributes: BOARDS });
+  assert.equal(view.board, 2);
+  assert.deepEqual(view.boards[0], { board: 1, name: "Garage", match: 2, players: ["Alex", "Kim"], nextAt: null });
+  assert.deepEqual([view.boards[1].nextAt, view.endsAt], [NOW + 30_000, NOW + 3_600_000]);
+  const time = (moment) => `+${(moment - NOW) / 1000} s`;
+  const page = parse(tournamentBoards(view, ui({ time }), NOW));
+  assert.equal(page.querySelector(".boards").getAttribute("aria-label"), "tournament_boards");
+  assert.deepEqual(boardRows(page), [
+    ["playing", "Garage", "Alex tournament_vs Kim"],
+    ["waiting own", "Cellar", "next match at +30 s"],
+    ["waiting", "Attic", "tournament_board_free"],
+  ]);
+  assert.equal(page.querySelector(".forecast").textContent, "Expected end around +3600 s");
+  // Once the times have passed, a board waits for its match and the forecast is gone.
+  const later = parse(tournamentBoards(view, ui({ time }), NOW + 4_000_000));
+  assert.equal(boardRows(later)[1][2], "tournament_board_free");
+  assert.equal(later.querySelector(".forecast"), null);
+});
+
+test("the boards come before the table, and a tournament at one board has none", () => {
+  // An end still to come by the clock of the test.
+  const ends = new Date(Date.now() + 3_600_000).toISOString();
+  const view = tournamentView({ state: "round_2", attributes: { ...BOARDS, ends_at: ends } });
+  const page = parse(tournamentHtml(view, ui()).main);
+  const parts = [...page.querySelector(".tournament").children].map((part) => part.className);
+  assert.deepEqual(parts, ["next-up", "boards", "standings"]);
+  // Without a time of its own the card reads the clock of the browser.
+  assert.match(page.querySelector(".forecast").textContent, /^Expected end around \d/);
+  const alone = tournamentView({ state: "round_2", attributes: ROUND_ROBIN });
+  assert.deepEqual([alone.board, alone.boards, alone.endsAt], [null, [], null]);
+  assert.equal(tournamentBoards(alone, ui()), "");
+  assert.equal(parse(tournamentHtml(alone, ui()).main).querySelector(".boards"), null);
+});
+
+test("boards the sensor names oddly read as defaults", () => {
+  const view = tournamentView({
+    state: "round_2",
+    attributes: {
+      ...ROUND_ROBIN,
+      board: "2",
+      boards: [{ name: "" }, "board", { name: "Garage", board: "1", match: "2", players: "Alex", next_at: "soon" }, { name: "Cellar" }],
+      ends_at: "later",
+    },
+  });
+  assert.deepEqual(view.boards, [
+    { board: null, name: "Garage", match: null, players: [], nextAt: null },
+    { board: null, name: "Cellar", match: null, players: [], nextAt: null },
+  ]);
+  assert.deepEqual([view.board, view.endsAt], [null, null]);
+  const page = parse(tournamentBoards(view, ui(), NOW));
+  assert.deepEqual(
+    boardRows(page).map(([kind]) => kind),
+    ["waiting", "waiting"]
+  );
+});
+
+test("between matches of a tournament on several boards, the scoreboard shows the boards", (context) => {
+  clock(context);
+  const { hass, card } = setup({ ...OPENING, ...practice(["Kim", "Sam"]) });
+  card.hass = update(hass, { ...summarized(practice(["Kim", "Sam"], 2)), ...tournament(BOARDS) });
+  context.mock.timers.tick(5000);
+  assert.equal(shown(card), true);
+  assert.deepEqual(
+    $$(card, ".boards li").map((item) => [item.className, item.querySelector(".board-name").textContent]),
+    [
+      ["playing", "Garage"],
+      ["waiting own", "Cellar"],
+      ["waiting", "Attic"],
+    ]
+  );
+  assert.equal(text(card, ".boards .playing .board-match"), "Alex vs Kim");
+  assert.match(text(card, ".boards .own .board-match"), /^next match at \d{1,2}:\d{2}/);
+  assert.match(text(card, ".boards .forecast"), /^Expected end around \d{1,2}:\d{2}/);
 });

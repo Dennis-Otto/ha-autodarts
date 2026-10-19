@@ -1,0 +1,22 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How a tournament runs on several boards
+  accDescr: The tournament starts on one board, with the other boards in boards. Every board takes a match at once if one is ready whose players play at no other board. When a match is decided and its darts are pulled, its result goes into the table or the bracket, which the board holding the tournament keeps for all boards. After the last match, every board goes back to its own games. Otherwise the board shows the summary and the pause, which the players of its next match get too. Then the board takes the next match whose players are known and free, as soon as it is clear; a board without such a match waits for a result of another board.
+
+  START(["Start tournament<br/>with its boards"]) --> TAKE["The board takes the next match<br/>whose players play at no other board"]
+  TAKE --> PLAY["The boards play<br/>their matches side by side"]
+  PLAY --> RESULT["A match is decided,<br/>its darts are pulled"]
+  RESULT --> TABLE["The result goes into the table or the bracket,<br/>kept by the board that holds the tournament"]
+  TABLE --> LAST{{"The last match?"}}
+  LAST -- "yes" --> DONE(["Every board goes back<br/>to its own games"])
+  LAST -- "no" --> PAUSE["Summary and pause, for the board<br/>and the players of its next match"]
+  PAUSE --> READY{{"A match ready<br/>whose players are free?"}}
+  READY -- "yes, once the<br/>board is clear" --> TAKE
+  READY -- "no" --> WAIT["The board waits for<br/>a result of another board"]
+  WAIT -.-> READY
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  class DONE done
