@@ -265,8 +265,10 @@
       'weekday': 0,
     }),
     'tournament': dict({
+      'advance': 2,
       'format': 'round_robin',
       'game': '501',
+      'groups': 0,
       'pause': 10,
       'players': 0,
       'random_draw': False,
@@ -492,8 +494,10 @@
       'weekday': 0,
     }),
     'tournament': dict({
+      'advance': 2,
       'format': 'round_robin',
       'game': '501',
+      'groups': 0,
       'pause': 10,
       'players': 0,
       'random_draw': False,

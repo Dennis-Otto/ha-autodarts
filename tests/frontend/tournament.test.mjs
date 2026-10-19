@@ -1291,10 +1291,11 @@ test("the groups of the new game screen follow its players", () => {
   // Twelve players fit into two, three or four groups; three of four go on at most.
   assert.deepEqual(data(12, { groups: 4, advance: 4 }), { groups: 4, advance: 2, third: false });
   assert.deepEqual(data(12, { groups: 3, advance: 4, third_place: true }), { groups: 3, advance: 3, third: true });
-  // A number that does not fit any more is the board's choice, and an old choice
-  // without the setting lets two go on.
-  assert.deepEqual(data(12, { groups: 7 }), { groups: undefined, advance: 2, third: false });
-  assert.deepEqual(data(32, { groups: undefined, advance: undefined }), { groups: undefined, advance: 2, third: false });
+  // A number that does not fit any more is the board's choice, 0, which goes along
+  // so that it replaces the board's setting; an old choice without the setting lets
+  // two go on.
+  assert.deepEqual(data(12, { groups: 7 }), { groups: 0, advance: 2, third: false });
+  assert.deepEqual(data(32, { groups: undefined, advance: undefined }), { groups: 0, advance: 2, third: false });
   // The steppers go through the numbers that fit and stop at both ends.
   let next = choice(12);
   const taps = [];
@@ -1305,6 +1306,32 @@ test("the groups of the new game screen follow its players", () => {
   assert.deepEqual(taps, [2, 3, 4, 4, 3, 2, 0, 0]);
   next = lobbyChange(choice(12, { groups: 4 }), "advance", 1);
   assert.equal(lobbyChange(next, "advance", 1).advance, 2);
+});
+
+test("the new game screen starts from the groups and qualifiers of the board", () => {
+  const { hass, card } = setup({
+    "select.tournament_format": "groups_knockout",
+    "number.tournament_groups": "2",
+    "number.tournament_advance": "1",
+  });
+  $(card, ".lobby-toggle").click();
+  lobbyTap(card, "mode", "tournament");
+  for (const name of ["Sam", "Lea", "Max", "Tom"]) typeName(card, name);
+  const steppers = () =>
+    $$(card, ".stepper")
+      .slice(2)
+      .map((stepper) => stepper.querySelector(".stepper-value").textContent);
+  assert.deepEqual(steppers(), ["2", "1"]);
+  lobbyTap(card, "groups", "-1");
+  assert.deepEqual(steppers(), ["Auto (2)", "1"]);
+  lobbyTap(card, "start");
+  assert.deepEqual(
+    [started(hass).at(-1)[2].groups, started(hass).at(-1)[2].advance],
+    [0, 1]
+  );
+  // Settings that are not whole numbers leave the board's choice and two going on.
+  const plain = lobbyChoice({ names: [], groups: 2.5, advance: null }, ["501"]);
+  assert.deepEqual([plain.groups, plain.advance], [0, 2]);
 });
 
 test("a round robin of more than eight waits until players leave or the format changes", () => {

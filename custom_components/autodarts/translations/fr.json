@@ -676,6 +676,12 @@
       "practice_gotcha_target": {
         "name": "Score cible de Gotcha de la partie"
       },
+      "tournament_groups": {
+        "name": "Poules du tournoi"
+      },
+      "tournament_advance": {
+        "name": "Qualifiés par poule du tournoi"
+      },
       "tournament_pause": {
         "name": "Pause du tournoi"
       },
@@ -1589,11 +1595,11 @@
         },
         "groups": {
           "name": "Poules",
-          "description": "Poules et élimination directe\u00a0: le nombre de poules, de 2 à 8, de trois à huit joueurs chacune. Sans indication, des poules d'environ quatre joueurs."
+          "description": "Poules et élimination directe\u00a0: le nombre de poules, de 2 à 8, de trois à huit joueurs chacune\u00a0; 0 forme des poules d'environ quatre joueurs. Sans indication, Poules du tournoi s'applique."
         },
         "advance": {
           "name": "Qualifiés par poule",
-          "description": "Poules et élimination directe\u00a0: combien de joueurs de chaque poule passent en élimination directe, de 1 à 4 et moins que la poule n'en compte. Sans indication, deux."
+          "description": "Poules et élimination directe\u00a0: combien de joueurs de chaque poule passent en élimination directe, de 1 à 4 et moins que la poule n'en compte. Sans indication, Qualifiés par poule du tournoi s'applique."
         },
         "random_draw": {
           "name": "Tirage au sort",

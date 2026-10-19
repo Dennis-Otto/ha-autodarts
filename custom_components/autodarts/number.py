@@ -1,7 +1,8 @@
 """The pause that ends a session, the daily goal and the practice match format.
 
 Also the start scores of the players, the round limit of X01, the rounds of
-Count-Up, the pause between tournament matches and the bot.
+Count-Up, the groups of a tournament and who goes on, the pause between
+tournament matches and the bot.
 """
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
@@ -27,7 +28,7 @@ from .practice import (
 )
 from .records import DAILY_GOAL_MAX
 from .runtime import AutodartsConfigEntry
-from .tournament import MAX_PAUSE, MAX_SUMMARY
+from .tournament import MAX_ADVANCE, MAX_GROUPS, MAX_PAUSE, MAX_SUMMARY, MIN_GROUPS
 from .training import IDLE_MINUTES_MAX
 
 PARALLEL_UPDATES = 0
@@ -61,6 +62,8 @@ async def async_setup_entry(
                 AutodartsMaxRounds(coordinator),
                 AutodartsCountUpRounds(coordinator),
                 AutodartsGotchaTarget(coordinator),
+                AutodartsTournamentGroups(coordinator),
+                AutodartsTournamentAdvance(coordinator),
                 AutodartsTournamentSeconds(coordinator, "pause"),
                 AutodartsTournamentSeconds(coordinator, "summary"),
                 AutodartsBotLevel(coordinator),
@@ -256,6 +259,56 @@ class AutodartsGotchaTarget(AutodartsStoredEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.async_set_party_rule("gotcha_target", int(value))
+
+
+class AutodartsTournamentGroups(AutodartsStoredEntity, NumberEntity):
+    """The groups of a tournament of groups with knockout, which the Start
+    tournament button and the action without groups of their own make; 0 makes
+    groups of about four players.
+
+    There is no single group: 1 steps on in the direction of the change, from
+    0 up to 2 and from 2 down to 0.
+    """
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_native_min_value = 0
+    _attr_native_max_value = MAX_GROUPS
+    _attr_native_step = 1
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
+        super().__init__(coordinator, "tournament_groups")
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.games.tournament.setup.groups
+
+    async def async_set_native_value(self, value: float) -> None:
+        groups = int(value)
+        if 0 < groups < MIN_GROUPS:
+            groups = MIN_GROUPS if groups > self.native_value else 0
+        await self.coordinator.async_set_tournament(groups=groups)
+
+
+class AutodartsTournamentAdvance(AutodartsStoredEntity, NumberEntity):
+    """How many players of each group go on into the knockout after the groups,
+    fewer than the smallest group has."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_native_min_value = 1
+    _attr_native_max_value = MAX_ADVANCE
+    _attr_native_step = 1
+    _attr_mode = NumberMode.BOX
+
+    def __init__(self, coordinator: AutodartsGamesCoordinator) -> None:
+        super().__init__(coordinator, "tournament_advance")
+
+    @property
+    def native_value(self) -> int:
+        return self.coordinator.games.tournament.setup.advance
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.async_set_tournament(advance=int(value))
 
 
 class AutodartsTournamentSeconds(AutodartsStoredEntity, NumberEntity):

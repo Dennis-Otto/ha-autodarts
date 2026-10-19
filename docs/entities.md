@@ -445,9 +445,11 @@ A tournament for three to 32 named players at one board or [on several boards at
 | Entity | Type | Description |
 | --- | --- | --- |
 | Tournament | Sensor (enum) | The stage being played, or during a pause the next one: `no_tournament`, `round_1` to `round_7` (also of the groups), `round_of_32`, `round_of_16`, `quarter_final`, `semi_final`, `third_place`, `final`, in a double elimination `winners_round_1` to `winners_round_4`, `winners_final`, `losers_round_1` to `losers_round_7`, `losers_final`, `grand_final` and `grand_final_reset` (the deciding final), or `finished`. The attributes are below. |
-| Tournament format | Select, *Configuration* | `round_robin` (the default), `knockout`, `double_knockout` or `groups_knockout`. *Start tournament* makes groups of about four players, of which two go on; [`autodarts.start_tournament`](#start-a-tournament-autodartsstart_tournament) and the new game screen choose them. |
+| Tournament format | Select, *Configuration* | `round_robin` (the default), `knockout`, `double_knockout` or `groups_knockout`. Groups and knockout take their groups from *Tournament groups* and *Tournament qualifiers per group*. |
 | Tournament game | Select, *Configuration* | `101` to `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `random_cricket` or `hidden_cricket`; `501` by default. |
 | Tournament players | Text, *Configuration* | Up to 32 names, separated by commas, for example `Dennis, Lea, Max`. A list longer than the 255 characters of a state shows the names that fit and `…`; the attribute `players` lists them all, and a list written with the `…` keeps the names it stands for, where it stands. |
+| Tournament groups | Number, *Configuration* | Groups and knockout: 2–8 groups of three to eight players each; `0`, the default, makes groups of about four players, for example three groups for 12 players. There is no single group: 1 steps on to 2 from below and back to 0 from above. |
+| Tournament qualifiers per group | Number, *Configuration* | Groups and knockout: 1–4 players of every group go on into the knockout, fewer than the smallest group has; 2 by default. |
 | Tournament pause | Number, seconds, *Configuration* | 0–600 seconds between two matches after the summary, 10 by default; 0 waits for *Next tournament match*. A change applies at once. |
 | Tournament summary duration | Number, seconds, *Configuration* | 0–60 seconds the summary of a match shows before the pause begins, 8 by default. A change applies at once. |
 | Tournament third-place match | Switch, *Configuration* | In a knockout of four players or more, also after the groups, the losers of the semi-finals play for third place. Off by default. |
@@ -919,8 +921,8 @@ Draws a [tournament](#tournaments) and starts its first match. Values you leave 
 | `bull_off` | `true`, `false` | A bull-off decides who starts every match |
 | `bull_off_distance` | `true`, `false` | Two darts in the same bull bed are decided by the measured distance instead of a rethrow |
 | `third_place` | `true`, `false` | In a knockout of four players or more, also after the groups, the losers of the semi-finals play for third place |
-| `groups` | 2–8 | Groups and knockout: the number of groups, of three to eight players each; without it, groups of about four |
-| `advance` | 1–4 | Groups and knockout: how many of every group go on into the knockout, fewer than the smallest group has; 2 without it |
+| `groups` | 0 or 2–8 | Groups and knockout: the number of groups, of three to eight players each; 0 makes groups of about four |
+| `advance` | 1–4 | Groups and knockout: how many of every group go on into the knockout, fewer than the smallest group has |
 | `random_draw` | `true`, `false` | Draw the order of the players at random |
 | `seed` | 1–999999 | A number for a random draw: the same number draws the same order |
 | `pause` | 0–600 | Seconds between two matches, after the summary; 0 waits for *Next tournament match* |

@@ -4,6 +4,7 @@ import json
 from datetime import timedelta
 
 import pytest
+import voluptuous as vol
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
@@ -276,6 +277,74 @@ async def test_the_entities_set_the_next_tournament_up(hass, aioclient_mock):
     assert error.value.translation_key == "no_tournament"
 
 
+async def number(hass, key: str, value: float) -> None:
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": entity_id(hass, "number", key), "value": value},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+
+async def test_the_button_starts_the_groups_and_qualifiers_of_the_entities(
+    hass, aioclient_mock
+):
+    await setup_local(hass, aioclient_mock, state=board())
+    registry = er.async_get(hass)
+    for key in ("tournament_groups", "tournament_advance"):
+        entry_ = registry.async_get(entity_id(hass, "number", key))
+        assert entry_.entity_category == er.EntityCategory.CONFIG, key
+    # Groups of about four players, of which two go on.
+    assert state(hass, "number", "tournament_groups") == "0"
+    assert state(hass, "number", "tournament_advance") == "2"
+    # There is no single group: 1 steps on in the direction of the change.
+    await number(hass, "tournament_groups", 1)
+    assert state(hass, "number", "tournament_groups") == "2"
+    await number(hass, "tournament_groups", 1)
+    assert state(hass, "number", "tournament_groups") == "0"
+    await hass.services.async_call(
+        "select",
+        "select_option",
+        {
+            "entity_id": entity_id(hass, "select", "tournament_format"),
+            "option": "groups_knockout",
+        },
+        blocking=True,
+    )
+    await text(hass, "tournament_players", ", ".join(f"P{n}" for n in range(12)))
+    await number(hass, "tournament_groups", 5)
+    with pytest.raises(ServiceValidationError) as error:
+        await press(hass, "tournament_start")
+    assert error.value.translation_key == "tournament_groups"
+    assert error.value.translation_placeholders == {
+        "count": "12",
+        "groups": "5",
+        "advance": "2",
+    }
+    await number(hass, "tournament_groups", 3)
+    await number(hass, "tournament_advance", 1)
+    await press(hass, "tournament_start")
+    attributes = tournament(hass).attributes
+    assert [group["group"] for group in attributes["groups"]] == ["A", "B", "C"]
+    assert attributes["advance"] == 1
+    # The action takes them unless it chooses its own, which it keeps.
+    await press(hass, "tournament_stop")
+    await action(hass, "start_tournament", groups=0, advance=3)
+    attributes = tournament(hass).attributes
+    assert [group["group"] for group in attributes["groups"]] == ["A", "B", "C"]
+    assert attributes["advance"] == 3
+    assert state(hass, "number", "tournament_groups") == "0"
+    assert state(hass, "number", "tournament_advance") == "3"
+    await press(hass, "tournament_stop")
+    await number(hass, "tournament_groups", 2)
+    await action(hass, "start_tournament", advance=1)
+    assert len(tournament(hass).attributes["groups"]) == 2
+    await press(hass, "tournament_stop")
+    with pytest.raises(vol.Invalid):
+        await action(hass, "start_tournament", groups=1)
+
+
 async def test_the_action_checks_its_players(hass, aioclient_mock):
     await setup_local(hass, aioclient_mock, state=board())
     with pytest.raises(ServiceValidationError) as error:
@@ -358,6 +427,8 @@ async def test_diagnostics_count_the_tournament_without_names(
         "players": 3,
         "third_place": False,
         "random_draw": False,
+        "groups": 0,
+        "advance": 2,
         "pause": 10,
         "summary": 8,
         "running": {

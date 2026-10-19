@@ -238,6 +238,10 @@ class TournamentSetup:
     players: list[str] = field(default_factory=list)
     third_place: bool = False
     random_draw: bool = False
+    # Groups with knockout: the number of groups, 0 for groups of about four
+    # players, and how many of each group go on into the knockout.
+    groups: int = 0
+    advance: int = DEFAULT_ADVANCE
     pause: int = DEFAULT_PAUSE
     summary: int = DEFAULT_SUMMARY
 
@@ -256,6 +260,8 @@ class TournamentSetup:
             players=[name for name in names if name][:MAX_ENTRANTS],
             third_place=_flag(data.get("third_place"), False),
             random_draw=_flag(data.get("random_draw"), False),
+            groups=bounded_count(data.get("groups"), MIN_GROUPS, MAX_GROUPS, 0),
+            advance=bounded_count(data.get("advance"), 1, MAX_ADVANCE, DEFAULT_ADVANCE),
             pause=bounded_count(data.get("pause"), 0, MAX_PAUSE, DEFAULT_PAUSE),
             summary=bounded_count(data.get("summary"), 0, MAX_SUMMARY, DEFAULT_SUMMARY),
         )
@@ -1065,8 +1071,7 @@ class TournamentDirector:
         game. Start scores go with the players in their order; 0 or none plays
         the game's. A seed draws the order at random, the same order for the
         same seed. Groups with knockout make groups of about four players
-        without a number of groups, of which two go on without a number of
-        their own. Boards, the key and the name of each with this board first,
+        with 0 groups. Boards, the key and the name of each with this board first,
         make a tournament on several boards, which the other boards then join.
         A tournament being played has to be stopped first.
         """
@@ -1096,16 +1101,17 @@ class TournamentDirector:
                 min=str(fewest),
                 max=str(most),
             )
-        groups = groups or auto_groups(len(names))
-        advance = advance or DEFAULT_ADVANCE
-        if chosen == GROUPS_KNOCKOUT and not fits_groups(len(names), groups, advance):
+        groups = self.setup.groups if groups is None else groups
+        advance = self.setup.advance if advance is None else advance
+        drawn = groups or auto_groups(len(names))
+        if chosen == GROUPS_KNOCKOUT and not fits_groups(len(names), drawn, advance):
             raise _invalid(
                 "tournament_groups",
                 count=str(len(names)),
-                groups=str(groups),
+                groups=str(drawn),
                 advance=str(advance),
             )
-        self.configure(players=names, **setup)
+        self.configure(players=names, groups=groups, advance=advance, **setup)
         if seed is None and self.setup.random_draw:
             seed = _RANDOM.randint(1, MAX_SEED)
         order = list(entrants)
@@ -1128,7 +1134,7 @@ class TournamentDirector:
                 for rule in RULES
             },
             third_place=self.setup.third_place,
-            groups=groups,
+            groups=drawn,
             advance=advance,
             seed=seed,
             started=now.isoformat(),
