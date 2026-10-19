@@ -23,11 +23,18 @@ copyright: "© 2026 Trkal and HACSAutodarts contributors; 2026 Dennis Otto<br>An
 # (scripts/render_brand.py renders it from the icon), and the navy and teal of the
 # icon, the social preview and the cards in place of Material's indigo, with
 # docs/stylesheets/brand.css. The list of the palette replaces the one of
-# .github/mkdocs-blueprint.yml, so it repeats its switch between light and dark.
+# .github/mkdocs-blueprint.yml, so it repeats its switch between the scheme of the
+# system, light and dark.
 theme:
   logo: branding/icon.svg
   favicon: branding/favicon.png
   palette:
+    - media: "(prefers-color-scheme)"
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: custom
@@ -41,7 +48,7 @@ theme:
       accent: custom
       toggle:
         icon: material/weather-sunny
-        name: Switch to light mode
+        name: Switch to the scheme of the system
 
 # The website starts with index.md and index.de.md. README.md and README.de.md are
 # the overviews of the folder on GitHub, and docs/de/ only keeps the old addresses
