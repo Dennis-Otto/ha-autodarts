@@ -17,9 +17,8 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
-import voluptuous as vol
 from homeassistant.components.automation import automations_with_blueprint
 from homeassistant.components.automation.helpers import async_get_blueprints
 from homeassistant.const import SERVICE_RELOAD
@@ -31,6 +30,13 @@ from homeassistant.helpers.storage import Store
 from homeassistant.util.yaml import Input, parse_yaml
 
 from .const import DOMAIN
+
+if TYPE_CHECKING:
+    # Home Assistant 2026.10 validates with probatio and makes "voluptuous" an alias
+    # of it, so the types are probatio's; older versions still use voluptuous.
+    import probatio as vol
+else:
+    import voluptuous as vol
 
 _LOGGER = logging.getLogger(__name__)
 

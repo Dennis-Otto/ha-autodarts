@@ -7,9 +7,8 @@ from __future__ import annotations
 import math
 import re
 from collections.abc import Awaitable, Callable, Mapping
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import voluptuous as vol
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_CONFIG_ENTRY_ID
 from homeassistant.core import (
@@ -73,6 +72,13 @@ from .voice import dart as dart_said
 from .voice import name as voice_name
 from .voice import visit as visit_said
 from .voices import PACK_LENGTH, async_generate_voice_pack, async_voice_sound
+
+if TYPE_CHECKING:
+    # Home Assistant 2026.10 validates with probatio and makes "voluptuous" an alias
+    # of it, so the types are probatio's; older versions still use voluptuous.
+    import probatio as vol
+else:
+    import voluptuous as vol
 
 SERVICE_START_GAME = "start_game"
 SERVICE_DELETE_PLAYER = "delete_player"
