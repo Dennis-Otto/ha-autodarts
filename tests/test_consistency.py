@@ -829,12 +829,11 @@ def test_osv_exceptions_cover_only_the_pinned_versions():
     review = yaml.safe_load(
         (ROOT / ".github" / "dependency-review.yml").read_text(encoding="utf-8")
     )
-    for vulnerability in ignored["IgnoredVulns"]:
+    accepted = ignored.get("IgnoredVulns", [])
+    for vulnerability in accepted:
         package, version = re.match(r"(\S+) (\S+): ", vulnerability["reason"]).groups()
         # Once the test base moves on, the exception has to go.
         assert pinned(ROOT / "requirements-test.txt", package) == version, (
             f"remove {vulnerability['id']} from osv-scanner.toml and .github/dependency-review.yml"
         )
-    assert review["allow-ghsas"] == [
-        vulnerability["id"] for vulnerability in ignored["IgnoredVulns"]
-    ]
+    assert review["allow-ghsas"] == [vulnerability["id"] for vulnerability in accepted]
