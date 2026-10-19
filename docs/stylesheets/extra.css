@@ -8,3 +8,19 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* The picture cards of the home page: a picture on top of each card, from edge to
+   edge, all of the same size. A picture keeps all of itself, on the dark background
+   of the screenshots, whatever its shape. */
+.md-typeset .grid.cards.pictures > ul > li > p:first-child {
+  margin: -0.8rem -0.8rem 0.8rem;
+}
+
+.md-typeset .grid.cards.pictures > ul > li > p:first-child img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background-color: #111111;
+  border-radius: 0.1rem 0.1rem 0 0;
+}

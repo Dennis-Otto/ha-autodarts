@@ -15,7 +15,33 @@ site_description: "Autodarts for Home Assistant: local realtime board control, X
 site_url: https://dennis-otto.github.io/ha-autodarts/
 repo_url: https://github.com/Dennis-Otto/ha-autodarts
 repo_name: Dennis-Otto/ha-autodarts
-copyright: "© 2026 Trkal and HACSAutodarts contributors; 2026 Dennis Otto"
+# The footer of every page; the German one is with the languages below. The icon in
+# the header is the one of Autodarts, so the footer says whose website this is.
+copyright: "© 2026 Trkal and HACSAutodarts contributors; 2026 Dennis Otto<br>An unofficial community integration, not affiliated with Autodarts."
+
+# The brand of the website: the Autodarts icon in the header and as favicon
+# (scripts/render_brand.py renders it from the icon), and the navy and teal of the
+# icon, the social preview and the cards in place of Material's indigo, with
+# docs/stylesheets/brand.css. The list of the palette replaces the one of
+# .github/mkdocs-blueprint.yml, so it repeats its switch between light and dark.
+theme:
+  logo: branding/icon.svg
+  favicon: branding/favicon.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
 
 # The website starts with index.md and index.de.md. README.md and README.de.md are
 # the overviews of the folder on GitHub, and docs/de/ only keeps the old addresses
@@ -30,6 +56,12 @@ exclude_docs: |
 plugins:
   search:
     lang: [en, de]
+  # The preview cards of shared links in the navy of the brand, with the icon of the
+  # header, as the social preview of the repository.
+  social:
+    cards_layout_options:
+      background_color: "#0a1624"
+      color: "#e6edf3"
   # The changelog page is a single include of CHANGELOG.md: the date of its last
   # commit would never change with a release.
   git-revision-date-localized:
@@ -51,6 +83,7 @@ plugins:
         name: Deutsch
         build: true
         site_name: "Autodarts für Home Assistant"
+        copyright: "© 2026 Trkal und Mitwirkende von HACSAutodarts; 2026 Dennis Otto<br>Eine inoffizielle Integration der Community, nicht mit Autodarts verbunden."
         site_description: "Autodarts für Home Assistant: lokale Echtzeit-Steuerung des Boards, X01, Cricket, Party- und Trainingsspiele, Turniere und ein Bot, Spielerstatistik mit Trefferbildern, sieben Dashboard-Karten und fünfzehn Blueprints, Spiele per Sprache starten. Kein Cloud-Konto nötig."
         nav_translations:
           Home: Start
@@ -68,9 +101,11 @@ hooks:
   # The hooks of the blueprint, such as the sitemap of every language.
   - .github/mkdocs_blueprint.py
 
-# The styles of the website on top of those of the theme, such as the wrapped lines
-# of the texts to copy in the creator kit.
+# The styles of the website on top of those of the theme: the colours of the brand,
+# and others such as the picture cards of the home page and the wrapped lines of the
+# texts to copy in the creator kit.
 extra_css:
+  - stylesheets/brand.css
   - stylesheets/extra.css
 
 # The menu, a tab in the header for each section. The German website has the same

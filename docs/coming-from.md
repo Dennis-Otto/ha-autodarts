@@ -14,7 +14,7 @@ Other projects bring an Autodarts board into Home Assistant or next to it. This 
 
 <!-- --8<-- [start:compare] -->
 
-| | This integration | Autodarts app with [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) and [darts-wled](https://github.com/Peschi90/darts-wled) | Other Home Assistant integrations |
+| Feature | This integration | Autodarts app with [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) and [darts-wled](https://github.com/Peschi90/darts-wled) | Other Home Assistant integrations |
 | --- | --- | --- | --- | --- |
 | **Runs without the cloud** | Yes, with the [local interface](how-it-works.md#privacy) of the Board Manager | No, with an [Autodarts account](https://autodarts.com/) | No, darts-caller [signs in to Autodarts](https://github.com/Peschi90/darts-caller#autodarts-login) | Some of them ([details](coming-from.md#can-it-stay)) |
 | **Entities and events in Home Assistant** | Yes, an [event](entities.md#board-events) for every dart, visit, takeout, bust, leg and match | No | No | Sensors of the current visit or game |
