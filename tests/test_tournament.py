@@ -657,12 +657,23 @@ def test_restore_keeps_the_setup_and_ignores_what_it_does_not_know():
                 "random_draw": True,
                 "pause": 9999,
                 "summary": 61,
+                # There is no single group, and at most four of a group go on.
+                "groups": 1,
+                "advance": 5,
             }
         }
     )
     assert tournament.setup == TournamentSetup(
         players=["Alex", "B" * 20, *NAMES], random_draw=True
     )
+    for saved, kept in (
+        ({"groups": 9, "advance": "2"}, (0, 2)),
+        ({"groups": True, "advance": 0}, (0, 2)),
+        ({"groups": 8, "advance": 4}, (8, 4)),
+        ({"groups": 2, "advance": 1}, (2, 1)),
+    ):
+        tournament.restore({"setup": saved})
+        assert (tournament.setup.groups, tournament.setup.advance) == kept
     # 32 players at most.
     tournament.restore({"setup": {"players": [f"P{index}" for index in range(40)]}})
     assert len(tournament.setup.players) == MAX_ENTRANTS

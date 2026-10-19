@@ -206,8 +206,10 @@ START_TOURNAMENT_SCHEMA = vol.Schema(
         vol.Optional("sets"): vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_SETS)),
         **{vol.Optional(rule): cv.boolean for rule in RULES},
         vol.Optional("third_place"): cv.boolean,
+        # 0 makes groups of about four players; there is no single group.
         vol.Optional("groups"): vol.All(
-            vol.Coerce(int), vol.Range(min=MIN_GROUPS, max=MAX_GROUPS)
+            vol.Coerce(int),
+            vol.Any(0, vol.Range(min=MIN_GROUPS, max=MAX_GROUPS)),
         ),
         vol.Optional("advance"): vol.All(
             vol.Coerce(int), vol.Range(min=1, max=MAX_ADVANCE)

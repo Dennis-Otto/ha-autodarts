@@ -103,7 +103,7 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *Der Export konnte nicht geschrieben werden: …* | Der Ordner ist nicht beschreibbar oder der Speicher voll; die Meldung nennt den Grund. |
 | *In der letzten Stunde wurden … Exporte geschrieben, mehr schreibt die Integration nicht.* | Die Integration schreibt nur eine begrenzte Zahl von Exporten pro Stunde. Versuche es später erneut. |
 | *Dieses Turnierformat braucht … bis … Spieler, nicht …* | Nenne so viele Spieler, wie das Format nimmt, jeden mit eigenem Namen: drei bis acht bei jeder gegen jeden, sechs bis 32 mit Gruppen, sonst drei bis 32. |
-| *… Spieler passen nicht in … Gruppen* | Wähle weniger Gruppen oder lass das Board sie wählen, damit jede Gruppe drei bis acht Spieler hat und mehr, als weiterkommen. |
+| *… Spieler passen nicht in … Gruppen* | Wähle weniger Gruppen oder lass das Board sie wählen (*Turniergruppen* `0` für den Knopf *Turnier starten*), oder weniger Weiterkommende (*Turnier Weiter je Gruppe*), damit jede Gruppe drei bis acht Spieler hat und mehr, als weiterkommen. |
 | *Es läuft kein Turnier.* | *Nächstes Turniermatch* und *Turnier beenden* brauchen ein laufendes Turnier. |
 | *Es läuft bereits ein Turnier.* | Es läuft immer nur ein Turnier. Beende es, bevor du ein neues startest. |
 | *Das Turnier ist vorbei.* | Das Finale ist gespielt; *Nächstes Turniermatch* hat kein Match mehr. Beende das Turnier oder starte ein neues. |

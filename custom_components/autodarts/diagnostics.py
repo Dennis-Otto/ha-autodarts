@@ -135,6 +135,8 @@ def _tournament(local: AutodartsGamesCoordinator) -> dict[str, Any]:
         "players": len(setup.players),
         "third_place": setup.third_place,
         "random_draw": setup.random_draw,
+        "groups": setup.groups,
+        "advance": setup.advance,
         "pause": setup.pause,
         "summary": setup.summary,
         "running": {

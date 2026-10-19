@@ -676,6 +676,12 @@
       "practice_gotcha_target": {
         "name": "Übungsspiel Gotcha-Zielpunktzahl"
       },
+      "tournament_groups": {
+        "name": "Turniergruppen"
+      },
+      "tournament_advance": {
+        "name": "Turnier Weiter je Gruppe"
+      },
       "tournament_pause": {
         "name": "Turnierpause"
       },
@@ -1589,11 +1595,11 @@
         },
         "groups": {
           "name": "Gruppen",
-          "description": "Gruppen und K.-o.-System: die Zahl der Gruppen, 2 bis 8, mit je drei bis acht Spielern. Ohne sie Gruppen von etwa vier Spielern."
+          "description": "Gruppen und K.-o.-System: die Zahl der Gruppen, 2 bis 8, mit je drei bis acht Spielern; 0 macht Gruppen von etwa vier Spielern. Ohne sie gilt Turniergruppen."
         },
         "advance": {
           "name": "Weiter je Gruppe",
-          "description": "Gruppen und K.-o.-System: wie viele Spieler jeder Gruppe ins K.-o.-System kommen, 1 bis 4 und weniger, als die Gruppe hat. Ohne Angabe zwei."
+          "description": "Gruppen und K.-o.-System: wie viele Spieler jeder Gruppe ins K.-o.-System kommen, 1 bis 4 und weniger, als die Gruppe hat. Ohne Angabe gilt Turnier Weiter je Gruppe."
         },
         "random_draw": {
           "name": "Zufällige Auslosung",

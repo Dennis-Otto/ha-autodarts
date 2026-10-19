@@ -118,6 +118,12 @@
       "practice_gotcha_target": {
         "default": "mdi:flag-checkered"
       },
+      "tournament_groups": {
+        "default": "mdi:account-group"
+      },
+      "tournament_advance": {
+        "default": "mdi:account-arrow-right"
+      },
       "tournament_pause": {
         "default": "mdi:timer-sand"
       },

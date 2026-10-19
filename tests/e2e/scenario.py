@@ -156,6 +156,8 @@ ENTITIES = {
     "tournament_format": "select",
     "tournament_game": "select",
     "tournament_players": "text",
+    "tournament_groups": "number",
+    "tournament_advance": "number",
     "tournament_pause": "number",
     "tournament_third_place": "switch",
     "tournament_random_draw": "switch",

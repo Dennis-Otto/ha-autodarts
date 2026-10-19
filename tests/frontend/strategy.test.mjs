@@ -414,11 +414,19 @@ test("the game settings have every rule of the practice game and every setting o
     ["number.b_pause", "tournament_pause"],
     ["number.b_summary", "tournament_summary"],
     ["switch.b_third", "tournament_third_place"],
+    ["number.b_advance", "tournament_advance"],
+    ["number.b_groups", "tournament_groups"],
   ];
   const config = dashboardStrategy(hass(keys.map(([id, key]) => entity(id, key, "dev1"))));
   const [practice, tournament] = config.views.find((view) => view.path === "games").sections;
   assert.deepEqual(practice.cards[1].entities, ["select.b_game", "switch.b_bull_off", "switch.b_distance", "switch.b_teams"]);
-  assert.deepEqual(tournament.cards[1].entities, ["number.b_pause", "number.b_summary", "switch.b_third"]);
+  assert.deepEqual(tournament.cards[1].entities, [
+    "number.b_groups",
+    "number.b_advance",
+    "number.b_pause",
+    "number.b_summary",
+    "switch.b_third",
+  ]);
 });
 
 test("an entity named like its board alone keeps its own row", () => {
