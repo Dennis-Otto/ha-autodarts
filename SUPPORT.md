@@ -20,11 +20,7 @@ Never post access tokens, board API keys, private network addresses or other per
 
 ## What happens with your issue
 
-<<<<<<< before updating
-Within a few minutes, the repository's issue assistant labels a new issue and posts a first analysis: a summary, the likely cause or the documentation that helps, related issues and, if needed, questions. The assistant currently uses Claude, an AI by Anthropic; it reads the text of the issue and the public repository and can be wrong. The maintainer reads every issue and decides.
-=======
-Within a few minutes, the issue assistant labels a new issue and posts a first analysis: a summary, the likely cause or the documentation that helps, related issues and, if needed, questions. The assistant currently uses Claude, an AI by Anthropic; it reads the text of the issue and the public repository and can be wrong. The maintainer reads every issue and decides. So that a flood of issues can't run up the cost of the AI, it analyzes only so many issues and answers of people who don't maintain the project a day; past that, an issue waits for the maintainer without an analysis. The assistant is [its own open-source project](https://github.com/Dennis-Otto/issue-assistant).
->>>>>>> after updating
+Within a few minutes, the repository's issue assistant labels a new issue and posts a first analysis: a summary, the likely cause or the documentation that helps, related issues and, if needed, questions. The assistant currently uses Claude, an AI by Anthropic; it reads the text of the issue and the public repository and can be wrong. The maintainer reads every issue and decides. So that a flood of issues can't run up the cost of the AI, it analyzes only so many issues and answers of people who don't maintain the project a day; past that, an issue waits for the maintainer without an analysis.
 
 - **Questions** mark the issue as waiting for you. Answer in a comment or by editing the issue. Without an answer, a reminder follows after 15 days and the issue closes after 30 days; answering reopens it.
 - **A likely duplicate** of an open issue that the maintainer opened or has already triaged gets a notice and closes 3 days later, so the conversation stays in one place; any other likely duplicate is left to the maintainer. If it's something different, write a comment or react to the notice with 👎, and it stays open.

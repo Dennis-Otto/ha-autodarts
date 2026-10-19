@@ -12,8 +12,13 @@ JOB = yaml.safe_load((WORKFLOWS / "dependabot-automerge.yml").read_text())["jobs
 
 def test_privileged_job_runs_no_repository_code():
     # Harden-Runner records the network traffic; no step checks out the pull request.
+    # The token of the release app merges, so that the merge starts the push checks.
     actions = [step["uses"].split("@")[0] for step in JOB["steps"] if "uses" in step]
-    assert actions == ["step-security/harden-runner", "dependabot/fetch-metadata"]
+    assert actions == [
+        "step-security/harden-runner",
+        "dependabot/fetch-metadata",
+        "actions/create-github-app-token",
+    ]
 
 
 def test_every_merge_is_bound_to_the_checked_head_commit():

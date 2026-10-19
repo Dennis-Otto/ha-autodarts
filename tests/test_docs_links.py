@@ -60,6 +60,21 @@ REPOSITORY_PATH = re.compile(
 )
 # Folders the tests create while they run, with everything in them.
 GENERATED = ("tests/e2e/artifacts/",)
+# The patterns of the files that the blueprint leaves to a project, which AGENTS.md
+# lists from its copier.yml: a repository has only those of its kind, so they claim
+# no file of this one.
+PROJECT_PATTERNS = re.compile(
+    r"^The files of this project, as `_skip_if_exists`.*?(?=^#)",
+    re.MULTILINE | re.DOTALL,
+)
+# What the text of the blueprint names that a repository may lack: the page of the
+# automation, which the hooks of the website write when the project has none, and
+# the files that a project adds when it needs them.
+OPTIONAL = (
+    "docs/automation.md",
+    "scripts/check-site.sh",
+    ".github/screenshots-paths.txt",
+)
 # The number words of both languages, which the text uses for counts.
 NUMBERS = {
     word: number
@@ -223,8 +238,12 @@ def test_the_repository_paths_in_the_text_exist():
     missing = [
         f"{document.relative_to(ROOT).as_posix()}: {path}"
         for document in DOCUMENTS
-        for path in REPOSITORY_PATH.findall(FENCE.sub("", document.read_text("utf-8")))
-        if not path.startswith(GENERATED) and not (ROOT / path).exists()
+        for path in REPOSITORY_PATH.findall(
+            PROJECT_PATTERNS.sub("", FENCE.sub("", document.read_text("utf-8")))
+        )
+        if not path.startswith(GENERATED)
+        and path not in OPTIONAL
+        and not (ROOT / path).exists()
     ]
     assert not missing, "\n".join(missing)
 

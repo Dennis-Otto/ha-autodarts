@@ -31,14 +31,9 @@ area_field = "Area"
 unmapped_options = ["Other"]
 
 [transparency]
-<<<<<<< before updating
-# Files that tell reporters which AI reads their issue.
-files = ["SUPPORT.md", "docs/troubleshooting.de.md"]
-=======
 # Files that tell reporters which AI reads their issue; the check command makes sure
 # they name the engine.
-files = ["SUPPORT.md"]
->>>>>>> after updating
+files = ["SUPPORT.md", "docs/troubleshooting.de.md"]
 
 [releases]
 # A merged pull request that fixes an issue labels it fixed-in-next-release; the
