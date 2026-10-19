@@ -986,6 +986,18 @@
     "tournament_match_running": {
       "message": "Le match du tournoi entre {first} et {second} est toujours en cours. Jouez-le jusqu'au bout, ou terminez le tournoi."
     },
+    "tournament_no_match": {
+      "message": "Aucun match du tournoi n'est encore prêt pour cette cible. Il commence dès qu'une autre cible a un résultat."
+    },
+    "board_in_tournament": {
+      "message": "{board} joue déjà un tournoi. Terminez d'abord ce tournoi."
+    },
+    "tournament_boards": {
+      "message": "Un tournoi se joue sur {max} cibles à la fois au plus."
+    },
+    "unknown_board": {
+      "message": "{board} n'est pas une cible Autodarts."
+    },
     "no_dart": {
       "message": "La volée en cours n'a pas de fléchette {dart}."
     },
@@ -1526,6 +1538,10 @@
         "config_entry_id": {
           "name": "Cible",
           "description": "La cible Autodarts. Nécessaire uniquement avec plusieurs cibles."
+        },
+        "boards": {
+          "name": "Cibles",
+          "description": "D'autres cibles qui jouent en même temps des matchs du tournoi, par leur appareil ou leur entrée. Chaque cible joue un match à elle, et la cible de l'action tient le tournoi. Jusqu'à huit cibles."
         },
         "players": {
           "name": "Joueurs",

@@ -93,7 +93,7 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     ---
 
-    Tournaments of three to 32 players, as a round robin with a table, a knockout, a double elimination or groups with a knockout, and a bot from level 20 to 120 to play X01 and Cricket against.
+    Tournaments of three to 32 players, as a round robin with a table, a knockout, a double elimination or groups with a knockout, at one board or on several boards at once, and a bot from level 20 to 120 to play X01 and Cricket against.
 
     [:octicons-arrow-right-24: Tournaments](games.md#tournaments) · [The bot](games.md#playing-against-the-bot)
 

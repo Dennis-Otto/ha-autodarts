@@ -21,6 +21,7 @@ from homeassistant.core import (
 )
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.service import (
     async_get_config_entry,
     async_register_admin_service,
@@ -56,6 +57,7 @@ from .scoring import BULL_MODES, DOUBLE, MODES, STRAIGHT
 from .tournament import (
     FORMATS,
     MAX_ADVANCE,
+    MAX_BOARDS,
     MAX_ENTRANTS,
     MAX_GROUPS,
     MAX_PAUSE,
@@ -212,6 +214,11 @@ START_TOURNAMENT_SCHEMA = vol.Schema(
         vol.Optional("summary"): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=MAX_SUMMARY)
         ),
+        # The boards of a tournament on several boards, by the IDs of their
+        # entries or devices; the board of the action is always one of them.
+        vol.Optional("boards"): vol.All(
+            cv.ensure_list, [cv.string], vol.Length(max=MAX_BOARDS)
+        ),
     }
 )
 
@@ -334,6 +341,23 @@ def _coordinator(
             translation_domain=DOMAIN, translation_key="several_boards"
         )
     return boards[0]
+
+
+def _board(hass: HomeAssistant, value: str) -> AutodartsGamesCoordinator:
+    """A board of a tournament on several boards, by the ID of its entry, or
+    of its device as the device picker of the action gives it."""
+    if hass.config_entries.async_get_entry(value) is None:
+        device = dr.async_get(hass).async_get(value)
+        found = [
+            entry_id
+            for entry_id in (device.config_entries if device else set())
+            if (entry := hass.config_entries.async_get_entry(entry_id))
+            and entry.domain == DOMAIN
+        ]
+        if not found:
+            raise _invalid("unknown_board", board=value)
+        value = sorted(found)[0]
+    return _coordinator(hass, value)
 
 
 def _invalid(key: str, **placeholders: str) -> ServiceValidationError:
@@ -758,13 +782,14 @@ def async_setup_services(hass: HomeAssistant) -> None:
                 for alias in MODE_ALIASES
             ),
         )
+        boards = [_board(hass, value) for value in call.data.get("boards", [])]
         options = {
             key: value
             for key, value in call.data.items()
-            if key != ATTR_CONFIG_ENTRY_ID
+            if key not in (ATTR_CONFIG_ENTRY_ID, "boards")
         }
         rules = {rule: options.pop(rule, None) for rule in RULES}
-        await coordinator.async_start_tournament(rules=rules, **options)
+        await coordinator.async_start_tournament(boards=boards, rules=rules, **options)
 
     async def stop_tournament(call: ServiceCall) -> None:
         coordinator = _coordinator(hass, call.data.get(ATTR_CONFIG_ENTRY_ID))

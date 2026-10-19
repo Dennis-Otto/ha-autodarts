@@ -986,6 +986,18 @@
     "tournament_match_running": {
       "message": "Das Turniermatch {first} gegen {second} läuft noch. Spiel es zu Ende oder beende das Turnier."
     },
+    "tournament_no_match": {
+      "message": "Für dieses Board ist noch kein Match des Turniers bereit. Es beginnt, sobald ein anderes Board ein Ergebnis hat."
+    },
+    "board_in_tournament": {
+      "message": "{board} spielt schon in einem Turnier. Beende zuerst dieses Turnier."
+    },
+    "tournament_boards": {
+      "message": "Ein Turnier spielt auf bis zu {max} Boards zugleich."
+    },
+    "unknown_board": {
+      "message": "{board} ist kein Autodarts-Board."
+    },
     "no_dart": {
       "message": "Die aktuelle Aufnahme hat keinen Dart {dart}."
     },
@@ -1526,6 +1538,10 @@
         "config_entry_id": {
           "name": "Board",
           "description": "Das Autodarts-Board. Nur bei mehreren Boards nötig."
+        },
+        "boards": {
+          "name": "Boards",
+          "description": "Weitere Boards, die zur selben Zeit Matches des Turniers spielen, über ihr Gerät oder ihren Eintrag: Jedes Board spielt ein eigenes Match, und das Board der Aktion führt das Turnier. Bis zu acht Boards."
         },
         "players": {
           "name": "Spieler",

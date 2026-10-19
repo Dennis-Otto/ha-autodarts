@@ -52,6 +52,8 @@ Tap the dart on the scoreboard and choose where it landed, on the keys or on a p
 
 Yes. Every board is an entry and a device of its own, with its own entities, games and statistics, and the automatic dashboard gives every board its views, such as `/scoreboard-1` and `/scoreboard-2`. The actions of the integration then need the board's `config_entry_id`. [Several boards](without-autodarts.md#several-boards)
 
+A club evening can also play [one tournament on several boards at once](games.md#a-tournament-on-several-boards), each board with a match of its own.
+
 ## Screens and languages
 
 ### Can I show the scoreboard on a TV or a Fire tablet?

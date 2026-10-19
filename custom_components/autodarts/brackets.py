@@ -65,6 +65,10 @@ class Match:
     ended: str | None = None
     # The group of a match of the group stage, from 0.
     group: int | None = None
+    # When a board began the match, and in a tournament on several boards the
+    # board, from 0, that plays or played it.
+    started: str | None = None
+    board: int | None = None
     # Where the winner and the loser go on: a later match and its side. Every draw
     # makes them anew, so they are not stored.
     winner_to: tuple[int, int] | None = field(default=None, compare=False, repr=False)

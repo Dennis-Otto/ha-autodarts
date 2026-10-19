@@ -84,7 +84,7 @@ A Granboard sends its darts to Home Assistant over Bluetooth, so nobody enters t
 
 ## Several boards
 
-Each dartboard without Autodarts is an entry and a device of its own, with its own entities, games and statistics, and so is each Autodarts board beside them. The automatic dashboard gives every board its views. The actions of the integration then need the board's `config_entry_id`, as with several Autodarts boards.
+Each dartboard without Autodarts is an entry and a device of its own, with its own entities, games and statistics, and so is each Autodarts board beside them. The automatic dashboard gives every board its views. The actions of the integration then need the board's `config_entry_id`, as with several Autodarts boards. A [tournament on several boards](games.md#a-tournament-on-several-boards) plays on dartboards with and without Autodarts side by side.
 
 To remove a board and its statistics, delete its entry in **Settings → Devices & services → Autodarts**.
 

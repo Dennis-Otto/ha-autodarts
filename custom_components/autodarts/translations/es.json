@@ -986,6 +986,18 @@
     "tournament_match_running": {
       "message": "El partido del torneo entre {first} y {second} sigue en juego. Juégalo hasta el final o termina el torneo."
     },
+    "tournament_no_match": {
+      "message": "Todavía no hay ningún partido del torneo listo para esta diana. Empieza en cuanto otra diana tenga un resultado."
+    },
+    "board_in_tournament": {
+      "message": "{board} ya juega un torneo. Termina antes ese torneo."
+    },
+    "tournament_boards": {
+      "message": "Un torneo se juega en {max} dianas a la vez como mucho."
+    },
+    "unknown_board": {
+      "message": "{board} no es una diana Autodarts."
+    },
     "no_dart": {
       "message": "La tirada actual no tiene dardo {dart}."
     },
@@ -1526,6 +1538,10 @@
         "config_entry_id": {
           "name": "Diana",
           "description": "La diana Autodarts. Solo es necesaria si tienes más de una diana."
+        },
+        "boards": {
+          "name": "Dianas",
+          "description": "Más dianas que juegan a la vez partidos del torneo, por su dispositivo o su entrada: cada diana juega un partido propio, y la diana de la acción lleva el torneo. Hasta ocho dianas."
         },
         "players": {
           "name": "Jugadores",
