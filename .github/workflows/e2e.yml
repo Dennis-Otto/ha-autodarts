@@ -162,6 +162,13 @@ jobs:
           path: e2e-artifacts
           if-no-files-found: ignore
           retention-days: 14
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.project.toml.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: scenario (${{ matrix.name }})
+        run: python3 .github/blueprint.py coach explain "$CHECK"
 
   # The cards in a real browser, against the current and the oldest supported Home
   # Assistant: its native card forms and dashboard strategy. The four shards of the
@@ -245,6 +252,13 @@ jobs:
           path: e2e-artifacts
           if-no-files-found: ignore
           retention-days: 14
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.project.toml.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: browser (${{ matrix.home_assistant.name }}, ${{ matrix.part.name }})
+        run: python3 .github/blueprint.py coach explain "$CHECK"
 
   # The live demo of the website in a real browser: the page of docs/demo/ plays the
   # recorded games with the cards of this pull request, in every language, on a desktop
@@ -284,6 +298,13 @@ jobs:
           path: e2e-artifacts
           if-no-files-found: ignore
           retention-days: 14
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.project.toml.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: live demo
+        run: python3 .github/blueprint.py coach explain "$CHECK"
 
   # The one check of the end-to-end tests that main requires. A matrix skipped by its
   # condition reports none of its names, and a skipped job counts as passed, so this
@@ -295,14 +316,17 @@ jobs:
     needs: [changes, scenario, browser, live-demo]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
-      # The gate reads the results of the other jobs; it needs no host, sudo or
-      # Docker. Harden-Runner warns that both endpoint lists are empty: expected,
-      # an empty allow list blocks every host apart from GitHub's Actions services.
+      # The gate reads the results of the other jobs; it needs no sudo or Docker, and
+      # github.com only for the explanations of the PR coach after a failure.
       - name: Block every host that the job doesn't need
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          allowed-endpoints: >
+            github.com:443
           disable-sudo-and-containers: true
       - name: Pass when every test that had to run passed
         env:
@@ -328,6 +352,20 @@ jobs:
           else
             echo "Nothing that the end-to-end tests run or mount changed; none had to run." >> "$GITHUB_STEP_SUMMARY"
           fi
+      # The PR coach needs .github/blueprint.py and the explanations, nothing else.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: failure()
+        with:
+          persist-credentials: false
+          sparse-checkout: .github
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.project.toml. Each
+      # job that failed explains itself as well.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: e2e
+        run: python3 .github/blueprint.py coach explain "$CHECK"
 
   # Not required: warns a week or two before a Home Assistant release breaks anything.
   beta:
@@ -379,3 +417,10 @@ jobs:
           path: e2e-artifacts
           if-no-files-found: ignore
           retention-days: 14
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.project.toml.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: e2e (Home Assistant beta)
+        run: python3 .github/blueprint.py coach explain "$CHECK"

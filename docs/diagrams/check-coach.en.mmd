@@ -1,0 +1,25 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: How a check of this project explains and fixes itself
+  accDescr: A job of the end-to-end tests or of the visual check fails. Its last step, Explain the failure, takes what failed, why it matters and how to fix it from .github/checks.project.toml, and writes it into the summary of the job and as its annotation. After the checks, the PR coach shows it in its one comment on the pull request, also on one from a fork. When the CI fails, the fix bot runs the commands that fix what a command can fix, ESLint, the sync of the translations and the shipped blueprints, and commits their fixes onto the branch of the pull request, or suggests them at their lines on a fork. A person fixes the rest with the commands of the explanation, and the checks run again.
+
+  FAILED["A job of the end-to-end tests<br/>or of the visual check fails"] --> EXPLAIN["Its last step, Explain the failure:<br/>the explanation of checks.project.toml<br/>in the summary and as its annotation"]
+  EXPLAIN --> REPORT["After the checks, the PR coach shows it<br/>in its one comment on the pull request,<br/>also on one from a fork"]
+  CI["The CI fails, such as at ESLint<br/>or at a translation file"] --> COMMAND{{"Can a command<br/>fix it?"}}
+  COMMAND -- "yes" --> BOT["The fix bot runs autofix: ESLint,<br/>the sync of the translations,<br/>the shipped blueprints"]
+  BOT --> COMMIT["It commits the fixes onto the branch,<br/>or suggests them on a fork"]
+  COMMAND -- "no" --> REPORT
+  REPORT --> PERSON["A person fixes the rest with<br/>the commands of the explanation"]
+  COMMIT --> AGAIN["The checks run again"]
+  PERSON --> AGAIN
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class EXPLAIN,REPORT,COMMAND,BOT,COMMIT bot
+  class AGAIN done
+  class FAILED,CI failed
