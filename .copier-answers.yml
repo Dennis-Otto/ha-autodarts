@@ -29,7 +29,7 @@ renovate_runner: hub
 sample_code: false
 sponsor: Dennis-Otto
 successor: true
-test_workflows: ''
+test_workflows: Visual check
 topics: autodarts, darts, hacs, home-assistant, home-assistant-custom-component, dartboard,
     hacs-integration, home-assistant-blueprints, homeassistant, lovelace-card, darts-training,
     home-assistant-integration, home-automation, lovelace-custom-card, smart-home
