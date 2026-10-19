@@ -150,7 +150,7 @@ Du kommst von Autodarts Local, einer anderen Autodarts-Integration oder darts-ca
 
 Wie sich diese Integration mit der Autodarts-App und ihrer Browser-Erweiterung, mit darts-caller und darts-wled und mit den anderen Home-Assistant-Integrationen für Autodarts vergleicht:
 
-| | Diese Integration | Autodarts-App mit [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) und [darts-wled](https://github.com/Peschi90/darts-wled) | Andere Home-Assistant-Integrationen |
+| Merkmal | Diese Integration | Autodarts-App mit [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) und [darts-wled](https://github.com/Peschi90/darts-wled) | Andere Home-Assistant-Integrationen |
 | --- | --- | --- | --- | --- |
 | **Läuft ohne Cloud** | Ja, mit der [lokalen Schnittstelle](https://dennis-otto.github.io/ha-autodarts/de/how-it-works.html#datenschutz) des Board Managers | Nein, mit einem [Autodarts-Konto](https://autodarts.com/) | Nein, darts-caller [meldet sich bei Autodarts an](https://github.com/Peschi90/darts-caller#autodarts-login) | Manche ([Einzelheiten](https://dennis-otto.github.io/ha-autodarts/de/coming-from.html#darf-es-bleiben)) |
 | **Entitäten und Ereignisse in Home Assistant** | Ja, ein [Ereignis](https://dennis-otto.github.io/ha-autodarts/de/entities.html#board-ereignisse) für jeden Dart, jede Aufnahme, Entnahme, jedes Überwerfen, Leg und Match | Nein | Nein | Sensoren der aktuellen Aufnahme oder des Spiels |
@@ -341,7 +341,7 @@ Die Blueprints sind auf Englisch beschriftet. Die Caller und der Wochenbericht s
 
 ## Unterstützte Geräte
 
-| | Unterstützt | Getestet mit |
+| Aufbau | Unterstützt | Getestet mit |
 | --- | --- | --- |
 | Board Manager 2: Autodarts 2 ohne Bildschirm (Headless) | 2.x | 2.0.0 und 2.0.2 |
 | Board Manager 1 (klassische App) | 1.x | 1.0.7 |

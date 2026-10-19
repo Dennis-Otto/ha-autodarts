@@ -63,7 +63,7 @@ Alles, was die Integration mit Darts macht, denn dafür hat sie die Kameras nie 
 
 ## Was anders ist
 
-| | Mit Autodarts | Ohne Autodarts |
+| Merkmal | Mit Autodarts | Ohne Autodarts |
 | --- | --- | --- |
 | Darts | Von den Kameras erkannt, mit einem Tipp korrigiert | Auf dem Tastenfeld eingegeben |
 | Status | Bereit, Entnahme, Erkennung gestoppt und mehr | *Darts eingeben* und *Aufnahme komplett*; der Sensor *Erkennungsstatus* zeigt *Eingabe von Hand* |

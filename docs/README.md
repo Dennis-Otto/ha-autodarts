@@ -104,7 +104,7 @@ Start the detection when you enter the darts room, stop it when you leave, and g
 
 ## Supported devices
 
-| | Supported | Tested with |
+| Setup | Supported | Tested with |
 | --- | --- | --- |
 | Board Manager 2: Autodarts 2 without a screen (headless) | 2.x | 2.0.0 and 2.0.2 |
 | Board Manager 1 (classic app) | 1.x | 1.0.7 |

@@ -18,13 +18,18 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
 [:material-download: Add to HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration){ .md-button .md-button--primary } [:material-rocket-launch: Get started](getting-started.md){ .md-button } [:material-play-circle: Try it live](demo/index.html){ .md-button }
 
-![Animation: a 301 match on the live card and the scoreboard side by side. Alex throws three triple 20s, the beds light up and the scoreboard counts down to 121; Sam scores 85; Alex checks out 121 with T20, outer bull and D18 for the game shot](images/en/hero.webp)
+<picture>
+  <source media="(max-width: 600px)" srcset="images/en/hero-mobile.webp">
+  <img class="off-glb" src="images/en/hero.webp" alt="Animation: a 301 match on the live card and the scoreboard. Alex throws three triple 20s, the beds light up and the scoreboard counts down to 121; Sam scores 85; Alex checks out 121 with T20, outer bull and D18 for the game shot">
+</picture>
 
 ## What it does
 
-<div class="grid cards" markdown>
+<div class="grid cards pictures" markdown>
 
-- :material-lan-connect:{ .lg .middle } **Local and in realtime**
+- ![The live card on the dashboard of Home Assistant: the current visit, its three darts, the last visits, the training session and the board](images/en/dashboard-live.png){ loading=lazy }
+
+    :material-lan-connect:{ .lg .middle } **Local and in realtime**
 
     ---
 
@@ -32,7 +37,9 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     [:octicons-arrow-right-24: How it works](how-it-works.md)
 
-- :material-bullseye-arrow:{ .lg .middle } **Games**
+- ![Animation: a 180 on the scoreboard, with a golden glow and confetti](images/en/celebration.webp){ loading=lazy }
+
+    :material-bullseye-arrow:{ .lg .middle } **Games**
 
     ---
 
@@ -40,7 +47,9 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     [:octicons-arrow-right-24: Games and rules](games.md)
 
-- :material-target:{ .lg .middle } **Training**
+- ![Animation: Around the Clock on the live card; every hit moves the target on and outlines the beds of the next number](images/en/training-game.webp){ loading=lazy }
+
+    :material-target:{ .lg .middle } **Training**
 
     ---
 
@@ -48,7 +57,9 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     [:octicons-arrow-right-24: Training games](games.md#training-games)
 
-- :material-monitor-dashboard:{ .lg .middle } **Scoreboard and cards**
+- ![Animation: a game is chosen on the new game screen of the tablet at the board and starts on the scoreboard](images/en/lobby.webp){ loading=lazy }
+
+    :material-monitor-dashboard:{ .lg .middle } **Scoreboard and cards**
 
     ---
 
@@ -56,7 +67,9 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     [:octicons-arrow-right-24: Scoreboard at the board](scoreboard.md) · [Dashboard cards](cards.md)
 
-- :material-chart-line:{ .lg .middle } **Statistics with heatmaps**
+- ![Animation: the heatmap switches from beds to numbers and the real positions of the darts, then to the darts of one player](images/en/heatmap-modes.webp){ loading=lazy }
+
+    :material-chart-line:{ .lg .middle } **Statistics with heatmaps**
 
     ---
 
@@ -64,7 +77,9 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     [:octicons-arrow-right-24: Statistics and players](statistics.md)
 
-- :material-home-automation:{ .lg .middle } **Automations and blueprints**
+- ![The highlight gallery in the media browser of Home Assistant with photos of a checkout and two high visits](images/en/media-gallery.png){ loading=lazy }
+
+    :material-home-automation:{ .lg .middle } **Automations and blueprints**
 
     ---
 
@@ -72,7 +87,9 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     [:octicons-arrow-right-24: Automations](automations.md)
 
-- :material-tournament:{ .lg .middle } **Tournaments and a bot**
+- ![Animation: the knockout bracket of five players on the scoreboard, until Alex wins the final](images/en/tournament-bracket.webp){ loading=lazy }
+
+    :material-tournament:{ .lg .middle } **Tournaments and a bot**
 
     ---
 
@@ -80,7 +97,9 @@ Darts appear in Home Assistant a fraction of a second after they land, straight 
 
     [:octicons-arrow-right-24: Tournaments](games.md#tournaments) · [The bot](games.md#playing-against-the-bot)
 
-- :material-microphone:{ .lg .middle } **Voice**
+- ![Animation: darts entered by voice, with Assist open on top of the scoreboard, which answers with the score left](images/en/manual-voice.webp){ loading=lazy }
+
+    :material-microphone:{ .lg .middle } **Voice**
 
     ---
 
@@ -115,75 +134,17 @@ How this integration compares with the Autodarts app and its browser extension, 
 
 ## Guides
 
-<div class="grid cards" markdown>
-
-- :material-rocket-launch:{ .lg .middle } [**From zero to the scoreboard**](getting-started.md)
-
-    ---
-
-    For Autodarts players without Home Assistant: set up Home Assistant and HACS, install the integration, add the board and play the first game on the scoreboard.
-
-- :material-download:{ .lg .middle } [**Installation and setup**](installation.md)
-
-    ---
-
-    Requirements, HACS and manual installation, the ways to add a board, the optional cloud link, reconfiguration, updating and removal.
-
-- :material-pencil:{ .lg .middle } [**Play without Autodarts**](without-autodarts.md)
-
-    ---
-
-    Any dartboard, with every game, the training and the statistics: you enter the darts on a keypad.
-
-- :material-bluetooth:{ .lg .middle } [**Granboard over Bluetooth**](granboard.md)
-
-    ---
-
-    The darts of a Granboard arrive on their own, over Home Assistant's Bluetooth and ESPHome proxies. Experimental.
-
-- :material-frequently-asked-questions:{ .lg .middle } [**Frequently asked questions**](faq.md)
-
-    ---
-
-    Short answers about the account, devices, online play, privacy, several boards, screens, languages, updates and switching.
-
-- :material-swap-horizontal:{ .lg .middle } [**Coming from another tool**](coming-from.md)
-
-    ---
-
-    Autodarts Local, the other integrations, MQTT bridges, darts-caller, darts-wled and Tools for Autodarts compared, and how to switch from them.
-
-- :material-bullseye-arrow:{ .lg .middle } [**Games and rules**](games.md)
-
-    ---
-
-    Every game at a glance, four ways to start one, matches, teams, handicaps, the bull-off, tournaments and the rules of every game.
-
-- :material-television:{ .lg .middle } [**Scoreboard at the board**](scoreboard.md)
-
-    ---
-
-    A tablet or TV next to the board: setup, landscape and portrait, the new game screen, tournaments, the caller and idle mode.
-
-- :material-chart-line:{ .lg .middle } [**Statistics and players**](statistics.md)
-
-    ---
-
-    Training sessions, personal bests, the heatmap and dart positions, where to aim, progress over time, doubles, player profiles, achievements, the leaderboard and exports.
-
-- :material-home-automation:{ .lg .middle } [**Automations**](automations.md)
-
-    ---
-
-    Fifteen blueprints, their settings, board events and ready-to-use examples.
-
-- :material-play-network:{ .lg .middle } [**Online matches**](online-matches.md)
-
-    ---
-
-    Busts, won legs and matches of online matches as board events, with the browser extension Tools for Autodarts *(experimental)*.
-
-</div>
+- :material-rocket-launch: [**From zero to the scoreboard**](getting-started.md): Home Assistant, HACS, the integration and the first game, for Autodarts players new to Home Assistant
+- :material-download: [**Installation and setup**](installation.md): requirements, HACS or by hand, the ways to add a board, the cloud link, updates and removal
+- :material-pencil: [**Play without Autodarts**](without-autodarts.md): any dartboard, with every game, the training and the statistics, the darts entered on a keypad
+- :material-bluetooth: [**Granboard over Bluetooth**](granboard.md): the darts of a Granboard over Home Assistant's Bluetooth and ESPHome proxies *(experimental)*
+- :material-frequently-asked-questions: [**Frequently asked questions**](faq.md): the account, devices, online play, privacy, several boards, screens, languages and updates
+- :material-swap-horizontal: [**Coming from another tool**](coming-from.md): the other integrations, MQTT bridges, darts-caller, darts-wled and Tools for Autodarts compared, and how to switch
+- :material-bullseye-arrow: [**Games and rules**](games.md): every game at a glance, four ways to start one, matches, teams, handicaps, the bull-off and tournaments
+- :material-television: [**Scoreboard at the board**](scoreboard.md): a tablet or TV next to the board, landscape and portrait, the new game screen, the caller and idle mode
+- :material-chart-line: [**Statistics and players**](statistics.md): sessions, personal bests, heatmaps, where to aim, progress, profiles, achievements and the leaderboard
+- :material-home-automation: [**Automations**](automations.md): fifteen blueprints, their settings, board events and ready-to-use examples
+- :material-play-network: [**Online matches**](online-matches.md): busts, won legs and matches of online matches as board events, with Tools for Autodarts *(experimental)*
 
 ## Reference
 

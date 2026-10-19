@@ -157,7 +157,7 @@ Coming from Autodarts Local, another Autodarts integration or darts-caller? [Com
 
 How this integration compares with the Autodarts app and its browser extension, with darts-caller and darts-wled, and with the other Home Assistant integrations for Autodarts:
 
-| | This integration | Autodarts app with [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) and [darts-wled](https://github.com/Peschi90/darts-wled) | Other Home Assistant integrations |
+| Feature | This integration | Autodarts app with [Tools for Autodarts](https://github.com/creazy231/tools-for-autodarts) | [darts-caller](https://github.com/Peschi90/darts-caller) and [darts-wled](https://github.com/Peschi90/darts-wled) | Other Home Assistant integrations |
 | --- | --- | --- | --- | --- |
 | **Runs without the cloud** | Yes, with the [local interface](https://dennis-otto.github.io/ha-autodarts/how-it-works.html#privacy) of the Board Manager | No, with an [Autodarts account](https://autodarts.com/) | No, darts-caller [signs in to Autodarts](https://github.com/Peschi90/darts-caller#autodarts-login) | Some of them ([details](https://dennis-otto.github.io/ha-autodarts/coming-from.html#can-it-stay)) |
 | **Entities and events in Home Assistant** | Yes, an [event](https://dennis-otto.github.io/ha-autodarts/entities.html#board-events) for every dart, visit, takeout, bust, leg and match | No | No | Sensors of the current visit or game |
