@@ -47,7 +47,9 @@ test("the darts of the visit on the live card correct with a tap, and show a pen
     ["div", "slot empty", false],
   ]);
   const second = $(card, '.slot[data-dart="2"]');
-  assert.equal(second.getAttribute("aria-label"), "S20 20 – Correct dart 2");
+  assert.equal(second.getAttribute("aria-label"), "Dart 2 S20 20 points – Correct dart 2");
+  // The label starts with the words the tile shows, so voice control finds it by them.
+  assert.equal(second.textContent.replace(/\s+/g, " ").trim(), "Dart 2 S20 20 points");
   assert.equal($(card, ".pad-area").hidden, true);
   // A tap opens the pad for that dart, with its multiplier chosen.
   second.click();
