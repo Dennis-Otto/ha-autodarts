@@ -35,7 +35,9 @@ SCRIPT = re.compile(r"\b(?:scripts|tests)/[\w/.-]+\.(?:sh|py|mjs)\b")
 # Jobs without the step of the coach, each with its reason.
 UNEXPLAINED = {
     # It asks GitHub's API which files the pull request changes, and reaches no other
-    # host for a checkout; when the API fails, the gate e2e fails and explains it.
+    # host for a checkout, so it has no step that explains it; when the API fails, it
+    # runs every test. Only a broken runner stops it, which [check.changes] explains in
+    # the report of the coach, as it looks up the name of the check run.
     ("e2e.yml", "changes"),
 }
 

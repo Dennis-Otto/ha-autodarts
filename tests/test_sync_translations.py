@@ -122,7 +122,8 @@ def test_a_missing_text_stays_missing_for_a_person(tmp_path):
     assert remaining == [
         "custom_components/autodarts/translations/nl.json misses 3 of the texts of "
         "strings.json, such as config.step.user.title: write them in the language, "
-        "or leave them to the translation bot after the merge."
+        "or ask in the pull request for a maintainer or a native speaker to add them "
+        "before the merge (CONTRIBUTING.md#translations)."
     ]
 
 

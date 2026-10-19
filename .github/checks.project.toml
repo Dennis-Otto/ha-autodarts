@@ -44,7 +44,7 @@
 title = "The end-to-end tests"
 problem = """An end-to-end test that the pull request had to run didn't pass: the
 scenario in Home Assistant, the cards in a real browser or the live demo of the
-website, or the job changes couldn't ask GitHub which of them had to run. The summary
+website, or the job changes itself stopped, for a problem of the runner. The summary
 of this check lists each job with its result; each test job that failed explains
 itself, in its own summary and in its own part of this report."""
 why = """These tests use the integration and its cards as people do: in a real Home
@@ -53,12 +53,26 @@ oldest Home Assistant that the integration supports, and in real browsers. Main
 requires this one check for all of them, which also passes when the pull request
 changes nothing that they test."""
 fix = """Fix what the test job that failed names, in its own explanation. A job that
-a moment of bad luck stopped, such as the job changes when the API of GitHub didn't
-answer, runs once more by itself through the flaky-test bot; one that fails again for
-the same commit is a real failure."""
+a moment of bad luck stopped, such as a runner that broke off, runs once more by itself
+through the flaky-test bot; one that fails again for the same commit is a real
+failure. When the API of GitHub doesn't answer, the job changes doesn't fail: it runs
+every test instead."""
 docs = "docs/development.md#when-the-end-to-end-tests-run"
 autofix = """This check only collects the results of the jobs of the end-to-end
 tests; each of them says how it is fixed."""
+
+[check.changes]
+title = "Which end-to-end tests the pull request runs"
+problem = """The job changes, which asks GitHub which files the pull request changes
+and so which end-to-end tests have to run, stopped before it answered. It doesn't fail
+when the API of GitHub doesn't answer, because then it runs every test; what stops it
+is a problem of the runner or of Harden-Runner."""
+why = """The gate e2e needs its answer to know whether the tests had to run, so it
+fails with it."""
+fix = """Nothing in the pull request causes this: the flaky-test bot runs the job once
+more by itself, and you can run it again in the tab Actions."""
+docs = "docs/development.md#when-the-end-to-end-tests-run"
+autofix = """A runner that stopped needs a run again, not a fix."""
 
 [check."scenario (*)"]
 title = "The end-to-end scenario in Home Assistant"
@@ -96,7 +110,9 @@ players do at their boards."""
 fix = """Run the group of the job that failed on your machine with Docker, after
 `npm ci`: *groups 1 and 2* run with `BROWSER_SHARD=1/2 BROWSER_WORKERS=2`, *group 3*
 with `BROWSER_SHARD=3/4` and *group 4* with `BROWSER_SHARD=4/4`, and `BROWSER_STEPS`
-runs only the steps that it names. Fix the card that the screenshot shows, and push."""
+runs only the steps that it names. The jobs named after a version of Home Assistant
+run the image `OLDEST_HOME_ASSISTANT` of `.github/workflows/e2e.yml`: set it as
+`HOME_ASSISTANT_IMAGE`. Fix the card that the screenshot shows, and push."""
 commands = [
   "npm ci",
   "BROWSER_STEPS=\"steady heights\" bash tests/e2e/browser.sh",

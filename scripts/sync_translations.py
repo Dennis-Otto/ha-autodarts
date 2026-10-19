@@ -9,8 +9,8 @@ is its copy, and every other file of translations/ has the same keys in the same
   strings.json no longer has.
 
 A text that a language misses stays missing, as only a person can write it: the
-script names the first one, and the translation bot asks native speakers for it after
-the merge (docs/development.md#translation-bot). A file that is right already keeps
+script names the first one, for the contributor or for a maintainer or a native
+speaker who adds it before the merge (CONTRIBUTING.md#translations). A file that is right already keeps
 every byte. tests/test_consistency.py checks the files; when a check fails, the fix
 bot runs this script and commits what it changed (.github/checks.project.toml).
 
@@ -104,8 +104,9 @@ def sync(root: Path) -> tuple[list[str], list[str]]:
         if missing:
             remaining.append(
                 f"{name} misses {len(missing)} of the texts of strings.json, such as "
-                f"{missing[0]}: write them in the language, or leave them to the "
-                "translation bot after the merge."
+                f"{missing[0]}: write them in the language, or ask in the pull "
+                "request for a maintainer or a native speaker to add them before "
+                "the merge (CONTRIBUTING.md#translations)."
             )
     return changed, remaining
 
