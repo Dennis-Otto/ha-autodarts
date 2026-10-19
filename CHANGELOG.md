@@ -4,9 +4,15 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.18.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.17.0...v1.18.0) (2026-10-19)
+
 ### Fixed
 
 - **Voice control finds the darts of the visit by what they show:** a dart you can tap to correct now starts its spoken name with the words on its tile, such as "Dart 2 S20 20 points – Correct dart 2" on the Autodarts card and "S20 20 – Correct dart 2" on the scoreboard, so "click S20 20" in Voice Control or Voice Access taps it, and a screen reader no longer runs the bed and the points together.
+
+### New
+
+- **The *Start tournament* button chooses the groups and who goes on:** two settings join the other tournament settings, *Tournament groups* (2 to 8, or 0, the default, for groups of about four players) and *Tournament qualifiers per group* (1 to 4, two by default). *Start tournament* plays groups and knockout with them, and so does `start_tournament` when you leave out `groups` and `advance`; `groups: 0` asks for groups of about four players. The new game screen of the scoreboard starts from them, and the groups you choose there or in the action stay in them for the next tournament ([tournaments](docs/entities.md#tournaments), #389).
 
 ## [1.17.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.16.0...v1.17.0) (2026-10-19)
 
