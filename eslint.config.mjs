@@ -32,6 +32,25 @@ export default [
       globals: globals.browser,
     },
   },
+  // The scripts that the blueprint keeps current in .github/: the one of the website,
+  // which the browser runs as a classic script, and the accessibility check of the
+  // website in Node, which runs parts of itself in the pages that it opens.
+  {
+    files: [".github/**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "script",
+      globals: globals.browser,
+    },
+  },
+  {
+    files: [".github/**/*.mjs"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
   {
     files: ["tests/**/*.js", "tests/**/*.mjs", "scripts/**/*.mjs", "eslint.config.mjs"],
     languageOptions: {
