@@ -79,7 +79,7 @@ on:
     # The checks of this repository, its end-to-end tests if a workflow of its own named Docker E2E runs them,
     # and the workflows of its other tests that the answer test_workflows of the blueprint names.
     # Then those of the other required checks and of the scanners, the same in every repository, and the release.
-    workflows: [CI (home-assistant), Docker E2E, CodeQL, Dependency review, Docs, Lint, Pull request title, Secret scan, Fuzzing, Links, OSV-Scanner, Workflow security, Release]
+    workflows: [CI (home-assistant), Docker E2E, Visual check, CodeQL, Dependency review, Docs, Lint, Pull request title, Secret scan, Fuzzing, Links, OSV-Scanner, Workflow security, Release]
     types: [completed]
 
 permissions: {}
@@ -505,7 +505,7 @@ jobs:
       pull-requests: write # the suggestions on a pull request from a fork, and the comment when the bot fails
     steps:
       - name: Record the network traffic of the job
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
       # The tool of main, never the code of the pull request; the fixes are data.

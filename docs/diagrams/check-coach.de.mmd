@@ -1,0 +1,25 @@
+---
+config:
+  flowchart:
+    wrappingWidth: 400
+---
+flowchart TB
+  accTitle: Wie sich ein Check dieses Projekts erklärt und selbst repariert
+  accDescr: Ein Job der End-to-End-Tests oder des Bildvergleichs schlägt fehl. Sein letzter Schritt, Explain the failure, nimmt aus .github/checks.project.toml, was fehlschlug, warum das wichtig ist und wie es sich beheben lässt, und schreibt es in die Zusammenfassung des Jobs und als seine Annotation. Nach den Checks zeigt der PR-Coach es in seinem einen Kommentar am Pull Request, auch an einem aus einem Fork. Schlägt die CI fehl, führt der Fix-Bot die Befehle aus, die beheben, was ein Befehl beheben kann, ESLint, den Abgleich der Übersetzungen und die mitgelieferten Blueprints, und committet ihre Korrekturen auf den Branch des Pull Requests oder schlägt sie bei einem Fork an ihren Zeilen vor. Den Rest behebt ein Mensch mit den Befehlen der Erklärung, und die Checks laufen erneut.
+
+  FAILED["Ein Job der End-to-End-Tests oder<br/>des Bildvergleichs schlägt fehl"] --> EXPLAIN["Sein letzter Schritt, Explain the failure:<br/>die Erklärung aus checks.project.toml<br/>in der Zusammenfassung und als Annotation"]
+  EXPLAIN --> REPORT["Nach den Checks zeigt der PR-Coach sie<br/>in seinem einen Kommentar am Pull Request,<br/>auch an einem aus einem Fork"]
+  CI["Die CI schlägt fehl, etwa bei ESLint<br/>oder bei einer Übersetzungsdatei"] --> COMMAND{{"Kann ein Befehl<br/>es beheben?"}}
+  COMMAND -- "ja" --> BOT["Der Fix-Bot führt autofix aus: ESLint,<br/>den Abgleich der Übersetzungen,<br/>die mitgelieferten Blueprints"]
+  BOT --> COMMIT["Er committet die Korrekturen auf den Branch<br/>oder schlägt sie bei einem Fork vor"]
+  COMMAND -- "nein" --> REPORT
+  REPORT --> PERSON["Den Rest behebt ein Mensch mit<br/>den Befehlen der Erklärung"]
+  COMMIT --> AGAIN["Die Checks laufen erneut"]
+  PERSON --> AGAIN
+
+  classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
+  classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
+  classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
+  class EXPLAIN,REPORT,COMMAND,BOT,COMMIT bot
+  class AGAIN done
+  class FAILED,CI failed

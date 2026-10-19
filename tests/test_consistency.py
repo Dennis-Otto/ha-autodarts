@@ -53,6 +53,12 @@ TRANSLATIONS = {
     for path in sorted((INTEGRATION / "translations").glob("*.json"))
 }
 LANGUAGES = sorted(TRANSLATIONS)
+# What brings the files in step with strings.json, as far as a command can; the fix
+# bot runs it when a check fails.
+SYNC = (
+    "python scripts/sync_translations.py copies strings.json to en.json, puts the "
+    "texts of each language in its order and names each text that a language misses"
+)
 SERVICES = yaml.safe_load((INTEGRATION / "services.yaml").read_text(encoding="utf-8"))
 ICONS = json.loads((INTEGRATION / "icons.json").read_text(encoding="utf-8"))
 SOURCES = "\n".join(
@@ -103,14 +109,14 @@ def states(platform: str, key: str, language: str = "en") -> set[str]:
 
 
 def test_english_translation_is_the_source_strings():
-    assert TRANSLATIONS["en"] == STRINGS
+    assert TRANSLATIONS["en"] == STRINGS, SYNC
 
 
 @pytest.mark.parametrize("language", LANGUAGES)
 def test_every_language_has_every_text_with_its_placeholders(language):
     source, translated = texts(STRINGS), texts(TRANSLATIONS[language])
     # The texts of strings.json in its order, so the files compare line by line.
-    assert list(translated) == list(source)
+    assert list(translated) == list(source), SYNC
     for path, text in source.items():
         assert placeholders(translated[path]) == placeholders(text), path
         assert translated[path].strip(), path
