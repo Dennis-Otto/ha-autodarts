@@ -61,7 +61,7 @@ Each message and each read updates only the entities that show what changed. A h
 
 ## Board Manager generations
 
-| | Board Manager 1 (classic app) | Board Manager 2 (headless) |
+| Aspect | Board Manager 1 (classic app) | Board Manager 2 (headless) |
 | --- | --- | --- |
 | Detection | Version starts with `1.` | Version starts with `2.` and `/api/system` exists |
 | Reads | Separate reads for state, statistics, cameras, motion, settings and version | One combined `/api/system` read |

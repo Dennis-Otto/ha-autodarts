@@ -1,0 +1,63 @@
+/* The colours of the website: the navy and teal of the Autodarts icon, the social
+   preview and the cards, in place of Material's indigo. mkdocs.yml chooses them with
+   primary: custom and accent: custom. Every colour of a text has a contrast of at
+   least 4.5:1 to its background, in both schemes; tests/test_website_brand.py
+   computes each pair below and fails for one that falls short. */
+
+/* Light: a navy header, teal links. */
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #0a1624;
+  --md-primary-fg-color--light: #1d3a57;
+  --md-primary-fg-color--dark: #050b12;
+  /* Text on navy: the header, the tabs and the primary button. */
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-typeset-a-color: #0f766e;
+}
+
+/* A link under the pointer, the hovered button and the focus turn a darker teal. */
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color: #115e59;
+  --md-accent-fg-color--transparent: #0f766e1a;
+  --md-accent-bg-color: #ffffff;
+  --md-accent-bg-color--light: #ffffffb3;
+}
+
+/* Dark: the grey of the pages turns towards the navy, and teal is the colour of
+   the links and buttons, which navy would hide on the dark page. */
+[data-md-color-scheme="slate"][data-md-color-primary="custom"] {
+  --md-hue: 213;
+  --md-primary-fg-color: #4fd1c5;
+  --md-primary-fg-color--light: #81e6d9;
+  --md-primary-fg-color--dark: #2c9f95;
+  /* Text on teal: the primary button. */
+  --md-primary-bg-color: #0a1624;
+  --md-primary-bg-color--light: #0a1624b3;
+  --md-typeset-a-color: #4fd1c5;
+}
+
+[data-md-color-scheme="slate"][data-md-color-accent="custom"] {
+  --md-accent-fg-color: #81e6d9;
+  --md-accent-fg-color--transparent: #4fd1c51a;
+  --md-accent-bg-color: #0a1624;
+  --md-accent-bg-color--light: #0a1624b3;
+}
+
+/* The header and the tabs stay navy with white text in the dark scheme too, and
+   the colour of the address bar of a phone follows them. */
+[data-md-color-scheme="slate"][data-md-color-primary="custom"] :is(.md-header, .md-tabs) {
+  --md-primary-fg-color: #0a1624;
+  --md-primary-fg-color--light: #1d3a57;
+  --md-primary-fg-color--dark: #050b12;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #ffffffb3;
+}
+
+/* A link in a text is underlined: its colour alone, close to that of the text,
+   wouldn't tell it apart for everyone (WCAG 2.2, 1.4.1). */
+.md-typeset :is(p, li, td, th, dd) > a:not(.md-button, .headerlink, .glightbox),
+.md-typeset :is(p, li, td, th, dd) > :is(em, strong) > a {
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-offset: 0.15em;
+}

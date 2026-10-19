@@ -63,7 +63,7 @@ Everything the integration does with darts, because it never needed the cameras 
 
 ## What is different
 
-| | With Autodarts | Without Autodarts |
+| Aspect | With Autodarts | Without Autodarts |
 | --- | --- | --- |
 | Darts | Detected by the cameras, corrected with a tap | Entered on the keypad |
 | Status | Ready, takeout, detection stopped and more | *Enter your darts* and *Visit complete*; the sensor *Detection status* reads *Entered by hand* |
