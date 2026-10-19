@@ -117,6 +117,9 @@ async def test_a_pack_of_darts_caller_works_as_it_is(
     )
     outside = recorded(tmp_path / "elsewhere", "matchshot.mp3")
     (pack / "matchshot.mp3").symlink_to(outside / "matchshot.mp3")
+    # The scoreboard loads them with its login; media_source registers its views
+    # before the first client freezes the routes of Home Assistant 2026.10.
+    assert await async_setup_component(hass, "media_source", {})
     client = await hass_ws_client(hass)
     answer = await pack_of(client, "russ-bray")
     base = "/media/local/autodarts/voices/russ-bray"
@@ -130,8 +133,6 @@ async def test_a_pack_of_darts_caller_works_as_it_is(
             "alex bee": [f"{base}/names/alex%20bee.mp3"],
         },
     }
-    # The scoreboard loads them with its login.
-    assert await async_setup_component(hass, "media_source", {})
     response = await (await hass_client()).get(f"{base}/names/alex%20bee.mp3")
     assert response.status == 200
     assert await response.read() == MP3 + b"names/alex bee.mp3"

@@ -22,10 +22,9 @@ import logging
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
 
-import voluptuous as vol
 from homeassistant.components.camera import async_get_image
 from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
@@ -36,6 +35,13 @@ from homeassistant.util import dt as dt_util
 from .const import DOMAIN
 from .export import ExportFolderError, export_folder
 from .profiles import NAME_LENGTH
+
+if TYPE_CHECKING:
+    # Home Assistant 2026.10 validates with probatio and makes "voluptuous" an alias
+    # of it, so the types are probatio's; older versions still use voluptuous.
+    import probatio as vol
+else:
+    import voluptuous as vol
 
 _LOGGER = logging.getLogger(__name__)
 

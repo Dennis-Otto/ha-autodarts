@@ -6,7 +6,7 @@ hypothesis==6.169.0
 # Assist, which the voice blueprints talk to in tests/test_voice_blueprints.py, at
 # the versions of the conversation manifest of the Home Assistant above.
 hassil==3.12.1
-home-assistant-intents==2026.8.28
+home-assistant-intents==2026.10.6
 gazetteer-matcher==1.1.0
 # Home Assistant's Bluetooth, which the Granboard link uses in
 # custom_components/autodarts/granboard.py, depends on its usb integration, whose
