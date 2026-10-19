@@ -53,7 +53,8 @@ HOSTS = {
     ("e2e.yml", "changes"): {"api.github.com"},
     ("e2e.yml", "scenario"): {"github.com", *HOME_ASSISTANT},
     ("e2e.yml", "browser"): BROWSER_TEST,
-    ("e2e.yml", "gate"): set(),
+    # The explanations of the PR coach, which the gate checks out after a failure.
+    ("e2e.yml", "gate"): {"github.com"},
     ("e2e.yml", "live-demo"): {"github.com", *PLAYWRIGHT, *PYTHON_PACKAGES},
     ("e2e.yml", "beta"): BROWSER_TEST,
     ("screenshots.yml", "render"): IMAGES,

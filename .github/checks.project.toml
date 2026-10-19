@@ -33,3 +33,205 @@
 # why = """..."""
 # fix = """..."""
 # autofix = ["npm run lint -- --fix"]
+
+# ---------------------------------------------------------------- the end-to-end tests
+# The jobs of e2e.yml. Each one that fails explains itself in its summary and as its
+# annotation (its step "Explain the failure"), and the report of the PR coach on the
+# pull request shows the same, also on a pull request from a fork.
+# tests/test_pr_coach.py keeps every job of the workflows of this project explained.
+
+[check.e2e]
+title = "The end-to-end tests"
+problem = """An end-to-end test that the pull request had to run didn't pass: the
+scenario in Home Assistant, the cards in a real browser or the live demo of the
+website, or the job changes itself stopped, for a problem of the runner. The summary
+of this check lists each job with its result; each test job that failed explains
+itself, in its own summary and in its own part of this report."""
+why = """These tests use the integration and its cards as people do: in a real Home
+Assistant with a simulated board, with both generations of the Board Manager and the
+oldest Home Assistant that the integration supports, and in real browsers. Main
+requires this one check for all of them, which also passes when the pull request
+changes nothing that they test."""
+fix = """Fix what the test job that failed names, in its own explanation. A job that
+a moment of bad luck stopped, such as a runner that broke off, runs once more by itself
+through the flaky-test bot; one that fails again for the same commit is a real
+failure. When the API of GitHub doesn't answer, the job changes doesn't fail: it runs
+every test instead."""
+docs = "docs/development.md#when-the-end-to-end-tests-run"
+autofix = """This check only collects the results of the jobs of the end-to-end
+tests; each of them says how it is fixed."""
+
+[check.changes]
+title = "Which end-to-end tests the pull request runs"
+problem = """The job changes, which asks GitHub which files the pull request changes
+and so which end-to-end tests have to run, stopped before it answered. It doesn't fail
+when the API of GitHub doesn't answer, because then it runs every test; what stops it
+is a problem of the runner or of Harden-Runner."""
+why = """The gate e2e needs its answer to know whether the tests had to run, so it
+fails with it."""
+fix = """Nothing in the pull request causes this: the flaky-test bot runs the job once
+more by itself, and you can run it again in the tab Actions."""
+docs = "docs/development.md#when-the-end-to-end-tests-run"
+autofix = """A runner that stopped needs a run again, not a fix."""
+
+[check."scenario (*)"]
+title = "The end-to-end scenario in Home Assistant"
+problem = """The scenario of `tests/e2e/run.sh` failed in a real Home Assistant in
+Docker, with a simulated Board Manager: the onboarding, the setup, a control, darts in
+real time, a fault of the board, persistence, the diagnostics or the removal. The log
+names the phase and the assertion that failed; the artifact `e2e-scenario-*` keeps the
+logs of Home Assistant and of the simulated board."""
+why = """It is the one test that runs the integration as it is installed, against a
+board that answers as a real one does: on Board Manager 1, on Board Manager 2 with its
+discovery by mDNS, and on the oldest Home Assistant that `hacs.json` promises."""
+fix = """Run the scenario of the job that failed on your machine with Docker, fix what
+it shows, and push. The job named after a version of Home Assistant runs the image
+`OLDEST_HOME_ASSISTANT` of `.github/workflows/e2e.yml` with Board Manager 2: set it as
+`HOME_ASSISTANT_IMAGE`."""
+commands = [
+  "BOARD_MANAGER=1 bash tests/e2e/run.sh",
+  "BOARD_MANAGER=2 bash tests/e2e/run.sh",
+]
+docs = "docs/development.md#docker-end-to-end-test"
+autofix = """A scenario that fails needs a person, who knows what the integration
+should do."""
+
+[check."browser (*)"]
+title = "The cards in a real browser"
+problem = """A step of `tests/e2e/browser.sh` failed for the cards in Chromium, or in
+WebKit for Safari, against the demo of Home Assistant: a card that is missing, wider
+than the screen, cuts off a text, changes its height during a game, or breaks a rule
+of accessibility (WCAG 2.1 A and AA). The log names the step and the screen; the
+artifact `e2e-browser-*` keeps a screenshot of every open page and the log of Home
+Assistant."""
+why = """The tests of the cards with Node can't see what a browser draws: these steps
+use every card on phones, tablets and touch screens, in every language, as the
+players do at their boards."""
+fix = """Run the group of the job that failed on your machine with Docker, after
+`npm ci`: *groups 1 and 2* run with `BROWSER_SHARD=1/2 BROWSER_WORKERS=2`, *group 3*
+with `BROWSER_SHARD=3/4` and *group 4* with `BROWSER_SHARD=4/4`, and `BROWSER_STEPS`
+runs only the steps that it names. The jobs named after a version of Home Assistant
+run the image `OLDEST_HOME_ASSISTANT` of `.github/workflows/e2e.yml`: set it as
+`HOME_ASSISTANT_IMAGE`. Fix the card that the screenshot shows, and push."""
+commands = [
+  "npm ci",
+  "BROWSER_STEPS=\"steady heights\" bash tests/e2e/browser.sh",
+  "BROWSER_SHARD=1/2 BROWSER_WORKERS=2 bash tests/e2e/browser.sh",
+]
+docs = "docs/development.md#demo-instance-and-browser-test"
+autofix = """A card that a browser shows wrongly needs a person, who sees how the card
+should look."""
+
+[check."live demo"]
+title = "The live demo of the website"
+problem = """The page of `docs/demo/` didn't play the recorded games with the cards of
+the pull request in Chromium, in every language, on a desktop and a phone: a step
+failed, a page was wider than the screen, or the console of the browser showed an
+error. The log names the language and the step; the artifact `e2e-live-demo-*` keeps
+their screenshots."""
+why = """The live demo shows the cards on the website without Home Assistant, to
+everyone who wants to see them before they install anything, with the cards of the
+version that the website describes."""
+fix = """Play the demo on your machine with Docker, fix the card or the page that the
+screenshot shows, and push. A recording that no longer fits the integration comes
+anew from `python scripts/record_demo.py`; the screenshot bot records it with the
+images after the merge as well."""
+commands = ["bash tests/e2e/live_demo.sh"]
+docs = "docs/development.md#live-demo-of-the-website"
+autofix = """A page that breaks with the cards needs a person, who sees what the demo
+should show."""
+
+[check."e2e (Home Assistant beta)"]
+title = "The end-to-end tests with the beta of Home Assistant"
+problem = """The scenario or a step of the cards in a real browser failed with the
+beta of the next release of Home Assistant, which the nightly and the manual runs
+test. The log names the phase or the step; the artifact `e2e-beta-*` keeps the logs
+and the screenshots."""
+why = """It warns a week or two before a release of Home Assistant breaks the
+integration or its cards for the people who update first. Main doesn't require it."""
+fix = """Find what changed in the beta, in the log and in the release notes of Home
+Assistant, and adapt the integration or the cards. The tests run with the beta on your
+machine as well:"""
+commands = [
+  "HOME_ASSISTANT_IMAGE=ghcr.io/home-assistant/home-assistant:beta BOARD_MANAGER=2 bash tests/e2e/run.sh",
+  "HOME_ASSISTANT_IMAGE=ghcr.io/home-assistant/home-assistant:beta bash tests/e2e/browser.sh",
+]
+docs = "docs/development.md#continuous-integration"
+autofix = """A change of Home Assistant that breaks the integration needs a person,
+who decides how the integration follows it."""
+
+# ---------------------------------------------------------------- the visual check
+# The jobs of visual.yml, which the answer test_workflows of .copier-answers.yml names,
+# so that the report on the pull request follows it.
+
+[check."render (*)"]
+title = "The images of the documentation"
+problem = """An image of the documentation couldn't be rendered from the demo, with its
+frozen clock, for the language and the group of the check: a card didn't come up, or
+a step of `tests/e2e/screenshots.py` ran out of time. The log names the image; the
+artifact `visual-failure-*` keeps a screenshot of the page."""
+why = """Every picture of the README and of the website comes from these images. An
+image that can't be rendered shows a card that no longer comes up in the demo, and the
+documentation would fall behind the cards."""
+fix = """Render the group on your machine with Docker, fix the card or the step of the
+screenshot tool that failed, put the committed images back, and push:"""
+commands = [
+  "SCREENSHOT_GROUP=2/3 LANGUAGES=en bash tests/e2e/visual.sh",
+  "git checkout -- docs/images",
+]
+docs = "docs/development.md#visual-check"
+autofix = """An image that can't be rendered needs a person, who finds why the card or
+the demo didn't come up. An image that only looks different is no failure: the
+screenshot bot renders it anew after the merge."""
+
+[check."compare (*)"]
+title = "The comparison of the images"
+problem = """The images of a language couldn't be put together and compared with those
+of `docs/images`: a group of the jobs *render* of the language kept no images, or
+`tests/e2e/collect.sh` failed. An image that only looks different doesn't fail this
+check: its summary lists it, and the comment of the visual check shows it."""
+why = """The comparison shows in the pull request how each picture of the
+documentation changes, before the screenshot bot brings the new ones to `docs/images`
+after the merge."""
+fix = """Look at the jobs *render* of the same language first, and fix the one that
+failed. Otherwise compare the images of the language on your machine with Docker,
+then put the committed images back:"""
+commands = ["LANGUAGES=en bash tests/e2e/visual.sh", "git checkout -- docs/images"]
+docs = "docs/development.md#visual-check"
+autofix = """The images that look different are the change itself, which a person
+looks at: the screenshot bot commits them after the merge."""
+
+# ---------------------------------------------------------------- scripts/check.sh
+# The step that runs scripts/check-project.sh, with the commands that fix what a
+# command can fix of this project. The fix bot runs the commands of every step when
+# the check (home-assistant) fails, so these also bring the files in step that the
+# tests check and that a command makes from others.
+
+[step."Checks of this project"]
+problem = """A check of this integration alone, in `scripts/check-project.sh`, failed;
+the line `==` above the error names it: the license terms of `LICENSE` and of its copy
+in the integration, the syntax of the modules of the cards, a rule of ESLint
+(`eslint.config.mjs`), or the tests of the cards and of the translation bot with Node,
+which also fail when a line, a branch or a function runs in no test."""
+why = """The cards run in the browser of every user, where no test in Python reaches
+them; ESLint and their tests with Node keep each card, the texts of each language and
+the translation bot working."""
+fix = """Fix what the output names: ESLint fixes most of its rules by itself, and `npm
+test` names the test that failed and each line that no test runs. The commands of
+autofix also bring the files in step that the tests check and that a command makes
+from others: `translations/en.json` and the order of the other languages from
+`strings.json`, and the blueprints that the integration ships. Then run the checks of
+this project again:"""
+commands = [
+  "npm ci",
+  "npx eslint --fix .",
+  "python3 scripts/sync_translations.py",
+  "python3 scripts/ship_blueprints.py",
+  "bash scripts/check-project.sh",
+]
+docs = "CONTRIBUTING.md#checks"
+autofix = [
+  "npx --no-install eslint --fix .",
+  "{python} scripts/sync_translations.py",
+  "{python} scripts/ship_blueprints.py",
+]
