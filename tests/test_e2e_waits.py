@@ -328,8 +328,21 @@ def test_run_until_runs_the_clock_a_second_at_a_time_until_the_target_shows(
     shows_after, steps
 ):
     page = Clocked(shows_after)
-    load_pages().run_until(page, page.target, 15000, "The table")
+    load_pages().run_until(page, page.target, 15000, "The table", Card("Kim 0"))
     assert page.ran == [1000] * steps
+
+
+class Card:
+    """A card whose first match shows the given text, or breaks when it is gone."""
+
+    def __init__(self, text: str | None) -> None:
+        self.text = text
+        self.first = self
+
+    def inner_text(self, timeout: int) -> str:
+        if self.text is None:
+            raise RuntimeError("Target page, context or browser has been closed")
+        return self.text
 
 
 @pytest.mark.parametrize(("shows_after", "steps"), [(15001, 15), (None, 15)])
@@ -339,12 +352,30 @@ def test_run_until_fails_when_the_target_has_not_shown_in_the_time_it_is_given(
     page = Clocked(shows_after)
     pages = load_pages()
     with pytest.raises(pages.Unsettled) as error:
-        pages.run_until(page, page.target, 15000, "Idle mode")
+        pages.run_until(
+            page, page.target, 15000, "Idle mode", Card("Kim\n  101\nSam 0")
+        )
     assert str(error.value) == (
         f"{HA}/autodarts-demo/idle at 800x480 in en-US: Idle mode did not show within"
-        " 15000 ms on the clock of the page"
+        " 15000 ms on the clock of the page; the card showed 'Kim 101 Sam 0'"
     )
     assert page.ran == [1000] * steps
+
+
+@pytest.mark.parametrize(
+    ("text", "shown"),
+    [
+        # What the card shows, in one line.
+        ("Match summary\n Kim  3 - 1 Sam", "'Match summary Kim 3 - 1 Sam'"),
+        # A long screen cut to 120 characters.
+        ("x" * 200, repr("x" * 117 + "...")),
+        # A card without text, and one that is gone.
+        ("  \n ", "no text"),
+        (None, "nothing"),
+    ],
+)
+def test_a_wait_on_the_clock_names_what_the_card_showed_instead(text, shown):
+    assert load_pages().showing(Card(text)) == shown
 
 
 def clocked(source: str) -> dict[tuple[str, str], str]:

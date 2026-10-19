@@ -288,7 +288,21 @@ def expect_state(pages: Iterable[Page], expected: Mapping[str, str]) -> None:
             ) from error
 
 
-def run_until(page: Page, target: Locator, within: int, what: str) -> None:
+def showing(card: Locator) -> str:
+    """The text a card shows, in one line and cut to 120 characters, so a wait that
+    runs out says which screen of the card it stayed on."""
+    try:
+        text = " ".join(card.first.inner_text(timeout=1000).split())
+    except Exception:  # A card that is gone or broke still lets the step name it.
+        return "nothing"
+    if not text:
+        return "no text"
+    return repr(text if len(text) <= 120 else f"{text[:117]}...")
+
+
+def run_until(
+    page: Page, target: Locator, within: int, what: str, card: Locator
+) -> None:
     """Run the clock of a page forward until the target shows. A step checks what a
     timer of a card leads to, such as the table after the summary of a match or idle
     mode, in a moment instead of waiting the timer out: the page runs Playwright's
@@ -296,13 +310,14 @@ def run_until(page: Page, target: Locator, within: int, what: str) -> None:
     every timer that falls due on the way, as the time would. The clock runs a second
     at a time, not by the whole time of the timer at once, because a card may start
     its timer a moment after the step sees what it waits for. A target that has not
-    shown after `within` milliseconds on the clock fails the step with what it is."""
+    shown after `within` milliseconds on the clock fails the step with what it is and
+    what the card showed instead, such as the summary of the match or the scoreboard."""
     ran = 0
     while not target.is_visible():
         if ran >= within:
             raise Unsettled(
                 f"{where(page)}: {what} did not show within {within} ms"
-                " on the clock of the page"
+                f" on the clock of the page; the card showed {showing(card)}"
             )
         page.clock.run_for(CLOCK_STEP)
         ran += CLOCK_STEP

@@ -1144,7 +1144,13 @@ def tournament(browser: Browser) -> None:
     table = page.locator(f"{card} .standings")
     page.locator(f"{card} table.summary").wait_for(timeout=15000)
     check(not table.count(), "The table showed before the summary of the match")
-    run_until(page, table, 15000, "The table after the summary of the match")
+    run_until(
+        page,
+        table,
+        15000,
+        "The table after the summary of the match",
+        page.locator(card),
+    )
     rows = page.locator(f"{card} .standings tbody .who").all_text_contents()
     check(rows == ["Kim", "Alex", "Sam"], f"Table {rows}")
     pairing = page.locator(f"{card} .pairing").text_content()
@@ -1386,6 +1392,7 @@ def tablet_screen(browser: Browser) -> None:
         page.locator(f"{card} .standings"),
         15000,
         "The table after the summary of the match",
+        page.locator(card),
     )
     page.locator(f"{card} .start-next").wait_for(timeout=15000)
     fits("The tournament table")
@@ -1399,7 +1406,7 @@ def tablet_screen(browser: Browser) -> None:
     page.emulate_media(reduced_motion="reduce")
     open_screen("idle")
     panel = page.locator(f"{card} .idle-panel")
-    run_until(page, panel, 20000, "Idle mode")
+    run_until(page, panel, 20000, "Idle mode", page.locator(card))
     motion = panel.evaluate(
         "(el) => [matchMedia('(prefers-reduced-motion: reduce)').matches,"
         " getComputedStyle(el).animationName]"
