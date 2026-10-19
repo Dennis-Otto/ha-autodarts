@@ -10,7 +10,10 @@ into its timeout. A script that has to let time pass waits with
 The browser test lets no time pass for nothing: it waits for what it checks, such as
 the cards drawn, a quiet websocket and the states a move at the board sets
 (``tests/e2e/pages.py``). A fixed wait is too short on a slow runner or too long
-everywhere else; the few that the test needs are listed here with their reasons.
+everywhere else; the few that the test needs are listed here with their reasons. Nor
+does it wait out the timers of the cards, such as the summary of a match or the time
+before idle mode: the page of such a step runs Playwright's clock, and ``run_until()``
+runs it forward until what the timer leads to shows.
 """
 
 import ast
@@ -248,7 +251,9 @@ def load_pages() -> types.ModuleType:
     """pages.py without Playwright, which only the browser test installs: what show()
     decides needs none of it."""
     sync_api = types.ModuleType("playwright.sync_api")
-    vars(sync_api).update(BrowserContext=object, Page=object, TimeoutError=TimeoutError)
+    vars(sync_api).update(
+        BrowserContext=object, Locator=object, Page=object, TimeoutError=TimeoutError
+    )
     playwright = types.ModuleType("playwright")
     vars(playwright).update(sync_api=sync_api)
     spec = importlib.util.spec_from_file_location("e2e_pages", E2E / "pages.py")
@@ -283,3 +288,171 @@ HA = "http://127.0.0.1:8123"
 )
 def test_show_opens_a_view_within_the_app_only_from_a_plain_one(current, url, within):
     assert load_pages().within_app(current, url) is within
+
+
+class Clocked:
+    """A page with Playwright's clock, whose target shows once its clock has run for
+    the given milliseconds, or never."""
+
+    url = f"{HA}/autodarts-demo/idle"
+    viewport_size = {"width": 800, "height": 480}
+
+    def __init__(self, shows_after: int | None) -> None:
+        self.ran: list[int] = []
+        self.shows_after = shows_after
+        self.clock = types.SimpleNamespace(run_for=self.ran.append)
+        self.target = types.SimpleNamespace(is_visible=self.shown)
+
+    def shown(self) -> bool:
+        return self.shows_after is not None and sum(self.ran) >= self.shows_after
+
+    def evaluate(self, expression: str) -> str:
+        return "en-US"
+
+
+@pytest.mark.parametrize(
+    ("shows_after", "steps"),
+    [
+        # A target that shows already lets no time pass.
+        (0, 0),
+        # One that shows a moment later after a second, and one at the end of a timer
+        # of eight seconds after eight, a second at a time.
+        (1, 1),
+        (8000, 8),
+        (8001, 9),
+        # Right at the end of the time it is given.
+        (15000, 15),
+    ],
+)
+def test_run_until_runs_the_clock_a_second_at_a_time_until_the_target_shows(
+    shows_after, steps
+):
+    page = Clocked(shows_after)
+    load_pages().run_until(page, page.target, 15000, "The table", Card("Kim 0"))
+    assert page.ran == [1000] * steps
+
+
+class Card:
+    """A card whose first match shows the given text, or breaks when it is gone."""
+
+    def __init__(self, text: str | None) -> None:
+        self.text = text
+        self.first = self
+
+    def inner_text(self, timeout: int) -> str:
+        if self.text is None:
+            raise RuntimeError("Target page, context or browser has been closed")
+        return self.text
+
+
+@pytest.mark.parametrize(("shows_after", "steps"), [(15001, 15), (None, 15)])
+def test_run_until_fails_when_the_target_has_not_shown_in_the_time_it_is_given(
+    shows_after, steps
+):
+    page = Clocked(shows_after)
+    pages = load_pages()
+    with pytest.raises(pages.Unsettled) as error:
+        pages.run_until(
+            page, page.target, 15000, "Idle mode", Card("Kim\n  101\nSam 0")
+        )
+    assert str(error.value) == (
+        f"{HA}/autodarts-demo/idle at 800x480 in en-US: Idle mode did not show within"
+        " 15000 ms on the clock of the page; the card showed 'Kim 101 Sam 0'"
+    )
+    assert page.ran == [1000] * steps
+
+
+@pytest.mark.parametrize(
+    ("text", "shown"),
+    [
+        # What the card shows, in one line.
+        ("Match summary\n Kim  3 - 1 Sam", "'Match summary Kim 3 - 1 Sam'"),
+        # A long screen cut to 120 characters.
+        ("x" * 200, repr("x" * 117 + "...")),
+        # A card without text, and one that is gone.
+        ("  \n ", "no text"),
+        (None, "nothing"),
+    ],
+)
+def test_a_wait_on_the_clock_names_what_the_card_showed_instead(text, shown):
+    assert load_pages().showing(Card(text)) == shown
+
+
+def clocked(source: str) -> dict[tuple[str, str], str]:
+    """Each function with each page whose clock it runs with ``run_until()``, and when
+    it installs that clock: "before it loads", "after it loads" or "never"."""
+    found = {}
+    for function in ast.walk(ast.parse(source)):
+        if not isinstance(function, ast.FunctionDef):
+            continue
+        # The lines of the calls of the function, also in the functions within it, by
+        # what they call, such as "page.goto".
+        lines: dict[str, list[int]] = {}
+        clocks = []
+        for node in ast.walk(function):
+            if isinstance(node, ast.Call):
+                lines.setdefault(ast.unparse(node.func), []).append(node.lineno)
+                if ast.unparse(node.func) == "run_until":
+                    clocks.append(ast.unparse(node.args[0]))
+        for page in clocks:
+            installs = lines.get(f"{page}.clock.install")
+            loads = lines.get(f"{page}.goto")
+            if not installs:
+                found[function.name, page] = "never"
+            elif loads and min(loads) < min(installs):
+                found[function.name, page] = "after it loads"
+            else:
+                found[function.name, page] = "before it loads"
+    return found
+
+
+def test_when_a_function_installs_the_clock_it_runs_is_found():
+    source = "\n".join(
+        [
+            "def early(browser):",
+            "    page = browser.new_page()",
+            "    page.clock.install()",
+            "    def again():",
+            "        page.goto(URL)",
+            "    page.goto(URL)",
+            "    run_until(page, page.locator('.a'), 1000, 'A')",
+            "def late(browser):",
+            "    page = browser.new_page()",
+            "    page.goto(URL)",
+            "    page.clock.install()",
+            "    run_until(page, page.locator('.a'), 1000, 'A')",
+            "def never(browser, other):",
+            "    other.clock.install()",
+            "    other.goto(URL)",
+            "    run_until(pages[0], pages[0].locator('.a'), 1000, 'A')",
+            "def unloaded(page):",
+            "    page.clock.install()",
+            "    run_until(page, page.locator('.a'), 1000, 'A')",
+            "def waits(page):",
+            "    page.goto(URL)",
+            "    page.locator('.a').wait_for(timeout=10000)",
+        ]
+    )
+    assert clocked(source) == {
+        ("early", "page"): "before it loads",
+        ("late", "page"): "after it loads",
+        ("never", "pages[0]"): "never",
+        ("unloaded", "page"): "before it loads",
+    }
+
+
+# The steps that run the clock of their page through the timers of the cards instead
+# of waiting them out: the summary of a match in both, and the time before idle mode
+# on the tablet.
+CLOCKED_STEPS = {"tournament", "tablet_screen"}
+
+
+def test_the_browser_test_runs_the_clock_through_the_timers_of_the_cards():
+    found = clocked((E2E / "browser.py").read_text("utf-8"))
+    assert {function for function, _ in found} == CLOCKED_STEPS
+    late = {step: when for step, when in found.items() if when != "before it loads"}
+    assert late == {}, (
+        f"A step runs the clock of a page that it installs late or never: {late}; call "
+        "page.clock.install() before the page loads, or the timers of the cards run "
+        "on the real clock"
+    )

@@ -5,20 +5,23 @@ config:
 ---
 flowchart TB
   accTitle: How the browser test waits
-  accDescr: All screens of a step are open at once. After a move at the board, such as a dart, the test waits with expect_state until every page shows the state the move sets, such as two darts in the visit. After a view it opens, it waits with show until the cards of the view before have left every page and the new ones have drawn. Then it waits until every page has settled - its cards drawn, no request on the websocket waiting for its answer, no frame for 100 ms, no animation of a card running, and two frames drawn. It then checks every page at once - the layout, the heights or the accessibility - and goes on with the next move or view. A page that does not get there fails the step with what it waited for.
+  accDescr: All screens of a step are open at once. After a move at the board, such as a dart, the test waits with expect_state until every page shows the state the move sets, such as two darts in the visit. After a view it opens, it waits with show until the cards of the view before have left every page and the new ones have drawn. When a move starts a timer of a card, such as the summary of a match or the time before idle mode, it runs the clock of the page forward with run_until, a second at a time, until what the timer leads to shows. Then it waits until every page has settled - its cards drawn, no request on the websocket waiting for its answer, no frame for 100 ms, no animation of a card running, and two frames drawn. It then checks every page at once - the layout, the heights or the accessibility - and goes on with the next move or view. A page that does not get there fails the step with what it waited for.
 
   MOVE["A move at the board,<br/>on all screens at once:<br/>a dart, a takeout or a new game"] --> STATE{{"expect_state: every page shows<br/>what the move sets, such as<br/>num_throws 2 after the second dart"}}
   VIEW["A view, opened<br/>on all screens at once"] --> SHOW{{"show: the cards of the view before<br/>have left every page, and<br/>the new ones have drawn"}}
   STATE --> SETTLE{{"settle: the cards have drawn,<br/>no request waits for its answer,<br/>no frame for 100 ms, no animation<br/>of a card runs, two frames drawn"}}
   SHOW --> SETTLE
+  STATE -- "a timer of a card:<br/>summary of a match, idle mode" --> RUN{{"run_until: the clock of the page<br/>runs a second at a time until<br/>what the timer leads to shows"}}
+  RUN --> SETTLE
   SETTLE --> CHECK["Check every page: layout,<br/>heights or accessibility,<br/>then the next move or view"]
   STATE -- "not in time" --> FAIL["The step fails with what the<br/>page waited for and what it shows"]
   SHOW -- "not in time" --> FAIL
   SETTLE -- "not in time" --> FAIL
+  RUN -- "not in time" --> FAIL
 
   classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
   classDef failed fill:#dc26262e,stroke:#dc2626,stroke-width:2px
-  class STATE,SHOW,SETTLE bot
+  class STATE,SHOW,SETTLE,RUN bot
   class CHECK done
   class FAIL failed

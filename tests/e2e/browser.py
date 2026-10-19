@@ -14,7 +14,16 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
-from pages import CARDS_DRAWN, STATES, expect_state, probe, settle, show, wait_for
+from pages import (
+    CARDS_DRAWN,
+    STATES,
+    expect_state,
+    probe,
+    run_until,
+    settle,
+    show,
+    wait_for,
+)
 from playwright.sync_api import (
     Browser,
     BrowserContext,
@@ -1089,6 +1098,8 @@ def tournament(browser: Browser) -> None:
     """A round robin started on the new game screen, played, shown and stopped."""
     page = browser.new_page(locale="en-US", viewport={"width": 1280, "height": 800})
     page.add_init_script(CAPTURE_ERRORS)
+    # The step runs the clock of the page through the summary of the match.
+    page.clock.install()
     page.goto(f"{HA}/autodarts-demo/tournament")
     card = "autodarts-scoreboard-card"
     page.locator(f"{card} .main").wait_for(timeout=30000)
@@ -1128,8 +1139,18 @@ def tournament(browser: Browser) -> None:
         control({"event": "Throw detected", "throws": CHECKOUT_101[:count]})
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
 
-    # After the summary of the match (8 seconds), the table with the next match.
-    page.locator(f"{card} .standings").wait_for(timeout=15000)
+    # The summary of the match first, and after its eight seconds on the clock of
+    # the page the table with the next match.
+    table = page.locator(f"{card} .standings")
+    page.locator(f"{card} table.summary").wait_for(timeout=15000)
+    check(not table.count(), "The table showed before the summary of the match")
+    run_until(
+        page,
+        table,
+        15000,
+        "The table after the summary of the match",
+        page.locator(card),
+    )
     rows = page.locator(f"{card} .standings tbody .who").all_text_contents()
     check(rows == ["Kim", "Alex", "Sam"], f"Table {rows}")
     pairing = page.locator(f"{card} .pairing").text_content()
@@ -1235,6 +1256,9 @@ def tablet_screen(browser: Browser) -> None:
     nothing wider than the screen, targets for a finger, and idle mode without motion."""
     page = browser.new_page(locale="en-US", viewport=TABLET)
     page.add_init_script(CAPTURE_ERRORS)
+    # The step runs the clock of the page through the summary of a match and the
+    # time before idle mode.
+    page.clock.install()
     card = "autodarts-scoreboard-card"
 
     def fits(screen: str, targets: bool = True) -> None:
@@ -1363,7 +1387,13 @@ def tablet_screen(browser: Browser) -> None:
         control({"event": "Throw detected", "throws": CHECKOUT_101[:count]})
     control({"status": "Throw", "event": "Takeout finished", "throws": []})
     # The table follows the eight seconds of the match summary.
-    page.locator(f"{card} .standings").wait_for(timeout=30000)
+    run_until(
+        page,
+        page.locator(f"{card} .standings"),
+        15000,
+        "The table after the summary of the match",
+        page.locator(card),
+    )
     page.locator(f"{card} .start-next").wait_for(timeout=15000)
     fits("The tournament table")
     end_game()
@@ -1371,12 +1401,12 @@ def tablet_screen(browser: Browser) -> None:
     check(stage == "no_tournament", f"Tournament after stopping: {stage}")
     game_off()
 
-    # Idle mode after ten seconds, without its fade for a device that asks for less
-    # motion; a tap brings the scoreboard back.
+    # Idle mode after ten seconds on the clock of the page, without its fade for a
+    # device that asks for less motion; a tap brings the scoreboard back.
     page.emulate_media(reduced_motion="reduce")
     open_screen("idle")
     panel = page.locator(f"{card} .idle-panel")
-    panel.wait_for(timeout=60000)
+    run_until(page, panel, 20000, "Idle mode", page.locator(card))
     motion = panel.evaluate(
         "(el) => [matchMedia('(prefers-reduced-motion: reduce)').matches,"
         " getComputedStyle(el).animationName]"
