@@ -4,6 +4,10 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+### Fixed
+
+- **Voice control finds the darts of the visit by what they show:** a dart you can tap to correct now starts its spoken name with the words on its tile, such as "Dart 2 S20 20 points – Correct dart 2" on the Autodarts card and "S20 20 – Correct dart 2" on the scoreboard, so "click S20 20" in Voice Control or Voice Access taps it, and a screen reader no longer runs the bed and the points together.
+
 ## [1.17.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.16.0...v1.17.0) (2026-10-19)
 
 ### New
