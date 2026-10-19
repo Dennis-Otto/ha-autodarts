@@ -56,8 +56,14 @@ MUTMUT_SLOWDOWN = 10
 
 
 def pytest_collection_modifyitems(config, items):
-    """Under mutmut the tests marked mutation_unsafe are skipped, and every test
-    gets ten times its time limit.
+    """The frozen clock is set up before every other fixture of a test; under mutmut
+    the tests marked mutation_unsafe are skipped, and every test gets ten times its
+    time limit.
+
+    A fixture set up before `freezer`, such as `hass` or the integration of a board,
+    would run at the real time, and the clock would then jump back to QUIET_MOMENT:
+    timers it armed against the wall clock would fire at the wrong moment or never.
+    pytest-freezer does the same for a test with the marker freeze_time.
 
     mutmut runs the tests in its copy of the repository, `mutants/`, which has no Git
     and holds every mutant in the code: a test that reads the code as text or asks
@@ -67,6 +73,10 @@ def pytest_collection_modifyitems(config, items):
     by a time limit of its own. mutmut sets MUTANT_UNDER_TEST in each of its runs,
     to an empty value in the run without a mutant.
     """
+    for item in items:
+        if "freezer" in getattr(item, "fixturenames", ()):
+            item.fixturenames.remove("freezer")
+            item.fixturenames.insert(0, "freezer")
     if "MUTANT_UNDER_TEST" not in os.environ:
         return
     skip = pytest.mark.skip(reason="fails in mutmut's copy of the repository")

@@ -39,6 +39,11 @@ after(() => rmSync(TEMPORARY, { recursive: true, force: true }));
 // Git as on a new machine, without the settings of whoever runs the tests, such as
 // signed commits or hooks; the bot and its child processes inherit it.
 writeFileSync(join(TEMPORARY, "gitconfig"), "");
+// Nor the repository of a Git hook or a container that runs the tests, such as GIT_DIR:
+// the repositories of the tests would write into it.
+for (const name of execFileSync("git", ["rev-parse", "--local-env-vars"], { encoding: "utf8" }).split(/\s+/)) {
+  if (name) delete process.env[name];
+}
 Object.assign(process.env, {
   GIT_CONFIG_GLOBAL: join(TEMPORARY, "gitconfig"),
   GIT_CONFIG_NOSYSTEM: "1",
