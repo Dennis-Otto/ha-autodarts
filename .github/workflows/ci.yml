@@ -24,7 +24,9 @@ jobs:
   check:
     name: check (home-assistant)
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    # A few times its longest run, so that a run that hangs ends early; a step that
+    # installs, builds or downloads ends after five minutes.
+    timeout-minutes: 15
     steps:
       - name: Record the network traffic of the job
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -32,23 +34,50 @@ jobs:
           egress-policy: audit
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # The merge of a pull request into main, and its head as the second
+          # parent, onto which the fix bot commits.
+          fetch-depth: 2
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        timeout-minutes: 5
         with:
           python-version-file: .python-version
-          cache: pip
-          cache-dependency-path: requirements-test.txt
+      # uv installs Home Assistant and the hash-pinned test tools in seconds and
+      # checks the hash of each package. Its cache keeps only the wheels that it built
+      # from source, under a key of the lock file: pre-built ones download faster
+      # than a cache restores them.
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        timeout-minutes: 5
+        with:
+          # renovate: datasource=pypi depName=uv
+          version: "0.13.0"
+          enable-cache: true
+          prune-cache: true
+          cache-dependency-glob: requirements-test.txt
       - name: Install the hash-pinned test tools
-        run: pip install --require-hashes -r requirements-test.txt
+        timeout-minutes: 5
+        run: uv pip install --system --require-hashes -r requirements-test.txt
+      # mypy starts from what it knew of the code at the last run that passed, and
+      # checks again what changed and what depends on it. It keeps no module with an
+      # error, so the cache hides no finding.
+      - name: Restore the cache of mypy
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        timeout-minutes: 5
+        with:
+          path: .mypy_cache
+          key: mypy-${{ runner.os }}-${{ hashFiles('requirements*.txt') }}-${{ hashFiles('**/*.py') }}
+          restore-keys: mypy-${{ runner.os }}-${{ hashFiles('requirements*.txt') }}-
       # The frontend of the integration, such as its cards, if it has one; its tests
       # belong in scripts/check-project.sh.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: hashFiles('package.json') != ''
+        timeout-minutes: 5
         with:
           node-version: 24
           cache: npm
       - name: Install the locked packages of the frontend
         if: hashFiles('package.json') != ''
+        timeout-minutes: 5
         run: npm ci --ignore-scripts
       - name: Run the checks
         run: bash scripts/check.sh
@@ -64,7 +93,114 @@ jobs:
           name: coverage
           path: ${{ runner.temp }}/coverage.xml
           retention-days: 14
+      # The fix bot: the commands of autofix in .github/checks.toml fix what they
+      # can of what the checks found, on the head of the pull request or on main.
+      # After the checks, the bot commits the files that they changed onto a branch
+      # of this repository, suggests them on a pull request from a fork, or keeps one
+      # pull request with the fixes of main.
+      - name: Fix what a command can fix
+        id: fix
+        if: failure() && contains(fromJSON('["pull_request", "push"]'), github.event_name)
+        env:
+          CHECK: "check (home-assistant)"
+          EVENT: ${{ github.event_name }}
+        run: |
+          # The head of the pull request, onto which the bot commits, not its merge
+          # into main.
+          if [[ "$EVENT" == pull_request ]]; then
+            git checkout --quiet --force --detach HEAD^2
+          fi
+          script=.github/blueprint.py
+          [[ -f "$script" ]] || script=blueprint.py
+          python3 "$script" fix run "$CHECK" --keep "$RUNNER_TEMP/fixes" >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the fixes for the fix bot
+        if: failure() && steps.fix.outcome == 'success'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fixes-check
+          path: ${{ runner.temp }}/fixes/
+          # Fixes of files in .github/ as well.
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 3
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.toml.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: "check (home-assistant)"
+        run: |
+          script=.github/blueprint.py
+          [[ -f "$script" ]] || script=blueprint.py
+          python3 "$script" coach explain "$CHECK"
 
+  # HACS and hassfest in one job, which takes one runner instead of two; each step
+  # runs also when the other failed, so that the check reports both, and the PR coach
+  # explains each one that failed.
+  home-assistant:
+    name: home-assistant
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Record the network traffic of the job
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        id: checkout
+        with:
+          persist-credentials: false
+      # HACS' moving ghcr.io/hacs/action:main image on purpose: it always validates
+      # against the rules HACS applies to new submissions today. The step runs it as
+      # the action hacs/action does, with the inputs as INPUT_ variables and the event
+      # as a file, but without the action itself: a pin to a commit of its branch
+      # falls behind with every commit there, which zizmor reports. The image reads
+      # the repository through the API, at the branch of the event.
+      - name: Validate the HACS metadata
+        id: hacs
+        if: ${{ !cancelled() }}
+        timeout-minutes: 5
+        env:
+          INPUT_CATEGORY: integration
+          INPUT_COMMENT: "false"
+          INPUT_GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          docker run --rm --env INPUT_CATEGORY --env INPUT_COMMENT --env INPUT_GITHUB_TOKEN \
+            --env GITHUB_REPOSITORY --env GITHUB_EVENT_PATH=/github/workflow/event.json \
+            --volume "$GITHUB_EVENT_PATH:/github/workflow/event.json:ro" \
+            ghcr.io/hacs/action:main
+      # hassfest runs Home Assistant's current image, for the same reasons and as its
+      # action home-assistant/actions/hassfest does, with the problem matcher of the
+      # action, which shows each error and warning as an annotation.
+      - name: Validate the integration
+        id: hassfest
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        timeout-minutes: 5
+        run: |
+          cat > "$RUNNER_TEMP/hassfest.json" <<'EOF'
+          {"problemMatcher": [{"owner": "hassfest", "pattern": [{"regexp": "^\\*\\s\\[(ERROR|WARNING)\\]\\s(.*)$", "severity": 1, "message": 2}]}]}
+          EOF
+          echo "::add-matcher::$RUNNER_TEMP/hassfest.json"
+          docker run --rm --volume "$PWD:/github/workspace:ro" ghcr.io/home-assistant/hassfest:latest
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.toml: each check
+      # of the job that failed, or the job itself when none of them did.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: home-assistant
+          FAILED: |
+            ${{ steps.hacs.outcome == 'failure' && 'hacs' || '' }}
+            ${{ steps.hassfest.outcome == 'failure' && 'hassfest' || '' }}
+        run: |
+          script=.github/blueprint.py
+          [[ -f "$script" ]] || script=blueprint.py
+          mapfile -t parts < <(grep . <<<"$FAILED" || true)
+          python3 "$script" coach explain "$CHECK" --parts "${parts[@]}"
+
+  # HACS and hassfest one job each, as the rulesets of the repositories require them
+  # until the settings bot applies the required checks of this release, which take
+  # the job home-assistant instead; the next release of the blueprint removes them.
   hacs:
     name: hacs
     runs-on: ubuntu-24.04
@@ -82,6 +218,7 @@ jobs:
       # the repository through the API, at the branch of the event, so the job checks
       # nothing out.
       - name: Validate the HACS metadata
+        timeout-minutes: 5
         env:
           INPUT_CATEGORY: integration
           INPUT_COMMENT: "false"
@@ -91,6 +228,24 @@ jobs:
             --env GITHUB_REPOSITORY --env GITHUB_EVENT_PATH=/github/workflow/event.json \
             --volume "$GITHUB_EVENT_PATH:/github/workflow/event.json:ro" \
             ghcr.io/hacs/action:main
+      # The PR coach needs blueprint.py and .github/checks.toml, nothing else.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: failure()
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github
+            blueprint
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.toml.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: hacs
+        run: |
+          script=.github/blueprint.py
+          [[ -f "$script" ]] || script=blueprint.py
+          python3 "$script" coach explain "$CHECK"
 
   hassfest:
     name: hassfest
@@ -108,9 +263,20 @@ jobs:
       # action home-assistant/actions/hassfest does, with the problem matcher of the
       # action, which shows each error and warning as an annotation.
       - name: Validate the integration
+        timeout-minutes: 5
         run: |
           cat > "$RUNNER_TEMP/hassfest.json" <<'EOF'
           {"problemMatcher": [{"owner": "hassfest", "pattern": [{"regexp": "^\\*\\s\\[(ERROR|WARNING)\\]\\s(.*)$", "severity": 1, "message": 2}]}]}
           EOF
           echo "::add-matcher::$RUNNER_TEMP/hassfest.json"
           docker run --rm --volume "$PWD:/github/workspace:ro" ghcr.io/home-assistant/hassfest:latest
+      # The PR coach: what failed, why it matters and how to fix it, in the summary
+      # of the check and as its annotation, from .github/checks.toml.
+      - name: Explain the failure
+        if: failure()
+        env:
+          CHECK: hassfest
+        run: |
+          script=.github/blueprint.py
+          [[ -f "$script" ]] || script=blueprint.py
+          python3 "$script" coach explain "$CHECK"
