@@ -460,7 +460,16 @@ def git(cwd: Path, *arguments: str) -> str:
 
 
 @pytest.fixture
-def bot(tmp_path):
+def own_repositories(monkeypatch):
+    """Git's variables that point it at another repository, such as GIT_DIR, which
+    Git sets for its hooks in a worktree, are gone: the commits of the bot's tests
+    land in their own repositories, never in the one that runs the tests."""
+    for name in git(Path.cwd(), "rev-parse", "--local-env-vars").split():
+        monkeypatch.delenv(name, raising=False)
+
+
+@pytest.fixture
+def bot(tmp_path, own_repositories):
     """main with images in both languages and the recording of the live demo, an
     open pull request of the bot that changed a German image, and the rendered
     English images of a run."""

@@ -56,8 +56,14 @@ MUTMUT_SLOWDOWN = 10
 
 
 def pytest_collection_modifyitems(config, items):
-    """Under mutmut the tests marked mutation_unsafe are skipped, and every test
-    gets ten times its time limit.
+    """The frozen clock is set up before every other fixture of a test; under mutmut
+    the tests marked mutation_unsafe are skipped, and every test gets ten times its
+    time limit.
+
+    A fixture set up before `freezer`, such as `hass` or the integration of a board,
+    would run at the real time, and the clock would then jump back to QUIET_MOMENT:
+    timers it armed against the wall clock would fire at the wrong moment or never.
+    pytest-freezer does the same for a test with the marker freeze_time.
 
     mutmut runs the tests in its copy of the repository, `mutants/`, which has no Git
     and holds every mutant in the code: a test that reads the code as text or asks
@@ -67,6 +73,10 @@ def pytest_collection_modifyitems(config, items):
     by a time limit of its own. mutmut sets MUTANT_UNDER_TEST in each of its runs,
     to an empty value in the run without a mutant.
     """
+    for item in items:
+        if "freezer" in getattr(item, "fixturenames", ()):
+            item.fixturenames.remove("freezer")
+            item.fixturenames.insert(0, "freezer")
     if "MUTANT_UNDER_TEST" not in os.environ:
         return
     skip = pytest.mark.skip(reason="fails in mutmut's copy of the repository")
@@ -178,6 +188,24 @@ def local_stream():
         "custom_components.autodarts.local_api.AutodartsLocalClient.events", idle_stream
     ):
         yield
+
+
+# Where the clock of a test that freezes it starts: noon on a Wednesday in the time
+# zone of the test harness, US/Pacific. The frozen clock used to start at the real
+# time, and a test that moved it on by an hour heard the weekly report, due at the
+# midnight before Monday, whenever it ran in the last hour of a week. From noon in the
+# middle of a week, a test reaches the next midnight only with a tick of twelve hours
+# and the end of the week only with one of four and a half days.
+QUIET_MOMENT = "2026-10-14T12:00:00-07:00"
+
+
+@pytest.fixture
+def freezer(request, freezer):
+    """The frozen clock at the same quiet moment in every run, unless the test names
+    its own moment with the marker freeze_time."""
+    if request.node.get_closest_marker("freeze_time") is None:
+        freezer.move_to(QUIET_MOMENT)
+    return freezer
 
 
 @pytest.fixture

@@ -10,6 +10,7 @@ import math
 import os
 import time
 import tomllib
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -38,6 +39,8 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from shards import Step, choose, shard
 
 HA = "http://homeassistant:8123"
+# The client of the frontend at that address, which its login page signs in for.
+CLIENT_ID = f"{HA}/"
 BOARD = "http://board-mock:3180"
 LOADS = 5
 # Every request of autodarts-card.js, the module with all cards.
@@ -134,6 +137,14 @@ CARD_STATE = f"""
   }};
 }}
 """
+# The visit of 115 ended by the reset: the card shows 0 points and no darts, and the
+# visit leads the last visits.
+VISIT_ENDED_BY_RESET = f"""
+() => {{
+  const state = ({CARD_STATE})();
+  return state.score === '0' && state.darts === 0 && state.recent[0] === '115';
+}}
+"""
 PRACTICE_STATE = f"""
 () => {{
   const root = ({CARDS})()[0].shadowRoot;
@@ -188,8 +199,6 @@ CHECKOUT_101 = [
         "coords": {"x": 0.0, "y": 0.976},
     },
 ]
-# Whether the frontend is signed in and connected to Home Assistant.
-SIGNED_IN = "() => Boolean(document.querySelector('home-assistant')?.hass?.connected)"
 # Calls a service for an Autodarts entity through the logged-in frontend.
 CALL_SERVICE = """
 async ([domain, service, key, data]) => {
@@ -374,6 +383,26 @@ def visit(browser: Browser) -> None:
     }
     check(state == expected, f"Card state {state} != {expected}")
 
+    # Discarding detected darts needs a second tap within a few seconds. The reset
+    # comes before the stop, while the visit of 115 is on the board: only the board
+    # that took the reset drops the darts and ends the visit on the card. A stop ends
+    # the visit too, and after one the card showed 0 points before the reset had even
+    # left Home Assistant, so the check of the board's commands came too early.
+    commands = len(board_requests()["commands"])
+    reset = page.locator("autodarts-card button[data-action='reset']")
+    reset.click()
+    check(reset.text_content() == "Confirm?", "Reset did not ask for confirmation")
+    check(
+        len(board_requests()["commands"]) == commands, "Reset ran without confirmation"
+    )
+    reset.click()
+    page.wait_for_function(VISIT_ENDED_BY_RESET, timeout=15000)
+    new = board_requests()["commands"][commands:]
+    check(
+        [(c["method"], c["path"]) for c in new] == [("POST", "/api/reset")],
+        f"Reset sent {new}",
+    )
+
     commands = len(board_requests()["commands"])
     page.locator("autodarts-card button[data-action='toggle']").click()
     page.wait_for_function(
@@ -387,22 +416,6 @@ def visit(browser: Browser) -> None:
     page.locator("autodarts-card button[data-action='toggle']").click()
     page.wait_for_function(
         f"() => ({CARD_STATE})().toggle === 'Stop detection'", timeout=15000
-    )
-
-    # Discarding detected darts needs a second tap within a few seconds.
-    commands = len(board_requests()["commands"])
-    reset = page.locator("autodarts-card button[data-action='reset']")
-    reset.click()
-    check(reset.text_content() == "Confirm?", "Reset did not ask for confirmation")
-    check(
-        len(board_requests()["commands"]) == commands, "Reset ran without confirmation"
-    )
-    reset.click()
-    page.wait_for_function(f"() => ({CARD_STATE})().score === '0'", timeout=15000)
-    new = board_requests()["commands"][commands:]
-    check(
-        [(c["method"], c["path"]) for c in new] == [("POST", "/api/reset")],
-        f"Reset sent {new}",
     )
     errors = page_errors(page, problems)
     check(not errors, f"Console problems: {errors}")
@@ -1628,6 +1641,68 @@ def steady_games(page: Page, device: str, card: str) -> None:
         )
 
 
+def ha_post(path: str, data: dict, form: bool = False) -> dict:
+    """POST to Home Assistant's API without a token, as its login page does: JSON, or
+    the fields of a form."""
+    if form:
+        body, kind = urllib.parse.urlencode(data).encode(), "x-www-form-urlencoded"
+    else:
+        body, kind = json.dumps(data).encode(), "json"
+    request = urllib.request.Request(
+        f"{HA}{path}",
+        data=body,
+        headers={"Content-Type": f"application/{kind}"},
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        return json.load(response)
+
+
+def signed_in_before() -> dict:
+    """The storage of a browser that signed in to the demo before, for the storage_state
+    of a new context: the tokens of the frontend, which keeps them in the local storage
+    of Home Assistant's address. The demo trusts the network of the test and has one
+    user, so its login flow gives that user's tokens without a form, as the login page
+    of a new browser gets them."""
+    flow = ha_post(
+        "/auth/login_flow",
+        {
+            "client_id": CLIENT_ID,
+            "handler": ["trusted_networks", None],
+            "redirect_uri": f"{CLIENT_ID}?auth_callback=1",
+        },
+    )
+    check(
+        flow.get("type") == "create_entry",
+        f"The demo's login flow wants more than its trusted network: {flow}",
+    )
+    tokens = ha_post(
+        "/auth/token",
+        {
+            "grant_type": "authorization_code",
+            "code": flow["result"],
+            "client_id": CLIENT_ID,
+        },
+        form=True,
+    )
+    stored = {
+        **tokens,
+        "hassUrl": HA,
+        "clientId": CLIENT_ID,
+        # In milliseconds, as the frontend writes it.
+        "expires": round((time.time() + tokens["expires_in"]) * 1000),
+    }
+    return {
+        "cookies": [],
+        "origins": [
+            {
+                "origin": HA,
+                "localStorage": [{"name": "hassTokens", "value": json.dumps(stored)}],
+            }
+        ],
+    }
+
+
 def safari(playwright: Playwright) -> None:
     """The automatic dashboard in an iPhone's Safari whose cards load slowly, which
     showed "Timeout waiting for strategy element" instead; and its new game screen, which
@@ -1637,7 +1712,17 @@ def safari(playwright: Playwright) -> None:
     timeline = Timeline()
     browser = playwright.webkit.launch()
     try:
-        context = browser.new_context(**playwright.devices["iPhone 13"], locale="de-DE")
+        # A phone that opened Home Assistant before: its Safari keeps the tokens of
+        # the frontend and shows the dashboard on the first load. A Safari that signed
+        # in during the step loaded the page a second time, from the login page, and
+        # its WebKit now and then never finished the way back from the login page
+        # (page.goto ran out of time) or was still loading when the step reloaded
+        # the page for the slow cards (WebKit encountered an internal error).
+        context = browser.new_context(
+            **playwright.devices["iPhone 13"],
+            locale="de-DE",
+            storage_state=signed_in_before(),
+        )
         # Kept only when the step fails, for Playwright's trace viewer. Its snapshot
         # of the page at every action costs next to nothing; a film of the screen
         # would cost about two seconds.
@@ -1647,15 +1732,7 @@ def safari(playwright: Playwright) -> None:
         timeline.follow(page)
         card = "autodarts-scoreboard-card"
 
-        # Signed in first, as a phone that opened Home Assistant before. The login
-        # of a new browser loads the page a second time, which cancels the requests
-        # of the first, and Home Assistant starts to wait for the strategy only on
-        # the second: cards held from the first would no longer come too late.
-        page.goto(f"{HA}/autodarts-auto/scoreboard")
-        page.wait_for_function(SIGNED_IN, timeout=30000)
-        timeline.note("signed in")
-
-        # Then with an empty cache on slow Wi-Fi: the cards come after Home Assistant
+        # With an empty cache on slow Wi-Fi: the cards come after Home Assistant
         # stopped waiting for the strategy, which registered on its own. The request
         # is held and let go, not answered after a sleep in the route: a sleep stops
         # Playwright, and every further request would wait for it.
@@ -1666,9 +1743,13 @@ def safari(playwright: Playwright) -> None:
             held.append(route)
 
         page.route(CARD_MODULE, hold)
-        # A route turns the browser's cache off, so the page loads the module anew.
-        page.reload(wait_until="commit")
+        # Only until the page is there: its load waits for the held module.
+        page.goto(f"{HA}/autodarts-auto/scoreboard", wait_until="commit")
         page.wait_for_timeout(CARD_MODULE_DELAY * 1000)
+        check(
+            "/auth/" not in page.url,
+            f"The stored tokens didn't sign Safari in, it shows {page.url}",
+        )
         timeline.note(f"lets {len(held)} held request(s) go")
         # Once: the strategy's import finds the module that Home Assistant loads.
         check(

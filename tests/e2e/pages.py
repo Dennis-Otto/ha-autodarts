@@ -133,7 +133,10 @@ SHOWN = f"""
   && (window.__shownBefore ?? []).every((card) => !card.isConnected)
   && ({CARDS_DRAWN})()
 """
-# The states of Autodarts entities by their translation keys, from the frontend.
+# The states of Autodarts entities by their translation keys, from the frontend; null
+# for one it doesn't know yet. A frontend that is still connecting may know the
+# entities before their states: hass.states is null then, and a wait that read it
+# without care failed at once with a TypeError instead of waiting.
 STATES = """
 (keys) => {
   const hass = document.querySelector('home-assistant')?.hass;
@@ -141,7 +144,7 @@ STATES = """
     const entity = Object.values(hass?.entities ?? {}).find(
       (item) => item.platform === 'autodarts' && item.translation_key === key
     );
-    return [key, entity ? hass.states[entity.entity_id]?.state ?? null : null];
+    return [key, entity ? hass.states?.[entity.entity_id]?.state ?? null : null];
   }));
 }
 """
