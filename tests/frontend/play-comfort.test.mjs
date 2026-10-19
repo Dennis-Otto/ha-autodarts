@@ -242,6 +242,8 @@ test("a tap on a dart of the visit corrects it", () => {
   assert.equal($(card, ".pad-area").hidden, true);
   // A screen reader hears the dart and what a tap does.
   assert.equal($(card, '[data-dart="2"]').getAttribute("aria-label"), "S20 20 – Correct dart 2");
+  // It starts with the words the tile shows, kept apart, so voice control finds it by them.
+  assert.equal($(card, '[data-dart="2"]').textContent.replace(/\s+/g, " ").trim(), "S20 20");
   $(card, '[data-dart="2"]').click();
   assert.equal($(card, ".pad-area").hidden, false);
   assert.equal(text(card, ".pad .section-label"), "Correct dart 2");

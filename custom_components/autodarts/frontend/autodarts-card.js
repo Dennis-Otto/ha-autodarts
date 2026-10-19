@@ -8728,12 +8728,15 @@ function createElements(Base) {
       const style = ["slot", ...marks.filter(Boolean)].join(" ");
       const bed = label(this._hass, dart);
       const points = dart.number * dart.multiplier;
-      const content = `${head}<span class="segment">${escapeHtml(bed)}</span><span class="value">${points} ${t("points")}</span>`;
+      // The spaces between the parts keep their words apart for screen readers.
+      const content = `${head} <span class="segment">${escapeHtml(bed)}</span> <span class="value">${points} ${t("points")}</span>`;
       const nothing = dead ? this._t("cricket_dead") : "";
       const title = nothing ? ` title="${escapeHtml(nothing)}"` : "";
       if (!correctable) return `<div class="${style}"${title}>${content}</div>`;
-      // The label names the dart and what a tap does: "T20 60 – Correct dart 1".
-      const spoken = [`${bed} ${points}`, nothing, fill(this._t("correct_title"), { dart: dart.dart })];
+      // The label starts with what the tile shows and then says what a tap does:
+      // "Dart 1 T20 60 points – Correct dart 1".
+      const shown = `${this._t("dart")} ${index + 1} ${bed} ${points} ${this._t("points")}`;
+      const spoken = [shown, nothing, fill(this._t("correct_title"), { dart: dart.dart })];
       return (
         `<button type="button" class="${style} tappable" data-dart="${dart.dart}" data-focus="dart-${dart.dart}"` +
         `${title} aria-label="${escapeHtml(spoken.filter(Boolean).join(" – "))}">${content}${EDIT_ICON}</button>`
@@ -10832,7 +10835,8 @@ function createElements(Base) {
         const style = ["dart", ...flags, ...(picked ? ["picked"] : []), ...(dead[index] ? ["dead"] : [])].join(" ");
         const bed = label(this._hass, dart);
         const points = dart.number * dart.multiplier;
-        const content = `<span class="segment">${escapeHtml(bed)}</span><span class="points">${points}</span>`;
+        // The space keeps the bed and the points apart for screen readers.
+        const content = `<span class="segment">${escapeHtml(bed)}</span> <span class="points">${points}</span>`;
         const nothing = dead[index] ? t("cricket_dead") : "";
         const title = nothing ? ` title="${escapeHtml(nothing)}"` : "";
         // The label names the dart and what a tap does: "T20 60 – Correct dart 1".
