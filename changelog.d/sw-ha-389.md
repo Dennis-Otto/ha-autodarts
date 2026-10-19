@@ -1,0 +1,3 @@
+### New
+
+- **The *Start tournament* button chooses the groups and who goes on:** two settings join the other tournament settings, *Tournament groups* (2 to 8, or 0, the default, for groups of about four players) and *Tournament qualifiers per group* (1 to 4, two by default). *Start tournament* plays groups and knockout with them, and so does `start_tournament` when you leave out `groups` and `advance`; `groups: 0` asks for groups of about four players. The new game screen of the scoreboard starts from them, and the groups you choose there or in the action stay in them for the next tournament ([tournaments](docs/entities.md#tournaments), #389).

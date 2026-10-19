@@ -676,6 +676,12 @@
       "practice_gotcha_target": {
         "name": "Puntuación objetivo de Gotcha de la partida"
       },
+      "tournament_groups": {
+        "name": "Grupos del torneo"
+      },
+      "tournament_advance": {
+        "name": "Clasificados por grupo del torneo"
+      },
       "tournament_pause": {
         "name": "Pausa del torneo"
       },
@@ -1589,11 +1595,11 @@
         },
         "groups": {
           "name": "Grupos",
-          "description": "Grupos y eliminación directa: el número de grupos, de 2 a 8, de tres a ocho jugadores cada uno. Sin él, grupos de unos cuatro jugadores."
+          "description": "Grupos y eliminación directa: el número de grupos, de 2 a 8, de tres a ocho jugadores cada uno; 0 forma grupos de unos cuatro jugadores. Sin él, se aplica Grupos del torneo."
         },
         "advance": {
           "name": "Clasificados por grupo",
-          "description": "Grupos y eliminación directa: cuántos jugadores de cada grupo pasan a la eliminación directa, de 1 a 4 y menos de los que tiene el grupo. Sin él, dos."
+          "description": "Grupos y eliminación directa: cuántos jugadores de cada grupo pasan a la eliminación directa, de 1 a 4 y menos de los que tiene el grupo. Sin él, se aplica Clasificados por grupo del torneo."
         },
         "random_draw": {
           "name": "Sorteo aleatorio",

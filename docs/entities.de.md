@@ -445,9 +445,11 @@ Ein Turnier für drei bis 32 Spieler mit Namen an einem Board oder [auf mehreren
 | Entität | Typ | Beschreibung |
 | --- | --- | --- |
 | Turnier | Sensor (Aufzählung) | Die Runde, die gespielt wird, während einer Pause die nächste: `no_tournament`, `round_1` bis `round_7` (auch der Gruppen), `round_of_32`, `round_of_16`, `quarter_final`, `semi_final`, `third_place`, `final`, im Doppel-K.-o.-System `winners_round_1` bis `winners_round_4`, `winners_final`, `losers_round_1` bis `losers_round_7`, `losers_final`, `grand_final` und `grand_final_reset` (das Entscheidungsfinale), oder `finished`. Die Attribute stehen unten. |
-| Turnierformat | Auswahl, *Konfiguration* | `round_robin` (jeder gegen jeden, Standard), `knockout` (K.-o.-System), `double_knockout` (Doppel-K.-o.-System) oder `groups_knockout` (Gruppen und K.-o.-System). *Turnier starten* bildet Gruppen von etwa vier Spielern, aus denen zwei weiterkommen; [`autodarts.start_tournament`](#turnier-starten-autodartsstart_tournament) und die Spielauswahl wählen sie. |
+| Turnierformat | Auswahl, *Konfiguration* | `round_robin` (jeder gegen jeden, Standard), `knockout` (K.-o.-System), `double_knockout` (Doppel-K.-o.-System) oder `groups_knockout` (Gruppen und K.-o.-System). Gruppen und K.-o.-System nehmen ihre Gruppen aus *Turniergruppen* und *Turnier Weiter je Gruppe*. |
 | Turnierspiel | Auswahl, *Konfiguration* | `101` bis `1001`, `cricket`, `cut_throat`, `tactics`, `wild_mouse`, `random_cricket` oder `hidden_cricket`; standardmäßig `501`. |
 | Turnierspieler | Text, *Konfiguration* | Bis zu 32 Namen, durch Kommas getrennt, etwa `Dennis, Lea, Max`. Eine Liste, die länger ist als die 255 Zeichen eines Zustands, zeigt die Namen, die hineinpassen, und `…`; das Attribut `players` nennt alle, und eine Liste, die mit dem `…` geschrieben wird, behält die Namen, für die es steht, an seiner Stelle. |
+| Turniergruppen | Zahl, *Konfiguration* | Gruppen und K.-o.-System: 2–8 Gruppen mit je drei bis acht Spielern; `0`, der Standard, bildet Gruppen von etwa vier Spielern, etwa drei Gruppen für 12 Spieler. Eine einzige Gruppe gibt es nicht: 1 springt von unten auf 2 und von oben zurück auf 0. |
+| Turnier Weiter je Gruppe | Zahl, *Konfiguration* | Gruppen und K.-o.-System: 1–4 Spieler jeder Gruppe kommen ins K.-o.-System, weniger, als die kleinste Gruppe hat; standardmäßig 2. |
 | Turnierpause | Zahl, Sekunden, *Konfiguration* | 0–600 Sekunden zwischen zwei Matches nach der Zusammenfassung, standardmäßig 10; 0 wartet auf *Nächstes Turniermatch*. Eine Änderung gilt sofort. |
 | Turnier Dauer der Zusammenfassung | Zahl, Sekunden, *Konfiguration* | 0–60 Sekunden, die die Zusammenfassung eines Matches zu sehen ist, bevor die Pause beginnt, standardmäßig 8. Eine Änderung gilt sofort. |
 | Turnier Spiel um Platz 3 | Schalter, *Konfiguration* | Im K.-o.-System mit mindestens vier Spielern, auch nach den Gruppen, spielen die Verlierer der Halbfinals um Platz 3. Standardmäßig aus. |
@@ -919,8 +921,8 @@ Lost ein [Turnier](#turniere) aus und startet sein erstes Match. Werte, die du w
 | `bull_off` | `true`, `false` | Ausbullen entscheidet, wer jedes Match beginnt |
 | `bull_off_distance` | `true`, `false` | Zwei Darts im selben Bull-Feld entscheidet der gemessene Abstand statt eines neuen Wurfs |
 | `third_place` | `true`, `false` | Im K.-o.-System mit mindestens vier Spielern, auch nach den Gruppen, spielen die Verlierer der Halbfinals um Platz 3 |
-| `groups` | 2–8 | Gruppen und K.-o.-System: die Zahl der Gruppen mit je drei bis acht Spielern; ohne sie Gruppen von etwa vier |
-| `advance` | 1–4 | Gruppen und K.-o.-System: wie viele aus jeder Gruppe ins K.-o.-System kommen, weniger, als die kleinste Gruppe hat; ohne Angabe 2 |
+| `groups` | 0 oder 2–8 | Gruppen und K.-o.-System: die Zahl der Gruppen mit je drei bis acht Spielern; 0 bildet Gruppen von etwa vier |
+| `advance` | 1–4 | Gruppen und K.-o.-System: wie viele aus jeder Gruppe ins K.-o.-System kommen, weniger, als die kleinste Gruppe hat |
 | `random_draw` | `true`, `false` | Die Reihenfolge der Spieler zufällig auslosen |
 | `seed` | 1–999999 | Eine Zahl für eine zufällige Auslosung: Dieselbe Zahl lost dieselbe Reihenfolge aus |
 | `pause` | 0–600 | Sekunden zwischen zwei Matches, nach der Zusammenfassung; 0 wartet auf *Nächstes Turniermatch* |

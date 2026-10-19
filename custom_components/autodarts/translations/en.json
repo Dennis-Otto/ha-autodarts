@@ -676,6 +676,12 @@
       "practice_gotcha_target": {
         "name": "Practice Gotcha target score"
       },
+      "tournament_groups": {
+        "name": "Tournament groups"
+      },
+      "tournament_advance": {
+        "name": "Tournament qualifiers per group"
+      },
       "tournament_pause": {
         "name": "Tournament pause"
       },
@@ -1589,11 +1595,11 @@
         },
         "groups": {
           "name": "Groups",
-          "description": "Groups and knockout: the number of groups, from 2 to 8, of three to eight players each. Without it, groups of about four players."
+          "description": "Groups and knockout: the number of groups, from 2 to 8, of three to eight players each; 0 makes groups of about four players. Without it, Tournament groups applies."
         },
         "advance": {
           "name": "Qualifiers per group",
-          "description": "Groups and knockout: how many players of every group go on into the knockout, from 1 to 4 and fewer than the group has. Without it, two."
+          "description": "Groups and knockout: how many players of every group go on into the knockout, from 1 to 4 and fewer than the group has. Without it, Tournament qualifiers per group applies."
         },
         "random_draw": {
           "name": "Random draw",

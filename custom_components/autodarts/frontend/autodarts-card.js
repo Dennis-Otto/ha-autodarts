@@ -379,6 +379,8 @@ const SCOREBOARD_KEYS = {
   tournamentFormat: "select.tournament_format",
   tournamentThird: "switch.tournament_third_place",
   tournamentDraw: "switch.tournament_random_draw",
+  tournamentGroups: "number.tournament_groups",
+  tournamentAdvance: "number.tournament_advance",
   tournamentNext: "button.tournament_next_match",
   tournamentStop: "button.tournament_stop",
 };
@@ -2384,9 +2386,10 @@ function lobbyChoice(board, games) {
     format: TOURNAMENT_FORMATS.includes(board.format) ? board.format : "round_robin",
     third_place: board.third_place === true,
     random_draw: board.random_draw === true,
-    // Groups with knockout: groups the board makes (0), and two go on.
-    groups: 0,
-    advance: GROUP_LIMITS.through,
+    // Groups with knockout: the groups (0 lets the board make them) and how
+    // many of each go on, as the board has them; without them, two go on.
+    groups: Number.isInteger(board.groups) ? board.groups : 0,
+    advance: Number.isInteger(board.advance) ? board.advance : GROUP_LIMITS.through,
     draft: "",
   };
 }
@@ -3804,11 +3807,10 @@ function tournamentStartData(choice, { entry = null, distance = false } = {}) {
   if (THIRD_PLACE_FORMATS.includes(choice.format)) {
     data.third_place = choice.third_place && knockoutPlayers(choice) >= THIRD_PLACE_PLAYERS;
   }
-  // Groups the board makes itself are left out; the qualifiers always go along.
+  // The groups go along, 0 for those the board makes, and so do the qualifiers.
   if (choice.format === "groups_knockout") {
     const { groups, advance } = groupSetup(choice);
-    if (groups) data.groups = groups;
-    data.advance = advance;
+    Object.assign(data, { groups, advance });
   }
   return data;
 }
@@ -5306,6 +5308,8 @@ const TOURNAMENT_KEYS = [
   "select.tournament_format",
   "select.tournament_game",
   "text.tournament_players",
+  "number.tournament_groups",
+  "number.tournament_advance",
   "number.tournament_pause",
   "number.tournament_summary",
   "switch.tournament_third_place",
@@ -10363,6 +10367,8 @@ function createElements(Base) {
         format: this._state("tournamentFormat")?.state,
         third_place: on("tournamentThird"),
         random_draw: on("tournamentDraw"),
+        groups: this._number("tournamentGroups"),
+        advance: this._number("tournamentAdvance"),
         bot: this._number("botLevel"),
       };
     }

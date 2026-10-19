@@ -676,6 +676,12 @@
       "practice_gotcha_target": {
         "name": "Oefenspel Gotcha-doelscore"
       },
+      "tournament_groups": {
+        "name": "Toernooigroepen"
+      },
+      "tournament_advance": {
+        "name": "Toernooi door per groep"
+      },
       "tournament_pause": {
         "name": "Toernooipauze"
       },
@@ -1589,11 +1595,11 @@
         },
         "groups": {
           "name": "Groepen",
-          "description": "Groepen en knock-out: het aantal groepen, 2 tot 8, van elk drie tot acht spelers. Zonder dit groepen van ongeveer vier spelers."
+          "description": "Groepen en knock-out: het aantal groepen, 2 tot 8, van elk drie tot acht spelers; 0 maakt groepen van ongeveer vier spelers. Zonder dit geldt Toernooigroepen."
         },
         "advance": {
           "name": "Door per groep",
-          "description": "Groepen en knock-out: hoeveel spelers van elke groep doorgaan naar de knock-out, 1 tot 4 en minder dan de groep telt. Zonder dit twee."
+          "description": "Groepen en knock-out: hoeveel spelers van elke groep doorgaan naar de knock-out, 1 tot 4 en minder dan de groep telt. Zonder dit geldt Toernooi door per groep."
         },
         "random_draw": {
           "name": "Willekeurige loting",

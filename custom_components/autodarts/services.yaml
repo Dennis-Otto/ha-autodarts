@@ -431,7 +431,7 @@ start_tournament:
       example: 4
       selector:
         number:
-          min: 2
+          min: 0
           max: 8
           mode: box
     advance:
