@@ -14,6 +14,19 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 - **The blueprints come with the integration and stay current:** after installing the integration, all fifteen blueprints are on the blueprints page of Home Assistant without importing them. Every update brings the new versions of the blueprints you haven't changed, also of those you imported before, and the automations made from them reload with their settings, so a blueprint always matches the integration it runs with. A blueprint you changed stays yours, with a repair that offers the version of the integration; one you deleted stays deleted, and *Re-import blueprint* is no longer needed ([updates of the blueprints](docs/automations.md#updates-of-the-blueprints), #383, #384).
 - **Granboard over Bluetooth (experimental):** a Granboard sends its darts to Home Assistant over Bluetooth, through an adapter of Home Assistant or an ESPHome Bluetooth proxy anywhere in the house, and you play every game, the training and the statistics with them, as on a dartboard without Autodarts, without entering a dart. Home Assistant finds the board and offers to set it up; every hit goes into the visit, the button beside the board passes to the next player, a dart in the wrong bed is corrected on the scoreboard, and a board that sleeps or goes out of reach connects again on its own. The diagnostic entity *Granboard connection* shows the connection. The integration reads the board's frames as open-source Granboard apps do, but it has not met a real board yet: [check every bed](docs/granboard.md#check-every-bed) with yours to help take the label off ([Granboard over Bluetooth](docs/granboard.md), #386, #388).
 
+## [1.17.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.16.0...v1.17.0) (2026-10-19)
+
+
+### Features
+
+* a streaming overlay for OBS and highlight clips ([#372](https://github.com/Dennis-Otto/ha-autodarts/issues/372)) ([39c4903](https://github.com/Dennis-Otto/ha-autodarts/commit/39c4903910c5fedc8b6edc65a239e60c9618ff7f))
+* **blueprints:** ship the blueprints with the integration and keep unedited copies current ([#384](https://github.com/Dennis-Otto/ha-autodarts/issues/384)) ([e2ce8aa](https://github.com/Dennis-Otto/ha-autodarts/commit/e2ce8aab471a121717c44c5a341ccadbbde8e6ff))
+* **cricket:** Random and Hidden Cricket ([#364](https://github.com/Dennis-Otto/ha-autodarts/issues/364)) ([e7f1d0c](https://github.com/Dennis-Otto/ha-autodarts/commit/e7f1d0cee3549e58180c9bfb5c85b3bc7180488e))
+* Granboard dartboards over Home Assistant's Bluetooth (experimental) ([#388](https://github.com/Dennis-Otto/ha-autodarts/issues/388)) ([c878223](https://github.com/Dennis-Otto/ha-autodarts/commit/c878223a96d7921e59ac4f5bc962ad1034bf1380))
+* **tournament:** play a tournament on several boards at once ([#396](https://github.com/Dennis-Otto/ha-autodarts/issues/396)) ([4f009ae](https://github.com/Dennis-Otto/ha-autodarts/commit/4f009ae9906c7170c45bd4c700a0bb59dc521166))
+* **tournament:** up to 32 players, groups with knockout and double elimination ([#385](https://github.com/Dennis-Otto/ha-autodarts/issues/385)) ([4b6e33b](https://github.com/Dennis-Otto/ha-autodarts/commit/4b6e33b5077c6bd902852507889e234819c2a6d4))
+* **voice:** ask Assist about your darts ([#378](https://github.com/Dennis-Otto/ha-autodarts/issues/378)) ([37fb3c3](https://github.com/Dennis-Otto/ha-autodarts/commit/37fb3c35c8a20985e873b43d5697eaf1bcec5a96))
+
 ## [1.16.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.15.0...v1.16.0) (2026-10-18)
 
 ### New
