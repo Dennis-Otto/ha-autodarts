@@ -180,6 +180,24 @@ def local_stream():
         yield
 
 
+# Where the clock of a test that freezes it starts: noon on a Wednesday in the time
+# zone of the test harness, US/Pacific. The frozen clock used to start at the real
+# time, and a test that moved it on by an hour heard the weekly report, due at the
+# midnight before Monday, whenever it ran in the last hour of a week. From noon in the
+# middle of a week, a test reaches the next midnight only with a tick of twelve hours
+# and the end of the week only with one of four and a half days.
+QUIET_MOMENT = "2026-10-14T12:00:00-07:00"
+
+
+@pytest.fixture
+def freezer(request, freezer):
+    """The frozen clock at the same quiet moment in every run, unless the test names
+    its own moment with the marker freeze_time."""
+    if request.node.get_closest_marker("freeze_time") is None:
+        freezer.move_to(QUIET_MOMENT)
+    return freezer
+
+
 @pytest.fixture
 def cloud_link():
     """Offer the cloud link, as once Autodarts has issued a client ID."""

@@ -18,6 +18,9 @@ runs it forward until what the timer leads to shows.
 
 import ast
 import importlib.util
+import json
+import shutil
+import subprocess
 import sys
 import types
 from collections import Counter
@@ -288,6 +291,81 @@ HA = "http://127.0.0.1:8123"
 )
 def test_show_opens_a_view_within_the_app_only_from_a_plain_one(current, url, within):
     assert load_pages().within_app(current, url) is within
+
+
+NODE = shutil.which("node")
+TOURNAMENT = {
+    "entity_id": "sensor.autodarts_board_tournament",
+    "platform": "autodarts",
+    "translation_key": "tournament",
+}
+
+
+def page_states(frontend: dict | None, keys: list[str]) -> dict:
+    """What STATES of pages.py reads, run in Node, from a page whose element of Home
+    Assistant has this hass object, or from one without that element."""
+    element = "null" if frontend is None else json.dumps({"hass": frontend})
+    script = (
+        f"globalThis.document = {{ querySelector: () => ({element}) }};\n"
+        f"const states = ({load_pages().STATES})({json.dumps(keys)});\n"
+        "process.stdout.write(JSON.stringify(states));"
+    )
+    result = subprocess.run(
+        [NODE or "node", "-e", script], capture_output=True, encoding="utf-8"
+    )
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)
+
+
+@pytest.mark.skipif(NODE is None, reason="the functions of the pages run in Node")
+@pytest.mark.parametrize(
+    ("frontend", "expected"),
+    [
+        # Home Assistant has not drawn its frontend yet.
+        (None, None),
+        # A frontend that is still connecting knows the entities before their states.
+        ({"entities": {TOURNAMENT["entity_id"]: TOURNAMENT}, "states": None}, None),
+        ({"entities": {TOURNAMENT["entity_id"]: TOURNAMENT}, "states": {}}, None),
+        (
+            {
+                "entities": {TOURNAMENT["entity_id"]: TOURNAMENT},
+                "states": {TOURNAMENT["entity_id"]: {"state": "between_matches"}},
+            },
+            "between_matches",
+        ),
+    ],
+)
+def test_a_state_the_frontend_does_not_know_yet_is_waited_for(frontend, expected):
+    """The waits for states, such as the one for the board between games, read null
+    for a state not there yet and wait on; a TypeError ended them at once."""
+    assert page_states(frontend, ["tournament"]) == {"tournament": expected}
+
+
+def test_safari_starts_signed_in_and_loads_its_page_once():
+    """Safari's WebKit now and then never came back from Home Assistant's login page,
+    or was still loading the page from there when the step loaded it again for the
+    slow cards: the step starts with the stored tokens of a phone that signed in
+    before, and loads its page once, with the cards held back."""
+    tree = ast.parse((E2E / "browser.py").read_text(encoding="utf-8"))
+    (safari,) = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef) and node.name == "safari"
+    ]
+    calls = [
+        node
+        for node in ast.walk(safari)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+    ]
+    methods = [call.func.attr for call in calls if isinstance(call.func, ast.Attribute)]
+    assert "reload" not in methods
+    assert methods.count("goto") == 1
+    (context,) = [
+        call
+        for call in calls
+        if isinstance(call.func, ast.Attribute) and call.func.attr == "new_context"
+    ]
+    assert "storage_state" in [keyword.arg for keyword in context.keywords]
 
 
 class Clocked:
