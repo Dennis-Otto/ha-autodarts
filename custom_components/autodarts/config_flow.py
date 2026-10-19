@@ -6,9 +6,8 @@ import asyncio
 import uuid
 from collections.abc import Mapping
 from ipaddress import IPv4Address, ip_address
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import voluptuous as vol
 from homeassistant.components import webhook
 from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
 from homeassistant.config_entries import (
@@ -61,6 +60,13 @@ from .online import (
     effects_csv,
 )
 from .repairs import address_title, async_offer_address
+
+if TYPE_CHECKING:
+    # Home Assistant 2026.10 validates with probatio and makes "voluptuous" an alias
+    # of it, so the types are probatio's; older versions still use voluptuous.
+    import probatio as vol
+else:
+    import voluptuous as vol
 
 
 def _valid_host(host: str) -> bool:

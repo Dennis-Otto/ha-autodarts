@@ -3,9 +3,8 @@ the sounds of a voice pack for the caller of the scoreboard."""
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, callback
@@ -15,6 +14,13 @@ from .const import DOMAIN
 from .games_coordinator import AutodartsGamesCoordinator
 from .profiles import NAME_LENGTH
 from .voices import PACK_LENGTH, async_voice_pack
+
+if TYPE_CHECKING:
+    # Home Assistant 2026.10 validates with probatio and makes "voluptuous" an alias
+    # of it, so the types are probatio's; older versions still use voluptuous.
+    import probatio as vol
+else:
+    import voluptuous as vol
 
 
 @callback
