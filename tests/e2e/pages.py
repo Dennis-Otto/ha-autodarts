@@ -15,7 +15,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from urllib.parse import urlsplit
 
-from playwright.sync_api import BrowserContext, Page
+from playwright.sync_api import BrowserContext, Locator, Page
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
 # Milliseconds without a frame of the websocket before a page counts as settled:
@@ -23,6 +23,8 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout
 QUIET = 100
 # How often a page checks what it waits for, in milliseconds.
 POLL = 50
+# How far run_until() runs the clock of a page forward at a time, in milliseconds.
+CLOCK_STEP = 1000
 
 # Counts the requests of the frontend on Home Assistant's websocket that wait for their
 # answer, and notes when the last frame went or came. Added to every page before its
@@ -284,3 +286,23 @@ def expect_state(pages: Iterable[Page], expected: Mapping[str, str]) -> None:
             raise Unsettled(
                 f"{where(page)}: expected {dict(expected)}, the page shows {shown}"
             ) from error
+
+
+def run_until(page: Page, target: Locator, within: int, what: str) -> None:
+    """Run the clock of a page forward until the target shows. A step checks what a
+    timer of a card leads to, such as the table after the summary of a match or idle
+    mode, in a moment instead of waiting the timer out: the page runs Playwright's
+    clock, installed with page.clock.install() before it loads, and run_for() fires
+    every timer that falls due on the way, as the time would. The clock runs a second
+    at a time, not by the whole time of the timer at once, because a card may start
+    its timer a moment after the step sees what it waits for. A target that has not
+    shown after `within` milliseconds on the clock fails the step with what it is."""
+    ran = 0
+    while not target.is_visible():
+        if ran >= within:
+            raise Unsettled(
+                f"{where(page)}: {what} did not show within {within} ms"
+                " on the clock of the page"
+            )
+        page.clock.run_for(CLOCK_STEP)
+        ran += CLOCK_STEP
