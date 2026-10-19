@@ -315,6 +315,13 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
             # A board that answers polls again is reconnected at once.
             delay = RECONNECT_MIN if woken else min(delay * 2, RECONNECT_MAX)
 
+    @callback
+    def _update_listeners_unless_shutting_down(self) -> None:
+        """The entities hear of the lost stream, unless the unload removes them."""
+        if self._shutting_down:
+            return
+        self.async_update_listeners()
+
     async def _follow_events(self) -> float | None:
         """One realtime connection; how long it lasted, None if it never opened."""
         self._reconnect_now.clear()
@@ -351,8 +358,7 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
             self.update_interval = self._poll_interval()
             if connected_at is not None:
                 self._suspend_tracking()
-            if not self._shutting_down:
-                self.async_update_listeners()
+            self._update_listeners_unless_shutting_down()
         lasted = None if connected_at is None else time.monotonic() - connected_at
         if connected_at is not None:
             # Resume fast polling right away instead of after the long interval.
