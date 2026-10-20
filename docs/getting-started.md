@@ -33,7 +33,7 @@ HACS is the store for integrations and cards from the community, like this one. 
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
 
-1. Select the button above and confirm your Home Assistant address. HACS opens this integration. Without the button: open **HACS**, the menu (⋮) → **Custom repositories**, add `https://github.com/Dennis-Otto/ha-autodarts` with the type **Integration**.
+1. Select the button above and confirm your Home Assistant address. HACS opens this integration. Without the button: open **HACS**, search for **Autodarts** and open it.
 2. Select **Download**.
 3. Restart Home Assistant: **Settings → System**, the power button at the top right, **Restart Home Assistant**.
 

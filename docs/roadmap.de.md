@@ -195,6 +195,7 @@ Erschienen als 1.18.0 am 19. Oktober 2026; die Details stehen im [Changelog](htt
 | Thema | Was es bringt | Stand |
 | --- | --- | --- |
 | **Gruppen und Aufsteiger** | *Turniergruppen* und *Turnier Weiter je Gruppe* kommen zu den Turnier-Einstellungen: *Turnier starten* und `autodarts.start_tournament` spielen mit ihnen Gruppen und K.-o.-System, und der Bildschirm für ein neues Spiel übernimmt sie als Vorgabe ([Turniere](entities.de.md#turniere)) | Fertig |
+| **Im HACS-Standardkatalog** | In HACS nach *Autodarts* suchen und herunterladen, ohne vorher ein benutzerdefiniertes Repository hinzuzufügen ([Installieren](installation.de.md#mit-hacs-empfohlen)) | Fertig am 20. Oktober 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)) |
 
 ## Als Nächstes
 
@@ -205,7 +206,6 @@ Ideen für die Versionen nach 1.18. Stimmen und Reaktionen auf die [Feature-Wün
 | **Granboard an einem echten Board** | Jedes Feld eines echten Granboards prüfen und die Kennzeichnung *experimentell* von der Granboard-Unterstützung aus 1.17 nehmen | Ein Spieler mit Granboard, der [jedes Feld prüft](granboard.de.md#jedes-feld-prüfen) und meldet, was falsch zählt |
 | **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert; ein Spieler hat 2.0.2 unter Linux als funktionierend gemeldet ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Testberichte von Spielern, die es unter Windows nutzen |
 | **Cloud-Verknüpfung** | Cloud-Spieldaten und die Momente von Online-Matches ohne Browser-Erweiterung: Überwerfen, gewonnene Legs und Matches und jeder Dart, als dieselben Board-Ereignisse wie bei der Online-Brücke ([die Cloud-Verknüpfung](online-matches.de.md#die-cloud-verknüpfung)), auch für Boards ohne Board Manager in deinem Netzwerk wie Lens | Eine OAuth-Client-ID von Autodarts; sie ist beantragt, und die Integration ist seit 1.16 dafür bereit ([Entscheidung 0020](decisions/0020-a-public-client-for-the-cloud-link.md), auf Englisch) |
-| **HACS-Standardkatalog** | Installation, ohne ein benutzerdefiniertes Repository hinzuzufügen | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); die Prüfung bei HACS dauert mehrere Monate |
 | **Weitere Sprachen** | Integration und Karten in weiteren Sprachen, und die Fragen und Antworten von Assist auf Spanisch, Französisch und Niederländisch so, wie Muttersprachler sie sagen ([#380](https://github.com/Dennis-Otto/ha-autodarts/issues/380), auf Englisch) | Beiträge von Muttersprachlern ([so kommt eine Sprache dazu](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 
 ## Später
@@ -232,7 +232,7 @@ Die Downloads zählen jede Installation und jedes Update über HACS seit dem ers
 
 | Wo | Stand |
 | --- | --- |
-| HACS-Standardkatalog | Im September 2026 beantragt ([hacs/default#11306](https://github.com/hacs/default/pull/11306)), in der Prüfung bei HACS |
+| HACS-Standardkatalog | Aufgenommen am 20. Oktober 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)): Eine Suche nach *Autodarts* in HACS findet sie |
 | [awesome-home-assistant](https://github.com/frenck/awesome-home-assistant) | Nimmt Projekte ab einem Alter von sechs Monaten auf, dieses also ab März 2027 |
 | Home-Assistant-Forum, Reddit und der Autodarts-Discord | Die [Beiträge zum Start](creator-kit.de.md#beiträge-zum-start) sind fertig |
 | Fotos von Boards, an denen sie läuft | [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/show-and-tell) |

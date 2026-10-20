@@ -16,7 +16,7 @@ social: { cards_layout_options: { title: "Dein Autodarts-Board live in Home Assi
 
 Darts erscheinen in Home Assistant Sekundenbruchteile, nachdem sie landen, direkt vom Board Manager in deinem Netzwerk. Spiele und trainiere damit, stell eine Anzeigetafel neben das Board, verfolge deine Statistik und lass dein Zuhause mitspielen. Kein Konto, keine Cloud, keine Client-ID.
 
-[:material-download: Zu HACS hinzufügen](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration){ .md-button .md-button--primary } [:material-rocket-launch: Erste Schritte](getting-started.de.md){ .md-button } <a href="demo/index.html?lang=de" class="md-button">:material-play-circle: Live ausprobieren</a>
+[:material-download: Mit HACS installieren](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration){ .md-button .md-button--primary } [:material-rocket-launch: Erste Schritte](getting-started.de.md){ .md-button } <a href="demo/index.html?lang=de" class="md-button">:material-play-circle: Live ausprobieren</a>
 
 <picture>
   <source media="(max-width: 600px)" srcset="images/de/hero-mobile.webp">

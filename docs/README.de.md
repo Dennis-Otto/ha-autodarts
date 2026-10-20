@@ -18,7 +18,7 @@ Du brauchst Home Assistant ab 2026.8 mit [HACS](https://hacs.xyz) und ein Autoda
 
    [![Home Assistant öffnen und dieses Repository in HACS anzeigen.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
 
-   Alternativ fügst du `https://github.com/Dennis-Otto/ha-autodarts` in HACS als benutzerdefiniertes Repository vom Typ **Integration** hinzu und lädst **Autodarts** herunter.
+   Alternativ öffnest du **HACS** in Home Assistant, suchst nach **Autodarts** und wählst **Herunterladen**.
 
 2. **Board hinzufügen.** Mit Board Manager 2 erscheint dein Board meist schon unter **Einstellungen → Geräte & Dienste → Entdeckt**. Sonst:
 
