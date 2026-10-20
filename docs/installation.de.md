@@ -24,12 +24,13 @@ Für die lokale Nutzung braucht die Integration **keine Autodarts-Anmeldung, kei
 
 [![Home Assistant öffnen und dieses Repository in HACS anzeigen.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
 
-1. Öffne **HACS** in Home Assistant.
-2. Öffne das Menü (⋮) → **Benutzerdefinierte Repositories**. Füge `https://github.com/Dennis-Otto/ha-autodarts` mit dem Typ **Integration** hinzu.
-3. Suche nach **Autodarts**, öffne es und wähle **Herunterladen**.
-4. Starte Home Assistant neu.
+1. Wähle die Schaltfläche oben, oder öffne **HACS** in Home Assistant, suche nach **Autodarts** und öffne es.
+2. Wähle **Herunterladen**.
+3. Starte Home Assistant neu.
 
 Neue Versionen zeigt HACS als Update unter **Einstellungen → Updates** an, samt Versionshinweisen. HACS installiert das signierte Release-Paket `autodarts.zip`, dieselbe Datei wie bei der [manuellen Installation](#manuell).
+
+Seit dem 20. Oktober 2026 steht die Integration im Standardkatalog von HACS ([hacs/default#11306](https://github.com/hacs/default/pull/11306)). Hast du sie vorher als benutzerdefiniertes Repository hinzugefügt, musst du nichts tun: HACS führt sie nicht mehr unter den benutzerdefinierten Repositories und behält deine Installation und ihre Updates.
 
 #### Betas für Tester
 
@@ -128,8 +129,9 @@ Trainingssession, Entitäts-IDs und Dashboards bleiben erhalten. Was ein Spieler
 
 Diese Integration nutzt dieselbe Domain `autodarts` wie [Trkal/HACSAutodarts](https://github.com/Trkal/HACSAutodarts); deshalb kann nur eine der beiden installiert sein.
 
-1. Entferne in HACS das ursprüngliche Repository und füge dieses hinzu, wie unter [Installieren](#mit-hacs-empfohlen) beschrieben. Alternativ ersetzt du `config/custom_components/autodarts` von Hand.
-2. Starte Home Assistant neu und behalte den bestehenden Eintrag unter **Geräte & Dienste**.
+1. Öffne in HACS die ursprüngliche Integration, dann ihr Menü (⋮) → **Entfernen**. Lösche auch `Trkal/HACSAutodarts` unter dem Menü (⋮) → **Benutzerdefinierte Repositories**, damit eine Suche nach *Autodarts* nur noch diese Integration findet.
+2. Installiere diese, wie unter [Installieren](#mit-hacs-empfohlen) beschrieben. Alternativ ersetzt du `config/custom_components/autodarts` von Hand.
+3. Starte Home Assistant neu und behalte den bestehenden Eintrag unter **Geräte & Dienste**.
 
 Einträge der ersten Version, die eine Adresse oder ein Kontopasswort gespeichert hatten, werden automatisch umgestellt; das Passwort wird dabei gelöscht. Ist das Board während des Updates aus, wird die Umstellung beim nächsten Start wiederholt. Einträge mit der alten Autodarts-Anmeldung laufen lokal weiter. Fehlt einem solchen Eintrag die Board-Adresse, bittet Home Assistant dich, sie über **Neu konfigurieren** einzutragen.
 

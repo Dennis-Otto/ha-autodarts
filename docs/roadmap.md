@@ -195,6 +195,7 @@ Released as 1.18.0 on 19 October 2026; the [changelog](https://github.com/Dennis
 | Topic | What it brings | Status |
 | --- | --- | --- |
 | **Groups and qualifiers** | *Tournament groups* and *Tournament qualifiers per group* join the tournament settings: *Start tournament* and `autodarts.start_tournament` play groups and a knockout with them, and the new game screen takes them as its defaults ([tournaments](entities.md#tournaments)) | Done |
+| **In the HACS default repository** | Search for *Autodarts* in HACS and download it, without adding a custom repository first ([install](installation.md#with-hacs-recommended)) | Done on 20 October 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)) |
 
 ## Next
 
@@ -205,7 +206,6 @@ Ideas for the versions after 1.18. Votes and reactions on the [feature requests]
 | **Granboard at a real board** | Check every bed of a real Granboard and take the label *experimental* off the Granboard support of 1.17 | A player with a Granboard who [checks every bed](granboard.md#check-every-bed) and reports what counts wrong |
 | **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works; a player reported 2.0.2 on Linux working ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Test reports from players who use it on Windows |
 | **Cloud link** | Cloud match data and the moments of online matches without a browser extension: busts, won legs and matches and every dart, as the same board events as the online bridge ([the cloud link](online-matches.md#the-cloud-link)), also for boards without a Board Manager in your network such as Lens | An OAuth client ID from Autodarts, which has been requested; the integration has been ready for it since 1.16 ([decision 0020](decisions/0020-a-public-client-for-the-cloud-link.md)) |
-| **HACS default repository** | Installation without adding a custom repository | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)); the HACS review queue takes several months |
 | **Further languages** | The integration and the cards in more languages, and the questions and answers of Assist in Spanish, French and Dutch as native speakers say them ([#380](https://github.com/Dennis-Otto/ha-autodarts/issues/380)) | Contributions from native speakers ([how to add a language](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 
 ## Later
@@ -232,7 +232,7 @@ The downloads count every installation and update through HACS, of the betas too
 
 | Where | Status |
 | --- | --- |
-| HACS default repository | Submitted in September 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)), in the HACS review queue |
+| HACS default repository | Listed since 20 October 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)): a search for *Autodarts* in HACS finds it |
 | [awesome-home-assistant](https://github.com/frenck/awesome-home-assistant) | Lists projects from six months of age, so this one from March 2027 |
 | Home Assistant forum, Reddit and the Autodarts Discord | The [launch posts](creator-kit.md#launch-posts) are ready |
 | Photos of boards it runs at | [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/show-and-tell) |

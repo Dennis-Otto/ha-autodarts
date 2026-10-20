@@ -22,4 +22,4 @@ Option 2. Every release carries `autodarts.zip`, built by the release workflow w
 
 ## Consequences
 
-A user gets exactly what the release workflow built, and can check it. The release process follows the repository blueprint ([0007](0007-the-repository-blueprint.md)); betas reach testers as prereleases ([0008](0008-betas-for-testers.md)).
+A user gets exactly what the release workflow built, and can check it. The release process follows the repository blueprint ([0007](0007-the-repository-blueprint.md)); betas reach testers as prereleases ([0008](0008-betas-for-testers.md)). HACS has listed the integration among its default repositories since 20 October 2026, so a search in HACS finds it without a custom repository.

@@ -6,7 +6,7 @@
 
 **Your Autodarts board, live in Home Assistant: local, realtime and ready for automations.**
 
-[![HACS custom repository](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
+[![HACS default repository](https://img.shields.io/badge/HACS-Default-41BDF5.svg?logo=homeassistantcommunitystore&logoColor=white)](https://hacs.xyz)
 [![Latest release](https://img.shields.io/github/v/release/Dennis-Otto/ha-autodarts?label=release)](https://github.com/Dennis-Otto/ha-autodarts/releases)
 [![Home Assistant 2026.8 or newer](https://img.shields.io/badge/Home%20Assistant-2026.8%2B-41BDF5.svg?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
 [![Documentation](https://img.shields.io/badge/docs-website-526CFE.svg?logo=materialformkdocs&logoColor=white)](https://dennis-otto.github.io/ha-autodarts/)
@@ -29,7 +29,7 @@ You need Home Assistant 2026.8 or newer with [HACS](https://hacs.xyz), and an Au
 
    [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
 
-   Or add `https://github.com/Dennis-Otto/ha-autodarts` in HACS as a custom repository of the type **Integration**, then download **Autodarts**.
+   Or open **HACS** in Home Assistant, search for **Autodarts** and select **Download**.
 
 2. **Add your board.** With Board Manager 2, Home Assistant usually shows it under **Settings → Devices & services → Discovered** already. Otherwise:
 

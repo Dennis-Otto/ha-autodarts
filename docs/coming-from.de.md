@@ -55,7 +55,7 @@ Home Assistant lädt eine Integration pro Domain, deshalb können zwei Integrati
 
 1. **Notiere, was sie nutzt.** Der Dialog einer Entität listet unter **Verwandt** die Automationen und Skripte, die sie nutzen.
 2. **Lösche ihre Einträge** unter **Einstellungen → Geräte & Dienste**: Öffne die Integration und wähle bei jedem Eintrag im Menü (⋮) **Löschen**. Tu das zuerst: Nach dem Wechsel würde Home Assistant die Einträge dieser Integration übergeben, die ihre Einstellungen nicht kennt.
-3. **Entferne den Code.** Öffne die Integration in HACS, dann ihr Menü (⋮) → **Entfernen**. Bei einer manuellen Installation löschst du den Ordner `config/custom_components/autodarts`. Prüfe, dass der Ordner weg ist.
+3. **Entferne den Code.** Öffne die Integration in HACS, dann ihr Menü (⋮) → **Entfernen**. Hast du sie als benutzerdefiniertes Repository hinzugefügt, lösche es auch unter dem Menü (⋮) → **Benutzerdefinierte Repositories**, damit eine Suche nach *Autodarts* in HACS nur noch diese Integration findet. Bei einer manuellen Installation löschst du den Ordner `config/custom_components/autodarts`. Prüfe, dass der Ordner weg ist.
 4. **Starte Home Assistant neu.**
 5. **Installiere diese Integration** und füge dein Board hinzu, wie die [Installationsanleitung](installation.de.md#board-hinzufügen) es beschreibt.
 
