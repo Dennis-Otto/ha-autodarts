@@ -9,7 +9,7 @@ description: "Why the integration talks to the board through the local HTTP and 
 
 ## Context
 
-An Autodarts board runs the Board Manager on a small PC next to the board. It offers a local HTTP and WebSocket API on the home network (Board Manager 1 and 2) with the state of the board, every dart and the camera streams. The Autodarts cloud has the matches and the profiles, but a third-party integration needs a client ID from Autodarts to use it, which Autodarts hasn't granted yet.
+An Autodarts board runs the Board Manager on a small PC next to the board. It offers a local HTTP and WebSocket API on the home network (Board Manager 1 and 2) with the state of the board, every dart and the camera streams. The Autodarts cloud has the matches and the profiles, but a third-party integration needs a client ID from Autodarts to use it, which Autodarts hadn't granted then and issues to no third party ([0025](0025-no-cloud-link.md)).
 
 ## Options
 
@@ -19,7 +19,7 @@ An Autodarts board runs the Board Manager on a small PC next to the board. It of
 
 ## Decision
 
-Option 2. The integration talks to the Board Manager on the local network only: discovery, the events of every dart, the camera streams and the commands of the board. It keeps no cloud credentials. The link to the cloud stays hidden (`CLOUD_LINK_AVAILABLE = False`) until Autodarts grants a client ID; Autodarts was asked first and reviews the use of the local interface.
+Option 2. The integration talks to the Board Manager on the local network only: discovery, the events of every dart, the camera streams and the commands of the board. It keeps no cloud credentials. The link to the cloud stayed hidden (`CLOUD_LINK_AVAILABLE = False`) while Autodarts was asked for a client ID; since Autodarts issues none to third parties, it is removed ([0025](0025-no-cloud-link.md)). Autodarts was asked first and reviews the use of the local interface.
 
 ## Consequences
 

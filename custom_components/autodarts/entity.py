@@ -1,4 +1,4 @@
-"""Base entity for the Autodarts integration."""
+"""Base entities for the Autodarts integration."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import AutodartsDataUpdateCoordinator
 from .games_coordinator import AutodartsGamesCoordinator
 from .local_coordinator import AutodartsLocalCoordinator
 from .runtime import AutodartsConfigEntry
@@ -51,31 +50,10 @@ def async_track_cameras(
     entry.async_on_unload(coordinator.async_add_listener(discover))
 
 
-class AutodartsEntity(CoordinatorEntity[AutodartsDataUpdateCoordinator]):
-    """Base class for Autodarts entities."""
-
-    _attr_has_entity_name = True
-
-    def __init__(
-        self,
-        coordinator: AutodartsDataUpdateCoordinator,
-    ) -> None:
-        """Initialize the entity."""
-        super().__init__(coordinator)
-        board = coordinator.data.get("board", {}) if coordinator.data else {}
-        board_name = board.get("name", "Autodarts Board")
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, coordinator.board_id)},
-            name=board_name,
-            manufacturer="Autodarts",
-            model="Dart Board",
-        )
-
-
 class AutodartsLocalEntity[
     CoordinatorT: AutodartsGamesCoordinator = AutodartsGamesCoordinator
 ](CoordinatorEntity[CoordinatorT]):
-    """All local entities remain independent of cloud availability.
+    """An entity of a board, read from the board itself or kept in Home Assistant.
 
     An entity of the games works with every board, a dartboard without
     Autodarts as well. An entity of the Board Manager, an AutodartsBoardEntity,

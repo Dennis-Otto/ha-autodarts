@@ -2028,9 +2028,7 @@ class Scenario:
         check(BOARD_ID not in json.dumps(data), "Diagnostics expose the board ID")
         check("Alex" not in json.dumps(report), "Diagnostics expose a player name")
         check(
-            data["local_available"] is True
-            and data["realtime_connected"] is True
-            and data["cloud_configured"] is False,
+            data["local_available"] is True and data["realtime_connected"] is True,
             f"Unexpected diagnostics summary: {data}",
         )
 

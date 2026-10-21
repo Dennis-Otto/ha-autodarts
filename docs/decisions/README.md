@@ -29,8 +29,9 @@ Copy [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/d
 | [0017](0017-modules-in-the-dashboard-resources-for-cast.md) | Keep the modules of the cards in the dashboard resources, for Home Assistant Cast | accepted |
 | [0018](0018-a-dartboard-without-autodarts-beside-the-board.md) | Play a dartboard without Autodarts beside the board, without a transport | accepted |
 | [0019](0019-card-texts-per-language.md) | Give each language of the cards a module of its own, in a folder of the version | accepted |
-| [0020](0020-a-public-client-for-the-cloud-link.md) | Prepare the cloud link for a public client with the device grant | accepted |
+| [0020](0020-a-public-client-for-the-cloud-link.md) | Prepare the cloud link for a public client with the device grant | replaced by [0025](0025-no-cloud-link.md) |
 | [0021](0021-games-as-modes-of-the-practice-game.md) | Play every game of the practice game as a mode of the match frame | accepted |
 | [0022](0022-home-assistant-2026-8-as-the-oldest-release.md) | Keep Home Assistant 2026.8 as the oldest supported release | accepted |
 | [0023](0023-blueprints-ship-with-the-integration.md) | Ship the blueprints with the integration and keep unchanged copies current | accepted |
 | [0024](0024-granboard-over-home-assistant-bluetooth.md) | Connect a Granboard through Home Assistant's Bluetooth, as a dartboard without Autodarts | accepted |
+| [0025](0025-no-cloud-link.md) | Remove the cloud link, since Autodarts issues no client IDs to third parties | accepted |

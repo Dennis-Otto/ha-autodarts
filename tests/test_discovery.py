@@ -287,7 +287,7 @@ async def test_known_board_without_address_is_offered_the_announced_one(
         version=2,
         unique_id="board-1",
         title="Autodarts (Living room)",
-        data={"board_id": "board-1", "local_only": False},
+        data={"board_id": "board-1"},
     )
     entry.add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(

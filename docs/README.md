@@ -11,7 +11,7 @@ Everything about the Autodarts integration: how to set it up, play and train wit
 ## Get started
 
 - [From zero to the scoreboard](getting-started.md): for Autodarts players without Home Assistant: set up Home Assistant and HACS, install the integration, add the board and play the first game on the scoreboard
-- [Installation and setup](installation.md): requirements, HACS and manual installation, the ways to add a board, the optional cloud link, reconfiguration, updating and removal
+- [Installation and setup](installation.md): requirements, HACS and manual installation, the ways to add a board, reconfiguration, updating and removal
 - [Play without Autodarts](without-autodarts.md): any dartboard with every game, the training and the statistics: set it up, enter the darts on a keypad, and what is different
 - [Granboard over Bluetooth](granboard.md): the darts of a Granboard over Home Assistant's Bluetooth and ESPHome proxies, for every game: set it up, play, the connection and how to check every bed *(experimental)*
 - [Frequently asked questions](faq.md): short answers about the account, devices, online play, privacy, several boards, screens, languages, updates and switching

@@ -4,7 +4,7 @@ description: "Why the cloud link waits for a public Autodarts client with the de
 
 # Prepare the cloud link for a public client with the device grant
 
-- Status: accepted
+- Status: replaced by [0025](0025-no-cloud-link.md)
 - Date: 2026-10-18
 
 ## Context

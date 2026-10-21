@@ -1,39 +1,7 @@
 # serializer version: 1
-# name: test_diagnostics_of_a_cloud_only_entry
-  dict({
-    'board_manager_generation': None,
-    'cloud_available': True,
-    'cloud_configured': True,
-    'connection': None,
-    'entry': dict({
-      'data': dict({
-        'board_id': '**REDACTED**',
-        'client_id': '**REDACTED**',
-        'token': '**REDACTED**',
-      }),
-      'version': 2,
-    }),
-    'local': None,
-    'local_available': False,
-    'local_readings': None,
-    'online_bridge': dict({
-      'enabled': False,
-    }),
-    'poll_interval_seconds': None,
-    'practice_game': None,
-    'progress': None,
-    'realtime_connected': False,
-    'records': None,
-    'reports': None,
-    'tournament': None,
-    'training_sessions': None,
-  })
-# ---
 # name: test_diagnostics_of_a_named_match_with_a_bull_off
   dict({
     'board_manager_generation': 1,
-    'cloud_available': False,
-    'cloud_configured': False,
     'connection': dict({
       'access_denied': False,
       'board_manager_version': '1.0.7',
@@ -67,7 +35,6 @@
         'api_generation': 1,
         'board_id': '**REDACTED**',
         'host': '**REDACTED**',
-        'local_only': True,
         'port': 3180,
       }),
       'version': 2,
@@ -287,8 +254,6 @@
 # name: test_diagnostics_of_board_manager_2
   dict({
     'board_manager_generation': 2,
-    'cloud_available': False,
-    'cloud_configured': False,
     'connection': dict({
       'access_denied': False,
       'board_manager_version': '2.0.0',
@@ -322,7 +287,6 @@
         'api_generation': 2,
         'board_id': '**REDACTED**',
         'host': '**REDACTED**',
-        'local_only': True,
         'port': 3180,
       }),
       'version': 2,

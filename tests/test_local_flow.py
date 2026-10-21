@@ -1,6 +1,5 @@
-"""Local onboarding and upgrading the same board to cloud access later."""
+"""Local onboarding and reconfiguring the address of a board."""
 
-import asyncio
 from copy import deepcopy
 from unittest.mock import patch
 
@@ -10,7 +9,6 @@ from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .local_helpers import BASE, CONFIG, local_entry_data, mock_board
-from .test_config_flow import BOARD, TOKEN, complete_link, start_link
 
 
 async def open_local(hass, entry=None):
@@ -91,10 +89,9 @@ async def test_local_setup_errors(hass, aioclient_mock, failure, error):
 
 
 async def test_local_setup_detects_legacy_duplicate(hass, aioclient_mock):
+    """An entry from before unique IDs has the board only in its data."""
     mock_board(aioclient_mock)
-    entry = MockConfigEntry(
-        domain="autodarts", version=2, data={"board_id": "board-1", "token": TOKEN}
-    )
+    entry = MockConfigEntry(domain="autodarts", version=2, data={"board_id": "board-1"})
     entry.add_to_hass(hass)
     result = await open_local(hass)
     result = await hass.config_entries.flow.async_configure(
@@ -107,15 +104,12 @@ async def test_local_setup_detects_legacy_duplicate(hass, aioclient_mock):
     "board_id,reason",
     [("board-1", "reconfigure_successful"), ("board-2", "wrong_board")],
 )
-async def test_reconfigure_keeps_board_and_cloud_data(
+async def test_reconfigure_gives_an_entry_without_address_its_board(
     hass, aioclient_mock, board_id, reason
 ):
-    data = {
-        "board_id": "board-1",
-        "token": TOKEN,
-        "client_id": "registered-test-client",
-    }
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    """An entry that only the cloud link reached gets the address of its board."""
+    data = {"board_id": "board-1"}
+    entry = MockConfigEntry(domain="autodarts", version=2, minor_version=2, data=data)
     entry.add_to_hass(hass)
     config = deepcopy(CONFIG)
     config["auth"]["board_id"] = board_id
@@ -127,40 +121,15 @@ async def test_reconfigure_keeps_board_and_cloud_data(
         )
         await hass.async_block_till_done()
     assert result["reason"] == reason
-    assert entry.data["board_id"] == "board-1"
-    assert entry.data["token"] == TOKEN
-    assert entry.data["client_id"] == "registered-test-client"
     if board_id == "board-1":
-        assert entry.data["host"] == "192.0.2.10"
+        assert entry.data == {**data, "host": "192.0.2.10", "port": 3180}
     else:
         assert entry.data == data
 
 
-@pytest.mark.usefixtures("cloud_link")
-async def test_add_cloud_to_local_entry_keeps_identity(hass):
-    entry = MockConfigEntry(
-        domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
-    )
-    entry.add_to_hass(hass)
-    result = await hass.config_entries.flow.async_init(
-        "autodarts", context={"source": SOURCE_RECONFIGURE, "entry_id": entry.entry_id}
-    )
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {"next_step_id": "cloud"}
-    )
-    future = asyncio.get_running_loop().create_future()
-    result = await start_link(hass, result, future)
-    result = await complete_link(hass, result, future, [BOARD])
-    assert result["reason"] == "reconfigure_successful"
-    assert entry.data["local_only"] is False
-    assert entry.data["token"] == TOKEN
-    assert entry.data["host"] == "192.0.2.10"
-    assert entry.unique_id == "board-1"
-    assert len(hass.config_entries.async_entries("autodarts")) == 1
-
-
-async def test_menus_offer_no_cloud_link_without_a_client_id(hass):
-    """Autodarts has not issued a client ID yet, so no menu leads to a dead end."""
+async def test_menus_offer_the_ways_to_add_a_board(hass):
+    """Search, address, a Granboard or a dartboard without Autodarts; no menu
+    leads to a login."""
     entry = MockConfigEntry(
         domain="autodarts", version=2, unique_id="board-1", data=local_entry_data()
     )

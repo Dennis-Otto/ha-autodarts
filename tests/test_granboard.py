@@ -49,7 +49,6 @@ BOARD_ID = "granboard_aabbccddee01"
 DATA = {
     "board_id": BOARD_ID,
     "manual_board": True,
-    "local_only": True,
     "name": "Granboard",
     "granboard": ADDRESS,
 }

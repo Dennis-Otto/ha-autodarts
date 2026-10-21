@@ -95,7 +95,7 @@ The entity IDs below are those of a board named *Autodarts Board* in a Home Assi
 | *Leg Won*, *Leg Lost*, *Leg Result* | The events `leg_won` and `match_won`, with the `name` of the winner |
 | *Autodarts Status* | The *Local connection* binary sensor |
 
-Here, Home Assistant counts the practice game itself: X01 from 101 to 1001, the Cricket games, the party games and the training games. A game on play.autodarts.io is counted in the browser, and its score reaches Home Assistant only with the [cloud match data](entities.md#cloud-match-data-optional), which is on hold.
+Here, Home Assistant counts the practice game itself: X01 from 101 to 1001, the Cricket games, the party games and the training games. A game on play.autodarts.io is counted in the browser, and its score doesn't reach Home Assistant: Autodarts issues no client IDs to third-party integrations, so there is no cloud link ([decision 0025](decisions/0025-no-cloud-link.md)).
 
 **Same domain:** [remove it first](#remove-an-integration-with-the-same-domain).
 
@@ -109,7 +109,7 @@ Here, Home Assistant counts the practice game itself: X01 from 101 to 1001, the 
 | Players, current player | `players`, `player` and `name` of *Practice remaining score* in a practice game, and the event `turn_changed` |
 | Winner | The event `match_won` and the `winner` attribute of *Practice remaining score* |
 
-This integration stores no password: the optional cloud link will use the Autodarts device login.
+This integration needs no Autodarts account and stores no password.
 
 **Same domain:** [remove it first](#remove-an-integration-with-the-same-domain).
 

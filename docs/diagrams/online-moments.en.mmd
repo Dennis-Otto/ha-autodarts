@@ -4,18 +4,15 @@ config:
     wrappingWidth: 400
 ---
 flowchart TB
-  accTitle: Two ways for the moments of an online match
-  accDescr: A match on play.autodarts.io reaches Home Assistant in one of two ways. With the cloud link, once Autodarts issues its client, the integration reads the state of the match from the Autodarts cloud every 5 seconds and turns what is new into the triggers of Tools for Autodarts. With the online bridge, Tools for Autodarts in the browser calls a secret webhook of Home Assistant. Both become the same board events, such as online_busted and online_game_shot, for the light show and your automations. While the bridge is switched on, it alone reports the moments.
+  accTitle: The moments of an online match
+  accDescr: A match on play.autodarts.io is counted in the browser. For each of its moments, Tools for Autodarts in the browser calls a secret webhook of Home Assistant, and the online bridge turns the trigger of the call into a board event, such as online_busted and online_game_shot, for the light show and your automations.
 
-  MATCH["A match on play.autodarts.io"] --> CLOUD["The Autodarts cloud,<br/>once Autodarts issues the client"]
-  MATCH --> BROWSER["A browser with Tools for Autodarts"]
-  CLOUD -->|"cloud link:<br/>the match every 5 s"| MOMENTS{{"What is new becomes the trigger<br/>that Tools for Autodarts would send"}}
+  MATCH["A match on play.autodarts.io"] --> BROWSER["A browser with Tools for Autodarts"]
   BROWSER -->|"online bridge: a call<br/>to a secret webhook"| BRIDGE{{"The bridge reads<br/>the trigger of the call"}}
-  MOMENTS -->|"while the bridge is off"| EVENTS["The same board events:<br/>online_busted, online_game_shot, …<br/>with the source cloud or online"]
-  BRIDGE --> EVENTS
+  BRIDGE --> EVENTS["Board events:<br/>online_busted, online_game_shot, …<br/>with the source online"]
   EVENTS --> USE["The light show<br/>and your automations"]
 
   classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
-  class MOMENTS,BRIDGE bot
+  class BRIDGE bot
   class EVENTS,USE done

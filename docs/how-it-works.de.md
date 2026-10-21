@@ -10,13 +10,10 @@ description: "Wie die Integration mit dem Board Manager spricht, ihre Entitäten
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/architecture-dark.png">
-  <img src="images/de/architecture-light.png" alt="Architektur: Der Board Manager auf dem Board-PC sendet Echtzeitereignisse an die Autodarts-Integration in Home Assistant. Sie liest und steuert das Board per HTTP, speichert die Trainingssession lokal und stellt Entitäten, Board-Ereignisse, Karten und Automationen bereit; die Autodarts-Cloud liefert optional Spieldaten." width="560">
+  <img src="images/de/architecture-light.png" alt="Architektur: Der Board Manager auf dem Board-PC sendet Echtzeitereignisse an die Autodarts-Integration in Home Assistant. Sie liest und steuert das Board per HTTP, speichert die Trainingssession lokal und stellt Entitäten, Board-Ereignisse, Karten und Automationen bereit." width="560">
 </picture>
 
-Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen:
-
-- **Lokal** (empfohlen): direkt zum Board Manager in deinem Netzwerk. Ohne Anmeldung; liefert Steuerung, Echtzeitereignisse und Training.
-- **Cloud** (optional): Spieldaten von Autodarts. Fällt sie aus, läuft die lokale Steuerung weiter, und umgekehrt.
+Ein Board ist ein Integrationseintrag mit einer Verbindung: direkt zum Board Manager in deinem Netzwerk. Sie braucht keine Anmeldung und liefert Steuerung, Echtzeitereignisse und Training. Eine Verknüpfung mit der Autodarts-Cloud gibt es nicht, weil Autodarts keine Client-IDs an Integrationen von Dritten vergibt ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch).
 
 ## Aktualisierung
 
@@ -29,7 +26,6 @@ Ein Board ist ein Integrationseintrag mit bis zu zwei unabhängigen Verbindungen
 | Board Manager 2 | Ein gemeinsamer Aufruf von `/api/system` pro Intervall | Wie oben |
 | Board-PC-Details bei Board Manager 2 | HTTP-Lesen von `/api/host`; übernommen werden nur System, Prozessor und Softwareversionen | Beim Start, stündlich und nach einem Board-Manager-Update |
 | Einstellungen und Version bei Board Manager 1 | HTTP-Lesen | Alle 30 Sekunden und nach jeder Aktion |
-| Cloud-Spieldaten | Autodarts-API | Während eines Matches alle 5 Sekunden, sonst jede Minute |
 
 Jede Nachricht und jeder Lesevorgang aktualisiert nur die Entitäten, die zeigen, was sich geändert hat. Eine Hand am Board, die in jeder Aufnahme mehrmals kommt und geht, aktualisiert nur die Bewegungssensoren, nicht die über hundert Entitäten eines Boards mit seinen Spielen und Statistiken.
 
@@ -74,7 +70,6 @@ Ein Board, das Version 2 meldet, aber kein `/api/system` hat, gilt als Board Man
 ## Adresswechsel
 
 - **Board Manager 2** meldet sich im Netzwerk (mDNS). Meldet er eine neue Adresse und antwortet das Board unter seiner eingerichteten nicht mehr mit seiner Board-ID, bietet ein Reparaturhinweis die neue Adresse an. Der Eintrag zieht erst um und die Integration lädt sich neu, wenn du bestätigst und das Board sich unter der neuen Adresse noch einmal ausgewiesen hat: Jedes Gerät im Netzwerk kann eine Board-ID melden. Genutzt werden nur die Adressen, von denen die Meldung kommt, und ein Board, das unter seiner eingerichteten Adresse noch antwortet, wird nie umgezogen.
-- **Einträge mit Autodarts-Cloud-Verknüpfung** nutzen beim Start die Adresse, die die Cloud meldet, wenn die eingerichtete nicht antwortet. Fehlt das Board im Betrieb fünf Minuten und antwortet es unter einer Adresse, die die Cloud meldet, mit seiner Board-ID, bietet ein Reparaturhinweis den Wechsel an. Die Cloud-Adressen werden höchstens alle 30 Minuten geprüft.
 - **Sonst** öffnest du die Integration, wählst **Neu konfigurieren** und suchst das Board oder gibst seine Adresse ein. Den Suchdienst von Autodarts fragt die Integration nie von sich aus.
 
 ## Trainingssession
@@ -273,10 +268,9 @@ Die Kamera-Entitäten geben den Livestream von Board Manager 2 an höchstens zwe
 
 - **Lokaler Betrieb:** Die Integration spricht nur mit dem Board Manager in deinem Netzwerk; ins Internet geht nichts.
 - **Boards im Netzwerk suchen:** Fragt einmalig bei Benutzung `discover.autodarts.com`, den öffentlichen Suchdienst von Autodarts. Er sieht deine öffentliche IP-Adresse und liefert die von dort registrierten Boards.
-- **Die optionale Cloud-Verknüpfung** nutzt die Geräteanmeldung von Autodarts. Home Assistant speichert OAuth-Token, nie dein Passwort.
 - **Die optionale Online-Brücke** empfängt nur: Die Browser-Erweiterung Tools for Autodarts ruft Home Assistant mit den Momenten eines Online-Matches auf, standardmäßig nur aus deinem Heimnetz. Sie sendet nirgendwohin. [Online-Matches](online-matches.de.md).
 - **Board-Geheimnisse** wie der API-Schlüssel des Boards, TLS-Schlüssel, Kamerapfade und ähnliche Konfiguration werden direkt beim Lesen verworfen. Sie werden nie gespeichert, protokolliert oder angezeigt.
-- **Diagnosedaten** schwärzen Board-ID, Adresse, Client-ID, Token und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
+- **Diagnosedaten** schwärzen Board-ID, Adresse und Spielernamen. Der Verbindungsverlauf darin enthält Zähler, Fehlerarten und Dauern, aber keine Adressen oder Fehlermeldungen.
 - **Exporte** enthalten Spielernamen. Die Aktion schreibt sie nur auf Anforderung; Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung aus, siehe [Exporte](#trainingskalender-und-exporte).
 - **Highlight-Fotos** bleiben in deinem Medienordner; die Galerie liest nichts anderes.
 - **Personen:** Ein mit einer Person verknüpfter Spieler behält nur die Entitäts-ID der Person; Bild und Anwesenheit liest die Karte aus Home Assistant.

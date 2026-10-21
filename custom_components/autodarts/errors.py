@@ -1,4 +1,4 @@
-"""Shared exceptions for local and cloud Autodarts APIs."""
+"""Shared exceptions of the Board Manager's API and the board search."""
 
 import aiohttp
 
@@ -9,14 +9,6 @@ class AutodartsApiError(Exception):
 
 class AutodartsConnectionError(AutodartsApiError):
     """Transport, service or malformed response error."""
-
-
-class AutodartsAuthError(AutodartsApiError):
-    """Authentication failed with a machine-readable OAuth error."""
-
-    def __init__(self, code: str = "invalid_token") -> None:
-        self.code = code
-        super().__init__(code)
 
 
 def open_session(session: aiohttp.ClientSession) -> aiohttp.ClientSession:

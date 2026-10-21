@@ -331,14 +331,14 @@ def _coordinator(
         # Home Assistant explains an unknown, foreign or unloaded entry itself.
         entries = [async_get_config_entry(hass, DOMAIN, entry_id)]
     else:
-        # Entries without a local board, or not loaded, are no candidates.
+        # Entries that are not loaded are no candidates.
         entries = [
             entry
             for entry in hass.config_entries.async_entries(DOMAIN)
             if entry.state is ConfigEntryState.LOADED
         ]
     boards: list[AutodartsGamesCoordinator] = [
-        entry.runtime_data.local for entry in entries if entry.runtime_data.local
+        entry.runtime_data.local for entry in entries
     ]
     if not boards:
         raise ServiceValidationError(

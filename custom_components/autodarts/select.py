@@ -28,28 +28,28 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
-        # A dartboard without Autodarts has no cameras to send to standby.
-        standby = (
-            [AutodartsStandbySelect(coordinator)]
-            if isinstance(coordinator, AutodartsLocalCoordinator)
-            else []
-        )
-        async_add_entities(
-            [
-                *standby,
-                AutodartsPracticeGame(coordinator),
-                *(
-                    AutodartsX01Rule(coordinator, rule)
-                    for rule in ("in_mode", "out_mode", "bull_mode")
-                ),
-                AutodartsGolfHoles(coordinator),
-                AutodartsWorldOrder(coordinator),
-                AutodartsReportDay(coordinator),
-                AutodartsTournamentSelect(coordinator, "format"),
-                AutodartsTournamentSelect(coordinator, "game"),
-            ]
-        )
+    coordinator = entry.runtime_data.local
+    # A dartboard without Autodarts has no cameras to send to standby.
+    standby = (
+        [AutodartsStandbySelect(coordinator)]
+        if isinstance(coordinator, AutodartsLocalCoordinator)
+        else []
+    )
+    async_add_entities(
+        [
+            *standby,
+            AutodartsPracticeGame(coordinator),
+            *(
+                AutodartsX01Rule(coordinator, rule)
+                for rule in ("in_mode", "out_mode", "bull_mode")
+            ),
+            AutodartsGolfHoles(coordinator),
+            AutodartsWorldOrder(coordinator),
+            AutodartsReportDay(coordinator),
+            AutodartsTournamentSelect(coordinator, "format"),
+            AutodartsTournamentSelect(coordinator, "game"),
+        ]
+    )
 
 
 class AutodartsStandbySelect(AutodartsBoardEntity, SelectEntity):

@@ -171,7 +171,7 @@ Erschienen als 1.16.0 am 18. Oktober 2026; die Details stehen im [Changelog](htt
 | **Die Anzeigetafel über Chromecast** | Home Assistant Cast zeigt die Karten und das automatische Dashboard auf einem Fernseher mit Chromecast oder auf einem Google Nest Hub ([Home Assistant Cast](scoreboard.de.md#auf-dem-fernseher-mit-home-assistant-cast)) | Fertig |
 | **Ansagen in der Sprache von Home Assistant** | Der Dart-Caller, der Übungs-Caller und der Wochenbericht sprechen die Sprache von Home Assistant, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch, ohne eigene Nachricht ([Ansagen](automations.de.md#ansagen-in-der-sprache-von-home-assistant)) | Fertig |
 | **Ein Caller für blinde und sehbehinderte Spieler** | Der Caller der Anzeigetafel sagt jeden Dart an, sobald er landet, den Checkout-Weg nach jedem Dart und das nächste Ziel eines Trainings- oder Partyspiels, auch aus einem Voice-Pack ([Für blinde und sehbehinderte Spieler](scoreboard.de.md#für-blinde-und-sehbehinderte-spieler)) | Fertig |
-| **Die Cloud-Verknüpfung** | Die Momente von Online-Matches aus der Autodarts-Cloud, ohne Browser-Erweiterung, als dieselben Board-Ereignisse wie von der Online-Brücke, auch für Boards ohne Board Manager in deinem Netzwerk wie Lens ([die Cloud-Verknüpfung](online-matches.de.md#die-cloud-verknüpfung)) | Bereit; wartet auf die Client-ID von Autodarts (siehe [Als Nächstes](#als-nächstes)) |
+| **Die Cloud-Verknüpfung** | Vorbereitet und verborgen: die Momente von Online-Matches aus der Autodarts-Cloud, ohne Browser-Erweiterung, als dieselben Board-Ereignisse wie von der Online-Brücke, auch für Boards ohne Board Manager in deinem Netzwerk wie Lens | Entfernt, weil Autodarts keine Client-IDs an Dritte vergibt ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch; siehe [Nicht geplant](#nicht-geplant)) |
 | **Schneller auf einem Raspberry Pi** | Jede Aktion speichert das Training einmal statt zweimal, Stellwürfe sind in einem Zehntel der Zeit gefunden, und Home Assistant lädt die Integration bis zu einer halben Sekunde schneller ([Stellwürfe](how-it-works.de.md#stellwürfe)) | Fertig |
 
 ## Version 1.17: große Turniere, Streaming und Granboard
@@ -205,7 +205,6 @@ Ideen für die Versionen nach 1.18. Stimmen und Reaktionen auf die [Feature-Wün
 | --- | --- | --- |
 | **Granboard an einem echten Board** | Jedes Feld eines echten Granboards prüfen und die Kennzeichnung *experimentell* von der Granboard-Unterstützung aus 1.17 nehmen | Ein Spieler mit Granboard, der [jedes Feld prüft](granboard.de.md#jedes-feld-prüfen) und meldet, was falsch zählt |
 | **Autodarts Desktop** | Boards mit Autodarts Desktop prüfen und dokumentieren, was funktioniert; ein Spieler hat 2.0.2 unter Linux als funktionierend gemeldet ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Testberichte von Spielern, die es unter Windows nutzen |
-| **Cloud-Verknüpfung** | Cloud-Spieldaten und die Momente von Online-Matches ohne Browser-Erweiterung: Überwerfen, gewonnene Legs und Matches und jeder Dart, als dieselben Board-Ereignisse wie bei der Online-Brücke ([die Cloud-Verknüpfung](online-matches.de.md#die-cloud-verknüpfung)), auch für Boards ohne Board Manager in deinem Netzwerk wie Lens | Eine OAuth-Client-ID von Autodarts; sie ist beantragt, und die Integration ist seit 1.16 dafür bereit ([Entscheidung 0020](decisions/0020-a-public-client-for-the-cloud-link.md), auf Englisch) |
 | **Weitere Sprachen** | Integration und Karten in weiteren Sprachen, und die Fragen und Antworten von Assist auf Spanisch, Französisch und Niederländisch so, wie Muttersprachler sie sagen ([#380](https://github.com/Dennis-Otto/ha-autodarts/issues/380), auf Englisch) | Beiträge von Muttersprachlern ([so kommt eine Sprache dazu](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 
 ## Später
@@ -216,7 +215,8 @@ Ideen für die Versionen nach 1.18. Stimmen und Reaktionen auf die [Feature-Wün
 
 ## Nicht geplant
 
-- **Ein Cloud-Konto für das lokale Spiel.** Alles, was mit dem Board Manager in deinem Netzwerk funktioniert, funktioniert weiter ohne Autodarts-Konto; Cloud-Funktionen bleiben optional.
+- **Ein Cloud-Konto für das lokale Spiel.** Alles, was mit dem Board Manager in deinem Netzwerk funktioniert, funktioniert weiter ohne Autodarts-Konto.
+- **Eine Verknüpfung mit der Autodarts-Cloud.** Autodarts vergibt keine Client-IDs an Integrationen von Dritten, deshalb bleiben Spieldaten aus der Cloud und Boards ohne Board Manager in deinem Netzwerk wie Lens außer Reichweite; die Momente von Online-Matches kommen über die [Online-Brücke](online-matches.de.md) ([Entscheidung 0025](decisions/0025-no-cloud-link.md), auf Englisch).
 - **Telemetrie.** Die Integration sendet nichts über deine Spiele oder dein Zuhause irgendwohin, und im lokalen Betrieb verlässt nichts dein Netzwerk.
 - **Brechende Änderungen ohne Weg nach vorn.** Bestehende Integrationseinträge, Entitäts-IDs und Automationen funktionieren weiter, oder ein Release migriert sie und seine Notes sagen, was sich ändert.
 

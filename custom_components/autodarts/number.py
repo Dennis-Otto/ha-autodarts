@@ -46,30 +46,24 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
-        async_add_entities(
-            [
-                AutodartsIdleTimeout(coordinator),
-                AutodartsDailyGoal(coordinator),
-                *(
-                    AutodartsPracticeNumber(coordinator, key)
-                    for key in PRACTICE_NUMBERS
-                ),
-                *(
-                    AutodartsStartScore(coordinator, index)
-                    for index in range(MAX_PLAYERS)
-                ),
-                AutodartsMaxRounds(coordinator),
-                AutodartsCountUpRounds(coordinator),
-                AutodartsGotchaTarget(coordinator),
-                AutodartsTournamentGroups(coordinator),
-                AutodartsTournamentAdvance(coordinator),
-                AutodartsTournamentSeconds(coordinator, "pause"),
-                AutodartsTournamentSeconds(coordinator, "summary"),
-                AutodartsBotLevel(coordinator),
-                AutodartsBotDelay(coordinator),
-            ]
-        )
+    coordinator = entry.runtime_data.local
+    async_add_entities(
+        [
+            AutodartsIdleTimeout(coordinator),
+            AutodartsDailyGoal(coordinator),
+            *(AutodartsPracticeNumber(coordinator, key) for key in PRACTICE_NUMBERS),
+            *(AutodartsStartScore(coordinator, index) for index in range(MAX_PLAYERS)),
+            AutodartsMaxRounds(coordinator),
+            AutodartsCountUpRounds(coordinator),
+            AutodartsGotchaTarget(coordinator),
+            AutodartsTournamentGroups(coordinator),
+            AutodartsTournamentAdvance(coordinator),
+            AutodartsTournamentSeconds(coordinator, "pause"),
+            AutodartsTournamentSeconds(coordinator, "summary"),
+            AutodartsBotLevel(coordinator),
+            AutodartsBotDelay(coordinator),
+        ]
+    )
 
 
 def _check_seat(practice: PracticeGame, humans: int, level: int) -> None:

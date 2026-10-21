@@ -34,16 +34,16 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
-        async_add_entities(
-            [
-                *(
-                    AutodartsPlayerName(coordinator, index)
-                    for index in range(PARTY_PLAYERS)
-                ),
-                AutodartsTournamentPlayers(coordinator),
-            ]
-        )
+    coordinator = entry.runtime_data.local
+    async_add_entities(
+        [
+            *(
+                AutodartsPlayerName(coordinator, index)
+                for index in range(PARTY_PLAYERS)
+            ),
+            AutodartsTournamentPlayers(coordinator),
+        ]
+    )
 
 
 class AutodartsPlayerName(AutodartsStoredEntity, TextEntity):

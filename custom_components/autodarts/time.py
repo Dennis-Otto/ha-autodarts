@@ -19,8 +19,7 @@ async def async_setup_entry(
     entry: AutodartsConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    if coordinator := entry.runtime_data.local:
-        async_add_entities([AutodartsReportTime(coordinator)])
+    async_add_entities([AutodartsReportTime(entry.runtime_data.local)])
 
 
 class AutodartsReportTime(AutodartsStoredEntity, TimeEntity):

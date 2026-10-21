@@ -24,7 +24,6 @@ from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.util import dt as dt_util
@@ -33,14 +32,10 @@ from .camera_health import CameraHealth
 from .const import (
     BOARD_MANAGER_2_URL,
     CONF_API_GENERATION,
-    CONF_HOST,
     CONF_NO_SYSTEM_API,
-    CONF_PORT,
-    DEFAULT_PORT,
     DOMAIN,
     LIFECYCLE_STATUSES,
 )
-from .discovery import cloud_addresses
 from .errors import AutodartsApiError, AutodartsConnectionError
 from .games_coordinator import AutodartsGamesCoordinator
 from .local_api import (
@@ -91,9 +86,6 @@ RECONNECT_JITTER = 0.2
 RECONNECT_RESET_SECONDS = 30
 # Failed realtime attempts in a row before a warning, about half a minute.
 STREAM_WARN_ATTEMPTS = 5
-# A board away this long is looked for at the addresses the Autodarts cloud reports.
-REDISCOVER_SECONDS = 300
-REDISCOVER_INTERVAL = 1800
 # Board Manager 2.0.2 may start a takeout again right after one ends and keep it
 # on the empty board, counting no darts until a reset. Real takeouts last 0.3 to
 # 2.5 seconds, so one that holds ten seconds without a hand at the board is
@@ -233,7 +225,6 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
         # One read at a time: an older answer must never replace a newer one.
         self._poll_lock = asyncio.Lock()
         self.connection = ConnectionStats()
-        self._rediscovered_at: float | None = None
         self._stream_task: asyncio.Task[None] | None = None
         self.stream_connected = False
         # A valid notification arrived since the socket opened.
@@ -1060,13 +1051,12 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
 
     @callback
     def _offline(self, error: str) -> None:
-        """Count a failed poll; a lasting outage is looked into."""
+        """Count a failed poll and note when the outage began."""
         connection = self.connection
         connection.failures += 1
         connection.last_error = error
         if connection.offline_since is None:
             connection.offline_since = time.monotonic()
-        self._rediscover()
 
     def _poll_failed(self, error: AutodartsApiError) -> dict[str, Any]:
         """Keep the last values through a short hiccup; then the board is offline."""
@@ -1121,65 +1111,6 @@ class AutodartsLocalCoordinator(AutodartsGamesCoordinator):
             self._access_denied = False
             self._report_access()
         ir.async_delete_issue(self.hass, DOMAIN, self._issue_id("board_moved"))
-
-    @callback
-    def _rediscover(self) -> None:
-        """A board away for minutes may answer at an address the cloud reports."""
-        now = time.monotonic()
-        since = self.connection.offline_since
-        if since is None or now - since < REDISCOVER_SECONDS:
-            return
-        if (
-            self._rediscovered_at is not None
-            and now - self._rediscovered_at < REDISCOVER_INTERVAL
-        ):
-            return
-        cloud = getattr(getattr(self._entry, "runtime_data", None), "cloud", None)
-        board = ((cloud.data if cloud else None) or {}).get("board") or {}
-        current = (
-            self._entry.data.get(CONF_HOST),
-            self._entry.data.get(CONF_PORT, DEFAULT_PORT),
-        )
-        candidates = [
-            address
-            for address in cloud_addresses(board.get("ip"))
-            if address != current
-        ]
-        if not candidates:
-            return
-        self._rediscovered_at = now
-        self._entry.async_create_task(
-            self.hass, self._async_rediscover(candidates), f"{DOMAIN} rediscovery"
-        )
-
-    async def _async_rediscover(self, candidates: list[tuple[str, int]]) -> None:
-        """Offer a repair to switch to the first address that answers as this board."""
-        session = async_get_clientsession(self.hass)
-        for host, port in candidates:
-            client = AutodartsLocalClient(host, port, session)
-            try:
-                identity = await client.identify()
-            except AutodartsApiError:
-                continue
-            if self._shutting_down:
-                # An unloading board offers nothing: the unload deletes its issues.
-                return
-            if identity["board_id"] != self.board_id:
-                continue
-            ir.async_create_issue(
-                self.hass,
-                DOMAIN,
-                self._issue_id("board_moved"),
-                is_fixable=True,
-                severity=ir.IssueSeverity.WARNING,
-                translation_key="board_moved",
-                translation_placeholders={
-                    "old": self.client.base_url,
-                    "new": client.base_url,
-                },
-                data={"entry_id": self._entry.entry_id, "host": host, "port": port},
-            )
-            return
 
     def diagnostics(self) -> dict[str, Any]:
         """How the connection went, without addresses, messages or secrets."""

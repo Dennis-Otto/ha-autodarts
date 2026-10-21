@@ -35,7 +35,6 @@ BOARD_ID = "manual_0123456789abcdef0123456789abcdef"
 DATA = {
     "board_id": BOARD_ID,
     "manual_board": True,
-    "local_only": True,
     "name": "Garage",
 }
 
@@ -100,7 +99,6 @@ async def test_setup_offers_a_dartboard_without_autodarts(hass):
     assert entry.data == {
         "board_id": board_id,
         "manual_board": True,
-        "local_only": True,
         "name": "Garage",
     }
     # Without a board, there is no bridge for online matches to set up.
@@ -143,7 +141,7 @@ async def test_a_dartboard_without_autodarts_has_the_entities_of_the_games(
     coordinator = entry.runtime_data.local
     assert isinstance(coordinator, AutodartsManualCoordinator)
     assert coordinator.manual_board and coordinator.update_interval is None
-    assert entry.runtime_data.cloud is None and entry.runtime_data.bridge is None
+    assert entry.runtime_data.bridge is None
     assert entity_summary(hass, entry) == snapshot
     assert value(hass, "sensor", "local_status") == "manual"
     assert value(hass, "sensor", "local_visit_score") == "0"
@@ -338,7 +336,6 @@ async def test_an_autodarts_board_joins_a_dartboard_without_autodarts(
     assert entry.title == "Autodarts (Garage)"
     assert entry.data == {
         "board_id": "board-1",
-        "local_only": True,
         "name": "Garage",
         "host": "192.0.2.10",
         "port": 3180,

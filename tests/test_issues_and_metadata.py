@@ -1,10 +1,10 @@
-"""Repair issues, translated states, entity metadata and quiet cloud logging."""
+"""Repair issues, translated states and entity metadata."""
 
 import asyncio
 import logging
 from copy import deepcopy
 from datetime import timedelta
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 import pytest
 from homeassistant.components.button import ButtonDeviceClass
@@ -15,8 +15,6 @@ from homeassistant.helpers import issue_registry as ir
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.autodarts import async_unload_entry
-from custom_components.autodarts.coordinator import AutodartsDataUpdateCoordinator
-from custom_components.autodarts.errors import AutodartsConnectionError
 from custom_components.autodarts.local_api import AutodartsLocalAuthError
 from custom_components.autodarts.local_coordinator import ISSUES
 
@@ -302,76 +300,19 @@ async def test_entity_categories_and_classes(hass, aioclient_mock):
     assert "icon" not in darts.attributes
 
 
-async def test_failed_match_reads_are_logged_once(hass, caplog):
-    cloud = AsyncMock()
-    cloud.get_board.return_value = {"id": "board-1", "matchId": "match-1"}
-    cloud.get_match.side_effect = AutodartsConnectionError
-    coordinator = AutodartsDataUpdateCoordinator(hass, cloud, "board-1")
-    with caplog.at_level(logging.WARNING):
-        for _ in range(3):
-            await coordinator.async_refresh()
-    assert coordinator.data["match"] is None
-    assert caplog.text.count("Could not fetch the current match") == 1
-    cloud.get_match.side_effect = None
-    cloud.get_match.return_value = {"id": "match-1"}
-    cloud.get_match_state.return_value = {"round": 2}
-    await coordinator.async_refresh()
-    assert coordinator.data["match"] == {
-        "id": "match-1",
-        "round": 2,
-    }
-    cloud.get_match.side_effect = AutodartsConnectionError
-    caplog.clear()
-    with caplog.at_level(logging.WARNING):
-        await coordinator.async_refresh()
-    assert "Could not fetch the current match" in caplog.text
-
-
-@pytest.mark.parametrize("match_id", [42, {"id": "match-1"}, ["match-1"]])
-async def test_match_id_that_is_no_text_means_no_match(hass, match_id):
-    cloud = AsyncMock()
-    cloud.get_board.return_value = {"id": "board-1", "matchId": match_id}
-    coordinator = AutodartsDataUpdateCoordinator(hass, cloud, "board-1")
-    await coordinator.async_refresh()
-    assert coordinator.data["match"] is None
-    cloud.get_match.assert_not_called()
-
-
-def test_cloud_match_values():
+def test_board_event_and_darts_in_visit_values():
     from custom_components.autodarts import sensor
 
-    match = {
-        "variant": "X01",
-        "round": 4,
-        "turnScore": 81,
-        "finished": False,
-        "turns": [{"throws": [{}, {}, {}]}, {"throws": [{}]}, {}],
-    }
-    data = {
-        "board": {"state": {"connected": True, "event": "Throw detected"}},
-        "match": match,
-    }
-    assert sensor._get_board_status(data) == "connected"
+    data = {"local": {"event": "Throw detected", "status": "Throw", "numThrows": 2}}
     assert sensor._get_board_event(data) == "Throw detected"
-    assert sensor._get_game_mode(data) == "X01"
-    assert sensor._get_match_state(data) == "active"
-    assert sensor._get_round(data) == 4
-    assert sensor._get_visit_score(data) == 81
-    assert sensor._get_darts_thrown(data) == 4
-    assert sensor._get_match_state({"match": {**match, "finished": True}}) == "finished"
-    assert sensor._get_darts_thrown({"match": {"turns": None}}) is None
-
-    empty = {"board": {"status": "Offline"}}
-    assert sensor._get_board_status(empty) == "disconnected"
-    assert sensor._get_board_event(empty) == "Offline"
-    assert sensor._get_match_state(empty) == "no_match"
-    for value in (
-        sensor._get_game_mode,
-        sensor._get_round,
-        sensor._get_visit_score,
-        sensor._get_darts_thrown,
-    ):
-        assert value(empty) is None
+    assert sensor._get_num_throws(data) == 2
+    # Without an event the status shows.
+    assert sensor._get_board_event({"local": {"status": "Stopped"}}) == "Stopped"
+    # Before the first read, and a count that is no number, read as unknown.
+    for empty in ({}, {"local": {}}, {"local": None}):
+        assert sensor._get_board_event(empty) is None
+        assert sensor._get_num_throws(empty) is None
+    assert sensor._get_num_throws({"local": {"numThrows": True}}) is None
 
 
 async def test_training_average_is_unknown_without_darts(hass, aioclient_mock):

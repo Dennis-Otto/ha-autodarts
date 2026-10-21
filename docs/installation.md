@@ -14,9 +14,8 @@ description: "Install the Autodarts integration with HACS, add your board by its
 | Autodarts board | Set up and working in the Autodarts Board Manager: **Board Manager 2**, Autodarts 2 without a screen (headless, recommended, tested up to 2.0.2), or the classic **Board Manager 1**. A player reports that **Autodarts Desktop** 2.0.2 on Linux works too. Autodarts Desktop on Windows and the **Winmau Autodarts devices** such as Autodarts X or Lens have not been tested yet; please [report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) how it works with yours |
 | Network | Home Assistant reaches the board PC on the local network, TCP port **3180** by default |
 | Without Autodarts | Any dartboard: you enter the darts on a keypad, see [Play without Autodarts](without-autodarts.md); it needs neither a board PC nor a network to the board |
-| Optional: cloud match data | An Autodarts account and an OAuth client ID that Autodarts issues for this integration (see [cloud link](#link-the-autodarts-cloud-optional)) |
 
-The integration needs **no Autodarts login, password or API key** for local use. It never changes your board's registration with Autodarts.
+The integration needs **no Autodarts login, password or API key**. It never changes your board's registration with Autodarts. It has no link to the Autodarts cloud either: Autodarts issues no client IDs to third-party integrations ([decision 0025](decisions/0025-no-cloud-link.md)).
 
 ## Install
 
@@ -91,29 +90,14 @@ Choose **Dartboard without Autodarts: enter every dart yourself** and give the b
 
 Home Assistant creates one device, named after your board, with all [entities](entities.md). For a dashboard with everything, go to **Settings → Dashboards → Add dashboard → Autodarts**, as the dialog at the end of the setup says: the [automatic dashboard](cards.md#automatic-dashboard) builds its views from your boards. On a dashboard of your own, the cards appear under **Add card → Autodarts**; see the [card guide](cards.md).
 
-## Link the Autodarts cloud (optional)
-
-Linking your Autodarts account adds cloud match data: game mode, match state, round, visit score and darts thrown. Local control does not depend on it and keeps working if the cloud is unreachable or the login expires.
-
-> **Status:** linking needs a public OAuth client ID with device authorization that Autodarts issues for this integration. It has been requested and is not bundled yet. Until then, setup and **Reconfigure** do not offer the cloud link. Everything local works without it.
-
-How it will work once the client ID is available:
-
-1. Choose **Link cloud account** during setup, or **Reconfigure → Link cloud account** on an existing board.
-2. Home Assistant shows a code such as `ABCD-EFGH` and a link. Open the link on any device, sign in to Autodarts and approve the code.
-3. Home Assistant continues on its own. If your account has several boards, choose one.
-
-Home Assistant never sees your password. Tokens refresh automatically. If a login expires or is revoked, Home Assistant asks you to **re-authenticate**, and local control keeps working meanwhile.
-
 ## Reconfigure
 
 Open **Settings → Devices & services → Autodarts**, select the board's menu (⋮) → **Reconfigure**. You can:
 
 - search for the board again or enter a new address, for example after a network change;
-- add or renew the cloud link, once it is available;
 - connect the Autodarts board that a [dartboard without Autodarts](without-autodarts.md#autodarts-later) got, which keeps its games and statistics.
 
-The board, its entities, their history and your dashboards stay as they are. The integration refuses an address or account that belongs to a different board.
+The board, its entities, their history and your dashboards stay as they are. The integration refuses an address that belongs to a different board.
 
 ## Update from Board Manager 1 to Board Manager 2
 

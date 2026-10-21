@@ -19,10 +19,9 @@ rules:
   test-before-setup:
     status: done
     comment: >-
-      Setup fails without a board address, with an expired login of a cloud-only
-      entry, or while a cloud-only board cannot be reached. A local board that is
-      switched off does not stop the setup: training, practice games and their
-      events work without it, and its entities recover when it answers.
+      Setup fails without a board address. A local board that is switched off
+      does not stop the setup: training, practice games and their events work
+      without it, and its entities recover when it answers.
   unique-config-entry: done
 
   # Silver
@@ -40,7 +39,11 @@ rules:
   integration-owner: done
   log-when-unavailable: done
   parallel-updates: done
-  reauthentication-flow: done
+  reauthentication-flow:
+    status: exempt
+    comment: >-
+      There is no login to renew: the integration talks to the Board Manager of
+      the board in the local network, which needs none.
   test-coverage: done
 
   # Gold

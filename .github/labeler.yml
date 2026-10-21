@@ -5,9 +5,7 @@
       - any-glob-to-any-file:
           - custom_components/autodarts/config_flow.py
           - custom_components/autodarts/discovery.py
-          - custom_components/autodarts/api.py
           - custom_components/autodarts/local_api.py
-          - custom_components/autodarts/coordinator.py
           - custom_components/autodarts/local_coordinator.py
           - custom_components/autodarts/repairs.py
           - custom_components/autodarts/diagnostics.py
