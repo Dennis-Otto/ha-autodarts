@@ -4,6 +4,13 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## Unreleased
 
+## [1.19.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.18.0...v1.19.0) (2026-10-21)
+
+
+### Features
+
+* an icon of its own in place of the Autodarts logo ([#438](https://github.com/Dennis-Otto/ha-autodarts/issues/438)) ([e26c118](https://github.com/Dennis-Otto/ha-autodarts/commit/e26c118a76aafa11398b6476ddd1042a7a93459e))
+
 ## [1.18.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.17.0...v1.18.0) (2026-10-19)
 
 ### Fixed
