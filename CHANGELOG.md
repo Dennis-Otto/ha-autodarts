@@ -6,10 +6,9 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ## [1.19.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.18.0...v1.19.0) (2026-10-21)
 
+### Improved
 
-### Features
-
-* an icon of its own in place of the Autodarts logo ([#438](https://github.com/Dennis-Otto/ha-autodarts/issues/438)) ([e26c118](https://github.com/Dennis-Otto/ha-autodarts/commit/e26c118a76aafa11398b6476ddd1042a7a93459e))
+- **An icon of its own:** Home Assistant, HACS and the website show the integration's own icon, a house with a dartboard and a dart in its bull, in place of the Autodarts logo, which Autodarts asked the project to remove.
 
 ## [1.18.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.17.0...v1.18.0) (2026-10-19)
 
