@@ -2999,7 +2999,7 @@ def blueprints_page(page: Page) -> None:
     )
     view = context.new_page()
     view.goto(f"{HA}/config/blueprint/dashboard")
-    view.get_by_text("Autodarts: light show").first.wait_for(timeout=60000)
+    view.get_by_text("HomeDarts: light show").first.wait_for(timeout=60000)
     # The list shows before the texts of the settings, such as its tabs.
     settings_texts(view)
     view.get_by_text(
@@ -3008,7 +3008,7 @@ def blueprints_page(page: Page) -> None:
     view.wait_for_timeout(1500)
     page_shot(view, "blueprints")
     # A blueprint opens a new automation with its form.
-    view.get_by_text("Autodarts: light show").first.click()
+    view.get_by_text("HomeDarts: light show").first.click()
     view.wait_for_url("**/config/automation/edit/new", timeout=30000)
     view.wait_for_timeout(3000)
     page_shot(view, "blueprint-light-show")

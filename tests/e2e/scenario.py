@@ -1698,7 +1698,7 @@ class Scenario:
             check(f'"{element}"' in source, f"Card element {element} missing")
         async with self.session.get(f"{HA}/") as response:
             page = await response.text()
-        check(url in page, "Dashboards do not load the Autodarts card")
+        check(url in page, "Dashboards do not load the HomeDarts card")
         check(strategy_url in page, "Dashboards do not load the strategy module")
         resources = [
             (item["type"], item["url"])
@@ -1767,7 +1767,7 @@ class Scenario:
                 "media_source/browse_media", media_content_id="media-source://"
             )
             titles = [child["title"] for child in sources["children"]]
-            check("Autodarts" in titles, f"Media sources: {titles}")
+            check("HomeDarts" in titles, f"Media sources: {titles}")
             root = await self.ws(
                 "media_source/browse_media", media_content_id="media-source://homedarts"
             )
@@ -1944,8 +1944,7 @@ class Scenario:
         )
         result = await self.flow(form["flow_id"], name="Garage")
         check(
-            result["type"] == "create_entry"
-            and result["title"] == "Autodarts (Garage)",
+            result["type"] == "create_entry" and result["title"] == "Garage",
             f"A board without Autodarts was not set up: {result}",
         )
         entry_id = result["result"]["entry_id"]

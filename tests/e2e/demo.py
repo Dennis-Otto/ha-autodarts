@@ -151,7 +151,7 @@ def dashboard() -> dict:
         "styles": 1,
     }
     return {
-        "title": "Autodarts",
+        "title": "HomeDarts",
         "views": [
             *(
                 {
@@ -602,7 +602,7 @@ async def main() -> None:
         await demo.ws(
             "lovelace/dashboards/create",
             url_path=DASHBOARD,
-            title="Autodarts",
+            title="HomeDarts",
             icon="mdi:bullseye-arrow",
             show_in_sidebar=True,
             require_admin=False,
@@ -611,11 +611,11 @@ async def main() -> None:
         await demo.ws("lovelace/config/save", url_path=DASHBOARD, config=dashboard())
         await people(demo)
         gallery()
-        # A second dashboard generated entirely by the Autodarts strategy.
+        # A second dashboard generated entirely by the HomeDarts strategy.
         await demo.ws(
             "lovelace/dashboards/create",
             url_path=STRATEGY_DASHBOARD,
-            title="Autodarts (automatic)",
+            title="HomeDarts (automatic)",
             icon="mdi:bullseye",
             show_in_sidebar=True,
             require_admin=False,
