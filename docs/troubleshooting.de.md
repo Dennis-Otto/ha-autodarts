@@ -112,6 +112,10 @@ Unter **Einstellungen → Reparaturen** kann Home Assistant diese Hinweise anzei
 | *… spielt im Turnier mit.* | Einen Spieler des laufenden Turniers kannst du nicht löschen. Beende zuerst das Turnier. |
 | *Das Turniermatch … gegen … läuft noch.* | *Nächstes Turniermatch* wartet auf die Pause zwischen zwei Matches. Spiel das Match zu Ende oder beende das Turnier. |
 
+### HACS aktualisiert nicht auf 2.0
+
+HACS meldet beim Update von 1.x *No manifest.json file found 'custom_components/autodarts/manifest.json'*. Seit 2.0 liegt die Integration in `custom_components/homedarts`, und ein laufendes HACS behält den Ordner, den es beim Start von Home Assistant gefunden hat. Starte Home Assistant neu, aktualisiere in HACS noch einmal und starte noch einmal neu; dann [steigst du um](new-name.de.md#umsteigen) wie gewohnt.
+
 ### Automationen laufen nach dem Wechsel zu HomeDarts nicht mehr
 
 Seit 2.0 beginnen die Aktionen der Integration mit `homedarts.`, etwa `homedarts.start_game`, und ihre Karten mit `custom:homedarts`. Sobald HomeDarts [deine Boards übernommen hat](new-name.de.md), gibt es die Aktionen des alten Namens, etwa `autodarts.start_game`, nicht mehr:
