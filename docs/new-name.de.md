@@ -28,7 +28,7 @@ Die Entitäts-IDs bleiben, und damit auch dein Verlauf und deine Statistiken.
 
 ## Umsteigen
 
-1. Aktualisiere die Integration in HACS und starte Home Assistant neu. HACS installiert HomeDarts neben der alten Integration, die bis zur Übernahme weiterläuft.
+1. Aktualisiere die Integration in HACS und starte Home Assistant neu. HACS installiert HomeDarts neben der alten Integration, die bis zur Übernahme weiterläuft. Meldet HACS *No manifest.json file found 'custom_components/autodarts/manifest.json'*, starte Home Assistant zuerst neu und aktualisiere dann noch einmal: Den neuen Ordner der Integration findet HACS erst bei einem Start.
 2. Öffne **Einstellungen → Geräte & Dienste**. Ein Board mit Board Manager 2 erscheint als gefunden: Wähle **Hinzufügen**. Sonst wähle **Integration hinzufügen → HomeDarts for Autodarts**.
 3. Wähle **Boards der Integration Autodarts übernehmen** und bestätige. HomeDarts übernimmt alle Boards auf einmal.
 4. Starte Home Assistant noch einmal neu: Die Reparatur *Home Assistant neu starten, um den Wechsel zu HomeDarts abzuschließen* erledigt das für dich. Der Neustart entlädt die alte Integration, deren Dateien die Übernahme entfernt hat.

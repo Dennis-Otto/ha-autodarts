@@ -111,7 +111,7 @@ Your training session, entity IDs and dashboards are kept. What a player noticed
 
 ## Update from version 1.x
 
-Up to version 1.18 this integration was called Autodarts, with the domain `autodarts`; since 2.0 it is HomeDarts for Autodarts, with the domain `homedarts`. Update it in HACS as usual and restart Home Assistant. Then add **HomeDarts for Autodarts**, or select **Add** on the discovered board, and choose **Take over the boards of the integration Autodarts**: your boards keep their settings, entities, history, statistics and dashboards. A repair then asks for one more restart. With a manual installation, unpack the new version into `config/custom_components/homedarts`; the takeover removes the old folder.
+Up to version 1.18 this integration was called Autodarts, with the domain `autodarts`; since 2.0 it is HomeDarts for Autodarts, with the domain `homedarts`. Update it in HACS as usual and restart Home Assistant; if HACS says *No manifest.json file found*, restart Home Assistant first and update again ([HACS cannot update to 2.0](troubleshooting.md#hacs-cannot-update-to-20)). Then add **HomeDarts for Autodarts**, or select **Add** on the discovered board, and choose **Take over the boards of the integration Autodarts**: your boards keep their settings, entities, history, statistics and dashboards. A repair then asks for one more restart. With a manual installation, unpack the new version into `config/custom_components/homedarts`; the takeover removes the old folder.
 
 [From Autodarts to HomeDarts](new-name.md) explains every step, what the takeover keeps and what you change yourself, such as automations that call `autodarts.start_game`.
 

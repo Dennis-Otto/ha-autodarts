@@ -112,6 +112,10 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *… plays in the tournament* | A player of the running tournament cannot be deleted. Stop the tournament first. |
 | *The tournament match of … against … is still being played* | *Next tournament match* waits for the pause between two matches. Play the match to the end, or stop the tournament. |
 
+### HACS cannot update to 2.0
+
+HACS says *No manifest.json file found 'custom_components/autodarts/manifest.json'* when you update from 1.x. Since 2.0 the integration lives in `custom_components/homedarts`, and a running HACS keeps the folder that it found when Home Assistant started. Restart Home Assistant, update in HACS again and restart once more; then [switch over](new-name.md#switch-over) as usual.
+
 ### Automations stop after the switch to HomeDarts
 
 Since 2.0 the actions of the integration start with `homedarts.`, such as `homedarts.start_game`, and its cards with `custom:homedarts`. Once HomeDarts has [taken over your boards](new-name.md), the actions of the old name, such as `autodarts.start_game`, no longer exist:
