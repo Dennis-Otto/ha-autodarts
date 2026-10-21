@@ -1,16 +1,21 @@
 # Changelog
 
-All notable changes of the Autodarts integration. The complete notes of every version, with each pull request, are on the [releases page](https://github.com/Dennis-Otto/ha-autodarts/releases); what comes next is in the [roadmap](docs/roadmap.md). Versions follow [Semantic Versioning](https://semver.org/).
+All notable changes of HomeDarts for Autodarts, called Autodarts up to version 1.18. The complete notes of every version, with each pull request, are on the [releases page](https://github.com/Dennis-Otto/homedarts-for-autodarts/releases); what comes next is in the [roadmap](docs/roadmap.md). Versions follow [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
 ## [1.19.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.18.0...v1.19.0) (2026-10-21)
 
+### Breaking changes
+
+- **Autodarts is now HomeDarts for Autodarts:** Autodarts asked the project to stop using its name and logo, so the integration has a name and an icon of its own and the domain `homedarts`. Its actions are now called `homedarts.…`, such as `homedarts.start_game`, its cards `custom:homedarts-…`, its dashboard strategy `custom:homedarts`, and the flat board style of the live and heatmap cards is `flat`; highlights, exports and voice packs live in the media folder `homedarts`. After the update, add **HomeDarts for Autodarts** and choose to take over your boards: they keep their entities, history, statistics and dashboards. Automations and scripts that call the old actions need the new names ([From Autodarts to HomeDarts](https://dennis-otto.github.io/homedarts-for-autodarts/new-name.html)).
+- **No cloud link:** Autodarts issues no client IDs to third parties, so the prepared link to the Autodarts cloud is gone, and HomeDarts works locally with the Board Manager. Online matches still reach Home Assistant through Tools for Autodarts.
+
 ### Improved
 
 - **An icon of its own:** Home Assistant, HACS and the website show the integration's own icon, a house with a dartboard and a dart in its bull, in place of the Autodarts logo, which Autodarts asked the project to remove.
 
-## [1.18.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.17.0...v1.18.0) (2026-10-19)
+## [1.18.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.17.0...v1.18.0) (2026-10-19)
 
 ### Fixed
 
@@ -20,7 +25,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **The *Start tournament* button chooses the groups and who goes on:** two settings join the other tournament settings, *Tournament groups* (2 to 8, or 0, the default, for groups of about four players) and *Tournament qualifiers per group* (1 to 4, two by default). *Start tournament* plays groups and knockout with them, and so does `start_tournament` when you leave out `groups` and `advance`; `groups: 0` asks for groups of about four players. The new game screen of the scoreboard starts from them, and the groups you choose there or in the action stay in them for the next tournament ([tournaments](docs/entities.md#tournaments), #389).
 
-## [1.17.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.16.0...v1.17.0) (2026-10-19)
+## [1.17.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.16.0...v1.17.0) (2026-10-19)
 
 ### New
 
@@ -32,7 +37,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 - **The blueprints come with the integration and stay current:** after installing the integration, all fifteen blueprints are on the blueprints page of Home Assistant without importing them. Every update brings the new versions of the blueprints you haven't changed, also of those you imported before, and the automations made from them reload with their settings, so a blueprint always matches the integration it runs with. A blueprint you changed stays yours, with a repair that offers the version of the integration; one you deleted stays deleted, and *Re-import blueprint* is no longer needed ([updates of the blueprints](docs/automations.md#updates-of-the-blueprints), #383, #384).
 - **Granboard over Bluetooth (experimental):** a Granboard sends its darts to Home Assistant over Bluetooth, through an adapter of Home Assistant or an ESPHome Bluetooth proxy anywhere in the house, and you play every game, the training and the statistics with them, as on a dartboard without Autodarts, without entering a dart. Home Assistant finds the board and offers to set it up; every hit goes into the visit, the button beside the board passes to the next player, a dart in the wrong bed is corrected on the scoreboard, and a board that sleeps or goes out of reach connects again on its own. The diagnostic entity *Granboard connection* shows the connection. The integration reads the board's frames as open-source Granboard apps do, but it has not met a real board yet: [check every bed](docs/granboard.md#check-every-bed) with yours to help take the label off ([Granboard over Bluetooth](docs/granboard.md), #386, #388).
 
-## [1.16.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.15.0...v1.16.0) (2026-10-18)
+## [1.16.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.15.0...v1.16.0) (2026-10-18)
 
 ### New
 
@@ -46,27 +51,27 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **Quicker on a Raspberry Pi:** every action, such as a button, a setting or a new game, built the whole store of the training twice: once to save it and once more to compare it with what it had saved, which with a long history and many players took about 20 milliseconds on a desktop PC and several times as long on a Raspberry Pi. It now builds it once, and a dart that lands while it is saved is still saved when Home Assistant stops, as before. The setup hint of the scoreboard and the aim of the bot no longer try 12,341 ways to throw three darts where nothing can be set up, such as 501 at the start of a leg: every setup from 171 to 1001 is found in a tenth of the time, with the same result. Home Assistant also loads the integration about a quarter to half a second faster, because the checkout training no longer works out its 162 scores at every start ([setup hints](docs/how-it-works.md#setup-hints), #329, #333).
 
-## [1.15.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.14.0...v1.15.0) (2026-10-18)
+## [1.15.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.14.0...v1.15.0) (2026-10-18)
 
 ### New
 
 - **Bermuda, Round the World and Gotcha, as on play.autodarts.io:** three more party games for one to eight players. Bermuda plays 13 rounds from the 12 to the bullseye, and a visit without a hit halves your points unless you switch *Practice Bermuda halving on a miss* off. Round the World goes from 1 to 20, from 20 to 1 or in a random order, then to the bull; any bed counts, and the first at the bull wins. Gotcha counts up to a target score of 101 to 1001 with your out mode: go past it and the visit busts, reach another player's score exactly and they go back to 0. Start them from the new game screen, by voice or with `start_game` (`halve_on_miss`, `order`, `target_score`); the scoreboard shows the targets, how far everybody has come round the board and the points to go, and the caller calls the visits and the busts ([party games](docs/games.md#party-games), #305, #308).
 - **The caller with a real voice:** the caller of the scoreboard, the dart caller and the practice caller play voice packs, recorded calls in `autodarts/voices` of the media folder whose files are named as in the voice packs of darts-caller, so a pack of darts-caller works as it is. The scoreboard plays the sounds of a call one after the other, with a name the pack lacks in the browser's voice, and every call the pack has no sound for is spoken as before. The new action *Autodarts: Generate voice pack* records a complete pack with any text-to-speech engine of Home Assistant, such as Piper for a voice that never leaves your home; enter the pack as *Voice pack* in the caller options of the scoreboard or of the blueprints ([voice packs](docs/scoreboard.md#voice-packs), #316, #320).
-- **Try the cards live:** the [live demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html) on the website plays a 501 against the bot, a Cricket game and a tournament with the scoreboard, the live, training and players cards, right in the browser: nothing to install, on a phone too and in English, German, Dutch, French and Spanish. The integration plays the games itself, and the screenshot bot records them anew whenever the cards change, so the demo always shows the cards as they are (#307).
+- **Try the cards live:** the [live demo](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html) on the website plays a 501 against the bot, a Cricket game and a tournament with the scoreboard, the live, training and players cards, right in the browser: nothing to install, on a phone too and in English, German, Dutch, French and Spanish. The integration plays the games itself, and the screenshot bot records them anew whenever the cards change, so the demo always shows the cards as they are (#307).
 
 ### Fixed
 
 - **The darts arrow of the trends no longer falls during every week:** the players card compared the darts of the older half of the weeks shown with those of the newer half, which ends with the current week. If you threw the same number of darts every week, the arrow fell for most of each week, and with 5, 7, 9 or 11 weeks shown it rose, because the newer half had one week more. It now compares the darts per week of the complete weeks, so steady practice shows → and only more or fewer darts a week turn it; a week without practice counts as one without darts, so the arrow also shows when you start practicing or take a break. The darts over the weeks and the line still count the current week; the other arrows were not affected (#327, #328).
 - **The dart positions come back after a dropped connection:** when the training card could not get the positions of the heatmap, for example while Home Assistant restarted, it said *No dart positions yet.* until your next visit. It now keeps the positions it showed and asks again with the next update (#327, #328).
 
-## [1.14.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.13.0...v1.14.0) (2026-10-14)
+## [1.14.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.13.0...v1.14.0) (2026-10-14)
 
 ### New
 
 - **Where to aim, from your own spread:** the heatmap of the training card has a fourth mode, *Aim*, that shows where on the board you score the most points per dart with the spread of your own darts. The treble 20 pays only when your darts land close together: from a spread of about 17 mm the treble 19 scores more, and with a wide spread a spot left of the bull, as Tibshirani, Price and Taylor showed in *A statistician plays darts*. From 30 darts aimed at a treble, the map colors every spot of the board by the points per dart you would score aiming there, rings the best aim and compares it with the treble 20, the treble 19 and the bull; with fewer darts it says how many are missing. The player profile has the best aim and its points per dart as `best_aim` and `expected_ppd`, for automations and Assist. The browser draws the map beside the page, in a worker of its own. Home Assistant works out your spread and the best aim after each visit, in some tens of milliseconds and beside its event loop, so nothing waits for it, and the spread of the session only when the map shows it ([where to aim](docs/statistics.md#where-to-aim), #276, #292).
 - **Voice in Spanish, French and Dutch:** the blueprints *Autodarts: start a game by voice* and *Autodarts: enter darts by voice* now understand Spanish, French and Dutch as well as English and German, for example "Juega 501 para Alex y Sam", "Lance la partie Cricket pour Alex", "Speel 501 tegen de bot", "Alex hace 140", "Alex a fait 140", "Dubbel 16", "Joueur suivant" or "Ongedaan maken", and Assist answers in the language of Home Assistant. Numbers work as digits or, in the language of Home Assistant, as words such as "ciento cuarenta", "cent quarante" or "honderdveertig". The description of every blueprint now ends with a link to its settings and examples in the guide. For the new sentences, choose **Re-import blueprint** for both voice blueprints on the blueprints page; sentences you saved in an automation stay as they are (#301).
 
-## [1.13.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.4...v1.13.0) (2026-10-14)
+## [1.13.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.12.4...v1.13.0) (2026-10-14)
 
 ### New
 
@@ -76,7 +81,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **`npm test` no longer fails at random in `tournament.test.mjs`:** on a slow or busy machine, such as a Linux container with little CPU, `npm test` failed with *tournament.test.mjs left 1 timer running after its cards left the page* and the idle timer of a scoreboard, while it passed on a fast one. The cards of a test stayed on the page for the rest of its file, and the countdown of a waiting tournament redrew a scoreboard of an earlier test every second. When that happened while a later test mocked the timers, the scoreboard cleared its idle timer with the mock, which clears nothing, and the real timer ran on. The cards of a test now leave the page when it ends, so no test runs into the timers of another, and a test that leaves a timer running fails with its own name. The cards on your dashboards were not affected. Thanks to @JoeyAwwad for the report (#106, #294).
 
-## [1.12.4](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.3...v1.12.4) (2026-10-14)
+## [1.12.4](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.12.3...v1.12.4) (2026-10-14)
 
 ### Improved
 
@@ -84,7 +89,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### Fixed
 
-- **The highlight photo hands on only photos that were saved:** with a camera entity that was still disabled, as every board camera starts, with a camera that was unavailable, or when the board sent no picture, the highlight photo still gave your actions a `photo` and a `photo_url` of a file that was never written. The notification on your phone then showed a broken picture instead of the live one, and the gallery silently missed the moment. The blueprint now saves the photo with the new action `autodarts.save_highlight`, for administrators and automations, which answers only for a file that is on disk and otherwise says in the log why there is none; `photo` and `photo_url` then stay empty, so `photo_url or image` shows the live picture. `photo_url` now comes from the media folders Home Assistant really has, so it opens the photo wherever the media folder is, and a folder outside them gets none. The *Folder* setting is empty by default now, for the gallery wherever the media folder is: on a Home Assistant Core installation, the earlier default `/media/autodarts/highlights` saved nothing. Two photos of the same second with the same name, from two cameras, no longer overwrite each other. Choose **Re-import blueprint** in the menu of *Autodarts: highlight photo* on the blueprints page; your automations keep their settings ([highlight photo](docs/automations.md#highlight-photo), [`autodarts.save_highlight`](docs/entities.md#save-a-highlight-photo-autodartssave_highlight), #278, #286).
+- **The highlight photo hands on only photos that were saved:** with a camera entity that was still disabled, as every board camera starts, with a camera that was unavailable, or when the board sent no picture, the highlight photo still gave your actions a `photo` and a `photo_url` of a file that was never written. The notification on your phone then showed a broken picture instead of the live one, and the gallery silently missed the moment. The blueprint now saves the photo with the new action `autodarts.save_highlight`, for administrators and automations, which answers only for a file that is on disk and otherwise says in the log why there is none; `photo` and `photo_url` then stay empty, so `photo_url or image` shows the live picture. `photo_url` now comes from the media folders Home Assistant really has, so it opens the photo wherever the media folder is, and a folder outside them gets none. The *Folder* setting is empty by default now, for the gallery wherever the media folder is: on a Home Assistant Core installation, the earlier default `/media/autodarts/highlights` saved nothing. Two photos of the same second with the same name, from two cameras, no longer overwrite each other. Choose **Re-import blueprint** in the menu of *Autodarts: highlight photo* on the blueprints page; your automations keep their settings ([highlight photo](docs/automations.md#highlight-photo), [`autodarts.save_highlight`](docs/entities.md#save-a-highlight-photo-homedartssave_highlight), #278, #286).
 - **A dart you move is drawn where you put it:** to keep camera jitter off the cards, the visit kept a dart where it was as long as it stayed in its bed. A dart you moved within its bed, by tapping its spot on the board of the pad or with `autodarts.correct_dart` and a position, stayed at its old spot on the card, and when the board took back the first of two darts in one bed, the other one was drawn where the first had been. Only a detected dart that the camera sees move by less than about 1.7 mm now stays where it was; a dart that moved farther, or that you placed in Home Assistant, is drawn at its new spot ([live visit](docs/entities.md#live-visit), #260, #271).
 - **A bed in an unknown form no longer stops three sensors:** a bed that the board, or a proxy in front of it, sends as a list or another value that is no text stopped *Detected visit score*, *Last dart* and *Last dart score* with an error in the log. Such a dart now counts without its bed, and the three sensors keep updating ([live visit](docs/entities.md#live-visit), #260, #271).
 - **Online matches keep the spelling of names:** the online bridge wrote every player name from Tools for Autodarts in lower case, so the light show and the dart caller cheered for *dennis* after `gameshot_Dennis`. A name now keeps its case, and the name of a player in your profiles comes as the profile spells it, *Dennis* also for `gameshot_dennis`. Like every player name, it no longer contains `{`, `}`, `%` or `#`, which a notification or the file name of a snapshot would render as a template, and is at most 20 characters long ([online matches](docs/online-matches.md#triggers-and-events), #260, #271).
@@ -98,7 +103,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **Every guide reads well on a phone:** the guides to the cards, the games and the scoreboard set their pictures side by side in tables, which the GitHub app and a phone squeezed into narrow columns, with pictures of 90 to 164 pixels. Each picture now has a sentence that says what it shows and sits at full width below it, in English and German, as in the README (#277, #279).
 
-## [1.12.3](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.2...v1.12.3) (2026-10-13)
+## [1.12.3](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.12.2...v1.12.3) (2026-10-13)
 
 ### Improved
 
@@ -126,43 +131,43 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 - **The README reads well on a phone:** on GitHub, in its app and in HACS, every feature had a narrow column of text next to a tiny picture. Each feature now has a few short points with its picture at full width below them, the quick start in three steps follows the first animation, and the longer lists, the blueprints and the guides open with a tap. The overviews of the documentation on GitHub, in English and German, follow the same layout (#268, #270).
 
-## [1.12.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.1...v1.12.2) (2026-10-12)
+## [1.12.2](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.12.1...v1.12.2) (2026-10-12)
 
 ### Fixed
 
 - **The automatic dashboard opens on a slow phone too:** Home Assistant waits five seconds for the dashboard strategy of the integration, and on a phone with an empty cache or slow Wi-Fi the file with all the cards took longer, so the automatic dashboard showed *Error loading the dashboard strategy: Timeout waiting for strategy element* until the page was loaded again. A small file of its own now registers the strategy at once and builds the dashboard as soon as the cards are there.
 
-## [1.12.1](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.12.0...v1.12.1) (2026-10-10)
+## [1.12.1](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.12.0...v1.12.1) (2026-10-10)
 
 ### Fixed
 
 - **Nothing jumps after a tap:** on a phone, choosing a game far down the new game screen scrolled the page back up, so the next one had to be scrolled to again. In Safari, as in the Home Assistant app on an iPhone, the page jumped to its top; in every browser the rules of the game chosen before left above the tapped game and moved it away from the finger. A tapped button now stays where it is, on every card: the same jump hit *All badges* of the players card and the calibration of a camera on the status card in Safari. The heatmap's choice of whose darts and *All badges* keep the focus of a keyboard too.
 
-## [1.12.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.11.0...v1.12.0) (2026-10-09)
+## [1.12.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.11.0...v1.12.0) (2026-10-09)
 
 ### New
 
 - **Darts by voice:** the new blueprint *Enter darts by voice* enters the darts of a game when you tell Assist, as at a dart machine: the score of a visit, such as "Alex hat 140" or "140 points", a checkout, such as "Checkout mit zwei Darts", a single dart, such as "Triple 20" or "Fehlwurf", "Next player" and "Undo", in English and German. Assist answers in the words of the scoreboard's caller: "140 for Alex, 361 left. Sam, you require 501." A sentence that names a player who is not at the board is refused, so a misheard visit never counts for the wrong player ([blueprint](docs/automations.md#enter-darts-by-voice)).
-- **Answers of the actions at the board:** `autodarts.enter_visit`, `autodarts.throw_dart`, `autodarts.next_player` and `autodarts.undo_visit` answer with `response_variable` in words instead of failing, as `autodarts.start_game` does: what a visit scored and left and who throws next, the bed of a dart, the leg or the match, a visit taken back, or why they refused. `autodarts.enter_visit` takes `checkout: true` for a visit that checks out what the player has left, and both it and `autodarts.throw_dart` take `player`, which refuses the entry while another player is at the board ([actions](docs/entities.md#enter-a-visits-score-autodartsenter_visit)).
+- **Answers of the actions at the board:** `autodarts.enter_visit`, `autodarts.throw_dart`, `autodarts.next_player` and `autodarts.undo_visit` answer with `response_variable` in words instead of failing, as `autodarts.start_game` does: what a visit scored and left and who throws next, the bed of a dart, the leg or the match, a visit taken back, or why they refused. `autodarts.enter_visit` takes `checkout: true` for a visit that checks out what the player has left, and both it and `autodarts.throw_dart` take `player`, which refuses the entry while another player is at the board ([actions](docs/entities.md#enter-a-visits-score-homedartsenter_visit)).
 
 ### Documentation
 
 - The page about security lists `autodarts.enter_visit` among the actions a login can call.
 
-## [1.11.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.10.0...v1.11.0) (2026-10-09)
+## [1.11.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.10.0...v1.11.0) (2026-10-09)
 
 ### New
 
 - **Play without Autodarts:** any dartboard can be set up as a board of its own, under *Dartboard without Autodarts: enter every dart yourself*. Its darts are entered on the keypad, which the live card and the scoreboard show without an option to switch on, and every game, the training sessions and all statistics work as with Autodarts. It has the entities of the games, without detection, cameras or a board PC, and the automatic dashboard leaves out its *Board* view ([guide](docs/without-autodarts.md)).
 - **Autodarts later:** *Reconfigure* of a dartboard without Autodarts connects the Autodarts board it got, found on the network or by its address. The dartboard keeps its games, statistics, entity IDs and dashboards, and gets the detection, the cameras and the controls ([how](docs/without-autodarts.md#autodarts-later)).
-- **The score of a visit:** in X01, *Score* at the top of the keypad takes a visit as its score, such as 140, instead of its darts, as on a dart machine. A checkout asks for its darts and the darts at a double, a visit that left a double in reach for the darts at it, so the checkout rate stays right; the visit counts for the averages, the 180s and the records, but for no bed. On a narrow pad, such as on a 360 pixel phone, the views of the keypad show icons, so they keep the line of S, D and T. The new action `autodarts.enter_visit` does the same ([how](docs/without-autodarts.md#enter-your-darts), [action](docs/entities.md#enter-a-visits-score-autodartsenter_visit)).
+- **The score of a visit:** in X01, *Score* at the top of the keypad takes a visit as its score, such as 140, instead of its darts, as on a dart machine. A checkout asks for its darts and the darts at a double, a visit that left a double in reach for the darts at it, so the checkout rate stays right; the visit counts for the averages, the 180s and the records, but for no bed. On a narrow pad, such as on a 360 pixel phone, the views of the keypad show icons, so they keep the line of S, D and T. The new action `autodarts.enter_visit` does the same ([how](docs/without-autodarts.md#enter-your-darts), [action](docs/entities.md#enter-a-visits-score-homedartsenter_visit)).
 - **The keypad on the live card:** the option `keypad` of the live card shows the scoreboard's keypad below the darts while *Practice manual entry* is on, with *Next player* and *Undo last visit* ([cards](docs/cards.md#live-card)).
 
 ### Changed
 
 - **Undo with the keypad:** on the scoreboard, the tile *Last* beside the darts takes the last visit back with the keypad too, as without it, so the keypad keeps the same keys after every visit; on a phone, its keys used to run over their edges in German. The curved arrow of *Last* keeps to its corner, clear of the words and the score, and on a short screen, such as a phone on its side, the score of the visit is as high as the beds of the darts beside it.
 
-## [1.10.0](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.2...v1.10.0) (2026-10-08)
+## [1.10.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.9.2...v1.10.0) (2026-10-08)
 
 ### New
 
@@ -182,7 +187,7 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 - Animations of Wild Mouse, of the aim hints in Cricket and of a 180 on the scoreboard, pictures of the Wild Mouse chalkboard and of Killer for a party of eight, and diagrams of where a dart counts in Wild Mouse and of how a stuck takeout is freed ([games](docs/games.md#wild-mouse)).
 - What changes on the way from Autodarts 1.x to 2.x, as a player reported it: the cameras to choose again in their old order, the first contact with the Autodarts server, the port and the stuck takeout ([troubleshooting](docs/troubleshooting.md#from-autodarts-1x-to-2x)).
 
-## [1.9.2](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)
+## [1.9.2](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.9.1...v1.9.2) (2026-10-08)
 
 ### New
 
@@ -190,13 +195,13 @@ All notable changes of the Autodarts integration. The complete notes of every ve
 
 ### Changed
 
-- **Help on the documentation website:** the help links of the cards in the card picker and of the automatic dashboard, and the documentation link of the integration, open the [documentation website](https://dennis-otto.github.io/ha-autodarts/) instead of GitHub, in German when Home Assistant speaks German.
+- **Help on the documentation website:** the help links of the cards in the card picker and of the automatic dashboard, and the documentation link of the integration, open the [documentation website](https://dennis-otto.github.io/homedarts-for-autodarts/) instead of GitHub, in German when Home Assistant speaks German.
 
 ### Documentation
 
 - The website switches between English and German on every page, with German menus, search and dates, and starts with a page of its own for each language. The German pages moved next to the English ones, such as `docs/games.de.md` next to `docs/games.md`; the old addresses of the German overview and card guide lead there.
 
-## [1.9.1](https://github.com/Dennis-Otto/ha-autodarts/compare/v1.9.0...v1.9.1) (2026-10-07)
+## [1.9.1](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.9.0...v1.9.1) (2026-10-07)
 
 ### Fixed
 
