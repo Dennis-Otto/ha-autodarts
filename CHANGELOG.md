@@ -6,15 +6,14 @@ All notable changes of HomeDarts for Autodarts, called Autodarts up to version 1
 
 ## [2.0.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.18.0...v2.0.0) (2026-10-21)
 
+### Breaking changes
 
-### ⚠ BREAKING CHANGES
+- **Autodarts is now HomeDarts for Autodarts:** Autodarts asked the project to stop using its name and logo, so the integration has a name and an icon of its own and the domain `homedarts`. Its actions are now called `homedarts.…`, such as `homedarts.start_game`, its cards `custom:homedarts-…`, its dashboard strategy `custom:homedarts`, and the flat board style of the live and heatmap cards is `flat`; highlights, exports and voice packs live in the media folder `homedarts`. After the update, add **HomeDarts for Autodarts** and choose to take over your boards: they keep their entities, history, statistics and dashboards. Automations and scripts that call the old actions need the new names ([From Autodarts to HomeDarts](https://dennis-otto.github.io/homedarts-for-autodarts/new-name.html)).
+- **No cloud link:** Autodarts issues no client IDs to third parties, so the prepared link to the Autodarts cloud is gone, and HomeDarts works locally with the Board Manager. Online matches still reach Home Assistant through Tools for Autodarts.
 
-* HomeDarts for Autodarts, a name of its own ([#442](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/442))
+### Improved
 
-### Features
-
-* an icon of its own in place of the Autodarts logo ([#438](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/438)) ([e26c118](https://github.com/Dennis-Otto/homedarts-for-autodarts/commit/e26c118a76aafa11398b6476ddd1042a7a93459e))
-* HomeDarts for Autodarts, a name of its own ([#442](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/442)) ([984b834](https://github.com/Dennis-Otto/homedarts-for-autodarts/commit/984b834c53915bb7c6db1e3bfaaadc5ae7c719c5))
+- **An icon of its own:** Home Assistant, HACS and the website show the integration's own icon, a house with a dartboard and a dart in its bull, in place of the Autodarts logo, which Autodarts asked the project to remove.
 
 ## [1.18.0](https://github.com/Dennis-Otto/homedarts-for-autodarts/compare/v1.17.0...v1.18.0) (2026-10-19)
 
