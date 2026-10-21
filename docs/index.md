@@ -10,7 +10,7 @@ social: { cards_layout_options: { title: "Your Autodarts board, live in Home Ass
 
 # Autodarts for Home Assistant
 
-![Autodarts logo](branding/icon.svg){ width="96" align="right" }
+![The icon of the integration: a house with a dartboard](branding/icon.svg){ width="96" align="right" }
 
 **Your Autodarts board, live in Home Assistant: local, realtime and ready for automations.**
 

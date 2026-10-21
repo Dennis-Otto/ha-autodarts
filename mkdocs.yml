@@ -15,11 +15,11 @@ site_description: "Autodarts for Home Assistant: local realtime board control, X
 site_url: https://dennis-otto.github.io/ha-autodarts/
 repo_url: https://github.com/Dennis-Otto/ha-autodarts
 repo_name: Dennis-Otto/ha-autodarts
-# The footer of every page; the German one is with the languages below. The icon in
-# the header is the one of Autodarts, so the footer says whose website this is.
+# The footer of every page; the German one is with the languages below. It says
+# that the website is not one of Autodarts, whose boards it is about.
 copyright: "© 2026 Trkal and HACSAutodarts contributors; 2026 Dennis Otto<br>An unofficial community integration, not affiliated with Autodarts."
 
-# The brand of the website: the Autodarts icon in the header and as favicon
+# The brand of the website: the icon of the integration in the header and as favicon
 # (scripts/render_brand.py renders it from the icon), and the navy and teal of the
 # icon, the social preview and the cards in place of Material's indigo, with
 # docs/stylesheets/brand.css. The list of the palette replaces the one of

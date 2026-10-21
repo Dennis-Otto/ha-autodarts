@@ -1,4 +1,4 @@
-/* The colours of the website: the navy and teal of the Autodarts icon, the social
+/* The colours of the website: the navy and teal of the icon, the social
    preview and the cards, in place of Material's indigo. mkdocs.yml chooses them with
    primary: custom and accent: custom. Every colour of a text has a contrast of at
    least 4.5:1 to its background, in both schemes; tests/test_website_brand.py

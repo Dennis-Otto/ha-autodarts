@@ -16,12 +16,3 @@ path = "custom_components/autodarts/granboard.py"
 precedence = "aggregate"
 SPDX-FileCopyrightText = ["2024 Sobassy", "2025 bastiennoel93"]
 SPDX-License-Identifier = "MIT"
-
-# The brand artwork of Autodarts, with the favicon of the website that is rendered
-# from it, identifies the supported product. It belongs to its owner and is not
-# covered by the MIT license; see the README and docs/branding/README.md.
-[[annotations]]
-path = ["custom_components/autodarts/brand/**", "docs/branding/*.svg", "docs/branding/favicon.png"]
-precedence = "override"
-SPDX-FileCopyrightText = "Autodarts"
-SPDX-License-Identifier = "LicenseRef-Autodarts-Brand"

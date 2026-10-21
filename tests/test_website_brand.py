@@ -146,6 +146,25 @@ def test_the_header_shows_the_icon_and_the_tab_the_favicon():
         assert favicon.convert("RGBA").getchannel("A").getpixel((0, 0)) == 0
 
 
+def test_home_assistant_shows_the_icon_of_the_integration_and_no_other():
+    """Autodarts asked for its logo to be removed: the brand folder holds only the
+    icon rendered from docs/branding/icon.svg, which Home Assistant also shows in
+    place of a logo."""
+    brand = ROOT / "custom_components" / "autodarts" / "brand"
+    assert sorted(path.name for path in brand.iterdir()) == ["icon.png", "icon@2x.png"]
+    for name, size in (("icon.png", 256), ("icon@2x.png", 512)):
+        with Image.open(brand / name) as image:
+            assert image.format == "PNG"
+            assert image.size == (size, size)
+            assert image.convert("RGBA").getchannel("A").getpixel((0, 0)) == 0
+    assert sorted(path.name for path in (DOCS / "branding").glob("*.svg")) == [
+        "icon.svg"
+    ]
+    assert "LicenseRef-Autodarts" not in (ROOT / "REUSE.toml").read_text(
+        encoding="utf-8"
+    )
+
+
 def test_the_colours_keep_the_switch_between_light_and_dark():
     """mkdocs.yml replaces the palette of the blueprint, which a list can't merge
     with: it has the same schemes and switches, in the colours of the brand."""
