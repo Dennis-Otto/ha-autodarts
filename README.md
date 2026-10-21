@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/custom_components/autodarts/brand/icon.png" alt="Autodarts logo" width="96" height="96">
+<img src="https://raw.githubusercontent.com/Dennis-Otto/ha-autodarts/main/custom_components/autodarts/brand/icon.png" alt="The icon of the integration: a house with a dartboard" width="96" height="96">
 
 # Autodarts for Home Assistant
 
@@ -324,4 +324,4 @@ Every guide is on the [documentation website](https://dennis-otto.github.io/ha-a
 
 This integration started as a fork of [Trkal/HACSAutodarts](https://github.com/Trkal/HACSAutodarts), a cloud-based prototype from April 2026. Since September 2026 it has been rewritten and is maintained independently by [@Dennis-Otto](https://github.com/Dennis-Otto): local realtime control for both Board Manager generations, games, training analytics, dashboard cards, blueprints, tests and documentation. Both use the `autodarts` domain; the [installation guide](https://dennis-otto.github.io/ha-autodarts/installation.html#update-from-the-original-integration) explains how to switch. Thanks to Trkal for the original work and to the Autodarts team for their open local API.
 
-Licensed under the [MIT license](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE). Autodarts and Winmau names and brand artwork belong to their respective owners. The bundled brand assets identify the supported product and are not covered by the MIT license. This is an unofficial community integration and is not affiliated with Autodarts.
+Licensed under the [MIT license](https://github.com/Dennis-Otto/ha-autodarts/blob/main/LICENSE). The license covers the icon too. The names Autodarts and Winmau belong to their respective owners. This is an unofficial community integration and is not affiliated with Autodarts.

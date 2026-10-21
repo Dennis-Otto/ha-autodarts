@@ -196,7 +196,7 @@ def test_a_pull_request_that_changes_what_the_tests_use_runs_them(tmp_path, name
         "docs/demo/demo.js",
         # The screenshot bot brings a new recording without a change of the code.
         "docs/demo/timeline.json",
-        "docs/branding/logo.svg",
+        "docs/branding/icon.svg",
         "scripts/mkdocs_hooks.py",
     ],
 )

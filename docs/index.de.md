@@ -10,7 +10,7 @@ social: { cards_layout_options: { title: "Dein Autodarts-Board live in Home Assi
 
 # Autodarts für Home Assistant
 
-![Autodarts-Logo](branding/icon.svg){ width="96" align="right" }
+![Das Symbol der Integration: ein Haus mit Dartscheibe](branding/icon.svg){ width="96" align="right" }
 
 **Dein Autodarts-Board live in Home Assistant: lokal, in Echtzeit und bereit für Automationen.**
 
