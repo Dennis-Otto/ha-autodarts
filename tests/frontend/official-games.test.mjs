@@ -13,7 +13,7 @@ import {
   partyView,
   scoreboardHtml,
   visitCount,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 const ui = {
   t: (key) => ({ gotcha_left: "{points} to go" })[key] ?? key,

@@ -6,9 +6,9 @@ from homeassistant.core import Context
 from homeassistant.exceptions import ServiceValidationError, Unauthorized
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.practice import MAX_LEGS, MAX_SETS
-from custom_components.autodarts.profiles import NAME_LENGTH
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.practice import MAX_LEGS, MAX_SETS
+from custom_components.homedarts.profiles import NAME_LENGTH
 
 from .local_helpers import board, setup_local
 

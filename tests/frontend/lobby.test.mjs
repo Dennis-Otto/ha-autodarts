@@ -73,7 +73,7 @@ const BOARD = {
 function withNames(hass, names) {
   names.forEach((name, index) => {
     const id = `text.dartboard_practice_player_${index + 1}`;
-    hass.entities[id] = { entity_id: id, platform: "autodarts", device_id: DEVICE, translation_key: "practice_player" };
+    hass.entities[id] = { entity_id: id, platform: "homedarts", device_id: DEVICE, translation_key: "practice_player" };
     hass.states[id] = { entity_id: id, state: name, attributes: {} };
   });
   return hass;
@@ -93,7 +93,7 @@ const setup = (states = {}, config = {}, options = {}) => {
       "Player 12",
     ])
   );
-  return { hass, card: mount("autodarts-scoreboard-card", hass, config) };
+  return { hass, card: mount("homedarts-scoreboard-card", hass, config) };
 };
 
 const tap = (card, selector) => $(card, selector).click();
@@ -115,7 +115,7 @@ const choices = (card) =>
     ),
   ]);
 const steppers = (card) => $$(card, ".stepper").map((row) => row.textContent);
-const started = (hass) => hass.calls.filter(([domain]) => domain === "autodarts");
+const started = (hass) => hass.calls.filter(([domain]) => domain === "homedarts");
 
 test("games are grouped, filtered and ruled like the practice game", () => {
   assert.deepEqual(
@@ -416,8 +416,8 @@ test("the format stops at the limits of a match, and a name field without a stat
 });
 
 test("a card that reaches the page before Home Assistant waits for it", () => {
-  const card = document.createElement("autodarts-scoreboard-card");
-  card.setConfig({ type: "custom:autodarts-scoreboard-card" });
+  const card = document.createElement("homedarts-scoreboard-card");
+  card.setConfig({ type: "custom:homedarts-scoreboard-card" });
   document.body.append(card);
   card.remove();
   assert.equal(card.shadowRoot.innerHTML, "");
@@ -450,7 +450,7 @@ test("the new game screen starts the chosen game with players, format and rules"
   lobbyTap(card, "start");
   assert.deepEqual(started(hass), [
     [
-      "autodarts",
+      "homedarts",
       "start_game",
       { game: "cricket", players: ["Kim", "Alex"], legs: 4, sets: 2, bull_off: true },
     ],
@@ -537,7 +537,7 @@ test("Killer asks for two players, and training games take the first player only
   );
   assert.equal(text(card, ".lobby .start"), "Start Around the Clock");
   lobbyTap(card, "start");
-  assert.deepEqual(started(hass), [["autodarts", "start_game", { game: "around_the_clock", players: ["Alex"] }]]);
+  assert.deepEqual(started(hass), [["homedarts", "start_game", { game: "around_the_clock", players: ["Alex"] }]]);
 });
 
 test("X01 rules, bull-off by distance and the board's config entry go with the start", () => {
@@ -621,7 +621,7 @@ test("Wild Mouse offers three in a bed, which goes with its start", () => {
 });
 
 test("the screen says how the chosen game is played and links to all its rules", () => {
-  const site = "https://dennis-otto.github.io/ha-autodarts/";
+  const site = "https://dennis-otto.github.io/homedarts-for-autodarts/";
   const rules = (card) => [$(card, ".lobby-rules p").textContent, $(card, ".lobby-rules a").getAttribute("href")];
   const { card } = setup();
   tap(card, ".lobby-toggle");
@@ -716,7 +716,7 @@ test("the screen can be switched off, limited to some games, and never opens in 
   assert.equal(choosing(preview), false);
 
   // A board without the practice game has no screen.
-  const bare = mount("autodarts-scoreboard-card", makeHass({ states: READY }));
+  const bare = mount("homedarts-scoreboard-card", makeHass({ states: READY }));
   assert.equal($(bare, ".lobby-toggle").hidden, true);
 });
 
@@ -904,7 +904,7 @@ test("the new game screen offers teams and start scores of their own", () => {
   hass.entities = { ...hass.entities };
   [0, 301, 0, "unavailable"].forEach((start, index) => {
     const id = `number.dartboard_practice_start_score_player_${index + 1}`;
-    hass.entities[id] = { entity_id: id, platform: "autodarts", device_id: DEVICE, translation_key: "practice_start" };
+    hass.entities[id] = { entity_id: id, platform: "homedarts", device_id: DEVICE, translation_key: "practice_start" };
     hass.states[id] = { entity_id: id, state: String(start), attributes: {} };
   });
   card.hass = { ...hass };
@@ -1041,12 +1041,12 @@ test("a start with detection stopped switches detection on, which the screen say
   lobbyTap(card, "start");
   assert.deepEqual(hass.calls.slice(0, 2), [
     ["switch", "turn_on", { entity_id: "switch.dartboard_detection" }],
-    ["autodarts", "start_game", started(hass)[0][2]],
+    ["homedarts", "start_game", started(hass)[0][2]],
   ]);
   // Boards without the switch press their start button; an offline board and a running one are left alone.
   const { "switch.detection": _, ...ready } = READY;
   const buttons = makeHass({ states: { ...ready, ...BOARD, "sensor.local_status": "Stopped" } });
-  const legacy = mount("autodarts-scoreboard-card", buttons);
+  const legacy = mount("homedarts-scoreboard-card", buttons);
   tap(legacy, ".lobby-toggle");
   lobbyTap(legacy, "start");
   assert.deepEqual(buttons.calls[0], ["button", "press", { entity_id: "button.dartboard_start" }]);
@@ -1055,6 +1055,6 @@ test("a start with detection stopped switches detection on, which the screen say
     tap(other.card, ".lobby-toggle");
     assert.equal($(other.card, ".lobby-hint"), null);
     lobbyTap(other.card, "start");
-    assert.deepEqual(other.hass.calls.map(([domain]) => domain), ["autodarts"]);
+    assert.deepEqual(other.hass.calls.map(([domain]) => domain), ["homedarts"]);
   }
 });

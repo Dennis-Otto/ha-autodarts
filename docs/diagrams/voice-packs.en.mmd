@@ -5,10 +5,10 @@ config:
 ---
 flowchart TB
   accTitle: How the caller speaks with a voice pack
-  accDescr: A voice pack is a folder of autodarts/voices in the media folder, either a pack of darts-caller copied there or one that autodarts.generate_voice_pack recorded with a text-to-speech engine such as Piper. For every call, the scoreboard looks for the files of the call in the pack, such as 180, busted, gameshot or yr_40. When the pack has them, the screen loads them from Home Assistant with its login and plays them one after the other, with a name the pack lacks in the browser's voice. When the pack lacks the call, or a file does not load, the browser's voice says the whole call. Either way, the next call waits until this one has ended.
+  accDescr: A voice pack is a folder of homedarts/voices in the media folder, either a pack of darts-caller copied there or one that homedarts.generate_voice_pack recorded with a text-to-speech engine such as Piper. For every call, the scoreboard looks for the files of the call in the pack, such as 180, busted, gameshot or yr_40. When the pack has them, the screen loads them from Home Assistant with its login and plays them one after the other, with a name the pack lacks in the browser's voice. When the pack lacks the call, or a file does not load, the browser's voice says the whole call. Either way, the next call waits until this one has ended.
 
-  COPY["A pack of darts-caller,<br/>copied to the media folder"] --> FOLDER["/media/autodarts/voices/russ-bray"]
-  GENERATE["autodarts.generate_voice_pack<br/>records one with Piper"] --> FOLDER
+  COPY["A pack of darts-caller,<br/>copied to the media folder"] --> FOLDER["/media/homedarts/voices/russ-bray"]
+  GENERATE["homedarts.generate_voice_pack<br/>records one with Piper"] --> FOLDER
   CALL["A call: 180, a bust, a game shot,<br/>the match, you require 40"] --> FILES{{"Has the pack its files?<br/>180, busted, gameshot,<br/>matchshot, yr_40"}}
   FOLDER --> FILES
   FILES -- "yes" --> PLAY["The screen loads them with its login<br/>and plays them one after the other;<br/>a name without a file in the browser's voice"]

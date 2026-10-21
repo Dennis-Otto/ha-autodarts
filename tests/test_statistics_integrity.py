@@ -7,7 +7,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_capture_events
 
-from custom_components.autodarts.progress import WEEK
+from custom_components.homedarts.progress import WEEK
 
 from .local_helpers import MISS, S20, T20, board, entity_id, record, setup_local
 from .test_bot_match import against_the_bot, pass_time

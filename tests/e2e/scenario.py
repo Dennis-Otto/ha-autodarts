@@ -26,7 +26,7 @@ CLIENT_ID = f"{HA}/"
 PASSWORD = "e2e-only-password"
 LOG = Path("/config/home-assistant.log")
 # The highlight gallery in the media folder of the Home Assistant container.
-GALLERY = Path("/media/autodarts/highlights")
+GALLERY = Path("/media/homedarts/highlights")
 PHOTO = "2026-09-26_21-05-33_E2E Player_180.jpg"
 
 # Darts as Board Manager 2.0 reports them, with the bed and normalized position.
@@ -82,7 +82,7 @@ EXPECTED_LOGS = (
     "The export folder ../outside must not be hidden",
 )
 EXPECTED_TRACEBACKS = (
-    "[custom_components.autodarts.local_coordinator] Full error:",
+    "[custom_components.homedarts.local_coordinator] Full error:",
     # Home Assistant's own Assist reads the words of numbers from a file in the event
     # loop the first time a sentence of the voice blueprint has a number, and warns
     # about itself with a stack.
@@ -92,7 +92,7 @@ EXPECTED_TRACEBACKS = (
     # by home-assistant/core#183909 for 2026.10.0; drop this once beta has it.
     "import_module with args ('probatio.codecs',)",
 )
-MANIFEST = Path("/config/custom_components/autodarts/manifest.json")
+MANIFEST = Path("/config/custom_components/homedarts/manifest.json")
 # Every file of the cards: both modules and the texts of each language in text/.
 FRONTEND = MANIFEST.parent / "frontend"
 
@@ -376,14 +376,14 @@ class Scenario:
 
     async def entry_is(self, state: str) -> bool:
         entries = await self.api(
-            "GET", "/api/config/config_entries/entry?domain=autodarts"
+            "GET", "/api/config/config_entries/entry?domain=homedarts"
         )
         return len(entries) == 1 and entries[0]["state"] == state
 
     async def flow(self, flow_id: str | None = None, **data) -> dict:
         if flow_id is None:
             return await self.api(
-                "POST", "/api/config/config_entries/flow", json={"handler": "autodarts"}
+                "POST", "/api/config/config_entries/flow", json={"handler": "homedarts"}
             )
         return await self.api(
             "POST", f"/api/config/config_entries/flow/{flow_id}", json=data
@@ -442,7 +442,7 @@ class Scenario:
                 (
                     flow
                     for flow in flows
-                    if flow["handler"] == "autodarts"
+                    if flow["handler"] == "homedarts"
                     and flow["context"].get("source") == "zeroconf"
                 ),
                 None,
@@ -474,7 +474,7 @@ class Scenario:
         await wait_for(discovered, "all local entities, including discovered cameras")
         for key, platform in ENTITIES.items():
             item = registered[f"{BOARD_ID}_{key}"]
-            check(item["platform"] == "autodarts", f"{key}: wrong integration")
+            check(item["platform"] == "homedarts", f"{key}: wrong integration")
             check(
                 item["entity_id"].startswith(f"{platform}."),
                 f"{key}: expected {platform}, got {item['entity_id']}",
@@ -493,7 +493,7 @@ class Scenario:
         devices = [
             device
             for device in await self.ws("config/device_registry/list")
-            if ["autodarts", BOARD_ID] in device["identifiers"]
+            if ["homedarts", BOARD_ID] in device["identifiers"]
         ]
         check(len(devices) == 1, f"Expected one board device, got {devices}")
         device = devices[0]
@@ -685,7 +685,7 @@ class Scenario:
             f"Events did not arrive in realtime: {fired}",
         )
 
-        store = Path(f"/config/.storage/autodarts.{entry_id}.training")
+        store = Path(f"/config/.storage/homedarts.{entry_id}.training")
 
         async def persisted():
             if not store.exists():
@@ -1103,15 +1103,15 @@ class Scenario:
         )
 
         export = await self.call(
-            "autodarts", "export", service_data={"format": "json", "what": "all"}
+            "homedarts", "export", service_data={"format": "json", "what": "all"}
         )
         name = Path(export["path"]).name
         # By default in the media folder, which needs a login: no /local/ address.
         check(
-            export["path"] == f"/media/autodarts/exports/{name}"
-            and name.startswith("autodarts-all-")
+            export["path"] == f"/media/homedarts/exports/{name}"
+            and name.startswith("homedarts-all-")
             and export["url"] is None
-            and export["download"] == f"/api/autodarts/export/{name}"
+            and export["download"] == f"/api/homedarts/export/{name}"
             and export["rows"] == {"sessions": 1, "matches": 0, "profiles": 0},
             f"Unexpected export: {export}",
         )
@@ -1132,14 +1132,14 @@ class Scenario:
 
         # On request in www, which Home Assistant serves at /local/.
         export = await self.call(
-            "autodarts",
+            "homedarts",
             "export",
-            service_data={"what": "sessions", "folder": "www/autodarts"},
+            service_data={"what": "sessions", "folder": "www/homedarts"},
         )
         name = Path(export["path"]).name
         check(
-            export["path"] == f"/config/www/autodarts/{name}"
-            and export["url"] == f"/local/autodarts/{name}",
+            export["path"] == f"/config/www/homedarts/{name}"
+            and export["url"] == f"/local/homedarts/{name}",
             f"Unexpected export to www: {export}",
         )
         status, body = await self.download(export["download"], self.headers)
@@ -1149,7 +1149,7 @@ class Scenario:
         )
         error = await self.refused(
             "call_service",
-            domain="autodarts",
+            domain="homedarts",
             service="export",
             service_data={"folder": "../outside"},
             return_response=True,
@@ -1159,7 +1159,7 @@ class Scenario:
             f"An export outside the configuration folder was not refused: {error}",
         )
 
-        store = Path(f"/config/.storage/autodarts.{entry_id}.journal")
+        store = Path(f"/config/.storage/homedarts.{entry_id}.journal")
 
         async def persisted():
             if not store.exists():
@@ -1169,7 +1169,7 @@ class Scenario:
         await wait_for(persisted, "the persisted training journal", timeout=30)
 
     async def start_game(self, **data) -> None:
-        await self.api("POST", "/api/services/autodarts/start_game", json=data)
+        await self.api("POST", "/api/services/homedarts/start_game", json=data)
 
     async def visit(self, *darts: dict) -> None:
         """Throw a visit and pull the darts."""
@@ -1258,7 +1258,7 @@ class Scenario:
         """
         await self.api(
             "POST",
-            "/api/services/autodarts/start_game",
+            "/api/services/homedarts/start_game",
             json={"game": "501", "players": ["Alex"]},
         )
         await self.expect_states({"practice_game": "501", "practice_remaining": "501"})
@@ -1310,14 +1310,14 @@ class Scenario:
             f"Unexpected progress of Alex: {alex}",
         )
         player = await self.ws(
-            "autodarts/positions", device_id=self.device_id, player="alex"
+            "homedarts/positions", device_id=self.device_id, player="alex"
         )
         check(
             player["player"] == "Alex"
             and player["positions"][-3:] == [[0.012, 0.598]] * 3,
             f"Unexpected positions of Alex: {player}",
         )
-        session = await self.ws("autodarts/positions", device_id=self.device_id)
+        session = await self.ws("homedarts/positions", device_id=self.device_id)
         check(
             session["positions"][-3:] == [[0.012, 0.598]] * 3,
             f"Unexpected positions of the session: {session}",
@@ -1412,7 +1412,7 @@ class Scenario:
         await self.expect_states({"practice_max_rounds": "0"})
 
     async def action(self, service: str, **data) -> None:
-        await self.api("POST", f"/api/services/autodarts/{service}", json=data)
+        await self.api("POST", f"/api/services/homedarts/{service}", json=data)
 
     async def play_comfort(self) -> None:
         """A dart corrected, darts entered by hand, an undone visit and the bot."""
@@ -1647,9 +1647,9 @@ class Scenario:
             for path in FRONTEND.rglob("*.js")
         }
         content = b"".join(files[name] for name in sorted(files))
-        folder = f"/autodarts/{version}-{hashlib.sha256(content).hexdigest()[:8]}"
-        url = f"{folder}/autodarts-card.js"
-        strategy_url = f"{folder}/autodarts-strategy.js"
+        folder = f"/homedarts/{version}-{hashlib.sha256(content).hexdigest()[:8]}"
+        url = f"{folder}/homedarts-card.js"
+        strategy_url = f"{folder}/homedarts-strategy.js"
         texts = [
             f"{folder}/{name}" for name in sorted(files) if name.startswith("text/")
         ]
@@ -1683,27 +1683,27 @@ class Scenario:
             f"{url} sent with {sent} bytes, encoded as {encoding}",
         )
         check(
-            '"ll-strategy-dashboard-autodarts"' in sources[strategy_url],
+            '"ll-strategy-dashboard-homedarts"' in sources[strategy_url],
             "The strategy module defines no strategy",
         )
         for element in (
-            "autodarts-card",
-            "autodarts-training-card",
-            "autodarts-status-card",
-            "autodarts-scoreboard-card",
-            "autodarts-players-card",
-            "autodarts-doubles-card",
-            "autodarts-leaderboard-card",
+            "homedarts-card",
+            "homedarts-training-card",
+            "homedarts-status-card",
+            "homedarts-scoreboard-card",
+            "homedarts-players-card",
+            "homedarts-doubles-card",
+            "homedarts-leaderboard-card",
         ):
             check(f'"{element}"' in source, f"Card element {element} missing")
         async with self.session.get(f"{HA}/") as response:
             page = await response.text()
-        check(url in page, "Dashboards do not load the Autodarts card")
+        check(url in page, "Dashboards do not load the HomeDarts card")
         check(strategy_url in page, "Dashboards do not load the strategy module")
         resources = [
             (item["type"], item["url"])
             for item in await self.ws("lovelace/resources")
-            if item["url"].startswith("/autodarts/")
+            if item["url"].startswith("/homedarts/")
         ]
         check(
             resources == [("module", strategy_url), ("module", url)],
@@ -1740,18 +1740,18 @@ class Scenario:
 
         await self.api(
             "POST",
-            "/api/services/autodarts/link_player",
+            "/api/services/homedarts/link_player",
             json={"player": "E2E Player", "person": "person.e2e_player"},
         )
         await wait_for(linked, "the player linked to the person")
         await self.api(
             "POST",
-            "/api/services/autodarts/unlink_player",
+            "/api/services/homedarts/unlink_player",
             json={"player": "e2e player"},
         )
         await wait_for(unlinked, "the link to be undone")
         await self.api(
-            "POST", "/api/services/autodarts/delete_player", json={"name": "E2E Player"}
+            "POST", "/api/services/homedarts/delete_player", json={"name": "E2E Player"}
         )
         await self.api("DELETE", "/api/states/person.e2e_player")
 
@@ -1767,9 +1767,9 @@ class Scenario:
                 "media_source/browse_media", media_content_id="media-source://"
             )
             titles = [child["title"] for child in sources["children"]]
-            check("Autodarts" in titles, f"Media sources: {titles}")
+            check("HomeDarts" in titles, f"Media sources: {titles}")
             root = await self.ws(
-                "media_source/browse_media", media_content_id="media-source://autodarts"
+                "media_source/browse_media", media_content_id="media-source://homedarts"
             )
             months = [
                 (child["title"], child["can_expand"]) for child in root["children"]
@@ -1777,7 +1777,7 @@ class Scenario:
             check(months == [("September 2026", True)], f"Months: {months}")
             month = await self.ws(
                 "media_source/browse_media",
-                media_content_id="media-source://autodarts/2026-09",
+                media_content_id="media-source://homedarts/2026-09",
             )
             photos = [
                 (child["title"], child["media_class"], child["media_content_type"])
@@ -1789,11 +1789,11 @@ class Scenario:
             )
             resolved = await self.ws(
                 "media_source/resolve_media",
-                media_content_id=f"media-source://autodarts/{PHOTO}",
+                media_content_id=f"media-source://homedarts/{PHOTO}",
             )
             check(
                 resolved["url"].startswith(
-                    "/media/local/autodarts/highlights/2026-09-26_21-05-33_E2E%20Player_180.jpg?authSig="
+                    "/media/local/homedarts/highlights/2026-09-26_21-05-33_E2E%20Player_180.jpg?authSig="
                 ),
                 f"Resolved: {resolved}",
             )
@@ -1805,12 +1805,12 @@ class Scenario:
             for identifier in ("../e2e-outside.jpg", "..%2Fe2e-outside.jpg", "2026-09"):
                 failed = await self.ws_result(
                     "media_source/resolve_media",
-                    media_content_id=f"media-source://autodarts/{identifier}",
+                    media_content_id=f"media-source://homedarts/{identifier}",
                 )
                 check(not failed["success"], f"{identifier} resolved: {failed}")
             unknown = await self.ws_result(
                 "media_source/browse_media",
-                media_content_id="media-source://autodarts/../..",
+                media_content_id="media-source://homedarts/../..",
             )
             check(not unknown["success"], f"Browsing outside: {unknown}")
             # A board camera starts disabled: it saves no photo, and the action
@@ -1818,7 +1818,7 @@ class Scenario:
             camera = self.entity("camera_0")
             error = await self.refused(
                 "call_service",
-                domain="autodarts",
+                domain="homedarts",
                 service="save_highlight",
                 service_data={"camera": camera, "player": "E2E Player", "label": 180},
                 return_response=True,
@@ -1841,7 +1841,7 @@ class Scenario:
         self.fired_board_events()
         await self.api(
             "POST",
-            "/api/services/autodarts/start_tournament",
+            "/api/services/homedarts/start_tournament",
             json={
                 "players": TOURNAMENT_PLAYERS,
                 "format": "round_robin",
@@ -1922,7 +1922,7 @@ class Scenario:
             all(won.get(name) == 1 for name in TOURNAMENT_PLAYERS),
             f"Tournament matches missing in the profiles: {won}",
         )
-        await self.api("POST", "/api/services/autodarts/stop_tournament", json={})
+        await self.api("POST", "/api/services/homedarts/stop_tournament", json={})
         await self.expect_states({"tournament": "no_tournament"})
 
     async def manual_board(self) -> None:
@@ -1944,15 +1944,14 @@ class Scenario:
         )
         result = await self.flow(form["flow_id"], name="Garage")
         check(
-            result["type"] == "create_entry"
-            and result["title"] == "Autodarts (Garage)",
+            result["type"] == "create_entry" and result["title"] == "Garage",
             f"A board without Autodarts was not set up: {result}",
         )
         entry_id = result["result"]["entry_id"]
 
         async def loaded():
             entries = await self.api(
-                "GET", "/api/config/config_entries/entry?domain=autodarts"
+                "GET", "/api/config/config_entries/entry?domain=homedarts"
             )
             return any(
                 entry["entry_id"] == entry_id and entry["state"] == "loaded"
@@ -1996,7 +1995,7 @@ class Scenario:
         menu = await self.api(
             "POST",
             "/api/config/config_entries/flow",
-            json={"handler": "autodarts", "entry_id": entry_id},
+            json={"handler": "homedarts", "entry_id": entry_id},
         )
         check(
             menu["step_id"] == "reconfigure_manual"
@@ -2012,7 +2011,7 @@ class Scenario:
         )
         await self.api("DELETE", f"/api/config/config_entries/entry/{entry_id}")
         check(
-            not Path(f"/config/.storage/autodarts.{entry_id}.training").exists(),
+            not Path(f"/config/.storage/homedarts.{entry_id}.training").exists(),
             "The training of the board without Autodarts was not deleted",
         )
 
@@ -2057,7 +2056,7 @@ class Scenario:
             for item in await self.ws("system_log/list")
             if (
                 item["level"] in ("ERROR", "CRITICAL")
-                or item["name"].startswith("custom_components.autodarts")
+                or item["name"].startswith("custom_components.homedarts")
             )
             and not any(
                 expected in " ".join(item["message"]) for expected in EXPECTED_LOGS
@@ -2098,12 +2097,12 @@ class Scenario:
         remaining = [
             item
             for item in await self.ws("config/entity_registry/list")
-            if item["platform"] == "autodarts"
+            if item["platform"] == "homedarts"
         ]
         check(not remaining, f"Entities remain after removal: {remaining}")
         for store in ("training", "report", "journal"):
             check(
-                not Path(f"/config/.storage/autodarts.{entry_id}.{store}").exists(),
+                not Path(f"/config/.storage/homedarts.{entry_id}.{store}").exists(),
                 f"The {store} store was not deleted with the integration",
             )
 

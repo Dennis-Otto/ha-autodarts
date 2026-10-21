@@ -23,27 +23,27 @@ Du weißt nicht, welcher passt? Geh davon aus, was dein Zuhause tun soll:
 
 | Blueprint | Was er macht | Import |
 | --- | --- | --- |
-| **Celebrate a visit score** | Führt deine Aktionen für Aufnahmen ab einer Mindestpunktzahl aus (Standard 180), sobald der dritte Dart landet. Die Aktionen können `score`, `darts`, `segments` und `game` nutzen. Die Aufnahmen des Bots zählen nur auf Wunsch. | [![Blueprint „Celebrate a visit score“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fvisit_score.yaml) |
-| **Dart caller** | Sagt jede Aufnahme mit einer beliebigen Sprachausgabe auf deinen Lautsprechern an, mit eigener Ansage für 180, auf Wunsch auch jeden einzelnen Dart. Während eines Übungsspiels schweigt er, das sagt der Übungs-Caller an. Die Texte sind Vorlagen. | [![Blueprint „Dart caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fdart_caller.yaml) |
-| **Takeout actions** | Aktionen, wenn du die Darts ziehst und wenn das Board wieder frei ist, zum Beispiel für helleres Boardlicht. | [![Blueprint „Takeout actions“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftakeout.yaml) |
-| **Start and stop detection automatically** | Startet die Erkennung, sobald jemand am Board ist, und stoppt sie nach einer frei wählbaren Pause. Kameras und Board-PC können so ruhen. | [![Blueprint „Start and stop detection automatically“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fauto_detection.yaml) |
-| **Board problem alert** | Warnt nach einer Karenzzeit, wenn das Board offline geht oder eine Kamera ausfällt. Eine Entwarnung kommt nur nach einer echten Warnung. Die Aktionen können `problem` und `recovered` nutzen. | [![Blueprint „Board problem alert“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fboard_alert.yaml) |
-| **Training report** | Tägliche Zusammenfassung mit Darts, 3-Dart-Average, höchster Aufnahme und 180ern; Tage ohne Darts werden übersprungen. Die Variable `summary` enthält den fertigen Satz. | [![Blueprint „Training report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_report.yaml) |
-| **Training session routine** | Beginnt eine [Trainingssession](entities.de.md#trainingssession), führt sie deine Aktionen aus, schaltet die Erkennung ein und kalibriert nach kurzer Wartezeit die Kameras. Endet sie, schaltet sie die Erkennung aus und führt deine Aktionen mit `reason`, `darts`, `average` und `duration_minutes` aus. Erkennungsschalter und Kalibrierungstaste sind optional. | [![Blueprint „Training session routine“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Ftraining_session.yaml) |
-| **Practice caller** | Sagt das [Übungsspiel](entities.de.md#übungsspiel) auf deinen Lautsprechern an: "Sam, you require 81", wenn ein Checkout möglich ist, "No score" nach dem Überwerfen, den Game shot eines Legs oder Matches und auf Wunsch den Rest, den ein Stellwurf stellt, wenn kein Checkout möglich ist, und das Ausbullen. Die Texte sind Vorlagen. | [![Blueprint „Practice caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fpractice_caller.yaml) |
-| **Weekly report** | Schickt deine [Trainingswoche](entities.de.md#wochenbericht), wenn das Board sie beendet, standardmäßig montags um Mitternacht: Darts, Trainingszeit, Sessions, den 3-Dart-Average und seine Veränderung zur Vorwoche, beste Aufnahme, 180er, Checkout-Quote, Serie und neue Bestleistungen. Die Nachricht ist eine Vorlage; ohne eigene Aktionen erscheint der Bericht in den Benachrichtigungen von Home Assistant. | [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fweekly_report.yaml) |
-| **Highlight photo** | Macht ein Bild mit einer Board-Kamera nach einer Aufnahme ab 180 Punkten (einstellbar) oder einem Checkout im Übungsspiel, solange die Darts noch im Board stecken. Es speichert das Bild in der [Highlight-Galerie](#highlight-galerie) und führt deine Aktionen aus, die `photo_url`, `photo`, `image`, `message`, `score`, `checkout` und `who` nutzen können. | [![Blueprint „Highlight photo“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fhighlight_photo.yaml) |
-| **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel, einem gewonnenen Ausbullen, einem Erfolg und dem Sieger eines Turniers, auf Wunsch auch bei der Entnahme und in [Online-Matches](online-matches.de.md). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Flight_show.yaml) |
-| **Score display** | Zeigt das [Übungsspiel](games.de.md) auf einer Pixelanzeige am Board, einer AWTRIX 3 oder einem PixelIt: den Punktestand nach jedem Dart mit dem Weg eines Checkouts und für ein paar Sekunden eine 180, ein Überwerfen, ein gewonnenes Leg und den Sieger. Wird das Spiel ausgeschaltet, oder nach der Wartezeit, zeigt die Anzeige wieder ihre Uhr. | [![Blueprint „Score display“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fscore_display.yaml) |
-| **Start a game by voice** | Startet ein Übungsspiel, wenn du es Assist sagst, etwa „Starte 501 für Alex und Sam“, „Starte das Spiel Cricket für Alex“ oder „Spiele 501 gegen den Bot“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet mit Spiel und Spielern oder mit dem, was nicht gepasst hat. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fstart_game_by_voice.yaml) |
-| **Enter darts by voice** | Gibt die Darts eines Spiels ein, wenn du sie Assist sagst, wie am Dartautomaten: die Punkte einer Aufnahme, etwa „Alex hat 140“ oder „140 Punkte“, einen Checkout, einen einzelnen Dart wie „Triple 20“, den nächsten Spieler und Rückgängig, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet in den Worten des Callers der Anzeigetafel: was die Aufnahme übrig lässt und wer als Nächstes wirft, oder warum es nicht ging. | [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fenter_darts_by_voice.yaml) |
-| **Ask Assist about your darts** | Beantwortet deine Fragen zu den Darts, etwa „Wie ist mein Schnitt heute?“, „Wie viele 180er diese Woche?“, „Was ist mein höchster Checkout?“, „Wer führt die Bestenliste an?“ oder „Wohin soll ich zielen?“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch, aus den Statistiken des Boards. Assist antwortet in der Sprache deiner Frage. | [![Blueprint „Ask Assist about your darts“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fha-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fautodarts%2Fask_about_darts.yaml) |
+| **Celebrate a visit score** | Führt deine Aktionen für Aufnahmen ab einer Mindestpunktzahl aus (Standard 180), sobald der dritte Dart landet. Die Aktionen können `score`, `darts`, `segments` und `game` nutzen. Die Aufnahmen des Bots zählen nur auf Wunsch. | [![Blueprint „Celebrate a visit score“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fvisit_score.yaml) |
+| **Dart caller** | Sagt jede Aufnahme mit einer beliebigen Sprachausgabe auf deinen Lautsprechern an, mit eigener Ansage für 180, auf Wunsch auch jeden einzelnen Dart. Während eines Übungsspiels schweigt er, das sagt der Übungs-Caller an. Die Texte sind Vorlagen. | [![Blueprint „Dart caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fdart_caller.yaml) |
+| **Takeout actions** | Aktionen, wenn du die Darts ziehst und wenn das Board wieder frei ist, zum Beispiel für helleres Boardlicht. | [![Blueprint „Takeout actions“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Ftakeout.yaml) |
+| **Start and stop detection automatically** | Startet die Erkennung, sobald jemand am Board ist, und stoppt sie nach einer frei wählbaren Pause. Kameras und Board-PC können so ruhen. | [![Blueprint „Start and stop detection automatically“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fauto_detection.yaml) |
+| **Board problem alert** | Warnt nach einer Karenzzeit, wenn das Board offline geht oder eine Kamera ausfällt. Eine Entwarnung kommt nur nach einer echten Warnung. Die Aktionen können `problem` und `recovered` nutzen. | [![Blueprint „Board problem alert“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fboard_alert.yaml) |
+| **Training report** | Tägliche Zusammenfassung mit Darts, 3-Dart-Average, höchster Aufnahme und 180ern; Tage ohne Darts werden übersprungen. Die Variable `summary` enthält den fertigen Satz. | [![Blueprint „Training report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Ftraining_report.yaml) |
+| **Training session routine** | Beginnt eine [Trainingssession](entities.de.md#trainingssession), führt sie deine Aktionen aus, schaltet die Erkennung ein und kalibriert nach kurzer Wartezeit die Kameras. Endet sie, schaltet sie die Erkennung aus und führt deine Aktionen mit `reason`, `darts`, `average` und `duration_minutes` aus. Erkennungsschalter und Kalibrierungstaste sind optional. | [![Blueprint „Training session routine“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Ftraining_session.yaml) |
+| **Practice caller** | Sagt das [Übungsspiel](entities.de.md#übungsspiel) auf deinen Lautsprechern an: "Sam, you require 81", wenn ein Checkout möglich ist, "No score" nach dem Überwerfen, den Game shot eines Legs oder Matches und auf Wunsch den Rest, den ein Stellwurf stellt, wenn kein Checkout möglich ist, und das Ausbullen. Die Texte sind Vorlagen. | [![Blueprint „Practice caller“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fpractice_caller.yaml) |
+| **Weekly report** | Schickt deine [Trainingswoche](entities.de.md#wochenbericht), wenn das Board sie beendet, standardmäßig montags um Mitternacht: Darts, Trainingszeit, Sessions, den 3-Dart-Average und seine Veränderung zur Vorwoche, beste Aufnahme, 180er, Checkout-Quote, Serie und neue Bestleistungen. Die Nachricht ist eine Vorlage; ohne eigene Aktionen erscheint der Bericht in den Benachrichtigungen von Home Assistant. | [![Blueprint „Weekly report“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fweekly_report.yaml) |
+| **Highlight photo** | Macht ein Bild mit einer Board-Kamera nach einer Aufnahme ab 180 Punkten (einstellbar) oder einem Checkout im Übungsspiel, solange die Darts noch im Board stecken. Es speichert das Bild in der [Highlight-Galerie](#highlight-galerie) und führt deine Aktionen aus, die `photo_url`, `photo`, `image`, `message`, `score`, `checkout` und `who` nutzen können. | [![Blueprint „Highlight photo“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fhighlight_photo.yaml) |
+| **Light show** | Spielt deine Lichteffekte, etwa WLED-Presets oder die Raumbeleuchtung, bei einer 180, einem High Finish, beim Überwerfen, bei einem gewonnenen Leg oder Match, einer Bestleistung, dem Tagesziel, einem gewonnenen Ausbullen, einem Erfolg und dem Sieger eines Turniers, auf Wunsch auch bei der Entnahme und in [Online-Matches](online-matches.de.md). Danach kann er dein Licht wiederherstellen und die Erkennung während eines Effekts pausieren. | [![Blueprint „Light show“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Flight_show.yaml) |
+| **Score display** | Zeigt das [Übungsspiel](games.de.md) auf einer Pixelanzeige am Board, einer AWTRIX 3 oder einem PixelIt: den Punktestand nach jedem Dart mit dem Weg eines Checkouts und für ein paar Sekunden eine 180, ein Überwerfen, ein gewonnenes Leg und den Sieger. Wird das Spiel ausgeschaltet, oder nach der Wartezeit, zeigt die Anzeige wieder ihre Uhr. | [![Blueprint „Score display“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fscore_display.yaml) |
+| **Start a game by voice** | Startet ein Übungsspiel, wenn du es Assist sagst, etwa „Starte 501 für Alex und Sam“, „Starte das Spiel Cricket für Alex“ oder „Spiele 501 gegen den Bot“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet mit Spiel und Spielern oder mit dem, was nicht gepasst hat. | [![Blueprint „Start a game by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fstart_game_by_voice.yaml) |
+| **Enter darts by voice** | Gibt die Darts eines Spiels ein, wenn du sie Assist sagst, wie am Dartautomaten: die Punkte einer Aufnahme, etwa „Alex hat 140“ oder „140 Punkte“, einen Checkout, einen einzelnen Dart wie „Triple 20“, den nächsten Spieler und Rückgängig, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet in den Worten des Callers der Anzeigetafel: was die Aufnahme übrig lässt und wer als Nächstes wirft, oder warum es nicht ging. | [![Blueprint „Enter darts by voice“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fenter_darts_by_voice.yaml) |
+| **Ask Assist about your darts** | Beantwortet deine Fragen zu den Darts, etwa „Wie ist mein Schnitt heute?“, „Wie viele 180er diese Woche?“, „Was ist mein höchster Checkout?“, „Wer führt die Bestenliste an?“ oder „Wohin soll ich zielen?“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch, aus den Statistiken des Boards. Assist antwortet in der Sprache deiner Frage. | [![Blueprint „Ask Assist about your darts“ importieren](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FDennis-Otto%2Fhomedarts-for-autodarts%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fhomedarts%2Fask_about_darts.yaml) |
 
-Die Buttons importieren einen Blueprint von GitHub, etwa einen, den du gelöscht hast. Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/autodarts`](https://github.com/Dennis-Otto/ha-autodarts/tree/main/blueprints/automation/autodarts) ein. Ein importierter Blueprint bleibt aktuell wie die anderen.
+Die Buttons importieren einen Blueprint von GitHub, etwa einen, den du gelöscht hast. Ohne My Home Assistant öffnest du **Einstellungen → Automationen & Szenen → Blueprints → Blueprint importieren**. Dort fügst du den Link zur Datei aus [`blueprints/automation/homedarts`](https://github.com/Dennis-Otto/homedarts-for-autodarts/tree/main/blueprints/automation/homedarts) ein. Ein importierter Blueprint bleibt aktuell wie die anderen.
 
 Die Blueprints sind auf Englisch beschriftet. Ihre Ansagen und der Wochenbericht sprechen von sich aus die [Sprache von Home Assistant](#ansagen-in-der-sprache-von-home-assistant), und ihre Texte kannst du beim Anlegen frei wählen.
 
-<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den fünfzehn Autodarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
+<img src="images/de/blueprints.png" alt="Die Blueprint-Seite von Home Assistant mit den fünfzehn HomeDarts-Blueprints, von der Warnung bei Board-Problemen bis zum Wochenbericht, und ihren Dateinamen" width="760">
 
 ### Updates der Blueprints
 
@@ -94,7 +94,7 @@ Jeder Blueprint zeigt diese Einstellungen, wenn du eine Automation daraus anlegs
 | Speakers | | Die Mediaplayer, die die Ansagen abspielen. |
 | Language | leer | Die Sprache der Stimme, etwa `de-DE`; leer nutzt die Sprache der Sprachausgabe. |
 | Voice options | leer | Optionen der Sprachausgabe, etwa `voice: ...` für eine andere Stimme. |
-| Voice pack | leer | Ein [Voice-Pack](#voice-packs-der-caller) in `autodarts/voices` des Medienordners, etwa ein Pack von darts-caller. Seine Sounds sagen die Aufnahmen und Darts an, die es hat; den Rest spricht die Sprachausgabe. |
+| Voice pack | leer | Ein [Voice-Pack](#voice-packs-der-caller) in `homedarts/voices` des Medienordners, etwa ein Pack von darts-caller. Seine Sounds sagen die Aufnahmen und Darts an, die es hat; den Rest spricht die Sprachausgabe. |
 | Call every dart | aus | Sagt zusätzlich jeden Dart an, sobald er landet. Der dritte Dart wird nicht einzeln angesagt, weil gleich die Aufnahme folgt. |
 | Stay silent in practice games | an | Überlässt die Ansagen dem Übungs-Caller, solange ein X01-, Cricket- oder Partyspiel der Integration läuft. |
 | Visit message | `{{ score }}` | Wird nach einer Aufnahme gesagt. Nutzbar sind `score`, `darts` und `segments`. |
@@ -218,8 +218,8 @@ Die Nachricht kann `darts`, `visits`, `sessions`, `training_minutes`, `average`,
 | Camera | | Die Board-Kamera, die das Foto macht. Aktiviere vorher die Kamera-Entität; Kamera-Entitäten sind standardmäßig deaktiviert. |
 | Visits from | 180 | Eine Aufnahme mit mindestens diesen Punkten bekommt ein Foto, sobald ihr dritter Dart landet. |
 | Checkouts | an | Auch ein Foto, wenn ein Übungsleg mit einem Checkout gewonnen wird. Beendet derselbe Dart eine Aufnahme und ein Leg, bekommst du ein Foto, mit dem Checkout-Text. |
-| Save to the gallery | an | Speichert jedes Foto mit [`autodarts.save_highlight`](entities.de.md#highlight-foto-speichern-autodartssave_highlight), standardmäßig in der [Highlight-Galerie](#highlight-galerie) der Medienansicht. |
-| Folder | leer | Leer für die Highlight-Galerie: `autodarts/highlights` im Medienordner, `/media/autodarts/highlights` unter Home Assistant OS und im Container, `/config/media/autodarts/highlights` in anderen Installationen. Ein anderer Ordner muss einer sein, in den Home Assistant schreiben darf, etwa `/media/darts` unter Home Assistant OS oder ein Ordner aus `allowlist_external_dirs`; außerhalb des Medienordners hat ein Foto keine `photo_url`. |
+| Save to the gallery | an | Speichert jedes Foto mit [`homedarts.save_highlight`](entities.de.md#highlight-foto-speichern-homedartssave_highlight), standardmäßig in der [Highlight-Galerie](#highlight-galerie) der Medienansicht. |
+| Folder | leer | Leer für die Highlight-Galerie: `homedarts/highlights` im Medienordner, `/media/homedarts/highlights` unter Home Assistant OS und im Container, `/config/media/homedarts/highlights` in anderen Installationen. Ein anderer Ordner muss einer sein, in den Home Assistant schreiben darf, etwa `/media/darts` unter Home Assistant OS oder ein Ordner aus `allowlist_external_dirs`; außerhalb des Medienordners hat ein Foto keine `photo_url`. |
 | Actions | keine | Zum Beispiel eine Benachrichtigung, siehe [unten](#highlight-foto-aufs-handy). Optional, solange die Fotos in die Galerie gehen. |
 | Message for a visit | `{{ score }}!` | Die `message` eines Aufnahme-Fotos. |
 | Message for a checkout | `Checkout {{ checkout }}{{ ' by ' ~ who if who }}!` | Die `message` eines Checkout-Fotos. |
@@ -229,7 +229,7 @@ Die Nachricht kann `darts`, `visits`, `sessions`, `training_minutes`, `average`,
 
 Deine Aktionen können nutzen:
 
-- `photo_url`: die Adresse des gespeicherten Fotos, für eine Benachrichtigung der Home-Assistant-App, etwa `/media/local/autodarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`.
+- `photo_url`: die Adresse des gespeicherten Fotos, für eine Benachrichtigung der Home-Assistant-App, etwa `/media/local/homedarts/highlights/2026-09-26_21-05-33_Alex_180.jpg`.
 - `photo`: die Datei, in der das Bild gespeichert wird.
 - `image`: das Live-Bild der Kamera, für Fotos, die nicht gespeichert werden.
 - `message`, `score`, `checkout` und `who` (der Spieler am Board, wenn das Übungsspiel ihn nennt).
@@ -239,10 +239,10 @@ Deine Aktionen können nutzen:
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/de/highlight-photo-dark.png">
-  <img src="images/de/highlight-photo-light.png" alt="Wie das Highlight-Foto ein Foto speichert und was deine Aktionen bekommen: Nach einer hohen Aufnahme oder einem Checkout speichert autodarts.save_highlight mit Save to the gallery das Foto nur, wenn die Kamera-Entität aktiviert und verfügbar ist, die Kamera ein Bild liefert und Home Assistant in den Ordner schreiben darf; dann ist photo die gespeicherte Datei und photo_url ihre Adresse. Sonst wird nichts gespeichert, das Log sagt warum, und photo und photo_url bleiben leer. Deine Aktionen laufen in jedem Fall, und photo_url or image ist das gespeicherte Foto oder das Live-Bild" width="480">
+  <img src="images/de/highlight-photo-light.png" alt="Wie das Highlight-Foto ein Foto speichert und was deine Aktionen bekommen: Nach einer hohen Aufnahme oder einem Checkout speichert homedarts.save_highlight mit Save to the gallery das Foto nur, wenn die Kamera-Entität aktiviert und verfügbar ist, die Kamera ein Bild liefert und Home Assistant in den Ordner schreiben darf; dann ist photo die gespeicherte Datei und photo_url ihre Adresse. Sonst wird nichts gespeichert, das Log sagt warum, und photo und photo_url bleiben leer. Deine Aktionen laufen in jedem Fall, und photo_url or image ist das gespeicherte Foto oder das Live-Bild" width="480">
 </picture>
 
-Der Blueprint braucht Version 1.12.4 oder neuer der Integration, die `autodarts.save_highlight` mitbringt. Frühere Versionen des Blueprints speicherten mit `camera.snapshot`, das auch ein Foto meldete, das nie geschrieben wurde. Den neuen bringt das Update der Integration mit; deine Automation behält ihre Einstellungen. Eine *Clip camera* braucht eine Version der Integration nach 1.16.0, deren `autodarts.save_highlight` den Clip aufnimmt.
+Der Blueprint braucht Version 1.12.4 oder neuer der Integration, die `homedarts.save_highlight` mitbringt. Frühere Versionen des Blueprints speicherten mit `camera.snapshot`, das auch ein Foto meldete, das nie geschrieben wurde. Den neuen bringt das Update der Integration mit; deine Automation behält ihre Einstellungen. Eine *Clip camera* braucht eine Version der Integration nach 1.16.0, deren `homedarts.save_highlight` den Clip aufnimmt.
 
 ### Light show
 
@@ -497,7 +497,7 @@ data:
 
 ### Ansagen in der Sprache von Home Assistant
 
-Home Assistant übersetzt keine Blueprints. Deshalb gibt die Integration jedem Ereignis, das ein Caller ansagt, seine Worte in der Sprache von Home Assistant mit, und die Caller sagen sie standardmäßig: `call` bei den Ereignissen des Dart- und des Übungs-Callers, `title` und `summary` beim Wochenbericht. Sie folgen einer neuen Sprache von Home Assistant sofort, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch; eine regionale Variante wie `de-CH` spricht ihre Sprache, jede andere Sprache Englisch. Es sind die Worte des [Callers der Anzeigetafel](scoreboard.de.md#der-caller) und der Voice-Packs, die `autodarts.generate_voice_pack` aufnimmt.
+Home Assistant übersetzt keine Blueprints. Deshalb gibt die Integration jedem Ereignis, das ein Caller ansagt, seine Worte in der Sprache von Home Assistant mit, und die Caller sagen sie standardmäßig: `call` bei den Ereignissen des Dart- und des Übungs-Callers, `title` und `summary` beim Wochenbericht. Sie folgen einer neuen Sprache von Home Assistant sofort, auf Deutsch, Englisch, Niederländisch, Französisch und Spanisch; eine regionale Variante wie `de-CH` spricht ihre Sprache, jede andere Sprache Englisch. Es sind die Worte des [Callers der Anzeigetafel](scoreboard.de.md#der-caller) und der Voice-Packs, die `homedarts.generate_voice_pack` aufnimmt.
 
 | Ereignis | `call` auf Deutsch | `call` auf Englisch |
 | --- | --- | --- |
@@ -514,7 +514,7 @@ Ein eigener Text behält seine Worte in jeder Sprache. Eine früher angelegte Au
 
 ### Voice-Packs der Caller
 
-Mit *Voice pack* spielen Dart caller und Practice caller aufgenommene Sounds auf den Lautsprechern statt der Stimme der Sprachausgabe: ein Pack von [darts-caller](https://github.com/lbormann/darts-caller) oder eines, das [`autodarts.generate_voice_pack`](entities.de.md#ein-voice-pack-aufnehmen-autodartsgenerate_voice_pack) aufgenommen hat, in einem Ordner in `autodarts/voices` des Medienordners, wie für die [Anzeigetafel](scoreboard.de.md#voice-packs). Die Blueprints fragen [`autodarts.voice_sound`](entities.de.md#einen-sound-eines-voice-packs-finden-autodartsvoice_sound) nach dem Sound jeder Ansage und spielen ihn mit `media_player.play_media` ab; eine Ansage, für die das Pack keinen Sound hat, spricht die Sprachausgabe mit deiner Nachricht.
+Mit *Voice pack* spielen Dart caller und Practice caller aufgenommene Sounds auf den Lautsprechern statt der Stimme der Sprachausgabe: ein Pack von [darts-caller](https://github.com/lbormann/darts-caller) oder eines, das [`homedarts.generate_voice_pack`](entities.de.md#ein-voice-pack-aufnehmen-homedartsgenerate_voice_pack) aufgenommen hat, in einem Ordner in `homedarts/voices` des Medienordners, wie für die [Anzeigetafel](scoreboard.de.md#voice-packs). Die Blueprints fragen [`homedarts.voice_sound`](entities.de.md#einen-sound-eines-voice-packs-finden-homedartsvoice_sound) nach dem Sound jeder Ansage und spielen ihn mit `media_player.play_media` ab; eine Ansage, für die das Pack keinen Sound hat, spricht die Sprachausgabe mit deiner Nachricht.
 
 | Blueprint | Ansagen mit einem Sound des Packs |
 | --- | --- |
@@ -539,13 +539,13 @@ Die App lädt das gespeicherte Foto, aufgenommen, als die Darts noch im Board st
 
 ### Highlight-Galerie
 
-Das Highlight-Foto speichert jedes Bild als Datei, benannt nach Zeitpunkt, Spieler und Punkten, etwa `2026-09-26_21-05-33_Alex_180.jpg` oder `2026-09-26_21-07-10_Alex_checkout-121.jpg`; ein zweites Foto derselben Sekunde mit demselben Namen, etwa von einer zweiten Kamera, bekommt ein Leerzeichen und `(2)` am Ende und bleibt ebenfalls erhalten. Öffne **Medien → Autodarts** in der Seitenleiste: Die Galerie listet die Monate, die neuesten zuerst, und jedes Foto mit einem Titel wie *180 · Alex · 26.09.*, die [Clips](#highlight-clips) des Highlight-Fotos neben ihren Fotos.
+Das Highlight-Foto speichert jedes Bild als Datei, benannt nach Zeitpunkt, Spieler und Punkten, etwa `2026-09-26_21-05-33_Alex_180.jpg` oder `2026-09-26_21-07-10_Alex_checkout-121.jpg`; ein zweites Foto derselben Sekunde mit demselben Namen, etwa von einer zweiten Kamera, bekommt ein Leerzeichen und `(2)` am Ende und bleibt ebenfalls erhalten. Öffne **Medien → HomeDarts** in der Seitenleiste: Die Galerie listet die Monate, die neuesten zuerst, und jedes Foto mit einem Titel wie *180 · Alex · 26.09.*, die [Clips](#highlight-clips) des Highlight-Fotos neben ihren Fotos.
 
 <img src="images/de/media-gallery.png" alt="Die Highlight-Galerie in der Medienansicht von Home Assistant: September 2026 mit einem Checkout von 121 durch Sam, einer 180 von Alex und einer 140 von Kim" width="760">
 
-- Die Galerie zeigt den Ordner `autodarts/highlights` im Medienordner von Home Assistant, also `/media/autodarts/highlights` unter Home Assistant OS und im Container. [So funktioniert die Galerie](how-it-works.de.md#highlight-galerie).
+- Die Galerie zeigt den Ordner `homedarts/highlights` im Medienordner von Home Assistant, also `/media/homedarts/highlights` unter Home Assistant OS und im Container. [So funktioniert die Galerie](how-it-works.de.md#highlight-galerie).
 - Fotos, die du selbst dorthin kopierst, erscheinen auch; ohne einen solchen Namen mit ihrem Dateinamen und der Zeit, zu der sie gespeichert wurden.
-- Um ein Foto zu löschen, öffne **Medien → Meine Medien → autodarts → highlights**.
+- Um ein Foto zu löschen, öffne **Medien → Meine Medien → homedarts → highlights**.
 - Die Galerie braucht die Medienansicht, die zur Standardkonfiguration von Home Assistant gehört.
 
 ### Highlight-Clips
@@ -555,7 +555,7 @@ Mit einer *Clip camera* nimmt das Highlight-Foto jeden Moment auch als Clip auf:
 - **Die Kamera:** jede Kamera mit Videostream in Home Assistant, etwa eine RTSP-Kamera über die Integration *Generic Camera* oder *ONVIF*, oder die Kamera deines Streams. Die Board-Kameras von Autodarts liefern nur Bilder, die sich nicht aufnehmen lassen.
 - **Die Sekunden vor dem Dart:** Home Assistant hält sie nur, solange der Stream der Kamera läuft. Öffne die Kamera-Entität, ihre Einstellungen (⚙) und schalte *Kamera-Stream vorladen* ein; ohne das beginnt der Clip beim Foto.
 - **Ein Clip nach dem anderen:** Eine Kamera nimmt immer nur einen Clip auf. Ein Moment, der kommt, während der Clip des vorigen noch läuft, bekommt sein Foto ohne Clip, und das Protokoll sagt, warum; der Clip davor läuft bis zum Ende.
-- [`autodarts.save_highlight`](entities.de.md#highlight-foto-speichern-autodartssave_highlight) nimmt den Clip im Hintergrund mit [`camera.record`](https://www.home-assistant.io/integrations/camera/) von Home Assistant auf, das nur in Ordner schreibt, in die Home Assistant schreiben darf, etwa den Medienordner der Galerie. Eine ältere Version der Integration lässt die Clips im Ordner, ihre Galerie listet aber nur die Fotos.
+- [`homedarts.save_highlight`](entities.de.md#highlight-foto-speichern-homedartssave_highlight) nimmt den Clip im Hintergrund mit [`camera.record`](https://www.home-assistant.io/integrations/camera/) von Home Assistant auf, das nur in Ordner schreibt, in die Home Assistant schreiben darf, etwa den Medienordner der Galerie. Eine ältere Version der Integration lässt die Clips im Ordner, ihre Galerie listet aber nur die Fotos.
 - Mit dem [Stream-Overlay](scoreboard.de.md#stream-overlay) der Anzeigetafel zeigt die Kamera deines Streams auch die Punkte.
 
 ### Lichtshow mit WLED und anderem Licht
@@ -761,7 +761,7 @@ triggers:
 actions:
   - action: notify.mobile_app_handy
     data:
-      title: Autodarts
+      title: Darts
       message: Eine Board-Kamera liefert keine Bilder. Prüfe Kamera und Kabel.
 mode: single
 ```
@@ -1006,7 +1006,7 @@ triggers:
     command:
       - "lass uns [das] Spiel {game} mit {names} spielen"
 actions:
-  - action: autodarts.start_game
+  - action: homedarts.start_game
     data:
       game: "{{ trigger.slots.game }}"
       players: "{{ trigger.slots.names | regex_replace(' und ', ' ') | regex_findall('[^ ]+') }}"
@@ -1026,7 +1026,7 @@ triggers:
     command:
       - "{name} warf {0..180:score}"
 actions:
-  - action: autodarts.enter_visit
+  - action: homedarts.enter_visit
     data:
       score: "{{ trigger.slots.score }}"
       player: "{{ trigger.slots.name }}"
@@ -1085,10 +1085,10 @@ script:
       - repeat:
           for_each: "{{ darts.split() }}"
           sequence:
-            - action: autodarts.throw_dart
+            - action: homedarts.throw_dart
               data:
                 segment: "{{ repeat.item }}"
-      - action: autodarts.next_player
+      - action: homedarts.next_player
     mode: single
 ```
 
@@ -1100,7 +1100,7 @@ name: Letzte Aufnahme zurück
 icon: mdi:undo
 tap_action:
   action: perform-action
-  perform_action: autodarts.undo_visit
+  perform_action: homedarts.undo_visit
   confirmation:
     text: Die letzte Aufnahme zurücknehmen?
 ```
@@ -1126,6 +1126,8 @@ conditions:
 In Online-Matches auf play.autodarts.io kommen deine eigenen Darts wie gewohnt an. Überwerfen, gewonnene Legs und Matches und die Darts deiner Gegner bringt die optionale Online-Brücke mit der Browser-Erweiterung Tools for Autodarts, als Board-Ereignisse, deren Typ mit `online_` beginnt. Die [Anleitung zu Online-Matches](online-matches.de.md) erklärt die Einrichtung.
 
 ## Automationen älterer Versionen anpassen
+
+Ab Version 2.0 heißt die Integration HomeDarts for Autodarts, und ihre Aktionen beginnen mit `homedarts.`: Ersetze in Automationen und Skripten, die eine davon aufrufen, `autodarts.` durch `homedarts.`, zum Beispiel `homedarts.next_player`. Die Entitäts-IDs und die Board-Ereignisse bleiben, wie sie sind, und die Automationen aus den Blueprints laufen weiter. [Von Autodarts zu HomeDarts](new-name.de.md) erklärt den Wechsel.
 
 Automationen, die eine 180 feiern oder eine Aufnahme mit `visit_completed` ansagen, reagieren erst beim Ziehen der Darts. Stelle sie auf `visit_thrown` um, dann reagieren sie, sobald der dritte Dart landet, wie in den [Beispielen](#lichtshow-bei-einer-180).
 

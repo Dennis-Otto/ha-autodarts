@@ -25,7 +25,7 @@ export const WEBSITE_LANGUAGES = ["de"];
 export const TEXT = {
   en: {
     name: "English",
-    page_title: "Live demo of the cards – Autodarts for Home Assistant",
+    page_title: "Live demo of the cards – HomeDarts for Autodarts",
     title: "Try the cards",
     lead: "Games at a simulated board, played by the integration and shown by its cards, right here in your browser. Nothing to install.",
     games: "Games",
@@ -45,7 +45,7 @@ export const TEXT = {
   },
   de: {
     name: "Deutsch",
-    page_title: "Live-Demo der Karten – Autodarts für Home Assistant",
+    page_title: "Live-Demo der Karten – HomeDarts for Autodarts",
     title: "Probier die Karten aus",
     lead: "Spiele an einem simulierten Board, gespielt von der Integration und gezeigt von ihren Karten, direkt hier in deinem Browser. Nichts zu installieren.",
     games: "Spiele",
@@ -65,7 +65,7 @@ export const TEXT = {
   },
   nl: {
     name: "Nederlands",
-    page_title: "Live-demo van de kaarten – Autodarts voor Home Assistant",
+    page_title: "Live-demo van de kaarten – HomeDarts for Autodarts",
     title: "Probeer de kaarten",
     lead: "Spellen op een gesimuleerd bord, gespeeld door de integratie en getoond door haar kaarten, gewoon hier in je browser. Niets te installeren.",
     games: "Spellen",
@@ -85,7 +85,7 @@ export const TEXT = {
   },
   fr: {
     name: "Français",
-    page_title: "Démo en direct des cartes – Autodarts pour Home Assistant",
+    page_title: "Démo en direct des cartes – HomeDarts for Autodarts",
     title: "Essayez les cartes",
     lead: "Des parties sur une cible simulée, jouées par l’intégration et affichées par ses cartes, ici même dans votre navigateur. Rien à installer.",
     games: "Parties",
@@ -105,7 +105,7 @@ export const TEXT = {
   },
   es: {
     name: "Español",
-    page_title: "Demo en vivo de las tarjetas – Autodarts para Home Assistant",
+    page_title: "Demo en vivo de las tarjetas – HomeDarts for Autodarts",
     title: "Prueba las tarjetas",
     lead: "Partidas en una diana simulada, jugadas por la integración y mostradas por sus tarjetas, aquí mismo en tu navegador. Sin instalar nada.",
     games: "Partidas",
@@ -292,7 +292,7 @@ export function hassOf(replay, { entities, devices, language, dark, timeZone, no
       notice();
     },
     async callWS(message) {
-      if (message.type !== "autodarts/positions") {
+      if (message.type !== "homedarts/positions") {
         throw Object.assign(new Error("Not in the demo"), { code: "not_supported" });
       }
       const player = message.player ?? "";

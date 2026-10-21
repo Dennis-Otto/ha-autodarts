@@ -145,14 +145,14 @@ hass = types.SimpleNamespace(data={
     loader.DATA_MISSING_PLATFORMS: {},
 })
 root = types.SimpleNamespace(__name__='custom_components', __path__=[os.environ['INTEGRATIONS']])
-ours = loader.Integration.resolve_from_root(hass, root, 'autodarts')
+ours = loader.Integration.resolve_from_root(hass, root, 'homedarts')
 other = loader.Integration(hass, 'custom_components.other', None, {'domain': 'other', 'version': '2.3.4'})
 print(ours.version, ours.manifest['version'], other.version)
 """
 
 
 def test_the_demo_reports_the_major_version_of_the_integration():
-    version = json.loads((INTEGRATIONS / "autodarts" / "manifest.json").read_text())[
+    version = json.loads((INTEGRATIONS / "homedarts" / "manifest.json").read_text())[
         "version"
     ]
     major = version.split(".")[0]

@@ -1,4 +1,4 @@
-"""autodarts.save_highlight: a photo that is on disk, or an error that says why not."""
+"""homedarts.save_highlight: a photo that is on disk, or an error that says why not."""
 
 import asyncio
 import io
@@ -19,10 +19,10 @@ from homeassistant.exceptions import (
 )
 from homeassistant.setup import async_setup_component
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.highlights import name_part, photo_stem
-from custom_components.autodarts.media_source import highlight
-from custom_components.autodarts.services import SAVE_HIGHLIGHT_SCHEMA
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.highlights import name_part, photo_stem
+from custom_components.homedarts.media_source import highlight
+from custom_components.homedarts.services import SAVE_HIGHLIGHT_SCHEMA
 
 from .local_helpers import BASE, JPEG, camera_picture, setup_cameras
 
@@ -37,7 +37,7 @@ def folders(hass, config: Path, media: Path) -> Path:
     hass.config.config_dir = str(config)
     hass.config.media_dirs = {"local": str(media)}
     hass.config.allowlist_external_dirs = {str(config / "www"), str(media)}
-    return media / "autodarts" / "highlights"
+    return media / "homedarts" / "highlights"
 
 
 async def save(hass, **data) -> dict:
@@ -64,7 +64,7 @@ async def test_a_saved_photo_is_on_disk_and_opens_in_the_media_browser(
     assert re.fullmatch(r"\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_Alex Bee_180\.jpg", file)
     assert saved == {
         "photo": str((gallery / file).resolve()),
-        "photo_url": f"/media/local/autodarts/highlights/{quote(file)}",
+        "photo_url": f"/media/local/homedarts/highlights/{quote(file)}",
     }
     assert Path(saved["photo"]).read_bytes() == JPEG
     # The gallery reads the player and the score from the name.
@@ -137,7 +137,7 @@ async def test_photos_of_the_same_moment_keep_each_other(
     first, second, _ = await setup_cameras(hass, aioclient_mock, 0, 1)
     camera_picture(aioclient_mock, 0)
     camera_picture(aioclient_mock, 1, b"\xff\xd8 the other camera \xff\xd9")
-    with patch("custom_components.autodarts.highlights.COPIES", 2):
+    with patch("custom_components.homedarts.highlights.COPIES", 2):
         saved = [
             Path((await save(hass, camera=camera, player="Lea", label="180"))["photo"])
             for camera in (first, second)
@@ -193,7 +193,7 @@ async def test_a_camera_without_a_picture_saves_nothing(
     [
         (".storage", ".storage"),
         ("/etc", "/etc"),
-        ("custom_components/autodarts", "custom_components/autodarts"),
+        ("custom_components/homedarts", "custom_components/homedarts"),
         ("media/a\x00b", "media/a?b"),
     ],
 )
@@ -219,7 +219,7 @@ async def test_without_a_media_folder_the_gallery_is_nowhere(
     camera_picture(aioclient_mock, 0)
     with pytest.raises(ServiceValidationError) as error:
         await save(hass, camera=camera)
-    assert error.value.translation_placeholders == {"folder": "autodarts/highlights"}
+    assert error.value.translation_placeholders == {"folder": "homedarts/highlights"}
 
 
 async def test_a_photo_written_halfway_is_removed(hass, aioclient_mock, tmp_path):
@@ -261,7 +261,7 @@ async def test_the_suffix_follows_the_kind_of_picture(
         ("image/gif", ".jpg"),
     ):
         with patch(
-            "custom_components.autodarts.highlights.async_get_image",
+            "custom_components.homedarts.highlights.async_get_image",
             return_value=Image(kind, b"picture"),
         ):
             saved = await save(hass, camera=camera, label=kind[6:10])
@@ -307,9 +307,9 @@ async def test_a_clip_records_beside_the_photo_without_holding_up_the_answer(
     clip = (gallery / f"{STAMP}_180.mp4").resolve()
     assert saved == {
         "photo": str(clip.with_suffix(".jpg")),
-        "photo_url": f"/media/local/autodarts/highlights/{STAMP}_180.jpg",
+        "photo_url": f"/media/local/homedarts/highlights/{STAMP}_180.jpg",
         "clip": str(clip),
-        "clip_url": f"/media/local/autodarts/highlights/{STAMP}_180.mp4",
+        "clip_url": f"/media/local/homedarts/highlights/{STAMP}_180.mp4",
     }
     await asyncio.wait_for(started.wait(), 1)
     assert records == [

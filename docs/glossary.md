@@ -40,6 +40,7 @@ The words of darts and of this integration, as the documentation, the entities a
 
 | Term | Meaning | German |
 | --- | --- | --- |
+| **HomeDarts** | Short for HomeDarts for Autodarts, the name of this integration since version 2.0; up to version 1.18 it was called Autodarts ([the new name](new-name.md)) | HomeDarts |
 | **Board Manager** | The software of Autodarts on the board PC that detects the darts; generation 1 is the classic app, generation 2 is Autodarts 2 without a screen (headless). A player reports that Autodarts Desktop works on Linux; on Windows it has not been tested yet, nor have the Winmau Autodarts devices | Board Manager |
 | **Detection** | The Board Manager's dart detection with the cameras; it can be started, stopped, reset and calibrated | Erkennung |
 | **Detection status** | What the board does: ready to throw, takeout, stopped, calibrating and so on | Erkennungsstatus |

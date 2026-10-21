@@ -54,9 +54,11 @@ DISCORD = 2000
 LINE = 60
 HACS = (
     "https://my.home-assistant.io/redirect/hacs_repository/"
-    "?owner=Dennis-Otto&repository=ha-autodarts&category=integration"
+    "?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration"
 )
-DISCUSSION = "https://github.com/Dennis-Otto/ha-autodarts/discussions/new?category="
+DISCUSSION = (
+    "https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/new?category="
+)
 FORMS = ROOT / ".github" / "DISCUSSION_TEMPLATE"
 HEADING = re.compile(r"^(#{2,3}) (.+)$", re.MULTILINE)
 BLOCK = re.compile(r'^```(\w+) title="([^"]+)"\n(.*?)^```$', re.MULTILINE | re.DOTALL)

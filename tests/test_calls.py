@@ -3,8 +3,8 @@ Assistant: what the board events bring for the blueprints."""
 
 import pytest
 
-from custom_components.autodarts.calls import Caller, speaks
-from custom_components.autodarts.const import LANGUAGES
+from custom_components.homedarts.calls import Caller, speaks
+from custom_components.homedarts.const import LANGUAGES
 
 # The defaults of the blueprints before the board events brought the words: the
 # calls in English stay what they were.

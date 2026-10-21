@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="The Autodarts cards for Home Assistant, live in your browser: a 501 against the bot, a Cricket game and a tournament, played by the integration at a simulated board.">
+    <meta name="description" content="The cards of HomeDarts for Autodarts, live in your browser: a 501 against the bot, a Cricket game and a tournament, played by the integration at a simulated board.">
     <meta name="color-scheme" content="light dark">
-    <title>Live demo of the cards – Autodarts for Home Assistant</title>
+    <title>Live demo of the cards – HomeDarts for Autodarts</title>
     <link rel="icon" href="../branding/icon.svg" type="image/svg+xml">
     <style>
       /* The colours of Home Assistant's default theme, which the cards are made for,
@@ -106,7 +106,7 @@
   <body>
     <div class="wrap">
       <header class="top">
-        <a class="brand" href="../index.html" data-page="index"><img src="../branding/icon.svg" alt=""> Autodarts for Home Assistant</a>
+        <a class="brand" href="../index.html" data-page="index"><img src="../branding/icon.svg" alt=""> HomeDarts for Autodarts</a>
         <nav class="links">
           <a href="../installation.html" data-page="installation" data-text="install">Install the integration</a>
           <a href="../cards.html" data-page="cards" data-text="docs">Documentation</a>
@@ -124,14 +124,14 @@
         </div>
         <p id="status" role="status"></p>
         <div class="stage">
-          <div data-card="autodarts-scoreboard-card"></div>
-          <div data-card="autodarts-card"></div>
-          <div data-card="autodarts-training-card"></div>
-          <div data-card="autodarts-players-card"></div>
+          <div data-card="homedarts-scoreboard-card"></div>
+          <div data-card="homedarts-card"></div>
+          <div data-card="homedarts-training-card"></div>
+          <div data-card="homedarts-players-card"></div>
         </div>
       </main>
       <footer>
-        <a href="https://github.com/Dennis-Otto/ha-autodarts">github.com/Dennis-Otto/ha-autodarts</a>
+        <a href="https://github.com/Dennis-Otto/homedarts-for-autodarts">github.com/Dennis-Otto/homedarts-for-autodarts</a>
       </footer>
     </div>
     <div id="notice" role="status" aria-live="polite" hidden></div>
@@ -140,7 +140,7 @@
       import { boot } from "./demo.js";
 
       // The replay, for a look at it in the browser's console.
-      window.autodartsDemo = await boot({ window, load: () => import("./autodarts-card.js") });
+      window.homedartsDemo = await boot({ window, load: () => import("./homedarts-card.js") });
     </script>
   </body>
 </html>

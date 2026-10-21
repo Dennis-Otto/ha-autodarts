@@ -69,7 +69,7 @@ const ACHIEVEMENTS = {
 };
 const states = { ...PROFILES, ...ACHIEVEMENTS, "sensor.last_match": { state: "unknown", attributes: {} } };
 const players = (config = {}, extra = {}, language = "en") =>
-  mount("autodarts-players-card", withLanguage(makeHass({ states: { ...states, ...extra } }), language), config);
+  mount("homedarts-players-card", withLanguage(makeHass({ states: { ...states, ...extra } }), language), config);
 const click = (card, selector) => $(card, selector).dispatchEvent(new window.Event("click", { bubbles: true }));
 
 test("the players card shows every player's badges, earned and locked", () => {
@@ -217,7 +217,7 @@ test("the players card's progress speaks German", () => {
 
 const leaderboard = (config = {}, extra = {}, language = "en") => {
   const hass = withLanguage(makeHass({ states: { ...PROFILES, ...ACHIEVEMENTS, ...extra } }), language);
-  return { hass, card: mount("autodarts-leaderboard-card", hass, config) };
+  return { hass, card: mount("homedarts-leaderboard-card", hass, config) };
 };
 
 test("the leaderboard card ranks the records of all players", () => {
@@ -273,7 +273,7 @@ test("the period switches between all time, four weeks and this week", () => {
   card.hass = update(hass, { "sensor.achievements": { ...ACHIEVEMENTS["sensor.achievements"], state: "4" } });
   assert.equal($(card, '[data-period="month"]').getAttribute("aria-pressed"), "true");
   // A new configuration starts from its own period.
-  card.setConfig({ type: "custom:autodarts-leaderboard-card", period: "all" });
+  card.setConfig({ type: "custom:homedarts-leaderboard-card", period: "all" });
   card.hass = hass;
   assert.equal($(card, '[data-period="all"]').getAttribute("aria-pressed"), "true");
 });

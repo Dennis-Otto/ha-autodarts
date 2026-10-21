@@ -1,12 +1,12 @@
 ---
-description: "What each version of Autodarts for Home Assistant brought, what the next release brings, what comes later and what the integration will not do."
+description: "What each version of HomeDarts for Autodarts brought, what the next release brings, what comes later and what the integration will not do."
 ---
 
 # Roadmap
 
 [← Documentation](README.md) · [Deutsch](roadmap.de.md)
 
-This roadmap shows what each version brought, what the next release brings and what comes after it. *Next* and *Later* look at least a year ahead, until October 2027, *Not planned* says what the integration won't do, and *Reach* how many people find it. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose).
+This roadmap shows what each version brought, what the next release brings and what comes after it. *Next* and *Later* look at least a year ahead, until October 2027, *Not planned* says what the integration won't do, and *Reach* how many people find it. It is a direction, not a promise: priorities follow feedback from players, and dates depend on spare time. Ideas and votes are welcome as [feature requests](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new/choose).
 
 ## Version 1.0: the local foundation
 
@@ -44,7 +44,7 @@ Released features, all of them working without the Autodarts cloud:
 - Cricket for one to four players with marks, closed numbers, points and marks per round, and a chalkboard in the live card.
 - A scoreboard card and a full-screen scoreboard view for a screen at the board, readable from the oche.
 - Personal bests with an event when one is beaten, a training streak in days and a daily goal.
-- `autodarts.start_game` starts X01, Cricket or a training game with players, names and format in one action.
+- `homedarts.start_game` starts X01, Cricket or a training game with players, names and format in one action.
 - Detection quality: the share of corrected darts, with a repair that recalibrates the board when it rises.
 
 ## Version 1.5: party games, player profiles, doubles and a caller
@@ -53,11 +53,11 @@ Released features, all of them working without the Autodarts cloud:
 - Player profiles with statistics and personal bests per name, a match history and head-to-head records, and a players card.
 - A doubles analysis with the hit rate of every double, a doubles card and personal checkout routes.
 - A caller in the scoreboard that announces the game through the browser, off by default.
-- `autodarts.delete_player` removes a player profile, for example after a typo in a name.
+- `homedarts.delete_player` removes a player profile, for example after a typo in a name.
 
 ## Version 1.6: more games, a game lobby, reports and online matches
 
-Released as 1.6.0 on 27 September 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#160) has the details.
+Released as 1.6.0 on 27 September 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#160) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
@@ -79,14 +79,14 @@ Released as 1.6.0 on 27 September 2026; the [changelog](https://github.com/Denni
 
 ## Version 1.7: dart positions you can trust
 
-Released as 1.7.0 on 28 September 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#170) has the details.
+Released as 1.7.0 on 28 September 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#170) has the details.
 
 - The positions heatmap of the training card follows every dart live.
 - Corrected darts leave the board's misread position behind, or take the spot you tap on the scoreboard's board, which gives the bed at the same time.
 
 ## Version 1.8: every card on every screen
 
-Released as 1.8.0 on 28 September 2026 and 1.8.1 on 29 September 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#180) has the details.
+Released as 1.8.0 on 28 September 2026 and 1.8.1 on 29 September 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#180) has the details.
 
 - Every card fits from a 360 pixel phone to a 27 inch touch monitor, upright and on its side, with controls of at least 40 pixels for a finger.
 - Corrections on the live card too, with a loupe and a zoom on every touch screen.
@@ -96,7 +96,7 @@ Released as 1.8.0 on 28 September 2026 and 1.8.1 on 29 September 2026; the [chan
 
 ## Version 1.9: games by voice
 
-Released as 1.9.0 on 29 September 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#190) has the details.
+Released as 1.9.0 on 29 September 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#190) has the details.
 
 - A blueprint that starts a game when you tell Assist, for example "Start 501 for Alex and Sam" or "Starte das Spiel Cricket für Alex", in English and German, with an answer in words.
 - What a mouse shows as a tooltip, a tap shows too.
@@ -104,7 +104,7 @@ Released as 1.9.0 on 29 September 2026; the [changelog](https://github.com/Denni
 
 ## Version 1.10: like a dart machine
 
-Released as 1.10.0 on 8 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1100-2026-10-08) has the details.
+Released as 1.10.0 on 8 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1100-2026-10-08) has the details.
 
 - Wild Mouse, also known as Minnesota Cricket: Cricket plus doubles, triples and three in a bed.
 - Aim hints on the chalkboard of every Cricket game, and darts that counted nothing struck through.
@@ -116,7 +116,7 @@ Released as 1.10.0 on 8 October 2026; the [changelog](https://github.com/Dennis-
 
 ## Version 1.11: play without Autodarts
 
-Released as 1.11.0 on 9 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1110-2026-10-09) has the details.
+Released as 1.11.0 on 9 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1110-2026-10-09) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
@@ -127,24 +127,24 @@ Released as 1.11.0 on 9 October 2026; the [changelog](https://github.com/Dennis-
 
 ## Version 1.12: darts by voice
 
-Released as 1.12.0 on 9 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1120-2026-10-09) has the details.
+Released as 1.12.0 on 9 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1120-2026-10-09) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
 | **Darts by voice** | "Alex has 140", "Checkout with two darts", "Triple 20", "Next player" and "Undo" to Assist, in English and German, with an answer in the caller's words ([blueprint](automations.md#enter-darts-by-voice)) | Done |
-| **Answers of the actions at the board** | `autodarts.enter_visit`, `autodarts.throw_dart`, `autodarts.next_player` and `autodarts.undo_visit` answer in words: what a visit scored and left, who throws next, or why they refused ([actions](entities.md#enter-a-visits-score-autodartsenter_visit)) | Done |
+| **Answers of the actions at the board** | `homedarts.enter_visit`, `homedarts.throw_dart`, `homedarts.next_player` and `homedarts.undo_visit` answer in words: what a visit scored and left, who throws next, or why they refused ([actions](entities.md#enter-a-visits-score-homedartsenter_visit)) | Done |
 
 ## Version 1.13: the rules of play.autodarts.io
 
-Released as 1.13.0 on 14 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1130-2026-10-14) has the details.
+Released as 1.13.0 on 14 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1130-2026-10-14) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
-| **X01 as on play.autodarts.io** | In and out modes *Straight*, *Double* and *Master*, the bull mode *50/50*, in which the outer bull scores 50, and *Max rounds* from 1 to 50, after which the lowest score wins the leg; on the new game screen, with four new entities and in `autodarts.start_game`, also against the bot ([X01](games.md#x01)) | Done |
+| **X01 as on play.autodarts.io** | In and out modes *Straight*, *Double* and *Master*, the bull mode *50/50*, in which the outer bull scores 50, and *Max rounds* from 1 to 50, after which the lowest score wins the leg; on the new game screen, with four new entities and in `homedarts.start_game`, also against the bot ([X01](games.md#x01)) | Done |
 
 ## Version 1.14: the best aim from your own spread
 
-Released as 1.14.0 on 14 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1140-2026-10-14) has the details.
+Released as 1.14.0 on 14 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1140-2026-10-14) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
@@ -153,17 +153,17 @@ Released as 1.14.0 on 14 October 2026; the [changelog](https://github.com/Dennis
 
 ## Version 1.15: three party games, voice packs and a live demo
 
-Released as 1.15.0 on 18 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1150-2026-10-18) has the details.
+Released as 1.15.0 on 18 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1150-2026-10-18) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
-| **Bermuda, Round the World and Gotcha** | Three more party games for one to eight players, as on play.autodarts.io, from the new game screen, by voice or with `autodarts.start_game` ([party games](games.md#party-games)) | Done |
+| **Bermuda, Round the World and Gotcha** | Three more party games for one to eight players, as on play.autodarts.io, from the new game screen, by voice or with `homedarts.start_game` ([party games](games.md#party-games)) | Done |
 | **Voice packs** | The callers play recorded calls, and a voice pack of darts-caller works as it is; *Generate voice pack* records a complete pack with any text-to-speech engine of Home Assistant, such as Piper ([voice packs](scoreboard.md#voice-packs)) | Done |
-| **Live demo** | The [live demo](https://dennis-otto.github.io/ha-autodarts/demo/index.html) plays a 501 against the bot, a Cricket game and a tournament with the cards in the browser, on a phone too and in five languages, with nothing to install | Done |
+| **Live demo** | The [live demo](https://dennis-otto.github.io/homedarts-for-autodarts/demo/index.html) plays a 501 against the bot, a Cricket game and a tournament with the cards in the browser, on a phone too and in five languages, with nothing to install | Done |
 
 ## Version 1.16: pixel displays, Chromecast and callers in your language
 
-Released as 1.16.0 on 18 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1160-2026-10-18) has the details.
+Released as 1.16.0 on 18 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1160-2026-10-18) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
@@ -176,7 +176,7 @@ Released as 1.16.0 on 18 October 2026; the [changelog](https://github.com/Dennis
 
 ## Version 1.17: big tournaments, streaming and Granboard
 
-Released as 1.17.0 on 19 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1170-2026-10-19) has the details.
+Released as 1.17.0 on 19 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1170-2026-10-19) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
@@ -190,22 +190,32 @@ Released as 1.17.0 on 19 October 2026; the [changelog](https://github.com/Dennis
 
 ## Version 1.18: groups and qualifiers at the start of a tournament
 
-Released as 1.18.0 on 19 October 2026; the [changelog](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CHANGELOG.md#1180-2026-10-19) has the details.
+Released as 1.18.0 on 19 October 2026; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md#1180-2026-10-19) has the details.
 
 | Topic | What it brings | Status |
 | --- | --- | --- |
-| **Groups and qualifiers** | *Tournament groups* and *Tournament qualifiers per group* join the tournament settings: *Start tournament* and `autodarts.start_tournament` play groups and a knockout with them, and the new game screen takes them as its defaults ([tournaments](entities.md#tournaments)) | Done |
+| **Groups and qualifiers** | *Tournament groups* and *Tournament qualifiers per group* join the tournament settings: *Start tournament* and `homedarts.start_tournament` play groups and a knockout with them, and the new game screen takes them as its defaults ([tournaments](entities.md#tournaments)) | Done |
 | **In the HACS default repository** | Search for *Autodarts* in HACS and download it, without adding a custom repository first ([install](installation.md#with-hacs-recommended)) | Done on 20 October 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)) |
+
+## Version 2.0: HomeDarts for Autodarts
+
+The next release, 2.0.0, without a date yet; the [changelog](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CHANGELOG.md) will have the details.
+
+| Topic | What it brings | Status |
+| --- | --- | --- |
+| **A name of its own** | The integration is now HomeDarts for Autodarts, as Autodarts asked, with the domain `homedarts` and an icon of its own; its actions, cards and folders follow the domain, such as `homedarts.start_game` ([From Autodarts to HomeDarts](new-name.md), [decision 0026](decisions/0026-a-name-of-its-own.md)) | Done |
+| **The boards come along** | HomeDarts takes over the boards set up under the old name: their entities with their IDs, history and statistics, the stores of the training, the games and the reports, the highlights, exports and voice packs, and the cards in the dashboards; a repair lists the automations that still call the old actions ([switch over](new-name.md#switch-over)) | Done |
+| **No cloud link** | The prepared link to the Autodarts cloud is gone, since Autodarts issues no client IDs to third parties; HomeDarts works locally, and online matches come through Tools for Autodarts ([decision 0025](decisions/0025-no-cloud-link.md)) | Done |
 
 ## Next
 
-Ideas for the versions after 1.18. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) decide the order.
+Ideas for the versions after 2.0. Votes and reactions on the [feature requests](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new/choose) decide the order.
 
 | Topic | What it brings | Dependency |
 | --- | --- | --- |
 | **Granboard at a real board** | Check every bed of a real Granboard and take the label *experimental* off the Granboard support of 1.17 | A player with a Granboard who [checks every bed](granboard.md#check-every-bed) and reports what counts wrong |
-| **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works; a player reported 2.0.2 on Linux working ([#105](https://github.com/Dennis-Otto/ha-autodarts/issues/105)) | Test reports from players who use it on Windows |
-| **Further languages** | The integration and the cards in more languages, and the questions and answers of Assist in Spanish, French and Dutch as native speakers say them ([#380](https://github.com/Dennis-Otto/ha-autodarts/issues/380)) | Contributions from native speakers ([how to add a language](https://github.com/Dennis-Otto/ha-autodarts/blob/main/CONTRIBUTING.md#translations)) |
+| **Autodarts Desktop** | Verify boards run by Autodarts Desktop and document what works; a player reported 2.0.2 on Linux working ([#105](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/105)) | Test reports from players who use it on Windows |
+| **Further languages** | The integration and the cards in more languages, and the questions and answers of Assist in Spanish, French and Dutch as native speakers say them ([#380](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/380)) | Contributions from native speakers ([how to add a language](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/CONTRIBUTING.md#translations)) |
 
 ## Later
 
@@ -222,7 +232,7 @@ Ideas for the versions after 1.18. Votes and reactions on the [feature requests]
 
 ## Reach
 
-How many people find the integration and install it, counted once a month: from the numbers GitHub keeps for the repository, and from the [analytics of Home Assistant](https://analytics.home-assistant.io/), which list a custom integration once an installation that shares its usage has it. The integration itself counts nothing (see [Not planned](#not-planned)). `bash scripts/reach.sh` prints the row of the month. Other integrations for Autodarts share the domain `autodarts` (see [Coming from another tool](coming-from.md)), so the script counts the analytics only for a version that is a release of this one.
+How many people find the integration and install it, counted once a month: from the numbers GitHub keeps for the repository, and from the [analytics of Home Assistant](https://analytics.home-assistant.io/), which list a custom integration once an installation that shares its usage has it. The integration itself counts nothing (see [Not planned](#not-planned)). `bash scripts/reach.sh` prints the row of the month. The analytics list the integration by its domain, `homedarts` since 2.0; other integrations for Autodarts keep the domain `autodarts`, which this one had up to 1.18 (see [Coming from another tool](coming-from.md)), and the script counts the analytics only for a version that is a release of this one.
 
 | Month | Downloads of the releases | Visitors in 14 days | From Google | In the analytics | Stars |
 | --- | --- | --- | --- | --- | --- |
@@ -235,7 +245,7 @@ The downloads count every installation and update through HACS, of the betas too
 | HACS default repository | Listed since 20 October 2026 ([hacs/default#11306](https://github.com/hacs/default/pull/11306)): a search for *Autodarts* in HACS finds it |
 | [awesome-home-assistant](https://github.com/frenck/awesome-home-assistant) | Lists projects from six months of age, so this one from March 2027 |
 | Home Assistant forum, Reddit and the Autodarts Discord | The [launch posts](creator-kit.md#launch-posts) are ready |
-| Photos of boards it runs at | [Show and tell](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/show-and-tell) |
+| Photos of boards it runs at | [Show and tell](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/categories/show-and-tell) |
 
 ## How priorities are set
 

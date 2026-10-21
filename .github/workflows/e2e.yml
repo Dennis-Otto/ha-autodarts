@@ -75,7 +75,7 @@ jobs:
           # branding and hook, its browser test and this workflow. A pull request that
           # changes only these, such as one of the screenshot bot with a new recording,
           # starts the one job of the live demo, not the Home Assistant jobs.
-          demo='^(custom_components/autodarts/frontend/|docs/demo/|docs/branding/|scripts/mkdocs_hooks\.py$|tests/e2e/(live_demo\.(py|sh)|requirements-browser\.txt)$|\.github/workflows/e2e\.yml$)'
+          demo='^(custom_components/homedarts/frontend/|docs/demo/|docs/branding/|scripts/mkdocs_hooks\.py$|tests/e2e/(live_demo\.(py|sh)|requirements-browser\.txt)$|\.github/workflows/e2e\.yml$)'
           # When in doubt, the tests run.
           run=true
           demo_run=true

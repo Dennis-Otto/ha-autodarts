@@ -5,8 +5,8 @@ import math
 
 import pytest
 
-from custom_components.autodarts import aim
-from custom_components.autodarts.aim import (
+from custom_components.homedarts import aim
+from custom_components.homedarts.aim import (
     COMPARED,
     DRAWS,
     GRID_MM,
@@ -18,7 +18,7 @@ from custom_components.autodarts.aim import (
     expected,
     points,
 )
-from custom_components.autodarts.board import aim_point, segment_at
+from custom_components.homedarts.board import aim_point, segment_at
 
 # The same numbers as tests/frontend/training-aim.test.mjs, which the training card
 # computes for its map: Home Assistant and the card agree to the last digit.

@@ -9,7 +9,7 @@ description: "Why the games of a board run in an engine without Home Assistant, 
 
 ## Context
 
-One class, `AutodartsLocalCoordinator`, held everything about a board in 2303 lines and 129 methods: the realtime events and reads of the Board Manager, its generations, stuck takeouts and repair issues, and next to them the training, the practice games, the tournament, the bot, the darts entered by hand, the undo of a visit and the stored data. A rule of the games could only be tested through a board set up in Home Assistant, which takes seconds per test, and the entities reached into the parts of the games on the coordinator. The defects of an undo, a pass and the statistics that [#231](https://github.com/Dennis-Otto/ha-autodarts/pull/231) fixed came from changes in one part that affected another.
+One class, `AutodartsLocalCoordinator`, held everything about a board in 2303 lines and 129 methods: the realtime events and reads of the Board Manager, its generations, stuck takeouts and repair issues, and next to them the training, the practice games, the tournament, the bot, the darts entered by hand, the undo of a visit and the stored data. A rule of the games could only be tested through a board set up in Home Assistant, which takes seconds per test, and the entities reached into the parts of the games on the coordinator. The defects of an undo, a pass and the statistics that [#231](https://github.com/Dennis-Otto/homedarts-for-autodarts/pull/231) fixed came from changes in one part that affected another.
 
 ## Options
 

@@ -208,12 +208,12 @@ const setup = (states = {}, config = {}, options = {}) => {
     device: { primary_config_entry: ENTRY },
     ...options,
   });
-  return { hass, card: mount("autodarts-scoreboard-card", hass, config) };
+  return { hass, card: mount("homedarts-scoreboard-card", hass, config) };
 };
 const chips = (card) =>
   $$(card, ".visit .dart").map((chip) => [chip.tagName.toLowerCase(), chip.className, chip.dataset.dart ?? null]);
 const actions = (hass) =>
-  hass.calls.filter(([domain]) => domain === "autodarts").map(([, service, data]) => [service, data]);
+  hass.calls.filter(([domain]) => domain === "homedarts").map(([, service, data]) => [service, data]);
 
 test("the scoreboard shows the setup and the bot's level", () => {
   const { card } = setup();
@@ -590,7 +590,7 @@ test("the bot's darts, darts of an ended visit and a preview stay as they are", 
     ["div", "dart", null],
     ["div", "dart empty", null],
   ]);
-  const off = mount("autodarts-scoreboard-card", hass, { corrections: false });
+  const off = mount("homedarts-scoreboard-card", hass, { corrections: false });
   off.hass = update(hass, visit(dart(20, 3, { dart: 1 })));
   assert.deepEqual(chips(off), [
     ["div", "dart", null],
@@ -713,20 +713,20 @@ test("without the keypad, a tap on the last visit beside the darts undoes it", (
   // A dart on the board, or corrections switched off, leave the tile as it is.
   card.hass = update(hass, { ...practice({ undo: true }), ...visit(dart(20, 1, { dart: 1 })) });
   assert.equal(tile(), null);
-  const off = mount("autodarts-scoreboard-card", hass, { corrections: false });
+  const off = mount("homedarts-scoreboard-card", hass, { corrections: false });
   off.hass = update(hass, { ...practice({ undo: true }), ...last });
   assert.equal($(off, '[data-pad="undo"]'), null);
   assert.equal(text(off, ".visit .sum"), "Last85");
   // A board without a config entry sends the actions without one; an unknown last
   // visit still undoes.
   const alone = mount(
-    "autodarts-scoreboard-card",
+    "homedarts-scoreboard-card",
     makeHass({ states: { ...READY, ...practice({ undo: true }), ...visit() } }),
   );
   assert.equal(text(alone, ".visit .sum"), "Last–");
   $(alone, '[data-pad="undo"]').click();
   $(alone, '[data-pad="undo"]').click();
-  assert.deepEqual(alone._hass.calls.at(-1), ["autodarts", "undo_visit", {}]);
+  assert.deepEqual(alone._hass.calls.at(-1), ["homedarts", "undo_visit", {}]);
 });
 
 test("the pad speaks German", () => {
@@ -745,8 +745,8 @@ test("the pad speaks German", () => {
 
 test("the editor has a section for correcting and entering darts", () => {
   // The form speaks the language of the page.
-  mount("autodarts-scoreboard-card", makeHass({ states: READY })).remove();
-  const Card = customElements.get("autodarts-scoreboard-card");
+  mount("homedarts-scoreboard-card", makeHass({ states: READY })).remove();
+  const Card = customElements.get("homedarts-scoreboard-card");
   const form = Card.getConfigForm();
   const section = form.schema.find((field) => field.name === "input_section");
   assert.deepEqual([section.type, section.flatten], ["expandable", true]);
@@ -855,7 +855,7 @@ const PEOPLE_BOARD = {
 function withNames(hass, names) {
   names.forEach((name, index) => {
     const id = `text.dartboard_practice_player_${index + 1}`;
-    hass.entities[id] = { entity_id: id, platform: "autodarts", device_id: DEVICE, translation_key: "practice_player" };
+    hass.entities[id] = { entity_id: id, platform: "homedarts", device_id: DEVICE, translation_key: "practice_player" };
     hass.states[id] = { entity_id: id, state: name, attributes: {} };
   });
   return hass;
@@ -869,7 +869,7 @@ test("the bot's seat on the new game screen", () => {
     }),
     ["Alex"],
   );
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   $(card, ".lobby-toggle").click();
   assert.deepEqual(
     $$(card, ".lobby-player .who").map((name) => name.textContent),

@@ -9,8 +9,8 @@ import pytest
 from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.autodarts.diagnostics import async_get_config_entry_diagnostics
-from custom_components.autodarts.local_api import (
+from custom_components.homedarts.diagnostics import async_get_config_entry_diagnostics
+from custom_components.homedarts.local_api import (
     AutodartsEndpointMissing,
     board_generation,
 )
@@ -35,7 +35,7 @@ SECRETS = ("private-board-api-key", "private-tls-key")
 @pytest.fixture
 def cpu_usage(hass):
     """The load of the board PC, switched on as a user would."""
-    er.async_get(hass).async_get_or_create("sensor", "autodarts", "board-1_cpu_usage")
+    er.async_get(hass).async_get_or_create("sensor", "homedarts", "board-1_cpu_usage")
 
 
 @pytest.mark.usefixtures("cpu_usage")
@@ -123,7 +123,7 @@ async def test_board_without_system_endpoint_returns_to_classic(hass, aioclient_
     mock_board(aioclient_mock)
     aioclient_mock.get(BASE + "/api/system", status=404)
     data = {**local_entry_data(), "api_generation": 2}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -141,7 +141,7 @@ async def test_version_2_board_without_system_endpoint_settles_as_classic(
     aioclient_mock.get(BASE + "/api/system", status=404)
     aioclient_mock.get(BASE + "/api/host", status=404)
     data = {**local_entry_data(), "api_generation": 2}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -195,7 +195,7 @@ async def test_a_board_that_answers_the_system_endpoint_again_is_board_manager_2
     mock_board(aioclient_mock, version="2.0.0")
     aioclient_mock.get(BASE + "/api/system", status=404)
     data = {**local_entry_data(), "api_generation": 1, "no_system_api": "2.0.0"}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -237,7 +237,7 @@ async def test_a_board_that_brings_the_system_endpoint_at_start_is_board_manager
     aioclient_mock.get(BASE + "/api/version", text="2.1.0")
     mock_board_v2(aioclient_mock, system={**deepcopy(SYSTEM), "version": "2.1.0"})
     data = {**local_entry_data(), "api_generation": 1, "no_system_api": "2.0.0"}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -253,7 +253,7 @@ async def test_new_board_manager_version_asks_for_the_system_endpoint_again(
     mock_board(aioclient_mock, version="2.0.0")
     aioclient_mock.get(BASE + "/api/system", status=404)
     data = {**local_entry_data(), "api_generation": 1, "no_system_api": "2.0.0"}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -276,7 +276,7 @@ async def test_board_without_system_endpoint_of_unknown_version_stays_classic(
     mock_board(aioclient_mock, version="2.0.0")
     aioclient_mock.get(BASE + "/api/system", status=404)
     data = {**local_entry_data(), "api_generation": 1, "no_system_api": ""}
-    entry = MockConfigEntry(domain="autodarts", version=2, data=data)
+    entry = MockConfigEntry(domain="homedarts", version=2, data=data)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()

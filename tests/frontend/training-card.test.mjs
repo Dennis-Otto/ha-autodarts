@@ -31,7 +31,7 @@ const SESSION = {
 };
 const setup = (states = {}, config = {}, options = {}) => {
   const hass = makeHass({ states: { ...SESSION, ...states }, ...options });
-  return { hass, card: mount("autodarts-training-card", hass, config) };
+  return { hass, card: mount("homedarts-training-card", hass, config) };
 };
 const visitRow = (time, score, segments = ["S20", "S20", "S20"]) => ({
   s: time,
@@ -54,7 +54,7 @@ test("the training card shows the session average, darts and visits", () => {
 test("older integrations without average and daily darts still show the session", () => {
   const { "sensor.training_average": _, "sensor.darts_today": __, ...states } = SESSION;
   const hass = makeHass({ states });
-  const card = mount("autodarts-training-card", hass);
+  const card = mount("homedarts-training-card", hass);
   assert.equal(text(card, ".average"), "55.8");
   assert.deepEqual([$(card, ".daily").hidden, $(card, ".goal").hidden], [false, true]);
   assert.equal(text(card, ".streak"), "🔥 3 days in a row");
@@ -317,7 +317,7 @@ test("without the recorder, visits of the open dashboard are added once each", a
   // Without the events entity there is nothing to follow.
   const { "event.board_events": _, ...states } = SESSION;
   const { streams, connection } = historyStream();
-  const noEvents = mount("autodarts-training-card", makeHass({ states, connection }));
+  const noEvents = mount("homedarts-training-card", makeHass({ states, connection }));
   assert.deepEqual(streams, []);
   assert.equal(text(noEvents, ".history-chart"), "Completed visits appear here.");
 });
@@ -388,14 +388,14 @@ test("the stream ends with the card and starts again when it returns", async () 
   // Without the history chart there is no stream at all; a card placed before it has hass waits.
   const hidden = setup({}, { show_history: false }, { connection });
   assert.equal(streams.length, 2);
-  hidden.card.setConfig({ type: "custom:autodarts-training-card", show_history: true });
+  hidden.card.setConfig({ type: "custom:homedarts-training-card", show_history: true });
   assert.equal(streams.length, 3);
-  hidden.card.setConfig({ type: "custom:autodarts-training-card", show_history: false });
+  hidden.card.setConfig({ type: "custom:homedarts-training-card", show_history: false });
   await settle();
   assert.equal(streams[2].closed, true);
-  const early = document.createElement("autodarts-training-card");
+  const early = document.createElement("homedarts-training-card");
   document.body.append(early);
-  early.setConfig({ type: "custom:autodarts-training-card" });
+  early.setConfig({ type: "custom:homedarts-training-card" });
   early.hass = makeHass({ states: SESSION, connection });
   assert.equal(streams.length, 4);
 });
@@ -424,7 +424,7 @@ test("a new configuration keeps the history, also for a larger chart", () => {
   );
   send(streams[0], rows);
   assert.equal(chartLabel(card), "Recent visits: 100, 26, 140, 81, 180");
-  card.setConfig({ type: "custom:autodarts-training-card", history_size: 10, title: "Practice room" });
+  card.setConfig({ type: "custom:homedarts-training-card", history_size: 10, title: "Practice room" });
   assert.equal(streams.length, 1);
   assert.equal(chartLabel(card), "Recent visits: 60, 45, 100, 26, 140, 81, 180");
 });
@@ -504,7 +504,7 @@ test("the session state tells whether a session runs or when it ended", () => {
   card.hass = update(hass, { "switch.training_session": "unavailable" });
   assert.equal(text(card, ".session-state"), "");
   const { "switch.training_session": _, ...states } = SESSION;
-  const lean = mount("autodarts-training-card", makeHass({ states }));
+  const lean = mount("homedarts-training-card", makeHass({ states }));
   assert.equal(text(lean, ".session-state"), "");
   assert.equal($(lean, '[data-action="session"]').hidden, true);
 });
@@ -550,7 +550,7 @@ test("session controls ignore taps in the preview and without their entities", (
 
   const { "switch.training_session": _, "button.reset_training": __, ...states } = SESSION;
   const bare = makeHass({ states });
-  const lean = mount("autodarts-training-card", bare);
+  const lean = mount("homedarts-training-card", bare);
   assert.equal($(lean, '[data-action="new_session"]').disabled, true);
   $(lean, '[data-action="session"]').click();
   assert.deepEqual(bare.calls, []);
@@ -601,7 +601,7 @@ test("the training card speaks German", () => {
   assert.equal(text(card, ".average"), "55.8");
   // Without a locale, Home Assistant's language decides.
   const ended = { ...SESSION, ...LAST, "switch.training_session": "off" };
-  const legacy = mount("autodarts-training-card", {
+  const legacy = mount("homedarts-training-card", {
     ...makeHass({ states: ended }),
     locale: undefined,
     language: "de",
@@ -705,7 +705,7 @@ test("numbers, times and time zones follow the user profile", () => {
   const ended = { ...SESSION, ...LAST, "switch.training_session": "off" };
   const profile = (locale, config) => {
     const hass = makeHass({ states: ended });
-    return mount("autodarts-training-card", { ...hass, locale: { ...hass.locale, ...locale }, config });
+    return mount("homedarts-training-card", { ...hass, locale: { ...hass.locale, ...locale }, config });
   };
   // English words with German numbers and a 24-hour clock in the server's time zone.
   const card = profile(

@@ -25,7 +25,7 @@ export default [
     },
   },
   {
-    files: ["custom_components/autodarts/frontend/**/*.js", "docs/demo/*.js"],
+    files: ["custom_components/homedarts/frontend/**/*.js", "docs/demo/*.js"],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",

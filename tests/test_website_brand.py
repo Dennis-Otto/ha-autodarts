@@ -150,7 +150,7 @@ def test_home_assistant_shows_the_icon_of_the_integration_and_no_other():
     """Autodarts asked for its logo to be removed: the brand folder holds only the
     icon rendered from docs/branding/icon.svg, which Home Assistant also shows in
     place of a logo."""
-    brand = ROOT / "custom_components" / "autodarts" / "brand"
+    brand = ROOT / "custom_components" / "homedarts" / "brand"
     assert sorted(path.name for path in brand.iterdir()) == ["icon.png", "icon@2x.png"]
     for name, size in (("icon.png", 256), ("icon@2x.png", 512)):
         with Image.open(brand / name) as image:

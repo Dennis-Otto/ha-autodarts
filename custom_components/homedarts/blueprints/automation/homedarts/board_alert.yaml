@@ -1,0 +1,190 @@
+blueprint:
+  name: "HomeDarts: board problem alert"
+  description: >-
+    Alerts you when the board stops answering or a camera fails, and
+    optionally when everything works again. A problem the board has when Home
+    Assistant starts alerts after the grace period, too.
+
+
+    Your actions can use the variables `problem` (`offline` or `cameras`)
+    and `recovered` (`true` when the problem is gone).
+
+
+    [Settings and examples in the guide](https://dennis-otto.github.io/homedarts-for-autodarts/automations.html#board-problem-alert)
+  domain: automation
+  author: Dennis Otto
+  source_url: https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/blueprints/automation/homedarts/board_alert.yaml
+  homeassistant:
+    min_version: "2026.8.0"
+  input:
+    board:
+      name: Board
+      icon: mdi:bullseye-arrow
+      input:
+        connection:
+          name: Board connection
+          description: The "Local connection" sensor of your Autodarts board.
+          selector:
+            entity:
+              filter:
+                - integration: homedarts
+                  domain: binary_sensor
+                  device_class: connectivity
+        camera_problem:
+          name: Camera problem
+          description: The "Camera problem" sensor of your Autodarts board.
+          selector:
+            entity:
+              filter:
+                - integration: homedarts
+                  domain: binary_sensor
+                  device_class: problem
+        grace_period:
+          name: Grace period
+          description: >-
+            How long a problem has to last before the alert, so a Board Manager
+            restart or a short calibration does not alert you.
+          default:
+            minutes: 2
+          selector:
+            duration: {}
+    alert:
+      name: Alert
+      icon: mdi:bell-alert
+      input:
+        alert_actions:
+          name: Alert actions
+          description: >-
+            For example a notification to your phone. `problem` is `offline`
+            or `cameras`.
+          selector:
+            action: {}
+        recovery_actions:
+          name: Recovery actions
+          description: >-
+            Optional actions when a problem you were alerted about is gone,
+            for example an all-clear.
+          default: []
+          selector:
+            action: {}
+
+mode: queued
+max: 5
+max_exceeded: silent
+
+triggers:
+  # A problem that starts while the sensor is unavailable, such as a camera
+  # that fails while the board restarts, is a problem, too.
+  - trigger: state
+    id: offline
+    entity_id: !input connection
+    to: "off"
+    for: !input grace_period
+  - trigger: state
+    id: cameras
+    entity_id: !input camera_problem
+    to: "on"
+    for: !input grace_period
+  # A problem that ends while the board is offline is not reported as solved:
+  # only a sensor that goes straight back shows how long the problem lasted.
+  - trigger: state
+    id: offline_recovered
+    entity_id: !input connection
+    from: "off"
+    to: "on"
+  - trigger: state
+    id: cameras_recovered
+    entity_id: !input camera_problem
+    from: "on"
+    to: "off"
+  # A restart of Home Assistant, or saving this automation, forgets the grace
+  # periods that were running, and a problem that is already there when the
+  # triggers above start listening never alerts through them.
+  - trigger: homeassistant
+    id: startup
+    event: start
+  - trigger: event
+    id: startup
+    event_type: automation_reloaded
+
+variables:
+  connection: !input connection
+  camera_problem: !input camera_problem
+  grace_period: !input grace_period
+  grace_seconds: >-
+    {{ (grace_period.days | default(0)) * 86400 + (grace_period.hours | default(0)) * 3600
+    + (grace_period.minutes | default(0)) * 60 + (grace_period.seconds | default(0)) }}
+  problem: "{{ trigger.id | replace('_recovered', '') }}"
+  recovered: "{{ trigger.id.endswith('_recovered') }}"
+  # The problems a start forgot: every problem at the start of Home Assistant.
+  # A reload, which also comes when another automation is saved, only forgets
+  # the problems of this automation when it was saved: those that started
+  # before it was set up anew and were still in their grace period, or whose
+  # alert the last run, from a start or an earlier save, was still waiting
+  # for; unless an earlier reload took care of them already.
+  forgotten: >-
+    {%- set found = namespace(problems=[]) %}
+    {%- if trigger.id == 'startup' %}
+      {%- set setup = as_timestamp(this.last_changed) %}
+      {%- set ran = this.attributes.get('last_triggered') %}
+      {%- for name, entity, state in [('offline', connection, 'off'), ('cameras', camera_problem, 'on')] %}
+        {%- set sensor = states[entity] %}
+        {%- if sensor is not none and sensor.state == state
+              and (trigger.platform == 'homeassistant'
+                   or as_timestamp(sensor.last_changed) < setup
+                      and ((now() - sensor.last_changed).total_seconds() < grace_seconds
+                           or ran is not none
+                              and as_timestamp(sensor.last_changed) < as_timestamp(ran)
+                              and as_timestamp(now()) < as_timestamp(ran) + grace_seconds)
+                      and (ran is none or as_timestamp(ran) < setup)) %}
+          {%- set found.problems = found.problems
+                + [{'problem': name, 'entity': entity, 'since': as_timestamp(sensor.last_changed)}] %}
+        {%- endif %}
+      {%- endfor %}
+    {%- endif %}
+    {{- found.problems }}
+
+conditions:
+  - alias: A problem the start or the saving of this automation forgot, if any
+    condition: template
+    value_template: "{{ trigger.id != 'startup' or forgotten | length > 0 }}"
+
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id:
+              - offline
+              - cameras
+        sequence: !input alert_actions
+      - conditions:
+          - condition: trigger
+            id:
+              - offline_recovered
+              - cameras_recovered
+          # Only a problem that lasted long enough to alert is reported as solved.
+          - condition: template
+            value_template: >-
+              {{ as_timestamp(trigger.to_state.last_changed)
+                 - as_timestamp(trigger.from_state.last_changed) >= grace_seconds }}
+        sequence: !input recovery_actions
+      - conditions:
+          - condition: trigger
+            id: startup
+        sequence:
+          - delay: !input grace_period
+          - repeat:
+              for_each: "{{ forgotten }}"
+              sequence:
+                # Unless the problem ended meanwhile, or came back with a
+                # grace period of its own.
+                - if:
+                    - condition: template
+                      value_template: >-
+                        {{ states[repeat.item.entity] is not none
+                           and as_timestamp(states[repeat.item.entity].last_changed)
+                               == repeat.item.since }}
+                  then:
+                    - variables:
+                        problem: "{{ repeat.item.problem }}"
+                    - sequence: !input alert_actions

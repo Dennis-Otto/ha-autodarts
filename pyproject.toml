@@ -6,7 +6,7 @@ pythonpath = ["."]
 # A hanging test fails instead of blocking the run, locally as in CI.
 timeout = 30
 # Warnings of the integration's own code are errors.
-filterwarnings = ['error:::custom_components\.autodarts']
+filterwarnings = ['error:::custom_components\.homedarts']
 markers = [
     "expected_errors: the test logs errors of the integration on purpose",
     "installs_blueprints: the integration copies its blueprints into the configuration folder, which the test points to a folder of its own",
@@ -21,14 +21,14 @@ markers = [
 [tool.mutmut]
 source_paths = ["custom_components"]
 only_mutate = [
-    "custom_components/autodarts/board.py",
-    "custom_components/autodarts/bot.py",
-    "custom_components/autodarts/checkout.py",
-    "custom_components/autodarts/cricket.py",
-    "custom_components/autodarts/doubles.py",
-    "custom_components/autodarts/party.py",
-    "custom_components/autodarts/positions.py",
-    "custom_components/autodarts/scoring.py",
+    "custom_components/homedarts/board.py",
+    "custom_components/homedarts/bot.py",
+    "custom_components/homedarts/checkout.py",
+    "custom_components/homedarts/cricket.py",
+    "custom_components/homedarts/doubles.py",
+    "custom_components/homedarts/party.py",
+    "custom_components/homedarts/positions.py",
+    "custom_components/homedarts/scoring.py",
 ]
 # mutmut runs the tests in its copy of the repository, mutants/, which gets the
 # integration and every other file and folder of the repository that a test may read.
@@ -86,7 +86,7 @@ also_copy = [
 
 [tool.coverage.run]
 branch = true
-source = ["custom_components/autodarts"]
+source = ["custom_components/homedarts"]
 
 [tool.coverage.report]
 fail_under = 100
@@ -105,7 +105,7 @@ ignore = ["E501"]
 [tool.mypy]
 python_version = "3.14"
 strict = true
-files = ["custom_components/autodarts"]
+files = ["custom_components/homedarts"]
 
 # Home Assistant re-exports helpers such as StaticPathConfig without __all__.
 [[tool.mypy.overrides]]

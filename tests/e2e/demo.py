@@ -21,8 +21,8 @@ from demo_progress import seed
 from pictures import avatar, board_photo
 from scenario import HA, Scenario, wait_for
 
-DASHBOARD = "autodarts-demo"
-STRATEGY_DASHBOARD = "autodarts-auto"
+DASHBOARD = "homedarts-demo"
+STRATEGY_DASHBOARD = "homedarts-auto"
 
 # The frozen clock of the screenshots (compose.frozen.yaml), which stands still at
 # DEMO_TIME in this container; without DEMO_TIME the demo runs on the real clock.
@@ -78,21 +78,21 @@ EARLIER = [
 ]
 
 CARDS = {
-    "board": [{"type": "custom:autodarts-card", "grid_options": {"columns": "full"}}],
+    "board": [{"type": "custom:homedarts-card", "grid_options": {"columns": "full"}}],
     "training": [
-        {"type": "custom:autodarts-training-card", "grid_options": {"columns": "full"}}
+        {"type": "custom:homedarts-training-card", "grid_options": {"columns": "full"}}
     ],
     "status": [
-        {"type": "custom:autodarts-status-card", "grid_options": {"columns": "full"}}
+        {"type": "custom:homedarts-status-card", "grid_options": {"columns": "full"}}
     ],
-    "scoreboard": [{"type": "custom:autodarts-scoreboard-card", "caller": True}],
-    "players": [{"type": "custom:autodarts-players-card", "export": True}],
-    "doubles": [{"type": "custom:autodarts-doubles-card"}],
-    "leaderboard": [{"type": "custom:autodarts-leaderboard-card"}],
+    "scoreboard": [{"type": "custom:homedarts-scoreboard-card", "caller": True}],
+    "players": [{"type": "custom:homedarts-players-card", "export": True}],
+    "doubles": [{"type": "custom:homedarts-doubles-card"}],
+    "leaderboard": [{"type": "custom:homedarts-leaderboard-card"}],
     # The players card with badges, trends and groupings, and one player's darts.
     "progress": [
         {
-            "type": "custom:autodarts-players-card",
+            "type": "custom:homedarts-players-card",
             "show_head_to_head": False,
             "show_matches": False,
             "show_locked": False,
@@ -100,7 +100,7 @@ CARDS = {
     ],
     "positions": [
         {
-            "type": "custom:autodarts-training-card",
+            "type": "custom:homedarts-training-card",
             "mode": "positions",
             "player": "Alex",
             "show_bests": False,
@@ -111,11 +111,11 @@ CARDS = {
     ],
     "styles": [
         {
-            "type": "custom:autodarts-card",
-            "board_style": "autodarts",
+            "type": "custom:homedarts-card",
+            "board_style": "flat",
             "layout": "vertical",
         },
-        {"type": "custom:autodarts-card", "layout": "board", "title": "Board"},
+        {"type": "custom:homedarts-card", "layout": "board", "title": "Board"},
     ],
 }
 
@@ -127,7 +127,7 @@ PEOPLE = [
     ("Kim", (239, 108, 0), "not_home"),
 ]
 # Highlight photos named as the highlight photo blueprint saves them.
-GALLERY = Path("/media/autodarts/highlights")
+GALLERY = Path("/media/homedarts/highlights")
 HIGHLIGHTS = {
     "2026-09-26_21-05-33_Alex_180.jpg": ["T20", "T20", "T20"],
     "2026-09-26_21-19-02_Sam_checkout-121.jpg": ["T20", "T11", "D14"],
@@ -151,7 +151,7 @@ def dashboard() -> dict:
         "styles": 1,
     }
     return {
-        "title": "Autodarts",
+        "title": "HomeDarts",
         "views": [
             *(
                 {
@@ -177,12 +177,12 @@ def dashboard() -> dict:
                     {
                         "type": "grid",
                         "column_span": 1,
-                        "cards": [{"type": "custom:autodarts-card", "layout": "board"}],
+                        "cards": [{"type": "custom:homedarts-card", "layout": "board"}],
                     },
                     {
                         "type": "grid",
                         "column_span": 2,
-                        "cards": [{"type": "custom:autodarts-scoreboard-card"}],
+                        "cards": [{"type": "custom:homedarts-scoreboard-card"}],
                     },
                 ],
             },
@@ -193,7 +193,7 @@ def dashboard() -> dict:
                 "panel": True,
                 "cards": [
                     {
-                        "type": "custom:autodarts-scoreboard-card",
+                        "type": "custom:homedarts-scoreboard-card",
                         "full_height": True,
                         "idle_after": 10,
                         "idle_interval": 60,
@@ -207,7 +207,7 @@ def dashboard() -> dict:
                 "panel": True,
                 "cards": [
                     {
-                        "type": "custom:autodarts-scoreboard-card",
+                        "type": "custom:homedarts-scoreboard-card",
                         "full_height": True,
                         "idle": False,
                         "keypad": True,
@@ -221,7 +221,7 @@ def dashboard() -> dict:
                 "panel": True,
                 "cards": [
                     {
-                        "type": "custom:autodarts-scoreboard-card",
+                        "type": "custom:homedarts-scoreboard-card",
                         "full_height": True,
                         "idle": False,
                     }
@@ -333,13 +333,13 @@ async def seed_journal(demo: Scenario, entry_id: str) -> None:
 
     async def state(expected: str):
         entries = await demo.api(
-            "GET", "/api/config/config_entries/entry?domain=autodarts"
+            "GET", "/api/config/config_entries/entry?domain=homedarts"
         )
         return entries[0]["state"] == expected or None
 
     await demo.ws("config_entries/disable", entry_id=entry_id, disabled_by="user")
     await wait_for(lambda: state("not_loaded"), "the unloaded entry")
-    key = f"autodarts.{entry_id}.journal"
+    key = f"homedarts.{entry_id}.journal"
     now = datetime.now(ZoneInfo("Europe/Berlin"))
     journal = {"version": 1, "minor_version": 1, "key": key, "data": week_journal(now)}
     Path(f"/config/.storage/{key}").write_text(json.dumps(journal))
@@ -457,7 +457,7 @@ async def weekly_report(demo: Scenario) -> None:
     if os.environ.get("DEMO_LANGUAGE") == "de":
         inputs |= GERMAN_REPORT
     automation = {
-        "id": "autodarts_weekly_report",
+        "id": "homedarts_weekly_report",
         "alias": "Weekly darts report",
         "use_blueprint": {"path": "Dennis-Otto/weekly_report.yaml", "input": inputs},
     }
@@ -512,7 +512,7 @@ async def people(demo: Scenario) -> None:
         )
         await demo.api(
             "POST",
-            "/api/services/autodarts/link_player",
+            "/api/services/homedarts/link_player",
             json={"player": name, "person": entity},
         )
 
@@ -554,7 +554,7 @@ async def history(demo: Scenario, entry_id: str) -> None:
     """Weeks of practice of three players, written while the entry is disabled."""
     await demo.ws("config_entries/disable", entry_id=entry_id, disabled_by="user")
     await wait_for(lambda: demo.entry_is("not_loaded"), "the disabled entry")
-    seed(Path(f"/config/.storage/autodarts.{entry_id}.training"), date.today())
+    seed(Path(f"/config/.storage/homedarts.{entry_id}.training"), date.today())
     await demo.ws("config_entries/disable", entry_id=entry_id, disabled_by=None)
     await wait_for(lambda: demo.entry_is("loaded"), "the enabled entry")
     # The badges the weeks earned unlock quietly.
@@ -602,7 +602,7 @@ async def main() -> None:
         await demo.ws(
             "lovelace/dashboards/create",
             url_path=DASHBOARD,
-            title="Autodarts",
+            title="HomeDarts",
             icon="mdi:bullseye-arrow",
             show_in_sidebar=True,
             require_admin=False,
@@ -611,11 +611,11 @@ async def main() -> None:
         await demo.ws("lovelace/config/save", url_path=DASHBOARD, config=dashboard())
         await people(demo)
         gallery()
-        # A second dashboard generated entirely by the Autodarts strategy.
+        # A second dashboard generated entirely by the HomeDarts strategy.
         await demo.ws(
             "lovelace/dashboards/create",
             url_path=STRATEGY_DASHBOARD,
-            title="Autodarts (automatic)",
+            title="HomeDarts (automatic)",
             icon="mdi:bullseye",
             show_in_sidebar=True,
             require_admin=False,
@@ -624,7 +624,7 @@ async def main() -> None:
         await demo.ws(
             "lovelace/config/save",
             url_path=STRATEGY_DASHBOARD,
-            config={"strategy": {"type": "custom:autodarts"}},
+            config={"strategy": {"type": "custom:homedarts"}},
         )
         await demo.socket.close()
 

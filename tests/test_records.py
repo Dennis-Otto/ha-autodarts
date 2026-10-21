@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.records import (
+from custom_components.homedarts.records import (
     DAILY_GOAL_MAX,
     RECORDS,
     SESSION_DARTS,

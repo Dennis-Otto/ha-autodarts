@@ -12,7 +12,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.const import DOMAIN
+from custom_components.homedarts.const import DOMAIN
 
 from .local_helpers import (
     SECOND_BASE,

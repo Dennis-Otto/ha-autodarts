@@ -1,15 +1,15 @@
 """Hit rates per double, checkout routes over the strongest doubles, and how
 often every double was hit at all."""
 
-from custom_components.autodarts.checkout import checkout
-from custom_components.autodarts.doubles import (
+from custom_components.homedarts.checkout import checkout
+from custom_components.homedarts.doubles import (
     MIN_ATTEMPTS,
     DoubleHits,
     DoubleStats,
     aimed_at,
 )
-from custom_components.autodarts.practice import PracticeGame
-from custom_components.autodarts.scoring import DOUBLE
+from custom_components.homedarts.practice import PracticeGame
+from custom_components.homedarts.scoring import DOUBLE
 
 from .local_helpers import dart, throw
 

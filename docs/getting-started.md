@@ -31,34 +31,34 @@ HACS is the store for integrations and cards from the community, like this one. 
 
 ## 3. Install the integration
 
-[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=ha-autodarts&category=integration)
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Dennis-Otto&repository=homedarts-for-autodarts&category=integration)
 
-1. Select the button above and confirm your Home Assistant address. HACS opens this integration. Without the button: open **HACS**, search for **Autodarts** and open it.
+1. Select the button above and confirm your Home Assistant address. HACS opens this integration. Without the button: open **HACS**, search for **HomeDarts** and open it.
 2. Select **Download**.
 3. Restart Home Assistant: **Settings → System**, the power button at the top right, **Restart Home Assistant**.
 
 ## 4. Add your board
 
-[![Open your Home Assistant instance and start setting up Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
+[![Open your Home Assistant instance and start setting up HomeDarts for Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=homedarts)
 
 With Board Manager 2, Home Assistant usually finds the board by itself: **Settings → Devices & services** shows **Autodarts board found** under *Discovered*. Select **Add** and confirm.
 
 Otherwise, select the button above and choose **Search for boards on this network**, or **Enter board address** with the IP address of the board PC. You need no Autodarts account.
 
-<img src="images/en/setup-menu.png" alt="The Autodarts setup menu: search for boards on this network, enter a board address, or a dartboard without Autodarts" width="520">
+<img src="images/en/setup-menu.png" alt="The setup menu of HomeDarts: search for boards on this network, enter a board address, or a dartboard without Autodarts" width="520">
 
 The [installation guide](installation.md#add-your-board) explains the ways in detail. Without Autodarts, choose **Dartboard without Autodarts: enter every dart yourself** and give the board a name; [Play without Autodarts](without-autodarts.md) shows the rest.
 
 ## 5. Create the dashboard
 
-Go to **Settings → Dashboards → Add dashboard → Autodarts**. One click creates a complete dashboard for your board, with views for the live game, the scoreboard, training, the players and the board. It updates itself when you add a board or a later version brings new views.
+Go to **Settings → Dashboards → Add dashboard → HomeDarts**. One click creates a complete dashboard for your board, with views for the live game, the scoreboard, training, the players and the board. It updates itself when you add a board or a later version brings new views.
 
 <img src="images/en/dashboard-strategy.png" alt="The training view of the automatic dashboard" width="760">
 
 ## 6. Put the scoreboard next to the board
 
 1. On the tablet, open Home Assistant in the browser or in the [Home Assistant app](https://companion.home-assistant.io/) and sign in. A user of its own without administrator rights keeps the screen from changing your settings.
-2. Open the Autodarts dashboard and its *Scoreboard* view.
+2. Open the HomeDarts dashboard and its *Scoreboard* view.
 3. Switch the browser to full screen and keep the tablet awake while it is charging.
 
 The [scoreboard guide](scoreboard.md#set-up-the-screen) has the details and the options, such as the caller.
@@ -78,5 +78,5 @@ If the board misreads a dart, tap it in the visit and correct it. The [games gui
 ## If something doesn't work
 
 - The [troubleshooting guide](troubleshooting.md) explains every message of the setup and every repair notice.
-- Ask in [GitHub Discussions](https://github.com/Dennis-Otto/ha-autodarts/discussions/categories/q-a). Questions are answered there, so every answer helps the next player too. English and German are welcome.
-- If your setup is not in the list of [supported devices](README.md#supported-devices), a [compatibility report](https://github.com/Dennis-Otto/ha-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not.
+- Ask in [GitHub Discussions](https://github.com/Dennis-Otto/homedarts-for-autodarts/discussions/categories/q-a). Questions are answered there, so every answer helps the next player too. English and German are welcome.
+- If your setup is not in the list of [supported devices](README.md#supported-devices), a [compatibility report](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new?template=board_compatibility.yml) helps, whether it works or not.

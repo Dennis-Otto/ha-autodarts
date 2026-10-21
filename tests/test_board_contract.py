@@ -21,7 +21,7 @@ from aiohttp import web
 from aiohttp.test_utils import TestServer
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from custom_components.autodarts.local_api import AutodartsLocalClient
+from custom_components.homedarts.local_api import AutodartsLocalClient
 
 from .local_helpers import (
     BASE,

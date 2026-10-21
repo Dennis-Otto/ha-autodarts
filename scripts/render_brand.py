@@ -16,7 +16,7 @@ from resvg_py import svg_to_bytes
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "branding" / "icon.svg"
-DESTINATION = ROOT / "custom_components" / "autodarts" / "brand"
+DESTINATION = ROOT / "custom_components" / "homedarts" / "brand"
 # The favicon of the website (theme.favicon in mkdocs.yml): 48 pixels, the size that
 # Google shows beside a search result, which browsers scale down for a tab.
 FAVICON = ROOT / "docs" / "branding" / "favicon.png"

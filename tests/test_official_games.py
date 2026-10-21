@@ -7,7 +7,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from custom_components.autodarts.party import (
+from custom_components.homedarts.party import (
     BERMUDA_TARGETS,
     GOTCHA_TARGET,
     Bermuda,
@@ -16,8 +16,8 @@ from custom_components.autodarts.party import (
     make_party,
     valid_gotcha_target,
 )
-from custom_components.autodarts.practice import PracticeGame, valid_party_rule
-from custom_components.autodarts.scoring import DOUBLE, MASTER, STRAIGHT
+from custom_components.homedarts.practice import PracticeGame, valid_party_rule
+from custom_components.homedarts.scoring import DOUBLE, MASTER, STRAIGHT
 
 from .local_helpers import dart, throw
 
@@ -40,7 +40,7 @@ def kinds(events: list[tuple[str, dict]]) -> list[str]:
 # -- Bermuda -------------------------------------------------------------------
 
 
-def test_bermuda_plays_the_thirteen_targets_of_autodarts():
+def test_bermuda_plays_the_thirteen_targets_of_homedarts():
     game = Bermuda(1)
     assert game.rounds == 13 and game.points == [0]
     targets = []

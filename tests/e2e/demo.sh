@@ -31,5 +31,5 @@ if ! "${COMPOSE[@]}" exec -T homeassistant python3 /e2e/demo.py; then
 	exit 1
 fi
 
-echo "Demo ready: http://127.0.0.1:${E2E_PORT}/autodarts-demo/board"
+echo "Demo ready: http://127.0.0.1:${E2E_PORT}/homedarts-demo/board"
 echo "Stop it with: docker compose --project-name ${PROJECT_NAME} --file ${SCRIPT_DIR}/compose.yaml down --volumes"

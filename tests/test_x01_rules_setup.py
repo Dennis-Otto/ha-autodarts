@@ -6,8 +6,8 @@ import voluptuous as vol
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.scoring import (
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.scoring import (
     BULL_25_50,
     BULL_50_50,
     DOUBLE,

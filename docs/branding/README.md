@@ -1,14 +1,14 @@
 ---
-description: "The icon of the integration: its source, the PNG exports for Home Assistant, the colors of the website and how to render them anew."
+description: "The icon of HomeDarts for Autodarts: its source, the PNG exports for Home Assistant, the colors of the website and how to render them anew."
 ---
 
 # Brand assets
 
-The integration has an icon of its own: a house with a dartboard and a dart in its bull, darts at home. It is part of the project and under its MIT license. Autodarts asked on 2026-10-21 that the project no longer shows its logo, so neither the integration nor the website carries it.
+HomeDarts has an icon of its own: a house with a dartboard and a dart in its bull, darts at home. It is part of the project and under its MIT license. Autodarts asked on 2026-10-21 that the project no longer shows its logo, so neither the integration nor the website carries it.
 
 - `icon.svg`: the source, a square of 512 × 512. The navy of the house, `#1d3a57`, is light enough to stand out on a dark background too, so one icon serves both themes.
 
-PNG exports live in `custom_components/autodarts/brand/` and follow the [Home Assistant brand image specification](https://github.com/home-assistant/brands#image-specification): transparent, trimmed to the artwork and compressed.
+PNG exports live in `custom_components/homedarts/brand/` and follow the [Home Assistant brand image specification](https://github.com/home-assistant/brands#image-specification): transparent, trimmed to the artwork and compressed.
 
 - `icon.png` (256 × 256) and `icon@2x.png` (512 × 512): the artwork fills the square along its longer side. Both themes share them through Home Assistant's dark-icon fallback, and without a logo of its own Home Assistant shows the icon in place of one.
 
@@ -32,6 +32,6 @@ python3 -m venv /tmp/brand-renderer-venv
 /tmp/brand-renderer-venv/bin/python scripts/render_brand.py
 ```
 
-Then compress the images, for example with `pngquant --quality 85-98 --ext .png --force custom_components/autodarts/brand/*.png docs/branding/favicon.png`.
+Then compress the images, for example with `pngquant --quality 85-98 --ext .png --force custom_components/homedarts/brand/*.png docs/branding/favicon.png`.
 
 Home Assistant [supports local custom-integration brand assets from 2026.3](https://developers.home-assistant.io/docs/core/integration/brand_images/). The folder is included in HACS and manual installations. No manifest `icon` property or cloud authorization is needed.

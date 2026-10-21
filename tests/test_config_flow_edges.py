@@ -11,7 +11,7 @@ from .test_local_flow import open_local
 async def test_local_board_without_version_is_added(hass, aioclient_mock):
     mock_board(aioclient_mock, version="unknown")
     result = await open_local(hass)
-    with patch("custom_components.autodarts.async_setup_entry", return_value=True):
+    with patch("custom_components.homedarts.async_setup_entry", return_value=True):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {"host": "192.0.2.10", "port": 3180}
         )

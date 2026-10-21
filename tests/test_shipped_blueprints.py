@@ -16,9 +16,9 @@ from homeassistant.util.yaml import parse_yaml
 from pytest_homeassistant_custom_component.common import async_capture_events
 from yaml import safe_dump
 
-from custom_components.autodarts import shipped_blueprints
-from custom_components.autodarts.repairs import async_create_fix_flow
-from custom_components.autodarts.shipped_blueprints import (
+from custom_components.homedarts import shipped_blueprints
+from custom_components.homedarts.repairs import async_create_fix_flow
+from custom_components.homedarts.shipped_blueprints import (
     SHIPPED,
     STORAGE_KEY,
     VERSIONS,
@@ -116,7 +116,7 @@ def repairs(hass) -> dict[str, ir.IssueEntry]:
     return {
         issue_id: issue
         for (domain, issue_id), issue in ir.async_get(hass).issues.items()
-        if domain == "autodarts" and issue_id.startswith("blueprint_edited_")
+        if domain == "homedarts" and issue_id.startswith("blueprint_edited_")
     }
 
 
@@ -134,7 +134,7 @@ def test_the_release_carries_the_blueprints_of_the_repository():
         )
     assert {path.name for path in SHIPPED.parents[1].rglob("*")} == {
         "automation",
-        "autodarts",
+        "homedarts",
         *NAMES,
     }
 
@@ -171,7 +171,7 @@ def test_an_imported_earlier_version_is_known_by_its_fingerprint():
     ("before", "after"),
     [
         ("min: 2\n", "min: 1\n"),
-        ("- integration: autodarts\n                  domain", "- domain"),
+        ("- integration: homedarts\n                  domain", "- domain"),
     ],
 )
 def test_changed_selector_options_of_the_current_version_stay(before, after):
@@ -339,7 +339,7 @@ async def test_a_changed_blueprint_stays_with_a_repair(hass, config, content):
     # A repair of an earlier version, and one of another kind.
     ir.async_create_issue(
         hass,
-        "autodarts",
+        "homedarts",
         "blueprint_edited_takeout_000000000000",
         is_fixable=True,
         severity=ir.IssueSeverity.WARNING,
@@ -347,7 +347,7 @@ async def test_a_changed_blueprint_stays_with_a_repair(hass, config, content):
     )
     ir.async_create_issue(
         hass,
-        "autodarts",
+        "homedarts",
         "calibration_recommended_x",
         is_fixable=True,
         severity=ir.IssueSeverity.WARNING,
@@ -368,12 +368,12 @@ async def test_a_changed_blueprint_stays_with_a_repair(hass, config, content):
     assert issue_id == f"blueprint_edited_takeout_{version}"
     assert issue.is_fixable
     assert issue.translation_placeholders == {
-        "name": "Autodarts: takeout actions",
+        "name": "HomeDarts: takeout actions",
         "path": f"blueprints/automation/Dennis-Otto/{TAKEOUT}",
     }
     assert issue.data == {"file": TAKEOUT}
     registry = ir.async_get(hass)
-    assert registry.async_get_issue("autodarts", "calibration_recommended_x")
+    assert registry.async_get_issue("homedarts", "calibration_recommended_x")
     assert registry.async_get_issue("other", "blueprint_edited_takeout_1")
     # The next start keeps it.
     await async_install_blueprints(hass)

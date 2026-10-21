@@ -1,5 +1,5 @@
 ---
-description: "Fix common problems of the Autodarts integration: setup, repairs, a board that is not found or does not update, the move to Autodarts 2, and logs."
+description: "Fix common problems of HomeDarts: setup, repairs, a board that is missing or does not update, the switch from its old name, the move to Autodarts 2, and logs."
 ---
 
 # Troubleshooting
@@ -26,6 +26,7 @@ description: "Fix common problems of the Autodarts integration: setup, repairs, 
 | *This address belongs to a different board* | **Reconfigure** found another board at the new address. Enter the address of the board this entry belongs to, or add the other board as a new entry. |
 | *The board announced on your network does not answer* | A discovered board did not answer at the address it announced, for example because the Board Manager stopped meanwhile. Start the Board Manager and add the board again, or enter its address. |
 | *Setup of this board is already in progress* | Another setup dialog for the same board is open, for example the discovered board. Finish or close it. |
+| *No board of the integration Autodarts is left to take over* | Every board set up under the former name of HomeDarts is taken over already. HomeDarts takes over only its own boards, not those of other integrations named Autodarts: add such a board as a new one ([coming from another tool](coming-from.md)). |
 | The board is not discovered automatically | Automatic discovery needs Board Manager 2 and mDNS in your network. Home Assistant in Docker needs `network_mode: host`, and mDNS does not cross VLANs without a repeater. Use the search or the address instead. |
 
 ## Repairs
@@ -35,11 +36,13 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | Notice | Meaning and solution |
 | --- | --- |
 | **Autodarts board address points to a different board** | The configured address answers with a different board ID, for example because IP addresses were swapped. The entities stay unavailable so that they never show another board's data. Open the integration, choose **Reconfigure** and select the correct board. The notice disappears by itself. |
-| **Calibrate the Autodarts board** | At least 20 % of the last 100 darts, and at least 50 darts in all, needed a correction, by the board, on the scoreboard or with `autodarts.correct_dart`, see *Detection correction rate*. Remove all darts, open the notice and confirm: the integration calibrates all cameras and counts again from zero. The notice also disappears once the rate falls below 10 %. |
+| **Calibrate the Autodarts board** | At least 20 % of the last 100 darts, and at least 50 darts in all, needed a correction, by the board, on the scoreboard or with `homedarts.correct_dart`, see *Detection correction rate*. Remove all darts, open the notice and confirm: the integration calibrates all cameras and counts again from zero. The notice also disappears once the rate falls below 10 %. |
 | **Update the board to the new Autodarts Board Manager** | The board still runs the classic Board Manager 1, which Autodarts will switch off. Install Board Manager 2 on the board PC. The integration switches over by itself and the notice disappears. |
 | **Autodarts board found at a new address** | The board no longer answers with its board ID at its configured address, but it answers at another one, where Board Manager 2 announced it (mDNS), for example after a DHCP change. Open the notice and confirm only if it is your board: the integration checks the address once more, switches to it and reloads. Entities, training and settings are kept. See [address changes](how-it-works.md#address-changes). |
 | **Autodarts board refuses access** | The board answers with HTTP 401 or 403. The Board Manager needs no login, so a reverse proxy, a firewall or a login in front of port 3180 blocks Home Assistant. Let Home Assistant reach the board; the notice disappears with the next successful read. |
 | **Autodarts board answers in an unknown format** | A required read (state, settings or `/api/system`) answered three times in a row in a format this version does not understand, typically after a Board Manager update. Update the integration. If the notice stays, [report it](#report-a-bug) with the diagnostics; the log names the affected reads. |
+| **Some automations, scripts or dashboards still use the old name** | HomeDarts took over your boards, but the automations, scripts and YAML dashboards it lists still call actions such as `autodarts.start_game` or use cards such as `custom:autodarts-card`. Replace `autodarts.` with `homedarts.` in their actions and `custom:autodarts` with `custom:homedarts` in the types of their cards, then ignore the notice. See [automations stop after the switch](#automations-stop-after-the-switch-to-homedarts). |
+| **Restart Home Assistant to finish the switch to HomeDarts** | The takeover removed the files of the integration under its former name, which stays loaded until Home Assistant restarts. Open the notice and confirm to restart. |
 
 ## Operation
 
@@ -51,7 +54,7 @@ Home Assistant shows these notices under **Settings → Repairs**:
 
 ### Messages on the board's entry
 
-**Settings → Devices & services → Autodarts** shows why a board is not loaded or its entities are unavailable:
+**Settings → Devices & services → HomeDarts for Autodarts** shows why a board is not loaded or its entities are unavailable:
 
 | Message | Cause and solution |
 | --- | --- |
@@ -61,7 +64,7 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *Board Manager refused access* | See **Autodarts board refuses access** under [repairs](#repairs). |
 | *The stored training of this board comes from a newer version of the integration* | The integration was downgraded after a newer version had saved the training, the practice game and the statistics. Install that version again, or restore a backup of Home Assistant from before the update. The board does not load until then, and the stored data stays unchanged. |
 | *The stored training of this board cannot be read right now* | Home Assistant could not read its `.storage` folder, for example because the disk is full or the permissions changed. Check the free space and the permissions of `.storage`; Home Assistant tries again by itself and overwrites nothing in the meantime. |
-| *The stored training of this board cannot be restored* | The stored data does not fit what this version expects. [Report a bug](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) with the log and the diagnostics; the stored data stays unchanged. |
+| *The stored training of this board cannot be restored* | The stored data does not fit what this version expects. [Report a bug](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new/choose) with the log and the diagnostics; the stored data stays unchanged. |
 
 ### An action fails
 
@@ -70,35 +73,35 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *The board did not accept the action* | The board rejected the command or did not answer. Check the connection and try again. |
 | *This board does not support the action* | The Board Manager has no such command, for example the camera streams on Board Manager 1. |
 | *Board Manager refused access* | See **Autodarts board refuses access** under [repairs](#repairs). |
-| *No Autodarts board with a local connection is loaded* | Every `autodarts` action needs a board that is connected locally and loaded. Check the entry under **Settings → Devices & services**. |
-| *Unauthorized* | `autodarts.delete_player`, `autodarts.export`, `autodarts.link_player` and `autodarts.unlink_player` delete or write out the players' data, so only administrators may run them, for example not the user of the screen at the board. Automations run them, too. |
+| *No Autodarts board with a local connection is loaded* | Every `homedarts` action needs a board that is connected locally and loaded. Check the entry under **Settings → Devices & services**. |
+| *Unauthorized* | `homedarts.delete_player`, `homedarts.export`, `homedarts.link_player` and `homedarts.unlink_player` delete or write out the players' data, so only administrators may run them, for example not the user of the screen at the board. Automations run them, too. |
 | *Several Autodarts boards are set up. Choose the board.* | With more than one board, choose the board in the action, the `config_entry_id` field in YAML. |
-| *Config entry … was not found*, *… does not belong to integration autodarts* or *… is not loaded* | The board chosen in the action was deleted, is another integration's entry or is not loaded. Choose the board again; a board that does not load shows why on its entry. |
+| *Config entry … was not found*, *… does not belong to integration homedarts* or *… is not loaded* | The board chosen in the action was deleted, is another integration's entry or is not loaded. Choose the board again; a board that does not load shows why on its entry. |
 | *… is on the list of players more than once* | Every player needs a name of their own. Players without a name may appear more than once. |
 | *A player name cannot contain curly brackets, …* | Home Assistant would read these characters as the start of a template. Leave out `{`, `}`, `%`, `#` and control characters. |
 | *Killer needs at least two players* | Name two to four players in the action, or set *Practice players* to 2 or more. |
 | *There is no player profile named …* | Check the spelling; upper and lower case do not matter. The *Player profiles* sensor lists every profile. |
-| *There is no person … in Home Assistant* | `autodarts.link_player` needs a person entity, such as `person.alex`. Create the person under **Settings → People** first. |
+| *There is no person … in Home Assistant* | `homedarts.link_player` needs a person entity, such as `person.alex`. Create the person under **Settings → People** first. |
 | *Teams need four players* | Teams play 1 and 3 against 2 and 4: name four players, or set *Practice players* to 4. |
 | *Teams play X01 and the Cricket games* | Switch *Teams* off for party and training games. |
 | *A start score is 0, for the game's start score, or 2 to 1001* | Correct `start_scores` in the action or the *Practice start score player N* setting. |
 | *The start scores name … values, but only … players play* | `start_scores` has at most one value per player, in throwing order; with the bot, its seat counts, too. Leave out the extra values. |
 | *Teams play from the start scores of players 1 and 2* | In a team match, the first start score is team 1's and the second team 2's. Give at most two. |
 | *A start score of 3 cannot be checked out with double in and double out* | The only opening double, D1, leaves 1, which no double can finish. Choose another start score, or switch off double in or double out. |
-| *… is not a bed of the board* | `segment` of `autodarts.correct_dart` or `autodarts.throw_dart` takes S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye or MISS. |
-| *Name the bed with segment, or where the dart is with x and y* | `autodarts.correct_dart` and `autodarts.throw_dart` need the bed, the position, or both. |
+| *… is not a bed of the board* | `segment` of `homedarts.correct_dart` or `homedarts.throw_dart` takes S1 to S20, D1 to D20, T1 to T20, 25 for the outer bull, BULL for the bullseye or MISS. |
+| *Name the bed with segment, or where the dart is with x and y* | `homedarts.correct_dart` and `homedarts.throw_dart` need the bed, the position, or both. |
 | *Give the position with both x and y …* | A position needs `x` and `y`, each from -3 to 3: 0 is the center, 1 the outer edge of the double ring, and `y` points to the 20. |
 | *The position given is in …, not in …* | The bed follows from the position. Leave out `segment`, or give the bed at that spot. |
-| *The current visit has no dart …* | `autodarts.correct_dart` corrects dart 1, 2 or 3 of the current visit once it is on the board. A visit whose darts were pulled comes back with `autodarts.undo_visit`. |
+| *The current visit has no dart …* | `homedarts.correct_dart` corrects dart 1, 2 or 3 of the current visit once it is on the board. A visit whose darts were pulled comes back with `homedarts.undo_visit`. |
 | *The darts of the bot cannot be corrected* | The bot's darts come from Home Assistant, not from the board. Only the darts of a player can be corrected. |
-| *Manual entry is off* | `autodarts.throw_dart` enters darts only while the *Practice manual entry* switch is on. Switch it on first. |
-| *The bot is at the board* | The bot is throwing its visit. Wait for it, or end it with `autodarts.next_player`. |
-| *The visit already has three darts* | Pass the turn with `autodarts.next_player`, or pull the darts, before you enter the next dart. |
-| *The visit has no darts to end* | Without darts, `autodarts.next_player` passes the turn only where a player may pass: in X01, the Cricket and the party games, but not in the training games, in a bull-off or while the Killer numbers are chosen. |
-| *There is no visit to undo* | `autodarts.undo_visit` takes back the last completed visit, while no dart is in the board and neither the game nor the training session has changed since. Pull the darts first; the darts of the current visit are corrected with `autodarts.correct_dart`. |
+| *Manual entry is off* | `homedarts.throw_dart` enters darts only while the *Practice manual entry* switch is on. Switch it on first. |
+| *The bot is at the board* | The bot is throwing its visit. Wait for it, or end it with `homedarts.next_player`. |
+| *The visit already has three darts* | Pass the turn with `homedarts.next_player`, or pull the darts, before you enter the next dart. |
+| *The visit has no darts to end* | Without darts, `homedarts.next_player` passes the turn only where a player may pass: in X01, the Cricket and the party games, but not in the training games, in a bull-off or while the Killer numbers are chosen. |
+| *There is no visit to undo* | `homedarts.undo_visit` takes back the last completed visit, while no dart is in the board and neither the game nor the training session has changed since. Pull the darts first; the darts of the current visit are corrected with `homedarts.correct_dart`. |
 | *The bot level is 0, for no bot, or a 3-dart average of 20 to 120* | Correct `bot_level` in the action or the *Practice bot level* setting. |
 | *With the bot, up to three players play* | The bot takes a seat of its own in X01 and the Cricket games. Play with three players at most, or set the bot level to 0. |
-| *The export folder … must not be hidden, and Home Assistant must allow writing to it* | Leave the folder empty for `autodarts/exports` of the media folder, or choose a folder that does not start with a dot in `www`, in a media folder or in a folder listed in `allowlist_external_dirs`. |
+| *The export folder … must not be hidden, and Home Assistant must allow writing to it* | Leave the folder empty for `homedarts/exports` of the media folder, or choose a folder that does not start with a dot in `www`, in a media folder or in a folder listed in `allowlist_external_dirs`. |
 | *The export could not be written* | The folder is not writable or the disk is full; the message names the reason. |
 | *… exports were written in the last hour* | The integration writes a limited number of exports per hour. Try again later. |
 | *This tournament format takes … to … players* | Name as many players as the format takes, each with a name of their own: three to eight in a round robin, six to 32 with groups, three to 32 otherwise. |
@@ -108,6 +111,16 @@ Home Assistant shows these notices under **Settings → Repairs**:
 | *The tournament is over* | The final is played; *Next tournament match* has no match left. Stop the tournament, or start a new one. |
 | *… plays in the tournament* | A player of the running tournament cannot be deleted. Stop the tournament first. |
 | *The tournament match of … against … is still being played* | *Next tournament match* waits for the pause between two matches. Play the match to the end, or stop the tournament. |
+
+### Automations stop after the switch to HomeDarts
+
+Since 2.0 the actions of the integration start with `homedarts.`, such as `homedarts.start_game`, and its cards with `custom:homedarts`. Once HomeDarts has [taken over your boards](new-name.md), the actions of the old name, such as `autodarts.start_game`, no longer exist:
+
+- **Automations and scripts** that call them fail because Home Assistant finds no such action. Replace `autodarts.` with `homedarts.`; the repair *Some automations, scripts or dashboards still use the old name* lists them.
+- **Dashboards in YAML** show *Custom element doesn't exist: autodarts-card*. Replace `custom:autodarts` with `custom:homedarts` in the types of the cards and the strategy, and `board_style: autodarts` with `board_style: flat`.
+- **Triggers and conditions on entities** keep working: the entity IDs stay, such as `event.autodarts_board_events`.
+
+[What you change yourself](new-name.md#what-you-change-yourself) has the details.
 
 ### No realtime updates
 
@@ -138,8 +151,8 @@ The status stays *Takeout in progress* although the board is empty, and new dart
 
 ### The card is missing or outdated
 
-- **Custom element doesn't exist: autodarts-card:** restart Home Assistant after installing, then reload the browser page.
-- **Nothing or *Custom element doesn't exist* on Home Assistant Cast:** restart Home Assistant once after installing or updating the integration, then cast again. *Settings → Dashboards → ⋮ → Resources* lists `autodarts-strategy.js` and `autodarts-card.js` under `/autodarts/`, in the folder of the version; with resources in YAML, add the [two lines](cards.md#home-assistant-cast) yourself.
+- **Custom element doesn't exist: homedarts-card:** restart Home Assistant after installing, then reload the browser page.
+- **Nothing or *Custom element doesn't exist* on Home Assistant Cast:** restart Home Assistant once after installing or updating the integration, then cast again. *Settings → Dashboards → ⋮ → Resources* lists `homedarts-strategy.js` and `homedarts-card.js` under `/homedarts/`, in the folder of the version; with resources in YAML, add the [two lines](cards.md#home-assistant-cast) yourself.
 - **An old version of a card after an update:** reload the page. In the companion app, use *Settings → Companion app → Debugging → Reset frontend cache*.
 - **The training history is empty:** the history is read from the recorder. It needs the `recorder` integration (enabled by default) and fills with completed visits.
 
@@ -170,7 +183,7 @@ A player moved a board PC with Ubuntu 24.04 and three cameras from Autodarts 1.x
 
 ### Download diagnostics
 
-**Settings → Devices & services → Autodarts →** the board's menu (⋮) → **Download diagnostics**. The file contains the board state, the settings summary, under `local_readings` the motion, whether the cameras run, the frame rates and the load of the board PC, the Board Manager generation, connection states and the poll interval, the practice game with its rules and whether a bull-off runs, and the numbers of stored sessions, personal bests, player profiles, matches and darts at a double. Under `connection`, it also shows the connection history: failed reads in a row, the kind of the last error, the last successful read, how long the board has been away, the duration of the last read, reads answered in an unknown format and, for the realtime connection, connects, failed attempts, the current back-off, why it last ended and how many frames were skipped, and under `stuck_takeout` whether stuck takeouts are freed, whether one is being timed, and how many resets the board took or refused. The board ID, the board name, addresses and player names are redacted; error messages are not included.
+**Settings → Devices & services → HomeDarts for Autodarts →** the board's menu (⋮) → **Download diagnostics**. The file contains the board state, the settings summary, under `local_readings` the motion, whether the cameras run, the frame rates and the load of the board PC, the Board Manager generation, connection states and the poll interval, the practice game with its rules and whether a bull-off runs, and the numbers of stored sessions, personal bests, player profiles, matches and darts at a double. Under `connection`, it also shows the connection history: failed reads in a row, the kind of the last error, the last successful read, how long the board has been away, the duration of the last read, reads answered in an unknown format and, for the realtime connection, connects, failed attempts, the current back-off, why it last ended and how many frames were skipped, and under `stuck_takeout` whether stuck takeouts are freed, whether one is being timed, and how many resets the board took or refused. The board ID, the board name, addresses and player names are redacted; error messages are not included.
 
 ### Enable debug logging
 
@@ -180,14 +193,14 @@ On the integration page, select **Enable debug logging**, reproduce the problem 
 logger:
   default: warning
   logs:
-    custom_components.autodarts: debug
+    custom_components.homedarts: debug
 ```
 
 ### Report a bug
 
-Open an [issue](https://github.com/Dennis-Otto/ha-autodarts/issues/new/choose) with the Home Assistant version, the Board Manager version, the diagnostics file and the relevant log lines. Report security problems privately as described in [SECURITY.md](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SECURITY.md).
+Open an [issue](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues/new/choose) with the Home Assistant version, the Board Manager version, the diagnostics file and the relevant log lines. Report security problems privately as described in [SECURITY.md](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/SECURITY.md).
 
-Within a few minutes, an AI issue assistant posts a first analysis, often with a fix or the part of the documentation that helps, and asks for anything that's missing. The maintainer reads every issue as well. If questions stay unanswered, a reminder follows after 15 days and the issue closes after 30 days; an answer reopens it. A likely duplicate closes 3 days after a notice unless you object. A fixed issue stays open until a release ships the fix and then closes with a link to the release ([details](https://github.com/Dennis-Otto/ha-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
+Within a few minutes, an AI issue assistant posts a first analysis, often with a fix or the part of the documentation that helps, and asks for anything that's missing. The maintainer reads every issue as well. If questions stay unanswered, a reminder follows after 15 days and the issue closes after 30 days; an answer reopens it. A likely duplicate closes 3 days after a notice unless you object. A fixed issue stays open until a release ships the fix and then closes with a link to the release ([details](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/SUPPORT.md#what-happens-with-your-issue)).
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/issue-lifecycle-dark.png">

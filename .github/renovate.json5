@@ -4,7 +4,7 @@
 // https://docs.renovatebot.com/configuration-options/
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["local>Dennis-Otto/ha-autodarts//.github/renovate-blueprint.json5"],
+  extends: ["local>Dennis-Otto/homedarts-for-autodarts//.github/renovate-blueprint.json5"],
   packageRules: [
     {
       // The end-to-end tests run the oldest Home Assistant that the integration

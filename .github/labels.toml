@@ -76,11 +76,11 @@ form_options = [
 [[label]]
 name = "area: entities"
 color = "bfdadc"
-description = "Entities, board events and the autodarts.* actions"
+description = "Entities, board events and the homedarts.* actions"
 group = "area"
 form_options = [
   "Entities or board events",
-  "Actions (autodarts.*)",
+  "Actions (homedarts.*)",
 ]
 
 [[label]]

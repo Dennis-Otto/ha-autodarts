@@ -16,36 +16,36 @@ from typing import Any
 import pytest
 import yaml
 
-from custom_components.autodarts.achievements import ACHIEVEMENTS
-from custom_components.autodarts.binary_sensor import MOTION_SENSORS
-from custom_components.autodarts.calls import DECIMAL_MARKS
-from custom_components.autodarts.const import LANGUAGES as INTEGRATION_LANGUAGES
-from custom_components.autodarts.drills import DRILLS
-from custom_components.autodarts.journal import LOCALES
-from custom_components.autodarts.local_api import STANDBY_MINUTES
-from custom_components.autodarts.local_coordinator import EVENT_TYPES, ISSUES
-from custom_components.autodarts.media_source import (
+from custom_components.homedarts.achievements import ACHIEVEMENTS
+from custom_components.homedarts.binary_sensor import MOTION_SENSORS
+from custom_components.homedarts.calls import DECIMAL_MARKS
+from custom_components.homedarts.const import LANGUAGES as INTEGRATION_LANGUAGES
+from custom_components.homedarts.drills import DRILLS
+from custom_components.homedarts.journal import LOCALES
+from custom_components.homedarts.local_api import STANDBY_MINUTES
+from custom_components.homedarts.local_coordinator import EVENT_TYPES, ISSUES
+from custom_components.homedarts.media_source import (
     CHECKOUTS,
     MONTH_TITLES,
     MONTHS,
     SHORT_DATES,
 )
-from custom_components.autodarts.practice import (
+from custom_components.homedarts.practice import (
     GAME_OPTIONS,
     MAX_LEGS,
     MAX_PLAYERS,
     MAX_SETS,
 )
-from custom_components.autodarts.sensor import LOCAL_STATES
-from custom_components.autodarts.services import (
+from custom_components.homedarts.sensor import LOCAL_STATES
+from custom_components.homedarts.services import (
     DELETE_PLAYER_SCHEMA,
     START_GAME_SCHEMA,
 )
-from custom_components.autodarts.tournament import NAMED_STAGES
+from custom_components.homedarts.tournament import NAMED_STAGES
 
 from .local_helpers import entity_id, setup_local
 
-INTEGRATION = Path(__file__).parents[1] / "custom_components" / "autodarts"
+INTEGRATION = Path(__file__).parents[1] / "custom_components" / "homedarts"
 STRINGS = json.loads((INTEGRATION / "strings.json").read_text(encoding="utf-8"))
 # Every translation file counts, so a new language joins every check below.
 TRANSLATIONS = {
@@ -64,7 +64,7 @@ ICONS = json.loads((INTEGRATION / "icons.json").read_text(encoding="utf-8"))
 SOURCES = "\n".join(
     path.read_text(encoding="utf-8") for path in sorted(INTEGRATION.glob("*.py"))
 )
-CARD = (INTEGRATION / "frontend" / "autodarts-card.js").read_text(encoding="utf-8")
+CARD = (INTEGRATION / "frontend" / "homedarts-card.js").read_text(encoding="utf-8")
 # The texts of the cards, a module per language, which the card module imports.
 CARD_TEXT_FILES = INTEGRATION / "frontend" / "text"
 # Entities whose device class brings the icon.
@@ -228,7 +228,7 @@ def test_every_repair_issue_is_translated():
         if "fix_flow" in spec:
             # A fixable issue explains itself in its flow, not in a description.
             assert "description" not in spec, issue
-            for reason in spec["fix_flow"]["abort"]:
+            for reason in spec["fix_flow"].get("abort", {}):
                 assert f'"{reason}"' in repairs, reason
         else:
             assert spec["description"], issue
@@ -561,8 +561,8 @@ def read_from_the_root(live_demo: bool = False) -> set[str]:
 
 def test_pull_requests_run_the_end_to_end_tests_for_every_file_they_use():
     # Both finders know the integration, so this test can't pass on nothing.
-    assert "custom_components/autodarts" in mounted()
-    assert "custom_components/autodarts" in read_from_the_root()
+    assert "custom_components/homedarts" in mounted()
+    assert "custom_components/homedarts" in read_from_the_root()
     used = mounted() | read_from_the_root() | {".github/workflows/e2e.yml"}
     # npm ci installs node_modules, with axe-core, from the package files.
     if any(path.startswith("node_modules/") for path in used):
@@ -577,7 +577,7 @@ def test_pull_requests_run_the_end_to_end_tests_for_every_file_they_use():
 
 def test_pull_requests_run_the_live_demo_for_every_file_it_plays():
     used = read_from_the_root(live_demo=True)
-    assert {"docs/demo", "custom_components/autodarts/frontend"} <= used
+    assert {"docs/demo", "custom_components/homedarts/frontend"} <= used
     used |= {
         ".github/workflows/e2e.yml",
         "tests/e2e/live_demo.py",

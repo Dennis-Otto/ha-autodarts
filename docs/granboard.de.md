@@ -20,11 +20,11 @@ Ein Granboard ist eine Softdartscheibe mit Bluetooth. Home Assistant empfängt s
 
 ## Einrichten
 
-[![Öffne deine Home-Assistant-Instanz und richte Autodarts ein.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
+[![Öffne deine Home-Assistant-Instanz und richte HomeDarts for Autodarts ein.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=homedarts)
 
-1. Schalte das Board ein. Home Assistant findet es von selbst und bietet es unter **Einstellungen → Geräte & Dienste → Entdeckt** an; wähle **Hinzufügen**. Hast du das Angebot verworfen, wähle die Schaltfläche oben oder öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen → Autodarts**, wähle **Granboard über Bluetooth (experimentell)** und das Board.
+1. Schalte das Board ein. Home Assistant findet es von selbst und bietet es unter **Einstellungen → Geräte & Dienste → Entdeckt** an; wähle **Hinzufügen**. Hast du das Angebot verworfen, wähle die Schaltfläche oben oder öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen → HomeDarts for Autodarts**, wähle **Granboard über Bluetooth (experimentell)** und das Board.
 2. Gib dem Board einen Namen, etwa *Granboard* oder *Kneipe*, und wähle **Absenden**. Die Integration legt ein Gerät mit diesem Namen und dem Modell *Granboard* an, mit den Entitäten der Spiele, des Trainings und der Statistiken und der Diagnose-Entität *Granboard-Verbindung*.
-3. Lege das Dashboard an: **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**. Seine Ansichten *Live* und *Anzeigetafel* zeigen die Darts, sobald sie das Board treffen.
+3. Lege das Dashboard an: **Einstellungen → Dashboards → Dashboard hinzufügen → HomeDarts**. Seine Ansichten *Live* und *Anzeigetafel* zeigen die Darts, sobald sie das Board treffen.
 
 ## Spielen
 
@@ -54,10 +54,10 @@ Die Board-Ereignisse wie `visit_completed` oder `leg_won` kommen mit `manual: tr
 
 Hilf mit deinem Board, die Kennzeichnung *experimentell* zu entfernen:
 
-1. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, das Menü (⋮) → [**Debug-Protokollierung aktivieren**](troubleshooting.de.md#debug-protokollierung).
+1. Öffne **Einstellungen → Geräte & Dienste → HomeDarts for Autodarts**, das Menü (⋮) → [**Debug-Protokollierung aktivieren**](troubleshooting.de.md#debug-protokollierung).
 2. Drücke jedes Feld mit einem Dart oder einem Finger. Das Protokoll unter **Einstellungen → System → Protokolle** nennt jeden Frame und sein Feld, etwa `Granboard frame '3.4': T20`.
 3. Ein Frame, den die Integration nicht kennt, heißt `unknown`. Die [Diagnose](troubleshooting.de.md#diagnosedaten-herunterladen) des Boards, **Diagnose herunterladen** im selben Menü, listet die letzten zehn unter `connection → granboard → unknown_frames`, mit den Zahlen der Verbindungen, Frames, Darts und Tastendrücke.
-4. Melde ein Feld, das falsch zählt, oder einen unbekannten Frame in einem [Issue](https://github.com/Dennis-Otto/ha-autodarts/issues), mit dem Frame und dem Feld, das du getroffen hast. Die Diagnose lässt die Bluetooth-Adresse des Boards weg.
+4. Melde ein Feld, das falsch zählt, oder einen unbekannten Frame in einem [Issue](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues), mit dem Frame und dem Feld, das du getroffen hast. Die Diagnose lässt die Bluetooth-Adresse des Boards weg.
 
 ## Fehlersuche
 
@@ -70,4 +70,4 @@ Hilf mit deinem Board, die Kennzeichnung *experimentell* zu entfernen:
 
 ## Woher die Frames stammen
 
-Das Board sendet pro Treffer ein paar ASCII-Zeichen, die Zeile und den Pin des Schalters unter dem Feld, etwa `3.4@`, und `BTN@` für die Taste. Die Integration kennt sie so, wie die MIT-lizenzierten Apps [gran-app](https://github.com/sobassy/gran-app) von sobassy und [granboard-app](https://github.com/bastiennoel93/granboard-app) von bastiennoel93 sie lesen; die Tests von `custom_components/autodarts/granboard.py` spielen aufgezeichnete Frames gegen einen Ersatz für Bleak und das Bluetooth von Home Assistant ab. Die Lichter des Rings bleiben vorerst aus: Keine App dokumentiert, wie man sie verlässlich setzt. [Entscheidung 0024](decisions/0024-granboard-over-home-assistant-bluetooth.md) (auf Englisch) erklärt die Wahl.
+Das Board sendet pro Treffer ein paar ASCII-Zeichen, die Zeile und den Pin des Schalters unter dem Feld, etwa `3.4@`, und `BTN@` für die Taste. Die Integration kennt sie so, wie die MIT-lizenzierten Apps [gran-app](https://github.com/sobassy/gran-app) von sobassy und [granboard-app](https://github.com/bastiennoel93/granboard-app) von bastiennoel93 sie lesen; die Tests von `custom_components/homedarts/granboard.py` spielen aufgezeichnete Frames gegen einen Ersatz für Bleak und das Bluetooth von Home Assistant ab. Die Lichter des Rings bleiben vorerst aus: Keine App dokumentiert, wie man sie verlässlich setzt. [Entscheidung 0024](decisions/0024-granboard-over-home-assistant-bluetooth.md) (auf Englisch) erklärt die Wahl.

@@ -113,18 +113,18 @@ async def test_a_quiet_week_reads_short_or_is_skipped(hass):
             "title": "Your darts week",
             "message": "10 darts in 3 minutes at the board, 1 session. "
             "3-dart average 20.0 (-3.2 on the week before). 1 day in a row.",
-            "notification_id": "autodarts_weekly_report",
+            "notification_id": "homedarts_weekly_report",
         },
         {
             "title": "Your darts week",
             "message": "12 darts in 3 minutes at the board. 1 day in a row.",
-            "notification_id": "autodarts_weekly_report",
+            "notification_id": "homedarts_weekly_report",
         },
         {
             "title": "Your darts week",
             "message": "30 darts in 1 minute at the board, 1 session. "
             "3-dart average 20.0. Best visit 60. 1 new personal best.",
-            "notification_id": "autodarts_weekly_report",
+            "notification_id": "homedarts_weekly_report",
         },
     ]
 

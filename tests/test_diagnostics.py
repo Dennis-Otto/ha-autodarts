@@ -11,7 +11,7 @@ from pytest_homeassistant_custom_component.components.diagnostics import (
 from syrupy.assertion import SnapshotAssertion
 from syrupy.filters import props
 
-from custom_components.autodarts.const import DOMAIN
+from custom_components.homedarts.const import DOMAIN
 
 from .local_helpers import (
     BULL,

@@ -4,7 +4,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.checkout import (
+from custom_components.homedarts.checkout import (
     BEDS,
     FINISHING,
     LEAVE_ORDER,
@@ -12,7 +12,7 @@ from custom_components.autodarts.checkout import (
     checkout,
     setup,
 )
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 from .local_helpers import dart, playing
 

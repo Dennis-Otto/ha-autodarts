@@ -29,7 +29,7 @@ const visit = (throws, extra = {}) => ({
 });
 const setup = (states = {}, config = {}, options = {}) => {
   const hass = makeHass({ states: { ...READY, ...states }, ...options });
-  return { hass, card: mount("autodarts-card", hass, config) };
+  return { hass, card: mount("homedarts-card", hass, config) };
 };
 const practice = (state, attributes) => ({ "sensor.practice_remaining": { state, attributes } });
 const drill = (state, attributes) => ({ "sensor.practice_target": { state, attributes } });
@@ -38,13 +38,13 @@ const scores = (card) =>
   $$(card, ".player-score").map((row) => [row.className, ...[...row.children].map((cell) => cell.textContent)]);
 
 test("the live card rejects a missing configuration", () => {
-  const card = document.createElement("autodarts-card");
+  const card = document.createElement("homedarts-card");
   assert.throws(() => card.setConfig(null), /Invalid configuration/);
-  assert.throws(() => card.setConfig("autodarts"), /Invalid configuration/);
+  assert.throws(() => card.setConfig("homedarts"), /Invalid configuration/);
 });
 
 test("the card waits for both its configuration and Home Assistant", () => {
-  const card = document.createElement("autodarts-card");
+  const card = document.createElement("homedarts-card");
   card.hass = makeHass({ states: READY });
   assert.equal(card.shadowRoot.innerHTML, "");
   card.setConfig({});
@@ -52,14 +52,14 @@ test("the card waits for both its configuration and Home Assistant", () => {
 });
 
 test("without an Autodarts board the card asks for a device, in English and German", () => {
-  const card = mount("autodarts-card", makeHass());
-  assert.equal(text(card, ".message"), "No Autodarts board found. Select a device in the card settings.");
+  const card = mount("homedarts-card", makeHass());
+  assert.equal(text(card, ".message"), "No board found. Select a device in the card settings.");
   // Further updates of Home Assistant leave the message alone.
   const message = $(card, ".message");
   card.hass = makeHass();
   assert.equal($(card, ".message"), message);
   card.hass = withLanguage(makeHass(), "de");
-  assert.equal(text(card, ".message"), "Kein Autodarts-Board gefunden. Wähle ein Gerät in den Karteneinstellungen.");
+  assert.equal(text(card, ".message"), "Kein Board gefunden. Wähle ein Gerät in den Karteneinstellungen.");
   // Once a board appears, the card is built.
   card.hass = makeHass({ states: READY });
   assert.equal(text(card, ".title"), "Dartboard");
@@ -68,12 +68,12 @@ test("without an Autodarts board the card asks for a device, in English and Germ
 
 test("a deleted board is not mistaken for an unreachable one", () => {
   const { card } = setup({}, { device_id: "removed-device" });
-  assert.equal(text(card, ".message"), "No Autodarts board found. Select a device in the card settings.");
+  assert.equal(text(card, ".message"), "No board found. Select a device in the card settings.");
   assert.equal($(card, ".pill"), null);
   // Hosts without a device registry trust the configured board.
   const hass = { ...makeHass({ states: READY }), devices: undefined };
-  const bare = mount("autodarts-card", hass, { device_id: DEVICE });
-  assert.equal(text(bare, ".title"), "Autodarts");
+  const bare = mount("homedarts-card", hass, { device_id: DEVICE });
+  assert.equal(text(bare, ".title"), "HomeDarts");
   assert.equal(text(bare, ".pill"), "Ready – throw!");
 });
 
@@ -81,7 +81,7 @@ test("the title is the configured title, the user's board name or the device nam
   assert.equal(text(setup().card, ".title"), "Dartboard");
   assert.equal(text(setup({}, {}, { device: { name_by_user: "Garage" } }).card, ".title"), "Garage");
   assert.equal(text(setup({}, { title: "Pub" }, { device: { name_by_user: "Garage" } }).card, ".title"), "Pub");
-  assert.equal(text(setup({}, {}, { device: { name: null } }).card, ".title"), "Autodarts");
+  assert.equal(text(setup({}, {}, { device: { name: null } }).card, ".title"), "HomeDarts");
 });
 
 test("the status pill and colour follow the board", () => {
@@ -215,7 +215,7 @@ test("highlight marks every dart, the last one or none, and blinking can be swit
 
 test("markers, numbers, board style and layout follow the options", () => {
   const states = { "sensor.local_visit_score": visit([T20]) };
-  const plain = setup(states, { show_markers: false, show_numbers: false, board_style: "autodarts" }).card;
+  const plain = setup(states, { show_markers: false, show_numbers: false, board_style: "flat" }).card;
   assert.equal($$(plain, ".darts .dart").length, 0);
   assert.equal($(plain, ".numbers"), null);
   assert.equal($(plain, ".face path").getAttribute("stroke"), null);
@@ -306,7 +306,7 @@ test("connection chips show the links and a camera problem, and open more-info",
 
   // Entities the board lacks have no chip.
   const hassWithout = makeHass({ states: { "binary_sensor.local_connected": "on" } });
-  const lean = mount("autodarts-card", hassWithout);
+  const lean = mount("homedarts-card", hassWithout);
   assert.deepEqual(
     $$(lean, ".chip").map((chip) => chip.textContent),
     ["Board Manager"]
@@ -334,7 +334,7 @@ test("the detection button stops and starts detection with the switch", () => {
 test("without a detection switch the button follows the board status, so detection also stops", () => {
   const { "switch.detection": _, ...states } = READY;
   const hass = makeHass({ states });
-  const card = mount("autodarts-card", hass);
+  const card = mount("homedarts-card", hass);
   const toggle = $(card, '[data-action="toggle"]');
   // The board detects darts: the button stops detection.
   assert.deepEqual([toggle.textContent, toggle.classList.contains("stop")], ["Stop detection", true]);
@@ -353,7 +353,7 @@ test("controls are disabled while the board is offline or lacks the entity", () 
     $$(offline, ".controls button").map((button) => button.disabled),
     [true, true, true]
   );
-  const lean = mount("autodarts-card", makeHass({ states: { "binary_sensor.local_connected": "on" } }));
+  const lean = mount("homedarts-card", makeHass({ states: { "binary_sensor.local_connected": "on" } }));
   assert.deepEqual(
     $$(lean, ".controls button").map((button) => [button.textContent, button.disabled]),
     [
@@ -505,11 +505,11 @@ test("Home Assistant without a locale uses its language setting", () => {
     "sensor.training_average": "45.6",
     "sensor.training_started": "2026-09-26T14:30:00+00:00",
   };
-  const german = mount("autodarts-card", { ...makeHass({ states }), locale: undefined, language: "de" });
+  const german = mount("homedarts-card", { ...makeHass({ states }), locale: undefined, language: "de" });
   assert.equal(text(german, ".pill"), "Bereit – wirf!");
   assert.equal(text(german, '[data-stat="average"] .value'), "45,6");
   assert.equal(text(german, ".since"), "seit 26.09., 14:30");
-  const unset = mount("autodarts-card", { ...makeHass({ states }), locale: undefined, language: undefined });
+  const unset = mount("homedarts-card", { ...makeHass({ states }), locale: undefined, language: undefined });
   assert.equal(text(unset, ".pill"), "Ready – throw!");
 });
 
@@ -994,7 +994,7 @@ test("the practice game can be hidden", () => {
 });
 
 test("the live card offers its editor, a stub configuration and a grid size", () => {
-  const Card = customElements.get("autodarts-card");
+  const Card = customElements.get("homedarts-card");
   assert.deepEqual(Card.getStubConfig(makeHass({ states: READY })), { device_id: DEVICE });
   assert.deepEqual(Card.getStubConfig(makeHass()), {});
   assert.deepEqual(Card.getStubConfig({}), {});

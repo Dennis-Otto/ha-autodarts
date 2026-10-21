@@ -352,7 +352,7 @@ async def announce(app: web.Application) -> None:
         addresses=[socket.inet_aton(address)],
         port=PORT,
         properties={"id": "e2e0000000000001", "ip": address, "cams": "3"},
-        server="autodarts-e2e.local.",
+        server="homedarts-e2e.local.",
     )
     await zeroconf.async_register_service(info)
 

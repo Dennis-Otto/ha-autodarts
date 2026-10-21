@@ -1,15 +1,10 @@
 flowchart TB
-  accTitle: Switching from another Autodarts integration
-  accDescr: The original HACSAutodarts uses the autodarts domain; replace it in HACS and keep its entry, which is migrated. Quevinsta's and belese's integrations use the autodarts domain too; delete their entries, remove them in HACS, check that custom_components/autodarts is gone and restart. Autodarts Local, Autodarts Connect Online, Darts Hub and MQTT bridges have a domain of their own and can stay for now. Then install this integration, add the board, move the automations to its events and blueprints, and remove what nothing uses any more.
-  OLD["Your Autodarts<br/>integration today"] --> DOMAIN{"Which domain<br/>does it use?"}
-  DOMAIN -- "autodarts:<br/>the original<br/>HACSAutodarts" --> KEEP["Replace it in HACS<br/>and keep its entry,<br/>which is migrated"]
-  DOMAIN -- "autodarts:<br/>Quevinsta, belese" --> REMOVE["Delete its entries,<br/>remove it in HACS,<br/>check that<br/>custom_components/autodarts<br/>is gone, restart"]
-  DOMAIN -- "one of its own:<br/>Autodarts Local,<br/>Connect Online,<br/>Darts Hub, MQTT" --> BESIDE["It can stay<br/>for now"]
-  REMOVE --> ADD["Install this integration<br/>and add the board"]
-  BESIDE --> ADD
-  ADD --> MOVE["Move the automations<br/>to its events<br/>and blueprints"]
-  MOVE --> DONE["Remove what nothing<br/>uses any more"]
+  accTitle: Switching from another integration for Autodarts
+  accDescr: The integration under its former name, Autodarts, up to version 1.18, is no other tool: update it, and HomeDarts takes over its boards. Every other integration, such as the original HACSAutodarts, Quevinsta's, belese's, Autodarts Local, Autodarts Connect Online, Darts Hub or an MQTT bridge, can stay while you switch, because HomeDarts has a domain of its own, homedarts. Install HomeDarts beside it and add the board, move the automations to the events and blueprints of HomeDarts, then delete the entries of the old integration, remove it in HACS and restart Home Assistant.
+  OLD["Your integration<br/>for Autodarts today"] --> WHICH{"Which one<br/>is it?"}
+  WHICH -- "Autodarts up to 1.18,<br/>the former name<br/>of HomeDarts" --> TAKE["Update it, and<br/>HomeDarts takes over<br/>its boards"]
+  WHICH -- "another one:<br/>HACSAutodarts, Quevinsta,<br/>belese, Autodarts Local,<br/>Connect Online,<br/>Darts Hub, MQTT" --> ADD["Install HomeDarts<br/>beside it and<br/>add the board"]
+  ADD --> MOVE["Move the automations<br/>to the events and<br/>blueprints of HomeDarts"]
+  MOVE --> DONE["Delete the old entries,<br/>remove it in HACS,<br/>restart"]
   classDef done fill:#16a34a2e,stroke:#16a34a,stroke-width:2px
-  classDef warn fill:#f59e0b2e,stroke:#f59e0b,stroke-width:2px
-  class KEEP,DONE done
-  class REMOVE warn
+  class TAKE,DONE done

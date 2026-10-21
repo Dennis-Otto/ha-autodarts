@@ -20,11 +20,11 @@ A Granboard is a soft-tip dartboard with Bluetooth. Home Assistant receives its 
 
 ## Set up
 
-[![Open your Home Assistant instance and start setting up Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
+[![Open your Home Assistant instance and start setting up HomeDarts for Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=homedarts)
 
-1. Switch the board on. Home Assistant finds it on its own and offers it under **Settings → Devices & services → Discovered**; select **Add**. If you dismissed that offer, select the button above, or open **Settings → Devices & services → Add integration → Autodarts**, choose **Granboard over Bluetooth (experimental)** and the board.
+1. Switch the board on. Home Assistant finds it on its own and offers it under **Settings → Devices & services → Discovered**; select **Add**. If you dismissed that offer, select the button above, or open **Settings → Devices & services → Add integration → HomeDarts for Autodarts**, choose **Granboard over Bluetooth (experimental)** and the board.
 2. Give the board a name, such as *Granboard* or *Pub*, and select **Submit**. The integration creates a device with this name, the model *Granboard*, and the entities of the games, the training and the statistics, plus the diagnostic entity *Granboard connection*.
-3. Create the dashboard: **Settings → Dashboards → Add dashboard → Autodarts**. Its *Live* and *Scoreboard* views show the darts as they hit the board.
+3. Create the dashboard: **Settings → Dashboards → Add dashboard → HomeDarts**. Its *Live* and *Scoreboard* views show the darts as they hit the board.
 
 ## Play
 
@@ -54,10 +54,10 @@ The board events, such as `visit_completed` or `leg_won`, come with `manual: tru
 
 Help to take the *experimental* label off with your board:
 
-1. Open **Settings → Devices & services → Autodarts**, the menu (⋮) → [**Enable debug logging**](troubleshooting.md#enable-debug-logging).
+1. Open **Settings → Devices & services → HomeDarts for Autodarts**, the menu (⋮) → [**Enable debug logging**](troubleshooting.md#enable-debug-logging).
 2. Press each bed with a dart or a finger. The log, under **Settings → System → Logs**, names every frame and its bed, such as `Granboard frame '3.4': T20`.
 3. A frame that the integration does not know reads `unknown`. The [diagnostics](troubleshooting.md#download-diagnostics) of the board, **Download diagnostics** in the same menu, list the last ten under `connection → granboard → unknown_frames`, with counts of the connections, frames, darts and presses of the button.
-4. Report a bed that counts wrong or a frame that is unknown in an [issue](https://github.com/Dennis-Otto/ha-autodarts/issues), with the frame and the bed you hit. The diagnostics leave out the Bluetooth address of the board.
+4. Report a bed that counts wrong or a frame that is unknown in an [issue](https://github.com/Dennis-Otto/homedarts-for-autodarts/issues), with the frame and the bed you hit. The diagnostics leave out the Bluetooth address of the board.
 
 ## Troubleshooting
 
@@ -70,4 +70,4 @@ Help to take the *experimental* label off with your board:
 
 ## Where the frames come from
 
-The board sends a few ASCII characters per hit, the line and the pin of the switch under the bed, such as `3.4@`, and `BTN@` for the button. The integration knows them as the MIT-licensed apps [gran-app](https://github.com/sobassy/gran-app) by sobassy and [granboard-app](https://github.com/bastiennoel93/granboard-app) by bastiennoel93 read them; the tests of `custom_components/autodarts/granboard.py` replay recorded frames against a stand-in for Bleak and Home Assistant's Bluetooth. The lights of the board's ring stay off for now: no app documents how to set them reliably. [Decision 0024](decisions/0024-granboard-over-home-assistant-bluetooth.md) explains the choices.
+The board sends a few ASCII characters per hit, the line and the pin of the switch under the bed, such as `3.4@`, and `BTN@` for the button. The integration knows them as the MIT-licensed apps [gran-app](https://github.com/sobassy/gran-app) by sobassy and [granboard-app](https://github.com/bastiennoel93/granboard-app) by bastiennoel93 read them; the tests of `custom_components/homedarts/granboard.py` replay recorded frames against a stand-in for Bleak and Home Assistant's Bluetooth. The lights of the board's ring stay off for now: no app documents how to set them reliably. [Decision 0024](decisions/0024-granboard-over-home-assistant-bluetooth.md) explains the choices.

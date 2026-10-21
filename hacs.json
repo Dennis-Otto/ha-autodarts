@@ -1,6 +1,6 @@
 {
-  "name": "Autodarts",
+  "name": "HomeDarts for Autodarts",
   "homeassistant": "2026.8.0",
   "zip_release": true,
-  "filename": "autodarts.zip"
+  "filename": "homedarts.zip"
 }

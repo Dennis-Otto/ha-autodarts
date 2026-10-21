@@ -48,10 +48,10 @@ Es gibt vier Wege, ein Spiel zu starten. Alle enden am selben Ort: im *Übungssp
 
 1. **Am Bildschirm neben dem Board.** Tippe auf der [Anzeigetafel](scoreboard.de.md#das-nächste-spiel-wählen) auf **Neues Spiel**, wähle Spiel, Spieler und Format und tippe auf **Starten**. Einige Sekunden nach dem Ende eines Spiels öffnet sich die Auswahl auch von selbst, bereit für eine Revanche. **Turnier** in derselben Auswahl startet ein [Turnier](#turniere).
 2. **Im Dashboard.** Die Ansicht *Live* des [automatischen Dashboards](cards.de.md#automatisches-dashboard) hat die Steuerung des Übungsspiels: *Übungsspiel*, die Spielerzahl, die Namen und Startpunkte, Legs, Sätze und die Regeln. Die Wahl eines Spiels startet es.
-3. **In einer Automation oder einem Skript** mit der Aktion [`autodarts.start_game`](entities.de.md#übungsspiel-starten-autodartsstart_game), die alles in einem Aufruf einstellt:
+3. **In einer Automation oder einem Skript** mit der Aktion [`homedarts.start_game`](entities.de.md#übungsspiel-starten-homedartsstart_game), die alles in einem Aufruf einstellt:
 
    ```yaml
-   action: autodarts.start_game
+   action: homedarts.start_game
    data:
      game: "501"
      players: [Alex, Sam]
@@ -80,10 +80,10 @@ Spielernamen dürfen keine geschweiften Klammern, kein Prozentzeichen, keine Rau
 
 Ein falsch erkannter Dart, ein übersehener Dart oder die Aufnahmen eines Spielers ohne Kameras: Home Assistant bringt die Aufnahme in Ordnung, bevor sie zählt.
 
-- **Dart korrigieren:** Tippe auf der [Anzeigetafel](scoreboard.de.md#darts-korrigieren-und-eingeben) auf den Dart und wähle das richtige Feld, oder nutze [`autodarts.correct_dart`](entities.de.md#dart-korrigieren-autodartscorrect_dart). Rest, Überwerfen oder Sieg, die Cricket-Marks und die Statistik folgen sofort. Das Board behält seine Erkennung; korrigiert es den Dart später selbst, zählt wieder seine Erkennung. Tippst du die Stelle auf der Scheibe des Tastenfelds an, zählt der Dart auch für die Dart-Positionen dort, wo er wirklich steckt.
-- **Dart eingeben:** Mit eingeschalteter *Übungsspiel manuelle Eingabe* fügt das Tastenfeld der Anzeigetafel oder [`autodarts.throw_dart`](entities.de.md#dart-eingeben-autodartsthrow_dart) einen Dart hinzu, als hätte das Board ihn erkannt. Das geht auch bei gestoppter Erkennung, so spielt auch ein Spieler ohne Kameras mit.
+- **Dart korrigieren:** Tippe auf der [Anzeigetafel](scoreboard.de.md#darts-korrigieren-und-eingeben) auf den Dart und wähle das richtige Feld, oder nutze [`homedarts.correct_dart`](entities.de.md#dart-korrigieren-homedartscorrect_dart). Rest, Überwerfen oder Sieg, die Cricket-Marks und die Statistik folgen sofort. Das Board behält seine Erkennung; korrigiert es den Dart später selbst, zählt wieder seine Erkennung. Tippst du die Stelle auf der Scheibe des Tastenfelds an, zählt der Dart auch für die Dart-Positionen dort, wo er wirklich steckt.
+- **Dart eingeben:** Mit eingeschalteter *Übungsspiel manuelle Eingabe* fügt das Tastenfeld der Anzeigetafel oder [`homedarts.throw_dart`](entities.de.md#dart-eingeben-homedartsthrow_dart) einen Dart hinzu, als hätte das Board ihn erkannt. Das geht auch bei gestoppter Erkennung, so spielt auch ein Spieler ohne Kameras mit.
 - **Nächster Spieler:** beendet die Aufnahme, ohne die Darts zu ziehen; die Darts im Board zählen für niemanden, bis sie gezogen sind. Ohne Darts setzt der Spieler am Board bei X01, den Cricket- und den Partyspielen aus; in einem Partyspiel zählt das Aussetzen als Aufnahme aus drei Fehlwürfen, Halve-It halbiert also die Punkte und Golf zählt 5 Schläge, und ein Aussetzen, das die letzte Runde beendet, zählt Leg und Match wie eine Aufnahme mit Darts. In Trainingsspielen, beim Ausbullen und bei Killer, solange die Zahlen gewählt werden, setzt niemand aus.
-- **Letzte Aufnahme zurücknehmen:** Fällt eine falsche Erkennung erst nach der Entnahme auf, nimmt ein Tipp auf die letzte Aufnahme neben den Darts der Anzeigetafel oder [`autodarts.undo_visit`](entities.de.md#aufnahme-zurücknehmen-autodartsundo_visit) die Aufnahme zurück, auch nach einem gewonnenen Leg: Ihre Darts werden wieder die aktuelle Aufnahme, zum Korrigieren, und *Nächster Spieler* beendet sie. Das geht, solange kein Dart im Board steckt und sich das Spiel seitdem nicht geändert hat, aber nicht nach einer Aufnahme, die ein Turniermatch entschieden hat. Statistik, Bestleistungen, Fortschritt der Spieler mit ihren Erfolgen, Wochenbericht und Trainingskalender gehen mit der Aufnahme zurück, sodass sie nur einmal zählt, wenn sie erneut verbucht wird.
+- **Letzte Aufnahme zurücknehmen:** Fällt eine falsche Erkennung erst nach der Entnahme auf, nimmt ein Tipp auf die letzte Aufnahme neben den Darts der Anzeigetafel oder [`homedarts.undo_visit`](entities.de.md#aufnahme-zurücknehmen-homedartsundo_visit) die Aufnahme zurück, auch nach einem gewonnenen Leg: Ihre Darts werden wieder die aktuelle Aufnahme, zum Korrigieren, und *Nächster Spieler* beendet sie. Das geht, solange kein Dart im Board steckt und sich das Spiel seitdem nicht geändert hat, aber nicht nach einer Aufnahme, die ein Turniermatch entschieden hat. Statistik, Bestleistungen, Fortschritt der Spieler mit ihren Erfolgen, Wochenbericht und Trainingskalender gehen mit der Aufnahme zurück, sodass sie nur einmal zählt, wenn sie erneut verbucht wird.
 - **Markiert:** In Home Assistant eingegebene oder korrigierte Darts tragen `manual`, damit Automationen sie unterscheiden können. [Die genauen Regeln](how-it-works.de.md#korrekturen-und-von-hand-eingegebene-darts).
 
 ## Matches, Legs und Sätze
@@ -121,7 +121,7 @@ Endet ein X01- oder Cricket-Match mehrerer Spieler, fassen Anzeigetafel und Live
 
 <img src="images/de/scoreboard-handicap.png" alt="Anzeigetafel eines 501-Matches mit eigenen Startpunkten: Alex ab 501 mit Rest 361, Sam ab 301 mit Rest 241 und am Board" width="760">
 
-- Für ein faires Match zwischen unterschiedlich starken Spielern kann jeder X01 mit eigenen Startpunkten beginnen, von 2 bis 1001: Stelle *Übungsspiel Startpunkte Spieler N* ein, nutze − und + neben dem Spieler in der Spielauswahl oder gib `start_scores` an [`autodarts.start_game`](entities.de.md#übungsspiel-starten-autodartsstart_game).
+- Für ein faires Match zwischen unterschiedlich starken Spielern kann jeder X01 mit eigenen Startpunkten beginnen, von 2 bis 1001: Stelle *Übungsspiel Startpunkte Spieler N* ein, nutze − und + neben dem Spieler in der Spielauswahl oder gib `start_scores` an [`homedarts.start_game`](entities.de.md#übungsspiel-starten-homedartsstart_game).
 - `0` spielt die Startpunkte des Spiels. Alle anderen Regeln bleiben gleich; der Average zählt ab den eigenen Startpunkten, und `leg_won` nennt sie in `start`.
 - Anzeigetafel und Live-Karte zeigen eigene Startpunkte neben dem Namen.
 - Ein Leg zählt für die Bestleistung der wenigsten Darts der Punkte, mit denen es wirklich begann: ein Leg ab 301 für `fewest_darts_301`, ein Leg ab 401 für keine, weil 401 kein X01-Spiel ist.
@@ -170,7 +170,7 @@ Jedes Match ist ein X01-Match, auf Wunsch mit Startpunkten als Handicap, oder ei
 1. **Starten:** Tippe auf der Anzeigetafel auf **Neues Spiel**, dann auf **Turnier**. Wähle die Spieler, das Format, bei Gruppen auch die Zahl der Gruppen und wie viele aus jeder weiterkommen, das Spiel, Legs und Sätze und die Regeln und tippe auf **Turnier starten**. Oder starte es aus einer Automation:
 
    ```yaml
-   action: autodarts.start_tournament
+   action: homedarts.start_tournament
    data:
      players: [Alex, Sam, Kim, Lea]
      format: round_robin
@@ -181,7 +181,7 @@ Jedes Match ist ein X01-Match, auf Wunsch mit Startpunkten als Handicap, oder ei
    Vierergruppen für 16 Spieler, aus denen die ersten beiden in ein K.-o.-System mit acht Spielern kommen:
 
    ```yaml
-   action: autodarts.start_tournament
+   action: homedarts.start_tournament
    data:
      players: [Alex, Sam, Kim, Lea, Max, Tom, Ida, Ben, Zoe, Eli, Noa, Mia, Leo, Ava, Jon, Uma]
      format: groups_knockout
@@ -215,7 +215,7 @@ Die [Referenz der Entitäten](entities.de.md#turniere) nennt Einstellungen, Tast
 Ein Vereinsabend mit zwei Boards oder mehr spielt ein Turnier auf allen: Jedes Board spielt ein eigenes Match, und Tabelle oder Turnierbaum nehmen die Ergebnisse jedes Boards auf. Jedes Board kann ein Autodarts-Board sein oder eine [Dartscheibe ohne Autodarts](without-autodarts.de.md), deren Darts über das Tastenfeld eingegeben werden. Starte das Turnier auf einem Board, das es dann führt, und nenne die anderen Boards in `boards`: unter **Entwicklerwerkzeuge → Aktionen** mit der Geräteauswahl oder in einer Automation über ihr Gerät oder ihren Eintrag:
 
 ```yaml
-action: autodarts.start_tournament
+action: homedarts.start_tournament
 data:
   config_entry_id: 01JA0GARAGEBOARD0000000000 # das Board, das das Turnier führt
   boards: [01JA0CELLARBOARD0000000000] # die anderen Boards

@@ -42,7 +42,7 @@ const avatars = (card, selector) => $$(card, `${selector} .avatar`).map((image) 
 
 test("the scoreboard shows the picture of a linked person on the player's tile", () => {
   const hass = withPeople(makeHass({ states: { ...READY, ...X01, ...LINKED } }));
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   // Names match regardless of upper and lower case.
   assert.deepEqual(avatars(card, ".player .name"), [PICTURE]);
   assert.equal(text(card, ".player .name"), "alex");
@@ -76,7 +76,7 @@ test("the Cricket chalkboard and the bull-off show the pictures, the live card d
     },
   };
   const hass = withPeople(makeHass({ states: { ...READY, ...cricket, ...LINKED } }));
-  const card = mount("autodarts-scoreboard-card", hass);
+  const card = mount("homedarts-scoreboard-card", hass);
   assert.deepEqual(avatars(card, ".cricket thead"), [PICTURE]);
   card.hass = update(card._hass, {
     "sensor.practice_remaining": {
@@ -86,13 +86,13 @@ test("the Cricket chalkboard and the bull-off show the pictures, the live card d
   });
   assert.deepEqual(avatars(card, ".player .name"), [PICTURE]);
 
-  const live = mount("autodarts-card", hass);
+  const live = mount("homedarts-card", hass);
   assert.equal($$(live, ".avatar").length, 0);
 });
 
 test("the players card shows the picture next to the name", () => {
   const hass = withPeople(makeHass({ states: { ...READY, ...LINKED } }));
-  const card = mount("autodarts-players-card", hass);
+  const card = mount("homedarts-players-card", hass);
   assert.deepEqual(
     $$(card, ".profile-name").map((name) => [name.querySelector(".avatar")?.getAttribute("src") ?? null, name.textContent]),
     [
@@ -102,7 +102,7 @@ test("the players card shows the picture next to the name", () => {
     ]
   );
   // Only the cards with pictures follow the persons.
-  const doubles = mount("autodarts-doubles-card", hass);
+  const doubles = mount("homedarts-doubles-card", hass);
   assert.equal(doubles._watched().some((id) => String(id).startsWith("person.")), false);
   assert.deepEqual(card._watched().filter((id) => String(id).startsWith("person.")), ["person.alex", "person.sam"]);
   // Profiles without a list, and persons without a state, leave the card as it is.

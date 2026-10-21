@@ -30,7 +30,7 @@ SOURCE = {
 
 def files(root: Path, translations: dict[str, str], source: object = SOURCE) -> Path:
     """A repository with strings.json and the translation files of the languages."""
-    integration = root / "custom_components" / "autodarts"
+    integration = root / "custom_components" / "homedarts"
     (integration / "translations").mkdir(parents=True)
     (integration / "strings.json").write_text(
         json.dumps(source, indent=2) + "\n", encoding="utf-8", newline="\n"
@@ -53,7 +53,7 @@ def test_english_becomes_the_copy_of_the_source(tmp_path):
 
     strings = (folder.parent / "strings.json").read_text(encoding="utf-8")
     assert (folder / "en.json").read_text(encoding="utf-8") == strings
-    assert changed == ["custom_components/autodarts/translations/en.json"]
+    assert changed == ["custom_components/homedarts/translations/en.json"]
     assert remaining == []
 
 
@@ -63,7 +63,7 @@ def test_a_missing_english_file_is_written(tmp_path):
     changed, _ = sync_translations.sync(tmp_path)
 
     assert json.loads((folder / "en.json").read_text(encoding="utf-8")) == SOURCE
-    assert changed == ["custom_components/autodarts/translations/en.json"]
+    assert changed == ["custom_components/homedarts/translations/en.json"]
 
 
 def test_a_translation_takes_the_order_of_the_source_and_loses_old_texts(tmp_path):
@@ -84,7 +84,7 @@ def test_a_translation_takes_the_order_of_the_source_and_loses_old_texts(tmp_pat
     assert sync_translations.paths(result) == sync_translations.paths(SOURCE)
     assert result["config"]["step"]["user"]["title"] == "Board hinzufügen"
     assert "ü" in text
-    assert changed == ["custom_components/autodarts/translations/de.json"]
+    assert changed == ["custom_components/homedarts/translations/de.json"]
     assert remaining == []
 
 
@@ -118,9 +118,9 @@ def test_a_missing_text_stays_missing_for_a_person(tmp_path):
         "title": "Autodarts",
         "services": {"start": {"name": "Starten"}},
     }
-    assert "custom_components/autodarts/translations/nl.json" not in changed
+    assert "custom_components/homedarts/translations/nl.json" not in changed
     assert remaining == [
-        "custom_components/autodarts/translations/nl.json misses 3 of the texts of "
+        "custom_components/homedarts/translations/nl.json misses 3 of the texts of "
         "strings.json, such as config.step.user.title: write them in the language, "
         "or ask in the pull request for a maintainer or a native speaker to add them "
         "before the merge (CONTRIBUTING.md#translations)."
@@ -151,9 +151,9 @@ def test_a_broken_file_is_left_to_a_person(tmp_path, text, said):
     changed, remaining = sync_translations.sync(tmp_path)
 
     assert (folder / "es.json").read_text(encoding="utf-8") == text
-    assert "custom_components/autodarts/translations/es.json" not in changed
+    assert "custom_components/homedarts/translations/es.json" not in changed
     (line,) = remaining
-    assert line.startswith(f"custom_components/autodarts/translations/es.json {said}")
+    assert line.startswith(f"custom_components/homedarts/translations/es.json {said}")
     assert line.endswith("fix it by hand.")
 
 
@@ -168,7 +168,7 @@ def test_main_says_what_it_changed_and_fails_for_what_remains(tmp_path, capsys):
     out, err = capsys.readouterr()
     assert (
         out
-        == "custom_components/autodarts/translations/en.json: in step with strings.json now.\n"
+        == "custom_components/homedarts/translations/en.json: in step with strings.json now.\n"
     )
     assert "translations/de.json misses 4 of the texts" in err
 
@@ -204,12 +204,12 @@ def test_the_translations_of_the_repository_are_in_step(tmp_path):
     # As the fix bot would find them: the script changes nothing, and no language
     # misses a text.
     shutil.copytree(
-        ROOT / "custom_components" / "autodarts" / "translations",
-        tmp_path / "custom_components" / "autodarts" / "translations",
+        ROOT / "custom_components" / "homedarts" / "translations",
+        tmp_path / "custom_components" / "homedarts" / "translations",
     )
     shutil.copyfile(
-        ROOT / "custom_components" / "autodarts" / "strings.json",
-        tmp_path / "custom_components" / "autodarts" / "strings.json",
+        ROOT / "custom_components" / "homedarts" / "strings.json",
+        tmp_path / "custom_components" / "homedarts" / "strings.json",
     )
 
     assert sync_translations.sync(tmp_path) == ([], [])

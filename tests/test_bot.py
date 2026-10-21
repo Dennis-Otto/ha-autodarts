@@ -7,8 +7,8 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.board import SECTORS, aim_point, bed_name, segment_at
-from custom_components.autodarts.bot import (
+from custom_components.homedarts.board import SECTORS, aim_point, bed_name, segment_at
+from custom_components.homedarts.bot import (
     AVERAGE_PER_MPR,
     CRICKET_SCATTER,
     MAX_LEVEL,
@@ -23,9 +23,9 @@ from custom_components.autodarts.bot import (
     valid_level,
     x01_aim,
 )
-from custom_components.autodarts.cricket import TACTICS_NUMBERS
-from custom_components.autodarts.manual import BEDS
-from custom_components.autodarts.scoring import DOUBLE, STRAIGHT
+from custom_components.homedarts.cricket import TACTICS_NUMBERS
+from custom_components.homedarts.manual import BEDS
+from custom_components.homedarts.scoring import DOUBLE, STRAIGHT
 
 # The averages the bot plays over this many legs of 501 with double out may
 # stray this far from its level: the calibration holds within 1.5 % over

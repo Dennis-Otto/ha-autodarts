@@ -9,11 +9,11 @@ import pytest
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from custom_components.autodarts.topics import BoardTopics, Topic
+from custom_components.homedarts.topics import BoardTopics, Topic
 
 from .local_helpers import entity_id, setup_local, written
 
-INTEGRATION = Path(__file__).parents[1] / "custom_components" / "autodarts"
+INTEGRATION = Path(__file__).parents[1] / "custom_components" / "homedarts"
 # The methods that Home Assistant documents for a coordinator to override.
 HOOKS = {"_async_setup", "_async_update_data"}
 

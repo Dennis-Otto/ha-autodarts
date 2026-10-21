@@ -17,7 +17,7 @@ Choices such as the platforms that the project supports, the services it talks t
 
 ## Decision
 
-Option 2: every decision that shapes the project gets a record in `docs/decisions/`, in the form of [the template](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/decisions/0000-template.md). Pull requests and issues link to it.
+Option 2: every decision that shapes the project gets a record in `docs/decisions/`, in the form of [the template](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/docs/decisions/0000-template.md). Pull requests and issues link to it.
 
 ## Consequences
 

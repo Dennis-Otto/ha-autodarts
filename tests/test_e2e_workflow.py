@@ -167,10 +167,10 @@ def test_a_pull_request_that_changes_nothing_the_tests_use_skips_them(tmp_path, 
 @pytest.mark.parametrize(
     "name",
     [
-        "custom_components/autodarts/sensor.py",
-        "custom_components/autodarts/frontend/autodarts-card.js",
-        "custom_components/autodarts/frontend/text/de.js",
-        "blueprints/automation/autodarts/weekly_report.yaml",
+        "custom_components/homedarts/sensor.py",
+        "custom_components/homedarts/frontend/homedarts-card.js",
+        "custom_components/homedarts/frontend/text/de.js",
+        "blueprints/automation/homedarts/weekly_report.yaml",
         "tests/e2e/scenario.py",
         "tests/e2e/demo_progress.py",
         "tests/e2e/requirements-browser.txt",
@@ -215,13 +215,13 @@ def test_a_pull_request_that_changes_only_the_live_demo_runs_only_its_job(
     ("name", "demo"),
     [
         # The cards play in the live demo, the rest of the integration doesn't.
-        ("custom_components/autodarts/frontend/autodarts-card.js", "true"),
-        ("custom_components/autodarts/sensor.py", "false"),
+        ("custom_components/homedarts/frontend/homedarts-card.js", "true"),
+        ("custom_components/homedarts/sensor.py", "false"),
         ("tests/e2e/live_demo.sh", "true"),
         ("tests/e2e/requirements-browser.txt", "true"),
         ("tests/e2e/scenario.py", "false"),
         ("tests/fixtures/board_manager/1.0.7/state.json", "false"),
-        ("blueprints/automation/autodarts/weekly_report.yaml", "false"),
+        ("blueprints/automation/homedarts/weekly_report.yaml", "false"),
         ("package.json", "false"),
         (".github/workflows/e2e.yml", "true"),
     ],
@@ -236,7 +236,7 @@ def test_the_live_demo_runs_for_what_it_plays(tmp_path, name, demo):
 def test_a_file_moved_away_from_the_tests_runs_them(tmp_path):
     moved = {
         "filename": "docs/old_sensor.py",
-        "previous_filename": "custom_components/autodarts/old_sensor.py",
+        "previous_filename": "custom_components/homedarts/old_sensor.py",
         "status": "renamed",
     }
     # The second page of the API: every page counts.

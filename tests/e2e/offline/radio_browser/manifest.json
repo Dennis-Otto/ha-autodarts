@@ -3,7 +3,7 @@
   "name": "Radio Browser",
   "codeowners": [],
   "config_flow": true,
-  "documentation": "https://github.com/Dennis-Otto/ha-autodarts/blob/main/tests/e2e/README.md",
+  "documentation": "https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/tests/e2e/README.md",
   "integration_type": "service",
   "iot_class": "local_polling",
   "requirements": [],

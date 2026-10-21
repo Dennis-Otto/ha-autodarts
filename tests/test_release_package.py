@@ -11,11 +11,11 @@ def test_hacs_installs_the_signed_release_package():
     hacs = json.loads((ROOT / "hacs.json").read_text(encoding="utf-8"))
     workflow = (ROOT / ".github" / "workflows" / "build-release.yml").read_text("utf-8")
     assert hacs["zip_release"] is True
-    assert hacs["filename"] == "autodarts.zip"
+    assert hacs["filename"] == "homedarts.zip"
     # The build of a release names the archive after hacs.json and attests every asset.
     assert "filename=\"$(jq -r '.filename // empty' hacs.json)\"" in workflow
     assert "subject-path: ${{ runner.temp }}/assets/*" in workflow
-    # HACS unpacks the archive into custom_components/autodarts, so it holds the
+    # HACS unpacks the archive into custom_components/homedarts, so it holds the
     # content of that folder without a folder around it.
     assert '"HEAD:custom_components/$domain"' in workflow
 
@@ -23,7 +23,7 @@ def test_hacs_installs_the_signed_release_package():
 def test_the_release_package_carries_the_blueprints():
     """The integration installs the blueprints from its own folder, the content of
     the package, so no rule of .gitattributes may leave them out of the archive."""
-    integration = Path("custom_components", "autodarts")
+    integration = Path("custom_components", "homedarts")
     shipped = [
         path.relative_to(ROOT).as_posix()
         for path in (ROOT / integration / "blueprints").rglob("*.yaml")

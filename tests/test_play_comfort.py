@@ -21,7 +21,7 @@ S5 = ("S5", 5, 1)
 
 
 async def act(hass, service: str, **data) -> None:
-    await hass.services.async_call("autodarts", service, data, blocking=True)
+    await hass.services.async_call("homedarts", service, data, blocking=True)
     await hass.async_block_till_done()
 
 

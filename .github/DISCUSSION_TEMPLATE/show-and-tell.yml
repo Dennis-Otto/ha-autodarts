@@ -4,7 +4,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Show the board you play at with Autodarts for Home Assistant: a photo, the screen next to it and what Home Assistant does. Others find ideas here and see that the integration runs at boards like theirs. Made a video or an article? Share its link here too; the [creator kit](https://github.com/Dennis-Otto/ha-autodarts/blob/main/docs/creator-kit.md) has pictures and facts for it. English and German are both welcome.
+        Show the board you play at with HomeDarts for Autodarts: a photo, the screen next to it and what Home Assistant does. Others find ideas here and see that the integration runs at boards like theirs. Made a video or an article? Share its link here too; the [creator kit](https://github.com/Dennis-Otto/homedarts-for-autodarts/blob/main/docs/creator-kit.md) has pictures and facts for it. English and German are both welcome.
   - type: textarea
     id: photo
     attributes:

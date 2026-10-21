@@ -7,11 +7,11 @@ from copy import deepcopy
 
 import pytest
 
-from custom_components.autodarts import positions
-from custom_components.autodarts.aim import MIN_DARTS, ErrorModel
-from custom_components.autodarts.board import RADIUS_MM, aim_point
-from custom_components.autodarts.checkout import checkout
-from custom_components.autodarts.positions import (
+from custom_components.homedarts import positions
+from custom_components.homedarts.aim import MIN_DARTS, ErrorModel
+from custom_components.homedarts.board import RADIUS_MM, aim_point
+from custom_components.homedarts.checkout import checkout
+from custom_components.homedarts.positions import (
     AIMS,
     GROUPS,
     MIN_GROUP,
@@ -21,7 +21,7 @@ from custom_components.autodarts.positions import (
     spread,
     x01_aims,
 )
-from custom_components.autodarts.scoring import DOUBLE, STRAIGHT
+from custom_components.homedarts.scoring import DOUBLE, STRAIGHT
 
 from .local_helpers import dart
 

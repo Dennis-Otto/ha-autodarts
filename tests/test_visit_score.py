@@ -6,9 +6,9 @@ import itertools
 import pytest
 from homeassistant.exceptions import ServiceValidationError
 
-from custom_components.autodarts.doubles import DoubleHits
-from custom_components.autodarts.practice import VisitRefused
-from custom_components.autodarts.scoring import (
+from custom_components.homedarts.doubles import DoubleHits
+from custom_components.homedarts.practice import VisitRefused
+from custom_components.homedarts.scoring import (
     DOUBLE,
     SCORE_BEDS,
     STRAIGHT,
@@ -17,7 +17,7 @@ from custom_components.autodarts.scoring import (
     score,
     visit_darts,
 )
-from custom_components.autodarts.training import TrainingSession, dart_flags
+from custom_components.homedarts.training import TrainingSession, dart_flags
 
 from .local_helpers import (
     board,
@@ -372,7 +372,7 @@ async def test_a_visit_score_waits_for_the_bot_and_the_game(hass):
     assert error.value.translation_key == "bot_turn"
 
 
-async def test_a_board_with_autodarts_takes_a_visit_score_without_darts_on_it(
+async def test_a_board_with_homedarts_takes_a_visit_score_without_darts_on_it(
     hass, aioclient_mock
 ):
     entry = await setup_local(hass, aioclient_mock, state=board())

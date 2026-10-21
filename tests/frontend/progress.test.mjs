@@ -23,7 +23,7 @@ import {
   trendsHtml,
   trendView,
   trendWeeks,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 import { makeHass } from "./dom.mjs";
 
@@ -455,6 +455,6 @@ test("the players view of the dashboard has the leaderboard too", () => {
   const view = dashboardStrategy(board).views.find((item) => item.path === "players");
   assert.deepEqual(
     view.sections.map((section) => section.cards[0].type),
-    ["custom:autodarts-players-card", "custom:autodarts-leaderboard-card"]
+    ["custom:homedarts-players-card", "custom:homedarts-leaderboard-card"]
   );
 });

@@ -8,7 +8,7 @@ Security fixes are provided for the latest release of the Autodarts integration.
 
 Please do not open a public issue, discussion or pull request for a suspected vulnerability. Use GitHub's private vulnerability reporting for this repository:
 
-<https://github.com/Dennis-Otto/ha-autodarts/security/advisories/new>
+<https://github.com/Dennis-Otto/homedarts-for-autodarts/security/advisories/new>
 
 Include the affected version, the Home Assistant version, the Board Manager version, how the board is connected, reproduction steps and the potential impact. Reports in English or German are welcome.
 
@@ -25,7 +25,7 @@ If a fix needs longer, for example because the cause lies in an upstream project
 
 ## Scope
 
-In scope are the integration in `custom_components/autodarts/`, the dashboard cards it serves, the blueprints, and the release and CI workflows of this repository.
+In scope are the integration in `custom_components/homedarts/`, the dashboard cards it serves, the blueprints, and the release and CI workflows of this repository.
 
 Out of scope, and reported to their own projects instead:
 
@@ -57,16 +57,16 @@ CodeQL and OpenSSF Scorecard report their findings in the repository's Security 
 A release is immutable once it is published, and GitHub signs an attestation of it that ties its tag to its commit and to every file it carries. The release workflow also signs the build provenance of every file with [Sigstore](https://www.sigstore.dev/), using a certificate for the workflow of this repository that is valid for ten minutes. No long-lived signing key exists, so none can leak, and none is stored where the releases are downloaded. The [GitHub CLI](https://cli.github.com/) checks both signatures with the public keys of GitHub and Sigstore, which it fetches itself:
 
 ```sh
-gh release verify vX.Y.Z --repo Dennis-Otto/ha-autodarts
-gh release download vX.Y.Z --repo Dennis-Otto/ha-autodarts --pattern autodarts.zip
-gh attestation verify autodarts.zip --repo Dennis-Otto/ha-autodarts --signer-workflow Dennis-Otto/ha-autodarts/.github/workflows/build-release.yml
+gh release verify vX.Y.Z --repo Dennis-Otto/homedarts-for-autodarts
+gh release download vX.Y.Z --repo Dennis-Otto/homedarts-for-autodarts --pattern homedarts.zip
+gh attestation verify homedarts.zip --repo Dennis-Otto/homedarts-for-autodarts --signer-workflow Dennis-Otto/homedarts-for-autodarts/.github/workflows/build-release.yml
 ```
 
-Every release describes what it ships in an SBOM, as SPDX in `ha-autodarts.spdx.json` and as CycloneDX in `ha-autodarts.cdx.json`: the package that you install, with every component inside it, under the name `ha-autodarts` and the version of the release. A scanner such as [Grype](https://github.com/anchore/grype) checks it against the advisories it knows. When the project accepts an advisory in `osv-scanner.toml`, with its reason, the release carries the OpenVEX document `ha-autodarts.openvex.json` too, which tells the scanner that the advisory doesn't affect the release; without that document, leave out `--vex`:
+Every release describes what it ships in an SBOM, as SPDX in `homedarts-for-autodarts.spdx.json` and as CycloneDX in `homedarts-for-autodarts.cdx.json`: the package that you install, with every component inside it, under the name `homedarts-for-autodarts` and the version of the release. A scanner such as [Grype](https://github.com/anchore/grype) checks it against the advisories it knows. When the project accepts an advisory in `osv-scanner.toml`, with its reason, the release carries the OpenVEX document `homedarts-for-autodarts.openvex.json` too, which tells the scanner that the advisory doesn't affect the release; without that document, leave out `--vex`:
 
 ```sh
-gh release download vX.Y.Z --repo Dennis-Otto/ha-autodarts --pattern 'ha-autodarts.*.json'
-grype sbom:ha-autodarts.spdx.json --vex ha-autodarts.openvex.json
+gh release download vX.Y.Z --repo Dennis-Otto/homedarts-for-autodarts --pattern 'homedarts-for-autodarts.*.json'
+grype sbom:homedarts-for-autodarts.spdx.json --vex homedarts-for-autodarts.openvex.json
 ```
 
 ## Verify the website
@@ -74,8 +74,8 @@ grype sbom:ha-autodarts.spdx.json --vex ha-autodarts.openvex.json
 The Docs workflow publishes the website on GitHub Pages and signs the build provenance of what it publishes with Sigstore, as the release workflow signs a release: `artifact.tar` of the artifact `github-pages` of its run, which GitHub keeps for a day. It then asks the published website for the home page of each of its languages, and for an address that leads nowhere, which must answer with 404, and fails when one doesn't. Take the artifact of the run that published the website, and check it with the GitHub CLI:
 
 ```sh
-gh run download RUN_ID --repo Dennis-Otto/ha-autodarts --name github-pages
-gh attestation verify artifact.tar --repo Dennis-Otto/ha-autodarts --signer-workflow Dennis-Otto/ha-autodarts/.github/workflows/docs.yml
+gh run download RUN_ID --repo Dennis-Otto/homedarts-for-autodarts --name github-pages
+gh attestation verify artifact.tar --repo Dennis-Otto/homedarts-for-autodarts --signer-workflow Dennis-Otto/homedarts-for-autodarts/.github/workflows/docs.yml
 ```
 
 ## Assurance case

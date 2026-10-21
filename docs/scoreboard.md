@@ -20,13 +20,13 @@ A tablet or a TV next to the board turns your darts room into a stage: the score
 
 ## Set up the screen
 
-1. **Create the dashboard.** Go to **Settings → Dashboards → Add dashboard → Autodarts**. The [automatic dashboard](cards.md#automatic-dashboard) has a *Scoreboard* view that shows the [scoreboard card](cards.md#scoreboard-card) across the whole screen.
+1. **Create the dashboard.** Go to **Settings → Dashboards → Add dashboard → HomeDarts**. The [automatic dashboard](cards.md#automatic-dashboard) has a *Scoreboard* view that shows the [scoreboard card](cards.md#scoreboard-card) across the whole screen.
 2. **Open the view on the screen.** Sign in as the screen's user and open the dashboard's *Scoreboard* view. Its address ends in `/scoreboard`, with several boards in `/scoreboard-1`, `/scoreboard-2` and so on; bookmark it or put it on the home screen of the tablet.
 3. **Go full screen.** Use the browser's full-screen mode or a kiosk browser that opens the address at start. Keep the screen awake while it is on the charger, in the settings of the tablet or the kiosk browser.
 4. **Switch on what you like.** Open the dashboard's menu (⋮) → **Edit dashboard**. In the section *Scoreboard view*, switch on the [caller](#the-caller) and the [keypad](#correct-and-enter-darts), and choose the games of the [new game screen](#choose-the-next-game) and the panels of [idle mode](#between-games-idle-mode); the dashboard stays automatic and gets the views of later releases. For every other option, build a view of your own: a view in panel mode with the scoreboard card and `full_height: true`, or choose **Take control** in that editor's menu, which turns the dashboard into one you edit yourself:
 
 ```yaml
-type: custom:autodarts-scoreboard-card
+type: custom:homedarts-scoreboard-card
 full_height: true
 caller: true
 lobby_games: ["301", "501", cricket, killer, around_the_clock]
@@ -41,7 +41,7 @@ The [card guide](cards.md#scoreboard-card) lists every option.
 A TV with a Chromecast, or a Google Nest Hub, shows the scoreboard without a browser of its own: [Home Assistant Cast](https://www.home-assistant.io/integrations/cast/#home-assistant-cast) puts a dashboard on it, and the cards load there by themselves.
 
 1. **Reach Home Assistant over HTTPS.** Cast needs an address of Home Assistant that starts with `https://`, such as the one of Home Assistant Cloud.
-2. **Cast the view.** Open [cast.home-assistant.io](https://cast.home-assistant.io) in Chrome on a computer or an Android phone in the network of the TV, connect your Home Assistant, choose the TV, then the Autodarts dashboard and its *Scoreboard* view. Or let an automation cast it, for example when a game starts, with the action of the [Google Cast](https://www.home-assistant.io/integrations/cast/) integration:
+2. **Cast the view.** Open [cast.home-assistant.io](https://cast.home-assistant.io) in Chrome on a computer or an Android phone in the network of the TV, connect your Home Assistant, choose the TV, then the HomeDarts dashboard and its *Scoreboard* view. Or let an automation cast it, for example when a game starts, with the action of the [Google Cast](https://www.home-assistant.io/integrations/cast/) integration:
 
    ```yaml
    action: cast.show_lovelace_view
@@ -85,7 +85,7 @@ Tap **New game** below the score between games, or at the top right during a gam
 
 <img src="images/en/scoreboard-lobby.png" alt="The new game screen on a landscape tablet: the games by group with 501 chosen, Alex and Sam with their pictures, Sam starting from 301, three legs per set, double out and the start button" width="760">
 
-The screen starts the game with [`autodarts.start_game`](entities.md#start-a-practice-game-autodartsstart_game), exactly like an automation or a voice command would. The [games guide](games.md#start-a-game) shows the other ways.
+The screen starts the game with [`homedarts.start_game`](entities.md#start-a-practice-game-homedartsstart_game), exactly like an automation or a voice command would. The [games guide](games.md#start-a-game) shows the other ways.
 
 ## During the game
 
@@ -190,7 +190,7 @@ A screen that was away, on another view or without its connection to Home Assist
 Three options make the board playable without seeing it: the caller says every dart, where a checkout goes and what to aim at next. They are off by default. Switch them on in the caller options of the card's editor, or for the automatic dashboard in its settings, *Scoreboard view*:
 
 ```yaml
-type: custom:autodarts-scoreboard-card
+type: custom:homedarts-scoreboard-card
 caller: true
 call_darts: bed
 call_route: true
@@ -216,15 +216,15 @@ The bot's turns get the darts, but no route and no target. With a [voice pack](#
 
 ### Voice packs
 
-The browser's voice sounds different on every device, and robotic on many. A voice pack gives the caller a voice of its own: recorded calls in the media folder of Home Assistant, which the screen plays through its speaker. Its files are named as in the voice packs of [darts-caller](https://github.com/lbormann/darts-caller), so a pack of darts-caller works as it is, and the action [`autodarts.generate_voice_pack`](entities.md#record-a-voice-pack-autodartsgenerate_voice_pack) records one with a text-to-speech engine of Home Assistant, such as [Piper](https://www.home-assistant.io/integrations/piper/) for a voice that never leaves your home.
+The browser's voice sounds different on every device, and robotic on many. A voice pack gives the caller a voice of its own: recorded calls in the media folder of Home Assistant, which the screen plays through its speaker. Its files are named as in the voice packs of [darts-caller](https://github.com/lbormann/darts-caller), so a pack of darts-caller works as it is, and the action [`homedarts.generate_voice_pack`](entities.md#record-a-voice-pack-homedartsgenerate_voice_pack) records one with a text-to-speech engine of Home Assistant, such as [Piper](https://www.home-assistant.io/integrations/piper/) for a voice that never leaves your home.
 
-1. Put the pack in a folder of `autodarts/voices` in the media folder, for example `/media/autodarts/voices/russ-bray/` on Home Assistant OS, with the *Samba share* or the *File editor* app. Or record one: **Developer tools → Actions**, *Autodarts: Generate voice pack*, with your engine, its language and a name such as `piper-en`; it takes a few minutes.
+1. Put the pack in a folder of `homedarts/voices` in the media folder, for example `/media/homedarts/voices/russ-bray/` on Home Assistant OS, with the *Samba share* or the *File editor* app. Or record one: **Developer tools → Actions**, *HomeDarts for Autodarts: Generate voice pack*, with your engine, its language and a name such as `piper-en`; it takes a few minutes.
 2. Enter the name of the folder as *Voice pack* in the caller options of the card's editor, `caller_voice: russ-bray`, or for the automatic dashboard in its settings, *Scoreboard view*.
 3. Tap **Caller**. Each tap that switches it on asks for the pack again, so files you added since count from then on.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/en/voice-packs-dark.png">
-  <img src="images/en/voice-packs-light.png" alt="How the caller speaks with a voice pack: a pack of darts-caller copied to the media folder, or one that autodarts.generate_voice_pack recorded with Piper, is a folder of autodarts/voices. When the pack has the files of a call, such as 180, busted, gameshot, matchshot or yr_40, the screen loads them with its login and plays them one after the other, with a name without a file in the browser's voice. When the pack lacks the call or a file does not load, the browser's voice says the whole call. The next call waits until this one has ended" width="560">
+  <img src="images/en/voice-packs-light.png" alt="How the caller speaks with a voice pack: a pack of darts-caller copied to the media folder, or one that homedarts.generate_voice_pack recorded with Piper, is a folder of homedarts/voices. When the pack has the files of a call, such as 180, busted, gameshot, matchshot or yr_40, the screen loads them with its login and plays them one after the other, with a name without a file in the browser's voice. When the pack lacks the call or a file does not load, the browser's voice says the whole call. The next call waits until this one has ended" width="560">
 </picture>
 
 | Call | Files of the pack |
@@ -256,7 +256,7 @@ Stream your games: the scoreboard alone, without its card, lies over the picture
 <img src="images/en/scoreboard-overlay.png" alt="The stream overlay along the bottom of the picture of the board: Practice 501 with three legs per set, Alex at the board with 84 left and the route T20 D12, Sam with 375, and beside them the visit with T20 and 60 points" width="760">
 
 1. **A user for OBS.** In **Settings → People**, add a person with *Allow login*, without administrator rights and with *Can only log in from the local network*, so that OBS can't change your settings.
-2. **The view.** The [automatic dashboard](cards.md#automatic-dashboard) has a *Stream overlay* view that its tabs leave out. Its address is the one of the dashboard with `/overlay` at its end, such as `http://homeassistant.local:8123/dashboard-autodarts/overlay`; with several boards `/overlay-1`, `/overlay-2` and so on.
+2. **The view.** The [automatic dashboard](cards.md#automatic-dashboard) has a *Stream overlay* view that its tabs leave out. Its address is the one of the dashboard with `/overlay` at its end, such as `http://homeassistant.local:8123/dashboard-homedarts/overlay`; with several boards `/overlay-1`, `/overlay-2` and so on.
 3. **The browser source.** In OBS, add a source **Browser** with that address, a width of 1920 and a height of 1080, and turn off *Shutdown source when not visible*, so that it stays signed in. Right-click the source, choose **Interact** and sign in once as the user for OBS.
 4. **Place it.** Put the source above the camera of your stream in the scene. The overlay is see-through: OBS shows your camera wherever the overlay shows nothing.
 
@@ -280,7 +280,7 @@ For a view of your own, put the [scoreboard card](cards.md#scoreboard-card) with
 The card:
 
 ```yaml
-type: custom:autodarts-scoreboard-card
+type: custom:homedarts-scoreboard-card
 overlay: chroma
 overlay_layout: corner
 overlay_color: "#FF00FF"
@@ -305,7 +305,7 @@ overlay_color: "#FF00FF"
 | --- | --- |
 | Darts are not counted | Detection is stopped: the status at the top right says *Detection stopped*. The new game screen's start switches it on; otherwise switch it on with the [board status card](cards.md#board-status-card) or the live card. Also check that *Practice game* is not *Off* and that no [online match](online-matches.md) holds the board. |
 | The caller stays silent | Tap **Caller** once after every reload of the page: browsers play sound only after a tap. Check the volume of the device. |
-| The caller speaks with the browser's voice despite a voice pack | The name of the pack is the name of its folder in `autodarts/voices` of the media folder, in the same case. Calls the pack has no file for are always the browser's; see the [files of a pack](#voice-packs). Files copied after the caller was switched on count after the next tap on **Caller**. |
+| The caller speaks with the browser's voice despite a voice pack | The name of the pack is the name of its folder in `homedarts/voices` of the media folder, in the same case. Calls the pack has no file for are always the browser's; see the [files of a pack](#voice-packs). Files copied after the caller was switched on count after the next tap on **Caller**. |
 | The new game screen does not open | It never opens in the preview of the card editor, and not with `lobby: false`. |
 | The screen shows an old version of the card after an update | Reload the page. In the Home Assistant app, use *Settings → Companion app → Debugging → Reset frontend cache*. |
 | Idle mode starts during a game | Idle mode waits for `idle_after` seconds without darts and taps, and only when no game runs or the game is decided. Raise `idle_after`, or set `idle: false`. |

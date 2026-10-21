@@ -10,9 +10,9 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from custom_components.autodarts.cricket import CRICKET_GAMES, CRICKET_NUMBERS
-from custom_components.autodarts.drills import DRILLS
-from custom_components.autodarts.modes import (
+from custom_components.homedarts.cricket import CRICKET_GAMES, CRICKET_NUMBERS
+from custom_components.homedarts.drills import DRILLS
+from custom_components.homedarts.modes import (
     GAME_SETTINGS,
     CricketMode,
     DrillMode,
@@ -21,8 +21,8 @@ from custom_components.autodarts.modes import (
     VisitRefused,
     X01Mode,
 )
-from custom_components.autodarts.party import PARTY_GAMES, make_party
-from custom_components.autodarts.practice import GAMES, PracticeGame
+from custom_components.homedarts.party import PARTY_GAMES, make_party
+from custom_components.homedarts.practice import GAMES, PracticeGame
 
 from .local_helpers import dart, throw
 

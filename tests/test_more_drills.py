@@ -5,8 +5,8 @@ import json
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from custom_components.autodarts.checkout import checkout
-from custom_components.autodarts.drills import (
+from custom_components.homedarts.checkout import checkout
+from custom_components.homedarts.drills import (
     CATCH_TARGETS,
     JDC_STEPS,
     LADDER,
@@ -18,7 +18,7 @@ from custom_components.autodarts.drills import (
     catch_points,
     make_drill,
 )
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 from .local_helpers import dart
 from .test_drills import throw

@@ -3,7 +3,7 @@
 import pytest
 from homeassistant.exceptions import ServiceValidationError
 
-from custom_components.autodarts.const import DOMAIN
+from custom_components.homedarts.const import DOMAIN
 
 from .local_helpers import board, entity_id, setup_local, state, switch
 from .test_practice_setup import select_game, set_number, throw

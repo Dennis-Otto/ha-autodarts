@@ -6,7 +6,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from custom_components.autodarts.checkout import (
+from custom_components.homedarts.checkout import (
     BEDS,
     BEDS_BY_BULL,
     DOUBLES,
@@ -16,7 +16,7 @@ from custom_components.autodarts.checkout import (
     checkout,
     setup,
 )
-from custom_components.autodarts.scoring import (
+from custom_components.homedarts.scoring import (
     BULL,
     BULL_25_50,
     BULL_50_50,

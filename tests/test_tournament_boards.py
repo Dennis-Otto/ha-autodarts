@@ -8,10 +8,10 @@ from datetime import timedelta
 import pytest
 from homeassistant.exceptions import ServiceValidationError
 
-from custom_components.autodarts.games import ActionRefused, BoardGames
-from custom_components.autodarts.practice import PracticeGame
-from custom_components.autodarts.profiles import Profile
-from custom_components.autodarts.tournament import (
+from custom_components.homedarts.games import ActionRefused, BoardGames
+from custom_components.homedarts.practice import PracticeGame
+from custom_components.homedarts.profiles import Profile
+from custom_components.homedarts.tournament import (
     FINISHED,
     KNOCKOUT,
     MAX_BOARDS,

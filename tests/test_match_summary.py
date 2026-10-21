@@ -3,8 +3,8 @@
 import copy
 import json
 
-from custom_components.autodarts.practice import PracticeGame
-from custom_components.autodarts.summary import Tally
+from custom_components.homedarts.practice import PracticeGame
+from custom_components.homedarts.summary import Tally
 
 from .local_helpers import match, throw, win_leg
 

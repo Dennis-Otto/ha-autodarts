@@ -10,7 +10,7 @@ flowchart TB
   CAST["A phone at cast.home-assistant.io,<br/>or the action cast.show_lovelace_view"] --> RECEIVER["The Chromecast opens the receiver<br/>of Home Assistant Cast"]
   RECEIVER --> HA{{"Home Assistant over HTTPS:<br/>the dashboard and its resources"}}
   KEEP["The integration keeps both modules<br/>in the resources, at the address of its<br/>version, until its last board is deleted"] --> HA
-  HA --> LOAD["The receiver loads autodarts-strategy.js<br/>and autodarts-card.js from Home Assistant"]
+  HA --> LOAD["The receiver loads homedarts-strategy.js<br/>and homedarts-card.js from Home Assistant"]
   LOAD --> TV["The TV shows the dashboard<br/>with the scoreboard"]
 
   classDef bot fill:#526cfe2e,stroke:#526cfe,stroke-width:2px

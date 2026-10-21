@@ -2,14 +2,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { dashboardStrategy } from "../../custom_components/autodarts/frontend/autodarts-card.js";
-import { CARD_MODULE } from "../../custom_components/autodarts/frontend/autodarts-strategy.js";
+import { dashboardStrategy } from "../../custom_components/homedarts/frontend/homedarts-card.js";
+import { CARD_MODULE } from "../../custom_components/homedarts/frontend/homedarts-strategy.js";
 
 const entity = (entity_id, translation_key, device_id) => ({
   entity_id,
   translation_key,
   device_id,
-  platform: "autodarts",
+  platform: "homedarts",
 });
 
 function board(device, prefix) {
@@ -34,20 +34,20 @@ const hass = (entities, devices = registered(entities)) => ({
 
 test("one board gets a live, a scoreboard, a training and a board view", () => {
   const config = dashboardStrategy(hass(board("dev1", "b")));
-  assert.equal(config.title, "Autodarts");
+  assert.equal(config.title, "HomeDarts");
   assert.deepEqual(
     config.views.map((view) => view.path),
     ["live", "scoreboard", "training", "board", "overlay"]
   );
   const [live, scoreboard, training, maintenance] = config.views;
   assert.deepEqual(live.sections[0].cards[0], {
-    type: "custom:autodarts-card",
+    type: "custom:homedarts-card",
     device_id: "dev1",
     grid_options: { columns: "full" },
   });
   assert.equal(scoreboard.panel, true);
   assert.deepEqual(scoreboard.cards, [
-    { type: "custom:autodarts-scoreboard-card", device_id: "dev1", full_height: true },
+    { type: "custom:homedarts-scoreboard-card", device_id: "dev1", full_height: true },
   ]);
   const trends = training.sections[1].cards;
   assert.deepEqual(
@@ -107,7 +107,7 @@ test("a chosen board and title are respected, and missing entities are left out"
 
 test("without boards the dashboard explains what to do", () => {
   const config = dashboardStrategy({ locale: { language: "de" }, entities: {} });
-  assert.match(config.views[0].cards[0].content, /^Kein Autodarts-Board gefunden\. Richte die Autodarts-Integration ein/);
+  assert.match(config.views[0].cards[0].content, /^Kein Board gefunden\. Richte HomeDarts for Autodarts ein/);
 });
 
 test("a board that no longer exists gets no empty views, but its own message", () => {
@@ -122,7 +122,7 @@ test("a board that no longer exists gets no empty views, but its own message", (
   assert.equal(stale.title, "Darts");
   assert.deepEqual(stale.views, [
     {
-      title: "Autodarts",
+      title: "HomeDarts",
       cards: [
         {
           type: "markdown",
@@ -359,7 +359,7 @@ test("the dashboard's settings choose the scoreboard's caller, keypad, games and
   for (const view of views) {
     const { device_id: _, ...card } = view.cards[0];
     assert.deepEqual(card, {
-      type: "custom:autodarts-scoreboard-card",
+      type: "custom:homedarts-scoreboard-card",
       full_height: true,
       caller: true,
       keypad: true,
@@ -383,7 +383,7 @@ test("every board gets a stream overlay that the tabs leave out, with the dashbo
     icon: "mdi:video-outline",
     subview: true,
     panel: true,
-    cards: [{ type: "custom:autodarts-scoreboard-card", device_id: "dev1", overlay: "transparent" }],
+    cards: [{ type: "custom:homedarts-scoreboard-card", device_id: "dev1", overlay: "transparent" }],
   });
   // The settings choose the key colour, the place and the colour; anything else stays out.
   assert.deepEqual(
@@ -392,7 +392,7 @@ test("every board gets a stream overlay that the tabs leave out, with the dashbo
       scoreboard: { caller: true },
     }).cards[0],
     {
-      type: "custom:autodarts-scoreboard-card",
+      type: "custom:homedarts-scoreboard-card",
       device_id: "dev1",
       overlay: "chroma",
       overlay_layout: "corner",
@@ -441,5 +441,5 @@ test("an entity named like its board alone keeps its own row", () => {
 
 test("without a browser the strategy's own module only loads", () => {
   assert.equal(globalThis.window, undefined);
-  assert.equal(CARD_MODULE, new URL("../../custom_components/autodarts/frontend/autodarts-card.js", import.meta.url).href);
+  assert.equal(CARD_MODULE, new URL("../../custom_components/homedarts/frontend/homedarts-card.js", import.meta.url).href);
 });

@@ -5,10 +5,10 @@ config:
 ---
 flowchart TB
   accTitle: So spricht der Caller mit einem Voice-Pack
-  accDescr: Ein Voice-Pack ist ein Ordner in autodarts/voices des Medienordners, entweder ein dorthin kopiertes Pack von darts-caller oder eines, das autodarts.generate_voice_pack mit einer Text-to-Speech-Engine wie Piper aufgenommen hat. Für jede Ansage sucht die Anzeigetafel die Dateien der Ansage im Pack, etwa 180, busted, gameshot oder yr_40. Hat das Pack sie, lädt der Bildschirm sie mit seiner Anmeldung aus Home Assistant und spielt sie nacheinander ab, einen Namen ohne Datei mit der Stimme des Browsers. Fehlt dem Pack die Ansage oder lädt eine Datei nicht, sagt die Stimme des Browsers die ganze Ansage. In jedem Fall wartet die nächste Ansage, bis diese zu Ende ist.
+  accDescr: Ein Voice-Pack ist ein Ordner in homedarts/voices des Medienordners, entweder ein dorthin kopiertes Pack von darts-caller oder eines, das homedarts.generate_voice_pack mit einer Text-to-Speech-Engine wie Piper aufgenommen hat. Für jede Ansage sucht die Anzeigetafel die Dateien der Ansage im Pack, etwa 180, busted, gameshot oder yr_40. Hat das Pack sie, lädt der Bildschirm sie mit seiner Anmeldung aus Home Assistant und spielt sie nacheinander ab, einen Namen ohne Datei mit der Stimme des Browsers. Fehlt dem Pack die Ansage oder lädt eine Datei nicht, sagt die Stimme des Browsers die ganze Ansage. In jedem Fall wartet die nächste Ansage, bis diese zu Ende ist.
 
-  COPY["Ein Pack von darts-caller,<br/>in den Medienordner kopiert"] --> FOLDER["/media/autodarts/voices/russ-bray"]
-  GENERATE["autodarts.generate_voice_pack<br/>nimmt eines mit Piper auf"] --> FOLDER
+  COPY["Ein Pack von darts-caller,<br/>in den Medienordner kopiert"] --> FOLDER["/media/homedarts/voices/russ-bray"]
+  GENERATE["homedarts.generate_voice_pack<br/>nimmt eines mit Piper auf"] --> FOLDER
   CALL["Eine Ansage: 180, überworfen,<br/>Game shot, das Match, du brauchst 40"] --> FILES{{"Hat das Pack ihre Dateien?<br/>180, busted, gameshot,<br/>matchshot, yr_40"}}
   FOLDER --> FILES
   FILES -- "ja" --> PLAY["Der Bildschirm lädt sie mit seiner<br/>Anmeldung und spielt sie nacheinander;<br/>einen Namen ohne Datei mit der<br/>Stimme des Browsers"]

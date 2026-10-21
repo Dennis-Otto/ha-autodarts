@@ -12,16 +12,16 @@ from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.json import json_bytes
 from homeassistant.util import dt as dt_util
 
-from custom_components.autodarts.achievements import CATALOGUE
-from custom_components.autodarts.binary_sensor import MOTION_SENSORS
-from custom_components.autodarts.const import DOMAIN
-from custom_components.autodarts.doubles import DOUBLES
-from custom_components.autodarts.positions import AIMS
-from custom_components.autodarts.practice import GAMES
-from custom_components.autodarts.progress import TREND_WEEKS, WEEK_FIELDS
-from custom_components.autodarts.records import RECORDS
-from custom_components.autodarts.report import REPORT_BESTS
-from custom_components.autodarts.training import COUNTERS
+from custom_components.homedarts.achievements import CATALOGUE
+from custom_components.homedarts.binary_sensor import MOTION_SENSORS
+from custom_components.homedarts.const import DOMAIN
+from custom_components.homedarts.doubles import DOUBLES
+from custom_components.homedarts.positions import AIMS
+from custom_components.homedarts.practice import GAMES
+from custom_components.homedarts.progress import TREND_WEEKS, WEEK_FIELDS
+from custom_components.homedarts.records import RECORDS
+from custom_components.homedarts.report import REPORT_BESTS
+from custom_components.homedarts.training import COUNTERS
 
 from .local_helpers import T20, board, entity_id, setup_local, written
 
@@ -254,7 +254,7 @@ async def busy_home(hass, aioclient_mock):
 
     # A tournament of eight players.
     await hass.services.async_call(
-        "autodarts",
+        "homedarts",
         "start_tournament",
         {"players": NAMES, "game": "501"},
         blocking=True,
@@ -273,7 +273,7 @@ async def test_recorded_attributes_stay_small_in_a_busy_home(hass, aioclient_moc
         assert measured[f"board-1_{key}"][1] > RECORDED_BYTES, key
 
     # Two teams of two in the longest match, with a full leg history.
-    await hass.services.async_call("autodarts", "stop_tournament", {}, blocking=True)
+    await hass.services.async_call("homedarts", "stop_tournament", {}, blocking=True)
     await coordinator.async_start_game(
         1001, names=NAMES[:4], legs=11, sets=7, teams=True
     )
@@ -302,7 +302,7 @@ async def test_a_tournament_of_32_stays_within_its_budget(
     coordinator = entry.runtime_data.local
     players = [f"Player Number {index:02d} xx"[:20] for index in range(32)]
     await hass.services.async_call(
-        "autodarts", "start_tournament", {"players": players, **options}, blocking=True
+        "homedarts", "start_tournament", {"players": players, **options}, blocking=True
     )
     # Every match played to its end, with the longest results.
     tournament = coordinator.games.tournament.tournament
@@ -349,7 +349,7 @@ async def test_the_words_of_the_events_stay_small_in_a_busy_home(hass, aioclient
     report.highest_visit = 180
     report.ends = dt_util.utcnow()
     await coordinator.reports._async_report(dt_util.utcnow())
-    await hass.services.async_call("autodarts", "stop_tournament", {}, blocking=True)
+    await hass.services.async_call("homedarts", "stop_tournament", {}, blocking=True)
     await coordinator.async_start_game(
         1001, names=NAMES[:4], legs=11, sets=7, teams=True, bull_off=False
     )

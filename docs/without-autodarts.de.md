@@ -22,12 +22,12 @@ Kein Autodarts an deinem Board? Die Integration funktioniert mit jeder Steeldart
 
 Installiere zuerst die Integration: Die Schritte 1 bis 3 von [Vom Start bis zur Anzeigetafel](getting-started.de.md) zeigen, wie es mit Home Assistant und HACS geht.
 
-[![Öffne deine Home-Assistant-Instanz und beginne mit der Einrichtung von Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=autodarts)
+[![Öffne deine Home-Assistant-Instanz und beginne mit der Einrichtung von HomeDarts for Autodarts.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=homedarts)
 
-1. Wähle den Knopf oben, oder öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen → Autodarts**.
+1. Wähle den Knopf oben, oder öffne **Einstellungen → Geräte & Dienste → Integration hinzufügen → HomeDarts for Autodarts**.
 2. Wähle **Dartscheibe ohne Autodarts: jeden Dart selbst eingeben**.
 3. Gib dem Board einen Namen, etwa *Keller*, und wähle **Übermitteln**. Die Integration legt ein Gerät mit diesem Namen an, mit den Entitäten der Spiele, des Trainings und der Statistiken.
-4. Lege das Dashboard an: **Einstellungen → Dashboards → Dashboard hinzufügen → Autodarts**. Seine Ansichten *Live* und *Anzeigetafel* haben das Tastenfeld.
+4. Lege das Dashboard an: **Einstellungen → Dashboards → Dashboard hinzufügen → HomeDarts**. Seine Ansichten *Live* und *Anzeigetafel* haben das Tastenfeld.
 
 <img src="images/de/setup-manual.png" alt="Das Formular der Einrichtung für eine Dartscheibe ohne Autodarts, mit dem eingetragenen Namen Dartboard" width="520">
 
@@ -46,7 +46,7 @@ An einer Dartscheibe ohne Autodarts zeigen die Live-Karte und die Anzeigetafel d
 
 <img src="images/de/manual-live.png" alt="Die Live-Karte der Dartscheibe ohne Autodarts namens Garage: Sam hat T20 und S19 für 79 eingegeben, in einem 501-Match gegen Alex, der noch 324 braucht; die Scheibe zeigt beide Felder, das Tastenfeld steht unter den Darts, und es gibt keine Fußzeile mit Verbindungen oder Erkennung" width="760">
 
-Die [Aktionen](entities.de.md#dart-eingeben-autodartsthrow_dart) `autodarts.throw_dart`, [`autodarts.enter_visit`](entities.de.md#aufnahmepunkte-eingeben-autodartsenter_visit), `autodarts.next_player` und `autodarts.undo_visit` tun dasselbe aus einer Automation, einem Skript oder einem eigenen Knopf; bei mehreren Boards nennst du die `config_entry_id` des Boards.
+Die [Aktionen](entities.de.md#dart-eingeben-homedartsthrow_dart) `homedarts.throw_dart`, [`homedarts.enter_visit`](entities.de.md#aufnahmepunkte-eingeben-homedartsenter_visit), `homedarts.next_player` und `homedarts.undo_visit` tun dasselbe aus einer Automation, einem Skript oder einem eigenen Knopf; bei mehreren Boards nennst du die `config_entry_id` des Boards.
 
 **Per Sprache:** Mit dem Blueprint [Enter darts by voice](automations.de.md#enter-darts-by-voice) sagst du Assist deine Darts, wie am Dartautomaten: „Alex hat 140“, „Checkout mit zwei Darts“, „Triple 20“, „Nächster Spieler“ oder „Rückgängig“, auf Deutsch, Englisch, Spanisch, Französisch oder Niederländisch. Assist antwortet in den Worten des Callers der Anzeigetafel, etwa „140 für Alex, noch 361. Sam, du brauchst 501.“, und lehnt eine Aufnahme für einen Spieler ab, der nicht am Board ist.
 
@@ -86,14 +86,14 @@ Ein Granboard sendet seine Darts über Bluetooth an Home Assistant, also gibt si
 
 Jede Dartscheibe ohne Autodarts ist ein eigener Eintrag und ein eigenes Gerät, mit eigenen Entitäten, Spielen und Statistiken, ebenso jedes Autodarts-Board daneben. Das automatische Dashboard gibt jedem Board seine Ansichten. Die Aktionen der Integration brauchen dann die `config_entry_id` des Boards, wie bei mehreren Autodarts-Boards. Ein [Turnier auf mehreren Boards](games.de.md#ein-turnier-auf-mehreren-boards) spielt auf Dartscheiben mit und ohne Autodarts nebeneinander.
 
-Um ein Board samt seinen Statistiken zu entfernen, lösche seinen Eintrag unter **Einstellungen → Geräte & Dienste → Autodarts**.
+Um ein Board samt seinen Statistiken zu entfernen, lösche seinen Eintrag unter **Einstellungen → Geräte & Dienste → HomeDarts for Autodarts**.
 
 ## Autodarts später
 
 Bekommt deine Dartscheibe Autodarts, schließe das Board an sie an, statt ein neues hinzuzufügen, und alles bleibt: die Spiele, die Trainingseinheiten, die Spieler, ihre Abzeichen und jede Statistik, die Entitäts-IDs und deine Dashboards.
 
 1. Richte das Autodarts-Board wie gewohnt in seinem Board Manager ein.
-2. Öffne **Einstellungen → Geräte & Dienste → Autodarts**, das Menü (⋮) der Dartscheibe → **Neu konfigurieren**.
+2. Öffne **Einstellungen → Geräte & Dienste → HomeDarts for Autodarts**, das Menü (⋮) der Dartscheibe → **Neu konfigurieren**.
 3. Wähle **Boards im Netzwerk suchen** oder **Board-Adresse eingeben**, wie beim [Hinzufügen eines Boards](installation.de.md#board-hinzufügen).
 
 Die Dartscheibe hat danach die ID des Boards, die Erkennung, die Kameras, die Board-Einstellungen und die Steuerung, und das automatische Dashboard ihre Ansicht *Board*. *Übungsspiel manuelle Eingabe* bleibt an, sodass die Darts des Tastenfelds weiter zählen; schaltest du sie aus, zählen die Kameras. Findet Home Assistant das Board von selbst und bietet *Autodarts-Board gefunden* an, ignoriere das Angebot und konfiguriere die Dartscheibe neu: Als neuer Eintrag hinzugefügt, finge das Board mit eigenen Statistiken an.

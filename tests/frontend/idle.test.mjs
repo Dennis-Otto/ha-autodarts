@@ -69,7 +69,7 @@ const STATES = {
 const setup = (states = {}, config = {}, options = {}) => {
   const hass = makeHass({ states: { ...READY, ...STATES, ...states }, ...options });
   hass.states["person.alex"] = { entity_id: "person.alex", state: "home", attributes: { entity_picture: PICTURE } };
-  return { hass, card: mount("autodarts-scoreboard-card", hass, config) };
+  return { hass, card: mount("homedarts-scoreboard-card", hass, config) };
 };
 const clock = (t) => t.mock.timers.enable({ apis: ["setTimeout", "setInterval", "Date"], now: NOW });
 const panel = (card) => $(card, ".idle-panel")?.dataset.panel ?? null;
@@ -258,8 +258,8 @@ test("idle mode can be switched off, never runs in the preview and ends with the
   assert.equal(panel(card), "leaderboard");
 
   // A card that never reached the page schedules nothing.
-  const detached = document.createElement("autodarts-scoreboard-card");
-  detached.setConfig({ type: "custom:autodarts-scoreboard-card" });
+  const detached = document.createElement("homedarts-scoreboard-card");
+  detached.setConfig({ type: "custom:homedarts-scoreboard-card" });
   detached.hass = makeHass({ states: { ...READY, ...STATES } });
   t.mock.timers.tick(600000);
   assert.equal(panel(detached), null);

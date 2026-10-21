@@ -83,7 +83,7 @@ The second switch chooses whose darts it shows: the running session, or a named 
 <img src="images/en/training-positions.png" alt="The heatmap in positions mode with Alex's darts: a density around the triple 20, the doubles 16 and 8 and the bull, and the grouping at each of them below" width="620">
 
 ```yaml
-type: custom:autodarts-training-card
+type: custom:homedarts-training-card
 mode: positions
 player: Alex
 ```
@@ -109,7 +109,7 @@ The treble 20 scores the most only for a player whose darts land close together.
 A spread up and down keeps the 20 longer than one to the sides, and darts that land low on average are best aimed that much higher. [How the aim map is computed](how-it-works.md#aim-map).
 
 ```yaml
-type: custom:autodarts-training-card
+type: custom:homedarts-training-card
 mode: aim
 player: Alex
 ```
@@ -164,7 +164,7 @@ Every named player of a practice game gets a profile with lifetime numbers: legs
 - **What counts:** every leg of X01, the Cricket games and the party games. X01 legs add the averages and the checkout rate, Cricket legs the marks per round. In a [team match](games.md#teams), both partners win the leg and the match; the checkout counts for the partner who threw it, and a team leg sets no fewest darts and no best marks per round.
 - **Match history:** the last 20 matches of several players, with every player's legs, sets and average.
 - **Tournaments** count like every match: their legs, matches and head-to-head records go into the profiles. [Tournaments](games.md#tournaments).
-- **A typo in a name?** Remove the profile with [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player), which also forgets the player's progress and badges and takes the name out of the personal bests and the weekly report. The match history keeps the name.
+- **A typo in a name?** Remove the profile with [`homedarts.delete_player`](entities.md#delete-a-player-profile-homedartsdelete_player), which also forgets the player's progress and badges and takes the name out of the personal bests and the weekly report. The match history keeps the name.
 
 ## Achievements
 
@@ -198,13 +198,13 @@ The [leaderboard card](cards.md#leaderboard-card) ranks the records of all named
 Link a player to a person of Home Assistant, and the [scoreboard](scoreboard.md), the players card and the new game screen show the person's picture. The new game screen lists the players who are at home first.
 
 ```yaml
-action: autodarts.link_player
+action: homedarts.link_player
 data:
   player: Alex
   person: person.alex
 ```
 
-A person is one player: linking the person to another player moves the link. [`autodarts.unlink_player`](entities.md#unlink-a-player-autodartsunlink_player) removes it; the statistics stay. The integration keeps only the entity ID of the person; the picture and whether the person is home come from Home Assistant.
+A person is one player: linking the person to another player moves the link. [`homedarts.unlink_player`](entities.md#unlink-a-player-homedartsunlink_player) removes it; the statistics stay. The integration keeps only the entity ID of the person; the picture and whether the person is home come from Home Assistant.
 
 ## Weekly report
 
@@ -225,20 +225,20 @@ The **Training calendar** shows your finished sessions and practice matches of e
 Take your data to a spreadsheet, a backup or your own analysis:
 
 - **On the players card:** turn on `export` and tap *Export*. The browser downloads the sessions, matches and profiles, as a ZIP of CSV tables or as JSON.
-- **In an automation:** the action [`autodarts.export`](entities.md#export-training-data-autodartsexport) writes the file and returns where it is. It is an action for administrators; automations run it, too.
+- **In an automation:** the action [`homedarts.export`](entities.md#export-training-data-homedartsexport) writes the file and returns where it is. It is an action for administrators; automations run it, too.
 
 ```yaml
-action: autodarts.export
+action: homedarts.export
 data:
   format: csv
   what: sessions
 response_variable: export
 ```
 
-Exports contain player names. By default they go to `autodarts/exports` in the media folder, which needs a login; only administrators download them. A folder of your own must be one where Home Assistant allows writing (`www`, a media folder or a folder listed in `allowlist_external_dirs`) and must not be hidden. At most 20 exports are written in an hour. Files in `www` are served at `/local/` without a login to anyone who can reach Home Assistant and knows the file name, so delete exports there that you no longer need.
+Exports contain player names. By default they go to `homedarts/exports` in the media folder, which needs a login; only administrators download them. A folder of your own must be one where Home Assistant allows writing (`www`, a media folder or a folder listed in `allowlist_external_dirs`) and must not be hidden. At most 20 exports are written in an hour. Files in `www` are served at `/local/` without a login to anyone who can reach Home Assistant and knows the file name, so delete exports there that you no longer need.
 
 ## Your data
 
 - **Local only.** Sessions, games and tournaments, personal bests, profiles with their progress, badges and dart positions, the weekly report and the calendar are stored in Home Assistant's `.storage` folder and never leave your home. [What is stored where](how-it-works.md#stored-data).
 - **Diagnostics** redact player names and board details, so you can attach them to a bug report.
-- **Start over:** *New session* starts a new training session; [`autodarts.delete_player`](entities.md#delete-a-player-profile-autodartsdelete_player) forgets one player. Deleting the board in **Settings → Devices & services** deletes all of its stored data.
+- **Start over:** *New session* starts a new training session; [`homedarts.delete_player`](entities.md#delete-a-player-profile-homedartsdelete_player) forgets one player. Deleting the board in **Settings → Devices & services** deletes all of its stored data.

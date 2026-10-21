@@ -24,7 +24,7 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 # What Board Manager 1.0.7, 2.0.0 and 2.0.2 answer, redacted by
 # scripts/capture_board.py; the double of the Docker end-to-end test answers like
@@ -139,7 +139,7 @@ MISS = ("M", 0, 0)
 async def setup_local(hass, aioclient_mock, **kwargs):
     """A Board Manager 1 board, set up locally."""
     mock_board(aioclient_mock, **kwargs)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -157,7 +157,7 @@ async def setup_bridge(hass, aioclient_mock, options=None, **kwargs):
     """A Board Manager 1 board whose entry has the options, by default the bridge on."""
     mock_board(aioclient_mock, **kwargs)
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         data=local_entry_data(),
         options=BRIDGE if options is None else options,
@@ -172,7 +172,7 @@ async def setup_bridge(hass, aioclient_mock, options=None, **kwargs):
 async def setup_v2(hass, aioclient_mock, **kwargs):
     """A Board Manager 2 board, set up locally."""
     mock_board_v2(aioclient_mock, **kwargs)
-    entry = MockConfigEntry(domain="autodarts", version=2, data=local_entry_data())
+    entry = MockConfigEntry(domain="homedarts", version=2, data=local_entry_data())
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -181,7 +181,7 @@ async def setup_v2(hass, aioclient_mock, **kwargs):
 
 def entity_id(hass, platform, key, board_id="board-1"):
     result = er.async_get(hass).async_get_entity_id(
-        platform, "autodarts", f"{board_id}_{key}"
+        platform, "homedarts", f"{board_id}_{key}"
     )
     assert result is not None
     return result
@@ -360,7 +360,7 @@ def win_leg(game: PracticeGame, winner: int) -> list[tuple[str, dict]]:
 
 # -- blueprints, run by Home Assistant's automation engine ------------------------
 
-BLUEPRINTS = Path(__file__).parents[1] / "blueprints" / "automation" / "autodarts"
+BLUEPRINTS = Path(__file__).parents[1] / "blueprints" / "automation" / "homedarts"
 EVENTS = "event.autodarts_board_events"
 # Consecutive events always get distinct timestamps, even with a frozen clock.
 TICKS = itertools.count(1)
@@ -368,7 +368,7 @@ TICKS = itertools.count(1)
 
 async def automate_all(hass, instances: list[tuple[str, dict]]) -> None:
     configs = [
-        {"use_blueprint": {"path": f"autodarts/{name}.yaml", "input": inputs}}
+        {"use_blueprint": {"path": f"homedarts/{name}.yaml", "input": inputs}}
         for name, inputs in instances
     ]
     assert await async_setup_component(hass, "automation", {"automation": configs})

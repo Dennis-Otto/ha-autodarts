@@ -93,7 +93,7 @@ async def test_practice_game_counts_down_busts_and_wins(
     await hass.async_block_till_done()
     assert state(hass, "sensor", "practice_remaining") == "301"
     # Settings and the new leg are saved at once, with the finished legs.
-    saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["practice"]
+    saved = hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]["practice"]
     assert saved["game"] == 301 and saved["double_out"] is False
     assert saved["legs"][0]["checkout"] == 121
     await select_game(hass, "off")
@@ -140,9 +140,9 @@ async def test_visits_name_the_game_and_come_before_their_result(hass, aioclient
 
 async def test_practice_game_survives_a_restart(hass, aioclient_mock, hass_storage):
     data = local_entry_data()
-    hass_storage["autodarts.practice-entry.training"] = {
+    hass_storage["homedarts.practice-entry.training"] = {
         "version": 1,
-        "key": "autodarts.practice-entry.training",
+        "key": "homedarts.practice-entry.training",
         "data": {
             "practice": {
                 "game": 501,
@@ -155,7 +155,7 @@ async def test_practice_game_survives_a_restart(hass, aioclient_mock, hass_stora
     }
     mock_board(aioclient_mock, state=board())
     entry = MockConfigEntry(
-        domain="autodarts", version=2, data=data, entry_id="practice-entry"
+        domain="homedarts", version=2, data=data, entry_id="practice-entry"
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -229,7 +229,7 @@ async def test_a_match_of_two_players_with_names_turns_and_a_winner(
         301,
         301,
     ]
-    saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["practice"]
+    saved = hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]["practice"]
     assert saved["names"][0] == "Dennis" and len(saved["players"]) == 2
 
 
@@ -243,7 +243,7 @@ async def test_legs_and_sets_to_win_are_numbers(hass, aioclient_mock, hass_stora
     assert state(hass, "number", "practice_sets") == "2"
     practice = entry.runtime_data.local.games.practice
     assert (practice.legs_to_win, practice.sets_to_win) == (3, 2)
-    saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["practice"]
+    saved = hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]["practice"]
     assert (saved["legs_to_win"], saved["sets_to_win"]) == (3, 2)
 
 
@@ -280,7 +280,7 @@ async def test_training_games_show_their_target(hass, aioclient_mock, hass_stora
     assert int(target.state) == target.attributes["remaining"]
     await select_game(hass, "off")
     assert state(hass, "sensor", "practice_target") == "unknown"
-    saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["practice"]
+    saved = hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]["practice"]
     assert saved["drills"]["bobs_27"]["results"][0]["score"] == -1
 
 
@@ -307,15 +307,15 @@ async def test_cricket_shows_marks_points_and_the_next_target(
     # Player 2 still needs every number.
     assert state(hass, "sensor", "practice_target") == "T20"
     await select_game(hass, "off")
-    saved = hass_storage[f"autodarts.{entry.entry_id}.training"]["data"]["practice"]
+    saved = hass_storage[f"homedarts.{entry.entry_id}.training"]["data"]["practice"]
     assert saved["game"] == 0 and saved["players"][0]["marks"] == [0] * 7
 
 
 async def test_cricket_survives_a_restart(hass, aioclient_mock, hass_storage):
     marks = [3, 3, 2, 0, 0, 0, 1]
-    hass_storage["autodarts.practice-entry.training"] = {
+    hass_storage["homedarts.practice-entry.training"] = {
         "version": 1,
-        "key": "autodarts.practice-entry.training",
+        "key": "homedarts.practice-entry.training",
         "data": {
             "practice": {
                 "game": "cricket",
@@ -326,7 +326,7 @@ async def test_cricket_survives_a_restart(hass, aioclient_mock, hass_storage):
     }
     mock_board(aioclient_mock, state=board())
     entry = MockConfigEntry(
-        domain="autodarts",
+        domain="homedarts",
         version=2,
         data=local_entry_data(),
         entry_id="practice-entry",

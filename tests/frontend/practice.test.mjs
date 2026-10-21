@@ -8,7 +8,7 @@ import {
   dashboardStrategy,
   partyView,
   practiceView,
-} from "../../custom_components/autodarts/frontend/autodarts-card.js";
+} from "../../custom_components/homedarts/frontend/homedarts-card.js";
 
 test("the practice view reads the remaining score sensor", () => {
   assert.equal(practiceView(undefined), null);
@@ -124,7 +124,7 @@ test("a match brings every player's score", () => {
 });
 
 test("the game settings offer the practice controls and player names, the live view the card alone", () => {
-  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev", platform: "autodarts" });
+  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev", platform: "homedarts" });
   const entities = [
     entity("select.board_practice_game", "practice_game"),
     entity("number.board_players", "practice_players"),
@@ -153,7 +153,7 @@ test("the game settings offer the practice controls and player names, the live v
     ["overlay", "Stream-Overlay", "mdi:video-outline"],
   ]);
   assert.deepEqual(views[0].sections, [
-    { type: "grid", column_span: 2, cards: [{ type: "custom:autodarts-card", device_id: "dev", grid_options: { columns: "full" } }] },
+    { type: "grid", column_span: 2, cards: [{ type: "custom:homedarts-card", device_id: "dev", grid_options: { columns: "full" } }] },
   ]);
   assert.deepEqual(views[3].sections[0].cards, [
     { type: "heading", heading: "Übungsspiel" },
@@ -174,7 +174,7 @@ test("the game settings offer the practice controls and player names, the live v
 });
 
 test("training games show their target, progress and beds to aim at", async () => {
-  const { drillView, drillBeds } = await import("../../custom_components/autodarts/frontend/autodarts-card.js");
+  const { drillView, drillBeds } = await import("../../custom_components/homedarts/frontend/homedarts-card.js");
   assert.equal(drillView(undefined), null);
   assert.equal(drillView({ state: "7", attributes: { drill: "golf" } }), null);
   const clock = drillView({
@@ -203,7 +203,7 @@ test("training games show their target, progress and beds to aim at", async () =
 });
 
 test("the training view charts practice legs per day and the practice trend", () => {
-  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev", platform: "autodarts" });
+  const entity = (entity_id, translation_key) => ({ entity_id, translation_key, device_id: "dev", platform: "homedarts" });
   const entities = [
     entity("sensor.board_darts", "training_darts"),
     entity("sensor.board_practice_legs", "practice_legs_played"),
@@ -234,7 +234,7 @@ test("the training view charts practice legs per day and the practice trend", ()
 });
 
 test("cricket shows every player's marks, the points and the bed to aim at", async () => {
-  const { cricketView, cricketBeds } = await import("../../custom_components/autodarts/frontend/autodarts-card.js");
+  const { cricketView, cricketBeds } = await import("../../custom_components/homedarts/frontend/homedarts-card.js");
   assert.equal(cricketView(undefined), null);
   assert.equal(cricketView({ state: "301", attributes: { game: 301 } }), null);
   assert.equal(cricketView({ state: "unavailable", attributes: { game: "cricket" } }), null);
@@ -276,7 +276,7 @@ test("cricket shows every player's marks, the points and the bed to aim at", asy
 
 test("party games show points, lives and the beds of their target", async () => {
   const { partyView, partyBeds, bullOffView } = await import(
-    "../../custom_components/autodarts/frontend/autodarts-card.js"
+    "../../custom_components/homedarts/frontend/homedarts-card.js"
   );
   assert.equal(partyView({ state: "unknown", attributes: { game: "cricket" } }), null);
   const shanghai = partyView({

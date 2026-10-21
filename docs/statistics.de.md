@@ -83,7 +83,7 @@ Der zweite Umschalter wählt, wessen Darts es zeigt: die laufende Session oder e
 <img src="images/de/training-positions.png" alt="Das Trefferbild im Modus Positionen mit den Darts von Alex: eine Dichte um die Triple 20, die Doubles 16 und 8 und das Bull, darunter die Streuung an jedem davon" width="620">
 
 ```yaml
-type: custom:autodarts-training-card
+type: custom:homedarts-training-card
 mode: positions
 player: Alex
 ```
@@ -109,7 +109,7 @@ Die Triple 20 bringt nur dann die meisten Punkte, wenn deine Darts eng beieinand
 Eine Streuung nach oben und unten hält die 20 länger als eine zur Seite, und Darts, die im Mittel zu tief landen, zielst du am besten um so viel höher. [Wie die Zielkarte gerechnet wird](how-it-works.de.md#zielkarte).
 
 ```yaml
-type: custom:autodarts-training-card
+type: custom:homedarts-training-card
 mode: aim
 player: Alex
 ```
@@ -164,7 +164,7 @@ Jeder Spieler mit Namen bekommt im Übungsspiel ein Profil mit Werten über sein
 - **Was zählt:** jedes Leg von X01, den Cricket-Spielen und den Partyspielen. X01-Legs bringen die Averages und die Checkout-Quote, Cricket-Legs die Marks pro Runde. In einem [Team-Match](games.de.md#teams) gewinnen beide Partner Leg und Match; der Checkout zählt für den Partner, der ihn geworfen hat, und ein Team-Leg setzt keine wenigsten Darts und keine besten Marks pro Runde.
 - **Match-Verlauf:** die letzten 20 Matches mehrerer Spieler, mit Legs, Sätzen und Average jedes Spielers.
 - **Turniere** zählen wie jedes Match: Ihre Legs, Matches und direkten Vergleiche fließen in die Profile. [Turniere](games.de.md#turniere).
-- **Ein Tippfehler im Namen?** Entferne das Profil mit [`autodarts.delete_player`](entities.de.md#spielerprofil-löschen-autodartsdelete_player); das vergisst auch Fortschritt und Abzeichen des Spielers und nimmt den Namen aus den Bestleistungen und dem Wochenbericht. Der Match-Verlauf behält den Namen.
+- **Ein Tippfehler im Namen?** Entferne das Profil mit [`homedarts.delete_player`](entities.de.md#spielerprofil-löschen-homedartsdelete_player); das vergisst auch Fortschritt und Abzeichen des Spielers und nimmt den Namen aus den Bestleistungen und dem Wochenbericht. Der Match-Verlauf behält den Namen.
 
 ## Erfolge
 
@@ -198,13 +198,13 @@ Die [Bestenliste](cards.de.md#bestenliste) ordnet die Rekorde aller Spieler mit 
 Verknüpfe einen Spieler mit einer Person von Home Assistant, dann zeigen die [Anzeigetafel](scoreboard.de.md), die Spielerkarte und die Spielauswahl das Bild der Person. Die Spielauswahl listet die Spieler, die zu Hause sind, zuerst.
 
 ```yaml
-action: autodarts.link_player
+action: homedarts.link_player
 data:
   player: Alex
   person: person.alex
 ```
 
-Eine Person ist ein Spieler: Verknüpfst du die Person mit einem anderen Spieler, wandert die Verknüpfung. [`autodarts.unlink_player`](entities.de.md#spieler-verknüpfung-lösen-autodartsunlink_player) löst sie; die Statistik bleibt. Die Integration behält nur die Entitäts-ID der Person; Bild und Anwesenheit kommen aus Home Assistant.
+Eine Person ist ein Spieler: Verknüpfst du die Person mit einem anderen Spieler, wandert die Verknüpfung. [`homedarts.unlink_player`](entities.de.md#spieler-verknüpfung-lösen-homedartsunlink_player) löst sie; die Statistik bleibt. Die Integration behält nur die Entitäts-ID der Person; Bild und Anwesenheit kommen aus Home Assistant.
 
 ## Wochenbericht
 
@@ -225,20 +225,20 @@ Der **Trainingskalender** zeigt deine beendeten Sessions und Übungsmatches jede
 Nimm deine Daten mit in eine Tabellenkalkulation, eine Sicherung oder deine eigene Auswertung:
 
 - **Auf der Spielerkarte:** Schalte `export` ein und tippe auf *Exportieren*. Der Browser lädt Sessions, Matches und Profile herunter, als ZIP mit CSV-Tabellen oder als JSON.
-- **In einer Automation:** Die Aktion [`autodarts.export`](entities.de.md#trainingsdaten-exportieren-autodartsexport) schreibt die Datei und gibt zurück, wo sie liegt. Sie ist eine Aktion für Administratoren; Automationen führen sie auch aus.
+- **In einer Automation:** Die Aktion [`homedarts.export`](entities.de.md#trainingsdaten-exportieren-homedartsexport) schreibt die Datei und gibt zurück, wo sie liegt. Sie ist eine Aktion für Administratoren; Automationen führen sie auch aus.
 
 ```yaml
-action: autodarts.export
+action: homedarts.export
 data:
   format: csv
   what: sessions
 response_variable: export
 ```
 
-Exporte enthalten Spielernamen. Standardmäßig landen sie in `autodarts/exports` im Medienordner, der eine Anmeldung braucht; herunterladen dürfen sie nur Administratoren. Ein eigener Ordner muss einer sein, in den Home Assistant schreiben darf (`www`, ein Medienordner oder ein Ordner aus `allowlist_external_dirs`), und darf nicht versteckt sein. Höchstens 20 Exporte werden pro Stunde geschrieben. Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; lösche Exporte dort also, wenn du sie nicht mehr brauchst.
+Exporte enthalten Spielernamen. Standardmäßig landen sie in `homedarts/exports` im Medienordner, der eine Anmeldung braucht; herunterladen dürfen sie nur Administratoren. Ein eigener Ordner muss einer sein, in den Home Assistant schreiben darf (`www`, ein Medienordner oder ein Ordner aus `allowlist_external_dirs`), und darf nicht versteckt sein. Höchstens 20 Exporte werden pro Stunde geschrieben. Dateien in `www` liefert Home Assistant unter `/local/` ohne Anmeldung an jeden aus, der Home Assistant erreicht und den Dateinamen kennt; lösche Exporte dort also, wenn du sie nicht mehr brauchst.
 
 ## Deine Daten
 
 - **Nur lokal.** Sessions, Spiele und Turniere, Bestleistungen, Profile mit Fortschritt, Abzeichen und Dart-Positionen, der Wochenbericht und der Kalender liegen im Ordner `.storage` von Home Assistant und verlassen dein Zuhause nie. [Was wo gespeichert wird](how-it-works.de.md#gespeicherte-daten).
 - **Diagnosedaten** schwärzen Spielernamen und Board-Details, du kannst sie also einem Fehlerbericht anhängen.
-- **Neu anfangen:** *Neue Session* startet eine neue Trainingssession; [`autodarts.delete_player`](entities.de.md#spielerprofil-löschen-autodartsdelete_player) vergisst einen Spieler. Löschst du das Board unter **Einstellungen → Geräte & Dienste**, werden alle seine gespeicherten Daten gelöscht.
+- **Neu anfangen:** *Neue Session* startet eine neue Trainingssession; [`homedarts.delete_player`](entities.de.md#spielerprofil-löschen-homedartsdelete_player) vergisst einen Spieler. Löschst du das Board unter **Einstellungen → Geräte & Dienste**, werden alle seine gespeicherten Daten gelöscht.

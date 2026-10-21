@@ -6,8 +6,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from custom_components.autodarts.board import RADIUS_MM, TREBLE_MM
-from custom_components.autodarts.party import (
+from custom_components.homedarts.board import RADIUS_MM, TREBLE_MM
+from custom_components.homedarts.party import (
     Baseball,
     CountUp,
     Golf,
@@ -15,7 +15,7 @@ from custom_components.autodarts.party import (
     inner_single,
     make_party,
 )
-from custom_components.autodarts.practice import PracticeGame
+from custom_components.homedarts.practice import PracticeGame
 
 from .local_helpers import dart, throw
 

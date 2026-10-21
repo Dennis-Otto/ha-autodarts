@@ -10,8 +10,8 @@ on:
   push:
     branches: [main]
     paths:
-      - custom_components/autodarts/translations/**
-      - custom_components/autodarts/frontend/text/**
+      - custom_components/homedarts/translations/**
+      - custom_components/homedarts/frontend/text/**
       - scripts/translations.mjs
       - .github/workflows/translations.yml
   schedule:

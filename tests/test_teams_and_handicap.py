@@ -3,9 +3,9 @@
 import json
 from datetime import datetime
 
-from custom_components.autodarts.practice import PracticeGame, valid_start
-from custom_components.autodarts.profiles import Profiles
-from custom_components.autodarts.records import PersonalRecords
+from custom_components.homedarts.practice import PracticeGame, valid_start
+from custom_components.homedarts.profiles import Profiles
+from custom_components.homedarts.records import PersonalRecords
 
 from .local_helpers import dart, throw
 

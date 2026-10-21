@@ -1,7 +1,7 @@
 """Player profiles, the match history and head-to-head records."""
 
-from custom_components.autodarts.practice import PracticeGame
-from custom_components.autodarts.profiles import MATCH_HISTORY, Profiles
+from custom_components.homedarts.practice import PracticeGame
+from custom_components.homedarts.profiles import MATCH_HISTORY, Profiles
 
 from .local_helpers import throw
 from .test_teams_and_handicap import teams

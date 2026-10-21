@@ -12,7 +12,7 @@
 # reads, and changes nothing.
 set -euo pipefail
 
-repository="${REACH_REPOSITORY:-Dennis-Otto/ha-autodarts}"
+repository="${REACH_REPOSITORY:-Dennis-Otto/homedarts-for-autodarts}"
 analytics="${REACH_ANALYTICS:-https://analytics.home-assistant.io/custom_integrations.json}"
 python="$(command -v python3 || command -v python)"
 
@@ -39,13 +39,14 @@ def read(name):
 
 german = os.environ["REACH_LANGUAGE"] == "de"
 releases = [release for page in read("RELEASES") for release in page]
-# HACS installs and updates the integration from the autodarts.zip of a release,
-# so its downloads count installations and updates, of the betas too.
+# HACS installs and updates the integration from the homedarts.zip of a release,
+# so its downloads count installations and updates, of the betas too; up to 1.18
+# the file was autodarts.zip, after the former name of the integration.
 downloads = sum(
     asset["download_count"]
     for release in releases
     for asset in release["assets"]
-    if asset["name"] == "autodarts.zip"
+    if asset["name"] in ("homedarts.zip", "autodarts.zip")
 )
 visitors = read("VIEWS")["uniques"]
 # GitHub names the referrer "Google", so the match ignores the case.
@@ -56,11 +57,17 @@ google = sum(
 )
 stars = read("REPO")["stargazers_count"]
 # The analytics list every custom integration by its domain once an installation
-# that shares its usage has it, with the versions installed. Other integrations
-# for Autodarts use the domain autodarts too (see docs/coming-from.md), so only a
-# version that is a release of this repository counts.
-versions = read("INTEGRATIONS").get("autodarts", {}).get("versions", {})
-listed = bool({release["tag_name"].removeprefix("v") for release in releases} & set(versions))
+# that shares its usage has it, with the versions installed: homedarts since 2.0,
+# autodarts before. Other integrations for Autodarts use the domain autodarts too
+# (see docs/coming-from.md), so only a version that is a release of this
+# repository counts.
+integrations = read("INTEGRATIONS")
+versions = {
+    version
+    for domain in ("homedarts", "autodarts")
+    for version in integrations.get(domain, {}).get("versions", {})
+}
+listed = bool({release["tag_name"].removeprefix("v") for release in releases} & versions)
 
 today = datetime.date.today()
 months = (

@@ -30,8 +30,8 @@ on:
   push:
     branches: [main]
     paths:
-      - custom_components/autodarts/frontend/**
-      - custom_components/autodarts/manifest.json
+      - custom_components/homedarts/frontend/**
+      - custom_components/homedarts/manifest.json
       - tests/e2e/**
       - "!tests/e2e/browser.py"
       - "!tests/e2e/shards.py"

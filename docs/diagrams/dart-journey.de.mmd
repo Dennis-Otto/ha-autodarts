@@ -5,10 +5,10 @@ config:
 ---
 flowchart TB
   accTitle: Der Weg eines Darts
-  accDescr: Ein Dart landet in der Triple 20. Die Kameras des Boards sehen ihn, und der Board Manager auf dem Board-PC bestimmt das Feld. Eine Echtzeitnachricht bringt es durch dein Netzwerk zur Autodarts-Integration in Home Assistant; sie aktualisiert die Entitäten, sendet die Board-Ereignisse und lässt das Feld auf den Karten und der Anzeigetafel aufleuchten. Deine Automation reagiert auf die Ereignisse, etwa mit blinkendem Licht bei einer 180 oder einem Caller. Das alles dauert weniger als eine Sekunde und braucht keine Cloud.
+  accDescr: Ein Dart landet in der Triple 20. Die Kameras des Boards sehen ihn, und der Board Manager auf dem Board-PC bestimmt das Feld. Eine Echtzeitnachricht bringt es durch dein Netzwerk zu HomeDarts in Home Assistant; die Integration aktualisiert die Entitäten, sendet die Board-Ereignisse und lässt das Feld auf den Karten und der Anzeigetafel aufleuchten. Deine Automation reagiert auf die Ereignisse, etwa mit blinkendem Licht bei einer 180 oder einem Caller. Das alles dauert weniger als eine Sekunde und braucht keine Cloud.
   DART(["Ein Dart landet in T20"]) --> CAMERAS["Die Kameras<br/>des Boards sehen ihn"]
   CAMERAS --> MANAGER["Der Board Manager<br/>auf dem Board-PC<br/>bestimmt das Feld: T20"]
-  MANAGER -- "Echtzeitnachricht<br/>(WebSocket),<br/>in deinem Netzwerk" --> INTEGRATION["Die Autodarts-Integration<br/>in Home Assistant"]
+  MANAGER -- "Echtzeitnachricht<br/>(WebSocket),<br/>in deinem Netzwerk" --> INTEGRATION["HomeDarts<br/>in Home Assistant"]
   INTEGRATION --> ENTITIES["Entitäten:<br/>letzter Dart, Aufnahme"]
   INTEGRATION --> EVENTS["Board-Ereignisse:<br/>dart_detected,<br/>visit_thrown"]
   INTEGRATION --> CARDS["Karten und Anzeigetafel<br/>lassen das Feld aufleuchten"]
